@@ -352,9 +352,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (while pending
       (setq dirs (cons (car pending) dirs))
       (setq pending (cdr pending))
-      (setq attrs (nthcdr 10 (file-attributes (car dirs))))
-      (let ((contents (directory-files (car dirs)))
-	    (default-directory (car dirs)))
+      (let* ((this-dir (car dirs))
+	     (contents (directory-files this-dir))
+	     (default-directory this-dir)
+	     (canonicalized (and (eq system-type 'windows-nt)
+				 (untranslated-canonical-name this-dir))))
+	;; The Windows version doesn't report meaningful inode
+	;; numbers, so use the canonicalized absolute file name of the
+	;; directory instead.
+	(setq attrs (or canonicalized
+			(nthcdr 10 (file-attributes this-dir))))
 	(unless (member attrs normal-top-level-add-subdirs-inode-list)
 	  (setq normal-top-level-add-subdirs-inode-list
 		(cons attrs normal-top-level-add-subdirs-inode-list))
