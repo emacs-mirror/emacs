@@ -420,6 +420,12 @@ Do the same for the keys of the same name."
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 			"Case folding in searches"
 			"Case folding in searches %s"))
+(define-key menu-bar-options-menu [truncate-lines]
+  (menu-bar-make-toggle
+   toggle-truncate-lines truncate-lines
+   "Line Truncation" "Line Truncation %s"
+   (prog1 (setq truncate-lines (not truncate-lines))
+     (set-buffer-modified-p (buffer-modified-p)))))
 (define-key menu-bar-options-menu [transient-mark-mode]
   (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
 			"Transient Mark Mode (highlights region)"
