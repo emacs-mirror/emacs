@@ -538,7 +538,7 @@ non-Quail commands."
 With arg, turn Quail mode on if and only if arg is positive.
 
 You should not turn on and off Quail mode manually, instead use
-the commands `toggle-input-method' or `select-input-methods' (which
+the commands `toggle-input-method' or `set-input-method' (which
 see).  They automatically turn on or off this mode.
 
 Try \\[describe-bindings] in Quail mode to see the available key bindings.
