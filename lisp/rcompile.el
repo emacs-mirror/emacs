@@ -1,11 +1,12 @@
-;;; rcompile.el Run a compilation on a remote machine (requires emacs-19)
+;;; rcompile.el Run a compilation on a remote machine
 
 ;;; Copyright (C) 1993 Free Software Foundation, Inc.
 
-;;; Author: Albert    <alon@milcse.rtsg.mot.com>
-;;; Created: 1993 Oct 6
-;;; Version: 1.0
-;;; Keywords: tools, processes
+;; Author: Albert    <alon@milcse.rtsg.mot.com>
+;; Maintainer: FSF
+;; Created: 1993 Oct 6
+;; Version: 1.1
+;; Keywords: tools, processes
 
 ;; This file is part of GNU Emacs.
 
