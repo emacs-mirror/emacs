@@ -7462,11 +7462,17 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 
   cancel_echoing ();
 
-  if (!NILP (Vquit_flag) && FRAME_TERMCAP_P (selected_frame))
+  if (!NILP (Vquit_flag)
+      && (FRAME_TERMCAP_P (selected_frame) || FRAME_MSDOS_P (selected_frame)))
     {
+      /* If SIGINT isn't blocked, don't let us be interrupted by
+	 another SIGINT, it might be harmful due to non-reentrancy
+	 in I/O functions.  */
+      sigblock (sigmask (SIGINT));
+
       fflush (stdout);
       reset_sys_modes ();
-      sigfree ();
+
 #ifdef SIGTSTP			/* Support possible in later USG versions */
 /*
  * On systems which can suspend the current process and return to the original
@@ -7545,6 +7551,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 #endif /* not MSDOS */
       fflush (stdout);
       init_sys_modes ();
+      sigfree ();
     }
   else
     {
