@@ -3,20 +3,20 @@
 
 ;; Copyright (C) 1993, 1995 Free Software Foundation, Inc.
 
-;; This file is part of mh-e.
+;; This file is part of GNU Emacs.
 
-;; mh-e is free software; you can redistribute it and/or modify
+;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
 ;; the Free Software Foundation; either version 2, or (at your option)
 ;; any later version.
 
-;; mh-e is distributed in the hope that it will be useful,
+;; GNU Emacs is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
 ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with mh-e; see the file COPYING.  If not, write to
+;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
 ;;; Commentary:
@@ -27,7 +27,7 @@
 
 ;;; Change Log:
 
-;; $Id: mh-funcs.el,v 1.9 95/03/02 04:53:58 gildea Exp $
+;; $Id: mh-funcs.el,v 1.2 1995/04/09 22:30:49 kwzh Exp kwzh $
 
 ;;; Code:
 
