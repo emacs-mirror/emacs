@@ -165,7 +165,7 @@
   (setq font-lock-defaults
         '((scheme-font-lock-keywords
            scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
-          nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
+          nil t (("+-*/.<>=!?$%_&~^:#" . "w")) beginning-of-defun
           (font-lock-mark-block-function . mark-defun)
           (font-lock-syntactic-face-function . lisp-font-lock-syntactic-face-function))))
 
@@ -337,8 +337,8 @@ See `run-hooks'."
       ;; David Fox <fox@graphics.cs.nyu.edu> for SOS/STklos class specifiers.
       '("\\<<\\sw+>\\>" . font-lock-type-face)
       ;;
-      ;; Scheme `:' keywords as builtins.
-      '("\\<:\\sw+\\>" . font-lock-builtin-face)
+      ;; Scheme `:' and `#:' keywords as builtins.
+      '("\\<#?:\\sw+\\>" . font-lock-builtin-face)
       )))
   "Gaudy expressions to highlight in Scheme modes.")
 
