@@ -857,7 +857,7 @@ SIZE, if supplied, should be a prime number."
 ;;;; Internal variables.
 ;;;; ------------------------------------------------------------
 
-(defconst ange-ftp-version "$Revision: 1.8 $")
+(defconst ange-ftp-version "$Revision: 1.9 $")
 
 (defvar ange-ftp-data-buffer-name " *ftp data*"
   "Buffer name to hold directory listing data received from ftp process.")
@@ -2171,9 +2171,7 @@ to take switch arguments."
   "Interactively adds a given HOST to ange-ftp-dumb-unix-host-regexp."
   (interactive
    (list (read-string "Host: "
-		      (let ((name (or (buffer-file-name)
-				      (and (eq major-mode 'dired-mode)
-					   dired-directory))))
+		      (let ((name (or (buffer-file-name) default-directory)))
 			(and name (car (ange-ftp-ftp-name name)))))))
   (if (not (ange-ftp-dumb-unix-host host))
       (setq ange-ftp-dumb-unix-host-regexp
@@ -2404,9 +2402,7 @@ as well.")
   "Interactively adds a DIR to ange-ftp-dl-dir-regexp."
   (interactive
    (list (read-string "Directory: "
-		      (let ((name (or (buffer-file-name)
-				      (and (eq major-mode 'dired-mode)
-					   dired-directory))))
+		      (let ((name (or (buffer-file-name) default-directory)))
 			(and name (ange-ftp-ftp-name name)
 			     (file-name-directory name))))))
   (if (not (and ange-ftp-dl-dir-regexp
@@ -2531,10 +2527,11 @@ that a wasted listing is not done:
 	     (host-type (ange-ftp-host-type
 			 (car parsed))))
 	(or
-	 ;; Deal with dired
-	 (and (boundp 'dired-local-variables-file)
-	      (stringp dired-local-variables-file)
-	      (string-equal dired-local-variables-file efile))
+;;; This variable seems not to exist in Emacs 19 -- rms.
+;;;	 ;; Deal with dired
+;;;	 (and (boundp 'dired-local-variables-file)
+;;;	      (stringp dired-local-variables-file)
+;;;	      (string-equal dired-local-variables-file efile))
 	 ;; No dots in dir names in vms.
 	 (and (eq host-type 'vms)
 	      (string-match "\\." efile))
@@ -4575,9 +4572,7 @@ Other orders of $ and _ seem to all work just fine.")
   "Mark HOST as the name of a machine running VMS."
   (interactive
    (list (read-string "Host: "
-		      (let ((name (or (buffer-file-name)
-				      (and (eq major-mode 'dired-mode)
-					   dired-directory))))
+		      (let ((name (or (buffer-file-name) default-directory)))
 			(and name (car (ange-ftp-ftp-name name)))))))
   (if (not (ange-ftp-vms-host host))
       (setq ange-ftp-vms-host-regexp
@@ -4985,9 +4980,7 @@ Other orders of $ and _ seem to all work just fine.")
   "Mark HOST as the name of a machine running MTS."
   (interactive
    (list (read-string "Host: "
-		      (let ((name (or (buffer-file-name)
-				      (and (eq major-mode 'dired-mode)
-					   dired-directory))))
+		      (let ((name (or (buffer-file-name) default-directory)))
 			(and name (car (ange-ftp-ftp-name name)))))))
   (if (not (ange-ftp-mts-host host))
       (setq ange-ftp-mts-host-regexp
@@ -5169,9 +5162,7 @@ Other orders of $ and _ seem to all work just fine.")
   "Mark HOST as the name of a CMS host."
   (interactive
    (list (read-string "Host: "
-		      (let ((name (or (buffer-file-name)
-				      (and (eq major-mode 'dired-mode)
-					   dired-directory))))
+		      (let ((name (or (buffer-file-name) default-directory)))
 			(and name (car (ange-ftp-ftp-name name)))))))
   (if (not (ange-ftp-cms-host host))
       (setq ange-ftp-cms-host-regexp
