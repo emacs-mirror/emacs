@@ -3,7 +3,7 @@
 @setfilename tasks.info
 @settitle GNU Task List
 @c This date is automagically updated when you save this file:
-@set lastupdate September 15, 1999
+@set lastupdate October 21, 1999
 @c %**end of header
 
 @setchapternewpage off
@@ -175,10 +175,10 @@ A manual for libstdc++.
 A unified manual for La@TeX{}.  (Existing documentation is non-free.)
 
 @item
-A tutorial introduction to Midnight Commander.
+A manual for Docbook SGML format. 
 
 @item
-A manual for GNU SQL.
+A tutorial introduction to Midnight Commander.
 
 @item
 A thorough manual for RCS.
