@@ -1,4 +1,17 @@
-2000-01-05  Dave Love  <fx@gnu.org>
+2000-01-02  Dave Love  <fx@gnu.org>
+
+	* text-mode.el (text-mode): Remove page-delimiter's `^' from
+	paragraph-start.
+	(paragraph-indent-minor-mode): New command.
+
+	* fortran.el (fortran-mode-map): Don't bind M-C-a, M-C-e, M-C-h,
+	C-j, C-xnd, TAB.
+	(fortran-mode): Set beginning-of-defun, end-of-defun.
+	(fortran-column-ruler): Simplify.
+	(fortran-mark-subprogram, fortran-narrow-to-subprogram): Deleted.
+	(fortran-with-subprogram-narrowing): Likewise.
+	(fortran-indent-subprogram): Call mark-defun.
+	(fortran-check-for-matching-do): Change narrowing.
 
 	* cl-extra.el (cl-make-hash-table): Use make-hash-table.
 	(cl-lucid-hash-tag): Delete.
