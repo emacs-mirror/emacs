@@ -14019,7 +14019,7 @@ DEFUN ("format-mode-line", Fformat_mode_line, Sformat_mode_line,
        0, 2, 0,
        doc: /* Return the mode-line of selected window as a string.
 First optional arg FORMAT specifies a different format string (see
-`mode-line-format' for for details) to use.  If FORMAT is t, return
+`mode-line-format' for details) to use.  If FORMAT is t, return
 the buffer's header-line.  Second optional arg WINDOW specifies a
 different window to use as the context for the formatting.  */)
      (format, window)
