@@ -963,7 +963,8 @@ Bind this in case the user sets it to nil."
 
 (defun Info-goto-node (nodename &optional fork)
   "Go to info node named NAME.  Give just NODENAME or (FILENAME)NODENAME.
-If FORK is non-nil, show the node in a new info buffer.
+If FORK is non-nil (interactively with a prefix arg), show the node in
+a new info buffer.
 If FORK is a string, it is the name to use for the new buffer."
   (interactive (list (Info-read-node-name "Goto node: ") current-prefix-arg))
   (info-initialize)
@@ -1369,7 +1370,10 @@ FOOTNOTENAME may be an abbreviation of the reference name."
 
 (defun Info-menu (menu-item &optional fork)
   "Go to node for menu item named (or abbreviated) NAME.
-Completion is allowed, and the menu item point is on is the default."
+Completion is allowed, and the menu item point is on is the default.
+If FORK is non-nil (interactively with a prefix arg), show the node in
+a new info buffer.  If FORK is a string, it is the name to use for the
+new buffer."
   (interactive
    (let ((completions '())
 	 ;; If point is within a menu item, use that item as the default
@@ -1987,6 +1991,8 @@ If no reference to follow, moves to the next node, or up if none."
     :help "Go backward one node, considering all as a sequence"]
    ["Forward" Info-forward-node
     :help "Go forward one node, considering all as a sequence"]
+   ["Beginning" beginning-of-buffer
+    :help "Go to beginning of this node"]
    ["Top" Info-top-node
     :help "Go to top node of file"]
    ["Final Node" Info-final-node
@@ -2004,7 +2010,23 @@ If no reference to follow, moves to the next node, or up if none."
      :help "Look for a string in the index items"]
     ["Next Matching Item" Info-index-next
      :help "Look for another occurrence of previous item"])
+   ["Edit" Info-edit :help "Edit contents of this node"
+    :active Info-enable-edit]
    ["Exit" Info-exit t]))
+
+
+(defvar info-tool-bar-map
+  (if (display-graphic-p)
+      (let ((tool-bar-map (make-sparse-keymap)))
+	(tool-bar-add-item-from-menu 'Info-exit "close" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-prev "left_arrow" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-next "right_arrow" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-up "up_arrow" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-top-node "home" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-index "index" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-goto-node "jump_to" Info-mode-map)
+	(tool-bar-add-item-from-menu 'Info-search "search" Info-mode-map)
+	tool-bar-map)))
 
 (defvar Info-menu-last-node nil)
 ;; Last node the menu was created for.
@@ -2152,6 +2174,7 @@ Advanced commands:
   (setq Info-tag-table-buffer nil)
   (make-local-variable 'Info-history)
   (make-local-variable 'Info-index-alternatives)
+  (set (make-local-variable 'tool-bar-map) info-tool-bar-map)
   ;; This is for the sake of the invisible text we use handling titles.
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
@@ -2169,12 +2192,11 @@ Advanced commands:
 	      (with-current-buffer Info-tag-table-buffer
 		(copy-marker (marker-position m))))))))
 
-(defvar Info-edit-map nil
+(defvar Info-edit-map (let ((map (make-sparse-keymap)))
+			(set-keymap-parent map text-mode-map)
+			(define-key map "\C-c\C-c" 'Info-cease-edit)
+			map)
   "Local keymap used within `e' command of Info.")
-(if Info-edit-map
-    nil
-  (setq Info-edit-map (nconc (make-sparse-keymap) text-mode-map))
-  (define-key Info-edit-map "\C-c\C-c" 'Info-cease-edit))
 
 ;; Info-edit mode is suitable only for specially formatted data.
 (put 'Info-edit-mode 'mode-class 'special)
@@ -2492,6 +2514,8 @@ This will add a speedbar major display mode."
   ;; Now, throw us into Info mode on speedbar.
   (speedbar-change-initial-expansion-list "Info")
   )
+
+(eval-when-compile (defvar speedbar-attached-frame))
 
 (defun Info-speedbar-hierarchy-buttons (directory depth &optional node)
   "Display an Info directory hierarchy in speedbar.
