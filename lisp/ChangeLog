@@ -1,3 +1,8 @@
+2000-01-05  Thien-Thi Nguyen  <ttn@delysid.gnu.org>
+
+	* progmodes/hideshow.el (hs-discard-overlays, hs-flag-region,
+	hs-show-block): Don't use `mapcar' when not accumulating.
+
 2000-01-05  Andreas Schwab  <schwab@suse.de>
 
 	* hscroll.el (hscroll): Doc fix.
@@ -9,8 +14,8 @@
 
 	* progmodes/idlwave.el (idlwave-load-system-rinfo): load must read
 	file idlw-rinfo.el.
-	(idlwave-customize): load must read file idlw-shell.el. 
-	(idlwave-create-customize-menu): load must read file idlw-shell.el. 
+	(idlwave-customize): load must read file idlw-shell.el.
+	(idlwave-create-customize-menu): load must read file idlw-shell.el.
 
 2000-01-05  Carsten Dominik  <dominik@astro.uva.nl>
 
@@ -20,7 +25,7 @@
 
 	* textmodes/reftex-dcr.el: renamed from reftex-vcr.el, provide
 	both reftex-dcr and reftex-vcr.
-	
+
 	* textmodes/reftex.el: Renamed reftex-vcr.el to reftex-dcr.el
 
 2000-01-05  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
@@ -122,7 +127,7 @@
 	(image-type-from-data): New function.
 	(image-type-from-file-header): Use it.
 	(create-image): Add parameter DATA-P.
-	
+
 1999-12-31  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* echistory.el (electric-command-history): Call Command-history-setup
@@ -354,7 +359,7 @@
 
 	* progmodes/idlwave-toolbar.el: New file.
 
-	* files.el (auto-mode-alist): idlwave-mode default for .pro files. 
+	* files.el (auto-mode-alist): idlwave-mode default for .pro files.
 
 1999-12-21  Gerd Moellmann  <gerd@gnu.org>
 
@@ -515,7 +520,7 @@
 	reftex-index-select-phrases-macro): New functions.
 	(reftex-index-globalize, reftex-index-globally): functions removed
 	(eval-when-compile (require 'cl)) added.
-	     
+
 	 * textmodes/reftex-toc.el (reftex-toc-mode): Create new indicator
 	 for max level.
 	 (reftex-toc-max-level-indicator): New variable.
