@@ -3282,8 +3282,8 @@ This function is an internal primitive--use `make-frame' instead.")
   {
     Lisp_Object font;
 
-    if (! STRINGP (font))
-      font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", string);
+    font = x_get_arg (dpyinfo, parms, Qfont, "font", "Font", string);
+
     BLOCK_INPUT;
     /* First, try whatever font the caller has specified.  */
     if (STRINGP (font))
