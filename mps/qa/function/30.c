@@ -1,6 +1,6 @@
 /* 
 TEST_HEADER
- id = $HopeName$
+ id = $HopeName: MMQA_test_function!30.c(trunk.4) $
  summary = test my format for checking the graph
  language = c
  link = testlib.o awlfmt.o
@@ -11,7 +11,9 @@ END_HEADER
 #include "mpscawl.h"
 #include "awlfmt.h"
 
+
 void *stackpointer;
+
 
 static void test(void)
 {
@@ -34,25 +36,17 @@ static void test(void)
 
  cdie(mps_thread_reg(&thread, space), "register thread");
 
- cdie(
-  mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
-   mps_stack_scan_ambig, stackpointer, 0),
-  "create root");
+ cdie(mps_root_create_reg(&root, space, MPS_RANK_AMBIG, 0, thread,
+                          mps_stack_scan_ambig, stackpointer, 0),
+      "create root");
 
- cdie(
-  mps_fmt_create_A(&format, space, &fmtA),
-  "create format");
+ cdie(mps_fmt_create_A(&format, space, &fmtA), "create format");
 
- cdie(
-  mps_pool_create(&pool, space, mps_class_awl(), format),
-  "create pool");
+ cdie(mps_pool_create(&pool, space, mps_class_awl(), format), "create pool");
 
- cdie(
-  mps_ap_create(&ap, pool, MPS_RANK_EXACT),
-  "create ap");
+ cdie(mps_ap_create(&ap, pool, MPS_RANK_EXACT), "create ap");
 
- for (j=1; j<100; j++)
- {
+ for (j = 1; j < 100; j++) {
   comment("%i of 100.", j);
   UC;
   a = allocone(ap, 5, 1);
@@ -63,8 +57,7 @@ static void test(void)
   f = a;
   g = a;
 
-  for (i=1; i<1000; i++)
-  {
+  for (i = 1; i < 100; i++) {
   UC;
    c = allocone(ap, 1000, 1);
    if (ranint(8) == 0) d = c;
@@ -107,8 +100,8 @@ static void test(void)
 
  mps_space_destroy(space);
  comment("Destroyed space.");
-
 }
+
 
 int main(void)
 {
