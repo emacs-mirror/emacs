@@ -158,7 +158,7 @@
 	(var-TimeZone, math-exp-str, math-exp-pos): Declare them.
 	(math-sh-year): New variable.
 	(math-setup-add-holidays, math-setup-holidays)
-	(math-setup-year-holiday): Replace variable `year' by declared
+	(math-setup-year-holidays): Replace variable `year' by declared
 	variable.
 
 	* calc/calc-math.el (math-nrf-n, math-nrf-nf, math-nrf-nfm1):
@@ -166,8 +166,8 @@
 	(math-nth-root-float, math-nth-root-float-iter): Replace variables
 	n, nf and nfm1 by declared variables.
 	(math-nri-n): New variable.
-	(math-nth-root-int, math-nth-root-int-iter): Replace variable n by
-	declared variable.
+	(math-nth-root-integer, math-nth-root-int-iter): Replace variable
+	n by declared variable.
 	(calcFunc-log): Removed misplaced condition.
 
 2004-11-24  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -195,8 +195,8 @@
 	(math-stack-value-offset-fancy): Replace variables c, wid and off
 	by declared variables.
 	(math-comp-just, math-comp-comma-spc): New variables.
-	(math-compose-expr, math-compose-matrix): Replace variable `just'
-	by declared variable.
+	(math-compose-expr, math-compose-matrix): Replace variables `just'
+	and comma-spc by declared variable.
 	(math-comp-vector-prec): New variable.
 	(math-compose-expr, math-compose-matrix, math-compose-rows):
 	Replace variable vector-prec by declared variable.
