@@ -1,3 +1,19 @@
+2002-05-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xlwmenu.c (xlwMenuResources): New resource.
+	(find_next_selectable): Return current item when the menu is not
+	poped up.
+	Rename `inactive_gc' to `disabled_gc'.
+	Use lighter/darker color for disabled menu items instead of using
+	stipple.  Use stipple only when better color can not be
+	determined automatically.
+
+	* xlwmenu.h (XtNdisabledForeground, XtCDisabledForeground):
+	New resource names.
+
+	* xlwmenuP.h (_XlwMenu_part): Add new member `disabled_foreground'.
+	Rename `inactive_gc' to `disabled_gc'.
+
 2002-04-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
 	* xlwmenu.c <XtNmargin, XtNverticalSpacing, XmNshadowThickness>:
