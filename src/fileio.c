@@ -199,6 +199,7 @@ restore_point_unwind (location)
 }
 
 Lisp_Object Qexpand_file_name;
+Lisp_Object Qsubstitute_in_file_name;
 Lisp_Object Qdirectory_file_name;
 Lisp_Object Qfile_name_directory;
 Lisp_Object Qfile_name_nondirectory;
@@ -225,7 +226,6 @@ Lisp_Object Qinsert_file_contents;
 Lisp_Object Qwrite_region;
 Lisp_Object Qverify_visited_file_modtime;
 Lisp_Object Qset_visited_file_modtime;
-Lisp_Object Qsubstitute_in_file_name;
 
 DEFUN ("find-file-name-handler", Ffind_file_name_handler, Sfind_file_name_handler, 2, 2, 0,
   "Return FILENAME's handler function for OPERATION, if it has one.\n\
@@ -745,6 +745,12 @@ See also the function `substitute-in-file-name'.")
   handler = Ffind_file_name_handler (name, Qexpand_file_name);
   if (!NILP (handler))
     return call3 (handler, Qexpand_file_name, name, defalt);
+  if (!NILP (defalt))
+    {
+      handler = Ffind_file_name_handler (defalt, Qexpand_file_name);
+      if (!NILP (handler))
+	return call3 (handler, Qexpand_file_name, name, defalt);
+    }
 
   /* Use the buffer's default-directory if DEFALT is omitted.  */
   if (NILP (defalt))
@@ -4183,6 +4189,7 @@ DEFUN ("read-file-name", Fread_file_name, Sread_file_name, 1, 5, 0,
 syms_of_fileio ()
 {
   Qexpand_file_name = intern ("expand-file-name");
+  Qsubstitute_in_file_name = intern ("substitute-in-file-name");
   Qdirectory_file_name = intern ("directory-file-name");
   Qfile_name_directory = intern ("file-name-directory");
   Qfile_name_nondirectory = intern ("file-name-nondirectory");
@@ -4209,9 +4216,9 @@ syms_of_fileio ()
   Qwrite_region = intern ("write-region");
   Qverify_visited_file_modtime = intern ("verify-visited-file-modtime");
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
-  Qsubstitute_in_file_name = intern ("substitute-in-file-name");
 
   staticpro (&Qexpand_file_name);
+  staticpro (&Qsubstitute_in_file_name);
   staticpro (&Qdirectory_file_name);
   staticpro (&Qfile_name_directory);
   staticpro (&Qfile_name_nondirectory);
@@ -4237,7 +4244,6 @@ syms_of_fileio ()
   staticpro (&Qinsert_file_contents);
   staticpro (&Qwrite_region);
   staticpro (&Qverify_visited_file_modtime);
-  staticpro (&Qsubstitute_in_file_name);
 
   Qfile_name_history = intern ("file-name-history");
   Fset (Qfile_name_history, Qnil);
