@@ -1033,9 +1033,6 @@ set_internal (symbol, newval, buf, bindflag)
   if (NILP (buf->name))
     return newval;
 
-  if (strcmp (XSYMBOL (symbol)->name->data, "foo") == 0)
-    fprintf (stderr, "foo\n");
-
   CHECK_SYMBOL (symbol, 0);
   if (NILP (symbol) || EQ (symbol, Qt)
       || (XSYMBOL (symbol)->name->data[0] == ':'
