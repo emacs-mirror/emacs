@@ -988,18 +988,18 @@ DESCRIPTION is a string describing this method and what it is good for.
 The ARGS, if any, are passed as arguments to ACTIVATE-FUNC.
 All told, the arguments to ACTIVATE-FUNC are INPUT-METHOD and the ARGS.
 
-This function is mainly used in the file \"leim-list.el\" which is
-created at building time of emacs, registering all quail input methods
-contained in the emacs distribution.
+This function is mainly used in the file \"leim-list.el\", which is
+created at Emacs build time to register all Quail input methods
+contained in the Emacs distribution.
 
-In case you want to register a new quail input method by yourself, be
+In case you want to register a new Quail input method by yourself, be
 careful to use the same input method title as given in the third
-parameter of `quail-define-package' (if the values are different, the
-string specified in this function takes precedence).
+parameter of `quail-define-package'.  (If the values are different, the
+string specified in this function takes precedence.)
 
 The commands `describe-input-method' and `list-input-methods' need
-this duplicated values to show some information about input methods
-without loading the affected quail packages."
+these duplicated values to show some information about input methods
+without loading the relevant Quail packages."
   (if (symbolp lang-env)
       (setq lang-env (symbol-name lang-env)))
   (if (symbolp input-method)
@@ -1014,7 +1014,7 @@ without loading the affected quail packages."
 (defun read-input-method-name (prompt &optional default inhibit-null)
   "Read a name of input method from a minibuffer prompting with PROMPT.
 If DEFAULT is non-nil, use that as the default,
-  and substitute it into PROMPT at the first `%s'.
+and substitute it into PROMPT at the first `%s'.
 If INHIBIT-NULL is non-nil, null input signals an error.
 
 The return value is a string."
@@ -1233,7 +1233,7 @@ just inactivated.")
   "Normal hook run just after an input method insert some chunk of text.")
 
 (defvar input-method-exit-on-first-char nil
-  "This flag controls a timing when an input method returns.
+  "This flag controls when an input method returns.
 Usually, the input method does not return while there's a possibility
 that it may find a different translation if a user types another key.
 But, it this flag is non-nil, the input method returns as soon as
