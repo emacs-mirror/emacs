@@ -1,6 +1,6 @@
 ;;; image.el --- image API
 
-;; Copyright (C) 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
 ;; Keywords: multimedia
 
 ;; This file is part of GNU Emacs.
@@ -200,12 +200,19 @@ Example:
       (let* ((spec (car specs))
 	     (type (plist-get spec :type))
 	     (data (plist-get spec :data))
-	     (file (plist-get spec :file)))
+	     (file (plist-get spec :file))
+	     found)
 	(when (image-type-available-p type)
 	  (cond ((stringp file)
-		 (setq file (expand-file-name file data-directory))
-		 (when (file-readable-p file)
-		   (setq image (cons 'image (plist-put spec :file file)))))
+		 (let ((path load-path))
+		   (while (and (not found) path)
+		     (let ((try-file (expand-file-name file (car path))))
+		       (when (file-readable-p try-file)
+			 (setq found try-file)))
+		     (setq path (cdr path)))
+		   (unless found
+		     (setq found (expand-file-name file data-directory)))
+		   (setq image (cons 'image (plist-put spec :file found)))))
 		((not (null data))
 		 (setq image (cons 'image spec)))))
 	(setq specs (cdr specs))))
