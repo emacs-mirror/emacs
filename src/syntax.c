@@ -2784,7 +2784,7 @@ Value is a list of ten elements describing final state of parsing:\n\
     else an integer (the current comment nesting).\n\
  5. t if following a quote character.\n\
  6. the minimum paren-depth encountered during this scan.\n\
- 7. t if in a comment of style b; `syntax-table' if the comment\n\
+ 7. t if in a comment of style b; symbol `syntax-table' if the comment\n\
     should be terminated by a generic comment delimiter.\n\
  8. character address of start of comment or string; nil if not in one.\n\
  9. Intermediate data for continuation of parsing (subject to change).\n\
@@ -2796,8 +2796,8 @@ Fifth arg STATE is a nine-element list like what this function returns.\n\
  It is used to initialize the state of the parse.  Elements number 1, 2, 6\n\
  and 8 are ignored; you can leave off element 8 (the last) entirely.\n\
 Sixth arg COMMENTSTOP non-nil means stop at the start of a comment.\n\
- If it is `syntax-table', stop after the start of a comment or a string,\n\
- or after end of a comment or a string.")
+ If it is symbol `syntax-table', stop after the start of a comment or a\n\
+ string, or after end of a comment or a string.")
   (from, to, targetdepth, stopbefore, state, commentstop)
 */
 
