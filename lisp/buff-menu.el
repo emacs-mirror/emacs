@@ -125,7 +125,8 @@ Letters do not insert themselves; instead, they are commands.
   With prefix argument, also move up one line.
 \\[Buffer-menu-backup-unmark] -- back up a line and remove marks.
 \\[Buffer-menu-toggle-read-only] -- toggle read-only status of buffer on this line.
-\\[Buffer-menu-revert] -- update the list of buffers."
+\\[Buffer-menu-revert] -- update the list of buffers.
+\\[Buffer-menu-bury] -- bury the buffer listed on this line."
   (kill-all-local-variables)
   (use-local-map Buffer-menu-mode-map)
   (setq major-mode 'Buffer-menu-mode)
@@ -429,7 +430,18 @@ The current window remains selected."
 (defun Buffer-menu-bury ()
   "Bury the buffer listed on this line."
   (interactive)
-  (bury-buffer (Buffer-menu-buffer t)))
+  (beginning-of-line)
+  (if (looking-at " [-M]")		;header lines
+      (ding)
+    (save-excursion
+      (beginning-of-line)
+      (bury-buffer (Buffer-menu-buffer t))
+      (let ((line (buffer-substring (point) (progn (forward-line 1) (point))))
+            (buffer-read-only nil))
+        (delete-region (point) (progn (forward-line -1) (point)))
+        (goto-char (point-max))
+        (insert line))
+      (message "Buried buffer moved to the end"))))
 
 
 (define-key ctl-x-map "\C-b" 'list-buffers)
