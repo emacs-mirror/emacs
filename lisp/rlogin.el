@@ -1,5 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
+;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@prep.ai.mit.edu>
 ;; Keywords: unix, comm
 
@@ -29,29 +30,37 @@
 
 (require 'comint)
 
+;;;###autoload
 (defvar rlogin-program "rlogin"
   "*Name of program to invoke rlogin")
 
+;;;###autoload
 (defvar rlogin-explicit-args nil
   "*List of arguments to pass to rlogin on the command line.")
 
+;;;###autoload
 (defvar rlogin-mode-hook nil
   "*Hooks to run after setting current buffer to rlogin-mode.")
 
-;; I think this is so obnoxious I refuse to enable it by default. 
-;; In any case, there is a bug with regards to generating a quit while
-;; reading keyboard input in a process filter, so until that's fixed it's
-;; not safe to enable this anyway. 
+;;;###autoload
+(defvar rlogin-process-connection-type nil
+  "*If non-`nil', use a pty for the local rlogin process.  
+If `nil', use a pipe (if pipes are supported on the local system).  
+
+Generally it is better not to waste ptys on systems which have a static
+number of them.  On the other hand, some implementations of `rlogin' assume
+a pty is being used, and errors will result from using a pipe instead.")
+
+;; Leave this nil because it makes rlogin-filter a tiny bit faster.  Plus
+;; you can still call rlogin-password by hand.
+;;;###autoload
 (defvar rlogin-password-paranoia nil
-  "*If non-`nil', query user for a password in the minibuffer when a
-Password: prompt appears.  Stars will echo as characters are type. 
-
+  "*If non-`nil', query user for a password in the minibuffer when a Password: prompt appears.
 It's also possible to selectively enter passwords without echoing them in
-the minibuffer using the function `rlogin-password'.")
-
-(defvar rlogin-last-input-line nil nil)
+the minibuffer using the command `rlogin-password' explicitly.")
 
 ;; Initialize rlogin mode map.
+;;;###autoload
 (defvar rlogin-mode-map '())
 (cond ((not rlogin-mode-map)
        (setq rlogin-mode-map (full-copy-sparse-keymap comint-mode-map))
@@ -78,7 +87,8 @@ The variable `rlogin-explicit-args' is a list of arguments to give to
 the rlogin when starting."
   (interactive (list current-prefix-arg
                      (read-from-minibuffer "Open rlogin connection to host: ")))
-  (let* ((buffer-name (format "*rlogin-%s*" host))
+  (let* ((process-connection-type rlogin-process-connection-type)
+         (buffer-name (format "*rlogin-%s*" host))
          (args (if (and rlogin-explicit-args (listp rlogin-explicit-args))
                    (cons host rlogin-explicit-args)
                  (list host)))
@@ -91,7 +101,9 @@ the rlogin when starting."
           (comint-mode)
           (comint-exec (current-buffer) buffer-name rlogin-program nil args)
           (setq proc (get-process buffer-name))
-          (set-marker (process-mark proc) (point-min))
+          ;; Set process-mark to point-max in case there is text in the
+          ;; buffer from a previous exited process.
+          (set-marker (process-mark proc) (point-max))
           (set-process-filter proc 'rlogin-filter)
           (rlogin-mode)))))
 
@@ -106,7 +118,7 @@ value of `rlogin-explicit-args'."
         (rlogin-explicit-args nil))
     (unwind-protect
         (progn
-          (while (string-match "[ \t]*\\([^ \t]\\)+$" args)
+          (while (string-match "[ \t]*\\([^ \t]+\\)$" args)
             (setq rlogin-explicit-args 
                   (cons (substring args 
                                    (match-beginning 1)
@@ -117,17 +129,31 @@ value of `rlogin-explicit-args'."
     (rlogin 1 host)))
 
 ;;;###autoload
-(defun rlogin-password ()
-  "Play the paranoia game by not echoing entered password in buffer 
-(stars will echo in the minibuffer instead."
+(defun rlogin-password (&optional proc)
+  "Read a password and send it to an rlogin session.
+For each character typed, a `*' is echoed in the minibuffer.
+End with RET, LFD, or ESC.  DEL or C-h rubs out.  C-u kills line.
+C-g aborts attempt to read and send password. 
+
+Optional argument PROC is the process to which the password should be sent.
+If not provided, send to the process in the current buffer.  This argument
+is intended primarily for use by `rlogin-filter'."
   (interactive)
-  (let ((input (comint-read-noecho "Enter password: " 'stars)))
-    (insert-before-markers "\n")
-    (comint-send-string (get-buffer-process (current-buffer))
-                        (format "%s\n" input))))
+  (or proc (setq proc (get-buffer-process (current-buffer))))
+  (let* ((buffer-name (buffer-name (process-buffer proc)))
+         (pass (comint-read-noecho (format "Password for buffer \"%s\": " 
+                                           buffer-name)
+                                   'stars)))
+    (and pass
+         (save-excursion
+           (set-buffer buffer-name)
+           (insert-before-markers "\n")
+           (comint-send-string proc (format "%s\n" pass))))))
 
 ;;;###autoload
 (defun rlogin-mode ()
+  "Set major-mode for rlogin sessions. 
+If `rlogin-mode-hook' is set, run it."
   (interactive)
   (kill-all-local-variables)
   (comint-mode)
@@ -137,52 +163,49 @@ value of `rlogin-explicit-args'."
   (use-local-map rlogin-mode-map)
   (run-hooks 'rlogin-mode-hook))
 
+
 (defun rlogin-filter (proc string)
-  (let ((old-buffer (current-buffer))
-        (old-match-data (match-data))
-        at-max-pos
-        moving)
-    (unwind-protect
-        (progn
-          (set-buffer (process-buffer proc))
-          (setq moving (= (point) (process-mark proc)))
-          (save-excursion
-            (goto-char (process-mark proc))
-            (save-restriction
-              (let ((beg (point)))
-                (insert-before-markers string)
-                (narrow-to-region beg (point))
-                (goto-char (point-min))
-                (while (search-forward "\C-m" nil t)
-                  (delete-char -1))
-                (and rlogin-password-paranoia
-                     (setq string (buffer-substring (point-min) (point-max))))
-                (goto-char (point-max))))
-            (set-marker (process-mark proc) (point)))
-          (and moving 
-               (goto-char (process-mark proc))))
-      (set-buffer old-buffer)
-      (store-match-data old-match-data)))
+  (save-excursion
+    (set-buffer (process-buffer proc))
+    (let ((proc-mark (process-mark proc))
+          (region-begin (point)))
+      (goto-char proc-mark)
+      (insert-before-markers string)
+      (goto-char region-begin)
+      (while (search-forward "\C-m" proc-mark t)
+        (delete-char -1))))
+  ;; Kludgy workaround for scroll-step bug in emacs.  If point is at the
+  ;; top of the window, scroll step is nonzero, and you call
+  ;; insert-before-markers, the text is inserted off-screen.  If
+  ;; scroll-step is 0, this doesn't happen. 
+  (and (/= scroll-step 0)
+       (eq (process-buffer proc) (window-buffer (selected-window)))
+       (eq (point) (window-start))
+       (set-window-start (selected-window) 
+                         (save-excursion
+                           (beginning-of-line)
+                           (point)) 
+                         'noforce))
   (and rlogin-password-paranoia 
        (string= "Password:" string)
-       (let ((input (comint-read-noecho "Enter password: " 'stars)))
-         (and input
-              (progn
-                (insert-before-markers "\n")
-                (comint-send-string proc (format "%s\n" input)))))))
+       (rlogin-password proc)))
 
+;;;###autoload
 (defun rlogin-send-Ctrl-C ()
   (interactive)
   (send-string nil "\C-c"))
 
+;;;###autoload
 (defun rlogin-send-Ctrl-Z ()
   (interactive)
   (send-string nil "\C-z"))
 
+;;;###autoload
 (defun rlogin-send-Ctrl-backslash ()
   (interactive)
   (send-string nil "\C-\\"))
 
+;;;###autoload
 (defun rlogin-delchar-or-send-Ctrl-D (arg)
   "Delete ARG characters forward, or send a C-d to process if at end of
 buffer."  

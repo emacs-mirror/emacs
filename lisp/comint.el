@@ -121,6 +121,7 @@
 ;;;     comint-input-filter     - function         modes.
 ;;;     comint-input-send	- function
 ;;;     comint-eol-on-send	- boolean
+;;;     comint-process-echoes   - boolean
 
 (defvar comint-prompt-regexp "^"
   "Regexp to recognise prompts in the inferior process.
@@ -138,6 +139,13 @@ This is a good thing to set in mode hooks.")
 
 (defvar comint-input-ring-size 30
   "Size of input history ring.")
+
+(defvar comint-process-echoes nil
+  "*If non-`nil', assume that the subprocess echoes any input.
+If so, delete one copy of the input so that only one copy eventually
+appears in the buffer. 
+
+This variable is buffer-local.")
 
 ;;; Here are the per-interpreter hooks.
 (defvar comint-get-old-input (function comint-get-old-input-default)
@@ -247,6 +255,7 @@ Entry to this mode runs the hooks on comint-mode-hook"
     (make-local-variable 'comint-eol-on-send)
     (make-local-variable 'comint-ptyp)
     (make-local-variable 'comint-exec-hook)
+    (make-local-variable 'comint-process-echoes)
     (run-hooks 'comint-mode-hook)
     (or comint-input-ring
 	(setq comint-input-ring (make-ring comint-input-ring-size))))
@@ -563,18 +572,20 @@ fetches previous (older) inputs."
   "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls value
-of variable comint-get-old-input to retrieve old input, copies it to the
-process mark, and sends it.  A terminal newline is also inserted into the
-buffer and sent to the process.  In either case, value of variable
-comint-input-sentinel is called on the input before sending it.  The input
-is entered into the input history ring, if the value of variable
-comint-input-filter returns non-nil when called on the input.
+of variable `comint-get-old-input' to retrieve old input, copies it to the
+process mark, and sends it.  If variable `comint-process-echoes' is `nil',
+a terminal newline is also inserted into the buffer and sent to the process
+(if it is non-`nil', all text from the process mark to point is deleted,
+since it is assumed the remote process will re-echo it).  The value of
+variable `comint-input-sentinel' is called on the input before sending it.
+The input is entered into the input history ring, if the value of variable
+`comint-input-filter' returns non-`nil' when called on the input.
 
-If variable comint-eol-on-send is non-nil, then point is moved to the end of
-line before sending the input.
+If variable `comint-eol-on-send' is non-`nil', then point is moved to the
+end of line before sending the input.
 
-comint-get-old-input, comint-input-sentinel, and comint-input-filter are chosen
-according to the command interpreter running in the buffer. E.g.,
+`comint-get-old-input', `comint-input-sentinel', and `comint-input-filter'
+are chosen according to the command interpreter running in the buffer.  E.g.,
 If the interpreter is the csh,
     comint-get-old-input is the default: take the current line, discard any
         initial string matching regexp comint-prompt-regexp.
@@ -603,7 +614,9 @@ Similarly for Soar, Scheme, etc."
 			  (goto-char pmark)
 			  (insert copy)
 			  copy))))
-	  (insert ?\n)
+          (if comint-process-echoes
+              (delete-region pmark (point))
+            (insert ?\n))
 	  (if (funcall comint-input-filter input)
 	      (ring-insert comint-input-ring input))
 	  (funcall comint-input-sentinel input)
