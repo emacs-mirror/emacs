@@ -18269,6 +18269,19 @@ draw_glyphs (w, x, row, area, start, end, hl, overlaps_p)
   return x_reached;
 }
 
+/* Expand row matrix if too narrow.  Don't expand if area
+   is not present.  */
+
+#define IT_EXPAND_MATRIX_WIDTH(it, area)		\
+  {							\
+    if (!fonts_changed_p				\
+	&& (it->glyph_row->glyphs[area]			\
+	    < it->glyph_row->glyphs[area + 1]))		\
+      {							\
+	it->w->ncols_scale_factor++;			\
+	fonts_changed_p = 1;				\
+      }							\
+  }
 
 /* Store one glyph for IT->char_to_display in IT->glyph_row.
    Called from x_produce_glyphs when IT->glyph_row is non-null.  */
@@ -18306,11 +18319,8 @@ append_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 /* Store one glyph for the composition IT->cmp_id in IT->glyph_row.
@@ -18348,11 +18358,8 @@ append_composite_glyph (it)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -18522,11 +18529,8 @@ produce_image_glyph (it)
 	  glyph->font_type = FONT_TYPE_UNKNOWN;
 	  ++it->glyph_row->used[area];
 	}
-      else if (!fonts_changed_p)
-	{
-	  it->w->ncols_scale_factor++;
-	  fonts_changed_p = 1;
-	}
+      else
+	IT_EXPAND_MATRIX_WIDTH (it, area);
     }
 }
 
@@ -18570,11 +18574,8 @@ append_stretch_glyph (it, object, width, height, ascent)
       glyph->font_type = FONT_TYPE_UNKNOWN;
       ++it->glyph_row->used[area];
     }
-  else if (!fonts_changed_p)
-    {
-      it->w->ncols_scale_factor++;
-      fonts_changed_p = 1;
-    }
+  else
+    IT_EXPAND_MATRIX_WIDTH (it, area);
 }
 
 
@@ -20947,13 +20948,16 @@ note_mode_line_or_margin_highlight (w, x, y, area)
       /* If we're on a string with `help-echo' text property, arrange
 	 for the help to be displayed.  This is done by setting the
 	 global variable help_echo_string to the help string.  */
-      help = Fget_text_property (pos, Qhelp_echo, string);
-      if (!NILP (help))
+      if (NILP (help))
 	{
-	  help_echo_string = help;
-	  XSETWINDOW (help_echo_window, w);
-	  help_echo_object = string;
-	  help_echo_pos = charpos;
+	  help = Fget_text_property (pos, Qhelp_echo, string);
+	  if (!NILP (help))
+	    {
+	      help_echo_string = help;
+	      XSETWINDOW (help_echo_window, w);
+	      help_echo_object = string;
+	      help_echo_pos = charpos;
+	    }
 	}
 
       if (NILP (pointer))
