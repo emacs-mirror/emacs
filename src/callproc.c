@@ -95,6 +95,7 @@ Lisp_Object Vbinary_process_output;
 
 Lisp_Object Vexec_path, Vexec_directory, Vdata_directory, Vdoc_directory;
 Lisp_Object Vconfigure_info_directory;
+Lisp_Object Vtemp_file_name_pattern;
 
 Lisp_Object Vshell_file_name;
 
@@ -634,11 +635,6 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   register Lisp_Object start, end;
 #ifdef DOS_NT
   char *tempfile;
-#else
-  char tempfile[20];
-#endif
-  int count = specpdl_ptr - specpdl;
-#ifdef DOS_NT
   char *outf = '\0';
 
   if ((outf = egetenv ("TMP")) || (outf = egetenv ("TEMP")))
@@ -660,12 +656,9 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
   strcat (tempfile, "detmp.XXX");
 #endif
 #else /* not DOS_NT */
-
-#ifdef VMS
-  strcpy (tempfile, "tmp:emacsXXXXXX.");
-#else
-  strcpy (tempfile, "/tmp/emacsXXXXXX");
-#endif
+  char *tempfile = (char *) alloca (XSTRING (Vtemp_file_name_pattern)->size + 1);
+  bcopy (XSTRING (Vtemp_file_name_pattern)->data, tempfile,
+	 XSTRING (Vtemp_file_name_pattern)->size + 1);
 #endif /* not DOS_NT */
 
   mktemp (tempfile);
@@ -1097,6 +1090,20 @@ init_callproc ()
   sh = (char *) getenv ("SHELL");
   Vshell_file_name = build_string (sh ? sh : "/bin/sh");
 #endif
+
+#ifdef VMS
+  Vtemp_file_name_pattern = build_string ("tmp:emacsXXXXXX.");
+#else
+  if (getenv ("TMPDIR"))
+    {
+      char *dir = getenv ("TMPDIR");
+      Vtemp_file_name_pattern
+	= Fexpand_file_name (build_string ("emacsXXXXXX"),
+			     build_string (dir));
+    }
+  else
+    Vtemp_file_name_pattern = build_string ("/tmp/emacsXXXXXX");
+#endif
 }
 
 set_process_environment ()
@@ -1153,6 +1160,12 @@ This is the name of the directory in which the build procedure installed\n\
 Emacs's info files; the default value for Info-default-directory-list\n\
 includes this.");
   Vconfigure_info_directory = build_string (PATH_INFO);
+
+  DEFVAR_LISP ("temp-file-name-pattern", &Vtemp_file_name_pattern,
+    "Pattern for making names for temporary files.\n\
+This is used by `call-process-region'.");
+  /* The real initialization is when we start again.  */
+  Vtemp_file_name_pattern = Qnil;
 
   DEFVAR_LISP ("process-environment", &Vprocess_environment,
     "List of environment variables for subprocesses to inherit.\n\
