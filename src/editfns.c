@@ -40,6 +40,10 @@ Boston, MA 02111-1307, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #define max(a, b) ((a) > (b) ? (a) : (b))
 
+#ifndef NULL
+#define NULL 0
+#endif
+
 extern char **environ;
 extern Lisp_Object make_time ();
 extern void insert_from_buffer ();
