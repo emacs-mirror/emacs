@@ -3310,7 +3310,7 @@ read_avail_input (expected)
       n_to_read = dos_keysns ();
       if (n_to_read == 0)
 	return 0;
-#else */ not MSDOS */
+#else /* not MSDOS */
 #ifdef FIONREAD
       /* Find out how much input is available.  */
       if (ioctl (0, FIONREAD, &n_to_read) < 0)
