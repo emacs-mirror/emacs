@@ -1,3 +1,11 @@
+2001-05-13  Andrew Innes  <andrewi@gnu.org>
+
+	* TODO: Remove file, since it is completely out of date.
+
+	* README: Add copyright notice.
+
+	* INSTALL: Add copyright notice.
+
 2001-04-18  Andrew Innes  <andrewi@gnu.org>
 
 	* nmake.defs (EMACSLOADPATH): Ensure EMACSLOADPATH is defined in
