@@ -1,5 +1,10 @@
 2000-09-21  Gerd Moellmann  <gerd@gnu.org>
 
+	* process.c (process_sent_to): New variable.
+	(send_process): Workaround for a crash on sparc-sun-solaris-2.6
+	with GCC 2.95.2 caused by a parameter being clobbered by longjmp.
+	Declare more parameters volatile.
+
 	* lread.c (Vrecursive_load_depth_limit): New variable.
 	(Fload): Check recursive loads whose recursion depth exceeds
 	Vrecursive_load_depth_limit.
