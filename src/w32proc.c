@@ -639,7 +639,10 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app)
   	    {
 	      char * dllname = RVA_TO_PTR (imports->Name, section, executable);
 
-	      if (strcmp (dllname, "cygwin.dll") == 0)
+	      /* The exact name of the cygwin dll has changed with
+	         various releases, but hopefully this will be reasonably
+	         future proof.  */
+	      if (strncmp (dllname, "cygwin", 6) == 0)
 		{
 		  *is_cygnus_app = TRUE;
 		  break;
