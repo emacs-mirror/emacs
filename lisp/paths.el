@@ -88,7 +88,9 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
   "Name of user's primary mail file.")
 
 (defconst rmail-spool-directory
-  (cond ((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
+  (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
+	 "/usr/spool/mail/")
+	((memq system-type '(dgux hpux usg-unix-v unisoft-unix rtu irix))
 	 "/usr/mail/")
 	((eq system-type 'netbsd)
 	 "/var/mail/")
