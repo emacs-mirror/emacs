@@ -207,8 +207,9 @@ ESC or `q' to exit;\n"
 					objects)
 				(mapconcat (function
 					    (lambda (elt)
-					      (format "%c to %s"
-						      (nth 0 elt)
+					      (format "%s to %s"
+						      (single-key-description
+						       (nth 0 elt))
 						      (nth 2 elt))))
 					   action-alist
 					   ";\n")
