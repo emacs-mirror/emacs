@@ -3431,7 +3431,7 @@ fix_overlays_before (bp, prev, pos)
      or the found one ends before PREV,
      or the found one is the last one in the list,
      we don't have to fix anything.  */
-  if (tail || end < prev || !tail->next)
+  if (!tail || end < prev || !tail->next)
     return;
 
   right_pair = parent;
