@@ -1,5 +1,5 @@
 \input texinfo  @c -*-texinfo-*-
-@setfilename ada-mode.info
+@setfilename ../info/ada-mode
 @settitle Ada Mode
 
 @ifinfo
