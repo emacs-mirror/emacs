@@ -80,6 +80,13 @@ Finally, you can try looking up a suitable package using keywords
 pertinent to the feature you need.  @xref{Library Keywords}.
 @end table
 
+  To find the documentation of a key sequence or a menu item, type
+@kbd{C-h C-k} and then type that key sequence or select the menu
+item.  This looks up the description of the command invoked by the key
+or the menu in the appropriate manual (not necessarily the Emacs
+manual).  Likewise, use @kbd{C-h C-f} for reading documentation of a
+command.
+
 @menu
 * Help Summary::	Brief list of all Help commands.
 * Key Help::		Asking what a key does in Emacs.
@@ -471,7 +478,15 @@ goes straight to the documentation of the Emacs function
 @var{function}.  @kbd{C-h C-k @var{key}} enters Info and goes straight
 to the documentation of the key @var{key}.  These two keys run the
 commands @code{Info-goto-emacs-command-node} and
-@code{Info-goto-emacs-key-command-node}.
+@code{Info-goto-emacs-key-command-node}.  You can use @kbd{C-h C-k} to
+find the documentation of a menu item: just select that menu item when
+@kbd{C-h C-k} prompts for a key.
+
+  @kbd{C-h C-f} and @kbd{C-h C-k} know about commands and keys
+described in manuals other than the Emacs manual.  Thus, they make it
+easier to find the documentation of commands and keys when you are not
+sure which manual describes them, like when using some specialized
+mode.
 
   When editing a program, if you have an Info version of the manual for
 the programming language, you can use the command @kbd{C-h C-i} to refer
