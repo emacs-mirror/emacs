@@ -41,9 +41,8 @@ command `clone-buffer-indirectly-other-window', bound to C-x 4 c,
 does the same but displays the indirect buffer in another window.
 
 ** New user options `backup-directory-alist' and
-`make-backup-file-name-function' are provided to control the placement
-of backups, typically in a single directory or in an invisible
-sub-directory.
+`make-backup-file-name-function' control the placement of backups,
+typically in a single directory or in an invisible sub-directory.
 
 ** New commands iso-iso2sgml and iso-sgml2iso convert between Latin-1
 characters and the corresponding SGML (HTML) entities.
@@ -1146,6 +1145,9 @@ Note that +++ before an item means the Lisp manual has been updated.
 --- means that I have decided it does not need to be in the Lisp manual.
 When you add a new item, please add it without either +++ or ---
 so I will know I still need to look at it -- rms.
+
+** `concat' no longer accepts individual integer arguments, as
+promised long ago.
 
 ** The function `add-minor-mode' simplifies the definition of minor
 modes.
