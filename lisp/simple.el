@@ -638,7 +638,8 @@ in this use of the minibuffer.")
   "Find the previous history element that matches REGEXP.
 \(Previous history elements refer to earlier actions.)
 With prefix argument N, search for Nth previous match.
-If N is negative, find the next or Nth next match."
+If N is negative, find the next or Nth next match.
+An uppercase letter in REGEXP makes the search case-sensitive."
   (interactive
    (let* ((enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer "Previous element matching (regexp): "
@@ -657,6 +658,11 @@ If N is negative, find the next or Nth next match."
 	   (null minibuffer-text-before-history))
       (setq minibuffer-text-before-history (buffer-string)))
   (let ((history (symbol-value minibuffer-history-variable))
+	(case-fold-search
+	 (if (isearch-no-upper-case-p regexp t)	; assume isearch.el is dumped
+	     ;; Respect the user's setting for case-fold-search:
+	     case-fold-search
+	   nil))
 	prevpos
 	(pos minibuffer-history-position))
     (while (/= n 0)
@@ -689,7 +695,8 @@ If N is negative, find the next or Nth next match."
   "Find the next history element that matches REGEXP.
 \(The next history element refers to a more recent action.)
 With prefix argument N, search for Nth next match.
-If N is negative, find the previous or Nth previous match."
+If N is negative, find the previous or Nth previous match.
+An uppercase letter in REGEXP makes the search case-sensitive."
   (interactive
    (let* ((enable-recursive-minibuffers t)
 	  (regexp (read-from-minibuffer "Next element matching (regexp): "
