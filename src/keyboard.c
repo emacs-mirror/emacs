@@ -5223,6 +5223,10 @@ menu_bar_item (key, item_string, def)
   Lisp_Object enabled;
   int i;
 
+  /* Skip menu-bar equiv keys data.  */
+  if (CONSP (def) && CONSP (XCONS (def)->car))
+    def = XCONS (def)->cdr;
+
   if (EQ (def, Qundefined))
     {
       /* If a map has an explicit `undefined' as definition,
