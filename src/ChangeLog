@@ -1,3 +1,8 @@
+1999-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* emacs.c (synchronize_locale): Avoid compiler warnings about
+	pointer type mismatch.
+
 1999-11-26  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
 
 	* editfns.c (Fdelete_field): Make it noninteractive.  Return nil.

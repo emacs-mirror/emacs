@@ -1928,7 +1928,7 @@ synchronize_locale (category, plocale, desired_locale)
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? XSTRING (desired_locale)->data
+			    ? (char *)(XSTRING (desired_locale)->data)
 			    : ""));
     }
 }
