@@ -36,7 +36,13 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #ifdef __STDC__
 typedef void *POINTER;
 #else
+
+#ifdef	HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 typedef char *POINTER;
+
 #endif
 
 typedef unsigned long SIZE;
