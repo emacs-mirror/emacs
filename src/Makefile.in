@@ -583,6 +583,12 @@ mallocobj = gmalloc.o vm-limit.o
 #endif /* ! defined (REL_ALLOC) */
 #endif /* ! defined (DOUG_LEA_MALLOC) */
 
+#else /* ! SYSTEM_MALLOC */
+
+#ifdef REL_ALLOC_MMAP
+mallocobj = ralloc.o vm-limit.o
+#endif
+
 #endif /* SYSTEM_MALLOC */
 
 
