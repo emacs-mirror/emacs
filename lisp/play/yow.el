@@ -53,7 +53,10 @@
 	  (t
 	   (message "Yow!")
 	   (with-output-to-temp-buffer "*Help*"
-	     (princ yow))))))
+	     (princ yow)
+	     (save-excursion
+	       (set-buffer standard-output)
+	       (help-mode)))))))
 
 (defsubst read-zippyism (prompt &optional require-match)
   "Read a Zippyism from the minibuffer with completion, prompting with PROMPT.
