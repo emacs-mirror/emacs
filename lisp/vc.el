@@ -1618,8 +1618,8 @@ A prefix argument means do not revert the buffer afterwards."
     (pop-to-buffer vc-parent-buffer))
   (cond 
    ((not (vc-registered (buffer-file-name)))
-    (vc-registration-error (buffer-file-name))
-    (eq (vc-backend (buffer-file-name)) 'CVS)
+    (vc-registration-error (buffer-file-name)))
+   ((eq (vc-backend (buffer-file-name)) 'CVS)
     (error "Unchecking files under CVS is dangerous and not supported in VC"))
    ((vc-locking-user (buffer-file-name))
     (error "This version is locked; use vc-revert-buffer to discard changes"))
