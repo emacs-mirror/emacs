@@ -1084,6 +1084,19 @@ Overlays might be moved and or split."
 (defvar suspend-resume-hook nil
   "Normal hook run by `suspend-emacs', after Emacs is continued.")
 
+(defvar temp-buffer-show-hook nil
+  "Normal hook run by `with-output-to-temp-buffer' after displaying the buffer.
+When the hook runs, the temporary buffer is current, and the window it
+was displayed in is selected.  This hook is normally set up with a
+function to make the buffer read only, and find function names and
+variable names in it, provided the major mode is still Help mode.")
+
+(defvar temp-buffer-setup-hook nil
+  "Normal hook run by `with-output-to-temp-buffer' at the start.
+When the hook runs, the temporary buffer is current.
+This hook is normally set up with a function to put the buffer in Help
+mode.")
+
 ;; Avoid compiler warnings about this variable,
 ;; which has a special meaning on certain system types.
 (defvar buffer-file-type nil
