@@ -154,11 +154,11 @@ when you hit the end of the current node."
 (defcustom Info-hide-note-references t
   "*If non-nil, hide the tag and section reference in *note and * menu items.
 Also replaces the \"*note\" text with \"see\".
-If value is a number, the reference section is still shown."
+If value is non-nil but not t, the reference section is still shown."
   :version "21.4"
-  :type '(choice (const :tag "Replace tag and hide reference" t)
-		 (const :tag "Replace only tag" tag)
-		 (const :tag "No reformatting" nil))
+  :type '(choice (const :tag "No reformatting" nil)
+		 (const :tag "Replace tag and hide reference" t)
+		 (other :tag "Replace only tag" tag))
   :group 'info)
 
 (defcustom Info-mode-hook '(turn-on-font-lock)
@@ -2789,7 +2789,7 @@ the variable `Info-file-list-for-emacs'."
 	    (add-text-properties (match-beginning 2) (1+ (match-end 2))
 				 '(invisible t))))
 	(goto-char (point-min))
-	(while (re-search-forward "\\(\\*Note[ \n\t]*\\)\\([^:]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:]?\n?\\)" nil t)
+	(while (re-search-forward "\\(\\*Note[ \t]*\\)\n?[ \t]*\\([^:]*\\)\\(:[^.,:(]*\\(([^)]*)[^.,:]*\\)?[,:]?\n?\\)" nil t)
 	  (unless (= (char-after (1- (match-beginning 0))) ?\") ; hack
 	    (let ((start (match-beginning 0))
 		  (next (point))
@@ -2819,8 +2819,9 @@ the variable `Info-file-list-for-emacs'."
 		(add-text-properties (match-beginning 3) (match-end 3)
 				     '(invisible t)))
 	      (when other-tag
-		(goto-char (match-beginning 1))
-		(insert other-tag))
+		(save-excursion
+		  (goto-char (match-beginning 1))
+		  (insert other-tag)))
 	      (when (or hide-tag (eq Info-hide-note-references t))
 		(setq paragraph-markers (cons (set-marker (make-marker) start)
 					      paragraph-markers))))))
