@@ -720,8 +720,7 @@ The optional argument ZONE specifies the local time zone (default GMT)."
    zone "GMT"))
 
 (defun gnus-inews-buggy-date (&optional time)
-  "A buggy date string that represents TIME; this ignores the time zone
-and does not conform to the Usenet standard, but it sometimes works anyway.
+  "A buggy date string that represents TIME.
 TIME is optional and defaults to the current time.
 Some older versions of Emacs always act as if TIME is nil."
   (let ((date (if (fboundp 'current-time)
