@@ -1132,7 +1132,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("dl" . "Definition list")
     ("dt" . "Term to be definined")
-    ("em" . "Emphasised") 
+    ("em" . "Emphasised")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
     ("figa" . "Figure anchor")
@@ -1249,7 +1249,7 @@ To work around that, do:
   (setq sentence-end
 	(if sentence-end-double-space
 	    "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| $\\|\t\\|  \\)[ \t\n]*"
-	    
+
 	  "[.?!][]\"')}]*\\(<[^>]*>\\)*\\($\\| \\|\t\\)[ \t\n]*"))
   (setq sgml-tag-alist html-tag-alist
 	sgml-face-tag-alist html-face-tag-alist
@@ -1272,7 +1272,7 @@ The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")
 
 (defun html-imenu-index ()
-  "Return an table of contents for an HTML buffer for use with Imenu."
+  "Return a table of contents for an HTML buffer for use with Imenu."
   (let (toc-index)
     (save-excursion
       (goto-char (point-min))
