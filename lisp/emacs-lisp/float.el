@@ -1,4 +1,4 @@
-;;; float.el --- floating point arithmetic package.
+;;; float.el --- obsolete floating point arithmetic package.
 
 ;; Copyright (C) 1986 Free Software Foundation, Inc.
 

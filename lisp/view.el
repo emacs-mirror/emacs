@@ -3,7 +3,7 @@
 ;; Copyright (C) 1985, 1989, 1994, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
-;; Maintainer: FSF
+;; Maintainer: Inge Frick <inge@nada.kth.se>
 
 ;; This file is part of GNU Emacs.
 
