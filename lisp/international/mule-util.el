@@ -338,7 +338,7 @@ or one is an alias of the other."
     (if (and parent (interactive-p))
 	(message "Highest priority is set to %s (parent of %s)"
 		 parent coding-system))
-    ))
+    (setq-default buffer-file-coding-system (or parent coding-system))))
 
 
 ;;; Composite charcater manipulations.
