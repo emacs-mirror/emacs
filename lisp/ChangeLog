@@ -1,3 +1,7 @@
+2002-03-22  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* calendar/calendar.el (calendar): Doc fix.
+
 2002-03-22  Juanma Barranquero  <lektu@terra.es>
 
 	* play/gomoku.el (gomoku-font-lock-O-face): Convert to use `defface'.
