@@ -3,7 +3,7 @@
 ;;;  Copyright (C) 1997, 1998  Free Software Foundation
 
 ;; Author: Eric M. Ludlam <zappo@gnu.org>
-;; Version: 0.4.3
+;; Version: 0.5.1
 ;; Keywords: docs, maint, lisp
 
 ;; This file is part of GNU Emacs.
@@ -86,6 +86,14 @@
 ;; parameter which is very obvious like events), you can have checkdoc
 ;; skip looking for it by putting the following comment just in front
 ;; of the documentation string: "; checkdoc-params: (args go here)"
+;;
+;; Checking message strings
+;;
+;;   The text that follows the `error', and `y-or-n-p' commands is
+;; also checked.  The documentation for `error' clearly states some
+;; simple style rules to follow which checkdoc will auto-fix for you.
+;; `y-or-n-p' also states that it should end in a space.  I added that
+;; it should end in "? " since that is almost always used.
 ;;
 ;; Adding your own checks:
 ;;
@@ -173,6 +181,14 @@
 ;;         have comments before the doc-string.
 ;;       Fixed bug where keystrokes were identified from a variable name
 ;;         like ASSOC-P.
+;; 0.5   Added checks for basics in messages using `error'.
+;;       Added check for symbols that are both functions and symbols.
+;;         These references are ambiguous and should be prefixed with
+;;         "function", or "variable".  Added auto-fix for this also.
+;;       Added auto fix for args that do not occur in the doc string.
+;; 0.5.1 Fixed question about putting a symbol in `quotes'.
+;;       Added spaces to the end of all y/n questions.
+;;       Added checks for y/n question endings to require "? "
 
 ;;; TO DO:
 ;;   Hook into the byte compiler on a defun/defver level to generate
@@ -186,7 +202,7 @@
 ;;     not specifically docstring related.  Would this even be useful?
 
 ;;; Code:
-(defvar checkdoc-version "0.4.3"
+(defvar checkdoc-version "0.5.1"
   "Release version of checkdoc you are currently running.")
 
 ;; From custom web page for compatibility between versions of custom:
@@ -463,7 +479,7 @@ be re-created.")
 (defun checkdoc-eval-current-buffer ()
   "Evaluate and check documentation for the current buffer.
 Evaluation is done first because good documentation for something that
-doesn't work is just not useful.  Comments, Doc-strings, and rogue
+doesn't work is just not useful.  Comments, doc-strings, and rogue
 spacing are all verified."
   (interactive)
   (checkdoc-call-eval-buffer nil)
@@ -471,7 +487,7 @@ spacing are all verified."
 
 ;;;###autoload
 (defun checkdoc-current-buffer (&optional take-notes)
-  "Check the current buffer for document style, comment style, and rogue spaces.
+  "Check current buffer for document, comment, error style, and rogue spaces.
 Optional argument TAKE-NOTES non-nil will store all found errors in a
 warnings buffer, otherwise it stops after the first error."
   (interactive "P")
@@ -483,6 +499,7 @@ warnings buffer, otherwise it stops after the first error."
     (or (and buffer-file-name ;; only check comments in a file
 	     (checkdoc-comments take-notes))
 	(checkdoc take-notes)
+	(checkdoc-message-text take-notes)
 	(checkdoc-rogue-spaces take-notes)
 	(not (interactive-p))
 	(message "Checking buffer for style...Done."))))
@@ -651,7 +668,7 @@ if there is one."
   (interactive "P")
   (if take-notes (checkdoc-start-section "checkdoc-comments"))
   (if (not buffer-file-name)
-     (error "Can only check comments for a file buffer."))
+     (error "Can only check comments for a file buffer"))
   (let* ((checkdoc-spellcheck-documentation-flag
 	  (member checkdoc-spellcheck-documentation-flag
 		  '(buffer t)))
@@ -717,13 +734,15 @@ space at the end of each line."
       (let* ((checkdoc-spellcheck-documentation-flag
 	      (member checkdoc-spellcheck-documentation-flag
 		      '(defun t)))
+	     (beg (save-excursion (beginning-of-defun) (point)))
+	     (end (save-excursion (end-of-defun) (point)))
 	     (msg (checkdoc-this-string-valid)))
 	(if msg (if no-error (message msg) (error msg))
-	  (setq msg (checkdoc-rogue-space-check-engine
-		     (save-excursion (beginning-of-defun) (point))
-		     (save-excursion (end-of-defun) (point))))
+	  (setq msg (checkdoc-message-text-search beg end))
 	  (if msg (if no-error (message msg) (error msg))
-	    (if (interactive-p) (message "Checkdoc: done."))))))))
+	    (setq msg (checkdoc-rogue-space-check-engine beg end))
+	    (if msg (if no-error (message msg) (error msg)))))
+	(if (interactive-p) (message "Checkdoc: done."))))))
 
 ;;; Ispell interface for forcing a spell check
 ;;
@@ -809,6 +828,7 @@ Prefix argument TAKE-NOTES is the same as for `checkdoc-defun'"
     (define-key pmap "b" 'checkdoc-current-buffer)
     (define-key pmap "B" 'checkdoc-ispell-current-buffer)
     (define-key pmap "e" 'checkdoc-eval-current-buffer)
+    (define-key pmap "m" 'checkdoc-message-text)
     (define-key pmap "c" 'checkdoc-comments)
     (define-key pmap "C" 'checkdoc-ispell-comments)
     (define-key pmap " " 'checkdoc-rogue-spaces)
@@ -839,6 +859,7 @@ Prefix argument TAKE-NOTES is the same as for `checkdoc-defun'"
        ["Check Comment Style" checkdoc-comments buffer-file-name]
        ["Check Comment Style and Spelling" checkdoc-ispell-comments
 	buffer-file-name]
+       ["Check message text" checkdoc-message-text t]
        ["Check for Rogue Spaces" checkdoc-rogue-spaces t]
        )))
 ;; XEmacs requires some weird stuff to add this menu in a minor mode.
@@ -950,7 +971,7 @@ regexp short cuts work."
 		(looking-at "\\([ \t]+\\)[^ \t\n]"))
 	   (if (checkdoc-autofix-ask-replace (match-beginning 1)
 					     (match-end 1)
-					     "Remove this whitespace?"
+					     "Remove this whitespace? "
 					     "")
 	       nil
 	     "Second line should not have indentation")))
@@ -966,7 +987,7 @@ regexp short cuts work."
 		     (setq start (point)
 			   end (1- e)))))
 	   (if (checkdoc-autofix-ask-replace
-		start end "Remove this whitespace?" "")
+		start end "Remove this whitespace? " "")
 	       nil
 	     "Documentation strings should not start or end with whitespace")))
      ;; * Every command, function, or variable intended for users to know
@@ -1004,7 +1025,7 @@ documentation string"))
 	     nil
 	   (forward-char 1)
 	   (if (checkdoc-autofix-ask-replace
-		(point) (1+ (point)) "Add period to sentence?"
+		(point) (1+ (point)) "Add period to sentence? "
 		".\"" t)
 	       nil
 	     "First sentence should end with punctuation.")))
@@ -1021,7 +1042,7 @@ documentation string"))
 	       ;; Here we have found a complete sentence, but no break.
 	       (if (checkdoc-autofix-ask-replace
 		    (1+ (match-beginning 0)) (match-end 0)
-		    "First line not a complete sentence.  Add CR here?"
+		    "First line not a complete sentence.  Add RET here? "
 		    "\n" t)
 		   (let (l1 l2)
 		     (forward-line 1)
@@ -1033,7 +1054,7 @@ documentation string"))
 				(current-column)))
 		     (if (> (+ l1 l2 1) 80)
 			 (setq msg "Incomplete auto-fix.  Doc-string \
-may require more formatting.")
+may require more formatting")
 		       ;; We can merge these lines!  Replace this CR
 		       ;; with a space.
 		       (delete-char 1) (insert " ")
@@ -1052,7 +1073,7 @@ may require more formatting.")
 			(< (current-column) numc))
 		   (if (checkdoc-autofix-ask-replace
 			p (1+ p)
-			"1st line not a complete sentence. Join these lines?"
+			"1st line not a complete sentence. Join these lines? "
 			" " t)
 		       (progn
 			 ;; They said yes.  We have more fill work to do...
@@ -1066,10 +1087,10 @@ may require more formatting.")
        (if (looking-at "[a-z]")
 	   (if (checkdoc-autofix-ask-replace
 		(match-beginning 0) (match-end 0)
-		"Capitalize your sentence?" (upcase (match-string 0))
+		"Capitalize your sentence? " (upcase (match-string 0))
 		t)
 	       nil
-	     "First line should be capitalized.")
+	     "First line should be capitalized")
 	 nil))
      ;; * For consistency, phrase the verb in the first sentence of a
      ;;   documentation string as an infinitive with "to" omitted.  For
@@ -1100,7 +1121,7 @@ may require more formatting.")
 				(match-beginning 1) (match-end 1))
 		      rs (assoc (downcase original)
 				checkdoc-common-verbs-wrong-voice))
-		(if (not rs) (error "Verb voice alist corrupted."))
+		(if (not rs) (error "Verb voice alist corrupted"))
 		(setq replace (let ((case-fold-search nil))
 				(save-match-data
 				  (if (string-match "^[A-Z]" original)
@@ -1108,14 +1129,14 @@ may require more formatting.")
 				    (cdr rs)))))
 		(if (checkdoc-autofix-ask-replace
 		     (match-beginning 1) (match-end 1)
-		     (format "Wrong voice for verb `%s'.  Replace with `%s'?"
+		     (format "Wrong voice for verb `%s'.  Replace with `%s'? "
 			     original replace)
 		     replace t)
 		    (setq rs nil)))
 	      (if rs
 		  ;; there was a match, but no replace
 		  (format
-		   "Incorrect voice in sentence.  Use `%s' instead of `%s'."
+		   "Incorrect voice in sentence.  Use `%s' instead of `%s'"
 		   replace original)))))
      ;;   * Don't write key sequences directly in documentation strings.
      ;;     Instead, use the `\\[...]' construct to stand for them.
@@ -1139,6 +1160,40 @@ mouse-[0-3]\\)\\)\\>"))
        (if (re-search-forward "\\\\\\\\\\[\\w+" e t
 			      (1+ checkdoc-max-keyref-before-warn))
 	   "Too many occurrences of \\[function].  Use \\{keymap} instead"))
+     ;; Ambiguous quoted symbol. When a symbol is both bound and fbound,
+     ;; and is referred to in documentation, it should be prefixed with
+     ;; something to disambiguate it.  This check must be before the
+     ;; 80 column check because it will probably break that.
+     (save-excursion
+       (let ((case-fold-search t)
+	     (ret nil))
+	 (while (and
+		 (re-search-forward
+		  "\\(\\<\\(variable\\|option\\|function\\|command\\|symbol\\)\
+\\s-+\\)?`\\(\\sw\\(\\sw\\|\\s_\\)+\\)'" e t)
+		 (not ret))
+	   (let ((sym (intern-soft (match-string 3)))
+		 (mb (match-beginning 3)))
+	     (if (and sym (boundp sym) (fboundp sym) (not (match-string 1)))
+		 (if (checkdoc-autofix-ask-replace
+		      mb (match-end 3) "Prefix this ambiguous symbol? "
+		      (match-string 3) t)
+		     ;; We didn't actuall replace anything.  Here we find
+		     ;; out what special word form they wish to use as
+		     ;; a prefix.
+		     (let ((disambiguate
+			    (completing-read
+			     "Disambiguating Keyword (default: variable): "
+			     '(("function") ("command") ("variable")
+			       ("option") ("symbol"))
+			     nil t nil nil "variable")))
+		       (goto-char (1- mb))
+		       (insert disambiguate " ")
+		       (forward-word 1))
+		   (setq ret
+			 (format "Disambiguate %s by preceeding w/ \
+function,command,variable,option or symbol." (match-string 3)))))))
+	 ret))
      ;; * Format the documentation string so that it fits in an
      ;;   Emacs window on an 80-column screen.  It is a good idea
      ;;   for most lines to be no wider than 60 characters.  The
@@ -1179,7 +1234,7 @@ mouse-[0-3]\\)\\)\\>"))
 		    (setq found (intern-soft ms))
 		    (or (boundp found) (fboundp found)))
 	       (progn
-		 (setq msg (format "Lisp symbol %s should appear in `quotes'"
+		 (setq msg (format "Add quotes around lisp symbol `%s'? "
 				   ms))
 		 (if (checkdoc-autofix-ask-replace
 		      (match-beginning 1) (+ (match-beginning 1)
@@ -1192,7 +1247,7 @@ mouse-[0-3]\\)\\)\\>"))
        (if (re-search-forward "\\(`\\(t\\|nil\\)'\\)" e t)
 	   (if (checkdoc-autofix-ask-replace
 		(match-beginning 1) (match-end 1)
-		(format "%s should not appear in quotes. Remove?"
+		(format "%s should not appear in quotes. Remove? "
 			(match-string 2))
 		(match-string 2) t)
 	       nil
@@ -1235,10 +1290,12 @@ mouse-[0-3]\\)\\)\\>"))
 		   (last-pos 0)
 		   (found 1)
 		   (order (and (nth 3 fp) (car (nth 3 fp))))
-		   (nocheck (append '("&optional" "&rest") (nth 3 fp))))
+		   (nocheck (append '("&optional" "&rest") (nth 3 fp)))
+		   (inopts nil))
 	       (while (and args found (> found last-pos))
 		 (if (member (car args) nocheck)
-		     (setq args (cdr args))
+		     (setq args (cdr args)
+			   inopts t)
 		   (setq last-pos found
 			 found (save-excursion
 				 (re-search-forward
@@ -1264,15 +1321,32 @@ mouse-[0-3]\\)\\)\\>"))
 			     (if (checkdoc-autofix-ask-replace
 				  (match-beginning 1) (match-end 1)
 				  (format
-				   "Argument `%s' should appear as `%s'. Fix?"
+				   "Argument `%s' should appear as `%s'. Fix? "
 				   (car args) (upcase (car args)))
 				  (upcase (car args)) t)
 				 (setq found (match-beginning 1))))))
 		   (if found (setq args (cdr args)))))
 	       (if (not found)
-		   (format
-		    "Argument `%s' should appear as `%s' in the doc-string"
-		    (car args) (upcase (car args)))
+		   ;; It wasn't found at all!  Offer to attach this new symbol
+		   ;; to the end of the documentation string.
+		   (if (y-or-n-p
+			(format "Add %s documentation to end of doc-string?"
+				(upcase (car args))))
+		       ;; No do some majic an invent a doc string.
+		       (save-excursion
+			 (goto-char e) (forward-char -1)
+			 (insert "\n"
+				 (if inopts "Optional a" "A")
+				 "rgument " (upcase (car args))
+				 " ")
+			 (insert (read-string "Describe: "))
+			 (if (not (save-excursion (forward-char -1)
+						  (looking-at "[.?!]")))
+			     (insert "."))
+			 nil)
+		     (format
+		      "Argument `%s' should appear as `%s' in the doc-string"
+		      (car args) (upcase (car args))))
 		 (if (or (and order (eq order 'yes))
 			 (and (not order) checkdoc-arguments-in-order-flag))
 		     (if (< found last-pos)
@@ -1488,9 +1562,9 @@ Some editors & news agents may remove it")))
 	 ;; This is not a complex activity
 	 (if (checkdoc-autofix-ask-replace
 	      (match-beginning 1) (match-end 1)
-	      "White space at end of line. Remove?" "")
+	      "White space at end of line. Remove? " "")
 	     nil
-	   (setq msg "White space found at end of line.")))))
+	   (setq msg "White space found at end of line")))))
     ;; Return an error and leave the cursor at that spot, or restore
     ;; the cursor.
     (if msg
@@ -1530,7 +1604,7 @@ Code:, and others referenced in the style guide."
 	   ;; it's set to never
 	   (if (and checkdoc-autofix-flag
 		    (not (eq checkdoc-autofix-flag 'never))
-		    (y-or-n-p "There is no first line summary!  Add one?"))
+		    (y-or-n-p "There is no first line summary!  Add one? "))
 	       (progn
 		 (goto-char (point-min))
 		 (insert ";;; " fn fe " --- " (read-string "Summary: ") "\n"))
@@ -1573,7 +1647,7 @@ Code:, and others referenced in the style guide."
 		   nil t))
 	     (if (and checkdoc-autofix-flag
 		      (not (eq checkdoc-autofix-flag 'never))
-		      (y-or-n-p "No identifiable footer!  Add one?"))
+		      (y-or-n-p "No identifiable footer!  Add one? "))
 		 (progn
 		   (goto-char (point-max))
 		   (insert "\n(provide '" fn ")\n;;; " fn fe " ends here\n"))
@@ -1600,8 +1674,8 @@ Code:, and others referenced in the style guide."
 	       (if (and (checkdoc-outside-major-sexp) ;in code is ok.
 			(checkdoc-autofix-ask-replace
 			 (match-beginning 1) (match-end 1)
-			 "Multiple occurances of ;;; found. Use ;; instead?" ""
-			 complex-replace))
+			 "Multiple occurances of ;;; found. Use ;; instead? "
+			 "" complex-replace))
 		   ;; Learn that, yea, the user did want to do this a
 		   ;; whole bunch of times.
 		   (setq complex-replace nil))
@@ -1635,6 +1709,124 @@ Code:, and others referenced in the style guide."
       (let ((p (point)))
 	(or (progn (beginning-of-defun) (bobp))
 	    (progn (end-of-defun) (< (point) p)))))))
+
+;;; `error' and `message' text verifier.
+;;
+(defun checkdoc-message-text (&optional take-notes)
+  "Scan the buffer for occurrences of the error function, and verify text.
+Optional argument TAKE-NOTES causes all errors to be logged."
+  (interactive "P")
+  (if take-notes (checkdoc-start-section "checkdoc-message-text"))
+  (let ((p (point))
+	(e (checkdoc-message-text-search)))
+    (if e (if take-notes (checkdoc-error (point) e) (error e)))
+    (if (and take-notes e) (checkdoc-show-diagnostics))
+    (goto-char p))
+  (if (interactive-p) (message "Checking error message text...done.")))
+    
+(defun checkdoc-message-text-search (&optional beg end)
+  "Search between BEG and END for an error with `error'.
+Optional arguments BEG and END represent the boundary of the check.
+The default boundary is the entire buffer."
+  (let ((e nil))
+    (if (not (or beg end)) (setq beg (point-min) end (point-max)))
+    (goto-char beg)
+    (while (and (not e) (re-search-forward "(\\s-*error[ \t\n]" end t))
+      (if (looking-at "\"")
+	  (setq e (checkdoc-message-text-engine 'error))))
+    (goto-char beg)
+    (while (and (not e) (re-search-forward
+			 "\\<y-or-n-p\\(-with-timeout\\)?[ \t\n]" end t))
+      ;; Format is common as a first arg..
+      (if (looking-at "(format[ \t\n]") (goto-char (match-end 0)))
+      (if (looking-at "\"")
+	  (setq e (checkdoc-message-text-engine 'y-or-n-p))))
+    (goto-char beg)
+    ;; this is cheating for checkdoc only.
+    (while (and (not e) (re-search-forward
+			 "(checkdoc-autofix-ask-replace[ \t\n]"
+			 end t))
+      (forward-sexp 2)
+      (skip-chars-forward " \t\n")
+      (if (looking-at "(format[ \t\n]") (goto-char (match-end 0)))
+      (if (looking-at "\"")
+	  (setq e (checkdoc-message-text-engine 'y-or-n-p))))
+    ;; Is it worth adding checks for read commands too? That would
+    ;; require fixing up `interactive' which could be unpleasant.
+    ;; Most people get that right by accident anyway.
+    e))
+  
+(defun checkdoc-message-text-engine (type)
+  "Return or fix errors found in strings passed to a message display function.
+According to the documentation for the function `error', the error string
+should not end with a period, and should start with a capitol letter.
+The function `y-or-n-p' has similar constraints.
+Argument TYPE specifies the type of question, such as `error or `y-or-n-p."
+  (let ((case-fold-search nil))
+    (or
+     ;; From the documentation of the symbol `error':
+     ;; In Emacs, the convention is that error messages start with a capital
+     ;; letter but *do not* end with a period.  Please follow this convention
+     ;; for the sake of consistency.
+     (if (and (save-excursion (forward-char 1)
+			      (looking-at "[a-z]\\w+"))
+	      (not (checkdoc-autofix-ask-replace
+		    (match-beginning 0) (match-end 0)
+		    "Capitalize your message text? "
+		    (capitalize (match-string 0))
+		    t)))
+	 "Messages should start with a capitol letter"
+       nil)
+     (if (and (eq type 'error)
+	      (save-excursion (forward-sexp 1)
+			      (forward-char -2)
+			      (looking-at "\\."))
+	      (not (checkdoc-autofix-ask-replace (match-beginning 0)
+						 (match-end 0)
+						 "Remove period from error? "
+						 ""
+						 t)))
+	 "Error messages should *not* end with a period"
+       nil)
+     ;; `y-or-n-p' documentation explicitly says:
+     ;; It should end in a space; `y-or-n-p' adds `(y or n) ' to it.
+     ;; I added the ? requirement.  Without it, it is unclear that we
+     ;; ask a question and it appears to be an undocumented style.
+     (if (and (eq type 'y-or-n-p)
+	      (save-excursion (forward-sexp 1)
+			      (forward-char -3)
+			      (not (looking-at "\\? ")))
+	      (if (save-excursion (forward-sexp 1)
+				  (forward-char -2)
+				  (looking-at "\\?"))
+		  ;; If we see a ?, then replace with "? ".
+		  (if (checkdoc-autofix-ask-replace
+		       (match-beginning 0) (match-end 0)
+		       "y-or-n-p text should endwith \"? \".  Fix? "
+		       "? " t)
+		      nil
+		    "y-or-n-p text should endwith \"? \".")
+		(if (save-excursion (forward-sexp 1)
+				    (forward-char -2)
+				    (looking-at " "))
+		    (if (checkdoc-autofix-ask-replace
+			 (match-beginning 0) (match-end 0)
+			 "y-or-n-p text should endwith \"? \".  Fix? "
+			 "? " t)
+			nil
+		      "y-or-n-p text should endwith \"? \".")
+		  (if (and ;; if this isn't true, we have a problem.
+		       (save-excursion (forward-sexp 1)
+				       (forward-char -1)
+				       (looking-at "\""))
+		       (checkdoc-autofix-ask-replace
+			(match-beginning 0) (match-end 0)
+			"y-or-n-p text should endwith \"? \".  Fix? "
+			"? \"" t))
+		      nil
+		    "y-or-n-p text should endwith \"? \"."))))
+	 nil)
+     )))
 
 ;;; Auto-fix helper functions
 ;;
