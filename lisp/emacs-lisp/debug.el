@@ -93,6 +93,8 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-outer-inhibit-redisplay)
 (defvar debugger-outer-cursor-in-echo-area)
 
+(defvar inhibit-debug-on-entry nil)
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -147,6 +149,8 @@ first will be printed into the backtrace buffer."
       (setq overriding-terminal-local-map nil)
       ;; Don't let these magic variables affect the debugger itself.
       (let ((last-command nil) this-command track-mouse
+	    (inhibit-trace t)
+	    (inhibit-debug-on-entry t)
 	    unread-command-events
 	    unread-post-input-method-events
 	    last-input-event last-command-event last-nonmenu-event
@@ -189,8 +193,7 @@ first will be printed into the backtrace buffer."
 		    (backtrace-debug 3 t))
 		(debugger-reenable)
 		(message "")
-		(let ((inhibit-trace t)
-		      (standard-output nil)
+		(let ((standard-output nil)
 		      (buffer-read-only t))
 		  (message "")
 		  ;; Make sure we unbind buffer-read-only in the right buffer.
@@ -691,6 +694,10 @@ If argument is nil or an empty string, cancel for all functions."
 	      (setq body (cons (documentation function) body)))
 	  (fset function (cons 'lambda (cons (car contents) body)))))))
 
+
+(defconst debug-entry-code '(if inhibit-debug-on-entry nil (debug 'debug))
+  "Code added to a function to cause it to call the debugger upon entry.")
+
 (defun debug-on-entry-1 (function defn flag)
   (if (subrp defn)
       (error "%s is a built-in function" function)
@@ -703,7 +710,7 @@ If argument is nil or an empty string, cancel for all functions."
 	(if (stringp (car tail)) (setq tail (cdr tail)))
 	;; Skip the interactive form.
 	(if (eq 'interactive (car-safe (car tail))) (setq tail (cdr tail)))
-	(unless (eq flag (equal (car tail) '(debug 'debug)))
+	(unless (eq flag (equal (car tail) debug-entry-code))
 	  ;; If the function has no body, add nil as a body element.
 	  (when (null tail)
 	    (setq tail (list nil))
@@ -713,7 +720,7 @@ If argument is nil or an empty string, cancel for all functions."
 	      (progn (setcar tail (cadr tail))
 		     (setcdr tail (cddr tail)))
 	    (setcdr tail (cons (car tail) (cdr tail)))
-	    (setcar tail '(debug 'debug))))
+	    (setcar tail debug-entry-code)))
 	defn))))
 
 (defun debugger-list-functions ()
