@@ -776,9 +776,13 @@ M-x customize-group RET recentf RET.
 *** elide-head.el provides a mechanism for eliding boilerplate header
 text.
 
-*** footnote.el provides `foornote-mode', a minor mode supporting use
+*** footnote.el provides `footnote-mode', a minor mode supporting use
 of footnotes.  It is intended for use with Message mode, but isn't
 specific to Message mode.
+
+*** diff-mode.el provides `diff-mode', a major mode for
+viewing/editing context diffs (patches).  It is selected for files
+with extension `.diff', `.diffs', `.patch' and `.rej'.
 
 ** Withdrawn packages
 
