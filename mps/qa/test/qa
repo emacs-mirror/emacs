@@ -1,5 +1,5 @@
 #!/usr/local/bin/perl -w
-# $HopeName$
+# $HopeName: MMQA_harness!qa(trunk.6) $
 #
 # First, we'll set up @INC so we can find the other
 # perl scripts we require. This program will be in the
@@ -12,6 +12,10 @@
 # perl scripts.
 # We assume the separator is / and the program name is
 # made only of A-Za-z0-9 and _.
+
+if ($] < 5) {
+ die "The QA harness requires perl 5 or greater (this is version $]).\n";
+}
 
 $test_dir = $0;
 
