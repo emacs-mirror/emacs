@@ -764,7 +764,7 @@ init_environment (argc, argv, skip_args)
 static unsigned char _xorattr;
 
 static void
-visible_bell (xorattr)
+do_visible_bell (xorattr)
      unsigned char xorattr;
 {
   _xorattr = xorattr;
@@ -843,7 +843,7 @@ internal_flush (f)
 		  count -= 3;
 		  break;
 		case 'B':
-		  visible_bell (*cp++);
+		  do_visible_bell (*cp++);
 		  count -= 3;
 		  break;
 		case 'C':
@@ -871,6 +871,10 @@ internal_flush (f)
 		default:
 		  count -= 2;
 		}
+	      break;
+	    case 7:
+	      write (1, "\007", 1);
+	      count--;
 	      break;
 	    case 8:
 	      x--;
