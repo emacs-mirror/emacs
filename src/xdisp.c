@@ -609,6 +609,7 @@ enum move_it_result
 
 /* Function prototypes.  */
 
+static int single_display_prop_intangible_p P_ ((Lisp_Object));
 static void ensure_echo_area_buffers P_ ((void));
 static struct glyph_row *row_containing_pos P_ ((struct window *, int,
 						 struct glyph_row *,
@@ -2304,7 +2305,6 @@ handle_single_display_prop (it, prop, object, position)
 {
   Lisp_Object value;
   int space_or_image_found_p = 0;
-
   Lisp_Object form;
 
   /* If PROP is a list of the form `(when FORM . VALUE)', FORM is
@@ -2560,6 +2560,77 @@ handle_single_display_prop (it, prop, object, position)
   return space_or_image_found_p;
 }
 
+
+/* Check if PROP is a display sub-property value whose text should be
+   treated as intangible.  */
+
+static int
+single_display_prop_intangible_p (prop)
+     Lisp_Object prop;
+{
+  /* Skip over `when FORM'.  */
+  if (CONSP (prop) && EQ (XCAR (prop), Qwhen))
+    {
+      prop = XCDR (prop);
+      if (!CONSP (prop))
+	return 0;
+      prop = XCDR (prop);
+    }
+
+  if (!CONSP (prop))
+    return 0;
+
+  /* Skip over `margin LOCATION'.  If LOCATION is in the margins,
+     we don't need to treat text as intangible.  */
+  if (EQ (XCAR (prop), Qmargin))
+    {
+      prop = XCDR (prop);
+      if (!CONSP (prop))
+	return 0;
+
+      prop = XCDR (prop);
+      if (!CONSP (prop)
+	  || EQ (XCAR (prop), Qleft_margin)
+	  || EQ (XCAR (prop), Qright_margin))
+	return 0;
+    }
+  
+  return CONSP (prop) && EQ (XCAR (prop), Qimage);
+}
+
+
+/* Check if PROP is a display property value whose text should be
+   treated as intangible.  */
+
+int
+display_prop_intangible_p (prop)
+     Lisp_Object prop;
+{
+  if (CONSP (prop)
+      && CONSP (XCAR (prop))
+      && !EQ (Qmargin, XCAR (XCAR (prop))))
+    {
+      /* A list of sub-properties.  */
+      while (CONSP (prop))
+	{
+	  if (single_display_prop_intangible_p (XCAR (prop)))
+	    return 1;
+	  prop = XCDR (prop);
+	}
+    }
+  else if (VECTORP (prop))
+    {
+      /* A vector of sub-properties.  */
+      int i;
+      for (i = 0; i < XVECTOR (prop)->size; ++i)
+	if (single_display_prop_intangible_p (XVECTOR (prop)->contents[i]))
+	  return 1;
+    }
+  else
+    return single_display_prop_intangible_p (prop);
+
+  return 0;
+}
 
 
 /***********************************************************************
@@ -10650,7 +10721,7 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
       
       if (glyph < glyph_end)
 	{
-	  fprintf (stderr, "  Glyph    Type Pos   W    Code C Face LR\n");
+	  fprintf (stderr, "  Glyph    Type Pos   O W    Code C Face LR\n");
 	  prev_had_glyphs_p = 1;
 	}
       else
@@ -10661,10 +10732,15 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	  if (glyph->type == CHAR_GLYPH)
 	    {
 	      fprintf (stderr,
-		       "  %5d %4c %6d %3d 0x%05x %c %4d %1.1d%1.1d\n",
+		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 		       glyph - row->glyphs[TEXT_AREA],
 		       'C',
 		       glyph->charpos,
+		       (BUFFERP (glyph->object)
+			? 'B'
+			: (STRINGP (glyph->object)
+			   ? 'S'
+			   : '-')),
 		       glyph->pixel_width,
 		       glyph->u.ch,
 		       (glyph->u.ch < 0x80 && glyph->u.ch >= ' '
@@ -10677,10 +10753,15 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	  else if (glyph->type == STRETCH_GLYPH)
 	    {
 	      fprintf (stderr,
-		       "  %5d %4c %6d %3d 0x%05x %c %4d %1.1d%1.1d\n",
+		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 		       glyph - row->glyphs[TEXT_AREA],
 		       'S',
 		       glyph->charpos,
+		       (BUFFERP (glyph->object)
+			? 'B'
+			: (STRINGP (glyph->object)
+			   ? 'S'
+			   : '-')),
 		       glyph->pixel_width,
 		       0,
 		       '.',
@@ -10691,10 +10772,15 @@ dump_glyph_row (matrix, vpos, with_glyphs_p)
 	  else if (glyph->type == IMAGE_GLYPH)
 	    {
 	      fprintf (stderr,
-		       "  %5d %4c %6d %3d 0x%05x %c %4d %1.1d%1.1d\n",
+		       "  %5d %4c %6d %c %3d 0x%05x %c %4d %1.1d%1.1d\n",
 		       glyph - row->glyphs[TEXT_AREA],
 		       'I',
 		       glyph->charpos,
+		       (BUFFERP (glyph->object)
+			? 'B'
+			: (STRINGP (glyph->object)
+			   ? 'S'
+			   : '-')),
 		       glyph->pixel_width,
 		       glyph->u.img_id,
 		       '.',
