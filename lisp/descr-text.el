@@ -218,216 +218,223 @@ otherwise."
 	(newline)
 	(widget-insert "There are text properties here:\n")
 	(describe-property-list properties)))))
+
+;;; We cannot use the UnicodeData.txt file as such; it is not free.
+;;; We can turn that info a different format and release the result
+;;; as free data.  When that is done, we could reinstate the code below.
+;;; For the mean time, here is a dummy placeholder.
+;;;  -- rms
+(defun describe-char-unicode-data (char) nil)
 
-(defcustom unicodedata-file nil
-  "Location of Unicode data file.
-This is the UnicodeData.txt file from the Unicode consortium, used for
-diagnostics.  If it is non-nil `describe-char-after' will print data
-looked up from it.  This facility is mostly of use to people doing
-multilingual development.
+;;; (defcustom describe-char-unicodedata-file nil
+;;;   "Location of Unicode data file.
+;;; This is the UnicodeData.txt file from the Unicode consortium, used for
+;;; diagnostics.  If it is non-nil `describe-char-after' will print data
+;;; looked up from it.  This facility is mostly of use to people doing
+;;; multilingual development.
 
-This is a fairly large file, not typically present on GNU systems.  At
-the time of writing it is at
-<URL:ftp://www.unicode.org/Public/UNIDATA/UnicodeData.txt>."
-  :group 'mule
-  :version "21.5"
-  :type '(choice (const :tag "None" nil)
-		 file))
+;;; This is a fairly large file, not typically present on GNU systems.  At
+;;; the time of writing it is at
+;;; <URL:ftp://www.unicode.org/Public/UNIDATA/UnicodeData.txt>."
+;;;   :group 'mule
+;;;   :version "21.5"
+;;;   :type '(choice (const :tag "None" nil)
+;;; 		 file))
 
-;; We could convert the unidata file into a Lispy form once-for-all
-;; and distribute it for loading on demand.  It might be made more
-;; space-efficient by splitting strings word-wise and replacing them
-;; with lists of symbols interned in a private obarray, e.g.
-;; "LATIN SMALL LETTER A" => '(LATIN SMALL LETTER A).
+;;; ;; We could convert the unidata file into a Lispy form once-for-all
+;;; ;; and distribute it for loading on demand.  It might be made more
+;;; ;; space-efficient by splitting strings word-wise and replacing them
+;;; ;; with lists of symbols interned in a private obarray, e.g.
+;;; ;; "LATIN SMALL LETTER A" => '(LATIN SMALL LETTER A).
 
-;; Fixme: Check whether this needs updating for Unicode 4.
-(defun unicode-data (char)
-  "Return a list of Unicode data for unicode CHAR.
-Each element is a list of a property description and the property value.
-The list is null if CHAR isn't found in `unicodedata-file'."
-  (when unicodedata-file
-    (unless (file-exists-p unicodedata-file)
-      (error "`unicodedata-file' %s not found" unicodedata-file))
-    (save-excursion
-      ;; Find file in fundamental mode to avoid, e.g. flyspell turned
-      ;; on for .txt.  Don't use RAWFILE arg in case of DOS line endings.
-      (set-buffer (let ((auto-mode-alist))
-		    (find-file-noselect unicodedata-file)))
-      (goto-char (point-min))
-      (let ((hex (format "%04X" char))
-	    found first last)
-	(if (re-search-forward (concat "^" hex) nil t)
-	    (setq found t)
-	  ;; It's not listed explicitly.  Look for ranges, e.g. CJK
-	  ;; ideographs, and check whether it's in one of them.
-	  (while (and (re-search-forward "^\\([^;]+\\);[^;]+First>;" nil t)
-		      (>= char (setq first
-				     (string-to-number (match-string 1) 16)))
-		      (progn
-			(forward-line 1)
-			(looking-at "^\\([^;]+\\);[^;]+Last>;")
-			(> char
-			   (setq last
-				 (string-to-number (match-string 1) 16))))))
-	  (if (and (>= char first)
-		   (<= char last))
-	      (setq found t)))
-	(if found
-	    (let ((fields (mapcar (lambda (elt)
-				    (if (> (length elt) 0)
-					elt))
-				  (cdr (split-string
-					(buffer-substring
-					 (line-beginning-position)
-					 (line-end-position))
-					";")))))
-	      ;; The length depends on whether the last field was empty.
-	      (unless (or (= 13 (length fields))
-			  (= 14 (length fields)))
-		(error "Invalid contents in %s" unicodedata-file))
-	      ;; The field names and values lists are slightly
-	      ;; modified from Mule-UCS unidata.el.
-	      (list
-	       (list "Name" (let ((name (nth 0 fields)))
-			      ;; Check for <..., First>, <..., Last>
-			      (if (string-match "\\`\\(<[^,]+\\)," name)
-				  (concat (match-string 1 name) ">")
-				name)))
-	       (list "Category"
-		     (cdr (assoc
-			   (nth 1 fields)
-			   '(("Lu" . "uppercase letter")
-			     ("Ll" . "lowercase letter")
-			     ("Lt" . "titlecase letter")
-			     ("Mn" . "non-spacing mark")
-			     ("Mc" . "spacing-combining mark")
-			     ("Me" . "enclosing mark")
-			     ("Nd" . "decimal digit")
-			     ("Nl" . "letter number")
-			     ("No" . "other number")
-			     ("Zs" . "space separator")
-			     ("Zl" . "line separator")
-			     ("Zp" . "paragraph separator")
-			     ("Cc" . "other control")
-			     ("Cf" . "other format")
-			     ("Cs" . "surrogate")
-			     ("Co" . "private use")
-			     ("Cn" . "not assigned")
-			     ("Lm" . "modifier letter")
-			     ("Lo" . "other letter")
-			     ("Pc" . "connector punctuation")
-			     ("Pd" . "dash punctuation")
-			     ("Ps" . "open punctuation")
-			     ("Pe" . "close punctuation")
-			     ("Pi" . "initial-quotation punctuation")
-			     ("Pf" . "final-quotation punctuation")
-			     ("Po" . "other punctuation")
-			     ("Sm" . "math symbol")
-			     ("Sc" . "currency symbol")
-			     ("Sk" . "modifier symbol")
-			     ("So" . "other symbol")))))
-	       (list "Combining class"
-		     (cdr (assoc
-			   (string-to-number (nth 2 fields))
-			   '((0 . "Spacing")
-			     (1 . "Overlays and interior")
-			     (7 . "Nuktas") 
-			     (8 . "Hiragana/Katakana voicing marks")
-			     (9 . "Viramas")
-			     (10 . "Start of fixed position classes")
-			     (199 . "End of fixed position classes")
-			     (200 . "Below left attached")
-			     (202 . "Below attached")
-			     (204 . "Below right attached")
-			     (208 . "Left attached (reordrant around \
-single base character)")
-			     (210 . "Right attached")
-			     (212 . "Above left attached")
-			     (214 . "Above attached")
-			     (216 . "Above right attached")
-			     (218 . "Below left")
-			     (220 . "Below")
-			     (222 . "Below right")
-			     (224 . "Left (reordrant around single base \
-character)")
-			     (226 . "Right")
-			     (228 . "Above left")
-			     (230 . "Above")
-			     (232 . "Above right")
-			     (233 . "Double below")
-			     (234 . "Double above")
-			     (240 . "Below (iota subscript)")))))
-	       (list "Bidi category"
-		     (cdr (assoc
-			   (nth 3 fields)
-			   '(("L" . "Left-to-Right")
-			     ("LRE" . "Left-to-Right Embedding")
-			     ("LRO" . "Left-to-Right Override")
-			     ("R" . "Right-to-Left")
-			     ("AL" . "Right-to-Left Arabic")
-			     ("RLE" . "Right-to-Left Embedding")
-			     ("RLO" . "Right-to-Left Override")
-			     ("PDF" . "Pop Directional Format")
-			     ("EN" . "European Number")
-			     ("ES" . "European Number Separator")
-			     ("ET" . "European Number Terminator")
-			     ("AN" . "Arabic Number")
-			     ("CS" . "Common Number Separator")
-			     ("NSM" . "Non-Spacing Mark")
-			     ("BN" . "Boundary Neutral")
-			     ("B" . "Paragraph Separator")
-			     ("S" . "Segment Separator")
-			     ("WS" . "Whitespace")
-			     ("ON" . "Other Neutrals")))))
-	       (list
-		"Decomposition"
-		(if (nth 4 fields)
-		    (let* ((parts (split-string (nth 4 fields)))
-			   (info (car parts)))
-		      (if (string-match "\\`<\\(.+\\)>\\'" info)
-			  (setq info (match-string 1 info))
-			(setq info nil))
-		      (if info (setq parts (cdr parts)))
-		      ;; Maybe printing ? for unrepresentable unicodes
-		      ;; here and below should be changed?
-		      (setq parts (mapconcat
-				   (lambda (arg)
-				     (string (or (decode-char
-						  'ucs
-						  (string-to-number arg 16))
-						 ??)))
-				   parts " "))
-		      (concat info parts))))
-	       (list "Decimal digit value"
-		     (nth 5 fields))
-	       (list "Digit value"
-		     (nth 6 fields))
-	       (list "Numeric value"
-		     (nth 7 fields))
-	       (list "Mirrored"
-		     (if (equal "Y" (nth 8 fields))
-			 "yes"))
-	       (list "Old name" (nth 9 fields))
-	       (list "ISO 10646 comment" (nth 10 fields))
-	       (list "Uppercase" (and (nth 11 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 11 fields) 16))
-						  ??))))
-	       (list "Lowercase" (and (nth 12 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 12 fields) 16))
-						  ??))))
-	       (list "Titlecase" (and (nth 13 fields)
-				      (string (or (decode-char
-						   'ucs
-						   (string-to-number
-						    (nth 13 fields) 16))
-						  ??)))))))))))
-
+;;; ;; Fixme: Check whether this needs updating for Unicode 4.
+;;; (defun describe-char-unicode-data (char)
+;;;   "Return a list of Unicode data for unicode CHAR.
+;;; Each element is a list of a property description and the property value.
+;;; The list is null if CHAR isn't found in `describe-char-unicodedata-file'."
+;;;   (when describe-char-unicodedata-file
+;;;     (unless (file-exists-p describe-char-unicodedata-file)
+;;;       (error "`unicodedata-file' %s not found" describe-char-unicodedata-file))
+;;;     (save-excursion
+;;;       ;; Find file in fundamental mode to avoid, e.g. flyspell turned
+;;;       ;; on for .txt.  Don't use RAWFILE arg in case of DOS line endings.
+;;;       (set-buffer (let ((auto-mode-alist))
+;;; 		    (find-file-noselect describe-char-unicodedata-file)))
+;;;       (goto-char (point-min))
+;;;       (let ((hex (format "%04X" char))
+;;; 	    found first last)
+;;; 	(if (re-search-forward (concat "^" hex) nil t)
+;;; 	    (setq found t)
+;;; 	  ;; It's not listed explicitly.  Look for ranges, e.g. CJK
+;;; 	  ;; ideographs, and check whether it's in one of them.
+;;; 	  (while (and (re-search-forward "^\\([^;]+\\);[^;]+First>;" nil t)
+;;; 		      (>= char (setq first
+;;; 				     (string-to-number (match-string 1) 16)))
+;;; 		      (progn
+;;; 			(forward-line 1)
+;;; 			(looking-at "^\\([^;]+\\);[^;]+Last>;")
+;;; 			(> char
+;;; 			   (setq last
+;;; 				 (string-to-number (match-string 1) 16))))))
+;;; 	  (if (and (>= char first)
+;;; 		   (<= char last))
+;;; 	      (setq found t)))
+;;; 	(if found
+;;; 	    (let ((fields (mapcar (lambda (elt)
+;;; 				    (if (> (length elt) 0)
+;;; 					elt))
+;;; 				  (cdr (split-string
+;;; 					(buffer-substring
+;;; 					 (line-beginning-position)
+;;; 					 (line-end-position))
+;;; 					";")))))
+;;; 	      ;; The length depends on whether the last field was empty.
+;;; 	      (unless (or (= 13 (length fields))
+;;; 			  (= 14 (length fields)))
+;;; 		(error "Invalid contents in %s" describe-char-unicodedata-file))
+;;; 	      ;; The field names and values lists are slightly
+;;; 	      ;; modified from Mule-UCS unidata.el.
+;;; 	      (list
+;;; 	       (list "Name" (let ((name (nth 0 fields)))
+;;; 			      ;; Check for <..., First>, <..., Last>
+;;; 			      (if (string-match "\\`\\(<[^,]+\\)," name)
+;;; 				  (concat (match-string 1 name) ">")
+;;; 				name)))
+;;; 	       (list "Category"
+;;; 		     (cdr (assoc
+;;; 			   (nth 1 fields)
+;;; 			   '(("Lu" . "uppercase letter")
+;;; 			     ("Ll" . "lowercase letter")
+;;; 			     ("Lt" . "titlecase letter")
+;;; 			     ("Mn" . "non-spacing mark")
+;;; 			     ("Mc" . "spacing-combining mark")
+;;; 			     ("Me" . "enclosing mark")
+;;; 			     ("Nd" . "decimal digit")
+;;; 			     ("Nl" . "letter number")
+;;; 			     ("No" . "other number")
+;;; 			     ("Zs" . "space separator")
+;;; 			     ("Zl" . "line separator")
+;;; 			     ("Zp" . "paragraph separator")
+;;; 			     ("Cc" . "other control")
+;;; 			     ("Cf" . "other format")
+;;; 			     ("Cs" . "surrogate")
+;;; 			     ("Co" . "private use")
+;;; 			     ("Cn" . "not assigned")
+;;; 			     ("Lm" . "modifier letter")
+;;; 			     ("Lo" . "other letter")
+;;; 			     ("Pc" . "connector punctuation")
+;;; 			     ("Pd" . "dash punctuation")
+;;; 			     ("Ps" . "open punctuation")
+;;; 			     ("Pe" . "close punctuation")
+;;; 			     ("Pi" . "initial-quotation punctuation")
+;;; 			     ("Pf" . "final-quotation punctuation")
+;;; 			     ("Po" . "other punctuation")
+;;; 			     ("Sm" . "math symbol")
+;;; 			     ("Sc" . "currency symbol")
+;;; 			     ("Sk" . "modifier symbol")
+;;; 			     ("So" . "other symbol")))))
+;;; 	       (list "Combining class"
+;;; 		     (cdr (assoc
+;;; 			   (string-to-number (nth 2 fields))
+;;; 			   '((0 . "Spacing")
+;;; 			     (1 . "Overlays and interior")
+;;; 			     (7 . "Nuktas") 
+;;; 			     (8 . "Hiragana/Katakana voicing marks")
+;;; 			     (9 . "Viramas")
+;;; 			     (10 . "Start of fixed position classes")
+;;; 			     (199 . "End of fixed position classes")
+;;; 			     (200 . "Below left attached")
+;;; 			     (202 . "Below attached")
+;;; 			     (204 . "Below right attached")
+;;; 			     (208 . "Left attached (reordrant around \
+;;; single base character)")
+;;; 			     (210 . "Right attached")
+;;; 			     (212 . "Above left attached")
+;;; 			     (214 . "Above attached")
+;;; 			     (216 . "Above right attached")
+;;; 			     (218 . "Below left")
+;;; 			     (220 . "Below")
+;;; 			     (222 . "Below right")
+;;; 			     (224 . "Left (reordrant around single base \
+;;; character)")
+;;; 			     (226 . "Right")
+;;; 			     (228 . "Above left")
+;;; 			     (230 . "Above")
+;;; 			     (232 . "Above right")
+;;; 			     (233 . "Double below")
+;;; 			     (234 . "Double above")
+;;; 			     (240 . "Below (iota subscript)")))))
+;;; 	       (list "Bidi category"
+;;; 		     (cdr (assoc
+;;; 			   (nth 3 fields)
+;;; 			   '(("L" . "Left-to-Right")
+;;; 			     ("LRE" . "Left-to-Right Embedding")
+;;; 			     ("LRO" . "Left-to-Right Override")
+;;; 			     ("R" . "Right-to-Left")
+;;; 			     ("AL" . "Right-to-Left Arabic")
+;;; 			     ("RLE" . "Right-to-Left Embedding")
+;;; 			     ("RLO" . "Right-to-Left Override")
+;;; 			     ("PDF" . "Pop Directional Format")
+;;; 			     ("EN" . "European Number")
+;;; 			     ("ES" . "European Number Separator")
+;;; 			     ("ET" . "European Number Terminator")
+;;; 			     ("AN" . "Arabic Number")
+;;; 			     ("CS" . "Common Number Separator")
+;;; 			     ("NSM" . "Non-Spacing Mark")
+;;; 			     ("BN" . "Boundary Neutral")
+;;; 			     ("B" . "Paragraph Separator")
+;;; 			     ("S" . "Segment Separator")
+;;; 			     ("WS" . "Whitespace")
+;;; 			     ("ON" . "Other Neutrals")))))
+;;; 	       (list
+;;; 		"Decomposition"
+;;; 		(if (nth 4 fields)
+;;; 		    (let* ((parts (split-string (nth 4 fields)))
+;;; 			   (info (car parts)))
+;;; 		      (if (string-match "\\`<\\(.+\\)>\\'" info)
+;;; 			  (setq info (match-string 1 info))
+;;; 			(setq info nil))
+;;; 		      (if info (setq parts (cdr parts)))
+;;; 		      ;; Maybe printing ? for unrepresentable unicodes
+;;; 		      ;; here and below should be changed?
+;;; 		      (setq parts (mapconcat
+;;; 				   (lambda (arg)
+;;; 				     (string (or (decode-char
+;;; 						  'ucs
+;;; 						  (string-to-number arg 16))
+;;; 						 ??)))
+;;; 				   parts " "))
+;;; 		      (concat info parts))))
+;;; 	       (list "Decimal digit value"
+;;; 		     (nth 5 fields))
+;;; 	       (list "Digit value"
+;;; 		     (nth 6 fields))
+;;; 	       (list "Numeric value"
+;;; 		     (nth 7 fields))
+;;; 	       (list "Mirrored"
+;;; 		     (if (equal "Y" (nth 8 fields))
+;;; 			 "yes"))
+;;; 	       (list "Old name" (nth 9 fields))
+;;; 	       (list "ISO 10646 comment" (nth 10 fields))
+;;; 	       (list "Uppercase" (and (nth 11 fields)
+;;; 				      (string (or (decode-char
+;;; 						   'ucs
+;;; 						   (string-to-number
+;;; 						    (nth 11 fields) 16))
+;;; 						  ??))))
+;;; 	       (list "Lowercase" (and (nth 12 fields)
+;;; 				      (string (or (decode-char
+;;; 						   'ucs
+;;; 						   (string-to-number
+;;; 						    (nth 12 fields) 16))
+;;; 						  ??))))
+;;; 	       (list "Titlecase" (and (nth 13 fields)
+;;; 				      (string (or (decode-char
+;;; 						   'ucs
+;;; 						   (string-to-number
+;;; 						    (nth 13 fields) 16))
+;;; 						  ??)))))))))))
+
 ;;;###autoload
 (defun describe-char (pos)
   "Describe the character after POS (interactively, the character after point).
@@ -517,7 +524,7 @@ as well as widgets, buttons, overlays, and text properties."
 			     (encoded-string-description encoded coding)
 			   "not encodable"))))
 	      ,@(let ((unicodedata (and unicode
-				       (unicode-data unicode))))
+					(describe-char-unicode-data unicode))))
 		  (if unicodedata
 		      (cons (list "Unicode data" " ") unicodedata))))))
     (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
