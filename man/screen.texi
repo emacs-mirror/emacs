@@ -165,15 +165,13 @@ minibuffer by typing @kbd{C-g}.  @xref{Minibuffer}.
 @cindex top level
 @c
 
-  Each text window's last line is a @dfn{mode line}, which describes what
-is going on in that window.  When there is only one text window, the
-mode line appears right above the echo area; it is the next-to-last line
-on the frame.  The mode line starts and ends with dashes.  On a
-text-mode display, the mode line is in inverse video if the terminal
-supports that; on a graphics display, the mode line is by default drawn
-with a 3D box appearence, which makes it slightly larger than a normal
-text line (if you don't like that, the 3D appearence can be turned off;
-see @ref{Optional Mode Line}).
+  Each text window's last line is a @dfn{mode line}, which describes
+what is going on in that window.  When there is only one text window,
+the mode line appears right above the echo area; it is the
+next-to-last line on the frame.  The mode line starts and ends with
+dashes.  On a text-mode display, the mode line is in inverse video if
+the terminal supports that; on a graphics display, the mode line has a
+3D box appearence to help it stand out.
 
   Normally, the mode line looks like this:
 
@@ -295,8 +293,9 @@ formats by setting each of the variables @code{eol-mnemonic-unix},
 information to the mode line, such as the current column number of
 point, the current time, and whether new mail for you has arrived.
 
-The mode line is mouse-sensitive and help text is echoed when you move
-the mouse across it.  @xref{Mode Line Mouse}.
+The mode line is mouse-sensitive; when you move the mouse across
+various parts of it, Emacs displays help text to say what a click in
+that place will do.  @xref{Mode Line Mouse}.
 
 @node Menu Bar
 @section The Menu Bar
