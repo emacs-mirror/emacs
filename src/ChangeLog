@@ -1,3 +1,10 @@
+2000-06-21  Dave Love  <fx@gnu.org>
+
+	* Makefile.in: Use GETLOADAVG_LIBS.
+
+	* config.in: Add HAVE_FCNTL_H, _FILE_OFFSET_BITS,
+	_LARGEFILE_SOURCE, _LARGE_FILES, _XOPEN_SOURCE.
+
 2000-06-20  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* syntax.c (describe_syntax): Recognize the `n'estable bit.

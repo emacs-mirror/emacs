@@ -1,3 +1,9 @@
+2000-06-21  Dave Love  <fx@gnu.org>
+
+	* configure.in: Check for fcntl.h.  Use AC_FUNC_GETLOADAVG, not
+	simple test for getloadavg and substitute GETLOADAVG_LIBS.
+	Simplify test for GETTIMEOFDAY_ONE_ARGUMENT.
+
 2000-06-19  Dave Love  <fx@gnu.org>
 
 	* configure.in (GETTIMEOFDAY_ONE_ARGUMENT): Fix in case
