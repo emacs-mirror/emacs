@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.14 1996/05/21 17:26:31 kwzh Exp rms $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.15 1997/04/12 19:25:28 rms Exp rms $")
 
 ;;; Code:
 
@@ -982,16 +982,16 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	(forward-char mh-cmd-note)
 	(setq char (following-char))
 	(if (or (and remove-all-flags
-		     (or (eql char (aref mh-note-deleted 0))
-			 (eql char (aref mh-note-refiled 0))))
-		(eql char (aref mh-note-cur 0)))
+		     (or (= char (aref mh-note-deleted 0))
+			 (= char (aref mh-note-refiled 0))))
+		(= char (aref mh-note-cur 0)))
 	    (progn
 	      (delete-char 1)
 	      (insert " ")))
 	(if remove-all-flags
 	    (progn
 	      (forward-char 1)
-	      (if (eql (following-char) (aref mh-note-seq 0))
+	      (if (= (following-char) (aref mh-note-seq 0))
 		  (progn
 		    (delete-char 1)
 		    (insert " ")))))
@@ -1123,9 +1123,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
     (while prev
       (if range-high
 	  (if (or (not (numberp prev))
-		  (not (eql (car msgs) (1- prev))))
+		  (not (equal (car msgs) (1- prev))))
 	      (progn			;non-sequential, flush old range
-		(if (eql prev range-high)
+		(if (eq prev range-high)
 		    (setq ranges (cons range-high ranges))
 		  (setq ranges (cons (format "%s-%s" prev range-high) ranges)))
 		(setq range-high nil))))
