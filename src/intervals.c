@@ -655,7 +655,7 @@ adjust_intervals_for_insertion (tree, position, length)
       /* If both intervals are sticky here, then default to the
          left-most one.  But perhaps we should create a new
 	 interval here instead... */
-      if (END_STICKY_P (prev))
+      if (END_STICKY_P (prev) || ! FRONT_STICKY_P (i))
 	i = prev;
     }
 
