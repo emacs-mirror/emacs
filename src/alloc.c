@@ -1642,6 +1642,16 @@ mark_object (objptr)
 	     instead, markers are removed from the chain when freed by gc.  */
 	  break;
 
+	case Lisp_Misc_Intfwd:
+	case Lisp_Misc_Boolfwd:
+	case Lisp_Misc_Objfwd:
+	case Lisp_Misc_Buffer_Objfwd:
+	  /* Don't bother with Lisp_Buffer_Objfwd,
+	     since all markable slots in current buffer marked anyway.  */
+	  /* Don't need to do Lisp_Objfwd, since the places they point
+	     are protected with staticpro.  */
+	  break;
+
 	default:
 	  abort ();
 	}
@@ -1680,14 +1690,6 @@ mark_object (objptr)
 
     case Lisp_Int:
     case Lisp_Subr:
-    case Lisp_Intfwd:
-    case Lisp_Boolfwd:
-    case Lisp_Objfwd:
-    case Lisp_Buffer_Objfwd:
-    /* Don't bother with Lisp_Buffer_Objfwd,
-       since all markable slots in current buffer marked anyway.  */
-    /* Don't need to do Lisp_Objfwd, since the places they point
-       are protected with staticpro.  */
       break;
 
     default:
