@@ -1274,6 +1274,7 @@ Do so while interleaving with the following special events:
 		  (lambda (c)
 		    ;; This gives us the chance to unify on input
 		    ;; (e.g. using ucs-tables.el).
+		    ;; Fixme: Is this still useful?  (See also mule-conf.el.)
 		    (or (and translation-table-for-input
 			     (aref translation-table-for-input c))
 			c))
