@@ -1,6 +1,6 @@
 ;;; hexl.el --- edit a file in a hex dump format using the hexl filter.
 
-;; Copyright (C) 1989, 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1989, 1994, 1998, 2001 Free Software Foundation, Inc.
 
 ;; Author: Keith Gabryelski <ag@wheaties.ai.mit.edu>
 ;; Maintainer: FSF
@@ -347,6 +347,8 @@ Ask the user for confirmation."
 	     (if (>= current-column 41)
 		 (- current-column 41)
 	       (/ (- current-column  (/ current-column 5)) 2))))
+    (when (interactive-p)
+      (message "Current address is %d" hexl-address))
     hexl-address))
 
 (defun hexl-address-to-marker (address)
