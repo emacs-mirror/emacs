@@ -613,18 +613,22 @@ There should be no more than seven characters after the final `/'."
 	   (signal 'file-error
 		   (cons "Opening input file" (nth 2 notfound))))
 
-	  ;; Run the functions that insert-file-contents would.
-	  (let ((p after-insert-file-functions)
-		(insval size))
-	    (while p
-	      (setq insval (funcall (car p) size))
-	      (if insval
-		  (progn
-		    (or (integerp insval)
-			(signal 'wrong-type-argument
-				(list 'integerp insval)))
-		    (setq size insval)))
-	      (setq p (cdr p))))
+	  ;; This is done in insert-file-contents after we return.
+	  ;; That is a little weird, but better to go along with it now
+	  ;; than to change it now.
+
+;;;	  ;; Run the functions that insert-file-contents would.
+;;; 	  (let ((p after-insert-file-functions)
+;;; 		(insval size))
+;;; 	    (while p
+;;; 	      (setq insval (funcall (car p) size))
+;;; 	      (if insval
+;;; 		  (progn
+;;; 		    (or (integerp insval)
+;;; 			(signal 'wrong-type-argument
+;;; 				(list 'integerp insval)))
+;;; 		    (setq size insval)))
+;;; 	      (setq p (cdr p))))
 
 	  (list filename size))
 
