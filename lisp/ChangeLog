@@ -1,3 +1,19 @@
+2003-02-10  Juanma Barranquero  <lektu@terra.es>
+
+	* progmodes/ebnf-otz.el (ebnf-optimize, ebnf-optimize1): Fix typo.
+
+	* progmodes/ebnf2ps.el (ebnf2ps): Fix typo.
+	(ebnf-syntactic): Change group name and tag from "ebnf-syntatic".
+	(ebnf-syntax, ebnf-lex-comment-char, ebnf-lex-eop-char)
+	(ebnf-terminal-regexp, ebnf-case-fold-search)
+	(ebnf-iso-alternative-p, ebnf-iso-normalize-p)
+	(ebnf-yac-ignore-error-recovery): Add to group "ebnf-syntactic", not
+	"ebnf-syntatic".
+	(ebnf-optimize, ebnf-print-buffer, ebnf-print-region)
+	(ebnf-spool-buffer, ebnf-spool-region, ebnf-eps-buffer)
+	(ebnf-eps-region, ebnf-syntax-buffer, ebnf-syntax-region)
+	(ebnf-generate-region): Fix typo.
+
 2003-02-10  KAWABATA, Taichi  <batta@beige.ocn.ne.jp>
 
 	* language/ind-util.el (indian-itrans-v5-table): Add entries for
