@@ -1525,8 +1525,7 @@ value is reasonable when this function is called.")
       Fset_buffer (w->buffer);
       /* This computation used to temporarily move point, but that can
 	 have unwanted side effects due to text properties.  */
-      pos = *vmotion (startpos, -top, window_internal_width (w) - 1,
-		      XINT (w->hscroll), window);
+      pos = *vmotion (startpos, -top, w);
       Fset_marker (w->start, make_number (pos.bufpos), w->buffer);
       w->start_at_line_beg = ((pos.bufpos == BEGV
 			       || FETCH_CHAR (pos.bufpos - 1) == '\n') ? Qt
