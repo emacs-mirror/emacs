@@ -483,7 +483,7 @@ are written with letters, digits, and the punctuation characters
 @samp{-+=*/}.  Such names require no special punctuation; the characters
 of the name suffice as long as the name does not look like a number.
 (If it does, write a @samp{\} at the beginning of the name to force
-interpretation as a symbol.)  The characters @samp{_~!@@$%^&:<>@{@}} are
+interpretation as a symbol.)  The characters @samp{_~!@@$%^&:<>@{@}?} are
 less often used but also require no special punctuation.  Any other
 characters may be included in a symbol's name by escaping them with a
 backslash.  In contrast to its use in strings, however, a backslash in

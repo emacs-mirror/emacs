@@ -1581,6 +1581,9 @@ functionality with aliases for the mldrag functions.
 * Lisp changes made after edition 2.6 of the Emacs Lisp Manual,
 (Display-related features are described in a page of their own below.)
 
+** A `?' can be used in a symbol name without escaping it with a
+backslash.
+
 +++
 ** Reading from the mini-buffer now reads from standard input if Emacs
 is running in batch mode.  For example,
