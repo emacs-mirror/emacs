@@ -1,3 +1,9 @@
+2003-10-23  Dave Love  <fx@gnu.org>
+
+	* mail/mail-extr.el (mail-extr-ignore-single-names): Add :version.
+	(mail-extr-address-syntax-table): Remove non-ASCII unibyte chars.
+	(mail-extr-voodoo): Use char classes in regexps (for non-ASCII).
+
 2003-10-21  Nick Roberts  <nick@nick.uklinux.net>
 
 	* gdb-ui.el (gdb-current-language): New variable.
