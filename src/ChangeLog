@@ -1,5 +1,7 @@
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* widget.c: Don't define max.
+
 	* process.c: Don't define max.
 	(create_process): Remove unused variable `buffer'.
 
