@@ -62,7 +62,7 @@ When this point is reached during macro execution, ask for confirmation
 (@code{kbd-macro-query}).
 @item C-x C-k n
 Give a command name (for the duration of the session) to the most
-recently defined keyboard macro (@code{name-last-kbd-macro}).
+recently defined keyboard macro (@code{kmacro-name-last-macro}).
 @item C-x C-k b
 Bind the most recently defined keyboard macro to a key sequence (for
 the duration of the session) (@code{kmacro-bind-to-key}).
@@ -361,10 +361,10 @@ register as a counter, incrementing it on each repetition of the macro.
 @section Naming and Saving Keyboard Macros
 
 @cindex saving keyboard macros
-@findex name-last-kbd-macro
+@findex kmacro-name-last-macro
 @kindex C-x C-k n
   If you wish to save a keyboard macro for later use, you can give it
-a name using @kbd{C-x C-k n} (@code{name-last-kbd-macro}).
+a name using @kbd{C-x C-k n} (@code{kmacro-name-last-macro}).
 This reads a name as an argument using the minibuffer and defines that
 name to execute the last keyboard macro, in its current form.  (If you
 later add to the definition of this macro, that does not alter the
