@@ -556,15 +556,16 @@ This returns ARGS with the arguments that have been processed removed."
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text text))
 
-;;; Return the value of the current X selection.  For compatibility
-;;; with older X applications, this checks cut buffer 0 before
-;;; retrieving the value of the primary selection.
+;;; Return the value of the current X selection.
+;;; Consult the selection, then the cut buffer.  Treat empty strings
+;;; as if they were unset.
 (defun x-cut-buffer-or-selection-value ()
   (let (text)
 
-    ;; Consult the selection, then the cut buffer.  Treat empty strings
-    ;; as if they were unset.
-    (setq text (x-get-selection 'PRIMARY))
+    ;; Don't die if x-get-selection signals an error.
+    (condition-case c
+	(setq text (x-get-selection 'PRIMARY))
+      (error (message "%s" c)))
     (if (string= text "") (setq text nil))
     (or text (setq text (x-get-cut-buffer 0)))
     (if (string= text "") (setq text nil))
