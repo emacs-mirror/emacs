@@ -940,7 +940,7 @@ Optional argument HASHSIZE specifies the table size."
   (define-key gnus-group-mode-map "\C-n" 'gnus-group-next-group)
   (define-key gnus-group-mode-map "\C-p" 'gnus-group-prev-group)
   (define-key gnus-group-mode-map [down] 'gnus-group-next-group)
-  (define-key gnus-group-mode-map [up] 'gnus-group-up-group)
+  (define-key gnus-group-mode-map [up] 'gnus-group-prev-group)
   (define-key gnus-group-mode-map "\r" 'next-line)
   ;;(define-key gnus-group-mode-map "/" 'isearch-forward)
   (define-key gnus-group-mode-map "<" 'beginning-of-buffer)
