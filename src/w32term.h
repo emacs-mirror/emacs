@@ -31,6 +31,7 @@ Boston, MA 02111-1307, USA.  */
 #define FONT_WIDTH(f)	((f)->tm.tmAveCharWidth)
 #define FONT_HEIGHT(f)	((f)->tm.tmHeight)
 #define FONT_BASE(f)    ((f)->tm.tmAscent)
+#define FONT_MAX_WIDTH(f) ((f)->tm.tmMaxCharWidth)
 
 #define CHECK_W32_FRAME(f, frame)		\
   if (NILP (frame))				\
