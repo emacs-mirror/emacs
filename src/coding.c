@@ -4022,12 +4022,22 @@ ccl_coding_driver (coding, source, destination, src_bytes, dst_bytes, encodep)
 
   ccl->last_block = coding->mode & CODING_MODE_LAST_BLOCK;
   if (encodep)
-    ccl->eol_type = coding->eol_type;
+    {
+      /* On encoding, EOL format is converted within ccl_driver.  For
+	 that, setup proper information in the structure CCL.  */
+      ccl->eol_type = coding->eol_type;
+      if (ccl->eol_type ==CODING_EOL_UNDECIDED)
+	ccl->eol_type = CODING_EOL_LF;
+      ccl->cr_consumed = coding->spec.ccl.cr_carryover;
+    }
   ccl->multibyte = coding->src_multibyte;
   coding->produced = ccl_driver (ccl, source, destination,
 				 src_bytes, dst_bytes, &(coding->consumed));
   if (encodep)
-    coding->produced_char = coding->produced;
+    {
+      coding->produced_char = coding->produced;
+      coding->spec.ccl.cr_carryover = ccl->cr_consumed;
+    }
   else
     {
       int bytes
