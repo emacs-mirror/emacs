@@ -20,20 +20,17 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 hacked on by jwz@lucid.com 17-jun-91
   o  added a compile-time switch to turn on simple sanity checking;
   o  put back the obsolete byte-codes for error-detection;
-  o  put back fset, symbol-function, and read-char because I don't
-     see any reason for them to have been removed;
   o  added a new instruction, unbind_all, which I will use for 
      tail-recursion elimination;
-  o  made temp_output_buffer_show() be called with the right number
+  o  made temp_output_buffer_show be called with the right number
      of args;
   o  made the new bytecodes be called with args in the right order;
   o  added metering support.
 
 by Hallvard:
-  o  added relative jump instructions.
+  o  added relative jump instructions;
   o  all conditionals now only do QUIT if they jump.
  */
-
 
 #include "config.h"
 #include "lisp.h"
@@ -46,8 +43,8 @@ by Hallvard:
  *
  * define BYTE_CODE_METER to enable generation of a byte-op usage histogram. 
  */
-#define BYTE_CODE_SAFE
-#define BYTE_CODE_METER
+/* #define BYTE_CODE_SAFE */
+/* #define BYTE_CODE_METER */
 
 
 #ifdef BYTE_CODE_METER
@@ -55,27 +52,29 @@ by Hallvard:
 Lisp_Object Vbyte_code_meter, Qbyte_code_meter;
 int byte_metering_on;
 
-# define METER_2(code1,code2) \
+#define METER_2(code1, code2) \
   XFASTINT (XVECTOR (XVECTOR (Vbyte_code_meter)->contents[(code1)]) \
 	    ->contents[(code2)])
 
-# define METER_1(code) METER_2 (0,(code))
+#define METER_1(code) METER_2 (0, (code))
 
-# define METER_CODE(last_code, this_code) {			\
-  if (byte_metering_on) {					\
-     if (METER_1 (this_code) != ((1<<VALBITS)-1))		\
-        METER_1 (this_code) ++;					\
-     if (last_code &&						\
-        METER_2 (last_code,this_code) != ((1<<VALBITS)-1))	\
-        METER_2 (last_code,this_code) ++;			\
-  }								\
- }
+#define METER_CODE(last_code, this_code)			\
+{								\
+  if (byte_metering_on)						\
+    {								\
+      if (METER_1 (this_code) != ((1<<VALBITS)-1))		\
+        METER_1 (this_code)++;					\
+      if (last_code						\
+          && METER_2 (last_code, this_code) != ((1<<VALBITS)-1))	\
+        METER_2 (last_code, this_code)++;			\
+    }								\
+}
 
-#else /* ! BYTE_CODE_METER */
+#else /* no BYTE_CODE_METER */
 
-# define meter_code(last_code, this_code)
+#define METER_CODE(last_code, this_code)
 
-#endif
+#endif /* no BYTE_CODE_METER */
 
 
 Lisp_Object Qbytecode;
@@ -107,9 +106,9 @@ Lisp_Object Qbytecode;
 #define Baref 0110
 #define Baset 0111
 #define Bsymbol_value 0112
-#define Bsymbol_function 0113
+#define Bsymbol_function 0113 /* no longer generated as of v19 */
 #define Bset 0114
-#define Bfset 0115
+#define Bfset 0115 /* no longer generated as of v19 */
 #define Bget 0116
 #define Bsubstring 0117
 #define Bconcat2 0120
@@ -217,6 +216,7 @@ Lisp_Object Qbytecode;
 
 #define BlistN 0257
 #define BconcatN 0260
+#define BinsertN 0261
 
 #define Bconstant 0300
 #define CONSTANTLIM 0100
@@ -301,11 +301,10 @@ If the third argument is incorrect, Emacs may crash.")
     {
 #ifdef BYTE_CODE_SAFE
       if (stackp > stacke)
-	error (
-     "Stack overflow in byte code (byte compiler bug), pc = %d, depth = %d",
+	error ("Byte code stack overflow (byte compiler bug), pc %d, depth %d",
 	       pc - XSTRING (string_saved)->data, stacke - stackp);
       if (stackp < stack)
-	error ("Stack underflow in byte code (byte compiler bug), pc = %d",
+	error ("Byte code stack underflow (byte compiler bug), pc %d",
 	       pc - XSTRING (string_saved)->data);
 #endif
 
@@ -406,7 +405,7 @@ If the third argument is incorrect, Emacs may crash.")
 	case Bcall+4: case Bcall+5:
 	  op -= Bcall;
 	docall:
-	  DISCARD(op);
+	  DISCARD (op);
 #ifdef BYTE_CODE_METER
 	  if (byte_metering_on && XTYPE (TOP) == Lisp_Symbol)
 	    {
@@ -419,7 +418,14 @@ If the third argument is incorrect, Emacs may crash.")
 		}
 	    }
 #endif
+	  /* The frobbing of gcpro3 was lost by jwz's changes in June 91
+	     and then reinserted by jwz in Nov 91.  */
+	  /* Remove protection from the args we are giving to Ffuncall.
+	     FFuncall will protect them, and double protection would
+	     cause disasters.  */
+	  gcpro3.nvars = &TOP - stack - 1;
 	  TOP = Ffuncall (op + 1, &TOP);
+	  gcpro3.nvars = XFASTINT (maxdepth);
 	  break;
 
 	case Bunbind+6:
@@ -439,8 +445,7 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Bunbind_all:
 	  /* To unbind back to the beginning of this frame.  Not used yet,
-	     but wil be needed for tail-recursion elimination.
-	   */
+	     but will be needed for tail-recursion elimination.  */
 	  unbind_to (count, Qnil);
 	  break;
 
@@ -475,7 +480,7 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
 	  break;
 
 	case Bgotoifnonnilelsepop:
@@ -485,7 +490,7 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc = XSTRING (string_saved)->data + op;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
 	  break;
 
 	case BRgoto:
@@ -518,7 +523,7 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc += op - 128;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
 	  break;
 
 	case BRgotoifnonnilelsepop:
@@ -528,7 +533,7 @@ If the third argument is incorrect, Emacs may crash.")
 	      QUIT;
 	      pc += op - 128;
 	    }
-	  else DISCARD(1);
+	  else DISCARD (1);
 	  break;
 
 	case Breturn:
@@ -536,7 +541,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  goto exit;
 
 	case Bdiscard:
-	  DISCARD(1);
+	  DISCARD (1);
 	  break;
 
 	case Bdup:
@@ -671,12 +676,12 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Blist3:
-	  DISCARD(2);
+	  DISCARD (2);
 	  TOP = Flist (3, &TOP);
 	  break;
 
 	case Blist4:
-	  DISCARD(3);
+	  DISCARD (3);
 	  TOP = Flist (4, &TOP);
 	  break;
 
@@ -729,17 +734,17 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bconcat2:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fconcat (2, &TOP);
 	  break;
 
 	case Bconcat3:
-	  DISCARD(2);
+	  DISCARD (2);
 	  TOP = Fconcat (3, &TOP);
 	  break;
 
 	case Bconcat4:
-	  DISCARD(3);
+	  DISCARD (3);
 	  TOP = Fconcat (4, &TOP);
 	  break;
 
@@ -799,7 +804,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bdiff:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fminus (2, &TOP);
 	  break;
 
@@ -815,27 +820,27 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bplus:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fplus (2, &TOP);
 	  break;
 
 	case Bmax:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fmax (2, &TOP);
 	  break;
 
 	case Bmin:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fmin (2, &TOP);
 	  break;
 
 	case Bmult:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Ftimes (2, &TOP);
 	  break;
 
 	case Bquo:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fquo (2, &TOP);
 	  break;
 
@@ -855,6 +860,12 @@ If the third argument is incorrect, Emacs may crash.")
 
 	case Binsert:
 	  TOP = Finsert (1, &TOP);
+	  break;
+
+	case BinsertN:
+	  op = FETCH;
+	  DISCARD (op - 1);
+	  TOP = Finsert (op, &TOP);
 	  break;
 
 	case Bpoint_max:
@@ -1068,7 +1079,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  break;
 
 	case Bnconc:
-	  DISCARD(1);
+	  DISCARD (1);
 	  TOP = Fnconc (2, &TOP);
 	  break;
 
@@ -1089,7 +1100,7 @@ If the third argument is incorrect, Emacs may crash.")
 	  error ("scan-buffer is an obsolete bytecode");
 	  break;
 	case Bmark:
-	  error("mark is an obsolete bytecode");
+	  error ("mark is an obsolete bytecode");
 	  break;
 #endif
 
@@ -1128,17 +1139,18 @@ syms_of_bytecode ()
 #ifdef BYTE_CODE_METER
 
   DEFVAR_LISP ("byte-code-meter", &Vbyte_code_meter,
-   "a vector of vectors which holds a histogram of byte-code usage.");
+   "A vector of vectors which holds a histogram of byte-code usage.");
   DEFVAR_BOOL ("byte-metering-on", &byte_metering_on, "");
 
   byte_metering_on = 0;
-  Vbyte_code_meter = Fmake_vector(make_number(256), make_number(0));
+  Vbyte_code_meter = Fmake_vector (make_number (256), make_number (0));
+  Qbyte_code_meter = intern ("byte-code-meter");
   staticpro (&Qbyte_code_meter);
   {
     int i = 256;
     while (i--)
-      XVECTOR(Vbyte_code_meter)->contents[i] =
-	Fmake_vector(make_number(256), make_number(0));
+      XVECTOR (Vbyte_code_meter)->contents[i] =
+	Fmake_vector (make_number (256), make_number (0));
   }
 #endif
 }
