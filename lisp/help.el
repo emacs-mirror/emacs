@@ -501,45 +501,49 @@ For this to work correctly for a minor mode, the mode's indicator variable
 \(listed in `minor-mode-alist') must also be a function whose documentation
 describes the minor mode."
   (interactive)
-  (when buffer (set-buffer buffer))
-  (help-setup-xref (list #'describe-mode (current-buffer)) (interactive-p))
+  (help-setup-xref (list #'describe-mode (or buffer (current-buffer)))
+		   (interactive-p))
+  ;; For the sake of help-do-xref and help-xref-go-back,
+  ;; don't switch buffers before calling `help-buffer'.
   (with-output-to-temp-buffer (help-buffer)
-    (when minor-mode-alist
-      (princ "The major mode is described first.
+    (save-excursion
+      (when buffer (set-buffer buffer))
+      (when minor-mode-alist
+	(princ "The major mode is described first.
 For minor modes, see following pages.\n\n"))
-    (princ mode-name)
-    (princ " mode:\n")
-    (princ (documentation major-mode))
-    (let ((minor-modes minor-mode-alist))
-      (while minor-modes
-	(let* ((minor-mode (car (car minor-modes)))
-	       (indicator (car (cdr (car minor-modes)))))
-	  ;; Document a minor mode if it is listed in minor-mode-alist,
-	  ;; bound locally in this buffer, non-nil, and has a function
-	  ;; definition.
-	  (if (and (boundp minor-mode)
-		   (symbol-value minor-mode)
-		   (fboundp minor-mode))
-	      (let ((pretty-minor-mode minor-mode))
-		(if (string-match "\\(-minor\\)?-mode\\'"
-				  (symbol-name minor-mode))
-		    (setq pretty-minor-mode
-			  (capitalize
-			   (substring (symbol-name minor-mode)
-				      0 (match-beginning 0)))))
-		(while (and indicator (symbolp indicator)
-			    (boundp indicator)
-			    (not (eq indicator (symbol-value indicator))))
-		  (setq indicator (symbol-value indicator)))
-		(princ "\n\f\n")
-		(princ (format "%s minor mode (%s):\n"
-			       pretty-minor-mode
-			       (if indicator
-				   (format "indicator%s" indicator)
-				 "no indicator")))
-		(princ (documentation minor-mode)))))
-	(setq minor-modes (cdr minor-modes))))
-    (print-help-return-message)))
+      (princ mode-name)
+      (princ " mode:\n")
+      (princ (documentation major-mode))
+      (let ((minor-modes minor-mode-alist))
+	(while minor-modes
+	  (let* ((minor-mode (car (car minor-modes)))
+		 (indicator (car (cdr (car minor-modes)))))
+	    ;; Document a minor mode if it is listed in minor-mode-alist,
+	    ;; bound locally in this buffer, non-nil, and has a function
+	    ;; definition.
+	    (if (and (boundp minor-mode)
+		     (symbol-value minor-mode)
+		     (fboundp minor-mode))
+		(let ((pretty-minor-mode minor-mode))
+		  (if (string-match "\\(-minor\\)?-mode\\'"
+				    (symbol-name minor-mode))
+		      (setq pretty-minor-mode
+			    (capitalize
+			     (substring (symbol-name minor-mode)
+					0 (match-beginning 0)))))
+		  (while (and indicator (symbolp indicator)
+			      (boundp indicator)
+			      (not (eq indicator (symbol-value indicator))))
+		    (setq indicator (symbol-value indicator)))
+		  (princ "\n\f\n")
+		  (princ (format "%s minor mode (%s):\n"
+				 pretty-minor-mode
+				 (if indicator
+				     (format "indicator%s" indicator)
+				   "no indicator")))
+		  (princ (documentation minor-mode)))))
+	  (setq minor-modes (cdr minor-modes))))
+      (print-help-return-message))))
 
 
 ;;; Automatic resizing of temporary buffers.
