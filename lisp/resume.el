@@ -1,30 +1,37 @@
 ;;; resume.el --- process command line args from within a suspended Emacs job
 
-;; Copyright (C) 1988 Free Software Foundation, Inc.
+;; Author: Joe Wells <jbw@bucsf.bu.edu>
+;; Last-Modified: Tue Jun 13 1989
+;; Adapted-By: ESR
+
+;; Copyright (C) 1992 Free Software Foundation, Inc.
+
+;; This file is part of GNU Emacs.
+
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 1, or (at your option)
+;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY.  No author or distributor
-;; accepts responsibility to anyone for the consequences of using it
-;; or for whether it serves any particular purpose or works at all,
-;; unless he says so in writing.  Refer to the GNU Emacs General Public
-;; License for full details.
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
 
-;; Everyone is granted permission to copy, modify and redistribute
-;; GNU Emacs, but only under the conditions described in the
-;; GNU Emacs General Public License.   A copy of this license is
-;; supposed to have been given to you along with GNU Emacs so you
-;; can know your rights and responsibilities.  It should be in a
-;; file named COPYING.  Among other things, the copyright notice
-;; and this notice must be preserved on all copies.
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to
+;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Created by: Joe Wells, jbw@bucsf.bu.edu
-;; Created on: 1988?
-;; Last modified by: Joe Wells, jbw@dodge
-;; Last modified on: Thu Jun 14 15:20:41 1990
-;; Filename: resume.el
-;; Purpose: handle command line arguments when resuming suspended job
+;;; Commentary:
 
-;; Stephen Gildea suggested bug fix (gildea@bbn.com).
+;; Theory: the first time you start Emacs, command line arguments are
+;; handled normally.  Then, you suspend your emacs job.  When you want to edit
+;; something else, you type "emacs filename" as usual, but instead of
+;; starting a new emacs job, the old job is resumed instead, and the command
+;; line arguments are placed in a file where the old emacs job looks for
+;; them.
+
+;; Stephan Gildea suggested bug fix (gildea@bbn.com).
 ;; Ideas from Michael DeCorte and other people.
 
 ;; For csh users, insert the following alias in your .cshrc file
@@ -81,6 +88,8 @@
 ;; Finally, put the rest in a file named "resume.el" in a lisp library
 ;; directory.
 
+;;; Code:
+
 (defvar emacs-args-file (expand-file-name "~/.emacs_args")
   "*This file is where arguments are placed for a suspended emacs job.")
 
@@ -88,9 +97,10 @@
   "Buffer that is used by resume-process-args.")
 
 (defun resume-process-args ()
-  "This should be called from inside of `suspend-resume-hook'.
-This grabs the contents of the file whose name is stored in `emacs-args-file',
-and processes these arguments like command line options."
+  "This should be called from inside of suspend-resume-hook.  This
+grabs the contents of the file whose name is stored in
+emacs-args-file, and processes these arguments like command line
+options."
   (let ((start-buffer (current-buffer))
 	(args-buffer (get-buffer-create emacs-args-buffer))
 	length args)
@@ -139,7 +149,7 @@ and processes these arguments like command line options."
 
 (defun empty-args-file ()
   "This empties the contents of the file whose name is specified by
-`emacs-args-file'."
+emacs-args-file."
   (save-excursion
     (set-buffer (get-buffer-create emacs-args-buffer))
     (erase-buffer)

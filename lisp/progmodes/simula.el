@@ -1,12 +1,18 @@
 ;;; simula.el --- SIMULA 87 code editing commands for Emacs
 
+;; Author: Hans Henrik Eriksen <hhe@ifi.uio.no>
+;; Maintainer: simula-mode@ifi.uio.no
+;; Version: 0.99
+;; Adapted-By: ESR
+;; Keywords: languages
+
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 1, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,12 +24,13 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; Author: Hans Henrik Eriksen (hhe@ifi.uio.no)
+;;; Commentary:
+
+;; Hans Henrik Eriksen may be reached at:
 ;;         Institutt for informatikk,
 ;;         Universitetet i Oslo
-;; Version 0.99
 
-;; Bug reports to simula-mode@ifi.uio.no
+;;; Code:
 
 (provide 'simula-mode)
 
@@ -1278,4 +1285,3 @@ local abbrev table."
 	    ("while" "WHILE" simula-expand-keyword))))
 
 ;;; simula.el ends here
-

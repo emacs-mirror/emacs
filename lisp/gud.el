@@ -1,12 +1,17 @@
-;; Grand Unified Debugger mode --- run gdb, sdb, dbx under Emacs control
-;; Copyright (c) 1992 Free Software Foundation, Inc.
-;;	@(#)gud.el	1.10
+;;; gud.el --- Grand Unified Debugger mode for gdb, sdb, or dbx under Emacs
+
+;; Author: Eric S. Raymond <eric@snark.thyrsus.com>
+;; Keywords: unix, tools
+
+;;	@(#)gud.el	1.18
+
+;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 1, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,11 +23,24 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
+;;; Commentary:
+
 ;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu>
 ;; It was later ewritten by rms.  Some ideas were due to Masanobu. 
-;; Grand Unification (sdb/dbx support) by Eric S. Raymond <eric@thyrsus.com>
+;; Grand Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com>
 ;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
 ;; who also hacked the mode to use comint.el.
+
+;; Note: use of this package with sdb requires that your tags.el support
+;; the find-tag-noselect entry point.  Stock distributions up to 18.57 do 
+;; *not* include this feature; if it's not included with this file, email
+;; esr@snark.thyrsus.com for it or get 18.58.
+
+;; Further note: due to lossage in the Emacs-18 byte compiler, compiled
+;; versions of this code will fail with a complaint about gud-step if
+;; you invoke the gdb or sdb initializers.  This should be fixed in 19.
+
+;;; Code:
 
 (require 'comint)
 (require 'tags)
@@ -56,10 +74,10 @@ This association list has elements of the form
   (error "GUD not properly entered."))
 
 ;; This macro is used below to define some basic debugger interface commands.
-;; Of course you may use `def-gud' with any other debugger command, including
+;; Of course you may use `gud-def' with any other debugger command, including
 ;; user defined ones.   
 
-(defmacro def-gud (func name key &optional doc)
+(defmacro gud-def (func name key &optional doc)
   (let* ((cstr (list 'if '(not (= 1 arg))
 		     (list 'format "%s %s" name 'arg) name)))
     (list 'progn
@@ -139,14 +157,14 @@ and source-file directory for your debugger."
 			    (gud-visit-file       gud-gdb-visit-file)
 			    (gud-set-break        gud-gdb-set-break)))
 
-  (def-gud gud-step   "step"   "\C-cs"    "Step one source line with display")
-  (def-gud gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
-  (def-gud gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
-  (def-gud gud-cont   "cont"   "\C-c\C-c" "Continue with display")
+  (gud-def gud-step   "step"   "\C-cs"    "Step one source line with display")
+  (gud-def gud-stepi  "stepi"  "\C-ci"    "Step one instruction with display")
+  (gud-def gud-next   "next"   "\C-cn"    "Step one line (skip functions)")
+  (gud-def gud-cont   "cont"   "\C-c\C-c" "Continue with display")
 
-  (def-gud gud-finish "finish" "\C-c\C-f" "Finish executing current function")
-  (def-gud gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
-  (def-gud gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
+  (gud-def gud-finish "finish" "\C-c\C-f" "Finish executing current function")
+  (gud-def gud-up     "up"     "\C-c<"    "Up N stack frames (numeric arg)")
+  (gud-def gud-down   "down"   "\C-c>"    "Down N stack frames (numeric arg)")
 
   (gud-common-init path)
 
@@ -190,10 +208,10 @@ and source-file directory for your debugger."
 			    (gud-visit-file       gud-sdb-visit-file)
 			    (gud-set-break        gud-sdb-set-break)))
 
-  (def-gud gud-step  "s"   "\C-cs" "Step one source line with display")
-  (def-gud gud-stepi "i"   "\C-ci" "Step one instruction with display")
-  (def-gud gud-next  "S"   "\C-cn" "Step one source line (skip functions)")
-  (def-gud gud-cont  "c"   "\C-cc" "Continue with display")
+  (gud-def gud-step  "s"   "\C-cs" "Step one source line with display")
+  (gud-def gud-stepi "i"   "\C-ci" "Step one instruction with display")
+  (gud-def gud-next  "S"   "\C-cn" "Step one source line (skip functions)")
+  (gud-def gud-cont  "c"   "\C-cc" "Continue with display")
 
   (gud-common-init path)
 
@@ -234,10 +252,8 @@ and source-file directory for your debugger."
 			    (gud-visit-file       gud-dbx-visit-file)
 			    (gud-set-break        gud-dbx-set-break)))
 
-  (make-local-variable 'comint-prompt-regexp)
-  (setq comint-prompt-regexp  "^[^)]*dbx) *")
-
   (gud-common-init path)
+  (setq comint-prompt-regexp  "^[^)]*dbx) *")
 
   (run-hooks 'dbx-mode-hook)
   )
@@ -525,5 +541,4 @@ It is for customization by you.")
     (goto-char (dot-max))
     (insert-string comm)))
 
-;; gud.e ends here
-
+;;; gud.el ends here

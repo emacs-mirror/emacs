@@ -1,4 +1,10 @@
-;;; asm-mode.el --- Mode for editing assembler code
+;;; asm-mode.el --- mode for editing assembler code
+
+;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
+;; Last-Modified: 14 Jul 1992
+;; Keywords: tools, languages
+
+;; 	@(#)asm-mode.el	1.6
 
 ;; Copyright (C) 1991 Free Software Foundation, Inc.
 
@@ -6,7 +12,7 @@
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 2, or (at your option)
+;; the Free Software Foundation; either version 1, or (at your option)
 ;; any later version.
 
 ;; GNU Emacs is distributed in the hope that it will be useful,
@@ -18,9 +24,10 @@
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
 ;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-;; This mode was written for Eric S. Raymond <eric@snark.thyrsus.com>,
+;;; Commentary:
+
+;; This mode was written by Eric S. Raymond <esr@snark.thyrsus.com>,
 ;; inspired by an earlier asm-mode by Martin Neitzel.
-;; 	@(#)asm-mode.el	1.1
 
 ;; This minor mode is based on text mode.  It defines a private abbrev table
 ;; that can be used to save abbrevs for assembler mnemonics.  It binds just
@@ -34,10 +41,13 @@
 ;; Code is indented to the first tab stop level.
 ;; The ; key inserts copies of the value of asm-comment-char at an
 ;; appropriate spot.
+
 ;; This mode runs two hooks:
 ;;   1) An asm-set-comment-hook before the part of the initialization
 ;; depending on asm-comment-char, and
 ;;   2) an asm-mode-hook at the end of initialization.
+
+;;; Code:
 
 (defvar asm-comment-char ?;
   "*The comment-start character assumed by asm-mode.")
@@ -58,7 +68,9 @@
   (define-key asm-mode-map ";"		'asm-comment)
   (define-key asm-mode-map ":"		'asm-colon)
   (define-key asm-mode-map "\C-i"	'tab-to-tab-stop)
-  (define-key asm-mode-map "\C-j"	'asm-newline))
+  (define-key asm-mode-map "\C-j"	'asm-newline)
+  (define-key asm-mode-map "\C-m"	'asm-newline)
+  )
 
 (defvar asm-code-level-empty-comment-pattern nil)
 (defvar asm-flush-left-empty-comment-pattern nil)
@@ -67,7 +79,7 @@
 ;;;###autoload
 (defun asm-mode ()
   "Major mode for editing typical assembler code.
-Features a private abbrev table and the following bindings:
+Features a private asm-mode-abbrev-table and the following bindings:
 
 \\[asm-colon]\toutdent a preceding label, tab to next tab stop.
 \\[tab-to-tab-stop]\ttab to next tab stop.
@@ -75,13 +87,13 @@ Features a private abbrev table and the following bindings:
 \\[asm-comment]\tsmart placement of assembler comments.
 
 The character used for making comments is set by the variable
-`asm-comment-char' (which defaults to `;').  You may want to set this
-appropriately for the assembler on your machine in `defaults.el'.
+asm-comment-char (which defaults to ?;).  You may want to set this
+appropriately for the assembler on your machine in defaults.el.
 
-Alternatively, you may set this variable in `asm-set-comment-hook', which is
+Alternatively, you may set this variable in asm-set-comment-hook, which is
 called near the beginning of mode initialization.
 
-Turning on `asm-mode' calls the value of the variable `asm-mode-hook',
+Turning on asm-mode calls the value of the variable asm-mode-hook,
 if that value is non-nil, at the end of initialization.
 
 Special commands:\\{asm-mode-map}
