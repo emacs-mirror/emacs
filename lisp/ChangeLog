@@ -1,3 +1,7 @@
+2002-07-28  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el: Don't require cl.
+
 2002-07-25  Dave Love  <fx@gnu.org>
 
 	* obsolete/c-mode.el: Deleted.
