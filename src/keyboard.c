@@ -1895,6 +1895,35 @@ make_ctrl_char (c)
   return c;
 }
 
+/* Display a help message in the echo area.  */
+void
+show_help_echo (msg)
+     Lisp_Object msg;
+{
+  int count = specpdl_ptr - specpdl;
+
+  specbind (Qmessage_truncate_lines, Qt);
+  if (CONSP (msg))
+    msg = Feval (msg);
+
+  if (!NILP (Vshow_help_function))
+    call1 (Vshow_help_function, msg);
+  else if (/* Don't overwrite minibuffer contents.  */
+	   !MINI_WINDOW_P (XWINDOW (selected_window))
+	   /* Don't overwrite a keystroke echo.  */
+	   && NILP (echo_message_buffer)
+	   /* Don't overwrite a prompt.  */
+	   && !cursor_in_echo_area)
+    {
+      if (STRINGP (msg))
+	message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
+      else
+	message (0);
+    }
+
+  unbind_to (count, Qnil);
+}
+
 
 
 /* Input of single characters from keyboard */
@@ -2639,28 +2668,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Display help if not echoing.  */
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
-      Lisp_Object msg;
-      int count = specpdl_ptr - specpdl;
-
-      specbind (Qmessage_truncate_lines, Qt);
-      msg = XCDR (XCDR (c));
-
-      if (!NILP (Vshow_help_function))
-	call1 (Vshow_help_function, msg);
-      else if (/* Don't overwrite minibuffer contents.  */
-	       !MINI_WINDOW_P (XWINDOW (selected_window))
-	       /* Don't overwrite a keystroke echo.  */
-	       && NILP (echo_message_buffer)
-	       /* Don't overwrite a prompt.  */
-	       && !cursor_in_echo_area)
-	{
-	  if (STRINGP (msg))
-	    message3_nolog (msg, XSTRING (msg)->size, STRING_MULTIBYTE (msg));
-	  else
-	    message (0);
-	}
-
-      unbind_to (count, Qnil);
+      show_help_echo (XCDR (XCDR (c)));
       goto retry;
     }
   
@@ -6266,7 +6274,7 @@ parse_menu_item (item, notreal, inmenubar)
 	  item = XCDR (item);
 	}
 	  
-      /* Maybee key binding cache.  */
+      /* Maybe key binding cache.  */
       if (CONSP (item) && CONSP (XCAR (item))
 	  && (NILP (XCAR (XCAR (item)))
 	      || VECTORP (XCAR (XCAR (item)))))
@@ -7370,7 +7378,7 @@ follow_key (key, nmaps, current, defs, next)
 	  else
 	    map = current[i];
 
-	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0), 0);
+	  defs[i] = get_keyelt (access_keymap (map, key, 1, 0), 1);
 	  if (! NILP (defs[i]))
 	    first_binding = i;
 	}
