@@ -9,11 +9,11 @@
 ;; Maintainer:	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer:	Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords:	wp, print, PostScript
-;; Time-stamp:	<99/10/18 01:53:12 vinicius>
-;; Version:	5.0.1
+;; Time-stamp:	<99/12/11 20:14:41 vinicius>
+;; Version:	5.0.2
 
-(defconst ps-print-version "5.0.1"
-  "ps-print.el, v 5.0.1 <99/10/18 vinicius>
+(defconst ps-print-version "5.0.2"
+  "ps-print.el, v 5.0.2 <99/12/11 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs,
@@ -48,11 +48,10 @@ Please send all bug fixes and enhancements to
 ;; About ps-print
 ;; --------------
 ;;
-;; This package provides printing of Emacs buffers on PostScript
-;; printers; the buffer's bold and italic text attributes are
-;; preserved in the printer output.  ps-print is intended for use with
-;; Emacs 19 or Lucid Emacs, together with a fontifying package such as
-;; font-lock or hilit.
+;; This package provides printing of Emacs buffers on PostScript printers;
+;; the buffer's bold and italic text attributes are preserved in the printer
+;; output.  ps-print is intended for use with Emacs or Lucid Emacs, together
+;; with a fontifying package such as font-lock or hilit.
 ;;
 ;; ps-print uses the same face attributes defined through font-lock or hilit
 ;; to print a PostScript file, but some faces are better seeing on the screen
@@ -529,8 +528,6 @@ Please send all bug fixes and enhancements to
 ;;
 ;; See ps-mule.el for documentation.
 ;;
-;; See ps-print-def.el for definition.
-;;
 ;;
 ;; Line Number
 ;; -----------
@@ -875,6 +872,9 @@ Please send all bug fixes and enhancements to
 ;; NOTE: line folding is not taken into account in this process and could
 ;;       change the results.
 ;;
+;; The command `ps-print-customize' activates a customization buffer for
+;; ps-print options.
+;;
 ;;
 ;; New since version 1.5
 ;; ---------------------
@@ -889,6 +889,10 @@ Please send all bug fixes and enhancements to
 ;;
 ;; New since version 2.8
 ;; ---------------------
+;;
+;; [vinicius] 991211 Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;
+;; `ps-print-customize'.
 ;;
 ;; [vinicius] 990703 Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;;
@@ -1073,8 +1077,10 @@ Please send all bug fixes and enhancements to
     (defun charset-after (&optional arg)
       (char-charset (char-after arg))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User Variables:
+
 
 ;;; Interface to the command system
 
@@ -1155,9 +1161,6 @@ Please send all bug fixes and enhancements to
   :prefix "ps-"
   :tag "Page"
   :group 'ps-print)
-
-
-(require 'ps-vars)			; Common definitions
 
 
 (defcustom ps-print-prologue-header nil
@@ -1597,7 +1600,9 @@ NOTE: page numbers are displayed as part of headers,
   :type 'boolean
   :group 'ps-print-header)
 
-(defcustom ps-spool-config 'lpr-switches
+(defcustom ps-spool-config (if (memq system-type '(ms-dos windows-nt))
+			       'setpagedevice
+			     'lpr-switches)
   "*Specify who is responsable for setting duplex and page size switches.
 
 Valid values are:
@@ -1635,7 +1640,9 @@ For a duplex printer, the `ps-spool-*' and `ps-print-*' commands will insert
 blank pages as needed between print jobs so that the next buffer printed will
 start on the right page.  Also, if headers are turned on, the headers will be
 reversed on duplex printers so that the page numbers fall to the left on
-even-numbered pages."
+even-numbered pages.
+
+See also `ps-spool-tumble'."
   :type 'boolean
   :group 'ps-print-header)
 
@@ -1961,8 +1968,21 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :type 'boolean
   :group 'ps-print-header)
 
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Customization
+
+
+;;;###autoload
+(defun ps-print-customize ()
+  "Customization of ps-print group."
+  (interactive)
+  (customize-group 'ps-print))
+
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; User commands
+
 
 ;;;###autoload
 (defun ps-print-buffer (&optional filename)
@@ -2180,15 +2200,17 @@ The table depends on the current ps-print setup."
    ps-n-up-margin
    ps-n-up-border-p
    (ps-print-quote ps-n-up-filling)
-   (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el' and `ps-print-def.el'
+   (ps-print-quote ps-multibyte-buffer)	; see `ps-mule.el'
    (ps-print-quote ps-font-family)
    (ps-print-quote ps-font-size)
    (ps-print-quote ps-header-font-family)
    (ps-print-quote ps-header-font-size)
    (ps-print-quote ps-header-title-font-size)))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Utility functions and variables:
+
 
 (defun ps-print-quote (sym)
   (cond ((null sym)
@@ -3181,6 +3203,7 @@ If EXTENSION is any other symbol, it is ignored."
 ;; However, we try and be back-compatible and respect its value if set except
 ;; for faces where M-x customize has been used to save changes for the face.
 
+
 (defun ps-font-lock-face-attributes ()
   (and (boundp 'font-lock-mode) (symbol-value 'font-lock-mode)
        (boundp 'font-lock-face-attributes)
@@ -3278,6 +3301,7 @@ file.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Internal functions
+
 
 (defsubst ps-font-alist (font-sym)
   (get font-sym 'fonts))
@@ -5290,6 +5314,7 @@ If FACE is not a valid face name, it is used default face."
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Sample Setup Code:
+
 
 ;; This stuff is for anybody that's brave enough to look this far,
 ;; and able to figure out how to use it.  It isn't really part of
