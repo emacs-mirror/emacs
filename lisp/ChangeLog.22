@@ -2,6 +2,7 @@
 
 	* international/fontset.el (setup-default-fontset): Register
 	"JISX0213.2004-1".
+	(font-encoding-alist): Likewise.
 
 	* international/mule-diag.el (list-character-sets): Fix the first
 	line message.
