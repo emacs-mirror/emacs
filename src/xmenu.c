@@ -468,6 +468,7 @@ single_keymap_panes (keymap, panes, vector, names, items,
   /* Get the length of the list level of the keymap.  */
   i = XFASTINT (Flength (keymap));
 
+#if 0
   /* If the keymap has a dense table, put it in TABLE,
      and leave only the list level in KEYMAP.
      Include the length of the dense table in I.  */
@@ -477,6 +478,7 @@ single_keymap_panes (keymap, panes, vector, names, items,
       i += XFASTINT (Flength (table));
       keymap = XCONS (XCONS (keymap)->cdr)->cdr;
     }
+#endif
 
   /* Create vectors for the names and values of the items in the pane.
      I is an upper bound for the number of items.  */
