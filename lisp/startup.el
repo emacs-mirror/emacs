@@ -1341,9 +1341,10 @@ we put it on this frame."
 
 (defun use-fancy-splash-screens-p ()
   "Return t if fancy splash screens should be used."
-  (when (or (and (display-color-p)
+  (when (and (display-graphic-p)
+             (or (and (display-color-p)
 		 (image-type-available-p 'xpm))
-	    (image-type-available-p 'pbm))
+                 (image-type-available-p 'pbm)))
     (let ((frame (fancy-splash-frame)))
       (when frame
 	(let* ((img (create-image (or fancy-splash-image
@@ -1517,8 +1518,7 @@ Type \\[describe-distribution] for information on getting the latest version."))
 Fancy splash screens are used on graphic displays,
 normal otherwise."
   (interactive)
-  (if (and (display-graphic-p)
-	   (use-fancy-splash-screens-p))
+  (if (use-fancy-splash-screens-p)
       (fancy-splash-screens)
     (normal-splash-screen)))
 
