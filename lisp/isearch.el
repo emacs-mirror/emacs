@@ -1073,24 +1073,32 @@ Otherwise invoke whatever mouse-2 is bound to outside of Isearch."
 	  (funcall binding click))))))
 
 
-(defun isearch-yank-word ()
-  "Pull next word from buffer into search string."
-  (interactive)
+(defun isearch-yank-internal (jumpform)
+  "Pull the text from point to the point reached by JUMPFORM.
+JUMPFORM is a lambda expression that takes no arguments and returns a
+buffer position, possibly having moved point to that position.  For
+example, it might move point forward by a word and return point, or it
+might return the position of the end of the line."
   (isearch-yank-string
    (save-excursion
      (and (not isearch-forward) isearch-other-end
 	  (goto-char isearch-other-end))
-     (buffer-substring-no-properties
-      (point) (progn (forward-word 1) (point))))))
+     (buffer-substring-no-properties (point) (funcall jumpform)))))
+
+(defun isearch-yank-char ()
+  "Pull next letter from buffer into search string."
+  (interactive)
+  (isearch-yank-internal (lambda () (forward-char 1) (point))))
+
+(defun isearch-yank-word ()
+  "Pull next word from buffer into search string."
+  (interactive)
+  (isearch-yank-internal (lambda () (forward-word 1) (point))))
 
 (defun isearch-yank-line ()
   "Pull rest of line from buffer into search string."
   (interactive)
-  (isearch-yank-string
-   (save-excursion
-     (and (not isearch-forward) isearch-other-end
-	  (goto-char isearch-other-end))
-     (buffer-substring-no-properties (point) (line-end-position)))))
+  (isearch-yank-internal (lambda () (line-end-position))))
 
 
 (defun isearch-search-and-update ()

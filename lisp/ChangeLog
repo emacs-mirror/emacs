@@ -1,3 +1,10 @@
+2001-11-28  Karl Fogel  <kfogel@red-bean.com>
+
+	* isearch.el (isearch-yank-internal): New helper function.
+	(isearch-yank-char): New function.
+	(isearch-yank-word, isearch-yank-line): Rewrite to use
+	isearch-yank-internal.
+
 2001-11-28  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* mouse.el (mouse-set-font): Make it a no-op if multiple fonts
