@@ -177,12 +177,16 @@ If this is non-@code{nil}, it overrides @code{nonascii-insert-offset}.
 This function converts the text of @var{string} to unibyte
 representation, if it isn't already, and returns the result.  If
 @var{string} is a unibyte string, it is returned unchanged.
+Multibyte character codes are converted to unibyte
+by using just the low 8 bits.
 @end defun
 
 @defun string-make-multibyte string
 This function converts the text of @var{string} to multibyte
 representation, if it isn't already, and returns the result.  If
 @var{string} is a multibyte string, it is returned unchanged.
+The function @code{unibyte-char-to-multibyte} is used to convert
+each unibyte character to a multibyte character.
 @end defun
 
 @node Selecting a Representation
@@ -221,7 +225,10 @@ treating each byte as a character.  This means that the value may have
 more characters than @var{string} has.
 
 If @var{string} is already a unibyte string, then the value is
-@var{string} itself.
+@var{string} itself.  Otherwise it is a newly created string, with no
+text properties.  If @var{string} is multibyte, any characters it
+contains of charset @var{eight-bit-control} or @var{eight-bit-graphic}
+are converted to the corresponding single byte.
 @end defun
 
 @defun string-as-multibyte string
@@ -230,7 +237,11 @@ treating each multibyte sequence as one character.  This means that the
 value may have fewer characters than @var{string} has.
 
 If @var{string} is already a multibyte string, then the value is
-@var{string} itself.
+@var{string} itself.  Otherwise it is a newly created string, with no
+text properties.  If @var{string} is unibyte and contains any individual
+8-bit bytes (i.e.@: not part of a multibyte form), they are converted to
+the corresponding multibyte character of charset @var{eight-bit-control}
+or @var{eight-bit-graphic}.
 @end defun
 
 @node Character Codes
