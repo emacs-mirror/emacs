@@ -1037,7 +1037,11 @@ and announce itself normally when it is run.")
   /* Tell malloc where start of impure now is */
   /* Also arrange for warnings when nearly out of space.  */
 #ifndef SYSTEM_MALLOC
+#ifndef WINDOWSNT
+  /* On Windows, this was done before dumping, and that once suffices.
+     Meanwhile, my_edata is not valid on Windows.  */
   memory_warnings (&my_edata, malloc_warning);
+#endif /* not WINDOWSNT */
 #endif
   unexec (XSTRING (intoname)->data,
 	  !NILP (symname) ? XSTRING (symname)->data : 0, &my_edata, 0, 0);
