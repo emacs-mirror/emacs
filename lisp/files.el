@@ -3308,22 +3308,33 @@ See also `auto-save-file-name-p'."
 	  (setq list (cdr list)))
 	(if result (setq filename result))
 
-	(if (and (eq system-type 'ms-dos)
-		 (not (msdos-long-file-names)))
-	    ;; We truncate the file name to DOS 8+3 limits before
-	    ;; doing anything else, because the regexp passed to
-	    ;; string-match below cannot handle extensions longer than
-	    ;; 3 characters, multiple dots, and other atrocities.
-	    (let ((fn (dos-8+3-filename
-		       (file-name-nondirectory buffer-file-name))))
-	      (string-match "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'" fn)
-	      (concat (file-name-directory buffer-file-name)
-		      "#" (match-string 1 fn)
-		      "." (match-string 3 fn) "#"))
-	  (concat (file-name-directory filename)
-		  "#"
-		  (file-name-nondirectory filename)
-		  "#")))
+	(setq result
+	      (if (and (eq system-type 'ms-dos)
+		       (not (msdos-long-file-names)))
+		  ;; We truncate the file name to DOS 8+3 limits
+		  ;; before doing anything else, because the regexp
+		  ;; passed to string-match below cannot handle
+		  ;; extensions longer than 3 characters, multiple
+		  ;; dots, and other atrocities.
+		  (let ((fn (dos-8+3-filename
+			     (file-name-nondirectory buffer-file-name))))
+		    (string-match
+		     "\\`\\([^.]+\\)\\(\\.\\(..?\\)?.?\\|\\)\\'"
+		     fn)
+		    (concat (file-name-directory buffer-file-name)
+			    "#" (match-string 1 fn)
+			    "." (match-string 3 fn) "#"))
+		(concat (file-name-directory filename)
+			"#"
+			(file-name-nondirectory filename)
+			"#")))
+	;; Make sure auto-save file names don't contain characters
+	;; invalid for the underlying filesystem.
+	(if (and (memq system-type '(ms-dos windows-nt))
+		 ;; Don't modify remote (ange-ftp) filenames
+		 (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" result)))
+	    (convert-standard-filename result)
+	  result))
 
     ;; Deal with buffers that don't have any associated files.  (Mail
     ;; mode tends to create a good number of these.)
@@ -3343,13 +3354,25 @@ See also `auto-save-file-name-p'."
 	  (setq limit (1+ (match-end 0)))))
       ;; Generate the file name.
       (make-temp-file
-       (expand-file-name
-	(format "#%s#" buffer-name)
-	;; Try a few alternative directories, to get one we can write it.
-	(cond
-	 ((file-writable-p default-directory) default-directory)
-	 ((file-writable-p "/var/tmp/") "/var/tmp/")
-	 ("~/")))))))
+       (let ((fname
+	      (expand-file-name
+	       (format "#%s#" buffer-name)
+	       ;; Try a few alternative directories, to get one we can
+	       ;; write it.
+	       (cond
+		((file-writable-p default-directory) default-directory)
+		((file-writable-p "/var/tmp/") "/var/tmp/")
+		("~/")))))
+	 (if (and (memq system-type '(ms-dos windows-nt))
+		  ;; Don't modify remote (ange-ftp) filenames
+		  (not (string-match "^/\\w+@[-A-Za-z0-9._]+:" fname)))
+	     ;; The call to convert-standard-filename is in case
+	     ;; buffer-name includes characters not allowed by the
+	     ;; DOS/Windows filesystems.  make-temp-file writes to the
+	     ;; file it creates, so we must fix the file name _before_
+	     ;; make-temp-file is called.
+	     (convert-standard-filename fname)
+	   fname))))))
 
 (defun auto-save-file-name-p (filename)
   "Return non-nil if FILENAME can be yielded by `make-auto-save-file-name'.
