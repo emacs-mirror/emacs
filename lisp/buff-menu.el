@@ -265,10 +265,10 @@ and then move up one line.  Prefix arg means move that many lines."
   "Mark buffer on this line to be saved by \\<Buffer-menu-mode-map>\\[Buffer-menu-execute] command."
   (interactive)
   (beginning-of-line)
-  (forward-char 1)
   (if (looking-at " [-M]")		;header lines
       (ding)
     (let ((buffer-read-only nil))
+      (forward-char 1)
       (delete-char 1)
       (insert ?S)
       (forward-line 1))))
