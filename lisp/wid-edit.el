@@ -378,7 +378,7 @@ size field."
 				 (:foreground "light gray"))
 				(((class grayscale color)
 				  (background light))
-				 (:foreground "dark gray"))
+				 (:foreground "dim gray"))
 				(t 
 				 (:italic t)))
   "Face used for inactive widgets."
