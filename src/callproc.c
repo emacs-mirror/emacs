@@ -770,8 +770,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
+		Lisp_Object buf;
+
+		XSETBUFFER (buf, current_buffer);
 		decode_coding_c_string (&process_coding, bufptr, nread,
-					buffer);
+					buf);
 		if (display_on_the_fly
 		    && CODING_REQUIRE_DETECTION (&saved_coding)
 		    && ! CODING_REQUIRE_DETECTION (&process_coding))
@@ -793,6 +796,8 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		    continue;
 		  }
 		
+		TEMP_SET_PT_BOTH (PT + process_coding.produced_char,
+				  PT_BYTE + process_coding.produced);
 		nread -= process_coding.consumed;
 		carryover = nread;
 		if (carryover > 0)
