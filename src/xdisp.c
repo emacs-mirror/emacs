@@ -6974,9 +6974,14 @@ clear_garbaged_frames ()
 	  
 	  if (FRAME_VISIBLE_P (f) && FRAME_GARBAGED_P (f))
 	    {
+	      if (f->resized_p)
+		{
+		  Fredraw_frame (frame);
+		  fprintf (stderr, "redraw frame\n");
+		}
 	      clear_current_matrices (f);
 	      f->garbaged = 0;
-	      Fredraw_frame (frame);
+	      f->resized_p = 0;
 	    }
 	}
 
