@@ -967,6 +967,12 @@ the Bugs section of the Emacs manual or the file BUGS.\n", argv[0]);
 	 buffers and strings.  We need to handle this before calling
 	 init_lread, init_editfns and other places that generate Lisp strings
 	 from text in the environment.  */
+      /* Actually this shouldn't be needed as of 20.4 in a generally
+	 unibyte environment.  As handa says, environment values
+	 aren't now decoded; also existing buffers are now made
+	 unibyte during startup if .emacs sets unibyte.  Tested with
+	 8-bit data in environment variables and /etc/passwd, setting
+	 unibyte and Latin-1 in .emacs. -- Dave Love */
       if (argmatch (argv, argc, "-unibyte", "--unibyte", 4, NULL, &skip_args)
 	  || argmatch (argv, argc, "-no-multibyte", "--no-multibyte", 4, NULL, &skip_args)
 	  || (getenv ("EMACS_UNIBYTE") && !inhibit_unibyte))
