@@ -1,5 +1,7 @@
 2000-10-12  Dave Love  <fx@gnu.org>
 
+	* recentf.el: Maintainer's checkdoc fixes.
+
 	* startup.el (normal-top-level-add-subdirs-to-load-path): Use
 	character class, not ASCII when matching file names.
 	(fancy-splash-head): Add trailing slash to URL.
