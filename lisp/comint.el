@@ -314,8 +314,9 @@ This variable is buffer-local."
 ;; ssh-add prints a prompt like `Enter passphrase: '.
 ;; Some implementations of passwd use "Password (again)" as the 2nd prompt.
 (defcustom comint-password-prompt-regexp
-  "\\(\\([Oo]ld \\|[Nn]ew \\|Kerberos \\|'s \\|login \\|CVS \\|UNIX \\|^\\)\
-[Pp]assword\\( (again)\\)?\\|pass phrase\\|Enter passphrase\\)\
+  "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
+Kerberos \\|CVS \\|UNIX \\| SMB \\|\
+^\\)[Pp]assword\\( (again)\\)?\\|pass phrase\\|Enter passphrase\\)\
 \\( for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
