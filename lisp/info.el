@@ -253,21 +253,21 @@ to read a file name from the minibuffer."
       (while dirs
 	;; Try several variants of specified name.
 	;; Try upcasing, appending `.info', or both.
-	(let (temp
-	      (buffer
-	       (cond
-		((progn (setq temp (expand-file-name "DIR" (car dirs)))
-			(file-exists-p temp))
-		 (find-file-noselect temp))
-		((progn (setq temp (expand-file-name "dir" (car dirs)))
-			(file-exists-p temp))
-		 (find-file-noselect temp))
-		((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
-			(file-exists-p temp))
-		 (find-file-noselect temp))
-		((progn (setq temp (expand-file-name "dir.info" (car dirs)))
-			(file-exists-p temp))
-		 (find-file-noselect temp)))))
+	(let* (temp
+	       (buffer
+		(cond
+		 ((progn (setq temp (expand-file-name "DIR" (car dirs)))
+			 (file-exists-p temp))
+		  (find-file-noselect temp))
+		 ((progn (setq temp (expand-file-name "dir" (car dirs)))
+			 (file-exists-p temp))
+		  (find-file-noselect temp))
+		 ((progn (setq temp (expand-file-name "DIR.INFO" (car dirs)))
+			 (file-exists-p temp))
+		  (find-file-noselect temp))
+		 ((progn (setq temp (expand-file-name "dir.info" (car dirs)))
+			 (file-exists-p temp))
+		  (find-file-noselect temp)))))
 	  (if buffer (setq buffers (cons buffer buffers)))
 	  (setq dirs (cdr dirs))))
 
@@ -776,7 +776,7 @@ N is the digit argument used to invoke this command."
   (cond ((and (not not-down)
               (save-excursion (search-forward "\n* menu:" nil t))
 	      (not (string-match "\\<index\\>" Info-current-node)))
-         (Info-first-menu-item)
+	 (Info-goto-node (Info-extract-menu-counting 1))
          t)
         ((save-excursion (search-backward "next:" nil t))
          (Info-next)
