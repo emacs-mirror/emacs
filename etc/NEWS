@@ -32,6 +32,9 @@ maximum buffer size.  See etc/MACHINES for instructions.
 
 * Changes in Emacs 21.1
 
+** `browse-url-gnome-moz' is a new option for
+`browse-url-browser-function', invoking Mozilla in GNOME.
+
 +++
 ** The new global minor mode `auto-image-file-mode' allows image files
 to be visited as images.
