@@ -1,3 +1,7 @@
+2000-10-15  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* eshell/em-unix.el (eshell-du-prefer-over-ange): Doc fix.
+
 2000-10-15  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* emacs-lisp/ewoc.el (ewoc-location): New function.
