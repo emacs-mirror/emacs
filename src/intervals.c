@@ -70,13 +70,13 @@ create_root_interval (parent)
 
   new = make_interval ();
 
-  if (XTYPE (parent) == Lisp_Buffer)
+  if (BUFFERP (parent))
     {
       new->total_length = (BUF_Z (XBUFFER (parent))
 			   - BUF_BEG (XBUFFER (parent)));
       XBUFFER (parent)->intervals = new;
     }
-  else if (XTYPE (parent) == Lisp_String)
+  else if (STRINGP (parent))
     {
       new->total_length = XSTRING (parent)->size;
       XSTRING (parent)->intervals = new;
@@ -411,9 +411,9 @@ balance_possible_root_interval (interval)
   parent = (Lisp_Object) (interval->parent);
   interval = balance_an_interval (interval);
 
-  if (XTYPE (parent) == Lisp_Buffer)
+  if (BUFFERP (parent))
     XBUFFER (parent)->intervals = interval;
-  else if (XTYPE (parent) == Lisp_String)
+  else if (STRINGP (parent))
     XSTRING (parent)->intervals = interval;
 
   return interval;
@@ -1049,9 +1049,9 @@ delete_interval (i)
       if (! NULL_INTERVAL_P (parent))
 	parent->parent = (INTERVAL) owner;
 
-      if (XTYPE (owner) == Lisp_Buffer)
+      if (BUFFERP (owner))
 	XBUFFER (owner)->intervals = parent;
-      else if (XTYPE (owner) == Lisp_String)
+      else if (STRINGP (owner))
 	XSTRING (owner)->intervals = parent;
       else
 	abort ();
