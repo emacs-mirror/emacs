@@ -159,9 +159,10 @@ be last in the list.")
 	   (ext-len (max 0 (- (length filename) (length sans-exts) 1)))
 	   ext-left)
       ;; SUFFIX starts with a dot.  If FILENAME already has one,
-      ;; get rid of the one in SUFFIX.
+      ;; get rid of the one in SUFFIX (unless suffix is empty).
       (or (and (<= ext-len 0)
 	       (not (eq (aref filename (1- (length filename))) ?.)))
+	  (= (length suffix) 0)
 	  (setq suffix (substring suffix 1)))
       ;; How many chars of that extension should we keep?
       (setq ext-left (min ext-len (max 0 (- 3 (length suffix)))))
