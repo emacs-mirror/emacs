@@ -1,3 +1,48 @@
+
+2005-01-14  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex-cite.el (reftex-bib-sort-year): Catch the case if the
+	year is not given.
+
+	* reftex-ref.el (reftex-replace-prefix-escapes): Added new escapes
+	%m and %M, fixed bug with %F by adding save-match-data.
+	(reftex-reference): Removed ?. from list of spaces.
+	(reftex-label-info): Added automatic label prefix recognition
+
+	* reftex-index.el (reftex-index-next-phrase): Added slave
+	parameter to call of `reftex-index-this-phrase'
+	(reftex-index-this-phrase): New optional argument
+	(reftex-index-region-phrases): Added slave parameter to call of
+	`reftex-index-this-phrase'
+	(reftex-display-index): New argument redo
+	(reftex-index-rescan): Added 'redo to arguments of
+	`reftex-display-index'
+	(reftex-index-Rescan, reftex-index-revert)
+	(reftex-index-switch-index-tag): Added 'redo to arguments of
+	`reftex-display-index'
+	(reftex-index-make-phrase-regexp): Fixed bug with case-sensitive
+	indexing.  Fixed bug with matching is there is a quote before or
+	after the word.
+
+	* reftex-cite.el (reftex-all-used-citation-keys): Fix bug when
+	collecting citation keys in lines with comments.
+	(reftex-citation): Prefix argument no longer rescans the document,
+	but forces prompting for optional arguments of cite macros.
+	(reftex-do-citation): Prompting for optional arguments
+	implemented.
+
+	* reftex-vars.el (reftex-cite-format-builtin): Added optional
+	arguments to most cite commands.
+	(reftex-cite-cleanup-optional-args): New option
+	(reftex-cite-prompt-optional-args): New option.
+	(reftex-trust-label-prefix): New option
+
+	* reftex-toc.el (reftex-toc-find-section): Added push-mark before
+	changing the position in the buffer.
+
+	* reftex.el (reftex-prefix-to-typekey-alist): New variable
+	(reftex-compile-variables): Compute reftex-prefix-to-typekey-alist
+
 2005-01-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xt-mouse.el (xterm-mouse-event): Compute window co-ordinates
