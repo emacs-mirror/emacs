@@ -1,3 +1,8 @@
+2003-01-03  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--pre-command-handler): Corrected
+	handling of delete-selection properties.
+
 2003-01-03  John Paul Wallington  <jpw@shootybangbang.com>
 
 	* emacs-lisp/eldoc.el (eldoc-get-var-docstring): Only return a
