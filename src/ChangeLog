@@ -1,3 +1,13 @@
+2004-05-11  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
+
+	* image.c (xpm_scan, xpm_make_color_table_v, xpm_put_color_table_v)
+	(xpm_get_color_table_v, xpm_make_color_table_h)
+	(xpm_put_color_table_h, xpm_get_color_table_h)
+	(xpm_str_to_color_key, xpm_load_image, xpm_load)
+	(syms_of_image): Support XPM on Carbon Emacs.  Does not
+	depend on libXpm, but only supports XPM version 3 without
+	extensions.
+
 2004-05-11  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_flush, XTframe_up_to_date): use FRAME_MAC_P
