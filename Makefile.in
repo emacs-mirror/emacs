@@ -299,8 +299,8 @@ install-arch-dep: mkdir
 	-chmod 1755  ${bindir}/emacs-${version}
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/emacs-${version} ${bindir}/$(EMACS)
-	for f in `cd src && echo fns-*.el`; do \
-	  ${INSTALL_DATA} src/$f ${archlibdir}/$f; \
+	for f in `cd lisp && echo fns-*.el`; do \
+	  ${INSTALL_DATA} lisp/$$f ${archlibdir}/$$f; \
 	done
 
 ### Install the files that are machine-independent.
