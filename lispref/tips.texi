@@ -4,28 +4,29 @@
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/tips
 @node Tips, GNU Emacs Internals, Calendar, Top
-@appendix Tips and Standards
+@appendix Tips and Conventions
 @cindex tips
 @cindex standards of coding style
 @cindex coding standards
 
-  This chapter describes no additional features of Emacs Lisp.
-Instead it gives advice on making effective use of the features described
-in the previous chapters.
+  This chapter describes no additional features of Emacs Lisp.  Instead
+it gives advice on making effective use of the features described in the
+previous chapters, and describes conventions Emacs Lisp programmers
+should follow.
 
 @menu
-* Style Tips::                Writing clean and robust programs.
+* Coding Conventions::        Conventions for clean and robust programs.
 * Compilation Tips::          Making compiled code run fast.
 * Documentation Tips::        Writing readable documentation strings.
 * Comment Tips::	      Conventions for writing comments.
 * Library Headers::           Standard headers for library packages.
 @end menu
 
-@node Style Tips
-@section Writing Clean Lisp Programs
+@node Coding Conventions
+@section Emacs Lisp Coding Conventions
 
-  Here are some tips for avoiding common errors in writing Lisp code
-intended for widespread use:
+  Here are conventions that you should follow when writing Emacs Lisp
+code intended for widespread use:
 
 @itemize @bullet
 @item
@@ -84,8 +85,12 @@ Using @code{eval-when-compile} avoids loading @var{bar} when
 the compiled version of @var{foo} is @emph{used}.
 
 @item
-If you define a major mode, make sure to run a hook variable using
-@code{run-hooks}, just as the existing major modes do.  @xref{Hooks}.
+When defining a major mode, please follow the major mode
+conventions.  @xref{Major Mode Conventions}.
+
+@item
+When defining a minor mode, please follow the minor mode
+conventions.  @xref{Minor Mode Conventions}.
 
 @item
 If the purpose of a function is to tell you whether a certain condition
@@ -160,9 +165,9 @@ It is a bad idea to define aliases for the Emacs primitives.  Use the
 standard names instead.
 
 @item
-Redefining an Emacs primitive is an even worse idea.
-It may do the right thing for a particular program, but 
-there is no telling what other programs might break as a result.
+Redefining (or advising) an Emacs primitive is discouraged.  It may do
+the right thing for a particular program, but there is no telling what
+other programs might break as a result.
 
 @item
 If a file does replace any of the functions or library programs of
