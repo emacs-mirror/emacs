@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-rcs.el,v 1.6 2000/09/22 07:48:08 spiegel Exp $
+;; $Id: vc-rcs.el,v 1.7 2000/09/22 11:57:30 gerd Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -732,9 +732,7 @@ whether to remove it."
 	(rev (vc-workfile-version file))
 	(state (vc-state file))
 	(checkout-model (vc-checkout-model file))
-	(comment (and move
-		      (vc-find-backend-function old-backend 'comment-history)
-		      (vc-call 'comment-history file))))
+	(comment (and move (vc-call comment-history file))))
     (if move (vc-unregister file old-backend))
     (vc-file-clearprops file)
     (if (not (vc-rcs-registered file))
@@ -756,10 +754,11 @@ whether to remove it."
 		      (logior (file-modes file) 128)))
     (when (or move (eq state 'edited))
       (vc-file-setprop file 'vc-state 'edited)
-      ;; TODO: The comment history should actually become the
-      ;; initial contents of the log entry buffer.
-      (and comment (ring-insert vc-comment-ring comment))
-      (vc-checkin file (concat rev ".1.1")))))
+      ;; Explicit branch revision number will cause vc-rcs-checkin
+      ;; to use "ci -f".  This is a trick to force creation of 
+      ;; the branch, even if we couldn't use the unmodified base 
+      ;; version for registration above.
+      (vc-checkin file (concat rev ".1.1") comment (stringp comment)))))
 
 (defun vc-rcs-set-non-strict-locking (file)
   (vc-do-command nil 0 "rcs" file "-U")
