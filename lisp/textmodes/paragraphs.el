@@ -195,12 +195,14 @@ to which the end of the previous line belongs, or the end of the buffer."
 			  (setq multiple-lines t))
 		      (forward-line -1))
 		    (move-to-left-margin)
-		    ;; Don't move back over a line before the paragraph
-		    ;; which doesn't start with fill-prefix
-		    ;; unless that is the only line we've moved over.
-		    (and (not (looking-at fill-prefix-regexp))
-			 multiple-lines
-			 (forward-line 1))
+;;; This deleted code caused a long hanging-indent line
+;;; not to be filled together with the following lines.
+;;;		    ;; Don't move back over a line before the paragraph
+;;;		    ;; which doesn't start with fill-prefix
+;;;		    ;; unless that is the only line we've moved over.
+;;;		    (and (not (looking-at fill-prefix-regexp))
+;;;			 multiple-lines
+;;;			 (forward-line 1))
 		    (not (bobp)))
 		(while (and (re-search-backward sp-paragraph-start nil 1)
 			    ;; Found a candidate, but need to check if it is a
