@@ -1811,7 +1811,9 @@ to create parent directories if they don't exist."
 
 (put 'revert-buffer-function 'permanent-local t)
 (defvar revert-buffer-function nil
-  "Function to use to revert this buffer, or nil to do the default.")
+  "Function to use to revert this buffer, or nil to do the default.
+The function receives two arguments IGNORE-AUTO and NOCONFIRM,
+which are the arguments that `revert-buffer' received.")
 
 (put 'revert-buffer-insert-file-contents-function 'permanent-local t)
 (defvar revert-buffer-insert-file-contents-function nil
