@@ -1,3 +1,10 @@
+2000-12-02  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_bdf_per_char_metric): Dereference pointer
+	correctly for single byte character case.
+	(w32_per_char_metric): Do not try to make any assumptions about
+	the metrics of BDF fonts.
+
 2000-12-02  Simon Josefsson  <simon@josefsson.org>
 
 	* fns.c (Fmd5): Use a different logic to decide the coding system
