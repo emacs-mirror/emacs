@@ -98,4 +98,10 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-4))
 
+;;; Don't compile this file: src/Makefile.in instructs make-docfile
+;;; to look at the .el file!
+;;; Local Variables:
+;;; no-byte-compile: t
+;;; End:
+
 ;;; latin-4.el ends here
