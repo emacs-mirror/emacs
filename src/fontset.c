@@ -55,14 +55,14 @@ Boston, MA 02111-1307, USA.  */
    face is also realized for multibyte characters based on an ASCII
    face.  All of the multibyte faces based on the same ASCII face
    share the same realized fontset.
-   
+
    A fontset object is implemented by a char-table.
 
    An element of a base fontset is:
 	(INDEX . FONTNAME) or
 	(INDEX . (FOUNDRY . REGISTRY ))
    FONTNAME is a font name pattern for the corresponding character.
-   FOUNDRY and REGISTRY are respectively foundy and regisry fields of
+   FOUNDRY and REGISTRY are respectively foundry and registry fields of
    a font name for the corresponding character.  INDEX specifies for
    which character (or generic character) the element is defined.  It
    may be different from an index to access this element.  For
@@ -71,9 +71,9 @@ Boston, MA 02111-1307, USA.  */
    charset.  REGISTRY is the
 
    An element of a realized fontset is FACE-ID which is a face to use
-   for displaying the correspnding character.
+   for displaying the corresponding character.
 
-   All single byte charaters (ASCII and 8bit-unibyte) share the same
+   All single byte characters (ASCII and 8bit-unibyte) share the same
    element in a fontset.  The element is stored in the first element
    of the fontset.
 
@@ -110,7 +110,7 @@ Boston, MA 02111-1307, USA.  */
    These structures are hidden from the other codes than this file.
    The other codes handle fontsets only by their ID numbers.  They
    usually use variable name `fontset' for IDs.  But, in this file, we
-   always use varialbe name `id' for IDs, and name `fontset' for the
+   always use variable name `id' for IDs, and name `fontset' for the
    actual fontset objects.
 
 */
@@ -123,7 +123,7 @@ Lisp_Object Qfontset;
 /* Vector containing all fontsets.  */
 static Lisp_Object Vfontset_table;
 
-/* Next possibly free fontset ID.  Usually this keeps the mininum
+/* Next possibly free fontset ID.  Usually this keeps the minimum
    fontset ID not yet used.  */
 static int next_fontset_id;
 
@@ -145,8 +145,8 @@ Lisp_Object Vvertical_centering_font_regexp;
 /* Return a pointer to struct font_info of font FONT_IDX of frame F.  */
 struct font_info *(*get_font_info_func) P_ ((FRAME_PTR f, int font_idx));
 
-/* Return a list of font names which matches PATTERN.  See the document of
-   `x-list-fonts' for more detail.  */
+/* Return a list of font names which matches PATTERN.  See the documentation
+   of `x-list-fonts' for more details.  */
 Lisp_Object (*list_fonts_func) P_ ((struct frame *f,
 				    Lisp_Object pattern,
 				    int size,
@@ -166,7 +166,7 @@ void (*set_frame_fontset_func) P_ ((FRAME_PTR f, Lisp_Object arg,
 
 /* To find a CCL program, fs_load_font calls this function.
    The argument is a pointer to the struct font_info.
-   This function set the memer `encoder' of the structure.  */
+   This function set the member `encoder' of the structure.  */
 void (*find_ccl_program_func) P_ ((struct font_info *));
 
 /* Check if any window system is used now.  */
@@ -318,14 +318,14 @@ make_fontset (frame, name, base)
   /* Find a free slot in Vfontset_table.  Usually, next_fontset_id is
      the next available fontset ID.  So it is expected that this loop
      terminates quickly.  In addition, as the last element of
-     Vfotnset_table is always nil, we don't have to check the range of
+     Vfontset_table is always nil, we don't have to check the range of
      id.  */
   while (!NILP (AREF (Vfontset_table, id))) id++;
 
   if (id + 1 == size)
     {
       Lisp_Object tem;
-      int i; 
+      int i;
 
       tem = Fmake_vector (make_number (size + 8), Qnil);
       for (i = 0; i < size; i++)
@@ -373,7 +373,7 @@ font_family_registry (fontname, force)
   char *p = XSTRING (fontname)->data;
   char *sep[15];
   int i = 0;
-  
+
   while (*p && i < 15)
     if (*p++ == '-')
       {
@@ -390,7 +390,7 @@ font_family_registry (fontname, force)
 }
 
 
-/********** INTERFACES TO xfaces.c and dispextern.h **********/ 
+/********** INTERFACES TO xfaces.c and dispextern.h **********/
 
 /* Return name of the fontset with ID.  */
 
@@ -481,7 +481,7 @@ face_for_char (f, face, c)
   /* No face is recorded for C in the fontset of FACE.  Make a new
      realized face for C that has the same fontset.  */
   face_id = lookup_face (f, face->lface, c, face);
-  
+
   /* Record the face ID in FONTSET at the same index as the
      information in the base fontset.  */
   FONTSET_SET (fontset, c, make_number (face_id));
@@ -532,7 +532,7 @@ fontset_font_pattern (f, id, c)
 {
   Lisp_Object fontset, elt;
   struct font_info *fontp;
-  
+
   elt = Qnil;
   if (fontset_id_valid_p (id))
     {
@@ -634,7 +634,7 @@ fs_load_font (f, c, fontname, id, face)
 
   fontp->vertical_centering
     = (STRINGP (Vvertical_centering_font_regexp)
-       && (fast_c_string_match_ignore_case 
+       && (fast_c_string_match_ignore_case
 	   (Vvertical_centering_font_regexp, fontp->full_name) >= 0));
 
   if (fontp->encoding[1] != FONT_ENCODING_NOT_DECIDED)
@@ -828,7 +828,7 @@ If REGEXPP is non-nil, PATTERN is a regular expression.  */)
 
 /* Return a list of base fontset names matching PATTERN on frame F.
    If SIZE is not 0, it is the size (maximum bound width) of fontsets
-   to be listed. */
+   to be listed.  */
 
 Lisp_Object
 list_fontsets (f, pattern, size)
@@ -983,7 +983,7 @@ CHARACTER may be a charset.   In that case, use FONTNAME
 for all character in the charsets.
 
 FONTNAME may be a cons; (FAMILY . REGISTRY), where FAMILY is a family
-name of a font, REGSITRY is a registry name of a font.  */)
+name of a font, REGISTRY is a registry name of a font.  */)
      (name, character, fontname, frame)
      Lisp_Object name, character, fontname, frame;
 {
@@ -1247,8 +1247,8 @@ where,
     or a cons of two characters specifying the range of characters.
   FONT-SPEC is a fontname pattern string or a cons (FAMILY . REGISTRY),
     where FAMILY is a `FAMILY' field of a XLFD font name,
-    REGISTRY is a `CHARSET_REGISTRY' field of a XLDF font name.
-    FAMILY may contain a `FOUNDARY' field at the head.
+    REGISTRY is a `CHARSET_REGISTRY' field of a XLFD font name.
+    FAMILY may contain a `FOUNDRY' field at the head.
     REGISTRY may contain a `CHARSET_ENCODING' field at the tail.
   OPENEDs are names of fonts actually opened.
 If the ASCII font is not yet opened, SIZE and HEIGHT are 0.
@@ -1264,7 +1264,7 @@ If FRAME is omitted, it defaults to the currently selected frame.  */)
   struct font_info *fontp = NULL;
   int n_realized = 0;
   int i;
-  
+
   (*check_window_system_func) ();
 
   fontset = check_fontset_name (name);
@@ -1368,7 +1368,6 @@ If NAME is t, find a font name pattern in the default fontset.  */)
 
   return elt;
 }
-  
 
 DEFUN ("fontset-list", Ffontset_list, Sfontset_list, 0, 0, 0,
        doc: /* Return a list of all defined fontset names.  */)
@@ -1471,7 +1470,7 @@ alternate fontnames (if any) are tried instead.  */);
 	       &Vvertical_centering_font_regexp,
 	       doc: /* *Regexp matching font names that require vertical centering on display.
 When a character is displayed with such fonts, the character is displayed
-at the vertival center of lines.  */);
+at the vertical center of lines.  */);
   Vvertical_centering_font_regexp = Qnil;
 
   defsubr (&Squery_fontset);
