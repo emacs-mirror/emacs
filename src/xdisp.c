@@ -6547,7 +6547,7 @@ resize_mini_window (w, exact_p)
 
       /* Compute the max. number of lines specified by the user.  */
       if (FLOATP (Vmax_mini_window_height))
-	max_height = XFLOATINT (Vmax_mini_window_height) * total_height;
+	max_height = XFLOATINT (Vmax_mini_window_height) * FRAME_HEIGHT (f);
       else if (INTEGERP (Vmax_mini_window_height))
 	max_height = XINT (Vmax_mini_window_height);
       else
