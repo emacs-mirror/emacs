@@ -226,7 +226,7 @@ xlw_popup_menu (widget, event)
   mw = (XlwMenuWidget)((CompositeWidget)widget)->composite.children [0];
 
   if (event)
-    pop_up_menu (mw, event);
+    pop_up_menu (mw, (XButtonPressedEvent*) event);
   else
     {
       dummy.type = ButtonPress;
