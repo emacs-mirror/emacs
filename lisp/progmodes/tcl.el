@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@busco.lanl.gov>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.18 $
+;; Version: $Revision: 1.19 $
 
 ;; This file is part of GNU Emacs.
 
@@ -51,7 +51,7 @@
 ;; LCD Archive Entry:
 ;; tcl|Tom Tromey|tromey@busco.lanl.gov|
 ;; Major mode for editing Tcl|
-;; $Date: 1994/06/03 20:39:14 $|$Revision: 1.18 $|~/modes/tcl.el.Z|
+;; $Date: 1994/06/03 21:09:19 $|$Revision: 1.19 $|~/modes/tcl.el.Z|
 
 ;; CUSTOMIZATION NOTES:
 ;; * tcl-proc-list can be used to customize a list of things that
@@ -65,6 +65,9 @@
 
 ;; Change log:
 ;; $Log: tcl.el,v $
+; Revision 1.19  1994/06/03  21:09:19  tromey
+; Another menu fix.
+;
 ; Revision 1.18  1994/06/03  20:39:14  tromey
 ; Fixed menu bug.
 ;
@@ -252,7 +255,7 @@
 	   (require 'imenu))
        ()))
 
-(defconst tcl-version "$Revision: 1.18 $")
+(defconst tcl-version "$Revision: 1.19 $")
 (defconst tcl-maintainer "Tom Tromey <tromey@busco.lanl.gov>")
 
 ;;
@@ -1627,7 +1630,8 @@ to update the alist.")
   "Return current command word, or nil.
 If FLAG is nil, just uses `current-word'.
 Otherwise scans backward for most likely Tcl command word."
-  (if (and flag (eq major-mode 'tcl-mode))
+  (if (and flag
+	   (memq major-mode '(tcl-mode inferior-tcl-mode)))
       (condition-case nil
 	  (save-excursion
 	    ;; Look backward for first word actually in alist.
