@@ -211,7 +211,6 @@ Thus, this does not include the current directory.")
 		      'eshell-dirs-substitute-cd)
 		eshell-interpreter-alist)))
 
-  (make-local-hook 'eshell-parse-argument-hook)
   (add-hook 'eshell-parse-argument-hook
 	    'eshell-parse-user-reference nil t)
   (if (eshell-under-windows-p)
@@ -219,7 +218,6 @@ Thus, this does not include the current directory.")
 		'eshell-parse-drive-letter nil t))
 
   (when (eshell-using-module 'eshell-cmpl)
-    (make-local-hook 'pcomplete-try-first-hook)
     (add-hook 'pcomplete-try-first-hook
 	      'eshell-complete-user-reference nil t))
 
@@ -231,7 +229,6 @@ Thus, this does not include the current directory.")
   (unless eshell-last-dir-ring
     (setq eshell-last-dir-ring (make-ring eshell-last-dir-ring-size)))
 
-  (make-local-hook 'eshell-exit-hook)
   (add-hook 'eshell-exit-hook 'eshell-write-last-dir-ring nil t)
 
   (add-hook 'kill-emacs-hook 'eshell-save-some-last-dir))
