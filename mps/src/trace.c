@@ -1,11 +1,11 @@
 /* impl.c.trace: GENERIC TRACER IMPLEMENTATION
  *
- * $HopeName: MMsrc!trace.c(trunk.17) $
+ * $HopeName: MMsrc!trace.c(trunk.18) $
  */
 
 #include "mpm.h"
 
-SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.17) $");
+SRCID(trace, "$HopeName: MMsrc!trace.c(trunk.18) $");
 
 Bool ScanStateCheck(ScanState ss)
 {
@@ -46,7 +46,7 @@ Res TraceCreate(TraceId *tiReturn, Space space)
   return ResLIMIT;
 
 found:
-  space->trace[ti].condemned = RefSetEmpty;
+  space->trace[ti].condemned = RefSetEMPTY;
   space->busyTraces = TraceSetAdd(space->busyTraces, ti);
 
   *tiReturn = ti;
@@ -56,7 +56,7 @@ found:
 void TraceDestroy(Space space, TraceId ti)
 {
   AVERT(Space, space);
-  space->busyTraces = TraceSetDelete(space->busyTraces, ti);
+  space->busyTraces = TraceSetDel(space->busyTraces, ti);
 }
 
 Res TraceFlip(Space space, TraceId ti, RefSet condemned)
@@ -72,7 +72,7 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
   ShieldSuspend(space);
 
   trace = &space->trace[ti];
-  AVER(trace->condemned == RefSetEmpty);
+  AVER(trace->condemned == RefSetEMPTY);
   trace->condemned = condemned;
 
   /* Update location dependency structures.  condemned is
@@ -111,7 +111,7 @@ Res TraceFlip(Space space, TraceId ti, RefSet condemned)
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
   ss.condemned = space->trace[ti].condemned;
-  ss.summary = RefSetEmpty;
+  ss.summary = RefSetEMPTY;
   ss.space = space;
   ss.traceId = ti;
   ss.weakSplat = (Addr)0xadd4badd;
@@ -177,7 +177,7 @@ Size TracePoll(Space space, TraceId ti)
 
   trace = &space->trace[ti];
 
-  if(trace->condemned != RefSetEmpty) {
+  if(trace->condemned != RefSetEMPTY) {
     res = TraceRun(space, ti, &finished);
     AVER(res == ResOK); /* @@@@ */
     if(finished) {
@@ -289,7 +289,7 @@ Res TraceRun(Space space, TraceId ti, Bool *finishedReturn)
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
   ss.condemned = space->trace[ti].condemned;
-  ss.summary = RefSetEmpty;
+  ss.summary = RefSetEMPTY;
   ss.space = space;
   ss.traceId = ti;
   ss.sig = ScanStateSig;

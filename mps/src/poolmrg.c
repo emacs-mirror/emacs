@@ -2,7 +2,7 @@
  * 
  * MANUAL RANK GUARDIAN POOL
  * 
- * $HopeName: MMsrc!poolmrg.c(trunk.1) $
+ * $HopeName: MMsrc!poolmrg.c(trunk.2) $
  * Copyright(C) 1995,1997 Harlequin Group, all rights reserved
  *
  * READERSHIP
@@ -35,7 +35,7 @@
 #include "poolmrg.h"
 
 
-SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.1) $");
+SRCID(poolmrg, "$HopeName: MMsrc!poolmrg.c(trunk.2) $");
 
 #define MRGSig          ((Sig)0x519B0349)
 
@@ -209,7 +209,7 @@ static Res MRGGroupScan(ScanState ss, MRGGroup group, MRG mrg)
     }
   } TRACE_SCAN_END(ss);
 
-  group->grey = TraceSetDelete(group->grey, ss->traceId);
+  group->grey = TraceSetDel(group->grey, ss->traceId);
   ShieldLower(space, group->refseg, AccessREAD | AccessWRITE);
   ShieldCover(space, group->refseg);
 
@@ -469,7 +469,7 @@ static void MRGAccess(Pool pool, Seg seg, AccessSet mode)
 
   ss.fix = TraceFix;
   ss.zoneShift = space->zoneShift;
-  ss.summary = RefSetEmpty;
+  ss.summary = RefSetEMPTY;
   ss.space = space;
   ss.sig = ScanStateSig;
   ss.rank = RankEXACT;  /* .access.exact */
