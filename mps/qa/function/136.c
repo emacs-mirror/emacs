@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_test_function!136.c(trunk.1) $
+/* $HopeName: MMQA_test_function!136.c(trunk.2) $
 TEST_HEADER
  summary = MVFF low-memory test; reusing arena in other pool
  language = c
@@ -30,8 +30,8 @@ END_HEADER
 #include "mpscmv.h"
 #include "mpsavm.h"
 
-#define MAXSMALLOBJECTS 100000
-#define MAXLARGEOBJECTS 100000
+#define MAXSMALLOBJECTS (100000ul)
+#define MAXLARGEOBJECTS (100000ul)
 
 void *stackpointer;
 mps_arena_t arena;
@@ -46,9 +46,9 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
  mps_pool_t pool, pool2;
  mps_res_t res;
  mps_addr_t p;
- int i;
- size_t nLargeObjects = 0, nSmallObjects = 0;
- size_t largeObjectSize, smallObjectSize;
+ unsigned int i;
+ unsigned long nLargeObjects = 0, nSmallObjects = 0;
+ unsigned long largeObjectSize, smallObjectSize;
 
   largeObjectSize = extendBy;
   smallObjectSize = align;
@@ -73,16 +73,16 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   }
   asserts(res != MPS_RES_OK, 
           "Unexpectedly managed to create %lu objects of size %lu",
-          (unsigned long)MAXLARGEOBJECTS, (unsigned long)largeObjectSize);
+          MAXLARGEOBJECTS, largeObjectSize);
   asserts(nLargeObjects > 0, "Couldn't create even one object of size %lu",
-          (unsigned long)largeObjectSize);
+          largeObjectSize);
 
   /* Then we free one to make sure we can allocate some small objects */
   mps_free(pool, largeObjects[nLargeObjects - 1], largeObjectSize);
   --nLargeObjects;
 
   comment("Allocated %lu objects of size %lu",
-    (unsigned long)nLargeObjects, (unsigned long)largeObjectSize);
+    nLargeObjects, largeObjectSize);
 
   /* Then we allocate lots of small objects. */
   for(i = 0; i < MAXSMALLOBJECTS; i++) {
@@ -94,10 +94,10 @@ static void do_test(size_t extendBy, size_t avgSize, size_t align,
   }
   asserts(res != MPS_RES_OK, 
           "Unexpectedly managed to create %lu objects of size %lu",
-          (unsigned long)MAXSMALLOBJECTS, (unsigned long)smallObjectSize);
+          MAXSMALLOBJECTS, smallObjectSize);
 
   comment("Allocated %lu objects of size %lu",
-    (unsigned long)nSmallObjects, (unsigned long)smallObjectSize);
+    nSmallObjects, smallObjectSize);
 
   /* Then we free every other small object */
   for(i = 0; i < nSmallObjects; i += 2) {
