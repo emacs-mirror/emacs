@@ -173,7 +173,7 @@ Used to determine if files in fundamental mode should be put into
 (defsubst generic-read-type ()
   (completing-read
    "Generic Type: "
-   generic-mode-list
+   (mapcar (lambda (elt) (list (symbol-name (car elt))))
    nil t))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
