@@ -33,8 +33,8 @@ while [ $# -gt 0 ]; do
       clean_up=no
     ;;
     ## This option tells make-dist to make the distribution normally, then
-    ## remove all files newer than the given timestamp file.  This is useful
-    ## for creating incremental or patch distributions
+    ## remove all files older than the given timestamp file.  This is useful
+    ## for creating incremental or patch distributions.
     "--newer")
       newer="$2"
       new_extension=".new"
@@ -115,7 +115,7 @@ for subdir in lisp lisp/calc-2.02 lisp/term local-lisp \
 done
 
 echo "Making links to \`lisp'."
-### Don't distribute =*.el files, site-init.el, site-load.el, or default.el.
+### Don't distribute TAGS, =*.el files, site-init.el, site-load.el, or default.el.
 (cd lisp
  ln [a-zA-Z]*.el ../${tempdir}/lisp
  ln [a-zA-Z]*.elc ../${tempdir}/lisp
@@ -123,37 +123,40 @@ echo "Making links to \`lisp'."
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
  ln ChangeLog README ../${tempdir}/lisp
  cd ../${tempdir}/lisp
+ rm -f TAGS =*
  rm -f site-init site-init.el site-init.elc
  rm -f site-load site-load.el site-load.elc
  rm -f default default.el default.elc)
 
 echo "Making links to \`lisp/calc-2.02'."
-### Don't distribute =*.el files or backups.
+### Don't distribute =*.el files, TAGS or backups.
 (cd lisp/calc-2.02
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/calc-2.02
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/calc-2.02
  ln calc.info* calc.texinfo calc-refcard.* ../../${tempdir}/lisp/calc-2.02
  ln INSTALL Makefile README README.prev ../../${tempdir}/lisp/calc-2.02
  cd ../../${tempdir}/lisp/calc-2.02
- rm -f *~)
+ rm -f *~ TAGS)
 
 echo "Making links to \`lisp/term'."
-### Don't distribute =*.el files.
+### Don't distribute =*.el files or TAGS.
 (cd lisp/term
  ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
  ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
- ln README ../../${tempdir}/lisp/term)
+ ln README ../../${tempdir}/lisp/term
+ rm -f =* TAGS)
 
 ### echo "Making links to \`external-lisp'."
-### ### Don't distribute =*.el files.
+### ### Don't distribute =*.el files or TAGS.
 ### (cd external-lisp
 ###  ln [a-zA-Z]*.el ../${tempdir}/external-lisp
 ###  ln [a-zA-Z]*.elc ../${tempdir}/external-lisp
-###  ln ChangeLog README ../${tempdir}/external-lisp)
+###  ln ChangeLog README ../${tempdir}/external-lisp
+###  rm -f =* TAGS)
 
 echo "Making links to \`src'."
 ### Don't distribute =*.[ch] files, or the configured versions of
-### config.h.in, paths.h.in, or Makefile.in.
+### config.h.in, paths.h.in, or Makefile.in, or TAGS.
 (cd src
  echo "  (If we can't link gmalloc.c, that's okay.)"
  ln [a-zA-Z]*.c ../${tempdir}/src
@@ -169,7 +172,8 @@ echo "Making links to \`src'."
  rm -f config.h paths.h Makefile
  if [ -z "${newer}" ]; then
    etags *.h *.c ../lisp/*.el
- fi)
+ fi
+ rm -f =* TAGS)
 
 echo "Making links to \`src/bitmaps'."
 (cd src/bitmaps
@@ -189,7 +193,8 @@ echo "Making links to \`lib-src'."
  ln ChangeLog Makefile.in README testfile vcdiff rcs2log ../${tempdir}/lib-src
  ln emacs.csh ../${tempdir}/lib-src
  cd ../${tempdir}/lib-src
- rm -f getdate.c getdate.tab.c y.tab.c y.tab.h)
+ rm -f getdate.c getdate.tab.c y.tab.c y.tab.h
+ rm -f =* TAGS)
 
 echo "Making links to \`oldXMenu'."
 (cd oldXMenu
@@ -197,11 +202,12 @@ echo "Making links to \`oldXMenu'."
  ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
 
 echo "Making links to \`etc'."
-### Don't distribute DOC files, backups, autosaves, or tex litter.
+### Don't distribute = files, TAGS, DOC files, backups, autosaves, or tex litter.
 (cd etc
  ln [0-9a-zA-Z]* ../${tempdir}/etc
  cd ../${tempdir}/etc
- rm -f DOC* *~ \#*\# *.dvi *.log *,v core)
+ rm -f DOC* *~ \#*\# *.dvi *.log *,v core
+ rm -f =* TAGS)
 
 echo "Making links to \`cpp'."
 (cd cpp
