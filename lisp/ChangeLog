@@ -1,7 +1,11 @@
 2002-06-08  Colin Walters  <walters@gnu.org>
 
-	* international/mule-diag.el (describe-char-after): Use
-	`font-lock-face' to italicize property names.
+	* descr-text.el (describe-text-properties): Sort the output by the
+	size of the values.  Put `font-lock-face' property on property
+	names.
+
+	* international/mule-diag.el (describe-char-after): Just call
+	`describe-text-properties' to describe text properties.
 
 	* international/mule.el (sgml-html-meta-auto-coding-function): New
 	function.
@@ -21,6 +25,8 @@
 	
 	* emacs-lisp/cl-extra.el (cl-copy-tree): Moved to `copy-tree' in
 	subr.el.  Add a defalias with the old name.
+	
+	* emacs-lisp/cl.el (copy-list): Moved to subr.el.
 
 	* replace.el (occur-mode): Don't set up categories.
 	(occur-1): Pass `list-matching-lines-face' and
