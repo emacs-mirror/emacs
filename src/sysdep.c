@@ -1712,6 +1712,17 @@ static struct utsname get_system_name_name;
 #endif /* not HAVE_GETHOSTNAME */
 #endif /* USG */
 
+#ifndef BSD4_1
+#ifndef USG
+#ifndef VMS
+#ifdef HAVE_SOCKETS
+#include <sys/socket.h>
+#include <netdb.h>
+#endif /* HAVE_SOCKETS */
+#endif /* not VMS */
+#endif /* not USG */
+#endif /* not BSD4_1 */
+
 char *
 get_system_name ()
 {
@@ -1742,6 +1753,20 @@ get_system_name ()
   strcpy (system_name_saved, sp);
 #else /* not VMS */
   gethostname (system_name_saved, sizeof (system_name_saved));
+#ifdef HAVE_SOCKETS
+  /* Turn the hostname into the official, fully-qualified hostname.
+     Don't do this if we're going to dump; this can confuse system
+     libraries on some machines and make the dumped emacs core dump. */
+#ifndef CANNOT_DUMP
+  if (initialized)
+#endif /* not CANNOT_DUMP */
+    {
+      struct hostent *hp;
+      hp = gethostbyname (system_name_saved);
+      if (hp && strlen (hp->h_name) < sizeof(system_name_saved))
+	strcpy (system_name_saved, hp->h_name);
+    }
+#endif /* HAVE_SOCKETS */
 #endif /* not VMS */
   return system_name_saved;
 #endif /* not USG, not 4.1 */
