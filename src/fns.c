@@ -1367,15 +1367,17 @@ or a character code.")
   return value;
 }
 
-/* Map C_FUNCTION or FUNCTION over CHARTABLE, calling it for each
+/* Map C_FUNCTION or FUNCTION over SUBTABLE, calling it for each
    character or group of characters that share a value.
    DEPTH is the current depth in the originally specified
    chartable, and INDICES contains the vector indices
-   for the levels our callers have descended.  */
+   for the levels our callers have descended.
+
+   ARG is passed to C_FUNCTION when that is called.  */
 
 void
-map_char_table (c_function, function, chartable, depth, indices)
-     Lisp_Object (*c_function) (), function, chartable, *indices;
+map_char_table (c_function, function, subtable, arg, depth, indices)
+     Lisp_Object (*c_function) (), function, subtable, arg, *indices;
      int depth;
 {
   int i, to;
@@ -1385,9 +1387,9 @@ map_char_table (c_function, function, chartable, depth, indices)
       /* At first, handle ASCII and 8-bit European characters.  */
       for (i = 0; i < CHAR_TABLE_SINGLE_BYTE_SLOTS; i++)
 	{
-	  Lisp_Object elt = XCHAR_TABLE (chartable)->contents[i];
+	  Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
 	  if (c_function)
-	    (*c_function) (i, elt);
+	    (*c_function) (arg, make_number (i), elt);
 	  else
 	    call2 (function, make_number (i), elt);
 	}
@@ -1401,7 +1403,7 @@ map_char_table (c_function, function, chartable, depth, indices)
 
   for (i; i < to; i++)
     {
-      Lisp_Object elt = XCHAR_TABLE (chartable)->contents[i];
+      Lisp_Object elt = XCHAR_TABLE (subtable)->contents[i];
 
       indices[depth] = i;
 
@@ -1409,7 +1411,8 @@ map_char_table (c_function, function, chartable, depth, indices)
 	{
 	  if (depth >= 3)
 	    error ("Too deep char table");
-	  map_char_table (c_function, function, elt, depth + 1, indices);
+	  map_char_table (c_function, function, elt, arg,
+			  depth + 1, indices);
 	}
       else
 	{
@@ -1421,7 +1424,7 @@ map_char_table (c_function, function, chartable, depth, indices)
 	      c2 = depth >= 2 ? XFASTINT (indices[2]) : 0;
 	      c = MAKE_NON_ASCII_CHAR (charset, c1, c2);
 	      if (c_function)
-		(*c_function) (c, elt);
+		(*c_function) (arg, make_number (c), elt);
 	      else
 		call2 (function, make_number (c), elt);
 	    }
@@ -1441,7 +1444,7 @@ The key is always a possible RANGE argument to `set-char-table-range'.")
   /* The depth of char table is at most 3. */
   Lisp_Object *indices = (Lisp_Object *) alloca (3 * sizeof (Lisp_Object));
 
-  map_char_table (NULL, function, char_table, 0, indices);
+  map_char_table (NULL, function, char_table, char_table, 0, indices);
   return Qnil;
 }
 
@@ -1784,7 +1787,7 @@ and can edit it until it has been confirmed.")
   while (1)
     {
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
-					      Qyes_or_no_p_history));
+					      Qyes_or_no_p_history, Qnil));
       if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
 	{
 	  UNGCPRO;
