@@ -3988,6 +3988,12 @@ x_set_menu_resources_from_menu_face (f, widget)
      struct frame *f;
      Widget widget;
 {
+  /* Realized faces may have been removed on frame F, e.g. because of
+     face attribute changes.  Recompute them, if necessary, since we
+     will need the `menu' face.  */
+  if (f->face_cache->used == 0)
+    recompute_basic_faces (f);
+  
 #ifdef USE_LUCID
   xl_set_menu_resources_from_menu_face (f, widget);
 #endif
