@@ -1,3 +1,7 @@
+2002-05-26  Paul Eggert  <eggert@twinsun.com>
+
+	* config.guess, config.sub: Updated from master source.
+
 2002-05-09  Richard M. Stallman  <rms@gnu.org>
 
 	* configure.in (emacs_cv_speed_t): Add square brackets for clarity.
