@@ -1,3 +1,8 @@
+2004-03-14  Steven Tamm <steventamm@mac.com>
+
+	* Makefile.in (XMENU_OBJ): Do not include xmenu.o if
+	HAVE_CARBON is defined.
+
 2004-03-14  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (x_find_image_file): Add prototype.
