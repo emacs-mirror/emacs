@@ -335,9 +335,20 @@ produces a name not currently in use for any buffer by appending a
 number inside of @samp{<@dots{}>}.
 
 If the optional second argument @var{ignore} is non-@code{nil}, it
-should be buffer name in the sequence to be tried.  That name will be
-considered acceptable, if it is tried, even if a buffer with that name
-exists.
+should be a string; it makes a difference if it is a name in the
+sequence of names to be tried.  That name will be considered acceptable,
+if it is tried, even if a buffer with that name exists.  Thus, if
+buffers named @samp{foo}, @samp{foo<2>}, @samp{foo<3>} and @samp{foo<4>}
+exist,
+
+@example
+(generate-new-buffer-name "foo")
+     @result{} "foo<5>"
+(generate-new-buffer-name "foo" "foo<3>")
+     @result{} "foo<3>"
+(generate-new-buffer-name "foo" "foo<6>")
+     @result{} "foo<5>"
+@end example
 
 See the related function @code{generate-new-buffer} in @ref{Creating
 Buffers}.

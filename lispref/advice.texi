@@ -426,12 +426,12 @@ redefined.
 This variable controls whether to compile the combined definition
 that results from activating advice for a function.
 
-A value of @code{always} specifies to compile unconditionally
+A value of @code{always} specifies to compile unconditionally.
 A value of @code{nil} specifies never compile the advice.
 
 A value of @code{maybe} specifies to compile if the byte-compiler is
 already loaded.  A value of @code{like-original} specifies to compile
-the advice if the the original definition of the advised function is
+the advice if the original definition of the advised function is
 compiled or a built-in function.
 
 This variable takes effect only if the @var{compile} argument of

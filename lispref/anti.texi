@@ -81,7 +81,7 @@ the scroll bars.
 
 @item
 For simplicity, all ASCII characters now have the same height and width.
-(Certain characters, such as Chinese characters, always have have twice
+(Certain characters, such as Chinese characters, always have twice
 the standard width.)  All characters are created equal.
 
 @item

@@ -519,7 +519,7 @@ The value of this variable is the number of seconds of idle time that
 should cause auto-saving.  Each time the user pauses for this long,
 Emacs does auto-saving for all buffers in which that is enabled.  (If
 the current buffer is large, the specified timeout is multiplied by a
-factor that depends increases as the size increases; for a million-byte
+factor that increases as the size increases; for a million-byte
 buffer, the factor is almost 4.)
 
 If the value is zero or nil, then auto-saving is not done as a result
