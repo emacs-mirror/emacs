@@ -427,6 +427,8 @@ Type \\[describe-distribution] for information on getting the latest version."))
       (if (> file-count 2)
 	  (or (get-buffer-window first-file-buffer)
 	      (progn (other-window 1)
-		     (buffer-menu)))))))
+		     (buffer-menu))))))
+  (message (substitute-command-keys
+	    "For information about the GNU project and its goals, type \\[describe-project].")))
 
 ;;; startup.el ends here
