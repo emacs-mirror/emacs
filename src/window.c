@@ -700,9 +700,22 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 
   /* Are we trying to delete any frame's selected window?  */
   {
-    FRAME_PTR frame = WINDOW_FRAME (XWINDOW (window));
+    Lisp_Object frame, pwindow;
 
-    if (EQ (window, FRAME_SELECTED_WINDOW (frame)))
+    /* See if the frame's selected window is either WINDOW
+       or any subwindow of it, by finding all that window's parents
+       and comparing each one with WINDOW.  */
+    frame = WINDOW_FRAME (XWINDOW (window));
+    pwindow = FRAME_SELECTED_WINDOW (XFRAME (frame));
+
+    while (!NILP (pwindow))
+      {
+	if (EQ (window, pwindow))
+	  break;
+	pwindow = XWINDOW (pwindow)->parent;
+      }
+
+    if (EQ (window, pwindow))
       {
 	Lisp_Object alternative = Fnext_window (window, Qlambda, Qnil);
 
@@ -714,7 +727,7 @@ DEFUN ("delete-window", Fdelete_window, Sdelete_window, 0, 1, "",
 	if (EQ (window, selected_window))
 	  Fselect_window (alternative);
 	else
-	  FRAME_SELECTED_WINDOW (frame) = alternative;
+	  FRAME_SELECTED_WINDOW (XFRAME (frame)) = alternative;
       }
   }
 
