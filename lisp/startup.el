@@ -429,16 +429,13 @@ from being initialized.")
     (when (and ctype
 	       (string-match iso-8859-n-locale-regexp ctype))
       (setq charset (concat "latin-" (match-string 1 ctype)))
-      (if (default-value 'enable-multibyte-characters)
-	  (if (string-match "latin-[12345]" charset)
-	      (set-language-environment charset))
-	;; These two lines are ok for any Latin-N character set,
-	;; as long as the terminal displays it.
-	(require 'disp-table)
-	(standard-display-european t)
-	;; Set up syntax for the chosen character set.
-	(if (string-match "latin-[1234]" charset)
-	    (require (intern charset))))))
+      ;; Set up for this character set in multibyte mode.
+      (if (string-match "latin-[12345]" charset)
+	  (set-language-environment charset))
+      ;; These two lines are ok for any Latin-N character set,
+      ;; as long as the terminal displays it.
+      (require 'disp-table)
+      (standard-display-european t)))
 
   ;;! This has been commented out; I currently find the behavior when
   ;;! split-window-keep-point is nil disturbing, but if I can get used
@@ -544,8 +541,6 @@ from being initialized.")
     (and command-line-args (setcdr command-line-args args)))
 
   ;; Under X Windows, this creates the X frame and deletes the terminal frame.
-  (if (fboundp 'face-initialize)
-      (face-initialize))
   (if (fboundp 'frame-initialize)
       (frame-initialize))
   ;; If frame was created with a menu bar, set menu-bar-mode on.
