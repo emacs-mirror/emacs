@@ -1,3 +1,14 @@
+2003-07-13  Paul Eggert  <eggert@twinsun.com>
+
+	GCC 3.3 (sparc) no longer puts "int foo = 0;" into data; it
+	puts it into BSS instead, at least on Solaris 8 and 9.
+	This is a valid optimization, and it may occur on other platforms,
+	so Emacs should not assume that initializing a static variable to
+	zero puts it into data.
+	* alloc.c (pure, staticvec):
+	Initialize these arrays to nonzero, so that they're not
+	put into BSS by that optimization.
+
 2003-07-13  Richard M. Stallman  <rms@gnu.org>
 
 	* s/netbsd.h (START_FILES_1, END_FILES_1): Always define them.
