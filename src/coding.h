@@ -430,11 +430,18 @@ struct coding_system
   } while (0)
 
 /* Extern declarations.  */
-extern int decode_coding (), encode_coding ();
-extern int decoding_buffer_size (), encoding_buffer_size ();
+extern int decode_coding P_ ((struct coding_system *, unsigned char *,
+			      unsigned char *, int, int, int *));
+extern int encode_coding P_ ((struct coding_system *, unsigned char *,
+			      unsigned char *, int, int, int *));
+extern int decoding_buffer_size P_ ((struct coding_system *, int));
+extern int encoding_buffer_size P_ ((struct coding_system *, int));
+extern void detect_coding P_ ((struct coding_system *, unsigned char *, int));
+extern void detect_eol P_ ((struct coding_system *, unsigned char *, int));
 extern int conversion_buffer_size;
-extern char *conversion_buffer, *get_conversion_buffer ();
-extern Lisp_Object Fcheck_coding_system ();
+extern char *conversion_buffer;
+extern char *get_conversion_buffer P_ ((int));
+extern int setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern Lisp_Object Qcoding_system, Qeol_type, Qcoding_category_index;
 extern Lisp_Object Qemacs_mule;
 extern Lisp_Object Qbuffer_file_coding_system;
