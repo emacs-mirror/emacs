@@ -1,5 +1,8 @@
 2001-01-19  Gerd Moellmann  <gerd@gnu.org>
 
+	* textmodes/texinfo.el (texinfo-mode): Use backward-paragraph
+	as font-lock-beginning-of-syntax-function in font-lock-defaults.
+
 	* jit-lock.el (jit-lock-fontify-now): Don't bind 
 	font-lock-beginning-of-syntax-function to nil.
 
