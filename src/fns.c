@@ -644,6 +644,39 @@ to be sure of changing the value of `foo'.")
   return list;
 }
 
+DEFUN ("delq", Fdelq, Sdelq, 2, 2, 0,
+  "Delete by side effect any occurrences of ELT as a member of LIST.\n\
+The modified LIST is returned.  Comparison is done with `equal'.\n\
+If the first member of LIST is ELT, there is no way to remove it by side effect;\n\
+therefore, write `(setq foo (delete element foo))'\n\
+to be sure of changing the value of `foo'.")
+  (elt, list)
+     register Lisp_Object elt;
+     Lisp_Object list;
+{
+  register Lisp_Object tail, prev;
+  register Lisp_Object tem;
+
+  tail = list;
+  prev = Qnil;
+  while (!NULL (tail))
+    {
+      tem = Fcar (tail);
+      if (Fequal (elt, tem))
+	{
+	  if (NULL (prev))
+	    list = Fcdr (tail);
+	  else
+	    Fsetcdr (prev, Fcdr (tail));
+	}
+      else
+	prev = tail;
+      tail = Fcdr (tail);
+      QUIT;
+    }
+  return list;
+}
+
 DEFUN ("nreverse", Fnreverse, Snreverse, 1, 1, 0,
   "Reverse LIST by modifying cdr pointers.\n\
 Returns the beginning of the reversed list.")

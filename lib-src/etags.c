@@ -31,6 +31,16 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
+#ifdef	__GNUC__
+#define	alloca	__builtin_alloca
+#else
+#ifdef	sparc
+#include <alloca.h>
+#else
+extern char *alloca ();
+#endif
+#endif
+
 extern char *malloc (), *realloc ();
 extern char *getenv ();
 extern char *index (), *rindex ();
@@ -444,8 +454,6 @@ int no_warnings;		/* -w: suppress warnings */
 int cxref_style;		/* -x: create cxref style output */
 int cplusplus;			/* .[hc] means C++, not C */
 int noindentypedefs;		/* -S: ignore indentation in C */
-int files_are_tag_tables;	/* -i: treat all spec'd files as */
-				/* included sub-tag-tables.  */
 
 /* Name this program was invoked with.  */
 char *progname;
@@ -480,6 +488,8 @@ main (argc, argv)
   char cmd[100];
   int i;
   int outfflag = 0;
+  unsigned int nincluded_files = 0;
+  char **included_files = (char *) alloca (argc * sizeof (char *));
   char *this_file;
 #ifdef VMS
   char got_err;
@@ -553,10 +563,19 @@ main (argc, argv)
 
 	      /* Etags options */
 	    case 'i':
-	      files_are_tag_tables++;
 	      if (!emacs_tags_format)
 		goto usage;
-	      break;
+	      --argc;
+	      ++argv;
+	      if (argc <= 1 || argv[1][0] == '\0')
+		{
+		  fprintf (stderr,
+			   "%s: -i flag must be followed by a filename\n",
+			   progname);
+		  goto usage;
+		}
+	      included_files[nincluded_files++] = argv[1];
+	      goto next_arg;
 
 	      /* Ctags options. */
 	    case 'B':
@@ -675,6 +694,9 @@ main (argc, argv)
 
   if (emacs_tags_format)
     {
+      while (nincluded_files-- > 0)
+	fprintf (outf, "\f\n%s,include\n", *included_files++);
+
       (void) fclose (outf);
       exit (0);
     }
@@ -733,11 +755,6 @@ process_file (file)
       fprintf (stderr, "Skipping inclusion of %s in self.\n", file);
       return;
     }
-  if (files_are_tag_tables)
-    {
-      fprintf (outf, "\f\n%s,include\n", file);
-      return;
-    }
   if (emacs_tags_format)
     {
       char *cp = rindex (file, '/');
@@ -745,11 +762,6 @@ process_file (file)
 	++cp;
       else
 	cp = file;
-      if (streq (cp, outfile))	/*file == "TAGS"*/
-	{
-	  fprintf (outf, "\f\n%s,include\n", file);
-	  return;
-	}
     }
   find_entries (file);
   if (emacs_tags_format)
@@ -1302,32 +1314,19 @@ C_entries (c_ext)
   while (!feof (inf))
     {
       c = *lp++;
-      if (c == 0)
-	{
-	  CNL;
-	  gotone = FALSE;
-	}
       if (c == '\\')
 	{
-	  c = *lp++;
-	  if (c == 0)
-	    {
-	      CNL_SAVE_DEFINEDEF;
-	    }
+	  if (*lp == 0)
+	    continue;
+	  lp++;
 	  c = ' ';
 	}
       else if (incomm)
 	{
-	  if (c == '*')
+	  if (c == '*' && *lp == '/')
 	    {
-	      while ((c = *lp++) == '*')
-		continue;
-	      if (c == 0)
-		{
-		  CNL;
-		}
-	      if (c == '/')
-		incomm = FALSE;
+	      c = *lp++;
+	      incomm = FALSE;
 	    }
 	}
       else if (inquote)
@@ -1363,7 +1362,7 @@ C_entries (c_ext)
 	      }
 	    else if (c_ext && *lp == '/')
 	      {
-		CNL;		/* C++ comment: skip rest of line */
+		c = 0;		/* C++ comment: skip rest of line */
 	      }
 	    continue;
 	  case '#':
@@ -1439,6 +1438,9 @@ C_entries (c_ext)
 		    }
 		  else
 		    {
+		      /* The following is no longer true,
+			 now that we advance to the next line
+			 at the end of processing the character.  */
 		      /*
 		       * We've just finished lexing an identifier.
 		       * Note that if `c' is '\0', `lb' is the NEXT
@@ -1458,6 +1460,7 @@ C_entries (c_ext)
 		      logical bingo, tok_at_end_of_line;
 		      char *lp_tmp;	/* addressable */
 
+#if 0
 		      if (c == '\0')
 			{
 			  getline (GET_COOKIE (prev_linepos));
@@ -1467,6 +1470,7 @@ C_entries (c_ext)
 			  tok.lineno = lineno - 1;
 			}
 		      else
+#endif
 			{
 			  tok_linebuf = lb.buffer;
 			  tok_at_end_of_line = FALSE;
@@ -1523,6 +1527,12 @@ C_entries (c_ext)
 	      toklen = 1;
 	      midtoken = TRUE;
 	    }
+	}
+      /* Detect end of line, after having handled the last token on the line.  */
+      if (c == 0)
+	{
+	  CNL;
+	  gotone = FALSE;
 	}
       if (c == ';' && tydef == end)	/* clean with typedefs */
 	tydef = none;
@@ -1629,9 +1639,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
 	      c = *lp++;
 	      if (c == 0)
 		{
-		  if (feof (inf))
-		    break;
-		  CNL;
+		  lp--;
+		  break;
 		}
 	    }
 	  if (c == '*' && *lp == '/')
@@ -1648,9 +1657,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
 
       if (c == 0)
 	{
-	  if (feof (inf))
-	    break;
-	  CNL;
+	  lp--;
+	  break;
 	}
     }
 
@@ -1767,9 +1775,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
     {
       if (c == 0)
 	{
-	  if (feof (inf))
-	    break;
-	  CNL;
+	  lp--;
+	  break;
 	}
       /*
 	* This line used to confuse ctags:
@@ -1787,9 +1794,8 @@ consider_token (c, lpp, tokp, is_func, c_ext, level)
     {
       if (c == 0)
 	{
-	  if (feof (inf))
-	    break;
-	  CNL;
+	  lp--;
+	  break;
 	}
     }
   if (!isgood (c))
