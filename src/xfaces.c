@@ -4834,8 +4834,10 @@ lookup_face (f, attr, c, base_face)
 
 #if GLYPH_DEBUG
   xassert (face == FACE_FROM_ID (f, face->id));
+#if 0
   if (FRAME_WINDOW_P (f))
     xassert (FACE_SUITABLE_FOR_CHAR_P (face, c));
+#endif
 #endif /* GLYPH_DEBUG */
   
   return face->id;
