@@ -170,7 +170,7 @@ first comment line visible (if point is in a comment)."
 	   ))))
 
 ;;;###autoload
-(define-key esc-map "\C-l" 'resposition-window)
+(define-key esc-map "\C-l" 'reposition-window)
 
 ;;; Auxiliary functions
 
