@@ -560,7 +560,7 @@ This list in not complete.")
   (interactive
     (let* ((answer (read-from-minibuffer "Finger User: "
 					 (net-utils-url-at-point)))
-	   (index  (string-match (regexp-quote "@") answer)))
+	   (index  (string-match "@" answer)))
       (if index
 	  (list 
 	   (substring answer 0 index)
@@ -568,17 +568,11 @@ This list in not complete.")
 	(list
 	 answer
 	 (read-from-minibuffer "At Host: " (net-utils-machine-at-point))))))
-  (let* (
-	 (user-and-host (concat user "@" host))
-	 (process-name 
-	  (concat "Finger [" user-and-host "]"))
-	 )
-    (run-network-program 
-     process-name 
-     host 
-     (cdr (assoc 'finger network-connection-service-alist))
-     user-and-host
-     )))
+  (run-network-program 
+   (concat "Finger [" user "@" host "]")
+   host 
+   (cdr (assoc 'finger network-connection-service-alist))
+   user))
 
 (defcustom whois-server-name "whois.arin.net"
   "Default host name for the whois service."
