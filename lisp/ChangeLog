@@ -50,8 +50,8 @@
 
 	* net/tramp.el (tramp-handle-directory-file-name): Handle the case
 	PATH is "".
-	(tramp-completion-handle-file-name-all-completions): Define
-	`tramp-current-user' locally.  See `tramp-parse-passwd'.
+	(tramp-completion-handle-file-name-all-completions):
+	Define `tramp-current-user' locally.  See `tramp-parse-passwd'.
 	(tramp-parse-passwd): For su-alike methods it would be desirable
 	to return "root@localhost" as default.  Unfortunately, we have no
 	information whether any user name has been typed already.  So we
@@ -65,8 +65,8 @@
 	(tramp-ftp-file-name-handler): `tramp-disable-ange-ftp' not needed
 	any longer.
 
-	* net/tramp-smb.el (tramp-smb-file-name-handler-alist): Apply
-	`tramp-handle-directory-file-name' in order to profit from Kai's
+	* net/tramp-smb.el (tramp-smb-file-name-handler-alist):
+	Apply `tramp-handle-directory-file-name' in order to profit from Kai's
 	yesterday changes.
 
 2003-02-03  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
@@ -79,13 +79,12 @@
 2003-01-28  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-get-device): `tramp-make-tramp-file-name'
-	must not be called with NIL path.  It fails in case of
-	multi-method.
+	must not be called with NIL path.  It fails in case of multi-method.
 
 2003-01-27  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* net/tramp.el (tramp-file-name-for-operation): Apply
-	`expand-file-name' for relative file names only.  Otherwise there
+	* net/tramp.el (tramp-file-name-for-operation):
+	Apply `expand-file-name' for relative file names only.  Otherwise there
 	might be problems if the default directory is another Tramp
 	directory as the directory the file is based on.
 	(tramp-find-foreign-file-name-handler): Check whether FILENAME is
@@ -109,13 +108,13 @@
 	(tramp-get-device): New function.  Returns the virtual device
 	number.  If it doesn't exist, generate a new one.
 	(tramp-handle-file-regular-p): Use Emacs file name primitives
-	instead of calling tramp-handle-* equivalents directly.  Needed
-	for tramp-smb.
+	instead of calling tramp-handle-* equivalents directly.
+	Needed for tramp-smb.
 
 	* net/tramp-smb.el (tramp-smb-devices, tramp-smb-get-device): Removed.
 	Functionality moved to tramp.el.
-	(tramp-smb-handle-file-attributes): Apply
-	`tramp-get-device'. ATIME and CTIME are (0 0) now (= "don't
+	(tramp-smb-handle-file-attributes):
+	Apply `tramp-get-device'. ATIME and CTIME are (0 0) now (= "don't
 	know"), which is more honest.
 	(tramp-smb-handle-make-directory): Use Emacs file name primitives
 	instead of calling tramp-smb-handle-* equivalents directly.
@@ -132,14 +131,14 @@
 
 2003-01-21  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* net/tramp.el (tramp-completion-handle-expand-file-name): Apply
-	`tramp-drop-volume-letter'.  Otherwise, there are problems on W32
+	* net/tramp.el (tramp-completion-handle-expand-file-name):
+	Apply `tramp-drop-volume-letter'.  Otherwise, there are problems on W32
 	systems.
 
 2003-01-21  Michael Albinus  <Michael.Albinus@alcatel.de>
 
-	* net/tramp-smb.el (tramp-smb-get-device, tramp-smb-get-inode): New
-	functions.  Device number and inode number don't exist for SMB
+	* net/tramp-smb.el (tramp-smb-get-device, tramp-smb-get-inode):
+	New functions.  Device number and inode number don't exist for SMB
 	files.  Therefore we must generate virtual ones.
 	(tramp-smb-devices, tramp-smb-inodes): New variables.  Keep
 	generated virtual device numbers and inodes numbers for SMB files.
@@ -160,8 +159,8 @@
 2003-01-12  Michael Albinus  <Michael.Albinus@alcatel.de>
 
 	* net/tramp.el (tramp-parse-rhosts, tramp-parse-shosts)
-	(tramp-parse-hosts, tramp-parse-passwd, tramp-parse-netrc): Use
-	`file-readable-p' instead of `file-exists-p'.  Otherwise these
+	(tramp-parse-hosts, tramp-parse-passwd, tramp-parse-netrc):
+	Use `file-readable-p' instead of `file-exists-p'.  Otherwise these
 	functions might block.  Reported by <kin@neoscale.com>.
 
 2003-01-02  Michael Albinus  <Michael.Albinus@alcatel.de>
@@ -176,8 +175,16 @@
 
 	* net/tramp.el (top-level): Avoid byte-compiler warnings of unused
 	variables if the byte-compiler supports this.  This is for the
-	with-parsed-tramp-file-name macro which is wont to produce such
-	stuff.
+	with-parsed-tramp-file-name macro which is wont to produce such stuff.
+
+2003-02-05  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* completion.el (eval-when-compile-load-eval, completion-eval-when)
+	(cmpl-read-time-eval, minibuffer-window-selected-p): Remove.
+	(completion-min-length, completion-max-length)
+	(completion-prefix-min-length): Don't hard-code the default value
+	when byte-compiling.
+	(complete): Inline minibuffer-window-selected-p.
 
 2003-02-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -201,8 +208,8 @@
 
 	* term.el (term-ansi-fg-faces-vector, term-ansi-bg-faces-vector)
 	(term-ansi-inv-fg-faces-vector, term-ansi-inv-bg-faces-vector)
-	(term-ansi-reverse-faces-vector): Unused variables deleted.
-	(term-ignore-error): Macro deleted.
+	(term-ansi-reverse-faces-vector): Delete unused variables.
+	(term-ignore-error): Delete macro.
 
 	* simple.el (back-to-indentation): Skip all whitespace
 	except for newlines.
@@ -268,12 +275,18 @@
 	(time-stamp-pattern): Initialize to nil to avoid regexp work in
 	default case.
 	(time-stamp-string): Call set-time-zone-rule instead of setenv
-	
-	* time-stamp.el (time-stamp-hhmmss): Remove (not needed after all).
+	(time-stamp-hhmmss): Remove (not needed after all).
 	(time-stamp-month-dd-yyyy, time-stamp-dd/mm/yyyy)
 	(time-stamp-mon-dd-yyyy, time-stamp-dd-mon-yy, time-stamp-yy/mm/dd)
 	(time-stamp-yyyy/mm/dd, time-stamp-yyyy-mm-dd, time-stamp-yymmdd)
 	(time-stamp-hh:mm:ss, time-stamp-hhmm): Make obsolete.
+
+2003-01-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* cus-edit.el (custom-unlispify-menu-entry): Use with-current-buffer.
+	(custom-save-variables): Use dolist, simplify.
+	Output a message if a `requests' entry looks suspicious.
+	(custom-save-faces): Use dolist, simplify.
 
 2003-01-31  Christoph Wedler  <Christoph.Wedler@sap.com>
 
@@ -292,7 +305,7 @@
 	(ignore-errors-x): New compile-time macro.
 	(save-buffer-state-x): New compile-time macro.
 
- 	(antlr-scan-sexps, antlr-simple-scan-sexps): Deletia.
+	(antlr-scan-sexps, antlr-simple-scan-sexps): Deletia.
 	(antlr-scan-lists, antlr-simple-scan-sexps): Deletia.
 	(antlr-simple-default-directory): Deletia.
 	(antlr-default-directory): Define directly.
@@ -374,8 +387,8 @@
 
 	Changes from 2002-01-31:
 
-	* antlr-mode.el (antlr-font-lock-additional-keywords): Also
-	hightlight `~' with `antlr-font-lock-syntax-face'.
+	* antlr-mode.el (antlr-font-lock-additional-keywords):
+	Also hightlight `~' with `antlr-font-lock-syntax-face'.
 	Suggested by Helmut Neukirchen <neukirchen@itm.mu-luebeck.de>.
 
 2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
@@ -420,15 +433,15 @@
 
 2003-01-29  Didier Verna  <didier@xemacs.org>
 
-	* cus-edit.el (custom-save-variables): also save non theme'd ones.
-	* cus-edit.el (custom-save-faces): ditto.
+	* cus-edit.el (custom-save-variables): Also save non theme'd ones.
+	* cus-edit.el (custom-save-faces): Ditto.
 
 2003-01-29  Juanma Barranquero  <lektu@terra.es>
 
 	* composite.el (decompose-composite-char): Fix docstring.
 
-	* select.el (x-set-cut-buffer): Fix docstring. Check type with `stringp'
-	instead of `substring'.
+	* select.el (x-set-cut-buffer): Fix docstring.  Check type with
+	`stringp' instead of `substring'.
 
 	* textmodes/reftex.el (reftex-TeX-master-file): Use really the buffer
 	file name if no other master file is located.
@@ -500,15 +513,14 @@
 	Signal args-out-of-range error if yank-handler is specified for
 	an empty string.
 
-	* subr.el (insert-for-yank): Remove COMMAND element from yank
-	handler.
+	* subr.el (insert-for-yank): Remove COMMAND element from yank handler.
 
 2003-01-27  Dave Love  <fx@gnu.org>
 
 	* dired-x.el (dired-filename-at-point): Fix last change and tidy up.
 
-	* thingatpt.el (thing-at-point-file-name-chars):  Include
-	non-ASCII again and re-write the filename ops.
+	* thingatpt.el (thing-at-point-file-name-chars):
+	Include non-ASCII again and re-write the filename ops.
 
 2003-01-27  David Ponce  <david@dponce.com>
 
@@ -531,7 +543,7 @@
 2003-01-26  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	* progmodes/cc-vars.el, progmodes/cc-mode.el
-	(c-require-final-newline): Added a variable to make the
+	(c-require-final-newline): Add a variable to make the
 	initialization of `require-final-newline' more configurable.
 
 2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
@@ -566,9 +578,9 @@
 	and reply2.xpm, which were created by the MH-E package, were left
 	in mail since they can probably be used by other mail packages.
 
-	* makefile.w32-in (WINS): Added mh-e.
+	* makefile.w32-in (WINS): Add mh-e.
 
-	* makefile.nt (WINS): Added mh-e.
+	* makefile.nt (WINS): Add mh-e.
 
 2003-01-25  Richard M. Stallman  <rms@gnu.org>
 
@@ -582,8 +594,8 @@
 
 2003-01-25  Taro Kawagishi  <tarok@transpulse.org>
 
-	* arc-mode.el (archive-unixdate): Corrected the date field string.
-	(archive-lzh-summarize): Extended it to allow the LZH level 2 header
+	* arc-mode.el (archive-unixdate): Correct the date field string.
+	(archive-lzh-summarize): Extend it to allow the LZH level 2 header
 	type (which is most prevalent now), in addition to the already
 	supported level 0 and 1 header types.
 
@@ -602,10 +614,10 @@
 
 2003-01-25  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff.el (ediff-revision): better defaults.
+	* ediff.el (ediff-revision): Better defaults.
 
-	* ediff-vers.el (ediff-vc-latest-version): new function.
-	(ediff-vc-internal): use latest version instead of working version.
+	* ediff-vers.el (ediff-vc-latest-version): New function.
+	(ediff-vc-internal): Use latest version instead of working version.
 
 2003-01-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -630,12 +642,12 @@
 
 2003-01-24  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (decode-coding-inserted-region): Renamed
-	from decode-coding-region-as-inserted-from-file to make it fit
+	* international/mule.el (decode-coding-inserted-region):
+	Rename from decode-coding-region-as-inserted-from-file to make it fit
 	well in the Lisp manual.
 
-	* jka-compr.el (jka-compr-insert-file-contents): Call
-	docode-coding-inserted-region.
+	* jka-compr.el (jka-compr-insert-file-contents):
+	Call docode-coding-inserted-region.
 
 2003-01-24  John Paul Wallington  <jpw@gnu.org>
 
@@ -662,7 +674,7 @@
 
 2003-01-23  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
+	* progmodes/asm-mode.el (asm-mode): Add syntax table entries for
 	/* */ comments.
 
 2003-01-23  Kenichi Handa  <handa@m17n.org>
@@ -760,8 +772,8 @@
 
 2003-01-18  Kim F. Storm  <storm@cua.dk>
 
-	* simple.el (kill-new, kill-append, kill-region): New
-	optional parameter yank-handler.
+	* simple.el (kill-new, kill-append, kill-region):
+	New optional parameter yank-handler.
 	(yank-excluded-properties): Add yank-handler to list.
 	(yank-undo-function): New variable.
 	(yank): Use it to undo previous yank or yank-pop command.
