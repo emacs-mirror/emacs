@@ -685,18 +685,14 @@ save your changes to disk."
 		(goto-char 0)
 		(set-visited-file-name name) ; give it a name to decide mode.
 		(normal-mode)  ; pick a mode.
-		(set-visited-file-name nil)  ; nuke the name - not meaningful.
+;;; Without a file name, save-buffer doesn't work.
+;;;		(set-visited-file-name nil)  ; nuke the name - not meaningful.
 		(rename-buffer bufname)
 		
 		(make-local-variable 'tar-superior-buffer)
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
-
-		;; Since the "real" file name is not in buffer-file-name,
-		;; put it here for list-buffers.
-		(make-local-variable 'list-buffers-directory)
-		(setq list-buffers-directory name)
 
 		(tar-subfile-mode 1)
 		
