@@ -3022,6 +3022,8 @@ Otherwise returns nil.")
       return Qnil;
     }
   val = make_string (buf, valsize);
+  if (buf[0] == '/' && index (buf, ':'))
+    val = concat2 (build_string ("/:"), val);
   xfree (buf);
   val = DECODE_FILE (val);
   return val;
