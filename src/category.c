@@ -195,8 +195,12 @@ static void
 copy_category_entry (table, range, val)
      Lisp_Object table, range, val;
 {
-  char_table_set_range (table, XINT (XCAR (range)), XINT (XCDR (range)),
-			Fcopy_sequence (val));
+  val = Fcopy_sequence (val);
+  if (CONSP (range))
+    char_table_set_range (table, XINT (XCAR (range)), XINT (XCDR (range)),
+			  val);
+  else
+    char_table_set (table, XINT (range), val);
 }
 
 /* Return a copy of category table TABLE.  We can't simply use the
