@@ -354,7 +354,12 @@ of Bash, up to b20.1, did receive SIGINT from Emacs.)
 
 * The latest released version of the W3 package doesn't run properly
 with Emacs 21 and needs work.  However, these problems are already
-fixed in W3's CVS.  This patch is reported to make w3-4.0pre.46 work:
+fixed in W3's CVS.  The patch below is reported to make w3-4.0pre.46
+work.
+
+Some users report they are unable to byte-compile W3 with Emacs 21.
+If the patches below don't help to resolve your problems, install the
+CVS version of W3, which should be compatible with Emacs 21.
 
 diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-display.el w3-4.0pre.46-new/lisp/w3-display.el
 --- w3-4.0pre.46-orig/lisp/w3-display.el	Sun Nov 14 22:00:12 1999
@@ -378,7 +383,6 @@ diff -aur --new-file w3-4.0pre.46-orig/lisp/w3-e21.el w3-4.0pre.46-new/lisp/w3-e
 +
 +(require 'w3-e19)
 +(provide 'w3-e21)
-
 
 * On AIX, if linking fails because libXbsd isn't found, check if you
 are compiling with the system's `cc' and CFLAGS containing `-O5'.  If
