@@ -1,6 +1,6 @@
 2004-06-07  Miles Bader  <miles@gnu.org>
 
-	* (struct named_merge_point): New type.
+	* xfaces.c (struct named_merge_point): New type.
 	(push_named_merge_point): New function.
 	(merge_named_face): New function.
 	(merge_face_ref, face_at_buffer_position, face_at_string_position):

@@ -1,7 +1,7 @@
 2004-06-06  Emilio C. Lopes  <eclig@gmx.net>
 
-	* eshell/esh-cmd.el (eshell/which): respect commands quoted with
-	eshell-explicit-command-char
+	* eshell/esh-cmd.el (eshell/which): Respect commands quoted with
+	eshell-explicit-command-char.
 
 2004-06-06  Juanma Barranquero  <lektu@terra.es>
 
