@@ -1,6 +1,6 @@
 /*  ==== TEST LIBRARY ====
  *
- *  $HopeName: MMsrc!testlib.h(trunk.4) $
+ *  $HopeName: MMsrc!testlib.h(trunk.5) $
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  *
@@ -17,13 +17,26 @@
 
 #include "mps.h"
 
+/*  == MISC ==  */
+
+/*  == UNUSED ==
+ *
+ *  The testlib_unused macro declares that a variable is unused.
+ *  It should be used to prevent compiler warnings about unused
+ *  variables.  Care should be exercised; the fact that a variable
+ *  is unused may need justification.
+ */
+
+#define testlib_unused(v) ((void)(v))
+
+
 /*  == SUCCEED OR DIE ==
  *
  *  If the first argument is not ResOK then prints the second
  *  argument on stderr and exits the program.  Otherwise does nothing.
  *
  *  Typical use:
- *   die(SpaceInit(space), "SpaceInit");
+ *   die(mps_space_create(&space), "SpaceCreate");
  */
 
 extern void die(mps_res_t res, const char *s);
