@@ -1,5 +1,9 @@
 2001-11-09  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xfaces.c (merge_face_vectors): Use braces to follow GNU
+	Coding Standards.
+	(Finternal_set_lisp_face_attribute): Likewise.
+
 	* indent.c (current_column_1): Remove unused variable `prev_col'.
 
 2001-11-07  Jason Rumney  <jasonr@gnu.org>
