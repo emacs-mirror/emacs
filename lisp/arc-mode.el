@@ -122,7 +122,7 @@
 (defcustom archive-tmpdir
   (make-temp-name
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
-		     (or (getenv "TMPDIR") (getenv "TMP") "/tmp")))
+		     system-tmp-directory))
   "*Directory for temporary files made by arc-mode.el"
   :type 'directory
   :group 'archive)
