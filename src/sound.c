@@ -33,7 +33,7 @@ Boston, MA 02111-1307, USA.  */
 
   The Windows implementation of play-sound is implemented via the
   Win32 API functions mciSendString, waveOutGetVolume, and
-  waveOutGetVolume which are exported by Winmm.dll.
+  waveOutSetVolume which are exported by Winmm.dll.
 */
 
 #include <config.h>
@@ -900,79 +900,74 @@ vox_write (sd, buffer, nbytes)
 
 static int
 do_play_sound (psz_file, ui_volume)
-    const char * psz_file;
-    unsigned long ui_volume;
+     const char *psz_file;
+     unsigned long ui_volume;
 {
-  int i_result=0;
-  MCIERROR mci_error=0;
-  char sz_cmd_buf[520]={0};
-  char sz_ret_buf[520]={0};
-  MMRESULT mm_result=MMSYSERR_NOERROR;
-  unsigned long ui_volume_org=0;
-  BOOL b_reset_volume=FALSE;
+  int i_result = 0;
+  MCIERROR mci_error = 0;
+  char sz_cmd_buf[520] = {0};
+  char sz_ret_buf[520] = {0};
+  MMRESULT mm_result = MMSYSERR_NOERROR;
+  unsigned long ui_volume_org = 0;
+  BOOL b_reset_volume = FALSE;
+
   memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
   memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
-  sprintf (
-    sz_cmd_buf,
-    "open \"%s\" alias GNUEmacs_PlaySound_Device wait",
-    psz_file);
-  mci_error=mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
+  sprintf (sz_cmd_buf,
+           "open \"%s\" alias GNUEmacs_PlaySound_Device wait",
+           psz_file);
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
   if (mci_error != 0)
     {
-      sound_warning (
-        "The open mciSendString command failed to open\n"
-        "the specified sound file");
-      i_result=(int)mci_error;
+      sound_warning ("The open mciSendString command failed to open\n"
+                     "the specified sound file");
+      i_result = (int) mci_error;
       return i_result;
     }
   if ((ui_volume > 0) && (ui_volume != UINT_MAX))
     {
-      mm_result=waveOutGetVolume ((HWAVEOUT)WAVE_MAPPER, &ui_volume_org);
+      mm_result = waveOutGetVolume ((HWAVEOUT) WAVE_MAPPER, &ui_volume_org);
       if (mm_result == MMSYSERR_NOERROR)
         {
-          b_reset_volume=TRUE;
-          mm_result=waveOutSetVolume ((HWAVEOUT)WAVE_MAPPER, ui_volume);
+          b_reset_volume = TRUE;
+          mm_result = waveOutSetVolume ((HWAVEOUT) WAVE_MAPPER, ui_volume);
           if ( mm_result != MMSYSERR_NOERROR)
             {
-              sound_warning (
-                "waveOutSetVolume failed to set the volume level\n"
-                "of the WAVE_MAPPER device.\n"
-                "As a result, the user selected volume level will\n"
-                "not be used.");
+              sound_warning ("waveOutSetVolume failed to set the volume level\n"
+                             "of the WAVE_MAPPER device.\n"
+                             "As a result, the user selected volume level will\n"
+                             "not be used.");
             }
         }
       else
         {
-          sound_warning (
-            "waveOutGetVolume failed to obtain the original\n"
-            "volume level of the WAVE_MAPPER device.\n"
-            "As a result, the user selected volume level will\n"
-            "not be used.");
+          sound_warning ("waveOutGetVolume failed to obtain the original\n"
+                         "volume level of the WAVE_MAPPER device.\n"
+                         "As a result, the user selected volume level will\n"
+                         "not be used.");
         }
     }
   memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
   memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
   strcpy (sz_cmd_buf, "play GNUEmacs_PlaySound_Device wait");
-  mci_error=mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
   if (mci_error != 0)
     {
-      sound_warning (
-        "The play mciSendString command failed to play the\n"
-        "opened sound file.");
-      i_result=(int)mci_error;
+      sound_warning ("The play mciSendString command failed to play the\n"
+                     "opened sound file.");
+      i_result = (int) mci_error;
     }
   memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
   memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
   strcpy (sz_cmd_buf, "close GNUEmacs_PlaySound_Device wait");
-  mci_error=mciSendString ( sz_cmd_buf, sz_ret_buf, 520, NULL);
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
   if (b_reset_volume == TRUE)
     {
-      mm_result=waveOutSetVolume ((HWAVEOUT)WAVE_MAPPER, ui_volume_org);
+      mm_result=waveOutSetVolume ((HWAVEOUT) WAVE_MAPPER, ui_volume_org);
       if (mm_result != MMSYSERR_NOERROR)
         {
-          sound_warning (
-            "waveOutSetVolume failed to reset the original volume\n"
-            "level of the WAVE_MAPPER device.");
+          sound_warning ("waveOutSetVolume failed to reset the original volume\n"
+                         "level of the WAVE_MAPPER device.");
         }
     }
   return i_result;
@@ -981,7 +976,6 @@ do_play_sound (psz_file, ui_volume)
 /* END: Windows specific functions */
 
 #endif /* WINDOWSNT */
-
 
 DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 0,
        doc: /* Play sound SOUND.
@@ -1000,12 +994,12 @@ Internal use only, use `play-sound' instead.\n  */)
   struct sound s;
   Lisp_Object args[2];
 #else /* WINDOWSNT */
-  int len=0;
-  Lisp_Object lo_file={0};
-  char * psz_file=NULL;
-  unsigned long ui_volume_tmp=UINT_MAX;
-  unsigned long ui_volume=UINT_MAX;
-  int i_result=0;
+  int len = 0;
+  Lisp_Object lo_file = {0};
+  char * psz_file = NULL;
+  unsigned long ui_volume_tmp = UINT_MAX;
+  unsigned long ui_volume = UINT_MAX;
+  int i_result = 0;
 #endif /* WINDOWSNT */
 
   /* Parse the sound specification.  Give up if it is invalid.  */
@@ -1087,18 +1081,20 @@ Internal use only, use `play-sound' instead.\n  */)
   current_sound_device = NULL;
   current_sound = NULL;
   UNGCPRO;
+
 #else /* WINDOWSNT */
-	lo_file=Fexpand_file_name (attrs[SOUND_FILE], Qnil);
-  len=XSTRING (lo_file)->size;
-  psz_file=(char *)alloca (len+1);
+
+  lo_file = Fexpand_file_name (attrs[SOUND_FILE], Qnil);
+  len = XSTRING (lo_file)->size;
+  psz_file = (char *) alloca (len + 1);
   strcpy (psz_file, XSTRING (lo_file)->data);
   if (INTEGERP (attrs[SOUND_VOLUME]))
     {
-      ui_volume_tmp=XFASTINT (attrs[SOUND_VOLUME]);
+      ui_volume_tmp = XFASTINT (attrs[SOUND_VOLUME]);
     }
   else if (FLOATP (attrs[SOUND_VOLUME]))
     {
-      ui_volume_tmp=(unsigned long)XFLOAT_DATA (attrs[SOUND_VOLUME])*100;
+      ui_volume_tmp = (unsigned long) XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
     }
   /*
     Based on some experiments I have conducted, a value of 100 or less
@@ -1106,15 +1102,17 @@ Internal use only, use `play-sound' instead.\n  */)
     A value of UINT_MAX indicates that you wish for the sound to played
     at the maximum possible volume.  A value of UINT_MAX/2 plays the
     sound at 50% maximum volume.  Therefore the value passed to do_play_sound
-    (and thus to waveOutSetVolume must be some fraction of UINT_MAX.
+    (and thus to waveOutSetVolume) must be some fraction of UINT_MAX.
     The following code adjusts the user specified volume level appropriately.
-   */
+  */
   if ((ui_volume_tmp > 0) && (ui_volume_tmp <= 100))
     {
-      ui_volume=ui_volume_tmp * (UINT_MAX / 100);
+      ui_volume = ui_volume_tmp * (UINT_MAX / 100);
     }
-  i_result=do_play_sound (psz_file, ui_volume);
+  i_result = do_play_sound (psz_file, ui_volume);
+
 #endif /* WINDOWSNT */
+
   unbind_to (count, Qnil);
   return Qnil;
 }
