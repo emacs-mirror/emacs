@@ -1,3 +1,7 @@
+2004-01-08  John Paul Wallington  <jpw@gnu.org>
+
+	* emerge.el (emerge-restore-buffer-characteristics): Doc fix.
+
 2004-01-07  Nick Roberts  <nick@nick.uklinux.net>
 
 	* progmodes/gud.el (gdb-first-prompt): Renamed from
