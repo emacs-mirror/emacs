@@ -6718,7 +6718,12 @@ read_avail_input (expected)
 	/* ??? Is it really right to send the signal just to this process
 	   rather than to the whole process group?
 	   Perhaps on systems with FIONREAD Emacs is alone in its group.  */
-	kill (getpid (), SIGHUP);
+	{
+	  if (! noninteractive)
+	    kill (getpid (), SIGHUP);
+	  else
+	    n_to_read = 0;
+	}
       if (n_to_read == 0)
 	return 0;
       if (n_to_read > sizeof cbuf)
@@ -9421,6 +9426,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
 	      keybuf[t - 1] = new_key;
 	      mock_input = max (t, mock_input);
+	      fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
+	      keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
 
 	      goto replay_sequence;
 	    }
