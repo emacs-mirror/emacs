@@ -1,3 +1,8 @@
+2002-05-21  Ken Raeburn  <raeburn@gnu.org>
+
+	* w32fns.c (enum_font_maybe_add_to_list): Use XCDR_AS_LVALUE for
+	now, when the address is needed.
+
 2002-05-21  Colin Walters  <walters@gnu.org>
 
 	* Makefile.in (shortlisp): Add font-core.el.
