@@ -1,3 +1,10 @@
+2004-12-09  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* frames.texi (Window Frame Parameters): New @defvar for `line-spacing'.
+
+	* locals.texi (Standard Buffer-Local Variables):
+	Add @xref for `line-spacing'.
+
 2004-12-05  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in (maintainer-clean): Remove the info files
