@@ -3998,8 +3998,14 @@ x_trace_wire ()
 
 #ifdef HAVE_X11
 
+struct font_info
+{
+  XFontStruct *font;
+  char *name;
+};
+
 /* A table of all the fonts we have already loaded.  */
-static XFontStruct **x_font_table;
+static struct font_info *x_font_table;
 
 /* The current capacity of x_font_table.  */
 static int x_font_table_size;
@@ -4022,9 +4028,8 @@ x_new_font (f, fontname)
   /* Get a list of all the fonts that match this name.  Once we
      have a list of matching fonts, we compare them against the fonts
      we already have by comparing font ids.  */
-  font_names = (char **) XListFontsWithInfo (x_current_display, fontname,
-					     1024, &n_matching_fonts,
-					     &font_info);
+  font_names = (char **) XListFonts (x_current_display, fontname,
+				     1024, &n_matching_fonts);
   /* Apparently it doesn't set n_matching_fonts to zero when it can't
      find any matches; font_names == 0 is the only clue.  */
   if (! font_names)
@@ -4042,7 +4047,7 @@ x_new_font (f, fontname)
 
       for (i = 0; i < n_fonts; i++)
 	for (j = 0; j < n_matching_fonts; j++)
-	  if (x_font_table[i]->fid == font_info[j].fid)
+	  if (!strcmp (x_font_table[i].name, font_names[j]))
 	    {
 	      already_loaded = i;
 	      fontname = font_names[j];
@@ -4052,8 +4057,8 @@ x_new_font (f, fontname)
  found_font:
   
   /* If we have, just return it from the table.  */
-  if (already_loaded > 0)
-    f->display.x->font = x_font_table[already_loaded];
+  if (already_loaded >= 0)
+    f->display.x->font = x_font_table[already_loaded].font;
   
   /* Otherwise, load the font and add it to the table.  */
   else
@@ -4078,9 +4083,9 @@ x_new_font (f, fontname)
       font = (XFontStruct *) XLoadQueryFont (x_current_display, fontname);
       if (! font)
 	{
-	  /* Free the information from XListFontsWithInfo.  */
+	  /* Free the information from XListFonts.  */
 	  if (n_matching_fonts)
-	    XFreeFontInfo (font_names, font_info, n_matching_fonts);
+	    XFreeFontNames (font_names);
 	  return Qnil;
 	}
 
@@ -4089,22 +4094,24 @@ x_new_font (f, fontname)
 	{
 	  x_font_table_size = 16;
 	  x_font_table
-	    = (XFontStruct **) xmalloc (x_font_table_size
-					* sizeof (x_font_table[0]));
+	    = (struct font_info *) xmalloc (x_font_table_size
+					    * sizeof (x_font_table[0]));
 	}
       /* Do we need to grow the table?  */
       else if (n_fonts >= x_font_table_size)
 	{
 	  x_font_table_size *= 2;
 	  x_font_table
-	    = (XFontStruct **) xrealloc (x_font_table,
-					 (x_font_table_size
-					  * sizeof (x_font_table[0])));
+	    = (struct font_info *) xrealloc (x_font_table,
+					     (x_font_table_size
+					      * sizeof (x_font_table[0])));
 	}
 
-      f->display.x->font = x_font_table[n_fonts++] = font;
+      x_font_table[n_fonts].name = (char *) xmalloc (strlen (fontname));
+      bcopy (fontname, x_font_table[n_fonts].name, strlen (fontname) + 1);
+      f->display.x->font = x_font_table[n_fonts++].font = font;
     }
-  
+
   /* Now make the frame display the given font.  */
   if (FRAME_X_WINDOW (f) != 0)
     {
@@ -4122,9 +4129,9 @@ x_new_font (f, fontname)
     Lisp_Object lispy_name = build_string (fontname);
 
 
-    /* Free the information from XListFontsWithInfo.  The data
+    /* Free the information from XListFonts.  The data
        we actually retain comes from XLoadQueryFont.  */
-    XFreeFontInfo (font_names, font_info, n_matching_fonts);
+    XFreeFontNames (font_names);
 
     return lispy_name;
   }
