@@ -3337,7 +3337,7 @@ To use this type, you must define :match or :match-alternatives."
 
 (define-widget 'alist 'list
   "An association list."
-  :key-type '(string :tag "Key")
+  :key-type '(sexp :tag "Key")
   :value-type '(sexp :tag "Value")
   :convert-widget 'widget-alist-convert-widget
   :tag "Alist")
