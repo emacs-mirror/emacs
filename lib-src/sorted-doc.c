@@ -205,6 +205,20 @@ main ()
     printf ("@settitle Command Summary for GNU Emacs\n");
     printf ("@unnumbered Command Summary for GNU Emacs\n");
     printf ("@table @asis\n");
+    printf ("\n");
+    printf ("@let@ITEM@item\n");
+    printf ("@def@item{@filbreak@vskip5pt@ITEM}\n");
+    printf ("@font@tensy cmsy10 scaled @magstephalf\n");
+    printf ("@font@teni cmmi10 scaled @magstephalf\n");
+    printf ("@def\\{{@tensy@char110}}\n"); /* this backslash goes with cmr10 */
+    printf ("@def|{{@tensy@char106}}\n");
+    printf ("@def@{{{@tensy@char102}}\n");
+    printf ("@def@}{{@tensy@char103}}\n");
+    printf ("@def<{{@teni@char62}}\n");
+    printf ("@def>{{@teni@char60}}\n");
+    printf ("@chardef@@64\n");
+    printf ("@catcode43=12\n");
+    printf ("@tableindent-0.2in\n");
 
     /* print each function from the array */
 
