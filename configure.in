@@ -474,7 +474,7 @@ case "${canonical}" in
   ## Unspecified sysv on an ncr machine defaults to svr4.2.
   ## (Plain usg5-4 doesn't turn on POSIX signals, which we need.)
   i[345]86-ncr-sysv* )
-    machine=intel386 opsys=usg5-4-2
+    machine=ncr386 opsys=usg5-4-2
   ;;
 
   ## Intel Paragon OSF/1
