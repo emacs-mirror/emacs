@@ -2064,7 +2064,8 @@ typically for purposes of moderating a list."
 			       address
 			     (mapconcat 'identity address ",\n\t"))
 		    "\n")
-	    (expand-mail-aliases before (point)))
+	    (save-excursion
+	      (expand-mail-aliases before (point))))
 	  ;;>> Set up comment, if any.
 	  (if (and (sequencep comment) (not (zerop (length comment))))
 	      (let ((before (point))
