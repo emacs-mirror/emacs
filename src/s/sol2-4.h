@@ -4,10 +4,6 @@
 
 #define SOLARIS2_4
 
-/* Bill_Mann@praxisint.com says that configure can't link things with -lX11
-   unless it has -lXext as well.  */
-#define LIB_X11_LIB -lX11 -lXext
-
 /* Get rid of -traditional and let const really do its thing.  */
 
 #ifdef __GNUC__
