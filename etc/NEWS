@@ -965,6 +965,13 @@ the face used for each string/comment.
 *** A new standard face `font-lock-doc-face'.
 Meant for Lisp docstrings, Javadoc comments and other "documentation in code".
 
+** Changes to Shell mode
+
+*** The `shell' command now accepts an optional argument to specify the buffer
+to use, which defaults to "*shell*".  When used interactively, a
+non-default buffer may be specified by giving the `shell' command a
+prefix argument (causing it to prompt for the buffer name).
+
 ** Comint (subshell) changes
 
 These changes generally affect all modes derived from comint mode, which

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 2000, 2001
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @iftex
@@ -443,11 +443,10 @@ for time to elapse.
 face @code{comint-highlight-prompt}.  This makes it easier to see
 previous input lines in the buffer.  @xref{Faces}.
 
-  To make multiple subshells, rename the buffer @samp{*shell*} to
-something different using @kbd{M-x rename-uniquely}.  Then type @kbd{M-x
-shell} again to create a new buffer @samp{*shell*} with its own
-subshell.  If you rename this buffer as well, you can create a third
-one, and so on.  All the subshells run independently and in parallel.
+  To make multiple subshells invoke @kbd{M-x shell} with a prefix
+argument (e.g. @kbd{C-u M-x shell}), which will cause it to prompt for
+a buffer name, and create (or reuse) a subshell in that buffer.  All
+subshells in different buffers run independently and in parallel.
 
 @vindex explicit-shell-file-name
 @cindex @env{ESHELL} environment variable
