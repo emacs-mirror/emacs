@@ -79,7 +79,7 @@
   ;; Returns the value of certain commonly referenced POSITIONs
   ;; relative to POINT.  The current point is used if POINT isn't
   ;; specified.  POSITION can be one of the following symbols:
-  ;; 
+  ;;
   ;; bol  -- beginning of line
   ;; eol  -- end of line
   ;; bod  -- beginning of defun
@@ -91,7 +91,7 @@
   ;; eonl -- end of next line
   ;; bopl -- beginning of previous line
   ;; eopl -- end of previous line
-  ;; 
+  ;;
   ;; If the referenced position doesn't exist, the closest accessible
   ;; point to it is returned.  This function does not modify point or
   ;; mark.

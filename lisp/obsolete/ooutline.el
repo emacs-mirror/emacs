@@ -50,7 +50,7 @@ in the file it applies to.  See also outline-heading-end-regexp."
 ;; already assigned a local value to it.
 (or (default-value 'outline-regexp)
     (setq-default outline-regexp "[*\^L]+"))
-  
+
 (defcustom outline-heading-end-regexp "[\n\^M]"
   "*Regular expression to match the end of a heading line.
 You can assume that point is at the beginning of a heading when this
@@ -166,10 +166,10 @@ in the file it applies to."
 (defun outline-mode ()
   "Set major mode for editing outlines with selective display.
 Headings are lines which start with asterisks: one for major headings,
-two for subheadings, etc.  Lines not starting with asterisks are body lines. 
+two for subheadings, etc.  Lines not starting with asterisks are body lines.
 
 Body text or subheadings under a heading can be made temporarily
-invisible, or visible again.  Invisible lines are attached to the end 
+invisible, or visible again.  Invisible lines are attached to the end
 of the heading, so they move with it, if the line is killed and yanked
 back.  A heading with text hidden under it is marked with an ellipsis (...).
 
@@ -533,7 +533,7 @@ Stop at the first and last subheadings of a superior heading."
   (outline-back-to-heading)
   (while (> arg 0)
     (let ((point-to-move-to (save-excursion
-			      (outline-get-next-sibling))))  
+			      (outline-get-next-sibling))))
       (if point-to-move-to
 	  (progn
 	    (goto-char point-to-move-to)
@@ -552,7 +552,7 @@ Stop at the first and last subheadings of a superior heading."
     (if (< (funcall outline-level) level)
 	nil
       (point))))
-	
+
 (defun outline-backward-same-level (arg)
   "Move backward to the ARG'th subheading at same level as this one.
 Stop at the first and last subheadings of a superior heading."

@@ -86,7 +86,7 @@
       (1 font-lock-function-name-face)))))
 (defconst cvs-status-font-lock-defaults
   '(cvs-status-font-lock-keywords t nil nil nil (font-lock-multiline . t)))
-  
+
 
 (put 'cvs-status-mode 'mode-class 'special)
 ;;;###autoload
@@ -218,7 +218,7 @@ or a string (in which case it should simply return its argument).
 A tag cannot be a CONS.  The return value can also be a list of strings,
 if several nodes where merged into one.
 The tree will be printed no closer than column COLUMN."
-  
+
   (let* ((eol (save-excursion (end-of-line) (current-column)))
 	 (column (max (+ eol 2) column)))
     (if (null tags) column
@@ -487,9 +487,9 @@ Optional prefix ARG chooses between two representations."
 	  (setq pe eq)))
       (nreverse nas))))
 
-;;;; 
+;;;;
 ;;;; Merged trees from different files
-;;;; 
+;;;;
 
 (defun cvs-tree-fuzzy-merge-1 (trees tree prev)
   )
@@ -509,7 +509,7 @@ Optional prefix ARG chooses between two representations."
       (erase-buffer)
       (let ((cvs-tag-print-rev nil))
 	(cvs-tree-print tree 'cvs-tag->string 3)))))
-      
+
 
 (provide 'cvs-status)
 

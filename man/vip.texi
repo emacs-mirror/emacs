@@ -3,30 +3,10 @@
 @setfilename ../info/vip
 @settitle VIP
 
-@dircategory Emacs
-@direntry
-* VIP: (vip).		An older VI-emulation for Emacs.
-@end direntry
+@copying
+Copyright @copyright{} 1987, 2001, 2002 Free Software Foundation, Inc.
 
-@iftex
-@finalout
-@end iftex
-
-@titlepage
-@sp 10
-@center @titlefont{VIP}
-@sp 1
-@center A Vi Package for GNU Emacs
-@center (Version 3.5, September 15, 1987)
-@sp 2
-@center Masahiko Sato
-@sp 2
-@end titlepage
-
-@unnumbered Distribution
-
-Copyright @copyright{} 1987, 2001 Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -43,8 +23,30 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
 
-@ifinfo
+@titlepage
+@sp 10
+@center @titlefont{VIP}
+@sp 1
+@center A Vi Package for GNU Emacs
+@center (Version 3.5, September 15, 1987)
+@sp 2
+@center Masahiko Sato
+@page
+@vskip 0pt plus1filll
+@insertcopying
+@end titlepage
+
+@dircategory Emacs
+@direntry
+* VIP: (vip).		An older VI-emulation for Emacs.
+@end direntry
+
+@finalout
+
+@ifnottex
 @node Top, Survey,, (DIR)
 @top VIP
 
@@ -63,7 +65,7 @@ Comments and bug reports are welcome.  Please send messages to
 @code{ms@@Sail.Stanford.Edu} if you are outside of Japan and to
 @code{masahiko@@sato.riec.tohoku.junet} if you are in Japan.@refill
 
-@end ifinfo
+@end ifnottex
 
 @menu
 * Survey::		A survey of VIP.
@@ -1748,7 +1750,7 @@ Place a copy of specified lines after @var{addr}.  If @var{addr} is
 @item (.,.@:) d[elete] @var{register} @var{count} @var{flags}
 Delete specified lines.  Text will be saved in a named @var{register} if a
 lower-case letter is given, and appended to a register if a capital letter is
-given. 
+given.
 @item e[dit] !@: +@var{addr} @var{file}
 @itemx e[x] !@: +@var{addr} @var{file}
 @itemx vi[sual] !@: +@var{addr} @var{file}

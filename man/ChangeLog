@@ -1,219 +1,198 @@
-2002-04-20  Glenn Morris  <gmorris@ast.cam.ac.uk>
+2003-03-29  Richard M. Stallman  <rms@gnu.org>
 
-	* files.texi (Auto Save Files, Remote Files): Mention
-	auto-save-file-name-transforms.
-	
+	* tramp.texi (Top): Undo the previous renaming.
+	(emacs-other-name, emacs-other-dir, emacs-other-file-name): Deleted.
+
+2003-03-29  Kai Gro,A_(Bjohann  <kai.grossjohann@gmx.net>
+
+	* Makefile.in (../info/tramp): Compile Emacs, instead of XEmacs,
+	version of manual.
+
+	* tramp.texi (Auto-save and Backup): New node.
+
+2003-03-29  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Top): Include trampver.texi.  Rename "Emacs" to "GNU
+	Emacs" in order to have better differentiation to "XEmacs".
+	`emacs-other-name', `emacs-other-dir' and `emacs-other-file-name'
+	are new macros in order to point to the other Emacs flavor where
+	appropriate.  In info case, point to node `Installation' in order
+	to explain how to generate the other way.  In html case, make a
+	link to the other html file.
+	(Obtaining TRAMP): Added a paragraph saying to perform `autoconf'
+	after CVS checkout/update.
+	(Installation): Completely rewritten.
+	(Installation parameters, Load paths): New sections under
+	`Installation'.
+
+2003-02-28  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi: Version 2.0.30 released.
+	Replace word "path" with "localname" where used as a component of
+	a Tramp file name.
+
+2003-02-28  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): `tramp-chunksize'
+	introduced.
+	(Installation): Explain what to do if files from the tramp/contrib
+	directory are needed.
+
+2003-02-23  Alex Schroeder <alex@emacswiki.org>
+
+	* smtpmail.texi (How Mail Works): New.
+
+2003-02-22  Alex Schroeder <alex@emacswiki.org>
+
+	* cmdargs.texi (General Variables): Document SMTPSERVER.
+
+	* smtpmail.texi: New file.
+
+	* sending.texi: Remove SMTP node.
+	(Mail Sending): Describe `send-mail-function'.  Link to SMTP
+	library.
+
+	* Makefile.in: Build SMTP manual.
+
+2003-02-22  Alex Schroeder <alex@emacswiki.org>
+
+	* sending.texi (Sending via SMTP): Explain MTA/MUA.
+
+2003-02-22  Simon Josefsson  <jas@extundo.com>
+
+	* sending.texi (Mail Methods): Add node about SMTP.
+
+2003-02-17  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK names in Emacs): Add emacs-toolbar - GtkToolbar
+
+2003-02-05  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi: Version 2.0.29 released.
+	(Installation): In Emacs, use M-x texinfo-format-buffer RET, not
+	M-x makeinfo-buffer RET.  Reported by gebser@ameritech.net.
+
+2003-02-01  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Frequently Asked Questions): Explain a workaround if
+	another package loads accidently Ange-FTP.
+
+2003-01-24  Michael Albinus  <Michael.Albinus@alcatel.de>
+
+	* tramp.texi (Customizing Completion): Add function
+	`tramp-parse-sconfig'.  Change example of
+	`tramp-set-completion-function', because parsing of ssh config
+	files looks more natural.
+
+2003-02-01  Kevin Ryde  <user42@zip.com.au>
+
+        * glossary.texi (Glossary): Correction to cl cross reference.
+
+2003-01-20  Richard M. Stallman  <rms@gnu.org>
+
+	* killing.texi (Rectangles): Document C-x c r.
+
+2003-01-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (GTK resources): New node.
+	(GTK widget names): New node.
+	(GTK names in Emacs): New node.
+	(GTK styles): New node.
+
+2003-01-15  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* gnus.texi: Do not use `path' in several locations.
+
+2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* maintaining.texi (Create Tags Table): Added reference to the new
+	`etags --help --lang=LANG' option.
+
+2002-12-26  Kai Gro,A_(Bjohann  <kai.grossjohann@uni-duisburg.de>
+
+	* tramp.texi (External transfer methods): New method `smb'.  From
+	Michael Albinus.
+
+2002-11-05  Karl Berry  <karl@gnu.org>
+
+	* info.texi (Info-fontify): reorder face list to avoid bad line
+	breaks.
+
+2002-10-06  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* tramp.texi: Move @copying to standard place.  Use
+	@insertcopying.
+
+2002-10-02  Karl Berry  <karl@gnu.org>
+
+	* (ada-mode.texi autotype.texi calc.texi cc-mode.texi cl.texi
+	dired-x.texi ebrowse.texi ediff.texi emacs-mime.texi emacs.texi
+	eshell.texi eudc.texi faq.texi forms.texi idlwave.texi info.texi
+	message.texi mh-e.texi pcl-cvs.texi reftex.texi sc.texi ses.texi
+	speedbar.texi vip.texi viper.texi widget.texi woman.texi):
+	Per rms, update all manuals to use @copying instead of @ifinfo.
+	Also use @ifnottex instead of @ifinfo around the top node, where
+	needed for the sake of the HTML output.
+	(The gnus manual is not fixed since it's not clear to me how it
+	 works; and the tramp manual already uses @copying, although in an
+	 unusual way.  All others were changed.)
+
+2002-09-10  Jonathan Yavner  <jyavner@engineer.com>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add SES.
+	(../info/ses, ses.dvi): New targets.
+	* ses.texi: New file.
+
+2002-09-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* texinfo.tex: Updated to texinfo 4.2.
+
+2002-08-27  Carsten Dominik  <dominik@sand.science.uva.nl>
+
+	* reftex.texi: Update to RefTeX 4.19
+
+2002-06-17  Kai Gro,b_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
+
+	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add Tramp.
+	(../info/tramp, tramp.dvi): New targets.
+
 2002-01-04  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* calc.texi: Place under GFDL.  Fix copyright years.
-	(Installation): Update instructions.  Comment out the description
-	of the \bumpoddpages macro which was deleted
 
 	* Makefile.in (DVI_TARGETS): Add calc.dvi.
 	(calc.dvi): Uncomment.
 
-2001-12-24  Michael Kifer  <kifer@cs.sunysb.edu>
-	
-	* ediff.texi: Typos.
-	
-	* viper.texi: Typos, acknowledgements, updated the :f command.
-	
 2001-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (EMACSSOURCES): Update the list of Emacs manual
 	source files.
 
-2001-12-07  Andreas Schwab  <schwab@suse.de>
-
-	* maintaining.texi (Emerge): Don't omit first argument of @ref.
-	* emacs.texi (Top): Likewise.
-
-2001-12-02  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* calc.texi: Add @direntry.
-
-2001-12-01  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* idlwave.texi: Update maintainer.
-	(Acknowledgement): Update contributors.
-
-2001-12-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-
-	* mark.texi (Marking Objects): `M-h' accepts prefix arg.
-
-2001-11-25  Jason Rumney  <jasonr@gnu.org>
-
-	* frames.texi (Tooltips): Remove MS-Windows exceptions.
-
-2001-11-23  Colin Walters  <walters@verbum.org>
-
-	* calc.texi (Installation): Remove most of the installation
-	instructions.  Clean up instructions on generating .dvi from the
-	manual.
-	(Reporting Bugs): Update maintainer and Emacs source addresses.
-
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (emacsman): New target.
-
-2001-11-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* mule.texi (Fontsets): Remove the description of variable
-	`highlight-wrong-size-font'.
 
 2001-11-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (INFO_TARGETS): Add ../info/calc.
 	(../info/calc): New target.
 
-	* calc.texi: Fix to pacify makeinfo.
-
-2001-11-06  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* calc.texi: New file.
-
-2001-11-01  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* glossary.texi (Glossary): Fix syntax.
-
-	* xresources.texi (X Resources): Fix typo and syntax.
-
-2001-10-31  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
-
-	* cmdargs.texi (Initial Options): Document command line option
-	--no-window-system instead of --no-windows.
-
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
 
-2001-10-13  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* viper.texi: Clarified that viper won't expand special symbols in
-	search patterns.
-
 2001-10-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Branch for 21.1.
-
-2001-08-21  Andrew Choi  <akochoi@i-cable.com>
-
-	* macos.texi: Change mac-filename-to-unix and unix-filename-to-mac
-	to mac-file-name-to-posix and posix-file-name-to-mac, resp.
-
-2001-07-21  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* viper.texi: Added credits, new commands, like :make.
-
-	* ediff.texi: added credits.
-
-2001-06-08  Carsten Dominik  <dominik@astro.uva.nl>
-
-	* reftex.texi: Updated to version 4.16
-
-2001-06-07  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* dired-x.texi: Fix Next and Prev pointers in @node directives, so
-	that SPC could be used to traverse the whole document in sequence.
-
-2001-05-14  Gerd Moellmann  <gerd@gnu.org>
-
-	* texinfo.tex: New file.
 
 2001-04-14  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (../info/info): Use an explicit -o switch to
 	makeinfo.
 
-	* info.texi: Update for Emacs 21.  Add index entries.
-
-2001-04-09  John Wiegley  <johnw@gnu.org>
-
-	* eshell.texi: A few additions.
-
-2001-03-30  Andreas Schwab  <schwab@suse.de>
-
-	* files.texi (Backup Names): Fix typo.
-
-2001-03-21  Gerd Moellmann  <gerd@gnu.org>
-
-	* cc-mode.texi: Updated to CC mode version 5.28.
-
-2001-03-17  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* viper.texi: Added credits.
-
-2001-03-13  Thien-Thi Nguyen  <ttn@gnu.org>
-
-	* programs.texi: Update hideshow key bindings.
-
-2001-03-12  Francesco Potorti  <pot@gnu.org>
-
-	* programs.texi (Tags): Mention that file names are tags.  Change by
-	Philippe Waroquiers  <wao@gull.tact.cfmu.eurocontrol.be>.
-
 2001-03-05  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (mostlyclean, maintainer-clean): Delete more files.
 
-2001-02-24  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* ediff.texi: Fixed some typos.
-
-2001-02-19  Bill Wohler  <wohler@newt.com>
-
-	* mh-e.texi: Release mh-e-doc-1.3 for Emacs 21.1.
-	(Viewing): Added mh-header-display index entry.
-	(Organizing,Customizing Reading): Added mh-kill-folder index entry.
-	(Preface): The current version of mh-e has come
-	standard since 19.29. Since Version 5 of mh-e has been out so
-	long, lots of text regarding earlier versions was pruned.
-	(Conventions): Use BACKSPACE instead of DELETE in Emacs 21.
-	(Reading MIME): Use nmh commands.
-	(Bug Reports): Current maintainer now Bill Wohler. Bug reports now
-	at SourceForge.
-	(Mailing List): Mailing lists now at SourceForge.
-	(MH FAQ): FAQ now at faqs.org.
-	(Getting mh-e): Version in Emacs should be fairly up to date. New
-	releases at SourceForge.
-	(History): mh-e now maintained by Bill Wohler at SourceForge.
-	(Changes to mh-e): Gone.
-	(Copying): Clean up close-quote punctuation (rms-1.7).
-
-2001-02-19  Andreas Schwab  <schwab@suse.de>
-
-	* programs.texi: Fix typo.
-
-2001-02-12  Michael Kifer <kifer@cs.sunysb.edu>
-
-	* viper.texi: Fixed typos.
-
-	* ediff.texi: Added ediff-coding-system-for-read.
-
-2001-02-11  ShengHuo ZHU  <zsh@cs.rochester.edu>
-
-	* gnus.texi (Pterodactyl Gnus): Added.
-	(Newest Features): Removed. Suggested by RMS.
-
-2001-02-10  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* ack.texi (Acknowledgments): Make up-to-date for Emacs 21.  Add
-	criteria for inclusion in this chapter.
-
-2001-01-25  John Wiegley  <johnw@gnu.org>
-
-	* eshell.texi: Editing and completion of first chapter (Overview),
-	and layout of the remaining six.
-
-2001-01-19  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* ediff.texi: Add credits.
-
-	* viper.texi: Small fixes; added credits
-
 2000-12-20  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* faq.texi: Many changes to make it consistent with Emacs 21.
 
 	* Makefile.in (../info/idlwave): Use --no-split.
 
@@ -222,127 +201,13 @@
 	* Makefile.in (mostlyclean): Remove gnustmp.*
 	(gnus.dvi): Change rule to remove @latex stuff.
 
-2000-12-11  Carsten Dominik  <dominik@strw.leidenuniv.nl>
-
-	* idlwave.texi: Updated to IDLWAVE version 4.7
-
-2000-12-10  Carsten Dominik  <dominik@strw.leidenuniv.nl>
-
-	* reftex.texi: Updated to RefTeX version 4.15
-
-2000-12-05  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* macos.texi: Fix markup and @node lines for inclusion in the
-	manual.
-
-	* emacs.texi: @include macos.texi.
-
-	* anti.texi: Update due to inclusion of macos.texi.
-
-	* msdog.texi: Ditto.
-
-2000-12-04  Andrew Choi <akochoi@i-cable.com>
-
-	* macos.texi: New file.
-
-2000-11-22  Miles Bader  <miles@gnu.org>
-
-	* display.texi (Display Vars): Note that `mode-line-inverse-video'
-	is deprecated.
-
-2000-11-08  Gerd Moellmann  <gerd@gnu.org>
-
-	* mini.texi (Minibuffer Edit): Add description of
-	resize-mini-windows.
-
-2000-11-01  Kai Gro,A_(Bjohann  <Kai.Grossjohann@CS.Uni-Dortmund.DE>
-
-	* gnus.texi (Fancy Mail Splitting): Explain
-	`nnmail-split-fancy-with-parent'.
-
-2000-10-29  Michael Kifer  <kifer@cs.sunysb.edu>
-
-	* ediff.texi: Replaced @command with @code & acknowledgements.
-	* viper.texi: Acknowledgements.
-
-2000-10-28  John Wiegley  <johnw@gnu.org>
-
-	* eshell.texi: Further editing, and finished the "bugs" section.
-
-2000-10-28  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* cmdargs.texi (Colors X): Document support for -fg, -bg, and -rv
-	on TTYs.  Suggest use of list-colors-display to see what colors
-	are supported.  Add index entries for list-colors-display.
-
-2000-10-23  Gerd Moellmann  <gerd@gnu.org>
-
-	* gnus.texi: Update from version 5.213 from the Gnus repository.
-	Change @setfilename.
-
-	* gnus-faq.texi: Update from version 5.1 of the Gnus repository.
-	Update copyright and change @setfilename.
-
-2000-10-21  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* speedbar.texi: Correct typos, fix markup, add index entries.
-
 2000-10-19  Eric M. Ludlam  <zappo@ultranet.com>
-
-	* speedbar.texi: New file.
 
 	* Makefile.in (Speedbar): Added build targets for speedbar.texi.
 
-2000-10-19  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* anti.texi (Antinews): Many changes from Richard Stallman.
-
-2000-10-19  Miles Bader  <miles@lsi.nec.co.jp>
-
-	* misc.texi (Shell Mode): Document `comint-write-output', name
-	change to `comint-delete-output'.
-
-2000-10-18  Gerd Moellmann  <gerd@gnu.org>
-
-	* display.texi (Display Vars): Fix description of the role of
-	baud-rate for window-systems.
-
-2000-10-16  Gerd Moellmann  <gerd@gnu.org>
-
-	* sending.texi (Distracting NSA): Change the example.
-
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
-	* eshell.texi (Installation): Changed URL reference for where to
-	download Eshell from.
-
 	* Makefile.in: Added build targets for eshell.texi.
-
-	* eshell.texi: New file.  Note that this file is only just
-	beginning.  It's based heavily on the structure of pcl-cvs.texi.
-
-2000-10-04  Miles Bader  <miles@lsi.nec.co.jp>
-
-	* emacs.texi (Top): Update version in `Antinews' menu entry.
-	(Copying): Change example year to `20yy'.
-	* mh-e.texi (Copying): Likewise.
-
-2000-09-30  Gerd Moellmann  <gerd@gnu.org>
-
-	* search.texi (Other Repeating Search): Describe `how-many'
-	instead of `count-matches'.  Say that they work on the active
-	region in Transient Mark mode.
-
-2000-09-29  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* emacs-mime.texi, message.texi: Fix @setfilename directive.
-
-2000-09-28  Gerd Moellmann  <gerd@gnu.org>
-
-	* woman.texi: Change copyright notice.
-
-	* basic.texi (Continuation Lines): Add description of
-	toggle-truncate-lines.
 
 2000-09-25  Gerd Moellmann  <gerd@gnu.org>
 
@@ -352,139 +217,11 @@
 
 	* Makefile.in: Add emacs-mime.
 
-	* emacs-mime.texi: New manual.
-
-	* message.texi: New version for Gnus 5.9.
-
-2000-09-02  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* anti.texi (Antinews): Rewritten for Emacs 21.
-
-2000-08-30  Dave Love  <fx@gnu.org>
-
-	* doclicense.texi: New file.
-
-2000-08-24  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* emacs.texi: Bump manual version to 14, Emacs version to 21.1,
-	and add 2000 to the copyright years.
-
-2000-08-15  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* calendar.texi (Time Intervals): New node.
-
-	* programs.texi (Authors): New node.
-
-2000-08-13  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* killing.texi (Killing): Document kill-read-only-ok.
-
-	* buffers.texi (Misc Buffer): Likewise
-
-2000-08-11  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* widget.texi (Top): Add Index in the menu.
-	(many nodes): Add index entries.
-	(Index): New node.
-
-2000-08-08  Gerd Moellmann  <gerd@gnu.org>
-
-	* faq.texi (Disabling backups): Replace reference to
-	non-existent initial-dired-omit-files-p with something that works.
-
 2000-08-08  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* programs.texi (Documentation): Add an xref to WoMan's own
-	manual, woman.texi.
-
-	* woman.texi: New file.
 
 	* Makefile.in (INFO_TARGETS): Add ../info/woman.
 	(DVI_TARGETS): Add woman.dvi.
 	(../info/woman, woman.dvi): New targets.
-
-2000-08-04  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* frames.texi (Highlight Interactively): Document the hi-lock
-	mode.
-
-2000-07-31  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* msdog.texi (MS-DOS Input): Document msdos-set-mouse-buttons.
-
-2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* trouble.texi (Quitting): Fix last change.
-
-2000-07-25  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* trouble.texi (Quitting): Add findex entry for keyboard-quit.
-
-2000-07-24  Gerd Moellmann  <gerd@gnu.org>
-
-	* cc-mode.texi: @setfilename to ../info/ccmode.
-
-2000-07-24  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
-	* cc-mode.texi: Documented the change of cpp-macro.
-
-	* cc-mode.texi: Updated doc for c-lineup-multi-inher.
-
-	* cc-mode.texi: Documented the special behavior of
-	c-special-indent-hook as a style variable.  Don't talk about
-	doing (c-make-styles-buffer-local t) in a mode hook, since
-	that's already too late to work right.
-
-2000-07-22  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* mule.texi (Recognize Coding): Document the variable
-	inhibit-iso-escape-detection.
-
-2000-07-07  Gerd Moellmann  <gerd@gnu.org>
-
-	* dired.texi (Dired Visiting): Describe dired-find-alternate-file.
-
-2000-07-05  Gerd Moellmann  <gerd@gnu.org>
-
-	* cc-mode.texi: Remove duplicate @direntry.
-
-2000-07-03  Gerd Moellmann  <gerd@gnu.org>
-
-	* viper.texi, vip.texi, widget.texi, ada-mode.texi, sc.texi
-	* reftex.texi, pcl-cvs.texi, mh-e.texi, idlwave.texi
-	* forms.texi, faq.texi, eudc.texi, emacs.texi, ediff.texi
-	* dired-x.texi, cl.texi, cc-mode.texi, autotype.texi: Use
-	dircategory `Emacs'.
-
-2000-06-22  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* programs.texi (Documentation): Describe how man pages with
-	identical names by different sections are handled by M-x man and
-	M-x woman.
-
-	* msdog.texi (Text and Binary): Separate description of EOL
-	conversions from the issues related to binary files.
-
-2000-06-21  Kenichi Handa  <handa@etl.go.jp>
-
-	* mule.texi (set-buffer-process-coding-system): Documentation
-	fixed.
-
-2000-06-20  Gerd Moellmann  <gerd@gnu.org>
-
-	* reftex.texi: @setfilename to ../info/reftex.
-
-2000-06-18  Gerd Moellmann  <gerd@gnu.org>
-
-	* autotype.texi, cl.texi, eudc.texi, gnus.texi, idlwave.texi
-	* reftex.texi, sc.texi, vip.texi, viper.texi, widget.texi
-	* ediff.texi, dired-x.texi: Add @setchapternewpage odd after
-	index.
-
-2000-06-14  Carsten Dominik  <dominik@astro.uva.nl>
-
-	* reftex.texi (Documentation): Updated to reftex version 4.14
-	* idlwave.texi (Documentation): Updated to idlwave version 4.2
 
 2000-05-31  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -494,55 +231,12 @@
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS: Add pcl-cvs.
 	(../info/pcl-cvs, pcl-cvs.dvi): New targets.
 
-2000-05-30  Gerd Moellmann  <gerd@gnu.org>
-
-	* info.texi: Clarify description of Info-directory-list,
-	add description of Info-additional-directory-list.
-
-2000-05-25  Gerd Moellmann  <gerd@gnu.org>
-
-	* eudc.texi: Fix @direntry, add @dircategory.
-
-2000-05-23   Gerd Moellmann  <gerd@gnu.org>
-
-	* cmdargs.texi, custom.texi, dired-x.texi, ediff.texi,
-	entering.texi, files.texi, frames.texi, misc.texi, msdog.texi,
-	mule.texi, programs.texi, rmail.texi, sending.texi, text.texi,
-	trouble.texi: Fix markup; mostly replace @code with @env.
-
-	* ebrowse.texi: Use @command.  Change title page.
-
-2000-05-23  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* ebrowse.texi: Various markup and index fixes.  Changes for
-	MS-DOS.
-
 2000-05-11  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.in (INFO_TARGETS): Add info/ebrowse.
 	(../info/ebrowse, ebrowse.dvi): New targets.
 
-	* ebrowse.texi: New file.
-
-2000-05-09  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* programs.texi (Documentation): Document woman.el features.
-
-2000-05-05  Gerd Moellmann  <gerd@gnu.org>
-
-	* ada-mode.texi, cc-mode.texi: Add @direntry.
-
-2000-03-29  Andreas Schwab  <schwab@suse.de>
-
-	* programs.texi (Imenu): Fix cross ref.
-
-2000-02-18  Andreas Schwab  <schwab@suse.de>
-
-	* ack.texi (Acknowledgments): Remove extra `@end itemize'.
-
 2000-01-13  Gerd Moellmann  <gerd@gnu.org>
-
-	* eudc.texi: New file based on EUDC 1.30b.
 
 	* Makefile.in (INFO_TARGETS): Add eudc.
 	(DVI_TARGETS): Add eudc.dvi
@@ -554,108 +248,14 @@
 	compatibility with 8+3 filesystems).
 	(../info/efaq): Renamed from emacs-faq.
 
-	* faq.texi: Rename emacs-faq to efaq in @setfilename and in
-	@direntry.
-
-2000-01-04  Gerd Moellmann  <gerd@gnu.org>
-
-	* mule.texi (International Intro): Add a link to to Fontsets.
-
 2000-01-03  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add idlwave.
 	(../info/idlwave, idlwave.dvi): New targets.
 
-1999-12-15  Eli Zaretskii  <eliz@is.elta.co.il>
-
-	* cc-mode.texi: Set file name to ../info/ccmode, to avoid problems
-	on 8+3 filesystems.
-
-1999-12-12  Gerd Moellmann  <gerd@gnu.org>
-
-	* cc-mode.texi: Set file name to ../info/cc-mode.texi.
-
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
-	* cc-mode.texi: Documented the new up/down preprocessor
-	conditional function varieties.
-
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
-	* cc-mode.texi: Updated for all the new features and
-	proofread.  Major changes:
-	o  All text filling and line breaking issues is collected in a
-	   new top-level chapter.  The section on auto-fill mode
-	   interaction have been incorporated into this.
-	o  The list of the standard lineup functions is expanded with
-	   better explanations and examples.  It's moved to a
-	   top-level chapter since it's hard to find under Customizing
-	   Indentation / Advanced Customizations / Custom Indentation
-	   Functions.
-	o  The sections on Permanent Customization and Styles are
-	   mostly rewritten due to the changes in the style system.
-	   The part about the mode hooks has gotten an own section.
-
-1999-12-12  Martin Stjernholm  <bug-cc-mode@gnu.org>
-
-	* cc-mode.texi: Documented the default behavior when a symbol
-	doesn't exist on c-hanging-braces-alist.
-
-1999-12-12  Barry A. Warsaw  <bug-cc-mode@gnu.org>
-
-	* cc-mode.texi: Document the new semantics for c-default-style.
-
-1999-12-12  Barry Warsaw  <cc-mode-help@python.org>
-
-	* cc-mode.texi: Added a paragraph on
- 	signal-error-on-buffer-boundary in the Limitations and Known Bugs
- 	section.
-
-1999-12-10  Jonathan Kamens <jik@kamens.brookline.ma.us>
-
-	* rmail.texi: POP server may be specified as part of the mailbox
-	name.
-
-	* gnus.texi: POP server may be specified in nnmail-spool-file.
-
-1999-11-24  Michael Kifer <kifer@cs.sunysb.edu>
-
-	* ediff.texi: Describe the new format for
-	ediff-combination-pattern.
-
-1999-11-20  Paul Eggert  <eggert@twinsun.com>
-
-	* mule.texi: Describe the relationship between
-	set-locale-environment and set-language-environment, and why
-	one might want to invoke set-locale-environment.
-
-1999-11-01  Eli Zaretskii <eliz@is.elta.co.il>
-
-	* cc-mode.texi: Fix complaints from makeinfo 4.0.
-	* mh-e.texi: Likewise.
-	* viper.texi: Likewise.
-	* ada-mode.texi: Likewise.
-
-1999-11-01  Dave Love  <fx@gnu.org>
-
-	* misc.texi, gnus.texi:  Fix complaints from makeinfo 4.0.
-
-1999-11-01  Michael Kifer <kifer@cs.sunysb.edu>
-
-        * ediff.texi: minor fixes.
-
-        * viper.texi: minor fixes.
-
 1999-10-23  Dave Love  <fx@gnu.org>
 
-	* autotype.texi: New file.
-
-	* Makefile.in: Use it.
-
-1999-10-23  Paul Eggert  <eggert@twinsun.com>
-
-	* mule.texi, cmdargs.texi:
-	Describe new functions and variables for locales.
+	* Makefile.in: Use autotype.texi.
 
 1999-10-12  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -667,12 +267,6 @@
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add ada-mode.
 	(../info/ada-mode, ada-mode.dvi): New targets.
 
-	* ada-mode.texi: Set file name to ../info/ada-mode.
-
-1999-10-07  Emmanuel Briot  <briot@gnat.com>
-
-	* ada-xref.texi: New file.
-
 1999-09-01  Dave Love  <fx@gnu.org>
 
 	* Makefile.in: Add faq.
@@ -681,55 +275,15 @@
 
 	* Version 20.4 released.
 
-1999-02-22  Andreas Schwab  <schwab@gnu.org>
-
-	* gnus.texi: Fix punctuation after @xref.
-
-1999-01-18  Eli Zaretskii  <eliz@gnu.org>
-
-	* msdog.texi (MS-DOS and MULE): dos-unsupported-character-glyph is
-	a triangle by default, not a solid box.
-
-1999-01-17  Andrew Innes  <andrewi@gnu.org>
-
-	* msdog.texi (MS-DOS Printing): Rewrite section.
-
-	* emacs.texi (Top): Include Windows 98 in the MS-DOS section.
-
 1998-12-04  Markus Rost  <rost@delysid.gnu.org>
 
 	* Makefile.in (INFO_TARGETS): Delete customize.info.
 	(DVI_TARGETS): Delete customize.dvi.
 	(../info/customize, customize.dvi): Targets deleted.
 
-1998-11-18  Richard Stallman  <rms@psilocin.ai.mit.edu>
-
-	* customize.texi: File deleted.
-
-1998-11-08  Eli Zaretskii  <eliz@mescaline.gnu.org>
-
-	* frames.texi: Change @xref to @pxref and add comma after @xref.
-	* custom.texi (Locals): Likewise.
-	* programs.texi (Fortran Autofill): Likewise.
-	* text.texi (TeX Editing): Likewise.
-	* viper.texi: Likewise.
-
-1998-08-24  Andreas Schwab  <schwab@delysid.gnu.org>
-
-	* reftex.texi: Fix info file name.
-
-	* forms.texi (Forms Commands): Change @item to @itemx for
-	secondary items.
-	* viper.texi (Groundwork): Likewise.
-	(Commands): Remove extra Top from @node.
-
 1998-08-19  Richard Stallman  <rms@psilocin.ai.mit.edu>
 
 	* Version 20.3 released.
-
-1998-08-10  Carsten Dominik  <cd@delysid.gnu.org>
-
-	* reftex.texi: Updated to the latest RefTeX version.
 
 1998-05-06  Richard Stallman  <rms@psilocin.gnu.org>
 
@@ -831,7 +385,7 @@
 
 	* gnus.texi: File deleted.
 
-1995-11-02  Stephen Gildea <gildea@stop.mail-abuse.org>
+1995-11-02  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-e.texi: "Function Index" -> "Command Index" to work with
 	Emacs 19.30 C-h C-k support of separately-documented commands.
@@ -846,7 +400,7 @@
 	* Makefile.in (INFO_TARGETS, DVI_TARGETS): Add viper targets.
 	(../info/viper, viper.dvi): New targets.
 
-1995-04-20  Kevin Rodgers <kevinr@ihs.com>
+1995-04-20  Kevin Rodgers  <kevinr@ihs.com>
 
 	* dired-x.texi (Installation): Change the example to set
 	buffer-local variables like dired-omit-files-p in
@@ -964,7 +518,7 @@
 	* info.texi, info-stn.texi: New files implement texinfo version of
 	`info' file.
 
-  	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
+	* frames.texi (Creating Frames): Mention `C-x 5' instead of `C-x
   	4' where appropriate.
 
 1993-10-20  Brian Fox  (bfox@ai.mit.edu)
@@ -1072,7 +626,7 @@
 
 1993-04-18  Noah Friedman  (friedman@nutrimat.gnu.ai.mit.edu)
 
-        * text.texi: Updated unix TeX ordering information.
+	* text.texi: Updated unix TeX ordering information.
 
 1993-03-26  Eric S. Raymond  (eric@geech.gnu.ai.mit.edu)
 

@@ -33,7 +33,7 @@
 ;;; Code:
 
 (require 'lisp-mode)			;for `doc-string-elt' properties.
-
+(require 'help-fns)			;for help-add-fundoc-usage.
 
 (defvar generated-autoload-file "loaddefs.el"
    "*File \\[update-file-autoloads] puts autoloads into.
@@ -90,8 +90,14 @@ or macro definition or a defcustom)."
 		   define-minor-mode defun* defmacro*))
       (let* ((macrop (memq car '(defmacro defmacro*)))
 	     (name (nth 1 form))
+	     (args (if (memq car '(defun defmacro defun* defmacro*))
+		       (nth 2 form) t))
 	     (body (nthcdr (get car 'doc-string-elt) form))
 	     (doc (if (stringp (car body)) (pop body))))
+	(when (listp args)
+	  ;; Add the usage form at the end where describe-function-1
+	  ;; can recover it.
+	  (setq doc (help-add-fundoc-usage doc args)))
 	;; `define-generic-mode' quotes the name, so take care of that
 	(list 'autoload (if (listp name) name (list 'quote name)) file doc
 	      (or (and (memq car '(define-skeleton define-derived-mode
@@ -102,29 +108,24 @@ or macro definition or a defcustom)."
 		  (eq (car-safe (car body)) 'interactive))
 	      (if macrop (list 'quote 'macro) nil))))
 
-     ;; Convert defcustom to a simpler (and less space-consuming) defvar,
-     ;; but add some extra stuff if it uses :require.
+     ;; Convert defcustom to less space-consuming data.
      ((eq car 'defcustom)
       (let ((varname (car-safe (cdr-safe form)))
 	    (init (car-safe (cdr-safe (cdr-safe form))))
 	    (doc (car-safe (cdr-safe (cdr-safe (cdr-safe form)))))
-	    (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form))))))
-	(if (not (plist-get rest :require))
-	    `(defvar ,varname ,init ,doc)
-	  `(progn
-	     (defvar ,varname ,init ,doc)
-	     (custom-add-to-group ,(plist-get rest :group)
-				  ',varname 'custom-variable)
-	     (custom-add-load ',varname
-			      ,(plist-get rest :require))))))
+	    ;; (rest (cdr-safe (cdr-safe (cdr-safe (cdr-safe form)))))
+	    )
+	`(progn
+	   (defvar ,varname ,init ,doc)
+	   (custom-autoload ',varname ,file))))
 
      ;; nil here indicates that this is not a special autoload form.
      (t nil))))
 
-;;; Forms which have doc-strings which should be printed specially.
-;;; A doc-string-elt property of ELT says that (nth ELT FORM) is
-;;; the doc-string in FORM.
-;;; Those properties are now set in lisp-mode.el.
+;; Forms which have doc-strings which should be printed specially.
+;; A doc-string-elt property of ELT says that (nth ELT FORM) is
+;; the doc-string in FORM.
+;; Those properties are now set in lisp-mode.el.
 
 
 (defun autoload-trim-file-name (file)
@@ -158,16 +159,20 @@ markers before we call `read'."
 	(goto-char (point-min))
 	(read (current-buffer))))))
 
-;; !! Requires OUTBUF to be bound !!
+(defvar autoload-print-form-outbuf)
+
 (defun autoload-print-form (form)
-  "Print FORM such that make-docfile will find the docstrings."
+  "Print FORM such that `make-docfile' will find the docstrings.
+The variable `autoload-print-form-outbuf' specifies the buffer to
+put the output in."
   (cond
    ;; If the form is a sequence, recurse.
    ((eq (car form) 'progn) (mapcar 'autoload-print-form (cdr form)))
    ;; Symbols at the toplevel are meaningless.
    ((symbolp form) nil)
    (t
-    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt)))
+    (let ((doc-string-elt (get (car-safe form) 'doc-string-elt))
+	  (outbuf autoload-print-form-outbuf))
       (if (and doc-string-elt (stringp (nth doc-string-elt form)))
 	  ;; We need to hack the printing because the
 	  ;; doc-string must be printed specially for
@@ -178,10 +183,9 @@ markers before we call `read'."
 	    (princ "\n(" outbuf)
 	    (let ((print-escape-newlines t)
 		  (print-escape-nonascii t))
-	      (mapcar (lambda (elt)
-			(prin1 elt outbuf)
-			(princ " " outbuf))
-		      form))
+	      (dolist (elt form)
+		(prin1 elt outbuf)
+		(princ " " outbuf)))
 	    (princ "\"\\\n" outbuf)
 	    (let ((begin (with-current-buffer outbuf (point))))
 	      (princ (substring (prin1-to-string (car elt)) 1)
@@ -191,7 +195,7 @@ markers before we call `read'."
 	      ;; the doc string.
 	      (with-current-buffer outbuf
 		(save-excursion
-		  (while (search-backward "\n(" begin t)
+		  (while (re-search-backward "\n[[(]" begin t)
 		    (forward-char 1)
 		    (insert "\\"))))
 	      (if (null (cdr elt))
@@ -218,7 +222,7 @@ markers before we call `read'."
 	     ";; no-update-autoloads: t\n"
 	     ";; End:\n"
 	     ";;; " (file-name-nondirectory file)
-	     "ends here\n")
+	     " ends here\n")
      nil file))
   file)
 
@@ -252,7 +256,7 @@ are used."
   (let ((outbuf (current-buffer))
 	(autoloads-done '())
 	(load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?$" name)
+		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(print-length nil)
@@ -312,8 +316,9 @@ are used."
 			      (setq autoloads-done (cons (nth 1 form)
 							 autoloads-done))
 			    (setq autoload form))
-			  (autoload-print-form autoload))
-	 
+			  (let ((autoload-print-form-outbuf outbuf))
+			    (autoload-print-form autoload)))
+
 		      ;; Copy the rest of the line to the output.
 		      (princ (buffer-substring
 			      (progn
@@ -355,7 +360,7 @@ are used."
 Return FILE if there was no autoload cookie in it."
   (interactive "fUpdate autoloads for file: ")
   (let ((load-name (let ((name (file-name-nondirectory file)))
-		     (if (string-match "\\.elc?$" name)
+		     (if (string-match "\\.elc?\\(\\.\\|$\\)" name)
 			 (substring name 0 (match-beginning 0))
 		       name)))
 	(found nil)
@@ -475,11 +480,14 @@ Autoload section for %s is up to date."
 Update loaddefs.el with all the current autoloads from DIRS, and no old ones.
 This uses `update-file-autoloads' (which see) do its work."
   (interactive "DUpdate autoloads from directory: ")
-  (let* ((files (apply 'nconc
+  (let* ((files-re (let ((tmp nil))
+		     (dolist (suf load-suffixes
+				  (concat "^[^=.].*" (regexp-opt tmp t) "\\'"))
+		       (unless (string-match "\\.elc" suf) (push suf tmp)))))
+	 (files (apply 'nconc
 		       (mapcar (lambda (dir)
 				 (directory-files (expand-file-name dir)
-						  ;; FIXME: add .gz etc...
-						  t "^[^=.].*\\.el\\'"))
+						  t files-re))
 			       dirs)))
 	 (this-time (current-time))
 	 (no-autoloads nil)		;files with no autoload cookies.
@@ -529,6 +537,8 @@ This uses `update-file-autoloads' (which see) do its work."
 	    (append no-autoloads
 		    (delq nil (mapcar 'update-file-autoloads files))))
       (when no-autoloads
+	;; Sort them for better readability.
+	(setq no-autoloads (sort no-autoloads 'string<))
 	;; Add the `no-autoloads' section.
 	(goto-char (point-max))
 	(search-backward "\f" nil t)

@@ -8,7 +8,7 @@ In GNU Emacs 51.70.4 (i9986-unknown-linux-gnu, X toolkit) of Sat Feb  20 2199 on
 configured using `configure  --with-x-toolkit=yes'
 
         The `search-backward-in-time' function appears to be broken in
-Emacs 51.70.  
+Emacs 51.70.
 
         Unfortunately, I can never seem to start the debugger early
 enough to catch the error as it happens.  However I have traced the

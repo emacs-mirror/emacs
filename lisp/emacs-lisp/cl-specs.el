@@ -1,4 +1,4 @@
-;;; cl-specs.el --- Edebug specs for cl.el
+;;; cl-specs.el --- Edebug specs for cl.el -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1993 Free Software Foundation, Inc.
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
@@ -7,7 +7,7 @@
 ;; LCD Archive Entry:
 ;; cl-specs.el|Daniel LaLiberte|liberte@holonexus.org
 ;; |Edebug specs for cl.el
-;; |$Date: 2000/08/15 12:39:03 $|1.1|
+;; |$Date: 2003/02/04 12:53:34 $|1.1|
 
 ;; This file is part of GNU Emacs.
 
@@ -53,22 +53,22 @@
 (def-edebug-spec ecase case)
 (def-edebug-spec do
   ((&rest &or symbolp (symbolp &optional form form))
-   (form body) 
+   (form body)
    cl-declarations body))
 (def-edebug-spec do* do)
-(def-edebug-spec dolist 
+(def-edebug-spec dolist
   ((symbolp form &optional form) cl-declarations body))
 (def-edebug-spec dotimes dolist)
 (def-edebug-spec do-symbols
   ((symbolp &optional form form) cl-declarations body))
-(def-edebug-spec do-all-symbols 
+(def-edebug-spec do-all-symbols
   ((symbolp &optional form) cl-declarations body))
 
 ;; Multiple values
 
 (def-edebug-spec multiple-value-list (form))
 (def-edebug-spec multiple-value-call (function-form body))
-(def-edebug-spec multiple-value-bind 
+(def-edebug-spec multiple-value-bind
   ((&rest symbolp) form cl-declarations body))
 (def-edebug-spec multiple-value-setq ((&rest symbolp) form))
 (def-edebug-spec multiple-value-prog1 (form body))
@@ -84,11 +84,11 @@
 (def-edebug-spec flet ((&rest (defun*)) cl-declarations body))
 (def-edebug-spec labels flet)
 
-(def-edebug-spec macrolet 
-  ((&rest (&define name (&rest arg) cl-declarations-or-string def-body)) 
+(def-edebug-spec macrolet
+  ((&rest (&define name (&rest arg) cl-declarations-or-string def-body))
    cl-declarations body))
 
-(def-edebug-spec symbol-macrolet 
+(def-edebug-spec symbol-macrolet
   ((&rest (symbol sexp)) cl-declarations body))
 
 (def-edebug-spec destructuring-bind
@@ -105,13 +105,13 @@
 (def-edebug-spec letf* letf)
 
 
-(def-edebug-spec defsetf 
-  (&define name 
+(def-edebug-spec defsetf
+  (&define name
 	   [&or [symbolp &optional stringp]
 		[cl-lambda-list (symbolp)]]
 	   cl-declarations-or-string def-body))
 
-(def-edebug-spec define-setf-method 
+(def-edebug-spec define-setf-method
   (&define name cl-lambda-list cl-declarations-or-string def-body))
 
 (def-edebug-spec define-modify-macro
@@ -128,8 +128,8 @@
 (def-edebug-spec incf (place &optional form))
 (def-edebug-spec decf incf)
 (def-edebug-spec push (form place))	; different for CL
-(def-edebug-spec pushnew 
-  (form place &rest 
+(def-edebug-spec pushnew
+  (form place &rest
 	&or [[&or ":test" ":test-not" ":key"] function-form]
 	[edebug-keywordp form]))
 (def-edebug-spec pop (place))		; different for CL
@@ -180,7 +180,7 @@
 
 ;; Declarations
 
-(def-edebug-spec cl-decl-spec 
+(def-edebug-spec cl-decl-spec
   ((symbolp &rest sexp)))
 
 (def-edebug-spec cl-declarations
@@ -214,17 +214,17 @@
   (&or ([&or (symbolp arg) arg] &optional def-form arg) arg))
 
 ;; The lambda list for macros is different from that of normal lambdas.
-;; Note that &environment is only allowed as first or last items in the 
+;; Note that &environment is only allowed as first or last items in the
 ;; top level list.
 
 (def-edebug-spec cl-macro-list
   (([&optional "&environment" arg]
     [&rest cl-macro-arg]
-    [&optional ["&optional" &rest 
+    [&optional ["&optional" &rest
 		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
     [&optional [[&or "&rest" "&body"] cl-macro-arg]]
-    [&optional ["&key" [&rest 
-			[&or ([&or (symbolp cl-macro-arg) arg] 
+    [&optional ["&key" [&rest
+			[&or ([&or (symbolp cl-macro-arg) arg]
 			      &optional def-form cl-macro-arg)
 			     arg]]
 		&optional "&allow-other-keys"]]
@@ -239,11 +239,11 @@
 (def-edebug-spec cl-macro-list1
   (([&optional "&whole" arg]  ;; only allowed at lower levels
     [&rest cl-macro-arg]
-    [&optional ["&optional" &rest 
+    [&optional ["&optional" &rest
 		&or (cl-macro-arg &optional def-form cl-macro-arg) arg]]
     [&optional [[&or "&rest" "&body"] cl-macro-arg]]
-    [&optional ["&key" [&rest 
-			[&or ([&or (symbolp cl-macro-arg) arg] 
+    [&optional ["&key" [&rest
+			[&or ([&or (symbolp cl-macro-arg) arg]
 			      &optional def-form cl-macro-arg)
 			     arg]]
 		&optional "&allow-other-keys"]]
@@ -262,7 +262,7 @@
 	   def-body))
 (def-edebug-spec defsubst* defun*)
 
-(def-edebug-spec defmacro* 
+(def-edebug-spec defmacro*
   (&define name cl-macro-list cl-declarations-or-string def-body))
 (def-edebug-spec define-compiler-macro defmacro*)
 
@@ -280,7 +280,7 @@
 (def-edebug-spec function-form
   ;; form at the end could also handle "function",
   ;; but recognize it specially to avoid wrapping function forms.
-  (&or ([&or "quote" "function"] &or symbolp lambda-expr) 
+  (&or ([&or "quote" "function"] &or symbolp lambda-expr)
        ("function*" function*)
        form))
 
@@ -293,7 +293,7 @@
   (&define  ; makes top-level form not be wrapped
    [&or symbolp
 	(gate
-	 symbolp &rest 
+	 symbolp &rest
 		 (&or [":conc-name" &or stringp "nil"]
 		      [":constructor" symbolp &optional cl-lambda-list]
 		      [":copier" symbolp]
@@ -329,7 +329,7 @@
 
 (def-edebug-spec loop
   ([&optional ["named" symbolp]]
-   [&rest 
+   [&rest
     &or
     ["repeat" form]
     loop-for-as
@@ -351,36 +351,36 @@
    &rest ["and" loop-for-as-subclause]))
 
 (def-edebug-spec loop-for-as-subclause
-  (loop-var 
+  (loop-var
    loop-type-spec
-   &or 
+   &or
    [[&or "in" "on" "in-ref" "across-ref"]
     form &optional ["by" function-form]]
 
    ["=" form &optional ["then" form]]
    ["across" form]
-   ["being" 
+   ["being"
     [&or "the" "each"]
-    &or 
-    [[&or "element" "elements"] 
+    &or
+    [[&or "element" "elements"]
      [&or "of" "in" "of-ref"] form
      &optional "using" ["index" symbolp]];; is this right?
     [[&or "hash-key" "hash-keys"
 	  "hash-value" "hash-values"]
      [&or "of" "in"]
-     hash-table-p &optional ["using" ([&or "hash-value" "hash-values" 
+     hash-table-p &optional ["using" ([&or "hash-value" "hash-values"
 					   "hash-key" "hash-keys"] sexp)]]
-					
+
     [[&or "symbol" "present-symbol" "external-symbol"
 	  "symbols" "present-symbols" "external-symbols"]
      [&or "in" "of"] package-p]
-     
+
     ;; Extensions for Emacs Lisp, including Lucid Emacs.
     [[&or "frame" "frames"
 	  "screen" "screens"
 	  "buffer" "buffers"]]
 
-    [[&or "window" "windows"] 
+    [[&or "window" "windows"]
      [&or "of" "in"] form]
 
     [[&or "overlay" "overlays"
@@ -388,23 +388,23 @@
      [&or "of" "in"] form
      &optional [[&or "from" "to"] form]]
 
-    [[&or "interval" "intervals"] 
+    [[&or "interval" "intervals"]
      [&or "in" "of"] form
      &optional [[&or "from" "to"] form]
      ["property" form]]
-     
+
     [[&or "key-code" "key-codes"
 	  "key-seq" "key-seqs"
-	  "key-binding" "key-bindings"] 
+	  "key-binding" "key-bindings"]
      [&or "in" "of"] form
      &optional ["using" ([&or "key-code" "key-codes"
 			      "key-seq" "key-seqs"
-			      "key-binding" "key-bindings"] 
+			      "key-binding" "key-bindings"]
 			 sexp)]]
     ;; For arbitrary extensions, recognize anything else.
     [symbolp &rest &or symbolp form]
     ]
-   
+
    ;; arithmetic - must be last since all parts are optional.
    [[&optional [[&or "from" "downfrom" "upfrom"] form]]
     [&optional [[&or "to" "downto" "upto" "below" "above"] form]]
@@ -412,10 +412,10 @@
     ]))
 
 (def-edebug-spec loop-initial-final
-  (&or ["initially" 
+  (&or ["initially"
 	;; [&optional &or "do" "doing"]  ;; CLtL2 doesn't allow this.
 	&rest loop-non-atomic-expr]
-       ["finally" &or 
+       ["finally" &or
 	[[&optional &or "do" "doing"] &rest loop-non-atomic-expr]
 	["return" form]]))
 
@@ -425,11 +425,11 @@
 (def-edebug-spec loop-clause
   (&or
    [[&or "while" "until" "always" "never" "thereis"] form]
-     
+
    [[&or "collect" "collecting"
 	 "append" "appending"
 	 "nconc" "nconcing"
-	 "concat" "vconcat"] form 
+	 "concat" "vconcat"] form
 	 [&optional ["into" loop-var]]]
 
    [[&or "count" "counting"
@@ -455,7 +455,7 @@
 
 (def-edebug-spec loop-var
   ;; The symbolp must be last alternative to recognize e.g. (a b . c)
-  ;; loop-var => 
+  ;; loop-var =>
   ;; (loop-var . [&or nil loop-var])
   ;; (symbolp . [&or nil loop-var])
   ;; (symbolp . loop-var)

@@ -105,7 +105,7 @@ if its GROUP-REGEXP matches the current newsgroup name.")
 
 (defvar news-mode-map nil)
 (defvar news-read-first-time-p t)
-;; Contains the (dotified) news groups of which you are a member. 
+;; Contains the (dotified) news groups of which you are a member.
 (defvar news-user-group-list nil)
 
 (defvar news-current-news-group nil)
@@ -133,7 +133,7 @@ Not currently used.")
 ;; association list in which we store lists of the form
 ;; (pointified-group-name (first last old-last))
 (defvar news-group-article-assoc nil)
-  
+
 (defvar news-current-message-number 0 "Displayed Article Number")
 (defvar news-total-current-group 0 "Total no of messages in group")
 
@@ -337,7 +337,7 @@ C-c C-r caesar rotate all letters by 13 places in the article's body (rot13).
 g       get new USENET news.
 f       post a reply article to USENET.
 a       post an original news article.
-A       add a newsgroup. 
+A       add a newsgroup.
 o	save the current article in the named file (append if file exists).
 C-o	output this message to a Unix-format mail file (append it).
 c       \"copy\" (actually link) current or prefix-arg msg to file.
@@ -435,14 +435,14 @@ to a list (a . b)"
 			(buffer-substring end endofline))))
 	    (if (assoc tem news-group-article-assoc)
 		(message "You are subscribed twice to %s; I ignore second"
-			 tem)	      
+			 tem)
 	      (setq temp-user-groups (cons tem temp-user-groups)
 		    news-group-article-assoc
 		    (cons (list tem (list (car range)
 					  (cdr range)
 					  (cdr range)))
 			  news-group-article-assoc)))))
-	(kill-buffer newsrcbuf)))      
+	(kill-buffer newsrcbuf)))
     (setq temp-user-groups (nreverse temp-user-groups))
     (message "Prefrobnicating...")
     (switch-to-buffer news-buffer)
@@ -528,7 +528,7 @@ to a list (a . b)"
   (let ((file (concat news-path
 		      (string-subst-char ?/ ?. news-current-news-group)
 		      "/" arg)))
-    (if (= arg 
+    (if (= arg
 	   (or (news-cadr (memq (news-cdar news-point-pdl) news-list-of-files))
 	       0))
 	(setcdr (car news-point-pdl) arg))
@@ -552,7 +552,7 @@ Negative ARG moves backward.
 If ARG is 1 or -1, moves to next or previous newsgroup if at end."
   (interactive "p")
   (let ((no (+ arg news-current-message-number)))
-    (if (or (< no news-current-group-begin) 
+    (if (or (< no news-current-group-begin)
 	    (> no news-current-group-end))
 	(cond ((= arg 1)
 	       (news-set-current-group-certification)

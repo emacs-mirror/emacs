@@ -92,7 +92,7 @@
 
 ;; In the mean time `grep '^(.*ewoc-[^-]' emacs-lisp/ewoc.el' can help
 ;; you find all the exported functions:
-;; 
+;;
 ;; (defun ewoc-create (pretty-printer &optional header footer)
 ;; (defalias 'ewoc-data 'ewoc--node-data)
 ;; (defun ewoc-location (node)
@@ -138,7 +138,10 @@
 	    (:constructor ewoc--node-create (start-marker data)))
   left right data start-marker)
 
-(defalias 'ewoc--node-branch 'aref)
+(defalias 'ewoc--node-branch 'aref
+  "Get the left (CHILD=0) or right (CHILD=1) child of the NODE.
+
+\(fn NODE CHILD)")
 
 (defun ewoc--dll-create ()
   "Create an empty doubly linked list."
@@ -391,8 +394,8 @@ MAP-FUNCTION is applied to the first element first.
 If MAP-FUNCTION returns non-nil the element will be refreshed (its
 pretty-printer will be called once again).
 
-Note that the buffer for EWOC will be current buffer when MAP-FUNCTION 
-is called.  MAP-FUNCTION must restore the current buffer to BUFFER before 
+Note that the buffer for EWOC will be current buffer when MAP-FUNCTION
+is called.  MAP-FUNCTION must restore the current buffer to BUFFER before
 it returns, if it changes it.
 
 If more than two arguments are given, the remaining
@@ -407,7 +410,7 @@ arguments will be passed to MAP-FUNCTION."
 
 (defun ewoc-filter (ewoc predicate &rest args)
   "Remove all elements in EWOC for which PREDICATE returns nil.
-Note that the buffer for EWOC will be current-buffer when PREDICATE 
+Note that the buffer for EWOC will be current-buffer when PREDICATE
 is called. PREDICATE must restore the current buffer before it returns
 if it changes it.
 The PREDICATE is called with the element as its first argument. If any
@@ -475,7 +478,7 @@ If the EWOC is empty, nil is returned."
 	;; best-guess is now a "best guess".
 	;; Find the correct node. First determine in which direction
 	;; it lies, and then move in that direction until it is found.
-    
+
 	(cond
 	 ;; Is pos after the guess?
 	 ((>= pos

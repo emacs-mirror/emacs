@@ -33,7 +33,7 @@
 ;; terminals that have ASCII in the G0 set and a Swedish/Finnish
 ;; version of ISO 646 in the G1 set.  The G1 set differs from
 ;; ASCII as follows:
-;; 
+;;
 ;; ASCII G1
 ;;     $ general currency sign
 ;;     @ capital E with acute accent

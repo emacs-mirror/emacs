@@ -126,7 +126,7 @@ are `-I REGEXP', to ignore changes whose lines match the REGEXP."
   :group 'ediff-diff)
 
 (defcustom ediff-diff-options ""
-  "*Options to pass to `ediff-diff-program'. 
+  "*Options to pass to `ediff-diff-program'.
 If Unix diff is used as `ediff-diff-program', then the most useful options are
 `-w', to ignore space, and `-i', to ignore case of letters.
 At present, the option `-c' is not allowed."
@@ -164,7 +164,7 @@ Lines that do not match are assumed to be error messages."
 ;; the status can be =diff(A), =diff(B), or =diff(A+B)
 (ediff-defvar-local ediff-diff-status "" "")
 
-  
+
 ;;; Fine differences
 
 (ediff-defvar-local ediff-auto-refine (if (ediff-has-face-support-p) 'on 'nix)
@@ -182,7 +182,7 @@ Use `setq-default' if setting it in .emacs")
 
 (ediff-defvar-local ediff-auto-refine-limit 1400
   "*Auto-refine only the regions of this size \(in bytes\) or less.")
-  
+
 ;;; General
 
 (defvar ediff-diff-ok-lines-regexp
@@ -215,7 +215,7 @@ The function should take three mandatory arguments, file-A, file-B, and
 file-C. It may ignore file C for diff2 jobs. It should also take
 one optional arguments, diff-number to refine.")
 
-  
+
 ;;; Functions
 
 ;; Generate the difference vector and overlays for the two files
@@ -225,9 +225,10 @@ one optional arguments, diff-number to refine.")
 ;; ediff-setup-diff-regions-function, which can also have the value
 ;; ediff-setup-diff-regions3, which takes 4 arguments.
 (defun ediff-setup-diff-regions (file-A file-B file-C)
-  (if (string-match "c" ediff-diff-options)
+  ;; looking either for '-c' or a 'c' in a set of clustered non-long options
+  (if (string-match "^-c\\| -c\\|-[^- ]+c" ediff-diff-options)
       (error "Option `-c' is not allowed in `ediff-diff-options'"))
-						  
+
   ;; create, if it doesn't exist
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
@@ -267,9 +268,9 @@ one optional arguments, diff-number to refine.")
 	     (message "")
 	     (ediff-with-current-buffer diff-buffer
 	       (buffer-size))))))
-  
 
-     
+
+
 ;; If file-A/B/C is nil, do 2-way comparison with the non-nil buffers
 ;; This function works for diff3 and diff2 jobs
 (defun ediff-setup-fine-diff-regions (file-A file-B file-C reg-num)
@@ -277,7 +278,7 @@ one optional arguments, diff-number to refine.")
       (setq ediff-fine-diff-buffer
 	    (get-buffer-create
 	     (ediff-unique-buffer-name "*ediff-fine-diff" "*"))))
-  
+
   (let (diff3-job diff-program diff-options ok-regexp diff-list)
     (setq diff3-job ediff-3way-job
 	  diff-program (if diff3-job ediff-diff3-program ediff-diff-program)
@@ -285,7 +286,7 @@ one optional arguments, diff-number to refine.")
 	  ok-regexp (if diff3-job
 			ediff-diff3-ok-lines-regexp
 			ediff-diff-ok-lines-regexp))
-    
+
     (ediff-message-if-verbose "Refining difference region %d ..." (1+ reg-num))
     (ediff-exec-process diff-program ediff-fine-diff-buffer 'synchronize
 			diff-options
@@ -297,12 +298,12 @@ one optional arguments, diff-number to refine.")
 			(if diff3-job
 			    (if file-C file-C file-B))
 			) ; exec process
-  
+
     (ediff-prepare-error-list ok-regexp ediff-fine-diff-buffer)
     (ediff-message-if-verbose
      "")
     ;; "Refining difference region %d ... done" (1+ reg-num))
-    
+
     (setq diff-list
 	  (if diff3-job
 	      (ediff-extract-diffs3
@@ -326,11 +327,11 @@ one optional arguments, diff-number to refine.")
 			 (aset elt 5 nil))
 		       (cdr diff-list)))
 	  ))
-    
+
     (ediff-convert-fine-diffs-to-overlays diff-list reg-num)
     ))
-  
-    
+
+
 (defun ediff-prepare-error-list (ok-regexp diff-buff)
   (or (ediff-buffer-live-p ediff-error-buffer)
       (setq ediff-error-buffer
@@ -367,7 +368,7 @@ one optional arguments, diff-number to refine.")
 	(c-prev 1)
 	diff-list shift-A shift-B
 	)
- 
+
     ;; diff list contains word numbers, unless changed later
     (setq diff-list (cons (if word-mode 'words 'points)
 			  diff-list))
@@ -379,7 +380,7 @@ one optional arguments, diff-number to refine.")
 	      shift-B
 	      (ediff-overlay-start
 	       (ediff-get-value-according-to-buffer-type 'B bounds))))
-    
+
     ;; reset point in buffers A/B/C
     (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
@@ -388,7 +389,7 @@ one optional arguments, diff-number to refine.")
     (if (ediff-buffer-live-p C-buffer)
 	(ediff-with-current-buffer C-buffer
 	  (goto-char (point-min))))
-    
+
     (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff-line nil t)
@@ -422,13 +423,13 @@ one optional arguments, diff-number to refine.")
 	     ;; (string-equal diff-type "c")
 	     (setq a-end (1+ a-end)
 		   b-end (1+ b-end))))
-		   
+
 	 (if (eq ediff-default-variant 'default-B)
 	     (setq c-begin b-begin
 		   c-end b-end)
 	   (setq c-begin a-begin
 		 c-end a-end))
-	 
+
 	 ;; compute main diff vector
 	 (if word-mode
 	     ;; make diff-list contain word numbers
@@ -499,11 +500,11 @@ one optional arguments, diff-number to refine.")
 			     nil	; dummy state of ancestor
 			     )))
 		  )))
-		  
+
 	 ))) ; end ediff-with-current-buffer
     diff-list
     ))
-    
+
 
 (defun ediff-convert-diffs-to-overlays (diff-list)
   (ediff-set-diff-overlays-in-one-buffer 'A diff-list)
@@ -529,7 +530,7 @@ one optional arguments, diff-number to refine.")
 	     )))
   (message "Processing difference regions ... done"))
 
-  
+
 (defun ediff-set-diff-overlays-in-one-buffer (buf-type diff-list)
   (let* ((current-diff -1)
 	 (buff (ediff-get-buffer buf-type))
@@ -547,10 +548,10 @@ one optional arguments, diff-number to refine.")
 
     (setq diff-list (cdr diff-list)) ; discard diff list type
     (setq total-diffs (length diff-list))
-      
+
     ;; shift, if necessary
     (ediff-with-current-buffer buff (setq pt-saved shift))
-	   
+
     (while diff-list
       (setq current-diff (1+ current-diff)
 	    list-element (car diff-list)
@@ -564,7 +565,7 @@ one optional arguments, diff-number to refine.")
 						  (t 7)))  ; Ancestor
 	    state-of-diff (aref list-element 8)
 	    )
-		
+
       (cond ((and (not (eq buf-type state-of-diff))
 		  (not (eq buf-type 'Ancestor))
 		  (memq state-of-diff '(A B C)))
@@ -573,7 +574,7 @@ one optional arguments, diff-number to refine.")
 	     (setq state-of-diff (format "=diff(%S)" state-of-diff))
 	     )
 	    (t (setq state-of-diff nil)))
-	    
+
       ;; Put overlays at appropriate places in buffer
       ;; convert word numbers to points, if necessary
       (if (eq diff-list-type 'words)
@@ -585,7 +586,7 @@ one optional arguments, diff-number to refine.")
 	    (if (> begin end) (setq begin end))
 	    (setq pt-saved (ediff-with-current-buffer buff (point)))))
       (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
-      
+
       (ediff-overlay-put overlay 'priority ediff-shadow-overlay-priority)
       (ediff-overlay-put overlay 'ediff-diff-num current-diff)
       (if (and (ediff-has-face-support-p)
@@ -608,7 +609,7 @@ one optional arguments, diff-number to refine.")
 	    diff-list
 	    (cdr diff-list))
       ) ; while
-      
+
     (set (ediff-get-symbol-from-alist buf-type ediff-difference-vector-alist)
 	 (vconcat diff-overlay-list))
     ))
@@ -619,14 +620,14 @@ one optional arguments, diff-number to refine.")
 ;; if `flag' is 'skip then don't compute fine diffs for this region.
 (defun ediff-make-fine-diffs (&optional n flag)
   (or n  (setq n ediff-current-difference))
-  
+
   (if (< ediff-number-of-differences 1)
       (error ediff-NO-DIFFERENCES))
-      
+
   (if ediff-word-mode
       (setq flag 'skip
 	    ediff-auto-refine 'nix))
-  
+
   (or (< n 0)
       (>= n ediff-number-of-differences)
       ;; n is within the range
@@ -641,7 +642,7 @@ one optional arguments, diff-number to refine.")
 	    (whitespace-B (ediff-whitespace-diff-region-p n 'B))
 	    (whitespace-C (ediff-whitespace-diff-region-p n 'C))
 	    cumulative-fine-diff-length)
-	
+
 	(cond ;; If one of the regions is empty (or 2 in 3way comparison)
 	      ;; then don't refine.
 	      ;; If the region happens to be entirely whitespace or empty then
@@ -705,7 +706,7 @@ one optional arguments, diff-number to refine.")
 		ediff-control-buffer)
 	       (setq file-A
 		     (ediff-make-temp-file tmp-buffer "fineDiffA" file-A))
-	       
+
 	       (ediff-wordify
 		(ediff-get-diff-posn 'B 'beg n)
 		(ediff-get-diff-posn 'B 'end n)
@@ -714,7 +715,7 @@ one optional arguments, diff-number to refine.")
 		ediff-control-buffer)
 	       (setq file-B
 		     (ediff-make-temp-file tmp-buffer "fineDiffB" file-B))
-	       
+
 	       (if ediff-3way-job
 		   (progn
 		     (ediff-wordify
@@ -726,12 +727,12 @@ one optional arguments, diff-number to refine.")
 		     (setq file-C
 			   (ediff-make-temp-file
 			    tmp-buffer "fineDiffC" file-C))))
-	       
+
 	       ;; save temp file names.
 	       (setq ediff-temp-file-A file-A
 		     ediff-temp-file-B file-B
 		     ediff-temp-file-C file-C)
-	       
+
 	       ;; set the new vector of fine diffs, if none exists
 	       (cond ((and ediff-3way-job whitespace-A)
 		      (ediff-setup-fine-diff-regions nil file-B file-C n))
@@ -744,7 +745,7 @@ one optional arguments, diff-number to refine.")
 		      (ediff-setup-fine-diff-regions file-A file-B nil n))
 		     (t
 		      (ediff-setup-fine-diff-regions file-A file-B file-C n)))
-		      
+
 	       (setq cumulative-fine-diff-length
 		     (+ (length (ediff-get-fine-diff-vector n 'A))
 			(length (ediff-get-fine-diff-vector n 'B))
@@ -752,7 +753,7 @@ one optional arguments, diff-number to refine.")
 			(if (and file-C (not ediff-merge-job))
 			    (length (ediff-get-fine-diff-vector n 'C))
 			  0)))
-		      
+
 	       (cond ((or
 		       ;; all regions are white space
 		       (and whitespace-A whitespace-B whitespace-C)
@@ -780,7 +781,7 @@ one optional arguments, diff-number to refine.")
 	      ) ; end cond
 	(ediff-set-fine-diff-properties n)
 	)))
-	
+
 ;; Interface to ediff-make-fine-diffs. Checks for auto-refine limit, etc.
 (defun ediff-install-fine-diff-if-necessary (n)
   (cond ((and (eq ediff-auto-refine 'on)
@@ -796,12 +797,12 @@ one optional arguments, diff-number to refine.")
 		    (ediff-get-diff-posn 'B 'beg n))))
 	     (ediff-make-fine-diffs n 'noforce)
 	   (ediff-make-fine-diffs n 'skip)))
-	
+
 	;; highlight iff fine diffs already exist
 	((eq ediff-auto-refine 'off)
 	 (ediff-make-fine-diffs n 'skip))))
-    
-    
+
+
 ;; if fine diff vector is not set for diff N, then do nothing
 (defun ediff-set-fine-diff-properties (n &optional default)
   (or (not (ediff-has-face-support-p))
@@ -813,7 +814,7 @@ one optional arguments, diff-number to refine.")
 	(ediff-set-fine-diff-properties-in-one-buffer 'B n default)
 	(if ediff-3way-job
 	    (ediff-set-fine-diff-properties-in-one-buffer 'C n default)))))
-	
+
 (defun ediff-set-fine-diff-properties-in-one-buffer (buf-type
 						     n &optional default)
   (let ((fine-diff-vector  (ediff-get-fine-diff-vector n buf-type))
@@ -835,7 +836,7 @@ one optional arguments, diff-number to refine.")
 	      (ediff-set-overlay-face overl face)
 	      (ediff-overlay-put overl 'priority priority))
 	    fine-diff-vector)))
-     
+
 ;; Set overlays over the regions that denote delimiters
 (defun ediff-set-fine-overlays-for-combined-merge (diff-list reg-num)
   (let (overlay overlay-list)
@@ -855,8 +856,8 @@ delimiter regions"))
     (ediff-set-fine-diff-vector
      reg-num 'C (apply 'vector overlay-list))
     ))
-	
-    
+
+
 ;; Convert diff list to overlays for a given DIFF-REGION
 ;; in buffer of type BUF-TYPE
 (defun ediff-set-fine-overlays-in-one-buffer (buf-type diff-list region-num)
@@ -870,7 +871,7 @@ delimiter regions"))
     (ediff-clear-fine-differences-in-one-buffer region-num buf-type)
     (setq diff-list (cdr diff-list)) ; discard list type (words or points)
     (ediff-with-current-buffer buff (goto-char reg-start))
-    
+
     ;; if it is a combined merge then set overlays in buff C specially
     (if (and ediff-merge-job (eq buf-type 'C)
 	     (setq combined-merge-diff-list
@@ -896,7 +897,7 @@ delimiter regions"))
 	  (setq overlay (ediff-make-bullet-proof-overlay begin end buff))
 	  ;; record all overlays for this difference region
 	  (setq diff-overlay-list (nconc diff-overlay-list (list overlay))))
-	
+
 	(setq diff-list (cdr diff-list))
 	) ; while
       ;; convert the list of difference information into a vector
@@ -963,7 +964,7 @@ delimiter regions"))
 	(anc-prev 1)
 	diff-list shift-A shift-B shift-C
 	)
- 
+
     ;; diff list contains word numbers or points, depending on word-mode
     (setq diff-list (cons (if word-mode 'words 'points)
 			  diff-list))
@@ -978,7 +979,7 @@ delimiter regions"))
 	      (if three-way-comp
 		  (ediff-overlay-start
 		   (ediff-get-value-according-to-buffer-type 'C bounds)))))
-    
+
     ;; reset point in buffers A, B, C
     (ediff-with-current-buffer A-buffer
       (goto-char (if shift-A shift-A (point-min))))
@@ -990,7 +991,7 @@ delimiter regions"))
     (if (ediff-buffer-live-p anc-buffer)
 	(ediff-with-current-buffer anc-buffer
 	  (goto-char (point-min))))
-    
+
     (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff3-line nil t)
@@ -1022,7 +1023,7 @@ delimiter regions"))
 		    b-begin-pt b-end-pt
 		    c-begin-pt c-end-pt
 		    anc-begin-pt anc-end-pt)
-		    
+
 	       (setq state-of-ancestor
 		     (= c-or-anc-begin c-or-anc-end))
 
@@ -1035,7 +1036,7 @@ delimiter regions"))
 		     (t
 		      (setq c-begin a-begin
 			    c-end a-end)))
-	 
+
 	       ;; compute main diff vector
 	       (if word-mode
 		   ;; make diff-list contain word numbers
@@ -1104,11 +1105,11 @@ delimiter regions"))
 					)))
 			)))
 	       ))
-	       
+
 	 ))) ; end ediff-with-current-buffer
     diff-list
     ))
-    
+
 ;; Generate the difference vector and overlays for three files
 ;; File-C is either the third file to compare (in case of 3-way comparison)
 ;; or it is the ancestor file.
@@ -1116,11 +1117,11 @@ delimiter regions"))
   (or (ediff-buffer-live-p ediff-diff-buffer)
       (setq ediff-diff-buffer
 	    (get-buffer-create (ediff-unique-buffer-name "*ediff-diff" "*"))))
-  
+
   (message "Computing differences ...")
   (ediff-exec-process ediff-diff3-program ediff-diff-buffer 'synchronize
 		      ediff-diff3-options file-A file-B file-C)
-  
+
   (ediff-prepare-error-list ediff-diff3-ok-lines-regexp ediff-diff-buffer)
   ;;(message "Computing differences ... done")
   (ediff-convert-diffs-to-overlays
@@ -1128,7 +1129,7 @@ delimiter regions"))
     ediff-diff-buffer
     ediff-word-mode ediff-3way-comparison-job ediff-narrow-bounds)
    ))
-   
+
 
 ;; Execute PROGRAM asynchronously, unless OS/2, Windows-*, or DOS, or unless
 ;; SYNCH is non-nil.  BUFFER must be a buffer object, and must be alive.  The
@@ -1175,7 +1176,7 @@ delimiter regions"))
 	      (set-process-filter proc 'ediff-process-filter)
 	      )))
       (store-match-data data))))
-      
+
 ;; This is shell-command-filter from simple.el in Emacs.
 ;; Copied here because XEmacs doesn't have it.
 (defun ediff-process-filter (proc string)
@@ -1199,7 +1200,7 @@ delimiter regions"))
       (if opoint
           (goto-char opoint))
       (set-buffer obuf))))
-      
+
 ;; like shell-command-sentinel but doesn't print an exit status message
 ;; we do this because diff always exits with status 1, if diffs are found
 ;; so shell-command-sentinel displays a confusing message to the user
@@ -1211,7 +1212,7 @@ delimiter regions"))
           (set-buffer (process-buffer process))
           (setq mode-line-process nil))
         (delete-process process))))
-	
+
 
 ;;; Word functions used to refine the current diff
 
@@ -1287,7 +1288,7 @@ arguments to `skip-chars-forward'."
      (setq diff-string (buffer-substring-no-properties beg end))
 
      (set-buffer out-buffer)
-     ;; Make sure that temp buff syntax table is the same a the original buf
+     ;; Make sure that temp buff syntax table is the same as the original buf
      ;; syntax tbl, because we use ediff-forward-word in both and
      ;; ediff-forward-word depends on the syntax classes of characters.
      (set-syntax-table inbuf-syntax-tbl)
@@ -1296,14 +1297,14 @@ arguments to `skip-chars-forward'."
      (goto-char (point-min))
      (skip-chars-forward ediff-whitespace)
      (delete-region (point-min) (point))
-     
+
      (while (not (eobp))
        (funcall forward-word-function)
        (setq sv-point (point))
        (skip-chars-forward ediff-whitespace)
        (delete-region sv-point (point))
        (insert "\n")))))
-       
+
 ;; copy string specified as BEG END from IN-BUF to OUT-BUF
 (defun ediff-copy-to-buffer (beg end in-buffer out-buffer)
   (with-current-buffer out-buffer

@@ -384,7 +384,7 @@ field boundaries in a natural way)."
   :type 'boolean
   :group 'comint)
 
-(defcustom comint-mode-hook '()
+(defcustom comint-mode-hook '(turn-on-font-lock)
   "Called upon entry into `comint-mode'
 This is run before the process is cranked up."
   :type 'hook
@@ -501,14 +501,16 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (make-local-variable 'comint-scroll-to-bottom-on-input)
   (make-local-variable 'comint-scroll-to-bottom-on-output)
   (make-local-variable 'comint-scroll-show-maximum-output)
+  ;; This makes it really work to keep point at the bottom.
+  (make-local-variable 'scroll-conservatively)
+  (setq scroll-conservatively 10000)
   (add-hook 'pre-command-hook 'comint-preinput-scroll-to-bottom t t)
   (make-local-variable 'comint-ptyp)
   (make-local-variable 'comint-process-echoes)
   (make-local-variable 'comint-file-name-chars)
   (make-local-variable 'comint-file-name-quote-list)
   (set (make-local-variable 'comint-accum-marker) (make-marker))
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
+  (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   ;; This behavior is not useful in comint buffers, and is annoying
   (set (make-local-variable 'next-line-add-newlines) nil))
 
@@ -781,10 +783,9 @@ buffer.  The hook `comint-exec-hook' is run after each exec."
 	   (process-mark (get-buffer-process (current-buffer))))
        (point))
       ;; Insert the clicked-upon input
-      (insert-buffer-substring
-       (current-buffer)
-       (previous-single-char-property-change (1+ pos) 'field)
-       (next-single-char-property-change pos 'field)))))
+      (insert (buffer-substring-no-properties
+	       (previous-single-char-property-change (1+ pos) 'field)
+	       (next-single-char-property-change pos 'field))))))
 
 
 
@@ -1446,7 +1447,7 @@ Similarly for Soar, Scheme, etc."
 
 	  (let ((beg (marker-position pmark))
 		(end (if no-newline (point) (1- (point)))))
-	    (when (not (> beg end))	; handle a special case
+	    (when (> end beg)
 	      ;; Set text-properties for the input field
 	      (add-text-properties
 	       beg end
@@ -1461,7 +1462,7 @@ Similarly for Soar, Scheme, etc."
 		;; `boundary' field to make cursor movement between input
 		;; and output fields smoother.
 		(put-text-property beg end 'field 'input)))
-	    (unless comint-use-prompt-regexp-instead-of-fields
+	    (unless (or no-newline comint-use-prompt-regexp-instead-of-fields)
 	      ;; Cover the terminating newline
 	      (add-text-properties end (1+ end)
 				   '(rear-nonsticky t
@@ -1528,6 +1529,10 @@ redirection buffer.
 You can use `add-hook' to add functions to this list
 either globally or locally.")
 
+(defvar comint-inhibit-carriage-motion nil
+  "If nil, comint will interpret `carriage control' characters in output.
+See `comint-carriage-motion' for details.")
+
 ;; When non-nil, this is an overlay over the last recognized prompt in
 ;; the buffer; it is used when highlighting the prompt.
 (defvar comint-last-prompt-overlay nil)
@@ -1537,47 +1542,44 @@ either globally or locally.")
 ;; prompt overlay.
 (defun comint-snapshot-last-prompt ()
   (when comint-last-prompt-overlay
-    (add-text-properties (overlay-start comint-last-prompt-overlay)
-			 (overlay-end comint-last-prompt-overlay)
-			 (overlay-properties comint-last-prompt-overlay))))
+    (let ((inhibit-read-only t))
+      (add-text-properties (overlay-start comint-last-prompt-overlay)
+                           (overlay-end comint-last-prompt-overlay)
+                           (overlay-properties comint-last-prompt-overlay)))))
 
-(defun comint-carriage-motion (string)
-  "Handle carriage control characters in comint output.
+(defun comint-carriage-motion (start end)
+  "Interpret carriage control characters in the region from START to END.
 Translate carriage return/linefeed sequences to linefeeds.
 Make single carriage returns delete to the beginning of the line.
-Make backspaces delete the previous character.
-
-This function should be in the list `comint-output-filter-functions'."
-  (save-match-data
-    ;; We first check to see if STRING contains any magic characters, to
-    ;; avoid overhead in the common case where it does not
-    (when (string-match "[\r\b]" string)
-      (let ((pmark (process-mark (get-buffer-process (current-buffer)))))
-	(save-excursion
-	  (save-restriction
-	    (widen)
-	    (let ((inhibit-field-text-motion t)
-		  (buffer-read-only nil))
-	      ;; CR LF -> LF
-	      ;; Note that this won't work properly when the CR and LF
-	      ;; are in different output chunks, but this is probably an
-	      ;; exceedingly rare case (because they are generally
-	      ;; written as a unit), and to delay interpretation of a
-	      ;; trailing CR in a chunk would result in odd interactive
-	      ;; behavior (and this case is probably far more common).
-	      (goto-char comint-last-output-start)
-	      (while (re-search-forward "\r$" pmark t)
-		(delete-char -1))
-	      ;; bare CR -> delete preceding line
-	      (goto-char comint-last-output-start)
-	      (while (search-forward "\r" pmark t)
-		(delete-region (point) (line-beginning-position)))
-	      ;; BS -> delete preceding character
-	      (goto-char comint-last-output-start)
-	      (while (search-forward "\b" pmark t)
-		(delete-char -2)))))))))
-
-(add-hook 'comint-output-filter-functions 'comint-carriage-motion)
+Make backspaces delete the previous character."
+  (save-excursion
+    ;; First do a quick check to see if there are any applicable
+    ;; characters, so we can avoid calling save-match-data and
+    ;; save-restriction if not.
+    (goto-char start)
+    (when (< (skip-chars-forward "^\b\r" end) (- end start))
+      (save-match-data
+	(save-restriction
+	  (widen)
+	  (let ((inhibit-field-text-motion t)
+		(buffer-read-only nil))
+	    ;; CR LF -> LF
+	    ;; Note that this won't work properly when the CR and LF
+	    ;; are in different output chunks, but this is probably an
+	    ;; exceedingly rare case (because they are generally
+	    ;; written as a unit), and to delay interpretation of a
+	    ;; trailing CR in a chunk would result in odd interactive
+	    ;; behavior (and this case is probably far more common).
+	    (while (re-search-forward "\r$" end t)
+	      (delete-char -1))
+	    ;; bare CR -> delete preceding line
+	    (goto-char start)
+	    (while (search-forward "\r" end t)
+	      (delete-region (point) (line-beginning-position)))
+	    ;; BS -> delete preceding character
+	    (goto-char start)
+	    (while (search-forward "\b" end t)
+	      (delete-char -2))))))))
 
 ;; The purpose of using this filter for comint processes
 ;; is to keep comint-last-input-end from moving forward
@@ -1662,11 +1664,20 @@ This function should be in the list `comint-output-filter-functions'."
 	    ;; Advance process-mark
 	    (set-marker (process-mark process) (point))
 
+	    (unless comint-inhibit-carriage-motion
+	      ;; Interpret any carriage motion characters (newline, backspace)
+	      (comint-carriage-motion comint-last-output-start (point)))
+
+	    (run-hook-with-args 'comint-output-filter-functions string)
+
+	    (goto-char (process-mark process)) ; in case a filter moved it
+
 	    (unless comint-use-prompt-regexp-instead-of-fields
-	      (add-text-properties comint-last-output-start (point)
-				   '(rear-nonsticky t
-				     field output
-				     inhibit-line-move-field-capture t)))
+              (let ((inhibit-read-only t))
+                (add-text-properties comint-last-output-start (point)
+                                     '(rear-nonsticky t
+                                       field output
+                                       inhibit-line-move-field-capture t))))
 
 	    ;; Highlight the prompt, where we define `prompt' to mean
 	    ;; the most recent output that doesn't end with a newline.
@@ -1685,9 +1696,7 @@ This function should be in the list `comint-output-filter-functions'."
 		  (overlay-put comint-last-prompt-overlay
 			       'font-lock-face 'comint-highlight-prompt))))
 
-	    (goto-char saved-point)
-
-	    (run-hook-with-args 'comint-output-filter-functions string)))))))
+	    (goto-char saved-point)))))))
 
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
@@ -1747,7 +1756,7 @@ This function should be in the list `comint-output-filter-functions'."
 		     ;; Optionally scroll so that the text
 		     ;; ends at the bottom of the window.
 		     (if (and comint-scroll-show-maximum-output
-			      (>= (point) (process-mark process)))
+			      (= (point) (point-max)))
 			 (save-excursion
 			   (goto-char (point-max))
 			   (recenter -1)))
@@ -1795,7 +1804,7 @@ the current line with any initial string matching the regexp
 `comint-prompt-regexp' removed."
   (let ((bof (field-beginning)))
     (if (eq (get-char-property bof 'field) 'input)
-	(field-string bof)
+	(field-string-no-properties bof)
       (comint-bol)
       (buffer-substring-no-properties (point) (line-end-position)))))
 
@@ -2059,7 +2068,7 @@ Sets mark to the value of point when this command is run."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (interrupt-process nil comint-ptyp))
 
 (defun comint-kill-subjob ()
@@ -2067,7 +2076,7 @@ between the process-mark and point."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (kill-process nil comint-ptyp))
 
 (defun comint-quit-subjob ()
@@ -2075,7 +2084,7 @@ between the process-mark and point."
 This command also kills the pending input
 between the process-mark and point."
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (quit-process nil comint-ptyp))
 
 (defun comint-stop-subjob ()
@@ -2088,7 +2097,7 @@ the top-level process running in the buffer. If you accidentally do
 this, use \\[comint-continue-subjob] to resume the process. (This
 is not a problem with most shells, since they ignore this signal.)"
   (interactive)
-  (comint-kill-input)
+  (comint-skip-input)
   (stop-process nil comint-ptyp))
 
 (defun comint-continue-subjob ()
@@ -2096,6 +2105,19 @@ is not a problem with most shells, since they ignore this signal.)"
 Useful if you accidentally suspend the top-level process."
   (interactive)
   (continue-process nil comint-ptyp))
+
+(defun comint-skip-input ()
+  "Skip all pending input, from last stuff output by interpreter to point.
+This means mark it as if it had been sent as input, without sending it."
+  (let ((comint-input-sender 'ignore)
+	(comint-input-filter-functions nil))
+    (comint-send-input t))
+  (end-of-line)
+  (let ((pos (point))
+	(marker (process-mark (get-buffer-process (current-buffer)))))
+    (insert "  " (key-description (this-command-keys)))
+    (if (= marker pos)
+	(set-marker marker (point)))))
 
 (defun comint-kill-input ()
   "Kill all text from last stuff output by interpreter to point."
@@ -2167,7 +2189,7 @@ If N is negative, find the previous or Nth previous match."
   "Move to end of Nth next prompt in the buffer.
 If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
 the beginning of the Nth next `input' field, otherwise, it means the Nth
-occurance of text matching `comint-prompt-regexp'."
+occurrence of text matching `comint-prompt-regexp'."
   (interactive "p")
   (if comint-use-prompt-regexp-instead-of-fields
       ;; Use comint-prompt-regexp
@@ -2204,7 +2226,7 @@ occurance of text matching `comint-prompt-regexp'."
   "Move to end of Nth previous prompt in the buffer.
 If `comint-use-prompt-regexp-instead-of-fields' is nil, then this means
 the beginning of the Nth previous `input' field, otherwise, it means the Nth
-occurance of text matching `comint-prompt-regexp'."
+occurrence of text matching `comint-prompt-regexp'."
   (interactive "p")
   (comint-next-prompt (- n)))
 
@@ -2514,7 +2536,7 @@ This is used by comint's and shell's completion functions, and by shell's
 directory tracking functions.")
 
 (defvar comint-file-name-chars
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
@@ -2639,7 +2661,7 @@ Returns t if successful."
 (defun comint-dynamic-complete-as-filename ()
   "Dynamically complete at point as a filename.
 See `comint-dynamic-complete-filename'.  Returns t if successful."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (completion-ignored-extensions comint-completion-fignore)
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
@@ -2728,7 +2750,7 @@ Returns `partial' if completed as far as possible with the completion matches.
 Returns `listed' if a completion listing was shown.
 
 See also `comint-dynamic-complete-filename'."
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 (suffix (cond ((not comint-completion-addsuffix) "")
 		       ((not (consp comint-completion-addsuffix)) " ")
 		       (t (cdr comint-completion-addsuffix))))
@@ -2769,7 +2791,7 @@ See also `comint-dynamic-complete-filename'."
 (defun comint-dynamic-list-filename-completions ()
   "List in help buffer possible completions of the filename at point."
   (interactive)
-  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt)))
+  (let* ((completion-ignore-case (memq system-type '(ms-dos windows-nt cygwin)))
 	 ;; If we bind this, it breaks remote directory tracking in rlogin.el.
 	 ;; I think it was originally bound to solve file completion problems,
 	 ;; but subsequent changes may have made this unnecessary.  sm.
@@ -2785,13 +2807,30 @@ See also `comint-dynamic-complete-filename'."
        (mapcar 'comint-quote-filename completions)))))
 
 
+;; This is bound locally in a *Completions* buffer to the list of
+;; completions displayed, and is used to detect the case where the same
+;; command is repeatedly used without the set of completions changing.
+(defvar comint-displayed-dynamic-completions nil)
+
 (defun comint-dynamic-list-completions (completions)
   "List in help buffer sorted COMPLETIONS.
 Typing SPC flushes the help buffer."
   (let ((window (get-buffer-window "*Completions*")))
+    (setq completions (sort completions 'string-lessp))
     (if (and (eq last-command this-command)
 	     window (window-live-p window) (window-buffer window)
-	     (buffer-name (window-buffer window)))
+	     (buffer-name (window-buffer window))
+	     ;; The above tests are not sufficient to detect the case where we
+	     ;; should scroll, because the top-level interactive command may
+	     ;; not have displayed a completions window the last time it was
+	     ;; invoked, and there may be such a window left over from a
+	     ;; previous completion command with a different set of
+	     ;; completions.  To detect that case, we also test that the set
+	     ;; of displayed completions is in fact the same as the previously
+	     ;; displayed set.
+	     (equal completions
+		    (buffer-local-value 'comint-displayed-dynamic-completions
+					(window-buffer window))))
 	;; If this command was repeated, and
 	;; there's a fresh completion window with a live buffer,
 	;; and this command is repeated, scroll that window.
@@ -2804,11 +2843,14 @@ Typing SPC flushes the help buffer."
 
       (let ((conf (current-window-configuration)))
 	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list (sort completions 'string-lessp)))
+	  (display-completion-list completions))
 	(message "Type space to flush; repeat completion command to scroll")
 	(let (key first)
 	  (if (save-excursion
 		(set-buffer (get-buffer "*Completions*"))
+		(set (make-local-variable
+		      'comint-displayed-dynamic-completions)
+		     completions)
 		(setq key (read-key-sequence nil)
 		      first (aref key 0))
 		(and (consp first) (consp (event-start first))

@@ -340,7 +340,7 @@
 
 	* iso8859-1.el: Call set-case-..., not standard-case-...
 
-1993-05-23  Paul Eggert	 (eggert@twinsun.com)
+1993-05-23  Paul Eggert  (eggert@twinsun.com)
 
 	* calendar.el (calendar-daylight-savings-starts,
 	calendar-daylight-savings-ends): Default to nil if the locale
@@ -634,7 +634,7 @@
 
 	* vc.el (vc-version-diff): Match parens.
 
-1993-05-14  Paul Eggert	 (eggert@twinsun.com)
+1993-05-14  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-revert-buffer1): Don't assume that compilation-error-list
 	is a list; it might be t.
@@ -664,7 +664,7 @@
 	(emerge-diff-ok-lines-regexp): Renamed from emerge-diff-ok-lines.
 	(emerge-diff3-ok-lines-regexp): Renamed from emerge-diff3-ok-lines.
 
-1993-05-13  Paul Eggert	 (eggert@twinsun.com)
+1993-05-13  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-version-diff): Don't move point in current buffer.
 
@@ -720,7 +720,7 @@
 	(terminal-mode): Don't make meta-flag local.
 	(te-stty-string): Quote the args that have ^.  Add pass8.
 
-1993-05-08  Paul Eggert	 (eggert@twinsun.com)
+1993-05-08  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-diff): Report an error if the buffer isn't registered.
 	(vc-registration-error): New function.
@@ -836,7 +836,7 @@
 
 	* menu-bar.el: Don't add menu bar to minibuffer-only frames.
 
-1993-05-07  Paul Eggert	 (eggert@twinsun.com)
+1993-05-07  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-directory-18): New function.
 	If Emacs 18, make vc-directory alias to this.
@@ -2026,7 +2026,7 @@
 	ring is now a separate buffer from *VC-log*; editing of old comments
 	is no longer destructive.
 
-1993-03-16  Paul Eggert	 (eggert@twinsun.com)
+1993-03-16  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-version-diff): Use (message ...), not (message (format
 	...)).	(vc-backend-checkout, vc-backend-assign-name): Correct
@@ -2169,7 +2169,7 @@
 	  other keysyms are now default-bound to a function which explains
 	  that the key is not bound to anything, then raises an error.
 
-	* term/READ.ME: terminal package conventions and standard keysym
+	* term/README: terminal package conventions and standard keysym
 	  cookies are now documented here.
 
 	* term/AT386.el: new package installed.	 Handles IBM-AT style
@@ -2308,7 +2308,7 @@
 	(isearch-unread): Don't call it here.
 	(isearch-mode-map): Bind the ASCII-equivalent function keys.
 
-1993-03-07  Paul Eggert	 (eggert@twinsun.com)
+1993-03-07  Paul Eggert  (eggert@twinsun.com)
 
 	* vc.el (vc-update-change-log): Check that ChangeLog is writable
 	before starting the expensive rcs2log process.
@@ -3351,7 +3351,7 @@
 	(ange-ftp-read-passwd, ange-ftp-process-filter): Uncomment out the
 	calls to ange-ftp-repaint-buffer.
 
-1992-11-11  Eric S. Raymond (eric@mole.gnu.ai.mit.edu)
+1992-11-11  Eric S. Raymond  (eric@mole.gnu.ai.mit.edu)
 
 	* c-mode.el (c-style-alist): Add quotes around C++ style name.
 
@@ -3589,7 +3589,7 @@
 	* files.el (file-truename): Check for root by seeing if
 	directory-file-name returns same as DIR.
 	Look for a file-truename handler for the file name.
-	* vc-hooks (vc-registered): Look for a vc-registered handler.
+	* vc-hooks.el (vc-registered): Look for a vc-registered handler.
 	But only if file-name-handler-alist is bound.
 	* ange-ftp.el: Add dummy handlers for file-truename and vc-registered.
 	(ange-ftp-add-vms-host, ange-ftp-add-dl-dir, ange-ftp-add-mts-host):
@@ -4681,7 +4681,7 @@
 	(byte-compile-ca*d*r): Deleted.
 	(caar, cadr, ..., cddddr): Define these using defsubst.
 
-	* Installed changes from Zawinski-Furuseth 2.04 to 2.07:
+	Installed changes from Zawinski-Furuseth 2.04 to 2.07:
 	* byte-run.el (dont-compile): Doc fix.
 	(make-obsolete-variable): New function.
 	* bytecomp.el (byte-compile-log-1): Added new optional argument,
@@ -4975,7 +4975,7 @@
 	terminal-dependent file has been loaded.
 
 	* cl.el (byte-compile-named-list-accessors, byte-compile-ca*d*r):
-	Changed these to work correctly with the Zawinski-Furuseth byte
+	Change these to work correctly with the Zawinski-Furuseth byte
 	compiler.
 
 1992-07-31  Robert J. Chassell	(bob@churchy.gnu.ai.mit.edu)
@@ -5712,7 +5712,7 @@
 	* bytecomp.el: Style corrected in calls to error.
 	Many doc strings corrected in style.
 
-	* Repeated the following changes:
+	Repeated the following changes:
 	* bytecomp.el (byte-compile-file): Don't put file name in minibuffer.
 	(byte-compile-buffer): Function commented out.
 
@@ -6720,13 +6720,12 @@
 
 1992-02-27  Jim Blandy	(jimb@pogo.cs.oberlin.edu)
 
-	* hack-local-variables: Don't take a FORCE argument; it's as easy
-	to bind enable-local-variables to t for a while as it is to pass
-	an extra argument, and it's cleaner.
-	* normal-mode: Instead of passing the FORCE argument, bind
+	* files.el (hack-local-variables): Don't take a FORCE argument;
+	it's as easy to bind enable-local-variables to t for a while as it
+	is to pass an extra argument, and it's cleaner.
+	(normal-mode): Instead of passing the FORCE argument, bind
 	enable-local-variables.
-
-	* set-auto-mode: Don't check for the -*- mode tag if
+	(set-auto-mode): Don't check for the -*- mode tag if
 	enable-local-variables is nil.
 
 	* loaddefs.el (auto-mode-alist): There's no reason for this
@@ -6850,7 +6849,7 @@
 
 	* etags.el: support new (find-tag-noselect) entry point.
 
-	* info: patched to restore point on `up' to previously visited buffer.
+	* info.el: patched to restore point on `up' to previously visited buffer.
 
 	* sccs.el: installed 3.5
 
@@ -7188,7 +7187,7 @@
 	* paths.el (Info-default-directory-list): Define instead of
 	Info-directory-list.
 
-1991-08-13  Ken Raeburn	 (raeburn@watch.com)
+1991-08-13  Ken Raeburn  (raeburn@watch.com)
 
 	* time.el (display-time-24hr-format): New variable.
 	(display-time-filter): If display-time-24hr-format is non-nil,
@@ -7934,7 +7933,7 @@
 
 	* fill.el (justify-current-line): Handle extra indent after prefix.
 
-1991-03-14  Robert J. Chassell (bob@gnu.ai.mit.edu)
+1991-03-14  Robert J. Chassell  (bob@gnu.ai.mit.edu)
 
 	* info.el (Info-forward-node): Go up several levels, if necessary.
 	Add two new arguments.
@@ -8174,7 +8173,7 @@
 
 	* help.el (help-for-help): Call delete-other-windows.
 
-1991-01-21  Mike Newton	 (newton@fig)
+1991-01-21  Mike Newton  (newton@fig)
 
 	* bibtex.el: updated to conform better with bibtex 0.99c by:
 	bibtex-mode : updated comments to indicate new use of
@@ -8378,7 +8377,7 @@
 	* compile.el (compilation-last-error): Remove this variable.
 	(next-error): Don't set it.
 
-1990-12-12  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-12-12  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-end-of-year): Delete extraneous statement
 	in let.
@@ -8469,7 +8468,7 @@
 	* fill.el (fill-region-as-paragraph): New feature: Adaptive Fill mode.
 	(adaptive-fill-mode, adaptive-fill-regexp): New user options.
 
-1990-11-30  Mike Newton	 (newton@gumby.cs.caltech.edu)
+1990-11-30  Mike Newton  (newton@gumby.cs.caltech.edu)
 
 	* bibtex.el (start comments): added earlier comments of Bengt
 	Martensson.  Some of the changes listed below are originally his
@@ -8540,7 +8539,7 @@
 	(byte-compile-normal-call): Don't alter byte-compile-depth.
 	(byte-compile-funcall): New function.
 
-1990-11-27  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-27  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (diary-float): Allow month to be a list of months, a
 	single month, or t (for all months).
@@ -8558,7 +8557,7 @@
 
 	* appt.el: Fixed if construct for midnight update.
 
-1990-11-25  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-25  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (insert-block-diary-entry): Change reference to
 	mark-ring to calendar-mark-ring.
@@ -8577,14 +8576,14 @@
 	* appt.el: Changed list-diary-entries-hook to diary-display-hook
 	to be compatible with new version of the calendar/diary packgage.
 
-1990-11-20  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-20  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-version): New constant, with date
 	(calendar-count-days-region, calendar-not-available): New functions.
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-11  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-11  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (make-diary-entry): New function.
 	(insert-diary-entry, insert-weekly-diary-entry,
@@ -8601,14 +8600,14 @@
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-08  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-set-mark,
 	calendar-exchange-point-and-mark): New functions.
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-06  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (sexp-diary-entry-symbol): New variable.
 	(cursor-to-iso-calendar-date): Simplified, slightly.
@@ -8630,7 +8629,7 @@
 	more appropriately.
 
 
-1990-10-23  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-23  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el (list-diary-entries): Added a separate hook to do the
 	display, so that the diary entries can be obtained without
@@ -8642,7 +8641,7 @@
 
 	calendar.el: Add default definition of diary-display-hook.
 
-1990-10-20  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-20  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (describe-calendar-mode): Rewrote to give just a
 	brief description of the mode instead of calling describe-mode.
@@ -8654,7 +8653,7 @@
 
 	* appt.el: Using copy modified by rms.
 
-1990-10-08  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holiday.el (calendar-holiday-function-hebrew): Fixed minor
 	problem with the code to short-circuit the calculations to save
@@ -8676,7 +8675,7 @@
 
 	* history.el: Specify `(provide 'history)'.
 
-1990-11-20  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-20  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el:
 	Added constant calendar-version with date
@@ -8685,7 +8684,7 @@
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-11  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-11  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el:
 	(make-diary-entry): New function.
@@ -8705,14 +8704,14 @@
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-08  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el:
 	(calendar-set-mark), (calendar-exchange-point-and-mark): New functions.
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-11-06  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-11-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el: Added new variable sexp-diary-entry-symbol.
 	(cursor-to-iso-calendar-date): Simplified, slightly.
@@ -8735,7 +8734,7 @@
 	more appropriately.
 
 
-1990-10-23  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-23  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el
 	(list-diary-entries): Added a separate hook to do the display, so
@@ -8747,13 +8746,13 @@
 
 	calendar.el: Add default definition of diary-display-hook.
 
-1990-10-20  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-20  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el
 	(describe-calendar-mode): Rewrote to give just a brief description
 	of the mode instead of calling describe-mode.
 
-1990-10-08  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-10-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holiday.el:
 	(calendar-holiday-function-hebrew): Fixed minor problem with the
@@ -8763,13 +8762,13 @@
 	(mark-hebrew-calendar-date-pattern): Fixed minor problem with the
 	code to short-circuit the calculations to save time.
 
-1990-09-10  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-09-10  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el:
 	(list-diary-entries), (list-hebrew-diary-entries),
 	(list-islamic-diary-entries): Fixed to use add-to-diary-list.
 
-1990-09-07  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-09-07  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* holiday.el
 	(filter-visible-calendar-holidays): New function.
@@ -8806,8 +8805,7 @@
 	when there are no diary entries but lots of holidays.
 	(ordinary-list-diary-hook), (add-to-diary-list): New functions.
 
-
-1990-09-06  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-09-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el:
 	Changed reference at beginning of file from the report to the
@@ -9057,8 +9055,9 @@
 
 1990-10-11  Richard Stallman  (rms@mole.ai.mit.edu)
 
-	* Kill commands on read-only buffers, just copy to kill-ring.
-	* simple.el (kill-region): If read-only, just copy to kill-ring.
+	* simple.el: Kill commands on read-only buffers, just copy to
+	kill-ring.
+	(kill-region): If read-only, just copy to kill-ring.
 	(zap-to-char, kill-line, kill-comment, kill-word):
 	(backward-kill-word, kill-paragraph, backward-kill-paragraph):
 	Allow read-only buffers.
@@ -9613,7 +9612,7 @@
 	  lines with @-sign commands for @chapter, @section and the like,
 	  but not @node lines.
 
-1990-06-27  Richard Stallman (rms@mole.ai.mit.edu)
+1990-06-27  Richard Stallman  (rms@mole.ai.mit.edu)
 
 	* paragraphs.el (start-of-paragraph-text): Avoid infinite loop.
 
@@ -9999,7 +9998,7 @@
 	* dired.el (dired-diff): New command.
 	(dired-mode-map): Put on `='.
 
-1990-03-28  Jim Kingdon	 (kingdon@mole.ai.mit.edu)
+1990-03-28  Jim Kingdon  (kingdon@mole.ai.mit.edu)
 
 	* rmail.el (rmail-insert-rmail-file-header, rmail-convert-file):
 	Put in "-*- rmail -*-".
@@ -10281,7 +10280,7 @@
 	* inf-lisp.el: inferior-lisp-program can be a list of the programme
 	  name and its arguments.
 
-1990-02-06  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-02-06  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el:
 	(french-calendar-leap-year-p): Rewritten with corrected rule.
@@ -10324,7 +10323,7 @@
 
 	* texinfmt.el (batch-texinfo-format): Paren error on (setq error 1).
 
-1990-01-27  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-01-27  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el:
 	(scroll-calendar-left): Fixed so it works when the cursor is not
@@ -10379,7 +10378,7 @@
 
 	* rfc822.el (rfc822-addresses): Barf, don't loop, on > in host name.
 
-1990-01-16  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-01-16  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el:
 	(insert-diary-entry): New function.
@@ -10397,7 +10396,7 @@
 	(calendar-mode-map): Put them on keys.
 	(calendar-mode): Describe them.
 
-1990-01-11  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-01-11  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* diary.el
 	(list-diary-entries): Deleted several lines of extraneous code
@@ -10440,7 +10439,7 @@
 
 	* term/x-win.el (x-pop-up-window): Set global-minibuffer-screen.
 
-1990-01-08  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-01-08  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (calendar-date-is-visible-p):
 	Fixed so it does not switch to the calendar buffer.
@@ -10450,7 +10449,7 @@
 	displayed in the calendar.  This saves an enormous amount of time in
 	the fancy diary display for multiple days.
 
-1990-01-07  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1990-01-07  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el: Fixed the value of list-diary-entries-hook.
 	(regenerate-calendar-window): Changed (update-display) to (sit-for 0).
@@ -10479,13 +10478,13 @@
 	* view.el (View-scroll-lines-forward):
 	Exit@end only if view-scroll-forward-exits is non-nil.
 
-1989-12-29  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1989-12-29  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el (mark-diary-entries): Made "sticky" so effect continues
 	whenever the calendar is redisplayed.
 	(mark-calendar-holidays, calendar-unmark): Likewise.
 
-1989-12-26  Ed Reingold	 (reingold@emr.cs.uiuc.edu)
+1989-12-26  Ed Reingold  (reingold@emr.cs.uiuc.edu)
 
 	* calendar.el: Fixed many minor bugs throughout the code. The major
 	changes are as follows.
@@ -10658,7 +10657,7 @@
 
 	* paths.el: Changed rmail-file-name from const to a var.
 
-1989-11-16  Ed Reingold	 (reingold@cs.uiuc.edu)
+1989-11-16  Ed Reingold  (reingold@cs.uiuc.edu)
 
 	* tex-mode.el (slitex-mode):
 	New alternative to plain-tex-mode and latex-mode.
@@ -11630,7 +11629,7 @@
 
 	* replace.el (perform-replace): make ! undo as a unit.
 
-1989-04-17  Chris Smith	 (csmith@mozart)
+1989-04-17  Chris Smith  (csmith@mozart)
 
 	* icon-mode.el (icon-comment-indent): When auto-fill breaks a
 	line in a bol comment, start the continued line in column 1
@@ -11665,7 +11664,7 @@
 
 	* loaddefs.el: Autoload ftp-list-directory.
 
-1989-04-06  Edward M. Reingold (reingold@cs.uiuc.edu)
+1989-04-06  Edward M. Reingold  (reingold@cs.uiuc.edu)
 
 	 Hook added to list-diary-entries, along with a possible
 	  value for that hook which prepares a fancy diary buffer

@@ -81,7 +81,7 @@ date Sunday, December 31, 1 BC."
 (defun calendar-iso-date-string (&optional date)
   "String of ISO date of Gregorian DATE.
 Defaults to today's date if DATE is not given."
-  (let* ((d (calendar-absolute-from-gregorian 
+  (let* ((d (calendar-absolute-from-gregorian
              (or date (calendar-current-date))))
          (day (% d 7))
          (iso-date (calendar-iso-from-absolute d)))

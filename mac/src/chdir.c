@@ -33,7 +33,7 @@ int chdir(const char *path)
 
   strcpy(mypath, path);
   c2pstr(mypath);
-  
+
   wdpb.ioNamePtr = mypath;
   wdpb.ioVRefNum = 0;
   wdpb.ioWDDirID = 0;

@@ -32,7 +32,7 @@
 ;; in a special buffer.  It prompts you to type a key sequence,
 ;; which should be one of:
 ;;
-;;  * RET or `C-x e' (call-last-kbd-macro), to edit the most 
+;;  * RET or `C-x e' (call-last-kbd-macro), to edit the most
 ;;    recently defined keyboard macro.
 ;;
 ;;  * `M-x' followed by a command name, to edit a named command
@@ -75,8 +75,6 @@
 
 ;;; The user-level commands for editing macros.
 
-;;;###autoload (define-key ctl-x-map "\C-k" 'edit-kbd-macro)
-
 ;;;###autoload
 (defvar edmacro-eight-bits nil
   "*Non-nil if edit-kbd-macro should leave 8-bit characters intact.
@@ -107,7 +105,8 @@ With a prefix argument, format the macro in a more concise way."
       (cond (store-hook
 	     (setq mac keys)
 	     (setq cmd nil))
-	    ((or (eq cmd 'call-last-kbd-macro)
+	    ((or (memq cmd '(call-last-kbd-macro kmacro-call-macro
+			     kmacro-end-or-call-macro kmacro-end-and-call-macro))
 		 (member keys '("\r" [return])))
 	     (or last-kbd-macro
 		 (y-or-n-p "No keyboard macro defined.  Create one? ")
@@ -597,7 +596,7 @@ If START or END is negative, it counts from the end."
 	     (if end
 		 (let ((res nil))
 		   (while (>= (setq end (1- end)) start)
-		     (cl-push (cl-pop seq) res))
+		     (push (pop seq) res))
 		   (nreverse res))
 	       (copy-sequence seq)))
 	    (t
@@ -609,23 +608,30 @@ If START or END is negative, it counts from the end."
 		 (setq i (1+ i) start (1+ start)))
 	       res))))))
 
-(defun edmacro-fix-menu-commands (macro)
-  (when (vectorp macro)
-    (let ((i 0) ev)
-      (while (< i (length macro))
-	(when (consp (setq ev (aref macro i)))
-	  (cond ((equal (cadadr ev) '(menu-bar))
-		 (setq macro (vconcat (edmacro-subseq macro 0 i)
-				      (vector 'menu-bar (car ev))
-				      (edmacro-subseq macro (1+ i))))
-		 (incf i))
+(defun edmacro-fix-menu-commands (macro &optional noerror)
+  (if (vectorp macro)
+      (let (result)
+	;; Make a list of the elements.
+	(setq macro (append macro nil))
+	(dolist (ev macro)
+	  (cond ((atom ev)
+		 (push ev result))
+		((eq (car ev) 'help-echo))
+		((equal ev '(menu-bar))
+		 (push 'menu-bar result))
+		((equal (cadadr ev) '(menu-bar))
+		 (push (vector 'menu-bar (car ev)) result))
 		;; It would be nice to do pop-up menus, too, but not enough
 		;; info is recorded in macros to make this possible.
+		(noerror
+		 ;; Just ignore mouse events.
+		 nil)
 		(t
 		 (error "Macros with mouse clicks are not %s"
 			"supported by this command"))))
-	(incf i))))
-  macro)
+	;; Reverse them again and make them back into a vector.
+	(vconcat (nreverse result)))
+    macro))
 
 ;;; Parsing a human-readable keyboard macro.
 

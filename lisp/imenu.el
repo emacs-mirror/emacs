@@ -104,17 +104,26 @@ This variable is buffer-local."
   :type 'integer
   :group 'imenu)
 
-(defcustom imenu-always-use-completion-buffer-p nil
-  "*Set this to non-nil for displaying the index in a completion buffer.
+(defvar imenu-always-use-completion-buffer-p nil)
+(make-obsolete-variable 'imenu-always-use-completion-buffer-p
+			'imenu-use-popup-menu "21.4")
 
-`never' means never automatically display a listing of any kind.
-A value of nil (the default) means display the index as a mouse menu
-if the mouse was used to invoke `imenu'.
-Another non-nil value means always display the index in a completion buffer."
-  :type '(choice (const :tag "On Mouse" nil)
-		 (const :tag "Never" never)
-		 (other :tag "Always" t))
-  :group 'imenu)
+(defcustom imenu-use-popup-menu
+  (if imenu-always-use-completion-buffer-p
+      (not (eq imenu-always-use-completion-buffer-p 'never))
+    'on-mouse)
+  "Use a popup menu rather than a minibuffer prompt.
+If nil, always use a minibuffer prompt.
+If t, always use a popup menu,
+If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
+  :type '(choice (const :tag "On Mouse" on-mouse)
+		 (const :tag "Never" nil)
+		 (other :tag "Always" t)))
+
+(defcustom imenu-eager-completion-buffer
+  (not (eq imenu-always-use-completion-buffer-p 'never))
+  "If non-nil, eagerly popup the completion buffer."
+  :type 'boolean)
 
 (defcustom imenu-after-jump-hook nil
   "*Hooks called after jumping to a place in the buffer.
@@ -164,7 +173,7 @@ which case you might as well set this to nil."
   "*The replacement string for spaces in index names.
 Used when presenting the index in a completion buffer to make the
 names work as tokens."
-  :type 'string
+  :type '(choice string (const nil))
   :group 'imenu)
 
 (defcustom imenu-level-separator ":"
@@ -667,7 +676,7 @@ as a way for the user to ask to recalculate the buffer's index alist."
   "Alist of syntax table modifiers to use while in `imenu--generic-function'.
 
 The car of the assocs may be either a character or a string and the
-cdr is a syntax description appropriate fo `modify-syntax-entry'.  For
+cdr is a syntax description appropriate for `modify-syntax-entry'.  For
 a string, all the characters in the string get the specified syntax.
 
 This is typically used to give word syntax to characters which
@@ -779,8 +788,9 @@ PATTERNS."
       ;; The character(s) to modify may be a single char or a string.
       (if (numberp (car syn))
 	  (modify-syntax-entry (car syn) (cdr syn) table)
-	(dolist (c (car syn))
-	  (modify-syntax-entry c (cdr syn) table))))
+        (mapc (lambda (c)
+                (modify-syntax-entry c (cdr syn) table))
+              (car syn))))
     (goto-char (point-max))
     (imenu-progress-message prev-pos 0 t)
     (unwind-protect			; for syntax table
@@ -857,37 +867,26 @@ Returns t for rescan and otherwise a position number."
   (let ((name (thing-at-point 'symbol))
 	choice
 	(prepared-index-alist
-	 (mapcar
-	  (lambda (item)
-	    (cons (subst-char-in-string ?\ (aref imenu-space-replacement 0)
-					(car item))
-		  (cdr item)))
-	  index-alist)))
+	 (if (not imenu-space-replacement) index-alist
+	   (mapcar
+	    (lambda (item)
+	      (cons (subst-char-in-string ?\ (aref imenu-space-replacement 0)
+					  (car item))
+		    (cdr item)))
+	    index-alist))))
     (when (stringp name)
       (setq name (or (imenu-find-default name prepared-index-alist) name)))
     (cond (prompt)
 	  ((and name (imenu--in-alist name prepared-index-alist))
 	   (setq prompt (format "Index item (default %s): " name)))
 	  (t (setq prompt "Index item: ")))
-    (if (eq imenu-always-use-completion-buffer-p 'never)
-  	(setq name (completing-read prompt
-  				    prepared-index-alist
- 				    nil t nil 'imenu--history-list name))
-      (save-window-excursion
-	;; Display the completion buffer
-	(with-output-to-temp-buffer "*Completions*"
-	  (display-completion-list
-	   (all-completions "" prepared-index-alist )))
-	(let ((minibuffer-setup-hook
-	       (function
-		(lambda ()
-		  (let ((buffer (current-buffer)))
-		    (with-current-buffer "*Completions*"
-		      (setq completion-reference-buffer buffer)))))))
-	  ;; Make a completion question
-	  (setq name (completing-read prompt
-				      prepared-index-alist
-				      nil t nil 'imenu--history-list name)))))
+    (let ((minibuffer-setup-hook minibuffer-setup-hook))
+      ;; Display the completion buffer.
+      (if (not imenu-eager-completion-buffer)
+	  (add-hook 'minibuffer-setup-hook 'minibuffer-completion-help))
+      (setq name (completing-read prompt
+				  prepared-index-alist
+				  nil t nil 'imenu--history-list name)))
     (cond ((not (stringp name)) nil)
 	  ((string= name (car imenu--rescan-item)) t)
 	  (t
@@ -923,7 +922,7 @@ select from ALIST.
 With no index alist ALIST, it calls `imenu--make-index-alist' to
 create the index alist.
 
-If `imenu-always-use-completion-buffer-p' is non-nil, then the
+If `imenu-use-popup-menu' is non-nil, then the
 completion buffer is always used, no matter if the mouse was used or
 not.
 
@@ -941,8 +940,8 @@ The returned value is of the form (INDEX-NAME . INDEX-POSITION)."
     (while (eq result t)
       (setq index-alist (if alist alist (imenu--make-index-alist)))
       (setq result
-	    (if (and mouse-triggered
-		     (not imenu-always-use-completion-buffer-p))
+	    (if (and imenu-use-popup-menu
+		     (or (eq imenu-use-popup-menu t) mouse-triggered))
 		(imenu--mouse-menu index-alist last-nonmenu-event)
 	      (imenu--completion-buffer index-alist prompt)))
       (and (eq result t)

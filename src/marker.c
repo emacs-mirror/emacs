@@ -531,14 +531,14 @@ Returns MARKER.  */)
       m->chain = BUF_MARKERS (b);
       BUF_MARKERS (b) = marker;
     }
-  
+
   return marker;
 }
 
 /* This version of Fset_marker won't let the position
    be outside the visible part.  */
 
-Lisp_Object 
+Lisp_Object
 set_marker_restricted (marker, pos, buffer)
      Lisp_Object marker, pos, buffer;
 {
@@ -607,14 +607,14 @@ set_marker_restricted (marker, pos, buffer)
       m->chain = BUF_MARKERS (b);
       BUF_MARKERS (b) = marker;
     }
-  
+
   return marker;
 }
 
 /* Set the position of MARKER, specifying both the
    character position and the corresponding byte position.  */
 
-Lisp_Object 
+Lisp_Object
 set_marker_both (marker, buffer, charpos, bytepos)
      Lisp_Object marker, buffer;
      int charpos, bytepos;
@@ -658,14 +658,14 @@ set_marker_both (marker, buffer, charpos, bytepos)
       m->chain = BUF_MARKERS (b);
       BUF_MARKERS (b) = marker;
     }
-  
+
   return marker;
 }
 
 /* This version of set_marker_both won't let the position
    be outside the visible part.  */
 
-Lisp_Object 
+Lisp_Object
 set_marker_restricted_both (marker, buffer, charpos, bytepos)
      Lisp_Object marker, buffer;
      int charpos, bytepos;
@@ -718,7 +718,7 @@ set_marker_restricted_both (marker, buffer, charpos, bytepos)
       m->chain = BUF_MARKERS (b);
       BUF_MARKERS (b) = marker;
     }
-  
+
   return marker;
 }
 

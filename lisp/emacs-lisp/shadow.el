@@ -53,7 +53,7 @@
 
 ;;; Code:
 
-(defgroup shadow nil
+(defgroup lisp-shadow nil
   "Locate Emacs Lisp file shadowings."
   :prefix "shadows-"
   :group 'lisp)
@@ -62,7 +62,7 @@
   "*If non-nil, then shadowing files are reported only if their text differs.
 This is slower, but filters out some innocuous shadowing."
   :type 'boolean
-  :group 'shadow)
+  :group 'lisp-shadow)
 
 (defun find-emacs-lisp-shadows (&optional path)
   "Return a list of Emacs Lisp files that create shadows.
@@ -74,7 +74,7 @@ the file in position 2i+1.  Emacs Lisp file suffixes \(.el and .elc\)
 are stripped from the file names in the list.
 
 See the documentation for `list-load-path-shadows' for further information."
-  
+
   (or path (setq path load-path))
 
   (let (true-names			; List of dirs considered.
@@ -86,7 +86,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	files-seen-this-dir		; Files seen so far in this dir.
 	file)				; The current file.
 
-  
+
     (while path
 
       (setq dir (directory-file-name (file-truename (or (car path) "."))))
@@ -125,7 +125,7 @@ See the documentation for `list-load-path-shadows' for further information."
 	    ;; This test prevents us declaring that XXX.el shadows
 	    ;; XXX.elc (or vice-versa) when they are in the same directory.
 	    (setq files-seen-this-dir (cons file files-seen-this-dir))
-	      
+
 	    (if (setq orig-dir (assoc file files))
 		;; This file was seen before, we have a shadowing.
 		;; Report it unless the files are identical.
@@ -202,7 +202,7 @@ considered to shadow a later file XXX.el, and vice-versa.
 When run interactively, the shadowings \(if any\) are displayed in a
 buffer called `*Shadows*'.  Shadowings are located by calling the
 \(non-interactive\) companion function, `find-emacs-lisp-shadows'."
-  
+
   (interactive)
   (let* ((path (copy-sequence load-path))
 	(tem path)

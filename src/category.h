@@ -109,7 +109,7 @@ extern Lisp_Object _temp_category_set;
 #else
 #define CATEGORY_SET(c) \
   Faref (current_buffer->category_table, make_number (c))
-#endif   
+#endif
 
 /* Return the doc string of CATEGORY in category table TABLE.  */
 #define CATEGORY_DOCSTRING(table, category) \

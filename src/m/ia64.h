@@ -133,29 +133,7 @@ Boston, MA 02111-1307, USA.  */
 #define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
 #define XUINT(a) ((long) (a) & VALMASK)
 
-/* Declare malloc and realloc in a way that is clean.
-   But not in makefiles!  */
-
 #ifndef NOT_C_CODE
-/* We need these because pointers are larger than the default ints.  */
-# if !defined(__NetBSD__) && !defined(__OpenBSD__)
-#  include <alloca.h>
-# else
-#  include <stdlib.h>
-# endif
-
-/* We need to prototype these for the lib-src programs even if we don't
-   use the system malloc for the Emacs proper.  */
-#ifdef _MALLOC_INTERNAL
-/* These declarations are designed to match the ones in gmalloc.c.  */
-#if defined (__STDC__) && __STDC__
-extern void *malloc (), *realloc (), *calloc ();
-#else
-extern char *malloc (), *realloc (), *calloc ();
-#endif
-#else /* not _MALLOC_INTERNAL */
-extern void *malloc (), *realloc (), *calloc ();
-#endif /* not _MALLOC_INTERNAL */
 
 #ifdef REL_ALLOC
 #ifndef _MALLOC_INTERNAL

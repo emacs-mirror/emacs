@@ -1,4 +1,4 @@
-;;; georgian.el --- language support for Georgian
+;;; georgian.el --- language support for Georgian -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 2001  Free Software Foundation, Inc.
 
@@ -31,6 +31,8 @@
 	      (coding-priority georgian-ps)
 	      (input-method . "georgian")
 	      (features code-pages)
+	      (nonascii-translation . ,(get 'decode-georgian-ps
+					    'translation-table))
 	      (documentation . "Support for georgian-ps character set."))
  '("European"))				; fixme: is this appropriate for
 					; a non-Latin script?

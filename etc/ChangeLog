@@ -1,3 +1,124 @@
+2003-04-03  Kenichi Handa  <handa@etlken2>
+
+	* HELLO: Fix the malayalam line.
+
+2003-04-01  Dave Love  <fx@gnu.org>
+
+	* letter.xpm: Use transparent/opaque `colours'.
+
+	* letter.xbm: Deleted.
+
+	* letter.pbm: New.
+
+2003-03-24  Andreas Schwab  <schwab@suse.de>
+
+	* HELLO: Remove extra TAB in Greek entries.
+
+2003-03-03  Chao-Hong Liu  <chliu@gnu.org>
+
+	* TUTORIAL.cn, TUTORIAL.zh: New files.
+
+	* TUTORIAL.translator: List TUTORIAL.cn and TUTORIAL.zh.
+
+2003-02-24  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Add Malayalam.
+
+2003-02-13  Dave Love  <fx@gnu.org>
+
+	* TUTORIAL.es: Add coding spec.
+
+2003-02-11  Kenichi Handa  <handa@m17n.org>
+
+	* HELLO: Fix Hindi and add Tamil.
+
+2003-02-05  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* TUTORIAL.it: Italian tutorial.
+	From Alfredo Finelli <alfredofnl@tiscali.it> (original translator).
+	Revised by Francesco Potort,Al(B <pot@gnu.org>.
+
+2003-02-03  Bill Wohler  <wohler@newt.com>
+
+	* MH-E-NEWS: Upgraded to MH-E version 7.2.
+
+2003-01-31  Joe Buehler  <jhpb@draco.hekimian.com>
+
+	* MACHINES: Added Cygwin.
+
+2003-01-27  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* DEBUG: Added note about xmon.
+
+2003-01-20  Joanna Pluta  <joanna_p@gazeta.pl>
+
+	* TUTORIAL.pl: Updated.
+
+2003-01-11  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* TUTORIAL.sk: Updated to reflect changes in English version.
+	From Miroslav Va,B9(Bko <zemiak@zoznam.sk>.
+
+2003-01-09  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* etags.1: Added reference to the new `etags --help --lang=LANG'
+	option.
+
+2003-01-08  Bill Wohler  <wohler@newt.com>
+
+	* MH-E-NEWS: Upgraded to MH-E version 7.1.
+
+2003-01-01  Steven Tamm  <steventamm@mac.com>
+
+	* MACHINES: Added pointer to Mac OS X install instructions.
+
+2002-12-10  Kenichi Handa  <handa@m17n.org>
+
+	* TUTORIAL.sv: Renamed from TUTORIAL.se.
+
+2002-11-29  Bill Wohler  <wohler@newt.com>
+
+	* MH-E-NEWS: Upgraded to MH-E version 7.0.
+
+2002-11-22  Juanma Barranquero  <lektu@terra.es>
+
+	* TUTORIAL.es: Extensively changed and updated by Rafael Sep,Az(Blveda
+	<drs@gnulinux.org.mx>.
+
+2002-10-01  Bill Wohler  <wohler@newt.com>
+
+	* MH-E-NEWS: Upgraded to mh-e version 6.1.1.
+
+2002-09-16  Jonathan Yavner  <jyavner@engineer.com>
+
+	* ses-example.ses: New file: example spreadsheet.
+
+2002-09-04  Kenichi Handa  <handa@etl.go.jp>
+
+	* HELLO: Fix Unicode Greek line.
+
+2002-09-03  Kenichi Handa  <handa@etl.go.jp>
+
+	* TUTORIAL.ja: Updated in accordance with the latest English
+	version.
+
+2002-09-01  Andreas Schwab  <schwab@suse.de>
+
+	* TUTORIAL.de: Updated in accordance with the English version.
+	From Mario Lang <mlang@delysid.org>.
+
+2002-08-12  Markus Rost  <rost@math.ohio-state.edu>
+
+	* HELLO: Fix some white spaces.
+
+2002-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* ps-prin0.ps, ps-prin1.ps: Add license exception.
+
+2002-06-16  Eli Zaretskii  <eliz@is.elta.co.il>
+
+	* TUTORIAL.fr: New version from ,AI(Bric Jacoboni <jaco@teaser.fr>.
+
 2002-05-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* HELLO: Add a few greetings that use Unicode characters.
@@ -305,7 +426,7 @@
 
 	* ps-prin0.ps: Changed comment version (6.0).
 
-2000-08-24  Wlodzimierz Bzyl <matwb@univ.gda.pl>
+2000-08-24  Wlodzimierz Bzyl  <matwb@univ.gda.pl>
 
 	* survival.tex: New file.
 

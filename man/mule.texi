@@ -477,7 +477,7 @@ Display a list of all the supported input methods.
 input method name from the minibuffer; the name normally starts with the
 language environment that it is meant to be used with.  The variable
 @code{current-input-method} records which input method is selected.
-  
+
 @findex toggle-input-method
 @kindex C-\
   Input methods use various sequences of ASCII characters to stand for
@@ -814,6 +814,15 @@ reread the file using the correct coding system by typing @kbd{C-x
 the file, look at the coding system mnemonic letter near the left edge
 of the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
 
+@findex unify-8859-on-decoding-mode
+  The command @code{unify-8859-on-decoding-mode} enables a mode that
+``unifies'' the Latin alphabets when decoding text.  This works by
+converting all non-ASCII Latin-@var{n} characters to either Latin-1 or
+Unicode characters.  This way it is easier to use various
+Latin-@var{n} alphabets together.  In a future Emacs version we hope
+to move towards full Unicode support and complete unification of
+character sets.
+
 @vindex buffer-file-coding-system
   Once Emacs has chosen a coding system for a buffer, it stores that
 coding system in @code{buffer-file-coding-system} and uses that coding
@@ -887,8 +896,8 @@ system, you can use these commands to specify one:
 
 @table @kbd
 @item C-x @key{RET} f @var{coding} @key{RET}
-Use coding system @var{coding} for the visited file
-in the current buffer.
+Use coding system @var{coding} for saving or revisiting the visited
+file in the current buffer.
 
 @item C-x @key{RET} c @var{coding} @key{RET}
 Specify coding system @var{coding} for the immediately following
@@ -915,12 +924,14 @@ selection---the next one---to or from the window system.
 
 @kindex C-x RET f
 @findex set-buffer-file-coding-system
-  The command @kbd{C-x @key{RET} f} (@code{set-buffer-file-coding-system})
-specifies the file coding system for the current buffer---in other
-words, which coding system to use when saving or rereading the visited
-file.  You specify which coding system using the minibuffer.  Since this
-command applies to a file you have already visited, it affects only the
-way the file is saved.
+  The command @kbd{C-x @key{RET} f}
+(@code{set-buffer-file-coding-system}) sets the file coding system for
+the current buffer---in other words, it says which coding system to
+use when saving or reverting the visited file.  You specify which
+coding system using the minibuffer.  If you specify a coding system
+that cannot handle all of the characters in the buffer, Emacs warns
+you about the troublesome characters when you actually save the
+buffer.
 
 @kindex C-x RET c
 @findex universal-coding-system-argument
@@ -933,17 +944,19 @@ command}.
 
   So if the immediately following command is @kbd{C-x C-f}, for example,
 it reads the file using that coding system (and records the coding
-system for when the file is saved).  Or if the immediately following
+system for when you later save the file).  Or if the immediately following
 command is @kbd{C-x C-w}, it writes the file using that coding system.
-Other file commands affected by a specified coding system include
-@kbd{C-x C-i} and @kbd{C-x C-v}, as well as the other-window variants of
-@kbd{C-x C-f}.
+When you specify the coding system for saving in this way, instead
+of with @kbd{C-x @key{RET} f}, there is no warning if the buffer
+contains characters that the coding system cannot handle.
 
-  @kbd{C-x @key{RET} c} also affects commands that start subprocesses,
-including @kbd{M-x shell} (@pxref{Shell}).
+  Other file commands affected by a specified coding system include
+@kbd{C-x C-i} and @kbd{C-x C-v}, as well as the other-window variants
+of @kbd{C-x C-f}.  @kbd{C-x @key{RET} c} also affects commands that
+start subprocesses, including @kbd{M-x shell} (@pxref{Shell}).
 
-  However, if the immediately following command does not use the coding
-system, then @kbd{C-x @key{RET} c} ultimately has no effect.
+  If the immediately following command does not use the coding system,
+then @kbd{C-x @key{RET} c} ultimately has no effect.
 
   An easy way to visit a file with no conversion is with the @kbd{M-x
 find-file-literally} command.  @xref{Visiting}.
@@ -983,7 +996,19 @@ translation of keyboard input is useful for terminals with keys that
 send non-ASCII graphic characters---for example, some terminals designed
 for ISO Latin-1 or subsets of it.
 
-  By default, keyboard input is not translated at all.
+  By default, keyboard input is translated based on your system locale
+setting.  If your terminal does not really support the encoding
+implied by your locale (for example, if you find it inserts a
+non-ASCII character if you type @kbd{M-i}), you will need to set
+@code{keyboard-coding-system} to @code{nil} to turn off encoding.
+You can do this by putting
+
+@lisp
+(set-keyboard-coding-system nil)
+@end lisp
+
+@noindent
+in your @file{~/.emacs} file.
 
   There is a similarity between using a coding system translation for
 keyboard input, and using an input method: both define sequences of

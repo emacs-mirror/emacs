@@ -125,8 +125,22 @@ The buffer is left in Command History mode."
 	  (error "No command history")
 	(command-history-mode)))))
 
+(defvar command-history-map nil)
+(unless command-history-map
+  (setq command-history-map (make-sparse-keymap))
+  (set-keymap-parent command-history-map lisp-mode-shared-map)
+  (suppress-keymap command-history-map)
+  (define-key command-history-map "x" 'command-history-repeat)
+  (define-key command-history-map "\n" 'next-line)
+  (define-key command-history-map "\r" 'next-line)
+  (define-key command-history-map "\177" 'previous-line))
+
 (defun command-history-mode ()
-  "Major mode for listing and repeating recent commands."
+  "Major mode for listing and repeating recent commands.
+
+Keybindings:
+\\{command-history-map}"
+  (interactive)
   (Command-history-setup)
   (setq major-mode 'command-history-mode)
   (setq mode-name "Command History")
@@ -144,16 +158,6 @@ The buffer is left in Command History mode."
   "If non-nil, its value is called on entry to `command-history-mode'."
   :type 'hook
   :group 'chistory)
-
-(defvar command-history-map nil)
-(unless command-history-map
-  (setq command-history-map (make-sparse-keymap))
-  (set-keymap-parent command-history-map lisp-mode-shared-map)
-  (suppress-keymap command-history-map)
-  (define-key command-history-map "x" 'command-history-repeat)
-  (define-key command-history-map "\n" 'next-line)
-  (define-key command-history-map "\r" 'next-line)
-  (define-key command-history-map "\177" 'previous-line))
 
 (defun command-history-repeat ()
   "Repeat the command shown on the current line.

@@ -206,7 +206,7 @@ term, and the rest of the words are alternative terms.")
   'apropos-label "Group"
   'help-echo "mouse-2, RET: Display more help on this group"
   'action (lambda (button)
-	    (customize-variable-other-window
+	    (customize-group-other-window
 	     (button-get button 'apropos-symbol))))
 
 (define-button-type 'apropos-widget
@@ -247,7 +247,7 @@ before finding a label."
   (concat "\\("
 	  (mapconcat 'identity words "\\|")
 	  "\\)" wild
-	  (if (cdr words) 
+	  (if (cdr words)
 	      (concat "\\("
 		      (mapconcat 'identity words "\\|")
 		      "\\)")
@@ -314,7 +314,7 @@ Value is a list of offsets of the words into the string."
 	(dolist (s (apropos-calc-scores doc apropos-all-words) score)
 	  (setq score (+ score 50 (/ (* (- l s) 50) l)))))
       0))
-	  
+
 (defun apropos-score-symbol (symbol &optional weight)
   "Return apropos score for SYMBOL."
   (setq symbol (symbol-name symbol))
@@ -372,7 +372,7 @@ normal variables."
 
 ;; For auld lang syne:
 ;;;###autoload
-(fset 'command-apropos 'apropos-command)
+(defalias 'command-apropos 'apropos-command)
 ;;;###autoload
 (defun apropos-command (apropos-regexp &optional do-all var-predicate)
   "Show commands (interactively callable functions) that match APROPOS-REGEXP.
@@ -413,7 +413,7 @@ satisfy the predicate VAR-PREDICATE."
 		     (if (functionp symbol)
 			 (if (setq doc (documentation symbol t))
 			     (progn
-			       (setq score (+ score (apropos-score-doc doc))) 
+			       (setq score (+ score (apropos-score-doc doc)))
 			       (substring doc 0 (string-match "\n" doc)))
 			   "(not documented)")))
 		   (and var-predicate
@@ -429,6 +429,16 @@ satisfy the predicate VAR-PREDICATE."
     (and (apropos-print t nil)
 	 message
 	 (message message))))
+
+
+;;;###autoload
+(defun apropos-documentation-property (symbol property raw)
+  "Like (documentation-property SYMBOL PROPERTY RAW) but handle errors."
+  (condition-case ()
+      (let ((doc (documentation-property symbol property raw)))
+	(if doc (substring doc 0 (string-match "\n" doc))
+	  "(not documented)"))
+    (error "(error retrieving documentation)")))
 
 
 ;;;###autoload
@@ -463,37 +473,28 @@ time-consuming.  Returns list of symbols and documentation found."
 		   (if (setq doc (condition-case nil
 				     (documentation symbol t)
 				   (void-function
-				    "(alias for undefined function)")))
+				    "(alias for undefined function)")
+				   (error
+				    "(error retrieving function documentation)")))
 		       (substring doc 0 (string-match "\n" doc))
 		     "(not documented)"))
 		 (when (boundp symbol)
-		   (if (setq doc (documentation-property
-				  symbol 'variable-documentation t))
-		       (substring doc 0 (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'variable-documentation t))
 		 (when (setq properties (symbol-plist symbol))
 		   (setq doc (list (car properties)))
 		   (while (setq properties (cdr (cdr properties)))
 		     (setq doc (cons (car properties) doc)))
 		   (mapconcat #'symbol-name (nreverse doc) " "))
 		 (when (get symbol 'widget-type)
-		   (if (setq doc (documentation-property
-				  symbol 'widget-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'widget-documentation t))
 		 (when (facep symbol)
-		   (if (setq doc (documentation-property
-				  symbol 'face-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))
+		   (apropos-documentation-property
+		    symbol 'face-documentation t))
 		 (when (get symbol 'custom-group)
-		   (if (setq doc (documentation-property
-				  symbol 'group-documentation t))
-		       (substring doc 0
-				  (string-match "\n" doc))
-		     "(not documented)"))))
+		   (apropos-documentation-property
+		    symbol 'group-documentation t))))
       (setq p (cdr p))))
   (apropos-print
    (or do-all apropos-do-all)
@@ -530,7 +531,7 @@ Returns list of symbols and values found."
 	(if (apropos-false-hit-str p)
 	    (setq p nil))
 	(if (or f v p)
-	    (setq apropos-accumulator (cons (list symbol 
+	    (setq apropos-accumulator (cons (list symbol
 						  (+ (apropos-score-str f)
 						     (apropos-score-str v)
 						     (apropos-score-str p))
@@ -579,7 +580,7 @@ Returns list of symbols and documentation found."
 				 (setcar (nthcdr 2 apropos-item) v)
 				 (setcar apropos-item (+ (car apropos-item) sv)))))
 		       (setq apropos-accumulator
-			     (cons (list symbol 
+			     (cons (list symbol
 					 (+ (apropos-score-symbol symbol 2) sf sv)
 					 f v)
 				   apropos-accumulator)))))))
@@ -664,7 +665,7 @@ Returns list of symbols and documentation found."
 	      (or (and (setq apropos-item (assq symbol apropos-accumulator))
 		       (setcar (cdr apropos-item)
 			       (+ (cadr apropos-item) (apropos-score-doc doc))))
-		  (setq apropos-item (list symbol 
+		  (setq apropos-item (list symbol
 					   (+ (apropos-score-symbol symbol 2)
 					      (apropos-score-doc doc))
 					   nil nil)
@@ -754,7 +755,7 @@ Will return nil instead."
 (defun apropos-print (do-keys spacing)
   "Output result of apropos searching into buffer `*Apropos*'.
 The value of `apropos-accumulator' is the list of items to output.
-Each element should have the format 
+Each element should have the format
  (SYMBOL SCORE FN-DOC VAR-DOC [PLIST-DOC WIDGET-DOC FACE-DOC GROUP-DOC]).
 The return value is the list that was in `apropos-accumulator', sorted
 alphabetically by symbol name; but this function also sets

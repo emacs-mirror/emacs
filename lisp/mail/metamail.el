@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1996  Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@mse.kyutech.ac.jp>
-;; Version: $Id: metamail.el,v 1.13 1999/10/15 15:45:02 monnier Exp $
+;; Version: $Id: metamail.el,v 1.15 2003/02/04 13:14:00 lektu Exp $
 ;; Keywords: mail, news, mime, multimedia
 
 ;; This file is part of GNU Emacs.
@@ -111,9 +111,9 @@ Its header part is not interpreted at all."
       ;; Find Content-Type and Content-Transfer-Encoding from the header.
       (save-restriction
 	(narrow-to-region (point-min) end)
-	(setq contype 
+	(setq contype
 	      (or (mail-fetch-field "Content-Type") "text/plain"))
-	(setq encoding 
+	(setq encoding
 	      (or (mail-fetch-field "Content-Transfer-Encoding") "7bit")))
       ;; Interpret the body part only.
       (let ((metamail-switches		;Process body part only.
@@ -153,7 +153,7 @@ redisplayed as output is inserted."
 	(buffer-read-only nil)
 	(metafile (make-temp-file "metamail"))
 	(option-environment
-	 (list (format "EMACS_VIEW_MODE=%d" 
+	 (list (format "EMACS_VIEW_MODE=%d"
 		       (if (numberp viewmode) viewmode 1)))))
     (save-excursion
       ;; Gee!  Metamail does not ouput to stdout if input comes from

@@ -33,9 +33,6 @@ struct Lisp_Process
     Lisp_Object infd;
     /* Descriptor by which we write to this process */
     Lisp_Object outfd;
-    /* Descriptor for the tty which this process is using.
-       nil if we didn't record it (on some systems, there's no need).  */
-    Lisp_Object subtty;
     /* Name of subprocess terminal.  */
     Lisp_Object tty_name;
     /* Name of this process */
@@ -60,6 +57,8 @@ struct Lisp_Process
     /* t if this is a real child process.
        For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
+    /* Plist for programs to keep per-process state information, parameters, etc.  */
+    Lisp_Object plist;
     /* Marker set to end of last buffer-inserted output from this process */
     Lisp_Object mark;
     /* Non-nil means kill silently if Emacs is exited.
@@ -96,6 +95,12 @@ struct Lisp_Process
     /* Flag to set coding-system of the process buffer from the
        coding_system used to decode process output.  */
     Lisp_Object inherit_coding_system_flag;
+    /* Flat to decide the multibyteness of a string given to the
+       filter (if any).  It is initialized to the value of
+       `default-enable-multibyte-characters' when the process is
+       generated, and can be changed by the function
+       `set-process-fileter-multibyte'. */
+    Lisp_Object filter_multibyte;
 };
 
 /* Every field in the preceding structure except for the first two

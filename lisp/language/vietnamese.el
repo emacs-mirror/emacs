@@ -38,7 +38,7 @@
    64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79
    80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
    96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111
-   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 
+   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
    ?,2U(B ?,2!(B ?,2"(B ?,2#(B ?,2$(B ?,2%(B ?,2&(B ?,2'(B ?,2((B ?,2)(B ?,2*(B ?,2+(B ?,2,(B ?,2-(B ?,2.(B ?,2/(B
    ?,20(B ?,21(B ?,22(B ?,25(B ?,2~(B ?,2>(B ?,26(B ?,27(B ?,28(B ?,2v(B ?,2w(B ?,2o(B ?,2|(B ?,2{(B ?,2x(B ?,2O(B
    ?,2u(B ?,1!(B ?,1"(B ?,1#(B ?,1$(B ?,1%(B ?,1&(B ?,1'(B ?,1((B ?,1)(B ?,1*(B ?,1+(B ?,1,(B ?,1-(B ?,1.(B ?,1/(B
@@ -66,7 +66,7 @@
    64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79
    80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
    96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111
-   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 
+   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
    ?,2`(B ?,2d(B ?,2c(B ?,2a(B ?,2U(B ?,2#(B ?,2'(B ?,2h(B ?,2k(B ?,2((B ?,2i(B ?,2)(B ?,2.(B ?,2l(B ?,2o(B ?,2n(B
    ?,2m(B ?,28(B ?,2r(B ?,2v(B ?,2u(B ?,2s(B ?,2w(B ?,25(B ?,26(B ?,27(B ?,2^(B ?,2>(B ?,2~(B ?,2y(B ?,2|(B ?,2{(B
    160 ?,2e(B ?,2b(B ?,2j(B ?,2t(B ?,2=(B ?,2_(B ?,2p(B ?,1e(B ?,1b(B ?,1j(B ?,1t(B ?,1=(B ?,1y(B ?,1p(B ?,2"(B
@@ -92,7 +92,7 @@
    64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79
    80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95
    96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111
-   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127 
+   112 113 114 115 116 117 118 119 120 121 122 123 124 125 126 127
    ?,2`(B ?,2d(B ?,2c(B ?,2a(B ?,2U(B ?,2#(B ?,2'(B ?,2h(B ?,2k(B ?,2((B ?,2i(B ?,2)(B ?,2.(B ?,2l(B ?,2o(B ?,2n(B
    ?,2m(B ?,28(B ?,2r(B ?,2v(B ?,2u(B ?,2s(B ?,2w(B ?,25(B ?,26(B ?,27(B ?,2^(B ?,2>(B ?,2~(B ?,2y(B ?,2|(B ?,2{(B
    160 ?,2e(B ?,2b(B ?,2j(B ?,2t(B ?,2=(B ?,2_(B ?,2p(B ?,1e(B ?,1b(B ?,1j(B ?,1t(B ?,1=(B ?,1_(B ?,1p(B ?,2"(B
@@ -127,7 +127,7 @@
 ;;    ?,1`(B ?,1a(B ?,1b(B ?,1c(B ?,1d(B ?,1U(B ?,1e(B 231 ?,1h(B ?,1i(B ?,1j(B ?,1((B ?,1l(B ?,1m(B 238 ?,1n(B
 ;;    ?,2G(B ?,2p(B ?,1r(B ?,1s(B ?,1t(B ?,1u(B 246 ?,2=(B ?,1x(B ?,1y(B ?,1z(B ?,1|(B 252 ?,2V(B ?,2((B ?,1O(B]
 ;;   "Vietnamese VPS decoding table.")
-;; 
+;;
 ;; (let ((table (make-translation-table-from-vector viet-vps-decode-table)))
 ;;   (define-translation-table 'viet-vps-nonascii-translation-table table)
 ;;   (define-translation-table 'viet-vps-encode-table
@@ -220,7 +220,7 @@
 ;; 	 (write-multibyte-character r0 r1)
 ;; 	 (repeat))))
 ;;   "CCL program to decode VPS.")
-;; 
+;;
 ;; (define-ccl-program ccl-encode-vps
 ;;   `(1
 ;;     ((loop
@@ -228,7 +228,7 @@
 ;; 	 (translate-character viet-vps-encode-table r0 r1)
 ;; 	 (write-repeat r1))))
 ;;   "CCL program to encode VPS.")
-;; 
+;;
 ;; (define-ccl-program ccl-encode-vps-font
 ;;   `(0
 ;;     ;; In:  R0:vietnamese-viscii-lower/vietnamese-viscii-upper
@@ -271,7 +271,7 @@
 ;;  '(ccl-decode-vps . ccl-encode-vps)
 ;;  '((safe-charsets ascii vietnamese-viscii-lower vietnamese-viscii-upper)
 ;;    (valid-codes (0 . 255))))
-;; 
+;;
 ;; (define-coding-system-alias 'vps 'vietnamese-vps)
 
 (make-coding-system
@@ -310,10 +310,10 @@
 		(features viet-util)
 		(sample-text . "Vietnamese (Ti,1*(Bng Vi,1.(Bt)	Ch,1`(Bo b,1U(Bn")
 		(documentation . "\
-For Vietnamese, Emacs uses special charasets internally.
+For Vietnamese, Emacs uses special charsets internally.
 They can be decoded from and encoded to VISCII, VSCII, TCVN-5712, and
 VIQR.  VSCII is deprecated in favour of TCVN-5712.  Current setting
-put higher priority to the coding system VISCII than TCVN-5712.  If
+puts higher priority to the coding system VISCII than TCVN-5712.  If
 you prefer TCVN-5712, please do: (prefer-coding-system 'vietnamese-tcvn).
 There are two Vietnamese input methods: VIQR and Telex, VIQR is the
 default setting.")

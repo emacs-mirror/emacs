@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001, 2003
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Sending Mail, Rmail, Picture, Top
@@ -56,6 +56,11 @@ send another message before finishing the first, rename the
 Buffer}).  Then you can use @kbd{C-x m} or its variants described above
 to make a new @samp{*mail*} buffer.  Once you've done that, you can work
 with each mail buffer independently.
+
+@vindex mail-default-directory
+  The variable @code{mail-default-directory} controls the default
+directory for mail buffers, and also says where to put their auto-save
+files.
 
 @ignore
 @c Commented out because it is not user-oriented;
@@ -433,6 +438,19 @@ the coding system for outgoing mail by setting the variable
 a particular message, Emacs asks you to select the coding system to use,
 showing a list of possible coding systems.
 
+@cindex SMTP
+@cindex Feedmail
+@cindex Sendmail
+@vindex send-mail-function
+  The variable @code{send-mail-function} controls how the default mail
+user agent sends mail.  It should be set to a function.  The default
+is @code{sendmail-send-it}, which delivers mail using the Sendmail
+installation on the local host.  To send mail through a SMTP server,
+set it to @code{smtpmail-send-it} and set up the Emacs SMTP library
+(@pxref{Sending mail via SMTP,,,smtpmail}).  A third option is
+@code{feedmail-send-it}, see the commentary section of the
+@file{feedmail.el} package for more information.
+
 @node Header Editing
 @subsection Mail Header Editing
 
@@ -685,4 +703,3 @@ and facilities that send mail.
 in this chapter about the @samp{*mail*} buffer and Mail mode does not
 apply; the other methods use a different format of text in a different
 buffer, and their commands are different as well.
-

@@ -9,21 +9,14 @@ to the FSF.
 
 Small but important fixes needed in existing features:
 
-* Bring back the feature of showing the part of the buffer that is a problem
-  for the use of the preferred coding systems.
-
 * Make compile.el record the markers that point to error loci
   on text properties in the error message lines.
 
 Important features:
 
-* Write an INTRO_CVS file with basic instructions how to build emacs
-  from CVS (make bootstrap), some information on how the config
-  and build system is tied together, and all sorts of tips and tricks
-  (FAQ) which may be of interest to new (and old) emacs hackers.
-
 * Provide user-friendly ways to list all available font families,
-  display a font as a sample, etc.
+  display a font as a sample, etc.  [fx is looking at multilingual
+  font selection for Emacs 22.]
 
 * Program Enriched mode to read and save in RTF.  [Is there actually a
   decent single definition of RTF?]
@@ -34,7 +27,8 @@ Important features:
 * Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
 
-* Implement a smoother vertical scroll facility.
+* Implement a smoother vertical scroll facility, one that allows
+  C-v to scroll through a tall image.
 
 * Implement other text formatting properties.
 ** Footnotes that can appear either in place or at the end of the page.
@@ -45,11 +39,17 @@ Important features:
 
 * Make movemail work with IMAP.
 
-* Internationalize Emacs's messages.
+* Internationalize Emacs's messages.  [Note that this is of limited
+  use until the menus can display multilingual text.  It also doesn't
+  address important issues like using the names of symbols essentially
+  as documentation, e.g. in command names and Custom.  -- fx]
 
-* Port Emacs to GTK+.  (Relevant work has been done already.)
-
-* Make the Lucid menu widget display multilingual text.
+* Make the Lucid menu widget display multilingual text.  [This
+  probably needs to be done from actual Emacs buffers, either directly
+  in the menu or by rendering in an unmapped window and copying the
+  pixels.  Note that the relevant Xlib functions assume a specific
+  locale; that isn't good enough even if X can render the arbitrary
+  text, which it often can't as far as I can tell.  -- fx]
 
 * Remove the limitation that window and frame widths and heights can
   be only full columns/lines.
@@ -67,6 +67,11 @@ Other features we would like:
 * Have a command suggestion help system that recognizes patterns
   of commands which could be replaced with a simpler common command.
   It should not make more than one suggestion per 10 minutes.
+
+* Add a way to define input methods by computing them (when first used)
+  from other input methods.  Then redefine C-x 8 to use a
+  user-selected input method, with the default being the union of
+  latin-1-prefix and latin-1-postfix.
 
 * Implement a clean way to use different major modes for
   different parts of a buffer.
@@ -91,7 +96,7 @@ Other features we would like:
   for undoing.
 
 * Merge the Emacs regex.c with the Glibc regex.c.
-  They split off a few years ago through negligance.
+  They split off a few years ago through negligence.
 
 * Change the Windows NT menu code
   so that it handles the deep_p argument and avoids
@@ -100,13 +105,12 @@ Other features we would like:
 
   This requires the RIT to forward the WM_INITMENU message to
   the main thread, and not return from that message until the main
-  thread has processed the menu_bar_activate_event and regenerated
+  thread has processed the MENU_BAR_ACTIVATE_EVENT and regenerated
   the whole menu bar.  In the mean time, it should process other messages.
 
 * Get some major packages installed: W3/url (development version needs
-  significant work), PSGML, Mule-UCS, Tramp (?).  Check the
-  assignments file for other packages which might go in and have been
-  missed.
+  significant work), PSGML, Mule-UCS.  Check the assignments file for other
+  packages which might go in and have been missed.
 
 * Make keymaps a first-class Lisp object (this means a rewrite of
   keymap.c).  What should it do apart from being opaque ?
@@ -119,11 +123,14 @@ Other features we would like:
 * Implement popular parts of the rest of the CL functions as compiler
   macros in cl-macs.
 
-* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).
+* Highlight rectangles (`mouse-track-rectangle-p' in XEmacs).  Already in CUA,
+  but it's a valuable feature worth making more general.
 
 * Support simultaneous tty and X frames.
 
-* Provide MIME support for Rmail using the Gnus MIME library.
+* Provide MIME support for Rmail using the Gnus MIME library.  [Maybe
+  not now feasible, given Gnus maintenance decisions.  fx looked at
+  this and can say where some of the problems are.]
 
 * Eliminate the storm of warnings concerning char/unsigned char
   mismatches that we get with proprietary compilers on various systems.
@@ -148,7 +155,7 @@ Other features we would like:
   holidays, quoting characters?,...
 
 * Improve the GC (generational, incremental).  (We may be able to use
-  the Boehm collector.)
+  the Boehm collector.)  [fx is working on this.]
 
 * Check what hooks would help Emacspeak -- see the defadvising in W3.
 
@@ -160,13 +167,9 @@ Other features we would like:
 * Provide an optional feature which computes a scroll bar slider's
   size and its position from lines instead of characters.
 
-* Integrate Vroonhof's Custom themes code and make it do useful
-  things.  [The integration is partly done.]
+* Make the Custom themes support do useful things.
 
 * Adapt the gnuserv/gnudoit features for server/emacsclient.
-
-* Re-implement emacs-server in lisp as an internal server using
-  make-network-process instead of using an external program.
 
 * Investigate using GNU Lightning or similar system for incremental
   compilation of selected bytecode functions to subrs.  Converting CCL
@@ -174,18 +177,48 @@ Other features we would like:
 
 * Add a feature to Info similar to "info --apropos SUBJECT".
 
-* If you do an insert-file and that file is currently modified in
-  another buffer but not written yet, print a warning.
-
-* Add support for SVG (Scalable Vector Graphics) rendering to 
+* Add support for SVG (Scalable Vector Graphics) rendering to
   Emacs.
+
+* Allow unknown image types to be rendered via an external program
+  converting them to, say, PBM (in the same way as PostScript?).
+
+* Allow displaying an X window from an external program in a buffer,
+  e.g. to render graphics from Java applets.  [gerd and/or wmperry
+  thought this was feasible.]
+
+* Allow images (not just text) in the margin to be mouse-sensitive.
+  (Requires recursing through display properties).  Provide some way
+  to simulate mouse-clicks on marginal text without a mouse.
+
+* Implement Lisp functions to determine properly whether a character
+  is displayable (particularly needed in XFree 4, sigh).  Use it to
+  define useful glyphs that may be displayed as images or unicodes
+  (with ASCIIfied fallback via latin1-disp).  Examples include
+  box-drawing graphics in Custom buffers, W3 rules and tables, and
+  tree displays generally, mode-line mail indicator.  [See work done
+  already for Emacs 22 and consult fx.]
+
+* Do something to make rms happy with fx's dynamic loading, and use it
+  to implement things like auto-loaded buffer parsers and database
+  access in cases which need more than Lisp.
+
+* Extend ps-print to deal with multiple font sizes, images, and extra
+  encodings.
+
+* Provide portable undumping using mmap (per gerd design).
+
+* Replace gmalloc.c with the modified Doug Lea code from the current
+  GNU libc so that the special mmapping of buffers can be removed --
+  that apparently loses under Solaris, at least.  [fx has mostly done
+  this.]
 
 * Use the XIE X extension, if available, for image display.
 
 * Add support for rendering antialiased text, probably using
   XRender/Freetype.
 
-* Rewrite make-docfile to something sane.
+* Rewrite make-docfile to be clean and maintainable.
 
 * Port the conservative stack marking code of Emacs' garbage collector
   to more systems, so that we can completely get rid of GCPROs.
@@ -216,3 +249,18 @@ Other features we would like:
   cmacexp, hideif, mantemp [obsolete?], pcomplete, assoc, xml,
   cvs-status (should be described in PCL-CVS manual); other progmodes,
   probably in separate manual.
+
+* Provide a means to extract image-relative coordinates from mouse
+  clicks on images.  (Needed for W3, at least.)  Also useful for W3
+  and Gnus: allow images to scroll properly.
+
+* Convert the XPM bitmaps to PPM, replace the PBMs with them and scrap
+  the XPMs so that the colour versions work generally.  (Requires care
+  with the colour used for the transparent regions.)
+
+* Convenient access to the `values' variable.  It would be nice to have an
+  interface that would show you the printed reps of the elements of the
+  list in a menu, let you select one of the values, and put it into some
+  other variable, without changing the value of `values'.
+
+* Fix skip-chars-{for,back}ward to allow character classes.

@@ -1,4 +1,4 @@
-2002-04-22  Jan D.  <jan.h.d@swipnet.se>
+2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* Activate.c: Add calls to GrabKeyboard to remove strange
 	interactions with window managers that steal keypresses.
@@ -293,7 +293,7 @@
 
 1993-04-13  Jim Blandy  (jimb@totoro.cs.oberlin.edu)
 
-	* XLookAssoc.c, XMakeAssoc: VMS needs <X11/Xresource.h>, not
+	* XLookAssoc.c, XMakeAssoc.c: VMS needs <X11/Xresource.h>, not
 	<X11/Xos.h>.
 
 	* XCrAssoc.c: #include <errno.h>, not "errno.h".

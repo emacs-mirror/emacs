@@ -32,9 +32,9 @@ emacs \- GNU project Emacs
 .br
 .SH DESCRIPTION
 .I GNU Emacs
-is a version of 
+is a version of
 .I Emacs,
-written by the author of the original (PDP-10) 
+written by the author of the original (PDP-10)
 .I Emacs,
 Richard Stallman.
 .br
@@ -46,8 +46,8 @@ maintainers' priority goal is to minimize the amount of time this man
 page takes away from other more useful projects.
 .br
 The user functionality of GNU Emacs encompasses
-everything other 
-.I Emacs 
+everything other
+.I Emacs
 editors do, and it is easily extensible since its
 editing commands are written in Lisp.
 .PP
@@ -58,8 +58,8 @@ but the facility assumes that you know how to manipulate
 windows and buffers.
 CTRL-h or F1 enters the Help facility.  Help Tutorial (CTRL-h t)
 requests an interactive tutorial which can teach beginners the fundamentals
-of 
-.I Emacs 
+of
+.I Emacs
 in a few minutes.
 Help Apropos (CTRL-h a) helps you
 find a command given its functionality, Help Character (CTRL-h c)
@@ -114,7 +114,7 @@ Do not load an init file.
 Do not load the site-wide startup file.
 .TP
 .BI \-debug-init
-Enable 
+Enable
 .I Emacs
 Lisp debugger during the processing of the user init file
 .BI ~/.emacs.
@@ -161,14 +161,14 @@ option must be the first in the argument list.  You must use -l and -f
 options to specify files to execute and functions to call.
 .TP
 .B \-kill
-Exit 
-.I Emacs 
+Exit
+.I Emacs
 while in batch mode.
 .TP
 .BI \-L " directory"
 Add
 .I directory
-to the list of directories 
+to the list of directories
 .I Emacs
 searches for Lisp files.
 .\" START DELETING HERE IF YOU'RE NOT USING X
@@ -240,12 +240,12 @@ Defaults to one pixel on each side of the window.
 .TP
 .BI \-ib " pixels"
 Set the window's internal border width to the number of pixels specified
-by 
+by
 .I pixels.
 Defaults to one pixel of padding on each side of the window.
 .PP
 .TP 8
-.BI \-geometry " geometry"
+.BI \-\-geometry " geometry"
 Set the
 .I Emacs
 window's width, height, and position as specified.  The geometry
@@ -253,7 +253,9 @@ specification is in the standard X format; see
 .IR X (1)
 for more information.
 The width and height are specified in characters; the default is 80 by
-24.
+24.  See the Emacs manual, section "Options for Window Size and Position",
+for information on how window sizes interact
+with selecting or deselecting the tool bar and menu bar.
 .PP
 .TP 8
 .BI \-fg " color"
@@ -382,7 +384,7 @@ the background color will be set to white,
 the border color will be set to grey,
 and the text and mouse cursors will be set to black.
 .PP
-.SM Using the Mouse 
+.SM Using the Mouse
 .PP
 The following lists the mouse button bindings for the
 .I Emacs
@@ -398,13 +400,13 @@ SHIFT-middle	Cut text into X cut buffer.
 SHIFT-right	Paste text.
 CTRL-middle	Cut text into X cut buffer and kill it.
 CTRL-right	T{
-Select this window, then split it into 
+Select this window, then split it into
 two windows.  Same as typing CTRL-x 2.
 T}
 .\" START DELETING HERE IF YOU'RE NOT USING X MENUS
 CTRL-SHIFT-left	T{
 X buffer menu--hold the buttons and keys
-down, wait for menu to appear, select 
+down, wait for menu to appear, select
 buffer, and release.  Move mouse out of
 menu and release to cancel.
 T}
@@ -438,7 +440,7 @@ manual is included in a convenient tree structured form.
 /usr/local/share/emacs/$VERSION/lisp - Lisp source files and compiled files
 that define most editing commands.  Some are preloaded;
 others are autoloaded from this directory when used.
-  
+
 /usr/local/share/emacs/$VERSION/etc - various programs that are used with
 GNU Emacs, and some files of information.
 
@@ -493,15 +495,15 @@ Bugs that I know about are: shell will not work with programs
 running in Raw mode on some Unix versions.
 .SH UNRESTRICTIONS
 .PP
-.I Emacs 
-is free; anyone may redistribute copies of 
-.I Emacs 
+.I Emacs
+is free; anyone may redistribute copies of
+.I Emacs
 to
-anyone under the terms stated in the 
-.I Emacs 
+anyone under the terms stated in the
+.I Emacs
 General Public License,
-a copy of which accompanies each copy of 
-.I Emacs 
+a copy of which accompanies each copy of
+.I Emacs
 and which also
 appears in the reference manual.
 .PP
@@ -512,11 +514,11 @@ but it is never included in the scope of any license covering those
 systems.  Such inclusion violates the terms on which distribution
 is permitted.  In fact, the primary purpose of the General Public
 License is to prohibit anyone from attaching any other restrictions
-to redistribution of 
+to redistribution of
 .I Emacs.
 .PP
-Richard Stallman encourages you to improve and extend 
-.I Emacs, 
+Richard Stallman encourages you to improve and extend
+.I Emacs,
 and urges that
 you contribute your extensions to the GNU library.  Eventually GNU
 (Gnu's Not Unix) will be a complete replacement for Berkeley
@@ -530,7 +532,7 @@ X(1), xlsfonts(1), xterm(1), xrdb(1)
 was written by Richard Stallman and the Free Software Foundation.
 Joachim Martillo and Robert Krawitz added the X features.
 .SH COPYING
-Copyright 
+Copyright
 .if t \(co
 .if n (c)
 1995, 1999, 2000, 2001 Free Software Foundation, Inc.

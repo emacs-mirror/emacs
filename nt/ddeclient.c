@@ -23,7 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <stdio.h>
 
-HDDEDATA CALLBACK 
+HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
 	     DWORD dwData1, DWORD dwData2)

@@ -49,12 +49,15 @@ Don't rebind TAB unless you really need to.")
   "*Controls the operation of the TAB key.
 If t, hitting TAB always just indents the current line.
 If nil, hitting TAB indents the current line if point is at the left margin
-  or in the line's indentation, otherwise it insert a `real' tab character."
+  or in the line's indentation, otherwise it insert a \"real\" tab character."
   :group 'indent
   :type '(choice (const nil) (const t) (const always)))
 
 (defun indent-according-to-mode ()
-  "Indent line in proper way for current major mode."
+  "Indent line in proper way for current major mode.
+The buffer-local variable `indent-line-function' determines how to do this,
+but the functions `indent-relative' and `indent-relative-maybe' are
+special; we don't actually use them here."
   (interactive)
   (if (memq indent-line-function
 	    '(indent-relative indent-relative-maybe))
@@ -84,7 +87,8 @@ The function actually called to indent is determined by the value of
 	;; so we force it to always insert a tab here.
 	(eq indent-line-function 'indent-to-left-margin)
 	(and (not tab-always-indent)
-	     (> (current-column) (current-indentation))))
+	     (or (> (current-column) (current-indentation))
+		 (eq this-command last-command))))
     (insert-tab arg))
    ;; Those functions are meant specifically for tabbing and not for
    ;; indenting, so we can't pass them to indent-according-to-mode.
@@ -169,7 +173,7 @@ interactively or with optional argument FORCE, it will be fixed."
 	  ((and force (< cc lm))
 	   (indent-to-left-margin)))))
 
-;; This is the default indent-line-function,
+;; This used to be the default indent-line-function,
 ;; used in Fundamental Mode, Text Mode, etc.
 (defun indent-to-left-margin ()
   "Indent current line to the column given by `current-left-margin'."
@@ -300,16 +304,16 @@ If `auto-fill-mode' is active, re-fills region to fit in new margin."
 With optional argument, move forward N-1 lines first.
 From the beginning of the line, moves past the left-margin indentation, the
 fill-prefix, and any indentation used for centering or right-justifying the
-line, but does not move past any whitespace that was explicitly inserted 
+line, but does not move past any whitespace that was explicitly inserted
 \(such as a tab used to indent the first line of a paragraph)."
   (interactive "p")
   (beginning-of-line n)
   (skip-chars-forward " \t")
   ;; Skip over fill-prefix.
-  (if (and fill-prefix 
+  (if (and fill-prefix
 	   (not (string-equal fill-prefix "")))
       (if (equal fill-prefix
-		 (buffer-substring 
+		 (buffer-substring
 		  (point) (min (point-max) (+ (length fill-prefix) (point)))))
 	  (forward-char (length fill-prefix)))
     (if (and adaptive-fill-mode adaptive-fill-regexp
@@ -325,14 +329,21 @@ A value of nil means really run `indent-according-to-mode' on each line.")
 
 (defun indent-region (start end &optional column)
   "Indent each nonblank line in the region.
-With no prefix argument, indent each line using `indent-according-to-mode',
-or use `indent-region-function' to do the whole region if that's non-nil.
-If there is a fill prefix, make each line start with the fill prefix.
-With argument COLUMN, indent each line to that column.
+A numeric prefix argument specifies a column: indent each line to that column.
 
-When you call this from a program, START and END specify
-the region to indent, and COLUMN specifies the indentation column.
-If COLUMN is nil, then indent each line according to the mode."
+With no prefix argument, the command chooses one of these methods and
+indents all the lines with it:
+
+  1) If `fill-prefix' is non-nil, insert `fill-prefix' at the
+     beginning of each line in the region that does not already begin
+     with it.
+  2) If `indent-region-function' is non-nil, call that function
+     to indent the region.
+  3) Indent each line as specified by the variable `indent-line-function'.
+
+Called from a program, START and END specify the region to indent.
+If the third argument COLUMN is an integer, it specifies the
+column to indent to; if it is nil, use one of the three methods above."
   (interactive "r\nP")
   (if (null column)
       (if fill-prefix

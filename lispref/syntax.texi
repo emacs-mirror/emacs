@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/syntax
 @node Syntax Tables, Abbrevs, Searching and Matching, Top
@@ -594,35 +594,39 @@ expression prefix syntax class, and characters with the @samp{p} flag.
 @section Parsing Balanced Expressions
 
   Here are several functions for parsing and scanning balanced
-expressions, also known as @dfn{sexps}, in which parentheses match in
-pairs.  The syntax table controls the interpretation of characters, so
-these functions can be used for Lisp expressions when in Lisp mode and
-for C expressions when in C mode.  @xref{List Motion}, for convenient
+expressions, also known as @dfn{sexps}.  Basically, a sexp is either a
+balanced parenthetical grouping, or a symbol name (a sequence of
+characters whose syntax is either word constituent or symbol
+constituent).  However, characters whose syntax is expression prefix
+are treated as part of the sexp if they appear next to it.
+
+  The syntax table controls the interpretation of characters, so these
+functions can be used for Lisp expressions when in Lisp mode and for C
+expressions when in C mode.  @xref{List Motion}, for convenient
 higher-level functions for moving over balanced expressions.
 
-A syntax table only describes how each character changes the state of
-the parser, rather than describing the state itself.  For example, a string
-delimiter character toggles the parser state between ``in-string'' and
-``in-code'' but the characters inside the string do not have any particular
-syntax to identify them as such.
-
-For example (note: 15 is the syntax-code of generic string delimiters):
+  A syntax table only describes how each character changes the state
+of the parser, rather than describing the state itself.  For example,
+a string delimiter character toggles the parser state between
+``in-string'' and ``in-code'' but the characters inside the string do
+not have any particular syntax to identify them as such.  For example
+(note that 15 is the syntax code for generic string delimiters),
 
 @example
 (put-text-property 1 9 'syntax-table '(15 . nil))
 @end example
 
+@noindent
 does not tell Emacs that the first eight chars of the current buffer
-are a string, but rather that they are all string delimiters and thus
-Emacs should treat them as four adjacent empty strings.
+are a string, but rather that they are all string delimiters.  As a
+result, Emacs treats them as four consecutive empty string constants.
 
-The state of the parser is transient (i.e. not stored in the buffer for
-example).  Instead, every time the parser is used, it is given not just
-a starting position but a starting state.  If the starting state is not
-specified explicitly, Emacs assumes we are at the top level of parenthesis
-structure, such as the beginning of a function definition (this is the case
-for @code{forward-sexp} which blindly assumes that the starting point is in
-such a state.)
+  Every time you use the parser, you specify it a starting state as
+well as a starting position.  If you omit the starting state, the
+default is ``top level in parenthesis structure,'' as it would be at
+the beginning of a function definition.  (This is the case for
+@code{forward-sexp}, which blindly assumes that the starting point is
+in such a state.)
 
 @defun parse-partial-sexp start limit &optional target-depth stop-before state stop-comment
 This function parses a sexp in the current buffer starting at
@@ -660,36 +664,36 @@ The result is a list of nine elements describing the final state of
 the parse:
 
 @enumerate 0
-@item 
+@item
 The depth in parentheses, counting from 0.
 
-@item 
+@item
 @cindex innermost containing parentheses
 The character position of the start of the innermost parenthetical
 grouping containing the stopping point; @code{nil} if none.
 
-@item 
+@item
 @cindex previous complete subexpression
 The character position of the start of the last complete subexpression
 terminated; @code{nil} if none.
 
-@item 
+@item
 @cindex inside string
 Non-@code{nil} if inside a string.  More precisely, this is the
 character that will terminate the string, or @code{t} if a generic
 string delimiter character should terminate it.
 
-@item 
+@item
 @cindex inside comment
 @code{t} if inside a comment (of either style),
 or the comment nesting level if inside a kind of comment
 that can be nested.
 
-@item 
+@item
 @cindex quote character
 @code{t} if point is just after a quote character.
 
-@item 
+@item
 The minimum parenthesis depth encountered during this scan.
 
 @item

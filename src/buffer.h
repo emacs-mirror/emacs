@@ -25,52 +25,52 @@ Boston, MA 02111-1307, USA.  */
 /* These macros come in pairs, one for the char position
    and one for the byte position.  */
 
-/* Position of beginning of buffer.  */ 
+/* Position of beginning of buffer.  */
 #define BEG (1)
 #define BEG_BYTE (1)
 
-/* Position of beginning of accessible range of buffer.  */ 
+/* Position of beginning of accessible range of buffer.  */
 #define BEGV (current_buffer->begv)
 #define BEGV_BYTE (current_buffer->begv_byte)
 
 /* Position of point in buffer.  The "+ 0" makes this
-   not an l-value, so you can't assign to it.  Use SET_PT instead.  */ 
+   not an l-value, so you can't assign to it.  Use SET_PT instead.  */
 #define PT (current_buffer->pt + 0)
 #define PT_BYTE (current_buffer->pt_byte + 0)
 
-/* Position of gap in buffer.  */ 
+/* Position of gap in buffer.  */
 #define GPT (current_buffer->text->gpt)
 #define GPT_BYTE (current_buffer->text->gpt_byte)
 
-/* Position of end of accessible range of buffer.  */ 
+/* Position of end of accessible range of buffer.  */
 #define ZV (current_buffer->zv)
 #define ZV_BYTE (current_buffer->zv_byte)
 
-/* Position of end of buffer.  */ 
+/* Position of end of buffer.  */
 #define Z (current_buffer->text->z)
 #define Z_BYTE (current_buffer->text->z_byte)
 
 /* Macros for the addresses of places in the buffer.  */
 
-/* Address of beginning of buffer.  */ 
+/* Address of beginning of buffer.  */
 #define BEG_ADDR (current_buffer->text->beg)
 
-/* Address of beginning of accessible range of buffer.  */ 
+/* Address of beginning of accessible range of buffer.  */
 #define BEGV_ADDR (BYTE_POS_ADDR (current_buffer->begv_byte))
 
-/* Address of point in buffer.  */ 
+/* Address of point in buffer.  */
 #define PT_ADDR (BYTE_POS_ADDR (current_buffer->pt_byte))
 
-/* Address of beginning of gap in buffer.  */ 
+/* Address of beginning of gap in buffer.  */
 #define GPT_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte - 1)
 
 /* Address of end of gap in buffer.  */
 #define GAP_END_ADDR (current_buffer->text->beg + current_buffer->text->gpt_byte + current_buffer->text->gap_size - 1)
 
-/* Address of end of accessible range of buffer.  */ 
+/* Address of end of accessible range of buffer.  */
 #define ZV_ADDR (BYTE_POS_ADDR (current_buffer->zv_byte))
 
-/* Address of end of buffer.  */ 
+/* Address of end of buffer.  */
 #define Z_ADDR (current_buffer->text->beg + current_buffer->text->gap_size + current_buffer->text->z_byte - 1)
 
 /* Size of gap.  */
@@ -101,27 +101,27 @@ Boston, MA 02111-1307, USA.  */
 /* Similar macros to operate on a specified buffer.
    Note that many of these evaluate the buffer argument more than once.  */
 
-/* Position of beginning of buffer.  */ 
+/* Position of beginning of buffer.  */
 #define BUF_BEG(buf) (1)
 #define BUF_BEG_BYTE(buf) (1)
 
-/* Position of beginning of accessible range of buffer.  */ 
+/* Position of beginning of accessible range of buffer.  */
 #define BUF_BEGV(buf) ((buf)->begv)
 #define BUF_BEGV_BYTE(buf) ((buf)->begv_byte)
 
-/* Position of point in buffer.  */ 
+/* Position of point in buffer.  */
 #define BUF_PT(buf) ((buf)->pt)
 #define BUF_PT_BYTE(buf) ((buf)->pt_byte)
 
-/* Position of gap in buffer.  */ 
+/* Position of gap in buffer.  */
 #define BUF_GPT(buf) ((buf)->text->gpt)
 #define BUF_GPT_BYTE(buf) ((buf)->text->gpt_byte)
 
-/* Position of end of accessible range of buffer.  */ 
+/* Position of end of accessible range of buffer.  */
 #define BUF_ZV(buf) ((buf)->zv)
 #define BUF_ZV_BYTE(buf) ((buf)->zv_byte)
 
-/* Position of end of buffer.  */ 
+/* Position of end of buffer.  */
 #define BUF_Z(buf) ((buf)->text->z)
 #define BUF_Z_BYTE(buf) ((buf)->text->z_byte)
 
@@ -197,7 +197,7 @@ Boston, MA 02111-1307, USA.  */
 	}								\
     }									\
   while (0)
-     
+
 
 /* Macros to set PT in the current buffer, or another buffer.  */
 
@@ -336,14 +336,14 @@ extern int _fetch_multibyte_char_len;
    or converting between byte positions and addresses,
    in a specified buffer.  */
 
-/* Return the address of character at byte position POS in buffer BUF. 
+/* Return the address of character at byte position POS in buffer BUF.
    Note that both arguments can be computed more than once.  */
 
 #define BUF_BYTE_ADDRESS(buf, pos) \
 ((buf)->text->beg + (pos) - 1		\
  + ((pos) >= (buf)->text->gpt_byte ? (buf)->text->gap_size : 0))
 
-/* Return the address of character at char position POS in buffer BUF. 
+/* Return the address of character at char position POS in buffer BUF.
    Note that both arguments can be computed more than once.  */
 
 #define BUF_CHAR_ADDRESS(buf, pos) \
@@ -396,7 +396,7 @@ struct buffer_text
        e.g. happen when malloc is called.  So, don't pass a pointer
        into a buffer's text to functions that malloc.  */
     unsigned char *beg;
-    
+
     int gpt;			/* Char pos of gap in buffer.  */
     int z;			/* Char pos of end of buffer.  */
     int gpt_byte;		/* Byte pos of gap in buffer.  */
@@ -487,7 +487,7 @@ struct buffer
      this means the variable is always local in all buffers.  */
 #define MAX_PER_BUFFER_VARS 50
   char local_flags[MAX_PER_BUFFER_VARS];
-    
+
   /* Set to the modtime of the visited file when read or written.
      -1 means visited file was nonexistent.
      0 means visited file modtime unknown; in no case complain
@@ -531,15 +531,6 @@ struct buffer
      displaying this buffer.  */
   unsigned prevent_redisplay_optimizations_p : 1;
 
-  /* Changes in the buffer are recorded here for undo.
-     t means don't record anything.
-     This information belongs to the base buffer of an indirect buffer,
-     But we can't store it in the  struct buffer_text
-     because local variables have to be right in the  struct buffer.
-     So we copy it around in set_buffer_internal.
-     This comes before `name' because it is marked in a special way.  */
-  Lisp_Object undo_list;
-
   /* Everything from here down must be a Lisp_Object.  */
 
   /* The name of this buffer.  */
@@ -579,7 +570,16 @@ struct buffer
   Lisp_Object mode_name;
   /* Mode line element that controls format of mode line.  */
   Lisp_Object mode_line_format;
-    
+
+  /* Changes in the buffer are recorded here for undo.
+     t means don't record anything.
+     This information belongs to the base buffer of an indirect buffer,
+     But we can't store it in the  struct buffer_text
+     because local variables have to be right in the  struct buffer.
+     So we copy it around in set_buffer_internal.
+     This comes before `name' because it is marked in a special way.  */
+  Lisp_Object undo_list;
+
   /* Analogous to mode_line_format for the line displayed at the top
      of windows.  Nil means don't display that line.  */
   Lisp_Object header_line_format;
@@ -712,7 +712,7 @@ struct buffer
 
   /* Incremented each time the buffer is displayed in a window.  */
   Lisp_Object display_count;
- 
+
   /* Widths of left and right marginal areas for windows displaying
      this buffer.  */
   Lisp_Object left_margin_width, right_margin_width;
@@ -729,7 +729,7 @@ struct buffer
      that point ends up this number of lines from the top of the
      window.  Nil means that scrolling method isn't used.  */
   Lisp_Object scroll_up_aggressively;
-    
+
   /* If scrolling the display because point is above the top of a
      window showing this buffer, try to choose a window start so
      that point ends up this number of lines from the bottom of the

@@ -1,6 +1,6 @@
 /* CCL (Code Conversion Language) interpreter.
    Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
    Licensed to the Free Software Foundation.
 
 This file is part of GNU Emacs.
@@ -20,24 +20,14 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-#ifdef emacs
 #include <config.h>
-#endif
 
 #include <stdio.h>
-
-#ifdef emacs
 
 #include "lisp.h"
 #include "charset.h"
 #include "ccl.h"
 #include "coding.h"
-
-#else  /* not emacs */
-
-#include "mulelib.h"
-
-#endif /* not emacs */
 
 /* This contains all code conversion map available to CCL.  */
 Lisp_Object Vcode_conversion_map_vector;
@@ -64,6 +54,13 @@ Lisp_Object Qccl_program_idx;
    RESOLVEDP (t or nil) is the flag to tell if symbols in CCL_PROG is
    already resolved to index numbers or not.  */
 Lisp_Object Vccl_program_table;
+
+/* Vector of registered hash tables for translation.  */
+Lisp_Object Vtranslation_hash_table_vector;
+
+/* Return a hash table of id number ID.  */
+#define GET_HASH_TABLE(id) \
+  (XHASH_TABLE (XCDR(XVECTOR(Vtranslation_hash_table_vector)->contents[(id)])))
 
 /* CCL (Code Conversion Language) is a simple language which has
    operations on one input buffer, one output buffer, and 7 registers.
@@ -429,7 +426,7 @@ Lisp_Object Vccl_program_table;
 					extended_command (rrr,RRR,Rrr,ARGS)
 				      */
 
-/* 
+/*
    Here after, Extended CCL Instructions.
    Bit length of extended command is 14.
    Therefore, the instruction code range is 0..16384(0x3fff).
@@ -487,7 +484,7 @@ Lisp_Object Vccl_program_table;
 					3:MAP-ID1
 					4:MAP-ID2
 					...
-				     */ 
+				     */
 
 /* Map the code in reg[rrr] by MAPs starting from the Nth (N =
    reg[RRR]) map.
@@ -565,7 +562,7 @@ Lisp_Object Vccl_program_table;
    where
 	STARTPOINT is an offset to be used for indexing a map,
 	ENDPOINT is a maximum index number of a map,
-	VAL and VALn is a number, nil, t, or lambda.  
+	VAL and VALn is a number, nil, t, or lambda.
 
    Valid index range of a map of type (a) is:
 	STARTPOINT <= index < STARTPOINT + map_size - 1
@@ -651,6 +648,18 @@ while (0)
 					else
 					  set reg[RRR] to -1.
 				     */
+
+#define CCL_LookupIntConstTbl 0x13 /* Lookup multibyte character by
+				      integer key.  Afterwards R7 set
+				      to 1 iff lookup succeeded.
+				      1:ExtendedCOMMNDRrrRRRXXXXXXXX
+				      2:ARGUMENT(Hash table ID) */
+
+#define CCL_LookupCharConstTbl 0x14 /* Lookup integer by multibyte
+				       character key.  Afterwards R7 set
+				       to 1 iff lookup succeeded.
+				       1:ExtendedCOMMNDRrrRRRrrrXXXXX
+				       2:ARGUMENT(Hash table ID) */
 
 /* CCL arithmetic/logical operators. */
 #define CCL_PLUS	0x00	/* X = Y + Z */
@@ -843,7 +852,7 @@ while(0)
 
 #ifdef CCL_DEBUG
 #define CCL_DEBUG_BACKTRACE_LEN 256
-int ccl_backtrace_table[CCL_BACKTRACE_TABLE];
+int ccl_backtrace_table[CCL_DEBUG_BACKTRACE_LEN];
 int ccl_backtrace_idx;
 #endif
 
@@ -853,7 +862,7 @@ struct ccl_prog_stack
     int ic;			/* Instruction Counter.  */
   };
 
-/* For the moment, we only support depth 256 of stack.  */ 
+/* For the moment, we only support depth 256 of stack.  */
 static struct ccl_prog_stack ccl_prog_stack_struct[256];
 
 int
@@ -1087,7 +1096,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 		CCL_INVALID_CMD;
 	      }
-	    
+
 	    ccl_prog_stack_struct[stack_idx].ccl_prog = ccl_prog;
 	    ccl_prog_stack_struct[stack_idx].ic = ic;
 	    stack_idx++;
@@ -1251,7 +1260,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  src++;
 		  goto ccl_read_multibyte_character_suspend;
 		}
-	      
+
 	      if (!ccl->multibyte)
 		{
 		  int bytes;
@@ -1265,7 +1274,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      i = *src++;
 	      if (i == '\n' && ccl->eol_type != CODING_EOL_LF)
 		{
-		  /* We are encoding.  */ 
+		  /* We are encoding.  */
 		  if (ccl->eol_type == CODING_EOL_CRLF)
 		    {
 		      if (ccl->cr_consumed)
@@ -1390,7 +1399,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      SPLIT_CHAR (op, reg[RRR], i, j);
 	      if (j != -1)
 		i = (i << 7) | j;
-	      
+
 	      reg[rrr] = i;
 	      break;
 
@@ -1402,8 +1411,54 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	      SPLIT_CHAR (op, reg[RRR], i, j);
 	      if (j != -1)
 		i = (i << 7) | j;
-	      
+
 	      reg[rrr] = i;
+	      break;
+
+	    case CCL_LookupIntConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      {
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (reg[RRR]), NULL);
+		if (op >= 0)
+		  {
+		    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!CHAR_VALID_P (XINT (opl), 0))
+		      CCL_INVALID_CMD;
+		    SPLIT_CHAR (XINT (opl), reg[RRR], i, j);
+		    if (j != -1)
+		      i = (i << 7) | j;
+		    reg[rrr] = i;
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
+	      break;
+
+	    case CCL_LookupCharConstTbl:
+	      op = XINT (ccl_prog[ic]); /* table */
+	      ic++;
+	      CCL_MAKE_CHAR (reg[RRR], reg[rrr], i);
+	      {
+		struct Lisp_Hash_Table *h = GET_HASH_TABLE (op);
+
+		op = hash_lookup (h, make_number (i), NULL);
+		if (op >= 0)
+		  {
+		    Lisp_Object opl;
+		    opl = HASH_VALUE (h, op);
+		    if (!INTEGERP (opl))
+		      CCL_INVALID_CMD;
+		    reg[RRR] = XINT (opl);
+		    reg[7] = 1; /* r7 true for success */
+		  }
+		else
+		  reg[7] = 0;
+	      }
 	      break;
 
 	    case CCL_IterateMultipleMap:
@@ -1462,7 +1517,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			else
 			  continue;
 		      }
-		    else 
+		    else
 		      continue;
 
 		    if (NILP (content))
@@ -1498,7 +1553,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		ic = fin_ic;
 	      }
 	      break;
-	      
+
 	    case CCL_MapMultiple:
 	      {
 		Lisp_Object map, content, attrib, value;
@@ -1585,7 +1640,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		      }
 		  }
 		map_vector_size = ASIZE (Vcode_conversion_map_vector);
-		
+
 		do {
 		  for (;map_set_rest_length > 0;i++, ic++, map_set_rest_length--)
 		    {
@@ -1635,7 +1690,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 			  else
 			    continue;
 			}
-		      else 
+		      else
 			continue;
 
 		      if (NILP (content))
@@ -1753,7 +1808,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 		  }
 	      }
 	      break;
-	      
+
 	    default:
 	      CCL_INVALID_CMD;
 	    }
@@ -1826,7 +1881,7 @@ ccl_driver (ccl, source, destination, src_bytes, dst_bytes, consumed)
 	  bcopy (msg, dst, msglen);
 	  dst += msglen;
 	}
-      
+
       if (ccl->status == CCL_STAT_INVALID_CMD)
 	{
 #if 0 /* If the remaining bytes contain 0x80..0x9F, copying them
@@ -2008,8 +2063,6 @@ setup_ccl_program (ccl, ccl_prog)
   return 0;
 }
 
-#ifdef emacs
-
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
 See the documentation of  `define-ccl-program' for the detail of CCL program.  */)
@@ -2135,12 +2188,12 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
       if (ccl.ic < i && i < ccl.size)
 	ccl.ic = i;
     }
-  outbufsize = STRING_BYTES (XSTRING (str)) * ccl.buf_magnification + 256;
+  outbufsize = SBYTES (str) * ccl.buf_magnification + 256;
   outbuf = (char *) xmalloc (outbufsize);
   ccl.last_block = NILP (contin);
   ccl.multibyte = STRING_MULTIBYTE (str);
-  produced = ccl_driver (&ccl, XSTRING (str)->data, outbuf,
-			 STRING_BYTES (XSTRING (str)), outbufsize, (int *) 0);
+  produced = ccl_driver (&ccl, SDATA (str), outbuf,
+			 SBYTES (str), outbufsize, (int *) 0);
   for (i = 0; i < 8; i++)
     XSET (AREF (status, i), Lisp_Int, ccl.reg[i]);
   XSETINT (AREF (status, 8), ccl.ic);
@@ -2264,7 +2317,7 @@ Return index number of the registered map.  */)
 
   CHECK_SYMBOL (symbol);
   CHECK_VECTOR (map);
-  
+
   for (i = 0; i < len; i++)
     {
       Lisp_Object slot = AREF (Vcode_conversion_map_vector, i);
@@ -2336,11 +2389,16 @@ The code point in the font is set in CCL registers R1 and R2
  If the font is single-byte font, the register R2 is not used.  */);
   Vfont_ccl_encoder_alist = Qnil;
 
+  DEFVAR_LISP ("translation-hash-table-vector", &Vtranslation_hash_table_vector,
+    doc: /* Vector containing all translation hash tables ever defined.
+Comprises pairs (SYMBOL . TABLE) where SYMBOL and TABLE were set up by calls
+to `define-translation-hash-table'.  The vector is indexed by the table id
+used by CCL.  */);
+    Vtranslation_hash_table_vector = Qnil;
+
   defsubr (&Sccl_program_p);
   defsubr (&Sccl_execute);
   defsubr (&Sccl_execute_on_string);
   defsubr (&Sregister_ccl_program);
   defsubr (&Sregister_code_conversion_map);
 }
-
-#endif  /* emacs */

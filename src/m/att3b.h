@@ -21,7 +21,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-2-2"  */
 
@@ -106,24 +106,25 @@ Boston, MA 02111-1307, USA.  */
 
 #define NBPC 2048
 
+#if 0 /* If this is still needed, don't hard-code assumptions about
+	 the number of VALBITS, or other assumptions about the
+	 Lisp_Object representation.  Try to extend lisp.h instead, if
+	 necessary.  */
 /* The usual definition of XINT, which involves shifting, does not
    sign-extend properly on this machine.  */
 
 #define XINT(i) (((sign_extend_temp=(i)) & 0x00800000) \
 		 ? (sign_extend_temp | 0xFF000000) \
 		 : (sign_extend_temp & 0x00FFFFFF))
+#endif
 
 #ifdef emacs /* Don't do this when making xmakefile! */
 extern int sign_extend_temp;
 #endif
 
 #if u3b2 || u3b5 || u3b15
-
 /* On 3b2/5/15, data space has high order bit on. */
-#define VALBITS 27
-#define VALMASK (((1<<VALBITS) - 1) | (1 << 31))
-#define XTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-
+#define DATA_SEG_BITS 0x80000000
 #endif /* 3b2, 3b5 or 3b15 */
 
 #define TEXT_START 0

@@ -84,6 +84,10 @@
 
 ;;; Code:
 
+(defgroup refill nil
+  "Refilling paragraphs on changes."
+  :group 'fill)
+
 (defvar refill-ignorable-overlay nil
   "Portion of the most recently filled paragraph not needing filling.
 This is used to optimize refilling.")
@@ -98,7 +102,7 @@ This is used to optimize refilling.")
       (if (<= (point) (overlay-start overlay))
 	  ;; Just get OVERLAY out of the way
 	  (move-overlay overlay 1 1)
-	;; Make overlay contain only the region 
+	;; Make overlay contain only the region
 	(move-overlay overlay (overlay-start overlay) (point))))))
 
 (defun refill-fill-paragraph-at (pos &optional arg)
@@ -110,7 +114,6 @@ This is used to optimize refilling.")
       ;; leading to excessive refilling and wrong choice of fill-prefix.
       ;; might be a bug in my paragraphs.el.
       (forward-paragraph)
-      (skip-syntax-backward "-")
       (let ((end (point))
 	    (beg (progn (backward-paragraph) (point)))
 	    (obeg (overlay-start refill-ignorable-overlay))
@@ -226,7 +229,7 @@ refilling if they would cause auto-filling."
   (when refill-ignorable-overlay
     (delete-overlay refill-ignorable-overlay)
     (kill-local-variable 'refill-ignorable-overlay))
-  (when refill-late-fill-paragraph-function
+  (when (local-variable-p 'refill-late-fill-paragraph-function)
     (setq fill-paragraph-function refill-late-fill-paragraph-function)
     (kill-local-variable 'refill-late-fill-paragraph-function))
   (if refill-mode

@@ -104,16 +104,20 @@ first slash in the double slash; the result is @samp{/x1/rms/foo}.
 @cindex environment variables in file names
 @cindex expansion of environment variables
 @cindex @code{$} in file names
-@anchor{File Names with $}
-  @samp{$} in a file name is used to substitute environment variables.
-For example, if you have used the shell command @command{export
+  @anchor{File Names with $}@samp{$} in a file name is used to
+substitute an environment variable.  The environment variable name
+consists of all the alphanumeric characters after the @samp{$};
+alternatively, it can be enclosed in braces after the @samp{$}.  For
+example, if you have used the shell command @command{export
 FOO=rms/hacks} to set up an environment variable named @env{FOO}, then
 you can use @file{/u/$FOO/test.c} or @file{/u/$@{FOO@}/test.c} as an
-abbreviation for @file{/u/rms/hacks/test.c}.  The environment variable
-name consists of all the alphanumeric characters after the @samp{$};
-alternatively, it may be enclosed in braces after the @samp{$}.  Note
-that shell commands to set environment variables affect Emacs only if
-done before Emacs is started.
+abbreviation for @file{/u/rms/hacks/test.c}.  If the environment
+variable is not defined, no substitution occurs: @file{/u/$notdefined}
+stands for itself (assuming the environment variable @env{notdefined}
+is not defined).
+
+  Note that shell commands to set environment variables affect Emacs
+only when done before Emacs is started.
 
 @cindex home directory shorthand
   You can use the @file{~/} in a file name to mean your home directory,
@@ -123,11 +127,12 @@ doesn't have a home directory, Emacs substitutes @file{~/} with the
 value of the environment variable @code{HOME}; see @ref{General
 Variables}.)
 
-  To access a file with @samp{$} in its name, type @samp{$$}.  This pair
-is converted to a single @samp{$} at the same time as variable
-substitution is performed for a single @samp{$}.  Alternatively, quote the
-whole file name with @samp{/:} (@pxref{Quoted File Names}).  File names
-which begin with a literal @samp{~} should also be quoted with @samp{/:}.
+  To access a file with @samp{$} in its name, if the @samp{$} causes
+expansion, type @samp{$$}.  This pair is converted to a single
+@samp{$} at the same time as variable substitution is performed for a
+single @samp{$}.  Alternatively, quote the whole file name with
+@samp{/:} (@pxref{Quoted File Names}).  File names which begin with a
+literal @samp{~} should also be quoted with @samp{/:}.
 
 @findex substitute-in-file-name
   The Lisp function that performs the substitution is called
@@ -268,16 +273,16 @@ characters.  You can disable the wildcard feature by customizing
 @code{find-file-wildcards}.
 
   If you visit a file that the operating system won't let you modify,
-Emacs makes the buffer read-only, so that you won't go ahead and make
-changes that you'll have trouble saving afterward.  You can make the
-buffer writable with @kbd{C-x C-q} (@code{vc-toggle-read-only}).
-@xref{Misc Buffer}.
+or that is marked read-only, Emacs makes the buffer read-only too, so
+that you won't go ahead and make changes that you'll have trouble
+saving afterward.  You can make the buffer writable with @kbd{C-x C-q}
+(@code{toggle-read-only}).  @xref{Misc Buffer}.
 
 @kindex C-x C-r
 @findex find-file-read-only
-  Occasionally you might want to visit a file as read-only in order to
-protect yourself from entering changes accidentally; do so by visiting
-the file with the command @kbd{C-x C-r} (@code{find-file-read-only}).
+  If you want to visit a file as read-only in order to protect
+yourself from entering changes accidentally, visit it with the command
+@kbd{C-x C-r} (@code{find-file-read-only}) instead of @kbd{C-x C-f}.
 
 @kindex C-x C-v
 @findex find-alternate-file
@@ -320,21 +325,20 @@ does not add a final newline because of @code{require-final-newline}.
 If you already have visited the same file in the usual (non-literal)
 manner, this command asks you whether to visit it literally instead.
 
-@vindex find-file-hooks
-@vindex find-file-not-found-hooks
+@vindex find-file-hook
+@vindex find-file-not-found-functions
   Two special hook variables allow extensions to modify the operation of
 visiting files.  Visiting a file that does not exist runs the functions
-in the list @code{find-file-not-found-hooks}; this variable holds a list
+in the list @code{find-file-not-found-functions}; this variable holds a list
 of functions, and the functions are called one by one (with no
 arguments) until one of them returns non-@code{nil}.  This is not a
-normal hook, and the name ends in @samp{-hooks} rather than @samp{-hook}
+normal hook, and the name ends in @samp{-functions} rather than @samp{-hook}
 to indicate that fact.
 
   Successful visiting of any file, whether existing or not, calls the
-functions in the list @code{find-file-hooks}, with no arguments.
-This variable is really a normal hook, but it has an abnormal name for
-historical compatibility.  In the case of a nonexistent file, the
-@code{find-file-not-found-hooks} are run first.  @xref{Hooks}.
+functions in the list @code{find-file-hook}, with no arguments.
+This variable is a normal hook.  In the case of a nonexistent file, the
+@code{find-file-not-found-functions} are run first.  @xref{Hooks}.
 
   There are several ways to specify automatically the major mode for
 editing the file (@pxref{Choosing Modes}), and to specify local
@@ -828,11 +832,11 @@ Time-stamp: <>
 or like this:
 
 @example
-Time-stamp: ""
+Time-stamp: " "
 @end example
 
   Then add the hook function @code{time-stamp} to the hook
-@code{write-file-hooks}; that hook function will automatically update
+@code{write-file-functions}; that hook function will automatically update
 the time stamp, inserting the current date and time when you save the
 file.  You can also use the command @kbd{M-x time-stamp} to update the
 time stamp manually.  For other customizations, see the Custom group
@@ -946,11 +950,12 @@ in a buffer is calculated when auto-saving is turned on in that buffer.
 
 @cindex auto-save for remote files
 @vindex auto-save-file-name-transforms
-The variable @code{auto-save-file-name-transforms} allows a
-degree of control over the auto-save file name.  The default value is
-set up to put the auto-save files for remote files
-(@pxref{Remote Files}) into the temporary file directory on the local
-machine. 
+  The variable @code{auto-save-file-name-transforms} allows a degree
+of control over the auto-save file name.  It lets you specify a series
+of regular expressions and replacements to transform the auto save
+file name.  The default value puts the auto-save files for remote
+files (@pxref{Remote Files}) into the temporary file directory on the
+local machine.
 
   When you delete a substantial part of the text in a large buffer, auto
 save turns off temporarily in that buffer.  This is because if you
@@ -1078,7 +1083,7 @@ links point to directories.
   If you visit two names for the same file, normally Emacs makes
 two different buffers, but it warns you about the situation.
 
-@vindex find-file-existing-other-name 
+@vindex find-file-existing-other-name
 @vindex find-file-suppress-same-file-warnings
   Normally, if you visit a file which Emacs is already visiting under
 a different name, Emacs displays a message in the echo area and uses
@@ -1107,7 +1112,7 @@ implies the effect of @code{find-file-existing-other-name}.
   @dfn{Version control systems} are packages that can record multiple
 versions of a source file, usually storing the unchanged parts of the
 file just once.  Version control systems also record history information
-such as the creation time of each version, who created it, and a 
+such as the creation time of each version, who created it, and a
 description of what was changed in that version.
 
   The Emacs version control interface is called VC.  Its commands work
@@ -1234,7 +1239,7 @@ check-in time.  However, CVS can also be set up to require locking.
 @node Types of Log File
 @subsubsection Types of Log File
 @cindex types of log file
-@cindex log File, types of 
+@cindex log File, types of
 @cindex version control log
 
 GNU projects under a revision control system generally possess
@@ -1280,56 +1285,55 @@ instance, @samp{jim}), that is displayed as @samp{RCS:jim:1.3}.
 either locking or check-in, depending on the situation.
 
 @table @kbd
-@item C-x C-q
 @itemx C-x v v
 Perform the next logical version control operation on this file.
 @end table
 
 @findex vc-next-action
-@findex vc-toggle-read-only
 @kindex C-x v v
-@kindex C-x C-q @r{(Version Control)}
-  Strictly speaking, the command for this job is @code{vc-next-action},
-bound to @kbd{C-x v v}.  However, the normal meaning of @kbd{C-x C-q} is
-to make a read-only buffer writable, or vice versa; we have extended it
-to do the same job properly for files managed by version control, by
-performing the appropriate version control operations.  When you type
-@kbd{C-x C-q} on a registered file, it acts like @kbd{C-x v v}.
-
   The precise action of this command depends on the state of the file,
 and whether the version control system uses locking or not.  SCCS and
 RCS normally use locking; CVS normally does not use locking.
 
+@findex vc-toggle-read-only
+@kindex C-x C-q @r{(Version Control)}
+  As a special convenience that is particularly useful for files with
+locking, you can let Emacs check a file in or out whenever you change
+its read-only flag.  This means, for example, that you cannot
+accidentally edit a file without properly checking it out first.  To
+achieve this, bind the key @kbd{C-x C-q} to @kbd{vc-toggle-read-only}
+in your @file{~/.emacs} file.  (@xref{Init Rebinding}.)
+
 @menu
 * VC with Locking::     RCS in its default mode, SCCS, and optionally CVS.
 * Without Locking::     Without locking: default mode for CVS.
-* Advanced C-x C-q::    Advanced features available with a prefix argument.
+* Advanced C-x v v::    Advanced features available with a prefix argument.
 * Log Buffer::          Features available in log entry buffers.
 @end menu
-               
-@node VC with Locking                 
+
+@node VC with Locking
 @subsubsection Basic Version Control with Locking
 
   If locking is used for the file (as with SCCS, and RCS in its default
-mode), @kbd{C-x C-q} can either lock a file or check it in:
+mode), @kbd{C-x v v} can either lock a file or check it in:
 
 @itemize @bullet
 @item
-If the file is not locked, @kbd{C-x C-q} locks it, and
+If the file is not locked, @kbd{C-x v v} locks it, and
 makes it writable so that you can change it.
 
 @item
-If the file is locked by you, and contains changes, @kbd{C-x C-q} checks
+If the file is locked by you, and contains changes, @kbd{C-x v v} checks
 in the changes.  In order to do this, it first reads the log entry
 for the new version.  @xref{Log Buffer}.
 
 @item
 If the file is locked by you, but you have not changed it since you
-locked it, @kbd{C-x C-q} releases the lock and makes the file read-only
+locked it, @kbd{C-x v v} releases the lock and makes the file read-only
 again.
 
 @item
-If the file is locked by some other user, @kbd{C-x C-q} asks you whether
+If the file is locked by some other user, @kbd{C-x v v} asks you whether
 you want to ``steal the lock'' from that user.  If you say yes, the file
 becomes locked by you, but a message is sent to the person who had
 formerly locked the file, to inform him of what has happened.
@@ -1347,7 +1351,7 @@ file.  The status indicator on the mode line is @samp{-} if the file is
 unmodified; it flips to @samp{:} as soon as you save any changes in the
 work file.
 
-  Here is what @kbd{C-x C-q} does when using CVS:
+  Here is what @kbd{C-x v v} does when using CVS:
 
 @itemize @bullet
 @item
@@ -1360,12 +1364,12 @@ to commit your own changes, type @kbd{C-x v m @key{RET}}.)
 
 @item
 If there are no new changes in the master file, but you have made
-modifications in your work file, @kbd{C-x C-q} checks in your changes.
+modifications in your work file, @kbd{C-x v v} checks in your changes.
 In order to do this, it first reads the log entry for the new version.
 @xref{Log Buffer}.
 
 @item
-If the file is not modified, the @kbd{C-x C-q} does nothing.
+If the file is not modified, the @kbd{C-x v v} does nothing.
 @end itemize
 
   These rules also apply when you use RCS in the mode that does not
@@ -1380,15 +1384,15 @@ changes.  We hope to eliminate this risk and provide automatic merging
 with RCS in a future Emacs version.
 
   In addition, locking is possible with RCS even in this mode, although
-it is not required; @kbd{C-x C-q} with an unmodified file locks the
+it is not required; @kbd{C-x v v} with an unmodified file locks the
 file, just as it does with RCS in its normal (locking) mode.
 
-@node Advanced C-x C-q
-@subsubsection Advanced Control in @kbd{C-x C-q}
+@node Advanced C-x v v
+@subsubsection Advanced Control in @kbd{C-x v v}
 
 @cindex version number to check in/out
   When you give a prefix argument to @code{vc-next-action} (@kbd{C-u
-C-x C-q}), it still performs the next logical version control
+C-x v v}), it still performs the next logical version control
 operation, but accepts additional arguments to specify precisely how
 to do the operation.
 
@@ -1403,7 +1407,7 @@ If the file is not modified (and unlocked), you can specify the
 version to select; this lets you start working from an older version,
 or on another branch.  If you do not enter any version, that takes you
 to the highest version on the current branch; therefore @kbd{C-u C-x
-C-q @key{RET}} is a convenient way to get the latest version of a file from
+v v @key{RET}} is a convenient way to get the latest version of a file from
 the repository.
 
 @item
@@ -1417,7 +1421,7 @@ Version Control}).
 @node Log Buffer
 @subsubsection Features of the Log Entry Buffer
 
-  When you check in changes, @kbd{C-x C-q} first reads a log entry.  It
+  When you check in changes, @kbd{C-x v v} first reads a log entry.  It
 pops up a buffer called @samp{*VC-Log*} for you to enter the log entry.
 When you are finished, type @kbd{C-c C-c} in the @samp{*VC-Log*} buffer.
 That is when check-in really happens.
@@ -1536,7 +1540,7 @@ use once a day.
 * Registering::         Putting a file under version control.
 * VC Status::           Viewing the VC status of files.
 * VC Undo::             Cancelling changes before or after check-in.
-* VC Dired Mode::       Listing files managed by version control. 
+* VC Dired Mode::       Listing files managed by version control.
 * VC Dired Commands::   Commands to use in a VC Dired buffer.
 @end menu
 
@@ -1569,9 +1573,9 @@ there are any files under CVS, SCCS if any files are under SCCS, or
 RCS as the ultimate default.
 
   If locking is in use, @kbd{C-x v i} leaves the file unlocked and
-read-only.  Type @kbd{C-x C-q} if you wish to start editing it.  After
+read-only.  Type @kbd{C-x v v} if you wish to start editing it.  After
 registering a file with CVS, you must subsequently commit the initial
-version by typing @kbd{C-x C-q}.
+version by typing @kbd{C-x v v}.
 
 @vindex vc-default-init-version
 @cindex initial version number to register
@@ -1803,14 +1807,14 @@ example above have branch numbers 1.2.1 and 1.2.2.
 * Switching Branches::    How to get to another existing branch.
 * Creating Branches::     How to start a new branch.
 * Merging::               Transferring changes between branches.
-* Multi-User Branching::  Multiple users working at multiple branches 
+* Multi-User Branching::  Multiple users working at multiple branches
                             in parallel.
 @end menu
 
 @node Switching Branches
 @subsubsection Switching between Branches
 
-  To switch between branches, type @kbd{C-u C-x C-q} and specify the
+  To switch between branches, type @kbd{C-u C-x v v} and specify the
 version number you want to select.  This version is then visited
 @emph{unlocked} (write-protected), so you can examine it before locking
 it.  Switching branches in this way is allowed only when the file is not
@@ -1829,8 +1833,8 @@ other branch.
 
   To create a new branch from a head version (one that is the latest in
 the branch that contains it), first select that version if necessary,
-lock it with @kbd{C-x C-q}, and make whatever changes you want.  Then,
-when you check in the changes, use @kbd{C-u C-x C-q}.  This lets you
+lock it with @kbd{C-x v v}, and make whatever changes you want.  Then,
+when you check in the changes, use @kbd{C-u C-x v v}.  This lets you
 specify the version number for the new version.  You should specify a
 suitable branch number for a branch starting at the current version.
 For example, if the current version is 2.5, the branch number should be
@@ -1839,12 +1843,12 @@ that point.
 
   To create a new branch at an older version (one that is no longer the
 head of a branch), first select that version (@pxref{Switching
-Branches}), then lock it with @kbd{C-x C-q}.  You'll be asked to
+Branches}), then lock it with @kbd{C-x v v}.  You'll be asked to
 confirm, when you lock the old version, that you really mean to create a
 new branch---if you say no, you'll be offered a chance to lock the
 latest version instead.
 
-  Then make your changes and type @kbd{C-x C-q} again to check in a new
+  Then make your changes and type @kbd{C-x v v} again to check in a new
 version.  This automatically creates a new branch starting from the
 selected version.  You need not specially request a new branch, because
 that's the only way to add a new version at a point that is not the head
@@ -1853,7 +1857,7 @@ of a branch.
   After the branch is created, you ``stay'' on it.  That means that
 subsequent check-ins create new versions on that branch.  To leave the
 branch, you must explicitly select a different version with @kbd{C-u C-x
-C-q}.  To transfer changes from one branch to another, use the merge
+v v}.  To transfer changes from one branch to another, use the merge
 command, described in the next section.
 
 @node Merging
@@ -1890,9 +1894,9 @@ merges them into the current version of the current file.
   As an example, suppose that you have finished a certain feature on
 branch 1.3.1.  In the meantime, development on the trunk has proceeded
 to version 1.5.  To merge the changes from the branch to the trunk,
-first go to the head version of the trunk, by typing @kbd{C-u C-x C-q
+first go to the head version of the trunk, by typing @kbd{C-u C-x v v
 @key{RET}}.  Version 1.5 is now current.  If locking is used for the file,
-type @kbd{C-x C-q} to lock version 1.5 so that you can change it.  Next,
+type @kbd{C-x v v} to lock version 1.5 so that you can change it.  Next,
 type @kbd{C-x v m 1.3.1 @key{RET}}.  This takes the entire set of changes on
 branch 1.3.1 (relative to version 1.3, where the branch started, up to
 the last version on the branch) and merges it into the current version
@@ -1956,7 +1960,7 @@ present in the work file.
 
   If the files do not have version headers, you must instead tell Emacs
 explicitly in each session which branch you are working on.  To do this,
-first find the file, then type @kbd{C-u C-x C-q} and specify the correct
+first find the file, then type @kbd{C-u C-x v v} and specify the correct
 branch number.  This ensures that Emacs knows which branch it is using
 during this particular editing session.
 
@@ -2221,7 +2225,7 @@ won't really work as retrieved.
 
 @menu
 * Change Logs and VC::  Generating a change log file from log entries.
-* Renaming and VC::     A command to rename both the source and master 
+* Renaming and VC::     A command to rename both the source and master
                           file correctly.
 * Version Headers::     Inserting version control headers into working files.
 @end menu
@@ -2514,7 +2518,7 @@ for files that use version control, set the variable
 @vindex vc-keep-workfiles
   Normally the work file exists all the time, whether it is locked or
 not.  If you set @code{vc-keep-workfiles} to @code{nil}, then checking
-in a new version with @kbd{C-x C-q} deletes the work file; but any
+in a new version with @kbd{C-x v v} deletes the work file; but any
 attempt to visit the file with Emacs creates it again.  (With CVS, work
 files are always kept.)
 
@@ -2534,7 +2538,7 @@ this in the echo area.  If the value is @code{ask} (the default), VC
 asks you each time whether to follow the link.
 
 @vindex vc-suppress-confirm
-  If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x C-q}
+  If @code{vc-suppress-confirm} is non-@code{nil}, then @kbd{C-x v v}
 and @kbd{C-x v i} can save the current buffer without asking, and
 @kbd{C-x v u} also operates without asking for confirmation.  (This
 variable does not affect @kbd{C-x v c}; that operation is so drastic
@@ -2610,7 +2614,7 @@ locking.
   For one thing, you can set the @env{CVSREAD} environment variable
 (the value you use makes no difference).  If this variable is defined,
 CVS makes your work files read-only by default.  In Emacs, you must
-type @kbd{C-x C-q} to make the file writable, so that editing works
+type @kbd{C-x v v} to make the file writable, so that editing works
 in fact similar as if locking was used.  Note however, that no actual
 locking is performed, so several users can make their files writable
 at the same time.  When setting @env{CVSREAD} for the first time, make
@@ -2621,7 +2625,7 @@ are set correctly.
 @cindex watching files (CVS)
   Another way to achieve something similar to locking is to use the
 @dfn{watch} feature of CVS.  If a file is being watched, CVS makes it
-read-only by default, and you must also use @kbd{C-x C-q} in Emacs to
+read-only by default, and you must also use @kbd{C-x v v} in Emacs to
 make it writable.  VC calls @code{cvs edit} to make the file writable,
 and CVS takes care to notify other developers of the fact that you
 intend to change the file.  See the CVS documentation for details on
@@ -2639,6 +2643,10 @@ else has already checked in other changes to the file, you are not
 notified of it until you actually try to commit.  (But you can try to
 pick up any recent changes from the repository first, using @kbd{C-x v m
 @key{RET}}, @pxref{Merging}).
+
+@vindex vc-cvs-global-switches
+  The variable @code{vc-cvs-global-switches} should be a string
+specifying switches to pass to CVS for all CVS operations.
 
   When @code{vc-cvs-stay-local} is @code{t}, VC also makes local
 version backups, so that simple diff and revert operations are
@@ -2703,12 +2711,20 @@ make a verbose listing including sizes, dates, and owners (like
 
 @vindex list-directory-brief-switches
 @vindex list-directory-verbose-switches
-  The text of a directory listing is obtained by running @code{ls} in an
-inferior process.  Two Emacs variables control the switches passed to
-@code{ls}: @code{list-directory-brief-switches} is a string giving the
-switches to use in brief listings (@code{"-CF"} by default), and
-@code{list-directory-verbose-switches} is a string giving the switches to
-use in a verbose listing (@code{"-l"} by default).
+  The text of a directory listing is mostly obtained by running
+@code{ls} in an inferior process.  Two Emacs variables control the
+switches passed to @code{ls}: @code{list-directory-brief-switches} is
+a string giving the switches to use in brief listings (@code{"-CF"} by
+default), and @code{list-directory-verbose-switches} is a string
+giving the switches to use in a verbose listing (@code{"-l"} by
+default).
+
+@vindex directory-free-space-program
+@vindex directory-free-space-args
+  Emacs adds information about the amount of free space on the disk
+that contains the directory.  To do this, it runs the program
+specified by @code{directory-free-space-program} with arguments
+@code{directory-free-space-args}.
 
 @node Comparing Files
 @section Comparing Files
@@ -2959,24 +2975,56 @@ extract or manipulate the subfiles in the archive.
 @node Remote Files
 @section Remote Files
 
+@cindex Tramp
 @cindex FTP
 @cindex remote file access
-  You can refer to files on other machines using a special file name syntax:
+  You can refer to files on other machines using a special file name
+syntax:
 
 @example
 @group
 /@var{host}:@var{filename}
 /@var{user}@@@var{host}:@var{filename}
 /@var{user}@@@var{host}#@var{port}:@var{filename}
+/@var{method}:@var{user}@@@var{host}:@var{filename}
+/@var{method}:@var{user}@@@var{host}#@var{port}:@var{filename}
 @end group
 @end example
 
 @noindent
-When you do this, Emacs uses the FTP program to read and write files on
-the specified host.  It logs in through FTP using your user name or the
-name @var{user}.  It may ask you for a password from time to time; this
-is used for logging in on @var{host}.  The form using @var{port} allows
-you to access servers running on a non-default TCP port.
+When you do this, Emacs may use the FTP program to access files on the
+remote host, or Emacs may use a remote-login program (such as
+@command{ssh}, @command{rlogin}, or @command{telnet}) to do this.
+
+You can always specify in the file name which method should be used to
+access the remote files, for example
+@file{/ftp:@var{user}@@@var{host}:@var{filename}} uses FTP, whereas
+@file{/ssh:@var{user}@@@var{host}:@var{filename}} uses @command{ssh}.
+When you don't specify a method in the file name, Emacs determines a
+default method according to the following rules:
+
+@enumerate
+@item
+If the host name starts with @samp{ftp.} (with dot), then Emacs assumes
+the @command{ftp} method.
+@item
+If the user name is @samp{ftp} or @samp{anonymous}, then Emacs assumes
+the @command{ftp} method.
+@item
+Otherwise, Emacs assumes the @command{ssh} method.
+@end enumerate
+
+@noindent
+Remote file access through FTP is handled by the Ange-FTP package, which
+is documented in the following.  Remote file access through the other
+methods is handled by the Tramp package, which has its own manual.
+@xref{Top, The Tramp Manual,, tramp, The Tramp Manual}.
+
+When the Ange-FTP package is used, Emacs logs in through FTP using your
+user name or the name @var{user}.  It may ask you for a password from
+time to time; this is used for logging in on @var{host}.  The form using
+@var{port} allows you to access servers running on a non-default TCP
+port.
 
 @cindex backups for remote files
 @vindex ange-ftp-make-backup-files

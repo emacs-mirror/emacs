@@ -22,7 +22,7 @@ Basic Installation for  An Introduction to Programming in Emacs Lisp  version 2
     ./configure
     make dvi
 
-    # To create an HTML file, execute the following 
+    # To create an HTML file, execute the following
     #   (presumably you have already executed the `./configure' command
     #    before running `make dvi'; if not execute `./configure' now);
     # this will place HTML files into a emacs-lisp-intro/ subdirectory:

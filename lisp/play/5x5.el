@@ -146,7 +146,7 @@
     (define-key map [(control c) (control r)] #'5x5-crack-randomly)
     (define-key map [(control c) (control c)] #'5x5-crack-mutating-current)
     (define-key map [(control c) (control b)] #'5x5-crack-mutating-best)
-    (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)  
+    (define-key map [(control c) (control x)] #'5x5-crack-xor-mutate)
     (define-key map "n"                       #'5x5-new-game)
     (define-key map "q"                       #'5x5-quit-game)
     (setq 5x5-mode-map map)))
@@ -178,7 +178,7 @@ The key bindings for 5x5-mode are:
   (use-local-map 5x5-mode-map)
   (setq major-mode '5x5-mode
         mode-name  "5x5")
-  (run-hooks '5x5-mode-hook)  
+  (run-hooks '5x5-mode-hook)
   (setq buffer-read-only t
         truncate-lines   t)
   (buffer-disable-undo (current-buffer)))
@@ -192,11 +192,11 @@ squares you must fill the grid.
 
 5x5 keyboard bindings are:
 \\<5x5-mode-map>
-Flip                      \\[5x5-flip-current] 
-Move up                   \\[5x5-up]           
-Move down                 \\[5x5-down]         
-Move left                 \\[5x5-left]         
-Move right                \\[5x5-right]        
+Flip                      \\[5x5-flip-current]
+Move up                   \\[5x5-up]
+Move down                 \\[5x5-down]
+Move left                 \\[5x5-left]
+Move right                \\[5x5-right]
 Start new game            \\[5x5-new-game]
 New game with random grid \\[5x5-randomize]
 Random cracker            \\[5x5-crack-randomly]
@@ -426,7 +426,7 @@ progress because it is an animated attempt."
                 (5x5-position-cursor)
                 (sit-for 5x5-animate-delay))))
   5x5-grid)
-  
+
 ;; Keyboard response functions.
 
 (defun 5x5-flip-current ()
@@ -512,7 +512,7 @@ progress because it is an animated attempt."
 (defun 5x5-xor (x y)
   "Boolean exclusive-or of X and Y."
   (and (or x y) (not (and x y))))
-                   
+
 (defun 5x5-y-or-n-p (prompt)
   "5x5 wrapper for y-or-n-p which respects the 5x5-hassle-me setting."
   (if 5x5-hassle-me

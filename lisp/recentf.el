@@ -156,7 +156,7 @@ The filter function is called with one argument, the list of menu elements
 used to build the menu and must return a new list of menu elements (see
 `recentf-make-menu-element' for menu element form)."
   :group 'recentf
-  :type '(radio (const nil) 
+  :type '(radio (const nil)
 		(function-item recentf-sort-ascending)
 		(function-item recentf-sort-descending)
 		(function-item recentf-sort-basenames-ascending)
@@ -201,7 +201,7 @@ used to build the menu and must return a new list of menu elements (see
 ;;;; Common functions
 ;;;;
 (defconst recentf-case-fold-search
-  (memq system-type '(vax-vms windows-nt))
+  (memq system-type '(vax-vms windows-nt cygwin))
   "Non-nil if recentf searches and matches should ignore case.")
 
 (defun recentf-include-p (filename)
@@ -676,7 +676,7 @@ Arrange them in sub-menus following rules in `recentf-arrange-rules'."
     ;; It is important to preserve auto-mode-alist order
     ;; to ensure the right file <-> mode association
     (nreverse rules)))
-         
+
 (defun recentf-arrange-by-mode (l)
   "Filter the list of menu-elements L to build sub-menus for each major mode."
   (let ((recentf-arrange-rules (recentf-build-mode-rules))
@@ -765,7 +765,7 @@ Each filter is defined by a pair (FILTER-FUN . FILTER-LBL) where:
                (setq filters (cdr filters)))))
     (if (consp filters)
         (car filters))))
-        
+
 (defun recentf-filter-changer (l)
   "Manage a ring of filters.
 `recentf-filter-changer-alist' defines the filters in the ring.
@@ -888,7 +888,7 @@ Holds list of files to be deleted from `recentf-list'.")
         (setq recentf-edit-selected-items
               (nconc (list value) recentf-edit-selected-items))
         (message "%s added to selection." value)))))
-  
+
 ;;;###autoload
 (defun recentf-edit-list ()
   "Allow the user to edit the files that are kept in the recent list."

@@ -573,15 +573,15 @@ if (1)									   \
     CHARIDX++;								   \
     if (STRING_MULTIBYTE (STRING))					   \
       {									   \
-	unsigned char *ptr = &XSTRING (STRING)->data[BYTEIDX];		   \
-	int space_left = XSTRING (STRING)->size_byte - BYTEIDX;		   \
+	const unsigned char *ptr = SDATA (STRING) + BYTEIDX;		   \
+	int space_left = SBYTES (STRING) - BYTEIDX;			   \
 	int actual_len;							   \
 									   \
 	OUTPUT = STRING_CHAR_AND_LENGTH (ptr, space_left, actual_len);	   \
 	BYTEIDX += actual_len;						   \
       }									   \
     else								   \
-      OUTPUT = XSTRING (STRING)->data[BYTEIDX++];			   \
+      OUTPUT = SREF (STRING, BYTEIDX++);				   \
   }									   \
 else
 
@@ -590,8 +590,8 @@ else
 #define FETCH_STRING_CHAR_ADVANCE_NO_CHECK(OUTPUT, STRING, CHARIDX, BYTEIDX)  \
 if (1)									      \
   {									      \
-    unsigned char *fetch_string_char_ptr = &XSTRING (STRING)->data[BYTEIDX];  \
-    int fetch_string_char_space_left = XSTRING (STRING)->size_byte - BYTEIDX; \
+    const unsigned char *fetch_string_char_ptr = SDATA (STRING) + BYTEIDX;    \
+    int fetch_string_char_space_left = SBYTES (STRING) - BYTEIDX;	      \
     int actual_len;							      \
     									      \
     OUTPUT								      \
@@ -633,6 +633,34 @@ else
   (BYTES_BY_CHAR_HEAD (*(unsigned char *)(str)) == 1	\
    ? 1							\
    : multibyte_form_length (str, len))
+
+/* If P is before LIMIT, advance P to the next character boundary.  It
+   assumes that P is already at a character boundary of the sane
+   mulitbyte form whose end address is LIMIT.  */
+
+#define NEXT_CHAR_BOUNDARY(p, limit)	\
+  do {					\
+    if ((p) < (limit))			\
+      (p) += BYTES_BY_CHAR_HEAD (*(p));	\
+  } while (0)
+
+
+/* If P is after LIMIT, advance P to the previous character boundary.
+   It assumes that P is already at a character boundary of the sane
+   mulitbyte form whose beginning address is LIMIT.  */
+
+#define PREV_CHAR_BOUNDARY(p, limit)					\
+  do {									\
+    if ((p) > (limit))							\
+      {									\
+	const unsigned char *p0 = (p);					\
+	do {								\
+	  p0--;								\
+	} while (p0 >= limit && ! CHAR_HEAD_P (*p0));			\
+	(p) = (BYTES_BY_CHAR_HEAD (*p0) == (p) - p0) ? p0 : (p) - 1;	\
+      }									\
+  } while (0)
+
 
 #ifdef emacs
 
@@ -794,19 +822,22 @@ extern int char_to_string_1 P_ ((int, unsigned char *));
 extern int string_to_char P_ ((const unsigned char *, int, int *));
 extern int char_printable_p P_ ((int c));
 extern int multibyte_form_length P_ ((const unsigned char *, int));
-extern void parse_str_as_multibyte P_ ((unsigned char *, int, int *, int *));
+extern void parse_str_as_multibyte P_ ((const unsigned char *, int, int *,
+					int *));
 extern int str_as_multibyte P_ ((unsigned char *, int, int, int *));
 extern int parse_str_to_multibyte P_ ((unsigned char *, int));
 extern int str_to_multibyte P_ ((unsigned char *, int, int));
 extern int str_as_unibyte P_ ((unsigned char *, int));
 extern int get_charset_id P_ ((Lisp_Object));
-extern int find_charset_in_text P_ ((unsigned char *, int, int, int *,
+extern int find_charset_in_text P_ ((const unsigned char *, int, int, int *,
 				    Lisp_Object));
 extern int strwidth P_ ((unsigned char *, int));
-extern int c_string_width P_ ((unsigned char *, int, int, int *, int *));
+extern int c_string_width P_ ((const unsigned char *, int, int, int *, int *));
 extern int lisp_string_width P_ ((Lisp_Object, int, int *, int *));
 extern int char_bytes P_ ((int));
 extern int char_valid_p P_ ((int, int));
+
+EXFUN (Funibyte_char_to_multibyte, 1);
 
 extern Lisp_Object Vtranslation_table_vector;
 
@@ -825,7 +856,8 @@ extern Lisp_Object Vauto_fill_chars;
 #define BCOPY_SHORT(from, to, len)		\
   do {						\
     int i = len;				\
-    unsigned char *from_p = from, *to_p = to;	\
+    const unsigned char *from_p = from;		\
+    unsigned char *to_p = to;			\
     while (i--) *to_p++ = *from_p++;		\
   } while (0)
 

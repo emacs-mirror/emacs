@@ -168,7 +168,7 @@ area while indicating the current selection by `<N>'."
 ;; kkc-current-conversions for key sequence kkc-current-key of length
 ;; LEN.  If no conversion is found in the dictionary, don't change
 ;; kkc-current-conversions and return nil.
-;; Postfixes are handled only if POSTFIX is non-nil. 
+;; Postfixes are handled only if POSTFIX is non-nil.
 (defun kkc-lookup-key (len &optional postfix prefer-noun)
   ;; At first, prepare cache data if any.
   (unless kkc-init-file-flag

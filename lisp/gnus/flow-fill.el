@@ -1,6 +1,6 @@
 ;;; flow-fill.el --- interprete RFC2646 "flowed" text
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
 ;; Keywords: mail
@@ -43,7 +43,7 @@
 ;; 2000-02-17  posted on ding mailing list
 ;; 2000-02-19  use `point-at-{b,e}ol' in XEmacs
 ;; 2000-03-11  no compile warnings for point-at-bol stuff
-;; 2000-03-26  commited to gnus cvs
+;; 2000-03-26  committed to gnus cvs
 ;; 2000-10-23  don't flow "-- " lines, make "quote-depth wins" rule
 ;;             work when first line is at level 0.
 

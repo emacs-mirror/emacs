@@ -1,9 +1,9 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001 
+@c Copyright (C) 1985,86,87,93,94,95,1997,2000,2001
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node MS-DOS, Manifesto, Mac OS, Top
-@appendix Emacs and MS-DOS 
+@appendix Emacs and MS-DOS
 @cindex MS-DOG
 @cindex MS-DOS peculiarities
 
@@ -837,7 +837,7 @@ key invokes the Windows menu.  The reason is that the @key{ALT} also
 serves as @key{META} in Emacs.  When using Emacs, users often press the
 @key{META} key temporarily and then change their minds; if this has the
 effect of bringing up the Windows menu, it alters the meaning of
-subsequent commands.  Many users find this frustrating. 
+subsequent commands.  Many users find this frustrating.
 
 @vindex w32-pass-alt-to-system
 You can reenable Windows's default handling of tapping the @key{ALT} key

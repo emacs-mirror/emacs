@@ -46,6 +46,7 @@ Boston, MA 02111-1307, USA.  */
    precompiled header Carbon.h.  */
 #undef max
 #undef min
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef Z
 #define Z (current_buffer->text->z)
@@ -59,6 +60,8 @@ Boston, MA 02111-1307, USA.  */
 #define min(a, b) ((a) < (b) ? (a) : (b))
 #undef max
 #define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <MacTypes.h>
 #include <Menus.h>
@@ -86,6 +89,7 @@ Boston, MA 02111-1307, USA.  */
 #include "dispextern.h"
 
 #define POPUP_SUBMENU_ID 235
+#define MIN_POPUP_SUBMENU_ID 512
 #define MIN_MENU_ID 256
 #define MIN_SUBMENU_ID 1
 
@@ -116,7 +120,7 @@ typedef struct _widget_value
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */ 
+  /* keyboard equivalent. no implications for XtTranslations */
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -176,7 +180,6 @@ Lisp_Object Vmenu_updating_frame;
 Lisp_Object Qdebug_on_next_call;
 
 extern Lisp_Object Qmenu_bar;
-extern Lisp_Object Qmouse_click, Qevent_kind;
 
 extern Lisp_Object QCtoggle, QCradio;
 
@@ -203,7 +206,7 @@ static void single_menu_item ();
 static void list_of_panes ();
 static void list_of_items ();
 
-static void fill_submenu (MenuHandle, widget_value *, int);
+static void fill_submenu (MenuHandle, widget_value *);
 static void fill_menubar (widget_value *);
 
 
@@ -264,6 +267,9 @@ static int menu_items_submenu_depth;
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
 static int popup_activated_flag;
+
+/* Index of the next submenu */
+static int submenu_id;
 
 static int next_menubar_widget_id;
 
@@ -501,7 +507,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
-   KEY is a key in a keymap and ITEM is its binding. 
+   KEY is a key in a keymap and ITEM is its binding.
    PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
    separate panes.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
@@ -517,7 +523,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
-  
+
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
   res = parse_menu_item (item, notreal, 0);
@@ -526,7 +532,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-  
+
   if (notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -537,9 +543,9 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     }
 
   enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]; 
+  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
 
-  if (!NILP (map) && XSTRING (item_string)->data[0] == '@')
+  if (!NILP (map) && SREF (item_string, 0) == '@')
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
@@ -812,7 +818,7 @@ cached information about equivalent key sequences.  */)
 
       keymaps = 0;
     }
-  
+
   if (NILP (position))
     {
       discard_menu_items ();
@@ -956,7 +962,7 @@ on the left of the dialog box and all following items on the right.
 
 /* Activate the menu bar of frame F.
    This is called from keyboard.c when it gets the
-   menu_bar_activate_event out of the Emacs event queue.
+   MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
 
    To activate the menu bar, we signal to the input thread that it can
    return from the WM_INITMENU message, allowing the normal Windows
@@ -965,7 +971,7 @@ on the left of the dialog box and all following items on the right.
    But first we recompute the menu bar contents (the whole tree).
 
    This way we can safely execute Lisp code.  */
-   
+
 void
 x_activate_menubar (f)
      FRAME_PTR f;
@@ -1176,7 +1182,7 @@ single_submenu (item_key, item_name, maps)
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
- 
+
   /* Loop over all panes and items made during this call
      and construct a tree of widget_value objects.
      Ignore the panes and items made by previous calls to
@@ -1221,7 +1227,7 @@ single_submenu (item_key, item_name, maps)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1280,14 +1286,14 @@ single_submenu (item_key, item_name, maps)
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1367,7 +1373,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = specpdl_ptr - specpdl;
+      int specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -1426,7 +1432,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = single_submenu (key, string, maps);
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1468,7 +1474,7 @@ set_frame_menubar (f, first_time, deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv = wv->next;
 	}
 
@@ -1491,7 +1497,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -1502,7 +1508,7 @@ set_frame_menubar (f, first_time, deep_p)
 	     This value just has to be different from small integers.  */
 	  wv->call_data = (void *) (EMACS_INT) (-1);
 
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1531,7 +1537,7 @@ set_frame_menubar (f, first_time, deep_p)
 	DisposeMenu (menu);
 	menu = GetMenuHandle (++i);
       }
-    
+
     i = MIN_SUBMENU_ID;
     menu = GetMenuHandle (i);
     while (menu != NULL)
@@ -1543,9 +1549,9 @@ set_frame_menubar (f, first_time, deep_p)
   }
 
   fill_menubar (first_wv->contents);
-  
+
   DrawMenuBar ();
-  
+
   free_menubar_widget_value_tree (first_wv);
 
   UNBLOCK_INPUT;
@@ -1603,6 +1609,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
+  UInt32 refcon;
+  int menu_item_choice;
   int menu_item_selection;
   MenuHandle menu;
   Point pos;
@@ -1632,7 +1640,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   wv->help = Qnil;
   first_wv = wv;
   first_pane = 1;
- 
+
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
   while (i < menu_items_used)
@@ -1674,7 +1682,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1735,13 +1743,13 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
-	  else 
+	  else
 	    save_wv->contents = wv;
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
              restricted to 16-bits.  */
@@ -1785,7 +1793,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
       if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
 #endif
-      wv_title->name = (char *) XSTRING (title)->data;
+      wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
@@ -1796,7 +1804,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Actually create the menu.  */
   menu = NewMenu (POPUP_SUBMENU_ID, "\p");
-  fill_submenu (menu, first_wv->contents, 0);
+  submenu_id = MIN_POPUP_SUBMENU_ID;
+  fill_submenu (menu, first_wv->contents);
 
   /* Adjust coordinates to be root-window-relative.  */
   pos.h = x;
@@ -1811,15 +1820,24 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   LocalToGlobal (&pos);
 
   /* No selection has been chosen yet.  */
+  menu_item_choice = 0;
   menu_item_selection = 0;
 
   InsertMenu (menu, -1);
 
   /* Display the menu.  */
-  menu_item_selection = LoWord (PopUpMenuSelect (menu, pos.v, pos.h, 0));
+  menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
+  menu_item_selection = LoWord (menu_item_choice);
 
-  DeleteMenu (POPUP_SUBMENU_ID);
-  
+  /* Get the refcon to find the correct item*/
+  if (menu_item_selection)
+    {
+      menu = GetMenuHandle (HiWord (menu_item_choice));
+      if (menu) {
+	GetMenuItemRefCon (menu, menu_item_selection, &refcon);
+      }
+    }
+
 #if 0
   /* Clean up extraneous mouse events which might have been generated
      during the call.  */
@@ -1830,6 +1848,19 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
      contents.  */
   free_menubar_widget_value_tree (first_wv);
 
+  /* delete all menus */
+  {
+    int i = MIN_POPUP_SUBMENU_ID;
+    MenuHandle submenu = GetMenuHandle (i);
+    while (menu != NULL)
+      {
+	DeleteMenu (i);
+	DisposeMenu (menu);
+	menu = GetMenuHandle (++i);
+      }
+  }
+
+  DeleteMenu (POPUP_SUBMENU_ID);
   DisposeMenu (menu);
 
   /* Find the selected item, and its pane, to return
@@ -1867,7 +1898,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    {
 	      entry
 		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
-	      if (menu_item_selection == i)
+	      if ((int) (EMACS_INT) refcon == i)
 		{
 		  if (keymaps != 0)
 		    {
@@ -1913,13 +1944,13 @@ mac_dialog (widget_value *wv)
   SInt16 part_code;
   int control_part_code;
   Point mouse;
-            
+
   dialog_name = wv->name;
   nb_buttons = dialog_name[1] - '0';
   left_count = nb_buttons - (dialog_name[4] - '0');
   button_labels = (char **) alloca (sizeof (char *) * nb_buttons);
   ref_cons = (UInt32 *) alloca (sizeof (UInt32) * nb_buttons);
-  
+
   wv = wv->contents;
   prompt = (char *) alloca (strlen (wv->value) + 1);
   strcpy (prompt, wv->value);
@@ -1943,7 +1974,7 @@ mac_dialog (widget_value *wv)
 #else
   SetPort (window_ptr);
 #endif
-  
+
   TextFont (0);
   /* Left and right margins in the dialog are 13 pixels each.*/
   dialog_width = 14;
@@ -1965,7 +1996,7 @@ mac_dialog (widget_value *wv)
 #else
   SetPort (window_ptr);
 #endif
-  
+
   TextFont (0);
 
   MoveTo (13, 29);
@@ -2003,7 +2034,7 @@ mac_dialog (widget_value *wv)
     }
 
   DisposeWindow (window_ptr);
-  
+
   return i;
 }
 
@@ -2045,7 +2076,7 @@ mac_dialog_show (f, keymaps, title, error)
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) XSTRING (pane_name)->data);  
+		   ? "" : (char *) SDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -2054,12 +2085,12 @@ mac_dialog_show (f, keymaps, title, error)
     prev_wv->name = "message";
     prev_wv->help = Qnil;
     first_wv = prev_wv;
- 
+
     /* Loop over all panes and items, filling in the tree.  */
     i = MENU_ITEMS_PANE_LENGTH;
     while (i < menu_items_used)
       {
-	
+
 	/* Create a new item within current pane.  */
 	Lisp_Object item_name, enable, descrip, help;
 
@@ -2068,7 +2099,7 @@ mac_dialog_show (f, keymaps, title, error)
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
         help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-	
+
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
@@ -2094,8 +2125,8 @@ mac_dialog_show (f, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) XSTRING (descrip)->data;
-	wv->value = (char *) XSTRING (item_name)->data;
+	  wv->key = (char *) SDATA (descrip);
+	wv->value = (char *) SDATA (item_name);
 	wv->call_data = (void *) i;
 	  /* menu item is identified by its index in menu_items table */
 	wv->enabled = !NILP (enable);
@@ -2201,7 +2232,7 @@ name_is_separator (name)
 }
 
 static void
-add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
+add_menu_item (MenuHandle menu, widget_value *wv, int submenu,
 	       int force_disable)
 {
   Str255 item_name;
@@ -2209,10 +2240,10 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
 
   if (name_is_separator (wv->name))
     AppendMenu (menu, "\p-");
-  else 
+  else
     {
       AppendMenu (menu, "\pX");
-      
+
 #if TARGET_API_MAC_CARBON
       pos = CountMenuItems (menu);
 #else
@@ -2220,14 +2251,13 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
 #endif
 
       strcpy (item_name, "");
-      for (i = 0; i < indent; i++)
-        strcat (item_name, "    ");
-      strcat (item_name, wv->name);
+      strncat (item_name, wv->name, 255);
       if (wv->key != NULL)
 	{
-	  strcat (item_name, " ");
-	  strcat (item_name, wv->key);
+	  strncat (item_name, " ", 255);
+	  strncat (item_name, wv->key, 255);
 	}
+      item_name[255] = 0;
       c2pstr (item_name);
       SetMenuItemText (menu, pos, item_name);
 
@@ -2260,22 +2290,22 @@ add_menu_item (MenuHandle menu, widget_value *wv, int submenu, int indent,
     SetMenuItemHierarchicalID (menu, pos, submenu);
 }
 
-static int submenu_id;
-  
 /* Construct native Mac OS menubar based on widget_value tree.  */
 
 static void
-fill_submenu (MenuHandle menu, widget_value *wv, int indent)
+fill_submenu (MenuHandle menu, widget_value *wv)
 {
   for ( ; wv != NULL; wv = wv->next)
     if (wv->contents)
       {
-        add_menu_item (menu, wv, NULL, indent, 1);
-        
-        fill_submenu (menu, wv->contents, indent + 1);
+	int cur_submenu = submenu_id++;
+        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
+        fill_submenu (submenu, wv->contents);
+        InsertMenu (submenu, -1);
+        add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, indent, 0);
+      add_menu_item (menu, wv, NULL, 0);
 }
 
 
@@ -2287,14 +2317,14 @@ fill_menu (MenuHandle menu, widget_value *wv)
   for ( ; wv != NULL; wv = wv->next)
     if (wv->contents)
       {
-        MenuHandle submenu = NewMenu (submenu_id, "\pX");
-        fill_submenu (submenu, wv->contents, 0);
+	int cur_submenu = submenu_id++;
+        MenuHandle submenu = NewMenu (cur_submenu, "\pX");
+        fill_submenu (submenu, wv->contents);
         InsertMenu (submenu, -1);
-        add_menu_item (menu, wv, submenu_id, 0, 0);
-        submenu_id++;
+        add_menu_item (menu, wv, cur_submenu, 0);
       }
     else
-      add_menu_item (menu, wv, NULL, 0, 0);
+      add_menu_item (menu, wv, NULL, 0);
 }
 
 /* Construct native Mac OS menubar based on widget_value tree.  */
@@ -2310,14 +2340,15 @@ fill_menubar (widget_value *wv)
     {
       MenuHandle menu;
       Str255 title;
-        
-      strcpy (title, wv->name);
+
+      strncpy (title, wv->name, 255);
+      title[255] = 0;
       c2pstr (title);
       menu = NewMenu (id, title);
 
       if (wv->contents)
         fill_menu (menu, wv->contents);
-      
+
       InsertMenu (menu, 0);
     }
 }

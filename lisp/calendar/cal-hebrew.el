@@ -115,9 +115,9 @@ Gregorian date Sunday, December 31, 1 BC."
             day)))
     (if ;; If Rosh HaShanah would occur on Sunday, Wednesday, or Friday
         (memq (% alternative-day 7) (list 0 3 5))
-  ;; Then postpone it one (more) day and return        
+  ;; Then postpone it one (more) day and return
         (1+ alternative-day)
-  ;; Else return        
+  ;; Else return
       alternative-day)))
 
 (defun hebrew-calendar-days-in-year (year)
@@ -316,7 +316,7 @@ nil if it is not visible in the current calendar window."
               (list (calendar-gregorian-from-absolute (+ abs-r-h 22))
                     "Simchat Torah")))
            (optional
-            (list 
+            (list
              (list (calendar-gregorian-from-absolute
                     (calendar-dayname-on-or-before 6 (- abs-r-h 4)))
                    "Selichot (night)")
@@ -350,7 +350,7 @@ nil if it is not visible in the current calendar window."
              (filter-visible-calendar-holidays mandatory)))
       (if all-hebrew-calendar-holidays
           (setq output-list
-                (append 
+                (append
                  (filter-visible-calendar-holidays optional)
                  output-list)))
       output-list)))
@@ -401,7 +401,7 @@ nil if it is not visible in the current calendar window."
              (list (calendar-gregorian-from-absolute (+ abs-p 50))
                    "Shavuot")))
            (optional
-            (list 
+            (list
              (list (calendar-gregorian-from-absolute
                     (calendar-dayname-on-or-before 6 (- abs-p 43)))
                    "Shabbat Shekalim")
@@ -467,7 +467,7 @@ nil if it is not visible in the current calendar window."
              (filter-visible-calendar-holidays mandatory)))
       (if all-hebrew-calendar-holidays
           (setq output-list
-                (append 
+                (append
                  (filter-visible-calendar-holidays optional)
                  output-list)))
       output-list)))
@@ -481,7 +481,7 @@ nil if it is not visible in the current calendar window."
                       (list 5 9 (+ displayed-year 3760)))))
 
       (filter-visible-calendar-holidays
-       (list 
+       (list
         (list (calendar-gregorian-from-absolute
                (if (= (% abs-t-a 7) 6) (- abs-t-a 20) (- abs-t-a 21)))
               "Tzom Tammuz")
@@ -513,7 +513,7 @@ not be marked in the calendar.  This function is provided for use with the
             (mark (regexp-quote diary-nonmarking-symbol)))
         (calendar-for-loop i from 1 to number do
            (let* ((d diary-date-forms)
-                  (hdate (calendar-hebrew-from-absolute 
+                  (hdate (calendar-hebrew-from-absolute
                           (calendar-absolute-from-gregorian gdate)))
                   (month (extract-calendar-month hdate))
                   (day (extract-calendar-day hdate))
@@ -683,7 +683,7 @@ is provided for use as part of the nongregorian-diary-marking-hook."
                       (setq mm 0)
                     (setq
                       mm
-                      (cdr 
+                      (cdr
                         (assoc-ignore-case
                          mm-name
                          (calendar-make-alist
@@ -775,7 +775,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       hebrew-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-hebrew-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))
@@ -794,7 +794,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       hebrew-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-hebrew-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
@@ -814,7 +814,7 @@ Prefix arg will make the entry nonmarking."
     (make-diary-entry
      (concat
       hebrew-diary-entry-symbol
-      (calendar-date-string 
+      (calendar-date-string
        (calendar-hebrew-from-absolute
         (calendar-absolute-from-gregorian
          (calendar-cursor-to-date t)))))
@@ -896,9 +896,12 @@ from the cursor position."
   "Hebrew calendar equivalent of date diary entry."
   (format "Hebrew date (until sunset): %s" (calendar-hebrew-date-string date)))
 
-(defun diary-omer ()
+(defun diary-omer (&optional mark)
   "Omer count diary entry.
-Entry applies if date is within 50 days after Passover."
+Entry applies if date is within 50 days after Passover.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((passover
           (calendar-absolute-from-hebrew
            (list 1 15 (+ (extract-calendar-year date) 3760))))
@@ -906,30 +909,34 @@ Entry applies if date is within 50 days after Passover."
          (week (/ omer 7))
          (day (% omer 7)))
     (if (and (> omer 0) (< omer 50))
-        (format "Day %d%s of the omer (until sunset)"
-                omer
-                (if (zerop week)
-                    ""
-                  (format ", that is, %d week%s%s"
-                          week
-                          (if (= week 1) "" "s")
-                          (if (zerop day)
-                              ""
-                            (format " and %d day%s"
-                                    day (if (= day 1) "" "s")))))))))
+        (cons mark
+	      (format "Day %d%s of the omer (until sunset)"
+		      omer
+		      (if (zerop week)
+			  ""
+			(format ", that is, %d week%s%s"
+				week
+				(if (= week 1) "" "s")
+				(if (zerop day)
+				    ""
+				  (format " and %d day%s"
+					  day (if (= day 1) "" "s"))))))))))
 
-(defun diary-yahrzeit (death-month death-day death-year)
+(defun diary-yahrzeit (death-month death-day death-year &optional mark)
   "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before.
 Parameters are DEATH-MONTH, DEATH-DAY, DEATH-YEAR; the diary entry is assumed
 to be the name of the person.  Date of death is on the *civil* calendar;
 although the date of death is specified by the civil calendar, the proper
 Hebrew calendar yahrzeit is determined.  If `european-calendar-style' is t, the
-order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR."
+order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((h-date (calendar-hebrew-from-absolute
                   (calendar-absolute-from-gregorian
                    (if european-calendar-style
                        (list death-day death-month death-year)
-                   (list death-month death-day death-year)))))
+		     (list death-month death-day death-year)))))
          (h-month (extract-calendar-month h-date))
          (h-day (extract-calendar-day h-date))
          (h-year (extract-calendar-year h-date))
@@ -938,18 +945,22 @@ order of the parameters is changed to DEATH-DAY, DEATH-MONTH, DEATH-YEAR."
          (diff (- yr h-year))
          (y (hebrew-calendar-yahrzeit h-date yr)))
     (if (and (> diff 0) (or (= y d) (= y (1+ d))))
-        (format "Yahrzeit of %s%s: %d%s anniversary"
-                entry
-                (if (= y d) "" " (evening)")
-                diff
-                (cond ((= (% diff 10) 1) "st")
-                      ((= (% diff 10) 2) "nd")
-                      ((= (% diff 10) 3) "rd")
-                      (t "th"))))))
+        (cons mark
+	      (format "Yahrzeit of %s%s: %d%s anniversary"
+		      entry
+		      (if (= y d) "" " (evening)")
+		      diff
+		      (cond ((= (% diff 10) 1) "st")
+			    ((= (% diff 10) 2) "nd")
+			    ((= (% diff 10) 3) "rd")
+			    (t "th")))))))
 
-(defun diary-rosh-hodesh ()
+(defun diary-rosh-hodesh (&optional mark)
   "Rosh Hodesh diary entry.
-Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
+Entry applies if date is Rosh Hodesh, the day before, or the Saturday before.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((d (calendar-absolute-from-gregorian date))
          (h-date (calendar-hebrew-from-absolute d))
          (h-month (extract-calendar-month h-date))
@@ -965,47 +976,53 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
          (h-yesterday (extract-calendar-day
                        (calendar-hebrew-from-absolute (1- d)))))
     (if (or (= h-day 30) (and (= h-day 1) (/= h-month 7)))
-        (format
-         "Rosh Hodesh %s"
-         (if (= h-day 30)
-             (format
-              "%s (first day)"
-              ;; next month must be in the same year since this
-              ;; month can't be the last month of the year since
-              ;; it has 30 days
-              (aref h-month-names h-month))
-           (if (= h-yesterday 30)
-               (format "%s (second day)" this-month)
-             this-month)))
-      (if (= (% d 7) 6);; Saturday--check for Shabbat Mevarchim
-          (cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
-                 (format "Mevarchim Rosh Hodesh %s (%s)"
-                         (aref h-month-names
-                               (if (= h-month
-                                      (hebrew-calendar-last-month-of-year
-                                       h-year))
-                                   0 h-month))
-                         (aref calendar-day-name-array (- 29 h-day))))
-                ((and (< h-day 30) (> h-day 22) (= 30 last-day))
-                 (format "Mevarchim Rosh Hodesh %s (%s-%s)"
-                         (aref h-month-names h-month)
-                         (if (= h-day 29)
-                             "tomorrow"
-                           (aref calendar-day-name-array (- 29 h-day)))
-                         (aref calendar-day-name-array
-                               (% (- 30 h-day) 7)))))
+        (cons mark
+	      (format
+	       "Rosh Hodesh %s"
+	       (if (= h-day 30)
+		   (format
+		    "%s (first day)"
+		    ;; next month must be in the same year since this
+		    ;; month can't be the last month of the year since
+		    ;; it has 30 days
+		    (aref h-month-names h-month))
+		 (if (= h-yesterday 30)
+		     (format "%s (second day)" this-month)
+		   this-month))))
+      (if (= (% d 7) 6)	;; Saturday--check for Shabbat Mevarchim
+          (cons mark
+		(cond ((and (> h-day 22) (/= h-month 6) (= 29 last-day))
+		       (format "Mevarchim Rosh Hodesh %s (%s)"
+			       (aref h-month-names
+				     (if (= h-month
+					    (hebrew-calendar-last-month-of-year
+					     h-year))
+					 0 h-month))
+			       (aref calendar-day-name-array (- 29 h-day))))
+		      ((and (< h-day 30) (> h-day 22) (= 30 last-day))
+		       (format "Mevarchim Rosh Hodesh %s (%s-%s)"
+			       (aref h-month-names h-month)
+			       (if (= h-day 29)
+				   "tomorrow"
+				 (aref calendar-day-name-array (- 29 h-day)))
+			       (aref calendar-day-name-array
+				     (% (- 30 h-day) 7))))))
         (if (and (= h-day 29) (/= h-month 6))
-            (format "Erev Rosh Hodesh %s"
-                    (aref h-month-names
-                          (if (= h-month
-                                 (hebrew-calendar-last-month-of-year
-                                  h-year))
-                              0 h-month))))))))
+            (cons mark
+		  (format "Erev Rosh Hodesh %s"
+			  (aref h-month-names
+				(if (= h-month
+				       (hebrew-calendar-last-month-of-year
+					h-year))
+				    0 h-month)))))))))
 
-(defun diary-parasha ()
-  "Parasha diary entry--entry applies if date is a Saturday."
+(defun diary-parasha (&optional mark)
+  "Parasha diary entry--entry applies if date is a Saturday.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let ((d (calendar-absolute-from-gregorian date)))
-    (if (= (% d 7) 6);;  Saturday
+    (if (= (% d 7) 6) ;;  Saturday
         (let*
             ((h-year (extract-calendar-year
                       (calendar-hebrew-from-absolute d)))
@@ -1024,24 +1041,25 @@ Entry applies if date is Rosh Hodesh, the day before, or the Saturday before."
                          (t "regular")))
              (year-format
               (symbol-value
-               (intern (format "hebrew-calendar-year-%s-%s-%s";; keviah
+               (intern (format "hebrew-calendar-year-%s-%s-%s" ;; keviah
                                rosh-hashanah-day type passover-day))))
-             (first-saturday;; of Hebrew year
+             (first-saturday ;; of Hebrew year
               (calendar-dayname-on-or-before 6 (+ 6 rosh-hashanah)))
-             (saturday;; which Saturday of the Hebrew year
+             (saturday ;; which Saturday of the Hebrew year
               (/ (- d first-saturday) 7))
              (parasha (aref year-format saturday)))
           (if parasha
-              (format
-               "Parashat %s"
-               (if (listp parasha);; Israel differs from diaspora
-                   (if (car parasha)
-                       (format "%s (diaspora), %s (Israel)"
-                               (hebrew-calendar-parasha-name (car parasha))
-                               (hebrew-calendar-parasha-name (cdr parasha)))
-                     (format "%s (Israel)"
-                             (hebrew-calendar-parasha-name (cdr parasha))))
-                 (hebrew-calendar-parasha-name parasha))))))))
+              (cons mark
+		    (format
+		     "Parashat %s"
+		     (if (listp parasha) ;; Israel differs from diaspora
+			 (if (car parasha)
+			     (format "%s (diaspora), %s (Israel)"
+				     (hebrew-calendar-parasha-name (car parasha))
+				     (hebrew-calendar-parasha-name (cdr parasha)))
+			   (format "%s (Israel)"
+				   (hebrew-calendar-parasha-name (cdr parasha))))
+		       (hebrew-calendar-parasha-name parasha)))))))))
 
 (defvar hebrew-calendar-parashiot-names
 ["Bereshith"   "Noah"      "Lech L'cha" "Vayera"    "Hayei Sarah" "Toledoth"

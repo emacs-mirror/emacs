@@ -611,9 +611,9 @@ struct coding_system
 #endif /* !WINDOWSNT */
 
 /* Extern declarations.  */
-extern int decode_coding P_ ((struct coding_system *, unsigned char *,
+extern int decode_coding P_ ((struct coding_system *, const unsigned char *,
 			      unsigned char *, int, int));
-extern int encode_coding P_ ((struct coding_system *, unsigned char *,
+extern int encode_coding P_ ((struct coding_system *, const unsigned char *,
 			      unsigned char *, int, int));
 extern void coding_save_composition P_ ((struct coding_system *, int, int,
 					 Lisp_Object));
@@ -631,8 +631,10 @@ extern Lisp_Object run_pre_post_conversion_on_str P_ ((Lisp_Object,
 						       int));
 extern int decoding_buffer_size P_ ((struct coding_system *, int));
 extern int encoding_buffer_size P_ ((struct coding_system *, int));
-extern void detect_coding P_ ((struct coding_system *, unsigned char *, int));
-extern void detect_eol P_ ((struct coding_system *, unsigned char *, int));
+extern void detect_coding P_ ((struct coding_system *, const unsigned char *,
+			       int));
+extern void detect_eol P_ ((struct coding_system *, const unsigned char *,
+			    int));
 extern int setup_coding_system P_ ((Lisp_Object, struct coding_system *));
 extern Lisp_Object code_convert_string P_ ((Lisp_Object,
 					    struct coding_system *, int, int));
@@ -702,6 +704,10 @@ extern Lisp_Object Vdefault_process_coding_system;
 /* Function to call to force a user to force select a proper coding
    system.  */
 extern Lisp_Object Vselect_safe_coding_system_function;
+
+/* If nonzero, on writing a file, Vselect_safe_coding_system_function
+   is called even if Vcoding_system_for_write is non-nil.  */
+extern int coding_system_require_warning;
 
 /* Coding system for file names, or nil if none.  */
 extern Lisp_Object Vfile_name_coding_system;

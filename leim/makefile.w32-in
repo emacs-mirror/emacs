@@ -72,7 +72,7 @@ CHINESE_NON_TIT=$(NON_TIT_GB) $(NON_TIT_BIG5)
 
 CHINESE_GB=$(TIT_GB) $(NON_TIT_GB)
 
-CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5) 
+CHINESE_BIG5=$(TIT_BIG5) $(NON_TIT_BIG5)
 
 JAPANESE=$(srcdir)/quail/japanese.elc $(srcdir)/ja-dic/ja-dic.elc
 
@@ -96,10 +96,16 @@ TIBETAN=$(srcdir)/quail/tibetan.elc
 LATIN=	$(srcdir)/quail/latin-pre.elc	\
 	$(srcdir)/quail/latin-post.elc	\
 	$(srcdir)/quail/latin-alt.elc	\
-	$(srcdir)/quail/latin-ltx.elc
+	$(srcdir)/quail/latin-ltx.elc	\
+	$(srcdir)/quail/welsh.elc
+
+UNICODE=$(srcdir)/quail/sgml-input.elc	\
+	$(srcdir)/quail/rfc1345.elc	\
+	$(srcdir)/quail/uni-input.elc
 
 SLAVIC= \
 	$(srcdir)/quail/czech.elc \
+	$(srcdir)/quail/croatian.elc \
 	$(srcdir)/quail/slovak.elc
 
 GREEK=$(srcdir)/quail/greek.elc
@@ -109,7 +115,8 @@ RUSSIAN=$(srcdir)/quail/cyrillic.elc $(srcdir)/quail/cyril-jis.elc
 MISC= \
 	$(srcdir)/quail/ethiopic.elc \
 	$(srcdir)/quail/ipa.elc \
-	$(srcdir)/quail/hebrew.elc
+	$(srcdir)/quail/hebrew.elc \
+	$(srcdir)/quail/georgian.elc
 
 MISC_DIC=\
 	quail/tsang-b5.elc	\
@@ -125,7 +132,7 @@ CHINESE=$(CHINESE_GB) $(CHINESE_BIG5)
 EASTASIA=$(CHINESE) $(JAPANESE) $(KOREAN)
 ASIA=$(EASTASIA) $(THAI) $(VIETNAMESE) $(LAO) $(INDIAN) $(TIBETAN)
 EUROPEAN=$(LATIN) $(SLAVIC) $(GREEK) $(RUSSIAN)
-WORLD=$(ASIA) $(EUROPEAN) $(MISC) $(MISC_DIC)
+WORLD=$(ASIA) $(EUROPEAN) $(MISC) $(MISC_DIC) $(UNICODE)
 
 TIT=$(CHINESE_TIT)
 NON_TIT=$(CHINESE_NON_TIT) $(JAPANESE) $(KOREAN) $(EUROPEAN) $(MISC)

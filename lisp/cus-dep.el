@@ -29,55 +29,59 @@
 (eval-when-compile (require 'cl))
 (require 'widget)
 (require 'cus-face)
-(require 'autoload)
+
+(defvar generated-custom-dependencies-file "cus-load.el"
+  "File \\[cusom-make-dependencies] puts custom dependencies into.")
 
 (defun custom-make-dependencies ()
   "Batch function to extract custom dependencies from .el files.
 Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
-  (let ((enable-local-eval nil)
-	(all-subdirs command-line-args-left)
-	(start-directory default-directory))
-    (get-buffer-create " cus-dep temp")
-    (set-buffer " cus-dep temp")
-    (while all-subdirs
-      (message "Directory %s" (car all-subdirs))
-      (let ((files (directory-files (car all-subdirs) nil "\\`[^=].*\\.el\\'"))
-	    (default-directory default-directory)
-	    file
-	    is-autoloaded)
-	(cd (car all-subdirs))
-	(while files
-	  (setq file (car files)
-		files (cdr files))
-	  (when (file-exists-p file)
+  (let ((enable-local-eval nil))
+    (set-buffer (get-buffer-create " cus-dep temp"))
+    (dolist (subdir command-line-args-left)
+      (message "Directory %s" subdir)
+      (let ((files (directory-files subdir nil "\\`[^=].*\\.el\\'"))
+	    (default-directory (expand-file-name subdir))
+	    (preloaded (concat "\\`"
+			       (regexp-opt (mapcar
+					    (lambda (f)
+					      (file-name-sans-extension
+					       (file-name-nondirectory f)))
+					    preloaded-file-list) t)
+			       "\\.el\\'")))
+	(dolist (file files)
+	  (when (and (file-exists-p file)
+		     ;; Ignore files that are preloaded.
+		     (not (string-match preloaded file)))
 	    (erase-buffer)
 	    (insert-file-contents file)
 	    (goto-char (point-min))
 	    (string-match "\\`\\(.*\\)\\.el\\'" file)
-	    (let ((name (file-name-nondirectory (match-string 1 file))))
+	    (let ((name (file-name-nondirectory (match-string 1 file)))
+		  (load-file-name file))
+	      (if (save-excursion
+		    (re-search-forward
+		     (concat "(provide[ \t\n]+\\('\\|(quote[ \t\n]\\)[ \t\n]*"
+			     (regexp-quote name) "[ \t\n)]")
+		     nil t))
+		  (setq name (intern name)))
 	      (condition-case nil
-		  (while (re-search-forward "^(defcustom\\|^(defface\\|^(defgroup"
-					    nil t)
-		    (setq is-autoloaded nil)
+		  (while (re-search-forward
+			  "^(def\\(custom\\|face\\|group\\)" nil t)
 		    (beginning-of-line)
-		    (save-excursion
-		      (forward-line -1)
-		      (if (looking-at generate-autoload-cookie)
-			  (setq is-autoloaded t)))
 		    (let ((expr (read (current-buffer))))
 		      (condition-case nil
-			  (progn
+			  (let ((custom-dont-initialize t))
 			    (eval expr)
-			    (put (nth 1 expr) 'custom-autoloaded is-autoloaded)
 			    (put (nth 1 expr) 'custom-where name))
 			(error nil))))
-		(error nil)))))
-	(setq all-subdirs (cdr all-subdirs)))))
-  (message "Generating cus-load.el...")
-  (find-file "cus-load.el")
+		(error nil))))))))
+  (message "Generating %s..." generated-custom-dependencies-file)
+  (set-buffer (find-file-noselect generated-custom-dependencies-file))
   (erase-buffer)
   (insert "\
-;;; cus-load.el --- automatically extracted custom dependencies
+;;; " (file-name-nondirectory generated-custom-dependencies-file)
+      " --- automatically extracted custom dependencies
 ;;
 ;;; Code:
 
@@ -86,6 +90,10 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 	      (let ((members (get symbol 'custom-group))
 		    item where found)
 		(when members
+		  ;; So x and no-x builds won't differ.
+		  (setq members
+			(sort (copy-sequence members)
+			      (lambda (x y) (string< (car x) (car y)))))
 		  (while members
 		    (setq item (car (car members))
 			  members (cdr members)
@@ -94,7 +102,7 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 				(member where found))
 		      (if found
 			  (insert " ")
-			(insert "(put '" (symbol-name symbol) 
+			(insert "(put '" (symbol-name symbol)
 				" 'custom-loads '("))
 		      (prin1 where (current-buffer))
 		      (push where found)))
@@ -102,21 +110,22 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
 		    (insert "))\n"))))))
   (insert "\
 ;;; These are for handling :version.  We need to have a minimum of
-;;; information so `custom-changed-variables' could do its job.  
-;;; For both groups and variables we have to set `custom-version'.
-;;; For variables we also set the `standard-value' and for groups
-;;; `group-documentation' (which is shown in the customize buffer), so
-;;; we don't have to load the file containing the group.
+;;; information so `customize-changed-options' could do its job.
+
+;;; For groups we set `custom-version', `group-documentation' and
+;;; `custom-tag' (which are shown in the customize buffer), so we
+;;; don't have to load the file containing the group.
 
 ;;; `custom-versions-load-alist' is an alist that has as car a version
-;;; number and as elts the files that have variables that contain that
-;;; version. These files should be loaded before showing the
-;;; customization buffer that `customize-changed-options' generates.
-
+;;; number and as elts the files that have variables or faces that
+;;; contain that version. These files should be loaded before showing
+;;; the customization buffer that `customize-changed-options'
+;;; generates.
 
 ;;; This macro is used so we don't modify the information about
 ;;; variables and groups if it's already set. (We don't know when
-;;; cus-load.el is going to be loaded and at that time some of the
+;;; " (file-name-nondirectory generated-custom-dependencies-file)
+      " is going to be loaded and at that time some of the
 ;;; files might be loaded and some others might not).
 \(defmacro custom-put-if-not (symbol propname value)
   `(unless (get ,symbol ,propname)
@@ -127,52 +136,54 @@ Usage: emacs -batch -l ./cus-dep.el -f custom-make-dependencies DIRS"
     (mapatoms (lambda (symbol)
 		(let ((version (get symbol 'custom-version))
 		      where)
-		  (when version 
+		  (when version
 		    (setq where (get symbol 'custom-where))
-		    (when (and where 
-			       ;; Don't bother to do anything if it's
-			       ;; autoloaded because we will have all
-			       ;; this info when emacs is running
-			       ;; anyway.
-			       (not (get symbol 'custom-autoloaded)))
-		      (insert "(custom-put-if-not '" (symbol-name symbol) 
-			      " 'custom-version ")
-		      (prin1 version (current-buffer))
-		      (insert ")\n")
-		      (insert "(custom-put-if-not '" (symbol-name symbol))
-		      (if (get symbol 'standard-value)
-			  ;; This means it's a variable
+		    (when where
+		      (if (or (custom-variable-p symbol)
+			      (custom-facep symbol))
+			  ;; This means it's a variable or a face.
 			  (progn
-			    (insert " 'standard-value t)\n")
 			    (if (assoc version version-alist)
-				(unless 
-				    (member where 
+				(unless
+				    (member where
 					    (cdr (assoc version version-alist)))
 				  (push where (cdr (assoc version version-alist))))
 			      (push (cons version (list where)) version-alist)))
 			;; This is a group
+			(insert "(custom-put-if-not '" (symbol-name symbol)
+				" 'custom-version ")
+			(prin1 version (current-buffer))
+			(insert ")\n")
+			(insert "(custom-put-if-not '" (symbol-name symbol))
 			(insert " 'group-documentation ")
 			(prin1 (get symbol 'group-documentation) (current-buffer))
-			(insert ")\n")))))))
+			(insert ")\n")
+			(when (get symbol 'custom-tag)
+			  (insert "(custom-put-if-not '" (symbol-name symbol))
+			  (insert " 'custom-tag ")
+			  (prin1 (get symbol 'custom-tag) (current-buffer))
+			  (insert ")\n"))
+			))))))
 
     (insert "\n(defvar custom-versions-load-alist "
 	    (if version-alist "'" ""))
     (prin1 version-alist (current-buffer))
     (insert "\n \"For internal use by custom.\")\n"))
-    
+
   (insert "\
 
-\(provide 'cus-load)
+\(provide '" (file-name-sans-extension
+	      (file-name-nondirectory generated-custom-dependencies-file)) ")
 
 ;;; Local Variables:
 ;;; version-control: never
 ;;; no-byte-compile: t
 ;;; no-update-autoloads: t
 ;;; End:
-;;; cus-load.el ends here\n")
+;;; " (file-name-nondirectory generated-custom-dependencies-file) " ends here\n")
   (let ((kept-new-versions 10000000))
     (save-buffer))
-  (message "Generating cus-load.el...done")
+  (message "Generating %s...done" generated-custom-dependencies-file)
   (kill-emacs))
 
 

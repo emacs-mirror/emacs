@@ -366,7 +366,7 @@ COMMA-DELIM is non-nil then ',' is treated likewise."
 			c-maybe-labelp nil))))
 
 	      ;; Step to next sexp, but not if we crossed a boundary, since
-	      ;; that doesn't consume an sexp.
+	      ;; that doesn't consume a sexp.
 	      (if (eq sym 'boundary)
 		  (setq ret 'previous)
 		(while
@@ -642,8 +642,9 @@ specified."
 	(forward-char))
        ;; Skip preprocessor directives.
        ((and (looking-at "#[ \t]*[a-zA-Z0-9!]")
-	     (progn (skip-chars-backward " \t")
-		    (bolp)))
+	     (save-excursion
+	       (skip-chars-backward " \t")
+	       (bolp)))
 	(end-of-line)
 	(while (and (<= (point) lim)
 		    (eq (char-before) ?\\)
@@ -1143,7 +1144,7 @@ you need both the type of a literal and its limits."
     (let* ((here (point))
 	   (c-macro-start (c-query-macro-start))
 	   (in-macro-start (or c-macro-start (point)))
-	   old-state last-pos pairs pos)
+	   old-state last-pos pairs pos save-pos)
       ;; Somewhat ugly use of c-check-state-cache to get rid of the
       ;; part of the state cache that is after point.  Can't use
       ;; c-whack-state-after for the same reasons as in that function.
@@ -1224,7 +1225,8 @@ you need both the type of a literal and its limits."
       (narrow-to-region (point-min) here)
       (while pos
 	;; Find the balanced brace pairs.
-	(setq pairs nil)
+	(setq save-pos pos
+	      pairs nil)
 	(while (and (setq last-pos (c-down-list-forward pos))
 		    (setq pos (c-up-list-forward last-pos)))
 	  (if (eq (char-before last-pos) ?{)
@@ -1245,6 +1247,11 @@ you need both the type of a literal and its limits."
 	      (setq c-state-cache (cdr c-state-cache)))
 	  (setq pairs (car pairs))
 	  (setcar pairs (1- (car pairs)))
+	  (when (consp (car-safe c-state-cache))
+	    ;; There could already be a cons first in `c-state-cache'
+	    ;; if we've jumped over an unbalanced open paren in a
+	    ;; macro below.
+	    (setq c-state-cache (cdr c-state-cache)))
 	  (setq c-state-cache (cons pairs c-state-cache)))
 	(if last-pos
 	    ;; Prepare to loop, but record the open paren only if it's
@@ -1263,7 +1270,13 @@ you need both the type of a literal and its limits."
 	      (progn
 		(setq pos (c-up-list-backward pos)
 		      c-state-cache nil)
-		(unless pos
+		(when (or (not pos)
+			  ;; Emacs (up to at least 21.2) can get confused by
+			  ;; open parens in column zero inside comments: The
+			  ;; sexp functions can then misbehave and bring us
+			  ;; back to the same point again.  Check this so that
+			  ;; we don't get an infinite loop.
+			  (>= pos save-pos))
 		  (setq pos last-pos
 			c-parsing-error
 			(format "Unbalanced close paren at line %d"
@@ -1794,10 +1807,11 @@ brace."
 	      search-end (nth 0 paren-state)))
       ;; if search-end is nil, or if the search-end character isn't an
       ;; open brace, we are definitely not in a class
-      (if (or (not search-end)
-	      (< search-end (point-min))
-	      (not (eq (char-after search-end) ?{)))
-	  nil
+      (when (consp search-end)
+        (setq search-end (car search-end)))
+      (unless (or (not search-end)
+                  (< search-end (point-min))
+                  (not (eq (char-after search-end) ?{)))
 	;; now, we need to look more closely at search-start.  if
 	;; search-start is nil, then our start boundary is really
 	;; point-min.

@@ -25,7 +25,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
- 
+
 ;; manages receiving a stream asynchronously,
 ;; parsing it into transactions, and then calling
 ;; handler functions
@@ -49,8 +49,8 @@ to a tcp server on another machine."
 			     (concat " tq-temp-"
 				     (process-name process)))))))
     (set-process-filter process
-			(`(lambda (proc string)
-			   (tq-filter  '(, tq) string))))
+			`(lambda (proc string)
+			   (tq-filter '(, tq) string)))
     tq))
 
 ;;; accessors
@@ -68,7 +68,7 @@ to a tcp server on another machine."
 (defun tq-queue-head-closure (tq) (car (cdr (car (tq-queue tq)))))
 (defun tq-queue-empty        (tq) (not (tq-queue tq)))
 (defun tq-queue-pop          (tq) (setcar tq (cdr (car tq))) (null (car tq)))
- 
+
 
 ;;; must add to queue before sending!
 (defun tq-enqueue (tq question regexp closure fn)

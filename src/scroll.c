@@ -89,7 +89,7 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
      FRAME_PTR frame;
      /* matrix is of size window_size + 1 on each side.  */
      struct matrix_elt *matrix;
-     int window_size;
+     int window_size, lines_below;
      int *draw_cost;
      int *old_hash;
      int *new_hash;
@@ -232,13 +232,13 @@ calculate_scrolling (frame, matrix, window_size, lines_below,
 /* Perform insert-lines and delete-lines operations on CURRENT_MATRIX
    according to the costs in MATRIX, using the general scrolling
    method that is used if the terminal does not support the setting of
-   scroll windows (scroll_region_ok == 0).  
+   scroll windows (scroll_region_ok == 0).
 
    WINDOW_SIZE is the number of lines being considered for scrolling
    and UNCHANGED_AT_TOP is the vpos of the first line being
    considered.  These two arguments can specify any contiguous range
    of lines.  */
- 
+
 static void
 do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
      struct glyph_matrix *current_matrix;
@@ -258,7 +258,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
   struct queue *queue_start
     = (struct queue *) alloca (current_matrix->nrows * sizeof (struct queue));
   struct queue *queue = queue_start;
-  
+
   char *retained_p = (char *) alloca (window_size * sizeof (char));
   int *copy_from = (int *) alloca (window_size * sizeof (int));
 
@@ -283,7 +283,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
   while (i > 0 || j > 0)
     {
       p = matrix + i * (window_size + 1) + j;
-      
+
       if (p->insertcost < p->writecost && p->insertcost < p->deletecost)
 	{
 	  /* Insert should be done at vpos i-1, plus maybe some before.
@@ -365,7 +365,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
 	    }
 	}
       while (queue > queue_start);
-	  
+
     }
 
   for (k = 0; k < window_size; ++k)
@@ -377,7 +377,7 @@ do_scrolling (current_matrix, matrix, window_size, unchanged_at_top)
 
   /* Some sanity checks if GLYPH_DEBUG != 0.  */
   CHECK_MATRIX (current_matrix);
-  
+
   if (terminal_window_p)
     set_terminal_window (0);
 }
@@ -430,7 +430,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
      FRAME_PTR frame;
      /* matrix is of size window_size + 1 on each side.  */
      struct matrix_elt *matrix;
-     int window_size;
+     int window_size, lines_below;
      int *draw_cost;
      int *old_draw_cost;
      int *old_hash;
@@ -562,7 +562,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
 		   To reduce the cumulative effects of rounding error, we
 		   vary the position at which the difference is computed. */
 		cost1 += first_insert_cost[-j] - first_insert_cost[1-j] +
-		  (delta-1) * (next_insert_cost[-j] - next_insert_cost[1-j]); 
+		  (delta-1) * (next_insert_cost[-j] - next_insert_cost[1-j]);
 	      }
 	    else
 	      {
@@ -570,7 +570,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
 		cost += scroll_overhead + first_delete_cost[-delta] +
 		  (delta-1) * (next_delete_cost[-delta] + extra_cost);
 		cost1 += first_delete_cost[-i] - first_delete_cost[1-i] +
-		  (delta-1) * ( next_delete_cost[-i] - next_delete_cost[1-i]); 
+		  (delta-1) * ( next_delete_cost[-i] - next_delete_cost[1-i]);
 	      }
 	    if (cost1 < cost)
 	      {
@@ -641,7 +641,7 @@ calculate_direct_scrolling (frame, matrix, window_size, lines_below,
    and UNCHANGED_AT_TOP is the vpos of the first line being
    considered.  These two arguments can specify any contiguous range
    of lines.
- 
+
    In the direct scrolling method, a new scroll window is selected
    before each insertion or deletion, so that groups of lines can be
    scrolled directly to their final vertical positions.  This method
@@ -701,11 +701,11 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
      without also decrementing i, this corresponds to omitting these
      lines in the new rows, i.e. rows are deleted.  */
   i = j = window_size;
-  
+
   while (i > 0 || j > 0)
     {
       p = cost_matrix + i * (window_size + 1) + j;
-      
+
       if (p->insertcost < p->writecost
 	  && p->insertcost < p->deletecost
 	  && (write_follows_p || i < j))
@@ -717,7 +717,7 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
 	  queue->window = i;
 	  queue->pos = i - p->insertcount;
 	  ++queue;
-	  
+
 	  i -= p->insertcount;
 	  write_follows_p = 0;
 	}
@@ -736,7 +736,7 @@ do_direct_scrolling (current_matrix, cost_matrix, window_size,
 	     place they belong.  */
 	  int n_to_write = p->writecount;
 	  write_follows_p = 1;
-	  xassert (n_to_write > 0); 
+	  xassert (n_to_write > 0);
 
 	  if (i > j)
 	    {
@@ -822,7 +822,7 @@ scrolling_1 (frame, window_size, unchanged_at_top, unchanged_at_bottom,
     {
       calculate_direct_scrolling (frame, matrix, window_size,
 				  unchanged_at_bottom,
-				  draw_cost, old_draw_cost, 
+				  draw_cost, old_draw_cost,
 				  old_hash, new_hash, free_at_end);
       do_direct_scrolling (frame->current_matrix,
 			   matrix, window_size, unchanged_at_top);
@@ -1054,7 +1054,7 @@ do_line_insertion_deletion_costs (frame,
 	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
       FRAME_INSERTN_COST (frame) =
 	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
-      FRAME_DELETE_COST (frame) = 
+      FRAME_DELETE_COST (frame) =
 	(int *) xmalloc (FRAME_HEIGHT (frame) * sizeof (int));
     }
 

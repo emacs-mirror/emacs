@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -820,7 +821,7 @@
 (defun calc-macro-edit-variable (&optional no-cmd)
   (let ((str "") ch)
     (or no-cmd (insert (symbol-name key-symbol) "\n"))
-    (if (memq (MacEdit-peek-char) '(?\+ ?\- ?\* ?\/ ?\^ ?\|))
+    (if (memq (MacEdit-peek-char) '(?\+ ?\- ?\* ?\/ ?^ ?\|))
 	(setq str (char-to-string (MacEdit-read-char))))
     (if (and (setq ch (MacEdit-peek-char))
 	     (>= ch ?0) (<= ch ?9))
@@ -929,7 +930,7 @@
 	  (def (or (assq key (calc-user-key-map))
 		   (assq (upcase key) (calc-user-key-map))
 		   (assq (downcase key) (calc-user-key-map))
-		   (and (eq key ?\') 
+		   (and (eq key ?\')
 			(cons nil
 			      (intern (completing-read
 				       (format "Record in %s the function: "
@@ -1344,22 +1345,12 @@
 (defun calc-kbd-report (msg)
   (interactive "sMessage: ")
   (calc-wrapper
-   (let ((executing-kbd-macro nil)
-	 (defining-kbd-macro nil))
-     (math-working msg (calc-top-n 1)))))
+   (math-working msg (calc-top-n 1))))
 
 (defun calc-kbd-query (msg)
   (interactive "sPrompt: ")
   (calc-wrapper
-   (let ((executing-kbd-macro nil)
-	 (defining-kbd-macro nil))
-     (calc-alg-entry nil (and (not (equal msg "")) msg)))))
-
-
-
-
-
-
+   (calc-alg-entry nil (and (not (equal msg "")) msg))))
 
 ;;;; Logical operations.
 

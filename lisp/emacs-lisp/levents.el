@@ -98,8 +98,8 @@ in is the second.  This function contains knowledge about what the codes
 mean -- for example, the number 9 is converted to the character Tab,
 not the distinct character Control-I.
 
-Beware that character-to-event and event-to-character are not strictly 
-inverse functions, since events contain much more information than the 
+Beware that character-to-event and event-to-character are not strictly
+inverse functions, since events contain much more information than the
 ASCII character set can encode."
   ch)
 
@@ -214,11 +214,11 @@ In this emulation, it returns nil for non-mouse-related events."
 (defun event-to-character (event &optional lenient)
   "Returns the closest ASCII approximation to the given event object.
 If the event isn't a keypress, this returns nil.
-If the second argument is non-nil, then this is lenient in its 
+If the second argument is non-nil, then this is lenient in its
 translation; it will ignore modifier keys other than control and meta,
-and will ignore the shift modifier on those characters which have no 
-shifted ASCII equivalent (Control-Shift-A for example, will be mapped to 
-the same ASCII code as Control-A.)  If the second arg is nil, then nil 
+and will ignore the shift modifier on those characters which have no
+shifted ASCII equivalent (Control-Shift-A for example, will be mapped to
+the same ASCII code as Control-A.)  If the second arg is nil, then nil
 will be returned for events which have no direct ASCII equivalent."
   (if (symbolp event)
       (and lenient

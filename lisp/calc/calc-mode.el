@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -267,7 +268,7 @@
 
 ;;; Mode commands.
 
-(defun calc-save-modes (&optional quiet)
+(defun calc-save-modes ()
   (interactive)
   (calc-wrapper
    (let (pos
@@ -308,11 +309,7 @@
 	       vals (cdr vals))))
      (run-hooks 'calc-mode-save-hook)
      (insert ";;; End of mode settings\n")
-     (if quiet
-	 ;; FIXME: why is this here? -cgw 2001.11.12
-	 (let ((executing-kbd-macro ""))   ; what a kludge!
-	   (save-buffer))
-       (save-buffer)))))
+     (save-buffer))))
 
 (defun calc-settings-file-name (name &optional arg)
   (interactive
@@ -462,7 +459,7 @@
 (defun calc-symbolic-mode (n)
   (interactive "P")
   (calc-wrapper
-   
+
    (message (if (calc-change-mode 'calc-symbolic-mode n nil t)
 		"Inexact computations like sqrt(2) are deferred"
 	      "Numerical computations are always done immediately"))))

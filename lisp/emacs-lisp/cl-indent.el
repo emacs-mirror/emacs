@@ -108,7 +108,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 
 
 (defun extended-loop-p (loop-start)
-  "True if an extended loop form starta at LOOP-START."
+  "True if an extended loop form starts at LOOP-START."
   (condition-case ()
       (save-excursion
 	(goto-char loop-start)
@@ -132,7 +132,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 	   (+ loop-indentation lisp-loop-keyword-indentation))
 	  (t
 	   (+ loop-indentation lisp-loop-forms-indentation)))))
-  
+
 
 ;;;###autoload
 (defun common-lisp-indent-function (indent-point state)
@@ -140,8 +140,8 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
 		      (looking-at "([Ll][Oo][Oo][Pp]"))
       (common-lisp-loop-part-indentation indent-point state)
     (common-lisp-indent-function-1 indent-point state)))
-      
-  
+
+
 (defun common-lisp-indent-function-1 (indent-point state)
   (let ((normal-indent (current-column)))
     ;; Walk up list levels until we see something

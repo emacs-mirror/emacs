@@ -486,67 +486,76 @@ These get fixed-format comments fontified.")
   "Keymap used in Fortran mode.")
 
 (defvar fortran-mode-abbrev-table
-  (let ((ac abbrevs-changed))
-    (define-abbrev-table 'fortran-mode-abbrev-table ())
-    (define-abbrev fortran-mode-abbrev-table  ";au"  "automatic" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";b"   "byte" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";bd"  "block data" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ch"  "character" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";cl"  "close" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";c"   "continue" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";cm"  "common" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";cx"  "complex" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";df"  "define" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";di"  "dimension" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";do"  "double" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";dc"  "double complex" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";dp"  "double precision" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";dw"  "do while" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";e"   "else" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ed"  "enddo" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";el"  "elseif" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";en"  "endif" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";eq"  "equivalence" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ew"  "endwhere" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ex"  "external" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ey"  "entry" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";f"   "format" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";fa"  ".false." nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";fu"  "function" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";g"   "goto" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";im"  "implicit" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ib"  "implicit byte" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ic"  "implicit complex" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ich" "implicit character" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ii"  "implicit integer" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";il"  "implicit logical" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ir"  "implicit real" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";inc" "include" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";in"  "integer" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";intr" "intrinsic" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";l"   "logical" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";n"   "namelist" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";o"   "open" nil 0 t) ; was ;op
-    (define-abbrev fortran-mode-abbrev-table  ";pa"  "parameter" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";pr"  "program" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ps"  "pause" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";p"   "print" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";rc"  "record" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";re"  "real" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";r"   "read" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";rt"  "return" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";rw"  "rewind" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";s"   "stop" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";sa"  "save" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";st"  "structure" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";sc"  "static" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";su"  "subroutine" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";tr"  ".true." nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";ty"  "type" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";vo"  "volatile" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";w"   "write" nil 0 t)
-    (define-abbrev fortran-mode-abbrev-table  ";wh"  "where" nil 0 t)
-    (setq abbrevs-changed ac)
+  (let (abbrevs-changed)
+    (define-abbrev-table 'fortran-mode-abbrev-table nil)
+    ;; Use the 6th arg (SYSTEM-FLAG) of define-abbrev if possible.
+    ;; Only use `apply' to quieten the byte-compiler.
+    (mapcar
+     (function (lambda (element)
+                 (condition-case nil
+                     (apply 'define-abbrev fortran-mode-abbrev-table
+                            (append element '(nil 0 t)))
+                   (wrong-number-of-arguments
+                    (apply 'define-abbrev fortran-mode-abbrev-table
+                           (append element '(nil 0)))))))
+     '((";au"   "automatic"         )
+       (";b"    "byte"              )
+       (";bd"   "block data"        )
+       (";ch"   "character"         )
+       (";cl"   "close"             )
+       (";c"    "continue"          )
+       (";cm"   "common"            )
+       (";cx"   "complex"           )
+       (";df"   "define"            )
+       (";di"   "dimension"         )
+       (";do"   "double"            )
+       (";dc"   "double complex"    )
+       (";dp"   "double precision"  )
+       (";dw"   "do while"          )
+       (";e"    "else"              )
+       (";ed"   "enddo"             )
+       (";el"   "elseif"            )
+       (";en"   "endif"             )
+       (";eq"   "equivalence"       )
+       (";ew"   "endwhere"          )
+       (";ex"   "external"          )
+       (";ey"   "entry"             )
+       (";f"    "format"            )
+       (";fa"   ".false."           )
+       (";fu"   "function"          )
+       (";g"    "goto"              )
+       (";im"   "implicit"          )
+       (";ib"   "implicit byte"     )
+       (";ic"   "implicit complex"  )
+       (";ich"  "implicit character")
+       (";ii"   "implicit integer"  )
+       (";il"   "implicit logical"  )
+       (";ir"   "implicit real"     )
+       (";inc"  "include"           )
+       (";in"   "integer"           )
+       (";intr" "intrinsic"         )
+       (";l"    "logical"           )
+       (";n"    "namelist"          )
+       (";o"    "open"              )   ; was ;op
+       (";pa"   "parameter"         )
+       (";pr"   "program"           )
+       (";ps"   "pause"             )
+       (";p"    "print"             )
+       (";rc"   "record"            )
+       (";re"   "real"              )
+       (";r"    "read"              )
+       (";rt"   "return"            )
+       (";rw"   "rewind"            )
+       (";s"    "stop"              )
+       (";sa"   "save"              )
+       (";st"   "structure"         )
+       (";sc"   "static"            )
+       (";su"   "subroutine"        )
+       (";tr"   ".true."            )
+       (";ty"   "type"              )
+       (";vo"   "volatile"          )
+       (";w"    "write"             )
+       (";wh"   "where"             )))
     fortran-mode-abbrev-table))
 
 (eval-when-compile			; silence compiler
@@ -655,8 +664,9 @@ with no args, if that value is non-nil."
        ;; (concat "\\(\\)\\(![ \t]*\\|" fortran-comment-line-start-skip "\\)")
        "\\(\\)\\(?:^[CcDd*]\\|!\\)\\(?:\\([^ \t\n]\\)\\2+\\)?[ \t]*")
   (set (make-local-variable 'comment-padding) "$$$")
-  (make-local-variable 'comment-start)
-  (setq comment-start fortran-comment-line-start)
+  (set (make-local-variable 'comment-start) fortran-comment-line-start)
+  ;; The syntax tables don't understand the column-0 comment-markers.
+  (set (make-local-variable 'comment-use-syntax) nil)
   (make-local-variable 'require-final-newline)
   (setq require-final-newline t)
   (make-local-variable 'abbrev-all-caps)
@@ -1104,12 +1114,13 @@ Return point or nil."
 
 (defun fortran-beginning-do ()
   "Search backwards for first unmatched DO [WHILE].
-Return point or nil."
-  (let ((case-fold-search t))
+Return point or nil.  Ignores labelled DO loops (ie DO 10 ... 10 CONTINUE)."
+  (let ((case-fold-search t)
+        (dostart-re "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+[^0-9]"))
     (if (save-excursion
 	  (beginning-of-line)
 	  (skip-chars-forward " \t0-9")
-	  (looking-at "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+"))
+	  (looking-at dostart-re))
 	;; Sitting on one.
 	(match-beginning 0)
       ;; Search for one.
@@ -1121,9 +1132,9 @@ Return point or nil."
 		      (not (and (looking-at fortran-end-prog-re)
 				(fortran-check-end-prog-re))))
 	    (skip-chars-forward " \t0-9")
-	    (cond ((looking-at
-		    "\\(\\(\\sw\\|\\s_\\)+:[ \t]*\\)?do[ \t]+")
+	    (cond ((looking-at dostart-re)
 		   (setq count (1- count)))
+                  ;; Note labelled loop ends not considered.
 		  ((looking-at "end[ \t]*do\\b")
 		   (setq count (1+ count)))))
 	  (and (= count 0)
@@ -1671,7 +1682,8 @@ If ALL is nil, only match comments that start in column > 0."
     ;; don't prevent a break.
     (when (and (save-excursion
 		 (beginning-of-line)
-		 (when (fortran-find-comment-start-skip)
+		 (if (not (fortran-find-comment-start-skip))
+                     t
 		   (goto-char (match-beginning 0))
 		   (>= (point) fill-point)))
 	       (save-excursion
@@ -1743,43 +1755,9 @@ file before the end or the first `fortran-analyze-depth' lines."
   "Fill surrounding comment block as paragraphs, else fill statement.
 Intended as the value of `fill-paragraph-function'."
   (interactive "P")
-  (save-excursion
-    (beginning-of-line)
-    (if (not (looking-at fortran-comment-line-start-skip))
-	(fortran-fill-statement)
-	;; We're in a comment block.  Find the start and end of a
-	;; paragraph, delimited either by non-comment lines or empty
-	;; comments.  (Get positions as markers, since the
-	;; `indent-region' below can shift the block's end).
-	(let* ((non-empty-comment
-		(concat fortran-comment-line-start-skip "[^ \t\n]"))
-	       (start (save-excursion
-			;; Find (start of) first line.
-			(while (and (zerop (forward-line -1))
-				    (looking-at non-empty-comment)))
-			(or (looking-at non-empty-comment)
-			    (forward-line)) ; overshot
-			(point-marker)))
-	       (end (save-excursion
-		      ;; Find start of first line past region to fill.
-		      (while (progn
-			       (forward-line)
-			       (looking-at non-empty-comment)))
-		      (point-marker))))
-	  ;; Indent the block, find the string comprising the effective
-	  ;; comment start skip and use that as a fill-prefix for
-	  ;; filling the region.
-	  (indent-region start end nil)
-	  (let ((paragraph-ignore-fill-prefix nil)
-		(fill-prefix (progn
-			       (beginning-of-line)
-			       (looking-at fortran-comment-line-start-skip)
-			       (match-string 0))))
-	    (let (fill-paragraph-function)
-	      (fill-region start end justify))) ; with normal `fill-paragraph'
-	  (set-marker start nil)
-	  (set-marker end nil))))
-  t)
+  (or (fill-comment-paragraph justify)
+      (fortran-fill-statement)
+      t))
 
 (defun fortran-fill-statement ()
   "Fill a fortran statement up to `fill-column'."
@@ -1820,28 +1798,29 @@ Supplying prefix arg DO-SPACE prevents stripping the whitespace."
 ;; for it.
 (defun fortran-current-defun ()
   "Function to use for `add-log-current-defun-function' in Fortran mode."
-  ;; We must be inside function body for this to work.
-  (fortran-beginning-of-subprogram)
-  (let ((case-fold-search t))		; case-insensitive
-    ;; search for fortran subprogram start
-    (if (re-search-forward
-	 (concat "^[ \t]*\\(program\\|subroutine\\|function"
-		 "\\|[ \ta-z0-9*()]*[ \t]+function\\|"
-		 "\\(block[ \t]*data\\)\\)")
-	 (save-excursion (fortran-end-of-subprogram)
-			 (point))
-	 t)
-	(or (match-string-no-properties 2)
-	    (progn
-	      ;; move to EOL or before first left paren
-	      (if (re-search-forward "[(\n]" nil t)
-		  (progn (backward-char)
-			 (skip-chars-backward " \t"))
-		(end-of-line))
-	      ;; Use the name preceding that.
-	      (buffer-substring-no-properties (point) (progn (backward-sexp)
-							     (point)))))
-      "main")))
+  (save-excursion
+    ;; We must be inside function body for this to work.
+    (fortran-beginning-of-subprogram)
+    (let ((case-fold-search t))		; case-insensitive
+      ;; search for fortran subprogram start
+      (if (re-search-forward
+           (concat "^[ \t]*\\(program\\|subroutine\\|function"
+                   "\\|[ \ta-z0-9*()]*[ \t]+function\\|"
+                   "\\(block[ \t]*data\\)\\)")
+           (save-excursion (fortran-end-of-subprogram)
+                           (point))
+           t)
+          (or (match-string-no-properties 2)
+              (progn
+                ;; move to EOL or before first left paren
+                (if (re-search-forward "[(\n]" nil t)
+                    (progn (backward-char)
+                           (skip-chars-backward " \t"))
+                  (end-of-line))
+                ;; Use the name preceding that.
+                (buffer-substring-no-properties (point) (progn (backward-sexp)
+                                                               (point)))))
+        "main"))))
 
 (provide 'fortran)
 

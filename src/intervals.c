@@ -80,8 +80,8 @@ create_root_interval (parent)
     }
   else if (STRINGP (parent))
     {
-      new->total_length = XSTRING (parent)->size;
-      XSTRING (parent)->intervals = new;
+      new->total_length = SCHARS (parent);
+      STRING_SET_INTERVALS (parent, new);
       new->position = 0;
     }
 
@@ -347,10 +347,10 @@ rotate_right (interval)
 
 /* Assuming that a right child exists, perform the following operation:
 
-    A               B   
-   / \	           / \  
+    A               B
+   / \	           / \
       B	   =>     A
-     / \         / \    
+     / \         / \
     c               c
 */
 
@@ -452,7 +452,7 @@ balance_possible_root_interval (interval)
       if (BUFFERP (parent))
 	BUF_INTERVALS (XBUFFER (parent)) = interval;
       else if (STRINGP (parent))
-	XSTRING (parent)->intervals = interval;
+	STRING_SET_INTERVALS (parent, interval);
     }
 
   return interval;
@@ -524,7 +524,7 @@ split_interval_right (interval, offset)
       new->total_length = new_length + new->right->total_length;
       balance_an_interval (new);
     }
-  
+
   balance_possible_root_interval (interval);
 
   return new;
@@ -569,7 +569,7 @@ split_interval_left (interval, offset)
       new->total_length = new_length + new->left->total_length;
       balance_an_interval (new);
     }
-  
+
   balance_possible_root_interval (interval);
 
   return new;
@@ -754,39 +754,39 @@ update_interval (i, pos)
   if (NULL_INTERVAL_P (i))
     return NULL_INTERVAL;
 
-  while (1) 
+  while (1)
     {
-      if (pos < i->position) 
+      if (pos < i->position)
 	{
 	  /* Move left. */
-	  if (pos >= i->position - TOTAL_LENGTH (i->left)) 
+	  if (pos >= i->position - TOTAL_LENGTH (i->left))
 	    {
 	      i->left->position = i->position - TOTAL_LENGTH (i->left)
 		+ LEFT_TOTAL_LENGTH (i->left);
 	      i = i->left;		/* Move to the left child */
 	    }
-	  else if (NULL_PARENT (i)) 
+	  else if (NULL_PARENT (i))
 	    error ("Point before start of properties");
-	  else  
+	  else
 	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
       else if (pos >= INTERVAL_LAST_POS (i))
 	{
 	  /* Move right. */
-	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right)) 
+	  if (pos < INTERVAL_LAST_POS (i) + TOTAL_LENGTH (i->right))
 	    {
 	      i->right->position = INTERVAL_LAST_POS (i) +
 		LEFT_TOTAL_LENGTH (i->right);
 	      i = i->right;		/* Move to the right child */
 	    }
-	  else if (NULL_PARENT (i)) 
+	  else if (NULL_PARENT (i))
 	    error ("Point after end of properties");
-	  else 
+	  else
 	      i = INTERVAL_PARENT (i);
 	  continue;
 	}
-      else 
+      else
 	return i;
     }
 }
@@ -874,7 +874,7 @@ adjust_intervals_for_insertion (tree, position, length)
   int eobp = 0;
   Lisp_Object parent;
   int offset;
-  
+
   if (TOTAL_LENGTH (tree) == 0)	/* Paranoia */
     abort ();
 
@@ -989,7 +989,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  temp->total_length += length;
 	  temp = balance_possible_root_interval (temp);
 	}
-      
+
       /* If at least one interval has sticky properties,
 	 we check the stickiness property by property.
 
@@ -1046,7 +1046,7 @@ adjust_intervals_for_insertion (tree, position, length)
 	  temp = balance_possible_root_interval (temp);
 	}
     }
-      
+
   return tree;
 }
 
@@ -1212,7 +1212,7 @@ merge_properties_sticky (pleft, pright)
 
   cat = textget (props, Qcategory);
   if (! NILP (front)
-      && 
+      &&
       /* If we have inherited a front-stick category property that is t,
 	 we don't need to set up a detailed one.  */
       ! (! NILP (cat) && SYMBOLP (cat)
@@ -1222,7 +1222,7 @@ merge_properties_sticky (pleft, pright)
 }
 
 
-/* Delete an node I from its interval tree by merging its subtrees
+/* Delete a node I from its interval tree by merging its subtrees
    into one subtree which is then returned.  Caller is responsible for
    storing the resulting subtree into its parent.  */
 
@@ -1280,7 +1280,7 @@ delete_interval (i)
       if (BUFFERP (owner))
 	BUF_INTERVALS (XBUFFER (owner)) = parent;
       else if (STRINGP (owner))
-	XSTRING (owner)->intervals = parent;
+	STRING_SET_INTERVALS (owner, parent);
       else
 	abort ();
 
@@ -1351,7 +1351,7 @@ interval_deletion_adjustment (tree, from, amount)
   else
     {
       /* How much can we delete from this interval?  */
-      int my_amount = ((tree->total_length 
+      int my_amount = ((tree->total_length
 			- RIGHT_TOTAL_LENGTH (tree))
 		       - relative_position);
 
@@ -1361,7 +1361,7 @@ interval_deletion_adjustment (tree, from, amount)
       tree->total_length -= amount;
       if (LENGTH (tree) == 0)
 	delete_interval (tree);
-      
+
       return amount;
     }
 
@@ -1780,7 +1780,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
      The properties of under are the result of
      adjust_intervals_for_insertion, so stickiness has
      already been taken care of.  */
-     
+
   while (! NULL_INTERVAL_P (over))
     {
       if (LENGTH (over) < LENGTH (under))
@@ -1805,7 +1805,7 @@ graft_intervals_into_buffer (source, position, length, buffer, inherit)
 
 /* Get the value of property PROP from PLIST,
    which is the plist of an interval.
-   We check for direct properties, for categories with property PROP, 
+   We check for direct properties, for categories with property PROP,
    and for PROP appearing on the default-text-properties list.  */
 
 Lisp_Object
@@ -1813,7 +1813,7 @@ textget (plist, prop)
      Lisp_Object plist;
      register Lisp_Object prop;
 {
-  lookup_char_property (plist, prop, 1);
+  return lookup_char_property (plist, prop, 1);
 }
 
 Lisp_Object
@@ -1824,15 +1824,15 @@ lookup_char_property (plist, prop, textprop)
 {
   register Lisp_Object tail, fallback = Qnil;
 
-  for (tail = plist; !NILP (tail); tail = Fcdr (Fcdr (tail)))
+  for (tail = plist; CONSP (tail); tail = Fcdr (XCDR (tail)))
     {
       register Lisp_Object tem;
-      tem = Fcar (tail);
+      tem = XCAR (tail);
       if (EQ (prop, tem))
-	return Fcar (Fcdr (tail));
+	return Fcar (XCDR (tail));
       if (EQ (tem, Qcategory))
 	{
-	  tem = Fcar (Fcdr (tail));
+	  tem = Fcar (XCDR (tail));
 	  if (SYMBOLP (tem))
 	    fallback = Fget (tem, prop);
 	}
@@ -1845,12 +1845,8 @@ lookup_char_property (plist, prop, textprop)
   if (NILP (tail))
     return tail;
   tail = XCDR (tail);
-  for (; NILP (fallback) && !NILP (tail); tail = XCDR (tail))
-    {
-      if (!CONSP (tail))
-	wrong_type_argument (Qlistp, tail);
-      fallback = Fplist_get (plist, XCAR (tail));
-    }
+  for (; NILP (fallback) && CONSP (tail); tail = XCDR (tail))
+    fallback = Fplist_get (plist, XCAR (tail));
   if (textprop && NILP (fallback) && CONSP (Vdefault_text_properties))
     fallback = Fplist_get (Vdefault_text_properties, prop);
   return fallback;
@@ -1891,7 +1887,7 @@ temp_set_point_both (buffer, charpos, bytepos)
   BUF_PT (buffer) = charpos;
 }
 
-/* Set point in BUFFER to CHARPOS.  If the target position is 
+/* Set point in BUFFER to CHARPOS.  If the target position is
    before an intangible character, move to an ok place.  */
 
 void
@@ -1911,7 +1907,7 @@ set_point (buffer, charpos)
    TEST_OFFS should be either 0 or -1, and ADJ should be either 1 or -1.
 
    Note that `stickiness' is determined by overlay marker insertion types,
-   if the invisible property comes from an overlay.  */   
+   if the invisible property comes from an overlay.  */
 
 static int
 adjust_for_invis_intang (pos, test_offs, adj, test_intang)
@@ -1949,7 +1945,7 @@ adjust_for_invis_intang (pos, test_offs, adj, test_intang)
 }
 
 /* Set point in BUFFER to CHARPOS, which corresponds to byte
-   position BYTEPOS.  If the target position is 
+   position BYTEPOS.  If the target position is
    before an intangible character, move to an ok place.  */
 
 void
@@ -2222,7 +2218,7 @@ move_if_not_intangible (position)
 
     }
 
-  /* If the whole stretch between PT and POSITION isn't intangible, 
+  /* If the whole stretch between PT and POSITION isn't intangible,
      try moving to POSITION (which means we actually move farther
      if POSITION is inside of intangible text).  */
 
@@ -2251,7 +2247,7 @@ get_property_and_range (pos, prop, val, start, end, object)
   else if (BUFFERP (object))
     i = find_interval (BUF_INTERVALS (XBUFFER (object)), pos);
   else if (STRINGP (object))
-    i = find_interval (XSTRING (object)->intervals, pos);
+    i = find_interval (STRING_INTERVALS (object), pos);
   else
     abort ();
 
@@ -2269,7 +2265,7 @@ get_property_and_range (pos, prop, val, start, end, object)
   *start = i->position;
 
   next = next_interval (i);
-  while (! NULL_INTERVAL_P (next) 
+  while (! NULL_INTERVAL_P (next)
 	 && EQ (*val, textget (next->plist, prop)))
     i = next, next = next_interval (next);
   *end = i->position + LENGTH (i);
@@ -2388,7 +2384,7 @@ copy_intervals_to_string (string, buffer, position, length)
     return;
 
   SET_INTERVAL_OBJECT (interval_copy, string);
-  XSTRING (string)->intervals = interval_copy;
+  STRING_SET_INTERVALS (string, interval_copy);
 }
 
 /* Return 1 if strings S1 and S2 have identical properties; 0 otherwise.
@@ -2400,10 +2396,10 @@ compare_string_intervals (s1, s2)
 {
   INTERVAL i1, i2;
   int pos = 0;
-  int end = XSTRING (s1)->size;
+  int end = SCHARS (s1);
 
-  i1 = find_interval (XSTRING (s1)->intervals, 0);
-  i2 = find_interval (XSTRING (s2)->intervals, 0);
+  i1 = find_interval (STRING_INTERVALS (s1), 0);
+  i2 = find_interval (STRING_INTERVALS (s2), 0);
 
   while (pos < end)
     {

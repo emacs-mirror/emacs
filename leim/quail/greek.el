@@ -84,7 +84,7 @@ Sorry, accents and terminal sigma are not supported in JIS."
  ("," ?, )
  ("." ?. )
  ("/" ?$B!?(B)
-  
+
  ("!" ?$B!*(B)
  ("@" ?$B!w(B)
  ("#" ?$B!t(B)
@@ -248,7 +248,7 @@ nil t t nil nil nil nil nil nil nil t)
  ("m" ?$,1'<(B)
  ("n" ?$,1'=(B)
  ("o" ?$,1'?(B)
- 
+
  ("p" ?$,1'@(B)
  ("q" ?$,1'8(B)
  ("r" ?$,1'A(B)
@@ -461,6 +461,7 @@ ypogegrammeni	|
 psili		>
 dasia		<
 oxia		'
+koronis         ''
 varia		`
 perispomeni	~
 dialytika	\"
@@ -483,6 +484,7 @@ nil t t nil nil nil nil nil nil nil t)
  ("?" ?$,1&^(B) ; erotimatiko
  ("\"" ?,A((B) ; dialytika
  ("|" ?$,1&Z(B) ; ypogegrammeni
+ ("''" ?$,1q}(B) ; koronis
 
  ("A" ?$,1&q(B)
  ("B" ?$,1&r(B)
@@ -544,21 +546,21 @@ nil t t nil nil nil nil nil nil nil t)
  ("<i" ?$,1pQ(B)
  (">i" ?$,1pP(B)
  ("'i" ?$,1q7(B)
- ("<`i" ?$,1pU(B)
+ ("<'i" ?$,1pU(B)
  (">'i" ?$,1pT(B)
  ("`i" ?$,1q6(B)
  ("<`i" ?$,1pS(B)
- (">'i" ?$,1pR(B)
+ (">`i" ?$,1pR(B)
  ("~i"  ?$,1r6(B)
  ("<~i"  ?$,1pW(B)
- (">'i"  ?$,1pV(B)
+ (">~i"  ?$,1pV(B)
  ("\"i" ?$,1'J(B)
  ("\"'i" ?$,1r3(B)
  ("\"`i" ?$,1r2(B)
 
  ("<~"  ?$,1r?(B)
  (">~"  ?$,1r/(B)
- ("<`" ?$,1r>(B)
+ ("<'" ?$,1r>(B)
  (">'" ?$,1r.(B)
  ("<`" ?$,1r=(B)
  (">`" ?$,1r-(B)
@@ -1049,7 +1051,7 @@ e.g.
 ;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  -_  =+  `~
 ;;  ;:  ,FrS(B  ,FeE(B  ,FqQ(B  ,FtT(B  ,FuU(B  ,FhH(B  ,FiI(B  ,FoO(B  ,FpP(B  [{  ]}
 ;;   ,FaA(B  ,FsS(B  ,FdD(B  ,FvV(B  ,FcC(B  ,FgG(B  ,FnN(B  ,FjJ(B  ,FkK(B  ,F4((B  '"  \|
-;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,<  .>  /?  
+;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,<  .>  /?
 
 (quail-define-rules
  ("1" ?1)
@@ -1099,7 +1101,7 @@ e.g.
  ("," ?,)
  ("." ?.)
  ("/" ?/)
- 
+
  ("!" ?!)
  ("@" ?@)
  ("#" ?#)
@@ -1147,7 +1149,7 @@ e.g.
  ("<" ?<)
  (">" ?>)
  ("?" ??)
- 
+
  (";a" ?,F\(B)
  (";e" ?,F](B)
  (";h" ?,F^(B)
@@ -1189,7 +1191,7 @@ e.g.
 ;; 1!  2@  3#  4$  5%  6^  7&  8*  9(  0)  -_  =+  `~
 ;;  ,F7/(B  ,FrS(B  ,FeE(B  ,FqQ(B  ,FtT(B  ,FuU(B  ,FhH(B  ,FiI(B  ,FoO(B  ,FpP(B  [{  ]}
 ;;   ,FaA(B  ,FsS(B  ,FdD(B  ,FvV(B  ,FcC(B  ,FgG(B  ,FnN(B  ,FjJ(B  ,FkK(B  ,F4((B  '"  \|
-;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,;  .:  /?  
+;;    ,FfF(B  ,FwW(B  ,FxX(B  ,FyY(B  ,FbB(B  ,FmM(B  ,FlL(B  ,;  .:  /?
 
 (quail-define-rules
  ("1" ?1)
@@ -1239,7 +1241,7 @@ e.g.
  ("," ?,)
  ("." ?.)
  ("/" ?/)
- 
+
  ("!" ?!)
  ("@" ?@)
  ("#" ?#)
@@ -1287,7 +1289,7 @@ e.g.
  ("<" ?<)
  (">" ?>)
  ("?" ??)
- 
+
  ("a;" ?,F\(B)
  ("e;" ?,F](B)
  ("h;" ?,F^(B)

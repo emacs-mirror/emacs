@@ -25,6 +25,8 @@
 
 (eval-when-compile (require 'esh-maint))
 
+(require 'eshell)
+
 (defgroup eshell-script nil
   "This module allows for the execution of files containing Eshell
 commands, as a script file."

@@ -1,6 +1,6 @@
 ;;; sendmail.el --- mail sending commands for Emacs.  -*- byte-compile-dynamic: t -*-
 
-;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002
+;; Copyright (C) 1985, 86, 92, 93, 94, 95, 96, 98, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -82,6 +82,7 @@ If this is nil while `mail-specify-envelope-from' is non-nil, the
 content of `user-mail-address' is used."
   :version "21.1"
   :type '(choice (string :tag "From-name")
+		 (const :tag "Use From: header from message" header)
 		 (const :tag "Use `user-mail-address'" nil))
   :group 'sendmail)
 
@@ -275,7 +276,8 @@ and should insert whatever you want to insert."
 Value of `default-directory' for mail buffers.
 This directory is used for auto-save files of mail buffers."
   :type '(directory :tag "Directory")
-  :group 'sendmail)
+  :group 'sendmail
+  :version "21.4")
 
 (defvar mail-reply-action nil)
 (defvar mail-send-actions nil
@@ -374,7 +376,7 @@ actually occur.")
 	       (beginning-of-line) (end-of-line)
 	       (2 font-lock-constant-face nil t)
 	       (4 font-lock-comment-face nil t)))
-	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*"
+	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Mail mode.")
 
@@ -473,6 +475,7 @@ actually occur.")
   :type 'hook
   :options '(footnote-mode))
 
+(defvar mail-mode-abbrev-table text-mode-abbrev-table)
 ;;;###autoload
 (define-derived-mode mail-mode text-mode "Mail"
   "Major mode for editing mail to be sent.
@@ -489,7 +492,6 @@ Here are commands that move to a header field (and create it if there isn't):
 \\[mail-sent-via]  mail-sent-via (add a Sent-via field for each To or CC).
 Turning on Mail mode runs the normal hooks `text-mode-hook' and
 `mail-mode-hook' (in that order)."
-  (setq local-abbrev-table text-mode-abbrev-table)
   (make-local-variable 'mail-reply-action)
   (make-local-variable 'mail-send-actions)
   (setq buffer-offer-save t)
@@ -573,7 +575,7 @@ If within the headers, this makes the new lines into continuation lines."
 (defun mail-mode-fill-paragraph (arg)
   ;; Do something special only if within the headers.
   (if (< (point) (mail-header-end))
-      (let (beg end fieldname) 
+      (let (beg end fieldname)
 	(when (prog1 (re-search-backward "^[-a-zA-Z]+:" nil 'yes)
 		(setq beg (point)))
 	(setq fieldname
@@ -620,6 +622,7 @@ If within the headers, this makes the new lines into continuation lines."
   (define-key mail-mode-map "\C-c\C-t" 'mail-text)
   (define-key mail-mode-map "\C-c\C-y" 'mail-yank-original)
   (define-key mail-mode-map "\C-c\C-r" 'mail-yank-region)
+  (define-key mail-mode-map [remap split-line] 'mail-split-line)
   (define-key mail-mode-map "\C-c\C-q" 'mail-fill-yanked-message)
   (define-key mail-mode-map "\C-c\C-w" 'mail-signature)
   (define-key mail-mode-map "\C-c\C-v" 'mail-sent-via)
@@ -774,6 +777,14 @@ the user from the mailer."
 	    (progn
 	      (set-buffer-modified-p nil)
 	      (delete-auto-save-file-if-necessary t))))))
+
+(defun mail-envelope-from ()
+  "Return the envelope mail address to use when sending mail.
+This function uses `mail-envelope-from'."
+  (if (eq mail-envelope-from 'header)
+      (nth 1 (mail-extract-address-components
+ 	      (mail-fetch-field "From")))
+    mail-envelope-from))
 
 ;; This does the real work of sending a message via sendmail.
 ;; It is called via the variable send-mail-function.
@@ -806,10 +817,9 @@ external program defined by `sendmail-program'."
 		    (generate-new-buffer " sendmail errors")
 		  0))
 	(tembuf (generate-new-buffer " sendmail temp"))
+	(multibyte enable-multibyte-characters)
 	(case-fold-search nil)
-	(coding (and (local-variable-p 'buffer-file-coding-system)
-		     buffer-file-coding-system))
-	selected-coding
+	(selected-coding (select-message-coding-system))
 ;;;	resend-to-addresses
 	delimline
 	fcc-was-found
@@ -821,13 +831,14 @@ external program defined by `sendmail-program'."
 	;; local binding in the mail buffer will take effect.
 	(envelope-from
 	 (and mail-specify-envelope-from
-	      (or mail-envelope-from user-mail-address))))
+	      (or (mail-envelope-from) user-mail-address))))
     (unwind-protect
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
+	  (unless multibyte
+	    (set-buffer-multibyte nil))
 	  (insert-buffer-substring mailbuf)
-	  (set-buffer-file-coding-system coding)
 	  (goto-char (point-max))
 	  ;; require one newline at the end.
 	  (or (= (preceding-char) ?\n)
@@ -933,7 +944,7 @@ external program defined by `sendmail-program'."
 			     ;; ... then undo escaping of matching parentheses,
 			     ;; including matching nested parentheses.
 			     (goto-char fullname-start)
-			     (while (re-search-forward 
+			     (while (re-search-forward
 				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
 				     fullname-end 1)
 			       (replace-match "\\1(\\3)" t)
@@ -951,7 +962,7 @@ external program defined by `sendmail-program'."
 		   (not (re-search-forward "^MIME-version:" delimline t))
 		   (progn (skip-chars-forward "\0-\177")
 			  (/= (point) (point-max)))
-		   (setq selected-coding (select-message-coding-system))
+		   selected-coding
 		   (setq charset
 			 (coding-system-get selected-coding 'mime-charset))
 		   (goto-char delimline)
@@ -980,10 +991,8 @@ external program defined by `sendmail-program'."
 \\|^resent-cc:\\|^resent-bcc:"
 				   delimline t))
 	      (let* ((default-directory "/")
-		     (coding-system-for-write
-		      (or selected-coding
-			  (select-message-coding-system)))
-		     (args 
+		     (coding-system-for-write selected-coding)
+		     (args
 		      (append (list (point-min) (point-max)
 				    program
 				    nil errbuf nil "-oi")
@@ -1221,7 +1230,7 @@ external program defined by `sendmail-program'."
       (mail-position-on-field "to"))
   (insert "\nFCC: " folder))
 
-(defun mail-reply-to ()      
+(defun mail-reply-to ()
   "Move point to end of Reply-To-field.  Create a Reply-To field if none."
   (interactive)
   (expand-abbrev)
@@ -1251,7 +1260,7 @@ external program defined by `sendmail-program'."
   (goto-char (mail-text-start)))
 
 (defun mail-signature (&optional atpoint)
-  "Sign letter with contents of the file `mail-signature-file'.
+  "Sign letter with signature based on `mail-signature-file'.
 Prefix arg means put contents at point."
   (interactive "P")
   (save-excursion
@@ -1261,8 +1270,10 @@ Prefix arg means put contents at point."
     (end-of-line)
     (or atpoint
 	(delete-region (point) (point-max)))
-    (insert "\n\n-- \n")
-    (insert-file-contents (expand-file-name mail-signature-file))))
+    (if (stringp mail-signature)
+	(insert mail-signature)
+      (insert "\n\n-- \n")
+      (insert-file-contents (expand-file-name mail-signature-file)))))
 
 (defun mail-fill-yanked-message (&optional justifyp)
   "Fill the paragraphs of a message yanked into this one.
@@ -1408,6 +1419,13 @@ and don't delete any header fields."
 	       (if mail-yank-hooks
 		   (run-hooks 'mail-yank-hooks)
 		 (mail-indent-citation))))))))
+
+(defun mail-split-line ()
+  "Split current line, moving portion beyond point vertically down.
+If the current line has `mail-yank-prefix', insert it on the new line."
+  (interactive "*")
+  (split-line mail-yank-prefix))
+
 
 (defun mail-attach-file (&optional file)
   "Insert a file at the end of the buffer, with separator lines around it."

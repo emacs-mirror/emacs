@@ -47,7 +47,7 @@
 With positive argument, switch to 132-column mode.
 With negative argument, switch to 80-column mode."
  (interactive "P")
- (setq vt100-wide-mode 
+ (setq vt100-wide-mode
 	(if (null arg) (not vt100-wide-mode)
 	  (> (prefix-numeric-value arg) 0)))
  (send-string-to-terminal (if vt100-wide-mode "\e[?3h" "\e[?3l"))

@@ -45,7 +45,7 @@
 (defun timer-set-time (timer time &optional delta)
   "Set the trigger time of TIMER to TIME.
 TIME must be in the internal format returned by, e.g., `current-time'.
-If optional third argument DELTA is a non-zero integer, make the timer
+If optional third argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
@@ -127,7 +127,7 @@ SECS may be a fraction."
 
 (defun timer-inc-time (timer secs &optional usecs)
   "Increment the time set in TIMER by SECS seconds and USECS microseconds.
-SECS may be a fraction."
+SECS may be a fraction.  If USECS is omitted, that means it is zero."
   (let ((time (timer-relative-time
 	       (list (aref timer 1) (aref timer 2) (aref timer 3))
 	       secs
@@ -137,17 +137,21 @@ SECS may be a fraction."
     (aset timer 3 (or (nth 2 time) 0))))
 
 (defun timer-set-time-with-usecs (timer time usecs &optional delta)
-  "Set the trigger time of TIMER to TIME.
+  "Set the trigger time of TIMER to TIME plus USECS.
 TIME must be in the internal format returned by, e.g., `current-time'.
-If optional third argument DELTA is a non-zero integer, make the timer
+The microsecond count from TIME is ignored, and USECS is used instead.
+If optional fourth argument DELTA is a positive number, make the timer
 fire repeatedly that many seconds apart."
   (or (timerp timer)
       (error "Invalid timer"))
-  (aset timer 1 (car time))
-  (aset timer 2 (if (consp (cdr time)) (car (cdr time)) (cdr time)))
+  (aset timer 1 (nth 0 time))
+  (aset timer 2 (nth 1 time))
   (aset timer 3 usecs)
   (aset timer 4 (and (numberp delta) (> delta 0) delta))
   timer)
+(make-obsolete 'timer-set-time-with-usecs
+               "use `timer-set-time' and `timer-inc-time' instead."
+               "21.4")
 
 (defun timer-set-function (timer function &optional args)
   "Make TIMER call FUNCTION with optional ARGS when triggering."
@@ -257,7 +261,7 @@ TIME is a time-list."
   (let ((high (- (car time) (aref timer 1)))
 	(low (- (nth 1 time) (aref timer 2))))
     (+ low (* high 65536))))
-  
+
 (defun timer-event-handler (timer)
   "Call the handler for the timer TIMER.
 This function is called, by name, directly by the C code."

@@ -28,6 +28,7 @@
 ;;; Todo:
 
 ;; - facemenu support.
+;; - command completion. 
 
 ;;; Commentary:
 
@@ -265,22 +266,22 @@ chapter."
 
 (defvar texinfo-section-list
   '(("top" 1)
-    ("majorheading" 2)
     ("chapter" 2)
-    ("unnumbered" 2)
-    ("appendix" 2)
-    ("chapheading" 2)
     ("section" 3)
-    ("unnumberedsec" 3)
-    ("appendixsec" 3)
-    ("heading" 3)
     ("subsection" 4)
-    ("unnumberedsubsec" 4)
-    ("appendixsubsec" 4)
-    ("subheading" 4)
     ("subsubsection" 5)
+    ("unnumbered" 2)
+    ("unnumberedsec" 3)
+    ("unnumberedsubsec" 4)
     ("unnumberedsubsubsec" 5)
+    ("appendix" 2)
+    ("appendixsec" 3)
+    ("appendixsubsec" 4)
     ("appendixsubsubsec" 5)
+    ("majorheading" 2)
+    ("chapheading" 2)
+    ("heading" 3)
+    ("subheading" 4)
     ("subsubheading" 5))
   "Alist of sectioning commands and their relative level.")
 
@@ -317,14 +318,17 @@ chapter."
   "Syntactic keywords to catch comment delimiters in `texinfo-mode'.")
 
 (defconst texinfo-environments
-  '("cartouche" "defcv" "deffn" "defivar" "defmac" "defmethod" "defop"
-    "defopt" "defspec" "deftp" "deftypefn" "deftypefun" "deftypevar"
-    "deftypevr" "defun" "defvar" "defvr" "description" "detailmenu"
-    "direntry" "display" "enumerate" "example" "flushleft" "flushright"
-    "format" "ftable" "group" "ifclear" "ifset" "ifhtml" "ifinfo"
-    "ifnothtml" "ifnotinfo" "ifnottex" "iftex" "ignore" "itemize" "lisp"
-    "macro" "menu" "multitable" "quotation" "smalldisplay" "smallexample"
-    "smallformat" "smalllisp" "table" "tex" "titlepage" "vtable")
+  '("cartouche" "copying" "defcv" "deffn" "defivar" "defmac"
+    "defmethod" "defop" "defopt" "defspec" "deftp" "deftypefn"
+    "deftypefun" "deftypevar" "deftypevr" "defun" "defvar"
+    "defvr" "description" "detailmenu" "direntry" "display"
+    "documentdescription" "enumerate" "example" "flushleft"
+    "flushright" "format" "ftable" "group" "ifclear" "ifset"
+    "ifhtml" "ifinfo" "ifnothtml" "ifnotinfo" "ifnotplaintext"
+    "ifnottex" "ifplaintext" "iftex" "ignore" "itemize" "lisp"
+    "macro" "menu" "multitable" "quotation" "smalldisplay"
+    "smallexample" "smallformat" "smalllisp" "table" "tex"
+    "titlepage" "verbatim" "vtable")
   "List of TeXinfo environments.")
 
 (defconst texinfo-environment-regexp
@@ -358,8 +362,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
     ("@\\(anchor\\){\\([^}]+\\)" 2 font-lock-type-face)
     ("@\\(dmn\\|acronym\\|value\\){\\([^}]+\\)" 2 font-lock-builtin-face)
     ("@\\(end\\|itemx?\\) +\\(.+\\)" 2 font-lock-keyword-face keep)
-    (,texinfo-environment-regexp
-     1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
+    ;; (,texinfo-environment-regexp
+    ;;  1 (texinfo-clone-environment (match-beginning 1) (match-end 1)) keep)
     (,(concat "^@" (regexp-opt (mapcar 'car texinfo-section-list) t)
 	       ".*\n") 0 texinfo-heading-face t))
   "Additional expressions to highlight in TeXinfo mode.")
@@ -377,21 +381,9 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 	    (forward-word 1)
 	    (texinfo-next-unmatched-end))
 	  (skip-syntax-forward "^w")
-	  (when (looking-at (regexp-quote (buffer-substring start end)))
+	  (when (looking-at
+		 (concat (regexp-quote (buffer-substring start end)) "\\>"))
 	    (text-clone-create start end 'spread "\\w*")))))))
-
-(defun texinfo-outline-level ()
-  ;; Calculate level of current texinfo outline heading.
-  (save-excursion
-    (if (bobp)
-        0
-      (forward-char 1)
-      (let* ((word (buffer-substring-no-properties
-                    (point) (progn (forward-word 1) (point))))
-             (entry (assoc word texinfo-section-list)))
-        (if entry
-            (nth 1 entry)
-          5)))))
 
 
 ;;; Keybindings
@@ -609,11 +601,17 @@ value of `texinfo-mode-hook'."
 				     (font-lock-syntactic-keywords
 				      . texinfo-font-lock-syntactic-keywords)))
   (set (make-local-variable 'parse-sexp-lookup-properties) t)
-  (make-local-variable 'outline-regexp)
-  (setq outline-regexp
-        (concat "@" (regexp-opt (mapcar 'car texinfo-section-list) t) "\\>"))
-  (make-local-variable 'outline-level)
-  (setq outline-level 'texinfo-outline-level)
+
+  ;; Outline settings.
+  (set (make-local-variable 'outline-heading-alist)
+       ;; We should merge outline-heading-alist and texinfo-section-list
+       ;; but in the mean time, let's just generate one from the other.
+       (mapcar (lambda (x) (cons (concat "@" (car x)) (cadr x)))
+	       texinfo-section-list))
+  (set (make-local-variable 'outline-regexp)
+       (concat (regexp-opt (mapcar 'car outline-heading-alist) t)
+	       "\\>"))
+
   (make-local-variable 'tex-start-of-header)
   (setq tex-start-of-header "%\\*\\*start")
   (make-local-variable 'tex-end-of-header)
@@ -630,7 +628,7 @@ value of `texinfo-mode-hook'."
 	 (if (null auto-fill-inhibit-regexp)
 	     prevent-filling
 	   (concat auto-fill-inhibit-regexp "\\|" prevent-filling)))))
-		  
+
 
 
 ;;; Insert string commands
@@ -642,7 +640,7 @@ value of `texinfo-mode-hook'."
 Puts point on a blank line between them."
   (setq texinfo-block-default
 	(completing-read (format "Block name [%s]: " texinfo-block-default)
-			 (mapcar 'list texinfo-environments)
+			 texinfo-environments
 			 nil nil nil nil texinfo-block-default))
   \n "@" str \n _ \n "@end " str \n)
 
@@ -668,6 +666,8 @@ Puts point on a blank line between them."
     (and (re-search-backward (concat "@\\(end\\s +\\)?" env) bound t)
 	 (not (match-end 1)))))
 
+(defvar texinfo-enable-quote-macros '("@\\(code\\|samp\\|kbd\\)\\>"))
+(defvar texinfo-enable-quote-envs '("example\\>" "lisp\\>"))
 (defun texinfo-insert-quote (&optional arg)
   "Insert the appropriate quote mark for TeXinfo.
 Usually inserts the value of `texinfo-open-quote' (normally ``) or
@@ -684,15 +684,17 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 			(looking-at texinfo-close-quote))
 		(delete-char (length texinfo-open-quote))
 		t))
-	    (texinfo-inside-macro-p "@\\(code\\|samp\\|kbd\\)\\>" top)
-	    (texinfo-inside-env-p "example\\>" top)
-	    (texinfo-inside-env-p "lisp\\>" top))
+	    (texinfo-inside-macro-p texinfo-enable-quote-macros top)
+	    (let ((in-env nil))
+	      (dolist (env texinfo-enable-quote-envs in-env)
+		(if (texinfo-inside-env-p env top)
+		    (setq in-env t)))))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
        (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
 	   texinfo-open-quote
 	 texinfo-close-quote)))))
-	
+
 ;; The following texinfo-insert-@end command not only inserts a SPC
 ;; after the @end, but tries to find out what belongs there.  It is
 ;; not very smart: it does not understand nested lists.
@@ -873,7 +875,7 @@ with @-sign commands for @chapter, @section, and the like, and list
 
 Lines with structuring commands beginning in them are displayed in
 another buffer named `*Occur*'.  In that buffer, you can move point to
-one of those lines and then use 
+one of those lines and then use
 \\<occur-mode-map>\\[occur-mode-goto-occurrence],
 to jump to the corresponding spot in the Texinfo source file."
 
@@ -883,7 +885,7 @@ to jump to the corresponding spot in the Texinfo source file."
         current-location)
     (save-excursion
       (end-of-line)            ; so as to find section on current line
-      (if (re-search-backward 
+      (if (re-search-backward
            ;; do not require `texinfo-section-types-regexp' in texnfo-upd.el
            "^@\\(chapter \\|sect\\|subs\\|subh\\|unnum\\|major\\|chapheading \\|heading \\|appendix\\)"
            nil t)
@@ -914,7 +916,7 @@ to jump to the corresponding spot in the Texinfo source file."
           (indent-to-column (+ (current-column) (* 4 (- level 2))))
           (beginning-of-line))))
     ;; Third, go to line corresponding to location in source file
-    ;; potential bug: two exactly similar `current-location' lines ... 
+    ;; potential bug: two exactly similar `current-location' lines ...
     (goto-char (point-min))
     (re-search-forward current-location nil t)
     (beginning-of-line)

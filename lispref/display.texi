@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001, 2002
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/display
 @node Display, Calendar, Processes, Top
@@ -339,7 +339,9 @@ text property (@pxref{Text Properties}) or a property of an overlay
 In the simplest case, any non-@code{nil} @code{invisible} property makes
 a character invisible.  This is the default case---if you don't alter
 the default value of @code{buffer-invisibility-spec}, this is how the
-@code{invisible} property works.
+@code{invisible} property works.  You should normally use @code{t}
+as the value of the @code{invisible} property if you don't plan
+to set @code{buffer-invisibility-spec} yourself.
 
 More generally, you can use the variable @code{buffer-invisibility-spec}
 to control which values of the @code{invisible} property make text
@@ -387,25 +389,29 @@ by a visible newline, it displays an ellipsis.
 @code{buffer-invisibility-spec} and removing elements from it.
 
 @defun add-to-invisibility-spec element
-Add the element @var{element} to @code{buffer-invisibility-spec}
-(if it is not already present in that list).
+This function adds the element @var{element} to
+@code{buffer-invisibility-spec} (if it is not already present in that
+list).  If @code{buffer-invisibility-spec} was @code{t}, it changes to
+a list, @code{(t)}, so that text whose @code{invisible} property
+is @code{t} remains invisible.
 @end defun
 
 @defun remove-from-invisibility-spec element
-Remove the element @var{element} from @code{buffer-invisibility-spec}.
-This does nothing if @var{element} is not in the list.
+This removeds the element @var{element} from
+@code{buffer-invisibility-spec}.  This does nothing if @var{element}
+is not in the list.
 @end defun
 
-  One convention about the use of @code{buffer-invisibility-spec} is
-that a major mode should use the mode's own name as an element of
-@code{buffer-invisibility-spec} and as the value of the @code{invisible}
-property:
+  A convention for use of @code{buffer-invisibility-spec} is that a
+major mode should use the mode's own name as an element of
+@code{buffer-invisibility-spec} and as the value of the
+@code{invisible} property:
 
 @example
 ;; @r{If you want to display an ellipsis:}
-(add-to-invisibility-spec '(my-symbol . t)) 
+(add-to-invisibility-spec '(my-symbol . t))
 ;; @r{If you don't want ellipsis:}
-(add-to-invisibility-spec 'my-symbol) 
+(add-to-invisibility-spec 'my-symbol)
 
 (overlay-put (make-overlay beginning end)
              'invisible 'my-symbol)
@@ -477,7 +483,7 @@ effect is seen only within Emacs.
 
 @defvar selective-display
 This buffer-local variable enables selective display.  This means that
-lines, or portions of lines, may be made invisible.  
+lines, or portions of lines, may be made invisible.
 
 @itemize @bullet
 @item
@@ -1330,7 +1336,7 @@ kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
 emacs, The GNU Emacs Manual}).
 
-@defmac defface face spec doc [keyword value]... 
+@defmac defface face spec doc [keyword value]...
 This declares @var{face} as a customizable face that defaults according
 to @var{spec}.  You should not quote the symbol @var{face}.  The
 argument @var{doc} specifies the face documentation.  The keywords you
@@ -1382,11 +1388,11 @@ What kinds of colors the frame supports---either @code{color},
 The kind of background---either @code{light} or @code{dark}.
 
 @item supports
-Whether or not the frame can display the face attributes (@pxref{Face
-Attributes}) given in @var{value}@dots{}.  See the documentation for
-the function @code{display-supports-face-attributes-p} (@pxref{Display
-Face Attribute Testing}) for more information on exactly how this testing
-is done.
+Whether or not the frame can display the face attributes given in
+@var{value}@dots{} (@pxref{Face Attributes}).  See the documentation
+for the function @code{display-supports-face-attributes-p} for more
+information on exactly how this testing is done.  @xref{Display Face
+Attribute Testing}.
 @end table
 
 If an element of @var{display} specifies more than one @var{value} for a
@@ -1467,13 +1473,13 @@ set width.  This should be one of the symbols @code{ultra-condensed},
 @code{extra-condensed}, @code{condensed}, @code{semi-condensed},
 @code{normal}, @code{semi-expanded}, @code{expanded},
 @code{extra-expanded}, or @code{ultra-expanded}.
-   
+
 @item :height
 Either the font height, an integer in units of 1/10 point, a floating
 point number specifying the amount by which to scale the height of any
 underlying face, or a function, which is called with the old height
 (from the underlying face), and should return the new height.
-   
+
 @item :weight
 Font weight---a symbol from this series (from most dense to most faint):
 @code{ultra-bold}, @code{extra-bold}, @code{bold}, @code{semi-bold},
@@ -1493,7 +1499,7 @@ the terminal supports the feature.
 
 @item :foreground
 Foreground color, a string.
-   
+
 @item :background
 Background color, a string.
 
@@ -1643,8 +1649,8 @@ Thus,
 
 @example
 (set-face-attribute 'foo nil
-                    :width :extended
-                    :weight :bold
+                    :width 'extended
+                    :weight 'bold
                     :underline "red")
 @end example
 
@@ -1654,13 +1660,27 @@ to the corresponding values.
 @end defun
 
 @tindex face-attribute
-@defun face-attribute face attribute &optional frame
+@defun face-attribute face attribute &optional frame inherit
 This returns the value of the @var{attribute} attribute of face
 @var{face} on @var{frame}.  If @var{frame} is @code{nil},
 that means the selected frame (@pxref{Input Focus}).
 
 If @var{frame} is @code{t}, the value is the default for
 @var{face} for new frames.
+
+If @var{inherit} is nil, only attributes directly defined by
+@var{face} are considered, so the return value may be
+@code{unspecified}, or a relative value.  If @var{inherit} is non-nil,
+@var{face}'s definition of @var{attribute} is merged with the faces
+specified by its @code{:inherit} attribute; however the return value
+may still be @code{unspecified} or relative.  If @var{inherit} is a
+face or a list of faces, then the result is further merged with that
+face (or faces), until it becomes specified and absolute.
+
+To ensure that the return value is always specified and absolute, use
+a value of @code{default} for @var{inherit}; this will resolve any
+unspecified or relative values by merging with the @code{default} face
+(which is always completely specified).
 
 For example,
 
@@ -1673,6 +1693,21 @@ For example,
   The functions above did not exist before Emacs 21.  For compatibility
 with older Emacs versions, you can use the following functions to set
 and examine the face attributes which existed in those versions.
+
+@tindex face-attribute-relative-p
+@defun face-attribute-relative-p attribute value
+This function returns non-@code{nil} if @var{value}, when used as a
+the value of the face attribute @var{attribute}, is relative (that is,
+if it modifies an underlying or inherited value of @var{attribute}).
+@end defun
+
+@tindex merge-face-attribute
+@defun merge-face-attribute attribute value1 value2
+If @var{value1} is a relative value for the face attribute
+@var{attribute}, returns it merged with the underlying value
+@var{value2}; otherwise, if @var{value1} is an absolute value for the
+face a attribute @var{attribute}, returns @var{value1} unchanged.
+@end defun
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
@@ -1738,15 +1773,29 @@ specify @var{frame}, they refer to the default data for new frames.
 They return the symbol @code{unspecified} if the face doesn't define any
 value for that attribute.
 
-@defun face-foreground face &optional frame
+@defun face-foreground face &optional frame inherit
 @defunx face-background face &optional frame
 These functions return the foreground color (or background color,
 respectively) of face @var{face}, as a string.
+
+If @var{inherit} is nil, only a color directly defined by the face is
+returned.  If @var{inherit} is non-nil, any faces specified by its
+@code{:inherit} attribute are considered as well, and if @var{inherit}
+is a face or a list of faces, then they are also considered, until a
+specified color is found.  To ensure that the return value is always
+specified, use a value of @code{default} for @var{inherit}.
 @end defun
 
-@defun face-stipple face &optional frame
+@defun face-stipple face &optional frame inherit
 This function returns the name of the background stipple pattern of face
 @var{face}, or @code{nil} if it doesn't have one.
+
+If @var{inherit} is nil, only a stipple directly defined by the face
+is returned.  If @var{inherit} is non-nil, any faces specified by its
+@code{:inherit} attribute are considered as well, and if @var{inherit}
+is a face or a list of faces, then they are also considered, until a
+specified stipple is found.  To ensure that the return value is always
+specified, use a value of @code{default} for @var{inherit}.
 @end defun
 
 @defun face-font face &optional frame
@@ -1803,7 +1852,7 @@ With a region that is active.  In Transient Mark mode, the region is
 highlighted with the face @code{region} (@pxref{Standard Faces}).
 
 @item
-With special glyphs.  Each glyph can specify a particular face 
+With special glyphs.  Each glyph can specify a particular face
 number.  @xref{Glyphs}.
 @end itemize
 
@@ -2236,7 +2285,7 @@ they mean.
 @menu
 * Specified Space::     Displaying one space with a specified width.
 * Other Display Specs:: Displaying an image; magnifying text; moving it
-                          up or down on the page; adjusting the width 
+                          up or down on the page; adjusting the width
                           of spaces within text.
 * Display Margins::     Displaying text or images to the side of the main text.
 * Conditional Display:: Making any of the above features conditional
@@ -2272,7 +2321,7 @@ character, multiplied by @var{factor}.
 @item :align-to @var{hpos}
 Specifies that the space should be wide enough to reach @var{hpos}.  The
 value @var{hpos} is measured in units of the normal character width.  It
-may be an interer or a floating point number.
+may be an integer or a floating point number.
 @end table
 
   You should use one and only one of the above properties.  You can
@@ -2416,7 +2465,7 @@ Thus, you can make changes take effect by calling
 @defun set-window-margins window left &optional right
 @tindex set-window-margins
 This function specifies the margin widths for window @var{window}.
-The argument @var{left} controls the left margin and 
+The argument @var{left} controls the left margin and
 @var{right} controls the right margin (default @code{0}).
 @end defun
 
@@ -2867,8 +2916,8 @@ example:
 
 @example
 (defimage test-image
-  '((:type xpm :file "~/test1.xpm")
-    (:type xbm :file "~/test1.xbm")))
+  ((:type xpm :file "~/test1.xpm")
+   (:type xbm :file "~/test1.xbm")))
 @end example
 
 @code{defimage} tests each argument, one by one, to see if it is
@@ -3337,17 +3386,36 @@ are defined in the library @file{disp-table}.
 @cindex glyph
   A @dfn{glyph} is a generalization of a character; it stands for an
 image that takes up a single character position on the screen.  Glyphs
-are represented in Lisp as integers, just as characters are.
+are represented in Lisp as integers, just as characters are.  Normally
+Emacs finds glyphs in the display table (@pxref{Display Tables}).
 
-@cindex glyph table
-  The meaning of each integer, as a glyph, is defined by the glyph
-table, which is the value of the variable @code{glyph-table}.
+  A glyph can be @dfn{simple} or it can be defined by the @dfn{glyph
+table}.  A simple glyph is just a way of specifying a character and a
+face to output it in.  The glyph code for a simple glyph, mod 524288,
+is the character to output, and the glyph code divided by 524288
+specifies the face number (@pxref{Face Functions}) to use while
+outputting it.  (524288 is
+@ifnottex
+2**19.)
+@end ifnottex
+@tex
+$2^{19}$.)
+@end tex
+@xref{Faces}.
+
+  On character terminals, you can set up a @dfn{glyph table} to define
+the meaning of glyph codes.  The glyph codes is the value of the
+variable @code{glyph-table}.
 
 @defvar glyph-table
 The value of this variable is the current glyph table.  It should be a
-vector; the @var{g}th element defines glyph code @var{g}.  If the value
-is @code{nil} instead of a vector, then all glyphs are simple (see
-below).  The glyph table is not used on windowed displays.
+vector; the @var{g}th element defines glyph code @var{g}.
+
+If a glyph code is greater than or equal to the length of the glyph
+table, that code is automatically simple.  If the value of
+@code{glyph-table} is @code{nil} instead of a vector, then all glyphs
+are simple.  The glyph table is not used on graphical displays, only
+on character terminals.  On graphical displays, all glyphs are simple.
 @end defvar
 
   Here are the possible types of elements in the glyph table:
@@ -3360,23 +3428,12 @@ but not under a window system.
 
 @item @var{integer}
 Define this glyph code as an alias for glyph code @var{integer}.  You
-can use an alias to specify a face code for the glyph; see below.
+can use an alias to specify a face code for the glyph and use a small
+number as its code.
 
 @item @code{nil}
-This glyph is simple.  The glyph code mod 524288 is the character to
-output, and the glyph code divided by 524288 specifies the face number
-(@pxref{Face Functions}) to use while outputting it.  (524288 is
-@ifnottex
-2**19.)
-@end ifnottex
-@tex
-$2^{19}$.)
-@end tex
-@xref{Faces}.
+This glyph is simple.
 @end table
-
-  If a glyph code is greater than or equal to the length of the glyph
-table, that code is automatically simple.
 
 @defun create-glyph string
 @tindex create-glyph

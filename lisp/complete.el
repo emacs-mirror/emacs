@@ -78,11 +78,6 @@
 ;; The regular M-TAB (lisp-complete-symbol) command also supports
 ;; partial completion in this package.
 
-;; File name completion does not do partial completion of directories
-;; on the path, e.g., "/u/b/f" will not complete to "/usr/bin/foo",
-;; but you can put *'s in the path to accomplish this:  "/u*/b*/f".
-;; Stars are required for performance reasons.
-
 ;; In addition, this package includes a feature for accessing include
 ;; files.  For example, `C-x C-f <sys/time.h> RET' reads the file
 ;; /usr/include/sys/time.h.  The variable PC-include-file-path is a
@@ -388,13 +383,26 @@ of `minibuffer-completion-table' and the minibuffer contents.")
 	     (delete-region beg end)
 	     (insert str)
 	     (setq end (+ beg (length str)))))
-      
+
       ;; Prepare various delimiter strings
       (or (equal PC-word-delimiters PC-delims)
 	  (setq PC-delims PC-word-delimiters
 		PC-delim-regex (concat "[" PC-delims "]")
 		PC-ndelims-regex (concat "[^" PC-delims "]*")
 		PC-delims-list (append PC-delims nil)))
+
+      ;; Add wildcards if necessary
+      (and filename
+           (let ((dir (file-name-directory str))
+                 (file (file-name-nondirectory str)))
+             (while (and (stringp dir) (not (file-directory-p dir)))
+               (setq dir (directory-file-name dir))
+               (setq file (concat (replace-regexp-in-string
+                                   PC-delim-regex "*\\&"
+                                   (file-name-nondirectory dir))
+                                  "*/" file))
+               (setq dir (file-name-directory dir)))
+             (setq str (concat dir file))))
 
       ;; Look for wildcard expansions in directory name
       (and filename
@@ -883,7 +891,7 @@ or properties are considered."
 ;;; This is adapted from lib-complete.el, by Mike Williams.
 (defun PC-include-file-all-completions (file search-path &optional full)
   "Return all completions for FILE in any directory on SEARCH-PATH.
-If optional third argument FULL is non-nil, returned pathnames should be 
+If optional third argument FULL is non-nil, returned pathnames should be
 absolute rather than relative to some directory on the SEARCH-PATH."
   (setq search-path
 	(mapcar (lambda (dir)
@@ -893,7 +901,7 @@ absolute rather than relative to some directory on the SEARCH-PATH."
       ;; It's an absolute file name, so don't need search-path
       (progn
 	(setq file (expand-file-name file))
-	(file-name-all-completions 
+	(file-name-all-completions
 	 (file-name-nondirectory file) (file-name-directory file)))
     (let ((subdir (file-name-directory file))
 	  (ndfile (file-name-nondirectory file))
@@ -911,9 +919,9 @@ absolute rather than relative to some directory on the SEARCH-PATH."
 	  (if (file-directory-p dir)
 	      (progn
 		(setq file-lists
-		      (cons 
+		      (cons
 		       (mapcar (lambda (file) (concat subdir file))
-			       (file-name-all-completions ndfile 
+			       (file-name-all-completions ndfile
 							  (car search-path)))
 		       file-lists))))
 	  (setq search-path (cdr search-path))))

@@ -1,4 +1,4 @@
-;;; generic-x.el --- Extra Modes for generic-mode
+;;; generic-x.el --- Extra Modes for generic-mode -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997, 1998 Free Software Foundation, Inc.
 
@@ -533,7 +533,7 @@ you must reload generic-x to enable the specified modes."
 ;; Javascript mode
 ;; Includes extra keywords from Armando Singer [asinger@MAIL.COLGATE.EDU]
 (define-generic-mode 'javascript-generic-mode
-  (list "//")
+  (list "//" '("/*" . "*/"))
   (list
    "break"
    "case"
@@ -845,6 +845,7 @@ you must reload generic-x to enable the specified modes."
 
 ;; InstallShield RUL files
 ;; Contributed by  Alfred.Correira@Pervasive.Com
+;; Bugfixes by "Rolf Sandau" <Rolf.Sandau@marconi.com>
 (and
 (memq 'rul-generic-mode generic-extras-enable-list)
 ;;; build the regexp strings using regexp-opt
@@ -1400,50 +1401,90 @@ you must reload generic-x to enable the specified modes."
    )
   "Function argument constants used in InstallShield 3 and 5.")
 
-(define-generic-mode 'rul-generic-mode
-  ;; Using "/*" and "*/" doesn't seem to be working right
-  (list "//")
-  installshield-statement-keyword-list
-  (list
-   ;; preprocessor constructs
-   '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
-     1 font-lock-string-face)
-   '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-constant-face)
-     (2 font-lock-variable-name-face nil t))
-   ;; indirect string constants
-   '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
-   ;; gotos
-   '("[ \t]*\\(\\sw+:\\)" 1 font-lock-constant-face)
-   '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face)
-     (2 font-lock-constant-face nil t))
-   ;; system variables
-   (generic-make-keywords-list
-    installshield-system-variables-list
-    'font-lock-variable-name-face "[^_]" "[^_]")
-   ;; system functions
-   (generic-make-keywords-list
-    installshield-system-functions-list
-    'font-lock-function-name-face "[^_]" "[^_]")
-   ;; type keywords
-   (generic-make-keywords-list
-    installshield-types-list
-    'font-lock-type-face "[^_]" "[^_]")
-   ;; function argument constants
-   (generic-make-keywords-list
-    installshield-funarg-constants-list
-    'font-lock-variable-name-face "[^_]" "[^_]") ; is this face the best choice?
-   )
-  (list "\\.[rR][uU][lL]$")
-  (list
-   (function
-    (lambda ()
-      (setq imenu-generic-expression
-    '((nil "^function\\s-+\\([A-Za-z0-9_]+\\)" 1)))
-      )))
-  "Generic mode for InstallShield RUL files.")
+(progn
+  (defvar rul-generic-mode-syntax-table nil
+     "Syntax table to use in rul-generic-mode buffers.")
 
+   (setq rul-generic-mode-syntax-table
+	 (make-syntax-table c++-mode-syntax-table))
+
+   (modify-syntax-entry ?\r "> b"   rul-generic-mode-syntax-table)
+   (modify-syntax-entry ?\n "> b"   rul-generic-mode-syntax-table)
+
+   (cond
+       ;; XEmacs 19 & 20 & 21
+    ((memq '8-bit c-emacs-features)
+     (modify-syntax-entry ?/  ". 1456" rul-generic-mode-syntax-table)
+       (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
+       )
+    ;; Emacs 19 & 20
+    ((memq '1-bit c-emacs-features)
+     (modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
+       (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
+       )
+    ;; incompatible
+    (t (error "Run Mode is incompatible with this version of Emacs"))
+    )
+
+   ;; here manually instead
+   (defun generic-rul-mode-setup-function ()
+     (make-local-variable	     'parse-sexp-ignore-comments)
+     (make-local-variable	     'comment-start)
+     (make-local-variable	     'comment-start-skip)
+     (make-local-variable	     'comment-end)
+     (setq imenu-generic-expression
+	   '((nil "^function\\s-+\\([A-Za-z0-9_]+\\)" 1))
+	   parse-sexp-ignore-comments t
+	   comment-end               "*/"
+	   comment-start	     "/*"
+;; 	   comment-end               ""
+;; 	   comment-start	     "//"
+;;	   comment-start-skip	     ""
+	   )
+;;     (set-syntax-table	      rul-generic-mode-syntax-table)
+     (setq font-lock-syntax-table rul-generic-mode-syntax-table)
+     )
+
+   ;; moved mode-definition behind defun-definition to be warning-free - 15.11.02/RSan
+   (define-generic-mode 'rul-generic-mode
+     ;; Using "/*" and "*/" doesn't seem to be working right
+     (list "//" '("/*" . "*/" ))
+     installshield-statement-keyword-list
+     (list
+      ;; preprocessor constructs
+      '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
+	1 font-lock-string-face)
+      '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
+	(1 font-lock-reference-face)
+	(2 font-lock-variable-name-face nil t))
+      ;; indirect string constants
+      '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
+      ;; gotos
+      '("[ \t]*\\(\\sw+:\\)" 1 font-lock-reference-face)
+      '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
+	(1 font-lock-keyword-face)
+	(2 font-lock-reference-face nil t))
+      ;; system variables
+      (generic-make-keywords-list
+       installshield-system-variables-list
+       'font-lock-variable-name-face "[^_]" "[^_]")
+      ;; system functions
+      (generic-make-keywords-list
+       installshield-system-functions-list
+       'font-lock-function-name-face "[^_]" "[^_]")
+      ;; type keywords
+      (generic-make-keywords-list
+       installshield-types-list
+       'font-lock-type-face "[^_]" "[^_]")
+      ;; function argument constants
+      (generic-make-keywords-list
+       installshield-funarg-constants-list
+       'font-lock-variable-name-face "[^_]" "[^_]") ; is this face the best choice?
+      )
+     (list "\\.[rR][uU][lL]$")
+     (list 'generic-rul-mode-setup-function)
+     "Generic mode for InstallShield RUL files.")
+)
 (define-skeleton rul-if
    "Insert an if statement."
    "condition: "
@@ -1835,6 +1876,18 @@ you must reload generic-x to enable the specified modes."
   "Generic mode for ASTAP circuit netlist files."
   )
 
+(define-generic-mode  'etc-modules-conf-generic-mode
+  ;;List of comment characters
+  (list ?#)
+  ;;List of keywords
+  (list "alias" "pre-install" "post-install" "options" "probeall")
+  ;;List of additional font-lock-expressions
+  nil
+  ;;List of additional automode-alist expressions
+  (list "/etc/modules.conf" "/etc/conf.modules")
+  ;;List of set up functions to call
+  nil
+  )
 
 (provide 'generic-x)
 

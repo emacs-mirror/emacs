@@ -1,20 +1,20 @@
 %&mex
 %=====================================================================
-% $Revision: 1.1 $
-% $Date: 2000/08/21 11:42:52 $
+% $Revision: 1.3 $
+% $Date: 2003/02/04 14:30:42 $
 %=====================================================================
 % Reference Card for GNU Emacs version 20 on Unix systems was
 % translated into Polish language by W{\l}odek Bzyl (matwb@univ.gda.pl)
 % who also added new section on `Dired' and added info about Polish
 % support in Emacs to section `International Character Sets'.
 
-% This file uses macros and fonts defined in the mex format. 
+% This file uses macros and fonts defined in the mex format.
 % These macros and fonts are part of a current WEB2C
 % distribution of TeX, for example teTeX (unix) fpTeX (windows).
 % TeTeX comes with texconfig utility which could be used in
 % particular to generate formats. Just run it and follow instructions.
 %
-% Note that the original Emacs refcard.tex uses macros and fonts 
+% Note that the original Emacs refcard.tex uses macros and fonts
 % defined in plain format. This file uses mex format which is
 % a Polish adaptation of plain.
 
@@ -26,7 +26,7 @@
  \endinput
 \else
   \prefixing
-\fi 
+\fi
 
 \newcount\columnsperpage
 
@@ -85,7 +85,7 @@
 \def\copyrightnotice{
 \vskip 1ex plus 2 fill\begingroup\small
 \centerline{Copyright \copyright\ \year\ Free Software Foundation, Inc.}
-\centerline{Wersja \versionnumber{} dla GNU Emacsa 20.3, 
+\centerline{Wersja \versionnumber{} dla GNU Emacsa 20.3,
   stycze/n 1999}
 \centerline{projekt Stephen Gildea}
 \centerline{t/lumaczenie W/lodek Bzyl}
@@ -109,7 +109,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space 
+\message{[\ncolumns\space
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
@@ -187,7 +187,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}  
+    \end}
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -294,7 +294,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 \def\nohyphens
    {\hyphenpenalty10000\exhyphenpenalty10000\pretolerance10000}
 \def\raggedspaces
-   {\spaceskip=0.3333em\relax 
+   {\spaceskip=0.3333em\relax
     \xspaceskip=0.5em\relax}
 \def\raggedright
    {\raggedstretch=6em
@@ -655,7 +655,7 @@ Drugie z polece/n dotyczy ,,innej ramki''
 %Type \kbd{C-x ESC ESC} to edit and repeat the last command that used the
 %minibuffer.  Type \kbd{F10} to activate the menu bar using the minibuffer.
 Napisz \kbd{C-x ESC ESC} aby poprawia/c i wykona/c polecenie,
-kt/ore ostatnio u/zywa/lo minibufora. 
+kt/ore ostatnio u/zywa/lo minibufora.
 Napisz \kbd{F10} aby uaktywni/c menu w minibuforze.
 
 
@@ -773,7 +773,7 @@ Napisz \kbd{F10} aby uaktywni/c menu w minibuforze.
 \key{zero lub wi/ecej powt/orze/n}{*}
 \key{jedno lub wi/ecej powt/orze/n}{+}
 \key{zero lub jedno powt/orzenie}{?}
-\key{traktuj dos/lownie nast/epny znak 
+\key{traktuj dos/lownie nast/epny znak
   (nawet je/sli znak ma specjalne znaczenie) {\it c\/}}{\\{\it c}}
 \key{alternatywa (`lub')}{\\|}
 \key{grupowanie}{\\( {\rm$\ldots$} \\)}
@@ -901,7 +901,7 @@ Pozosta/le polecenia:
 %\key{search nodes for regexp}{M-s}
 \key{wywo/laj {\bf samouczek} Info}{h}
 \key{{\bf zako/ncz} Info}{q}
-\key{wyszukuj w~w/ez/lach tekst zgodny\newline 
+\key{wyszukuj w~w/ez/lach tekst zgodny\newline
   z~podanym wyra/zeniem regularnym}{M-s}
 
 \endindentedkeys
@@ -963,7 +963,7 @@ z~wykorzystaniem notacji \kbd{"..."} i~notacji \kbd{[...]}:
 
 \beginexample%
 (defun \<nazwa-funkcji> (\<argumenty>)
-  "\<dokumentacja>" 
+  "\<dokumentacja>"
   (interactive "\<wzorzec>")
   \<tre/s/c funkcji>)
 \endexample

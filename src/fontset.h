@@ -97,7 +97,7 @@ struct font_info
      `ascent'.  In other words, the value indicates how many bits
      higher we should draw a character of the font than normal ASCII
      text for a better looking.
-       
+
      We also have to consider the fact that the concept of `baseline'
      differs among languages to which each character belongs.  For
      instance, baseline should be at the bottom most position of all
@@ -195,7 +195,7 @@ EXFUN (Fquery_fontset, 2);
 extern Lisp_Object list_fontsets P_ ((struct frame *, Lisp_Object, int));
 
 extern Lisp_Object Qfontset;
-extern Lisp_Object Vuse_default_ascent; 
+extern Lisp_Object Vuse_default_ascent;
 extern Lisp_Object Vignore_relative_composition;
 extern Lisp_Object Valternate_fontname_alist;
 extern Lisp_Object Vfontset_alias_alist;

@@ -129,7 +129,7 @@ then
     EMACS=`pwd`/src/emacs
   else
     if [ "x$EMACS" = "x" -o "x$EMACS" = "xt" ];
-    then 
+    then
       echo You must specify the EMACS environment variable 2>&1
       exit 1
     fi
@@ -362,7 +362,7 @@ echo "Making links to \`lisp' and its subdirectories"
  for file in `find . -type d -print`; do
    case $file in
      . | .. | */Old | */CVS | */RCS | */=*)
-       ;;	
+       ;;
      *)
        if [ -d $file ]; then
 	 subdirs="$file $subdirs"
@@ -537,7 +537,7 @@ echo "Making links to \`mac/Emacs.app/Contents'"
 echo "Making links to \`mac/Emacs.app/Contents/Resources/English.lproj'"
 (cd mac/Emacs.app/Contents/Resources/English.lproj
  ln InfoPlist.strings ../../../../../${tempdir}/mac/Emacs.app/Contents/Resources/English.lproj)
- 
+
 echo "Making links to \`msdos'"
 (cd msdos
  ln  ChangeLog emacs.ico emacs.pif ../${tempdir}/msdos

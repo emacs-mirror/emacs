@@ -71,7 +71,7 @@ check_case_table (obj)
   while (tem = Fcase_table_p (obj), NILP (tem))
     obj = wrong_type_argument (Qcase_table_p, obj);
   return (obj);
-}   
+}
 
 DEFUN ("current-case-table", Fcurrent_case_table, Scurrent_case_table, 0, 0, 0,
        doc: /* Return the case table of the current buffer.  */)
@@ -157,6 +157,9 @@ set_case_table (table, standard)
       map_char_table (shuffle, Qnil, canon, eqv, 0, indices);
       XCHAR_TABLE (table)->extras[2] = eqv;
     }
+
+  /* This is so set_image_of_range_1 in regex.c can find the EQV table.  */
+  XCHAR_TABLE (canon)->extras[2] = eqv;
 
   if (standard)
     Vascii_downcase_table = table;

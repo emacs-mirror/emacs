@@ -1,6 +1,6 @@
 ;;; modula2.el --- Modula-2 editing support package
 
-;; Author: Michael Schmidt <michael@pbinfo.UUCP> 
+;; Author: Michael Schmidt <michael@pbinfo.UUCP>
 ;;	Tom Perrine <Perrin@LOGICON.ARPA>
 ;; Maintainer: FSF
 ;; Keywords: languages
@@ -104,11 +104,11 @@
     (define-key map "\C-c\C-c" 'm2-compile)
     (setq m2-mode-map map)))
 
-(defcustom m2-indent 5 
+(defcustom m2-indent 5
   "*This variable gives the indentation in Modula-2-Mode."
   :type 'integer
   :group 'modula2)
-  
+
 ;;;###autoload
 (defun modula-2-mode ()
   "This is a mode intended to support program development in Modula-2.
@@ -429,7 +429,7 @@ followed by the first character of the construct.
 (defun m2-stdio ()
   (interactive)
   (insert "
-FROM TextIO IMPORT 
+FROM TextIO IMPORT
    WriteCHAR, ReadCHAR, WriteINTEGER, ReadINTEGER,
    WriteCARDINAL, ReadCARDINAL, WriteBOOLEAN, ReadBOOLEAN,
    WriteREAL, ReadREAL, WriteBITSET, ReadBITSET,

@@ -88,13 +88,23 @@ used (see below).
 
 BODY contains code that will be executed each time the mode is (dis)activated.
   It will be executed after any toggling but before running the hooks.
-  BODY can start with a list of CL-style keys specifying additional arguments.
-  The following keyword arguments are supported:
-:group   Followed by the group name to use for any generated `defcustom'.
-:global  If non-nil specifies that the minor mode is not meant to be
-         buffer-local.  By default, the variable is made buffer-local.
-:init-value  Same as the INIT-VALUE argument.
-:lighter  Same as the LIGHTER argument."
+  Before the actual body code, you can write
+  keyword arguments (alternating keywords and values).
+  These following keyword arguments are supported (other keywords
+  will be passed to `defcustom' if the minor mode is global):
+:group GROUP	Custom group name to use in all generated `defcustom' forms.
+:global GLOBAL	If non-nil specifies that the minor mode is not meant to be
+              	buffer-local, so don't make the variable MODE buffer-local.
+		By default, the mode is buffer-local.
+:init-value VAL	Same as the INIT-VALUE argument.
+:lighter SPEC	Same as the LIGHTER argument.
+:require SYM	Same as in `defcustom'.
+
+For example, you could write
+  (define-minor-mode foo-mode \"If enabled, foo on you!\"
+    :lighter \" Foo\" :require 'foo :global t :group 'hassle :version \"27.5\"
+    ...BODY CODE...)"
+
   ;; Allow skipping the first three args.
   (cond
    ((keywordp init-value)
@@ -107,37 +117,35 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
-	 (togglep t) ;; This should never be nil -- rms.
 	 (group nil)
 	 (extra-args nil)
+	 (extra-keywords nil)
+	 (require t)
 	 (keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 	 (hook (intern (concat mode-name "-hook")))
 	 (hook-on (intern (concat mode-name "-on-hook")))
-	 (hook-off (intern (concat mode-name "-off-hook"))))
+	 (hook-off (intern (concat mode-name "-off-hook")))
+	 keyw)
 
     ;; Check keys.
-    (while (keywordp (car body))
-      (case (pop body)
+    (while (keywordp (setq keyw (car body)))
+      (setq body (cdr body))
+      (case keyw
 	(:init-value (setq init-value (pop body)))
 	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
 	(:group (setq group (nconc group (list :group (pop body)))))
-	(t (pop body))))
+	(:require (setq require (pop body)))
+	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
 
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 mode-name)))))
-    ;; Add default properties to LIGHTER.
-    (unless (or (not (stringp lighter)) (get-text-property 0 'local-map lighter)
-		(get-text-property 0 'keymap lighter))
-      (setq lighter
-	    (propertize lighter
-			'local-map mode-line-minor-mode-keymap
-			'help-echo "mouse-3: minor mode menu")))
+	    `(:group ',(or (custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" mode-name))))))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -156,40 +164,49 @@ See the command `%s' for a description of this minor-mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `%s'."
 			pretty-name mode mode)
-	       :set (lambda (symbol value) (funcall symbol (or value 0)))
+	       :set 'custom-set-minor-mode
 	       :initialize 'custom-initialize-default
 	       ,@group
 	       :type 'boolean
-	       ,@(when curfile
-		   (list
-		    :require
-		    (list 'quote
-			  (intern (file-name-nondirectory
-				   (file-name-sans-extension curfile)))))))))
+	       ,@(cond
+		  ((not (and curfile require)) nil)
+		  ((not (eq require t)) `(:require ,require))
+		  (t `(:require
+		       ',(intern (file-name-nondirectory
+				  (file-name-sans-extension curfile))))))
+	       ,@(nreverse extra-keywords))))
 
        ;; The actual function.
        (defun ,mode (&optional arg ,@extra-args)
 	 ,(or doc
 	      (format (concat "Toggle %s on or off.
 Interactively, with no prefix argument, toggle the mode.
-With universal prefix ARG " (unless togglep "(or if ARG is nil) ") "turn mode on.
+With universal prefix ARG turn mode on.
 With zero or negative ARG turn mode off.
 \\{%s}") pretty-name keymap-sym))
-	 ;; Make no arg by default in an interactive call,
-	 ;; so that repeating the command toggles again.
-	 (interactive "P")
+	 ;; Use `toggle' rather than (if ,mode 0 1) so that using
+	 ;; repeat-command still does the toggling correctly.
+	 (interactive (list (or current-prefix-arg 'toggle)))
 	 (setq ,mode
-	       (if arg
-		   (> (prefix-numeric-value arg) 0)
-		 ,(if togglep `(not ,mode) t)))
+	       (cond
+		((eq arg 'toggle) (not ,mode))
+		(arg (> (prefix-numeric-value arg) 0))
+		(t
+		 (if (null ,mode) t
+		   (message
+		    "Toggling %s off; better pass an explicit argument."
+		    ',mode)
+		   nil))))
 	 ,@body
 	 ;; The on/off hooks are here for backward compatibility only.
 	 (run-hooks ',hook (if ,mode ',hook-on ',hook-off))
-	 ;; Return the new setting.
 	 (if (interactive-p)
-	     (message ,(format "%s %%sabled" pretty-name)
-		      (if ,mode "en" "dis")))
+	     (progn
+	       ,(if globalp `(customize-mark-as-set ',mode))
+	       (message ,(format "%s %%sabled" pretty-name)
+			(if ,mode "en" "dis"))))
 	 (force-mode-line-update)
+	 ;; Return the new setting.
 	 ,mode)
 
        ;; Autoloading an easy-mmode-define-minor-mode autoloads
@@ -199,7 +216,7 @@ With zero or negative ARG turn mode off.
        ;; The toggle's hook.
        (defcustom ,hook nil
 	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 :group ,(cadr group)
+	 ,@group
 	 :type 'hook)
 
        ;; Define the minor-mode keymap.
@@ -215,11 +232,11 @@ With zero or negative ARG turn mode off.
 		       ,(if keymap keymap-sym
 			  `(if (boundp ',keymap-sym)
 			       (symbol-value ',keymap-sym))))
-       
+
        ;; If the mode is global, call the function according to the default.
        ,(if globalp
-	    `(if (and load-file-name ,mode)
-		 (eval-after-load load-file-name '(,mode 1)))))))
+	    `(if (and load-file-name (not (equal ,init-value ,mode)))
+		 (eval-after-load load-file-name '(,mode (if ,mode 1 -1))))))))
 
 ;;;
 ;;; make global minor mode
@@ -251,8 +268,10 @@ KEYS is a list of CL-style keyword arguments:
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
-	    `(:group ',(intern (replace-regexp-in-string "-mode\\'" ""
-							 (symbol-name mode))))))
+	    `(:group ',(or (custom-current-group)
+			   (intern (replace-regexp-in-string
+				    "-mode\\'" "" (symbol-name mode)))))))
+
     `(progn
        ;; The actual global minor-mode
        (define-minor-mode ,global-mode
@@ -266,9 +285,9 @@ in which `%s' turns it on."
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
 	     (progn
-	       (add-hook 'find-file-hooks ',buffers)
+	       (add-hook 'find-file-hook ',buffers)
 	       (add-hook 'change-major-mode-hook ',cmmh))
-	   (remove-hook 'find-file-hooks ',buffers)
+	   (remove-hook 'find-file-hook ',buffers)
 	   (remove-hook 'change-major-mode-hook ',cmmh))
 
 	 ;; Go through existing buffers.
@@ -290,11 +309,13 @@ in which `%s' turns it on."
 	   (let ((buf (pop ,buffers)))
 	     (when (buffer-live-p buf)
 	       (with-current-buffer buf (,turn-on))))))
+       (put ',buffers 'definition-name ',global-mode)
 
        ;; The function that catches kill-all-local-variables.
        (defun ,cmmh ()
 	 (add-to-list ',buffers (current-buffer))
-	 (add-hook 'post-command-hook ',buffers)))))
+	 (add-hook 'post-command-hook ',buffers))
+       (put ',cmmh 'definition-name ',global-mode))))
 
 ;;;
 ;;; easy-mmode-defmap

@@ -58,14 +58,14 @@
 ;; Peter Eisenhauer <pipe@fzi.de>
 ;;     Bug fixing in case nested indexes.
 ;; Terry Tateyama   <ttt@ursa0.cs.utah.edu>
-;;     Suggestion to use find-file-hooks for first imenu
+;;     Suggestion to use find-file-hook for first imenu
 ;;     index building.
 
 ;;; Code:
 
 ;; Variables for customization
 ;; ---------------------------
-;;  
+;;
 (defvar which-func-unknown "???"
   "String to display in the mode line when current function is unknown.")
 
@@ -131,7 +131,7 @@ This makes a difference only if `which-function-mode' is non-nil.")
 (make-variable-buffer-local 'which-func-mode)
 ;;(put 'which-func-mode 'permanent-local t)
 
-(add-hook 'find-file-hooks 'which-func-ff-hook t)
+(add-hook 'find-file-hook 'which-func-ff-hook t)
 
 (defun which-func-ff-hook ()
   "File find hook for Which Function mode.

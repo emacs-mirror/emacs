@@ -50,26 +50,9 @@
 
 ;; Pull in custom if it exists and is recent enough (the one in Emacs
 ;; 19.34 isn't).
-(eval
- (cc-eval-when-compile
-   (condition-case nil
-       (progn
-	 (require 'custom)
-	 (or (fboundp 'defcustom) (error ""))
-	 (require 'wid-edit)
-	 '(progn			; Compile in the require's.
-	    (require 'custom)
-	    (require 'wid-edit)))
-     (error
-      (message "Warning: Compiling without Customize support \
-since a (good enough) custom library wasn't found")
-      (cc-bytecomp-defmacro define-widget (name class doc &rest args))
-      (cc-bytecomp-defmacro defcustom (symbol value doc &rest args)
-	`(defvar ,symbol ,value ,doc))
-      (cc-bytecomp-defmacro custom-declare-variable (symbol value doc
-						     &rest args)
-	`(defvar ,(eval symbol) ,(eval value) ,doc))
-      nil))))
+(eval-when-compile
+  (require 'custom)
+  (require 'wid-edit))
 
 (cc-eval-when-compile
   ;; Need the function form of `backquote', which isn't standardized
@@ -721,6 +704,40 @@ space."
   :type 'function
   :group 'c)
 
+(defcustom c-require-final-newline
+  ;; C and C++ mandates that all nonempty files should end with a
+  ;; newline.  Objective-C refers to C for all things it doesn't
+  ;; specify, so the same holds there.  The other languages does not
+  ;; require it (at least not explicitly in a normative text).
+  '((c-mode    . t)
+    (c++-mode  . t)
+    (objc-mode . t))
+  "*Controls whether a final newline is ensured when the file is saved.
+The value is an association list that for each language mode specifies
+the value to give to `require-final-newline' at mode initialization;
+see that variable for details about the value.  If a language isn't
+present on the association list, CC Mode won't set
+`require-final-newline' in buffers for that language."
+  :type `(set (cons :format "%v"
+		    (const :format "C     " c-mode)
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "C++   " c++-mode)
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "ObjC  " objc-mode)
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "Java  " java-mode)
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "IDL   " idl-mode)
+		    (symbol :format "%v" :value ,require-final-newline))
+	      (cons :format "%v"
+		    (const :format "Pike  " pike-mode)
+		    (symbol :format "%v" :value ,require-final-newline)))
+  :group 'c)
+
 (defcustom c-electric-pound-behavior nil
   "*List of behaviors for electric pound insertion.
 Only currently supported behavior is `alignleft'."
@@ -997,7 +1014,7 @@ If OFFSET is one of the symbols `+', `-', `++', `--', `*', or `/', a
 positive or negative multiple of `c-basic-offset' is added; 1, -1, 2,
 -2, 0.5, and -0.5, respectively.
 
-If OFFSET is a vector, it's first element, which must be an integer,
+If OFFSET is a vector, its first element, which must be an integer,
 is used as an absolute indentation column.  This overrides all
 relative offsets.  If there are several syntactic elements which
 evaluates to absolute indentation columns, the first one takes

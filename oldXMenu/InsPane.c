@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/InsPane.c,v 1.1 1992/04/11 22:10:19 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/InsPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -27,7 +27,7 @@ XMenuInsertPane(menu, p_num, label, active)
     register XMPane *p_ptr;	/* XMPane pointer. */
     register XMPane *pane;	/* Newly created pane. */
     register XMSelect *select;	/* Initial selection for the new pane. */
-        
+
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
 
@@ -95,7 +95,7 @@ XMenuInsertPane(menu, p_num, label, active)
     emacs_insque(pane, p_ptr);
 
     /*
-     * Update the pane count. 
+     * Update the pane count.
      */
     menu->p_count++;
 

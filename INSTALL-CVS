@@ -1,0 +1,44 @@
+	      Building and Installing Emacs from CVS
+
+Some of the files that are included in the Emacs tarball, such as
+byte-compiled Lisp files, are not stored in the CVS repository.
+Therefore, to build from CVS you must run "make bootstrap"
+instead of just "make":
+
+  $ ./configure
+  $ make bootstrap
+
+The bootstrap process makes sure all necessary files are rebuilt
+before it builds the final Emacs binary.
+
+Normally, it is not necessary to use "make bootstrap" after every CVS
+update.  Unless there are problems, we suggest the following
+procedure:
+
+  $ ./configure
+  $ make
+  $ cd lisp
+  $ make recompile EMACS=../src/emacs
+  $ cd ..
+  $ make
+
+(If you want to install the Emacs binary, type "make install" instead
+of "make" in the last command.)
+
+If the above procedure fails, try "make bootstrap".
+
+Users of non-Posix systems (MS-Windows etc.) should run the
+platform-specific configuration scripts (nt/configure.bat, config.bat,
+etc.) before "make bootstrap" or "make"; the rest of the procedure is
+applicable to those systems as well.
+
+Note that "make bootstrap" overwrites some files that are under CVS
+control, such as lisp/loaddefs.el.  This could produce CVS conflicts
+next time that you resync with the CVS.  If you see such conflicts,
+overwrite your local copy of the file with the clean version from the
+CVS repository.  For example:
+
+    cvs update -C lisp/loaddefs.el
+
+Questions, requests, and bug reports about the CVS versions of Emacs
+sould be sent to emacs-pretest-bug@gnu.org rather.

@@ -70,10 +70,12 @@
 
 (require 'ring)
 
-(when (fboundp 'defgroup)
-  (defgroup winner nil
-    "Restoring window configurations."
-    :group 'windows))
+(unless (fboundp 'defgroup)
+  (defmacro defgroup (&rest rest)))
+
+(defgroup winner nil
+  "Restoring window configurations."
+  :group 'windows)
 
 (unless (fboundp 'defcustom)
   (defmacro defcustom (symbol &optional initvalue docs &rest rest)
@@ -126,11 +128,11 @@ You may want to include buffer names such as *Help*, *Apropos*,
                 while (= a b)
                 finally return (< a b)))))
 
-(defun winner-win-data () 
+(defun winner-win-data ()
   ;; Essential properties of the windows in the selected frame.
   (loop for win in (winner-sorted-window-list)
         collect (cons (winner-edges win) (window-buffer win))))
-        
+
 ;; This variable is updated with the current window configuration
 ;; every time it changes.
 (defvar winner-currents nil)
@@ -260,7 +262,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
      ((window-live-p chosen) (select-window chosen))
      ((window-minibuffer-p (selected-window))
       (other-window 1)))
-    (when (/= minisize (window-height miniwin)) 
+    (when (/= minisize (window-height miniwin))
       (letf (((selected-window) miniwin) )
         (setf (window-height) minisize)))))
 
@@ -277,7 +279,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
   (letf (((current-buffer)))
     (loop with alist
 	  for win in (winner-window-list)
-	  for entry = 
+	  for entry =
           (or (assq (window-buffer win) alist)
               (car (push (list (set-buffer (window-buffer win))
                                (cons (mark t) (winner-active-region)))
@@ -333,7 +335,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
       ;; Restore marks
       (letf (((current-buffer)))
-	(loop for buf in buffers 
+	(loop for buf in buffers
 	      for entry = (cadr (assq buf winner-point-alist))
 	      do (progn (set-buffer buf)
 			(set-mark (car entry))
@@ -382,7 +384,7 @@ With arg, turn Winner mode on if and only if arg is positive."
 		(not winner-mode))))
     (cond
      ;; Turn mode on
-     (on-p 
+     (on-p
       (setq winner-mode t)
       (cond
        ((winner-hook-installed-p)
@@ -433,16 +435,16 @@ In other words, \"undo\" changes in window configuration."
  	(message "Winner undo (%d / %d)"
  		 winner-undo-counter
  		 (1- (ring-length winner-pending-undo-ring)))))))
- 
-        
- 
+
+
+
 (defun winner-undo-this ()		; The heart of winner undo.
-  (loop 
+  (loop
    (cond
     ((>= winner-undo-counter (ring-length winner-pending-undo-ring))
      (message "No further window configuration undo information")
      (return nil))
- 
+
     ((and				; If possible configuration
       (winner-set (ring-ref winner-pending-undo-ring
  			    winner-undo-counter))
@@ -453,7 +455,7 @@ In other words, \"undo\" changes in window configuration."
      (return t))			; .. then everything is fine.
     (t ;; Otherwise, discharge it (and try the next one).
      (ring-remove winner-pending-undo-ring winner-undo-counter)))))
- 
+
 
 (defun winner-redo ()			; If you change your mind.
   "Restore a more recent window configuration saved by Winner mode."

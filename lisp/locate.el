@@ -200,7 +200,7 @@ With prefix arg, prompt for the locate command to run."
 		       (+ 2 (length (car locate-cmd))))
 	      nil nil 'locate-history-list))
 	 (let* ((default (locate-word-at-point))
-	       (input 
+	       (input
 		(read-from-minibuffer
 		 (if  (> (length default) 0)
 		     (format "Locate (default `%s'): " default)

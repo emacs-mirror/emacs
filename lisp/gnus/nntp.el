@@ -1,7 +1,7 @@
 ;;; nntp.el --- nntp access for Gnus
+
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1992, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001, 2002
-;;        Free Software Foundation, Inc.
+;; 1997, 1998, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news
@@ -223,9 +223,15 @@ noticing asynchronous data.")
 (defvar nntp-async-timer nil)
 (defvar nntp-async-process-list nil)
 
+(defvar nntp-ssl-program 
+  "openssl s_client -quiet -ssl3 -connect %s:%p"
+"A string containing commands for SSL connections.
+Within a string, %s is replaced with the server address and %p with
+port number on server.  The program should accept IMAP commands on
+stdin and return responses to stdout.")
+
 (eval-and-compile
-  (autoload 'mail-source-read-passwd "mail-source")
-  (autoload 'open-ssl-stream "ssl"))
+  (autoload 'mail-source-read-passwd "mail-source"))
 
 
 
@@ -350,8 +356,8 @@ noticing asynchronous data.")
 	     (wait-for
 	      (nntp-wait-for process wait-for buffer decode))
 	     (t t)))
-	(error 
-	 (nnheader-report 'nntp "Couldn't open connection to %s: %s" 
+	(error
+	 (nnheader-report 'nntp "Couldn't open connection to %s: %s"
 			  address err))
 	(quit
 	 (message "Quit retrieving data from nntp")
@@ -921,8 +927,15 @@ password contained in '~/.nntp-authinfo'."
   (open-network-stream "nntpd" buffer nntp-address nntp-port-number))
 
 (defun nntp-open-ssl-stream (buffer)
-  (let* ((ssl-program-arguments '("-connect" (concat host ":" service)))
-	 (proc (open-ssl-stream "nntpd" buffer nntp-address nntp-port-number)))
+  (let* ((process-connection-type nil)
+	 (proc (start-process "nntpd" buffer 
+			      shell-file-name
+			      shell-command-switch
+			      (format-spec nntp-ssl-program 
+					   (format-spec-make
+					    ?s nntp-address
+					    ?p nntp-port-number)))))
+    (process-kill-without-query proc)
     (save-excursion
       (set-buffer buffer)
       (nntp-wait-for-string "^\r*20[01]")
@@ -1051,7 +1064,7 @@ password contained in '~/.nntp-authinfo'."
   (save-excursion
     (set-buffer (or (nntp-find-connection-buffer nntp-server-buffer)
 		    nntp-server-buffer))
-    (let ((len (/ (point-max) 1024))
+    (let ((len (/ (buffer-size) 1024))
 	  message-log-max)
       (unless (< len 10)
 	(setq nntp-have-messaged t)
@@ -1179,11 +1192,11 @@ password contained in '~/.nntp-authinfo'."
 	(setq in-process-buffer-p (stringp nntp-server-xover))
 	(nntp-send-xover-command first (car articles))
 	(setq articles (cdr articles))
-	
+
 	(when (and nntp-server-xover in-process-buffer-p)
 	  ;; Don't count tried request.
 	  (setq count (1+ count))
-	  
+
 	  ;; Every 400 requests we have to read the stream in
 	  ;; order to avoid deadlocks.
 	  (when (or (null articles)	;All requests have been sent.

@@ -31,11 +31,20 @@
 
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the window that was selected before BODY.
-However, if that window has become dead, don't get an error,
-just refrain from switching to it."
-  `(let ((save-selected-window-window (selected-window)))
+Also restore the selected window of each frame as it was at the start
+of this construct.
+However, if a window has become dead, don't get an error,
+just refrain from reselecting it."
+  `(let ((save-selected-window-window (selected-window))
+	 (save-selected-window-alist
+	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
+		  (frame-list))))
      (unwind-protect
 	 (progn ,@body)
+       (dolist (elt save-selected-window-alist)
+	 (and (frame-live-p (car elt))
+	      (window-live-p (cadr elt))
+	      (set-frame-selected-window (car elt) (cadr elt))))
        (if (window-live-p save-selected-window-window)
 	   (select-window save-selected-window-window)))))
 
@@ -239,7 +248,7 @@ If WINDOW is nil or omitted, it defaults to the currently selected window."
 					  (setq done nil))))))
 			'nomini))))))
 
-;;; I think this should be the default; I think people will prefer it--rms.
+;; I think this should be the default; I think people will prefer it--rms.
 (defcustom split-window-keep-point t
   "*If non-nil, split windows keeps the original point in both children.
 This is often more convenient for editing.
@@ -300,13 +309,11 @@ new mode line."
 (defvar view-return-to-alist)
 
 (defun split-window-save-restore-data (new-w old-w)
-  (save-excursion
-    (set-buffer (window-buffer))
+  (with-current-buffer (window-buffer)
     (if view-mode
 	(let ((old-info (assq old-w view-return-to-alist)))
-	  (setq view-return-to-alist
-		(cons (cons new-w (cons (and old-info (car (cdr old-info))) t))
-		      view-return-to-alist))))
+	  (push (cons new-w (cons (and old-info (car (cdr old-info))) t))
+		view-return-to-alist)))
     new-w))
 
 (defun split-window-horizontally (&optional arg)
@@ -518,7 +525,7 @@ Return non-nil if the window was shrunk."
 		       (not (eq frame (window-frame mini-window)))
 		       (< (nth 3 edges)
 			  (nth 1 (window-edges mini-window)))
-		       (> (nth 1 edges) 
+		       (> (nth 1 edges)
 			  (frame-parameter frame 'menu-bar-lines))))))
 	(fit-window-to-buffer window (window-height window)))))
 
@@ -582,8 +589,9 @@ and the buffer that is killed or buried is the one in that window."
   "Handle select-window events."
   (interactive "e")
   (let ((window (posn-window (event-start event))))
-    (if (or (not (window-minibuffer-p window))
-	    (minibuffer-window-active-p window))
+    (if (and (window-live-p window)
+	     (or (not (window-minibuffer-p window))
+		 (minibuffer-window-active-p window)))
 	(select-window window))))
 
 (define-key ctl-x-map "2" 'split-window-vertically)

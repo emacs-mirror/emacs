@@ -55,6 +55,9 @@ Emacs
 * Forms: (forms).	Emacs package for editing data bases
 			  by filling in forms.
 * RefTeX: (reftex).	Emacs support for LaTeX cross-references and citations.
+* Tramp: (tramp).	Transparent Remote (file) Access, Multiple Protocol.
+                          Edit remote files via a remote shell (rsh,
+                          ssh, telnet).
 * Widget: (widget).     The "widget" package used by the Emacs Customization
                           facility.
 * WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".

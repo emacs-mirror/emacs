@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/buffers
 @node Buffers, Windows, Backups and Auto-Saving, Top
@@ -138,7 +138,7 @@ Next, @code{set-buffer} makes the specified buffer current.  Finally,
 @code{insert-buffer-substring} copies the string from the original
 current buffer to the specified (and now current) buffer.
 
-  If the buffer appended to happens to be displayed in some window, 
+  If the buffer appended to happens to be displayed in some window,
 the next redisplay will show how its text has changed.  Otherwise, you
 will not see the change immediately on the screen.  The buffer becomes
 current temporarily during the execution of the command, but this does
@@ -203,11 +203,11 @@ existing buffer.
 @end defun
 
 @defspec save-current-buffer body...
-The @code{save-current-buffer} macro saves the identity of the current
-buffer, evaluates the @var{body} forms, and finally restores that buffer
-as current.  The return value is the value of the last form in
-@var{body}.  The current buffer is restored even in case of an abnormal
-exit via @code{throw} or error (@pxref{Nonlocal Exits}).
+The @code{save-current-buffer} special form saves the identity of the
+current buffer, evaluates the @var{body} forms, and finally restores
+that buffer as current.  The return value is the value of the last
+form in @var{body}.  The current buffer is restored even in case of an
+abnormal exit via @code{throw} or error (@pxref{Nonlocal Exits}).
 
 If the buffer that used to be current has been killed by the time of
 exit from @code{save-current-buffer}, then it is not made current again,
@@ -307,7 +307,7 @@ make @var{unique} non-@code{nil} with a numeric prefix argument.
 This function returns the buffer specified by @var{buffer-or-name}.
 If @var{buffer-or-name} is a string and there is no buffer with that
 name, the value is @code{nil}.  If @var{buffer-or-name} is a buffer, it
-is returned as given; that is not very useful, so the argument is usually 
+is returned as given; that is not very useful, so the argument is usually
 a name.  For example:
 
 @example
@@ -534,7 +534,7 @@ counter that increments every time the buffer is modified.  If
 @comment  node-name,  next,  previous,  up
 @section Comparison of Modification Time
 @cindex comparison of modification time
-@cindex modification time, comparison of 
+@cindex modification time, comparison of
 
   Suppose that you visit a file and make changes in its buffer, and
 meanwhile the file itself is changed on disk.  At this point, saving the
@@ -602,7 +602,7 @@ some other program has probably altered the file.
 Depending on the user's answer, the function may return normally, in
 which case the modification of the buffer proceeds, or it may signal a
 @code{file-supersession} error with data @code{(@var{filename})}, in which
-case the proposed buffer modification is not allowed.  
+case the proposed buffer modification is not allowed.
 
 This function is called automatically by Emacs on the proper
 occasions.  It exists so you can customize Emacs by redefining it.
@@ -617,7 +617,7 @@ See also the file locking mechanism in @ref{File Locks}.
 @cindex buffer, read-only
 
   If a buffer is @dfn{read-only}, then you cannot change its contents,
-although you may change your view of the contents by scrolling and 
+although you may change your view of the contents by scrolling and
 narrowing.
 
   Read-only buffers are used in two kinds of situations:
@@ -716,7 +716,7 @@ which frames they were selected in.
 ;; @r{Note that the name of the minibuffer}
 ;;   @r{begins with a space!}
 (mapcar (function buffer-name) (buffer-list))
-    @result{} ("buffers.texi" " *Minibuf-1*" 
+    @result{} ("buffers.texi" " *Minibuf-1*"
         "buffer.c" "*Help*" "TAGS")
 @end group
 @end example
@@ -982,7 +982,7 @@ ever again be the current buffer.
 This creates an indirect buffer named @var{name} whose base buffer
 is @var{base-buffer}.  The argument @var{base-buffer} may be a buffer
 or a string.
- 
+
 If @var{base-buffer} is an indirect buffer, its base buffer is used as
 the base for the new buffer.
 @end deffn

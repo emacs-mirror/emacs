@@ -34,36 +34,36 @@
 ;;; And to many others for bug fixes and suggestions.
 ;;;
 ;;;
-;;; This functions in this file will alert the user of a 
+;;; This functions in this file will alert the user of a
 ;;; pending appointment based on their diary file.
 ;;;
 ;;; A message will be displayed in the mode line of the Emacs buffer
 ;;; and (if you request) the terminal will beep and display a message
-;;; from the diary in the mini-buffer, or you can choose to 
+;;; from the diary in the mini-buffer, or you can choose to
 ;;; have a message displayed in a new buffer.
 ;;;
 ;;; The variable `appt-message-warning-time' allows the
-;;; user to specify how much notice they want before the appointment. The 
+;;; user to specify how much notice they want before the appointment. The
 ;;; variable `appt-issue-message' specifies whether the user wants
-;;; to to be notified of a pending appointment.
-;;; 
+;;; to be notified of a pending appointment.
+;;;
 ;;; In order to use the appt package, you only need
 ;;; to load it---provided you have appointments.
 ;;;
 ;;; Before that, you can also set some options if you want
 ;;;   (setq view-diary-entries-initially t)
 ;;;   (setq appt-issue-message t)
-;;; 
+;;;
 ;;;  This is an example of what can be in your diary file:
 ;;; Monday
 ;;;   9:30am Coffee break
-;;;  12:00pm Lunch        
-;;; 
-;;; Based upon the above lines in your .emacs and diary files, 
+;;;  12:00pm Lunch
+;;;
+;;; Based upon the above lines in your .emacs and diary files,
 ;;; the calendar and diary will be displayed when you enter
 ;;; Emacs and your appointments list will automatically be created.
 ;;; You will then be reminded at 9:20am about your coffee break
-;;; and at 11:50am to go to lunch. 
+;;; and at 11:50am to go to lunch.
 ;;;
 ;;; Use describe-function on appt-check for a description of other variables
 ;;; that can be used to personalize the notification system.
@@ -146,7 +146,7 @@ as the first thing on a line."
 
 ;;;###autoload
 (defcustom appt-display-diary t
-  "*Non-nil means to display the next days diary on the screen. 
+  "*Non-nil means to display the next days diary on the screen.
 This will occur at midnight when the appointment list is updated."
   :type 'boolean
   :group 'appt)
@@ -164,13 +164,13 @@ The number before each time/message is the time in minutes from midnight.")
   "*Number of minutes to wait between checking the appointment list."
   :type 'integer
   :group 'appt)
-  
+
 (defvar appt-buffer-name " *appt-buf*"
   "Name of the appointments buffer.")
-  
+
 (defvar appt-disp-window-function 'appt-disp-window
   "Function called to display appointment window.")
-  
+
 (defvar appt-delete-window-function 'appt-delete-window
   "Function called to remove appointment window and buffer.")
 
@@ -192,11 +192,11 @@ Note: the time must be the first thing in the line in the diary
 for a warning to be issued.
 
 The format of the time can be either 24 hour or am/pm.
-Example: 
+Example:
 
                02/23/89
                  18:00 Dinner
-            
+
               Thursday
                 11:45am Lunch meeting.
 
@@ -231,7 +231,7 @@ The following variables control appointment notification:
     	Function called to display appointment window.  You can customize
 	appt.el by setting this variable to a function different from the
 	one provided with this package.
-  
+
 `appt-delete-window-function'
     	Function called to remove appointment window and buffer.  You can
 	customize appt.el by setting this variable to a function different
@@ -264,7 +264,7 @@ The following variables control appointment notification:
 	       (cur-min (nth 1 now))
 	       (cur-comp-time (+ (* cur-hour 60) cur-min)))
 
-	  ;; At the first check in any given day, update our 
+	  ;; At the first check in any given day, update our
 	  ;; appointments to today's list.
 
 	  (if (or (null appt-prev-comp-time)
@@ -290,11 +290,11 @@ The following variables control appointment notification:
 	      (let ((appt-comp-time (car (car (car appt-time-msg-list)))))
 		(setq min-to-app (- appt-comp-time cur-comp-time))
 
-		(while (and appt-time-msg-list 
+		(while (and appt-time-msg-list
 			    (< appt-comp-time cur-comp-time))
-		  (setq appt-time-msg-list (cdr appt-time-msg-list)) 
+		  (setq appt-time-msg-list (cdr appt-time-msg-list))
 		  (if appt-time-msg-list
-		      (setq appt-comp-time 
+		      (setq appt-comp-time
 			    (car (car (car appt-time-msg-list))))))
 
 		;; If we have an appointment between midnight and
@@ -302,8 +302,8 @@ The following variables control appointment notification:
 		;; we must begin to issue a message before midnight.
 		;; Midnight is considered 0 minutes and 11:59pm is
 		;; 1439 minutes. Therefore we must recalculate the minutes
-		;; to appointment variable. It is equal to the number of 
-		;; minutes before midnight plus the number of 
+		;; to appointment variable. It is equal to the number of
+		;; minutes before midnight plus the number of
 		;; minutes after midnight our appointment is.
 
 		(if (and (< appt-comp-time appt-message-warning-time)
@@ -312,7 +312,7 @@ The following variables control appointment notification:
 		    (setq min-to-app (+ (- (1+ appt-max-time) cur-comp-time))
 			  appt-comp-time))
 
-		;; issue warning if the appointment time is 
+		;; issue warning if the appointment time is
 		;; within appt-message-warning time
 
 		(when (and (<= min-to-app appt-message-warning-time)
@@ -337,7 +337,7 @@ The following variables control appointment notification:
 			      ;;; else
 
 		      (if appt-visible
-			  (message "%s" 
+			  (message "%s"
 				   (car (cdr (car appt-time-msg-list)))))
 
 		      (if appt-audible
@@ -379,11 +379,11 @@ The following variables control appointment notification:
   ;; before splitting the window.
 
   (if (equal (selected-window) (minibuffer-window))
-      (if (other-window 1) 
+      (if (other-window 1)
 	  (select-window (other-window 1))
 	(if (display-multi-frame-p)
 	    (select-frame (other-frame 1)))))
-      
+
   (let* ((this-buffer (current-buffer))
 	 (this-window (selected-window))
 	 (appt-disp-buf (set-buffer (get-buffer-create appt-buffer-name))))
@@ -397,7 +397,7 @@ The following variables control appointment notification:
 	(appt-select-lowest-window)
 	(split-window))
       (pop-to-buffer appt-disp-buf))
-    (setq mode-line-format 
+    (setq mode-line-format
 	  (concat "-------------------- Appointment in "
 		  min-to-app " minutes. " new-time " %-"))
     (erase-buffer)
@@ -408,7 +408,7 @@ The following variables control appointment notification:
     (select-window this-window)
     (if appt-audible
 	(beep 1))))
-      
+
 (defun appt-delete-window ()
   "Function called to undisplay appointment messages.
 Usually just deletes the appointment buffer."
@@ -440,12 +440,12 @@ The time should be in either 24 hour format or am/pm format."
   (if (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?" new-appt-time)
       nil
     (error "Unacceptable time-string"))
-  
+
   (let* ((appt-time-string (concat new-appt-time " " new-appt-msg))
          (appt-time (list (appt-convert-time new-appt-time)))
          (time-msg (cons appt-time (list appt-time-string))))
     (setq appt-time-msg-list (nconc appt-time-msg-list (list time-msg)))
-    (setq appt-time-msg-list (appt-sort-list appt-time-msg-list)))) 
+    (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))))
 
 ;;;###autoload
 (defun appt-delete ()
@@ -454,8 +454,13 @@ The time should be in either 24 hour format or am/pm format."
   (let* ((tmp-msg-list appt-time-msg-list))
     (while tmp-msg-list
       (let* ((element (car tmp-msg-list))
-             (prompt-string (concat "Delete " 
-                                    (prin1-to-string (car (cdr element))) 
+             (prompt-string (concat "Delete "
+				    ;; We want to quote any doublequotes
+				    ;; in the string, as well as put
+				    ;; doublequotes around it.
+                                    (prin1-to-string
+				     (substring-no-properties
+				      (car (cdr element)) 0))
                                     " from list? "))
              (test-input (y-or-n-p prompt-string)))
         (setq tmp-msg-list (cdr tmp-msg-list))
@@ -463,7 +468,7 @@ The time should be in either 24 hour format or am/pm format."
             (setq appt-time-msg-list (delq element appt-time-msg-list)))))
     (appt-check)
     (message "")))
-                 
+
 
 (eval-when-compile (defvar number)
 		   (defvar original-date)
@@ -497,7 +502,7 @@ They specify the range of dates that the diary is being processed for."
 	(if diary-entries-list
 
 	    ;; Cycle through the entry-list (diary-entries-list)
-	    ;; looking for entries beginning with a time. If 
+	    ;; looking for entries beginning with a time. If
 	    ;; the entry begins with a time, add it to the
 	    ;; appt-time-msg-list. Then sort the list.
 
@@ -509,33 +514,35 @@ They specify the range of dates that the diary is being processed for."
 			   (car entry-list) (list (calendar-current-date))))
 		(setq entry-list (cdr entry-list)))
 	      ;; Parse the entries for today.
-	      (while (and entry-list 
-			  (calendar-date-equal 
+	      (while (and entry-list
+			  (calendar-date-equal
 			   (calendar-current-date) (car (car entry-list))))
-		(let ((time-string (substring (prin1-to-string 
-					       (cadr (car entry-list))) 1 -1)))
-
+		(let ((time-string (cadr (car entry-list))))
 		  (while (string-match
-			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\(.*\n\\)*.*"
+			  "\\([0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?\\).*"
 			  time-string)
-		    (let* ((appt-time-string (match-string 0 time-string)))
+		    (let* ((beg (match-beginning 0))
+			   ;; Get just the time for this appointment.
+			   (only-time (match-string 1 time-string))
+			   ;; Find the end of this appointment
+			   ;; (the start of the next).
+			   (end (string-match
+				 "^[ \t]*[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
+				 time-string
+				 (match-end 0)))
+			   ;; Get the whole string for this appointment.
+			   (appt-time-string
+			    (substring time-string beg (if end (1- end)))))
 
-		      (if (< (match-end 0) (length time-string))
-			  (setq new-time-string (substring time-string 
-							   (+ (match-end 0) 1)
-							   nil))
-			(setq new-time-string ""))
+		      ;; Add this appointment to appt-time-msg-list.
+		      (let* ((appt-time (list (appt-convert-time only-time)))
+			     (time-msg (list appt-time appt-time-string)))
+			(setq appt-time-msg-list
+			      (nconc appt-time-msg-list (list time-msg))))
 
-		      (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
-				    time-string)
-
-		      (let* ((appt-time (list (appt-convert-time 
-					       (match-string 0 time-string))))
-			     (time-msg (cons appt-time
-					     (list appt-time-string))))
-			(setq time-string new-time-string)
-			(setq appt-time-msg-list (nconc appt-time-msg-list
-							(list time-msg)))))))
+		      ;; Discard this appointment from the string.
+		      (setq time-string
+			    (if end (substring time-string end) "")))))
 		(setq entry-list (cdr entry-list)))))
 	(setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
 
@@ -552,10 +559,10 @@ They specify the range of dates that the diary is being processed for."
 	       (appt-comp-time (car (car (car appt-time-msg-list)))))
 
 	  (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
-	    (setq appt-time-msg-list (cdr appt-time-msg-list)) 
+	    (setq appt-time-msg-list (cdr appt-time-msg-list))
 	    (if appt-time-msg-list
 		(setq appt-comp-time (car (car (car appt-time-msg-list))))))))))
-  
+
 
 (defun appt-sort-list (appt-list)
   "Simple sort to put the appointments list APPT-LIST in order.
@@ -586,24 +593,24 @@ it from the original list."
         (min 0))
 
     (string-match ":\\([0-9][0-9]\\)" time2conv)
-    (setq min (string-to-int 
+    (setq min (string-to-int
                (match-string 1 time2conv)))
-  
+
     (string-match "[0-9]?[0-9]:" time2conv)
-    (setq hr (string-to-int 
+    (setq hr (string-to-int
               (match-string 0 time2conv)))
-  
+
     ;; convert the time appointment time into 24 hour time
-  
+
     (cond ((and (string-match "pm" time2conv) (< hr 12))
 	   (setq hr (+ 12 hr)))
 	  ((and (string-match "am" time2conv) (= hr 12))
            (setq hr 0)))
-  
+
     ;; convert the actual time
     ;; into minutes for comparison
     ;; against the actual time.
-  
+
     (setq conv-time (+ (* hr 60) min))
     conv-time))
 

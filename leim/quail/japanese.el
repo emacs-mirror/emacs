@@ -56,7 +56,7 @@
 	      (setq unread-command-events
 		    (list (aref quail-current-key control-flag)))))))
   control-flag)
-	 
+
 ;; Convert Hiragana <-> Katakana in the current translation region.
 (defun quail-japanese-toggle-kana ()
   (interactive)
@@ -139,7 +139,7 @@
     ("ra" "ら") ("ri" "り") ("ru" "る") ("re" "れ") ("ro" "ろ")
     ("la" "ら") ("li" "り") ("lu" "る") ("le" "れ") ("lo" "ろ")
     ("wa" "わ") ("wi" "ゐ") ("wu" "う") ("we" "ゑ") ("wo" "を")
-    ("n'" "ん")	 			     
+    ("n'" "ん")
     ("ga" "が") ("gi" "ぎ") ("gu" "ぐ") ("ge" "げ") ("go" "ご")
     ("za" "ざ") ("zi" "じ") ("zu" "ず") ("ze" "ぜ") ("zo" "ぞ")
     ("da" "だ") ("di" "ぢ") ("du" "づ") ("de" "で") ("do" "ど")
@@ -461,7 +461,7 @@ qh:	shift to the input method `japanese',
 ("p" "ｐ") ("q" "ｑ") ("r" "ｒ") ("s" "ｓ")
 ("t" "ｔ") ("u" "ｕ") ("v" "ｖ") ("w" "ｗ")
 ("x" "ｘ") ("y" "ｙ") ("z" "ｚ") ("{" "｛")
-("|" "｜") ("}" "｝") ("~" "〜") 
+("|" "｜") ("}" "｝") ("~" "〜")
 
 ("qq" quail-japanese-switch-package)
 ("qh" quail-japanese-switch-package)
@@ -527,7 +527,7 @@ qq:	toggle between this input method and the input method `japanese-ascii'.
       (setq quail-current-str (japanese-katakana quail-current-str)))
   control-flag)
 
-(quail-define-package 
+(quail-define-package
  "japanese-katakana" "Japanese" "ア"
  nil
  "Japanese katakana input method by Roman transliteration."

@@ -1,4 +1,4 @@
-/* machine description for Bull DPX/2 range 
+/* machine description for Bull DPX/2 range
    Copyright (C) 1985, 1986, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -18,12 +18,12 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-3"  */
 
 /*
- * You need to either un-comment one of these lines, or copy one 
+ * You need to either un-comment one of these lines, or copy one
  * of them to config.h before you include this file.
  * Note that some simply define a constant and others set a value.
  */

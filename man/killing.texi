@@ -15,6 +15,11 @@ is versatile, because the many commands for killing syntactic units can
 also be used for moving those units.  But there are other ways of
 copying text for special purposes.
 
+  On terminals that support multiple windows for multiple applications,
+the kill commands also provide a way to select text for other applications
+to copy, and the Emacs yank commands can access selections made by
+other programs.
+
   Emacs has only one kill ring for all buffers, so you can kill text in
 one buffer and yank it in another buffer.
 
@@ -54,6 +59,11 @@ data generally do a kill operation instead.  The commands' names and
 individual descriptions use the words @samp{kill} and @samp{delete} to
 say which kind of operation they perform.
 
+  On window systems, the most recent kill done in Emacs is also the
+primary selection, if it is more recent than any selection you made in
+another program.  This means that the paste commands of other window
+applications copy the text that you killed in Emacs.
+
 @cindex Delete Selection mode
 @cindex mode, Delete Selection
 @findex delete-selection-mode
@@ -70,7 +80,7 @@ mode (@pxref{Transient Mark}).
                           blank areas.
 * Killing by Lines::    How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
-                          syntactic units such as words and sentences. 
+                          syntactic units such as words and sentences.
 @end menu
 
 @need 1500
@@ -279,6 +289,11 @@ Save region as last killed text without actually killing it
 Append next kill to last batch of killed text (@code{append-next-kill}).
 @end table
 
+  On window systems, if there is a current selection in some other
+application, and you selected it more recently than you killed any
+text in Emacs, @kbd{C-y} copies the selection instead of text
+killed within Emacs.
+
 @menu
 * Kill Ring::		Where killed text is stored.  Basic yanking.
 * Appending Kills::	Several kills in a row all yank together.
@@ -304,6 +319,15 @@ the beginning of the text.  @xref{Mark}.
 mark after it.  This happens only if the argument is specified with just
 a @kbd{C-u}, precisely.  Any other sort of argument, including @kbd{C-u}
 and digits, specifies an earlier kill to yank (@pxref{Earlier Kills}).
+
+@cindex yanking and text properties
+@vindex yank-excluded-properties
+  The yank commands discard certain text properties from the text that
+is yanked, those that might lead to annoying results.  For instance,
+they discard text properties that respond to the mouse or specify key
+bindings.  The variable @code{yank-excluded-properties} specifies the
+properties to discard.  Yanking of register contents and rectangles
+also discard these properties.
 
 @kindex M-w
 @findex kill-ring-save
@@ -526,7 +550,7 @@ a line.
 
 @table @kbd
 @item C-x r k
-Kill the text of the region-rectangle, saving its contents as the 
+Kill the text of the region-rectangle, saving its contents as the
 ``last killed rectangle'' (@code{kill-rectangle}).
 @item C-x r d
 Delete the text of the region-rectangle (@code{delete-rectangle}).
@@ -537,8 +561,9 @@ Yank the last killed rectangle with its upper left corner at point
 Insert blank space to fill the space of the region-rectangle
 (@code{open-rectangle}).  This pushes the previous contents of the
 region-rectangle rightward.
-@item M-x clear-rectangle
-Clear the region-rectangle by replacing its contents with spaces.
+@item C-x r c
+Clear the region-rectangle by replacing its contents with spaces
+(@code{clear-rectangle}).
 @item M-x delete-whitespace-rectangle
 Delete whitespace in each of the lines on the specified rectangle,
 starting from the left edge column of the rectangle.
@@ -591,12 +616,13 @@ Registers}.
 
 @kindex C-x r o
 @findex open-rectangle
+@kindex C-x r c
 @findex clear-rectangle
   There are two commands you can use for making blank rectangles:
-@kbd{M-x clear-rectangle} which blanks out existing text, and @kbd{C-x r
-o} (@code{open-rectangle}) which inserts a blank rectangle.  Clearing a
-rectangle is equivalent to deleting it and then inserting a blank
-rectangle of the same size.
+@kbd{C-x r c} (@code{clear-rectangle}) which blanks out existing text,
+and @kbd{C-x r o} (@code{open-rectangle}) which inserts a blank
+rectangle.  Clearing a rectangle is equivalent to deleting it and then
+inserting a blank rectangle of the same size.
 
 @findex delete-whitespace-rectangle
   The command @kbd{M-x delete-whitespace-rectangle} deletes horizontal
@@ -615,6 +641,6 @@ if the string is wider than the rectangle, the text after the
 rectangle shifts right.
 
 @findex string-insert-rectangle
-  The command @kbd{M-x string-insert-rectangle} is similar to 
-@code{string-rectangle}, but inserts the string on each line, 
+  The command @kbd{M-x string-insert-rectangle} is similar to
+@code{string-rectangle}, but inserts the string on each line,
 shifting the original text to the right.

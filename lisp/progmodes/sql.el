@@ -1,10 +1,10 @@
 ;;; sql.el --- specialized comint.el for SQL interpreters
 
-;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
-;; Version: 1.6.5
+;; Version: 1.7.0
 ;; Keywords: comm languages processes
 ;; URL: http://www.emacswiki.org/cgi-bin/wiki.pl?SqlMode
 
@@ -343,6 +343,13 @@ The program can also specify a TCP connection.  See `make-comint'."
   :type 'file
   :group 'SQL)
 
+(defcustom sql-ms-options '("-w" "300" "-n")
+  ;; -w is the linesize
+  "*List of additional options for `sql-ms-program'."
+  :type '(repeat string)
+  :version "21.4"
+  :group 'SQL)
+
 ;; Customization for Postgres
 
 (defcustom sql-postgres-program "psql"
@@ -400,6 +407,21 @@ The program can also specify a TCP connection.  See `make-comint'."
   :version "20.8"
   :group 'SQL)
 
+;; Customization for Linter
+
+(defcustom sql-linter-program "inl"
+  "*Command to start inl by RELEX.
+
+Starts `sql-interactive-mode' after doing some setup."
+  :type 'file
+  :group 'SQL)
+
+(defcustom sql-linter-options nil
+  "*List of additional options for `sql-linter-program'."
+  :type '(repeat string)
+  :version "21.3"
+  :group 'SQL)
+
 
 
 ;;; Variables which do not need customization
@@ -441,7 +463,7 @@ Used by `sql-rename-buffer'.")
 
 ;; Keymap for sql-interactive-mode.
 
-(defvar sql-interactive-mode-map 
+(defvar sql-interactive-mode-map
   (let ((map (make-sparse-keymap)))
     (if (functionp 'set-keymap-parent)
 	(set-keymap-parent map comint-mode-map); Emacs
@@ -491,7 +513,9 @@ Based on `comint-mode-map'.")
    ("Highlighting"
     ["ANSI SQL keywords" sql-highlight-ansi-keywords t]
     ["Oracle keywords" sql-highlight-oracle-keywords t]
-    ["Postgres keywords" sql-highlight-postgres-keywords t])))
+    ["Postgres keywords" sql-highlight-postgres-keywords t]
+    ["Linter keywords" sql-highlight-linter-keywords t]
+    )))
 
 ;; easy menu for sql-interactive-mode.
 
@@ -713,6 +737,100 @@ you define your own sql-mode-postgres-font-lock-keywords.")
 			(cons postgres-types 'font-lock-type-face))))))
 
 
+(defvar sql-mode-linter-font-lock-keywords nil
+  "Linter SQL keywords used by font-lock.
+
+This variable is used by `sql-mode' and `sql-interactive-mode'.  The
+regular expressions are created during compilation by calling the
+function `regexp-opt'.")
+
+(if sql-mode-linter-font-lock-keywords
+    ()
+  (let ((linter-keywords (eval-when-compile
+			   (concat "\\b"
+				   (regexp-opt '(
+"autocommit" "autoinc" "autorowid" "cancel" "cascade" "channel"
+"committed" "count" "countblob" "cross" "current" "data" "database"
+"datafile" "datafiles" "datesplit" "dba" "dbname" "default" "deferred"
+"denied" "description" "device" "difference" "directory" "error"
+"escape" "euc" "exclusive" "external" "extfile" "false" "file"
+"filename" "filesize" "filetime" "filter" "findblob" "first" "foreign"
+"full" "fuzzy" "global" "granted" "ignore" "immediate" "increment"
+"indexes" "indexfile" "indexfiles" "indextime" "initial" "integrity"
+"internal" "key" "last_autoinc" "last_rowid" "limit" "linter"
+"linter_file_device" "linter_file_size" "linter_name_length" "ln"
+"local" "login" "maxisn" "maxrow" "maxrowid" "maxvalue" "message"
+"minvalue" "module" "names" "national" "natural" "new" "new_table"
+"no" "node" "noneuc" "nulliferror" "numbers" "off" "old" "old_table"
+"only" "operation" "optimistic" "option" "page" "partially" "password"
+"phrase" "plan" "precision" "primary" "priority" "privileges"
+"proc_info_size" "proc_par_name_len" "protocol" "quant" "range" "raw"
+"read" "record" "records" "references" "remote" "rename" "replication"
+"restart" "rewrite" "root" "row" "rule" "savepoint" "security"
+"sensitive" "sequence" "serializable" "server" "since" "size" "some"
+"startup" "statement" "station" "success" "sys_guid" "tables" "test"
+"timeout" "trace" "transaction" "translation" "trigger"
+"trigger_info_size" "true" "trunc" "uncommitted" "unicode" "unknown"
+"unlimited" "unlisted" "user" "utf8" "value" "varying" "volumes"
+"wait" "windows_code" "workspace" "write" "xml"
+) t) "\\b")))
+	(linter-reserved-words (eval-when-compile
+				 (concat "\\b"
+					 (regexp-opt '(
+"access" "action" "add" "address" "after" "all" "alter" "always" "and"
+"any" "append" "as" "asc" "ascic" "async" "at_begin" "at_end" "audit"
+"aud_obj_name_len" "backup" "base" "before" "between" "blobfile"
+"blobfiles" "blobpct" "brief" "browse" "by" "case" "cast" "check"
+"clear" "close" "column" "comment" "commit" "connect" "contains"
+"correct" "create" "delete" "desc" "disable" "disconnect" "distinct"
+"drop" "each" "ef" "else" "enable" "end" "event" "except" "exclude"
+"execute" "exists" "extract" "fetch" "finish" "for" "from" "get"
+"grant" "group" "having" "identified" "in" "index" "inner" "insert"
+"instead" "intersect" "into" "is" "isolation" "join" "left" "level"
+"like" "lock" "mode" "modify" "not" "nowait" "null" "of" "on" "open"
+"or" "order" "outer" "owner" "press" "prior" "procedure" "public"
+"purge" "rebuild" "resource" "restrict" "revoke" "right" "role"
+"rollback" "rownum" "select" "session" "set" "share" "shutdown"
+"start" "stop" "sync" "synchronize" "synonym" "sysdate" "table" "then"
+"to" "union" "unique" "unlock" "until" "update" "using" "values"
+"view" "when" "where" "with" "without"
+) t) "\\b")))
+	(linter-types (eval-when-compile
+			(concat "\\b"
+				(regexp-opt '(
+"bigint" "bitmap" "blob" "boolean" "char" "character" "date"
+"datetime" "dec" "decimal" "double" "float" "int" "integer" "nchar"
+"number" "numeric" "real" "smallint" "varbyte" "varchar" "byte"
+"cursor" "long"
+) t) "\\b")))
+	(linter-builtin-functions (eval-when-compile
+			(concat "\\b"
+				(regexp-opt '(
+"abs" "acos" "asin" "atan" "atan2" "avg" "ceil" "cos" "cosh" "divtime"
+"exp" "floor" "getbits" "getblob" "getbyte" "getlong" "getraw"
+"getstr" "gettext" "getword" "hextoraw" "lenblob" "length" "log"
+"lower" "lpad" "ltrim" "max" "min" "mod" "monthname" "nvl"
+"octet_length" "power" "rand" "rawtohex" "repeat_string"
+"right_substr" "round" "rpad" "rtrim" "sign" "sin" "sinh" "soundex"
+"sqrt" "sum" "tan" "tanh" "timeint_to_days" "to_char" "to_date"
+"to_gmtime" "to_localtime" "to_number" "trim" "upper" "decode"
+"substr" "substring" "chr" "dayname" "days" "greatest" "hex" "initcap"
+"instr" "least" "multime" "replace" "width"
+) t) "\\b"))))
+    (setq sql-mode-linter-font-lock-keywords
+	  (append sql-mode-ansi-font-lock-keywords
+		  (list (cons linter-keywords 'font-lock-function-name-face)
+			(cons linter-reserved-words 'font-lock-keyword-face)
+			;; XEmacs doesn't have font-lock-builtin-face
+			(if (string-match "XEmacs\\|Lucid" emacs-version)
+			    (cons linter-builtin-functions 'font-lock-preprocessor-face)
+			  ;; GNU Emacs 19 doesn't have it either
+			  (if (string-match "GNU Emacs 19" emacs-version)
+			      (cons linter-builtin-functions 'font-lock-function-name-face)
+			    ;; Emacs
+			    (cons linter-builtin-functions 'font-lock-builtin-face)))
+			(cons linter-types 'font-lock-type-face))))))
+
 (defvar sql-mode-font-lock-keywords sql-mode-ansi-font-lock-keywords
   "SQL keywords used by font-lock.
 
@@ -736,6 +854,13 @@ Basically, this just sets `font-lock-keywords' appropriately."
 Basically, this just sets `font-lock-keywords' appropriately."
   (interactive)
   (setq font-lock-keywords sql-mode-postgres-font-lock-keywords)
+  (font-lock-fontify-buffer))
+
+(defun sql-highlight-linter-keywords ()
+  "Highlight LINTER keywords.
+Basically, this just sets `font-lock-keywords' appropriately."
+  (interactive)
+  (setq font-lock-keywords sql-mode-linter-font-lock-keywords)
   (font-lock-fontify-buffer))
 
 (defun sql-highlight-ansi-keywords ()
@@ -783,7 +908,7 @@ the regular expression `comint-prompt-regexp', a buffer local variable."
 (defun sql-accumulate-and-indent ()
   "Continue SQL statement on the next line."
   (interactive)
-  (if (fboundp 'comint-accumulate) 
+  (if (fboundp 'comint-accumulate)
       (comint-accumulate)
     (newline))
   (indent-according-to-mode))
@@ -809,6 +934,7 @@ Other non-free SQL implementations are also supported:
     Ingres: \\[sql-ingres]
     Microsoft: \\[sql-ms]
     Interbase: \\[sql-interbase]
+    Linter: \\[sql-linter]
 
 But we urge you to choose a free implementation instead of these.
 
@@ -896,7 +1022,7 @@ be in `sql-interactive-mode' and have a process."
 	  found)))))
 
 (defun sql-set-sqli-buffer-generally ()
-  "Set SQLi buffer for all SQL buffers that have none.  
+  "Set SQLi buffer for all SQL buffers that have none.
 This function checks all SQL buffers for their SQLi buffer.  If their
 SQLi buffer is nonexistent or has no process, it is set to the current
 default SQLi buffer.  The current default SQLi buffer is determined
@@ -1022,7 +1148,7 @@ Inserts SELECT or commas if appropriate."
 Placeholders are words starting with and ampersand like &this.
 This function is used for `comint-input-sender' if using `sql-oracle' on NT."
   (while (string-match "&\\(\\sw+\\)" string)
-    (setq string (replace-match 
+    (setq string (replace-match
 		  (read-from-minibuffer
 		   (format "Enter value for %s: " (match-string 1 string))
 		   nil nil nil sql-placeholder-history)
@@ -1348,7 +1474,7 @@ The default comes from `process-coding-system-alist' and
 	  (setq parameter (nconc (list parameter) sql-oracle-options))
 	(setq parameter sql-oracle-options))
       (if parameter
-	  (set-buffer (apply 'make-comint "SQL" sql-oracle-program nil 
+	  (set-buffer (apply 'make-comint "SQL" sql-oracle-program nil
 			     parameter))
 	(set-buffer (make-comint "SQL" sql-oracle-program nil))))
     (setq sql-prompt-regexp "^SQL> ")
@@ -1612,7 +1738,8 @@ If buffer exists and a process is running, just switch to buffer
 
 Interpreter used comes from variable `sql-ms-program'.  Login uses the
 variables `sql-user', `sql-password', `sql-database', and `sql-server'
-as defaults, if set.
+as defaults, if set.  Additional command line parameters can be stored
+in the list `sql-ms-options'.
 
 The buffer is put in sql-interactive-mode, giving commands for sending
 input.  See `sql-interactive-mode'.
@@ -1632,7 +1759,7 @@ The default comes from `process-coding-system-alist' and
     (message "Login...")
     ;; Put all parameters to the program (if defined) in a list and call
     ;; make-comint.
-    (let ((params '("-w 300")))
+    (let ((params sql-ms-options))
       (if (not (string= "" sql-server))
         (setq params (append (list "-S" sql-server) params)))
       (if (not (string= "" sql-database))
@@ -1808,6 +1935,62 @@ The default comes from `process-coding-system-alist' and
     (setq comint-input-sender 'sql-escape-newlines-and-send)
     (message "Login...done")
     (pop-to-buffer sql-buffer)))
+
+;;;###autoload
+(defun sql-linter ()
+  "Run inl by RELEX as an inferior process.
+
+If buffer `*SQL*' exists but no process is running, make a new process.
+If buffer exists and a process is running, just switch to buffer
+`*SQL*'.
+
+Interpreter used comes from variable `sql-linter-program' - usually `inl'.
+Login uses the variables `sql-user', `sql-password', `sql-database' and
+`sql-server' as defaults, if set.  Additional command line parameters
+can be stored in the list `sql-linter-options'. Run inl -h to get help on
+parameters.
+
+`sql-database' is used to set the LINTER_MBX environment variable for
+local connections, `sql-server' refers to the server name from the
+`nodetab' file for the network connection (dbc_tcp or friends must run
+for this to work).  If `sql-password' is an empty string, inl will use
+an empty password.
+
+The buffer is put in sql-interactive-mode, giving commands for sending
+input.  See `sql-interactive-mode'.
+
+To use LINTER font locking by default, put this line into your .emacs :
+ (setq sql-mode-font-lock-keywords sql-mode-linter-font-lock-keywords)
+
+\(Type \\[describe-mode] in the SQL buffer for a list of commands.)"
+  (interactive)
+  (if (comint-check-proc "*SQL*")
+      (pop-to-buffer "*SQL*")
+    (sql-get-login 'user 'password 'database 'server)
+    (message "Login...")
+    ;; Put all parameters to the program (if defined) in a list and call
+    ;; make-comint.
+    (let ((params sql-linter-options) (login nil) (old-mbx (getenv "LINTER_MBX")))
+      (if (not (string= "" sql-user))
+          (setq login (concat sql-user "/" sql-password)))
+      (setq params (append (list "-u" login) params))
+      (if (not (string= "" sql-server))
+          (setq params (append (list "-n" sql-server) params)))
+      (if (string= "" sql-database)
+          (setenv "LINTER_MBX" nil)
+        (setenv "LINTER_MBX" sql-database))
+      (set-buffer (apply 'make-comint "SQL" sql-linter-program nil
+                         params))
+      (setenv "LINTER_MBX" old-mbx)
+      )
+    (setq sql-prompt-regexp "^SQL>")
+    (setq sql-prompt-length 4)
+    (setq sql-buffer (current-buffer))
+    (sql-interactive-mode)
+    (message "Login...done")
+    (pop-to-buffer sql-buffer)))
+
+
 
 (provide 'sql)
 

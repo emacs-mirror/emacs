@@ -55,7 +55,7 @@ Steven L.@: Baur wrote
 @c If earcon.el actually works with Emacs 21, it isn't useful for lack
 @c of  sound files. -- fx
 @c @file{earcon.el}, a facility for sound effects
-@c for email and news messages, 
+@c for email and news messages,
 @file{footnote.el} which lets you include
 footnotes in email messages, and @file{gnus-audio.el} which provides
 sound effects for Gnus.
@@ -184,7 +184,7 @@ Matthieu Devin wrote @file{delsel.el}, a package to make newly-typed
 text replace the current selection.
 
 @item
-Eric Ding contributed @file{goto-addr.el}, 
+Eric Ding contributed @file{goto-addr.el},
 
 @item
 Carsten Dominik wrote @file{reftex.el}, a package for setting up
@@ -202,7 +202,7 @@ pong game.
 Viktor Dukhovni wrote support for dumping under SunOS version 4.
 
 @item
-John Eaton co-wrote Octave mode (@file{octave-mod.el} and related files).
+John Eaton co-wrote Octave mode.
 
 @item
 Rolf Ebert co-wrote Ada mode (@file{ada-mode.el}).
@@ -428,7 +428,7 @@ Anders Holst wrote @file{hippie-exp.el}, a versatile completion and
 expansion package.
 
 @item
-Kurt Hornik co-wrote Octave mode (@file{octave-mod.el} and related files).
+Kurt Hornik co-wrote Octave mode.
 
 @item
 Tom Houlder wrote @file{mantemp.el}, which generates manual C@t{++}
@@ -660,7 +660,7 @@ Shivers.
 Bengt Martensson, Mark Shapiro, Mike Newton, Aaron Larson, and Stefan
 Schoef, wrote @file{bibtex.el}, a mode for editing Bib@TeX{}
 bibliography files.
- 
+
 @item
 Charlie Martin wrote @file{autoinsert.el}, which provides automatic
 mode-sensitive insertion of text into new files.
@@ -722,7 +722,7 @@ Richard Mlynarik wrote:
 @file{rfc822.el}, a parser for E-mail addresses in the RFC-822 format,
 used in mail messages and news articles,
 @item
-@file{terminal.el}, a terminal emulator for Emacs subprocesses, and 
+@file{terminal.el}, a terminal emulator for Emacs subprocesses, and
 @item
 @file{yow.el}, an essential utility (try @kbd{M-x yow}).
 @end itemize
@@ -821,7 +821,7 @@ Jeff Peck wrote:
 @item
 @file{sun.el}, key bindings for sunterm keys,
 @item
-@file{sun-curs.el}, cursor definitions for Sun Windows, and 
+@file{sun-curs.el}, cursor definitions for Sun Windows, and
 @item
 @file{sun-fns.el} and @file{sun-mouse.el}, providing mouse support for
 Sun Windows.
@@ -896,7 +896,7 @@ asynchronous subprocesses on VMS.
 
 @item
 Marko Rahamaa wrote @file{latin-3.el}, code which sets up
-case-conversion and syntax tables for the ISO Latin-3 charact set.
+case-conversion and syntax tables for the ISO Latin-3 character set.
 
 @item
 Ashwin Ram wrote @file{refer.el}, commands to look up references in
@@ -1104,7 +1104,7 @@ Richard Stallman invented Emacs, and then wrote:
 
 @itemize @minus
 @item
-@file{easymeny.el}, a facility for defining Emacs menus,
+@file{easymenu.el}, a facility for defining Emacs menus,
 @item
 @file{menu-bar.el}, the Emacs menu bar support code,
 @item
@@ -1153,7 +1153,7 @@ buffers.
 Tibor @v{S}imko and Milan Zamazal wrote @file{slovak.el}, support for
 editing text in Slovak language.
 
-@item 
+@item
 Naoto Takahashi wrote @file{utf-8.el}, support for encoding and
 decoding UTF-8 data.
 
@@ -1177,7 +1177,7 @@ Emacs text to Postscript.
 
 @item
 Tom Tromey and Chris Lindblad wrote @file{tcl.el}, a major mode for
-editing Tcl/Tk source files and running a Tcl interpeter as an Emacs
+editing Tcl/Tk source files and running a Tcl interpreter as an Emacs
 subprocess.
 
 @item

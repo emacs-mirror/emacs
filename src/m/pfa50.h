@@ -64,12 +64,8 @@ Boston, MA 02111-1307, USA.  */
 #define LD_SWITCH_MACHINE -e __start
 
 #if	pfa50 || pfa70
-
 /* On A-50/60/70/80, data space has high order byte use. */
-#define VALBITS 26
-#define VALMASK (((1<<VALBITS) - 1) | 0x60000000)
-#define XTYPE(a) ((enum Lisp_Type) (((a) >> VALBITS) & GCTYPEMASK))
-
+#define DATA_SEG_BITS 0x60000000
 #endif /* pfa50, pfa70 */
 
 /* SX/A has alloca in the PW library.  */

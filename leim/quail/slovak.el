@@ -1,11 +1,11 @@
-;;; slovak.el --- Quail package for inputting Slovak
+;;; slovak.el --- Quail package for inputting Slovak  -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 
 ;; Authors: Tibor ,B)(Bimko <tibor.simko@fmph.uniba.sk>
 ;;	Milan Zamazal <pdm@zamazal.org>
 ;; Maintainer: Pavel Jan,Bm(Bk <Pavel@Janik.cz>
-;; Keywords: i18, multilingual, input method, Slovak
+;; Keywords: i18n, multilingual, input method, Slovak
 
 ;; This file is part of GNU Emacs.
 

@@ -151,25 +151,25 @@ get_doc_string (filepos, unibyte, definition)
 
   if (!STRINGP (file))
     return Qnil;
-    
+
   /* Put the file name in NAME as a C string.
      If it is relative, combine it with Vdoc_directory.  */
 
   tem = Ffile_name_absolute_p (file);
   if (NILP (tem))
     {
-      minsize = XSTRING (Vdoc_directory)->size;
+      minsize = SCHARS (Vdoc_directory);
       /* sizeof ("../etc/") == 8 */
       if (minsize < 8)
 	minsize = 8;
-      name = (char *) alloca (minsize + XSTRING (file)->size + 8);
-      strcpy (name, XSTRING (Vdoc_directory)->data);
-      strcat (name, XSTRING (file)->data);
+      name = (char *) alloca (minsize + SCHARS (file) + 8);
+      strcpy (name, SDATA (Vdoc_directory));
+      strcat (name, SDATA (file));
       munge_doc_file_name (name);
     }
   else
     {
-      name = (char *) XSTRING (file)->data;
+      name = (char *) SDATA (file);
     }
 
   fd = emacs_open (name, O_RDONLY, 0);
@@ -181,7 +181,7 @@ get_doc_string (filepos, unibyte, definition)
 	  /* Preparing to dump; DOC file is probably not installed.
 	     So check in ../etc. */
 	  strcpy (name, "../etc/");
-	  strcat (name, XSTRING (file)->data);
+	  strcat (name, SDATA (file));
 	  munge_doc_file_name (name);
 
 	  fd = emacs_open (name, O_RDONLY, 0);
@@ -375,12 +375,12 @@ string is passed through `substitute-command-keys'.  */)
  documentation:
 
   doc = Qnil;
-  
+
   if (SYMBOLP (function)
       && (tem = Fget (function, Qfunction_documentation),
 	  !NILP (tem)))
     return Fdocumentation_property (function, Qfunction_documentation, raw);
-  
+
   fun = Findirect_function (function);
   if (SUBRP (fun))
     {
@@ -489,7 +489,7 @@ aren't strings.  */)
   Lisp_Object tem;
 
  documentation_property:
-  
+
   tem = Fget (symbol, prop);
   if (EQ (tem, make_number (0)))
     tem = Qnil;
@@ -514,7 +514,7 @@ aren't strings.  */)
   else if (!STRINGP (tem))
     /* Feval protects its argument.  */
     tem = Feval (tem);
-  
+
   if (NILP (raw) && STRINGP (tem))
     tem = Fsubstitute_command_keys (tem);
   return tem;
@@ -594,17 +594,17 @@ the same file name is found in the `data-directory'.  */)
       (0)
 #endif /* CANNOT_DUMP */
     {
-      name = (char *) alloca (XSTRING (filename)->size + 14);
+      name = (char *) alloca (SCHARS (filename) + 14);
       strcpy (name, "../etc/");
     }
   else
     {
       CHECK_STRING (Vdoc_directory);
-      name = (char *) alloca (XSTRING (filename)->size
-			  + XSTRING (Vdoc_directory)->size + 1);
-      strcpy (name, XSTRING (Vdoc_directory)->data);
+      name = (char *) alloca (SCHARS (filename)
+			  + SCHARS (Vdoc_directory) + 1);
+      strcpy (name, SDATA (Vdoc_directory));
     }
-  strcat (name, XSTRING (filename)->data); 	/*** Add this line ***/
+  strcat (name, SDATA (filename)); 	/*** Add this line ***/
 #ifdef VMS
 #ifndef VMS4_4
   /* For VMS versions with limited file name syntax,
@@ -726,11 +726,11 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
   if (NILP (keymap))
     keymap = Voverriding_local_map;
 
-  bsize = STRING_BYTES (XSTRING (string));
+  bsize = SBYTES (string);
   bufp = buf = (unsigned char *) xmalloc (bsize);
 
-  strp = (unsigned char *) XSTRING (string)->data;
-  while (strp < XSTRING (string)->data + STRING_BYTES (XSTRING (string)))
+  strp = (unsigned char *) SDATA (string);
+  while (strp < SDATA (string) + SBYTES (string))
     {
       if (strp[0] == '\\' && strp[1] == '=')
 	{
@@ -741,7 +741,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  if (multibyte)
 	    {
 	      int len;
-	      int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
+	      int maxlen = SDATA (string) + SBYTES (string) - strp;
 
 	      STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	      if (len == 1)
@@ -763,10 +763,10 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  changed = 1;
 	  strp += 2;		/* skip \[ */
 	  start = strp;
-	  start_idx = start - XSTRING (string)->data;
+	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) XSTRING (string)->data
-		  < STRING_BYTES (XSTRING (string)))
+	  while ((strp - (unsigned char *) SDATA (string)
+		  < SBYTES (string))
 		 && *strp != ']')
 	    strp++;
 	  length_byte = strp - start;
@@ -774,14 +774,14 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;		/* skip ] */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) XSTRING (string)->data;
+	  idx = strp - (unsigned char *) SDATA (string);
 	  tem = Fintern (make_string (start, length_byte), Qnil);
 
 	  /* Note the Fwhere_is_internal can GC, so we have to take
 	     relocation of string contents into account.  */
 	  tem = Fwhere_is_internal (tem, keymap, Qt, Qnil, Qnil);
-	  strp = XSTRING (string)->data + idx;
-	  start = XSTRING (string)->data + start_idx;
+	  strp = SDATA (string) + idx;
+	  start = SDATA (string) + start_idx;
 
 	  /* Disregard menu bar bindings; it is positively annoying to
 	     mention them when there's no menu bar, and it isn't terribly
@@ -823,10 +823,10 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  changed = 1;
 	  strp += 2;		/* skip \{ or \< */
 	  start = strp;
-	  start_idx = start - XSTRING (string)->data;
+	  start_idx = start - SDATA (string);
 
-	  while ((strp - (unsigned char *) XSTRING (string)->data
-		  < XSTRING (string)->size)
+	  while ((strp - (unsigned char *) SDATA (string)
+		  < SCHARS (string))
 		 && *strp != '}' && *strp != '>')
 	    strp++;
 
@@ -834,7 +834,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  strp++;			/* skip } or > */
 
 	  /* Save STRP in IDX.  */
-	  idx = strp - (unsigned char *) XSTRING (string)->data;
+	  idx = strp - (unsigned char *) SDATA (string);
 
 	  /* Get the value of the keymap in TEM, or nil if undefined.
 	     Do this while still in the user's current buffer
@@ -848,8 +848,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 		{
 		  tem = get_keymap (tem, 0, 1);
 		  /* Note that get_keymap can GC.  */
-		  strp = XSTRING (string)->data + idx;
-		  start = XSTRING (string)->data + start_idx;
+		  strp = SDATA (string) + idx;
+		  start = SDATA (string) + start_idx;
 		}
 	    }
 
@@ -862,8 +862,8 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	      name = Fsymbol_name (name);
 	      insert_string ("\nUses keymap \"");
 	      insert_from_string (name, 0, 0,
-				  XSTRING (name)->size,
-				  STRING_BYTES (XSTRING (name)), 1);
+				  SCHARS (name),
+				  SBYTES (name), 1);
 	      insert_string ("\", which is not currently defined.\n");
 	      if (start[-1] == '<') keymap = Qnil;
 	    }
@@ -876,9 +876,9 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	  set_buffer_internal (oldbuf);
 
 	subst_string:
-	  start = XSTRING (tem)->data;
-	  length = XSTRING (tem)->size;
-	  length_byte = STRING_BYTES (XSTRING (tem));
+	  start = SDATA (tem);
+	  length = SCHARS (tem);
+	  length_byte = SBYTES (tem);
 	subst:
 	  {
 	    int offset = bufp - buf;
@@ -888,7 +888,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
 	    bufp += length_byte;
 	    nchars += length;
 	    /* Check STRING again in case gc relocated it.  */
-	    strp = (unsigned char *) XSTRING (string)->data + idx;
+	    strp = (unsigned char *) SDATA (string) + idx;
 	  }
 	}
       else if (! multibyte)		/* just copy other chars */
@@ -896,7 +896,7 @@ thus, \\=\\=\\=\\= puts \\=\\= into the output, and \\=\\=\\=\\[ puts \\=\\[ int
       else
 	{
 	  int len;
-	  int maxlen = XSTRING (string)->data + STRING_BYTES (XSTRING (string)) - strp;
+	  int maxlen = SDATA (string) + SBYTES (string) - strp;
 
 	  STRING_CHAR_AND_LENGTH (strp, maxlen, len);
 	  if (len == 1)
@@ -922,7 +922,7 @@ syms_of_doc ()
 {
   Qfunction_documentation = intern ("function-documentation");
   staticpro (&Qfunction_documentation);
-  
+
   DEFVAR_LISP ("internal-doc-file-name", &Vdoc_file_name,
 	       doc: /* Name of file containing documentation strings of built-in symbols.  */);
   Vdoc_file_name = Qnil;

@@ -39,11 +39,11 @@ Boston, MA 02111-1307, USA.  */
  * "po:username".  This will cause movemail to open a connection to
  * a pop server running on $MAILHOST (environment variable).  Movemail
  * must be setuid to root in order to work with POP.
- * 
+ *
  * New module: popmail.c
  * Modified routines:
  *	main - added code within #ifdef MAIL_USE_POP; added setuid (getuid ())
- *		after POP code. 
+ *		after POP code.
  * New routines in movemail.c:
  *	get_errmsg - return pointer to system error message
  *
@@ -458,7 +458,7 @@ main (argc, argv)
 
 	  pfatal_with_name (inname);
 	}
-  
+
       {
 	char buf[1024];
 
@@ -838,13 +838,14 @@ popmail (mailbox, outfile, preserve, password, reverse_order)
       error ("Error from POP server: %s", pop_error, 0);
       return (1);
     }
-    
+
   return (0);
 }
 
 int
 pop_retr (server, msgno, arg)
      popserver server;
+     int msgno;
      FILE *arg;
 {
   extern char *strerror ();
@@ -912,7 +913,7 @@ mbx_write (line, len, mbf)
       line++;
       len--;
     }
-  if (fwrite (line, 1, len, mbf) != len) 
+  if (fwrite (line, 1, len, mbf) != len)
     return (NOTOK);
   if (fputc (0x0a, mbf) == EOF)
     return (NOTOK);

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/processes
 @node Processes, Display, Abbrevs, Top
@@ -43,9 +43,9 @@ This function returns @code{t} if @var{object} is a process,
 * Input to Processes::       Sending input to an asynchronous subprocess.
 * Signals to Processes::     Stopping, continuing or interrupting
                                an asynchronous subprocess.
-* Query Before Exit::        Whether to query if exiting will kill a process.
 * Output from Processes::    Collecting output from an asynchronous subprocess.
 * Sentinels::                Sentinels run when process run-status changes.
+* Query Before Exit::        Whether to query if exiting will kill a process.
 * Transaction Queues::	     Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
 @end menu
@@ -108,7 +108,7 @@ must use @var{args} to provide those.
 specify overrides for it with @code{process-environment}.  @xref{System
 Environment}.
 
-@defvar exec-directory 
+@defvar exec-directory
 @pindex movemail
 The value of this variable is a string, the name of a directory that
 contains programs that come with GNU Emacs, programs intended for Emacs
@@ -355,8 +355,8 @@ inputinput@point{}
 
 @smallexample
 @group
-(call-process-region 
- start end         
+(call-process-region
+ start end
  shell-file-name      ; @r{Name of program.}
  nil                  ; @r{Do not delete region.}
  buffer               ; @r{Send output to @code{buffer}.}
@@ -460,7 +460,7 @@ often better to use a pipe, because they are more efficient.  In
 addition, the total number of @sc{pty}s is limited on many systems and
 it is good not to waste them.
 
-The value of @code{process-connection-type} is used when
+The value of @code{process-connection-type} takes effect when
 @code{start-process} is called.  So you can specify how to communicate
 with one subprocess by binding the variable around the call to
 @code{start-process}.
@@ -486,8 +486,8 @@ subprocess.  Processes are deleted automatically after they terminate,
 but not necessarily right away.  You can delete a process explicitly
 at any time.  If you delete a terminated process explicitly before it
 is deleted automatically, no harm results.  Deletion of a running
-process sends a signal to terminate it and calls the process sentinel
-if it has one.
+process sends a signal to terminate it (and its child processes if
+any), and calls the process sentinel if it has one.
 
   @code{get-buffer-process} and @code{process-list} do not remember a
 deleted process, but the process object itself continues to exist as
@@ -855,56 +855,6 @@ a child of Emacs.  The argument @var{signal} specifies which signal
 to send; it should be an integer.
 @end defun
 
-@node Query Before Exit
-@section Querying Before Exit 
-
-  When Emacs exits, it terminates all its subprocesses by sending them
-the @code{SIGHUP} signal.  Because some subprocesses are doing
-valuable work, Emacs normally asks the user to confirm that it is ok
-to terminate them.  Each process has a query flag which, if
-non-@code{nil}, says that Emacs should ask for confirmation before
-exiting and thus killing that process.  The default for the query flag
-is @code{t}, meaning @emph{do} query.
-
-@tindex process-query-on-exit-flag
-@defun process-query-on-exit-flag process
-This returns the query flag of @var{process}.
-@end defun
-
-@tindex set-process-query-on-exit-flag
-@defun set-process-query-on-exit-flag process flag
-This function sets the query flag of @var{process} to @var{flag}.  It
-returns @var{flag}.
-
-@smallexample
-@group
-;; @r{Don't query about the shell process}
-(set-process-query-on-exit-flag (get-process "shell") nil)
-     @result{} t
-@end group
-@end smallexample
-@end defun
-
-@defun process-kill-without-query process &optional do-query
-This function clears the query flag of @var{process}, so that
-Emacs will not query the user on account of that process.
-
-Actually, the function does more than that: it returns the old value of
-the process's query flag, and sets the query flag to @var{do-query}.
-Please don't use this function to do those things any more---please
-use the newer, cleaner functions @code{process-query-on-exit-flag} and
-@code{set-process-query-on-exit-flag} in all but the simplest cases.
-The only way you should use @code{process-kill-without-query} nowadays
-is like this:
-
-@smallexample
-@group
-;; @r{Don't query about the shell process}
-(process-kill-without-query (get-process "shell"))
-@end group
-@end smallexample
-@end defun
-
 @node Output from Processes
 @section Receiving Output from Processes
 @cindex process output
@@ -916,7 +866,12 @@ which is called the associated buffer of the process, or a function
 called the @dfn{filter function} can be called to act on the output.  If
 the process has no buffer and no filter function, its output is
 discarded.
- 
+
+  When a subprocess terminates, Emacs reads any pending output,
+then stops reading output from that subprocess.  Therefore, if the
+subprocess has children that are still live and still producing
+output, Emacs won't receive that output.
+
   Output from a subprocess can arrive only while Emacs is waiting: when
 reading terminal input, in @code{sit-for} and @code{sleep-for}
 (@pxref{Waiting}), and in @code{accept-process-output} (@pxref{Accepting
@@ -1250,7 +1205,7 @@ describing the type of event.
   The string describing the event looks like one of the following:
 
 @itemize @bullet
-@item 
+@item
 @code{"finished\n"}.
 
 @item
@@ -1343,6 +1298,56 @@ While a sentinel or filter function is running, this function returns
 non-@code{nil} if Emacs was waiting for keyboard input from the user at
 the time the sentinel or filter function was called, @code{nil} if it
 was not.
+@end defun
+
+@node Query Before Exit
+@section Querying Before Exit
+
+  When Emacs exits, it terminates all its subprocesses by sending them
+the @code{SIGHUP} signal.  Because some subprocesses are doing
+valuable work, Emacs normally asks the user to confirm that it is ok
+to terminate them.  Each process has a query flag which, if
+non-@code{nil}, says that Emacs should ask for confirmation before
+exiting and thus killing that process.  The default for the query flag
+is @code{t}, meaning @emph{do} query.
+
+@tindex process-query-on-exit-flag
+@defun process-query-on-exit-flag process
+This returns the query flag of @var{process}.
+@end defun
+
+@tindex set-process-query-on-exit-flag
+@defun set-process-query-on-exit-flag process flag
+This function sets the query flag of @var{process} to @var{flag}.  It
+returns @var{flag}.
+
+@smallexample
+@group
+;; @r{Don't query about the shell process}
+(set-process-query-on-exit-flag (get-process "shell") nil)
+     @result{} t
+@end group
+@end smallexample
+@end defun
+
+@defun process-kill-without-query process &optional do-query
+This function clears the query flag of @var{process}, so that
+Emacs will not query the user on account of that process.
+
+Actually, the function does more than that: it returns the old value of
+the process's query flag, and sets the query flag to @var{do-query}.
+Please don't use this function to do those things any more---please
+use the newer, cleaner functions @code{process-query-on-exit-flag} and
+@code{set-process-query-on-exit-flag} in all but the simplest cases.
+The only way you should use @code{process-kill-without-query} nowadays
+is like this:
+
+@smallexample
+@group
+;; @r{Don't query about the shell process}
+(process-kill-without-query (get-process "shell"))
+@end group
+@end smallexample
 @end defun
 
 @node Transaction Queues

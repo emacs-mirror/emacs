@@ -44,6 +44,7 @@
 ;; end pacifier
 
 ;; allow menus to be set up without ediff-wind.el being loaded
+;;;###autoload
 (defvar ediff-window-setup-function)
 
 ;; This macro is used to avoid compilation warnings.
@@ -51,12 +52,15 @@
 ;; compiler at hand (emacs or xemacs).
 ;; The autoload, below, is useless in Emacs because ediff-hook.el
 ;; is dumped with emacs, but it is needed in XEmacs
+;;;###autoload (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form) (if (string-match "XEmacs" emacs-version) xemacs-form emacs-form))
+
 (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
   (if (string-match "XEmacs" emacs-version)
       xemacs-form emacs-form))
- 
+
 ;; This autoload is useless in Emacs because ediff-hook.el is dumped with
 ;; emacs, but it is needed in XEmacs
+;;;###autoload
 (ediff-cond-compile-for-xemacs-or-emacs
  ;; xemacs form
  (defun ediff-xemacs-init-menus ()
@@ -79,6 +83,7 @@
 
 ;; This autoload is useless in Emacs because ediff-hook.el is dumped with
 ;; emacs, but it is needed in XEmacs
+;;;###autoload
 (ediff-cond-compile-for-xemacs-or-emacs
  (progn
    (defvar ediff-menu
@@ -142,12 +147,12 @@
 	:selected (if (featurep 'ediff-tbar)
 		      (ediff-use-toolbar-p))]
        ))
-   
+
    ;; put these menus before Object-Oriented-Browser in Tools menu
    (if (and (featurep 'menubar) (not (featurep 'infodock))
 	    (not (featurep 'ediff-hook)))
 	   (ediff-xemacs-init-menus)))
- 
+
  ;; Emacs--only if menu-bar is loaded
  (if (featurep 'menu-bar)
      (progn
@@ -159,7 +164,7 @@
        (defvar menu-bar-epatch-menu (make-sparse-keymap "Apply Patch"))
        (fset 'menu-bar-epatch-menu (symbol-value 'menu-bar-epatch-menu))
        (defvar menu-bar-ediff-merge-menu (make-sparse-keymap "Merge"))
-       (fset 'menu-bar-ediff-merge-menu 
+       (fset 'menu-bar-ediff-merge-menu
 	     (symbol-value 'menu-bar-ediff-merge-menu))
        (defvar menu-bar-ediff-menu (make-sparse-keymap "Compare"))
        (fset 'menu-bar-ediff-menu (symbol-value 'menu-bar-ediff-menu))
@@ -217,7 +222,7 @@
 	   . ediff-merge-directories-with-ancestor))
        (define-key menu-bar-ediff-merge-menu [ediff-merge-directories]
 	 '("Directories..." . ediff-merge-directories))
-       (define-key 
+       (define-key
 	 menu-bar-ediff-merge-menu [separator-ediff-merge-dirs] '("--"))
        (define-key
 	 menu-bar-ediff-merge-menu [ediff-merge-buffers-with-ancestor]
@@ -246,7 +251,7 @@
        (define-key menu-bar-ediff-misc-menu [ediff-doc]
 	 '("Ediff Manual..." . ediff-documentation))
        )
-      
+
       ) ; emacs case
  ) ; ediff-cond-compile-for-xemacs-or-emacs
 
@@ -268,13 +273,13 @@
   (autoload 'ediff-revision "ediff" "Compare versions of a file" t)
 
   ;; compare regions and windows
-  (autoload 'ediff-windows-wordwise 
+  (autoload 'ediff-windows-wordwise
     "ediff" "Compare two windows word-by-word." t)
-  (autoload 'ediff-regions-wordwise 
+  (autoload 'ediff-regions-wordwise
     "ediff" "Compare two regions word-by-word." t)
-  (autoload 'ediff-windows-linewise 
+  (autoload 'ediff-windows-linewise
     "ediff" "Compare two windows line-by-line." t)
-  (autoload 'ediff-regions-linewise 
+  (autoload 'ediff-regions-linewise
     "ediff" "Compare two regions line-by-line." t)
 
   ;; patch
@@ -303,9 +308,9 @@
   (autoload
     'ediff-directories3 "ediff" "Compare files in three directories." t)
 
-  (autoload 'edir-revisions 
+  (autoload 'edir-revisions
     "ediff" "Compare two versions of a file." t)
-  (autoload 'ediff-directory-revisions 
+  (autoload 'ediff-directory-revisions
     "ediff" "Compare two versions of a file." t)
 
   ;; merge directories
@@ -321,9 +326,9 @@
     "Merge files in two directories using files in a third dir as ancestors."
     t)
 
-  (autoload 'edir-merge-revisions 
+  (autoload 'edir-merge-revisions
     "ediff" "Merge versions of files in a directory." t)
-  (autoload 'ediff-merge-directory-revisions 
+  (autoload 'ediff-merge-directory-revisions
     "ediff" "Merge versions of files in a directory." t)
   (autoload 'ediff-merge-directory-revisions-with-ancestor
     "ediff"
@@ -359,7 +364,7 @@
     "ediff-util"
     "Toggle the use of Ediff toolbar."
     t)
-  
+
   ) ; if purify-flag
 
 

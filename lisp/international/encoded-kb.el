@@ -253,7 +253,7 @@ The following key sequence may cause multilingual text insertion."
 
    ((eq encoded-kbd-coding 'iso2022-7)
     (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix))
-    
+
    ((eq encoded-kbd-coding 'iso2022-8)
     (define-key encoded-kbd-mode-map
       (vector ?\216) 'encoded-kbd-self-insert-iso2022-8bit)
@@ -307,13 +307,13 @@ as a multilingual text encoded in a coding system set by
       (let ((coding (keyboard-coding-system)))
 	(setq saved-input-mode  (current-input-mode))
 	(cond ((null coding)
-	       (setq encoded-kbd-mode nil) 
+	       (setq encoded-kbd-mode nil)
 	       (error "No coding system for keyboard input is set"))
 
 	      ((= (coding-system-type coding) 1) ; SJIS
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'sjis))
 
 	      ((= (coding-system-type coding) 2) ; ISO2022
@@ -321,7 +321,7 @@ as a multilingual text encoded in a coding system set by
 		   (setq encoded-kbd-coding 'iso2022-7)
 		 (set-input-mode
 		  (nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		  'use-8th-bit (nth 3 saved-input-mode))	
+		  'use-8th-bit (nth 3 saved-input-mode))
 		 (setq encoded-kbd-coding 'iso2022-8))
 	       (setq encoded-kbd-iso2022-designations (make-vector 4 nil))
 	       (let ((flags (coding-system-flags coding))
@@ -341,13 +341,13 @@ as a multilingual text encoded in a coding system set by
 	      ((= (coding-system-type coding) 3) ; BIG5
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'big5))
 
 	      ((= (coding-system-type coding) 4) ; CCL based coding
 	       (set-input-mode
 		(nth 0 saved-input-mode) (nth 1 saved-input-mode)
-		'use-8th-bit (nth 3 saved-input-mode))	
+		'use-8th-bit (nth 3 saved-input-mode))
 	       (setq encoded-kbd-coding 'ccl))
 
 	      (t
@@ -355,5 +355,7 @@ as a multilingual text encoded in a coding system set by
 	       (error "Coding-system `%s' is not supported in Encoded-kbd mode"
 		      (keyboard-coding-system))))
 	(encoded-kbd-setup-keymap coding))))
+
+(provide 'encoded-kb)
 
 ;;; encoded-kb.el ends here

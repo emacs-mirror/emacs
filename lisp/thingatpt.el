@@ -32,11 +32,11 @@
 ;; forward-"thing" operator (eg. forward-word, forward-line).
 ;;
 ;; Special cases are allowed for using properties associated with the named
-;; "thing": 
+;; "thing":
 ;;
 ;;   forward-op		Function to call to skip forward over a "thing" (or
 ;;                      with a negative argument, backward).
-;;                      
+;;
 ;;   beginning-op	Function to call to skip to the beginning of a "thing".
 ;;   end-op		Function to call to skip to the end of a "thing".
 ;;
@@ -80,14 +80,14 @@ of the textual entity that was found."
       (condition-case nil
 	  (save-excursion
 	    ;; Try moving forward, then back.
-	    (let ((end (progn 
-			 (funcall 
-			  (or (get thing 'end-op) 
+	    (let ((end (progn
+			 (funcall
+			  (or (get thing 'end-op)
 			      (function (lambda () (forward-thing thing 1)))))
 			 (point)))
-		  (beg (progn 
-			 (funcall 
-			  (or (get thing 'beginning-op) 
+		  (beg (progn
+			 (funcall
+			  (or (get thing 'beginning-op)
 			      (function (lambda () (forward-thing thing -1)))))
 			 (point))))
 	      (if (not (and beg (> beg orig)))
@@ -95,9 +95,9 @@ of the textual entity that was found."
 		  ;; it worked.  But END may not be the real end.
 		  ;; So find the real end that corresponds to BEG.
 		  (let ((real-end
-			 (progn 
-			   (funcall 
-			    (or (get thing 'end-op) 
+			 (progn
+			   (funcall
+			    (or (get thing 'end-op)
 				(function (lambda () (forward-thing thing 1)))))
 			   (point))))
 		    (if (and beg real-end (<= beg orig) (<= orig real-end))
@@ -105,20 +105,20 @@ of the textual entity that was found."
 		(goto-char orig)
 		;; Try a second time, moving backward first and then forward,
 		;; so that we can find a thing that ends at ORIG.
-		(let ((beg (progn 
-			     (funcall 
-			      (or (get thing 'beginning-op) 
+		(let ((beg (progn
+			     (funcall
+			      (or (get thing 'beginning-op)
 				  (function (lambda () (forward-thing thing -1)))))
 			     (point)))
-		      (end (progn 
-			     (funcall 
-			      (or (get thing 'end-op) 
+		      (end (progn
+			     (funcall
+			      (or (get thing 'end-op)
 				  (function (lambda () (forward-thing thing 1)))))
 			     (point)))
 		      (real-beg
-		       (progn 
-			 (funcall 
-			  (or (get thing 'beginning-op) 
+		       (progn
+			 (funcall
+			  (or (get thing 'beginning-op)
 			      (function (lambda () (forward-thing thing -1)))))
 			 (point))))
 		  (if (and real-beg end (<= real-beg orig) (<= orig end))
@@ -137,7 +137,7 @@ a symbol as a valid THING."
   (if (get thing 'thing-at-point)
       (funcall (get thing 'thing-at-point))
     (let ((bounds (bounds-of-thing-at-point thing)))
-      (if bounds 
+      (if bounds
 	  (buffer-substring (car bounds) (cdr bounds))))))
 
 ;; Go to beginning/end
@@ -152,9 +152,9 @@ a symbol as a valid THING."
     (or bounds (error "No %s here" thing))
     (goto-char (cdr bounds))))
 
-;;  Special cases 
+;;  Special cases
 
-;;  Lines 
+;;  Lines
 
 ;; bolp will be false when you click on the last line in the buffer
 ;; and it has no final newline.
@@ -162,7 +162,7 @@ a symbol as a valid THING."
 (put 'line 'beginning-op
      (function (lambda () (if (bolp) (forward-line -1) (beginning-of-line)))))
 
-;;  Sexps 
+;;  Sexps
 
 (defun in-string-p ()
   (let ((orig (point)))
@@ -188,24 +188,30 @@ a symbol as a valid THING."
 
 (put 'sexp 'beginning-op 'beginning-of-sexp)
 
-;;  Lists 
+;;  Lists
 
 (put 'list 'end-op (function (lambda () (up-list 1))))
 (put 'list 'beginning-op 'backward-sexp)
 
-;;  Filenames and URLs
+;;  Filenames and URLs  www.com/foo%32bar
 
-(defvar thing-at-point-file-name-chars "~/A-Za-z0-9---_.${}#%,:"
+(defvar thing-at-point-file-name-chars "-~/[:alnum:]_.${}#%,:"
   "Characters allowable in filenames.")
 
-(put 'filename 'end-op    
-     (lambda () (skip-chars-forward thing-at-point-file-name-chars)))
+(put 'filename 'end-op
+     (lambda ()
+       (re-search-forward (concat "\\=[" thing-at-point-file-name-chars "]*")
+			  nil t)))
 (put 'filename 'beginning-op
-     (lambda () (skip-chars-backward thing-at-point-file-name-chars)))
+     (lambda ()
+       (if (re-search-backward (concat "[^" thing-at-point-file-name-chars "]")
+			       nil t)
+	   (forward-char)
+	 (goto-char (point-min)))))
 
 (defvar thing-at-point-url-path-regexp
   "[^]\t\n \"'()<>[^`{}]*[^]\t\n \"'()<>[^`{}.,;]+"
-  "A regular expression probably matching the host, path or e-mail part of a URL.")
+  "A regular expression probably matching the host and filename or e-mail part of a URL.")
 
 (defvar thing-at-point-short-url-regexp
   (concat "[-A-Za-z0-9.]+" thing-at-point-url-path-regexp)
@@ -213,10 +219,21 @@ a symbol as a valid THING."
 Hostname matching is stricter in this case than for
 ``thing-at-point-url-regexp''.")
 
+(defvar thing-at-point-uri-schemes
+  ;; Officials from http://www.iana.org/assignments/uri-schemes
+  '("ftp://" "http://" "gopher://" "mailto:" "news:" "nntp:"
+    "telnet://" "wais://" "file:/" "prospero:" "z39.50s:" "z39.50r:"
+    "cid:" "mid:" "vemmi:" "service:" "imap:" "nfs:" "acap:" "rtsp:"
+    "tip:" "pop:" "data:" "dav:" "opaquelocktoken:" "sip:" "tel:" "fax:"
+    "modem:" "ldap:" "https://" "soap.beep:" "soap.beeps:" "urn:" "go:"
+    "afs:" "tn3270:" "mailserver:"
+  ;; Compatibility
+    "snews:")
+  "Uniform Resource Identifier (URI) Schemes")
+
 (defvar thing-at-point-url-regexp
-  (concat
-   "\\<\\(https?://\\|ftp://\\|gopher://\\|telnet://\\|wais://\\|file:/\\|s?news:\\|mailto:\\)"
-   thing-at-point-url-path-regexp)
+  (concat "\\<\\(" (mapconcat 'identity thing-at-point-uri-schemes "\\|") "\\)"
+          thing-at-point-url-path-regexp)
   "A regular expression probably matching a complete URL.")
 
 (defvar thing-at-point-markedup-url-regexp
@@ -322,11 +339,11 @@ point."
 		       (goto-char (car bounds))
 		     (error "No URL here"))))))
 
-;;  Whitespace 
+;;  Whitespace
 
 (defun forward-whitespace (arg)
   (interactive "p")
-  (if (natnump arg) 
+  (if (natnump arg)
       (re-search-forward "[ \t]+\\|\n" nil 'move arg)
     (while (< arg 0)
       (if (re-search-backward "[ \t]+\\|\n" nil 'move)
@@ -334,35 +351,35 @@ point."
 	      (skip-chars-backward " \t")))
       (setq arg (1+ arg)))))
 
-;;  Buffer 
+;;  Buffer
 
 (put 'buffer 'end-op (lambda () (goto-char (point-max))))
 (put 'buffer 'beginning-op (lambda () (goto-char (point-min))))
 
-;;  Symbols 
+;;  Symbols
 
 (defun forward-symbol (arg)
   (interactive "p")
-  (if (natnump arg) 
+  (if (natnump arg)
       (re-search-forward "\\(\\sw\\|\\s_\\)+" nil 'move arg)
     (while (< arg 0)
       (if (re-search-backward "\\(\\sw\\|\\s_\\)+" nil 'move)
 	  (skip-syntax-backward "w_"))
       (setq arg (1+ arg)))))
 
-;;  Syntax blocks 
+;;  Syntax blocks
 
 (defun forward-same-syntax (&optional arg)
   (interactive "p")
   (while (< arg 0)
-    (skip-syntax-backward 
+    (skip-syntax-backward
      (char-to-string (char-syntax (char-after (1- (point))))))
     (setq arg (1+ arg)))
   (while (> arg 0)
     (skip-syntax-forward (char-to-string (char-syntax (char-after (point)))))
     (setq arg (1- arg))))
 
-;;  Aliases 
+;;  Aliases
 
 (defun word-at-point () (thing-at-point 'word))
 (defun sentence-at-point () (thing-at-point 'sentence))
@@ -371,17 +388,18 @@ point."
   "Read a lisp expression from STR.
 Signal an error if the entire string was not used."
   (let* ((read-data (read-from-string str))
-	 (more-left 
+	 (more-left
 	  (condition-case nil
-	      (progn (read-from-string (substring str (cdr read-data)))
+	      ;; The call to `ignore' suppresses a compiler warning.
+	      (progn (ignore (read-from-string (substring str (cdr read-data))))
 		     t)
 	    (end-of-file nil))))
     (if more-left
 	(error "Can't read whole string")
       (car read-data))))
 
-(defun form-at-point (&optional thing pred) 
-  (let ((sexp (condition-case nil 
+(defun form-at-point (&optional thing pred)
+  (let ((sexp (condition-case nil
 		  (read-from-whole-string (thing-at-point (or thing 'sexp)))
 		(error nil))))
     (if (or (not pred) (funcall pred sexp)) sexp)))

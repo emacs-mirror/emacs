@@ -163,7 +163,7 @@ with some simple extensions.
   (dolist (topic (gnus-current-topics topic))
     (gnus-topic-fold t))
   (gnus-topic-goto-topic topic))
-  
+
 (defun gnus-current-topic ()
   "Return the name of the current topic."
   (let ((result
@@ -233,14 +233,14 @@ If RECURSIVE is t, return groups in its subtopics too."
        ;; Add this group to the list of visible groups.
        (push (or entry group) visible-groups)))
     (setq visible-groups (nreverse visible-groups))
-    (when recursive 
+    (when recursive
       (if (eq recursive t)
 	  (setq recursive (cdr (gnus-topic-find-topology topic))))
       (mapcar (lambda (topic-topology)
-		(setq visible-groups 
-		      (nconc visible-groups 
+		(setq visible-groups
+		      (nconc visible-groups
 			     (gnus-topic-find-groups
-			      (caar topic-topology) 
+			      (caar topic-topology)
 			      level all lowest topic-topology))))
 	      (cdr recursive)))
     visible-groups))
@@ -1146,10 +1146,10 @@ When used interactively, PARENT will be the topic under point."
   (gnus-group-list-groups)
   (gnus-topic-goto-topic topic))
 
-;; FIXME: 
-;;  1. When the marked groups are overlapped with the process 
+;; FIXME:
+;;  1. When the marked groups are overlapped with the process
 ;;     region, the behavior of move or remove is not right.
-;;  2. Can't process on several marked groups with a same name, 
+;;  2. Can't process on several marked groups with a same name,
 ;;     because gnus-group-marked only keeps one copy.
 
 (defun gnus-topic-move-group (n topic &optional copyp)
@@ -1158,7 +1158,7 @@ If COPYP, copy the groups instead."
   (interactive
    (list current-prefix-arg
 	 (completing-read "Move to topic: " gnus-topic-alist nil t)))
-  (let ((use-marked (and (not n) (not (gnus-region-active-p)) 
+  (let ((use-marked (and (not n) (not (gnus-region-active-p))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n))
 	(topicl (assoc topic gnus-topic-alist))
@@ -1185,7 +1185,7 @@ If COPYP, copy the groups instead."
 (defun gnus-topic-remove-group (&optional n)
   "Remove the current group from the topic."
   (interactive "P")
-  (let ((use-marked (and (not n) (not (gnus-region-active-p)) 
+  (let ((use-marked (and (not n) (not (gnus-region-active-p))
 			 gnus-group-marked t))
 	(groups (gnus-group-process-prefix n)))
     (mapcar
@@ -1283,7 +1283,7 @@ If PERMANENT, make it stay hidden in subsequent sessions as well."
   (when (gnus-current-topic)
     (gnus-topic-goto-topic (gnus-current-topic))
     (if permanent
-	(setcar (cddr 
+	(setcar (cddr
 		 (cadr
 		  (gnus-topic-find-topology (gnus-current-topic))))
 		'hidden))
@@ -1296,8 +1296,8 @@ If PERMANENT, make it stay shown in subsequent sessions as well."
   (when (gnus-group-topic-p)
     (if (not permanent)
 	(gnus-topic-remove-topic t nil)
-      (let ((topic 
-	     (gnus-topic-find-topology 
+      (let ((topic
+	     (gnus-topic-find-topology
 	      (completing-read "Show topic: " gnus-topic-alist nil t))))
 	(setcar (cddr (cadr topic)) nil)
 	(setcar (cdr (cadr topic)) 'visible)
@@ -1312,7 +1312,7 @@ If RECURSIVE is t, mark its subtopics too."
   (if (not topic)
       (call-interactively 'gnus-group-mark-group)
     (save-excursion
-      (let ((groups (gnus-topic-find-groups topic gnus-level-killed t nil 
+      (let ((groups (gnus-topic-find-groups topic gnus-level-killed t nil
 					    recursive)))
 	(while groups
 	  (funcall (if unmark 'gnus-group-remove-mark 'gnus-group-set-mark)
@@ -1416,7 +1416,7 @@ If UNINDENT, remove an indentation."
 	(gnus-topic-kill-group)
 	(push (cdar gnus-topic-killed-topics) gnus-topic-alist)
 	(gnus-topic-create-topic
-	 topic parent nil (cdaar gnus-topic-killed-topics))
+	 topic parent nil (cdar (car gnus-topic-killed-topics)))
 	(pop gnus-topic-killed-topics)
 	(or (gnus-topic-goto-topic topic)
 	    (gnus-topic-goto-topic parent))))))
@@ -1435,7 +1435,7 @@ If UNINDENT, remove an indentation."
       (push (cdar gnus-topic-killed-topics) gnus-topic-alist)
       (gnus-topic-create-topic
        topic grandparent (gnus-topic-next-topic parent)
-       (cdaar gnus-topic-killed-topics))
+       (cdar (car gnus-topic-killed-topics)))
       (pop gnus-topic-killed-topics)
       (gnus-topic-goto-topic topic))))
 
@@ -1558,16 +1558,16 @@ If REVERSE, sort in reverse order."
 	     (mapcar `(lambda (top)
 			(gnus-topic-sort-topics-1 top ,reverse))
 		     (sort (cdr top)
-			   '(lambda (t1 t2) 
+			   '(lambda (t1 t2)
 			      (string-lessp (caar t1) (caar t2)))))))
 	(setcdr top (if reverse (reverse subtop) subtop))))
   top)
 
 (defun gnus-topic-sort-topics (&optional topic reverse)
-  "Sort topics in TOPIC alphabeticaly by topic name.
+  "Sort topics in TOPIC alphabetically by topic name.
 If REVERSE, reverse the sorting order."
-  (interactive 
-   (list (completing-read "Sort topics in : " gnus-topic-alist nil t 
+  (interactive
+   (list (completing-read "Sort topics in : " gnus-topic-alist nil t
 			  (gnus-current-topic))
 	 current-prefix-arg))
   (let ((topic-topology (or (and topic (cdr (gnus-topic-find-topology topic)))
@@ -1579,8 +1579,8 @@ If REVERSE, reverse the sorting order."
 
 (defun gnus-topic-move (current to)
   "Move the CURRENT topic to TO."
-  (interactive 
-   (list 
+  (interactive
+   (list
     (gnus-group-topic-name)
     (completing-read "Move to topic: " gnus-topic-alist nil t)))
   (unless (and current to)
@@ -1613,7 +1613,7 @@ If REVERSE, reverse the sorting order."
 	  ;; Add the group to the topic.
 	  (nconc (assoc topic gnus-topic-alist) (list newsgroup))
 	  (throw 'end t))))))
-	  
+
 (provide 'gnus-topic)
 
 ;;; gnus-topic.el ends here

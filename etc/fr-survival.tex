@@ -3,8 +3,8 @@
 % Title:  GNU Emacs Survival Card
 % Author: Wlodek Bzyl <matwb@univ.gda.pl>
 %
-% $Revision: 1.8 $
-% $Date: 2000/05/05 22:00:48 $
+% $Revision: 1.2 $
+% $Date: 2003/02/04 14:30:41 $
 %
 %**start of header
 
@@ -15,7 +15,7 @@
 % optional paragraphs separated with \askip amount of vertical space
 % \key{KEY-NAME} description of key or
 % \mkey{M-x LONG-LISP-NAME} description of Elisp function
-%  
+%
 % \kbd{ARG} -- argument is typed literally
 
 \def\plainfmtname{plain}
@@ -23,7 +23,7 @@
 \else
   \errmessage{This file requires `plain' format to be typeset correctly}
   \endinput
-\fi 
+\fi
 
 % Copyright (c) 2000 Free Software Foundation, Inc.
 
@@ -57,7 +57,7 @@
     Traduction fran\c{c}aise \'Eric Jacoboni (jaco@teaser.fr)
 
     Vous pouvez faire et distribuer des copies de cette carte, pourvu
-    que la note de copyright, ainsi que cette notice soient 
+    que la note de copyright, ainsi que cette notice soient
     pr\'eserv\'ees sur toutes les copies.\par}}
 
 \hsize 3.2in
@@ -88,7 +88,7 @@
 
 % The TeXbook, p. 257
 \let\lr=L \newbox\leftcolumn
-\output={\if L\lr 
+\output={\if L\lr
     \global\setbox\leftcolumn\columnbox \global\let\lr=R
   \else
        \doubleformat \global\let\lr=L\fi}
@@ -102,7 +102,7 @@
 
 \def\bye{\par\vfil\supereject
   \if R\lr \null\vfil\eject\fi
-  \end}  
+  \end}
 
 \outer\def\title#1#2{{\titlefont\centerline{#1}}\vskip 1ex plus 0.5ex
    \centerline{\ss#2}
@@ -131,7 +131,7 @@
 \def\nohyphens
    {\hyphenpenalty10000\exhyphenpenalty10000\pretolerance10000}
 \def\raggedspaces
-   {\spaceskip=0.3333em\relax 
+   {\spaceskip=0.3333em\relax
     \xspaceskip=0.5em\relax}
 \def\raggedright
    {\raggedstretch=6em
@@ -247,7 +247,7 @@ tel fichier, tapez `{\tt etags} {\it fichier\_entr\'ee}' \`a l'invite du shell.
 \mkey{M-x tags-query-replace} lance query-replace sur tous les
 fichiers enregistr\'es dans le tableau des marqueurs
 \key{M-,} continue la derni\`ere recherche de marqueurs ou le dernier
-query-replace 
+query-replace
 
 \section{Compilation}
 
@@ -314,9 +314,9 @@ Les r\'eponses correctes dans le mode query-replace sont :
 \key{[\^{}$\ldots$]} compl\'emente la classe
 
 \key{\\{\it c}} prot\`ege les caract\`eres qui, sinon, auraient une
-  signification sp\'eciale dans les expressions rationnelles. 
+  signification sp\'eciale dans les expressions rationnelles.
 
-\key{$\ldots$\\|$\ldots$\\|$\ldots$} correspond \`a une 
+\key{$\ldots$\\|$\ldots$\\|$\ldots$} correspond \`a une
 alternative (``ou'') .
 \key{\\( $\ldots$ \\)} groupe une suite d'\'el\'ements de motif pour
 former un \'el\'ement unique.
@@ -372,7 +372,7 @@ former un \'el\'ement unique.
 \mkey{M-x set-language-environment} pr\'ecise la langue principale
 
 \key{C-x RET c} fixe le syst\`eme de codage pour la commande suivante
-\mkey{M-x find-file-literally} visite un fichier sans aucune conversion 
+\mkey{M-x find-file-literally} visite un fichier sans aucune conversion
 
 \mkey{M-x list-coding-systems} affiche tous les syst\`emes de codage
 \mkey{M-x prefer-coding-system} choisit le syst\`eme de codage pr\'ef\'er\'e
@@ -391,7 +391,7 @@ former un \'el\'ement unique.
 
 \section{Obtenir de l'aide}
 
-Emacs effectue pour vous la compl\'etion des commandes. En faisant \kbd{M-x} 
+Emacs effectue pour vous la compl\'etion des commandes. En faisant \kbd{M-x}
 {\it tab\/} ou {\it espace\/}, vous obtiendrez une liste des commandes
 Emacs.
 \askip

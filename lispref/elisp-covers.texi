@@ -24,7 +24,7 @@
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @page
@@ -47,7 +47,7 @@
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2
-@center by Bil Lewis, 
+@center by Bil Lewis,
 @center Dan LaLiberte, and
 @center the GNU Manual Group
 
@@ -78,7 +78,7 @@
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @page
@@ -112,7 +112,7 @@
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
-@center by Bil Lewis, 
+@center by Bil Lewis,
 @center Dan LaLiberte, and
 @center the GNU Manual Group
 
@@ -143,7 +143,7 @@
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @page
@@ -173,7 +173,7 @@
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @page
@@ -203,7 +203,7 @@
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 
@@ -216,7 +216,7 @@
 @center for Unix Users
 @center Edition 2.3, June 1994
 @sp 4
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @sp 4
@@ -225,7 +225,7 @@
 @author FSF
 
 @author
- 
+
 @page
 @c ================  Spine 2 ================
 
@@ -235,7 +235,7 @@
 @center for Unix Users
 @center Edition 2.3, June 1994
 @sp 4
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 

@@ -7,7 +7,7 @@
   If you used WinZip to unpack the distribution, we suggest to
   remove the files and unpack again with a different program!
   WinZip is known to create some subtle and hard to debug problems,
-  such as converting files to DOS CR-LF format, not creating empty 
+  such as converting files to DOS CR-LF format, not creating empty
   directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
   site.
 
@@ -17,6 +17,13 @@
   ports of GCC, but Emacs requires the Mingw headers and libraries to
   build (latest versions of the Cygwin toolkit, at least since v1.3.3,
   include the MinGW headers and libraries as an integral part).
+
+  Other compilers may work, but specific reports from people that have
+  tried suggest that the Intel C compiler (for example) may produce an
+  Emacs executable with strange filename completion behaviour.  Unless
+  you would like to assist by finding and fixing the cause of any bugs
+  like this, we recommend the use of the supported compilers mentioned
+  in the previous paragraph.
 
   If you build Emacs on Windows 9X or ME, not on Windows 2000 or
   Windows NT, we suggest to install the Cygwin port of Bash.
@@ -35,7 +42,7 @@
   In addition, using 4NT as your shell is known to fail the build process,
   at least for 4NT version 3.01.  Use cmd.exe, the default NT shell,
   instead.
- 
+
                                          sh exists     no sh
 
     cygwin b20.1 make (3.75):            fails[1, 5]   fails[2, 5]
@@ -46,7 +53,7 @@
     cygwin compiled gmake 3.77:          fails[1, 5]   fails[2, 5]
     cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
-    mingw32 compiled make 3.79.1:        okay          okay 
+    mingw32 compiled make 3.79.1:        okay          okay
 
   Notes:
 
@@ -74,6 +81,25 @@
   N.B.  It is normal to see a few error messages output while configure
   is running, when gcc support is being tested.  These cannot be
   surpressed because of limitations in the Windows 9x command.com shell.
+
+* Optional image library support
+
+  To build Emacs with support for PNG images, the libpng and zlib
+  headers must be in the include path when the configure script is
+  run.  This can be setup using environment variables, or by
+  specifying --cflags -I...  options on the command-line to
+  configure.bat.  Similarly, the jpeg-6b, libXpm, tiff and libungif
+  headers need to be in the include path for support for those image
+  formats to work. The configure script will report whether it was
+  able to detect the headers.
+
+  To use the PNG support, zlib.dll (or zlibd.dll) and libpng.dll (or
+  libpng13.dll, or libpng13d.dll) must be on the PATH or in the same
+  directory as emacs.exe when Emacs is started. Similar instructions
+  apply for other image libraries. Note that tiff support depends on
+  the jpeg library. If you did not compile the libraries yourself, you
+  must make sure that the jpeg library you install is the same one
+  that the tiff library was compiled against.
 
 * Building
 

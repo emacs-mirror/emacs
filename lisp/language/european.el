@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 1997, 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, European
 
@@ -32,17 +32,6 @@
 
 ;; Latin-1 (ISO-8859-1)
 
-(make-coding-system
- 'iso-latin-1 2 ?1
- "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
- '(ascii latin-iso8859-1 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
- '((safe-charsets ascii latin-iso8859-1)
-   (mime-charset . iso-8859-1)))
-
-(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
-(define-coding-system-alias 'latin-1 'iso-latin-1)
-
 (set-language-info-alist
  "Latin-1" '((charset ascii latin-iso8859-1)
 	     (coding-system iso-latin-1)
@@ -64,8 +53,10 @@ character set which supports the following European languages:
 We also have specific language environments for the following languages:
   For Dutch, \"Dutch\".
   For German, \"German\".
-  For Spanish, \"Spanish\".
   For French, \"French\".
+  For Italian, \"Italian\".
+  For Slovenian, \"Slovenian\".
+  For Spanish, \"Spanish\".
 
 Latin-1 also covers several written languages outside Europe, including
 Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
@@ -78,7 +69,7 @@ Indonesian/Malay, Tagalog (Philippines), Swahili and Afrikaans."))
  'iso-latin-2 2 ?2
  "ISO 2022 based 8-bit encoding for Latin-2 (MIME:ISO-8859-2)."
  '(ascii latin-iso8859-2 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-2)
    (mime-charset . iso-8859-2)))
 
@@ -101,6 +92,7 @@ character set which supports the following languages:
  and Swedish.
 We also have specific language environments for the following languages:
   For Czech, \"Czech\".
+  For Croatian, \"Croatian\".
   For Romanian, \"Romanian\".
   For Slovak, \"Slovak\"."))
  '("European"))
@@ -112,7 +104,7 @@ We also have specific language environments for the following languages:
  'iso-latin-3 2 ?3
  "ISO 2022 based 8-bit encoding for Latin-3 (MIME:ISO-8859-3)."
  '(ascii latin-iso8859-3 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-3)
    (mime-charset . iso-8859-3)))
 
@@ -140,7 +132,7 @@ These languages are supported with the Latin-3 (ISO-8859-3) character set:
  'iso-latin-4 2 ?4
  "ISO 2022 based 8-bit encoding for Latin-4 (MIME:ISO-8859-4)."
  '(ascii latin-iso8859-4 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-4)
    (mime-charset . iso-8859-4)))
 
@@ -168,7 +160,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
  'iso-latin-5 2 ?9
  "ISO 2022 based 8-bit encoding for Latin-5 (MIME:ISO-8859-9)."
  '(ascii latin-iso8859-9 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii latin-iso8859-9)
    (mime-charset . iso-8859-9)))
 
@@ -194,7 +186,7 @@ These languages are supported with the Latin-4 (ISO-8859-4) character set:
 					; for `Celtic' is taken.
  "ISO 2022 based 8-bit encoding for Latin-8 (MIME:ISO-8859-14)."
  '(ascii latin-iso8859-14 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
+   nil nil nil nil nil nil nil nil nil nil nil t t)
  '((safe-charsets ascii latin-iso8859-14)
    (mime-charset . iso-8859-14)))
 
@@ -224,7 +216,7 @@ covered by other ISO-8859 character sets:
  'iso-latin-9 2 ?0			; `0' for `Latin-0'
  "ISO 2022 based 8-bit encoding for Latin-9 (MIME:ISO-8859-15)."
  '(ascii latin-iso8859-15 nil nil
-   nil nil nil nil nil nil nil nil nil nil nil nil t)
+   nil nil nil nil nil nil nil nil nil nil nil t t)
  '((safe-charsets ascii latin-iso8859-15)
    (mime-charset . iso-8859-15)))
 
@@ -250,12 +242,27 @@ Latin-9 is sometimes nicknamed `Latin-0'."))
  '("European"))
 
 (set-language-info-alist
+ "Dutch" '((tutorial . "TUTORIAL.nl")
+	   (charset ascii latin-iso8859-1)
+	   (coding-system iso-latin-1 iso-latin-9)
+	   (coding-priority iso-latin-1)
+	   (nonascii-translation . latin-iso8859-1)
+	   (unibyte-syntax . "latin-1")
+	   (unibyte-display . iso-latin-1)
+	   (input-method . "dutch")
+	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
+	   (documentation . "\
+This language environment is almost the same as Latin-1,
+but it selects the Dutch tutorial and input method."))
+ '("European"))
+
+(set-language-info-alist
  "German" '((tutorial . "TUTORIAL.de")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "german-postfix")
-	    (nonascii-translation . iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "\
@@ -270,7 +277,7 @@ Additionally, it selects the German tutorial."))
 (set-language-info-alist
  "French" '((tutorial . "TUTORIAL.fr")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
@@ -279,7 +286,23 @@ Additionally, it selects the German tutorial."))
 	    (sample-text . "French (Fran,Ag(Bais)	Bonjour, Salut")
 	    (documentation . "\
 This language environment is almost the same as Latin-1,
-but it selects the French tutorial."))
+but it selects the French tutorial and input method."))
+ '("European"))
+
+(set-language-info-alist
+ "Italian" '((tutorial . "TUTORIAL.it")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1 iso-latin-9)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (input-method . "italian-postfix")
+	    (sample-text . "Salve, ciao!")
+	    (documentation . "\
+This language environment is almost the same as Latin-1,
+but sets the default input method to \"italian-postfix\".
+Additionally, it selects the Italian tutorial."))
  '("European"))
 
 (set-language-info-alist
@@ -287,21 +310,23 @@ but it selects the French tutorial."))
 	      (coding-system . (iso-8859-2))
 	      (coding-priority . (iso-8859-2))
 	      (nonascii-translation . latin-iso8859-2)
-	      (input-method . "latin-2-postfix")
+	      (input-method . "slovenian")
 	      (unibyte-syntax . "latin-2")
 	      (unibyte-display . iso-8859-2)
 	      (tutorial . "TUTORIAL.sl")
 	      (sample-text . ",B.(Belimo vam uspe,B9(Ben dan!")
-	      (documentation . t))
+	      (documentation . "\
+This language environment is almost the same as Latin-2,
+but it selects the Slovenian tutorial and input method."))
  '("European"))
 
 (set-language-info-alist
  "Spanish" '((tutorial . "TUTORIAL.es")
 	    (charset ascii latin-iso8859-1)
-	    (coding-system iso-latin-1)
+	    (coding-system iso-latin-1 iso-latin-9)
 	    (coding-priority iso-latin-1)
 	    (input-method . "spanish-postfix")
-	    (nonascii-translation . iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
 	    (unibyte-syntax . "latin-1")
 	    (unibyte-display . iso-latin-1)
 	    (sample-text . "Spanish (Espa,Aq(Bol)	,A!(BHola!")
@@ -311,20 +336,6 @@ but it sets the default input method to \"spanish-postfix\",
 and it selects the Spanish tutorial."))
  '("European"))
 
-(set-language-info-alist
- "Dutch" '((tutorial . "TUTORIAL.nl")
-	   (charset ascii latin-iso8859-1)
-	   (coding-system iso-latin-1)
-	   (coding-priority iso-latin-1)
-	   (nonascii-translation . iso-latin-1)
-	   (unibyte-syntax . "latin-1")
-	   (unibyte-display . iso-latin-1)
-	   (sample-text . "Er is een aantal manieren waarop je dit kan doen")
-	   (documentation . "\
-This language environment is almost the same as Latin-1,
-but it selects the Dutch tutorial."))
- '("European"))
-
 ;; For Turkish, the character set ISO-8859-9 (Latin-5) is used.  But,
 ;; before the introduction of ISO-8859-9 in 1988, ISO-8859-3 (Latin-3)
 ;; was used for Turkish.  Those who use Latin-3 for Turkish should use
@@ -332,7 +343,7 @@ but it selects the Dutch tutorial."))
 
 (set-language-info-alist
  "Turkish" '((charset ascii latin-iso8859-9)
-	     (coding-system iso-latin-5)
+	     (coding-system iso-latin-5 iso-latin-3)
 	     (coding-priority iso-latin-5)
 	     (nonascii-translation . latin-iso8859-9)
 	     (unibyte-syntax . "latin-5")
@@ -361,14 +372,26 @@ but it selects the Dutch tutorial."))
 (set-language-info-alist
  "Welsh" `((coding-system utf-8 latin-8) ; the input method is Unicode-based
 	   (coding-priority utf-8 latin-8)
+	   (nonascii-translation . latin-iso8859-14)
 	   (input-method . "welsh")
 	   (documentation . "Support for Welsh, using Unicode."))
  '("European"))
 
 (set-language-info-alist
+ "Latin-6" `((coding-system latin-6)
+	     (coding-priority latin-6)
+	     (nonascii-translation . ,(get 'decode-iso-latin-6 'translation-table))
+	     (input-method . "latin-prefix")
+	     (features code-pages)
+	     (documentation . "Support for Latin-6."))
+ '("European"))
+
+(set-language-info-alist
  "Latin-7" `((coding-system latin-7)
 	     (coding-priority latin-7)
-	     ;; Fixme: input-method
+	     (nonascii-translation . ,(get 'decode-iso-latin-7
+					   'translation-table))
+	     (input-method . "latin-prefix")
 	     (features code-pages)
 	     (documentation . "Support for Latin-7, e.g. Latvian, Lithuanian."))
  '("European"))
@@ -377,6 +400,8 @@ but it selects the Dutch tutorial."))
  "Lithuanian" `((coding-system latin-7)
 		(coding-priority latin-7)
 		(input-method . "lithuanian-keyboard")
+		(nonascii-translation . ,(get 'decode-iso-latin-7
+					      'translation-table))
 		(features code-pages)
 		(documentation . "Support for Lithuanian."))
  '("European"))
@@ -385,8 +410,33 @@ but it selects the Dutch tutorial."))
  "Latvian" `((coding-system latin-7)
 	     (coding-priority latin-7)
 	     (input-method . "latvian-keyboard")
+	     (nonascii-translation . ,(get 'decode-iso-latin-7
+					   'translation-table))
 	     (features code-pages)
 	     (documentation . "Support for Latvian."))
+ '("European"))
+
+(set-language-info-alist
+ "Swedish" '((tutorial . "TUTORIAL.sv")
+	    (charset ascii latin-iso8859-1)
+	    (coding-system iso-latin-1)
+	    (coding-priority iso-latin-1)
+	    (nonascii-translation . latin-iso8859-1)
+	    (unibyte-syntax . "latin-1")
+	    (unibyte-display . iso-latin-1)
+	    (sample-text . "Goddag Hej")
+	    (documentation . "Support for Swedish"))
+ '("European"))
+
+(set-language-info-alist
+ "Croatian" '((charset . (ascii latin-iso8859-2))
+	      (coding-system . (iso-8859-2))
+	      (coding-priority . (iso-8859-2))
+	      (input-method . "croatian")
+	      (nonascii-translation . latin-iso8859-2)
+	      (unibyte-syntax . "latin-2")
+	      (unibyte-display . iso-8859-2)
+	      (documentation . "Support for Croatian with Latin-2 encoding."))
  '("European"))
 
 ;; Definitions for the Mac Roman character sets and coding system.
@@ -540,7 +590,7 @@ but it selects the Dutch tutorial."))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
   (define-translation-table 'mac-roman-decoder translation-table)
-  (define-translation-table 'mac-roman-encoder 
+  (define-translation-table 'mac-roman-encoder
     (char-table-extra-slot translation-table 0)))
 
 (define-ccl-program decode-mac-roman
@@ -561,7 +611,12 @@ but it selects the Dutch tutorial."))
   `(1
     ((loop
       (read-multibyte-character r0 r1)
+      (translate-character ucs-mule-to-mule-unicode r0 r1)
       (translate-character mac-roman-encoder r0 r1)
+      (if (r0 != ,(charset-id 'ascii))
+	  (if (r0 != ,(charset-id 'eight-bit-graphic))
+	      (if (r0 != ,(charset-id 'eight-bit-control))
+		  (r1 = ??))))
       (write-repeat r1))))
   "CCL program to encode Mac Roman")
 
@@ -593,7 +648,7 @@ positions (integers or markers) specifying the region."
       (compose-string string idx (match-end 0))
       (setq idx (match-end 0))))
   string)
-      
+
 (defun diacritic-compose-buffer ()
   "Compose diacritic characters in the current buffer."
   (interactive)
@@ -609,13 +664,12 @@ The text matches the regular expression PATTERN.
 Optional 4th argument STRING, if non-nil, is a string containing text
 to compose.
 
-The return value is number of composed characters."
-  (if (< (1+ from) to)
-      (prog1 (- to from)
-	(if string
-	    (compose-string string from to)
-	  (compose-region from to))
-	(- to from))))
+The return value is the number of composed characters."
+  (when (< (1+ from) to)
+      (if string
+	  (compose-string string from to)
+	(compose-region from to))
+      (- to from)))
 
 ;; Register a function to compose Unicode diacrtics and marks.
 (let ((patterns '(("\\C^\\c^+" . diacritic-composition-function))))

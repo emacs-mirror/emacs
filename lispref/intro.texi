@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 2002
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/intro
 
@@ -86,6 +86,8 @@ variable name, as appropriate.  Also state the number of the edition
 you are criticizing.
 @end ifnottex
 
+@cindex bugs
+@cindex suggestions
 Please mail comments and corrections to
 
 @example
@@ -335,7 +337,7 @@ The description follows on succeeding lines, sometimes with examples.
                                           function, @code{foo}.
 * A Sample Variable Description::       A description of an imaginary
                                           variable,
-                                          @code{electric-future-map}.  
+                                          @code{electric-future-map}.
 @end menu
 
 @node A Sample Function Description

@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, latin, input method
 
@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Key translation maps were originally copied from iso-acc.el.
-;; latin-1-prefix: extra special characters added, adapted from the vim 
+;; latin-1-prefix: extra special characters added, adapted from the vim
 ;;                 digraphs (from J.H.M.Dassen <jdassen@wi.leidenuniv.nl>)
 ;;                 by R.F. Smith <rsmith@xs4all.nl>
 ;;
@@ -35,6 +35,12 @@
 ;; Maintainer: W,B3(Bodek Bzyl <matwb@univ.gda.pl>
 ;;
 ;; latin-[89]-prefix: Dave Love <fx@gnu.org>
+
+;; You might make extra input sequences on the basis of the X
+;; locale/*/Compose files (which have both prefix and postfix
+;; sequences), but bear in mind that sequences which are logical in
+;; that context may not be sensible when they're not signalled with
+;; the Compose key.  An example is a double space for NBSP.
 
 ;;; Code:
 
@@ -58,11 +64,10 @@
              |   ~    | ~p -> ,A6(B  ~- -> ,A-(B  ~= -> ,A/(B  ~| -> ,A&(B
    symbol    |  _ /   | _o -> ,A:(B  _a -> ,A*(B  // -> ,A0(B  /\\ -> ,AW(B  _y -> ,A%(B
              |  _ /   | _: -> ,Aw(B  /c -> ,A"(B  /2 -> ,A=(B  /4 -> ,A<(B  /3 -> ,A>(B
-             |  _ /   | /= => ,A,(B
+             |  _ /   | /= -> ,A,(B
    symbol    |   ^    | ^r -> ,A.(B  ^c -> ,A)(B  ^1 -> ,A9(B  ^2 -> ,A2(B  ^3 -> ,A3(B
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Fixme: should we have non-break space somehow?  If so, how?
 (quail-define-rules
  ("'A" ?,AA(B)
  ("'E" ?,AI(B)
@@ -144,6 +149,7 @@
  ("/ " ?/)
  ("_o" ?,A:(B)
  ("_a" ?,A*(B)
+ ("_ " ?,A (B)
 ;; Symbols added by Roland Smith <rsmith@xs4all.nl>
  ("_+" ?,A1(B)
  ("_y" ?,A%(B)
@@ -589,7 +595,7 @@ Key translation rules are:
   circumflex |   ^    | ^a -> ,Cb(B
   diaeresis  |   \"    | \"a -> ,Cd(B   \"\" -> ,C((B
    cedilla   |   ~    | ~c -> ,Cg(B   ~s -> ,C:(B   ~~ -> ,C8(B
-  dot above  | ~ / .  | ~o -> ,Cu(B   /o -> ,Cu(B   .o -> ,Cu(B
+  dot above  |   / .  | /g -> ,Cu(B   .o -> ,Cu(B
     misc     | \" ~ /  | \"s -> ,C_(B   ~g -> ,C;(B   ~u -> ,C}(B   /h -> ,C1(B   /i -> ,C9(B
    symbol    |   ~    | ~` -> ,C"(B   /# -> ,C#(B   /$ -> ,C$(B   // -> ,C0(B
 " nil t nil nil nil nil nil nil nil nil t)
@@ -654,17 +660,10 @@ Key translation rules are:
  ("\"s" ?,C_(B)
  ("\"\"" ?,C((B)
  ("\" " ?\")
- ("~A" ?,CC(B)
  ("~C" ?,CG(B)
- ("~D" ?,CP(B)
  ("~N" ?,CQ(B)
- ("~O" ?,CU(B)
- ("~a" ?,Cc(B)
  ("~c" ?,Cg(B)
- ("~d" ?,Cp(B)
  ("~n" ?,Cq(B)
- ("~o" ?,Cu(B)
- ("~$" ?,C%(B)
  ("~S" ?,C*(B)
  ("~s" ?,C:(B)
  ("~G" ?,C+(B)
@@ -684,7 +683,6 @@ Key translation rules are:
  ("/h" ?,C1(B)
  ("/i" ?,C9(B)
  ("/z" ?,C?(B)
- ("/r" ?,C.(B)
  ("/." ?,C(B)
  ("/#" ?,C#(B)
  ("/$" ?,C$(B)
@@ -712,7 +710,7 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("/e" ?,Bj(B)
  ("/l" ?,B3(B)
  ("/n" ?,Bq(B)
- ("/o" ?,Bs(B) 
+ ("/o" ?,Bs(B)
  ("/s" ?,B6(B)
  ("/x" ?,B<(B)
  ("/z" ?,B?(B)
@@ -721,7 +719,7 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("/E" ?,BJ(B)
  ("/L" ?,B#(B)
  ("/N" ?,BQ(B)
- ("/O" ?,BS(B) 
+ ("/O" ?,BS(B)
  ("/S" ?,B&(B)
  ("/X" ?,B,(B)
  ("/Z" ?,B/(B))
@@ -877,7 +875,7 @@ For example, the character named `aogonek' is obtained by `/a'."
    symbol    |   ^    | ^r -> ,_.(B  ^c -> ,_)(B
 " nil t nil nil nil nil nil nil nil nil t)
 
-;; Basically following Latin-1 plus dottiness from Latin-3.
+;; Basically following Latin-1, plus dottiness from Latin-3.
 (quail-define-rules
  (".B" ?,_!(B)
  (".b" ?,_"(B)
@@ -982,4 +980,206 @@ For example, the character named `aogonek' is obtained by `/a'."
  ("^r" ?,_.(B)
  ("^c" ?,_)(B))
 
+(quail-define-package
+ "latin-prefix" "Latin" "L>" t
+ "Latin characters input method with prefix modifiers.
+This is the union of various input methods originally made for input
+of characters from a single Latin-N charset.
+
+    effect   | prefix | examples
+ ------------+--------+----------
+    acute    |   '    | 'a -> ,Aa(B, '' -> ,A4(B
+    grave    |   `    | `a -> ,A`(B
+  circumflex |   ^    | ^a -> ,Ab(B
+  diaeresis  |   \"    | \"a -> ,Ad(B  \"\" -> ,A((B
+    tilde    |   ~    | ~a -> ,Ac(B
+   cedilla   |   ~    | ~c -> ,Ag(B
+    breve    |   ~    | ~a -> $,1 #(B
+    caron    |   ~    | ~c -> $,1 -(B
+  dot above  | ~ / .  | ~o -> $,1 A(B   /o -> $,1 A(B   .o -> $,1 A(B
+    misc     | \" ~ /  | \"s -> ,A_(B  ~d -> ,Ap(B  ~t -> ,A~(B  /a -> ,Ae(B  /e -> ,Af(B  /o -> ,Ax(B
+   symbol    |   ~    | ~> -> ,A;(B  ~< -> ,A+(B  ~! -> ,A!(B  ~? -> ,A?(B  ~~ -> ,A8(B
+   symbol    |  _ /   | _o -> ,A:(B  _a -> ,A*(B  // -> ,A0(B  /\\ -> ,AW(B  _y -> ,A%(B
+   symbol    |   ^    | ^r -> ,A.(B  ^c -> ,A)(B  ^1 -> ,A9(B  ^2 -> ,A2(B  ^3 -> ,A3(B
+" nil t nil nil nil nil nil nil nil nil t)
+
+(quail-define-rules
+ ("' " ?')
+ ("''" ?,A4(B)
+ ("'A" ?,AA(B)
+ ("'E" ?,AI(B)
+ ("'I" ?,AM(B)
+ ("'O" ?,AS(B)
+ ("'U" ?,AZ(B)
+ ("'W" ?$,1nb(B)
+ ("'Y" ?,A](B)
+ ("'a" ?,Aa(B)
+ ("'e" ?,Ai(B)
+ ("'i" ?,Am(B)
+ ("'o" ?,As(B)
+ ("'u" ?,Az(B)
+ ("'w" ?$,1nc(B)
+ ("'y" ?,A}(B)
+ (".B" ?$,1mB(B)
+ (".C" ?$,1 *(B)
+ (".D" ?$,1mJ(B)
+ (".F" ?$,1m^(B)
+ (".G" ?$,1 @(B)
+ (".I" ?$,1 P(B)
+ (".M" ?$,1n (B)
+ (".P" ?$,1n6(B)
+ (".S" ?$,1n@(B)
+ (".T" ?$,1nJ(B)
+ (".Z" ?$,1!;(B)
+ (".b" ?$,1mC(B)
+ (".c" ?$,1 +(B)
+ (".d" ?$,1mK(B)
+ (".f" ?$,1m_(B)
+ (".g" ?$,1 A(B)
+ (".m" ?$,1n!(B)
+ (".p" ?$,1n7(B)
+ (".s" ?$,1nA(B)
+ (".t" ?$,1nK(B)
+ (".z" ?$,1!<(B)
+ ("/ " ?/)
+ ("/#" ?,A#(B)
+ ("/$" ?,A$(B)
+ ("/." ?$,1$y(B)
+ ("//" ?,A0(B)
+ ("/2" ?,A=(B)
+ ("/3" ?,A>(B)
+ ("/4" ?,A<(B)
+ ("/=" ?,A,(B)
+ ("/A" ?,AE(B)
+ ("/C" ?$,1 *(B)
+ ("/E" ?,AF(B)
+ ("/G" ?$,1 @(B)
+ ("/H" ?$,1 F(B)
+ ("/I" ?$,1 P(B)
+ ("/O" ?,AX(B)
+ ("/O" ?$,1 r(B)
+ ("/Z" ?$,1!;(B)
+ ("/\\" ?,AW(B)
+ ("/a" ?,Ae(B)
+ ("/c" ?,A"(B)
+ ("/c" ?$,1 +(B)
+ ("/e" ?,Af(B)
+ ("/g" ?$,1 A(B)
+ ("/h" ?$,1 G(B)
+ ("/i" ?$,1 Q(B)
+ ("/o" ?,Ax(B)
+ ("/o" ?$,1 s(B)
+ ("/z" ?$,1!<(B)
+ ("\" " ?\")
+ ("\"A" ?,AD(B)
+ ("\"E" ?,AK(B)
+ ("\"I" ?,AO(B)
+ ("\"O" ?,AV(B)
+ ("\"U" ?,A\(B)
+ ("\"W" ?$,1nd(B)
+ ("\"Y" ?$,1!8(B)
+ ("\"\"" ?,A((B)
+ ("\"a" ?,Ad(B)
+ ("\"e" ?,Ak(B)
+ ("\"i" ?,Ao(B)
+ ("\"o" ?,Av(B)
+ ("\"s" ?,A_(B)
+ ("\"u" ?,A|(B)
+ ("\"w" ?$,1ne(B)
+ ("\"y" ?,A(B)
+ ("^ " ?^)
+ ("^1" ?,A9(B)
+ ("^2" ?,A2(B)
+ ("^3" ?,A3(B)
+ ("^A" ?,AB(B)
+ ("^C" ?$,1 ((B)
+ ("^E" ?,AJ(B)
+ ("^G" ?$,1 <(B)
+ ("^H" ?$,1 D(B)
+ ("^I" ?,AN(B)
+ ("^J" ?$,1 T(B)
+ ("^O" ?,AT(B)
+ ("^S" ?$,1 |(B)
+ ("^U" ?,A[(B)
+ ("^W" ?$,1!4(B)
+ ("^Y" ?$,1!6(B)
+ ("^^" ?^)
+ ("^a" ?,Ab(B)
+ ("^c" ?,A)(B)
+ ("^c" ?$,1 )(B)
+ ("^e" ?,Aj(B)
+ ("^g" ?$,1 =(B)
+ ("^h" ?$,1 E(B)
+ ("^i" ?,An(B)
+ ("^j" ?$,1 U(B)
+ ("^o" ?,At(B)
+ ("^r" ?,A.(B)
+ ("^s" ?$,1 }(B)
+ ("^u" ?,A{(B)
+ ("^w" ?$,1!5(B)
+ ("^y" ?$,1!7(B)
+ ("_+" ?,A1(B)
+ ("_:" ?,Aw(B)
+ ("_a" ?,A*(B)
+ ("_o" ?,A:(B)
+ ("_y" ?,A%(B)
+ ("_ " ?,A (B)
+ ("` " ?`)
+ ("`A" ?,A@(B)
+ ("`E" ?,AH(B)
+ ("`I" ?,AL(B)
+ ("`O" ?,AR(B)
+ ("`U" ?,AY(B)
+ ("`W" ?$,1n`(B)
+ ("`Y" ?$,1or(B)
+ ("``" ?`)
+ ("`a" ?,A`(B)
+ ("`e" ?,Ah(B)
+ ("`i" ?,Al(B)
+ ("`o" ?,Ar(B)
+ ("`u" ?,Ay(B)
+ ("`w" ?$,1na(B)
+ ("`y" ?$,1os(B)
+ ("~ " ?~)
+ ("~!" ?,A!(B)
+ ("~$" ?,A#(B)
+ ("~-" ?,A-(B)
+ ("~." ?,A7(B)
+ ("~<" ?\,A+(B)
+ ("~=" ?,A/(B)
+ ("~>" ?\,A;(B)
+ ("~?" ?,A?(B)
+ ("~A" ?,AC(B)
+ ("~C" ?,AG(B)
+ ("~D" ?,AP(B)
+ ("~G" ?$,1 >(B)
+ ("~N" ?,AQ(B)
+ ("~O" ?,AU(B)
+ ("~O" ?$,1 @(B)
+ ("~S" ?$,1 ~(B)
+ ("~S" ?$,1! (B)
+ ("~T" ?,A^(B)
+ ("~U" ?$,1!,(B)
+ ("~Z" ?$,1!=(B)
+ ("~`" ?$,1$x(B)
+ ("~a" ?,Ac(B)
+ ("~c" ?,Ag(B)
+ ("~d" ?,Ap(B)
+ ("~e" ?$,1tL(B)
+ ("~g" ?$,1 ?(B)
+ ("~n" ?,Aq(B)
+ ("~o" ?,Au(B)
+ ("~o" ?$,1 A(B)
+ ("~p" ?,A6(B)
+ ("~s" ?,A'(B)
+ ("~s" ?$,1 (B)
+ ("~s" ?$,1!!(B)
+ ("~t" ?,A~(B)
+ ("~u" ?,A5(B)
+ ("~u" ?$,1!-(B)
+ ("~x" ?,A$(B)
+ ("~z" ?$,1!>(B)
+ ("~|" ?,A&(B)
+ ("~~" ?,A8(B)
+)
 ;;; latin-pre.el ends here

@@ -269,7 +269,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 (define-key reb-lisp-mode-map "\C-c"
   (lookup-key reb-mode-map "\C-c"))
 
-(defvar reb-subexp-mode-map 
+(defvar reb-subexp-mode-map
   (let ((m (make-keymap)))
     (suppress-keymap m)
     ;; Again share the "\C-c" keymap for the commands
@@ -679,5 +679,7 @@ If SUBEXP is non-nil mark only the corresponding sub-expressions."
     (if firstmatch
 	(progn (store-match-data firstmatch)
 	       (reb-show-subexp (or subexp 0))))))
+
+(provide 're-builder)
 
 ;;; re-builder.el ends here

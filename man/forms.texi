@@ -15,17 +15,12 @@
 @c      @smallbook
 @comment %**end of header (This is for running Texinfo on a region.)
 
-@dircategory Emacs
-@direntry
-* Forms: (forms).	Emacs package for editing data bases
-			  by filling in forms.
-@end direntry
-
-@ifinfo
+@copying
 This file documents Forms mode, a form-editing major mode for GNU Emacs.
 
-Copyright 1989, 1997, 2001 Free Software Foundation, Inc.
+Copyright 1989, 1997, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -42,9 +37,15 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
 
-@iftex
+@dircategory Emacs
+@direntry
+* Forms: (forms).	Emacs package for editing data bases
+			  by filling in forms.
+@end direntry
+
 @titlepage
 @sp 6
 @center @titlefont{Forms Mode User's Manual}
@@ -58,31 +59,11 @@ license to the document, as described in section 6 of the license.
 @center Johan Vromans
 @center @i{jvromans@@squirrel.nl}
 @page
-
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1989, 1997, 2001 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
-@page
+@insertcopying
 @end titlepage
-@end iftex
 
-@ifinfo
+@ifnottex
 @node Top
 @top Forms Mode
 
@@ -101,7 +82,7 @@ how to present it.
 * Forms Example::               An example: editing the password data base.
 * Entering and Exiting Forms Mode::
                                 How to visit a file in Forms mode.
-* Forms Commands::              Special commands to use while in Forms mode. 
+* Forms Commands::              Special commands to use while in Forms mode.
 * Data File Format::            How to format the data file.
 * Control File Format::         How to control forms mode.
 * Format Description::          How to define the forms layout.
@@ -112,7 +93,7 @@ how to present it.
 * Credits::                     Thanks everyone.
 * Index::                       Index to this manual.
 @end menu
-@end ifinfo
+@end ifnottex
 
 @node Forms Example
 @chapter Forms Example
@@ -273,7 +254,7 @@ Create a new record and insert it before the current record
 contents for its fields; you can then edit the fields.  With a numeric
 argument, the new record is created @emph{after} the current one.
 See also @code{forms-modified-record-filter} in @ref{Modifying Forms
-Contents}. 
+Contents}.
 
 @findex forms-delete-record
 @kindex C-c C-k
@@ -338,7 +319,7 @@ If the variable @code{forms-forms-scrolls} is set to a value other
 than @code{nil} (which it is, by default), the Emacs functions
 @code{scroll-up} and @code{scroll-down} will perform a
 @code{forms-next-record} and @code{forms-prev-record} when in forms
-mode.  So you can use your favourite page commands to page through the
+mode.  So you can use your favorite page commands to page through the
 data file.
 
 @vindex forms-forms-jump
@@ -550,7 +531,7 @@ modified, just before updating the Forms data file.  If it is
 
 @findex forms-insert-after
 @item forms-insert-after
-If this variable is not @code{nil}, new records are created @emph{after} the 
+If this variable is not @code{nil}, new records are created @emph{after} the
 current record. Also, upon visiting a file, the initial position will be
 at the last record instead of the first one.
 
@@ -632,7 +613,7 @@ in the beginning of this manual might look as follows:
 @end example
 
 When you construct the value of  @code{forms-format-list}, you should
-usually either quote the whole value, like this, 
+usually either quote the whole value, like this,
 
 @example
 (setq forms-format-list
@@ -673,7 +654,7 @@ If @code{forms-read-only} is @code{nil}, the user can modify the fields
 and records of the database.
 
 All normal editing commands are available for editing the contents of the
-displayed record.  You cannot delete or modify the fixed, explanatory 
+displayed record.  You cannot delete or modify the fixed, explanatory
 text that comes from string formatting elements, but you can modify the
 actual field contents.
 
@@ -781,7 +762,7 @@ file.
 
 @item Forms control file error: `forms-number-of-fields' must be a number > 0
 The variable @code{forms-number-of-fields} did not contain a positive
-number. 
+number.
 
 @item Forms control file error: `forms-field-sep' is not a string
 @itemx Forms control file error: `forms-multi-line' must be nil or a one-character string
@@ -854,7 +835,7 @@ An internal error prevented a specific record from being retrieved.
 
 @item No write access to @code{"}@var{file}@code{"}
 An attempt was made to enable edit mode on a file that has been write
-protected. 
+protected.
 
 @item Search failed: @var{regexp}
 The @var{regexp} could not be found in the data file. Forward searching
@@ -918,7 +899,7 @@ The optional FILL should be a character, used to fill to the column."
       (concat "\n" (make-string target fill))
     (make-string (- target (current-column)) fill)))
 ;;
-(defun arch-rj (target field &optional fill) 
+(defun arch-rj (target field &optional fill)
   "Produces a string to skip to column TARGET\
  minus the width of field FIELD.
 Prepends newline if needed.

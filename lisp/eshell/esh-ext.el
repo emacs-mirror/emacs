@@ -24,6 +24,7 @@
 (provide 'esh-ext)
 
 (eval-when-compile (require 'esh-maint))
+(require 'esh-util)
 
 (defgroup eshell-ext nil
   "External commands are invoked when operating system executables are
@@ -48,7 +49,6 @@ loaded into memory, thus beginning a new process."
   :type 'hook
   :group 'eshell-ext)
 
-;; Maybe this should simply be a defvaralias ?  -stef
 (defcustom eshell-binary-suffixes exec-suffixes
   "*A list of suffixes used when searching for executable files."
   :type '(repeat string)

@@ -15,7 +15,7 @@
 % optional paragraphs separated with \askip amount of vertical space
 % \key{KEY-NAME} description of key or
 % \mkey{M-x LONG-LISP-NAME} description of Elisp function
-%  
+%
 % \kbd{ARG} -- argument is typed literally
 
 \def\plainfmtname{plain}
@@ -23,7 +23,7 @@
 \else
   \errmessage{This file requires `plain' format to be typeset correctly}
   \endinput
-\fi 
+\fi
 
 % Copyright (c) 2000 Free Software Foundation, Inc.
 
@@ -85,7 +85,7 @@
 
 % The TeXbook, p. 257
 \let\lr=L \newbox\leftcolumn
-\output={\if L\lr 
+\output={\if L\lr
     \global\setbox\leftcolumn\columnbox \global\let\lr=R
   \else
        \doubleformat \global\let\lr=L\fi}
@@ -99,7 +99,7 @@
 
 \def\bye{\par\vfil\supereject
   \if R\lr \null\vfil\eject\fi
-  \end}  
+  \end}
 
 \outer\def\title#1#2{{\titlefont\centerline{#1}}\vskip 1ex plus 0.5ex
    \centerline{\ss#2}
@@ -128,7 +128,7 @@
 \def\nohyphens
    {\hyphenpenalty10000\exhyphenpenalty10000\pretolerance10000}
 \def\raggedspaces
-   {\spaceskip=0.3333em\relax 
+   {\spaceskip=0.3333em\relax
     \xspaceskip=0.5em\relax}
 \def\raggedright
    {\raggedstretch=6em
@@ -168,7 +168,7 @@ on some keyboards) or after hitting {\it Esc\/} key.
 \section{Running Emacs}
 
 To enter GNU Emacs, just type its name: \kbd{emacs}.
-Emacs divides the frame into several areas: 
+Emacs divides the frame into several areas:
   menu line,
   buffer area with the edited text,
   mode line describing the buffer in the window above it,
@@ -181,7 +181,7 @@ Emacs divides the frame into several areas:
 \key{C-x C-s} save the file
 \key{C-x k} kill a buffer
 \key{C-g} in most context: cancel, stop, abort partially typed or
-  executing command 
+  executing command
 \key{C-x u} undo
 
 \section{Moving About}
@@ -233,7 +233,7 @@ Use \kbd{C-s} or \kbd{C-r} again to repeat the search in either direction.
 
 Tags tables files record locations of function and
 procedure definitions, global variables, data types and anything
-else convenient. To create a tags table file, type 
+else convenient. To create a tags table file, type
 `{\tt etags} {\it input\_files}' as a shell command.
 \askip
 \key{M-.} find a definition
@@ -246,7 +246,7 @@ else convenient. To create a tags table file, type
 \section{Compiling}
 
 \key{M-x compile} compile code in active window
-\key{C-c C-c} go to the next compiler error, when in 
+\key{C-c C-c} go to the next compiler error, when in
   the compile window or
 \key{C-x `} when in the window with source code
 
@@ -272,7 +272,7 @@ else convenient. To create a tags table file, type
 
 \key{C-x m} begin composing a message
 \key{C-c C-c} send the message and switch to another buffer
-\key{C-c C-f C-c} move to the `CC' header field, creating one 
+\key{C-c C-f C-c} move to the `CC' header field, creating one
   if there is none
 
 \section{Miscellaneous}
@@ -309,9 +309,9 @@ Valid responses in query-replace mode are
 \key{[\^{}$\ldots$]} negates the class
 
 \key{\\{\it c}} quote characters otherwise having a special
-  meaning in regular expressions 
+  meaning in regular expressions
 
-\key{$\ldots$\\|$\ldots$\\|$\ldots$} matches one of 
+\key{$\ldots$\\|$\ldots$\\|$\ldots$} matches one of
   the alternatives (``or'')
 \key{\\( $\ldots$ \\)} groups a series of pattern elements to
   a single element
@@ -360,14 +360,14 @@ Valid responses in query-replace mode are
 
 \section{International Character Sets}
 
-\key{C-x RET C-\\} select and activate input method for 
+\key{C-x RET C-\\} select and activate input method for
   the current buffer
 \key{C-\\} enable or disable input method
 \mkey{M-x list-input-methods} show all input methods
 \mkey{M-x set-language-environment} specify principal language
 
 \key{C-x RET c} set coding system for next command
-\mkey{M-x find-file-literally} visit file with no conversion 
+\mkey{M-x find-file-literally} visit file with no conversion
   of any kind
 
 \mkey{M-x list-coding-systems} show all coding systems
@@ -387,7 +387,7 @@ Valid responses in query-replace mode are
 
 \section{Getting Help}
 
-Emacs does command completion for you. Typing \kbd{M-x} 
+Emacs does command completion for you. Typing \kbd{M-x}
 {\it tab\/} or {\it space\/} gives a list of Emacs commands.
 \askip
 \key{C-h} Emacs help

@@ -1,11 +1,11 @@
-;;; ebnf2ps.el --- translate an EBNF to a syntatic chart on PostScript
+;;; ebnf2ps.el --- translate an EBNF to a syntactic chart on PostScript
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/09/24 10:31:13 vinicius>
+;; Time-stamp: <2003-02-10 10:40:14 jbarranquero>
 ;; Version: 3.6.1
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
@@ -44,7 +44,7 @@ Please send all bug fixes and enhancements to
 ;; Introduction
 ;; ------------
 ;;
-;; This package translates an EBNF to a syntatic chart on PostScript.
+;; This package translates an EBNF to a syntactic chart on PostScript.
 ;;
 ;; To use ebnf2ps, insert in your ~/.emacs:
 ;;
@@ -69,7 +69,7 @@ Please send all bug fixes and enhancements to
 ;; Using ebnf2ps
 ;; -------------
 ;;
-;; ebnf2ps provides six commands for generating PostScript syntatic chart
+;; ebnf2ps provides six commands for generating PostScript syntactic chart
 ;; images of Emacs buffers:
 ;;
 ;;	ebnf-print-buffer
@@ -80,7 +80,7 @@ Please send all bug fixes and enhancements to
 ;;	ebnf-eps-region
 ;;
 ;; These commands all perform essentially the same function: they generate
-;; PostScript syntatic chart images suitable for printing on a PostScript
+;; PostScript syntactic chart images suitable for printing on a PostScript
 ;; printer or displaying with GhostScript.  These commands are collectively
 ;; referred to as "ebnf- commands".
 ;;
@@ -482,10 +482,10 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-setup' returns the current setup.
 ;;
-;; `ebnf-syntax-buffer' does a syntatic analysis of your EBNF in the current
+;; `ebnf-syntax-buffer' does a syntactic analysis of your EBNF in the current
 ;; buffer.
 ;;
-;; `ebnf-syntax-region' does a syntatic analysis of your EBNF in the current
+;; `ebnf-syntax-region' does a syntactic analysis of your EBNF in the current
 ;; region.
 ;;
 ;; `ebnf-customize' activates a customization buffer for ebnf2ps options.
@@ -637,7 +637,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ebnf-ignore-empty-rule'		Non-nil means ignore empty rules.
 ;;
-;; `ebnf-optimize'			Non-nil means optimize syntatic chart
+;; `ebnf-optimize'			Non-nil means optimize syntactic chart
 ;;					of rules.
 ;;
 ;; To set the above options you may:
@@ -931,14 +931,14 @@ Please send all bug fixes and enhancements to
 ;; Internal Structures
 ;; -------------------
 ;;
-;; ebnf2ps has two passes.  The first pass does a lexical and syntatic analysis
+;; ebnf2ps has two passes.  The first pass does a lexical and syntactic analysis
 ;; of current buffer and generates an intermediate representation.  The second
 ;; pass uses the intermediate representation to generate the PostScript
-;; syntatic chart.
+;; syntactic chart.
 ;;
 ;; The intermediate representation is a list of vectors, the vector element
-;; represents a syntatic chart element.  Below is a vector representation for
-;; each syntatic chart element.
+;; represents a syntactic chart element.  Below is a vector representation for
+;; each syntactic chart element.
 ;;
 ;; [production   WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH NAME   PRODUCTION ACTION]
 ;; [alternative  WIDTH-FUN DIM-FUN ENTRY HEIGHT WIDTH LIST]
@@ -986,7 +986,7 @@ Please send all bug fixes and enhancements to
 ;; Things To Change
 ;; ----------------
 ;;
-;; . Handle situations when syntatic chart is out of paper.
+;; . Handle situations when syntactic chart is out of paper.
 ;; . Use other alphabet than ascii.
 ;; . Optimizations...
 ;;
@@ -1021,7 +1021,7 @@ Please send all bug fixes and enhancements to
 
 
 (defgroup ebnf2ps nil
-  "Translate an EBNF to a syntatic chart on PostScript"
+  "Translate an EBNF to a syntactic chart on PostScript"
   :prefix "ebnf-"
   :group 'wp
   :group 'postscript)
@@ -1083,10 +1083,10 @@ Please send all bug fixes and enhancements to
   :group 'ebnf2ps)
 
 
-(defgroup ebnf-syntatic nil
-  "Syntatic customization"
+(defgroup ebnf-syntactic nil
+  "Syntactic customization"
   :prefix "ebnf-"
-  :tag "Syntatic"
+  :tag "Syntactic"
   :group 'ebnf2ps)
 
 
@@ -1568,7 +1568,7 @@ Valid values are:
 Any other value is treated as `ebnf'."
   :type '(radio :tag "Syntax"
 		(const ebnf) (const iso-ebnf) (const yacc))
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-lex-comment-char ?\;
@@ -1576,7 +1576,7 @@ Any other value is treated as `ebnf'."
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-lex-eop-char ?.
@@ -1584,7 +1584,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 
 It's used only when `ebnf-syntax' is `ebnf'."
   :type 'character
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-terminal-regexp nil
@@ -1597,7 +1597,7 @@ terminal name; terminal name may also be enclosed by `\"'.
 It's used only when `ebnf-syntax' is `ebnf'."
   :type '(radio :tag "Terminal Name"
 		(const nil) regexp)
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-case-fold-search nil
@@ -1606,7 +1606,7 @@ It's used only when `ebnf-syntax' is `ebnf'."
 It's only used when `ebnf-terminal-regexp' is non-nil and when `ebnf-syntax' is
 `ebnf'."
   :type 'boolean
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-iso-alternative-p nil
@@ -1624,7 +1624,7 @@ This variable affects the following symbol set:
       }    ==>   :)
       ;    ==>   ."
   :type 'boolean
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-iso-normalize-p nil
@@ -1635,7 +1635,7 @@ single space, so \"A  B   C\" is normalized to  \"A B C\".
 
 It's only used when `ebnf-syntax' is `iso-ebnf'."
   :type 'boolean
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-eps-prefix "ebnf--"
@@ -1709,7 +1709,7 @@ when executing ebnf2ps, set `ebnf-use-float-format' to nil."
 
 It's only used when `ebnf-syntax' is `yacc'."
   :type 'boolean
-  :group 'ebnf-syntatic)
+  :group 'ebnf-syntactic)
 
 
 (defcustom ebnf-ignore-empty-rule nil
@@ -1722,7 +1722,7 @@ middle action rule."
 
 
 (defcustom ebnf-optimize nil
-  "*Non-nil means optimize syntatic chart of rules.
+  "*Non-nil means optimize syntactic chart of rules.
 
 The following optimizations are done:
 
@@ -1764,7 +1764,7 @@ The above optimizations are specially useful when `ebnf-syntax' is `yacc'."
 
 ;;;###autoload
 (defun ebnf-print-buffer (&optional filename)
-  "Generate and print a PostScript syntatic chart image of the buffer.
+  "Generate and print a PostScript syntactic chart image of the buffer.
 
 When called with a numeric prefix argument (C-u), prompts the user for
 the name of a file to save the PostScript image in, instead of sending
@@ -1780,7 +1780,7 @@ number, prompt the user for the name of the file to save in."
 
 ;;;###autoload
 (defun ebnf-print-region (from to &optional filename)
-  "Generate and print a PostScript syntatic chart image of the region.
+  "Generate and print a PostScript syntactic chart image of the region.
 Like `ebnf-print-buffer', but prints just the current region."
   (interactive (list (point) (mark) (ps-print-preprint current-prefix-arg)))
   (run-hooks 'ebnf-hook)
@@ -1790,7 +1790,7 @@ Like `ebnf-print-buffer', but prints just the current region."
 
 ;;;###autoload
 (defun ebnf-spool-buffer ()
-  "Generate and spool a PostScript syntatic chart image of the buffer.
+  "Generate and spool a PostScript syntactic chart image of the buffer.
 Like `ebnf-print-buffer' except that the PostScript image is saved in a
 local buffer to be sent to the printer later.
 
@@ -1801,7 +1801,7 @@ Use the command `ebnf-despool' to send the spooled images to the printer."
 
 ;;;###autoload
 (defun ebnf-spool-region (from to)
-  "Generate a PostScript syntatic chart image of the region and spool locally.
+  "Generate a PostScript syntactic chart image of the region and spool locally.
 Like `ebnf-spool-buffer', but spools just the current region.
 
 Use the command `ebnf-despool' to send the spooled images to the printer."
@@ -1811,7 +1811,7 @@ Use the command `ebnf-despool' to send the spooled images to the printer."
 
 ;;;###autoload
 (defun ebnf-eps-buffer ()
-  "Generate a PostScript syntatic chart image of the buffer in a EPS file.
+  "Generate a PostScript syntactic chart image of the buffer in a EPS file.
 
 Indeed, for each production is generated a EPS file.
 The EPS file name has the following form:
@@ -1833,7 +1833,7 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defun ebnf-eps-region (from to)
-  "Generate a PostScript syntatic chart image of the region in a EPS file.
+  "Generate a PostScript syntactic chart image of the region in a EPS file.
 
 Indeed, for each production is generated a EPS file.
 The EPS file name has the following form:
@@ -1860,14 +1860,14 @@ WARNING: It's *NOT* asked any confirmation to override an existing file."
 
 ;;;###autoload
 (defun ebnf-syntax-buffer ()
-  "Does a syntatic analysis of the current buffer."
+  "Does a syntactic analysis of the current buffer."
   (interactive)
   (ebnf-syntax-region (point-min) (point-max)))
 
 
 ;;;###autoload
 (defun ebnf-syntax-region (from to)
-  "Does a syntatic analysis of a region."
+  "Does a syntactic analysis of a region."
   (interactive "r")
   (ebnf-generate-region from to nil))
 
@@ -4163,7 +4163,7 @@ end
      (gen-func
       nil)
      (t
-      (message "EBNF syntatic analysis: NO ERRORS.")))))
+      (message "EBNF syntactic analysis: NO ERRORS.")))))
 
 
 (defun ebnf-parse-and-sort (start)
@@ -5283,7 +5283,7 @@ end
   "Eliminate empty rules.")
 
 (autoload 'ebnf-optimize              "ebnf-otz"
-  "Syntatic chart optimizer.")
+  "Syntactic chart optimizer.")
 
 (autoload 'ebnf-otz-initialize        "ebnf-otz"
   "Initialize optimizer.")

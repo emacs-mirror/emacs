@@ -64,7 +64,7 @@
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Chinese GB2312 (simplified) 
+;;; Chinese GB2312 (simplified)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (make-coding-system
@@ -321,8 +321,24 @@ Big5 encoding is accepted for input also (which is then converted to CNS)."
 		 (features china-util)
 		 (input-method . "chinese-cns-quick")
 		 (documentation . "\
-Support for Chinese CNS character sets.  Note that EUC-TW coding system
+Support for Chinese CNS character sets.  Note that the EUC-TW coding system
 accepts Big5 for input also (which is then converted to CNS)."))
+ '("Chinese"))
+
+(set-language-info-alist
+ "Chinese-EUC-TW" '((charset chinese-cns11643-1 chinese-cns11643-2
+			     chinese-cns11643-3 chinese-cns11643-4
+			     chinese-cns11643-5 chinese-cns11643-6
+			     chinese-cns11643-7 chinese-big5-1 chinese-big5-2)
+		    (coding-system euc-tw iso-2022-cn)
+		    (coding-priority euc-tw chinese-big5 iso-2022-cn
+				     chinese-iso-8bit)
+		    (features china-util)
+		    (input-method . "chinese-cns-quick")
+		    (documentation . "\
+Support for Chinese, prefering the EUC-TW character set.  Note that
+the EUC-TW coding system accepts Big5 for input also (which is then
+converted to CNS)."))
  '("Chinese"))
 
 (provide 'chinese)

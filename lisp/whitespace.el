@@ -5,7 +5,7 @@
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
 
-;; $Id: whitespace.el,v 1.18 2001/08/20 20:56:08 rv Exp $
+;; $Id: whitespace.el,v 1.22 2002/12/03 00:10:40 schwab Exp $
 ;; This file is part of GNU Emacs.
 
 ;; GNU Emacs is free software; you can redistribute it and/or modify
@@ -27,6 +27,55 @@
 
 ;; Whitespace.el URL: http://www.dsmit.com/lisp/
 
+;; The whitespace library is intended to find and help fix five different types
+;; of whitespace problems that commonly exist in source code.
+
+;; 1. Leading space (empty lines at the top of a file).
+;; 2. Trailing space (empty lines at the end of a file).
+;; 3. Indentation space (8 or more spaces at beginning of line, that should be
+;; 		      replaced with TABS).
+;; 4. Spaces followed by a TAB.  (Almost always, we never want that).
+;; 5. Spaces or TABS at the end of a line.
+
+;; Whitespace errors are reported in a buffer, and on the modeline.
+
+;; Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
+;; where `x' and `y' can be one (or more) of:
+
+;; e - End-of-Line whitespace.
+;; i - Indentation whitespace.
+;; l - Leading whitespace.
+;; s - Space followed by Tab.
+;; t - Trailing whitespace.
+
+;; If any of the whitespace checks is turned off, the modeline will display a
+;; !<y>.
+
+;;     (since (3) is the most controversial one, here is the rationale: Most
+;;     terminal drivers and printer drivers have TAB configured or even
+;;     hardcoded to be 8 spaces.  (Some of them allow configuration, but almost
+;;     always they default to 8.)
+
+;;     Changing `tab-width' to other than 8 and editing will cause your code to
+;;     look different from within Emacs, and say, if you cat it or more it, or
+;;     even print it.
+
+;;     Almost all the popular programming modes let you define an offset (like
+;;     c-basic-offset or perl-indent-level) to configure the offset, so you
+;;     should never have to set your `tab-width' to be other than 8 in all
+;;     these modes.  In fact, with an indent level of say, 4, 2 TABS will cause
+;;     Emacs to replace your 8 spaces with one \t (try it).  If vi users in
+;;     your office complain, tell them to use vim, which distinguishes between
+;;     tabstop and shiftwidth (vi equivalent of our offsets), and also ask them
+;;     to set smarttab.)
+
+;; All the above have caused (and will cause) unwanted codeline integration and
+;; merge problems.
+
+;; whitespace.el will complain if it detects whitespaces on opening a file, and
+;; warn you on closing a file also (in case you had inserted any
+;; whitespaces during the process of your editing).
+
 ;; Exported functions:
 
 ;; `whitespace-buffer' - To check the current buffer for whitespace problems.
@@ -35,7 +84,6 @@
 ;;                       problems.
 ;; `whitespace-cleanup-region' - To cleanup all whitespaces between point
 ;;                               and mark in the current buffer.
-;; `whitespace-describe' - A simple introduction to the library.
 
 ;;; Code:
 
@@ -264,15 +312,15 @@ To disable timer scans, set this to zero."
   :group 'faces)
 
 (defface whitespace-highlight-face '((((class color) (background light))
-				    (:background "green"))
-				   (((class color) (background dark))
-				    (:background "sea green"))
-				   (((class grayscale monochrome)
-				     (background light))
-				    (:background "black"))
-				   (((class grayscale monochrome)
-				     (background dark))
-				    (:background "white")))
+				      (:background "green"))
+				     (((class color) (background dark))
+				      (:background "sea green"))
+				     (((class grayscale mono)
+				       (background light))
+				      (:background "black"))
+				     (((class grayscale mono)
+				       (background dark))
+				      (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace-faces)
 
@@ -763,43 +811,26 @@ If timer is not set, then set it to scan the files in
       (setq whitespace-rescan-timer nil))))
 
 ;;;###autoload
-(defcustom whitespace-global-mode nil
-  "Toggle global Whitespace mode.
-
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `whitespace-global-mode'
-\(which see)."
-  :set (lambda (sym val)
-	 (whitespace-global-mode (or val 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'whitespace
-  :require 'whitespace)
-
-;;;###autoload
-(defun whitespace-global-mode (&optional arg)
+(define-minor-mode whitespace-global-mode
   "Toggle using Whitespace mode in new buffers.
 With ARG, turn the mode on if and only iff ARG is positive.
 
 When this mode is active, `whitespace-buffer' is added to
-`find-file-hooks' and `kill-buffer-hook'."
-  (interactive "P")
-  (setq arg (if arg
-		(> (prefix-numeric-value arg) 0)
-	      (not whitespace-global-mode)))
-  (if arg
+`find-file-hook' and `kill-buffer-hook'."
+  :global t :group 'whitespace
+  (if whitespace-global-mode
       (progn
-	(add-hook 'find-file-hooks 'whitespace-buffer)
-	(add-hook 'local-write-file-hooks 'whitespace-write-file-hook)
+	(add-hook 'find-file-hook 'whitespace-buffer)
+	(add-hook 'write-file-functions 'whitespace-write-file-hook nil t)
 	(add-hook 'kill-buffer-hook 'whitespace-buffer))
-    (remove-hook 'find-file-hooks 'whitespace-buffer)
-    (remove-hook 'local-write-file-hooks 'whitespace-write-file-hook)
+    (remove-hook 'find-file-hook 'whitespace-buffer)
+    (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
     (remove-hook 'kill-buffer-hook 'whitespace-buffer)))
 
 ;;;###autoload
 (defun whitespace-write-file-hook ()
-  "The local-write-file-hook to be called on the buffer when
-whitespace check is enabled."
+  "Hook function to be called on the buffer when whitespace check is enabled.
+This is meant to be added buffer-locally to `write-file-functions'."
   (interactive)
   (let ((werr nil))
     (if whitespace-auto-cleanup
@@ -810,65 +841,9 @@ whitespace check is enabled."
 		       buffer-file-name))))
   nil)
 
-;;;###autoload
-(defun whitespace-describe ()
-  "A summary of whitespaces and what this library can do about them.
-
-The whitespace library is intended to find and help fix five different types
-of whitespace problems that commonly exist in source code.
-
-1. Leading space (empty lines at the top of a file).
-2. Trailing space (empty lines at the end of a file).
-3. Indentation space (8 or more spaces at beginning of line, that should be
-		      replaced with TABS).
-4. Spaces followed by a TAB.  (Almost always, we never want that).
-5. Spaces or TABS at the end of a line.
-
-Whitespace errors are reported in a buffer, and on the modeline.
-
-Modeline will show a W:<x>!<y> to denote a particular type of whitespace,
-where `x' and `y' can be one (or more) of:
-
-e - End-of-Line whitespace.
-i - Indentation whitespace.
-l - Leading whitespace.
-s - Space followed by Tab.
-t - Trailing whitespace.
-
-If any of the whitespace checks is turned off, the modeline will display a
-!<y>.
-
-    (since (3) is the most controversial one, here is the rationale: Most
-    terminal drivers and printer drivers have TAB configured or even
-    hardcoded to be 8 spaces.  (Some of them allow configuration, but almost
-    always they default to 8.)
-
-    Changing `tab-width' to other than 8 and editing will cause your code to
-    look different from within Emacs, and say, if you cat it or more it, or
-    even print it.
-
-    Almost all the popular programming modes let you define an offset (like
-    c-basic-offset or perl-indent-level) to configure the offset, so you
-    should never have to set your `tab-width' to be other than 8 in all these
-    modes.  In fact, with an indent level of say, 4, 2 TABS will cause Emacs
-    to replace your 8 spaces with one \t (try it).  If vi users in your
-    office complain, tell them to use vim, which distinguishes between
-    tabstop and shiftwidth (vi equivalent of our offsets), and also ask them
-    to set smarttab.)
-
-All the above have caused (and will cause) unwanted codeline integration and
-merge problems.
-
-whitespace.el will complain if it detects whitespaces on opening a file, and
-warn you on closing a file also (in case you had inserted any
-whitespaces during the process of your editing)."
-  (interactive)
-  (message "Use C-h f whitespace-describe to read about whitespace.el v%s."
-	   whitespace-version))
-
 (defun whitespace-unload-hook ()
-  (remove-hook 'find-file-hooks 'whitespace-buffer)
-  (remove-hook 'local-write-file-hooks 'whitespace-write-file-hook)
+  (remove-hook 'find-file-hook 'whitespace-buffer)
+  (remove-hook 'write-file-functions 'whitespace-write-file-hook t)
   (remove-hook 'kill-buffer-hook 'whitespace-buffer))
 
 (provide 'whitespace)

@@ -5,7 +5,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-util.el,v 1.16 2001/12/02 07:41:47 monnier Exp $
+;; Revision: $Id: pcvs-util.el,v 1.18 2003/02/04 11:57:16 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -50,7 +50,7 @@
   (let ((zs ys))
     (dolist (x xs zs)
       (unless (member x ys) (push x zs)))))
-      
+
 
 (defun cvs-map (-cvs-map-f &rest -cvs-map-ls)
   (unless (cvs-every 'null -cvs-map-ls)
@@ -135,7 +135,7 @@ BUF is assumed to be a temporary buffer used from the buffer MAINBUF."
       (let ((mainwin (or (get-buffer-window mainbuf)
 			 (get-buffer-window mainbuf 'visible))))
 	(when mainwin (select-window mainwin))))))
-	      
+
 (defun cvs-get-buffer-create (name &optional noreuse)
   "Create a buffer NAME unless such a buffer already exists.
 If the NAME looks like an absolute file name, the buffer will be created
@@ -231,9 +231,9 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 		      (cvs-string->strings (substring string (cdr rfs))
 					   sep)))))))
 
-;;;; 
+;;;;
 ;;;; file names
-;;;; 
+;;;;
 
 (defsubst cvs-expand-dir-name (d)
   (file-name-as-directory (expand-file-name d)))
@@ -273,9 +273,9 @@ The SEPARATOR regexp defaults to \"\\s-+\"."
 				initval hist-sym))
 	      (t initval)))))
 
-;;;; 
+;;;;
 ;;;; Flags handling
-;;;; 
+;;;;
 
 (defstruct (cvs-flags
 	    (:constructor nil)
@@ -335,9 +335,9 @@ If it is \\[universal-argument] \\[universal-argument], behave just
   "Set SYM's INDEX'th setting to VALUE."
   (setf (nth index (cvs-flags-defaults (symbol-value sym))) value))
 
-;;;; 
+;;;;
 ;;;; Prefix keys
-;;;; 
+;;;;
 
 (defconst cvs-prefix-number 10)
 

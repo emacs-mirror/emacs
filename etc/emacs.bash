@@ -7,7 +7,7 @@
 # This function assumes the emacs program is named `emacs' and is somewhere
 # in your load path.  If either of these is not true, the most portable
 # (and convenient) thing to do is to make an alias called emacs which
-# refers to the real program, e.g. 
+# refers to the real program, e.g.
 #
 #        alias emacs=/usr/local/bin/gemacs
 #
@@ -33,7 +33,7 @@ function edit ()
       x ) (emacs "$@" &) ;;
       sun ) (emacstool "$@" &) ;;
     esac
- else   
+ else
     if jobs %emacs 2> /dev/null ; then
        echo "$(pwd)" "$@" >| ${HOME}/.emacs_args && fg %emacs
     else

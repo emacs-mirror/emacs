@@ -1,19 +1,16 @@
 \input texinfo  @c -*-texinfo-*-
 @setfilename ../info/ada-mode
 @settitle Ada Mode
-@dircategory Emacs
-@direntry
-* Ada mode: (ada-mode). Emacs mode for editing Ada code.
-@end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment The following lines inserts the copyright notice
 @comment into the Info file.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@ifnottex
-Copyright @copyright{} 1999, 2000, 2001 Free Software Foundation, Inc.
+@copying
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -31,11 +28,13 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifnottex
+@end quotation
+@end copying
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment TeX title page
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+@dircategory Emacs
+@direntry
+* Ada mode: (ada-mode). Emacs mode for editing Ada code.
+@end direntry
 
 @titlepage
 @sp 10
@@ -44,28 +43,9 @@ license to the document, as described in section 6 of the license.
 @subtitle An Emacs major mode for programming Ada 95 with GNAT
 @subtitle July 1998 for Ada Mode Version 3.0
 @sp 2
-
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000, 2001 Free Software Foundation, Inc.
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 
@@ -84,7 +64,7 @@ license to the document, as described in section 6 of the license.
                                      defined in your application
 * File Browser::                  Easy access to your files
 * Automatic Smart Indentation::   Indenting your code automatically as you type
-* Formatting Parameter Lists::    Formating subprograms parameter lists
+* Formatting Parameter Lists::    Formatting subprograms' parameter lists
                                      automatically
 * Automatic Casing::              Adjusting the case of words automatically
 * Statement Templates::           Inserting code templates
@@ -149,7 +129,7 @@ automatic color highlighting of the various entities in Ada code.
 switching between spec and body files with eventually
 auto-generation of body files,
 @item
-automatic formating of subprograms parameter lists.
+automatic formatting of subprograms' parameter lists.
 @item
 automatic smart indentation according to Ada syntax,
 @item
@@ -181,7 +161,7 @@ not use these extensions and if you want Emacs to automatically start the
 Ada mode every time you edit an Ada file.
 
 Also, for general usage variables that you might want to set,
-see 
+see
 @iftex
 @cite{The GNU Emacs Manual}.
 @end iftex
@@ -357,7 +337,7 @@ choice is to use this variable settings, and otherwise
 @item C-c u
 @findex ada-customize
 Create or edit the project file for the current buffer (@code{ada-customize}).
-@item C-c c   
+@item C-c c
 @findex ada-change-prj
 Change the project file associated with the current Ada buffer (@code{ada-change-prj}).
 @item C-c d
@@ -702,7 +682,7 @@ you  can directly click  on them  to open  the right  file at  the right
 place.
 
 You can activate  this mode by typing @key{M-x  speedbar} in the editor.
-This  will open  a new  frame. A  better way  might be  to  assicate the
+This  will open  a new  frame. A  better way  might be  to  associate the
 following key binding
 
 @example

@@ -82,7 +82,7 @@ isn't bound, the message will be used unconditionally."
 (defcustom gnus-nocem-liberal-fetch nil
   "*If t try to fetch all messages which have @@NCM in the subject.
 Otherwise don't fetch messages which have references or whose message-id
-matches an previously scanned and verified nocem message."
+matches a previously scanned and verified nocem message."
   :group 'gnus-nocem
   :type 'boolean)
 

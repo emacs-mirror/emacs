@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,1997,2001, 2003 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Command Arguments, X Resources, Service, Top
 @appendix Command Line Arguments
@@ -81,7 +81,11 @@ the action arguments in the order they are written.
 @opindex --file
 @itemx --file=@var{file}
 @cindex visiting files, command-line argument
+@vindex inhibit-startup-buffer-menu
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
+If you visit several files at startup in this way, Emacs
+also displays a Buffer Menu buffer to show you what files it
+has visited.  You can inhibit that by setting @code{inhibit-startup-buffer-menu} to @code{t}.
 
 @item +@var{linenum} @var{file}
 @opindex +@var{linenum}
@@ -191,10 +195,27 @@ shell scripts, makefiles, and so on.  Normally the @samp{-l} option
 or @samp{-f} option will be used as well, to invoke a Lisp program
 to do the batch processing.
 
-@samp{-batch} implies @samp{-q} (do not load an init file).  It also
+@samp{--batch} implies @samp{-q} (do not load an init file).  It also
 causes Emacs to exit after processing all the command options.  In
 addition, it disables auto-saving except in buffers for which it has
 been explicitly requested.
+
+@item --script @var{file}
+@opindex --script
+Run Emacs in batch mode, like @samp{--batch}, and then read and
+execute the Lisp code in @var{file}.
+
+The normal use of this option is in executable script files that run
+Emacs.  They can start with this text on the first line
+
+@example
+#!/usr/bin/emacs --script
+@end example
+
+@noindent
+which will invoke Emacs with @samp{--script} and supply the name of
+the script file as @var{file}.  Emacs Lisp then treats @samp{#!}  as a
+comment delimiter.
 
 @item -q
 @opindex -q
@@ -218,8 +239,8 @@ the only option that blocks it.
 @item --no-splash
 @opindex --no-splash
 @vindex inhibit-startup-message
-Do not display a splash screen on startup; this is equivlaent to
-setting the variable @code{inhibit-startup-message} to non-nil.
+Do not display a splash screen on startup; this is equivalent to
+setting the variable @code{inhibit-startup-message} to non-@code{nil}.
 
 @item -u @var{user}
 @opindex -u
@@ -331,10 +352,13 @@ software) inherit the environment from Emacs, too.
 @findex getenv
   Inside Emacs, the command @kbd{M-x getenv} gets the value of an
 environment variable.  @kbd{M-x setenv} sets a variable in the Emacs
-environment.  The way to set environment variables outside of Emacs
-depends on the operating system, and especially the shell that you are
-using.  For example, here's how to set the environment variable
-@env{ORGANIZATION} to @samp{not very much} using Bash:
+environment.  (Environment variable substitutions with @samp{$} work
+in the value just as in file names; see @ref{File Names with $}.)
+
+  The way to set environment variables outside of Emacs depends on the
+operating system, and especially the shell that you are using.  For
+example, here's how to set the environment variable @env{ORGANIZATION}
+to @samp{not very much} using Bash:
 
 @example
 export ORGANIZATION="not very much"
@@ -347,13 +371,14 @@ and here's how to do it in csh or tcsh:
 setenv ORGANIZATION "not very much"
 @end example
 
-  When Emacs is uses the X Window System, it inherits the use
-of a large number of environment variables from the X libraries.  See
-the X documentation for more information.
+  When Emacs is using the X Window System, various environment
+variables that control X work for Emacs as well.  See the X
+documentation for more information.
 
 @menu
 * General Variables::   Environment variables that all versions of Emacs use.
 * Misc Variables::      Certain system-specific variables.
+* MS-Windows Registry:: An alternative to the environment on MS-Windows.
 @end menu
 
 @node General Variables
@@ -404,10 +429,10 @@ The location of the user's files in the directory tree; used for
 expansion of file names starting with a tilde (@file{~}).  On MS-DOS, it
 defaults to the directory from which Emacs was started, with @samp{/bin}
 removed from the end if it was present.  On Windows, the default value
-of @code{HOME} is @file{C:/}, the root directory of drive @file{C:}.
+of @env{HOME} is @file{C:/}, the root directory of drive @file{C:}.
 @item HOSTNAME
 The name of the machine that Emacs is running on.
-@item INCPATH 
+@item INCPATH
 A colon-separated list of directories.  Used by the @code{complete} package
 to search for files.
 @item INFOPATH
@@ -430,7 +455,12 @@ variables is not set, the category defaults to the value of the
 @env{LANG} is not set.  But if @env{LC_ALL} is specified, it overrides
 the settings of all the other locale environment variables.
 
-The value of the LC_CTYPE category is
+On MS-Windows, if @env{LANG} is not already set in the environment
+when Emacs starts, Emacs sets it based on the system-wide default
+language, which you can set in the @samp{Regional Settings} Control Panel
+on some versions of MS-Windows.
+
+The value of the @env{LC_CTYPE} category is
 matched against entries in @code{locale-language-names},
 @code{locale-charset-language-names}, and
 @code{locale-preferred-coding-systems}, to select a default language
@@ -465,13 +495,16 @@ Used by the Gnus package.
 @item SHELL
 The name of an interpreter used to parse and execute programs run from
 inside Emacs.
-@cindex background mode, on @code{xterm}
+@item SMTPSERVER
+The name of the outgoing mail server.  Used by the SMTP library
+(@pxref{Sending mail via SMTP,,,smtpmail}).
+@cindex background mode, on @command{xterm}
 @item TERM
 The type of the terminal that Emacs is using.  This variable must be
 set unless Emacs is run in batch mode.  On MS-DOS, it defaults to
 @samp{internal}, which specifies a built-in terminal emulation that
 handles the machine's own display.  If the value of @env{TERM} indicates
-that Emacs runs in non-windowed mode from @code{xterm} or a similar
+that Emacs runs in non-windowed mode from @command{xterm} or a similar
 terminal emulator, the background mode defaults to @samp{light}, and
 Emacs will choose colors that are appropriate for a light background.
 @item TERMCAP
@@ -482,10 +515,10 @@ terminal specified by the @env{TERM} variable.  This defaults to
 Used by the Emerge package as a prefix for temporary files.
 @item TZ
 This specifies the current time zone and possibly also daylight
-saving time information.  On MS-DOS, if @code{TZ} is not set in the
+saving time information.  On MS-DOS, if @env{TZ} is not set in the
 environment when Emacs starts, Emacs defines a default value as
 appropriate for the country code returned by DOS.  On MS-Windows, Emacs
-does not use @code{TZ} at all.
+does not use @env{TZ} at all.
 @item USER
 The user's login name.  See also @env{LOGNAME}.  On MS-DOS, this
 defaults to @samp{root}.
@@ -540,10 +573,66 @@ actually used.
 
 @item WINDOW_GFX
 Used when initializing the Sun windows system.
+
+@item PRELOAD_WINSOCK
+On MS-Windows, if you set this variable, Emacs will load and initialize
+the network library at startup, instead of waiting until the first
+time it is required.
+
+@item emacs_dir
+On MS-Windows, @env{emacs_dir} is a special environment variable, which
+indicates the full path of the directory in which Emacs is installed.
+If Emacs is installed in the standard directory structure, it
+calculates this value automatically.  It is not much use setting this
+variable yourself unless your installation is non-standard, since
+unlike other environment variables, it will be overridden by Emacs at
+startup.  When setting other environment variables, such as
+@env{EMACSLOADPATH}, you may find it useful to use @env{emacs_dir}
+rather than hard-coding an absolute path.  This allows multiple
+versions of Emacs to share the same environment variable settings, and
+it allows you to move the Emacs installation directory, without
+changing any environment or registry settings.
 @end table
 
+@node MS-Windows Registry
+@appendixsubsec The MS-Windows System Registry
+@pindex addpm, MS-Windows installation program
+@cindex registry, setting environment variables and resources on MS-Windows
+
+On MS-Windows, the installation program @command{addpm.exe} adds values
+for @env{emacs_dir}, @env{EMACSLOADPATH}, @env{EMACSDATA},
+@env{EMACSPATH}, @env{EMACSDOC}, @env{SHELL} and @env{TERM} to the
+@file{HKEY_LOCAL_MACHINE} section of the system registry, under
+@file{/Software/GNU/Emacs}.  It does this because there is no standard
+place to set environment variables across different versions of
+Windows.  Running @command{addpm.exe} is no longer strictly
+necessary in recent versions of Emacs, but if you are upgrading from
+an older version, running @command{addpm.exe} ensures that you do not have
+older registry entries from a previous installation, which may not be
+compatible with the latest version of Emacs.
+
+When Emacs starts, as well as checking the environment, it also checks
+the System Registry for those variables and for @env{HOME}, @env{LANG}
+and @env{PRELOAD_WINSOCK}.
+
+To determine the value of those variables, Emacs goes through the
+following procedure.  First, the environment is checked.  If the
+variable is not found there, Emacs looks for registry keys by that
+name under @file{/Software/GNU/Emacs}; first in the
+@file{HKEY_CURRENT_USER} section of the registry, and if not found
+there, in the @file{HKEY_LOCAL_MACHINE} section.  Finally, if Emacs
+still cannot determine the values, compiled-in defaults are used.
+
+In addition to the environment variables above, you can also add many
+of the settings which on X belong in the @file{.Xdefaults} file
+(@pxref{X Resources}) to the @file{/Software/GNU/Emacs} registry key.
+Settings you add to the @file{HKEY_LOCAL_MACHINE} section will affect
+all users of the machine.  Settings you add to the
+@file{HKEY_CURRENT_USER} section will only affect you, and will
+override machine wide settings.
+
 @node Display X
-@appendixsec Specifying the Display Name 
+@appendixsec Specifying the Display Name
 @cindex display name (X Window System)
 @cindex @env{DISPLAY} environment variable
 
@@ -594,7 +683,7 @@ Xlib:  connection to "glasperle:0.0" refused by server
 @end smallexample
 
 @noindent
-You might be able to overcome this problem by using the @code{xhost}
+You might be able to overcome this problem by using the @command{xhost}
 command on the local system to give permission for access from your
 remote machine.
 
@@ -690,7 +779,7 @@ Normally you should use @samp{iso8859-1}.
   You will probably want to use a fixed-width default font---that is,
 a font in which all characters have the same width.  Any font with
 @samp{m} or @samp{c} in the @var{spacing} field of the long name is a
-fixed-width font.  Here's how to use the @code{xlsfonts} program to
+fixed-width font.  Here's how to use the @command{xlsfonts} program to
 list all the fixed-width fonts available on your system:
 
 @example
@@ -700,7 +789,7 @@ xlsfonts -fn '*-*-*-*-*-*-*-*-*-*-*-c*'
 @end example
 
 @noindent
-To see what a particular font looks like, use the @code{xfd} command.
+To see what a particular font looks like, use the @command{xfd} command.
 For example:
 
 @example
@@ -827,14 +916,14 @@ text-only terminals as well as on window systems.
 @cindex specifying fullscreen for Emacs frame
 
   Here is a list of the command-line options for specifying size and
-position of the initial Emacs frame: 
+position of the initial Emacs frame:
 
 @table @samp
 @item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex -g
-Specify window size @var{width} and @var{height} (measured in character
+Specify the size @var{width} and @var{height} (measured in character
 columns and lines), and positions @var{xoffset} and @var{yoffset}
-(measured in pixels).
+(measured in pixels).  This applies to all frames.
 
 @item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex --geometry
@@ -873,27 +962,18 @@ screen, and a minus sign there indicates the distance from the bottom.
 The values @var{xoffset} and @var{yoffset} may themselves be positive or
 negative, but that doesn't change their meaning, only their direction.
 
-  Emacs uses the same units as @code{xterm} does to interpret the geometry.
+  Emacs uses the same units as @command{xterm} does to interpret the geometry.
 The @var{width} and @var{height} are measured in characters, so a large font
 creates a larger frame than a small font.  (If you specify a proportional
 font, Emacs uses its maximum bounds width as the width unit.)  The
 @var{xoffset} and @var{yoffset} are measured in pixels.
 
-  Since the mode line and the echo area occupy the last 2 lines of the
-frame, the height of the initial text window is 2 less than the height
-specified in your geometry.  In non-X-toolkit versions of Emacs, the
-menu bar also takes one line of the specified number.  But in the X
-toolkit version, the menu bar is additional and does not count against
-the specified height.  The tool bar, if present, is also additional.
-
   You do not have to specify all of the fields in the geometry
-specification.
-
-  If you omit both @var{xoffset} and @var{yoffset}, the window manager
-decides where to put the Emacs frame, possibly by letting you place
-it with the mouse.  For example, @samp{164x55} specifies a window 164
-columns wide, enough for two ordinary width windows side by side, and 55
-lines tall.
+specification.  If you omit both @var{xoffset} and @var{yoffset}, the
+window manager decides where to put the Emacs frame, possibly by
+letting you place it with the mouse.  For example, @samp{164x55}
+specifies a window 164 columns wide, enough for two ordinary width
+windows side by side, and 55 lines tall.
 
   The default width for Emacs is 80 characters and the default height is
 40 lines.  You can omit either the width or the height or both.  If
@@ -912,8 +992,24 @@ which means both sizes are omitted.  Thus, @samp{-3} specifies the
 @file{.Xdefaults} file, and then override selected fields with a
 @samp{--geometry} option.
 
+  Since the mode line and the echo area occupy the last 2 lines of the
+frame, the height of the initial text window is 2 less than the height
+specified in your geometry.  In non-X-toolkit versions of Emacs, the
+menu bar also takes one line of the specified number.  But in the X
+toolkit version, the menu bar is additional and does not count against
+the specified height.  The tool bar, if present, is also additional.
 
- When using one of @samp{--fullscreen}, @samp{--fullwidth} or
+  Enabling or disabling the menu bar or tool bar alters the amount of
+space available for ordinary text.  Therefore, if Emacs starts up with
+a tool bar (which is the default), and handles the geometry
+specification assuming there is a tool bar, and then your
+@file{~/.emacs} file disables the tool bar, you will end up with a
+frame geometry different from what you asked for.  To get the intended
+size with no tool bar, use an X resource to specify ``no tool bar''
+(@pxref{Table of Resources});then Emacs will already know there's no
+tool bar when it processes the specified geometry.
+
+  When using one of @samp{--fullscreen}, @samp{--fullwidth} or
 @samp{--fullheight} there may be some space around the frame
 anyway.  That is because Emacs rounds the sizes so they are an
 even number of character heights and widths.

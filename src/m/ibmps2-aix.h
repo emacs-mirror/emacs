@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -190,7 +190,7 @@ so disable it for them.  */
 #ifdef __GNUC__
 #define alloca(n) __builtin_alloca(n)
 #if __GNUC__ < 2
-#define LIB_STANDARD /usr/local/lib/gcc-gnulib -lbsd -lrts -lc 
+#define LIB_STANDARD /usr/local/lib/gcc-gnulib -lbsd -lrts -lc
 #endif
 /* -g fails to work, so it is omitted.  */
 /* tranle says that -fstrength-reduce does not help.  */

@@ -57,13 +57,6 @@ Boston, MA 02111-1307, USA.  */
 /* there are no -lg libraries on this system, and no libPW */
 
 #define LIBS_DEBUG
-/* This is turned off because nobody actually uses LIBS_STANDARD (Nov 1995).
-   That name is a typo.  The next step is to delete this entirely.  */
-/* #define LIBS_STANDARD -lc */
-
-/* No <sioctl.h> */
-
-#define NO_SIOCTL_H
 
 /* Undump with ELF */
 
@@ -135,9 +128,7 @@ Boston, MA 02111-1307, USA.  */
    subprocesses the usual way.  But TIOCSIGNAL does work for PTYs, and
    this is all we need.  */
 
-#ifndef IRIX6
 #define TIOCSIGSEND TIOCSIGNAL
-#endif
 
 /* This change means that we don't loop through allocate_pty too many
    times in the (rare) event of a failure. */
@@ -197,10 +188,6 @@ Boston, MA 02111-1307, USA.  */
 /* This definition was suggested for next release.
    So give it a try.  */
 #define HAVE_SOCKETS
-
-#define bcopy(src,dst,n)	memmove (dst,src,n)
-#define bcmp(src,dst,n)		memcmp (src,dst,n)
-#define bzero(s,n)		memset (s,0,n)
 
 /* Markus Weiand <weiand@khof.com> says this is needed for Motif on
    SINIX.  */

@@ -1213,7 +1213,7 @@ buffer list used for buffer cycling."
 
 (defun bs-message-without-log (&rest args)
   "Like `message' but don't log it on the message log.
-All arguments ARGS are transfered to function `message'."
+All arguments ARGS are transferred to function `message'."
   (let ((message-log-max nil))
     (apply 'message args)))
 

@@ -72,6 +72,8 @@ On other systems, the closest you can come is to use `-l'."
 ;; History of find-args values entered in the minibuffer.
 (defvar find-args-history nil)
 
+(defvar dired-sort-inhibit)
+
 ;;;###autoload
 (defun find-dired (dir args)
   "Run `find' and go into Dired mode on a buffer of the output.
@@ -107,7 +109,7 @@ as the final argument."
 		  (delete-process find))
 	      (error nil))
 	  (error "Cannot have two processes in `%s' at once" (buffer-name)))))
-      
+
     (widen)
     (kill-all-local-variables)
     (setq buffer-read-only nil)
@@ -121,6 +123,8 @@ as the final argument."
 		       (car find-ls-option)))
     ;; The next statement will bomb in classic dired (no optional arg allowed)
     (dired-mode dir (cdr find-ls-option))
+    (make-local-variable 'dired-sort-inhibit)
+    (setq dired-sort-inhibit t)
     (set (make-local-variable 'revert-buffer-function)
 	 `(lambda (ignore-auto noconfirm)
 	    (find-dired ,dir ,find-args)))
@@ -130,7 +134,7 @@ as the final argument."
 	;; and later)
 	(dired-simple-subdir-alist)
       ;; else we have an ancient tree dired (or classic dired, where
-      ;; this does no harm) 
+      ;; this does no harm)
       (set (make-local-variable 'dired-subdir-alist)
 	   (list (cons default-directory (point-min-marker)))))
     (setq buffer-read-only nil)
@@ -138,7 +142,7 @@ as the final argument."
     ;; subdir-alist points there.
     (insert "  " dir ":\n")
     ;; Make second line a ``find'' line in analogy to the ``total'' or
-    ;; ``wildcard'' line. 
+    ;; ``wildcard'' line.
     (insert "  " args "\n")
     ;; Start the find process.
     (let ((proc (start-process-shell-command find-dired-find-program (current-buffer) args)))

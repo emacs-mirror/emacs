@@ -81,7 +81,7 @@ extern time_t timezone;
 	result in DEST.  SRC should not be negative.
 
    EMACS_SUB_TIME (DEST, SRC1, SRC2) subtracts SRC2 from SRC1 and
-	stores the result in DEST.  SRC should not be negative. 
+	stores the result in DEST.  SRC should not be negative.
    EMACS_TIME_NEG_P (TIME) is true iff TIME is negative.
 
 */
@@ -151,7 +151,7 @@ extern time_t timezone;
 #define EMACS_SET_SECS_USECS(time, secs, usecs) 		\
   (EMACS_SET_SECS (time, secs), EMACS_SET_USECS (time, usecs))
 
-extern int set_file_times __P ((char *, EMACS_TIME, EMACS_TIME));
+extern int set_file_times __P ((const char *, EMACS_TIME, EMACS_TIME));
 
 /* Compare times T1 and T2.  Value is 0 if T1 and T2 are the same.
    Value is < 0 if T1 is less than T2.  Value is > 0 otherwise.  */

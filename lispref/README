@@ -15,7 +15,7 @@ newsgroup gnu.emacs.help.
 2.5 megabytes.
 
 * You can format this manual either for Info or for printing hardcopy
-using TeX.  
+using TeX.
 
 * You can buy nicely printed copies from the Free Software Foundation.
 For info, send mail to gnu@gnu.org or phone 617-542-5942.  Buying a
@@ -42,8 +42,8 @@ commands in the shell:
 % make elisp.dvi
 
 *** To create a DVI file with a permuted index, you may experiment
-with `make-permuted-index'.  
+with `make-permuted-index'.
 
 ** To make an Info file, you need to install Texinfo, then run
-`./configure' and `make elisp'.  To install the Info files, run
+`./configure' and `make info'.  To install the Info files, run
 `make install'.

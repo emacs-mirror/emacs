@@ -65,7 +65,6 @@
 
 ;;; Code:
 
-;;;###autoload
 (defgroup ls-lisp nil
   "Emulate the ls program completely in Emacs Lisp."
   :version "21.1"
@@ -130,7 +129,8 @@ if emulation is GNU then default is `(links uid gid)'."
 	      (const :tag "Show Group" gid))
   :group 'ls-lisp)
 
-(defcustom ls-lisp-use-insert-directory-program nil
+(defcustom ls-lisp-use-insert-directory-program
+  (not (memq system-type '(macos ms-dos windows-nt)))
   "*Non-nil causes ls-lisp to revert back to using `insert-directory-program'.
 This is useful on platforms where ls-lisp is dumped into Emacs, such as
 Microsoft Windows, but you would still like to use a program to list
@@ -138,19 +138,43 @@ the contents of a directory."
   :type 'boolean
   :group 'ls-lisp)
 
+;;; Autoloaded because it is let-bound in `recover-session', `mail-recover-1'.
+;;;###autoload
 (defcustom ls-lisp-support-shell-wildcards t
   "*Non-nil means ls-lisp treats file patterns as shell wildcards.
 Otherwise they are treated as Emacs regexps (for backward compatibility)."
   :type 'boolean
   :group 'ls-lisp)
 
+(defcustom ls-lisp-format-time-list
+  '("%b %e %H:%M"
+    "%b %e  %Y")
+  "*List of `format-time-string' specs to display file time stamps.
+They are used whenever a locale is not specified to use instead.
+
+Syntax:  (EARLY-TIME-FORMAT OLD-TIME-FORMAT)
+
+The EARLY-TIME-FORMAT is used if file has been modified within the
+current year. The OLD-TIME-FORMAT is used for older files.  To use ISO
+8601 dates, you could set:
+
+\(setq ls-lisp-format-time-list
+       '(\"%Y-%m-%d %H:%M\"
+         \"%Y-%m-%d      \"))"
+  :type '(list (string :tag "Early time format")
+	       (string :tag "Old time format"))
+  :group 'ls-lisp)
+
+(defvar original-insert-directory nil
+  "This holds the original function definition of `insert-directory'.")
+
 ;; Remember the original insert-directory function
 (or (featurep 'ls-lisp)  ; FJW: unless this file is being reloaded!
-    (fset 'original-insert-directory (symbol-function 'insert-directory)))
+    (setq original-insert-directory (symbol-function 'insert-directory)))
 
 ;; This stub is to allow ls-lisp to parse symbolic links via another
 ;; library such as w32-symlinks.el from
-;; http://centaur.qmw.ac.uk/Emacs/:
+;; http://centaur.maths.qmw.ac.uk/Emacs/:
 (defun ls-lisp-parse-symlink (file-name)
   "This stub may be redefined to parse FILE-NAME as a symlink.
 It should return nil or the link target as a string."
@@ -182,7 +206,8 @@ is non-nil; otherwise, it interprets wildcards as regular expressions
 to match file names.  It does not support all `ls' switches -- those
 that work are: A a c i r S s t u U X g G B C R and F partly."
   (if ls-lisp-use-insert-directory-program
-      (original-insert-directory file switches wildcard full-directory-p)
+      (funcall original-insert-directory
+	       file switches wildcard full-directory-p)
     ;; We need the directory in order to find the right handler.
     (let ((handler (find-file-name-handler (expand-file-name file)
 					   'insert-directory)))
@@ -557,8 +582,8 @@ All ls time options, namely c, t and u, are handled."
 	      (setq locale nil))
 	  (format-time-string
 	   (if (and (<= past-cutoff diff) (<= diff 0))
-	       (if locale "%m-%d %H:%M" "%b %e %H:%M")
-	     (if locale "%Y-%m-%d " "%b %e  %Y"))
+	       (if locale "%m-%d %H:%M" (nth 0 ls-lisp-format-time-list))
+	     (if locale "%Y-%m-%d " (nth 1 ls-lisp-format-time-list)))
 	   time))
       (error "Unk  0  0000"))))
 

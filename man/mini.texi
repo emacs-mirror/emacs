@@ -184,7 +184,7 @@ argument, then Emacs visibly fills in the rest, or as much as
 can be determined from the part you have typed.
 
   When completion is available, certain keys---@key{TAB}, @key{RET}, and
-@key{SPC}---are rebound to complete the text present in the minibuffer
+@key{SPC}---are rebound to complete the text in the minibuffer before point
 into a longer string that it stands for, by matching it against a set of
 @dfn{completion alternatives} provided by the command reading the
 argument.  @kbd{?} is defined to display a list of possible completions
@@ -192,7 +192,7 @@ of what you have inserted.
 
   For example, when @kbd{M-x} uses the minibuffer to read the name of a
 command, it provides a list of all available Emacs command names to
-complete against.  The completion keys match the text in the minibuffer
+complete against.  The completion keys match the minibuffer text
 against all the command names, find any additional name characters
 implied by the ones already present in the minibuffer, and add those
 characters to the ones you have given.  This is what makes it possible
@@ -245,10 +245,10 @@ when completion is available.
 
 @table @kbd
 @item @key{TAB}
-Complete the text in the minibuffer as much as possible
+Complete the text before point in the minibuffer as much as possible
 (@code{minibuffer-complete}).
 @item @key{SPC}
-Complete the minibuffer text, but don't go beyond one word
+Complete the minibuffer text before point, but don't go beyond one word
 (@code{minibuffer-complete-word}).
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
@@ -557,6 +557,13 @@ use the minibuffer history commands (@kbd{M-p}, @kbd{M-n}, @kbd{M-r},
 of saved entire commands.  After finding the desired previous command,
 you can edit its expression as usual and then resubmit it by typing
 @key{RET} as usual.
+
+@vindex isearch-resume-enabled
+  Incremental search does not, strictly speaking, use the minibuffer,
+but it does something similar, so normally it is treated as a complex
+command and it appears in the history list for @kbd{C-x @key{ESC}
+@key{ESC}}.  You can disable that by setting
+@code{isearch-resume-enabled} to @code{nil}.
 
 @vindex command-history
   The list of previous minibuffer-using commands is stored as a Lisp

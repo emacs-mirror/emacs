@@ -307,7 +307,7 @@ it's not cached."
 	    ;; unsuccessful), so we use the cached headers exclusively.
 	    (set-buffer nntp-server-buffer)
 	    (erase-buffer)
-	    (let ((coding-system-for-read 
+	    (let ((coding-system-for-read
 		   gnus-cache-overview-coding-system))
 	      (insert-file-contents cache-file))
 	    'nov)
@@ -489,9 +489,9 @@ Returns the list of articles removed."
     (save-excursion
       (set-buffer cache-buf)
       (erase-buffer)
-      (let ((coding-system-for-read 
+      (let ((coding-system-for-read
 	     gnus-cache-overview-coding-system))
-	(insert-file-contents 
+	(insert-file-contents
 	 (or file (gnus-cache-file-name group ".overview"))))
       (goto-char (point-min))
       (insert "\n")
@@ -534,7 +534,7 @@ Returns the list of articles removed."
       (save-excursion
 	(set-buffer cache-buf)
 	(erase-buffer)
-	(let ((coding-system-for-read 
+	(let ((coding-system-for-read
 	       gnus-cache-coding-system))
 	  (insert-file-contents (gnus-cache-file-name group (car cached))))
 	(goto-char (point-min))

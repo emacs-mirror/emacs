@@ -609,14 +609,14 @@ CODE can be a lambda expression, a macro, or byte-compiled code."
 ;; to reflect different seriousness of linting errors
 
 (defun elint-error (string &rest args)
-  "Report an linting error.
+  "Report a linting error.
 STRING and ARGS are thrown on `format' to get the message."
   (let ((errstr (apply 'format string args)))
     (elint-log-message errstr)
     ))
 
 (defun elint-warning (string &rest args)
-  "Report an linting warning.
+  "Report a linting warning.
 STRING and ARGS are thrown on `format' to get the message."
   (let ((errstr (apply 'format string args)))
     (elint-log-message errstr)

@@ -48,14 +48,6 @@
     (error "Tried to load `cl-seq' before `cl'!"))
 
 
-;;; We define these here so that this file can compile without having
-;;; loaded the cl.el file already.
-
-(defmacro cl-push (x place) (list 'setq place (list 'cons x place)))
-(defmacro cl-pop (place)
-  (list 'car (list 'prog1 place (list 'setq place (list 'cdr place)))))
-
-
 ;;; Keyword parsing.  This is special-cased here so that we can compile
 ;;; this file independent from cl-macs.
 
@@ -140,15 +132,15 @@ Keywords supported:  :start :end :from-end :initial-value :key"
     (setq cl-seq (subseq cl-seq cl-start cl-end))
     (if cl-from-end (setq cl-seq (nreverse cl-seq)))
     (let ((cl-accum (cond ((memq :initial-value cl-keys) cl-initial-value)
-			  (cl-seq (cl-check-key (cl-pop cl-seq)))
+			  (cl-seq (cl-check-key (pop cl-seq)))
 			  (t (funcall cl-func)))))
       (if cl-from-end
 	  (while cl-seq
-	    (setq cl-accum (funcall cl-func (cl-check-key (cl-pop cl-seq))
+	    (setq cl-accum (funcall cl-func (cl-check-key (pop cl-seq))
 				    cl-accum)))
 	(while cl-seq
 	  (setq cl-accum (funcall cl-func cl-accum
-				  (cl-check-key (cl-pop cl-seq))))))
+				  (cl-check-key (pop cl-seq))))))
       cl-accum)))
 
 (defun fill (seq item &rest cl-keys)
@@ -518,7 +510,7 @@ Keywords supported:  :test :test-not :key :start :end"
       (or cl-end (setq cl-end (length cl-seq)))
       (if (consp cl-seq) (setq cl-seq (nthcdr cl-start cl-seq)))
       (while (< cl-start cl-end)
-	(setq cl-x (if (consp cl-seq) (cl-pop cl-seq) (aref cl-seq cl-start)))
+	(setq cl-x (if (consp cl-seq) (pop cl-seq) (aref cl-seq cl-start)))
 	(if (cl-check-test cl-item cl-x) (setq cl-count (1+ cl-count)))
 	(setq cl-start (1+ cl-start)))
       cl-count)))
@@ -618,8 +610,8 @@ Keywords supported:  :key"
       (while (and cl-seq1 cl-seq2)
 	(if (funcall cl-pred (cl-check-key (car cl-seq2))
 		     (cl-check-key (car cl-seq1)))
-	    (cl-push (cl-pop cl-seq2) cl-res)
-	  (cl-push (cl-pop cl-seq1) cl-res)))
+	    (push (pop cl-seq2) cl-res)
+	  (push (pop cl-seq1) cl-res)))
       (coerce (nconc (nreverse cl-res) cl-seq1 cl-seq2) cl-type))))
 
 ;;; See compiler macro in cl-macs.el
@@ -716,8 +708,8 @@ Keywords supported:  :test :test-not :key"
 	   (if (or cl-keys (numberp (car cl-list2)))
 	       (setq cl-list1 (apply 'adjoin (car cl-list2) cl-list1 cl-keys))
 	     (or (memq (car cl-list2) cl-list1)
-		 (cl-push (car cl-list2) cl-list1)))
-	   (cl-pop cl-list2))
+		 (push (car cl-list2) cl-list1)))
+	   (pop cl-list2))
 	 cl-list1)))
 
 (defun nunion (cl-list1 cl-list2 &rest cl-keys)
@@ -746,8 +738,8 @@ Keywords supported:  :test :test-not :key"
 		       (apply 'member* (cl-check-key (car cl-list2))
 			      cl-list1 cl-keys)
 		     (memq (car cl-list2) cl-list1))
-		   (cl-push (car cl-list2) cl-res))
-	       (cl-pop cl-list2))
+		   (push (car cl-list2) cl-res))
+	       (pop cl-list2))
 	     cl-res)))))
 
 (defun nintersection (cl-list1 cl-list2 &rest cl-keys)
@@ -772,8 +764,8 @@ Keywords supported:  :test :test-not :key"
 		  (apply 'member* (cl-check-key (car cl-list1))
 			 cl-list2 cl-keys)
 		(memq (car cl-list1) cl-list2))
-	      (cl-push (car cl-list1) cl-res))
-	  (cl-pop cl-list1))
+	      (push (car cl-list1) cl-res))
+	  (pop cl-list1))
 	cl-res))))
 
 (defun nset-difference (cl-list1 cl-list2 &rest cl-keys)
@@ -817,7 +809,7 @@ Keywords supported:  :test :test-not :key"
 	     (while (and cl-list1
 			 (apply 'member* (cl-check-key (car cl-list1))
 				cl-list2 cl-keys))
-	       (cl-pop cl-list1))
+	       (pop cl-list1))
 	     (null cl-list1)))))
 
 (defun subst-if (cl-new cl-pred cl-tree &rest cl-keys)

@@ -1,6 +1,6 @@
 ;;; make-mode.el --- makefile editing commands for Emacs
 
-;; Copyright (C) 1992,94,99,2000,2001  Free Software Foundation, Inc.
+;; Copyright (C) 1992,94,99,2000,2001, 2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: Thomas Neumann <tom@smart.bo.open.de>
 ;;	Eric S. Raymond <esr@snark.thyrsus.com>
@@ -108,7 +108,7 @@
      (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'faces
-  :group 'makemode)
+  :group 'makefile)
 
 (defcustom makefile-browser-buffer-name "*Macros and Targets*"
   "*Name of the macro- and target browser buffer."
@@ -192,7 +192,7 @@ Otherwise filenames are omitted."
   :type 'boolean
   :group 'makefile)
 
-(defcustom makefile-cleanup-continuations-p t
+(defcustom makefile-cleanup-continuations nil
   "*If non-nil, automatically clean up continuation lines when saving.
 A line is cleaned up by removing all whitespace following a trailing
 backslash.  This is done silently.
@@ -210,7 +210,7 @@ to MODIFY A FILE WITHOUT YOUR CONFIRMATION when \"it seems necessary\"."
 
 ;;
 ;; Special targets for DMake, Sun's make ...
-;; 
+;;
 (defcustom makefile-special-targets-list
   '(("DEFAULT")      ("DONE")        ("ERROR")        ("EXPORT")
     ("FAILED")       ("GROUPEPILOG") ("GROUPPROLOG")  ("IGNORE")
@@ -268,18 +268,23 @@ not be enclosed in { } or ( )."
    ;; Do dependencies.  These get the function name face.
    (list makefile-dependency-regex 1 'font-lock-function-name-face)
 
-   ;; Variable references even in targets/strings/comments:
-   '("\\$[({]\\([-a-zA-Z0-9_.]+\\)[}):]" 1 font-lock-constant-face prepend)
+   ;; Variable references even in targets/strings/comments.
+   '("[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
+     1 font-lock-constant-face prepend)
 
-   ;; Automatic variable references.
-   '("\\$\\([@%<?^+*]\\)" 1 font-lock-reference-face prepend)
+   ;; Automatic variable references and single character variable references,
+   ;; but not shell variables references.
+   '("[^$]\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)"
+     1 font-lock-constant-face prepend)
 
    ;; Fontify conditionals and includes.
    ;; Note that plain `if' is an automake conditional, and not a bug.
    (list
     (concat "^\\(?: [ \t]*\\)?"
 	    (regexp-opt '("-include" "-sinclude" "include" "sinclude" "ifeq"
-			  "if" "ifneq" "ifdef" "ifndef" "endif" "else") t)
+			  "if" "ifneq" "ifdef" "ifndef" "endif" "else"
+			  "define" "endef" "override"
+			  "export" "unexport" "vpath") t)
 	    "\\>[ \t]*\\([^: \t\n#]*\\)")
     '(1 font-lock-keyword-face) '(2 font-lock-variable-name-face))
 
@@ -294,6 +299,11 @@ not be enclosed in { } or ( )."
    ;; Highlight spaces that precede tabs.
    ;; They can make a tab fail to be effective.
    '("^\\( +\\)\t" 1 makefile-space-face)))
+
+(defconst makefile-font-lock-syntactic-keywords
+  (list
+   ;; Change the syntax of a quoted newline so that it does not end a comment.
+   '("\\\\\n" 0 " ")))
 
 (defvar makefile-imenu-generic-expression
   (list
@@ -545,7 +555,7 @@ Makefile mode can be configured by modifying the following variables:
    (i.e. it calls `makefile-pickup-filenames-as-targets'), otherwise
    filenames are omitted.
 
-`makefile-cleanup-continuations-p':
+`makefile-cleanup-continuations':
    If this variable is set to a non-nil value then Makefile mode
    will assure that no line in the file ends with a backslash
    (the continuation character) followed by any whitespace.
@@ -565,9 +575,12 @@ Makefile mode can be configured by modifying the following variables:
 
   (interactive)
   (kill-all-local-variables)
-  (make-local-variable 'local-write-file-hooks)
-  (setq local-write-file-hooks
-	'(makefile-cleanup-continuations makefile-warn-suspicious-lines))
+  (add-hook 'write-file-functions
+	    'makefile-warn-suspicious-lines nil t)
+  (add-hook 'write-file-functions
+	    'makefile-warn-continuations nil t)
+  (add-hook 'write-file-functions
+	    'makefile-cleanup-continuations nil t)
   (make-local-variable 'makefile-target-table)
   (make-local-variable 'makefile-macro-table)
   (make-local-variable 'makefile-has-prereqs)
@@ -580,7 +593,11 @@ Makefile mode can be configured by modifying the following variables:
 	;; SYNTAX-BEGIN set to backward-paragraph to avoid slow-down
 	;; near the end of a large buffer, due to parse-partial-sexp's
 	;; trying to parse all the way till the beginning of buffer.
-	'(makefile-font-lock-keywords nil nil nil backward-paragraph))
+ 	'(makefile-font-lock-keywords
+ 	  nil nil
+ 	  ((?$ . "."))
+ 	  backward-paragraph
+	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)))
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
@@ -749,7 +766,7 @@ Anywhere else just self-inserts."
     (setq makefile-has-prereqs nil)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward makefile-dependency-regex (point-max) t)
+      (while (re-search-forward makefile-dependency-regex nil t)
 	(makefile-add-this-line-targets)))
     (message "Read targets OK.")))
 
@@ -783,7 +800,7 @@ Anywhere else just self-inserts."
     (setq makefile-macro-table nil)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward makefile-macroassign-regex (point-max) t)
+      (while (re-search-forward makefile-macroassign-regex nil t)
 	(makefile-add-this-line-macro)
 	(forward-line 1)))
     (message "Read macros OK.")))
@@ -792,15 +809,15 @@ Anywhere else just self-inserts."
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")
-    (if (not (eolp))
-	(let* ((start-of-macro-name (point))
-	       (line-number (1+ (count-lines (point-min) (point))))
-	       (macro-name (progn
-			     (skip-chars-forward "^ \t:#=*")
-			     (buffer-substring start-of-macro-name (point)))))
-	  (if (makefile-remember-macro macro-name)
-	      (message "Picked up macro \"%s\" from line %d"
-		       macro-name line-number))))))
+    (unless (eolp)
+      (let* ((start-of-macro-name (point))
+	     (line-number (1+ (count-lines (point-min) (point))))
+	     (macro-name (progn
+			   (skip-chars-forward "^ \t:#=*")
+			   (buffer-substring start-of-macro-name (point)))))
+	(if (makefile-remember-macro macro-name)
+	    (message "Picked up macro \"%s\" from line %d"
+		     macro-name line-number))))))
 
 (defun makefile-pickup-everything (arg)
   "Notice names of all macros and targets in Makefile.
@@ -1011,22 +1028,34 @@ definition and conveniently use this command."
     (beginning-of-line)
     (cond
      ((looking-at "^#+ ")
-      ;; Found a comment.  Set the fill prefix and then fill.
-      (let ((fill-prefix (buffer-substring-no-properties (match-beginning 0)
-							 (match-end 0)))
+      ;; Found a comment.  Set the fill prefix, and find the paragraph
+      ;; boundaries by searching for lines that look like comment-only
+      ;; lines.
+      (let ((fill-prefix (match-string-no-properties 0))
 	    (fill-paragraph-function nil))
-	(fill-paragraph nil)
-	t))
+	(save-excursion
+	  (save-restriction
+	    (narrow-to-region
+	     ;; Search backwards.
+	     (save-excursion
+	       (while (and (zerop (forward-line -1))
+			   (looking-at "^#")))
+	       ;; We may have gone too far.  Go forward again.
+	       (or (looking-at "^#")
+		   (forward-line 1))
+	       (point))
+	     ;; Search forwards.
+	     (save-excursion
+	       (while (looking-at "^#")
+		 (forward-line))
+	       (point)))
+	    (fill-paragraph nil)
+	    t))))
 
      ;; Must look for backslashed-region before looking for variable
      ;; assignment.
-     ((save-excursion
-	(end-of-line)
-	(or
-	 (= (preceding-char) ?\\)
-	 (progn
-	   (end-of-line -1)
-	   (= (preceding-char) ?\\))))
+     ((or (eq (char-before (line-end-position 1)) ?\\)
+	  (eq (char-before (line-end-position 0)) ?\\))
       ;; A backslash region.  Find beginning and end, remove
       ;; backslashes, fill, and then reapply backslahes.
       (end-of-line)
@@ -1352,11 +1381,11 @@ and generates the overview, one line per target name."
 
 (defun makefile-cleanup-continuations ()
   (if (eq major-mode 'makefile-mode)
-      (if (and makefile-cleanup-continuations-p
+      (if (and makefile-cleanup-continuations
 	       (not buffer-read-only))
 	  (save-excursion
 	    (goto-char (point-min))
-	    (while (re-search-forward "\\\\[ \t]+$" (point-max) t)
+	    (while (re-search-forward "\\\\[ \t]+$" nil t)
 	      (replace-match "\\" t t))))))
 
 
@@ -1371,9 +1400,17 @@ and generates the overview, one line per target name."
 	(goto-char (point-min))
 	(if (re-search-forward "^\\(\t+$\\| +\t\\)" nil t)
 	    (not (y-or-n-p
-		  (format "Suspicious line %d. Save anyway "
+		  (format "Suspicious line %d. Save anyway? "
 			  (count-lines (point-min) (point)))))))))
-	  
+
+(defun makefile-warn-continuations ()
+  (if (eq major-mode 'makefile-mode)
+      (save-excursion
+	(goto-char (point-min))
+	(if (re-search-forward "\\\\[ \t]+$" nil t)
+	    (not (y-or-n-p
+		  (format "Suspicious continuation in line %d. Save anyway? "
+			  (count-lines (point-min) (point)))))))))
 
 
 ;;; ------------------------------------------------------------
@@ -1504,22 +1541,14 @@ If it isn't in one, return nil."
       ;; Scan back line by line, noticing when we come to a
       ;; variable or rule definition, and giving up when we see
       ;; a line that is not part of either of those.
-      (while (not found)
-	(cond
-	 ((looking-at makefile-macroassign-regex)
-	  (setq found (buffer-substring-no-properties (match-beginning 1)
-							(match-end 1))))
-	 ((looking-at makefile-dependency-regex)
-	  (setq found (buffer-substring-no-properties (match-beginning 1)
-						      (match-end 1))))
-	 ;; Don't keep looking across a blank line or comment.  Give up.
-	 ((looking-at "$\\|#")
-	  (setq found 'bobp))
-	 ((bobp)
-	  (setq found 'bobp)))
-	(or found
-	    (forward-line -1)))
-      (if (stringp found) found))))
+      (while (not (or (setq found
+			    (when (or (looking-at makefile-macroassign-regex)
+				      (looking-at makefile-dependency-regex))
+			      (match-string-no-properties 1)))
+		      ;; Don't keep looking across a blank line or comment.
+		      (looking-at "$\\|#")
+		      (not (zerop (forward-line -1))))))
+      found)))
 
 (provide 'make-mode)
 

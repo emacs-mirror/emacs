@@ -1,34 +1,14 @@
 \input texinfo   @c -*-texinfo-*-
-@c
-@c $Id: speedbar.texi,v 1.9 2001/09/12 20:58:22 rms Exp $
-@c
-
-@c This file is part of GNU Emacs
-
-@c GNU Emacs is free software; you can redistribute it and/or modify it
-@c under the terms of the GNU General Public License as published by the
-@c Free Software Foundation; either version 2 of the License, or (at
-@c your option) any later version.
-
-@c GNU Emacs is distributed in the hope that it will be useful, but
-@c WITHOUT ANY WARRANTY; without even the implied warranty of
-@c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-@c General Public License for more details.
-
-@c You should have received a copy of the GNU General Public License
-@c along with Emacs; see the file COPYING.  If not, write to the Free
-@c Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+@c $Id: speedbar.texi,v 1.11 2002/10/02 23:24:31 karl Exp $
 
 @setfilename ../info/speedbar
 @settitle Speedbar: File/Tag summarizing utility
+@syncodeindex fn cp
 
-@dircategory Emacs
-@direntry
-* Speedbar: (speedbar). File/Tag summarizing utility.
-@end direntry
-@ifnottex
-Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
+@copying
+Copyright @copyright{} 1999, 2000, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -46,7 +26,13 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifnottex
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Speedbar: (speedbar). File/Tag summarizing utility.
+@end direntry
 
 @titlepage
 @sp 10
@@ -56,28 +42,8 @@ license to the document, as described in section 6 of the license.
 @vskip 0pt plus 1 fill
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000 Free Software Foundation, Inc.
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
-
-@syncodeindex fn cp
 
 @node Top, , , (dir)Top
 @comment  node-name,  next,  previous,  up

@@ -18,18 +18,18 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* CHANGE: [Eric H. Herrin II; eric@ms.uky.edu - 15 Sept 1988] 
- * Modified the sequent.h file for the Sequent Symmetry machine.   
- * Biggest change was to align the sections in the a.out to 4K 
+/* CHANGE: [Eric H. Herrin II; eric@ms.uky.edu - 15 Sept 1988]
+ * Modified the sequent.h file for the Sequent Symmetry machine.
+ * Biggest change was to align the sections in the a.out to 4K
  * boundaries (this is the page size).
  */
 
 
 /* NOTICE: this file works for DYNIX release 3.0.12 on Sequent Symmetry
  * (Intel 80386) machines.  Hasn't been tested on anything else.
- */ 
+ */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="bsd4-3"  */
 

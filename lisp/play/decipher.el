@@ -1,6 +1,6 @@
 ;;; decipher.el --- cryptanalyze monoalphabetic substitution ciphers
 ;;
-;; Copyright (C) 1995, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2003 Free Software Foundation, Inc.
 ;;
 ;; Author: Christopher J. Madsen <chris_madsen@geocities.com>
 ;; Keywords: games
@@ -170,10 +170,8 @@ in your `.emacs' file.")
       (define-key decipher-mode-map "R" 'decipher-restore-checkpoint)
       (define-key decipher-mode-map "U" 'decipher-undo)
       (define-key decipher-mode-map " " 'decipher-keypress)
-      (substitute-key-definition 'undo  'decipher-undo
-                                 decipher-mode-map global-map)
-      (substitute-key-definition 'advertised-undo  'decipher-undo
-                                 decipher-mode-map global-map)
+      (define-key decipher-mode-map [remap undo] 'decipher-undo)
+      (define-key decipher-mode-map [remap advertised-undo] 'decipher-undo)
       (let ((key ?a))
         (while (<= key ?z)
           (define-key decipher-mode-map (vector key) 'decipher-keypress)

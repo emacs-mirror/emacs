@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -325,7 +326,7 @@
 				 (math-div
 				  (math-pow -2 (- tn))
 				  (math-double-factorial-iter (* -2 tn) 3 1 2))
-			       (math-div 
+			       (math-div
 				(math-double-factorial-iter (* 2 tn) 3 1 2)
 				(math-pow 2 tn)))))
 		      (math-mul q (if calc-symbolic-mode

@@ -2156,7 +2156,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	      reads nil)
 	(if (eolp)
 	    ;; If the line ends here, this is clearly a buggy line, so
-	    ;; we put point a the beginning of line and let the cond
+	    ;; we put point at the beginning of line and let the cond
 	    ;; below do the error handling.
 	    (beginning-of-line)
 	  ;; We skip to the beginning of the ranges.

@@ -90,7 +90,7 @@ extern Lisp_Object syntax_parent_lookup P_ ((Lisp_Object, int));
 #endif
 
 /* SYNTAX_ENTRY fetches the information from the entry for character C
-   in syntax table TABLE, or from globally kept data (gl_state).  
+   in syntax table TABLE, or from globally kept data (gl_state).
    Does inheritance.  */
 /* CURRENT_SYNTAX_TABLE gives the syntax table valid for current
    position, it is either the buffer's syntax table, or syntax table
@@ -277,7 +277,7 @@ extern char syntax_code_spec[16];
    search, or after the last position of the backward search.  It
    makes sure that the first char is picked up with correct table, so
    one does not need to call UPDATE_SYNTAX_TABLE immediately after the
-   call. 
+   call.
    Sign of COUNT gives the direction of the search.
  */
 
@@ -330,7 +330,7 @@ if (1)									\
     else								\
       {									\
 	gl_state.b_property = 0;					\
-	gl_state.e_property = 1 + XSTRING (gl_state.object)->size;	\
+	gl_state.e_property = 1 + SCHARS (gl_state.object);		\
 	gl_state.offset = 0;						\
       }									\
     gl_state.use_global = 0;						\

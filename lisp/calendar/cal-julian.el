@@ -118,14 +118,14 @@ Driven by the variable `calendar-date-display-form'."
                          (mapcar 'list (append month-array nil))
                          nil t)
                        (calendar-make-alist month-array 1))))
-          (last 
+          (last
            (if (and (zerop (% year 4)) (= month 2))
                29
              (aref [31 28 31 30 31 30 31 31 30 31 30 31] (1- month))))
           (day (calendar-read
                 (format "Julian calendar day (%d-%d): "
                         (if (and (= year 1) (= month 1)) 3 1) last)
-                '(lambda (x) 
+                '(lambda (x)
                    (and (< (if (and (= year 1) (= month 1)) 2 0) x)
                         (<= x last))))))
      (list (list month day year))))

@@ -278,7 +278,7 @@ example, -300 for New York City, -480 for Los Angeles.")
 (defvar calendar-daylight-time-offset
   (or (car (cdr calendar-current-time-zone-cache)) 60)
   "*Number of minutes difference between daylight savings and standard time.
-  
+
 If the locale never uses daylight savings time, set this to 0.")
 
 (defvar calendar-standard-time-zone-name
@@ -290,7 +290,7 @@ For example, \"EST\" in New York City, \"PST\" for Los Angeles.")
   (or (car (nthcdr 3 calendar-current-time-zone-cache)) "EDT")
   "*Abbreviated name of daylight-savings time zone at `calendar-location-name'.
 For example, \"EDT\" in New York City, \"PDT\" for Los Angeles.")
-  
+
 ;;;###autoload
 (put 'calendar-daylight-savings-starts 'risky-local-variable t)
 (defvar calendar-daylight-savings-starts
@@ -331,11 +331,11 @@ For example, if daylight savings time ends on the last Sunday in October:
       '(calendar-nth-named-day -1 0 10 year)
 
 If the locale never uses daylight savings time, set this to nil.")
-  
+
 (defvar calendar-daylight-savings-starts-time
   (or (car (nthcdr 6 calendar-current-time-zone-cache)) 120)
   "*Number of minutes after midnight that daylight savings time starts.")
-  
+
 (defvar calendar-daylight-savings-ends-time
   (or (car (nthcdr 7 calendar-current-time-zone-cache))
       calendar-daylight-savings-starts-time)

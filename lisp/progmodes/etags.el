@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'ring)
+(require 'button)
 
 ;;;###autoload
 (defvar tags-file-name nil
@@ -776,20 +777,26 @@ Assumes the tags table is the current buffer."
 			       (save-excursion (end-of-line) (point))
 			       t))
 	(progn (goto-char (match-end 0))
-	       (buffer-substring (point)
-				 (progn (forward-sexp -1)
-					(while (looking-at "\\s'")
-					  (forward-char 1))
-					(point))))
+	       (buffer-substring-no-properties
+                (point)
+                (progn (forward-sexp -1)
+                       (while (looking-at "\\s'")
+                         (forward-char 1))
+                       (point))))
       nil)))
 
 ;; Read a tag name from the minibuffer with defaulting and completion.
 (defun find-tag-tag (string)
-  (let* ((default (funcall (or find-tag-default-function
+  (let* ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				     tags-case-fold-search
+				   case-fold-search))
+	 (default (funcall (or find-tag-default-function
 			       (get major-mode 'find-tag-default-function)
 			       'find-tag-default)))
 	 (spec (completing-read (if default
-				    (format "%s(default %s) " string default)
+				    (format "%s (default %s): "
+					    (substring string 0 (string-match "[ :]+\\'" string))
+					    default)
 				  string)
 				'tags-complete-tag
 				nil nil nil nil default)))
@@ -910,10 +917,12 @@ Contrast this with the ring of marks gone to by the command.
 
 See documentation of variable `tags-file-name'."
   (interactive (find-tag-interactive "Find tag: "))
-  (let ((buf (find-tag-noselect tagname next-p regexp-p)))
+  (let* ((buf (find-tag-noselect tagname next-p regexp-p))
+	 (pos (with-current-buffer buf (point))))
     (condition-case nil
 	(switch-to-buffer buf)
-      (error (pop-to-buffer buf)))))
+      (error (pop-to-buffer buf)))
+    (goto-char pos)))
 ;;;###autoload (define-key esc-map "." 'find-tag)
 
 ;;;###autoload
@@ -1030,11 +1039,11 @@ where they were found."
 ;; any member of the function list ORDER (third arg).  If ORDER is nil,
 ;; use saved state to continue a previous search.
 
-;; Fourth arg MATCHING is a string, an English '-ing' word, to be used in
-;; an error message.
-
-;; Fifth arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
+;; Fourth arg NEXT-LINE-AFTER-FAILURE-P is non-nil if after a failed match,
 ;; point should be moved to the next line.
+
+;; Fifth arg MATCHING is a string, an English '-ing' word, to be used in
+;; an error message.
 
 ;; Algorithm is as follows.  For each qualifier-func in ORDER, go to
 ;; beginning of tags file, and perform inner loop: for each naive match for
@@ -1196,6 +1205,7 @@ where they were found."
 	       (find-tag-tag-order . (tag-exact-file-name-match-p
                                       tag-file-name-match-p
 				      tag-exact-match-p
+				      tag-implicit-name-match-p
 				      tag-symbol-match-p
 				      tag-word-match-p
 				      tag-partial-file-name-match-p
@@ -1404,16 +1414,41 @@ where they were found."
   (goto-char (point-min))
   (while (re-search-forward string nil t)
     (beginning-of-line)
-    (let ((tag (buffer-substring (point)
-				 (progn (skip-chars-forward "^\177")
-					(point))))
-          (props `(action find-tag-other-window mouse-face highlight
-			  face ,tags-tag-face))
-          (pt (with-current-buffer standard-output (point))))
-      (princ tag)
-      (when (= (aref tag 0) ?\() (princ " ...)"))
-      (add-text-properties pt (with-current-buffer standard-output (point))
-                           `(item ,tag ,@props) standard-output))
+    (let* ((tag-info (save-excursion (funcall snarf-tag-function)))
+	   (tag (if (eq t (car tag-info)) nil (car tag-info)))
+	   (file (if tag (file-of-tag)
+		   (save-excursion (next-line 1)
+				   (file-of-tag))))
+	   (pt (with-current-buffer standard-output (point))))
+      (if tag
+	  (progn
+	    (princ (format "[%s]: " file))
+	    (princ tag)
+	    (when (= (aref tag 0) ?\() (princ " ...)"))
+	    (with-current-buffer standard-output
+	    (make-text-button pt (point)
+			      'tag-info tag-info
+			      'file file
+			      'action (lambda (button)
+					;; TODO: just `find-file is too simple.
+					;; Use code `find-tag-in-order'.
+					(let ((tag-info (button-get button 'tag-info)))
+					  (find-file (button-get button 'file))
+					  (etags-goto-tag-location tag-info)))
+			      'face 'tags-tag-face
+			      'type 'button)))
+	(princ (format "- %s" file))
+	(with-current-buffer standard-output
+	  (make-text-button pt (point)
+	  'file file
+	  'action (lambda (button)
+		    ;; TODO: just `find-file is too simple.
+		    ;; Use code `find-tag-in-order'.
+		    (find-file (button-get button 'file))
+		    (goto-char (point-min)))
+	  'face 'tags-tag-face
+	  'type 'button))
+	))
     (terpri)
     (forward-line 1))
   (when tags-apropos-verbose (princ "\n")))
@@ -1461,7 +1496,7 @@ where they were found."
             (lambda () (zerop (buffer-size))))))
 
 ;; Match qualifier functions for tagnames.
-;; XXX these functions assume etags file format.
+;; These functions assume the etags file format defined in etc/ETAGS.EBNF.
 
 ;; This might be a neat idea, but it's too hairy at the moment.
 ;;(defmacro tags-with-syntax (&rest body)
@@ -1479,30 +1514,6 @@ where they were found."
 ;;       (set-syntax-table otable))))
 ;;(put 'tags-with-syntax 'edebug-form-spec '(&rest form))
 
-;; t if point is at a tag line that matches TAG exactly.
-;; point should be just after a string that matches TAG.
-(defun tag-exact-match-p (tag)
-  ;; The match is really exact if there is an explicit tag name.
-  (or (and (eq (char-after (point)) ?\001)
-	   (eq (char-after (- (point) (length tag) 1)) ?\177))
-      ;; We are not on the explicit tag name, but perhaps it follows.
-      (looking-at (concat "[^\177\n]*\177" (regexp-quote tag) "\001"))))
-
-;; t if point is at a tag line that matches TAG as a symbol.
-;; point should be just after a string that matches TAG.
-(defun tag-symbol-match-p (tag)
-  (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177")
-       (save-excursion
-	 (backward-char (1+ (length tag)))
-	 (and (looking-at "\\Sw") (looking-at "\\S_")))))
-
-;; t if point is at a tag line that matches TAG as a word.
-;; point should be just after a string that matches TAG.
-(defun tag-word-match-p (tag)
-  (and (looking-at "\\b.*\177")
-       (save-excursion (backward-char (length tag))
-		       (looking-at "\\b"))))
-
 ;; exact file name match, i.e. searched tag must match complete file
 ;; name including directories parts if there are some.
 (defun tag-exact-file-name-match-p (tag)
@@ -1519,6 +1530,41 @@ where they were found."
 ;; is there a variable that contains the regexp for directory separator
 ;; on whatever operating system ?
 ;; Looks like ms-win will lose here :).
+
+;; t if point is at a tag line that matches TAG exactly.
+;; point should be just after a string that matches TAG.
+(defun tag-exact-match-p (tag)
+  ;; The match is really exact if there is an explicit tag name.
+  (or (and (eq (char-after (point)) ?\001)
+	   (eq (char-after (- (point) (length tag) 1)) ?\177))
+      ;; We are not on the explicit tag name, but perhaps it follows.
+      (looking-at (concat "[^\177\n]*\177" (regexp-quote tag) "\001"))))
+
+;; t if point is at a tag line that has an implicit name.
+;; point should be just after a string that matches TAG.
+(defun tag-implicit-name-match-p (tag)
+  ;; Look at the comment of the make_tag function in lib-src/etags.c for
+  ;; a textual description of the four rules.
+  (and (string-match "^[^ \t()=,;]+$" tag) ;rule #1
+       (looking-at "[ \t()=,;]?\177")	;rules #2 and #4
+       (save-excursion
+	 (backward-char (1+ (length tag)))
+	 (looking-at "[\n \t()=,;]"))))	;rule #3
+
+;; t if point is at a tag line that matches TAG as a symbol.
+;; point should be just after a string that matches TAG.
+(defun tag-symbol-match-p (tag)
+  (and (looking-at "\\Sw.*\177") (looking-at "\\S_.*\177")
+       (save-excursion
+	 (backward-char (1+ (length tag)))
+	 (and (looking-at "\\Sw") (looking-at "\\S_")))))
+
+;; t if point is at a tag line that matches TAG as a word.
+;; point should be just after a string that matches TAG.
+(defun tag-word-match-p (tag)
+  (and (looking-at "\\b.*\177")
+       (save-excursion (backward-char (length tag))
+		       (looking-at "\\b"))))
 
 ;; partial file name match, i.e. searched tag must match a substring
 ;; of the file name (potentially including a directory separator).
@@ -1794,8 +1840,10 @@ directory specification."
 	  (funcall tags-apropos-function regexp))))
     (etags-tags-apropos-additional regexp))
   (with-current-buffer "*Tags List*"
-    (setq buffer-read-only t)
-    (apropos-mode)))
+    (apropos-mode)
+    ;; apropos-mode is derived from fundamental-mode and it kills
+    ;; all local variables.
+    (setq buffer-read-only t)))
 
 ;; XXX Kludge interface.
 
@@ -1898,7 +1946,10 @@ for \\[find-tag] (which see)."
       (error "%s"
 	     (substitute-command-keys
 	      "No tags table loaded; try \\[visit-tags-table]")))
-  (let ((pattern (funcall (or find-tag-default-function
+  (let ((completion-ignore-case (if (memq tags-case-fold-search '(t nil))
+				    tags-case-fold-search
+				  case-fold-search))
+	(pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
 			      'find-tag-default)))
 	beg

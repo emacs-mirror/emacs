@@ -1,3 +1,30 @@
+2003-01-26  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (update_one_menu_entry): Deallocate widget_list.
+	(destroy_all_children): Call it self to destroy sub menu children.
+
+2002-12-22  Richard M. Stallman  <rms@gnu.org>
+
+	* xlwmenu.c (pop_new_stack_if_no_contents): Do nothing if
+	new_depth is 1.
+	(remap_menubar): Don't look in new_stack[0].
+	(Left): At level 1, do the same thing Right does.
+
+2002-11-21  Dave Love  <fx@gnu.org>
+
+	* lwlib-Xaw.c [PROTOTYPES]: Provide ISO C arglists for functions
+	with Boolean args.
+
+2002-11-20  Dave Love  <fx@gnu.org>
+
+	* lwlib.c: Remove obsolete USE_OLIT code.
+	[PROTOTYPES]: Provide ISO C arglists for functions with Boolean
+	args.
+	(lwlib_memset): Declare length arg as size_t.
+	(malloc_widget_value): Cast arg of lwlib_memset.
+
+	* xlwmenu.c (separator_height): Prototype.
+
 2002-05-07  Miles Bader  <miles@gnu.org>
 
 	* xlwmenu.c (make_drawing_gcs): The scaling factor passed to
@@ -27,7 +54,7 @@
 	* xlwmenu.c <XtNmargin, XtNverticalSpacing, XmNshadowThickness>:
 	Change default values.
 
-2002-04-28  Jan D.  <jan.h.d@swipnet.se>
+2002-04-28  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xlwmenu.c: Do not grab keyboard if installation-directory is
 	non-nil (not installed Emacs).  To simplify debugging.
@@ -48,7 +75,7 @@
 	* lwlib-Xol.c, lwlib-Xol.h, lwlib-Xolmb.c, lwlib-Xolmb.h
 	* lwlib-XolmbP.h: Remove file.
 
-2002-04-22  Jan D.  <jan.h.d@swipnet.se>
+2002-04-22  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* lwlib-Xm.c: Removed compiler warning.
 
@@ -845,13 +872,13 @@
 
 	* xlwmenu.c: Add #include <X11/ObjectP.h> for X11R4.
 
-1994-09-18  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-09-18  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* lwlib-Xm.c (make_dialog): When there is more than two pushbuttons,
 	set XmPACK_TIGHT and XmHORIZONTAL to the rowcolumn.  Also add a
 	margin of 10 pixels.
 
-1994-09-16  Paul Reilly <pmr@geech.gnu.ai.mit.edu>
+1994-09-16  Paul Reilly  <pmr@geech.gnu.ai.mit.edu>
 
 	* lwlib-Xm.c (make_main): New function to support toolkit
 	independent creation of the main Emacs widget.

@@ -184,7 +184,8 @@ contains the name of the directory which the buffer is visiting.")
 (defun uniquify-rationalize-file-buffer-names (&optional newbuffile newbuf)
   "Make file buffer names unique by adding segments from file name.
 If `uniquify-min-dir-content' > 0, always pulls that many
-file name elements.  Arguments cause only a subset of buffers to be renamed."
+file name elements.
+Arguments NEWBUFFILE and NEWBUF cause only a subset of buffers to be renamed."
   (interactive)
   (let (fix-list
 	uniquify-non-file-buffer-names
@@ -290,21 +291,20 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
     (cond
      ((null extra-string) base)
      ((string-equal base "") ;Happens for dired buffers on the root directory.
-      (mapconcat 'identity extra-string (string directory-sep-char)))
+      (mapconcat 'identity extra-string "/"))
      ((eq uniquify-buffer-name-style 'reverse)
-      (let ((dirsep (string directory-sep-char)))
-	(mapconcat 'identity
-		   (cons base (nreverse extra-string))
-		   (or uniquify-separator "\\"))))
+      (mapconcat 'identity
+		 (cons base (nreverse extra-string))
+		 (or uniquify-separator "\\")))
      ((eq uniquify-buffer-name-style 'forward)
       (mapconcat 'identity (nconc extra-string (list base))
-		 (string directory-sep-char)))
+		 "/"))
      ((eq uniquify-buffer-name-style 'post-forward)
       (concat base (or uniquify-separator "|")
-	      (mapconcat 'identity extra-string (string directory-sep-char))))
+	      (mapconcat 'identity extra-string "/")))
      ((eq uniquify-buffer-name-style 'post-forward-angle-brackets)
-      (concat base "<" (mapconcat 'identity extra-string
-				  (string directory-sep-char)) ">"))
+      (concat base "<" (mapconcat 'identity extra-string "/")
+	      ">"))
      (t (error "Bad value for uniquify-buffer-name-style: %s"
 	       uniquify-buffer-name-style)))))
 
@@ -352,7 +352,7 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 ;; generate-new-buffer, which is called only by Lisp functions
 ;; create-file-buffer and rename-uniquely.  Rename-uniquely generally
 ;; isn't used for buffers visiting files, so it's sufficient to hook
-;; rename-buffer and create-file-buffer.  (Setting find-file-hooks isn't
+;; rename-buffer and create-file-buffer.  (Setting find-file-hook isn't
 ;; sufficient.)
 
 (defadvice rename-buffer (after rename-buffer-uniquify activate)
@@ -385,21 +385,23 @@ in `uniquify-list-buffers-directory-modes', otherwise returns nil."
 ;; (This ought to set some global variables so the work is done only for
 ;; buffers with names similar to the deleted buffer.  -MDE)
 
-(defun delay-uniquify-rationalize-file-buffer-names ()
+(defun uniquify-delay-rationalize-file-buffer-names ()
   "Add `delayed-uniquify-rationalize-file-buffer-names' to `post-command-hook'.
 For use on, eg, `kill-buffer-hook', to rationalize *after* buffer deletion."
   (if (and uniquify-buffer-name-style
-	   uniquify-after-kill-buffer-p)
+	   uniquify-after-kill-buffer-p
+	   ;; Rationalizing is costly, so don't do it for temp buffers.
+	   (uniquify-buffer-file-name (current-buffer)))
       (add-hook 'post-command-hook
-		'delayed-uniquify-rationalize-file-buffer-names)))
+		'uniquify-delayed-rationalize-file-buffer-names)))
 
-(defun delayed-uniquify-rationalize-file-buffer-names ()
+(defun uniquify-delayed-rationalize-file-buffer-names ()
   "Rerationalize buffer names and remove self from `post-command-hook'.
 See also `delay-rationalize-file-buffer-names' for hook setter."
   (uniquify-rationalize-file-buffer-names)
   (remove-hook 'post-command-hook
-	       'delayed-uniquify-rationalize-file-buffer-names))
+	       'uniquify-delayed-rationalize-file-buffer-names))
 
-(add-hook 'kill-buffer-hook 'delay-uniquify-rationalize-file-buffer-names)
+(add-hook 'kill-buffer-hook 'uniquify-delay-rationalize-file-buffer-names)
 
 ;;; uniquify.el ends here

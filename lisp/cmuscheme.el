@@ -47,19 +47,19 @@
 ;; character to the scheme process.  Cmuscheme mode does *not* provide this
 ;; functionality. If you are a cscheme user, you may prefer to use the
 ;; xscheme.el/cscheme -emacs interaction.
-;; 
+;;
 ;; Here's a summary of the pros and cons, as I see them.
 ;; xscheme: Tightly integrated with inferior cscheme process!  A few commands
 ;;	     not in cmuscheme. But. Integration is a bit of a hack.  Input
 ;;	     history only keeps the immediately prior input. Bizarre
 ;;	     keybindings.
-;; 
+;;
 ;; cmuscheme: Not tightly integrated with inferior cscheme process.  But.
 ;;            Carefully integrated functionality with the entire suite of
 ;;            comint-derived CMU process modes. Keybindings reminiscent of
 ;;            Zwei and Hemlock. Good input history. A few commands not in
 ;;            xscheme.
-;;  
+;;
 ;; It's a tradeoff. Pay your money; take your choice. If you use a Scheme
 ;; that isn't Cscheme, of course, there isn't a choice. Xscheme.el is *very*
 ;; Cscheme-specific; you must use cmuscheme.el.  Interested parties are
@@ -432,7 +432,7 @@ for a minimal, simple implementation.  Feel free to extend it.")
 This is a good place to put keybindings."
   :type 'hook
   :group 'cmuscheme)
-	
+
 (run-hooks 'cmuscheme-load-hook)
 
 (provide 'cmuscheme)

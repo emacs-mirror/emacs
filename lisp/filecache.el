@@ -63,6 +63,9 @@
 ;;   * `file-cache-add-directory-using-locate': Uses the `locate' command to
 ;;     add files matching a pattern to the cache.
 ;;
+;;   * `file-cache-add-directory-recursively': Uses the find-lisp package to
+;;     add all files matching a pattern to the cache.
+;;
 ;; Use the function `file-cache-clear-cache' to remove all items from the
 ;; cache. There are a number of `file-cache-delete' functions provided
 ;; as well, but in general it is probably better to not worry too much
@@ -138,6 +141,9 @@
 
 ;;; Code:
 
+(eval-when-compile
+  (require 'find-lisp))
+
 (defgroup file-cache nil
   "Find files using a pre-loaded cache."
   :group 'files
@@ -187,7 +193,7 @@ do not use this variable."
   :group 'file-cache)
 
 (defcustom file-cache-completion-ignore-case
-   (if (memq system-type (list 'ms-dos 'windows-nt))
+   (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       t
      completion-ignore-case)
   "If non-nil, file-cache completion should ignore case.
@@ -197,7 +203,7 @@ Defaults to the value of `completion-ignore-case'."
   )
 
 (defcustom file-cache-case-fold-search
-  (if (memq system-type (list 'ms-dos 'windows-nt))
+  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       t
     case-fold-search)
   "If non-nil, file-cache completion should ignore case.
@@ -207,7 +213,7 @@ Defaults to the value of `case-fold-search'."
   )
 
 (defcustom file-cache-assoc-function
-  (if (memq system-type (list 'ms-dos 'windows-nt))
+  (if (memq system-type (list 'ms-dos 'windows-nt 'cygwin))
       'assoc-ignore-case
     'assoc)
   "Function to use to check completions in the file cache.
@@ -337,6 +343,30 @@ STRING is passed as an argument to the locate command."
 		(get-buffer file-cache-buffer) nil
 		string)
   (file-cache-add-from-file-cache-buffer))
+
+(defun file-cache-add-directory-recursively  (dir &optional regexp)
+  "Adds DIR and any subdirectories to the file-cache.
+This function does not use any external programs
+If the optional REGEXP argument is non-nil, only files which match it
+will be added to the cache. Note that the REGEXP is applied to the files
+in each directory, not to the directory list itself."
+  (interactive "DAdd directory: ")
+  (require 'find-lisp)
+  (mapcar
+   (function
+    (lambda(file)
+      (or (file-directory-p file)
+	  (let (filtered)
+	    (mapcar
+	     (function
+	      (lambda(regexp)
+		(and (string-match regexp file)
+		     (setq filtered t))
+		))
+	     file-cache-filter-regexps)
+	    filtered)
+	  (file-cache-add-file file))))
+   (find-lisp-find-files dir (if regexp regexp "^"))))
 
 (defun file-cache-add-from-file-cache-buffer (&optional regexp)
   "Add any entries found in the file cache buffer.
@@ -625,6 +655,30 @@ the name is considered already unique; only the second substitution
     )
   )
 
+(defun file-cache-complete  ()
+  "Complete the word at point, using the filecache."
+  (interactive)
+  (let (start pattern completion all)
+    (save-excursion
+      (skip-syntax-backward "^\"")
+      (setq start (point)))
+    (setq pattern    (buffer-substring-no-properties start (point)))
+    (setq completion (try-completion  pattern file-cache-alist))
+    (setq all        (all-completions pattern file-cache-alist nil))
+    (cond ((eq completion t))
+	  ((null completion)
+	   (message "Can't find completion for \"%s\"" pattern)
+	   (ding))
+	  ((not (string= pattern completion))
+	   (delete-region start (point))
+	   (insert completion)
+	   )
+	  (t
+	   (with-output-to-temp-buffer "*Completions*"
+	     (display-completion-list all))
+	   ))
+    ))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Show parts of the cache
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -673,6 +727,21 @@ match REGEXP."
    (list (completing-read "File Cache: " file-cache-alist)))
   (message "%s" (funcall file-cache-assoc-function file file-cache-alist))
   )
+
+(defun file-cache-display  ()
+  "Display the file cache."
+  (interactive)
+  (let ((buf "*File Cache Contents*"))
+    (with-current-buffer
+	(get-buffer-create buf)
+      (erase-buffer)
+      (mapcar
+       (function
+      (lambda(item)
+	(insert (nth 1 item) (nth 0 item) "\n")))
+    file-cache-alist)
+      (pop-to-buffer buf)
+    )))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Keybindings

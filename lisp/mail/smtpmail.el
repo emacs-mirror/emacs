@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
 ;; Maintainer: Simon Josefsson <simon@josefsson.org>
@@ -66,7 +66,6 @@
 ;;; Code:
 
 (require 'sendmail)
-(require 'time-stamp)
 (autoload 'starttls-open-stream "starttls")
 (autoload 'starttls-negotiate "starttls")
 (autoload 'mail-strip-quoted-names "mail-utils")
@@ -84,7 +83,8 @@
 
 
 (defcustom smtpmail-default-smtp-server nil
-  "*Specify default SMTP server."
+  "*Specify default SMTP server.
+This only has effect if you specify it before loading the smtpmail library."
   :type '(choice (const nil) string)
   :group 'smtpmail)
 
@@ -342,14 +342,15 @@ This is relative to `smtpmail-queue-dir'.")
 			    smtpmail-recipient-address-list tembuf))
 		      (error "Sending failed; SMTP protocol error"))
 		(error "Sending failed; no recipients"))
-	    (let* ((file-data (concat
-			       smtpmail-queue-dir
-			       (concat (time-stamp-yyyy-mm-dd)
-				       "_" (time-stamp-hh:mm:ss)
-				       "_"
-				       (setq smtpmail-queue-counter
-					     (1+ smtpmail-queue-counter)))))
-		      (file-elisp (concat file-data ".el"))
+	    (let* ((file-data
+		    (expand-file-name
+		     (format "%s_%i"
+			     (format-time-string "%Y-%m-%d_%H:%M:%S")
+			     (setq smtpmail-queue-counter
+				   (1+ smtpmail-queue-counter)))
+		     smtpmail-queue-dir))
+		   (file-data (convert-standard-filename file-data))
+		   (file-elisp (concat file-data ".el"))
 		   (buffer-data (create-file-buffer file-data))
 		   (buffer-elisp (create-file-buffer file-elisp))
 		   (buffer-scratch "*queue-mail*"))
@@ -377,6 +378,7 @@ This is relative to `smtpmail-queue-dir'.")
       (if (bufferp errbuf)
 	  (kill-buffer errbuf)))))
 
+;;;###autoload
 (defun smtpmail-send-queued-mail ()
   "Send mail that was queued as a result of setting `smtpmail-queue-mail'."
   (interactive)
@@ -539,6 +541,9 @@ This is relative to `smtpmail-queue-dir'.")
 	(host (or smtpmail-smtp-server
 		  (error "`smtpmail-smtp-server' not defined")))
 	(port smtpmail-smtp-service)
+	(envelope-from (or (mail-envelope-from)
+			   smtpmail-mail-address
+			   user-mail-address))
 	response-code
 	greeting
 	process-buffer
@@ -612,7 +617,7 @@ This is relative to `smtpmail-queue-dir'.")
 	    (if (and do-starttls
 		     (smtpmail-find-credentials smtpmail-starttls-credentials host port)
 		     (member 'starttls supported-extensions)
-		     (process-id process))
+		     (numberp (process-id process)))
 		(progn
 		  (smtpmail-send-command process (format "STARTTLS"))
 		  (if (or (null (car (setq response-code (smtpmail-read-response process))))
@@ -688,8 +693,7 @@ This is relative to `smtpmail-queue-dir'.")
 		     "")))
 ;	      (smtpmail-send-command process (format "MAIL FROM:%s@%s" (user-login-name) (smtpmail-fqdn)))
 	      (smtpmail-send-command process (format "MAIL FROM: <%s>%s%s"
-						     (or mail-envelope-from
-							 smtpmail-mail-address)
+						     envelope-from
 						     size-part
 						     body-part))
 
@@ -749,7 +753,9 @@ This is relative to `smtpmail-queue-dir'.")
 ;		    (>= (car response-code) 400))
 ;		(throw 'done nil)
 ;	      )
-	    (delete-process process))))))
+	    (delete-process process)
+	    (unless smtpmail-debug-info
+	      (kill-buffer process-buffer)))))))
 
 
 (defun smtpmail-process-filter (process output)

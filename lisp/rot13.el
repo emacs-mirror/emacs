@@ -25,7 +25,7 @@
 ;;; Commentary:
 
 ;; The entry point, `rot13-other-window', performs a Caesar cipher
-;; encrypt/decrypt on the current buffer and displays the result in another 
+;; encrypt/decrypt on the current buffer and displays the result in another
 ;; window.  Rot13 encryption is sometimes used on USENET as a read-at-your-
 ;; own-risk wrapper for material some might consider offensive, such as
 ;; ethnic humor.

@@ -36,7 +36,7 @@ set MANUAL=elisp  # the base name of the manual
 echo "Extract raw index from texinfo fn index."
 # Let texindex combine duplicate entries, later.
 # But it wants to protect non-alphanumerics thus confusing ptx.
-# Also change `\ ' to just a ` ', since texindex will fail. This is produced 
+# Also change `\ ' to just a ` ', since texindex will fail. This is produced
 # by `@findex two words' in an example environment (no doubt among others).
 # delete wrapper parens
 # change dots {} to dots{}
@@ -114,7 +114,7 @@ echo "Sort with texindex."
 ${TEXINDEX} permuted.fn
 #mv permuted.fns ${MANUAL}.fns
 
-# The resulting permuted.fns will be read when we run TeX 
+# The resulting permuted.fns will be read when we run TeX
 # on the manual the second time.  Or you can use permuted.texinfo here.
 #${TEX} permuted.texinfo
 

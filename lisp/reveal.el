@@ -107,7 +107,11 @@
 	       (setq repeat t)
 	       (condition-case err
 		   (funcall open ol nil)
-		 (error (message "!!Reveal-show: %s !!" err))))))))
+		 (error (message "!!Reveal-show: %s !!" err)
+			;; Let's default to a meaningful behavior to avoid
+			;; getting stuck in an infinite loop.
+			(setq repeat nil)
+			(overlay-put ol 'invisible nil))))))))
      ;; Close old overlays.
      (dolist (ol old-ols)
        (when (and (eq (current-buffer) (overlay-buffer ol))
@@ -156,7 +160,7 @@ Reveal mode renders invisible text around point visible again.
 Interactively, with no prefix argument, toggle the mode.
 With universal prefix ARG (or if ARG is nil) turn mode on.
 With zero or negative ARG turn mode off."
-  :global t
+  :global t :group 'reveal
   (setq-default reveal-mode global-reveal-mode)
   (if global-reveal-mode
       (progn
@@ -166,4 +170,5 @@ With zero or negative ARG turn mode off."
     (remove-hook 'post-command-hook 'reveal-post-command)))
 
 (provide 'reveal)
+
 ;;; reveal.el ends here

@@ -40,6 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include "buffer.h"
 #include "charset.h"
 #include "coding.h"
+#include "composite.h"
 
 /* If ever some function outside this file will need to call any
    clipboard-related function, the following prototypes and constants
@@ -500,12 +501,12 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 
   BLOCK_INPUT;
 
-  nbytes = STRING_BYTES (XSTRING (string));
-  src = XSTRING (string)->data;
+  nbytes = SBYTES (string);
+  src = SDATA (string);
 
   /* Since we are now handling multilingual text, we must consider
      encoding text for the clipboard.  */
-  charset_info = find_charset_in_text (src, XSTRING (string)->size, nbytes,
+  charset_info = find_charset_in_text (src, SCHARS (string), nbytes,
 				       NULL, Qnil);
 
   if (charset_info == 0)
@@ -530,8 +531,8 @@ DEFUN ("w16-set-clipboard-data", Fw16_set_clipboard_data, Sw16_set_clipboard_dat
 	  && !NILP (Ffboundp (coding.pre_write_conversion)))
 	{
 	  string = run_pre_post_conversion_on_str (string, &coding, 1);
-	  src = XSTRING (string)->data;
-	  nbytes = STRING_BYTES (XSTRING (string));
+	  src = SDATA (string);
+	  nbytes = SBYTES (string);
 	}
       coding.src_multibyte = 1;
       coding.dst_multibyte = 0;
@@ -657,6 +658,9 @@ DEFUN ("w16-get-clipboard-data", Fw16_get_clipboard_data, Sw16_get_clipboard_dat
       coding.dst_multibyte = 1;
       Vnext_selection_coding_system = Qnil;
       coding.mode |= CODING_MODE_LAST_BLOCK;
+      /* We explicitely disable composition handling because selection
+	 data should not contain any composition sequence.  */
+      coding.composing = COMPOSITION_DISABLED;
       truelen = get_clipboard_data (CF_OEMTEXT, htext, data_size, 1);
       bufsize = decoding_buffer_size (&coding, truelen);
       buf = (unsigned char *) xmalloc (bufsize);
@@ -744,14 +748,14 @@ syms_of_win16select ()
 	       doc: /* Coding system for communicating with other X clients.
 When sending or receiving text via cut_buffer, selection, and clipboard,
 the text is encoded or decoded by this coding system.
-A default value is `iso-latin-1-dos'.  */);
-  Vselection_coding_system=intern ("iso-latin-1-dos");
+The default value is `iso-latin-1-dos'.  */);
+  Vselection_coding_system = intern ("iso-latin-1-dos");
 
   DEFVAR_LISP ("next-selection-coding-system", &Vnext_selection_coding_system,
 	       doc: /* Coding system for the next communication with other X clients.
 Usually, `selection-coding-system' is used for communicating with
-other X clients.   But, if this variable is set, it is used for the
-next communication only.   After the communication, this variable is
+other X clients.  But, if this variable is set, it is used for the
+next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 

@@ -204,7 +204,7 @@ for creating, aligning and killing comments.  @xref{Comments}.
 @item Common Lisp
 Common Lisp is a dialect of Lisp (q.v.@:) much larger and more powerful
 than Emacs Lisp.  Emacs provides a subset of Common Lisp in the CL
-package.  @xref{Common Lisp,,, cl, Common Lisp Extensions}.
+package.  @xref{Top, Common Lisp, Overview, cl, Common Lisp Extensions}.
 
 @item Compilation
 Compilation is the process of creating an executable program from source
@@ -246,10 +246,9 @@ characters.  @xref{User Input}.
 
 @item Copyleft
 A copyleft is a notice giving the public legal permission to
-redistribute a program or other work of art.  Copylefts are used by
-left-wing programmers to promote freedom and cooperation, just as
-copyrights are used by right-wing programmers to gain power over other
-people.
+redistribute a program or other work of art.  Copyright is normally used
+to keep users divided and helpless; with copyleft we turn that around
+to empower users and encourage them to cooperate.
 
 The particular form of copyleft used by the GNU project is called the
 GNU General Public License.  @xref{Copying}.
@@ -896,7 +895,7 @@ Point is the place in the buffer at which insertion and deletion
 occur.  Point is considered to be between two characters, not at one
 character.  The terminal's cursor (q.v.@:) indicates the location of
 point.  @xref{Basic,Point,Basic Editing}.
-	
+
 @item Prefix Argument
 See `numeric argument.'
 

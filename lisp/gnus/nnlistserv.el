@@ -85,7 +85,7 @@
 ;;;
 
 (defun nnlistserv-kk-create-mapping ()
-  "Perform the search and create an number-to-url alist."
+  "Perform the search and create a number-to-url alist."
   (save-excursion
     (set-buffer nnweb-buffer)
     (let ((case-fold-search t)

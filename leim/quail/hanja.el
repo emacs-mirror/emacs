@@ -32,7 +32,7 @@
 (require 'quail)
 (require 'korea-util)
 
-(quail-define-package 
+(quail-define-package
  "korean-hanja" "Korean" "漢2" t
  "2벌식KSC漢字: 該當하는 漢字의 韻을 한글2벌式으로 呼出하여 選擇"
 		      nil nil nil nil nil nil t)

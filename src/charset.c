@@ -210,7 +210,7 @@ char_to_string_1 (c, str)
       /* If C still has any modifier bits, just ignore it.  */
       c &= ~CHAR_MODIFIER_MASK;
     }
-  
+
   if (SINGLE_BYTE_CHAR_P (c))
     {
       if (ASCII_BYTE_P (c) || c >= 0xA0)
@@ -345,7 +345,7 @@ char_printable_p (c)
     return 0;
   else if (c >= MAX_CHAR)
     return 0;
-  
+
   SPLIT_CHAR (c, charset, c1, c2);
   if (! CHARSET_DEFINED_P (charset))
     return 0;
@@ -700,14 +700,14 @@ DESCRIPTION (string) is the description string of the charset.  */)
       || !STRINGP (vec[7])
       || !STRINGP (vec[8]))
     error ("Invalid info-vector argument for defining charset %s",
-	   XSTRING (SYMBOL_NAME (charset_symbol))->data);
+	   SDATA (SYMBOL_NAME (charset_symbol)));
 
   if (NILP (charset_id))
     {
       charset_id = get_new_private_charset_id (XINT (vec[0]), XINT (vec[2]));
       if (XINT (charset_id) == 0)
 	error ("There's no room for a new private charset %s",
-	       XSTRING (SYMBOL_NAME (charset_symbol))->data);
+	       SDATA (SYMBOL_NAME (charset_symbol)));
     }
 
   update_charset_table (charset_id, vec[0], vec[1], vec[2], vec[3],
@@ -779,7 +779,7 @@ CHARSET should be defined by `defined-charset' in advance.  */)
   if (XINT (final_char) < '0' || XFASTINT (final_char) > '~')
     error ("Invalid FINAL-CHAR %c, it should be `0'..`~'", XINT (chars));
   if ((charset = get_charset_id (charset_symbol)) < 0)
-    error ("Invalid charset %s", XSTRING (SYMBOL_NAME (charset_symbol))->data);
+    error ("Invalid charset %s", SDATA (SYMBOL_NAME (charset_symbol)));
 
   ISO_CHARSET_TABLE (dimension, chars, final_char) = charset;
   return Qnil;
@@ -802,7 +802,7 @@ CHARSET should be defined by `defined-charset' in advance.  */)
 
 int
 find_charset_in_text (ptr, nchars, nbytes, charsets, table)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nchars, nbytes, *charsets;
      Lisp_Object table;
 {
@@ -810,14 +810,14 @@ find_charset_in_text (ptr, nchars, nbytes, charsets, table)
     {
       if (charsets && nbytes > 0)
 	{
-	  unsigned char *endp = ptr + nbytes;
+	  const unsigned char *endp = ptr + nbytes;
 	  int maskbits = 0;
 
 	  while (ptr < endp && maskbits != 7)
 	    {
 	      maskbits |= (*ptr < 0x80 ? 1 : *ptr < 0xA0 ? 2 : 4);
 	      ptr++;
-	    }	      
+	    }
 
 	  if (maskbits & 1)
 	    charsets[CHARSET_ASCII] = 1;
@@ -943,8 +943,8 @@ only `ascii', `eight-bit-control', and `eight-bit-graphic'.  */)
   CHECK_STRING (str);
 
   bzero (charsets, (MAX_CHARSET + 1) * sizeof (int));
-  find_charset_in_text (XSTRING (str)->data, XSTRING (str)->size,
-			STRING_BYTES (XSTRING (str)), charsets, table);
+  find_charset_in_text (SDATA (str), SCHARS (str),
+			SBYTES (str), charsets, table);
 
   val = Qnil;
   if (charsets[1])
@@ -1176,8 +1176,7 @@ The conversion is done based on `nonascii-translation-table' (which see)
 }
 
 DEFUN ("char-bytes", Fchar_bytes, Schar_bytes, 1, 1, 0,
-       doc: /* Return 1 regardless of the argument CHAR.
-This is now an obsolete function.  We keep it just for backward compatibility.  */)
+       doc: /* Return 1 regardless of the argument CHAR.  */)
      (ch)
      Lisp_Object ch;
 {
@@ -1272,8 +1271,8 @@ strwidth (str, len)
 
 int
 c_string_width (str, len, precision, nchars, nbytes)
-     unsigned char *str;
-     int precision, *nchars, *nbytes;
+     const unsigned char *str;
+     int len, precision, *nchars, *nbytes;
 {
   int i = 0, i_byte = 0;
   int width = 0;
@@ -1336,9 +1335,9 @@ lisp_string_width (string, precision, nchars, nbytes)
      Lisp_Object string;
      int precision, *nchars, *nbytes;
 {
-  int len = XSTRING (string)->size;
-  int len_byte = STRING_BYTES (XSTRING (string));
-  unsigned char *str = XSTRING (string)->data;
+  int len = SCHARS (string);
+  int len_byte = SBYTES (string);
+  const unsigned char *str = SDATA (string);
   int i = 0, i_byte = 0;
   int width = 0;
   struct Lisp_Char_Table *dp = buffer_display_table ();
@@ -1452,7 +1451,7 @@ DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
 
 int
 chars_in_text (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
   /* current_buffer is null at early stages of Emacs initialization.  */
@@ -1469,10 +1468,10 @@ chars_in_text (ptr, nbytes)
 
 int
 multibyte_chars_in_text (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
-  unsigned char *endp;
+  const unsigned char *endp;
   int chars, bytes;
 
   endp = ptr + nbytes;
@@ -1494,10 +1493,10 @@ multibyte_chars_in_text (ptr, nbytes)
    0x80..0x9F are represented by 2 bytes in multibyte text.  */
 void
 parse_str_as_multibyte (str, len, nchars, nbytes)
-     unsigned char *str;
+     const unsigned char *str;
      int len, *nchars, *nbytes;
 {
-  unsigned char *endp = str + len;
+  const unsigned char *endp = str + len;
   int n, chars = 0, bytes = 0;
 
   while (str < endp)
@@ -1549,7 +1548,7 @@ str_as_multibyte (str, len, nbytes, nchars)
 	{
 	  while (n--)
 	    *to++ = *p++;
-	}	  
+	}
       else
 	{
 	  *to++ = LEADING_CODE_8_BIT_CONTROL;
@@ -1601,7 +1600,7 @@ str_to_multibyte (str, len, bytes)
   endp = str + len;
   safe_bcopy (p, endp - bytes, bytes);
   p = endp - bytes;
-  while (p < endp)      
+  while (p < endp)
     {
       if (*p < 0x80 || *p >= 0xA0)
 	*to++ = *p++;
@@ -1625,7 +1624,7 @@ str_as_unibyte (str, bytes)
 
   while (p < endp && *p != LEADING_CODE_8_BIT_CONTROL) p++;
   to = p;
-  while (p < endp)      
+  while (p < endp)
     {
       if (*p == LEADING_CODE_8_BIT_CONTROL)
 	*to++ = *(p + 1) - 0x20, p += 2;

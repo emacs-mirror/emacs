@@ -86,7 +86,7 @@ extern void invalidate_region_cache P_ ((struct buffer *BUF,
 					 struct region_cache *CACHE,
 					 int HEAD, int TAIL));
 
-/* The scanning functions. 
+/* The scanning functions.
 
    Basically, if you're scanning forward/backward from position POS,
    and region_cache_forward/backward returns true, you can skip all
@@ -96,7 +96,7 @@ extern void invalidate_region_cache P_ ((struct buffer *BUF,
    might be able to avoid scanning it again.  */
 
 /* Return true if the text immediately after POS in BUF is known, for
-   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest 
+   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knownness changes.  */
 extern int region_cache_forward P_ ((struct buffer *BUF,
                                      struct region_cache *CACHE,

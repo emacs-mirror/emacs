@@ -1,5 +1,5 @@
 /* Primitive operations on Lisp data types for GNU Emacs Lisp interpreter.
-   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001
+   Copyright (C) 1985,86,88,93,94,95,97,98,99, 2000, 2001, 2003
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -311,7 +311,7 @@ interned in the initial obarray.  */)
      Lisp_Object object;
 {
   if (SYMBOLP (object)
-      && XSTRING (SYMBOL_NAME (object))->data[0] == ':'
+      && SREF (SYMBOL_NAME (object), 0) == ':'
       && SYMBOL_INTERNED_IN_INITIAL_OBARRAY_P (object))
     return Qt;
   return Qnil;
@@ -628,7 +628,8 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's value be void.  */)
+       doc: /* Make SYMBOL's value be void.
+Return SYMBOL.  */)
      (symbol)
      register Lisp_Object symbol;
 {
@@ -640,7 +641,8 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be void.  */)
+       doc: /* Make SYMBOL's function definition be void.
+Return SYMBOL.  */)
      (symbol)
      register Lisp_Object symbol;
 {
@@ -704,14 +706,24 @@ DEFUN ("fset", Ffset, Sfset, 2, 2, 0,
   return definition;
 }
 
-DEFUN ("defalias", Fdefalias, Sdefalias, 2, 2, 0,
+extern Lisp_Object Qfunction_documentation;
+
+DEFUN ("defalias", Fdefalias, Sdefalias, 2, 3, 0,
        doc: /* Set SYMBOL's function definition to DEFINITION, and return DEFINITION.
-Associates the function with the current load file, if any.  */)
-     (symbol, definition)
-     register Lisp_Object symbol, definition;
+Associates the function with the current load file, if any.
+The optional third argument DOCSTRING specifies the documentation string
+for SYMBOL; if it is omitted or nil, SYMBOL uses the documentation string
+determined by DEFINITION.  */)
+     (symbol, definition, docstring)
+     register Lisp_Object symbol, definition, docstring;
 {
+  if (CONSP (XSYMBOL (symbol)->function)
+      && EQ (XCAR (XSYMBOL (symbol)->function), Qautoload))
+    LOADHIST_ATTACH (Fcons (Qt, symbol));
   definition = Ffset (symbol, definition);
   LOADHIST_ATTACH (symbol);
+  if (!NILP (docstring))
+    Fput (symbol, Qfunction_documentation, docstring);
   return definition;
 }
 
@@ -783,7 +795,7 @@ indirect_variable (symbol)
       hare = XSYMBOL (hare)->value;
       if (!XSYMBOL (hare)->indirect_variable)
 	break;
-      
+
       hare = XSYMBOL (hare)->value;
       tortoise = XSYMBOL (tortoise)->value;
 
@@ -869,7 +881,7 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	  *XINTFWD (valcontents)->intvar = XINT (newval);
 	  if (*XINTFWD (valcontents)->intvar != XINT (newval))
 	    error ("Value out of range for variable `%s'",
-		   XSTRING (SYMBOL_NAME (symbol))->data);
+		   SDATA (SYMBOL_NAME (symbol)));
 	  break;
 
 	case Lisp_Misc_Boolfwd:
@@ -886,9 +898,6 @@ store_symval_forwarding (symbol, valcontents, newval, buf)
 	    Lisp_Object type;
 
 	    type = PER_BUFFER_TYPE (offset);
-	    if (XINT (type) == -1)
-	      error ("Variable %s is read-only", XSTRING (SYMBOL_NAME (symbol))->data);
-
 	    if (! NILP (type) && ! NILP (newval)
 		&& XTYPE (newval) != XINT (type))
 	      buffer_slot_type_mismatch (offset);
@@ -931,7 +940,7 @@ swap_in_global_binding (symbol)
      Lisp_Object symbol;
 {
   Lisp_Object valcontents, cdr;
-  
+
   valcontents = SYMBOL_VALUE (symbol);
   if (!BUFFER_LOCAL_VALUEP (valcontents)
       && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -941,7 +950,7 @@ swap_in_global_binding (symbol)
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
 	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
-  
+
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
   store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
@@ -965,7 +974,7 @@ swap_in_symval_forwarding (symbol, valcontents)
      Lisp_Object symbol, valcontents;
 {
   register Lisp_Object tem1;
-  
+
   tem1 = XBUFFER_LOCAL_VALUE (valcontents)->buffer;
 
   if (NILP (tem1)
@@ -975,7 +984,7 @@ swap_in_symval_forwarding (symbol, valcontents)
     {
       if (XSYMBOL (symbol)->indirect_variable)
 	symbol = indirect_variable (symbol);
-      
+
       /* Unload the previously loaded binding.  */
       tem1 = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
       Fsetcdr (tem1,
@@ -1019,7 +1028,7 @@ find_symbol_value (symbol)
 {
   register Lisp_Object valcontents;
   register Lisp_Object val;
-  
+
   CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
@@ -1132,7 +1141,7 @@ set_internal (symbol, newval, buf, bindflag)
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
 
   innercontents = valcontents = SYMBOL_VALUE (symbol);
-  
+
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
@@ -1209,7 +1218,7 @@ set_internal (symbol, newval, buf, bindflag)
 		 and load that binding.  */
 	      else
 		{
-		  tem1 = Fcons (symbol, Fcdr (current_alist_element));
+		  tem1 = Fcons (symbol, XCDR (current_alist_element));
 		  buf->local_var_alist
 		    = Fcons (tem1, buf->local_var_alist);
 		}
@@ -1355,7 +1364,7 @@ for this variable.  */)
       if (idx > 0)
 	{
 	  struct buffer *b;
-	  
+
 	  for (b = all_buffers; b; b = b->next)
 	    if (!PER_BUFFER_VALUE_P (b, idx))
 	      PER_BUFFER_VALUE (b, offset) = value;
@@ -1385,7 +1394,7 @@ for this variable.  */)
 DEFUN ("setq-default", Fsetq_default, Ssetq_default, 2, UNEVALLED, 0,
        doc: /* Set the default value of variable VAR to VALUE.
 VAR, the variable name, is literal (not evaluated);
-VALUE is an expression and it is evaluated.
+VALUE is an expression: it is evaluated and its value returned.
 The default value of a variable is seen in buffers
 that do not have their own values for the variable.
 
@@ -1411,9 +1420,9 @@ usage: (setq-default SYMBOL VALUE [SYMBOL VALUE...])  */)
   do
     {
       val = Feval (Fcar (Fcdr (args_left)));
-      symbol = Fcar (args_left);
+      symbol = XCAR (args_left);
       Fset_default (symbol, val);
-      args_left = Fcdr (Fcdr (args_left));
+      args_left = Fcdr (XCDR (args_left));
     }
   while (!NILP (args_left));
 
@@ -1431,7 +1440,7 @@ unless the variable has never been set in this buffer,
 in which case the default value is in effect.
 Note that binding the variable with `let', or setting it while
 a `let'-style binding made in this buffer is in effect,
-does not make the variable buffer-local.
+does not make the variable buffer-local.  Return VARIABLE.
 
 The function `default-value' gets the default value and `set-default' sets it.  */)
      (variable)
@@ -1443,7 +1452,7 @@ The function `default-value' gets the default value and `set-default' sets it.  
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     return variable;
@@ -1475,7 +1484,7 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
 Other buffers will continue to share a common default value.
 \(The buffer-local value of VARIABLE starts out as the same value
 VARIABLE previously had.  If VARIABLE was void, it remains void.\)
-See also `make-variable-buffer-local'.
+See also `make-variable-buffer-local'.  Return VARIABLE.
 
 If the variable is already arranged to become local when set,
 this function causes a local value to exist for this buffer,
@@ -1496,7 +1505,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents))
-    error ("Symbol %s may not be buffer-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be buffer-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents) || BUFFER_OBJFWDP (valcontents))
     {
@@ -1565,7 +1574,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 DEFUN ("kill-local-variable", Fkill_local_variable, Skill_local_variable,
        1, 1, "vKill Local Variable: ",
        doc: /* Make VARIABLE no longer have a separate value in the current buffer.
-From now on the default value will apply in this buffer.  */)
+From now on the default value will apply in this buffer.  Return VARIABLE.  */)
      (variable)
      register Lisp_Object variable;
 {
@@ -1604,10 +1613,11 @@ From now on the default value will apply in this buffer.  */)
      loaded, recompute its value.  We have to do it now, or else
      forwarded objects won't work right.  */
   {
-    Lisp_Object *pvalbuf;
+    Lisp_Object *pvalbuf, buf;
     valcontents = SYMBOL_VALUE (variable);
     pvalbuf = &XBUFFER_LOCAL_VALUE (valcontents)->buffer;
-    if (current_buffer == XBUFFER (*pvalbuf))
+    XSETBUFFER (buf, current_buffer);
+    if (EQ (buf, *pvalbuf))
       {
 	*pvalbuf = Qnil;
 	XBUFFER_LOCAL_VALUE (valcontents)->found_for_buffer = 0;
@@ -1625,10 +1635,10 @@ DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_f
        doc: /* Enable VARIABLE to have frame-local bindings.
 When a frame-local binding exists in the current frame,
 it is in effect whenever the current buffer has no buffer-local binding.
-A frame-local binding is actual a frame parameter value;
-thus, any given frame has a local binding for VARIABLE
-if it has a value for the frame parameter named VARIABLE.
-See `modify-frame-parameters'.  */)
+A frame-local binding is actually a frame parameter value;
+thus, any given frame has a local binding for VARIABLE if it has
+a value for the frame parameter named VARIABLE.  Return VARIABLE.
+See `modify-frame-parameters' for how to set frame parameters.  */)
      (variable)
      register Lisp_Object variable;
 {
@@ -1639,7 +1649,7 @@ See `modify-frame-parameters'.  */)
   valcontents = SYMBOL_VALUE (variable);
   if (EQ (variable, Qnil) || EQ (variable, Qt) || KBOARD_OBJFWDP (valcontents)
       || BUFFER_OBJFWDP (valcontents))
-    error ("Symbol %s may not be frame-local", XSTRING (SYMBOL_NAME (variable))->data);
+    error ("Symbol %s may not be frame-local", SDATA (SYMBOL_NAME (variable)));
 
   if (BUFFER_LOCAL_VALUEP (valcontents)
       || SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -1823,14 +1833,14 @@ or a byte-code object.  IDX starts at 0.  */)
     {
       int c, idxval_byte;
 
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       if (! STRING_MULTIBYTE (array))
-	return make_number ((unsigned char) XSTRING (array)->data[idxval]);
+	return make_number ((unsigned char) SREF (array, idxval));
       idxval_byte = string_char_to_byte (array, idxval);
 
-      c = STRING_CHAR (&XSTRING (array)->data[idxval_byte],
-		       STRING_BYTES (XSTRING (array)) - idxval_byte);
+      c = STRING_CHAR (SDATA (array) + idxval_byte,
+		       SBYTES (array) - idxval_byte);
       return make_number (c);
     }
   else if (BOOL_VECTOR_P (array))
@@ -1940,8 +1950,8 @@ or a byte-code object.  IDX starts at 0.  */)
 
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
        doc: /* Store into the element of ARRAY at index IDX the value NEWELT.
-ARRAY may be a vector, a string, a char-table or a bool-vector.
-IDX starts at 0.  */)
+Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
+bool-vector.  IDX starts at 0.  */)
      (array, idx, newelt)
      register Lisp_Object array;
      Lisp_Object idx, newelt;
@@ -2022,29 +2032,29 @@ IDX starts at 0.  */)
       int idxval_byte, prev_bytes, new_bytes;
       unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
 
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
       idxval_byte = string_char_to_byte (array, idxval);
-      p1 = &XSTRING (array)->data[idxval_byte];
+      p1 = SDATA (array) + idxval_byte;
       PARSE_MULTIBYTE_SEQ (p1, nbytes - idxval_byte, prev_bytes);
       new_bytes = CHAR_STRING (XINT (newelt), p0);
       if (prev_bytes != new_bytes)
 	{
 	  /* We must relocate the string data.  */
-	  int nchars = XSTRING (array)->size;
-	  int nbytes = STRING_BYTES (XSTRING (array));
+	  int nchars = SCHARS (array);
+	  int nbytes = SBYTES (array);
 	  unsigned char *str;
 
 	  str = (nbytes <= MAX_ALLOCA
 		 ? (unsigned char *) alloca (nbytes)
 		 : (unsigned char *) xmalloc (nbytes));
-	  bcopy (XSTRING (array)->data, str, nbytes);
+	  bcopy (SDATA (array), str, nbytes);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, XSTRING (array)->data, idxval_byte);
-	  p1 = XSTRING (array)->data + idxval_byte;
+	  bcopy (str, SDATA (array), idxval_byte);
+	  p1 = SDATA (array) + idxval_byte;
 	  bcopy (str + idxval_byte + prev_bytes, p1 + new_bytes,
 		 nbytes - (idxval_byte + prev_bytes));
 	  if (nbytes > MAX_ALLOCA)
@@ -2056,36 +2066,36 @@ IDX starts at 0.  */)
     }
   else
     {
-      if (idxval < 0 || idxval >= XSTRING (array)->size)
+      if (idxval < 0 || idxval >= SCHARS (array))
 	args_out_of_range (array, idx);
       CHECK_NUMBER (newelt);
 
       if (XINT (newelt) < 0 || SINGLE_BYTE_CHAR_P (XINT (newelt)))
-	XSTRING (array)->data[idxval] = XINT (newelt);
+	SSET (array, idxval, XINT (newelt));
       else
 	{
 	  /* We must relocate the string data while converting it to
 	     multibyte.  */
 	  int idxval_byte, prev_bytes, new_bytes;
 	  unsigned char workbuf[MAX_MULTIBYTE_LENGTH], *p0 = workbuf, *p1;
-	  unsigned char *origstr = XSTRING (array)->data, *str;
+	  unsigned char *origstr = SDATA (array), *str;
 	  int nchars, nbytes;
 
-	  nchars = XSTRING (array)->size;
+	  nchars = SCHARS (array);
 	  nbytes = idxval_byte = count_size_as_multibyte (origstr, idxval);
 	  nbytes += count_size_as_multibyte (origstr + idxval,
 					     nchars - idxval);
 	  str = (nbytes <= MAX_ALLOCA
 		 ? (unsigned char *) alloca (nbytes)
 		 : (unsigned char *) xmalloc (nbytes));
-	  copy_text (XSTRING (array)->data, str, nchars, 0, 1);
+	  copy_text (SDATA (array), str, nchars, 0, 1);
 	  PARSE_MULTIBYTE_SEQ (str + idxval_byte, nbytes - idxval_byte,
 			       prev_bytes);
 	  new_bytes = CHAR_STRING (XINT (newelt), p0);
 	  allocate_string_data (XSTRING (array), nchars,
 				nbytes + new_bytes - prev_bytes);
-	  bcopy (str, XSTRING (array)->data, idxval_byte);
-	  p1 = XSTRING (array)->data + idxval_byte;
+	  bcopy (str, SDATA (array), idxval_byte);
+	  p1 = SDATA (array) + idxval_byte;
 	  while (new_bytes--)
 	    *p1++ = *p0++;
 	  bcopy (str + idxval_byte + prev_bytes, p1,
@@ -2233,7 +2243,7 @@ Lisp_Object
 long_to_cons (i)
      unsigned long i;
 {
-  unsigned int top = i >> 16;
+  unsigned long top = i >> 16;
   unsigned int bot = i & 0xFFFF;
   if (top == 0)
     return make_number (bot);
@@ -2257,7 +2267,7 @@ cons_to_long (c)
 }
 
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
-       doc: /* Convert NUMBER to a string by printing it in decimal.
+       doc: /* Return the decimal representation of NUMBER as a string.
 Uses a minus sign if negative.
 NUMBER may be an integer or a floating point number.  */)
      (number)
@@ -2303,10 +2313,10 @@ digit_to_number (character, base)
     return -1;
   else
     return digit;
-}    
+}
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
-       doc: /* Convert STRING to a number by parsing it as a decimal number.
+       doc: /* Parse STRING as a decimal number and return the number.
 This parses both integers and floating point numbers.
 It ignores leading spaces and tabs.
 
@@ -2335,7 +2345,7 @@ If the base used is not 10, floating point is not recognized.  */)
 
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
-  p = XSTRING (string)->data;
+  p = SDATA (string);
   while (*p == ' ' || *p == '\t')
     p++;
 
@@ -2346,7 +2356,7 @@ If the base used is not 10, floating point is not recognized.  */)
     }
   else if (*p == '+')
     p++;
-  
+
   if (isfloat_string (p) && b == 10)
     val = make_float (sign * atof (p));
   else
@@ -2549,7 +2559,7 @@ usage: (+ &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
-       doc: /* Negate number or subtract numbers or markers.
+       doc: /* Negate number or subtract numbers or markers and return the result.
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
@@ -2735,7 +2745,7 @@ In this case, the sign bit is duplicated.  */)
 DEFUN ("lsh", Flsh, Slsh, 2, 2, 0,
        doc: /* Return VALUE with its bits shifted left by COUNT.
 If COUNT is negative, shifting is actually to the right.
-In this case,  zeros are shifted in on the left.  */)
+In this case, zeros are shifted in on the left.  */)
      (value, count)
      register Lisp_Object value, count;
 {
@@ -3202,7 +3212,7 @@ syms_of_data ()
   DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
-  
+
   DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);

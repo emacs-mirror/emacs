@@ -863,7 +863,7 @@ Vi's prefix argument will be used.  Otherwise, the prefix argument passed to
 	) ; let
     (error nil)
     ) ; condition-case
-      
+
   (viper-set-input-method nil)
   (viper-set-iso-accents-mode nil)
   (viper-set-mode-vars-for viper-current-state)
@@ -1208,7 +1208,7 @@ as a Meta key and any number of multiple escapes is allowed."
 
   (if (atom com)
       ;; `com' is a single char, so we construct the command argument
-      ;; and if `char' is `?', we describe the arg; otherwise 
+      ;; and if `char' is `?', we describe the arg; otherwise
       ;; we prepare the command that will be executed at the end.
       (progn
 	(setq cmd-info (cons value com))
@@ -1216,16 +1216,16 @@ as a Meta key and any number of multiple escapes is allowed."
 	  (viper-describe-arg cmd-info)
 	  (setq char (read-char)))
 	;; `char' is a movement cmd, a digit arg cmd, or a register cmd---so we
-	;; execute it at the very end 
+	;; execute it at the very end
 	(or (viper-movement-command-p char)
 	    (viper-digit-command-p char)
 	    (viper-regsuffix-command-p char)
 	    (viper= char ?!) ; bang command
 	    (error ""))
 	(setq cmd-to-exec-at-end
-	      (viper-exec-form-in-vi 
+	      (viper-exec-form-in-vi
 	       `(key-binding (char-to-string ,char)))))
-    
+
     ;; as com is non-nil, this means that we have a command to execute
     (if (viper-memq-char (car com) '(?r ?R))
 	;; execute apropriate region command.
@@ -1239,7 +1239,7 @@ as a Meta key and any number of multiple escapes is allowed."
       ;; otherwise, reset prefix arg and call appropriate command
       (setq value (if (null value) 1 value))
       (setq prefix-arg nil)
-      (cond 
+      (cond
        ;; If we change ?C to ?c here, then cc will enter replacement mode
        ;; rather than deleting lines.  However, it will affect 1 less line than
        ;; normal.  We decided to not use replacement mode here and follow Vi,
@@ -1253,11 +1253,11 @@ as a Meta key and any number of multiple escapes is allowed."
        ((equal com '(?! . ?!)) (viper-line (cons value ?!)))
        ((equal com '(?= . ?=)) (viper-line (cons value ?=)))
        (t (error "")))))
-  
+
   (if cmd-to-exec-at-end
       (progn
 	(setq last-command-char char)
-	(setq last-command-event 
+	(setq last-command-event
 	      (viper-copy-event
 	       (if viper-xemacs-p (character-to-event char) char)))
 	(condition-case nil
@@ -1987,7 +1987,7 @@ Undo previous insertion and inserts new."
 
 ;; Thie is a temp hook that uses free variables init-message and initial.
 ;; A dirty feature, but it is the simplest way to have it do the right thing.
-;; The INIT-MESSAGE and INITIAL vars come from the scope set by 
+;; The INIT-MESSAGE and INITIAL vars come from the scope set by
 ;; viper-read-string-with-history
 (defun viper-minibuffer-standard-hook ()
   (if (stringp init-message)
@@ -2594,13 +2594,13 @@ These keys are ESC, RET, and LineFeed"
     (setq char (if com viper-d-char (viper-char-at-pos 'backward)))
 
     (if com (insert char))
-    
+
     (setq viper-d-char char)
-    
+
     (viper-loop (1- (if (> arg 0) arg (- arg)))
 		(delete-char 1 t)
 		(insert char))
-    
+
     (viper-adjust-undo)
     (backward-char arg)
     ))
@@ -4604,7 +4604,7 @@ One can use `` and '' to temporarily jump 1 step back."
 
 ;; Get viper standard value of SYMBOL.  If symbol is customized, get its
 ;; standard value.  Otherwise, get the value saved in the alist STORAGE.  If
-;; STORAGE is nil, use viper-saved-user-settings. 
+;; STORAGE is nil, use viper-saved-user-settings.
 (defun viper-standard-value (symbol &optional storage)
   (or (eval (car (get symbol 'customized-value)))
       (eval (car (get symbol 'saved-value)))
@@ -4945,6 +4945,6 @@ Mail anyway (y or n)? ")
 	  ))
 
 
-  
+
 
 ;;; viper-cmd.el ends here

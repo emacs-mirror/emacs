@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Keywords: multilingual, input method, latin
 
@@ -1552,7 +1552,7 @@ Uses the `mule-unicode-0100-24ff' charset to supplement Latin-1.
              | prefix  |
  ------------+---------+----------
   diaeresis  |    \"    | \"a -> ,Ad(B
- 
+
 Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
 " nil t nil nil nil nil nil nil nil nil t)
 
@@ -1560,64 +1560,64 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("fl." ?$,1!R(B) ;; LATIN SMALL LETTER F WITH HOOK (florin currency symbol)
  ("eur." ?$,1tL(B) ;; EURO SIGN
  ;; $,1r|(BThe 25th letter of the Dutch alphabet.$,1r}(B
- ("ij" ?$,1 S(B) ;; LATIN SMALL LIGATURE IJ   
- ("IJ" ?$,1 R(B) ;; LATIN CAPITAL LIGATURE IJ   
+ ("ij" ?$,1 S(B) ;; LATIN SMALL LIGATURE IJ
+ ("IJ" ?$,1 R(B) ;; LATIN CAPITAL LIGATURE IJ
  ;; $,1r|(BTrema on the second letter of vowel pair.$,1r}(B  Yudit uses `:', not `"'.
- ("\"a" ?,Ad(B) ;; LATIN SMALL LETTER A WITH DIAERESIS 
- ("\"e" ?,Ak(B) ;; LATIN SMALL LETTER E WITH DIAERESIS 
- ("\"i" ?,Ao(B) ;; LATIN SMALL LETTER I WITH DIAERESIS 
- ("\"o" ?,Av(B) ;; LATIN SMALL LETTER O WITH DIAERESIS 
- ("\"u" ?,A|(B) ;; LATIN SMALL LETTER U WITH DIAERESIS 
- ("\"A" ?,AD(B) ;; LATIN CAPITAL LETTER A WITH DIAERESIS 
- ("\"E" ?,AK(B) ;; LATIN CAPITAL LETTER E WITH DIAERESIS 
- ("\"I" ?,AO(B) ;; LATIN CAPITAL LETTER I WITH DIAERESIS 
- ("\"O" ?,AV(B) ;; LATIN CAPITAL LETTER O WITH DIAERESIS 
- ("\"U" ?,A\(B) ;; LATIN CAPITAL LETTER U WITH DIAERESIS 
+ ("\"a" ?,Ad(B) ;; LATIN SMALL LETTER A WITH DIAERESIS
+ ("\"e" ?,Ak(B) ;; LATIN SMALL LETTER E WITH DIAERESIS
+ ("\"i" ?,Ao(B) ;; LATIN SMALL LETTER I WITH DIAERESIS
+ ("\"o" ?,Av(B) ;; LATIN SMALL LETTER O WITH DIAERESIS
+ ("\"u" ?,A|(B) ;; LATIN SMALL LETTER U WITH DIAERESIS
+ ("\"A" ?,AD(B) ;; LATIN CAPITAL LETTER A WITH DIAERESIS
+ ("\"E" ?,AK(B) ;; LATIN CAPITAL LETTER E WITH DIAERESIS
+ ("\"I" ?,AO(B) ;; LATIN CAPITAL LETTER I WITH DIAERESIS
+ ("\"O" ?,AV(B) ;; LATIN CAPITAL LETTER O WITH DIAERESIS
+ ("\"U" ?,A\(B) ;; LATIN CAPITAL LETTER U WITH DIAERESIS
  ;; $,1r|(BAcute, marking emphasis on long vowels$,1r}(B:
- ("a'" ?,Aa(B) ;; LATIN SMALL LETTER A WITH ACUTE 
- ("e'" ?,Ai(B) ;; LATIN SMALL LETTER E WITH ACUTE 
- ("i'" ?,Am(B) ;; LATIN SMALL LETTER I WITH ACUTE 
- ("o'" ?,As(B) ;; LATIN SMALL LETTER O WITH ACUTE 
- ("u'" ?,Az(B) ;; LATIN SMALL LETTER U WITH ACUTE 
- ("A'" ?,AA(B) ;; LATIN CAPITAL LETTER A WITH ACUTE 
- ("E'" ?,AI(B) ;; LATIN CAPITAL LETTER E WITH ACUTE 
- ("I'" ?,AM(B) ;; LATIN CAPITAL LETTER I WITH ACUTE 
- ("O'" ?,AS(B) ;; LATIN CAPITAL LETTER O WITH ACUTE 
- ("U'" ?,AZ(B) ;; LATIN CAPITAL LETTER U WITH ACUTE 
+ ("a'" ?,Aa(B) ;; LATIN SMALL LETTER A WITH ACUTE
+ ("e'" ?,Ai(B) ;; LATIN SMALL LETTER E WITH ACUTE
+ ("i'" ?,Am(B) ;; LATIN SMALL LETTER I WITH ACUTE
+ ("o'" ?,As(B) ;; LATIN SMALL LETTER O WITH ACUTE
+ ("u'" ?,Az(B) ;; LATIN SMALL LETTER U WITH ACUTE
+ ("A'" ?,AA(B) ;; LATIN CAPITAL LETTER A WITH ACUTE
+ ("E'" ?,AI(B) ;; LATIN CAPITAL LETTER E WITH ACUTE
+ ("I'" ?,AM(B) ;; LATIN CAPITAL LETTER I WITH ACUTE
+ ("O'" ?,AS(B) ;; LATIN CAPITAL LETTER O WITH ACUTE
+ ("U'" ?,AZ(B) ;; LATIN CAPITAL LETTER U WITH ACUTE
  ;; $,1r|(BGrave, marking emphasis on short vowels$,1r}(B:
  ("a`" ?,A`(B) ;; LATIN SMALL LETTER A WITH GRAVE
- ("e`" ?,Ah(B) ;; LATIN SMALL LETTER E WITH GRAVE 
- ("i`" ?,Al(B) ;; LATIN SMALL LETTER I WITH GRAVE 
- ("o`" ?,Ar(B) ;; LATIN SMALL LETTER O WITH GRAVE 
- ("u`" ?,Ay(B) ;; LATIN SMALL LETTER U WITH GRAVE 
- ("A`" ?,A@(B) ;; LATIN CAPITAL LETTER A WITH GRAVE 
- ("E`" ?,AH(B) ;; LATIN CAPITAL LETTER E WITH GRAVE 
- ("I`" ?,AL(B) ;; LATIN CAPITAL LETTER I WITH GRAVE 
- ("O`" ?,AR(B) ;; LATIN CAPITAL LETTER O WITH GRAVE 
+ ("e`" ?,Ah(B) ;; LATIN SMALL LETTER E WITH GRAVE
+ ("i`" ?,Al(B) ;; LATIN SMALL LETTER I WITH GRAVE
+ ("o`" ?,Ar(B) ;; LATIN SMALL LETTER O WITH GRAVE
+ ("u`" ?,Ay(B) ;; LATIN SMALL LETTER U WITH GRAVE
+ ("A`" ?,A@(B) ;; LATIN CAPITAL LETTER A WITH GRAVE
+ ("E`" ?,AH(B) ;; LATIN CAPITAL LETTER E WITH GRAVE
+ ("I`" ?,AL(B) ;; LATIN CAPITAL LETTER I WITH GRAVE
+ ("O`" ?,AR(B) ;; LATIN CAPITAL LETTER O WITH GRAVE
  ("U`" ?,AY(B) ;; LATIN CAPITAL LETTER U WITH GRAVE
  ;; $,1r|(BCater for the use of many French words and use of the circumflex
  ;; in Frisian.$,1r}(B  Yudit used `;' for cedilla.
- ("c," ?,Ag(B) ;; LATIN SMALL LETTER C WITH CEDILLA 
- ("C," ?,AG(B) ;; LATIN CAPITAL LETTER C WITH CEDILLA 
- ("a^" ?,Ab(B) ;; LATIN SMALL LETTER A WITH CIRCUMFLEX 
- ("e^" ?,Aj(B) ;; LATIN SMALL LETTER E WITH CIRCUMFLEX 
- ("i^" ?,An(B) ;; LATIN SMALL LETTER I WITH CIRCUMFLEX 
- ("o^" ?,At(B) ;; LATIN SMALL LETTER O WITH CIRCUMFLEX 
- ("u^" ?,A{(B) ;; LATIN SMALL LETTER U WITH CIRCUMFLEX 
- ("A^" ?,AB(B) ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX 
- ("E^" ?,AJ(B) ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX 
- ("I^" ?,AN(B) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX 
- ("O^" ?,AT(B) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX 
+ ("c," ?,Ag(B) ;; LATIN SMALL LETTER C WITH CEDILLA
+ ("C," ?,AG(B) ;; LATIN CAPITAL LETTER C WITH CEDILLA
+ ("a^" ?,Ab(B) ;; LATIN SMALL LETTER A WITH CIRCUMFLEX
+ ("e^" ?,Aj(B) ;; LATIN SMALL LETTER E WITH CIRCUMFLEX
+ ("i^" ?,An(B) ;; LATIN SMALL LETTER I WITH CIRCUMFLEX
+ ("o^" ?,At(B) ;; LATIN SMALL LETTER O WITH CIRCUMFLEX
+ ("u^" ?,A{(B) ;; LATIN SMALL LETTER U WITH CIRCUMFLEX
+ ("A^" ?,AB(B) ;; LATIN CAPITAL LETTER A WITH CIRCUMFLEX
+ ("E^" ?,AJ(B) ;; LATIN CAPITAL LETTER E WITH CIRCUMFLEX
+ ("I^" ?,AN(B) ;; LATIN CAPITAL LETTER I WITH CIRCUMFLEX
+ ("O^" ?,AT(B) ;; LATIN CAPITAL LETTER O WITH CIRCUMFLEX
  ("U^" ?,A[(B) ;; LATIN CAPITAL LETTER U WITH CIRCUMFLEX
  ;; $,1r|(BFollow the example of the Dutch POSIX locale, using ISO-8859-9 to
  ;; cater to the many Turks in Dutch society.$,1r}(B  Perhaps German methods
  ;; should do so too.  Follow turkish-alt-postfix here.
  ("i/" ?$,1 Q(B) ;; LATIN SMALL LETTER I WITH NO DOT
- ("s," ?$,1 (B) ;; LATIN SMALL LETTER S WITH CEDILLA 
- ("g^" ?$,1 ?(B) ;; LATIN SMALL LETTER G WITH BREVE 
+ ("s," ?$,1 (B) ;; LATIN SMALL LETTER S WITH CEDILLA
+ ("g^" ?$,1 ?(B) ;; LATIN SMALL LETTER G WITH BREVE
  ("I/" ?$,1 P(B) ;; LATIN CAPITAL LETTER I WITH DOT ABOVE
- ("S," ?$,1 ~(B) ;; LATIN CAPITAL LETTER S WITH CEDILLA 
- ("G^" ?$,1 >(B) ;; LATIN CAPITAL LETTER G WITH BREVE 
+ ("S," ?$,1 ~(B) ;; LATIN CAPITAL LETTER S WITH CEDILLA
+ ("G^" ?$,1 >(B) ;; LATIN CAPITAL LETTER G WITH BREVE
  )
 
 ;; Originally from Yudit, discussed with Albertas Agejevas
@@ -1712,5 +1712,392 @@ Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
  ("C" ?$,1 ,(B)
  ("n" ?$,1 f(B)
  ("N" ?$,1 e(B))
+
+(quail-define-package
+ "latin-alt-postfix" "Latin" "L<" t
+ "Latin character input method with postfix modifiers.
+This is the union of various input methods originally made for input
+of characters from a single Latin-N charset.
+
+             | postfix | examples
+ ------------+---------+----------
+  acute      |    '    | a' -> ,Aa(B
+  grave      |    `    | a` -> ,A`(B
+  circumflex |    ^    | a^ -> ,Ab(B
+  diaeresis  |    \"    | a\" -> ,Ad(B
+  tilde      |    ~    | a~ -> ,Ac(B
+  cedilla    |    /`   | c/ -> ,Ag(B   c` -> ,Ag(B
+  ogonek     |    `    | a` -> $,1 %(B
+  breve      |    ~    | a~ -> $,1 #(B
+  caron      |    ~    | c~ -> $,1 -(B
+  dbl. acute |    :    | o: -> $,1 q(B
+  ring       |    `    | u` -> $,1!/(B
+  dot        |    `    | z` -> $,1!<(B
+  stroke     |    /    | d/ -> $,1 1(B
+  nordic     |    /    | d/ -> ,Ap(B   t/ -> ,A~(B   a/ -> ,Ae(B   e/ -> ,Af(B   o/ -> ,Ax(B
+  others     |   /<>   | s/ -> ,A_(B   ?/ -> ,A?(B   !/ -> ,A!(B
+             | various | << -> ,A+(B   >> -> ,A;(B   o_ -> ,A:(B   a_ -> ,A*(B
+
+It would be natural to use comma for cedillas, but that would be
+inconvenient in practice because commas are needed very often after a
+letter.
+
+Doubling the postfix separates the letter and postfix: e.g. a'' -> a'
+" nil t nil nil nil nil nil nil nil nil t)
+
+;; Fixme: ,A&(B ,A'(B ,A((B ,A)(B ,A,(B ,A-(B ,A.(B ,A/(B ,A0(B ,A1(B ,A2(B ,A3(B ,A4(B ,A5(B ,A6(B ,A7(B ,A8(B ,A9(B ,A<(B ,A=(B ,A>(B ,AW(B ,Aw(B
+(quail-define-rules
+ (" _" ?,A (B)
+ ("!/" ?,A!(B)
+ ("//" ?,A0(B)
+ ("<<" ?,A+(B)
+ (">>" ?,A;(B)
+ ("?/" ?,A?(B)
+ ("$/" ?,A#(B)
+ ("$/" ?,A$(B)
+ ("A'" ?,AA(B)
+ ("A-" ?$,1  (B)
+ ("A/" ?,AE(B)
+ ("A\"" ?,AD(B)
+ ("A^" ?,AB(B)
+ ("A`" ?,A@(B)
+ ("A`" ?$,1 $(B)
+ ("A~" ?,AC(B)
+ ("A~" ?$,1 "(B)
+ ("C'" ?$,1 &(B)
+ ("C/" ?,AG(B)
+ ("C/" ?$,1 *(B)
+ ("C^" ?$,1 ((B)
+ ("C`" ?,AG(B)
+ ("C~" ?$,1 ,(B)
+ ("D/" ?,AP(B)
+ ("D/" ?$,1 0(B)
+ ("D~" ?$,1 .(B)
+ ("E'" ?,AI(B)
+ ("E-" ?$,1 2(B)
+ ("E/" ?,AF(B)
+ ("E\"" ?,AK(B)
+ ("E^" ?,AJ(B)
+ ("E`" ?,AH(B)
+ ("E`" ?$,1 8(B)
+ ("E~" ?$,1 6(B)
+ ("E~" ?$,1 :(B)
+ ("G/" ?$,1 @(B)
+ ("G^" ?$,1 <(B)
+ ("G`" ?$,1 B(B)
+ ("G~" ?$,1 >(B)
+ ("H/" ?$,1 F(B)
+ ("H^" ?$,1 D(B)
+ ("I'" ?,AM(B)
+ ("I-" ?$,1 J(B)
+ ("I/" ?$,1 P(B)
+ ("I\"" ?,AO(B)
+ ("I^" ?,AN(B)
+ ("I`" ?,AL(B)
+ ("I`" ?$,1 N(B)
+ ("I~" ?$,1 H(B)
+ ("J^" ?$,1 T(B)
+ ("K`" ?$,1 V(B)
+ ("L'" ?$,1 Y(B)
+ ("L/" ?$,1 a(B)
+ ("L`" ?$,1 [(B)
+ ("L~" ?$,1 ](B)
+ ("N'" ?$,1 c(B)
+ ("N/" ?$,1 j(B)
+ ("N`" ?$,1 e(B)
+ ("N~" ?,AQ(B)
+ ("N~" ?$,1 g(B)
+ ("O'" ?,AS(B)
+ ("O-" ?$,1 l(B)
+ ("O/" ?,AX(B)
+ ("O:" ?$,1 p(B)
+ ("O\"" ?,AV(B)
+ ("O^" ?,AT(B)
+ ("O`" ?,AR(B)
+ ("O~" ?,AU(B)
+ ("R'" ?$,1 t(B)
+ ("R`" ?$,1 v(B)
+ ("R~" ?$,1 x(B)
+ ("S'" ?$,1 z(B)
+ ("S^" ?$,1 |(B)
+ ("S`" ?$,1 ~(B)
+ ("S~" ?$,1! (B)
+ ("T/" ?,A^(B)
+ ("T/" ?$,1!&(B)
+ ("T`" ?$,1!"(B)
+ ("T~" ?$,1!$(B)
+ ("U'" ?,AZ(B)
+ ("U-" ?$,1!*(B)
+ ("U:" ?$,1!0(B)
+ ("U\"" ?,A\(B)
+ ("U^" ?,A[(B)
+ ("U`" ?,AY(B)
+ ("U`" ?$,1!.(B)
+ ("U`" ?$,1!2(B)
+ ("U~" ?$,1!((B)
+ ("U~" ?$,1!,(B)
+ ("Y'" ?,A](B)
+ ("Y\"" ?$,1!8(B)
+ ("Y=" ?,A%(B)
+ ("Z'" ?$,1!9(B)
+ ("Z/" ?$,1!;(B)
+ ("Z`" ?$,1!;(B)
+ ("Z~" ?$,1!=(B)
+ ("a'" ?,Aa(B)
+ ("a-" ?$,1 !(B)
+ ("a/" ?,Ae(B)
+ ("a\"" ?,Ad(B)
+ ("a^" ?,Ab(B)
+ ("a_" ?,A*(B)
+ ("a`" ?,A`(B)
+ ("a`" ?$,1 %(B)
+ ("a~" ?,Ac(B)
+ ("a~" ?$,1 #(B)
+ ("c'" ?$,1 '(B)
+ ("c/" ?,Ag(B)
+ ("c/" ?$,1 +(B)
+ ("c/" ?,A"(B)
+ ("c^" ?$,1 )(B)
+ ("c`" ?,Ag(B)
+ ("c~" ?$,1 -(B)
+ ("d/" ?,Ap(B)
+ ("d/" ?$,1 1(B)
+ ("d~" ?$,1 /(B)
+ ("e'" ?,Ai(B)
+ ("e-" ?$,1 3(B)
+ ("e/" ?,Af(B)
+ ("e\"" ?,Ak(B)
+ ("e^" ?,Aj(B)
+ ("e`" ?,Ah(B)
+ ("e`" ?$,1 9(B)
+ ("e~" ?$,1 7(B)
+ ("e~" ?$,1 ;(B)
+ ("e=" ?$,1tL(B)
+ ("g/" ?$,1 A(B)
+ ("g^" ?$,1 =(B)
+ ("g`" ?$,1 C(B)
+ ("g~" ?$,1 ?(B)
+ ("h/" ?$,1 G(B)
+ ("h^" ?$,1 E(B)
+ ("i'" ?,Am(B)
+ ("i-" ?$,1 K(B)
+ ("i/" ?$,1 Q(B)
+ ("i\"" ?,Ao(B)
+ ("i^" ?,An(B)
+ ("i`" ?,Al(B)
+ ("i`" ?$,1 O(B)
+ ("i~" ?$,1 I(B)
+ ("j^" ?$,1 U(B)
+ ("k/" ?$,1 X(B)
+ ("k`" ?$,1 W(B)
+ ("l'" ?$,1 Z(B)
+ ("l/" ?$,1 b(B)
+ ("l`" ?$,1 \(B)
+ ("l~" ?$,1 ^(B)
+ ("n'" ?$,1 d(B)
+ ("n/" ?$,1 k(B)
+ ("n`" ?$,1 f(B)
+ ("n~" ?,Aq(B)
+ ("n~" ?$,1 h(B)
+ ("o'" ?,As(B)
+ ("o-" ?$,1 m(B)
+ ("o/" ?,Ax(B)
+ ("o:" ?$,1 q(B)
+ ("o\"" ?,Av(B)
+ ("o^" ?,At(B)
+ ("o_" ?,A:(B)
+ ("o`" ?,Ar(B)
+ ("o~" ?,Au(B)
+ ("r'" ?$,1 u(B)
+ ("r`" ?$,1 w(B)
+ ("r~" ?$,1 y(B)
+ ("s'" ?$,1 {(B)
+ ("s/" ?,A_(B)
+ ("s^" ?$,1 }(B)
+ ("s`" ?$,1 (B)
+ ("s~" ?$,1!!(B)
+ ("t/" ?,A~(B)
+ ("t/" ?$,1!'(B)
+ ("t`" ?$,1!#(B)
+ ("t~" ?$,1!%(B)
+ ("u'" ?,Az(B)
+ ("u-" ?$,1!+(B)
+ ("u:" ?$,1!1(B)
+ ("u\"" ?,A|(B)
+ ("u^" ?,A{(B)
+ ("u`" ?,Ay(B)
+ ("u`" ?$,1!/(B)
+ ("u`" ?$,1!3(B)
+ ("u~" ?$,1!)(B)
+ ("u~" ?$,1!-(B)
+ ("y'" ?,A}(B)
+ ("y\"" ?,A(B)
+ ("z'" ?$,1!:(B)
+ ("z/" ?$,1!<(B)
+ ("z`" ?$,1!<(B)
+ ("z~" ?$,1!>(B)
+
+ (" __" [" _"])
+ ("!//" ["!/"])
+ ("<<<" ["<<"])
+ (">>>" [">>"])
+ ("?//" ["?/"])
+ ("///" ["//"])
+ ("$//" ["$/"])
+ ("A''" ["A'"])
+ ("A--" ["A-"])
+ ("A//" ["A/"])
+ ("A\"\"" ["A\""])
+ ("A^^" ["A^"])
+ ("A``" ["A`"])
+ ("A~~" ["A~"])
+ ("C''" ["C'"])
+ ("C//" ["C/"])
+ ("C^^" ["C^"])
+ ("C``" ["C`"])
+ ("C~~" ["C~"])
+ ("D//" ["D/"])
+ ("D~~" ["D~"])
+ ("E''" ["E'"])
+ ("E--" ["E-"])
+ ("E//" ["E/"])
+ ("E\"\"" ["E\""])
+ ("E^^" ["E^"])
+ ("E``" ["E`"])
+ ("E~~" ["E~"])
+ ("G//" ["G/"])
+ ("G^^" ["G^"])
+ ("G``" ["G`"])
+ ("G~~" ["G~"])
+ ("H//" ["H/"])
+ ("H^^" ["H^"])
+ ("I''" ["I'"])
+ ("I--" ["I-"])
+ ("I//" ["I/"])
+ ("I\"\"" ["I\""])
+ ("I^^" ["I^"])
+ ("I``" ["I`"])
+ ("I~~" ["I~"])
+ ("J^^" ["J^"])
+ ("K``" ["K`"])
+ ("L''" ["L'"])
+ ("L//" ["L/"])
+ ("L``" ["L`"])
+ ("L~~" ["L~"])
+ ("N''" ["N'"])
+ ("N//" ["N/"])
+ ("N``" ["N`"])
+ ("N~~" ["N~"])
+ ("O''" ["O'"])
+ ("O--" ["O-"])
+ ("O//" ["O/"])
+ ("O::" ["O:"])
+ ("O\"\"" ["O\""])
+ ("O^^" ["O^"])
+ ("O``" ["O`"])
+ ("O~~" ["O~"])
+ ("R''" ["R'"])
+ ("R``" ["R`"])
+ ("R~~" ["R~"])
+ ("S''" ["S'"])
+ ("S^^" ["S^"])
+ ("S``" ["S`"])
+ ("S~~" ["S~"])
+ ("T//" ["T/"])
+ ("T``" ["T`"])
+ ("T~~" ["T~"])
+ ("U''" ["U'"])
+ ("U--" ["U-"])
+ ("U::" ["U:"])
+ ("U\"\"" ["U\""])
+ ("U^^" ["U^"])
+ ("U``" ["U`"])
+ ("U~~" ["U~"])
+ ("Y''" ["Y'"])
+ ("Z''" ["Z'"])
+ ("Z//" ["Z/"])
+ ("Z``" ["Z`"])
+ ("Z~~" ["Z~"])
+ ("a''" ["a'"])
+ ("a--" ["a-"])
+ ("a//" ["a/"])
+ ("a\"\"" ["a\""])
+ ("a^^" ["a^"])
+ ("a__" ["a_"])
+ ("a``" ["a`"])
+ ("a~~" ["a~"])
+ ("c''" ["c'"])
+ ("c//" ["c/"])
+ ("c^^" ["c^"])
+ ("c``" ["c`"])
+ ("c~~" ["c~"])
+ ("d//" ["d/"])
+ ("d~~" ["d~"])
+ ("e''" ["e'"])
+ ("e--" ["e-"])
+ ("e//" ["e/"])
+ ("e\"\"" ["e\""])
+ ("e^^" ["e^"])
+ ("e``" ["e`"])
+ ("e~~" ["e~"])
+ ("e==" ["e="])
+ ("g//" ["g/"])
+ ("g^^" ["g^"])
+ ("g``" ["g`"])
+ ("g~~" ["g~"])
+ ("h//" ["h/"])
+ ("h^^" ["h^"])
+ ("i''" ["i'"])
+ ("i--" ["i-"])
+ ("i//" ["i/"])
+ ("i\"\"" ["i\""])
+ ("i^^" ["i^"])
+ ("i``" ["i`"])
+ ("i~~" ["i~"])
+ ("j^^" ["j^"])
+ ("k//" ["k/"])
+ ("k``" ["k`"])
+ ("l''" ["l'"])
+ ("l//" ["l/"])
+ ("l``" ["l`"])
+ ("l~~" ["l~"])
+ ("n''" ["n'"])
+ ("n//" ["n/"])
+ ("n``" ["n`"])
+ ("n~~" ["n~"])
+ ("o''" ["o'"])
+ ("o--" ["o-"])
+ ("o//" ["o/"])
+ ("o::" ["o:"])
+ ("o\"\"" ["o\""])
+ ("o^^" ["o^"])
+ ("o__" ["o_"])
+ ("o``" ["o`"])
+ ("o~~" ["o~"])
+ ("r''" ["r'"])
+ ("r``" ["r`"])
+ ("r~~" ["r~"])
+ ("s''" ["s'"])
+ ("s//" ["s/"])
+ ("s^^" ["s^"])
+ ("s``" ["s`"])
+ ("s~~" ["s~"])
+ ("t//" ["t/"])
+ ("t``" ["t`"])
+ ("t~~" ["t~"])
+ ("u''" ["u'"])
+ ("u--" ["u-"])
+ ("u::" ["u:"])
+ ("u\"\"" ["u\""])
+ ("u^^" ["u^"])
+ ("u``" ["u`"])
+ ("u~~" ["u~"])
+ ("y''" ["y'"])
+ ("y\"\"" ["y\""])
+ ("z''" ["z'"])
+ ("z//" ["z/"])
+ ("z``" ["z`"])
+ ("z~~" ["z~"])
+ )
 
 ;;; latin-alt.el ends here

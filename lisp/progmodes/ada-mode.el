@@ -1,13 +1,13 @@
 ;;; ada-mode.el --- major-mode for editing Ada sources
 
-;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001
+;; Copyright (C) 1994, 95, 97, 98, 99, 2000, 2001, 2002
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Rolf Ebert      <ebert@inf.enst.fr>
 ;;      Markus Heritsch <Markus.Heritsch@studbox.uni-stuttgart.de>
 ;;      Emmanuel Briot  <briot@gnat.com>
 ;; Maintainer: Emmanuel Briot <briot@gnat.com>
-;; Ada Core Technologies's version:   $Revision: 1.49 $
+;; Ada Core Technologies's version:   Revision: 1.164.2.2 (GNAT 3.15)
 ;; Keywords: languages ada
 
 ;; This file is part of GNU Emacs.
@@ -156,8 +156,8 @@ If IS-XEMACS is non-nil, check for XEmacs instead of Emacs."
 
 ;;  This call should not be made in the release that is done for the
 ;;  official Emacs, since it does nothing useful for the latest version
-(if (not (ada-check-emacs-version 21 1))
-    (require 'ada-support))
+;;  (if (not (ada-check-emacs-version 21 1))
+;;      (require 'ada-support))
 
 (defvar ada-mode-hook nil
   "*List of functions to call when Ada mode is invoked.
@@ -190,6 +190,15 @@ An example is :
 An example is :
    My_Var : My_Type := (Field1 =>
                         >>>>>>>>>Value);  -- from ada-broken-indent"
+  :type 'integer :group 'ada)
+
+(defcustom ada-continuation-indent ada-broken-indent
+  "*Number of columns to indent the continuation of broken lines in
+parenthesis.
+
+An example is :
+   Func (Param1,
+         >>>>>Param2);"
   :type 'integer :group 'ada)
 
 (defcustom ada-case-attribute 'ada-capitalize-word
@@ -294,7 +303,7 @@ type A is
    Value_1,
    Value_2);"
   :type 'boolean :group 'ada)
-  
+
 (defcustom ada-indent-is-separate t
   "*Non-nil means indent 'is separate' or 'is abstract' if on a single line."
   :type 'boolean :group 'ada)
@@ -349,7 +358,9 @@ with `ada-fill-comment-paragraph-postfix'."
 An example is:
 procedure Foo is
 begin
->>>>>>>>>>>>Label:  --  from ada-label-indent"
+>>>>>>>>>>>>Label:  --  from ada-label-indent
+
+This is also used for <<..>> labels"
   :type 'integer :group 'ada)
 
 (defcustom ada-language-version 'ada95
@@ -669,6 +680,8 @@ Modify this variable if you want to restore the point to another position.")
          :included (functionp 'ada-xref-goto-previous-reference)]
         ["List References" ada-find-references
          :included ada-contextual-menu-on-identifier]
+        ["List Local References" ada-find-local-references
+         :included ada-contextual-menu-on-identifier]
         ["-" nil nil]
         ["Other File" ff-find-other-file]
         ["Goto Parent Unit" ada-goto-parent]
@@ -698,6 +711,10 @@ Modify this variable if you want to restore the point to another position.")
             (define-key-after map [List]
               '(menu-item "List References"
                           ada-find-references
+                          :visible ada-contextual-menu-on-identifier) t)
+            (define-key-after map [List-Local]
+              '(menu-item "List Local References"
+                          ada-find-local-references
                           :visible ada-contextual-menu-on-identifier) t)
             (define-key-after map [-] '("-" nil) t)
             ))
@@ -940,6 +957,7 @@ as numbers instead of gnatprep comments."
       ;;  Setting this only if font-lock is not set won't work
       ;;  if the user activates or deactivates font-lock-mode,
       ;;  but will make things faster most of the time
+      (make-local-hook 'after-change-functions)
       (add-hook 'after-change-functions 'ada-after-change-function nil t)
       )))
 
@@ -1085,7 +1103,7 @@ name"
 ;;;###autoload
 (defun ada-mode ()
   "Ada mode is the major mode for editing Ada code.
-This version was built on $Date: 2002/04/09 18:50:17 $.
+This version was built on Date: 2002/05/21 11:58:02 .
 
 Bindings are as follows: (Note: 'LFD' is control-j.)
 \\{ada-mode-map}
@@ -1290,13 +1308,49 @@ If you use ada-xref.el:
       (progn
 	(add-to-list 'align-dq-string-modes 'ada-mode)
 	(add-to-list 'align-open-comment-modes 'ada-mode)
-	(set 'align-mode-rules-list ada-align-modes)
 	(set (make-variable-buffer-local 'align-region-separate)
 	     ada-align-region-separate)
-	))
 
-  ;;  Support for which-function-mode is provided in ada-support (support
-  ;;  for nested subprograms)
+	;; Exclude comments alone on line from alignment.
+	(add-to-list 'align-exclude-rules-list
+		     '(ada-solo-comment
+		       (regexp  . "^\\(\\s-*\\)--")
+		       (modes   . '(ada-mode))))
+	(add-to-list 'align-exclude-rules-list
+		     '(ada-solo-use
+		       (regexp  . "^\\(\\s-*\\)\\<use\\>")
+		       (modes   . '(ada-mode))))
+
+	(setq ada-align-modes nil)
+
+	(add-to-list 'ada-align-modes
+		     '(ada-declaration-assign
+		       (regexp  . "[^:]\\(\\s-*\\):[^:]")
+		       (valid   . (lambda() (not (ada-in-comment-p))))
+		       (repeat . t)
+		       (modes   . '(ada-mode))))
+	(add-to-list 'ada-align-modes
+		     '(ada-associate
+		       (regexp  . "[^=]\\(\\s-*\\)=>")
+		       (valid   . (lambda() (not (ada-in-comment-p))))
+		       (modes   . '(ada-mode))))
+	(add-to-list 'ada-align-modes
+		     '(ada-comment
+		       (regexp  . "\\(\\s-*\\)--")
+		       (modes   . '(ada-mode))))
+	(add-to-list 'ada-align-modes
+		     '(ada-use
+		       (regexp  . "\\(\\s-*\\)\\<use\\s-")
+		       (valid   . (lambda() (not (ada-in-comment-p))))
+		       (modes   . '(ada-mode))))
+	(add-to-list 'ada-align-modes
+		     '(ada-at
+		       (regexp . "\\(\\s-+\\)at\\>")
+		       (modes . '(ada-mode))))
+
+
+	(setq align-mode-rules-list ada-align-modes)
+	))
 
   ;;  Set up the contextual menu
   (if ada-popup-key
@@ -1305,6 +1359,30 @@ If you use ada-xref.el:
   ;;  Support for Abbreviations (the user still need to "M-x abbrev-mode"
   (define-abbrev-table 'ada-mode-abbrev-table ())
   (setq local-abbrev-table ada-mode-abbrev-table)
+
+  ;;  Support for which-function mode
+  ;; which-function-mode does not work with nested subprograms, since it is
+  ;; based only on the regexps generated by imenu, and thus can only detect the
+  ;; beginning of subprograms, not the end.
+  ;; Fix is: redefine a new function ada-which-function, and call it when the
+  ;; major-mode is ada-mode.
+
+  (unless ada-xemacs
+    ;;  This function do not require that we load which-func now.
+    ;;  This can be done by the user if he decides to use which-func-mode
+
+    (defadvice which-function (around ada-which-function activate)
+      "In Ada buffers, should work with overloaded subprograms, and does not
+use imenu."
+      (if (equal major-mode 'ada-mode)
+	  (set 'ad-return-value (ada-which-function))
+	ad-do-it))
+
+    ;;  So that we can activate which-func-modes for Ada mode
+    (if (and (boundp 'which-func-modes)
+	     (listp which-func-modes))
+	(add-to-list 'which-func-modes 'ada-mode))
+    )
 
   ;;  Support for indent-new-comment-line (Especially for XEmacs)
   (setq comment-multi-line nil)
@@ -1321,7 +1399,7 @@ If you use ada-xref.el:
   (if ada-clean-buffer-before-saving
       (progn
         ;; remove all spaces at the end of lines in the whole buffer.
-        (add-hook 'local-write-file-hooks 'delete-trailing-whitespace)
+	(add-hook 'local-write-file-hooks 'delete-trailing-whitespace)
         ;; convert all tabs to the correct number of spaces.
         (add-hook 'local-write-file-hooks
                   (lambda () (untabify (point-min) (point-max))))))
@@ -1334,7 +1412,7 @@ If you use ada-xref.el:
   (if ada-fill-comment-prefix
       (set 'comment-start ada-fill-comment-prefix)
     (set 'comment-start "-- "))
-  
+
   ;;  Run this after the hook to give the users a chance to activate
   ;;  font-lock-mode
 
@@ -1383,7 +1461,7 @@ If you use ada-xref.el:
 (defun ada-save-exceptions-to-file (file-name)
   "Save the exception lists `ada-case-exception' and
 `ada-case-exception-substring' to the file FILE-NAME."
-  
+
   ;;  Save the list in the file
   (find-file (expand-file-name file-name))
   (erase-buffer)
@@ -1396,7 +1474,7 @@ If you use ada-xref.el:
   (save-buffer)
   (kill-buffer nil)
   )
-   
+
 (defun ada-create-case-exception (&optional word)
   "Defines WORD as an exception for the casing system.
 If WORD is not given, then the current word in the buffer is used instead.
@@ -1547,14 +1625,14 @@ word itself has a special casing."
 
     (save-excursion
        (forward-word -1)
-       
+
        (unwind-protect
 	  (progn
 	    (modify-syntax-entry ?_ "." (syntax-table))
-	    
+
 	    (while substrings
 	      (setq re (concat "\\b" (regexp-quote (caar substrings)) "\\b"))
-	      
+
 	      (save-excursion
 		 (while (re-search-forward re max t)
 		   (replace-match (caar substrings))))
@@ -2137,7 +2215,7 @@ This function is intended to be bound to the \C-m and \C-j keys."
 
     (let ((line (save-excursion
 		  (goto-char (car cur-indent))
-		  (count-lines (point-min) (point)))))
+		  (count-lines 1 (point)))))
 
       (if (equal (cdr cur-indent) '(0))
 	  (message (concat "same indentation as line " (number-to-string line)))
@@ -2281,7 +2359,7 @@ offset."
 	      (goto-char column)
 	      (skip-chars-backward " \t")
 	      (list (1- (point)) 0))
-	
+
 	  (if (and (skip-chars-backward " \t")
 		   (= (char-before) ?\n)
 		   (not (forward-comment -10000))
@@ -2289,26 +2367,25 @@ offset."
 	      ;; ??? Could use a different variable
 	      (list column 'ada-broken-indent)
 
-	    ;;  Correctly indent named parameter lists ("name => ...") for
-	    ;;  all the following lines
-	    (goto-char column)
-	    (if (and (progn (forward-comment 1000)
-			    (looking-at "\\sw+\\s *=>"))
-		     (progn (goto-char orgpoint)
-			    (forward-comment 1000)
-			    (not (looking-at "\\sw+\\s *=>"))))
-		(list column 'ada-broken-indent)
+	    ;;  We want all continuation lines to be indented the same
+	    ;;  (ada-broken-line from the opening parenthesis. However, in
+	    ;;  parameter list, each new parameter should be indented at the
+	    ;;  column as the opening parenthesis.
 
-	      ;;  ??? Would be nice that lines like
-	      ;;   A
-	      ;;     (B,
-	      ;;      C
-	      ;;        (E));  --  would be nice if this was correctly indented
-; 	      (if (= (char-before (1- orgpoint)) ?,)
-		  (list column 0)
-; 		(list column 'ada-broken-indent)
-; 		)
-	    )))))
+	    ;;  A special case to handle nested boolean expressions, as in
+	    ;;    ((B
+	    ;;        and then C) --  indented by ada-broken-indent
+	    ;;     or else D)     --  indenting this line.
+	    ;;  ??? This is really a hack, we should have a proper way to go to
+	    ;;  ??? the beginning of the statement
+
+	    (if (= (char-before) ?\))
+		(backward-sexp))
+
+	    (if (memq (char-before) '(?, ?\; ?\( ?\)))
+		(list column 0)
+	      (list column 'ada-continuation-indent)
+	      )))))
 
      ;;---------------------------
      ;;   at end of buffer
@@ -2354,7 +2431,7 @@ offset."
 			  (beginning-of-line)
 			  (if (looking-at ada-named-block-re)
 			      (setq label (- ada-label-indent))))))))
-	    
+
 	    ;; found 'record' =>
 	    ;;  if the keyword is found at the beginning of a line (or just
 	    ;;  after limited, we indent on it, otherwise we indent on the
@@ -2392,7 +2469,7 @@ offset."
 	    (list (progn (back-to-indentation) (point)) 0))))
 
        ;; elsif
-       
+
        ((looking-at "elsif\\>")
 	(save-excursion
 	  (ada-goto-matching-start 1 nil t)
@@ -2403,7 +2480,7 @@ offset."
      ;;---------------------------
      ;;  starting with w (when)
      ;;---------------------------
-     
+
      ((and (= (downcase (char-after)) ?w)
 	   (looking-at "when\\>"))
       (save-excursion
@@ -2430,7 +2507,7 @@ offset."
      ;;---------------------------
      ;;   starting with l (loop)
      ;;---------------------------
-     
+
      ((and (= (downcase (char-after)) ?l)
 	   (looking-at "loop\\>"))
       (setq pos (point))
@@ -2449,7 +2526,7 @@ offset."
      ;;----------------------------
      ;;    starting with l (limited) or r (record)
      ;;----------------------------
-     
+
      ((or (and (= (downcase (char-after)) ?l)
 	       (looking-at "limited\\>"))
 	  (and (= (downcase (char-after)) ?r)
@@ -2493,7 +2570,9 @@ offset."
             (list (progn (back-to-indentation) (point)) 'ada-indent))
         (save-excursion
           (ada-goto-stmt-start)
-          (list (progn (back-to-indentation) (point)) 'ada-stmt-end-indent))))
+	  (if (looking-at "\\<package\\|procedure\\|function\\>")
+	      (list (progn (back-to-indentation) (point)) 0)
+	    (list (progn (back-to-indentation) (point)) 'ada-indent)))))
 
      ;;---------------------------
      ;;  starting with r (return, renames)
@@ -2501,7 +2580,7 @@ offset."
 
      ((and (= (downcase (char-after)) ?r)
 	   (looking-at "re\\(turn\\|names\\)\\>"))
-      
+
       (save-excursion
 	(let ((var 'ada-indent-return))
 	  ;;  If looking at a renames, skip the 'return' statement too
@@ -2513,12 +2592,12 @@ offset."
 			 (= (downcase (char-after (car pos))) ?r))
 		    (goto-char (car pos)))
 		(set 'var 'ada-indent-renames)))
-	  
+
 	  (forward-comment -1000)
 	  (if (= (char-before) ?\))
 	      (forward-sexp -1)
 	    (forward-word -1))
-	  
+
 	  ;; If there is a parameter list, and we have a function declaration
 	  ;; or a access to subprogram declaration
 	  (let ((num-back 1))
@@ -2531,13 +2610,13 @@ offset."
 			     (backward-word 1)
 			     (set 'num-back 2)
 			     (looking-at "\\(function\\|procedure\\)\\>")))))
-		
+
 		;; The indentation depends of the value of ada-indent-return
 		(if (<= (eval var) 0)
 		    (list (point) (list '- var))
 		  (list (progn (backward-word num-back) (point))
 			var))
-	      
+
 	      ;; Else there is no parameter list, but we have a function
 	      ;; Only do something special if the user want to indent
 	      ;; relative to the "function" keyword
@@ -2545,10 +2624,10 @@ offset."
 		       (save-excursion (forward-word -1)
 				       (looking-at "function\\>")))
 		  (list (progn (forward-word -1) (point)) var)
-		
+
 		;; Else...
 		(ada-indent-on-previous-lines nil orgpoint orgpoint)))))))
-     
+
      ;;--------------------------------
      ;;   starting with 'o' or 'p'
      ;;   'or'      as statement-start
@@ -2733,6 +2812,12 @@ if INITIAL-POS is non-nil, moves point to INITIAL-POS before calculation."
          ;;
          ((looking-at "separate\\>")
           (ada-get-indent-nochange))
+
+	 ;; A label
+	 ((looking-at "<<")
+          (list (+ (save-excursion (back-to-indentation) (point))
+		   (- ada-label-indent))))
+
 	 ;;
 	 ((looking-at "with\\>\\|use\\>")
 	  ;;  Are we still in that statement, or are we in fact looking at
@@ -3346,26 +3431,35 @@ match."
 
       (goto-char (car match-dat))
       (unless (ada-in-open-paren-p)
-        (if (and (looking-at
-                  "\\<\\(record\\|loop\\|select\\|else\\|then\\)\\>")
-                 (save-excursion
-                   (ada-goto-previous-word)
-                   (looking-at "\\<\\(end\\|or\\|and\\)\\>[ \t]*[^;]")))
-            (forward-word -1)
+	(cond
 
-          (save-excursion
-            (goto-char (cdr match-dat))
-            (ada-goto-next-non-ws)
-            (looking-at "(")
-            ;;  words that can go after an 'is'
-            (unless (looking-at
-                     (eval-when-compile
-                       (concat "\\<"
-                               (regexp-opt '("separate" "access" "array"
-                                             "abstract" "new") t)
-                               "\\>\\|(")))
-              (setq found t))))
-        ))
+	 ((and (looking-at
+		"\\<\\(record\\|loop\\|select\\|else\\|then\\)\\>")
+	       (save-excursion
+		 (ada-goto-previous-word)
+		 (looking-at "\\<\\(end\\|or\\|and\\)\\>[ \t]*[^;]")))
+	  (forward-word -1))
+
+	 ((looking-at "is")
+	  (setq found
+	 	(and (save-excursion (ada-goto-previous-word)
+				     (ada-goto-previous-word)
+				     (not (looking-at "subtype")))
+
+	 	    (save-excursion (goto-char (cdr match-dat))
+	 			    (ada-goto-next-non-ws)
+	 			    ;;  words that can go after an 'is'
+	 			    (not (looking-at
+	 			     (eval-when-compile
+	 			       (concat "\\<"
+	 				       (regexp-opt
+	 					'("separate" "access" "array"
+	 					  "abstract" "new") t)
+	 				       "\\>\\|("))))))))
+
+	 (t
+	  (setq found t))
+        )))
 
     (if found
         match-dat
@@ -3685,7 +3779,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
                   ;; it ends a block => increase nest depth
 		  (setq nest-count (1+ nest-count)
 			pos        (point))
-		
+
                 ;; it starts a block => decrease nest depth
                 (setq nest-count (1- nest-count))))
             (goto-char pos))
@@ -3702,8 +3796,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
                   (error (concat
                           "No matching 'is' or 'renames' for 'package' at"
                           " line "
-                          (number-to-string (count-lines (point-min)
-                                                         (1+ current)))))))
+                          (number-to-string (count-lines 1 (1+ current)))))))
               (unless (looking-at "renames")
                 (progn
                   (forward-word 1)
@@ -3776,7 +3869,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
 		 (back-to-indentation)
 		 (looking-at "\\<then\\>")))
 	      (goto-char (match-beginning 0)))
-	     
+
 	     ;;
 	     ;; found 'do' => skip back to 'accept'
 	     ;;
@@ -3786,7 +3879,7 @@ If GOTOTHEN is non-nil, point moves to the 'then' following 'if'."
 		       'word-search-backward)
 		(error "missing 'accept' in front of 'do'"))))
 	    (point))
-	
+
 	(if noerror
 	    nil
 	  (error "no matching start"))))))
@@ -3814,7 +3907,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
     ;;  in the nesting loop below, so we just make sure we don't count it.
     ;;  "declare" is a special case because we need to look after the "begin"
     ;;  keyword
-    (if (and (not first) (looking-at regex))
+    (if (looking-at "\\<if\\|loop\\|case\\>")
 	(forward-char 1))
 
     ;;
@@ -3843,7 +3936,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
        ;; handling.
        ;; Nothing should be done if we have only the specs or a
        ;; generic instantion.
-       
+
        ((and (looking-at "\\<procedure\\|function\\>"))
 	(if first
 	    (forward-word 1)
@@ -3851,7 +3944,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
 	  (ada-goto-next-non-ws)
 	  (unless (looking-at "\\<new\\>")
 	    (ada-goto-matching-end 0 t))))
-       
+
        ;; found block end => decrease nest depth
        ((looking-at "\\<end\\>")
         (setq nest-count (1- nest-count)
@@ -3862,7 +3955,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
 	      (ada-goto-next-non-ws)
 	      (looking-at "\\<\\(loop\\|select\\|record\\|case\\|if\\)\\>"))
 	    (forward-word 1)))
-       
+
        ;; found package start => check if it really starts a block, and is not
        ;; in fact a generic instantiation for instance
        ((looking-at "\\<package\\>")
@@ -3874,7 +3967,7 @@ If NOERROR is non-nil, it only returns nil if found no matching start."
             (goto-char (match-end 0))
           (setq nest-count (1+ nest-count)
 		found      (<= nest-count 0))))
-       
+
        ;; all the other block starts
        (t
         (setq nest-count (1+ nest-count)
@@ -4095,7 +4188,7 @@ parenthesis, or nil."
 	    ;;                Value_1);
 	    ;;  type B is (   --  comment
 	    ;;             Value_2);
-	    
+
 	    (if (or (not ada-indent-handle-comment-special)
 		    (not (looking-at "[ \t]+--")))
 	        (skip-chars-forward " \t"))
@@ -4186,7 +4279,7 @@ of the region.  Otherwise, operates only on the current line."
       (replace-match "--  \\1")
       (forward-line 1)
       (beginning-of-line))
-    
+
     (goto-char (point-min))
     (while (re-search-forward "\\>(" nil t)
       (if (not (ada-in-string-or-comment-p))
@@ -4306,12 +4399,13 @@ Moves to 'begin' if in a declarative part."
           (save-excursion
 
             (cond
+             ;; Go to the beginning of the current word, and check if we are
              ;; directly on 'begin'
 	     ((save-excursion
-		(ada-goto-previous-word)
+		(skip-syntax-backward "w")
 		(looking-at "\\<begin\\>"))
 	      (ada-goto-matching-end 1))
-	     
+
 	     ;; on first line of subprogram body
 	     ;; Do nothing for specs or generic instantion, since these are
 	     ;; handled as the general case (find the enclosing block)
@@ -4324,7 +4418,7 @@ Moves to 'begin' if in a declarative part."
  		     ))
 	      (skip-syntax-backward "w")
 	      (ada-goto-matching-end 0 t))
-	       
+
              ;; on first line of task declaration
              ((save-excursion
                 (and (ada-goto-stmt-start)
@@ -4344,12 +4438,18 @@ Moves to 'begin' if in a declarative part."
 		(setq decl-start (and (ada-goto-matching-decl-start t) (point)))
                 (and decl-start (looking-at "\\<package\\>")))
               (ada-goto-matching-end 1))
-	     
+
+	     ;;  On a "declare" keyword
+	     ((save-excursion
+		(skip-syntax-backward "w")
+		(looking-at "\\<declare\\>"))
+	      (ada-goto-matching-end 0 t))
+
              ;; inside a 'begin' ... 'end' block
              (decl-start
 	      (goto-char decl-start)
 	      (ada-goto-matching-end 0 t))
-	     
+
              ;; (hopefully ;-) everything else
              (t
               (ada-goto-matching-end 1)))
@@ -4530,7 +4630,7 @@ can add its own items."
 ;;  function for justifying the comments.
 ;; -------------------------------------------------------
 
-(defadvice comment-region (before ada-uncomment-anywhere)
+(defadvice comment-region (before ada-uncomment-anywhere disable)
   (if (and arg
            (listp arg)  ;;  a prefix with \C-u is of the form '(4), whereas
 	               ;;  \C-u 2  sets arg to '2'  (fixed by S.Leake)
@@ -4553,7 +4653,8 @@ can add its own items."
 	(ad-activate 'comment-region)
 	(comment-region beg end (- (or arg 2)))
 	(ad-deactivate 'comment-region))
-    (comment-region beg end (list (- (or arg 2))))))
+    (comment-region beg end (list (- (or arg 2))))
+    (ada-indent-region beg end)))
 
 (defun ada-fill-comment-paragraph-justify ()
   "Fills current comment paragraph and justifies each line as well."
@@ -4579,10 +4680,8 @@ The paragraph is indented on the first line."
            (not (looking-at "[ \t]*--")))
       (error "not inside comment"))
 
-  (let* ((indent)
-         (from)
-         (to)
-         (opos             (point-marker))
+  (let* (indent from to
+         (opos (point-marker))
 
          ;; Sets this variable to nil, otherwise it prevents
          ;; fill-region-as-paragraph to work on Emacs <= 20.2
@@ -4593,7 +4692,7 @@ The paragraph is indented on the first line."
 
     ;;  Find end of paragraph
     (back-to-indentation)
-    (while (and (not (eobp)) (looking-at "--[ \t]*[^ \t\n]"))
+    (while (and (not (eobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
       (forward-line 1)
 
       ;;  If we were at the last line in the buffer, create a dummy empty
@@ -4607,11 +4706,11 @@ The paragraph is indented on the first line."
 
     ;;  Find beginning of paragraph
     (back-to-indentation)
-    (while (and (not (bobp)) (looking-at "--[ \t]*[^ \t\n]"))
+    (while (and (not (bobp)) (looking-at ".*--[ \t]*[^ \t\n]"))
       (forward-line -1)
       (back-to-indentation))
 
-    ;;  We want one line to above the first one, unless we are at the beginning
+    ;;  We want one line above the first one, unless we are at the beginning
     ;;  of the buffer
     (unless (bobp)
       (forward-line 1))
@@ -4628,13 +4727,6 @@ The paragraph is indented on the first line."
     (goto-char from)
     (while (re-search-forward "--\n" to t)
       (replace-match "\n"))
-
-    ;;  Remove the old prefixes (so that the number of spaces after -- is not
-    ;;  relevant), except on the first one since `fill-region-as-paragraph'
-    ;;  would not put it back on the first line.
-    (goto-char (+ from 2))
-    (while (re-search-forward "^-- *" to t)
-      (replace-match " "))
 
     (goto-char (1- to))
     (setq to (point-marker))
@@ -4739,7 +4831,7 @@ otherwise."
 
 	;;  If we are using project file, search for the other file in all
 	;;  the possible src directories.
-	
+
 	(if (functionp 'ada-find-src-file-in-dir)
 	    (let ((other
 		   (ada-find-src-file-in-dir
@@ -4777,10 +4869,10 @@ Redefines the function `ff-which-function-are-we-in'."
 (defun ada-which-function ()
   "Returns the name of the function whose body the point is in.
 This function works even in the case of nested subprograms, whereas the
-standard Emacs function which-function does not.
+standard Emacs function `which-function' does not.
 Since the search can be long, the results are cached."
 
-  (let ((line (count-lines (point-min) (point)))
+  (let ((line (count-lines 1 (point)))
         (pos (point))
         end-pos
         func-name indent
@@ -4796,9 +4888,9 @@ Since the search can be long, the results are cached."
 
 	;;  Are we looking at "function Foo\n    (paramlist)"
 	(skip-chars-forward " \t\n(")
-	
+
 	(condition-case nil
-	    (up-list)
+	    (up-list 1)
 	  (error nil))
 
 	(skip-chars-forward " \t\n")
@@ -4807,7 +4899,7 @@ Since the search can be long, the results are cached."
 	      (forward-word 1)
 	      (skip-chars-forward " \t\n")
 	      (skip-chars-forward "a-zA-Z0-9_'")))
-	    
+
         ;; Can't simply do forward-word, in case the "is" is not on the
         ;; same line as the closing parenthesis
         (skip-chars-forward "is \t\n")
@@ -4996,7 +5088,7 @@ Returns nil if no body was found."
 
      ;; Ada unnamed numerical constants
      (list "\\W\\([-+]?[0-9._]+\\)\\>" '(1 font-lock-constant-face))
-     
+
      ))
   "Default expressions to highlight in Ada mode.")
 

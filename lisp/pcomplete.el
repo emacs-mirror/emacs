@@ -139,7 +139,7 @@
   :type '(choice regexp (const :tag "None" nil))
   :group 'pcomplete)
 
-(defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt))
+(defcustom pcomplete-ignore-case (memq system-type '(ms-dos windows-nt cygwin))
   "*If non-nil, ignore case when doing filename completion."
   :type 'boolean
   :group 'pcomplete)
@@ -311,6 +311,16 @@ command arguments."
   :type 'boolean
   :group 'pcomplete)
 
+(defcustom pcomplete-termination-string " "
+  "*A string that is inserted after any completion or expansion.
+This is usually a space character, useful when completing lists of
+words separated by spaces.  However, if your list uses a different
+separator character, or if the completion occurs in a word that is
+already terminated by a character, this variable should be locally
+modified to be an empty string, or the desired separation string."
+  :type 'string
+  :group 'pcomplete)
+
 ;;; Internal Variables:
 
 ;; for cycling completion support
@@ -418,7 +428,7 @@ This will modify the current buffer."
 	(unless (pcomplete-insert-entry
 		 "" (car pcomplete-current-completions) t
 		 pcomplete-last-completion-raw)
-	  (insert-and-inherit " "))
+	  (insert-and-inherit pcomplete-termination-string))
 	(setq pcomplete-current-completions
 	      (cdr pcomplete-current-completions))))))
 
@@ -582,8 +592,7 @@ dynamic-complete-functions are kept.  For comint mode itself, this is
 		    (symbol-value completef-sym))))
     (if elem
 	(setcar elem 'pcomplete)
-      (nconc (symbol-value completef-sym)
-	     (list 'pcomplete)))))
+      (add-to-list completef-sym 'pcomplete))))
 
 ;;;###autoload
 (defun pcomplete-shell-setup ()
@@ -695,14 +704,12 @@ Magic characters are those in `pcomplete-arg-quote-list'."
 
 (defun pcomplete-entries (&optional regexp predicate)
   "Complete against a list of directory candidates.
-This function always uses the last argument as the basis for
-completion.
 If REGEXP is non-nil, it is a regular expression used to refine the
 match (files not matching the REGEXP will be excluded).
 If PREDICATE is non-nil, it will also be used to refine the match
 \(files for which the PREDICATE returns nil will be excluded).
-If PATH is non-nil, it will be used for completion instead of
-consulting the last argument."
+If no directory information can be extracted from the completed
+component, DEFAULT-DIRECTORY is used as the basis for completion."
   (let* ((name (substitute-env-vars pcomplete-stub))
 	 (default-directory (expand-file-name
 			     (or (file-name-directory name)
@@ -738,8 +745,9 @@ consulting the last argument."
 			     (string-match pcomplete-dir-ignore file))
 		      (and pcomplete-file-ignore
 			   (string-match pcomplete-file-ignore file))))))))
-      (setq above-cutoff (> (length completions)
-			    pcomplete-cycle-cutoff-length))
+      (setq above-cutoff (and pcomplete-cycle-cutoff-length
+			     (> (length completions)
+				pcomplete-cycle-cutoff-length)))
       (sort completions
 	    (function
 	     (lambda (l r)
@@ -1008,7 +1016,7 @@ Returns non-nil if a space was appended at the end."
     (let (space-added)
       (when (and (not (memq (char-before) pcomplete-suffix-list))
 		 addsuffix)
-	(insert-and-inherit " ")
+	(insert-and-inherit pcomplete-termination-string)
 	(setq space-added t))
       (setq pcomplete-last-completion-length (- (point) here)
 	    pcomplete-last-completion-stub stub)

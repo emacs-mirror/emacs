@@ -1,4 +1,4 @@
-;;; mule-conf.el --- configure multilingual environment
+;;; mule-conf.el --- configure multilingual environment -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -226,7 +226,7 @@
 
 ;; 2-byte 2-column charsets.  Valid range of CHARSET-ID is 245..254.
 
-;; Ethiopic characters (Amahric and Tigrigna).
+;; Ethiopic characters (Amharic and Tigrigna).
 (define-charset 245 'ethiopic
   [2 94 2 0 ?3 0 "Ethiopic" "Ethiopic characters"
      "Ethiopic characters."])
@@ -306,13 +306,14 @@ When you visit a file with this coding, the file is read into a
 unibyte buffer as is, thus each byte of a file is treated as a
 character."
 	     (list 'coding-category 'coding-category-binary
-		   'alias-coding-systems '(no-conversion))
+		   'alias-coding-systems '(no-conversion)
+		   'safe-charsets t 'safe-chars t)
 	     nil))
 (put 'no-conversion 'eol-type 0)
 (put 'coding-category-binary 'coding-systems '(no-conversion))
 (setq coding-system-list '(no-conversion))
 (setq coding-system-alist '(("no-conversion")))
-(register-char-codings 'no-conversion t)
+(define-coding-system-internal 'no-conversion)
 
 (define-coding-system-alias 'binary 'no-conversion)
 
@@ -341,7 +342,8 @@ sequence of the text in buffers and strings.  An exception is made for
 eight-bit-control characters.  Each of them is encoded into a single
 byte."
  nil
- '((safe-charsets . t)))
+ '((safe-charsets . t)
+   (composition . t)))
 
 (make-coding-system
  'raw-text 5 ?t
@@ -413,7 +415,7 @@ is treated as a character."
  'compound-text 2 ?x
  "Compound text based generic encoding for decoding unknown messages.
 
-This coding system does not support ICCCM Extended Segments."
+This coding system does not support extended segments."
  '((ascii t) (latin-iso8859-1 katakana-jisx0201 t) t t
    nil ascii-eol ascii-cntl nil locking-shift single-shift nil nil nil
    init-bol nil nil)
@@ -441,7 +443,7 @@ Like `compound-text', but does not produce escape sequences for compositions."
 
 (make-coding-system
  'compound-text-with-extensions 5 ?x
- "Compound text encoding with ICCCM Extended Segment extensions.
+ "Compound text encoding with extended segments.
 
 This coding system should be used only for X selections.  It is inappropriate
 for decoding and encoding files, process I/O, etc."
@@ -456,10 +458,24 @@ for decoding and encoding files, process I/O, etc."
 
 (make-coding-system
  'iso-safe 2 ?-
- "Convert all characters but ASCII to `?'."
+ "Encode ASCII asis and encode non-ASCII characters to `?'."
  '(ascii nil nil nil
    nil ascii-eol ascii-cntl nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii)))
+
+(define-coding-system-alias
+  'us-ascii 'iso-safe)
+
+(make-coding-system
+ 'iso-latin-1 2 ?1
+ "ISO 2022 based 8-bit encoding for Latin-1 (MIME:ISO-8859-1)."
+ '(ascii latin-iso8859-1 nil nil
+   nil nil nil nil nil nil nil nil nil nil nil t t)
+ '((safe-charsets ascii latin-iso8859-1)
+   (mime-charset . iso-8859-1)))
+
+(define-coding-system-alias 'iso-8859-1 'iso-latin-1)
+(define-coding-system-alias 'latin-1 'iso-latin-1)
 
 ;; Use iso-safe for terminal output if some other coding system is not
 ;; specified explicitly.
@@ -519,7 +535,7 @@ for decoding and encoding files, process I/O, etc."
    coding-category-iso-8-else
    coding-category-emacs-mule
    coding-category-raw-text
-   coding-category-sjis 
+   coding-category-sjis
    coding-category-big5
    coding-category-ccl
    coding-category-binary

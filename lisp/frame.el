@@ -654,14 +654,12 @@ automatically."
     (select-frame frame)
     (raise-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (when (eq window-system 'w32)
-      (w32-focus-frame frame))
+    (cond ((eq window-system 'x)
+	   (x-focus-frame frame))
+	  ((eq window-system 'w32)
+	   (w32-focus-frame frame)))
     (cond (focus-follows-mouse
-	   (unless (eq window-system 'w32)
-	     (set-mouse-position (selected-frame) (1- (frame-width)) 0)))
-	  (t
-	   (when (eq window-system 'x)
-	     (x-focus-frame frame)))))
+	   (set-mouse-position (selected-frame) (1- (frame-width)) 0))))
 
 (defun other-frame (arg)
   "Select the ARG'th different visible frame on current display, and raise it.
@@ -721,10 +719,12 @@ If there is no frame by that name, signal an error."
     (raise-frame frame)
     (select-frame frame)
     ;; Ensure, if possible, that frame gets input focus.
-    (if (eq window-system 'w32)
-	(w32-focus-frame frame)
-      (when focus-follows-mouse
-	(set-mouse-position (selected-frame) (1- (frame-width)) 0)))))
+    (cond ((eq window-system 'x)
+	   (x-focus-frame frame))
+	  ((eq window-system 'w32)
+	   (w32-focus-frame frame)))
+    (when focus-follows-mouse
+      (set-mouse-position frame (1- (frame-width frame)) 0))))
 
 ;;;; Frame configurations
 
@@ -1112,6 +1112,10 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 (make-obsolete 'screen-width  'frame-width) ;before 19.15
 (make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
 (make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
+
+;; miscellaneous obsolescence declarations
+(defvaralias 'delete-frame-hook 'delete-frame-functions)
+(make-obsolete-variable 'delete-frame-hook 'delete-frame-functions "21.4")
 
 
 ;; Highlighting trailing whitespace.

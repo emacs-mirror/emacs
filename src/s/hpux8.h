@@ -4,9 +4,9 @@
    Our conjecture that they are needed for hpux version 8,
    which is what runs on the 700.  */
 
-#include "hpux.h"
-
 #define HPUX8
+
+#include "hpux.h"
 
 /* dob@inel.gov says HPUX 8.07 needs this.  He was using X11R5, I think.  */
 #define LIBX11_SYSTEM -lXext
@@ -52,7 +52,7 @@
    and none have sioctl.h, so might as well define this.  */
 #define NO_SIOCTL_H
 
-#if 0 /* autoconf should be detecting the presence or absence of 
+#if 0 /* autoconf should be detecting the presence or absence of
 	 random and srandom now.  */
 /* If you use X11R4 you must define this.  If you use
    X11R5 you must comment this out */
@@ -69,6 +69,3 @@
 
 /* Enable a special hack in XTread_socket.  */
 #define X_IO_BUG
-
-/* Override hpux.h which undefs this flag.  */
-#define HAVE_SYS_WAIT_H

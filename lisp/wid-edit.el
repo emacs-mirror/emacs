@@ -202,7 +202,7 @@ nil means read a single character."
   "Choose an item from a list.
 
 First argument TITLE is the name of the list.
-Second argument ITEMS is an list whose members are either
+Second argument ITEMS is a list whose members are either
  (NAME . VALUE), to indicate selectable items, or just strings to
  indicate unselectable items.
 Optional third argument EVENT is an input event.
@@ -271,7 +271,7 @@ minibuffer."
 		 (while (not (or (and (>= char ?0) (< char next-digit))
 				 (eq value 'keyboard-quit)))
 		   ;; Unread a SPC to lead to our new menu.
-		   (setq unread-command-events (cons ?\ unread-command-events))
+		   (setq unread-command-events (cons ?\  unread-command-events))
 		   (setq keys (read-key-sequence title))
 		   (setq value
 			 (lookup-key overriding-terminal-local-map keys t)
@@ -301,7 +301,7 @@ minibuffer."
     (nreverse result)))
 
 ;;; Widget text specifications.
-;; 
+;;
 ;; These functions are for specifying text properties.
 
 (defvar widget-field-add-space t
@@ -333,7 +333,7 @@ new value.")
 	(rear-sticky
 	 (or (not widget-field-add-space) (widget-get widget :size))))
     (if (functionp help-echo)
-      (setq help-echo 'widget-mouse-help))    
+      (setq help-echo 'widget-mouse-help))
     (when (= (char-before to) ?\n)
       ;; When the last character in the field is a newline, we want to
       ;; give it a `field' char-property of `boundary', which helps the
@@ -508,9 +508,10 @@ Otherwise, just return the value."
 					 :value-to-internal value)))
 
 (defun widget-default-get (widget)
-  "Extract the default value of WIDGET."
-  (or (widget-get widget :value)
-      (widget-apply widget :default-get)))
+  "Extract the default external value of WIDGET."
+  (widget-apply widget :value-to-external
+		(or (widget-get widget :value)
+		    (widget-apply widget :default-get))))
 
 (defun widget-match-inline (widget vals)
   "In WIDGET, match the start of VALS."
@@ -688,7 +689,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child (parent type)
   "Create widget of TYPE."
-  (let ((widget (copy-sequence type)))
+  (let ((widget (widget-copy type)))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
       (widget-put widget :indent (+ (or (widget-get parent :indent) 0)
@@ -699,7 +700,7 @@ The child is converted, using the keyword arguments ARGS."
 
 (defun widget-create-child-value (parent type value)
   "Create widget of TYPE with value VALUE."
-  (let ((widget (copy-sequence type)))
+  (let ((widget (widget-copy type)))
     (widget-put widget :value (widget-apply widget :value-to-internal value))
     (widget-put widget :parent parent)
     (unless (widget-get widget :indent)
@@ -714,6 +715,10 @@ The child is converted, using the keyword arguments ARGS."
   "Delete WIDGET."
   (widget-apply widget :delete))
 
+(defun widget-copy (widget)
+  "Make a deep copy of WIDGET."
+  (widget-apply (copy-sequence widget) :copy))
+
 (defun widget-convert (type &rest args)
   "Convert TYPE to a widget without inserting it in the buffer.
 The optional ARGS are additional keyword arguments."
@@ -722,18 +727,32 @@ The optional ARGS are additional keyword arguments."
 		     (list type)
 		   (copy-sequence type)))
 	 (current widget)
+	 done
 	 (keys args))
     ;; First set the :args keyword.
     (while (cdr current)		;Look in the type.
-      (if (keywordp (car (cdr current)))
-	  (setq current (cdr (cdr current)))
+      (if (and (keywordp (cadr current))
+	       ;; If the last element is a keyword,
+	       ;; it is still the :args element,
+	       ;; even though it is a keyword.
+	       (cddr current))
+	  (if (eq (cadr current) :args)
+	      ;; If :args is explicitly specified, obey it.
+	      (setq current nil)
+	    ;; Some other irrelevant keyword.
+	    (setq current (cdr (cdr current))))
 	(setcdr current (list :args (cdr current)))
 	(setq current nil)))
-    (while args				;Look in the args.
-      (if (keywordp (nth 0 args))
-	  (setq args (nthcdr 2 args))
-	(widget-put widget :args args)
-	(setq args nil)))
+    (while (and args (not done))	;Look in ARGS.
+      (cond ((eq (car args) :args)
+	     ;; Handle explicit specification of :args.
+	     (setq args (cadr args)
+		   done t))
+	    ((keywordp (car args))
+	     (setq args (cddr args)))
+	    (t (setq done t))))
+    (when done
+      (widget-put widget :args args))
     ;; Then Convert the widget.
     (setq type widget)
     (while type
@@ -873,7 +892,7 @@ Recommended as a parent keymap for modes using widgets.")
   (if (widget-event-point event)
       (let* ((pos (widget-event-point event))
 	     (start (event-start event))
-	     (button (get-char-property 
+	     (button (get-char-property
 		      pos 'button (and (windowp (posn-window start))
 				       (window-buffer (posn-window start))))))
 	(if button
@@ -983,19 +1002,20 @@ This is much faster, but doesn't work reliably on Emacs 19.34.")
   "Move point to the ARG next field or button.
 ARG may be negative to move backward."
   (or (bobp) (> arg 0) (backward-char))
-  (let ((pos (point))
+  (let ((wrapped 0)
 	(number arg)
 	(old (widget-tabable-at))
 	new)
     ;; Forward.
     (while (> arg 0)
       (cond ((eobp)
-	     (goto-char (point-min)))
+	     (goto-char (point-min))
+	     (setq wrapped (1+ wrapped)))
 	    (widget-use-overlay-change
 	     (goto-char (next-overlay-change (point))))
 	    (t
 	     (forward-char 1)))
-      (and (eq pos (point))
+      (and (= wrapped 2)
 	   (eq arg number)
 	   (error "No buttons or fields found"))
       (let ((new (widget-tabable-at)))
@@ -1006,12 +1026,13 @@ ARG may be negative to move backward."
     ;; Backward.
     (while (< arg 0)
       (cond ((bobp)
-	     (goto-char (point-max)))
+	     (goto-char (point-max))
+	     (setq wrapped (1+ wrapped)))
 	    (widget-use-overlay-change
 	     (goto-char (previous-overlay-change (point))))
 	    (t
 	     (backward-char 1)))
-      (and (eq pos (point))
+      (and (= wrapped 2)
 	   (eq arg number)
 	   (error "No buttons or fields found"))
       (let ((new (widget-tabable-at)))
@@ -1257,6 +1278,11 @@ Optional EVENT is the event that triggered the action."
 	    found (widget-apply child :validate)))
     found))
 
+(defun widget-types-copy (widget)
+  "Copy :args as widget types in WIDGET."
+  (widget-put widget :args (mapcar 'widget-copy (widget-get widget :args)))
+  widget)
+
 ;; Made defsubst to speed up face editor creation.
 (defsubst widget-types-convert-widget (widget)
   "Convert :args as widget types in WIDGET."
@@ -1291,9 +1317,10 @@ Optional EVENT is the event that triggered the action."
   :indent nil
   :offset 0
   :format-handler 'widget-default-format-handler
-  :button-face-get 'widget-default-button-face-get 
-  :sample-face-get 'widget-default-sample-face-get 
+  :button-face-get 'widget-default-button-face-get
+  :sample-face-get 'widget-default-sample-face-get
   :delete 'widget-default-delete
+  :copy 'identity
   :value-set 'widget-default-value-set
   :value-inline 'widget-default-value-inline
   :default-get 'widget-default-default-get
@@ -1507,7 +1534,7 @@ If that does not exists, call the value of `widget-complete-field'."
   (or (widget-get widget :always-active)
       (and (not (widget-get widget :inactive))
 	   (let ((parent (widget-get widget :parent)))
-	     (or (null parent) 
+	     (or (null parent)
 		 (widget-apply parent :active))))))
 
 (defun widget-default-deactivate (widget)
@@ -1701,11 +1728,11 @@ If END is omitted, it defaults to the length of LIST."
   (find-file (locate-library (widget-value widget))))
 
 ;;; The `emacs-commentary-link' Widget.
-    
+
 (define-widget 'emacs-commentary-link 'link
   "A link to Commentary in an Emacs Lisp library file."
   :action 'widget-emacs-commentary-link-action)
-    
+
 (defun widget-emacs-commentary-link-action (widget &optional event)
   "Find the Commentary section of the Emacs file specified by WIDGET."
   (finder-commentary (widget-value widget)))
@@ -1839,6 +1866,7 @@ the earlier input."
 (define-widget 'menu-choice 'default
   "A menu of options."
   :convert-widget  'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%[%t%]: %v"
   :case-fold t
   :tag "choice"
@@ -1968,9 +1996,7 @@ when he invoked the menu."
       (when this-explicit
 	(widget-put widget :explicit-choice current)
 	(widget-put widget :explicit-choice-value (widget-get widget :value)))
-      (widget-value-set
-       widget (widget-apply current
-			    :value-to-external (widget-default-get current)))
+      (widget-value-set widget (widget-default-get current))
       (widget-setup)
       (widget-apply widget :notify widget event)))
   (run-hook-with-args 'widget-edit-functions widget))
@@ -2077,6 +2103,7 @@ when he invoked the menu."
 (define-widget 'checklist 'default
   "A multiple choice widget."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%v"
   :offset 4
   :entry-format "%b %v"
@@ -2254,6 +2281,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'radio-button-choice 'default
   "Select one of multiple options."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :offset 4
   :format "%v"
   :entry-format "%b %v"
@@ -2442,6 +2470,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'editable-list 'default
   "A variable list of widgets of the same type."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :offset 12
   :format "%v%i\n"
   :format-handler 'widget-editable-list-format-handler
@@ -2593,9 +2622,7 @@ Return an alist of (TYPE MATCH)."
 		    (setq child (widget-create-child-value
 				 widget type value))
 		  (setq child (widget-create-child-value
-			       widget type
-			       (widget-apply type :value-to-external
-					     (widget-default-get type))))))
+			       widget type (widget-default-get type)))))
 	       (t
 		(error "Unknown escape `%c'" escape)))))
      (widget-put widget
@@ -2617,6 +2644,7 @@ Return an alist of (TYPE MATCH)."
 (define-widget 'group 'default
   "A widget which groups other widgets inside."
   :convert-widget 'widget-types-convert-widget
+  :copy 'widget-types-copy
   :format "%v"
   :value-create 'widget-group-value-create
   :value-delete 'widget-children-value-delete
@@ -2804,6 +2832,7 @@ link for that string."
 		(widget-create-child-and-convert
 		 widget 'visibility
 		 :help-echo "Show or hide rest of the documentation."
+		 :on "Hide Rest"
 		 :off "More"
 		 :always-active t
 		 :action 'widget-parent-action
@@ -3030,7 +3059,7 @@ It will read a directory name from the minibuffer when invoked."
 
 (defvar widget-coding-system-prompt-value-history nil
   "History of input to `widget-coding-system-prompt-value'.")
-  
+
 (define-widget 'coding-system 'symbol
   "A MULE coding-system."
   :format "%{%t%}: %v"
@@ -3166,11 +3195,18 @@ To use this type, you must define :match or :match-alternatives."
   :match-alternatives '(integerp))
 
 (define-widget 'number 'restricted-sexp
-  "A floating point number."
+  "A number (floating point or integer)."
   :tag "Number"
   :value 0.0
-  :type-error "This field should contain a number"
+  :type-error "This field should contain a number (floating point or integer)"
   :match-alternatives '(numberp))
+
+(define-widget 'float 'restricted-sexp
+  "A floating point number."
+  :tag "Floating point number"
+  :value 0.0
+  :type-error "This field should contain a floating point number"
+  :match-alternatives '(floatp))
 
 (define-widget 'character 'editable-field
   "A character."
@@ -3395,7 +3431,7 @@ To use this type, you must define :match or :match-alternatives."
 
 ;;; The `color' Widget.
 
-;; Fixme: match 
+;; Fixme: match
 (define-widget 'color 'editable-field
   "Choose a color name (with sample)."
   :format "%t: %v (%{sample%})\n"

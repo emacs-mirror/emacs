@@ -113,11 +113,12 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -135,11 +136,12 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -157,11 +159,12 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 ;;;###autoload
@@ -179,11 +182,12 @@ decimal key must be specified."
 		 (character :tag "Numeric Keypad with Decimal Key"
 			    :match (lambda (widget value) (integerp value))
 			    :value ?.)
-		 (const :tag "Numeric prefix arguments" prefix) 
+		 (const :tag "Numeric prefix arguments" prefix)
 		 (const :tag "Cursor keys" cursor)
 		 (const :tag "Shifted cursor keys" S-cursor)
-		 (const :tag "Remove bindings" none)
+		 (const :tag "Unspecified/User-defined" none)
 		 (other :tag "Keep existing bindings" nil))
+  :require 'keypad
   :group 'keyboard)
 
 
@@ -201,7 +205,9 @@ keys are bound.
  'S-cursor Bind shifted keypad keys to the shifted cursor movement keys.
  'cursor   Bind keypad keys to the cursor movement keys.
  'numeric  Plain numeric keypad, i.e. 0 .. 9 and .  (or DECIMAL arg)
- 'none     Removes all bindings for keypad keys in function-key-map.
+ 'none     Removes all bindings for keypad keys in function-key-map;
+           this enables any user-defined bindings for the keypad keys
+           in the global and local keymaps.
 
 If SETUP is 'numeric and the optional fourth argument DECIMAL is non-nil,
 the decimal key on the keypad is mapped to DECIMAL instead of `.'"
@@ -238,7 +244,7 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
 	    [delete insert end down next left
 		    space right home up prior])
 	   ((eq setup 'S-cursor)
-	    [S-delete S-insert S-end S-down S-next S-left 
+	    [S-delete S-insert S-end S-down S-next S-left
 		      S-space S-right S-home S-up S-prior])
 	   ((eq setup 'none)
 	    nil)
@@ -255,6 +261,14 @@ the decimal key on the keypad is mapped to DECIMAL instead of `.'"
     (while (< i 11)
       (define-key function-key-map (vector (aref kp i))
 	(if bind (vector (aref bind i))))
+      (if (= i 6)
+	  (cond ((eq (aref kp i) 'kp-space)
+		 (define-key function-key-map [kp-begin]
+		   (if bind (vector (aref bind i)))))
+		((eq (aref kp i) 'S-kp-space)
+		 (define-key function-key-map [S-kp-begin]
+		   (if bind (vector (aref bind i)))))))
+
       (setq i (1+ i)))))
 
 ;;; keypad.el ends here

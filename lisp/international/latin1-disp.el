@@ -49,7 +49,6 @@
 
 ;; Ensure `standard-display-table' is set up:
 (require 'disp-table)
-(require 'ucs-tables)
 
 (defconst latin1-display-sets '(latin-2 latin-3 latin-4 latin-5 latin-8
 		                latin-9 arabic cyrillic greek hebrew)
@@ -66,7 +65,8 @@ environments.")
 (defcustom latin1-display-format "{%s}"
   "A format string used to display the ASCII sequences.
 The default encloses the sequence in braces, but you could just use
-\"%s\" to avoid the braces."
+\"%s\" to avoid the braces, maybe with a non-default value of
+`latin1-display-face'."
   :group 'latin1-display
   :type 'string)
 
@@ -152,6 +152,12 @@ input sequences."
   :type 'boolean
   :group 'latin1-display)
 
+(defcustom latin1-display-face 'default
+  "Face to use for displaying substituted ASCII sequences."
+  :type 'face
+  :version "21.4"
+  :group 'latin1-display)
+
 (defun latin1-display-char (char display &optional alt-display)
   "Make an entry in `standard-display-table' for CHAR using string DISPLAY.
 If ALT-DISPLAY is provided, use that instead if
@@ -166,8 +172,17 @@ asis."
 	   latin1-display-mnemonic)
       (setq display alt-display))
   (if (stringp display)
-      (standard-display-ascii char (format latin1-display-format display))
-    (aset standard-display-table char display)))
+      (if (eq 'default latin1-display-face)
+	  (standard-display-ascii char (format latin1-display-format display))
+	(aset standard-display-table char
+	      (vconcat (mapcar (lambda (c)
+				 (logior c (lsh (face-id latin1-display-face)
+						19)))
+			       display))))
+    (aset standard-display-table char
+	  (if (eq 'default latin1-display-face)
+	      display
+	    (logior display (lsh (face-id latin1-display-face) 19))))))
 
 (defun latin1-display-identities (charset)
   "Display each character in CHARSET as the corresponding Latin-1 character.
@@ -781,7 +796,7 @@ is.  If FORCE is non-nil, set up the display regardless."
 	 (?,Lx(B "j")))))
 
    (t (error "Unsupported character set: %S" set)))
-   
+
   (sit-for 0))
 
 ;;;###autoload

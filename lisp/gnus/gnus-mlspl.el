@@ -104,10 +104,10 @@ It can be embedded into `nnmail-split-fancy' lists with the SPLIT
 \(: gnus-group-split-fancy GROUPS NO-CROSSPOST CATCH-ALL\)
 
 GROUPS may be a regular expression or a list of group names, that will
-be used to select candidate groups.  If it is ommited or nil, all
+be used to select candidate groups.  If it is omitted or nil, all
 existing groups are considered.
 
-if NO-CROSSPOST is ommitted or nil, a & split will be returned,
+if NO-CROSSPOST is omitted or nil, a & split will be returned,
 otherwise, a | split, that does not allow crossposting, will be
 returned.
 

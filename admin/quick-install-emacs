@@ -31,6 +31,9 @@ MKDIR='mkdir --verbose -p'
 
 NAWK=/usr/bin/nawk
 
+# avoid non-standard command output from non-C locales
+unset LANG LC_ALL LC_MESSAGES
+
 # Some messages
 USAGE="Usage: $me [OPTION...] BUILD_TREE [PREFIX]"
 TRY="Try "\`"$me --help' for more information."
@@ -87,7 +90,7 @@ EOF
       ;;
     --version)
       cat <<EOF
-$me 1.5
+$me 1.6
 
 Written by Miles Bader <miles@gnu.org>
 EOF

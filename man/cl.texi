@@ -2,21 +2,12 @@
 @setfilename ../info/cl
 @settitle Common Lisp Extensions
 
-@dircategory Emacs
-@direntry
-* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
-@end direntry
-
-@iftex
-@finalout
-@end iftex
-
-@ifinfo
+@copying
 This file documents the GNU Emacs Common Lisp emulation package.
 
-Copyright (C) 1993 Free Software Foundation, Inc.
+Copyright (C) 1993, 2002 Free Software Foundation, Inc.
 
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -33,7 +24,15 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* CL: (cl).		Partial Common Lisp support for Emacs Lisp.
+@end direntry
+
+@finalout
 
 @titlepage
 @sp 6
@@ -46,26 +45,8 @@ license to the document, as described in section 6 of the license.
 @center Dave Gillespie
 @center daveg@@synaptics.com
 @page
-
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @node Top, Overview, (dir), (dir)
@@ -1050,41 +1031,41 @@ to standard Common Lisp.
 The following Emacs-specific functions are also @code{setf}-able.
 
 @smallexample
-buffer-file-name                  marker-position          
-buffer-modified-p                 match-data               
-buffer-name                       mouse-position           
-buffer-string                     overlay-end              
-buffer-substring                  overlay-get              
-current-buffer                    overlay-start            
-current-case-table                point                    
-current-column                    point-marker             
-current-global-map                point-max                
-current-input-mode                point-min                
-current-local-map                 process-buffer           
-current-window-configuration      process-filter           
-default-file-modes                process-sentinel         
-default-value                     read-mouse-position      
-documentation-property            screen-height            
-extent-data                       screen-menubar           
-extent-end-position               screen-width             
-extent-start-position             selected-window          
-face-background                   selected-screen          
-face-background-pixmap            selected-frame           
-face-font                         standard-case-table      
-face-foreground                   syntax-table             
-face-underline-p                  window-buffer            
-file-modes                        window-dedicated-p       
-frame-height                      window-display-table     
-frame-parameters                  window-height            
-frame-visible-p                   window-hscroll           
-frame-width                       window-point             
-get-register                      window-start             
-getenv                            window-width             
-global-key-binding                x-get-cut-buffer         
-keymap-parent                     x-get-cutbuffer          
+buffer-file-name                  marker-position
+buffer-modified-p                 match-data
+buffer-name                       mouse-position
+buffer-string                     overlay-end
+buffer-substring                  overlay-get
+current-buffer                    overlay-start
+current-case-table                point
+current-column                    point-marker
+current-global-map                point-max
+current-input-mode                point-min
+current-local-map                 process-buffer
+current-window-configuration      process-filter
+default-file-modes                process-sentinel
+default-value                     read-mouse-position
+documentation-property            screen-height
+extent-data                       screen-menubar
+extent-end-position               screen-width
+extent-start-position             selected-window
+face-background                   selected-screen
+face-background-pixmap            selected-frame
+face-font                         standard-case-table
+face-foreground                   syntax-table
+face-underline-p                  window-buffer
+file-modes                        window-dedicated-p
+frame-height                      window-display-table
+frame-parameters                  window-height
+frame-visible-p                   window-hscroll
+frame-width                       window-point
+get-register                      window-start
+getenv                            window-width
+global-key-binding                x-get-cut-buffer
+keymap-parent                     x-get-cutbuffer
 local-key-binding                 x-get-secondary-selection
-mark                              x-get-selection          
-mark-marker                       
+mark                              x-get-selection
+mark-marker
 @end smallexample
 
 Most of these have directly corresponding ``set'' functions, like
@@ -2020,7 +2001,7 @@ just as in Common Lisp.
 Because they are implemented in terms of Emacs Lisp @code{catch}
 and @code{throw}, blocks have the same overhead as actual
 @code{catch} constructs (roughly two function calls).  However,
-the optimizing byte compiler will optimize away the @code{catch} 
+the optimizing byte compiler will optimize away the @code{catch}
 if the block does
 not in fact contain any @code{return} or @code{return-from} calls
 that jump to it.  This means that @code{do} loops and @code{defun*}

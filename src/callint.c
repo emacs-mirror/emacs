@@ -51,7 +51,7 @@ Lisp_Object Vmark_even_if_inactive;
 
 Lisp_Object Vmouse_leave_buffer_hook, Qmouse_leave_buffer_hook;
 
-Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion;
+Lisp_Object Qlist, Qlet, Qletx, Qsave_excursion, Qprogn, Qif, Qwhen;
 static Lisp_Object preserved_fns;
 
 /* Marker used within call-interactively to refer to point.  */
@@ -174,6 +174,70 @@ check_mark (for_region)
     Fsignal (Qmark_inactive, Qnil);
 }
 
+static void
+fix_command (input, values)
+     Lisp_Object input, values;
+{
+  /* If the list of args was produced with an explicit call to `list',
+     look for elements that were computed with (region-beginning)
+     or (region-end), and put those expressions into VALUES
+     instead of the present values.  */
+  if (CONSP (input))
+    {
+      Lisp_Object car;
+
+      car = XCAR (input);
+      /* Skip through certain special forms.  */
+      while (EQ (car, Qlet) || EQ (car, Qletx)
+	     || EQ (car, Qsave_excursion)
+	     || EQ (car, Qprogn))
+	{
+	  while (CONSP (XCDR (input)))
+	    input = XCDR (input);
+	  input = XCAR (input);
+	  if (!CONSP (input))
+	    break;
+	  car = XCAR (input);
+	}
+      if (EQ (car, Qlist))
+	{
+	  Lisp_Object intail, valtail;
+	  for (intail = Fcdr (input), valtail = values;
+	       CONSP (valtail);
+	       intail = Fcdr (intail), valtail = Fcdr (valtail))
+	    {
+	      Lisp_Object elt;
+	      elt = Fcar (intail);
+	      if (CONSP (elt))
+		{
+		  Lisp_Object presflag, carelt;
+		  carelt = Fcar (elt);
+		  /* If it is (if X Y), look at Y.  */
+		  if (EQ (carelt, Qif)
+		      && EQ (Fnthcdr (make_number (3), elt), Qnil))
+		    elt = Fnth (make_number (2), elt);
+		  /* If it is (when ... Y), look at Y.  */
+		  else if (EQ (carelt, Qwhen))
+		    {
+		      while (CONSP (XCDR (elt)))
+			elt = XCDR (elt);
+		      elt = Fcar (elt);
+		    }
+
+		  /* If the function call we're looking at
+		     is a special preserved one, copy the
+		     whole expression for this argument.  */
+		  if (CONSP (elt))
+		    {
+		      presflag = Fmemq (Fcar (elt), preserved_fns);
+		      if (!NILP (presflag))
+			Fsetcar (valtail, Fcar (intail));
+		    }
+		}
+	    }
+	}
+    }
+}
 
 DEFUN ("call-interactively", Fcall_interactively, Scall_interactively, 1, 3, 0,
        doc: /* Call FUNCTION, reading args according to its interactive calling specs.
@@ -196,9 +260,10 @@ supply if the command inquires which events were used to invoke it.  */)
   Lisp_Object fun;
   Lisp_Object funcar;
   Lisp_Object specs;
+  Lisp_Object filter_specs;
   Lisp_Object teml;
   Lisp_Object enable;
-  int speccount = specpdl_ptr - specpdl;
+  int speccount = SPECPDL_INDEX ();
 
   /* The index of the next element of this_command_keys to examine for
      the 'e' interactive code.  */
@@ -220,6 +285,7 @@ supply if the command inquires which events were used to invoke it.  */)
   int arg_from_tty = 0;
   struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
   int key_count;
+  int record_then_fail = 0;
 
   if (NILP (keys))
     keys = this_command_keys, key_count = this_command_key_count;
@@ -243,6 +309,10 @@ supply if the command inquires which events were used to invoke it.  */)
 
   specs = Qnil;
   string = 0;
+  /* The idea of FILTER_SPECS is to provide away to
+     specify how to represent the arguments in command history.
+     The feature is not fully implemented.  */
+  filter_specs = Qnil;
 
   /* Decode the kind of function.  Either handle it and return,
      or go to `lose' if not interactive, or go to `retry'
@@ -278,19 +348,20 @@ supply if the command inquires which events were used to invoke it.  */)
       specs = Fassq (Qinteractive, Fcdr (XCDR (fun)));
       if (NILP (specs))
 	goto lose;
+      filter_specs = Fnth (make_number (1), specs);
       specs = Fcar (Fcdr (specs));
     }
   else
     goto lose;
 
-  /* If either specs or string is set to a string, use it.  */
+  /* If either SPECS or STRING is set to a string, use it.  */
   if (STRINGP (specs))
     {
       /* Make a copy of string so that if a GC relocates specs,
 	 `string' will still be valid.  */
-      string = (unsigned char *) alloca (STRING_BYTES (XSTRING (specs)) + 1);
-      bcopy (XSTRING (specs)->data, string,
-	     STRING_BYTES (XSTRING (specs)) + 1);
+      string = (unsigned char *) alloca (SBYTES (specs) + 1);
+      bcopy (SDATA (specs), string,
+	     SBYTES (specs) + 1);
     }
   else if (string == 0)
     {
@@ -298,7 +369,9 @@ supply if the command inquires which events were used to invoke it.  */)
       i = num_input_events;
       input = specs;
       /* Compute the arg values using the user's expression.  */
+      GCPRO2 (input, filter_specs);
       specs = Feval (specs);
+      UNGCPRO;
       if (i != num_input_events || !NILP (record_flag))
 	{
 	  /* We should record this command on the command history.  */
@@ -306,43 +379,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  /* Make a copy of the list of values, for the command history,
 	     and turn them into things we can eval.  */
 	  values = quotify_args (Fcopy_sequence (specs));
-	  /* If the list of args was produced with an explicit call to `list',
-	     look for elements that were computed with (region-beginning)
-	     or (region-end), and put those expressions into VALUES
-	     instead of the present values.  */
-	  if (CONSP (input))
-	    {
-	      car = XCAR (input);
-	      /* Skip through certain special forms.  */
-	      while (EQ (car, Qlet) || EQ (car, Qletx)
-		     || EQ (car, Qsave_excursion))
-		{
-		  while (CONSP (XCDR (input)))
-		    input = XCDR (input);
-		  input = XCAR (input);
-		  if (!CONSP (input))
-		    break;
-		  car = XCAR (input);
-		}
-	      if (EQ (car, Qlist))
-		{
-		  Lisp_Object intail, valtail;
-		  for (intail = Fcdr (input), valtail = values;
-		       CONSP (valtail);
-		       intail = Fcdr (intail), valtail = Fcdr (valtail))
-		    {
-		      Lisp_Object elt;
-		      elt = Fcar (intail);
-		      if (CONSP (elt))
-			{
-			  Lisp_Object presflag;
-			  presflag = Fmemq (Fcar (elt), preserved_fns);
-			  if (!NILP (presflag))
-			    Fsetcar (valtail, Fcar (intail));
-			}
-		    }
-		}
-	    }
+	  fix_command (input, values);
 	  Vcommand_history
 	    = Fcons (Fcons (function, values), Vcommand_history);
 
@@ -364,7 +401,7 @@ supply if the command inquires which events were used to invoke it.  */)
   for (next_event = 0; next_event < key_count; next_event++)
     if (EVENT_HAS_PARAMETERS (XVECTOR (keys)->contents[next_event]))
       break;
-  
+
   /* Handle special starting chars `*' and `@'.  Also `-'.  */
   /* Note that `+' is reserved for user extensions.  */
   while (1)
@@ -375,7 +412,22 @@ supply if the command inquires which events were used to invoke it.  */)
 	{
 	  string++;
 	  if (!NILP (current_buffer->read_only))
-	    Fbarf_if_buffer_read_only ();
+	    {
+	      if (!NILP (record_flag))
+		{
+		  unsigned char *p = string;
+		  while (*p)
+		    {
+		      if (! (*p == 'r' || *p == 'p' || *p == 'P'
+			     || *p == '\n'))
+			Fbarf_if_buffer_read_only ();
+		      p++;
+		    }
+		  record_then_fail = 1;
+		}
+	      else
+		Fbarf_if_buffer_read_only ();
+	    }
 	}
       /* Ignore this for semi-compatibility with Lucid.  */
       else if (*string == '-')
@@ -384,7 +436,9 @@ supply if the command inquires which events were used to invoke it.  */)
 	{
 	  Lisp_Object event;
 
-	  event = XVECTOR (keys)->contents[next_event];
+	  event = (next_event < key_count
+		   ? XVECTOR (keys)->contents[next_event]
+		   : Qnil);
 	  if (EVENT_HAS_PARAMETERS (event)
 	      && (event = XCDR (event), CONSP (event))
 	      && (event = XCAR (event), CONSP (event))
@@ -453,7 +507,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	argstrings[j]
 	  = (EQ (visargs[j], Qnil)
 	     ? (unsigned char *) ""
-	     : XSTRING (visargs[j])->data);
+	     : SDATA (visargs[j]));
 
       /* Process the format-string in prompt1, putting the output
 	 into callint_message.  Make callint_message bigger if necessary.
@@ -464,7 +518,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  int nchars = doprnt (callint_message, callint_message_size,
 			       prompt1, (char *)0,
 			       j - 1, (char **) argstrings + 1);
-	  if (nchars < callint_message_size)
+	  if (nchars < callint_message_size - 1)
 	    break;
 	  callint_message_size *= 2;
 	  callint_message
@@ -541,7 +595,7 @@ supply if the command inquires which events were used to invoke it.  */)
 
 	case 'k':		/* Key sequence. */
 	  {
-	    int speccount1 = specpdl_ptr - specpdl;
+	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qnil, Qnil, Qnil);
@@ -569,7 +623,7 @@ supply if the command inquires which events were used to invoke it.  */)
 
 	case 'K':		/* Key sequence to be defined. */
 	  {
-	    int speccount1 = specpdl_ptr - specpdl;
+	    int speccount1 = SPECPDL_INDEX ();
 	    specbind (Qcursor_in_echo_area, Qt);
 	    args[i] = Fread_key_sequence (build_string (callint_message),
 					  Qnil, Qt, Qnil, Qnil);
@@ -599,7 +653,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	  if (next_event >= key_count)
 	    error ("%s must be bound to an event with parameters",
 		   (SYMBOLP (function)
-		    ? (char *) XSTRING (SYMBOL_NAME (function))->data
+		    ? (char *) SDATA (SYMBOL_NAME (function))
 		    : "command"));
 	  args[i] = XVECTOR (keys)->contents[next_event++];
 	  varies[i] = -1;
@@ -644,7 +698,7 @@ supply if the command inquires which events were used to invoke it.  */)
 		tem = Fread_from_minibuffer (build_string (callint_message),
 					     Qnil, Qnil, Qnil, Qnil, Qnil,
 					     Qnil);
-		if (! STRINGP (tem) || XSTRING (tem)->size == 0)
+		if (! STRINGP (tem) || SCHARS (tem) == 0)
 		  args[i] = Qnil;
 		else
 		  args[i] = Fread (tem);
@@ -716,7 +770,7 @@ supply if the command inquires which events were used to invoke it.  */)
 	      args[i] = Qnil;
 	      varies[i] = -1;
 	    }
-	  else 
+	  else
 	    {
 	      args[i]
 		= Fread_non_nil_coding_system (build_string (callint_message));
@@ -780,6 +834,9 @@ supply if the command inquires which events were used to invoke it.  */)
     if (varies[i] >= 1 && varies[i] <= 4)
       XSETINT (args[i], marker_position (args[i]));
 
+  if (record_then_fail)
+    Fbarf_if_buffer_read_only ();
+
   single_kboard_state ();
 
   {
@@ -790,7 +847,7 @@ supply if the command inquires which events were used to invoke it.  */)
     UNGCPRO;
     return unbind_to (speccount, val);
   }
-}  
+}
 
 DEFUN ("prefix-numeric-value", Fprefix_numeric_value, Sprefix_numeric_value,
        1, 1, 0,
@@ -801,7 +858,7 @@ Its numeric meaning is what you would get from `(interactive "p")'.  */)
      Lisp_Object raw;
 {
   Lisp_Object val;
-  
+
   if (NILP (raw))
     XSETFASTINT (val, 1);
   else if (EQ (raw, Qminus))
@@ -832,10 +889,16 @@ syms_of_callint ()
   staticpro (&Qlist);
   Qlet = intern ("let");
   staticpro (&Qlet);
+  Qif = intern ("if");
+  staticpro (&Qif);
+  Qwhen = intern ("when");
+  staticpro (&Qwhen);
   Qletx = intern ("let*");
   staticpro (&Qletx);
   Qsave_excursion = intern ("save-excursion");
   staticpro (&Qsave_excursion);
+  Qprogn = intern ("progn");
+  staticpro (&Qprogn);
 
   Qminus = intern ("-");
   staticpro (&Qminus);

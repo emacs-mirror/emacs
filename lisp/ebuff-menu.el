@@ -54,7 +54,7 @@ much like those of buffer-menu-mode.
 
 Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 
-\\{electric-buffer-menu-mode-map}" 
+\\{electric-buffer-menu-mode-map}"
   (interactive "P")
   (let (select buffer)
     (save-window-excursion
@@ -74,7 +74,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 			       (throw 'electric-buffer-menu-select nil)))
 		    (let ((start-point (point))
 			  (first (progn (goto-char (point-min))
-					(forward-line 2)
+					(unless Buffer-menu-use-header-line
+					  (forward-line 2))
 					(point)))
 			  (last (progn (goto-char (point-max))
 				       (forward-line -1)
@@ -112,7 +113,8 @@ Calls value of `electric-buffer-menu-mode-hook' on entry if non-nil.
 	 (signal (car condition) (cdr condition)))
 	((< (point) (car state))
 	 (goto-char (point-min))
-	 (forward-line 2))
+	 (unless Buffer-menu-use-header-line
+	   (forward-line 2)))
 	((> (point) (cdr state))
 	 (goto-char (point-max))
 	 (forward-line -1)
@@ -209,7 +211,7 @@ electric-buffer-menu-mode-hook if it is non-nil."
     (define-key map [escape escape escape] 'Electric-buffer-menu-quit)
     (define-key map [mouse-2] 'Electric-buffer-menu-mouse-select)
     (setq electric-buffer-menu-mode-map map)))
- 
+
 (defun Electric-buffer-menu-exit ()
   (interactive)
   (setq unread-command-events (listify-key-sequence (this-command-keys)))
@@ -267,15 +269,16 @@ Returns to Electric Buffer Menu when done."
 
 (defvar electric-buffer-overlay nil)
 (defun electric-buffer-update-highlight ()
-  ;; Make sure we have an overlay to use.
-  (or electric-buffer-overlay
-      (progn
-        (make-local-variable 'electric-buffer-overlay)
-        (setq electric-buffer-overlay (make-overlay (point) (point)))))
-  (move-overlay electric-buffer-overlay
-                (save-excursion (beginning-of-line) (point))
-                (save-excursion (end-of-line) (point)))
-  (overlay-put electric-buffer-overlay 'face 'highlight))
+  (when (eq major-mode 'Electric-buffer-menu-mode)
+    ;; Make sure we have an overlay to use.
+    (or electric-buffer-overlay
+	(progn
+	  (make-local-variable 'electric-buffer-overlay)
+	  (setq electric-buffer-overlay (make-overlay (point) (point)))))
+    (move-overlay electric-buffer-overlay
+		  (save-excursion (beginning-of-line) (point))
+		  (save-excursion (end-of-line) (point)))
+    (overlay-put electric-buffer-overlay 'face 'highlight)))
 
 (provide 'ebuff-menu)
 

@@ -41,7 +41,7 @@
 ;; This code now understands the extra fields that GNU tar adds to tar files.
 
 ;; This interacts correctly with "uncompress.el" in the Emacs library,
-;; which you get with 
+;; which you get with
 ;;
 ;;  (autoload 'uncompress-while-visiting "uncompress")
 ;;  (setq auto-mode-alist (cons '("\\.Z$" . uncompress-while-visiting)
@@ -49,11 +49,11 @@
 ;;
 ;; Do not attempt to use tar-mode.el with crypt.el, you will lose.
 
-;;    ***************   TO DO   *************** 
+;;    ***************   TO DO   ***************
 ;;
 ;; o  chmod should understand "a+x,og-w".
 ;;
-;; o  It's not possible to add a NEW file to a tar archive; not that 
+;; o  It's not possible to add a NEW file to a tar archive; not that
 ;;    important, but still...
 ;;
 ;; o  The code is less efficient that it could be - in a lot of places, I
@@ -64,7 +64,7 @@
 ;;    of an archive, where <esc> would leave you in a subfile-edit buffer.
 ;;    (Like the Meta-R command of the Zmacs mail reader.)
 ;;
-;; o  Sometimes (but not always) reverting the tar-file buffer does not 
+;; o  Sometimes (but not always) reverting the tar-file buffer does not
 ;;    re-grind the listing, and you are staring at the binary tar data.
 ;;    Typing 'g' again immediately after that will always revert and re-grind
 ;;    it, though.  I have no idea why this happens.
@@ -76,7 +76,7 @@
 ;;    might be a problem if the tar write-file-hook does not come *first* on
 ;;    the list.
 ;;
-;; o  Block files, sparse files, continuation files, and the various header 
+;; o  Block files, sparse files, continuation files, and the various header
 ;;    types aren't editable.  Actually I don't know that they work at all.
 
 ;; Rationale:
@@ -103,7 +103,7 @@
 (defcustom tar-anal-blocksize 20
   "*The blocksize of tar files written by Emacs, or nil, meaning don't care.
 The blocksize of a tar file is not really the size of the blocks; rather, it is
-the number of blocks written with one system call.  When tarring to a tape, 
+the number of blocks written with one system call.  When tarring to a tape,
 this is the size of the *tape* blocks, but when writing to a file, it doesn't
 matter much.  The only noticeable difference is that if a tar file does not
 have a blocksize of 20, tar will tell you that; all this really controls is
@@ -117,7 +117,7 @@ If this is true, then editing and saving a tar file entry back into its
 tar file will update its datestamp.  If false, the datestamp is unchanged.
 You may or may not want this - it is good in that you can tell when a file
 in a tar archive has been changed, but it is bad for the same reason that
-editing a file in the tar archive at all is bad - the changed version of 
+editing a file in the tar archive at all is bad - the changed version of
 the file never exists on disk."
   :type 'boolean
   :group 'tar)
@@ -201,7 +201,7 @@ This information is useful, but it takes screen space away from file names."
 
 (defun tar-header-block-tokenize (string)
   "Return a `tar-header' structure.
-This is a list of name, mode, uid, gid, size, 
+This is a list of name, mode, uid, gid, size,
 write-date, checksum, link-type, and link-name."
   (cond ((< (length string) 512) nil)
 	(;(some 'plusp string)		 ; <-- oops, massive cycle hog!
@@ -349,8 +349,8 @@ MODE should be an integer which is a file mode value."
     (format "%c%c%s%8s/%-8s%7s%s %s%s"
 	    (if mod-p ?* ? )
 	    (cond ((or (eq type nil) (eq type 0)) ?-)
-		  ((eq type 1) ?l)	; link
-		  ((eq type 2) ?s)	; symlink
+		  ((eq type 1) ?h)	; link
+		  ((eq type 2) ?l)	; symlink
 		  ((eq type 3) ?c)	; char special
 		  ((eq type 4) ?b)	; block special
 		  ((eq type 5) ?d)	; directory
@@ -375,7 +375,7 @@ MODE should be an integer which is a file mode value."
 	      ""))))
 
 (defun tar-untar-buffer ()
-  "Extract all archive members in the tar-file."
+  "Extract all archive members in the tar-file into the current directory."
   (interactive)
   (let ((multibyte enable-multibyte-characters))
     (unwind-protect
@@ -386,13 +386,16 @@ MODE should be an integer which is a file mode value."
 	    (let* ((tokens (tar-desc-tokens descriptor))
 		   (name (tar-header-name tokens))
 		   (dir (file-name-directory name))
-		   (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+		   (start (+ (tar-desc-data-start descriptor)
+			     (- tar-header-offset (point-min))))
 		   (end (+ start (tar-header-size tokens))))
-	      (message "Extracting %s" name)
-	      (if (and dir (not (file-exists-p dir)))
-		  (make-directory dir t))
-	      (write-region start end name)
-	      (set-file-modes name (tar-header-mode tokens)))))
+	      (unless (file-directory-p name)
+		(message "Extracting %s" name)
+		(if (and dir (not (file-exists-p dir)))
+		    (make-directory dir t))
+		(unless (file-directory-p name)
+		  (write-region start end name))
+		(set-file-modes name (tar-header-mode tokens))))))
       (set-buffer-multibyte multibyte))))
 
 (defun tar-summarize-buffer ()
@@ -403,7 +406,7 @@ is visible (and the real data of the buffer is hidden)."
   (set-buffer-multibyte nil)
   (message "Parsing tar file...")
   (let* ((result '())
-	 (pos 1)
+	 (pos (point-min))
 	 (bs (max 1 (- (buffer-size) 1024))) ; always 2+ empty blocks at end.
 	 (bs100 (max 1 (/ bs 100)))
 	 tokens)
@@ -462,7 +465,7 @@ is visible (and the real data of the buffer is hidden)."
 	(insert total-summaries))
       (make-local-variable 'tar-header-offset)
       (setq tar-header-offset (point))
-      (narrow-to-region 1 tar-header-offset)
+      (narrow-to-region (point-min) tar-header-offset)
       (if enable-multibyte-characters
 	  (setq tar-header-offset (position-bytes tar-header-offset)))
       (set-buffer-modified-p nil))))
@@ -552,15 +555,15 @@ is visible (and the real data of the buffer is hidden)."
 ;;;###autoload
 (define-derived-mode tar-mode nil "Tar"
   "Major mode for viewing a tar file as a dired-like listing of its contents.
-You can move around using the usual cursor motion commands. 
+You can move around using the usual cursor motion commands.
 Letters no longer insert themselves.
 Type `e' to pull a file out of the tar file and into its own buffer;
 or click mouse-2 on the file's line in the Tar mode buffer.
 Type `c' to copy an entry from the tar file into another file on disk.
 
-If you edit a sub-file of this archive (as with the `e' command) and 
-save it with Control-x Control-s, the contents of that buffer will be 
-saved back into the tar-file buffer; in this way you can edit a file 
+If you edit a sub-file of this archive (as with the `e' command) and
+save it with Control-x Control-s, the contents of that buffer will be
+saved back into the tar-file buffer; in this way you can edit a file
 inside of a tar archive without extracting it and re-archiving it.
 
 See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
@@ -581,7 +584,7 @@ See also: variables `tar-update-datestamp' and `tar-anal-blocksize'.
   (set (make-local-variable 'write-contents-hooks) '(tar-mode-write-file))
   (widen)
   (if (and (boundp 'tar-header-offset) tar-header-offset)
-      (narrow-to-region 1 (byte-to-position tar-header-offset))
+      (narrow-to-region (point-min) (byte-to-position tar-header-offset))
     (tar-summarize-buffer)
     (tar-next-line 0)))
 
@@ -594,24 +597,23 @@ appear on disk when you save the tar-file's buffer."
   (interactive "P")
   (or (and (boundp 'tar-superior-buffer) tar-superior-buffer)
       (error "This buffer is not an element of a tar file"))
-;;; Don't do this, because it is redundant and wastes mode line space.
-;;;  (or (assq 'tar-subfile-mode minor-mode-alist)
-;;;      (setq minor-mode-alist (append minor-mode-alist
-;;;				     (list '(tar-subfile-mode " TarFile")))))
+  ;; Don't do this, because it is redundant and wastes mode line space.
+  ;;  (or (assq 'tar-subfile-mode minor-mode-alist)
+  ;;      (setq minor-mode-alist (append minor-mode-alist
+  ;;				     (list '(tar-subfile-mode " TarFile")))))
   (make-local-variable 'tar-subfile-mode)
   (setq tar-subfile-mode
 	(if (null p)
 	    (not tar-subfile-mode)
 	    (> (prefix-numeric-value p) 0)))
   (cond (tar-subfile-mode
-	 (make-local-variable 'local-write-file-hooks)
-	 (setq local-write-file-hooks '(tar-subfile-save-buffer))
+	 (add-hook 'write-file-functions 'tar-subfile-save-buffer nil t)
 	 ;; turn off auto-save.
 	 (auto-save-mode -1)
 	 (setq buffer-auto-save-file-name nil)
 	 (run-hooks 'tar-subfile-mode-hook))
 	(t
-	 (kill-local-variable 'local-write-file-hooks))))
+	 (remove-hook 'write-file-functions 'tar-subfile-save-buffer t))))
 
 
 ;; Revert the buffer and recompute the dired-like listing.
@@ -690,7 +692,8 @@ appear on disk when you save the tar-file's buffer."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+	 (start (+ (tar-desc-data-start descriptor)
+		   (- tar-header-offset (point-min))))
 	 (end (+ start size)))
     (let* ((tar-buffer (current-buffer))
 	   (tar-buffer-multibyte enable-multibyte-characters)
@@ -736,7 +739,8 @@ appear on disk when you save the tar-file's buffer."
 					   name (- (point-max) (point)))))))
 		      (multibyte enable-multibyte-characters)
 		      (detected (detect-coding-region
-				 1 (min 16384 (point-max)) t)))
+				 (point-min)
+				 (min (+ (point-min) 16384) (point-max)) t)))
 		  (if coding
 		      (or (numberp (coding-system-eol-type coding))
 			  (setq coding (coding-system-change-eol-conversion
@@ -757,10 +761,10 @@ appear on disk when you save the tar-file's buffer."
 		      (setq coding
 			    (coding-system-change-text-conversion
 			     coding 'raw-text)))
-		  (decode-coding-region 1 (point-max) coding)
+		  (decode-coding-region (point-min) (point-max) coding)
 		  (set-buffer-file-coding-system coding))
 		;; Set the default-directory to the dir of the
-		;; superior buffer. 
+		;; superior buffer.
 		(setq default-directory
 		      (save-excursion
 			(set-buffer tar-buffer)
@@ -771,11 +775,11 @@ appear on disk when you save the tar-file's buffer."
 		(make-local-variable 'tar-superior-descriptor)
 		(setq tar-superior-buffer tar-buffer)
 		(setq tar-superior-descriptor descriptor)
-		(setq buffer-read-only read-only-p)		
+		(setq buffer-read-only read-only-p)
 		(set-buffer-modified-p nil)
 		(tar-subfile-mode 1))
 	      (set-buffer tar-buffer))
-	  (narrow-to-region 1 tar-header-offset)
+	  (narrow-to-region (point-min) tar-header-offset)
 	  (set-buffer-multibyte tar-buffer-multibyte)))
       (if view-p
 	  (view-buffer buffer (and just-created 'kill-buffer))
@@ -831,7 +835,8 @@ the current tar-entry."
 	 (tokens (tar-desc-tokens descriptor))
 	 (name (tar-header-name tokens))
 	 (size (tar-header-size tokens))
-	 (start (+ (tar-desc-data-start descriptor) tar-header-offset -1))
+	 (start (+ (tar-desc-data-start descriptor)
+		   (- tar-header-offset (point-min))))
 	 (end (+ start size))
 	 (multibyte enable-multibyte-characters)
 	 (inhibit-file-name-handlers inhibit-file-name-handlers)
@@ -922,7 +927,7 @@ With a prefix argument, un-mark that many files backward."
 	  (tar-setf (tar-desc-data-start desc)
 		    (- (tar-desc-data-start desc) data-length))))
       ))
-  (narrow-to-region 1 tar-header-offset))
+  (narrow-to-region (point-min) tar-header-offset))
 
 
 (defun tar-expunge (&optional noconfirm)
@@ -944,7 +949,7 @@ for this to be permanent."
 		(forward-line 1)))
 	  ;; after doing the deletions, add any padding that may be necessary.
 	  (tar-pad-to-blocksize)
-	  (narrow-to-region 1 tar-header-offset))
+	  (narrow-to-region (point-min) tar-header-offset))
 	(set-buffer-multibyte multibyte)
 	(if (zerop n)
 	    (message "Nothing to expunge.")
@@ -1059,7 +1064,7 @@ for this to be permanent."
 	    (delete-region p (point))
 	    (insert (tar-header-block-summarize tokens) "\n")
 	    (setq tar-header-offset (position-bytes (point-max))))
-	  
+
 	  (widen)
 	  (set-buffer-multibyte nil)
 	  (let* ((start (+ (tar-desc-data-start descriptor) tar-header-offset -513)))
@@ -1084,7 +1089,7 @@ for this to be permanent."
 	        (buffer-substring start (+ start 512))
 	        chk (tar-header-name tokens))
 	      )))
-      (narrow-to-region 1 tar-header-offset)
+      (narrow-to-region (point-min) tar-header-offset)
       (set-buffer-multibyte multibyte)
       (tar-next-line 0))))
 
@@ -1134,7 +1139,7 @@ to make your changes permanent."
 	(widen)
 	(set-buffer-multibyte nil)
 	;; delete the old data...
-	(let* ((data-start (+ start tar-header-offset -1))
+	(let* ((data-start (+ start (- tar-header-offset (point-min))))
 	       (data-end (+ data-start (ash (ash (+ size 511) -9) 9))))
 	  (delete-region data-start data-end)
 	  ;; insert the new data...
@@ -1203,7 +1208,7 @@ to make your changes permanent."
 	      )))
 	;; after doing the insertion, add any final padding that may be necessary.
 	(tar-pad-to-blocksize))
-       (narrow-to-region 1 tar-header-offset)
+       (narrow-to-region (point-min) tar-header-offset)
        (set-buffer-multibyte tar-buffer-multibyte)))
     (set-buffer-modified-p t)   ; mark the tar file as modified
     (tar-next-line 0)
@@ -1266,7 +1271,7 @@ Leaves the region wide."
 			buffer-file-name nil t))
 	(tar-clear-modification-flags)
 	(set-buffer-modified-p nil))
-    (narrow-to-region 1 (byte-to-position tar-header-offset)))
+    (narrow-to-region (point-min) (byte-to-position tar-header-offset)))
   ;; Return t because we've written the file.
   t)
 

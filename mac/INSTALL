@@ -19,29 +19,55 @@ You should be able to build Emacs on Mac OS X by typing the following
 commands at the top-level directory after the source distribution is
 un-tarred.
 
-  ./configure
+  ./configure --enable-carbon-app
   make
   make install
 
-The last step must be performed as root.
+The last step may fail if you do not have permissions to install.  If
+you try to install into /usr (with ./configure --prefix=/usr), then you
+must install as root using the sudo command.  However, it is not
+recommended; see the notes section below for more details.
 
-If you have X Window installed, you need to type `./configure
+The --enable-carbon-app specifies that the carbon GUI application
+should be installed into /Application.  If you want it to install in a
+different location, specify --enable-carbon-app=<mydir>
+
+If you have X Window installed on your Mac and you are building Emacs
+to run under Carbon and not X Window, you need to type `./configure
 --without-x' instead of `./configure'.
 
 You can type `make bootstrap' instead of `make' to rebuild everything,
 including byte-compiling the Lisp files.
 
-If you have not installed the GNU texinfo package on your system, the
-build will complain that makeinfo cannot be found.  Instructions for
-installing the GNU texinfo package are given below.  Alternatively,
-you can type `make -k' instead of `make' and safely ignore the error
-messages and use the existing info files.
+If you are compiling on Mac OS X versions before 10.2 and have not
+installed the GNU texinfo package on your system, the build will
+complain that makeinfo cannot be found.  Instructions for installing the
+GNU texinfo package are given below.  Alternatively, you can type `make
+-k' instead of `make' and safely ignore the error messages and use the
+existing info files.
 
 After Emacs is installed, you can run it by typing `emacs -nw' from a
 terminal (make sure your path contains /usr/local/bin) or by
-double-clicking on mac/Emacs.app in the Finder.  At present,
-command-line options cannot be passed to Emacs running under the Aqua
-GUI.  This should soon be fixed.
+double-clicking on /Applications/Emacs.app in the Finder.  To start
+Emacs as a GUI application from the terminal, the pathname to the
+executable in the bundle, i.e.,
+
+  /Application/Emacs.app/Contents/MacOS/Emacs
+
+must be typed to the shell to enable Emacs to locate its resources
+correctly.  You may want to create a symlink or alias to this path to
+quickly access both the terminal and GUI versions.
+
+If you are building Emacs to run on Mac OS X and X Window, you need to
+create a directory containing statically-linked X libraries.
+
+  sudo mkdir /usr/X11R6/libstatic
+  cd /usr/X11R6/libstatic
+  sudo ln -s ../lib/lib*.a ../lib/X11 .
+
+Instead of typing `./configure' above, type
+
+  ./configure --without-carbon --with-x --x-libraries=/usr/X11R6/libstatic
 
 To use colors in a terminal, put the following lines in the file
 ~/.termcap and log in again.
@@ -62,14 +88,8 @@ vt100|vt100-am|vt100am|dec vt100:\
     :sc=\E7:rc=\E8:cs=\E[%i%d;%dr:
 -----
 
-To build a binary distribution of Emacs for Mac OS X, run the shell
-script make-bin-dist in the `mac' directory.  This will create a file
-emacs-21.xx.yy-mac-bin.tar.gz.
-
-To install the binary distribution, untar the file and run the shell
-script osx-install in its top-level directory.
-
-To build the `info' files, you need to install the texinfo software.
+To build the `info' files in versions prior to Mac OS X 10.2, you need
+to install the texinfo software.
 
 To install from source, obtain texinfo-4.2.tar.gz from ftp.gnu.org or
 a mirror.  Un-tar it, enter its directory and type
@@ -78,7 +98,7 @@ a mirror.  Un-tar it, enter its directory and type
   make
   make install
 
-The last step needs to be performed as root.
+The last step may need to be performed as root (sudo make install).
 
 You may also like to install ispell, which will allow you to use
 ispell and flyspell-mode.  To install ispell from source, you first
@@ -90,8 +110,8 @@ Un-tar it, enter its directory, type
   ./configure --host=powerpc-apple-bsd
   make
   make install
-    
-Again, the last step needs to be performed as root.  Note that if you
+
+Again, the last step may need to be performed as root.  Note that if you
 run `make check', the test for `pr' will fail.
 
 Get and un-tar ispell-3.2.06.tar.gz.  Look for it here:
@@ -112,6 +132,40 @@ typed
 
 Run `make' and `make install', the latter as root.
 
+* BUILDING BINARY DISTRIBUTIONS FOR MAC OS X
+
+If you are intending to build a binary distribution of Emacs, there is
+a script that will greatly simplify the process.  It is called
+make-package and it is contained in this directory.  It will generate
+a disc image containing a installer bundle.  By default the installer
+will place the emacs common files in /usr/local/* and the carbon
+application in /Applications.  Typical usage would be
+
+./make-package
+
+After running, an compressed disk image of the installer will be placed
+in a file called EmacsInstaller.dmg.  This file can be then distributed
+to whomever would like a binary distribution.  Here are the common
+options to user
+
+--with-x         -  Use the X11 GUI instead of the Carbon GUI.
+--prefix=DIR     -  Place the common emacs files in the given DIR.  The
+		    default is /usr/local.  See note below if placing
+		    in /usr
+--self-contained -  Place the common emacs files inside the Emacs.app
+		    itself.  This makes the application trivial to
+		    uninstall and copy between computers.
+--app-symlink    -  Use a symlink inside the Application to the
+	      	    $prefix/bin/emacs to reduce disk space.  Note, this
+		    option may removed in the future.
+
+If you are intending to build a binary distribution for X windows, you
+will probably want to follow the directions above to create static
+X11R6 libraries and run the make-package script like this
+
+./make-package --with-x -C,--x-libraries=/usr/X11R6/libstatic
+
+For usage of other options, use the --help option.
 
 * BUILDING EMACS ON MAC OS 8/9
 
@@ -156,7 +210,7 @@ dialog and include the Profiler PPC.Lib library.
 
 * NOTES
 
-Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.1.
+Emacs should build and run on a PowerMac running Mac OS 8.6 - 10.2.
 
 You will need around 100 MB of disk space for the source files and
 intermediate files.
@@ -175,6 +229,10 @@ NT, define GNU_ICON in mac/src/Emacs.r.  Currently Emacs uses a
 generic application icon on the Mac OS X.  A better looking one is
 coming soon.
 
+On Mac OS X, installing the emacs files in /usr can cause issues with
+system sofware updates possibly overwriting the distribution.  If this
+is a concern, as it should be in normal binary distributions, please
+use /usr/local as the prefix for installation.
 
 Enjoy!
 

@@ -1,9 +1,10 @@
 ;;; calc-arith.el --- arithmetic functions for Calc
- 
+
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 

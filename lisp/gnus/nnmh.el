@@ -1,6 +1,6 @@
 ;;; nnmh.el --- mhspool access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;	Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -232,7 +232,7 @@ as unread by Gnus.")
 	  (goto-char (point-max))
 	  (insert
 	   (format
-	    "%s %d %d y\n"
+	    "%s %.0f %.0f y\n"
 	    (progn
 	      (string-match
 	       (regexp-quote
@@ -265,6 +265,13 @@ as unread by Gnus.")
 		 (setq is-old
 		       (nnmail-expired-article-p newsgroup mod-time force)))
 	    (progn
+	      ;; Allow a special target group. -- jcn
+	      (unless (eq nnmail-expiry-target 'delete)
+		(with-temp-buffer
+		  (nnmh-request-article (car articles)
+					newsgroup server (current-buffer))
+		  (nnmail-expiry-target-group
+		   nnmail-expiry-target newsgroup)))
 	      (nnheader-message 5 "Deleting article %s in %s..."
 				article newsgroup)
 	      (condition-case ()

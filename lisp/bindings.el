@@ -28,7 +28,7 @@
 ;;; !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ;;; Special formatting conventions are used in this file!
 ;;;
-;;; a backslash-newline is used at the beginning of a documentation string
+;;; A backslash-newline is used at the beginning of a documentation string
 ;;; when that string should be stored in the file etc/DOCnnn, not in core.
 ;;;
 ;;; Such strings read into Lisp as numbers (during the pure-loading phase).
@@ -135,6 +135,38 @@ corresponding to the mode line clicked."
   "Local keymap for the coding-system part of the mode line.")
 
 
+(defun mode-line-change-eol ()
+  "Cycle through the various possible kinds of end-of-line styles."
+  (interactive)
+  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+    (set-buffer-file-coding-system
+     (cond ((eq eol 0) 'dos) ((eq eol 1) 'mac) (t 'unix)))))
+
+(defvar mode-line-eol-desc-cache nil)
+
+(defun mode-line-eol-desc ()
+  (let* ((eol (coding-system-eol-type buffer-file-coding-system))
+	 (mnemonic (coding-system-eol-type-mnemonic buffer-file-coding-system))
+	 (desc (assq eol mode-line-eol-desc-cache)))
+    (if (and desc (eq (cadr desc) mnemonic))
+	(cddr desc)
+      (if desc (setq mode-line-eol-desc-cache nil)) ;Flush the cache if stale.
+      (setq desc
+	    (propertize
+	     mnemonic
+	     'help-echo (format "%s end-of-line; mouse-3 to cycle"
+				(if (eq eol 0) "Unix-style LF"
+				  (if (eq eol 1) "Dos-style CRLF"
+				    (if (eq eol 2) "Mac-style CR"
+				      "Undecided"))))
+	     'keymap
+	     (eval-when-compile
+	       (let ((map (make-sparse-keymap)))
+		 (define-key map [mode-line mouse-3] 'mode-line-change-eol)
+		 map))))
+      (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
+      desc)))
+
 (defvar mode-line-mule-info
   `(""
     (current-input-method
@@ -145,7 +177,7 @@ corresponding to the mode line clicked."
 			     ".  mouse-2: disable, mouse-3: describe")
 		  local-map ,mode-line-input-method-map))
     ,(propertize
-      "%Z"
+      "%z"
       'help-echo
       #'(lambda (window object point)
 	  (with-current-buffer (window-buffer window)
@@ -157,16 +189,17 @@ corresponding to the mode line clicked."
 			  " buffer; mouse-3: describe coding system")
 		(concat "Unibyte " (symbol-name buffer-file-coding-system)
 			" buffer")))))
-      'local-map mode-line-coding-system-map))
+      'local-map mode-line-coding-system-map)
+    (:eval (mode-line-eol-desc)))
   "Mode-line control for displaying information of multilingual environment.
 Normally it displays current input method (if any activated) and
 mnemonics of the following coding systems:
   coding system for saving or writing the current buffer
   coding system for keyboard input (if Emacs is running on terminal)
   coding system for terminal output (if Emacs is running on terminal)"
-;;; Currently not:
-;;;  coding system for decoding output of buffer process (if any)
-;;;  coding system for encoding text to send to buffer process (if any)."
+  ;; Currently not:
+  ;;  coding system for decoding output of buffer process (if any)
+  ;;  coding system for encoding text to send to buffer process (if any)."
 )
 
 (make-variable-buffer-local 'mode-line-mule-info)
@@ -223,11 +256,19 @@ Normally nil in most modes, since there is no process to display.")
 (defvar mode-line-modes nil
   "Mode-line control for displaying major and minor modes.")
 
+(defvar mode-line-major-mode-keymap nil "\
+Keymap to display on major mode.")
+
 (defvar mode-line-minor-mode-keymap nil "\
-Keymap to display on major and minor modes.")
+Keymap to display on minor modes.")
+
+(let ((map (make-sparse-keymap)))
+  (define-key map [mode-line mouse-2] 'describe-mode)
+  (setq mode-line-major-mode-keymap map))
 
 ;; Menu of minor modes.
 (let ((map (make-sparse-keymap)))
+  (define-key map [mode-line mouse-2] 'mode-line-minor-mode-help)
   (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
   (define-key map [header-line down-mouse-3] 'mode-line-mode-menu-1)
   (setq mode-line-minor-mode-keymap map))
@@ -238,7 +279,7 @@ Keymap to display on major and minor modes.")
 	;; 	  "\
 	;; mouse-1: select window, mouse-2: delete others, mouse-3: delete,
 	;; drag-mouse-1: resize, C-mouse-2: split horizontally"
-	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete")
+	"mouse-1: select (drag to resize), mouse-2: delete others, mouse-3: delete this")
        (dashes (propertize "--" 'help-echo help-echo)))
   (setq-default mode-line-format
     (list
@@ -248,17 +289,23 @@ Keymap to display on major and minor modes.")
      'mode-line-frame-identification
      'mode-line-buffer-identification
      (propertize "   " 'help-echo help-echo)
-     'global-mode-string
+     'mode-line-position
+     '(vc-mode vc-mode)
+     (propertize "   " 'help-echo help-echo)
      'mode-line-modes
      `(which-func-mode ("" which-func-format ,dashes))
-     'mode-line-position
+     `(global-mode-string (,dashes global-mode-string))
      (propertize "-%-" 'help-echo help-echo)))
 
   (setq-default mode-line-modes
     (list
-     (propertize "   %[(" 'help-echo help-echo)
-     `(:propertize ("" mode-name mode-line-process minor-mode-alist)
-		   help-echo "mouse-3: minor mode menu"
+     (propertize "%[(" 'help-echo help-echo)
+     `(:propertize ("" mode-name)
+		   help-echo "mouse-2: help for current major mode"
+		   local-map ,mode-line-major-mode-keymap)
+     `(:propertize ("" mode-line-process))
+     `(:propertize ("" minor-mode-alist)
+		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
 		 'local-map (make-mode-line-mouse-map
@@ -266,19 +313,39 @@ Keymap to display on major and minor modes.")
      (propertize ")%]--" 'help-echo help-echo)))
 
   (setq-default mode-line-position
-    `((line-number-mode (,(propertize "L%l" 'help-echo help-echo) ,dashes))
-      (column-number-mode (,(propertize "C%c" 'help-echo help-echo) ,dashes))
-      (-3 . ,(propertize "%p" 'help-echo help-echo)))))
+    `((-3 . ,(propertize "%p" 'help-echo help-echo))
+      (line-number-mode
+       ((column-number-mode
+	 (10 ,(propertize " (%l,%c)" 'help-echo help-echo))
+	 (6 ,(propertize " L%l" 'help-echo help-echo))))
+       ((column-number-mode
+	 (5 ,(propertize " C%c" 'help-echo help-echo))))))))
 
 (defvar mode-line-buffer-identification-keymap nil "\
 Keymap for what is displayed by `mode-line-buffer-identification'.")
 
 (defun last-buffer () "\
 Return the last non-hidden buffer in the buffer list."
-  (let ((list (reverse (buffer-list))))
-    (while (eq (aref (buffer-name (car list)) 0) ? )
-      (setq list (cdr list)))
-    (car list)))
+  ;; This logic is more or less copied from bury-buffer,
+  ;; except that we reverse the buffer list.
+  (let ((list (nreverse (buffer-list (selected-frame))))
+	(pred (frame-parameter nil 'buffer-predicate))
+	found notsogood)
+    (while (and list (not found))
+      (unless (or (eq (aref (buffer-name (car list)) 0) ? )
+		  ;; If the selected frame has a buffer_predicate,
+		  ;; disregard buffers that don't fit the predicate.
+		  (and pred (not (funcall pred (car list)))))
+	(if (get-buffer-window (car list) 'visible)
+	    (or notsogood (eq (car list) (current-buffer)))
+	  (setq found (car list))))
+      (pop list))
+    (or found notsogood
+	(get-buffer "*scratch*")
+	(progn
+	  (set-buffer-major-mode
+	   (get-buffer-create "*scratch*"))
+	  (get-buffer "*scratch*")))))
 
 (defun unbury-buffer () "\
 Switch to the last buffer in the buffer list."
@@ -362,6 +429,12 @@ Menu of mode operations in the mode line.")
   (interactive "@e")
   (x-popup-menu event mode-line-mode-menu))
 
+(defun mode-line-minor-mode-help (event)
+  "Describe minor mode for EVENT occured on minor modes area of the mode line."
+  (interactive "@e")
+  (let ((indicator (car (nth 4 (car (cdr event))))))
+    (describe-minor-mode-from-indicator indicator)))
+
 ;; Add menu of buffer operations to the buffer identification part
 ;; of the mode line.or header line.
 ;
@@ -440,6 +513,8 @@ is okay.  See `mode-line-format'.")
          ".fasl" ".ufsl" ".fsl" ".dxl"
 	 ;; Libtool
 	 ".lo" ".la"
+	 ;; Gettext
+	 ".gmo" ".mo"
 	 ;; Texinfo-related
 	 ".toc" ".log" ".aux"
 	 ".cp" ".fn" ".ky" ".pg" ".tp" ".vr"
@@ -563,10 +638,6 @@ language you are using."
 
 (make-variable-buffer-local 'minor-mode-overriding-map-alist)
 
-;; From macros.c
-(define-key ctl-x-map "(" 'start-kbd-macro)
-(define-key ctl-x-map ")" 'end-kbd-macro)
-(define-key ctl-x-map "e" 'call-last-kbd-macro)
 ;; From frame.c
 (global-set-key [switch-frame] 'handle-switch-frame)
 (global-set-key [delete-frame] 'handle-delete-frame)

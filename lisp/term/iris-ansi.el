@@ -1,4 +1,4 @@
-;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps
+;;; iris-ansi.el --- configure Emacs for SGI xwsh and winterm apps -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Free Software Foundation, Inc.
 
@@ -137,7 +137,7 @@
 (define-key function-key-map "\e[072q" [?\C-\t])
 ;; This only works if you remove the M-TAB keybing from the system.4Dwmrc
 ;; our your ~/.4Dwmrc, if you use the 4Dwm window manager.
-(define-key function-key-map "\e[073q" [?\M-\t]) 
+(define-key function-key-map "\e[073q" [?\M-\t])
 
 (define-key function-key-map "\e[074q" [?\M-q])
 

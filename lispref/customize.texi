@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000 Free Software Foundation, Inc. 
+@c Copyright (C) 1997, 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -13,8 +13,8 @@ definitions---as well as face definitions (@pxref{Defining Faces}).
 
 @menu
 * Common Keywords::
-* Group Definitions::            
-* Variable Definitions::         
+* Group Definitions::
+* Variable Definitions::
 * Customization Types::
 @end menu
 
@@ -242,9 +242,15 @@ as a Lisp variable).  The default for @var{setfunction} is
 @item :get @var{getfunction}
 Specify @var{getfunction} as the way to extract the value of this
 option.  The function @var{getfunction} should take one argument, a
-symbol, and should return the ``current value'' for that symbol (which
-need not be the symbol's Lisp value).  The default is
-@code{default-value}.
+symbol, and should return whatever customize should use as the
+``current value'' for that symbol (which need not be the symbol's Lisp
+value).  The default is @code{default-value}.
+
+You have to really understand the workings of Custom to use
+@code{:get} correctly.  It is meant for values that are treated in
+Custom as variables but are not actually stored in Lisp variables.  It
+is almost surely a mistake to specify @code{getfunction} for a value
+that really is stored in a Lisp variable.
 
 @item :initialize @var{function}
 @var{function} should be a function used to initialize the variable when
@@ -255,8 +261,7 @@ this way:
 @table @code
 @item custom-initialize-set
 Use the variable's @code{:set} function to initialize the variable, but
-do not reinitialize it if it is already non-void.  This is the default
-@code{:initialize} function.
+do not reinitialize it if it is already non-void.
 
 @item custom-initialize-default
 Like @code{custom-initialize-set}, but use the function
@@ -267,9 +272,10 @@ defining the variable will not call the minor mode function, but
 customizing the variable will do so.
 
 @item custom-initialize-reset
-Always use the @code{:set} function to initialize the variable.  If the
-variable is already non-void, reset it by calling the @code{:set}
+Always use the @code{:set} function to initialize the variable.  If
+the variable is already non-void, reset it by calling the @code{:set}
 function using the current value (returned by the @code{:get} method).
+This is the default @code{:initialize} function.
 
 @item custom-initialize-changed
 Use the @code{:set} function to initialize the variable, if it is
@@ -338,9 +344,10 @@ which values are legitimate and (2) how to display the value in the
 customization buffer for editing.
 
   You specify the customization type in @code{defcustom} with the
-@code{:type} keyword.  The argument of @code{:type} is evaluated; since
-types that vary at run time are rarely useful, normally you use a quoted
-constant.  For example:
+@code{:type} keyword.  The argument of @code{:type} is evaluated, but
+only once when the @code{defcustom} is executed, so it isn't useful
+for the value to vary.  Normally we use a quoted constant.  For
+example:
 
 @example
 (defcustom diff-command "diff"
@@ -387,8 +394,12 @@ The value must be an integer, and is represented textually
 in the customization buffer.
 
 @item number
-The value must be a number, and is represented textually in the
-customization buffer.
+The value must be a number (floating point or integer), and is
+represented textually in the customization buffer.
+
+@item float
+The value must be a floating point number, and is represented
+textually in the customization buffer.
 
 @item string
 The value must be a string, and the customization buffer shows just the
@@ -491,7 +502,7 @@ example,
 @end smallexample
 
 @noindent
-instead of 
+instead of
 
 @smallexample
 (defcustom cons-alist '(("foo" . 1) ("bar" . 2) ("baz" . 3))
@@ -516,14 +527,14 @@ Similarily, you can have alists with more values associated with each
 key, using variations of this trick:
 
 @smallexample
-(defcustom person-data '(("brian"  50 t) 
+(defcustom person-data '(("brian"  50 t)
                          ("dorith" 55 nil)
                          ("ken"    52 t))
   "Alist of basic info about people.
 Each element has the form (NAME AGE MALE-FLAG)."
   :type '(alist :value-type (group age boolean)))
 
-(defcustom pets '(("brian") 
+(defcustom pets '(("brian")
                   ("dorith" "dog" "guppy")
                   ("ken" "cat"))
   "Alist of people's pets.
@@ -578,42 +589,29 @@ The value must be a valid color name, and you can do completion with
 
 @node Composite Types
 @subsection Composite Types
+@cindex arguments (of composite type)
 
   When none of the simple types is appropriate, you can use composite
-types, which build new types from other types.  Here are several ways of
-doing that:
-
-@table @code
-@item (restricted-sexp :match-alternatives @var{criteria})
-The value may be any Lisp object that satisfies one of @var{criteria}.
-@var{criteria} should be a list, and each element should be
-one of these possibilities:
-
-@itemize @bullet
-@item
-A predicate---that is, a function of one argument that has no side
-effects, and returns either @code{nil} or non-@code{nil} according to
-the argument.  Using a predicate in the list says that objects for which
-the predicate returns non-@code{nil} are acceptable.
-
-@item
-A quoted constant---that is, @code{'@var{object}}.  This sort of element
-in the list says that @var{object} itself is an acceptable value.
-@end itemize
-
-For example,
+types, which build new types from other types or from specified data.
+The specified types or data are called the @dfn{arguments} of the
+composite type.  The composite type normally looks like this:
 
 @example
-(restricted-sexp :match-alternatives
-                 (integerp 't 'nil))
+(@var{constructor} @var{arguments}@dots{})
 @end example
 
 @noindent
-allows integers, @code{t} and @code{nil} as legitimate values.
+but you can also add keyword-value pairs before the arguments, like
+this:
 
-The customization buffer shows all legitimate values using their read
-syntax, and the user edits them textually.
+@example
+(@var{constructor} @r{@{}@var{keyword} @var{value}@r{@}}@dots{} @var{arguments}@dots{})
+@end example
 
+  Here is a table of constructors and how to use them to write
+composite types:
+
+@table @code
 @item (cons @var{car-type} @var{cdr-type})
 The value must be a cons cell, its @sc{car} must fit @var{car-type}, and
 its @sc{cdr} must fit @var{cdr-type}.  For example, @code{(cons string
@@ -666,6 +664,19 @@ so that the menu offers @samp{Number of spaces} and @samp{Literal Text}.
 In any alternative for which @code{nil} is not a valid value, other than
 a @code{const}, you should specify a valid default for that alternative
 using the @code{:value} keyword.  @xref{Type Keywords}.
+
+If some values are covered by more than one of the alternatives,
+customize will choose the first alternative that the value fits.  This
+means you should always list the most specific types first, and the
+most general last.  Here's an example of proper usage:
+
+@example
+(choice (const :tag "Off" nil) symbol (sexp :tag "Other"))
+@end example
+
+@noindent
+This way, the special value @code{nil} is not treated like other
+symbols, and symbols are not treated like other Lisp expressions.
 
 @item (radio @var{element-types}@dots{})
 This is similar to @code{choice}, except that the choices are displayed
@@ -761,6 +772,58 @@ The value must be a list and each element of the list must fit the type
 @var{element-type}.  This appears in the customization buffer as a
 list of elements, with @samp{[INS]} and @samp{[DEL]} buttons for adding
 more elements or removing elements.
+
+@item (restricted-sexp :match-alternatives @var{criteria})
+This is the most general composite type construct.  The value may be
+any Lisp object that satisfies one of @var{criteria}.  @var{criteria}
+should be a list, and each element should be one of these
+possibilities:
+
+@itemize @bullet
+@item
+A predicate---that is, a function of one argument that has no side
+effects, and returns either @code{nil} or non-@code{nil} according to
+the argument.  Using a predicate in the list says that objects for which
+the predicate returns non-@code{nil} are acceptable.
+
+@item
+A quoted constant---that is, @code{'@var{object}}.  This sort of element
+in the list says that @var{object} itself is an acceptable value.
+@end itemize
+
+For example,
+
+@example
+(restricted-sexp :match-alternatives
+                 (integerp 't 'nil))
+@end example
+
+@noindent
+allows integers, @code{t} and @code{nil} as legitimate values.
+
+The customization buffer shows all legitimate values using their read
+syntax, and the user edits them textually.
+@end table
+
+  Here is a table of the keywords you can use in keyword-value pairs
+in a composite type:
+
+@table @code
+@item :tag @var{tag}
+Use @var{tag} as the name of this alternative, for user communication
+purposes.  This is useful for a type that appears inside of a
+@code{choice}.
+
+@item :match-alternatives @var{criteria}
+Use @var{criteria} to match possible values.  This is used only in
+@code{restricted-sexp}.
+
+@item :args @var{argumentlist}
+Use the elements of @var{argumentlist} as the arguments of the type
+construct.  For instance, @code{(const :args (foo))} is equivalent to
+@code{(const foo)}.  You rarely need to write @code{:args} explicitly,
+because normally the arguments are recognized automatically as
+whatever follows the last keyword-value pair.
 @end table
 
 @node Splicing into Lists
@@ -782,17 +845,17 @@ matches a list with three elements, those become three elements of the
 overall sequence.  This is analogous to using @samp{,@@} in the backquote
 construct.
 
-  For example, to specify a list whose first element must be @code{t}
+  For example, to specify a list whose first element must be @code{baz}
 and whose remaining arguments should be zero or more of @code{foo} and
 @code{bar}, use this customization type:
 
 @example
-(list (const t) (set :inline t foo bar))
+(list (const baz) (set :inline t (const foo) (const bar)))
 @end example
 
 @noindent
-This matches values such as @code{(t)}, @code{(t foo)}, @code{(t bar)}
-and @code{(t foo bar)}.
+This matches values such as @code{(baz)}, @code{(baz foo)}, @code{(baz bar)}
+and @code{(baz foo bar)}.
 
   When the element-type is a @code{choice}, you use @code{:inline} not
 in the @code{choice} itself, but in (some of) the alternatives of the
@@ -867,7 +930,7 @@ Substitute the tag here.  You specify the tag with the @code{:tag}
 keyword.
 
 @item %%
-Display a literal @samp{%}. 
+Display a literal @samp{%}.
 @end table
 
 @item :action @var{action}
@@ -970,7 +1033,7 @@ implemented.
 @item
 Widgets with tabbing order @code{-1} are ignored.
 
-@item 
+@item
 (Unimplemented) When on a widget with tabbing order @var{n}, go to the
 next widget in the buffer with tabbing order @var{n+1} or @code{nil},
 whichever comes first.

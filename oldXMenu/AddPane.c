@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/AddPane.c,v 1.1 1992/04/11 22:10:17 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/AddPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -18,14 +18,14 @@
 
 int
 XMenuAddPane(display, menu, label, active)
-    Display *display;           
+    Display *display;
     register XMenu *menu;	/* Menu object to be modified. */
     register char *label;	/* Selection label. */
     int active;			/* Make selection active? */
 {
     register XMPane *pane;	/* Newly created pane. */
     register XMSelect *select;	/* Initial selection for the new pane. */
-        
+
     int label_length;		/* Label length in characters. */
     int label_width;		/* Label width in pixels. */
 
@@ -50,7 +50,7 @@ XMenuAddPane(display, menu, label, active)
 	_XMErrorCode = XME_CALLOC;
 	return(XM_FAILURE);
     }
-    
+
     /*
      * Determine label size.
      */
@@ -58,7 +58,7 @@ XMenuAddPane(display, menu, label, active)
     label_width = XTextWidth(menu->p_fnt_info,
 			     label,
 			     label_length);
-    
+
     /*
      * Set up the initial selection.
      * Values not explicitly set are zeroed by calloc.
@@ -87,7 +87,7 @@ XMenuAddPane(display, menu, label, active)
     emacs_insque(pane, menu->p_list->prev);
 
     /*
-     * Update the pane count. 
+     * Update the pane count.
      */
     menu->p_count++;
 

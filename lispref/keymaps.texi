@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998, 1999, 2000
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/keymaps
 @node Keymaps, Modes, Command Loop, Top
@@ -103,8 +103,9 @@ for details.
 
   A keymap is a list whose @sc{car} is the symbol @code{keymap}.  The
 remaining elements of the list define the key bindings of the keymap.
-Use the function @code{keymapp} (see below) to test whether an object is
-a keymap.
+A symbol whose function definition is a keymap is also a keymap.  Use
+the function @code{keymapp} (see below) to test whether an object is a
+keymap.
 
   Several kinds of elements may appear in a keymap, after the symbol
 @code{keymap} that begins it:
@@ -174,39 +175,45 @@ C-l}, @kbd{M-C-q}, and @kbd{M-C-x}.
 @example
 @group
 lisp-mode-map
-@result{} 
+@result{}
 @end group
 @group
-(keymap 
+(keymap
  ;; @key{TAB}
- (9 . lisp-indent-line)                 
+ (9 . lisp-indent-line)
 @end group
 @group
  ;; @key{DEL}
- (127 . backward-delete-char-untabify)  
+ (127 . backward-delete-char-untabify)
 @end group
 @group
- (3 keymap 
+ (3 keymap
     ;; @kbd{C-c C-l}
-    (12 . run-lisp))                    
+    (12 . run-lisp))
 @end group
 @group
- (27 keymap 
+ (27 keymap
      ;; @r{@kbd{M-C-q}, treated as @kbd{@key{ESC} C-q}}
-     (17 . indent-sexp)                 
+     (17 . indent-sexp)
      ;; @r{@kbd{M-C-x}, treated as @kbd{@key{ESC} C-x}}
-     (24 . lisp-send-defun)))           
+     (24 . lisp-send-defun)))
 @end group
 @end example
 
 @defun keymapp object
 This function returns @code{t} if @var{object} is a keymap, @code{nil}
 otherwise.  More precisely, this function tests for a list whose
-@sc{car} is @code{keymap}.
+@sc{car} is @code{keymap}, or for a symbol whose function definition
+satisfies @code{keymapp}.
 
 @example
 @group
 (keymapp '(keymap))
+    @result{} t
+@end group
+@group
+(fset 'foo '(keymap))
+(keymapp 'foo)
     @result{} t
 @end group
 @group
@@ -273,7 +280,7 @@ definition is a keymap; the same symbol appears in the new copy.
 @end group
 @group
      ;; @r{(This implements meta characters.)}
-     (27 keymap         
+     (27 keymap
          (83 . center-paragraph)
          (115 . center-line))
      (9 . tab-to-tab-stop))
@@ -522,7 +529,7 @@ certain parts of the buffer; see @ref{Special Properties}.
 when the minor mode is enabled.
 
   The variable @code{overriding-local-map}, if non-@code{nil}, specifies
-another local keymap that overrides the buffer's local map and all the 
+another local keymap that overrides the buffer's local map and all the
 minor mode keymaps.
 
   All the active keymaps are used together to determine what command to
@@ -577,7 +584,7 @@ other.
 @example
 @group
 (current-global-map)
-@result{} (keymap [set-mark-command beginning-of-line @dots{} 
+@result{} (keymap [set-mark-command beginning-of-line @dots{}
             delete-backward-char])
 @end group
 @end example
@@ -593,14 +600,14 @@ keymap.
 @example
 @group
 (current-local-map)
-@result{} (keymap 
-    (10 . eval-print-last-sexp) 
-    (9 . lisp-indent-line) 
-    (127 . backward-delete-char-untabify) 
+@result{} (keymap
+    (10 . eval-print-last-sexp)
+    (9 . lisp-indent-line)
+    (127 . backward-delete-char-untabify)
 @end group
 @group
-    (27 keymap 
-        (24 . eval-defun) 
+    (27 keymap
+        (24 . eval-defun)
         (17 . indent-sexp)))
 @end group
 @end example
@@ -997,7 +1004,7 @@ meta-prefix-char                    ; @r{The default value.}
 @end group
 @group
 (setq meta-prefix-char 24)
-     @result{} 24      
+     @result{} 24
 @end group
 @group
 (key-binding "\M-b")
@@ -1063,6 +1070,10 @@ in another keymap reached from @var{keymap}.)  The argument
 meaningful.  (For a list of meaningful types, see @ref{Key Lookup}.)
 The value returned by @code{define-key} is @var{binding}.
 
+If @var{key} is @code{[t]}, this sets the default binding in
+@var{keymap}.  When an event has no binding of its own, the Emacs
+command loop uses the keymap's default binding, if there is one.
+
 @cindex invalid prefix key error
 @cindex key sequence error
 Every prefix of @var{key} must be a prefix key (i.e., bound to a keymap)
@@ -1072,8 +1083,8 @@ key so that the rest of @var{key} can be defined as specified.
 
 If there was previously no binding for @var{key} in @var{keymap}, the
 new binding is added at the beginning of @var{keymap}.  The order of
-bindings in a keymap makes no difference in most cases, but it does
-matter for menu keymaps (@pxref{Menu Keymaps}).
+bindings in a keymap makes no difference for keyboard input, but it
+does matter for menu keymaps (@pxref{Menu Keymaps}).
 @end defun
 
   Here is an example that creates a sparse keymap and makes a number of
@@ -1100,7 +1111,7 @@ map
 @end group
 @group
 map
-@result{} (keymap 
+@result{} (keymap
     (24 keymap                ; @kbd{C-x}
         (102 . forward-word)) ;      @kbd{f}
     (6 . forward-char))       ; @kbd{C-f}
@@ -1110,7 +1121,7 @@ map
 ;; @r{Bind @kbd{C-p} to the @code{ctl-x-map}.}
 (define-key map "\C-p" ctl-x-map)
 ;; @code{ctl-x-map}
-@result{} [nil @dots{} find-file @dots{} backward-kill-sentence] 
+@result{} [nil @dots{} find-file @dots{} backward-kill-sentence]
 @end group
 
 @group
@@ -1122,7 +1133,7 @@ map
 map
 @result{} (keymap     ; @r{Note @code{foo} in @code{ctl-x-map}.}
     (16 keymap [nil @dots{} foo @dots{} backward-kill-sentence])
-    (24 keymap 
+    (24 keymap
         (102 . forward-word))
     (6 . forward-char))
 @end group
@@ -1146,7 +1157,7 @@ standard bindings:
 
 @smallexample
 @group
-(substitute-key-definition 
+(substitute-key-definition
  'find-file 'find-file-read-only (current-global-map))
 @end group
 @end smallexample
@@ -1179,9 +1190,9 @@ Here is an example showing a keymap before and after substitution:
 
 @smallexample
 @group
-(setq map '(keymap 
-            (?1 . olddef-1) 
-            (?2 . olddef-2) 
+(setq map '(keymap
+            (?1 . olddef-1)
+            (?2 . olddef-2)
             (?3 . olddef-1)))
 @result{} (keymap (49 . olddef-1) (50 . olddef-2) (51 . olddef-1))
 @end group
@@ -1209,8 +1220,8 @@ digits to run @code{digit-argument}, and @kbd{-} to run
 @code{negative-argument}.  Otherwise it makes them undefined like the
 rest of the printing characters.
 
-@cindex yank suppression 
-@cindex @code{quoted-insert} suppression 
+@cindex yank suppression
+@cindex @code{quoted-insert} suppression
 The @code{suppress-keymap} function does not make it impossible to
 modify a buffer, as it does not suppress commands such as @code{yank}
 and @code{quoted-insert}.  To prevent any modification of a buffer, make
@@ -1412,7 +1423,7 @@ definition is the sparse keymap @code{(keymap (83 .@: center-paragraph)
 @smallexample
 @group
 (accessible-keymaps (current-local-map))
-@result{}(("" keymap 
+@result{}(("" keymap
       (27 keymap   ; @r{Note this keymap for @key{ESC} is repeated below.}
           (83 . center-paragraph)
           (115 . center-line))
@@ -1420,8 +1431,8 @@ definition is the sparse keymap @code{(keymap (83 .@: center-paragraph)
 @end group
 
 @group
-   ("^[" keymap 
-    (83 . center-paragraph) 
+   ("^[" keymap
+    (83 . center-paragraph)
     (115 . foo)))
 @end group
 @end smallexample
@@ -1436,7 +1447,7 @@ of a window.
 @smallexample
 @group
 (accessible-keymaps (current-global-map))
-@result{} (("" keymap [set-mark-command beginning-of-line @dots{} 
+@result{} (("" keymap [set-mark-command beginning-of-line @dots{}
                    delete-backward-char])
 @end group
 @group
@@ -2229,7 +2240,7 @@ property list elements to add to the menu item specification.
 To define items in some local map, bind @code{`tool-bar-map} with
 @code{let} around calls of this function:
 @example
-(defvar foo-tool-bar-map 
+(defvar foo-tool-bar-map
   (let ((tool-bar-map (make-sparse-keymap)))
     (tool-bar-add-item @dots{})
     @dots{}

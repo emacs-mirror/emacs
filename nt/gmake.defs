@@ -1,17 +1,17 @@
 #
 #  Makefile definition file for building GNU Emacs on the Microsoft W32 API.
 #  Copyright (c) 2000-2001 Free Software Foundation, Inc.
-#  
+#
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2, or (at your option)
 #  any later version.
-#  
+#
 #  GNU Emacs is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to
 #  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -21,7 +21,7 @@
 all:
 
 # NOTES
-# 
+#
 # I tried to force gmake to use the native shell for simplicity, by
 # setting SHELL as below, but this didn't work reliably because of
 # various case sensitivity niggles.  Specifically, COMSPEC (which is in
@@ -31,7 +31,7 @@ all:
 # thinks it doesn't exist (unless compiled with a switch to ignore
 # case), and so doesn't change which shell it will invoke to execute
 # commands.
-# 
+#
 # It would be possible, though very tedious using just gmake facilities,
 # to convert the COMSPEC value to uppercase to solve this problem, but
 # it isn't worth it.  That is partly because, even when using the native
@@ -46,14 +46,14 @@ all:
 # mandate that rm and cp be available, so we can use Unix-format file
 # names everywhere.  (Fortunately both MS and GNU make, and the
 # respective compilers, are happy with Unix-format names.)
-# 
+#
 # Since we cannot easily force the choice of a particular shell, we must
 # make the effort to cope with whichever shell is being used.
 # Fortunately, the only command we need to use that is shell specific is
 # the testing of a file's existence for the purpose of working out when
 # we are copying files to their original location.  That particular
 # requirement is abstracted easily enough.
-# 
+#
 # The only other problem area was the change of directory when running
 # temacs to dump emacs.exe (where gmake doesn't support cd foo in any
 # useful way), but that has been resolved by modifying the Windows
@@ -77,6 +77,16 @@ SHELLTYPE=SH
 endif
 
 MAKETYPE=gmake
+
+# The following "ifeq" does not appear to DTRT, and therefore breaks
+# the build on mingw32. Also the -m option does not exist in many
+# (reasonably recent even) versions of Cygwin. These issues need to be
+# remedied before putting this cygpath kludge back in.
+
+# Convert CURDIR to native file name, if in Cygwin format
+#ifeq "$(shell cygpath $(CURDIR))" "$(CURDIR)"
+#CURDIR	        := $(shell cygpath -m $(CURDIR))
+#endif
 
 THISDIR		= .
 
@@ -107,7 +117,7 @@ endif
 export EMACSLOADPATH
 
 # Determine the architecture we're running on.
-# Define ARCH for our purposes; 
+# Define ARCH for our purposes;
 # Define CPU for use by ntwin32.mak;
 # Define CONFIG_H to the appropriate config.h for the system;
 #
@@ -152,8 +162,8 @@ RC		= windres -O coff
 RC_OUT		= -o$(SPACE)
 RC_INCLUDE	= --include-dir$(SPACE)
 
-libc		= 
-baselibs	= 
+libc		=
+baselibs	=
 O		= o
 A		= a
 
@@ -166,11 +176,12 @@ MPR		= -lmpr
 SHELL32		= -lshell32
 USER32		= -luser32
 WSOCK32		= -lwsock32
+WINMM     = -lwinmm
 
 ifdef NOOPT
 DEBUG_CFLAGS	= -DEMACSDEBUG
 else
-DEBUG_CFLAGS	= 
+DEBUG_CFLAGS	=
 endif
 CFLAGS          = -I. -DWIN32_LEAN_AND_MEAN -D_WIN32_WINNT=0x0400 $(ARCH_CFLAGS) -D$(ARCH) \
 		  -D_CRTAPI1=_cdecl \
@@ -227,7 +238,7 @@ DQUOTE		= \"
 endif
 
 ifdef NODEBUG
-DEBUG_FLAG = 
+DEBUG_FLAG =
 DEBUG_LINK =
 else
 DEBUG_FLAG = -g

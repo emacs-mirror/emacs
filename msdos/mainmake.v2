@@ -32,14 +32,14 @@
 #      with them.
 #
 #      Delete `.dvi' files here if they are not part of the distribution.
-# 
+#
 # make distclean
 #      Delete all files from the current directory that are created by
 #      configuring or building the program.  If you have unpacked the
 #      source and built the program without creating any other files,
 #      `make distclean' should leave only the files that were in the
 #      distribution.
-# 
+#
 # make realclean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes

@@ -164,7 +164,7 @@ If it is nil (the default), we run the `pr' program (or whatever program
 
 Otherwise, the switches in `lpr-headers-switches' are used
 in the print command itself; we expect them to request pagination.
- 
+
 See the variables `lpr-switches' and `lpr-command'
 for further customization of the printer command."
   (interactive)
@@ -189,7 +189,7 @@ If it is nil (the default), we run the `pr' program (or whatever program
 
 Otherwise, the switches in `lpr-headers-switches' are used
 in the print command itself; we expect them to request pagination.
- 
+
 See the variables `lpr-switches' and `lpr-command'
 for further customization of the printer command."
   (interactive "r")

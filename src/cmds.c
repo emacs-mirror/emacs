@@ -1,5 +1,5 @@
 /* Simple built-in editing commands.
-   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001 Free Software Foundation, Inc.
+   Copyright (C) 1985, 93, 94, 95, 96, 97, 1998, 2001, 02 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -42,6 +42,7 @@ Lisp_Object Vself_insert_face;
 Lisp_Object Vself_insert_face_command;
 
 extern Lisp_Object Qface;
+extern Lisp_Object Vtranslation_table_for_input;
 
 DEFUN ("forward-point", Fforward_point, Sforward_point, 1, 1, 0,
        doc: /* Return buffer position N characters after (before if N negative) point.  */)
@@ -313,45 +314,49 @@ N was explicitly specified.  */)
   return value;
 }
 
+/* Note that there's code in command_loop_1 which typically avoids
+   calling this.  */
 DEFUN ("self-insert-command", Fself_insert_command, Sself_insert_command, 1, 1, "p",
        doc: /* Insert the character you type.
 Whichever character you type to run this command is inserted.  */)
      (n)
      Lisp_Object n;
 {
-  int character = XINT (last_command_char);
-
   CHECK_NUMBER (n);
 
   /* Barf if the key that invoked this was not a character.  */
   if (!INTEGERP (last_command_char))
     bitch_at_user ();
-  else if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
-    {
-      int modified_char = character;
-      /* Add the offset to the character, for Finsert_char.
-	 We pass internal_self_insert the unmodified character
-	 because it itself does this offsetting.  */
-      if (! NILP (current_buffer->enable_multibyte_characters))
-	modified_char = unibyte_char_to_multibyte (modified_char);
-
-      XSETFASTINT (n, XFASTINT (n) - 2);
-      /* The first one might want to expand an abbrev.  */
-      internal_self_insert (character, 1);
-      /* The bulk of the copies of this char can be inserted simply.
-	 We don't have to handle a user-specified face specially
-	 because it will get inherited from the first char inserted.  */
-      Finsert_char (make_number (modified_char), n, Qt);
-      /* The last one might want to auto-fill.  */
-      internal_self_insert (character, 0);
-    }
-  else
-    while (XINT (n) > 0)
+  {
+    int character = translate_char (Vtranslation_table_for_input,
+				    XINT (last_command_char), 0, 0, 0);
+    if (XINT (n) >= 2 && NILP (current_buffer->overwrite_mode))
       {
-	/* Ok since old and new vals both nonneg */
-	XSETFASTINT (n, XFASTINT (n) - 1);
-	internal_self_insert (character, XFASTINT (n) != 0);
+	int modified_char = character;
+	/* Add the offset to the character, for Finsert_char.
+	   We pass internal_self_insert the unmodified character
+	   because it itself does this offsetting.  */
+	if (! NILP (current_buffer->enable_multibyte_characters))
+	  modified_char = unibyte_char_to_multibyte (modified_char);
+
+	XSETFASTINT (n, XFASTINT (n) - 2);
+	/* The first one might want to expand an abbrev.  */
+	internal_self_insert (character, 1);
+	/* The bulk of the copies of this char can be inserted simply.
+	   We don't have to handle a user-specified face specially
+	   because it will get inherited from the first char inserted.  */
+	Finsert_char (make_number (modified_char), n, Qt);
+	/* The last one might want to auto-fill.  */
+	internal_self_insert (character, 0);
       }
+    else
+      while (XINT (n) > 0)
+	{
+	  /* Ok since old and new vals both nonneg */
+	  XSETFASTINT (n, XFASTINT (n) - 1);
+	  internal_self_insert (character, XFASTINT (n) != 0);
+	}
+  }
 
   return Qnil;
 }

@@ -1,40 +1,17 @@
 \input texinfo  @c -*-texinfo-*-
-
-@c "@(#)$Name:  $:$Id: eshell.texi,v 1.11 2001/04/19 15:07:55 gerd Exp $"
-
-@c Documentation for Eshell: The Emacs Shell.
-@c Copyright (C) 1999, 2000  Free Software Foundation, Inc.
-
-@c This file is part of GNU Emacs
-
-@c GNU Emacs is free software; you can redistribute it and/or modify it
-@c under the terms of the GNU General Public License as published by the
-@c Free Software Foundation; either version 2 of the License, or (at
-@c your option) any later version.
-
-@c GNU Emacs is distributed in the hope that it will be useful, but
-@c WITHOUT ANY WARRANTY; without even the implied warraonty of
-@c MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-@c General Public License for more details.
-
-@c You should have received a copy of the GNU General Public License
-@c along with Eshell; see the file COPYING.  If not, write to the Free
-@c Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
-
+@c "@(#)$Name:  $:$Id: eshell.texi,v 1.18 2003/02/04 14:53:27 lektu Exp $"
 @c %**start of header
 @setfilename ../info/eshell
 @settitle Eshell: The Emacs Shell
+@synindex vr fn
 @c %**end of header
 
-@dircategory Emacs
-@direntry
-* Eshell: (eshell).     A command shell implemented in Emacs Lisp.
-@end direntry
-@setchapternewpage on
-     
-@ifinfo
-Copyright @copyright{} 1999, 2000, 2001  Free Software Foundation, Inc.
+@copying
+This manual is for Eshell, the Emacs shell.
 
+Copyright @copyright{} 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -51,10 +28,16 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
 
-@synindex vr fn
-@c The titlepage section does not appear in the Info file.
+@dircategory Emacs
+@direntry
+* Eshell: (eshell).     A command shell implemented in Emacs Lisp.
+@end direntry
+
+@setchapternewpage on
+
 @titlepage
 @sp 4
 @c The title is printed in a large font.
@@ -72,28 +55,9 @@ license to the document, as described in section 6 of the license.
 @center John Wiegley
 @c -date-
 
-@c  The following two commands start the copyright page for the printed
-@c  manual.  This will not appear in the Info file.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1999, 2000, 2001  Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @contents
@@ -102,8 +66,8 @@ license to the document, as described in section 6 of the license.
 @c                   The real text starts here
 @c ================================================================
 
+@ifnottex
 @node Top, What is Eshell?, (dir), (dir)
-@ifinfo
 @top Eshell
 
 This manual documents Eshell, a shell-like command interpretor
@@ -113,25 +77,25 @@ replacement for command shells such as @command{bash}, @command{zsh},
 @command{rc}, or @command{4dos}; since Emacs itself is capable of
 handling the sort of tasks accomplished by those tools.
 @c This manual is updated to release 2.4 of Eshell.
-@end ifinfo
+@end ifnottex
 
 @menu
 * What is Eshell?::             A brief introduction to the Emacs Shell.
 * Installation::                For users of Emacs 20 and XEmacs.
-* Command basics::              The basics of command usage.     
-* Commands::                    
-* Arguments::                   
-* Input/Output::                
-* Process control::             
-* Extension modules::           
-* Extras and Goodies::          
+* Command basics::              The basics of command usage.
+* Commands::
+* Arguments::
+* Input/Output::
+* Process control::
+* Extension modules::
+* Extras and Goodies::
 * Bugs and ideas::              Known problems, and future ideas.
-* Concept Index::               
-* Function and Variable Index::  
-* Key Index::                   
+* Concept Index::
+* Function and Variable Index::
+* Key Index::
 @end menu
 
-@node What is Eshell?, Installation, Top, Top
+@node What is Eshell?
 @chapter What is Eshell?
 @cindex what is Eshell?
 @cindex Eshell, what it is
@@ -189,7 +153,7 @@ As of Emacs 21, Eshell is part of the standard Emacs distribution.
 * Contributors to Eshell::      People who have helped out!
 @end menu
 
-@node Contributors to Eshell,  , What is Eshell?, What is Eshell?
+@node Contributors to Eshell
 @section Contributors to Eshell
 @cindex contributors
 @cindex authors
@@ -229,14 +193,14 @@ Apart from these, a lot of people have sent suggestions, ideas,
 requests, bug reports and encouragement.  Thanks a lot!  Without you
 there would be no new releases of Eshell.
 
-@node Installation, Command basics, What is Eshell?, Top
+@node Installation
 @chapter Installation
 @cindex installation
 
 As mentioned above, Eshell comes preinstalled as of Emacs 21.  If you're
 using Emacs 20.4 or later, or XEmacs 21, you can download the most
 recent version of Eshell from
-@url{http://www.gci-net.com/users/j/johnw/Emacs/eshell.tar.gz}.
+@url{http://www.gci-net.com/users/j/johnw/Emacs/packages/eshell.tar.gz}.
 
 However, if you are using Emacs 21, you may skip this section.
 
@@ -419,7 +383,7 @@ you can use.  For other printers, use a suitable DVI driver,
 e.g., @code{dvilj4} for LaserJet-compatible printers.
 @end enumerate
 
-@node Command basics, Commands, Installation, Top
+@node Command basics
 @chapter Basic overview
 
 A command shell is a means of entering verbally-formed commands.  This
@@ -433,7 +397,7 @@ things.
 * Command arguments::           Some verbs require arguments.
 @end menu
 
-@node Commands verbs, Command arguments, Command basics, Command basics
+@node Commands verbs
 @section Commands verbs
 
 Commands are expressed using @dfn{script}, a special shorthand language
@@ -476,7 +440,7 @@ textual arguments, numerical arguments---even Lisp arguments.
 Distinguishing these different types of arguments requires special
 typing, for the computer to know exactly what you mean.
 
-@node Command arguments,  , Commands verbs, Command basics
+@node Command arguments
 @section Command arguments
 
 Eshell recognizes several different kinds of command arguments:
@@ -511,22 +475,23 @@ with Eshell as a basic command invocation tool, and learn more about the
 commands on your system; then come back when it all sits more familiarly
 on your mind.  Have fun!
 
-@node Commands, Arguments, Command basics, Top
+@node Commands
 @chapter Commands
 
 @menu
-* Invocation::                  
-* Completion::                  
-* Aliases::                     
-* History::                     
-* Scripts::                     
+* Invocation::
+* Completion::
+* Aliases::
+* History::
+* Scripts::
+* Built-ins::
 @end menu
 
 Essentially, a command shell is all about invoking commands---and
 everything that entails.  So understanding how Eshell invokes commands
 is the key to comprehending how it all works.
 
-@node Invocation, Completion, Commands, Commands
+@node Invocation
 @section Invocation
 
 Unlike regular system shells, Eshell never invokes kernel functions
@@ -542,95 +507,140 @@ command, follows these steps:
 
 @enumerate
 @item Parse the command string into separate arguments.
-@item 
+@item
 @end enumerate
 
-@node Completion, Aliases, Invocation, Commands
+@node Completion
 @section Completion
 
-@node Aliases, History, Completion, Commands
+@node Aliases
 @section Aliases
 
-@node History, Scripts, Aliases, Commands
+@node History
 @section History
 
-@node Scripts,  , History, Commands
+Eshell knows a few built-in variables:
+
+@table @code
+
+@item $+
+@vindex $+
+This variable always contains the current working directory.
+
+@item $-
+@vindex $-
+This variable always contains the previous working directory (the
+current working directory from before the last @code{cd} command).
+
+@end table
+
+@node Scripts
 @section Scripts
 
 
-@node Arguments, Input/Output, Commands, Top
+@node Built-ins
+@section Built-in commands
+
+Here is a list of built-in commands that Eshell knows about:
+
+@table @code
+
+@item cd
+@findex cd
+This command changes the current working directory.  Usually, it is
+invoked as @samp{cd foo} where @file{foo} is the new working
+directory.  But @code{cd} knows about a few special arguments:
+
+When it receives no argument at all, it changes to the home directory.
+
+Giving the command @samp{cd -} changes back to the previous working
+directory (this is the same as @samp{cd $-}).
+
+The command @samp{cd =} shows the directory stack.  Each line is
+numbered.
+
+With @samp{cd =foo}, Eshell searches the directory stack for a
+directory matching the regular expression @samp{foo} and changes to
+that directory.
+
+With @samp{cd -42}, you can access the directory stack by number.
+
+@end table
+
+
+@node Arguments
 @chapter Arguments
 
 @menu
-* The Parser::                  
-* Variables::                   
-* Substitution::                
-* Globbing::                    
-* Predicates::                  
+* The Parser::
+* Variables::
+* Substitution::
+* Globbing::
+* Predicates::
 @end menu
 
-@node The Parser, Variables, Arguments, Arguments
+@node The Parser
 @section The Parser
 
-@node Variables, Substitution, The Parser, Arguments
+@node Variables
 @section Variables
 
-@node Substitution, Globbing, Variables, Arguments
+@node Substitution
 @section Substitution
 
-@node Globbing, Predicates, Substitution, Arguments
+@node Globbing
 @section Globbing
 
-@node Predicates,  , Globbing, Arguments
+@node Predicates
 @section Predicates
 
 
-@node Input/Output, Process control, Arguments, Top
+@node Input/Output
 @chapter Input/Output
 
-@node Process control, Extension modules, Input/Output, Top
+@node Process control
 @chapter Process control
 
 
-@node Extension modules, Extras and Goodies, Process control, Top
+@node Extension modules
 @chapter Extension modules
 
 @menu
-* Writing a module::            
-* Module testing::              
-* Directory handling::          
-* Key rebinding::               
-* Smart scrolling::             
-* Terminal emulation::          
-* Built-in UNIX commands::      
+* Writing a module::
+* Module testing::
+* Directory handling::
+* Key rebinding::
+* Smart scrolling::
+* Terminal emulation::
+* Built-in UNIX commands::
 @end menu
 
-@node Writing a module, Module testing, Extension modules, Extension modules
+@node Writing a module
 @section Writing a module
 
-@node Module testing, Directory handling, Writing a module, Extension modules
+@node Module testing
 @section Module testing
 
-@node Directory handling, Key rebinding, Module testing, Extension modules
+@node Directory handling
 @section Directory handling
 
-@node Key rebinding, Smart scrolling, Directory handling, Extension modules
+@node Key rebinding
 @section Key rebinding
 
-@node Smart scrolling, Terminal emulation, Key rebinding, Extension modules
+@node Smart scrolling
 @section Smart scrolling
 
-@node Terminal emulation, Built-in UNIX commands, Smart scrolling, Extension modules
+@node Terminal emulation
 @section Terminal emulation
 
-@node Built-in UNIX commands,  , Terminal emulation, Extension modules
+@node Built-in UNIX commands
 @section Built-in UNIX commands
 
 
-@node Extras and Goodies, Bugs and ideas, Extension modules, Top
+@node Extras and Goodies
 @chapter Extras and Goodies
 
-@node Bugs and ideas, Concept Index, Extras and Goodies, Top
+@node Bugs and ideas
 @chapter Bugs and ideas
 @cindex reporting bugs and ideas
 @cindex bugs, how to report them
@@ -649,10 +659,10 @@ extensions to this package, I would like to hear from you.  I hope you
 find this package useful!
 
 @menu
-* Known problems::              
+* Known problems::
 @end menu
 
-@node Known problems,  , Bugs and ideas, Bugs and ideas
+@node Known problems
 @section Known problems
 @cindex known bugs
 @cindex bugs, known
@@ -716,7 +726,7 @@ scrolls back.
 
 @item Using C-p and C-n with rebind gets into a locked state
 
-This happened a few times in Emacs 21, but has been unreproducable
+This happened a few times in Emacs 21, but has been unreproducible
 since.
 
 @item If an interactive process is currently running, @kbd{M-!} doesn't work
@@ -962,7 +972,7 @@ from @samp{!:1*}.
 
 This would allow for an ``output translators'', that take a function to
 modify output with, and a target.  Devise a syntax that works well with
-pipes, and can accomodate multiple functions (i.e., @samp{>'(upcase
+pipes, and can accommodate multiple functions (i.e., @samp{>'(upcase
 regexp-quote)} or @samp{>'upcase}).
 
 @item Allow Eshell to read/write to/from standard input and output
@@ -1081,7 +1091,7 @@ perform this on-thy-fly rewriting.
 @item Write an alias for @command{less} that brings up a @code{view-mode} buffer
 
 Such that the user can press @key{SPC} and @key{DEL}, and then @key{q}
-to return to Eshell.  It would be equivalent to: 
+to return to Eshell.  It would be equivalent to:
 @samp{X > #<buffer Y>; view-buffer #<buffer Y>}.
 
 @item Make @code{eshell-mode} as much a full citizen as @code{shell-mode}
@@ -1103,17 +1113,17 @@ Since it keeps the cursor up where the command was invoked.
 
 @end table
 
-@node Concept Index, Function and Variable Index, Bugs and ideas, Top
+@node Concept Index
 @unnumbered Concept Index
 
 @printindex cp
 
-@node Function and Variable Index, Key Index, Concept Index, Top
+@node Function and Variable Index
 @unnumbered Function and Variable Index
 
 @printindex fn
 
-@node Key Index,  , Function and Variable Index, Top
+@node Key Index
 @unnumbered Key Index
 
 @printindex ky

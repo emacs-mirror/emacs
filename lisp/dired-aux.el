@@ -145,6 +145,7 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 ;; allowing 3 extra characters of separator per file name.
 (defun dired-bunch-files (max function args files)
   (let (pending
+	past
 	(pending-length 0)
 	failures)
     ;; Accumulate files as long as they fit in MAX chars,
@@ -156,9 +157,15 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	;; If we have at least 1 pending file
 	;; and this file won't fit in the length limit, process now.
 	(if (and pending (> (+ thislength pending-length) max))
-	    (setq failures
-		  (nconc (apply function (append args (nreverse pending)))
-			 failures)
+	    (setq pending (nreverse pending)
+		  ;; The elements of PENDING are now in forward order.
+		  ;; Do the operation and record failures.
+		  failures (nconc (apply function (append args pending))
+				  failures)
+		  ;; Transfer the elemens of PENDING onto PAST
+		  ;; and clear it out.  Now PAST contains the first N files
+		  ;; specified (for some N), and FILES contains the rest.
+		  past (nconc past pending)
 		  pending nil
 		  pending-length 0))
 	;; Do (setq pending (cons thisfile pending))
@@ -167,8 +174,12 @@ This calls chmod, thus symbolic modes like `g+w' are allowed."
 	(setq pending files)
 	(setq pending-length (+ thislength pending-length))
 	(setq files rest)))
-    (nconc (apply function (append args (nreverse pending)))
-	   failures)))
+    (setq pending (nreverse pending))
+    (prog1
+	(nconc (apply function (append args pending))
+	       failures)
+      ;; Now the original list FILES has been put back as it was.
+      (nconc past pending))))
 
 ;;;###autoload
 (defun dired-do-print (&optional arg)
@@ -666,7 +677,7 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
   '((?\y . y) (?\040 . y)		; `y' or SPC means accept once
     (?n . n) (?\177 . n)		; `n' or DEL skips once
     (?! . yes)				; `!' accepts rest
-    (?q. no) (?\e . no)			; `q' or ESC skips rest
+    (?q . no) (?\e . no)		; `q' or ESC skips rest
     ;; None of these keys quit - use C-g for that.
     ))
 
@@ -825,7 +836,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 		  (if (eq (following-char) ?\r)
 		      (dired-unhide-subdir))
 		  ;; We are already where we should be, except when
-		 ;; point is before the subdir line or its total line.
+		  ;; point is before the subdir line or its total line.
 		  (let ((p (dired-after-subdir-garbage cur-dir)))
 		    (if (< (point) p)
 			(goto-char p))))
@@ -843,11 +854,17 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	    (let (buffer-read-only opoint)
 	      (beginning-of-line)
 	      (setq opoint (point))
-	      (dired-add-entry-do-indentation marker-char)
-       ;; don't expand `.'.  Show just the file name within directory.
+	      ;; Don't expand `.'.  Show just the file name within directory.
 	      (let ((default-directory directory))
-		(insert-directory filename
-				  (concat dired-actual-switches "d")))
+		(dired-insert-directory directory
+					(concat dired-actual-switches "d")
+					(list filename)))
+              (goto-char opoint)
+	      ;; Put in desired marker char.
+	      (when marker-char
+		(let ((dired-marker-char
+		       (if (integerp marker-char) marker-char dired-marker-char)))
+		  (dired-mark nil)))
 	      ;; Compensate for a bug in ange-ftp.
 	      ;; It inserts the file's absolute name, rather than
 	      ;; the relative one.  That may be hard to fix since it
@@ -855,14 +872,16 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 	      (goto-char opoint)
 	      (let ((inserted-name (dired-get-filename 'verbatim)))
 		(if (file-name-directory inserted-name)
-		    (progn
+		    (let (props)
 		      (end-of-line)
-		      (delete-char (- (length inserted-name)))
-		      (insert filename)
+		      (forward-char (- (length inserted-name)))
+		      (setq props (text-properties-at (point)))
+		      (delete-char (length inserted-name))
+		      (let ((pt (point)))
+			(insert filename)
+			(set-text-properties pt (point) props))
 		      (forward-char 1))
 		  (forward-line 1)))
-	    ;; Give each line a text property recording info about it.
-	      (dired-insert-set-properties opoint (point))
 	      (forward-line -1)
 	      (if dired-after-readin-hook ;; the subdir-alist is not affected...
 		  (save-excursion ;; ...so we can run it right now:
@@ -877,14 +896,6 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
     (if reason	; don't move away on failure
 	(goto-char opoint))
     (not reason))) ; return t on success, nil else
-
-;; This is a separate function for the sake of nested dired format.
-(defun dired-add-entry-do-indentation (marker-char)
-  ;; two spaces or a marker plus a space:
-  (insert (if marker-char
-	      (if (integerp marker-char) marker-char dired-marker-char)
-	    ?\040)
-	  ?\040))
 
 (defun dired-after-subdir-garbage (dir)
   ;; Return pos of first file line of DIR, skipping header and total
@@ -915,6 +926,7 @@ a prefix arg lets you edit the `ls' switches used for the new listing."
 
 ;;;###autoload
 (defun dired-relist-file (file)
+  "Create or update the line for FILE in all Dired buffers it would belong in."
   (dired-fun-in-all-buffers (file-name-directory file)
 			    (file-name-nondirectory file)
 			    (function dired-relist-entry) file))
@@ -961,7 +973,7 @@ Special value `always' suppresses confirmation."
 (defvar dired-overwrite-confirmed)
 
 (defun dired-handle-overwrite (to)
-  ;; Save old version of a to be overwritten file TO.
+  ;; Save old version of file TO that is to be overwritten.
   ;; `dired-overwrite-confirmed' and `overwrite-backup-query' are fluid vars
   ;; from dired-create-files.
   (let (backup)
@@ -1006,16 +1018,16 @@ Special value `always' suppresses confirmation."
     (copy-file from to ok-flag dired-copy-preserve-time)))
 
 ;;;###autoload
-(defun dired-rename-file (from to ok-flag)
-  (dired-handle-overwrite to)
-  (rename-file from to ok-flag)		; error is caught in -create-files
+(defun dired-rename-file (file newname ok-if-already-exists)
+  (dired-handle-overwrite newname)
+  (rename-file file newname ok-if-already-exists) ; error is caught in -create-files
   ;; Silently rename the visited file of any buffer visiting this file.
-  (and (get-file-buffer from)
-       (with-current-buffer (get-file-buffer from)
-	 (set-visited-file-name to nil t)))
-  (dired-remove-file from)
+  (and (get-file-buffer file)
+       (with-current-buffer (get-file-buffer file)
+	 (set-visited-file-name newname nil t)))
+  (dired-remove-file file)
   ;; See if it's an inserted subdir, and rename that, too.
-  (dired-rename-subdir from to))
+  (dired-rename-subdir file newname))
 
 (defun dired-rename-subdir (from-dir to-dir)
   (setq from-dir (file-name-as-directory from-dir)
@@ -1246,7 +1258,7 @@ Optional arg HOW-TO is used to set the value of the into-dir variable
 			  ;; will return t because the filesystem is
 			  ;; case-insensitive, and Emacs will try to move
 			  ;; foo -> foo/foo, which fails.
-			  (if (and (memq system-type '(ms-dos windows-nt))
+			  (if (and (memq system-type '(ms-dos windows-nt cygwin))
 				   (eq op-symbol 'move)
 				   dired-one-file
 				   (string= (downcase
@@ -1379,14 +1391,22 @@ with the same names that the files currently have.  The default
 suggested for the target directory depends on the value of
 `dired-dwim-target', which see."
   (interactive "P")
-  (dired-do-create-files 'hardlink (function add-name-to-file)
+  (dired-do-create-files 'hardlink (function dired-hardlink)
 			   "Hardlink" arg dired-keep-marker-hardlink))
+
+(defun dired-hardlink (file newname &optional ok-if-already-exists)
+  (dired-handle-overwrite newname)
+  ;; error is caught in -create-files
+  (add-name-to-file file newname ok-if-already-exists)
+  ;; Update the link count
+  (dired-relist-file file))
 
 ;;;###autoload
 (defun dired-do-rename (&optional arg)
   "Rename current file or all marked (or next ARG) files.
 When renaming just the current file, you specify the new name.
 When renaming multiple or marked files, you specify a directory.
+This command also renames any buffers that are visiting the files.
 The default suggested for the target directory depends on the value
 of `dired-dwim-target', which see."
   (interactive "P")
@@ -1397,13 +1417,13 @@ of `dired-dwim-target', which see."
 ;;; 5K
 ;;;###begin dired-re.el
 (defun dired-do-create-files-regexp
-  (file-creator operation arg regexp newname &optional whole-path marker-char)
+  (file-creator operation arg regexp newname &optional whole-name marker-char)
   ;; Create a new file for each marked file using regexps.
   ;; FILE-CREATOR and OPERATION as in dired-create-files.
   ;; ARG as in dired-get-marked-files.
   ;; Matches each marked file against REGEXP and constructs the new
   ;;   filename from NEWNAME (like in function replace-match).
-  ;; Optional arg WHOLE-PATH means match/replace the whole file name
+  ;; Optional arg WHOLE-NAME means match/replace the whole file name
   ;;   instead of only the non-directory part of the file.
   ;; Optional arg MARKER-CHAR as in dired-create-files.
   (let* ((fn-list (dired-get-marked-files nil arg))
@@ -1416,7 +1436,7 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 					  (downcase operation)))
 	 (regexp-name-constructor
 	  ;; Function to construct new filename using REGEXP and NEWNAME:
-	  (if whole-path		; easy (but rare) case
+	  (if whole-name		; easy (but rare) case
 	      (function
 	       (lambda (from)
 		 (let ((to (dired-string-replace-match regexp from newname))
@@ -1431,7 +1451,7 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 			    to)
 		     (dired-log "%s: %s did not match regexp %s\n"
 				operation from regexp)))))
-	    ;; not whole-path, replace non-directory part only
+	    ;; not whole-name, replace non-directory part only
 	    (function
 	     (lambda (from)
 	       (let* ((new (dired-string-replace-match
@@ -1454,21 +1474,21 @@ Type SPC or `y' to %s one match, DEL or `n' to skip to next,
 
 (defun dired-mark-read-regexp (operation)
   ;; Prompt user about performing OPERATION.
-  ;; Read and return list of: regexp newname arg whole-path.
-  (let* ((whole-path
+  ;; Read and return list of: regexp newname arg whole-name.
+  (let* ((whole-name
 	  (equal 0 (prefix-numeric-value current-prefix-arg)))
 	 (arg
-	  (if whole-path nil current-prefix-arg))
+	  (if whole-name nil current-prefix-arg))
 	 (regexp
 	  (dired-read-regexp
-	   (concat (if whole-path "Path " "") operation " from (regexp): ")))
+	   (concat (if whole-name "Abs. " "") operation " from (regexp): ")))
 	 (newname
 	  (read-string
-	   (concat (if whole-path "Path " "") operation " " regexp " to: "))))
-    (list regexp newname arg whole-path)))
+	   (concat (if whole-name "Abs. " "") operation " " regexp " to: "))))
+    (list regexp newname arg whole-name)))
 
 ;;;###autoload
-(defun dired-do-rename-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-rename-regexp (regexp newname &optional arg whole-name)
   "Rename selected files whose names match REGEXP to NEWNAME.
 
 With non-zero prefix argument ARG, the command operates on the next ARG
@@ -1485,10 +1505,10 @@ Normally, only the non-directory part of the file name is used and changed."
   (interactive (dired-mark-read-regexp "Rename"))
   (dired-do-create-files-regexp
    (function dired-rename-file)
-   "Rename" arg regexp newname whole-path dired-keep-marker-rename))
+   "Rename" arg regexp newname whole-name dired-keep-marker-rename))
 
 ;;;###autoload
-(defun dired-do-copy-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-copy-regexp (regexp newname &optional arg whole-name)
   "Copy selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "Copy"))
@@ -1496,25 +1516,25 @@ See function `dired-do-rename-regexp' for more info."
     (dired-do-create-files-regexp
      (function dired-copy-file)
      (if dired-copy-preserve-time "Copy [-p]" "Copy")
-     arg regexp newname whole-path dired-keep-marker-copy)))
+     arg regexp newname whole-name dired-keep-marker-copy)))
 
 ;;;###autoload
-(defun dired-do-hardlink-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-hardlink-regexp (regexp newname &optional arg whole-name)
   "Hardlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "HardLink"))
   (dired-do-create-files-regexp
    (function add-name-to-file)
-   "HardLink" arg regexp newname whole-path dired-keep-marker-hardlink))
+   "HardLink" arg regexp newname whole-name dired-keep-marker-hardlink))
 
 ;;;###autoload
-(defun dired-do-symlink-regexp (regexp newname &optional arg whole-path)
+(defun dired-do-symlink-regexp (regexp newname &optional arg whole-name)
   "Symlink selected files whose names match REGEXP to NEWNAME.
 See function `dired-do-rename-regexp' for more info."
   (interactive (dired-mark-read-regexp "SymLink"))
   (dired-do-create-files-regexp
    (function make-symbolic-link)
-   "SymLink" arg regexp newname whole-path dired-keep-marker-symlink))
+   "SymLink" arg regexp newname whole-name dired-keep-marker-symlink))
 
 (defun dired-create-files-non-directory
   (file-creator basename-constructor operation arg)
@@ -1707,34 +1727,21 @@ With optional arg REMEMBER-MARKS, return an alist of marked files."
       (delete-region begin-marker (point)))))
 
 (defun dired-insert-subdir-doinsert (dirname switches)
-  ;; Insert ls output after point and put point on the correct
-  ;; position for the subdir alist.
+  ;; Insert ls output after point.
   ;; Return the boundary of the inserted text (as list of BEG and END).
-  (let ((begin (point)) end)
-    (message "Reading directory %s..." dirname)
-    (let ((dired-actual-switches
-	   (or switches
-	       (dired-replace-in-string "R" "" dired-actual-switches))))
-      (if (equal dirname (car (car (reverse dired-subdir-alist))))
-	  ;; top level directory may contain wildcards:
-	  (dired-readin-insert dired-directory)
-	(let ((opoint (point)))
-	  (insert-directory dirname dired-actual-switches nil t)
-	  (dired-insert-set-properties opoint (point)))))
-    (message "Reading directory %s...done" dirname)
-    (setq end (point-marker))
-    (indent-rigidly begin end 2)
-    ;;  call dired-insert-headerline afterwards, as under VMS dired-ls
-    ;;  does insert the headerline itself and the insert function just
-    ;;  moves point.
-    ;;  Need a marker for END as this inserts text.
-    (goto-char begin)
-    (if (not (looking-at "^  /.*:$"))
-	(dired-insert-headerline dirname))
-    ;; point is now like in dired-build-subdir-alist
-    (prog1
-	(list begin (marker-position end))
-      (set-marker end nil))))
+  (save-excursion
+    (let ((begin (point)))
+      (message "Reading directory %s..." dirname)
+      (let ((dired-actual-switches
+	     (or switches
+		 (dired-replace-in-string "R" "" dired-actual-switches))))
+	(if (equal dirname (car (car (last dired-subdir-alist))))
+	    ;; If doing the top level directory of the buffer,
+	    ;; redo it as specified in dired-directory.
+	    (dired-readin-insert)
+	  (dired-insert-directory dirname dired-actual-switches nil nil t)))
+      (message "Reading directory %s...done" dirname)
+      (list begin (point)))))
 
 (defun dired-insert-subdir-doupdate (dirname elt beg-end)
   ;; Point is at the correct subdir alist position for ELT,
@@ -2026,7 +2033,7 @@ true then the type of the file linked to by FILE is printed instead."
       (call-process "file" nil t t "--" file))
     (when (bolp)
       (backward-delete-char 1))
-    (message (buffer-string))))
+    (message "%s" (buffer-string))))
 
 (provide 'dired-aux)
 

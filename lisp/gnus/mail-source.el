@@ -92,12 +92,12 @@ See Info node `(gnus)Mail Source Specifiers'."
 			(const :format "" pop)
 			(checklist :tag "Options" :greedy t
 				   (group :inline t
-					  (const :format "" :value :server) 
+					  (const :format "" :value :server)
 					  (string :tag "Server"))
 				   (group :inline t
-					  (const :format "" :value :port) 
+					  (const :format "" :value :port)
 					  (choice :tag "Port"
-						  :value "pop3" 
+						  :value "pop3"
 						  (number :format "%v")
 						  (string :format "%v")))
 				   (group :inline t
@@ -119,7 +119,7 @@ See Info node `(gnus)Mail Source Specifiers'."
 					  (const :format "" :value :function)
 					  (function :tag "Function"))
 				   (group :inline t
-					  (const :format "" 
+					  (const :format ""
 						 :value :authentication)
 					  (choice :tag "Authentication"
 						  :value apop
@@ -145,8 +145,8 @@ See Info node `(gnus)Mail Source Specifiers'."
 					  (string :tag "Server"))
 				   (group :inline t
 					  (const :format "" :value :port)
-					  (choice :tag "Port" 
-						  :value 143 
+					  (choice :tag "Port"
+						  :value 143
 						  number string))
 				   (group :inline t
 					  (const :format "" :value :user)
@@ -171,7 +171,7 @@ See Info node `(gnus)Mail Source Specifiers'."
 						  :value "INBOX"))
 				   (group :inline t
 					  (const :format "" :value :predicate)
-					  (string :tag "Predicate" 
+					  (string :tag "Predicate"
 						  :value "UNSEEN UNDELETED"))
 				   (group :inline t
 					  (const :format "" :value :fetchflag)
@@ -187,7 +187,7 @@ See Info node `(gnus)Mail Source Specifiers'."
 		  (cons :tag "Webmail server"
 			(const :format "" webmail)
 			(checklist :tag "Options" :greedy t
-				   (group :inline t 
+				   (group :inline t
 					 (const :format "" :value :subtype)
 					 ;; Should be generated from
 					 ;; `webmail-type-definition', but we
@@ -739,7 +739,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 (defvar mail-source-report-new-mail-timer nil)
 (defvar mail-source-report-new-mail-idle-timer nil)
 
-(eval-when-compile 
+(eval-when-compile
   (if (featurep 'xemacs)
       (require 'itimer)
     (require 'timer)))
@@ -810,16 +810,16 @@ This only works when `display-time' is enabled."
 	    (when (and (not (file-directory-p file))
 		       (not (if function
 				(funcall function file mail-source-crash-box)
-			      (let ((coding-system-for-write 
+			      (let ((coding-system-for-write
 				     mm-text-coding-system)
-				    (coding-system-for-read 
+				    (coding-system-for-read
 				     mm-text-coding-system))
 				(with-temp-file mail-source-crash-box
 				  (insert-file-contents file)
 				  (goto-char (point-min))
 ;;;                               ;; Unix mail format
 ;;; 				  (unless (looking-at "\n*From ")
-;;; 				    (insert "From maildir " 
+;;; 				    (insert "From maildir "
 ;;; 					    (current-time-string) "\n"))
 ;;; 				  (while (re-search-forward "^From " nil t)
 ;;; 				    (replace-match ">From "))
@@ -915,14 +915,14 @@ This only works when `display-time' is enabled."
       (when (eq authentication 'password)
 	(setq password
 	      (or password
-		  (cdr (assoc (format "webmail:%s:%s" subtype user) 
+		  (cdr (assoc (format "webmail:%s:%s" subtype user)
 			      mail-source-password-cache))
 		  (mail-source-read-passwd
 		   (format "Password for %s at %s: " user subtype))))
 	(when (and password
-		   (not (assoc (format "webmail:%s:%s" subtype user) 
+		   (not (assoc (format "webmail:%s:%s" subtype user)
 			       mail-source-password-cache)))
-	  (push (cons (format "webmail:%s:%s" subtype user) password) 
+	  (push (cons (format "webmail:%s:%s" subtype user) password)
 		mail-source-password-cache)))
       (webmail-fetch mail-source-crash-box subtype user password)
       (mail-source-callback callback (symbol-name subtype)))))

@@ -1,4 +1,4 @@
-;;; greek.el --- support for Greek
+;;; greek.el --- support for Greek -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -32,7 +32,7 @@
  'greek-iso-8bit 2 ?7
  "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)."
  '(ascii greek-iso8859-7 nil nil
-   nil nil nil nil nil nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii greek-iso8859-7)
    (mime-charset . iso-8859-7)))
 

@@ -24,7 +24,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -140,10 +140,10 @@ NOTE-END  */
 
 #ifdef __GNUC__
 #define C_DEBUG_SWITCH
-#define LD_SWITCH_MACHINE 
+#define LD_SWITCH_MACHINE
 #else
 #define C_DEBUG_SWITCH -DSYSV
-#define C_OPTIMIZE_SWITCH -DSYSV 
+#define C_OPTIMIZE_SWITCH -DSYSV
 #define LD_SWITCH_MACHINE
 #endif
 
@@ -157,10 +157,6 @@ NOTE-END  */
   ((var) =								\
    ((int)(type) << VALBITS)						\
    + (((unsigned) (ptr) << (BITS_PER_INT-VALBITS)) >> (BITS_PER_INT-VALBITS)))
-
-#define XSETINT(a, b)  XSET(a, XTYPE(a), b)
-#define XSETUINT(a, b) XSET(a, XTYPE(a), b)
-#define XSETPNTR(a, b) XSET(a, XTYPE(a), b)
 
 #define XUNMARK(a)							\
   ((a) =								\

@@ -5,7 +5,7 @@
 
 ;; This file is part of GNU Emacs.
 
-;; Maintainer's Time-stamp: <2001-09-20 11:57:46 gildea>
+;; Maintainer's Time-stamp: <2003-02-01 09:26:25 gildea>
 ;; Maintainer: Stephen Gildea <gildea@stop.mail-abuse.org>
 ;; Keywords: tools
 
@@ -28,7 +28,7 @@
 
 ;; A template in a file can be updated with a new time stamp when
 ;; you save the file.  For example:
-;;     static char *ts = "sdmain.c Time-stamp: <1996-08-13 10:20:51 gildea>";
+;;     static char *ts = "sdmain.c Time-stamp: <2001-08-13 10:20:51 gildea>";
 ;; See the top of `time-stamp.el' for another example.
 
 ;; To use time-stamping, add this line to your .emacs file:
@@ -68,7 +68,7 @@ on the locale setting recorded in `system-time-locale' and
 %#p  `am' or `pm'.			%P  gives uppercase: `AM' or `PM'
 %02S seconds
 %w   day number of week, Sunday is 0
-%02y 2-digit year: `97'			%:y 4-digit year: `1997'
+%02y 2-digit year: `03'			%:y 4-digit year: `2003'
 %z   time zone name: `est'.		%Z  gives uppercase: `EST'
 
 Non-date items:
@@ -91,7 +91,8 @@ change in a future version.  Therefore either a padding width should be
 specified, or the : modifier should be used to explicitly request the
 historical default."
   :type 'string
-  :group 'time-stamp)
+  :group 'time-stamp
+  :version "20.1")
 
 (defcustom time-stamp-active t
   "*Non-nil to enable time-stamping of buffers by \\[time-stamp].
@@ -102,11 +103,12 @@ See also the variable `time-stamp-warn-inactive'."
 
 (defcustom time-stamp-warn-inactive t
   "Have \\[time-stamp] warn if a buffer did not get time-stamped.
-If non-nil, a warning is displayed if `time-stamp-active' disables time
-stamping and the buffer contains a template that would otherwise have
-been updated."
+If non-nil, a warning is displayed if `time-stamp-active' has
+deactivated time stamping and the buffer contains a template that
+otherwise would have been updated."
   :type 'boolean
-  :group 'time-stamp)
+  :group 'time-stamp
+  :version "19.29")
 
 (defcustom time-stamp-old-format-warn 'ask
   "Action if `time-stamp-format' is an old-style list.
@@ -123,7 +125,8 @@ If nil, no notification is given."
   "If non-nil, a string naming the timezone to be used by \\[time-stamp].
 Format is the same as that used by the environment variable TZ on your system."
   :type '(choice (const nil) string)
-  :group 'time-stamp)
+  :group 'time-stamp
+  :version "20.1")
 
 
 ;;; Do not change time-stamp-line-limit, time-stamp-start,
@@ -175,7 +178,7 @@ do so in the local variables section of the time-stamped file itself.")
 
 
 (defvar time-stamp-inserts-lines nil    ;Do not change!
-  "Whether time-stamp can change the number of lines in a file.
+  "Whether \\[time-stamp] can change the number of lines in a file.
 If nil, \\[time-stamp] skips as many lines as there are newlines in
 `time-stamp-format' before looking for the `time-stamp-end' pattern,
 thus it tries not to change the number of lines in the buffer.
@@ -192,7 +195,7 @@ variables section of the time-stamped file itself.")
 
 (defvar time-stamp-count 1		;Do not change!
   "How many templates \\[time-stamp] will look for in a buffer.
-The same time-stamp will be written in each case.
+The same time stamp will be written in each case.
 
 Do not change `time-stamp-count' for yourself or you will be
 incompatible with other people's files!  If you must change it for
@@ -200,7 +203,7 @@ some application, do so in the local variables section of the
 time-stamped file itself.")
 
 
-(defvar time-stamp-pattern "%%"		;Do not change!
+(defvar time-stamp-pattern nil		;Do not change!
   "Convenience variable setting all `time-stamp' location and format values.
 This string has four parts, each of which is optional.
 These four parts set `time-stamp-line-limit', `time-stamp-start',
@@ -209,21 +212,24 @@ for each of these variables for details.
 
 The first part is a number followed by a slash; the number sets the number
 of lines at the beginning (negative counts from end) of the file searched
-for the time-stamp.  The number and the slash may be omitted to use the
+for the time stamp.  The number and the slash may be omitted to use the
 normal value.
 
 The second part is a regexp identifying the pattern preceding the time stamp.
 This part may be omitted to use the normal pattern.
 
-The third part specifies the format of the time-stamp inserted.  See
+The third part specifies the format of the time stamp inserted.  See
 the documentation for `time-stamp-format' for details.  Specify this
 part as \"%%\" to use the normal format.
 
 The fourth part is a regexp identifying the pattern following the time stamp.
 This part may be omitted to use the normal pattern.
 
-As an example, the default behavior can be specified something like this:
-\"8/Time-stamp: [\\\"<]%:y-%02m-%02d %02H:%02M:%02S %u[\\\">]\"
+Examples:
+\"-10/\"
+\"-9/^Last modified: %%$\"
+\"@set Time-stamp: %:b %:d, %:y$\"
+\"newcommand{\\\\\\\\timestamp}{%%}\"
 
 Do not change `time-stamp-pattern' for yourself or you will be incompatible
 with other people's files!  Set it only in the local variables section
@@ -242,7 +248,7 @@ look like one of the following:
       Time-stamp: <>
       Time-stamp: \" \"
 The time stamp is written between the brackets or quotes:
-      Time-stamp: <1998-02-18 10:20:51 gildea>
+      Time-stamp: <2001-02-18 10:20:51 gildea>
 The time stamp is updated only if the variable `time-stamp-active' is non-nil.
 The format of the time stamp is set by the variable `time-stamp-format'.
 The variables `time-stamp-line-limit', `time-stamp-start', `time-stamp-end',
@@ -260,7 +266,7 @@ template."
 	search-limit)
     (if (stringp time-stamp-pattern)
 	(progn
-	  (string-match "\\`\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(\\(.\\|\n\\)*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?\\'" time-stamp-pattern)
+	  (string-match "\\`\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(\\(%[-.,:@+_ #^()0-9]*[A-Za-z%][^%]*\\)*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?\\'" time-stamp-pattern)
 	  (and (match-beginning 2)
 	       (setq line-limit
 		     (string-to-int (match-string 2 time-stamp-pattern))))
@@ -317,7 +323,7 @@ template."
 
 (defun time-stamp-once (start search-limit ts-start ts-end
 			ts-format format-lines end-lines)
-  "Update one time-stamp.  Internal routine called by \\[time-stamp].
+  "Update one time stamp.  Internal routine called by \\[time-stamp].
 Returns the end point, which is where `time-stamp' begins the next search."
   (let ((case-fold-search nil)
 	(end nil)
@@ -384,7 +390,7 @@ Returns the end point, which is where `time-stamp' begins the next search."
 ;;;###autoload
 (defun time-stamp-toggle-active (&optional arg)
   "Toggle `time-stamp-active', setting whether \\[time-stamp] updates a buffer.
-With arg, turn time stamping on if and only if arg is positive."
+With ARG, turn time stamping on if and only if arg is positive."
   (interactive "P")
   (setq time-stamp-active
 	(if (null arg)
@@ -404,10 +410,10 @@ format the string."
 	  (let ((ts-real-time-zone (getenv "TZ")))
 	    (unwind-protect
 		(progn
-		  (setenv "TZ" time-stamp-time-zone)
+		  (set-time-zone-rule time-stamp-time-zone)
 		  (format-time-string
 		   (time-stamp-string-preprocess ts-format)))
-	      (setenv "TZ" ts-real-time-zone)))
+	      (set-time-zone-rule ts-real-time-zone)))
 	(format-time-string
 	 (time-stamp-string-preprocess ts-format)))
     ;; handle version 1 compatibility
@@ -442,7 +448,7 @@ format the string."
   "Use a FORMAT to format date, time, file, and user information.
 Optional second argument TIME is only for testing.
 Implements non-time extensions to `format-time-string'
-and all time-stamp-format compatibility."
+and all `time-stamp-format' compatibility."
   (let ((fmt-len (length format))
 	(ind 0)
 	cur-char
@@ -629,7 +635,8 @@ The new forms being recommended now will continue to work then.")
 
 
 (defun time-stamp-conv-warn (old-form new-form)
-  "Display a warning about a soon-to-be-obsolete format."
+  "Display a warning about a soon-to-be-obsolete format.
+Suggests replacing OLD-FORM with NEW-FORM."
   (cond
    (time-stamp-conversion-warn
     (save-excursion
@@ -679,8 +686,24 @@ around literals."
 
 ;;; Some functions used in time-stamp-format
 
-;;; Could generate most of a message-id with
-;;; '(time-stamp-yymmdd "" time-stamp-hhmm "@" time-stamp-mail-host-name)
+;;; These functions have been obsolete since 1995
+;;; and will be removed in Emacs 22.
+;;; Meanwhile, discourage other packages from using them.
+(let ((obsolete-functions '(time-stamp-month-dd-yyyy
+			    time-stamp-dd/mm/yyyy
+			    time-stamp-mon-dd-yyyy
+			    time-stamp-dd-mon-yy
+			    time-stamp-yy/mm/dd
+			    time-stamp-yyyy/mm/dd
+			    time-stamp-yyyy-mm-dd
+			    time-stamp-yymmdd
+			    time-stamp-hh:mm:ss
+			    time-stamp-hhmm)))
+  (while obsolete-functions
+    (make-obsolete (car obsolete-functions)
+		   "use time-stamp-string or format-time-string instead."
+		   "20.1")
+    (setq obsolete-functions (cdr obsolete-functions))))
 
 ;;; pretty form, suitable for a title page
 

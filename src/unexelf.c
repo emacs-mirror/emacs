@@ -89,224 +89,224 @@ raid:/nfs/raid/src/dist-18.56/src> dump -h temacs
 temacs:
 
            **** SECTION HEADER TABLE ****
-[No]    Type    Flags   Addr         Offset       Size          Name
-        Link    Info    Adralgn      Entsize
+ [No]    Type    Flags   Addr         Offset       Size          Name
+         Link    Info    Adralgn      Entsize
 
-[1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0
+ [1]     1       2       0x80480d4    0xd4         0x13          .interp
+         0       0       0x1          0
 
-[2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4
+ [2]     5       2       0x80480e8    0xe8         0x388         .hash
+         3       0       0x4          0x4
 
-[3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10
+ [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
+         4       1       0x4          0x10
 
-[4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0
+ [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
+         0       0       0x1          0
 
-[5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8
+ [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
+         3       7       0x4          0x8
 
-[6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0
+ [6]     1       6       0x8049348    0x1348       0x3           .init
+         0       0       0x4          0
 
-[7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4
+ [7]     1       6       0x804934c    0x134c       0x680         .plt
+         0       0       0x4          0x4
 
-[8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0
+ [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
+         0       0       0x4          0
 
-[9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0
+ [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
+         0       0       0x4          0
 
-[10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0
+ [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
+         0       0       0x4          0
 
-[11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0
+ [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
+         0       0       0x4          0
 
-[12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0
+ [12]    1       3       0x8088330    0x3f330      0x20afc       .data
+         0       0       0x4          0
 
-[13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0
+ [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
+         0       0       0x4          0
 
-[14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4
+ [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
+         0       0       0x4          0x4
 
-[15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8
+ [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
+         4       0       0x4          0x8
 
-[16]    8       3       0x80a98f4    0x608f4      0x449c        .bss
-        0       0       0x4          0
+ [16]    8       3       0x80a98f4    0x608f4      0x449c        .bss
+         0       0       0x4          0
 
-[17]    2       0       0            0x608f4      0x9b90        .symtab
-        18      371     0x4          0x10
+ [17]    2       0       0            0x608f4      0x9b90        .symtab
+         18      371     0x4          0x10
 
-[18]    3       0       0            0x6a484      0x8526        .strtab
-        0       0       0x1          0
+ [18]    3       0       0            0x6a484      0x8526        .strtab
+         0       0       0x1          0
 
-[19]    3       0       0            0x729aa      0x93          .shstrtab
-        0       0       0x1          0
+ [19]    3       0       0            0x729aa      0x93          .shstrtab
+         0       0       0x1          0
 
-[20]    1       0       0            0x72a3d      0x68b7        .comment
-        0       0       0x1          0
+ [20]    1       0       0            0x72a3d      0x68b7        .comment
+         0       0       0x1          0
 
-raid:/nfs/raid/src/dist-18.56/src> dump -h xemacs
+ raid:/nfs/raid/src/dist-18.56/src> dump -h xemacs
 
-xemacs:
+ xemacs:
 
-           **** SECTION HEADER TABLE ****
-[No]    Type    Flags   Addr         Offset       Size          Name
-        Link    Info    Adralgn      Entsize
+            **** SECTION HEADER TABLE ****
+ [No]    Type    Flags   Addr         Offset       Size          Name
+         Link    Info    Adralgn      Entsize
 
-[1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0
+ [1]     1       2       0x80480d4    0xd4         0x13          .interp
+         0       0       0x1          0
 
-[2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4
+ [2]     5       2       0x80480e8    0xe8         0x388         .hash
+         3       0       0x4          0x4
 
-[3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10
+ [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
+         4       1       0x4          0x10
 
-[4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0
+ [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
+         0       0       0x1          0
 
-[5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8
+ [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
+         3       7       0x4          0x8
 
-[6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0
+ [6]     1       6       0x8049348    0x1348       0x3           .init
+         0       0       0x4          0
 
-[7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4
+ [7]     1       6       0x804934c    0x134c       0x680         .plt
+         0       0       0x4          0x4
 
-[8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0
+ [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
+         0       0       0x4          0
 
-[9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0
+ [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
+         0       0       0x4          0
 
-[10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0
+ [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
+         0       0       0x4          0
 
-[11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0
+ [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
+         0       0       0x4          0
 
-[12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0
+ [12]    1       3       0x8088330    0x3f330      0x20afc       .data
+         0       0       0x4          0
 
-[13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0
+ [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
+         0       0       0x4          0
 
-[14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4
+ [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
+         0       0       0x4          0x4
 
-[15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8
+ [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
+         4       0       0x4          0x8
 
-[16]    8       3       0x80c6800    0x7d800      0             .bss
-        0       0       0x4          0
+ [16]    8       3       0x80c6800    0x7d800      0             .bss
+         0       0       0x4          0
 
-[17]    2       0       0            0x7d800      0x9b90        .symtab
-        18      371     0x4          0x10
+ [17]    2       0       0            0x7d800      0x9b90        .symtab
+         18      371     0x4          0x10
 
-[18]    3       0       0            0x87390      0x8526        .strtab
-        0       0       0x1          0
+ [18]    3       0       0            0x87390      0x8526        .strtab
+         0       0       0x1          0
 
-[19]    3       0       0            0x8f8b6      0x93          .shstrtab
-        0       0       0x1          0
+ [19]    3       0       0            0x8f8b6      0x93          .shstrtab
+         0       0       0x1          0
 
-[20]    1       0       0            0x8f949      0x68b7        .comment
-        0       0       0x1          0
+ [20]    1       0       0            0x8f949      0x68b7        .comment
+         0       0       0x1          0
 
-[21]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
-        0       0       0x4          0
+ [21]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
+         0       0       0x4          0
 
- * This is an example of how the file header is changed.  "Shoff" is
- * the section header offset within the file.  Since that table is
- * after the new .data section, it is moved.  "Shnum" is the number of
- * sections, which we increment.
- *
- * "Phoff" is the file offset to the program header.  "Phentsize" and
- * "Shentsz" are the program and section header entries sizes respectively.
- * These can be larger than the apparent struct sizes.
+  * This is an example of how the file header is changed.  "Shoff" is
+  * the section header offset within the file.  Since that table is
+  * after the new .data section, it is moved.  "Shnum" is the number of
+  * sections, which we increment.
+  *
+  * "Phoff" is the file offset to the program header.  "Phentsize" and
+  * "Shentsz" are the program and section header entries sizes respectively.
+  * These can be larger than the apparent struct sizes.
 
-raid:/nfs/raid/src/dist-18.56/src> dump -f temacs
+ raid:/nfs/raid/src/dist-18.56/src> dump -f temacs
 
-temacs:
+ temacs:
 
-                    **** ELF HEADER ****
-Class        Data       Type         Machine     Version
-Entry        Phoff      Shoff        Flags       Ehsize
-Phentsize    Phnum      Shentsz      Shnum       Shstrndx
+                     **** ELF HEADER ****
+ Class        Data       Type         Machine     Version
+ Entry        Phoff      Shoff        Flags       Ehsize
+ Phentsize    Phnum      Shentsz      Shnum       Shstrndx
 
-1            1          2            3           1
-0x80499cc    0x34       0x792f4      0           0x34
-0x20         5          0x28         21          19
+ 1            1          2            3           1
+ 0x80499cc    0x34       0x792f4      0           0x34
+ 0x20         5          0x28         21          19
 
-raid:/nfs/raid/src/dist-18.56/src> dump -f xemacs
+ raid:/nfs/raid/src/dist-18.56/src> dump -f xemacs
 
-xemacs:
+ xemacs:
 
-                    **** ELF HEADER ****
-Class        Data       Type         Machine     Version
-Entry        Phoff      Shoff        Flags       Ehsize
-Phentsize    Phnum      Shentsz      Shnum       Shstrndx
+                     **** ELF HEADER ****
+ Class        Data       Type         Machine     Version
+ Entry        Phoff      Shoff        Flags       Ehsize
+ Phentsize    Phnum      Shentsz      Shnum       Shstrndx
 
-1            1          2            3           1
-0x80499cc    0x34       0x96200      0           0x34
-0x20         5          0x28         22          19
+ 1            1          2            3           1
+ 0x80499cc    0x34       0x96200      0           0x34
+ 0x20         5          0x28         22          19
 
- * These are the program headers.  "Offset" is the file offset to the
- * segment.  "Vaddr" is the memory load address.  "Filesz" is the
- * segment size as it appears in the file, and "Memsz" is the size in
- * memory.  Below, the third segment is the code and the fourth is the
- * data: the difference between Filesz and Memsz is .bss
+  * These are the program headers.  "Offset" is the file offset to the
+  * segment.  "Vaddr" is the memory load address.  "Filesz" is the
+  * segment size as it appears in the file, and "Memsz" is the size in
+  * memory.  Below, the third segment is the code and the fourth is the
+  * data: the difference between Filesz and Memsz is .bss
 
-raid:/nfs/raid/src/dist-18.56/src> dump -o temacs
+ raid:/nfs/raid/src/dist-18.56/src> dump -o temacs
 
-temacs:
- ***** PROGRAM EXECUTION HEADER *****
-Type        Offset      Vaddr       Paddr
-Filesz      Memsz       Flags       Align
+ temacs:
+  ***** PROGRAM EXECUTION HEADER *****
+ Type        Offset      Vaddr       Paddr
+ Filesz      Memsz       Flags       Align
 
-6           0x34        0x8048034   0
-0xa0        0xa0        5           0
+ 6           0x34        0x8048034   0
+ 0xa0        0xa0        5           0
 
-3           0xd4        0           0
-0x13        0           4           0
+ 3           0xd4        0           0
+ 0x13        0           4           0
 
-1           0x34        0x8048034   0
-0x3f2f9     0x3f2f9     5           0x1000
+ 1           0x34        0x8048034   0
+ 0x3f2f9     0x3f2f9     5           0x1000
 
-1           0x3f330     0x8088330   0
-0x215c4     0x25a60     7           0x1000
+ 1           0x3f330     0x8088330   0
+ 0x215c4     0x25a60     7           0x1000
 
-2           0x60874     0x80a9874   0
-0x80        0           7           0
+ 2           0x60874     0x80a9874   0
+ 0x80        0           7           0
 
-raid:/nfs/raid/src/dist-18.56/src> dump -o xemacs
+ raid:/nfs/raid/src/dist-18.56/src> dump -o xemacs
 
-xemacs:
- ***** PROGRAM EXECUTION HEADER *****
-Type        Offset      Vaddr       Paddr
-Filesz      Memsz       Flags       Align
+ xemacs:
+  ***** PROGRAM EXECUTION HEADER *****
+ Type        Offset      Vaddr       Paddr
+ Filesz      Memsz       Flags       Align
 
-6           0x34        0x8048034   0
-0xa0        0xa0        5           0
+ 6           0x34        0x8048034   0
+ 0xa0        0xa0        5           0
 
-3           0xd4        0           0
-0x13        0           4           0
+ 3           0xd4        0           0
+ 0x13        0           4           0
 
-1           0x34        0x8048034   0
-0x3f2f9     0x3f2f9     5           0x1000
+ 1           0x34        0x8048034   0
+ 0x3f2f9     0x3f2f9     5           0x1000
 
-1           0x3f330     0x8088330   0
-0x3e4d0     0x3e4d0     7           0x1000
+ 1           0x3f330     0x8088330   0
+ 0x3e4d0     0x3e4d0     7           0x1000
 
-2           0x60874     0x80a9874   0
-0x80        0           7           0
+ 2           0x60874     0x80a9874   0
+ 0x80        0           7           0
 
 
  */
@@ -336,71 +336,71 @@ Filesz      Memsz       Flags       Align
  * The above example now should look like:
 
            **** SECTION HEADER TABLE ****
-[No]    Type    Flags   Addr         Offset       Size          Name
-        Link    Info    Adralgn      Entsize
+ [No]    Type    Flags   Addr         Offset       Size          Name
+         Link    Info    Adralgn      Entsize
 
-[1]     1       2       0x80480d4    0xd4         0x13          .interp
-        0       0       0x1          0
+ [1]     1       2       0x80480d4    0xd4         0x13          .interp
+         0       0       0x1          0
 
-[2]     5       2       0x80480e8    0xe8         0x388         .hash
-        3       0       0x4          0x4
+ [2]     5       2       0x80480e8    0xe8         0x388         .hash
+         3       0       0x4          0x4
 
-[3]     11      2       0x8048470    0x470        0x7f0         .dynsym
-        4       1       0x4          0x10
+ [3]     11      2       0x8048470    0x470        0x7f0         .dynsym
+         4       1       0x4          0x10
 
-[4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
-        0       0       0x1          0
+ [4]     3       2       0x8048c60    0xc60        0x3ad         .dynstr
+         0       0       0x1          0
 
-[5]     9       2       0x8049010    0x1010       0x338         .rel.plt
-        3       7       0x4          0x8
+ [5]     9       2       0x8049010    0x1010       0x338         .rel.plt
+         3       7       0x4          0x8
 
-[6]     1       6       0x8049348    0x1348       0x3           .init
-        0       0       0x4          0
+ [6]     1       6       0x8049348    0x1348       0x3           .init
+         0       0       0x4          0
 
-[7]     1       6       0x804934c    0x134c       0x680         .plt
-        0       0       0x4          0x4
+ [7]     1       6       0x804934c    0x134c       0x680         .plt
+         0       0       0x4          0x4
 
-[8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
-        0       0       0x4          0
+ [8]     1       6       0x80499cc    0x19cc       0x3c56f       .text
+         0       0       0x4          0
 
-[9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
-        0       0       0x4          0
+ [9]     1       6       0x8085f3c    0x3df3c      0x3           .fini
+         0       0       0x4          0
 
-[10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
-        0       0       0x4          0
+ [10]    1       2       0x8085f40    0x3df40      0x69c         .rodata
+         0       0       0x4          0
 
-[11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
-        0       0       0x4          0
+ [11]    1       2       0x80865dc    0x3e5dc      0xd51         .rodata1
+         0       0       0x4          0
 
-[12]    1       3       0x8088330    0x3f330      0x20afc       .data
-        0       0       0x4          0
+ [12]    1       3       0x8088330    0x3f330      0x20afc       .data
+         0       0       0x4          0
 
-[13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
-        0       0       0x4          0
+ [13]    1       3       0x80a8e2c    0x5fe2c      0x89d         .data1
+         0       0       0x4          0
 
-[14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
-        0       0       0x4          0x4
+ [14]    1       3       0x80a96cc    0x606cc      0x1a8         .got
+         0       0       0x4          0x4
 
-[15]    6       3       0x80a9874    0x60874      0x80          .dynamic
-        4       0       0x4          0x8
+ [15]    6       3       0x80a9874    0x60874      0x80          .dynamic
+         4       0       0x4          0x8
 
-[16]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
-        0       0       0x4          0
+ [16]    1       3       0x80a98f4    0x608f4      0x1cf0c       .data
+         0       0       0x4          0
 
-[17]    8       3       0x80c6800    0x7d800      0             .bss
-        0       0       0x4          0
+ [17]    8       3       0x80c6800    0x7d800      0             .bss
+         0       0       0x4          0
 
-[18]    2       0       0            0x7d800      0x9b90        .symtab
-        19      371     0x4          0x10
+ [18]    2       0       0            0x7d800      0x9b90        .symtab
+         19      371     0x4          0x10
 
-[19]    3       0       0            0x87390      0x8526        .strtab
-        0       0       0x1          0
+ [19]    3       0       0            0x87390      0x8526        .strtab
+         0       0       0x1          0
 
-[20]    3       0       0            0x8f8b6      0x93          .shstrtab
-        0       0       0x1          0
+ [20]    3       0       0            0x8f8b6      0x93          .shstrtab
+         0       0       0x1          0
 
-[21]    1       0       0            0x8f949      0x68b7        .comment
-        0       0       0x1          0
+ [21]    1       0       0            0x8f949      0x68b7        .comment
+         0       0       0x1          0
 
  */
 
@@ -476,7 +476,7 @@ typedef struct {
 	long cbFdOffset;
 	long cbRfdOffset;
 	long cbExtOffset;
-} HDRR, *pHDRR; 
+} HDRR, *pHDRR;
 #define cbHDRR sizeof(HDRR)
 #define hdrNil ((pHDRR)0)
 #endif
@@ -930,7 +930,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
       memcpy (&NEW_SECTION_H (nn), &OLD_SECTION_H (n),
 	      old_file_h->e_shentsize);
-      
+
       if (n == old_bss_index
 	  /* The new bss and sbss section's size is zero, and its file offset
 	     and virtual address should be off by NEW_DATA2_SIZE.  */
@@ -987,11 +987,11 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       if (NEW_SECTION_H (nn).sh_type != SHT_SYMTAB
 	  && NEW_SECTION_H (nn).sh_type != SHT_DYNSYM)
 	PATCH_INDEX (NEW_SECTION_H (nn).sh_info);
-      
+
       if (old_sbss_index != -1)
 	if (!strcmp (old_section_names + NEW_SECTION_H (nn).sh_name, ".sbss"))
 	  {
-	    NEW_SECTION_H (nn).sh_offset = 
+	    NEW_SECTION_H (nn).sh_offset =
 	      round_up (NEW_SECTION_H (nn).sh_offset,
 			NEW_SECTION_H (nn).sh_addralign);
 	    NEW_SECTION_H (nn).sh_type = SHT_PROGBITS;
@@ -1012,6 +1012,30 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		      ".lit4")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".lit8")
+	  /* The conditional bit below was in Oliva's original code
+	     (1999-08-25) and seems to have been dropped by mistake
+	     subsequently.  It prevents a crash at startup under X in
+	     `IRIX64 6.5 6.5.17m', whether compiled on that relase or
+	     an earlier one.  It causes no trouble on the other ELF
+	     platforms I could test (Irix 6.5.15m, Solaris 8, Debian
+	     Potato x86, Debian Woody SPARC); however, it's reported
+	     to cause crashes under some version of GNU/Linux.  It's
+	     not yet clear what's changed in that Irix version to
+	     cause the problem, or why the fix sometimes fails under
+	     GNU/Linux.  There's probably no good reason to have
+	     something Irix-specific here, but this will have to do
+	     for now.  IRIX6_5 is the most specific macro we have to
+	     test.  -- fx 2002-10-01
+
+	     The issue _looks_ as though it's gone away on 6.5.18m,
+	     but maybe it's still lurking, to be triggered by some
+	     change in the binary.  It appears to concern the dynamic
+	     loader, but I never got anywhere with an SGI support call
+	     seeking clues.  -- fx 2002-11-29.  */
+#ifdef IRIX6_5
+	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
+		      ".got")
+#endif
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
 		      ".sdata1")
 	  || !strcmp ((old_section_names + NEW_SECTION_H (n).sh_name),
@@ -1048,9 +1072,9 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 
 #if defined (__sony_news) && defined (_SYSTYPE_SYSV)
       if (NEW_SECTION_H (nn).sh_type == SHT_MIPS_DEBUG
-	  && old_mdebug_index != -1) 
+	  && old_mdebug_index != -1)
         {
-	  int diff = NEW_SECTION_H(nn).sh_offset 
+	  int diff = NEW_SECTION_H(nn).sh_offset
 	 	- OLD_SECTION_H(old_mdebug_index).sh_offset;
 	  HDRR *phdr = (HDRR *)(NEW_SECTION_H (nn).sh_offset + new_base);
 
@@ -1072,7 +1096,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 #endif /* __sony_news && _SYSTYPE_SYSV */
 
 #if __sgi
-      /* Adjust  the HDRR offsets in .mdebug and copy the 
+      /* Adjust  the HDRR offsets in .mdebug and copy the
 	 line data if it's in its usual 'hole' in the object.
 	 Makes the new file debuggable with dbx.
 	 patches up two problems: the absolute file offsets
@@ -1178,7 +1202,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
       /* Cause a compilation error if anyone uses n instead of nn below.  */
       struct {int a;} n;
 
-      switch (section.sh_type) 
+      switch (section.sh_type)
 	{
 	default:
 	  break;
@@ -1195,6 +1219,10 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 			  ".lit4")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".lit8")
+#ifdef IRIX6_5			/* see above */
+	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
+			  ".got")
+#endif
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
 			  ".sdata1")
 	      || !strcmp ((old_section_names + NEW_SECTION_H (nn).sh_name),
@@ -1224,7 +1252,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   /* Write out new_file, and free the buffers.  */
 
   if (write (new_file, new_base, new_file_size) != new_file_size)
-    fatal ("Didn't write %d bytes to %s: errno %d\n", 
+    fatal ("Didn't write %d bytes to %s: errno %d\n",
 	   new_file_size, new_base, errno);
 
   munmap (old_base, old_file_size);

@@ -1,4 +1,4 @@
-;;; japanese.el --- support for Japanese -*- coding: iso-2022-7bit; -*-
+;;; japanese.el --- support for Japanese -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -94,7 +94,6 @@
 
 (set-language-info-alist
  "Japanese" '((setup-function . setup-japanese-environment-internal)
-	      (exit-function . exit-japanese-environment)
 	      (tutorial . "TUTORIAL.ja")
 	      (charset japanese-jisx0208 japanese-jisx0208-1978
 		       japanese-jisx0212 latin-jisx0201 katakana-jisx0201

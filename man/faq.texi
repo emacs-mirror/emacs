@@ -9,18 +9,13 @@
 @c This is used in many places
 @set VER 21.3
 
-@c The @ifinfo stuff only appears in the Info version
-@ifinfo
-@dircategory Emacs
-@direntry
-* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
-@end direntry
-
+@copying
 Copyright 2001, 2002 Free Software Foundation, Inc.
 Copyright 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
 Copyright 1992,1993 Steven Byrnes@*
 Copyright 1990,1991,1992 Joseph Brian Wells@*
 
+@quotation
 This list of frequently asked questions about GNU Emacs with answers
 ("FAQ") may be translated into other languages, transformed into other
 formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
@@ -37,8 +32,13 @@ itself allows free copying and redistribution.
 
 [This version has been somewhat edited from the last-posted version
 (as of August 1999) for inclusion in the Emacs distribution.]
+@end quotation
+@end copying
 
-@end ifinfo
+@dircategory Emacs
+@direntry
+* Emacs FAQ: (efaq).	Frequently Asked Questions about Emacs.
+@end direntry
 
 @c The @titlepage stuff only appears in the printed version
 @titlepage
@@ -48,27 +48,7 @@ itself allows free copying and redistribution.
 @c The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 2001,2002 Free Software Foundation, inc.@*
-Copyright @copyright{} 1994,1995,1996,1997,1998,1999,2000 Reuven M. Lerner@*
-Copyright @copyright{} 1992,1993 Steven Byrnes@*
-Copyright @copyright{} 1990,1991,1992 Joseph Brian Wells@*
-
-This list of frequently asked questions about GNU Emacs with answers
-("FAQ") may be translated into other languages, transformed into other
-formats (e.g. Texinfo, Info, WWW, WAIS), and updated with new information.
-
-The same conditions apply to any derivative of the FAQ as apply to the FAQ
-itself.  Every copy of the FAQ must include this notice or an approved
-translation, information on who is currently maintaining the FAQ and how to
-contact them (including their e-mail address), and information on where the
-latest version of the FAQ is archived (including FTP information).
-
-The FAQ may be copied and redistributed under these conditions, except that
-the FAQ may not be embedded in a larger literary work unless that work
-itself allows free copying and redistribution.
-
-[This version has been somewhat edited from the last-posted version
-(as of August 1999) for inclusion in the Emacs distribution.]
+@insertcopying
 @end titlepage
 
 @node    Top, FAQ notation, (dir), (dir)
@@ -82,19 +62,19 @@ format.  If you have any suggestions or questions, please contact
 @email{emacs-faq@@lerner.co.il, the FAQ maintainers}.
 
 @menu
-* FAQ notation::                
-* General questions::           
-* Getting help::                
-* Status of Emacs::             
-* Common requests::             
-* Bugs and problems::           
-* Compiling and installing Emacs::  
-* Finding Emacs and related packages::  
-* Major packages and programs::  
-* Key bindings::                
-* Alternate character sets::    
-* Mail and news::               
-* Concept index::               
+* FAQ notation::
+* General questions::
+* Getting help::
+* Status of Emacs::
+* Common requests::
+* Bugs and problems::
+* Compiling and installing Emacs::
+* Finding Emacs and related packages::
+* Major packages and programs::
+* Key bindings::
+* Alternate character sets::
+* Mail and news::
+* Concept index::
 @end menu
 
 @c ------------------------------------------------------------
@@ -108,11 +88,11 @@ you are reading the FAQ, or if you are confused by notation or terms
 used in the FAQ.
 
 @menu
-* Basic keys::                  
-* Extended commands::           
-* On-line manual::              
-* File-name conventions::        
-* Common acronyms::             
+* Basic keys::
+* Extended commands::
+* On-line manual::
+* File-name conventions::
+* Common acronyms::
 @end menu
 
 @node Basic keys, Extended commands, FAQ notation, FAQ notation
@@ -343,13 +323,13 @@ This chapter contains general questions having to do with Emacs, the
 Free Software Foundation, and related organizations.
 
 @menu
-* The LPF::                     
-* Real meaning of copyleft::    
-* Guidelines for newsgroup postings::  
-* Newsgroup archives::          
-* Reporting bugs::              
-* Unsubscribing from Emacs lists::  
-* Contacting the FSF::          
+* The LPF::
+* Real meaning of copyleft::
+* Guidelines for newsgroup postings::
+* Newsgroup archives::
+* Reporting bugs::
+* Unsubscribing from Emacs lists::
+* Contacting the FSF::
 @end menu
 
 @node The LPF, Real meaning of copyleft, General questions, General questions
@@ -555,16 +535,16 @@ files @file{etc/ORDERS}, @file{ORDERS.EUROPE}, and @file{ORDERS.JAPAN}.
 This chapter tells you how to get help with Emacs
 
 @menu
-* Basic editing::               
-* Learning how to do something::  
-* Getting a printed manual::    
-* Emacs Lisp documentation::    
-* Installing Texinfo documentation::  
-* Printing a Texinfo file::     
-* Viewing Info files outside of Emacs::  
-* Informational files for Emacs::  
-* Help installing Emacs::       
-* Obtaining the FAQ::           
+* Basic editing::
+* Learning how to do something::
+* Getting a printed manual::
+* Emacs Lisp documentation::
+* Installing Texinfo documentation::
+* Printing a Texinfo file::
+* Viewing Info files outside of Emacs::
+* Informational files for Emacs::
+* Help installing Emacs::
+* Obtaining the FAQ::
 @end menu
 
 @node Basic editing, Learning how to do something, Getting help, Getting help
@@ -786,7 +766,7 @@ installing.  Follow the examples already in this file.  The format is:
 * Topic: (relative-pathname).  Short description of topic.
 @end example
 
-@end enumerate 
+@end enumerate
 
 If you want to install Info files and you don't have the necessary
 privileges, you have several options:
@@ -1085,10 +1065,10 @@ This chapter gives you basic information about Emacs, including its
 latest version status.
 
 @menu
-* Origin of the term Emacs::    
-* Latest version of Emacs::     
-* New in Emacs 20::             
-* New in Emacs 21::            
+* Origin of the term Emacs::
+* Latest version of Emacs::
+* New in Emacs 20::
+* New in Emacs 21::
 @end menu
 
 @node Origin of the term Emacs, Latest version of Emacs, Status of Emacs, Status of Emacs
@@ -1162,7 +1142,7 @@ and are now included with the standard distribution.
 @cindex Toolbar support
 Emacs 21 features a thorough rewrite of the display engine.  The new
 display engine supports variable-size fonts, images, and can play sounds
-on platforms which support that.  As a result, the visual appearence of
+on platforms which support that.  As a result, the visual appearance of
 Emacs, when it runs on a windowed display, is much more reminiscent of
 modern GUI programs, and includes 3D widgets (used for the mode line and
 the scroll bars), a configurable and extensible toolbar, tooltips
@@ -1180,55 +1160,55 @@ and on @code{xterm} with @kbd{emacs -nw}.
 @cindex Common requests
 
 @menu
-* Setting up a customization file::  
-* Debugging a customization file::  
-* Colors on a TTY::  
-* Displaying the current line or column::  
-* Displaying the current file name in the titlebar::  
-* Turning on abbrevs by default::  
-* Turning on auto-fill by default::  
-* Associating modes with files::  
-* Working with unprintable characters::  
-* Highlighting a region::       
-* Controlling case sensitivity::  
-* Wrapping words automatically::  
-* Spell-checkers::              
-* Checking TeX and *roff documents::  
-* Changing load-path::          
-* Using an already running Emacs process::  
-* Compiler error messages::     
-* Indenting switch statements::  
-* Customizing C and C++ indentation::  
-* Horizontal scrolling::        
-* Overwrite mode::              
-* Turning off beeping::         
-* Turning the volume down::     
-* Automatic indentation::       
-* Matching parentheses::        
-* Hiding #ifdef lines::         
-* Repeating commands::          
-* Valid X resources::           
-* Evaluating Emacs Lisp code::  
-* Changing the length of a Tab::  
-* Inserting > at the beginning of each line::  
-* Underlining paragraphs::      
-* Repeating a command as many times as possible::  
-* Forcing the cursor to remain in the same column::  
-* Forcing Emacs to iconify itself::  
-* Using regular expressions::   
-* Replacing text across multiple files::  
-* Documentation for etags::     
-* Disabling backups::           
-* Disabling auto-save-mode::    
-* Going to a line by number::   
-* Modifying pull-down menus::   
-* Deleting menus and menu options::  
-* Turning on syntax highlighting::  
-* Scrolling only one line::     
-* Replacing highlighted text::  
-* Editing MS-DOS files::        
-* Filling paragraphs with a single space::  
-* Escape sequences in shell output::   
+* Setting up a customization file::
+* Debugging a customization file::
+* Colors on a TTY::
+* Displaying the current line or column::
+* Displaying the current file name in the titlebar::
+* Turning on abbrevs by default::
+* Turning on auto-fill by default::
+* Associating modes with files::
+* Working with unprintable characters::
+* Highlighting a region::
+* Controlling case sensitivity::
+* Wrapping words automatically::
+* Spell-checkers::
+* Checking TeX and *roff documents::
+* Changing load-path::
+* Using an already running Emacs process::
+* Compiler error messages::
+* Indenting switch statements::
+* Customizing C and C++ indentation::
+* Horizontal scrolling::
+* Overwrite mode::
+* Turning off beeping::
+* Turning the volume down::
+* Automatic indentation::
+* Matching parentheses::
+* Hiding #ifdef lines::
+* Repeating commands::
+* Valid X resources::
+* Evaluating Emacs Lisp code::
+* Changing the length of a Tab::
+* Inserting > at the beginning of each line::
+* Underlining paragraphs::
+* Repeating a command as many times as possible::
+* Forcing the cursor to remain in the same column::
+* Forcing Emacs to iconify itself::
+* Using regular expressions::
+* Replacing text across multiple files::
+* Documentation for etags::
+* Disabling backups::
+* Disabling auto-save-mode::
+* Going to a line by number::
+* Modifying pull-down menus::
+* Deleting menus and menu options::
+* Turning on syntax highlighting::
+* Scrolling only one line::
+* Replacing highlighted text::
+* Editing MS-DOS files::
+* Filling paragraphs with a single space::
+* Escape sequences in shell output::
 @end menu
 
 @node Setting up a customization file, Colors on a TTY, Common requests, Common requests
@@ -1327,7 +1307,7 @@ As of Emacs 20, you can similarly display the current column with
 @kbd{M-x column-number-mode}, or by putting the form
 
 @lisp
-(setq column-number-mode t) 
+(setq column-number-mode t)
 @end lisp
 
 @noindent
@@ -1629,11 +1609,10 @@ or by invoking @code{server-start} from @file{.emacs}:
 (if (@var{some conditions are met}) (server-start))
 @end lisp
 
-When this is done, Emacs starts a subprocess running a program called
-@samp{emacsserver}.  @samp{emacsserver} creates a Unix domain socket.
+When this is done, Emacs creates a Unix domain socket.
 The socket is either named @file{.emacs_server}, in the user's home directory,
 or @file{esrv-@var{userid}-@var{systemname}}, in the @file{/tmp}
-directory, depending on how @samp{emacsserver} was compiled.
+directory, depending on your system.  See @code{server-socket-name}.
 
 To get your news reader, mail reader, etc., to invoke
 @samp{emacsclient}, try setting the environment variable @code{EDITOR}
@@ -1646,7 +1625,7 @@ instead.  Examples:
 setenv EDITOR emacsclient
 
 # using full pathname
-setenv EDITOR /usr/local/emacs/etc/emacsclient  
+setenv EDITOR /usr/local/emacs/etc/emacsclient
 
 # sh command:
 EDITOR=emacsclient ; export EDITOR
@@ -1851,7 +1830,7 @@ In Emacs 20, use the @code{hscroll-mode}.  Here is some information from
 the documentation, available by typing @kbd{C-h f hscroll-mode @key{RET}}:
 
 Automatically scroll horizontally when the point moves off the
-left or right edge of the window.  
+left or right edge of the window.
 
 @itemize @minus
 @item
@@ -1869,7 +1848,7 @@ Type @kbd{M-x hscroll-global-mode} to enable it in every buffer.
 
 @item
 @code{hscroll-margin} controls how close the cursor can get to the
-edge of the window. 
+edge of the window.
 
 @item
 @code{hscroll-step-percent} controls how far to jump once we decide to do so.
@@ -1903,7 +1882,7 @@ That is, put the following in your @code{TERMCAP} environment variable
 (assuming you have one):
 
 @example
-... :vb=: ...                    
+... :vb=: ...
 @end example
 
 And evaluate the following Lisp form:
@@ -2136,7 +2115,7 @@ about them.
 @section How do I change Emacs's idea of the @key{TAB} character's length?
 @cindex Tab length
 @cindex Length of tab character
-@cindex @code{default-tab-width} 
+@cindex @code{default-tab-width}
 
 Set the variable @code{default-tab-width}.  For example, to set
 @key{TAB} stops every 10 characters, insert the following in your
@@ -2389,8 +2368,8 @@ new definition to the appropriate keymap.  Adding a @samp{Forward Word}
 item to the @samp{Edit} menu thus requires the following Lisp code:
 
 @lisp
-(define-key global-map           
-  [menu-bar edit forward]        
+(define-key global-map
+  [menu-bar edit forward]
   '("Forward word" . forward-word))
 @end lisp
 
@@ -2595,7 +2574,7 @@ consult the documentation of the variables @code{ps-printer-name},
 @node Scrolling only one line, Replacing highlighted text, Turning on syntax highlighting, Common requests
 @section How can I force Emacs to scroll only one line when I move past the bottom of the screen?
 @cindex Scrolling only one line
-@cindex Reducing the increment when scrollng
+@cindex Reducing the increment when scrolling
 
 Place the following Lisp form in your @file{.emacs} file:
 
@@ -2609,7 +2588,7 @@ Place the following Lisp form in your @file{.emacs} file:
 @section How can I replace highlighted text with what I type?
 @cindex @code{delete-selection-mode}
 @cindex Replacing highlighted text
-@cindex Highlighing and replacing text
+@cindex Highlighting and replacing text
 
 Use @code{delete-selection-mode}, which you can start automatically by
 placing the following Lisp form in your @file{.emacs} file:
@@ -2669,8 +2648,7 @@ following two lines to your @file{.emacs} file:
 @end lisp
 
 @node Escape sequences in shell output, , Filling paragraphs with a single space, Common requests
-@section Why do I get these strange escape sequences when I run
-@code{ls} from the Shell mode?
+@section Why these strange escape sequences from @code{ls} from the Shell mode?
 @cindex Escape sequences in @code{ls} output
 @cindex @code{ls} in Shell mode
 
@@ -2707,21 +2685,21 @@ known problems with building and using Emacs on specific platforms;
 type @kbd{C-h P} to read it.
 
 @menu
-* Problems with very large files::  
-* ^M in the shell buffer::      
-* Shell process exits abnormally::  
-* Problems with Shell Mode on MS-Windows::  
-* Termcap/Terminfo entries for Emacs::  
-* Spontaneous entry into isearch-mode::  
-* Problems talking to certain hosts::  
-* Errors with init files::      
-* Emacs ignores X resources::   
-* Emacs ignores frame parameters::  
-* Emacs takes a long time to visit files::  
-* Editing files with $ in the name::  
-* Shell mode loses the current directory::  
-* Security risks with Emacs::   
-* Dired claims that no file is on this line::  
+* Problems with very large files::
+* ^M in the shell buffer::
+* Shell process exits abnormally::
+* Problems with Shell Mode on MS-Windows::
+* Termcap/Terminfo entries for Emacs::
+* Spontaneous entry into isearch-mode::
+* Problems talking to certain hosts::
+* Errors with init files::
+* Emacs ignores X resources::
+* Emacs ignores frame parameters::
+* Emacs takes a long time to visit files::
+* Editing files with $ in the name::
+* Shell mode loses the current directory::
+* Security risks with Emacs::
+* Dired claims that no file is on this line::
 @end menu
 
 @node Problems with very large files, ^M in the shell buffer, Bugs and problems, Bugs and problems
@@ -3022,7 +3000,7 @@ by the following environment variables:
 
 @item @code{XFILESEARCHPATH}
 @item @code{XUSERFILESEARCHPATH}
-@item @code{XAPPLRESDIR} 
+@item @code{XAPPLRESDIR}
 
 @end itemize
 
@@ -3043,7 +3021,7 @@ specified on the command line, with the @samp{-xrm RESOURCESTRING} option,
 @item
 then in the value of the @samp{XENVIRONMENT} environment variable,
 
-@itemize @minus 
+@itemize @minus
 
 @item
 or if that is unset, in the file named
@@ -3072,13 +3050,13 @@ then in the files listed in @samp{XUSERFILESEARCHPATH},
 @item
 or in files named @file{@var{lang}/Emacs} in directories listed in
 @samp{XAPPLRESDIR} (where @var{lang} is the value of the @code{LANG}
-environment variable), if the @samp{LANG} environment variable is set, 
+environment variable), if the @samp{LANG} environment variable is set,
 @item
 or in files named Emacs in the directories listed in @samp{XAPPLRESDIR}
 @item
 or in @file{~/@var{lang}/Emacs} (if the @code{LANG} environment variable
 is set),
-@item 
+@item
 or in @file{~/Emacs},
 
 @end itemize
@@ -3283,10 +3261,10 @@ dired, @code{dired-move-to-filename-regexp}.
 @cindex    Compiling and installing Emacs
 
 @menu
-* Installing Emacs::            
-* Updating Emacs::              
-* Problems building Emacs::     
-* Linking with -lX11 fails::    
+* Installing Emacs::
+* Updating Emacs::
+* Problems building Emacs::
+* Linking with -lX11 fails::
 @end menu
 
 @node Installing Emacs, Updating Emacs, Compiling and installing Emacs, Compiling and installing Emacs
@@ -3342,7 +3320,7 @@ changing the Emacs version (@value{VER}), as necessary.  Once
 @code{gunzip} has finished doing its job, a file by the name of
 @file{emacs-@value{VER}.tar} should be in your build directory.
 
-@item 
+@item
 @code{tar}, the @dfn{tape archiving} program, which moves multiple files
 into and out of archive files, or @dfn{tarfiles}.  All of the files
 comprising the Emacs source come in a single tarfile, and must be
@@ -3380,8 +3358,8 @@ Window system support) with the following commands:
 
 @example
 cd emacs-@value{VER}       # change directory to emacs-@value{VER}
-./configure         # configure Emacs for your particular system 
-make                # use Makefile to build components, then Emacs 
+./configure         # configure Emacs for your particular system
+make                # use Makefile to build components, then Emacs
 @end example
 
 If the @code{make} completes successfully, the odds are fairly good that
@@ -3489,22 +3467,22 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 @cindex Finding Emacs and related packages
 
 @menu
-* Finding Emacs on the Internet::  
-* Finding a package with particular functionality::  
-* Packages that do not come with Emacs::  
-* Submitting to the Emacs Lisp Archive::  
-* Current GNU distributions::   
-* Difference between Emacs and XEmacs::  
-* Emacs for MS-DOS::            
-* Emacs for Windows::           
-* Emacs for OS/2::              
-* Emacs for Atari ST::          
-* Emacs for the Amiga ::        
-* Emacs for NeXTSTEP::          
-* Emacs for Apple computers::   
-* Emacs for VMS and DECwindows::  
-* Modes for various languages::  
-* Translating names to IP addresses::  
+* Finding Emacs on the Internet::
+* Finding a package with particular functionality::
+* Packages that do not come with Emacs::
+* Submitting to the Emacs Lisp Archive::
+* Current GNU distributions::
+* Difference between Emacs and XEmacs::
+* Emacs for MS-DOS::
+* Emacs for Windows::
+* Emacs for OS/2::
+* Emacs for Atari ST::
+* Emacs for the Amiga ::
+* Emacs for NeXTSTEP::
+* Emacs for Apple computers::
+* Emacs for VMS and DECwindows::
+* Modes for various languages::
+* Translating names to IP addresses::
 @end menu
 
 @node Finding Emacs on the Internet, Finding a package with particular functionality, Finding Emacs and related packages, Finding Emacs and related packages
@@ -3512,8 +3490,8 @@ To get the Xmenu stuff to work, you need to find a copy of MIT's
 @cindex Finding Emacs on the Internet
 @cindex Snail mail, ordering Emacs via
 @cindex Postal service, ordering Emacs via
-@cindex Distribution, retrieving Emacs 
-@cindex Internet, retreiving from
+@cindex Distribution, retrieving Emacs
+@cindex Internet, retrieving from
 
 Look in the files @file{etc/DISTRIB} and @file{etc/FTP} for information
 on nearby archive sites and @file{etc/ORDERS} for mail orders.  If you
@@ -3528,7 +3506,7 @@ archive sites that make GNU software available.
 @section How do I find a Emacs Lisp package that does XXX?
 @cindex Package, finding
 @cindex Finding an Emacs Lisp package
-@cindex Functionality, finding a particular package 
+@cindex Functionality, finding a particular package
 
 First of all, you should check to make sure that the package isn't
 already available.  For example, typing @kbd{M-x apropos @key{RET}
@@ -3726,12 +3704,12 @@ Windows (3.X, 9X, ME, NT, and 2000) and supports long file names under
 Windows 9X, Windows ME, and Windows 2000.  More information is available
 from
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/emacs.README}
+@uref{http://www.simtel.net/pub/djgpp/v2gnu/emacs.README}
 
 The binary itself is available in the files @file{em*.zip} in the
 directory
 
-@uref{http://www.simtel.net/pub/gnu/djgpp/v2gnu/}
+@uref{http://www.simtel.net/pub/djgpp/v2gnu/}
 
 If you prefer to compile Emacs for yourself, you can do so with the
 current distribution directly.  You will need a 386 (or
@@ -3773,7 +3751,7 @@ All of these utilities are available at
 
 16-bit utilities can be found in GNUish, at
 
-@uref{http://www.simtel.net/pub/gnu/gnuish}
+@uref{http://www.simtel.net/pub/gnuish/}
 
 @noindent
 (@code{mv} and @code{rm} are in the Fileutils package, @code{sed} and
@@ -3945,8 +3923,8 @@ files.  You can get this information by e-mail:
 
 @example
 To: dns@@[134.214.84.25]    (to grasp.insa-lyon.fr)
-Body: ip XXX.YYY.ZZZ        (or "help" for more information 
-                             and options - no quotes) 
+Body: ip XXX.YYY.ZZZ        (or "help" for more information
+                             and options - no quotes)
 @end example
 
 @noindent
@@ -3963,18 +3941,18 @@ Body: site XXX.YYY.ZZZ
 @cindex Major packages and programs
 
 @menu
-* VM::                          
-* Supercite::                   
-* Calc::                        
-* VIPER::                       
-* AUC-TeX::                     
-* BBDB::                        
-* Ispell::                      
-* w3-mode::                     
-* EDB::                         
-* Mailcrypt::                   
-* JDE::                         
-* Patch::                       
+* VM::
+* Supercite::
+* Calc::
+* VIPER::
+* AUC-TeX::
+* BBDB::
+* Ispell::
+* w3-mode::
+* EDB::
+* Mailcrypt::
+* JDE::
+* Patch::
 @end menu
 
 @node VM, Supercite, Major packages and programs, Major packages and programs
@@ -4089,7 +4067,7 @@ better than the one distributed with Emacs:
 4.3
 
 @item Distribution
-@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/modes/vip-mode.tar.Z}
+@uref{ftp://archive.cis.ohio-state.edu/pub/emacs-lisp/old-archive/modes/vip-mode.tar.Z}
 
 @end table
 
@@ -4140,7 +4118,7 @@ Development team is at @email{auc-tex_mgr@@iesd.auc.dk}
 2.00
 
 @item Distribution
-@uref{http://www.netcom.com/~simmonmt/bbdb/index.html}
+@uref{http://bbdb.sf.net/}
 
 @item Mailing lists
 Subscription requests to @email{info-bbdb-request@@xemacs.org}@*
@@ -4303,24 +4281,24 @@ jde-subscribe@@sunsite.auc.dk
 @cindex Key bindings
 
 @menu
-* Binding keys to commands::    
-* Invalid prefix characters::   
-* Terminal setup code works after Emacs has begun::  
-* Using function keys under X::  
-* Working with function and arrow keys::  
-* X key translations for Emacs::  
-* Handling C-s and C-q with flow control::  
-* Binding C-s and C-q::         
-* Backspace invokes help::      
-* stty and Backspace key::      
-* Swapping keys::               
-* Producing C-XXX with the keyboard::  
-* No Meta key::                 
-* No Escape key::               
-* Compose Character::           
-* Binding combinations of modifiers and function keys::  
-* Meta key does not work in xterm::  
-* ExtendChar key does not work as Meta::  
+* Binding keys to commands::
+* Invalid prefix characters::
+* Terminal setup code works after Emacs has begun::
+* Using function keys under X::
+* Working with function and arrow keys::
+* X key translations for Emacs::
+* Handling C-s and C-q with flow control::
+* Binding C-s and C-q::
+* Backspace invokes help::
+* stty and Backspace key::
+* Swapping keys::
+* Producing C-XXX with the keyboard::
+* No Meta key::
+* No Escape key::
+* Compose Character::
+* Binding combinations of modifiers and function keys::
+* Meta key does not work in xterm::
+* ExtendChar key does not work as Meta::
 @end menu
 
 @node Binding keys to commands, Invalid prefix characters, Key bindings, Key bindings
@@ -4712,7 +4690,7 @@ instead:
 (global-set-key "\C-h" 'delete-backward-char)
 
 ;;; overrides mark-whole-buffer
-(global-set-key "\C-xh" 'help-command) 
+(global-set-key "\C-xh" 'help-command)
 @end lisp
 
 @noindent
@@ -4841,7 +4819,7 @@ generates @key{ESC}.  If not, the following form can be used to bind it:
 
 @lisp
 ;;; F11 is the documented ESC replacement on DEC terminals.
-(define-key function-key-map [f11] [?\e])  
+(define-key function-key-map [f11] [?\e])
 @end lisp
 
 @node Compose Character, Binding combinations of modifiers and function keys, No Escape key, Key bindings
@@ -4993,10 +4971,10 @@ undesirable if you actually intend to use them.
 @cindex Alternate character sets
 
 @menu
-* Emacs does not display 8-bit characters::  
-* Inputting eight-bit characters::  
-* Kanji and Chinese characters::  
-* Right-to-left alphabets::     
+* Emacs does not display 8-bit characters::
+* Inputting eight-bit characters::
+* Kanji and Chinese characters::
+* Right-to-left alphabets::
 @end menu
 
 @node Emacs does not display 8-bit characters, Inputting eight-bit characters, Alternate character sets, Alternate character sets
@@ -5065,27 +5043,27 @@ several ftp sites in Israel may also have the necessary files.
 @cindex Mail and news
 
 @menu
-* Changing the included text prefix::  
-* Saving a copy of outgoing mail::  
-* Expanding aliases when sending mail::  
-* Rmail thinks all messages are one big one::  
-* Sorting the messages in an Rmail folder::  
-* Rmail writes to /usr/spool/mail::  
-* Recovering mail files when Rmail munges them::  
-* Replying to the sender of a message::  
-* MIME with Emacs mail packages::  
-* Automatically starting a mail or news reader::  
-* Reading news with Emacs::     
-* Gnus does not work with NNTP::  
-* Viewing articles with embedded underlining::  
-* Saving a multi-part Gnus posting::  
-* Starting Gnus faster::        
-* Catching up in all newsgroups::  
-* Killing based on nonstandard headers::  
-* Removing flashing messages::  
-* Catch-up is slow in Gnus::    
-* Gnus hangs for a long time::  
-* Learning more about Gnus::    
+* Changing the included text prefix::
+* Saving a copy of outgoing mail::
+* Expanding aliases when sending mail::
+* Rmail thinks all messages are one big one::
+* Sorting the messages in an Rmail folder::
+* Rmail writes to /usr/spool/mail::
+* Recovering mail files when Rmail munges them::
+* Replying to the sender of a message::
+* MIME with Emacs mail packages::
+* Automatically starting a mail or news reader::
+* Reading news with Emacs::
+* Gnus does not work with NNTP::
+* Viewing articles with embedded underlining::
+* Saving a multi-part Gnus posting::
+* Starting Gnus faster::
+* Catching up in all newsgroups::
+* Killing based on nonstandard headers::
+* Removing flashing messages::
+* Catch-up is slow in Gnus::
+* Gnus hangs for a long time::
+* Learning more about Gnus::
 @end menu
 
 @node Changing the included text prefix, Saving a copy of outgoing mail, Mail and news, Mail and news
@@ -5284,7 +5262,7 @@ best fix I've been able to come up with:
 @end lisp
 
 @node MIME with Emacs mail packages, Automatically starting a mail or news reader, Replying to the sender of a message, Mail and news
-@section How can I get my favorite Emacs mail package to support MIME?  
+@section How can I get my favorite Emacs mail package to support MIME?
 @cindex MIME and Emacs mail packages
 @cindex Mail packages and MIME
 @cindex FAQ for MIME and Emacs

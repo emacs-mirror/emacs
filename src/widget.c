@@ -296,7 +296,7 @@ set_frame_size (ew)
      (the menubar and the parent of the menubar and all that sort of thing
      are managed by lwlib.)
 
-     The EmacsShell widget is simply a replacement for the Shell widget 
+     The EmacsShell widget is simply a replacement for the Shell widget
      which is able to deal with using an externally-supplied window instead
      of always creating its own.  It is not actually emacs specific, and
      should possibly have class "Shell" instead of "EmacsShell" to simplify
@@ -307,13 +307,13 @@ set_frame_size (ew)
   /* Hairily merged geometry */
   unsigned int w = ew->emacs_frame.frame->width;
   unsigned int h = ew->emacs_frame.frame->height;
-  
+
   Widget wmshell = get_wm_shell ((Widget) ew);
   /* Each Emacs shell is now independent and top-level.  */
-  
+
   if (! XtIsSubclass (wmshell, shellWidgetClass)) abort ();
 
-  /* We don't need this for the moment. The geometry is computed in 
+  /* We don't need this for the moment. The geometry is computed in
      xfns.c.  */
 #if 0
   /* If the EmacsFrame doesn't have a geometry but the shell does,
@@ -326,20 +326,20 @@ set_frame_size (ew)
      this bogus? I'm not sure.) */
   if (!ew->emacs_frame.iconic)
     XtVaGetValues (wmshell, XtNiconic, &ew->emacs_frame.iconic, NULL);
-  
-  
+
+
   {
     char *geom = 0;
     XtVaGetValues (app_shell, XtNgeometry, &geom, NULL);
     if (geom)
       app_flags = XParseGeometry (geom, &app_x, &app_y, &app_w, &app_h);
   }
-  
+
   if (ew->emacs_frame.geometry)
     frame_flags = XParseGeometry (ew->emacs_frame.geometry,
 				   &frame_x, &frame_y,
 				   &frame_w, &frame_h);
-  
+
   if (first_frame_p)
     {
       /* If this is the first frame created:
@@ -434,7 +434,7 @@ set_frame_size (ew)
 	 : (FRAME_SCROLL_BAR_COLS (frame)
 	    * FONT_WIDTH (frame->output_data.x->font)));
 
-    x_compute_fringe_widths (frame, 0);
+    compute_fringe_widths (frame, 0);
 
 #if 0 /* This can run Lisp code, and it is dangerous to give
 	 out the frame to Lisp code before it officially exists.
@@ -516,7 +516,7 @@ update_wm_hints (ew)
 		      &char_width, &char_height);
   char_to_pixel_size (ew, char_width, char_height,
 		      &rounded_width, &rounded_height);
-  get_default_char_pixel_size (ew, &cw, &ch); 
+  get_default_char_pixel_size (ew, &cw, &ch);
 
   base_width = (wmshell->core.width - ew->core.width
 		+ (rounded_width - (char_width * cw)));
@@ -531,7 +531,7 @@ update_wm_hints (ew)
   XtVaSetValues (wmshell,
 		 XtNbaseWidth, (XtArgVal) base_width,
 		 XtNbaseHeight, (XtArgVal) base_height,
-		 XtNwidthInc, (XtArgVal) cw, 
+		 XtNwidthInc, (XtArgVal) cw,
 		 XtNheightInc, (XtArgVal) ch,
 		 XtNminWidth, (XtArgVal) (base_width + min_cols * cw),
 		 XtNminHeight, (XtArgVal) (base_height + min_rows * ch),
@@ -667,7 +667,7 @@ update_from_various_frame_slots (ew)
   ew->core.border_pixel = x->border_pixel;
 }
 
-static void 
+static void
 EmacsFrameInitialize (request, new, dum1, dum2)
      Widget request;
      Widget new;
@@ -706,7 +706,7 @@ EmacsFrameInitialize (request, new, dum1, dum2)
     face_res.default_addr = 0;
     XtGetSubresources ((Widget) ew, (XtPointer) &f, "default", "Face",
 		       &face_res, 1, NULL, 0);
-      
+
     if (f)
 	ew->emacs_frame.font = f;
     else if (! ew->emacs_frame.font)
@@ -721,7 +721,7 @@ EmacsFrameInitialize (request, new, dum1, dum2)
 #endif
 
   update_from_various_frame_slots (ew);
-  set_frame_size (ew); 
+  set_frame_size (ew);
 /*create_frame_gcs (ew);
   setup_frame_gcs (ew);
   update_various_frame_slots (ew); */
@@ -745,7 +745,7 @@ EmacsFrameRealize (widget, mask, attrs)
   *mask |= CWEventMask;
   XtCreateWindow (widget, InputOutput, (Visual *)CopyFromParent, *mask,
 		  attrs);
-  update_wm_hints (ew); 
+  update_wm_hints (ew);
 }
 
 extern void free_frame_faces (/* struct frame * */);
@@ -781,7 +781,7 @@ EmacsFrameResize (widget)
 
   pixel_to_char_size (ew, ew->core.width, ew->core.height, &columns, &rows);
   change_frame_size (f, rows, columns, 0, 1, 0);
-  update_wm_hints (ew); 
+  update_wm_hints (ew);
   update_various_frame_slots (ew);
 
   cancel_mouse_face (f);
@@ -806,14 +806,14 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
   int char_width, char_height;
   Dimension pixel_width;
   Dimension pixel_height;
-  
+
   has_to_recompute_gcs = (cur->emacs_frame.font != new->emacs_frame.font
 			  || (cur->emacs_frame.foreground_pixel
 			      != new->emacs_frame.foreground_pixel)
 			  || (cur->core.background_pixel
 			      != new->core.background_pixel)
 			  );
-  
+
   has_to_recompute_size = (cur->emacs_frame.font != new->emacs_frame.font
 			   && cur->core.width == new->core.width
 			   && cur->core.height == new->core.height);
@@ -825,7 +825,7 @@ EmacsFrameSetValues (cur_widget, req_widget, new_widget, dum1, dum2)
       setup_frame_gcs (new);
       needs_a_refresh = True;
     }
-			  
+
   if (has_to_recompute_size)
     {
       pixel_width = new->core.width;
@@ -906,7 +906,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
   EmacsFrame ew = (EmacsFrame) widget;
   Dimension pixel_width, pixel_height;
   struct frame *f = ew->emacs_frame.frame;
-  
+
   if (columns < 3) columns = 3;  /* no way buddy */
 
   check_frame_size (f, &rows, &columns);
@@ -915,7 +915,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
        ? 0
        : (FRAME_SCROLL_BAR_COLS (f) * FONT_WIDTH (f->output_data.x->font)));
 
-  x_compute_fringe_widths (f, 0);
+  compute_fringe_widths (f, 0);
 
   char_to_pixel_size (ew, columns, rows, &pixel_width, &pixel_height);
 
@@ -968,7 +968,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
 #ifdef SIGIO
       sigblock (sigmask (SIGIO));
 #endif
-      
+
       /* Do parents first, otherwise LessTif's geometry management
 	 enters an infinite loop (as of 2000-01-15).  This is fixed in
 	 later versions of LessTif (as of 2001-03-13); I'll leave it
@@ -991,7 +991,7 @@ EmacsFrameSetCharSize (widget, columns, rows)
       sigunblock (sigmask (SIGIO));
 #endif
       turn_on_atimers (1);
-      
+
       lw_refigure_widget (f->output_data.x->column_widget, True);
 
       update_hints_inhibit = 0;

@@ -373,7 +373,7 @@ adjust_markers_for_delete (from, from_byte, to, to_byte)
 	  if (! m->insertion_type)
 	    /* Normal markers will end up at the beginning of the
 	       re-inserted text after undoing a deletion, and must be
-	       adjusted to move them to the correct place.  */ 
+	       adjusted to move them to the correct place.  */
 	    record_marker_adjustment (marker, from - charpos);
 	  else if (charpos < to)
 	    /* Before-insertion markers will automatically move forward
@@ -536,7 +536,7 @@ make_gap_larger (nbytes_added)
      That won't work because so many places use `int'.
 
      Make sure we don't introduce overflows in the calculation.  */
-     
+
   if (Z_BYTE - BEG_BYTE + GAP_SIZE
       >= (((EMACS_INT) 1 << (min (VALBITS, BITS_PER_INT) - 1)) - 1
 	  - nbytes_added))
@@ -573,7 +573,7 @@ make_gap_larger (nbytes_added)
 }
 
 
-/* Make the gap NBYTES_REMOVED bytes shorted.  */
+/* Make the gap NBYTES_REMOVED bytes shorter.  */
 
 void
 make_gap_smaller (nbytes_removed)
@@ -654,7 +654,7 @@ make_gap (nbytes_added)
 int
 copy_text (from_addr, to_addr, nbytes,
 	   from_multibyte, to_multibyte)
-     unsigned char *from_addr;
+     const unsigned char *from_addr;
      unsigned char *to_addr;
      int nbytes;
      int from_multibyte, to_multibyte;
@@ -723,7 +723,7 @@ copy_text (from_addr, to_addr, nbytes,
 
 int
 count_size_as_multibyte (ptr, nbytes)
-     unsigned char *ptr;
+     const unsigned char *ptr;
      int nbytes;
 {
   int i;
@@ -755,7 +755,7 @@ count_size_as_multibyte (ptr, nbytes)
 
 void
 insert (string, nbytes)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -771,7 +771,7 @@ insert (string, nbytes)
 
 void
 insert_and_inherit (string, nbytes)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -807,7 +807,7 @@ insert_char (c)
 
 void
 insert_string (s)
-     char *s;
+     const char *s;
 {
   insert (s, strlen (s));
 }
@@ -819,7 +819,7 @@ insert_string (s)
 
 void
 insert_before_markers (string, nbytes)
-     unsigned char *string;
+     const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -836,7 +836,7 @@ insert_before_markers (string, nbytes)
 
 void
 insert_before_markers_and_inherit (string, nbytes)
-     unsigned char *string;
+     const unsigned char *string;
      register int nbytes;
 {
   if (nbytes > 0)
@@ -853,7 +853,7 @@ insert_before_markers_and_inherit (string, nbytes)
 
 void
 insert_1 (string, nbytes, inherit, prepare, before_markers)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nbytes;
      int inherit, prepare, before_markers;
 {
@@ -871,12 +871,12 @@ insert_1 (string, nbytes, inherit, prepare, before_markers)
 
 int
 count_combining_before (string, length, pos, pos_byte)
-     unsigned char *string;
+     const unsigned char *string;
      int length;
      int pos, pos_byte;
 {
   int len, combining_bytes;
-  unsigned char *p;
+  const unsigned char *p;
 
   if (NILP (current_buffer->enable_multibyte_characters))
     return 0;
@@ -918,7 +918,7 @@ count_combining_before (string, length, pos, pos_byte)
 
 int
 count_combining_after (string, length, pos, pos_byte)
-     unsigned char *string;
+     const unsigned char *string;
      int length;
      int pos, pos_byte;
 {
@@ -984,13 +984,13 @@ count_combining_after (string, length, pos, pos_byte)
 
 void
 insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
-     register unsigned char *string;
+     register const unsigned char *string;
      register int nchars, nbytes;
      int inherit, prepare, before_markers;
 {
   if (nchars == 0)
     return;
-  
+
   if (NILP (current_buffer->enable_multibyte_characters))
     nchars = nbytes;
 
@@ -1030,6 +1030,10 @@ insert_1_both (string, nchars, nbytes, inherit, prepare, before_markers)
 
   if (GPT_BYTE < GPT)
     abort ();
+
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
 
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE,
@@ -1107,7 +1111,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
     outgoing_nbytes = nchars;
   else if (! STRING_MULTIBYTE (string))
     outgoing_nbytes
-      = count_size_as_multibyte (&XSTRING (string)->data[pos_byte],
+      = count_size_as_multibyte (SDATA (string) + pos_byte,
 				 nbytes);
 
   GCPRO1 (string);
@@ -1124,7 +1128,7 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
-  copy_text (XSTRING (string)->data + pos_byte, GPT_ADDR, nbytes,
+  copy_text (SDATA (string) + pos_byte, GPT_ADDR, nbytes,
 	     STRING_MULTIBYTE (string),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
@@ -1154,6 +1158,10 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
   if (GPT_BYTE < GPT)
     abort ();
 
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
+
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
 			     PT_BYTE + outgoing_nbytes,
@@ -1161,11 +1169,11 @@ insert_from_string_1 (string, pos, pos_byte, nchars, nbytes,
 
   offset_intervals (current_buffer, PT, nchars);
 
-  intervals = XSTRING (string)->intervals;
+  intervals = STRING_INTERVALS (string);
   /* Get the intervals for the part of the string we are inserting.  */
-  if (nbytes < STRING_BYTES (XSTRING (string)))
+  if (nbytes < SBYTES (string))
     intervals = copy_intervals (intervals, pos, nchars);
-			       
+
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars,
 			       current_buffer, inherit);
@@ -1231,13 +1239,13 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 
       if (chunk < incoming_nbytes)
 	outgoing_after_gap
-	  = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf, 
+	  = count_size_as_multibyte (BUF_BYTE_ADDRESS (buf,
 						       from_byte + chunk),
 				     incoming_nbytes - chunk);
 
       outgoing_nbytes = outgoing_before_gap + outgoing_after_gap;
     }
-  
+
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, outgoing_nbytes + Z);
   if (outgoing_nbytes + Z != XINT (temp))
@@ -1301,6 +1309,10 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
   if (GPT_BYTE < GPT)
     abort ();
 
+  /* The insert may have been in the unchanged region, so check again. */
+  if (Z - GPT < END_UNCHANGED)
+    END_UNCHANGED = Z - GPT;
+
   adjust_overlays_for_insert (PT, nchars);
   adjust_markers_for_insert (PT, PT_BYTE, PT + nchars,
 			     PT_BYTE + outgoing_nbytes,
@@ -1317,7 +1329,7 @@ insert_from_buffer_1 (buf, from, nchars, inherit)
 	from += nchars;
       intervals = copy_intervals (intervals, from, nchars);
     }
-			       
+
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, PT, nchars, current_buffer, inherit);
 
@@ -1346,8 +1358,8 @@ adjust_after_replace (from, from_byte, prev_text, len, len_byte)
 
   if (STRINGP (prev_text))
     {
-      nchars_del = XSTRING (prev_text)->size;
-      nbytes_del = STRING_BYTES (XSTRING (prev_text));
+      nchars_del = SCHARS (prev_text);
+      nbytes_del = SBYTES (prev_text);
     }
 
   /* Update various buffer positions for the new text.  */
@@ -1481,8 +1493,8 @@ replace_range (from, to, new, prepare, inherit, markers)
      Lisp_Object new;
      int from, to, prepare, inherit, markers;
 {
-  int inschars = XSTRING (new)->size;
-  int insbytes = STRING_BYTES (XSTRING (new));
+  int inschars = SCHARS (new);
+  int insbytes = SBYTES (new);
   int from_byte, to_byte;
   int nbytes_del, nchars_del;
   register Lisp_Object temp;
@@ -1527,7 +1539,7 @@ replace_range (from, to, new, prepare, inherit, markers)
     outgoing_insbytes = inschars;
   else if (! STRING_MULTIBYTE (new))
     outgoing_insbytes
-      = count_size_as_multibyte (XSTRING (new)->data, insbytes);
+      = count_size_as_multibyte (SDATA (new), insbytes);
 
   /* Make sure point-max won't overflow after this insertion.  */
   XSETINT (temp, Z_BYTE - nbytes_del + insbytes);
@@ -1570,7 +1582,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   /* Copy the string text into the buffer, perhaps converting
      between single-byte and multibyte.  */
-  copy_text (XSTRING (new)->data, GPT_ADDR, insbytes,
+  copy_text (SDATA (new), GPT_ADDR, insbytes,
 	     STRING_MULTIBYTE (new),
 	     ! NILP (current_buffer->enable_multibyte_characters));
 
@@ -1617,7 +1629,7 @@ replace_range (from, to, new, prepare, inherit, markers)
 
   /* Get the intervals for the part of the string we are inserting--
      not including the combined-before bytes.  */
-  intervals = XSTRING (new)->intervals;
+  intervals = STRING_INTERVALS (new);
   /* Insert those intervals.  */
   graft_intervals_into_buffer (intervals, from, inschars,
 			       current_buffer, inherit);
@@ -2117,7 +2129,7 @@ signal_after_change (charpos, lendel, lenins)
       return;
     }
 
-  if (!NILP (combine_after_change_list)) 
+  if (!NILP (combine_after_change_list))
     Fcombine_after_change_execute ();
 
   if (!NILP (Vafter_change_functions))
@@ -2193,7 +2205,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
        doc: /* This function is for use internally in `combine-after-change-calls'.  */)
      ()
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   int beg, end, change;
   int begpos, endpos;
   Lisp_Object tail;
@@ -2248,7 +2260,7 @@ DEFUN ("combine-after-change-execute", Fcombine_after_change_execute,
      that was changed.  */
   begpos = BEG + beg;
   endpos = Z - end;
-  
+
   /* We are about to handle these, so discard them.  */
   combine_after_change_list = Qnil;
 

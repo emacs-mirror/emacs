@@ -31,9 +31,9 @@
 ;;     - Olin Shivers (shivers@cs.cmu.edu)
 ;;     - Simon Marshall (simon@gnu.org)
 
-;; This file defines a a shell-in-a-buffer package (shell mode) built
-;; on top of comint mode.  This is actually cmushell with things
-;; renamed to replace its counterpart in Emacs 18.  cmushell is more
+;; This file defines a shell-in-a-buffer package (shell mode) built on
+;; top of comint mode.  This is actually cmushell with things renamed
+;; to replace its counterpart in Emacs 18.  cmushell is more
 ;; featureful, robust, and uniform than the Emacs 18 version.
 
 ;; Since this mode is built on top of the general command-interpreter-in-
@@ -165,7 +165,7 @@ shell buffer.  The value may depend on the operating system or shell.
 This is a fine thing to set in your `.emacs' file.")
 
 (defvar shell-file-name-chars
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       "~/A-Za-z0-9_^$!#%&{}@`'.,:()-"
     "~/A-Za-z0-9+@:_.$#%,={}-")
   "String of characters valid in a file name.
@@ -271,6 +271,24 @@ This is effective only if directory tracking is enabled."
       '("-i" "-T")
     '("-i"))
   "*Args passed to inferior shell by M-x shell, if the shell is csh.
+Value is a list of strings, which may be nil."
+  :type '(repeat (string :tag "Argument"))
+  :group 'shell)
+
+(defcustom explicit-bash-args
+  ;; Tell bash not to use readline, except for bash 1.x which doesn't grook --noediting.
+  ;; Bash 1.x has -nolineediting, but process-send-eof cannot terminate bash if we use it.
+  (let* ((prog (or (and (boundp 'explicit-shell-file-name) explicit-shell-file-name)
+		   (getenv "ESHELL") shell-file-name))
+	 (name (file-name-nondirectory prog)))
+    (if (and (not purify-flag)
+	     (equal name "bash")
+	     (file-executable-p prog)
+	     (string-match "bad option"
+			   (shell-command-to-string (concat prog " --noediting"))))
+	'("-i")
+      '("--noediting" "-i")))
+  "*Args passed to inferior shell by M-x shell, if the shell is bash.
 Value is a list of strings, which may be nil."
   :type '(repeat (string :tag "Argument"))
   :group 'shell)
@@ -498,6 +516,8 @@ Otherwise, one argument `-i' is passed to the shell.
 	   (name (file-name-nondirectory prog))
 	   (startfile (concat "~/.emacs_" name))
 	   (xargs-name (intern-soft (concat "explicit-" name "-args"))))
+      (if (not (file-exists-p startfile))
+	  (setq startfile (concat "~/.emacs.d/.emacs_" name)))
       (apply 'make-comint-in-buffer "shell" buffer prog
 	     (if (file-exists-p startfile) startfile)
 	     (if (and xargs-name (boundp xargs-name))

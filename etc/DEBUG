@@ -115,7 +115,7 @@ First, use these commands:
     cd src
     gdb emacs
     b xmenu.c:1296
-    r -q 
+    r -q
 
 Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
 
@@ -128,9 +128,9 @@ Then type C-x 5 2 to create a new frame, and it hits the breakpoint:
     $2 = (struct frame *) 0x3f0800
     (gdb) p *$
     $3 = {
-      size = 536871989, 
-      next = 0x366240, 
-      name = 809661752, 
+      size = 536871989,
+      next = 0x366240,
+      name = 809661752,
       [...]
     }
     (gdb) p $3->name
@@ -177,7 +177,7 @@ this vector.  `recent_keys' is updated in keyboard.c by the command
   XVECTOR (recent_keys)->contents[recent_keys_index] = c;
 
 So we define a GDB command `xvector-elts', so the last 10 keystrokes
-are printed by 
+are printed by
 
     xvector-elts recent_keys recent_keys_index 10
 
@@ -189,7 +189,7 @@ where you can define xvector-elts as follows:
     xvector
     set $foo = $
     while $i < $arg2
-    p $foo->contents[$arg1-($i++)] 
+    p $foo->contents[$arg1-($i++)]
     pr
     end
     document xvector-elts
@@ -217,7 +217,7 @@ of function calling.
 
 By printing the remaining elements of args, you can see the argument
 values.  Here's how to print the first argument:
-  
+
    p args[1]
    pr
 
@@ -230,7 +230,7 @@ conveniently.  For example:
 
 and, assuming that "xtype" says that args[0] is a symbol:
 
-   xsymbol 
+   xsymbol
 
 ** Debugging what happens while preloading and dumping Emacs
 
@@ -304,6 +304,19 @@ procedure:
 
   - You should now look around this offending X call and try to figure
     out what is wrong with it.
+
+** If Emacs causes errors or memory leaks in your X server
+
+You can trace the traffic between Emacs and your X server with a tool
+like xmon, available at ftp://ftp.x.org/contrib/devel_tools/.
+
+Xmon can be used to see exactly what Emacs sends when X protocol errors
+happen.  If Emacs causes the X server memory usage to increase you can
+use xmon to see what items Emacs creates in the server (windows,
+graphical contexts, pixmaps) and what items Emacs delete.  If there
+are consistently more creations than deletions, the type of item
+and the activity you do when the items get created can give a hint where
+to start debugging.
 
 ** If the symptom of the bug is that Emacs fails to respond
 
@@ -437,7 +450,7 @@ and keyboard events, or LessTif menus behave weirdly, it might be
 helpful to set the `DEBUGSOURCES' and `DEBUG_FILE' environment
 variables, so that one can see what LessTif was doing at this point.
 For instance
-  
+
   export DEBUGSOURCES="RowColumn.c:MenuShell.c:MenuUtil.c"
   export DEBUG_FILE=/usr/tmp/LESSTIF_TRACE
   emacs &

@@ -215,7 +215,7 @@ have fast storage with limited space, such as a RAM disk."
 		 "[\000-\031]\\|"		  ; control characters
 		 "\\(/\\.\\.?[^/]\\)\\|"	  ; leading dots
 		 "\\(/[^/.]+\\.[^/.]*\\.\\)"))	  ; more than a single dot
-	((memq system-type '(ms-dos windows-nt))
+	((memq system-type '(ms-dos windows-nt cygwin))
 	 (concat "^\\([^A-Z[-`a-z]\\|..+\\)?:\\|" ; colon except after drive
 		 "[|<>\"?*\000-\031]"))		  ; invalid characters
 	(t "[\000]"))
@@ -344,45 +344,44 @@ and should return either a buffer or nil."
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-not-found-hooks 'permanent-local t)
-(defvar find-file-not-found-hooks nil
+(defvar find-file-not-found-functions nil
   "List of functions to be called for `find-file' on nonexistent file.
 These functions are called as soon as the error is detected.
 Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
+(defvaralias 'find-file-not-found-hooks 'find-file-not-found-functions)
+(make-obsolete-variable
+ 'find-file-not-found-hooks 'find-file-not-found-functions "21.4")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
-(defvar find-file-hooks nil
+(defvar find-file-hook nil
   "List of functions to be called after a buffer is loaded from a file.
 The buffer's local variables (if any) will have been processed before the
 functions are called.")
+(defvaralias 'find-file-hooks 'find-file-hook)
+(make-obsolete-variable 'find-file-hooks 'find-file-hook "21.4")
 
-(defvar write-file-hooks nil
+(defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
 These hooks are considered to pertain to the visited file.
-So any buffer-local binding of `write-file-hooks' is
-discarded if you change the visited file name with \\[set-visited-file-name].
+So any buffer-local binding of this variable is discarded if you change
+the visited file name with \\[set-visited-file-name], but not when you
+change the major mode.
 
-Don't make this variable buffer-local; instead, use `local-write-file-hooks'.
-See also `write-contents-hooks'.")
-;;; However, in case someone does make it local...
-(put 'write-file-hooks 'permanent-local t)
+See also `write-contents-functions'.")
+(put 'write-file-functions 'permanent-local t)
+(defvaralias 'write-file-hooks 'write-file-functions)
+(make-obsolete-variable 'write-file-hooks 'write-file-functions "21.4")
 
-(defvar local-write-file-hooks nil
-  "Just like `write-file-hooks', except intended for per-buffer use.
-The functions in this list are called before the ones in
-`write-file-hooks'.
-
-This variable is meant to be used for hooks that have to do with a
-particular visited file.  Therefore, it is a permanent local, so that
-changing the major mode does not clear it.  However, calling
-`set-visited-file-name' does clear it.")
+(defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
 (put 'local-write-file-hooks 'permanent-local t)
+(make-obsolete-variable 'local-write-file-hooks 'write-file-functions "21.4")
 
-(defvar write-contents-hooks nil
+(defvar write-contents-functions nil
   "List of functions to be called before writing out a buffer to a file.
 If one of them returns non-nil, the file is considered already written
 and the rest are not called.
@@ -392,12 +391,10 @@ buffer's contents, not to the particular visited file; thus,
 `set-visited-file-name' does not clear this variable; but changing the
 major mode does clear it.
 
-This variable automatically becomes buffer-local whenever it is set.
-If you use `add-hook' to add elements to the list, use nil for the
-LOCAL argument.
-
-See also `write-file-hooks'.")
-(make-variable-buffer-local 'write-contents-hooks)
+See also `write-file-functions'.")
+(make-variable-buffer-local 'write-contents-functions)
+(defvaralias 'write-contents-hooks 'write-contents-functions)
+(make-obsolete-variable 'write-contents-hooks 'write-contents-functions "21.4")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
@@ -448,6 +445,7 @@ and ignores this variable."
 (defvar view-read-only nil
   "*Non-nil means buffers visiting files read-only, do it in view mode.")
 
+(put 'ange-ftp-completion-hook-function 'safe-magic t)
 (defun ange-ftp-completion-hook-function (op &rest args)
   "Provides support for ange-ftp host name completion.
 Runs the usual ange-ftp hook, but only for completion operations."
@@ -602,9 +600,10 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
 	    (when (string-match suffix file)
 	      (setq file (substring file 0 (match-beginning 0)))
 	      (push (if string-dir (concat string-dir file) file) names)))))
-      (if action
-	  (all-completions string (mapcar 'list names))
-	(try-completion string (mapcar 'list names))))))
+      (cond
+       ((eq action t) (all-completions string names))
+       ((null action) (try-completion string names))
+       (t (test-completion string names))))))
 
 (defun load-library (library)
   "Load the library named LIBRARY.
@@ -614,6 +613,12 @@ This is an interface to the function `load'."
 			  'locate-file-completion
 			  (cons load-path load-suffixes))))
   (load library))
+
+(defun file-remote-p (file)
+  "Test whether FILE specifies a location on a remote system."
+  (let ((handler (find-file-name-handler file 'file-local-copy)))
+    (if handler
+	(get handler 'file-remote-p))))
 
 (defun file-local-copy (file)
   "Copy the file FILE into a temporary file on this machine.
@@ -670,18 +675,15 @@ Do not specify them in other calls."
     ;; it is stored on disk (expanding short name aliases with the full
     ;; name in the process).
     (if (eq system-type 'windows-nt)
-      (let ((handler (find-file-name-handler filename 'file-truename))
-	    newname)
+      (let ((handler (find-file-name-handler filename 'file-truename)))
 	;; For file name that has a special handler, call handler.
 	;; This is so that ange-ftp can save time by doing a no-op.
 	(if handler
 	    (setq filename (funcall handler 'file-truename filename))
 	  ;; If filename contains a wildcard, newname will be the old name.
-	  (if (string-match "[[*?]" filename)
-	      (setq newname filename)
-	    ;; If filename doesn't exist, newname will be nil.
-	    (setq newname (w32-long-file-name filename)))
-	  (setq filename (or newname filename)))
+	  (unless (string-match "[[*?]" filename)
+	    ;; If filename exists, use the long name
+	    (setq filename (or (w32-long-file-name filename) filename))))
 	(setq done t)))
 
     ;; If this file directly leads to a link, process that iteratively
@@ -764,6 +766,58 @@ unlike `file-truename'."
 	(setq newname (expand-file-name tem (file-name-directory newname)))
 	(setq count (1- count))))
     newname))
+
+(defun recode-file-name (file coding new-coding &optional ok-if-already-exists)
+  "Change the encoding of FILE's name from CODING to NEW-CODING.
+The value is a new name of FILE.
+Signals a `file-already-exists' error if a file of the new name
+already exists unless optional third argument OK-IF-ALREADY-EXISTS
+is non-nil.  A number as third arg means request confirmation if
+the new name already exists.  This is what happens in interactive
+use with M-x."
+  (interactive
+   (let ((default-coding (or file-name-coding-system
+			     default-file-name-coding-system))
+	 (filename (read-file-name "Recode filename: " nil nil t))
+	 from-coding to-coding)
+     (if (and default-coding
+	      ;; We provide the default coding only when it seems that
+	      ;; the filename is correctly decoded by the default
+	      ;; coding.
+	      (let ((charsets (find-charset-string filename)))
+		(and (not (memq 'eight-bit-control charsets))
+		     (not (memq 'eight-bit-graphic charsets)))))
+	 (setq from-coding (read-coding-system
+			    (format "Recode filename %s from (default %s): "
+				    filename default-coding)
+			    default-coding))
+       (setq from-coding (read-coding-system
+			  (format "Recode filename %s from: " filename))))
+     
+     ;; We provide the default coding only when a user is going to
+     ;; change the encoding not from the default coding.
+     (if (eq from-coding default-coding)
+	 (setq to-coding (read-coding-system
+			  (format "Recode filename %s from %s to: "
+				  filename from-coding)))
+       (setq to-coding (read-coding-system
+			(format "Recode filename %s from %s to (default %s): "
+				filename from-coding default-coding)
+			default-coding)))
+     (list filename from-coding to-coding)))
+
+  (let* ((default-coding (or file-name-coding-system
+			     default-file-name-coding-system))
+	 ;; FILE should have been decoded by DEFAULT-CODING.
+	 (encoded (encode-coding-string file default-coding))
+	 (newname (decode-coding-string encoded coding))
+	 (new-encoded (encode-coding-string newname new-coding))
+	 ;; Suppress further encoding.
+	 (file-name-coding-system nil)
+	 (default-file-name-coding-system nil)
+	 (locale-coding-system nil))
+    (rename-file encoded new-encoded ok-if-already-exists)
+    newname))
 
 (defun switch-to-buffer-other-window (buffer &optional norecord)
   "Select buffer BUFFER in another window.
@@ -791,7 +845,7 @@ documentation for additional customization information."
 (defvar find-file-default nil
   "Used within `find-file-read-args'.")
 
-(defun find-file-read-args (prompt)
+(defun find-file-read-args (prompt mustmatch)
   (list (let ((find-file-default
 	       (and buffer-file-name
 		    (abbreviate-file-name buffer-file-name)))
@@ -804,8 +858,8 @@ documentation for additional customization information."
 	      (minibuffer-setup-hook
 	       minibuffer-setup-hook))
 	  (add-hook 'minibuffer-setup-hook munge-default-fun)
-	  (read-file-name prompt nil default-directory))
-	current-prefix-arg))
+	  (read-file-name prompt nil default-directory mustmatch))
+	t))
 
 (defun find-file (filename &optional wildcards)
   "Edit file FILENAME.
@@ -819,7 +873,7 @@ Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files.  Wildcard expansion
 can be suppressed by setting `find-file-wildcards'."
   (interactive
-   (find-file-read-args "Find file: "))
+   (find-file-read-args "Find file: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(mapcar 'switch-to-buffer (nreverse value))
@@ -836,7 +890,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "FFind file in other window: "))
+  (interactive (find-file-read-args "Find file in other window: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -856,7 +910,7 @@ type M-n to pull it into the minibuffer.
 
 Interactively, or if WILDCARDS is non-nil in a call from Lisp,
 expand wildcards (if any) and visit multiple files."
-  (interactive (find-file-read-args "FFind file in other frame: "))
+  (interactive (find-file-read-args "Find file in other frame: " nil))
   (let ((value (find-file-noselect filename nil nil wildcards)))
     (if (listp value)
 	(progn
@@ -869,7 +923,7 @@ expand wildcards (if any) and visit multiple files."
   "Edit file FILENAME but don't allow changes.
 Like \\[find-file] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only: "))
+  (interactive (find-file-read-args "Find file read-only: " t))
   (find-file filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -878,7 +932,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another window but don't allow changes.
 Like \\[find-file-other-window] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only other window: "))
+  (interactive (find-file-read-args "Find file read-only other window: " t))
   (find-file-other-window filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -887,7 +941,7 @@ Use \\[toggle-read-only] to permit editing."
   "Edit file FILENAME in another frame but don't allow changes.
 Like \\[find-file-other-frame] but marks buffer as read-only.
 Use \\[toggle-read-only] to permit editing."
-  (interactive (find-file-read-args "fFind file read-only other frame: "))
+  (interactive (find-file-read-args "Find file read-only other frame: " t))
   (find-file-other-frame filename wildcards)
   (toggle-read-only 1)
   (current-buffer))
@@ -925,14 +979,18 @@ If the current buffer now contains an empty file that you just visited
 		file-dir (file-name-directory file)))
      (list (read-file-name
 	    "Find alternate file: " file-dir nil nil file-name))))
-  (and (buffer-modified-p) (buffer-file-name)
-       ;; (not buffer-read-only)
-       (not (yes-or-no-p (format "Buffer %s is modified; kill anyway? "
-				 (buffer-name))))
-       (error "Aborted"))
+  (unless (run-hook-with-args-until-failure 'kill-buffer-query-functions)
+    (error "Aborted"))
+  (when (and (buffer-modified-p) (buffer-file-name))
+    (if (yes-or-no-p (format "Buffer %s is modified; save it first? "
+			     (buffer-name)))
+	(save-buffer)
+      (unless (yes-or-no-p "Kill and replace the buffer without saving it? ")
+	(error "Aborted"))))
   (let ((obuf (current-buffer))
 	(ofile buffer-file-name)
 	(onum buffer-file-number)
+	(odir dired-directory)
 	(otrue buffer-file-truename)
 	(oname (buffer-name)))
     (if (get-buffer " **lose**")
@@ -941,18 +999,30 @@ If the current buffer now contains an empty file that you just visited
     (unwind-protect
 	(progn
 	  (unlock-buffer)
+	  ;; This prevents us from finding the same buffer
+	  ;; if we specified the same file again.
 	  (setq buffer-file-name nil)
 	  (setq buffer-file-number nil)
 	  (setq buffer-file-truename nil)
+	  ;; Likewise for dired buffers.
+	  (setq dired-directory nil)
 	  (find-file filename))
-      (cond ((eq obuf (current-buffer))
-	     (setq buffer-file-name ofile)
-	     (setq buffer-file-number onum)
-	     (setq buffer-file-truename otrue)
-	     (lock-buffer)
-	     (rename-buffer oname))))
-    (or (eq (current-buffer) obuf)
-	(kill-buffer obuf))))
+      (when (eq obuf (current-buffer))
+	;; This executes if find-file gets an error
+	;; and does not really find anything.
+	;; We put things back as they were.
+	;; If find-file actually finds something, we kill obuf below.
+	(setq buffer-file-name ofile)
+	(setq buffer-file-number onum)
+	(setq buffer-file-truename otrue)
+	(setq dired-directory odir)
+	(lock-buffer)
+	(rename-buffer oname)))
+    (unless (eq (current-buffer) obuf)
+      (with-current-buffer obuf
+	;; We already asked; don't ask again.
+	(let ((kill-buffer-query-functions))
+	  (kill-buffer obuf))))))
 
 (defun create-file-buffer (filename)
   "Create a suitably named buffer for visiting FILENAME, and return it.
@@ -978,8 +1048,8 @@ Choose the buffer's name using `generate-new-buffer-name'."
 
 (defun abbreviate-file-name (filename)
   "Return a version of FILENAME shortened using `directory-abbrev-alist'.
-This also substitutes \"~\" for the user's home directory.
-Type \\[describe-variable] directory-abbrev-alist RET for more information."
+This also substitutes \"~\" for the user's home directory and
+removes automounter prefixes (see the variable `automount-dir-prefix')."
   ;; Get rid of the prefixes added by the automounter.
   (if (and automount-dir-prefix
 	   (string-match automount-dir-prefix filename)
@@ -1014,6 +1084,7 @@ Type \\[describe-variable] directory-abbrev-alist RET for more information."
 	     ;; MS-DOS root directories can come with a drive letter;
 	     ;; Novell Netware allows drive letters beyond `Z:'.
 	     (not (and (or (eq system-type 'ms-dos)
+			   (eq system-type 'cygwin)
 			   (eq system-type 'windows-nt))
 		       (save-match-data
 			 (string-match "^[a-zA-`]:/$" filename)))))
@@ -1032,40 +1103,44 @@ name to this list as a string."
   :type '(repeat (string :tag "Name"))
   :group 'find-file)
 
-(defun find-buffer-visiting (filename)
+(defun find-buffer-visiting (filename &optional predicate)
   "Return the buffer visiting file FILENAME (a string).
 This is like `get-file-buffer', except that it checks for any buffer
 visiting the same file, possibly under a different name.
+If PREDICATE is non-nil, only a buffer satisfying it can be returned.
 If there is no such live buffer, return nil."
-  (let ((buf (get-file-buffer filename))
-	(truename (abbreviate-file-name (file-truename filename))))
-    (or buf
-	(let ((list (buffer-list)) found)
-	  (while (and (not found) list)
-	    (save-excursion
-	      (set-buffer (car list))
-	      (if (and buffer-file-name
-		       (string= buffer-file-truename truename))
-		  (setq found (car list))))
-	    (setq list (cdr list)))
-	  found)
-	(let* ((attributes (file-attributes truename))
-	       (number (nthcdr 10 attributes))
-	       (list (buffer-list)) found)
-	  (and buffer-file-numbers-unique
-	       number
-	       (while (and (not found) list)
-		 (with-current-buffer (car list)
-		   (if (and buffer-file-name
-			    (equal buffer-file-number number)
-			    ;; Verify this buffer's file number
-			    ;; still belongs to its file.
-			    (file-exists-p buffer-file-name)
-			    (equal (file-attributes buffer-file-name)
-				   attributes))
-		       (setq found (car list))))
-		 (setq list (cdr list))))
-	  found))))
+  (let ((predicate (or predicate #'identity))
+        (truename (abbreviate-file-name (file-truename filename))))
+    (or (let ((buf (get-file-buffer filename)))
+          (when (and buf (funcall predicate buf)) buf))
+        (let ((list (buffer-list)) found)
+          (while (and (not found) list)
+            (save-excursion
+              (set-buffer (car list))
+              (if (and buffer-file-name
+                       (string= buffer-file-truename truename)
+                       (funcall predicate (current-buffer)))
+                  (setq found (car list))))
+            (setq list (cdr list)))
+          found)
+        (let* ((attributes (file-attributes truename))
+               (number (nthcdr 10 attributes))
+               (list (buffer-list)) found)
+          (and buffer-file-numbers-unique
+               number
+               (while (and (not found) list)
+                 (with-current-buffer (car list)
+                   (if (and buffer-file-name
+                            (equal buffer-file-number number)
+                            ;; Verify this buffer's file number
+                            ;; still belongs to its file.
+                            (file-exists-p buffer-file-name)
+                            (equal (file-attributes buffer-file-truename)
+                                   attributes)
+                            (funcall predicate (current-buffer)))
+                       (setq found (car list))))
+                 (setq list (cdr list))))
+          found))))
 
 (defcustom find-file-wildcards t
   "*Non-nil means file-visiting commands should handle wildcards.
@@ -1232,6 +1307,7 @@ that are visiting the various files."
       ;; Needed in case we are re-visiting the file with a different
       ;; text representation.
       (kill-local-variable 'buffer-file-coding-system)
+      (kill-local-variable 'cursor-type)
       (erase-buffer)
       (and (default-value 'enable-multibyte-characters)
 	   (not rawfile)
@@ -1256,7 +1332,7 @@ that are visiting the various files."
 	     (signal 'file-error (list "File is not readable"
 				       filename)))
 	   ;; Run find-file-not-found-hooks until one returns non-nil.
-	   (or (run-hook-with-args-until-success 'find-file-not-found-hooks)
+	   (or (run-hook-with-args-until-success 'find-file-not-found-functions)
 	       ;; If they fail too, set error.
 	       (setq error t)))))
       ;; Record the file's truename, and maybe use that as visited name.
@@ -1299,7 +1375,7 @@ that are visiting the various files."
   "Like `insert-file-contents', but only reads in the file literally.
 A buffer may be modified in several ways after reading into the buffer,
 to Emacs features such as format decoding, character code
-conversion, `find-file-hooks', automatic uncompression, etc.
+conversion, `find-file-hook', automatic uncompression, etc.
 
 This function ensures that none of these modifications will take place."
   (let ((format-alist nil)
@@ -1320,6 +1396,18 @@ This function ensures that none of these modifications will take place."
 	  (fset 'find-buffer-file-type find-buffer-file-type-function)
 	(fmakunbound 'find-buffer-file-type)))))
 
+(defun insert-file-1 (filename insert-func)
+  (if (file-directory-p filename)
+      (signal 'file-error (list "Opening input file" "file is a directory"
+                                filename)))
+  (let* ((buffer (find-buffer-visiting (abbreviate-file-name (file-truename filename))
+                                       #'buffer-modified-p))
+         (tem (funcall insert-func filename)))
+    (push-mark (+ (point) (car (cdr tem))))
+    (when buffer
+      (message "File %s already visited and modified in buffer %s"
+               filename (buffer-name buffer)))))
+
 (defun insert-file-literally (filename)
   "Insert contents of file FILENAME into buffer after point with no conversion.
 
@@ -1327,11 +1415,7 @@ This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents-literally' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file literally: ")
-  (if (file-directory-p filename)
-      (signal 'file-error (list "Opening input file" "file is a directory"
-				filename)))
-  (let ((tem (insert-file-contents-literally filename)))
-    (push-mark (+ (point) (car (cdr tem))))))
+  (insert-file-1 filename #'insert-file-contents-literally))
 
 (defvar find-file-literally nil
   "Non-nil if this buffer was made by `find-file-literally' or equivalent.
@@ -1372,7 +1456,7 @@ NOAUTO means don't mess with auto-save mode.
 Fourth arg AFTER-FIND-FILE-FROM-REVERT-BUFFER non-nil
  means this call was from `revert-buffer'.
 Fifth arg NOMODES non-nil means don't alter the file's modes.
-Finishes by calling the functions in `find-file-hooks'
+Finishes by calling the functions in `find-file-hook'
 unless NOMODES is non-nil."
   (setq buffer-read-only (not (file-writable-p buffer-file-name)))
   (if noninteractive
@@ -1393,7 +1477,7 @@ unless NOMODES is non-nil."
 		       (file-newer-than-file-p (or buffer-auto-save-file-name
 						   (make-auto-save-file-name))
 					       buffer-file-name))
-		  (format "%s has auto save data; consider M-x recover-file"
+		  (format "%s has auto save data; consider M-x recover-this-file"
 			  (file-name-nondirectory buffer-file-name))
 		(setq not-serious t)
 		(if error "(New file)" nil)))
@@ -1418,6 +1502,11 @@ unless NOMODES is non-nil."
   ;; before altering a backup file.
   (when (backup-file-name-p buffer-file-name)
     (setq buffer-read-only t))
+  ;; When a file is marked read-only,
+  ;; make the buffer read-only even if root is looking at it.
+  (when (and (file-modes (buffer-file-name))
+	     (zerop (logand (file-modes (buffer-file-name)) #o222)))
+    (setq buffer-read-only t))
   (unless nomodes
     (when (and view-read-only view-mode)
       (view-mode-disable))
@@ -1426,7 +1515,7 @@ unless NOMODES is non-nil."
 	       view-read-only
 	       (not (eq (get major-mode 'mode-class) 'special)))
       (view-mode-enter))
-    (run-hooks 'find-file-hooks)))
+    (run-hooks 'find-file-hook)))
 
 (defun normal-mode (&optional find-file)
   "Choose the major mode for this buffer automatically.
@@ -1454,14 +1543,15 @@ in that case, this function acts as if `enable-local-variables' were t."
 					enable-local-variables)))
 	(hack-local-variables))
     (error (message "File local-variables error: %s"
-		    (prin1-to-string err)))))
+		    (prin1-to-string err))))
+  (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
+      (ucs-set-table-for-input)))
 
 (defvar auto-mode-alist
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
-   '(("\\.in\\'" nil t)
-     ("\\.te?xt\\'" . text-mode)
+   '(("\\.te?xt\\'" . text-mode)
      ("\\.c\\'" . c-mode)
      ("\\.h\\'" . c-mode)
      ("\\.tex\\'" . tex-mode)
@@ -1511,6 +1601,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\$CHANGE_LOG\\$\\.TXT" . change-log-mode)
      ("\\.scm\\.[0-9]*\\'" . scheme-mode)
      ("\\.[ck]?sh\\'\\|\\.shar\\'\\|/\\.z?profile\\'" . sh-mode)
+     ("\\.bash\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_profile\\|z?login\\|bash_login\\|z?logout\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\(bash_logout\\|shrc\\|[kz]shrc\\|bashrc\\|t?cshrc\\|esrc\\)\\'" . sh-mode)
      ("\\(/\\|\\`\\)\\.\\([kz]shenv\\|xinitrc\\|startxrc\\|xsession\\)\\'" . sh-mode)
@@ -1549,8 +1640,9 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.awk\\'" . awk-mode)
      ("\\.prolog\\'" . prolog-mode)
      ("\\.tar\\'" . tar-mode)
-     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\)\\'" . archive-mode)
-     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . archive-mode)
+     ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|ear\\|jar\\|war\\)\\'" . archive-mode)
+     ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|EAR\\|JAR\\|WAR\\)\\'" . archive-mode)
+     ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
@@ -1564,12 +1656,13 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.oak\\'" . scheme-mode)
      ("\\.sgml?\\'" . sgml-mode)
      ("\\.xml\\'" . sgml-mode)
+     ("\\.xsl\\'" . sgml-mode)
      ("\\.dtd\\'" . sgml-mode)
      ("\\.ds\\(ss\\)?l\\'" . dsssl-mode)
      ("\\.idl\\'" . idl-mode)
-     ;; .emacs following a directory delimiter
-     ;; in Unix, MSDOG or VMS syntax.
-     ("[]>:/\\]\\..*emacs\\'" . emacs-lisp-mode)
+     ;; .emacs or .gnus or .viper following a directory delimiter in
+     ;; Unix, MSDOG or VMS syntax.
+     ("[]>:/\\]\\..*\\(emacs\\|gnus\\|viper\\)\\'" . emacs-lisp-mode)
      ("\\`\\..*emacs\\'" . emacs-lisp-mode)
      ;; _emacs following a directory delimiter
      ;; in MsDos syntax
@@ -1595,7 +1688,9 @@ in that case, this function acts as if `enable-local-variables' were t."
      ;; for the sake of ChangeLog.1, etc.
      ;; and after the .scm.[0-9] and CVS' <file>.<rev> patterns too.
      ("\\.[1-9]\\'" . nroff-mode)
-     ("\\.g\\'" . antlr-mode)))
+     ("\\.g\\'" . antlr-mode)
+     ("\\.ses\\'" . ses-mode)
+     ("\\.in\\'" nil t)))
   "Alist of filename patterns vs corresponding major mode functions.
 Each element looks like (REGEXP . FUNCTION) or (REGEXP FUNCTION NON-NIL).
 \(NON-NIL stands for anything that is not nil; the value does not matter.)
@@ -1737,7 +1832,7 @@ and we don't even do that unless it would come from the file name."
 		  (mode nil))
 	      ;; Find first matching alist entry.
 	      (let ((case-fold-search
-		     (memq system-type '(vax-vms windows-nt))))
+		     (memq system-type '(vax-vms windows-nt cygwin))))
 		(while (and (not mode) alist)
 		  (if (string-match (car (car alist)) name)
 		      (if (and (consp (cdr (car alist)))
@@ -1822,22 +1917,27 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-prop-line ()
+(defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
 `set-auto-mode' should already have handled `mode:',
-`set-auto-coding' should already have handled `coding:'."
+`set-auto-coding' should already have handled `coding:'.
+If MODE-ONLY is non-nil, all we do is check whether the major mode
+is specified, returning t if it is specified."
   (save-excursion
     (goto-char (point-min))
     (let ((result nil)
 	  (end (set-auto-mode-1))
+	  mode-specified
 	  (enable-local-variables
 	   (and local-enable-local-variables enable-local-variables)))
-      ;; Parse the -*- line into the `result' alist.
+      ;; Parse the -*- line into the RESULT alist.
+      ;; Also set MODE-SPECIFIED if we see a spec or `mode'.
       (cond ((not end)
 	     nil)
 	    ((looking-at "[ \t]*\\([^ \t\n\r:;]+\\)\\([ \t]*-\\*-\\)")
 	     ;; Simple form: "-*- MODENAME -*-".  Already handled.
+	     (setq mode-specified t)
 	     nil)
 	    (t
 	     ;; Hairy form: '-*-' [ <variable> ':' <value> ';' ]* '-*-'
@@ -1863,29 +1963,34 @@ Ignore any specification for `mode:' and `coding:';
 		 (or (equal (downcase (symbol-name key)) "mode")
 		     (equal (downcase (symbol-name key)) "coding")
 		     (setq result (cons (cons key val) result)))
+		 (if (equal (downcase (symbol-name key)) "mode")
+		     (setq mode-specified t))
 		 (skip-chars-forward " \t;")))
 	     (setq result (nreverse result))))
 
-      (if (and result
-	       (or (eq enable-local-variables t)
-		   (and enable-local-variables
-			(save-window-excursion
-			  (condition-case nil
-			      (switch-to-buffer (current-buffer))
-			    (error
-			     ;; If we fail to switch in the selected window,
-			     ;; it is probably a minibuffer.
-			     ;; So try another window.
-			     (condition-case nil
-				 (switch-to-buffer-other-window (current-buffer))
-			       (error
-				(switch-to-buffer-other-frame (current-buffer))))))
-			  (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-					    (file-name-nondirectory buffer-file-name)))))))
-	  (let ((enable-local-eval enable-local-eval))
-	    (while result
-	      (hack-one-local-variable (car (car result)) (cdr (car result)))
-	      (setq result (cdr result))))))))
+      (if mode-only mode-specified
+	(if (and result
+		 (or mode-only
+		     (eq enable-local-variables t)
+		     (and enable-local-variables
+			  (save-window-excursion
+			    (condition-case nil
+				(switch-to-buffer (current-buffer))
+			      (error
+			       ;; If we fail to switch in the selected window,
+			       ;; it is probably a minibuffer.
+			       ;; So try another window.
+			       (condition-case nil
+				   (switch-to-buffer-other-window (current-buffer))
+				 (error
+				  (switch-to-buffer-other-frame (current-buffer))))))
+			    (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
+					      (file-name-nondirectory buffer-file-name)))))))
+	    (let ((enable-local-eval enable-local-eval))
+	      (while result
+		(hack-one-local-variable (car (car result)) (cdr (car result)))
+		(setq result (cdr result)))))
+	nil))))
 
 (defvar hack-local-variables-hook nil
   "Normal hook run after processing a file's local variables specs.
@@ -1896,12 +2001,14 @@ in order to initialize other data structure based on them.")
   "Parse and put into effect this buffer's local variables spec.
 If MODE-ONLY is non-nil, all we do is check whether the major mode
 is specified, returning t if it is specified."
-  (unless mode-only
-    (hack-local-variables-prop-line))
-  ;; Look for "Local variables:" line in last page.
-  (let (mode-specified
+  (let ((mode-specified
+	 ;; If MODE-ONLY is t, we check here for specifying the mode
+	 ;; in the -*- line.  If MODE-ONLY is nil, we process
+	 ;; the -*- line here.
+	 (hack-local-variables-prop-line mode-only))
 	(enable-local-variables
 	 (and local-enable-local-variables enable-local-variables)))
+    ;; Look for "Local variables:" line in last page.
     (save-excursion
       (goto-char (point-max))
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
@@ -1988,6 +2095,7 @@ is specified, returning t if it is specified."
 (put 'ignored-local-variables 'risky-local-variable t)
 (put 'eval 'risky-local-variable t)
 (put 'file-name-handler-alist 'risky-local-variable t)
+(put 'inhibit-quit 'risky-local-variable t)
 (put 'minor-mode-alist 'risky-local-variable t)
 (put 'minor-mode-map-alist 'risky-local-variable t)
 (put 'minor-mode-overriding-map-alist 'risky-local-variable t)
@@ -2031,13 +2139,82 @@ is specified, returning t if it is specified."
 (put 'mode-line-buffer-identification 'risky-local-variable t)
 (put 'mode-line-modes 'risky-local-variable t)
 (put 'mode-line-position 'risky-local-variable t)
+(put 'mode-line-process 'risky-local-variable t)
+(put 'mode-name 'risky-local-variable t)
 (put 'display-time-string 'risky-local-variable t)
+(put 'parse-time-rules 'risky-local-variable t)
 
-;; This one is safe because the user gets to check it before it is used.
-(put 'compile-command 'safe-local-variable t)
+;; This case is safe because the user gets to check it before it is used.
+(put 'compile-command 'safe-local-variable 'stringp)
+
+(defun risky-local-variable-p (sym val)
+  "Non-nil if SYM could be dangerous as a file-local variable with value VAL.
+If VAL is nil, the question is whether any value might be dangerous."
+  (let ((safep (get sym 'safe-local-variable)))
+    (or (memq sym ignored-local-variables)
+	(get sym 'risky-local-variable)
+	(and (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
+			   (symbol-name sym))
+	     (not safep))
+	;; If the safe-local-variable property isn't t or nil,
+	;; then it must return non-nil on the proposed value to be safe.
+	(and (not (memq safep '(t nil)))
+	     (or (null val)
+		 (not (funcall safep val)))))))
+
+(defcustom safe-local-eval-forms nil
+  "*Expressions that are considered \"safe\" in an `eval:' local variable.
+Add expressions to this list if you want Emacs to evaluate them, when
+they appear in an `eval' local variable specification, without first
+asking you for confirmation."
+  :group 'find-file
+  :version "21.4"
+  :type '(repeat sexp))
+
+(put 'c-set-style 'safe-local-eval-function t)
 
 (defun hack-one-local-variable-quotep (exp)
   (and (consp exp) (eq (car exp) 'quote) (consp (cdr exp))))
+
+(defun hack-one-local-variable-constantp (exp)
+  (or (and (not (symbolp exp)) (not (consp exp)))
+      (memq exp '(t nil))
+      (keywordp exp)
+      (hack-one-local-variable-quotep exp)))
+
+(defun hack-one-local-variable-eval-safep (exp)
+  "Return t if it is safe to eval EXP when it is found in a file."
+  (or (not (consp exp))
+      ;; Detect certain `put' expressions.
+      (and (eq (car exp) 'put)
+	   (hack-one-local-variable-quotep (nth 1 exp))
+	   (hack-one-local-variable-quotep (nth 2 exp))
+	   (memq (nth 1 (nth 2 exp))
+		 '(lisp-indent-hook))
+	   ;; Only allow safe values of lisp-indent-hook;
+	   ;; not functions.
+	   (or (numberp (nth 3 exp))
+	       (equal (nth 3 exp) ''defun)))
+      ;; Allow expressions that the user requested.
+      (member exp safe-local-eval-forms)
+      ;; Certain functions can be allowed with safe arguments
+      ;; or can specify verification functions to try.
+      (and (symbolp (car exp))
+	   (let ((prop (get (car exp) 'safe-local-eval-function)))
+	     (cond ((eq prop t)
+		    (let ((ok t))
+		      (dolist (arg (cdr exp))
+			(unless (hack-one-local-variable-constantp arg)
+			  (setq ok nil)))
+		      ok))
+		   ((functionp prop)
+		    (funcall prop exp))
+		   ((listp prop)
+		    (let ((ok nil))
+		      (dolist (function prop)
+			(if (funcall function exp)
+			    (setq ok t)))
+		      ok)))))))
 
 (defun hack-one-local-variable (var val)
   "\"Set\" one variable in a local variables spec.
@@ -2049,28 +2226,13 @@ is considered risky."
 	((eq var 'coding)
 	 ;; We have already handled coding: tag in set-auto-coding.
 	 nil)
-	((memq var ignored-local-variables)
-	 nil)
 	;; "Setting" eval means either eval it or do nothing.
 	;; Likewise for setting hook variables.
-	((or (get var 'risky-local-variable)
-	     (and
-	      (string-match "-hooks?$\\|-functions?$\\|-forms?$\\|-program$\\|-command$\\|-predicate$\\|font-lock-keywords$\\|font-lock-keywords-[0-9]+$\\|font-lock-syntactic-keywords$\\|-frame-alist$\\|-mode-alist$\\|-map$\\|-map-alist$"
-			    (symbol-name var))
-	      (not (get var 'safe-local-variable))))
+	((risky-local-variable-p var val)
 	 ;; Permit evalling a put of a harmless property.
 	 ;; if the args do nothing tricky.
 	 (if (or (and (eq var 'eval)
-		      (consp val)
-		      (eq (car val) 'put)
-		      (hack-one-local-variable-quotep (nth 1 val))
-		      (hack-one-local-variable-quotep (nth 2 val))
-		      ;; Only allow safe values of lisp-indent-hook;
-		      ;; not functions.
-		      (or (numberp (nth 3 val))
-			  (equal (nth 3 val) ''defun))
-		      (memq (nth 1 (nth 2 val))
-			    '(lisp-indent-hook)))
+		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
 		      (or (eq enable-local-eval t)
@@ -2089,7 +2251,7 @@ is considered risky."
 		 (save-excursion (eval val))
 	       (make-local-variable var)
 	       (set var val))
-	   (message "Ignoring `eval:' in the local variables list")))
+	   (message "Ignoring risky spec in the local variables list")))
 	;; Ordinary variable, really set it.
 	(t (make-local-variable var)
 	   ;; Make sure the string has no text properties.
@@ -2169,10 +2331,10 @@ the old visited file has been renamed to the new name FILENAME."
 	  (if filename
 	      (nthcdr 10 (file-attributes buffer-file-name))
 	      nil)))
-  ;; write-file-hooks is normally used for things like ftp-find-file
+  ;; write-file-functions is normally used for things like ftp-find-file
   ;; that visit things that are not local files as if they were files.
   ;; Changing to visit an ordinary local file instead should flush the hook.
-  (kill-local-variable 'write-file-hooks)
+  (kill-local-variable 'write-file-functions)
   (kill-local-variable 'local-write-file-hooks)
   (kill-local-variable 'revert-buffer-function)
   (kill-local-variable 'backup-inhibited)
@@ -2265,13 +2427,17 @@ Interactively, confirmation is required unless you supply a prefix argument."
 (defun backup-buffer ()
   "Make a backup of the disk file visited by the current buffer, if appropriate.
 This is normally done before saving the buffer the first time.
-If the value is non-nil, it is the result of `file-modes' on the original
-file; this means that the caller, after saving the buffer, should change
-the modes of the new file to agree with the old modes.
 
 A backup may be done by renaming or by copying; see documentation of
 variable `make-backup-files'.  If it's done by renaming, then the file is
-no longer accessible under its old name."
+no longer accessible under its old name.
+
+The value is non-nil after a backup was made by renaming.
+It has the form (MODES . BACKUPNAME).
+MODES is the result of `file-modes' on the original
+file; this means that the caller, after saving the buffer, should change
+the modes of the new file to agree with the old modes.
+BACKUPNAME is the backup file name, which is the old file renamed."
   (if (and make-backup-files (not backup-inhibited)
 	   (not buffer-backed-up)
 	   (file-exists-p buffer-file-name)
@@ -2297,12 +2463,15 @@ no longer accessible under its old name."
 			    (or (eq delete-old-versions t) (eq delete-old-versions nil))
 			    (or delete-old-versions
 				(y-or-n-p (format "Delete excess backup versions of %s? "
-						  real-file-name))))))
+						  real-file-name)))))
+		      (modes (file-modes buffer-file-name)))
 		  ;; Actually write the back up file.
 		  (condition-case ()
 		      (if (or file-precious-flag
     ;			      (file-symlink-p buffer-file-name)
 			      backup-by-copying
+			      ;; Don't rename a suid or sgid file.
+			      (and modes (< 0 (logand modes #o6000)))
 			      (and backup-by-copying-when-linked
 				   (> (file-nlinks real-file-name) 1))
 			      (and (or backup-by-copying-when-mismatch
@@ -2314,18 +2483,10 @@ no longer accessible under its old name."
 						   (<= (nth 2 attr) backup-by-copying-when-privileged-mismatch)))
 					  (or (nth 9 attr)
 					      (not (file-ownership-preserved-p real-file-name)))))))
-			  (condition-case ()
-			      (copy-file real-file-name backupname t t)
-			    (file-error
-			     ;; If copying fails because file BACKUPNAME
-			     ;; is not writable, delete that file and try again.
-			     (if (and (file-exists-p backupname)
-				      (not (file-writable-p backupname)))
-				 (delete-file backupname))
-			     (copy-file real-file-name backupname t t)))
+			  (backup-buffer-copy real-file-name backupname modes)
 			;; rename-file should delete old backup.
 			(rename-file real-file-name backupname t)
-			(setq setmodes (file-modes backupname)))
+			(setq setmodes (cons modes backupname)))
 		    (file-error
 		     ;; If trouble writing the backup, write it in ~.
 		     (setq backupname (expand-file-name
@@ -2334,15 +2495,7 @@ no longer accessible under its old name."
 		     (message "Cannot write backup file; backing up in %s"
 			      (file-name-nondirectory backupname))
 		     (sleep-for 1)
-		     (condition-case ()
-			 (copy-file real-file-name backupname t t)
-		       (file-error
-			;; If copying fails because file BACKUPNAME
-			;; is not writable, delete that file and try again.
-			(if (and (file-exists-p backupname)
-				 (not (file-writable-p backupname)))
-			    (delete-file backupname))
-			(copy-file real-file-name backupname t t)))))
+		     (backup-buffer-copy real-file-name backupname modes)))
 		  (setq buffer-backed-up t)
 		  ;; Now delete the old versions, if desired.
 		  (if delete-old-versions
@@ -2353,6 +2506,18 @@ no longer accessible under its old name."
 			(setq targets (cdr targets))))
 		  setmodes)
 	    (file-error nil))))))
+
+(defun backup-buffer-copy (from-name to-name modes)
+  (condition-case ()
+      (copy-file from-name to-name t t)
+    (file-error
+     ;; If copying fails because file TO-NAME
+     ;; is not writable, delete that file and try again.
+     (if (and (file-exists-p to-name)
+	      (not (file-writable-p to-name)))
+	 (delete-file to-name))
+     (copy-file from-name to-name t t)))
+  (set-file-modes to-name (logand modes #o1777)))
 
 (defun file-name-sans-versions (name &optional keep-backup-version)
   "Return file NAME sans backup versions or strings.
@@ -2402,8 +2567,9 @@ except that a leading `.', if any, doesn't count."
       (if (and (string-match "\\.[^.]*\\'" file)
 	       (not (eq 0 (match-beginning 0))))
 	  (if (setq directory (file-name-directory filename))
-	      (expand-file-name (substring file 0 (match-beginning 0))
-				directory)
+	      ;; Don't use expand-file-name here; if DIRECTORY is relative,
+	      ;; we don't want to expand it.
+	      (concat directory (substring file 0 (match-beginning 0)))
 	    (substring file 0 (match-beginning 0)))
 	filename))))
 
@@ -2505,44 +2671,43 @@ doesn't exist, it is created."
 (defun make-backup-file-name-1 (file)
   "Subroutine of `make-backup-file-name' and `find-backup-file-name'."
   (let ((alist backup-directory-alist)
-	elt backup-directory dir-sep-string)
+	elt backup-directory failed)
     (while alist
       (setq elt (pop alist))
       (if (string-match (car elt) file)
 	  (setq backup-directory (cdr elt)
 		alist nil)))
-    (if (null backup-directory)
-	file
-      (unless (file-exists-p backup-directory)
+    (if (and backup-directory (not (file-exists-p backup-directory)))
 	(condition-case nil
 	    (make-directory backup-directory 'parents)
-	  (file-error file)))
+	  (file-error (setq backup-directory nil))))
+    (if (null backup-directory)
+	file
       (if (file-name-absolute-p backup-directory)
 	  (progn
-	    (when (memq system-type '(windows-nt ms-dos))
-	      ;; Normalize DOSish file names: convert all slashes to
-	      ;; directory-sep-char, downcase the drive letter, if any,
-	      ;; and replace the leading "x:" with "/drive_x".
+	    (when (memq system-type '(windows-nt ms-dos cygwin))
+	      ;; Normalize DOSish file names: downcase the drive
+	      ;; letter, if any, and replace the leading "x:" with
+	      ;; "/drive_x".
 	      (or (file-name-absolute-p file)
 		  (setq file (expand-file-name file))) ; make defaults explicit
 	      ;; Replace any invalid file-name characters (for the
 	      ;; case of backing up remote files).
 	      (setq file (expand-file-name (convert-standard-filename file)))
-	      (setq dir-sep-string (char-to-string directory-sep-char))
 	      (if (eq (aref file 1) ?:)
-		  (setq file (concat dir-sep-string
+		  (setq file (concat "/"
 				     "drive_"
 				     (char-to-string (downcase (aref file 0)))
-				     (if (eq (aref file 2) directory-sep-char)
+				     (if (eq (aref file 2) ?/)
 					 ""
-				       dir-sep-string)
+				       "/")
 				     (substring file 2)))))
 	    ;; Make the name unique by substituting directory
 	    ;; separators.  It may not really be worth bothering about
 	    ;; doubling `!'s in the original name...
 	    (expand-file-name
 	     (subst-char-in-string
-	      directory-sep-char ?!
+	      ?/ ?!
 	      (replace-regexp-in-string "!" "!!" file))
 	     backup-directory))
 	(expand-file-name (file-name-nondirectory file)
@@ -2628,44 +2793,110 @@ Uses `backup-directory-alist' in the same way as does
   "Return number of names file FILENAME has."
   (car (cdr (file-attributes filename))))
 
+;; (defun file-relative-name (filename &optional directory)
+;;   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
+;; This function returns a relative file name which is equivalent to FILENAME
+;; when used with that default directory as the default.
+;; If this is impossible (which can happen on MSDOS and Windows
+;; when the file name and directory use different drive names)
+;; then it returns FILENAME."
+;;   (save-match-data
+;;     (let ((fname (expand-file-name filename)))
+;;       (setq directory (file-name-as-directory
+;; 		       (expand-file-name (or directory default-directory))))
+;;       ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
+;;       ;; drive names, they can't be relative, so return the absolute name.
+;;       (if (and (or (eq system-type 'ms-dos)
+;; 		   (eq system-type 'cygwin)
+;; 		   (eq system-type 'windows-nt))
+;; 	       (not (string-equal (substring fname  0 2)
+;; 				  (substring directory 0 2))))
+;; 	  filename
+;; 	(let ((ancestor ".")
+;; 	      (fname-dir (file-name-as-directory fname)))
+;; 	  (while (and (not (string-match (concat "^" (regexp-quote directory)) fname-dir))
+;; 		      (not (string-match (concat "^" (regexp-quote directory)) fname)))
+;; 	    (setq directory (file-name-directory (substring directory 0 -1))
+;; 		  ancestor (if (equal ancestor ".")
+;; 			       ".."
+;; 			     (concat "../" ancestor))))
+;; 	  ;; Now ancestor is empty, or .., or ../.., etc.
+;; 	  (if (string-match (concat "^" (regexp-quote directory)) fname)
+;; 	      ;; We matched within FNAME's directory part.
+;; 	      ;; Add the rest of FNAME onto ANCESTOR.
+;; 	      (let ((rest (substring fname (match-end 0))))
+;; 		(if (and (equal ancestor ".")
+;; 			 (not (equal rest "")))
+;; 		    ;; But don't bother with ANCESTOR if it would give us `./'.
+;; 		    rest
+;; 		  (concat (file-name-as-directory ancestor) rest)))
+;; 	    ;; We matched FNAME's directory equivalent.
+;; 	    ancestor))))))
+
 (defun file-relative-name (filename &optional directory)
   "Convert FILENAME to be relative to DIRECTORY (default: `default-directory').
 This function returns a relative file name which is equivalent to FILENAME
 when used with that default directory as the default.
-If this is impossible (which can happen on MSDOS and Windows
-when the file name and directory use different drive names)
-then it returns FILENAME."
+If FILENAME and DIRECTORY lie on different machines or on different drives
+on a DOS/Windows machine, it returns FILENAME on expanded form."
   (save-match-data
-    (let ((fname (expand-file-name filename)))
-      (setq directory (file-name-as-directory
-		       (expand-file-name (or directory default-directory))))
-      ;; On Microsoft OSes, if FILENAME and DIRECTORY have different
-      ;; drive names, they can't be relative, so return the absolute name.
-      (if (and (or (eq system-type 'ms-dos)
-		   (eq system-type 'windows-nt))
-	       (not (string-equal (substring fname  0 2)
-				  (substring directory 0 2))))
+    (setq directory
+	  (file-name-as-directory (expand-file-name (or directory
+							default-directory))))
+    (setq filename (expand-file-name filename))
+    (let ((hf (find-file-name-handler filename 'file-local-copy))
+          (hd (find-file-name-handler directory 'file-local-copy)))
+      (when (and hf (not (get hf 'file-remote-p))) (setq hf nil))
+      (when (and hd (not (get hd 'file-remote-p))) (setq hd nil))
+      (if ;; Conditions for separate trees
+	  (or
+	   ;; Test for different drives on DOS/Windows
+	   (and
+	    (memq system-type '(ms-dos cygwin windows-nt))
+	    (not (string-equal (substring filename  0 2)
+			       (substring directory 0 2))))
+	   ;; Test for different remote file handlers
+	   (not (eq hf hd))
+	   ;; Test for different remote file system identification
+	   (and
+	    hf
+	    (let ((re (car (rassq hf file-name-handler-alist))))
+	      (not
+	       (equal
+		(and
+		 (string-match re filename)
+		 (substring filename 0 (match-end 0)))
+		(and
+		 (string-match re directory)
+		 (substring directory 0 (match-end 0))))))))
 	  filename
-	(let ((ancestor ".")
-	      (fname-dir (file-name-as-directory fname)))
-	  (while (and (not (string-match (concat "^" (regexp-quote directory)) fname-dir))
-		      (not (string-match (concat "^" (regexp-quote directory)) fname)))
-	    (setq directory (file-name-directory (substring directory 0 -1))
+        (unless (eq (aref filename 0) ?/)
+	  (setq filename (concat "/" filename)))
+        (unless (eq (aref directory 0) ?/)
+	  (setq directory (concat "/" directory)))
+        (let ((ancestor ".")
+	      (filename-dir (file-name-as-directory filename)))
+          (while
+	      (and
+	       (not (string-match (concat "^" (regexp-quote directory))
+				  filename-dir))
+	       (not (string-match (concat "^" (regexp-quote directory))
+				  filename)))
+            (setq directory (file-name-directory (substring directory 0 -1))
 		  ancestor (if (equal ancestor ".")
 			       ".."
 			     (concat "../" ancestor))))
-	  ;; Now ancestor is empty, or .., or ../.., etc.
-	  (if (string-match (concat "^" (regexp-quote directory)) fname)
-	      ;; We matched within FNAME's directory part.
-	      ;; Add the rest of FNAME onto ANCESTOR.
-	      (let ((rest (substring fname (match-end 0))))
-		(if (and (equal ancestor ".")
-			 (not (equal rest "")))
+          ;; Now ancestor is empty, or .., or ../.., etc.
+          (if (string-match (concat "^" (regexp-quote directory)) filename)
+	      ;; We matched within FILENAME's directory part.
+	      ;; Add the rest of FILENAME onto ANCESTOR.
+	      (let ((rest (substring filename (match-end 0))))
+		(if (and (equal ancestor ".") (not (equal rest "")))
 		    ;; But don't bother with ANCESTOR if it would give us `./'.
 		    rest
 		  (concat (file-name-as-directory ancestor) rest)))
-	    ;; We matched FNAME's directory equivalent.
-	    ancestor))))))
+            ;; We matched FILENAME's directory equivalent.
+            ancestor))))))
 
 (defun save-buffer (&optional args)
   "Save current buffer in visited file if modified.  Versions described below.
@@ -2746,9 +2977,9 @@ in such cases.")
 
 (defun basic-save-buffer ()
   "Save the current buffer in its visited file, if it has been modified.
-The hooks `write-contents-hooks', `local-write-file-hooks' and
-`write-file-hooks' get a chance to do the job of saving; if they do not,
-then the buffer is saved in the visited file file in the usual way.
+The hooks `write-contents-functions' and `write-file-functions' get a chance
+to do the job of saving; if they do not, then the buffer is saved in
+the visited file file in the usual way.
 After saving the buffer, this function runs `after-save-hook'."
   (interactive)
   (save-current-buffer
@@ -2790,7 +3021,7 @@ After saving the buffer, this function runs `after-save-hook'."
 	  (save-restriction
 	    (widen)
 	    (save-excursion
-	      (and (> (point-max) 1)
+	      (and (> (point-max) (point-min))
 		   (not find-file-literally)
 		   (/= (char-after (1- (point-max))) ?\n)
 		   (not (and (eq selective-display t)
@@ -2805,9 +3036,9 @@ After saving the buffer, this function runs `after-save-hook'."
 		     (insert ?\n))))
 	    ;; Support VC version backups.
 	    (vc-before-save)
-	    (or (run-hook-with-args-until-success 'write-contents-hooks)
+	    (or (run-hook-with-args-until-success 'write-contents-functions)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
-		(run-hook-with-args-until-success 'write-file-hooks)
+		(run-hook-with-args-until-success 'write-file-functions)
 		;; If a hook returned t, file is already "written".
 		;; Otherwise, write it the usual way now.
 		(setq setmodes (basic-save-buffer-1)))
@@ -2821,7 +3052,7 @@ After saving the buffer, this function runs `after-save-hook'."
 		  (nthcdr 10 (file-attributes buffer-file-name)))
 	    (if setmodes
 		(condition-case ()
-		    (set-file-modes buffer-file-name setmodes)
+		    (set-file-modes buffer-file-name (car setmodes))
 		  (error nil))))
 	  ;; If the auto-save file was recent before this command,
 	  ;; delete it now.
@@ -2833,14 +3064,15 @@ After saving the buffer, this function runs `after-save-hook'."
 
 ;; This does the "real job" of writing a buffer into its visited file
 ;; and making a backup file.  This is what is normally done
-;; but inhibited if one of write-file-hooks returns non-nil.
-;; It returns a value to store in setmodes.
+;; but inhibited if one of write-file-functions returns non-nil.
+;; It returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-1 ()
   (if save-buffer-coding-system
       (let ((coding-system-for-write save-buffer-coding-system))
 	(basic-save-buffer-2))
     (basic-save-buffer-2)))
 
+;; This returns a value (MODES . BACKUPNAME), like backup-buffer.
 (defun basic-save-buffer-2 ()
   (let (tempsetmodes setmodes)
     (if (not (file-writable-p buffer-file-name))
@@ -2899,7 +3131,8 @@ After saving the buffer, this function runs `after-save-hook'."
 	    ;; Since we have created an entirely new file
 	    ;; and renamed it, make sure it gets the
 	    ;; right permission bits set.
-	    (setq setmodes (file-modes buffer-file-name))
+	    (setq setmodes (or setmodes (cons (file-modes buffer-file-name)
+					      buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
 	    ;; so rename it.
 	    (rename-file tempname buffer-file-name t))
@@ -2909,20 +3142,74 @@ After saving the buffer, this function runs `after-save-hook'."
 	;; (setmodes is set) because that says we're superseding.
 	(cond ((and tempsetmodes (not setmodes))
 	       ;; Change the mode back, after writing.
-	       (setq setmodes (file-modes buffer-file-name))
-	       (set-file-modes buffer-file-name (logior setmodes 128))))
-	(write-region (point-min) (point-max)
-		      buffer-file-name nil t buffer-file-truename)))
+	       (setq setmodes (cons (file-modes buffer-file-name) buffer-file-name))
+	       (set-file-modes buffer-file-name (logior (car setmodes) 128))))
+	(let (success)
+	  (unwind-protect
+	      (progn
+		(write-region (point-min) (point-max)
+			      buffer-file-name nil t buffer-file-truename)
+		(setq success t))
+	    ;; If we get an error writing the new file, and we made
+	    ;; the backup by renaming, undo the backing-up.
+	    (and setmodes (not success)
+		 (rename-file (cdr setmodes) buffer-file-name))))))
     setmodes))
+
+(defun diff-buffer-with-file (&optional buffer)
+  "View the differences between BUFFER and its associated file.
+This requires the external program `diff' to be in your `exec-path'."
+  (interactive "bBuffer: ")
+  (with-current-buffer (get-buffer (or buffer (current-buffer)))
+    (if (and buffer-file-name
+	     (file-exists-p buffer-file-name))
+	(let ((tempfile (make-temp-file "buffer-content-")))
+	  (unwind-protect
+	      (save-restriction
+		(widen)
+		(write-region (point-min) (point-max) tempfile nil 'nomessage)
+		(diff buffer-file-name tempfile nil t)
+		(sit-for 0))
+	    (when (file-exists-p tempfile)
+	      (delete-file tempfile))))
+      (message "Buffer %s has no associated file on disc" (buffer-name))
+      ;; Display that message for 1 second so that user can read it
+      ;; in the minibuffer.
+      (sit-for 1)))
+  ;; return always nil, so that save-buffers-kill-emacs will not move
+  ;; over to the next unsaved buffer when calling `d'.
+  nil)
+
+(defvar save-some-buffers-action-alist
+  '((?\C-r
+     (lambda (buf)
+       (view-buffer buf
+		    (lambda (ignore)
+		      (exit-recursive-edit)))
+       (recursive-edit)
+       ;; Return nil to ask about BUF again.
+       nil)
+     "display the current buffer")
+    (?d diff-buffer-with-file
+	"show difference to last saved version"))
+  "ACTION-ALIST argument used in call to `map-y-or-n-p'.")
+(put 'save-some-buffers-action-alist 'risky-local-variable t)
 
 (defun save-some-buffers (&optional arg pred)
   "Save some modified file-visiting buffers.  Asks user about each one.
+You can answer `y' to save, `n' not to save, `C-r' to look at the
+buffer in question with `view-buffer' before deciding or `d' to
+view the differences using `diff-buffer-to-file'.
+
 Optional argument (the prefix) non-nil means save all with no questions.
 Optional second argument PRED determines which buffers are considered:
 If PRED is nil, all the file-visiting buffers are considered.
 If PRED is t, then certain non-file buffers will also be considered.
 If PRED is a zero-argument function, it indicates for each buffer whether
-to consider it or not when called with that buffer current."
+to consider it or not when called with that buffer current.
+
+See `save-some-buffers-action-alist' if you want to
+change the additional actions you can take on files."
   (interactive "P")
   (save-window-excursion
     (let* ((queried nil)
@@ -2954,15 +3241,7 @@ to consider it or not when called with that buffer current."
 		(save-buffer)))
 	     (buffer-list)
 	     '("buffer" "buffers" "save")
-	     (list (list ?\C-r (lambda (buf)
-				 (view-buffer buf
-					      (function
-					       (lambda (ignore)
-						 (exit-recursive-edit))))
-				 (recursive-edit)
-				 ;; Return nil to ask about BUF again.
-				 nil)
-			 "display the current buffer"))))
+	     save-some-buffers-action-alist))
 	   (abbrevs-done
 	    (and save-abbrevs abbrevs-changed
 		 (progn
@@ -2993,20 +3272,25 @@ prints a message in the minibuffer.  Instead, use `set-buffer-modified-p'."
 With arg, set read-only iff arg is positive.
 If visiting file read-only and `view-read-only' is non-nil, enter view mode."
   (interactive "P")
-  (cond
-   ((and arg (if (> (prefix-numeric-value arg) 0) buffer-read-only
-	       (not buffer-read-only)))	; If buffer-read-only is set correctly,
-    nil)				; do nothing.
-   ;; Toggle.
-   ((and buffer-read-only view-mode)
-    (View-exit-and-edit)
-    (make-local-variable 'view-read-only)
-    (setq view-read-only t))		; Must leave view mode.
-   ((and (not buffer-read-only) view-read-only
-	 (not (eq (get major-mode 'mode-class) 'special)))
-    (view-mode-enter))
-   (t (setq buffer-read-only (not buffer-read-only))
-      (force-mode-line-update))))
+  (if (and arg
+           (if (> (prefix-numeric-value arg) 0) buffer-read-only
+             (not buffer-read-only)))  ; If buffer-read-only is set correctly,
+      nil			       ; do nothing.
+    ;; Toggle.
+    (cond
+     ((and buffer-read-only view-mode)
+      (View-exit-and-edit)
+      (make-local-variable 'view-read-only)
+      (setq view-read-only t))		; Must leave view mode.
+     ((and (not buffer-read-only) view-read-only
+           (not (eq (get major-mode 'mode-class) 'special)))
+      (view-mode-enter))
+     (t (setq buffer-read-only (not buffer-read-only))
+        (force-mode-line-update)))
+    (if (vc-backend buffer-file-name)
+        (message (substitute-command-keys
+                  (concat "File is under version-control; "
+                          "use \\[vc-next-action] to check in/out"))))))
 
 (defun insert-file (filename)
   "Insert contents of file FILENAME into buffer after point.
@@ -3016,11 +3300,7 @@ This function is meant for the user to run interactively.
 Don't call it from programs!  Use `insert-file-contents' instead.
 \(Its calling sequence is different; see its documentation)."
   (interactive "*fInsert file: ")
-  (if (file-directory-p filename)
-      (signal 'file-error (list "Opening input file" "file is a directory"
-				filename)))
-  (let ((tem (insert-file-contents filename)))
-    (push-mark (+ (point) (car (cdr tem))))))
+  (insert-file-1 filename #'insert-file-contents))
 
 (defun append-to-file (start end filename)
   "Append the contents of the region to the end of file FILENAME.
@@ -3082,6 +3362,9 @@ to create parent directories if they don't exist."
    (list (read-file-name "Make directory: " default-directory default-directory
 			 nil nil)
 	 t))
+  ;; If default-directory is a remote directory,
+  ;; make sure we find its make-directory handler.
+  (setq dir (expand-file-name dir))
   (let ((handler (find-file-name-handler dir 'make-directory)))
     (if handler
 	(funcall handler 'make-directory dir parents)
@@ -3209,7 +3492,10 @@ non-nil, it is called instead of rereading visited file contents."
 		     (funcall revert-buffer-insert-file-contents-function
 			      file-name auto-save-p)
 		   (if (not (file-exists-p file-name))
-		       (error "File %s no longer exists!" file-name))
+		       (error (if buffer-file-number
+				  "File %s no longer exists!"
+				"Cannot revert nonexistent file %s")
+			      file-name))
 		   ;; Bind buffer-file-name to nil
 		   ;; so that we don't try to lock the file.
 		   (let ((buffer-file-name nil))
@@ -3220,7 +3506,14 @@ non-nil, it is called instead of rereading visited file contents."
 			  ;; Auto-saved file shoule be read without
 			  ;; any code conversion.
 			  (if auto-save-p 'emacs-mule-unix
-			    coding-system-for-read)))
+			    (or coding-system-for-read
+				buffer-file-coding-system))))
+		     ;; This force
+		     ;; after-insert-file-set-buffer-file-coding-system
+		     ;; (called from insert-file-contents) to set
+		     ;; buffer-file-coding-system to a proper value.
+		     (kill-local-variable 'buffer-file-coding-system)
+
 		     ;; Note that this preserves point in an intelligent way.
 		     (if preserve-modes
 			 (let ((buffer-file-format buffer-file-format))
@@ -3242,6 +3535,11 @@ non-nil, it is called instead of rereading visited file contents."
 		 (kill-local-variable 'revert-buffer-internal-hook))
 	       (run-hooks 'revert-buffer-internal-hook))
 	     t)))))
+
+(defun recover-this-file ()
+  "Recover the visited file--get contents from its last auto-save file."
+  (interactive)
+  (recover-file buffer-file-name))
 
 (defun recover-file (file)
   "Visit file FILE, but get contents from its last auto-save file."
@@ -3298,7 +3596,13 @@ Then you'll be asked about a number of files to recover."
       (error "You set `auto-save-list-file-prefix' to disable making session files"))
   (let ((dir (file-name-directory auto-save-list-file-prefix)))
     (unless (file-directory-p dir)
-      (make-directory dir t)))
+      (make-directory dir t))
+    (unless (directory-files dir nil
+			     (concat "\\`" (regexp-quote
+					    (file-name-nondirectory
+					     auto-save-list-file-prefix)))
+			     t)
+      (error "No previous sessions to recover")))
   (let ((ls-lisp-support-shell-wildcards t))
     (dired (concat auto-save-list-file-prefix "*")
 	   (concat dired-listing-switches "t")))
@@ -3464,7 +3768,7 @@ See also `auto-save-file-name-p'."
 		(setq filename (concat
 				(file-name-directory result)
 				(subst-char-in-string
-				 directory-sep-char ?!
+				 ?/ ?!
 				 (replace-regexp-in-string "!" "!!"
 							   filename))))
 	      (setq filename result)))
@@ -3722,7 +4026,7 @@ Existing quote characters in PATTERN are left alone, so you can pass
 PATTERN that already quotes some of the special characters."
   (save-match-data
     (cond
-     ((memq system-type '(ms-dos windows-nt))
+     ((memq system-type '(ms-dos windows-nt cygwin))
       ;; DOS/Windows don't allow `"' in file names.  So if the
       ;; argument has quotes, we can safely assume it is already
       ;; quoted by the caller.
@@ -3772,7 +4076,8 @@ preference to the program given by this variable."
   :type '(choice (string :tag "Program") (const :tag "None" nil))
   :group 'dired)
 
-(defcustom directory-free-space-args "-Pk"
+(defcustom directory-free-space-args
+  (if (eq system-type 'darwin) "-k" "-Pk")
   "*Options to use when running `directory-free-space-program'."
   :type 'string
   :group 'dired)
@@ -3831,6 +4136,9 @@ program specified by `directory-free-space-program' if that is non-nil."
 ;;   		 dired-insert-headerline
 ;;   		 dired-after-subdir-garbage (defines what a "total" line is)
 ;;   - variable dired-subdir-regexp
+;; - may be passed "--dired" as the first argument in SWITCHES.
+;;   Filename handlers might have to remove this switch if their
+;;   "ls" command does not support it.
 (defun insert-directory (file switches &optional wildcard full-directory-p)
   "Insert directory listing for FILE, formatted according to SWITCHES.
 Leaves point after the inserted text.
@@ -3850,16 +4158,19 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		 wildcard full-directory-p)
       (if (eq system-type 'vax-vms)
 	  (vms-read-directory file switches (current-buffer))
-	(let (result available)
+	(let (result available (beg (point)))
 
 	  ;; Read the actual directory using `insert-directory-program'.
 	  ;; RESULT gets the status code.
-	  (let ((coding-system-for-read
-		 (and enable-multibyte-characters
-		      (or file-name-coding-system
-			  default-file-name-coding-system)))
-		;; This is to control encoding the arguments in call-process.
-		(coding-system-for-write coding-system-for-read))
+	  (let* (;; We at first read by no-conversion, then after
+		 ;; putting text property `dired-filename, decode one
+		 ;; bunch by one to preserve that property.
+		 (coding-system-for-read 'no-conversion)
+		 ;; This is to control encoding the arguments in call-process.
+		 (coding-system-for-write
+		  (and enable-multibyte-characters
+		       (or file-name-coding-system
+			   default-file-name-coding-system))))
 	    (setq result
 		  (if wildcard
 		      ;; Run ls in the directory part of the file pattern
@@ -3927,17 +4238,66 @@ If WILDCARD, it also runs the shell specified by `shell-file-name'."
 		(access-file file "Reading directory")
 		(error "Listing directory failed but `access-file' worked")))
 
-	  ;; Try to insert the amount of free space.
-	  (save-excursion
-	    (goto-char (point-min))
-	    ;; First find the line to put it on.
-	    (when (re-search-forward "^total" nil t)
-	      (let ((available (get-free-disk-space ".")))
-		(when available
-		  ;; Replace "total" with "used", to avoid confusion.
-		  (replace-match "total used in directory")
-		  (end-of-line)
-		  (insert " available " available))))))))))
+	  (when (string-match "--dired\\>" switches)
+	    (forward-line -2)
+            (when (looking-at "//SUBDIRED//")
+              (delete-region (point) (progn (forward-line 1) (point)))
+              (forward-line -1))
+	    (let ((end (line-end-position)))
+	      (forward-word 1)
+	      (forward-char 3)
+	      (while (< (point) end)
+		(let ((start (+ beg (read (current-buffer))))
+		      (end (+ beg (read (current-buffer)))))
+		  (if (= (char-after end) ?\n)
+		      (put-text-property start end 'dired-filename t)
+		    ;; It seems that we can't trust ls's output as to
+		    ;; byte positions of filenames.
+		    (put-text-property beg (point) 'dired-filename nil)
+		    (end-of-line))))
+	      (goto-char end)
+	      (beginning-of-line)
+	      (delete-region (point) (progn (forward-line 2) (point)))))
+
+	  ;; Now decode what read if necessary.
+	  (let ((coding (or coding-system-for-read
+			    file-name-coding-system
+			    default-file-name-coding-system
+			    'undecided))
+		val pos)
+	    (when (and enable-multibyte-characters
+		       (not (memq (coding-system-base coding)
+				  '(raw-text no-conversion))))
+	      ;; If no coding system is specified or detection is
+	      ;; requested, detect the coding.
+	      (if (eq (coding-system-base coding) 'undecided)
+		  (setq coding (detect-coding-region beg (point) t)))
+	      (if (not (eq (coding-system-base coding) 'undecided))
+		  (save-restriction
+		    (narrow-to-region beg (point))
+		    (goto-char (point-min))
+		    (while (not (eobp))
+		      (setq pos (point)
+			    val (get-text-property (point) 'dired-filename))
+		      (goto-char (next-single-property-change
+				  (point) 'dired-filename nil (point-max)))
+		      (decode-coding-region pos (point) coding)
+		      (if val
+			  (put-text-property pos (point)
+					     'dired-filename t)))))))
+
+	  (if full-directory-p
+	      ;; Try to insert the amount of free space.
+	      (save-excursion
+		(goto-char beg)
+		;; First find the line to put it on.
+		(when (re-search-forward "^ *\\(total\\)" nil t)
+		  (let ((available (get-free-disk-space ".")))
+		    (when available
+		      ;; Replace "total" with "used", to avoid confusion.
+		      (replace-match "total used in directory" nil nil nil 1)
+		      (end-of-line)
+		      (insert " available " available)))))))))))
 
 (defun insert-directory-safely (file switches
 				     &optional wildcard full-directory-p)
@@ -4066,6 +4426,7 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key esc-map "~" 'not-modified)
 (define-key ctl-x-map "\C-d" 'list-directory)
 (define-key ctl-x-map "\C-c" 'save-buffers-kill-emacs)
+(define-key ctl-x-map "\C-q" 'toggle-read-only)
 
 (define-key ctl-x-4-map "f" 'find-file-other-window)
 (define-key ctl-x-4-map "r" 'find-file-read-only-other-window)

@@ -20,7 +20,7 @@ A:  Gnugat.   (Though it contains little gnutrition.)
 Q:  What do you call a computer filled with air?
 A:  Gnumatic.
 
-Q:  What do you call a novice hacker who keeps pestering you 
+Q:  What do you call a novice hacker who keeps pestering you
     with foolish questions?
 A:  A gnuisance.
 
@@ -100,7 +100,7 @@ exit
 ?
 bye
 ?
-hello? 
+hello?
 ?
 eat flaming death
 ?
@@ -173,12 +173,12 @@ Swapping
 Even a
 Master of
 Arts
-Comes 
+Comes
 Simpler
 
 Emacs
 Manuals
-Are 
+Are
 Cryptic and
 Surreal
 
@@ -206,13 +206,13 @@ All
 Computer
 Storage
 
-Even 
-My 
+Even
+My
 Aunt
 Crashes the
 System
 
-Eradication of 
+Eradication of
 Memory
 Accomplished with
 Complete
@@ -291,7 +291,7 @@ Simple
 Emacs
 May
 Allow
-Customised
+Customized
 Screwups
 
 Excellent
@@ -312,7 +312,7 @@ Accused of
 Communist
 Subversion
 
-Extensibility and 
+Extensibility and
 Modifiability
 Aggravate
 Confirmed
@@ -384,9 +384,9 @@ Architecture
 Comes
 Simpler
 
-Erasing 
+Erasing
 Minds
-Allows 
+Allows
 Complete
 Submission
 
@@ -402,7 +402,7 @@ Absolutely
 Considered
 Sine que non
 
-Emacs 
+Emacs
 Makers
 Are
 Crazy
@@ -463,14 +463,14 @@ Someone at a luncheon suggested it meant:
 
 Evenings,
 Mornings,
-And a 
+And a
 Couple of
 Saturdays
 
 (In reference to the odd hours that went into the creation of my
 implementation).
 
--- 
+--
 
 	Warren Montgomery
 	ihnss!warren
@@ -493,10 +493,10 @@ Home: 	36 Porter Street, Somerville, MA  02143, USA   +1 (617) 623-7739
 Pleeeeeeeze!!!  Nice try on the meaning of EMACS.  I believe the
 correct acronym is:
 
-Emacs 
+Emacs
 Makes
-All 
-Computing 
+All
+Computing
 Simple
 
 Thank you, and Good Night
@@ -514,7 +514,7 @@ Apparently-To: emacs-netnews-distribution@mit-prep
 > More recursive acronyms, anyone?
 Many people have also seen FINE Is Not Emacs, but the one that has
 character is THief Isn't Even Fine.
--- 
+--
 ## Bill Stewart, AT&T Bell Labs, Holmdel NJ 1-201-949-0705 ihnp4!ho95c!wcs
 
 Path: mit-eddie!think!harvard!bbnccv!bbncca!linus!decvax!mcnc!ncsu!uvacs!edison!ta2
@@ -526,13 +526,13 @@ Organization: General Electric's Mountain Resort
 Apparently-To: emacs-netnews-distribution@mit-prep
 
 > GNU = Gnu's Not UNIX. There is also MINCE, for Mince Is Not a Complete Emacs.
-> 
+>
 > More recursive acronyms, anyone?
-> 
+>
 
 For the DEC-system-10/20: FINE - Fine Is Not Emacs.....
 
--- 
+--
 ...............
 tom allebrandi 2, general electric aco, charlottesville, va
 {decvax,duke}!mcnc!ncsu!uvacs!edison!ta2
@@ -613,10 +613,10 @@ Ever Made A Control-key Setup?
 Emacs: My Alternative Computer Story
 Emacs Made Almost Completely Screwed
        (by extensive use of M-x global-unset-key)
-Emacs Macht Alle Computer Schoen 
+Emacs Macht Alle Computer Schoen
        (deutsch)  (=Emacs makes all computers beautiful)
 Each Mail A Continued Surprise
-Every Mode Acknowledges Customized Strokes 
+Every Mode Acknowledges Customized Strokes
        (keystrokes, of course :-)
 Eating Memory And Cycle-Sucking
 Everyday Material Almost Compiled Successfully

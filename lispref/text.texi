@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/text
 @node Text, Non-ASCII Characters, Markers, Top
@@ -340,7 +340,7 @@ inserted text falls outside the overlay; if a nonempty overlay ends at
 the insertion point, the inserted text falls inside that overlay.
 @end defun
 
-@defun insert-char character &optional count inherit
+@defun insert-char character count &optional inherit
 This function inserts @var{count} instances of @var{character} into the
 current buffer before point.  The argument @var{count} should be a
 number (@code{nil} means 1), and @var{character} must be a character.
@@ -429,7 +429,7 @@ Do not try substituting your own definition of
 loop handles this function specially.
 @end deffn
 
-@deffn Command newline &optional number-of-newlines 
+@deffn Command newline &optional number-of-newlines
 This command inserts newlines into the current buffer before point.
 If @var{number-of-newlines} is supplied, that many newline characters
 are inserted.
@@ -614,7 +614,7 @@ You thought
 @end example
 @end deffn
 
-@deffn Command delete-indentation &optional join-following-p 
+@deffn Command delete-indentation &optional join-following-p
 This function joins the line point is on to the previous line, deleting
 any whitespace at the join and in some cases replacing it with one
 space.  If @var{join-following-p} is non-@code{nil},
@@ -945,7 +945,7 @@ selection from the newly killed text.  @xref{Window System Selections}.
 
   The variable @code{kill-ring} holds the kill ring contents, in the
 form of a list of strings.  The most recent kill is always at the front
-of the list. 
+of the list.
 
   The @code{kill-ring-yank-pointer} variable points to a link in the
 kill ring list, whose @sc{car} is the text to yank next.  We say it
@@ -970,7 +970,7 @@ rotate the ring so that the newly killed text is at the front.
 
   Here is a diagram that shows the variable @code{kill-ring-yank-pointer}
 pointing to the second entry in the kill ring @code{("some text" "a
-different piece of text" "yet older text")}.  
+different piece of text" "yet older text")}.
 
 @example
 @group
@@ -980,11 +980,11 @@ kill-ring                  ---- kill-ring-yank-pointer
   |     --- ---          --- ---      --- ---
    --> |   |   |------> |   |   |--> |   |   |--> nil
         --- ---          --- ---      --- ---
-         |                |            |            
-         |                |            |            
-         |                |             -->"yet older text" 
+         |                |            |
+         |                |            |
+         |                |             -->"yet older text"
          |                |
-         |                 --> "a different piece of text" 
+         |                 --> "a different piece of text"
          |
           --> "some text"
 @end group
@@ -1040,7 +1040,7 @@ to record where point was before the command.
 
 @item (@var{beg} . @var{end})
 This kind of element indicates how to delete text that was inserted.
-Upon insertion, the text occupied the range @var{beg}--@var{end} in the 
+Upon insertion, the text occupied the range @var{beg}--@var{end} in the
 buffer.
 
 @item (@var{text} . @var{position})
@@ -2123,7 +2123,7 @@ interactively.
   These commands, primarily for interactive use, act based on the
 indentation in the text.
 
-@deffn Command back-to-indentation 
+@deffn Command back-to-indentation
 @comment !!SourceFile simple.el
 This command moves point to the first non-whitespace character in the
 current line (which is the line in which point is located).  It returns
@@ -2361,9 +2361,11 @@ range; more often, it is useful to add, change, or delete just certain
 properties specified by name.
 
   Since text properties are considered part of the contents of the
-buffer (or string), and can affect how a buffer looks on the screen, any
-change in buffer text properties marks the buffer as modified.  Buffer
-text property changes are undoable also (@pxref{Undo}).
+buffer (or string), and can affect how a buffer looks on the screen,
+any change in buffer text properties marks the buffer as modified.
+Buffer text property changes are undoable also (@pxref{Undo}).
+Positions in a string start from 0, whereas positions in a buffer
+start from 1.
 
 @defun put-text-property start end prop value &optional object
 This function sets the @var{prop} property to @var{value} for the text
@@ -2507,7 +2509,7 @@ properties are not identical to those of the character just after
 @var{pos}.
 
 If @var{limit} is non-@code{nil}, then the scan ends at position
-@var{limit}.  If there is no property change before that point, 
+@var{limit}.  If there is no property change before that point,
 @code{next-property-change} returns @var{limit}.
 
 The value is @code{nil} if the properties remain unchanged all the way
@@ -2538,7 +2540,7 @@ returns the position of the first character beyond @var{pos} whose
 @var{pos}.
 
 If @var{limit} is non-@code{nil}, then the scan ends at position
-@var{limit}.  If there is no property change before that point, 
+@var{limit}.  If there is no property change before that point,
 @code{next-single-property-change} returns @var{limit}.
 
 The value is @code{nil} if the property remains unchanged all the way to
@@ -2973,7 +2975,7 @@ front-nonsticky by default, this makes @var{property} nonsticky in both
 directions by default.
 
 The text properties @code{front-sticky} and @code{rear-nonsticky}, when
-used, take precedence over the default @var{nonstickiness} specifed in
+used, take precedence over the default @var{nonstickiness} specified in
 @code{text-property-default-nonsticky}.
 @end defvar
 
@@ -3050,7 +3052,7 @@ uses may be possible.
 
 We invite users to write Lisp programs to store and retrieve text
 properties in files, using these hooks, and thus to experiment with
-various data formats and find good ones.  Eventually we hope users 
+various data formats and find good ones.  Eventually we hope users
 will produce good, general extensions we can install in Emacs.
 
 We suggest not trying to handle arbitrary Lisp objects as text property

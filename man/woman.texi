@@ -1,10 +1,10 @@
 \input texinfo   @c -*-texinfo-*-
-@c $Id: woman.texi,v 1.7 2001/03/05 15:11:21 eliz Exp $
+@c $Id: woman.texi,v 1.13 2002/12/10 13:20:09 pj Exp $
 @c %**start of header
 @setfilename ../info/woman
-@settitle WoMan: Browse Unix Manual Pages ``Wo (without) Man''
+@settitle WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 @c Manual last updated:
-@set UPDATED Time-stamp: <2001-03-05 17:10:30 eliz>
+@set UPDATED Time-stamp: <2002-12-10 14:08:15 pavel>
 @c Software version:
 @set VERSION 0.54 (beta)
 @afourpaper
@@ -14,17 +14,13 @@
 @paragraphindent 0
 @c %**end of header
 
-@dircategory Emacs
-@direntry
-* WoMan: (woman).       Browse UN*X Manual Pages "Wo (without) Man".
-@end direntry
-
-@ifinfo
-This file documents WoMan: A program to browse Unix manual pages `wo
+@copying
+This file documents WoMan: A program to browse Unix manual pages `W.O.
 (without) man'.
 
-Copyright @copyright{} 2001  Free Software Foundation, Inc.
+Copyright @copyright{} 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -41,13 +37,19 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* WoMan: (woman).       Browse UN*X Manual Pages "W.O. (without) Man".
+@end direntry
 
 @finalout
 
 @titlepage
 @title WoMan
-@subtitle Browse Unix Manual Pages ``Wo (without) Man''
+@subtitle Browse Unix Manual Pages ``W.O. (without) Man''
 @subtitle Software Version @value{VERSION}
 @author Francis J. Wright
 @sp 2
@@ -63,25 +65,7 @@ license to the document, as described in section 6 of the license.
 @comment  The following two commands start the copyright page.
 @page
 @vskip 0pt plus 1filll
-@noindent
-Copyright @copyright{} 2001 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @contents
@@ -91,7 +75,7 @@ license to the document, as described in section 6 of the license.
 @ifnottex
 @node Top, Introduction, (dir), (dir)
 @comment  node-name,  next,  previous,  up
-@top WoMan: Browse Unix Manual Pages ``Wo (without) Man''
+@top WoMan: Browse Unix Manual Pages ``W.O. (without) Man''
 
 @display
 Software Version @value{VERSION}
@@ -162,7 +146,7 @@ This browser works quite well on simple well-written man files.  It
 works less well on idiosyncratic files that ``break the rules'' or use
 the more obscure @code{ROFF} requests directly.  Current test results
 are available in the file
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/woman.status,
+@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/files/woman.status,
 @file{woman.status}}.
 
 WoMan supports the use of compressed man files via
@@ -295,7 +279,7 @@ advantage of the display capabilities available to it, and I hope to
 develop WoMan to take advantage of developments in Emacs itself.  At
 present, WoMan uses several display faces to support bold and italic
 text, to indicate other fonts, etc.  The default faces are also
-coloured, but the choice of faces is customizable.  WoMan provides menu
+colored, but the choice of faces is customizable.  WoMan provides menu
 support for navigation and mouse support for following references, in
 addition to the navigation facilities provided by @code{man} mode.
 WoMan has (this) texinfo documentation!
@@ -344,7 +328,7 @@ the @file{site-lisp} directory in your Emacs file tree, e.g.@:
 @var{version} is your Emacs version), provided you have write access to
 it.  If you use a directory that is not included by default in your
 Emacs load path then you need to add something like this to your
-@file{.emacs} initialisation file:
+@file{.emacs} initialization file:
 
 @lisp
 (add-to-list 'load-path "my-lisp")
@@ -365,7 +349,7 @@ harm.)
 @heading Setup
 
 Setup that is either necessary or desirable consists of adding a small
-amount of Emacs Lisp code to your @file{.emacs} initialisation file.  It
+amount of Emacs Lisp code to your @file{.emacs} initialization file.  It
 may be necessary (or at least convenient) to make WoMan autoload (if you
 are not running GNU Emacs 21 or later) and to set the search path used
 by the @code{woman} interface.  You may also find it convenient to make
@@ -453,7 +437,7 @@ loaded, then add the following to your @file{.emacs} file:
 
 (By default, WoMan will automatically define the dired keys @kbd{W} and
 @kbd{w} when it loads, but only if they are not already defined.  This
-behaviour is controlled by the user option @code{woman-dired-keys}.
+behavior is controlled by the user option @code{woman-dired-keys}.
 Note that the @code{dired-x} (dired extra) package binds
 @code{dired-copy-filename-as-kill} to the key @kbd{w}, although @kbd{W}
 appears to be unused.  The @code{dired-x} package will over-write the
@@ -488,7 +472,7 @@ file:
 If you really want to square the man-woman circle then you can!  If you
 run the GNU command interpreter @code{bash} then you might care to
 define the following @code{bash} function in your @code{bash}
-initialisation file @file{.bashrc}:
+initialization file @file{.bashrc}:
 
 @example
 man() @{ gnudoit -q '(raise-frame (selected-frame)) (woman' \"$1\" ')' ; @}
@@ -1396,11 +1380,11 @@ formatting.
 @item woman-bold-headings
 A boolean value.  If non-@code{nil} then embolden section and subsection
 headings.  Default is @code{t}.  [Heading emboldening is @emph{not} standard
-@code{man} behaviour.]
+@code{man} behavior.]
 
 @item woman-ignore
 A boolean value.  If non-@code{nil} then unrecognised requests etc. are
-ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behaviour.
+ignored.  Default is @code{t}.  This gives the standard @code{ROFF} behavior.
 If @code{nil} then they are left in the buffer, which may aid debugging.
 
 @item woman-preserve-ascii
@@ -1428,7 +1412,7 @@ man page.
 @item woman-fontify
 A boolean value.  If non-@code{nil} then WoMan assumes that face support is
 available.  It defaults to a non-@code{nil} value if the display supports
-either colours or different fonts.
+either colors or different fonts.
 
 @item woman-italic-face
 Face for italic font in man pages.  Default: italic, underlined,
@@ -1496,7 +1480,7 @@ Under MS-Windows, the default is
 @cindex log buffer
 @cindex buffer, log
 
-This is modelled on the Emacs byte-compiler.  It logs all files
+This is modeled on the Emacs byte-compiler.  It logs all files
 formatted by WoMan and the time taken.  If WoMan finds anything that it
 cannot handle then it writes a warning to this buffer.  If the variable
 @code{woman-show-log} is non-@code{nil} (by default it is @code{nil}) then
@@ -1550,24 +1534,18 @@ If WoMan fails completely, or formats a file incorrectly (i.e.@:
 obviously wrongly or significantly differently from @code{man}) or
 inelegantly, then please
 
-@enumerate a
+@enumerate
 @item
-check that you are running the latest version of @file{woman.el}
-available from @uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web
-site}, and
+try the latest version of @file{woman.el} from the Emacs CVS repository
+on @uref{http://savannah.gnu.org/}.  If it still fails, please
 
 @item
-check that the problem is not already described in the file
-@file{woman.status}, also available from
-@uref{http://centaur.maths.qmw.ac.uk/Emacs/WoMan/, my web site}.
+send a bug report to @email{bug-gnu-emacs@@gnu.org} and to
+@email{F.J.Wright@@qmw.ac.uk}.  Please include the entry from the
+@code{*WoMan-Log*} buffer relating to the problem file, together with
+a brief description of the problem.  Please indicate where you got the
+man source file from, but do not send it unless asked to send it.
 @end enumerate
-
-If both of the above are true then please
-@email{F.J.Wright@@qmw.ac.uk,email me} the entry from the
-@code{*WoMan-Log*} buffer relating to the problem file, together with a
-brief description of the problem.  Please indicate where you got the man
-source file from, but do not send it to me unless I ask you to!  Thanks.
-(At present WoMan has no automated bug-reporting facility.)
 
 @c ===================================================================
 

@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -57,7 +57,7 @@ NOTE-END */
 
 /* Data type of load average, as read out of kmem.  */
 /* These are commented out since it does not really work in uniplus */
-  
+
 /* #define LOAD_AVE_TYPE long */
 
 /* Convert that into an integer that is 100 for a load average of 1.0  */

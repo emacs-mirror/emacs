@@ -196,7 +196,7 @@ static void Right();
 static void Select();
 static void Key();
 static void Nothing();
-static int separator_height ();
+static int separator_height __P ((enum menu_separator));
 
 static XtActionsRec
 xlwMenuActionsList [] =
@@ -316,7 +316,7 @@ static void
 pop_new_stack_if_no_contents (mw)
      XlwMenuWidget mw;
 {
-  if (mw->menu.new_depth)
+  if (mw->menu.new_depth > 1)
     {
       if (!mw->menu.new_stack [mw->menu.new_depth - 1]->contents)
 	mw->menu.new_depth -= 1;
@@ -1243,7 +1243,7 @@ xlwmenu_window_p (w, window)
 {
   XlwMenuWidget mw = (XlwMenuWidget) w;
   int i;
-  
+
   for (i = 0; i < mw->menu.windows_length; ++i)
     if (window == mw->menu.windows[i].window)
       break;
@@ -1397,7 +1397,7 @@ remap_menubar (mw)
 
   /* unmap the menus that popped down */
   for (i = new_depth - 1; i < old_depth; i++)
-    if (i >= new_depth || !new_stack[i]->contents)
+    if (i >= new_depth || (i > 0 && !new_stack[i]->contents))
       XUnmapWindow (XtDisplay (mw), windows[i].window);
 }
 
@@ -2184,6 +2184,16 @@ Left (w, ev, params, num_params)
        the menu-bar. If the current item is the first one, highlight the
        last item in the menubar (probably Help).  */
     set_new_state (mw, find_prev_selectable (mw, selected_item), mw->menu.old_depth - 1);
+  else if (mw->menu.old_depth == 1
+	   && selected_item->contents)     /* Is this menu item expandable?  */
+    {
+      set_new_state (mw, selected_item->contents, mw->menu.old_depth);
+      remap_menubar (mw);
+      selected_item = mw->menu.old_stack [mw->menu.old_depth - 1];
+      if (!selected_item->enabled && find_first_selectable (mw, selected_item))
+	set_new_state (mw, find_first_selectable (mw, selected_item), mw->menu.old_depth - 1);
+    }
+
   else
     {
       pop_new_stack_if_no_contents (mw);

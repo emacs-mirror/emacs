@@ -39,14 +39,14 @@
 ;; function string-to-float converts from string to floating point
 ;; function fint converts a floating point to integer (with truncation)
 ;; function float-to-string converts from floating point to string
-;;                   
+;;
 ;; Caveats:
-;; -  Exponents outside of the range of +/-100 or so will cause certain 
+;; -  Exponents outside of the range of +/-100 or so will cause certain
 ;;    functions (especially conversion routines) to take forever.
 ;; -  Very little checking is done for fixed point overflow/underflow.
 ;; -  No checking is done for over/underflow of the exponent
 ;;    (hardly necessary when exponent can be 2**23).
-;; 
+;;
 ;;
 ;; Bill Rosenblatt
 ;; June 20, 1986
@@ -131,7 +131,7 @@
 	  (setq fnum (fashl fnum)))
       (setq fnum _f0)))			; "standard 0"
   fnum)
-      
+
 (defun abs (n)				; integer absolute value
   (if (>= n 0) n (- n)))
 
@@ -204,7 +204,7 @@
   (if (zerop (car a2))			; if divide by 0
       (signal 'arith-error (list "attempt to divide by zero" a1 a2))
     (let ((bits (1- maxbit))
-	  (quotient 0) 
+	  (quotient 0)
 	  (dividend (car (fabs a1)))
 	  (divisor (car (fabs a2)))
 	  (sign (not (same-sign a1 a2))))
@@ -218,11 +218,11 @@
       (normalize
        (cons (if sign (- quotient) quotient)
 	     (- (cdr (fabs a1)) (cdr (fabs a2)) (1- maxbit)))))))
-  
+
 (defun f% (a1 a2)
   "Returns the remainder of first floating point number divided by second."
   (f- a1 (f* (ftrunc (f/ a1 a2)) a2)))
-	  
+
 
 ;; Comparison functions
 (defun f= (a1 a2)
@@ -232,7 +232,7 @@
 (defun f> (a1 a2)
   "Returns t if first floating point number is greater than second,
 nil otherwise."
-  (cond ((and (natnump (car a1)) (< (car a2) 0)) 
+  (cond ((and (natnump (car a1)) (< (car a2) 0))
 	 t)				; a1 nonnegative, a2 negative
 	((and (> (car a1) 0) (<= (car a2) 0))
 	 t)				; a1 positive, a2 nonpositive
@@ -244,7 +244,7 @@ nil otherwise."
 	 (> (car a1) (car a2)))))	; same exponents.
 
 (defun f>= (a1 a2)
-  "Returns t if first floating point number is greater than or equal to 
+  "Returns t if first floating point number is greater than or equal to
 second, nil otherwise."
   (or (f> a1 a2) (f= a1 a2)))
 
@@ -270,7 +270,7 @@ nil otherwise."
 (defun fmax (a1 a2)
   "Returns the maximum of two floating point numbers."
   (if (f> a1 a2) a1 a2))
-      
+
 (defun fzerop (fnum)
   "Returns t if the floating point number is zero, nil otherwise."
   (= (car fnum) 0))
@@ -290,7 +290,7 @@ nil otherwise."
 	(str "0x")
 	(hex-chars "0123456789ABCDEF"))
     (while (<= shiftval 0)
-      (setq str (concat str (char-to-string 
+      (setq str (concat str (char-to-string
 			(aref hex-chars
 			      (logand (lsh int shiftval) 15))))
 	    shiftval (+ shiftval 4)))
@@ -304,14 +304,14 @@ nil otherwise."
 	 '(0 . 1))
 	(t				; otherwise mask out fractional bits
 	 (let ((mant (car fnum)) (exp (cdr fnum)))
-	   (normalize 
+	   (normalize
 	    (cons (if (natnump mant)	; if negative, use absolute value
 		      (ash (ash mant exp) (- exp))
 		    (- (ash (ash (- mant) exp) (- exp))))
 		  exp))))))
 
 (defun fint (fnum)			; truncate and convert to integer
-  "Convert the floating point number to integer, with truncation, 
+  "Convert the floating point number to integer, with truncation,
 like a C cast operator."
   (let* ((tf (ftrunc fnum)) (tint (car tf)) (texp (cdr tf)))
     (cond ((>= texp mantissa-bits)	; too high, return "maxint"
@@ -325,7 +325,7 @@ like a C cast operator."
   "Convert the floating point number to a decimal string.
 Optional second argument non-nil means use scientific notation."
   (let* ((value (fabs fnum)) (sign (< (car fnum) 0))
-	 (power 0) (result 0) (str "") 
+	 (power 0) (result 0) (str "")
 	 (temp 0) (pow10 _f1))
 
     (if (f= fnum _f0)
@@ -386,13 +386,13 @@ Optional second argument non-nil means use scientific notation."
 	  (concat "-" str)
 	str))))
 
-    
+
 ;; string to float conversion.
 ;; accepts scientific notation, but ignores anything after the first two
 ;; digits of the exponent.
 (defun string-to-float (str)
   "Convert the string to a floating point number.
-Accepts a decimal string in scientific notation,  with exponent preceded
+Accepts a decimal string in scientific notation, with exponent preceded
 by either E or e.  Only the six most significant digits of the integer
 and fractional parts are used; only the first two digits of the exponent
 are used.  Negative signs preceding both the decimal number and the exponent
@@ -415,7 +415,7 @@ are recognized."
 	     (setq leading-0s (1+ leading-0s)))
 	   (setq power (- power leading-0s)
 		 digit-string (substring digit-string leading-0s))
-	   
+
 	   ; if more than 6 digits, round off
 	   (if (> (length digit-string) decimal-digits)
 	       (setq round-up (>= (aref digit-string decimal-digits) ?5)
@@ -426,13 +426,13 @@ are recognized."
 	   (f (* (+ (string-to-int digit-string)
 		    (if round-up 1 0))
 		 (if mant-sign -1 1))))
-	   
+
 	 ; calculate the exponent (power of ten)
 	 (let* ((expt-subst (extract-match str 9))
 		(expt-sign (equal (extract-match str 8) "-"))
 		(expt 0) (chunks 0) (tens 0) (exponent _f1)
 		(func 'f*))
- 
+
 	   (setq expt (+ (* (string-to-int
 			     (substring expt-subst 0
 					(min expt-digits (length expt-subst))))
@@ -445,12 +445,12 @@ are recognized."
 	   (setq chunks (/ expt decimal-digits)
 		 tens (% expt decimal-digits))
 	   ; divide or multiply by "chunks" of 10**6
-	   (while (> chunks 0)	
+	   (while (> chunks 0)
 	     (setq exponent (funcall func exponent highest-power-of-10)
 		   chunks (1- chunks)))
 	   ; divide or multiply by remaining power of ten
 	   (funcall func exponent (aref powers-of-10 tens)))))
-		  
+
     _f0))				; if invalid, return 0
 
 (provide 'float)

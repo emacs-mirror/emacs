@@ -31,7 +31,7 @@
 (defalias 'x-selection 'x-get-selection)
 (defun x-get-selection (&optional type data-type)
   "Return the value of an X Windows selection.
-The argument TYPE (default `PRIMARY') says which selection, 
+The argument TYPE (default `PRIMARY') says which selection,
 and the argument DATA-TYPE (default `STRING') says
 how to convert the data.
 
@@ -46,12 +46,12 @@ in `selection-converter-alist', which see."
 
 (defun x-set-selection (type data)
   "Make an X Windows selection of type TYPE and value DATA.
-The argument TYPE (default `PRIMARY') says which selection, 
+The argument TYPE (default `PRIMARY') says which selection,
 and DATA specifies the contents.  DATA may be a string,
 a symbol, an integer (or a cons of two integers or list of two integers).
 
 The selection may also be a cons of two markers pointing to the same buffer,
-or an overlay.  In these cases, the selection is considered to be the text 
+or an overlay.  In these cases, the selection is considered to be the text
 between the markers *at whatever time the selection is examined*.
 Thus, editing done in the buffer after you specify the selection
 can alter the effective value of the selection.
@@ -118,11 +118,10 @@ Cut buffers are considered obsolete; you should use selections instead."
 (defun x-set-cut-buffer (string &optional push)
   "Store STRING into the X server's primary cut buffer.
 If PUSH is non-nil, also rotate the cut buffers:
-this means the previous value of the primary cut buffer moves the second
+this means the previous value of the primary cut buffer moves to the second
 cut buffer, and the second to the third, and so on (there are 8 buffers.)
 Cut buffers are considered obsolete; you should use selections instead."
-  ;; Check the data type of STRING.
-  (substring string 0 0)
+  (or (stringp string) (signal 'wrong-type-argument (list 'string string)))
   (if push
       (x-rotate-cut-buffers-internal 1))
   (x-store-cut-buffer-internal 'CUT_BUFFER0 string))
@@ -133,29 +132,84 @@ Cut buffers are considered obsolete; you should use selections instead."
 ;;; for TIMESTAMP, which is a special case.
 
 (defun xselect-convert-to-string (selection type value)
-  (cond ((stringp value)
-	 ;; Return the type as well, so that xselect.c could honor
-	 ;; requests whose type is STRING.
-	 (cons type value))
-	((overlayp value)
-	 (save-excursion
-	   (or (buffer-name (overlay-buffer value))
-	       (error "selection is in a killed buffer"))
-	   (set-buffer (overlay-buffer value))
-	   (buffer-substring (overlay-start value)
-			     (overlay-end value))))
-	((and (consp value)
-	      (markerp (car value))
-	      (markerp (cdr value)))
-	 (or (eq (marker-buffer (car value)) (marker-buffer (cdr value)))
-	     (signal 'error
-		     (list "markers must be in the same buffer"
-			   (car value) (cdr value))))
-	 (save-excursion
-	   (set-buffer (or (marker-buffer (car value))
-			   (error "selection is in a killed buffer")))
-	   (buffer-substring (car value) (cdr value))))
-	(t nil)))
+  (let (str coding)
+    ;; Get the actual string from VALUE.
+    (cond ((stringp value)
+	   (setq str value))
+
+	  ((overlayp value)
+	   (save-excursion
+	     (or (buffer-name (overlay-buffer value))
+		 (error "selection is in a killed buffer"))
+	     (set-buffer (overlay-buffer value))
+	     (setq str (buffer-substring (overlay-start value)
+					 (overlay-end value)))))
+	  ((and (consp value)
+		(markerp (car value))
+		(markerp (cdr value)))
+	   (or (eq (marker-buffer (car value)) (marker-buffer (cdr value)))
+	       (signal 'error
+		       (list "markers must be in the same buffer"
+			     (car value) (cdr value))))
+	   (save-excursion
+	     (set-buffer (or (marker-buffer (car value))
+			     (error "selection is in a killed buffer")))
+	     (setq str (buffer-substring (car value) (cdr value))))))
+
+    (when str
+      ;; If TYPE is nil, this is a local request, thus return STR as
+      ;; is.  Otherwise, encode STR.
+      (if (not type)
+	  str
+	(setq coding (or next-selection-coding-system selection-coding-system))
+	(if coding
+	    (setq coding (coding-system-base coding))
+	  (setq coding 'raw-text))
+	;; Suppress producing escape sequences for compositions.
+	(remove-text-properties 0 (length str) '(composition nil) str)
+	(cond
+	 ((eq type 'TEXT)
+	  (if (not (multibyte-string-p str))
+	      ;; Don't have to encode unibyte string.
+	      (setq type 'STRING)
+	    ;; If STR contains only ASCII, Latin-1, and raw bytes,
+	    ;; encode STR by iso-latin-1, and return it as type
+	    ;; `STRING'.  Otherwise, encode STR by CODING.  In that
+	    ;; case, the returing type depends on CODING.
+	    (let ((charsets (find-charset-string str)))
+	      (setq charsets
+		    (delq 'ascii
+			  (delq 'latin-iso8859-1
+				(delq 'eight-bit-control
+				      (delq 'eight-bit-graphic charsets)))))
+	      (if charsets
+		  (setq str (encode-coding-string str coding)
+			type (if (memq coding '(compound-text
+						compound-text-with-extensions))
+				 'COMPOUND_TEXT
+			       'STRING))
+		(setq type 'STRING
+		      str (encode-coding-string str 'iso-latin-1))))))
+
+	 ((eq type 'COMPOUND_TEXT)
+	  (setq str (encode-coding-string str coding)))
+
+	 ((eq type 'STRING)
+	  (if (memq coding '(compound-text
+			     compound-text-with-extensions))
+	      (setq str (string-make-unibyte str))
+	    (setq str (encode-coding-string str coding))))
+
+	 ((eq type 'UTF8_STRING)
+	  (setq str (encode-coding-string str 'utf-8)))
+
+	 (t
+	  (error "Unknow selection type: %S" type))
+	 ))
+
+      (setq next-selection-coding-system nil)
+      (cons type str))))
+
 
 (defun xselect-convert-to-length (selection type value)
   (let ((value
@@ -304,6 +358,7 @@ This function returns the string \"emacs\"."
       '((TEXT . xselect-convert-to-string)
 	(COMPOUND_TEXT . xselect-convert-to-string)
 	(STRING . xselect-convert-to-string)
+	(UTF8_STRING . xselect-convert-to-string)
 	(TARGETS . xselect-convert-to-targets)
 	(LENGTH . xselect-convert-to-length)
 	(DELETE . xselect-convert-to-delete)

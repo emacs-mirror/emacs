@@ -6,35 +6,11 @@
 @comment @setfilename viper.info
 @setfilename ../info/viper
 
-@dircategory Emacs
-@direntry
-* VIPER: (viper).       The newest Emacs VI-emulation mode.
-                          (also, A VI Plan for Emacs Rescue
-                           or the VI PERil.)
-@end direntry
+@copying
+Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software
+Foundation, Inc.
 
-@iftex
-@finalout
-@end iftex
-
-@titlepage
-@title Viper Is a Package for Emacs Rebels
-@subtitle a Vi emulator for Emacs
-@subtitle January 2002, Viper Version 3.11.2
-
-@author Michael Kifer (Viper)
-@author Aamod Sane (VIP 4.4)
-@author Masahiko Sato (VIP 3.5)
-
-@page
-@vskip 0pt plus 1fill
-@end titlepage
-
-@unnumbered Distribution
-
-@noindent
-Copyright @copyright{} 1995, 1996, 1997, 2001, 2002 Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -51,8 +27,33 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
+@end quotation
+@end copying
 
-@ifinfo
+@dircategory Emacs
+@direntry
+* VIPER: (viper).       The newest Emacs VI-emulation mode.
+                          (also, A VI Plan for Emacs Rescue
+                           or the VI PERil.)
+@end direntry
+
+@finalout
+
+@titlepage
+@title Viper Is a Package for Emacs Rebels
+@subtitle a Vi emulator for Emacs
+@subtitle January 2002, Viper Version 3.11.2
+
+@author Michael Kifer (Viper)
+@author Aamod Sane (VIP 4.4)
+@author Masahiko Sato (VIP 3.5)
+
+@page
+@vskip 0pt plus 1filll
+@insertcopying
+@end titlepage
+
+@ifnottex
 @node Top, Overview,, (DIR)
 
 @unnumbered Viper
@@ -98,7 +99,7 @@ Comments and bug reports are welcome.
 @code{kifer@@cs.stonybrook.edu} is the current address for Viper bug reports.
 Please use the Ex command @kbd{:submitReport} for this purpose.@refill
 
-@end ifinfo
+@end ifnottex
 
 @menu
 * Overview::                    Read for a smoother start
@@ -1193,7 +1194,7 @@ way to do this is to use Emacs customization widget, which is accessible
 from the menubar.  Viper customization group is located under the
 @emph{Emulations} customization group, which in turn is under the
 @emph{Editing} group (or simply by typing @kbd{:customize}).  All Viper
-faces are grouped together under Viper's 
+faces are grouped together under Viper's
 @emph{Highlighting} group.
 
 Try it: it is really simple!
@@ -1747,7 +1748,7 @@ defined in the low-level key-translation-map or function-key-map, such as those
 emitted by the arrow and function keys. Other sequences, e.g., @kbd{\\e/}, are
 treated as @kbd{ESC} command followed by a @kbd{/}. This is good for people
 who type fast and tend to hit other characters right after they hit
-ESC. Other people like Emacs to translate @kbd{ESC} sequences all the time. 
+ESC. Other people like Emacs to translate @kbd{ESC} sequences all the time.
 The default is to translate all sequences only when using a dumb terminal.
 This permits you to use @kbd{ESC} as a meta key in insert mode. For instance,
 hitting @kbd{ESC x} fast would have the effect of typing @kbd{M-x}.
@@ -2034,7 +2035,7 @@ If you wish to change a Viper binding, you can use the
 @code{viper-insert-global-user-map}, and @code{viper-emacs-global-user-map}, as
 explained below.  Each of these key maps affects the corresponding Viper state.
 The keymap @code{viper-insert-global-user-map} also affects Viper's Replace
-state. 
+state.
 
 @noindent
 If you want to
@@ -2218,7 +2219,7 @@ means that bindings set by those modes are generally available with Viper
 @code{viper-want-emacs-keys-in-vi} and @code{viper-want-emacs-keys-in-insert} to
 @code{nil}).
 If @code{viper-always} is set to @code{t} (which is the default), Viper
-will try to bring each buffer 
+will try to bring each buffer
 in the Viper state that is most appropriate for that buffer.
 Usually, this would be the Vi state, but sometimes it could be the Insert
 state or the Emacs state.
@@ -2660,7 +2661,7 @@ This variable controls the rate at which double-clicking must occur for the
 purpose of mouse search and mouse insert.  By default, this is set to
 @code{double-click-time} in Emacs and to
 @code{mouse-track-multi-click-time} milliseconds in XEmacs.
-@end table        
+@end table
 @kindex @kbd{S-Mouse-1}
 @kindex @kbd{S-Mouse-2}
 @kindex @kbd{meta shift button1up}
@@ -2730,7 +2731,7 @@ the meaning of key sequences: keys typed in fast succession are treated
 specially, if this key sequence is bound to a macro.
 
 Viper provides Vi-style keyboard macros through the usual Ex commands,
-@kbd{:map} and 
+@kbd{:map} and
 @kbd{:map!}.  These macros are much more powerful in Viper than
 they are in the original Vi and in other emulators.  This is because Viper
 implements an enhanced vi-style
@@ -4043,8 +4044,8 @@ Obsolete
 @item :args
 List files not shown anywhere with counts for next
 @item :n [count]  [+<cmd>] [<files>]
-Edit <count> file, or edit files.  The count comes from @kbd{:args}.  
-@item :N [count] [+<cmd>] [<files>] 
+Edit <count> file, or edit files.  The count comes from @kbd{:args}.
+@item :N [count] [+<cmd>] [<files>]
 Like @kbd{:n}, but the meaning of the variable
 @var{ex-cycle-other-window} is reversed.
 @item :b
@@ -4479,6 +4480,7 @@ kanze@@gabi-soft.fr (James Kanze),
 kin@@isi.com (Kin Cho),
 kwzh@@gnu.org (Karl Heuer),
 lindstro@@biostat.wisc.edu (Mary Lindstrom),
+lektu@@terra.es (Juanma Barranquero),
 minakaji@@osaka.email.ne.jp (Mikio Nakajima),
 Mark.Bordas@@East.Sun.COM (Mark Bordas),
 meyering@@comco.com (Jim Meyering),

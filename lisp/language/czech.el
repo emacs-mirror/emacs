@@ -1,4 +1,4 @@
-;;; czech.el --- support for Czech -*- coding: iso-2022-7bit; -*-
+;;; czech.el --- support for Czech -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1998, 2001 Free Software Foundation.
 

@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -29,8 +29,6 @@ NOTE-END
 
 */
 
-#define BITS_PER_LONG 64
-#define BITS_PER_EMACS_INT 64
 #ifndef _LP64
 #define _LP64			/* This doesn't appear to be necessary
 				   on OSF 4/5  -- fx.  */
@@ -56,13 +54,7 @@ NOTE-END
 
 /* Use type EMACS_INT rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
-
 #define NO_UNION_TYPE
-
-/* Define the type to use.  */
-#define EMACS_INT long
-#define EMACS_UINT unsigned long
-#define SPECIAL_EMACS_INT
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -113,6 +105,9 @@ NOTE-END
 #ifdef __ELF__
 #undef UNEXEC
 #define UNEXEC unexelf.o
+#ifndef LINUX
+#define DATA_START    0x140000000
+#endif
 #endif
 
 #ifndef __ELF__
@@ -122,95 +117,15 @@ NOTE-END
 #define TEXT_START    0x120000000
 #define DATA_START    0x140000000
 
-/* This is necessary for mem-limits.h, so that start_of_data gives
-   the correct value */
-
-#define DATA_SEG_BITS 0x140000000
-
 /* The program to be used for unexec. */
 
 #define UNEXEC unexalpha.o
 
 #endif /* notdef __ELF__ */
 
-#ifdef OSF1
-#define ORDINARY_LINK
-
-/* Some systems seem to have this, others don't.  */
-#ifdef HAVE_LIBDNET
-#define LIBS_MACHINE -ldnet
-#else
-#define LIBS_MACHINE -ldnet_stub
-#endif
-#endif /* OSF1 */
-
-#if 0 /* Rainer Schoepf <schoepf@uni-mainz.de> says this loses with X11R6
-	 since it has only shared libraries.  */
-#ifndef __GNUC__
-/* This apparently is for the system ld as opposed to Gnu ld.  */
-#ifdef OSF1
-#define LD_SWITCH_MACHINE      -non_shared
-#endif
-#endif
-#endif /* 0 */
-
-#ifdef OSF1
-#define LIBS_DEBUG
-#define START_FILES pre-crt0.o
-#endif
-
 #if defined (LINUX) && __GNU_LIBRARY__ - 0 < 6
 /* This controls a conditional in main.  */
 #define LINUX_SBRK_BUG
-#endif
-
-
-#define PNTR_COMPARISON_TYPE unsigned long
-
-/* On the 64 bit architecture, we can use 60 bits for addresses */
-
-#define VALBITS         60
-
-
-/* This definition of MARKBIT is necessary because of the comparison of
-   ARRAY_MARK_FLAG and MARKBIT in an #if in lisp.h, which cpp doesn't like. */
-
-#define MARKBIT         0x8000000000000000L
-
-
-/* Define XINT and XUINT so that they can take arguments of type int */
-
-#define XINT(a)  (((long) (a) << (BITS_PER_LONG - VALBITS)) >> (BITS_PER_LONG - VALBITS))
-#define XUINT(a) ((long) (a) & VALMASK)
-
-/* Define XPNTR to avoid or'ing with DATA_SEG_BITS */
-
-#define XPNTR(a) XUINT (a)
-
-#ifndef NOT_C_CODE
-/* We need these because pointers are larger than the default ints.  */
-#if !defined(__NetBSD__) && !defined(__OpenBSD__)
-#include <alloca.h>
-#endif
-
-#endif /* not NOT_C_CODE */
-
-#ifdef OSF1
-#define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
-#define PTY_NAME_SPRINTF	/* none */
-#define PTY_TTY_NAME_SPRINTF	/* none */
-#define PTY_OPEN					\
-  do							\
-    {							\
-      int dummy;					\
-      SIGMASKTYPE mask;					\
-      mask = sigblock (sigmask (SIGCHLD));		\
-      if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
-	fd = -1;					\
-      sigsetmask (mask);				\
-      emacs_close (dummy);				\
-    }							\
-  while (0)
 #endif
 
 /* On the Alpha it's best to avoid including TERMIO since struct

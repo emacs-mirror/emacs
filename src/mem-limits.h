@@ -20,6 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef MSDOS
 #include <dpmi.h>
+extern int etext;
 #endif
 
 /* Some systems need this before <sys/resource.h>.  */
@@ -42,6 +43,10 @@ extern int etext, __data_start; weak_extern (__data_start)
 #endif
 
 #ifdef __bsdi__
+#define BSD4_2
+#endif
+
+#ifdef CYGWIN
 #define BSD4_2
 #endif
 
@@ -79,10 +84,16 @@ extern POINTER start_of_data ();
 #define EXCEEDS_LISP_PTR(ptr) ((EMACS_UINT) (ptr) >> VALBITS)
 #endif
 
+#ifdef DATA_START
+#define start_of_data() ((char *)DATA_START)
+#endif
+
 #ifdef BSD_SYSTEM
 #ifndef DATA_SEG_BITS
+#ifndef DATA_START
 extern char etext;
 #define start_of_data() &etext
+#endif
 #endif
 #endif
 

@@ -77,7 +77,7 @@ If value is a list, each line in a multipleline continued statement
 will have the car of the list extra indentation with respect to
 the previous line of the statement.")
 
-(defcustom simula-continued-statement-offset 
+(defcustom simula-continued-statement-offset
   simula-continued-statement-offset-default
   "*Extra indentation for lines not starting a statement or substatement.
 If value is a list, each line in a multipleline continued statement
@@ -129,26 +129,26 @@ and the cdr extra OTHERWISE indentation."
 (defconst simula-abbrev-keyword-default 'upcase
   "Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table' or nil if they should not be changed.")
+\(as in) `abbrev-table' or nil if they should not be changed.")
 
 (defcustom simula-abbrev-keyword simula-abbrev-keyword-default
   "*Specify how to convert case for SIMULA keywords.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table' or nil if they should not be changed."
+\(as in) `abbrev-table' or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)(const nil))
   :group 'simula)
 
 (defconst simula-abbrev-stdproc-default 'abbrev-table
   "Specify how to convert case for standard SIMULA procedure and class names.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table', or nil if they should not be changed.")
+\(as in) `abbrev-table', or nil if they should not be changed.")
 
 (defcustom simula-abbrev-stdproc simula-abbrev-stdproc-default
   "*Specify how to convert case for standard SIMULA procedure and class names.
 Value is one of the symbols `upcase', `downcase', `capitalize',
-(as in) `abbrev-table', or nil if they should not be changed."
+\(as in) `abbrev-table', or nil if they should not be changed."
   :type '(choice (const upcase) (const downcase) (const capitalize)
-(const abbrev-table) (const nil))
+	  (const abbrev-table) (const nil))
   :group 'simula)
 
 (defcustom simula-abbrev-file nil
@@ -162,21 +162,27 @@ for SIMULA mode to function correctly."
 (defvar simula-mode-syntax-table nil
   "Syntax table in SIMULA mode buffers.")
 
+(defconst simula-font-lock-syntactic-keywords
+  `(;; `comment' directive.
+    ("\\<\\(c\\)omment\\>" 1 "<")
+    ;; end comments
+    (,(concat "\\<end\\>\\([^;\n]\\).*?\\(\n\\|\\(.\\)\\(;\\|"
+	      (regexp-opt '("end" "else" "when" "otherwise"))
+	      "\\)\\)")
+     (1 "< b")
+     (3 "> b" nil t))
+    ;; non-quoted single-quote char.
+    ("'\\('\\)'" 1 ".")))
+
 ;; Regexps written with help from Alf-Ivar Holm <alfh@ifi.uio.no>.
 (defconst simula-font-lock-keywords-1
-  (list
-   ;;
-   ;; Comments and strings.
-   '(simula-match-string-or-comment 0
-     (if (match-beginning 1) font-lock-string-face font-lock-comment-face))
-   ;;
-   ;; Compiler directives.
-   '("^%\\([^ \t\n].*\\)" 1 font-lock-constant-face)
-   ;;
-   ;; Class and procedure names.
-   '("\\<\\(class\\|procedure\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
-   )
+  '(;;
+    ;; Compiler directives.
+    ("^%\\([^ \t\n].*\\)" 1 font-lock-constant-face t)
+    ;;
+    ;; Class and procedure names.
+    ("\\<\\(class\\|procedure\\)\\>[ \t]*\\(\\sw+\\)?"
+     (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
   "Subdued level highlighting for Simula mode.")
 
 (defconst simula-font-lock-keywords-2
@@ -187,28 +193,19 @@ for SIMULA mode to function correctly."
     '("\\<\\(false\\|none\\|notext\\|true\\)\\>" . font-lock-constant-face)
     ;;
     ;; Keywords.
-    (concat "\\<\\("
-;	    (make-regexp
-;	     '("activate" "after" "and" "at" "before" "begin" "delay" "do"
-;	       "else" "end" "eq" "eqv" "external" "for" "ge" "go" "goto" "gt"
-;	       "hidden" "if" "imp" "in" "inner" "inspect" "is" "label" "le"
-;	       "lt" "ne" "new" "not" "or" "otherwise" "prior" "protected"
-;	       "qua" "reactivate" "step" "switch" "then" "this" "to" "until"
-;	       "virtual" "when" "while"))
-	    "a\\(ctivate\\|fter\\|nd\\|t\\)\\|be\\(fore\\|gin\\)\\|"
-	    "d\\(elay\\|o\\)\\|e\\(lse\\|nd\\|qv?\\|xternal\\)\\|for\\|"
-	    "g\\([eot]\\|oto\\)\\|hidden\\|i\\([fns]\\|mp\\|n\\(ner\\|"
-	    "spect\\)\\)\\|l\\([et]\\|abel\\)\\|n\\(ew?\\|ot\\)\\|"
-	    "o\\(r\\|therwise\\)\\|pr\\(ior\\|otected\\)\\|qua\\|"
-	    "reactivate\\|s\\(tep\\|witch\\)\\|t\\(h\\(en\\|is\\)\\|o\\)\\|"
-	    "until\\|virtual\\|wh\\(en\\|ile\\)"	    
-	    "\\)\\>")
+    (regexp-opt
+     '("activate" "after" "and" "at" "before" "begin" "delay" "do"
+       "else" "end" "eq" "eqv" "external" "for" "ge" "go" "goto" "gt"
+       "hidden" "if" "imp" "in" "inner" "inspect" "is" "label" "le"
+       "lt" "ne" "new" "not" "or" "otherwise" "prior" "protected"
+       "qua" "reactivate" "step" "switch" "then" "this" "to" "until"
+       "virtual" "when" "while") 'words)
     ;;
     ;; Types.
-    (cons (concat "\\<\\(array\\|boolean\\|character\\|integer\\|"
-		  "long\\|name\\|real\\|short\\|text\\|value\\|ref\\)\\>")
-	  'font-lock-type-face)
-    ))
+    (cons (regexp-opt
+	   '("array" "boolean" "character" "integer"
+	     "long" "name" "real" "short" "text" "value" "ref") 'words)
+	  'font-lock-type-face)))
   "Medium level highlighting for Simula mode.")
 
 (defconst simula-font-lock-keywords-3
@@ -243,42 +240,6 @@ for SIMULA mode to function correctly."
 
 ; The following function is taken from cc-mode.el,
 ; it determines the flavor of the Emacs running
-(defconst simula-emacs-features
-  (let ((major (and (boundp 'emacs-major-version)
-		    emacs-major-version))
-	(minor (and (boundp 'emacs-minor-version)
-		    emacs-minor-version))
-	flavor comments)
-    ;; figure out version numbers if not already discovered
-    (and (or (not major) (not minor))
-	 (string-match "\\([0-9]+\\).\\([0-9]+\\)" emacs-version)
-	 (setq major (string-to-int (substring emacs-version
-					       (match-beginning 1)
-					       (match-end 1)))
-	       minor (string-to-int (substring emacs-version
-					       (match-beginning 2)
-					       (match-end 2)))))
-    (if (not (and major minor))
-	(error "Cannot figure out the major and minor version numbers"))
-    ;; calculate the major version
-    (cond
-     ((= major 18) (setq major 'v18))	;Emacs 18
-     ((= major 4)  (setq major 'v18))	;Epoch 4
-     ((>= major 19) (setq major 'v19	;Emacs 19 or 20
-			 flavor (if (string-match "Lucid" emacs-version)
-				    'Lucid 'FSF)))
-     ;; I don't know
-     (t (error "Cannot recognize major version number: %s" major)))
-        (list major flavor comments))
-  "A list of features extant in the Emacs you are using.
-There are many flavors of Emacs out there, each with different
-features supporting those needed by simula-mode.  Here's the current
-supported list, along with the values for this variable:
-
- Emacs 19:                  (v19 FSF 1-bit)
- Vanilla Emacs 18/Epoch 4:  (v18 no-dual-comments)
- Emacs 18/Epoch 4 (patch2): (v18 8-bit)
- Lucid Emacs 19:            (v19 Lucid 8-bit).")
 
 (defvar simula-mode-menu
   '(["Report Bug"	      simula-submit-bug-report t]
@@ -286,8 +247,7 @@ supported list, along with the values for this variable:
     ["Backward Statement"     simula-previous-statement t]
     ["Forward Statement"      simula-next-statement t]
     ["Backward Up Level"      simula-backward-up-level t]
-    ["Forward Down Statement" simula-forward-down-level t]
-    )
+    ["Forward Down Statement" simula-forward-down-level t])
   "Lucid Emacs menu for SIMULA mode.")
 
 (if simula-mode-syntax-table
@@ -295,7 +255,8 @@ supported list, along with the values for this variable:
   (setq simula-mode-syntax-table (copy-syntax-table (standard-syntax-table)))
   (modify-syntax-entry ?!  "<"    simula-mode-syntax-table)
   (modify-syntax-entry ?$  "."    simula-mode-syntax-table)
-  (modify-syntax-entry ?%  "."    simula-mode-syntax-table)
+  (modify-syntax-entry ?%  "< b"  simula-mode-syntax-table)
+  (modify-syntax-entry ?\n "> b"  simula-mode-syntax-table)
   (modify-syntax-entry ?'  "\""   simula-mode-syntax-table)
   (modify-syntax-entry ?\( "()"   simula-mode-syntax-table)
   (modify-syntax-entry ?\) ")("   simula-mode-syntax-table)
@@ -308,139 +269,110 @@ supported list, along with the values for this variable:
   (modify-syntax-entry ?\{ "."    simula-mode-syntax-table)
   (modify-syntax-entry ?\} "."    simula-mode-syntax-table))
 
-(defvar simula-mode-map ()
-  "Keymap used in SIMULA mode.")
+(defvar simula-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-c\C-u"   'simula-backward-up-level)
+    (define-key map "\C-c\C-p"   'simula-previous-statement)
+    (define-key map "\C-c\C-d"   'simula-forward-down-level)
+    (define-key map "\C-c\C-n"   'simula-next-statement)
+    ;; (define-key map "\C-c\C-g"   'simula-goto-definition)
+    ;; (define-key map "\C-c\C-h"   'simula-standard-help)
+    (define-key map "\177"       'backward-delete-char-untabify)
+    (define-key map ":"          'simula-electric-label)
+    (define-key map "\e\C-q"     'simula-indent-exp)
+    (define-key map "\t"         'simula-indent-command)
+    ;; Emacs 19 defines menus in the mode map
+    (define-key map [menu-bar simula]
+      (cons "SIMULA" (make-sparse-keymap "SIMULA")))
+    (define-key map [menu-bar simula bug-report]
+      '("Submit Bug Report" . simula-submit-bug-report))
+    (define-key map [menu-bar simula separator-indent]
+      '("--"))
+    (define-key map [menu-bar simula indent-exp]
+      '("Indent Expression" . simula-indent-exp))
+    (define-key map [menu-bar simula indent-line]
+      '("Indent Line" . simula-indent-command))
+    (define-key map [menu-bar simula separator-navigate]
+      '("--"))
+    (define-key map [menu-bar simula backward-stmt]
+      '("Previous Statement" . simula-previous-statement))
+    (define-key map [menu-bar simula forward-stmt]
+      '("Next Statement" . simula-next-statement))
+    (define-key map [menu-bar simula backward-up]
+      '("Backward Up Level" . simula-backward-up-level))
+    (define-key map [menu-bar simula forward-down]
+      '("Forward Down Statement" . simula-forward-down-level))
 
-(if simula-mode-map
-    ()
-  (setq simula-mode-map (make-sparse-keymap))
-  (define-key simula-mode-map "\C-c\C-u"   'simula-backward-up-level)
-  (define-key simula-mode-map "\C-c\C-p"   'simula-previous-statement)
-  (define-key simula-mode-map "\C-c\C-d"   'simula-forward-down-level)
-  (define-key simula-mode-map "\C-c\C-n"   'simula-next-statement)
-  ;(define-key simula-mode-map "\C-c\C-g"   'simula-goto-definition)
-  ;(define-key simula-mode-map "\C-c\C-h"   'simula-standard-help)
-  (define-key simula-mode-map "\177"       'backward-delete-char-untabify)
-  (define-key simula-mode-map ":"          'simula-electric-label)
-  (define-key simula-mode-map "\e\C-q"     'simula-indent-exp)
-  (define-key simula-mode-map "\t"         'simula-indent-command)
-  ;; Emacs 19 defines menus in the mode map
-  (if (memq 'FSF simula-emacs-features)
-      (progn
-	(define-key simula-mode-map [menu-bar] (make-sparse-keymap))
+    (put 'simula-next-statement 'menu-enable '(not (eobp)))
+    (put 'simula-previous-statement 'menu-enable '(not (bobp)))
+    (put 'simula-forward-down-level 'menu-enable '(not (eobp)))
+    (put 'simula-backward-up-level 'menu-enable '(not (bobp)))
+    (put 'simula-indent-command 'menu-enable '(not buffer-read-only))
+    (put 'simula-indent-exp 'menu-enable '(not buffer-read-only))
 
-	(define-key simula-mode-map [menu-bar simula]
-	  (cons "SIMULA" (make-sparse-keymap "SIMULA")))
-	(define-key simula-mode-map [menu-bar simula bug-report]
-	  '("Submit Bug Report" . simula-submit-bug-report))
-	(define-key simula-mode-map [menu-bar simula separator-indent]
-	  '("--"))
-	(define-key simula-mode-map [menu-bar simula indent-exp]
-	  '("Indent Expression" . simula-indent-exp))
-	(define-key simula-mode-map [menu-bar simula indent-line]
-	  '("Indent Line" . simula-indent-command))
-	(define-key simula-mode-map [menu-bar simula separator-navigate]
-	  '("--"))
-	(define-key simula-mode-map [menu-bar simula backward-stmt]
-	  '("Previous Statement" . simula-previous-statement))
-	(define-key simula-mode-map [menu-bar simula forward-stmt]
-	  '("Next Statement" . simula-next-statement))
-	(define-key simula-mode-map [menu-bar simula backward-up]
-	  '("Backward Up Level" . simula-backward-up-level))
-	(define-key simula-mode-map [menu-bar simula forward-down]
-	  '("Forward Down Statement" . simula-forward-down-level))
-
-	(put 'simula-next-statement 'menu-enable '(not (eobp)))
-	(put 'simula-previous-statement 'menu-enable '(not (bobp)))
-	(put 'simula-forward-down-level 'menu-enable '(not (eobp)))
-	(put 'simula-backward-up-level 'menu-enable '(not (bobp)))
-	(put 'simula-indent-command 'menu-enable '(not buffer-read-only))
-	(put 'simula-indent-exp 'menu-enable '(not buffer-read-only))))
-
-  ;; RMS: mouse-3 should not select this menu.  mouse-3's global
-  ;; definition is useful in SIMULA mode and we should not interfere
-  ;; with that.  The menu is mainly for beginners, and for them,
-  ;; the menubar requires less memory than a special click.
-  ;; in Lucid Emacs, we want the menu to popup when the 3rd button is
-  ;; hit.  In 19.10 and beyond this is done automatically if we put
-  ;; the menu on mode-popup-menu variable, see c-common-init [cc-mode.el]
-  (if (memq 'Lucid simula-emacs-features)
-      (if (not (boundp 'mode-popup-menu))
-	  (define-key simula-mode-map 'button3 'simula-popup-menu))))
+    ;; RMS: mouse-3 should not select this menu.  mouse-3's global
+    ;; definition is useful in SIMULA mode and we should not interfere
+    ;; with that.  The menu is mainly for beginners, and for them,
+    ;; the menubar requires less memory than a special click.
+    ;; in Lucid Emacs, we want the menu to popup when the 3rd button is
+    ;; hit.  In 19.10 and beyond this is done automatically if we put
+    ;; the menu on mode-popup-menu variable, see c-common-init [cc-mode.el]
+    ;;(if (not (boundp 'mode-popup-menu))
+    ;;	(define-key simula-mode-map 'button3 'simula-popup-menu))
+    map)
+  "Keymap used in `simula-mode'.")
 
 ;; menus for Lucid
 (defun simula-popup-menu (e)
   "Pops up the SIMULA menu."
   (interactive "@e")
-  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu))
-  (simula-keep-region-active))
-
-;; active regions, and auto-newline/hungry delete key
-(defun simula-keep-region-active ()
-  ;; do whatever is necessary to keep the region active in
-  ;; Lucid. ignore byte-compiler warnings you might see
-  (and (boundp 'zmacs-region-stays)
-       (setq zmacs-region-stays t)))
-
-(defvar simula-mode-abbrev-table nil
-  "Abbrev table in SIMULA mode buffers")
-
+  (popup-menu (cons (concat mode-name " Mode Commands") simula-mode-menu)))
 
 ;;;###autoload
-(defun simula-mode ()
+(define-derived-mode simula-mode nil "Simula"
   "Major mode for editing SIMULA code.
 \\{simula-mode-map}
 Variables controlling indentation style:
- simula-tab-always-indent
+ `simula-tab-always-indent'
     Non-nil means TAB in SIMULA mode should always reindent the current line,
     regardless of where in the line point is when the TAB command is used.
- simula-indent-level
+ `simula-indent-level'
     Indentation of SIMULA statements with respect to containing block.
- simula-substatement-offset
+ `simula-substatement-offset'
     Extra indentation after DO, THEN, ELSE, WHEN and OTHERWISE.
- simula-continued-statement-offset 3
+ `simula-continued-statement-offset' 3
     Extra indentation for lines not starting a statement or substatement,
     e.g. a nested FOR-loop.  If value is a list, each line in a multiple-
     line continued statement will have the car of the list extra indentation
     with respect to the previous line of the statement.
- simula-label-offset -4711
+ `simula-label-offset' -4711
     Offset of SIMULA label lines relative to usual indentation.
- simula-if-indent '(0 . 0)
+ `simula-if-indent' '(0 . 0)
     Extra indentation of THEN and ELSE with respect to the starting IF.
     Value is a cons cell, the car is extra THEN indentation and the cdr
     extra ELSE indentation.  IF after ELSE is indented as the starting IF.
- simula-inspect-indent '(0 . 0)
+ `simula-inspect-indent' '(0 . 0)
     Extra indentation of WHEN and OTHERWISE with respect to the
     corresponding INSPECT.  Value is a cons cell, the car is
     extra WHEN indentation and the cdr extra OTHERWISE indentation.
- simula-electric-indent nil
+ `simula-electric-indent' nil
     If this variable is non-nil, `simula-indent-line'
     will check the previous line to see if it has to be reindented.
- simula-abbrev-keyword 'upcase
+ `simula-abbrev-keyword' 'upcase
     Determine how SIMULA keywords will be expanded.  Value is one of
     the symbols `upcase', `downcase', `capitalize', (as in) `abbrev-table',
     or nil if they should not be changed.
- simula-abbrev-stdproc 'abbrev-table
+ `simula-abbrev-stdproc' 'abbrev-table
     Determine how standard SIMULA procedure and class names will be
     expanded.  Value is one of the symbols `upcase', `downcase', `capitalize',
     (as in) `abbrev-table', or nil if they should not be changed.
 
 Turning on SIMULA mode calls the value of the variable simula-mode-hook
-with no arguments, if that value is non-nil
-
-Warning: simula-mode-hook should not read in an abbrev file without calling
-the function simula-install-standard-abbrevs afterwards, preferably not
-at all."
-  (interactive)
-  (kill-all-local-variables)
-  (use-local-map simula-mode-map)
-  (setq major-mode 'simula-mode)
-  (setq mode-name "SIMULA")
+with no arguments, if that value is non-nil."
   (make-local-variable 'comment-column)
   (setq comment-column 40)
 ;  (make-local-variable 'end-comment-column)
 ;  (setq end-comment-column 75)
-  (set-syntax-table simula-mode-syntax-table)
   (make-local-variable 'paragraph-start)
   (setq paragraph-start "[ \t]*$\\|\\f")
   (make-local-variable 'paragraph-separate)
@@ -463,18 +395,9 @@ at all."
   (setq font-lock-defaults
 	'((simula-font-lock-keywords simula-font-lock-keywords-1
 	   simula-font-lock-keywords-2 simula-font-lock-keywords-3)
-	  t t ((?_ . "w"))))
-  (if simula-mode-abbrev-table
-      ()
-    (if simula-abbrev-file
-	(read-abbrev-file simula-abbrev-file)
-      (define-abbrev-table 'simula-mode-abbrev-table ()))
-    (let (abbrevs-changed)
-      (simula-install-standard-abbrevs)))
-  (setq local-abbrev-table simula-mode-abbrev-table)
-  (abbrev-mode 1)
-  (run-hooks 'simula-mode-hook))
-
+	  nil t ((?_ . "w")) nil
+	  (font-lock-syntactic-keywords . simula-font-lock-syntactic-keywords)))
+  (abbrev-mode 1))
 
 (defun simula-indent-exp ()
   "Indent SIMULA expression following point."
@@ -496,7 +419,7 @@ at all."
 		  (simula-indent-line))
 	      (forward-line 1)))
 	(and end (set-marker end nil))))))
-      
+
 
 (defun simula-indent-line ()
   "Indent this line as SIMULA code.
@@ -583,7 +506,7 @@ The relative indentation among the lines of the statement are preserved."
 
 
 (defun simula-context ()
-  "Returns value according to syntactic SIMULA context of point.
+  "Return value according to syntactic SIMULA context of point.
     0    point inside COMMENT comment
     1    point on SIMULA-compiler directive line
     2    point inside END comment
@@ -728,7 +651,7 @@ The relative indentation among the lines of the statement are preserved."
 	      (delete-horizontal-space)
 	      (indent-to amount)))
       (goto-char (- (point-max) origin)))))
-	
+
 
 (defun simula-backward-up-level (count)
   "Move backward up COUNT block levels.
@@ -797,7 +720,7 @@ If COUNT is negative, move backward down block level instead."
 	      (goto-char origin)
 	      (signal 'quit nil))))))
 
-     
+
 (defun simula-previous-statement (count)
   "Move backward COUNT statements.
 If COUNT is negative, move forward instead."
@@ -808,7 +731,7 @@ If COUNT is negative, move forward instead."
 	  (case-fold-search t)
 	  (origin (point)))
       (condition-case ()
-	  ;; 
+	  ;;
 	  (progn
 	    (simula-skip-comment-backward)
 	    (if (memq (preceding-char) '(?n ?N))
@@ -1104,7 +1027,7 @@ If COUNT is negative, move backward instead."
 	    ;; (at or before comment or label)
 	    ;; temp = t means finished
 	    (setq temp
-		  (and (not (simula-context))			
+		  (and (not (simula-context))
 		       (save-excursion
 			 (skip-chars-forward " \t\f")
 			 (or (looking-at "virtual")
@@ -1191,7 +1114,7 @@ If COUNT is negative, move backward instead."
 
 
 (defun simula-find-do-match ()
-  "Find keyword matching DO: FOR, WHILE, INSPECT or WHEN"
+  "Find keyword matching DO: FOR, WHILE, INSPECT or WHEN."
   (while (and (re-search-backward
 	       "\\<\\(do\\|for\\|while\\|inspect\\|when\\|end\\|begin\\)\\>\\|;"
 	       nil 'move)
@@ -1324,8 +1247,9 @@ If COUNT is negative, move backward instead."
 
 
 (defun simula-search-backward (regexp &optional bound noerror)
-  "Search backward from point for regular expression REGEXP, ignoring matches
-found inside SIMULA comments, string literals, and BEGIN..END blocks.
+  "Search backward from point for regular expression REGEXP,
+ignoring matches found inside SIMULA comments, string literals,
+and BEGIN..END blocks.
 Set point to the end of the occurrence found, and return point.
 An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
@@ -1345,9 +1269,9 @@ If not nil and not t, move to limit of search and return nil."
 	  (cond
 	   ((eq context nil)
 	    (setq match (if (looking-at regexp) t 'BLOCK)))
-;;; A comment-ending semicolon is part of the comment, and shouldn't match.
-;;;	     ((eq context 0)
-;;;	      (setq match (if (eq (following-char) ?\;) t nil)))
+	   ;; A comment-ending `;' is part of the comment, and shouldn't match.
+	   ;; ((eq context 0)
+	   ;;  (setq match (if (eq (following-char) ?\;) t nil)))
 	   ((eq context 2)
 	    (setq match (if (and (looking-at regexp)
 				 (looking-at ";\\|\\<end\\>\\|\\<else\\>\\|\\<otherwise\\>\\|\\<when\\>"))
@@ -1385,8 +1309,9 @@ If not nil and not t, move to limit of search and return nil."
 
 
 (defun simula-search-forward (regexp &optional bound noerror)
-  "Search forward from point for regular expression REGEXP, ignoring matches
-found inside SIMULA comments, string literals, and BEGIN..END blocks.
+  "Search forward from point for regular expression REGEXP,
+ignoring matches found inside SIMULA comments, string literals,
+and BEGIN..END blocks.
 Set point to the end of the occurrence found, and return point.
 An optional second argument BOUND bounds the search, it is a buffer position.
 The match found must not extend after that position.  Optional third argument
@@ -1408,9 +1333,9 @@ If not nil and not t, move to limit of search and return nil."
 	    (cond
 	     ((not context)
 	      (setq match (if (looking-at regexp) t 'BLOCK)))
-;;; A comment-ending semicolon is part of the comment, and shouldn't match.
-;;;	     ((eq context 0)
-;;;	      (setq match (if (eq (following-char) ?\;) t nil)))
+	     ;; Comment-ending `;' is part of the comment, and shouldn't match.
+	     ;; ((eq context 0)
+	     ;;  (setq match (if (eq (following-char) ?\;) t nil)))
 	     ((eq context 2)
 	      (setq match (if (and (looking-at regexp)
 				   (looking-at ";\\|\\<end\\>\\|\\<else\\>\\|\\<otherwise\\>\\|\\<when\\>")) t nil)))
@@ -1443,13 +1368,12 @@ If not nil and not t, move to limit of search and return nil."
 	  nil
 	(signal 'search-failed (list regexp))))))
 
-  
+
 (defun simula-install-standard-abbrevs ()
   "Define Simula keywords, procedures and classes in local abbrev table."
   ;; procedure and class names are as of the SIMULA 87 standard.
   (interactive)
-  (mapcar (function (lambda (args)
-		      (apply 'define-abbrev simula-mode-abbrev-table args)))
+  (dolist (args
 	  '(("abs" "Abs" simula-expand-stdproc)
 	    ("accum" "Accum" simula-expand-stdproc)
 	    ("activate" "ACTIVATE" simula-expand-keyword)
@@ -1679,39 +1603,16 @@ If not nil and not t, move to limit of search and return nil."
 	    ("virtual" "VIRTUAL" simula-expand-keyword)
 	    ("wait" "Wait" simula-expand-stdproc)
 	    ("when" "WHEN" simula-electric-keyword)
-	    ("while" "WHILE" simula-expand-keyword))))
+	    ("while" "WHILE" simula-expand-keyword)))
+    (define-abbrev simula-mode-abbrev-table
+      (nth 0 args) (nth 1 args) (nth 2 args) nil 'system)))
 
-;;; Font Lock mode support.
-(eval-when-compile
-  (require 'cl))
+(if simula-abbrev-file
+    (read-abbrev-file simula-abbrev-file))
+(let (abbrevs-changed)
+  (simula-install-standard-abbrevs))
 
-;; SIMULA comments and strings are a mess.  If we rely on the syntax table,
-;; then %-comments may be shown incorrectly (and prematurely) ended by a
-;; semicolon, !-comments by a newline and '-strings may screw up the rest of
-;; the buffer.  And of course we can't do comment- or end-comments using the
-;; syntax table.  We can do everything except end-comments in one fast regexp,
-;; but we aught to do end-comments too, so we need a function.  simon@gnu.
-(defun simula-match-string-or-comment (limit)
-  ;; Return t if there is a string or comment before LIMIT.
-  ;; Matches buffer text so that if (match-string 1) is non-nil, it is the
-  ;; string.  Otherwise, (match-string 0) is non-nil, and is the comment.
-  (when (re-search-forward
-	 (eval-when-compile
-	   (concat "\\(\"[^\"\n]*\"\\|'\\(.\\|![0-9]+!\\)'\\)\\|"
-		   "\\(\\<end[ \t\n]+\\)\\|"
-		   "^%[ \t].*\\|\\(!\\|\\<comment\\>\\)[^;]*;?"))
-	 limit t)
-    (when (match-beginning 3)
-      ;; We've matched an end-comment.  Yuck.  Find the extent of it.
-      (set-match-data
-       (list (point)
-	(if (re-search-forward "\\<\\(end\\|else\\|when\\|otherwise\\)\\>\\|;"
-			       limit 'move)
-	    (match-beginning 0)
-	  (point)))))
-    t))
-
-;;; Hilit mode support.
+;; Hilit mode support.
 (if (and (fboundp 'hilit-set-mode-patterns)
 	 (boundp 'hilit-patterns-alist)
 	 (not (assoc 'simula-mode hilit-patterns-alist)))
@@ -1724,58 +1625,14 @@ If not nil and not t, move to limit of search and return nil."
        ("\\<\\(ACTIVATE\\|AFTER\\|AND\\|ARRAY\\|AT\\|BEFORE\\|BEGIN\\|BOOLEAN\\|CHARACTER\\|CLASS\\|DELAY\\|DO\\|ELSE\\|END\\|EQ\\|EQV\\|EXTERNAL\\|FALSE\\|FOR\\|GE\\|GO\\|GOTO\\|GT\\|HIDDEN\\|IF\\|IMP\\|IN\\|INNER\\|INSPECT\\|INTEGER\\|IS\\|LABEL\\|LE\\|LONG\\|LT\\|NAME\\|NE\\|NEW\\|NONE\\|NOT\\|NOTEXT\\|OR\\|OTHERWISE\\|PRIOR\\|PROCEDURE\\|PROTECTED\\|QUA\\|REACTIVATE\\|REAL\\|REF\\|SHORT\\|STEP\\|SWITCH\\|TEXT\\|THEN\\|THIS\\|TO\\|TRUE\\|UNTIL\\|VALUE\\|VIRTUAL\\|WHEN\\|WHILE\\)\\>" nil keyword)
        ("!\\|\\<COMMENT\\>" ";" comment))
      nil 'case-insensitive))
-
-;; None of this seems to be used by anything, including hilit19.el.  simon@gnu.
-;(setq simula-find-comment-point -1
-;      simula-find-comment-context nil)
-;
-;;; function used by hilit19
-;(defun simula-find-next-comment-region (param)
-;  "Return region (start end) cons of comment after point, or nil."
-;  (let (start end)
-;    ;; This function is called repeatedly, check if point is
-;    ;; where we left it in the last call
-;    (if (not (eq simula-find-comment-point (point)))
-;	(setq simula-find-comment-point (point)
-;	      simula-find-comment-context (simula-context)))
-;    ;; loop as long as we haven't found the end of a comment
-;    (if (memq simula-find-comment-context '(0 1 2))
-;	(setq start (point))
-;      (if (re-search-forward "\\<end\\>\\|!\\|\"\\|'\\|^%\\|\\<comment\\>"
-;			     nil 'move)
-;	  (let ((previous-char (preceding-char)))
-;	    (cond
-;	     ((memq previous-char '(?d ?D))
-;	      (setq start (point)
-;		    simula-find-comment-context 2))
-;	     ((memq previous-char '(?t ?T ?\!))
-;	      (setq start (point)
-;		    simula-find-comment-context 0))
-;	     ((eq previous-char ?%)
-;	      (setq start (point)
-;		    simula-find-comment-context 0))))))
-;    ;; BUG: the following (0 2) branches don't take into account intermixing
-;    ;; directive lines
-;    (cond
-;     ((eq simula-find-comment-context 0)
-;      (search-forward ";" nil 'move))
-;     ((eq simula-find-comment-context 1)
-;      (beginning-of-line 2))
-;     ((eq simula-find-comment-context 2)
-;      (re-search-forward ";\\|\\<end\\>\\|\\<else\\>\\|\\<otherwise\\>\\|\\<when\\>\\" (point-max) 'move)))
-;    (if start
-;	(setq end (point)))
-;    ;; save point for later calls to this function
-;    (setq simula-find-comment-point (if end (point) -1))
-;    (and end (cons start end))))
 
 ;; defuns for submitting bug reports
 
 (defconst simula-mode-help-address "simula-mode@ifi.uio.no"
-  "Address accepting submission of simula-mode bug reports.")
+  "Address accepting submission of `simula-mode' bug reports.")
 
 (defun simula-submit-bug-report ()
-  "Submit via mail a bug report on simula-mode."
+  "Submit via mail a bug report on `simula-mode'."
   (interactive)
   (and
    (y-or-n-p "Do you want to submit a report on simula-mode? ")
@@ -1784,7 +1641,6 @@ If not nil and not t, move to limit of search and return nil."
     (concat "simula-mode from Emacs " emacs-version)
     (list
      ;; report only the vars that affect indentation
-     'simula-emacs-features
      'simula-indent-level
      'simula-substatement-offset
      'simula-continued-statement-offset

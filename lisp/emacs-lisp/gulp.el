@@ -103,7 +103,7 @@ is left in the `*gulp*' buffer at the end."
       (while (setq node (car m-p-alist))
 	(setq msg (gulp-create-message (cdr node) time))
 	(setq mail-setup-hook
-	      (lambda () 
+	      (lambda ()
 		(mail-subject)
 		(insert "It's time for Emacs updates again")
 		(goto-char (point-max))
@@ -170,5 +170,7 @@ That is a list of elements, each of the form (MAINTAINER PACKAGES...)."
 	      (setq mnt (match-string 1))))
 	(if (= (length mnt) 0) (setq mnt nil))) ;; "^;; Author: $" --> nil
       (cons mnt timest))))
+
+(provide 'gulp)
 
 ;;; gulp.el ends here

@@ -668,14 +668,13 @@ See the documentation for `calculator-mode' for more information."
            ;; don't change this since it is a customization variable,
            ;; its set function will add any new operators
            (calculator-add-operators calculator-user-operators)))
+  (setq calculator-buffer (get-buffer-create "*calculator*"))
   (if calculator-electric-mode
     (save-window-excursion
       (progn (require 'electric) (message nil)) ; hide load message
       (let (old-g-map old-l-map (echo-keystrokes 0)
             (garbage-collection-messages nil)) ; no gc msg when electric
-        ;; strange behavior in FSF: doesn't always select correct
-        ;; minibuffer.  I have no idea how to fix this
-        (setq calculator-buffer (window-buffer (minibuffer-window)))
+        (set-window-buffer (minibuffer-window) calculator-buffer)
         (select-window (minibuffer-window))
         (calculator-reset)
         (calculator-update-display)
@@ -697,7 +696,6 @@ See the documentation for `calculator-mode' for more information."
           (use-local-map old-l-map)
           (use-global-map old-g-map))))
     (progn
-      (setq calculator-buffer (get-buffer-create "*calculator*"))
       (cond
         ((not (get-buffer-window calculator-buffer))
          (let ((split-window-keep-point nil)

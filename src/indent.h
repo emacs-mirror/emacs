@@ -26,13 +26,13 @@ Boston, MA 02111-1307, USA.  */
    Example (where W_ stands for a wide-column character):
 	     ----------
 	     abcdefgh\\
-	     W_      
+	     W_
 	     ----------
 
-   To handle this case, we should not calculate the tab offset by 
+   To handle this case, we should not calculate the tab offset by
   	tab_offset += width;
 
-   Instead, we must remember tab_offset of the line. 
+   Instead, we must remember tab_offset of the line.
 
  */
 

@@ -43,6 +43,7 @@ Lisp_Object pending_boundary;
 
 static void
 record_point (pt)
+     int pt;
 {
   int at_boundary;
 
@@ -80,7 +81,7 @@ record_point (pt)
   if (MODIFF <= SAVE_MODIFF)
     record_first_change ();
 
-  /* If we are just after an undo boundary, and 
+  /* If we are just after an undo boundary, and
      point wasn't at start of deleted range, record where it was.  */
   if (at_boundary
       && last_point_position != pt
@@ -142,7 +143,7 @@ record_delete (beg, string)
   if (EQ (current_buffer->undo_list, Qt))
     return;
 
-  if (PT == beg + XSTRING (string)->size)
+  if (PT == beg + SCHARS (string))
     {
       XSETINT (sbeg, -beg);
       record_point (PT);
@@ -174,7 +175,7 @@ record_marker_adjustment (marker, adjustment)
   if (NILP (pending_boundary))
     pending_boundary = Fcons (Qnil, Qnil);
 
-  if (!BUFFERP (last_undo_buffer) 
+  if (!BUFFERP (last_undo_buffer)
       || current_buffer != XBUFFER (last_undo_buffer))
     Fundo_boundary ();
   XSETBUFFER (last_undo_buffer, current_buffer);
@@ -311,7 +312,7 @@ truncate_undo_list (list, minsize, maxsize)
      If the first element is an undo boundary, skip past it.
 
      Skip, skip, skip the undo, skip, skip, skip the undo,
-     Skip, skip, skip the undo, skip to the undo bound'ry. 
+     Skip, skip, skip the undo, skip to the undo bound'ry.
      (Get it?  "Skip to my Loo?")  */
   if (CONSP (next) && NILP (XCAR (next)))
     {
@@ -334,7 +335,7 @@ truncate_undo_list (list, minsize, maxsize)
 	  size_so_far += sizeof (struct Lisp_Cons);
 	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCAR (elt))->size);
+			    + SCHARS (XCAR (elt)));
 	}
 
       /* Advance to next element.  */
@@ -369,7 +370,7 @@ truncate_undo_list (list, minsize, maxsize)
 	  size_so_far += sizeof (struct Lisp_Cons);
 	  if (STRINGP (XCAR (elt)))
 	    size_so_far += (sizeof (struct Lisp_String) - 1
-			    + XSTRING (XCAR (elt))->size);
+			    + SCHARS (XCAR (elt)));
 	}
 
       /* Advance to next element.  */
@@ -399,9 +400,9 @@ Return what remains of the list.  */)
 {
   struct gcpro gcpro1, gcpro2;
   Lisp_Object next;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
   register int arg;
-  
+
 #if 0  /* This is a good feature, but would make undo-start
 	  unable to do what is expected.  */
   Lisp_Object tem;

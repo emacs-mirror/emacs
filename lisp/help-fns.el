@@ -1,6 +1,6 @@
 ;;; help-fns.el --- Complex help functions
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -42,10 +42,13 @@
 If there is a tutorial version written in the language
 of the selected language environment, that version is used.
 If there's no tutorial in that language, `TUTORIAL' is selected.
-With arg, you are asked to choose which language."
+With ARG, you are asked to choose which language."
   (interactive "P")
   (let ((lang (if arg
-		  (read-language-name 'tutorial "Language: " "English")
+		    (let ((minibuffer-setup-hook minibuffer-setup-hook))
+		      (add-hook 'minibuffer-setup-hook
+				'minibuffer-completion-help)
+		      (read-language-name 'tutorial "Language: " "English"))
 		(if (get-language-info current-language-environment 'tutorial)
 		    current-language-environment
 		  "English")))
@@ -88,7 +91,7 @@ With arg, you are asked to choose which language."
 	      (newline n))
 	  ;; Some people get confused by the large gap.
 	  (newline (/ n 2))
-	  
+
 	  ;; Skip the [...] line (don't delete it).
 	  (forward-line 1)
 	  (newline (- n (/ n 2)))))
@@ -98,8 +101,8 @@ With arg, you are asked to choose which language."
 ;;;###autoload
 (defun locate-library (library &optional nosuffix path interactive-call)
   "Show the precise file name of Emacs library LIBRARY.
-This command searches the directories in `load-path' like `M-x load-library'
-to find the file that `M-x load-library RET LIBRARY RET' would load.
+This command searches the directories in `load-path' like `\\[load-library]'
+to find the file that `\\[load-library] RET LIBRARY RET' would load.
 Optional second arg NOSUFFIX non-nil means don't add suffixes `load-suffixes'
 to the specified name LIBRARY.
 
@@ -109,22 +112,19 @@ is used instead of `load-path'.
 When called from a program, the file name is normaly returned as a
 string.  When run interactively, the argument INTERACTIVE-CALL is t,
 and the file name is displayed in the echo area."
-  (interactive (list (read-string "Locate library: ")
+  (interactive (list (completing-read "Locate library: "
+				      'locate-file-completion
+				      (cons load-path load-suffixes))
 		     nil nil
 		     t))
-  (catch 'answer
-    (dolist (dir (or path load-path))
-      (dolist (suf (append (unless nosuffix load-suffixes) '("")))
-	(let ((try (expand-file-name (concat library suf) dir)))
-	  (and (file-readable-p try)
-	       (null (file-directory-p try))
-	       (progn
-		 (if interactive-call
-		     (message "Library is file %s" (abbreviate-file-name try)))
-		 (throw 'answer try))))))
+  (let ((file (locate-file library
+			   (or path load-path)
+			   (append (unless nosuffix load-suffixes) '("")))))
     (if interactive-call
-	(message "No library %s in search path" library))
-    nil))
+	(if file
+	    (message "Library is file %s" (abbreviate-file-name file))
+	  (message "No library %s in search path" library)))
+    file))
 
 
 ;; Functions
@@ -156,6 +156,62 @@ and the file name is displayed in the echo area."
 	(with-current-buffer standard-output
 	  ;; Return the text we displayed.
 	  (buffer-string))))))
+
+(defun help-split-fundoc (doc def)
+  "Split a function docstring DOC into the actual doc and the usage info.
+Return (USAGE . DOC) or nil if there's no usage info.
+DEF is the function whose usage we're looking for in DOC."
+  ;; Functions can get the calling sequence at the end of the doc string.
+  ;; In cases where `function' has been fset to a subr we can't search for
+  ;; function's name in the doc string so we use `fn' as the anonymous
+  ;; function name instead.
+  (when (and doc (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc))
+    (cons (format "(%s%s"
+		  ;; Replace `fn' with the actual function name.
+		  (if (consp def) "anonymous" def)
+		  (match-string 1 doc))
+	  (substring doc 0 (match-beginning 0)))))
+
+(defun help-add-fundoc-usage (doc arglist)
+  "Add the usage info to the docstring DOC.
+If DOC already has a usage info, then just return DOC unchanged.
+The usage info is built from ARGLIST.  DOC can be nil."
+  (unless (stringp doc) (setq doc "Not documented"))
+  (if (string-match "\n\n(fn\\(\\( .*\\)?)\\)\\'" doc)
+      doc
+    (format "%s%s%s" doc
+	    (if (string-match "\n?\n\\'" doc)
+		(if (< (- (match-end 0) (match-beginning 0)) 2) "\n")
+	      "\n\n")
+	    (help-make-usage 'fn arglist))))
+
+(defun help-function-arglist (def)
+  ;; Handle symbols aliased to other symbols.
+  (if (and (symbolp def) (fboundp def)) (setq def (indirect-function def)))
+  ;; If definition is a macro, find the function inside it.
+  (if (eq (car-safe def) 'macro) (setq def (cdr def)))
+  ;; and do the same for interpreted closures
+  (if (eq (car-safe def) 'closure) (setq def (cddr def)))
+  (cond
+   ((byte-code-function-p def) (aref def 0))
+   ((eq (car-safe def) 'lambda) (nth 1 def))
+   ((and (eq (car-safe def) 'autoload) (not (eq (nth 4 def) 'keymap)))
+    "[Arg list not available until function definition is loaded.]")
+   (t t)))
+
+(defun help-make-usage (function arglist)
+  (cons (if (symbolp function) function 'anonymous)
+	(mapcar (lambda (arg)
+		  (if (not (symbolp arg))
+		      (if (and (consp arg) (symbolp (car arg)))
+			  ;; CL style default values for optional args.
+			  (cons (intern (upcase (symbol-name (car arg))))
+				(cdr arg))
+			arg)
+		    (let ((name (symbol-name arg)))
+		      (if (string-match "\\`&" name) arg
+			(intern (upcase name))))))
+		arglist)))
 
 ;;;###autoload
 (defun describe-function-1 (function)
@@ -190,8 +246,7 @@ and the file name is displayed in the echo area."
 			 (if (eq (nth 4 def) 'keymap) "keymap"
 			   (if (nth 4 def) "Lisp macro" "Lisp function"))
 			 ))
-                ;; perhaps use keymapp here instead
-                ((eq (car-safe def) 'keymap)
+                ((keymapp def)
                  (let ((is-full nil)
                        (elts (cdr-safe def)))
                    (while elts
@@ -216,7 +271,7 @@ and the file name is displayed in the echo area."
       ;; This is necessary only for defaliases.
       (let ((location
 	     (condition-case nil
-		 (find-function-search-for-symbol function nil "loaddefs.el") 
+		 (find-function-search-for-symbol function nil "loaddefs.el")
 	       (error nil))))
 	(when location
 	  (with-current-buffer (car location)
@@ -239,9 +294,9 @@ and the file name is displayed in the echo area."
     (princ ".")
     (terpri)
     (when (commandp function)
-      (let* ((remapped (remap-command function))
+      (let* ((remapped (command-remapping function))
 	     (keys (where-is-internal
-		   (or remapped function) overriding-local-map nil nil)))
+		    (or remapped function) overriding-local-map nil nil)))
 	(when remapped
 	  (princ "It is remapped to `")
 	  (princ (symbol-name remapped))
@@ -253,68 +308,43 @@ and the file name is displayed in the echo area."
 	(when (or remapped keys)
 	  (princ ".")
 	  (terpri))))
-    ;; Handle symbols aliased to other symbols.
-    (setq def (indirect-function def))
-    ;; If definition is a macro, find the function inside it.
-    (if (eq (car-safe def) 'macro)
-	(setq def (cdr def)))
-    ;; and do the same for interpreted closures
-    (if (eq (car-safe def) 'closure)
-	(setq def (cddr def)))
-    (let ((arglist (cond ((byte-code-function-p def)
-			  (car (append def nil)))
-			 ((eq (car-safe def) 'lambda)
-			  (nth 1 def))
-			 ((and (eq (car-safe def) 'autoload)
-			       (not (eq (nth 4 def) 'keymap)))
-			  (concat "[Arg list not available until "
-				  "function definition is loaded.]"))
-			 (t t))))
-      (cond ((listp arglist)
-	     (princ (cons (if (symbolp function) function "anonymous")
-			  (mapcar (lambda (arg)
-				    (if (memq arg '(&optional &rest))
-					arg
-				      (intern (upcase (symbol-name arg)))))
-				  arglist)))
-	     (terpri))
-	    ((stringp arglist)
-	     (princ arglist)
-	     (terpri))))
-    (let ((doc (documentation function)))
-      (if doc
-	  (progn (terpri)
-		 (princ doc)
-		 (if (subrp def)
-		     (with-current-buffer standard-output
-		       (beginning-of-line)
-		       ;; Builtins get the calling sequence at the end of
-		       ;; the doc string.  Move it to the same place as
-		       ;; for other functions.
-
-		       ;; In cases where `function' has been fset to a
-		       ;; subr we can't search for function's name in
-		       ;; the doc string.  Kluge round that using the
-		       ;; printed representation.  The arg list then
-		       ;; shows the wrong function name, but that
-		       ;; might be a useful hint.
-		       (let* ((rep (prin1-to-string def))
-			      (name (progn
-				      (string-match " \\([^ ]+\\)>$" rep)
-				      (match-string 1 rep))))
-			 (if (looking-at (format "(%s[ )]" (regexp-quote name)))
-			     (let ((start (point-marker)))
-			       (goto-char (point-min))
-			       (forward-paragraph)
-			       (insert-buffer-substring (current-buffer) start)
-			       (insert ?\n)
-			       (delete-region (1- start) (point-max)))
-			   (goto-char (point-min))
-			   (forward-paragraph)
-			   (insert
-			    "[Missing arglist.  Please make a bug report.]\n")))
-		       (goto-char (point-max)))))
-	(princ "not documented")))))
+    (let* ((arglist (help-function-arglist def))
+	   (doc (documentation function))
+	   (usage (help-split-fundoc doc function)))
+      ;; If definition is a keymap, skip arglist note.
+      (unless (keymapp def)
+	(princ (cond
+		(usage (setq doc (cdr usage)) (car usage))
+		((listp arglist) (help-make-usage function arglist))
+		((stringp arglist) arglist)
+		;; Maybe the arglist is in the docstring of the alias.
+		((let ((fun function))
+		   (while (and (symbolp fun)
+			       (setq fun (symbol-function fun))
+			       (not (setq usage (help-split-fundoc
+						 (documentation fun)
+						 function)))))
+		   usage)
+		 (car usage))
+ 		((or (stringp def)
+ 		     (vectorp def))
+		 (format "\nMacro: %s" (format-kbd-macro def)))
+		(t "[Missing arglist.  Please make a bug report.]")))
+	(terpri))
+      (let ((obsolete (and
+		       ;; function might be a lambda construct.
+		       (symbolp function)
+		       (get function 'byte-obsolete-info))))
+	(when obsolete
+	  (terpri)
+	  (princ "This function is obsolete")
+	  (if (nth 2 obsolete) (princ (format " since %s" (nth 2 obsolete))))
+	  (princ ";") (terpri)
+	  (princ (if (stringp (car obsolete)) (car obsolete)
+		   (format "use `%s' instead." (car obsolete))))
+	  (terpri)))
+      (terpri)
+      (princ (or doc "Not documented.")))))
 
 
 ;; Variables
@@ -354,31 +384,29 @@ it is displayed along with the global value."
 				(if (symbolp v) (symbol-name v))))
      (list (if (equal val "")
 	       v (intern val)))))
-  (unless (bufferp buffer) (setq buffer (current-buffer)))
+  (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (save-excursion
-      (let (valvoid)
+      (let* ((valvoid (not (with-current-buffer buffer (boundp variable))))
+	     ;; Extract the value before setting up the output buffer,
+	     ;; in case `buffer' *is* the output buffer.
+	     (val (unless valvoid (buffer-local-value variable buffer))))
 	(help-setup-xref (list #'describe-variable variable buffer)
 			 (interactive-p))
 	(with-output-to-temp-buffer (help-buffer)
 	  (with-current-buffer buffer
 	    (prin1 variable)
-	    (if (not (boundp variable))
-		(progn
-		  (princ " is void")
-		  (setq valvoid t))
-	      (let ((val (symbol-value variable)))
-		(with-current-buffer standard-output
-		  (princ "'s value is ")
-		  (terpri)
-		  (let ((from (point)))
-		    (pp val)
-		    (help-xref-on-pp from (point))
-		    (if (< (point) (+ from 20))
-			(save-excursion
-			  (goto-char from)
-			  (delete-char -1)))))))
+	    (if valvoid
+		(princ " is void")
+	      (with-current-buffer standard-output
+		(princ "'s value is ")
+		(terpri)
+		(let ((from (point)))
+		  (pp val)
+		  (help-xref-on-pp from (point))
+		  (if (< (point) (+ from 20))
+		      (delete-region (1- from) from)))))
 	    (terpri)
 	    (when (local-variable-p variable)
 	      (princ (format "Local in buffer %s; " (buffer-name)))
@@ -396,9 +424,7 @@ it is displayed along with the global value."
 		      (pp val)
 		      (help-xref-on-pp from (point))
 		      (if (< (point) (+ from 20))
-			  (save-excursion
-			    (goto-char from)
-			    (delete-char -1)))))))
+			(delete-region (1- from) from))))))
 	      (terpri))
 	    (terpri)
 	    (with-current-buffer standard-output
@@ -423,18 +449,28 @@ it is displayed along with the global value."
 		(save-excursion
 		  (forward-line -1)
 		  (insert "Automatically becomes buffer-local when set in any fashion.\n"))))
-	    (princ "Documentation:")
-	    (terpri)
-	    (let ((doc (documentation-property variable 'variable-documentation)))
-	      (princ (or doc "not documented as a variable.")))
-	  
+ 	    ;; Mention if it's an alias
+            (let* ((alias (condition-case nil
+                             (indirect-variable variable)
+                           (error variable)))
+                   (obsolete (get variable 'byte-obsolete-variable))
+                   (doc (or (documentation-property variable 'variable-documentation)
+                            (documentation-property alias 'variable-documentation))))
+              (unless (eq alias variable)
+                (princ (format "This variable is an alias for `%s'." alias))
+                (terpri)
+                (terpri))
+              (when obsolete
+                (princ "This variable is obsolete")
+                (if (cdr obsolete) (princ (format " since %s" (cdr obsolete))))
+                (princ ";") (terpri)
+                (princ (if (stringp (car obsolete)) (car obsolete)
+                         (format "use `%s' instead." (car obsolete))))
+                (terpri)
+                (terpri))
+              (princ (or doc "Not documented as a variable.")))
 	    ;; Make a link to customize if this variable can be customized.
-	    ;; Note, it is not reliable to test only for a custom-type property
-	    ;; because those are only present after the var's definition
-	    ;; has been loaded.
-	    (if (or (get variable 'custom-type) ; after defcustom
-		    (get variable 'custom-loads) ; from loaddefs.el
-		    (get variable 'standard-value)) ; from cus-start.el
+	    (if (custom-variable-p variable)
 		(let ((customize-label "customize"))
 		  (terpri)
 		  (terpri)
@@ -447,7 +483,7 @@ it is displayed along with the global value."
 	    ;; Make a hyperlink to the library if appropriate.  (Don't
 	    ;; change the format of the buffer's initial line in case
 	    ;; anything expects the current format.)
-	    (let ((file-name (symbol-file variable)))
+	    (let ((file-name (symbol-file (cons 'defvar variable))))
 	      (when (equal file-name "loaddefs.el")
 		;; Find the real def site of the preloaded variable.
 		(let ((location

@@ -78,7 +78,7 @@ CHINESE-NON-TIT=${NON-TIT-GB} ${NON-TIT-BIG5}
 
 CHINESE-GB=${TIT-GB} ${NON-TIT-GB}
 
-CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5} 
+CHINESE-BIG5=${TIT-BIG5} ${NON-TIT-BIG5}
 
 JAPANESE=${srcdir}/quail/japanese.elc ${srcdir}/ja-dic/ja-dic.elc
 
@@ -110,6 +110,7 @@ UNICODE=${srcdir}/quail/sgml-input.elc ${srcdir}/quail/rfc1345.elc \
 
 SLAVIC= \
 	${srcdir}/quail/czech.elc \
+	${srcdir}/quail/croatian.elc \
 	${srcdir}/quail/slovak.elc
 
 GREEK=${srcdir}/quail/greek.elc

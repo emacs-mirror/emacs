@@ -33,9 +33,6 @@
   #pragma alloca
 #endif
 
-#undef	_GNU_SOURCE
-#define _GNU_SOURCE
-
 #ifdef HAVE_CONFIG_H
 # include <config.h>
 #endif
@@ -160,8 +157,9 @@
        {						    		\
 	 re_char *dtemp = (p) == (str2) ? (end1) : (p);		    	\
 	 re_char *dlimit = ((p) > (str2) && (p) <= (end2)) ? (str2) : (str1); \
-	 while (dtemp-- > dlimit && !CHAR_HEAD_P (*dtemp));		\
-	 c = STRING_CHAR (dtemp, (p) - dtemp);				\
+	 re_char *d0 = dtemp;						\
+	 PREV_CHAR_BOUNDARY (d0, dlimit);				\
+	 c = STRING_CHAR (d0, dtemp - d0);				\
        }						    		\
      else						    		\
        (c = ((p) == (str2) ? (end1) : (p))[-1]);			\
@@ -238,6 +236,7 @@ enum syntaxcode { Swhitespace = 0, Sword = 1 };
 # define SINGLE_BYTE_CHAR_P(c) (1)
 # define SAME_CHARSET_P(c1, c2) (1)
 # define MULTIBYTE_FORM_LENGTH(p, s) (1)
+# define PREV_CHAR_BOUNDARY(p, limit) ((p)--)
 # define STRING_CHAR(p, s) (*(p))
 # define RE_STRING_CHAR STRING_CHAR
 # define CHAR_STRING(c, s) (*(s) = (c), 1)
@@ -922,50 +921,49 @@ print_partial_compiled_pattern (start, end)
 
   if (start == NULL)
     {
-      printf ("(null)\n");
+      fprintf (stderr, "(null)\n");
       return;
     }
 
   /* Loop over pattern commands.  */
   while (p < pend)
     {
-      printf ("%d:\t", p - start);
+      fprintf (stderr, "%d:\t", p - start);
 
       switch ((re_opcode_t) *p++)
 	{
 	case no_op:
-	  printf ("/no_op");
+	  fprintf (stderr, "/no_op");
 	  break;
 
 	case succeed:
-	  printf ("/succeed");
+	  fprintf (stderr, "/succeed");
 	  break;
 
 	case exactn:
 	  mcnt = *p++;
-	  printf ("/exactn/%d", mcnt);
+	  fprintf (stderr, "/exactn/%d", mcnt);
 	  do
 	    {
-	      putchar ('/');
-	      putchar (*p++);
+	      fprintf (stderr, "/%c", *p++);
 	    }
 	  while (--mcnt);
 	  break;
 
 	case start_memory:
-	  printf ("/start_memory/%d", *p++);
+	  fprintf (stderr, "/start_memory/%d", *p++);
 	  break;
 
 	case stop_memory:
-	  printf ("/stop_memory/%d", *p++);
+	  fprintf (stderr, "/stop_memory/%d", *p++);
 	  break;
 
 	case duplicate:
-	  printf ("/duplicate/%d", *p++);
+	  fprintf (stderr, "/duplicate/%d", *p++);
 	  break;
 
 	case anychar:
-	  printf ("/anychar");
+	  fprintf (stderr, "/anychar");
 	  break;
 
 	case charset:
@@ -976,7 +974,7 @@ print_partial_compiled_pattern (start, end)
 	    int length = CHARSET_BITMAP_SIZE (p - 1);
 	    int has_range_table = CHARSET_RANGE_TABLE_EXISTS_P (p - 1);
 
-	    printf ("/charset [%s",
+	    fprintf (stderr, "/charset [%s",
 		    (re_opcode_t) *(p - 1) == charset_not ? "^" : "");
 
 	    assert (p + *p < pend);
@@ -988,33 +986,33 @@ print_partial_compiled_pattern (start, end)
 		  /* Are we starting a range?  */
 		  if (last + 1 == c && ! in_range)
 		    {
-		      putchar ('-');
+		      fprintf (stderr, "-");
 		      in_range = 1;
 		    }
 		  /* Have we broken a range?  */
 		  else if (last + 1 != c && in_range)
 		    {
-		      putchar (last);
+		      fprintf (stderr, "%c", last);
 		      in_range = 0;
 		    }
 
 		  if (! in_range)
-		    putchar (c);
+		    fprintf (stderr, "%c", c);
 
 		  last = c;
 	      }
 
 	    if (in_range)
-	      putchar (last);
+	      fprintf (stderr, "%c", last);
 
-	    putchar (']');
+	    fprintf (stderr, "]");
 
 	    p += 1 + length;
 
 	    if (has_range_table)
 	      {
 		int count;
-		printf ("has-range-table");
+		fprintf (stderr, "has-range-table");
 
 		/* ??? Should print the range table; for now, just skip it.  */
 		p += 2;		/* skip range table bits */
@@ -1025,130 +1023,130 @@ print_partial_compiled_pattern (start, end)
 	  break;
 
 	case begline:
-	  printf ("/begline");
+	  fprintf (stderr, "/begline");
 	  break;
 
 	case endline:
-	  printf ("/endline");
+	  fprintf (stderr, "/endline");
 	  break;
 
 	case on_failure_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_keep_string_jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_keep_string_jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_keep_string_jump to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_nastyloop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_nastyloop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_nastyloop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_loop:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_loop to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_loop to %d", p + mcnt - start);
 	  break;
 
 	case on_failure_jump_smart:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/on_failure_jump_smart to %d", p + mcnt - start);
+	  fprintf (stderr, "/on_failure_jump_smart to %d", p + mcnt - start);
 	  break;
 
 	case jump:
 	  extract_number_and_incr (&mcnt, &p);
-	  printf ("/jump to %d", p + mcnt - start);
+	  fprintf (stderr, "/jump to %d", p + mcnt - start);
 	  break;
 
 	case succeed_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/succeed_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case jump_n:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/jump_n to %d, %d times", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case set_number_at:
 	  extract_number_and_incr (&mcnt, &p);
 	  extract_number_and_incr (&mcnt2, &p);
-	  printf ("/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
+	  fprintf (stderr, "/set_number_at location %d to %d", p - 2 + mcnt - start, mcnt2);
 	  break;
 
 	case wordbound:
-	  printf ("/wordbound");
+	  fprintf (stderr, "/wordbound");
 	  break;
 
 	case notwordbound:
-	  printf ("/notwordbound");
+	  fprintf (stderr, "/notwordbound");
 	  break;
 
 	case wordbeg:
-	  printf ("/wordbeg");
+	  fprintf (stderr, "/wordbeg");
 	  break;
 
 	case wordend:
-	  printf ("/wordend");
+	  fprintf (stderr, "/wordend");
 
 	case syntaxspec:
-	  printf ("/syntaxspec");
+	  fprintf (stderr, "/syntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notsyntaxspec:
-	  printf ("/notsyntaxspec");
+	  fprintf (stderr, "/notsyntaxspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 # ifdef emacs
 	case before_dot:
-	  printf ("/before_dot");
+	  fprintf (stderr, "/before_dot");
 	  break;
 
 	case at_dot:
-	  printf ("/at_dot");
+	  fprintf (stderr, "/at_dot");
 	  break;
 
 	case after_dot:
-	  printf ("/after_dot");
+	  fprintf (stderr, "/after_dot");
 	  break;
 
 	case categoryspec:
-	  printf ("/categoryspec");
+	  fprintf (stderr, "/categoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 
 	case notcategoryspec:
-	  printf ("/notcategoryspec");
+	  fprintf (stderr, "/notcategoryspec");
 	  mcnt = *p++;
-	  printf ("/%d", mcnt);
+	  fprintf (stderr, "/%d", mcnt);
 	  break;
 # endif /* emacs */
 
 	case begbuf:
-	  printf ("/begbuf");
+	  fprintf (stderr, "/begbuf");
 	  break;
 
 	case endbuf:
-	  printf ("/endbuf");
+	  fprintf (stderr, "/endbuf");
 	  break;
 
 	default:
-	  printf ("?%d", *(p-1));
+	  fprintf (stderr, "?%d", *(p-1));
 	}
 
-      putchar ('\n');
+      fprintf (stderr, "\n");
     }
 
-  printf ("%d:\tend of pattern.\n", p - start);
+  fprintf (stderr, "%d:\tend of pattern.\n", p - start);
 }
 
 
@@ -1518,26 +1516,6 @@ do {									\
     }									\
 } while (0)
 
-/* Discard a saved register off the stack.  */
-#define DISCARD_FAILURE_REG_OR_COUNT()					\
-do {									\
-  int reg = POP_FAILURE_INT ();						\
-  if (reg == -1)							\
-    {									\
-      /* It's a counter.  */						\
-      POP_FAILURE_POINTER ();						\
-      reg = POP_FAILURE_INT ();						\
-      DEBUG_PRINT3 ("     Discard counter %p = %d\n", ptr, reg);	\
-    }									\
-  else									\
-    {									\
-      POP_FAILURE_POINTER ();						\
-      POP_FAILURE_POINTER ();						\
-      DEBUG_PRINT4 ("     Discard reg %d (spanning %p -> %p)\n",	\
-		    reg, regstart[reg], regend[reg]);			\
-    }									\
-} while (0)
-
 /* Check that we are not stuck in an infinite loop.  */
 #define CHECK_INFINITE_LOOP(pat_cur, string_place)			\
 do {									\
@@ -1551,16 +1529,15 @@ do {									\
 	      && FAILURE_PAT (failure) <= bufp->buffer + bufp->used);	\
       if (FAILURE_PAT (failure) == pat_cur)				\
 	{								\
-	  while (fail_stack.frame < fail_stack.avail)			\
-	    DISCARD_FAILURE_REG_OR_COUNT ();				\
-	  goto fail;							\
+	  cycle = 1;							\
+	  break;							\
 	}								\
       DEBUG_PRINT2 ("  Other pattern: %p\n", FAILURE_PAT (failure));	\
       failure = NEXT_FAILURE_HANDLE(failure);				\
     }									\
   DEBUG_PRINT2 ("  Other string: %p\n", FAILURE_STR (failure));		\
 } while (0)
-    
+
 /* Push the information about the state we will need
    if we ever fail back to it.
 
@@ -1682,17 +1659,9 @@ static re_char *skip_one_char _RE_ARGS ((re_char *p));
 static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 				    char *fastmap, const int multibyte));
 
-/* Fetch the next character in the uncompiled pattern---translating it
-   if necessary.  */
-#define PATFETCH(c)							\
-  do {									\
-    PATFETCH_RAW (c);							\
-    c = TRANSLATE (c);							\
-  } while (0)
-
 /* Fetch the next character in the uncompiled pattern, with no
    translation.  */
-#define PATFETCH_RAW(c)							\
+#define PATFETCH(c)							\
   do {									\
     int len;								\
     if (p == pend) return REG_EEND;					\
@@ -1840,7 +1809,7 @@ static int analyse_first _RE_ARGS ((re_char *p, re_char *pend,
 
 /* But patterns can have more than `MAX_REGNUM' registers.  We just
    ignore the excess.  */
-typedef unsigned regnum_t;
+typedef int regnum_t;
 
 
 /* Macros for the compile stack.  */
@@ -1875,7 +1844,17 @@ typedef struct
 /* The next available element.  */
 #define COMPILE_STACK_TOP (compile_stack.stack[compile_stack.avail])
 
-
+/* Explicit quit checking is only used on NTemacs.  */
+#if defined WINDOWSNT && defined emacs && defined QUIT
+extern int immediate_quit;
+# define IMMEDIATE_QUIT_CHECK			\
+    do {					\
+      if (immediate_quit) QUIT;			\
+    } while (0)
+#else
+# define IMMEDIATE_QUIT_CHECK    ((void)0)
+#endif
+
 /* Structure to manage work area for range table.  */
 struct range_table_work_area
 {
@@ -1885,21 +1864,19 @@ struct range_table_work_area
   int bits;			/* flag to record character classes */
 };
 
-/* Make sure that WORK_AREA can hold more N multibyte characters.  */
-#define EXTEND_RANGE_TABLE_WORK_AREA(work_area, n)			  \
-  do {									  \
-    if (((work_area).used + (n)) * sizeof (int) > (work_area).allocated)  \
-      {									  \
-	(work_area).allocated += 16 * sizeof (int);			  \
-	if ((work_area).table)						  \
-	  (work_area).table						  \
-	    = (int *) realloc ((work_area).table, (work_area).allocated); \
-	else								  \
-	  (work_area).table						  \
-	    = (int *) malloc ((work_area).allocated);			  \
-	if ((work_area).table == 0)					  \
-	  FREE_STACK_RETURN (REG_ESPACE);				  \
-      }									  \
+/* Make sure that WORK_AREA can hold more N multibyte characters.
+   This is used only in set_image_of_range and set_image_of_range_1.
+   It expects WORK_AREA to be a pointer.
+   If it can't get the space, it returns from the surrounding function.  */
+
+#define EXTEND_RANGE_TABLE(work_area, n)				\
+  do {									\
+    if (((work_area)->used + (n)) * sizeof (int) > (work_area)->allocated) \
+      {									\
+        extend_range_table_work_area (work_area);			\
+        if ((work_area)->table == 0)					\
+          return (REG_ESPACE);						\
+      }									\
   } while (0)
 
 #define SET_RANGE_TABLE_WORK_AREA_BIT(work_area, bit)		\
@@ -1914,12 +1891,15 @@ struct range_table_work_area
 #define BIT_UPPER	0x10
 #define BIT_MULTIBYTE	0x20
 
-/* Set a range (RANGE_START, RANGE_END) to WORK_AREA.  */
-#define SET_RANGE_TABLE_WORK_AREA(work_area, range_start, range_end)	\
+/* Set a range START..END to WORK_AREA.
+   The range is passed through TRANSLATE, so START and END
+   should be untranslated.  */
+#define SET_RANGE_TABLE_WORK_AREA(work_area, start, end)		\
   do {									\
-    EXTEND_RANGE_TABLE_WORK_AREA ((work_area), 2);			\
-    (work_area).table[(work_area).used++] = (range_start);		\
-    (work_area).table[(work_area).used++] = (range_end);		\
+    int tem;								\
+    tem = set_image_of_range (&work_area, start, end, translate);	\
+    if (tem > 0)							\
+      FREE_STACK_RETURN (tem);						\
   } while (0)
 
 /* Free allocated memory for WORK_AREA.	 */
@@ -1933,7 +1913,7 @@ struct range_table_work_area
 #define RANGE_TABLE_WORK_USED(work_area) ((work_area).used)
 #define RANGE_TABLE_WORK_BITS(work_area) ((work_area).bits)
 #define RANGE_TABLE_WORK_ELT(work_area, i) ((work_area).table[i])
-
+
 
 /* Set the bit for character C in a list.  */
 #define SET_LIST_BIT(c) (b[((c)) / BYTEWIDTH] |= 1 << ((c) % BYTEWIDTH))
@@ -1963,7 +1943,7 @@ struct range_table_work_area
 	 FREE_STACK_RETURN (REG_BADBR);					\
        }								\
     } while (0)
-
+
 #if WIDE_CHAR_SUPPORT
 /* The GNU C library provides support for user-defined character classes
    and the functions from ISO C amendement 1.  */
@@ -2076,17 +2056,256 @@ re_wctype_to_bit (cc)
     }
 }
 #endif
+
+/* Filling in the work area of a range.  */
 
-/* Explicit quit checking is only used on NTemacs.  */
-#if defined WINDOWSNT && defined emacs && defined QUIT
-extern int immediate_quit;
-# define IMMEDIATE_QUIT_CHECK			\
-    do {					\
-      if (immediate_quit) QUIT;			\
-    } while (0)
-#else
-# define IMMEDIATE_QUIT_CHECK    ((void)0)
+/* Actually extend the space in WORK_AREA.  */
+
+static void
+extend_range_table_work_area (work_area)
+     struct range_table_work_area *work_area;
+{
+  work_area->allocated += 16 * sizeof (int);
+  if (work_area->table)
+    work_area->table
+      = (int *) realloc (work_area->table, work_area->allocated);
+  else
+    work_area->table
+      = (int *) malloc (work_area->allocated);
+}
+
+#ifdef emacs
+
+/* Carefully find the ranges of codes that are equivalent
+   under case conversion to the range start..end when passed through
+   TRANSLATE.  Handle the case where non-letters can come in between
+   two upper-case letters (which happens in Latin-1).
+   Also handle the case of groups of more than 2 case-equivalent chars.
+
+   The basic method is to look at consecutive characters and see
+   if they can form a run that can be handled as one.
+
+   Returns -1 if successful, REG_ESPACE if ran out of space.  */
+
+static int
+set_image_of_range_1 (work_area, start, end, translate)
+     RE_TRANSLATE_TYPE translate;
+     struct range_table_work_area *work_area;
+     re_wchar_t start, end;
+{
+  /* `one_case' indicates a character, or a run of characters,
+     each of which is an isolate (no case-equivalents).
+     This includes all ASCII non-letters.
+
+     `two_case' indicates a character, or a run of characters,
+     each of which has two case-equivalent forms.
+     This includes all ASCII letters.
+
+     `strange' indicates a character that has more than one
+     case-equivalent.  */
+
+  enum case_type {one_case, two_case, strange};
+
+  /* Describe the run that is in progress,
+     which the next character can try to extend.
+     If run_type is strange, that means there really is no run.
+     If run_type is one_case, then run_start...run_end is the run.
+     If run_type is two_case, then the run is run_start...run_end,
+     and the case-equivalents end at run_eqv_end.  */
+
+  enum case_type run_type = strange;
+  int run_start, run_end, run_eqv_end;
+
+  Lisp_Object eqv_table;
+
+  if (!RE_TRANSLATE_P (translate))
+    {
+      EXTEND_RANGE_TABLE (work_area, 2);
+      work_area->table[work_area->used++] = (start);
+      work_area->table[work_area->used++] = (end);
+      return -1;
+    }
+
+  eqv_table = XCHAR_TABLE (translate)->extras[2];
+
+  for (; start <= end; start++)
+    {
+      enum case_type this_type;
+      int eqv = RE_TRANSLATE (eqv_table, start);
+      int minchar, maxchar;
+
+      /* Classify this character */
+      if (eqv == start)
+	this_type = one_case;
+      else if (RE_TRANSLATE (eqv_table, eqv) == start)
+	this_type = two_case;
+      else
+	this_type = strange;
+
+      if (start < eqv)
+	minchar = start, maxchar = eqv;
+      else
+	minchar = eqv, maxchar = start;
+
+      /* Can this character extend the run in progress?  */
+      if (this_type == strange || this_type != run_type
+	  || !(minchar == run_end + 1
+	       && (run_type == two_case
+		   ? maxchar == run_eqv_end + 1 : 1)))
+	{
+	  /* No, end the run.
+	     Record each of its equivalent ranges.  */
+	  if (run_type == one_case)
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 2);
+	      work_area->table[work_area->used++] = run_start;
+	      work_area->table[work_area->used++] = run_end;
+	    }
+	  else if (run_type == two_case)
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 4);
+	      work_area->table[work_area->used++] = run_start;
+	      work_area->table[work_area->used++] = run_end;
+	      work_area->table[work_area->used++]
+		= RE_TRANSLATE (eqv_table, run_start);
+	      work_area->table[work_area->used++]
+		= RE_TRANSLATE (eqv_table, run_end);
+	    }
+	  run_type = strange;
+	}
+
+      if (this_type == strange)
+	{
+	  /* For a strange character, add each of its equivalents, one
+	     by one.  Don't start a range.  */
+	  do
+	    {
+	      EXTEND_RANGE_TABLE (work_area, 2);
+	      work_area->table[work_area->used++] = eqv;
+	      work_area->table[work_area->used++] = eqv;
+	      eqv = RE_TRANSLATE (eqv_table, eqv);
+	    }
+	  while (eqv != start);
+	}
+
+      /* Add this char to the run, or start a new run.  */
+      else if (run_type == strange)
+	{
+	  /* Initialize a new range.  */
+	  run_type = this_type;
+	  run_start = start;
+	  run_end = start;
+	  run_eqv_end = RE_TRANSLATE (eqv_table, run_end);
+	}
+      else
+	{
+	  /* Extend a running range.  */
+	  run_end = minchar;
+	  run_eqv_end = RE_TRANSLATE (eqv_table, run_end);
+	}
+    }
+
+  /* If a run is still in progress at the end, finish it now
+     by recording its equivalent ranges.  */
+  if (run_type == one_case)
+    {
+      EXTEND_RANGE_TABLE (work_area, 2);
+      work_area->table[work_area->used++] = run_start;
+      work_area->table[work_area->used++] = run_end;
+    }
+  else if (run_type == two_case)
+    {
+      EXTEND_RANGE_TABLE (work_area, 4);
+      work_area->table[work_area->used++] = run_start;
+      work_area->table[work_area->used++] = run_end;
+      work_area->table[work_area->used++]
+	= RE_TRANSLATE (eqv_table, run_start);
+      work_area->table[work_area->used++]
+	= RE_TRANSLATE (eqv_table, run_end);
+    }
+
+  return -1;
+}
+
+#endif /* emacs */
+
+/* Record the the image of the range start..end when passed through
+   TRANSLATE.  This is not necessarily TRANSLATE(start)..TRANSLATE(end)
+   and is not even necessarily contiguous.
+   Normally we approximate it with the smallest contiguous range that contains
+   all the chars we need.  However, for Latin-1 we go to extra effort
+   to do a better job.
+
+   This function is not called for ASCII ranges.
+
+   Returns -1 if successful, REG_ESPACE if ran out of space.  */
+
+static int
+set_image_of_range (work_area, start, end, translate)
+     RE_TRANSLATE_TYPE translate;
+     struct range_table_work_area *work_area;
+     re_wchar_t start, end;
+{
+  re_wchar_t cmin, cmax;
+
+#ifdef emacs
+  /* For Latin-1 ranges, use set_image_of_range_1
+     to get proper handling of ranges that include letters and nonletters.
+     For a range that includes the whole of Latin-1, this is not necessary.
+     For other character sets, we don't bother to get this right.  */
+  if (RE_TRANSLATE_P (translate) && start < 04400
+      && !(start < 04200 && end >= 04377))
+    {
+      int newend;
+      int tem;
+      newend = end;
+      if (newend > 04377)
+	newend = 04377;
+      tem = set_image_of_range_1 (work_area, start, newend, translate);
+      if (tem > 0)
+	return tem;
+
+      start = 04400;
+      if (end < 04400)
+	return -1;
+    }
 #endif
+
+  EXTEND_RANGE_TABLE (work_area, 2);
+  work_area->table[work_area->used++] = (start);
+  work_area->table[work_area->used++] = (end);
+
+  cmin = -1, cmax = -1;
+
+  if (RE_TRANSLATE_P (translate))
+    {
+      int ch;
+
+      for (ch = start; ch <= end; ch++)
+	{
+	  re_wchar_t c = TRANSLATE (ch);
+	  if (! (start <= c && c <= end))
+	    {
+	      if (cmin == -1)
+		cmin = c, cmax = c;
+	      else
+		{
+		  cmin = MIN (cmin, c);
+		  cmax = MAX (cmax, c);
+		}
+	    }
+	}
+
+      if (cmin != -1)
+	{
+	  EXTEND_RANGE_TABLE (work_area, 2);
+	  work_area->table[work_area->used++] = (cmin);
+	  work_area->table[work_area->used++] = (cmax);
+	}
+    }
+
+  return -1;
+}
 
 #ifndef MATCH_MAY_ALLOCATE
 
@@ -2401,10 +2620,10 @@ regex_compile (pattern, size, syntax, bufp)
 		    unsigned int startoffset = 0;
 		    re_opcode_t ofj =
 		      /* Check if the loop can match the empty string.  */
-		      (simple || !analyse_first (laststart, b, NULL, 0)) ?
-		      on_failure_jump : on_failure_jump_loop;
+		      (simple || !analyse_first (laststart, b, NULL, 0))
+		      ? on_failure_jump : on_failure_jump_loop;
 		    assert (skip_one_char (laststart) <= b);
-		    
+
 		    if (!zero_times_ok && simple)
 		      { /* Since simple * loops can be made faster by using
 		    	   on_failure_keep_string_jump, we turn simple P+
@@ -2450,8 +2669,9 @@ regex_compile (pattern, size, syntax, bufp)
 		  {
 		    boolean emptyp = analyse_first (laststart, b, NULL, 0);
 
-		    /* The non-greedy multiple match looks like a repeat..until:
-		       we only need a conditional jump at the end of the loop */
+		    /* The non-greedy multiple match looks like
+		       a repeat..until: we only need a conditional jump
+		       at the end of the loop.  */
 		    if (emptyp) BUF_PUSH (no_op);
 		    STORE_JUMP (emptyp ? on_failure_jump_nastyloop
 				: on_failure_jump, b, laststart);
@@ -2460,7 +2680,7 @@ regex_compile (pattern, size, syntax, bufp)
 		      {
 			/* The repeat...until naturally matches one or more.
 			   To also match zero times, we need to first jump to
-			   the end of the loop (its conditional jump). */
+			   the end of the loop (its conditional jump).  */
 			INSERT_JUMP (jump, laststart, b);
 			b += 3;
 		      }
@@ -2525,6 +2745,10 @@ regex_compile (pattern, size, syntax, bufp)
 
 		if (p == pend) FREE_STACK_RETURN (REG_EBRACK);
 
+		/* Don't translate yet.  The range TRANSLATE(X..Y) cannot
+		   always be determined from TRANSLATE(X) and TRANSLATE(Y)
+		   So the translation is done later in a loop.  Example:
+		   (let ((case-fold-search t)) (string-match "[A-_]" "A"))  */
 		PATFETCH (c);
 
 		/* \ might escape characters inside [...] and [^...].  */
@@ -2584,7 +2808,7 @@ regex_compile (pattern, size, syntax, bufp)
 		       them).  */
 		    if (c == ':' && *p == ']')
 		      {
-			int ch;
+			re_wchar_t ch;
 			re_wctype_t cc;
 
 			cc = re_wctype (str);
@@ -2653,8 +2877,8 @@ regex_compile (pattern, size, syntax, bufp)
 			       starting at the smallest character in
 			       the charset of C1 and ending at C1.  */
 			    int charset = CHAR_CHARSET (c1);
-			    int c2 = MAKE_CHAR (charset, 0, 0);
-			    
+			    re_wchar_t c2 = MAKE_CHAR (charset, 0, 0);
+
 			    SET_RANGE_TABLE_WORK_AREA (range_table_work,
 						       c2, c1);
 			    c1 = 0377;
@@ -2672,7 +2896,7 @@ regex_compile (pattern, size, syntax, bufp)
 		  /* ... into bitmap.  */
 		  {
 		    re_wchar_t this_char;
-		    int range_start = c, range_end = c1;
+		    re_wchar_t range_start = c, range_end = c1;
 
 		    /* If the start is after the end, the range is empty.  */
 		    if (range_start > range_end)
@@ -2769,7 +2993,7 @@ regex_compile (pattern, size, syntax, bufp)
 	  /* Do not translate the character after the \, so that we can
 	     distinguish, e.g., \B from \b, even if we normally would
 	     translate, e.g., B to b.  */
-	  PATFETCH_RAW (c);
+	  PATFETCH (c);
 
 	  switch (c)
 	    {
@@ -2993,99 +3217,99 @@ regex_compile (pattern, size, syntax, bufp)
 		      goto unfetch_interval;
 		  }
 
-		 if (upper_bound == 0)
-		   /* If the upper bound is zero, just drop the sub pattern
-		      altogether.  */
-		   b = laststart;
-		 else if (lower_bound == 1 && upper_bound == 1)
-		   /* Just match it once: nothing to do here.  */
-		   ;
+		if (upper_bound == 0)
+		  /* If the upper bound is zero, just drop the sub pattern
+		     altogether.  */
+		  b = laststart;
+		else if (lower_bound == 1 && upper_bound == 1)
+		  /* Just match it once: nothing to do here.  */
+		  ;
 
-		 /* Otherwise, we have a nontrivial interval.  When
-		    we're all done, the pattern will look like:
-		      set_number_at <jump count> <upper bound>
-		      set_number_at <succeed_n count> <lower bound>
-		      succeed_n <after jump addr> <succeed_n count>
-		      <body of loop>
-		      jump_n <succeed_n addr> <jump count>
-		    (The upper bound and `jump_n' are omitted if
-		    `upper_bound' is 1, though.)  */
-		 else
-		   { /* If the upper bound is > 1, we need to insert
-			more at the end of the loop.  */
-		     unsigned int nbytes = (upper_bound < 0 ? 3
-					    : upper_bound > 1 ? 5 : 0);
-		     unsigned int startoffset = 0;
+		/* Otherwise, we have a nontrivial interval.  When
+		   we're all done, the pattern will look like:
+		   set_number_at <jump count> <upper bound>
+		   set_number_at <succeed_n count> <lower bound>
+		   succeed_n <after jump addr> <succeed_n count>
+		   <body of loop>
+		   jump_n <succeed_n addr> <jump count>
+		   (The upper bound and `jump_n' are omitted if
+		   `upper_bound' is 1, though.)  */
+		else
+		  { /* If the upper bound is > 1, we need to insert
+		       more at the end of the loop.  */
+		    unsigned int nbytes = (upper_bound < 0 ? 3
+					   : upper_bound > 1 ? 5 : 0);
+		    unsigned int startoffset = 0;
 
-		     GET_BUFFER_SPACE (20); /* We might use less.  */
+		    GET_BUFFER_SPACE (20); /* We might use less.  */
 
-		     if (lower_bound == 0)
-		       {
-			 /* A succeed_n that starts with 0 is really a
-			    a simple on_failure_jump_loop.  */
-			 INSERT_JUMP (on_failure_jump_loop, laststart,
-				      b + 3 + nbytes);
-			 b += 3;
-		       }
-		     else
-		       {
-			 /* Initialize lower bound of the `succeed_n', even
-			    though it will be set during matching by its
-			    attendant `set_number_at' (inserted next),
-			    because `re_compile_fastmap' needs to know.
-			    Jump to the `jump_n' we might insert below.  */
-			 INSERT_JUMP2 (succeed_n, laststart,
-				       b + 5 + nbytes,
-				       lower_bound);
-			 b += 5;
+		    if (lower_bound == 0)
+		      {
+			/* A succeed_n that starts with 0 is really a
+			   a simple on_failure_jump_loop.  */
+			INSERT_JUMP (on_failure_jump_loop, laststart,
+				     b + 3 + nbytes);
+			b += 3;
+		      }
+		    else
+		      {
+			/* Initialize lower bound of the `succeed_n', even
+			   though it will be set during matching by its
+			   attendant `set_number_at' (inserted next),
+			   because `re_compile_fastmap' needs to know.
+			   Jump to the `jump_n' we might insert below.  */
+			INSERT_JUMP2 (succeed_n, laststart,
+				      b + 5 + nbytes,
+				      lower_bound);
+			b += 5;
 
-			 /* Code to initialize the lower bound.  Insert
-			    before the `succeed_n'.	 The `5' is the last two
-			    bytes of this `set_number_at', plus 3 bytes of
-			    the following `succeed_n'.  */
-			 insert_op2 (set_number_at, laststart, 5, lower_bound, b);
-			 b += 5;
-			 startoffset += 5;
-		       }
+			/* Code to initialize the lower bound.  Insert
+			   before the `succeed_n'.	 The `5' is the last two
+			   bytes of this `set_number_at', plus 3 bytes of
+			   the following `succeed_n'.  */
+			insert_op2 (set_number_at, laststart, 5, lower_bound, b);
+			b += 5;
+			startoffset += 5;
+		      }
 
-		     if (upper_bound < 0)
-		       {
-			 /* A negative upper bound stands for infinity,
-			    in which case it degenerates to a plain jump.  */
-			 STORE_JUMP (jump, b, laststart + startoffset);
-			 b += 3;
-		       }
-		     else if (upper_bound > 1)
-		       { /* More than one repetition is allowed, so
-			    append a backward jump to the `succeed_n'
-			    that starts this interval.
+		    if (upper_bound < 0)
+		      {
+			/* A negative upper bound stands for infinity,
+			   in which case it degenerates to a plain jump.  */
+			STORE_JUMP (jump, b, laststart + startoffset);
+			b += 3;
+		      }
+		    else if (upper_bound > 1)
+		      { /* More than one repetition is allowed, so
+			   append a backward jump to the `succeed_n'
+			   that starts this interval.
 
-			    When we've reached this during matching,
-			    we'll have matched the interval once, so
-			    jump back only `upper_bound - 1' times.  */
-			 STORE_JUMP2 (jump_n, b, laststart + startoffset,
-				      upper_bound - 1);
-			 b += 5;
+			   When we've reached this during matching,
+			   we'll have matched the interval once, so
+			   jump back only `upper_bound - 1' times.  */
+			STORE_JUMP2 (jump_n, b, laststart + startoffset,
+				     upper_bound - 1);
+			b += 5;
 
-			 /* The location we want to set is the second
-			    parameter of the `jump_n'; that is `b-2' as
-			    an absolute address.  `laststart' will be
-			    the `set_number_at' we're about to insert;
-			    `laststart+3' the number to set, the source
-			    for the relative address.  But we are
-			    inserting into the middle of the pattern --
-			    so everything is getting moved up by 5.
-			    Conclusion: (b - 2) - (laststart + 3) + 5,
-			    i.e., b - laststart.
+			/* The location we want to set is the second
+			   parameter of the `jump_n'; that is `b-2' as
+			   an absolute address.  `laststart' will be
+			   the `set_number_at' we're about to insert;
+			   `laststart+3' the number to set, the source
+			   for the relative address.  But we are
+			   inserting into the middle of the pattern --
+			   so everything is getting moved up by 5.
+			   Conclusion: (b - 2) - (laststart + 3) + 5,
+			   i.e., b - laststart.
 
-			    We insert this at the beginning of the loop
-			    so that if we fail during matching, we'll
-			    reinitialize the bounds.  */
-			 insert_op2 (set_number_at, laststart, b - laststart,
-				     upper_bound - 1, b);
-			 b += 5;
-		       }
-		   }
+			   We insert this at the beginning of the loop
+			   so that if we fail during matching, we'll
+			   reinitialize the bounds.  */
+			insert_op2 (set_number_at, laststart, b - laststart,
+				    upper_bound - 1, b);
+			b += 5;
+		      }
+		  }
 		pending_exact = 0;
 		beg_interval = NULL;
 	      }
@@ -3129,13 +3353,13 @@ regex_compile (pattern, size, syntax, bufp)
 
 	    case 'c':
 	      laststart = b;
-	      PATFETCH_RAW (c);
+	      PATFETCH (c);
 	      BUF_PUSH_2 (categoryspec, c);
 	      break;
 
 	    case 'C':
 	      laststart = b;
-	      PATFETCH_RAW (c);
+	      PATFETCH (c);
 	      BUF_PUSH_2 (notcategoryspec, c);
 	      break;
 #endif /* emacs */
@@ -3225,7 +3449,6 @@ regex_compile (pattern, size, syntax, bufp)
 	      /* You might think it would be useful for \ to mean
 		 not to translate; but if we don't translate it
 		 it will never match anything.  */
-	      c = TRANSLATE (c);
 	      goto normal_char;
 	    }
 	  break;
@@ -3234,7 +3457,7 @@ regex_compile (pattern, size, syntax, bufp)
 	default:
 	/* Expects the character in `c'.  */
 	normal_char:
-	      /* If no exactn currently being built.  */
+	  /* If no exactn currently being built.  */
 	  if (!pending_exact
 
 	      /* If last exactn not at current position.  */
@@ -3265,6 +3488,7 @@ regex_compile (pattern, size, syntax, bufp)
 	  {
 	    int len;
 
+	    c = TRANSLATE (c);
 	    if (multibyte)
 	      len = CHAR_STRING (c, b);
 	    else
@@ -3716,7 +3940,7 @@ analyse_first (p, pend, fastmap, multibyte)
 	     case has already been handled, so we only need to look at the
 	     fallthrough case.  */
 	  continue;
-	  
+
 	case succeed_n:
 	  /* If N == 0, it should be an on_failure_jump_loop instead.  */
 	  DEBUG_STATEMENT (EXTRACT_NUMBER (j, p + 2); assert (j > 0));
@@ -3840,6 +4064,10 @@ re_search (bufp, string, size, startpos, range, regs)
 		      regs, size);
 }
 WEAK_ALIAS (__re_search, re_search)
+
+/* Head address of virtual concatenation of string.  */
+#define HEAD_ADDR_VSTRING(P)		\
+  (((P) >= size1 ? string2 : string1))
 
 /* End address of virtual concatenation of string.  */
 #define STOP_ADDR_VSTRING(P)				\
@@ -4076,26 +4304,17 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 	  /* Update STARTPOS to the previous character boundary.  */
 	  if (multibyte)
 	    {
-	      re_char *p = POS_ADDR_VSTRING (startpos);
-	      int len = 0;
+	      re_char *p = POS_ADDR_VSTRING (startpos) + 1;
+	      re_char *p0 = p;
+	      re_char *phead = HEAD_ADDR_VSTRING (startpos);
 
 	      /* Find the head of multibyte form.  */
-	      while (!CHAR_HEAD_P (*p))
-		p--, len++;
+	      PREV_CHAR_BOUNDARY (p, phead);
+	      range += p0 - 1 - p;
+	      if (range > 0)
+		break;
 
-	      /* Adjust it. */
-#if 0				/* XXX */
-	      if (MULTIBYTE_FORM_LENGTH (p, len + 1) != (len + 1))
-		;
-	      else
-#endif
-		{
-		  range += len;
-		  if (range > 0)
-		    break;
-
-		  startpos -= len;
-		}
+	      startpos -= p0 - 1 - p;
 	    }
 	}
     }
@@ -4204,7 +4423,7 @@ skip_one_char (p)
     {
     case anychar:
       break;
-      
+
     case exactn:
       p += *p + 1;
       break;
@@ -4221,7 +4440,7 @@ skip_one_char (p)
       else
 	p += 1 + CHARSET_BITMAP_SIZE (p - 1);
       break;
-      
+
     case syntaxspec:
     case notsyntaxspec:
 #ifdef emacs
@@ -4304,7 +4523,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	  return 1;
 	}
       break;
-      
+
     case endline:
     case exactn:
       {
@@ -4414,7 +4633,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	  }
       }
       break;
-      
+
     case charset_not:
       switch (SWITCH_ENUM_CAST (*p1))
 	{
@@ -4427,7 +4646,7 @@ mutually_exclusive_p (bufp, p1, p2)
 	     they don't overlap.  The union of the two sets of excluded
 	     chars should cover all possible chars, which, as a matter of
 	     fact, is virtually impossible in multibyte buffers.  */
-	  ;
+	  break;
 	}
       break;
 
@@ -5098,7 +5317,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 
 	  assert (!REG_UNSET (regstart[*p]));
 	  /* Strictly speaking, there should be code such as:
-	     
+
 		assert (REG_UNSET (regend[*p]));
 		PUSH_FAILURE_REGSTOP ((unsigned int)*p);
 
@@ -5270,7 +5489,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	     cycle detection cannot work.  Worse yet, such a detection
 	     can not only fail to detect a cycle, but it can also wrongly
 	     detect a cycle (between different instantiations of the same
-	     loop.
+	     loop).
 	     So the method used for those nasty loops is a little different:
 	     We use a special cycle-detection-stack-frame which is pushed
 	     when the on_failure_jump_nastyloop failure-point is *popped*.
@@ -5284,10 +5503,17 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 			mcnt, p + mcnt);
 
 	  assert ((re_opcode_t)p[-4] == no_op);
-	  CHECK_INFINITE_LOOP (p - 4, d);
-	  PUSH_FAILURE_POINT (p - 3, d);
+	  {
+	    int cycle = 0;
+	    CHECK_INFINITE_LOOP (p - 4, d);
+	    if (!cycle)
+	      /* If there's a cycle, just continue without pushing
+		 this failure point.  The failure point is the "try again"
+		 option, which shouldn't be tried.
+		 We want (x?)*?y\1z to match both xxyz and xxyxz.  */
+	      PUSH_FAILURE_POINT (p - 3, d);
+	  }
 	  break;
-
 
 	  /* Simple loop detecting on_failure_jump:  just check on the
 	     failure stack if the same spot was already hit earlier.  */
@@ -5296,9 +5522,19 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	  EXTRACT_NUMBER_AND_INCR (mcnt, p);
 	  DEBUG_PRINT3 ("EXECUTING on_failure_jump_loop %d (to %p):\n",
 			mcnt, p + mcnt);
-
-	  CHECK_INFINITE_LOOP (p - 3, d);
-	  PUSH_FAILURE_POINT (p - 3, d);
+	  {
+	    int cycle = 0;
+	    CHECK_INFINITE_LOOP (p - 3, d);
+	    if (cycle)
+	      /* If there's a cycle, get out of the loop, as if the matching
+		 had failed.  We used to just `goto fail' here, but that was
+		 aborting the search a bit too early: we want to keep the
+		 empty-loop-match and keep matching after the loop.
+		 We want (x?)*y\1z to match both xxyz and xxyxz.  */
+	      p += mcnt;
+	    else
+	      PUSH_FAILURE_POINT (p - 3, d);
+	  }
 	  break;
 
 
@@ -5498,7 +5734,7 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      PREFETCH ();
 	      c2 = RE_STRING_CHAR (d, dend - d);
 	      s2 = SYNTAX (c2);
-	
+
 	      /* Case 2: S2 is not Sword. */
 	      if (s2 != Sword)
 		goto fail;
@@ -5959,7 +6195,7 @@ regexec (preg, string, nmatch, pmatch, eflags)
     const regex_t *__restrict preg;
     const char *__restrict string;
     size_t nmatch;
-    regmatch_t pmatch[];
+    regmatch_t pmatch[__restrict_arr];
     int eflags;
 {
   int ret;

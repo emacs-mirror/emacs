@@ -27,19 +27,13 @@
 
 ;;; Code:
 
-(defvar sentence-end-save nil)
-
 ;;;###autoload
 (defun setup-japanese-environment-internal ()
-  (cond ((eq system-type 'ms-dos)
-	 (prefer-coding-system 'japanese-shift-jis))
-	((eq system-type 'usg-unix-v)
-	 (prefer-coding-system 'japanese-iso-8bit)))
-  (setq sentence-end-save sentence-end)
-  (setq sentence-end (concat sentence-end "\\|[。？！]")))
-
-(defun exit-japanese-environment ()
-  (setq sentence-end sentence-end-save))
+  ;; By default, we use 'japanese-iso-8bit for file names.  But, the
+  ;; following prefer-coding-system will override it.
+  (if (memq system-type '(windows-nt ms-dos cygwin))
+      (prefer-coding-system 'japanese-shift-jis)
+    (prefer-coding-system 'japanese-iso-8bit)))
 
 (defconst japanese-kana-table
   '((?あ ?ア ?ｱ) (?い ?イ ?ｲ) (?う ?ウ ?ｳ) (?え ?エ ?ｴ) (?お ?オ ?ｵ)
@@ -107,7 +101,8 @@ HANKAKU-KATAKANA belongs to `japanese-jisx0201-kana'.")
     (?´ ?') (?｀ ?`) (?＾ ?^) (?＿ ?_) (?ー ?- ?ｰ) (?― ?-) (?‐ ?-)
     (?／ ?/) (?＼ ?\\) (?〜 ?~)  (?｜ ?|) (?‘ ?`) (?’ ?') (?“ ?\") (?” ?\")
     (?\（ ?\() (?\） ?\)) (?\［ ?[) (?\］ ?]) (?\｛ ?{) (?\｝ ?})
-    (?〈 ?<) (?〉 ?>) (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
+    (?〈 ?<) (?〉 ?>) (?\「 nil ?\｢) (?\」 nil ?\｣) 
+    (?＋ ?+) (?− ?-) (?＝ ?=) (?＜ ?<) (?＞ ?>)
     (?′ ?') (?″ ?\") (?￥ ?\\) (?＄ ?$) (?％ ?%) (?＃ ?#) (?＆ ?&) (?＊ ?*)
     (?＠ ?@))
   "Japanese JISX0208 symbol character table.
@@ -135,7 +130,7 @@ belongs to `japanese-jisx0201-kana'.")
 (defconst japanese-alpha-numeric-table
   '((?０ . ?0) (?１ . ?1) (?２ . ?2) (?３ . ?3) (?４ . ?4)
     (?５ . ?5) (?６ . ?6) (?７ . ?7) (?８ . ?8) (?９ . ?9)
-    (?Ａ . ?A) (?Ｂ . ?B) (?Ｃ . ?C) (?Ｄ . ?D) (?Ｅ . ?E) 
+    (?Ａ . ?A) (?Ｂ . ?B) (?Ｃ . ?C) (?Ｄ . ?D) (?Ｅ . ?E)
     (?Ｆ . ?F) (?Ｇ . ?G) (?Ｈ . ?H) (?Ｉ . ?I) (?Ｊ . ?J)
     (?Ｋ . ?K) (?Ｌ . ?L) (?Ｍ . ?M) (?Ｎ . ?N) (?Ｏ . ?O)
     (?Ｐ . ?P) (?Ｑ . ?Q) (?Ｒ . ?R) (?Ｓ . ?S) (?Ｔ . ?T)

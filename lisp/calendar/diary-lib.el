@@ -88,108 +88,83 @@ three-month calendar."
 (autoload 'check-calendar-holidays "holidays"
   "Check the list of holidays for any that occur on DATE.
 The value returned is a list of strings of relevant holiday descriptions.
-The holidays are those in the list `calendar-holidays'."
-  t)
+The holidays are those in the list `calendar-holidays'.")
 
 (autoload 'calendar-holiday-list "holidays"
   "Form the list of holidays that occur on dates in the calendar window.
-The holidays are those in the list `calendar-holidays'."
-  t)
+The holidays are those in the list `calendar-holidays'.")
 
 (autoload 'diary-french-date "cal-french"
-  "French calendar equivalent of date diary entry."
-  t)
+  "French calendar equivalent of date diary entry.")
 
 (autoload 'diary-mayan-date "cal-mayan"
-  "Mayan calendar equivalent of date diary entry."
-  t)
+  "Mayan calendar equivalent of date diary entry.")
 
 (autoload 'diary-iso-date "cal-iso"
-  "ISO calendar equivalent of date diary entry."
-  t)
+  "ISO calendar equivalent of date diary entry.")
 
 (autoload 'diary-julian-date "cal-julian"
-  "Julian calendar equivalent of date diary entry."
-  t)
+  "Julian calendar equivalent of date diary entry.")
 
 (autoload 'diary-astro-day-number "cal-julian"
-  "Astronomical (Julian) day number diary entry."
-  t)
+  "Astronomical (Julian) day number diary entry.")
 
 (autoload 'diary-chinese-date "cal-china"
-  "Chinese calendar equivalent of date diary entry."
-  t)
+  "Chinese calendar equivalent of date diary entry.")
 
 (autoload 'diary-islamic-date "cal-islam"
-  "Islamic calendar equivalent of date diary entry."
-  t)
+  "Islamic calendar equivalent of date diary entry.")
 
 (autoload 'list-islamic-diary-entries "cal-islam"
-  "Add any Islamic date entries from the diary file to `diary-entries-list'."
-  t)
+  "Add any Islamic date entries from the diary file to `diary-entries-list'.")
 
 (autoload 'mark-islamic-diary-entries "cal-islam"
-  "Mark days in the calendar window that have Islamic date diary entries."
-  t)
+  "Mark days in the calendar window that have Islamic date diary entries.")
 
 (autoload 'mark-islamic-calendar-date-pattern "cal-islam"
-   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR."
-  t)
+   "Mark dates in calendar window that conform to Islamic date MONTH/DAY/YEAR.")
 
 (autoload 'diary-hebrew-date "cal-hebrew"
-  "Hebrew calendar equivalent of date diary entry."
-  t)
+  "Hebrew calendar equivalent of date diary entry.")
 
 (autoload 'diary-omer "cal-hebrew"
-  "Omer count diary entry."
-  t)
+  "Omer count diary entry.")
 
 (autoload 'diary-yahrzeit "cal-hebrew"
-  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before."
-  t)
+  "Yahrzeit diary entry--entry applies if date is yahrzeit or the day before.")
 
 (autoload 'diary-parasha "cal-hebrew"
-  "Parasha diary entry--entry applies if date is a Saturday."
-  t)
+  "Parasha diary entry--entry applies if date is a Saturday.")
 
 (autoload 'diary-rosh-hodesh "cal-hebrew"
-  "Rosh Hodesh diary entry."
-  t)
+  "Rosh Hodesh diary entry.")
 
 (autoload 'list-hebrew-diary-entries "cal-hebrew"
-  "Add any Hebrew date entries from the diary file to `diary-entries-list'."
-  t)
+  "Add any Hebrew date entries from the diary file to `diary-entries-list'.")
 
 (autoload 'mark-hebrew-diary-entries "cal-hebrew"
-  "Mark days in the calendar window that have Hebrew date diary entries."
-  t)
+  "Mark days in the calendar window that have Hebrew date diary entries.")
 
 (autoload 'mark-hebrew-calendar-date-pattern "cal-hebrew"
-   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR."
-  t)
+   "Mark dates in calendar window that conform to Hebrew date MONTH/DAY/YEAR.")
 
 (autoload 'diary-coptic-date "cal-coptic"
-  "Coptic calendar equivalent of date diary entry."
-  t)
+  "Coptic calendar equivalent of date diary entry.")
 
 (autoload 'diary-ethiopic-date "cal-coptic"
-  "Ethiopic calendar equivalent of date diary entry."
-  t)
+  "Ethiopic calendar equivalent of date diary entry.")
 
 (autoload 'diary-persian-date "cal-persia"
-  "Persian calendar equivalent of date diary entry."
-  t)
+  "Persian calendar equivalent of date diary entry.")
 
-(autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry." t)
+(autoload 'diary-phases-of-moon "lunar" "Moon phases diary entry.")
 
 (autoload 'diary-sunrise-sunset "solar"
-  "Local time of sunrise and sunset as a diary entry."
-  t)
+  "Local time of sunrise and sunset as a diary entry.")
 
 (autoload 'diary-sabbath-candles "solar"
   "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date."
-  t)
+No diary entry if there is no sunset on that date.")
 
 (defvar diary-syntax-table (copy-syntax-table (standard-syntax-table))
   "The syntax table used when parsing dates in the diary file.
@@ -198,6 +173,93 @@ syntax of `*' changed to be a word constituent.")
 
 (modify-syntax-entry ?* "w" diary-syntax-table)
 (modify-syntax-entry ?: "w" diary-syntax-table)
+
+(defvar diary-modified)
+(defvar diary-entries-list)
+(defvar displayed-year)
+(defvar displayed-month)
+(defvar entry)
+(defvar date)
+(defvar number)
+(defvar date-string)
+(defvar d-file)
+(defvar original-date)
+
+(defun diary-attrtype-convert (attrvalue type)
+  "Convert the attrvalue from a string to the appropriate type for using
+in a face description"
+  (let (ret)
+    (setq ret (cond ((eq type 'string) attrvalue)
+		    ((eq type 'symbol) (read attrvalue))
+		    ((eq type 'int) (string-to-int attrvalue))
+		    ((eq type 'stringtnil)
+		     (cond ((string= "t" attrvalue) t)
+			   ((string= "nil" attrvalue) nil)
+			   (t attrvalue)))
+		    ((eq type 'tnil)
+		     (cond ((string= "t" attrvalue) t)
+			   ((string= "nil" attrvalue) nil)))))
+;    (message "(%s)[%s]=[%s]" (print type) attrvalue ret)
+    ret))
+	
+
+(defun diary-pull-attrs (entry fileglobattrs)
+  "Pull the face-related attributes off the entry, merge with the 
+fileglobattrs, and return the (possibly modified) entry and face 
+data in a list of attrname attrvalue values.  
+The entry will be modified to drop all tags that are used for face matching.
+If entry is nil, then the fileglobattrs are being searched for, 
+the fileglobattrs variable is ignored, and 
+diary-glob-file-regexp-prefix is prepended to the regexps before each 
+search."
+  (save-excursion
+    (let (regexp regnum attrname attr-list attrname attrvalue type)
+      (if (null entry)
+	  (progn
+	    (setq ret-attr '()
+		  attr-list diary-face-attrs)
+	    (while attr-list
+	      (goto-char (point-min))
+	      (setq attr (car attr-list)
+		    regexp (nth 0 attr)
+		    regnum (nth 1 attr)
+		    attrname (nth 2 attr)
+		    type (nth 3 attr)
+		    regexp (concat diary-glob-file-regexp-prefix regexp))
+	      (setq attrvalue nil)
+	      (if (re-search-forward regexp (point-max) t)
+		  (setq attrvalue (buffer-substring-no-properties
+				   (match-beginning regnum)
+				   (match-end regnum))))
+	      (if (and attrvalue
+		       (setq attrvalue (diary-attrtype-convert attrvalue type)))
+		  (setq ret-attr (append ret-attr (list attrname attrvalue))))
+	      (setq attr-list (cdr attr-list)))
+	    (setq fileglobattrs ret-attr))
+	(progn
+	  (setq ret-attr fileglobattrs
+		attr-list diary-face-attrs)
+	  (while attr-list
+	    (goto-char (point-min))
+	    (setq attr (car attr-list)
+		  regexp (nth 0 attr)
+		  regnum (nth 1 attr)
+		  attrname (nth 2 attr)
+		  type (nth 3 attr))
+	    (setq attrvalue nil)
+	    (if (string-match regexp entry)
+		(progn 
+		  (setq attrvalue (substring-no-properties entry
+							   (match-beginning regnum)
+							   (match-end regnum)))
+		  (setq entry (replace-match "" t t entry))))
+	    (if (and attrvalue
+		     (setq attrvalue (diary-attrtype-convert attrvalue type)))
+		(setq ret-attr (append ret-attr (list attrname attrvalue))))
+	    (setq attr-list (cdr attr-list)))))))
+  (list entry ret-attr))
+  
+  
 
 (defun list-diary-entries (date number)
   "Create and display a buffer containing the relevant lines in diary-file.
@@ -235,8 +297,9 @@ These hooks have the following distinct roles:
 
   (if (< 0 number)
       (let* ((original-date date);; save for possible use in the hooks
-             (old-diary-syntax-table)
-             (diary-entries-list)
+             old-diary-syntax-table
+             diary-entries-list
+	     file-glob-attrs
              (date-string (calendar-date-string date))
              (d-file (substitute-in-file-name diary-file)))
         (message "Preparing diary...")
@@ -247,6 +310,7 @@ These hooks have the following distinct roles:
 	      (set-buffer diary-buffer)
 	      (or (verify-visited-file-modtime diary-buffer)
 		  (revert-buffer t t))))
+	  (setq file-glob-attrs (nth 1 (diary-pull-attrs nil "")))
           (setq selective-display t)
           (setq selective-display-ellipses nil)
           (setq old-diary-syntax-table (syntax-table))
@@ -322,18 +386,22 @@ These hooks have the following distinct roles:
                              (backward-char 1)
                              (subst-char-in-region date-start
                                 (point) ?\^M ?\n t)
+			     (setq entry (buffer-substring entry-start (point))
+				   temp (diary-pull-attrs entry file-glob-attrs)
+				   entry (nth 0 temp)
+				   marks (nth 1 temp))
                              (add-to-diary-list
                               date
+			      entry
                               (buffer-substring
-                               entry-start (point))
-                              (buffer-substring
-                               (1+ date-start) (1- entry-start)))))))
+                               (1+ date-start) (1- entry-start))
+			      (copy-marker entry-start) marks)))))
                      (setq d (cdr d)))
                    (or entry-found
                        (not diary-list-include-blanks)
                        (setq diary-entries-list
                              (append diary-entries-list
-                                     (list (list date "" "")))))
+                                     (list (list date "" "" "" "")))))
                    (setq date
                          (calendar-gregorian-from-absolute
                            (1+ (calendar-absolute-from-gregorian date))))
@@ -426,6 +494,22 @@ changing the variable `diary-include-string'."
       (display-buffer (find-buffer-visiting d-file))
       (message "Preparing diary...done"))))
 
+(defface diary-button-face '((((type pc) (class color))
+		   (:foreground "lightblue")))
+  "Default face used for buttons."
+  :version "21.4"
+  :group 'diary)
+
+(define-button-type 'diary-entry
+  'action #'diary-goto-entry
+  'face #'diary-button-face)
+
+(defun diary-goto-entry (button)
+  (let ((marker (button-get button 'marker)))
+    (when marker
+      (pop-to-buffer (marker-buffer marker))
+      (goto-char (marker-position marker)))))
+
 (defun fancy-diary-display ()
   "Prepare a diary buffer with relevant entries in a fancy, noneditable form.
 This function is provided for optional use as the `diary-display-hook'."
@@ -510,13 +594,38 @@ This function is provided for optional use as the `diary-display-hook'."
                                        date-holiday-list
                                        (concat "\n" (make-string l ? ))))
                     (insert ?\n (make-string (+ l longest) ?=) ?\n)))))
-          (if (< 0 (length (car (cdr (car entry-list)))))
-              (insert (car (cdr (car entry-list))) ?\n))
-          (setq entry-list (cdr entry-list))))
+
+	  (setq entry (car (cdr (car entry-list))))
+	  (if (< 0 (length entry))
+	      (progn
+		(if (nth 3 (car entry-list))
+		    (insert-button (concat entry "\n")
+				   'marker (nth 3 (car entry-list))
+				   :type 'diary-entry)
+		  (insert entry ?\n))
+		(save-excursion
+		  (setq marks (nth 4 (car entry-list)))
+		  (setq temp-face (make-symbol (apply 'concat "temp-face-" (mapcar '(lambda (sym) (if (not (stringp sym)) (symbol-name sym) sym)) marks))))
+		  (make-face temp-face)
+		  ;; Remove :face info from the marks, copy the face info into temp-face
+		  (setq faceinfo marks)
+		  (while (setq faceinfo (memq :face faceinfo))
+		    (copy-face (read (nth 1 faceinfo)) temp-face)
+		    (setcar faceinfo nil)
+		    (setcar (cdr faceinfo) nil))
+		  (setq marks (delq nil marks))
+		  ;; Apply the font aspects
+		  (apply 'set-face-attribute temp-face nil marks)
+		  (search-backward entry)
+		  (overlay-put
+		   (make-overlay (match-beginning 0) (match-end 0)) 'face temp-face))
+		))
+	  (setq entry-list (cdr entry-list))))
       (set-buffer-modified-p nil)
       (goto-char (point-min))
       (setq buffer-read-only t)
       (display-buffer fancy-diary-buffer)
+      (fancy-diary-display-mode)
       (message "Preparing diary...done"))))
 
 (defun make-fancy-diary-buffer ()
@@ -636,21 +745,21 @@ system.  Alternatively, you can specify a cron entry:
 to run it every morning at 1am."
   (interactive "P")
   (let* ((diary-display-hook 'fancy-diary-display)
-         (diary-list-include-blanks t)
          (text (progn (list-diary-entries (calendar-current-date)
                                           (if ndays ndays diary-mail-days))
                       (set-buffer fancy-diary-buffer)
                       (buffer-substring (point-min) (point-max)))))
-    (mail)
-    (mail-to) (insert diary-mail-addr)
-    (mail-subject) (insert "Diary entries generated "
-                           (calendar-date-string (calendar-current-date)))
-    (mail-text) (insert text)
-    (mail-send-and-exit nil)))
+    (compose-mail diary-mail-addr
+		  (if (string-equal text "")
+		      "No entries found"
+		    (concat "Diary entries generated "
+			    (calendar-date-string (calendar-current-date)))))
+    (insert text)
+    (funcall (get mail-user-agent 'sendfunc))))
 
 
 (defun diary-name-pattern (string-array &optional fullname)
-  "Convert an STRING-ARRAY, an array of strings to a pattern.
+  "Convert a STRING-ARRAY, an array of strings to a pattern.
 The pattern will match any of the strings, either entirely or abbreviated
 to three characters.  An abbreviated form will match with or without a period;
 If the optional FULLNAME is t, abbreviations will not match, just the full
@@ -682,13 +791,16 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
 `mark-diary-entries-hook' are run."
   (interactive)
   (setq mark-diary-entries-in-calendar t)
-  (let ((d-file (substitute-in-file-name diary-file))
+  (let (file-glob-attrs
+	marks
+	(d-file (substitute-in-file-name diary-file))
         (marking-diary-entries t))
     (if (and d-file (file-exists-p d-file))
         (if (file-readable-p d-file)
             (save-excursion
               (message "Marking diary entries...")
               (set-buffer (find-file-noselect d-file t))
+	      (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
               (let ((d diary-date-forms)
                     (old-diary-syntax-table))
                 (setq old-diary-syntax-table (syntax-table))
@@ -766,27 +878,32 @@ After the entries are marked, the hooks `nongregorian-diary-marking-hook' and
                                            (if (> (- current-y y) 50)
                                                (+ y 100)
                                              y)))
-                                     (string-to-int y-str)))))
-                        (if dd-name
-                            (mark-calendar-days-named
-                             (cdr (assoc-ignore-case
-                                   (substring dd-name 0 3)
-                                   (calendar-make-alist
-                                    calendar-day-name-array
-                                    0
-                                    (lambda (x) (substring x 0 3))))))
-                          (if mm-name
-                              (if (string-equal mm-name "*")
-                                  (setq mm 0)
-                                (setq mm
-                                      (cdr (assoc-ignore-case
-                                            (substring mm-name 0 3)
-                                            (calendar-make-alist
-                                             calendar-month-name-array
-                                             1
-                                             (lambda (x) (substring x 0 3)))
-                                            )))))
-                          (mark-calendar-date-pattern mm dd yy))))
+                                     (string-to-int y-str))))
+			     (save-excursion
+			       (setq entry (buffer-substring-no-properties (point) (line-end-position))
+				     temp (diary-pull-attrs entry file-glob-attrs)
+				     entry (nth 0 temp)
+				     marks (nth 1 temp))))
+			(if dd-name
+			    (mark-calendar-days-named
+			     (cdr (assoc-ignore-case
+				   (substring dd-name 0 3)
+				   (calendar-make-alist
+				    calendar-day-name-array
+				    0
+				    (lambda (x) (substring x 0 3))))) marks)
+			  (if mm-name
+			      (if (string-equal mm-name "*")
+				  (setq mm 0)
+				(setq mm
+				      (cdr (assoc-ignore-case
+					    (substring mm-name 0 3)
+					    (calendar-make-alist
+					     calendar-month-name-array
+					     1
+					     (lambda (x) (substring x 0 3)))
+					    )))))
+			  (mark-calendar-date-pattern mm dd yy marks))))
                     (setq d (cdr d))))
                 (mark-sexp-diary-entries)
                 (run-hooks 'nongregorian-diary-marking-hook
@@ -808,7 +925,10 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
          (m)
          (y)
          (first-date)
-         (last-date))
+         (last-date)
+         (mark)
+	 file-glob-attrs)
+    (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '())))
     (save-excursion
       (set-buffer calendar-buffer)
       (setq m displayed-month)
@@ -856,10 +976,18 @@ is marked.  See the documentation for the function `list-sexp-diary-entries'."
           (while (string-match "[\^M]" entry)
             (aset entry (match-beginning 0) ?\n )))
         (calendar-for-loop date from first-date to last-date do
-          (if (diary-sexp-entry sexp entry
-                                (calendar-gregorian-from-absolute date))
-              (mark-visible-calendar-date
-               (calendar-gregorian-from-absolute date))))))))
+          (if (setq mark (diary-sexp-entry sexp entry
+                                (calendar-gregorian-from-absolute date)))
+	      (progn
+		(setq marks (diary-pull-attrs entry file-glob-attrs)
+		      temp (diary-pull-attrs entry file-glob-attrs)
+		      marks (nth 1 temp))
+		(mark-visible-calendar-date
+		 (calendar-gregorian-from-absolute date) 
+		 (if (< 0 (length marks))
+		     marks
+		   (if (consp mark)
+		     (car mark)))))))))))
 
 (defun mark-included-diary-files ()
   "Mark the diary entries from other diary files with those of the diary file.
@@ -894,7 +1022,7 @@ changing the variable `diary-include-string'."
         (sleep-for 2))))
   (goto-char (point-min)))
 
-(defun mark-calendar-days-named (dayname)
+(defun mark-calendar-days-named (dayname &optional color)
   "Mark all dates in the calendar window that are day DAYNAME of the week.
 0 means all Sundays, 1 means all Mondays, and so on."
   (save-excursion
@@ -912,10 +1040,10 @@ changing the variable `diary-include-string'."
       (setq last-day (calendar-absolute-from-gregorian
                  (calendar-nth-named-day -1 dayname succ-month succ-year)))
       (while (<= day last-day)
-        (mark-visible-calendar-date (calendar-gregorian-from-absolute day))
+        (mark-visible-calendar-date (calendar-gregorian-from-absolute day) color)
         (setq day (+ day 7))))))
 
-(defun mark-calendar-date-pattern (month day year)
+(defun mark-calendar-date-pattern (month day year &optional color)
   "Mark all dates in the calendar window that conform to MONTH/DAY/YEAR.
 A value of 0 in any position is a wildcard."
   (save-excursion
@@ -924,10 +1052,10 @@ A value of 0 in any position is a wildcard."
           (y displayed-year))
       (increment-calendar-month m y -1)
       (calendar-for-loop i from 0 to 2 do
-          (mark-calendar-month m y month day year)
+          (mark-calendar-month m y month day year color)
           (increment-calendar-month m y 1)))))
 
-(defun mark-calendar-month (month year p-month p-day p-year)
+(defun mark-calendar-month (month year p-month p-day p-year &optional color)
   "Mark dates in the MONTH/YEAR that conform to pattern P-MONTH/P_DAY/P-YEAR.
 A value of 0 in any position of the pattern is a wildcard."
   (if (or (and (= month p-month)
@@ -937,8 +1065,8 @@ A value of 0 in any position of the pattern is a wildcard."
       (if (= p-day 0)
           (calendar-for-loop
               i from 1 to (calendar-last-day-of-month month year) do
-            (mark-visible-calendar-date (list month i year)))
-        (mark-visible-calendar-date (list month p-day year)))))
+            (mark-visible-calendar-date (list month i year) color))
+        (mark-visible-calendar-date (list month p-day year) color))))
 
 (defun sort-diary-entries ()
   "Sort the list of diary entries by time of day."
@@ -965,9 +1093,9 @@ after those with times."
   :version "20.3")
 
 (defun diary-entry-time (s)
-  "Time at the beginning of the string S in a military-style integer.  For
-example, returns 1325 for 1:25pm.  Returns `diary-unknown-time' (default value
--9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
+  "Return time at the beginning of the string S as a military-style integer.
+For example, returns 1325 for 1:25pm.
+Returns `diary-unknown-time' (default value -9999) if no time is recognized.  The recognized forms are XXXX, X:XX, or
 XX:XX (military time), and XXam, XXAM, XXpm, XXPM, XX:XXam, XX:XXAM XX:XXpm,
 or XX:XXPM."
   (let ((case-fold-search nil))
@@ -1020,29 +1148,35 @@ if it is a weekday and the Friday before if the 21st is on a weekend:
 
 A number of built-in functions are available for this type of diary entry:
 
-      %%(diary-date MONTH DAY YEAR) text
+      %%(diary-date MONTH DAY YEAR &optional MARK) text
                   Entry applies if date is MONTH, DAY, YEAR if
                   `european-calendar-style' is nil, and DAY, MONTH, YEAR if
                   `european-calendar-style' is t.  DAY, MONTH, and YEAR
                   can be lists of integers, the constant t, or an integer.
-                  The constant t means all values.
+                  The constant t means all values.  An optional parameter
+                  MARK specifies a face or single-character string to use
+                  when highlighting the day in the calendar.
 
-      %%(diary-float MONTH DAYNAME N &optional DAY) text
+      %%(diary-float MONTH DAYNAME N &optional DAY MARK) text
                   Entry will appear on the Nth DAYNAME of MONTH.
                   (DAYNAME=0 means Sunday, 1 means Monday, and so on;
                   if N is negative it counts backward from the end of
                   the month.  MONTH can be a list of months, a single
                   month, or t to specify all months. Optional DAY means
                   Nth DAYNAME of MONTH on or after/before DAY.  DAY defaults
-                  to 1 if N>0 and the last day of the month if N<0.
+                  to 1 if N>0 and the last day of the month if N<0.  An
+                  optional parameter MARK specifies a face or single-character
+                  string to use when highlighting the day in the calendar.
 
-      %%(diary-block M1 D1 Y1 M2 D2 Y2) text
+      %%(diary-block M1 D1 Y1 M2 D2 Y2 &optional MARK) text
                   Entry will appear on dates between M1/D1/Y1 and M2/D2/Y2,
                   inclusive.  (If `european-calendar-style' is t, the
                   order of the parameters should be changed to D1, M1, Y1,
-                  D2, M2, Y2.)
+                  D2, M2, Y2.)  An optional parameter MARK specifies a face
+                  or single-character string to use when highlighting the
+                  day in the calendar.
 
-      %%(diary-anniversary MONTH DAY YEAR) text
+      %%(diary-anniversary MONTH DAY YEAR &optional MARK) text
                   Entry will appear on anniversary dates of MONTH DAY, YEAR.
                   (If `european-calendar-style' is t, the order of the
                   parameters should be changed to DAY, MONTH, YEAR.)  Text
@@ -1050,16 +1184,20 @@ A number of built-in functions are available for this type of diary entry:
                   of years since the MONTH DAY, YEAR and %s will be replaced
                   by the ordinal ending of that number (that is, `st', `nd',
                   `rd' or `th', as appropriate.  The anniversary of February
-                  29 is considered to be March 1 in a non-leap year.
+                  29 is considered to be March 1 in a non-leap year.  An
+                  optional parameter MARK specifies a face or single-character
+                  string to use when highlighting the day in the calendar.
 
-      %%(diary-cyclic N MONTH DAY YEAR) text
+      %%(diary-cyclic N MONTH DAY YEAR &optional MARK) text
                   Entry will appear every N days, starting MONTH DAY, YEAR.
                   (If `european-calendar-style' is t, the order of the
                   parameters should be changed to N, DAY, MONTH, YEAR.)  Text
                   can contain %d or %d%s; %d will be replaced by the number
                   of repetitions since the MONTH DAY, YEAR and %s will
                   be replaced by the ordinal ending of that number (that is,
-                  `st', `nd', `rd' or `th', as appropriate.
+                  `st', `nd', `rd' or `th', as appropriate.  An optional
+                  parameter MARK specifies a face or single-character string
+                  to use when highlighting the day in the calendar.
 
       %%(diary-remind SEXP DAYS &optional MARKING) text
                   Entry is a reminder for diary sexp SEXP.  DAYS is either a
@@ -1149,8 +1287,12 @@ best if they are nonmarking."
   (let* ((mark (regexp-quote diary-nonmarking-symbol))
          (sexp-mark (regexp-quote sexp-diary-entry-symbol))
          (s-entry (concat "\\(\\`\\|\^M\\|\n\\)" mark "?" sexp-mark "("))
-         (entry-found))
+         (entry-found)
+	 (file-glob-attrs)
+	 (marks))
     (goto-char (point-min))
+    (save-excursion
+      (setq file-glob-attrs (nth 1 (diary-pull-attrs nil '()))))
     (while (re-search-forward s-entry nil t)
       (backward-char 1)
       (let ((sexp-start (point))
@@ -1165,7 +1307,8 @@ best if they are nonmarking."
           (re-search-backward "\^M\\|\n\\|\\`")
           (setq line-start (point)))
         (setq specifier
-              (buffer-substring-no-properties (1+ line-start) (point)))
+              (buffer-substring-no-properties (1+ line-start) (point))
+	      entry-start (1+ line-start))
         (forward-char 1)
         (if (and (or (char-equal (preceding-char) ?\^M)
                      (char-equal (preceding-char) ?\n))
@@ -1182,10 +1325,23 @@ best if they are nonmarking."
           (while (string-match "[\^M]" entry)
             (aset entry (match-beginning 0) ?\n )))
         (let ((diary-entry (diary-sexp-entry sexp entry date)))
+	  (setq entry (if (consp diary-entry)
+			  (cdr diary-entry)
+			diary-entry))
           (if diary-entry
-              (subst-char-in-region line-start (point) ?\^M ?\n t))
-          (add-to-diary-list date diary-entry specifier)
-          (setq entry-found (or entry-found diary-entry)))))
+	      (progn
+		(subst-char-in-region line-start (point) ?\^M ?\n t)
+		(if (< 0 (length entry))
+		    (setq temp (diary-pull-attrs entry file-glob-attrs)
+			  entry (nth 0 temp)
+			  marks (nth 1 temp)))))
+	  (add-to-diary-list date
+			     entry
+			     specifier
+			     (if entry-start (copy-marker entry-start)
+			       nil) 
+			     marks)
+	  (setq entry-found (or entry-found diary-entry)))))
     entry-found))
 
 (defun diary-sexp-entry (sexp entry date)
@@ -1208,18 +1364,21 @@ best if they are nonmarking."
                                     lines)))
                               diary-file sexp)
                      (sleep-for 2))))))
-    (if (stringp result)
-        result
-      (if result
-          entry
-        nil))))
+    (cond ((stringp result) result)
+	  ((and (consp result)
+		(stringp (cdr result))) result)
+	  (result entry)
+          (t nil))))
 
-(defun diary-date (month day year)
+(defun diary-date (month day year &optional mark)
   "Specific date(s) diary entry.
 Entry applies if date is MONTH, DAY, YEAR if `european-calendar-style' is nil,
 and DAY, MONTH, YEAR if `european-calendar-style' is t.  DAY, MONTH, and YEAR
 can be lists of integers, the constant t, or an integer.  The constant t means
-all values."
+all values.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((dd (if european-calendar-style
                 month
               day))
@@ -1239,14 +1398,18 @@ all values."
          (or (and (listp year) (memq y year))
              (equal y year)
              (eq year t)))
-        entry)))
+        (cons mark entry))))
 
-(defun diary-block (m1 d1 y1 m2 d2 y2)
+(defun diary-block (m1 d1 y1 m2 d2 y2 &optional mark)
   "Block diary entry.
 Entry applies if date is between, or on one of, two dates.
 The order of the parameters is
 M1, D1, Y1, M2, D2, Y2 if `european-calendar-style' is nil, and
-D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
+D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
+
   (let ((date1 (calendar-absolute-from-gregorian
                 (if european-calendar-style
                     (list d1 m1 y1)
@@ -1257,15 +1420,17 @@ D1, M1, Y1, D2, M2, Y2 if `european-calendar-style' is t."
                   (list m2 d2 y2))))
         (d (calendar-absolute-from-gregorian date)))
     (if (and (<= date1 d) (<= d date2))
-        entry)))
+        (cons mark entry))))
 
-(defun diary-float (month dayname n &optional day)
+(defun diary-float (month dayname n &optional day mark)
   "Floating diary entry--entry applies if date is the nth dayname of month.
 Parameters are MONTH, DAYNAME, N.  MONTH can be a list of months, the constant
 t, or an integer.  The constant t means all months.  If N is negative, count
 backward from the end of the month.
 
-An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
+An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY.
+Optional MARK specifies a face or single-character string to use when
+highlighting the day in the calendar."
 ;; This is messy because the diary entry may apply, but the date on which it
 ;; is based can be in a different month/year.  For example, asking for the
 ;; first Monday after December 30.  For large values of |n| the problem is
@@ -1319,10 +1484,10 @@ An optional parameter DAY means the Nth DAYNAME on or after/before MONTH DAY."
 					    1
 					  (calendar-last-day-of-month m2 y2)))
 				d2)))))
-	     entry))))
+	     (cons mark entry)))))
 
 
-(defun diary-anniversary (month day year)
+(defun diary-anniversary (month day year &optional mark)
   "Anniversary diary entry.
 Entry applies if date is the anniversary of MONTH, DAY, YEAR if
 `european-calendar-style' is nil, and DAY, MONTH, YEAR if
@@ -1330,7 +1495,10 @@ Entry applies if date is the anniversary of MONTH, DAY, YEAR if
 %d will be replaced by the number of years since the MONTH DAY, YEAR and the
 %s will be replaced by the ordinal ending of that number (that is, `st', `nd',
 `rd' or `th', as appropriate.  The anniversary of February 29 is considered
-to be March 1 in non-leap years."
+to be March 1 in non-leap years.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month
               day))
@@ -1343,15 +1511,18 @@ to be March 1 in non-leap years."
         (setq m 3
               d 1))
     (if (and (> diff 0) (calendar-date-equal (list m d y) date))
-        (format entry diff (diary-ordinal-suffix diff)))))
+        (cons mark (format entry diff (diary-ordinal-suffix diff))))))
 
-(defun diary-cyclic (n month day year)
+(defun diary-cyclic (n month day year &optional mark)
   "Cycle diary entry--entry applies every N days starting at MONTH, DAY, YEAR.
 If `european-calendar-style' is t, parameters are N, DAY, MONTH, YEAR.
 ENTRY can contain `%d' or `%d%s'; the %d will be replaced by the number of
 repetitions since the MONTH DAY, YEAR and %s will be replaced by the
 ordinal ending of that number (that is, `st', `nd', `rd' or `th', as
-appropriate."
+appropriate.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((d (if european-calendar-style
                 month
               day))
@@ -1363,7 +1534,7 @@ appropriate."
                    (list m d year))))
          (cycle (/ diff n)))
     (if (and (>= diff 0) (zerop (% diff n)))
-        (format entry cycle (diary-ordinal-suffix cycle)))))
+        (cons mark (format entry cycle (diary-ordinal-suffix cycle))))))
 
 (defun diary-ordinal-suffix (n)
   "Ordinal suffix for N. (That is, `st', `nd', `rd', or `th', as appropriate.)"
@@ -1427,19 +1598,33 @@ marked on the calendar."
       (or (diary-remind sexp (car days) marking)
           (diary-remind sexp (cdr days) marking))))))
 
-(defun add-to-diary-list (date string specifier)
-  "Add the entry (DATE STRING SPECIFIER) to `diary-entries-list'.
+(defun add-to-diary-list (date string specifier marker &optional globcolor)
+  "Add the entry (DATE STRING SPECIFIER MARKER GLOBCOLOR) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (and date string
+       (if (and diary-file-name-prefix
+		(setq prefix (concat "[" (funcall diary-file-name-prefix-function (buffer-file-name)) "] "))
+		(not (string= prefix "[] ")))
+	   (setq string (concat prefix string))
+	 t)
        (setq diary-entries-list
-             (append diary-entries-list (list (list date string specifier))))))
+             (append diary-entries-list
+		     (list (list date string specifier marker globcolor))))))
 
 (defun make-diary-entry (string &optional nonmarking file)
   "Insert a diary entry STRING which may be NONMARKING in FILE.
 If omitted, NONMARKING defaults to nil and FILE defaults to diary-file."
   (find-file-other-window
    (substitute-in-file-name (if file file diary-file)))
+  (widen)
   (goto-char (point-max))
+  (when (let ((case-fold-search t))
+          (search-backward "Local Variables:"
+                           (max (- (point-max) 3000) (point-min))
+                           t))
+    (beginning-of-line)
+    (insert "\n")
+    (previous-line 1))
   (insert
    (if (bolp) "" "\n")
    (if nonmarking diary-nonmarking-symbol "")
@@ -1536,6 +1721,140 @@ Prefix arg will make the entry nonmarking."
                             (lambda (x) (> x 0)))
              (calendar-date-string (calendar-cursor-to-date t) nil t))
      arg)))
+
+;;;###autoload
+(define-derived-mode diary-mode text-mode
+  "Diary"
+  "Major mode for editing the diary file."
+  (set (make-local-variable 'font-lock-defaults)
+       '(diary-font-lock-keywords t)))
+
+(define-derived-mode fancy-diary-display-mode text-mode
+  "Diary"
+  "Major mode used while displaying diary entries using Fancy Display."
+  (set (make-local-variable 'font-lock-defaults)
+       '(fancy-diary-font-lock-keywords t)))
+
+
+(defvar fancy-diary-font-lock-keywords
+  (list
+   (cons
+    (concat
+     (let ((dayname
+	    (concat "\\("
+		    (diary-name-pattern calendar-day-name-array t)
+		    "\\)"))
+	   (monthname
+	    (concat "\\("
+		    (diary-name-pattern calendar-month-name-array t)
+		    "\\)"))
+	   (day "[0-9]+")
+           (month "[0-9]+")
+	   (year "-?[0-9]+"))
+       (mapconcat 'eval calendar-date-display-form ""))
+     "\\(\\(: .*\\)\\|\\(\n +.*\\)\\)*\n=+$")
+    'diary-face)
+   '("^.*anniversary.*$" . font-lock-keyword-face)
+   '("^.*birthday.*$" . font-lock-keyword-face)
+   '("^.*Yahrzeit.*$" . font-lock-reference-face)
+   '("^\\(Erev \\)?Rosh Hodesh.*" . font-lock-function-name-face)
+   '("^Day.*omer.*$" . font-lock-builtin-face)
+   '("^Parashat.*$" . font-lock-comment-face)
+   '("^[ \t]*[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)?\\)?"
+     . font-lock-variable-name-face))
+  "Keywords to highlight in fancy diary display")
+
+
+(defun font-lock-diary-sexps (limit)
+  "Recognize sexp diary entry for font-locking."
+  (if (re-search-forward
+       (concat "^" (regexp-quote diary-nonmarking-symbol)
+               "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+       limit t)
+      (condition-case nil
+	  (save-restriction
+	    (narrow-to-region (point-min) limit)
+	    (let ((start (point)))
+	      (forward-sexp 1)
+	      (store-match-data (list start (point)))
+	      t))
+	(error t))))
+
+(defun font-lock-diary-date-forms (month-list &optional symbol noabbrev)
+  "Create a list of font-lock patterns for `diary-date-forms' with MONTH-LIST.
+If given, optional SYMBOL must be a prefix to entries.
+If optional NOABBREV is t, do not allow abbreviations in names."
+  (let* ((dayname
+          (concat "\\(" (diary-name-pattern calendar-day-name-array) "\\)"))
+         (monthname (concat "\\("
+                            (diary-name-pattern month-list noabbrev)
+                            "\\|\\*\\)"))
+         (month "\\([0-9]+\\|\\*\\)")
+         (day "\\([0-9]+\\|\\*\\)")
+         (year "-?\\([0-9]+\\|\\*\\)"))
+    (mapcar '(lambda (x)
+               (cons
+                (concat "^" (regexp-quote diary-nonmarking-symbol) "?"
+                        (if symbol (regexp-quote symbol) "") "\\("
+                        (mapconcat 'eval
+                                   ;; If backup, omit first item (backup)
+                                   ;; and last item (not part of date)
+                                   (if (equal (car x) 'backup)
+                                       (reverse (cdr (reverse (cdr x))))
+                                     x)
+                                   "")
+                        ;; With backup, last item is not part of date
+                        (if (equal (car x) 'backup)
+                            (concat "\\)" (eval (car (reverse x))))
+                          "\\)"))
+                '(1 diary-face)))
+            diary-date-forms)))
+
+(defvar diary-font-lock-keywords
+      (append
+       (font-lock-diary-date-forms calendar-month-name-array)
+       (if (or (memq 'mark-hebrew-diary-entries
+                     nongregorian-diary-marking-hook)
+               (memq 'list-hebrew-diary-entries
+                     nongregorian-diary-listing-hook))
+           (progn
+             (require 'cal-hebrew)
+             (font-lock-diary-date-forms
+              calendar-hebrew-month-name-array-leap-year
+              hebrew-diary-entry-symbol t)))
+       (if (or (memq 'mark-islamic-diary-entries
+                     nongregorian-diary-marking-hook)
+               (memq 'list-islamic-diary-entries
+                     nongregorian-diary-listing-hook))
+           (progn
+             (require 'cal-islamic)
+             (font-lock-diary-date-forms
+              calendar-islamic-month-name-array-leap-year
+              islamic-diary-entry-symbol t)))
+       (list
+        (cons
+         (concat "^" (regexp-quote diary-include-string) ".*$")
+         'font-lock-keyword-face)
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote sexp-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol))
+         'font-lock-reference-face)
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote hebrew-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        (cons
+         (concat "^" (regexp-quote diary-nonmarking-symbol)
+                 "?\\(" (regexp-quote islamic-diary-entry-symbol) "\\)")
+         '(1 font-lock-reference-face))
+        '(font-lock-diary-sexps . font-lock-keyword-face)
+        '("[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\(-[0-9]?[0-9]\\(:?[0-9][0-9]\\)?\\(am\\|pm\\|AM\\|PM\\)\\)?"
+          . font-lock-function-name-face)))
+      "Forms to highlight in diary-mode")
+
 
 (provide 'diary-lib)
 

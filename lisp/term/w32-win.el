@@ -69,7 +69,7 @@
 
 (if (not (eq window-system 'w32))
     (error "%s: Loading w32-win.el but not compiled for w32" (invocation-name)))
-	 
+
 (require 'frame)
 (require 'mouse)
 (require 'scroll-bar)
@@ -148,8 +148,8 @@ the last file dropped is selected."
 	    (setq default-frame-alist
 		  (cons (cons param
 			      (car x-invocation-args))
-			default-frame-alist))
-	    x-invocation-args (cdr x-invocation-args))))))
+			default-frame-alist)
+ 	          x-invocation-args (cdr x-invocation-args)))))))
 
 (defun x-handle-numeric-switch (switch)
   "Handle SWITCH of the form \"-switch n\"."
@@ -204,6 +204,11 @@ the last file dropped is selected."
     (if (or height width)
 	(setq default-frame-alist
 	      (append default-frame-alist
+		      '((user-size . t))
+		      (if height (list height))
+		      (if width (list width)))
+	      initial-frame-alist
+	      (append initial-frame-alist
 		      '((user-size . t))
 		      (if height (list height))
 		      (if width (list width)))))
@@ -1121,6 +1126,8 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
 (if (fboundp 'new-fontset)
     (progn
+      ;; Setup the default fontset.
+      (setup-default-fontset)
       ;; Create the standard fontset.
       (create-fontset-from-fontset-spec w32-standard-fontset-spec t)
       ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1,...).
@@ -1227,10 +1234,10 @@ See the documentation of `create-fontset-from-fontset-spec for the format.")
     (list face (if (equal value "") nil value))))
 
 ;;; Enable Japanese fonts on Windows to be used by default.
-(set-fontset-font t (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
-(set-fontset-font t (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'katakana-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'latin-jisx0201) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208) '("*" . "JISX0208-SJIS"))
+(set-fontset-font nil (make-char 'japanese-jisx0208-1978) '("*" . "JISX0208-SJIS"))
 
 (defun mouse-set-font (&rest fonts)
   "Select a font.

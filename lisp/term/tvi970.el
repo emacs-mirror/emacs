@@ -115,7 +115,7 @@ With no argument, toggle between the two possible modes.
 With a positive argument, select alternate keypad mode.
 With a negative argument, select numeric keypad mode."
   (interactive "P")
-  (setq tvi970-keypad-numeric 
+  (setq tvi970-keypad-numeric
 	(if (null arg)
 	    (not tvi970-keypad-numeric)
 	  (> (prefix-numeric-value arg) 0)))

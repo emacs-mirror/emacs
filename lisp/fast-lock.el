@@ -34,7 +34,7 @@
 ;; See also the lazy-lock package.  (But don't use the two at the same time!)
 
 ;; Installation:
-;; 
+;;
 ;; Put in your ~/.emacs:
 ;;
 ;; (setq font-lock-support-mode 'fast-lock-mode)
@@ -67,7 +67,7 @@
 ;; 1.01--2.00: complete rewrite---not worth the space to document
 ;; - Changed structure of text properties cache and threw out file mod checks
 ;; 2.00--2.01:
-;; - Made `condition-case' forms understand `quit'. 
+;; - Made `condition-case' forms understand `quit'.
 ;; - Made `fast-lock' require `font-lock'
 ;; - Made `fast-lock-cache-name' chase links (from Ben Liblit)
 ;; 2.01--3.00:
@@ -230,7 +230,7 @@
  ;;
  ;; We use this for compatibility with a future Emacs.
  (or (fboundp 'defcustom)
-     (defmacro defcustom (symbol value doc &rest args) 
+     (defmacro defcustom (symbol value doc &rest args)
        `(defvar ,symbol ,value ,doc))))
 
 ;(defun fast-lock-submit-bug-report ()
@@ -534,13 +534,13 @@ See `fast-lock-cache-directories'."
 ;; than one file would have the same cache name in that directory, if the luser
 ;; made a link from one relative cache directory to another.  (Phew!)
 (defun fast-lock-cache-name (directory)
-  "Return full cache path name using caching DIRECTORY.
-If DIRECTORY is `.', the path is the buffer file name appended with `.flc'.
-Otherwise, the path name is constructed from DIRECTORY and the buffer's true
+  "Return full cache file name using caching DIRECTORY.
+If DIRECTORY is `.', the file name is the buffer file name appended with `.flc'.
+Otherwise, the file name is constructed from DIRECTORY and the buffer's true
 abbreviated file name, with all `/' characters in the name replaced with `#'
 characters, and appended with `.flc'.
 
-If the same file has different cache path names when edited on different
+If the same file has different cache file names when edited on different
 machines, e.g., on one machine the cache file name has the prefix `#home',
 perhaps due to automount, try putting in your `~/.emacs' something like:
 
@@ -553,7 +553,7 @@ See `fast-lock-cache-directory'."
       (concat buffer-file-name ".flc")
     (let* ((bufile (expand-file-name buffer-file-truename))
 	   (chars-alist
-	    (if (memq system-type '(emx windows-nt))
+	    (if (memq system-type '(emx windows-nt cygwin))
 		'((?/ . (?#)) (?# . (?# ?#)) (?: . (?\;)) (?\; . (?\; ?\;)))
 	      '((?/ . (?#)) (?# . (?# ?#)))))
 	   (mapchars
@@ -807,7 +807,7 @@ See `fast-lock-get-face-properties'."
 	    (font-lock-set-face (nth 0 regions) (nth 1 regions) face)
 	    (setq regions (nthcdr 2 regions)))
 	  (setq face-properties (cdr face-properties))))
-      ;; XEmacs does not support the `syntax-table' text property.      
+      ;; XEmacs does not support the `syntax-table' text property.
       ))
   ;;
   ;; XEmacs 19.12 font-lock.el's `font-lock-fontify-buffer' runs a hook.

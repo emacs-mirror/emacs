@@ -69,10 +69,10 @@
   '((base-state (lao-transcription-consonant-alist . sv-state)
 		lao-transcription-vowel-alist
 		lao-transcription-tone-alist)
-    (sv-state (lao-transcription-semi-vowel-alist . v-state) 
+    (sv-state (lao-transcription-semi-vowel-alist . v-state)
 	      (lao-transcription-vowel-alist . mt-state))
     (v-state (lao-transcription-vowel-alist . mt-state))
-    (mt-state (lao-transcription-maa-sakod-alist . t-state) 
+    (mt-state (lao-transcription-maa-sakod-alist . t-state)
 	      lao-transcription-tone-alist)
     (t-state lao-transcription-tone-alist))))
 

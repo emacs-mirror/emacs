@@ -154,4 +154,6 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
   (rmail-cease-edit)
   (rmail-highlight-headers))
 
+(provide 'rmailedit)
+
 ;;; rmailedit.el ends here

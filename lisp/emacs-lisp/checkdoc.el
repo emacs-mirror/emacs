@@ -91,7 +91,7 @@
 ;;   The variable `checkdoc-spellcheck-documentation-flag' can be set
 ;; to customize how spell checking is to be done.  Since spell
 ;; checking can be quite slow, you can optimize how best you want your
-;; checking done.  The default is 'defun, which spell checks each time
+;; checking done.  The default is `defun', which spell checks each time
 ;; `checkdoc-defun' or `checkdoc-eval-defun' is used.  Setting to nil
 ;; prevents spell checking during normal usage.
 ;;   Setting this variable to nil does not mean you cannot take
@@ -301,7 +301,7 @@ variable `checkdoc-common-verbs-wrong-voice' if you wish to add your own."
   :type 'boolean)
 
 (defvar checkdoc-generate-compile-warnings-flag nil
-  "Non-nil means generage warnings in a buffer for browsing.
+  "Non-nil means generate warnings in a buffer for browsing.
 Do not set this by hand, use a function like `checkdoc-current-buffer'
 with a universal argument.")
 
@@ -426,7 +426,7 @@ be re-created.")
   ;; end of a word in a conglomerate.
   (modify-syntax-entry ?- "w" checkdoc-syntax-table)
   )
-	
+
 
 ;;; Compatibility
 ;;
@@ -461,14 +461,14 @@ be re-created.")
 ;;
 ;;;###autoload
 (defun checkdoc ()
-  "Interactivly check the entire buffer for style errors.
-The current status of the ckeck will be displayed in a buffer which
+  "Interactively check the entire buffer for style errors.
+The current status of the check will be displayed in a buffer which
 the users will view as each check is completed."
   (interactive)
   (let ((status (list "Checking..." "-" "-" "-"))
 	(checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(buffer interactive t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer interactive t))))
 	;; if the user set autofix to never, then that breaks the
 	;; obviously requested asking implied by using this function.
 	;; Set it to paranoia level.
@@ -509,8 +509,8 @@ the users will view as each check is completed."
 
 (defun checkdoc-display-status-buffer (check)
   "Display and update the status buffer for the current checkdoc mode.
-CHECK is a vector stating the current status of each test as an
-element is the status of that level of teset."
+CHECK is a list of four strings stating the current status of each
+test; the nth string describes the status of the nth test."
   (let (temp-buffer-setup-hook)
     (with-output-to-temp-buffer " *Checkdoc Status*"
       (princ-list
@@ -535,9 +535,15 @@ Optional argument SHOWSTATUS indicates that we should update the
 checkdoc status window instead of the usual behavior."
   (interactive "P")
   (let ((checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(interactive t))))
-    (checkdoc-interactive-loop start-here showstatus 'checkdoc-next-error)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(interactive t)))))
+    (prog1
+        ;; Due to a design flaw, this will never spell check
+        ;; docstrings.
+        (checkdoc-interactive-loop start-here showstatus
+                                   'checkdoc-next-error)
+      ;; This is a workaround to perform spell checking.
+      (checkdoc-interactive-ispell-loop start-here))))
 
 ;;;###autoload
 (defun checkdoc-message-interactive (&optional start-here showstatus)
@@ -550,15 +556,23 @@ Optional argument SHOWSTATUS indicates that we should update the
 checkdoc status window instead of the usual behavior."
   (interactive "P")
   (let ((checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(interactive t))))
-    (checkdoc-interactive-loop start-here showstatus
-			       'checkdoc-next-message-error)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(interactive t)))))
+    (prog1
+        ;; Due to a design flaw, this will never spell check messages.
+        (checkdoc-interactive-loop start-here showstatus
+                                   'checkdoc-next-message-error)
+      ;; This is a workaround to perform spell checking.
+      (checkdoc-message-interactive-ispell-loop start-here))))
 
 (defun checkdoc-interactive-loop (start-here showstatus findfunc)
-  "Interactivly loop over all errors that can be found by a given method.
-Searching starts at START-HERE.  SHOWSTATUS expresses the verbosity
-of the search, and wether ending the search will auto-exit this function.
+  "Interactively loop over all errors that can be found by a given method.
+
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE.  SHOWSTATUS
+expresses the verbosity of the search, and whether ending the search
+will auto-exit this function.
+
 FINDFUNC is a symbol representing a function that will position the
 cursor, and return error message text to present to the user.  It is
 assumed that the cursor will stop just before a major sexp, which will
@@ -569,8 +583,8 @@ style."
 		  (if (not start-here) (goto-char (point-min)))))
 	 ;; Assign a flag to spellcheck flag
 	 (checkdoc-spellcheck-documentation-flag
-	  (member checkdoc-spellcheck-documentation-flag
-		  '(buffer interactive t)))
+	  (car (memq checkdoc-spellcheck-documentation-flag
+                     '(buffer interactive t))))
 	 ;; Fetch the error list
 	 (err-list (list (funcall findfunc nil)))
 	 (cdo nil)
@@ -614,7 +628,7 @@ style."
 		(goto-char (checkdoc-error-start (car (car err-list))))
 		(if (not (pos-visible-in-window-p))
 		    (recenter (- (window-height) 2)))
-		(setq c (checkdoc-read-event)))1
+		(setq c (checkdoc-read-event)))
 	      (if (not (integerp c)) (setq c ??))
 	      (cond
 	       ;; Exit condition
@@ -626,7 +640,7 @@ style."
 		(goto-char (cdr (car err-list)))
 		;; `automatic-then-never' tells the autofix function
 		;; to only allow one fix to be automatic.  The autofix
-		;; function will than set the flag to 'never, allowing
+		;; function will then set the flag to 'never, allowing
 		;; the checker to return a different error.
 		(let ((checkdoc-autofix-flag 'automatic-then-never)
 		      (fixed nil))
@@ -691,7 +705,7 @@ style."
 		(setq returnme err-list
 		      err-list nil
 		      begin (point)))
-	       ;; Goofy s tuff
+	       ;; Goofy stuff
 	       (t
 		(if (get-buffer-window "*Checkdoc Help*")
 		    (progn
@@ -720,13 +734,54 @@ style."
     (message "Checkdoc: Done.")
     returnme))
 
+(defun checkdoc-interactive-ispell-loop (start-here)
+  "Interactively spell check doc strings in the current buffer.
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE."
+  (when checkdoc-spellcheck-documentation-flag
+    (save-excursion
+      ;; Move point to where we need to start.
+      (if start-here
+          ;; Include whatever function point is in for good measure.
+          (beginning-of-defun)
+        (goto-char (point-min)))
+      ;; Loop over docstrings.
+      (while (checkdoc-next-docstring)
+        (message "Searching for doc string spell error...%d%%"
+                 (/ (* 100 (point)) (point-max)))
+        (if (looking-at "\"")
+            (checkdoc-ispell-docstring-engine
+             (save-excursion (forward-sexp 1) (point-marker)))))
+      (message "Checkdoc: Done."))))
+
+(defun checkdoc-message-interactive-ispell-loop (start-here)
+  "Interactively spell check messages in the current buffer.
+If START-HERE is nil, searching starts at the beginning of the current
+buffer, otherwise searching starts at START-HERE."
+  (when checkdoc-spellcheck-documentation-flag
+    (save-excursion
+      ;; Move point to where we need to start.
+      (if start-here
+          ;; Include whatever function point is in for good measure.
+          (beginning-of-defun)
+        (goto-char (point-min)))
+      ;; Loop over message strings.
+      (while (checkdoc-message-text-next-string (point-max))
+        (message "Searching for message string spell error...%d%%"
+                 (/ (* 100 (point)) (point-max)))
+        (if (looking-at "\"")
+            (checkdoc-ispell-docstring-engine
+             (save-excursion (forward-sexp 1) (point-marker)))))
+      (message "Checkdoc: Done."))))
+
+
 (defun checkdoc-next-error (enable-fix)
   "Find and return the next checkdoc error list, or nil.
 Only documentation strings are checked.
-Add error vector is of the form (WARNING . POSITION) where WARNING
-is the warning text, and POSITION is the point in the buffer where the
-error was found.  We can use points and not markers because we promise
-not to edit the buffer before point without re-executing this check.
+An error list is of the form (WARNING . POSITION) where WARNING is the
+warning text, and POSITION is the point in the buffer where the error
+was found.  We can use points and not markers because we promise not
+to edit the buffer before point without re-executing this check.
 Argument ENABLE-FIX will enable auto-fixing while looking for the next
 error.  This argument assumes that the cursor is already positioned to
 perform the fix."
@@ -803,7 +858,8 @@ otherwise stop after the first error."
   (if (interactive-p) (message "Checking buffer for style..."))
   ;; Assign a flag to spellcheck flag
   (let ((checkdoc-spellcheck-documentation-flag
-	 (memq checkdoc-spellcheck-documentation-flag '(buffer t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer t))))
 	(checkdoc-autofix-flag (if take-notes 'never
 				 checkdoc-autofix-flag))
 	(checkdoc-generate-compile-warnings-flag
@@ -847,8 +903,8 @@ is the starting location.  If this is nil, `point-min' is used instead."
   (let ((wrong nil) (msg nil) (errors nil)
 	;; Assign a flag to spellcheck flag
 	(checkdoc-spellcheck-documentation-flag
-	 (member checkdoc-spellcheck-documentation-flag
-		 '(buffer t)))
+	 (car (memq checkdoc-spellcheck-documentation-flag
+                    '(buffer t))))
 	(checkdoc-autofix-flag (if take-notes 'never
 				 checkdoc-autofix-flag))
 	(checkdoc-generate-compile-warnings-flag
@@ -891,8 +947,8 @@ if there is one."
   (if (not buffer-file-name)
      (error "Can only check comments for a file buffer"))
   (let* ((checkdoc-spellcheck-documentation-flag
-	  (member checkdoc-spellcheck-documentation-flag
-		  '(buffer t)))
+	  (car (memq checkdoc-spellcheck-documentation-flag
+                     '(buffer t))))
 	 (checkdoc-autofix-flag (if take-notes 'never checkdoc-autofix-flag))
 	 (e (checkdoc-file-comments-engine))
 	(checkdoc-generate-compile-warnings-flag
@@ -939,7 +995,7 @@ Optional argument TAKE-NOTES causes all errors to be logged."
 	(checkdoc-show-diagnostics)))
     (goto-char p))
   (if (interactive-p) (message "Checking interactive message text...done.")))
-    
+
 ;;;###autoload
 (defun checkdoc-eval-defun ()
   "Evaluate the current form with `eval-defun' and check its documentation.
@@ -971,8 +1027,8 @@ space at the end of each line."
       (forward-sexp 1)
       (skip-chars-forward " \n\t")
       (let* ((checkdoc-spellcheck-documentation-flag
-	      (member checkdoc-spellcheck-documentation-flag
-		      '(defun t)))
+	      (car (memq checkdoc-spellcheck-documentation-flag
+                         '(defun t))))
 	     (beg (save-excursion (beginning-of-defun) (point)))
 	     (end (save-excursion (end-of-defun) (point)))
 	     (msg (checkdoc-this-string-valid)))
@@ -1147,13 +1203,14 @@ generating a buffered list of errors."
     map)
   "Keymap used to override evaluation key-bindings for documentation checking.")
 
-(defvar checkdoc-minor-keymap checkdoc-minor-mode-map
-  "Obsolete!  Use `checkdoc-minor-mode-map'.")
+(defvaralias 'checkdoc-minor-keymap 'checkdoc-minor-mode-map)
+(make-obsolete-variable 'checkdoc-minor-keymap
+                        'checkdoc-minor-mode-map)
 
 ;; Add in a menubar with easy-menu
 
 (easy-menu-define
- checkdoc-minor-menu checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
+ nil checkdoc-minor-mode-map "Checkdoc Minor Mode Menu"
  '("CheckDoc"
    ["Interactive Buffer Style Check" checkdoc t]
    ["Interactive Buffer Style and Spelling Check" checkdoc-ispell t]
@@ -1194,7 +1251,8 @@ bound to \\<checkdoc-minor-mode-map> \\[checkdoc-eval-defun] and `checkdoc-eval-
 checking of documentation strings.
 
 \\{checkdoc-minor-mode-map}"
-  nil " CDoc" nil)
+  nil " CDoc" nil
+  :group 'checkdoc)
 
 ;;; Subst utils
 ;;
@@ -1598,7 +1656,7 @@ function,command,variable,option or symbol." ms1))))))
 			  (concat (car fp) "-flag"))))
 		   (if (checkdoc-y-or-n-p
 			(format
-			 "Rename to %s and Query-Replace all occurances? "
+			 "Rename to %s and Query-Replace all occurrences? "
 			 newname))
 		       (progn
 			 (beginning-of-defun)
@@ -1704,7 +1762,7 @@ function,command,variable,option or symbol." ms1))))))
 	     ;; it occurs last.
 	     (and checkdoc-verb-check-experimental-flag
 		  (save-excursion
-		    ;; Maybe rebuild the monster-regex
+		    ;; Maybe rebuild the monster-regexp
 		    (checkdoc-create-common-verbs-regexp)
 		    (let ((lim (save-excursion
 				 (end-of-line)
@@ -2334,7 +2392,7 @@ The default boundary is the entire buffer."
     (while (setq type (checkdoc-message-text-next-string end))
       (setq e (checkdoc-message-text-engine type)))
     e))
-  
+
 (defun checkdoc-message-text-next-string (end)
   "Move cursor to the next checkable message string after point.
 Return the message classification.
@@ -2581,9 +2639,9 @@ This function will not modify `match-data'."
   (if (looking-at "\\(\\(\\w+\\|\\s_\\)+\\.el\\):\\([0-9]+\\):")
       (let ((l (string-to-int (match-string 3)))
 	    (f (match-string 1)))
-	(if (not (get-buffer f))
+	(if (not (get-file-buffer f))
 	    (error "Can't find buffer %s" f))
-	(switch-to-buffer-other-window (get-buffer f))
+	(switch-to-buffer-other-window (get-file-buffer f))
 	(goto-line l))))
 
 (defun checkdoc-buffer-label ()

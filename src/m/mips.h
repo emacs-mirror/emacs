@@ -19,19 +19,21 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
 NOTE-START
-Use m-mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
-Note that the proper m- file for the Decstation is m-pmax.h.
+Use mips4.h for RISCOS version 4; use s-bsd4-3.h with the BSD world.
+Note that the proper m file for the Decstation is pmax.h.
 NOTE-END  */
 
 /* Define WORDS_BIG_ENDIAN iff lowest-numbered byte in a word
    is the most significant byte.  */
 
+#if ! (defined (__MIPSEL__) || defined (MIPSEL) || defined (_MIPSEL))
 #define WORDS_BIG_ENDIAN
+#endif
 
 /* Define NO_ARG_ARRAY if you cannot take the address of the first of a
  * group of arguments and treat it as an array of the arguments.  */

@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="hpux"  */
 
@@ -61,7 +61,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* The standard definitions of these macros would work ok,
    but these are faster because the constants are short. */
-   
+
 
 #define XUINT(a) (((unsigned)(a) << BITS_PER_INT-VALBITS) >> BITS_PER_INT-VALBITS)
 
@@ -73,16 +73,6 @@ Boston, MA 02111-1307, USA.  */
 
 #if 0  /* Loses when sign bit of type field is set.  */
 #define XUNMARK(a) ((a) = (((a) << BITS_PER_INT-GCTYPEBITS-VALBITS) >> BITS_PER_INT-GCTYPEBITS-VALBITS))
-#endif
-
-/* Define the BSTRING functions in terms of the sysV functions. */
-/* On HPUX 8.05, including types.h can include strings.h
-   which declares these as functions.  Hence the #ifndef.  */
-
-#ifndef HAVE_BCOPY
-#define bcopy(a,b,s)	memcpy (b,a,s)
-#define bzero(a,s)	memset (a,0,s)
-#define bcmp		memcmp
 #endif
 
 /* #ifdef __hpux */

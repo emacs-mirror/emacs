@@ -52,7 +52,7 @@ It is now better to use Customize instead."
 	    (princ ":\n\t")
 	    (prin1 (symbol-value sym))
 	    (terpri)
-	    (princ (substitute-command-keys 
+	    (princ (substitute-command-keys
 		    (documentation-property sym 'variable-documentation)))
 	    (princ "\n;;\n"))
 	  (setq vars (cdr vars))))

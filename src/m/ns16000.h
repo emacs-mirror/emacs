@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -84,15 +84,6 @@ NOTE-END  */
 /* Tell sysdep.c not to define bzero, etc.  */
 #undef BSTRING
 #define BSTRING
-
-/* Macro definitions to emulate BSD functions with SysV ones */
-#undef bcopy
-#undef bzero
-#undef bcmp
-
-#define bcopy(a,b,s)	memcpy(b,a,s)
-#define bzero(a,s)	memset(a,0,s)
-#define bcmp		memcmp
 
 /* This avoids problems with uninitialized static variables going in .data.  */
 #define static

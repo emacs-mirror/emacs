@@ -164,7 +164,7 @@
   "List of media types that are to be displayed inline."
   :type '(repeat string)
   :group 'mime-display)
-  
+
 (defcustom mm-automatic-display
   '("text/plain" "text/enriched" "text/richtext" "text/html"
     "text/x-vcard" "image/.*" "message/delivery-status" "multipart/.*"
@@ -466,7 +466,7 @@ external if displayed external."
 		   (mm-handle-set-undisplayer handle (cons file buffer)))
 		 (message "Displaying %s..." (format method file))
 		 'external)))))))
-  
+
 (defun mm-mailcap-command (method file type-list)
   (let ((ctl (cdr type-list))
 	(beg 0)
@@ -493,7 +493,7 @@ external if displayed external."
 	  (push "<" out)
 	  (push (mm-quote-arg file) out)))
     (mapconcat 'identity (nreverse out) "")))
-    
+
 (defun mm-remove-parts (handles)
   "Remove the displayed MIME parts represented by HANDLES."
   (if (and (listp handles)

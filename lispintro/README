@@ -9,7 +9,7 @@ This second edition of 2001 Nov 20 updates the previous editions to
 GNU Emacs 21.
 
 The Texinfo source file `emacs-lisp-intro.texi', formats without
-error using TeX version 3.14159, `kpathsea' version 3.3.1, 
+error using TeX version 3.14159, `kpathsea' version 3.3.1,
 `texinfo.tex' version 2001-05-24.08, and `makeinfo' version 4.0b.
 
 Also, this tar file contains the following optional Encapsulated Post

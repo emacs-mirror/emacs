@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -49,7 +50,7 @@
 	   (if once (progn
 		      (setq calc-keep-selection nil)
 		      (message "(Selection will apply to next command only)")))
-	   (calc-change-current-selection 
+	   (calc-change-current-selection
 	    (if found
 		(if (and num (> (setq num (prefix-numeric-value num)) 0))
 		    (progn
@@ -112,7 +113,7 @@
    (calc-prepare-selection)
    (let ((found (calc-find-selected-part))
 	 (entry calc-selection-cache-entry))
-     (calc-change-current-selection 
+     (calc-change-current-selection
       (and found
 	   (let ((sel (nth 2 entry))
 		 old index op)

@@ -1,14 +1,14 @@
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/X10.h,v 1.1 1992/04/11 22:10:21 jimb Exp $ */
-/* 
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/X10.h,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
+/*
  * Copyright 1985, 1986, 1987 by the Massachusetts Institute of Technology
  *
  * Permission to use, copy, modify, and distribute this software and its
- * documentation for any purpose and without fee is hereby granted, provided 
- * that the above copyright notice appear in all copies and that both that 
- * copyright notice and this permission notice appear in supporting 
+ * documentation for any purpose and without fee is hereby granted, provided
+ * that the above copyright notice appear in all copies and that both that
+ * copyright notice and this permission notice appear in supporting
  * documentation, and that the name of M.I.T. not be used in advertising
- * or publicity pertaining to distribution of the software without specific, 
- * written prior permission. M.I.T. makes no representations about the 
+ * or publicity pertaining to distribution of the software without specific,
+ * written prior permission. M.I.T. makes no representations about the
  * suitability of this software for any purpose.  It is provided "as is"
  * without express or implied warranty.
  *
@@ -38,15 +38,15 @@ typedef struct {
 #define VertexCurved		0x0004		/* else straight */
 #define VertexStartClosed	0x0008		/* else not */
 #define VertexEndClosed		0x0010		/* else not */
-/*#define VertexDrawLastPoint	0x0020 	*/      /* else don't */	
+/*#define VertexDrawLastPoint	0x0020 	*/      /* else don't */
 
 /*
-The VertexDrawLastPoint option has not been implemented in XDraw and 
-XDrawFilled so it shouldn't be defined. 
+The VertexDrawLastPoint option has not been implemented in XDraw and
+XDrawFilled so it shouldn't be defined.
 */
 
 /*
- * XAssoc - Associations used in the XAssocTable data structure.  The 
+ * XAssoc - Associations used in the XAssocTable data structure.  The
  * associations are used as circular queue entries in the association table
  * which is contains an array of circular queues (buckets).
  */
@@ -58,11 +58,11 @@ typedef struct _XAssoc {
 	char *data;		/* Pointer to untyped memory. */
 } XAssoc;
 
-/* 
+/*
  * XAssocTable - X Window System id to data structure pointer association
  * table.  An XAssocTable is a hash table whose buckets are circular
  * queues of XAssoc's.  The XAssocTable is constructed from an array of
- * XAssoc's which are the circular queue headers (bucket headers).  
+ * XAssoc's which are the circular queue headers (bucket headers).
  * An XAssocTable consists an XAssoc pointer that points to the first
  * bucket in the bucket array and an integer that indicates the number
  * of buckets in the array.

@@ -69,12 +69,12 @@ those categories.  */)
   if (STRING_MULTIBYTE (categories))
     error ("Multibyte string in make-category-set");
 
-  len = XSTRING (categories)->size;
+  len = SCHARS (categories);
   while (--len >= 0)
     {
       Lisp_Object category;
 
-      XSETFASTINT (category, XSTRING (categories)->data[len]);
+      XSETFASTINT (category, SREF (categories, len));
       CHECK_CATEGORY (category);
       SET_CATEGORY_SET (val, category, Qt);
     }
@@ -167,7 +167,7 @@ check_category_table (table)
   while (tem = Fcategory_table_p (table), NILP (tem))
     table = wrong_type_argument (Qcategory_table_p, table);
   return table;
-}   
+}
 
 DEFUN ("category-table", Fcategory_table, Scategory_table, 0, 0, 0,
        doc: /* Return the current category table.
@@ -377,7 +377,7 @@ then delete CATEGORY from the category set instead of adding it.  */)
 
   if (NILP (CATEGORY_DOCSTRING (table, XFASTINT (category))))
     error ("Undefined category: %c", XFASTINT (category));
-  
+
   set_value = NILP (reset) ? Qt : Qnil;
 
   if (c < CHAR_TABLE_SINGLE_BYTE_SLOTS)
@@ -534,7 +534,7 @@ init_category_once ()
   Fput (Qcategory_table, Qchar_table_extra_slots, make_number (2));
 
   Vstandard_category_table = Fmake_char_table (Qcategory_table, Qnil);
-  /* Set a category set which contains nothing to the default.  */ 
+  /* Set a category set which contains nothing to the default.  */
   XCHAR_TABLE (Vstandard_category_table)->defalt = MAKE_CATEGORY_SET;
   Fset_char_table_extra_slot (Vstandard_category_table, make_number (0),
 			      Fmake_vector (make_number (95), Qnil));

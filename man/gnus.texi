@@ -568,7 +568,7 @@ Article Treatment
 * Article Buttons::         Click on URLs, Message-IDs, addresses and the like.
 * Article Date::            Grumble, UT!
 * Article Signature::       What is a signature?
-* Article Miscellania::     Various other stuff.
+* Article Miscellanea::     Various other stuff.
 
 Alternative Approaches
 
@@ -627,7 +627,7 @@ Getting News
 
 Getting Mail
 
-* Mail in a Newsreader::         Important introductory notes.  
+* Mail in a Newsreader::         Important introductory notes.
 * Getting Started Reading Mail:: A simple cookbook example.
 * Splitting Mail::               How to create mail groups.
 * Mail Sources::                 How to tell Gnus where to get mail from.
@@ -1188,7 +1188,7 @@ Kill all new groups.
 
 @item gnus-subscribe-topics
 @vindex gnus-subscribe-topics
-Put the groups into the topic that has a matching @code{subscribe} topic 
+Put the groups into the topic that has a matching @code{subscribe} topic
 parameter (@pxref{Topic Parameters}).  For instance, a @code{subscribe}
 topic parameter that looks like
 
@@ -1196,7 +1196,7 @@ topic parameter that looks like
 "nnslashdot"
 @end example
 
-will mean that all groups that match that regex will be subscribed under 
+will mean that all groups that match that regex will be subscribed under
 that topic.
 
 If no topics match the groups, the groups will be subscribed in the
@@ -1486,7 +1486,7 @@ performance, but if the server does not support the aforementioned
 @code{LIST ACTIVE group} command, this isn't very nice to the server.
 
 If you think that starting up Gnus takes too long, try all the three
-different values for this variable and see what works best for you. 
+different values for this variable and see what works best for you.
 
 In any case, if you use @code{some} or @code{nil}, you should definitely
 kill all groups that you aren't interested in to speed things up.
@@ -2698,7 +2698,7 @@ will make @code{iso-8859-1} and @code{x-unknown} ignored; that is, the
 default charset will be used for decoding articles.
 
 See also @code{gnus-group-ignored-charsets-alist}.
- 
+
 @item posting-style
 You can store additional posting style information for this group only
 here (@pxref{Posting Styles}).  The format is that of an entry in the
@@ -3278,7 +3278,7 @@ convention (@pxref{Process/Prefix}).
 @item T j
 @kindex T j (Topic)
 @findex gnus-topic-jump-to-topic
-Go to a topic (@code{gnus-topic-jump-to-topic}).  
+Go to a topic (@code{gnus-topic-jump-to-topic}).
 
 @item T c
 @kindex T c (Topic)
@@ -3523,10 +3523,10 @@ parameters:
 
 @table @code
 @item subscribe
-When subscribing new groups by topic (@pxref{Subscription Methods}), the 
-@code{subscribe} topic parameter says what groups go in what topic.  Its 
+When subscribing new groups by topic (@pxref{Subscription Methods}), the
+@code{subscribe} topic parameter says what groups go in what topic.  Its
 value should be a regexp to match the groups that should go in that
-topic. 
+topic.
 
 @end table
 
@@ -3642,7 +3642,7 @@ For example:
 
 @item gnus-group-name-charset-group-alist
 @vindex gnus-group-name-charset-group-alist
-An alist of regexp of group name and the charset for group names. 
+An alist of regexp of group name and the charset for group names.
 It is used to show non-ASCII group names.
 
 For example:
@@ -4498,8 +4498,8 @@ If given a numerical prefix, you can do semi-manual charset stuff.
 encoded in the @code{cn-gb-2312} charset.  If you have
 
 @lisp
-(setq gnus-summary-show-article-charset-alist 
-      '((1 . cn-gb-2312) 
+(setq gnus-summary-show-article-charset-alist
+      '((1 . cn-gb-2312)
         (2 . big5)))
 @end lisp
 
@@ -4731,7 +4731,7 @@ the process/prefix convention.
 @kindex S o p @r{(Summary)}
 @findex gnus-summary-post-forward
 Forward the current article to a newsgroup
-(@code{gnus-summary-post-forward}).  
+(@code{gnus-summary-post-forward}).
  If no prefix is given, the message is forwarded according to the value
 of (@code{message-forward-as-mime}) and
 (@code{message-forward-show-mml}); if the prefix is 1, decode the
@@ -6554,7 +6554,7 @@ a spool, you could
 
 @lisp
 (setq gnus-use-long-file-name '(not-save)) ; to get a hierarchy
-(setq gnus-default-article-saver 
+(setq gnus-default-article-saver
       'gnus-summary-save-in-file) ; no encoding
 @end lisp
 
@@ -6988,7 +6988,7 @@ these articles easier.
 * Article Buttons::         Click on URLs, Message-IDs, addresses and the like.
 * Article Date::            Grumble, UT!
 * Article Signature::       What is a signature?
-* Article Miscellania::     Various other stuff.
+* Article Miscellanea::     Various other stuff.
 @end menu
 
 
@@ -7432,7 +7432,7 @@ when filling.
 
 @item W Q
 @kindex W Q @r{(Summary)}
-@findex gnus-article-fill-long-lines 
+@findex gnus-article-fill-long-lines
 Fill long lines (@code{gnus-article-fill-long-lines}).
 
 @item W C
@@ -7480,7 +7480,7 @@ makes strings look like @samp{~@{<:Ky2;S@{#,NpJ)l6HK!#~@}}.
 @item W h
 @kindex W h @r{(Summary)}
 @findex gnus-article-wash-html
-Treat HTML (@code{gnus-article-wash-html}).  
+Treat HTML (@code{gnus-article-wash-html}).
 Note that the this is usually done automatically by Gnus if the message
 in question has a @code{Content-Type} header that says that this type
 has been done.
@@ -7816,15 +7816,15 @@ the regular expression @samp{^---*Forwarded article}, then it isn't a
 signature after all.
 
 
-@node Article Miscellania
-@subsection Article Miscellania
+@node Article Miscellanea
+@subsection Article Miscellanea
 
 @table @kbd
 @item A t
 @kindex A t @r{(Summary)}
 @findex gnus-article-babel
 Translate the article from one language to another
-(@code{gnus-article-babel}). 
+(@code{gnus-article-babel}).
 
 @end table
 
@@ -8529,7 +8529,7 @@ disk forever and ever, never to return again.'' Use with caution.
 @vindex gnus-preserve-marks
 Move the article from one mail group to another
 (@code{gnus-summary-move-article}).  Marks will be preserved if
-@var{gnus-preserve-marks} is non-@code{nil} (which is the default). 
+@var{gnus-preserve-marks} is non-@code{nil} (which is the default).
 
 @item B c
 @kindex B c @r{(Summary)}
@@ -9277,7 +9277,7 @@ Copy the @sc{mime} object to a fresh buffer and display this buffer
 @findex gnus-mime-view-part-as-type
 @item t @r{(Article)}
 View the @sc{mime} object as if it were a different @sc{mime} media type
-(@code{gnus-mime-view-part-as-type}). 
+(@code{gnus-mime-view-part-as-type}).
 
 @findex gnus-mime-pipe-part
 @item | @r{(Article)}
@@ -9427,7 +9427,7 @@ You can, of course, write your own functions to be called from
 @code{gnus-part-display-hook}.  The functions are called narrowed to the
 part, and you can do anything you like, pretty much.  There is no
 information that you have to keep in the buffer---you can change
-everything.  
+everything.
 
 
 @node Article Keymap
@@ -10486,8 +10486,8 @@ server:
 @vindex nntp-server-opened-hook
 @cindex @sc{mode reader}
 @cindex authinfo
-@cindex authentification
-@cindex nntp authentification
+@cindex authentication
+@cindex nntp authentication
 @findex nntp-send-authinfo
 @findex nntp-send-mode-reader
 is run after a connection has been made.  It can be used to send
@@ -10514,7 +10514,7 @@ manual page, but here are the salient facts:
 The file contains one or more line, each of which define one server.
 
 @item
-Each line may contain an arbitrary number of token/value pairs.  
+Each line may contain an arbitrary number of token/value pairs.
 
 The valid tokens include @samp{machine}, @samp{login}, @samp{password},
 @samp{default}.  In addition Gnus introduces two new tokens, not present
@@ -10573,7 +10573,7 @@ The default value is
 
 @lisp
 '(("nntpd 1\\.5\\.11t"
-   (remove-hook 'nntp-server-opened-hook 
+   (remove-hook 'nntp-server-opened-hook
                 'nntp-send-mode-reader)))
 @end lisp
 
@@ -10706,7 +10706,7 @@ This works for Solaris @code{telnet}, for instance.
 @findex nntp-open-ssl-stream
 @item nntp-open-ssl-stream
 Opens a connection to a server over a @dfn{secure} channel.  To use this
-you must have SSLay installed
+you must have SSLeay installed
 (@uref{ftp://ftp.psy.uq.oz.au/pub/Crypto/SSL}, and you also need
 @file{ssl.el} (from the W3 distribution, for instance).  You then
 define a server as follows:
@@ -10714,11 +10714,11 @@ define a server as follows:
 @lisp
 ;; Type `C-c C-c' after you've finished editing.
 ;;
-;; "snews" is port 563 and is predefined 
+;; "snews" is port 563 and is predefined
 ;; in our /etc/services
 ;;
 (nntp "snews.bar.com"
-      (nntp-open-connection-function 
+      (nntp-open-connection-function
         nntp-open-ssl-stream)
       (nntp-port-number "snews")
       (nntp-address "snews.bar.com"))
@@ -10840,19 +10840,19 @@ Where the news lib dir is (@file{/usr/lib/news/} by default).
 
 @item nnspool-active-file
 @vindex nnspool-active-file
-The path to the active file.
+The name of the active file.
 
 @item nnspool-newsgroups-file
 @vindex nnspool-newsgroups-file
-The path to the group descriptions file.
+The name of the group descriptions file.
 
 @item nnspool-history-file
 @vindex nnspool-history-file
-The path to the news history file.
+The name of the news history file.
 
 @item nnspool-active-times-file
 @vindex nnspool-active-times-file
-The path to the active date file.
+The name of the active date file.
 
 @item nnspool-nov-is-evil
 @vindex nnspool-nov-is-evil
@@ -10878,7 +10878,7 @@ Reading mail with a newsreader---isn't that just plain WeIrD? But of
 course.
 
 @menu
-* Mail in a Newsreader::         Important introductory notes.  
+* Mail in a Newsreader::         Important introductory notes.
 * Getting Started Reading Mail:: A simple cookbook example.
 * Splitting Mail::               How to create mail groups.
 * Mail Sources::                 How to tell Gnus where to get mail from.
@@ -10897,11 +10897,11 @@ course.
 @node Mail in a Newsreader
 @subsection Mail in a Newsreader
 
-If you are used to traditional mail readers, but have decided to switch 
+If you are used to traditional mail readers, but have decided to switch
 to reading mail with Gnus, you may find yourself experiencing something
 of a culture shock.
 
-Gnus does not behave like traditional mail readers.  If you want to make 
+Gnus does not behave like traditional mail readers.  If you want to make
 it behave that way, you can, but it's an uphill battle.
 
 Gnus, by default, handles all its groups using the same approach.  This
@@ -10915,7 +10915,7 @@ Does this mean that all the messages that have been marked as read are
 deleted?  How awful!
 
 But, no, it means that old messages are @dfn{expired} according to some
-scheme or other.  For news messages, the expire process is controlled by 
+scheme or other.  For news messages, the expire process is controlled by
 the news administrator; for mail, the expire process is controlled by
 you.  The expire process for mail is covered in depth in @pxref{Expiring
 Mail}.
@@ -11071,7 +11071,7 @@ If you wish to see where the previous mail split put the messages, you
 can use the @kbd{M-x nnmail-split-history} command.  If you wish to see
 where re-spooling messages would put the messages, you can use
 @code{gnus-summary-respool-trace} and related commands (@pxref{Mail
-Group Commands}). 
+Group Commands}).
 
 Gnus gives you all the opportunity you could possibly want for shooting
 yourself in the foot.  Let's say you create a group that will contain
@@ -11130,7 +11130,7 @@ Keywords:
 
 @table @code
 @item :path
-The path of the file.  Defaults to the value of the @code{MAIL}
+The file name.  Defaults to the value of the @code{MAIL}
 environment variable or @file{/usr/mail/spool/user-name}.
 @end table
 
@@ -11140,14 +11140,14 @@ An example file mail source:
 (file :path "/usr/spool/mail/user-name")
 @end lisp
 
-Or using the default path:
+Or using the default file name:
 
 @lisp
 (file)
 @end lisp
 
-If the mail spool file is not located on the local machine, it's best to 
-use POP or @sc{imap} or the like to fetch the mail.  You can not use ange-ftp 
+If the mail spool file is not located on the local machine, it's best to
+use POP or @sc{imap} or the like to fetch the mail.  You can not use ange-ftp
 file names here---it has no way to lock the mail spool while moving the
 mail.
 
@@ -11183,7 +11183,7 @@ Keywords:
 
 @table @code
 @item :path
-The path of the directory where the files are.  There is no default
+The name of the directory where the files are.  There is no default
 value.
 
 @item :suffix
@@ -11317,7 +11317,7 @@ Keywords:
 
 @table @code
 @item :path
-The path of the directory where the mails are stored.  The default is
+The name of the directory where the mails are stored.  The default is
 taken from the @code{MAILDIR} environment variable or
 @samp{~/Maildir/}.
 @item :subdirs
@@ -11337,12 +11337,12 @@ from locking problems).
 Two example maildir mail sources:
 
 @lisp
-(maildir :path "/home/user-name/Maildir/" 
+(maildir :path "/home/user-name/Maildir/"
          :subdirs ("cur" "new"))
 @end lisp
 
 @lisp
-(maildir :path "/user@@remotehost.org:~/Maildir/" 
+(maildir :path "/user@@remotehost.org:~/Maildir/"
          :subdirs ("new"))
 @end lisp
 
@@ -11435,8 +11435,8 @@ after finishing the fetch.
 An example @sc{imap} mail source:
 
 @lisp
-(imap :server "mail.mycorp.com" 
-      :stream kerberos4 
+(imap :server "mail.mycorp.com"
+      :stream kerberos4
       :fetchflag "\\Seen")
 @end lisp
 
@@ -11476,8 +11476,8 @@ folder after finishing the fetch.
 An example webmail source:
 
 @lisp
-(webmail :subtype 'hotmail 
-         :user "user-name" 
+(webmail :subtype 'hotmail
+         :user "user-name"
          :password "secret")
 @end lisp
 @end table
@@ -11495,7 +11495,7 @@ directory source to get mail, you can specify it as in this example:
 
 @lisp
 (setq mail-sources
-      '((directory :path "/home/pavel/.Spool/" 
+      '((directory :path "/home/pavel/.Spool/"
                    :suffix ""
                    :plugged t)))
 @end lisp
@@ -11704,7 +11704,7 @@ Let's look at an example value of this variable first:
       (any "procmail@@informatik\\.rwth-aachen\\.de" "procmail.list")
       (any "SmartList@@informatik\\.rwth-aachen\\.de" "SmartList.list")
       ;; Both lists below have the same suffix, so prevent
-      ;; cross-posting to mkpkg.list of messages posted only to 
+      ;; cross-posting to mkpkg.list of messages posted only to
       ;; the bugs- list, but allow cross-posting when the
       ;; message was really cross-posted.
       (any "bugs-mypackage@@somewhere" "mypkg.bugs")
@@ -12003,7 +12003,7 @@ Here's how:
 Go to the group buffer.
 
 @item
-Type @kbd{G f} and give the path to the mbox file when prompted to create an
+Type @kbd{G f} and give the name of the mbox file when prompted to create an
 @code{nndoc} group from the mbox file (@pxref{Foreign Groups}).
 
 @item
@@ -12719,8 +12719,8 @@ itself puts *all* one's mail in one file; @code{nnfolder} provides a
 little bit of optimization to this so that each of one's mail groups has
 a Unix mail box file.  It's faster than @code{nnmbox} because each group
 can be parsed separately, and still provides the simple Unix mail box
-format requiring minimal effort in moving the mail around.  In addition, 
-it maintains an ``active'' file making it much faster for Gnus to figure 
+format requiring minimal effort in moving the mail around.  In addition,
+it maintains an ``active'' file making it much faster for Gnus to figure
 out how many messages there are in each separate group.
 
 If you have groups that are expected to have a massive amount of
@@ -12746,13 +12746,13 @@ and click, and there's the discussion.  With mailing lists, you have to
 go through a cumbersome subscription procedure, and most people don't
 even know what a news group is.
 
-The problem with this scenario is that web browsers are not very good at 
-being newsreaders.  They do not keep track of what articles you've read; 
-they do not allow you to score on subjects you're interested in; they do 
+The problem with this scenario is that web browsers are not very good at
+being newsreaders.  They do not keep track of what articles you've read;
+they do not allow you to score on subjects you're interested in; they do
 not allow off-line browsing; they require you to click around and drive
 you mad in the end.
 
-So---if web browsers suck at reading discussion forums, why not use Gnus 
+So---if web browsers suck at reading discussion forums, why not use Gnus
 to do it instead?
 
 Gnus has been getting a bit of a collection of back ends for providing
@@ -12769,7 +12769,7 @@ interfaces to these sources.
 All the web sources require Emacs/w3 and the url library to work.
 
 The main caveat with all these web sources is that they probably won't
-work for a very long time.  Gleaning information from the @sc{html} data 
+work for a very long time.  Gleaning information from the @sc{html} data
 is guesswork at best, and when the layout is altered, the Gnus back end
 will fail.  If you have reasonably new versions of these back ends,
 though, you should be ok.
@@ -12971,7 +12971,7 @@ quite regular and nice interface, and it's possible to get the
 information Gnus needs to keep groups updated.
 
 The easiest way to get started with @code{nnultimate} is to say
-something like the following in the group buffer:  @kbd{B nnultimate @key{RET} 
+something like the following in the group buffer:  @kbd{B nnultimate @key{RET}
 http://www.tcj.com/messboard/ubbcgi/ @key{RET}}.  (Substitute the @sc{url}
 (not including @samp{Ultimate.cgi} or the like at the end) for a forum
 you're interested in; there's quite a list of them on the Ultimate web
@@ -13032,12 +13032,12 @@ The password for your account on the web server.
 @cindex url
 @cindex Netscape
 
-Gnus uses the url library to fetch web pages and Emacs/w3 to display web 
+Gnus uses the url library to fetch web pages and Emacs/w3 to display web
 pages.  Emacs/w3 is documented in its own manual, but there are some
 things that may be more relevant for Gnus users.
 
 For instance, a common question is how to make Emacs/w3 follow links
-using the @code{browse-url} functions (which will call some external web 
+using the @code{browse-url} functions (which will call some external web
 browser like Netscape).  Here's one way:
 
 @lisp
@@ -13722,7 +13722,7 @@ Here's an example:
 
 @lisp
 (setq gnus-post-method
-      '(nngateway 
+      '(nngateway
         "mail2news@@replay.com"
         (nngateway-header-transformation
          nngateway-mail2news-header-transformation)))
@@ -13771,7 +13771,7 @@ A server configuration in @code{~/.gnus} with a few @sc{imap} servers
 might look something like this:
 
 @lisp
-(setq gnus-secondary-select-methods 
+(setq gnus-secondary-select-methods
       '((nnimap "simpleserver") ; no special configuration
         ; perhaps a ssh port forwarded server:
         (nnimap "dolk"
@@ -13833,7 +13833,7 @@ Example server specification:
 
 @lisp
 (nnimap "mail.server.com"
-        (nnimap-list-pattern ("INBOX" "Mail/*" "alt.sex.*" 
+        (nnimap-list-pattern ("INBOX" "Mail/*" "alt.sex.*"
                                ("~friend/Mail/" . "list/*"))))
 @end lisp
 
@@ -14041,7 +14041,7 @@ Neither did I, we need examples.
 
 @lisp
 (setq nnimap-split-rule
-      '(("INBOX.nnimap"  
+      '(("INBOX.nnimap"
          "^Sender: owner-nnimap@@vic20.globalcom.se")
         ("INBOX.junk"    "^Subject:.*MAKE MONEY")
         ("INBOX.private" "")))
@@ -15618,7 +15618,7 @@ returned is the local score file.  Phu.
 For example, to do hierarchical scoring but use a non-server-specific
 overall score file, you could use the value
 @example
-(list (lambda (group) ("all.SCORE")) 
+(list (lambda (group) ("all.SCORE"))
       'gnus-score-find-hierarchical)
 @end example
 
@@ -16088,7 +16088,7 @@ each instance of a word should add given a mark.
         (,gnus-del-mark . -15)))
 @end lisp
 
-This is the default value.  If you have adaption on words enabled, every
+This is the default value.  If you adapt on words, every
 word that appears in subjects of articles marked with
 @code{gnus-read-mark} will result in a score rule that increase the
 score with 30 points.
@@ -16297,7 +16297,7 @@ the @code{Xref} header.
 If you want to lower the score of articles that have been crossposted to
 more than, say, 3 groups:
 @lisp
-("xref" 
+("xref"
   ("[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+ +[^:\n]+:[0-9]+"
    -1000 nil r))
 @end lisp
@@ -16974,7 +16974,7 @@ four days, Gnus will decay the scores four times, for instance.
 * Compilation::                How to speed Gnus up.
 * Mode Lines::                 Displaying information in the mode lines.
 * Highlighting and Menus::     Making buffers look all nice and cozy.
-* Buttons::                    Get tendonitis in ten easy steps!
+* Buttons::                    Get tendinitis in ten easy steps!
 * Daemons::                    Gnus can do things behind your back.
 * NoCeM::                      How to avoid spam and other fatty foods.
 * Undo::                       Some actions can be undone.
@@ -17533,7 +17533,7 @@ for composing mail and news while leaving the original frame intact.  To
 accomplish that, something like the following can be done:
 
 @lisp
-(message 
+(message
   (frame 1.0
          (if (not (buffer-live-p gnus-summary-buffer))
              (car (cdr (assoc 'group gnus-buffer-configuration)))
@@ -17575,7 +17575,7 @@ windows resized.
 @subsection Example Window Configurations
 
 @itemize @bullet
-@item 
+@item
 Narrow left hand side occupied by group buffer.  Right hand side split
 between summary buffer (top one-sixth) and article buffer (bottom).
 
@@ -18090,7 +18090,7 @@ never be totally undoable.
 @findex gnus-undo
 The undoability is provided by the @code{gnus-undo-mode} minor mode.  It
 is used if @code{gnus-use-undo} is non-@code{nil}, which is the
-default.  The @kbd{C-M-_} key performs the @code{gnus-undo} 
+default.  The @kbd{C-M-_} key performs the @code{gnus-undo}
 command, which should feel kinda like the normal Emacs @code{undo}
 command.
 
@@ -18710,14 +18710,14 @@ to non-existent domains is yucky, in my opinion.
 @table @code
 
 @item gnus-home-directory
-All Gnus path variables will be initialized from this variable, which
-defaults to @file{~/}.
+All Gnus file and directory variables will be initialized from this
+variable, which defaults to @file{~/}.
 
 @item gnus-directory
 @vindex gnus-directory
-Most Gnus storage path variables will be initialized from this variable,
-which defaults to the @samp{SAVEDIR} environment variable, or
-@file{~/News/} if that variable isn't set.
+Most Gnus storage file and directory variables will be initialized from
+this variable, which defaults to the @samp{SAVEDIR} environment
+variable, or @file{~/News/} if that variable isn't set.
 
 Note that Gnus is mostly loaded when the @file{.gnus.el} file is read.
 This means that other directory variables that are initialized from this
@@ -18915,7 +18915,7 @@ If was released as ``Gnus 5.6'' on March 8th 1998 (46 releases).
 
 Gnus 5.6 begat Pterodactyl Gnus on August 29th 1998 and was released as
 ``Gnus 5.8'' (after 99 releases and a CVS repository) on December 3rd
-1999. 
+1999.
 
 If you happen upon a version of Gnus that has a prefixed name --
 ``(ding) Gnus'', ``September Gnus'', ``Red Gnus'', ``Quassia Gnus'' --
@@ -19890,7 +19890,7 @@ considered home score and adapt files (@pxref{Home Score File}) have
 been added.
 
 @item
-@code{nndoc} was rewritten to be easily extendable (@pxref{Document
+@code{nndoc} was rewritten to be easily extensible (@pxref{Document
 Server Internals}).
 
 @item
@@ -19997,7 +19997,7 @@ More hooks and functions have been added to remove junk from incoming
 mail before saving the mail (@pxref{Washing Mail}).
 
 @item
-Emphasized text can be properly fontisized:
+Emphasized text can be properly fontified:
 
 @end itemize
 
@@ -20150,7 +20150,7 @@ If you used procmail like in
 (setq nnmail-procmail-suffix "\\.in")
 @end lisp
 
-this now has changed to 
+this now has changed to
 
 @lisp
 (setq mail-sources
@@ -20179,7 +20179,7 @@ of variables starting with @code{gnus-treat-} have been added.
 @item The Gnus posting styles have been redone again and now works in a
 subtly different manner.
 
-@item New web-based back ends have been added: @code{nnslashdot}, 
+@item New web-based back ends have been added: @code{nnslashdot},
 @code{nnwarchive} and @code{nnultimate}.  nnweb has been revamped,
 again, to keep up with ever-changing layouts.
 
@@ -20258,16 +20258,16 @@ I guess most manuals are written after-the-fact; documenting a program
 that's already there.  This is not how this manual is written.  When
 implementing something, I write the manual entry for that something
 straight away.  I then see that it's difficult to explain the
-functionality, so I write how it's supposed to be, and then I change the 
+functionality, so I write how it's supposed to be, and then I change the
 implementation.  Writing the documentation and writing the code goes
 hand in hand.
 
 This, of course, means that this manual has no, or little, flow.  It
 documents absolutely everything in Gnus, but often not where you're
-looking for it.  It is a reference manual, and not a guide to how to get 
+looking for it.  It is a reference manual, and not a guide to how to get
 started with Gnus.
 
-That would be a totally different book, that should be written using the 
+That would be a totally different book, that should be written using the
 reference manual as source material.  It would look quite differently.
 
 
@@ -20423,7 +20423,7 @@ original.
 @cindex ephemeral groups
 Most groups store data on what articles you have read.  @dfn{Ephemeral}
 groups are groups that will have no data stored---when you exit the
-group, it'll disappear into the aether.
+group, it'll disappear into the ether.
 
 @item solid groups
 @cindex solid groups
@@ -21488,8 +21488,8 @@ Below is a slightly shortened version of the @code{nndir} back end.
   "*Non-nil means that nndir will never retrieve NOV headers."
   nnml-nov-is-evil)
 
-(defvoo nndir-current-group "" 
-  nil 
+(defvoo nndir-current-group ""
+  nil
   nnml-current-group nnmh-current-group)
 (defvoo nndir-top-directory nil nil nnml-directory nnmh-directory)
 (defvoo nndir-get-new-mail nil nil nnml-get-new-mail nnmh-get-new-mail)
@@ -21508,7 +21508,7 @@ Below is a slightly shortened version of the @code{nndir} back end.
   (unless (assq 'nndir-directory defs)
     (push `(nndir-directory ,server) defs))
   (push `(nndir-current-group
-          ,(file-name-nondirectory 
+          ,(file-name-nondirectory
             (directory-file-name nndir-directory)))
         defs)
   (push `(nndir-top-directory

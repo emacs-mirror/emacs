@@ -24,7 +24,7 @@
 @sp 2
 @center @titlefont{Volume 1}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 @page
 .
@@ -45,7 +45,7 @@
 @sp 2
 @center @titlefont{Volume 2}
 @sp 2
-@center by Bil Lewis, Dan LaLiberte, 
+@center by Bil Lewis, Dan LaLiberte,
 @center and the GNU Manual Group
 
 @end titlepage

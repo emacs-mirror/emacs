@@ -1,12 +1,12 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/FindPane.c,v 1.1 1992/04/11 22:10:19 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/FindPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
  * XMenu:	MIT Project Athena, X Window system menu package
  *
- *	XMenuFindPane - Find the first menu pane who's label matches a 
+ *	XMenuFindPane - Find the first menu pane who's label matches a
  *			particular string.
  *
  *	Author:		Tony Della Fera, DEC
@@ -17,7 +17,7 @@
 #include "XMenuInt.h"
 
 int
-XMenuFindPane(menu, label) 
+XMenuFindPane(menu, label)
     register XMenu *menu;
     register char *label;
 {

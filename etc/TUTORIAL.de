@@ -186,11 +186,8 @@ Abkürzungspunkten und dem Satzende unterscheiden kann, was für
 Textsuche in wissenschaftlichen Texten oft vorteilhaft ist.]
 
 [Anmerkung 2: Die Tasten `Home' (Pos1) und `End' (Ende) verhalten sich
-standardmäßig nicht wie C-a und C-e, wie wohl die meisten Benutzer
-annehmen würden, sondern springen zum Anfang bzw. zum Ende des
-Dokuments!  Lesen Sie in der Emacs-Dokumentation unter dem Stichwort
-`Rebinding Keys in Your Init File' nach, wie Sie die Tastaturbelegung
-ändern können.]
+standardmäßig wie C-a und C-e, wie wohl die meisten Benutzer
+annehmen würden.]
 
 Die aktuelle Position des Cursors wird im Englischen auch `point'
 (Punkt) genannt.  Beachten Sie bitte, daß sich `point' stets
@@ -228,10 +225,7 @@ ist auf deutschen Tastaturen normalerweise mit einem dicken
 Aufwärtspfeil markiert).  Ohne SHIFT-Taste würden Sie M-Komma
 eingeben.
 
-[Standardmäßig sind die Tasten `Pos1' und `Ende' mit M-< bzw. M->
-belegt.]
-
->> Testen Sie nun M-< (bzw. `Pos1'), um an den Anfang der Einführung
+>> Testen Sie nun M-<, um an den Anfang der Einführung
    zu gelangen.  Verwenden Sie dann C-v, um wieder hierher zu kommen.
 
 Ein weiteres, oft benütztes Konzept in Emacs ist die Markierung
@@ -243,7 +237,7 @@ Viele Befehle, die große Sprünge in einem Text ausführen (so auch M->
 und M-<) setzen eine Markierung implizit, was in der untersten Zeile
 (dem Echobereich, s.u.) als `Mark set' angezeigt wird.
 
->> Verwenden Sie jetzt M-> (bzw. `Ende'), um zum Ende der Einführung
+>> Verwenden Sie jetzt M->, um zum Ende der Einführung
    zu springen und benützen Sie C-u C-SPC, um hierher zurückzukehren.
 
 Markierungen werden in einem Ring gespeichert (d.h., die zuletzt in
@@ -272,7 +266,7 @@ Beispiel: C-u 8 C-f bewegt den Cursor acht Zeichen vorwärts.
 >> Versuchen Sie, C-n oder C-p mit einem numerischen Argument zu
    verwenden und bewegen Sie den Cursor mit nur einem Befehl ungefähr
    hierher.
-	
+
 Wie gesagt, die meisten Befehle verwenden das numerische Argument als
 Wiederholungszähler, jedoch nicht alle.  Einige davon, die allerdings
 noch nicht besprochen wurden, benützen es als Flag (`Flagge'), d.h.,

@@ -225,18 +225,15 @@ to silence the byte compiler.  Don't use within `eval-when-compile'."
   "Bind the symbol as a function during compilation of the file,
 to silence the byte compiler.  Don't use within `eval-when-compile'."
   `(eval-when-compile
-     (if (not (assq ',fun cc-bytecomp-original-functions))
-	 (setq cc-bytecomp-original-functions
-	       (cons (list ',fun
-			   nil
-			   (if (fboundp ',fun)
-			       (symbol-function ',fun)
-			     'unbound))
-		     cc-bytecomp-original-functions)))
-     (if (and (cc-bytecomp-is-compiling)
-	      (= cc-bytecomp-load-depth 0)
-	      (not (fboundp ',fun)))
-	 (fset ',fun 'cc-bytecomp-ignore))))
+     (if (fboundp ',fun)
+	 nil
+       (if (not (assq ',fun cc-bytecomp-original-functions))
+	   (setq cc-bytecomp-original-functions
+		 (cons (list ',fun nil 'unbound)
+		       cc-bytecomp-original-functions)))
+       (if (and (cc-bytecomp-is-compiling)
+		(= cc-bytecomp-load-depth 0))
+	   (fset ',fun 'cc-bytecomp-ignore)))))
 
 (put 'cc-bytecomp-defmacro 'lisp-indent-function 'defun)
 (defmacro cc-bytecomp-defmacro (fun &rest temp-macro)
@@ -269,7 +266,10 @@ the file.  Don't use outside `eval-when-compile'."
 Don't use within `eval-when-compile'."
   `(eval-when-compile
      (if (get ',symbol 'byte-obsolete-variable)
-	 (cc-bytecomp-put ',symbol 'byte-obsolete-variable nil))))
+	 (cc-bytecomp-put ',symbol 'byte-obsolete-variable nil)
+       ;; This avoids a superfluous compiler warning
+       ;; about calling `get' for effect.
+       t)))
 
 (defun cc-bytecomp-ignore-obsolete (form)
   ;; Wraps a call to `byte-compile-obsolete' that suppresses the warning.

@@ -1,6 +1,6 @@
 ;;; picture.el --- "Picture mode" -- editing using quarter-plane screen model
 
-;; Copyright (C) 1985, 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1994, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: K. Shane Hartman
 ;; Maintainer: FSF
@@ -104,14 +104,15 @@ If scan reaches end of buffer, stop there without error."
   "Move cursor right, making whitespace if necessary.
 With argument, move that many columns."
   (interactive "p\nd")
-  (picture-update-desired-column interactive)
-  (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
-  (let ((current-column (move-to-column picture-desired-column t)))
-    (if (and (> current-column picture-desired-column)
-	     (< arg 0))
-	;; It seems that we have just tried to move to the right
-	;; column of a multi-column character.
-	(forward-char -1))))
+  (let (deactivate-mark)
+    (picture-update-desired-column interactive)
+    (setq picture-desired-column (max 0 (+ picture-desired-column arg)))
+    (let ((current-column (move-to-column picture-desired-column t)))
+      (if (and (> current-column picture-desired-column)
+	       (< arg 0))
+	  ;; It seems that we have just tried to move to the right
+	  ;; column of a multi-column character.
+	  (forward-char -1)))))
 
 (defun picture-backward-column (arg &optional interactive)
   "Move cursor left, making whitespace if necessary.
@@ -124,11 +125,12 @@ With argument, move that many columns."
   "Move vertically down, making whitespace if necessary.
 With argument, move that many lines."
   (interactive "p")
-  (picture-update-desired-column nil)
-  (picture-newline arg)
-  (let ((current-column (move-to-column picture-desired-column t)))
-    (if (> current-column picture-desired-column)
-	(forward-char -1))))
+  (let (deactivate-mark)
+    (picture-update-desired-column nil)
+    (picture-newline arg)
+    (let ((current-column (move-to-column picture-desired-column t)))
+      (if (> current-column picture-desired-column)
+	  (forward-char -1)))))
 
 (defvar picture-vertical-step 0
   "Amount to move vertically after text character in Picture mode.")
@@ -220,9 +222,21 @@ Do \\[command-apropos]  picture-movement  to see commands which control motion."
   "Move point in direction opposite of current picture motion in Picture mode.
 With ARG do it that many times.  Useful for delineating rectangles in
 conjunction with diagonal picture motion.
-Do \\[command-apropos] `picture-movement' to see commands which control motion."
+Do \\[command-apropos]  picture-movement  to see commands which control motion."
   (interactive "p")
   (picture-motion (- arg)))
+
+(defun picture-mouse-set-point (event)
+  "Move point to the position clicked on, making whitespace if necessary."
+  (interactive "e")
+  (let* ((pos (posn-col-row (event-start event)))
+	 (x (car pos))
+	 (y (cdr pos))
+	 (current-row (count-lines (window-start) (line-beginning-position))))
+    (unless (equal x (current-column))
+      (picture-forward-column (- x (current-column))))
+    (unless (equal y current-row)
+      (picture-move-down (- y current-row)))))
 
 
 ;; Picture insertion and deletion.
@@ -576,7 +590,7 @@ Leaves the region surrounding the rectangle."
 (defvar picture-mode-map nil)
 
 (defun picture-substitute (oldfun newfun)
-  (substitute-key-definition oldfun newfun picture-mode-map global-map))
+  (define-key picture-mode-map (vector 'remap oldfun) newfun))
 
 (if (not picture-mode-map)
     (progn
@@ -600,6 +614,7 @@ Leaves the region surrounding the rectangle."
       (picture-substitute 'previous-line 'picture-move-up)
       (picture-substitute 'beginning-of-line 'picture-beginning-of-line)
       (picture-substitute 'end-of-line 'picture-end-of-line)
+      (picture-substitute 'mouse-set-point 'picture-mouse-set-point)
 
       (define-key picture-mode-map "\C-c\C-d" 'delete-char)
       (define-key picture-mode-map "\e\t" 'picture-toggle-tab-state)

@@ -225,13 +225,13 @@ mesasge up instead of moving forward to the next non-deleted message."
 	  (if redelete (rmail-set-attribute "deleted" t))))
       (setq count (1- count))
       (if rmail-delete-after-output
-	  (unless 
+	  (unless
 	      (if (and (= count 0) stay)
 		  (rmail-delete-message)
 		(rmail-delete-forward))
 	    (setq count 0))
 	(if (> count 0)
-	    (unless 
+	    (unless
 		(if (not stay) (rmail-next-undeleted-message 1))
 	      (setq count 0)))))))
 
@@ -246,7 +246,7 @@ mesasge up instead of moving forward to the next non-deleted message."
 ;; NOT-RMAIL if t means this buffer does not have the full header
 ;; and *** EOOH *** that a message in an Rmail file has.
 (defun rmail-delete-unwanted-fields (&optional not-rmail)
-  (if rmail-fields-not-to-output 
+  (if rmail-fields-not-to-output
       (save-excursion
 	(goto-char (point-min))
 	;; Find the end of the header.
@@ -296,14 +296,14 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	  (tembuf (get-buffer-create " rmail-output"))
 	  (original-headers-p
 	   (and (not from-gnus)
-		(save-excursion 
+		(save-excursion
 		  (save-restriction
 		    (narrow-to-region (rmail-msgbeg rmail-current-message) (point-max))
 		    (goto-char (point-min))
 		    (forward-line 1)
 		    (= (following-char) ?0)))))
 	  header-beginning
-	  mail-from mime-version)
+	  mail-from mime-version content-type)
       (while (> count 0)
 	;; Preserve the Mail-From and MIME-Version fields
 	;; even if they have been pruned.
@@ -315,11 +315,10 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 		(setq header-beginning (point))
 		(search-forward "\n*** EOOH ***\n")
 		(narrow-to-region header-beginning (point))
-		(setq mail-from
-		      (mail-fetch-field "Mail-From")
-		      mime-version
-		      (unless rmail-enable-mime
-			(mail-fetch-field "MIME-Version"))))))
+		(setq mail-from (mail-fetch-field "Mail-From"))
+		(unless rmail-enable-mime
+		  (setq mime-version (mail-fetch-field "MIME-Version")
+			content-type (mail-fetch-field "Content-type"))))))
 	(save-excursion
 	  (set-buffer tembuf)
 	  (erase-buffer)
@@ -350,7 +349,8 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 						 "unknown"))
 		    " " (current-time-string) "\n"))
 	  (if mime-version
-	      (insert "MIME-Version: " mime-version "\n"))
+	      (insert "MIME-Version: " mime-version
+		      "\nContent-type: " content-type "\n"))
 	  ;; ``Quote'' "\nFrom " as "\n>From "
 	  ;;  (note that this isn't really quoting, as there is no requirement
 	  ;;   that "\n[>]+From " be quoted in the same transparent way.)
@@ -374,7 +374,7 @@ The optional fourth argument FROM-GNUS is set when called from GNUS."
 	      (if (and next-message-p original-headers-p)
 		  (rmail-toggle-header))
 	      (if (and (> count 0) (not next-message-p))
-		  (progn 
+		  (progn
 		    (error
 		     (save-excursion
 		       (set-buffer rmailbuf)

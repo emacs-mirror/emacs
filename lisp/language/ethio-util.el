@@ -78,12 +78,12 @@
       (setq key-bindings (cdr key-bindings))))
 
   (add-hook 'quail-activate-hook 'ethio-select-a-translation)
-  (add-hook 'find-file-hooks 'ethio-find-file)
-  (add-hook 'write-file-hooks 'ethio-write-file)
+  (add-hook 'find-file-hook 'ethio-find-file)
+  (add-hook 'write-file-functions 'ethio-write-file)
   (add-hook 'after-save-hook 'ethio-find-file))
 
 (defun exit-ethiopic-environment ()
-  "Exit Ethiopic language environment"
+  "Exit Ethiopic language environment."
   (while exit-ethiopic-environment-data
     (global-set-key (car (car exit-ethiopic-environment-data))
 		    (cdr (car exit-ethiopic-environment-data)))
@@ -91,8 +91,8 @@
 	  (cdr exit-ethiopic-environment-data)))
 
   (remove-hook 'quail-activate-hook 'ethio-select-a-translation)
-  (remove-hook 'find-file-hooks 'ethio-find-file)
-  (remove-hook 'write-file-hooks 'ethio-write-file)
+  (remove-hook 'find-file-hook 'ethio-find-file)
+  (remove-hook 'write-file-functions 'ethio-write-file)
   (remove-hook 'after-save-hook 'ethio-find-file))
 
 ;;
@@ -103,7 +103,7 @@
 ;; but file I/O is done in SERA.
 ;;
 ;; If the filename ends in ".java", editing is done in fidel
-;; but file I/O is done in the \uXXXX style, where XXXX is 
+;; but file I/O is done in the \uXXXX style, where XXXX is
 ;; the Unicode codepoint for the Ethiopic character.
 ;;
 ;; If the filename ends in ".tex", editing is done in fidel
@@ -168,7 +168,7 @@ If nil, use uppercases.")
 ;;
 ;; SERA to FIDEL
 ;;
- 
+
 (defconst ethio-sera-to-fidel-table
   [
    nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
@@ -230,7 +230,7 @@ If nil, use uppercases.")
 ;;; I
    ("$(3"h(B" (?2 "$(3#:(B"))
 ;;; J
-   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B") 
+   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B")
          (?W "$(3#l(B" (?a "$(3#l(B")
 	          (?e "$(3#j%n(B") (?u "$(3#j%r(B") (?i "$(3#j%o(B") (?E "$(3#j%q(B")))
 ;;; K
@@ -301,18 +301,18 @@ If nil, use uppercases.")
     (?! "$(3%t(B")
     (?e "$(3#5(B") (?u "$(3#6(B") (?U "$(3#6(B") (?i "$(3#7(B") (?a "$(3#8(B") (?A "$(3#8(B")
         (?E "$(3#9(B") (?I "$(3#:(B") (?o "$(3#;(B") (?O "$(3#;(B")
-    (?g "$(3%^(B" 
+    (?g "$(3%^(B"
         (?e "$(3%Y(B") (?u "$(3%Z(B") (?i "$(3%[(B") (?a "$(3%\(B") (?E "$(3%](B") (?o "$(3%_(B"))
     (?h "$(3"H(B"
         (?e "$(3"C(B") (?u "$(3"D(B") (?i "$(3"E(B") (?a "$(3"F(B") (?E "$(3"G(B") (?o "$(3"I(B")
 	          (?W "$(3"P(B" (?e "$(3"K(B") (?u "$(3"P(B") (?i "$(3"M(B") (?a "$(3"N(B") (?E "$(3"O(B")))
-    (?k "$(3%>(B" 
+    (?k "$(3%>(B"
         (?e "$(3%9(B") (?u "$(3%:(B") (?i "$(3%;(B") (?a "$(3%<(B") (?E "$(3%=(B") (?o "$(3%?(B"))
-    (?s "$(3!F(B" 
+    (?s "$(3!F(B"
         (?e "$(3!A(B") (?u "$(3!B(B") (?i "$(3!C(B") (?a "$(3!D(B") (?E "$(3!E(B") (?o "$(3!G(B")
 	(?W "$(3!H(B" (?a "$(3!H(B")
 		   (?e "$(3!F%n(B") (?u "$(3!F%r(B") (?i "$(3!F%o(B") (?E "$(3!F%q(B")))
-    (?S "$(3$L(B" 
+    (?S "$(3$L(B"
 	(?e "$(3$G(B") (?u "$(3$H(B") (?i "$(3$I(B") (?a "$(3$J(B") (?E "$(3$K(B") (?o "$(3$M(B")
 	(?W "$(3$F(B" (?a "$(3$F(B")
 	         (?e "$(3$L%n(B") (?u "$(3$L%r(B") (?i "$(3$L%o(B") (?E "$(3$L%q(B")))
@@ -337,7 +337,7 @@ If nil, use uppercases.")
          (?W "$(3%d(B" (?e "$(3%4(B") (?u "$(3%d(B") (?i "$(3%D(B") (?a "$(3$V(B") (?E "$(3%T(B"))
 	 (?Y "$(3$a(B" (?a "$(3$a(B")))
 ;;; g
-   ("$(3#r(B" (?e "$(3#m(B") (?u "$(3#n(B") (?i "$(3#o(B") (?a "$(3#p(B") (?E "$(3#q(B") (?o "$(3#s(B") 
+   ("$(3#r(B" (?e "$(3#m(B") (?u "$(3#n(B") (?i "$(3#o(B") (?a "$(3#p(B") (?E "$(3#q(B") (?o "$(3#s(B")
          (?W "$(3#z(B" (?e "$(3#u(B") (?u "$(3#z(B") (?i "$(3#w(B") (?a "$(3#x(B") (?E "$(3#y(B"))
          (?2 "$(3%^(B" (?e "$(3%Y(B") (?u "$(3%Z(B") (?i "$(3%[(B") (?a "$(3%\(B") (?E "$(3%](B") (?o "$(3%_(B")))
 ;;; h
@@ -348,7 +348,7 @@ If nil, use uppercases.")
 ;;; i
    ("$(3"e(B" (?2 "$(3#7(B"))
 ;;; j
-   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B") 
+   ("$(3#j(B" (?e "$(3#e(B") (?u "$(3#f(B") (?i "$(3#g(B") (?a "$(3#h(B") (?E "$(3#i(B") (?o "$(3#k(B")
          (?W "$(3#l(B" (?a "$(3#l(B")
 	          (?e "$(3#j%n(B") (?u "$(3#j%r(B") (?i "$(3#j%o(B") (?E "$(3#j%q(B")))
 ;;; k
@@ -580,7 +580,7 @@ the conversion of \"a\"."
 	start table table2 ch)
 
     (setcar (aref ethio-sera-to-fidel-table ?a)
-	    (if (eq lang 'tigrigna) "$(3"f(B" "$(3"c(B"))	  
+	    (if (eq lang 'tigrigna) "$(3"f(B" "$(3"c(B"))
 
     (while (and (not (eobp)) (null new-language))
       (setq ch (following-char))
@@ -773,7 +773,7 @@ Delete the escape even it is not recognised."
    ((or (string= flag "ti") (string= flag "tir")) 'tigrigna)
    ((or (string= flag "am") (string= flag "amh")) 'amharic)
    (t nil)))
-  
+
 (defun ethio-convert-digit nil
   "Convert Arabic digits to Ethiopic digits."
   (let (ch z)
@@ -1114,7 +1114,7 @@ See also the descriptions of the variables
 		fidel nil
 		digit t))
 
-	 ;; reduction = 2 and following 10s, 100s, 10000s 
+	 ;; reduction = 2 and following 10s, 100s, 10000s
 	 ((and (= ethio-numeric-reduction 2)
 	       (memq ch '(370 379 380)))
 	  (insert (substring (aref ethio-fidel-to-sera-map ch) 1))
@@ -1811,7 +1811,7 @@ Otherwise, [0-9A-F]."
 	(insert (ethio-ethiocode-to-char (- ucode 64560))))
        (t
 	nil)))
-    
+
     ;; gemination
     (goto-char (point-min))
     (while (re-search-forward "\\ce$(3%s(B" nil 0)
@@ -1984,7 +1984,7 @@ With ARG, insert that many delimiters."
 
 (defun ethio-gemination nil
   "Compose the character before the point with the Ethiopic gemination mark.
-If the characater is already composed, decompose it and remove the gemination
+If the character is already composed, decompose it and remove the gemination
 mark."
   (interactive "*")
   (cond

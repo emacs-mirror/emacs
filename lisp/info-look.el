@@ -56,8 +56,7 @@ Setting this variable to nil disables highlighting."
   "Overlay object used for highlighting.")
 
 (defcustom info-lookup-file-name-alist
-  '(("\\`configure\\.in\\'" . autoconf-mode) ;already covered by auto-mode-alist
-    ("\\`ac\\(local\\|site\\|include\\)\\.m4\\'" . autoconf-mode))
+  '(("\\`ac\\(local\\|site\\|include\\)\\.m4\\'" . autoconf-mode))
   "Alist of file names handled specially.
 List elements are cons cells of the form
 
@@ -319,13 +318,14 @@ If optional argument QUERY is non-nil, query for the help mode."
   (or mode (setq mode (info-lookup-select-mode)))
   (or (info-lookup->mode-value topic mode)
       (error "No %s help available for `%s'" topic mode))
-  (let ((entry (or (assoc (if (info-lookup->ignore-case topic mode)
-			      (downcase item) item)
-			  (info-lookup->completions topic mode))
-		   (error "Not documented as a %s: %s" topic (or item ""))))
-	(modes (info-lookup->all-modes topic mode))
-	(window (selected-window))
-	found doc-spec node prefix suffix doc-found)
+  (let* ((completions (info-lookup->completions topic mode))
+         (ignore-case (info-lookup->ignore-case topic mode))
+         (entry (or (assoc (if ignore-case (downcase item) item) completions)
+                    (assoc-ignore-case item completions)
+                    (error "Not documented as a %s: %s" topic (or item ""))))
+         (modes (info-lookup->all-modes topic mode))
+         (window (selected-window))
+         found doc-spec node prefix suffix doc-found)
     (if (or (not info-lookup-other-window-flag)
 	    (eq (current-buffer) (get-buffer "*info*")))
 	(info)
@@ -357,7 +357,12 @@ If optional argument QUERY is non-nil, query for the help mode."
 		 nil))
 	  (condition-case nil
 	      (progn
-		(Info-menu (or (cdr entry) item))
+                ;; Don't use Info-menu, it forces case-fold-search to t
+                (let ((case-fold-search nil))
+                  (re-search-forward
+                   (concat "^\\* " (regexp-quote (or (cdr entry) (car entry)))
+                           ":")))
+                (Info-follow-nearest-node)
 		(setq found t)
 		(if (or prefix suffix)
 		    (let ((case-fold-search
@@ -365,12 +370,12 @@ If optional argument QUERY is non-nil, query for the help mode."
 			  (buffer-read-only nil))
 		      (goto-char (point-min))
 		      (re-search-forward
-		       (concat prefix (regexp-quote item) suffix))
+		       (concat prefix (regexp-quote (car entry)) suffix))
 		      (goto-char (match-beginning 0))
 		      (and (display-color-p) info-lookup-highlight-face
 			   ;; Search again for ITEM so that the first
 			   ;; occurrence of ITEM will be highlighted.
-			   (re-search-forward (regexp-quote item))
+			   (re-search-forward (regexp-quote (car entry)))
 			   (let ((start (match-beginning 0))
 				 (end (match-end 0)))
 			     (if (overlayp info-lookup-highlight-overlay)
@@ -383,6 +388,11 @@ If optional argument QUERY is non-nil, query for the help mode."
 	    (error nil)))
 	(setq doc-spec (cdr doc-spec)))
       (setq modes (cdr modes)))
+    ;; Alert the user if case was munged, and do this after bringing up the
+    ;; info buffer since that can print messages
+    (unless (or ignore-case
+                (string-equal item (car entry)))
+      (message "Found in different case: %s" (car entry)))
     (or doc-found
 	(error "Info documentation for lookup was not found"))
     ;; Don't leave the Info buffer if the help item couldn't be looked up.
@@ -672,7 +682,12 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'autoconf-mode
  :regexp "A[CM]_[_A-Z0-9]+"
- :doc-spec '(("(autoconf)Macro Index" "AC_"
+ :doc-spec '(("(autoconf)Autoconf Macro Index" "AC_"
+	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
+	     ("(automake)Macro and Variable Index" nil
+	      "^[ \t]*`" "'")
+	     ;; These are for older versions (probably pre autoconf 2.5x):
+	     ("(autoconf)Macro Index" "AC_"
 	      "^[ \t]+- \\(Macro\\|Variable\\): .*\\<" "\\>")
 	     ("(automake)Macro and Variable Index" nil
 	      "^[ \t]*`" "'"))
@@ -768,7 +783,7 @@ Return nil if there is nothing appropriate in the buffer near point."
 (info-lookup-maybe-add-help
  :mode 'octave-mode
  :regexp "[_a-zA-Z0-9]+"
- :doc-spec '(("(octave)Function Index" nil 
+ :doc-spec '(("(octave)Function Index" nil
 	      "^ - [^:]+:[ ]+\\(\\[[^=]*=[ ]+\\)?" nil)
 	     ("(octave)Variable Index" nil "^ - [^:]+:[ ]+" nil)
 	     ;; Catch lines of the form "xyz statement"
@@ -780,6 +795,52 @@ Return nil if there is nothing appropriate in the buffer near point."
 		 (t nil)))
 	      nil; "^ - [^:]+:[ ]+" don't think this prefix is useful here.
 	      nil)))
+
+;; coreutils and bash builtins overlap in places, eg. printf, so there's a
+;; question which should come first.  Some of the coreutils descriptions are
+;; more detailed, but if bash is usually /bin/sh on a GNU system then the
+;; builtins will be what's normally run.
+;;
+;; Maybe special variables like $? should be matched as $?, not just ?.
+;; This would avoid a clash between variable $! and negation !, or variable
+;; $# and comment # (though comment # is not currently indexed in bash).
+;; Unfortunately if $? etc is the symbol, then we wouldn't be taken to the
+;; exact spot in the relevant node, since the bash manual has just `?' etc
+;; there.  Maybe an extension to the prefix/suffix scheme could help this.
+
+(info-lookup-maybe-add-help
+ :mode 'sh-mode :topic 'symbol
+ ;; bash has "." and ":" in its index, but those chars will probably never
+ ;; work in info, so don't bother matching them in the regexp.
+ :regexp "\\([a-zA-Z0-9_-]+\\|[!{}@*#?$]\\|\\[\\[?\\|]]?\\)"
+ :doc-spec '(("(bash)Builtin Index"       nil "^`" "[ .']")
+             ("(bash)Reserved Word Index" nil "^`" "[ .']")
+             ("(bash)Variable Index"      nil "^`" "[ .']")
+             ;; coreutils (version 4.5.10) doesn't have a separate program
+             ;; index, so exclude extraneous stuff (most of it) by demanding
+             ;; "[a-z]+" in the trans-func.
+             ("(coreutils)Index"
+              (lambda (item) (if (string-match "\\`[a-z]+\\'" item) item)))
+             ;; diff (version 2.8.1) has only a few programs, index entries
+             ;; are things like "foo invocation".
+             ("(diff)Index"
+              (lambda (item)
+		(if (string-match "\\`\\([a-z]+\\) invocation\\'" item)
+                    (match-string 1 item))))
+             ;; there's no plain "sed" index entry as such, mung another
+             ;; hopefully unique one to get to the invocation section
+             ("(sed)Concept Index"
+              (lambda (item)
+                (if (string-equal item "Standard input, processing as input")
+                    "sed")))
+             ;; there's no plain "awk" or "gawk" index entries, mung other
+             ;; hopefully unique ones to get to the command line options
+             ("(gawk)Index"
+              (lambda (item)
+                (cond ((string-equal item "gawk, extensions, disabling")
+                       "awk")
+                      ((string-equal item "gawk, versions of, information about, printing")
+                       "gawk"))))))
 
 (provide 'info-look)
 

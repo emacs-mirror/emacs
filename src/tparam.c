@@ -169,7 +169,7 @@ tparam1 (string, outstring, len, up, left, argp)
 	      outlen *= 2;
 	      new = (char *) xrealloc (outstring, outlen);
 	    }
-	  
+
 	  op = new + offset;
 	  outend = new + outlen;
 	  outstring = new;

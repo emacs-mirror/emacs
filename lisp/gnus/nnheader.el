@@ -47,7 +47,18 @@
 (defvar nnheader-head-chop-length 2048
   "*Length of each read operation when trying to fetch HEAD headers.")
 
-(defvar nnheader-file-name-translation-alist nil
+(defvar nnheader-file-name-translation-alist
+  (let ((case-fold-search t))
+    (cond
+     ((string-match "windows-nt\\|os/2\\|emx\\|cygwin32"
+		    (symbol-name system-type))
+      (append (mapcar (lambda (c) (cons c ?_))
+		      '(?: ?* ?\" ?< ?> ??))
+	      (if (string-match "windows-nt\\|cygwin32"
+				(symbol-name system-type))
+		  nil
+		'((?+ . ?-)))))
+     (t nil)))
   "*Alist that says how to translate characters in file names.
 For instance, if \":\" is invalid as a file character in file names
 on your system, you could say something like:
@@ -589,7 +600,7 @@ the line could be found."
   "Regexp that matches numerical file names.")
 
 (defvar nnheader-numerical-full-files (concat "/" nnheader-numerical-files)
-  "Regexp that matches numerical full file paths.")
+  "Regexp that matches numerical full file names.")
 
 (defsubst nnheader-file-to-number (file)
   "Take a FILE name and return the article number."
@@ -642,12 +653,12 @@ If FULL, translate everything."
 	;; We translate -- but only the file name.  We leave the directory
 	;; alone.
 	(if (and (featurep 'xemacs)
-		 (memq system-type '(win32 w32 mswindows windows-nt)))
+		 (memq system-type '(win32 w32 mswindows windows-nt cygwin)))
 	    ;; This is needed on NT and stuff, because
 	    ;; file-name-nondirectory is not enough to split
 	    ;; file names, containing ':', e.g.
 	    ;; "d:\\Work\\News\\nntp+news.fido7.ru:fido7.ru.gnu.SCORE"
-	    ;; 
+	    ;;
 	    ;; we are trying to correctly split such names:
 	    ;; "d:file.name" -> "a:" "file.name"
 	    ;; "aaa:bbb.ccc" -> "" "aaa:bbb.ccc"
@@ -756,10 +767,10 @@ without formatting."
       (<= level gnus-verbose-backends)))
 
 (defvar nnheader-pathname-coding-system 'binary
-  "*Coding system for pathname.")
+  "*Coding system for file names.")
 
 (defun nnheader-group-pathname (group dir &optional file)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (concat
    (let ((dir (file-name-as-directory (expand-file-name dir))))
      ;; If this directory exists, we use it directly.

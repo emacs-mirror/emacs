@@ -1,5 +1,5 @@
 ;;; imap.el --- imap library
-;; Copyright (C) 1998, 1999, 2000
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -138,7 +138,6 @@
 
 (eval-when-compile (require 'cl))
 (eval-and-compile
-  (autoload 'open-ssl-stream "ssl")
   (autoload 'base64-decode-string "base64")
   (autoload 'base64-encode-string "base64")
   (autoload 'starttls-open-stream "starttls")
@@ -188,10 +187,10 @@ the list is tried until a successful connection is made."
   :group 'imap
   :type '(repeat string))
 
-(defcustom imap-ssl-program '("openssl s_client -ssl3 -connect %s:%p"
-			      "openssl s_client -ssl2 -connect %s:%p"
-			      "s_client -ssl3 -connect %s:%p"
-			      "s_client -ssl2 -connect %s:%p")
+(defcustom imap-ssl-program '("openssl s_client -quiet -ssl3 -connect %s:%p"
+			      "openssl s_client -quiet -ssl2 -connect %s:%p"
+			      "s_client -quiet -ssl3 -connect %s:%p"
+			      "s_client -quiet -ssl2 -connect %s:%p")
   "A string, or list of strings, containing commands for SSL connections.
 Within a string, %s is replaced with the server address and %p with
 port number on server.  The program should accept IMAP commands on
@@ -240,10 +239,10 @@ until a successful connection is made."
     (starttls  imap-starttls-p         imap-starttls-open))
   "Definition of network streams.
 
-(NAME CHECK OPEN)
+\(NAME CHECK OPEN)
 
 NAME names the stream, CHECK is a function returning non-nil if the
-server support the stream and OPEN is a function for opening the
+server supports the stream and OPEN is a function for opening the
 stream.")
 
 (defvar imap-authenticators '(gssapi
@@ -263,11 +262,11 @@ stream.")
     (digest-md5 imap-digest-md5-p     imap-digest-md5-auth))
   "Definition of authenticators.
 
-(NAME CHECK AUTHENTICATE)
+\(NAME CHECK AUTHENTICATE)
 
 NAME names the authenticator.  CHECK is a function returning non-nil if
 the server support the authenticator and AUTHENTICATE is a function
-for doing the actuall authentification.")
+for doing the actual authentication.")
 
 (defvar imap-use-utf7 t
   "If non-nil, do utf7 encoding/decoding of mailbox names.
@@ -367,7 +366,7 @@ human readable response text (a string).")
 
 (defvar imap-continuation nil
   "Non-nil indicates that the server emitted a continuation request.
-The actually value is really the text on the continuation line.")
+The actual value is really the text on the continuation line.")
 
 (defvar imap-log nil
   "Name of buffer for imap session trace.
@@ -569,18 +568,22 @@ If ARGS, PROMPT is used as an argument to `format'."
       (let* ((port (or port imap-default-ssl-port))
 	     (coding-system-for-read imap-coding-system-for-read)
 	     (coding-system-for-write imap-coding-system-for-write)
-	     (ssl-program-name shell-file-name)
-	     (ssl-program-arguments
-	      (list shell-command-switch
-		    (format-spec cmd (format-spec-make
-				      ?s server
-				      ?p (number-to-string port)))))
+	     (process-connection-type nil)
 	     process)
-	(when (setq process (ignore-errors (open-ssl-stream
-					    name buffer server port)))
+	(when (progn
+		(setq process (start-process 
+			       name buffer shell-file-name
+			       shell-command-switch
+			       (format-spec cmd 
+					    (format-spec-make
+					     ?s server
+					     ?p (number-to-string port)))))
+		(process-kill-without-query process)
+		process)
 	  (with-current-buffer buffer
 	    (goto-char (point-min))
 	    (while (and (memq (process-status process) '(open run))
+			(set-buffer buffer) ;; XXX "blue moon" nntp.el bug
 			(goto-char (point-max))
 			(forward-line -1)
 			(not (imap-parse-greeting)))
@@ -716,7 +719,7 @@ If ARGS, PROMPT is used as an argument to `format'."
 (defun imap-interactive-login (buffer loginfunc)
   "Login to server in BUFFER.
 LOGINFUNC is passed a username and a password, it should return t if
-it where sucessful authenticating itself to the server, nil otherwise.
+it where successful authenticating itself to the server, nil otherwise.
 Returns t if login was successful, nil otherwise."
   (with-current-buffer buffer
     (make-local-variable 'imap-username)
@@ -809,7 +812,7 @@ Returns t if login was successful, nil otherwise."
   t)
 
 (defun imap-anonymous-auth (buffer)
-  (message "imap: Loging in anonymously...")
+  (message "imap: Logging in anonymously...")
   (with-current-buffer buffer
     (imap-ok-p (imap-send-command-wait
 		(concat "LOGIN anonymous \"" (concat (user-login-name) "@"
@@ -882,7 +885,7 @@ AUTH indicates authenticator to use, see `imap-authenticators' for
 available authenticators.  If nil, it choices the best stream the
 server is capable of.
 BUFFER can be a buffer or a name of a buffer, which is created if
-necessery.  If nil, the buffer name is generated."
+necessary.  If nil, the buffer name is generated."
   (setq buffer (or buffer (format " *imap* %s:%d" server (or port 0))))
   (with-current-buffer (get-buffer-create buffer)
     (if (imap-opened buffer)
@@ -1216,7 +1219,7 @@ Returns non-nil if successful."
 ITEMS can be a symbol or a list of symbols, valid symbols are one of
 the STATUS data items -- ie 'messages, 'recent, 'uidnext, 'uidvalidity
 or 'unseen.  If ITEMS is a list of symbols, a list of values is
-returned, if ITEMS is a symbol only it's value is returned."
+returned, if ITEMS is a symbol only its value is returned."
   (with-current-buffer (or buffer (current-buffer))
     (when (imap-ok-p
 	   (imap-send-command-wait (list "STATUS \""

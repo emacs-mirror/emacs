@@ -71,7 +71,7 @@
 
 (defcustom icomplete-mode nil
   "*Toggle incremental minibuffer completion.
-As text is typed into the minibuffer, prospective completions are indicated 
+As text is typed into the minibuffer, prospective completions are indicated
 in the minibuffer.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `icomplete-mode'."

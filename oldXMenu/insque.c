@@ -13,7 +13,7 @@ struct qelem {
 /* Insert ELEM into a doubly-linked list, after PREV.  */
 
 void
-emacs_insque (elem, prev) 
+emacs_insque (elem, prev)
      struct qelem *elem, *prev;
 {
   struct qelem *next = prev->q_forw;

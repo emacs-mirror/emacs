@@ -57,6 +57,16 @@ enum vertical_scroll_bar_type
   vertical_scroll_bar_right
 };
 
+enum text_cursor_kinds
+{
+  DEFAULT_CURSOR = -2,
+  NO_CURSOR = -1,
+  FILLED_BOX_CURSOR,
+  HOLLOW_BOX_CURSOR,
+  BAR_CURSOR,
+  HBAR_CURSOR
+};
+
 #if !defined(MSDOS) && !defined(WINDOWSNT) && !defined(MAC_OS)
 
 #if !defined(HAVE_X_WINDOWS)
@@ -140,7 +150,7 @@ struct frame
      or modified with modify-frame-parameters.  */
   Lisp_Object param_alist;
 
-  /* List of scroll bars on this frame.  
+  /* List of scroll bars on this frame.
      Actually, we don't specify exactly what is stored here at all; the
      scroll bar implementation code can use it to store anything it likes.
      This field is marked by the garbage collector.  It is here
@@ -205,11 +215,16 @@ struct frame
      be used for output.  */
   unsigned glyphs_initialized_p : 1;
 
+#if defined (USE_GTK)
+  /* Nonzero means using a tool bar that comes from the toolkit.  */
+  int external_tool_bar;
+#endif
+
   /* Margin at the top of the frame.  Used to display the tool-bar.  */
   int tool_bar_lines;
 
   int n_tool_bar_items;
-  
+
   /* A buffer for decode_mode_line. */
   char *decode_mode_spec_buffer;
 
@@ -238,7 +253,7 @@ struct frame
 
   /* A structure of auxiliary data used for displaying the contents.
      struct x_output is used for X window frames;
-     it is defined in xterm.h.  
+     it is defined in xterm.h.
      struct w32_output is used for W32 window frames;
      it is defined in w32term.h.  */
   union output_data
@@ -260,7 +275,8 @@ struct frame
   /* Number of lines of menu bar.  */
   int menu_bar_lines;
 
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
   /* Nonzero means using a menu bar that comes from the X toolkit.  */
   int external_menu_bar;
 #endif
@@ -309,7 +325,7 @@ struct frame
   /* True if frame actually has a minibuffer window on it.
      0 if using a minibuffer window that isn't on this frame.  */
   char has_minibuffer;
-     
+
   /* 0 means, if this frame has just one window,
      show no modeline for that window.  */
   char wants_modeline;
@@ -321,6 +337,20 @@ struct frame
   /* If can_have_scroll_bars is non-zero, this is non-zero if we should
      actually display them on this frame.  */
   enum vertical_scroll_bar_type vertical_scroll_bar_type;
+
+  /* What kind of text cursor should we draw in the future?
+     This should always be filled_box_cursor or bar_cursor.  */
+  enum text_cursor_kinds desired_cursor;
+
+  /* Width of bar cursor (if we are using that).  */
+  int cursor_width;
+
+  /* What kind of text cursor should we draw when the cursor blinks off?
+     This can be filled_box_cursor or bar_cursor or no_cursor.  */
+  enum text_cursor_kinds blink_off_cursor;
+
+  /* Width of bar cursor (if we are using that) for blink-off state.  */
+  int blink_off_cursor_width;
 
   /* Non-0 means raise this frame to the top of the heap when selected.  */
   char auto_raise;
@@ -433,9 +463,18 @@ typedef struct frame *FRAME_PTR;
    These lines are counted in FRAME_HEIGHT.  */
 #define FRAME_MENU_BAR_LINES(f) (f)->menu_bar_lines
 
+/* Nonzero if this frame should display a tool bar
+   in a way that does not use any text lines.  */
+#if defined (USE_GTK)
+#define FRAME_EXTERNAL_TOOL_BAR(f) (f)->external_tool_bar
+#else
+#define FRAME_EXTERNAL_TOOL_BAR(f) 0
+#endif
+
 /* Number of lines of frame F used for the tool-bar.  */
 
 #define FRAME_TOOL_BAR_LINES(f) (f)->tool_bar_lines
+
 
 /* Lines above the top-most window in frame F.  */
 
@@ -444,7 +483,8 @@ typedef struct frame *FRAME_PTR;
 
 /* Nonzero if this frame should display a menu bar
    in a way that does not use any text lines.  */
-#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS)
+#if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
+    || defined (USE_GTK)
 #define FRAME_EXTERNAL_MENU_BAR(f) (f)->external_menu_bar
 #else
 #define FRAME_EXTERNAL_MENU_BAR(f) 0
@@ -485,8 +525,8 @@ typedef struct frame *FRAME_PTR;
 /* The currently selected window of the window tree of frame F.  */
 #define FRAME_SELECTED_WINDOW(f) (f)->selected_window
 
-#define FRAME_INSERT_COST(f) (f)->insert_line_cost    
-#define FRAME_DELETE_COST(f) (f)->delete_line_cost    
+#define FRAME_INSERT_COST(f) (f)->insert_line_cost
+#define FRAME_DELETE_COST(f) (f)->delete_line_cost
 #define FRAME_INSERTN_COST(f) (f)->insert_n_lines_cost
 #define FRAME_DELETEN_COST(f) (f)->delete_n_lines_cost
 #define FRAME_MESSAGE_BUF(f) (f)->message_buf
@@ -571,6 +611,11 @@ typedef struct frame *FRAME_PTR;
 #define FRAME_MENU_BAR_ITEMS(f) ((f)->menu_bar_items)
 #define FRAME_COST_BAUD_RATE(f) ((f)->cost_calculation_baud_rate)
 
+#define FRAME_DESIRED_CURSOR(f) ((f)->desired_cursor)
+#define FRAME_BLINK_OFF_CURSOR(f) ((f)->blink_off_cursor)
+#define FRAME_CURSOR_WIDTH(f) ((f)->cursor_width)
+#define FRAME_BLINK_OFF_CURSOR_WIDTH(f) ((f)->blink_off_cursor_width)
+
 /* Return a pointer to the face cache of frame F.  */
 
 #define FRAME_FACE_CACHE(F)	(F)->face_cache
@@ -578,7 +623,7 @@ typedef struct frame *FRAME_PTR;
 /* Return the size of message_buf of the frame F.  We multiply the
    width of the frame by 4 because multi-byte form may require at most
    4-byte for a character.  */
-     
+
 #define FRAME_MESSAGE_BUF_SIZE(f) (((int) (f)->width) * 4)
 
 /* Emacs's redisplay code could become confused if a frame's
@@ -604,7 +649,7 @@ typedef struct frame *FRAME_PTR;
    Also, if a frame used to be invisible, but has just become visible,
    it must be marked as garbaged, since redisplay hasn't been keeping
    up its contents.  */
-     
+
 #define FRAME_SAMPLE_VISIBILITY(f) \
   (((f)->async_visible && (f)->visible != (f)->async_visible) ? \
    SET_FRAME_GARBAGED (f) : 0, \
@@ -629,7 +674,7 @@ typedef struct frame *FRAME_PTR;
    loop will set FRAME_VAR, a Lisp_Object, to each frame in
    Vframe_list in succession and execute the statement.  LIST_VAR
    should be a Lisp_Object too; it is used to iterate through the
-   Vframe_list.  
+   Vframe_list.
 
    This macro is a holdover from a time when multiple frames weren't always
    supported.  An alternate definition of the macro would expand to
@@ -642,8 +687,7 @@ typedef struct frame *FRAME_PTR;
        list_var = XCDR (list_var))
 
 
-extern Lisp_Object Qframep, Qframe_live_p, Qicon;
-extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object Qframep, Qframe_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
@@ -663,6 +707,9 @@ extern Lisp_Object Vdefault_frame_alist;
 extern Lisp_Object Vterminal_frame;
 
 extern Lisp_Object Vmouse_highlight;
+
+enum text_cursor_kinds get_specified_cursor_type P_ ((Lisp_Object, int *));
+enum text_cursor_kinds get_window_cursor_type P_ ((struct window *, int *, int *));
 
 /* Device-independent scroll bar stuff.  */
 
@@ -683,7 +730,7 @@ extern Lisp_Object Vmouse_highlight;
 
 /* Return the height in lines of the vertical scroll bar in w.  If the
    window has a mode line, don't make the scroll bar extend that far.  */
-     
+
 #define WINDOW_VERTICAL_SCROLL_BAR_HEIGHT(w) (window_internal_height (w))
 
 /* The currently selected frame.  */
@@ -731,7 +778,7 @@ extern Lisp_Object selected_frame;
      (FRAME_WINDOW_P (F) ? FRAME_X_LEFT_FRINGE_WIDTH (F) : 0)
 #define FRAME_RIGHT_FRINGE_WIDTH(F) \
      (FRAME_WINDOW_P (F) ? FRAME_X_RIGHT_FRINGE_WIDTH (F) : 0)
-     
+
 #else /* not HAVE_WINDOW_SYSTEM */
 
 #define FRAME_FRINGE_WIDTH(F)	0
@@ -740,7 +787,7 @@ extern Lisp_Object selected_frame;
 #define FRAME_RIGHT_FRINGE_WIDTH(F) 0
 
 #endif /* not HAVE_WINDOW_SYSTEM */
-     
+
 
 
 
@@ -755,16 +802,16 @@ extern Lisp_Object selected_frame;
 /* Convert canonical value X to pixels.  F is the frame whose
    canonical char width is to be used.  X must be a Lisp integer or
    float.  Value is a C integer.  */
-     
+
 #define PIXEL_X_FROM_CANON_X(F, X)			\
      (INTEGERP (X)					\
       ? XINT (X) * CANON_X_UNIT (F)			\
       : (int) (XFLOAT_DATA (X) * CANON_X_UNIT (F)))
-      
+
 /* Convert canonical value Y to pixels.  F is the frame whose
    canonical character height is to be used.  X must be a Lisp integer
    or float.  Value is a C integer.  */
-     
+
 #define PIXEL_Y_FROM_CANON_Y(F, Y)			\
      (INTEGERP (Y)					\
       ? XINT (Y) * CANON_Y_UNIT (F)			\
@@ -788,6 +835,112 @@ extern Lisp_Object selected_frame;
 #define CANON_Y_FROM_PIXEL_Y(F, Y)			\
      ((Y) % CANON_Y_UNIT (F) 				\
       ? make_float ((double) (Y) / CANON_Y_UNIT (F))	\
-      : make_number ((Y) / CANON_Y_UNIT (F)))	
-			     
+      : make_number ((Y) / CANON_Y_UNIT (F)))
+
+
+/***********************************************************************
+				Frame Parameters
+ ***********************************************************************/
+
+extern Lisp_Object Qauto_raise, Qauto_lower;
+extern Lisp_Object Qborder_color, Qborder_width;
+extern Lisp_Object Qbuffer_predicate, Qbuffer_list;
+extern Lisp_Object Qcursor_color, Qcursor_type;
+extern Lisp_Object Qfont;
+extern Lisp_Object Qbackground_color, Qforeground_color;
+extern Lisp_Object Qicon, Qicon_name, Qicon_type, Qicon_left, Qicon_top;
+extern Lisp_Object Qinternal_border_width;
+extern Lisp_Object Qmenu_bar_lines, Qtool_bar_lines;
+extern Lisp_Object Qmouse_color;
+extern Lisp_Object Qname, Qtitle;
+extern Lisp_Object Qparent_id;
+extern Lisp_Object Qunsplittable, Qvisibility;
+extern Lisp_Object Qscroll_bar_width, Qvertical_scroll_bars;
+extern Lisp_Object Qscroll_bar_foreground, Qscroll_bar_background;
+extern Lisp_Object Qscreen_gamma;
+extern Lisp_Object Qline_spacing;
+extern Lisp_Object Qwait_for_wm;
+extern Lisp_Object Qfullscreen;
+
+extern Lisp_Object Qleft_fringe, Qright_fringe;
+extern Lisp_Object Qheight, Qwidth;
+extern Lisp_Object Qminibuffer, Qmodeline;
+extern Lisp_Object Qonly;
+extern Lisp_Object Qx, Qw32, Qmac, Qpc;
+extern Lisp_Object Qvisible;
+extern Lisp_Object Qdisplay_type;
+extern Lisp_Object Qbackground_mode;
+
+extern Lisp_Object Qx_resource_name;
+
+extern Lisp_Object Qleft, Qright, Qtop, Qbox;
+extern Lisp_Object Qdisplay;
+
+#ifdef HAVE_WINDOW_SYSTEM
+
+/* The class of this X application.  */
+#define EMACS_CLASS "Emacs"
+
+enum
+{
+  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
+  FULLSCREEN_NONE       = 0,
+  FULLSCREEN_WIDTH      = 1,
+  FULLSCREEN_HEIGHT     = 2,
+  FULLSCREEN_BOTH       = 3,
+  FULLSCREEN_WAIT       = 4,
+  FULLSCREEN_MOVE_WAIT  = 8,
+};
+
+
+/* These are in xterm.c, w32term.c, etc.  */
+
+extern void x_set_scroll_bar_default_width P_ ((struct frame *));
+extern void x_set_offset P_ ((struct frame *, int, int, int));
+extern void x_wm_set_icon_position P_ ((struct frame *, int, int));
+
+extern Lisp_Object x_new_font P_ ((struct frame *, char *));
+extern Lisp_Object x_new_fontset P_ ((struct frame *, char *));
+
+
+/* These are in frame.c  */
+
+extern Lisp_Object Vx_resource_name;
+extern Lisp_Object Vx_resource_class;
+
+
+extern Lisp_Object Qface_set_after_frame_default;
+
+extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
+				     int *, int *));
+
+extern void x_set_frame_parameters P_ ((struct frame *, Lisp_Object));
+extern void x_report_frame_params P_ ((struct frame *, Lisp_Object *));
+
+extern void x_set_fullscreen P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_line_spacing P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_screen_gamma P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_font P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_fringe_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_border_width P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_internal_border_width P_ ((struct frame *, Lisp_Object,
+					     Lisp_Object));
+extern void x_set_visibility P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_autoraise P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_autolower P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_unsplittable P_ ((struct frame *, Lisp_Object, Lisp_Object));
+extern void x_set_vertical_scroll_bars P_ ((struct frame *, Lisp_Object,
+					    Lisp_Object));
+extern void x_set_scroll_bar_width P_ ((struct frame *, Lisp_Object,
+					Lisp_Object));
+
+extern Lisp_Object x_icon_type P_ ((struct frame *));
+
+extern int x_figure_window_size P_ ((struct frame *, Lisp_Object, int));
+
+
+extern void validate_x_resource_name P_ ((void));
+
+#endif /* HAVE_WINDOW_SYSTEM */
+
 #endif /* not EMACS_FRAME_H */

@@ -2,17 +2,17 @@
 #  Copyright (c) 2000-2001 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
-#  
+#
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2, or (at your option)
 #  any later version.
-#  
+#
 #  GNU Emacs is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to the
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -27,6 +27,7 @@ SQUOTE='
 # '
 
 lisp = $(CURDIR)
+srcdir = $(CURDIR)/..
 
 # You can specify a different executable on the make command line,
 # e.g. "make EMACS=../src/emacs ...".
@@ -45,13 +46,15 @@ lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
 
-# Files which should not be compiled.
+# Files which should not be compiled.  If you change the name `DONTCOMPILE'
+# to something different, you'll have to change make-dist as well, and
+# modify the lists in $lisp and $shortlisp on src/Makefile.in.
+#
 # - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
 #   no point compiling it, although it doesn't hurt.
 
 DONTCOMPILE = \
 	$(lisp)/cus-load.el \
-	$(lisp)/cus-start.el \
 	$(lisp)/emacs-lisp/cl-specs.el \
 	$(lisp)/eshell/esh-maint.el \
 	$(lisp)/eshell/esh-groups.el \
@@ -67,6 +70,22 @@ DONTCOMPILE = \
 	$(lisp)/international/latin-8.el \
 	$(lisp)/international/latin-9.el \
 	$(lisp)/international/mule-conf.el \
+	$(lisp)/language/czech.el \
+	$(lisp)/language/devanagari.el \
+	$(lisp)/language/malayalam.el \
+	$(lisp)/language/tamil.el \
+	$(lisp)/language/english.el \
+	$(lisp)/language/greek.el \
+	$(lisp)/language/hebrew.el \
+	$(lisp)/language/japanese.el \
+	$(lisp)/language/korean.el \
+	$(lisp)/language/lao.el \
+	$(lisp)/language/misc-lang.el \
+	$(lisp)/language/romanian.el \
+	$(lisp)/language/slovak.el \
+	$(lisp)/language/thai.el \
+	$(lisp)/language/utf-8-lang.el \
+	$(lisp)/language/georgian.el \
 	$(lisp)/loaddefs.el \
 	$(lisp)/loadup.el \
 	$(lisp)/mail/blessmail.el \
@@ -94,7 +113,6 @@ DONTCOMPILE = \
 	$(lisp)/term/vt400.el \
 	$(lisp)/term/vt420.el \
 	$(lisp)/term/wyse50.el \
-	$(lisp)/term/xterm.el \
 	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done to
@@ -125,6 +143,7 @@ setwins=subdirs=`find $$wd -type d -print`; \
 
 # Have to define the list of subdirs manually when not using sh.
 WINS=\
+	calc \
 	calendar \
 	emacs-lisp \
 	emulation \
@@ -133,7 +152,9 @@ WINS=\
 	international \
 	language \
 	mail \
+	mh-e \
 	net \
+	obsolete \
 	play \
 	progmodes \
 	term \
@@ -148,17 +169,44 @@ custom-deps: cus-load.el doit
 	@echo Directories: $(WINS)
 	-$(emacs) -l cus-dep --eval $(ARGQUOTE)(setq find-file-hooks nil)$(ARGQUOTE) -f custom-make-dependencies $(lisp) $(WINS)
 
-finder-inf.el:
-	echo (provide $(SQUOTE)finder-inf)>> $@
-
-finder-data: finder-inf.el doit
+finder-data: doit
 	@echo Directories: $(WINS)
 	$(emacs) -l finder -f finder-compile-keywords-make-dist $(lisp) $(WINS)
 
 loaddefs.el:
+	$(MAKE) $(MFLAGS) loaddefs.el-$(SHELLTYPE)
+	cp loaddefs.el-$(SHELLTYPE) $@
+	rm loaddefs.el-$(SHELLTYPE)
+
+loaddefs.el-SH:
+	echo ";;; loaddefs.el --- automatically extracted autoloads" > $@
+	echo ";;" >> $@; echo ";;; Code:" >> $@
+	echo "(autoload 'define-minor-mode \"easy-mmode\")" >>$@
+	echo "(autoload 'define-ccl-program \"ccl\")" >>$@
+	echo "(autoload 'regexp-opt \"regexp-opt\")" >>$@
+	echo "(autoload 'string-to-list \"mule-util\")" >>$@
+	echo "(autoload 'define-derived-mode \"derived\")" >>$@
+	echo "(autoload 'encoded-kbd-mode \"encoded-kb\")" >>$@
+	echo "(defvar cvs-global-menu nil)" >>$@
+	echo "" >> $@
+	echo ";;; Local Variables:" >> $@
+	echo ";;; version-control: never" >> $@
+	echo ";;; no-byte-compile: t" >> $@
+	echo ";;; no-update-autoloads: t" >> $@
+	echo ";;; End:" >> $@
+	echo ";;; loaddefs.el ends here" >> $@
+
+loaddefs.el-CMD:
 	echo ;;; loaddefs.el --- automatically extracted autoloads> $@
 	echo ;;; Code:>> $@
-	echo >> $@
+	echo (autoload 'define-minor-mode "easy-mmode")>> $@
+	echo (autoload 'define-ccl-program "ccl")>> $@
+	echo (autoload 'regexp-opt "regexp-opt")>> $@
+	echo (autoload 'string-to-list "mule-util")>> $@
+	echo (autoload 'define-derived-mode "derived")>> $@
+	echo (autoload 'encoded-kbd-mode "encoded-kb")>> $@
+	echo (defvar cvs-global-menu nil)>> $@
+	echo.>> $@
 	echo ;;; Local Variables:>> $@
 	echo ;;; version-control: never>> $@
 	echo ;;; no-byte-compile: t>> $@
@@ -182,25 +230,31 @@ subdirs.el:
 update-subdirs: update-subdirs-$(SHELLTYPE)
 
 update-subdirs-CMD: doit
-	@set QWINS=
-	@for %d in ($(WINS)) do if not (%d)==(term) set QWINS=%QWINS% "%d"
-	echo ;; In load-path, after this directory should come> subdirs.el
+	echo ;; -*- no-byte-compile: t -*->subdirs.el
+	echo ;; In load-path, after this directory should come>> subdirs.el
 	echo ;; certain of its subdirectories.  Here we specify them.>> subdirs.el
-	echo (normal-top-level-add-to-load-path $(SQUOTE)(%QWINS%))>> subdirs.el
+	echo (normal-top-level-add-to-load-path $(SQUOTE)(>> subdirs.el
+	@for %d in ($(WINS)) do if not (%d)==(term) echo "%d">> subdirs.el
+	echo ))>> subdirs.el
 
 update-subdirs-SH: doit
-	wd=$(lisp); $(setwins); \
-	for file in $$wins; do \
+	$(srcdir)/update-subdirs $(lisp); \
+	for file in $(WINS); do \
 	   $(srcdir)/update-subdirs $$file; \
 	done;
 
 updates: update-subdirs autoloads finder-data custom-deps
 
+# Update the AUTHORS file.
+
+update-authors:
+	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	$(ETAGS) $(lisptagsfiles1) $(lisptagsfiles2)
 
-TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
-	$(ETAGS) -o TAGS-LISP $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
+TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
+	$(ETAGS) -o TAGS-LISP $(lisptagsfiles1) $(lisptagsfiles2)
 
 .SUFFIXES: .elc .el
 
@@ -210,8 +264,10 @@ TAGS-LISP: $(lispsource)$(lisptagsfiles1) $(lispsource)$(lisptagsfiles2)
 $(DONTCOMPILE:.el=.elc):
 	-$(DEL) $@
 
-# Compile all Lisp files, except those from DONTCOMPILE.  This
-# compiles files unconditionally.  All .elc files are made writable
+# Compile all Lisp files, except those from DONTCOMPILE,
+# but don't recompile those that are up to date.
+
+# All .elc files are made writable
 # before compilation in case we checked out read-only (CVS option -r).
 # Files MUST be compiled one by one.  If we compile several files in a
 # row we can't make sure that the compilation environment is clean.
@@ -220,24 +276,62 @@ $(DONTCOMPILE:.el=.elc):
 # load's in the files being compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
-compile-files: subdirs.el compile-files-$(SHELLTYPE) doit
+compile: subdirs.el compile-$(SHELLTYPE) doit
 
-compile-files-CMD:
+compile-CMD:
+#	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
+	for %f in ($(COMPILE_FIRST)) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f
+	for %f in (. $(WINS)) do for %g in (%f/*.el) do \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done %f/%g
+
+compile-SH:
+#	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
+	for el in $(COMPILE_FIRST); do \
+	  echo Compiling $$el; \
+	  $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
+	done
+	for dir in $(lisp) $(WINS); do \
+	  for el in $$dir/*.el; do \
+	    if test -f $$el; \
+	    then \
+	      echo Compiling $$el; \
+	      $(emacs) -l loaddefs -f batch-byte-compile-if-not-done $$el; \
+	    fi \
+	  done; \
+	done
+
+# Compile all Lisp files, except those from DONTCOMPILE.  This
+# is like `compile' but compiles files unconditionally.
+compile-always: subdirs.el compile-always-$(SHELLTYPE) doit
+
+compile-always-CMD:
 #	-for %f in ($(lisp) $(WINS)) do for %g in (%f\*.elc) do @attrib -r %g
 	for %f in ($(COMPILE_FIRST)) do $(emacs) -f batch-byte-compile %f
 	for %f in (. $(WINS)) do for %g in (%f/*.el) do $(emacs) -f batch-byte-compile %f/%g
 
-compile-files-SH:
+compile-always-SH:
 #	for elc in $(lisp)/*.elc $(lisp)/*/*.elc; do attrib -r $$elc; done
 	for el in $(COMPILE_FIRST); do \
 	  echo Compiling $$el; \
-	  $(emacs) -f batch-byte-compile $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 	for dir in $(lisp) $(WINS); do \
 	  for el in $$dir/*.el; do \
 	    echo Compiling $$el; \
-	    $(emacs) -f batch-byte-compile $$el; \
+	    $(emacs) -f batch-byte-compile $$el || exit 1; \
 	  done; \
+	done
+
+compile-calc: compile-calc-$(SHELLTYPE)
+
+compile-calc-CMD:
+	for %f in ($(lisp)/calc/*.el) do $(emacs) -f batch-byte-compile %f
+
+compile-calc-SH:
+	for el in $(lisp)/calc/*.el; do \
+	  echo Compiling $$el; \
+	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
 
 # Backup compiled Lisp files in elc.tar.gz.  If that file already
@@ -249,14 +343,14 @@ backup-compiled-files:
 
 # Compile Lisp files, but save old compiled files first.
 
-compile: backup-compiled-files compile-files
+compile-after-backup: backup-compiled-files compile-always
 
 # Recompile all Lisp files which are newer than their .elc files.
 # Note that this doesn't create .elc files.  It only recompiles if an
 # .elc is present.
 
 recompile: doit
-	$(emacs) -f batch-byte-recompile-directory .
+	$(emacs) -f batch-byte-recompile-directory $(lisp)
 
 # Prepare a bootstrap in the lisp subdirectory.  Build loaddefs.el,
 # because it's not sure it's up-to-date, and if it's not, that might
@@ -265,7 +359,7 @@ recompile: doit
 # bootstrap-emacs will be built from sources only.
 
 # Need separate version for sh and native cmd.exe
-bootstrap-clean: bootstrap-clean-$(SHELLTYPE)
+bootstrap-clean: bootstrap-clean-$(SHELLTYPE) loaddefs.el
 
 bootstrap-clean-CMD:
 #	if exist $(EMACS) $(MAKE) $(MFLAGS) autoloads
@@ -278,7 +372,7 @@ bootstrap-clean-SH:
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: autoloads compile-files custom-deps
+bootstrap: update-subdirs autoloads compile finder-data custom-deps
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it
@@ -309,6 +403,6 @@ install:
 
 #
 # Maintenance
-# 
+#
 clean:
 		- $(DEL) *~

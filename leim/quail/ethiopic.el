@@ -30,7 +30,7 @@
 
 (require 'quail)
 (require 'ethio-util)
-		
+
 ;;
 ;; The package "ethiopic"
 ;;
@@ -342,7 +342,7 @@ C-' or `M-x ethio-gemination'
  ("qqee" ?$(3%-(B)
  ("qq" ?$(3%.(B)
  ("qqo" ?$(3%/(B)
- 
+
  ("Qe" ?$(3!q(B)
  ("Qu" ?$(3!r(B)
  ("Qi" ?$(3!s(B)
@@ -1141,7 +1141,7 @@ C-' or `M-x ethio-gemination'
 
 (defun ethio-select-a-translation ()
   ;; The translation of `a' depends on the language
-  ;; (either Tigrigna or Amharic). 
+  ;; (either Tigrigna or Amharic).
   (quail-defrule "a"
 		 (if (ethio-prefer-amharic-p) ?$(3"c(B ?$(3"f(B)
 		 "ethiopic"))

@@ -158,7 +158,7 @@ Redisplay does not happen if input is available before it starts.  */)
 {
   struct timeval Timeout;
   int waitmask = 1;
-  
+
   CHECK_NUMBER (n);
   Timeout.tv_sec = XINT(n) / 1000;
   Timeout.tv_usec = (XINT(n) - (Timeout.tv_sec * 1000)) * 1000;
@@ -178,7 +178,7 @@ Redisplay does not happen if input is available before it starts.  */)
 /*
  *   Sun sleep-for (allows a shorter interval than the regular sleep-for)
  */
-DEFUN ("sleep-for-millisecs", 
+DEFUN ("sleep-for-millisecs",
        Fsleep_for_millisecs,
        Ssleep_for_millisecs, 1, 1, 0,
        doc: /* Pause, without updating display, for ARG milliseconds.  */)
@@ -220,12 +220,12 @@ expressed as a string.  If ICON is nil then the original arrow cursor is used.  
   register short *p;
   register int i;
   Lisp_Object X_Hot, Y_Hot, Data;
-  
+
   CHECK_GFX (Qnil);
   /*
    *	If the icon is null, we just restore the DefaultCursor
    */
-  if (NILP(Icon)) 
+  if (NILP(Icon))
     CurrentCursor = DefaultCursor;
   else {
     /*
@@ -236,17 +236,17 @@ expressed as a string.  If ICON is nil then the original arrow cursor is used.  
     X_Hot = XVECTOR(Icon)->contents[0];
     Y_Hot = XVECTOR(Icon)->contents[1];
     Data = XVECTOR(Icon)->contents[2];
-    
+
     CHECK_NUMBER (X_Hot);
     CHECK_NUMBER (Y_Hot);
     CHECK_STRING (Data);
-    if (XSTRING(Data)->size != 32) return(Qnil);
+    if (SCHARS (Data) != 32) return(Qnil);
     /*
      *	Setup the new cursor
      */
     NewCursor.cur_xhot = X_Hot;
     NewCursor.cur_yhot = Y_Hot;
-    cp = XSTRING(Data)->data;
+    cp = SDATA (Data);
     p = CursorData;
     i = 16;
     while(--i >= 0)
@@ -267,7 +267,7 @@ sel_write (sel, file)
      struct selection *sel;
      FILE *file;
 {
-  fwrite (XSTRING (Current_Selection)->data, sizeof (char), 
+  fwrite (SDATA (Current_Selection), sizeof (char),
 	  sel->sel_items, file);
 }
 
@@ -285,7 +285,7 @@ sel_read (sel, file)
 {
   register int i, n;
   register char *cp;
-  
+
   Current_Selection = make_string ("", 0);
   if (sel->sel_items <= 0)
     return (0);
@@ -306,7 +306,7 @@ sel_read (sel, file)
    * The shelltool select saves newlines as carriage returns,
    * but emacs wants newlines.
    */
-  for (i = 0; i < n; i++) 
+  for (i = 0; i < n; i++)
     if (cp[i] == '\r') cp[i] = '\n';
 
   Current_Selection = make_string (cp, n);
@@ -330,7 +330,7 @@ DEFUN ("sun-set-selection", Fsun_set_selection, Ssun_set_selection, 1, 1,
 
   CHECK_GFX (Qnil);
   selection.sel_type = SELTYPE_CHAR;
-  selection.sel_items = XSTRING (str)->size;
+  selection.sel_items = SCHARS (str);
   selection.sel_itembytes = 1;
   selection.sel_pubflags = 1;
   selection_set(&selection, sel_write, sel_clear, win_fd);
@@ -371,24 +371,24 @@ sun_item_create (Pair)
   if (VECTORP (Value)) {
     submenu = sun_menu_create (Value);
     menu_item = menu_create_item
-      (MENU_RELEASE, MENU_PULLRIGHT_ITEM, XSTRING(String)->data, submenu, 0);
+      (MENU_RELEASE, MENU_PULLRIGHT_ITEM, SDATA (String), submenu, 0);
   } else {
     menu_item = menu_create_item
-      (MENU_RELEASE, MENU_STRING_ITEM, XSTRING(String)->data, Value, 0);
+      (MENU_RELEASE, MENU_STRING_ITEM, SDATA (String), Value, 0);
   }
   return menu_item;
 }
 
-Menu 
+Menu
 sun_menu_create (Vector)
      Lisp_Object Vector;
 {
   Menu menu;
   int i;
   CHECK_VECTOR(Vector);
-  menu=menu_create(0); 
+  menu=menu_create(0);
   for(i = 0; i < XVECTOR(Vector)->size; i++) {
-    menu_set (menu, MENU_APPEND_ITEM, 
+    menu_set (menu, MENU_APPEND_ITEM,
 	      sun_item_create(XVECTOR(Vector)->contents[i]), 0);
   }
   return menu;
@@ -445,7 +445,7 @@ as a menu label.  */)
   Event event0;
   Event *event = &event0;
   Lisp_Object Value, Pair;
-  
+
   CHECK_NUMBER(X_Position);
   CHECK_NUMBER(Y_Position);
   CHECK_LIVE_WINDOW(window);

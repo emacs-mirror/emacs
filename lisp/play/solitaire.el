@@ -1,6 +1,6 @@
 ;;; solitaire.el --- game of solitaire in Emacs Lisp
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2003 Free Software Foundation, Inc.
 
 ;; Author: Jan Schormann <Jan.Schormann@rechen-gilde.de>
 ;; Created: Fri afternoon, Jun  3,  1994
@@ -55,8 +55,7 @@
   (define-key solitaire-mode-map "\C-p" 'solitaire-up)
   (define-key solitaire-mode-map "\C-n" 'solitaire-down)
   (define-key solitaire-mode-map [return] 'solitaire-move)
-  (substitute-key-definition 'undo 'solitaire-undo
-			     solitaire-mode-map global-map)
+  (define-key solitaire-mode-map [remap undo] 'solitaire-undo)
   (define-key solitaire-mode-map " " 'solitaire-do-check)
   (define-key solitaire-mode-map "q" 'quit-window)
 
@@ -77,9 +76,9 @@
   (define-key solitaire-mode-map [kp-5] 'solitaire-center-point)
 
   (define-key solitaire-mode-map [S-kp-6] 'solitaire-move-right)
-  (define-key solitaire-mode-map [S-kp-4] 'solitaire-move-left) 
-  (define-key solitaire-mode-map [S-kp-8] 'solitaire-move-up)   
-  (define-key solitaire-mode-map [S-kp-2] 'solitaire-move-down) 
+  (define-key solitaire-mode-map [S-kp-4] 'solitaire-move-left)
+  (define-key solitaire-mode-map [S-kp-8] 'solitaire-move-up)
+  (define-key solitaire-mode-map [S-kp-2] 'solitaire-move-down)
 
   (define-key solitaire-mode-map [kp-enter] 'solitaire-move)
   (define-key solitaire-mode-map [kp-0] 'solitaire-undo)
@@ -155,22 +154,22 @@ I don't know who invented this game, but it seems to be rather old and
 its origin seems to be northern Africa.  Here's how to play:
 Initially, the board will look similar to this:
 
-	Le Solitaire             
-	============             
-	
-		o   o   o        
-	
-		o   o   o        
-	
+	Le Solitaire
+	============
+
+		o   o   o
+
+		o   o   o
+
 	o   o   o   o   o   o   o
-	
+
 	o   o   o   .   o   o   o
-	
+
 	o   o   o   o   o   o   o
-	
-		o   o   o        
-	
-		o   o   o        
+
+		o   o   o
+
+		o   o   o
 
 Let's call the o's stones and the .'s holes.  One stone fits into one
 hole.  As you can see, all holes but one are occupied by stones.  The
@@ -187,18 +186,18 @@ which therefore is taken away.  The above thus `evaluates' to:  .  .  o
 
 That's all.  Here's the board after two moves:
 
-		o   o   o        
-	
-		.   o   o        
-	
+		o   o   o
+
+		.   o   o
+
 	o   o   .   o   o   o   o
-	
+
 	o   .   o   o   o   o   o
-	
+
 	o   o   o   o   o   o   o
-	
-		o   o   o        
-	
+
+		o   o   o
+
 		o   o   o
 
 Pick your favourite shortcuts:
@@ -313,7 +312,7 @@ Pick your favourite shortcuts:
 		(not (eolp))))
     (if (or (= 0 (following-char))
 	    (= ?\  (following-char))
-	    (= ?\n (following-char)))	
+	    (= ?\n (following-char)))
 	(goto-char start))))
 
 (defun solitaire-center-point ()
@@ -355,7 +354,7 @@ which a stone will be taken away) and target."
 	(error class)
       (let ((start (car class))
 	    (skip (car (cdr class)))
-	    (target (car (cdr (cdr class)))))	
+	    (target (car (cdr (cdr class)))))
 	(goto-char start)
 	(delete-char 1)
 	(insert ?.)
@@ -386,7 +385,7 @@ which a stone will be taken away) and target."
 		   (<= (solitaire-current-line) solitaire-end-y)
 		   (setq count (1+ count))))
 	    count)))
-  (solitaire-build-modeline)  
+  (solitaire-build-modeline)
   (if solitaire-auto-eval (solitaire-do-check)))
 
 (defun solitaire-check ()

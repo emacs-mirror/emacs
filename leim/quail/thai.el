@@ -82,12 +82,12 @@ The difference from the ordinal Thai keyboard:
     Don't know where to assign characters ',Tz(B' and ',T{(B'."
  nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
-(quail-install-map 
+(quail-install-map
  (thai-generate-quail-map
   [
    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes
    0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes
-   0   "#" ",TF(B" ",Tr(B" ",Ts(B" ",Tt(B" ",TQi(B" ",T'(B"	; SPC .. '
+   0   "#" "." ",Tr(B" ",Ts(B" ",Tt(B" ",TQi(B" ",T'(B"	; SPC .. '
    ",Tv(B" ",Tw(B" ",Tu(B" ",Ty(B" ",TA(B" ",T"(B" ",Tc(B" ",T=(B"	; ( .. /
    ",T((B" ",TE(B" "/" "_" ",T@(B" ",T6(B" ",TX(B" ",TV(B"	; 0 .. 7
    ",T$(B" ",T5(B" ",T+(B" ",TG(B" ",T2(B" ",T*(B" ",TL(B" ",TF(B"	; 8 .. ?
@@ -98,7 +98,7 @@ The difference from the ordinal Thai keyboard:
    ",T#(B" ",T?(B" ",TT(B" ",Ta(B" ",T!(B" ",TS(B" ",T4(B" ",T`(B"	; ` .. g
    ",Ti(B" ",TC(B" ",Th(B" ",TR(B" ",TJ(B" ",T7(B" ",TW(B" ",T9(B"	; h .. o
    ",TB(B" ",Tf(B" ",T>(B" ",TK(B" ",TP(B" ",TU(B" ",TM(B" ",Td(B"	; p .. w
-   ",T;(B" ",TQ(B" ",T<(B" ",T0(B" ",To(B" "." ",T%(B" 0	; x .. DEL
+   ",T;(B" ",TQ(B" ",T<(B" ",T0(B" ",To(B" "," ",T%(B" 0	; x .. DEL
    ]))
 
 
@@ -110,7 +110,7 @@ The difference from the ordinal Thai keyboard:
  "Thai Pattachote input method with TIS620 keyboard layout"
  nil t t t t nil nil nil 'quail-thai-update-translation nil t)
 
-(quail-install-map 
+(quail-install-map
  (thai-generate-quail-map
   [ 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes
     0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0	; control codes

@@ -7,7 +7,7 @@
 ;; Date: 1994/08/18 19:27:42
 ;; Keywords: dired extensions files
 
-;; Copyright (C) 1993, 1994, 1997, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1997, 2001, 2003 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -33,9 +33,9 @@
 ;; been removed or renamed in order to work properly with dired of GNU
 ;; Emacs.  All suggestions or comments are most welcomed.
 
-;;  
+;;
 ;; Please, PLEASE, *PLEASE* see the info pages.
-;; 
+;;
 
 ;; BUGS: Type M-x dired-x-submit-report and a report will be generated.
 
@@ -470,8 +470,8 @@ buffer and try again."
 (defvar dired-omit-localp 'no-dir
   "The LOCALP argument `dired-omit-expunge' passes to `dired-get-filename'.
 If it is 'no-dir, omitting is much faster, but you can only match
-against the basename of the file.  Set it to nil if you need to match the
-whole pathname.")
+against the non-directory part of the file name.  Set it to nil if you
+need to match the entire file name.")
 
 ;; \017=^O for Omit - other packages can chose other control characters.
 (defvar dired-omit-marker-char ?\017
@@ -570,7 +570,7 @@ This functions works by temporarily binding `dired-marker-char' to
 ;; Returns t if any work was done, nil otherwise.
 (defun dired-mark-unmarked-files (regexp msg &optional unflag-p localp)
   "Mark unmarked files matching REGEXP, displaying MSG.
-REGEXP is matched against the complete pathname.
+REGEXP is matched against the entire file name.
 Does not re-mark files which already have a mark.
 With prefix argument, unflag all those files.
 Second optional argument LOCALP is as in `dired-get-filename'."
@@ -998,11 +998,15 @@ You can set this variable in your ~/.emacs.  For example, to add rules for
   :group 'dired-x
   :type '(alist :key-type regexp :value-type (repeat sexp)))
 
+(defvar dired-guess-shell-case-fold-search nil
+  "*If non-nil, `dired-guess-shell-alist-default' and
+`dired-guess-shell-alist-user' are matched case-insensitively.")
+
 (defun dired-guess-default (files)
   "Guess a shell commands for FILES.  Return command or list of commands.
 See `dired-guess-shell-alist-user'."
 
-  (let* ((case-fold-search nil) ; case-sensitive matching
+  (let* ((case-fold-search dired-guess-shell-case-fold-search)
          ;; Prepend the user's alist to the default alist.
          (alist (append dired-guess-shell-alist-user
                         dired-guess-shell-alist-default))
@@ -1122,7 +1126,7 @@ results in
           file2 (expand-file-name file2)
           len1 (length file1)
           len2 (length file2))
-    ;; Find common initial pathname components:
+    ;; Find common initial file name components:
     (let (next)
       (while (and (setq next (string-match "/" file1 index))
                   (setq next (1+ next))
@@ -1140,7 +1144,7 @@ results in
             sub (substring file1 0 index)
             name1 (substring file1 index)))
     (if (string-equal sub "/")
-        ;; No common initial pathname found
+        ;; No common initial file name found
         (setq name1 file1)
       ;; Else they have a common parent directory
       (let ((tem (substring file2 index))
@@ -1168,19 +1172,19 @@ This creates relative symbolic links like
 
 not absolute ones like
 
-    foo -> /ugly/path/that/may/change/any/day/bar/foo"
+    foo -> /ugly/file/name/that/may/change/any/day/bar/foo"
   (interactive "P")
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))
 
-(defun dired-do-relsymlink-regexp (regexp newname &optional whole-path)
+(defun dired-do-relsymlink-regexp (regexp newname &optional whole-name)
   "RelSymlink all marked files containing REGEXP to NEWNAME.
 See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
 for more info."
   (interactive (dired-mark-read-regexp "RelSymLink"))
   (dired-do-create-files-regexp
    (function dired-make-relative-symlink)
-   "RelSymLink" nil regexp newname whole-path dired-keep-marker-relsymlink))
+   "RelSymLink" nil regexp newname whole-name dired-keep-marker-relsymlink))
 
 
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
@@ -1560,15 +1564,14 @@ to test if that file exists.  Use minibuffer after snatching filename."
   (find-file-other-window (expand-file-name filename)))
 
 ;;; Internal functions.
-(defun dired-filename-at-point ()
 
+;; Fixme: This should probably use `thing-at-point'.  -- fx
+(defun dired-filename-at-point ()
   "Get the filename closest to point, but do not change position.
 Has a preference for looking backward when not directly on a symbol.  Not
 perfect - point must be in middle of or end of filename."
 
-  (let ((filename-chars ".a-zA-Z0-9---_/:$+@") ; fixme: allow non-ASCII
-        (bol (save-excursion (beginning-of-line) (point)))
-        (eol (save-excursion (end-of-line) (point)))
+  (let ((filename-chars "-.[:alnum:]_/:$+@")
         start end filename prefix)
 
     (save-excursion
@@ -1583,16 +1586,19 @@ perfect - point must be in middle of or end of filename."
       (if (string-match (concat "[" filename-chars "]")
                         (char-to-string (following-char)))
           (progn
-            (skip-chars-backward filename-chars)
+            (if (re-search-backward (concat "[^" filename-chars "]") nil t)
+		(forward-char)
+	      (goto-char (point-min)))
             (setq start (point))
 	    (setq prefix
-		  (and (string-match "^\\w+@" 
-				     (buffer-substring start eol))
+		  (and (string-match
+			"^\\w+@"
+			(buffer-substring start (line-beginning-position)))
 		       "/"))
             (goto-char start)
             (if (string-match "[/~]" (char-to-string (preceding-char)))
                 (setq start (1- start)))
-            (skip-chars-forward filename-chars))
+            (re-search-forward (concat "\\=[" filename-chars "]*") nil t))
 
         (error "No file found around point!"))
 

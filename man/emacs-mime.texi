@@ -5,21 +5,13 @@
 @synindex fn cp
 @synindex vr cp
 @synindex pg cp
-@dircategory Emacs
-@direntry
-* MIME: (emacs-mime).   Emacs MIME de/composition library.
-@end direntry
-@iftex
-@finalout
-@end iftex
-@setchapternewpage odd
 
-@ifnottex
-
+@copying
 This file documents the Emacs MIME interface functionality.
 
-Copyright (C) 1998,99,2000 Free Software Foundation, Inc.
+Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -36,39 +28,27 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifnottex
+@end quotation
+@end copying
 
-@tex
+@dircategory Emacs
+@direntry
+* MIME: (emacs-mime).   Emacs MIME de/composition library.
+@end direntry
+@iftex
+@finalout
+@end iftex
+@setchapternewpage odd
 
 @titlepage
 @title Emacs MIME Manual
 
 @author by Lars Magne Ingebrigtsen
 @page
-
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1998,99,2000 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being none, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
-@page
 
-@end tex
 
 @node Top
 @top Emacs MIME
@@ -920,7 +900,7 @@ options.
 
 @defopt mm-inline-media-tests
 This is an alist where the key is a @sc{mime} type, the second element
-is a function to display the part @dfn{inline} (i.e., inside Emacs), and 
+is a function to display the part @dfn{inline} (i.e., inside Emacs), and
 the third element is a form to be @code{eval}ed to say whether the part
 can be displayed inline.
 
@@ -943,7 +923,7 @@ be displayed automatically.
 
 @defopt mm-attachment-override-types
 Some @sc{mime} agents create parts that have a content-disposition of
-@samp{attachment}.  This variable allows overriding that disposition and 
+@samp{attachment}.  This variable allows overriding that disposition and
 displaying the part inline.  (Note that the disposition is only
 overridden if we are able to, and want to, display the part inline.)
 @end defopt
@@ -1001,7 +981,7 @@ Here's an example viewer for displaying @samp{text/enriched} inline:
 @end lisp
 
 We see that the function takes a @sc{mime} handle as its parameter.  It
-then goes to a temporary buffer, inserts the text of the part, does some 
+then goes to a temporary buffer, inserts the text of the part, does some
 work on the text, stores the result, goes back to the buffer it was
 called from and inserts the result.
 
@@ -1108,7 +1088,7 @@ Use the contents of the file in the body of the part
 
 @item charset
 The contents of the body of the part are to be encoded in the character
-set speficied (@samp{Content-Type}).
+set specified (@samp{Content-Type}).
 
 @item name
 Might be used to suggest a file name if the part is to be saved
@@ -1264,7 +1244,9 @@ has been composed inside Emacs, an appropriate @sc{mime} charset has to
 be chosen.
 
 @vindex mail-parse-charset
-If you are running a non-Mule Emacs, this process is simple: if the part
+@cindex unibyte Emacs
+If you are running a non-Mule XEmacs, or Emacs in unibyte
+mode@footnote{Deprecated!}, this process is simple: if the part
 contains any non-@sc{ascii} (8-bit) characters, the @sc{mime} charset
 given by @code{mail-parse-charset} (a symbol) is used.  (Never set this
 variable directly, though.  If you want to change the default charset,
@@ -1274,23 +1256,31 @@ Variables, message, Message Manual}, for example.)  If there are only
 @sc{ascii} characters, the @sc{mime} charset @samp{US-ASCII} is used, of
 course.
 
-@cindex Mule
-@cindex UTF-8
-@cindex Unicode
+@cindex multibyte Emacs
+@cindex @code{mime-charset} property
+In a normal (multibyte) Emacs session, a list of coding systems is
+derived that can encode the message part's content and correspond to
+MIME charsets (according to their @code{mime-charset} property).  This
+list is according to the normal priority rules and the highest priority
+one is chosen to encode the part.  If no such coding system can encode
+the part's contents, they are split into several parts such that each
+can be encoded with an appropriate coding system/@sc{mime}
+charset.@footnote{The part can only be split at line boundaries,
+though---if more than one @sc{mime} charset is required to encode a
+single line, it is not possible to encode the part.}  Note that this
+procedure works with any correctly-defined coding systems, not just
+built-in ones.  Given a suitably-defined UTF-8 coding system---one
+capable of encoding the Emacs charsets you use---it is not normally
+necessary to split a part by charset.
+
 @vindex mm-mime-mule-charset-alist
-Things are slightly more complicated when running Emacs with Mule
-support.  In this case, a list of the Mule charsets used in the part is
-obtained, and the corresponding @sc{mime} charsets are determined.  If
-this results in a single @sc{mime} charset, this is used to encode the
-part.  But if the resulting list of @sc{mime} charsets contains more
-than one element, two things can happen: if it is possible to encode the
-part via UTF-8, this charset is used.  (For this, Emacs must support the
-@code{utf-8} coding system, and the part must consist entirely of
-characters which have Unicode counterparts.)  If UTF-8 is not available,
-the part is split into several, so that each one can be encoded with a
-single @sc{mime} charset.  The part can only be split at line
-boundaries, though---if more than one @sc{mime} charset is required to
-encode a single line, it is not possible to encode the part.
+@cindex XEmacs/Mule
+It isn't possible to do this properly in XEmacs/Mule.  Instead, a list
+of the Mule charsets used in the part is obtained, and the
+corresponding @sc{mime} charsets are determined by lookup in
+@code{mm-mime-mule-charset-alist}.  If the list elements all
+correspond to a single @sc{mime} charset, that is used to encode the
+part.  Otherwise, the part is split as above.
 
 @node Conversion
 @section Conversion

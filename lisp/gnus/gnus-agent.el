@@ -166,12 +166,12 @@ If this is `ask' the hook will query the user."
 	    (cadr gnus-command-method))))
 
 (defsubst gnus-agent-directory ()
-  "Path of the Gnus agent directory."
+  "The name of the Gnus agent directory."
   (nnheader-concat gnus-agent-directory
 		   (nnheader-translate-file-chars (gnus-agent-method)) "/"))
 
 (defun gnus-agent-lib-file (file)
-  "The full path of the Gnus agent library FILE."
+  "The full name of the Gnus agent library FILE."
   (expand-file-name file
 		    (file-name-as-directory
 		     (expand-file-name "agent.lib" (gnus-agent-directory)))))
@@ -393,10 +393,10 @@ be a select method."
   (save-restriction
     (message-narrow-to-headers)
     (let* ((gcc (mail-fetch-field "gcc" nil t))
-	   (methods (and gcc 
+	   (methods (and gcc
 			 (mapcar 'gnus-inews-group-method
 				 (message-unquote-tokens
-				  (message-tokenize-header 
+				  (message-tokenize-header
 				   gcc " ,")))))
 	   covered)
       (while (and (not covered) methods)
@@ -513,7 +513,7 @@ be a select method."
   (when (or (and gnus-agent-synchronize-flags
 		 (not (eq gnus-agent-synchronize-flags 'ask)))
 	    (and (eq gnus-agent-synchronize-flags 'ask)
-		 (gnus-y-or-n-p (format "Synchronize flags on server `%s'? " 
+		 (gnus-y-or-n-p (format "Synchronize flags on server `%s'? "
 					(cadr method)))))
     (gnus-agent-synchronize-flags-server method)))
 
@@ -702,7 +702,7 @@ the actual number of articles toggled is returned."
       (gnus-make-directory (file-name-directory file))
       (with-temp-file file
 	;; Emacs got problem to match non-ASCII group in multibyte buffer.
-	(mm-disable-multibyte) 
+	(mm-disable-multibyte)
 	(when (file-exists-p file)
 	  (nnheader-insert-file-contents file))
 	(goto-char (point-min))
@@ -724,13 +724,13 @@ the actual number of articles toggled is returned."
 	  (delete-char 1))))))
 
 (defun gnus-agent-group-path (group)
-  "Translate GROUP into a path."
+  "Translate GROUP into a file name."
   (if nnmail-use-long-file-names
       (gnus-group-real-name group)
     (nnheader-translate-file-chars
      (nnheader-replace-chars-in-string
       (nnheader-replace-duplicate-chars-in-string
-       (nnheader-replace-chars-in-string 
+       (nnheader-replace-chars-in-string
 	(gnus-group-real-name group)
 	?/ ?_)
        ?. ?_)
@@ -847,8 +847,8 @@ the actual number of articles toggled is returned."
 	  (with-temp-buffer
 	    (let (article)
 	      (while (setq article (pop articles))
-		(when (or 
-		       (gnus-backlog-request-article group article 
+		(when (or
+		       (gnus-backlog-request-article group article
 						     nntp-server-buffer)
 		       (gnus-request-article article group))
 		  (goto-char (point-max))
@@ -1103,11 +1103,11 @@ the actual number of articles toggled is returned."
 		  (while (setq group (pop groups))
 		    (when (<= (gnus-group-level group) gnus-agent-handle-level)
 		      (gnus-agent-fetch-group-1 group gnus-command-method))))))
-	  (error 
+	  (error
 	   (unless (funcall gnus-agent-confirmation-function
 			    (format "Error (%s).  Continue? " err))
 	     (error "Cannot fetch articles into the Gnus agent")))
-	  (quit 
+	  (quit
 	   (unless (funcall gnus-agent-confirmation-function
 			    (format "Quit (%s).  Continue? " err))
 	     (signal 'quit "Cannot fetch articles into the Gnus agent."))))
@@ -1138,7 +1138,7 @@ the actual number of articles toggled is returned."
 		 (setq gnus-newsgroup-dependencies
 		       (make-vector (length articles) 0))
 		 (setq gnus-newsgroup-headers
-		       (gnus-get-newsgroup-headers-xover articles nil nil 
+		       (gnus-get-newsgroup-headers-xover articles nil nil
 							 group))
 		 ;; `gnus-agent-overview-buffer' may be killed for
 		 ;; timeout reason.  If so, recreate it.
@@ -1532,7 +1532,7 @@ The following commands are available:
 	(when (file-exists-p (gnus-agent-lib-file "active"))
 	  (with-temp-buffer
 	    (nnheader-insert-file-contents (gnus-agent-lib-file "active"))
-	    (gnus-active-to-gnus-format 
+	    (gnus-active-to-gnus-format
 	     gnus-command-method
 	     (setq orig (gnus-make-hashtable
 			 (count-lines (point-min) (point-max))))))
@@ -1598,7 +1598,7 @@ The following commands are available:
 				 (or (not (numberp
 					   (setq art (read (current-buffer)))))
 				     (< art article)))
-		       (if (and (numberp art) 
+		       (if (and (numberp art)
 				(file-exists-p
 				 (gnus-agent-article-name
 				  (number-to-string art) group)))

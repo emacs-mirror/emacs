@@ -1,5 +1,5 @@
 ;;; gnus-util.el --- utility functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -612,7 +612,7 @@ non-locally exits.  The variables listed in PROTECT are updated atomically.
 It is safe to use gnus-atomic-progn-assign with long computations.
 
 Note that if any of the symbols in PROTECT were unbound, they will be
-set to nil on a sucessful assignment.  In case of an error or other
+set to nil on a successful assignment.  In case of an error or other
 non-local exit, it will still be unbound."
   (let* ((temp-sym-map (mapcar (lambda (x) (list (make-symbol
 						  (concat (symbol-name x)
@@ -804,7 +804,7 @@ ARG is passed to the first function."
 ;;;
 
 (defun gnus-parse-netrc (file)
-  "Parse FILE and return an list of all entries in the file."
+  "Parse FILE and return a list of all entries in the file."
   (when (file-exists-p file)
     (with-temp-buffer
       (let ((tokens '("machine" "default" "login"
@@ -984,7 +984,7 @@ Entries without port tokens default to DEFAULTPORT."
   (property value start end properties &optional object)
   "Like `gnus-add-text-properties', only applied on where PROPERTY is VALUE."
   (let (point)
-    (while (and start 
+    (while (and start
 		(setq point (text-property-not-all start end property value)))
       (gnus-add-text-properties start point properties object)
       (setq start (text-property-any point end property value)))
@@ -995,7 +995,7 @@ Entries without port tokens default to DEFAULTPORT."
   (property value start end properties &optional object)
   "Like `remove-text-properties', only applied on where PROPERTY is VALUE."
   (let (point)
-    (while (and start 
+    (while (and start
 		(setq point (text-property-not-all start end property value)))
       (remove-text-properties start point properties object)
       (setq start (text-property-any point end property value)))

@@ -147,7 +147,7 @@ spawned Emacs and doing things like \"emacs -l myfile.el -f doit\""
 			(< 32 (setq this-char (aref args end)))
 			(> 127 this-char))
 	      (setq end (1+ end)))
-	    (setq command-line-args (append 
+	    (setq command-line-args (append
 				     command-line-args
 				     (list (substring args beg end))))
 	    (setq beg (1+ end)))

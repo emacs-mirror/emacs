@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/functions
 @node Functions, Macros, Variables, Top
@@ -18,10 +18,11 @@ define them.
 * Defining Functions::    Lisp expressions for defining functions.
 * Calling Functions::     How to use an existing function.
 * Mapping Functions::     Applying a function to each element of a list, etc.
-* Anonymous Functions::   Lambda expressions are functions with no names.    
+* Anonymous Functions::   Lambda expressions are functions with no names.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
 * Inline Functions::	  Defining functions that the compiler will open code.
+* Function safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
                             that have a special bearing on how functions work.
 @end menu
@@ -745,10 +746,10 @@ length of @var{sequence}.
   "Apply FUNCTION to successive cars of all ARGS.
 Return the list of results."
   ;; @r{If no list is exhausted,}
-  (if (not (memq 'nil args))              
+  (if (not (memq 'nil args))
       ;; @r{apply function to @sc{car}s.}
-      (cons (apply function (mapcar 'car args))  
-            (apply 'mapcar* function             
+      (cons (apply function (mapcar 'car args))
+            (apply 'mapcar* function
                    ;; @r{Recurse for rest of elements.}
                    (mapcar 'cdr args)))))
 @end group
@@ -778,7 +779,7 @@ The argument @var{function} must be a function that can take one
 argument and return a string.  The argument @var{sequence} can be any
 kind of sequence except a char-table; that is, a list, a vector, a
 bool-vector, or a string.
-  
+
 @smallexample
 @group
 (mapconcat 'symbol-name
@@ -840,7 +841,7 @@ your program.  For example, you might want to pass one as an argument to
 the function @code{mapcar}, which applies any given function to each
 element of a list.
 
-  Here we define a function @code{change-property} which 
+  Here we define a function @code{change-property} which
 uses a function as its third argument:
 
 @example
@@ -914,7 +915,7 @@ comment:
 
 @cindex @samp{#'} syntax
   The read syntax @code{#'} is a short-hand for using @code{function}.
-For example, 
+For example,
 
 @example
 #'(lambda (x) (* x x))
@@ -1156,6 +1157,95 @@ do for macros.  (@xref{Argument Evaluation}.)
 
 Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
+
+@node Function safety
+@section Determining whether a function is safe to call
+@cindex function safety
+@cindex safety of functions
+@cindex virus detection
+@cindex Trojan-horse detection
+@cindex DDoS attacks
+
+Some major modes such as SES (see @pxref{Top,,,ses}) will call
+functions that are stored in user files.  User files sometimes have
+poor pedigrees---you can get a spreadsheet from someone you've just
+met, or you can get one through email from someone you've never met.
+Such files can contain viruses and other Trojan horses that could
+corrupt your operating system environment, delete your files, or even
+turn your computer into a DDoS zombie!  To avoid this terrible fate,
+you should not call a function whose source code is stored in a user
+file until you have determined that it is safe.
+
+@defun unsafep form &optional unsafep-vars
+Returns nil if @var{form} is a @dfn{safe} lisp expression, or returns
+a list that describes why it might be unsafe.  The argument
+@var{unsafep-vars} is a list of symbols known to have temporary
+bindings at this point; it is mainly used for internal recursive
+calls.  The current buffer is an implicit argument, which provides a
+list of buffer-local bindings.
+@end defun
+
+Being quick and simple, @code{unsafep} does a very light analysis and
+rejects many Lisp expressions that are actually safe.  There are no
+known cases where @code{unsafep} returns nil for an unsafe expression.
+However, a ``safe'' Lisp expression can return a string with a
+@code{display} property, containing an associated Lisp expression to
+be executed after the string is inserted into a buffer.  This
+associated expression can be a virus.  In order to be safe, you must
+delete properties from all strings calculated by user code before
+inserting them into buffers.
+
+What is a safe Lisp expression?  Basically, it's an expression that
+calls only built-in functions with no side effects (or only innocuous
+ones).  Innocuous side effects include displaying messages and
+altering non-risky buffer-local variables (but not global variables).
+
+@table @dfn
+@item Safe expression
+@itemize
+@item
+An atom or quoted thing.
+@item
+A call to a safe function (see below), if all its arguments are
+safe expressions.
+@item
+One of the special forms [and, catch, cond, if, or, prog1, prog2,
+progn, while, unwind-protect], if all its arguments are safe.
+@item
+A form that creates temporary bindings [condition-case, dolist,
+dotimes, lambda, let, let*], if all args are safe and the symbols to
+be bound are not explicitly risky (see @pxref{File Local Variables}).
+@item
+An assignment [add-to-list, setq, push, pop], if all args are safe and
+the symbols to be assigned are not explicitly risky and they already
+have temporary or buffer-local bindings.
+@item
+One of [apply, mapc, mapcar, mapconcat] if the first argument is a
+safe explicit lambda and the other args are safe expressions.
+@end itemize
+
+@item Safe function
+@itemize
+@item
+A lambda containing safe expressions.
+@item
+A symbol on the list @code{safe-functions}, so the user says it's safe.
+@item
+A symbol with a non-nil @code{side-effect-free} property.
+@item
+A symbol with a non-nil @code{safe-function} property.  Value t
+indicates a function that is safe but has innocuous side effects.
+Other values will someday indicate functions with classes of side
+effects that are not always safe.
+@end itemize
+
+The @code{side-effect-free} and @code{safe-function} properties are
+provided for built-in functions and for low-level functions and macros
+defined in @file{subr.el}.  You can assign these properties for the
+functions you write.
+
+@end table
+
 
 @c Emacs versions prior to 19 did not have inline functions.
 

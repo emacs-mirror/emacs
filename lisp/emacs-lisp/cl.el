@@ -178,7 +178,7 @@ Keywords supported:  :test :test-not :key"
 (defun cl-set-substring (str start end val)
   (if end (if (< end 0) (incf end (length str)))
     (setq end (length str)))
-  (if (< start 0) (incf start str))
+  (if (< start 0) (incf start (length str)))
   (concat (and (> start 0) (substring str 0 start))
 	  val
 	  (and (< end (length str)) (substring str end))))
@@ -207,7 +207,7 @@ Keywords supported:  :test :test-not :key"
   "Return multiple values, Common Lisp style.
 The arguments of `values' are the values
 that the containing function should return."
-  (apply 'list values))
+  values)
 
 (defsubst values-list (list)
   "Return multiple values, Common Lisp style, taken from a list.
@@ -228,6 +228,10 @@ This handles multiple values in Common Lisp style, but it does not work
 right when EXPRESSION calls an ordinary Emacs Lisp function that returns just
 one value."
   (apply function expression))
+
+(defalias 'multiple-value-call 'apply
+  "Apply FUNCTION to ARGUMENTS, taking multiple values into account.
+This implementation only handles the case where there is only one argument.")
 
 (defsubst nth-value (n expression)
   "Evaluate EXPRESSION to get multiple values and return the Nth one.
@@ -674,8 +678,8 @@ Keywords supported:  :test :test-not :key"
 (defun cl-hack-byte-compiler ()
   (if (and (not cl-hacked-flag) (fboundp 'byte-compile-file-form))
       (progn
-	(cl-compile-time-init)   ; in cl-macs.el
-	(setq cl-hacked-flag t))))
+	(setq cl-hacked-flag t)		; Do it first, to prevent recursion.
+	(cl-compile-time-init))))	; In cl-macs.el.
 
 ;;; Try it now in case the compiler has already been loaded.
 (cl-hack-byte-compiler)

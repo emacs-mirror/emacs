@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1995, 2000 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Kenichi HANDA <handa@etl.go.jp>
 ;;	   Naoto TAKAHASHI <ntakahas@etl.go.jp>
@@ -147,7 +147,7 @@ See the documentation of `quail-define-package' for the other elements.")
 	title
       (condition-case nil
 	  (mapconcat
-	   (lambda (x) 
+	   (lambda (x)
 	     (cond ((stringp x) x)
 		   ((and (listp x) (symbolp (car x)) (= (length x) 3))
 		    (if (symbol-value (car x))
@@ -618,20 +618,6 @@ This layout is almost the same as that of VT100,
  but the location of key \\ (backslash) is just right of key ' (single-quote),
  not right of RETURN key.")
 
-(defvar quail-keyboard-layout quail-keyboard-layout-standard
-  "A string which represents physical key layout of a particular keyboard.
-We assume there are six rows and each row has 15 keys (columns),
-	the first row is above the `1' - `0' row,
-	the first column of the second row is left of key `1',
-	the first column of the third row is left of key `q',
-	the first column of the fourth row is left of key `a',
-	the first column of the fifth row is left of key `z',
-	the sixth row is below the `z' - `/' row.
-Nth (N is even) and (N+1)th characters in the string are non-shifted
-and shifted characters respectively at the same location.
-The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
-The command `quail-set-keyboard-layout' usually sets this variable.")
-
 (defconst quail-keyboard-layout-len 180)
 
 ;; Here we provide several examples of famous keyboard layouts.
@@ -671,7 +657,7 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
                               ")
    '("pc105-uk" . "\
                               \
-`\2541!2\3\243$5%6^7&8*9(0)-_=+    \
+`\2541!2\"3\2434$5%6^7&8*9(0)-_=+     \
   qQwWeErRtTyYuUiIoOpP[{]}    \
   aAsSdDfFgGhHjJkKlL;:'@#~    \
 \\|zZxXcCvVbBnNmM,<.>/?        \
@@ -680,6 +666,26 @@ The command `quail-set-keyboard-layout' usually sets this variable.")
   "Alist of keyboard names and corresponding layout strings.
 See the documentation of `quail-keyboard-layout' for the format of
 the layout string.")
+
+(defcustom quail-keyboard-layout quail-keyboard-layout-standard
+  "A string which represents physical key layout of a particular keyboard.
+We assume there are six rows and each row has 15 keys (columns),
+	the first row is above the `1' - `0' row,
+	the first column of the second row is left of key `1',
+	the first column of the third row is left of key `q',
+	the first column of the fourth row is left of key `a',
+	the first column of the fifth row is left of key `z',
+	the sixth row is below the `z' - `/' row.
+Nth (N is even) and (N+1)th characters in the string are non-shifted
+and shifted characters respectively at the same location.
+The location of Nth character is row (N / 30) and column ((N mod 30) / 2).
+The command `quail-set-keyboard-layout' usually sets this variable."
+  :group 'quail
+  :type `(choice
+	  ,@(mapcar (lambda (pair)
+		      (list 'const :tag (car pair) (cdr pair)))
+		    quail-keyboard-layout-alist)
+	  (string :tag "Other")))
 
 ;; A non-standard keyboard layout may miss some key locations of the
 ;; standard layout while having additional key locations not in the
@@ -894,7 +900,7 @@ The format of KBD-LAYOUT is the same as `quail-keyboard-layout'."
 The variable `quail-keyboard-layout-type' holds the currently selected
 keyboard type."
   (interactive
-   (list (completing-read "Keyboard type (default, current choise): "
+   (list (completing-read "Keyboard type (default, current choice): "
 			  quail-keyboard-layout-alist
 			  nil t)))
   (or (and keyboard-type (> (length keyboard-type) 0))
@@ -1906,12 +1912,12 @@ or in a newly created frame (if the selected frame has no other windows)."
     (let ((default-enable-multibyte-characters enable-multibyte-characters))
       (or (buffer-live-p quail-guidance-buf)
 	  (setq quail-guidance-buf (generate-new-buffer " *Quail-guidance*"))))
-    (let ((name (quail-name))
-	  (title (quail-title)))
+    (let ((package quail-current-package))
       (with-current-buffer quail-guidance-buf
 	;; To show the title of Quail package.
-	(setq current-input-method name
-	      current-input-method-title title)
+	(setq quail-current-package package
+	      current-input-method (quail-name)
+	      current-input-method-title (quail-title))
 	(erase-buffer)
 	(or (overlayp quail-overlay)
 	    (progn
@@ -2124,7 +2130,10 @@ are shown (at most to the depth specified `quail-completion-max-depth')."
 	  ;; shown.  We just scroll it appropriately.
 	  (if (pos-visible-in-window-p (point-max) win)
 	      (set-window-start win (point-min))
-	    (let ((other-window-scroll-buffer quail-completion-buf))
+	    (let ((other-window-scroll-buffer quail-completion-buf)
+		  ;; This nil binding is necessary to surely scroll
+		  ;; quail-completion-buf.
+		  (minibuffer-scroll-window nil))
 	      (scroll-other-window)))
 	(setq quail-current-key key)
 	(erase-buffer)
@@ -2395,7 +2404,7 @@ should be made by `quail-build-decode-map' (which see)."
 
 (define-button-type 'quail-keyboard-layout-button
   :supertype 'help-xref
-  'help-function '(lambda (layout) 
+  'help-function '(lambda (layout)
 		    (help-setup-xref `(quail-keyboard-layout-button ,layout) nil)
 		    (quail-show-keyboard-layout layout))
   'help-echo (purecopy "mouse-2, RET: show keyboard layout"))
@@ -2511,7 +2520,7 @@ KEY BINDINGS FOR CONVERSION
       (setq quail-current-package nil)
       ;; Resize the help window again, now that it has all its contents.
       (save-selected-window
- 	(select-window (get-buffer-window (current-buffer)))
+ 	(select-window (get-buffer-window (current-buffer) t))
 	(run-hooks 'temp-buffer-show-hook)))))
 
 (defun quail-help-insert-keymap-description (keymap &optional header)

@@ -42,7 +42,7 @@
 (defvar calendar-frame nil "Frame in which to display the calendar.")
 
 (defvar diary-frame nil "Frame in which to display the diary.")
-  
+
 ;; This should not specify the font.  That's up to the user.
 ;; Certainly it should not specify auto-lower and auto-raise
 ;; since most users won't like that.
@@ -51,7 +51,7 @@
     (unsplittable . t) (minibuffer . nil))
   "Parameters of the diary frame, if the diary is in its own frame.
 Location and color should be set in .Xdefaults.")
-                                 
+
 (defvar calendar-frame-parameters
   '((name . "Calendar") (title . "Calendar") (minibuffer . nil)
     (height . 10) (width . 80) (unsplittable . t) (vertical-scroll-bars . nil))
@@ -63,11 +63,11 @@ Location and color should be set in .Xdefaults.")
     (minibuffer . nil))
   "Parameters of the frame that displays both the calendar and the diary.
 Location and color should be set in .Xdefaults.")
-  
+
 (defvar calendar-after-frame-setup-hooks nil
   "Hooks to be run just after setting up a calendar frame.
 Can be used to change frame parameters, such as font, color, location, etc.")
-  
+
 (defun calendar-one-frame-setup (&optional arg)
   "Start calendar and display it in a dedicated frame together with the diary."
   (if (not (display-multi-frame-p))

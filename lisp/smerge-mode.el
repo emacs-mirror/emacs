@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: merge diff3 cvs conflict
-;; Revision: $Id: smerge-mode.el,v 1.14 2001/07/31 08:28:43 gerd Exp $
+;; Revision: $Id: smerge-mode.el,v 1.21 2003/02/04 12:05:02 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,7 +38,7 @@
 ;;   	 (goto-char (point-min))
 ;;   	 (when (re-search-forward "^<<<<<<< " nil t)
 ;;   	   (smerge-mode 1))))
-;;   (add-hook 'find-file-hooks 'sm-try-smerge t)
+;;   (add-hook 'find-file-hook 'sm-try-smerge t)
 
 ;;; Todo:
 
@@ -54,7 +54,7 @@
   :group 'tools
   :prefix "smerge-")
 
-(defcustom smerge-diff-buffer-name "*smerge-diff*"
+(defcustom smerge-diff-buffer-name "*vc-diff*"
   "Buffer name to use for displaying diffs."
   :group 'smerge
   :type '(choice
@@ -115,6 +115,7 @@ Used in `smerge-diff-base-mine' and related functions."
 (easy-mmode-defmap smerge-basic-map
   `(("n" . smerge-next)
     ("p" . smerge-prev)
+    ("r" . smerge-resolve)
     ("a" . smerge-keep-all)
     ("b" . smerge-keep-base)
     ("o" . smerge-keep-other)
@@ -183,9 +184,6 @@ Can be nil if the style is undecided, or else:
 ;; Compiler pacifiers
 (defvar font-lock-mode)
 (defvar font-lock-keywords)
-(eval-when-compile
-  (unless (fboundp 'font-lock-fontify-region)
-    (autoload 'font-lock-fontify-region "font-lock")))
 
 ;;;;
 ;;;; Actual code
@@ -205,7 +203,7 @@ Can be nil if the style is undecided, or else:
 	     (save-excursion (goto-char (point-min))
 			     (not (re-search-forward smerge-begin-re nil t))))
     (smerge-mode -1)))
-    
+
 
 (defun smerge-keep-all ()
   "Keep all three versions.
@@ -216,6 +214,54 @@ Convenient for the kind of conflicts that can arise in ChangeLog files."
 			 (or (match-string 2) "")
 			 (or (match-string 3) ""))
 		 t t)
+  (smerge-auto-leave))
+
+(defun smerge-combine-with-next ()
+  "Combine the current conflict with the next one."
+  (interactive)
+  (smerge-match-conflict)
+  (let ((ends nil))
+    (dolist (i '(3 2 1 0))
+      (push (if (match-end i) (copy-marker (match-end i) t)) ends))
+    (setq ends (apply 'vector ends))
+    (goto-char (aref ends 0))
+    (if (not (re-search-forward smerge-begin-re nil t))
+	(error "No next conflict")
+      (smerge-match-conflict)
+      (let ((match-data (mapcar (lambda (m) (if m (copy-marker m)))
+				(match-data))))
+	;; First copy the in-between text in each alternative.
+	(dolist (i '(1 2 3))
+	  (when (aref ends i)
+	    (goto-char (aref ends i))
+	    (insert-buffer-substring (current-buffer)
+				     (aref ends 0) (car match-data))))
+	(delete-region (aref ends 0) (car match-data))
+	;; Then move the second conflict's alternatives into the first.
+	(dolist (i '(1 2 3))
+	  (set-match-data match-data)
+	  (when (and (aref ends i) (match-end i))
+	    (goto-char (aref ends i))
+	    (insert-buffer-substring (current-buffer)
+				     (match-beginning i) (match-end i))))
+	(delete-region (car match-data) (cadr match-data))
+	;; Free the markers.
+	(dolist (m match-data) (if m (move-marker m nil)))
+	(mapc (lambda (m) (if m (move-marker m nil))) ends)))))
+
+(defvar smerge-resolve-function
+  (lambda () (error "Don't know how to resolve"))
+  "Mode-specific merge function.
+The function is called with no argument and with the match data set
+according to `smerge-match-conflict'.")
+
+(defun smerge-resolve ()
+  "Resolve the conflict at point intelligently.
+This relies on mode-specific knowledge and thus only works in
+some major modes.  Uses `smerge-resolve-function' to do the actual work."
+  (interactive)
+  (smerge-match-conflict)
+  (funcall smerge-resolve-function)
   (smerge-auto-leave))
 
 (defun smerge-keep-base ()
@@ -287,11 +333,11 @@ An error is raised if not inside a conflict."
 
 	       (start (match-beginning 0))
 	       (mine-start (match-end 0))
-	       (filename (match-string 1))
+	       (filename (or (match-string 1) ""))
 
 	       (_ (re-search-forward smerge-end-re))
 	       (_ (assert (< orig-point (match-end 0))))
-	       
+
 	       (other-end (match-beginning 0))
 	       (end (match-end 0))
 
@@ -324,7 +370,7 @@ An error is raised if not inside a conflict."
 	   (setq base-end   mine-end)
 	   (setq mine-start other-start)
 	   (setq mine-end   other-end)))
-	       
+
 	  (store-match-data (list start end
 				  mine-start mine-end
 				  base-start base-end
@@ -360,44 +406,48 @@ The point is moved to the end of the conflict."
 	(dir default-directory)
 	(file (file-relative-name buffer-file-name))
 	(coding-system-for-read buffer-file-coding-system))
-    (write-region beg1 end1 file1)
-    (write-region beg2 end2 file2)
+    (write-region beg1 end1 file1 nil 'nomessage)
+    (write-region beg2 end2 file2 nil 'nomessage)
     (unwind-protect
 	(with-current-buffer (get-buffer-create smerge-diff-buffer-name)
 	  (setq default-directory dir)
 	  (let ((inhibit-read-only t))
 	    (erase-buffer)
-	    (apply 'call-process diff-command nil t nil
-		   (append smerge-diff-switches
-			   (list "-L" (concat name1 "/" file)
-				 "-L" (concat name2 "/" file)
-				 file1 file2))))
+	    (let ((status
+		   (apply 'call-process diff-command nil t nil
+			  (append smerge-diff-switches
+				  (list "-L" (concat name1 "/" file)
+					"-L" (concat name2 "/" file)
+					file1 file2)))))
+	      (if (eq status 0) (insert "No differences found.\n"))))
 	  (goto-char (point-min))
 	  (diff-mode)
 	  (display-buffer (current-buffer) t))
       (delete-file file1)
       (delete-file file2))))
 
-(eval-when-compile
-  ;; compiler pacifiers
-  (defvar smerge-ediff-windows)
-  (defvar smerge-ediff-buf)
-  (defvar ediff-buffer-A)
-  (defvar ediff-buffer-B)
-  (defvar ediff-buffer-C)
-  (unless (fboundp 'ediff-cleanup-mess)
-    (autoload 'ediff-cleanup-mess "ediff-util")))
+;; compiler pacifiers
+(defvar smerge-ediff-windows)
+(defvar smerge-ediff-buf)
+(defvar ediff-buffer-A)
+(defvar ediff-buffer-B)
+(defvar ediff-buffer-C)
 
-(defun smerge-ediff ()
-  "Invoke ediff to resolve the conflicts."
+;;;###autoload
+(defun smerge-ediff (&optional name-mine name-other name-base)
+  "Invoke ediff to resolve the conflicts.
+NAME-MINE, NAME-OTHER, and NAME-BASE, if non-nil, are used for the
+buffer names."
   (interactive)
   (let* ((buf (current-buffer))
 	 (mode major-mode)
 	 ;;(ediff-default-variant 'default-B)
 	 (config (current-window-configuration))
 	 (filename (file-name-nondirectory buffer-file-name))
-	 (mine (generate-new-buffer (concat "*" filename " MINE*")))
-	 (other (generate-new-buffer (concat "*" filename " OTHER*")))
+	 (mine (generate-new-buffer
+		(or name-mine (concat "*" filename " MINE*"))))
+	 (other (generate-new-buffer
+		 (or name-other (concat "*" filename " OTHER*"))))
 	 base)
     (with-current-buffer mine
       (buffer-disable-undo)
@@ -419,9 +469,10 @@ The point is moved to the end of the conflict."
       (buffer-enable-undo)
       (set-buffer-modified-p nil)
       (funcall mode))
-    
+
     (when base
-      (setq base (generate-new-buffer (concat "*" filename " BASE*")))
+      (setq base (generate-new-buffer
+		  (or name-base (concat "*" filename " BASE*"))))
       (with-current-buffer base
 	(buffer-disable-undo)
 	(insert-buffer-substring buf)
@@ -431,7 +482,7 @@ The point is moved to the end of the conflict."
 	(buffer-enable-undo)
 	(set-buffer-modified-p nil)
 	(funcall mode)))
-    
+
     ;; the rest of the code is inspired from vc.el
     ;; Fire up ediff.
     (set-buffer
@@ -440,7 +491,7 @@ The point is moved to the end of the conflict."
 	  ;; nil 'ediff-merge-revisions-with-ancestor buffer-file-name)
        (ediff-merge-buffers mine other)))
         ;; nil 'ediff-merge-revisions buffer-file-name)))
-    
+
     ;; Ediff is now set up, and we are in the control buffer.
     ;; Do a few further adjustments and take precautions for exit.
     (set (make-local-variable 'smerge-ediff-windows) config)

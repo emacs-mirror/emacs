@@ -44,3 +44,31 @@
 #undef bcmp
 #endif
 #endif
+
+#define ORDINARY_LINK
+
+/* Some systems seem to have this, others don't.  */
+#ifdef HAVE_LIBDNET
+#define LIBS_MACHINE -ldnet
+#else
+#define LIBS_MACHINE -ldnet_stub
+#endif
+
+#define LIBS_DEBUG
+#define START_FILES pre-crt0.o
+
+#define PTY_ITERATION		for (i = 0; i < 1; i++) /* ick */
+#define PTY_NAME_SPRINTF	/* none */
+#define PTY_TTY_NAME_SPRINTF	/* none */
+#define PTY_OPEN					\
+  do							\
+    {							\
+      int dummy;					\
+      SIGMASKTYPE mask;					\
+      mask = sigblock (sigmask (SIGCHLD));		\
+      if (-1 == openpty (&fd, &dummy, pty_name, 0, 0))	\
+	fd = -1;					\
+      sigsetmask (mask);				\
+      emacs_close (dummy);				\
+    }							\
+  while (0)

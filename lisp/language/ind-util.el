@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 2001 Free Software Foundation, Inc.
 
-;; Maintainer:  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Indian, Devanagari
 
 ;; This file is part of GNU Emacs.
@@ -44,7 +44,7 @@
   "Returns the regular expression of hashtable keys."
   (let ((max-specpdl-size 1000))
     (regexp-opt
-     (sort 
+     (sort
       (let (dummy)
 	(maphash (function (lambda (key val) (setq dummy (cons key dummy))))
 		 hashtbl)
@@ -55,37 +55,236 @@
   '(
     (;; VOWELS  (18)
      (?$,15E(B nil) (?$,15F(B ?$,15~(B) (?$,15G(B ?$,15(B) (?$,15H(B ?$,16 (B) (?$,15I(B ?$,16!(B) (?$,15J(B ?$,16"(B)
-     (?$,15K(B ?$,16#(B) (?$,15L(B ?$,16$(B) (?$,15M(B ?$,16%(B) (?$,15N(B ?$,16&(B) (?$,15O(B ?$,16'(B) (?$,15P(B ?$,16((B)
-     (?$,15Q(B ?$,16)(B) (?$,15R(B ?$,16*(B) (?$,15S(B ?$,16+(B) (?$,15T(B ?$,16,(B) (?$,16@(B ?$,16B(B) (?$,16A(B ?$,16C(B))
+     (?$,15K(B ?$,16#(B) (?$,15L(B ?$,16B(B) (?$,15M(B ?$,16%(B) (?$,15N(B ?$,16&(B) (?$,15O(B ?$,16'(B) (?$,15P(B ?$,16((B)
+     (?$,15Q(B ?$,16)(B) (?$,15R(B ?$,16*(B) (?$,15S(B ?$,16+(B) (?$,15T(B ?$,16,(B) (?$,16@(B ?$,16$(B) (?$,16A(B ?$,16C(B))
     (;; CONSONANTS (currently 42, including special cases)
      ?$,15U(B ?$,15V(B ?$,15W(B ?$,15X(B ?$,15Y(B                  ;; GUTTRULS
-     ?$,15Z(B ?$,15[(B ?$,15\(B ?$,15](B ?$,15^(B                  ;; PALATALS  
-     ?$,15_(B ?$,15`(B ?$,15a(B ?$,15b(B ?$,15c(B                  ;; CEREBRALS 
-     ?$,15d(B ?$,15e(B ?$,15f(B ?$,15g(B ?$,15h(B ?$,15i(B              ;; DENTALS   
-     ?$,15j(B ?$,15k(B ?$,15l(B ?$,15m(B ?$,15n(B                  ;; LABIALS   
+     ?$,15Z(B ?$,15[(B ?$,15\(B ?$,15](B ?$,15^(B                  ;; PALATALS
+     ?$,15_(B ?$,15`(B ?$,15a(B ?$,15b(B ?$,15c(B                  ;; CEREBRALS
+     ?$,15d(B ?$,15e(B ?$,15f(B ?$,15g(B ?$,15h(B ?$,15i(B              ;; DENTALS
+     ?$,15j(B ?$,15k(B ?$,15l(B ?$,15m(B ?$,15n(B                  ;; LABIALS
      ?$,15o(B ?$,15p(B ?$,15q(B ?$,15r(B ?$,15s(B ?$,15t(B ?$,15u(B          ;; SEMIVOWELS
-     ?$,15v(B ?$,15w(B ?$,15x(B ?$,15y(B                    ;; SIBILANTS 
-     ?$,168(B ?$,169(B ?$,16:(B ?$,16;(B ?$,16<(B ?$,16=(B ?$,16>(B ?$,16?(B      ;; NUKTAS    
+     ?$,15v(B ?$,15w(B ?$,15x(B ?$,15y(B                    ;; SIBILANTS
+     ?$,168(B ?$,169(B ?$,16:(B ?$,16;(B ?$,16<(B ?$,16=(B ?$,16>(B ?$,16?(B      ;; NUKTAS
      "$,15\6-5^(B" "$,15U6-5w(B")
-    (;; Misc Symbols (7)  
+    (;; Misc Symbols (7)
      ?$,15A(B ?$,15B(B ?$,15C(B ?$,15}(B ?$,16-(B ?$,160(B ?$,16D(B)
     (;; Digits (10)
      ?$,16F(B ?$,16G(B ?$,16H(B ?$,16I(B ?$,16J(B ?$,16K(B ?$,16L(B ?$,16M(B ?$,16N(B ?$,16O(B)
     (;; Inscript-extra (4)  (#, $, ^, *, ])
      "$,16-5p(B" "$,15p6-(B" "$,15d6-5p(B" "$,15v6-5p(B" "$,15|(B")))
 
-(defvar indian-pnj-base-table nil)
-(defvar indian-ori-base-table nil)
-(defvar indian-bng-base-table nil)
-(defvar indian-asm-base-table nil)
-(defvar indian-tlg-base-table nil)
-(defvar indian-knd-base-table nil)
-(defvar indian-mlm-base-table nil)
-(defvar indian-tml-base-table nil)
+;; Punjabi is also known as Gurmukhi.
+(defvar indian-pnj-base-table
+  '(
+    (;; VOWELS
+     (?$,18%(B nil) (?$,18&(B ?$,18^(B) (?$,18'(B ?$,18_(B) (?$,18((B ?$,18`(B) (?$,18)(B ?$,18a(B) (?$,18*(B ?$,18b(B)
+     nil nil nil nil (?$,18/(B ?$,18g(B) (?$,180(B ?$,18h(B)
+     nil nil (?$,183(B ?$,18k(B) (?$,184(B ?$,18l(B) nil nil)
+    (;; CONSONANTS
+     ?$,185(B ?$,186(B ?$,187(B ?$,188(B ?$,189(B                  ;; GUTTRULS
+     ?$,18:(B ?$,18;(B ?$,18<(B ?$,18=(B ?$,18>(B                  ;; PALATALS
+     ?$,18?(B ?$,18@(B ?$,18A(B ?$,18B(B ?$,18C(B                  ;; CEREBRALS
+     ?$,18D(B ?$,18E(B ?$,18F(B ?$,18G(B ?$,18H(B nil              ;; DENTALS
+     ?$,18J(B ?$,18K(B ?$,18L(B ?$,18M(B ?$,18N(B                  ;; LABIALS
+     ?$,18O(B ?$,18P(B nil ?$,18R(B ?$,18S(B nil ?$,18U(B          ;; SEMIVOWELS
+     ?$,18V(B nil ?$,18X(B ?$,18Y(B                    ;; SIBILANTS
+     nil ?$,18y(B ?$,18z(B ?$,18{(B ?$,18|(B nil ?$,18~(B nil      ;; NUKTAS
+     "$,18<8m8>(B" nil)
+    (;; Misc Symbols (7)
+     nil ?$,18"(B nil nil ?$,18m(B nil nil) ;; ek onkar, etc.
+    (;; Digits
+     ?$,19&(B ?$,19'(B ?$,19((B ?$,19)(B ?$,19*(B ?$,19+(B ?$,19,(B ?$,19-(B ?$,19.(B ?$,19/(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,18m8P(B" "$,18P8m(B" "$,18D8m8P(B" "$,18V8m8P(B" "$,18\(B")))
+
+(defvar indian-gjr-base-table
+  '(
+    (;; VOWELS
+     (?$,19E(B nil) (?$,19F(B ?$,19~(B) (?$,19G(B ?$,19(B) (?$,19H(B ?$,1: (B) (?$,19I(B ?$,1:!(B) (?$,19J(B ?$,1:"(B)
+     (?$,19K(B ?$,1:#(B) nil (?$,19M(B ?$,1:%(B) nil (?$,19O(B ?$,1:'(B) (?$,19P(B ?$,1:((B)
+     (?$,19Q(B ?$,1:)(B) nil (?$,19S(B ?$,1:+(B) (?$,19T(B ?$,1:,(B) (?$,1:@(B ?$,1:$(B) nil)
+    (;; CONSONANTS
+     ?$,19U(B ?$,19V(B ?$,19W(B ?$,19X(B ?$,19Y(B                  ;; GUTTRULS
+     ?$,19Z(B ?$,19[(B ?$,19\(B ?$,19](B ?$,19^(B                  ;; PALATALS
+     ?$,19_(B ?$,19`(B ?$,19a(B ?$,19b(B ?$,19c(B                  ;; CEREBRALS
+     ?$,19d(B ?$,19e(B ?$,19f(B ?$,19g(B ?$,19h(B nil              ;; DENTALS
+     ?$,19j(B ?$,19k(B ?$,19l(B ?$,19m(B ?$,19n(B                  ;; LABIALS
+     ?$,19o(B ?$,19p(B nil ?$,19r(B ?$,19s(B nil ?$,19u(B          ;; SEMIVOWELS
+     ?$,19v(B ?$,19w(B ?$,19x(B ?$,19y(B                    ;; SIBILANTS
+     nil nil nil nil nil nil nil nil      ;; NUKTAS
+     "$,19\:-9^(B" "$,19U:-9w(B")
+    (;; Misc Symbols (7)
+     ?$,19A(B ?$,19B(B ?$,19C(B ?$,19}(B ?$,1:-(B ?$,1:0(B nil)
+    (;; Digits
+     ?$,1:F(B ?$,1:G(B ?$,1:H(B ?$,1:I(B ?$,1:J(B ?$,1:K(B ?$,1:L(B ?$,1:M(B ?$,1:N(B ?$,1:O(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1:-9p(B" "$,19p:-(B" "$,19d:-9p(B" "$,19v:-9p(B" "$,19|(B")))
+
+(defvar indian-ori-base-table
+  '(
+    (;; VOWELS
+     (?$,1:e(B nil) (?$,1:f(B ?$,1;>(B) (?$,1:g(B ?$,1;?(B) (?$,1:h(B ?$,1;@(B) (?$,1:i(B ?$,1;A(B) (?$,1:j(B ?$,1;B(B)
+     (?$,1:k(B ?$,1;C(B) (?$,1:l(B nil) nil nil (?$,1:o(B ?$,1;G(B) (?$,1:p(B ?$,1;H(B)
+     nil nil (?$,1:s(B ?$,1;K(B) (?$,1:t(B ?$,1;L(B) (?$,1;`(B nil) (?$,1;a(B nil))
+    (;; CONSONANTS
+     ?$,1:u(B ?$,1:v(B ?$,1:w(B ?$,1:x(B ?$,1:y(B                  ;; GUTTRULS
+     ?$,1:z(B ?$,1:{(B ?$,1:|(B ?$,1:}(B ?$,1:~(B                  ;; PALATALS
+     ?$,1:(B ?$,1; (B ?$,1;!(B ?$,1;"(B ?$,1;#(B                  ;; CEREBRALS
+     ?$,1;$(B ?$,1;%(B ?$,1;&(B ?$,1;'(B ?$,1;((B nil              ;; DENTALS
+     ?$,1;*(B ?$,1;+(B ?$,1;,(B ?$,1;-(B ?$,1;.(B                  ;; LABIALS
+     ?$,1;/(B ?$,1;0(B nil ?$,1;2(B ?$,1;3(B nil nil          ;; SEMIVOWELS
+     ?$,1;6(B ?$,1;7(B ?$,1;8(B ?$,1;9(B                    ;; SIBILANTS
+     nil nil nil nil ?$,1;\(B ?$,1;](B nil ?$,1;_(B      ;; NUKTAS
+     "$,1:|;M:~(B" "$,1:u;M;7(B")
+    (;; Misc Symbols
+     ?$,1:a(B ?$,1:b(B ?$,1:c(B ?$,1;=(B ?$,1;M(B nil nil)
+    (;; Digits
+     ?$,1;f(B ?$,1;g(B ?$,1;h(B ?$,1;i(B ?$,1;j(B ?$,1;k(B ?$,1;l(B ?$,1;m(B ?$,1;n(B ?$,1;o(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1;M;0(B" "$,1;0;M(B" "$,1;$;M;0(B" "$,1;6;M;0(B" "$,1;<(B")))
+
+(defvar indian-bng-base-table
+  '(
+    (;; VOWELS
+     (?$,16e(B nil) (?$,16f(B ?$,17>(B) (?$,16g(B ?$,17?(B) (?$,16h(B ?$,17@(B) (?$,16i(B ?$,17A(B) (?$,16j(B ?$,17B(B)
+     (?$,16k(B ?$,17C(B) (?$,16l(B ?$,17b(B) nil nil (?$,16o(B ?$,17G(B) (?$,16p(B ?$,17H(B)
+     nil nil (?$,16s(B ?$,17K(B) (?$,16t(B ?$,17L(B) (?$,17`(B ?$,17D(B) (?$,17a(B ?$,17c(B))
+    (;; CONSONANTS
+     ?$,16u(B ?$,16v(B ?$,16w(B ?$,16x(B ?$,16y(B                  ;; GUTTRULS
+     ?$,16z(B ?$,16{(B ?$,16|(B ?$,16}(B ?$,16~(B                  ;; PALATALS
+     ?$,16(B ?$,17 (B ?$,17!(B ?$,17"(B ?$,17#(B                  ;; CEREBRALS
+     ?$,17$(B ?$,17%(B ?$,17&(B ?$,17'(B ?$,17((B nil              ;; DENTALS
+     ?$,17*(B ?$,17+(B ?$,17,(B ?$,17-(B ?$,17.(B                  ;; LABIALS
+     ?$,17/(B ?$,170(B nil ?$,172(B nil nil nil          ;; SEMIVOWELS
+     ?$,176(B ?$,177(B ?$,178(B ?$,179(B                    ;; SIBILANTS
+     nil nil nil nil ?$,17\(B ?$,17](B nil ?$,17_(B      ;; NUKTAS
+     "$,16|7M6~(B" "$,16u7M77(B")
+    (;; Misc Symbols
+     ?$,16a(B ?$,16b(B ?$,16c(B nil ?$,17M(B nil nil)
+    (;; Digits
+     ?$,17f(B ?$,17g(B ?$,17h(B ?$,17i(B ?$,17j(B ?$,17k(B ?$,17l(B ?$,17m(B ?$,17n(B ?$,17o(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,17M70(B" "$,1707M(B" "$,17$7M70(B" "$,1767M70(B" "$,17<(B")))
+
+(defvar indian-asm-base-table
+  '(
+    (;; VOWELS
+     (?$,16e(B nil) (?$,16f(B ?$,17>(B) (?$,16g(B ?$,17?(B) (?$,16h(B ?$,17@(B) (?$,16i(B ?$,17A(B) (?$,16j(B ?$,17B(B)
+     (?$,16k(B ?$,17C(B) (?$,16l(B ?$,17b(B) nil nil (?$,16o(B ?$,17G(B) (?$,16p(B ?$,17H(B)
+     nil nil (?$,16s(B ?$,17K(B) (?$,16t(B ?$,17L(B) (?$,17`(B ?$,17D(B) (?$,17a(B ?$,17c(B))
+    (;; CONSONANTS
+     ?$,16u(B ?$,16v(B ?$,16w(B ?$,16x(B ?$,16y(B                  ;; GUTTRULS
+     ?$,16z(B ?$,16{(B ?$,16|(B ?$,16}(B ?$,16~(B                  ;; PALATALS
+     ?$,16(B ?$,17 (B ?$,17!(B ?$,17"(B ?$,17#(B                  ;; CEREBRALS
+     ?$,17$(B ?$,17%(B ?$,17&(B ?$,17'(B ?$,17((B nil              ;; DENTALS
+     ?$,17*(B ?$,17+(B ?$,17,(B ?$,17-(B ?$,17.(B                  ;; LABIALS
+     ?$,17/(B ?$,17p(B nil ?$,172(B nil nil ?$,17q(B          ;; SEMIVOWELS
+     ?$,176(B ?$,177(B ?$,178(B ?$,179(B                    ;; SIBILANTS
+     nil nil nil nil ?$,17\(B ?$,17](B nil ?$,17_(B      ;; NUKTAS
+     "$,16|7M6~(B" "$,16u7M77(B")
+    (;; Misc Symbols
+     ?$,16a(B ?$,16b(B ?$,16c(B nil ?$,17M(B nil nil)
+    (;; Digits
+     ?$,17f(B ?$,17g(B ?$,17h(B ?$,17i(B ?$,17j(B ?$,17k(B ?$,17l(B ?$,17m(B ?$,17n(B ?$,17o(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,17M7p(B" "$,17p7M(B" "$,17$7M7p(B" "$,1767M7p(B" "$,17<(B")))
+
+(defvar indian-tlg-base-table
+  '(
+    (;; VOWELS
+     (?$,1=E(B nil) (?$,1=F(B ?$,1=~(B) (?$,1=G(B ?$,1=(B) (?$,1=H(B ?$,1> (B) (?$,1=I(B ?$,1>!(B) (?$,1=J(B ?$,1>"(B)
+     (?$,1=K(B ?$,1>#(B) (?$,1=L(B nil) nil (?$,1=O(B ?$,1>'(B) (?$,1=N(B ?$,1>&(B) (?$,1=P(B ?$,1>((B)
+     nil (?$,1=S(B ?$,1>+(B) (?$,1=R(B ?$,1>*(B) (?$,1=T(B ?$,1>,(B) (?$,1>@(B ?$,1>$(B) (?$,1>A(B nil))
+    (;; CONSONANTS
+     ?$,1=U(B ?$,1=V(B ?$,1=W(B ?$,1=X(B ?$,1=Y(B                  ;; GUTTRULS
+     ?$,1=Z(B ?$,1=[(B ?$,1=\(B ?$,1=](B ?$,1=^(B                  ;; PALATALS
+     ?$,1=_(B ?$,1=`(B ?$,1=a(B ?$,1=b(B ?$,1=c(B                  ;; CEREBRALS
+     ?$,1=d(B ?$,1=e(B ?$,1=f(B ?$,1=g(B ?$,1=h(B nil              ;; DENTALS
+     ?$,1=j(B ?$,1=k(B ?$,1=l(B ?$,1=m(B ?$,1=n(B                  ;; LABIALS
+     ?$,1=o(B ?$,1=p(B ?$,1=q(B ?$,1=r(B ?$,1=s(B nil ?$,1=u(B          ;; SEMIVOWELS
+     ?$,1=v(B ?$,1=w(B ?$,1=x(B ?$,1=y(B                    ;; SIBILANTS
+     nil nil nil nil nil nil nil nil      ;; NUKTAS
+     "$,1=\>-=^(B" "$,1=U>-=w(B")
+    (;; Misc Symbols
+     ?$,1=A(B ?$,1=B(B ?$,1=C(B nil ?$,1>-(B nil nil)
+    (;; Digits
+     ?$,1>F(B ?$,1>G(B ?$,1>H(B ?$,1>I(B ?$,1>J(B ?$,1>K(B ?$,1>L(B ?$,1>M(B ?$,1>N(B ?$,1>O(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1>-=p(B" "$,1=p>-(B" "$,1=d>-=p(B" "$,1=v>-=p(B" nil)))
+
+(defvar indian-knd-base-table
+  '(
+    (;; VOWELS
+     (?$,1>e(B nil) (?$,1>f(B ?$,1?>(B) (?$,1>g(B ?$,1??(B) (?$,1>h(B ?$,1?@(B) (?$,1>i(B ?$,1?A(B) (?$,1>j(B ?$,1?B(B)
+     (?$,1>k(B ?$,1?C(B) (?$,1>l(B nil) nil (?$,1>o(B ?$,1?G(B) (?$,1>n(B ?$,1?F(B) (?$,1>p(B ?$,1?H(B)
+     nil (?$,1>s(B ?$,1?K(B) (?$,1>r(B ?$,1?J(B) (?$,1>t(B ?$,1?L(B) (?$,1?`(B ?$,1?D(B) (?$,1?a(B nil))
+    (;; CONSONANTS
+     ?$,1>u(B ?$,1>v(B ?$,1>w(B ?$,1>x(B ?$,1>y(B                  ;; GUTTRULS
+     ?$,1>z(B ?$,1>{(B ?$,1>|(B ?$,1>}(B ?$,1>~(B                  ;; PALATALS
+     ?$,1>(B ?$,1? (B ?$,1?!(B ?$,1?"(B ?$,1?#(B                  ;; CEREBRALS
+     ?$,1?$(B ?$,1?%(B ?$,1?&(B ?$,1?'(B ?$,1?((B nil              ;; DENTALS
+     ?$,1?*(B ?$,1?+(B ?$,1?,(B ?$,1?-(B ?$,1?.(B                  ;; LABIALS
+     ?$,1?/(B ?$,1?0(B ?$,1?1(B ?$,1?2(B ?$,1?3(B nil ?$,1?5(B          ;; SEMIVOWELS
+     ?$,1?6(B ?$,1?7(B ?$,1?8(B ?$,1?9(B                    ;; SIBILANTS
+     nil nil nil nil nil nil ?$,1?^(B nil      ;; NUKTAS
+     "$,1>|?M>~(B" "$,1>u?M?7(B")
+    (;; Misc Symbols
+     nil ?$,1>b(B ?$,1>c(B nil ?$,1?M(B nil nil)
+    (;; Digits
+     ?$,1?f(B ?$,1?g(B ?$,1?h(B ?$,1?i(B ?$,1?j(B ?$,1?k(B ?$,1?l(B ?$,1?m(B ?$,1?n(B ?$,1?o(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1?M?0(B" "$,1?0?M(B" "$,1?$?M?0(B" "$,1?6?M?0(B" nil)))
+
+(defvar indian-mlm-base-table
+  '(
+    (;; VOWELS
+     (?$,1@%(B nil) (?$,1@&(B ?$,1@^(B) (?$,1@'(B ?$,1@_(B) (?$,1@((B ?$,1@`(B) (?$,1@)(B ?$,1@a(B) (?$,1@*(B ?$,1@b(B)
+     (?$,1@+(B ?$,1@c(B) (?$,1@,(B nil) nil (?$,1@/(B ?$,1@g(B) (?$,1@.(B ?$,1@f(B) (?$,1@0(B ?$,1@h(B)
+     nil (?$,1@3(B ?$,1@k(B) (?$,1@2(B ?$,1@j(B) (?$,1@4(B ?$,1@l(B) nil nil)
+    (;; CONSONANTS
+     ?$,1@5(B ?$,1@6(B ?$,1@7(B ?$,1@8(B ?$,1@9(B                  ;; GUTTRULS
+     ?$,1@:(B ?$,1@;(B ?$,1@<(B ?$,1@=(B ?$,1@>(B                  ;; PALATALS
+     ?$,1@?(B ?$,1@@(B ?$,1@A(B ?$,1@B(B ?$,1@C(B                  ;; CEREBRALS
+     ?$,1@D(B ?$,1@E(B ?$,1@F(B ?$,1@G(B ?$,1@H(B nil              ;; DENTALS
+     ?$,1@J(B ?$,1@K(B ?$,1@L(B ?$,1@M(B ?$,1@N(B                  ;; LABIALS
+     ?$,1@O(B ?$,1@P(B ?$,1@Q(B ?$,1@R(B ?$,1@S(B ?$,1@T(B ?$,1@U(B          ;; SEMIVOWELS
+     ?$,1@V(B ?$,1@W(B ?$,1@X(B ?$,1@Y(B                    ;; SIBILANTS
+     nil nil nil nil nil nil nil nil      ;; NUKTAS
+     "$,1@<@m@>(B" "$,1@5@m@W(B")
+    (;; Misc Symbols
+     nil ?$,1@"(B ?$,1@#(B nil ?$,1@m(B nil nil)
+    (;; Digits
+     ?$,1A&(B ?$,1A'(B ?$,1A((B ?$,1A)(B ?$,1A*(B ?$,1A+(B ?$,1A,(B ?$,1A-(B ?$,1A.(B ?$,1A/(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1@m@P(B" "$,1@P@m(B" "$,1@D@m@P(B" "$,1@V@m@P(B" nil)))
+
+(defvar indian-tml-base-table
+  '(
+    (;; VOWELS
+     (?$,1<%(B nil) (?$,1<&(B ?$,1<^(B) (?$,1<'(B ?$,1<_(B) (?$,1<((B ?$,1<`(B) (?$,1<)(B ?$,1<a(B) (?$,1<*(B ?$,1<b(B)
+     nil nil nil (?$,1</(B ?$,1<g(B) (?$,1<.(B ?$,1<f(B) (?$,1<0(B ?$,1<h(B)
+     nil (?$,1<3(B ?$,1<k(B) (?$,1<2(B ?$,1<j(B) (?$,1<4(B ?$,1<l(B) nil nil)
+    (;; CONSONANTS
+     ?$,1<5(B nil nil nil ?$,1<9(B                  ;; GUTTRULS
+     ?$,1<:(B nil ?$,1<<(B nil ?$,1<>(B                  ;; PALATALS
+     ?$,1<?(B nil nil nil ?$,1<C(B                  ;; CEREBRALS
+     ?$,1<D(B nil nil nil ?$,1<H(B ?$,1<I(B              ;; DENTALS
+     ?$,1<J(B nil nil nil ?$,1<N(B                  ;; LABIALS
+     ?$,1<O(B ?$,1<P(B ?$,1<Q(B ?$,1<R(B ?$,1<S(B ?$,1<T(B ?$,1<U(B          ;; SEMIVOWELS
+     nil ?$,1<W(B ?$,1<X(B ?$,1<Y(B                    ;; SIBILANTS
+     nil nil nil nil nil nil nil nil      ;; NUKTAS
+     "$,1<<<m<>(B" "$,1<5<m<W(B")
+    (;; Misc Symbols
+     nil ?$,1<"(B ?$,1<#(B nil ?$,1<m(B nil nil)
+    (;; Digits
+     nil ?$,1='(B ?$,1=((B ?$,1=)(B ?$,1=*(B ?$,1=+(B ?$,1=,(B ?$,1=-(B ?$,1=.(B ?$,1=/(B)
+    (;; Inscript-extra (4)  (#, $, ^, *, ])
+     "$,1<m<P(B" "$,1<P<m(B" "$,1<D<m<P(B" nil nil)))
 
 (defvar indian-base-table-to-language-alist
   '((indian-dev-base-table . "Devanagari")
-    (indian-pnj-base-table . "Punjabi")    
+    (indian-pnj-base-table . "Punjabi")
     (indian-ori-base-table . "Oriya")
     (indian-bng-base-table . "Bengali")
     (indian-asm-base-table . "Assamese")
@@ -98,13 +297,13 @@
   '(;; for encode/decode
     (;; vowels -- 18
      "a" ("aa" "A") "i" ("ii" "I") "u" ("uu" "U")
-     ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") nil "e" "ai"
-     "o.c"  nil   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
-    (;; consonants -- 40 
+     ("RRi" "R^i") ("LLi" "L^i") (".c" "e.c") "E" "e" "ai"
+     "o.c"  "O"   "o"   "au"  ("RRI" "R^I") ("LLI" "L^I"))
+    (;; consonants -- 40
      "k"   "kh"  "g"   "gh"  ("~N" "N^")
      "ch" ("Ch" "chh") "j" "jh" ("~n" "JN")
      "T"   "Th"  "D"   "Dh"  "N"
-     "t"   "th"  "d"   "dh"  "n"   "nh" 
+     "t"   "th"  "d"   "dh"  "n"   "nh"
      "p"   "ph"  "b"   "bh"  "m"
      "y"   "r"   "rh"  "l"   ("L" "ld") nil  ("v" "w")
      "sh" ("Sh" "shh") "s" "h"
@@ -196,10 +395,10 @@ arguments, with all possible combinations of these multiple SEQUENCES.
 Thus, if SEQ1 contains 3 elements and SEQ2 contains 5 elements, then
 FUNCTION will be called 15 times."
   (if seqrest
-      (mapcar 
+      (mapcar
        (lambda (x)
-         (apply 
-          'mapthread 
+         (apply
+          'mapthread
           `(lambda (&rest y) (apply ',function x y))
           seqrest))
        seq1)
@@ -225,7 +424,7 @@ FUNCTION will be called 15 times."
     (funcall f (pop l1) (pop l2))))
 
 (defun indian--puthash-v (v trans-v hashtbls)
-  (indian--map 
+  (indian--map
    (lambda (v trans-v)
      (indian--puthash-char (car v) trans-v hashtbls))
    v trans-v))
@@ -253,7 +452,7 @@ FUNCTION will be called 15 times."
 	  (setq v (if (char-valid-p (cadr v)) (char-to-string (cadr v)) ""))
 	  (if (stringp trans-c) (setq trans-c (list trans-c)))
 	  (if (stringp trans-v) (setq trans-v (list trans-v)))
-	  (indian--puthash-char 
+	  (indian--puthash-char
 	   (concat c v)
 	   (apply 'append
 		  (mapthread 'concat trans-c trans-v))
@@ -263,8 +462,8 @@ FUNCTION will be called 15 times."
 
 (defun indian-make-hash (table trans-table)
   "Indian Transliteration Hash for decode/encode"
-  (let* ((encode-hash (makehash 'equal))
-	 (decode-hash (makehash 'equal))
+  (let* ((encode-hash (make-hash-table :test 'equal))
+	 (decode-hash (make-hash-table :test 'equal))
 	 (hashtbls (cons encode-hash decode-hash))
 	 (vowels     (elt table 0))
 	 (consonants (elt table 1))
@@ -277,7 +476,7 @@ FUNCTION will be called 15 times."
 	 (trans-digits  '("0" "1" "2" "3" "4" "5" "6" "7" "8" "9")))
     (indian--puthash-v vowels trans-vowels hashtbls)
     (indian--puthash-c consonants trans-consonants halant hashtbls)
-    (indian--puthash-cv consonants trans-consonants 
+    (indian--puthash-cv consonants trans-consonants
 			      vowels trans-vowels hashtbls)
     (indian--puthash-m misc trans-misc hashtbls)
     (indian--puthash-m digits trans-digits hashtbls)
@@ -293,18 +492,53 @@ FUNCTION will be called 15 times."
   (indian-make-hash indian-dev-base-table
 			  indian-aiba-table))
 
+(defvar indian-pnj-itrans-v5-hash
+  (indian-make-hash indian-pnj-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-gjr-itrans-v5-hash
+  (indian-make-hash indian-gjr-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-ori-itrans-v5-hash
+  (indian-make-hash indian-ori-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-bng-itrans-v5-hash
+  (indian-make-hash indian-bng-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-asm-itrans-v5-hash
+  (indian-make-hash indian-asm-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-tlg-itrans-v5-hash
+  (indian-make-hash indian-tlg-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-knd-itrans-v5-hash
+  (indian-make-hash indian-knd-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-mlm-itrans-v5-hash
+  (indian-make-hash indian-mlm-base-table
+			  indian-itrans-v5-table))
+
+(defvar indian-tml-itrans-v5-hash
+  (indian-make-hash indian-tml-base-table
+			  indian-itrans-v5-table))
 )
 
 (defmacro indian-translate-region (from to hashtable encode-p)
   `(save-excursion
      (save-restriction
-       (let ((regexp ,(indian-regexp-of-hashtbl-keys 
-		       (if encode-p (car (eval hashtable)) 
+       (let ((regexp ,(indian-regexp-of-hashtbl-keys
+		       (if encode-p (car (eval hashtable))
 			 (cdr (eval hashtable))))))
 	 (narrow-to-region from to)
 	 (goto-char (point-min))
 	 (while (re-search-forward regexp nil t)
-	   (let ((matchstr (gethash (match-string 0) 
+	   (let ((matchstr (gethash (match-string 0)
 				    (if ,encode-p
 					(car ,hashtable)
 				      (cdr ,hashtable)))))
@@ -314,7 +548,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-itrans-v5-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-itrans-v5-hash t))
 
 (defun indian-dev-itrans-v5-decode-region (from to)
@@ -324,7 +558,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-kyoto-harvard-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-kyoto-harvard-hash t))
 
 (defun indian-dev-kyoto-harvard-decode-region (from to)
@@ -334,7 +568,7 @@ FUNCTION will be called 15 times."
 
 (defun indian-dev-aiba-encode-region (from to)
   (interactive "r")
-  (indian-translate-region 
+  (indian-translate-region
    from to indian-dev-aiba-hash t))
 
 (defun indian-dev-aiba-decode-region (from to)
@@ -525,18 +759,18 @@ FUNCTION will be called 15 times."
 (defvar is13194-to-ucs-malayalam-hashtbl nil)
 (defvar is13194-to-ucs-malayalam-regexp nil)
 
-(mapc 
- (function (lambda (script) 
-   (let ((hashtable (intern (concat "is13194-to-ucs-" 
+(mapc
+ (function (lambda (script)
+   (let ((hashtable (intern (concat "is13194-to-ucs-"
                                     (symbol-name script) "-hashtbl" )))
          (regexp    (intern (concat "is13194-to-ucs-"
                                     (symbol-name script) "-regexp"))))
      (set hashtable (make-hash-table :test 'equal :size 128))
      (mapc
       (function (lambda (x)
-        (put-char-code-property (decode-char 'ucs (car x)) 
+        (put-char-code-property (decode-char 'ucs (car x))
                                 'script script)
-        (put-char-code-property (decode-char 'ucs (car x)) 
+        (put-char-code-property (decode-char 'ucs (car x))
                                 'iscii (cdr x))
         (puthash (cdr x) (char-to-string (decode-char 'ucs (car x)))
                  (eval hashtable))))
@@ -553,7 +787,7 @@ FUNCTION will be called 15 times."
   "Regexp that matches to conversion")
 
 (defun ucs-to-iscii-region (from to)
-  "Converts the indian UCS characters in the region to ISCII.  
+  "Converts the indian UCS characters in the region to ISCII.
 Returns new end position."
   (interactive "r")
   ;; only Devanagari is supported now.
@@ -563,13 +797,13 @@ Returns new end position."
       (goto-char (point-min))
       (let* ((current-repertory is13194-default-repartory))
         (while (re-search-forward ucs-to-is13194-regexp nil t)
-          (replace-match 
+          (replace-match
            (get-char-code-property (string-to-char (match-string 0))
                                    'iscii))))
       (point-max))))
 
 (defun iscii-to-ucs-region (from to)
-  "Converts the ISCII characters in the region to UCS.  
+  "Converts the ISCII characters in the region to UCS.
 Returns new end position."
   (interactive "r")
   ;; only Devanagari is supported now.
@@ -579,13 +813,13 @@ Returns new end position."
       (goto-char (point-min))
       (let* ((current-repertory is13194-default-repartory)
              (current-hashtable
-              (intern (concat "is13194-to-ucs-" 
+              (intern (concat "is13194-to-ucs-"
                               (symbol-name current-repertory) "-hashtbl")))
              (current-regexp
-              (intern (concat "is13194-to-ucs-" 
+              (intern (concat "is13194-to-ucs-"
                               (symbol-name current-repertory) "-regexp"))))
         (while (re-search-forward (eval current-regexp) nil t)
-          (replace-match 
+          (replace-match
            (gethash (match-string 0) (eval current-hashtable) ""))))
       (point-max))))
 
@@ -603,7 +837,7 @@ Returns new end position."
 
 ;;;###autoload
 (defun indian-compose-string (string)
-  (with-temp-buffer 
+  (with-temp-buffer
     (insert string)
     (indian-compose-region (point-min) (point-max))
     (buffer-string)))
@@ -1029,7 +1263,7 @@ See also the function `indian-glyph-char'."
 	(error "Invalid indian-glyph char: %d" char))
     (setq code (+ (* (- (nth 1 split) 32) 96) (nth 2 split) -32))
     (cons (% code 256) (aref indian-script-table (/ code 256)))))
-    
+
 (provide 'ind-util)
- 
+
 ;;; ind-util.el ends here

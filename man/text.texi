@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001, 2002
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Text, Programs, Indentation, Top
@@ -50,6 +50,10 @@ Then the formatting appears on the screen in Emacs while you edit.
 @xref{Formatted Text}.
 @end iftex
 
+@cindex skeletons
+@cindex templates
+@cindex autotyping
+@cindex automatic typing
   The ``automatic typing'' features may be useful when writing text.
 @xref{Top,, Autotyping, autotype, Features for Automatic Typing}.
 
@@ -63,6 +67,7 @@ Then the formatting appears on the screen in Emacs while you edit.
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
+* HTML Mode::           Editing HTML, SGML, and XML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
 @end menu
@@ -527,7 +532,9 @@ see @ref{Format Justification}.
 @findex center-line
   The command @kbd{M-s} (@code{center-line}) centers the current line
 within the current fill column.  With an argument @var{n}, it centers
-@var{n} lines individually and moves past them.
+@var{n} lines individually and moves past them.  This binding is
+made by Text mode and is available only in that and related modes
+(@pxref{Text Mode}).
 
 @vindex fill-column
 @kindex C-x f
@@ -562,6 +569,16 @@ fill commands put two spaces after a colon.
 example, a sentence in Thai text ends with double space but without a
 period.  Set the variable @code{sentence-end-without-period} to
 @code{t} to tell the sentence commands that a period is not necessary.
+
+@vindex fill-nobreak-predicate
+  The variable @code{fill-nobreak-predicate} specifies additional
+conditions for where line-breaking is allowed.  Its value is either
+@code{nil} or a Lisp function; the function is called with no
+arguments, and if it returns a non-@code{nil} value, then point is not
+a good place to break the line.  The standard functions you can use
+@code{fill-single-word-nobreak-p} (don't break after the first word of
+a sentence or before the last) and @code{fill-french-nobreak-p} (don't
+break after @samp{(} or before @samp{)}, @samp{:} or @samp{?}).
 
 @node Fill Prefix
 @subsection The Fill Prefix
@@ -903,7 +920,7 @@ the hook @code{outline-mode-hook} (@pxref{Hooks}).
 @menu
 * Format: Outline Format.	   What the text of an outline looks like.
 * Motion: Outline Motion.	   Special commands for moving through
-                                     outlines. 
+                                     outlines.
 * Visibility: Outline Visibility.  Commands to control what is visible.
 * Views: Outline Views.            Outlines and multiple views.
 * Foldout::                        Folding editing.
@@ -1045,7 +1062,7 @@ Make the body of this heading line, and of all its subheadings,
 invisible (@code{hide-leaves}).
 @item C-c C-k
 Make all subheadings of this heading line, at all levels, visible
-(@code{show-branches}). 
+(@code{show-branches}).
 @item C-c C-i
 Make immediate subheadings (one level down) of this heading line
 visible (@code{show-children}).
@@ -1127,9 +1144,12 @@ leading up from there to top level in the outline).
 setting @code{selective-display-ellipses} to @code{nil}.  Then there is
 no visible indication of the presence of invisible lines.
 
+@findex reveal-mode
   When incremental search finds text that is hidden by Outline mode,
 it makes that part of the buffer visible.  If you exit the search
-at that position, the text remains visible.
+at that position, the text remains visible.  You can also
+automatically make text visible as you navigate in it by using
+@kbd{M-x reveal-mode}.
 
 @node Outline Views
 @subsection Viewing One Outline in Multiple Views
@@ -1255,7 +1275,7 @@ automatically by putting this in your @file{.emacs} file:
 (eval-after-load "outline" '(require 'foldout))
 @end example
 
-@node TeX Mode, Nroff Mode, Outline Mode, Text
+@node TeX Mode
 @section @TeX{} Mode
 @cindex @TeX{} mode
 @cindex La@TeX{} mode
@@ -1558,10 +1578,15 @@ in that file's directory.  Before running @TeX{}, it offers to save any
 modified buffers.  Generally, you need to use (@code{tex-file}) twice to
 get the cross-references right.
 
-@vindex tex-start-options-string
-  The value of the variable @code{tex-start-options-string} specifies
-options for the @TeX{} run.  The default value causes @TeX{} to run in
-nonstop mode.  To run @TeX{} interactively, set the variable to @code{""}.
+@vindex tex-start-options
+  The value of the variable @code{tex-start-options} specifies
+options for the @TeX{} run.
+
+@vindex tex-start-commands
+  The value of the variable @code{tex-start-commands} specifies @TeX{}
+commands for starting @TeX{}.  The default value causes @TeX{} to run
+in nonstop mode.  To run @TeX{} interactively, set the variable to
+@code{""}.
 
 @vindex tex-main-file
   Large @TeX{} documents are often split into several files---one main
@@ -1624,8 +1649,6 @@ can be used with @kbd{M-x format-find-file}, for instance.
 @findex tildify-region
 @cindex ties, @TeX{}, inserting
 @cindex hard spaces, @TeX{}, inserting
-@cindex SGML
-@cindex HTML
   The commands @kbd{M-x tildify-buffer} and @kbd{M-x tildify-region}
 insert @samp{~} (@dfn{tie}) characters where they are conventionally
 required.  This is set up for Czech---customize the group
@@ -1637,6 +1660,106 @@ required.  This is set up for Czech---customize the group
 @cindex La@TeX{} references
   For managing all kinds of references for La@TeX{}, you can use
 Ref@TeX{}.  @xref{Top, , RefTeX, reftex}.
+
+@node HTML Mode
+@section SGML, XML, and HTML Modes
+
+  The major modes for SGML and HTML include indentation support and
+commands to operate on tags.  This section describes the special
+commands of these modes.  (HTML mode is a slightly customized variant
+of SGML mode.)
+
+@table @kbd
+@item C-c C-n
+@kindex C-c C-n @r{(SGML mode)}
+@findex sgml-name-char
+Interactively specify a special character and insert the SGML
+@samp{&}-command for that character.
+
+@item C-c C-t
+@kindex C-c C-t @r{(SGML mode)}
+@findex sgml-tag
+Interactively specify a tag and its attributes (@code{sgml-tag}).
+This command asks you for a tag name and for the attribute values,
+then inserts both the opening tag and the closing tag, leaving point
+between them.
+
+With a prefix argument @var{n}, the command puts the tag around the
+@var{n} words already present in the buffer after point.  With
+@minus{}1 as argument, it puts the tag around the region.  (In
+Transient Mark mode, it does this whenever a region is active.)
+
+@item C-c C-a
+@kindex C-c C-a @r{(SGML mode)}
+@findex sgml-attributes
+Interactively insert attribute values for the current tag
+(@code{sgml-attributes}).
+
+@item C-c C-f
+@kindex C-c C-f @r{(SGML mode)}
+@findex sgml-skip-tag-forward
+Skip across a balanced tag group (which extends from an opening tag
+through its corresponding closing tag) (@code{sgml-skip-tag-forward}).
+A numeric argument acts as a repeat count.
+
+@item C-c C-b
+@kindex C-c C-b @r{(SGML mode)}
+@findex sgml-skip-tag-backward
+Skip backward across a balanced tag group (which extends from an
+opening tag through its corresponding closing tag)
+(@code{sgml-skip-tag-forward}).  A numeric argument acts as a repeat
+count.
+
+@item C-c C-d
+@kindex C-c C-d @r{(SGML mode)}
+@findex sgml-delete-tag
+Delete the tag at or after point, and delete the matching tag too
+(@code{sgml-delete-tag}).  If the tag at or after point is an opening
+tag, delete the closing tag too; if it is a closing tag, delete the
+opening tag too.
+
+@item C-c ? @var{tag} @key{RET}
+@kindex C-c ? @r{(SGML mode)}
+@findex sgml-tag-help
+Display a description of the meaning of tag @var{tag}
+(@code{sgml-tag-help}).  If the argument @var{tag} is empty, describe
+the tag at point.
+
+@item C-c /
+@kindex C-c / @r{(SGML mode)}
+@findex sgml-close-tag
+Insert a close tag for the innermost unterminated tag
+(@code{sgml-close-tag}).  If called from within a tag or a comment,
+close this element instead of inserting a close tag.
+
+@item C-c 8
+@kindex C-c 8 @r{(SGML mode)}
+@findex sgml-name-8bit-mode
+Toggle a minor mode in which Latin-1 characters insert the
+corresponding SGML commands that stand for them, instead of the
+characters themselves (@code{sgml-name-8bit-mode}).
+
+@item C-c C-v
+@kindex C-c C-v @r{(SGML mode)}
+@findex sgml-validate
+Run a shell command (which you must specify) to validate the current
+buffer as SGML (@code{sgml-validate}).
+
+@item C-x TAB
+@kindex C-c TAB @r{(SGML mode)}
+@findex sgml-tags-invisible
+Toggle the visibility of existing tags in the buffer.  This can be
+used as a cheap preview.
+@end table
+
+@vindex sgml-xml-mode
+  SGML mode and HTML mode support XML also.  In XML, every opening tag
+must have an explicit closing tag.  When @code{sgml-xml-mode} is
+non-@code{nil}, SGML mode (and HTML mode) always insert explicit
+closing tags.  When you visit a file, these modes determine from the
+file contents whether it is XML or not, and set @code{sgml-xml-mode}
+accordingly, so that they do the right thing for the file in either
+case.
 
 @node Nroff Mode
 @section Nroff Mode
@@ -1726,7 +1849,7 @@ contains a list of ideas for future enhancements.
 * Color: Format Colors.         Changing the color of text.
 * Indent: Format Indentation.   Changing the left and right margins.
 * Justification: Format Justification.
-                                Centering, setting text flush with the 
+                                Centering, setting text flush with the
                                   left or right margin, etc.
 * Other: Format Properties.     The "special" text properties submenu.
 * Forcing Enriched Mode::       How to force use of Enriched mode.
@@ -1735,10 +1858,10 @@ contains a list of ideas for future enhancements.
 @node Requesting Formatted Text
 @subsection Requesting to Edit Formatted Text
 
-  Whenever you visit a file that Emacs saved in the text/enriched format,
-Emacs automatically converts the formatting information in the file into
-Emacs's own internal format (text properties), and turns on Enriched
-mode.
+  Whenever you visit a file that Emacs saved in the text/enriched
+format, Emacs automatically converts the formatting information in the
+file into Emacs's own internal format (known as @dfn{text
+properties}), and turns on Enriched mode.
 
 @findex enriched-mode
   To create a new file of formatted text, first visit the nonexistent
@@ -1774,6 +1897,9 @@ Note that the text/enriched standard requires any non-standard
 annotations to have names starting with @samp{x-}, as in
 @samp{x-read-only}.  This ensures that they will not conflict with
 standard annotations that may be added later.
+
+  @xref{Text Properties,,, elisp, the Emacs Lisp Reference Manual},
+for more information about text properties.
 
 @node Hard and Soft Newlines
 @subsection Hard and Soft Newlines
@@ -2022,7 +2148,7 @@ Prefix}.
 
 @node Format Justification
 @subsection Justification in Formatted Text
-            
+
   When editing formatted text, you can specify various styles of
 justification for a paragraph.  The style you specify automatically
 affects the Emacs fill commands.
@@ -2094,7 +2220,7 @@ region.
   The default justification style is specified by the variable
 @code{default-justification}.  Its value should be one of the symbols
 @code{left}, @code{right}, @code{full}, @code{center}, or @code{none}.
-         
+
 @node Format Properties
 @subsection Setting Other Text Properties
 
@@ -2134,7 +2260,7 @@ When you @emph{insert} a file into a buffer, rather than visiting it.
 Emacs does the necessary conversions on the text which you insert, but
 it does not enable Enriched mode.  If you wish to do that, type @kbd{M-x
 enriched-mode}.
-@end itemize 
+@end itemize
 
   The command @code{format-decode-buffer} translates text in various
 formats into Emacs's internal format.  It asks you to specify the format

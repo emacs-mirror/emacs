@@ -1,3 +1,102 @@
+2003-02-27  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el (greek-babel): add koronis transliteration.
+
+2003-02-23  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el (greek-babel): fix <' accent.
+
+2003-02-17  Dave Love  <fx@gnu.org>
+
+	* quail/cyrillic.el (ukrainian-computer): Fix duplicate `\'.
+
+2003-02-14  Juanma Barranquero  <lektu@terra.es>
+
+	* quail/uni-input.el (utf-8-ccl-encode): Fix use of character
+	constants.
+
+2003-02-11  KAWABATA, Taichi  <kawabata@m17n.org>
+
+	* quail/indian.el (punjabi-itrans, gujarati-itrans, oriya-itrans)
+	(bengali-itrans, assamese-itrans, telugu-itrans kannada-itrans)
+	(malayalam-itrans, tamil-itrans): New ITRANS based input methods.
+	(punjabi-inscript, gujarati-inscript, oriya-inscript)
+	(bengali-inscript, assamese-inscript, telugu-inscript)
+	(kannada-inscript, malayalam-inscript, tamil-inscript): New
+	INSCRIPT based input methods.
+
+2003-02-07  Kenichi Handa  <handa@m17n.org>
+
+	* quail/cyrillic.el: Update quail-package-alist (not
+	input-method-alist) to make "cyrillic-jcuken" an alias of
+	"russian-typewriter".  Add cookie for quail-update-leim-list-file.
+
+2003-02-05  David Kastrup  <dak@gnu.org>
+
+	* quail/greek.el: fix iota accent typos in greek-babel
+	encoding.
+
+2003-01-05  Dave Love  <fx@gnu.org>
+
+	* makefile.w32-in (SLAVIC): Add croatian.elc.
+
+	* Makefile.in (SLAVIC): Add croatian.elc.
+
+	* quail/croatian.el: New file.
+
+2002-12-10  Juanma Barranquero  <lektu@terra.es>
+
+	* makefile.w32-in (LATIN): Add welsh.elc.
+	(MISC): Add georgian.elc.
+	(UNICODE): Add it.
+	(WORLD): Add $(UNICODE).
+
+2002-11-14  Dave Love  <fx@gnu.org>
+
+	* quail/slovak.el: Add coding cookie.
+
+	* quail/latin-ltx.el: Fix coding cookie.
+
+	* quail/hebrew.el: Add coding cookie.
+
+	* quail/czech.el: Add coding cookie.
+
+	* quail/welsh.el: Undo last change.
+
+2002-09-11  Dave Love  <fx@gnu.org>
+
+	* quail/latin-post.el ("slovenian"): New.
+
+2002-09-05  Kenichi Handa  <handa@etl.go.jp>
+
+	* quail/thai.el (thai-kesmanee): Fix the mapping of `"' and `}'.
+
+2002-07-24  Dave Love  <fx@gnu.org>
+
+	* quail/latin-alt.el ("latin-alt-postfix"): New.
+
+	* quail/latin-post.el ("latin-postfix"): New.
+
+	* quail/latin-pre.el ("latin-1-prefix"): Add nbsp.
+	("latin-3-prefix"): Doc fix.
+	("latin-prefix"): New.
+
+2002-07-12  Dave Love  <fx@gnu.org>
+
+	* quail/cyrillic.el: Doc fixes.
+	("cyrillic-beylorussian"): Commented-out.
+	("cyrillic-translit-bulgarian"): Deleted.
+	("cyrillic-ukrainian"): Fix `q', `Q', `W', `w' bindings.
+	("ukrainian-computer", "belarusian", "bulgarian-bds")
+	("russian-computer"): New.
+	("bulgarian-phonetic"): Renamed from bulgarian-pho.  Add ,A'(B, $,1uV(B, ,LN(B.
+	("russian-typewriter"): Renamed from cyrillic-jcuken.
+
+2002-06-20  Dave Love  <fx@gnu.org>
+
+	* quail/latin-pre.el ("latin-3-prefix"): Remove bogus Latin-3
+	characters and ~o -> $,1 A(B, ~O -> $,1 @(B.
+
 2002-05-17  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* Makefile.in (install): Use "tar -chf", to follow symlinks.
@@ -14,7 +113,7 @@
 
 	* quail/vntelex.el: Use proper charset.
 
-2002-04-22  Koaunghi Un <koaunghi@ling.cnu.ac.kr>
+2002-04-22  Koaunghi Un  <koaunghi@ling.cnu.ac.kr>
 
 	* quail/hanja.el ("Od"): Remove rule.
 
@@ -48,9 +147,9 @@
 	* quail/latin-pre.el (french-prefix): ", " => "," and "~ " => "~".
 	Don't define "~," at all.
 
-2002-01-29  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2002-01-29  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* quail/latin-pre.el (latin-2-prefix): Add ,BL(B and ,Bl(B.
+	* quail/latin-pre.el (latin-2-prefix): Add $,1 :(B and $,1 ;(B.
 	From "Dr. Eduard Werner" <edi.werner@gmx.de>.
 
 2002-01-10  Eli Zaretskii  <eliz@is.elta.co.il>
@@ -84,19 +183,19 @@
 
 2001-12-15  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("french-prefix", "german-prefix") 
+	* quail/latin-pre.el ("french-prefix", "german-prefix")
 	("spanish-prefix"): Fix language assignment.
 
-	* quail/latin-post.el ("french-postfix", "german-postfix") 
-	("spanish-postfix", "turkish-latin-3-postfix", "turkish-postfix") 
-	("french-keyboard", "french-azerty", "german") 
+	* quail/latin-post.el ("french-postfix", "german-postfix")
+	("spanish-postfix", "turkish-latin-3-postfix", "turkish-postfix")
+	("french-keyboard", "french-azerty", "german")
 	("spanish-keyboard"): Fix language assignment.
 
 	* quail/indian.el: Don't require cl.
 	(quail-indian-flatten-list): Renamed from flatten-list.
 
-	* quail/cyrillic.el ("cyrillic-beylorussian") 
-	("cyrillic-ukrainian", "cyrillic-translit-bulgarian") 
+	* quail/cyrillic.el ("cyrillic-beylorussian")
+	("cyrillic-ukrainian", "cyrillic-translit-bulgarian")
 	("belarusian", "bulgarian-pho"): Fix language assignment.
 
 	* quail/latin-alt.el ("french-alt-postfix", "german-alt-postfix")
@@ -106,7 +205,7 @@
 	("lithuanian-numeric", "lithuanian-keyboard", "latvian-keyboard"):
 	New.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -128,7 +227,7 @@
 
 	* makefile.nt (INDIAN): Likewise.
 
-2001-11-21  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+2001-11-21  KAWABATA, Taichi  <batta@beige.ocn.ne.jp>
 
 	* quail/devanagari.el: Renamed to indian.el.
 
@@ -211,7 +310,7 @@
 	"chinese-py".
 	("chinese-tonepy-punct"): Copy the QUAIL-MAP of "chinese-tonepy".
 
-2001-07-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* ja-dic/ja-dic.el, quail/cyril-jis.el, quail/cyrillic.el
 	* quail/czech.el, quail/devanagari.el, quail/ethiopic.el
@@ -284,7 +383,7 @@
 2001-04-23  Gerd Moellmann  <gerd@gnu.org>
 
 	* quail/latin-ltx.el: Add more translations.  From
-	jsbien@mimuw.edu.pl (Janusz S. Bie,Bq(B).
+	jsbien@mimuw.edu.pl (Janusz S. Bie$,1 d(B).
 
 2001-04-19  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -367,7 +466,7 @@
 
 	* quail/slovak.el ("slovak"): Translate "=q" to "`".
 
-2001-03-16  Pavel Jan,Bm(Bk ml.  <Pavel@Janik.cz>
+2001-03-16  Pavel Jan,Am(Bk ml.  <Pavel@Janik.cz>
 
 	* quail/slovak.el ("slovak"): Delete translations of "q", "Q",
 	"=q", "+q", "=Q", and "+Q".
@@ -453,8 +552,8 @@
 
 2000-12-18  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate ,b((B entry.
-	Change ,b=(B, ,b<(B, ,b6(B.
+	* quail/latin-pre.el <latin-9-prefix>: Delete duplicate $,1!!(B entry.
+	Change $,1 s(B, $,1 r(B, ,A6(B.
 
 2000-12-16  Kenichi Handa  <handa@etl.go.jp>
 
@@ -579,7 +678,7 @@
 
 2000-08-29  Dave Love  <fx@gnu.org>
 
-	* quail/latin-pre.el ("latin-9-prefix"): Change entries for ,b=(B and ,b<(B.
+	* quail/latin-pre.el ("latin-9-prefix"): Change entries for $,1 s(B and $,1 r(B.
 
 	* Makefile.in: ja-dic <- skk in several places.
 
@@ -619,7 +718,7 @@
 	* quail/tibetan.el: Change all tibetan-1-column characters to
 	tibetan.  Quail map for "tibetan-wylie" fixed.
 
-2000-03-31  Wlodzimierz Bzyl <matwb@monika.univ.gda.pl>
+2000-03-31  Wlodzimierz Bzyl  <matwb@monika.univ.gda.pl>
 
 	* quail/latin-pre.el ("polish-slash"): New input method.
 
@@ -665,7 +764,7 @@
 
 	* makefile.nt: New file.
 
-1999-10-26  Gerd Moellmann <gerd@gnu.org>
+1999-10-26  Gerd Moellmann  <gerd@gnu.org>
 
 	* Makefile.noleim: New.
 
@@ -897,7 +996,7 @@
 	* Makefile.in (${TIT}): To byte-compile quail packages, use just
 	built quail.
 
-1997-12-09  Koaunghi Un <koanughi.un@zdv.uni-tuebingen.de>
+1997-12-09  Koaunghi Un  <koanughi.un@zdv.uni-tuebingen.de>
 
 	* quail/hanja3.el: New file.
 
@@ -1100,7 +1199,7 @@
 
 1997-08-16  Valery Alexeev  <valery@domovoy.math.uga.edu>
 
-        * quail/cyrillic.el (cyrillic-translit-bulgarian): New input method.
+	* quail/cyrillic.el (cyrillic-translit-bulgarian): New input method.
 
 1997-08-16  Kenichi Handa  <handa@etl.go.jp>
 

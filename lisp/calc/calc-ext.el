@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -659,7 +660,7 @@
   (define-key calc-alg-map "\e\C-m" 'calc-last-args-stub)
   (define-key calc-alg-map "\e\177" 'calc-pop-above)
  ))
- 
+
   ;; The following is a relic for backward compatability only.
   ;; The calc-define property list is now the recommended method.
   (if (and (boundp 'calc-ext-defs)
@@ -1288,8 +1289,7 @@ calc-kill calc-kill-region calc-yank))))
 	      calc-mode-var-list))
     (calc-set-language nil nil t)
     (calc-mode)
-    (let ((executing-kbd-macro ""))  ; inhibit message
-      (calc-flush-caches))
+    (calc-flush-caches t)
     (run-hooks 'calc-reset-hook))
   (calc-wrapper
    (let ((win (get-buffer-window (current-buffer))))
@@ -1486,7 +1486,7 @@ calc-kill calc-kill-region calc-yank))))
 		(calc-refresh-evaltos))
 	    (and (eq calc-mode-save-mode 'save)
 		 (not (equal var '(calc-mode-save-mode)))
-		 (calc-save-modes t))))
+		 (calc-save-modes))))
       (if calc-embedded-info (calc-embedded-modes-change var))
       (symbol-value (car var)))))
 
@@ -1631,9 +1631,9 @@ calc-kill calc-kill-region calc-yank))))
 			    ( * ( * )   ( * ) )
 			    ( / ( / )   (   ) )
 			    ( | ( | )   ( | ) )
-			    ( calcFunc-land ( calcFunc-land ) 
+			    ( calcFunc-land ( calcFunc-land )
 					    ( calcFunc-land ) )
-			    ( calcFunc-lor ( calcFunc-lor ) 
+			    ( calcFunc-lor ( calcFunc-lor )
 					   ( calcFunc-lor ) ) ))
 
 
@@ -2725,7 +2725,7 @@ calc-kill calc-kill-region calc-yank))))
 	     (math-integerp int) (math-integerp num) (math-integerp den)
 	     (not (math-zerop den))
 	     (list 'frac (math-add num (math-mul int den)) den)))))
-   
+
    ;; Fractions
    ((string-match "^\\([0-9]*\\)[:/]\\([0-9]*\\)$" s)
     (let ((num (math-match-substring s 1))
@@ -2735,7 +2735,7 @@ calc-kill calc-kill-region calc-yank))))
 	(and num den (math-integerp num) (math-integerp den)
 	     (not (math-zerop den))
 	     (list 'frac num den)))))
-   
+
    ;; Modulo forms
    ((string-match "^\\(.*\\) *mod *\\(.*\\)$" s)
     (let* ((n (math-match-substring s 1))
@@ -2771,7 +2771,7 @@ calc-kill calc-kill-region calc-yank))))
 		       (math-zerop (nth 1 minsec)))
 		  (math-add (list 'hms hours 0 0) minsec))
 		 (t nil)))))
-   
+
    ;; Minutes
    ((string-match "^\\([^'#^]+\\)[mM']\\(.*\\)$" s)
     (let* ((minutes (math-match-substring s 1))
@@ -2789,7 +2789,7 @@ calc-kill calc-kill-region calc-yank))))
 		       (math-zerop (nth 2 seconds)))
 		  (math-add (list 'hms 0 minutes 0) seconds))
 		 (t nil)))))
-   
+
    ;; Seconds
    ((string-match "^\\([^\"#^]+\\)[sS\"]$" s)
     (let ((seconds (math-read-number (math-match-substring s 1))))
@@ -2797,7 +2797,7 @@ calc-kill calc-kill-region calc-yank))))
 	   (not (math-negp seconds))
 	   (Math-lessp seconds 60)
 	   (list 'hms 0 0 seconds))))
-   
+
    ;; Integer+fraction with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]\\)$" s)
     (let ((radix (string-to-int (math-match-substring s 1)))
@@ -2811,7 +2811,7 @@ calc-kill calc-kill-region calc-yank))))
 	     (list 'frac
 		   (math-add num (math-mul int den))
 		   den)))))
-   
+
    ;; Fraction with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]*\\)$" s)
     (let ((radix (string-to-int (math-match-substring s 1)))
@@ -2820,11 +2820,11 @@ calc-kill calc-kill-region calc-yank))))
       (let ((num (if (> (length num) 0) (math-read-radix num radix) 1))
 	    (den (if (> (length den) 0) (math-read-radix den radix) 1)))
 	(and num den (not (math-zerop den)) (list 'frac num den)))))
-   
+
    ;; Float with explicit radix and exponent
    ((or (string-match "^0*\\(\\([2-9]\\|1[0-4]\\)\\(#\\|\\^\\^\\)[0-9a-dA-D.]+\\)[eE]\\([-+]?[0-9]+\\)$" s)
 	(string-match "^\\(\\([0-9]+\\)\\(#\\|\\^\\^\\)[0-9a-zA-Z.]+\\) *\\* *\\2\\.? *\\^ *\\([-+]?[0-9]+\\)$" s))
-    (let ((radix (string-to-int (math-match-substring s 2)))    
+    (let ((radix (string-to-int (math-match-substring s 2)))
 	  (mant (math-match-substring s 1))
 	  (exp (math-match-substring s 4)))
       (let ((mant (math-read-number mant))

@@ -147,7 +147,7 @@
 ;;
 ;; 1.2.2	19-Nov-2000
 ;; Changed:	More documentation fixes.
-;; Bugfix:	The arrow characters (`artist-arrows'), which 
+;; Bugfix:	The arrow characters (`artist-arrows'), which
 ;;              got wrong in 1.1, are now corrected.
 ;;
 ;; 1.2.1	15-Nov-2000
@@ -202,7 +202,7 @@
        nil)
      (defmacro defface (var values doc &rest args)
        `(make-face ,var))
-     (defmacro defcustom (var value doc &rest args) 
+     (defmacro defcustom (var value doc &rest args)
        `(defvar ,var ,value ,doc))))
 
 ;; User options
@@ -446,7 +446,7 @@ strangely.")
   "Char to use when filling.")
 (make-variable-buffer-local 'artist-fill-char)
 
-(defvar artist-erase-char ?\ 
+(defvar artist-erase-char ?\
   "Char to use when erasing.")
 (make-variable-buffer-local 'artist-erase-char)
 
@@ -1766,7 +1766,7 @@ With optional argument N, returns Nth-to-last link (default 1)."
     (goto-char (point-min))
     (delete-char (- (point-max) (point-min)) nil)))
 
-		     
+
 (defun artist-system (program stdin &optional program-args)
   "Run PROGRAM synchronously with the contents of string STDIN to stdin.
 Optional args PROGRAM-ARGS are arguments to PROGRAM.
@@ -2849,7 +2849,7 @@ in the buffer."
       (artist-replace-string (car string-list) see-thru)
       (setq string-list (cdr string-list))
       (setq i (1+ i)))))
-		    
+
 (defun artist-text-insert-see-thru (x y text)
   "At position X, Y, insert text TEXT.
 Let text already in buffer shine thru the TEXT inserted."
@@ -2883,7 +2883,7 @@ Blanks in the rendered text overwrites any text in the buffer."
 
 ;;
 ;; Spraying
-;; 
+;;
 
 (defun artist-spray-get-interval ()
   "Retrieves the interval for repeated spray."
@@ -3145,12 +3145,12 @@ through X1, Y1. An endpoint is a cons pair, (ENDPOINT-X . ENDPOINT-Y)."
 ;;   the entire rectangle is vaporized.
 ;;
 ;;   Now, What if the `+' in the upper left and upper right corners,
-;;   had not been changed to `|' but to spaces instead? We would 
+;;   had not been changed to `|' but to spaces instead? We would
 ;;   have failed when popping (0,0) and vaporizing that line because
 ;;   we wouldn't find any line at (0,0):
-;;   
+;;
 ;;          0123456
-;;         0       
+;;         0
 ;;         1|     |
 ;;         2|     |
 ;;         3+-----+
@@ -3663,9 +3663,8 @@ original contents of that area in the buffer."
 
 	  ;; Last line is empty, don't paint on it, report previous line
 	  ;; as last line
-	  (>= y (- last-line 1)))
-      (>= y last-line))))
-
+	  (>= y (- last-line 1))
+        (>= y last-line)))))
 
 (defun artist-flood-fill (x1 y1)
   "Flood-fill starting at X1, Y1. Fill with the char in `artist-fill-char'."
@@ -4741,14 +4740,14 @@ If optional argument STATE is positive, turn borders on."
 	  (if (eq window-system 'x)
 	      (artist-set-pointer-shape artist-pointer-shape))
 
-	  ;; Redefine the button-up binding temporarily (the original 
+	  ;; Redefine the button-up binding temporarily (the original
 	  ;; binding is restored in the unwind-forms below). This is to
 	  ;; avoid the phenomenon outlined in this scenario:
 	  ;;
 	  ;; 1. A routine which reads something from the mini-buffer (such
 	  ;;    as the text renderer) is called from below.
 	  ;; 2. Meanwhile, the users releases the mouse button.
-	  ;; 3. As a (funny :-) coincidence, the binding for the 
+	  ;; 3. As a (funny :-) coincidence, the binding for the
 	  ;;    button-up event is often mouse-set-point, so Emacs
 	  ;;    sets the point to where the button was released, which is
 	  ;;    in the buffer where the user wants to place the text.
@@ -5422,7 +5421,7 @@ The event, EV, is the mouse event."
 ;;
 ;;      a. Create one draw-function that draws your shape and one
 ;;         undraw-function that undraws it. The draw- and
-;;         undraw-functions are used to to draw/undraw a segment of
+;;         undraw-functions are used to draw/undraw a segment of
 ;;         your poly-point mode between 2 points. The draw- and
 ;;         undraw-functions are then really 2-point mode functions.
 ;;         They must take the same arguments and return the same

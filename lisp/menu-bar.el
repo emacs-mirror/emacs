@@ -152,7 +152,7 @@ A large number or nil slows down menu responsiveness."
   '(menu-item "Revert Buffer" revert-buffer
 	      :enable (or revert-buffer-function
 			  revert-buffer-insert-file-contents-function
-			  (and (buffer-file-name)
+			  (and buffer-file-number
 			       (or (buffer-modified-p)
 				   (not (verify-visited-file-modtime
 					 (current-buffer))))))
@@ -193,9 +193,41 @@ A large number or nil slows down menu responsiveness."
 
 
 ;; The "Edit" menu items
+
+;; The "Edit->Search" submenu
+(defvar menu-bar-last-search-type nil
+  "Type of last non-incremental search command called from the menu.")
+
+(defun nonincremental-repeat-search-forward ()
+  "Search forward for the previous search string or regexp."
+  (interactive)
+  (cond
+   ((and (eq menu-bar-last-search-type 'string)
+	 search-ring)
+    (search-forward (car search-ring)))
+   ((and (eq menu-bar-last-search-type 'regexp)
+	 regexp-search-ring)
+    (re-search-forward (car regexp-search-ring)))
+   (t
+    (error "No previous search"))))
+
+(defun nonincremental-repeat-search-backward ()
+  "Search backward for the previous search string or regexp."
+  (interactive)
+  (cond
+   ((and (eq menu-bar-last-search-type 'string)
+	 search-ring)
+    (search-backward (car search-ring)))
+   ((and (eq menu-bar-last-search-type 'regexp)
+	 regexp-search-ring)
+    (re-search-backward (car regexp-search-ring)))
+   (t
+    (error "No previous search"))))
+
 (defun nonincremental-search-forward (string)
   "Read a string and search for it nonincrementally."
   (interactive "sSearch for string: ")
+  (setq menu-bar-last-search-type 'string)
   (if (equal string "")
       (search-forward (car search-ring))
     (isearch-update-ring string nil)
@@ -204,6 +236,7 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-search-backward (string)
   "Read a string and search backward for it nonincrementally."
   (interactive "sSearch for string: ")
+  (setq menu-bar-last-search-type 'string)
   (if (equal string "")
       (search-backward (car search-ring))
     (isearch-update-ring string nil)
@@ -212,6 +245,7 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-re-search-forward (string)
   "Read a regular expression and search for it nonincrementally."
   (interactive "sSearch for regexp: ")
+  (setq menu-bar-last-search-type 'regexp)
   (if (equal string "")
       (re-search-forward (car regexp-search-ring))
     (isearch-update-ring string t)
@@ -220,105 +254,99 @@ A large number or nil slows down menu responsiveness."
 (defun nonincremental-re-search-backward (string)
   "Read a regular expression and search backward for it nonincrementally."
   (interactive "sSearch for regexp: ")
+  (setq menu-bar-last-search-type 'regexp)
   (if (equal string "")
       (re-search-backward (car regexp-search-ring))
     (isearch-update-ring string t)
     (re-search-backward string)))
 
-(defun nonincremental-repeat-search-forward ()
-  "Search forward for the previous search string."
-  (interactive)
-  (if (null search-ring)
-      (error "No previous search"))
-  (search-forward (car search-ring)))
-
-(defun nonincremental-repeat-search-backward ()
-  "Search backward for the previous search string."
-  (interactive)
-  (if (null search-ring)
-      (error "No previous search"))
-  (search-backward (car search-ring)))
-
-(defun nonincremental-repeat-re-search-forward ()
-  "Search forward for the previous regular expression."
-  (interactive)
-  (if (null regexp-search-ring)
-      (error "No previous search"))
-  (re-search-forward (car regexp-search-ring)))
-
-(defun nonincremental-repeat-re-search-backward ()
-  "Search backward for the previous regular expression."
-  (interactive)
-  (if (null regexp-search-ring)
-      (error "No previous search"))
-  (re-search-backward (car regexp-search-ring)))
-
 (defvar menu-bar-search-menu (make-sparse-keymap "Search"))
-(defvar menu-bar-adv-search-menu
-  (make-sparse-keymap "Advanced Search/Replace"))
 
-(define-key menu-bar-adv-search-menu [tags-continue]
-  '(menu-item "Continue Tags Search/Replace" tags-loop-continue
-	      :help "Continue last tags search/replace operation"))
-(define-key menu-bar-adv-search-menu [tags-repl]
-  '(menu-item "Replace in all tagged files" tags-query-replace
-	      :help "Interactively replace a regexp in all tagged files"))
-(define-key menu-bar-adv-search-menu [tags-srch]
-  '(menu-item "Search in all tagged files" tags-search
-	      :help "Search for a regexp in all tagged files"))
+;; The Edit->Search->Incremental Search menu
+(defvar menu-bar-i-search-menu
+  (make-sparse-keymap "Incremental Search"))
 
-(define-key menu-bar-adv-search-menu [separator-tag-search]
-  '(menu-item "--"))
-
-(define-key menu-bar-adv-search-menu [query-replace-regexp]
-  '(menu-item "Replace Regexp..." query-replace-regexp
-	      :enable (not buffer-read-only)
-	      :help "Replace regular expression, ask about each occurrence"))
-(define-key menu-bar-adv-search-menu [repeat-regexp-back]
-  '(menu-item "Repeat Regexp Backwards"
-	      nonincremental-repeat-re-search-backward
-	      :enable regexp-search-ring
-	      :help "Repeat last regular expression search backwards"))
-(define-key menu-bar-adv-search-menu [repeat-regexp-fwd]
-  '(menu-item "Repeat Regexp" nonincremental-repeat-re-search-forward
-	      :enable regexp-search-ring
-	      :help "Repeat last regular expression search forward"))
-(define-key menu-bar-adv-search-menu [re-search-backward]
-  '(menu-item "Search Regexp Backwards..." nonincremental-re-search-backward
-	      :help "Search backwards for a regular expression"))
-(define-key menu-bar-adv-search-menu [re-search-forward]
-  '(menu-item "Search Regexp..." nonincremental-re-search-forward
-	      :help "Search forward for a regular expression"))
-(define-key menu-bar-adv-search-menu [separator-tag-isearch]
-  '(menu-item "--"))
-(define-key menu-bar-adv-search-menu [isearch-backward]
-  '(menu-item "Incremental Search Backwards..." isearch-backward
+(define-key menu-bar-i-search-menu [isearch-backward-regexp]
+  '(menu-item "Backward Regexp..." isearch-backward-regexp
+	      :help "Search backwards for a regular expression as you type it"))
+(define-key menu-bar-i-search-menu [isearch-forward-regexp]
+  '(menu-item "Forward Regexp..." isearch-forward-regexp
+	      :help "Search forward for a regular expression as you type it"))
+(define-key menu-bar-i-search-menu [isearch-backward]
+  '(menu-item "Backward String..." isearch-backward
 	      :help "Search backwards for a string as you type it"))
-(define-key menu-bar-adv-search-menu [isearch-forward]
-  '(menu-item "Incremental Search..." isearch-forward
+(define-key menu-bar-i-search-menu [isearch-forward]
+  '(menu-item "Forward String..." isearch-forward
 	      :help "Search forward for a string as you type it"))
-(define-key menu-bar-search-menu [re-search]
-  (list 'menu-item "Advanced Search/Replace" menu-bar-adv-search-menu
-	      :help "Regexp and Tags search and replace"))
 
-(define-key menu-bar-search-menu [query-replace]
-  '(menu-item "Replace..." query-replace
-	      :enable (not buffer-read-only)
-	      :help "Replace string interactively, ask about each occurrence"))
+
+(define-key menu-bar-search-menu [i-search]
+  (list 'menu-item "Incremental Search" menu-bar-i-search-menu
+	      :help "Incremental Search finds partial matches while you type the search string.\nIt is most convenient from the keyboard.  Try it!"))
+(define-key menu-bar-search-menu [separator-tag-isearch]
+  '(menu-item "--"))
+
+(define-key menu-bar-search-menu [tags-continue]
+  '(menu-item "Continue Tags Search" tags-loop-continue
+	      :help "Continue last tags search operation"))
+(define-key menu-bar-search-menu [tags-srch]
+  '(menu-item "Search tagged files" tags-search
+	      :help "Search for a regexp in all tagged files"))
+(define-key menu-bar-search-menu [separator-tag-search]
+  '(menu-item "--"))
+
 (define-key menu-bar-search-menu [repeat-search-back]
   '(menu-item "Repeat Backwards" nonincremental-repeat-search-backward
-	      :enable search-ring
+	      :enable (or (and (eq menu-bar-last-search-type 'string)
+			       search-ring)
+			  (and (eq menu-bar-last-search-type 'regexp)
+			       regexp-search-ring))
 	      :help "Repeat last search backwards"))
 (define-key menu-bar-search-menu [repeat-search-fwd]
-  '(menu-item "Repeat Search" nonincremental-repeat-search-forward
-	      :enable search-ring
+  '(menu-item "Repeat Forward" nonincremental-repeat-search-forward
+	      :enable (or (and (eq menu-bar-last-search-type 'string)
+			       search-ring)
+			  (and (eq menu-bar-last-search-type 'regexp)
+			       regexp-search-ring))
 	      :help "Repeat last search forward"))
+(define-key menu-bar-search-menu [separator-repeat-search]
+  '(menu-item "--"))
+
+(define-key menu-bar-search-menu [re-search-backward]
+  '(menu-item "Regexp Backwards..." nonincremental-re-search-backward
+	      :help "Search backwards for a regular expression"))
+(define-key menu-bar-search-menu [re-search-forward]
+  '(menu-item "Regexp Forward..." nonincremental-re-search-forward
+	      :help "Search forward for a regular expression"))
+
 (define-key menu-bar-search-menu [search-backward]
-  '(menu-item "Search Backwards..." nonincremental-search-backward
+  '(menu-item "String Backwards..." nonincremental-search-backward
 	      :help "Search backwards for a string"))
 (define-key menu-bar-search-menu [search-forward]
-  '(menu-item "Search..." nonincremental-search-forward
+  '(menu-item "String Forward..." nonincremental-search-forward
 	      :help "Search forward for a string"))
+
+;; The Edit->Replace submenu
+
+(defvar menu-bar-replace-menu (make-sparse-keymap "Replace"))
+
+(define-key menu-bar-replace-menu [tags-repl-continue]
+  '(menu-item "Continue Replace" tags-loop-continue
+	      :help "Continue last tags replace operation"))
+(define-key menu-bar-replace-menu [tags-repl]
+  '(menu-item "Replace in tagged files" tags-query-replace
+	      :help "Interactively replace a regexp in all tagged files"))
+(define-key menu-bar-replace-menu [separator-replace-tags]
+  '(menu-item "--"))
+
+(define-key menu-bar-replace-menu [query-replace-regexp]
+  '(menu-item "Replace Regexp..." query-replace-regexp
+	      :enable (not buffer-read-only)
+	      :help "Replace regular expression interactively, ask about each occurrence"))
+(define-key menu-bar-replace-menu [query-replace]
+  '(menu-item "Replace String..." query-replace
+	      :enable (not buffer-read-only)
+	      :help "Replace string interactively, ask about each occurrence"))
 
 ;;; Assemble the top-level Edit menu items.
 (define-key menu-bar-edit-menu [props]
@@ -352,13 +380,24 @@ A large number or nil slows down menu responsiveness."
 	      :help "Find function/variables whose names match regexp"))
 (define-key menu-bar-goto-menu [next-tag-otherw]
   '(menu-item "Next Tag in Other Window"
-	      (lambda () (interactive)  (find-tag-other-window nil t))
+	      menu-bar-next-tag-other-window
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name in another window"))
+
+(defun menu-bar-next-tag-other-window ()
+  "Find the next definition of the tag already specified."
+  (interactive)
+  (find-tag-other-window nil t))
+
+(defun menu-bar-next-tag ()
+  "Find the next definition of the tag already specified."
+  (interactive)
+  (find-tag nil t))
+
 (define-key menu-bar-goto-menu [next-tag]
   '(menu-item "Find Next Tag"
-	      (lambda () (interactive) (find-tag nil t))
+	      menu-bar-next-tag
 	      :enable (and (boundp 'tags-location-ring)
 			   (not (ring-empty-p tags-location-ring)))
 	      :help "Find next function/variable matching last tag name"))
@@ -385,6 +424,9 @@ A large number or nil slows down menu responsiveness."
 
 (define-key menu-bar-edit-menu [goto]
   (list 'menu-item "Go To" menu-bar-goto-menu))
+
+(define-key menu-bar-edit-menu [replace]
+  (list 'menu-item "Replace" menu-bar-replace-menu))
 
 (define-key menu-bar-edit-menu [search]
   (list 'menu-item "Search" menu-bar-search-menu))
@@ -540,7 +582,19 @@ Do the same for the keys of the same name."
 
 ;(defvar menu-bar-preferences-menu (make-sparse-keymap "Preferences"))
 
-(defmacro menu-bar-make-toggle (name variable doc message help &optional props &rest body)
+(defmacro menu-bar-make-mm-toggle (fname doc help &optional props)
+  "Make a menu-item for a global minor mode toggle.
+FNAME is the minor mode's name (variable and function).
+DOC is the text to use the menu entry.
+HELP is the text to use for the tooltip.
+PROPS are additional properties."
+  `'(menu-item ,doc ,fname
+     ,@(if props props)
+     :help ,help
+     :button (:toggle . (and (default-boundp ',fname)
+			     (default-value ',fname)))))
+
+(defmacro menu-bar-make-toggle (name variable doc message help &rest body)
   `(progn
      (defun ,name ()
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
@@ -553,20 +607,13 @@ Do the same for the keys of the same name."
 		       (get (or (get ',variable 'custom-get) 'default-value)))
 		   (funcall set ',variable (not (funcall get ',variable))))))
 	   (message ,message "enabled")
-  	 (message ,message "disabled")))
-     ;; The function `customize-mark-as-set' must only be called when
-     ;; a variable is set interactively, as the purpose is to mark it
-     ;; as a candidate for "Save Options", and we do not want to save
-     ;; options the user have already set explicitly in his init
-     ;; file.  Unfortunately, he could very likely call the function
-     ;; defined above there.  So we put `customize-mark-as-set' in a
-     ;; lambda expression.
-     ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-     '(menu-item ,doc (lambda ()
-			(interactive)
-			(,name)
-			(customize-mark-as-set ',variable))
-		 ,@(if props props)
+  	 (message ,message "disabled"))
+       ;; The function `customize-mark-as-set' must only be called when
+       ;; a variable is set interactively, as the purpose is to mark it as
+       ;; a candidate for "Save Options", and we do not want to save options
+       ;; the user have already set explicitly in his init file.
+       (if (interactive-p) (customize-mark-as-set ',variable)))
+     '(menu-item ,doc ,name
 		 :help ,help
                  :button (:toggle . (and (default-boundp ',variable)
 					 (default-value ',variable))))))
@@ -614,14 +661,14 @@ Do the same for the keys of the same name."
 (defvar menu-bar-showhide-menu (make-sparse-keymap "Show/Hide"))
 
 (define-key menu-bar-showhide-menu [column-number-mode]
-  (menu-bar-make-toggle toggle-column-number-mode column-number-mode
-			"Show Column Numbers" "Column number mode %s"
-			"Show the current column number in the mode line"))
+  (menu-bar-make-mm-toggle column-number-mode
+			   "Show Column Numbers"
+			   "Show the current column number in the mode line"))
 
 (define-key menu-bar-showhide-menu [line-number-mode]
-  (menu-bar-make-toggle toggle-line-number-mode line-number-mode
-			"Show Line Numbers" "Line number mode %s"
-			"Show the current line number in the mode line"))
+  (menu-bar-make-mm-toggle line-number-mode
+			   "Show Line Numbers"
+			   "Show the current line number in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
@@ -631,13 +678,11 @@ Do the same for the keys of the same name."
   (interactive)
   (if (display-time-mode)
       (message "Display-time mode enabled.")
-    (message "Display-time mode disabled.")))
+    (message "Display-time mode disabled."))
+  (customize-mark-as-set 'display-time-mode))
 
 (define-key menu-bar-showhide-menu [showhide-date-time]
-  '(menu-item "Date and Time" (lambda ()
-				(interactive)
-				(showhide-date-time)
-				(customize-mark-as-set 'display-time-mode))
+  '(menu-item "Date and Time" showhide-date-time
 	      :help "Display date and time in the mode line"
 	      :button (:toggle . display-time-mode)))
 
@@ -666,9 +711,13 @@ Do the same for the keys of the same name."
 	      :visible (display-graphic-p)))
 
 (defun menu-bar-showhide-fringe-menu-customize-reset ()
-  "Reset the default fringe mode."
+  "Reset the fringe mode: display fringes on both sides of a window."
   (interactive)
   (customize-set-variable 'fringe-mode nil))
+
+;; The real definition is in fringe.el.
+;; This is to prevent errors in the :radio conditions below.
+(setq fringe-mode nil)
 
 (define-key menu-bar-showhide-fringe-menu [default]
   '(menu-item "Default" menu-bar-showhide-fringe-menu-customize-reset
@@ -677,7 +726,7 @@ Do the same for the keys of the same name."
 	      :button (:radio . (eq fringe-mode nil))))
 
 (defun menu-bar-showhide-fringe-menu-customize-left ()
-  "Make fringes appear only on the left."
+  "Display fringes only on the left of each window."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode '(nil . 0)))
@@ -689,7 +738,7 @@ Do the same for the keys of the same name."
 	      :button (:radio . (equal fringe-mode '(nil . 0)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-right ()
-  "Make fringes appear only on the right."
+  "Display fringes only on the right of each window."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode '(0 . nil)))
@@ -701,7 +750,7 @@ Do the same for the keys of the same name."
 	      :button (:radio . (equal fringe-mode '(0 . nil)))))
 
 (defun menu-bar-showhide-fringe-menu-customize-disable ()
-  "Make fringes disappear."
+  "Do not display window fringes."
   (interactive)
   (require 'fringe)
   (customize-set-variable 'fringe-mode 0))
@@ -721,63 +770,54 @@ Do the same for the keys of the same name."
 
 (define-key menu-bar-showhide-scroll-bar-menu [right]
   '(menu-item "On the Right"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode 'right))
+	      menu-bar-right-scroll-bar
 	      :help "Scroll-bar on the right side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'right))))
+(defun menu-bar-right-scroll-bar ()
+  "Display scroll bars on the right of each window."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode 'right))
 
 (define-key menu-bar-showhide-scroll-bar-menu [left]
   '(menu-item "On the Left"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode 'left))
+	      menu-bar-left-scroll-bar
 	      :help "Scroll-bar on the left side"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) 'left))))
 
+(defun menu-bar-left-scroll-bar ()
+  "Display scroll bars on the left of each window."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode 'left))
+
 (define-key menu-bar-showhide-scroll-bar-menu [none]
   '(menu-item "None"
-	      (lambda ()
-		(interactive)
-		(customize-set-variable 'scroll-bar-mode nil))
+	      menu-bar-no-scroll-bar
 	      :help "Turn off scroll-bar"
 	      :visible (display-graphic-p)
 	      :button (:radio . (eq (cdr (assq 'vertical-scroll-bars
 					       (frame-parameters))) nil))))
+
+(defun menu-bar-no-scroll-bar ()
+  "Turn off scroll bars."
+  (interactive)
+  (customize-set-variable 'scroll-bar-mode nil))
 
 (define-key menu-bar-showhide-menu [showhide-scroll-bar]
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
 	:visible `(display-graphic-p)
 	:help "Select scroll-bar mode"))
 
-(defun showhide-menu-bar ()
-  "Toggle whether to turn menu-bar on/off."
-  (interactive)
-  (menu-bar-mode)
-  (if menu-bar-mode
-      (message "Menu-bar mode enabled.")
-    (message "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
-  (customize-mark-as-set 'menu-bar-mode))
-
-(define-key menu-bar-showhide-menu [showhide-menu-bar]
-  '(menu-item "Menu-bar" showhide-menu-bar
+(define-key menu-bar-showhide-menu [menu-bar-mode]
+  '(menu-item "Menu-bar" menu-bar-mode
 	      :help "Toggle menu-bar on/off"
 	      :button (:toggle . menu-bar-mode)))
 
-(defun showhide-toolbar ()
-  "Toggle whether to turn tool-bar on/off."
-  (interactive)
-  (if (tool-bar-mode)
-      (message "Tool-bar mode enabled.")
-    (message "Tool-bar mode disabled."))
-  (customize-mark-as-set 'tool-bar-mode))
-
 (define-key menu-bar-showhide-menu [showhide-tool-bar]
-  (list 'menu-item "Tool-bar" 'showhide-toolbar
+  (list 'menu-item "Tool-bar" 'tool-bar-mode
 	:help "Turn tool-bar on/off"
 	:visible `(display-graphic-p)
 	:button `(:toggle . tool-bar-mode)))
@@ -818,25 +858,22 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [toggle-auto-compression]
   '(menu-item "Automatic File De/compression"
-	      (lambda ()
-		(interactive)
-		(auto-compression-mode)
-		(customize-mark-as-set 'auto-compression-mode))
+	      auto-compression-mode
 	      :help "Transparently decompress compressed files"
 	      :button (:toggle . (rassq 'jka-compr-handler
 					file-name-handler-alist))))
+
 (define-key menu-bar-options-menu [save-place]
   (menu-bar-make-toggle toggle-save-place-globally save-place
 			"Save Place in Files between Sessions"
 			"Saving place in files %s"
-			"Save Emacs state for next session"))
+			"Visit files of previous session when restarting Emacs"))
 
 (define-key menu-bar-options-menu [uniquify]
   (menu-bar-make-toggle toggle-uniquify-buffer-names uniquify-buffer-name-style
 			"Use Directory Names in Buffer Names"
 			"Directory name in buffer names (uniquify) %s"
 			"Uniquify buffer names by adding parent directory names"
-			() ; no props
 			(require 'uniquify)
 			(setq uniquify-buffer-name-style
 			      (if (not uniquify-buffer-name-style)
@@ -846,61 +883,64 @@ Do the same for the keys of the same name."
   '("--"))
 (define-key menu-bar-options-menu [cua-mode]
   '(menu-item "CUA-style cut and paste"
-	      (lambda ()
-		(interactive)
-		(cua-mode nil)
-		(customize-mark-as-set 'cua-mode)
-		(message "CUA-style cut and paste %s"
-			 (if cua-mode "enabled" "disabled")))
+	      menu-bar-toggle-cua-mode
 	      :help "Use C-z/C-x/C-c/C-v keys for undo/cut/copy/paste"
 	      :button (:toggle . cua-mode)))
+
+(defun menu-bar-toggle-cua-mode ()
+  "Toggle CUA key-binding mode.
+When enabled, using shifted movement keys will activate the region (and
+highlight the region using `transient-mark-mode'), and typed text replaces
+the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
+paste (in addition to the normal Emacs bindings)."
+  (interactive)
+  (cua-mode nil)
+  (customize-mark-as-set 'cua-mode)
+  (message "CUA-style cut and paste %s"
+	   (if cua-mode "enabled" "disabled")))
+
 (define-key menu-bar-options-menu [case-fold-search]
   (menu-bar-make-toggle toggle-case-fold-search case-fold-search
 			"Case-Insensitive Search"
 			"Case-Insensitive Search %s"
 			"Ignore letter-case in search"))
+
+(defun menu-bar-text-mode-auto-fill ()
+  (interactive)
+  (toggle-text-mode-auto-fill)
+  ;; This is somewhat questionable, as `text-mode-hook'
+  ;; might have changed outside customize.
+  ;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
+  (customize-mark-as-set 'text-mode-hook))
+
 (define-key menu-bar-options-menu [auto-fill-mode]
-  '(menu-item "Word Wrap in Text Modes (Auto Fill)"
-              (lambda ()
-		(interactive)
-		(toggle-text-mode-auto-fill)
-		;; This is somewhat questionable, as `text-mode-hook'
-		;; might have changed outside customize.
-		;; -- Per Abrahamsen <abraham@dina.kvl.dk> 2002-02-11.
-		(customize-mark-as-set 'text-mode-hook))
-	      :help "Automatically fill text between left and right margins"
+  '(menu-item "Word Wrap in Text Modes"
+              menu-bar-text-mode-auto-fill
+	      :help "Automatically fill text between left and right margins (Auto Fill)"
               :button (:toggle . (if (listp text-mode-hook)
 				     (member 'turn-on-auto-fill text-mode-hook)
 				   (eq 'turn-on-auto-fill text-mode-hook)))))
 (define-key menu-bar-options-menu [truncate-lines]
   '(menu-item "Truncate Long Lines in this Buffer"
-	      (lambda ()
-		(interactive)
-		(setq truncate-lines (not truncate-lines))
-		(set-buffer-modified-p (buffer-modified-p))
-		(message "Truncate long lines %s"
-			 (if truncate-lines "enabled" "disabled")))
+	      toggle-truncate-lines
 	      :help "Truncate long lines on the screen"
 	      :button (:toggle . truncate-lines)))
 
 (define-key menu-bar-options-menu [highlight-separator]
   '("--"))
 (define-key menu-bar-options-menu [highlight-paren-mode]
-  (menu-bar-make-toggle toggle-highlight-paren-mode show-paren-mode
-			"Paren Match Highlighting (Show Paren mode)"
-			"Show Paren mode %s"
-			"Highlight matching/mismatched parentheses at cursor"))
+  (menu-bar-make-mm-toggle show-paren-mode
+			   "Paren Match Highlighting"
+			   "Highlight matching/mismatched parentheses at cursor (Show Paren mode)"))
 (define-key menu-bar-options-menu [transient-mark-mode]
-  (menu-bar-make-toggle toggle-transient-mark-mode transient-mark-mode
-			"Active Region Highlighting (Transient Mark mode)"
-			"Transient Mark mode %s"
-			"Make text in active region stand out in color"
-			(:enable (not cua-mode))))
+  (menu-bar-make-mm-toggle transient-mark-mode
+			   "Active Region Highlighting"
+			   "Make text in active region stand out in color (Transient Mark mode)"
+			   (:enable (not cua-mode))))
 (define-key menu-bar-options-menu [toggle-global-lazy-font-lock-mode]
-  (menu-bar-make-toggle toggle-global-lazy-font-lock-mode global-font-lock-mode
-			"Syntax Highlighting (Global Font Lock mode)"
-			"Global Font Lock mode %s"
-			"Colorize text based on language syntax"))
+  (menu-bar-make-mm-toggle global-font-lock-mode
+			   "Syntax Highlighting"
+			   "Colorize text based on language syntax (Global Font Lock mode)"))
 
 
 ;; The "Tools" menu items
@@ -992,11 +1032,15 @@ Do the same for the keys of the same name."
 (define-key menu-bar-tools-menu [rmail]
   (list
    'menu-item `(format "Read Mail (with %s)" (read-mail-item-name))
-   (lambda ()
-     (interactive)
-     (call-interactively read-mail-command))
+   'menu-bar-read-mail
    :visible `(and read-mail-command (not (eq read-mail-command 'ignore)))
    :help "Read your mail and reply to it"))
+
+(defun menu-bar-read-mail ()
+  "Read mail using `read-mail-command'."
+  (interactive)
+  (call-interactively read-mail-command))
+
 (define-key menu-bar-tools-menu [gnus]
   '(menu-item "Read Net News (Gnus)" gnus
 	      :help "Read network news groups"))
@@ -1097,8 +1141,13 @@ Do the same for the keys of the same name."
 (define-key menu-bar-describe-menu [describe-function]
   '(menu-item "Describe Function..." describe-function
 	      :help "Display documentation of function/command"))
-(define-key menu-bar-describe-menu [describe-key]
+(define-key menu-bar-describe-menu [describe-key-1]
   '(menu-item "Describe Key..." describe-key
+	      ;; Users typically don't identify keys and menu items...
+	      :help "Display documentation of command bound to a \
+key (or menu-item)"))
+(define-key menu-bar-describe-menu [describe-key]
+  '(menu-item "What's This? " describe-key
 	      ;; Users typically don't identify keys and menu items...
 	      :help "Display documentation of command bound to a \
 key (or menu-item)"))
@@ -1116,11 +1165,6 @@ key (or menu-item)"))
   "Display the Introduction to Emacs Lisp Programming in Info mode."
   (interactive)
   (info "eintr"))
-
-(defun menu-bar-read-emacs-man ()
-  "Display Emacs User Manual in Info mode."
-  (interactive)
-  (info "emacs"))
 
 (defun search-emacs-glossary ()
   "Display the Glossary node of the Emacs manual in Info mode."
@@ -1211,13 +1255,15 @@ key (or menu-item)"))
 	      :help "How to get latest versions of Emacs"))
 (define-key menu-bar-help-menu [more]
   '(menu-item "Find Extra Packages"
-	      (lambda ()
-		(interactive)
-		(let (enable-local-variables)
-		  (view-file (expand-file-name "MORE.STUFF"
-					       data-directory))
-		  (goto-address)))
+	      menu-bar-help-extra-packages
 	      :help "Where to find some extra packages and possible updates"))
+(defun menu-bar-help-extra-packages ()
+  "Display help about some additional packages available for Emacs."
+  (interactive)
+  (let (enable-local-variables)
+    (view-file (expand-file-name "MORE.STUFF"
+				 data-directory))
+    (goto-address)))
 (define-key menu-bar-help-menu [about]
   '(menu-item "About Emacs" display-splash-screen
 	      :help "Display version number, copyright info, and basic help"))
@@ -1230,7 +1276,7 @@ key (or menu-item)"))
   (list 'menu-item "More Manuals" menu-bar-manuals-menu
 	:help "Search and browse on-line manuals"))
 (define-key menu-bar-help-menu [emacs-manual]
-  '(menu-item "Read the Emacs Manual" menu-bar-read-emacs-man
+  '(menu-item "Read the Emacs Manual" info-emacs-manual
 	      :help "Full documentation of Emacs features"))
 (define-key menu-bar-help-menu [describe]
   (list 'menu-item "Describe" menu-bar-describe-menu
@@ -1250,9 +1296,15 @@ key (or menu-item)"))
 	      :help "New features of this version"))
 (define-key menu-bar-help-menu [emacs-faq]
   '(menu-item "Emacs FAQ" view-emacs-FAQ))
+
+(defun help-with-tutorial-spec-language ()
+  "Use the Emacs tutorial, specifying which language you want."
+  (interactive)
+  (help-with-tutorial t))
+
 (define-key menu-bar-help-menu [emacs-tutorial-language-specific]
   '(menu-item "Emacs Tutorial (choose language)..."
-	      (lambda () (interactive) (help-with-tutorial t))
+	      help-with-tutorial-spec-language
 	      :help "Learn how to use Emacs (choose a language)"))
 (define-key menu-bar-help-menu [emacs-tutorial]
   '(menu-item "Emacs Tutorial" help-with-tutorial
@@ -1515,21 +1567,21 @@ Buffers menu is regenerated."
 (menu-bar-update-buffers)
 
 ;; this version is too slow
-;;;(defun format-buffers-menu-line (buffer)
-;;;  "Returns a string to represent the given buffer in the Buffer menu.
-;;;nil means the buffer shouldn't be listed.  You can redefine this."
-;;;  (if (string-match "\\` " (buffer-name buffer))
-;;;      nil
-;;;    (save-excursion
-;;;     (set-buffer buffer)
-;;;     (let ((size (buffer-size)))
-;;;       (format "%s%s %-19s %6s %-15s %s"
-;;;	       (if (buffer-modified-p) "*" " ")
-;;;	       (if buffer-read-only "%" " ")
-;;;	       (buffer-name)
-;;;	       size
-;;;	       mode-name
-;;;	       (or (buffer-file-name) ""))))))
+;;(defun format-buffers-menu-line (buffer)
+;;  "Returns a string to represent the given buffer in the Buffer menu.
+;;nil means the buffer shouldn't be listed.  You can redefine this."
+;;  (if (string-match "\\` " (buffer-name buffer))
+;;      nil
+;;    (save-excursion
+;;     (set-buffer buffer)
+;;     (let ((size (buffer-size)))
+;;       (format "%s%s %-19s %6s %-15s %s"
+;;	       (if (buffer-modified-p) "*" " ")
+;;	       (if buffer-read-only "%" " ")
+;;	       (buffer-name)
+;;	       size
+;;	       mode-name
+;;	       (or (buffer-file-name) ""))))))
 
 ;;; Set up a menu bar menu for the minibuffer.
 
@@ -1559,54 +1611,45 @@ Buffers menu is regenerated."
     (list 'menu-item "Enter" 'exit-minibuffer
 	  :help "Terminate input and exit minibuffer")))
 
-(defcustom menu-bar-mode t
-  "Toggle display of a menu bar on each frame.
-Setting this variable directly does not take effect;
-use either \\[customize] or the function `menu-bar-mode'."
-  :set (lambda (symbol value)
-	 (menu-bar-mode (or value 0)))
-  :initialize 'custom-initialize-default
-  :type 'boolean
-  :group 'frames)
+;;;###autoload
+;; This comment is taken from toolbar/tool-bar.el near
+;; (put 'tool-bar-mode ...)
+;; We want to pretend the menu bar by standard is on, as this will make
+;; customize consider disabling the menu bar a customization, and save
+;; that.  We could do this for real by setting :init-value below, but
+;; that would overwrite disabling the tool bar from X resources.
+(put 'menu-bar-mode 'standard-value '(t))
 
-(defun menu-bar-mode (&optional flag)
+;;;###autoload
+(define-minor-mode menu-bar-mode
   "Toggle display of a menu bar on each frame.
 This command applies to all frames that exist and frames to be
 created in the future.
 With a numeric argument, if the argument is positive,
 turn on menu bars; otherwise, turn off menu bars."
- (interactive "P")
-
+  :init-value nil
+  :global t
+  :group 'frames
   ;; Make menu-bar-mode and default-frame-alist consistent.
-  (let ((default (assq 'menu-bar-lines default-frame-alist)))
-    (if default
-	(setq menu-bar-mode (not (eq (cdr default) 0)))
-      (setq default-frame-alist
-	    (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		  default-frame-alist))))
+  (let ((lines (if menu-bar-mode 1 0)))
+    ;; Alter existing frames...
+    (mapc (lambda (frame)
+	    (modify-frame-parameters frame
+				     (list (cons 'menu-bar-lines lines))))
+	  (frame-list))
+    ;; ...and future ones.
+    (let ((elt (assq 'menu-bar-lines default-frame-alist)))
+      (if elt
+	  (setcdr elt lines)
+	(add-to-list 'default-frame-alist (cons 'menu-bar-lines lines)))))
 
-  ;; Toggle or set the mode, according to FLAG.
- (setq menu-bar-mode (if (null flag) (not menu-bar-mode)
-		       (> (prefix-numeric-value flag) 0)))
-
- ;; Apply it to default-frame-alist.
- (let ((parameter (assq 'menu-bar-lines default-frame-alist)))
-   (if (consp parameter)
-       (setcdr parameter (if menu-bar-mode 1 0))
-     (setq default-frame-alist
-	   (cons (cons 'menu-bar-lines (if menu-bar-mode 1 0))
-		 default-frame-alist))))
-
- ;; Apply it to existing frames.
- (let ((frames (frame-list)))
-   (while frames
-     (let ((height (cdr (assq 'height (frame-parameters (car frames))))))
-       (modify-frame-parameters (car frames)
-				(list (cons 'menu-bar-lines
-					  (if menu-bar-mode 1 0))))
-       (modify-frame-parameters (car frames)
-				(list (cons 'height height))))
-     (setq frames (cdr frames)))))
+  ;; Make the message appear when Emacs is idle.  We can not call message
+  ;; directly.  The minor-mode message "Menu-bar mode disabled" comes
+  ;; after this function returns, overwriting any message we do here.
+  (when (and (interactive-p) (not menu-bar-mode))
+    (run-with-idle-timer 0 nil 'message
+			 "Menu-bar mode disabled.  Use M-x menu-bar-mode to make the menu bar appear."))
+  menu-bar-mode)
 
 (provide 'menu-bar)
 

@@ -87,7 +87,7 @@ EMACS_INT gdb_emacs_intbits = sizeof (EMACS_INT) * BITS_PER_CHAR;
 #ifdef DATA_SEG_BITS
 EMACS_INT gdb_data_seg_bits = DATA_SEG_BITS;
 #else
-EMACS_INT  gdb_data_seg_bits = 0;
+EMACS_INT gdb_data_seg_bits = 0;
 #endif
 EMACS_INT PVEC_FLAG = PSEUDOVECTOR_FLAG;
 
@@ -158,7 +158,7 @@ Lisp_Object Vprevious_system_messages_locale;
 Lisp_Object Vsystem_time_locale;
 Lisp_Object Vprevious_system_time_locale;
 
-/* If non-zero, emacs should not attempt to use an window-specific code,
+/* If non-zero, emacs should not attempt to use a window-specific code,
    but instead should use the virtual terminal under which it was started.  */
 int inhibit_window_system;
 
@@ -228,6 +228,7 @@ read the main documentation for these command-line arguments.\n\
 Initialization options:\n\
 \n\
 --batch			do not do interactive display; implies -q\n\
+--script FILE           run FILE as an Emacs Lisp script.\n\
 --debug-init		enable Emacs Lisp debugger during init file\n\
 --help			display this help message and exit\n\
 --multibyte, --no-unibyte   run Emacs in multibyte mode\n\
@@ -425,7 +426,7 @@ init_cmdargs (argc, argv, skip_args)
 {
   register int i;
   Lisp_Object name, dir, tem;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object raw_name;
 
   initial_argv = argv;
@@ -743,7 +744,7 @@ bug_reporting_address ()
   if (!STRINGP(temp))
     return REPORT_EMACS_BUG_ADDRESS;
 
-  string = XSTRING (temp)->data;
+  string = SDATA (temp);
 
   /* Count dots in `emacs-version'.  */
   while (*string)
@@ -761,10 +762,16 @@ bug_reporting_address ()
 
 /* ARGSUSED */
 int
-main (argc, argv, envp)
+main (argc, argv
+#ifdef VMS
+, envp
+#endif
+)
      int argc;
      char **argv;
+#ifdef VMS
      char **envp;
+#endif
 {
 #if GC_MARK_STACK
   Lisp_Object dummy;
@@ -779,6 +786,7 @@ main (argc, argv, envp)
   struct rlimit rlim;
 #endif
   int no_loadup = 0;
+  char *junk = 0;
 
 #if GC_MARK_STACK
   extern Lisp_Object *stack_base;
@@ -817,7 +825,7 @@ main (argc, argv, envp)
 	}
       else
 	{
-	  printf ("GNU Emacs %s\n", XSTRING (tem)->data);
+	  printf ("GNU Emacs %s\n", SDATA (tem));
 	  printf ("Copyright (C) 2002 Free Software Foundation, Inc.\n");
 	  printf ("GNU Emacs comes with ABSOLUTELY NO WARRANTY.\n");
 	  printf ("You may redistribute copies of Emacs\n");
@@ -1033,6 +1041,15 @@ main (argc, argv, envp)
   noninteractive = 0;
   if (argmatch (argv, argc, "-batch", "--batch", 5, NULL, &skip_args))
     noninteractive = 1;
+  if (argmatch (argv, argc, "-script", "--script", 3, &junk, &skip_args))
+    {
+      noninteractive = 1;	/* Set batch mode.  */
+      /* Convert --script to -l, un-skip it, and sort again so that -l will be
+	 handled in proper sequence.  */
+      argv[skip_args - 1] = "-l";
+      skip_args -= 2;
+      sort_args (argc, argv);
+    }
 
   /* Handle the --help option, which gives a usage message.  */
   if (argmatch (argv, argc, "-help", "--help", 3, NULL, &skip_args))
@@ -1358,9 +1375,15 @@ main (argc, argv, envp)
 #endif /* MSDOS */
 
 #ifdef WINDOWSNT
+  globals_of_w32 ();
   /* Initialize environment from registry settings.  */
   init_environment (argv);
   init_ntproc ();	/* must precede init_editfns.  */
+#endif
+
+#ifdef HAVE_CARBON
+  if (initialized)
+    init_mac_osx_environment ();
 #endif
 
   /* egetenv is a pretty low-level facility, which may get called in
@@ -1519,6 +1542,17 @@ main (argc, argv, envp)
       keys_of_minibuf ();
       keys_of_window ();
     }
+	else
+    {
+      /*
+        Initialization that must be done even if the global variable
+        initialized is non zero
+      */
+#ifdef HAVE_NTGUI
+      globals_of_w32fns ();
+      globals_of_w32menu ();
+#endif  /* end #ifdef HAVE_NTGUI */
+    }
 
   if (!noninteractive)
     {
@@ -1653,6 +1687,7 @@ struct standard_args standard_args[] =
   { "-nw", "--no-window-system", 110, 0 },
   { "-nw", "--no-windows", 110, 0 },
   { "-batch", "--batch", 100, 0 },
+  { "-script", "--script", 100, 1 },
   { "-help", "--help", 90, 0 },
   { "-no-unibyte", "--no-unibyte", 83, 0 },
   { "-multibyte", "--multibyte", 82, 0 },
@@ -1908,7 +1943,7 @@ all of which are called before Emacs is actually killed.  */)
      kill it because we are exiting Emacs deliberately (not crashing).
      Do it after shut_down_emacs, which does an auto-save.  */
   if (STRINGP (Vauto_save_list_file_name))
-    unlink (XSTRING (Vauto_save_list_file_name)->data);
+    unlink (SDATA (Vauto_save_list_file_name));
 
   exit (INTEGERP (arg) ? XINT (arg)
 #ifdef VMS
@@ -1977,8 +2012,8 @@ shut_down_emacs (sig, no_x, stuff)
 #ifdef HAVE_X_WINDOWS
   /* It's not safe to call intern here.  Maybe we are crashing.  */
   if (!noninteractive && SYMBOLP (Vwindow_system)
-      && XSTRING (SYMBOL_NAME (Vwindow_system))->size == 1
-      && XSTRING (SYMBOL_NAME (Vwindow_system))->data[0] == 'x'
+      && SCHARS (SYMBOL_NAME (Vwindow_system)) == 1
+      && SREF (SYMBOL_NAME (Vwindow_system), 0) == 'x'
       && ! no_x)
     Fx_close_current_connection ();
 #endif /* HAVE_X_WINDOWS */
@@ -2036,7 +2071,7 @@ This function exists on systems that use HAVE_SHM.  */)
 #ifndef SYSTEM_MALLOC
   memory_warnings (my_edata, malloc_warning);
 #endif
-  map_out_data (XSTRING (filename)->data);
+  map_out_data (SDATA (filename));
 
   Vpurify_flag = tem;
 
@@ -2057,7 +2092,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   extern char my_edata[];
   Lisp_Object tem;
   Lisp_Object symbol;
-  int count = BINDING_STACK_SIZE ();
+  int count = SPECPDL_INDEX ();
 
   check_pure_size ();
 
@@ -2075,7 +2110,7 @@ You must run Emacs in batch mode in order to dump it.  */)
   if (!NILP (symfile))
     {
       CHECK_STRING (symfile);
-      if (XSTRING (symfile)->size)
+      if (SCHARS (symfile))
 	symfile = Fexpand_file_name (symfile, Qnil);
     }
 
@@ -2092,7 +2127,7 @@ You must run Emacs in batch mode in order to dump it.  */)
 
   fflush (stdout);
 #ifdef VMS
-  mapout_data (XSTRING (filename)->data);
+  mapout_data (SDATA (filename));
 #else
   /* Tell malloc where start of impure now is.  */
   /* Also arrange for warnings when nearly out of space.  */
@@ -2110,8 +2145,8 @@ You must run Emacs in batch mode in order to dump it.  */)
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (0);
 #endif
-  unexec (XSTRING (filename)->data,
-	  !NILP (symfile) ? XSTRING (symfile)->data : 0, my_edata, 0, 0);
+  unexec (SDATA (filename),
+	  !NILP (symfile) ? SDATA (symfile) : 0, my_edata, 0, 0);
 #ifdef USE_MMAP_FOR_BUFFERS
   mmap_set_vars (1);
 #endif
@@ -2151,7 +2186,7 @@ synchronize_locale (category, plocale, desired_locale)
     {
       *plocale = desired_locale;
       setlocale (category, (STRINGP (desired_locale)
-			    ? (char *)(XSTRING (desired_locale)->data)
+			    ? (char *)(SDATA (desired_locale))
 			    : ""));
     }
 }
@@ -2221,6 +2256,17 @@ decode_env_path (evarname, defalt)
       /* Add /: to the front of the name
 	 if it would otherwise be treated as magic.  */
       tem = Ffind_file_name_handler (element, Qt);
+
+      /* However, if the handler says "I'm safe",
+	 don't bother adding /:.  */
+      if (SYMBOLP (tem))
+	{
+	  Lisp_Object prop;
+	  prop = Fget (tem, intern ("safe-magic"));
+	  if (! NILP (prop))
+	    tem = Qnil;
+	}
+
       if (! NILP (tem))
 	element = concat2 (build_string ("/:"), element);
 
@@ -2253,7 +2299,8 @@ syms_of_emacs ()
   defsubr (&Sinvocation_directory);
 
   DEFVAR_LISP ("command-line-args", &Vcommand_line_args,
-	       doc: /* Args passed by shell to Emacs, as a list of strings.  */);
+	       doc: /* Args passed by shell to Emacs, as a list of strings.
+Many arguments are deleted from the list as they are processed.  */);
 
   DEFVAR_LISP ("system-type", &Vsystem_type,
 	       doc: /* Value is symbol indicating type of operating system you are using.  */);
@@ -2273,11 +2320,13 @@ Emacs is running.  */);
 	       doc: /* Non-nil means Emacs is running without interactive terminal.  */);
 
   DEFVAR_LISP ("kill-emacs-hook", &Vkill_emacs_hook,
-	       doc: /* Hook to be run whenever kill-emacs is called.
-Since kill-emacs may be invoked when the terminal is disconnected (or
+	       doc: /* Hook to be run when kill-emacs is called.
+Since `kill-emacs' may be invoked when the terminal is disconnected (or
 in other similar situations), functions placed on this hook should not
 expect to be able to interact with the user.  To ask for confirmation,
-see `kill-emacs-query-functions' instead.  */);
+see `kill-emacs-query-functions' instead.
+
+The hook is not run in batch mode, i.e., if `noninteractive' is non-nil.  */);
   Vkill_emacs_hook = Qnil;
 
   empty_string = build_string ("");

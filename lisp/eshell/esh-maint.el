@@ -1,4 +1,4 @@
-;;; esh-maint.el --- init code for building eshell
+;;; esh-maint.el --- init code for building eshell -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1999, 2000 Free Software Foundation
 

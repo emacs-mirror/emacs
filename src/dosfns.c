@@ -503,7 +503,7 @@ x_set_title (f, name)
   if (FRAME_MSDOS_P (f))
     {
       BLOCK_INPUT;
-      w95_set_virtual_machine_title (XSTRING (name)->data);
+      w95_set_virtual_machine_title (SDATA (name));
       UNBLOCK_INPUT;
     }
 }
@@ -525,7 +525,7 @@ If the underlying system call fails, value is nil.  */)
   filename = Fexpand_file_name (filename, Qnil);
   encoded = ENCODE_FILE (filename);
 
-  if (statfs (XSTRING (encoded)->data, &stfs))
+  if (statfs (SDATA (encoded), &stfs))
     value = Qnil;
   else
     value = list3 (make_float ((double) stfs.f_bsize * stfs.f_blocks),

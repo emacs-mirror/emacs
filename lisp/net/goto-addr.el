@@ -102,7 +102,13 @@ But only if `goto-address-highlight-p' is also non-nil."
   "[-a-zA-Z0-9._+]+@\\([-a-zA-z0-9_]+\\.\\)+[a-zA-Z0-9]+"
   "A regular expression probably matching an e-mail address.")
 
-(defvar goto-address-url-regexp thing-at-point-url-regexp
+(defvar goto-address-url-regexp
+  (concat "\\<\\("
+	  (mapconcat 'identity
+		     (delete "mailto:" (copy-sequence thing-at-point-uri-schemes))
+		     "\\|")
+	  "\\)"
+          thing-at-point-url-path-regexp)
   ;; (concat "\\b\\(s?https?\\|ftp\\|file\\|gopher\\|news\\|"
   ;; 	  "telnet\\|wais\\):\\(//[-a-zA-Z0-9_.]+:"
   ;; 	  "[0-9]*\\)?[-a-zA-Z0-9_=?#$@~`%&*+|\\/.,]*"
@@ -202,7 +208,7 @@ there, then load the URL at or before point."
   (interactive)
   (save-excursion
     (let ((address (save-excursion (goto-address-find-address-at-point))))
-      (if (and address 
+      (if (and address
 	       (save-excursion
 		 (goto-char (previous-single-char-property-change
 			     (point) 'goto-address nil

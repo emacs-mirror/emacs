@@ -38,7 +38,7 @@
 ;; (add-hook 'delphi-mode-hook 'turn-on-font-lock)
 
 ;; If font-lock is not loaded by default, you might have to do:
-;; 
+;;
 ;; (autoload 'font-lock-mode "font-lock")
 ;; (autoload 'turn-on-font-lock "font-lock")
 ;; (setq font-lock-support-mode 'lazy-lock-mode)
@@ -65,7 +65,7 @@
 (provide 'delphi)
 
 (defconst delphi-version
-  (let ((revision "$Revision: 3.7 $"))
+  (let ((revision "$Revision: 3.9 $"))
     (string-match ": \\([^ ]+\\)" revision)
     (match-string 1 revision))
   "Version of this delphi mode.")
@@ -187,7 +187,7 @@ differs from the default."
 (defconst delphi-directives
   '(absolute abstract assembler automated cdecl default dispid dynamic
     export external far forward index inline message name near nodefault
-    overload override pascal private protected public published read readonly 
+    overload override pascal private protected public published read readonly
     register reintroduce resident resourcestring safecall stdcall stored
     virtual write writeonly)
   "Delphi4 directives.")
@@ -198,9 +198,9 @@ differs from the default."
      and array as asm at begin case class const constructor contains
      destructor dispinterface div do downto else end except exports
      file finalization finally for function goto if implementation implements
-     in inherited initialization interface is label library mod nil not 
+     in inherited initialization interface is label library mod nil not
      of object on or out package packed procedure program property
-     raise record repeat requires result self set shl shr then threadvar 
+     raise record repeat requires result self set shl shr then threadvar
      to try type unit uses until var while with xor
 
      ;; These routines should be keywords, if Borland had the balls.
@@ -248,7 +248,7 @@ are followed by an expression.")
 (defconst delphi-visibilities '(public private protected published automated)
   "Class visibilities.")
 
-(defconst delphi-block-statements 
+(defconst delphi-block-statements
   '(begin try case repeat initialization finalization asm)
   "Statements that contain multiple substatements.")
 
@@ -526,7 +526,7 @@ routine.")
                  ;; We have an end only if there is some string content (at
                  ;; least a starting delimiter).
                  (not (delphi-is-literal-end (1- p)))))
-                 
+
         ;; Special case: strings cannot span lines.
         (and (delphi-is kind delphi-strings) (eq ?\n (char-after (1- p)))))))
 
@@ -568,7 +568,7 @@ routine.")
            ;; We are completing an incomplete literal.
            (let ((kind (delphi-literal-kind (1- search-start))))
              (delphi-complete-literal kind limit)
-             (delphi-set-text-properties 
+             (delphi-set-text-properties
               search-start (point) (delphi-literal-text-properties kind))))
 
           ((re-search-forward
@@ -583,7 +583,7 @@ routine.")
                  (start (match-beginning 0)))
              (delphi-set-text-properties search-start start nil)
              (delphi-complete-literal kind limit)
-             (delphi-set-text-properties 
+             (delphi-set-text-properties
               start (point) (delphi-literal-text-properties kind))))
 
           ;; Nothing found. Mark it as a non-literal.
@@ -735,7 +735,7 @@ routine.")
       (while (< p to)
         ;; Color the token and move past it.
         (setq token (delphi-token-at p))
-        (add-text-properties 
+        (add-text-properties
          (delphi-token-start token) (delphi-token-end token)
          (list 'face (delphi-face-of (delphi-token-kind token)) 'lazy-lock t))
         (setq p (delphi-token-end token))
@@ -756,7 +756,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
        (delphi-progress-start)
        ;; Reparse at least from the token previous to the change to the end of
        ;; line after the change.
-       (delphi-parse-region-until-stable 
+       (delphi-parse-region-until-stable
         (delphi-token-start (delphi-token-at (1- change-start)))
         (progn (goto-char change-end) (end-of-line) (point)))
        (delphi-progress-done)))))
@@ -814,7 +814,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
     (catch 'done
       (while token
         (setq kind (delphi-token-kind token))
-        (cond 
+        (cond
          ;; Skip over ()/[] groups.
          ((eq 'close-group kind) (setq token (delphi-group-start token)))
 
@@ -836,10 +836,10 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
     (catch 'done
       (while token
         (setq kind (delphi-token-kind token))
-        (cond 
+        (cond
          ((and (eq 'colon kind)
                (delphi-is (delphi-token-kind last-token)
-                          `(,@delphi-block-statements 
+                          `(,@delphi-block-statements
                             ,@delphi-expr-statements)))
           ;; We hit a label followed by a statement. Indent to the statement.
           (throw 'done nil))
@@ -916,7 +916,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
          ((delphi-composite-type-start token last-token)
           (throw 'done (if stop-on-class last-token token)))
          )
-        (unless (delphi-is token-kind delphi-whitespace) 
+        (unless (delphi-is token-kind delphi-whitespace)
           (setq last-token token))
         (setq token (delphi-previous-token token)))
       ;; Start not found.
@@ -1037,7 +1037,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
 
 (defun delphi-is-use-clause-end (at-token last-token last-colon from-kind)
   ;; True if we are after the end of a uses type clause.
-  (when (and last-token 
+  (when (and last-token
              (not last-colon)
              (eq 'comma (delphi-token-kind at-token))
              (eq 'semicolon from-kind))
@@ -1148,7 +1148,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                    (delphi-line-indent-of token))))
 
          ;; Assembly sections always indent in from the asm keyword.
-         ((eq token-kind 'asm) 
+         ((eq token-kind 'asm)
           (throw 'done (delphi-stmt-line-indent-of token delphi-indent-level)))
 
          ;; An enclosing statement delimits a previous statement.
@@ -1236,7 +1236,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
 
          ;; An enclosing ":" means a label.
          ((and (eq 'colon token-kind)
-               (delphi-is (delphi-token-kind section-token) 
+               (delphi-is (delphi-token-kind section-token)
                           delphi-block-statements)
                (not last-terminator)
                (not expr-delimited)
@@ -1270,7 +1270,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
         (from-kind (delphi-token-kind from-token))
         (token-kind nil)
         (stmt-start nil)
-        (last-token nil)        
+        (last-token nil)
         (equals-encountered nil)
         (before-equals nil)
         (expr-delimited nil))
@@ -1329,10 +1329,10 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                  (if stmt-start
                      ;; We are not actually indenting to the case statement,
                      ;; but are within a label expression.
-                     (delphi-stmt-line-indent-of 
+                     (delphi-stmt-line-indent-of
                       stmt-start delphi-indent-level)
                    ;; Indent from the case keyword.
-                   (delphi-stmt-line-indent-of 
+                   (delphi-stmt-line-indent-of
                     token delphi-case-label-indent))))
 
          ;; Body expression statements are enclosing. Indent from the
@@ -1340,7 +1340,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
          ;; it.
          ((delphi-is token-kind delphi-body-expr-statements)
           (throw 'done
-                 (delphi-stmt-line-indent-of 
+                 (delphi-stmt-line-indent-of
                   (or stmt-start token) delphi-indent-level)))
 
          ;; An else statement is enclosing, but it doesn't have an expression.
@@ -1388,7 +1388,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
                  ((+ (delphi-section-indent-of token) delphi-indent-level)))))
 
          ;; Assembly sections always indent in from the asm keyword.
-         ((eq token-kind 'asm) 
+         ((eq token-kind 'asm)
           (throw 'done (delphi-stmt-line-indent-of token delphi-indent-level)))
 
          ;; Stop at an enclosing statement and indent from it.
@@ -1426,18 +1426,18 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
            ;;          + 2;
            ;; which doesn't look right.
            ;;;; Align binary ops with the before token.
-           ;;((delphi-is from-kind delphi-binary-ops) 
+           ;;((delphi-is from-kind delphi-binary-ops)
            ;;(throw 'done (delphi-indent-of before-equals 0)))
 
            ;; Assignments (:=) we skip over to get a normal indent.
            ((eq (delphi-token-kind last-token) 'equals))
 
            ;; Otherwise indent in from the equals.
-           ((throw 'done 
+           ((throw 'done
                    (delphi-indent-of before-equals delphi-indent-level)))))
 
          ;; Remember any "=" we encounter if it has not already been processed.
-         ((eq token-kind 'equals) 
+         ((eq token-kind 'equals)
           (setq equals-encountered token
                 before-equals last-token))
          )
@@ -1473,7 +1473,7 @@ non-delphi buffer. Set to nil in a delphi buffer.  To override, just do:
 
                   ((delphi-is token-kind delphi-match-block-statements)
                    ;; Use the block's indentation.
-                   (let ((block-start 
+                   (let ((block-start
                           (delphi-block-start token 'stop-on-class)))
                      (cond
                       ;; When trailing a body statement, indent to

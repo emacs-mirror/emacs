@@ -1,4 +1,4 @@
-;;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
+;; dos-w32.el --- Functions shared among MS-DOS and W32 (NT/95) platforms
 
 ;; Copyright (C) 1996 Free Software Foundation, Inc.
 
@@ -52,10 +52,9 @@
 					; Packers
     ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\|jar\\)$" . t)
 					; Unix stuff
-    ("\\.tp[ulpw]$" . t)
-					; Borland Pascal stuff
-    ("[:/]tags$" . nil)
-					; Emacs TAGS file
+    ("\\.sx[dmicw]$" . t)		; OpenOffice.org
+    ("\\.tp[ulpw]$" . t)		; borland Pascal stuff
+    ("[:/]tags$" . nil)			; emacs TAGS file
     )
   "*Alist for distinguishing text files from binary files.
 Each element has the form (REGEXP . TYPE), where REGEXP is matched
@@ -124,7 +123,7 @@ set to the appropriate coding system, and the value of
 	(target)
 	(binary nil) (text nil)
 	(undecided nil) (undecided-unix nil))
-    (cond ((eq op 'insert-file-contents) 
+    (cond ((eq op 'insert-file-contents)
 	   (setq target (nth 1 command))
 	   ;; First check for a file name that indicates
 	   ;; it is truly binary.
@@ -158,13 +157,13 @@ set to the appropriate coding system, and the value of
 
 (modify-coding-system-alist 'file "" 'find-buffer-file-type-coding-system)
 
-(defun find-file-binary (filename) 
+(defun find-file-binary (filename)
   "Visit file FILENAME and treat it as binary."
   (interactive "FFind file binary: ")
   (let ((file-name-buffer-file-type-alist '(("" . t))))
     (find-file filename)))
 
-(defun find-file-text (filename) 
+(defun find-file-text (filename)
   "Visit file FILENAME and treat it as a text file."
   (interactive "FFind file text: ")
   (let ((file-name-buffer-file-type-alist '(("" . nil))))
@@ -186,24 +185,24 @@ set to the appropriate coding system, and the value of
       (setq buffer-file-type (eq buffer-file-coding-system 'no-conversion)))))
 
 ;;; To set the default coding system on new files.
-(add-hook 'find-file-not-found-hooks 
+(add-hook 'find-file-not-found-hooks
 	  'find-file-not-found-set-buffer-file-coding-system)
 
 ;;; To accomodate filesystems that do not require CR/LF translation.
 (defvar untranslated-filesystem-list nil
-  "List of filesystems that require no CR/LF translation when reading 
+  "List of filesystems that require no CR/LF translation when reading
 and writing files.  Each filesystem in the list is a string naming
 the directory prefix corresponding to the filesystem.")
 
 (defun untranslated-canonical-name (filename)
   "Return FILENAME in a canonicalized form for use with the functions
 dealing with untranslated filesystems."
-  (if (memq system-type '(ms-dos windows-nt))
+  (if (memq system-type '(ms-dos windows-nt cygwin))
       ;; The canonical form for DOS/W32 is with A-Z downcased and all
       ;; directory separators changed to directory-sep-char.
       (let ((name nil))
-	(setq name (mapconcat 
-		    '(lambda (char) 
+	(setq name (mapconcat
+		    '(lambda (char)
 		       (if (and (<= ?A char) (<= char ?Z))
 			   (char-to-string (+ (- char ?A) ?a))
 			 (char-to-string char)))
@@ -219,7 +218,7 @@ dealing with untranslated filesystems."
     filename))
 
 (defun untranslated-file-p (filename)
-  "Return t if FILENAME is on a filesystem that does not require 
+  "Return t if FILENAME is on a filesystem that does not require
 CR/LF translation, and nil otherwise."
   (let ((fs (untranslated-canonical-name filename))
 	(ufs-list untranslated-filesystem-list)
@@ -233,7 +232,7 @@ CR/LF translation, and nil otherwise."
 (defun add-untranslated-filesystem (filesystem)
   "Add FILESYSTEM to the list of filesystems that do not require
 CR/LF translation.  FILESYSTEM is a string containing the directory
-prefix corresponding to the filesystem.  For example, for a Unix 
+prefix corresponding to the filesystem.  For example, for a Unix
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   ;; We use "D", not "f", to avoid confusing the user: "f" prompts
   ;; with a directory, but RET returns the current buffer's file, not
@@ -246,12 +245,12 @@ filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
 	    (cons fs untranslated-filesystem-list)))))
 
 (defun remove-untranslated-filesystem (filesystem)
-  "Remove FILESYSTEM from the list of filesystems that do not require 
+  "Remove FILESYSTEM from the list of filesystems that do not require
 CR/LF translation.  FILESYSTEM is a string containing the directory
-prefix corresponding to the filesystem.  For example, for a Unix 
+prefix corresponding to the filesystem.  For example, for a Unix
 filesystem mounted on drive Z:, FILESYSTEM could be \"Z:\"."
   (interactive "fUntranslated file system: ")
-  (setq untranslated-filesystem-list 
+  (setq untranslated-filesystem-list
 	(delete (untranslated-canonical-name filesystem)
 		untranslated-filesystem-list)))
 

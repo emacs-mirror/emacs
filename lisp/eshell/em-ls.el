@@ -177,7 +177,7 @@ files."
   :group 'eshell-ls)
 
 (defcustom eshell-ls-product-regexp
-  "\\.\\(elc\\|o\\(bj\\)?\\|a\\||lib\\|res\\)\\'"
+  "\\.\\(elc\\|o\\(bj\\)?\\|a\\|lib\\|res\\)\\'"
   "*A regular expression that matches names of product files.
 Products are files that get generated from a source file, and hence
 ought to be recreatable if they are deleted."

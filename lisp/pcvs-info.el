@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-info.el,v 1.8 2001/12/31 20:28:40 rms Exp $
+;; Revision: $Id: pcvs-info.el,v 1.15 2003/02/04 11:53:11 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -44,15 +44,6 @@
 (defcustom cvs-display-full-path t
   "*Specifies how the filenames should look like in the listing.
 If t, their full path name will be displayed, else only the filename."
-  :group 'pcl-cvs
-  :type '(boolean))
-
-(defvar global-font-lock-mode)
-(defvar font-lock-auto-fontify)
-(defcustom cvs-highlight
-  (or (and (boundp 'font-lock-auto-fontify) font-lock-auto-fontify)
-      (and (boundp 'global-font-lock-mode) global-font-lock-mode))
-  "*Whether to use text highlighting (à la font-lock) or not."
   :group 'pcl-cvs
   :type '(boolean))
 
@@ -179,7 +170,7 @@ to confuse some users sometimes."
                 ;; untouched version resides.
 
   ;; The meaning of the type field:
-  
+
   ;; Value	      ---Used by---	Explanation
   ;; 		      update status
   ;; NEED-UPDATE		x	file needs update
@@ -244,7 +235,6 @@ to confuse some users sometimes."
 
 ;; Predicate:
 
-(defun boolp (x) (or (eq t x) (null x)))
 (defun cvs-check-fileinfo (fi)
   "Check FI's conformance to some conventions."
   (let ((check 'none)
@@ -256,7 +246,7 @@ to confuse some users sometimes."
 	(base-rev (cvs-fileinfo->base-rev fi))
 	(head-rev (cvs-fileinfo->head-rev fi))
 	(full-log (cvs-fileinfo->full-log fi)))
-    (if (and (setq check 'marked)	(boolp marked)
+    (if (and (setq check 'marked)	(memq marked '(t nil))
 	     (setq check 'base-rev)	(or (null base-rev) (stringp base-rev))
 	     (setq check 'head-rev)	(or (null head-rev) (stringp head-rev))
 	     (setq check 'full-log)	(stringp full-log)
@@ -279,9 +269,9 @@ to confuse some users sometimes."
       (error "Invalid :%s in cvs-fileinfo %s" check fi))))
 
 
-;;;; 
+;;;;
 ;;;; State table to indicate what you can do when.
-;;;; 
+;;;;
 
 (defconst cvs-states
   `((NEED-UPDATE	update diff)
@@ -318,18 +308,12 @@ FI-OR-TYPE can either be a symbol (a fileinfo-type) or a fileinfo."
     (and (not (eq type 'MESSAGE))
 	 (eq (car (memq func (cdr (assq type cvs-states)))) func))))
 
-(defun cvs-add-face (str face &optional keymap &rest properties)
-  (when (or cvs-highlight properties)
-    (add-text-properties 0 (length str)
-			 (append
-			  (when cvs-highlight
-			    (list* 'face face
-				   (when keymap
-				     (list* 'mouse-face 'highlight
-					    (when (keymapp keymap)
-					      (list 'keymap keymap))))))
-			  properties)
-			 str))
+(defun cvs-add-face (str face &optional keymap &rest props)
+  (when keymap
+    (when (keymapp keymap)
+      (setq props (list* 'keymap keymap props)))
+    (setq props (list* 'mouse-face 'highlight props)))
+  (add-text-properties 0 (length str) (list* 'font-lock-face face props) str)
   str)
 
 (defun cvs-fileinfo-pp (fileinfo)
@@ -342,7 +326,8 @@ For use by the cookie package."
      (case type
        (DIRCHANGE (concat "In directory "
 			  (cvs-add-face (cvs-fileinfo->full-path fileinfo)
-					'cvs-header-face t)
+					'cvs-header-face t
+					'cvs-goal-column t)
 			  ":"))
        (MESSAGE
 	(cvs-add-face (format "Message: %s" (cvs-fileinfo->full-log fileinfo))
@@ -467,8 +452,13 @@ DIR can also be a file."
 	       ((equal date "Result of merge") (setq subtype 'MERGED))
 	       ((let ((mtime (nth 5 (file-attributes (concat dir f))))
 		      (system-time-locale "C"))
-		  (equal (setq timestamp (format-time-string "%c" mtime 'utc))
-			 date))
+		  (setq timestamp (format-time-string "%c" mtime 'utc))
+		  ;; Solaris sometimes uses "Wed Sep 05", not "Wed Sep  5".
+		  ;; See "grep '[^a-z_]ctime' cvs/src/*.c" for reference.
+		  (if (= (aref timestamp 8) ?0)
+		      (setq timestamp (concat (substring timestamp 0 8)
+					      " " (substring timestamp 9))))
+		  (equal timestamp date))
 		(setq type (if all 'UP-TO-DATE)))
 	       ((equal date (concat "Result of merge+" timestamp))
 		(setq type 'CONFLICT)))

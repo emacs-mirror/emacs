@@ -115,7 +115,7 @@ The buffer in question is current when this function is called."
 	(message "%s changed on disk; really edit the buffer? (y, n, r or C-h) "
 		 (file-name-nondirectory fn))
 	(let ((tem (downcase (let ((cursor-in-echo-area t))
-			       (read-char)))))
+			       (read-char-exclusive)))))
 	  (setq answer
 		(if (= tem help-char)
 		    'help

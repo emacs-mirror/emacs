@@ -1,6 +1,6 @@
 ;;; autoinsert.el --- automatic mode-dependent insertion of text into new files
 
-;; Copyright (C) 1985, 86, 87, 94, 95, 98, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 86, 87, 94, 95, 98, 2000, 03 Free Software Foundation, Inc.
 
 ;; Author: Charlie Martin <crm@cs.duke.edu>
 ;; Adapted-By: Daniel Pfeiffer <occitan@esperanto.org>
@@ -113,7 +113,7 @@ If this contains a %s, that will be replaced by the matching rule."
     (("[Mm]akefile\\'" . "Makefile") . "makefile.inc")
 
     (html-mode . (lambda () (sgml-tag "html")))
-    
+
     (plain-tex-mode . "tex-insert.tex")
     (bibtex-mode . "tex-insert.tex")
     (latex-mode
@@ -130,8 +130,37 @@ If this contains a %s, that will be replaced by the matching rule."
      lambda ()
        (if (eq major-mode default-major-mode)
 	 (sh-mode)))
-    
+
     (ada-mode . ada-header)
+
+    (("\\.[1-9]\\'" . "Man page skeleton")
+     "Short description: "
+     ".\\\" Copyright (C), " (substring (current-time-string) -4) "  "
+     (getenv "ORGANIZATION") | "Free Software Foundation, Inc."
+     "
+.\\\" You may distribute this file under the terms of the GNU Free
+.\\\" Documentation Licence.
+.TH " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+     " " (file-name-extension (buffer-file-name))
+     " " (format-time-string "%Y-%m-%d ")
+     "\n.SH NAME\n"
+     (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+     " \\- " str
+     "\n.SH SYNOPSIS
+.B " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
+     "\n"
+     _
+     "
+.SH DESCRIPTION
+.SH OPTIONS
+.SH FILES
+.SH \"SEE ALSO\"
+.SH BUGS
+.SH AUTHOR
+" (user-full-name)
+     '(if (search-backward "&" (line-beginning-position) t)
+	  (replace-match (capitalize (user-login-name)) t t))
+     '(end-of-line 1) " <" (progn user-mail-address) ">\n")
 
     (("\\.el\\'" . "Emacs Lisp header")
      "Short description: "

@@ -3,7 +3,7 @@
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 ;;
 ;; Author: Miles Bader <miles@gnu.org>
-;; Keywords: convenience
+;; Keywords: convenience minibuffer
 
 ;; This file is part of GNU Emacs.
 
@@ -24,16 +24,16 @@
 
 ;;; Commentary:
 ;;
-;; Defines the mode `read-file-name-electric-shadow-mode'.
+;; Defines the mode `file-name-shadow-mode'.
 ;;
 ;; The `read-file-name' function passes its result through
 ;; `substitute-in-file-name', so any part of the string preceding
 ;; multiple slashes (or a drive indicator on MS-DOS/MS-Windows) is
 ;; ignored.
 ;;
-;; If `read-file-name-electric-shadow-mode' is active, any part of the
+;; If `file-name-shadow-mode' is active, any part of the
 ;; minibuffer text that would be ignored because of this is given the
-;; properties in `read-file-name-electric-shadow-properties', which may
+;; properties in `file-name-shadow-properties', which may
 ;; be used to make the ignored text invisible, dim, etc.
 ;;
 
@@ -42,7 +42,7 @@
 
 ;;; Customization
 
-(defconst read-file-name-electric-shadow-properties-custom-type
+(defconst file-name-shadow-properties-custom-type
   '(list
     (checklist :inline t
 	       (const :tag "Invisible"
@@ -55,7 +55,7 @@
 		     :tag "Face"
 		     :doc "Display shadowed part of filename using a different face"
 		     (const :format "" face)
-		     (face :value read-file-name-electric-shadow))
+		     (face :value file-name-shadow))
 	       (list :inline t
 		     :format "%t: %v%h"
 		     :tag "Brackets"
@@ -93,31 +93,31 @@
 		  (sexp :tag "Value")))))
 
 ;;;###autoload
-(defcustom read-file-name-electric-shadow-properties
-  '(face read-file-name-electric-shadow field shadow)
+(defcustom file-name-shadow-properties
+  '(face file-name-shadow field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
-Only used when `read-file-name-electric-shadow-mode' is active.
+Only used when `file-name-shadow-mode' is active.
 If emacs is not running under a window system,
-`read-file-name-electric-shadow-tty-properties' is used instead."
-  :type read-file-name-electric-shadow-properties-custom-type
+`file-name-shadow-tty-properties' is used instead."
+  :type file-name-shadow-properties-custom-type
   :group 'minibuffer)
 
 ;;;###autoload
-(defcustom read-file-name-electric-shadow-tty-properties
+(defcustom file-name-shadow-tty-properties
   '(before-string "{" after-string "} " field shadow)
   "Properties given to the `shadowed' part of a filename in the minibuffer.
-Only used when `read-file-name-electric-shadow-mode' is active and emacs
+Only used when `file-name-shadow-mode' is active and emacs
 is not running under a window-system; if emacs is running under a window
-system, `read-file-name-electric-shadow-properties' is used instead."
-  :type read-file-name-electric-shadow-properties-custom-type
+system, `file-name-shadow-properties' is used instead."
+  :type file-name-shadow-properties-custom-type
   :group 'minibuffer)
 
-(defface read-file-name-electric-shadow
+(defface file-name-shadow
   '((((background dark))
      :foreground "grey50")
     (t
      :foreground "grey70"))
-  "Face used by `read-file-name-electric-shadow-mode' for the shadow."
+  "Face used by `file-name-shadow-mode' for the shadow."
   :group 'minibuffer)
 
 
@@ -150,7 +150,7 @@ is used as the end of the shadowed portion of the filename.")
 
 ;; This function goes on minibuffer-setup-hook
 (defun rfn-eshadow-setup-minibuffer ()
-  "Set up a minibuffer for `read-file-name-electric-shadow-mode'.
+  "Set up a minibuffer for `file-name-shadow-mode'.
 The prompt and initial input should already have been inserted."
   (when minibuffer-completing-file-name
     (setq rfn-eshadow-overlay
@@ -158,8 +158,8 @@ The prompt and initial input should already have been inserted."
     ;; Give rfn-eshadow-overlay the user's props.
     (let ((props
 	   (if window-system
-	       read-file-name-electric-shadow-properties
-	     read-file-name-electric-shadow-tty-properties)))
+	       file-name-shadow-properties
+	     file-name-shadow-tty-properties)))
       (while props
 	(overlay-put rfn-eshadow-overlay (pop props) (pop props))))
     ;; Turn on overlay evaporation so that we don't have to worry about
@@ -174,7 +174,7 @@ The prompt and initial input should already have been inserted."
 (defun rfn-eshadow-update-overlay ()
   "Update `rfn-eshadow-overlay' to cover shadowed part of minibuffer input.
 This is intended to be used as a minibuffer post-command-hook for
-`read-file-name-electric-shadow-mode'; the minibuffer should have already
+`file-name-shadow-mode'; the minibuffer should have already
 been set up by `rfn-eshadow-setup-minibuffer'."
   ;; This is not really a correct implementation; it won't always do the
   ;; right thing in the presence of environment variables that
@@ -196,19 +196,19 @@ been set up by `rfn-eshadow-setup-minibuffer'."
 ;;; associated variable is non-nil, which requires that all needed
 ;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
-(define-minor-mode read-file-name-electric-shadow-mode
-  "Toggle Read-File-Name Electric Shadow mode.
-When active, any part of the filename being read in the minibuffer
-that would be ignored because the result is passed through
-`substitute-in-file-name' is given the properties in
-`read-file-name-electric-shadow-properties', which can be used to make
+(define-minor-mode file-name-shadow-mode
+  "Toggle File-Name Shadow mode.
+When active, any part of a filename being read in the minibuffer
+that would be ignored (because the result is passed through
+`substitute-in-file-name') is given the properties in
+`file-name-shadow-properties', which can be used to make
 that portion dim, invisible, or otherwise less visually noticeable.
 
 With prefix argument ARG, turn on if positive, otherwise off.
 Returns non-nil if the new state is enabled."
   :global t
   :group 'minibuffer
-  (if read-file-name-electric-shadow-mode
+  (if file-name-shadow-mode
       ;; Enable the mode
       (add-hook 'minibuffer-setup-hook 'rfn-eshadow-setup-minibuffer)
     ;; Disable the mode

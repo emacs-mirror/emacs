@@ -46,7 +46,7 @@ Boston, MA 02111-1307, USA.  */
 /* First pty name is /dev/ptyp0.  */
 
 #define FIRST_PTY_LETTER 'p'
- 
+
 /*
  *	Define HAVE_PTYS if the system supports pty devices.
  */

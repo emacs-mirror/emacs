@@ -21,7 +21,7 @@ without express or implied warranty.
 #define NULL 0
 #endif
 
-/* 
+/*
  * XLookUpAssoc - Retrieve the data stored in an XAssocTable by its XId.
  * If an appropriately matching XId can be found in the table the routine will
  * return apointer to the data associated with it. If the XId can not be found

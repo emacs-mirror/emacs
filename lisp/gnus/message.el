@@ -879,7 +879,7 @@ Defaults to `text-mode-abbrev-table'.")
 		 (unbold-region b e)
 		 (ununderline-region b e))))
   "Alist of mail and news faces for facemenu.
-The cdr of ech entry is a function for applying the face to a region.")
+The cdr of each entry is a function for applying the face to a region.")
 
 (defcustom message-send-hook nil
   "Hook run before sending messages."
@@ -1414,6 +1414,7 @@ Point is left at the beginning of the narrowed-to region."
   (define-key message-mode-map "\C-c\C-v" 'message-delete-not-region)
   (define-key message-mode-map "\C-c\C-z" 'message-kill-to-signature)
   (define-key message-mode-map "\M-\r" 'message-newline-and-reformat)
+  (define-key message-mode-map [remap split-line]  'message-split-line)
 
   (define-key message-mode-map "\C-c\C-a" 'mml-attach-file)
 
@@ -1777,6 +1778,12 @@ With the prefix argument FORCE, insert the header anyway."
     (fill-paragraph nil)
     (goto-char point)
     (forward-line 1)))
+
+(defun message-split-line ()
+  "Split current line, moving portion beyond point vertically down.
+If the current line has `message-yank-prefix', insert it on the new line."
+  (interactive "*")
+  (split-line message-yank-prefix))
 
 (defun message-insert-signature (&optional force)
   "Insert a signature.  See documentation for variable `message-signature'."
@@ -3628,7 +3635,7 @@ than 988 characters long, and if they are not, trim them until they are."
 				 (cdr item)))
 			      headers)
 		      nil switch-function yank-action actions)))))
- 
+
 (eval-when-compile (defvar mc-modes-alist))
 (defun message-setup-1 (headers &optional replybuffer actions)
   (when (and (boundp 'mc-modes-alist)
@@ -3699,7 +3706,7 @@ than 988 characters long, and if they are not, trim them until they are."
   (when message-auto-save-directory
     (unless (file-directory-p
 	     (directory-file-name message-auto-save-directory))
-      (gnus-make-directory message-auto-save-directory))
+      (make-directory message-auto-save-directory t))
     (if (gnus-alive-p)
 	(setq message-draft-article
 	      (nndraft-request-associate-buffer "drafts"))
@@ -4157,7 +4164,7 @@ The form is: [Source] Subject, where if the original message was mail,
 Source is the sender, and if the original message was news, Source is
 the list of newsgroups is was posted to."
   (concat "["
-	   (let ((prefix 
+	   (let ((prefix
 		  (or (message-fetch-field "newsgroups")
 		      (message-fetch-field "from")
 		      "(nowhere)")))
@@ -4243,11 +4250,11 @@ Optional DIGEST will use digest to forward."
 	       (not message-forward-decoded-p))
 	  (insert
 	   (with-temp-buffer
-	     (mm-disable-multibyte-mule4) ;; Must copy buffer in unibyte mode
+	     (mm-disable-multibyte) ;; Must copy buffer in unibyte mode
 	       (insert
 		(with-current-buffer forward-buffer
 		  (mm-string-as-unibyte (buffer-string))))
-	       (mm-enable-multibyte-mule4)
+	       (mm-enable-multibyte)
 	       (mime-to-mml)
 	       (goto-char (point-min))
 	       (when (looking-at "From ")
@@ -4298,7 +4305,7 @@ Optional DIGEST will use digest to forward."
   "Let RMAIL uses message to forward."
   (interactive)
   (setq rmail-enable-mime-composing t)
-  (setq rmail-insert-mime-forwarded-message-function 
+  (setq rmail-insert-mime-forwarded-message-function
 	'message-forward-rmail-make-body))
 
 ;;;###autoload
@@ -4491,7 +4498,7 @@ which specify the range to operate on."
 (eval-when-compile (defvar tool-bar-map))
 (if (featurep 'xemacs)
     (require 'messagexmas)
-  (when (and 
+  (when (and
 	 (condition-case nil (require 'tool-bar) (error nil))
 	 (fboundp 'tool-bar-add-item-from-menu)
 	 tool-bar-mode)
@@ -4501,7 +4508,7 @@ which specify the range to operate on."
  	(dolist (key '(print-buffer kill-buffer save-buffer write-file
  				    dired open-file))
  	  (define-key tool-bar-map (vector key) nil))
- 
+
  	(tool-bar-add-item-from-menu
  	 'message-send-and-exit "mail_send" message-mode-map)
  	(tool-bar-add-item-from-menu

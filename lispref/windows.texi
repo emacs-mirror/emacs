@@ -915,7 +915,7 @@ This variable determines if @code{display-buffer} should even out window
 heights if the buffer gets displayed in an existing window, above or
 beneath another existing window.  If @code{even-window-heights} is
 @code{t}, the default, window heights will be evened out.  If
-@code{even-window-heights} is @code{nil}, the orginal window heights
+@code{even-window-heights} is @code{nil}, the original window heights
 will be left alone.
 @end defopt
 
@@ -960,11 +960,22 @@ buffer specially.
 By default, special display means to give the buffer a dedicated frame.
 
 If an element is a list, instead of a string, then the @sc{car} of the
-list is the buffer name, and the rest of the list says how to create the
-frame.  There are two possibilities for the rest of the list.  It can be
-an alist, specifying frame parameters, or it can contain a function and
-arguments to give to it.  (The function's first argument is always the
-buffer to be displayed; the arguments from the list come after that.)
+list is the buffer name, and the rest of the list says how to create
+the frame.  There are two possibilities for the rest of the list (its
+@sc{cdr}).  It can be an alist, specifying frame parameters, or it can
+contain a function and arguments to give to it.  (The function's first
+argument is always the buffer to be displayed; the arguments from the
+list come after that.)
+
+For example:
+
+@example
+(("myfile" (minibuffer) (menu-bar-lines . 0)))
+@end example
+
+@noindent
+specifies to display a buffer named @samp{myfile} in a dedicated frame
+with specified @code{minibuffer} and @code{menu-bar-lines} parameters.
 @end defopt
 
 @defopt special-display-regexps
@@ -1685,7 +1696,7 @@ If @var{window} is @code{nil}, the function uses the selected window.
 
 @tindex window-body-height
 @defun window-body-height &optional window
-Like @code{window-height} but the value does not include the 
+Like @code{window-height} but the value does not include the
 mode line (if any) or the header line (if any).
 @end defun
 
@@ -2079,8 +2090,9 @@ saved point or mark.
 @end defun
 
   Primitives to look inside of window configurations would make sense,
-but none are implemented.  It is not clear they are useful enough to be
-worth implementing.
+but none are implemented.  It is not clear they are useful enough to
+be worth implementing.  See the file @file{winner.el} for some more
+operations on windows configurations.
 
 @node Window Hooks
 @section Hooks for Window Scrolling and Changes

@@ -20,7 +20,7 @@ Boston, MA 02111-1307, USA.  */
 
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-3"  */
 
@@ -82,7 +82,6 @@ Boston, MA 02111-1307, USA.  */
 /* #define VIRT_ADDR_VARIES */
 
 #ifdef __GNUC__
-#define alloca __builtin_alloca
 #define C_OPTIMIZE_SWITCH -O -fstrength-reduce -fomit-frame-pointer
 #define LIB_STANDARD -lc /lib/crtn.o
 #else

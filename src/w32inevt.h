@@ -21,12 +21,12 @@ Boston, MA 02111-1307, USA.  */
 #ifndef EMACS_W32INEVT_H
 #define EMACS_W32INEVT_H
 
-extern int w32_console_read_socket (int sd, struct input_event *bufp, 
+extern int w32_console_read_socket (int sd, struct input_event *bufp,
 				    int numchars, int expected);
-extern void w32_console_mouse_position (FRAME_PTR *f, int insist, 
-					Lisp_Object *bar_window, 
-					enum scroll_bar_part *part, 
-					Lisp_Object *x, Lisp_Object *y, 
+extern void w32_console_mouse_position (FRAME_PTR *f, int insist,
+					Lisp_Object *bar_window,
+					enum scroll_bar_part *part,
+					Lisp_Object *x, Lisp_Object *y,
 					unsigned long *time);
 
 #endif /* EMACS_W32INEVT_H */

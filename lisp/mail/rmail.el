@@ -161,7 +161,9 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-type:\\|^content-length:"
 	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
-	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent:")
+	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent"
+	  "\\|^importance:\\|^envelope-to:\\|^delivery-date"
+	  "\\|^x.*-priority:\\|^x-mimeole:")
   "*Regexp to match header fields that Rmail should normally hide.
 This variable is used for reformatting the message header,
 which normally happens once for each message,
@@ -279,9 +281,9 @@ still the current message in the Rmail buffer.")
 ;;  files).
 
 (defvar rmail-mmdf-delim1 "^\001\001\001\001\n"
-  "Regexp marking the start of an mmdf message")
+  "Regexp marking the start of an mmdf message.")
 (defvar rmail-mmdf-delim2 "^\001\001\001\001\n"
-  "Regexp marking the end of an mmdf message")
+  "Regexp marking the end of an mmdf message.")
 
 (defcustom rmail-message-filter nil
   "If non-nil, a filter function for new messages in RMAIL.
@@ -457,7 +459,7 @@ MSG is the message number, REGEXP is the regular expression.")
 (defvar rmail-search-mime-header-function nil
   "Function to check if a regexp matches a header of MIME message.
 This function is called if `rmail-enable-mime' is non-nil.
-It is called with four arguments MSG, REGEXP, and LIMIT, where
+It is called with three arguments MSG, REGEXP, and LIMIT, where
 MSG is the message number,
 REGEXP is the regular expression,
 LIMIT is the position specifying the end of header.")
@@ -542,11 +544,13 @@ The first parenthesized expression should match the MIME-charset name.")
   nil)
 
 (defvar rmail-font-lock-keywords
+  ;; These are all matched case-insensitively.
   (eval-when-compile
     (let* ((cite-chars "[>|}]")
-	   (cite-prefix "A-Za-z")
+	   (cite-prefix "a-z")
 	   (cite-suffix (concat cite-prefix "0-9_.@-`'\"")))
-      (list '("^\\(From\\|Sender\\|Resent-[Ff]rom\\):" . font-lock-function-name-face)
+      (list '("^\\(From\\|Sender\\|Resent-From\\):"
+	      . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
 	    '("^Subject:" . font-lock-comment-face)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
@@ -560,7 +564,7 @@ The first parenthesized expression should match the MIME-charset name.")
 	       (beginning-of-line) (end-of-line)
 	       (2 font-lock-constant-face nil t)
 	       (4 font-lock-comment-face nil t)))
-	    '("^\\(X-[A-Za-z0-9-]+\\|In-reply-to\\|Date\\):.*$"
+	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
 
@@ -763,7 +767,7 @@ Note:   This is the header of an rmail file.
 Note:   If you are seeing it in rmail,
 Note:    it means the file has no messages in it.\n\^_")))
 
-;; Decode Babyl formated part at the head of current buffer by
+;; Decode Babyl formatted part at the head of current buffer by
 ;; rmail-file-coding-system, or if it is nil, do auto conversion.
 
 (defun rmail-decode-babyl-format ()
@@ -1121,7 +1125,7 @@ Instead, these commands are available:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
 	'(rmail-font-lock-keywords
-	  t nil nil nil
+	  t t nil nil
 	  (font-lock-maximum-size . nil)
 	  (font-lock-fontify-buffer-function . rmail-fontify-buffer-function)
 	  (font-lock-unfontify-buffer-function . rmail-unfontify-buffer-function)
@@ -1503,7 +1507,7 @@ It returns t if it got any new messages."
 	     (if rmail-pop-password-required
 		 (progn (setq got-password (not (rmail-have-password)))
 			(setq password (rmail-get-pop-password))))
-	     (if (eq system-type 'windows-nt)
+	     (if (memq system-type '(windows-nt cygwin))
 		 ;; cannot have "po:" in file name
 		 (setq tofile
 		       (expand-file-name
@@ -1740,13 +1744,14 @@ It returns t if it got any new messages."
 			  (goto-char (+ header-end size))
 			(message "Ignoring invalid Content-Length field")
 			(sit-for 1 0 t)))
-		 (if (re-search-forward
-		      (concat "^[\^_]?\\("
-			      rmail-unix-mail-delimiter
-			      "\\|"
-			      rmail-mmdf-delim1 "\\|"
-			      "^BABYL OPTIONS:\\|"
-			      "\^L\n[01],\\)") nil t)
+		 (if (let ((case-fold-search nil))
+		       (re-search-forward
+			(concat "^[\^_]?\\("
+				rmail-unix-mail-delimiter
+				"\\|"
+				rmail-mmdf-delim1 "\\|"
+				"^BABYL OPTIONS:\\|"
+				"\^L\n[01],\\)") nil t))
 		     (goto-char (match-beginning 1))
 		   (goto-char (point-max)))
 		 (setq count (1+ count))
@@ -2395,7 +2400,7 @@ If summary buffer is currently displayed, update current message there also."
 			(progn
 			  (check-coding-system coding-system)
 			  (setq buffer-file-coding-system coding-system))
-		      (error 
+		      (error
 		       (setq buffer-file-coding-system nil))))
 		(setq buffer-file-coding-system nil)))))
 	;; Clear the "unseen" attribute when we show a message.
@@ -3144,7 +3149,8 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; since they can handle the names unstripped.
      ;; I don't know whether there are other mailers that still
      ;; need the names to be stripped.
-     (mail-strip-quoted-names reply-to)
+;;;     (mail-strip-quoted-names reply-to)
+     reply-to
      subject
      (rmail-make-in-reply-to-field from date message-id)
      (if just-sender
@@ -3597,7 +3603,7 @@ This has an effect only if a summary buffer exists."
 (eval-when-compile (require 'speedbar))
 
 (defvar rmail-speedbar-match-folder-regexp "^[A-Z0-9]+\\(\\.[A-Z0-9]+\\)?$"
-  "*This regex us used to match folder names to be displayed in speedbar.
+  "*This regex is used to match folder names to be displayed in speedbar.
 Enabling this will permit speedbar to display your folders for easy
 browsing, and moving of messages.")
 

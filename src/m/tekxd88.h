@@ -48,7 +48,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Use type int rather than a union, to represent Lisp_Object */
 /* This is desirable for most machines.  */
-#define NO_UNION_TYPE 
+#define NO_UNION_TYPE
 
 /* Define EXPLICIT_SIGN_EXTEND if XINT must explicitly sign-extend
    the 24-bit bit field into an int.  In other words, if bit fields
@@ -73,7 +73,7 @@ Boston, MA 02111-1307, USA.  */
 
    Otherwise Emacs assumes that text space precedes data space,
    numerically.  */
-/* #define VIRT_ADDR_VARIES */ 
+/* #define VIRT_ADDR_VARIES */
 
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
@@ -81,9 +81,7 @@ Boston, MA 02111-1307, USA.  */
    code will not be sharable; but that's better than failing completely.  */
 #define NO_REMAP
 
-#ifdef __GNUC__
-#  define alloca __builtin_alloca	/* Use the gcc builtin alloca() ... */
-#else /* not __GNUC__ */
+#ifndef __GNUC__
 #  define C_OPTIMIZE_SWITCH -O
 #endif /* __GNUC__ */
 
@@ -102,7 +100,7 @@ Boston, MA 02111-1307, USA.  */
 #define HAVE_PTYS	/* XD88 SysV has PTYs. */
 #define SYSV_PTYS	/* Requires <termios.h> */
 
-#ifdef ghs  /* Stands for "Green Hills Software", defined only in /bin/cc */ 
+#ifdef ghs  /* Stands for "Green Hills Software", defined only in /bin/cc */
 /* -X18 means do not allocate programmer-defined local variables to a
    register unless they are declared register.  (Copied from perl-4.036
    Green Hills C hints file.  Might be needed for setjmp, I don't know.) */

@@ -47,7 +47,7 @@ To start Gnus, type @kbd{M-x gnus @key{RET}}.
 As opposed to most normal Emacs packages, Gnus uses a number of
 different buffers to display information and to receive commands.  The
 three buffers users spend most of their time in are the @dfn{group
-buffer}, the @dfn{summary buffer} and the @dfn{article buffer}.  
+buffer}, the @dfn{summary buffer} and the @dfn{article buffer}.
 
 The @dfn{group buffer} contains a list of groups.  This is the first
 buffer Gnus displays when it starts up.  It normally displays only the
@@ -161,7 +161,7 @@ In the group buffer, select the group on the line under the cursor
 and display the first unread article in that group.
 
 @need 1000
-In the summary buffer, 
+In the summary buffer,
 
 @itemize @bullet
 @item
@@ -291,7 +291,7 @@ Save articles. @xref{Saving Articles, , , gnus, The Gnus Manual}.
 @item
 Have Gnus score articles according to various criteria, like author
 name, subject, or string in the body of the articles.@*
-@xref{Scoring, , , gnus, The Gnus Manual}. 
+@xref{Scoring, , , gnus, The Gnus Manual}.
 
 @item
 Send an article to a newsgroup.@*
@@ -743,6 +743,10 @@ Search backwards or forwards for old shell commands that match @var{regexp}.
 @item C-c C-x @r{(Shell mode)}
 @findex comint-get-next-from-history
 Fetch the next subsequent command from the history.
+
+@item C-c . @r{(Shell mode)}
+@findex comint-input-previous-argument
+Fetch one argument from an old shell command.
 @end table
 
   Shell buffers provide a history of previously entered shell commands.  To
@@ -774,6 +778,15 @@ that will fetch the following command---the one that follows the command
 you just repeated.  Then type @key{RET} to reexecute this command.  You
 can reexecute several successive commands by typing @kbd{C-c C-x
 @key{RET}} over and over.
+
+  The command @kbd{C-c .}@: (@code{comint-input-previous-argument})
+copies an individual argument from a previous command, like @kbd{ESC
+.} in Bash.  The simplest use copies the last argument from the
+previous shell command.  With a prefix argument @var{n}, it copies the
+@var{n}th argument instead.  Repeating @kbd{C-c .} copies from an
+earlier shell command instead, always using the same value of @var{n}
+(don't give a prefix argument when you repeat the @kbd{C-c .}
+command).
 
   These commands get the text of previous shell commands from a special
 history list, not from the shell buffer itself.  Thus, editing the shell
@@ -1018,14 +1031,14 @@ subshell, except for the Term escape character, normally @kbd{C-c}.
   To switch between line and char mode, use these commands:
 
 @table @kbd
-@kindex C-c C-k @r{(Term mode)}
+@kindex C-c C-j @r{(Term mode)}
 @findex term-char-mode
-@item C-c C-k
+@item C-c C-j
 Switch to line mode.  Do nothing if already in line mode.
 
-@kindex C-c C-j @r{(Term mode)}
+@kindex C-c C-k @r{(Term mode)}
 @findex term-line-mode
-@item C-c C-j
+@item C-c C-k
 Switch to char mode.  Do nothing if already in char mode.
 @end table
 
@@ -1286,6 +1299,16 @@ the value of the @samp{--alternate-editor} takes precedence.
   Alternatively, the file @file{etc/emacs.bash} defines a bash
 function which will communicate with a running Emacs server, or start
 one if none exists.
+
+If you use several displays, you can tell Emacs on which display to
+open the given files with the option @samp{--display=@var{DISPLAY}}.
+This can be used typically when connecting from home to an Emacs
+server running on your machine at your workplace.
+
+You can also use @code{emacsclient} to execute any piece of Emacs Lisp
+code, using the option @samp{--eval}.  When this option is given, the
+rest of the arguments is not taken as a list of files to visit but as
+a list of expressions to evaluate.
 
 @node Hardcopy, PostScript, Emacs Server, Top
 @section Hardcopy Output

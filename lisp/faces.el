@@ -52,7 +52,7 @@ those face attributes first that appear first in the list.  For
 example, if `:slant' appears before `:height', font selection first
 tries to find a font with a suitable slant, even if this results in
 a font height that isn't optimal."
-  :tag "Font selection order."
+  :tag "Font selection order"
   :type '(list symbol symbol symbol symbol)
   :group 'font-selection
   :set #'(lambda (symbol value)
@@ -68,7 +68,7 @@ a font height that isn't optimal."
 Each element has the form (FAMILY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of family FAMILY can't be loaded, try ALTERNATIVE1, then
 ALTERNATIVE2 etc."
-  :tag "Alternative font families to try."
+  :tag "Alternative font families to try"
   :type '(repeat (repeat string))
   :group 'font-selection
   :set #'(lambda (symbol value)
@@ -93,7 +93,7 @@ Each element has the form (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...).
 If fonts of registry REGISTRY can be loaded, font selection
 tries to find a best matching font among all fonts of registry
 REGISTRY, ALTERNATIVE1, ALTERNATIVE2, and etc."
-  :tag "Alternative font registries to try."
+  :tag "Alternative font registries to try"
   :type '(repeat (repeat string))
   :version "21.1"
   :group 'font-selection
@@ -148,7 +148,7 @@ If the face already exists, it is left unmodified.  Value is FACE."
 If NEW-FACE already exists as a face, it is modified to be like
 OLD-FACE.  If it doesn't already exist, it is created.
 
-If the optional argument FRAME is given as a frame,  NEW-FACE is
+If the optional argument FRAME is given as a frame, NEW-FACE is
 changed on FRAME only.
 If FRAME is t, the frame-independent default specification for OLD-FACE
 is copied to NEW-FACE.
@@ -196,13 +196,10 @@ should not be used anymore."
 If the optional argument FRAME is given, this gets the face NAME for
 that frame; otherwise, it uses the selected frame.
 If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned.
-
-This function is defined for compatibility with Emacs 20.2.  It
-should not be used anymore."
+If NAME is already a face, it is simply returned."
   (or (facep name)
       (check-face name)))
-(make-obsolete 'internal-get-face "See `facep' and `check-face'." "21.1")
+(make-obsolete 'internal-get-face "see `facep' and `check-face'." "21.1")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -227,7 +224,7 @@ Value is FACE."
 ;; support faces in display table entries.
 
 (defun face-id (face &optional frame)
-  "Return the interNal ID of face with name FACE.
+  "Return the internal ID of face with name FACE.
 If optional argument FRAME is nil or omitted, use the selected frame."
   (check-face face)
   (get face 'face))
@@ -1138,6 +1135,7 @@ Value is a list (FACE NEW-VALUE) where FACE is the face read
 ;; The name list-faces would be more consistent, but let's avoid a
 ;; conflict with Lucid, which uses that name differently.
 
+(defvar help-xref-stack)
 (defun list-faces-display ()
   "List all faces, using the same sample text in each.
 The sample text is a string that comes from the variable
@@ -1245,7 +1243,7 @@ If FRAME is omitted or nil, use the selected frame."
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)
-			  "not documented as a face.")
+			  "Not documented as a face.")
 		      "\n\n")
 	      (with-current-buffer standard-output
 		(save-excursion
@@ -1533,7 +1531,7 @@ Display-dependent faces are those which have different definitions
 according to the `background-mode' and `display-type' frame parameters."
   (let* ((bg-resource
 	  (and window-system
-	       (x-get-resource ".backgroundMode" "BackgroundMode")))
+	       (x-get-resource "backgroundMode" "BackgroundMode")))
 	 (bg-color (frame-parameter frame 'background-color))
 	 (bg-mode
 	  (cond (frame-background-mode)
@@ -1672,15 +1670,17 @@ Value is the new frame created."
 (defun face-set-after-frame-default (frame)
   "Set frame-local faces of FRAME from face specs and resources.
 Initialize colors of certain faces from frame parameters."
+  ;; Don't let frame creation fail because of an invalid face spec.
   (dolist (face (face-list))
-    (when (not (equal face 'default))
-      (face-spec-set face (face-user-default-spec face) frame)
-      (internal-merge-in-global-face face frame)
-      (when (and (memq window-system '(x w32 mac))
-		 (or (not (boundp 'inhibit-default-face-x-resources))
-		     (not (eq face 'default))))
-	(make-face-x-resource-internal face frame))))
-
+    (condition-case ()
+	(when (not (equal face 'default))
+	  (face-spec-set face (face-user-default-spec face) frame)
+	  (internal-merge-in-global-face face frame)
+	  (when (and (memq window-system '(x w32 mac))
+		     (or (not (boundp 'inhibit-default-face-x-resources))
+			 (not (eq face 'default))))
+	    (make-face-x-resource-internal face frame)))
+      (error nil)))
   ;; Initialize attributes from frame parameters.
   (let ((params '((foreground-color default :foreground)
 		  (background-color default :background)
@@ -1755,7 +1755,7 @@ created."
 ;; Update a frame's faces when we change its default font.
 
 (defalias 'frame-update-faces 'ignore)
-(make-obsolete 'frame-update-faces "No longer necessary" "21.1")
+(make-obsolete 'frame-update-faces "no longer necessary." "21.1")
 
 ;; Update the colors of FACE, after FRAME's own colors have been
 ;; changed.
@@ -1811,9 +1811,7 @@ created."
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
 
 (defface header-line
-  '((t
-     :inherit mode-line)
-    (((type tty))
+  '((((type tty))
      ;; This used to be `:inverse-video t', but that doesn't look very
      ;; good when combined with inverse-video mode-lines and multiple
      ;; windows.  Underlining looks better, and is more consistent with
@@ -1826,20 +1824,24 @@ created."
      :underline t)
     (((class color grayscale) (background light))
      :background "grey90" :foreground "grey20"
-     :box nil)
+     :box nil
+     :inherit mode-line)
     (((class color grayscale) (background dark))
      :background "grey20" :foreground "grey90"
-     :box nil)
+     :box nil
+     :inherit mode-line)
     (((class mono) (background light))
      :background "white" :foreground "black"
      :inverse-video nil
      :box nil
-     :underline t)
+     :underline t
+     :inherit mode-line)
     (((class mono) (background dark))
      :background "black" :foreground "white"
      :inverse-video nil
      :box nil
-     :underline t))
+     :underline t
+     :inherit mode-line))
   "Basic header-line face."
   :version "21.1"
   :group 'basic-faces)

@@ -117,7 +117,7 @@
 (require 'sendmail)
 ;; Those sections of code which are dependent upon
 ;; RMAIL are only evaluated if we have received a message with RMAIL...
-;;(require 'rmail) 
+;;(require 'rmail)
 
 (defgroup uce nil
   "Facilitate reply to unsolicited commercial email."
@@ -137,7 +137,7 @@ This hook is run after `mail-setup-hook', which is run as well."
   :type 'hook
   :group 'uce)
 
-(defcustom uce-message-text 
+(defcustom uce-message-text
   "Recently, I have received an Unsolicited Commercial E-mail from you.
 I do not like UCE's and I would like to inform you that sending
 unsolicited messages to someone while he or she may have to pay for
@@ -148,8 +148,8 @@ If you think that this is a good way to advertise your products or
 services you are mistaken.  Spamming will only make people hate you, not
 buy from you.
 
-If you have any list of people you send unsolicited commercial emails to, 
-REMOVE me from such list immediately.  I suggest that you make this list 
+If you have any list of people you send unsolicited commercial emails to,
+REMOVE me from such list immediately.  I suggest that you make this list
 just empty.
 
 	----------------------------------------------------
@@ -192,7 +192,7 @@ Value nil means use no separator."
   :group 'uce)
 
 (defcustom uce-signature mail-signature
-"Text to put as your signature after the note to UCE sender.  
+"Text to put as your signature after the note to UCE sender.
 Value nil means none, t means insert `~/.signature' file (if it happens
 to exist), if this variable is a string this string will be inserted
 as your signature."
@@ -221,7 +221,7 @@ address, and postmaster of the mail relay used."
   (let ((message-buffer
 	 (cond ((eq uce-mail-reader 'gnus) gnus-original-article-buffer)
 	       ((eq uce-mail-reader 'rmail) "RMAIL")
-	       (t (error 
+	       (t (error
 		   "Variable uce-mail-reader set to unrecognized value"))))
 	(full-header-p (and (eq uce-mail-reader 'rmail)
 			    (not (rmail-msg-is-pruned)))))
@@ -246,7 +246,7 @@ address, and postmaster of the mail relay used."
 	      end-of-hostname (string-match "[ ,>]" to first-at-sign)
 	      sender-host (substring to first-at-sign end-of-hostname))
 	(if (string-match "\\." sender-host)
-	    (setq to (format "%s, postmaster%s, abuse%s" 
+	    (setq to (format "%s, postmaster%s, abuse%s"
 			     to sender-host sender-host))))
       (setq mail-send-actions nil)
       (setq mail-reply-buffer nil)
@@ -258,7 +258,7 @@ address, and postmaster of the mail relay used."
 		 (rmail-toggle-header 1)
 		 (widen)
 		 (rmail-maybe-set-message-counters)
-		 (copy-region-as-kill (rmail-msgbeg rmail-current-message) 
+		 (copy-region-as-kill (rmail-msgbeg rmail-current-message)
 				      (rmail-msgend rmail-current-message))))))
       ;; Restore the pruned header state we found.
       (if full-header-p
@@ -286,7 +286,7 @@ address, and postmaster of the mail relay used."
 	     (beginning-of-buffer)
 	     (search-forward "*** EOOH ***\n")
 	     (beginning-of-line)
-	     (forward-line -1)))      
+	     (forward-line -1)))
       (re-search-backward "^Received:")
       (beginning-of-line)
       ;; Is this always good?  It's the only thing I saw when I checked
@@ -304,7 +304,7 @@ address, and postmaster of the mail relay used."
       (forward-char -1)
       ;; And add its postmaster to the list of addresses.
       (if (string-match "\\." (buffer-substring temp (point)))
-	  (setq to (format "%s, postmaster@%s" 
+	  (setq to (format "%s, postmaster@%s"
 			   to (buffer-substring temp (point)))))
       ;; Also look at the message-id, it helps *very* often.
       (if (and (search-forward "\nMessage-Id: " nil t)
@@ -320,7 +320,7 @@ address, and postmaster of the mail relay used."
 	    (search-forward ">")
 	    (forward-char -1)
 	    (if (string-match "\\." (buffer-substring temp (point)))
-		(setq to (format "%s, postmaster@%s" 
+		(setq to (format "%s, postmaster@%s"
 				 to (buffer-substring temp (point)))))))
       (cond ((eq uce-mail-reader 'gnus)
 	     ;; Does Gnus always have Lines: in the end?
@@ -384,7 +384,7 @@ address, and postmaster of the mail relay used."
       ;; might be to set up special key bindings, replace standart
       ;; functions in mail-mode, etc.
       (run-hooks 'mail-setup-hook 'uce-setup-hook))))
-  
+
 (defun uce-insert-ranting (&optional ignored)
   "Insert text of the usual reply to UCE into current buffer."
   (interactive "P")

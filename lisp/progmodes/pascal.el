@@ -43,7 +43,7 @@
 ;;       pascal-auto-endcomments   t
 ;;       pascal-auto-lineup        '(all)
 ;;       pascal-toggle-completions nil
-;;       pascal-type-keywords      '("array" "file" "packed" "char" 
+;;       pascal-type-keywords      '("array" "file" "packed" "char"
 ;; 				     "integer" "real" "string" "record")
 ;;       pascal-start-keywords     '("begin" "end" "function" "procedure"
 ;; 				     "repeat" "until" "while" "read" "readln"
@@ -104,9 +104,9 @@
   "Imenu expression for Pascal-mode.  See `imenu-generic-expression'.")
 
 (defvar pascal-keywords
-  '("and" "array" "begin" "case" "const" "div" "do" "downto" "else" "end" 
-    "file" "for" "function" "goto" "if" "in" "label" "mod" "nil" "not" "of" 
-    "or" "packed" "procedure" "program" "record" "repeat" "set" "then" "to" 
+  '("and" "array" "begin" "case" "const" "div" "do" "downto" "else" "end"
+    "file" "for" "function" "goto" "if" "in" "label" "mod" "nil" "not" "of"
+    "or" "packed" "procedure" "program" "record" "repeat" "set" "then" "to"
     "type" "until" "var" "while" "with"
     ;; The following are not standard in pascal, but widely used.
     "get" "put" "input" "output" "read" "readln" "reset" "rewrite" "write"
@@ -138,7 +138,7 @@
     ()
   (setq pascal-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\\ "."   pascal-mode-syntax-table)
-  (modify-syntax-entry ?( "()1"  pascal-mode-syntax-table)  
+  (modify-syntax-entry ?( "()1"  pascal-mode-syntax-table)
   (modify-syntax-entry ?) ")(4"  pascal-mode-syntax-table)
   (modify-syntax-entry ?* ". 23b" pascal-mode-syntax-table)
   (modify-syntax-entry ?{ "<"    pascal-mode-syntax-table)
@@ -252,7 +252,7 @@ are handled in another way, and should not be added to this list."
   "*Keywords to complete when standing at the first word of a statement.
 These are keywords such as begin, repeat, until, readln.
 The procedures and variables defined within the Pascal program
-are handled in another way,  and should not be added to this list."
+are handled in another way, and should not be added to this list."
   :type '(repeat (string :tag "Keyword"))
   :group 'pascal)
 
@@ -283,8 +283,8 @@ are handled in another way, and should not be added to this list."
 (defun pascal-declaration-end ()
   (let ((nest 1))
     (while (and (> nest 0)
-		(re-search-forward 
-		 "[:=]\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)" 
+		(re-search-forward
+		 "[:=]\\|\\(\\<record\\>\\)\\|\\(\\<end\\>\\)"
 		 (save-excursion (end-of-line 2) (point)) t))
       (cond ((match-beginning 1) (setq nest (1+ nest)))
 	    ((match-beginning 2) (setq nest (1- nest)))
@@ -300,7 +300,7 @@ are handled in another way, and should not be added to this list."
 	    ((match-beginning 3) (setq nest (1+ nest)))))
     (= nest 0)))
 
-  
+
 (defsubst pascal-within-string ()
   (save-excursion
     (nth 3 (parse-partial-sexp (pascal-get-beg-of-line) (point)))))
@@ -420,7 +420,7 @@ no args, if that value is non-nil."
 			 (search-forward "*)" (pascal-get-end-of-line) t))))
 	     (setq setstar t))))
     ;; If last line was a star comment line then this one shall be too.
-    (if (null setstar)	
+    (if (null setstar)
 	(pascal-indent-line)
       (insert "*  "))))
 
@@ -602,7 +602,7 @@ area.  See also `pascal-comment-area'."
     (if (not (looking-at (concat "\\s \\|\\s)\\|" pascal-defun-re)))
 	(forward-sexp 1))
     (let ((nest 0) (max -1) (func 0)
-	  (reg (concat pascal-beg-block-re "\\|" 
+	  (reg (concat pascal-beg-block-re "\\|"
 		       pascal-end-block-re "\\|"
 		       pascal-defun-re)))
       (while (re-search-backward reg nil 'move)
@@ -634,7 +634,7 @@ area.  See also `pascal-comment-area'."
       (pascal-beg-of-defun))
   (forward-char 1)
   (let ((nest 0) (func 1)
-	(reg (concat pascal-beg-block-re "\\|" 
+	(reg (concat pascal-beg-block-re "\\|"
 		     pascal-end-block-re "\\|"
 		     pascal-defun-re)))
     (while (and (/= func 0)
@@ -686,7 +686,7 @@ area.  See also `pascal-comment-area'."
 	(catch 'found
 	  (while t
 	    (re-search-forward regexp nil 'move)
-	    (setq nest (if (match-end 1) 
+	    (setq nest (if (match-end 1)
 			   (1+ nest)
 			 (1- nest)))
 	    (cond ((eobp)
@@ -939,7 +939,7 @@ Return a list of two elements: (INDENT-TYPE INDENT-LEVEL)."
 			   )))))
 
       ;; Return type of block and indent level.
-      (if (> par 0)                               ; Unclosed Parenthesis 
+      (if (> par 0)                               ; Unclosed Parenthesis
 	  (list 'contexp par)
 	(list type (pascal-indent-level))))))
 
@@ -974,7 +974,7 @@ Do not count labels, case-statements or records."
 	(ind 0))
     ;; Get right indent
     (while (< (point) end)
-      (if (re-search-forward 
+      (if (re-search-forward
 	   "^[ \t]*[^ \t,:]+[ \t]*\\(,[ \t]*[^ \t,:]+[ \t]*\\)*:"
 	   (marker-position end) 'move)
 	  (forward-char -1))
@@ -1010,7 +1010,7 @@ indent of the current line in parameterlist."
     (let* ((oldpos (point))
 	   (stpos (progn (goto-char (scan-lists (point) -1 1)) (point)))
 	   (stcol (1+ (current-column)))
-	   (edpos (progn (pascal-declaration-end) 
+	   (edpos (progn (pascal-declaration-end)
 			 (search-backward ")" (pascal-get-beg-of-line) t)
 			 (point)))
 	   (usevar (re-search-backward "\\<var\\>" stpos t)))
@@ -1032,7 +1032,7 @@ indent of the current line in parameterlist."
   (let ((pos (point-marker)))
     (if (and (not (or arg start)) (not (pascal-declaration-beg)))
 	()
-      (let ((lineup (if (or (looking-at "\\<var\\>\\|\\<record\\>") arg start) 
+      (let ((lineup (if (or (looking-at "\\<var\\>\\|\\<record\\>") arg start)
 			":" "="))
 	    (stpos (if start start
 		       (forward-word 2) (backward-word 1) (point)))
@@ -1108,7 +1108,7 @@ indent of the current line in parameterlist."
 	(end-of-line)
 	(skip-chars-backward " \t")
 	(1+ (current-column))))))
-    
+
 
 
 ;;;
@@ -1146,7 +1146,7 @@ indent of the current line in parameterlist."
 			     (t "\\<\\(function\\|procedure\\)\\s +"))
 			    "\\<\\(" pascal-str "[a-zA-Z0-9_.]*\\)\\>"))
 	match)
-    
+
     (if (not (looking-at "\\<\\(function\\|procedure\\)\\>"))
 	(re-search-backward "\\<\\(function\\|procedure\\)\\>" nil t))
     (forward-char 1)
@@ -1171,8 +1171,8 @@ indent of the current line in parameterlist."
     (while (< (point) end)
       (if (re-search-forward "[:=]" (pascal-get-end-of-line) t)
 	  ;; Traverse current line
-	  (while (and (re-search-backward 
-		       (concat "\\((\\|\\<\\(var\\|type\\|const\\)\\>\\)\\|" 
+	  (while (and (re-search-backward
+		       (concat "\\((\\|\\<\\(var\\|type\\|const\\)\\>\\)\\|"
 			       pascal-symbol-re)
 		       (pascal-get-beg-of-line) t)
 		      (not (match-end 1)))
@@ -1232,7 +1232,7 @@ indent of the current line in parameterlist."
 
 (defun pascal-keyword-completion (keyword-list)
   "Give list of all possible completions of keywords in KEYWORD-LIST."
-  (mapcar '(lambda (s) 
+  (mapcar '(lambda (s)
 	     (if (string-match (concat "\\<" pascal-str) s)
 		 (if (or (null pascal-pred)
 			 (funcall pascal-pred s))
@@ -1283,7 +1283,7 @@ indent of the current line in parameterlist."
 	       (save-excursion (pascal-var-completion))
 	       (pascal-func-completion 'function)
 	       (pascal-keyword-completion pascal-separator-keywords))))
-      
+
       ;; Now we have built a list of all matches. Give response to caller
       (pascal-completion-response))))
 
@@ -1352,7 +1352,7 @@ indent of the current line in parameterlist."
 	(progn
 	  ;; Update entry number in list
 	  (setq pascal-last-completions allcomp
-		pascal-last-word-numb 
+		pascal-last-word-numb
 		(if (>= pascal-last-word-numb (1- (length allcomp)))
 		    0
 		  (1+ pascal-last-word-numb)))
@@ -1374,7 +1374,7 @@ indent of the current line in parameterlist."
 	     (if (not (null (cdr allcomp)))
 		 (message "(Complete but not unique)")
 	       (message "(Sole completion)")))
-	    ;; Display buffer if the current completion didn't help 
+	    ;; Display buffer if the current completion didn't help
 	    ;; on completing the label.
 	    ((and (not (null (cdr allcomp))) (= (length pascal-str)
 						(length match)))
@@ -1447,7 +1447,7 @@ With optional second arg non-nil, STR is the complete name of the instruction."
 	    (setq pascal-str (pascal-build-defun-re "[a-zA-Z_]"))
 	  (setq pascal-str (pascal-build-defun-re pascal-str)))
 	(goto-char (point-min))
-      
+
 	;; Build a list of all possible completions
 	(while (re-search-forward pascal-str nil t)
 	  (setq match (buffer-substring (match-beginning 2) (match-end 2)))
@@ -1547,7 +1547,7 @@ Pascal Outline mode provides some additional commands.
 (defun pascal-outline-change (b e pascal-flag)
   (let ((modp (buffer-modified-p)))
     (unwind-protect
-	(subst-char-in-region b e (if (= pascal-flag ?\n) 
+	(subst-char-in-region b e (if (= pascal-flag ?\n)
 				      ?\^M ?\n) pascal-flag)
       (set-buffer-modified-p modp))))
 

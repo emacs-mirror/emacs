@@ -1,5 +1,5 @@
 # Makefile for GNU Emacs.
-# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001
+# Copyright (C) 1985, 87, 88, 93, 94, 95, 99, 2000, 2001, 2003
 # Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -37,6 +37,7 @@ CFLAGS=@CFLAGS@
 CPPFLAGS=@CPPFLAGS@
 LDFLAGS=@LDFLAGS@
 LN_S=@LN_S@
+EXEEXT=@EXEEXT@
 # Substitute an assignment for the MAKE variable, because
 # BSD doesn't have it as a default.
 @SET_MAKE@
@@ -107,7 +108,7 @@ CC = C_COMPILER
 #endif
 
 /* GNU libc requires ORDINARY_LINK so that its own crt0 is used.
-   Linux is an exception because it uses a funny variant of GNU libc.  */
+   GNU/Linux is an exception because it uses a funny variant of GNU libc.  */
 #ifdef __GNU_LIBRARY__
 #ifndef GNU_LINUX
 #define ORDINARY_LINK
@@ -252,11 +253,18 @@ STARTFILES = START_FILES
 #define C_SWITCH_ASM
 #endif
 
+#if HAVE_GTK
+#define USE_GTK
+TOOLKIT_DEFINES = -DUSE_GTK
+#endif
+
 #ifdef USE_X_TOOLKIT
 #define USE_@X_TOOLKIT_TYPE@
 TOOLKIT_DEFINES = -DUSE_@X_TOOLKIT_TYPE@
 #else
+#ifndef USE_GTK
 TOOLKIT_DEFINES =
+#endif
 #endif
 
 /* DO NOT use -R.  There is a special hack described in lastfile.c
@@ -272,7 +280,7 @@ TOOLKIT_DEFINES =
 
 /* C_SWITCH_X_SITE must come before C_SWITCH_X_MACHINE and C_SWITCH_X_SYSTEM
    since it may have -I options that should override those two.  */
-ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS}
+ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAGS) -I. -I${srcdir} C_SWITCH_MACHINE C_SWITCH_SYSTEM C_SWITCH_SITE C_SWITCH_X_SITE C_SWITCH_X_MACHINE C_SWITCH_X_SYSTEM C_SWITCH_SYSTEM_TEMACS ${CFLAGS}
 .c.o:
 	$(CC) -c $(CPPFLAGS) $(ALL_CFLAGS) $<
 
@@ -300,7 +308,12 @@ ALL_CFLAGS=-Demacs -DHAVE_CONFIG_H $(TOOLKIT_DEFINES) $(MYCPPFLAG) -I. -I${srcdi
 #ifdef HAVE_MENUS
 
 /* Include xmenu.o in the list of X object files.  */
+
+#ifdef USE_GTK
+XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o gtkutil.o
+#else
 XOBJ= xterm.o xfns.o xselect.o xrdb.o fontset.o xsmfns.o
+#endif
 
 /* The X Menu stuff is present in the X10 distribution, but missing
    from X11.  If we have X10, just use the installed library;
@@ -372,10 +385,17 @@ LIBXT= $(LIBW) LIBXMU -lXt $(LIBXTR6) -lXext
 #endif /* not LIBXT_STATIC */
 
 #else /* not USE_X_TOOLKIT */
+
+#ifdef USE_GTK
+LIBW=@GTK_LIBS@
+OLDXMENU=
+LIBXMENU=
+#endif /* USE_GTK */
+
 #ifdef HAVE_X_SM
-LIBXT=-lSM -lICE
+LIBXT=$(LIBW) -lSM -lICE
 #else
-LIBXT=
+LIBXT=$(LIBW)
 #endif
 #endif /* not USE_X_TOOLKIT */
 
@@ -505,8 +525,10 @@ LD=ld
 #endif /* not COFF_ENCAPSULATE */
 #endif /* not ORDINARY_LINK */
 
-ALL_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE \
-	 LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE $(LDFLAGS)
+/* Flags to pass to LD only for temacs.  */
+/* Don't split this line with a backslash.  That can cause trouble with
+   some cpps.  */
+TEMACS_LDFLAGS = LD_SWITCH_SYSTEM LD_SWITCH_SYSTEM_TEMACS LD_SWITCH_MACHINE LD_SWITCH_MACHINE_TEMACS LD_SWITCH_SITE
 
 /* A macro which other sections of Makefile can redefine to munge the
    flags before they're passed to LD.  This is helpful if you have
@@ -538,9 +560,11 @@ MSDOS_OBJ = dosfns.o msdos.o w16select.o
 #endif
 
 #ifdef HAVE_CARBON
+mac = $(dot)$(dot)/mac/
 XMENU_OBJ =
 MAC_OBJ = mac.o macterm.o macfns.o macmenu.o fontset.o
-emacsapp = ../mac/Emacs.app/
+emacsapp = $(PWD)/$(mac)Emacs.app/
+emacsappsrc = ${srcdir}/../mac/Emacs.app/
 #else
 XMENU_OBJ = xmenu.o
 #endif
@@ -548,7 +572,7 @@ XMENU_OBJ = xmenu.o
 /* lastfile must follow all files
    whose initialized data areas should be dumped as pure by dump-emacs.  */
 obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
-	charset.o coding.o category.o ccl.o\
+	charset.o coding.o category.o ccl.o \
 	cm.o term.o xfaces.o $(XOBJ) \
 	emacs.o keyboard.o macros.o keymap.o sysdep.o \
 	buffer.o filelock.o insdel.o marker.o \
@@ -567,7 +591,7 @@ obj=    dispnew.o frame.o scroll.o xdisp.o $(XMENU_OBJ) window.o \
    in case they are needed there.  */
 SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o \
   xterm.o xfns.o xmenu.o xselect.o xrdb.o \
-  mac.o macterm.o macfns.o macmenu.o
+  mac.o macterm.o macfns.o macmenu.o fontset.o
 
 
 #ifdef TERMINFO
@@ -666,6 +690,7 @@ lisp= \
 	${lispsource}buff-menu.elc \
 	${lispsource}button.elc \
 	${lispsource}byte-run.elc \
+	${lispsource}cus-face.elc \
 	${lispsource}cus-start.elc \
 	${lispsource}custom.elc \
 	${lispsource}emacs-lisp/backquote.elc \
@@ -678,7 +703,7 @@ lisp= \
 	${lispsource}facemenu.elc \
 	MOUSE_SUPPORT \
 	${lispsource}float-sup.elc \
-	${lispsource}frame.elc\
+	${lispsource}frame.elc \
 	${lispsource}help.elc \
 	${lispsource}indent.elc \
 	${lispsource}isearch.elc \
@@ -693,6 +718,7 @@ lisp= \
 	${lispsource}international/characters.elc \
 	${lispsource}international/ucs-tables.elc \
 	${lispsource}international/utf-8.elc \
+	${lispsource}international/utf-16.elc \
 	${lispsource}international/latin-1.el \
 	${lispsource}international/latin-2.el \
 	${lispsource}international/latin-3.el \
@@ -705,6 +731,8 @@ lisp= \
 	${lispsource}language/cyrillic.elc \
 	${lispsource}language/indian.elc \
 	${lispsource}language/devanagari.el \
+	${lispsource}language/malayalam.el \
+	${lispsource}language/tamil.el \
 	${lispsource}language/english.el \
 	${lispsource}language/ethiopic.elc \
 	${lispsource}language/european.elc \
@@ -729,10 +757,12 @@ lisp= \
 	${lispsource}startup.elc \
 	${lispsource}subr.elc \
 	${lispsource}term/tty-colors.elc \
+	${lispsource}font-core.elc \
 	${lispsource}textmodes/fill.elc \
 	${lispsource}textmodes/page.elc \
 	${lispsource}textmodes/paragraphs.elc \
 	${lispsource}textmodes/text-mode.elc \
+	${lispsource}timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
 	VMS_SUPPORT \
@@ -751,6 +781,7 @@ shortlisp= \
 	../lisp/buff-menu.elc \
 	../lisp/button.elc \
 	../lisp/byte-run.elc \
+	../lisp/cus-face.elc \
 	../lisp/cus-start.elc \
 	../lisp/custom.elc \
 	../lisp/emacs-lisp/backquote.elc \
@@ -776,6 +807,7 @@ shortlisp= \
 	../lisp/international/characters.elc \
 	../lisp/international/ucs-tables.elc \
 	../lisp/international/utf-8.elc \
+	../lisp/international/utf-16.elc \
 	../lisp/international/latin-1.el \
 	../lisp/international/latin-2.el \
 	../lisp/international/latin-3.el \
@@ -788,6 +820,8 @@ shortlisp= \
 	../lisp/language/cyrillic.elc \
 	../lisp/language/indian.elc \
 	../lisp/language/devanagari.el \
+	../lisp/language/malayalam.el \
+	../lisp/language/tamil.el \
 	../lisp/language/english.el \
 	../lisp/language/ethiopic.elc \
 	../lisp/language/european.elc \
@@ -818,6 +852,7 @@ shortlisp= \
 	../lisp/textmodes/page.elc \
 	../lisp/textmodes/paragraphs.elc \
 	../lisp/textmodes/text-mode.elc \
+	../lisp/timer.elc \
 	../lisp/vc-hooks.elc \
 	../lisp/ediff-hook.elc \
 	../lisp/widget.elc \
@@ -857,12 +892,12 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
 #define OBJECTS_MACHINE
 #endif
 
-all: emacs OTHER_FILES
+all: emacs${EXEEXT} OTHER_FILES
 
-emacs: temacs ${etc}DOC ${lisp}
+emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 #ifdef CANNOT_DUMP
-	rm -f emacs
-	ln temacs emacs
+	rm -f emacs${EXEEXT}
+	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
 	LC_ALL=C ./temacs -nl -batch -l loadup dump
@@ -885,23 +920,23 @@ ${etc}DOC: ${libsrc}make-docfile ${obj} ${shortlisp} ${SOME_MACHINE_LISP}
 	${libsrc}make-docfile -d ${srcdir} ${SOME_MACHINE_OBJECTS} ${obj} > ${etc}DOC
 	${libsrc}make-docfile -a ${etc}DOC -d ${srcdir} ${SOME_MACHINE_LISP} ${shortlisp}
 
-${libsrc}make-docfile:
-	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile
+${libsrc}make-docfile${EXEEXT}:
+	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
 /* Some systems define this to cause parallel Make-ing.  */
 #ifndef MAKE_PARALLEL
 #define MAKE_PARALLEL
 #endif
 
-temacs: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args
-	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${ALL_LDFLAGS}) \
+temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} ${otherobj} OBJECTS_MACHINE prefix-args${EXEEXT}
+	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
 
 /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs's crt0,
    which are only good with temacs.  */
-prefix-args: prefix-args.c $(config_h)
+prefix-args${EXEEXT}: prefix-args.c $(config_h)
 	$(CC) $(ALL_CFLAGS) $(LDFLAGS) ${srcdir}/prefix-args.c -o prefix-args
 
 /* Don't lose if this was not defined.  */
@@ -920,7 +955,7 @@ prefix-args: prefix-args.c $(config_h)
    to both ensure that lwlib gets remade based on its dependencies
    in its own makefile,
    and remake temacs if lwlib gets changed by this.  */
-stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU) 
+stamp-oldxmenu: ${OLDXMENU} ../src/$(OLDXMENU)
 	touch stamp-oldxmenu
 /* Supply an ordering for parallel make.  */
 ../src/$(OLDXMENU): ${OLDXMENU}
@@ -1070,14 +1105,15 @@ fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
 filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
-   buffer.h charset.h fontset.h msdos.h dosfns.h dispextern.h $(config_h)
+   blockinput.h atimer.h systime.h buffer.h charset.h fontset.h \
+   msdos.h dosfns.h dispextern.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h charset.h frame.h \
    keyboard.h $(config_h)
 getloadavg.o: getloadavg.c $(config_h)
 indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h charset.h composite.h dispextern.h \
    keyboard.h
-insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h\
+insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h \
    dispextern.h atimer.h systime.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
@@ -1134,23 +1170,26 @@ window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
-   msdos.h composite.h fontset.h
+   msdos.h composite.h fontset.h blockinput.h atimer.h systime.h keymap.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
-   charset.h $(config_h)
+   charset.h gtkutil.h $(config_h)
 xmenu.o: xmenu.c xterm.h termhooks.h window.h dispextern.h frame.h buffer.h \
    keyboard.h $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h \
-   msdos.h $(config_h)
+   gtkutil.h msdos.h $(config_h)
 xterm.o: xterm.c xterm.h termhooks.h termopts.h termchar.h window.h buffer.h \
   dispextern.h frame.h disptab.h blockinput.h atimer.h systime.h syssignal.h \
   keyboard.h gnu.h charset.h ccl.h fontset.h composite.h \
-  coding.h process.h $(config_h)
+  coding.h process.h gtkutil.h $(config_h)
 xselect.o: xselect.c process.h dispextern.h frame.h xterm.h blockinput.h \
   charset.h coding.h ccl.h buffer.h atimer.h systime.h $(config_h)
 xrdb.o: xrdb.c $(config_h) epaths.h
-xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h lisp.h termhooks.h
+xsmfns.o: xsmfns.c $(config_h) systime.h sysselect.h termhooks.h
+gtkutil.o:  gtkutil.c gtkutil.h xterm.h lisp.h frame.h $(config_h) \
+  blockinput.h window.h atimer.h termhooks.h
+
 hftctl.o: hftctl.c $(config_h)
 sound.o: sound.c dispextern.h $(config_h)
 atimer.o: atimer.c atimer.h systime.h $(config_h)
@@ -1165,8 +1204,8 @@ eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
- frame.h window.h dispextern.h $(INTERVAL_SRC)
-print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h\
+ frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h
+print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
    $(config_h) dispextern.h msdos.h composite.h
 lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
  termhooks.h coding.h msdos.h
@@ -1199,32 +1238,46 @@ macterm.o: blockinput.h atimer.h systime.h syssignal.h macterm.h macgui.h \
   termchar.h gnu.h disptab.h buffer.h window.h keyboard.h $(INTERVAL_SRC) \
   process.h coding.h $(config_h)
 
-macosx-app: ${emacsapp}Contents/MacOS/Emacs \
+${emacsapp}Contents/Resources/English.lproj:
+	mkdir -p $@
+
+ifneq (${emacsapp},${emacsappsrc})
+${emacsapp}Contents/Info.plist: ${emacsappsrc}Contents/Info.plist
+	cp $< $@
+${emacsapp}Contents/PkgInfo: ${emacsappsrc}Contents/PkgInfo
+	cp $< $@
+${emacsapp}Contents/Resources/Emacs.icns: ${emacsappsrc}Contents/Resources/Emacs.icns
+	mkdir -p ${emacsapp}Contents/Resources
+	cp $< $@
+${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings: ${emacsappsrc}Contents/Resources/English.lproj/InfoPlist.strings
+	cp $< $@
+endif
+
+macosx-bundle: ${emacsapp}Contents/Resources/English.lproj \
+	${emacsapp}Contents/Info.plist ${emacsapp}Contents/PkgInfo \
+	${emacsapp}Contents/Resources/Emacs.icns \
+	${emacsapp}Contents/Resources/English.lproj/InfoPlist.strings
+macosx-app: macosx-bundle ${emacsapp}Contents/MacOS/Emacs \
   ${emacsapp}Contents/Resources/Emacs.rsrc
-
-${emacsapp}Contents/MacOS/Emacs: emacs
-	if [ -d ${emacsapp}Contents/MacOS/ ]; then true; else \
-	  mkdir ${emacsapp}Contents/MacOS/; \
-	fi
-	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs Emacs
-
+${emacsapp}Contents/MacOS/Emacs: emacs${EXEEXT}
+	mkdir -p ${emacsapp}Contents/MacOS/;
+	cd ${emacsapp}Contents/MacOS/; cp ../../../../src/emacs${EXEEXT} Emacs${EXEEXT}
 ${emacsapp}Contents/Resources/Emacs.rsrc: ../mac/src/Emacs.r
-	/Developer/Tools/Rez -useDF -o \
-	${emacsapp}Contents/Resources/Emacs.rsrc \
-	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r \
-	../mac/src/Emacs.r
+	/Developer/Tools/Rez -useDF \
+	-o ${emacsapp}Contents/Resources/Emacs.rsrc \
+	/System/Library/Frameworks/Carbon.framework/Headers/Carbon.r $<
 #endif
 
-${libsrc}emacstool: ${libsrc}emacstool.c
-	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool
+${libsrc}emacstool${EXEEXT}: ${libsrc}emacstool.c
+	cd ${libsrc}; ${MAKE} ${MFLAGS} emacstool${EXEEXT}
 bootstrapclean:
-	rm -f bootstrap-emacs
+	rm -f bootstrap-emacs${EXEEXT}
 mostlyclean:
-	rm -f temacs prefix-args core *.core \#* *.o libXMenu11.a liblw.a
+	rm -f temacs${EXEEXT} prefix-args${EXEEXT} core *.core \#* *.o libXMenu11.a liblw.a
 	rm -f ../etc/DOC
-	rm -f bootstrap-emacs
+	rm -f bootstrap-emacs${EXEEXT}
 clean: mostlyclean
-	rm -f emacs-* emacs
+	rm -f emacs-*${EXEEXT} emacs${EXEEXT}
 /**/# This is used in making a distribution.
 /**/# Do not use it on development directories!
 distclean: clean
@@ -1237,7 +1290,7 @@ maintainer-clean: distclean
 	@echo "it deletes files that may require special tools to rebuild."
 	rm -f TAGS
 versionclean:
-	-rm -f emacs emacs-* ../etc/DOC*
+	-rm -f emacs${EXEEXT} emacs-* ../etc/DOC*
 extraclean: distclean
 	-rm -f *~ \#* m/?*~ s/?*~
 
@@ -1255,7 +1308,7 @@ relock:
 /* Arrange to make a tags table TAGS-LISP for ../lisp,
    plus TAGS for the C files, which includes ../lisp/TAGS by reference.  */
 
-ctagsfiles1 = [xyzXYZ]*.[hc] 
+ctagsfiles1 = [xyzXYZ]*.[hc]
 ctagsfiles2 = [a-wA-W]*.[hc]
 
 TAGS: $(srcdir)/$(ctagsfiles1) $(srcdir)/$(ctagsfiles2)
@@ -1275,20 +1328,20 @@ tags: TAGS TAGS-LISP $(lwlibdir)TAGS
 
 /* Bootstrapping.  */
 
-bootstrap: bootstrap-emacs
+bootstrap: bootstrap-emacs${EXEEXT}
 
-/* Dump an Emacs executable named bootstrap-emacs containing the 
+/* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs: temacs
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
 #ifdef CANNOT_DUMP
-	ln temacs bootstrap-emacs
+	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
 #ifdef HAVE_SHM
 	./temacs -nl -batch -l loadup bootstrap
 #else /* ! defined (HAVE_SHM) */
 	./temacs --batch --load loadup bootstrap
 #endif /* ! defined (HAVE_SHM) */
+	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
-	mv -f emacs bootstrap-emacs
 

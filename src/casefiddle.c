@@ -68,12 +68,12 @@ casify_object (flag, obj)
 	  int multibyte = STRING_MULTIBYTE (obj);
 
 	  obj = Fcopy_sequence (obj);
-	  len = STRING_BYTES (XSTRING (obj));
+	  len = SBYTES (obj);
 
 	  /* Scan all single-byte characters from start of string.  */
 	  for (i = 0; i < len;)
 	    {
-	      c = XSTRING (obj)->data[i];
+	      c = SREF (obj, i);
 
 	      if (multibyte && c >= 0x80)
 		/* A multibyte character can't be handled in this
@@ -90,7 +90,7 @@ casify_object (flag, obj)
 		  : ! SINGLE_BYTE_CHAR_P (c))
 		break;
 
-	      XSTRING (obj)->data[i] = c;
+	      SSET (obj, i, c);
 	      if ((int) flag >= (int) CASE_CAPITALIZE)
 		inword = SYNTAX (c) == Sword;
 	      i++;
@@ -107,12 +107,12 @@ casify_object (flag, obj)
 		= (char *) alloca ((len - i) * MAX_MULTIBYTE_LENGTH + i);
 
 	      /* Copy data already handled.  */
-	      bcopy (XSTRING (obj)->data, buf, i);
+	      bcopy (SDATA (obj), buf, i);
 
 	      /* From now on, I counts bytes.  */
 	      while (i < len)
 		{
-		  c = STRING_CHAR_AND_LENGTH (XSTRING (obj)->data + i,
+		  c = STRING_CHAR_AND_LENGTH (SDATA (obj) + i,
 					      len - i, fromlen);
 		  if (inword && flag != CASE_CAPITALIZE_UP)
 		    c = DOWNCASE (c);
@@ -124,7 +124,7 @@ casify_object (flag, obj)
 		  if ((int) flag >= (int) CASE_CAPITALIZE)
 		    inword = SYNTAX (c) == Sword;
 		}
-	      obj = make_multibyte_string (buf, XSTRING (obj)->size,
+	      obj = make_multibyte_string (buf, SCHARS (obj),
 					   j_byte);
 	    }
 	  return obj;
@@ -227,7 +227,7 @@ casify_region (flag, b, e)
       if (c != c2)
 	changed = 1;
       if ((int) flag >= (int) CASE_CAPITALIZE)
-	inword = SYNTAX (c) == Sword;
+	inword = SYNTAX (c) == Sword && (inword || !SYNTAX_PREFIX (c));
     }
   if (i < end_byte)
     {

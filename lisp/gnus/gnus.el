@@ -845,7 +845,7 @@ be set in `.emacs' instead."
 
 (defcustom gnus-home-directory "~/"
   "Directory variable that specifies the \"home\" directory.
-All other Gnus path variables are initialized from this variable."
+All other Gnus file and directory variables are initialized from this variable."
   :group 'gnus-files
   :type 'directory)
 
@@ -2048,7 +2048,7 @@ This restriction may disappear in later versions of Gnus."
 		 (memq class gnus-visual))
 	   t))))
 
-;;; Load the compatability functions.
+;;; Load the compatibility functions.
 
 (require 'gnus-ems)
 
@@ -2852,7 +2852,7 @@ Disallow invalid group names."
   (let ((prefix "")
 	group)
     (while (not group)
-      (when (string-match 
+      (when (string-match
 	     gnus-invalid-group-regexp
 	     (setq group (read-string (concat prefix prompt)
 				      (cons (or default "") 0)

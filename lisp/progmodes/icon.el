@@ -46,7 +46,7 @@
     (define-key icon-mode-map "\e\C-e" 'end-of-icon-defun)
     (define-key icon-mode-map "\e\C-q" 'indent-icon-exp)
     (define-key icon-mode-map "\177" 'backward-delete-char-untabify)
-  
+
     (define-key icon-mode-map [menu-bar] (make-sparse-keymap "Icon"))
     (define-key icon-mode-map [menu-bar icon]
       (cons "Icon" map))
@@ -188,7 +188,7 @@ with no args, if that value is non-nil."
   (setq comment-indent-function 'icon-comment-indent)
   (set (make-local-variable 'indent-line-function) 'icon-indent-line)
   ;; font-lock support
-  (setq font-lock-defaults  
+  (setq font-lock-defaults
 	'((icon-font-lock-keywords
 	   icon-font-lock-keywords-1 icon-font-lock-keywords-2)
 	  nil nil ((?_ . "w")) beginning-of-defun
@@ -202,7 +202,7 @@ with no args, if that value is non-nil."
   ;; we start from the assertion that `hs-special-modes-alist' is autoloaded.
   (unless (assq 'icon-mode hs-special-modes-alist)
     (setq hs-special-modes-alist
-	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil 
+	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil
 			     icon-forward-sexp-function)
 		hs-special-modes-alist)))
   (run-hooks 'icon-mode-hook))
@@ -613,7 +613,7 @@ Returns nil if line starts inside a string, t if in a comment."
   "Subdued level highlighting for Icon mode.")
 
 (defconst icon-font-lock-keywords-2
-  (append 
+  (append
    icon-font-lock-keywords-1
    (eval-when-compile
      (list
@@ -624,31 +624,31 @@ Returns nil if line starts inside a string, t if in a comment."
        'font-lock-type-face)
       ;; Fontify all keywords.
       ;;
-      (cons 
-       (regexp-opt 
-	'("break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return" 
-	  "until" "case" "of" "while" "create" "every" "suspend" "default" 
+      (cons
+       (regexp-opt
+	'("break" "do" "next" "repeat" "to" "by" "else" "if" "not" "return"
+	  "until" "case" "of" "while" "create" "every" "suspend" "default"
 	  "fail" "record" "then") 'words)
        'font-lock-keyword-face)
-      ;; "end" "initial" 
+      ;; "end" "initial"
       (cons (regexp-opt '("end" "initial") 'words)
 	    'font-lock-builtin-face)
       ;; Fontify all system variables.
-      (cons 
-       (regexp-opt 
-	'("&allocated" "&ascii" "&clock" "&col" "&collections" "&column" 
+      (cons
+       (regexp-opt
+	'("&allocated" "&ascii" "&clock" "&col" "&collections" "&column"
 	  "&control" "&cset" "&current" "&date" "&dateline" "&digits" "&dump"
-	  "&e" "&error" "&errornumber" "&errortext" "&errorvalue" "&errout" 
-	  "&eventcode" "&eventsource" "&eventvalue" "&fail" "&features" 
-	  "&file" "&host" "&input" "&interval" "&lcase" "&ldrag" "&letters" 
-	  "&level" "&line" "&lpress" "&lrelease" "&main" "&mdrag" "&meta" 
-	  "&mpress" "&mrelease" "&null" "&output" "&phi" "&pi" "&pos" 
-	  "&progname" "&random" "&rdrag" "&regions" "&resize" "&row" 
-	  "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject" 
+	  "&e" "&error" "&errornumber" "&errortext" "&errorvalue" "&errout"
+	  "&eventcode" "&eventsource" "&eventvalue" "&fail" "&features"
+	  "&file" "&host" "&input" "&interval" "&lcase" "&ldrag" "&letters"
+	  "&level" "&line" "&lpress" "&lrelease" "&main" "&mdrag" "&meta"
+	  "&mpress" "&mrelease" "&null" "&output" "&phi" "&pi" "&pos"
+	  "&progname" "&random" "&rdrag" "&regions" "&resize" "&row"
+	  "&rpress" "&rrelease" "&shift" "&source" "&storage" "&subject"
 	  "&time" "&trace" "&ucase" "&version" "&window" "&x" "&y") t)
        'font-lock-constant-face)
       (cons      ;; global local static declarations and link files
-       (concat 
+       (concat
 	"^[ \t]*"
 	(regexp-opt '("global" "link" "local" "static") t)
 	"\\(\\sw+\\>\\)*")
@@ -660,13 +660,13 @@ Returns nil if line starts inside a string, t if in a comment."
 	       font-lock-variable-name-face)))))
 
       (cons      ;; $define $elif $ifdef $ifndef $undef
-       (concat "^" 
+       (concat "^"
 	       (regexp-opt'("$define" "$elif" "$ifdef" "$ifndef" "$undef") t)
 	       "\\>[ \t]*\\([^ \t\n]+\\)?")
-	    '((1 font-lock-builtin-face) 
+	    '((1 font-lock-builtin-face)
 	      (4 font-lock-variable-name-face nil t)))
-      (cons      ;; $dump $endif $else $include 
-       (concat 
+      (cons      ;; $dump $endif $else $include
+       (concat
 	"^" (regexp-opt'("$dump" "$endif" "$else" "$include") t) "\\>" )
        'font-lock-builtin-face)
       (cons      ;; $warning $error

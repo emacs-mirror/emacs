@@ -97,8 +97,8 @@ Lisp_Object Qkeymapp, Qkeymap, Qnon_ascii, Qmenu_item, Qremap;
 /* Alist of elements like (DEL . "\d").  */
 static Lisp_Object exclude_keys;
 
-/* Pre-allocated 2-element vector for Fremap_command to use.  */
-static Lisp_Object remap_command_vector;
+/* Pre-allocated 2-element vector for Fcommand_remapping to use.  */
+static Lisp_Object command_remapping_vector;
 
 /* A char with the CHAR_META bit set in a vector or the 0200 bit set
    in a string key sequence is equivalent to prefixing with this
@@ -914,7 +914,7 @@ copy_keymap_item (elt)
   return res;
 }
 
-void
+static void
 copy_keymap_1 (chartable, idx, elt)
      Lisp_Object chartable, idx, elt;
 {
@@ -967,12 +967,14 @@ is not copied.  */)
 /* GC is possible in this function if it autoloads a keymap.  */
 
 DEFUN ("define-key", Fdefine_key, Sdefine_key, 3, 3, 0,
-       doc: /* Args KEYMAP, KEY, DEF.  Define key sequence KEY, in KEYMAP, as DEF.
+       doc: /* In KEYMAP, define key sequence KEY as DEF.
 KEYMAP is a keymap.
 
 KEY is a string or a vector of symbols and characters meaning a
 sequence of keystrokes and events.  Non-ASCII characters with codes
 above 127 (such as ISO Latin-1) can be included if you use a vector.
+Using [t] for KEY creates a default definition, which applies to any
+event type that has no other definition in this keymap.
 
 DEF is anything that can be a key's definition:
  nil (means key is undefined in this keymap),
@@ -986,8 +988,9 @@ DEF is anything that can be a key's definition:
     (DEFN should be a valid definition in its own right),
  or a cons (KEYMAP . CHAR), meaning use definition of CHAR in map KEYMAP.
 
-If KEYMAP is a sparse keymap, the pair binding KEY to DEF is added at
-the front of KEYMAP.  */)
+If KEYMAP is a sparse keymap with a binding for KEY, the existing
+binding is altered.  If there is no binding for KEY, the new pair
+binding KEY to DEF is added at the front of KEYMAP.  */)
      (keymap, key, def)
      Lisp_Object keymap;
      Lisp_Object key;
@@ -1060,20 +1063,23 @@ the front of KEYMAP.  */)
 	/* We must use Fkey_description rather than just passing key to
 	   error; key might be a vector, not a string.  */
 	error ("Key sequence %s uses invalid prefix characters",
-	       XSTRING (Fkey_description (key))->data);
+	       SDATA (Fkey_description (key)));
     }
 }
 
 /* This function may GC (it calls Fkey_binding).  */
 
-DEFUN ("remap-command", Fremap_command, Sremap_command, 1, 1, 0,
+DEFUN ("command-remapping", Fcommand_remapping, Scommand_remapping, 1, 1, 0,
        doc: /* Return the remapping for command COMMAND in current keymaps.
-Returns nil if COMMAND is not remapped.  */)
+Returns nil if COMMAND is not remapped (or not a symbol).  */)
      (command)
      Lisp_Object command;
 {
-  ASET (remap_command_vector, 1, command);
-  return Fkey_binding (remap_command_vector, Qnil, Qt);
+  if (!SYMBOLP (command))
+    return Qnil;
+
+  ASET (command_remapping_vector, 1, command);
+  return Fkey_binding (command_remapping_vector, Qnil, Qt);
 }
 
 /* Value is number if KEY is too long; nil if valid but has no definition. */
@@ -1221,8 +1227,8 @@ silly_event_symbol_error (c)
       error ((modifiers & ~meta_modifier
 	      ? "To bind the key %s, use [?%s], not [%s]"
 	      : "To bind the key %s, use \"%s\", not [%s]"),
-	     XSTRING (SYMBOL_NAME (c))->data, XSTRING (keystring)->data,
-	     XSTRING (SYMBOL_NAME (c))->data);
+	     SDATA (SYMBOL_NAME (c)), SDATA (keystring),
+	     SDATA (SYMBOL_NAME (c)));
     }
 }
 
@@ -1415,7 +1421,7 @@ recognize the default bindings, just as `read-key-sequence' does.
 
 Like the normal command loop, `key-binding' will remap the command
 resulting from looking up KEY by looking up the command in the
-currrent keymaps.  However, if the optional third argument NO-REMAP
+current keymaps.  However, if the optional third argument NO-REMAP
 is non-nil, `key-binding' returns the unmapped command.  */)
      (key, accept_default, no_remap)
      Lisp_Object key, accept_default, no_remap;
@@ -1485,7 +1491,7 @@ is non-nil, `key-binding' returns the unmapped command.  */)
   if (NILP (no_remap) && SYMBOLP (value))
     {
       Lisp_Object value1;
-      if (value1 = Fremap_command (value), !NILP (value1))
+      if (value1 = Fcommand_remapping (value), !NILP (value1))
 	value = value1;
     }
 
@@ -1653,43 +1659,54 @@ accessible_keymaps_1 (key, cmd, maps, tail, thisseq, is_metized)
 {
   Lisp_Object tem;
 
-  cmd = get_keyelt (cmd, 0);
+  cmd = get_keymap (get_keyelt (cmd, 0), 0, 0);
   if (NILP (cmd))
     return;
 
-  tem = get_keymap (cmd, 0, 0);
-  if (CONSP (tem))
+  /* Look for and break cycles.  */
+  while (!NILP (tem = Frassq (cmd, maps)))
     {
-      cmd = tem;
-      /* Ignore keymaps that are already added to maps.  */
-      tem = Frassq (cmd, maps);
-      if (NILP (tem))
-	{
-	  /* If the last key in thisseq is meta-prefix-char,
-	     turn it into a meta-ized keystroke.  We know
-	     that the event we're about to append is an
-	     ascii keystroke since we're processing a
-	     keymap table.  */
-	  if (is_metized)
-	    {
-	      int meta_bit = meta_modifier;
-	      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
-	      tem = Fcopy_sequence (thisseq);
-
-	      Faset (tem, last, make_number (XINT (key) | meta_bit));
-
-	      /* This new sequence is the same length as
-		 thisseq, so stick it in the list right
-		 after this one.  */
-	      XSETCDR (tail,
-		       Fcons (Fcons (tem, cmd), XCDR (tail)));
-	    }
-	  else
-	    {
-	      tem = append_key (thisseq, key);
-	      nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
-	    }
+      Lisp_Object prefix = XCAR (tem);
+      int lim = XINT (Flength (XCAR (tem)));
+      if (lim <= XINT (Flength (thisseq)))
+	{ /* This keymap was already seen with a smaller prefix.  */
+	  int i = 0;
+	  while (i < lim && EQ (Faref (prefix, make_number (i)),
+				Faref (thisseq, make_number (i))))
+	    i++;
+	  if (i >= lim)
+	    /* `prefix' is a prefix of `thisseq' => there's a cycle.  */
+	    return;
 	}
+      /* This occurrence of `cmd' in `maps' does not correspond to a cycle,
+	 but maybe `cmd' occurs again further down in `maps', so keep
+	 looking.  */
+      maps = XCDR (Fmemq (tem, maps));
+    }
+
+  /* If the last key in thisseq is meta-prefix-char,
+     turn it into a meta-ized keystroke.  We know
+     that the event we're about to append is an
+     ascii keystroke since we're processing a
+     keymap table.  */
+  if (is_metized)
+    {
+      int meta_bit = meta_modifier;
+      Lisp_Object last = make_number (XINT (Flength (thisseq)) - 1);
+      tem = Fcopy_sequence (thisseq);
+      
+      Faset (tem, last, make_number (XINT (key) | meta_bit));
+      
+      /* This new sequence is the same length as
+	 thisseq, so stick it in the list right
+	 after this one.  */
+      XSETCDR (tail,
+	       Fcons (Fcons (tem, cmd), XCDR (tail)));
+    }
+  else
+    {
+      tem = append_key (thisseq, key);
+      nconc2 (tail, Fcons (Fcons (tem, cmd), Qnil));
     }
 }
 
@@ -1717,7 +1734,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
      (keymap, prefix)
      Lisp_Object keymap, prefix;
 {
-  Lisp_Object maps, good_maps, tail;
+  Lisp_Object maps, tail;
   int prefixlen = 0;
 
   /* no need for gcpro because we don't autoload any keymaps.  */
@@ -1744,8 +1761,8 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	      int i, i_byte, c;
 	      Lisp_Object copy;
 
-	      copy = Fmake_vector (make_number (XSTRING (prefix)->size), Qnil);
-	      for (i = 0, i_byte = 0; i < XSTRING (prefix)->size;)
+	      copy = Fmake_vector (make_number (SCHARS (prefix)), Qnil);
+	      for (i = 0, i_byte = 0; i < SCHARS (prefix);)
 		{
 		  int i_before = i;
 
@@ -1823,35 +1840,7 @@ then the value includes only maps for prefixes that start with PREFIX.  */)
 	}
     }
 
-  if (NILP (prefix))
-    return maps;
-
-  /* Now find just the maps whose access prefixes start with PREFIX.  */
-
-  good_maps = Qnil;
-  for (; CONSP (maps); maps = XCDR (maps))
-    {
-      Lisp_Object elt, thisseq;
-      elt = XCAR (maps);
-      thisseq = XCAR (elt);
-      /* The access prefix must be at least as long as PREFIX,
-	 and the first elements must match those of PREFIX.  */
-      if (XINT (Flength (thisseq)) >= prefixlen)
-	{
-	  int i;
-	  for (i = 0; i < prefixlen; i++)
-	    {
-	      Lisp_Object i1;
-	      XSETFASTINT (i1, i);
-	      if (!EQ (Faref (thisseq, i1), Faref (prefix, i1)))
-		break;
-	    }
-	  if (i == prefixlen)
-	    good_maps = Fcons (elt, good_maps);
-	}
-    }
-
-  return Fnreverse (good_maps);
+  return maps;
 }
 
 Lisp_Object Qsingle_key_description, Qkey_description;
@@ -1874,7 +1863,7 @@ spaces are put between sequence elements, etc.  */)
     {
       Lisp_Object vector;
       vector = Fmake_vector (Flength (keys), Qnil);
-      for (i = 0, i_byte = 0; i < XSTRING (keys)->size; )
+      for (i = 0, i_byte = 0; i < SCHARS (keys); )
 	{
 	  int c;
 	  int i_before = i;
@@ -2118,8 +2107,8 @@ around function keys and event symbols.  */)
       if (NILP (no_angles))
 	{
 	  char *buffer
-	    = (char *) alloca (STRING_BYTES (XSTRING (SYMBOL_NAME (key))) + 5);
-	  sprintf (buffer, "<%s>", XSTRING (SYMBOL_NAME (key))->data);
+	    = (char *) alloca (SBYTES (SYMBOL_NAME (key)) + 5);
+	  sprintf (buffer, "<%s>", SDATA (SYMBOL_NAME (key)));
 	  return build_string (buffer);
 	}
       else
@@ -2234,6 +2223,8 @@ shadow_lookup (shadow, key, flag)
   return Qnil;
 }
 
+static Lisp_Object Vmenu_events;
+
 /* This function can GC if Flookup_key autoloads any keymaps.  */
 
 static Lisp_Object
@@ -2252,7 +2243,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   if (NILP (no_remap) && SYMBOLP (definition))
     {
       Lisp_Object tem;
-      if (tem = Fremap_command (definition), !NILP (tem))
+      if (tem = Fcommand_remapping (definition), !NILP (tem))
 	return Qnil;
     }
 
@@ -2272,7 +2263,7 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
   for (; !NILP (maps); maps = Fcdr (maps))
     {
       /* Key sequence to reach map, and the map that it reaches */
-      register Lisp_Object this, map;
+      register Lisp_Object this, map, tem;
 
       /* In order to fold [META-PREFIX-CHAR CHAR] sequences into
 	 [M-CHAR] sequences, check if last character of the sequence
@@ -2288,7 +2279,8 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 
       /* if (nomenus && !ascii_sequence_p (this)) */
       if (nomenus && XINT (last) >= 0
-	  && !INTEGERP (Faref (this, make_number (0))))
+	  && SYMBOLP (tem = Faref (this, make_number (0)))
+	  && !NILP (Fmemq (XCAR (parse_modifiers (tem)), Vmenu_events)))
 	/* If no menu entries should be returned, skip over the
 	   keymaps bound to `menu-bar' and `tool-bar' and other
 	   non-ascii prefixes like `C-down-mouse-2'.  */
@@ -2657,8 +2649,8 @@ You type        Translation\n\
   if (STRINGP (Vkeyboard_translate_table) && !NILP (prefix))
     {
       int c;
-      unsigned char *translate = XSTRING (Vkeyboard_translate_table)->data;
-      int translate_len = XSTRING (Vkeyboard_translate_table)->size;
+      const unsigned char *translate = SDATA (Vkeyboard_translate_table);
+      int translate_len = SCHARS (Vkeyboard_translate_table);
 
       for (c = 0; c < translate_len; c++)
 	if (translate[c] != c)
@@ -2736,13 +2728,13 @@ You type        Translation\n\
 	  if (!SYMBOLP (modes[i]))
 	    abort();
 
-	  p = title = (char *) alloca (42 + XSTRING (SYMBOL_NAME (modes[i]))->size);
+	  p = title = (char *) alloca (42 + SCHARS (SYMBOL_NAME (modes[i])));
 	  *p++ = '\f';
 	  *p++ = '\n';
 	  *p++ = '`';
-	  bcopy (XSTRING (SYMBOL_NAME (modes[i]))->data, p,
-		 XSTRING (SYMBOL_NAME (modes[i]))->size);
-	  p += XSTRING (SYMBOL_NAME (modes[i]))->size;
+	  bcopy (SDATA (SYMBOL_NAME (modes[i])), p,
+		 SCHARS (SYMBOL_NAME (modes[i])));
+	  p += SCHARS (SYMBOL_NAME (modes[i]));
 	  *p++ = '\'';
 	  bcopy (" Minor Mode Bindings", p, sizeof (" Minor Mode Bindings") - 1);
 	  p += sizeof (" Minor Mode Bindings") - 1;
@@ -2873,7 +2865,7 @@ key             binding\n\
 
 	  /* If the sequence by which we reach this keymap is zero-length,
 	     then the shadow map for this keymap is just SHADOW.  */
-	  if ((STRINGP (prefix) && XSTRING (prefix)->size == 0)
+	  if ((STRINGP (prefix) && SCHARS (prefix) == 0)
 	      || (VECTORP (prefix) && XVECTOR (prefix)->size == 0))
 	    ;
 	  /* If the sequence by which we reach this keymap actually has
@@ -3119,7 +3111,7 @@ This is text showing the elements of vector matched against indices.  */)
      (vector, describer)
      Lisp_Object vector, describer;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   if (NILP (describer))
     describer = intern ("princ");
   specbind (Qstandard_output, Fcurrent_buffer ());
@@ -3359,8 +3351,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 	      insert_string ("<");
 	      tem2 = CHARSET_TABLE_INFO (i - 128, CHARSET_SHORT_NAME_IDX);
 	      if (STRINGP (tem2))
-		insert_from_string (tem2, 0, 0, XSTRING (tem2)->size,
-				    STRING_BYTES (XSTRING (tem2)), 0);
+		insert_from_string (tem2, 0, 0, SCHARS (tem2),
+				    SBYTES (tem2), 0);
 	      else
 		insert ("?", 1);
 	      insert (">", 1);
@@ -3465,8 +3457,8 @@ describe_vector (vector, elt_prefix, args, elt_describer,
 }
 
 /* Apropos - finding all symbols whose names match a regexp.		*/
-Lisp_Object apropos_predicate;
-Lisp_Object apropos_accumulate;
+static Lisp_Object apropos_predicate;
+static Lisp_Object apropos_accumulate;
 
 static void
 apropos_accum (symbol, string)
@@ -3489,15 +3481,15 @@ Return list of symbols found.  */)
      (regexp, predicate)
      Lisp_Object regexp, predicate;
 {
-  struct gcpro gcpro1, gcpro2;
+  Lisp_Object tem;
   CHECK_STRING (regexp);
   apropos_predicate = predicate;
-  GCPRO2 (apropos_predicate, apropos_accumulate);
   apropos_accumulate = Qnil;
   map_obarray (Vobarray, apropos_accum, regexp);
-  apropos_accumulate = Fsort (apropos_accumulate, Qstring_lessp);
-  UNGCPRO;
-  return apropos_accumulate;
+  tem = Fsort (apropos_accumulate, Qstring_lessp);
+  apropos_accumulate = Qnil;
+  apropos_predicate = Qnil;
+  return tem;
 }
 
 void
@@ -3505,6 +3497,10 @@ syms_of_keymap ()
 {
   Qkeymap = intern ("keymap");
   staticpro (&Qkeymap);
+  staticpro (&apropos_predicate);
+  staticpro (&apropos_accumulate);
+  apropos_predicate = Qnil;
+  apropos_accumulate = Qnil;
 
   /* Now we are ready to set up this property, so we can
      create char tables.  */
@@ -3574,7 +3570,7 @@ in the list takes precedence.  */);
 
   DEFVAR_LISP ("minor-mode-overriding-map-alist", &Vminor_mode_overriding_map_alist,
 	       doc: /* Alist of keymaps to use for minor modes, in current major mode.
-This variable is a alist just like `minor-mode-map-alist', and it is
+This variable is an alist just like `minor-mode-map-alist', and it is
 used the same way (and before `minor-mode-map-alist'); however,
 it is provided for major modes to bind locally.  */);
   Vminor_mode_overriding_map_alist = Qnil;
@@ -3616,6 +3612,15 @@ This keymap works like `function-key-map', but comes after that,
 and applies even for keys that have ordinary bindings.  */);
   Vkey_translation_map = Qnil;
 
+  staticpro (&Vmenu_events);
+  Vmenu_events = Fcons (intern ("menu-bar"),
+                       Fcons (intern ("tool-bar"),
+                              Fcons (intern ("mouse-1"),
+                                     Fcons (intern ("mouse-2"),
+                                            Fcons (intern ("mouse-3"),
+                                                   Qnil)))));
+
+
   Qsingle_key_description = intern ("single-key-description");
   staticpro (&Qsingle_key_description);
 
@@ -3634,8 +3639,8 @@ and applies even for keys that have ordinary bindings.  */);
   Qremap = intern ("remap");
   staticpro (&Qremap);
 
-  remap_command_vector = Fmake_vector (make_number (2), Qremap);
-  staticpro (&remap_command_vector);
+  command_remapping_vector = Fmake_vector (make_number (2), Qremap);
+  staticpro (&command_remapping_vector);
 
   where_is_cache_keymaps = Qt;
   where_is_cache = Qnil;
@@ -3649,7 +3654,7 @@ and applies even for keys that have ordinary bindings.  */);
   defsubr (&Smake_keymap);
   defsubr (&Smake_sparse_keymap);
   defsubr (&Scopy_keymap);
-  defsubr (&Sremap_command);
+  defsubr (&Scommand_remapping);
   defsubr (&Skey_binding);
   defsubr (&Slocal_key_binding);
   defsubr (&Sglobal_key_binding);

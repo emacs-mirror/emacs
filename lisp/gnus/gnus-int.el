@@ -228,7 +228,7 @@ If it is down, start it up (again)."
 
 (defun gnus-status-message (gnus-command-method)
   "Return the status message from GNUS-COMMAND-METHOD.
-If GNUS-COMMAND-METHOD is a string, it is interpreted as a group name.   The method
+If GNUS-COMMAND-METHOD is a string, it is interpreted as a group name.  The method
 this group uses will be queried."
   (let ((gnus-command-method
 	 (if (stringp gnus-command-method)

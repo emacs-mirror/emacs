@@ -92,8 +92,8 @@
 ;; <URL:http://www.unlv.edu/chimera/>, Arena
 ;; <URL:ftp://ftp.yggdrasil.com/pub/dist/web/arena> and Amaya
 ;; <URL:ftp://ftp.w3.org/pub/amaya>.  mMosaic
-;; <URL:ftp://sig.enst.fr/pub/multicast/mMosaic/>,
-;; <URL:http://sig.enst.fr/~dauphin/mMosaic/> (with development
+;; <URL:ftp://ftp.enst.fr/pub/mbone/mMosaic/>,
+;; <URL:http://www.enst.fr/~dauphin/mMosaic/> (with development
 ;; support for Java applets and multicast) can be used like Mosaic by
 ;; setting `browse-url-mosaic-program' appropriately.
 
@@ -227,7 +227,7 @@
 
 ;;;###autoload
 (defcustom browse-url-browser-function
-  (if (memq system-type '(windows-nt ms-dos))
+  (if (memq system-type '(windows-nt ms-dos cygwin))
       'browse-url-default-windows-browser
     'browse-url-default-browser)
   "*Function to display the current buffer in a WWW browser.
@@ -335,6 +335,13 @@ Defaults to the value of `browse-url-galeon-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+(defcustom browse-url-mozilla-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-mozilla' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
 (defcustom browse-url-galeon-new-window-is-tab nil
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
@@ -374,7 +381,7 @@ commands reverses the effect of this variable.  Requires Netscape version
     ;; it in anonymous cases.  If it's not anonymous the next regexp
     ;; applies.
     ("^/\\([^:@]+@\\)?\\([^:]+\\):/*" . "ftp://\\1\\2/")
-    (,@ (if (memq system-type '(windows-nt ms-dos))
+    (,@ (if (memq system-type '(windows-nt ms-dos cygwin))
 	    '(("^\\([a-zA-Z]:\\)[\\/]" . "file:\\1/")
               ("^[\\/][\\/]+" . "file://"))))
     ("^/+" . "file:/")))
@@ -382,8 +389,8 @@ commands reverses the effect of this variable.  Requires Netscape version
 Any substring of a filename matching one of the REGEXPs is replaced by
 the corresponding STRING using `replace-match', not treating STRING
 literally.  All pairs are applied in the order given.  The default
-value converts ange-ftp/EFS-style paths into ftp URLs and prepends
-`file:' to any path beginning with `/'.
+value converts ange-ftp/EFS-style file names into ftp URLs and prepends
+`file:' to any file name beginning with `/'.
 
 For example, adding to the default a specific translation of an ange-ftp
 address to an HTTP URL:
@@ -518,11 +525,15 @@ down (this *won't* always work)."
   :version "20.3"
   :group 'browse-url)
 
-(defvar browse-url-lynx-input-attempts 10
-  "*How many times to try to move down from a series of lynx input fields.")
+(defcustom browse-url-lynx-input-attempts 10
+  "*How many times to try to move down from a series of lynx input fields."
+  :type 'integer
+  :group 'browse-url)
 
 (defcustom browse-url-lynx-input-delay 0.2
-  "*How many seconds to wait for lynx between moves down from an input field.")
+  "*How many seconds to wait for lynx between moves down from an input field."
+  :type 'number
+  :group 'browse-url)
 
 (defcustom browse-url-kde-program "kfmclient"
   "*The name by which to invoke the KDE web browser."
@@ -703,7 +714,9 @@ to use."
   (interactive "e")
   (save-excursion
     (mouse-set-point event)
-    (browse-url-at-point browse-url-new-window-flag)))
+    ;; This handles browse-url-new-window-flag properly
+    ;; when it gets no arg.
+    (browse-url-at-point)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Browser-specific commands
@@ -847,6 +860,10 @@ non-nil, load the document in a new Mozilla window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
+If `browse-url-mozilla-new-window-is-tab' is non-nil, then whenever a
+document would otherwise be loaded in a new window, it is loaded in a
+new tab in an existing window instead.
+
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
@@ -856,16 +873,21 @@ used instead of `browse-url-new-window-flag'."
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
-         (process (apply 'start-process
-			 (concat "mozilla " url) nil
-			 browse-url-mozilla-program
-			 (append
-			  browse-url-mozilla-arguments
-			  (list "-remote"
-				(concat "openURL("
-					url
-					(if new-window ",new-window")
-					")"))))))
+         (process
+	  (apply 'start-process
+		 (concat "mozilla " url) nil
+		 browse-url-mozilla-program
+		 (append
+		  browse-url-mozilla-arguments
+		  (list "-remote"
+			(concat "openURL("
+				url
+				(if (browse-url-maybe-new-window
+				     new-window)
+				    (if browse-url-mozilla-new-window-is-tab
+					",new-tab")
+				  ",new-window")
+				")"))))))
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-mozilla-sentinel process ,url)))))
@@ -950,7 +972,7 @@ effect of `browse-url-new-window-flag'.
 
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
-  (interactive (browse-url-interactive-arg "URL: "))  
+  (interactive (browse-url-interactive-arg "URL: "))
   (apply 'start-process (concat "gnome-moz-remote " url)
 	 nil
 	 "gnome-moz-remote"

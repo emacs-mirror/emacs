@@ -2,17 +2,17 @@
 #  Copyright (c) 2000-2001 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
-#  
+#
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2, or (at your option)
 #  any later version.
-#  
+#
 #  GNU Emacs is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to the
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -126,8 +126,7 @@ $(BLD)/ctags.$(O): ctags.c
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c xfaces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c 
-
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c casetab.c category.c ccl.c charset.c cm.c cmds.c coding.c data.c dired.c dispnew.c doc.c doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c floatfns.c fns.c fontset.c frame.c gmalloc.c indent.c insdel.c intervals.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c print.c process.c ralloc.c regex.c region-cache.c scroll.c search.c sound.c strftime.c syntax.c sysdep.c term.c termcap.c textprop.c tparam.c undo.c unexw32.c vm-limit.c w32.c w32console.c w32fns.c w32heap.c w32inevt.c w32menu.c w32proc.c w32reg.c w32select.c w32term.c w32xfns.c window.c xdisp.c xfaces.c xfaces.c
 #
 # These are the lisp files that are loaded up in loadup.el
 #
@@ -170,6 +169,7 @@ lisp= \
 	$(lispsource)international/mule-conf.el \
 	$(lispsource)international/mule-cmds.elc \
 	$(lispsource)international/characters.elc \
+	$(lispsource)international/ucs-tables.elc \
 	$(lispsource)international/utf-8.elc \
 	$(lispsource)international/latin-1.el \
 	$(lispsource)international/latin-2.el \
@@ -182,7 +182,9 @@ lisp= \
 	$(lispsource)language/chinese.elc \
 	$(lispsource)language/cyrillic.elc \
 	$(lispsource)language/indian.elc \
-	$(lispsource)language/devanagari.elc \
+	$(lispsource)language/devanagari.el \
+	$(lispsource)language/malayalam.el \
+	$(lispsource)language/tamil.el \
 	$(lispsource)language/english.el \
 	$(lispsource)language/ethiopic.elc \
 	$(lispsource)language/european.elc \
@@ -207,6 +209,7 @@ lisp= \
 	$(lispsource)startup.elc \
 	$(lispsource)subr.elc \
 	$(lispsource)term/tty-colors.elc \
+	$(lispsource)font-core.elc \
 	$(lispsource)textmodes/fill.elc \
 	$(lispsource)textmodes/page.elc \
 	$(lispsource)textmodes/paragraphs.elc \
@@ -221,11 +224,11 @@ lisp= \
 	$(lispsource)version.el
 
 
-DOC	      = DOC 
+DOC	      = DOC
 $(DOC):		make-docfile
 		- $(DEL) $(DOC)
-		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(obj) > $(DOC)
-		"$(THISDIR)/$(BLD)/make-docfile" -d ../src $(lisp) >> $(DOC)
+		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
+		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp)
 		$(CP) $(DOC) ../etc/DOC-X
 		- mkdir "../src/$(OBJDIR)"
 		- mkdir "../src/$(OBJDIR)/etc"
@@ -255,7 +258,7 @@ install:	$(INSTALL_FILES)
 
 #
 # Maintenance
-# 
+#
 clean:
 		- $(DEL) *~ DOC* $(COMPILER_TEMP_FILES)
 		- $(DEL) ctags.c
@@ -313,13 +316,6 @@ $(BLD)/emacsclient.$(O) : \
 	$(EMACS_ROOT)/src/s/ms-w32.h \
 	$(EMACS_ROOT)/src/m/intel386.h \
 	$(EMACS_ROOT)/lib-src/../src/config.h
-
-$(BLD)/emacsserver.$(O) : \
-	$(SRC)/emacsserver.c \
-	$(EMACS_ROOT)/src/s/ms-w32.h \
-	$(EMACS_ROOT)/src/m/intel386.h \
-	$(EMACS_ROOT)/lib-src/../src/config.h \
-	$(EMACS_ROOT)/nt/inc/sys/file.h
 
 $(BLD)/emacstool.$(O) : \
 	$(SRC)/emacstool.c \

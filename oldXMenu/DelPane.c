@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/DelPane.c,v 1.1 1992/04/11 22:10:18 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/DelPane.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -24,7 +24,7 @@ XMenuDeletePane(display, menu, p_num)
     register XMPane *p_ptr;	/* Pointer to pane being deleted. */
     register XMSelect *s_ptr;	/* Pointer to selections being deleted. */
     register XMSelect *s_next;  /* Pointer to next selection to be deleted. */
-        
+
     /*
      * Find the right pane.
      */
@@ -48,7 +48,7 @@ XMenuDeletePane(display, menu, p_num)
      * association table and free their XMSelect structures.
      */
     for (
-	s_ptr = p_ptr->s_list->next; 
+	s_ptr = p_ptr->s_list->next;
 	s_ptr != p_ptr->s_list;
 	s_ptr = s_next
     ) {
@@ -63,13 +63,13 @@ XMenuDeletePane(display, menu, p_num)
 	 * Destroy the selection transparencies.
 	 */
 	XDestroySubwindows(display, p_ptr->window);
-    
+
 	/*
 	 * Destroy the pane window.
 	 */
 	XDestroyWindow(display, p_ptr->window);
     }
-    
+
     /*
      * Free the pane's XMPane structure.
      */

@@ -29,14 +29,14 @@
 ;; Terminals that use XON/XOFF flow control can cause problems with
 ;; GNU Emacs users.  This file contains Emacs Lisp code that makes it
 ;; easy for a user to deal with this problem, when using such a
-;; terminal. 
-;;      
+;; terminal.
+;;
 ;; To invoke these adjustments, a user need only invoke the function
 ;; enable-flow-control-on with a list of terminal types in his/her own
 ;; .emacs file.  As arguments, give it the names of one or more terminal
 ;; types in use by that user which require flow control adjustments.
-;; Here's an example: 
-;; 
+;; Here's an example:
+;;
 ;;	(enable-flow-control-on "vt200" "vt300" "vt101" "vt131")
 
 ;; Portability note: This uses (getenv "TERM"), and therefore probably
@@ -96,7 +96,7 @@ With arg, enable flow control mode if arg is positive, otherwise disable."
     (aset keyboard-translate-table flow-control-c-q-replacement ?\^q)
     (aset keyboard-translate-table ?\^q flow-control-c-q-replacement)
     (message "XON/XOFF adjustment for %s: use %s for C-s, and use %s for C-q"
-	     (getenv "TERM") 
+	     (getenv "TERM")
 	     (single-key-description flow-control-c-s-replacement)
 	     (single-key-description flow-control-c-q-replacement))
     (sleep-for 2)))			; Give user a chance to see message.

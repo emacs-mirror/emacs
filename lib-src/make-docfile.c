@@ -290,7 +290,17 @@ scan_keyword_or_put_char (ch, state)
 	    ch = getc (state->in_file);
 	  while (ch == ' ' || ch == '\n');
 
-	  /* Put back the non-whitespace character.  */
+	  /* Output the open-paren we just read.  */
+	  put_char (ch, state);
+
+	  /* Skip the function name and replace it with `fn'.  */
+	  do
+	    ch = getc (state->in_file);
+	  while (ch != ' ' && ch != ')');
+	  put_char ('f', state);
+	  put_char ('n', state);
+
+	  /* Put back the last character.  */
 	  ungetc (ch, state->in_file);
 	}
     }
@@ -328,6 +338,7 @@ read_c_string_or_comment (infile, printflag, comment, saw_usage)
      FILE *infile;
      int printflag;
      int *saw_usage;
+     int comment;
 {
   register int c;
   struct rcsoc_state state;
@@ -425,7 +436,7 @@ write_c_args (out, func, buf, minargs, maxargs)
   int just_spaced = 0;
   int need_space = 1;
 
-  fprintf (out, "(%s", func);
+  fprintf (out, "(fn");
 
   if (*buf == '(')
     ++buf;
@@ -722,6 +733,9 @@ scan_c_file (filename, mode)
 	      fprintf (outfile, "\n\n");
 	      write_c_args (outfile, buf, argbuf, minargs, maxargs);
 	    }
+	  else if (defunflag && maxargs == -1 && !saw_usage)
+	    /* The DOC should provide the usage form.  */
+	    fprintf (stderr, "Missing `usage' for function `%s'.\n", buf);
 	}
     }
  eof:

@@ -59,7 +59,7 @@ that, so please refer to them if the simple procedure does not work.
      with some non-default options), always clean the source
      directories before running `configure' again:
 
-		make distclean 
+		make distclean
 		./configure
 
   5. Invoke the `make' program:
@@ -127,10 +127,10 @@ colored icons in the toolbar if XPM support is not compiled in.
 Here's the list of these optional libraries, and the URLs where they
 can be found:
 
-  . libXaw3d for fancy 3D-style 
+  . libXaw3d for fancy 3D-style
       scroll bars:    ftp://ftp.x.org/contrib/widgets/Xaw3d/
   . libxpm for XPM:   ftp://ftp.x.org/contrib/libraries/
-		      Get version 3.4k or later, which lets Emacs 
+		      Get version 3.4k or later, which lets Emacs
 		      use its own color allocation functions.
   . libpng for PNG:   ftp://www.libpng.org/pub/png/
   . libz (for PNG):   http://www.info-zip.org/pub/infozip/zlib/
@@ -138,7 +138,7 @@ can be found:
                       Get version 6b -- 6a is reported to fail in
                       Emacs.
   . libtiff for TIFF: http://www.libtiff.org/
-  . libungif for GIF: 
+  . libungif for GIF:
       http://prtr-13.ucsc.edu/~badger/software/libungif/index.shtml
       Ensure you get version 4.1.0b1 or higher of libungif -- a bug in
       4.1.0 can crash Emacs.
@@ -151,6 +151,9 @@ configure should avoid such old versions.  If that happens, use the
 --without-LIB options to `configure'.  See below for more details.
 
 * Extra fonts
+
+At first, Emacs does not include fonts and does not install them.  You
+must do this yourself.
 
 To take proper advantage of Emacs 21's mule-unicode charsets, you need
 a Unicode font.  For information on Unicode fonts for X, see
@@ -170,6 +173,7 @@ Unicode characters are available from <URL:ftp://ftp.x.org/contrib/fonts/>
 and <URL:ftp://ftp.xfree86.org/pub/X.Org/contrib/fonts/>.
 
 
+
 DETAILED BUILDING AND INSTALLATION:
 
 (This is for a Unix or Unix-like system.  For MS-DOS and Windows 3.X,
@@ -183,7 +187,7 @@ least 2.8 MB and can reach 100 MB or more.  If the swapping space is
 insufficient, you will get an error in the command `temacs -batch -l
 loadup dump', found in `./src/Makefile.in', or possibly when
 running the final dumped Emacs.
- 
+
 Building Emacs requires about 140 MB of disk space (including the
 Emacs sources) Once installed, Emacs occupies about 77 MB in the file
 system where it is installed; this includes the executable files, Lisp
@@ -227,7 +231,7 @@ accept a list of directories, separated with colons.
 
 To get more attractive menus, you can specify an X toolkit when you
 configure Emacs; use the option `--with-x-toolkit=TOOLKIT', where
-TOOLKIT is `athena' or `motif' (`yes' and `lucid' are synonyms for
+TOOLKIT is `athena', `motif' or `gtk' (`yes' and `lucid' are synonyms for
 `athena').  On some systems, it does not work to use a toolkit with
 shared libraries.  A free implementation of Motif, called LessTif, is
 available ftom <http://www.lesstif.org>.  Compiling with LessTif or
@@ -236,6 +240,11 @@ Motif causes a standard File Selection Dialog to pop up when you type
 bars, even without LessTif/Motif, if you have the Xaw3d library
 installed (see "Image support libraries" above for Xaw3d
 availability).
+
+If `--with-x-toolkit=gtk' is specified, you can tell configure where
+to search for GTK by specifying `--with-pkg-config-prog=PATH' where
+PATH is the pathname to pkg-config.  Note that GTK version 2.0 or
+newer is required for Emacs.
 
 The `--with-gcc' option specifies that the build process should
 compile Emacs using GCC.  If you don't want to use GCC, specify
@@ -493,9 +502,8 @@ the build directory by typing `make clean'.  To also remove the files
 that `configure' created (so you can compile Emacs for a different
 configuration), type `make distclean'.  If you don't need some, or all
 of the input methods from the Leim package, you can remove the
-unneeded files in the leim/quail, leim/skk, and leim/skk-dic
-subdirectories of your site's lisp directory (usually
-/usr/local/share/emacs/VERSION/).
+unneeded files in the leim subdirectories of your site's lisp
+directory (usually /usr/local/share/emacs/VERSION/).
 
 
 
@@ -535,7 +543,7 @@ Here is a complete list of the variables you may want to set.
 	We create the following subdirectories under `libexecdir':
 	- `emacs/VERSION/CONFIGURATION-NAME', containing executable
 		programs used by Emacs that users are not expected to run
-		themselves.  
+		themselves.
 	`VERSION' is the number of the Emacs version you are installing,
 	and `CONFIGURATION-NAME' is the argument you gave to the
 	`configure' program to identify the architecture and operating
@@ -679,7 +687,7 @@ directory of the Emacs distribution.
 in `./lib-src' to their final destinations, as selected in `./src/paths.h'.
 
 Strictly speaking, not all of the executables in `./lib-src' need be copied.
-- The programs `cvtmail', `emacsserver', `fakemail', `hexl',
+- The programs `cvtmail', `fakemail', `hexl',
     `movemail', `profile', `rcs2log', `timer', `vcdiff', `wakeup',
     and `yow' are used by Emacs; they do need to be copied.
 - The programs `etags', `ctags', `emacsclient', `b2m', and `rcs-checkin'

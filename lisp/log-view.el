@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: rcs sccs cvs log version-control
-;; Revision: $Id: log-view.el,v 1.12 2001/12/16 16:28:59 monnier Exp $
+;; Revision: $Id: log-view.el,v 1.15 2003/02/04 11:34:29 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -46,6 +46,7 @@
   '(("q" . quit-window)
     ("z" . kill-this-buffer)
     ("m" . set-mark-command)
+    ;; ("e" . cvs-mode-edit-log)
     ("d" . log-view-diff)
     ("f" . log-view-find-version)
     ("n" . log-view-msg-next)
@@ -84,7 +85,8 @@
 	  "Working file: \\(.+\\)"
 	  "\\|SCCS/s\\.\\(.+\\):"
 	  "\\)\n"))
-(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\|rev \\([0-9]+\\):  .*\\|D \\([.0-9]+\\) .*\\)$")
+;; In RCS, a locked revision will look like "revision N.M\tlocked by: FOO".
+(defconst log-view-message-re "^\\(revision \\([.0-9]+\\)\\(?:\t.*\\)?\\|rev \\([0-9]+\\):  .*\\|D \\([.0-9]+\\) .*\\)$")
 
 (defconst log-view-font-lock-keywords
   `((,log-view-file-re
@@ -179,7 +181,7 @@
   (interactive "d")
   (save-excursion
     (goto-char pos)
-    (switch-to-buffer (vc-find-version (log-view-current-file) 
+    (switch-to-buffer (vc-find-version (log-view-current-file)
                                        (log-view-current-tag)))))
 
 ;;

@@ -1,5 +1,4 @@
-#define IRIX6
-#define IRIX6_5
+#define IRIX6_5			/* used in m/iris4d */
 #include "irix5-0.h"
 
 #if _MIPS_SZLONG == 64		/* -mabi=64 (gcc) or -64 (MIPSpro) */
@@ -13,7 +12,7 @@
 #undef C_SWITCH_SYSTEM
 #endif
 
-/* The only supported configuration of GCC under IRIX6.x produces
+/* The only supported 32-bit configuration of GCC under IRIX6.x produces
    n32 MIPS ABI binaries and also supports -g. */
 #ifdef __GNUC__
 #undef C_DEBUG_SWITCH
@@ -31,17 +30,5 @@
 
 /* Cancel the #define that is in irix5-0.h.  */
 #undef ospeed
-
-/* If we keep the #defines from usg5-4.h, we lose when using the X
-   headers because (at least) the bzero definition breaks their use of
-   strings.h.  Including strings.h here gets us prototypes for them.
-   (They're in libc though also they seem to be intrinsics in the SGI
-   (Cray) compiler at least at version 7.3).  -- fx  */
-#undef bcopy
-#undef bcmp
-#undef bzero
-#ifndef NOT_C_CODE
-#include <strings.h>
-#endif
 
 #undef TIOCSIGSEND		/* defined in usg5-4.h */

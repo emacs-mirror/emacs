@@ -2,19 +2,19 @@
 #    Copyright (C) 1999, 2000 Free Software Foundation, Inc.
 #
 #    Author: Andrew Choi <akochoi@users.sourceforge.net>
-# 
+#
 # This file is part of GNU Emacs.
-# 
+#
 # GNU Emacs is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2, or (at your option)
 # any later version.
-# 
+#
 # GNU Emacs is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with GNU Emacs; see the file COPYING.  If not, write to
 # the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
@@ -147,7 +147,7 @@ Emacs ÄÄ {Makefile} {DocTarget}DOC {EmacsObjects} {MacObjects}
 		"{PPCLibraries}PPCToolLibs.o" ¶
 		-o "{EmacsTarget}"
 
-Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r 
+Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	Rez -a "{Source}"Emacs.maclf.r -o "{EmacsTarget}"
 	Rez -a "{Source}"EmacsMPW.maclf.r -o "{EmacsTarget}"
 	SetFile "{EmacsTarget}" -t APPL -c 'EMAx' -a B
@@ -373,7 +373,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 		"{Src}macgui.h" ¶
 		"{Src}frame.h" ¶
 	"{Src}systime.h"
-	
+
 {Src}doc.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
@@ -488,12 +488,13 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}frame.h" ¶
 	"{Src}fontset.h" ¶
 	"{Src}termhooks.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	{DISPEXTERN_H_GROUP} ¶
 	{WINDOW_H_GROUP} ¶
 	"{Src}buffer.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h"
-	
+
 {Src}getloadavg.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h"
@@ -586,7 +587,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}commands.h" ¶
 	"{Src}keyboard.h" ¶
 	"{Src}termhooks.h"
-	
+
 {Src}macros.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -630,7 +631,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}termchar.h" ¶
 	"{Src}keyboard.h" ¶
 	{INTERVALS_H_GROUP}
-	
+
 {Src}process.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
@@ -642,7 +643,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 		"{Src}ccl.h" ¶
 	"{Src}termopts.h" ¶
 	"{Src}sysselect.h"
-	
+
 {Src}regex.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
@@ -658,7 +659,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}lisp.h" ¶
 	"{Src}buffer.h" ¶
 	"{Src}region-cache.h"
-	
+
 {Src}scroll.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}termchar.h" ¶
@@ -666,7 +667,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{DISPEXTERN_H_GROUP} ¶
 	"{Src}frame.h" ¶
 	{WINDOW_H_GROUP}
-	
+
 {Src}search.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -680,12 +681,12 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{INTERVALS_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
 	"{Src}regex.h"
-	
+
 {Src}strftime.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
-	"{Includes}sys:time.h"	
-	
+	"{Includes}sys:time.h"
+
 {Src}syntax.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -695,7 +696,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}syntax.h" ¶
 	{INTERVALS_H_GROUP} ¶
 	"{Src}category.h"
-	
+
 {Src}sysdep.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -737,7 +738,7 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}macterm.h" ¶
 		"{Src}macgui.h" ¶
 		"{Src}frame.h"
-	
+
 {Src}termcap.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -749,17 +750,17 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{INTERVALS_H_GROUP} ¶
 	"{Src}buffer.h" ¶
 	{WINDOW_H_GROUP}
-	
+
 {Src}tparam.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h"
-	
+
 {Src}undo.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
 	"{Src}buffer.h" ¶
 	"{Src}commands.h"
-	
+
 {Src}window.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -776,8 +777,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	{INTERVALS_H_GROUP} ¶
 	"{Src}macterm.h" ¶
 		"{Src}macgui.h" ¶
-		"{Src}frame.h"	
-	
+		"{Src}frame.h"
+
 {Src}xdisp.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Src}lisp.h" ¶
@@ -790,10 +791,12 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}indent.h" ¶
 	"{Src}commands.h" ¶
 	"{Src}macros.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
 	"{Src}disptab.h" ¶
 	"{Src}termhooks.h" ¶
 	{INTERVALS_H_GROUP} ¶
 	"{Src}keyboard.h" ¶
+	"{Src}keymap.h" ¶
 	"{Src}coding.h" ¶
 		"{Src}ccl.h" ¶
 	"{Src}process.h" ¶
@@ -801,8 +804,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}fontset.h" ¶
 	"{Src}macterm.h" ¶
 		"{Src}macgui.h" ¶
-		"{Src}frame.h"	
-	
+		"{Src}frame.h"
+
 {Src}xfaces.c.x Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}sys:types.h" ¶
@@ -907,8 +910,8 @@ Emacs ÄÄ {Makefile} "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	"{Src}termhooks.h" ¶
 	"{Src}coding.h" ¶
 		"{Src}ccl.h"
-		
-		
+
+
 #----------------------------------------#
 # Variables and rules for target "Clean" #
 #----------------------------------------#
@@ -1089,7 +1092,7 @@ Doc Ä {DocTarget}DOC
 #-----------------------------------------------#
 
 Make-DocFile-Includes		= -i :inc:
-Make-DocFile-Sym			= 
+Make-DocFile-Sym			=
 
 Make-DocFile-PPCCOptions	= -typecheck relaxed -w off -noMapCR ¶
 								{Make-DocFile-Includes} {Make-DocFile-Sym}

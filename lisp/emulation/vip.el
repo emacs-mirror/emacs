@@ -49,7 +49,7 @@
 
 (defvar vip-insert-local-map nil
   "Local map used in insert command mode.  (Buffer-specific.)")
-  
+
 (make-variable-buffer-local 'vip-emacs-local-map)
 (make-variable-buffer-local 'vip-insert-local-map)
 
@@ -113,7 +113,7 @@
 
 (defvar vip-f-forward nil
   "For use by \";\" command.")
-  
+
 (defvar vip-f-offset nil
   "For use by \";\" command.")
 
@@ -378,7 +378,7 @@ No message."
 		   'delete-backward-char))
 	       (define-key vip-insert-local-map "\C-w"
 		 'vip-delete-backward-word))
-	      ((eq new-mode 'emacs-mode) 
+	      ((eq new-mode 'emacs-mode)
 	       (vip-change-mode-line "Emacs:")
 	       (use-local-map vip-emacs-local-map)))
 	(setq vip-current-mode new-mode)
@@ -508,7 +508,7 @@ EVENTS is a list of events, which become the beginning of the command."
   "Compute numeric prefix arg value.  Invoked by CHAR.  VALUE is the value
 obtained so far, and COM is the command part obtained so far."
   (while (and (>= char ?0) (<= char ?9))
-    (setq value (+ (* (if (numberp value) value 0) 10) (- char ?0)))	    
+    (setq value (+ (* (if (numberp value) value 0) 10) (- char ?0)))
     (setq char (read-char)))
   (setq prefix-arg value)
   (if com (setq prefix-arg (cons prefix-arg com)))
@@ -561,7 +561,7 @@ obtained so far, and COM is the command part obtained so far."
 	       (setq com char)
 	       (setq char (read-char)))))))
   (if (atom com)
-      ;; com is a single char, so we construct prefix-arg 
+      ;; com is a single char, so we construct prefix-arg
       ;; and if char is ?, describe prefix arg, otherwise exit by
       ;; pushing the char back
       (progn
@@ -615,7 +615,7 @@ obtained so far, and COM is the command part obtained so far."
   (interactive "P")
   (condition-case conditions
       (vip-prefix-arg-com
-       last-command-char   
+       last-command-char
        (cond ((null arg) nil)
 	     ((consp arg) (car arg))
 	     ((numberp arg) arg)
@@ -935,7 +935,7 @@ vi command mode.  It will repeat the insertion command if original insertion
 command was invoked with argument > 1."
   (let ((i-com (car vip-d-com)) (val (car (cdr vip-d-com))))
     (if (and val (> val 1)) ;; first check that val is non-nil
-	(progn        
+	(progn
 	  (setq vip-d-com (list i-com (1- val) ?r))
 	  (vip-repeat nil)
 	  (setq vip-d-com (list i-com val ?r))))))
@@ -1037,7 +1037,7 @@ command was invoked with argument > 1."
 	  (vip-change-subr (mark) (point))
 	(vip-change (mark) (point))))
     (setq vip-d-com (list 'vip-substitute val ?r))))
-  
+
 (defun vip-substitute-line (arg)
   "Substitute lines."
   (interactive "p")
@@ -1057,7 +1057,7 @@ command was invoked with argument > 1."
   (interactive "P")
   (let ((val (vip-p-val arg)))
     (vip-line (cons val ?Y))))
-    
+
 
 ;; region command
 
@@ -1076,7 +1076,7 @@ command was invoked with argument > 1."
     (move-marker vip-com-point (point))
     (exchange-point-and-mark)
     (vip-execute-com 'vip-Region val com)))
-  
+
 (defun vip-replace-char (arg)
   "Replace the following ARG chars by the character read."
   (interactive "P")
@@ -1171,7 +1171,7 @@ beginning of buffer, stop and signal error."
 	(progn
 	  (forward-char)
 	  (vip-execute-com 'vip-end-of-word val com)))))
-			 
+
 (defun vip-backward-word (arg)
   "Backward word."
   (interactive "P")
@@ -2911,7 +2911,7 @@ a token has type \(command, address, end-mark\) and value."
   (vip-change-mode-to-emacs)
   (shell))
 
-(defun ex-substitute (&optional repeat r-flag) 
+(defun ex-substitute (&optional repeat r-flag)
   "ex substitute.
 If REPEAT use previous reg-exp which is ex-reg-exp or
 vip-s-string"

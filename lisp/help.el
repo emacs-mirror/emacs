@@ -98,6 +98,8 @@
 (autoload 'finder-by-keyword "finder"
   "Find packages matching a given keyword." t)
 
+(define-key help-map "r" 'info-emacs-manual)
+
 (define-key help-map "s" 'describe-syntax)
 
 (define-key help-map "t" 'help-with-tutorial)
@@ -123,8 +125,9 @@ This is a list
 
 (defun print-help-return-message (&optional function)
   "Display or return message saying how to restore windows after help command.
-Computes a message and applies the optional argument FUNCTION to it.
-If FUNCTION is nil, applies `message' to it, thus printing it."
+This function assumes that `standard-output' is the help buffer.
+It computes a message, and applies the optional argument FUNCTION to it.
+If FUNCTION is nil, it applies `message', thus displaying the message."
   (and (not (get-buffer-window standard-output))
        (let ((first-message
 	      (cond ((special-display-p (buffer-name standard-output))
@@ -410,28 +413,43 @@ If INSERT (the prefix arg) is non-nil, insert the message in the buffer."
    (let ((fn (function-called-at-point))
 	 (enable-recursive-minibuffers t)
 	 val)
-     (setq val (completing-read (if fn
-				    (format "Where is command (default %s): " fn)
-				  "Where is command: ")
-				obarray 'commandp t))
-     (list (if (equal val "")
-	       fn (intern val))
-	   current-prefix-arg)))
-  (let* ((remapped (remap-command definition))
-	 (keys (where-is-internal definition overriding-local-map nil nil remapped))
-	 (keys1 (mapconcat 'key-description keys ", "))
-	 (standard-output (if insert (current-buffer) t)))
-    (if insert
-	(if (> (length keys1) 0)
-	    (if remapped
-		(princ (format "%s (%s) (remapped from %s)" keys1 remapped definition))
-	      (princ (format "%s (%s)" keys1 definition)))
-	  (princ (format "M-x %s RET" definition)))
-      (if (> (length keys1) 0)
-	  (if remapped
-	      (princ (format "%s is remapped to %s which is on %s" definition remapped keys1))
-	    (princ (format "%s is on %s" definition keys1)))
-	(princ (format "%s is not on any key" definition)))))
+     (setq val (completing-read
+		(if fn
+		    (format "Where is command (default %s): " fn)
+		  "Where is command: ")
+		obarray 'commandp t))
+     (list (if (equal val "") fn (intern val)) current-prefix-arg)))
+  (let ((func (indirect-function definition))
+        (defs nil)
+        (standard-output (if insert (current-buffer) t)))
+    (mapatoms (lambda (symbol)
+		(and (fboundp symbol)
+		     (not (eq symbol definition))
+		     (eq func (condition-case ()
+				  (indirect-function symbol)
+				(error symbol)))
+		     (push symbol defs))))
+    (princ (mapconcat
+            #'(lambda (symbol)
+                (let* ((remapped (command-remapping symbol))
+		       (keys (where-is-internal
+			      symbol overriding-local-map nil nil remapped))
+                       (keys (mapconcat 'key-description keys ", ")))
+                  (if insert
+                      (if (> (length keys) 0)
+                          (if remapped
+                              (format "%s (%s) (remapped from %s)"
+                                      keys remapped symbol)
+                            (format "%s (%s)" keys symbol))
+                        (format "M-x %s RET" symbol))
+                    (if (> (length keys) 0)
+                        (if remapped
+                            (format "%s is remapped to %s which is on %s"
+                                    definition symbol keys)
+                          (format "%s is on %s" symbol keys))
+                      (format "%s is not on any key" symbol)))))
+            (cons definition defs)
+            ";\nand ")))
   nil)
 
 (defun string-key-binding (key)
@@ -458,13 +476,14 @@ or `keymap' property, return the binding of KEY in the string's keymap."
 
 (defun help-key-description (key untranslated)
   (let ((string (key-description key)))
-    (if (or (not untranslated) (eq (aref untranslated 0) ?\e))
+    (if (or (not untranslated)
+	    (and (eq (aref untranslated 0) ?\e) (not (eq (aref key 0) ?\e))))
 	string
       (let ((otherstring (key-description untranslated)))
 	(if (equal string otherstring)
 	    string
 	  (format "%s (translated from %s)" string otherstring))))))
-	  
+
 (defun describe-key-briefly (key &optional insert untranslated)
   "Print the name of the function KEY invokes.  KEY is a string.
 If INSERT (the prefix arg) is non-nil, insert the message in the buffer.
@@ -591,6 +610,74 @@ For minor modes, see following pages.\n\n"))
 		  (princ (documentation minor-mode)))))
 	  (setq minor-modes (cdr minor-modes))))
       (print-help-return-message))))
+
+(defun describe-minor-mode (minor-mode)
+  "Display documentation of a minor mode given as MINOR-MODE."
+  (interactive (list (intern (completing-read 
+			      "Minor mode: "
+			      (delete nil (mapcar
+					   (function (lambda (x)
+						       (if (eval (car x))
+							   (symbol-name (car x)))))
+					   minor-mode-alist))))))
+  (if (fboundp minor-mode)
+      (describe-function minor-mode)
+    (describe-variable minor-mode)))
+
+(defun describe-minor-mode-from-indicator (indicator)
+  "Display documentation of a minor mode specified by INDICATOR."
+  (interactive (list 
+		(completing-read 
+		 "Minor mode indicator: "
+		 (delete nil 
+			 (mapcar
+			  #'(lambda (x)
+			      (if (eval (car x))
+				  (let ((i (expand-minor-mode-indicator-object (cadr x))))
+				    (if (and (< 0 (length i))
+					     (string= " " (substring i 0 1)))
+					(substring i 1)
+				      i))))
+			  minor-mode-alist)))))
+  (let ((minor-mode (lookup-minor-mode-from-indicator indicator)))
+    (if minor-mode
+	(describe-minor-mode minor-mode)
+      (error "Cannot find minor mode for `%s'" indicator))))
+
+(defun lookup-minor-mode-from-indicator (indicator)
+  "Return a minor mode symbol from its indicator on the modeline."
+  (if (and (< 0 (length indicator)) 
+	   (not (string= " " (substring indicator 0 1))))
+      (setq indicator (concat " " indicator)))
+  (let ((minor-modes minor-mode-alist)
+	result)
+    (while minor-modes
+      (let* ((minor-mode (car (car minor-modes)))
+	     (anindicator (car (cdr (car minor-modes)))))
+	(setq anindicator (expand-minor-mode-indicator-object anindicator))
+	(if (and (stringp anindicator) 
+		 (string= anindicator indicator))
+	    (setq result minor-mode
+		  minor-modes nil)
+	  (setq minor-modes (cdr minor-modes)))))
+    result))
+
+(defun expand-minor-mode-indicator-object (obj)
+  "Expand OBJ that represents a minor-mode indicator.
+cdr part of a `minor-mode-alist' element(indicator object) is the
+indicator of minor mode that is in car part.  Normally indicator
+object is a string. However, in some case it is more compound object
+like cons cell. This function tries to make the compound object a string."
+  ;; copied from describe-mode
+  (while (and obj (symbolp obj)
+	      (boundp obj)
+	      (not (eq obj (symbol-value obj))))
+    (setq obj (symbol-value obj)))
+  (when (and (consp obj) 
+	     (keywordp (car obj))
+	     (eq :eval (car obj)))
+    (setq obj (eval (cadr obj))))
+  obj)
 
 
 ;;; Automatic resizing of temporary buffers.

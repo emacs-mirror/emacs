@@ -132,7 +132,7 @@
 
 	* isearch.el (isearch-mode-map): Bind frame events to nil.
 
-1995-06-16  Andre Spiegel <spiegel@berlin.informatik.uni-stuttgart.de>
+1995-06-16  Andre Spiegel  <spiegel@berlin.informatik.uni-stuttgart.de>
 
 	* vc-hooks.el (vc-fetch-properties): Don't use
 	vc-backend-dispatch, as that is in vc.el.
@@ -389,7 +389,7 @@
 	(comint-send-input, comint-output-filter): Use run-hook-with-args.
 	(comint-dynamic-complete): Use run-hook-with-args-until-success.
 
-1995-06-13  Michael Kifer <kifer@cs.sunysb.edu>
+1995-06-13  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el (vip-change-state-to-vi): Bug fix.
 	* viper-util.el (vip-over-whitespace-line): New function.
@@ -454,7 +454,7 @@
 	* add-log.el (prompt-for-change-log-name): Handle the case where
 	a directory name is specified gracefully.
 
-1995-06-08  Andre Spiegel <spiegel@bruessel.informatik.uni-stuttgart.de>
+1995-06-08  Andre Spiegel  <spiegel@bruessel.informatik.uni-stuttgart.de>
 
 	* vc.el (vc-backend-checkin): Handle RCS `ci'-output in the event
 	that a check-in only results in reverting to the previous version.
@@ -467,7 +467,7 @@
 
 	* files.el (file-precious-flag): Doc clarification.
 
-1995-06-08  Michael Kifer <kifer@cs.sunysb.edu>
+1995-06-08  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el (vip-envelop-ESC-key): If an ESC-sequence translates
 	into a function key, pretend that this key was the last command event.
@@ -696,7 +696,7 @@
 	* compile.el (compilation-error-regexp-alist): In "Cray C" regexp,
 	don't allow newlines.
 
-1995-05-30  Michael Kifer <kifer@cs.sunysb.edu>
+1995-05-30  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* ediff-wind.el (ediff-setup-control-frame):
 	Make Ediff delete the old control frame before creating a new one.
@@ -989,7 +989,7 @@
 
 	* easymenu.el (easy-menu-do-define): Add autoload cookie.
 
-1995-05-19  Kevin Rodgers <kevinr@ihs.com>
+1995-05-19  Kevin Rodgers  <kevinr@ihs.com>
 
 	* mailalias.el (expand-mail-aliases): Expand aliases in
 	From and Reply-to headers as well, plus the Resent- variants.
@@ -1520,7 +1520,7 @@
 	(f90-no-block-limit): Now uses f90-p-type-re.
 	(f90-change-keywords): Don't change preprocessor lines.
 
-1995-04-20  Kevin Rodgers <kevinr@ihs.com>
+1995-04-20  Kevin Rodgers  <kevinr@ihs.com>
 
 	* dired-x.el: Change the instructions in the INSTALLATION
 	comment block to set buffer-local variables like
@@ -2900,7 +2900,7 @@
 	* gud.el (gud-massage-args): Variable and function deleted.
 	(gud-common-init): Don't set the variable.
 
-1995-03-02  Boris Goldowsky <boris@cs.rochester.edu>
+1995-03-02  Boris Goldowsky  <boris@cs.rochester.edu>
 
 	* simple.el (newline): Moved from cmds.c.  Indents last
 	inserted line to left-margin.
@@ -4220,7 +4220,7 @@
 	(dabbrev--capitalize): Function deleted.
 	(dabbrev-completion): Use `capitalize'.
 
-	* msb.el Better format of files-by-directory menus.
+	* msb.el: Better format of files-by-directory menus.
 	Now splits big menus into sub-menus.
 	(msb-max-menu-items): Changed default value.  This variable
 	now depicts the maximum number of items in a sub-menu.
@@ -5765,7 +5765,7 @@
 	* etags.el (etags-tags-table-files, etags-tags-included-tables):
 	Search backwards for the comma in case the file name contains one.
 
-1994-10-17  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-10-17  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
         * paths.el (rmail-spool-directory): Add a condition to test
 	the Bull DPX/2.
@@ -5839,7 +5839,7 @@
 	* desktop.el (desktop-internal-v2s): Remove all text properties
 	from strings.
 
-1994-10-13  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-10-13  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* hilit19.el (hilit-set-mode-patterns - lisp-mode): Fix regexp
 	for 'defconstant' that leads to an infinite loop.
@@ -6026,7 +6026,7 @@
 	(makefile-add-log-defun): New function.
 	(makefile-menu-index-function): New function.
 
-1994-10-11  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-10-11  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* rmailsum.el (rmail-summary-resend): New function.
 	(rmail-summary-mode-map - resend): Call rmail-summary-resend
@@ -6477,7 +6477,7 @@
 	* etags.el (etags-tags-completion-table): Allow ? and : in guessed
         tag names.
 
-1994-09-26  Joe Ramey <ramey@csc.ti.com>
+1994-09-26  Joe Ramey  <ramey@csc.ti.com>
 
         * rmailsum.el (rmail-summary-delete-forward): Regexp for
 	recognizing deleted message should not require a space at the
@@ -7568,7 +7568,7 @@
 
 	* help.el (view-lossage): Handle buffers and frames in recent-keys.
 
-1994-08-10  Michael Kifer  (Michael Kifer <kifer@cs.sunysb.edu>)
+1994-08-10  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* ediff.el (ediff-find-file, ediff-patch-file): Handle symlinks.
 
@@ -7878,7 +7878,7 @@
 	* rmailsum.el (rmail-new-summary): If just one window,
 	put the summary in the upper window and Rmail buffer below.
 
-1994-07-30  Ake Stenhoff (etxaksf@aom.ericsson.se)
+1994-07-30  Ake Stenhoff  (etxaksf@aom.ericsson.se)
 
 	* imenu.el (imenu, imenu--flatten-index-alist): Add marker support.
 	(imenu--cleanup): New function.
@@ -8278,7 +8278,7 @@
 
 	* indent.el (move-to-tab-stop): Delete spurious multiple definition.
 
-1994-07-11  Kevin Rodgers <kevinr@ihs.com>
+1994-07-11  Kevin Rodgers  <kevinr@ihs.com>
 
 	* mailabbrev.el (define-mail-abbrev): Don't try to parse empty aliases.
 

@@ -66,75 +66,6 @@ will be parsed and highlighted as soon as you try to move to them."
 		 (integer :tag "First N lines"))
   :group 'compilation)
 
-;;; This has to be here so it can be called
-;;; by the following defcustoms.
-(defun grep-compute-defaults ()
-  (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
-    (setq grep-use-null-device
-	  (with-temp-buffer
-	    (let ((hello-file (expand-file-name "HELLO" data-directory)))
-	      (not
-	       (and (equal (condition-case nil
-			       (if grep-command
-				   ;; `grep-command' is already set, so
-				   ;; use that for testing.
-				   (call-process-shell-command
-				    grep-command nil t nil
-				    "^English" hello-file)
-				 ;; otherwise use `grep-program'
-				 (call-process grep-program nil t nil
-					       "-nH" "^English" hello-file))
-			     (error nil))
-			   0)
-		    (progn
-		      (goto-char (point-min))
-		      (looking-at
-		       (concat (regexp-quote hello-file)
-			       ":[0-9]+:English")))))))))
-  (unless grep-command
-    (setq grep-command
-	  (let ((required-options (if grep-use-null-device "-n" "-nH")))
-	    (if (equal (condition-case nil ; in case "grep" isn't in exec-path
-			   (call-process grep-program nil nil nil
-					 "-e" "foo" null-device)
-			 (error nil))
-		       1)
-		(format "%s %s -e " grep-program required-options)
-	      (format "%s %s " grep-program required-options)))))
-  (unless grep-find-use-xargs
-    (setq grep-find-use-xargs
-	  (if (and
-               (equal (call-process "find" nil nil nil
-                                    null-device "-print0")
-                      0)
-               (equal (call-process "xargs" nil nil nil
-                                    "-0" "-e" "echo")
-		     0))
-	      'gnu)))
-  (unless grep-find-command
-    (setq grep-find-command
-	  (cond ((eq grep-find-use-xargs 'gnu)
-		 (format "%s . -type f -print0 | xargs -0 -e %s"
-			 find-program grep-command))
-		(grep-find-use-xargs
-		 (format "%s . -type f -print | xargs %s"
-                         find-program grep-command))
-		(t (cons (format "%s . -type f -exec %s {} %s \\;"
-				 find-program grep-command null-device)
-			 (+ 22 (length grep-command)))))))
-  (unless grep-tree-command
-    (setq grep-tree-command
-	  (let* ((glen (length grep-program))
-		 (gcmd (concat grep-program " <C>" (substring grep-command glen))))
-	    (cond ((eq grep-find-use-xargs 'gnu)
-		   (format "%s <D> <X> -type f <F> -print0 | xargs -0 -e %s <R>"
-			   find-program gcmd))
-		  (grep-find-use-xargs
-		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
-			   find-program gcmd))
-		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
-			     find-program gcmd null-device)))))))
-
 (defcustom grep-command nil
   "The default grep command for \\[grep].
 If the grep program used supports an option to always include file names
@@ -143,14 +74,12 @@ include it when specifying `grep-command'.
 
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
-  :type 'string
-  :get '(lambda (symbol)
-	  (or grep-command
-	      (progn (grep-compute-defaults) grep-command)))
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :group 'compilation)
 
 (defcustom grep-use-null-device 'auto-detect
-  "If non-nil, append the value of `null-device' to grep commands.
+  "If t, append the value of `null-device' to `grep' commands.
 This is done to ensure that the output of grep includes the filename of
 any match in the case where only a single file is searched, and is not
 necessary if the grep program used supports the `-H' option.
@@ -158,20 +87,17 @@ necessary if the grep program used supports the `-H' option.
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
   :type 'boolean
-  :get '(lambda (symbol)
-	  (if (and grep-use-null-device (not (eq grep-use-null-device t)))
-	      (progn (grep-compute-defaults) grep-use-null-device)
-	    grep-use-null-device))
+  :type '(choice (const :tag "Do Not Append Null Device" nil)
+		 (const :tag "Append Null Device" t)
+		 (other :tag "Not Set" auto-detect))
   :group 'compilation)
 
 (defcustom grep-find-command nil
   "The default find command for \\[grep-find].
 The default value of this variable is set up by `grep-compute-defaults';
 call that function before using this variable in your program."
-  :type 'string
-  :get (lambda (symbol)
-	 (or grep-find-command
-	     (progn (grep-compute-defaults) grep-find-command)))
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :group 'compilation)
 
 (defcustom grep-tree-command nil
@@ -184,11 +110,9 @@ The following place holders should be present in the string:
  <F> - find options to limit the files matched
  <C> - place to put -i if case insensitive grep
  <R> - the regular expression searched for."
-  :type 'string
+  :type '(choice string
+		 (const :tag "Not Set" nil))
   :version "21.4"
-  :get (lambda (symbol)
-	 (or grep-tree-command
-	     (progn (grep-compute-defaults) grep-tree-command)))
   :group 'compilation)
 
 (defcustom grep-tree-files-aliases '(
@@ -325,26 +249,26 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ;; GNU utilities with precise locations (line and columns),
     ;; possibly ranges:
     ;;  foo.c:8.23-9.1: error message
-    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+\\): ?\
 \\([0-9]+\\)\\.\\([0-9]+\\)\
 -\\([0-9]+\\)\\.\\([0-9]+\\)\
 :" 1 2 3) ;; When ending points are supported, add line = 4 and col = 5.
     ;;  foo.c:8.23-45: error message
-    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+\\): ?\
 \\([0-9]+\\)\\.\\([0-9]+\\)\
 -\\([0-9]+\\)\
 :" 1 2 3) ;; When ending points are supported, add line = 2 and col = 4.
     ;;  foo.c:8-45.3: error message
-    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+\\): ?\
 \\([0-9]+\\)\
 -\\([0-9]+\\)\\.\\([0-9]+\\)\
 :" 1 2 nil) ;; When ending points are supported, add line = 2 and col = 4.
     ;;  foo.c:8.23: error message
-    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+\\): ?\
 \\([0-9]+\\)\\.\\([0-9]+\\)\
 :" 1 2 3)
     ;;  foo.c:8-23: error message
-    ("\\([a-zA-Z][-a-zA-Z._0-9]+: ?\\)\
+    ("\\([a-zA-Z][-a-zA-Z._0-9]+\\): ?\
 \\([0-9]+\\)\
 -\\([0-9]+\\)\
 :" 1 2 nil);; When ending points are supported, add line = 3.
@@ -369,6 +293,12 @@ or when it is used with \\[next-error] or \\[compile-goto-error].")
     ("\\(Error\\|Warning\\) \\(\\([FEW][0-9]+\\) \\)?\
 \\([a-zA-Z]?:?[^:( \t\n]+\\)\
  \\([0-9]+\\)\\([) \t]\\|:[^0-9\n]\\)" 4 5)
+
+    ;; Valgrind (memory debugger for x86 GNU/Linux):
+    ;;  ==1332==    at 0x8008621: main (vtest.c:180)
+    ;; Currently this regexp only matches the first error.
+    ;; Thanks to Hans Petter Jansson <hpj@ximian.com> for his regexp wisdom.
+    ("^==[0-9]+==[^(]+\(([^:]+):([0-9]+)" 1 2)
 
     ;; 4.3BSD lint pass 2
     ;; 	strcmp: variable # of args. llib-lc(359)  ::  /usr/src/foo/foo.c(8)
@@ -522,6 +452,8 @@ subexpression.")
   '(
     ;; Matches lines printed by the `-w' option of GNU Make.
     (".*: Entering directory `\\(.*\\)'$" 1)
+    ;; Matches lines made by Emacs byte compiler.
+    ("^Entering directory `\\(.*\\)'$" 1)
     )
   "Alist specifying how to match lines that indicate a new current directory.
 Note that the match is done at the beginning of lines.
@@ -534,6 +466,8 @@ The default value matches lines printed by the `-w' option of GNU Make.")
   '(
     ;; Matches lines printed by the `-w' option of GNU Make.
     (".*: Leaving directory `\\(.*\\)'$" 1)
+    ;; Matches lines made by Emacs byte compiler.
+    ("^Leaving directory `\\(.*\\)'$" 1)
     )
 "Alist specifying how to match lines that indicate restoring current directory.
 Note that the match is done at the beginning of lines.
@@ -619,7 +553,7 @@ This variable's value takes effect when `grep-compute-defaults' is called.")
 (defvar grep-find-use-xargs nil
   "Whether \\[grep-find] uses the `xargs' utility by default.
 
-If nil, it uses `grep -exec'; if `gnu', it uses `find -print0' and `xargs -0';
+If nil, it uses `find -exec'; if `gnu', it uses `find -print0' and `xargs -0';
 if not nil and not `gnu', it uses `find -print' and `xargs'.
 
 This variable's value takes effect when `grep-compute-defaults' is called.")
@@ -751,6 +685,103 @@ original use.  Otherwise, it recompiles using `compile-command'."
 		    (cons msg code)))
 	   (cons msg code)))))
 
+(defun grep-compute-defaults ()
+  (unless (or (not grep-use-null-device) (eq grep-use-null-device t))
+    (setq grep-use-null-device
+	  (with-temp-buffer
+	    (let ((hello-file (expand-file-name "HELLO" data-directory)))
+	      (not
+	       (and (equal (condition-case nil
+			       (if grep-command
+				   ;; `grep-command' is already set, so
+				   ;; use that for testing.
+				   (call-process-shell-command
+				    grep-command nil t nil
+				    "^English" hello-file)
+				 ;; otherwise use `grep-program'
+				 (call-process grep-program nil t nil
+					       "-nH" "^English" hello-file))
+			     (error nil))
+			   0)
+		    (progn
+		      (goto-char (point-min))
+		      (looking-at
+		       (concat (regexp-quote hello-file)
+			       ":[0-9]+:English")))))))))
+  (unless grep-command
+    (setq grep-command
+	  (let ((required-options (if grep-use-null-device "-n" "-nH")))
+	    (if (equal (condition-case nil ; in case "grep" isn't in exec-path
+			   (call-process grep-program nil nil nil
+					 "-e" "foo" null-device)
+			 (error nil))
+		       1)
+		(format "%s %s -e " grep-program required-options)
+	      (format "%s %s " grep-program required-options)))))
+  (unless grep-find-use-xargs
+    (setq grep-find-use-xargs
+	  (if (and
+               (equal (call-process "find" nil nil nil
+                                    null-device "-print0")
+                      0)
+               (equal (call-process "xargs" nil nil nil
+                                    "-0" "-e" "echo")
+		      0))
+	      'gnu)))
+  (unless grep-find-command
+    (setq grep-find-command
+	  (cond ((eq grep-find-use-xargs 'gnu)
+		 (format "%s . -type f -print0 | xargs -0 -e %s"
+			 find-program grep-command))
+		(grep-find-use-xargs
+		 (format "%s . -type f -print | xargs %s"
+                         find-program grep-command))
+		(t (cons (format "%s . -type f -exec %s {} %s \\;"
+				 find-program grep-command null-device)
+			 (+ 22 (length grep-command)))))))
+  (unless grep-tree-command
+    (setq grep-tree-command
+	  (let* ((glen (length grep-program))
+		 (gcmd (concat grep-program " <C>" (substring grep-command glen))))
+	    (cond ((eq grep-find-use-xargs 'gnu)
+		   (format "%s <D> <X> -type f <F> -print0 | xargs -0 -e %s <R>"
+			   find-program gcmd))
+		  (grep-find-use-xargs
+		   (format "%s <D> <X> -type f <F> -print | xargs %s <R>"
+			   find-program gcmd))
+		  (t (format "%s <D> <X> -type f <F> -exec %s <R> {} %s \\;"
+			     find-program gcmd null-device)))))))
+
+(defun grep-default-command ()
+  (let ((tag-default
+	 (funcall (or find-tag-default-function
+		      (get major-mode 'find-tag-default-function)
+		      ;; We use grep-tag-default instead of
+		      ;; find-tag-default, to avoid loading etags.
+		      'grep-tag-default)))
+	(sh-arg-re "\\(\\(?:\"\\(?:[^\"]\\|\\\\\"\\)+\"\\|'[^']+'\\|[^\"' \t\n]\\)+\\)")
+	(grep-default (or (car grep-history) grep-command)))
+    ;; Replace the thing matching for with that around cursor.
+    (when (or (string-match
+	       (concat "[^ ]+\\s +\\(?:-[^ ]+\\s +\\)*"
+		       sh-arg-re "\\(\\s +\\(\\S +\\)\\)?")
+	       grep-default)
+	      ;; If the string is not yet complete.
+	      (string-match "\\(\\)\\'" grep-default))
+      (unless (or (not (stringp buffer-file-name))
+		  (when (match-beginning 2)
+		    (save-match-data
+		      (string-match
+		       (wildcard-to-regexp
+			(file-name-nondirectory
+			 (match-string 3 grep-default)))
+		       (file-name-nondirectory buffer-file-name)))))
+	(setq grep-default (concat (substring grep-default
+					      0 (match-beginning 2))
+				   " *."
+				   (file-name-extension buffer-file-name))))
+      (replace-match (or tag-default "") t t grep-default 1))))
+
 ;;;###autoload
 (defun grep (command-args)
   "Run grep, with user-specified args, and collect output in a buffer.
@@ -767,28 +798,16 @@ tag the cursor is over, substituting it into the last grep command
 in the grep command history (or into `grep-command'
 if that history list is empty)."
   (interactive
-   (let (grep-default (arg current-prefix-arg))
+   (progn
      (unless (and grep-command
 		  (or (not grep-use-null-device) (eq grep-use-null-device t)))
        (grep-compute-defaults))
-     (when arg
-       (let ((tag-default
-	      (funcall (or find-tag-default-function
-			   (get major-mode 'find-tag-default-function)
-			   ;; We use grep-tag-default instead of
-			   ;; find-tag-default, to avoid loading etags.
-			   'grep-tag-default))))
-	 (setq grep-default (or (car grep-history) grep-command))
-	 ;; Replace the thing matching for with that around cursor
-	 (when (string-match "[^ ]+\\s +\\(-[^ ]+\\s +\\)*\\(\"[^\"]+\"\\|[^ ]+\\)\\(\\s-+\\S-+\\)?" grep-default)
-	   (unless (or (match-beginning 3) (not (stringp buffer-file-name)))
-	     (setq grep-default (concat grep-default "*."
-					(file-name-extension buffer-file-name))))
-	   (setq grep-default (replace-match (or tag-default "")
-					     t t grep-default 2)))))
-     (list (read-from-minibuffer "Run grep (like this): "
-				 (or grep-default grep-command)
-				 nil nil 'grep-history))))
+     (let ((default (grep-default-command)))
+       (list (read-from-minibuffer "Run grep (like this): "
+				   (if current-prefix-arg
+				       default grep-command)
+				   nil nil 'grep-history
+				   (if current-prefix-arg nil default))))))
 
   ;; Setting process-setup-function makes exit-message-function work
   ;; even when async processes aren't supported.
@@ -856,18 +875,27 @@ easily repeat a find command."
 				  (or regexp "") command t t))
   command)
 
-;;;###autoload
 (defvar grep-tree-last-regexp "")
 (defvar grep-tree-last-files (car (car grep-tree-files-aliases)))
 
-(defun grep-tree (regexp files dir)
-  "Grep in directory tree with simplified prompting for search parameters.
+;;;###autoload
+(defun grep-tree (regexp files dir &optional subdirs)
+  "Grep for REGEXP in FILES in directory tree rooted at DIR.
 Collect output in a buffer.
+Interactively, prompt separately for each search parameter.
+With prefix arg, reuse previous REGEXP.
+The search is limited to file names matching shell pattern FILES.
+FILES may use abbreviations defined in `grep-tree-files-aliases', e.g.
+entering `ch' is equivalent to `*.[ch]'.
+
 While find runs asynchronously, you can use the \\[next-error] command
 to find the text that grep hits refer to.
 
 This command uses a special history list for its arguments, so you can
-easily repeat a find command."
+easily repeat a find command.
+
+When used non-interactively, optional arg SUBDIRS limits the search to
+those sub directories of DIR."
   (interactive
    (let* ((regexp
 	   (if current-prefix-arg
@@ -889,14 +917,18 @@ easily repeat a find command."
     (setq files grep-tree-last-files))
   (when files
     (setq grep-tree-last-files files)
-    (let ((mf (assoc files match-files-aliases)))
+    (let ((mf (assoc files grep-tree-files-aliases)))
       (if mf
 	  (setq files (cdr mf)))))
   (let ((command-args (grep-expand-command-macros
 		       grep-tree-command
 		       (setq grep-tree-last-regexp regexp)
 		       (and files (concat "-name '" files "'"))
-		       nil  ;; we change default-directory to dir 
+		       (if subdirs
+			   (if (stringp subdirs)
+			       subdirs
+			     (mapconcat 'identity subdirs " "))
+			 nil)  ;; we change default-directory to dir
 		       (and grep-tree-ignore-CVS-directories "-path '*/CVS' -prune -o ")
 		       grep-tree-ignore-case))
 	(default-directory dir)
@@ -922,9 +954,9 @@ Likewise if `compilation-buffer-name-function' is non-nil.
 If current buffer is in Compilation mode for the same mode name
 return the name of the current buffer, so that it gets reused.
 Otherwise, construct a buffer name from MODE-NAME."
-  (cond (name-function 
+  (cond (name-function
 	 (funcall name-function mode-name))
-	(compilation-buffer-name-function 
+	(compilation-buffer-name-function
 	 (funcall compilation-buffer-name-function mode-name))
 	((and (eq major-mode 'compilation-mode)
 	      (equal mode-name (nth 2 compilation-arguments)))
@@ -937,7 +969,8 @@ Otherwise, construct a buffer name from MODE-NAME."
 				 &optional name-of-mode parser
 				 error-regexp-alist name-function
 				 enter-regexp-alist leave-regexp-alist
-				 file-regexp-alist nomessage-regexp-alist)
+				 file-regexp-alist nomessage-regexp-alist
+				 no-async)
   "Run compilation command COMMAND (low level interface).
 ERROR-MESSAGE is a string to print if the user asks to see another error
 and there are no more errors.  The rest of the arguments, 3-10 are optional.
@@ -956,7 +989,11 @@ NOMESSAGE-REGEXP-ALIST is the nomessage regexp alist to use.
 \ and `compilation-nomessage-regexp-alist', respectively.
 For arg 7-10 a value `t' means an empty alist.
 
+If NO-ASYNC is non-nil, start the compilation process synchronously.
+
 Returns the compilation buffer created."
+  (unless no-async
+    (setq no-async (not (fboundp 'start-process))))
   (let (outbuf)
     (save-excursion
       (or name-of-mode
@@ -1049,7 +1086,7 @@ Returns the compilation buffer created."
 	(if compilation-process-setup-function
 	    (funcall compilation-process-setup-function))
 	;; Start the compilation.
-	(if (fboundp 'start-process)
+	(if (not no-async)
  	    (let* ((process-environment
 		    (append
 		     (if (and (boundp 'system-uses-terminfo)
@@ -1121,6 +1158,20 @@ exited abnormally with code %d\n"
 	     (when (window-live-p w)
 	       (select-window w)))))))
 
+(defvar compilation-menu-map
+  (let ((map (make-sparse-keymap "Errors")))
+    (define-key map [stop-subjob]
+      '("Stop Compilation" . kill-compilation))
+    (define-key map [compilation-mode-separator2]
+      '("----" . nil))
+    (define-key map [compilation-mode-first-error]
+      '("First Error" . first-error))
+    (define-key map [compilation-mode-previous-error]
+      '("Previous Error" . previous-error))
+    (define-key map [compilation-mode-next-error]
+      '("Next Error" . next-error))
+    map))
+
 (defvar compilation-minor-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map [mouse-2] 'compile-mouse-goto-error)
@@ -1131,6 +1182,9 @@ exited abnormally with code %d\n"
     (define-key map "\M-p" 'compilation-previous-error)
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
+    ;; Set up the menu-bar
+    (define-key map [menu-bar compilation]
+      (cons "Errors" compilation-menu-map))
     map)
   "Keymap for `compilation-minor-mode'.")
 
@@ -1143,50 +1197,30 @@ exited abnormally with code %d\n"
     (define-key map "\M-{" 'compilation-previous-file)
     (define-key map "\M-}" 'compilation-next-file)
     ;; Set up the menu-bar
-    (define-key map [menu-bar errors-menu]
-      (cons "Errors" (make-sparse-keymap "Errors")))
-    (define-key map [menu-bar errors-menu stop-subjob]
-      '("Stop" . comint-interrupt-subjob))
-    (define-key map [menu-bar errors-menu compilation-mode-separator2]
-      '("----" . nil))
-    (define-key map [menu-bar errors-menu compilation-mode-first-error]
-      '("First Error" . first-error))
-    (define-key map [menu-bar errors-menu compilation-mode-previous-error]
-      '("Previous Error" . previous-error))
-    (define-key map [menu-bar errors-menu compilation-mode-next-error]
-      '("Next Error" . next-error))
+    (define-key map [menu-bar compilation]
+      (cons "Errors" compilation-menu-map))
     map)
   "Keymap for `compilation-shell-minor-mode'.")
 
 (defvar compilation-mode-map
-  (let ((map (cons 'keymap compilation-minor-mode-map)))
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map compilation-minor-mode-map)
     (define-key map " " 'scroll-up)
     (define-key map "\^?" 'scroll-down)
     ;; Set up the menu-bar
-    (define-key map [menu-bar compilation-menu]
+    (define-key map [menu-bar compilation]
       (cons "Compile" (make-sparse-keymap "Compile")))
-
-    (define-key map [menu-bar compilation-menu compilation-mode-kill-compilation]
-      '("Stop Compilation" . kill-compilation))
-    (define-key map [menu-bar compilation-menu compilation-mode-separator2]
+    (define-key map [menu-bar compilation compilation-separator2]
       '("----" . nil))
-    (define-key map [menu-bar compilation-menu compilation-mode-first-error]
-      '("First Error" . first-error))
-    (define-key map [menu-bar compilation-menu compilation-mode-previous-error]
-      '("Previous Error" . previous-error))
-    (define-key map [menu-bar compilation-menu compilation-mode-next-error]
-      '("Next Error" . next-error))
-    (define-key map [menu-bar compilation-menu compilation-separator2]
-      '("----" . nil))
-    (define-key map [menu-bar compilation-menu compilation-mode-grep]
+    (define-key map [menu-bar compilation compilation-mode-grep]
       '("Search Files (grep)" . grep))
-    (define-key map [menu-bar compilation-menu compilation-mode-recompile]
+    (define-key map [menu-bar compilation compilation-mode-recompile]
       '("Recompile" . recompile))
-    (define-key map [menu-bar compilation-menu compilation-mode-compile]
+    (define-key map [menu-bar compilation compilation-mode-compile]
       '("Compile..." . compile))
     map)
   "Keymap for compilation log buffers.
-`compilation-minor-mode-map' is a cdr of this.")
+`compilation-minor-mode-map' is a parent of this.")
 
 (put 'compilation-mode 'mode-class 'special)
 
@@ -1211,8 +1245,11 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (run-hooks 'compilation-mode-hook))
 
 (defun compilation-revert-buffer (ignore-auto noconfirm)
-  (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
-      (apply 'compile-internal compilation-arguments)))
+  (if buffer-file-name
+      (let (revert-buffer-function)
+	(revert-buffer ignore-auto noconfirm preserve-modes))
+    (if (or noconfirm (yes-or-no-p (format "Restart compilation? ")))
+	(apply 'compile-internal compilation-arguments))))
 
 (defun compilation-setup ()
   "Prepare the buffer for the compilation parsing commands to work."
@@ -1226,63 +1263,30 @@ Runs `compilation-mode-hook' with `run-hooks' (which see)."
   (make-local-variable 'compilation-error-screen-columns)
   (setq compilation-last-buffer (current-buffer)))
 
-(defvar compilation-shell-minor-mode nil
-  "Non-nil when in `compilation-shell-minor-mode'.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available but bound to keys that don't
-collide with Shell mode.")
-(make-variable-buffer-local 'compilation-shell-minor-mode)
-
-(or (assq 'compilation-shell-minor-mode minor-mode-alist)
-    (setq minor-mode-alist
-	  (cons '(compilation-shell-minor-mode " Shell-Compile")
-		minor-mode-alist)))
-(or (assq 'compilation-shell-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'compilation-shell-minor-mode
-					   compilation-shell-minor-mode-map)
-				     minor-mode-map-alist)))
-
-(defvar compilation-minor-mode nil
-  "Non-nil when in `compilation-minor-mode'.
-In this minor mode, all the error-parsing commands of the
-Compilation major mode are available.")
-(make-variable-buffer-local 'compilation-minor-mode)
-
-(or (assq 'compilation-minor-mode minor-mode-alist)
-    (setq minor-mode-alist (cons '(compilation-minor-mode " Compilation")
-				 minor-mode-alist)))
-(or (assq 'compilation-minor-mode minor-mode-map-alist)
-    (setq minor-mode-map-alist (cons (cons 'compilation-minor-mode
-					   compilation-minor-mode-map)
-				     minor-mode-map-alist)))
-
 ;;;###autoload
-(defun compilation-shell-minor-mode (&optional arg)
+(define-minor-mode compilation-shell-minor-mode
   "Toggle compilation shell minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
-See `compilation-mode'.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available but bound to keys that don't
+collide with Shell mode.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-shell-minor-mode-hook'."
-  (interactive "P")
-  (if (setq compilation-shell-minor-mode (if (null arg)
-				       (null compilation-shell-minor-mode)
-				     (> (prefix-numeric-value arg) 0)))
-      (let ((mode-line-process))
-	(compilation-setup)
-	(run-hooks 'compilation-shell-minor-mode-hook))))
+  nil " Shell-Compile" nil
+  :group 'compilation
+  (let (mode-line-process)
+    (compilation-setup)))
 
 ;;;###autoload
-(defun compilation-minor-mode (&optional arg)
+(define-minor-mode compilation-minor-mode
   "Toggle compilation minor mode.
 With arg, turn compilation mode on if and only if arg is positive.
-See `compilation-mode'.
+In this minor mode, all the error-parsing commands of the
+Compilation major mode are available.  See `compilation-mode'.
 Turning the mode on runs the normal hook `compilation-minor-mode-hook'."
-  (interactive "P")
-  (if (setq compilation-minor-mode (if (null arg)
-				       (null compilation-minor-mode)
-				     (> (prefix-numeric-value arg) 0)))
-      (let ((mode-line-process))
-	(compilation-setup)
-	(run-hooks 'compilation-minor-mode-hook))))
+  nil " Compilation" nil
+  :group 'compilation
+  (let ((mode-line-process))
+    (compilation-setup)))
 
 (defun compilation-handle-exit (process-status exit-status msg)
   "Write msg in the current buffer and hack its mode-line-process."
@@ -1563,6 +1567,7 @@ Does NOT find the source line like \\[next-error]."
 	    (let ((inhibit-read-only t)
 		  (buffer-undo-list t)
 		  deactivate-mark
+                  (buffer-was-modified (buffer-modified-p))
 		  (error-list compilation-error-list))
 	      (while error-list
 		(save-excursion
@@ -1570,7 +1575,8 @@ Does NOT find the source line like \\[next-error]."
 				       (progn (end-of-line) (point))
 				       '(mouse-face highlight help-echo "\
 mouse-2: visit this file and line")))
-		(setq error-list (cdr error-list))))
+		(setq error-list (cdr error-list)))
+              (set-buffer-modified-p buffer-was-modified))
 	    )))))
 
 (defun compile-mouse-goto-error (event)
@@ -1988,6 +1994,34 @@ Pop up the buffer containing MARKER and scroll to MARKER if we ask the user."
 	      (overlays-in (point-min) (point-max)))
       buffer)))
 
+(defun compilation-normalize-filename (filename)
+  "Convert a filename string found in an error message to make it usable."
+
+  ;; Check for a comint-file-name-prefix and prepend it if
+  ;; appropriate.  (This is very useful for
+  ;; compilation-minor-mode in an rlogin-mode buffer.)
+  (and (boundp 'comint-file-name-prefix)
+       ;; If file name is relative, default-directory will
+       ;; already contain the comint-file-name-prefix (done
+       ;; by compile-abbreviate-directory).
+       (file-name-absolute-p filename)
+       (setq filename
+	     (concat comint-file-name-prefix filename)))
+
+  ;; If compilation-parse-errors-filename-function is
+  ;; defined, use it to process the filename.
+  (when compilation-parse-errors-filename-function
+    (setq filename
+	  (funcall compilation-parse-errors-filename-function
+		   filename)))
+
+  ;; Some compilers (e.g. Sun's java compiler, reportedly)
+  ;; produce bogus file names like "./bar//foo.c" for file
+  ;; "bar/foo.c"; expand-file-name will collapse these into
+  ;; "/foo.c" and fail to find the appropriate file.  So we
+  ;; look for doubled slashes in the file name and fix them
+  ;; up in the buffer.
+  (setq filename (command-line-normalize-file-name filename)))
 
 ;; Set compilation-error-list to nil, and unchain the markers that point to the
 ;; error messages and their text, so that they no longer slow down gap motion.
@@ -2132,31 +2166,8 @@ See variable `compilation-parse-errors-function' for the interface it uses."
 			(error "\
 An error message with no file name and no file name has been seen earlier"))
 
-		    ;; Check for a comint-file-name-prefix and prepend it if
-		    ;; appropriate.  (This is very useful for
-		    ;; compilation-minor-mode in an rlogin-mode buffer.)
-		    (and (boundp 'comint-file-name-prefix)
-			 ;; If file name is relative, default-directory will
-			 ;; already contain the comint-file-name-prefix (done
-			 ;; by compile-abbreviate-directory).
-			 (file-name-absolute-p filename)
-			 (setq filename
-			       (concat comint-file-name-prefix filename)))
-
-		    ;; If compilation-parse-errors-filename-function is
-		    ;; defined, use it to process the filename.
-		    (when compilation-parse-errors-filename-function
-		      (setq filename
-			    (funcall compilation-parse-errors-filename-function
-				     filename)))
-
-		    ;; Some compilers (e.g. Sun's java compiler, reportedly)
-		    ;; produce bogus file names like "./bar//foo.c" for file
-		    ;; "bar/foo.c"; expand-file-name will collapse these into
-		    ;; "/foo.c" and fail to find the appropriate file.  So we
-		    ;; look for doubled slashes in the file name and fix them
-		    ;; up in the buffer.
-		    (setq filename (command-line-normalize-file-name filename))
+		    ;; Clean up the file name string in several ways.
+		    (setq filename (compilation-normalize-filename filename))
 
 		    (setq filename
 			  (cons filename (cons default-directory (cdr alist))))
@@ -2227,27 +2238,37 @@ An error message with no file name and no file name has been seen earlier"))
 
 		;; Not an error message.
 		(if (eq type `file)	; Change current file.
-		    (and filename (setq compilation-current-file filename))
+		    (when filename
+		      (setq compilation-current-file
+			    ;; Clean up the file name string in several ways.
+			    (compilation-normalize-filename filename)))
 		  ;; Enter or leave directory.
 		  (setq stack compilation-directory-stack)
-		  (and filename
-		       (file-directory-p
-			(setq filename
-			      ;; The directory name in the message
-			      ;; is a truename.  Try to convert it to a form
-			      ;; like what the user typed in.
-			      (compile-abbreviate-directory
-			       (file-name-as-directory
-				(expand-file-name filename))
-			       orig orig-expanded parent-expanded)))
-		       (if (eq type 'leave)
-			   (while (and stack
-				       (not (string-equal (car stack)
-							  filename)))
-			     (setq stack (cdr stack)))
-			 (setq compilation-directory-stack
-			       (cons filename compilation-directory-stack)
-			       default-directory filename)))
+		  ;; Don't check if it is really a directory.
+		  ;; Let the code to search and clean up file names
+		  ;; try to use it in any case.
+		  (when filename
+		    ;; Clean up the directory name string in several ways.
+		    (setq filename (compilation-normalize-filename filename))
+		    (setq filename
+			  ;; The directory name in the message
+			  ;; is a truename.  Try to convert it to a form
+			  ;; like what the user typed in.
+			  (compile-abbreviate-directory
+			   (file-name-as-directory
+			    (expand-file-name filename))
+			   orig orig-expanded parent-expanded))
+		    (if (eq type 'leave)
+			;; If we are leaving a specific directory,
+			;; as preparation, pop out of all other directories
+			;; that we entered nested within it.
+			(while (and stack
+				    (not (string-equal (car stack)
+						       filename)))
+			  (setq stack (cdr stack)))
+		      (setq compilation-directory-stack
+			    (cons filename compilation-directory-stack)
+			    default-directory filename)))
 		  (and (eq type 'leave)
 		       stack
 		       (setq compilation-directory-stack (cdr stack))

@@ -3,24 +3,24 @@
 #  Copyright (C) 1994 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
-#  
+#
 #  GNU Emacs is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2, or (at your option)
 #  any later version.
-#  
+#
 #  GNU Emacs is distributed in the hope that it will be useful,
 #  but WITHOUT ANY WARRANTY; without even the implied warranty of
 #  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #  GNU General Public License for more details.
-#  
+#
 #  You should have received a copy of the GNU General Public License
 #  along with GNU Emacs; see the file COPYING.  If not, write to the
 #  Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 #  Boston, MA 02111-1307, USA.
 #
 
-# 
+#
 # Sets up the system dependent macros.
 #
 !include ..\nt\makefile.def
@@ -139,7 +139,7 @@ $(BLD)\ebrowse.obj: ebrowse.c ..\src\config.h
 #
 # From ..\src\makefile.nt.
 #
-obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c w32faces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c 
+obj = abbrev.c alloc.c alloca.c buffer.c bytecode.c callint.c callproc.c casefiddle.c cm.c cmds.c charset.c coding.c category.c ccl.c data.c dired.c dispnew.c doc.c  doprnt.c editfns.c emacs.c eval.c fileio.c filelock.c filemode.c fns.c fontset.c indent.c insdel.c keyboard.c keymap.c lastfile.c lread.c macros.c marker.c minibuf.c xfaces.c print.c process.c regex.c scroll.c search.c syntax.c sysdep.c term.c termcap.c tparam.c undo.c unexw32.c window.c xdisp.c casetab.c floatfns.c frame.c gmalloc.c intervals.c ralloc.c textprop.c vm-limit.c region-cache.c strftime.c w32.c w32console.c w32faces.c w32fns.c w32heap.c w32inevt.c w32proc.c w32reg.c w32menu.c w32select.c w32term.c w32xfns.c
 
 #
 # These are the lisp files that are loaded up in loadup.el
@@ -224,7 +224,7 @@ lisp= \
 	$(lispsource)version.el
 
 
-DOC	      = DOC 
+DOC	      = DOC
 $(DOC):		$(BLD)\make-docfile.exe
 		- $(DEL) $(DOC)
 		$(BLD)\make-docfile -d ..\src $(obj) > $(DOC)
@@ -261,7 +261,7 @@ install:	$(INSTALL_FILES)
 
 #
 # Maintenance
-# 
+#
 clean:;		- $(DEL) *~ *.pdb DOC*
 		- $(DEL) *.orig *.rej *.crlf ctags.c
 		- $(DEL_TREE) deleted
@@ -307,13 +307,6 @@ $(BLD)\emacsclient.obj : \
 	$(EMACS_ROOT)\src\s\ms-w32.h \
 	$(EMACS_ROOT)\src\m\intel386.h \
 	$(EMACS_ROOT)\lib-src\..\src\config.h
-
-$(BLD)\emacsserver.obj : \
-	$(SRC)\emacsserver.c \
-	$(EMACS_ROOT)\src\s\ms-w32.h \
-	$(EMACS_ROOT)\src\m\intel386.h \
-	$(EMACS_ROOT)\lib-src\..\src\config.h \
-	$(EMACS_ROOT)\nt\inc\sys\file.h
 
 $(BLD)\emacstool.obj : \
 	$(SRC)\emacstool.c \

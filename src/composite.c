@@ -92,32 +92,32 @@ Boston, MA 02111-1307, USA.  */
 
    The former is a hash table in which keys are COMPONENTS-VECs and
    values are the corresponding COMPOSITION-IDs.  This hash table is
-   weak, but as each key (COMPONENTS-VEC) is also kept as a value of
+   weak, but as each key (COMPONENTS-VEC) is also kept as a value of the
    `composition' property, it won't be collected as garbage until all
-   text that have the same COMPONENTS-VEC are deleted.
+   bits of text that have the same COMPONENTS-VEC are deleted.
 
    The latter is a table of pointers to `struct composition' indexed
-   by COMPOSITION-ID.  This structure keep the other information (see
+   by COMPOSITION-ID.  This structure keeps the other information (see
    composite.h).
 
    In general, a text property holds information about individual
    characters.  But, a `composition' property holds information about
-   a sequence of characters (in this sense, it is like `intangible'
+   a sequence of characters (in this sense, it is like the `intangible'
    property).  That means that we should not share the property value
-   in adjacent compositions we can't distinguish them if they have the
+   in adjacent compositions -- we can't distinguish them if they have the
    same property.  So, after any changes, we call
    `update_compositions' and change a property of one of adjacent
    compositions to a copy of it.  This function also runs a proper
    composition modification function to make a composition that gets
    invalid by the change valid again.
 
-   As a value of `composition' property holds information about a
+   As the value of the `composition' property holds information about a
    specific range of text, the value gets invalid if we change the
-   text in the range.  We treat `composition' property always
+   text in the range.  We treat the `composition' property as always
    rear-nonsticky (currently by setting default-text-properties to
    (rear-nonsticky (composition))) and we never make properties of
    adjacent compositions identical.  Thus, any such changes make the
-   range just shorter.  So, we can check the validity of `composition'
+   range just shorter.  So, we can check the validity of the `composition'
    property by comparing LENGTH information with the actual length of
    the composition.
 
@@ -157,12 +157,6 @@ Lisp_Object composition_temp;
    are just ignored in a composition.  */
 #define CHAR_WIDTH(c) \
   (SINGLE_BYTE_CHAR_P (c) ? 1 : CHARSET_WIDTH (CHAR_CHARSET (c)))
-
-/* The following macros for hash table are copied from fns.c.  */
-/* Value is the key part of entry IDX in hash table H.  */
-#define HASH_KEY(H, IDX)   AREF ((H)->key_and_value, 2 * (IDX))
-/* Value is the value part of entry IDX in hash table H.  */
-#define HASH_VALUE(H, IDX) AREF ((H)->key_and_value, 2 * (IDX) + 1)
 
 /* Return COMPOSITION-ID of a composition at buffer position
    CHARPOS/BYTEPOS and length NCHARS.  The `composition' property of
@@ -255,7 +249,7 @@ get_composition_id (charpos, bytepos, nchars, prop, string)
     }
 
   /* This composition is a new one.  We must register it.  */
-	  
+
   /* Check if we have sufficient memory to store this information.  */
   if (composition_table_size == 0)
     {
@@ -468,7 +462,7 @@ run_composition_function (from, to, prop)
       && find_composition (to, -1, &start, &end, &prop, Qnil)
       && !COMPOSITION_VALID_P (start, end, prop))
     to = end;
-  if (!NILP (func))
+  if (!NILP (Ffboundp (func)))
     call2 (func, make_number (from), make_number (to));
   else if (!NILP (Ffboundp (Vcompose_chars_after_function)))
     call3 (Vcompose_chars_after_function,
@@ -484,14 +478,14 @@ run_composition_function (from, to, prop)
 
 void
 update_compositions (from, to, check_mask)
-     int from, to;
+     int from, to, check_mask;
 {
   Lisp_Object prop;
   int start, end;
 
   if (inhibit_modification_hooks)
     return;
-  
+
   /* If FROM and TO are not in a valid range, do nothing.  */
   if (! (BEGV <= from && from <= to && to <= ZV))
     return;
@@ -611,18 +605,18 @@ compose_chars_in_text (start, end, string)
   /* Set to nonzero if we don't have to compose ASCII characters.  */
   int skip_ascii;
   int i, len, stop, c;
-  unsigned char *ptr, *pend;
+  const unsigned char *ptr, *pend;
 
   if (! CHAR_TABLE_P (Vcomposition_function_table))
     return;
 
   if (STRINGP (string))
     {
-      count = specpdl_ptr - specpdl;
+      count = SPECPDL_INDEX ();
       GCPRO1 (string);
       stop = end;
-      ptr = XSTRING (string)->data + string_char_to_byte (string, start);
-      pend = ptr + STRING_BYTES (XSTRING (string));
+      ptr = SDATA (string) + string_char_to_byte (string, start);
+      pend = ptr + SBYTES (string);
     }
   else
     {
@@ -656,7 +650,7 @@ compose_chars_in_text (start, end, string)
 	    break;
 	  stop = end;
 	  if (STRINGP (string))
-	    ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+	    ptr = SDATA (string) + string_char_to_byte (string, start);
 	  else
 	    ptr = CHAR_POS_ADDR (start);
 	}
@@ -686,7 +680,7 @@ compose_chars_in_text (start, end, string)
 		    {
 		      start += XINT (val);
 		      if (STRINGP (string))
-			ptr = XSTRING (string)->data + string_char_to_byte (string, start);
+			ptr = SDATA (string) + string_char_to_byte (string, start);
 		      else
 			ptr = CHAR_POS_ADDR (start);
 		    }
@@ -721,7 +715,7 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
-for the composition.   See `compose-region' for more detial. */)
+for the composition.  See `compose-region' for more detail.  */)
      (start, end, components, mod_func)
      Lisp_Object start, end, components, mod_func;
 {
@@ -742,7 +736,7 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
-for the composition.   See `compose-string' for more detial.  */)
+for the composition.  See `compose-string' for more detail.  */)
      (string, start, end, components, mod_func)
      Lisp_Object string, start, end, components, mod_func;
 {
@@ -752,7 +746,7 @@ for the composition.   See `compose-string' for more detial.  */)
 
   if (XINT (start) < 0 ||
       XINT (start) > XINT (end)
-      || XINT (end) > XSTRING (string)->size)
+      || XINT (end) > SCHARS (string))
     args_out_of_range (start, end);
 
   compose_text (XINT (start), XINT (end), components, mod_func, string);
@@ -760,7 +754,7 @@ for the composition.   See `compose-string' for more detial.  */)
 }
 
 DEFUN ("find-composition-internal", Ffind_composition_internal,
-       Sfind_composition_internal, 4, 4, 0, 
+       Sfind_composition_internal, 4, 4, 0,
        doc: /* Internal use only.
 
 Return information about composition at or nearest to position POS.
@@ -781,11 +775,11 @@ See `find-composition' for more detail.  */)
     }
   else
     end = -1;
-  
+
   if (!NILP (string))
     {
       CHECK_STRING (string);
-      if (XINT (pos) < 0 || XINT (pos) > XSTRING (string)->size)
+      if (XINT (pos) < 0 || XINT (pos) > SCHARS (string))
 	args_out_of_range (string, pos);
     }
   else
@@ -845,11 +839,11 @@ syms_of_composite ()
   {
     Lisp_Object args[6];
     extern Lisp_Object QCsize;
-    
+
     args[0] = QCtest;
     args[1] = Qequal;
     args[2] = QCweakness;
-    args[3] = Qnil;
+    args[3] = Qt;
     args[4] = QCsize;
     args[5] = make_number (311);
     composition_hash_table = Fmake_hash_table (6, args);

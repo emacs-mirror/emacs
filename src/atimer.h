@@ -51,7 +51,7 @@ struct atimer
 {
   /* The type of this timer.  */
   enum atimer_type type;
-  
+
   /* Time when this timer is ripe.  */
   EMACS_TIME expiration;
 

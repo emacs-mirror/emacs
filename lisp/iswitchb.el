@@ -183,7 +183,7 @@
 ;; Using iswitchb for other completion tasks.
 
 ;; Kin Cho (kin@neoscale.com) sent the following suggestion to use
-;; iswitchb for other completion tasks.  
+;; iswitchb for other completion tasks.
 ;;
 ;; (defun my-icompleting-read (prompt choices)
 ;;   "Use iswitch as a completing-read replacement to choose from
@@ -209,8 +209,8 @@
 ;;    (delete-minibuffer-contents))
 ;;
 ;; (add-hook 'iswitchb-define-mode-map-hook
-;; 	  '(lambda () (define-key 
-;; 			iswitchb-mode-map "\C-o" 
+;; 	  '(lambda () (define-key
+;; 			iswitchb-mode-map "\C-o"
 ;; 			'iswitchb-exclude-nonmatching)))
 
 ;; Other lisp packages extend iswitchb behaviour to other tasks.  See
@@ -518,7 +518,7 @@ variable `iswitchb-mode'."
     (define-key map "\C-m" 'iswitchb-exit-minibuffer)
     (setq iswitchb-mode-map map)
     (run-hooks 'iswitchb-define-mode-map-hook)))
-  
+
 ;;; MAIN FUNCTION
 (defun iswitchb ()
   "Switch to buffer matching a substring.
@@ -547,7 +547,7 @@ in a separate window.
 \\[iswitchb-kill-buffer] Kill buffer at head of buffer list."
   ;;\\[iswitchb-toggle-ignore] Toggle ignoring certain buffers (see \
   ;;`iswitchb-buffer-ignore')
-  	
+
   (let* ((prompt "iswitch ")
 	 (buf (iswitchb-read-buffer prompt)))
 
@@ -626,7 +626,7 @@ If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
 	(setq buf-sel iswitchb-final-text)
       ;; else take head of list
       (setq buf-sel (car iswitchb-matches)))
-    
+
     ;; Or possibly choose the default buffer
     (if  (equal iswitchb-final-text "")
 	(setq buf-sel
@@ -661,11 +661,11 @@ The result is stored in `iswitchb-common-match-string'."
   (let (res)
     (cond ((not  iswitchb-matches)
 	   (run-hooks 'iswitchb-cannot-complete-hook))
-	  
+
 	  ((= 1 (length iswitchb-matches))
 	   ;; only one choice, so select it.
 	   (exit-minibuffer))
-	  
+
 	  (t
 	   ;; else there could be some completions
 	   (setq res iswitchb-common-match-string)
@@ -847,16 +847,16 @@ BUFFER-LIST can be list of buffers or list of strings."
          ret)
     (mapcar
      (lambda (x)
-       
+
        (if do-string
 	   (setq name x)               ;We already have the name
 	 (setq name (buffer-name x)))
-       
+
        (cond
 	((and (or (and string-format (string-match regexp name))
 		  (and (null string-format)
 		       (string-match (regexp-quote regexp) name)))
-	      
+
 	      (not (iswitchb-ignore-buffername-p name)))
 	 (setq ret (cons name ret))
           )))
@@ -954,10 +954,10 @@ Return the modified list with the last element prepended to it."
 	      (set-window-start win (point-min))
 	    (scroll-other-window))
 	  (set-buffer buf))
-      
+
       (with-output-to-temp-buffer temp-buf
 	(if iswitchb-xemacs
-	    
+
 	    ;; XEmacs extents are put on by default, doesn't seem to be
 	    ;; any way of switching them off.
 	    (display-completion-list (if iswitchb-matches
@@ -1043,7 +1043,7 @@ Return the modified list with the last element prepended to it."
     (if (and iswitchb-newbuffer
 	     (or
 	      (not iswitchb-prompt-newbuffer)
-	      
+
 	      (and iswitchb-prompt-newbuffer
 		   (y-or-n-p
 		    (format
@@ -1187,7 +1187,7 @@ Copied from `icomplete-exhibit' with two changes:
 	  (iswitchb-set-common-completion)
 
 	  ;; Insert the match-status information:
-	  (insert (iswitchb-completions 
+	  (insert (iswitchb-completions
 		   contents
 		   minibuffer-completion-table
 		   minibuffer-completion-predicate
@@ -1196,7 +1196,7 @@ Copied from `icomplete-exhibit' with two changes:
 (defun iswitchb-completions (name candidates predicate require-match)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
-  
+
   (let ((comps iswitchb-matches)
                                         ; "-determined" - only one candidate
         (open-bracket-determined (if require-match "(" "["))
@@ -1260,7 +1260,8 @@ Modified from `icomplete-completions'."
 
 	      ;; put in common completion item -- what you get by
 	      ;; pressing tab
-	      (if (> (length iswitchb-common-match-string) (length name))
+	      (if (and (stringp iswitchb-common-match-string)
+		       (> (length iswitchb-common-match-string) (length name)))
 		  (concat open-bracket-determined
 			  (substring iswitchb-common-match-string
 				     (length name))
@@ -1272,7 +1273,7 @@ Modified from `icomplete-completions'."
 		   (concat open-bracket-determined
 			   (substring most (length name))
 			   close-bracket-determined))
-	      
+
 	      ;; list all alternatives
 	      open-bracket-prospects
 	      (if most-is-exact
@@ -1303,13 +1304,13 @@ Copied from `icomplete-tidy'."
 
   (if (and (boundp 'iswitchb-eoinput)
 	   iswitchb-eoinput)
-      
+
       (if (> iswitchb-eoinput (point-max))
 	  ;; Oops, got rug pulled out from under us - reinit:
 	  (setq iswitchb-eoinput (point-max))
 	(let ((buffer-undo-list buffer-undo-list )) ; prevent entry
 	  (delete-region iswitchb-eoinput (point-max))))
-    
+
     ;; Reestablish the local variable 'cause minibuffer-setup is weird:
     (make-local-variable 'iswitchb-eoinput)
     (setq iswitchb-eoinput 1)))

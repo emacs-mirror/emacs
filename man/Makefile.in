@@ -1,6 +1,6 @@
 #### Makefile for the Emacs Manual and other documentation.
 
-# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001
+# Copyright (C) 1994, 1996, 1997, 1998, 1999, 2000, 2001, 2003
 #  Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -39,13 +39,13 @@ INFO_TARGETS = ../info/emacs ../info/ccmode ../info/cl \
 		../info/efaq ../info/ada-mode ../info/autotype ../info/calc \
 		../info/idlwave ../info/eudc ../info/ebrowse ../info/pcl-cvs \
 		../info/woman ../info/emacs-mime ../info/eshell \
-		../info/speedbar
+		../info/speedbar ../info/tramp ../info/ses ../info/smtpmail
 DVI_TARGETS = 	emacs.dvi calc.dvi cc-mode.dvi cl.dvi dired-x.dvi \
 		 ediff.dvi forms.dvi gnus.dvi message.dvi mh-e.dvi \
 		 reftex.dvi sc.dvi vip.dvi viper.dvi widget.dvi faq.dvi \
 		 ada-mode.dvi autotype.dvi idlwave.dvi eudc.dvi ebrowse.dvi \
 		 pcl-cvs.dvi woman.dvi emacs-mime.dvi eshell.dvi \
-		 speedbar.dvi
+		 speedbar.dvi tramp.dvi ses.dvi smtpmail.dvi
 INFOSOURCES = info.texi
 
 # The following rule does not work with all versions of `make'.
@@ -54,7 +54,7 @@ INFOSOURCES = info.texi
 	texi2dvi $<
 
 TEXI2DVI = texi2dvi
-ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)" 
+ENVADD = TEXINPUTS="$(srcdir):$(TEXINPUTS)" MAKEINFO="$(MAKEINFO) -I$(srcdir)"
 
 EMACSSOURCES= \
 	${srcdir}/emacs.texi \
@@ -176,7 +176,7 @@ forms.dvi: forms.texi
 ../info/gnus: gnus.texi
 	cd $(srcdir); $(MAKEINFO) gnus.texi
 gnus.dvi: gnus.texi
-	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi 
+	sed -e '/@iflatex/,/@end iflatex/d' ${srcdir}/gnus.texi > gnustmp.texi
 	$(ENVADD) $(TEXI2DVI) gnustmp.texi
 	cp gnustmp.dvi $*.dvi
 	rm gnustmp.*
@@ -266,6 +266,21 @@ speedbar.dvi: speedbar.texi
 	cd $(srcdir); $(MAKEINFO) emacs-mime.texi
 emacs-mime.dvi: emacs-mime.texi
 	$(ENVADD) $(TEXI2DVI) ${srcdir}/emacs-mime.texi
+
+../info/tramp: tramp.texi
+	cd $(srcdir); $(MAKEINFO) -D emacs tramp.texi
+tramp.dvi: tramp.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/tramp.texi
+
+../info/ses: ses.texi
+	cd $(srcdir); $(MAKEINFO) ses.texi
+ses.dvi: ses.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/ses.texi
+
+../info/smtpmail: smtpmail.texi
+	cd $(srcdir); $(MAKEINFO) smtpmail.texi
+smtpmail.dvi: smtpmail.texi
+	$(ENVADD) $(TEXI2DVI) ${srcdir}/smtpmail.texi
 
 mostlyclean:
 	rm -f *.log *.cp *.fn *.ky *.pg *.vr core *.tp *.core gnustmp.*

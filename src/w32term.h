@@ -22,8 +22,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include "w32gui.h"
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
 
 #define BLACK_PIX_DEFAULT(f) PALETTERGB(0,0,0)
 #define WHITE_PIX_DEFAULT(f) PALETTERGB(255,255,255)
@@ -63,18 +61,10 @@ extern BOOL bUseDflt;
 
 extern struct frame *x_window_to_frame ();
 
-enum text_cursor_kinds {
-  NO_CURSOR = -1,
-  FILLED_BOX_CURSOR,
-  HOLLOW_BOX_CURSOR,
-  BAR_CURSOR,
-  HBAR_CURSOR
-};
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
-struct w32_bitmap_record 
+struct w32_bitmap_record
 {
   Pixmap pixmap;
   char *file;
@@ -141,6 +131,9 @@ struct w32_display_info
 
   /* The cursor to use for vertical scroll bars.  */
   Cursor vertical_scroll_bar_cursor;
+
+  /* Resource data base */
+  XrmDatabase xrdb;
 
   /* color palette information.  */
   int has_palette;
@@ -235,7 +228,7 @@ struct w32_display_info
      event).  It points to the focus frame's selected window's
      frame.  It differs from w32_focus_frame when we're using a global
      minibuffer.  */
-  struct frame *w32_highlight_frame;
+  struct frame *x_highlight_frame;
 
   /* Cache of images.  */
   struct image_cache *image_cache;
@@ -345,7 +338,7 @@ struct w32_output
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   COLORREF scroll_bar_foreground_pixel;
-  
+
   /* Background color for scroll bars.  A value of -1 means use the
      default (background color of the frame for non-toolkit scroll
      bars).  */
@@ -355,30 +348,19 @@ struct w32_output
   Cursor text_cursor;
   Cursor nontext_cursor;
   Cursor modeline_cursor;
-  Cursor cross_cursor;
+  Cursor hand_cursor;
   Cursor hourglass_cursor;
   Cursor horizontal_drag_cursor;
 
   /* Window whose cursor is hourglass_cursor.  This window is
      temporarily mapped to display an hourglass cursor.  */
   Window hourglass_window;
-  
+
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
   /* Flag to set when the window needs to be completely repainted.  */
   int needs_exposure;
-
-  /* What kind of text cursor is drawn in this window right now?
-     (If there is no cursor (phys_cursor_x < 0), then this means nothing.)  */
-  enum text_cursor_kinds current_cursor;
-
-  /* What kind of text cursor should we draw in the future?
-     This should always be filled_box_cursor or bar_cursor.  */
-  enum text_cursor_kinds desired_cursor;
-
-  /* Width of bar cursor (if we are using that).  */
-  int cursor_width;
 
   DWORD dwStyle;
 
@@ -445,19 +427,12 @@ struct w32_output
 
 extern struct w32_output w32term_display;
 
-enum
-{
-  /* Values used as a bit mask, BOTH == WIDTH | HEIGHT.  */
-  FULLSCREEN_NONE       = 0,
-  FULLSCREEN_WIDTH      = 1,
-  FULLSCREEN_HEIGHT     = 2,
-  FULLSCREEN_BOTH       = 3,
-  FULLSCREEN_WAIT       = 4,
-  FULLSCREEN_MOVE_WAIT  = 8,
-};
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.w32)
 
 /* Return the window associated with the frame F.  */
 #define FRAME_W32_WINDOW(f) ((f)->output_data.w32->window_desc)
+#define FRAME_X_WINDOW(f) ((f)->output_data.w32->window_desc)
 
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
@@ -474,14 +449,15 @@ enum
 #define FRAME_W32_DISPLAY_INFO(f) (&one_w32_display_info)
 #define FRAME_X_DISPLAY_INFO(f) (&one_w32_display_info)
 
+/* This is the `Display *' which frame F is on.  */
+#define FRAME_X_DISPLAY(f) (0)
+
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_W32_FONT_TABLE(f) (FRAME_W32_DISPLAY_INFO (f)->font_table)
 
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.w32->pixel_width)
 #define PIXEL_HEIGHT(f) ((f)->output_data.w32->pixel_height)
-
-#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.w32->desired_cursor)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -615,7 +591,7 @@ struct scroll_bar {
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scroll bar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.
 
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
@@ -678,7 +654,7 @@ struct scroll_bar {
    + (f)->output_data.w32->internal_border_width)
 
 
-/* Return the row/column (zero-based) of the character cell containing 
+/* Return the row/column (zero-based) of the character cell containing
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->output_data.w32->internal_border_width) \
@@ -721,9 +697,6 @@ w32_fill_area (f,hdc,f->output_data.x->background_pixel,px,py,nx,ny)
 extern struct font_info *w32_load_font ();
 extern void w32_unload_font ();
 
-extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
-				     int *, int *));
-
 /* Define for earlier versions of Visual C */
 #ifndef WM_MOUSEWHEEL
 #define WM_MOUSEWHEEL 		       (WM_MOUSELAST + 1)
@@ -756,13 +729,14 @@ extern void x_fullscreen_adjust P_ ((struct frame *f, int *, int *,
 #define WM_EMACS_DESTROY_CARET         (WM_EMACS_START + 16)
 #define WM_EMACS_SHOW_CARET            (WM_EMACS_START + 17)
 #define WM_EMACS_HIDE_CARET            (WM_EMACS_START + 18)
-#define WM_EMACS_END                   (WM_EMACS_START + 19)
+#define WM_EMACS_SETCURSOR             (WM_EMACS_START + 19)
+#define WM_EMACS_END                   (WM_EMACS_START + 20)
 
-#define WND_FONTWIDTH_INDEX    (0) 
-#define WND_LINEHEIGHT_INDEX   (4) 
-#define WND_BORDER_INDEX       (8) 
-#define WND_SCROLLBAR_INDEX    (12) 
-#define WND_BACKGROUND_INDEX   (16) 
+#define WND_FONTWIDTH_INDEX    (0)
+#define WND_LINEHEIGHT_INDEX   (4)
+#define WND_BORDER_INDEX       (8)
+#define WND_SCROLLBAR_INDEX    (12)
+#define WND_BACKGROUND_INDEX   (16)
 #define WND_LAST_INDEX         (20)
 
 #define WND_EXTRA_BYTES     (WND_LAST_INDEX)
@@ -850,7 +824,7 @@ extern BOOL parse_button ();
 #define WM_MOUSELEAVE 0x02A3
 #define TME_LEAVE 0x00000002;
 
-typedef struct tagTRACKMOUSEEVENT 
+typedef struct tagTRACKMOUSEEVENT
 {
   DWORD cbSize;
   DWORD dwFlags;
@@ -867,3 +841,12 @@ struct frame * check_x_frame (Lisp_Object);
 EXFUN (Fx_display_color_p, 1);
 EXFUN (Fx_display_grayscale_p, 1);
 int image_ascent P_ ((struct image *, struct face *));
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch)			\
+  ((font)->bdf ? BDF_1D_FONT : ANSI_FONT)
+
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch)		\
+  (!(font)->bdf						\
+   ? UNICODE_FONT					\
+   : ((CHARSET_DIMENSION (CHAR_CHARSET ((ch))) == 1)	\
+      ? BDF_1D_FONT : BDF_2D_FONT))

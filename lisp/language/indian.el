@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
 
-;; Maintainer:  KAWABATA, Taichi <batta@beige.ocn.ne.jp>
+;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: 	multilingual, i18n, Indian
 
 ;; This file is part of GNU Emacs.
@@ -34,10 +34,100 @@
  "8-bit encoding for ASCII (MSB=0) and IS13194-Devanagari (MSB=1)."
  '(ascii indian-is13194 nil nil
    nil ascii-eol)
- '((safe-charsets ascii indian-is13194)
+ `((safe-chars . ,(let ((table (make-char-table 'safe-chars nil)))
+		    (set-char-table-range table 'indian-is13194 t)
+		    (dotimes (i 127)
+		      (aset table i t)
+		      (aset table (decode-char 'ucs (+ #x900 i)) t))
+		    table))
    (post-read-conversion . in-is13194-post-read-conversion)
    (pre-write-conversion . in-is13194-pre-write-conversion)))
 
+(define-coding-system-alias 'devanagari 'in-is13194)
+
+(defvar indian-font-foundry 'cdac
+  "Font foundry for Indian characters.
+Currently supported foundries are `cdac' and `akruti'.")
+
+(defvar indian-script-language-alist
+  "Alist of Indian scripts vs the corresponding language list and font foundry.
+Each element has this form:
+
+  (SCRIPT LANGUAGE-LIST FONT-FOUNDRY)
+
+SCRIPT is one of Indian script names.
+
+LANGUAGE-LIST is a list of Indian langauge names SCRIPT is used for.
+The list is in the priority order.
+
+FONT-FOUNDRY is a font foundry representing a group of Indian
+fonts.  If the value is nil, the value of `indian-font-foundry'
+is used."
+  '((devanagari (hindi sanskrit) nil)
+    (bengali (bengali assamese) nil)
+    (gurmukhi (punjabi) nil)
+    (gujarati (gujarati) nil)
+    (oriya (oriya) nil)
+    (tamil (tamil) nil)
+    (telugu (telugu) nil)
+    (kannada (kannada) nil)
+    (malayalam (malayalam) nil)))
+
+(defconst indian-font-char-index-table
+  '(					; for which language(s)
+    ;; CDAC fonts
+    (#x0000 . cdac:dv-ttsurekh)		; hindi, etc
+    (#x0100 . cdac:sd-ttsurekh)		; sanskrit
+    (#x0200 . cdac:bn-ttdurga)		; bengali
+    (#x0300 . cdac:tm-ttvalluvar)	; tamil
+    (#x0400 . cdac:tl-tthemalatha)	; telugu
+    (#x0500 . cdac:as-ttdurga)		; assamese
+    (#x0600 . cdac:or-ttsarala)		; oriya
+    (#x0700 . cdac:kn-ttuma)		; kannada
+    (#x0800 . cdac:ml-ttkarthika)	; malayalam
+    (#x0900 . cdac:gj-ttavantika)	; gujarati
+    (#x0A00 . cdac:pn-ttamar)		; punjabi
+
+    ;; AKRUTI fonts
+    (#x0B00 . akruti:dev)		; hindi, etc
+    (#x0C00 . akruti:bng)		; bengali
+    (#x0D00 . akruti:pnj)		; punjabi
+    (#x0E00 . akruti:guj)		; gujarati
+    (#x0F00 . akruti:ori)		; oriya
+    (#x1000 . akruti:tml)		; tamil
+    (#x1100 . akruti:tlg)		; telugu
+    (#x1200 . akruti:knd)		; kannada
+    (#x1300 . akruti:mal)		; malayalam
+    )
+  "Aliat of indices of `indian-glyph' character vs Indian font identifiers.
+Each element has this form: (INDEX . FONT-IDENTIFIER)
+
+INDEX is an index number of the first character in the charset
+`indian-glyph' assigned for glyphs in the font specified by
+FONT-IDENTIFIER.  Currently FONT-IDENTIFIERs are defined for CDAC
+and AKRUTI font groups.")
+  
+(defun indian-font-char (index font-identifier)
+  "Return character of charset `indian-glyph' made from glyph index INDEX.
+FONT-IDENTIFIER is an identifier of an Indian font listed in the
+variable `indian-font-char-index-table'.  It specifies which
+font INDEX is for."
+  (if (or (< index 0) (> index 255))
+      (error "Invalid glyph index: %d" index))
+  (let ((start (car (rassq font-identifier indian-font-char-index-table))))
+    (if (not start)
+	(error "Unknown font identifier: %s" font-identifier))
+    (setq index (+ start index))
+    (make-char 'indian-glyph (+ (/ index 96) 32) (+ (% index 96) 32))))
+
+;; Return a range of characters (cons of min and max character) of the
+;; charset `indian-glyph' for displaying SCRIPT in LANGUAGE by a font
+;; of FOUNDRY.
+
+(defun indian-font-char-range (font-identifier)
+  (cons (indian-font-char 0 font-identifier)
+	(indian-font-char 255 font-identifier)))
+	 
 (defvar indian-script-table
   '[
     devanagari
@@ -76,7 +166,7 @@ The default value is `devanagari'.")
 	    font-ccl-encoder-alist))
 
 (setq font-ccl-encoder-alist
-      (cons '("ISO10646.*-1" . ccl-encode-unicode-font)
+      (cons (cons "-AKRUTI" 'ccl-encode-indian-glyph-font)
 	    font-ccl-encoder-alist))
 
 (provide 'indian)

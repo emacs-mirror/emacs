@@ -413,12 +413,14 @@ r	do reverse incremental search.
 \\	searches backward for regular expression, starting before current page.
 \\[View-search-last-regexp-forward]	searches forward for last regular expression.
 p	searches backward for last regular expression.
-\\[View-quit]	quit View mode, trying to restore window and buffer to previous state.
+\\[View-quit]	quit View mode, restoring this window and buffer to previous state.
 	  \\[View-quit] is the normal way to leave view mode.
 \\[View-exit]	exit View mode but stay in current buffer.  Use this if you started
 	  viewing a buffer (file) and find out you want to edit it.
-\\[View-exit-and-edit]	exit View mode and make the current buffer editable.
-\\[View-quit-all]	quit View mode, trying to restore windows and buffer to previous state.
+	  This command restores the previous read-only status of the buffer.
+\\[View-exit-and-edit]	exit View mode, and make the current buffer editable
+	  even if it was not editable before entry to View mode.
+\\[View-quit-all]	quit View mode, restoring all windows to previous state.
 \\[View-leave]	quit View mode and maybe switch buffers, but don't kill this buffer.
 \\[View-kill-and-leave]	quit View mode, kill current buffer and go back to other buffer.
 
@@ -508,7 +510,7 @@ This function runs the normal hook `view-mode-hook'."
     (force-mode-line-update)
     (message "%s"
 	     (substitute-command-keys "\
-Type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
+View mode: type \\[help-command] for help, \\[describe-mode] for commands, \\[View-quit] to quit."))))
 
 (defun view-mode-exit (&optional return-to-alist exit-action all-win)
   "Exit View mode in various ways, depending on optional arguments.
@@ -698,7 +700,7 @@ Also set the mark at the position where point was."
 ;    (goto-char (point-max))
 ;    (beginning-of-line))
 ;  (view-recenter))
-  
+
 (defun View-goto-line (&optional line)
   "Move to first (or prefix LINE) line in View mode.
 Display is centered at LINE.
@@ -790,7 +792,7 @@ If LINES is more than a window-full, only the last window-full is shown."
 See also `View-scroll-page-forward'."
   (interactive "P")
   (view-scroll-lines lines t view-page-size nil))
-  
+
 (defun View-scroll-page-forward-set-page-size (&optional lines)
   "Scroll forward LINES lines in View mode, setting the \"page size\".
 This is the number of lines which \\[View-scroll-page-forward] and
@@ -864,7 +866,7 @@ invocations return to earlier marks."
   (goto-char (or (mark t) (point-min)))
   (pop-mark)
   (view-recenter))
-	     
+
 (defun View-search-regexp-forward (n regexp)
   "Search forward for first (or prefix Nth) occurrence of REGEXP in View mode.
 

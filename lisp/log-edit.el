@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs commit log
-;; Revision: $Id: log-edit.el,v 1.16 2001/05/11 20:42:58 monnier Exp $
+;; Revision: $Id: log-edit.el,v 1.19 2003/02/05 23:11:02 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,9 +38,9 @@
 (require 'ring)
 (require 'vc)
 
-;;;; 
+;;;;
 ;;;; Global Variables
-;;;; 
+;;;;
 
 (defgroup log-edit nil
   "Major mode for editing RCS and CVS commit messages."
@@ -91,8 +91,9 @@ If 'changed, only request confirmation if the list of files has
   :group 'log-edit
   :type 'boolean)
 
-(defvar cvs-commit-buffer-require-final-newline t
-  "Obsolete, use `log-edit-require-final-newline'.")
+(defvar cvs-commit-buffer-require-final-newline t)
+(make-obsolete-variable 'cvs-commit-buffer-require-final-newline
+                        'log-edit-require-final-newline)
 
 (defcustom log-edit-require-final-newline
   cvs-commit-buffer-require-final-newline
@@ -129,8 +130,9 @@ can be obtained from `log-edit-files'."
   :type '(hook :options (log-edit-set-common-indentation
 			 log-edit-add-to-changelog)))
 
-(defvar cvs-changelog-full-paragraphs t
-  "Obsolete, use `log-edit-changelog-full-paragraphs'.")
+(defvar cvs-changelog-full-paragraphs t)
+(make-obsolete-variable 'cvs-changelog-full-paragraphs
+                        'log-edit-changelog-full-paragraphs)
 
 (defvar log-edit-changelog-full-paragraphs cvs-changelog-full-paragraphs
   "*If non-nil, include full ChangeLog paragraphs in the log.
@@ -328,7 +330,7 @@ To select default log text, we:
   (interactive)
   (when (file-readable-p "CVS/Template")
     (insert-file-contents "CVS/Template")))
-  
+
 
 (defun log-edit-add-to-changelog ()
   "Insert this log message into the appropriate ChangeLog file."
@@ -341,10 +343,10 @@ To select default log text, we:
       (save-excursion
 	(vc-comment-to-change-log)))))
 
-;;;; 
+;;;;
 ;;;; functions for getting commit message from ChangeLog a file...
 ;;;; Courtesy Jim Blandy
-;;;; 
+;;;;
 
 (defun log-edit-narrow-changelog ()
   "Narrow to the top page of the current buffer, a ChangeLog file.
@@ -446,7 +448,7 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 	(save-restriction
 	  (log-edit-narrow-changelog)
 	  (goto-char (point-min))
-	  
+
 	  ;; Search for the name of FILE relative to the ChangeLog.  If that
 	  ;; doesn't occur anywhere, they're not using full relative
 	  ;; filenames in the ChangeLog, so just look for FILE; we'll accept

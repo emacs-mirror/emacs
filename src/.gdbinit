@@ -159,8 +159,7 @@ end
 
 define xsymbol
 print (struct Lisp_Symbol *) ((((int) $) & $valmask) | gdb_data_seg_bits)
-output (char*)$->name->data
-echo \n
+xprintsym $
 end
 document xsymbol
 Print the name and address of the symbol $.
@@ -325,7 +324,8 @@ end
 
 define xprintsym
   set $sym = (struct Lisp_Symbol *) ((((int) $arg0) & $valmask) | gdb_data_seg_bits)
-  output (char*)$sym->name->data
+  set $sym_name = ((struct Lisp_String *)(($sym->xname & $valmask) | gdb_data_seg_bits))
+  output ($sym_name->data[0])@($sym_name->size_byte < 0 ? $sym_name->size : $sym_name->size_byte)
   echo \n
 end
 document xprintsym
@@ -334,7 +334,7 @@ end
 
 define xbacktrace
   set $bt = backtrace_list
-  while $bt 
+  while $bt
     set $type = (enum Lisp_Type) ((*$bt->function >> gdb_valbits) & 0x7)
     if $type == Lisp_Symbol
       xprintsym *$bt->function
@@ -353,7 +353,7 @@ define xbacktrace
 end
 document xbacktrace
   Print a backtrace of Lisp function calls from backtrace_list.
-  Set a breakpoint at Fsignal and call this to see from where 
+  Set a breakpoint at Fsignal and call this to see from where
   an error was signaled.
 end
 

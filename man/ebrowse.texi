@@ -7,16 +7,12 @@
 @syncodeindex fn cp
 @comment %**end of header
 
-@ifinfo
-@dircategory Emacs
-@direntry 
-* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
-@end direntry
-
+@copying
 This file documents Ebrowse, a C++ class browser for GNU Emacs.
 
-Copyright @copyright{} 2000 Free Software Foundation, Inc.
+Copyright @copyright{} 2000, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -33,9 +29,14 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
 
-@iftex
+@dircategory Emacs
+@direntry
+* Ebrowse: (ebrowse).   A C++ class browser for Emacs.
+@end direntry
+
 @titlepage
 @title Ebrowse User's Manual
 @sp 4
@@ -45,31 +46,9 @@ license to the document, as described in section 6 of the license.
 @sp 5
 @author Gerd Moellmann
 @page
-
 @vskip 0pt plus 1filll
-@noindent
-Copyright @copyright{} 2000 Free Software Foundation, Inc.
-
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
-@page
-@end iftex
 
 @node Top, Overview, (dir), (dir)
 
@@ -115,7 +94,7 @@ knows what identifiers are defined in your program@dots{}.
 
 The design of Ebrowse reflects these two needs.
 
-How does it work? 
+How does it work?
 
 @cindex parser for C++ sources
 A fast parser written in C is used to process C++ source files.
@@ -309,7 +288,7 @@ might want to add this to your init file:
 (add-to-list 'auto-mode-alist '(@var{NAME} . ebrowse-tree-mode))
 @end lisp
 
-@noindent 
+@noindent
 where @var{NAME} is the Lisp data base name you are using.
 
 @findex --append
@@ -642,7 +621,7 @@ This command is also provided in the tree buffer's context menu.
 
 @item s
 Display file names for the current line, or for the number of lines
-given by a prefix argument. 
+given by a prefix argument.
 @end table
 
 Here is an example of a tree buffer with file names displayed.
@@ -685,7 +664,7 @@ name like in the example below.
 @table @kbd
 @item -
 This command collapses the branch of the tree starting at the class the
-cursor is on. 
+cursor is on.
 
 @item +
 This command expands the branch of the tree starting at the class the
@@ -781,7 +760,7 @@ also @xref{Tags-like Functions}.)@refill
 @item M t
 Toggle the mark of the line point is in or for as many lines as given by
 a prefix command.  This command can also be found in the class' context
-menu. 
+menu.
 
 @cindex unmark all
 @item M a
@@ -882,7 +861,7 @@ list.
 @item L f
 Switch to the list of member functions.
 
-@cindex static 
+@cindex static
 @item L F
 Switch to the list of static member functions.
 
@@ -901,7 +880,7 @@ Switch to the list of types.
 
 Both commands cycle through the member list.
 
-Most of the commands are also available from the member buffer's 
+Most of the commands are also available from the member buffer's
 context menu.
 
 
@@ -1017,7 +996,7 @@ displayed in the member buffer.
 
 @table @kbd
 @cindex @code{public} members
-@item F a u 
+@item F a u
 This command toggles the display of @code{public} members.  The
 @samp{a} stands for `access'.
 
@@ -1238,7 +1217,7 @@ This command sets the column width depending on the display form used
 This command forces a redisplay of the member buffer.  If the width
 of the window displaying the member buffer is changed this command
 redraws the member list with the appropriate column widths and number of
-columns. 
+columns.
 @end table
 
 
@@ -1369,7 +1348,7 @@ This command moves forward in the position stack, setting point to
 the next position stored in the position stack.
 
 @item C-c b p
-Displays an electric buffer showing all positions saved in the stack. 
+Displays an electric buffer showing all positions saved in the stack.
 You can select a position by pressing @kbd{SPC} in a line.  You can
 view a position with @kbd{v}.
 @end table
@@ -1409,7 +1388,7 @@ All three operations above stop when finding a match.  You can restart
 the operation with this command.
 
 @item C-c b n
-This restarts the last tags operation with the next file in the list. 
+This restarts the last tags operation with the next file in the list.
 @end table
 
 
@@ -1431,7 +1410,7 @@ name is read from the minibuffer with completion.
 
 @node Apropos, Symbol Completion, Members in Files, Tags-like Functions
 @comment  node-name,       next,       previous,      up
-@section Member Apropos 
+@section Member Apropos
 @cindex apropos on class members
 @cindex members, matching regexp
 

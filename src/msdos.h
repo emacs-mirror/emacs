@@ -85,6 +85,8 @@ struct display_info
   int mouse_face_hidden;
 };
 
+typedef struct display_info Display_Info;
+
 /* This is a cut-down version of the one in xterm.h, which see.  */
 struct x_output
 {
@@ -115,14 +117,6 @@ extern struct x_output the_only_x_display;
 /* Forward declarations for prototypes.  */
 struct frame;
 struct window;
-
-/* From xterm.c; emulated on msdos.c */
-
-extern void pixel_to_glyph_coords P_ ((struct frame *f, int pix_x, int pix_y,
-				       int *x, int *y, XRectangle *bounds,
-				       int noclip));
-extern void glyph_to_pixel_coords P_ ((struct frame *f, int x, int y,
-				       int *pix_x, int *pix_y));
 
 /* Defined in xfns.c; emulated on msdos.c */
 

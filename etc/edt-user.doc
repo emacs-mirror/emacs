@@ -39,10 +39,10 @@ Enhancements section below for the details.
 
 Quick Start:
 
-To start the EDT Emulation, first start Emacs and then enter 
+To start the EDT Emulation, first start Emacs and then enter
 
    M-x edt-emulation-on
-   
+
 to begin the emulation.  After initialization is complete, the
 following message will appear below the status line informing you
 that the emulation has been enabled: "Default EDT keymap active".
@@ -64,7 +64,7 @@ edt.el           - EDT Emulation Functions and Default Configuration
 edt-lk201.el     - Built-in support for DEC LK-201 Keyboards
 edt-vt100.el     - Built-in support for DEC VT-100 (and above) terminals
 edt-pc.el        - Built-in support for PC 101 Keyboards under MS-DOS
-edt-mapper.el    - Create an EDT LK-201 Map File for Keyboards Without 
+edt-mapper.el    - Create an EDT LK-201 Map File for Keyboards Without
                      Built-in Support
 
 Enhancements:
@@ -80,7 +80,7 @@ Version 4.0 contains the following enhancements:
      following line
 
           (edt-set-scroll-margins "20%" "25%")
-      
+
      sets the top margin to 20% of the window and the bottom margin
      to 25% of the window.  To disable this feature, set each
      margin to 0%.  You can also invoke edt-set-scroll-margins
@@ -90,13 +90,13 @@ Version 4.0 contains the following enhancements:
      NOTE: Another way to set the scroll margins is to use the
      Emacs customization feature (not available in Emacs 19) to set
      the following two variables directly:
-      
+
           edt-top-scroll-margin and edt-bottom-scroll-margin
 
      Enter the Emacs `customize' command.  First select the Editing
      group and then select the Emulations group.  Finally, select
      the Edt group and follow the directions.
-      
+
  2.  The SUBS command is now supported and bound to GOLD-Enter by
      default.  (This design was copied from tpu-edt.el.)  Note, in
      earlier versions of EDT Emulation, GOLD-Enter was assigned to
@@ -152,7 +152,7 @@ Goals:
         1.  Emulate EDT Keypad Mode commands closely so that current EDT users
             will find that it easy and comfortable to use GNU Emacs with a
             small learning curve;
-   
+
         2.  Make it easy for a user to customize EDT emulation key bindings
             without knowing much about Emacs Lisp;
 
@@ -164,7 +164,7 @@ Goals:
 
         5.  Provide an easy way to restore ALL original Emacs key bindings,
             just as they existed before the EDT emulation was first invoked.
-   
+
         6.  Support GNU Emacs 19 and higher.  (GNU Emacs 18 and below is no
 	        longer supported.)  XEmacs 19, and above, is also supported.
 
@@ -191,9 +191,9 @@ support for the following terminals/keyboards is provided:
 
   (1) DEC VT-100 series and higher.  This includes well behaved VT clones and
       emulators.  If you are using a VT series terminal, be sure that the term
-      environment variable is set properly before invoking emacs. 
+      environment variable is set properly before invoking emacs.
 
-  (2) PC AT keyboard under MS-DOS.  
+  (2) PC AT keyboard under MS-DOS.
 
 Be sure to read the SPECIAL NOTES FOR SOME PLATFORMS sections to see if those
 notes apply to you.
@@ -251,14 +251,14 @@ IV.   SPECIAL NOTES FOR SOME PLATFORMS:
 
      The Sun Type 5 and other more recent Sun keyboards, however, do have
      separate arrow keys.  This makes them candidates for setting up a
-     reasonable EDT keypad emulation.  
+     reasonable EDT keypad emulation.
 
      Depending upon the configuration of the version of X installed on your
      system, you may find the default X keynames for the keypad keys don't
      permit Emacs to interpret some or all the keypad keys as something other
      than arrow keys, numeric keys, Home, PgUP, etc.  Both Sun and HP have been
      particularly guilty of making bizarre keysym assignments to the keypad
-     keys. 
+     keys.
 
      In most cases, the X Windows command, xmodmap, can be used to correct the
      problem.  Here's a sample .xmodmaprc file which corrects this problem on
@@ -303,7 +303,7 @@ IV.   SPECIAL NOTES FOR SOME PLATFORMS:
 
      changes the X Windows name of the keypad NumLock key to be known
      internally as the F24 key.  Doing so permits it to be configured to behave
-     as the PF1 (Gold) key.  
+     as the PF1 (Gold) key.
 
      The side effect of this change is that you will no longer have a NumLock
      key.  If you are using other software under X which requires a NumLock
@@ -332,11 +332,11 @@ IV.   SPECIAL NOTES FOR SOME PLATFORMS:
      xmodmap.
 
      On one distribution on an Intel PC, the following .xmodmaprc set things up
-     nicely.  
+     nicely.
 
          ! File:  .xmodmaprc
          !
-         ! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation 
+         ! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation
          !
 	 clear  mod2
 	 keycode  77 = F12
@@ -411,7 +411,7 @@ IV.   SPECIAL NOTES FOR SOME PLATFORMS:
 
          ! File:  .xmodmaprc
          !
-         ! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation 
+         ! Set up PC keypad under GNU/Linux for the GNU Emacs EDT Emulation
          !
 	 clear  mod2
 	 keycode  77 = F12
@@ -424,7 +424,7 @@ IV.   SPECIAL NOTES FOR SOME PLATFORMS:
 
      Now, edt-mapper.el will see "f12" when the physical NumLock key
      is pressed, allowing the NumLock key to be used as the EDT PF1
-     (Gold) key. 
+     (Gold) key.
 
 V.    HOW DOES THIS EDT EMULATION DIFFER FROM REAL EDT?:
 
@@ -432,7 +432,7 @@ In general, you will find that this emulation of EDT replicates most, but not
 all, of EDT's most used Keypad Mode editing functions and behavior.  It is not
 perfect, but most EDT users who have tried the emulation agree that it is
 quite good enough to make it easy for die-hard EDT users to move over to using
-GNU Emacs.  
+GNU Emacs.
 
 Here's a list of the most important differences between EDT and this GNU Emacs
 EDT Emulation.  The list is short but you must be aware of these differences
@@ -497,7 +497,7 @@ VI.   SOME HIGHLIGHTS IN THIS EDT EMULATION, AND SOME COMPARISONS TO THE
     to GOLD C-k in the default EDT mode when EDT control sequence bindings are
     enabled or one of the sample edt-user.el customization files is used.
 
-2.  Direction support is fully supported.  
+2.  Direction support is fully supported.
 
 3.  All original Emacs bindings are fully restored when EDT emulation is turned
     off.  So, if a fellow worker comes over to your terminal to help you with a
@@ -570,12 +570,12 @@ VI.   SOME HIGHLIGHTS IN THIS EDT EMULATION, AND SOME COMPARISONS TO THE
 
 15. The original EDT emulation package set up many default regular and GOLD
     bindings.  We tried to preserve most (but not all!) of these, so users of
-    the original emulation package will feel more at home.  
+    the original emulation package will feel more at home.
 
     Nevertheless, there are still many GOLD key sequences which are not bound
-    to any functions.  These are prime candidates to use for your own 
-    customizations.  
-    
+    to any functions.  These are prime candidates to use for your own
+    customizations.
+
     Also, there are several commands in edt.el not bound to any key.  So, you
     will find it worthwhile to look through edt.el for functions you may wish
     to add to your personal customized bindings.
@@ -630,7 +630,7 @@ you should add it to the GNU Emacs load path.
 
 NOTE:  A few sites have different load-path requirements, so the above
        directions may need some modification if your site has such special
-       needs. 
+       needs.
 
 
 Creating your own edt-user.el file:
@@ -640,11 +640,11 @@ You should use it as a guide to learn how you can customize EDT emulation
 bindings to your own liking.  Names used to identify the set of LK-201
 keypad and function keys are:
 
-Keypad Keys:   
+Keypad Keys:
                 PF1 PF2 PF3 PF4
                 KP7 KP8 KP9 KP-
                 KP4 KP5 KP6 KP,
-                KP1 KP2 KP3 
+                KP1 KP2 KP3
                 KP0     KPP KPE
 
 Arrow Keys:
@@ -654,7 +654,7 @@ Function Keys:
                 F1 F2 F3 F4 F5  F6 F7 F8 F9 F10  F11 F12 F13 F14
                 HELP DO  F17 F18 F19 F20
 
-                FIND   INSERT   REMOVE 
+                FIND   INSERT   REMOVE
                 SELECT PREVIOUS NEXT
 
 Note:
@@ -737,7 +737,7 @@ of the window.  To change these settings, you can invoke the function
 edt-set-scroll-margins in your .emacs file.  For example, the following line
 
           (edt-set-scroll-margins "20%" "25%")
-      
+
 sets the top margin to 20% of the window and the bottom margin to 25% of the
 window.  To disable this feature, set each margin to 0%.  You can also invoke
 edt-set-scroll-margins interactively while EDT Emulation is active to change
@@ -746,7 +746,7 @@ the settings for that session.
 NOTE: Another way to set the scroll margins is to use the Emacs customization
 feature (not available in Emacs 19) to set the following two variables
 directly:
-      
+
           edt-top-scroll-margin and edt-bottom-scroll-margin
 
 Enter the Emacs `customize' command.  First select the Editing group and then
@@ -762,8 +762,8 @@ directions.
  G-F9: Paste Rect Insert          +----------+----------+----------+----------+
   F10: Cut Rectangle
 G-F10: Paste Rectangle
-  F11: ESC                       
-  F12: Begining of Line           +----------+----------+----------+----------+
+  F11: ESC
+  F12: Beginning of Line          +----------+----------+----------+----------+
 G-F12: Delete Other Windows       |   GOLD   |   HELP   |  FNDNXT  |  DEL L   |
   F13: Delete to Begin of Word    |   (PF1)  |   (PF2)  |   (PF3)  |  (PF4)   |
  HELP: Keypad Help                |Mark Wisel|Desc Funct|   FIND   |  UND L   |
@@ -784,7 +784,7 @@ G-C-k: Restore Key                |   WORD   |    EOL   |   CHAR   |   Next   |
   C-t: Display the Time           |         (0)         |    (.)   |   Query  |
   C-u: Delete to Begin of Line    |      Open Line      |  RESET   |  Replace |
   C-v: Redraw Display             +---------------------+----------+----------+
-  C-w: Set Screen Width 132       
+  C-w: Set Screen Width 132
   C-z: Suspend Emacs                    +----------+----------+----------+
 G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
                                         |  (FIND)  | (INSERT) | (REMOVE) |
@@ -817,9 +817,9 @@ G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
   G-`: What line
   G-/: Query-Replace
 
-;;; File:  edt-user.el   ---  Sample User Customizations for the Enhanced 
-;;;                             EDT Keypad Mode Emulation 
-;;;                             
+;;; File:  edt-user.el   ---  Sample User Customizations for the Enhanced
+;;;                             EDT Keypad Mode Emulation
+;;;
 ;;;                      For GNU Emacs 19 and Above
 ;;;
 ;; Copyright (C) 1986, 1992, 1993, 2000 Free Software Foundation, Inc.
@@ -875,7 +875,7 @@ G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
   (edt-bind-function-key "KP6" 'edt-cut-or-copy 'yank)
   (edt-bind-function-key "KP8" 'edt-scroll-window 'fill-paragraph)
   (edt-bind-function-key "KP9" 'open-line 'edt-eliminate-all-tabs)
-  (edt-bind-function-key "KPP" 
+  (edt-bind-function-key "KPP"
 			 'edt-toggle-select 'edt-line-to-middle-of-window)
   (edt-bind-function-key "KPE" 'edt-change-direction 'overwrite-mode)
 
@@ -916,11 +916,11 @@ G-C-\: Split Window                     |  FNDNXT  |   Yank   |   CUT    |
    F8: Cut Rect Overstrike        |   (UP)   |  (DOWN)  |  (LEFT)  | (RIGHT)  |
  G-F8: Paste Rect Overstrike      |Window Top|Window Bot|Bkwd Sent |Frwd Sent |
    F9: Cut Rect Insert            +----------+----------+----------+----------+
- G-F9: Paste Rect Insert         
+ G-F9: Paste Rect Insert
   F10: Cut Rectangle
 G-F10: Paste Rectangle
   F11: ESC                        +----------+----------+----------+----------+
-  F12: Begining of Line           |   GOLD   |Query Repl|  FNDNXT  |Del Ent L |
+  F12: Beginning of Line          |   GOLD   |Query Repl|  FNDNXT  |Del Ent L |
 G-F12: Delete Other Windows       |   (PF1)  |   (PF2)  |   (PF3)  |   (PF4)  |
   F13: Delete to Begin of Word    |Mark Wisel|Other Wind|   FIND   |  UND L   |
  HELP: Keypad Help                +----------+----------+----------+----------+
@@ -940,7 +940,7 @@ G-C-h: Emacs Help                 | CHNGCASE |  DEL EOL |   COPY   |          |
   C-k: Define Key                 |         (0)         |    (.)   |  Toggle  |
 G-C-k: Restore Key                |      Open Line      |Center Lin|Insrt/Over|
   C-l: Learn                      +---------------------+----------+----------+
-  C-n: Set Screen Width 80       
+  C-n: Set Screen Width 80
   C-o: Open Line                       +----------+----------+----------+
   C-p: Fill Paragraph                  |  FNDNXT  |   Yank   |    CUT   |
   C-q: Quoted Insert                   |  (FIND)) | (INSERT) | (REMOVE) |

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/commands
 @node Command Loop, Keymaps, Minibuffers, Top
@@ -12,7 +12,7 @@
   When you run Emacs, it enters the @dfn{editor command loop} almost
 immediately.  This loop reads key sequences, executes their definitions,
 and displays the results.  In this chapter, we describe how these things
-are done, and the subroutines that allow Lisp programs to do them.  
+are done, and the subroutines that allow Lisp programs to do them.
 
 @menu
 * Command Overview::    How the command loop reads commands.
@@ -442,7 +442,7 @@ argument value.  Completion, Existing, Prompt.
 @comment  node-name,  next,  previous,  up
 @subsection Examples of Using @code{interactive}
 @cindex examples of using @code{interactive}
-@cindex @code{interactive}, examples of using 
+@cindex @code{interactive}, examples of using
 
   Here are some examples of @code{interactive}:
 
@@ -501,7 +501,7 @@ command.  You can also call these functions yourself.
 
 @defun commandp object
 Returns @code{t} if @var{object} is suitable for calling interactively;
-that is, if @var{object} is a command.  Otherwise, returns @code{nil}.  
+that is, if @var{object} is a command.  Otherwise, returns @code{nil}.
 
 The interactively callable objects include strings and vectors (treated
 as keyboard macros), lambda expressions that contain a top-level call to
@@ -664,7 +664,7 @@ non-@code{nil}.  Here's how:
 @section Information from the Command Loop
 
 The editor command loop sets several Lisp variables to keep status
-records for itself and for commands that are run.  
+records for itself and for commands that are run.
 
 @defvar last-command
 This variable records the name of the previous command executed by the
@@ -1272,7 +1272,7 @@ The event type of a double-click event contains the prefix
 @key{meta} held down comes to the Lisp program as
 @code{M-double-mouse-2}.  If a double-click event has no binding, the
 binding of the corresponding ordinary click event is used to execute
-it.  Thus, you need not pay attention to the double click feature 
+it.  Thus, you need not pay attention to the double click feature
 unless you really want to.
 
 When the user performs a double click, Emacs generates first an ordinary
@@ -2131,7 +2131,7 @@ functions to read command input.
 For example, the function that implements numeric prefix arguments reads
 any number of digits.  When it finds a non-digit event, it must unread
 the event so that it can be read normally by the command loop.
-Likewise, incremental search uses this feature to unread events with no 
+Likewise, incremental search uses this feature to unread events with no
 special meaning in a search, because these events should exit the search
 and then execute normally.
 
@@ -2200,7 +2200,7 @@ It returns @code{nil}.
 
 In the following example, the user may type a number of characters right
 after starting the evaluation of the form.  After the @code{sleep-for}
-finishes sleeping, @code{discard-input} discards any characters typed 
+finishes sleeping, @code{discard-input} discards any characters typed
 during the sleep.
 
 @example
@@ -2251,7 +2251,7 @@ screen.
 This function performs redisplay (provided there is no pending input
 from the user), then waits @var{seconds} seconds, or until input is
 available.  The value is @code{t} if @code{sit-for} waited the full
-time with no input arriving (see @code{input-pending-p} in @ref{Event 
+time with no input arriving (see @code{input-pending-p} in @ref{Event
 Input Misc}).  Otherwise, the value is @code{nil}.
 
 The argument @var{seconds} need not be an integer.  If it is a floating
@@ -2334,7 +2334,7 @@ non-@code{nil} in any way thus causes a quit.
   At the level of C code, quitting cannot happen just anywhere; only at the
 special places that check @code{quit-flag}.  The reason for this is
 that quitting at other places might leave an inconsistency in Emacs's
-internal state.  Because quitting is delayed until a safe place, quitting 
+internal state.  Because quitting is delayed until a safe place, quitting
 cannot make Emacs crash.
 
   Certain functions such as @code{read-key-sequence} or
@@ -2343,7 +2343,7 @@ for input.  Instead of quitting, @kbd{C-g} serves as the requested
 input.  In the case of @code{read-key-sequence}, this serves to bring
 about the special behavior of @kbd{C-g} in the command loop.  In the
 case of @code{read-quoted-char}, this is so that @kbd{C-q} can be used
-to quote a @kbd{C-g}.  
+to quote a @kbd{C-g}.
 
 @cindex prevent quitting
   You can prevent quitting for a portion of a Lisp function by binding
@@ -2399,7 +2399,7 @@ in @ref{Errors}.)
 
   You can specify a character other than @kbd{C-g} to use for quitting.
 See the function @code{set-input-mode} in @ref{Terminal Input}.
- 
+
 @node Prefix Command Arguments
 @section Prefix Command Arguments
 @cindex prefix argument
@@ -2468,11 +2468,11 @@ C-u 3   M-x display-prefix  @print{} 3
 
 M-3     M-x display-prefix  @print{} 3      ; @r{(Same as @code{C-u 3}.)}
 
-C-u -   M-x display-prefix  @print{} -      
+C-u -   M-x display-prefix  @print{} -
 
 M--     M-x display-prefix  @print{} -      ; @r{(Same as @code{C-u -}.)}
 
-C-u - 7 M-x display-prefix  @print{} -7     
+C-u - 7 M-x display-prefix  @print{} -7
 
 M-- 7   M-x display-prefix  @print{} -7     ; @r{(Same as @code{C-u -7}.)}
 @end example
@@ -2633,12 +2633,12 @@ then type @kbd{C-M-c} to exit and continue executing @code{simple-rec}.
 @deffn Command exit-recursive-edit
 This function exits from the innermost recursive edit (including
 minibuffer input).  Its definition is effectively @code{(throw 'exit
-nil)}.  
+nil)}.
 @end deffn
 
 @deffn Command abort-recursive-edit
 This function aborts the command that requested the innermost recursive
-edit (including minibuffer input), by signaling @code{quit} 
+edit (including minibuffer input), by signaling @code{quit}
 after exiting the recursive edit.  Its definition is effectively
 @code{(throw 'exit t)}.  @xref{Quitting}.
 @end deffn
@@ -2731,9 +2731,8 @@ the command to be considered complex.
 This variable's value is a list of recent complex commands, each
 represented as a form to evaluate.  It continues to accumulate all
 complex commands for the duration of the editing session, but when it
-reaches the maximum size (specified by the variable
-@code{history-length}), the oldest elements are deleted as new ones are
-added.
+reaches the maximum size (@pxref{Minibuffer History}), the oldest
+elements are deleted as new ones are added.
 
 @example
 @group
@@ -2781,7 +2780,7 @@ not a symbol, string, or vector, an error is signaled.
 The argument @var{count} is a repeat count; @var{kbdmacro} is executed that
 many times.  If @var{count} is omitted or @code{nil}, @var{kbdmacro} is
 executed once.  If it is 0, @var{kbdmacro} is executed over and over until it
-encounters an error or a failing search.  
+encounters an error or a failing search.
 
 @xref{Reading One Event}, for an example of using @code{execute-kbd-macro}.
 @end defun

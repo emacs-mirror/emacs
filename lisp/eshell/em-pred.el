@@ -218,7 +218,7 @@ FOR SINGLE ARGUMENTS, or each argument of a list of strings:
   q  escape special characters
 
   S       split string at any whitespace character
-  S/PAT/  split string at each occurance of PAT
+  S/PAT/  split string at each occurrence of PAT
 
 FOR LISTS OF ARGUMENTS:
   o  sort alphabetically
@@ -232,7 +232,7 @@ FOR LISTS OF ARGUMENTS:
   x/PAT/  exclude all members matching PAT
 
   s/pat/match/  substitute PAT with MATCH
-  g/pat/match/  substitute PAT with MATCH for all occurances
+  g/pat/match/  substitute PAT with MATCH for all occurrences
 
 EXAMPLES:
   *.c(:o)  sorted list of .c files")

@@ -120,11 +120,11 @@ typedef void (_CALLBACK_ *signal_handler)(int);
 static signal_handler sig_handlers[NSIG];
 
 /* Fake signal implementation to record the SIGCHLD handler.  */
-signal_handler 
+signal_handler
 sys_signal (int sig, signal_handler handler)
 {
   signal_handler old;
-  
+
   if (sig != SIGCHLD)
     {
       errno = EINVAL;
@@ -151,7 +151,7 @@ new_child (void)
 {
   child_process *cp;
   DWORD id;
-  
+
   for (cp = child_procs+(child_proc_count-1); cp >= child_procs; cp--)
     if (!CHILD_ACTIVE (cp))
       goto Initialise;
@@ -182,7 +182,7 @@ new_child (void)
   return NULL;
 }
 
-void 
+void
 delete_child (child_process *cp)
 {
   int i;
@@ -257,14 +257,14 @@ find_child_pid (DWORD pid)
    is normally blocked until woken by select() to check for input by
    reading one char.  When the read completes, char_avail is signalled
    to wake up the select emulator and the thread blocks itself again. */
-DWORD WINAPI 
+DWORD WINAPI
 reader_thread (void *arg)
 {
   child_process *cp;
-  
+
   /* Our identity */
   cp = (child_process *)arg;
-  
+
   /* We have to wait for the go-ahead before we can start */
   if (cp == NULL
       || WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
@@ -287,11 +287,11 @@ reader_thread (void *arg)
 
       if (rc == STATUS_READ_ERROR)
 	return 1;
-        
+
       /* If the read died, the child has died so let the thread die */
       if (rc == STATUS_READ_FAILED)
 	break;
-        
+
       /* Wait until our input is acknowledged before reading again */
       if (WaitForSingleObject (cp->char_consumed, INFINITE) != WAIT_OBJECT_0)
         {
@@ -308,7 +308,7 @@ reader_thread (void *arg)
    sys_spawnve, and is not generally valid at any other time.  */
 static char * process_dir;
 
-static BOOL 
+static BOOL
 create_child (char *exe, char *cmdline, char *env, int is_gui_app,
 	      int * pPid, child_process *cp)
 {
@@ -319,12 +319,12 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
 #endif
   DWORD flags;
   char dir[ MAXPATHLEN ];
-  
+
   if (cp == NULL) abort ();
-  
+
   memset (&start, 0, sizeof (start));
   start.cb = sizeof (start);
-  
+
 #ifdef HAVE_NTGUI
   if (NILP (Vw32_start_process_show_window) && !is_gui_app)
     start.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;
@@ -347,7 +347,7 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
   sec_attrs.nLength = sizeof (sec_attrs);
   sec_attrs.lpSecurityDescriptor = NULL /* &sec_desc */;
   sec_attrs.bInheritHandle = FALSE;
-  
+
   strcpy (dir, process_dir);
   unixtodos_filename (dir);
 
@@ -383,22 +383,22 @@ create_child (char *exe, char *cmdline, char *env, int is_gui_app,
    to register the handle with the process
    This way the select emulator knows how to match file handles with
    entries in child_procs.  */
-void 
+void
 register_child (int pid, int fd)
 {
   child_process *cp;
-  
+
   cp = find_child_pid (pid);
   if (cp == NULL)
     {
       DebPrint (("register_child unable to find pid %lu\n", pid));
       return;
     }
-  
+
 #ifdef FULL_DEBUG
   DebPrint (("register_child registered fd %d with pid %lu\n", fd, pid));
 #endif
-  
+
   cp->fd = fd;
 
   /* thread is initially blocked until select is called; set status so
@@ -419,7 +419,7 @@ register_child (int pid, int fd)
    signal failure to the select emulator.
    The select emulator then calls this routine to clean up.
    Since the thread signaled failure we can assume it is exiting.  */
-static void 
+static void
 reap_subprocess (child_process *cp)
 {
   if (cp->procinfo.hProcess)
@@ -448,7 +448,7 @@ reap_subprocess (child_process *cp)
    When it does, close its handle
    Return the pid and fill in the status if non-NULL.  */
 
-int 
+int
 sys_wait (int *status)
 {
   DWORD active, retval;
@@ -456,7 +456,7 @@ sys_wait (int *status)
   int pid;
   child_process *cp, *cps[MAX_CHILDREN];
   HANDLE wait_hnd[MAX_CHILDREN];
-  
+
   nh = 0;
   if (dead_child != NULL)
     {
@@ -479,7 +479,7 @@ sys_wait (int *status)
 	    nh++;
 	  }
     }
-  
+
   if (nh == 0)
     {
       /* Nothing to wait on, so fail */
@@ -535,7 +535,7 @@ get_result:
     retval = SIGINT;
   else
     retval <<= 8;
-  
+
   cp = cps[active];
   pid = cp->pid;
 #ifdef FULL_DEBUG
@@ -571,7 +571,7 @@ get_result:
     }
 
   reap_subprocess (cp);
-  
+
   return pid;
 }
 
@@ -580,7 +580,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
 {
   file_data executable;
   char * p;
-  
+
   /* Default values in case we can't tell for sure.  */
   *is_dos_app = FALSE;
   *is_cygnus_app = FALSE;
@@ -590,7 +590,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
     return;
 
   p = strrchr (filename, '.');
-  
+
   /* We can only identify DOS .com programs from the extension. */
   if (p && stricmp (p, ".com") == 0)
     *is_dos_app = TRUE;
@@ -623,11 +623,11 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
 
       nt_header = (PIMAGE_NT_HEADERS) ((char *) dos_header + dos_header->e_lfanew);
 
-      if ((char *) nt_header > (char *) dos_header + executable.size) 
+      if ((char *) nt_header > (char *) dos_header + executable.size)
 	{
 	  /* Some dos headers (pkunzip) have bogus e_lfanew fields.  */
 	  *is_dos_app = TRUE;
-	} 
+	}
       else if (nt_header->Signature != IMAGE_NT_SIGNATURE
 	       && LOWORD (nt_header->Signature) != IMAGE_OS2_SIGNATURE)
   	{
@@ -664,7 +664,7 @@ w32_executable_type (char * filename, int * is_dos_app, int * is_cygnus_app, int
 	  *is_gui_app = (nt_header->OptionalHeader.Subsystem == IMAGE_SUBSYSTEM_WINDOWS_GUI);
   	}
     }
-  
+
 unwind:
   close_file_data (&executable);
 }
@@ -717,7 +717,7 @@ merge_and_sort_env (char **envp1, char **envp2, char **new_envp)
 
 /* When a new child process is created we need to register it in our list,
    so intercept spawn requests.  */
-int 
+int
 sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 {
   Lisp_Object program, full;
@@ -746,7 +746,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
   if (NILP (Ffile_executable_p (program)))
     {
       struct gcpro gcpro1;
-      
+
       full = Qnil;
       GCPRO1 (program);
       openp (Vexec_path, program, Vexec_suffixes, &full, make_number (X_OK));
@@ -760,7 +760,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
     }
 
   /* make sure argv[0] and cmdname are both in DOS format */
-  cmdname = XSTRING (program)->data;
+  cmdname = SDATA (program);
   unixtodos_filename (cmdname);
   argv[0] = cmdname;
 
@@ -784,12 +784,12 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
 	strcpy (cmdname, egetenv ("CMDPROXY"));
       else
 	{
-	  strcpy (cmdname, XSTRING (Vinvocation_directory)->data);
+	  strcpy (cmdname, SDATA (Vinvocation_directory));
 	  strcat (cmdname, "cmdproxy.exe");
 	}
       unixtodos_filename (cmdname);
     }
-  
+
   /* we have to do some conjuring here to put argv and envp into the
      form CreateProcess wants...  argv needs to be a space separated/null
      terminated list of parameters, and envp is a null
@@ -830,8 +830,8 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       else
 	escape_char = is_cygnus_app ? '"' : '\\';
     }
-  
-  /* Cygwin apps needs quoting a bit more often */ 
+
+  /* Cygwin apps needs quoting a bit more often */
   if (escape_char == '"')
     sepchars = "\r\n\t\f '";
 
@@ -966,7 +966,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       targ++;
     }
   *--parg = '\0';
-  
+
   /* and envp...  */
   arglen = 1;
   targ = envp;
@@ -977,7 +977,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       numenv++;
     }
   /* extra env vars... */
-  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d", 
+  sprintf (ppid_env_var_buffer, "EM_PARENT_PROCESS_ID=%d",
 	   GetCurrentProcessId ());
   arglen += strlen (ppid_env_var_buffer) + 1;
   numenv++;
@@ -1004,7 +1004,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       errno = EAGAIN;
       return -1;
     }
-  
+
   /* Now create the process.  */
   if (!create_child (cmdname, cmdline, env, is_gui_app, &pid, cp))
     {
@@ -1012,7 +1012,7 @@ sys_spawnve (int mode, char *cmdname, char **argv, char **envp)
       errno = ENOEXEC;
       return -1;
     }
-  
+
   return pid;
 }
 
@@ -1043,7 +1043,7 @@ extern HANDLE interrupt_handle;
 /* From process.c */
 extern int proc_buffered_char[];
 
-int 
+int
 sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
 	    EMACS_TIME *timeout)
 {
@@ -1054,11 +1054,11 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   child_process *cp, *cps[MAX_CHILDREN];
   HANDLE wait_hnd[MAXDESC + MAX_CHILDREN];
   int fdindex[MAXDESC];   /* mapping from wait handles back to descriptors */
-  
+
   timeout_ms = timeout ? (timeout->tv_sec * 1000 + timeout->tv_usec / 1000) : INFINITE;
 
   /* If the descriptor sets are NULL but timeout isn't, then just Sleep.  */
-  if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL) 
+  if (rfds == NULL && wfds == NULL && efds == NULL && timeout != NULL)
     {
       Sleep (timeout_ms);
       return 0;
@@ -1070,7 +1070,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
       errno = EINVAL;
       return -1;
     }
-  
+
   orfds = *rfds;
   FD_ZERO (rfds);
   nr = 0;
@@ -1078,7 +1078,7 @@ sys_select (int nfds, SELECT_TYPE *rfds, SELECT_TYPE *wfds, SELECT_TYPE *efds,
   /* Always wait on interrupt_handle, to detect C-g (quit).  */
   wait_hnd[0] = interrupt_handle;
   fdindex[0] = -1;
-  
+
   /* Build a list of pipe handles to wait on.  */
   nh = 1;
   for (i = 0; i < nfds; i++)
@@ -1195,15 +1195,15 @@ count_children:
 	cps[nc] = cp;
 	nc++;
       }
-  
+
   /* Nothing to look for, so we didn't find anything */
-  if (nh + nc == 0) 
+  if (nh + nc == 0)
     {
       if (timeout)
 	Sleep (timeout_ms);
       return 0;
     }
-  
+
   start_time = GetTickCount ();
 
   /* Wait for input or child death to be signalled.  If user input is
@@ -1362,14 +1362,14 @@ find_child_console (HWND hwnd, LPARAM arg)
   return TRUE;
 }
 
-int 
+int
 sys_kill (int pid, int sig)
 {
   child_process *cp;
   HANDLE proc_hand;
   int need_to_free = 0;
   int rc = 0;
-  
+
   /* Only handle signals that will result in the process dying */
   if (sig != SIGINT && sig != SIGKILL && sig != SIGQUIT && sig != SIGHUP)
     {
@@ -1396,7 +1396,7 @@ sys_kill (int pid, int sig)
       /* Try to locate console window for process. */
       EnumWindows (find_child_console, (LPARAM) cp);
     }
-  
+
   if (sig == SIGINT || sig == SIGQUIT)
     {
       if (NILP (Vw32_start_process_share_console) && cp && cp->hwnd)
@@ -1572,15 +1572,15 @@ prepare_standard_handles (int in, int out, int err, HANDLE handles[3])
   handles[2] = GetStdHandle (STD_ERROR_HANDLE);
 
   /* make inheritable copies of the new handles */
-  if (!DuplicateHandle (parent, 
+  if (!DuplicateHandle (parent,
 		       (HANDLE) _get_osfhandle (in),
 		       parent,
-		       &newstdin, 
-		       0, 
-		       TRUE, 
+		       &newstdin,
+		       0,
+		       TRUE,
 		       DUPLICATE_SAME_ACCESS))
     report_file_error ("Duplicating input handle for child", Qnil);
-  
+
   if (!DuplicateHandle (parent,
 		       (HANDLE) _get_osfhandle (out),
 		       parent,
@@ -1589,7 +1589,7 @@ prepare_standard_handles (int in, int out, int err, HANDLE handles[3])
 		       TRUE,
 		       DUPLICATE_SAME_ACCESS))
     report_file_error ("Duplicating output handle for child", Qnil);
-  
+
   if (!DuplicateHandle (parent,
 		       (HANDLE) _get_osfhandle (err),
 		       parent,
@@ -1602,7 +1602,7 @@ prepare_standard_handles (int in, int out, int err, HANDLE handles[3])
   /* and store them as our std handles */
   if (!SetStdHandle (STD_INPUT_HANDLE, newstdin))
     report_file_error ("Changing stdin handle", Qnil);
-  
+
   if (!SetStdHandle (STD_OUTPUT_HANDLE, newstdout))
     report_file_error ("Changing stdout handle", Qnil);
 
@@ -1723,7 +1723,7 @@ All path elements in FILENAME are converted to their short names.  */)
   filename = Fexpand_file_name (filename, Qnil);
 
   /* luckily, this returns the short version of each element in the path.  */
-  if (GetShortPathName (XSTRING (filename)->data, shortname, MAX_PATH) == 0)
+  if (GetShortPathName (SDATA (filename), shortname, MAX_PATH) == 0)
     return Qnil;
 
   CORRECT_DIR_SEPS (shortname);
@@ -1747,7 +1747,7 @@ All path elements in FILENAME are converted to their long names.  */)
   /* first expand it.  */
   filename = Fexpand_file_name (filename, Qnil);
 
-  if (!w32_get_long_filename (XSTRING (filename)->data, longname, MAX_PATH))
+  if (!w32_get_long_filename (SDATA (filename), longname, MAX_PATH))
     return Qnil;
 
   CORRECT_DIR_SEPS (longname);
@@ -1933,7 +1933,7 @@ human-readable form.  */)
   return make_number (GetUserDefaultLCID ());
 }
 
-  
+
 DEFUN ("w32-set-current-locale", Fw32_set_current_locale, Sw32_set_current_locale, 1, 1, 0,
        doc: /* Make Windows locale LCID be the current locale setting for Emacs.
 If successful, the new locale id is returned, otherwise nil.  */)
@@ -1990,7 +1990,7 @@ DEFUN ("w32-get-console-codepage", Fw32_get_console_codepage,
   return make_number (GetConsoleCP ());
 }
 
-  
+
 DEFUN ("w32-set-console-codepage", Fw32_set_console_codepage,
        Sw32_set_console_codepage, 1, 1, 0,
        doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
@@ -2019,7 +2019,7 @@ DEFUN ("w32-get-console-output-codepage", Fw32_get_console_output_codepage,
   return make_number (GetConsoleOutputCP ());
 }
 
-  
+
 DEFUN ("w32-set-console-output-codepage", Fw32_set_console_output_codepage,
        Sw32_set_console_output_codepage, 1, 1, 0,
        doc: /* Make Windows codepage CP be the current codepage setting for Emacs.
@@ -2099,7 +2099,7 @@ The return value is the cons of the language id and the layout id.  */)
 		make_number ((kl >> 16) & 0xffff));
 }
 
-  
+
 DEFUN ("w32-set-keyboard-layout", Fw32_set_keyboard_layout,
        Sw32_set_keyboard_layout, 1, 1, 0,
        doc: /* Make LAYOUT be the current keyboard layout for Emacs.
@@ -2218,7 +2218,7 @@ process temporarily).  A value of zero disables waiting entirely.  */);
 This applies when performing completions and file name expansion.
 Note that the value of this setting also affects remote file names,
 so you probably don't want to set to non-nil if you use case-sensitive
-filesystems via ange-ftp.  */); 
+filesystems via ange-ftp.  */);
   Vw32_downcase_file_names = Qnil;
 
 #if 0
@@ -2232,10 +2232,9 @@ the truename of a file can be slow.  */);
 #endif
 
   DEFVAR_LISP ("w32-get-true-file-attributes", &Vw32_get_true_file_attributes,
-	       doc: /* Non-nil means determine accurate link count in file-attributes.
-This option slows down file-attributes noticeably, so is disabled by
-default.  Note that it is only useful for files on NTFS volumes,
-where hard links are supported.  */);
+	       doc: /* Non-nil means determine accurate link count in `file-attributes'.
+Note that this option is only useful for files on NTFS volumes, where hard links
+are supported.  Moreover, it slows down `file-attributes' noticeably.  */);
   Vw32_get_true_file_attributes = Qt;
 }
 /* end of ntproc.c */

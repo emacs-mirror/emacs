@@ -69,7 +69,7 @@ typedef struct _widget_value
   char*		name;
   /* value (meaning depend on widget type) */
   char*		value;
-  /* keyboard equivalent. no implications for XtTranslations */ 
+  /* keyboard equivalent. no implications for XtTranslations */
   char*		key;
   /* Help string or nil if none.
      GC finds this string through the frame's menu_bar_vector
@@ -112,9 +112,13 @@ typedef struct _widget_value
 #endif
 } widget_value;
 
-/* LocalAlloc/Free is a reasonably good allocator.  */
-#define malloc_widget_value() (void*)LocalAlloc (LMEM_ZEROINIT, sizeof (widget_value))
-#define free_widget_value(wv) LocalFree (wv)
+/* Local memory management */
+#define local_heap (GetProcessHeap ())
+#define local_alloc(n) (HeapAlloc (local_heap, HEAP_ZERO_MEMORY, (n)))
+#define local_free(p) (HeapFree (local_heap, 0, ((LPVOID) (p))))
+
+#define malloc_widget_value() ((widget_value *) local_alloc (sizeof (widget_value)))
+#define free_widget_value(wv) (local_free ((wv)))
 
 /******************************************************************/
 
@@ -125,8 +129,24 @@ typedef struct _widget_value
 
 static HMENU current_popup_menu;
 
-FARPROC get_menu_item_info;
-FARPROC set_menu_item_info;
+void syms_of_w32menu ();
+void globals_of_w32menu ();
+
+typedef BOOL (WINAPI * GetMenuItemInfoA_Proc) (
+    IN HMENU,
+    IN UINT,
+    IN BOOL,
+    IN OUT LPMENUITEMINFOA
+    );
+typedef BOOL (WINAPI * SetMenuItemInfoA_Proc) (
+    IN HMENU,
+    IN UINT,
+    IN BOOL,
+    IN LPCMENUITEMINFOA
+    );
+
+GetMenuItemInfoA_Proc get_menu_item_info=NULL;
+SetMenuItemInfoA_Proc set_menu_item_info=NULL;
 
 Lisp_Object Vmenu_updating_frame;
 
@@ -318,7 +338,7 @@ push_submenu_start ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qnil;
+  ASET (menu_items, menu_items_used++, Qnil);
   menu_items_submenu_depth++;
 }
 
@@ -330,7 +350,7 @@ push_submenu_end ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qlambda;
+  ASET (menu_items, menu_items_used++, Qlambda);
   menu_items_submenu_depth--;
 }
 
@@ -342,7 +362,7 @@ push_left_right_boundary ()
   if (menu_items_used + 1 > menu_items_allocated)
     grow_menu_items ();
 
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qquote;
+  ASET (menu_items, menu_items_used++, Qquote);
 }
 
 /* Start a new menu pane in menu_items.
@@ -357,9 +377,9 @@ push_menu_pane (name, prefix_vec)
 
   if (menu_items_submenu_depth == 0)
     menu_items_n_panes++;
-  XVECTOR (menu_items)->contents[menu_items_used++] = Qt;
-  XVECTOR (menu_items)->contents[menu_items_used++] = name;
-  XVECTOR (menu_items)->contents[menu_items_used++] = prefix_vec;
+  ASET (menu_items, menu_items_used++, Qt);
+  ASET (menu_items, menu_items_used++, name);
+  ASET (menu_items, menu_items_used++, prefix_vec);
 }
 
 /* Push one menu item into the current pane.  NAME is the string to
@@ -377,14 +397,14 @@ push_menu_item (name, enable, key, def, equiv, type, selected, help)
   if (menu_items_used + MENU_ITEMS_ITEM_LENGTH > menu_items_allocated)
     grow_menu_items ();
 
-  XVECTOR (menu_items)->contents[menu_items_used++] = name;
-  XVECTOR (menu_items)->contents[menu_items_used++] = enable;
-  XVECTOR (menu_items)->contents[menu_items_used++] = key;
-  XVECTOR (menu_items)->contents[menu_items_used++] = equiv;
-  XVECTOR (menu_items)->contents[menu_items_used++] = def;
-  XVECTOR (menu_items)->contents[menu_items_used++] = type;
-  XVECTOR (menu_items)->contents[menu_items_used++] = selected;
-  XVECTOR (menu_items)->contents[menu_items_used++] = help;
+  ASET (menu_items, menu_items_used++, name);
+  ASET (menu_items, menu_items_used++, enable);
+  ASET (menu_items, menu_items_used++, key);
+  ASET (menu_items, menu_items_used++, equiv);
+  ASET (menu_items, menu_items_used++, def);
+  ASET (menu_items, menu_items_used++, type);
+  ASET (menu_items, menu_items_used++, selected);
+  ASET (menu_items, menu_items_used++, help);
 }
 
 /* Look through KEYMAPS, a vector of keymaps that is NMAPS long,
@@ -450,13 +470,13 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
       else if (VECTORP (item))
 	{
 	  /* Loop over the char values represented in the vector.  */
-	  int len = XVECTOR (item)->size;
+	  int len = ASIZE (item);
 	  int c;
 	  for (c = 0; c < len; c++)
 	    {
 	      Lisp_Object character;
 	      XSETFASTINT (character, c);
-	      single_menu_item (character, XVECTOR (item)->contents[c],
+	      single_menu_item (character, AREF (item, c),
 				&pending_maps, notreal, maxdepth);
 	    }
 	}
@@ -480,7 +500,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
-   KEY is a key in a keymap and ITEM is its binding. 
+   KEY is a key in a keymap and ITEM is its binding.
    PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
    separate panes.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
@@ -496,7 +516,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
-  
+
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
   res = parse_menu_item (item, notreal, 0);
@@ -504,8 +524,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
   if (!res)
     return;			/* Not a menu item.  */
 
-  map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-  
+  map = AREF (item_properties, ITEM_PROPERTY_MAP);
+
   if (notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -515,10 +535,10 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
       return;
     }
 
-  enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]; 
+  enabled = AREF (item_properties, ITEM_PROPERTY_ENABLE);
+  item_string = AREF (item_properties, ITEM_PROPERTY_NAME);
 
-  if (!NILP (map) && XSTRING (item_string)->data[0] == '@')
+  if (!NILP (map) && SREF (item_string, 0) == '@')
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
@@ -528,11 +548,11 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth)
     }
 
   push_menu_item (item_string, enabled, key,
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_DEF],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_KEYEQ],
-		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_TYPE],
-                  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
-                  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
+		  AREF (item_properties, ITEM_PROPERTY_DEF),
+		  AREF (item_properties, ITEM_PROPERTY_KEYEQ),
+		  AREF (item_properties, ITEM_PROPERTY_TYPE),
+                  AREF (item_properties, ITEM_PROPERTY_SELECTED),
+                  AREF (item_properties, ITEM_PROPERTY_HELP));
 
   /* Display a submenu using the toolkit.  */
   if (! (NILP (map) || NILP (enabled)))
@@ -745,7 +765,7 @@ cached information about equivalent key sequences.  */)
 
       /* Make that be the pane title of the first pane.  */
       if (!NILP (prompt) && menu_items_n_panes >= 0)
-	XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME] = prompt;
+	ASET (menu_items, MENU_ITEMS_PANE_NAME, prompt);
 
       keymaps = 1;
     }
@@ -777,7 +797,7 @@ cached information about equivalent key sequences.  */)
 
       /* Make the title be the pane title of the first pane.  */
       if (!NILP (title) && menu_items_n_panes >= 0)
-	XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME] = title;
+	ASET (menu_items, MENU_ITEMS_PANE_NAME, title);
 
       keymaps = 1;
     }
@@ -791,7 +811,7 @@ cached information about equivalent key sequences.  */)
 
       keymaps = 0;
     }
-  
+
   if (NILP (position))
     {
       discard_menu_items ();
@@ -800,6 +820,16 @@ cached information about equivalent key sequences.  */)
     }
 
 #ifdef HAVE_MENUS
+  /* If resources from a previous popup menu exist yet, does nothing
+     until the `menu_free_timer' has freed them (see w32fns.c).
+  */
+  if (current_popup_menu)
+    {
+      discard_menu_items ();
+      UNGCPRO;
+      return Qnil;
+    }
+
   /* Display them in a menu.  */
   BLOCK_INPUT;
 
@@ -808,9 +838,9 @@ cached information about equivalent key sequences.  */)
   UNBLOCK_INPUT;
 
   discard_menu_items ();
+#endif /* HAVE_MENUS */
 
   UNGCPRO;
-#endif /* HAVE_MENUS */
 
   if (error_name) error (error_name);
   return selection;
@@ -935,7 +965,7 @@ on the left of the dialog box and all following items on the right.
 
 /* Activate the menu bar of frame F.
    This is called from keyboard.c when it gets the
-   menu_bar_activate_event out of the Emacs event queue.
+   MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
 
    To activate the menu bar, we signal to the input thread that it can
    return from the WM_INITMENU message, allowing the normal Windows
@@ -944,7 +974,7 @@ on the left of the dialog box and all following items on the right.
    But first we recompute the menu bar contents (the whole tree).
 
    This way we can safely execute Lisp code.  */
-   
+
 void
 x_activate_menubar (f)
      FRAME_PTR f;
@@ -981,25 +1011,25 @@ menubar_selection_callback (FRAME_PTR f, void * client_data)
   i = 0;
   while (i < f->menu_bar_items_used)
     {
-      if (EQ (XVECTOR (vector)->contents[i], Qnil))
+      if (EQ (AREF (vector, i), Qnil))
 	{
 	  subprefix_stack[submenu_depth++] = prefix;
 	  prefix = entry;
 	  i++;
 	}
-      else if (EQ (XVECTOR (vector)->contents[i], Qlambda))
+      else if (EQ (AREF (vector, i), Qlambda))
 	{
 	  prefix = subprefix_stack[--submenu_depth];
 	  i++;
 	}
-      else if (EQ (XVECTOR (vector)->contents[i], Qt))
+      else if (EQ (AREF (vector, i), Qt))
 	{
-	  prefix = XVECTOR (vector)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  prefix = AREF (vector, i + MENU_ITEMS_PANE_PREFIX);
 	  i += MENU_ITEMS_PANE_LENGTH;
 	}
       else
 	{
-	  entry = XVECTOR (vector)->contents[i + MENU_ITEMS_ITEM_VALUE];
+	  entry = AREF (vector, i + MENU_ITEMS_ITEM_VALUE);
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
 	  if ((int) (EMACS_INT) client_data == i)
@@ -1093,22 +1123,18 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
-/* Return a tree of widget_value structures for a menu bar item
+/* Set up data i menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
 
-static widget_value *
-single_submenu (item_key, item_name, maps)
+static int
+parse_single_submenu (item_key, item_name, maps)
      Lisp_Object item_key, item_name, maps;
 {
-  widget_value *wv, *prev_wv, *save_wv, *first_wv;
-  int i;
-  int submenu_depth = 0;
   Lisp_Object length;
   int len;
   Lisp_Object *mapvec;
-  widget_value **submenu_stack;
-  int previous_items = menu_items_used;
+  int i;
   int top_level_items = 0;
 
   length = Flength (maps);
@@ -1121,8 +1147,6 @@ single_submenu (item_key, item_name, maps)
       mapvec[i] = Fcar (maps);
       maps = Fcdr (maps);
     }
-
-  menu_items_n_panes = 0;
 
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
@@ -1139,11 +1163,31 @@ single_submenu (item_key, item_name, maps)
                           Qnil, Qnil, Qnil, Qnil);
 	}
       else
-	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
+	{
+	  Lisp_Object prompt;
+	  prompt = Fkeymap_prompt (mapvec[i]);
+	  single_keymap_panes (mapvec[i],
+			       !NILP (prompt) ? prompt : item_name,
+			       item_key, 0, 10);
+	}
     }
 
-  /* Create a tree of widget_value objects
-     representing the panes and their items.  */
+  return top_level_items;
+}
+
+
+/* Create a tree of widget_value objects
+   representing the panes and items
+   in menu_items starting at index START, up to index END.  */
+
+static widget_value *
+digest_single_submenu (start, end, top_level_items)
+     int start, end, top_level_items;
+{
+  widget_value *wv, *prev_wv, *save_wv, *first_wv;
+  int i;
+  int submenu_depth = 0;
+  widget_value **submenu_stack;
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -1156,52 +1200,52 @@ single_submenu (item_key, item_name, maps)
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
- 
-  /* Loop over all panes and items made during this call
-     and construct a tree of widget_value objects.
-     Ignore the panes and items made by previous calls to
-     single_submenu, even though those are also in menu_items.  */
-  i = previous_items;
-  while (i < menu_items_used)
+
+  /* Loop over all panes and items made by the preceding call
+     to parse_single_submenu and construct a tree of widget_value objects.
+     Ignore the panes and items used by previous calls to
+     digest_single_submenu, even though those are also in menu_items.  */
+  i = start;
+  while (i < end)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+      if (EQ (AREF (menu_items, i), Qnil))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
 	  prev_wv = 0;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+      else if (EQ (AREF (menu_items, i), Qlambda))
 	{
 	  prev_wv = save_wv;
 	  save_wv = submenu_stack[--submenu_depth];
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
+      else if (EQ (AREF (menu_items, i), Qt)
 	       && submenu_depth != 0)
 	i += MENU_ITEMS_PANE_LENGTH;
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      else if (EQ (AREF (menu_items, i), Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
 
-	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
-	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
+	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
 	      pane_name = ENCODE_SYSTEM (pane_name);
-	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1249,25 +1293,25 @@ single_submenu (item_key, item_name, maps)
 	  if (STRING_MULTIBYTE (item_name))
 	    {
 	      item_name = ENCODE_SYSTEM (item_name);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
 
 	  if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_SYSTEM (descrip);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
@@ -1320,7 +1364,9 @@ set_frame_menubar (f, first_time, deep_p)
   HMENU menubar_widget = f->output_data.w32->menubar_widget;
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i;
+  int i, last_i;
+  int *submenu_start, *submenu_end;
+  int *submenu_top_level_items, *submenu_n_panes;
 
   /* We must not change the menubar when actually in use.  */
   if (f->output_data.w32->menubar_active)
@@ -1333,21 +1379,13 @@ set_frame_menubar (f, first_time, deep_p)
   else if (pending_menu_activation && !deep_p)
     deep_p = 1;
 
-  wv = xmalloc_widget_value ();
-  wv->name = "menubar";
-  wv->value = 0;
-  wv->enabled = 1;
-  wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
-  first_wv = wv;
-
   if (deep_p)
     {
       /* Make a widget-value tree representing the entire menu trees.  */
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = specpdl_ptr - specpdl;
+      int specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -1384,29 +1422,62 @@ set_frame_menubar (f, first_time, deep_p)
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      inhibit_garbage_collection ();
-
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
 	       previous_menu_items_used * sizeof (Lisp_Object));
 
-      /* Fill in the current menu bar contents.  */
+      /* Fill in menu_items with the current menu bar contents.
+	 This can evaluate Lisp code.  */
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
+      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      submenu_top_level_items
+	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       init_menu_items ();
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object key, string, maps;
 
-	  key = XVECTOR (items)->contents[i];
-	  string = XVECTOR (items)->contents[i + 1];
-	  maps = XVECTOR (items)->contents[i + 2];
+	  last_i = i;
+
+	  key = AREF (items, i);
+	  string = AREF (items, i + 1);
+	  maps = AREF (items, i + 2);
 	  if (NILP (string))
 	    break;
 
-	  wv = single_submenu (key, string, maps);
-	  if (prev_wv) 
+	  submenu_start[i] = menu_items_used;
+
+	  menu_items_n_panes = 0;
+	  submenu_top_level_items[i]
+	    = parse_single_submenu (key, string, maps);
+	  submenu_n_panes[i] = menu_items_n_panes;
+
+	  submenu_end[i] = menu_items_used;
+	}
+
+      finish_menu_items ();
+
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
+
+      for (i = 0; i < last_i; i += 4)
+	{
+	  menu_items_n_panes = submenu_n_panes[i];
+	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
+				      submenu_top_level_items[i]);
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1416,8 +1487,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  prev_wv = wv;
 	}
 
-      finish_menu_items ();
-
       set_buffer_internal_1 (prev);
       unbind_to (specpdl_count, Qnil);
 
@@ -1426,7 +1495,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       for (i = 0; i < previous_menu_items_used; i++)
 	if (menu_items_used == i
-	    || (!EQ (previous_items[i], XVECTOR (menu_items)->contents[i])))
+	    || (!EQ (previous_items[i], AREF (menu_items, i))))
 	  break;
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
@@ -1442,13 +1511,13 @@ set_frame_menubar (f, first_time, deep_p)
 	 Windows takes care of this for normal string items, but
 	 not for owner-drawn items or additional item-info.  */
       wv = first_wv->contents;
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object string;
-	  string = XVECTOR (items)->contents[i + 1];
+	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv = wv->next;
 	}
 
@@ -1461,17 +1530,25 @@ set_frame_menubar (f, first_time, deep_p)
       /* Make a widget-value tree containing
 	 just the top level menu bar strings.  */
 
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
+
       items = FRAME_MENU_BAR_ITEMS (f);
-      for (i = 0; i < XVECTOR (items)->size; i += 4)
+      for (i = 0; i < ASIZE (items); i += 4)
 	{
 	  Lisp_Object string;
 
-	  string = XVECTOR (items)->contents[i + 1];
+	  string = AREF (items, i + 1);
 	  if (NILP (string))
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -1482,7 +1559,7 @@ set_frame_menubar (f, first_time, deep_p)
 	     This value just has to be different from small integers.  */
 	  wv->call_data = (void *) (EMACS_INT) (-1);
 
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1518,7 +1595,7 @@ set_frame_menubar (f, first_time, deep_p)
 
     f->output_data.w32->menubar_widget = menubar_widget;
     SetMenu (FRAME_W32_WINDOW (f), f->output_data.w32->menubar_widget);
-    /* Causes flicker when menu bar is updated 
+    /* Causes flicker when menu bar is updated
     DrawMenuBar (FRAME_W32_WINDOW (f)); */
 
     /* Force the window size to be recomputed so that the frame's text
@@ -1620,12 +1697,12 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   wv->help = Qnil;
   first_wv = wv;
   first_pane = 1;
- 
+
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
   while (i < menu_items_used)
     {
-      if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+      if (EQ (AREF (menu_items, i), Qnil))
 	{
 	  submenu_stack[submenu_depth++] = save_wv;
 	  save_wv = prev_wv;
@@ -1633,21 +1710,21 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  first_pane = 1;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+      else if (EQ (AREF (menu_items, i), Qlambda))
 	{
 	  prev_wv = save_wv;
 	  save_wv = submenu_stack[--submenu_depth];
 	  first_pane = 0;
 	  i++;
 	}
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt)
+      else if (EQ (AREF (menu_items, i), Qt)
 	       && submenu_depth != 0)
 	i += MENU_ITEMS_PANE_LENGTH;
       /* Ignore a nil in the item list.
 	 It's meaningful only for dialog boxes.  */
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+      else if (EQ (AREF (menu_items, i), Qquote))
 	i += 1;
-      else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+      else if (EQ (AREF (menu_items, i), Qt))
 	{
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
@@ -1658,11 +1735,11 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
 	      pane_name = ENCODE_SYSTEM (pane_name);
-	      AREF (menu_items, i + MENU_ITEMS_PANE_NAME) = pane_name;
+	      ASET (menu_items, i + MENU_ITEMS_PANE_NAME, pane_name);
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1713,23 +1790,23 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
           if (STRINGP (item_name) && STRING_MULTIBYTE (item_name))
 	    {
 	      item_name = ENCODE_SYSTEM (item_name);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_NAME, item_name);
 	    }
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
             {
 	      descrip = ENCODE_SYSTEM (descrip);
-	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
+	      ASET (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY, descrip);
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
-	  else 
+	  else
 	    save_wv->contents = wv;
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* Use the contents index as call_data, since we are
              restricted to 16-bits.  */
@@ -1773,7 +1850,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
 #endif
-      wv_title->name = (char *) XSTRING (title)->data;
+      wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
@@ -1795,7 +1872,7 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
   menu_item_selection = 0;
 
   /* Display the menu.  */
-  menu_item_selection = SendMessage (FRAME_W32_WINDOW (f), 
+  menu_item_selection = SendMessage (FRAME_W32_WINDOW (f),
 				     WM_EMACS_TRACKPOPUPMENU,
 				     (WPARAM)menu, (LPARAM)&pos);
 
@@ -1818,31 +1895,29 @@ w32_menu_show (f, x, y, for_click, keymaps, title, error)
       i = 0;
       while (i < menu_items_used)
 	{
-	  if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
+	  if (EQ (AREF (menu_items, i), Qnil))
 	    {
 	      subprefix_stack[submenu_depth++] = prefix;
 	      prefix = entry;
 	      i++;
 	    }
-	  else if (EQ (XVECTOR (menu_items)->contents[i], Qlambda))
+	  else if (EQ (AREF (menu_items, i), Qlambda))
 	    {
 	      prefix = subprefix_stack[--submenu_depth];
 	      i++;
 	    }
-	  else if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+	  else if (EQ (AREF (menu_items, i), Qt))
 	    {
-	      prefix
-		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	      prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 	      i += MENU_ITEMS_PANE_LENGTH;
 	    }
 	  /* Ignore a nil in the item list.
 	     It's meaningful only for dialog boxes.  */
-	  else if (EQ (XVECTOR (menu_items)->contents[i], Qquote))
+	  else if (EQ (AREF (menu_items, i), Qquote))
 	    i += 1;
 	  else
 	    {
-	      entry
-		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
+	      entry	= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == i)
 		{
 		  if (keymaps != 0)
@@ -1903,10 +1978,10 @@ w32_dialog_show (f, keymaps, title, error)
   {
     Lisp_Object pane_name, prefix;
     char *pane_string;
-    pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
-    prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
+    pane_name = AREF (menu_items, MENU_ITEMS_PANE_NAME);
+    prefix = AREF (menu_items, MENU_ITEMS_PANE_PREFIX);
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) XSTRING (pane_name)->data);  
+		   ? "" : (char *) SDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -1915,21 +1990,20 @@ w32_dialog_show (f, keymaps, title, error)
     prev_wv->name = "message";
     prev_wv->help = Qnil;
     first_wv = prev_wv;
- 
+
     /* Loop over all panes and items, filling in the tree.  */
     i = MENU_ITEMS_PANE_LENGTH;
     while (i < menu_items_used)
       {
-	
+
 	/* Create a new item within current pane.  */
 	Lisp_Object item_name, enable, descrip, help;
 
-	item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
-	enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
-	descrip
-	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-        help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-	
+	item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
+	enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
+	descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
+        help = AREF (menu_items, i + MENU_ITEMS_ITEM_HELP);
+
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
@@ -1955,9 +2029,9 @@ w32_dialog_show (f, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) XSTRING (descrip)->data;
-	wv->value = (char *) XSTRING (item_name)->data;
-	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
+	  wv->key = (char *) SDATA (descrip);
+	wv->value = (char *) SDATA (item_name);
+	wv->call_data = (void *) &AREF (menu_items, i);
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
 	prev_wv = wv;
@@ -2013,7 +2087,7 @@ w32_dialog_show (f, keymaps, title, error)
   /* Process events that apply to the menu.  */
   popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
 
-  lw_destroy_all_widgets (dialog_id); 
+  lw_destroy_all_widgets (dialog_id);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2027,16 +2101,14 @@ w32_dialog_show (f, keymaps, title, error)
 	{
 	  Lisp_Object entry;
 
-	  if (EQ (XVECTOR (menu_items)->contents[i], Qt))
+	  if (EQ (AREF (menu_items, i), Qt))
 	    {
-	      prefix
-		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
+	      prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
 	      i += MENU_ITEMS_PANE_LENGTH;
 	    }
 	  else
 	    {
-	      entry
-		= XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_VALUE];
+	      entry	= AREF (menu_items, i + MENU_ITEMS_ITEM_VALUE);
 	      if (menu_item_selection == i)
 		{
 		  if (keymaps != 0)
@@ -2092,7 +2164,7 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
       fuFlags = MF_SEPARATOR;
       out_string = NULL;
     }
-  else 
+  else
     {
       if (wv->enabled)
 	fuFlags = MF_STRING;
@@ -2117,11 +2189,11 @@ add_menu_item (HMENU menu, widget_value *wv, HMENU item)
 	     we can't deallocate the memory otherwise.  */
 	  if (get_menu_item_info)
 	    {
-	      out_string = (char *) LocalAlloc (LPTR, strlen (wv->name) + 1);
+              out_string = (char *) local_alloc (strlen (wv->name) + 1);
+              strcpy (out_string, wv->name);
 #ifdef MENU_DEBUG
-	      DebPrint ("Menu: allocing %ld for owner-draw", info.dwItemData);
+	      DebPrint ("Menu: allocing %ld for owner-draw", out_string);
 #endif
-	      strcpy (out_string, wv->name);
 	      fuFlags = MF_OWNERDRAW | MF_DISABLED;
 	    }
 	  else
@@ -2277,7 +2349,7 @@ w32_free_submenu_strings (menu)
 #ifdef MENU_DEBUG
 	  DebPrint ("Menu: freeing %ld for owner-draw", info.dwItemData);
 #endif
-	  LocalFree (info.dwItemData);
+	  local_free (info.dwItemData);
 	}
 
       /* Recurse down submenus.  */
@@ -2308,14 +2380,9 @@ w32_free_menu_strings (hwnd)
 
 #endif /* HAVE_MENUS */
 
-
-syms_of_w32menu ()
+void syms_of_w32menu ()
 {
-  /* See if Get/SetMenuItemInfo functions are available.  */
-  HMODULE user32 = GetModuleHandle ("user32.dll");
-  get_menu_item_info = GetProcAddress (user32, "GetMenuItemInfoA");
-  set_menu_item_info = GetProcAddress (user32, "SetMenuItemInfoA");
-
+	globals_of_w32menu ();
   staticpro (&menu_items);
   menu_items = Qnil;
 
@@ -2333,4 +2400,20 @@ The enable predicate for a menu command should check this variable.  */);
 #ifdef HAVE_MENUS
   defsubr (&Sx_popup_dialog);
 #endif
+}
+
+/*
+	globals_of_w32menu is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+	globals_of_w32menu is called from syms_of_w32menu when the global
+	variable initialized is 0 and directly from main when initialized
+	is non zero.
+ */
+void globals_of_w32menu ()
+{
+	/* See if Get/SetMenuItemInfo functions are available.  */
+  HMODULE user32 = GetModuleHandle ("user32.dll");
+  get_menu_item_info = (GetMenuItemInfoA_Proc) GetProcAddress (user32, "GetMenuItemInfoA");
+  set_menu_item_info = (SetMenuItemInfoA_Proc) GetProcAddress (user32, "SetMenuItemInfoA");
 }

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.16 2001/10/31 17:39:07 sds Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.21 2003/02/05 23:12:41 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -40,7 +40,7 @@
 (defvar cvs-version
   (ignore-errors
     (with-temp-buffer
-      (call-process "cvs" nil t nil "-v")
+      (call-process cvs-program nil t nil "-v")
       (goto-char (point-min))
       (when (re-search-forward "(CVS) \\([0-9]+\\)\\.\\([0-9]+\\)" nil t)
 	(cons (string-to-number (match-string 1))
@@ -105,7 +105,7 @@ Else, they will never be automatically removed from the *cvs* buffer."
 
 (defcustom cvs-auto-remove-directories 'handled
   "*If ALL, directory entries will never be shown.
-If HANLDED, only non-handled directories will be shown.
+If HANDLED, only non-handled directories will be shown.
 If EMPTY, only non-empty directories will be shown."
   :group 'pcl-cvs
   :type '(choice (const :tag "No" nil) (const all) (const handled) (const empty)))
@@ -137,8 +137,9 @@ current line.  See also `cvs-invert-ignore-marks'"
   :group 'pcl-cvs
   :type '(boolean))
 
-(defvar cvs-diff-ignore-marks t
-  "Obsolete: use `cvs-invert-ignore-marks' instead.")
+(defvar cvs-diff-ignore-marks t)
+(make-obsolete-variable 'cvs-diff-ignore-marks
+                        'cvs-invert-ignore-marks)
 
 (defcustom cvs-invert-ignore-marks
   (let ((l ()))
@@ -173,8 +174,9 @@ If set to nil, `cvs-mode-add' will always prompt for a message."
   :type '(choice (const :tag "Prompt" nil)
 		 (string)))
 
-(defvar cvs-diff-buffer-name "*cvs-diff*"
-  "Obsolete variable: use `cvs-buffer-name-alist' instead.")
+(defvar cvs-diff-buffer-name "*cvs-diff*")
+(make-obsolete-variable 'cvs-diff-buffer-name
+                        'cvs-buffer-name-alist)
 
 (defcustom cvs-find-file-and-jump nil
   "Jump to the modified area when finding a file.
@@ -324,7 +326,8 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("q" .	cvs-bury-buffer)
     ("z" .	kill-this-buffer)
     ("F" .	cvs-mode-set-flags)
-    ("\M-f" .	cvs-mode-force-command)
+    ;; ("\M-f" .	cvs-mode-force-command)
+    ("!" .	cvs-mode-force-command)
     ("\C-c\C-c" . cvs-mode-kill-process)
     ;; marking
     ("m" .	cvs-mode-mark)
@@ -433,7 +436,9 @@ This variable is buffer local and only used in the *cvs* buffer.")
   :group 'pcl-cvs)
 
 (easy-mmode-defmap cvs-minor-mode-map
-  `((,cvs-minor-mode-prefix . cvs-mode-map))
+  `((,cvs-minor-mode-prefix . cvs-mode-map)
+    ("e" . (menu-item nil cvs-mode-edit-log
+	    :filter (lambda (x) (if (derived-mode-p 'log-view-mode) x)))))
   "Keymap for `cvs-minor-mode', used in buffers related to PCL-CVS.")
 
 (defvar cvs-buffer nil

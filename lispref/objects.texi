@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/objects
 @node Lisp Data Types, Numbers, Introduction, Top
@@ -248,7 +248,7 @@ with a question mark.
   The usual read syntax for alphanumeric characters is a question mark
 followed by the character; thus, @samp{?A} for the character
 @kbd{A}, @samp{?B} for the character @kbd{B}, and @samp{?a} for the
-character @kbd{a}.  
+character @kbd{a}.
 
   For example:
 
@@ -279,10 +279,12 @@ way to write the space character.  If the character is @samp{\}, you
 @cindex @samp{\r}
 @cindex escape
 @cindex @samp{\e}
+@cindex space
+@cindex @samp{\s}
   You can express the characters Control-g, backspace, tab, newline,
-vertical tab, formfeed, return, del, and escape as @samp{?\a},
+vertical tab, formfeed, space, return, del, and escape as @samp{?\a},
 @samp{?\b}, @samp{?\t}, @samp{?\n}, @samp{?\v}, @samp{?\f},
-@samp{?\r}, @samp{?\d}, and @samp{?\e}, respectively.  Thus,
+@samp{?\r}, @samp{?\d}, @samp{?\e}, and @samp{?\s}, respectively.  Thus,
 
 @example
 ?\a @result{} 7                 ; @r{@kbd{C-g}}
@@ -293,6 +295,7 @@ vertical tab, formfeed, return, del, and escape as @samp{?\a},
 ?\f @result{} 12                ; @r{formfeed character, @kbd{C-l}}
 ?\r @result{} 13                ; @r{carriage return, @key{RET}, @kbd{C-m}}
 ?\e @result{} 27                ; @r{escape character, @key{ESC}, @kbd{C-[}}
+?\s @result{} 32                ; @r{space character, @key{SPC}}
 ?\\ @result{} 92                ; @r{backslash character, @kbd{\}}
 ?\d @result{} 127               ; @r{delete character, @key{DEL}}
 @end example
@@ -397,7 +400,7 @@ bit to indicate that the shift key was used in typing a control
 character.  This distinction is possible only when you use X terminals
 or other special terminals; ordinary terminals do not report the
 distinction to the computer in any way.  The Lisp syntax for
-the shift bit is @samp{\S-}; thus, @samp{?\C-\S-o} or @samp{?\C-\S-O} 
+the shift bit is @samp{\S-}; thus, @samp{?\C-\S-o} or @samp{?\C-\S-O}
 represents the shifted-control-o character.
 
 @cindex hyper characters
@@ -407,7 +410,8 @@ represents the shifted-control-o character.
 in a character: @dfn{hyper}, @dfn{super} and @dfn{alt}.  The syntaxes
 for these bits are @samp{\H-}, @samp{\s-} and @samp{\A-}.  (Case is
 significant in these prefixes.)  Thus, @samp{?\H-\M-\A-x} represents
-@kbd{Alt-Hyper-Meta-x}.
+@kbd{Alt-Hyper-Meta-x}.  Note that @samp{\s} (without the @samp{-})
+represents the space character.
 @tex
 Numerically, the
 bit values are @math{2^{22}} for alt, @math{2^{23}} for super and @math{2^{24}} for hyper.
@@ -455,8 +459,8 @@ you should add a backslash before any of the characters
 @samp{()\|;'`"#.,} to avoid confusing the Emacs commands for editing
 Lisp code.  Also add a backslash before whitespace characters such as
 space, tab, newline and formfeed.  However, it is cleaner to use one of
-the easily readable escape sequences, such as @samp{\t}, instead of an
-actual whitespace character such as a tab.
+the easily readable escape sequences, such as @samp{\t} or @samp{\s},
+instead of an actual whitespace character such as a tab or a space.
 
 @node Symbol Type
 @subsection Symbol Type
@@ -899,8 +903,8 @@ ignores an escaped newline while reading a string.  An escaped space
 in documentation strings,
 but the newline is \
 ignored if escaped."
-     @result{} "It is useful to include newlines 
-in documentation strings, 
+     @result{} "It is useful to include newlines
+in documentation strings,
 but the newline is ignored if escaped."
 @end example
 
@@ -932,7 +936,7 @@ character to the string, but it does terminate the preceding hex escape.
 represent a unibyte non-@sc{ascii} character with its character code,
 which must be in the range from 128 (0200 octal) to 255 (0377 octal).
 This forces a unibyte string.
-  
+
   @xref{Text Representations}, for more information about the two
 text representations.
 
@@ -1071,7 +1075,7 @@ that it begins with @samp{#&} followed by the length.  The string
 constant that follows actually specifies the contents of the bool-vector
 as a bitmap---each ``character'' in the string contains 8 bits, which
 specify the next 8 elements of the bool-vector (1 stands for @code{t},
-and 0 for @code{nil}).  The least significant bits of the character 
+and 0 for @code{nil}).  The least significant bits of the character
 correspond to the lowest indices in the bool-vector.  If the length is not a
 multiple of 8, the printed representation shows extra elements, but
 these extras really make no difference.

@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="usg5-2"  */
 
@@ -110,16 +110,6 @@ Boston, MA 02111-1307, USA.  */
 /* Sigh...cannot define this for WICAT cuz 0 length memcpy blows chunks */
 
 #undef BSTRING
-
-#ifdef BSTRING
-#undef bcopy
-#undef bzero
-#undef bcmp
-
-#define bcopy(a,b,s)	memcpy(b,a,s)
-#define bzero(a,s)	memset(a,0,s)
-#define bcmp		memcmp
-#endif
 
 /*
  * Define optimflags if you want to optimize.

@@ -221,7 +221,12 @@ For most purposes, consider using `format-encode-region' instead."
 	(if modify
 	    ;; To-function wants to modify region.  Copy to safe place.
 	    (let ((copy-buf (get-buffer-create (format " *Format Temp %d*"
-						       format-count))))
+						       format-count)))
+		  (sel-disp selective-display)
+		  (multibyte enable-multibyte-characters))
+	      (with-current-buffer copy-buf
+		(setq selective-display sel-disp)
+		(set-buffer-multibyte multibyte))
 	      (copy-to-buffer copy-buf from to)
 	      (set-buffer copy-buf)
 	      (format-insert-annotations write-region-annotations-so-far from)
@@ -241,8 +246,8 @@ for another match.
 
 Second arg LENGTH is the number of characters following point to operate on.
 If optional third arg VISIT-FLAG is true, set `buffer-file-format'
-to the list of formats used, and call any mode functions defined for those
-formats.
+to the reverted list of formats used, and call any mode functions defined
+for those formats.
 
 Returns the new length of the decoded region.
 
@@ -253,7 +258,7 @@ For most purposes, consider using `format-decode-region' instead."
     (unwind-protect
 	(progn
 	  ;; Don't record undo information for the decoding.
-	  
+
 	  (if (null format)
 	      ;; Figure out which format it is in, remember list in `format'.
 	      (let ((try format-alist))
@@ -264,7 +269,7 @@ For most purposes, consider using `format-decode-region' instead."
 		    (if (and regexp (looking-at regexp)
 			     (< (match-end 0) (+ begin length)))
 			(progn
-			  (setq format (cons (car f) format))
+			  (push (car f) format)
 			  ;; Decode it
 			  (if (nth 3 f)
 			      (setq end (format-decode-run-method (nth 3 f) begin end)))
@@ -286,10 +291,12 @@ For most purposes, consider using `format-decode-region' instead."
 		    (setq end (format-decode-run-method (nth 3 f) begin end)))
 		;; Call visit function if required
 		(if (and visit-flag (nth 6 f)) (funcall (nth 6 f) 1))
-		(setq do (cdr do)))))
+		(setq do (cdr do))))
+	    ;; Encode in the opposite order.
+	    (setq format (reverse format)))
 	  (if visit-flag
 	      (setq buffer-file-format format)))
-      
+
       (set-buffer-modified-p mod))
 
       ;; Return new length of region
@@ -479,7 +486,7 @@ the value of `foo'."
       ;; Now (cdr p) is the cons to delete
       (setcdr p (cdr cons))
       list)))
-    
+
 (defun format-make-relatively-unique (a b)
   "Delete common elements of lists A and B, return as pair.
 Compares using `equal'."
@@ -608,7 +615,7 @@ to write these unknown annotations back into the file."
 	    (delete-region loc end)
 	    (cond
 	     ;; Positive annotations are stacked, remembering location
-	     (positive (setq open-ans (cons `(,name ((,loc . nil))) open-ans)))
+	     (positive (push `(,name ((,loc . nil))) open-ans))
 	     ;; It is a negative annotation:
 	     ;; Close the top annotation & add its text property.
 	     ;; If the file's nesting is messed up, the close might not match
@@ -688,7 +695,7 @@ to write these unknown annotations back into the file."
 				      ;; Not a property, but a function.
 				      (let ((rtn
 					     (apply value start loc params)))
-					(if rtn (setq todo (cons rtn todo)))))
+					(if rtn (push rtn todo))))
 				     (t
 				      ;; Normal property/value pair
 				      (setq todo
@@ -753,12 +760,12 @@ yet known."
       (cond
        ;; The minuend starts after the subtrahend ends; keep it.
        ((> (car m) (cdr s))
-	(setq results (cons m results)
-	      minuend (cdr minuend)
+	(push m results)
+	(setq minuend (cdr minuend)
 	      m (car minuend)))
        ;; The minuend extends beyond the end of the subtrahend.  Chop it off.
        ((or (null (cdr m)) (> (cdr m) (cdr s)))
-	(setq results (cons (cons (1+ (cdr s)) (cdr m)) results))
+	(push (cons (1+ (cdr s)) (cdr m)) results)
 	(setcdr m (cdr s)))
        ;; The subtrahend starts after the minuend ends; throw it away.
        ((< (cdr m) (car s))
@@ -873,7 +880,7 @@ The same TRANSLATIONS structure can be used in reverse for reading files."
 	    (while (not (equal (car neg-ans) (car open-ans)))
 	      ;; To close anno. N, need to first close ans 1 to N-1,
 	      ;; remembering to re-open them later.
-	      (setq pos-ans (cons (car open-ans) pos-ans))
+	      (push (car open-ans) pos-ans)
 	      (setq all-ans
 		    (cons (cons loc (funcall format-fn (car open-ans) nil))
 			  all-ans))
@@ -881,17 +888,15 @@ The same TRANSLATIONS structure can be used in reverse for reading files."
 	    ;; Now remove the one we're really interested in from open list.
 	    (setq open-ans (cdr open-ans))
 	    ;; And put the closing annotation here.
-	    (setq all-ans
-		  (cons (cons loc (funcall format-fn (car neg-ans) nil))
-			all-ans)))
+	    (push (cons loc (funcall format-fn (car neg-ans) nil))
+		  all-ans))
 	  (setq neg-ans (cdr neg-ans)))
 	;; Now deal with positive (opening) annotations
 	(let ((p pos-ans))
 	  (while pos-ans
-	    (setq open-ans (cons (car pos-ans) open-ans))
-	    (setq all-ans
-		  (cons (cons loc (funcall format-fn (car pos-ans) t))
-			all-ans))
+	    (push (car pos-ans) open-ans)
+	    (push (cons loc (funcall format-fn (car pos-ans) t))
+		  all-ans)
 	    (setq pos-ans (cdr pos-ans))))))
 
     ;; Close any annotations still open
@@ -932,17 +937,16 @@ either strings, or lists of the form (PARAMETER VALUE)."
     (setq p before-plist)
     (while p
       (if (not (memq (car p) props))
-	  (setq props (cons (car p) props)))
+	  (push (car p) props))
       (setq p (cdr (cdr p))))
     (setq p after-plist)
     (while p
       (if (not (memq (car p) props))
-	  (setq props (cons (car p) props)))
+	  (push (car p) props))
       (setq p (cdr (cdr p))))
 
     (while props
-      (setq prop (car props)
-	    props (cdr props))
+      (setq prop (pop props))
       (if (memq prop ignore)
 	  nil  ; If it's been ignored before, ignore it now.
 	(let ((before (if all nil (car (cdr (memq prop before-plist)))))
@@ -952,7 +956,7 @@ either strings, or lists of the form (PARAMETER VALUE)."
 	    (let ((result (format-annotate-single-property-change
 			   prop before after translations)))
 	      (if (not result)
-		  (setq not-found (cons prop not-found))
+		  (push prop not-found)
 		(setq negatives (nconc negatives (car result))
 		      positives (nconc positives (cdr result)))))))))
     (vector negatives positives not-found)))

@@ -41,18 +41,18 @@
 
 (defvar widget-browse-mode-map nil
   "Keymap for `widget-browse-mode'.")
-  
+
 (unless widget-browse-mode-map
   (setq widget-browse-mode-map (make-sparse-keymap))
   (set-keymap-parent widget-browse-mode-map widget-keymap)
   (define-key widget-browse-mode-map "q" 'bury-buffer))
 
-(easy-menu-define widget-browse-mode-customize-menu 
+(easy-menu-define widget-browse-mode-customize-menu
     widget-browse-mode-map
   "Menu used in widget browser buffers."
   (customize-menu-create 'widgets))
 
-(easy-menu-define widget-browse-mode-menu 
+(easy-menu-define widget-browse-mode-menu
     widget-browse-mode-map
   "Menu used in widget browser buffers."
   '("Widget"
@@ -109,7 +109,7 @@ if that value is non-nil."
 ;;;###autoload
 (defun widget-browse (widget)
   "Create a widget browser for WIDGET."
-  (interactive (list (completing-read "Widget: " 
+  (interactive (list (completing-read "Widget: "
 				      obarray
 				      (lambda (symbol)
 					(get symbol 'widget-type))
@@ -129,7 +129,7 @@ if that value is non-nil."
     (kill-buffer (get-buffer-create "*Browse Widget*"))
     (switch-to-buffer (get-buffer-create "*Browse Widget*")))
   (widget-browse-mode)
-  
+
   ;; Quick way to get out.
 ;;  (widget-create 'push-button
 ;;		 :action (lambda (widget &optional event)
@@ -192,7 +192,7 @@ The :value of the widget shuld be the widget to be browsed."
   :action 'widget-browse-action)
 
 (defun widget-browse-action (widget &optional event)
-  ;; Create widget browser for WIDGET's :value. 
+  ;; Create widget browser for WIDGET's :value.
   (widget-browse (widget-get widget :value)))
 
 (defun widget-browse-value-create (widget)
@@ -265,8 +265,8 @@ VALUE is assumed to be a list of widgets."
 ;;; Widget Minor Mode.
 
 (defvar widget-minor-mode nil
-  "I non-nil, we are in Widget Minor Mode.")
-  (make-variable-buffer-local 'widget-minor-mode)
+  "If non-nil, we are in Widget Minor Mode.")
+(make-variable-buffer-local 'widget-minor-mode)
 
 (defvar widget-minor-mode-map nil
   "Keymap used in Widget Minor Mode.")
@@ -290,7 +290,7 @@ With arg, turn widget mode on if and only if arg is positive."
 
 (add-to-list 'minor-mode-alist '(widget-minor-mode " Widget"))
 
-(add-to-list 'minor-mode-map-alist 
+(add-to-list 'minor-mode-map-alist
 	     (cons 'widget-minor-mode widget-minor-mode-map))
 
 ;;; The End:

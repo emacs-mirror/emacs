@@ -468,7 +468,7 @@ DEFUN ("expt", Fexpt, Sexpt, 2, 2, 0,
       x = XINT (arg1);
       y = XINT (arg2);
       acc = 1;
-      
+
       if (y < 0)
 	{
 	  if (x == 1)
@@ -992,7 +992,7 @@ float_error (signo)
 #endif /* FLOAT_CATCH_SIGILL */
 
 #ifdef HAVE_MATHERR
-int 
+int
 matherr (x)
      struct exception *x;
 {
@@ -1026,7 +1026,7 @@ init_floatfns ()
 {
 #ifdef FLOAT_CATCH_SIGILL
   signal (SIGILL, float_error);
-#endif 
+#endif
   in_float = 0;
 }
 

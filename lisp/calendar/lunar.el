@@ -64,7 +64,7 @@
     (increment-calendar-month end-month end-year 3)
     (increment-calendar-month start-month start-year -1)
     (let* ((end-date (list (list end-month 1 end-year)))
-           (start-date (list (list start-month 
+           (start-date (list (list start-month
                                    (calendar-last-day-of-month
                                     start-month start-year)
                                    start-year)))
@@ -236,8 +236,11 @@ This function is suitable for execution in a .emacs file."
            (displayed-year (extract-calendar-year date)))
       (calendar-phases-of-moon))))
 
-(defun diary-phases-of-moon ()
-  "Moon phases diary entry."
+(defun diary-phases-of-moon (&optional mark)
+"Moon phases diary entry.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (let* ((index (* 4
                    (truncate
                     (* 12.3685
@@ -250,8 +253,8 @@ This function is suitable for execution in a .emacs file."
       (setq index (1+ index))
       (setq phase (lunar-phase index)))
     (if (calendar-date-equal (car phase) date)
-        (concat (lunar-phase-name (car (cdr (cdr phase)))) " "
-                (car (cdr phase))))))
+        (cons mark (concat (lunar-phase-name (car (cdr (cdr phase)))) " "
+                (car (cdr phase)))))))
 
 
 ;;  For the Chinese calendar the calculations for the new moon need to be more

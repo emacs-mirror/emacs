@@ -33,7 +33,7 @@
 ;; elision.
 
 ;; You might add `elide-head' to appropriate major mode hooks or to
-;; `find-file-hooks'.  Please do not do this in site init files.  If
+;; `find-file-hook'.  Please do not do this in site init files.  If
 ;; you do, information may be hidden from users who don't know it
 ;; already.
 
@@ -78,7 +78,7 @@ cdr."
 The header is made invisible with an overlay.  With a prefix arg, show
 an elided material again.
 
-This is suitable as an entry on `find-file-hooks' or appropriate mode hooks."
+This is suitable as an entry on `find-file-hook' or appropriate mode hooks."
   (interactive "P")
   (if arg
       (elide-head-show)
@@ -105,7 +105,6 @@ This is suitable as an entry on `find-file-hooks' or appropriate mode hooks."
 		(move-overlay elide-head-overlay (point-marker) end)
 	      (setq elide-head-overlay (make-overlay (point-marker) end)))
 	    (overlay-put elide-head-overlay 'invisible t)
-	    (overlay-put elide-head-overlay 'intangible t)
 	    (overlay-put elide-head-overlay 'evaporate t)
 	    (overlay-put elide-head-overlay 'after-string "...")))))))
 

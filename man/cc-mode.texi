@@ -18,7 +18,7 @@
 
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment 
+@comment
 @comment Texinfo manual for CC Mode
 @comment Generated from the original README file by Krishna Padmasola
 @comment <krishna@earth-gw.njit.edu>
@@ -28,29 +28,16 @@
 @comment Martin Stjernholm
 @comment
 @comment Maintained by Martin Stjernholm <bug-cc-mode@gnu.org>
-@comment 
+@comment
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-@macro copyrightblurb
-Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 01 Free Software Foundation, Inc.
-@end macro
+@copying
+This manual is for CC Mode in Emacs.
 
-@comment Info directory entry for use by install-info. The indentation
-@comment here is by request from the FSF folks.
-@dircategory Emacs
-@direntry
-* CC Mode: (ccmode).   Emacs mode for editing C, C++, Objective-C,
-                          Java, Pike, and IDL code.
-@end direntry
+Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free
+Software Foundation, Inc.
 
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-@comment The following lines inserts the copyright notice
-@comment into the Info file.
-@comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
-@ifnottex
-Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -68,7 +55,17 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifnottex
+@end quotation
+@end copying
+
+
+@comment Info directory entry for use by install-info. The indentation
+@comment here is by request from the FSF folks.
+@dircategory Emacs
+@direntry
+* CC Mode: (ccmode).   Emacs mode for editing C, C++, Objective-C,
+                          Java, Pike, and IDL code.
+@end direntry
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 @comment TeX title page
@@ -85,25 +82,7 @@ license to the document, as described in section 6 of the license.
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1995, 96, 97, 98, 99, 2000, 2001 Free Software Foundation, Inc.
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -419,7 +398,7 @@ level function block, and is indented relative to buffer position 29,
 which is the brace just after the function header.
 
 Here's another example:
-@example 
+@example
 @group
 
   1: int add( int val, int incr, int doit )
@@ -910,7 +889,7 @@ in:
 @example
 @group
 
-void spam( int i ) 
+void spam( int i )
 @{
         // this is a comment-only line...
     if( i == 7 )                             // but this is not
@@ -1501,9 +1480,9 @@ that bit.
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 The following list of commands re-indent C constructs.  Note that when
-you change your coding style, either interactively or through some other 
+you change your coding style, either interactively or through some other
 means, your file does @emph{not} automatically get re-indented.  You
-will need to execute one of the following commands to see the effects of 
+will need to execute one of the following commands to see the effects of
 your changes.
 
 @cindex GNU indent program
@@ -1516,7 +1495,7 @@ among other things.
 
 Re-indenting large sections of code can take a long time.  When
 @ccmode{} reindents a region of code, it is essentially equivalent to
-hitting @kbd{TAB} on every line of the region.  Especially vulnerable is 
+hitting @kbd{TAB} on every line of the region.  Especially vulnerable is
 code generator output@footnote{In particular, I have had people
 complain about the speed with which @code{lex(1)} output is re-indented.
 Lex, yacc, and other code generators usually output some pretty
@@ -1610,7 +1589,7 @@ in a line's indentation, otherwise only spaces can be used.
 @vindex c-progress-interval
 @vindex progress-interval (c-)
 @item c-progress-interval
-When indenting large regions of code, this variable controls how often a 
+When indenting large regions of code, this variable controls how often a
 progress message is displayed.  Set this variable to @code{nil} to
 inhibit the progress messages, or set it to an integer which is the
 interval in seconds that progress messages are displayed.
@@ -1891,7 +1870,7 @@ returns a non-@code{nil} value succeeds and the evaluation stops.  If
 none of the list elements return a non-@code{nil} value, then an offset
 of 0 (zero) is used@footnote{There is however a variable
 @code{c-strict-syntax-p} that, when set to non-@code{nil}, will cause an
-error to be signalled in that case.  It's now considered obsolete since
+error to be signaled in that case.  It's now considered obsolete since
 it doesn't work well with some of the alignment functions that now
 returns @code{nil} instead of zero to be more usable in lists.  You
 should therefore leave @code{c-strict-syntax-p} set to @code{nil}.}.
@@ -2301,7 +2280,7 @@ for C code in GNU programs.
 @item
 @code{bsd} --- Also known as ``Allman style'' after Eric Allman.
 
-@cindex Whitesmith style
+@cindex Whitesmiths style
 @item
 @code{whitesmith} --- Popularized by the examples that came with
 Whitesmiths C, an early commercial C compiler.
@@ -2376,22 +2355,22 @@ modes.
 
 @item
 When @code{c-default-style} is an association list, the current major
-mode is looked up to find a style name string.  In this case, this style 
-is always used exactly as specified and an error will occur if the named 
+mode is looked up to find a style name string.  In this case, this style
+is always used exactly as specified and an error will occur if the named
 style does not exist.
 
 @item
 If @code{c-default-style} is an association list, but the current major
-mode isn't found, then the special symbol @samp{other} is looked up.  If 
+mode isn't found, then the special symbol @samp{other} is looked up.  If
 this value is found, the associated style is used.
 
 @item
 If @samp{other} is not found, then the @samp{gnu} style is used.
 
 @item
-In all cases, the style described in @code{c-default-style} is installed 
+In all cases, the style described in @code{c-default-style} is installed
 @emph{before} the language hooks are run, so you can always override
-this setting by including an explicit call to @code{c-set-style} in your 
+this setting by including an explicit call to @code{c-set-style} in your
 language mode hook, or in @code{c-mode-common-hook}.
 
 @end enumerate
@@ -2554,7 +2533,7 @@ are simply indented two spaces to the right of line 3.  But perhaps we'd
 like @ccmode{} to be a little more intelligent so that it aligns
 all the @samp{<<} symbols in lines 3 through 6.  To do this, we have
 to write a custom indentation function which finds the column of first
-stream operator on the first line of the statement.  Here is sample 
+stream operator on the first line of the statement.  Here is sample
 lisp code implementing this:
 @example
 @group
@@ -2844,7 +2823,7 @@ i.e. they want the comments to always indent as they would for normal
 code, regardless of whether @kbd{TAB} or @kbd{M-;} were used.  This
 behavior is controlled by the variable
 @code{c-indent-comments-syntactically-p}.  When @code{nil} (the
-default), @kbd{M-;} indents comment-only lines to @code{comment-column}, 
+default), @kbd{M-;} indents comment-only lines to @code{comment-column},
 otherwise, they are indented just as they would be if @kbd{TAB} were
 typed.
 
@@ -3395,7 +3374,7 @@ symbols.  In this example:
 @example
 @group
 
-   1: extern "C" 
+   1: extern "C"
    2: @{
    3:     int thing_one( int );
    4:     int thing_two( double );
@@ -3433,7 +3412,7 @@ symbols.  In this example:
 @noindent
 line 2 is given the @code{namespace-open} syntax, while line 4 is given
 the @code{namespace-close} syntax.  The analysis for line 3 yields:
-@code{((innamespace) (topmost-intro . 17))}, where @code{innamespace} is 
+@code{((innamespace) (topmost-intro . 17))}, where @code{innamespace} is
 a modifier similar in purpose to @code{inextern-lang} and @code{inclass}.
 
 A number of syntactic symbols are associated with parenthesis lists,
@@ -3444,19 +3423,19 @@ calls.  This example illustrates these:
 
    1: void a_function( int line1,
    2:                  int line2 );
-   3: 
+   3:
    4: void a_longer_function(
    5:     int line1,
    6:     int line2
    7:     );
-   8: 
+   8:
    9: void call_them( int line1, int line2 )
   10: @{
   11:     a_function(
   12:         line1,
   13:         line2
   14:         );
-  15: 
+  15:
   16:     a_longer_function( line1,
   17:                        line2 );
   18: @}
@@ -3496,10 +3475,10 @@ covered are illustrated by this C++ example:
    3: @{
    4:     /* this line starts a multi-line
    5:      * comment.  This line should get `c' syntax */
-   6: 
+   6:
    7:     char* a_multiline_string = "This line starts a multi-line \
    8: string.  This line should get `string' syntax.";
-   9: 
+   9:
   10:   note:
   11:     @{
   12: #ifdef LOCK
@@ -3588,7 +3567,7 @@ example:
 @end example
 @noindent
 line 1 is given the syntactic symbol @code{cpp-macro}.  This first line
-of a macro is always given this symbol.  The second and subsequent lines 
+of a macro is always given this symbol.  The second and subsequent lines
 (e.g. lines 2 through 5) are given the @code{cpp-macro-cont} syntactic
 symbol, with a relative buffer position pointing to the @code{#} which
 starts the macro definition.
@@ -3799,7 +3778,7 @@ indentation is added.  E.g:
 @group
 
 main (int,
-      char **           
+      char **
      )                   // c-lineup-close-paren
 
 @end group
@@ -3878,7 +3857,7 @@ E.g:
 @group
 
 class Foo
-    extends           
+    extends
         Bar              // c-lineup-java-inher
 
     <--> c-basic-offset
@@ -3942,8 +3921,8 @@ Indent a one line block @code{c-basic-offset} extra.  E.g:
 
 if (n > 0)
     @{m+=n; n=0;@}         // c-indent-one-line-block
-                           
-<--> c-basic-offset        
+
+<--> c-basic-offset
 
 @end group
 @end example
@@ -3975,7 +3954,7 @@ Indent a multi line block @code{c-basic-offset} extra.  E.g:
 @group
 
 int *foo[] = @{
-    NULL,                 
+    NULL,
     @{17@},                // c-indent-multi-line-block
 
 @end group
@@ -4163,7 +4142,7 @@ construct.
 @findex c-lineup-whitesmith-in-block
 @findex lineup-whitesmith-in-block (c-)
 @item c-lineup-whitesmith-in-block
-Line up lines inside a block in Whitesmith style.  It's done in a way
+Line up lines inside a block in Whitesmiths style.  It's done in a way
 that works both when the opening brace hangs and when it doesn't.  E.g:
 @example
 @group
@@ -4305,7 +4284,7 @@ As mentioned previous, @ccmode{} always trades speed for accuracy,
 however it is recognized that sometimes you need speed and can sacrifice
 some accuracy in indentation.  The file @file{cc-lobotomy.el} contains
 hacks that will ``dumb down'' @ccmode{} in some specific ways, making
-that trade-off of accurancy for speed.  I won't go into details of its
+that trade-off of accuracy for speed.  I won't go into details of its
 use here; you should read the comments at the top of the file, and look
 at the variable @code{cc-lobotomy-pith-list} for details.
 
@@ -4461,7 +4440,7 @@ in the @file{README} file.
 XEmacs since 19.16.
 
 Due to release schedule skew, it is likely that all of these Emacsen
-have old versions of @ccmode{} and so should be upgraded.  Access to the 
+have old versions of @ccmode{} and so should be upgraded.  Access to the
 @ccmode{} source code, as well as more detailed information on Emacsen
 compatibility, etc. are all available via the Web at:
 

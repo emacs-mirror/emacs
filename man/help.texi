@@ -81,10 +81,10 @@ pertinent to the feature you need.  @xref{Library Keywords}.
 @end table
 
   To find the documentation of a key sequence or a menu item, type
-@kbd{C-h C-k} and then type that key sequence or select the menu
+@kbd{C-h K} and then type that key sequence or select the menu
 item.  This looks up the description of the command invoked by the key
 or the menu in the appropriate manual (not necessarily the Emacs
-manual).  Likewise, use @kbd{C-h C-f} for reading documentation of a
+manual).  Likewise, use @kbd{C-h F} for reading documentation of a
 command.
 
 @menu
@@ -96,6 +96,7 @@ command.
 * Language Help::       Help relating to international language support.
 * Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
+* Help Files::          Commands to display pre-written help files.
 * Help Echo::           Help on active text and tooltips (`balloon help')
 @end menu
 
@@ -107,7 +108,9 @@ command.
 @section Help Summary
 @end ifinfo
 
-  Here is a summary of the defined help commands.
+  Here is a summary of the Emacs interactive help commands.
+@xref{Help Files}, for other help commands that just display a
+pre-written file of information.
 
 @table @kbd
 @item C-h a @var{regexp} @key{RET}
@@ -139,12 +142,6 @@ Display a description of the last 100 characters you typed
 (@code{view-lossage}).
 @item C-h m
 Display documentation of the current major mode (@code{describe-mode}).
-@item C-h n
-Display documentation of Emacs changes, most recent first
-(@code{view-emacs-news}).
-@item C-h P
-Display info on known problems with Emacs and possible workarounds
-(@code{view-emacs-problems}).
 @item C-h p
 Find packages by topic keyword (@code{finder-by-keyword}).
 @item C-h s
@@ -168,19 +165,13 @@ Describe an input method (@code{describe-input-method}).
 Display information on the character sets, coding systems, and input
 methods used for language environment @var{language-env}
 (@code{describe-language-environment}).
-@item C-h C-c
-Display the copying conditions for GNU Emacs.
-@item C-h C-d
-Display information about getting new versions of GNU Emacs.
-@item C-h C-f @var{function} @key{RET}
+@item C-h F @var{function} @key{RET}
 Enter Info and go to the node documenting the Emacs function @var{function}
 (@code{Info-goto-emacs-command-node}).
-@item C-h C-k @var{key}
+@item C-h K @var{key}
 Enter Info and go to the node where the key sequence @var{key} is
 documented (@code{Info-goto-emacs-key-command-node}).
-@item C-h C-p
-Display information about the GNU Project.
-@item C-h @key{TAB} @var{symbol} @key{RET}
+@item C-h S @var{symbol} @key{RET}
 Display the Info documentation on symbol @var{symbol} according to the
 programming language you are editing (@code{info-lookup-symbol}).
 @end table
@@ -468,31 +459,32 @@ have an entry in the top-level Info menu.  It is also handy when you
 need to get to the documentation quickly, and you know the exact name of
 the file.
 
-@kindex C-h C-f
-@kindex C-h C-k
+@kindex C-h F
+@kindex C-h K
 @findex Info-goto-emacs-key-command-node
 @findex Info-goto-emacs-command-node
-  There are two special help commands for accessing Emacs documentation
-through Info.  @kbd{C-h C-f @var{function} @key{RET}} enters Info and
-goes straight to the documentation of the Emacs function
-@var{function}.  @kbd{C-h C-k @var{key}} enters Info and goes straight
-to the documentation of the key @var{key}.  These two keys run the
-commands @code{Info-goto-emacs-command-node} and
-@code{Info-goto-emacs-key-command-node}.  You can use @kbd{C-h C-k} to
+  There are two special help commands for accessing Emacs
+documentation through Info.  @kbd{C-h F @var{function} @key{RET}}
+enters Info and goes straight to the documentation of the Emacs
+function @var{function}.  @kbd{C-h K @var{key}} enters Info and goes
+straight to the documentation of the key @var{key}.  These two keys
+run the commands @code{Info-goto-emacs-command-node} and
+@code{Info-goto-emacs-key-command-node}.  You can use @kbd{C-h K} to
 find the documentation of a menu item: just select that menu item when
-@kbd{C-h C-k} prompts for a key.
+@kbd{C-h K} prompts for a key.
 
-  @kbd{C-h C-f} and @kbd{C-h C-k} know about commands and keys
-described in manuals other than the Emacs manual.  Thus, they make it
-easier to find the documentation of commands and keys when you are not
-sure which manual describes them, like when using some specialized
-mode.
+  @kbd{C-h F} and @kbd{C-h K} know about commands and keys described
+in manuals other than the Emacs manual.  Thus, they make it easier to
+find the documentation of commands and keys when you are not sure
+which manual describes them, like when using some specialized mode.
 
-  When editing a program, if you have an Info version of the manual for
-the programming language, you can use the command @kbd{C-h C-i} to refer
-to the manual documentation for a symbol (keyword, function or
-variable).  The details of how this command works depend on the major
-mode.
+@kindex C-h S
+@findex info-lookup-symbol
+  When editing a program, if you have an Info version of the manual
+for the programming language, you can use the command @kbd{C-h S}
+(@code{info-lookup-symbol}) to refer to the manual documentation for a
+symbol (keyword, function or variable).  The details of how this
+command works depend on the major mode.
 
 @kindex C-h l
 @findex view-lossage
@@ -500,6 +492,12 @@ mode.
 typed, use @kbd{C-h l} (@code{view-lossage}).  @kbd{C-h l} displays the last
 100 command characters you typed in.  If you see commands that you don't
 know, you can use @kbd{C-h c} to find out what they do.
+
+@kindex C-h e
+@findex view-echo-area-messages
+  To review messages that recently appeared in the echo area, use
+@kbd{C-h e} (@code{view-echo-area-messages}).  This displays the
+buffer @code{*Messages*}, where those messages are kept.
 
 @kindex C-h m
 @findex describe-mode
@@ -526,37 +524,57 @@ this does not work---those that provide their own bindings for
 @kbd{C-h}.  One of these is @key{ESC}, because @kbd{@key{ESC} C-h} is
 actually @kbd{C-M-h}, which marks a defun.)
 
-@kindex C-h F
-@findex view-emacs-FAQ
-@kindex C-h n
-@findex view-emacs-news
+@node Help Files
+@section Help Files
+
+  The Emacs help commands described above display the state of data
+bases within Emacs.  Emacs has a few other help commands that display
+pre-written help files.  These commands all have the form @kbd{C-h
+C-@var{char}}; that is, @kbd{C-h} followed by a control character.
+
 @kindex C-h C-c
 @findex describe-copying
 @kindex C-h C-d
 @findex describe-distribution
-@kindex C-h C-w
-@findex describe-no-warranty
+@kindex C-h C-e
+@findex view-emacs-problems
+@kindex C-h C-f
+@findex view-emacs-FAQ
+@kindex C-h C-n
+@findex view-emacs-news
 @kindex C-h C-p
 @findex describe-project
-@kindex C-h P
-@findex view-emacs-problems
+@kindex C-h C-t
+@findex view-emacs-todo
+@kindex C-h C-w
+@findex describe-no-warranty
   The other @kbd{C-h} options display various files containing useful
-information.  @kbd{C-h C-w} displays the full details on the complete
-absence of warranty for GNU Emacs.  @kbd{C-h n} (@code{view-emacs-news})
-displays the file @file{emacs/etc/NEWS}, which contains documentation on
-Emacs changes arranged chronologically.  @kbd{C-h F}
-(@code{view-emacs-FAQ}) displays the Emacs frequently-answered-questions
-list.  @kbd{C-h t} (@code{help-with-tutorial}) displays the
-learn-by-doing Emacs tutorial.  @kbd{C-h C-c} (@code{describe-copying})
-displays the file @file{emacs/etc/COPYING}, which tells you the
-conditions you must obey in distributing copies of Emacs.  @kbd{C-h C-d}
-(@code{describe-distribution}) displays the file
-@file{emacs/etc/DISTRIB}, which tells you how you can order a copy of
-the latest version of Emacs.  @kbd{C-h C-p} (@code{describe-project})
-displays general information about the GNU Project.  @kbd{C-h P}
-(@code{view-emacs-problems}) displays the file
-@file{emacs/etc/PROBLEMS}, which lists known problems with Emacs in
-various situations with solutions or workarounds in many cases.
+information.
+
+@table @kbd
+@item C-h C-c
+Displays the Emacs copying conditions (@code{describe-copying}).
+These are the rules under which you can copy and redistribute Emacs.
+@item C-h C-d
+Displays information on how to download or order the latest version of
+Emacs and other GNU software (@code{describe-distribution}).
+@item C-h C-e
+Displays the list of known Emacs problems, sometimes with suggested
+workarounds (@code{view-emacs-problems}).
+@item C-h C-f
+Displays the Emacs frequently-answered-questions list (@code{view-emacs-FAQ}).
+@item C-h C-n
+Displays the Emacs ``news'' file, which lists new Emacs features, most
+recent first (@code{view-emacs-news}).
+@item C-h C-p
+Displays general information about the GNU Project
+(@code{describe-project}).
+@item C-h C-t
+Displays the Emacs to-do list (@code{view-todo}).
+@item C-h C-w
+Displays the full details on the complete absence of warranty for GNU
+Emacs (@code{describe-no-warranty}).
+@end table
 
 @node Help Echo
 @section Help on Active Text and Tooltips

@@ -43,7 +43,7 @@
 ;;;###autoload (or key-translation-map (setq key-translation-map (make-sparse-keymap)))
 ;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
 ;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
-  
+
 (defvar iso-transl-dead-key-alist
   '((?\' . mute-acute)
     (?\` . mute-grave)
@@ -224,7 +224,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
      ("c"  . [?ç]))
     ("German"
      ("A"  . [?Ä])
-     ("O"  . [?Ö]) 
+     ("O"  . [?Ö])
      ("U"  . [?Ü])
      ("a"  . [?ä])
      ("o"  . [?ö])

@@ -45,15 +45,26 @@
   :type 'boolean
   :group 'iso-ascii)
 
+(defvar iso-ascii-display-table (make-display-table)
+  "Display table used for ISO-ASCII mode.")
+
+(defvar iso-ascii-standard-display-table nil
+  "Display table used when not in ISO-ASCII mode.")
+;; Don't alter iso-ascii-standard-display-table if this file is loaded again,
+;; or even by using C-M-x on any of the expressions.
+(unless iso-ascii-standard-display-table
+  (setq iso-ascii-standard-display-table
+	standard-display-table))
+
 (defun iso-ascii-display (code string &optional convenient-string)
   (if iso-ascii-convenient
       (setq string (or convenient-string string))
     (setq string (concat "{" string "}")))
   ;; unibyte
-  (standard-display-ascii code string)
+  (aset iso-ascii-display-table code string)
   ;; multibyte
-  (standard-display-ascii (make-char 'latin-iso8859-1 (- code 128))
-			  string))
+  (aset iso-ascii-display-table (make-char 'latin-iso8859-1 (- code 128))
+	string))
 
 (iso-ascii-display 160 "_" " ")   ; NBSP (no-break space)
 (iso-ascii-display 161 "!")   ; inverted exclamation mark
@@ -151,6 +162,16 @@
 (iso-ascii-display 253 "'y")  ; y with acute accent
 (iso-ascii-display 254 "th")  ; small thorn, Icelandic
 (iso-ascii-display 255 "\"y") ; small y with diaeresis or umlaut mark
+
+(defun iso-ascii-mode (arg)
+  "Toggle ISO-ASCII mode."
+  (interactive "P")
+  (unless arg
+    (setq arg (eq standard-display-table iso-ascii-standard-display-table)))
+  (setq standard-display-table
+	(if arg
+	    iso-ascii-display-table
+	  iso-ascii-standard-display-table)))
 
 (provide 'iso-ascii)
 

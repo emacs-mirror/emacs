@@ -54,7 +54,7 @@ static int doprnt1 ();
    terminated at position FORMAT_END.
    Output goes in BUFFER, which has room for BUFSIZE chars.
    If the output does not fit, truncate it to fit.
-   Returns the number of characters stored into BUFFER.
+   Returns the number of bytes stored into BUFFER.
    ARGS points to the vector of arguments, and NARGS says how many.
    A double counts as two arguments.
    String arguments are passed as C strings.

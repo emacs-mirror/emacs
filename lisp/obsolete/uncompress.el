@@ -110,6 +110,8 @@ It then selects a major mode from the uncompressed file name and contents."
 	  ;; (setq error nil)
 	  t))))
 
+(message "The uncompress package is obsolete; use M-x auto-compression-mode")
+
 (provide 'uncompress)
 
 ;;; uncompress.el ends here

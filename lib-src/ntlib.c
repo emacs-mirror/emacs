@@ -59,20 +59,20 @@ getppid(void)
   DWORD result;
 
   ppid = getenv ("EM_PARENT_PROCESS_ID");
-  if (!ppid) 
+  if (!ppid)
     {
       printf("no pid.\n");
       return 0;
-    } 
-  else 
+    }
+  else
     {
       getppid_ppid = atoi (ppid);
     }
 
-  if (!getppid_parent) 
+  if (!getppid_parent)
     {
       getppid_parent = OpenProcess (SYNCHRONIZE, FALSE, atoi(ppid));
-      if (!getppid_parent) 
+      if (!getppid_parent)
 	{
 	  printf ("Failed to open handle to parent process: %d\n",
 		 GetLastError());
@@ -81,7 +81,7 @@ getppid(void)
     }
 
   result = WaitForSingleObject (getppid_parent, 0);
-  switch (result) 
+  switch (result)
     {
     case WAIT_TIMEOUT:
       /* The parent is still alive.  */
@@ -188,7 +188,7 @@ fchown (int fd, int uid, int gid)
 }
 
 /* Place a wrapper around the MSVC version of ctime.  It returns NULL
-   on network directories, so we handle that case here.  
+   on network directories, so we handle that case here.
    (Ulrich Leodolter, 1/11/95).  */
 char *
 sys_ctime (const time_t *t)

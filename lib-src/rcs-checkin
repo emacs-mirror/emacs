@@ -31,7 +31,7 @@
 # is not deleted, as under VC with vc-keep-workfiles at its default of t, but
 # all the version files are.
 #
-# If an argument file is already version-controlled under RCS, any version 
+# If an argument file is already version-controlled under RCS, any version
 # files are added to the list of deltas and deleted, and then the workfile
 # is checked in again as the latest version.  This is probably not quite
 # what was wanted, and is the main reason VC doesn't simply call this to

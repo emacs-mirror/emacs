@@ -24,7 +24,7 @@ Boston, MA 02111-1307, USA.  */
  * series Motorola 88100 and 88110 based machines.
  */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="<name of system .h file here, without the s- or .h>"  */
 

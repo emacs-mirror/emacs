@@ -422,8 +422,7 @@
 
 1993-05-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
-	* buffer.c (Fmake_overlay): Put beg and end in the
-	right order.
+	* buffer.c (Fmake_overlay): Put beg and end in the right order.
 	(Fmove_overlay): If beg and end are markers, make sure they're in
 	the right buffer.
 
@@ -5777,7 +5776,7 @@
 
 1992-09-02  Barry A. Warsaw   (warsaw@anthem.nlm.nih.gov)
 
-	* Extended syntax.c in the following ways to support up to 2
+	Extended syntax.c in the following ways to support up to 2
 	orthogonal comment styles per mode.  This is needed for C++.
 	Bit 6 of syntax table entry for a character indicates
 	it is part of the `b' comment style.  Otherwise it is
@@ -6626,7 +6625,7 @@
 	* editfns.c (Fcurrent_time_zone): Don't forget to include code to
 	signal an error when EMACS_CURRENT_TIME_ZONE is not defined.
 
-1992-08-06  Joseph Arceneaux (jla@gnu.ai.mit.edu)
+1992-08-06  Joseph Arceneaux  (jla@gnu.ai.mit.edu)
 
         * doc.c (Vdata_directory): Declared.
 	(syms_of_doc): Initialized.
@@ -6644,7 +6643,7 @@
 	character from the key sequence, NOT the index of the character IN
 	the key sequence.  How many tries will it take to get it right?
 
-1992-08-04  Roland McGrath (roland@churchy.gnu.ai.mit.edu)
+1992-08-04  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* eval.c (syms_of_eval): Doc fix for debug-on-quit.
 
@@ -7137,7 +7136,7 @@
 	* screen.h [not MULTI_SCREEN]: The name is
 	`SCREEN_MINIBUF_ONLY_P', not `SCREEN_IS_MINIBUF_ONLY'.
 
-	* xdisp [not MULTI_SCREEN] (Fredraw_display): Removed definition
+	* xdisp.c [not MULTI_SCREEN] (Fredraw_display): Removed definition
 	here; the non-multi-screen version is already defined in
 	dispnew.c, alongside the multi-screen version.
 	(syms_of_xdisp): Don't try to defsubr Sredraw_display; it doesn't
@@ -7974,7 +7973,7 @@
 	conditional expression to SIGTYPE, to match the type of the
 	float_error call in the `then' clause.
 
-	* s/hpux8: #define HPUX8; this is supposed to be customary
+	* s/hpux8.h: #define HPUX8; this is supposed to be customary
 	procedure, and fileio.c was expecting it, but somehow it didn't
 	get defined.
 
@@ -8026,7 +8025,7 @@
 	* unexec.c (sbrk): Declare this to return void * if __STDC__ is
 	defined, or char * otherwise.
 
-	* lread.c init_lread): Re-cleaned logic.  To determine whether the
+	* lread.c (init_lread): Re-cleaned logic.  To determine whether the
 	load path was changed before dumping, cons up a dump path and
 	compare it.  This method is more localized and accurate.
 	(initial_path): Variable removed.
@@ -12499,7 +12498,7 @@
 	* dispnew.c, xdisp.c: (un)hold_window_change no longer exists;
 	added do_pending_window_change from 18.56.
 
-	* process.[ch]:  added the raw_status_low and raw_status_high
+	* process.c, process.h: Add the raw_status_low and raw_status_high
 	code from 18.56.
 
 1990-09-29  Richard Stallman  (rms@mole.ai.mit.edu)
@@ -13043,7 +13042,7 @@
 
 1990-06-14  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* Globally replaced screen_width with macro
+	Globally replaced screen_width with macro
 	SCREEN_WIDTH (selected_screen).
 	* dispnew.c (init_display): Don't set SCREEN_WIDTH, etc. from
 	screen_width.
@@ -13735,7 +13734,7 @@
 
 1990-03-08  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* xterm.c  x_focus_screen no longer static.
+	* xterm.c (x_focus_screen): no longer static.
 	(x_error_handler):  Use XDefaultIOError.
 
 	* screen.c (Ffocus_screen):  New subr, removed Fscreen_has_focus.
@@ -13781,7 +13780,7 @@
 
 1990-03-04  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
-	* eval.c  If using X windows, include xterm.h.
+	* eval.c: If using X windows, include xterm.h.
 	(error):  TOTALLY_UNBLOCK_INPUT if using X.
 
 	* xterm.h: BLOCK_INPUT, UNBLOCK_INPUT:  No signal stuff, just inc
@@ -13975,7 +13974,7 @@
 1990-02-06  Joseph Arceneaux  (jla@churchy.ai.mit.edu)
 
 	* xfns.c (Fx_pixel_width, Fx_pixel_height): New subrs.
-	* xterm.h New components pixel_width, pixel_height, to x_display.
+	* xterm.h: New components pixel_width, pixel_height, to x_display.
 	* xterm.c (XTread_socket): On configure notify, set these components.
 
 	* window.c (Fset_window_configuration): Select the screen of the
@@ -14201,7 +14200,7 @@
 	(HAVE_SYSVIPC, HAVE_SOCKETS, X_DEFAULT_FONT): Define.
 	(sigsetmask): #undef this.
 
-1989-12-15  Joseph Arceoeaux  (jla@spiff)
+1989-12-15  Joseph Arceneaux  (jla@spiff)
 
 	* lread.c (Fread_char): Catch error if read non-char.
 	(Fread_event): New subr.  Return any input object.
@@ -14261,7 +14260,7 @@
 
 1989-12-03  Joseph Arceneaux  (jla@spiff)
 
-	* alloc: Upped NSTATICS from 200 to 256.
+	* alloc.c: Upped NSTATICS from 200 to 256.
 
 	* xterm.c (XTread_socket):  Report MotionNotify events only if
 	mouse has changed character position.  Call x_read_mouse_position.
@@ -14319,7 +14318,7 @@
 	(function keys).  Also, handle these and mouse events with
 	prefixes (by ignoring the prefixes for now).
 
-	* xfns.c New variable Vx_mouse_grabbed.
+	* xfns.c: New variable Vx_mouse_grabbed.
 	* xterm.c (construct_mouse_event): Use it.
 	(XTread_socket): Return Lisp_Symbol for function key.
 
@@ -14789,7 +14788,7 @@
 
 1989-08-24  Richard Stallman  (rms@apple-gunkies.ai.mit.edu)
 
-	* Use two variables to convey reason for synch process death,
+	Use two variables to convey reason for synch process death,
 	to avoid consing in signal handler.
 	They are synch_process_death and synch_process_retcode.
 	* callproc.c (Fcall_process): Use both variables.
@@ -15219,7 +15218,7 @@
 	* eval.c (Fdefvar): Operate on default value if sym is buffer-local.
 	(Fdefconst): Likewise.
 
-	* Allow buffer-local variables to be void in one buffer
+	Allow buffer-local variables to be void in one buffer
 	or in the default value.
 	* data.c (swap_in_symval_forwarding): New function.
 	(Fboundp, Fsymbol_value): Use that.
@@ -15574,7 +15573,7 @@
 
 1989-05-02  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 
-	* Begin changing representation of compiled functions.
+	Begin changing representation of compiled functions.
 	* lisp.h (enum Lisp_Type): New type code Lisp_Compiled, like a vector.
 	(COMPILED_*): Names for slots in those vectors.
 	* alloc.c (Fmake_compiled_code): New function.
@@ -16026,8 +16025,8 @@
 	Check for dead connection only if new arg EXPECTED is nonzero.
 	All callers changed (keyboard and sysdep).
 
-	* Simplify keyboard input.
-	* keyboard.c (read_avail_input): Don't assume buffer is empty.
+	* keyboard.c: Simplify keyboard input.
+	(read_avail_input): Don't assume buffer is empty.
 	Don't call get_input_pending; do FIONREAD here.
 	Don't do FIONREAD if read_socket_hook, just tell it don't wait.
 	Arg EXPECTED is passed to read_socket_hook.
@@ -16035,7 +16034,7 @@
 	(gobble_input): Use read_avail_input; arg EXPECTED passed along.
 	(get_input_pending): let gobble_input do the work.
 
-	* VMS keyboard input should have interrupt_input nonzero.
+	VMS keyboard input should have interrupt_input nonzero.
 	* keyboard.c (Fset_input_mode, init_keyboard): [VMS] Always set
 	interrupt_input to 1.
 	(get_input_pending): Special case deleted.
@@ -16250,7 +16249,7 @@
 	* ymakefile (obj): Include floatfns.o.
 	* data.c (syms_of_data): Fix typo Snumberp_or_marker_p.
 
-	* Allow keymaps to have other keymaps as tails.
+	Allow keymaps to have other keymaps as tails.
 	Thus, one keymap can inherit from another.
 	* keymap.c (Fwhere_is_internal): Ignore non-cons elements of alist.
 	(Faccessible_keymaps): Support symbols as alist indices.

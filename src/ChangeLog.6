@@ -116,7 +116,7 @@
 	* xmenu.c (Fx_popup_dialog): Don't fail to initialize WINDOW.
 
 	* xdisp.c (prepare_menu_bars): Clear pending_menu_activation.
-	
+
 	* print.c: When printing into a buffer, generate all the text
 	first, then insert it all at once.
 	(print_buffer): New variable.
@@ -239,7 +239,7 @@
 	* xfns.c (xlwmenu_default_font): Declare, but don't define.
 	* xselect.c (last_event_timestamp): Declare, but don't define.
 
-1996-07-15  David Mosberger-Tang <davidm@AZStarNet.com>
+1996-07-15  David Mosberger-Tang  <davidm@AZStarNet.com>
 
 	* m/alpha.h (TEXT_START, DATA_START, DATA_SEG_BITS, UNEXEC, DATA_END):
 	Omit these definitions if ELF.
@@ -1079,7 +1079,7 @@
 	scroll_bar_up_arrow, scroll_bar_down_arrow.
 	(win32_scroll_bar_click): New enum constant.
 
-1996-05-03  Andrw Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrw Innes  <andrewi@harlequin.co.uk>
 
 	* makefile.nt (SUBSYSTEM) [NTGUI]: Remove conditional.
 	(LINK_FLAGS): Explicitly set base address, and stack and heap sizes.
@@ -1574,7 +1574,7 @@
 	* w32fns.c (defined_color): Map color to nearest in default palette.
 	(win32_wnd_proc): Special handling for WM_CLOSE.
 
-1996-04-16  Kim Storm <storm@olicom.dk>
+1996-04-16  Kim Storm  <storm@olicom.dk>
 
 	* msdos.c (check_timer): Removed; use gettime instead.
 	(sys_select): Call __dpmi_yield while waiting for input to
@@ -2281,7 +2281,7 @@
 	(x_set_name): Let title parm override name parm for title use.
 	(x_set_icon_name): Use title parm before name parm, if no icon_name.
 
-	* Properly undo the way deletion affects markers.
+	Properly undo the way deletion affects markers.
 	* undo.c (record_marker_adjustment): New function.
 	(Fprimitive_undo): Handle marker-adjustment elements.
 	* insdel.c (adjust_markers): When a marker is inside text
@@ -4475,7 +4475,7 @@
 	* keyboard.c (read_key_sequence): Validate the event position
 	before calling get_local_map.
 
-1995-08-29  Jack Repenning <jackr@sgi.com>
+1995-08-29  Jack Repenning  <jackr@sgi.com>
 
 	* unexelfsgi.c: Compute new data offset based on memory
 	address; also, copy .got from memory not temacs.

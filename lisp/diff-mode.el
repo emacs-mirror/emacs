@@ -1,6 +1,6 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -417,7 +417,7 @@ If the prefix ARG is given, restrict the view to the current file instead."
 	      (number-to-string newstart2) ",1 @@\n")
       ;; Fix the original hunk-header.
       (diff-fixup-modifs start pos))))
-      
+
 
 ;;;;
 ;;;; jump to other buffers
@@ -519,9 +519,9 @@ Non-nil OLD means that we want the old file."
       (ediff-patch-file nil (current-buffer))
     (wrong-number-of-arguments (ediff-patch-file))))
 
-;;;; 
+;;;;
 ;;;; Conversion functions
-;;;; 
+;;;;
 
 ;;(defvar diff-inhibit-after-change nil
 ;;  "Non-nil means inhibit `diff-mode's after-change functions.")
@@ -742,10 +742,7 @@ else cover the whole bufer."
 			   (delete-char 1) (insert "-") t)
 		       ((?\\ ?#) t)
 		       (t (when (and first last (< first last))
-			    (let ((str
-				   (save-excursion
-				     (delete-and-extract-region first last))))
-			      (insert str)))
+			    (insert (delete-and-extract-region first last)))
 			  (setq first nil last nil)
 			  (equal ?\  c)))
 		(forward-line 1))))))))))
@@ -794,9 +791,9 @@ else cover the whole bufer."
 		  (unless (string= new old) (replace-match new t t nil 2))))))
 	    (setq space 0 plus 0 minus 0 bang 0)))))))
 
-;;;; 
+;;;;
 ;;;; Hooks
-;;;; 
+;;;;
 
 (defun diff-write-contents-hooks ()
   "Fixup hunk headers if necessary."
@@ -819,7 +816,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     (if diff-unhandled-changes
 	(setq diff-unhandled-changes
 	      (cons (min beg (car diff-unhandled-changes))
-		    (max beg (cdr diff-unhandled-changes))))
+		    (max end (cdr diff-unhandled-changes))))
       (setq diff-unhandled-changes (cons beg end)))))
 
 (defun diff-post-command-hook ()
@@ -828,6 +825,8 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
     (ignore-errors
       (save-excursion
 	(goto-char (car diff-unhandled-changes))
+	;; Maybe we've cut the end of the hunk before point.
+	(if (and (bolp) (not (bobp))) (backward-char 1))
 	;; We used to fixup modifs on all the changes, but it turns out
 	;; that it's safer not to do it on big changes, for example
 	;; when yanking a big diff, since we might then screw up perfectly
@@ -844,20 +843,26 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 	(diff-beginning-of-hunk)
 	(when (save-excursion
 		(diff-end-of-hunk)
-		(> (point) (cdr diff-unhandled-changes)))
+		(>= (point) (cdr diff-unhandled-changes)))
 	  (diff-fixup-modifs (point) (cdr diff-unhandled-changes)))))
     (setq diff-unhandled-changes nil)))
 
-;;;; 
+;;;;
 ;;;; The main function
-;;;; 
+;;;;
 
 ;;;###autoload
 (define-derived-mode diff-mode fundamental-mode "Diff"
   "Major mode for viewing/editing context diffs.
 Supports unified and context diffs as well as (to a lesser extent)
 normal diffs.
-When the buffer is read-only, the ESC prefix is not necessary."
+When the buffer is read-only, the ESC prefix is not necessary.
+IF you edit the buffer manually, diff-mode will try to update the hunk
+headers for you on-the-fly.
+
+You can also switch between context diff and unified diff with \\[diff-context->unified],
+or vice versa with \\[diff-unified->context] and you can also revert the direction of
+a diff with \\[diff-reverse-direction]."
   (set (make-local-variable 'font-lock-defaults) diff-font-lock-defaults)
   (set (make-local-variable 'outline-regexp) diff-outline-regexp)
   (set (make-local-variable 'imenu-generic-expression)
@@ -873,16 +878,25 @@ When the buffer is read-only, the ESC prefix is not necessary."
   ;;   (set (make-local-variable 'page-delimiter) "--- [^\t]+\t")
   ;; compile support
 
-  ;;;; compile support is not good enough yet.  Also it can be annoying
-  ;; and should thus only be enabled conditionally.
-  ;; (set (make-local-variable 'compilation-file-regexp-alist)
-  ;;      diff-file-regexp-alist)
-  ;; (set (make-local-variable 'compilation-error-regexp-alist)
-  ;;      diff-error-regexp-alist)
-  ;; (when (string-match "\\.rej\\'" (or buffer-file-name ""))
-  ;;   (set (make-local-variable 'compilation-current-file)
-  ;; 	 (substring buffer-file-name 0 (match-beginning 0))))
-  ;; (compilation-shell-minor-mode 1)
+  ;;;; compile support is not good enough yet.  It should be merged
+  ;;;; with diff.el's support.
+  (set (make-local-variable 'compilation-file-regexp-alist)
+       diff-file-regexp-alist)
+  (set (make-local-variable 'compilation-error-regexp-alist)
+       diff-error-regexp-alist)
+  (when (string-match "\\.rej\\'" (or buffer-file-name ""))
+    (set (make-local-variable 'compilation-current-file)
+  	 (substring buffer-file-name 0 (match-beginning 0))))
+  ;; Be careful not to change compilation-last-buffer when we're just
+  ;; doing a C-x v = (for example).
+  (if (boundp 'compilation-last-buffer)
+      (let ((compilation-last-buffer compilation-last-buffer))
+	(compilation-minor-mode 1))
+    (compilation-minor-mode 1))
+  ;; M-RET and RET should be done by diff-mode because the `compile'
+  ;; support is significantly less good.
+  (add-to-list 'minor-mode-overriding-map-alist
+  	       (cons 'compilation-minor-mode (make-sparse-keymap)))
 
   (when (and (> (point-max) (point-min)) diff-default-read-only)
     (toggle-read-only t))
@@ -893,7 +907,7 @@ When the buffer is read-only, the ESC prefix is not necessary."
     (add-hook 'after-change-functions 'diff-after-change-function nil t)
     (add-hook 'post-command-hook 'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (add-to-list (make-local-variable 'minor-mode-overriding-map-alist)
+  (add-to-list 'minor-mode-overriding-map-alist
   	       (cons 'buffer-read-only diff-mode-shared-map))
   ;; add-log support
   (set (make-local-variable 'add-log-current-defun-function)
@@ -1183,8 +1197,8 @@ For use in `add-log-current-defun-function'."
 	    (let ((old (if switched dst src)))
 	      (with-temp-buffer
 		(insert (car old))
-		(goto-char (cdr old))
 		(funcall (with-current-buffer buf major-mode))
+		(goto-char (+ (point-min) (cdr old)))
 		(add-log-current-defun))))
 	  (with-current-buffer buf
 	    (goto-char (+ (car pos) (cdr src)))

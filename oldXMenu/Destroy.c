@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/Destroy.c,v 1.1 1992/04/11 22:10:18 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Destroy.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -80,33 +80,33 @@ XMenuDestroy(display, menu)
      */
     if ((menu->p_bdr_color != BlackPixel(display, DefaultScreen(display))) && (menu->p_bdr_color != WhitePixel(display, DefaultScreen(display))))
 	XFreeColors(
-		    display, 
+		    display,
 		    DefaultColormap(display, DefaultScreen(display)),
-		    &menu->p_bdr_color, 
+		    &menu->p_bdr_color,
 		    1, 0);
     if ((menu->s_bdr_color != BlackPixel(display, DefaultScreen(display))) && (menu->s_bdr_color != WhitePixel(display, DefaultScreen(display))))
 	XFreeColors(
-		    display, 
-		    DefaultColormap(display, DefaultScreen(display)), 
-		    &menu->s_bdr_color, 
+		    display,
+		    DefaultColormap(display, DefaultScreen(display)),
+		    &menu->s_bdr_color,
 		    1, 0);
     if ((menu->p_frg_color != BlackPixel(display, DefaultScreen(display))) && (menu->p_frg_color != WhitePixel(display, DefaultScreen(display))))
 	XFreeColors(
-		    display, 
+		    display,
 		    DefaultColormap(display, DefaultScreen(display)),
-		    &menu->p_frg_color, 
+		    &menu->p_frg_color,
 		    1, 0);
     if ((menu->s_frg_color != BlackPixel(display, DefaultScreen(display))) && (menu->s_frg_color != WhitePixel(display, DefaultScreen(display))))
 	XFreeColors(
-		    display, 
+		    display,
 		    DefaultColormap(display, DefaultScreen(display)),
-		    &menu->s_frg_color, 
+		    &menu->s_frg_color,
 		    1, 0);
     if ((menu->bkgnd_color != BlackPixel(display, DefaultScreen(display))) && (menu->bkgnd_color != WhitePixel(display, DefaultScreen(display))))
 	XFreeColors(
-		    display, 
+		    display,
 		    DefaultColormap(display, DefaultScreen(display)),
-		    &menu->bkgnd_color, 
+		    &menu->bkgnd_color,
 		    1, 0);
 
     /*

@@ -3,13 +3,13 @@
 
 This file is part of the Lucid Widget Library.
 
-The Lucid Widget Library is free software; you can redistribute it and/or 
+The Lucid Widget Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
 
 The Lucid Widget Library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -119,11 +119,16 @@ xaw_update_scrollbar (instance, widget, val)
 #endif
 
 void
+#ifdef PROTOTYPES
+xaw_update_one_widget (widget_instance *instance, Widget widget,
+		       widget_value *val, Boolean deep_p)
+#else
 xaw_update_one_widget (instance, widget, val, deep_p)
      widget_instance *instance;
      Widget widget;
      widget_value *val;
      Boolean deep_p;
+#endif
 {
 #if 0
   if (XtIsSubclass (widget, scrollbarWidgetClass))
@@ -198,9 +203,13 @@ xaw_popup_menu (widget, event)
 }
 
 void
+#ifdef PROTOTYPES
+xaw_pop_instance (widget_instance *instance, Boolean up)
+#else
 xaw_pop_instance (instance, up)
      widget_instance *instance;
      Boolean up;
+#endif
 {
   Widget widget = instance->widget;
 
@@ -347,7 +356,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot, ra
 	 I want the separator to take up the slack between the buttons on
 	 the right and the buttons on the left (that is I want the buttons
 	 after the separator to be packed against the right edge of the
-	 window) but I can't seem to make it do it.  
+	 window) but I can't seem to make it do it.
        */
       ac = 0;
       XtSetArg (av [ac], XtNfromHoriz, button); ac++;
@@ -431,7 +440,7 @@ xaw_create_dialog (instance)
     shell_name = "Question";
     break;
   }
-  
+
   total_buttons = name [1] - '0';
 
   if (name [3] == 'T' || name [3] == 't')
@@ -441,9 +450,9 @@ xaw_create_dialog (instance)
     }
   else if (name [3])
     right_buttons = name [4] - '0';
-  
+
   left_buttons = total_buttons - right_buttons;
-  
+
   widget = make_dialog (name, parent, pop_up_p,
 			shell_name, icon_name, text_input_slot, radio_box,
 			list, left_buttons, right_buttons);
@@ -610,7 +619,7 @@ xaw_create_scrollbar (instance)
   Widget scrollbar;
 
   XtVaGetValues (instance->parent, XtNwidth, &width, NULL);
-  
+
   XtSetArg (av[ac], XtNshowGrip, 0); ac++;
   XtSetArg (av[ac], XtNresizeToPreferred, 1); ac++;
   XtSetArg (av[ac], XtNallowResize, True); ac++;

@@ -34,13 +34,14 @@
 	(equal (nth 4 command-line-args) "bootstrap")
 	;; in case CANNOT_DUMP
 	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
-    (let ((path (car load-path)))
+    (let ((dir (car load-path)))
       ;; We'll probably overflow the pure space.
       (setq purify-flag nil)
-      (setq load-path (list path
-			    (expand-file-name "emacs-lisp" path)
-			    (expand-file-name "language" path)
-			    (expand-file-name "international" path)))))
+      (setq load-path (list dir
+			    (expand-file-name "emacs-lisp" dir)
+			    (expand-file-name "language" dir)
+			    (expand-file-name "international" dir)
+			    (expand-file-name "textmodes" dir)))))
 
 (message "Using load-path %s" load-path)
 
@@ -64,7 +65,6 @@
 (load "format")
 (load "bindings")
 (setq load-source-file-function 'load-with-code-conversion)
-(load "simple")
 (load "files")
 
 (load "cus-face")
@@ -75,6 +75,7 @@
 (message "%s" (garbage-collect))
 (load "loaddefs.el")  ;Don't get confused if someone compiled this by mistake.
 (message "%s" (garbage-collect))
+(load "simple")
 
 (load "help")
 
@@ -82,8 +83,9 @@
 ;; multilingual text.
 (load "international/mule-cmds")
 (load "case-table")
-(load "international/characters")
 (load "international/utf-8")
+(load "international/utf-16")
+(load "international/characters")
 
 (let ((set-case-syntax-set-multibyte t))
   (load "international/latin-1")
@@ -97,7 +99,9 @@
 (load "language/chinese")
 (load "language/cyrillic")
 (load "language/indian")
-(load "language/devanagari")		; This should be loaded after indian.
+(load "language/devanagari")	 ; This should be loaded after indian.
+(load "language/malayalam")	 ; This should be loaded after indian.
+(load "language/tamil")		 ; This should be loaded after indian.
 (load "language/english")
 (load "language/ethiopic")
 (load "language/european")
@@ -117,7 +121,6 @@
 (load "language/georgian")
 
 (load "international/ucs-tables")
-(ucs-unify-8859 'encode-only)
 
 (update-coding-systems-internal)
 

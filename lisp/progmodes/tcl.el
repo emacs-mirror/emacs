@@ -6,7 +6,7 @@
 ;; Author: Tom Tromey <tromey@redhat.com>
 ;;    Chris Lindblad <cjl@lcs.mit.edu>
 ;; Keywords: languages tcl modes
-;; Version: $Revision: 1.68 $
+;; Version: $Revision: 1.72 $
 
 ;; This file is part of GNU Emacs.
 
@@ -318,7 +318,7 @@ have three inferior Lisps running:
 If you do a \\[tcl-eval-defun] command on some Lisp source code, what
 process do you send it to?
 
-- If you're in a process buffer (foo, bar, or *inferior-tcl*), 
+- If you're in a process buffer (foo, bar, or *inferior-tcl*),
   you send it to that process.
 - If you're in some other buffer (e.g., a source file), you
   send it to the process attached to buffer `inferior-tcl-buffer'.
@@ -441,28 +441,16 @@ is a Tcl expression, and the last argument is Tcl commands.")
 
 
 
-;; Its pretty bogus to have to do this, but there is no easier way to
-;; say "match not syntax-1 and not syntax-2".  Too bad you can't put
-;; \s in [...].  This sickness is used in Emacs 19 to match a defun
-;; starter.  (It is used for this in v18 as well).
-;;(defconst tcl-omit-ws-regexp
-;;  (concat "^\\(\\s"
-;;	  (mapconcat 'char-to-string "w_.()\"\\$'/" "\\|\\s")
-;;	  "\\)\\S(*")
-;;  "Regular expression that matches everything except space, comment
-;;starter, and comment ender syntax codes.")
-
-;; FIXME?  Instead of using the hairy regexp above, we just use a
-;; simple one.
-;;(defconst tcl-omit-ws-regexp "^[^] \t\n#}]\\S(*"
-;;  "Regular expression used in locating function definitions.")
-
-;; Here's another stab.  I think this one actually works.  Now the
-;; problem seems to be that there is a bug in Emacs 19.22 where
-;; end-of-defun doesn't really use the brace matching the one that
-;; trails defun-prompt-regexp.
-;; ?? Is there a bug now ??
-(defconst tcl-omit-ws-regexp "^[^ \t\n#}][^\n}]+}*[ \t]+")
+;; Here's another stab.  I think this one actually works.
+;; We have to be careful that the open-brace following this regexp
+;; is indeed the one corresponding to the function's body so
+;; that end-of-defun works correctly.  Tricky cases are:
+;;    proc foo { {arg1 def} arg2 } {
+;; as well as
+;;    proc foo { \n {arg1 def} \n arg2 } {
+;; The current setting handles the first case properly but not the second.
+;; It also fails if `proc' is not in column-0 (e.g. it's in a namespace).
+(defconst tcl-omit-ws-regexp "^[^] \t\n#}].+[ \t]+")
 
 
 
@@ -494,7 +482,7 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
 	 (cons (concat "\\(\\s-\\|^\\)"
-		       ;; FIXME Use regexp-quote? 
+		       ;; FIXME Use regexp-quote?
 		       (regexp-opt tcl-keyword-list t)
 		       "\\(\\s-\\|$\\)")
 	       2))))
@@ -543,20 +531,14 @@ documentation for details):
     If not nil, use a smarter, Tcl-specific way to find the current
     word when looking up help on a Tcl command.
 
-Turning on Tcl mode calls the value of the variable `tcl-mode-hook'
-with no args, if that value is non-nil.  Read the documentation for
+Turning on Tcl mode runs `tcl-mode-hook'.  Read the documentation for
 `tcl-mode-hook' to see what kinds of interesting hook functions
 already exist.
 
 Commands:
 \\{tcl-mode-map}"
-  (set (make-local-variable 'paragraph-start) "$\\|")
-  (set (make-local-variable 'paragraph-separate) paragraph-start)
-
   (unless (and (boundp 'filladapt-mode) filladapt-mode)
-    (set (make-local-variable 'paragraph-ignore-fill-prefix) t)
-    (set (make-local-variable 'fill-paragraph-function)
-	 'tcl-do-fill-paragraph))
+    (set (make-local-variable 'paragraph-ignore-fill-prefix) t))
 
   (set (make-local-variable 'indent-line-function) 'tcl-indent-line)
   (set (make-local-variable 'comment-indent-function) 'tcl-comment-indent)
@@ -565,11 +547,11 @@ Commands:
   ;; (setq require-final-newline t)
 
   (set (make-local-variable 'comment-start) "# ")
-  (set (make-local-variable 'comment-start-skip) "#+ *")
-  (set (make-local-variable 'comment-column) 40) ;why?  -stef
+  (set (make-local-variable 'comment-start-skip)
+       "\\(\\(^\\|[;{[]\\)\\s-*\\)#+ *")
   (set (make-local-variable 'comment-end) "")
 
-  (set (make-local-variable 'outline-regexp) "[^\n\^M]")
+  (set (make-local-variable 'outline-regexp) ".")
   (set (make-local-variable 'outline-level) 'tcl-outline-level)
 
   (set (make-local-variable 'font-lock-defaults)
@@ -579,7 +561,7 @@ Commands:
 
   (set (make-local-variable 'imenu-generic-expression)
        'tcl-imenu-generic-expression)
-  
+
   ;; Settings for new dabbrev code.
   (set (make-local-variable 'dabbrev-case-fold-search) nil)
   (set (make-local-variable 'dabbrev-case-replace) nil)
@@ -795,7 +777,7 @@ Returns nil if line starts inside a string, t if in a comment."
     (beginning-of-line)
     (let* ((indent-point (point))
 	   (case-fold-search nil)
-	   (continued-line 
+	   (continued-line
 	    (save-excursion
 	      (if (bobp)
 		  nil
@@ -943,13 +925,13 @@ Returns nil if line starts inside a string, t if in a comment."
 		  contain-stack (cons nil contain-stack)
 		  last-depth (1+ last-depth)))
 	  (if (null (car contain-stack))
-	      (setcar contain-stack 
+	      (setcar contain-stack
 		      (or (car (cdr state))
 			  (save-excursion
 			    (forward-sexp -1)
 			    (point)))))
 	  (forward-line 1)
-	  (setq continued-line 
+	  (setq continued-line
 		(save-excursion
 		  (backward-char)
 		  (= (preceding-char) ?\\)))
@@ -975,14 +957,14 @@ Returns nil if line starts inside a string, t if in a comment."
 		   (setq this-indent (- this-indent 1))))
 	    ;; Put chosen indentation into effect.
 	    (or (null this-indent)
-		(= (current-column) 
-		   (if continued-line 
+		(= (current-column)
+		   (if continued-line
 		       (+ this-indent tcl-indent-level)
 		     this-indent))
 		(progn
 		  (delete-region (point) (progn (beginning-of-line) (point)))
-		  (indent-to 
-		   (if continued-line 
+		  (indent-to
+		   (if continued-line
 		       (+ this-indent tcl-indent-level)
 		     this-indent)))))))))
   )
@@ -1233,47 +1215,6 @@ simpler version that is often right, and works in Emacs 18."
   (let ((save (point)))
     (beginning-of-defun)
     (car (tcl-hairy-scan-for-comment nil save nil))))
-
-(defun tcl-do-fill-paragraph (ignore)
-  "fill-paragraph function for Tcl mode.  Only fills in a comment."
-  (let (in-comment col where)
-    (save-excursion
-      (end-of-line)
-      (setq in-comment (tcl-in-comment))
-      (if in-comment
-	  (progn
-	    (setq where (1+ (point)))
-	    (setq col (1- (current-column))))))
-    (and in-comment
-	 (save-excursion
-	   (back-to-indentation)
-	   (= col (current-column)))
-	 ;; In a comment.  Set the fill prefix, and find the paragraph
-	 ;; boundaries by searching for lines that look like
-	 ;; comment-only lines.
-	 (let ((fill-prefix (buffer-substring (progn
-						(beginning-of-line)
-						(point))
-					      where))
-	       p-start p-end)
-	   ;; Search backwards.
-	   (save-excursion
-	     (while (and (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
-			 (not (bobp)))
-	       (forward-line -1))
-	     (setq p-start (point)))
-
-	   ;; Search forwards.
-	   (save-excursion
-	     (while (looking-at "^[ \t]*#[ \t]*[^ \t\n]")
-	       (forward-line))
-	     (setq p-end (point)))
-
-	   ;; Narrow and do the fill.
-	   (save-restriction
-	     (narrow-to-region p-start p-end)
-	     (fill-paragraph ignore)))))
-  t)
 
 
 

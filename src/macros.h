@@ -25,7 +25,7 @@ extern Lisp_Object Vexecuting_macro;
 
 /* Index of next character to fetch from that macro.  */
 
-extern int executing_macro_index;
+extern EMACS_INT executing_macro_index;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.
@@ -39,6 +39,10 @@ extern int executing_macro_iterations;
    so after an error, it describes the innermost interrupted macro.  */
 
 extern Lisp_Object executing_macro;
+
+/* Finish defining the current keyboard macro.  */
+
+extern void end_kbd_macro P_ ((void));
 
 /* Declare that all chars stored so far in the kbd macro being defined
  really belong to it.  This is done in between editor commands.  */

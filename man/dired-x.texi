@@ -1,7 +1,7 @@
 \input texinfo  @comment -*-texinfo-*-
 
 @c dired-x.texi --- Sebastian Kremer's Extra DIRED hacked up for GNU Emacs19
-@c 
+@c
 @c Author: Sebastian Kremer <sk@thp.uni-koeln.de>
 @c	Lawrence R. Dodd <dodd@roebling.poly.edu>
 @c [Dodd's address no longer valid.]
@@ -18,31 +18,19 @@
 @setfilename ../info/dired-x
 @c dired-x.el REVISION NUMBER
 @settitle Dired Extra Version 2 User's Manual
-
-@dircategory Emacs
-@direntry
-* Dired-X: (dired-x).   Dired Extra Features.
-@end direntry
-
 @iftex
 @finalout
 @end iftex
 @c @setchapternewpage odd		% For book style double sided manual.
 @comment %**end of header (This is for running Texinfo on a region.)
-@c      @smallbook
-@tex
-\overfullrule=0pt
-%\global\baselineskip 30pt      % For printing in double spaces
-@end tex
 
-@ifinfo
-@node Copyright, Top, (dir), (dir)
-@comment  node-name,  next,  previous,  up
+@copying
 This documents the ``extra'' features for Dired Mode for GNU Emacs found in
 the file @file{dired-x.el}.
 
-Copyright @copyright{} 1993, 1994, 2001 Free Software Foundation, Inc.
+Copyright @copyright{} 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to make and distribute verbatim copies of this
 manual provided the copyright notice and this permission notice are
 preserved on all copies.
@@ -68,9 +56,20 @@ notice identical to this one except for the removal of this paragraph
 (this paragraph not being relevant to the printed manual).
 
 @end ignore
-@end ifinfo
+@end quotation
+@end copying
 
-@c
+@dircategory Emacs
+@direntry
+* Dired-X: (dired-x).   Dired Extra Features.
+@end direntry
+
+@c      @smallbook
+@tex
+\overfullrule=0pt
+%\global\baselineskip 30pt      % For printing in double spaces
+@end tex
+
 @titlepage
 @sp 6
 @c dired-x.el REVISION NUMBER
@@ -89,33 +88,14 @@ notice identical to this one except for the removal of this paragraph
 @center (Based on @file{dired.texi} by Sebastian Kremer <sk@@thp.uni-koeln.de>)
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1993, 1994, 2001 Free Software Foundation
-
-Permission is granted to make and distribute verbatim copies of
-this manual provided the copyright notice and this permission notice
-are preserved on all copies.
-
-Permission is granted to copy and distribute modified versions of
-this manual under the conditions for verbatim copying, provided that
-the entire resulting derived work is distributed under the terms of
-a permission notice identical to this one.
-
-Permission is granted to copy and distribute translations of this
-manual into another language, under the above conditions for
-modified versions, except that this permission notice may be stated
-in a translation approved by the Free Software Foundation.
-
-The file used to create this is called @file{dired-x.texi}, but the
-original work that was altered to make that file was called
-@file{dired.texi} written by Sebastian Kremer.
-
+@insertcopying
 @end titlepage
 
 @page
 
 @ifinfo
 
-@node Top, Introduction, Copyright, (dir)
+@node Top
 @comment  node-name,  next,  previous,  up
 
 @noindent
@@ -128,10 +108,10 @@ provided by the file @file{dired-x.el}.
 Based on @file{dired.texi} by Sebastian Kremer <sk@@thp.uni-koeln.de>
 
 @c dired-x.el REVISION NUMBER
-@item 
+@item
 For @file{dired-x.el} revision 2
 
-@c @item 
+@c @item
 @c Revision of this manual: 2.53 (2001/02/25 14:05:46)
 
 @c @item
@@ -157,10 +137,10 @@ For @file{dired-x.el} revision 2
 * Miscellaneous Commands::
 * Bugs::
 
-* Concept Index::		
-* Command Index::	
-* Key Index::		
-* Variable Index::	
+* Concept Index::
+* Command Index::
+* Key Index::
+* Variable Index::
 
 @end menu
 
@@ -197,7 +177,7 @@ Some features provided by Dired Extra
 
 @enumerate
 @item
-Omitting uninteresting files from Dired listing. 
+Omitting uninteresting files from Dired listing.
 @itemize @bullet
 @xref{Omitting Files in Dired}.
 @end itemize
@@ -318,7 +298,7 @@ for these functions.  In your @file{.emacs} file put
 
 @example
 ;;; Autoload `dired-jump' and `dired-jump-other-window'.
-;;; We autoload from FILE dired.el.  This will then load dired-x.el 
+;;; We autoload from FILE dired.el.  This will then load dired-x.el
 ;;; and hence define `dired-jump' and `dired-jump-other-window'.
 (define-key global-map "\C-x\C-j" 'dired-jump)
 (define-key global-map "\C-x4\C-j" 'dired-jump-other-window)
@@ -357,7 +337,7 @@ If you choose to have @file{dired-x.el} bind @code{dired-x-find-file} over
 @code{dired-x-bind-find-file} in the @code{dired-load-hook}:
 
 @example
-(add-hook 'dired-load-hook 
+(add-hook 'dired-load-hook
           (lambda ()
             (load "dired-x")
             ;; Bind dired-x-find-file.
@@ -371,7 +351,7 @@ Alternatively, you can set the variable @emph{before} @file{dired-x.el} is
 loaded
 
 @example
-(add-hook 'dired-load-hook 
+(add-hook 'dired-load-hook
           (lambda ()
             ;; Bind dired-x-find-file.
             (setq dired-x-hands-off-my-keys nil)
@@ -616,7 +596,7 @@ in your @code{dired-mode-hook}.
 When Dired visits a directory, it looks for a file whose name is the value of
 variable @code{dired-local-variables-file} (default: @file{.dired}).  If such
 a file is found, Dired will temporarily insert it into the Dired buffer and
-run @code{hack-local-variables}.  
+run @code{hack-local-variables}.
 
 @noindent
 For example, if the user puts
@@ -634,7 +614,7 @@ viewed it will be
 
 @enumerate
 @item
-sorted by date 
+sorted by date
 @item
 omitted automatically
 @end enumerate
@@ -643,7 +623,7 @@ omitted automatically
 You can set @code{dired-local-variables-file} to @code{nil} to suppress this.
 The value of @code{dired-enable-local-variables} controls if and how these
 local variables are read.  This variable exists so that if may override the
-default value of @code{enable-local-variables}.  
+default value of @code{enable-local-variables}.
 
 @noindent
 Please see the GNU Emacs Manual to learn more about local variables.
@@ -1293,7 +1273,7 @@ If you encounter a bug in this package, wish to suggest an
 enhancement, or want to make a smart remark, then type
 
 @example
-@kbd{M-x dired-x-submit-report} 
+@kbd{M-x dired-x-submit-report}
 @end example
 
 @noindent
@@ -1303,7 +1283,7 @@ This command also inserts information that the Dired X maintainer can use to
 recreate your exact setup, making it easier to verify your bug or social
 maladjustment.
 
-Lawrence R. Dodd 
+Lawrence R. Dodd
 @c <dodd@@roebling.poly.edu>
 
 @node     Concept Index, Command Index, Bugs, Top

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/internals
 @node GNU Emacs Internals, Standard Errors, Tips, Top
@@ -652,7 +652,7 @@ of macros and functions to manipulate Lisp objects.
 DEFUN ("coordinates-in-window-p", Fcoordinates_in_window_p,
   Scoordinates_in_window_p, 2, 2,
   "xSpecify coordinate pair: \nXExpression which evals to window: ",
-  "Return non-nil if COORDINATES is in WINDOW.\n\  
+  "Return non-nil if COORDINATES is in WINDOW.\n\
 COORDINATES is a cons of the form (X . Y), X and Y being distances\n\
 ...
 @end group
@@ -777,6 +777,7 @@ This field contains the actual address of the buffer contents.
 
 @item gpt
 This holds the character position of the gap in the buffer.
+@xref{Buffer Gap}.
 
 @item z
 This field contains the character position of the end of the buffer
@@ -789,7 +790,7 @@ Contains the byte position of the gap.
 Holds the byte position of the end of the buffer text.
 
 @item gap_size
-Contains the size of buffer's gap.
+Contains the size of buffer's gap.  @xref{Buffer Gap}.
 
 @item modiff
 This field counts buffer-modification events for this buffer.  It is
@@ -798,30 +799,30 @@ incremented for each such event, and never otherwise changed.
 @item save_modiff
 Contains the previous value of @code{modiff}, as of the last time a
 buffer was visited or saved in a file.
-    
+
 @item overlay_modiff
 Counts modifications to overlays analogous to @code{modiff}.
-       
+
 @item beg_unchanged
 Holds the number of characters at the start of the text that are known
 to be unchanged since the last redisplay that finished.
-    
+
 @item end_unchanged
 Holds the number of characters at the end of the text that are known to
 be unchanged since the last redisplay that finished.
-    
+
 @item unchanged_modified
 Contains the value of @code{modiff} at the time of the last redisplay
 that finished.  If this value matches @code{modiff},
 @code{beg_unchanged} and @code{end_unchanged} contain no useful
 information.
-    
+
 @item overlay_unchanged_modified
 Contains the value of @code{overlay_modiff} at the time of the last
 redisplay that finished.  If this value matches @code{overlay_modiff},
 @code{beg_unchanged} and @code{end_unchanged} contain no useful
 information.
-       
+
 @item markers
 The markers that refer to this buffer.  This is actually a single
 marker, and successive elements in its marker @code{chain} are the other
@@ -860,19 +861,19 @@ Contains the character position of point in a buffer.
 Contains the byte position of point in a buffer.
 
 @item begv
-This field contains the character position of the beginning of the 
+This field contains the character position of the beginning of the
 accessible range of text in the buffer.
 
 @item begv_byte
-This field contains the byte position of the beginning of the 
+This field contains the byte position of the beginning of the
 accessible range of text in the buffer.
 
 @item zv
-This field contains the character position of the end of the 
+This field contains the character position of the end of the
 accessible range of text in the buffer.
 
 @item zv_byte
-This field contains the byte position of the end of the 
+This field contains the byte position of the end of the
 accessible range of text in the buffer.
 
 @item base_buffer
@@ -907,7 +908,7 @@ the last time the buffer was displayed in a window.
 This flag is set when narrowing changes in a buffer.
 
 @item prevent_redisplay_optimizations_p
-this flag indicates that redisplay optimizations should not be used 
+this flag indicates that redisplay optimizations should not be used
 to display this buffer.
 
 @item undo_list
@@ -919,7 +920,7 @@ be unique.  @xref{Buffer Names}.
 
 @item filename
 The name of the file visited in this buffer, or @code{nil}.
- 
+
 @item directory
 The directory for expanding relative file names.
 
@@ -929,7 +930,7 @@ This and other fields concerned with saving are not kept in the
 @code{buffer_text} structure because indirect buffers are never saved.
 
 @item auto_save_file_name
-File name used for auto-saving this buffer.  This is not in the 
+File name used for auto-saving this buffer.  This is not in the
 @code{buffer_text} because it's not used in indirect buffers at all.
 
 @item read_only
@@ -957,7 +958,7 @@ Mode line element that controls the format of the mode line.  If this
 is @code{nil}, no mode line will be displayed.
 
 @item header_line_format
-This field is analoguous to @code{mode_line_format} for the mode 
+This field is analoguous to @code{mode_line_format} for the mode
 line displayed at the top of windows.
 
 @item keymap
@@ -1067,7 +1068,7 @@ buffer is not current.
 In an indirect buffer, or a buffer that is the base of an indirect
 buffer, this holds a marker that records @code{begv} for this buffer
 when the buffer is not current.
- 
+
 @item zv_marker
 In an indirect buffer, or a buffer that is the base of an indirect
 buffer, this holds a marker that records @code{zv} for this buffer when
@@ -1102,7 +1103,7 @@ displayed in a window.
 
 @item scroll_up_aggressively
 The value of @code{scroll-up-aggressively} in this buffer.
- 
+
 @item scroll_down_aggressively
 The value of @code{scroll-down-aggressively} in this buffer.
 @end table
@@ -1186,7 +1187,7 @@ window to show the text around point, it moves point to a location that
 is on the screen.
 
 @item frozen_window_start_p
-This field is set temporarily to 1 to indicate to redisplay that 
+This field is set temporarily to 1 to indicate to redisplay that
 @code{start} of this window should not be changed, even if point
 gets invisible.
 
@@ -1421,7 +1422,7 @@ Size of carryover in decoding.
 Coding-system for encoding the output to this process.
 
 @item encoding_buf
-A working buffer for enecoding.
+A working buffer for encoding.
 
 @item encoding_carryover
 Size of carryover in encoding.

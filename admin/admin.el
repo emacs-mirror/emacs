@@ -48,12 +48,16 @@ Signal an error if the program returns with a non-zero exit status."
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree."
   (interactive "DEmacs root directory: \nNVersion number: ")
+  (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
+	 (require 'add-log)
 	 (entry (format "%s  %s  <%s>\n\n\t* Version %s released.\n\n"
-			(format-time-string "%Y-%m-%d")
-			(user-full-name) user-mail-address version)))
+			(funcall add-log-time-format)
+			(or add-log-full-name (user-full-name))
+			(or add-log-mailing-address user-mail-address)
+			version)))
     (dolist (log logs)
       (unless (string-match "/gnus/" log)
 	(find-file log)
@@ -84,5 +88,5 @@ Root must be the root of an Emacs source tree."
   (set-version-in-file root "man/emacs.texi" version
 		       (rx (and "EMACSVER" (1+ space)
 				(submatch (1+ (in "0-9.")))))))
-			     
+
 ;; admin.el ends here.

@@ -128,7 +128,7 @@ The region between FROM and TO is translated using the table TRANS-TAB.
 Optional arg BUFFER is ignored (for use in `format-alist')."
  (interactive "*r")
  (iso-translate-conventions from to iso-german-trans-tab))
- 
+
 (defvar iso-iso2tex-trans-tab
   '(
     ("ä" "{\\\\\"a}")
@@ -825,7 +825,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
   "Warn that format is write-only."
   (interactive)
   (error "This format is write-only"))
-			 
+
 ;;;###autoload
 (defun iso-cvt-define-menu ()
   "Add submenus to the Files menu, to convert to and from various formats."

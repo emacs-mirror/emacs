@@ -91,6 +91,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl))
+
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
@@ -126,6 +128,17 @@ DOCSTRING: an optional documentation string--if you do not supply one,
 BODY:      forms to execute just before running the
            hooks for the new mode.  Do not use `interactive' here.
 
+BODY can start with a bunch of keyword arguments.  The following keyword
+  arguments are currently understood:
+:group GROUP
+	Declare the customization group that corresponds to this mode.
+:syntax-table TABLE
+	Use TABLE instead of the default.
+	A nil value means to simply use the same syntax-table as the parent.
+:abbrev-table TABLE
+	Use TABLE instead of the default.
+	A nil value means to simply use the same abbrev-table as the parent.
+
 Here is how you could define LaTeX-Thesis mode as a variant of LaTeX mode:
 
   (define-derived-mode LaTeX-thesis-mode LaTeX-mode \"LaTeX-Thesis\")
@@ -155,15 +168,31 @@ been generated automatically, with a reference to the keymap."
   (let ((map (derived-mode-map-name child))
 	(syntax (derived-mode-syntax-table-name child))
 	(abbrev (derived-mode-abbrev-table-name child))
+	(declare-abbrev t)
+	(declare-syntax t)
 	(hook (derived-mode-hook-name child))
-	(docstring (derived-mode-make-docstring parent child docstring)))
+	(group nil))
+
+    ;; Process the keyword args.
+    (while (keywordp (car body))
+      (case (pop body)
+	(:group (setq group (pop body)))
+	(:abbrev-table (setq abbrev (pop body)) (setq declare-abbrev nil))
+	(:syntax-table (setq syntax (pop body)) (setq declare-syntax nil))
+	(t (pop body))))
+
+    (setq docstring (derived-mode-make-docstring
+		     parent child docstring syntax abbrev))
 
     `(progn
        (defvar ,map (make-sparse-keymap))
-       (defvar ,syntax (make-syntax-table))
-       (defvar ,abbrev
-	 (progn (define-abbrev-table ',abbrev nil) ,abbrev))
+       ,(if declare-syntax
+	    `(defvar ,syntax (make-syntax-table)))
+       ,(if declare-abbrev
+	    `(defvar ,abbrev
+	       (progn (define-abbrev-table ',abbrev nil) ,abbrev)))
        (put ',child 'derived-mode-parent ',parent)
+       ,(if group `(put ',child 'custom-mode-group ,group))
 
        (defun ,child ()
 	 ,docstring
@@ -178,25 +207,21 @@ been generated automatically, with a reference to the keymap."
 					; Identify special modes.
 	  ,(when parent
 	     `(progn
-		(if (get (quote ,parent) 'special)
-		    (put (quote ,child) 'special t))
+		(if (get (quote ,parent) 'mode-class)
+		    (put (quote ,child) 'mode-class
+			 (get (quote ,parent) 'mode-class)))
 					; Set up maps and tables.
 		(unless (keymap-parent ,map)
 		  (set-keymap-parent ,map (current-local-map)))
-		(let ((parent (char-table-parent ,syntax)))
-		  (unless (and parent (not (eq parent (standard-syntax-table))))
-		    (set-char-table-parent ,syntax (syntax-table))))
-		(when local-abbrev-table
-		  (mapatoms
-		   (lambda (symbol)
-		     (or (intern-soft (symbol-name symbol) ,abbrev)
-			 (define-abbrev ,abbrev (symbol-name symbol)
-			   (symbol-value symbol) (symbol-function symbol))))
-		   local-abbrev-table))))
+		,(when declare-syntax
+		   `(let ((parent (char-table-parent ,syntax)))
+		      (unless (and parent
+				   (not (eq parent (standard-syntax-table))))
+			(set-char-table-parent ,syntax (syntax-table)))))))
 
 	  (use-local-map ,map)
-	  (set-syntax-table ,syntax)
-	  (setq local-abbrev-table ,abbrev)
+	  ,(when syntax `(set-syntax-table ,syntax))
+	  ,(when abbrev `(setq local-abbrev-table ,abbrev))
 					; Splice in the body (if any).
 	  ,@body
 	  )
@@ -209,21 +234,21 @@ been generated automatically, with a reference to the keymap."
   "Find the class of a major MODE.
 A mode's class is the first ancestor which is NOT a derived mode.
 Use the `derived-mode-parent' property of the symbol to trace backwards.
-Since major-modes might derive from each other and from `fundamental-mode',
-this function is not very useful.  Use `derived-mode-p' instead."
+Since major-modes might all derive from `fundamental-mode', this function
+is not very useful."
   (while (get mode 'derived-mode-parent)
     (setq mode (get mode 'derived-mode-parent)))
   mode)
+(make-obsolete 'derived-mode-class 'derived-mode-p "21.4")
 
 
 ;;; PRIVATE
 
-(defun derived-mode-make-docstring (parent child &optional docstring)
+(defun derived-mode-make-docstring (parent child &optional
+					   docstring syntax abbrev)
   "Construct a docstring for a new mode if none is provided."
 
   (let ((map (derived-mode-map-name child))
-	(syntax (derived-mode-syntax-table-name child))
-	(abbrev (derived-mode-abbrev-table-name child))
 	(hook (derived-mode-hook-name child)))
 
     (unless (stringp docstring)
@@ -242,7 +267,7 @@ which more-or-less shadow %s's corresponding tables."
 		      parent map abbrev syntax parent))))
 
     (unless (string-match (regexp-quote (symbol-name hook)) docstring)
-      ;; Make sure the docstring mentions the mode's hook
+      ;; Make sure the docstring mentions the mode's hook.
       (setq docstring
 	    (concat docstring
 		    (if (null parent)
@@ -257,7 +282,7 @@ which more-or-less shadow %s's corresponding tables."
 		    ", as the final step\nduring initialization.")))
 
     (unless (string-match "\\\\[{[]" docstring)
-      ;; And don't forget to put the mode's keymap
+      ;; And don't forget to put the mode's keymap.
       (setq docstring (concat docstring "\n\n\\{" (symbol-name map) "}")))
 
     docstring))

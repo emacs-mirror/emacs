@@ -33,8 +33,8 @@
 ;; In `iso-accents-mode', pseudo accent characters are used to
 ;; introduce accented keys.  The pseudo-accent characters are:
 ;;
-;;   '  (minute)    -> grave accent
-;;   `  (backtick)  -> acute accent
+;;   '  (minute)    -> actue accent
+;;   `  (backtick)  -> grave accent
 ;;   "  (second)    -> diaeresis
 ;;   ^  (caret)     -> circumflex
 ;;   ~  (tilde)     -> tilde over the character
@@ -46,14 +46,14 @@
 ;;   ,  (cedilla)   -> cedilla under the character (some languages only)
 ;;
 ;; The action taken depends on the key that follows the pseudo accent.
-;; In general: 
+;; In general:
 ;;
 ;;   pseudo-accent + appropriate letter -> accented letter
 ;;   pseudo-accent + space -> pseudo-accent (except comma and period)
 ;;   pseudo-accent + pseudo-accent -> accent (if available)
 ;;   pseudo-accent + other -> pseudo-accent + other
 ;;
-;; If the pseudo-accent is followed by anything else than a 
+;; If the pseudo-accent is followed by anything else than a
 ;; self-insert-command, the dead-key code is terminated, the
 ;; pseudo-accent inserted 'as is' and the bell is rung to signal this.
 ;;
@@ -110,11 +110,11 @@
      (?^ (?A . ?\302) (?E . ?\312) (?I . ?\316) (?O . ?\324) (?U . ?\333)
 	 (?a . ?\342) (?e . ?\352) (?i . ?\356) (?o . ?\364) (?u . ?\373)
 	 (?\  . ?^))
-     (?\" (?E . ?\313) (?I . ?\317)  
+     (?\" (?E . ?\313) (?I . ?\317)
           (?e . ?\353) (?i . ?\357)
 	  (?\  . ?\"))
      (?~ (?< . ?\253) (?> . ?\273) (?C . ?\307) (?c . ?\347)
-	 (?,  . ?,))
+	 (?\  . ?~))
      (?, (?C . ?\307) (?c . ?\347) (?\  . ?\,)))
 
     ("german"
@@ -155,7 +155,7 @@
      (?' (?A . ?\301) (?E . ?\311) (?I . ?\315) (?O . ?\323) (?U . ?\332)
 	 (?Y . ?\335) (?a . ?\341) (?e . ?\351) (?i . ?\355) (?o . ?\363)
 	 (?u . ?\372) (?y . ?\375) (?' . ?\264)
-	 (?\  . ?'))      
+	 (?\  . ?'))
      (?` (?A . ?\300) (?E . ?\310) (?I . ?\314) (?O . ?\322) (?U . ?\331)
 	 (?a . ?\340) (?e . ?\350) (?i . ?\354) (?o . ?\362) (?u . ?\371)
 	 (?` . ?`) (?\  . ?`))
@@ -182,7 +182,7 @@
 	 (?a . ?\341) (?c . ?\346) (?d . ?\360) (?e . ?\351) (?i . ?\355)
 	 (?l . ?\345) (?n . ?\361) (?o . ?\363) (?r . ?\340) (?s . ?\266)
 	 (?u . ?\372) (?y . ?\375) (?z . ?\274)
-	 (?' . ?\264) (?\  . ?')) 
+	 (?' . ?\264) (?\  . ?'))
      (?` (?A . ?\241) (?C . ?\307) (?E . ?\312) (?L . ?\243) (?S . ?\252)
 	 (?T . ?\336) (?Z . ?\257)
 	 (?a . ?\261) (?l . ?\263) (?c . ?\347) (?e . ?\352) (?s . ?\272)
@@ -211,7 +211,7 @@
     ("latin-3" latin-iso8859-3
      (?' (?A . ?\301) (?E . ?\311) (?I . ?\315) (?O . ?\323) (?U . ?\332)
 	 (?a . ?\341) (?e . ?\351) (?i . ?\355) (?o . ?\363) (?u . ?\372)
-	 (?' . ?\264) (?\  . ?'))      
+	 (?' . ?\264) (?\  . ?'))
      (?` (?A . ?\300) (?E . ?\310) (?I . ?\314) (?O . ?\322) (?U . ?\331)
 	 (?a . ?\340) (?e . ?\350) (?i . ?\354) (?o . ?\362) (?u . ?\371)
 	 (?` . ?`) (?\  . ?`))
@@ -229,7 +229,7 @@
 	 (?$ . ?\245) (?S . ?\252) (?s . ?\272) (?G . ?\253) (?g . ?\273)
 	 (?U . ?\335) (?u . ?\375) (?` . ?\242)
 	 (?~ . ?\270) (?\  . ?~))
-     (?/ (?C . ?\305) (?G . ?\325) (?H . ?\241) (?I . ?\251) (?Z . ?\257) 
+     (?/ (?C . ?\305) (?G . ?\325) (?H . ?\241) (?I . ?\251) (?Z . ?\257)
 	 (?c . ?\345) (?g . ?\365) (?h . ?\261) (?i . ?\271) (?z . ?\277)
 	 (?r . ?\256)
 	 (?. . ?\377) (?# . ?\243) (?$ . ?\244)
@@ -350,7 +350,7 @@ Special combinations: ~c gives a c with cedilla,
 ~! gives an inverted exclamation mark.
 ~? gives an inverted question mark.
 
-With an argument, a positive argument enables ISO Accents mode, 
+With an argument, a positive argument enables ISO Accents mode,
 and a negative argument disables it."
 
   (interactive "P")

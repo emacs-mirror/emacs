@@ -343,7 +343,7 @@ modified."
 	range item selector)
     (while (or item1 item2)
       (setq selector
-	    (cond 
+	    (cond
 	     ((null item1) nil)
 	     ((null item2) t)
 	     ((and (numberp item1) (numberp item2)) (< item1 item2))
@@ -353,30 +353,30 @@ modified."
       (setq item
 	    (or
 	     (let ((tmp1 item) (tmp2 (if selector item1 item2)))
-	       (cond 
+	       (cond
 		((null tmp1) tmp2)
 		((null tmp2) tmp1)
 		((and (numberp tmp1) (numberp tmp2))
-		 (cond 
+		 (cond
 		  ((eq tmp1 tmp2) tmp1)
 		  ((eq (1+ tmp1) tmp2) (cons tmp1 tmp2))
 		  ((eq (1+ tmp2) tmp1) (cons tmp2 tmp1))
 		  (t nil)))
 		((numberp tmp1)
-		 (cond 
+		 (cond
 		  ((and (>= tmp1 (car tmp2)) (<= tmp1 (cdr tmp2))) tmp2)
 		  ((eq (1+ tmp1) (car tmp2)) (cons tmp1 (cdr tmp2)))
 		  ((eq (1- tmp1) (cdr tmp2)) (cons (car tmp2) tmp1))
 		  (t nil)))
 		((numberp tmp2)
-		 (cond 
+		 (cond
 		  ((and (>= tmp2 (car tmp1)) (<= tmp2 (cdr tmp1))) tmp1)
 		  ((eq (1+ tmp2) (car tmp1)) (cons tmp2 (cdr tmp1)))
 		  ((eq (1- tmp2) (cdr tmp1)) (cons (car tmp1) tmp2))
 		  (t nil)))
 		((< (1+ (cdr tmp1)) (car tmp2)) nil)
 		((< (1+ (cdr tmp2)) (car tmp1)) nil)
-		(t (cons (min (car tmp1) (car tmp2)) 
+		(t (cons (min (car tmp1) (car tmp2))
 			 (max (cdr tmp1) (cdr tmp2))))))
 	     (progn
 	       (if item (push item range))

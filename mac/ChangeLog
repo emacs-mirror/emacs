@@ -1,3 +1,147 @@
+2003-04-01  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (frame.c.x): Add dependency on BLOCKINPUT_H_GROUP.
+	(xdisp.c.x): Fix to use BLOCKINPUT_H_GROUP.
+
+2003-03-21  Kim F. Storm  <storm@cua.dk>
+
+	* makefile.MPW (xdisp.c.x):  Add dependency on blockinput.h and
+	files included from it.  Add dependency on keymap.h.
+
+2003-01-14  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Fixed problem where the building without
+	specifying build directory fails.
+
+2003-01-07  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Added documentation about --enable-carbon-app and
+	changed documentation concerning Emacs.app location
+	Removed some of the documentation about make-package that isn't
+	needed
+	Changed comment about requiring root permission to install to
+	saying that it might be necessary depending on where you install
+	Refered to /usr caveat in more places
+	* make-package (make_options): Use new carbon_appdir option to
+	specify directory to install Application and lets the makefile
+	install
+
+2003-01-01  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Now copies License and ReadMe files into the
+	Resources directory.  Reduces overhead size when creating
+	installer disk image.
+
+2002-12-29  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Defaults to building the source tree in a
+	separate directory.  Use the new option --build-in-place to
+	have old behavior.  Added new option --build-dir to specify the
+	build directory.
+
+2002-12-27  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Fix typo where tmpparent was used instead of
+	tempparent for calculating installedSize and compressedSize.
+
+2002-12-10  Andreas Schwab  <schwab@suse.de>
+
+	* make-package: Fix syntax for find.
+
+2002-12-08  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Added description about make-package.
+
+	* make-package: Fixed --self-contained option to place the
+	directories in the correct locations for
+	init_mac_osx_environment and use hardlink by default for the
+	application.  Script fails with invalid option.
+
+2002-12-02  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-bin-dist, osx-install: Remove.
+
+	* INSTALL: Remove description of make-bin-dist and osx-install.
+
+2002-12-02  Steven Tamm  <steventamm@mac.com>
+
+	* make-package (installprefix): Switched copying of .el files
+	to be on by default.  Removed symlink for emacs -> emacs-version.
+
+2002-11-30  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Now compresses .pax file instead of entire disk
+	image to reduce installer size on disk.  Also added code to
+	create compressed disk image in the future.
+
+	No longer copies .el files that have been compiled by default.
+	Use --full-dist option to include them.
+
+	Option --symlink added to reduce disk size by making
+	/usr/bin/emacs and the Emacs binary inside the Emacs.app to become
+	symlinks to the	emacs-[version] binary.
+
+	Option --self-contained added to place files shared files
+	inside the Emacs.app executable (for portability between systems)
+
+	Added hidden debugging option --keep-dir to keep temporary install
+	directory (emacs-[version]) around after running script
+
+	* README: Removed comment about mouse-2 & -3 not working (it does).
+
+2002-10-14  Andreas Schwab  <schwab@suse.de>
+
+	* make-package: Fix syntax for find.
+
+2002-10-08  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Added ability to pass command line options
+	through to make and configure (-m, & -c,).
+	Added option to not copy Application into installer, the default
+	for X11 builds.  Does not copy CVS directories into installer.
+	Clarified some of the usage notes.
+
+2002-10-07  Steven Tamm  <steventamm@mac.com>
+
+	* make-package: Now calls make bootstrap if .elc files are missing.
+
+2002-08-27  Andrew Choi  <akochoi@shaw.ca>
+
+	* INSTALL: Add information on starting Emacs as a GUI application
+	from the terminal.
+
+2002-08-15  Andrew Choi  <akochoi@shaw.ca>
+
+	* INSTALL: Add instructions for building Carbon version on Macs
+	with X Window installed.
+
+2002-07-31  Andrew Choi  <akochoi@shaw.ca>
+
+	* Emacs.app/Contents/PkgInfo, Emacs.app/Contents/Info.plist:
+	change creator code from ???? to EMAx.
+
+	* INSTALL: Add instructions for building X Window version.
+
+2002-07-11  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: Change -a option to -R for cp command.
+
+2002-07-05  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: Add ability to handle options --help, --prefix,
+	--no-conf, and --with-x.
+
+2002-07-04  Andrew Choi  <akochoi@shaw.ca>
+
+	* make-package: New file.
+
+2002-07-01  Andrew Choi  <akochoi@shaw.ca>
+
+	* Emacs.app/Contents/Resources/Emacs.icns: New file.
+
+	* Emacs.app/Contents/Info.plist: Add CFBundleDocumentTypes and
+	CFBundleIconFile entries.
+
 2002-04-13  Andrew Choi  <akochoi@shaw.ca>
 
 	* Emacs.app/Contents/Info.plist: New file.
@@ -27,7 +171,7 @@
 	locations for mac.c, macfns.c, macgui.h, macmenu.c, macterm.c, and
 	macterm.h.  Generate DOC from .el instead of .elc versions of
 	files listed in DONTCOMPILE in lisp/Makefile.in.
-	
+
 	* INSTALL: Add installation instructions for Mac OS X.
 
 	* README: Add information for Mac OS X.
@@ -137,7 +281,7 @@
 	cursor row is invisible.  This can happen if cursor is on top line
 	of a window, and we switch to a buffer with a header line.
 
-2001-12-22  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-22  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* cw5-mcp.xml, cw6-mcp.xml, makefile.MPW: Remove mocklisp files.
 
@@ -146,7 +290,7 @@
 	* src/macfns.c (x_report_frame_params): Make the scroll-bar-width
 	frame parameter have a numeric value all the time.
 
-2001-12-08  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-12-08  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* COPYING: New file.
 
@@ -164,7 +308,7 @@
 	* src/macterm.c: Merged changes from xterm.c.
 	* src/macfns.c: Merged changes from xfns.c.
 
-2001-11-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-11-16  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (waiting_for_input): Remove unnecessary declaration.
 
@@ -174,7 +318,7 @@
 	references to the fringes to actually use the term `fringe'.
 
 	* src/macfns.c: Use renamed symbols.
-	
+
 	* src/macterm.c: Comment fixes. Use renamed symbols.
 	(fringe_bitmap_type): Renamed from bitmap_type.
 	(NO_FRINGE_BITMAP): Renamed from NO_BITMAP.
@@ -189,7 +333,7 @@
 	(FRAME_X_FRINGE_WIDTH): Renamed from FRAME_X_FLAGS_AREA_WIDTH.
 	(FRAME_X_LEFT_FRINGE_WIDTH): Renamed from FRAME_X_LEFT_FLAGS_AREA_WIDTH.
 	(FRAME_X_RIGHT_FRINGE_WIDTH): Renamed from FRAME_X_RIGHT_FLAGS_AREA_WIDTH.
-	
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
@@ -268,7 +412,7 @@
 
 	* inc/macterm.h (x_display_list): Declare extern.
 
-2001-07-20  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+2001-07-20  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* src/macterm.c (xim_open_dpy): Fix typo.
 
@@ -294,7 +438,7 @@
 	* src/macterm.c (do_app_resume): Set cursor to arrow.
 	(clear_mouse_face): check for NIL Lisp object instead of null
 	pointer.
-	
+
 	* INSTALL: Delete note on compiling Lisp files on a Unix system.
 	Add note on turning off end of line conversion.
 
@@ -325,7 +469,7 @@
 
 	* src/Emacs.r: Add ALRT resource #129 for alert when there is over
 	256 MB RAM.
-	
+
 2001-02-20  Andrew Choi  <akochoi@i-cable.com>
 
 	* mac/INSTALL:
@@ -343,7 +487,7 @@
 
 	* src/macterm.c (x_list_fonts): Protect pattern and newlist from
 	garbage collection.
-	
+
 	* src/macfns.c (QCconversion): Replaces QCalgorithm.
 
 	* src/macfns.c (image_ascent, lookup_image): Adapt to change of
@@ -356,7 +500,7 @@
 	* src/macterm.c (mac_to_x_fontname): Change charset name of
 	Simplify Chinese fonts from gb2312 to gb2312.1980 and Korean fonts
 	from ksc5601 to ksc5601.1989.
-	
+
 2000-12-12  Andrew Choi  <akochoi@i-cable.com>
 
 	* cw5-mcp.xml: add md5.c to project.
@@ -449,7 +593,7 @@
 	* src/EmacsMPW.r: New file.
 
 	* src/chdir.c: New file.
-	
+
 	* src/mac.c: New file.
 
 	* src/macfns.c: New file.

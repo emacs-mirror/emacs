@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/AddSel.c,v 1.1 1999/10/03 19:34:52 fx Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/AddSel.c,v 1.3 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -32,7 +32,7 @@ XMenuAddSelection(display, menu, p_num, data, label, active, help)
 
     int label_length;		/* Label lenght in characters. */
     int label_width;		/* Label width in pixels. */
-    
+
     /*
      * Check for NULL pointers!
      */
@@ -59,7 +59,7 @@ XMenuAddSelection(display, menu, p_num, data, label, active, help)
      */
     label_length = strlen(label);
     label_width = XTextWidth(menu->s_fnt_info, label, label_length);
-    
+
     /*
      * Fill the XMSelect structure.
      */
@@ -81,7 +81,7 @@ XMenuAddSelection(display, menu, p_num, data, label, active, help)
     select->data = data;
     select->parent_p = pane;
     select->help_string = help;
-    
+
     /*
      * Insert the selection at the end of the selection list.
      */

@@ -129,7 +129,7 @@
 ;;
 ;; When `Follow' mode is activated, functions stored in the hook
 ;; `follow-mode-hook' are called.  When it is deactivated
-;; `follow-mode-off-hook' is runed.
+;; `follow-mode-off-hook' is run.
 ;;
 ;; The keymap `follow-key-map' contains key bindings activated by
 ;; `follow-mode'.
@@ -2038,24 +2038,15 @@ report this using the `follow-submit-feedback' function."
 	(if (not (marker-buffer (process-mark proc)))
 	    (set-marker (process-mark proc) (point-max)))
 	(let ((moving (= (point) (process-mark proc)))
-	      (odeactivate (and (boundp 'deactivate-mark)
-				(symbol-value 'deactivate-mark)))
-	      (old-buffer-read-only buffer-read-only))
-	  (setq buffer-read-only nil)
+	      deactivate-mark
+	      (inhibit-read-only t))
 	  (save-excursion
 	    (goto-char (process-mark proc))
 	    ;; `insert-before-markers' just in case the users next
 	    ;; command is M-y.
 	    (insert-before-markers output)
 	    (set-marker (process-mark proc) (point)))
-	  (if moving (goto-char (process-mark proc)))
-	  (if (boundp 'deactivate-mark)
-	      ;; This could really be
-	      ;;    (setq deactivate-mark odeactivate)
-	      ;; but this raises an error when compiling on XEmacs.
-	      (funcall (symbol-function 'set)
-		       'deactivate-mark odeactivate))
-	  (setq buffer-read-only old-buffer-read-only)))))
+	  (if moving (goto-char (process-mark proc)))))))
 
     ;; If we're in follow mode, do our stuff.  Select a new window and
     ;; redisplay.  (Actually, it is redundant to check `buf', but I

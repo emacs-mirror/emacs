@@ -414,7 +414,7 @@ extern int unibyte_display_via_language_environment;
 
 Lisp_Object Qbar, Qhbar;
 
-/* The screen colors of the curent frame, which serve as the default
+/* The screen colors of the current frame, which serve as the default
    colors for newly-created frames.  */
 static int initial_screen_colors[2];
 
@@ -1180,22 +1180,6 @@ IT_write_glyphs (struct glyph *str, int str_len)
 			  Mouse Highlight (and friends..)
  ************************************************************************/
 
-/* If non-nil, dos_rawgetc generates an event to display that string.
-   (The display is done in keyboard.c:read_char, by calling
-   show_help_echo.)  */
-static Lisp_Object help_echo;
-static Lisp_Object previous_help_echo; /* a helper temporary variable */
-
-/* These record the window, the object and the position where the help
-   echo string was generated.  */
-static Lisp_Object help_echo_window;
-static Lisp_Object help_echo_object;
-static int help_echo_pos;
-
-/* Non-zero means automatically select any window when the mouse
-   cursor moves into it.  */
-int mouse_autoselect_window;
-
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_mouse_window;
 
@@ -1454,9 +1438,9 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
       end = glyph + row->used[TEXT_AREA];
       if (glyph < end
 	  && STRINGP (glyph->object)
-	  && XSTRING (glyph->object)->intervals
+	  && STRING_INTERVALS (glyph->object)
 	  && glyph->charpos >= 0
-	  && glyph->charpos < XSTRING (glyph->object)->size)
+	  && glyph->charpos < SCHARS (glyph->object))
 	{
 	  /* If we're on a string with `help-echo' text property,
 	     arrange for the help to be displayed.  This is done by
@@ -1465,7 +1449,7 @@ IT_note_mode_line_highlight (struct window *w, int x, int mode_line_p)
 				     Qhelp_echo, glyph->object);
 	  if (!NILP (help))
 	    {
-	      help_echo = help;
+	      help_echo_string = help;
 	      XSETWINDOW (help_echo_window, w);
 	      help_echo_object = glyph->object;
 	      help_echo_pos = glyph->charpos;
@@ -1482,7 +1466,7 @@ static void
 IT_note_mouse_highlight (struct frame *f, int x, int y)
 {
   struct display_info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
-  int portion = -1;
+  enum window_part part = ON_NOTHING;
   Lisp_Object window;
   struct window *w;
 
@@ -1508,7 +1492,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
     }
 
   /* Which window is that in?  */
-  window = window_from_coordinates (f, x, y, &portion, 0);
+  window = window_from_coordinates (f, x, y, &part, 0);
 
   /* If we were displaying active text in another window, clear that.  */
   if (! EQ (window, dpyinfo->mouse_face_window))
@@ -1523,10 +1507,10 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
   x -= WINDOW_DISPLAY_LEFT_EDGE_PIXEL_X (w);
   y -= WINDOW_DISPLAY_TOP_EDGE_PIXEL_Y (w);
 
-  if (portion == 1 || portion == 3)
+  if (part == ON_MODE_LINE || part == ON_HEADER_LINE)
     {
       /* Mouse is on the mode or top line.  */
-      IT_note_mode_line_highlight (w, x, portion == 1);
+      IT_note_mode_line_highlight (w, x, part == ON_MODE_LINE);
       return;
     }
   else
@@ -1534,8 +1518,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
   /* Are we in a window whose display is up to date?
      And verify the buffer's text has not changed.  */
-  if (/* Within text portion of the window.  */
-      portion == 0
+  if (part == ON_TEXT
       && EQ (w->window_end_valid, w->buffer)
       && XFASTINT (w->last_modified) == BUF_MODIFF (XBUFFER (w->buffer))
       && (XFASTINT (w->last_overlay_modified)
@@ -1673,7 +1656,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		dpyinfo->mouse_face_window = window;
 		dpyinfo->mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1,
+					     !dpyinfo->mouse_face_hidden);
 
 		/* Display it as active.  */
 		show_mouse_face (dpyinfo, 1);
@@ -1707,7 +1691,8 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 		dpyinfo->mouse_face_window = window;
 		dpyinfo->mouse_face_face_id
 		  = face_at_buffer_position (w, pos, 0, 0,
-					     &ignore, pos + 1, 1);
+					     &ignore, pos + 1,
+					     !dpyinfo->mouse_face_hidden);
 
 		/* Display it as active.  */
 		show_mouse_face (dpyinfo, 1);
@@ -1729,7 +1714,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 
 	  if (!NILP (help))
 	    {
-	      help_echo = help;
+	      help_echo_string = help;
 	      help_echo_window = window;
 	      help_echo_object = overlay;
 	      help_echo_pos = pos;
@@ -1738,7 +1723,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 	  else if (NILP (help)
 		   && ((STRINGP (glyph->object)
 			&& glyph->charpos >= 0
-			&& glyph->charpos < XSTRING (glyph->object)->size)
+			&& glyph->charpos < SCHARS (glyph->object))
 		       || (BUFFERP (glyph->object)
 			   && glyph->charpos >= BEGV
 			   && glyph->charpos < ZV)))
@@ -1747,7 +1732,7 @@ IT_note_mouse_highlight (struct frame *f, int x, int y)
 					 Qhelp_echo, glyph->object);
 	      if (!NILP (help))
 		{
-		  help_echo = help;
+		  help_echo_string = help;
 		  help_echo_window = window;
 		  help_echo_object = glyph->object;
 		  help_echo_pos = glyph->charpos;
@@ -2454,7 +2439,7 @@ IT_set_frame_parameters (f, alist)
 	{
 	  x_set_title (f, val);
 	  if (termscript)
-	    fprintf (termscript, "<TITLE: %s>\n", XSTRING (val)->data);
+	    fprintf (termscript, "<TITLE: %s>\n", SDATA (val));
 	}
       else if (EQ (prop, Qcursor_type))
 	{
@@ -3362,9 +3347,9 @@ dos_rawgetc ()
 	}
 
       if (code >= 0x100)
-	event.kind = non_ascii_keystroke;
+	event.kind = NON_ASCII_KEYSTROKE_EVENT;
       else
-	event.kind = ascii_keystroke;
+	event.kind = ASCII_KEYSTROKE_EVENT;
       event.code = code;
       event.modifiers =	modifiers;
       event.frame_or_window = selected_frame;
@@ -3395,12 +3380,10 @@ dos_rawgetc ()
 	  /* Generate SELECT_WINDOW_EVENTs when needed.  */
 	  if (mouse_autoselect_window)
 	    {
-	      int mouse_area;
-
 	      mouse_window = window_from_coordinates (SELECTED_FRAME(),
 						      mouse_last_x,
 						      mouse_last_y,
-						      &mouse_area, 0);
+						      0, 0);
 	      /* A window will be selected only when it is not
 		 selected now, and the last mouse movement event was
 		 not in it.  A minibuffer window will be selected iff
@@ -3420,21 +3403,21 @@ dos_rawgetc ()
 	  else
 	    last_mouse_window = Qnil;
 
-	  previous_help_echo = help_echo;
-	  help_echo = help_echo_object = help_echo_window = Qnil;
+	  previous_help_echo_string = help_echo_string;
+	  help_echo_string = help_echo_object = help_echo_window = Qnil;
 	  help_echo_pos = -1;
 	  IT_note_mouse_highlight (SELECTED_FRAME(),
 				   mouse_last_x, mouse_last_y);
 	  /* If the contents of the global variable help_echo has
 	     changed, generate a HELP_EVENT.  */
-	  if (!NILP (help_echo) || !NILP (previous_help_echo))
+	  if (!NILP (help_echo_string) || !NILP (previous_help_echo_string))
 	    {
 	      event.kind = HELP_EVENT;
 	      event.frame_or_window = selected_frame;
 	      event.arg = help_echo_object;
 	      event.x = WINDOWP (help_echo_window)
 		? help_echo_window : selected_frame;
-	      event.y = help_echo;
+	      event.y = help_echo_string;
 	      event.timestamp = event_timestamp ();
 	      event.code = help_echo_pos;
 	      kbd_buffer_store_event (&event);
@@ -3473,7 +3456,7 @@ dos_rawgetc ()
 		      }
 		  }
 
-		event.kind = mouse_click;
+		event.kind = MOUSE_CLICK_EVENT;
 		event.code = button_num;
 		event.modifiers = dos_get_modifiers (0)
 		  | (press ? down_modifier : up_modifier);
@@ -3517,31 +3500,7 @@ dos_keyread ()
 }
 
 #ifndef HAVE_X_WINDOWS
-/* See xterm.c for more info.  */
-void
-pixel_to_glyph_coords (f, pix_x, pix_y, x, y, bounds, noclip)
-     FRAME_PTR f;
-     register int pix_x, pix_y, *x, *y;
-     XRectangle *bounds;
-     int noclip;
-{
-  if (bounds) abort ();
 
-  /* Ignore clipping.  */
-
-  *x = pix_x;
-  *y = pix_y;
-}
-
-void
-glyph_to_pixel_coords (f, x, y, pix_x, pix_y)
-     FRAME_PTR f;
-     register int x, y, *pix_x, *pix_y;
-{
-  *pix_x = x;
-  *pix_y = y;
-}
-
 /* Simulation of X's menus.  Nothing too fancy here -- just make it work
    for now.
 
@@ -4405,7 +4364,7 @@ The argument object is never altered--the value is a copy.  */)
     return Qnil;
 
   tem = Fcopy_sequence (filename);
-  msdos_downcase_filename (XSTRING (tem)->data);
+  msdos_downcase_filename (SDATA (tem));
   return tem;
 }
 
@@ -4894,6 +4853,7 @@ run_msdos_command (argv, working_dir, tempin, tempout, temperr, envv)
   return result;
 }
 
+void
 croak (badfunc)
      char *badfunc;
 {
@@ -4926,7 +4886,7 @@ gethostname (p, size)
 /* When time zones are set from Ms-Dos too many C-libraries are playing
    tricks with time values.  We solve this by defining our own version
    of `gettimeofday' bypassing GO32.  Our version needs to be initialized
-   once and after each call to `tzset' with TZ changed.  That is 
+   once and after each call to `tzset' with TZ changed.  That is
    accomplished by aliasing tzset to init_gettimeofday. */
 
 static struct tm time_rec;
@@ -5007,7 +4967,7 @@ static sigset_t pending_signals;
 typedef void (*sighandler_t)(int);
 static sighandler_t prev_handlers[320];
 
-/* A signal handler which just records that a signal occured
+/* A signal handler which just records that a signal occurred
    (it will be raised later, if and when the signal is unblocked).  */
 static void
 sig_suspender (signo)
@@ -5089,7 +5049,7 @@ sigprocmask (how, new_set, old_set)
 #else /* not POSIX_SIGNALS */
 
 sigsetmask (x) int x; { return 0; }
-sigblock (mask) int mask; { return 0; } 
+sigblock (mask) int mask; { return 0; }
 
 #endif /* not POSIX_SIGNALS */
 #endif /* not __DJGPP_MINOR__ < 2 */
@@ -5302,16 +5262,8 @@ syms_of_msdos ()
 {
   recent_doskeys = Fmake_vector (make_number (NUM_RECENT_DOSKEYS), Qnil);
   staticpro (&recent_doskeys);
+
 #ifndef HAVE_X_WINDOWS
-  help_echo = Qnil;
-  staticpro (&help_echo);
-  help_echo_object = Qnil;
-  staticpro (&help_echo_object);
-  help_echo_window = Qnil;
-  staticpro (&help_echo_window);
-  previous_help_echo = Qnil;
-  staticpro (&previous_help_echo);
-  help_echo_pos = -1;
 
   /* The following two are from xfns.c:  */
   Qbar = intern ("bar");
@@ -5329,9 +5281,6 @@ syms_of_msdos ()
 This variable is used only by MSDOS terminals.  */);
   Vdos_unsupported_char_glyph = '\177';
 
-  DEFVAR_BOOL ("mouse-autoselect-window", &mouse_autoselect_window,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  mouse_autoselect_window = 0;
 #endif
 #ifndef subprocesses
   DEFVAR_BOOL ("delete-exited-processes", &delete_exited_processes,

@@ -34,8 +34,8 @@
 % This is a bit of a dirty hack on the GNU Emacs reference card
 % to produce a Dired reference card instead.
 
-% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together 
-% because I wanted a Dired reference card, 
+% I (Evgeny Roubinchtein, eroubinc@u.washington.edu) put this together
+% because I wanted a Dired reference card,
 % but couldn't find anything on the 'net.
 % Based mostly off Dired's describe-mode.
 
@@ -75,7 +75,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 \def\ncolumns{\the\columnsperpage}
 
-\message{[\ncolumns\space 
+\message{[\ncolumns\space
   column\if 1\ncolumns\else s\fi\space per page]}
 
 \def\scaledmag#1{ scaled \magstep #1}
@@ -153,7 +153,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
   \def\bye{\par\vfill\supereject
     \if a\abc \else\null\vfill\eject\fi
     \if a\abc \else\null\vfill\eject\fi
-    \end}  
+    \end}
 \fi
 
 % we won't be using math mode much, so redefine some of the characters
@@ -259,18 +259,18 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 % L'\'edition d'un r\'epertoire signifie que vous pouvez visiter,
 % renommer, copier, compresser, compiler des fichiers. Dans le tampon
 % d'\'edition, vous pouvez modifier les attributs des fichiers, leur
-% appliquer des commandes 
+% appliquer des commandes
 % shell ou ins\'erer des sous-r\'epertoires. Vous pouvez « marquer » des
 % fichiers pour qu'ils soient supprim\'es plus tard ou pour leur
 % appliquer des commandes ; cela peut \^etre fait pour un seul fichier \`a
 % la fois ou pour un ensemble de fichiers correspondant \`a certains
 % crit\`eres (fichiers correspondant \`a une expression rationnelle
 % donn\'ee, par exemple).
- 
+
 % On se d\'eplace dans le tampon \`a l'aide des commandes habituelles de
 % d\'eplacement du curseur. Les lettres ne s'ins\`erent plus mais servent
 % \`a ex\'ecuter des commandes, les chiffres (0-9) sont des param\`etres pr\'efixes.
- 
+
 % La plupart des commandes agissent soit sur tous les fichiers marqu\'es,
 % soit sur le fichier courant s'il n'y a pas de fichier marqu\'e. On
 % utilise un param\`etre pr\'efixe pour agir sur les NUM fichiers suivants
@@ -280,7 +280,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 % sous-processus sur un groupe de fichiers afficheront une liste des
 % fichiers pour lesquels le sous-processus a \'echou\'e. Taper y tentera
 % de vous expliquer ce qui a pos\'e probl\`eme.
- 
+
 % Lorsque l'on \'edite plusieurs fichiers dans un unique tampon, chaque
 % r\'epertoire agit comme une page : C-x [ et C-x ] peuvent donc servir
 % \`a se d\'eplacer dans ces r\'epertoires.
@@ -305,7 +305,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 \section{Commandes avec la souris}
 \metax{visiter le fichier}{Mouse_Button_2}
-\metax{ouvrir un menu}{Control-Mouse_Button_3} 
+\metax{ouvrir un menu}{Control-Mouse_Button_3}
 
 \section{Actions immediates sur les fichiers}
 
@@ -371,10 +371,10 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 \key{placer un flag sur tous les fichiers de sauvegarde automatique}{\#}
 \key{placer un flag sur les diff\'erents fichiers interm\'ediaires}{\&}
 \key{placer un flag sur les sauvegardes num\'erot\'ees (finissant par
-  .\~{}1\~{}, .\~{}2\~{}, etc.)}{.} 
+  .\~{}1\~{}, .\~{}2\~{}, etc.)}{.}
 \key{ex\'ecuter les suppressions demand\'ees (fichiers ayant un flag)}{x}
 \key{placer un flag sur les fichiers correspondant \`a une expression
-  rationnelle }{\% d} 
+  rationnelle }{\% d}
 
 \section{Modifier le tampon Dired}
 
@@ -391,7 +391,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 \section{Commandes sur les expressions rationnelles}
 
 \key{marquer les noms de fichiers correspondant \`a une expression
-  rationnelle}{\% m} 
+  rationnelle}{\% m}
 \key{copier les fichiers marqu\'es par une expression rationnelle}{\% C}
 \key{renommer les fichiers marqu\'es par une expression rationnelle}{\% R}
 \key{lien physique}{\% H}
@@ -401,7 +401,7 @@ Foundation, Inc., 675 Massachusetts Ave, Cambridge MA 02139.
 
 \section{Dired et Find}
 \metax{fichier(s) dired dont le nom correspond \`a un motif}{M-x
-  find-names-dired} 
+  find-names-dired}
 \metax{fichier(s) dired contenant un motif}{M-x find-grep-dired}
 \metax{fichier(s) dired bas\'es sur ce que produit \kbd{find}}{M-x find-dired}
 

@@ -20,7 +20,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="bsd4-2"  */
 
@@ -59,8 +59,6 @@ Boston, MA 02111-1307, USA.  */
 #ifndef sigmask
 #define sigmask(m) (1 << ((m) - 1))
 #endif
-
-#define HAVE_ALLOCA
 
 /* Here is where programs actually start running */
 #define TEXT_START 0x8000

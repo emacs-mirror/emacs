@@ -1,4 +1,4 @@
-;;; bruce.el --- bruce phrase utility for overloading the Communications
+;;; bruce.el --- bruce phrase utility for overloading the Communications -*- no-byte-compile: t -*-
 ;;; Decency Act snoops, if any.
 
 ;; Copyright (C) 1988, 1993, 1997 Free Software Foundation, Inc.
@@ -144,5 +144,7 @@
 ;; Note: the implementation that used to take up most of this file has been
 ;; cleaned up, generalized, gratuitously broken by esr, and now resides in
 ;; cookie1.el.
+
+(provide 'bruce)
 
 ;;; bruce.el ends here

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/macros
 @node Macros, Customization, Functions, Top
@@ -446,7 +446,7 @@ macro.  Here is a correct expansion for the @code{for} macro:
 @end group
 @end smallexample
 
-Here is a macro definition that creates this expansion: 
+Here is a macro definition that creates this expansion:
 
 @smallexample
 @group

@@ -1,4 +1,4 @@
-;;; AT386.el --- terminal support package for IBM AT keyboards
+;;; AT386.el --- terminal support package for IBM AT keyboards -*- no-byte-compile: t -*-
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Keywords: terminals

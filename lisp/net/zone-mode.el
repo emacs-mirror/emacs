@@ -62,7 +62,7 @@
 	(if (string-lessp new-serial old-serial)
 	    (error (format "Serial numbers want to move backwards from %s to %s" old-serial new-serial))
 	  (replace-match (concat cur-date new-seq old-flag) t t))))))
-  
+
 ;;;###autoload
 (defun zone-mode-update-serial-hook ()
   "Update the serial number in a zone if the file was modified."

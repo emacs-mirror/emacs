@@ -52,7 +52,7 @@ my $help = 0;
 my $version = 0;
 my $old;
 
-my $rc = GetOptions ('help' => \$help, 'version' => \$version, 
+my $rc = GetOptions ('help' => \$help, 'version' => \$version,
                      'old=s' => \$old);
 if ($version) {
     print "0.1\n";
@@ -86,14 +86,14 @@ foreach $file (@old_files) {
     close IN;
 }
 
-# Process current files and remove those @tindex lines which we 
+# Process current files and remove those @tindex lines which we
 # know were already present in the files scanned above.
 
 print "Removing old \@tindex lines\n";
 foreach $file (@new_files) {
     my $modified = 0;
     my $contents = "";
-    
+
     open (IN, "< $file") or fatal "Cannot open $file.orig for reading: $!";
     while (<IN>) {
 	if (/^\s*\@tindex\s+(\S+)/ && $tindex{$1}) {
@@ -103,7 +103,7 @@ foreach $file (@new_files) {
 	    $contents = $contents . $_;
 	}
     }
-    
+
     close IN;
 
     if ($modified) {

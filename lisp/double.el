@@ -26,7 +26,7 @@
 
 ;; This mode is intended for use with languages that adds a small
 ;; number of extra letters not available on the keyboard.
-;; 
+;;
 ;; Examples includes Scandinavian and German with an US keyboard.
 ;;
 ;; The idea is that certain keys are overloaded.  When you press it
@@ -34,7 +34,7 @@
 ;; string will be replaced by another.  This can be used for mapping
 ;; keys on a US keyboard to generate characters according to the local
 ;; keyboard convention when pressed once, and according to US keyboard
-;; convention when pressed twice. 
+;; convention when pressed twice.
 ;;
 ;; To use this mode, you must define the variable `double-map' and
 ;; then enable double mode with `M-x double-mode'.  Read the
@@ -75,7 +75,7 @@ Each entry is a list with three elements:
 
 (defcustom double-prefix-only t
   "*Non-nil means that Double mode mapping only works for prefix keys.
-That is, for any key `X' in `double-map',  `X' alone will be mapped
+That is, for any key `X' in `double-map', `X' alone will be mapped
 but not `C-u X' or `ESC X' since the X is not the prefix key."
   :group 'double
   :type 'boolean)
@@ -99,7 +99,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 (or (boundp 'isearch-mode-map)
     (load-library "isearch"))
 
-(define-key isearch-mode-map [ignore] 
+(define-key isearch-mode-map [ignore]
   (function (lambda () (interactive) (isearch-update))))
 
 (defun double-translate-key (prompt)
@@ -117,7 +117,7 @@ but not `C-u X' or `ESC X' since the X is not the prefix key."
 	   (let ((new (double-read-event prompt))
 		 (entry (assoc double-last-event double-map)))
 	     (if (eq new double-last-event)
-		 (progn 
+		 (progn
 		   (setq unread-command-events
 			 (append (make-list (1- (length (nth 1 entry)))
 					    127)

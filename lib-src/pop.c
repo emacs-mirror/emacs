@@ -119,24 +119,24 @@ extern int h_errno;
 #endif
 #endif
 
-#ifndef _P
+#ifndef __P
 # ifdef __STDC__
-#  define _P(a) a
+#  define __P(a) a
 # else
-#  define _P(a) ()
+#  define __P(a) ()
 # endif /* __STDC__ */
 #endif /* ! __P */
 
-static int socket_connection _P((char *, int));
-static int pop_getline _P((popserver, char **));
-static int sendline _P((popserver, char *));
-static int fullwrite _P((int, char *, int));
-static int getok _P((popserver));
+static int socket_connection __P((char *, int));
+static int pop_getline __P((popserver, char **));
+static int sendline __P((popserver, char *));
+static int fullwrite __P((int, char *, int));
+static int getok __P((popserver));
 #if 0
-static int gettermination _P((popserver));
+static int gettermination __P((popserver));
 #endif
-static void pop_trash _P((popserver));
-static char *find_crlf _P((char *, int));
+static void pop_trash __P((popserver));
+static char *find_crlf __P((char *, int));
 
 #define ERROR_MAX 160		/* a pretty arbitrary size, but needs
 				   to be bigger than the original
@@ -261,7 +261,7 @@ pop_open (host, username, password, flags)
 #else
 #define DONT_NEED_PASSWORD 0
 #endif
- 
+
   if ((! password) && (! DONT_NEED_PASSWORD))
     {
       if (! (flags & POP_NO_GETPASS))
@@ -560,7 +560,7 @@ pop_list (server, message, IDs, sizes)
  * 		of lines with '>'.
  *	msg_buf	Output parameter to which a buffer containing the
  * 		message is assigned.
- * 
+ *
  * Return value: The number of bytes in msg_buf, which may contain
  * 	embedded nulls, not including its final null, or -1 on error
  * 	with pop_error set.
@@ -643,7 +643,7 @@ pop_retrieve (server, message, markfrom, msg_buf)
 
   free (ptr);
   return (-1);
-}     
+}
 
 int
 pop_retrieve_first (server, message, response)

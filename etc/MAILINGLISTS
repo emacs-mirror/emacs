@@ -331,7 +331,7 @@ See section '* General Information about bug-* lists and reporting
 program bugs'.
 
 * help-gnustep-request@gnu.org to subscribe to help-gnustep
-** gnUSENET newsgroup: gnu.gnustep.help	
+** gnUSENET newsgroup: gnu.gnustep.help
 ** Send contributions to: help-gnustep@gnu.org
 ** FAQ-URL: none known
 ** FAQ-Archive-name: none known
@@ -344,7 +344,7 @@ instead of posting them here.
 See section '* General Information about help-* lists'.
 
 * discuss-gnustep-request@gnu.org to subscribe to discuss-gnustep
-** gnUSENET newsgroup: gnu.gnustep.discuss	
+** gnUSENET newsgroup: gnu.gnustep.discuss
 ** Send contributions to: discuss-gnustep@gnu.org
 ** FAQ-URL: none known
 ** FAQ-Archive-name: none known
@@ -411,7 +411,7 @@ list info-gnu@gnu.org (see above).
 ** gnUSENET newsgroup: NONE
 ** Send contributions to: discuss-gnu-electric@gnu.org
 
-This list is the place for user discussion of Gnu Electric, a 
+This list is the place for user discussion of Gnu Electric, a
 sophisticated electrical CAD system that can handle many forms of
 circuit design.  Please send bug reports to bug-gnu-electric@gnu.org
 (see next entry).
@@ -583,7 +583,7 @@ program bugs'.
 ** NCURSES bug reports to: bug-ncurses@gnu.org
 
 This list distributes, to the active maintainers of ncurses
-(a free implementation of the Unix curses API) bug reports and fixes 
+(a free implementation of the Unix curses API) bug reports and fixes
 for, and suggestions for improvements in ncurses.  Users can also
 subscribe to this list.
 
@@ -977,7 +977,7 @@ program bugs'.
 
 This list distributes, to the active maintainers of zebra (a GPLed
 program to manage TCP/IP based routing protocols), bug reports, bug fixes,
-and suggestions for improvements to zebra.  User discussion of zebra 
+and suggestions for improvements to zebra.  User discussion of zebra
 also occurs here.
 
 There are no other GNU mailing lists or gnUSENET newsgroups for zebra.
@@ -1256,7 +1256,7 @@ This list is dead.  Use info-gnu-chess@gnu.org/gnu.chess instead.
 * info-gnu-chess-request@gnu.org to subscribe to info-gnu-chess
 ** gnUSENET newsgroup: gnu.chess
 ** Send contributions to: info-gnu-chess@gnu.org
-** FAQ-URL: http://www.research.digital.com/SRC/personal/Tim_Mann/chess.html
+** FAQ-URL: http://www.tim-mann.org/chess.html
 ** FAQ-Archive-name: games/chess/gnu-faq
 ** FAQ-Posting-frequency: monthly
 
@@ -1337,7 +1337,7 @@ discussion of bug fixes and patches.
 
 This list is unmoderated.
 
-* gpc-request@gnu.de to subscribe to gpc 
+* gpc-request@gnu.de to subscribe to gpc
 ** gnUSENET newsgroup: None at present.
 ** Send contributions to: gpc@gnu.de
 

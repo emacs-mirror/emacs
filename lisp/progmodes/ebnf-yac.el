@@ -5,7 +5,7 @@
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/09/24 10:17:13 vinicius>
+;; Time-stamp: <2003-02-10 10:47:04 jbarranquero>
 ;; Version: 1.2
 
 ;; This file is part of GNU Emacs.
@@ -89,11 +89,11 @@
 
 
 (defvar ebnf-yac-error nil
-  "Non-nil means \"error\" occured.")
+  "Non-nil means \"error\" occurred.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Syntatic analyzer
+;; Syntactic analyzer
 
 
 ;;; YACC = { YACC-Definitions }* "%%" { YACC-Rule }* [ "%%" [ YACC-Code ] ].

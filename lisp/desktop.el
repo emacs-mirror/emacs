@@ -471,6 +471,11 @@ MODE is the major mode."
 	     (and (null filename)
 		  (memq mode desktop-buffer-modes-to-save))))))
 ;; ----------------------------------------------------------------------------
+(defcustom desktop-relative-file-names nil
+  "*Store relative file names in the desktop file."
+  :type 'boolean
+  :group 'desktop)
+
 (defun desktop-save (dirname)
   "Save the Desktop file.  Parameter DIRNAME specifies where to save desktop."
   (interactive "DDirectory to save desktop file in: ")
@@ -481,42 +486,46 @@ MODE is the major mode."
 		 (mapcar
 		  (function
 		   (lambda (b)
-			      (set-buffer b)
-			      (list
-			       (buffer-file-name)
-			       (buffer-name)
-			       major-mode
-			       ;; minor modes
-			       (let (ret)
-				 (mapcar
-				  #'(lambda (mim)
-				      (and (boundp mim)
-					   (symbol-value mim)
-					   (setq ret
-						 (cons (let ((special (assq mim desktop-minor-mode-table)))
-							(if special
-							    (cadr special)
-							  mim))
-						      ret))))
-				  (mapcar #'car minor-mode-alist))
-				 ret)
-			       (point)
-			       (list (mark t) mark-active)
-			       buffer-read-only
-                               (run-hook-with-args-until-success
-                                'desktop-buffer-misc-functions)
-			       (let ((locals desktop-locals-to-save)
-				     (loclist (buffer-local-variables))
-				     (ll))
-				 (while locals
-				   (let ((here (assq (car locals) loclist)))
-				     (if here
-					 (setq ll (cons here ll))
-				       (if (member (car locals) loclist)
-					   (setq ll (cons (car locals) ll)))))
-				   (setq locals (cdr locals)))
-				 ll)
-			       )))
+                    (set-buffer b)
+                    (list
+                     (let ((bn (buffer-file-name)))
+                       (if bn
+                           (if desktop-relative-file-names
+                               (file-relative-name bn dirname)
+                             bn)))
+                     (buffer-name)
+                     major-mode
+                     ;; minor modes
+                     (let (ret)
+                       (mapcar
+                        #'(lambda (mim)
+                            (and (boundp mim)
+                                 (symbol-value mim)
+                                 (setq ret
+                                       (cons (let ((special (assq mim desktop-minor-mode-table)))
+                                               (if special
+                                                   (cadr special)
+                                                 mim))
+                                             ret))))
+                        (mapcar #'car minor-mode-alist))
+                       ret)
+                     (point)
+                     (list (mark t) mark-active)
+                     buffer-read-only
+                     (run-hook-with-args-until-success
+                      'desktop-buffer-misc-functions)
+                     (let ((locals desktop-locals-to-save)
+                           (loclist (buffer-local-variables))
+                           (ll))
+                       (while locals
+                         (let ((here (assq (car locals) loclist)))
+                           (if here
+                               (setq ll (cons here ll))
+                             (if (member (car locals) loclist)
+                                 (setq ll (cons (car locals) ll)))))
+                         (setq locals (cdr locals)))
+                       ll)
+                     )))
 		  (buffer-list))))
 	  (buf (get-buffer-create "*desktop*")))
       (set-buffer buf)
@@ -537,15 +546,15 @@ MODE is the major mode."
       (insert "\n;; Buffer section:\n")
       (mapcar
        (function (lambda (l)
-		   (if (apply 'desktop-save-buffer-p l)
-		       (progn
-			 (insert desktop-create-buffer-form)
-			 (mapcar
-			  (function (lambda (e)
-				      (insert "\n  "
-					      (desktop-value-to-string e))))
-			  l)
-			 (insert ")\n\n")))))
+         (if (apply 'desktop-save-buffer-p l)
+             (progn
+               (insert desktop-create-buffer-form)
+               (mapcar
+                (function (lambda (e)
+                  (insert "\n  "
+                          (desktop-value-to-string e))))
+                l)
+               (insert ")\n\n")))))
        info)
       (setq default-directory dirname)
       (if (file-exists-p filename) (delete-file filename))

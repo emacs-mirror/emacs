@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/Internal.c,v 1.1 1992/04/11 22:10:20 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Internal.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -51,7 +51,7 @@ static XMWinQue _XMWinQue;
 /*
  * _XMErrorCode - Global XMenu error code.
  */
-int _XMErrorCode = XME_NO_ERROR; 
+int _XMErrorCode = XME_NO_ERROR;
 /*
  * _XMErrorList - Global XMenu error code description strings.
  */
@@ -204,7 +204,7 @@ _XMWinQueFlush(display, menu, pane, select)
     /*
      * If the pane window queue is not empty...
      */
-    
+
     if (_XMWinQue.pq_size > 0) {
 	/*
 	 * set up attributes for pane window to be created.
@@ -214,7 +214,7 @@ _XMWinQueFlush(display, menu, pane, select)
 	attributes->border_pixel = menu->p_bdr_color;
 	attributes->background_pixmap = menu->inact_pixmap;
 	attributes->override_redirect = True;
-	
+
 	/*
 	 * Create all the pending panes in order, so that the
 	 * current pane will be on top, with the others
@@ -222,7 +222,7 @@ _XMWinQueFlush(display, menu, pane, select)
 	 */
 	for (pq_index = _XMWinQue.pq_size - 1;
 	     pq_index >= 0;
-	     pq_index--) 
+	     pq_index--)
 	  {
 	      p_ptr = _XMWinQue.pq[pq_index];  /* Retrieve next pane. */
 	      if (p_ptr == pane) break;
@@ -243,7 +243,7 @@ _XMWinQueFlush(display, menu, pane, select)
 	  }
 	for (pq_index = 0;
 	     pq_index < _XMWinQue.pq_size;
-	     pq_index++) 
+	     pq_index++)
 	  {
 	      p_ptr = _XMWinQue.pq[pq_index];	/* Retrieve next pane. */
 	      p_ptr->window = XCreateWindow(display,
@@ -273,7 +273,7 @@ _XMWinQueFlush(display, menu, pane, select)
     /*
      * If the selection window queue is not empty...
      */
-    
+
     if (_XMWinQue.sq_size > 0) {
 
 	for (sq_index = 0; sq_index < _XMWinQue.sq_size; sq_index++) {
@@ -293,10 +293,10 @@ _XMWinQueFlush(display, menu, pane, select)
 				   CopyFromParent,
 				   0,
 				   attributes);
-	    
+
 	    /*
 	     * Insert the new window id and its
-	     * associated XMSelect structure into the 
+	     * associated XMSelect structure into the
 	     * association table.
 	     */
 	    XMakeAssoc(display, menu->assoc_tab, s_ptr->window, s_ptr);
@@ -371,7 +371,7 @@ _XMGetSelectionPtr(p_ptr, s_num)
 {
     register XMSelect *s_ptr;	/* Selection pointer to be returned. */
     register int i;		/* Loop counter. */
-    
+
     /*
      * Is the selection number out of range?
      */
@@ -400,7 +400,7 @@ _XMGetSelectionPtr(p_ptr, s_num)
  *			 global values.
  */
 _XMRecomputeGlobals(display, menu)
-    register Display *display; /*X11 display variable. */	
+    register Display *display; /*X11 display variable. */
     register XMenu *menu;	/* Menu object to compute from. */
 {
     register XMPane *p_ptr;	/* Pane pointer. */
@@ -418,7 +418,7 @@ _XMRecomputeGlobals(display, menu)
     int s_width;		/* Selection window width. */
 
     int screen;			/* DefaultScreen holder. */
-    
+
     /*
      * For each pane...
      */
@@ -427,14 +427,14 @@ _XMRecomputeGlobals(display, menu)
 	p_ptr != menu->p_list;
 	p_ptr = p_ptr->next
     ){
-	
+
 	/*
 	 * Recompute maximum pane label width.
 	 */
 	max_p_label = max(max_p_label, p_ptr->label_width);
 
 	/*
-	 * Recompute maximum selection count. 
+	 * Recompute maximum selection count.
 	 */
 	s_count = max(s_count, p_ptr->s_count);
 
@@ -495,7 +495,7 @@ _XMRecomputeGlobals(display, menu)
     menu->p_width = p_width;
     menu->s_width = s_width;
 
-    /* 
+    /*
      * Ensure that the origin of the menu is placed so that
      * None of the panes ore selections are off the screen.
      */
@@ -522,10 +522,10 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
 {
     register int window_x;	/* Recomputed window X coordinate. */
     register int window_y;	/* Recomputed window Y coordinate. */
-    
+
     unsigned long change_mask;	/* Value mask to reconfigure window. */
     XWindowChanges *changes;	/* Values to use in configure window. */
-    
+
     register Bool config_p = False;	/* Reconfigure pane window? */
 
     /*
@@ -558,7 +558,7 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
     window_y += menu->y_pos;
 
     /*
-     * If the newly compute pane coordinates differ from the 
+     * If the newly compute pane coordinates differ from the
      * current coordinates, reset the current coordinates and
      * reconfigure the pane.
      */
@@ -608,7 +608,7 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
 	    changes->y = p_ptr->window_y;
 	    changes->width = p_ptr->window_w;
 	    changes->height = p_ptr->window_h;
-	    
+
 	    XConfigureWindow(
 			     display,
 			     p_ptr->window,
@@ -616,7 +616,7 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
 			     changes
 			     );
 	    free(changes);
-	    
+
 	}
 	else {
 	    if (_XMWinQueAddPane(display, menu, p_ptr) == _FAILURE) {
@@ -624,7 +624,7 @@ _XMRecomputePane(display, menu, p_ptr, p_num)
 	    }
 	}
     }
- 
+
     /*
      * Recompute label X position.
      */
@@ -673,7 +673,7 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
     register Bool config_s = False;	/* Reconfigure selection window? */
     XWindowChanges *changes;		/* Values to change in configure. */
     unsigned long change_mask;		/* Value mask for XConfigureWindow. */
-    
+
     /*
      * If the selection serial numbers are out of order, begin
      * resequencing selections.  Recompute selection window coordinates
@@ -735,7 +735,7 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
 	    changes->y = s_ptr->window_y;
 	    changes->width = s_ptr->window_w;
 	    changes->height = s_ptr->window_h;
-	    
+
 	    XConfigureWindow(
 			     display,
 			     s_ptr->window,
@@ -743,7 +743,7 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
 			     changes
 			     );
 	    free(changes);
-	    
+
 	}
 	else {
 	    if (_XMWinQueAddSelection(display, menu, s_ptr) == _FAILURE) {
@@ -775,7 +775,7 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
      * Recompute label Y position.
      */
     s_ptr->label_y = s_ptr->window_y + menu->s_fnt_info->max_bounds.ascent + menu->s_fnt_pad + menu->s_bdr_width;
-    
+
     /*
      * All went well, return successfully.
      */
@@ -787,7 +787,7 @@ _XMRecomputeSelection(display, menu, s_ptr, s_num)
 
 /*
  * _XMTransToOrigin - Internal subroutine to translate the point at
- *		      the center of the current pane and selection to the 
+ *		      the center of the current pane and selection to the
  *		      the menu origin.
  *
  *	WARNING! ******	Be certain that all menu dependencies have been
@@ -806,7 +806,7 @@ _XMTransToOrigin(display, menu, p_ptr, s_ptr, x_pos, y_pos, orig_x, orig_y)
 {
     register int l_orig_x;	/* Local X coordinate of the menu origin. */
     register int l_orig_y;	/* Local Y coordinate of the menu origin. */
-    
+
     /*
      * Translate the menu origin such that the cursor hot point will be in the
      * center of the desired current selection and pane.
@@ -863,7 +863,7 @@ _XMRefreshPane(display, menu, pane)
     register XMSelect *s_ptr;
 
     /*
-     * First clear the pane. 
+     * First clear the pane.
      */
     XClearWindow(display, pane->window);
     if (!pane->activated) {
@@ -916,12 +916,12 @@ _XMRefreshPane(display, menu, pane)
 	}
     }
 }
-    
-    
+
+
 
 
 /*
- * _XMRefreshSelection - Internal subroutine that refreshes 
+ * _XMRefreshSelection - Internal subroutine that refreshes
  *			 a single selection window.
  */
 _XMRefreshSelection(display, menu, select)
@@ -932,7 +932,7 @@ _XMRefreshSelection(display, menu, select)
     register int width = select->window_w;
     register int height = select->window_h;
     register int bdr_width = menu->s_bdr_width;
-    
+
     if (select->type == SEPARATOR) {
         XDrawLine(display,
                   select->parent_p->window,
@@ -944,11 +944,11 @@ _XMRefreshSelection(display, menu, select)
     }
     else if (select->activated) {
 	if (menu->menu_mode == INVERT) {
-	    XFillRectangle(display, 
+	    XFillRectangle(display,
 			   select->parent_p->window,
 			   menu->normal_select_GC,
 			   select->window_x, select->window_y,
-			   width, height); 
+			   width, height);
 	    XDrawString(display,
 			select->parent_p->window,
 			menu->inverse_select_GC,
@@ -963,7 +963,7 @@ _XMRefreshSelection(display, menu, select)
 	     * are slow compared to raster-ops lets use a raster-op to
 	     * draw the boxes.
              */
-	    
+
 	    XDrawRectangle(display,
 			   select->parent_p->window,
 			   menu->normal_select_GC,
@@ -980,7 +980,7 @@ _XMRefreshSelection(display, menu, select)
         }
     }
     else {
-	XClearArea(display, 
+	XClearArea(display,
 		   select->parent_p->window,
 		   select->window_x, select->window_y,
 		   width, height,

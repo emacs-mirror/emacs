@@ -1,9 +1,9 @@
 ;;; ada-stmt.el --- an extension to Ada mode for inserting statement templates
 
-;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000
+;; Copyright(C) 1987, 93, 94, 96, 97, 98, 99, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
-;; Ada Core Technologies's version:   $Revision: 1.21 $ 
+;; Ada Core Technologies's version:   Revision: 1.21 (GNAT 3.15)
 
 ;; This file is part of GNU Emacs.
 
@@ -29,7 +29,7 @@
 ;; Nov 1993. Rolf Ebert <ebert@enpc.fr> (RE) Moved the
 ;; skeleton generation into this separate file. The code still is
 ;; essentially written by DP
-;; 
+;;
 ;; Adapted Jun 1994. Markus Heritsch
 ;; <Markus.Heritsch@studbox.uni-stuttgart.de> (MH)
 ;; added menu bar support for templates
@@ -114,7 +114,10 @@
 					:included '(string= mode-name "Ada"))
 				  menu))
 
-      (define-key-after (lookup-key ada-mode-map [menu-bar Ada]) [Templates]
+      (define-key-after (or
+			 (lookup-key ada-mode-map [menu-bar Ada])
+			 (lookup-key ada-mode-map [menu-bar ada]))
+	[Templates]
 	(list 'menu-item
 	      "Templates"
 	      (easy-menu-create-menu "Templates" menu)
@@ -429,7 +432,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
 ;  "Inserts a use clause, prompting for the list of packages used."
 ;  "[list of packages used]: "
 ;  "use " str ?\;)
- 
+
 
 (define-skeleton ada-record
   "Insert a skeleton record type declaration."
@@ -472,7 +475,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   " (" ("[discriminant]: " str "; ") ") is\n"
   > "entry " _ \n
   <"end " str ";" )
-  
+
 
 (define-skeleton ada-get-param1
   "Prompt for arguments and if any enclose them in brackets."
@@ -553,7 +556,7 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   "[delay value]: "
   < "or\n"
   > "delay " str ";")
-  
+
 
 (define-skeleton ada-or-terminate
   "Insert a terminate statement."

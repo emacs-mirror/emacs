@@ -100,7 +100,7 @@ Per Abrahamsen <abraham@@dina.kvl.dk> writes :@*
 The internal easymenu.el interface changed between 19.28 and 19.29 in
 order to make it possible to create byte compiled files that can be
 shared between Gnu Emacs and XEmacs.  The change is upward
-compatible, but not downward compatible. 
+compatible, but not downward compatible.
 This gives the following compatibility table:
 
 @example
@@ -130,14 +130,14 @@ on it (unless you use Gnus as your mailer reader, that is). The mailing
 list is mainly for developers and testers.
 
 Gnus has a home World Wide Web page at@*
-@file{http://www.ifi.uio.no/~larsi/ding.html}.
-   
+@file{http://www.gnus.org/}.
+
 Gnus has a write up in the X Applications FAQ at@*
 @file{http://www.ee.ryerson.ca:8080/~elf/xapps/Q-III.html}.
-   
+
 The Gnus manual is also available on the World Wide Web. The canonical
 source is in Norway at@*
-@file{http://www.ifi.uio.no/~larsi/ding-manual/gnus_toc.html}.
+@file{http://www.gnus.org/manual/gnus_toc.html}.
 
 There are three mirrors in the United States:
 @enumerate
@@ -158,7 +158,7 @@ PostScript copies of the Gnus Reference card are available from@*
 United States. And@*
 @file{ftp://marvin.fkphy.uni-duesseldorf.de/pub/gnus/}
 in Germany.
-   
+
 An online version of the Gnus FAQ is available at@*
 @file{http://www.miranova.com/~steve/gnus-faq.html}. Off-line formats
 are also available:@*
@@ -277,7 +277,7 @@ Q2.3 How can I keep my nnvirtual:* groups sorted?
 How can I most efficiently arrange matters so as to keep my nnvirtual:*
 (etc) groups at the top of my group selection buffer, whilst keeping
 everything sorted in alphabetical order.
-   
+
 If you don't subscribe often to new groups then the easiest way is to
 first sort the groups and then manually kill and yank the virtuals
 wherever you want them.
@@ -307,7 +307,7 @@ The most vital entries in my (still young) all.SCORE:
   ("alt.fan.oj-simpson" -1000 nil s))
  ("subject"
   (concat "\\<\\(make\\|fast\\|big\\)\\s-*"
-          "\\(money\\|cash\\|bucks?\\)\\>" 
+          "\\(money\\|cash\\|bucks?\\)\\>"
    -1000 nil r)
   ("$$$$" -1000 nil s)))
 @end lisp
@@ -336,7 +336,7 @@ I  would like to contribute with mine.
   ;; $$$ Make Money $$$
   ("$$" -10 nil s)
   ;; Empty subjects are worthless!
-  ("^ *\\([(<]none[>)]\\|(no subject\\( given\\)?)\\)? *$" 
+  ("^ *\\([(<]none[>)]\\|(no subject\\( given\\)?)\\)? *$"
    -10 nil r)
   ;; Sometimes interesting announces occur!
   ("ANN?OU?NC\\(E\\|ING\\)" +10 nil r)
@@ -571,7 +571,7 @@ like this:
   (gnus-auto-select-first nil)))
 @end lisp
 
-and insert 
+and insert
 @lisp
 	(setq gnus-auto-select-first t)
 @end lisp

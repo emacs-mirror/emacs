@@ -14,7 +14,7 @@ Then insert marked file into other volume's .aux file."
 
 (defun volume-index-markup (arg)
   "Prepend  `NUMBER:' to page number.  Use Roman Numeral.
-Apply only to unsorted index file, 
+Apply only to unsorted index file,
 Then insert marked file into other volume's unsorted index file.
 Then run texindex on that file and save."
   (interactive
@@ -43,7 +43,7 @@ This is for the *Elisp Ref Manual*"
   (insert "\\unnumbchapentry {Volume 1}{}\n\\unnumbchapentry {}{}\n")
   (search-forward "\\unnumbchapentry {Index}")
   (forward-line 1)
-  (insert 
+  (insert
    "\\unnumbchapentry {}{}\n\\unnumbchapentry {}{}\n\\unnumbchapentry {}{}\n\\unnumbchapentry {}{}\n\\unnumbchapentry {Volume 2}{}\n\\unnumbchapentry {}{}\n"))
 
 

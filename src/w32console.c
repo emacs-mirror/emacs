@@ -108,7 +108,7 @@ move_cursor (int row, int col)
 {
   cursor_coords.X = col;
   cursor_coords.Y = row;
-  
+
   if (updating_frame == (struct frame *) NULL)
     {
       SetConsoleCursorPosition (cur_screen, cursor_coords);
@@ -120,7 +120,7 @@ void
 clear_to_end (void)
 {
   struct frame * f = PICK_FRAME ();
-  
+
   clear_end_of_line (FRAME_WIDTH (f) - 1);
   ins_del_lines (cursor_coords.Y, FRAME_HEIGHT (f) - cursor_coords.Y - 1);
 }
@@ -191,12 +191,12 @@ ins_del_lines (int vpos, int n)
     }
   scroll.Left = 0;
   scroll.Right = FRAME_WIDTH (f);
-  
+
   dest.X = 0;
-  
+
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
-  
+
   ScrollConsoleScreenBuffer (cur_screen, &scroll, NULL, dest, &fill);
 
   /* Here we have to deal with a w32 console flake: If the scroll
@@ -222,7 +222,7 @@ ins_del_lines (int vpos, int n)
       nb = dest.Y + (scroll.Bottom - scroll.Top) + 1;
 
       if (nb < scroll.Top)
-        { 
+        {
 	  for (i = nb; i < scroll.Top; i++)
             {
 	      move_cursor (i, 0);
@@ -230,7 +230,7 @@ ins_del_lines (int vpos, int n)
             }
         }
     }
-  
+
   cursor_coords.X = 0;
   cursor_coords.Y = vpos;
 }
@@ -249,10 +249,10 @@ scroll_line (int dist, int direction)
   COORD	     dest;
   CHAR_INFO  fill;
   struct frame *  f = PICK_FRAME ();
-  
+
   scroll.Top = cursor_coords.Y;
   scroll.Bottom = cursor_coords.Y;
-  
+
   if (direction == LEFT)
     {
       scroll.Left = cursor_coords.X + dist;
@@ -263,10 +263,10 @@ scroll_line (int dist, int direction)
       scroll.Left = cursor_coords.X;
       scroll.Right = FRAME_WIDTH (f) - dist - 1;
     }
-  
+
   dest.X = cursor_coords.X;
   dest.Y = cursor_coords.Y;
-  
+
   fill.Char.AsciiChar = 0x20;
   fill.Attributes = char_attr_normal;
 
@@ -285,7 +285,7 @@ insert_glyphs (register struct glyph *start, register int len)
     {
       /* Print the first len characters of start, cursor_coords.X adjusted
 	 by write_glyphs.  */
-	
+
       write_glyphs (start, len);
     }
   else
@@ -316,7 +316,7 @@ write_glyphs (register struct glyph *string, register int len)
       /* Identify a run of glyphs with the same face.  */
       int face_id = string->face_id;
       int n;
-      
+
       for (n = 1; n < len; ++n)
 	if (string[n].face_id != face_id)
 	  break;
@@ -336,7 +336,7 @@ write_glyphs (register struct glyph *string, register int len)
 	    {
               /* Set the attribute for these characters.  */
               if (!FillConsoleOutputAttribute (cur_screen, char_attr,
-                                               produced, cursor_coords, &r)) 
+                                               produced, cursor_coords, &r))
                 {
                   printf ("Failed writing console attributes: %d\n",
                           GetLastError ());
@@ -354,7 +354,7 @@ write_glyphs (register struct glyph *string, register int len)
 
               cursor_coords.X += produced;
               move_cursor (cursor_coords.Y, cursor_coords.X);
-            }    
+            }
           len -= consumed;
           n -= consumed;
           string += consumed;
@@ -371,7 +371,7 @@ write_glyphs (register struct glyph *string, register int len)
         {
           if (!FillConsoleOutputAttribute (cur_screen, char_attr_normal,
                                            terminal_coding.produced,
-                                           cursor_coords, &r)) 
+                                           cursor_coords, &r))
             {
               printf ("Failed writing console attributes: %d\n",
                       GetLastError ());
@@ -394,8 +394,8 @@ write_glyphs (register struct glyph *string, register int len)
 void
 delete_glyphs (int n)
 {
-  /* delete chars means scroll chars from cursor_coords.X + n to 
-     cursor_coords.X, anything beyond the edge of the screen should 
+  /* delete chars means scroll chars from cursor_coords.X + n to
+     cursor_coords.X, anything beyond the edge of the screen should
      come out empty...  */
 
   scroll_line (n, LEFT);
@@ -407,7 +407,7 @@ static unsigned int sound_type = 0xFFFFFFFF;
 void
 w32_sys_ring_bell (void)
 {
-  if (sound_type == 0xFFFFFFFF) 
+  if (sound_type == 0xFFFFFFFF)
     {
       Beep (666, 100);
     }
@@ -430,17 +430,17 @@ SOUND is nil to use the normal beep.  */)
 {
   CHECK_SYMBOL (sound);
 
-  if (NILP (sound)) 
+  if (NILP (sound))
       sound_type = 0xFFFFFFFF;
   else if (EQ (sound, intern ("asterisk")))
       sound_type = MB_ICONASTERISK;
-  else if (EQ (sound, intern ("exclamation"))) 
+  else if (EQ (sound, intern ("exclamation")))
       sound_type = MB_ICONEXCLAMATION;
-  else if (EQ (sound, intern ("hand"))) 
+  else if (EQ (sound, intern ("hand")))
       sound_type = MB_ICONHAND;
-  else if (EQ (sound, intern ("question"))) 
+  else if (EQ (sound, intern ("question")))
       sound_type = MB_ICONQUESTION;
-  else if (EQ (sound, intern ("ok"))) 
+  else if (EQ (sound, intern ("ok")))
       sound_type = MB_OK;
   else if (EQ (sound, intern ("silent")))
       sound_type = MB_EMACS_SILENT;
@@ -449,7 +449,7 @@ SOUND is nil to use the normal beep.  */)
 
   return sound;
 }
-   
+
 void
 reset_terminal_modes (void)
 {
@@ -482,7 +482,7 @@ set_terminal_modes (void)
 
 /* hmmm... perhaps these let us bracket screen changes so that we can flush
    clumps rather than one-character-at-a-time...
-   
+
    we'll start with not moving the cursor while an update is in progress.  */
 void
 update_begin (struct frame * f)
@@ -525,7 +525,7 @@ w32_face_attributes (f, face_id)
 
   if (face->background != FACE_TTY_DEFAULT_BG_COLOR
       && face->background != FACE_TTY_DEFAULT_COLOR)
-    char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4); 
+    char_attr = (char_attr & 0xff0f) + ((face->background % 16) << 4);
 
 
   /* NTEMACS_TODO: Faces defined during startup get both foreground
@@ -573,7 +573,7 @@ void
 initialize_w32_display (void)
 {
   CONSOLE_SCREEN_BUFFER_INFO	info;
-  
+
   cursor_to_hook		= move_cursor;
   raw_cursor_to_hook		= move_cursor;
   clear_to_end_hook		= clear_to_end;
@@ -589,10 +589,9 @@ initialize_w32_display (void)
   set_terminal_window_hook	= set_terminal_window;
   update_begin_hook		= update_begin;
   update_end_hook		= update_end;
-  
+
   read_socket_hook = w32_console_read_socket;
   mouse_position_hook = w32_console_mouse_position;
-  estimate_mode_line_height_hook = 0;
 
   /* Initialize interrupt_handle.  */
   init_crit ();
@@ -602,7 +601,7 @@ initialize_w32_display (void)
   GetConsoleMode (keyboard_handle, &prev_console_mode);
 
   prev_screen = GetStdHandle (STD_OUTPUT_HANDLE);
-  
+
 #ifdef USE_SEPARATE_SCREEN
   cur_screen = CreateConsoleScreenBuffer (GENERIC_READ | GENERIC_WRITE,
 					  0, NULL,
@@ -656,7 +655,7 @@ initialize_w32_display (void)
   }
 
   GetConsoleScreenBufferInfo (cur_screen, &info);
-  
+
   meta_key = 1;
   char_attr_normal = info.wAttributes;
 
@@ -668,10 +667,10 @@ initialize_w32_display (void)
   else
     {
       /* Lines per page.  Use buffer coords instead of buffer size.  */
-      FRAME_HEIGHT (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom - 
-	info.srWindow.Top; 
+      FRAME_HEIGHT (SELECTED_FRAME ()) = 1 + info.srWindow.Bottom -
+	info.srWindow.Top;
       /* Characters per line.  Use buffer coords instead of buffer size.  */
-      SET_FRAME_WIDTH (SELECTED_FRAME (), 1 + info.srWindow.Right - 
+      SET_FRAME_WIDTH (SELECTED_FRAME (), 1 + info.srWindow.Right -
 		       info.srWindow.Left);
     }
 
@@ -702,26 +701,9 @@ DEFUN ("set-cursor-size", Fset_cursor_size, Sset_cursor_size, 1, 1, 0,
   cci.dwSize = XFASTINT (size);
   cci.bVisible = TRUE;
   (void) SetConsoleCursorInfo (cur_screen, &cci);
-  
+
   return Qt;
 }
-
-#ifndef HAVE_NTGUI
-void
-pixel_to_glyph_coords (struct frame * f, int pix_x, int pix_y, int *x, int *y,
-		      void *bounds, int noclip)
-{
-  *x = pix_x;
-  *y = pix_y;
-}
-
-void
-glyph_to_pixel_coords (struct window * f, int x, int y, int *pix_x, int *pix_y)
-{
-  *pix_x = x;
-  *pix_y = y;
-}
-#endif /* !HAVE_NTGUI */
 
 void
 syms_of_ntterm ()

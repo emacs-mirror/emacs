@@ -215,7 +215,7 @@ With argument, asks for a command line."
   (kill-local-variable 'xscheme-buffer-name)
   (kill-local-variable 'xscheme-process-name)
   (kill-local-variable 'xscheme-runlight))
-  
+
 (defun verify-xscheme-buffer (buffer-name localp)
   (if (and localp (xscheme-process-buffer-current-p))
       (error "Cannot change the interaction buffer of an interaction buffer"))
@@ -284,9 +284,9 @@ the command interpreter stack:
 
 Some possible command interpreter types and their meanings are:
 
-[Evaluator]	read-eval-print loop for evaluating expressions
-[Debugger]	single character commands for debugging errors
-[Where]		single character commands for examining environments
+\[Evaluator]	read-eval-print loop for evaluating expressions
+\[Debugger]	single character commands for debugging errors
+\[Where]		single character commands for examining environments
 
 Starting with release 6.2 of Scheme, the latter two types of command
 interpreters will change the major mode of the Scheme process buffer

@@ -64,7 +64,7 @@ pou¾ití pøíkazù C-p, C-b, C-f a C-n.  Ka¾dý z tìchto pøíkazù pøesune
 kurzor na obrazovce o jeden øádek nebo sloupec v daném smìru.
 Zde je tabulka znázoròující smìr posuvu kurzoru vyvolaný tìmito ètyømi
 pøíkazy:
- 
+
 			  Pøedchozí øádek, C-p
 				  :
 				  :
@@ -769,7 +769,7 @@ numerický argument.
    C-x f.
 
 Jestli¾e provedete zmìny uprostøed odstavce, Auto Fill mód jej
-nepøeformátuje. 
+nepøeformátuje.
 Pro pøeformátování odstavce stisknìte M-q (META-q) s kurzorem uvnitø
 odstavce.
 
@@ -795,7 +795,7 @@ Kdy¾ stisknete C-s, uvidíte v echo oblasti prompt "I-search".  To vám
 a èeká, a¾ mu zadáte, co chcete hledat.  <RET> hledání ukonèí.
 
 >> Nyní zahajte hledání stiskem C-s.  POMALU, písmeno po písmenu, pi¹te
-   slovo 'kurzor'.  Po ka¾dém písmenu si v¹imnìte, co se dìje s kurzorem.  
+   slovo 'kurzor'.  Po ka¾dém písmenu si v¹imnìte, co se dìje s kurzorem.
    Teï jste vyhledali "kurzor" poprvé.
 >> Stisknìte C-s znovu, abyste nalezli dal¹í výskyt "kurzor".
 >> Nyní ètyøikrát stisknìte <Delete> a pozorujte, jak se kurzor

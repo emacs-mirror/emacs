@@ -161,6 +161,61 @@
  indian-dev-aiba-hash "devanagari-aiba" "Devanagari" "DevAB"
  "Devanagari transliteration by Aiba-method.")
 
+(if nil
+    (quail-define-package "punjabi-itrans" "Punjabi" "PnjIT" t "Punjabi ITRANS"))
+(quail-define-indian-trans-package
+ indian-pnj-itrans-v5-hash "punjabi-itrans" "Punjabi" "PnjIT"
+ "Punjabi transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "gujarati-itrans" "Gujarati" "GjrIT" t "Gujarati ITRANS"))
+(quail-define-indian-trans-package
+ indian-gjr-itrans-v5-hash "gujarati-itrans" "Gujarati" "GjrIT"
+ "Gujarati transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "oriya-itrans" "Oriya" "OriIT" t "Oriya ITRANS"))
+(quail-define-indian-trans-package
+ indian-ori-itrans-v5-hash "oriya-itrans" "Oriya" "OriIT"
+ "Oriya transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "bengali-itrans" "Bengali" "BngIT" t "Bengali ITRANS"))
+(quail-define-indian-trans-package
+ indian-bng-itrans-v5-hash "bengali-itrans" "Bengali" "BngIT"
+ "Bengali transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "assamese-itrans" "Assamese" "AsmIT" t "Assamese ITRANS"))
+(quail-define-indian-trans-package
+ indian-asm-itrans-v5-hash "assamese-itrans" "Assamese" "AsmIT"
+ "Assamese transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "telugu-itrans" "Telugu" "TlgIT" t "Telugu ITRANS"))
+(quail-define-indian-trans-package
+ indian-tlg-itrans-v5-hash "telugu-itrans" "Telugu" "TlgIT"
+ "Telugu transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "kannada-itrans" "Kannada" "KndIT" t "Kannada ITRANS"))
+(quail-define-indian-trans-package
+ indian-knd-itrans-v5-hash "kannada-itrans" "Kannada" "KndIT"
+ "Kannada transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "malayalam-itrans" "Malayalam" "MlmIT" t "Malayalam ITRANS"))
+(quail-define-indian-trans-package
+ indian-mlm-itrans-v5-hash "malayalam-itrans" "Malayalam" "MlmIT"
+ "Malayalam transliteration by ITRANS method.")
+
+(if nil
+    (quail-define-package "tamil-itrans" "Tamil" "TmlIT" t "Tamil ITRANS"))
+(quail-define-indian-trans-package
+ indian-tml-itrans-v5-hash "tamil-itrans" "Tamil" "TmlIT"
+ "Tamil transliteration by ITRANS method.")
+
+
 ;;;
 ;;; Input by Inscript
 ;;;
@@ -216,5 +271,68 @@
  indian-dev-base-table inscript-dev-keytable
  "devanagari-inscript" "Devanagari" "DevIS"
  "Devanagari keyboard Inscript.")
+
+(if nil
+    (quail-define-package "punjabi-inscript" "Punjabi" "PnjIS" t "Punjabi keyboard Inscript"))
+(quail-define-inscript-package
+ indian-pnj-base-table inscript-dev-keytable
+ "punjabi-inscript" "Punjabi" "PnjIS"
+ "Punjabi keyboard Inscript.")
+
+(if nil
+    (quail-define-package "gujarati-inscript" "Gujarati" "GjrIS" t "Gujarati keyboard Inscript"))
+(quail-define-inscript-package
+ indian-gjr-base-table inscript-dev-keytable
+ "gujarati-inscript" "Gujarati" "GjrIS"
+ "Gujarati keyboard Inscript.")
+
+(if nil
+    (quail-define-package "oriya-inscript" "Oriya" "OriIS" t "Oriya keyboard Inscript"))
+(quail-define-inscript-package
+ indian-ori-base-table inscript-dev-keytable
+ "oriya-inscript" "Oriya" "OriIS"
+ "Oriya keyboard Inscript.")
+
+(if nil
+    (quail-define-package "bengali-inscript" "Bengali" "BngIS" t "Bengali keyboard Inscript"))
+(quail-define-inscript-package
+ indian-bng-base-table inscript-dev-keytable
+ "bengali-inscript" "Bengali" "BngIS"
+ "Bengali keyboard Inscript.")
+
+(if nil
+    (quail-define-package "assamese-inscript" "Assamese" "AsmIS" t "Assamese keyboard Inscript"))
+(quail-define-inscript-package
+ indian-asm-base-table inscript-dev-keytable
+ "assamese-inscript" "Assamese" "AsmIS"
+ "Assamese keyboard Inscript.")
+
+(if nil
+    (quail-define-package "telugu-inscript" "Telugu" "TlgIS" t "Telugu keyboard Inscript"))
+(quail-define-inscript-package
+ indian-dev-base-table inscript-dev-keytable
+ "telugu-inscript" "Telugu" "TlgIS"
+ "Telugu keyboard Inscript.")
+
+(if nil
+    (quail-define-package "kannada-inscript" "Kannada" "KndIS" t "Kannada keyboard Inscript"))
+(quail-define-inscript-package
+ indian-knd-base-table inscript-dev-keytable
+ "kannada-inscript" "Kannada" "KndIS"
+ "Kannada keyboard Inscript.")
+
+(if nil
+    (quail-define-package "malayalam-inscript" "Malayalam" "MlmIS" t "Malayalam keyboard Inscript"))
+(quail-define-inscript-package
+ indian-mlm-base-table inscript-dev-keytable
+ "malayalam-inscript" "Malayalam" "MlmIS"
+ "Malayalam keyboard Inscript.")
+
+(if nil
+    (quail-define-package "tamil-inscript" "Tamil" "TmlIS" t "Tamil keyboard Inscript"))
+(quail-define-inscript-package
+ indian-tml-base-table inscript-dev-keytable
+ "tamil-inscript" "Tamil" "TmlIS"
+ "Tamil keyboard Inscript.")
 
 ;;; indian.el ends here

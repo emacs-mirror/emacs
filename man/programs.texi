@@ -181,6 +181,10 @@ delimiter from starting a defun.  Here's an example:
 ")
 @end example
 
+  To help you catch violations of this convention, Font Lock mode
+highlights confusing opening delimiters (those that ought to be
+quoted) in bold red.
+
   In the earliest days, the original Emacs found defuns by moving
 upward a level of parentheses or braces until there were no more
 levels to go up.  This always required scanning all the way back to
@@ -873,7 +877,9 @@ underline.  @xref{Face Customization}.
 @cindex comments
 
   Because comments are such an important part of programming, Emacs
-provides special commands for editing and inserting comments.
+provides special commands for editing and inserting comments.  It can
+also do spell checking on comments with Flyspell Prog mode
+(@pxref{Spelling}).
 
 @menu
 * Comment Commands::    Inserting, killing, and indenting comments.
@@ -1394,7 +1400,7 @@ display, so you can use it even on read-only buffers.  You can use the
 command @kbd{M-x glasses-mode} to enable or disable the mode in the
 current buffer; you can also add @code{glasses-mode} to the mode hook
 of the programming language major modes in which you normally want
-to use Glasses mode.        
+to use Glasses mode.
 
 @node Misc for Programs
 @section Other Features Useful for Editing Programs
@@ -1838,7 +1844,7 @@ runs the hook @code{fortran-mode-hook} (@pxref{Hooks}).
 @cindex Fortran77 and Fortran90
 @findex f90-mode
 @findex fortran-mode
-  Fortan mode is meant for editing Fortran77 ``fixed format'' source
+  Fortran mode is meant for editing Fortran77 ``fixed format'' source
 code.  For editing the modern Fortran90 ``free format'' source code,
 use F90 mode (@code{f90-mode}).  Emacs normally uses Fortran mode for
 files with extension @samp{.f}, @samp{.F} or @samp{.for}, and F90 mode
@@ -2154,6 +2160,15 @@ Don't move text in full-line comments automatically at all.
 full-line comments by setting the variable
 @code{fortran-comment-indent-char} to the single-character string you want
 to use.
+
+@vindex fortran-directive-re
+  Compiler directive lines, or preprocessor lines, have much the same
+appearance as comment lines.  It is important, though, that such lines
+never be indented at all, no matter what the value of
+@code{fortran-comment-indent-style}.  The variable
+@code{fortran-directive-re} is a regular expression that specifies which
+lines are directives.  Matching lines are never indented, and receive
+distinctive font-locking.
 
 @vindex comment-line-start
 @vindex comment-line-start-skip

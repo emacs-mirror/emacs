@@ -191,10 +191,13 @@
 	`(defvar ,symbol ,value ,doc))))
 
 (eval-when-compile
-  (if (fboundp 'defgroup)
-      (defgroup ispell nil
-	"User variables for emacs ispell interface."
-	:group 'applications)))
+  (if (not (fboundp 'defgroup))
+      (defmacro defgroup (&rest args)
+	"Empty replacement for defgroup when not supplied.")))
+
+(defgroup ispell nil
+  "User variables for emacs ispell interface."
+  :group 'applications)
 
 (if (not (fboundp 'buffer-substring-no-properties))
     (defun buffer-substring-no-properties (start end)
@@ -726,8 +729,11 @@ Otherwise returns the library directory name, if that is defined."
   (let ((case-fold-search-val case-fold-search)
 	;; avoid bugs when syntax of `.' changes in various default modes
 	(default-major-mode 'fundamental-mode)
+	(default-directory temporary-file-directory)
 	result status)
     (save-excursion
+      (let ((buf (get-buffer " *ispell-tmp*")))
+	(if buf (kill-buffer buf)))
       (set-buffer (get-buffer-create " *ispell-tmp*"))
       (erase-buffer)
       (setq status (call-process
@@ -831,26 +837,33 @@ and added as a submenu of the \"Edit\" menu.")
 (if ispell-menu-map-needed
     (let ((dicts (reverse (cons (cons "default" nil) ispell-dictionary-alist)))
 	  (dir (if (boundp 'ispell-library-directory) ispell-library-directory))
+	  (dict-map (make-sparse-keymap "Dictionaries"))
 	  name load-dict)
       (setq ispell-menu-map (make-sparse-keymap "Spell"))
       ;; add the dictionaries to the bottom of the list.
-      (while dicts
-	(setq name (car (car dicts))
-	      load-dict (car (cdr (member "-d" (nth 5 (car dicts)))))
-	      dicts (cdr dicts))
-	(cond ((not (stringp name))
-	       (define-key ispell-menu-map [default]
-		 '("Select Default Dict"
-		   "Dictionary for which Ispell was configured"
-		   . (lambda () (interactive)
-		       (ispell-change-dictionary "default")))))
+      (dolist (dict dicts)
+	(setq name (car dict)
+	      load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	(unless (stringp name)
+	  (define-key ispell-menu-map [default]
+	    '("Select Default Dict"
+	      "Dictionary for which Ispell was configured"
+	      . (lambda () (interactive)
+		  (ispell-change-dictionary "default"))))))
+      (fset 'ispell-dict-map dict-map)
+      (define-key ispell-menu-map [dictionaries]
+	`(menu-item "Select Dict" ispell-dict-map))
+      (dolist (dict dicts)
+	(setq name (car dict)
+	      load-dict (car (cdr (member "-d" (nth 5 dict)))))
+	(cond ((not (stringp name)))
 	      ((or (not dir)		; load all if library dir not defined
 		   (file-exists-p (concat dir "/" name ".hash"))
 		   (file-exists-p (concat dir "/" name ".has"))
 		   (and load-dict
 			(or (file-exists-p (concat dir "/" load-dict ".hash"))
 			    (file-exists-p (concat dir "/" load-dict ".has")))))
-	       (define-key ispell-menu-map (vector (intern name))
+	       (define-key dict-map (vector (intern name))
 		 (cons (concat "Select " (capitalize name) " Dict")
 		       `(lambda () (interactive)
 			  (ispell-change-dictionary ,name)))))))))
@@ -1069,7 +1082,7 @@ Protects against bogus binding of `enable-multibyte-characters' in XEmacs."
 
 ;;; *** Buffer Local Definitions ***
 
-(defconst ispell-words-keyword "LocalWords: "                                 
+(defconst ispell-words-keyword "LocalWords: "
   "The keyword for local oddly-spelled words to accept.
 The keyword will be followed by any number of local word spellings.
 There can be multiple of these keywords in the file.")
@@ -1227,7 +1240,7 @@ pass it the output of the last ispell invocation."
     ;; terrible kludge, and it's a bit slow, but it does get the work done.)
     (let ((cmd (aref string 0))
 	  ;; The following commands are not passed to Ispell until
-	  ;; we have a *reall* reason to invoke it.
+	  ;; we have a *real* reason to invoke it.
 	  (cmds-to-defer '(?* ?@ ?~ ?+ ?- ?! ?%))
 	  (default-major-mode 'fundamental-mode)
 	  (session-buf ispell-session-buffer)
@@ -1916,7 +1929,9 @@ Optional second argument contains the dictionary to use; the default is
 	    (while (search-backward "*" nil t) (insert "."))
 	    (setq word (buffer-string))
 	    (erase-buffer))
-	  (setq status (call-process prog nil t nil args word lookup-dict))
+	  (setq status (if lookup-dict
+			   (call-process prog nil t nil args word lookup-dict)
+			 (call-process prog nil t nil args word)))
 	  ;; grep returns status 1 and no output when word not found, which
 	  ;; is a perfectly normal thing.
 	  (if (stringp status)

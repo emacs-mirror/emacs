@@ -238,12 +238,13 @@ Returns the abbrev symbol, if expansion took place.  */)
 {
   register char *buffer, *p;
   int wordstart, wordend;
-  register int wordstart_byte, wordend_byte, idx;
+  register int wordstart_byte, wordend_byte, idx, idx_byte;
   int whitecnt;
   int uccount = 0, lccount = 0;
   register Lisp_Object sym;
   Lisp_Object expansion, hook, tem;
   Lisp_Object value;
+  int multibyte = ! NILP (current_buffer->enable_multibyte_characters);
 
   value = Qnil;
 
@@ -289,26 +290,39 @@ Returns the abbrev symbol, if expansion took place.  */)
 
   p = buffer = (char *) alloca (wordend_byte - wordstart_byte);
 
-  for (idx = wordstart_byte; idx < wordend_byte; idx++)
+  for (idx = wordstart, idx_byte = wordstart_byte; idx < wordend; )
     {
-      /* ??? This loop needs to go by characters!  */
-      register int c = FETCH_BYTE (idx);
+      register int c;
+
+      if (multibyte)
+	{
+	  FETCH_CHAR_ADVANCE (c, idx, idx_byte);
+	}
+      else
+	{
+	  c = FETCH_BYTE (idx_byte);
+	  idx++, idx_byte++;
+	}
+
       if (UPPERCASEP (c))
 	c = DOWNCASE (c), uccount++;
       else if (! NOCASEP (c))
 	lccount++;
-      *p++ = c;
+      if (multibyte)
+	p += CHAR_STRING (c, p);
+      else
+	*p++ = c;
     }
 
   if (VECTORP (current_buffer->abbrev_table))
     sym = oblookup (current_buffer->abbrev_table, buffer,
-		    wordend - wordstart, wordend_byte - wordstart_byte);
+		    wordend - wordstart, p - buffer);
   else
     XSETFASTINT (sym, 0);
 
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     sym = oblookup (Vglobal_abbrev_table, buffer,
-		    wordend - wordstart, wordend_byte - wordstart_byte);
+		    wordend - wordstart, p - buffer);
   if (INTEGERP (sym) || NILP (SYMBOL_VALUE (sym)))
     return value;
 
@@ -344,8 +358,8 @@ Returns the abbrev symbol, if expansion took place.  */)
 
       del_range_both (wordstart, wordstart_byte, wordend, wordend_byte, 1);
 
-      insert_from_string (expansion, 0, 0, XSTRING (expansion)->size,
-			  STRING_BYTES (XSTRING (expansion)), 1);
+      insert_from_string (expansion, 0, 0, SCHARS (expansion),
+			  SBYTES (expansion), 1);
       SET_PT (PT + whitecnt);
 
       if (uccount && !lccount)
@@ -427,11 +441,11 @@ is not undone.  */)
       if (!STRINGP (val))
 	error ("value of abbrev-symbol must be a string");
       zv_before = ZV;
-      del_range_byte (PT_BYTE, PT_BYTE + STRING_BYTES (XSTRING (val)), 1);
+      del_range_byte (PT_BYTE, PT_BYTE + SBYTES (val), 1);
       /* Don't inherit properties here; just copy from old contents.  */
       insert_from_string (Vlast_abbrev_text, 0, 0,
-			  XSTRING (Vlast_abbrev_text)->size,
-			  STRING_BYTES (XSTRING (Vlast_abbrev_text)), 0);
+			  SCHARS (Vlast_abbrev_text),
+			  SBYTES (Vlast_abbrev_text), 0);
       Vlast_abbrev_text = Qnil;
       /* Total number of characters deleted.  */
       adjust = ZV - zv_before;

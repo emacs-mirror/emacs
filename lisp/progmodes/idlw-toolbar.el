@@ -1,10 +1,10 @@
 ;;; idlw-toolbar.el --- a debugging toolbar for IDLWAVE
-;; Copyright (c) 1999, 2000 Free Software Foundation
+;; Copyright (c) 1999, 2000, 2001,2002 Free Software Foundation
 
-;; Author: Carsten Dominik <dominik@strw.leidenuniv.nl>
-;; Maintainer: John-David Smith <jdsmith@astro.cornell.edu>
-;; Version: 4.7
-;; Date: $Date: 2001/07/16 12:22:59 $
+;; Author: Carsten Dominik <dominik@astro.uva.nl>
+;; Maintainer: J.D. Smith <jdsmith@as.arizona.edu>
+;; Version: 4.15
+;; Date: $Date: 2003/02/04 13:24:35 $
 ;; Keywords: processes
 
 ;; This file is part of GNU Emacs.
@@ -28,6 +28,10 @@
 
 ;; This file implements a debugging toolbar for IDLWAVE.  It requires
 ;; Emacs or XEmacs with toolbar and xpm support.
+
+;; New versions of IDLWAVE, documentation, and more information
+;; available from:
+;;                 http://idlwave.org
 
 
 ;;; Code:
@@ -59,7 +63,7 @@
    "/* XPM */
 static char * file[] = {
 \"28 28 2 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"                            \",
 \"                            \",
@@ -96,7 +100,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"R	c #FFFF00000000\",
 \"                            \",
@@ -134,7 +138,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"R	c #FFFF00000000\",
 \"                            \",
@@ -172,7 +176,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 4 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \"_	c #FFFFFFFFFFFF\",
 \".	c #000000000000\",
 \"R	c #FFFF00000000\",
@@ -212,7 +216,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"R	c #FFFF00000000\",
 \"                            \",
@@ -250,7 +254,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 4 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"X	c #FFFFFFFFFFFF\",
 \"R	c #FFFF00000000\",
@@ -289,7 +293,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 2 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"                            \",
 \"                            \",
@@ -326,7 +330,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	s FgColor c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"                            \",
@@ -364,7 +368,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	s FgColor c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"                            \",
@@ -395,14 +399,14 @@ static char * file[] = {
 \"                            \",
 \"                            \",
 \"                            \"};")
-  "The Cont icon.")	  
+  "The Cont icon.")
 
 (defvar idlwave-toolbar-to-here-icon
   (idlwave-toolbar-make-button
    "/* XPM */
 static char * file[] = {
 \"28 28 4 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"R	c #FFFF00000000\",
@@ -441,7 +445,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"                            \",
@@ -479,7 +483,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"                            \",
@@ -517,7 +521,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"G	c #0000BBBB0000\",
 \"                            \",
@@ -556,7 +560,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 2 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	c #000000000000\",
 \"                            \",
 \"                            \",
@@ -593,7 +597,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 5 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	s FgColor c #000000000000\",
 \"_	c #FFFFFFFFFFFF\",
 \"G	c #0000BBBB0000\",
@@ -633,7 +637,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 5 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \".	s FgColor c #000000000000\",
 \"_	c #FFFFFFFFFFFF\",
 \"G	c #0000BBBB0000\",
@@ -673,7 +677,7 @@ static char * file[] = {
    "/* XPM */
 static char * file[] = {
 \"28 28 3 1\",
-\" 	c #C8C8C8C8C8C8 s backgroundToolBarColor\",
+\" 	c None s backgroundToolBarColor\",
 \"G	c #0000BBBB0000\",
 \". 	c #000000000000\",
 \"                            \",
@@ -874,3 +878,5 @@ static char * file[] = {
 (provide 'idlwave-toolbar)
 
 ;;; idlw-toolbar.el ends here
+
+

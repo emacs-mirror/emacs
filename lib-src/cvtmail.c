@@ -40,11 +40,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdio.h>
 
 #ifndef HAVE_STDLIB_H
-char *malloc ();
-char *realloc ();
 char *getenv ();
-#else
-#include <stdlib.h>
 #endif
 
 char *xmalloc __P ((unsigned));
@@ -168,7 +164,7 @@ char *
 xmalloc (size)
      unsigned size;
 {
-  char *result = malloc (size);
+  char *result = (char *) malloc (size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;
@@ -179,7 +175,7 @@ xrealloc (ptr, size)
      char *ptr;
      unsigned size;
 {
-  char *result = realloc (ptr, size);
+  char *result = (char *) realloc (ptr, size);
   if (!result)
     fatal ("virtual memory exhausted", 0);
   return result;

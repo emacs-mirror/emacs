@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/markers
 @node Markers, Text, Positions, Top
@@ -558,6 +558,16 @@ command loop deactivates the mark after the command returns (if
 Transient Mark mode is enabled).  All the primitives that change the
 buffer set @code{deactivate-mark}, to deactivate the mark when the
 command is finished.
+
+To write Lisp code that modifies the buffer without causing
+deactivation of the mark at the end of the command, bind
+@code{deactivate-mark} to @code{nil} around the code that does the
+modification.  For example:
+
+@example
+(let (deactivate-mark)
+  (insert " "))
+@end example
 @end defvar
 
 @defun deactivate-mark
@@ -585,7 +595,7 @@ marks of the current buffer, most recent first.
 @example
 @group
 mark-ring
-@result{} (#<marker at 11050 in markers.texi> 
+@result{} (#<marker at 11050 in markers.texi>
     #<marker at 10832 in markers.texi>
     @dots{})
 @end group

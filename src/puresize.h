@@ -42,7 +42,7 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 #ifndef BASE_PURESIZE
-#define BASE_PURESIZE (830000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
+#define BASE_PURESIZE (910000 + SYSTEM_PURESIZE_EXTRA + SITELOAD_PURESIZE_EXTRA)
 #endif
 
 /* Increase BASE_PURESIZE by a ratio depending on the machine's word size.  */
@@ -90,7 +90,7 @@ extern char my_edata[];
 #else /* not VIRT_ADDRESS_VARIES, not PNTR_COMPARISON_TYPE */
 
 extern char my_edata[];
-    
+
 #define PURE_P(obj) \
   (XPNTR (obj) < (unsigned int) my_edata)
 

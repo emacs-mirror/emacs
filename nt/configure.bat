@@ -1,7 +1,7 @@
 @echo off
 rem   ----------------------------------------------------------------------
-rem   Configuration script for MS Windows 95/98 and NT/2000
-rem   Copyright (C) 1999-2001 Free Software Foundation, Inc.
+rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
+rem   Copyright (C) 1999-2003 Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -22,14 +22,14 @@ rem   Boston, MA 02111-1307, USA.
 rem   ----------------------------------------------------------------------
 rem   YOU'LL NEED THE FOLLOWING UTILITIES TO MAKE EMACS:
 rem
-rem   + MS Windows 95/98 or NT/2000
+rem   + MS Windows 95/98/Me or NT/2000/XP
 rem   + either MSVC 2.x or later, or gcc-2.95 or later (with gmake 3.75
 rem     or later) and the Mingw32 and W32 API headers and libraries
 rem
 rem For reference, here is a list of which builds of gmake are known to
 rem work or not, and whether they work in the presence and/or absence of
 rem sh.exe.
-rem  
+rem
 rem                                       sh exists     no sh
 rem  cygwin b20.1 make (3.75):            okay[1]       fails[2]
 rem  MSVC compiled gmake 3.77:            okay          okay
@@ -85,6 +85,11 @@ if "%1" == "--no-opt" goto noopt
 if "%1" == "--no-cygwin" goto nocygwin
 if "%1" == "--cflags" goto usercflags
 if "%1" == "--ldflags" goto userldflags
+if "%1" == "--without-png" goto withoutpng
+if "%1" == "--without-jpeg" goto withoutjpeg
+if "%1" == "--without-gif" goto withoutgif
+if "%1" == "--without-tiff" goto withouttiff
+if "%1" == "--without-xpm" goto withoutxpm
 if "%1" == "" goto checkutils
 :usage
 echo Usage: configure [options]
@@ -97,6 +102,11 @@ echo.   --no-opt                disable optimization
 echo.   --no-cygwin             use -mno-cygwin option with GCC
 echo.   --cflags FLAG           pass FLAG to compiler
 echo.   --ldflags FLAG          pass FLAG to compiler when linking
+echo.   --without-png           do not use libpng even if it is installed
+echo.   --without-jpeg          do not use jpeg-6b even if it is installed
+echo.   --without-gif           do not use libungif even if it is installed
+echo.   --without-tiff          do not use libtiff even if it is installed
+echo.   --without-xpm           do not use libXpm even if it is installed
 goto end
 rem ----------------------------------------------------------------------
 :setprefix
@@ -143,6 +153,45 @@ set userldflags=%userldflags%%sep2%%1
 set sep2= %nothing%
 shift
 goto again
+rem ----------------------------------------------------------------------
+
+:withoutpng
+set pngsupport=N
+set HAVE_PNG=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutjpeg
+set jpegsupport=N
+set HAVE_JPEG=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutgif
+set gifsupport=N
+set HAVE_GIF=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withouttiff
+set tiffsupport=N
+set HAVE_TIFF=
+shift
+goto again
+
+rem ----------------------------------------------------------------------
+
+:withoutxpm
+set xpmsupport=N
+set HAVE_XPM=
+shift
+goto again
 
 rem ----------------------------------------------------------------------
 rem    Check that necessary utilities (cp and rm) are present.
@@ -165,7 +214,7 @@ goto end
 rem ----------------------------------------------------------------------
 rem   Auto-detect compiler if not specified, and validate GCC if chosen.
 :checkcompiler
-if (%COMPILER%)==(cl) goto genmakefiles
+if (%COMPILER%)==(cl) goto compilercheckdone
 if (%COMPILER%)==(gcc) goto checkgcc
 
 echo Checking whether 'cl' is available...
@@ -231,13 +280,120 @@ goto end
 set COMPILER=gcc
 rm -f junk.c junk.o
 echo Using 'gcc'
-goto genmakefiles
+goto compilercheckdone
 
 :clOk
 set COMPILER=cl
 rm -f junk.c junk.obj
 echo Using 'MSVC'
-goto genmakefiles
+
+:compilercheckdone
+
+rem ----------------------------------------------------------------------
+rem   Check for external image libraries. Since they are loaded
+rem   dynamically, the libraries themselves do not need to be present
+rem   at compile time, but the header files are required.
+
+if (%pngsupport%) == (N) goto pngDone
+
+echo Checking for libpng...
+echo #include "png.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto havePng
+
+echo ...png.h not found, building without PNG support.
+set HAVE_PNG=
+goto :pngDone
+
+:havePng
+echo ...PNG header available, building with PNG support.
+set HAVE_PNG=1
+
+:pngDone
+rm -f junk.c junk.obj
+
+if (%jpegsupport%) == (N) goto jpegDone
+
+echo Checking for jpeg-6b...
+echo #include "jconfig.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto haveJpeg
+
+echo ...jconfig.h not found, building without JPEG support.
+set HAVE_JPEG=
+goto :jpegDone
+
+:haveJpeg
+echo ...JPEG header available, building with JPEG support.
+set HAVE_JPEG=1
+
+:jpegDone
+rm -f junk.c junk.obj
+
+if (%gifsupport%) == (N) goto gifDone
+
+echo Checking for libgif...
+echo #include "gif_lib.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto haveGif
+
+echo ...gif_lib.h not found, building without GIF support.
+set HAVE_GIF=
+goto :gifDone
+
+:haveGif
+echo ...GIF header available, building with GIF support.
+set HAVE_GIF=1
+
+:gifDone
+rm -f junk.c junk.obj
+
+if (%tiffsupport%) == (N) goto tiffDone
+
+echo Checking for tiff...
+echo #include "tiffio.h" >junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto haveTiff
+
+echo ...tiffio.h not found, building without TIFF support.
+set HAVE_TIFF=
+goto :tiffDone
+
+:haveTiff
+echo ...TIFF header available, building with TIFF support.
+set HAVE_TIFF=1
+
+:tiffDone
+rm -f junk.c junk.obj
+
+if (%xpmsupport%) == (N) goto xpmDone
+
+echo Checking for libXpm...
+echo #define FOR_MSW 1 >junk.c
+echo #include "X11/xpm.h" >>junk.c
+echo main (){} >>junk.c
+rem   -o option is ignored with cl, but allows result to be consistent.
+%COMPILER% %usercflags% -c junk.c -o junk.obj >junk.out 2>junk.err
+if exist junk.obj goto haveXpm
+
+echo ...X11/xpm.h not found, building without XPM support.
+set HAVE_XPM=
+goto :xpmDone
+
+:haveXpm
+echo ...XPM header available, building with XPM support.
+set HAVE_XPM=1
+
+:xpmDone
+rm -f junk.c junk.obj junk.err junk.out
 
 rem ----------------------------------------------------------------------
 :genmakefiles
@@ -261,8 +417,17 @@ echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
 copy config.nt ..\src\config.h
+echo. >>..\src\config.h
+echo /* Start of settings from configure.bat.  */ >>..\src\config.h
 if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
 if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
+if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
+if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
+if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
+if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>..\src\config.h
+if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>..\src\config.h
+echo /* End of settings from configure.bat.  */ >>..\src\config.h
+
 copy paths.h ..\src\epaths.h
 
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile

@@ -32,7 +32,7 @@ Boston, MA 02111-1307, USA.  */
 #include <stdlib.h>
 #include <stdio.h>
 
-HDDEDATA CALLBACK 
+HDDEDATA CALLBACK
 DdeCallback (UINT uType, UINT uFmt, HCONV hconv,
 	     HSZ hsz1, HSZ hsz2, HDDEDATA hdata,
 	     DWORD dwData1, DWORD dwData2)
@@ -50,15 +50,14 @@ static struct entry
 {
   char *name;
   char *value;
-} 
-env_vars[] = 
+}
+env_vars[] =
 {
   {"emacs_dir", NULL},
   {"EMACSLOADPATH", "%emacs_dir%/site-lisp;%emacs_dir%/../site-lisp;%emacs_dir%/lisp;%emacs_dir%/leim"},
   {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
   {"EMACSDATA", "%emacs_dir%/etc"},
   {"EMACSPATH", "%emacs_dir%/bin"},
-  {"EMACSLOCKDIR", "%emacs_dir%/lock"},
   /* We no longer set INFOPATH because Info-default-directory-list
      is then ignored.  */
   /*  {"INFOPATH", "%emacs_dir%/info"},  */
@@ -66,7 +65,7 @@ env_vars[] =
   {"TERM", "cmd"}
 };
 
-BOOL 
+BOOL
 add_registry (path)
      char *path;
 {
@@ -74,39 +73,39 @@ add_registry (path)
   DWORD dwDisp;
   int i;
   BOOL ok = TRUE;
-  
-  /* Check both the current user and the local machine to see if we 
+
+  /* Check both the current user and the local machine to see if we
      have any resources.  */
-  
+
   if (RegCreateKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT,
 		      0, "", REG_OPTION_NON_VOLATILE,
-		      KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS 
+		      KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS
       && RegCreateKeyEx (HKEY_CURRENT_USER, REG_ROOT,
 			 0, "", REG_OPTION_NON_VOLATILE,
 			 KEY_WRITE, NULL, &hrootkey, &dwDisp) != ERROR_SUCCESS)
     {
       return FALSE;
     }
-  
-  for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++) 
+
+  for (i = 0; i < (sizeof (env_vars) / sizeof (env_vars[0])); i++)
     {
       char * value = env_vars[i].value ? env_vars[i].value : path;
-	
+
       if (RegSetValueEx (hrootkey, env_vars[i].name,
 			 0, REG_EXPAND_SZ,
 			 value, lstrlen (value) + 1) != ERROR_SUCCESS)
 	ok = FALSE;
-    }			      
-  
+    }
+
   RegCloseKey (hrootkey);
-  
+
   return (ok);
 }
 
 int
 main (argc, argv)
      int argc;
-     char *argv[];			
+     char *argv[];
 {
   DWORD idDde = 0;
   HCONV HConversation;

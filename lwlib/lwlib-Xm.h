@@ -5,7 +5,7 @@
 
 extern widget_creation_entry xm_creation_table [];
 
-Widget 
+Widget
 xm_create_dialog __P ((widget_instance* instance));
 
 Boolean

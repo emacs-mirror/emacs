@@ -26,7 +26,7 @@
 ;;; Commentary:
 
 ;; Support functions for parsing RFC-822 headers, used by mail and news
-;; modes.  
+;; modes.
 
 ;;; Code:
 
@@ -75,7 +75,7 @@
 		  (forward-char -1)
 		  (delete-char 2)
 		  t)
-		 ((memq ch '(?\ ?\t ?\n))
+		 ((memq ch '(?\  ?\t ?\n))
 		  (delete-region (point)
 				 (progn (skip-chars-forward " \t\n") (point)))
 		  t)
@@ -269,7 +269,7 @@
 	      (t
 	       (rfc822-bad-address "Strange character or missing comma")))))))
 
-			   
+
 (defun rfc822-addresses (header-text)
   (if (string-match "\\`[ \t]*\\([^][\000-\037 ()<>@,;:\\\".]+\\)[ \t]*\\'"
                     header-text)

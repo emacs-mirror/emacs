@@ -339,8 +339,8 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
-(defvar font-lock-reference-face	'font-lock-constant-face
-  "This variable is obsolete.  Use `font-lock-constant-face'.")
+(defvar font-lock-reference-face	'font-lock-constant-face)
+(make-obsolete-variable 'font-lock-reference-face 'font-lock-constant-face)
 
 ;; Fontification variables:
 
@@ -519,12 +519,17 @@ If this is nil, the major mode's syntax table is used.
 This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-beginning-of-syntax-function nil
-  "*Non-nil means use this function to move back outside of a syntactic block.
-When called with no args it should leave point at the beginning of any
-enclosing syntactic block.
-If this is nil, the beginning of the buffer is used (in the worst case).
+  "*Non-nil means use this function to move back outside all constructs.
+When called with no args it should move point backward to a place which
+is not in a string or comment and not within any bracket-pairs (or else,
+a place such that any bracket-pairs outside it can be ignored for Emacs
+syntax analysis and fontification).
+
+If this is nil, the beginning of the buffer is used, which is
+always correct but tends to be slow.
 This is normally set via `font-lock-defaults'.
-It is preferable to set `syntax-begin-function' instead.")
+This variable is semi-obsolete; we recommend setting
+`syntax-begin-function' instead.")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
@@ -613,7 +618,7 @@ When used from an elisp package (such as a minor mode), it is recommended
 to use nil for MODE (and place the call in a loop or on a hook) to avoid
 subtle problems due to details of the implementation.
 
-Note that some modes have specialised support for additional patterns, e.g.,
+Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 `objc-font-lock-extra-types' and `java-font-lock-extra-types'."
   (cond (mode
@@ -783,9 +788,9 @@ The value of this variable is used when Font Lock mode is turned on."
   :version "21.1"
   :group 'font-lock)
 
-(defvar fast-lock-mode nil)
-(defvar lazy-lock-mode nil)
-(defvar jit-lock-mode nil)
+(defvar fast-lock-mode)
+(defvar lazy-lock-mode)
+(defvar jit-lock-mode)
 
 (defun font-lock-turn-on-thing-lock ()
   (let ((thing-mode (font-lock-value-in-major-mode font-lock-support-mode)))
@@ -806,26 +811,26 @@ The value of this variable is used when Font Lock mode is turned on."
 			      (not font-lock-keywords-only))))))
 
 (defun font-lock-turn-off-thing-lock ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-mode -1))
-	(jit-lock-mode
+	((and (boundp 'jit-lock-mode) jit-lock-mode)
 	 (jit-lock-unregister 'font-lock-fontify-region)
 	 ;; Reset local vars to the non-jit-lock case.
 	 (kill-local-variable 'font-lock-fontify-buffer-function))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-mode -1))))
 
 (defun font-lock-after-fontify-buffer ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-after-fontify-buffer))
 	;; Useless now that jit-lock intercepts font-lock-fontify-buffer.  -sm
 	;; (jit-lock-mode
 	;;  (jit-lock-after-fontify-buffer))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-fontify-buffer))))
 
 (defun font-lock-after-unfontify-buffer ()
-  (cond (fast-lock-mode
+  (cond ((and (boundp 'fast-lock-mode) fast-lock-mode)
 	 (fast-lock-after-unfontify-buffer))
 	;; Useless as well.  It's only called when:
 	;; - turning off font-lock: it does not matter if we leave spurious
@@ -835,7 +840,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	;;
 	;; (jit-lock-mode
 	;;  (jit-lock-after-unfontify-buffer))
-	(lazy-lock-mode
+	((and (boundp 'lazy-lock-mode) lazy-lock-mode)
 	 (lazy-lock-after-unfontify-buffer))))
 
 ;;; End of Font Lock Support mode.
@@ -927,13 +932,18 @@ The value of this variable is used when Font Lock mode is turned on."
     (font-lock-after-unfontify-buffer)
     (setq font-lock-fontified nil)))
 
+(defvar font-lock-dont-widen nil
+  "If non-nil, font-lock will work on the non-widened buffer.
+Useful for things like RMAIL and Info where the whole buffer is not
+a very meaningful entity to highlight.")
+
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
       ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
        (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
-	  (widen)
+	  (unless font-lock-dont-widen (widen))
 	  ;; Use the fontification syntax table, if any.
 	  (when font-lock-syntax-table
 	    (set-syntax-table font-lock-syntax-table))
@@ -975,19 +985,16 @@ The value of this variable is used when Font Lock mode is turned on."
 (defvar font-lock-extra-managed-props nil
   "Additional text properties managed by font-lock.
 This is used by `font-lock-default-unfontify-region' to decide
-what properties to clear before refontifying a region.
-Since it is more or less directly passed to `remove-text-properties',
-it should have the shape of a property list (i.e. every other element
-is ignored).")
+what properties to clear before refontifying a region.")
 
 (defun font-lock-default-unfontify-region (beg end)
   (save-buffer-state nil
-    (remove-text-properties
+    (remove-list-of-text-properties
      beg end (append
 	      font-lock-extra-managed-props
 	      (if font-lock-syntactic-keywords
-		  '(face nil syntax-table nil font-lock-multiline nil)
-		'(face nil font-lock-multiline nil))))))
+		  '(syntax-table face font-lock-multiline)
+		'(face font-lock-multiline))))))
 
 ;; Called when any modification is made to buffer text.
 (defun font-lock-after-change-function (beg end old-len)
@@ -1023,7 +1030,8 @@ delimit the region to fontify."
 	      (font-lock-fontify-region (point) (mark)))
 	  ((error quit) (message "Fontifying block...%s" error-data)))))))
 
-(define-key facemenu-keymap "\M-g" 'font-lock-fontify-block)
+(if (boundp 'facemenu-keymap)
+    (define-key facemenu-keymap "\M-g" 'font-lock-fontify-block))
 
 ;;; End of Fontification functions.
 
@@ -1310,7 +1318,8 @@ LIMIT can be modified by the value of its PRE-MATCH-FORM."
 
 (defun font-lock-fontify-keywords-region (start end &optional loudly)
   "Fontify according to `font-lock-keywords' between START and END.
-START should be at the beginning of a line."
+START should be at the beginning of a line.
+LOUDLY, if non-nil, allows progress-meter bar."
   (unless (eq (car font-lock-keywords) t)
     (setq font-lock-keywords
 	  (font-lock-compile-keywords font-lock-keywords t)))
@@ -1465,8 +1474,9 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
     (when (nth 4 defaults)
       (set (make-local-variable 'font-lock-beginning-of-syntax-function)
 	   (nth 4 defaults)))
-    ;; The variable alist is set in font-core.el.
-
+    ;; Variable alist?
+    (dolist (x (nthcdr 5 defaults))
+      (set (make-local-variable (car x)) (cdr x)))
     ;; Setup `font-lock-keywords' last because its value might depend
     ;; on other settings (e.g. font-lock-compile-keywords uses
     ;; font-lock-beginning-of-syntax-function).
@@ -1730,7 +1740,7 @@ Does not move further than LIMIT.
 The expected syntax of a declaration/definition item is `word' (preceded by
 optional whitespace and `*' characters and proceeded by optional whitespace)
 optionally followed by a `('.  Everything following the item (but belonging to
-it) is expected to by skip-able by `scan-sexps', and items are expected to be
+it) is expected to be skip-able by `scan-sexps', and items are expected to be
 separated with a `,' and to be terminated with a `;'.
 
 Thus the regexp matches after point:	word (
@@ -1749,7 +1759,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       (let ((pos (point)))
 	(skip-chars-backward " \t\n")
 	(skip-syntax-backward "w")
-	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw*_\\sw*[ \t\n]*\\((\\)?")
+	(unless (looking-at "\\(\\sw+\\)[ \t\n]*\\sw+[ \t\n]*\\(((?\\)?")
 	  ;; Looks like it was something else, so go back to where we
 	  ;; were and reset the match data by rematching.
 	  (goto-char pos)
@@ -1783,7 +1793,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 		   ;; Variable declarations.
 		   "\\(const\\(ant\\)?\\|custom\\|face\\|parameter\\|var\\)\\|"
 		   ;; Structure declarations.
-		   "\\(class\\|group\\|package\\|struct\\|type\\)"
+		   "\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
 		   "\\)\\)\\>"
 		   ;; Any whitespace and defined object.
 		   "[ \t'\(]*"
@@ -1890,17 +1900,26 @@ The value of this variable is used when Font Lock mode is turned on."
 
 (defcustom c++-font-lock-extra-types
   '("\\sw+_t"
-    "\\([iof]\\|str\\)+stream\\(buf\\)?" "ios"
+
     "string" "rope"
+
     "list" "slist"
     "deque" "vector" "bit_vector"
+
     "set" "multiset"
     "map" "multimap"
-    "hash\\(_\\(m\\(ap\\|ulti\\(map\\|set\\)\\)\\|set\\)\\)?"
     "stack" "queue" "priority_queue"
     "type_info"
-    "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator"
-    "reference" "const_reference")
+
+    ;; (regexp-opt '("ios_base" "ios" "istream" "ostream" "istringstream" "ifstream" "iostream" "ofstream" "ostringstream" "fstream" "stringstream"))
+    "fstream\\|i\\(?:fstream\\|os\\(?:_base\\|tream\\)?\\|str\\(?:\\(?:ingstr\\)?eam\\)\\)\\|\\(?:o\\(?:f\\|string\\)?\\|string\\)stream"
+
+    ;; (regexp-opt '("hash" "hash_set" "hash_map" "hash_multiset" "hash_multimap"))
+    "hash\\(?:_\\(?:m\\(?:ap\\|ulti\\(?:map\\|set\\)\\)\\|set\\)\\)?"
+
+    ;; (regexp-opt '("pointer" "const_pointer" "reference" "const_reference" "iterator" "const_iterator" "reverse_iterator" "const_reverse_iterator" "size_type" "difference_type" "allocator_type"))
+    "allocator_type\\|const_\\(?:iterator\\|pointer\\|re\\(?:ference\\|verse_iterator\\)\\)\\|difference_type\\|iterator\\|pointer\\|re\\(?:ference\\|verse_iterator\\)\\|size_type"
+    )
   "*List of extra types to fontify in C++ mode.
 Each list item should be a regexp not containing word-delimiters.
 For example, a value of (\"string\") means the word string is treated as a type
@@ -1984,6 +2003,7 @@ The value of this variable is used when Font Lock mode is turned on."
 	     "ifndef" "include" "line" "pragma" "undef"))))
        (c-preprocessor-directives-depth
 	(regexp-opt-depth c-preprocessor-directives)))
+
  (defconst c-font-lock-keywords-1
   (list
    ;;
@@ -2188,6 +2208,8 @@ See also `c-font-lock-extra-types'.")
 	     "typeid"
 	     ;; Branko Cibej <branko.cibej@hermes.si> says this is new.
 	     "export"
+	     ;; Copied from C.  wsnyder@wsnyder.org says C++ needs it too.
+	     "restrict"
 	     ;; Mark Mitchell <mmitchell@usa.net> says these are new.
 	     "mutable" "explicit"
 	     ;; Alain Picard <ap@abelard.apana.org.au> suggests treating these

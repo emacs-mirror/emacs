@@ -21,7 +21,7 @@ can access a series of menus; then there may be a @dfn{tool bar}, a
 row of icons that perform editing commands if you click on them.
 Below this, the window begins.  The last line is a special @dfn{echo
 area} or @dfn{minibuffer window}, where prompts appear and where you
-can enter information when Emacs asks for it.  See below for more
+enter information when Emacs asks for it.  See below for more
 information about these special lines.
 
   You can subdivide the large text window horizontally or vertically
@@ -29,13 +29,14 @@ into multiple text windows, each of which can be used for a different
 file (@pxref{Windows}).  In this manual, the word ``window'' always
 refers to the subdivisions of a frame within Emacs.
 
-  The window that the cursor is in is the @dfn{selected window}, in
-which editing takes place.  Most Emacs commands implicitly apply to the
-text in the selected window (though mouse commands generally operate on
-whatever window you click them in, whether selected or not).  The other
-windows display text for reference only, unless/until you select them.
-If you use multiple frames under the X Window System, then giving the
-input focus to a particular frame selects a window in that frame.
+  At any time, one window is the @dfn{selected window}; the most
+prominent cursor indicates which window is selected.  Most Emacs
+commands implicitly apply to the text in the selected window (though
+mouse commands generally operate on whatever window you click them in,
+whether selected or not).  The other windows display text for
+reference only, unless/until you select them.  If you use multiple
+frames under the X Window System, then giving the input focus to a
+particular frame selects a window in that frame.
 
   Each window's last line is a @dfn{mode line}, which describes what
 is going on in that window.  It appears in inverse video, if the
@@ -75,23 +76,26 @@ the @samp{b}, as before.
   Sometimes people speak of ``the cursor'' when they mean ``point,'' or
 speak of commands that move point as ``cursor motion'' commands.
 
-  Text-only terminals have only one cursor, and when output is in
-progress it must appear where the output is being displayed.  This
-does not mean that point is moving.  It is only that Emacs has no way
-to show you the location of point except when the terminal is idle.
-
   If you are editing several files in Emacs, each in its own buffer,
-each buffer has its own point location.  A buffer that is not currently
-displayed remembers where point is in case you display it again later.
-
-  When Emacs displays multiple windows, each window has its own point
-location.  On text-only terminals, the cursor shows the location of
-point in the selected window.  On graphical terminals, Emacs shows a
-cursor in each window; the selected window's cursor is solid, and the
-other cursors are hollow.  Either way, the cursor or cursors tell you
-which window is selected.  If the same buffer appears in more than one
+each buffer has its own point location.  A buffer that is not
+currently displayed remembers its point location in case you display
+it again later.  When Emacs displays multiple windows, each window has
+its own point location.  If the same buffer appears in more than one
 window, each window has its own position for point in that buffer, and
 (when possible) its own cursor.
+
+  A text-only terminal has just one cursor, so Emacs puts it
+in the selected window.  The other windows do not show a cursor, even
+though they do have a location of point.  When Emacs updates the
+screen on a text-only terminal, it has to put the cursor temporarily
+at the place the output goes.  This doesn't mean point is there,
+though.  Once display updating finishes, Emacs puts the cursor where
+point is.
+
+  On graphical terminals, Emacs shows a cursor in each window; the
+selected window's cursor is solid or blinking, and the other cursors
+are just hollow.  Thus, the most striking cursor always shows you
+the selected window, on all kinds of terminals.
 
   @xref{Cursor Display}, for customization options that control display
 of the cursor or cursors.
@@ -103,7 +107,7 @@ for accessing the value now called ``point.''
 @node Echo Area
 @section The Echo Area
 @cindex echo area
-@c 
+@c
 
   The line at the bottom of the frame (below the mode line) is the
 @dfn{echo area}.  It is used to display small amounts of text for
@@ -130,15 +134,17 @@ flashing the screen.  The error also discards any input you have typed
 ahead.
 
   Some commands display informative messages in the echo area.  These
-messages look much like error messages, but they are not announced with
-a beep and do not throw away input.  Sometimes the message tells you
-what the command has done, when this is not obvious from looking at the
-text being edited.  Sometimes the sole purpose of a command is to show
-you a message giving you specific information---for example, @kbd{C-x =}
-displays a message describing the character position of point in the text
-and its current column in the window.  Commands that take a long time
-often display messages ending in @samp{...} while they are working, and
-add @samp{done} at the end when they are finished.
+messages look much like error messages, but they are not announced
+with a beep and do not throw away input.  Sometimes the message tells
+you what the command has done, when this is not obvious from looking
+at the text being edited.  Sometimes the sole purpose of a command is
+to show you a message giving you specific information---for example,
+@kbd{C-x =} (hold down @key{CTRL} and type @kbd{x}, then let go of
+@key{CTRL} and type @kbd{=}) displays a message describing the
+character position of point in the text and its current column in the
+window.  Commands that take a long time often display messages ending
+in @samp{...} while they are working, and add @samp{done} at the end
+when they are finished.
 
 @cindex @samp{*Messages*} buffer
 @cindex saved echo area messages
@@ -183,7 +189,7 @@ other windows; see @ref{Optional Mode Line}, for more about this.
   Normally, the mode line looks like this:
 
 @example
--@var{cs}:@var{ch}  @var{buf}      (@var{major} @var{minor})--@var{line}--@var{pos}------
+-@var{cs}:@var{ch}  @var{buf}      @var{line} @var{pos}   (@var{major} @var{minor})------
 @end example
 
 @noindent

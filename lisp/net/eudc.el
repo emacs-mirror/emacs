@@ -38,7 +38,7 @@
 ;;    The main entry points of EUDC are:
 ;;      `eudc-query-form': Query a directory server from a query form
 ;;      `eudc-expand-inline': Query a directory server for the e-mail address
-;;                            of the name before cursor and insert it in the 
+;;                            of the name before cursor and insert it in the
 ;;                            buffer
 ;;      `eudc-get-phone': Get a phone number from a directory server
 ;;      `eudc-get-email': Get an e-mail address from a directory server
@@ -134,7 +134,7 @@
 (defun eudc-plist-get (plist prop &optional default)
   "Extract a value from a property list.
 PLIST is a property list, which is a list of the form
-(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
+\(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
 corresponding to the given PROP, or DEFAULT if PROP is not
 one of the properties on the list."
   (if (eudc-plist-member plist prop)
@@ -207,7 +207,7 @@ Value is the new string."
 (defun eudc-default-set (var val)
   "Set the EUDC default value of VAR to VAL.
 The current binding of VAR is not changed."
-  (put var 'eudc-locals 
+  (put var 'eudc-locals
        (plist-put (get var 'eudc-locals) 'default val))
   (add-to-list 'eudc-local-vars var))
 
@@ -221,7 +221,7 @@ The current binding of VAR is changed only if PROTOCOL is omitted."
 	 (protocol-locals (eudc-plist-get eudc-locals 'protocol)))
     (setq protocol-locals (plist-put protocol-locals (or protocol
 							 eudc-protocol) val))
-    (setq eudc-locals 
+    (setq eudc-locals
 	  (plist-put eudc-locals 'protocol protocol-locals))
     (put var 'eudc-locals eudc-locals)
     (add-to-list 'eudc-local-vars var)
@@ -293,7 +293,7 @@ SERVER defaults to `eudc-server'"
 		  (eudc-plist-member eudc-locals 'server)))
 	'unbound
       (setq server-locals (eudc-plist-get eudc-locals 'server))
-      (eudc-lax-plist-get server-locals 
+      (eudc-lax-plist-get server-locals
 			  (or server
 			      eudc-server) 'unbound))))
 
@@ -789,7 +789,7 @@ If none try N - 1 and so forth."
   (let (formats)
     (while (and (null formats)
 		(> n 0))
-      (setq formats 
+      (setq formats
 	    (delq nil
 		  (mapcar '(lambda (format)
 			     (if (= n
@@ -1103,7 +1103,7 @@ queries the server for the existing fields and displays a corresponding form."
 
 ;;}}}
 
-;;{{{      Menus an keymaps
+;;{{{      Menus and keymaps
 
 (require 'easymenu)
 
@@ -1185,6 +1185,12 @@ queries the server for the existing fields and displays a corresponding form."
     (add-submenu '("Tools") (eudc-menu)))
    (eudc-emacs-p
     (cond
+     ((fboundp 'easy-menu-create-menu)
+      (define-key
+	global-map
+	[menu-bar tools directory-search]
+	(cons "Directory Search"
+	      (easy-menu-create-menu "Directory Search" (cdr (eudc-menu))))))
      ((fboundp 'easy-menu-add-item)
       (let ((menu (eudc-menu)))
 	(easy-menu-add-item nil '("tools") (easy-menu-create-menu (car menu)

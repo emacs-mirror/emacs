@@ -294,7 +294,7 @@
 	that &rest VAR is the last element, and that variables aren't doubled.
 	(byte-compile-lambda): Use it.
 
-2001-10-12  Eli Barzilay <eli@barzilay.org>
+2001-10-12  Eli Barzilay  <eli@barzilay.org>
 
 	* calculator.el (calculator-eng-display): Don't call concat
 	with an integer argument.
@@ -1242,7 +1242,7 @@
 	(quail-activate): Mention the hooks these functions run in their
 	doc strings.
 
-2001-09-05  Edward M. Reingold <reingold@iit.edu>
+2001-09-05  Edward M. Reingold  <reingold@iit.edu>
 
 	* cal-menu.el (calendar-mouse-view-other-diary-entries): Fix name
 	of file in header of menu.
@@ -1629,7 +1629,7 @@
 	window-scroll-functions are run with a window start that's
 	temporarily outside of the restriction.
 
-2001-08-16  Robert J. Chassell <bug-texinfo@gnu.org>
+2001-08-16  Robert J. Chassell  <bug-texinfo@gnu.org>
 
 	* textmodes/texnfo-upd.el: Update copyright notice, fix minor typos.
 	(texinfo-find-lower-level-node, texinfo-find-higher-level-node)
@@ -2093,7 +2093,7 @@
 
 	* ediff.el: Date of last update, copyright years.
 
-	* ediff-wind (ediff-setup-control-frame): Nill->nil.
+	* ediff-wind.el (ediff-setup-control-frame): Nill->nil.
 
 	* viper-ex.el (ex-token-list,ex-cmd-execute): Revamped, courtesy
 	of Scott Bronson.
@@ -3835,7 +3835,7 @@
 	final computational form, which was unnecessary; corrected a
 	parsing problem when timeclock-relative was nil.
 
-2001-04-23  Kahlil Hodgson <kahlil@discus.anu.edu.au>
+2001-04-23  Kahlil Hodgson  <kahlil@discus.anu.edu.au>
 
 	* calendar/timeclock.el (timeclock-modeline-display): Check if
 	`list-entry' is null.
@@ -3904,7 +3904,7 @@
 	* saveplace.el (save-place-alist-to-file): Removed no-effect code
 	that inserted file content only to delete it immediately.
 	Probably a cut-and-paste bug.  Thanks to Juanma Barranquero
-	<lektu@uol.com.br> for the patch.
+	<lektu@terra.es> for the patch.
 
 2001-04-19  Stefan Monnier  <monnier@cs.yale.edu>
 
@@ -4060,7 +4060,7 @@
 	(ps-fonts, ps-font-number, ps-rgb-color, ps-end-page, ps-next-page)
 	(ps-skip-newline): Replace defun by defsubst.
 
-2001-04-10  Colin Walters <walters@cis.ohio-state.edu>
+2001-04-10  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* eshell/eshell.el (eshell-command): Needed a "%s" format
 	specifier, in case the buffer contains percent characters.
@@ -4451,7 +4451,7 @@
 
 	* bs.el (bs-cycle-next, bs-cycle-previous): Fix handling of
 	bs-cycle-configuration-name.  From Juanma Barranquero
-	<lektu@uol.com.br>.
+	<lektu@terra.es>.
 
 	* Makefile.in, makefile.w32-in (COMPILE_FIRST): Add cc-mode.el
 	and cc-vars.el.
@@ -5017,8 +5017,8 @@
 	(vc-print-log): Don't switch to the *vc* buffer before the
 	command, so that local variable bindings are preserved.
 
-	* vc-{cvs,rcs,sccs}.el (vc-*-print-log): Output to buffer *vc*,
-	not the current buffer.
+	* vc-cvs.el, vc-rcs.el, vc-sccs.el (vc-*-print-log): Output to
+	buffer *vc*, not the current buffer.
 	(vc-*-diff): Output to buffer *vc-diff*, not the current buffer.
 
 	* vc-cvs.el (vc-cvs-checkin): When removing the sticky tag,
@@ -5538,7 +5538,7 @@
 
 	* international/mule-cmds.el (set-input-method): Another doc fix.
 
-2001-02-13  David M. Koppelman <koppel@ee.lsu.edu>
+2001-02-13  David M. Koppelman  <koppel@ee.lsu.edu>
 
 	* hi-lock.el (hi-lock-find-patterns): Don't activate font-lock-mode.
 
@@ -5615,7 +5615,7 @@
 	* imenu.el (imenu-generic-expression): Doc fix.
 
 	* emacs-lisp/re-builder.el (reb-mode): Quote the hook name.
-	From Juanma Barranquero.
+	From Juanma Barranquero <lektu@terra.es>.
 
 	* emacs-lisp/authors.el (authors): Expand `root' before running find.
 
@@ -5627,7 +5627,7 @@
 2001-02-08  Stefan Monnier  <monnier@cs.yale.edu>
 
 	* which-func.el (which-func-mode): Invert which-func-mode-global.
-	From Juanma Barranquero <lektu@uol.com.br>.
+	From Juanma Barranquero <lektu@terra.es>.
 
 2001-02-08  Dave Love  <fx@gnu.org>
 
@@ -5702,7 +5702,7 @@
 	* makefile.w32-in (EMACS): Use $(THISDIR) to make emacs.exe path
 	absolute.
 
-2001-02-06  David M. Koppelman <koppel@ee.lsu.edu>
+2001-02-06  David M. Koppelman  <koppel@ee.lsu.edu>
 
 	* hi-lock.el (hi-lock-mode): Toggling hi-lock-mode now affects all
 	buffers.  When hi-lock turned on rather than only checking current
@@ -5862,7 +5862,7 @@
 	* toolbar/tool-bar.el (tool-bar-add-item): Doc fix.
 
 	* emacs-lisp/re-builder.el (reb-update-modestring): Don't use
-	concat for integers.  From Juanma Barranquero <lektu@uol.com.br>.
+	concat for integers.  From Juanma Barranquero <lektu@terra.es>.
 
 	* term/w32-win.el (redisplay-dont-pause): Set to t to alleviate
 	display problems.
@@ -6253,7 +6253,7 @@
 
 	* ediff-vers.el: Fix for 8+3 DOS file systems.
 
-2001-01-19  Colin Walters <walters@cis.ohio-state.edu>
+2001-01-19  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* ediff-util.el (ediff-compare-custom-diffs-maybe): Put diff in
 	diff mode, if available.
@@ -6999,7 +6999,7 @@
 
 2000-12-25  Michael Kifer  <kifer@cs.sunysb.edu>
 
-	* viper-init (viper-restore-cursor-type): Added condition-case guard.
+	* viper-init.el (viper-restore-cursor-type): Added condition-case guard.
 
 	* ediff-init.el (ediff-quit-hook,ediff-suspend-hook):
 	Changed initialization; use add-hook.
@@ -8108,7 +8108,7 @@
 
 	* select.el (x-get-selection): Docstring fix.
 
-2000-11-27  Dave Pearson <davep@hagbard.demon.co.uk>
+2000-11-27  Dave Pearson  <davep@hagbard.demon.co.uk>
 
 	* play/5x5.el (5x5-play-solution): Bind hinhibit-quit to t.
 
@@ -8251,7 +8251,7 @@
 	(iswitchb-entryfn-p): If minibuffer-depth returns the same value
 	as recorded in iswitchb-minibuf-depth, return non-nil.
 
-2000-11-23  Eli Zaretskii <eliz@is.elta.co.il>
+2000-11-23  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* hscroll.el (turn-on-hscroll, hscroll-mode, hscroll-global-mode)
 	(hscroll-window-maybe): Docstring fix.
@@ -8513,7 +8513,7 @@
 
 	* Makefile.in (DONTCOMPILE): Omit bindings.el.
 
-2000-11-20  Eli Barzilay <eli@www.barzilay.org>
+2000-11-20  Eli Barzilay  <eli@www.barzilay.org>
 
 	* calculator.el (calculator-paste): Use `if' instead of `and'
 	and `or'.
@@ -8554,7 +8554,7 @@
 	(mode-line-toggle-modified, mode-line-widen)
 	(mode-line-abbrev-mode, mode-line-auto-fill-mode): Fix typos.
 
-2000-11-17  Vinicius Jose Latorre <vinicius@cpqd.com.br>
+2000-11-17  Vinicius Jose Latorre  <vinicius@cpqd.com.br>
 
 	* ps-print.el (toplevel): Test for find-coding-system being
 	fboundp before calling ps-x-find-coding-system.
@@ -14379,7 +14379,7 @@
 	* progmodes/icon.el (icon-indent-line)
 	(icon-is-continuation-line): Handle comments specially.
 
-2000-08-17  Ken Stevens <k.stevens@ieee.org>
+2000-08-17  Ken Stevens  <k.stevens@ieee.org>
 
 	* ispell.el: Set to standard author/maintainer/keyword fields.
 	Fine tuning to menu map appearance and operation, and added help.
@@ -15499,7 +15499,7 @@
 
 2000-07-17  Emmanuel Briot  <briot@act-europe.fr>
 
-	* ada-mode.el Got rid of all byte-compiler warnings on Emacs Load
+	* ada-mode.el: Got rid of all byte-compiler warnings on Emacs Load
 	ada-xref.el before ada-prj.el, so that the Project menu is created
 	when ada-prj tries to add to it.
 	(ada-activate-keys-for-case): Suppress the characters that are not
@@ -15769,7 +15769,7 @@
 
 	* gnus/parse-time.el: Correct author's mail address.
 
-2000-07-19  Colin Walters <walters@cis.ohio-state.edu>
+2000-07-19  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* comint.el (comint-highlight-input, comint-highlight-face):
 	New user options.
@@ -16625,10 +16625,10 @@
 
 	* image.el (insert-image): Default STRING to a space.
 
-	* info.el Doc fixes.
+	* info.el: Doc fixes.
 	(Info-build-node-completions): Match Ref tags.
 
-2000-06-13  Eli Zaretskii <eliz@is.elta.co.il>
+2000-06-13  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* frame.el (display-multi-frame-p, display-multi-font-p): New
 	defaliases for display-graphic-p.
@@ -17175,7 +17175,7 @@
 	* simple.el (newline): Don't bind before-change-function,
 	after-change-function.
 
-2000-05-31  Rajesh Vaidheeswarran <rv@gnu.org>
+2000-05-31  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-rescan-timer-time): Update interval
 	set to 600 seconds (10 minutes) instead of 60 seconds since
@@ -17846,8 +17846,8 @@
 
 	* faces.el: Declare more functions obsolete.
 
-	* viet-util.el, thai-util.el, tibet-util.el.elc, slovak.el
-	* misc-lang.el, romanian.el, korea-util.el.elc, lao-util.el
+	* viet-util.el, thai-util.el, tibet-util.el, slovak.el
+	* misc-lang.el, romanian.el, korea-util.el, lao-util.el
 	* japan-util.el, greek.el, hebrew.el, european.el, ethio-util.el
 	* english.el, czech.el, devan-util.el, cyril-util.el, china-util.el:
 	Remove all the setup-...-environment functions.
@@ -18218,7 +18218,7 @@
 	* gud.el (gud-gdb-find-file): Call find-file-noselect with NOWARN
 	argument.
 
-2000-04-27  Sen Nagata <sen@eccosys.com>
+2000-04-27  Sen Nagata  <sen@eccosys.com>
 
 	* emacs-lisp/crm.el (crm-completion-table): New variable.
 	(crm-collection-fn, crm-test-completion)
@@ -18887,7 +18887,7 @@
 
 2000-03-23  Dave Pearson  <davep@davep.org>
 
-	* net/quickurl.el Changed the type of parameter passed to the
+	* net/quickurl.el: Changed the type of parameter passed to the
 	function defined by `quickurl-format-function'. Before only the
 	text of the URL was passed. Now the whole URL structure is passed
 	and the function is responsible for extracting the parts it requires.
@@ -19191,7 +19191,7 @@
 
 	* emacs-lisp/re-builder.el: Remove RCS Id, remove history comment.
 
-2000-03-12  Detlev Zundel <detlev.zundel@stud.uni-karlsruhe.de>
+2000-03-12  Detlev Zundel  <detlev.zundel@stud.uni-karlsruhe.de>
 
 	* emacs-lisp/re-builder.el (reb-re-syntax): Fix typo in `:type'.
 	Fix comment.
@@ -19204,7 +19204,7 @@
 	(font-lock-fontify-anchored-keywords): Properly handle the case when
 	the matcher goes past the limit.
 
-	* cvs-status, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
+	* cvs-status.el, log-edit.el, log-view.el, pcvs-defs.el, pcvs-info.el,
 	pcvs-parse.el, pcvs-util.el, pcvs.el: New files.
 
 	* emacs-lisp/ewoc.el: New file.  This is a merge of elib-node.el,

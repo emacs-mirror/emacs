@@ -3,7 +3,7 @@
 # DIST: that first.
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-#  2000, 2001, 2002 Free Software Foundation, Inc.
+#  2000, 2001, 2002, 2003 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -34,14 +34,14 @@
 #      with them.
 #
 #      Delete `.dvi' files here if they are not part of the distribution.
-# 
+#
 # make distclean
 #      Delete all files from the current directory that are created by
 #      configuring or building the program.  If you have unpacked the
 #      source and built the program without creating any other files,
 #      `make distclean' should leave only the files that were in the
 #      distribution.
-# 
+#
 # make maintainer-clean
 #      Delete everything from the current directory that can be
 #      reconstructed with this Makefile.  This typically includes
@@ -69,6 +69,7 @@ CPPFLAGS=@CPPFLAGS@
 C_SWITCH_X_SITE=@C_SWITCH_X_SITE@
 LD_SWITCH_X_SITE=@LD_SWITCH_X_SITE@
 YACC=@YACC@
+EXEEXT=@EXEEXT@
 
 ### These help us choose version- and architecture-specific directories
 ### to install files in.
@@ -121,6 +122,9 @@ man1dir=$(mandir)/man1
 # system, it is inappropriate to imply that it is part of Emacs.
 infodir=@infodir@
 
+# Directory for local state files for all programs.
+localstatedir=@localstatedir@
+
 # Where to look for bitmap files.
 bitmapdir=@bitmapdir@
 
@@ -137,6 +141,9 @@ VPATH=@srcdir@
 
 # Where to find the application default.
 x_default_search_path=@x_default_search_path@
+
+# Location to install Emacs.app on Mac OS X
+carbon_appdir=@carbon_appdir@
 
 # ==================== Emacs-specific directories ====================
 
@@ -165,7 +172,7 @@ lisppath=@lisppath@
 # building.  This is only used during the process of
 # compiling Emacs, to help Emacs find its lisp files
 # before they've been installed in their final location.
-# It's usually identical to lisppath, except that 
+# It's usually identical to lisppath, except that
 # it does not include locallisppath, and the
 # entry for the directory containing the installed lisp
 # files has been replaced with ../lisp.  This should be a
@@ -190,13 +197,16 @@ archlibdir=@archlibdir@
 # Where to put the docstring file.
 docdir=@docdir@
 
+# Where to install Emacs game score files.
+gamedir=@gamedir@
+
 # ==================== Utility Programs for the Build ====================
 
 # Allow the user to specify the install program.
 INSTALL = @INSTALL@
 INSTALL_PROGRAM = @INSTALL_PROGRAM@
 INSTALL_DATA = @INSTALL_DATA@
-INSTALL_INFO = install-info
+INSTALL_INFO = @INSTALL_INFO@
 # By default, we uphold the dignity of our programs.
 INSTALL_STRIP =
 
@@ -206,8 +216,8 @@ INSTALL_STRIP =
 TRANSFORM = @program_transform_name@
 
 # What emacs should be called when installed.
-EMACS = `echo emacs | sed '$(TRANSFORM)'`
-EMACSFULL = `echo emacs-${version} | sed '$(TRANSFORM)'`
+EMACS = `echo emacs${EXEEXT} | sed '$(TRANSFORM)'`
+EMACSFULL = `echo emacs-${version}${EXEEXT} | sed '$(TRANSFORM)'`
 
 # Subdirectories to make recursively.  `lisp' is not included
 # because the compiled lisp files are part of the distribution.
@@ -227,7 +237,7 @@ COPYDIR = ${srcdir}/etc ${srcdir}/lisp
 COPYDESTS = ${etcdir} ${lispdir}
 
 # Set to FRC to force running autoconf and autoheader
-MAINT = 
+MAINT =
 
 all: ${SUBDIR} leim
 
@@ -238,6 +248,7 @@ epaths-force: FRC
 	@(lisppath=`echo ${lisppath} | ${removenullpaths}` ;		\
 	  buildlisppath=`echo ${buildlisppath} | ${removenullpaths}` ;	\
 	  x_default_search_path=`echo ${x_default_search_path}`; \
+	  gamedir=`echo ${gamedir}`; \
 	  sed < ${srcdir}/src/epaths.in > epaths.h.$$$$		\
 	  -e 's;\(#.*PATH_LOADSEARCH\).*$$;\1 "'$${lisppath}'";'	\
 	  -e 's;\(#.*PATH_DUMPLOADSEARCH\).*$$;\1 "'$${buildlisppath}'";' \
@@ -246,6 +257,7 @@ epaths-force: FRC
 	  -e 's;\(#.*PATH_DATA\).*$$;\1 "${etcdir}";'			\
 	  -e 's;\(#.*PATH_BITMAPS\).*$$;\1 "${bitmapdir}";'		\
 	  -e 's;\(#.*PATH_X_DEFAULTS\).*$$;\1 "${x_default_search_path}";' \
+	  -e 's;\(#.*PATH_GAME\).*$$;\1 "${gamedir}";' \
 	  -e 's;\(#.*PATH_DOC\).*$$;\1 "${docdir}";') &&		\
 	${srcdir}/move-if-change epaths.h.$$$$ src/epaths.h
 
@@ -347,7 +359,7 @@ install-arch-dep: mkdir
 	    exec_prefix=${exec_prefix} bindir=${bindir} \
 	    libexecdir=${libexecdir} archlibdir=${archlibdir} \
 	    INSTALL_STRIP=${INSTALL_STRIP})
-	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs ${bindir}/$(EMACSFULL)
+	${INSTALL_PROGRAM} $(INSTALL_STRIP) src/emacs${EXEEXT} ${bindir}/$(EMACSFULL)
 	-chmod 1755  ${bindir}/$(EMACSFULL)
 	rm -f ${bindir}/$(EMACS)
 	-ln ${bindir}/$(EMACSFULL) ${bindir}/$(EMACS)
@@ -357,6 +369,12 @@ install-arch-dep: mkdir
 	    ${INSTALL_DATA} lib-src/$$f ${archlibdir}/$$f; \
 	  else true; fi ; \
 	done
+	if test "${carbon_appdir}" != ""; then \
+	  umask 022; mkdir -p ${carbon_appdir}/Emacs.app; \
+	  (cd mac/Emacs.app; tar -chf - . ) | \
+		(cd ${carbon_appdir}/Emacs.app; umask 022; tar -xvf - \
+			&& cat > /dev/null) || exit 1; \
+	fi
 
 ### Install the files that are machine-independent.
 ### Most of them come straight from the distribution;
@@ -389,7 +407,7 @@ install-arch-indep: mkdir info
 	      (cd $${dir}; tar -chf - . ) \
 		| (cd $${dest}; umask 022; \
                    tar -xvf - && cat > /dev/null) || exit 1; \
-	      find $${dest} -exec chown $$LOGNAME {} ';' ;\
+	      find $${dest} -exec chown $${LOGNAME:-$$USERNAME} {} ';' ;\
 	      for subdir in `find $${dest} -type d ! -name RCS ! -name CVS -print` ; do \
 		chmod a+rx $${subdir} ; \
 		rm -rf $${subdir}/RCS ; \
@@ -428,7 +446,8 @@ install-arch-indep: mkdir info
 	   echo "Copying etc/DOC-* to ${docdir} ..." ; \
 	   (cd ./etc; tar -chf - DOC*) \
 	     |(cd ${docdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd $(docdir); chown $${LOGNAME} DOC*; chmod a+r DOC*; rm DOC); \
+	   (cd $(docdir); chown $${LOGNAME:-$$USERNAME} DOC*; chmod a+r DOC*; \
+	    if test "`echo DOC-*`" != "DOC-*"; then rm DOC; fi); \
 	else true; fi
 	-unset CDPATH; \
 	if [ -r ./lisp ] \
@@ -439,7 +458,7 @@ install-arch-indep: mkdir info
 	   echo "Copying lisp/*.el and lisp/*.elc to ${lispdir} ..." ; \
 	   (cd lisp; tar -chf - *.el *.elc) \
 	     |(cd ${lispdir}; umask 022; tar -xvf - && cat > /dev/null) || exit 1; \
-	   (cd ${lispdir}; find . -exec chown $${LOGNAME} {} ';') ; \
+	   (cd ${lispdir}; find . -exec chown $${LOGNAME:-$$USERNAME} {} ';') ; \
 	else true; fi
 	-unset CDPATH; \
 	thisdir=`/bin/pwd`; \
@@ -453,7 +472,7 @@ install-arch-indep: mkdir info
 	      chmod a+r ${infodir}/dir); \
 	   fi; \
 	   cd ${srcdir}/info ; \
-	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* vip* widget* woman*; do \
+	   for f in ada-mode* autotype* calc* ccmode* cl* dired-x* ebrowse* ediff* efaq* eintr* elisp* emacs* eshell* eudc* forms* gnus* idlwave* info* message* mh-e* pcl-cvs* reftex* sc* speedbar* tramp* vip* widget* woman* smtpmail*; do \
 	     (cd $${thisdir}; \
 	      ${INSTALL_DATA} ${srcdir}/info/$$f ${infodir}/$$f; \
 	      chmod a+r ${infodir}/$$f); \
@@ -463,7 +482,7 @@ install-arch-indep: mkdir info
 	thisdir=`/bin/pwd`; \
 	if [ `(cd ${srcdir}/info && /bin/pwd)` != `(cd ${infodir} && /bin/pwd)` ]; \
 	then \
-	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar vip viper widget woman; do \
+	  for f in ada-mode autotype calc ccmode cl dired-x ebrowse ediff efaq elisp eintr emacs emacs-mime eshell eudc forms gnus idlwave info message mh-e pcl-cvs reftex sc speedbar tramp vip viper widget woman smtpmail; do \
 	    (cd $${thisdir}; \
 	     ${INSTALL_INFO} --info-dir=${infodir} ${infodir}/$$f); \
 	  done; \
@@ -529,7 +548,7 @@ uninstall:
 	done
 	(cd ${archlibdir} && rm -f fns-*)
 	-rm -rf ${libexecdir}/emacs/${version}
-	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip*)
+	(cd ${infodir} && rm -f cl* ada-mode* autotype* calc* ccmode* ebrowse* efaq* eintr elisp* eshell* eudc* idlwave* message* pcl-cvs* reftex* speedbar* tramp* widget* woman* dired-x* ediff* emacs* forms* gnus* info* mh-e* sc* vip* smtpmail*)
 	(cd ${man1dir}  && rm -f emacs${manext} emacsclient${manext} etags${manext} ctags${manext})
 	(cd ${bindir}  && rm -f $(EMACSFULL) $(EMACS))
 
@@ -561,7 +580,7 @@ mostlyclean: FRC
 ###      record the configuration.  Also preserve files that could be made
 ###      by building, but normally aren't because the distribution comes
 ###      with them.
-### 
+###
 ###      Delete `.dvi' files here if they are not part of the distribution.
 clean: FRC
 	(cd src;      $(MAKE) $(MFLAGS) clean)
@@ -600,7 +619,7 @@ distclean: FRC
 ###      reconstructed with this Makefile.  This typically includes
 ###      everything deleted by distclean, plus more: C source files
 ###      produced by Bison, tags tables, info files, and so on.
-### 
+###
 ###      One exception, however: `make maintainer-clean' should not delete
 ###      `configure' even if `configure' can be remade using a rule in the
 ###      Makefile.  More generally, `make maintainer-clean' should not delete
@@ -702,26 +721,25 @@ dvi:
 ### special emacs executable is built from Lisp sources, which is then
 ### used to compile Lisp files.  The last step is a "normal" make.
 
-.PHONY: bootstrap bootstrap-lisp-1 boostrap-src bootstrap-lisp bootstrap-clean
+.PHONY: bootstrap
 .PHONY: maybe_bootstrap
 
 maybe_bootstrap:
-	@if [ ! -f $(srcdir)/lisp/abbrev.elc ]; then \
-	  echo "Essential Lisp files seem to be missing.  You should either"; \
-	  echo "do \`make bootstrap' or create \`lisp/abbrev.elc' somehow.";    \
+	@bar="`echo $(srcdir)/lisp/*.elc`"; \
+	if [ \( "$$bar" = '$(srcdir)/lisp/*.elc' \) -o \( "$$bar" = '' \) ]; then \
+	  echo "Your tree does not include the compiled Lisp files."; \
+	  echo "You need to do \`make bootstrap' to build Emacs."; \
+	  echo "Emacs now requires Texinfo version 4.2."; \
 	  exit 1;\
 	fi
 
-bootstrap: bootstrap-clean-before bootstrap-lisp-1 bootstrap-src bootstrap-lisp bootstrap-clean-after all info
-
-bootstrap-lisp-1:
+bootstrap: bootstrap-clean-before info FRC
 	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-clean)
-
-bootstrap-lisp:
-	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs)
-
-bootstrap-src:
 	(cd src; $(MAKE) $(MFLAGS) bootstrap)
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap EMACS=../src/bootstrap-emacs${EXEEXT})
+	(cd src; $(MAKE) $(MFLAGS) mostlyclean)
+	$(MAKE) $(MFLAGS) all
+	(cd lisp; $(MAKE) $(MFLAGS) bootstrap-after)
 
 ### Used for `bootstrap' to avoid deleting existing dumped Emacs executables.
 bootstrap-clean-before: FRC
@@ -734,5 +752,3 @@ bootstrap-clean-before: FRC
 	-(cd lispintro &&   $(MAKE) $(MFLAGS) clean)
 	(cd leim;     $(MAKE) $(MFLAGS) clean)
 
-bootstrap-clean-after:
-	(cd src; $(MAKE) $(MFLAGS) mostlyclean)

@@ -584,7 +584,7 @@
 
 1986-01-09  Richard Mlynarik  (mly@prep)
 
-	* mail-utils (mail-strip-quoted-names):
+	* mail-utils.el (mail-strip-quoted-names):
 	Handle multi-line address lists
 
 1986-01-08  Richard Mlynarik  (mly@prep)
@@ -1934,7 +1934,7 @@
 
 1985-09-10  Richard M. Stallman  (rms@mit-prep)
 
-	* text-mode-el, lisp-mode.el, c-mode.el, buff-menu.el:
+	* text-mode.el, lisp-mode.el, c-mode.el, buff-menu.el:
 	Initialize all keymaps at load time.
 	Use new \{...} construct for documenting them.
 
@@ -2408,11 +2408,11 @@
 
 1985-06-16  K. Shane Hartman  (shane@mit-prep)
 
-	* sendmail (mail-mode):
+	* sendmail.el (mail-mode):
 	Mention that C-c y will yank current message in rmail whether
 	replying or not.
 
-	* mail-utils (rmail-dont-reply-to):
+	* mail-utils.el (rmail-dont-reply-to):
 	If rmail-dont-reply-to-names is nil, make it be (getenv "USER").
 
 1985-06-15  Richard M. Stallman  (rms@mit-prep)
@@ -3046,8 +3046,8 @@
 
 1985-05-21  Richard Mlynarik  (mly@mit-prep)
 
-	* mlsupport:
-	Fixs assorted typos where variable "bufname" was changed to "name"
+	* mlsupport.el:
+	Fix assorted typos where variable "bufname" was changed to "name"
 
 	* view.el
 	Make M-<, M-> work.  Fix documentation strings to work with the

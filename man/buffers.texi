@@ -54,7 +54,7 @@ megabytes.
 * Kill Buffer::	        Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
-* Indirect Buffers::    An indirect buffer shares the text of another buffer. 
+* Indirect Buffers::    An indirect buffer shares the text of another buffer.
 * Buffer Convenience::  Convenience and customization features for
                           buffer handling.
 @end menu
@@ -155,10 +155,10 @@ current buffer.  Here is an example of a buffer list:@refill
  MR Buffer         Size  Mode           File
  -- ------         ----  ----           ----
 .*  emacs.tex      383402 Texinfo       /u2/emacs/man/emacs.tex
-    *Help*         1287  Fundamental	
+    *Help*         1287  Fundamental
     files.el       23076 Emacs-Lisp     /u2/emacs/lisp/files.el
   % RMAIL          64042 RMAIL          /u/rms/RMAIL
- *% man            747   Dired          /u2/emacs/man/		
+ *% man            747   Dired          /u2/emacs/man/
     net.emacs      343885 Fundamental   /u/rms/net.emacs
     fileio.c       27691 C              /u2/emacs/src/fileio.c
     NEWS           67340 Text           /u2/emacs/etc/NEWS
@@ -181,7 +181,7 @@ unless they visit files: such buffers are used internally by Emacs.
 
 @table @kbd
 @item C-x C-q
-Toggle read-only status of buffer (@code{vc-toggle-read-only}).
+Toggle read-only status of buffer (@code{toggle-read-only}).
 @item M-x rename-buffer @key{RET} @var{name} @key{RET}
 Change the name of the current buffer.
 @item M-x rename-uniquely
@@ -191,9 +191,6 @@ Scroll through buffer @var{buffer}.
 @end table
 
 @kindex C-x C-q
-@c Don't index vc-toggle-read-only here, it is indexed in files.texi,
-@c in the node "Basic VC Editing".
-@c @findex vc-toggle-read-only
 @vindex buffer-read-only
 @cindex read-only buffer
   A buffer can be @dfn{read-only}, which means that commands to change
@@ -203,14 +200,16 @@ buffers are usually made by subsystems such as Dired and Rmail that
 have special commands to operate on the text; also by visiting a file
 whose access control says you cannot write it.
 
+@findex toggle-read-only
   If you wish to make changes in a read-only buffer, use the command
-@kbd{C-x C-q} (@code{vc-toggle-read-only}).  It makes a read-only buffer
-writable, and makes a writable buffer read-only.  In most cases, this
+@kbd{C-x C-q} (@code{toggle-read-only}).  It makes a read-only buffer
+writable, and makes a writable buffer read-only.  This
 works by setting the variable @code{buffer-read-only}, which has a local
 value in each buffer and makes the buffer read-only if its value is
-non-@code{nil}.  If the file is maintained with version control,
-@kbd{C-x C-q} works through the version control system to change the
-read-only status of the file as well as the buffer.  @xref{Version
+non-@code{nil}.  If you have files under version control, you may find
+it convenient to bind @kbd{C-x C-q} to @code{vc-toggle-read-only}
+instead.  Then, typing @kbd{C-x C-q} not only changes the read-only
+flag, but it also checks the file in or out.  @xref{Version
 Control}.
 
 @findex rename-buffer
@@ -499,7 +498,7 @@ convenient to switch between buffers.
 @menu
 * Uniquify::               Buffer names can contain directory parts.
 * Iswitchb::               Switching between buffers with substrings.
-* Buffer Menus::           Configurable buffer menu.     
+* Buffer Menus::           Configurable buffer menu.
 @end menu
 
 @node Uniquify

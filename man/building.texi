@@ -18,14 +18,14 @@ in the larger process of developing and maintaining programs.
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
-* Debuggers::	        Running symbolic debuggers for non-Lisp programs. 
-* Executing Lisp::      Various modes for editing Lisp programs, 
+* Debuggers::	        Running symbolic debuggers for non-Lisp programs.
+* Executing Lisp::      Various modes for editing Lisp programs,
                           with different facilities for running
-                          the Lisp programs. 
+                          the Lisp programs.
 * Libraries: Lisp Libraries.      Creating Lisp programs to run in Emacs.
 * Interaction: Lisp Interaction.  Executing Lisp in an Emacs buffer.
 * Eval: Lisp Eval.      Executing a single Lisp expression in Emacs.
-* External Lisp::         Communicating through Emacs with a separate Lisp. 
+* External Lisp::         Communicating through Emacs with a separate Lisp.
 @end menu
 
 @node Compilation
@@ -68,11 +68,13 @@ command; normally, therefore, the compilation happens in this
 directory.
 
 @vindex compile-command
-  When the shell command line is read, the minibuffer appears containing
-a default command line, which is the command you used the last time you
-did @kbd{M-x compile}.  If you type just @key{RET}, the same command
-line is used again.  For the first @kbd{M-x compile}, the default is
-@samp{make -k}.  The default compilation command comes from the variable
+  When the shell command line is read, the minibuffer appears
+containing a default command line, which is the command you used the
+last time you did @kbd{M-x compile}.  If you type just @key{RET}, the
+same command line is used again.  For the first @kbd{M-x compile}, the
+default is @samp{make -k}, which is correct most of the time for
+nontrivial programs.  (@xref{Make,, Make, make, GNU Make Manual}.)
+The default compilation command comes from the variable
 @code{compile-command}; if the appropriate compilation command for a
 file is something other than @samp{make -k}, it can be useful for the
 file to specify a local value for @code{compile-command} (@pxref{File
@@ -112,6 +114,10 @@ that is running.
   To rerun the last compilation with the same command, type @kbd{M-x
 recompile}.  This automatically reuses the compilation command from the
 last invocation of @kbd{M-x compile}.
+
+  Emacs does not expect a compiler to launch asynchronous
+subprocesses; if it does, and they keep running after the main
+compiler process has terminated, their output may not arrive in Emacs.
 
 @node Grep Searching
 @section Searching with Grep under Emacs
@@ -273,7 +279,7 @@ various symbolic debuggers from within Emacs.  We recommend the debugger
 GDB, which is free software, but you can also run DBX, SDB or XDB if you
 have them.  GUD can also serve as an interface to the Perl's debugging
 mode, the Python debugger PDB, and to JDB, the Java Debugger.
-@xref{Debugger,, The Lisp Debugger, elisp, the Emacs Lisp Reference Manual},
+@xref{Debugging,, The Lisp Debugger, elisp, the Emacs Lisp Reference Manual},
 for information on debugging Emacs Lisp programs.
 
 @menu
@@ -486,15 +492,16 @@ GDB versions 4.13 and later.
 Run the program until the selected stack frame returns (or until it
 stops for some other reason).
 
-@item C-c C-j
-@kindex C-c C-j @r{(GUD)}
-@itemx C-x C-a C-j
+@item C-x C-a C-j
+@kindex C-x C-a C-j @r{(GUD)}
 @findex gud-jump
-Only useful in a source buffer, (@code{gud-jump}) relocates the next
-instruction to the current line at point in a source buffer.  If the
-new execution line is in a different function from the previously one,
-you will be prompted for confirmation since the results may be
-bizarre.  See the GDB manual entry regarding @code{jump} for details.
+Only useful in a source buffer, (@code{gud-jump}) transfers the
+program's execution point to the current line.  In other words, the
+next line that the program executes will be the one where you gave the
+command.  If the new execution line is in a different function from
+the previously one, GDB prompts for confirmation since the results may
+be bizarre.  See the GDB manual entry regarding @code{jump} for
+details.
 @end table
 
   These commands interpret a numeric argument as a repeat count, when

@@ -81,7 +81,9 @@ Boston, MA 02111-1307, USA.  */
 #endif /* USE_LUCID */
 #include "../lwlib/lwlib.h"
 #else /* not USE_X_TOOLKIT */
+#ifndef USE_GTK
 #include "../oldXMenu/XMenu.h"
+#endif
 #endif /* not USE_X_TOOLKIT */
 #endif /* HAVE_X_WINDOWS */
 
@@ -108,15 +110,21 @@ extern Lisp_Object Qmenu_bar_update_hook;
 
 #ifdef USE_X_TOOLKIT
 extern void set_frame_menubar ();
-extern void process_expose_from_menu ();
 extern XtAppContext Xt_app_con;
 
 static Lisp_Object xdialog_show ();
-void popup_get_selection ();
+static void popup_get_selection ();
 
 /* Define HAVE_BOXES if menus can handle radio and toggle buttons.  */
 
 #define HAVE_BOXES 1
+#endif /* USE_X_TOOLKIT */
+
+#ifdef USE_GTK
+#include "gtkutil.h"
+#define HAVE_BOXES 1
+extern void set_frame_menubar ();
+static Lisp_Object xdialog_show ();
 #endif
 
 static void push_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object,
@@ -132,6 +140,8 @@ static void single_menu_item P_ ((Lisp_Object, Lisp_Object, Lisp_Object *,
 				  int, int, int *));
 static void list_of_panes P_ ((Lisp_Object));
 static void list_of_items P_ ((Lisp_Object));
+
+extern EMACS_TIME timer_check P_ ((int));
 
 /* This holds a Lisp vector that holds the results of decoding
    the keymaps or alist-of-alists that specify a menu.
@@ -174,6 +184,10 @@ enum menu_item_idx
 
 static Lisp_Object menu_items;
 
+/* If non-nil, means that the global vars defined here are already in use.
+   Used to detect cases where we try to re-enter this non-reentrant code.  */
+static Lisp_Object menu_items_inuse;
+
 /* Number of slots currently allocated in menu_items.  */
 static int menu_items_allocated;
 
@@ -189,7 +203,7 @@ static int menu_items_submenu_depth;
 
 /* Flag which when set indicates a dialog or menu has been posted by
    Xt on behalf of one of the widget sets.  */
-int popup_activated_flag;
+static int popup_activated_flag;
 
 static int next_menubar_widget_id;
 
@@ -241,6 +255,9 @@ init_menu_items ()
       menu_items = Fmake_vector (make_number (menu_items_allocated), Qnil);
     }
 
+  if (!NILP (menu_items_inuse))
+    error ("Trying to use a menu from within a menu-entry");
+  menu_items_inuse = Qt;
   menu_items_used = 0;
   menu_items_n_panes = 0;
   menu_items_submenu_depth = 0;
@@ -251,6 +268,13 @@ init_menu_items ()
 static void
 finish_menu_items ()
 {
+}
+
+static Lisp_Object
+unuse_menu_items (dummy)
+     int dummy;
+{
+  return menu_items_inuse = Qnil;
 }
 
 /* Call when finished using the data for the current menu
@@ -266,6 +290,7 @@ discard_menu_items ()
       menu_items = Qnil;
       menu_items_allocated = 0;
     }
+  xassert (NILP (menu_items_inuse));
 }
 
 /* Make the menu_items vector twice as large.  */
@@ -462,7 +487,7 @@ single_keymap_panes (keymap, pane_name, prefix, notreal, maxdepth)
 
 /* This is a subroutine of single_keymap_panes that handles one
    keymap entry.
-   KEY is a key in a keymap and ITEM is its binding. 
+   KEY is a key in a keymap and ITEM is its binding.
    PENDING_MAPS_PTR points to a list of keymaps waiting to be made into
    separate panes.
    If NOTREAL is nonzero, only check for equivalent key bindings, don't
@@ -483,7 +508,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
   Lisp_Object map, item_string, enabled;
   struct gcpro gcpro1, gcpro2;
   int res;
-  
+
   /* Parse the menu item and leave the result in item_properties.  */
   GCPRO2 (key, item);
   res = parse_menu_item (item, notreal, 0);
@@ -492,7 +517,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
     return;			/* Not a menu item.  */
 
   map = XVECTOR (item_properties)->contents[ITEM_PROPERTY_MAP];
-  
+
   if (notreal)
     {
       /* We don't want to make a menu, just traverse the keymaps to
@@ -503,9 +528,9 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
     }
 
   enabled = XVECTOR (item_properties)->contents[ITEM_PROPERTY_ENABLE];
-  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME]; 
+  item_string = XVECTOR (item_properties)->contents[ITEM_PROPERTY_NAME];
 
-  if (!NILP (map) && XSTRING (item_string)->data[0] == '@')
+  if (!NILP (map) && SREF (item_string, 0) == '@')
     {
       if (!NILP (enabled))
 	/* An enabled separate pane. Remember this to handle it later.  */
@@ -551,8 +576,8 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		  index++;		/* Skip a left, right divider. */
 		else
 		  {
-		    if (!submenu && XSTRING (tem)->data[0] != '\0'
-			&& XSTRING (tem)->data[0] != '-')
+		    if (!submenu && SREF (tem, 0) != '\0'
+			&& SREF (tem, 0) != '-')
 		      XVECTOR (menu_items)->contents[index + MENU_ITEMS_ITEM_NAME]
 			= concat2 (build_string ("    "), tem);
 		    index += MENU_ITEMS_ITEM_LENGTH;
@@ -568,16 +593,16 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 	  prefix = build_string (NILP (selected) ? "( ) " : "(*) ");
       }
     /* Not a button. If we have earlier buttons, then we need a prefix.  */
-    else if (!*notbuttons_ptr && XSTRING (item_string)->data[0] != '\0'
-	     && XSTRING (item_string)->data[0] != '-')
+    else if (!*notbuttons_ptr && SREF (item_string, 0) != '\0'
+	     && SREF (item_string, 0) != '-')
       prefix = build_string ("    ");
 
     if (!NILP (prefix))
       item_string = concat2 (prefix, item_string);
   }
 #endif /* not HAVE_BOXES */
- 
-#ifndef USE_X_TOOLKIT
+
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   if (!NILP(map))
     /* Indicate visually that this is a submenu.  */
     item_string = concat2 (item_string, build_string (" >"));
@@ -590,7 +615,7 @@ single_menu_item (key, item, pending_maps_ptr, notreal, maxdepth,
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_SELECTED],
 		  XVECTOR (item_properties)->contents[ITEM_PROPERTY_HELP]);
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
   /* Display a submenu using the toolkit.  */
   if (! (NILP (map) || NILP (enabled)))
     {
@@ -653,6 +678,56 @@ list_of_items (pane)
     }
 }
 
+#ifdef HAVE_X_WINDOWS
+/* Return the mouse position in *X and *Y.  The coordinates are window
+   relative for the edit window in frame F.
+   This is for Fx_popup_menu.  The mouse_position_hook can not
+   be used for X, as it returns window relative coordinates
+   for the window where the mouse is in.  This could be the menu bar,
+   the scroll bar or the edit window.  Fx_popup_menu needs to be
+   sure it is the edit window.  */
+static void
+mouse_position_for_popup(f, x, y)
+     FRAME_PTR f;
+     int *x;
+     int *y;
+{
+  Window root, dummy_window;
+  int dummy;
+
+  BLOCK_INPUT;
+
+  XQueryPointer (FRAME_X_DISPLAY (f),
+                 DefaultRootWindow (FRAME_X_DISPLAY (f)),
+
+                 /* The root window which contains the pointer.  */
+                 &root,
+
+                 /* Window pointer is on, not used  */
+                 &dummy_window,
+
+                 /* The position on that root window.  */
+                 x, y,
+
+                 /* x/y in dummy_window coordinates, not used.  */
+                 &dummy, &dummy,
+
+                 /* Modifier keys and pointer buttons, about which
+                    we don't care.  */
+                 (unsigned int *) &dummy);
+
+  UNBLOCK_INPUT;
+
+  /* xmenu_show expects window coordinates, not root window
+     coordinates.  Translate.  */
+  *x -= f->output_data.x->left_pos
+    + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  *y -= f->output_data.x->top_pos
+    + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+}
+
+#endif /* HAVE_X_WINDOWS */
+
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button event
@@ -699,11 +774,13 @@ cached information about equivalent key sequences.  */)
   Lisp_Object x, y, window;
   int keymaps = 0;
   int for_click = 0;
+  int specpdl_count = SPECPDL_INDEX ();
   struct gcpro gcpro1;
 
 #ifdef HAVE_MENUS
   if (! NILP (position))
     {
+      int get_current_pos_p = 0;
       check_x ();
 
       /* Decode the first argument: find the window and the coordinates.  */
@@ -711,24 +788,8 @@ cached information about equivalent key sequences.  */)
 	  || (CONSP (position) && (EQ (XCAR (position), Qmenu_bar)
 				   || EQ (XCAR (position), Qtool_bar))))
 	{
-	  /* Use the mouse's current position.  */
-	  FRAME_PTR new_f = SELECTED_FRAME ();
-	  Lisp_Object bar_window;
-	  enum scroll_bar_part part;
-	  unsigned long time;
-
-	  if (mouse_position_hook)
-	    (*mouse_position_hook) (&new_f, 1, &bar_window,
-				    &part, &x, &y, &time);
-	  if (new_f != 0)
-	    XSETFRAME (window, new_f);
-	  else
-	    {
-	      window = selected_window;
-	      XSETFASTINT (x, 0);
-	      XSETFASTINT (y, 0);
-	    }
-	}
+          get_current_pos_p = 1;
+        }
       else
 	{
 	  tem = Fcar (position);
@@ -746,6 +807,52 @@ cached information about equivalent key sequences.  */)
 	      tem = Fcar (Fcdr (Fcdr (tem))); /* POSN_WINDOW_POSN (tem) */
 	      x = Fcar (tem);
 	      y = Fcdr (tem);
+	    }
+
+          /* If a click happens in an external tool bar or a detached
+             tool bar, x and y is NIL.  In that case, use the current
+             mouse position.  This happens for the help button in the
+             tool bar.  Ideally popup-menu should pass NIL to
+             this function, but it doesn't.  */
+          if (NILP (x) && NILP (y))
+            get_current_pos_p = 1;
+	}
+
+      if (get_current_pos_p)
+        {
+	  /* Use the mouse's current position.  */
+	  FRAME_PTR new_f = SELECTED_FRAME ();
+#ifdef HAVE_X_WINDOWS
+          /* Can't use mouse_position_hook for X since it returns
+             coordinates relative to the window the mouse is in,
+             we need coordinates relative to the edit widget always.  */
+          if (new_f != 0)
+            {
+              int cur_x, cur_y;
+
+              mouse_position_for_popup (new_f, &cur_x, &cur_y);
+              /* cur_x/y may be negative, so use make_number.  */
+              x = make_number (cur_x);
+              y = make_number (cur_y);
+            }
+
+#else /* not HAVE_X_WINDOWS */
+	  Lisp_Object bar_window;
+	  enum scroll_bar_part part;
+	  unsigned long time;
+
+	  if (mouse_position_hook)
+	    (*mouse_position_hook) (&new_f, 1, &bar_window,
+				    &part, &x, &y, &time);
+#endif /* not HAVE_X_WINDOWS */
+
+	  if (new_f != 0)
+	    XSETFRAME (window, new_f);
+	  else
+	    {
+	      window = selected_window;
+	      XSETFASTINT (x, 0);
+	      XSETFASTINT (y, 0);
 	    }
 	}
 
@@ -777,12 +884,11 @@ cached information about equivalent key sequences.  */)
 
       xpos += XINT (x);
       ypos += XINT (y);
-
-      XSETFRAME (Vmenu_updating_frame, f);
     }
   Vmenu_updating_frame = Qnil;
 #endif /* HAVE_MENUS */
 
+  record_unwind_protect (unuse_menu_items, Qnil);
   title = Qnil;
   GCPRO1 (title);
 
@@ -851,7 +957,9 @@ cached information about equivalent key sequences.  */)
 
       keymaps = 0;
     }
-  
+
+  unbind_to (specpdl_count, Qnil);
+
   if (NILP (position))
     {
       discard_menu_items ();
@@ -955,7 +1063,7 @@ on the left of the dialog box and all following items on the right.
        but I don't want to make one now.  */
     CHECK_WINDOW (window);
 
-#ifndef USE_X_TOOLKIT
+#if ! defined (USE_X_TOOLKIT) && ! defined (USE_GTK)
   /* Display a menu with these alternatives
      in the middle of frame F.  */
   {
@@ -973,10 +1081,12 @@ on the left of the dialog box and all following items on the right.
     Lisp_Object title;
     char *error_name;
     Lisp_Object selection;
+    int specpdl_count = SPECPDL_INDEX ();
 
     /* Decode the dialog items from what was specified.  */
     title = Fcar (contents);
     CHECK_STRING (title);
+    record_unwind_protect (unuse_menu_items, Qnil);
 
     list_of_panes (Fcons (contents, Qnil));
 
@@ -985,6 +1095,7 @@ on the left of the dialog box and all following items on the right.
     selection = xdialog_show (f, 0, title, &error_name);
     UNBLOCK_INPUT;
 
+    unbind_to (specpdl_count, Qnil);
     discard_menu_items ();
 
     if (error_name) error (error_name);
@@ -993,119 +1104,95 @@ on the left of the dialog box and all following items on the right.
 #endif
 }
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
 
 /* Loop in Xt until the menu pulldown or dialog popup has been
    popped down (deactivated).  This is used for x-popup-menu
-   and x-popup-dialog; it is not used for the menu bar any more.
+   and x-popup-dialog; it is not used for the menu bar.
+
+   If DO_TIMERS is nonzero, run timers.
 
    NOTE: All calls to popup_get_selection should be protected
    with BLOCK_INPUT, UNBLOCK_INPUT wrappers.  */
 
-void
-popup_get_selection (initial_event, dpyinfo, id)
+#ifdef USE_X_TOOLKIT
+static void
+popup_get_selection (initial_event, dpyinfo, id, do_timers)
      XEvent *initial_event;
      struct x_display_info *dpyinfo;
      LWLIB_ID id;
+     int do_timers;
 {
   XEvent event;
 
-  /* Define a queue to save up for later unreading
-     all X events that don't pertain to the menu.  */
-  struct event_queue
+  while (popup_activated_flag)
     {
-      XEvent event;
-      struct event_queue *next;
-    };
-  
-  struct event_queue *queue = NULL;
-  struct event_queue *queue_tmp;
+      /* If we have no events to run, consider timers.  */
+      if (do_timers && !XtAppPending (Xt_app_con))
+        timer_check (1);
 
-  if (initial_event)
-    event = *initial_event;
-  else
-    XtAppNextEvent (Xt_app_con, &event);
+      if (initial_event)
+        {
+          event = *initial_event;
+          initial_event = 0;
+        }
+      else
+        XtAppNextEvent (Xt_app_con, &event);
 
-  while (1)
-    {
-      /* Handle expose events for editor frames right away.  */
-      if (event.type == Expose)
-	process_expose_from_menu (event);
       /* Make sure we don't consider buttons grabbed after menu goes.
-	 And make sure to deactivate for any ButtonRelease,
-	 even if XtDispatchEvent doesn't do that.  */
-      else if (event.type == ButtonRelease
-	       && dpyinfo->display == event.xbutton.display)
+         And make sure to deactivate for any ButtonRelease,
+         even if XtDispatchEvent doesn't do that.  */
+      if (event.type == ButtonRelease
+          && dpyinfo->display == event.xbutton.display)
         {
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
-          popup_activated_flag = 0;
-#ifdef USE_MOTIF /* Pretending that the event came from a 
-		    Btn1Down seems the only way to convince Motif to
-		    activate its callbacks; setting the XmNmenuPost
-		    isn't working. --marcus@sysc.pdx.edu.  */
-	  event.xbutton.button = 1;
+#ifdef USE_MOTIF /* Pretending that the event came from a
+                    Btn1Down seems the only way to convince Motif to
+                    activate its callbacks; setting the XmNmenuPost
+                    isn't working. --marcus@sysc.pdx.edu.  */
+          event.xbutton.button = 1;
+          /*  Motif only pops down menus when no Ctrl, Alt or Mod
+              key is pressed and the button is released.  So reset key state
+              so Motif thinks this is the case.  */
+          event.xbutton.state = 0;
 #endif
         }
       /* If the user presses a key, deactivate the menu.
-	 The user is likely to do that if we get wedged.  */
+         The user is likely to do that if we get wedged.
+         This is mostly for Lucid, Motif pops down the menu on ESC.  */
       else if (event.type == KeyPress
-	       && dpyinfo->display == event.xbutton.display)
-	{
-	  KeySym keysym = XLookupKeysym (&event.xkey, 0);
-	  if (!IsModifierKey (keysym))
-	    {
-	      popup_activated_flag = 0;
-	      break;
-	    }
-	}
-      /* Button presses outside the menu also pop it down.  */
-      else if (event.type == ButtonPress
-	       && event.xany.display == dpyinfo->display
-	       && x_any_window_to_frame (dpyinfo, event.xany.window))
-	{
-	  popup_activated_flag = 0;
-	  break;
-	}
-
-      /* Queue all events not for this popup,
-	 except for Expose, which we've already handled, and ButtonRelease.
-	 Note that the X window is associated with the frame if this
-	 is a menu bar popup, but not if it's a dialog box.  So we use
-	 x_non_menubar_window_to_frame, not x_any_window_to_frame.  */
-      if (event.type != Expose
-          && !(event.type == ButtonRelease
                && dpyinfo->display == event.xbutton.display)
-	  && (event.xany.display != dpyinfo->display
-	      || x_non_menubar_window_to_frame (dpyinfo, event.xany.window)))
-	{
-	  queue_tmp = (struct event_queue *) xmalloc (sizeof *queue_tmp);
-	  queue_tmp->event = event;
-	  queue_tmp->next = queue;
-	  queue = queue_tmp;
-	}
-      else
-	XtDispatchEvent (&event);
+        {
+          KeySym keysym = XLookupKeysym (&event.xkey, 0);
+          if (!IsModifierKey (keysym))
+            popup_activated_flag = 0;
+        }
 
-      if (!popup_activated ())
-	break;
-      XtAppNextEvent (Xt_app_con, &event);
-    }
-
-  /* Unread any events that we got but did not handle.  */
-  while (queue != NULL) 
-    {
-      queue_tmp = queue;
-      XPutBackEvent (queue_tmp->event.xany.display, &queue_tmp->event);
-      queue = queue_tmp->next;
-      xfree ((char *)queue_tmp);
-      /* Cause these events to get read as soon as we UNBLOCK_INPUT.  */
-      interrupt_input_pending = 1;
+      x_dispatch_event (&event, event.xany.display);
     }
 }
 
+#endif /* USE_X_TOOLKIT */
+
+#ifdef USE_GTK
+/* Loop util popup_activated_flag is set to zero in a callback.
+   Used for popup menus and dialogs. */
+static void
+popup_widget_loop ()
+{
+  ++popup_activated_flag;
+
+  /* Process events in the Gtk event loop until done.  */
+  while (popup_activated_flag)
+    {
+      gtk_main_iteration ();
+    }
+}
+#endif
+
 /* Activate the menu bar of frame F.
    This is called from keyboard.c when it gets the
-   menu_bar_activate_event out of the Emacs event queue.
+   MENU_BAR_ACTIVATE_EVENT out of the Emacs event queue.
 
    To activate the menu bar, we use the X button-press event
    that was saved in saved_menu_event.
@@ -1116,7 +1203,7 @@ popup_get_selection (initial_event, dpyinfo, id)
    The reason for saving the button event until here, instead of
    passing it to the toolkit right away, is that we can safely
    execute Lisp code.  */
-   
+
 void
 x_activate_menubar (f)
      FRAME_PTR f;
@@ -1124,15 +1211,26 @@ x_activate_menubar (f)
   if (!f->output_data.x->saved_menu_event->type)
     return;
 
+#ifdef USE_GTK
+  if (! xg_win_to_widget (f->output_data.x->saved_menu_event->xany.window))
+    return;
+#endif
+
   set_frame_menubar (f, 0, 1);
   BLOCK_INPUT;
-  XtDispatchEvent ((XEvent *) f->output_data.x->saved_menu_event);
+#ifdef USE_GTK
+  XPutBackEvent (f->output_data.x->display_info->display,
+                 f->output_data.x->saved_menu_event);
+  popup_activated_flag = 1;
+#else
+  XtDispatchEvent (f->output_data.x->saved_menu_event);
+#endif
   UNBLOCK_INPUT;
 #ifdef USE_MOTIF
   if (f->output_data.x->saved_menu_event->type == ButtonRelease)
     pending_menu_activation = 1;
 #endif
-  
+
   /* Ignore this if we get it a second time.  */
   f->output_data.x->saved_menu_event->type = 0;
 }
@@ -1148,6 +1246,7 @@ popup_activated ()
 /* This callback is invoked when the user selects a menubar cascade
    pushbutton, but before the pulldown menu is posted.  */
 
+#ifndef USE_GTK
 static void
 popup_activate_callback (widget, id, client_data)
      Widget widget;
@@ -1156,10 +1255,20 @@ popup_activate_callback (widget, id, client_data)
 {
   popup_activated_flag = 1;
 }
+#endif
 
 /* This callback is invoked when a dialog or menu is finished being
    used and has been unposted.  */
 
+#ifdef USE_GTK
+static void
+popup_deactivate_callback (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  popup_activated_flag = 0;
+}
+#else
 static void
 popup_deactivate_callback (widget, id, client_data)
      Widget widget;
@@ -1168,27 +1277,20 @@ popup_deactivate_callback (widget, id, client_data)
 {
   popup_activated_flag = 0;
 }
+#endif
 
-/* Lwlib callback called when menu items are highlighted/unhighlighted
-   while moving the mouse over them.  WIDGET is the menu bar or menu
-   popup widget.  ID is its LWLIB_ID.  CALL_DATA contains a pointer to
-   the widget_value structure for the menu item, or null in case of
-   unhighlighting.  */
 
-void
-menu_highlight_callback (widget, id, call_data)
-     Widget widget;
-     LWLIB_ID id;
-     void *call_data;
+/* Function that finds the frame for WIDGET and shows the HELP text
+   for that widget.
+   F is the frame if known, or NULL if not known.  */
+static void
+show_help_event (f, widget, help)
+     FRAME_PTR f;
+     xt_or_gtk_widget widget;
+     Lisp_Object help;
 {
-  widget_value *wv = (widget_value *) call_data;
-  struct frame *f;
-  Lisp_Object frame, help;
+  Lisp_Object frame;
 
-  help = wv ? wv->help : Qnil;
-  
-  /* Determine the frame for the help event.  */
-  f = menubar_id_to_frame (id);
   if (f)
     {
       XSETFRAME (frame, f);
@@ -1196,9 +1298,9 @@ menu_highlight_callback (widget, id, call_data)
     }
   else
     {
-      /* WIDGET is the popup menu.  It's parent is the frame's 
+      /* WIDGET is the popup menu.  It's parent is the frame's
 	 widget.  See which frame that is.  */
-      Widget frame_widget = XtParent (widget);
+      xt_or_gtk_widget frame_widget = XtParent (widget);
       Lisp_Object tail;
 
       for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
@@ -1214,32 +1316,77 @@ menu_highlight_callback (widget, id, call_data)
     }
 }
 
-/* This callback is called from the menu bar pulldown menu
-   when the user makes a selection.
-   Figure out what the user chose
-   and put the appropriate events into the keyboard buffer.  */
+/* Callback called when menu items are highlighted/unhighlighted
+   while moving the mouse over them.  WIDGET is the menu bar or menu
+   popup widget.  ID is its LWLIB_ID.  CALL_DATA contains a pointer to
+   the data structure for the menu item, or null in case of
+   unhighlighting.  */
 
-static void
-menubar_selection_callback (widget, id, client_data)
+#ifdef USE_GTK
+void
+menu_highlight_callback (widget, call_data)
+     GtkWidget *widget;
+     gpointer call_data;
+{
+  xg_menu_item_cb_data *cb_data;
+  Lisp_Object help;
+
+  cb_data = (xg_menu_item_cb_data*) g_object_get_data (G_OBJECT (widget),
+                                                       XG_ITEM_DATA);
+  if (! cb_data) return;
+
+  help = call_data ? cb_data->help : Qnil;
+
+  /* If popup_activated_flag is greater than 1 we are in a popup menu.
+     Don't show help for them, they won't appear before the
+     popup is popped down.  */
+  if (popup_activated_flag <= 1)
+    show_help_event (cb_data->cl_data->f, widget, help);
+}
+#else
+void
+menu_highlight_callback (widget, id, call_data)
      Widget widget;
      LWLIB_ID id;
-     XtPointer client_data;
+     void *call_data;
+{
+  struct frame *f;
+  Lisp_Object help;
+
+  widget_value *wv = (widget_value *) call_data;
+
+  help = wv ? wv->help : Qnil;
+
+  /* Determine the frame for the help event.  */
+  f = menubar_id_to_frame (id);
+
+  show_help_event (f, widget, help);
+}
+#endif
+
+/* Find the menu selection and store it in the keyboard buffer.
+   F is the frame the menu is on.
+   MENU_BAR_ITEMS_USED is the length of VECTOR.
+   VECTOR is an array of menu events for the whole menu.
+ */
+void
+find_and_call_menu_selection (f, menu_bar_items_used, vector, client_data)
+     FRAME_PTR f;
+     int menu_bar_items_used;
+     Lisp_Object vector;
+     void *client_data;
 {
   Lisp_Object prefix, entry;
-  FRAME_PTR f = menubar_id_to_frame (id);
-  Lisp_Object vector;
   Lisp_Object *subprefix_stack;
   int submenu_depth = 0;
   int i;
 
-  if (!f)
-    return;
   entry = Qnil;
-  subprefix_stack = (Lisp_Object *) alloca (f->menu_bar_items_used * sizeof (Lisp_Object));
-  vector = f->menu_bar_vector;
+  subprefix_stack = (Lisp_Object *) alloca (menu_bar_items_used * sizeof (Lisp_Object));
   prefix = Qnil;
   i = 0;
-  while (i < f->menu_bar_items_used)
+
+  while (i < menu_bar_items_used)
     {
       if (EQ (XVECTOR (vector)->contents[i], Qnil))
 	{
@@ -1303,6 +1450,59 @@ menubar_selection_callback (widget, id, client_data)
     }
 }
 
+
+#ifdef USE_GTK
+/* Gtk calls callbacks just because we tell it what item should be
+   selected in a radio group.  If this variable is set to a non-zero
+   value, we are creating menus and don't want callbacks right now.
+*/
+static int xg_crazy_callback_abort;
+
+/* This callback is called from the menu bar pulldown menu
+   when the user makes a selection.
+   Figure out what the user chose
+   and put the appropriate events into the keyboard buffer.  */
+static void
+menubar_selection_callback (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
+
+  if (xg_crazy_callback_abort)
+    return;
+
+  if (! cb_data || ! cb_data->cl_data || ! cb_data->cl_data->f)
+    return;
+
+  find_and_call_menu_selection (cb_data->cl_data->f,
+                                cb_data->cl_data->menu_bar_items_used,
+                                cb_data->cl_data->menu_bar_vector,
+                                cb_data->call_data);
+}
+
+#else /* not USE_GTK */
+
+/* This callback is called from the menu bar pulldown menu
+   when the user makes a selection.
+   Figure out what the user chose
+   and put the appropriate events into the keyboard buffer.  */
+static void
+menubar_selection_callback (widget, id, client_data)
+     Widget widget;
+     LWLIB_ID id;
+     XtPointer client_data;
+{
+  FRAME_PTR f;
+
+  f = menubar_id_to_frame (id);
+  if (!f)
+    return;
+  find_and_call_menu_selection (f, f->menu_bar_items_used,
+                                f->menu_bar_vector, client_data);
+}
+#endif /* not USE_GTK */
+
 /* Allocate a widget_value, blocking input.  */
 
 widget_value *
@@ -1345,22 +1545,18 @@ free_menubar_widget_value_tree (wv)
   UNBLOCK_INPUT;
 }
 
-/* Return a tree of widget_value structures for a menu bar item
+/* Set up data in menu_items for a menu bar item
    whose event type is ITEM_KEY (with string ITEM_NAME)
    and whose contents come from the list of keymaps MAPS.  */
 
-static widget_value *
-single_submenu (item_key, item_name, maps)
+static int
+parse_single_submenu (item_key, item_name, maps)
      Lisp_Object item_key, item_name, maps;
 {
-  widget_value *wv, *prev_wv, *save_wv, *first_wv;
-  int i;
-  int submenu_depth = 0;
   Lisp_Object length;
   int len;
   Lisp_Object *mapvec;
-  widget_value **submenu_stack;
-  int previous_items = menu_items_used;
+  int i;
   int top_level_items = 0;
 
   length = Flength (maps);
@@ -1374,14 +1570,11 @@ single_submenu (item_key, item_name, maps)
       maps = Fcdr (maps);
     }
 
-  menu_items_n_panes = 0;
-
   /* Loop over the given keymaps, making a pane for each map.
      But don't make a pane that is empty--ignore that map instead.  */
   for (i = 0; i < len; i++)
     {
-      if (SYMBOLP (mapvec[i])
-	  || (CONSP (mapvec[i]) && !KEYMAPP (mapvec[i])))
+      if (!KEYMAPP (mapvec[i]))
 	{
 	  /* Here we have a command at top level in the menu bar
 	     as opposed to a submenu.  */
@@ -1391,11 +1584,30 @@ single_submenu (item_key, item_name, maps)
 			  Qnil, Qnil, Qnil, Qnil);
 	}
       else
-	single_keymap_panes (mapvec[i], item_name, item_key, 0, 10);
+	{
+	  Lisp_Object prompt;
+	  prompt = Fkeymap_prompt (mapvec[i]);
+	  single_keymap_panes (mapvec[i],
+			       !NILP (prompt) ? prompt : item_name,
+			       item_key, 0, 10);
+	}
     }
 
-  /* Create a tree of widget_value objects
-     representing the panes and their items.  */
+  return top_level_items;
+}
+
+/* Create a tree of widget_value objects
+   representing the panes and items
+   in menu_items starting at index START, up to index END.  */
+
+static widget_value *
+digest_single_submenu (start, end, top_level_items)
+     int start, end, top_level_items;
+{
+  widget_value *wv, *prev_wv, *save_wv, *first_wv;
+  int i;
+  int submenu_depth = 0;
+  widget_value **submenu_stack;
 
   submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
@@ -1408,13 +1620,13 @@ single_submenu (item_key, item_name, maps)
   first_wv = wv;
   save_wv = 0;
   prev_wv = 0;
- 
-  /* Loop over all panes and items made during this call
-     and construct a tree of widget_value objects.
-     Ignore the panes and items made by previous calls to
-     single_submenu, even though those are also in menu_items.  */
-  i = previous_items;
-  while (i < menu_items_used)
+
+  /* Loop over all panes and items made by the preceding call
+     to parse_single_submenu and construct a tree of widget_value objects.
+     Ignore the panes and items used by previous calls to
+     digest_single_submenu, even though those are also in menu_items.  */
+  i = start;
+  while (i < end)
     {
       if (EQ (XVECTOR (menu_items)->contents[i], Qnil))
 	{
@@ -1441,10 +1653,10 @@ single_submenu (item_key, item_name, maps)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
-	  
+
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
-	  
+
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
@@ -1453,7 +1665,7 @@ single_submenu (item_key, item_name, maps)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -1488,7 +1700,7 @@ single_submenu (item_key, item_name, maps)
 	  /* Create a new item within current pane.  */
 	  Lisp_Object item_name, enable, descrip, def, type, selected;
 	  Lisp_Object help;
-	  
+
 	  item_name = AREF (menu_items, i + MENU_ITEMS_ITEM_NAME);
 	  enable = AREF (menu_items, i + MENU_ITEMS_ITEM_ENABLE);
 	  descrip = AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY);
@@ -1503,7 +1715,7 @@ single_submenu (item_key, item_name, maps)
 	      item_name = ENCODE_SYSTEM (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
-	  
+
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_SYSTEM (descrip);
@@ -1512,20 +1724,20 @@ single_submenu (item_key, item_name, maps)
 #endif /* not HAVE_MULTILINGUAL_MENU */
 
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    save_wv->contents = wv;
 
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* The EMACS_INT cast avoids a warning.  There's no problem
 	     as long as pointers have enough bits to hold small integers.  */
 	  wv->call_data = (!NILP (def) ? (void *) (EMACS_INT) i : 0);
 	  wv->enabled = !NILP (enable);
-	  
+
 	  if (NILP (type))
 	    wv->button_type = BUTTON_TYPE_NONE;
 	  else if (EQ (type, QCradio))
@@ -1558,8 +1770,6 @@ single_submenu (item_key, item_name, maps)
 
   return first_wv;
 }
-
-
 
 /* Recompute all the widgets of frame F, when the menu bar has been
    changed.  Value is non-zero if widgets were updated.  */
@@ -1568,9 +1778,12 @@ static int
 update_frame_menubar (f)
      FRAME_PTR f;
 {
+#ifdef USE_GTK
+  return xg_update_frame_menubar (f);
+#else
   struct x_output *x = f->output_data.x;
   int columns, rows;
-  
+
   if (!x->menubar_widget || XtIsManaged (x->menubar_widget))
     return 0;
 
@@ -1602,6 +1815,7 @@ update_frame_menubar (f)
   /* Force the pane widget to resize itself with the right values.  */
   EmacsFrameSetCharSize (x->edit_widget, columns, rows);
   UNBLOCK_INPUT;
+#endif
   return 1;
 }
 
@@ -1615,18 +1829,24 @@ set_frame_menubar (f, first_time, deep_p)
      int first_time;
      int deep_p;
 {
-  Widget menubar_widget = f->output_data.x->menubar_widget;
+  xt_or_gtk_widget menubar_widget = f->output_data.x->menubar_widget;
+#ifdef USE_X_TOOLKIT
+  LWLIB_ID id;
+#endif
   Lisp_Object items;
   widget_value *wv, *first_wv, *prev_wv = 0;
-  int i;
+  int i, last_i;
+  int *submenu_start, *submenu_end;
+  int *submenu_top_level_items, *submenu_n_panes;
 
-  LWLIB_ID id;
 
   XSETFRAME (Vmenu_updating_frame, f);
 
+#ifdef USE_X_TOOLKIT
   if (f->output_data.x->id == 0)
     f->output_data.x->id = next_menubar_widget_id++;
   id = f->output_data.x->id;
+#endif
 
   if (! menubar_widget)
     deep_p = 1;
@@ -1640,21 +1860,13 @@ set_frame_menubar (f, first_time, deep_p)
       f->output_data.x->saved_menu_event->type = 0;
     }
 
-  wv = xmalloc_widget_value ();
-  wv->name = "menubar";
-  wv->value = 0;
-  wv->enabled = 1;
-  wv->button_type = BUTTON_TYPE_NONE;
-  wv->help = Qnil;
-  first_wv = wv;
-
   if (deep_p)
     {
       /* Make a widget-value tree representing the entire menu trees.  */
 
       struct buffer *prev = current_buffer;
       Lisp_Object buffer;
-      int specpdl_count = specpdl_ptr - specpdl;
+      int specpdl_count = SPECPDL_INDEX ();
       int previous_menu_items_used = f->menu_bar_items_used;
       Lisp_Object *previous_items
 	= (Lisp_Object *) alloca (previous_menu_items_used
@@ -1672,6 +1884,7 @@ set_frame_menubar (f, first_time, deep_p)
       specbind (Qdebug_on_next_call, Qnil);
 
       record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_protect (unuse_menu_items, Qnil);
       if (NILP (Voverriding_local_map_menu_flag))
 	{
 	  specbind (Qoverriding_terminal_local_map, Qnil);
@@ -1682,7 +1895,7 @@ set_frame_menubar (f, first_time, deep_p)
 
       /* Run the Lucid hook.  */
       safe_run_hooks (Qactivate_menubar_hook);
-      
+
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */
       if (! NILP (Vlucid_menu_bar_dirty_flag))
@@ -1692,20 +1905,26 @@ set_frame_menubar (f, first_time, deep_p)
 
       items = FRAME_MENU_BAR_ITEMS (f);
 
-      inhibit_garbage_collection ();
-
       /* Save the frame's previous menu bar contents data.  */
       if (previous_menu_items_used)
 	bcopy (XVECTOR (f->menu_bar_vector)->contents, previous_items,
 	       previous_menu_items_used * sizeof (Lisp_Object));
 
-      /* Fill in the current menu bar contents.  */
+      /* Fill in menu_items with the current menu bar contents.
+	 This can evaluate Lisp code.  */
       menu_items = f->menu_bar_vector;
       menu_items_allocated = VECTORP (menu_items) ? ASIZE (menu_items) : 0;
+      submenu_start = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_end = (int *) alloca (XVECTOR (items)->size * sizeof (int *));
+      submenu_n_panes = (int *) alloca (XVECTOR (items)->size * sizeof (int));
+      submenu_top_level_items
+	= (int *) alloca (XVECTOR (items)->size * sizeof (int *));
       init_menu_items ();
       for (i = 0; i < XVECTOR (items)->size; i += 4)
 	{
 	  Lisp_Object key, string, maps;
+
+	  last_i = i;
 
 	  key = XVECTOR (items)->contents[i];
 	  string = XVECTOR (items)->contents[i + 1];
@@ -1713,8 +1932,35 @@ set_frame_menubar (f, first_time, deep_p)
 	  if (NILP (string))
 	    break;
 
-	  wv = single_submenu (key, string, maps);
-	  if (prev_wv) 
+	  submenu_start[i] = menu_items_used;
+
+	  menu_items_n_panes = 0;
+	  submenu_top_level_items[i]
+	    = parse_single_submenu (key, string, maps);
+	  submenu_n_panes[i] = menu_items_n_panes;
+
+	  submenu_end[i] = menu_items_used;
+	}
+
+      finish_menu_items ();
+
+      /* Convert menu_items into widget_value trees
+	 to display the menu.  This cannot evaluate Lisp code.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
+
+      for (i = 0; i < last_i; i += 4)
+	{
+	  menu_items_n_panes = submenu_n_panes[i];
+	  wv = digest_single_submenu (submenu_start[i], submenu_end[i],
+				      submenu_top_level_items[i]);
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1723,8 +1969,6 @@ set_frame_menubar (f, first_time, deep_p)
 	  wv->button_type = BUTTON_TYPE_NONE;
 	  prev_wv = wv;
 	}
-
-      finish_menu_items ();
 
       set_buffer_internal_1 (prev);
       unbind_to (specpdl_count, Qnil);
@@ -1739,7 +1983,7 @@ set_frame_menubar (f, first_time, deep_p)
       if (i == menu_items_used && i == previous_menu_items_used && i != 0)
 	{
 	  free_menubar_widget_value_tree (first_wv);
-	  menu_items = Qnil;
+	  discard_menu_items ();
 
 	  return;
 	}
@@ -1753,18 +1997,26 @@ set_frame_menubar (f, first_time, deep_p)
 	  string = XVECTOR (items)->contents[i + 1];
 	  if (NILP (string))
 	    break;
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv = wv->next;
 	}
 
       f->menu_bar_vector = menu_items;
       f->menu_bar_items_used = menu_items_used;
-      menu_items = Qnil;
+      discard_menu_items ();
     }
   else
     {
       /* Make a widget-value tree containing
 	 just the top level menu bar strings.  */
+
+      wv = xmalloc_widget_value ();
+      wv->name = "menubar";
+      wv->value = 0;
+      wv->enabled = 1;
+      wv->button_type = BUTTON_TYPE_NONE;
+      wv->help = Qnil;
+      first_wv = wv;
 
       items = FRAME_MENU_BAR_ITEMS (f);
       for (i = 0; i < XVECTOR (items)->size; i += 4)
@@ -1776,7 +2028,7 @@ set_frame_menubar (f, first_time, deep_p)
 	    break;
 
 	  wv = xmalloc_widget_value ();
-	  wv->name = (char *) XSTRING (string)->data;
+	  wv->name = (char *) SDATA (string);
 	  wv->value = 0;
 	  wv->enabled = 1;
 	  wv->button_type = BUTTON_TYPE_NONE;
@@ -1787,7 +2039,7 @@ set_frame_menubar (f, first_time, deep_p)
 	     This value just has to be different from small integers.  */
 	  wv->call_data = (void *) (EMACS_INT) (-1);
 
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
 	  else
 	    first_wv->contents = wv;
@@ -1804,6 +2056,35 @@ set_frame_menubar (f, first_time, deep_p)
 
   BLOCK_INPUT;
 
+#ifdef USE_GTK
+  xg_crazy_callback_abort = 1;
+  if (menubar_widget)
+    {
+      /* The third arg is DEEP_P, which says to consider the entire
+	 menu trees we supply, rather than just the menu bar item names.  */
+      xg_modify_menubar_widgets (menubar_widget,
+                                 f,
+                                 first_wv,
+                                 deep_p,
+                                 G_CALLBACK (menubar_selection_callback),
+                                 G_CALLBACK (popup_deactivate_callback),
+                                 G_CALLBACK (menu_highlight_callback));
+    }
+  else
+    {
+      GtkWidget *wvbox = f->output_data.x->vbox_widget;
+
+      menubar_widget
+        = xg_create_widget ("menubar", "menubar", f, first_wv,
+                            G_CALLBACK (menubar_selection_callback),
+                            G_CALLBACK (popup_deactivate_callback),
+                            G_CALLBACK (menu_highlight_callback));
+
+      f->output_data.x->menubar_widget = menubar_widget;
+    }
+
+
+#else /* not USE_GTK */
   if (menubar_widget)
     {
       /* Disable resizing (done for Motif!) */
@@ -1818,7 +2099,7 @@ set_frame_menubar (f, first_time, deep_p)
     }
   else
     {
-      menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv, 
+      menubar_widget = lw_create_widget ("menubar", "menubar", id, first_wv,
 					 f->output_data.x->column_widget,
 					 0,
 					 popup_activate_callback,
@@ -1829,7 +2110,7 @@ set_frame_menubar (f, first_time, deep_p)
     }
 
   {
-    int menubar_size 
+    int menubar_size
       = (f->output_data.x->menubar_widget
 	 ? (f->output_data.x->menubar_widget->core.height
 	    + f->output_data.x->menubar_widget->core.border_width)
@@ -1850,9 +2131,14 @@ set_frame_menubar (f, first_time, deep_p)
 
     f->output_data.x->menubar_height = menubar_size;
   }
-  
+#endif /* not USE_GTK */
+
   free_menubar_widget_value_tree (first_wv);
   update_frame_menubar (f);
+
+#ifdef USE_GTK
+  xg_crazy_callback_abort = 0;
+#endif
 
   UNBLOCK_INPUT;
 }
@@ -1874,8 +2160,10 @@ initialize_frame_menubar (f)
 
 
 /* Get rid of the menu bar of frame F, and free its storage.
-   This is used when deleting a frame, and when turning off the menu bar.  */
+   This is used when deleting a frame, and when turning off the menu bar.
+   For GTK this function is in gtkutil.c.  */
 
+#ifndef USE_GTK
 void
 free_frame_menubar (f)
      FRAME_PTR f;
@@ -1885,7 +2173,7 @@ free_frame_menubar (f)
   menubar_widget = f->output_data.x->menubar_widget;
 
   f->output_data.x->menubar_height = 0;
-  
+
   if (menubar_widget)
     {
 #ifdef USE_MOTIF
@@ -1899,14 +2187,14 @@ free_frame_menubar (f)
 	 is switched off, which fixes the shell position.  */
       Position x0, y0, x1, y1;
 #endif
-      
+
       BLOCK_INPUT;
 
 #ifdef USE_MOTIF
       if (f->output_data.x->widget)
 	XtVaGetValues (f->output_data.x->widget, XtNx, &x0, XtNy, &y0, NULL);
 #endif
-      
+
       lw_destroy_all_widgets ((LWLIB_ID) f->output_data.x->id);
       f->output_data.x->menubar_widget = NULL;
 
@@ -1918,12 +2206,13 @@ free_frame_menubar (f)
 	    XtVaSetValues (f->output_data.x->widget, XtNx, x0, XtNy, y0, NULL);
 	}
 #endif
-      
+
       UNBLOCK_INPUT;
     }
 }
+#endif /* not USE_GTK */
 
-#endif /* USE_X_TOOLKIT */
+#endif /* USE_X_TOOLKIT || USE_GTK */
 
 /* xmenu_show actually displays a menu using the panes and items in menu_items
    and returns the value selected from it.
@@ -1941,7 +2230,131 @@ free_frame_menubar (f)
    ERROR is a place to store an error message string in case of failure.
    (We return nil on failure, but the value doesn't actually matter.)  */
 
-#ifdef USE_X_TOOLKIT
+#if defined (USE_X_TOOLKIT) || defined (USE_GTK)
+
+/* The item selected in the popup menu.  */
+static Lisp_Object *volatile menu_item_selection;
+
+#ifdef USE_GTK
+
+/* Used when position a popup menu.  See menu_position_func and
+   create_and_show_popup_menu below.  */
+struct next_popup_x_y
+{
+  FRAME_PTR f;
+  int x;
+  int y;
+};
+
+/* The menu position function to use if we are not putting a popup
+   menu where the pointer is.
+   MENU is the menu to pop up.
+   X and Y shall on exit contain x/y where the menu shall pop up.
+   PUSH_IN is not documented in the GTK manual.
+   USER_DATA is any data passed in when calling gtk_menu_popup.
+   Here it points to a struct next_popup_x_y where the coordinates
+   to store in *X and *Y are as well as the frame for the popup.
+
+   Here only X and Y are used.  */
+static void
+menu_position_func (menu, x, y, push_in, user_data)
+     GtkMenu *menu;
+     gint *x;
+     gint *y;
+     gboolean *push_in;
+     gpointer user_data;
+{
+  struct next_popup_x_y* data = (struct next_popup_x_y*)user_data;
+  GtkRequisition req;
+  int disp_width = FRAME_X_DISPLAY_INFO (data->f)->width;
+  int disp_height = FRAME_X_DISPLAY_INFO (data->f)->height;
+  
+  *x = data->x;
+  *y = data->y;
+
+  /* Check if there is room for the menu.  If not, adjust x/y so that
+     the menu is fully visible.  */
+  gtk_widget_size_request (GTK_WIDGET (menu), &req);
+  if (data->x + req.width > disp_width)
+    *x -= data->x + req.width - disp_width;
+  if (data->y + req.height > disp_height)
+    *y -= data->y + req.height - disp_height;
+}
+
+static void
+popup_selection_callback (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  xg_menu_item_cb_data *cb_data = (xg_menu_item_cb_data*) client_data;
+
+  if (xg_crazy_callback_abort) return;
+  if (cb_data) menu_item_selection = (Lisp_Object *) cb_data->call_data;
+}
+
+/* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
+   menu pops down.
+   menu_item_selection will be set to the selection.  */
+static void
+create_and_show_popup_menu (f, first_wv, x, y, for_click)
+     FRAME_PTR f;
+     widget_value *first_wv;
+     int x;
+     int y;
+     int for_click;
+{
+  int i;
+  GtkWidget *menu;
+  GtkMenuPositionFunc pos_func = 0;  /* Pop up at pointer.  */
+  struct next_popup_x_y popup_x_y;
+
+  xg_crazy_callback_abort = 1;
+  menu = xg_create_widget ("popup", first_wv->name, f, first_wv,
+                           G_CALLBACK (popup_selection_callback),
+                           G_CALLBACK (popup_deactivate_callback),
+                           G_CALLBACK (menu_highlight_callback));
+  xg_crazy_callback_abort = 0;
+
+  for (i = 0; i < 5; i++)
+    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+      break;
+
+  if (! for_click)
+    {
+      /* Not invoked by a click.  pop up at x/y.  */
+      pos_func = menu_position_func;
+
+      /* Adjust coordinates to be root-window-relative.  */
+      x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+      y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+
+      popup_x_y.x = x;
+      popup_x_y.y = y;
+      popup_x_y.f = f;
+    }
+
+  /* Display the menu.  */
+  gtk_widget_show_all (menu);
+  gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
+
+  xg_did_tearoff = 0;
+  /* Set this to one.  popup_widget_loop increases it by one, so it becomes
+     two.  show_help_echo uses this to detect popup menus.  */
+  popup_activated_flag = 1;
+  /* Process events that apply to the menu.  */
+  popup_widget_loop ();
+
+  if (xg_did_tearoff)
+    xg_keep_popup (menu, xg_did_tearoff);
+  else
+    gtk_widget_destroy (menu);
+
+  /* Must reset this manually because the button release event is not passed
+     to Emacs event loop. */
+  FRAME_X_DISPLAY_INFO (f)->grabbed = 0;
+}
+
+#else /* not USE_GTK */
 
 /* We need a unique id for each widget handled by the Lucid Widget
    library.
@@ -1953,8 +2366,6 @@ free_frame_menubar (f)
    next_menubar_widget_id.  */
 LWLIB_ID widget_id_tick;
 
-static Lisp_Object *volatile menu_item_selection;
-
 static void
 popup_selection_callback (widget, id, client_data)
      Widget widget;
@@ -1963,6 +2374,76 @@ popup_selection_callback (widget, id, client_data)
 {
   menu_item_selection = (Lisp_Object *) client_data;
 }
+
+/* Pop up the menu for frame F defined by FIRST_WV at X/Y and loop until the
+   menu pops down.
+   menu_item_selection will be set to the selection.  */
+static void
+create_and_show_popup_menu (f, first_wv, x, y, for_click)
+     FRAME_PTR f;
+     widget_value *first_wv;
+     int x;
+     int y;
+     int for_click;
+{
+  int i;
+  Arg av[2];
+  int ac = 0;
+  XButtonPressedEvent dummy;
+  LWLIB_ID menu_id;
+  Widget menu;
+  Window child;
+
+  menu_id = widget_id_tick++;
+  menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
+                           f->output_data.x->widget, 1, 0,
+                           popup_selection_callback,
+                           popup_deactivate_callback,
+                           menu_highlight_callback);
+
+  dummy.type = ButtonPress;
+  dummy.serial = 0;
+  dummy.send_event = 0;
+  dummy.display = FRAME_X_DISPLAY (f);
+  dummy.time = CurrentTime;
+  dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
+  dummy.window = dummy.root;
+  dummy.subwindow = dummy.root;
+  dummy.x = x;
+  dummy.y = y;
+
+  /* Adjust coordinates to be root-window-relative.  */
+  x += f->output_data.x->left_pos + FRAME_OUTER_TO_INNER_DIFF_X (f);
+  y += f->output_data.x->top_pos + FRAME_OUTER_TO_INNER_DIFF_Y (f);
+
+  dummy.x_root = x;
+  dummy.y_root = y;
+
+  dummy.state = 0;
+  dummy.button = 0;
+  for (i = 0; i < 5; i++)
+    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
+      dummy.button = i;
+
+  /* Don't allow any geometry request from the user.  */
+  XtSetArg (av[ac], XtNgeometry, 0); ac++;
+  XtSetValues (menu, av, ac);
+
+  /* Display the menu.  */
+  lw_popup_menu (menu, (XEvent *) &dummy);
+  popup_activated_flag = 1;
+
+  /* Process events that apply to the menu.  */
+  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id, 0);
+
+  /* fp turned off the following statement and wrote a comment
+     that it is unnecessary--that the menu has already disappeared.
+     Nowadays the menu disappears ok, all right, but
+     we need to delete the widgets or multiple ones will pile up.  */
+  lw_destroy_all_widgets (menu_id);
+}
+
+#endif /* not USE_GTK */
 
 static Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error)
@@ -1975,17 +2456,12 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
      char **error;
 {
   int i;
-  LWLIB_ID menu_id;
-  Widget menu;
-  Arg av[2];
-  int ac = 0;
   widget_value *wv, *save_wv = 0, *first_wv = 0, *prev_wv = 0;
   widget_value **submenu_stack
     = (widget_value **) alloca (menu_items_used * sizeof (widget_value *));
   Lisp_Object *subprefix_stack
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
-  XButtonPressedEvent dummy;
 
   int first_pane;
 
@@ -2007,7 +2483,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   wv->help =Qnil;
   first_wv = wv;
   first_pane = 1;
- 
+
   /* Loop over all panes and items, filling in the tree.  */
   i = 0;
   while (i < menu_items_used)
@@ -2039,10 +2515,10 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  /* Create a new pane.  */
 	  Lisp_Object pane_name, prefix;
 	  char *pane_string;
-	  
+
 	  pane_name = AREF (menu_items, i + MENU_ITEMS_PANE_NAME);
 	  prefix = AREF (menu_items, i + MENU_ITEMS_PANE_PREFIX);
-	  
+
 #ifndef HAVE_MULTILINGUAL_MENU
 	  if (STRINGP (pane_name) && STRING_MULTIBYTE (pane_name))
 	    {
@@ -2051,7 +2527,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 #endif
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  /* If there is just one top-level pane, put all its items directly
 	     under the top-level menu.  */
 	  if (menu_items_n_panes == 1)
@@ -2103,22 +2579,22 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	      item_name = ENCODE_SYSTEM (item_name);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_NAME) = item_name;
 	    }
-	  
+
           if (STRINGP (descrip) && STRING_MULTIBYTE (descrip))
 	    {
 	      descrip = ENCODE_SYSTEM (descrip);
 	      AREF (menu_items, i + MENU_ITEMS_ITEM_EQUIV_KEY) = descrip;
 	    }
 #endif /* not HAVE_MULTILINGUAL_MENU */
- 
+
 	  wv = xmalloc_widget_value ();
-	  if (prev_wv) 
+	  if (prev_wv)
 	    prev_wv->next = wv;
-	  else 
+	  else
 	    save_wv->contents = wv;
-	  wv->name = (char *) XSTRING (item_name)->data;
+	  wv->name = (char *) SDATA (item_name);
 	  if (!NILP (descrip))
-	    wv->key = (char *) XSTRING (descrip)->data;
+	    wv->key = (char *) SDATA (descrip);
 	  wv->value = 0;
 	  /* If this item has a null value,
 	     make the call_data null so that it won't display a box
@@ -2168,8 +2644,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       if (STRING_MULTIBYTE (title))
 	title = ENCODE_SYSTEM (title);
 #endif
-      
-      wv_title->name = (char *) XSTRING (title)->data;
+
+      wv_title->name = (char *) SDATA (title);
       wv_title->enabled = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->next = wv_sep1;
@@ -2177,85 +2653,14 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       first_wv->contents = wv_title;
     }
 
-  /* Actually create the menu.  */
-  menu_id = widget_id_tick++;
-  menu = lw_create_widget ("popup", first_wv->name, menu_id, first_wv,
-			   f->output_data.x->widget, 1, 0,
-			   popup_selection_callback,
-			   popup_deactivate_callback,
-			   menu_highlight_callback);
-
-  /* Adjust coordinates to relative to the outer (window manager) window.  */
-  {
-    Window child;
-    int win_x = 0, win_y = 0;
-
-    /* Find the position of the outside upper-left corner of
-       the inner window, with respect to the outer window.  */
-    if (f->output_data.x->parent_desc != FRAME_X_DISPLAY_INFO (f)->root_window)
-      {
-	BLOCK_INPUT;
-	XTranslateCoordinates (FRAME_X_DISPLAY (f),
-
-			       /* From-window, to-window.  */
-			       f->output_data.x->window_desc,
-			       f->output_data.x->parent_desc,
-
-			       /* From-position, to-position.  */
-			       0, 0, &win_x, &win_y,
-
-			       /* Child of window.  */
-			       &child);
-	UNBLOCK_INPUT;
-	x += win_x;
-	y += win_y;
-      }
-  }
-
-  /* Adjust coordinates to be root-window-relative.  */
-  x += f->output_data.x->left_pos;
-  y += f->output_data.x->top_pos;
-
-  dummy.type = ButtonPress;
-  dummy.serial = 0;
-  dummy.send_event = 0;
-  dummy.display = FRAME_X_DISPLAY (f);
-  dummy.time = CurrentTime;
-  dummy.root = FRAME_X_DISPLAY_INFO (f)->root_window;
-  dummy.window = dummy.root;
-  dummy.subwindow = dummy.root;
-  dummy.x_root = x;
-  dummy.y_root = y;
-  dummy.x = x;
-  dummy.y = y;
-  dummy.state = (FRAME_X_DISPLAY_INFO (f)->grabbed >> 1) * Button1Mask;
-  dummy.button = 0;
-  for (i = 0; i < 5; i++)
-    if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
-      dummy.button = i;
-
-  /* Don't allow any geometry request from the user.  */
-  XtSetArg (av[ac], XtNgeometry, 0); ac++;
-  XtSetValues (menu, av, ac);
-
-  /* Free the widget_value objects we used to specify the contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
-  /* Display the menu.  */
-  lw_popup_menu (menu, (XEvent *) &dummy);
-  popup_activated_flag = 1;
+  /* Actually create and show the menu until popped down.  */
+  create_and_show_popup_menu (f, first_wv, x, y, for_click);
 
-  /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), menu_id);
-
-  /* fp turned off the following statement and wrote a comment
-     that it is unnecessary--that the menu has already disappeared.
-     Nowadays the menu disappears ok, all right, but
-     we need to delete the widgets or multiple ones will pile up.  */
-  lw_destroy_all_widgets (menu_id); 
+  /* Free the widget_value objects we used to specify the contents.  */
+  free_menubar_widget_value_tree (first_wv);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2315,6 +2720,48 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   return Qnil;
 }
 
+#ifdef USE_GTK
+static void
+dialog_selection_callback (widget, client_data)
+     GtkWidget *widget;
+     gpointer client_data;
+{
+  /* The EMACS_INT cast avoids a warning.  There's no problem
+     as long as pointers have enough bits to hold small integers.  */
+  if ((int) (EMACS_INT) client_data != -1)
+    menu_item_selection = (Lisp_Object *) client_data;
+
+  popup_activated_flag = 0;
+}
+
+/* Pop up the dialog for frame F defined by FIRST_WV and loop until the
+   dialog pops down.
+   menu_item_selection will be set to the selection.  */
+static void
+create_and_show_dialog (f, first_wv)
+     FRAME_PTR f;
+     widget_value *first_wv;
+{
+  GtkWidget *menu;
+
+  menu = xg_create_widget ("dialog", first_wv->name, f, first_wv,
+                           G_CALLBACK (dialog_selection_callback),
+                           G_CALLBACK (popup_deactivate_callback),
+                           0);
+
+  if (menu)
+    {
+      /* Display the menu.  */
+      gtk_widget_show_all (menu);
+
+      /* Process events that apply to the menu.  */
+      popup_widget_loop ();
+
+      gtk_widget_destroy (menu);
+    }
+}
+
+#else /* not USE_GTK */
 static void
 dialog_selection_callback (widget, id, client_data)
      Widget widget;
@@ -2325,11 +2772,69 @@ dialog_selection_callback (widget, id, client_data)
      as long as pointers have enough bits to hold small integers.  */
   if ((int) (EMACS_INT) client_data != -1)
     menu_item_selection = (Lisp_Object *) client_data;
+
   BLOCK_INPUT;
   lw_destroy_all_widgets (id);
   UNBLOCK_INPUT;
   popup_activated_flag = 0;
 }
+
+
+/* ARG is the LWLIB ID of the dialog box, represented
+   as a Lisp object as (HIGHPART . LOWPART).  */
+
+Lisp_Object
+xdialog_show_unwind (arg)
+     Lisp_Object arg;
+{
+  LWLIB_ID id = (XINT (XCAR (arg)) << 4 * sizeof (LWLIB_ID)
+		 | XINT (XCDR (arg)));
+  BLOCK_INPUT;
+  lw_destroy_all_widgets (id);
+  UNBLOCK_INPUT;
+  popup_activated_flag = 0;
+  return Qnil;
+}
+
+
+/* Pop up the dialog for frame F defined by FIRST_WV and loop until the
+   dialog pops down.
+   menu_item_selection will be set to the selection.  */
+static void
+create_and_show_dialog (f, first_wv)
+     FRAME_PTR f;
+     widget_value *first_wv;
+{
+  LWLIB_ID dialog_id;
+
+  dialog_id = widget_id_tick++;
+  lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
+                    f->output_data.x->widget, 1, 0,
+                    dialog_selection_callback, 0, 0);
+  lw_modify_all_widgets (dialog_id, first_wv->contents, True);
+
+  /* Display the dialog box.  */
+  lw_pop_up_all_widgets (dialog_id);
+  popup_activated_flag = 1;
+
+  /* Process events that apply to the dialog box.
+     Also handle timers.  */
+  {
+    int count = SPECPDL_INDEX ();
+    int fact = 4 * sizeof (LWLIB_ID);
+
+    /* xdialog_show_unwind is responsible for popping the dialog box down.  */
+    record_unwind_protect (xdialog_show_unwind,
+                           Fcons (make_number (dialog_id >> (fact)),
+                                  make_number (dialog_id & ~(-1 << (fact)))));
+
+    popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id, 1);
+
+    unbind_to (count, Qnil);
+  }
+}
+
+#endif /* not USE_GTK */
 
 static char * button_names [] = {
   "button1", "button2", "button3", "button4", "button5",
@@ -2343,8 +2848,6 @@ xdialog_show (f, keymaps, title, error)
      char **error;
 {
   int i, nb_buttons=0;
-  LWLIB_ID dialog_id;
-  Widget menu;
   char dialog_name[6];
 
   widget_value *wv, *first_wv = 0, *prev_wv = 0;
@@ -2370,7 +2873,7 @@ xdialog_show (f, keymaps, title, error)
     pane_name = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_NAME];
     prefix = XVECTOR (menu_items)->contents[MENU_ITEMS_PANE_PREFIX];
     pane_string = (NILP (pane_name)
-		   ? "" : (char *) XSTRING (pane_name)->data);  
+		   ? "" : (char *) SDATA (pane_name));
     prev_wv = xmalloc_widget_value ();
     prev_wv->value = pane_string;
     if (keymaps && !NILP (prefix))
@@ -2379,19 +2882,19 @@ xdialog_show (f, keymaps, title, error)
     prev_wv->name = "message";
     prev_wv->help = Qnil;
     first_wv = prev_wv;
- 
+
     /* Loop over all panes and items, filling in the tree.  */
     i = MENU_ITEMS_PANE_LENGTH;
     while (i < menu_items_used)
       {
-	
+
 	/* Create a new item within current pane.  */
 	Lisp_Object item_name, enable, descrip;
 	item_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_NAME];
 	enable = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_ENABLE];
 	descrip
 	  = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
-	
+
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
@@ -2417,8 +2920,8 @@ xdialog_show (f, keymaps, title, error)
 	prev_wv->next = wv;
 	wv->name = (char *) button_names[nb_buttons];
 	if (!NILP (descrip))
-	  wv->key = (char *) XSTRING (descrip)->data;
-	wv->value = (char *) XSTRING (item_name)->data;
+	  wv->key = (char *) SDATA (descrip);
+	wv->value = (char *) SDATA (item_name);
 	wv->call_data = (void *) &XVECTOR (menu_items)->contents[i];
 	wv->enabled = !NILP (enable);
 	wv->help = Qnil;
@@ -2454,26 +2957,14 @@ xdialog_show (f, keymaps, title, error)
     first_wv = wv;
   }
 
-  /* Actually create the dialog.  */
-  dialog_id = widget_id_tick++;
-  menu = lw_create_widget (first_wv->name, "dialog", dialog_id, first_wv,
-			   f->output_data.x->widget, 1, 0,
-			   dialog_selection_callback, 0, 0);
-  lw_modify_all_widgets (dialog_id, first_wv->contents, True);
-  /* Free the widget_value objects we used to specify the contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
   /* No selection has been chosen yet.  */
   menu_item_selection = 0;
 
-  /* Display the menu.  */
-  lw_pop_up_all_widgets (dialog_id);
-  popup_activated_flag = 1;
+  /* Actually create and show the dialog.  */
+  create_and_show_dialog (f, first_wv);
 
-  /* Process events that apply to the menu.  */
-  popup_get_selection ((XEvent *) 0, FRAME_X_DISPLAY_INFO (f), dialog_id);
-
-  lw_destroy_all_widgets (dialog_id); 
+  /* Free the widget_value objects we used to specify the contents.  */
+  free_menubar_widget_value_tree (first_wv);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -2521,7 +3012,7 @@ xdialog_show (f, keymaps, title, error)
   return Qnil;
 }
 
-#else /* not USE_X_TOOLKIT */
+#else /* not USE_X_TOOLKIT && not USE_GTK */
 
 /* The frame of the last activated non-toolkit menu bar.
    Used to generate menu help events.  */
@@ -2533,7 +3024,7 @@ static struct frame *menu_help_frame;
 
    PANE is the pane number, and ITEM is the menu item number in
    the menu (currently not used).
-   
+
    This cannot be done with generating a HELP_EVENT because
    XMenuActivate contains a loop that doesn't let Emacs process
    keyboard events.  */
@@ -2547,7 +3038,7 @@ menu_help_callback (help_string, pane, item)
   Lisp_Object *first_item;
   Lisp_Object pane_name;
   Lisp_Object menu_object;
- 
+
   first_item = XVECTOR (menu_items)->contents;
   if (EQ (first_item[0], Qt))
     pane_name = first_item[MENU_ITEMS_PANE_NAME];
@@ -2556,7 +3047,7 @@ menu_help_callback (help_string, pane, item)
     pane_name = empty_string;
   else
     pane_name = first_item[MENU_ITEMS_ITEM_NAME];
- 
+
   /* (menu-item MENU-NAME PANE-NUMBER)  */
   menu_object = Fcons (Qmenu_item,
  		       Fcons (pane_name,
@@ -2564,7 +3055,7 @@ menu_help_callback (help_string, pane, item)
   show_help_echo (help_string ? build_string (help_string) : Qnil,
  		  Qnil, menu_object, make_number (item), 1);
 }
-  
+
 
 static Lisp_Object
 xmenu_show (f, x, y, for_click, keymaps, title, error)
@@ -2575,7 +3066,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
      Lisp_Object title;
      char **error;
 {
-  Window root;		
+  Window root;
   XMenu *menu;
   int pane, selidx, lpane, status;
   Lisp_Object entry, pane_prefix;
@@ -2642,7 +3133,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
   /* Adjust coordinates to be root-window-relative.  */
   x += f->output_data.x->left_pos;
   y += f->output_data.x->top_pos;
- 
+
   /* Create all the necessary panes and their items.  */
   i = 0;
   while (i < menu_items_used)
@@ -2656,7 +3147,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  pane_name = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_NAME];
 	  prefix = XVECTOR (menu_items)->contents[i + MENU_ITEMS_PANE_PREFIX];
 	  pane_string = (NILP (pane_name)
-			 ? "" : (char *) XSTRING (pane_name)->data);
+			 ? "" : (char *) SDATA (pane_name));
 	  if (keymaps && !NILP (prefix))
 	    pane_string++;
 
@@ -2683,7 +3174,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 		  j++;
 		  continue;
 		}
-	      width = STRING_BYTES (XSTRING (item));
+	      width = SBYTES (item);
 	      if (width > maxwidth)
 		maxwidth = width;
 
@@ -2706,34 +3197,34 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	  descrip
 	    = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_EQUIV_KEY];
 	  help = XVECTOR (menu_items)->contents[i + MENU_ITEMS_ITEM_HELP];
-	  help_string = STRINGP (help) ? XSTRING (help)->data : NULL;
-	  
+	  help_string = STRINGP (help) ? SDATA (help) : NULL;
+
 	  if (!NILP (descrip))
 	    {
-	      int gap = maxwidth - STRING_BYTES (XSTRING (item_name));
+	      int gap = maxwidth - SBYTES (item_name);
 #ifdef C_ALLOCA
 	      Lisp_Object spacer;
 	      spacer = Fmake_string (make_number (gap), make_number (' '));
 	      item_name = concat2 (item_name, spacer);
 	      item_name = concat2 (item_name, descrip);
-	      item_data = XSTRING (item_name)->data;
+	      item_data = SDATA (item_name);
 #else
 	      /* if alloca is fast, use that to make the space,
 		 to reduce gc needs.  */
 	      item_data
 		= (unsigned char *) alloca (maxwidth
-					    + STRING_BYTES (XSTRING (descrip)) + 1);
-	      bcopy (XSTRING (item_name)->data, item_data,
-		     STRING_BYTES (XSTRING (item_name)));
-	      for (j = XSTRING (item_name)->size; j < maxwidth; j++)
+					    + SBYTES (descrip) + 1);
+	      bcopy (SDATA (item_name), item_data,
+		     SBYTES (item_name));
+	      for (j = SCHARS (item_name); j < maxwidth; j++)
 		item_data[j] = ' ';
-	      bcopy (XSTRING (descrip)->data, item_data + j,
-		     STRING_BYTES (XSTRING (descrip)));
-	      item_data[j + STRING_BYTES (XSTRING (descrip))] = 0;
+	      bcopy (SDATA (descrip), item_data + j,
+		     SBYTES (descrip));
+	      item_data[j + SBYTES (descrip)] = 0;
 #endif
 	    }
 	  else
-	    item_data = XSTRING (item_name)->data;
+	    item_data = SDATA (item_name);
 
 	  if (XMenuAddSelection (FRAME_X_DISPLAY (f),
 				 menu, lpane, 0, item_data,
@@ -2860,6 +3351,7 @@ syms_of_xmenu ()
 {
   staticpro (&menu_items);
   menu_items = Qnil;
+  menu_items_inuse = Qnil;
 
   Qdebug_on_next_call = intern ("debug-on-next-call");
   staticpro (&Qdebug_on_next_call);
@@ -2870,7 +3362,7 @@ The enable predicate for a menu command should check this variable.  */);
   Vmenu_updating_frame = Qnil;
 
 #ifdef USE_X_TOOLKIT
-  widget_id_tick = (1<<16);	
+  widget_id_tick = (1<<16);
   next_menubar_widget_id = 1;
 #endif
 

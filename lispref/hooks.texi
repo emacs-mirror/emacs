@@ -1,13 +1,13 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/hooks
 @node Standard Hooks, Index, Standard Keymaps, Top
 @appendix Standard Hooks
 
 The following is a list of hook variables that let you provide
-functions to be called from within Emacs on suitable occasions. 
+functions to be called from within Emacs on suitable occasions.
 
 Most of these variables have names ending with @samp{-hook}.  They are
 @dfn{normal hooks}, run by means of @code{run-hooks}.  The value of such
@@ -67,8 +67,8 @@ however, we have renamed all of those.)
 @item electric-command-history-hook
 @item electric-help-mode-hook
 @item emacs-lisp-mode-hook
-@item find-file-hooks
-@item find-file-not-found-hooks
+@item find-file-hook
+@item find-file-not-found-functions
 @item first-change-hook
 @item fortran-comment-hook
 @item fortran-mode-hook
@@ -85,7 +85,6 @@ however, we have renamed all of those.)
 @item lisp-interaction-mode-hook
 @item lisp-mode-hook
 @item list-diary-entries-hook
-@item local-write-file-hooks
 @item mail-mode-hook
 @item mail-setup-hook
 @item mark-diary-entries-hook
@@ -133,7 +132,7 @@ however, we have renamed all of those.)
 @item window-scroll-functions
 @item window-setup-hook
 @item window-size-change-functions
-@item write-contents-hooks
-@item write-file-hooks
+@item write-contents-functions
+@item write-file-functions
 @item write-region-annotate-functions
 @end table

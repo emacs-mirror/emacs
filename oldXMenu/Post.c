@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /gd/gnu/cvsroot/emacs/oldXMenu/Post.c,v 1.1 1999/10/03 19:35:10 fx Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Post.c,v 1.3 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -9,7 +9,7 @@
  *	XMenuPost -	Maps a given menu to the display and activates
  *			the menu for user selection.  The user is allowed to
  *			specify the mouse button event mask that will be used
- *			to identify a selection request.  When a selection 
+ *			to identify a selection request.  When a selection
  *			request is received (i.e., when the specified mouse
  *			event occurs) the data  returned will be either the
  *			data associated with the particular selection active
@@ -59,11 +59,11 @@ XMenuPost(display, menu, p_num, s_num, x_pos, y_pos, event_mask)
      * Make the procedure call.
      */
     stat = XMenuActivate(
-			 display, 
+			 display,
 			 menu,
-			 p_num, s_num, 
-			 x_pos, y_pos, 
-			 event_mask, 
+			 p_num, s_num,
+			 x_pos, y_pos,
+			 event_mask,
 			 &data, 0);
 
     /*

@@ -740,7 +740,7 @@ appropriate symbol: `rcs', `pcl-cvs', or `generic-sc' if you so desire."
   :group 'ediff)
 
 (defcustom ediff-coding-system-for-read 'raw-text
-  "*The coding system for read to use when running the diff program as a subprocess. 
+  "*The coding system for read to use when running the diff program as a subprocess.
 In most cases, the default will do. However, under certain circumstances in
 Windows NT/98/95 you might need to use something like 'raw-text-dos here.
 So, if the output that your diff program sends to Emacs contains extra ^M's,
@@ -758,15 +758,15 @@ to temp files when Ediff needs to find fine differences."
 
 (ediff-cond-compile-for-xemacs-or-emacs
  (progn ; xemacs
-   (fset 'ediff-read-event (symbol-function 'next-command-event))
-   (fset 'ediff-overlayp (symbol-function 'extentp))
-   (fset 'ediff-make-overlay (symbol-function 'make-extent))
-   (fset 'ediff-delete-overlay (symbol-function 'delete-extent)))
+   (defalias 'ediff-read-event 'next-command-event)
+   (defalias 'ediff-overlayp 'extentp)
+   (defalias 'ediff-make-overlay 'make-extent)
+   (defalias 'ediff-delete-overlay 'delete-extent))
  (progn ; emacs
-   (fset 'ediff-read-event (symbol-function 'read-event))
-   (fset 'ediff-overlayp (symbol-function 'overlayp))
-   (fset 'ediff-make-overlay (symbol-function 'make-overlay))
-   (fset 'ediff-delete-overlay (symbol-function 'delete-overlay)))
+   (defalias 'ediff-read-event 'read-event)
+   (defalias 'ediff-overlayp 'overlayp)
+   (defalias 'ediff-make-overlay 'make-overlay)
+   (defalias 'ediff-delete-overlay 'delete-overlay))
  )
 
 ;; Check the current version against the major and minor version numbers
@@ -811,7 +811,7 @@ to temp files when Ediff needs to find fine differences."
 ;; A var local to each control panel buffer.  Indicates highlighting style
 ;; in effect for this buffer: `face', `ascii',
 ;; `off' -- turned off \(on a dumb terminal only\).
-(ediff-defvar-local ediff-highlighting-style 
+(ediff-defvar-local ediff-highlighting-style
   (if (and (ediff-has-face-support-p) ediff-use-faces) 'face 'ascii)
   "")
 
@@ -831,18 +831,17 @@ to temp files when Ediff needs to find fine differences."
 (if (ediff-window-display-p)
     (ediff-cond-compile-for-xemacs-or-emacs
      (progn   ; xemacs
-       (fset 'ediff-display-pixel-width (symbol-function 'device-pixel-width))
-       (fset 'ediff-display-pixel-height
-	     (symbol-function 'device-pixel-height)))
+       (defalias 'ediff-display-pixel-width 'device-pixel-width)
+       (defalias 'ediff-display-pixel-height 'device-pixel-height))
      (progn   ; emacs
-       (fset 'ediff-display-pixel-width
+       (defalias 'ediff-display-pixel-width
 	     (if (fboundp 'display-pixel-width)
-		 (symbol-function 'display-pixel-width)
-	       (symbol-function 'x-display-pixel-width)))
-       (fset 'ediff-display-pixel-height
+		 'display-pixel-width
+	       'x-display-pixel-width))
+       (defalias 'ediff-display-pixel-height
 	     (if (fboundp 'display-pixel-height)
-		 (symbol-function 'display-pixel-height)
-	       (symbol-function 'x-display-pixel-height))))
+		 'display-pixel-height
+	       'x-display-pixel-height)))
      ))
 
 ;; A-list of current-diff-overlay symbols associated with buf types
@@ -1374,10 +1373,10 @@ This default should work without changes."
   (cdr (assq 'unsplittable (frame-parameters frame))))
 
 (defsubst ediff-get-next-window (wind prev-wind)
-  (or (window-live-p wind)
-      (setq wind (if prev-wind
-		     (next-window wind)
-		   (selected-window)))))
+  (cond ((window-live-p wind) wind)
+	(prev-wind (next-window wind))
+	(t (selected-window))
+	))
 
 
 (defsubst ediff-kill-buffer-carefully (buf)
@@ -1550,8 +1549,8 @@ This default should work without changes."
 	    (t nil))))
 
 (defsubst ediff-frame-char-height (frame)
-  (ediff-cond-compile-for-xemacs-or-emacs 
-   (glyph-height ediff-H-glyph (selected-window frame)) ; xemacs cse
+  (ediff-cond-compile-for-xemacs-or-emacs
+   (glyph-height ediff-H-glyph (frame-selected-window frame)) ; xemacs case
    (frame-char-height frame) ; emacs case
    )
   )
@@ -1738,7 +1737,7 @@ Unless optional argument INPLACE is non-nil, return a new string."
 
 
 (if (fboundp 'with-syntax-table)
-    (fset 'ediff-with-syntax-table 'with-syntax-table)
+    (defalias 'ediff-with-syntax-table 'with-syntax-table)
   ;; stolen from subr.el in emacs 21
   (defmacro ediff-with-syntax-table (table &rest body)
     (let ((old-table (make-symbol "table"))

@@ -1,6 +1,6 @@
 ;;; scroll-bar.el --- window system-independent scroll bar support
 
-;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001
+;; Copyright (C) 1993, 1994, 1995, 1999, 2000, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -88,17 +88,22 @@ This is nil while loading `scroll-bar.el', and t afterward.")
 	(setq frames (cdr frames))))))
 
 (defcustom scroll-bar-mode
-  (if (eq system-type 'windows-nt) 'right 'left)
+  (cond ((eq system-type 'windows-nt) 'right)
+	((featurep 'mac-carbon) 'right)
+	(t 'left))
   "*Specify whether to have vertical scroll bars, and on which side.
 Possible values are nil (no scroll bars), `left' (scroll bars on left)
 and `right' (scroll bars on right).
 To set this variable in a Lisp program, use `set-scroll-bar-mode'
 to make it take real effect.
 Setting the variable with a customization buffer also takes effect."
-  :type '(choice (const :tag "none (nil)")
+  :type '(choice (const :tag "none (nil)" nil)
 		 (const left)
 		 (const right))
   :group 'frames
+  ;; The default value for :initialize would try to use :set
+  ;; when processing the file in cus-dep.el.
+  :initialize 'custom-initialize-default
   :set 'set-scroll-bar-mode-1)
 
 ;; We just set scroll-bar-mode, but that was the default.
@@ -117,7 +122,9 @@ turn off scroll bars; otherwise, turn on scroll bars."
   ;; Tweedle the variable according to the argument.
   (set-scroll-bar-mode (if (null flag) (not scroll-bar-mode)
 			 (and (or (not (numberp flag)) (>= flag 0))
-			      (if (eq system-type 'windows-nt) 'right 'left)))))
+			      (cond ((eq system-type 'windows-nt) 'right)
+				    ((featurep 'mac-carbon) 'right)
+				    (t 'left))))))
 
 (defun toggle-scroll-bar (arg)
   "Toggle whether or not the selected frame has vertical scroll bars.
@@ -136,7 +143,9 @@ when they are turned on; if it is nil, they go on the left."
    (list (cons 'vertical-scroll-bars
 	       (if (> arg 0)
 		   (or scroll-bar-mode
-		       (if (eq system-type 'windows-nt) 'right 'left)))))))
+		       (cond ((eq system-type 'windows-nt) 'right)
+			     ((featurep 'mac-carbon) 'right)
+			     (t 'left))))))))
 
 (defun toggle-horizontal-scroll-bar (arg)
   "Toggle whether or not the selected frame has horizontal scroll bars.

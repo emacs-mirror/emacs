@@ -1,13 +1,13 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002 Free Software Foundation, Inc.
 
-;; Author: Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
-;; Maintainer: Francis J. Wright <F.J.Wright@Maths.QMW.ac.uk>
-;; Keywords: help, man, UN*X, manual
+;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
+;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
+;; Keywords: help, unix
 ;; Adapted-By: Eli Zaretskii <eliz@is.elta.co.il>
 ;; Version: see `woman-version'
-;; URL: http://centaur.maths.qmw.ac.uk/Emacs/WoMan/
+;; URL: http://centaur.maths.qmul.ac.uk/Emacs/WoMan/
 
 ;; This file is part of GNU Emacs.
 
@@ -337,7 +337,8 @@
 ;; Allow general delimiter in `\v', cf. `\h'.
 ;; Improve major-mode documentation.
 ;; Pre-process conditionals in macro bodies if possible for speed?
-;; Emulate some preprocessor support for tbl (.TS/.TE) and eqn (.EQ/.EN)
+;; Emulate more complete preprocessor support for tbl (.TS/.TE)
+;; Emulate some preprocessor support for eqn (.EQ/.EN)
 ;; Re-write filling and adjusting code!
 ;; Allow word wrap at comma (for long option lists)?
 ;; Buffer list handling not quite right.
@@ -386,6 +387,7 @@
 ;;   Juanma Barranquero <barranquero@laley-actualidad.es>
 ;;   Karl Berry <kb@cs.umb.edu>
 ;;   Jim Chapman <jchapman@netcomuk.co.uk>
+;;   Kin Cho <kin@neoscale.com>
 ;;   Frederic Corne <frederic.corne@erli.fr>
 ;;   Peter Craft <craft@alacritech.com>
 ;;   Charles Curley <ccurley@trib.com>
@@ -419,13 +421,13 @@
 ;;   Geoff Voelker <voelker@cs.washington.edu>
 ;;   Eli Zaretskii <eliz@is.elta.co.il>
 
-(defvar woman-version "0.54 (beta)" "WoMan version information.")
-
 ;;; History:
 ;;  For recent change log see end of file.
 
 
 ;;; Code:
+
+(defvar woman-version "0.551 (beta)" "WoMan version information.")
 
 (require 'man)
 (eval-when-compile			; to avoid compiler warnings
@@ -438,30 +440,62 @@ FN must return a list, cons or nil.  Useful for splicing into a list."
   ;; Based on the Standard Lisp function MAPCAN but with args swapped!
   (and x (nconc (funcall fn (car x)) (woman-mapcan fn (cdr x)))))
 
-(defun woman-parse-colon-path (cd-path)
-  "Explode a search path CD-PATH into a list of directory names.
+(defun woman-parse-colon-path (paths)
+  "Explode search path string PATHS into a list of directory names.
+Allow Cygwin colon-separated search paths on Microsoft platforms.
 Replace null components by calling `woman-parse-man.conf'.
-Allow UN*X-style search paths on Microsoft platforms, i.e. allow path
-elements to be separated by colons and convert Cygwin-style drive
-specifiers `//x/' to `x:'."
+As a special case, if PATHS is nil then replace it by calling
+`woman-parse-man.conf'."
   ;; Based on suggestions by Jari Aalto and Eli Zaretskii.
-  (mapcar
-   (lambda (path)			; //a/b -> a:/b
-     (when (and path (string-match "\\`//./" path))
-       (setq path (substring path 1))	; //a/b -> /a/b
-       (aset path 0 (aref path 1))	; /a/b -> aa/b
-       (aset path 1 ?:))		; aa/b -> a:/b
-     path)
-   (woman-mapcan			; splice into list...
-    (lambda (path)
-      ;; parse-colon-path returns nil for a null path component and
-      ;; an empty substring of MANPATH denotes the default list...
-      (if path (list path) (woman-parse-man.conf)))
-    (if (and (memq system-type '(windows-nt ms-dos))
-	     (not (string-match ";" cd-path)))
-	(let ((path-separator ":"))
-	  (parse-colon-path cd-path))
-      (parse-colon-path cd-path)))))
+  ;; parse-colon-path returns nil for a null path component and
+  ;; an empty substring of MANPATH denotes the default list.
+  (if (memq system-type '(windows-nt ms-dos))
+      (cond ((null paths)
+	     (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf)))
+	    ((string-match ";" paths)
+	     ;; Assume DOS-style path-list...
+	     (woman-mapcan		; splice list into list
+	      (lambda (x)
+		(if x
+		    (list x)
+		  (mapcar 'woman-Cyg-to-Win (woman-parse-man.conf))))
+	      (parse-colon-path paths)))
+	    ((string-match "\\`[a-zA-Z]:" paths)
+	     ;; Assume single DOS-style path...
+	     paths)
+	    (t
+	     ;; Assume UNIX/Cygwin-style path-list...
+	     (woman-mapcan		; splice list into list
+	      (lambda (x)
+		(mapcar 'woman-Cyg-to-Win
+			(if x (list x) (woman-parse-man.conf))))
+	      (let ((path-separator ":"))
+		(parse-colon-path paths)))))
+    ;; Assume host-default-style path-list...
+    (woman-mapcan			; splice list into list
+     (lambda (x) (if x (list x) (woman-parse-man.conf)))
+     (parse-colon-path (or paths "")))))
+
+(defun woman-Cyg-to-Win (file)
+  "Convert an absolute filename FILE from Cygwin to Windows form."
+  ;; Code taken from w32-symlinks.el
+  (if (eq (aref file 0) ?/)
+      ;; Try to use Cygwin mount table via `cygpath.exe'.
+      (condition-case nil
+	  (with-temp-buffer
+	    ;; cygpath -m file
+	    (call-process "cygpath" nil t nil "-m" file)
+	    (buffer-substring 1 (buffer-size)))
+	(error
+	 ;; Assume no `cygpath' program available.
+	 ;; Hack /cygdrive/x/ or /x/ or (obsolete) //x/ to x:/
+	 (when (string-match "\\`\\(/cygdrive\\|/\\)?/./" file)
+	   (if (match-string 1)		; /cygdrive/x/ or //x/ -> /x/
+	       (setq file (substring file (match-end 1))))
+	   (aset file 0 (aref file 1))	; /x/ -> xx/
+	   (aset file 1 ?:))		; xx/ -> x:/
+	 file))
+    file))
 
 
 ;;; User options:
@@ -500,28 +534,27 @@ Change only via `Customization' or the function `add-hook'."
   :group 'woman)
 
 (defcustom woman-man.conf-path
-  '("/etc" "/etc/manpath.config" "/usr/local/lib")
+  (let ((path '("/usr/lib" "/etc")))
+    (if (eq system-type 'windows-nt)
+	(mapcar 'woman-Cyg-to-Win path)
+      path))
   "*List of dirs to search and/or files to try for man config file.
-Default is '(\"/etc\" \"/usr/local/lib\") [for GNU/Linux, Cygwin resp.]
 A trailing separator (`/' for UNIX etc.) on directories is optional
-and the filename matched if a directory is specified is the first to
-contain the string \"man.conf\".
+and the filename used if a directory is specified is the first to
+match the regexp \"man.*\\.conf\".
 If MANPATH is not set but a config file is found then it is parsed
 instead to provide a default value for `woman-manpath'."
   :type '(repeat string)
   :group 'woman-interface)
 
 (defun woman-parse-man.conf ()
-  "Parse if possible Linux-style configuration file for man command.
+  "Parse if possible configuration file for man command.
 Used only if MANPATH is not set or contains null components.
 Look in `woman-man.conf-path' and return a value for `woman-manpath'.
 Concatenate data from all lines in the config file of the form
-
-  MANPATH	/usr/man
-
+  MANPATH  /usr/man
 or
-
-  MANDATORY_MANPATH     /usr/man"
+  MANDATORY_MANPATH  /usr/man"
   ;; Functionality suggested by Charles Curley.
   (let ((path woman-man.conf-path)
 	file manpath)
@@ -533,26 +566,24 @@ or
 		  (or (not (file-directory-p file))
 		      (and
 		       (setq file
-			     (directory-files file t "man\\.conf" t))
+			     (directory-files file t "man.*\\.conf" t))
 		       (file-readable-p (setq file (car file)))))
 		  ;; Parse the file -- if no MANPATH data ignore it:
 		  (with-temp-buffer
 		    (insert-file-contents file)
 		    (while (re-search-forward
-			    "^[ \t]*\\(MANDATORY_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
-		      (setq manpath (cons (match-string 2) manpath)))
+			    ;; `\(?: ... \)' is a "shy group"
+			    "\
+^[ \t]*\\(?:MANDATORY_\\)?MANPATH[ \t]+\\(\\S-+\\)" nil t)
+		      (setq manpath (cons (match-string 1) manpath)))
 		    manpath))
 		 ))
       (setq path (cdr path)))
     (nreverse manpath)))
 
 (defcustom woman-manpath
-  (let ((manpath (getenv "MANPATH")))
-    (or
-     (and manpath (woman-parse-colon-path manpath))
-     (woman-parse-man.conf)
-     '("/usr/man" "/usr/share/man" "/usr/local/man")
-     ))
+  (or (woman-parse-colon-path (getenv "MANPATH"))
+      '("/usr/man" "/usr/share/man" "/usr/local/man"))
   "*List of DIRECTORY TREES to search for UN*X manual files.
 Each element should be the name of a directory that contains
 subdirectories of the form `man?', or more precisely subdirectories
@@ -561,26 +592,22 @@ and unreadable files are ignored.
 
 If not set then the environment variable MANPATH is used.  If no such
 environment variable is found, the default list is determined by
-consulting the man configuration file if found.  By default this is
-either `/etc/man.config' or `/usr/local/lib/man.conf', which is
-determined by the user option `woman-man.conf-path'.  An empty
-substring of MANPATH denotes the default list.  Otherwise, the default
-value of this variable is
-
-  (\"/usr/man\" \"/usr/local/man\").
+consulting the man configuration file if found, which is determined by
+the user option `woman-man.conf-path'.  An empty substring of MANPATH
+denotes the default list.
 
 Any environment variables (names must have the UN*X-style form $NAME,
-e.g. $HOME, $EMACSDATA, $EMACS_DIR) are evaluated first but each
+e.g. $HOME, $EMACSDATA, $emacs_dir) are evaluated first but each
 element must evaluate to a SINGLE directory name.  Trailing `/'s are
 ignored.  (Specific directories in `woman-path' are also searched.)
 
 Microsoft platforms:
 I recommend including drive letters explicitly, e.g.
 
-  (\"C:/Cygnus/cygwin-b20/man\" \"C:/usr/man\" \"C:/usr/local/man\").
+  (\"C:/Cygwin/usr/man/\" \"C:/Cygwin/usr/local/man\").
 
 The MANPATH environment variable may be set using DOS semi-colon-
-separated or UN*X / Cygwin colon-separated syntax (but not mixed)."
+separated or UN*X/Cygwin colon-separated syntax (but not mixed)."
   :type '(repeat string)
   :group 'woman-interface)
 
@@ -609,11 +636,11 @@ string is expanded into a list of matching directories.  Non-directory
 and unreadable files are ignored.  The default value is nil.
 
 Any environment variables (which must have the UN*X-style form $NAME,
-e.g. $HOME, $EMACSDATA, $EMACS_DIR) are evaluated first but each
+e.g. $HOME, $EMACSDATA, $emacs_dir) are evaluated first but each
 element must evaluate to a SINGLE directory name (regexp, see above).
 For example
 
-  (\"$EMACSDATA\") [or equivalently (\"$EMACS_DIR/etc\")].
+  (\"$EMACSDATA\") [or equivalently (\"$emacs_dir/etc\")].
 
 Trailing `/'s are discarded.  (The directory trees in `woman-manpath'
 are also searched.)  On Microsoft platforms I recommend including
@@ -786,7 +813,7 @@ Only useful when run on a graphic display such as X or MS-Windows."
 
 (defcustom woman-default-indent 5
   "*Default prevailing indent set by -man macros -- default is 5.
-Set this variable to 7 to emulate Linux man formatting."
+Set this variable to 7 to emulate GNU man formatting."
   :type 'integer
   :group 'woman-formatting)
 
@@ -862,8 +889,7 @@ or different fonts."
 
 (defface woman-addition-face
   '((t (:foreground "orange")))
-  "Face for all additions made by WoMan to man pages.
-Default: foreground orange."
+  "Face for all WoMan additions to man pages."
   :group 'woman-faces)
 
 (defun woman-default-faces ()
@@ -1031,13 +1057,6 @@ The ordinal numbers start from 0.")
   "List of one-character built-in condition names that are true.
 Should include ?e, ?o (page even/odd) and either ?n (nroff) or ?t (troff).
 Default is '(?n ?e ?o).  Set via `woman-emulation'.")
-
-
-;;; Button types:
-
-(define-button-type 'woman-xref
-  'action (lambda (button) (woman (button-label button)))
-  'help-echo "RET, mouse-2: display this man page")
 
 
 ;;; Specialized utility functions:
@@ -1321,7 +1340,7 @@ Any UN*X-style environment variables are evaluated first."
   ;; including `.' and `..', so remove any trailing / !!!
   (if (string= (substring dir -1) "/")
       (setq dir (substring dir 0 -1)))
-  (if (memq system-type '(windows-nt ms-dos)) ; what else?
+  (if (memq system-type '(windows-nt ms-dos cygwin)) ; what else?
       ;; Match capitalization used by `file-name-directory':
       (setq dir (concat (file-name-directory dir)
 			(file-name-nondirectory dir))))
@@ -1843,7 +1862,7 @@ See `Man-mode' for additional details."
     (setq woman-imenu-done nil)
     (if woman-imenu (woman-imenu))
     (setq buffer-read-only nil)
-    (WoMan-highlight-references)
+    (Man-highlight-references)
     (setq buffer-read-only t)
     (set-buffer-modified-p nil)))
 
@@ -1937,21 +1956,6 @@ Otherwise use Man and record start of formatting time."
 	 (time (+ (* (- (car time) (car WoMan-Man-start-time)) 65536)
 		  (- (cadr time) (cadr WoMan-Man-start-time)))))
     (message "Man formatting done in %d seconds" time)))
-
-(defun WoMan-highlight-references ()
-  "Highlight the references (in the SEE ALSO section) on mouse-over."
-  ;; Based on `Man-build-references-alist' in `man'.
-  (when (Man-find-section Man-see-also-regexp)
-    (forward-line 1)
-    (let ((end (save-excursion
-		 (Man-next-section 1)
-		 (point))))
-      (back-to-indentation)
-      (while (re-search-forward Man-reference-regexp end t)
-	;; Highlight reference when mouse is over it.
-	;; (NB: WoMan does not hyphenate!)
-	(make-text-button (match-beginning 1) (match-end 1)
-			  'type 'woman-xref)))))
 
 
 ;;; Buffer handling:
@@ -2114,13 +2118,11 @@ To be called on original buffer and any .so insertions."
       ;; ***** Need test for .ec arg and warning here! *****
       (woman-delete-whole-line)))
 
-  ;; Delete comments .\"<anything>, \"<anything>, pre-processor
-  ;; directives '\"<anything> (should give warning?) and null
-  ;; requests.  (However, should null . requests cause a break?)
+  ;; Delete comments .\"<anything>, \"<anything> and null requests.
+  ;; (However, should null . requests cause a break?)
   (goto-char from)
   (while (re-search-forward "^[.'][ \t]*\\(\\\\\".*\\)?\n\\|\\\\\".*" to t)
-    (woman-delete-match 0))
-  )
+    (woman-delete-match 0)))
 
 (defun woman-non-underline-faces ()
   "Prepare non-underlined versions of underlined faces."
@@ -2134,6 +2136,32 @@ To be called on original buffer and any .so insertions."
 	      (copy-face face face-no-ul)
 	      (set-face-underline-p face-no-ul nil))))
       (setq face-list (cdr face-list)))))
+
+;; Preprocessors
+;; =============
+
+;; This information is based on documentation for the man command by
+;; Graeme W. Wilford <G.Wilford@ee.surrey.ac.uk>
+
+;; First, the environment variable $MANROFFSEQ is interrogated, and if
+;; not set then the initial line of the nroff file is parsed for a
+;; preprocessor string. To contain a valid preprocessor string, the
+;; first line must resemble
+;;
+;; '\" <string>
+;;
+;; where string can be any combination of the following letters that
+;; specify the sequence of preprocessors to run before nroff or
+;; troff/groff.  Not all installations will have a full set of
+;; preprocessors.  Some of the preprocessors and the letters used to
+;; designate them are: eqn (e), grap (g), pic (p), tbl (t), vgrind
+;; (v), refer (r).  This option overrides the $MANROFFSEQ environment
+;; variable.  zsoelim is always run as the very first preprocessor.
+
+(defvar woman-emulate-tbl nil
+  "True if WoMan should emulate the tbl preprocessor.
+This applies to text between .TE and .TS directives.
+Currently set only from '\" t in the first line of the source file.")
 
 (defun woman-decode-region (from to)
   "Decode the region between FROM and TO in UN*X man-page source format."
@@ -2177,6 +2205,18 @@ To be called on original buffer and any .so insertions."
     (if (or woman-fill-frame
 	    (not (and (integerp woman-fill-column) (> woman-fill-column 0))))
 	(setq woman-fill-column (- (frame-width) woman-default-indent)))
+
+    ;; Check for preprocessor requests:
+    (goto-char from)
+    (if (looking-at "'\\\\\"[ \t]*\\([a-z]+\\)")
+	(let ((letters (append (match-string 1) nil)))
+	  (if (memq ?t letters)
+	      (setq woman-emulate-tbl t
+		    letters (delete ?t letters)))
+	  (if letters
+	      (WoMan-warn "Unhandled preprocessor request letters %s"
+			  (concat letters)))
+	  (woman-delete-line 1)))
 
     (woman-pre-process-region from nil)
     ;; Process ignore requests, macro definitions,
@@ -2432,7 +2472,7 @@ Start at FROM and re-scan new text as appropriate."
   (woman-strings to)
   (goto-char from)			; necessary!
   ;; Strip font-change escapes:
-  (while (re-search-forward "\\\\f\\((..\\|.\\)" to t)
+  (while (re-search-forward "\\\\f\\(\\[[^]]+\\]\\|(..\\|.\\)" to t)
     (woman-delete-match 0))
   (goto-char from)			; necessary!
   (woman2-process-escapes to 'numeric))
@@ -2740,6 +2780,19 @@ Optional argument APPEND, if non-nil, means append macro."
 
 ;;; Process strings:
 
+(defun woman-match-name ()
+  "Match and move over name of form: x, (xx or [xxx...].
+Applies to number registers, fonts, strings/macros/diversions, and
+special characters."
+  (cond ((= (following-char) ?\[ )
+	 (forward-char)
+	 (re-search-forward "[^]]+")
+	 (forward-char))		; skip closing ]
+	((= (following-char) ?\( )
+	 (forward-char)
+	 (re-search-forward ".."))
+	(t (re-search-forward "."))))
+
 (defun woman-strings (&optional to)
   "Process ?roff string requests and escape sequences up to buffer position TO.
 Strings are defined/updated by `.ds xx string' requests and
@@ -2772,10 +2825,7 @@ interpolated by `\*x' and `\*(xx' escapes."
 	   (woman-delete-line 1))
 	  (t				; \*
 	   (let ((beg (match-beginning 0)))
-	     (cond ((= (following-char) ?\( )
-		    (forward-char)
-		    (re-search-forward ".."))
-		   (t (re-search-forward ".")))
+	     (woman-match-name)
 	     (let* ((stringname (match-string 0))
 		   (string (assoc stringname woman-string-alist)))
 	       (cond (string
@@ -2860,12 +2910,14 @@ Set NEWTEXT in face FACE if specified."
   t)
 
 (defun woman-special-characters (to)
-  "Process special character escapes \(xx up to buffer position TO.
+  "Process special character escapes \\(xx, \\[xxx] up to buffer position TO.
 \(This must be done AFTER translation, which may use special characters.)"
-  (while (re-search-forward "\\\\(\\(..\\)" to t)
-    (let ((replacement
-	   (assoc (match-string-no-properties 1) woman-special-characters)))
-      (if (and
+  (while (re-search-forward "\\\\\\(?:(\\(..\\)\\|\\[\\([[^]]+\\)\\]\\)" to t)
+    (let* ((name (or (match-string-no-properties 1)
+		     (match-string-no-properties 2)))
+	   (replacement (assoc name woman-special-characters)))
+      (unless
+	  (and
 	   replacement
 	   (cond ((and (cddr replacement)
 		       (if (nthcdr 3 replacement)
@@ -2878,9 +2930,9 @@ Set NEWTEXT in face FACE if specified."
 			     (woman-replace-match (nth 2 replacement))))))
 		 ((cadr replacement)	; Use ASCII simulation
 		  (woman-replace-match (cadr replacement)))))
-	  ()
-	(WoMan-warn "Special character \\(%s not interpolated!"
-		    (match-string-no-properties 1))
+	(WoMan-warn (concat "Special character "
+			    (if (match-string 1) "\\(%s" "\\[%s]")
+			    " not interpolated!") name)
 	(if woman-ignore (woman-delete-match 0))))
     ))
 
@@ -3204,11 +3256,7 @@ If optional arg CONCAT is non-nil then join arguments."
 	      ((match-string 4)
 	       ;; \f escape found
 	       (setq beg (match-beginning 0))
-	       (cond ((= (following-char) ?\( )
-		      (forward-char)
-		      (re-search-forward ".."))
-		     (t (re-search-forward ".")))
-	       )
+	       (woman-match-name))
 	      (t (setq notfont t)))
 	(if notfont
 	    ()
@@ -3274,8 +3322,8 @@ Ignore the default face and underline only word characters."
 (defun woman-get-next-char ()
   "Return and delete next char in buffer, including special chars."
   (if ;;(looking-at "\\\\(\\(..\\)")
-      ;; Match special \(xx and strings \*x, \*(xx:
-      (looking-at "\\\\\\((..\\|\\*\\((..\\|.\\)\\)")
+      ;; Match special \(xx and strings \*[xxx], \*(xx, \*x:
+      (looking-at "\\\\\\((..\\|\\*\\(\\[[^]]+\\]\\|(..\\|.\\)\\)")
       (prog1 (match-string 0)
 	(woman-delete-match 0))
     (prog1 (char-to-string (following-char))
@@ -3485,10 +3533,12 @@ expression in parentheses.  Leaves point after the value."
 		    ;; currently needed to set match-end, even though
 		    ;; string-to-number returns 0 if number not parsed.
 		    (string-to-number (match-string 0)))
-		   ((looking-at "\\\\n\\([-+]\\)?\\(\(\\(..\\)\\|\\(.\\)\\)")
+		   ((looking-at "\\\\n\\([-+]\\)?\\(?:\
+\\[\\([^]]+\\)\\]\\|\(\\(..\\)\\|\\(.\\)\\)")
 		    ;; interpolate number register, maybe auto-incremented
 		    (let* ((pm (match-string-no-properties 1))
-			   (name (or (match-string-no-properties 3)
+			   (name (or (match-string-no-properties 2)
+				     (match-string-no-properties 3)
 				     (match-string-no-properties 4)))
 			   (value (assoc name woman-registers)))
 		      (if value
@@ -3510,9 +3560,9 @@ expression in parentheses.  Leaves point after the value."
 			0)		; default to zero
 		      ))
 		   ((re-search-forward
-		     ;; Delimiter can be special char escape \(.. or
-		     ;; single normal char (usually '):
-		     "\\=\\\\w\\(\\\\(..\\|.\\)" nil t)
+		     ;; Delimiter can be special char escape \[xxx],
+		     ;; \(xx or single normal char (usually '):
+		     "\\=\\\\w\\(\\\\\\[[^]]+\\]\\|\\\\(..\\|.\\)" nil t)
 		    (let ((from (match-end 0))
 			  (delim (regexp-quote (match-string 1))))
 		      (if (re-search-forward delim nil t)
@@ -3636,7 +3686,7 @@ expression in parentheses.  Leaves point after the value."
 (defun woman2-PD (to)
   ".PD d -- Set the interparagraph distance to d.
 Round to whole lines, default 1 line.  Format paragraphs upto TO.
-(Breaks, but should not.)"
+\(Breaks, but should not.)"
   ;; .ie \\n[.$] .nr PD (v;\\$1)
   ;; .el .nr PD .4v>?\n[.V]
   (woman-set-interparagraph-distance)
@@ -3945,7 +3995,7 @@ Format paragraphs upto TO.  (Breaks, but should not.)"
 
 (defun woman2-na (to)
   ".na -- No adjusting.  Format paragraphs upto TO.
-(Breaks, but should not.)"
+\(Breaks, but should not.)"
   (setq woman-adjust-previous woman-adjust
 	woman-justify-previous woman-justify
 	woman-adjust woman-adjust-left	; fill but do not adjust
@@ -4358,6 +4408,49 @@ Needs doing properly!"
   (woman2-format-paragraphs to))
 
 
+;;; Preliminary table support (.TS/.TE)
+
+(defun woman2-TS (to)
+  ".TS -- Start of table code for the tbl processor.
+Format paragraphs upto TO."
+  ;; This is a preliminary hack that seems to suffice for lilo.8.
+  (woman-delete-line 1)			; ignore any arguments
+  (when woman-emulate-tbl
+    ;; Assumes column separator is \t and intercolumn spacing is 3.
+    ;; The first line may optionally be a list of options terminated by
+    ;; a semicolon.  Currently, just delete it:
+    (if (looking-at ".*;[ \t]*$") (woman-delete-line 1)) ;
+    ;; The following lines must specify the format of each line of the
+    ;; table and end with a period.  Currently, just delete them:
+    (while (not (looking-at ".*\\.[ \t]*$")) (woman-delete-line 1))
+    (woman-delete-line 1)
+    ;; For each column, find its width and align it:
+    (let ((start (point)) (col 1))
+      (while (prog1 (search-forward "\t" to t) (goto-char start))
+	;; Find current column width:
+	(while (< (point) to)
+	  (when (search-forward "\t" to t)
+	    (backward-char)
+	    (if (> (current-column) col) (setq col (current-column))))
+	  (forward-line))
+	;; Align current column:
+	(goto-char start)
+	(setq col (+ col 3))		; intercolumn space
+	(while (< (point) to)
+	  (when (search-forward "\t" to t)
+	    (delete-char -1)
+	    (insert-char ?\  (- col (current-column))))
+	  (forward-line))
+	(goto-char start))))
+  ;; Format table with no filling or adjusting (cf. woman2-nf):
+  (setq woman-nofill t)
+  (woman2-format-paragraphs to))
+
+(defalias 'woman2-TE 'woman2-fi)
+  ;; ".TE -- End of table code for the tbl processor."
+  ;; Turn filling and adjusting back on.
+
+
 ;;; WoMan message logging:
 
 ;; The basis for this logging code was shamelessly pirated from bytecomp.el
@@ -4432,71 +4525,5 @@ logging the message."
   nil)					; for woman-file-readable-p etc.
 
 (provide 'woman)
-
-;; RECENT CHANGE LOG
-;; =================
-
-;; Changes in version 0.50 ([*] => user interface change)
-;;   [*] Requires GNU Emacs 20.3+.
-;;   [*] `defface' used to define faces.
-;;   [*] Follow `see also' references with mouse-2 click.
-;;   Number register increment support added (woman-registers).
-;;   .j must be a NUMBER acceptable by .ad request.
-;;   Very crude field support added.
-;;   Vertical unit specifier `v' added to register handling.
-;;   Improvement to local horizontal motion processing.
-;;   Minor fix to handle negative numeric arguments.
-;;   Handle horizontal motion escapes `\h' better.
-;;   Allow arbitrary delimiters in `.if', inc. special character escapes.
-;;   Allow `\n' within `.if' string comparisons.
-;;   Allow arbitrary delimiters in `\w', inc. special character escapes.
-;;   Processing of `\h' moved much later -- after indenting etc!
-
-;; Changes in version 0.51 ([*] => user interface change)
-;;   [*] Improved handling of underlined faces (mainly for "italics").
-;;   [*] Allow environment variables in directory path elements.
-;;   Display of pre-formatted files improved.
-;;   [*] Unintentional interaction with standard Man mode reduced.
-;;   [*] bzip2 decompression support added.  All decompression now
-;;      works by turning on `auto-compression-mode' to decompress the
-;;      file if necessary, rather than decompressing explicitly.
-;;      Filename and compression regexps are now customizable user
-;;      options.
-
-;; Changes in version 0.52 ([*] => user interface change)
-;;   Speeded up handling of underlined faces (mainly for "italics").
-;;   [*] WoMan formatting time display and log added.  Emacs `man'
-;;      formatting time display advice added.  (This suggests that
-;;      WoMan formatting is faster than Emacs `man' *formatting*,
-;;      i.e. when man is not using `catman' caching.  E.g. `woman
-;;      bash' takes 27s whereas `man bash' takes 35s and for smaller
-;;      files `woman' can be relatively much faster than `man'.)
-;;   [*] Experimental support for non-ASCII characters from the
-;;      default and symbol fonts added, initially only for MS-Windows.
-;;      NOTE: It is off by default, mainly because it may increase the
-;;      line spacing; customize `woman-use-symbols' to `on' to use it.
-;;   Pad character handling for .fc fixed.
-;;   Tested: see `woman.status'.
-
-;; Changes in version 0.53 ([*] => user interface change)
-;;   [*] Customization option to use a separate frame for WoMan windows.
-;;   [*] Experimental option to emulate nroff (default) or troff (not tested).
-;;   [*] Separation of extended and symbol font options.
-;;   Only symbol font size 16 seems to work, and only with Win 95, not NT!
-;;   [*] `Advanced' sub-menu containing:
-;;      `View Source' option;
-;;      `Show Log' option;
-;;      `Extended Font' toggle and reformat;
-;;      `Symbol Font' toggle and reformat;
-;;      `Font Map' option;
-;;      `Emulation' radio buttons.
-;;   [*] Support for man config file added for default manpath.
-
-;; Changes in version 0.54
-;;   Revised for distribution with Emacs 21.
-;;   Comment order and doc strings changed substantially.
-;;   MS-DOS support added (by Eli Zaretskii).
-;;   checkdoc run: no real errors.
-;;   woman topic interface speeded up.
 
 ;;; woman.el ends here

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/searching
 @node Searching and Matching, Syntax Tables, Non-ASCII Characters, Top
@@ -325,7 +325,7 @@ multibyte character @var{c2}, the range is divided into two parts: one
 is @samp{@var{c}..?\377}, the other is @samp{@var{c1}..@var{c2}}, where
 @var{c1} is the first character of the charset to which @var{c2}
 belongs.
- 
+
 You cannot always match all non-@sc{ascii} characters with the regular
 expression @code{"[\200-\377]"}.  This works when searching a unibyte
 buffer or string (@pxref{Text Representations}), but not in a multibyte
@@ -483,9 +483,9 @@ but no other string.@refill
 surrounding @samp{\( @dots{} \)} grouping can limit the grouping power of
 @samp{\|}.@refill
 
-Full backtracking capability exists to handle multiple uses of
-@samp{\|}, if you use the POSIX regular expression functions
-(@pxref{POSIX Regexps}).
+If you need full backtracking capability to handle multiple uses of
+@samp{\|}, use the POSIX regular expression functions (@pxref{POSIX
+Regexps}).
 
 @item \@{@var{m}\@}
 is a postfix operator that repeats the previous pattern exactly @var{m}
@@ -532,7 +532,7 @@ To record a matched substring for future reference with
 This last application is not a consequence of the idea of a
 parenthetical grouping; it is a separate feature that was assigned as a
 second meaning to the same @samp{\( @dots{} \)} construct because, in
-pratice, there was usually no conflict between the two meanings.  But
+practice, there was usually no conflict between the two meanings.  But
 occasionally there is a conflict, and that led to the introduction of
 shy groups.
 
@@ -670,7 +670,7 @@ an @code{invalid-regexp} error is signaled.
 
   Here is a complicated regexp, used by Emacs to recognize the end of a
 sentence together with any whitespace that follows.  It is the value of
-the variable @code{sentence-end}.  
+the variable @code{sentence-end}.
 
   First, we show the regexp as a string in Lisp syntax to distinguish
 spaces from tab characters.  The string constant begins and ends with a
@@ -689,7 +689,7 @@ will see the following:
 @example
 @group
 sentence-end
-     @result{} "[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[       
+     @result{} "[.?!][]\"')@}]*\\($\\| $\\|  \\|  \\)[
 ]*"
 @end group
 @end example
@@ -959,6 +959,10 @@ possibilities and found all matches, so they can report the longest
 match, as required by POSIX.  This is much slower, so use these
 functions only when you really need the longest match.
 
+  The POSIX search and match functions do not properly support the
+non-greedy repetition operators.  This is because POSIX backtracking
+conflicts with the semantics of non-greedy repetition.
+
 @defun posix-search-forward regexp &optional limit noerror repeat
 This is like @code{re-search-forward} except that it performs the full
 backtracking specified by the POSIX standard for regular expression
@@ -1060,12 +1064,12 @@ A positive number means to include that many lines both before and after.
 @section Search and Replace
 @cindex replacement
 
-@defun perform-replace from-string replacements start end query-flag regexp-flag delimited-flag &optional repeat-count map
+@defun perform-replace from-string replacements query-flag regexp-flag delimited-flag &optional repeat-count map start end
 This function is the guts of @code{query-replace} and related
 commands.  It searches for occurrences of @var{from-string} in the
 text between positions @var{start} and @var{end} and replaces some or
-all of them.  If @var{start} is @code{nil}, point is used instead, and
-the buffer's end is used for @var{end}.
+all of them.  If @var{start} is @code{nil} (or omitted), point is used
+instead, and the buffer's end is used for @var{end}.
 
 If @var{query-flag} is @code{nil}, it replaces all
 occurrences; otherwise, it asks the user what to do about each one.
@@ -1255,7 +1259,7 @@ just the text that matched @samp{\(ba*r\)}.
 @subsection Simple Match Data Access
 
   This section explains how to use the match data to find out what was
-matched by the last search or match operation.
+matched by the last search or match operation, if it succeeded.
 
   You can ask about the entire matching text, or about a particular
 parenthetical subexpression of a regular expression.  The @var{count}
@@ -1273,7 +1277,8 @@ only information available is about the entire match.
 
   A search which fails may or may not alter the match data.  In the
 past, a failing search did not do this, but we may change it in the
-future.
+future.  So don't try to rely on the value of the match data after
+a failing search.
 
 @defun match-string count &optional in-string
 This function returns, as a string, the text matched in the last search
@@ -1325,7 +1330,7 @@ positions within the text:
 @group
 (string-match "\\(qu\\)\\(ick\\)"
               "The quick fox jumped quickly.")
-              ;0123456789      
+              ;0123456789
      @result{} 4
 @end group
 

@@ -338,7 +338,7 @@ consecutive use moves point to the end of the buffer."
   "Go back one buffer."
   (interactive)
   (switch-to-buffer (car (last (buffer-list)))))
- 
+
 (defun crisp-meta-x-wrapper ()
   "Wrapper function to conditionally override the normal M-x bindings.
 When `crisp-override-meta-x' is non-nil, M-x will exit Emacs (the
@@ -384,6 +384,12 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
   (or (assq 'crisp-mode minor-mode-map-alist)
       (setq minor-mode-map-alist (cons (cons 'crisp-mode crisp-mode-map)
 				       minor-mode-map-alist))))
+
+;; Interaction with other packages.
+(eval-after-load 'cua
+  '(progn
+     (add-to-list 'cua--standard-movement-commands 'crisp-home)
+     (add-to-list 'cua--standard-movement-commands 'crisp-end)))
 
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)

@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.14 2002/02/25 22:05:16 spiegel Exp $
+;; $Id: vc-sccs.el,v 1.21 2003/02/04 12:11:54 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -28,10 +28,10 @@
 
 ;;; Code:
 
-(eval-when-compile 
+(eval-when-compile
   (require 'vc))
 
-;;; 
+;;;
 ;;; Customization options
 ;;;
 
@@ -88,8 +88,13 @@ For a description of possible values, see `vc-check-master-templates'."
 ;;; State-querying functions
 ;;;
 
-;;;###autoload
-(progn (defun vc-sccs-registered (f) (vc-default-registered 'SCCS f)))
+;;; The autoload cookie below places vc-sccs-registered directly into
+;;; loaddefs.el, so that vc-sccs.el does not need to be loaded for
+;;; every file that is visited.  The definition is repeated below
+;;; so that Help and etags can find it.
+
+;;;###autoload (defun vc-sccs-registered(f) (vc-default-registered 'SCCS f))
+(defun vc-sccs-registered (f) (vc-default-registered 'SCCS f))
 
 (defun vc-sccs-state (file)
   "SCCS-specific function to compute the version control state."
@@ -203,14 +208,25 @@ expanded if `vc-keep-workfiles' is non-nil, otherwise, delete the workfile."
     (if vc-keep-workfiles
 	(vc-do-command nil 0 "get" (vc-name file)))))
 
-(defun vc-sccs-checkout (file &optional editable rev workfile)
-  "Retrieve a copy of a saved version of SCCS controlled FILE into a WORKFILE.
+(defun vc-sccs-find-version (file rev buffer)
+  (apply 'vc-do-command
+	 buffer 0 "get" (vc-name file)
+	 "-s" ;; suppress diagnostic output
+	 "-p"
+	 (and rev
+	      (concat "-r"
+		      (vc-sccs-lookup-triple file rev)))
+	 (if (stringp vc-checkout-switches)
+	     (list vc-checkout-switches)
+	   vc-checkout-switches)))
+
+(defun vc-sccs-checkout (file &optional editable rev)
+  "Retrieve a copy of a saved version of SCCS controlled FILE.
 EDITABLE non-nil means that the file should be writable and
-locked.  REV is the revision to check out into WORKFILE."
-  (let ((filename (or workfile file))
-	(file-buffer (get-file-buffer file))
+locked.  REV is the revision to check out."
+  (let ((file-buffer (get-file-buffer file))
 	switches)
-    (message "Checking out %s..." filename)
+    (message "Checking out %s..." file)
     (save-excursion
       ;; Change buffers to get local value of vc-checkout-switches.
       (if file-buffer (set-buffer file-buffer))
@@ -224,42 +240,16 @@ locked.  REV is the revision to check out into WORKFILE."
 	(save-excursion
 	  ;; Adjust the default-directory so that the check-out creates
 	  ;; the file in the right place.
-	  (setq default-directory (file-name-directory filename))
+	  (setq default-directory (file-name-directory file))
 
-	  (and rev (string= rev "") (setq rev nil))
-	  (if workfile
-	      ;; Some SCCS implementations allow checking out directly to a
-	      ;; file using the -G option, but then some don't so use the
-	      ;; least common denominator approach and use the -p option
-	      ;; ala RCS.
-	      (let ((vc-modes (logior (file-modes (vc-name file))
-				      (if editable 128 0)))
-		    (failed t))
-		(unwind-protect
-		    (progn
-                      (let ((coding-system-for-read 'no-conversion)
-                            (coding-system-for-write 'no-conversion))
-                        (with-temp-file filename
-                          (apply 'vc-do-command
-                                 (current-buffer) 0 "get" (vc-name file)
-                                 "-s" ;; suppress diagnostic output
-                                 (if editable "-e")
-                                 "-p"
-                                 (and rev
-                                      (concat "-r"
-                                              (vc-sccs-lookup-triple file rev)))
-                                 switches)))
-                      (set-file-modes filename
-                                      (logior (file-modes (vc-name file))
-                                              (if editable 128 0)))
-		      (setq failed nil))
-		  (and failed (file-exists-p filename)
-		       (delete-file filename))))
-	    (apply 'vc-do-command nil 0 "get" (vc-name file)
-		   (if editable "-e")
-		   (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
-		   switches)))))
-    (message "Checking out %s...done" filename)))
+	  (and rev (or (string= rev "")
+                       (not (stringp rev)))
+               (setq rev nil))
+	  (apply 'vc-do-command nil 0 "get" (vc-name file)
+		 (if editable "-e")
+		 (and rev (concat "-r" (vc-sccs-lookup-triple file rev)))
+		 switches))))
+    (message "Checking out %s...done" file)))
 
 (defun vc-sccs-revert (file &optional contents-done)
   "Revert FILE to the version it was based on."
@@ -304,7 +294,7 @@ EDITABLE non-nil means previous version should be locked."
   "Get a difference report using SCCS between two versions of FILE."
   (setq oldvers (vc-sccs-lookup-triple file oldvers))
   (setq newvers (vc-sccs-lookup-triple file newvers))
-  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file) 
+  (apply 'vc-do-command "*vc-diff*" 1 "vcdiff" (vc-name file)
          (append (list "-q"
                        (and oldvers (concat "-r" oldvers))
                        (and newvers (concat "-r" newvers)))

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/variables
 @node Variables, Functions, Control Structures, Top
@@ -207,7 +207,7 @@ Here is an example of this: @code{Z} is bound to the old value of
      @result{} 2
 @end group
 @group
-(let ((Y 1) 
+(let ((Y 1)
       (Z Y))
   (list Y Z))
      @result{} (1 2)
@@ -767,7 +767,7 @@ The value of the @code{setq} form is the value of the last @var{form}.
 x                   ; @r{@code{x} now has a global value.}
      @result{} 3
 @group
-(let ((x 5)) 
+(let ((x 5))
   (setq x 6)        ; @r{The local binding of @code{x} is set.}
   x)
      @result{} 6
@@ -784,7 +784,7 @@ second @var{symbol} is set, and so on:
 @group
 (setq x 10          ; @r{Notice that @code{x} is set before}
       y (1+ x))     ;   @r{the value of @code{y} is computed.}
-     @result{} 11             
+     @result{} 11
 @end group
 @end example
 @end defspec
@@ -1350,7 +1350,7 @@ then the variable appears directly in the resulting list.
     (mode-name . "Fundamental")
     @dots{}
 @group
-    ;; @r{Next, non-built-in buffer-local variables.} 
+    ;; @r{Next, non-built-in buffer-local variables.}
     ;; @r{This one is buffer-local and void:}
     foobar
     ;; @r{This one is buffer-local and nonvoid:}
@@ -1676,12 +1676,16 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defmac defvaralias alias-var base-var
+@defun defvaralias alias-var base-var [docstring]
 This function defines the symbol @var{alias-var} as a variable alias
-for symbol @var{base-var}.  This means that retrieving the value of
+for symbol @var{base-var}. This means that retrieving the value of
 @var{alias-var} returns the value of @var{base-var}, and changing the
 value of @var{alias-var} changes the value of @var{base-var}.
-@end defmac
+
+If the @var{docstring} argument is present, it specifies the documentation for
+@var{alias-var}; otherwise, it has the same documentation as @var{base-var},
+if any.
+@end defun
 
 @defun indirect-variable variable
 This function returns the variable at the end of the chain of aliases
@@ -1729,26 +1733,35 @@ The argument @var{force} usually comes from the argument @var{find-file}
 given to @code{normal-mode}.
 @end defun
 
-  If a file local variable list could specify the a function that will
+  If a file local variable list could specify a function that will
 be called later, or an expression that will be executed later, simply
 visiting a file could take over your Emacs.  To prevent this, Emacs
 takes care not to allow local variable lists to set such variables.
 
-  For one thing, any variable whose name ends in @samp{-function},
-@samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
-@samp{-forms}, @samp{-program}, @samp{-command} or @samp{-predicate}
-cannot be set in a local variable list.  In general, you should use such
-a name whenever it is appropriate for the variable's meaning.
+  For one thing, any variable whose name ends in @samp{-command},
+@samp{-frame-alist}, @samp{-function}, @samp{-functions},
+@samp{-hook}, @samp{-hooks}, @samp{-form}, @samp{-forms}, @samp{-map},
+@samp{-map-alist}, @samp{-mode-alist}, @samp{-program}, or
+@samp{-predicate} cannot be set in a local variable list.  In general,
+you should use such a name whenever it is appropriate for the
+variable's meaning.  The variables @samp{font-lock-keywords},
+@samp{font-lock-keywords-[0-9]}, and
+@samp{font-lock-syntactic-keywords} cannot be set in a local variable
+list, either.
 
   In addition, any variable whose name has a non-@code{nil}
-@code{risky-local-variable} property is also ignored.  So are
-all variables listed in @code{ignored-local-variables}:
+@code{risky-local-variable} property is also ignored.  So are all
+variables listed in @code{ignored-local-variables}:
 
 @defvar ignored-local-variables
 This variable holds a list of variables that should not be
 set by a file's local variables list.  Any value specified
 for one of these variables is ignored.
 @end defvar
+
+@defun risky-local-variable-p sym
+Returns non-nil if @var{sym} is risky for any of the reasons stated above.
+@end defun
 
   The @samp{Eval:} ``variable'' is also a potential loophole, so Emacs
 normally asks for confirmation before handling it.

@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/Recomp.c,v 1.1 1992/04/11 22:10:20 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Recomp.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -25,7 +25,7 @@ XMenuRecompute(display, menu)
 
     register int p_num;		/* Pane serial number. */
     register int s_num;		/* Selection serial number. */
-    
+
     /*
      * If there are no panes in the menu then return failure
      * because the menu is not initialized.
@@ -44,7 +44,7 @@ XMenuRecompute(display, menu)
     /*
      * For each pane in the menu...
      */
-        
+
     p_num = 0;
     for (
 	p_ptr = menu->p_list->next;
@@ -58,7 +58,7 @@ XMenuRecompute(display, menu)
 	    return(XM_FAILURE);
 	}
         p_num++;
-	
+
 	/*
 	 * For each selection in the pane...
 	 */

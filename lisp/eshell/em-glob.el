@@ -21,9 +21,12 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
+;;; Code:
+
 (provide 'em-glob)
 
 (eval-when-compile (require 'esh-maint))
+(require 'esh-util)
 
 (defgroup eshell-glob nil
   "This module provides extended globbing syntax, similar what is used
@@ -128,8 +131,9 @@ This option slows down recursive glob processing by quite a bit."
 (defun eshell-glob-initialize ()
   "Initialize the extended globbing code."
   ;; it's important that `eshell-glob-chars-list' come first
-  (set (make-local-variable 'eshell-special-chars-outside-quoting)
-       (append eshell-glob-chars-list eshell-special-chars-outside-quoting))
+  (when (boundp 'eshell-special-chars-outside-quoting)
+    (set (make-local-variable 'eshell-special-chars-outside-quoting)
+	 (append eshell-glob-chars-list eshell-special-chars-outside-quoting)))
   (set (make-local-variable 'eshell-glob-chars-regexp)
        (format "[%s]+" (apply 'string eshell-glob-chars-list)))
   (add-hook 'eshell-parse-argument-hook 'eshell-parse-glob-chars t t)
@@ -228,19 +232,19 @@ resulting regular expression."
 
 (defun eshell-extended-glob (glob)
   "Return a list of files generated from GLOB, perhaps looking for DIRS-ONLY.
- This function almost fully supports zsh style filename generation
- syntax.  Things that are not supported are:
+This function almost fully supports zsh style filename generation
+syntax.  Things that are not supported are:
 
    ^foo        for matching everything but foo
    (foo~bar)   tilde within a parenthesis group
    foo<1-10>   numeric ranges
    foo~x(a|b)  (a|b) will be interpreted as a predicate/modifier list
 
- Mainly they are not supported because file matching is done with Emacs
- regular expressions, and these cannot support the above constructs.
+Mainly they are not supported because file matching is done with Emacs
+regular expressions, and these cannot support the above constructs.
 
- If this routine fails, it returns nil.  Otherwise, it returns a list
- the form:
+If this routine fails, it returns nil.  Otherwise, it returns a list
+the form:
 
    (INCLUDE-REGEXP EXCLUDE-REGEXP (PRED-FUNC-LIST) (MOD-FUNC-LIST))"
   (let ((paths (eshell-split-path glob))
@@ -352,7 +356,5 @@ resulting regular expression."
     (while rdirs
       (eshell-glob-entries (car rdirs) globs recurse-p)
       (setq rdirs (cdr rdirs)))))
-
-;;; Code:
 
 ;;; em-glob.el ends here

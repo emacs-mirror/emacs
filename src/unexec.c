@@ -134,7 +134,7 @@ before writing it (above and beyond the number of bytes of actual
 program text).  HDR's standard fields are already correct, except that
 this adjustment to the `a_text' field has not yet been made;
 thus, the amount of offset can depend on the data in the file.
-  
+
 * A_TEXT_SEEK(HDR)
 
 If defined, this macro specifies the number of bytes to seek into the
@@ -399,7 +399,7 @@ unexec (new_name, a_name, data_start, bss_start, entry_address)
     {
       close (new);
       /* unlink (new_name);	    	/* Failed, unlink new a.out */
-      return -1;	
+      return -1;
     }
 
   close (new);
@@ -992,7 +992,7 @@ copy_text_and_data (new, a_out)
     char c;
     int mcount_address, mcount_offset, count;
     extern char *_execname;
-   
+
 
     /* The use of _execname is incompatible with RISCiX 1.1 */
     sprintf (command, "nm %s | fgrep mcount", _execname);
@@ -1012,7 +1012,7 @@ copy_text_and_data (new, a_out)
     {
       sprintf (errbuf, "Failed to execute the command '%s'\n", command);
       PERROR (errbuf);
-    }  
+    }
 
     sscanf(address_text, "%x", &mcount_address);
     ptr = (char *) unexec_text_start;

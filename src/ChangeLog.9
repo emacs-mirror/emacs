@@ -792,7 +792,7 @@
 	bit-fields.
 	(init_obarray): Likewise for t and nil.
 
-	* eval.c Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
+	* eval.c: Use SYMBOL_VALUE/SET_SYMBOL_VALUE.
 	(Fdefvaralias): New function.
 	(specbind): Simplify the test if symbol is a constant.
 	(syms_of_eval): Defsubr Fdefvaralias.
@@ -2249,7 +2249,7 @@
 	(live_float_p, live_misc_p): Return 1 only if the offset of the
 	pointer in its block is >= 0.
 
-2001-03-28  Paul Eggert <eggert@twinsun.com>
+2001-03-28  Paul Eggert  <eggert@twinsun.com>
 
 	* editfns.c (Ffloat_time): Fix off-by-factor-of-10 bug in the
 	microseconds calcuation.  Avoid double-rounding problem.
@@ -2348,7 +2348,7 @@
 	(redisplay_internal): Avoid duplicate mark_window_display_accurate
 	for the selected frame.
 
-	* xdisp.c  Use make_number, for readability.
+	* xdisp.c: Use make_number, for readability.
 	(try_window_id): Disable rows below the window end.
 	(try_window_reusing_current_matrix): Use cursor_row_p.
 	(try_window_reusing_current_matrix) <scrolling up>: Fix disabling
@@ -6656,7 +6656,7 @@
 	gai_strerror.  Make sure xerrno is set if connect fails.  Improve
 	error recovery.
 
-2000-09-29  Jason Rumney <jasonr@gnu.org>
+2000-09-29  Jason Rumney  <jasonr@gnu.org>
 
 	* w32term.c (w32_char_font_type, w32_encode_char)
 	(x_produce_glyphs): Distinguish single and multibyte BDF fonts.
@@ -8340,7 +8340,7 @@
 	* keymap.c (Fsingle_key_description): Add parameter NO_ANGLES.
 	Callers changed.
 
-2000-08-02  Colin Walters <walters@cis.ohio-state.edu>
+2000-08-02  Colin Walters  <walters@cis.ohio-state.edu>
 
 	* window.c (display_buffer_reuse_frames): New variable.
 	(Fdisplay_buffer): If display_buffer_reuse_frames is set, reuse
@@ -12085,7 +12085,7 @@
 
 2000-03-04  Jason Rumney  <jasonr@gnu.org>
 
-	* xfaces.c Change many FRAME_X... macros to FRAME_WINDOW... or
+	* xfaces.c: Change many FRAME_X... macros to FRAME_WINDOW... or
 	other non-platform-specific equivalents.
 	[WINDOWSNT]: Include w32term.h, fontset.h and define X
 	specific functions and macros as their w32 equivalents where
@@ -12619,7 +12619,7 @@
 	* msdos.c (XMenuActivate): Turn off the cursor after displaying
 	the help message.
 
-2000-02-07  Eli Zaretskii <eliz@is.elta.co.il>
+2000-02-07  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* s/msdos.h (INTERNAL_TERMINAL): Add capabilities se, so, us, ue,
 	md, mh, mb, mr, and me to the fake termcap entry.
@@ -12659,7 +12659,7 @@
 	the string constant limit (2048 bytes) in MSVC.
 	(main): Ditto.
 
-2000-02-05  INOUE Seiichiro <inoue@ainet.or.jp>
+2000-02-05  INOUE Seiichiro  <inoue@ainet.or.jp>
 
 	* xterm.c (x_display_and_set_cursor) [HAVE_X_I18N]: Set pre-edit area.
 	(x_display_cursor) [HAVE_X_I18N]: Don't set it here.
@@ -12800,7 +12800,7 @@
 	(create_frame_xic): Renamed from xic_create_frame.
 	(free_frame_xic): Renamed from xic_destroy_frame.
 
-2000-01-29  INOUE Seiichiro <inoue@ainet.or.jp>
+2000-01-29  INOUE Seiichiro  <inoue@ainet.or.jp>
 
 	* xterm.c (XTread_socket) [HAVE_X_I18N]: If event is for none of
 	our frames, call XFilterEvent with 2nd parameter `None'.
@@ -12977,7 +12977,7 @@
 	(x_produce_glyphs): Calculate per char metrics for a character
 	that we know exists in default font when font_not_found_p is true.
 
-2000-01-22  Jason Rumney <jasonr@gnu.org>
+2000-01-22  Jason Rumney  <jasonr@gnu.org>
 
 	* makefile.nt (intervals.obj, composite.obj): New modules.
 	(composite.h): Added as dependency where appropriate.

@@ -65,6 +65,8 @@ DONTCOMPILE = \
 	$(lisp)/international/mule-conf.el \
 	$(lisp)/language/czech.el \
 	$(lisp)/language/devanagari.el \
+	$(lisp)/language/malayalam.el \
+	$(lisp)/language/tamil.el \
 	$(lisp)/language/english.el \
 	$(lisp)/language/greek.el \
 	$(lisp)/language/hebrew.el \
@@ -133,7 +135,7 @@ setwins=subdirs=`find $$wd -type d -print`; \
 	   esac; \
         done
 
-finder_setwins=subdirs=`find $$wd -type d -print`; \
+setwins_almost=subdirs=`find $$wd -type d -print`; \
 	for file in $$subdirs; do \
 	   case $$file in */Old | */RCS | */CVS | */CVS/* | */=* | */obsolete | */term ) ;; \
 		*) wins="$$wins $$file" ;; \
@@ -142,19 +144,19 @@ finder_setwins=subdirs=`find $$wd -type d -print`; \
 
 doit:
 
-cus-load.el:
+$(lisp)/cus-load.el:
 	touch $@
-custom-deps: cus-load.el doit
-	wd=$(lisp); $(setwins); \
+custom-deps: $(lisp)/cus-load.el doit
+	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l cus-dep -f custom-make-dependencies $$wins
+	$(EMACS) $(EMACSOPT) -l cus-dep --eval '(setq generated-custom-dependencies-file "$(lisp)/cus-load.el")' -f custom-make-dependencies $$wins
 
 finder-data: doit
-	wd=$(lisp); $(finder_setwins); \
+	wd=$(lisp); $(setwins_almost); \
 	echo Directories: $$wins; \
-	$(EMACS) $(EMACSOPT) -l finder -f finder-compile-keywords-make-dist $$wins
+	$(EMACS) $(EMACSOPT) -l finder --eval '(setq generated-finder-keywords-file "$(lisp)/finder-inf.el")' -f finder-compile-keywords-make-dist $$wins
 
-loaddefs.el:
+$(lisp)/loaddefs.el:
 	echo ";;; loaddefs.el --- automatically extracted autoloads" >> $@
 	echo ";;" >> $@; echo ";;; Code:" >> $@
 	echo "" >> $@
@@ -164,12 +166,12 @@ loaddefs.el:
 	echo ";;; no-update-autoloads: t" >> $@
 	echo ";;; End:" >> $@
 	echo ";;; loaddefs.el ends here" >> $@
-autoloads: loaddefs.el doit
+autoloads: $(lisp)/loaddefs.el doit
 	wd=$(lisp); $(setwins); \
 	echo Directories: $$wins; \
 	$(EMACS) $(EMACSOPT) -l autoload --eval '(setq generated-autoload-file "$(lisp)/loaddefs.el")' -f batch-update-autoloads $$wins
 
-subdirs.el:
+$(lisp)/subdirs.el:
 	$(MAKE) $(MFLAGS) update-subdirs
 update-subdirs: doit
 	wd=$(lisp); $(setwins); \
@@ -194,7 +196,7 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 
 .SUFFIXES: .elc .el
 
-.el.elc: subdirs.el
+.el.elc: $(lisp)/subdirs.el
 	-$(emacs) -f batch-byte-compile $<
 
 $(DONTCOMPILE:.el=.elc):
@@ -215,7 +217,7 @@ $(DONTCOMPILE:.el=.elc):
 # $(DONTCOMPILE) twice.  This is in case one of the files in DONTCOMPILE
 # is absent.  -stef
 
-compile: subdirs.el doit
+compile: $(lisp)/subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
 	wd=$(lisp); $(setwins);						    \
 	elpat=`echo $$wins | tr ' 	' '\012\012' |			    \
@@ -232,8 +234,10 @@ compile: subdirs.el doit
 
 # Compile all Lisp files, except those from DONTCOMPILE.  This
 # is like `compile' but compiles files unconditionally.
-compile-always: subdirs.el doit
-	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
+compile-always: $(lisp)/subdirs.el doit
+	# `|| true' prevents old Bash versions from getting confused
+	# by an error.
+	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
 	elpat=`echo $$wins | tr ' 	' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
@@ -247,8 +251,8 @@ compile-always: subdirs.el doit
 	  fi \
 	done
 
-compile-calc: 
-	for el in $(find $(lisp)/calc -name '*.el'); do \
+compile-calc:
+	for el in `find $(lisp)/calc -name '*.el'`; do \
 	  echo Compiling $$el; \
 	  $(emacs) -f batch-byte-compile $$el || exit 1; \
 	done
@@ -279,11 +283,16 @@ recompile: doit
 
 bootstrap-clean:
 	if test -x $(EMACS); then $(MAKE) $(MFLAGS) autoloads; fi
-	-rm -f $(lisp)/*.elc $(lisp)/*/*.elc
+	cd $(lisp); rm -f *.elc */*.elc
 
 # Generate/update files for the bootstrap process.
 
-bootstrap: update-subdirs autoloads compile finder-data custom-deps
+bootstrap: update-subdirs autoloads compile
+
+# Generate/update files after the bootstrap process.
+# custom-deps needs `preloaded-file-list'.
+
+bootstrap-after: finder-data custom-deps
 
 distclean:
 	-rm -f ./Makefile

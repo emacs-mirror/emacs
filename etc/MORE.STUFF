@@ -29,7 +29,7 @@ engine) or retrievable from general Usenet archive services.
 
 You might find bug-fixes or enhancements in these places.
 
- * Ada: <URL:http://www.ada-france.org/ada-mode>
+ * Ada: <URL:http://libre.act-europe.fr/adamode>
 
  * Autorevert, CWarn and Follow:
    <URL:http://www.andersl.com/emacs/>
@@ -54,11 +54,11 @@ You might find bug-fixes or enhancements in these places.
 
  * EShell: <URL:http://www.gci-net.com/users/j/johnw/emacs.html>
 
+ * Etags: <URL:ftp://pot.potorti.it/pub/software/unix/etags.tar.gz>
+
  * EUDC: <URL:http://lspwww.epfl.ch/%7Efigueire/Software/eudc/>
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
-
- * Etags: <URL:ftp://fly.cnuce.cnr.it/pub/>
 
  * Find Func:
    <URL:http://www.kurims.kyoto-u.ac.jp/%7Epetersen/emacs/find-func.el>
@@ -94,11 +94,11 @@ You might find bug-fixes or enhancements in these places.
 
  * Sregex: <URL:http://www.zanshin.com/%7Ebobg/sregex.html>
 
- * Webjump: <URL:http://nwv.www.media.mit.edu/people/nwv/projects/webjump>
+ * Webjump: <URL:http://www.neilvandyke.org/webjump>
 
  * Whitespace: <URL:http://www.dsmit.com/lisp/>
 
-* Auxilliary files
+* Auxiliary files
 
  * (Tex)info files for use with Info-look that don't come from GNU
    packages:
@@ -135,7 +135,7 @@ Several are for Debian GNU/Linux in particular.
  * Dismal: spreadsheet:
    <URL:http://www.psychology.nottingham.ac.uk/staff/ritter/papers/dismal/
    dismal.html>
-	  
+
  * EDB: database:
    <URL:http://sdg.lcs.mit.edu/%7Emernst/software/edb-mrp.tar.gz>
    Not maintained?
@@ -215,7 +215,7 @@ Several are for Debian GNU/Linux in particular.
    <URL:news://sunsite.auc.dk/emacs.w3> and a W3 development mail
    list/newsgroup <URL:news://sunsite.auc.dk/emacs.w3.dev>.
 
- * X-Symbol: <URL:http://www.fmi.uni-passau.de/~wedler/x-symbol/emacs.html>
+ * X-Symbol: <URL:http://x-symbol.sf.net/>
    Quasi-WYSIWYG editing of TeX & al.  (It will be improved to take
    better advantage of Emacs 21 features.)
 

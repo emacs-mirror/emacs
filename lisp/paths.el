@@ -1,4 +1,4 @@
-;;; paths.el --- define pathnames for use by various Emacs commands
+;;; paths.el --- define pathnames for use by various Emacs commands -*- no-byte-compile: t -*-
 
 ;; Copyright (C) 1986, 1988, 1994, 1999, 2000 Free Software Foundation, Inc.
 
@@ -130,10 +130,6 @@ should be set to `(system-name)'.")
 *The name of your organization, as a string.
 The `ORGANIZATION' environment variable is used instead if defined.")
 
-(defvar gnus-startup-file "~/.newsrc" "\
-The file listing groups to which user is subscribed.
-Will use `gnus-startup-file'-SERVER instead if exists.")
-
 (defcustom rmail-file-name "~/RMAIL"
   "*Name of user's primary mail file."
   :type 'string
@@ -143,7 +139,7 @@ Will use `gnus-startup-file'-SERVER instead if exists.")
 (defconst rmail-spool-directory
   (cond ((string-match "^[^-]+-[^-]+-sco3.2v4" system-configuration)
 	 "/usr/spool/mail/")
-	;; On The Bull DPX/2 /usr/spool/mail is used although 
+	;; On The Bull DPX/2 /usr/spool/mail is used although
 	;; it is usg-unix-v.
 	((string-match "^m68k-bull-sysv3" system-configuration)
 	 "/usr/spool/mail/")
@@ -197,7 +193,7 @@ If non-nil, Emacs startup does (load (concat term-file-prefix (getenv \"TERM\"))
 You may set this variable to nil in your `.emacs' file if you do not wish
 the terminal-initialization file to be loaded.")
 
-(defconst abbrev-file-name 
+(defconst abbrev-file-name
   (if (eq system-type 'vax-vms)
       "~/abbrev.def"
     (convert-standard-filename "~/.abbrev_defs"))

@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: archives msdog editing major-mode
@@ -77,6 +77,12 @@
 ;;
 ;; LZH         A series of (header,file).  Headers are checksummed.  No
 ;;             interaction among members.
+;;             Headers come in three flavours called level 0, 1 and 2 headers.
+;;             Level 2 header is free of DOS specific restrictions and most
+;;             prevalently used.  Also level 1 and 2 headers consist of base
+;;             and extension headers.  For more details see
+;;             http://homepage1.nifty.com/dangan/en/Content/Program/Java/jLHA/Notes/Notes.html
+;;             http://www.osirusoft.com/joejared/lzhformat.html
 ;;
 ;; ZIP         A series of (lheader,fil) followed by a "central directory"
 ;;             which is a series of (cheader) followed by an end-of-
@@ -318,16 +324,16 @@ Archive and member name will be added."
 ;; -------------------------------------------------------------------------
 ;; Section: Variables
 
-(defvar archive-subtype nil "*Symbol describing archive type.")
-(defvar archive-file-list-start nil "*Position of first contents line.")
-(defvar archive-file-list-end nil "*Position just after last contents line.")
-(defvar archive-proper-file-start nil "*Position of real archive's start.")
-(defvar archive-read-only nil "*Non-nil if the archive is read-only on disk.")
-(defvar archive-local-name nil "*Name of local copy of remote archive.")
-(defvar archive-mode-map nil "*Local keymap for archive mode listings.")
-(defvar archive-file-name-indent nil "*Column where file names start.")
+(defvar archive-subtype nil "Symbol describing archive type.")
+(defvar archive-file-list-start nil "Position of first contents line.")
+(defvar archive-file-list-end nil "Position just after last contents line.")
+(defvar archive-proper-file-start nil "Position of real archive's start.")
+(defvar archive-read-only nil "Non-nil if the archive is read-only on disk.")
+(defvar archive-local-name nil "Name of local copy of remote archive.")
+(defvar archive-mode-map nil "Local keymap for archive mode listings.")
+(defvar archive-file-name-indent nil "Column where file names start.")
 
-(defvar archive-remote nil "*Non-nil if the archive is outside file system.")
+(defvar archive-remote nil "Non-nil if the archive is outside file system.")
 (make-variable-buffer-local 'archive-remote)
 (put 'archive-remote 'permanent-local t)
 
@@ -335,14 +341,14 @@ Archive and member name will be added."
 (make-variable-buffer-local 'archive-member-coding-system)
 
 (defvar archive-alternate-display nil
-  "*Non-nil when alternate information is shown.")
+  "Non-nil when alternate information is shown.")
 (make-variable-buffer-local 'archive-alternate-display)
 (put 'archive-alternate-display 'permanent-local t)
 
-(defvar archive-superior-buffer nil "*In archive members, points to archive.")
+(defvar archive-superior-buffer nil "In archive members, points to archive.")
 (put 'archive-superior-buffer 'permanent-local t)
 
-(defvar archive-subfile-mode nil "*Non-nil in archive member buffers.")
+(defvar archive-subfile-mode nil "Non-nil in archive member buffers.")
 (make-variable-buffer-local 'archive-subfile-mode)
 (put 'archive-subfile-mode 'permanent-local t)
 
@@ -463,18 +469,18 @@ the mode is invalid.  If ERROR is nil then nil will be returned."
         (second (* 2 (logand time 31)))) ; 2 seconds resolution
     (format "%02d:%02d:%02d" hour minute second)))
 
-;;(defun archive-unixdate (low high)
-;;  "Stringify unix (LOW HIGH) date."
-;;  (let ((str (current-time-string (cons high low))))
-;;    (format "%s-%s-%s"
-;;	    (substring str 8 9)
-;;	    (substring str 4 7)
-;;	    (substring str 20 24))))
+(defun archive-unixdate (low high)
+  "Stringify unix (LOW HIGH) date."
+  (let ((str (current-time-string (cons high low))))
+    (format "%s-%s-%s"
+	    (substring str 8 10)
+	    (substring str 4 7)
+	    (substring str 20 24))))
 
-;;(defun archive-unixtime (low high)
-;;  "Stringify unix (LOW HIGH) time."
-;;  (let ((str (current-time-string (cons high low))))
-;;    (substring str 11 19)))
+(defun archive-unixtime (low high)
+  "Stringify unix (LOW HIGH) time."
+  (let ((str (current-time-string (cons high low))))
+    (substring str 11 19)))
 
 (defun archive-get-lineno ()
   (if (>= (point) archive-file-list-start)
@@ -618,8 +624,8 @@ archive.
 	;; Not a nice "solution" but it'll have to do
 	(define-key archive-mode-map "\C-xu" 'archive-undo)
 	(define-key archive-mode-map "\C-_" 'archive-undo))
-    (substitute-key-definition 'undo 'archive-undo
-			       archive-mode-map global-map))
+    (define-key archive-mode-map [remap advertised-undo] 'archive-undo)
+    (define-key archive-mode-map [remap undo] 'archive-undo))
 
   (define-key archive-mode-map
     (if archive-lemacs 'button2 [mouse-2]) 'archive-mouse-extract)
@@ -751,7 +757,7 @@ when parsing the archive."
    (apply
     (function concat)
     (mapcar
-     (function 
+     (function
       (lambda (fil)
 	;; Using `concat' here copies the text also, so we can add
 	;; properties without problems.
@@ -789,8 +795,8 @@ using `make-temp-file', and the generated name is returned."
     (if (or alien (file-exists-p fullname))
 	(make-temp-file
 	 (expand-file-name
-	  (if (and (fboundp 'msdos-long-file-names)
-		   (not (msdos-long-file-names)))
+	  (if (if (fboundp 'msdos-long-file-names)
+		  (not (msdos-long-file-names)))
 	      "am"
 	    "arc-mode.")
 	  dir))
@@ -1386,7 +1392,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (defun archive-arc-rename-entry (archive newname descr)
   (if (string-match "[:\\\\/]" newname)
-      (error "File names in arc files may not contain a path"))
+      (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
       (error "File names in arc files are limited to 12 characters"))
   (let ((name (concat newname (substring "\0\0\0\0\0\0\0\0\0\0\0\0\0"
@@ -1408,54 +1414,89 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(maxlen 8)
         files
 	visual)
-    (while (progn (goto-char p) 
+    (while (progn (goto-char p)		;beginning of a base header.
 		  (looking-at "\\(.\\|\n\\)\\(.\\|\n\\)-l[hz][0-9ds]-"))
-      (let* ((hsize   (char-after p))
-             (csize   (archive-l-e (+ p 7) 4))
-             (ucsize  (archive-l-e (+ p 11) 4))
-	     (modtime (archive-l-e (+ p 15) 2))
-	     (moddate (archive-l-e (+ p 17) 2))
-	     (hdrlvl  (char-after (+ p 20)))
-	     (fnlen   (char-after (+ p 21)))
-	     (efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))
+      (let* ((hsize   (char-after p))	;size of the base header (level 0 and 1)
+             (csize   (archive-l-e (+ p 7) 4)) ;size of a compressed file to follow.
+             (ucsize  (archive-l-e (+ p 11) 4))	;size of an uncompressed file.
+	     (time1   (archive-l-e (+ p 15) 2))	;date/time (MSDOS format in level 0, 1 headers
+	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
+	     (hdrlvl  (char-after (+ p 20))) ;header level
+	     thsize		;total header size (base + extensions)
+	     fnlen efnname fiddle ifnname width p2 creator
+	     neh	;beginning of next extension header (level 1 and 2)
+	     mode modestr uid gid text dir prname
+	     gname uname modtime moddate)
+	(if (= hdrlvl 3) (error "can't handle lzh level 3 header type"))
+	(when (or (= hdrlvl 0) (= hdrlvl 1))
+	  (setq fnlen   (char-after (+ p 21))) ;filename length
+	  (setq efnname (let ((str (buffer-substring (+ p 22) (+ p 22 fnlen))))	;filename from offset 22
 			(if file-name-coding-system
 			    (decode-coding-string str file-name-coding-system)
 			  (string-as-multibyte str))))
-	     (fiddle  (string= efnname (upcase efnname)))
-             (ifnname (if fiddle (downcase efnname) efnname))
-	     (width (string-width ifnname))
-	     (p2      (+ p 22 fnlen))
-	     (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	     mode modestr uid gid text path prname
-	     )
-	(if (= hdrlvl 0)
-	    (setq mode    (if (= creator ?U) (archive-l-e (+ p2 8) 2) ?\666)
-		  uid     (if (= creator ?U) (archive-l-e (+ p2 10) 2))
-		  gid     (if (= creator ?U) (archive-l-e (+ p2 12) 2)))
-	  (if (= creator ?U)
-	      (let* ((p3 (+ p2 3))
-		     (hsize (archive-l-e p3 2))
-		     (etype (char-after (+ p3 2))))
-		(while (not (= hsize 0))
+	  (setq p2      (+ p 22 fnlen))) ;
+	(if (= hdrlvl 1)
+	    (progn		;specific to level 1 header
+	      (setq creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
+	      (setq neh (+ p2 3)))
+	  (if (= hdrlvl 2)
+	      (progn		;specific to level 2 header
+		(setq creator (char-after (+ p 23)) )
+		(setq neh (+ p 24)))))
+	(if neh		;if level 1 or 2 we expect extension headers to follow
+	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
+		   (etype (char-after (+ neh 2)))) ;extension type
+	      (while (not (= ehsize 0))
 		  (cond
-		   ((= etype 2) (let ((i (+ p3 3)))
-				  (while (< i (+ p3 hsize))
-				    (setq path (concat path
+		 ((= etype 1)	;file name
+		  (let ((i (+ neh 3)))
+		    (while (< i (+ neh ehsize))
+		      (setq efnname (concat efnname (char-to-string (char-after i))))
+		      (setq i (1+ i)))))
+		 ((= etype 2)	;directory name
+		  (let ((i (+ neh 3)))
+		    (while (< i (+ neh ehsize))
+				    (setq dir (concat dir
 						       (if (= (char-after i)
 							      255)
 							   "/"
 							 (char-to-string
 							  (char-after i)))))
 				    (setq i (1+ i)))))
-		   ((= etype 80) (setq mode (archive-l-e (+ p3 3) 2)))
-		   ((= etype 81) (progn (setq uid (archive-l-e (+ p3 3) 2))
-					(setq gid (archive-l-e (+ p3 5) 2))))
+		 ((= etype 80)		;Unix file permission
+		  (setq mode (archive-l-e (+ neh 3) 2)))
+		 ((= etype 81)		;UNIX file group/user ID
+		  (progn (setq uid (archive-l-e (+ neh 3) 2))
+			 (setq gid (archive-l-e (+ neh 5) 2))))
+		 ((= etype 82)		;UNIX file group name
+		  (let ((i (+ neh 3)))
+		    (while (< i (+ neh ehsize))
+		      (setq gname (concat gname (char-to-string (char-after i))))
+		      (setq i (1+ i)))))
+		 ((= etype 83)		;UNIX file user name
+		  (let ((i (+ neh 3)))
+		    (while (< i (+ neh ehsize))
+		      (setq uname (concat uname (char-to-string (char-after i))))
+		      (setq i (1+ i)))))
 		   )
-		  (setq p3 (+ p3 hsize))
-		  (setq hsize (archive-l-e p3 2))
-		  (setq etype (char-after (+ p3 2)))))))
-	(setq prname (if path (concat path ifnname) ifnname))
+		(setq neh (+ neh ehsize))
+		(setq ehsize (archive-l-e neh 2))
+		(setq etype (char-after (+ neh 2))))
+	      ;;get total header size for level 1 and 2 headers
+	      (setq thsize (- neh p))))
+	(if (= hdrlvl 0)  ;total header size
+	    (setq thsize hsize))
+	(setq fiddle  (if efnname (string= efnname (upcase efnname))))
+	(setq ifnname (if fiddle (downcase efnname) efnname))
+	(setq prname (if dir (concat dir ifnname) ifnname))
+	(setq width (if prname (string-width prname) 0))
 	(setq modestr (if mode (archive-int-to-mode mode) "??????????"))
+	(setq moddate (if (= hdrlvl 2)
+			  (archive-unixdate time1 time2) ;level 2 header in UNIX format
+			(archive-dosdate time2))) ;level 0 and 1 header in DOS format
+	(setq modtime (if (= hdrlvl 2)
+			  (archive-unixtime time1 time2)
+			(archive-dostime time1)))
 	(setq text    (if archive-alternate-display
 			  (format "  %8d  %5S  %5S  %s"
 				  ucsize
@@ -1465,18 +1506,18 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			(format "  %10s  %8d  %-11s  %-8s  %s"
 				modestr
 				ucsize
-				(archive-dosdate moddate)
-				(archive-dostime modtime)
-				ifnname)))
+				moddate
+				modtime
+				prname)))
         (setq maxlen (max maxlen width)
 	      totalsize (+ totalsize ucsize)
 	      visual (cons (vector text
-				   (- (length text) (length ifnname))
+				   (- (length text) (length prname))
 				   (length text))
 			   visual)
 	      files (cons (vector prname ifnname fiddle mode (1- p))
                           files)
-              p (+ p hsize 2 csize))))
+              p (+ p thsize 2 csize))))
     (goto-char (point-min))
     (set-buffer-multibyte default-enable-multibyte-characters)
     (let ((dash (concat (if archive-alternate-display
@@ -1577,7 +1618,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-zip-summarize ()
   (goto-char (- (point-max) (- 22 18)))
   (search-backward-regexp "[P]K\005\006")
-  (let ((p (1+ (archive-l-e (+ (point) 16) 4)))
+  (let ((p (+ (point-min) (archive-l-e (+ (point) 16) 4)))
         (maxlen 8)
 	(totalsize 0)
         files

@@ -64,13 +64,13 @@ otherwise)."
   :type 'integer
   :group 'paren-showing
   :version "21.1")
-  
+
 (defcustom show-paren-ring-bell-on-mismatch nil
   "*If non-nil, beep if mismatched paren is detected."
   :type 'boolean
   :group 'paren-showing
   :version "20.3")
-  
+
 (defface show-paren-match-face
   '((((class color) (background light))
      :background "turquoise")		; looks OK on tty (becomes cyan)
@@ -86,7 +86,7 @@ otherwise)."
 
 (defface show-paren-mismatch-face
   '((((class color)) (:foreground "white" :background "purple"))
-    (t (:reverse-video t)))
+    (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
   :group 'faces
   :group 'paren-showing)
@@ -135,11 +135,10 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 ;; and show it until input arrives.
 (defun show-paren-function ()
   (if show-paren-mode
-      (let (pos dir mismatch face (oldpos (point)))
-	(cond ((eq (char-syntax (preceding-char)) ?\))
-	       (setq dir -1))
-	      ((eq (char-syntax (following-char)) ?\()
-	       (setq dir 1)))
+      (let ((oldpos (point))
+	    (dir (cond ((eq (car (syntax-after (1- (point)))) 5) -1)
+		       ((eq (car (syntax-after (point))) 4) 1)))
+	    pos mismatch face)
 	;;
 	;; Find the other end of the sexp.
 	(when dir

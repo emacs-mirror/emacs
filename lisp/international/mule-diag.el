@@ -46,7 +46,7 @@
 (defun sort-charset-list ()
   (setq charset-list
 	(sort charset-list
-	      (function (lambda (x y) (< (charset-id x) (charset-id y)))))))
+	      (lambda (x y) (< (charset-id x) (charset-id y))))))
 
 ;;; CHARSET
 
@@ -61,6 +61,71 @@
   'help-function #'list-charset-chars
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
+(defvar non-iso-charset-alist
+  `((mac-roman
+     (ascii latin-iso8859-1 mule-unicode-2500-33ff
+	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
+     mac-roman-decoder
+     ((0 255)))
+    (viscii
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-viscii-nonascii-translation-table
+     ((0 255)))
+    (vietnamese-tcvn
+     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
+     viet-tcvn-nonascii-translation-table
+     ((0 255)))
+    (koi8-r
+     (ascii cyrillic-iso8859-5)
+     cyrillic-koi8-r-nonascii-translation-table
+     ((32 255)))
+    (alternativnyj
+     (ascii cyrillic-iso8859-5)
+     cyrillic-alternativnyj-nonascii-translation-table
+     ((32 255)))
+    (koi8-u
+     (ascii cyrillic-iso8859-5 mule-unicode-0100-24ff)
+     cyrillic-koi8-u-nonascii-translation-table
+     ((32 255)))
+    (big5
+     (ascii chinese-big5-1 chinese-big5-2)
+     decode-big5-char
+     ((32 127)
+      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
+    (sjis
+     (ascii katakana-jisx0201 japanese-jisx0208)
+     decode-sjis-char
+     ((32 127 ?\xA1 ?\xDF)
+      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
+  "Alist of charset names vs the corresponding information.
+This is mis-named for historical reasons.  The charsets are actually
+non-built-in ones.  They correspond to Emacs coding systems, not Emacs
+charsets, i.e. what Emacs can read (or write) by mapping to (or
+from) Emacs internal charsets that typically correspond to a limited
+set of ISO charsets.
+
+Each element has the following format:
+  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
+
+CHARSET is the name (symbol) of the charset.
+
+CHARSET-LIST is a list of Emacs charsets into which characters of
+CHARSET are mapped.
+
+TRANSLATION-METHOD is a translation table (symbol) to translate a
+character code of CHARSET to the corresponding Emacs character
+code.  It can also be a function to call with one argument, a
+character code in CHARSET.
+
+CODE-RANGE specifies the valid code ranges of CHARSET.
+It is a list of RANGEs, where each RANGE is of the form:
+  (FROM1 TO1 FROM2 TO2 ...)
+or
+  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
+In the first form, valid codes are between FROM1 and TO1, or FROM2 and
+TO2, or...
+The second form is used for 2-byte codes.  The car part is the ranges
+of the first byte, and the cdr part is the ranges of the second byte.")
 
 ;;;###autoload
 (defun list-character-sets (arg)
@@ -84,11 +149,12 @@ With prefix arg, the output format gets more cryptic,
 but still shows the full information."
   (interactive "P")
   (help-setup-xref (list #'list-character-sets arg) (interactive-p))
-  (with-output-to-temp-buffer (help-buffer)
+  (with-output-to-temp-buffer "*Character Set List*"
     (with-current-buffer standard-output
       (if arg
 	  (list-character-sets-2)
 	;; Insert header.
+	(insert "Indirectly supported character sets are shown below.\n")
 	(insert
 	 (substitute-command-keys
 	  (concat "Use "
@@ -117,7 +183,28 @@ but still shows the full information."
 	(insert "------\t------------\t\t\t--------------\t- -- ----------\n")
 
 	;; Insert body sorted by charset IDs.
-	(list-character-sets-1 'id)))))
+	(list-character-sets-1 'id)
+
+	;; Insert non-directly-supported charsets.
+	(insert-char ?- 72)
+	(insert "\n\nINDIRECTLY SUPPORTED CHARSETS SETS:\n\n"
+		(propertize "CHARSET NAME\tMAPPED TO" 'face 'bold)
+		"\n------------\t---------\n")
+	(dolist (elt non-iso-charset-alist)
+	  (insert-text-button (symbol-name (car elt))
+			      :type 'list-charset-chars
+			      'help-args (list (car elt)))
+	  (indent-to 16)
+	  (dolist (e (nth 1 elt))
+	    (when (>= (+ (current-column) 1 (string-width (symbol-name e)))
+		      ;; This is an approximate value.  We don't know
+		      ;; the correct window width of this buffer yet.
+		      78)
+	      (insert "\n")
+	      (indent-to 16))
+
+	    (insert (format "%s " e)))
+	  (insert "\n"))))))
 
 (defun sort-listed-character-sets (sort-key)
   (if sort-key
@@ -127,8 +214,13 @@ but still shows the full information."
 	  (goto-char (point-min))
 	  (re-search-forward "[0-9][0-9][0-9]")
 	  (beginning-of-line)
-	  (delete-region (point) (point-max))
-	  (list-character-sets-1 sort-key)))))
+	  (let ((pos (point)))
+	    (search-forward "----------")
+	    (beginning-of-line)
+	    (save-restriction
+	      (narrow-to-region pos (point))
+	      (delete-region (point-min) (point-max))
+	      (list-character-sets-1 sort-key)))))))
 
 (defun charset-multibyte-form-string (charset)
   (let ((info (charset-info charset)))
@@ -175,20 +267,19 @@ but still shows the full information."
     ;; Determine a predicate for `sort' by SORT-KEY.
     (setq sort-func
 	  (cond ((eq sort-key 'id)
-		 (function (lambda (x y) (< (car x) (car y)))))
+		 (lambda (x y) (< (car x) (car y))))
 
 		((eq sort-key 'name)
-		 (function (lambda (x y) (string< (nth 1 x) (nth 1 y)))))
+		 (lambda (x y) (string< (nth 1 x) (nth 1 y))))
 
 		((eq sort-key 'iso-spec)
 		 ;; Sort by DIMENSION CHARS FINAL-CHAR
-		 (function
-		  (lambda (x y)
-		    (or (< (nth 3 x) (nth 3 y))
-			(and (= (nth 3 x) (nth 3 y))
-			     (or (< (nth 4 x) (nth 4 y))
-				 (and (= (nth 4 x) (nth 4 y))
-				      (< (nth 5 x) (nth 5 y)))))))))
+		 (lambda (x y)
+		   (or (< (nth 3 x) (nth 3 y))
+		       (and (= (nth 3 x) (nth 3 y))
+			    (or (< (nth 4 x) (nth 4 y))
+				(and (= (nth 4 x) (nth 4 y))
+				     (< (nth 5 x) (nth 5 y))))))))
 		(t
 		 (error "Invalid charset sort key: %s" sort-key))))
 
@@ -248,64 +339,6 @@ but still shows the full information."
 		     (charset-iso-graphic-plane charset)
 		     (charset-description charset))))))
 
-(defvar non-iso-charset-alist
-  `((mac-roman
-     nil
-     mac-roman-decoder
-     ((0 255)))
-    (viscii
-     (ascii vietnamese-viscii-lower vietnamese-viscii-upper)
-     viet-viscii-nonascii-translation-table
-     ((0 255)))
-    (koi8-r
-     (ascii cyrillic-iso8859-5)
-     cyrillic-koi8-r-nonascii-translation-table
-     ((32 255)))
-    (alternativnyj
-     (ascii cyrillic-iso8859-5)
-     cyrillic-alternativnyj-nonascii-translation-table
-     ((32 255)))
-    (big5
-     (ascii chinese-big5-1 chinese-big5-2)
-     decode-big5-char
-     ((32 127)
-      ((?\xA1 ?\xFE) . (?\x40 ?\x7E ?\xA1 ?\xFE))))
-    (sjis
-     (ascii katakana-jisx0201 japanese-jisx0208)
-     decode-sjis-char
-     ((32 127 ?\xA1 ?\xDF)
-      ((?\x81 ?\x9F ?\xE0 ?\xEF) . (?\x40 ?\x7E ?\x80 ?\xFC)))))
-  "Alist of charset names vs the corresponding information.
-This is mis-named for historical reasons.  The charsets are actually
-non-built-in ones.  They correspond to Emacs coding systems, not Emacs
-charsets, i.e. what Emacs can read (or write) by mapping to (or
-from) Emacs internal charsets that typically correspond to a limited
-set of ISO charsets.
-
-Each element has the following format:
-  (CHARSET CHARSET-LIST TRANSLATION-METHOD [ CODE-RANGE ])
-
-CHARSET is the name (symbol) of the charset.
-
-CHARSET-LIST is a list of Emacs charsets into which characters of
-CHARSET are mapped.
-
-TRANSLATION-METHOD is a translation table (symbol) to translate a
-character code of CHARSET to the corresponding Emacs character
-code.  It can also be a function to call with one argument, a
-character code in CHARSET.
-
-CODE-RANGE specifies the valid code ranges of CHARSET.
-It is a list of RANGEs, where each RANGE is of the form:
-  (FROM1 TO1 FROM2 TO2 ...)
-or
-  ((FROM1-1 TO1-1 FROM1-2 TO1-2 ...) . (FROM2-1 TO2-1 FROM2-2 TO2-2 ...))
-In the first form, valid codes are between FROM1 and TO1, or FROM2 and
-TO2, or...
-The second form is used for 2-byte codes.  The car part is the ranges
-of the first byte, and the cdr part is the ranges of the second byte.")
-
-
 (defun decode-codepage-char (codepage code)
   "Decode a character that has code CODE in CODEPAGE.
 Return a decoded character string.  Each CODEPAGE corresponds to a
@@ -353,10 +386,9 @@ DEFAULT-VALUE, if non-nil, is the default value.
 INITIAL-INPUT, if non-nil, is a string inserted in the minibuffer initially.
 See the documentation of the function `completing-read' for the
 detailed meanings of these arguments."
-  (let* ((table (append (mapcar (function (lambda (x) (list (symbol-name x))))
+  (let* ((table (append (mapcar (lambda (x) (list (symbol-name x)))
 				charset-list)
-			(mapcar (function (lambda (x)
-					    (list (symbol-name (car x)))))
+			(mapcar (lambda (x) (list (symbol-name (car x))))
 				non-iso-charset-alist)))
 	 (charset (completing-read prompt table
 				   nil t initial-input 'charset-history
@@ -489,8 +521,14 @@ This can list both Emacs `official' (ISO standard) charsets and the
 characters encoded by various Emacs coding systems which correspond to
 PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
   (interactive (list (read-charset "Character set: ")))
-  (with-output-to-temp-buffer "*Help*"
+  (with-output-to-temp-buffer "*Character List*"
     (with-current-buffer standard-output
+      (setq mode-line-format (copy-sequence mode-line-format))
+      (let ((slot (memq 'mode-line-buffer-identification mode-line-format)))
+	(if slot
+	    (setcdr slot
+		    (cons (format " (%s)" charset)
+			  (cdr slot)))))
       (setq indent-tabs-mode nil)
       (set-buffer-multibyte t)
       (cond ((charsetp charset)
@@ -532,138 +570,6 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
 	    (insert (format "Preferred coding system: %s\n" coding))
 	    (search-backward (symbol-name coding))
 	    (help-xref-button 0 'help-coding-system coding)))))))
-
-;;;###autoload
-(defun describe-char-after (&optional pos)
-  "Display information about the character at POS in the current buffer.
-POS defaults to point.
-The information includes character code, charset and code points in it,
-syntax, category, how the character is encoded in a file,
-which font is being used for displaying the character."
-  (interactive)
-  (or pos
-      (setq pos (point)))
-  (if (>= pos (point-max))
-      (error "No character at point"))
-  (let* ((char (char-after pos))
-	 (charset (char-charset char))
-	 (props (text-properties-at pos))
-	 (composition (find-composition (point) nil nil t))
-	 (composed (if composition (buffer-substring (car composition)
-						     (nth 1 composition))))
-	 (multibyte-p enable-multibyte-characters)
-	 item-list max-width)
-    (if (eq charset 'unknown)
-	(setq item-list
-	      `(("character"
-		 ,(format "%s (0%o, %d, 0x%x) -- invalid character code"
-			  (if (< char 256)
-			      (single-key-description char)
-			    (char-to-string char))
-			  char char char))))
-      (setq item-list
-	    `(("character"
-	       ,(format "%s (0%o, %d, 0x%x)" (if (< char 256)
-						 (single-key-description char)
-					       (char-to-string char))
-			char char char))
-	      ("charset"
-	       ,(symbol-name charset)
-	       ,(format "(%s)" (charset-description charset)))
-	      ("code point"
-	       ,(let ((split (split-char char)))
-		  (if (= (charset-dimension charset) 1)
-		      (format "%d" (nth 1 split))
-		    (format "%d %d" (nth 1 split) (nth 2 split)))))
-	      ("syntax"
- 	       ,(let ((syntax (get-char-property (point) 'syntax-table)))
-		  (with-temp-buffer
-		    (internal-describe-syntax-value
-		     (if (consp syntax) syntax
-		       (aref (or syntax (syntax-table)) char)))
-		    (buffer-string))))
-	      ("category"
-	       ,@(let ((category-set (char-category-set char)))
-		   (if (not category-set)
-		       '("-- none --")
-		     (mapcar #'(lambda (x) (format "%c:%s  "
-						   x (category-docstring x)))
-			     (category-set-mnemonics category-set)))))
-	      ,@(let ((props (aref char-code-property-table char))
-		      ps)
-		  (when props
-		    (while props
-		      (push (format "%s:" (pop props)) ps)
-		      (push (format "%s;" (pop props)) ps))
-		    (list (cons "Properties" (nreverse ps)))))
-	      ("buffer code"
-	       ,(encoded-string-description
-		 (string-as-unibyte (char-to-string char)) nil))
-	      ("file code"
-	       ,@(let* ((coding buffer-file-coding-system)
-			(encoded (encode-coding-char char coding)))
-		   (if encoded
-		       (list (encoded-string-description encoded coding)
-			     (format "(encoded by coding system %S)" coding))
-		     (list "not encodable by coding system"
-			   (symbol-name coding)))))
-	      ,@(if (or (memq 'mule-utf-8
-			  (find-coding-systems-region (point) (1+ (point))))
-			(get-char-property (point) 'untranslated-utf-8))
-		    (let ((uc (or (get-char-property (point)
-						     'untranslated-utf-8)
-				  (encode-char (char-after) 'ucs))))
-		      (if uc
-			  (list (list "Unicode"
-				      (format "%04X" uc))))))
-	      ,(if (display-graphic-p (selected-frame))
-		   (list "font" (or (internal-char-font (point))
-				    "-- none --"))
-		 (list "terminal code"
-		       (let* ((coding (terminal-coding-system))
-			      (encoded (encode-coding-char char coding)))
-			 (if encoded
-			     (encoded-string-description encoded coding)
-			   "not encodable")))))))
-    (setq max-width (apply #'max (mapcar #'(lambda (x) (length (car x)))
-					 item-list)))
-    (with-output-to-temp-buffer "*Help*"
-      (save-excursion
-	(set-buffer standard-output)
-	(set-buffer-multibyte multibyte-p)
-	(let ((formatter (format "%%%ds:" max-width)))
-	  (dolist (elt item-list)
-	    (insert (format formatter (car elt)))
-	    (dolist (clm (cdr elt))
-	      (when (>= (+ (current-column)
-			   (or (string-match "\n" clm)
-			       (string-width clm)) 1)
-			(frame-width))
-		(insert "\n")
-		(indent-to (1+ max-width)))
-	      (insert " " clm))
-	    (insert "\n")))
-	(when composition
-	  (insert "\nComposed with the following character(s) "
-		  (mapconcat (lambda (x) (format "`%c'" x))
-			     (substring composed 1)
-			     ", ")
-		  " to form `" composed "'")
-	  (if (nth 3 composition)
-	      (insert ".\n")
-	    (insert "\nby the rule ("
-		    (mapconcat (lambda (x)
-				 (format (if (consp x) "%S" "?%c") x))
-			       (nth 2 composition)
-			       " ")
-		    ").\n"
-		    "See the variable `reference-point-alist' for "
-		    "the meaning of the rule.\n")))
-	(when props
-	  (insert "\nText properties\n")
-	  (require 'descr-text)
-	  (describe-text-properties props))))))
-
 
 ;;; CODING-SYSTEM
 
@@ -718,55 +624,64 @@ which font is being used for displaying the character."
     (with-output-to-temp-buffer (help-buffer)
       (print-coding-system-briefly coding-system 'doc-string)
       (princ "\n")
-      (let ((coding-spec (coding-system-spec coding-system)))
-	(princ "Type: ")
-	(let ((type (coding-system-type coding-system))
-	      (flags (coding-system-flags coding-system)))
-	  (princ type)
-	  (cond ((eq type nil)
-		 (princ " (do no conversion)"))
-		((eq type t)
-		 (princ " (do automatic conversion)"))
-		((eq type 0)
-		 (princ " (Emacs internal multibyte form)"))
-		((eq type 1)
-		 (princ " (Shift-JIS, MS-KANJI)"))
-		((eq type 2)
-		 (princ " (variant of ISO-2022)\n")
-		 (princ "Initial designations:\n")
-		 (print-designation flags)
-		 (princ "Other Form: \n  ")
-		 (princ (if (aref flags 4) "short-form" "long-form"))
-		 (if (aref flags 5) (princ ", ASCII@EOL"))
-		 (if (aref flags 6) (princ ", ASCII@CNTL"))
-		 (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
-		 (if (aref flags 8) (princ ", use-locking-shift"))
-		 (if (aref flags 9) (princ ", use-single-shift"))
-		 (if (aref flags 10) (princ ", use-roman"))
-		 (if (aref flags 11) (princ ", use-old-jis"))
-		 (if (aref flags 12) (princ ", no-ISO6429"))
-		 (if (aref flags 13) (princ ", init-bol"))
-		 (if (aref flags 14) (princ ", designation-bol"))
-		 (if (aref flags 15) (princ ", convert-unsafe"))
-		 (if (aref flags 16) (princ ", accept-latin-extra-code"))
-		 (princ "."))
-		((eq type 3)
-		 (princ " (Big5)"))
-		((eq type 4)
-		 (princ " (do conversion by CCL program)"))
-		((eq type 5)
-		 (princ " (text with random binary characters)"))
-		(t (princ ": invalid coding-system."))))
-	(princ "\nEOL type: ")
-	(let ((eol-type (coding-system-eol-type coding-system)))
-	  (cond ((vectorp eol-type)
-		 (princ "Automatic selection from:\n\t")
-		 (princ eol-type)
-		 (princ "\n"))
-		((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
-		((eq eol-type 1) (princ "CRLF\n"))
-		((eq eol-type 2) (princ "CR\n"))
-		(t (princ "invalid\n")))))
+      (let ((vars (coding-system-get coding-system 'dependency)))
+	(when vars
+	  (princ "See also the documentation of these customizable variables
+which alter the behaviour of this coding system.\n")
+	  (dolist (v vars)
+	    (princ "  `")
+	    (princ v)
+	    (princ "'\n"))
+	  (princ "\n")))
+
+      (princ "Type: ")
+      (let ((type (coding-system-type coding-system))
+	    (flags (coding-system-flags coding-system)))
+	(princ type)
+	(cond ((eq type nil)
+	       (princ " (do no conversion)"))
+	      ((eq type t)
+	       (princ " (do automatic conversion)"))
+	      ((eq type 0)
+	       (princ " (Emacs internal multibyte form)"))
+	      ((eq type 1)
+	       (princ " (Shift-JIS, MS-KANJI)"))
+	      ((eq type 2)
+	       (princ " (variant of ISO-2022)\n")
+	       (princ "Initial designations:\n")
+	       (print-designation flags)
+	       (princ "Other Form: \n  ")
+	       (princ (if (aref flags 4) "short-form" "long-form"))
+	       (if (aref flags 5) (princ ", ASCII@EOL"))
+	       (if (aref flags 6) (princ ", ASCII@CNTL"))
+	       (princ (if (aref flags 7) ", 7-bit" ", 8-bit"))
+	       (if (aref flags 8) (princ ", use-locking-shift"))
+	       (if (aref flags 9) (princ ", use-single-shift"))
+	       (if (aref flags 10) (princ ", use-roman"))
+	       (if (aref flags 11) (princ ", use-old-jis"))
+	       (if (aref flags 12) (princ ", no-ISO6429"))
+	       (if (aref flags 13) (princ ", init-bol"))
+	       (if (aref flags 14) (princ ", designation-bol"))
+	       (if (aref flags 15) (princ ", convert-unsafe"))
+	       (if (aref flags 16) (princ ", accept-latin-extra-code"))
+	       (princ "."))
+	      ((eq type 3)
+	       (princ " (Big5)"))
+	      ((eq type 4)
+	       (princ " (do conversion by CCL program)"))
+	      ((eq type 5)
+	       (princ " (text with random binary characters)"))
+	      (t (princ ": invalid coding-system."))))
+      (princ "\nEOL type: ")
+      (let ((eol-type (coding-system-eol-type coding-system)))
+	(cond ((vectorp eol-type)
+	       (princ "Automatic selection from:\n\t")
+	       (princ eol-type)
+	       (princ "\n"))
+	      ((or (null eol-type) (eq eol-type 0)) (princ "LF\n"))
+	      ((eq eol-type 1) (princ "CRLF\n"))
+	      ((eq eol-type 2) (princ "CR\n"))
+	      (t (princ "invalid\n"))))
       (let ((postread (coding-system-get coding-system 'post-read-conversion)))
 	(when postread
 	  (princ "After decoding text normally,")
@@ -852,11 +767,19 @@ in place of `..':
 		   (coding-system-mnemonic coding-system)
 		   coding-system))
     (let ((aliases (coding-system-get coding-system 'alias-coding-systems)))
-      (if (eq coding-system (car aliases))
-	  (if (cdr aliases)
-	      (princ (format " %S" (cons 'alias: (cdr aliases)))))
-	(if (memq coding-system aliases)
-	    (princ (format " (alias of %s)" (car aliases))))))
+      (cond ((eq coding-system (car aliases))
+	     (if (cdr aliases)
+		 (princ (format " %S" (cons 'alias: (cdr aliases))))))
+	    ((memq coding-system aliases)
+	     (princ (format " (alias of %s)" (car aliases))))
+	    (t
+	     (let ((eol-type (coding-system-eol-type coding-system))
+		   (base-eol-type (coding-system-eol-type (car aliases))))
+	       (if (and (integerp eol-type)
+			(vectorp base-eol-type)
+			(not (eq coding-system (aref base-eol-type eol-type))))
+		   (princ (format " (alias of %s)"
+				  (aref base-eol-type eol-type))))))))
     (princ "\n\n")
     (if (and doc-string
 	     (setq doc-string (coding-system-doc-string coding-system)))
@@ -924,13 +847,12 @@ Priority order for recognizing coding systems when reading files:\n")
 	(while categories
 	  (setq coding-system (symbol-value (car categories)))
 	  (mapcar
-	   (function
-	    (lambda (x)
-	      (if (and (not (eq x coding-system))
-		       (coding-system-get x 'no-initial-designation)
-		       (let ((flags (coding-system-flags x)))
-			 (not (or (aref flags 10) (aref flags 11)))))
-		  (setq codings (cons x codings)))))
+	   (lambda (x)
+	     (if (and (not (eq x coding-system))
+		      (coding-system-get x 'no-initial-designation)
+		      (let ((flags (coding-system-flags x)))
+			(not (or (aref flags 10) (aref flags 11)))))
+		 (setq codings (cons x codings))))
 	   (get (car categories) 'coding-systems))
 	  (if codings
 	      (let ((max-col (frame-width))
@@ -1135,9 +1057,12 @@ but still contains full information about each coding system."
 
 (defun print-fontset (fontset &optional print-fonts)
   "Print information about FONTSET.
+If FONTSET is nil, print information about the default fontset.
 If optional arg PRINT-FONTS is non-nil, also print names of all opened
 fonts for FONTSET.  This function actually inserts the information in
 the current buffer."
+  (or fontset
+      (setq fontset (query-fontset "fontset-default")))
   (let ((tail (aref (fontset-info fontset) 2))
 	elt chars font-spec opened prev-charset charset from to)
     (beginning-of-line)
@@ -1209,17 +1134,15 @@ This shows which font is used for which character(s)."
    (if (not (and window-system (fboundp 'fontset-list)))
        (error "No fontsets being used")
      (let ((fontset-list (nconc
-			  (mapcar 'list (fontset-list))
-			  (mapcar (lambda (x) (list (cdr x)))
-				  fontset-alias-alist)))
+			  (fontset-list)
+			  (mapcar 'cdr fontset-alias-alist)))
 	   (completion-ignore-case t))
        (list (completing-read
 	      "Fontset (default, used by the current frame): "
 	      fontset-list nil t)))))
   (if (= (length fontset) 0)
-      (setq fontset (cdr (assq 'font (frame-parameters)))))
-  (if (not (setq fontset (query-fontset fontset)))
-      (error "Current frame is using font, not fontset"))
+      (setq fontset (frame-parameter nil 'font)))
+  (setq fontset (query-fontset fontset))
   (help-setup-xref (list #'describe-fontset fontset) (interactive-p))
   (with-output-to-temp-buffer (help-buffer)
     (with-current-buffer standard-output
@@ -1240,9 +1163,9 @@ see the function `describe-fontset' for the format of the list."
 	;; This code is duplicated near the end of mule-diag.
 	(let ((fontsets
 	       (sort (fontset-list)
-		     (function (lambda (x y)
-				 (string< (fontset-plain-name x)
-					  (fontset-plain-name y)))))))
+		     (lambda (x y)
+		       (string< (fontset-plain-name x)
+				(fontset-plain-name y))))))
 	  (while fontsets
 	    (if arg
 		(print-fontset (car fontsets) nil)
@@ -1253,7 +1176,8 @@ see the function `describe-fontset' for the format of the list."
 (defun list-input-methods ()
   "Display information about all input methods."
   (interactive)
-  (with-output-to-temp-buffer "*Help*"
+  (help-setup-xref '(list-input-methods) (interactive-p))
+  (with-output-to-temp-buffer (help-buffer)
     (list-input-methods-1)
     (with-current-buffer standard-output
       (save-excursion
@@ -1262,8 +1186,7 @@ see the function `describe-fontset' for the format of the list."
 		"^  \\([^ ]+\\) (`.*' in mode line)$" nil t)
 	  (help-xref-button 1 #'help-input-method
 				(match-string 1)
-				"mouse-2: describe this method")))
-      (help-setup-xref '(list-input-methods) (interactive-p)))))
+				"mouse-2: describe this method"))))))
 
 (defun list-input-methods-1 ()
   (if (not input-method-alist)
@@ -1275,7 +1198,7 @@ installed LEIM (Libraries of Emacs Input Methods)."))
     (princ "    SHORT-DESCRIPTION\n------------------------------\n")
     (setq input-method-alist
 	  (sort input-method-alist
-		(function (lambda (x y) (string< (nth 1 x) (nth 1 y))))))
+		(lambda (x y) (string< (nth 1 x) (nth 1 y)))))
     (let ((l input-method-alist)
 	  language elt)
       (while l
@@ -1386,5 +1309,7 @@ system which uses fontsets)."
 	    (print-fontset (car fontsets) t)
 	    (setq fontsets (cdr fontsets)))))
       (print-help-return-message))))
+
+(provide 'mule-diag)
 
 ;;; mule-diag.el ends here

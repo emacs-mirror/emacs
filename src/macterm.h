@@ -23,8 +23,35 @@ Boston, MA 02111-1307, USA.  */
 #include "macgui.h"
 #include "frame.h"
 
-/* The class of this X application.  */
-#define EMACS_CLASS "Emacs"
+/* Include Carbon.h to define Cursor and Rect.  */
+#ifdef HAVE_CARBON
+#undef mktime
+#undef DEBUG
+#undef Z
+#undef free
+#undef malloc
+#undef realloc
+/* Macros max and min defined in lisp.h conflict with those in
+   precompiled header Carbon.h.  */
+#undef max
+#undef min
+#undef init_process
+#include <Carbon/Carbon.h>
+#undef Z
+#define Z (current_buffer->text->z)
+#undef free
+#define free unexec_free
+#undef malloc
+#define malloc unexec_malloc
+#undef realloc
+#define realloc unexec_realloc
+#undef min
+#define min(a, b) ((a) < (b) ? (a) : (b))
+#undef max
+#define max(a, b) ((a) > (b) ? (a) : (b))
+#undef init_process
+#define init_process emacs_init_process
+#endif /* MAC_OSX */
 
 #define RGB_TO_ULONG(r, g, b) (((r) << 16) | ((g) << 8) | (b))
 
@@ -42,17 +69,10 @@ Boston, MA 02111-1307, USA.  */
 
 #define FONT_MAX_WIDTH(f) FONT_WIDTH(f)  /* fix later */
 
-enum text_cursor_kinds {
-  NO_CURSOR = -1,
-  FILLED_BOX_CURSOR,
-  HOLLOW_BOX_CURSOR,
-  BAR_CURSOR
-};
-
 /* Structure recording bitmaps and reference count.
    If REFCOUNT is 0 then this record is free to be reused.  */
 
-struct mac_bitmap_record 
+struct mac_bitmap_record
 {
   char *bitmap_data;
   int refcount;
@@ -103,7 +123,10 @@ struct mac_display_info
   Window root_window;
 
   /* The cursor to use for vertical scroll bars.  */
-  struct Cursor *vertical_scroll_bar_cursor;
+  Cursor vertical_scroll_bar_cursor;
+
+  /* Resource data base */
+  XrmDatabase xrdb;
 
 #if 0
   /* color palette information.  */
@@ -328,23 +351,24 @@ struct mac_output {
   /* Foreground color for scroll bars.  A value of -1 means use the
      default (black for non-toolkit scroll bars).  */
   unsigned long scroll_bar_foreground_pixel;
-  
+
   /* Background color for scroll bars.  A value of -1 means use the
      default (background color of the frame for non-toolkit scroll
      bars).  */
   unsigned long scroll_bar_background_pixel;
 
   /* Descriptor for the cursor in use for this window.  */
-  struct Cursor *text_cursor;
-  struct Cursor *nontext_cursor;
-  struct Cursor *modeline_cursor;
-  struct Cursor *cross_cursor;
-  struct Cursor *hourglass_cursor;
+  Cursor text_cursor;
+  Cursor nontext_cursor;
+  Cursor modeline_cursor;
+  Cursor hand_cursor;
+  Cursor hourglass_cursor;
+  Cursor horizontal_drag_cursor;
 #if 0
   /* Window whose cursor is hourglass_cursor.  This window is temporarily
      mapped to display a hourglass-cursor.  */
   Window hourglass_window;
-  
+
   /* Non-zero means hourglass cursor is currently displayed.  */
   unsigned hourglass_p : 1;
 
@@ -352,17 +376,6 @@ struct mac_output {
   int needs_exposure;
 
 #endif
-
-  /* What kind of text cursor is drawn in this window right now?
-     (If there is no cursor (phys_cursor_x < 0), then this means nothing.)  */
-  enum text_cursor_kinds current_cursor;
-
-  /* What kind of text cursor should we draw in the future?
-     This should always be filled_box_cursor or bar_cursor.  */
-  enum text_cursor_kinds desired_cursor;
-
-  /* Width of bar cursor (if we are using that).  */
-  int cursor_width;
 
 #if 0
   DWORD dwStyle;
@@ -416,12 +429,27 @@ struct mac_output {
   /* The background for which the above relief GCs were set up.
      They are changed only when a different background is involved.  */
   unsigned long relief_background;
+
+  /* See enum below */
+  int want_fullscreen;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     left of the window manager decoration) and FRAME_X_WINDOW. */
+  int x_pixels_diff;
+
+  /* This many pixels are the difference between the outer window (i.e. the
+     top of the window manager titlebar) and FRAME_X_WINDOW. */
+  int y_pixels_diff;
 };
 
 typedef struct mac_output mac_output;
 
+/* Return the X output data for frame F.  */
+#define FRAME_X_OUTPUT(f) ((f)->output_data.mac)
+
 /* Return the Mac window used for displaying data in frame F.  */
 #define FRAME_MAC_WINDOW(f) ((f)->output_data.mac->mWP)
+#define FRAME_X_WINDOW(f) ((f)->output_data.mac->mWP)
 
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->output_data.x->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->output_data.x->background_pixel)
@@ -444,6 +472,7 @@ typedef struct mac_output mac_output;
 
 /* This is the `Display *' which frame F is on.  */
 #define FRAME_MAC_DISPLAY(f) (0)
+#define FRAME_X_DISPLAY(f) (0)
 
 /* This is the 'font_info *' which frame F has.  */
 #define FRAME_MAC_FONT_TABLE(f) (FRAME_MAC_DISPLAY_INFO (f)->font_table)
@@ -451,8 +480,6 @@ typedef struct mac_output mac_output;
 /* These two really ought to be called FRAME_PIXEL_{WIDTH,HEIGHT}.  */
 #define PIXEL_WIDTH(f) ((f)->output_data.mac->pixel_width)
 #define PIXEL_HEIGHT(f) ((f)->output_data.mac->pixel_height)
-
-#define FRAME_DESIRED_CURSOR(f) ((f)->output_data.mac->desired_cursor)
 
 /* Value is the smallest width of any character in any font on frame F.  */
 
@@ -578,7 +605,7 @@ struct scroll_bar {
 
 /* Return the length of the rectangle within which the top of the
    handle must stay.  This isn't equivalent to the inside height,
-   because the scroll bar handle has a minimum height.  
+   because the scroll bar handle has a minimum height.
 
    This is the real range of motion for the scroll bar, so when we're
    scaling buffer positions to scroll bar positions, we use this, not
@@ -646,7 +673,7 @@ struct scroll_bar {
    + (f)->output_data.mac->internal_border_width)
 
 
-/* Return the row/column (zero-based) of the character cell containing 
+/* Return the row/column (zero-based) of the character cell containing
    the pixel on FRAME at ROW/COL.  */
 #define PIXEL_TO_CHAR_ROW(f, row) \
   (((row) - (f)->output_data.mac->internal_border_width) \
@@ -667,4 +694,10 @@ struct scroll_bar {
 			  - (f)->output_data.mac->internal_border_width)))
 
 struct frame * check_x_frame (Lisp_Object);
+
+void activate_scroll_bars (FRAME_PTR);
+void deactivate_scroll_bars (FRAME_PTR);
+
+#define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
+#define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 

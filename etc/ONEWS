@@ -87,7 +87,7 @@ To use this package, put in your ~/.emacs:
 
  (setq font-lock-support-mode 'lazy-lock-mode)
 
-To control the package behaviour, see the documentation for `lazy-lock-mode'.
+To control the package behavior, see the documentation for `lazy-lock-mode'.
 
 ** Changes in BibTeX mode.
 
@@ -908,7 +908,7 @@ that buffer.
 highlighting based not only on what's visible in the buffer, but on
 other data structures.
 
-**** Old packages like `expire-kill' will no longer work.  
+**** Old packages like `expire-kill' will no longer work.
 
 **** `C-c C-l' in the group buffer no longer switches to a different
 buffer, but instead lists killed groups in the group buffer.
@@ -917,7 +917,7 @@ buffer, but instead lists killed groups in the group buffer.
 
 **** The look of all buffers can be changed by setting format-like
 variables.
- 
+
 **** Local spool and several NNTP servers can be used at once.
 
 **** Groups can be combined into virtual groups.
@@ -988,7 +988,7 @@ file status.
 
 If you do want unmodified files to be write-protected, set your
 CVSREAD environment variable.  VC sees this and behaves accordingly;
-that will give you the behaviour of Emacs 19.29, similar to that under
+that will give you the behavior of Emacs 19.29, similar to that under
 RCS and SCCS.  In this mode, if the variable vc-mistrust-permissions
 is nil, VC learns the modification state from the file permissions.
 When setting CVSREAD for the first time, you should check out the
@@ -1006,7 +1006,7 @@ and execute the next logical version control command on them (C-x v v).
 
 *** Starting a new branch.
 
-If you try to lock a version that is not the latest on its branch, 
+If you try to lock a version that is not the latest on its branch,
 VC asks for confirmation in the minibuffer.  If you say no, it offers
 to lock the latest version instead.
 
@@ -1029,7 +1029,7 @@ your working file with the latest version from the master.
 *** RCS customization.
 
 There is a new variable vc-consult-headers.  If it is t (the default),
-VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.5 2001/01/31 15:19:32 gerd Exp $') and
+VC searches for RCS headers in working files (like `$Id: ONEWS,v 1.8 2003/02/04 14:30:40 lektu Exp $') and
 determines the state of the file from them, not from the master file.
 This is fast and more reliable when you use branches.  (The variable
 was already present in Emacs 19.29, but didn't get mentioned in the
@@ -1058,7 +1058,7 @@ of them.
 
 *** New sexp diary entry type
 
-Reminders that apply in the days leading up to an event. 
+Reminders that apply in the days leading up to an event.
 
 ** The CC-mode package now provides the default C and C++ modes.
 See the manual for documentation of its features.
@@ -1225,16 +1225,16 @@ Loading tpu-edt no longer turns on tpu-edt mode.  In fact, it is no
 longer necessary to explicitly load tpu-edt.  All you need to do to
 turn on tpu-edt is run the tpu-edt function.  Here's how to run
 tpu-edt instead of loading the file:
-  
+
   Running Emacs:   Type      emacs -f tpu-edt
                     not      emacs -l tpu-edt
 
   Within Emacs:    Type      M-x tpu-edt <ret>
                     not      M-x load-library <ret> tpu-edt <ret>
-  
+
   In .emacs:       Use       (tpu-edt)
                    not       (load "tpu-edt")
-  
+
 The default name of the tpu-edt X key definition file has changed from
 ~/.tpu-gnu-keys to ~/.tpu-keys.  If you don't rename the file yourself,
 tpu-edt will offer to rename it the first time you invoke it under
@@ -1250,20 +1250,20 @@ your ~/_emacs, then the screen briefly flickers with the default
 colors before changing to the colors you have specified.  To avoid
 this, the EMACSCOLORS environment variable exists.  It shall be
 defined as a string with the following elements:
-  
+
     set EMACSCOLORS=fb;fb
-  
+
 The first set of "fb" defines the initial foreground and background
 colors using standard dos color numbers (0=black,.., 7=white).
 If specified, the second set of "fb" defines the colors which are
 restored when you leave emacs.
-  
+
 *** The new SUSPEND environment variable can now be set as the shell to
 use when suspending emacs.  This can be used to override the stupid
 limitation on the environment of sub-shells in MS-DOS (they are just
 large enough to hold the currently defined variables, not leaving
 room for more); to overcome this limitation, add this to autoexec.bat:
-  
+
     set SUSPEND=%COMSPEC% /E:2000
 
 ** The escape character can now be displayed on X frames.  Try
@@ -1616,7 +1616,7 @@ mode.
 *** You can use this menu to change the face of the region.
 You can also set the face of the region with the new M-g command.
 
-*** The menu also includes commands for indenting the region, 
+*** The menu also includes commands for indenting the region,
 which locally changes the values of left-margin and fill-column that
 are used.
 
@@ -1770,7 +1770,7 @@ another way.
 
 *** It now works to set bookmarks in Info nodes.
 
-*** Bookmarks can have annotations; type "C-h m" after doing 
+*** Bookmarks can have annotations; type "C-h m" after doing
 "M-x list-bookmarks", for more information on annotations.
 
 *** The bookmark-jump popup menu function is now `bookmark-menu-jump', for
@@ -1816,7 +1816,7 @@ containing an open brace just after a case/default label.
 message displays during long re-indention.  This is a new feature
 which prints percentage complete messages at specified intervals.
 
-** Makefile mode changes. 
+** Makefile mode changes.
 
 *** The electric keys are not enabled by default.
 
@@ -2382,7 +2382,7 @@ expression which is used to recognize files in that format, a decoding
 function, an encoding function, a flag that indicates whether the
 encoding function modifies the buffer, and a mode function.
 
-FROM-FN is called to decode files in that format; it gets two args, BEGIN 
+FROM-FN is called to decode files in that format; it gets two args, BEGIN
         and END, and can make any modifications it likes, returning the new
         end position.  It must make sure that the beginning of the file no
 	longer matches REGEXP, or else it will get called again.
@@ -2763,7 +2763,7 @@ Most lisp programs should use the new functions (current-fill-column) and
 (current-left-margin), which return the proper values to use for the
 current line.
 
-**** There are new functions for dealing with margins: 
+**** There are new functions for dealing with margins:
 
 ***** Set-left-margin and set-right-margin (set the value for a region
 and re-fill).  These functions take three arguments: two to specify
@@ -2803,7 +2803,7 @@ the text of the region according to the new value.
 
 **** Filling and auto-fill are disabled if justification is `none'.
 
-**** The auto-fill-function is now called regardless of whether 
+**** The auto-fill-function is now called regardless of whether
 the fill-column has been exceeded; the function can determine on its
 own whether filling (or justification) is necessary.
 
@@ -3291,7 +3291,7 @@ default value is nil.
 comint-completion-fignore.  The default value is nil, but some
 people prefer ("~" "#" "%").
 
-*** The function `comint-watch-for-password-prompt' can be used to 
+*** The function `comint-watch-for-password-prompt' can be used to
 suppress echoing when a subprocess asks for a password.  To use it,
 do this:
 
@@ -3429,7 +3429,7 @@ the basic offset given to a level of indentation.
 
 If, for example, you wanted to change this style:
 
-int foo (int i) 
+int foo (int i)
 {
     switch (i) {
     case 1:
@@ -3443,7 +3443,7 @@ int foo (int i)
 
 into this:
 
-int foo (int i) 
+int foo (int i)
 {
     switch (i) {
       case 1:
@@ -3694,7 +3694,7 @@ The undo and yank commands do this.
 
 ** If you specify an explicit title for a new frame when you create it,
 the title is used as the resource name when looking up X resources to
-control the shape of that frame.  If you don't specify the frame title, 
+control the shape of that frame.  If you don't specify the frame title,
 the value of x-resource-name is used, as before.
 
 ** The frame parameter user-position, if non-nil, says that the user
@@ -3801,7 +3801,7 @@ active on that window are considered.
 
 ** Overlays can have the `invisible' property.
 
-** The function insert-file-contents now takes an optional fifth 
+** The function insert-file-contents now takes an optional fifth
 argument called REPLACE.  If this is t, it means to replace the
 contents of the buffer (actually, just the accessible portion)
 with the contents of the file.
@@ -3912,7 +3912,7 @@ as well by removing them from command-line-args-left.
 and inhibit handling of the file name.  Here is how to do it:
 
 (let ((inhibit-file-name-handlers
-       (cons 'ange-ftp-file-handler 
+       (cons 'ange-ftp-file-handler
              (and (eq inhibit-file-name-operation operation)
                       inhibit-file-name-handlers)))
       (inhibit-file-name-operation operation))
@@ -4114,7 +4114,7 @@ load the library iso-syntax.  (This is not new.)
 ** M-TAB in Text mode now runs the command ispell-complete-word
 which performs completion using the spelling dictionary.
 
-The spelling correction submenu now includes this command 
+The spelling correction submenu now includes this command
 and another command which completes a word fragment (that is,
 it doesn't assume that the text to be completed starts at the
 beginning of a word.
@@ -4178,7 +4178,7 @@ C-c C-h lists the input history in a `*Help*' buffer.
 
 There are new menu bar items for completion/input/output/signal commands.
 
-Input behaviour is configurable.  Variables control whether some windows
+Input behavior is configurable.  Variables control whether some windows
 showing the buffer scroll to the bottom before insertion.  These are
 `comint-scroll-to-bottom-on-input' and `before-change-function'.  By default,
 insertion causes the selected window to scroll to the bottom before insertion
@@ -4259,7 +4259,7 @@ Directory tracking is more robust.  It can cope with command sequences
 and forked commands, and can detect the failure of directory changing
 commands in most circumstances.  It's still not infallible, of course.
 
-You can now configure the behaviour of `pushd'.  Variables control
+You can now configure the behavior of `pushd'.  Variables control
 whether `pushd' behaves like `cd' if no argument is given
 (`shell-pushd-tohome'), pop rather than rotate with a numeric argument
 (`shell-pushd-dextract'), and only add directories to the directory
@@ -4617,11 +4617,11 @@ minibuffer window, and returns t if the window is currently active.
 
 * Changes in version 19.17.
 
-** When Emacs displays a list of completions in a buffer, 
+** When Emacs displays a list of completions in a buffer,
 you can select a completion by clicking mouse button 2
 on that completion.
 
-** Use the command `list-faces-display' to display a list of 
+** Use the command `list-faces-display' to display a list of
 all the currently defined faces, showing what they look like.
 
 ** Menu bar items from local maps now come after the usual items.
@@ -4636,8 +4636,8 @@ constants, names of functions being defined, and so on.
 
 ** Dunnet, an adventure game, is now available.
 
-** Several major modes now have their own menu bar items, 
-including Dired, Rmail, and Sendmail.  We would like to add 
+** Several major modes now have their own menu bar items,
+including Dired, Rmail, and Sendmail.  We would like to add
 suitable menu bar items to other major modes.
 
 ** The key binding C-x a C-h has been eliminated.
@@ -4821,7 +4821,7 @@ and c-backward-conditional).
 
 ** The Edit entry in the menu bar has a new alternative:
 "Choose Next Paste".  It gives you a menu showing the various
-strings in the kill ring; click on one to select it as the text 
+strings in the kill ring; click on one to select it as the text
 to be yanked ("pasted") the next time you yank.
 
 ** If you enable Transient Mark mode and set `mark-even-if-inactive' to
@@ -5151,7 +5151,7 @@ buffer is very large.
 ** You can quit while Emacs is waiting to read or write files.
 
 ** The arrow keys now have default bindings to move in the appropriate
-directions. 
+directions.
 
 ** You can suppress next-line's habit of inserting a newline when
 called at the end of a buffer by setting next-line-add-newlines to nil
@@ -5378,7 +5378,7 @@ M-, to resume a suspended `tags-search' or `tags-query-replace'.
 whether to save a particular buffer.  In addition to `y' or `n', you
 can answer `!' to save all the remaining buffers, `.' to save this
 buffer but not save any others, ESC to stop saving and exit the
-command, and C-h to get help.  These options are analogous to those 
+command, and C-h to get help.  These options are analogous to those
 of `query-replace'.
 
 ** M-x make-symbolic-link does not expand its first argument.
@@ -5594,7 +5594,7 @@ The C-x C-a bindings are also active in source files.
 
 *** The old TeX mode bindings of M-{ and M-} have been moved to C-c {
 and C-c }.  (These commands are `up-list' and `tex-insert-braces';
-they are the TeX equivalents of M-( and M-).)  This is because M-{ 
+they are the TeX equivalents of M-( and M-).)  This is because M-{
 and M-} are now globally defined commands.
 
 *** Changes in Mail mode.
@@ -5872,11 +5872,11 @@ the UNIX `calendar' utility.
 *** There is a new major mode for editing binary files: Hexl mode.
 To use it, use M-x hexl-find-file instead of C-x C-f to visit the file.
 This command converts the file's contents to hexadecimal and lets you
-edit the translation.  When you save the file, it is converted 
+edit the translation.  When you save the file, it is converted
 automatically back to binary.
 
 You can also use M-x hexl-mode to translate an existing buffer into hex.
-Do this if you have already visited a binary file.  
+Do this if you have already visited a binary file.
 
 Hexl mode has a few other commands:
 
@@ -6070,7 +6070,7 @@ etc subdirectory.
 *** Shell mode has been completely replaced.
 The basic idea is the same, but there are new commands available in
 this mode.
-      
+
 TAB now completes the file name before point in the shell buffer.
 To get a list of all possible completions, type M-?.
 
@@ -6082,8 +6082,8 @@ M-n is similar but goes in the opposite direction towards the present.
 When you find the command you wanted, you can edit it, or just
 resubmit it by typing RET.
 
-You can also use M-r and M-s to search for (respectively) earlier or 
-later inputs starting with a given string.  First type the string, 
+You can also use M-r and M-s to search for (respectively) earlier or
+later inputs starting with a given string.  First type the string,
 then type M-r to yank a previous input from the history which starts
 with that string.  You can repeat M-r to find successively earlier
 inputs starting with the same string.  You can start moving in the
@@ -6110,9 +6110,9 @@ current directory, type M-x dirs to re-synchronize.
 M-x send-invisible reads a line of text without echoing it, and
 sends it to the shell.
 
-If you accidentally suspend your process, use M-x comint-continue-subjob 
+If you accidentally suspend your process, use M-x comint-continue-subjob
 to continue it.
-         
+
 *** There is now a convenient way to enable flow control on terminals
 where you can't win without it.  Suppose you want to do this on
 VT-100 and H19 terminals; put the following in your `.emacs' file:

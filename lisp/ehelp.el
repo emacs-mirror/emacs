@@ -181,7 +181,7 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
       (condition-case ()
           (funcall (or default-major-mode 'fundamental-mode))
         (error nil))
-      
+
       (set-window-configuration config)
       (when bury
 	;;>> Perhaps this shouldn't be done,
@@ -211,8 +211,8 @@ BUFFER is put into `default-major-mode' (or `fundamental-mode') when we exit."
       (Electric-command-loop
         'exit
 	(function (lambda ()
-	  (sit-for 0) ;necessary if last command was end-of-buffer or 
-	              ;beginning-of-buffer - otherwise pos-visible-in-window-p 
+	  (sit-for 0) ;necessary if last command was end-of-buffer or
+	              ;beginning-of-buffer - otherwise pos-visible-in-window-p
 	              ;will yield a wrong result.
 	  (let ((min (pos-visible-in-window-p (point-min)))
 		(max (pos-visible-in-window-p (point-max))))
@@ -343,7 +343,7 @@ will select it.)"
 
 
 
-;; This is to be bound to M-x in ehelp mode. Retains ehelp buffer and then 
+;; This is to be bound to M-x in ehelp mode. Retains ehelp buffer and then
 ;; continues with execute-extended-command.
 (defun electric-help-execute-extended (prefixarg)
   (interactive "p")
@@ -407,7 +407,7 @@ will select it.)"
 (defvar ehelp-map ())
 (if ehelp-map
     nil
-  (let ((map (copy-keymap help-map))) 
+  (let ((map (copy-keymap help-map)))
     (substitute-key-definition 'apropos 'electric-apropos map)
     (substitute-key-definition 'command-apropos 'electric-command-apropos map)
     (substitute-key-definition 'describe-key 'electric-describe-key map)
@@ -421,6 +421,6 @@ will select it.)"
     (setq ehelp-map map)
     (fset 'ehelp-command map)))
 
-(provide 'ehelp) 
+(provide 'ehelp)
 
 ;;; ehelp.el ends here

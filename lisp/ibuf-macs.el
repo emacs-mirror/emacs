@@ -3,6 +3,7 @@
 ;; Copyright (C) 2000, 2001, 2002 Free Software Foundation, Inc.
 
 ;; Author: Colin Walters <walters@verbum.org>
+;; Maintainer: John Paul Wallington <jpw@gnu.org>
 ;; Created: 6 Dec 2001
 ;; Keywords: buffer, convenience
 
@@ -36,7 +37,7 @@
 If TEST returns non-nil, bind `it' to the value, and evaluate
 TRUE-BODY.  Otherwise, evaluate forms in FALSE-BODY as if in `progn'.
 Compare with `if'."
-  (let ((sym (gensym "--ibuffer-aif-")))
+  (let ((sym (make-symbol "ibuffer-aif-sym")))
     `(let ((,sym ,test))
        (if ,sym
 	   (let ((it ,sym))
@@ -55,7 +56,7 @@ During evaluation of body, bind `it' to the value returned by TEST."
 
 (defmacro ibuffer-save-marks (&rest body)
   "Save the marked status of the buffers and execute BODY; restore marks."
-  (let ((bufsym (gensym)))
+  (let ((bufsym (make-symbol "bufsym")))
     `(let ((,bufsym (current-buffer))
 	   (ibuffer-save-marks-tmp-mark-list (ibuffer-current-state-list)))
        (unwind-protect
@@ -124,7 +125,7 @@ change its definition, you should explicitly call
 
 ;;;###autoload
 (defmacro* define-ibuffer-sorter (name documentation
-				       (&key 
+				       (&key
 					description)
 				       &rest body)
   "Define a method of sorting named NAME.
@@ -151,7 +152,7 @@ value if and only if `a' is \"less than\" `b'."
 ;;;###autoload
 (defmacro* define-ibuffer-op (op args
 				 documentation
-				 (&key 
+				 (&key
 				  interactive
 				  mark
 				  modifier-p
@@ -252,7 +253,7 @@ macro for exactly what it does."
 
 ;;;###autoload
 (defmacro* define-ibuffer-filter (name documentation
-				       (&key 
+				       (&key
 					reader
 					description)
 				       &rest body)
@@ -266,7 +267,7 @@ not a particular buffer should be displayed or not.  The forms in BODY
 will be evaluated with BUF bound to the buffer object, and QUALIFIER
 bound to the current value of the filter."
   (let ((fn-name (intern (concat "ibuffer-filter-by-" (symbol-name name)))))
-    `(progn 
+    `(progn
        (defun ,fn-name (qualifier)
 	 ,(concat (or documentation "This filter is not documented."))
 	 (interactive (list ,reader))

@@ -1,4 +1,4 @@
-;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; -*-
+;;; thai.el --- support for Thai -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -32,8 +32,9 @@
  'thai-tis620 2 ?T
  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
  '(ascii thai-tis620 nil nil
-   nil ascii-eol)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii thai-tis620)
+   (mime-charset . tis-620)
    (post-read-conversion . thai-post-read-conversion)))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
@@ -49,7 +50,7 @@
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
-	  (sample-text 
+	  (sample-text
 	   . (thai-compose-string
 	      (copy-sequence "Thai (,T@RIRd7B(B)		,TJ0GQ1J04U1$0CQ1:(B, ,TJ0GQ1J04U10$h1P(B")))
 	  (documentation . t)))

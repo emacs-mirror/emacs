@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2002
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/frames
 @node Frames, Positions, Windows, Top
@@ -70,7 +70,7 @@ The frame is displayed on an MS-DOS terminal.
 * Display Feature Testing::     Determining the features of a terminal.
 @end menu
 
-  @xref{Display}, for information about the related topic of 
+  @xref{Display}, for information about the related topic of
 controlling Emacs redisplay.
 
 @node Creating Frames
@@ -250,7 +250,7 @@ If these settings affect the frame geometry and appearance, you'll see
 the frame appear with the wrong ones and then change to the specified
 ones.  If that bothers you, you can specify the same geometry and
 appearance with X resources; those do take effect before the frame is
-created.  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
+created.  @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
 X resource settings typically apply to all frames.  If you want to
 specify some X resources solely for the sake of the initial frame, and
@@ -516,14 +516,24 @@ in this frame.  Its value is @code{color}, @code{grayscale} or
 @code{mono}.
 
 @item cursor-type
-The way to display the cursor.  The legitimate values are @code{bar},
-@code{box}, and @code{(bar . @var{width})}.  The symbol @code{box}
-specifies an ordinary black box overlaying the character after point;
-that is the default.  The symbol @code{bar} specifies a vertical bar
-between characters as the cursor.  @code{(bar . @var{width})}
-specifies a bar @var{width} pixels wide.  The symbol @code{hbar}
-specifies a horizontal bar, an underscore-like cursor.  @code{(hbar .
-@var{width})} specifiles a horizontal bar @var{width} pixels high.
+How to display the cursor.  Legitimate values are:
+
+@table @code
+@item box
+Display a filled box.  (This is the default.)
+@item hollow
+Display a hollow box.
+@item nil
+Don't display a cursor.
+@item bar
+Display a vertical bar between characters.
+@item (bar . @var{width})
+Display a vertical bar @var{width} pixels wide between characters.
+@item hbar
+Display a horizontal bar.
+@item (bar . @var{width})
+Display a horizontal bar @var{width} pixels high.
+@end table
 
 @vindex cursor-type
 The buffer-local variable @code{cursor-type} overrides the value of
@@ -586,6 +596,20 @@ application's window.  (It is not certain this will be implemented; try
 it and see if it works.)
 @end ignore
 @end table
+
+@defvar blink-cursor-alist
+This variable specifies how to blink the cursor.  Each element has the
+form @code{(@var{on-state} . @var{off-state})}.  Whenever the cursor
+type equals @var{on-state} (comparing using @code{equal}), Emacs uses
+@var{off-state} to specify what the cursor looks like when it blinks
+``off''.  Both @var{on-state} and @var{off-state} should be suitable
+values for the @code{cursor-type} frame parameter.
+
+There are various defaults for how to blink each type of cursor,
+if the type is not mentioned as an @var{on-state} here.  Changes
+in this variable do not take effect immediately, because the variable
+is examined only when you specify a cursor type for a frame.
+@end defvar
 
 @node Size and Position
 @subsection Frame Size And Position
@@ -1659,7 +1683,7 @@ resources for application names other than ``Emacs'' by binding this
 variable to some other string, around a call to @code{x-get-resource}.
 @end defvar
 
-  @xref{Resources X,, X Resources, emacs, The GNU Emacs Manual}.
+  @xref{X Resources,, X Resources, emacs, The GNU Emacs Manual}.
 
 @node Display Feature Testing
 @section Display Feature Testing
@@ -1667,7 +1691,7 @@ variable to some other string, around a call to @code{x-get-resource}.
 
   The functions in this section describe the basic capabilities of a
 particular display.  Lisp programs can use them to adapt their behavior
-to what the display can do.  For example, a program that ordinarly uses
+to what the display can do.  For example, a program that ordinarily uses
 a popup menu could use the minibuffer if popup menus are not supported.
 
   The optional argument @var{display} in these functions specifies which
@@ -1739,7 +1763,7 @@ different in appearance than the default face, and
 Point (2) implies that a @code{:weight black} attribute will be
 satisfied by any display that can display bold, as will
 @code{:foreground "yellow"} as long as some yellowish color can be
-displayed, but @code{:slant italic} will @emph{not} be satisified by
+displayed, but @code{:slant italic} will @emph{not} be satisfied by
 the tty display code's automatic substitution of a `dim' face for
 italic.
 @end defun

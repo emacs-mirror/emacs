@@ -1,6 +1,6 @@
 ;;; sh-script.el --- shell-script editing commands for Emacs
 
-;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001
+;; Copyright (C) 1993, 94, 95, 96, 97, 1999, 2001, 2003
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Daniel Pfeiffer <occitan@esperanto.org>
@@ -116,7 +116,7 @@
 ;; You can do this automatically like this:
 ;;   (add-hook 'sh-set-shell-hook 'sh-learn-buffer-indent)
 ;;
-;; However...   `sh-learn-buffer-indent' is extremely slow,
+;; However...  `sh-learn-buffer-indent' is extremely slow,
 ;; especially on large-ish buffer.  Also, if there are conflicts the
 ;; "last one wins" which may not produce the desired setting.
 ;;
@@ -195,6 +195,7 @@
 
 (eval-when-compile
   (require 'skeleton)
+  (require 'cl)
   (require 'comint))
 (require 'executable)
 
@@ -258,7 +259,7 @@ sh		Bourne Shell
 
 
 (defcustom sh-alias-alist
-  (nconc (if (eq system-type 'gnu/linux)
+  (append (if (eq system-type 'gnu/linux)
 	     '((csh . tcsh)
 	       (ksh . pdksh)))
 	 ;; for the time being
@@ -395,7 +396,6 @@ the car and cdr are the same symbol.")
 (defvar sh-mode-syntax-table
   '((sh eval sh-mode-syntax-table ()
 	?\# "<"
-	?\^l ">#"
 	?\n ">#"
 	?\" "\"\""
 	?\' "\"'"
@@ -444,21 +444,13 @@ the car and cdr are the same symbol.")
     (define-key map "`" 'skeleton-pair-insert-maybe)
     (define-key map "\"" 'skeleton-pair-insert-maybe)
 
-    (substitute-key-definition 'complete-tag 'comint-dynamic-complete
-			       map (current-global-map))
-    (substitute-key-definition 'newline-and-indent 'sh-newline-and-indent
-			       map (current-global-map))
-    (substitute-key-definition 'delete-backward-char
-			       'backward-delete-char-untabify
-			       map (current-global-map))
+    (define-key map [remap complete-tag] 'comint-dynamic-complete)
+    (define-key map [remap newline-and-indent] 'sh-newline-and-indent)
+    (define-key map [remap delete-backward-char]
+      'backward-delete-char-untabify)
     (define-key map "\C-c:" 'sh-set-shell)
-    (substitute-key-definition 'beginning-of-defun
-			       'sh-beginning-of-compound-command
-			       map (current-global-map))
-    (substitute-key-definition 'backward-sentence 'sh-beginning-of-command
-			       map (current-global-map))
-    (substitute-key-definition 'forward-sentence 'sh-end-of-command
-			       map (current-global-map))
+    (define-key map [remap backward-sentence] 'sh-beginning-of-command)
+    (define-key map [remap forward-sentence] 'sh-end-of-command)
     (define-key map [menu-bar insert] (cons "Insert" menu-map))
     (define-key menu-map [sh-while]	'("While Loop" . sh-while))
     (define-key menu-map [sh-until]	'("Until Loop" . sh-until))
@@ -1058,12 +1050,12 @@ a number means align to that column, e.g. 0 means fist column."
 	  sh-symbol-list))
 
 (defcustom sh-indent-for-fi 0
-  "*How much to indent a fi relative to an if.   Usually 0."
+  "*How much to indent a fi relative to an if.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-done '0
-  "*How much to indent a done relative to its matching stmt.   Usually 0."
+  "*How much to indent a done relative to its matching stmt.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
@@ -1080,7 +1072,7 @@ does not affect then else elif or fi statements themselves."
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-then '+
-  "*How much to indent an then relative to an if."
+  "*How much to indent a then relative to an if."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
@@ -1188,10 +1180,6 @@ punctuation characters like '-'."
 
 (defvar sh-indent-supported-here nil
   "Non-nil if we support indentation for the current buffer's shell type.")
-
-(defconst sh-electric-rparen-needed
-  '((sh . t))
-  "Non-nil if the shell type needs an electric handling of case alternatives.")
 
 (defconst sh-var-list
   '(
@@ -1452,9 +1440,11 @@ the visited file executable, and NO-QUERY-FLAG (the second argument)
 controls whether to query about making the visited file executable.
 
 Calls the value of `sh-set-shell-hook' if set."
-  (interactive (list (completing-read "Name or path of shell: "
-				      interpreter-mode-alist
-				      (lambda (x) (eq (cdr x) 'sh-mode)))
+  (interactive (list (completing-read (format "Shell \(default %s\): "
+ 					      sh-shell-file)
+  				      interpreter-mode-alist
+ 				      (lambda (x) (eq (cdr x) 'sh-mode))
+ 				      nil nil nil sh-shell-file)
 		     (eq executable-query 'function)
 		     t))
   (if (string-match "\\.exe\\'" shell)
@@ -2494,16 +2484,12 @@ If INFO is supplied it is used, else it is calculated from current line."
 (defun sh-indent-line ()
   "Indent the current line."
   (interactive)
-  (let ((indent (sh-calculate-indent)) shift-amt beg end
+  (let ((indent (sh-calculate-indent))
 	(pos (- (point-max) (point))))
     (when indent
       (beginning-of-line)
-      (setq beg (point))
       (skip-chars-forward " \t")
-      (setq shift-amt (- indent (current-column)))
-      (unless (zerop shift-amt)
-	(delete-region beg (point))
-	(indent-to indent))
+      (indent-line-to indent)
       ;; If initial point was within line's indentation,
       ;; position after the indentation.  Else stay at same point in text.
       (if (> (- (point-max) pos) (point))
@@ -2659,13 +2645,11 @@ unless optional argument ARG (the prefix when interactive) is non-nil."
 
 (defun sh-mark-init (buffer)
   "Initialize a BUFFER to be used by `sh-mark-line'."
-  (let ((main-buffer (current-buffer)))
-    (save-excursion
-      (set-buffer (get-buffer-create buffer))
-      (erase-buffer)
-      (occur-mode)
-      (setq occur-buffer main-buffer)
-      )))
+  (save-excursion
+    (set-buffer (get-buffer-create buffer))
+    (erase-buffer)
+    (occur-mode)
+    ))
 
 
 (defun sh-mark-line (message point buffer &optional add-linenum occur-point)
@@ -2675,7 +2659,6 @@ If ADD-LINENUM is non-nil the message is preceded by the line number.
 If OCCUR-POINT is non-nil then the line is marked as a new occurrence
 so that `occur-next' and `occur-prev' will work."
   (let ((m1 (make-marker))
-	(main-buffer (current-buffer))
 	start
 	(line ""))
     (when point
@@ -2687,7 +2670,6 @@ so that `occur-next' and `occur-prev' will work."
 	  (set-buffer (get-buffer buffer))
 	(set-buffer (get-buffer-create buffer))
 	(occur-mode)
-	(setq occur-buffer main-buffer)
 	)
       (goto-char (point-max))
       (setq start (point))
@@ -2703,10 +2685,10 @@ so that `occur-next' and `occur-prev' will work."
       (insert "\n")
       (if point
 	  (progn
-	    (put-text-property start (point) 'occur m1)
+	    (put-text-property start (point) 'occur-target m1)
 	    (if occur-point
-		(put-text-property occur-point (1+ occur-point)
-				   'occur-point t))
+		(put-text-property start occur-point
+				   'occur-match t))
 	    ))
       )))
 
@@ -3092,6 +3074,11 @@ This is always added to the end of the buffer."
 ;; You are welcome to add the syntax or even completely new statements as
 ;; appropriate for your favorite shell.
 
+(defconst sh-non-closing-paren
+  ;; If we leave it rear-sticky, calling `newline' ends up inserting a \n
+  ;; that inherits this property, which then confuses the indentation.
+  (propertize ")" 'syntax-table sh-st-punc 'rear-nonsticky t))
+
 (define-skeleton sh-case
   "Insert a case/switch statement.  See `sh-feature'."
   (csh "expression: "
@@ -3121,16 +3108,11 @@ This is always added to the end of the buffer."
       ?\} > \n)
   (sh "expression: "
       > "case " str " in" \n
-      > (read-string "pattern: ")
-      (propertize ")" 'syntax-table sh-st-punc)
-      \n
-      > _ \n
-      ";;" \n
-      ( "other pattern, %s: "
-	> str (propertize ")" 'syntax-table sh-st-punc) \n
+      ( "pattern, %s: "
+	> str sh-non-closing-paren \n
 	> _ \n
 	";;" \n)
-      > "*" (propertize ")" 'syntax-table sh-st-punc) \n
+      > "*" sh-non-closing-paren \n
       > _ \n
       resume:
       "esac" > \n))
@@ -3233,12 +3215,10 @@ t means to return a list of all possible completions of STRING.
 			      (cons name name)))
 			  process-environment)
 		  sh-shell-variables))))
-    (cond ((null code)
-	   (try-completion string sh-shell-variables predicate))
-	  ((eq code t)
-	   (all-completions string sh-shell-variables predicate))
-	  ((eq code 'lambda)
-	   (assoc string sh-shell-variables)))))
+    (case code
+      (nil (try-completion string sh-shell-variables predicate))
+      (lambda (test-completion string sh-shell-variables predicate))
+      (t (all-completions string sh-shell-variables predicate)))))
 
 (defun sh-add (var delta)
   "Insert an addition of VAR and prefix DELTA for Bourne (type) shell."
@@ -3465,10 +3445,10 @@ option followed by a colon `:' if the option accepts an argument."
 		    v2 "\"$OPTARG\"")
 	    (setq v1 (cdr v1)
 		  v2 nil)))
-	> str "|+" str (propertize ")" 'syntax-table sh-st-punc) \n
+	> str "|+" str sh-non-closing-paren \n
 	> _ v2 \n
 	> ";;" \n)
-      > "*" (propertize ")" 'syntax-table sh-st-punc) \n
+      > "*" sh-non-closing-paren \n
       > "echo" " \"usage: " "`basename $0`"
       " [+-" '(setq v1 (point)) str
       '(save-excursion

@@ -975,7 +975,7 @@
 
 1988-01-07  Richard Stallman  (rms@frosted-flakes)
 
-	* lreadc (init_obarray): Split the stmt `hash =' to avoid
+	* lread.c (init_obarray): Split the stmt `hash =' to avoid
 	a VACX bug.
 
 	* alloca.s [pyramid]: Keep sp a multiple of 32.
@@ -1095,7 +1095,7 @@
 
 1987-09-16  Richard M. Stallman  (rms@prep)
 
-	* m-sun[23].h: Doc fix.
+	* m-sun2.h, m-sun3.h: Doc fix.
 
 	* sysdep.c (reset_sys_modes): Don't output anything
 	if have a read_socket_hook (i.e. under X).
@@ -1798,7 +1798,7 @@
 	* Version 18.39 released.
 
 	* s-umax.h: Add definition of SEGMENT_MASK.
-	* Delete definition of LIBS_SYSTEM.
+	Delete definition of LIBS_SYSTEM.
 	* align.umax: File deleted.
 
 	* emacs.c (main): Don't mention syms_of_vmsfns explicitly.
@@ -1852,7 +1852,7 @@
 
 1987-03-09  Richard M. Stallman  (rms@prep)
 
-	* m-alliant.h, crt0.c for alliant:
+	* m-alliant.h, crt0.c (for alliant):
 	Must save _curbrk when dumping (from ADJUST_EXEC_HEADER)
 	and restore it in crt0, because _curbrk itself isn't dumped.
 
@@ -1918,7 +1918,7 @@
 	* fileio.c: Added `sysnetunam' function for controlling remote
 	file access connections under hp-ux.
 
-	* s-hpux (LIBS_SYSTEM): Added `-ln' which is used by `sysnetunam'.
+	* s-hpux.h (LIBS_SYSTEM): Added `-ln' which is used by `sysnetunam'.
 
 1987-02-28  Richard M. Stallman  (rms@prep)
 
@@ -3854,7 +3854,7 @@
 	(ie (let ((case-fold-search t)) (setq case-fold-search t))
 	 will cause case-fold-search be buffer-local even outside the let)
 
-	* xfns.c
+	* xfns.c:
 	Preserve studlycaps: "Gnuemacs" => "GNU Emacs"
 
 	* Various
@@ -4477,7 +4477,7 @@
 	* ymakefile (CPP): Now defined by default as `cc -E'.
 	* Makefile: likewise.
 
-	* More 3b changes:
+	More 3b changes:
 	* ymakefile: Allow config to specify LIBS_TERMCAP even if
 	TERMINFO.
 	* sysdep.c: Delete the sign-extension functions; just define
@@ -4549,7 +4549,7 @@
 	* fileio.c (Fcopy_file): optional 4th arg non-nil
 	means preserve the last-modified time.
 
-	* Make C-M-v in minibuffer scroll the minibuffer's help window if any.
+	Make C-M-v in minibuffer scroll the minibuffer's help window if any.
 	* window.c (save_window_{save,restore}):
 	Save and restore minibuf_scroll_window.
 	* window.c (Fscroll_other_window):
@@ -4574,7 +4574,7 @@
 	* ymakefile: If NO_REMAP, use the standard crt0.o
 	but precede it with pre_crt0.o whose job is to define data_start.
 
-	* buffer.h. buffer.c: New per-buffer variable
+	* buffer.h, buffer.c: New per-buffer variable
 	selective-display-ellipses.
 
 	* xdisp.c (display_text_line), indent.c (compute_motion):

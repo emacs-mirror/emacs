@@ -36,17 +36,18 @@
   :prefix "compare-"
   :group 'tools)
 
-(defcustom compare-windows-whitespace "\\s-+"
+(defcustom compare-windows-whitespace "\\(\\s-\\|\n\\)+"
   "*Regexp that defines whitespace sequences for \\[compare-windows].
-Changes in whitespace are optionally ignored.
+That command optionally ignores changes in whitespace.
 
-The value of `compare-windows-whitespace' may instead be a function; this
-function is called in each buffer, with point at the current scanning point.
-The function's job is to categorize any whitespace around (including before)
-point; it should also advance past any whitespace.
+The value of `compare-windows-whitespace' is normally a regexp, but it
+can also be a function.  The function's job is to categorize any
+whitespace around (including before) point; it should also advance
+past any whitespace.  The function is called in each buffer, with
+point at the current scanning point.  It gets one argument, the point
+where `compare-windows' was originally called; it should not look at
+any text before that point.
 
-The function is passed one argument, the point where `compare-windows'
-was originally called; it should not consider any text before that point.
 If the function returns the same value for both buffers, then the
 whitespace is considered to match, and is skipped."
   :type '(choice regexp function)

@@ -1,4 +1,4 @@
-/* $Header: /cvsroot/emacs//emacs/oldXMenu/Activate.c,v 1.3 2000/07/21 14:36:24 gerd Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/Activate.c,v 1.5 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 #include "copyright.h"
@@ -28,7 +28,7 @@
  *
  *			1)	If at any time an error occurs the data
  *				pointer is left untouched and XM_FAILURE
- *				is returned.  
+ *				is returned.
  *
  *			2)	When a selection request is received (i.e.,
  *				when the specified mouse event occurs) the
@@ -42,7 +42,7 @@
  *				will be left untouched and XM_NO_SELECT will
  *				be returned.
  *
- *			4)	If the selection that was current at the time 
+ *			4)	If the selection that was current at the time
  *				a selection request is made is not an active
  *				selection the data pointer will be left
  *				untouched and XM_IA_SELECT will be returned.
@@ -131,7 +131,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 
     XMEventQue *feq = NULL;    		/* Foreign event queue. */
     XMEventQue *feq_tmp;		/* Foreign event queue temporary. */
-    
+
     /*
      * If there are no panes in the menu then return failure
      * because the menu is not initialized.
@@ -162,14 +162,14 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * Compute origin of menu so that cursor is in
      * Correct pane and selection.
      */
-    _XMTransToOrigin(display, 
-		     menu, 
-		     cur_p, cur_s, 
-		     x_pos, y_pos, 
+    _XMTransToOrigin(display,
+		     menu,
+		     cur_p, cur_s,
+		     x_pos, y_pos,
 		     &orig_x, &orig_y);
     menu->x_pos = orig_x;	/* Store X and Y coords of menu. */
     menu->y_pos = orig_y;
-    
+
     if (XMenuRecompute(display, menu) == XM_FAILURE) {
 	return(XM_FAILURE);
     }
@@ -212,11 +212,11 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * not provided an event handler.
      */
     XSync(display, 0);
-    
+
     /*
      * Grab the mouse for menu input.
      */
-    
+
     status = XGrabPointer(
 			  display,
 			  menu->parent,
@@ -239,7 +239,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
         if (status != Success)
           XUngrabPointer(display, CurrentTime);
       }
-    
+
     if (status == _X_FAILURE) {
 	_XMErrorCode = XME_GRAB_MOUSE;
 	return(XM_FAILURE);
@@ -250,7 +250,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      */
     XMapWindow(display, cur_p->window);
     for (p_ptr = menu->p_list->next;
-	 p_ptr != cur_p; 
+	 p_ptr != cur_p;
 	 p_ptr = p_ptr->next)
       XMapWindow(display, p_ptr->window);
     for (p_ptr = cur_p->next;
@@ -260,7 +260,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 
     XRaiseWindow(display, cur_p->window);	/* Make sure current */
 						/* pane is on top. */
-    
+
     cur_s = NULL;			/* Clear current selection. */
 
     /*
@@ -271,7 +271,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	switch (event.type) {		/* Dispatch on the event type. */
     case Expose:
 	    event_xmp = (XMPane *)XLookUpAssoc(display,
-					       menu->assoc_tab, 
+					       menu->assoc_tab,
 					       event.xexpose.window);
 	    if (event_xmp == NULL) {
 		/*
@@ -292,7 +292,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	    }
 	    if (event_xmp->activated) {
 		XSetWindowBackground(display,
-				     event_xmp->window, 
+				     event_xmp->window,
 				     menu->bkgnd_color);
 	    }
 	    else {
@@ -303,13 +303,13 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	    _XMRefreshPane(display, menu, event_xmp);
 	    break;
     case EnterNotify:
-	    /* 
+	    /*
 	     * First wait a small period of time, and see
 	     * if another EnterNotify event follows hard on the
 	     * heels of this one. i.e., the user is simply
 	     * "passing through". If so, ignore this one.
 	     */
-	
+
 	    event_xmw = (XMWindow *)XLookUpAssoc(display,
 						 menu->assoc_tab,
 						 event.xcrossing.window);
@@ -324,11 +324,11 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 		    if(peek_event.type == LeaveNotify) {
 			break;
 		    }
-		}			  
+		}
 		cur_s = (XMSelect *)event_xmw;
 		help_callback (cur_s->help_string,
 			       cur_p->serial, cur_s->serial);
-		
+
 		/*
 		 * If the pane we are in is active and the
 		 * selection entered is active then activate
@@ -385,7 +385,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 		 * take it from here.  -- caveh@eng.sun.com.
 		 */
 		XSetWindowBackground(display,
-				     event_xmp->window, 
+				     event_xmp->window,
 				     menu->bkgnd_color);
 		_XMRefreshPane(display, menu, event_xmp);
 #endif
@@ -400,7 +400,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 						 );
 	    if (event_xmw == NULL) break;
 	    if(cur_s == NULL) break;
-	    
+
 	    /*
 	     * If the current selection was activated then
 	     * deactivate it.
@@ -411,7 +411,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	    }
 	    cur_s = NULL;
 	    break;
-	
+
     case ButtonPress:
     case ButtonRelease:
 		*p_num = cur_p->serial;
@@ -471,7 +471,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      */
     for ( p_ptr = menu->p_list->next;
 	 p_ptr != menu->p_list;
-	 p_ptr = p_ptr->next) 
+	 p_ptr = p_ptr->next)
       {
 	  XUnmapWindow(display, p_ptr->window);
       }
@@ -482,7 +482,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
     XUngrabPointer(display, CurrentTime);
     XUngrabKeyboard(display, CurrentTime);
 
-    /* 
+    /*
      * Restore bits under where the menu was if we managed
      * to save them and free the pixmap.
      */
@@ -502,7 +502,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
      * Synchronize the X buffers and the X event queue.
      */
     XSync(display, 0);
-    
+
     /*
      * Dispatch any events remaining on the queue.
      */
@@ -557,7 +557,7 @@ XMenuActivate(display, menu, p_num, s_num, x_pos, y_pos, event_mask, data,
 	feq = feq_tmp->next;
 	free((char *)feq_tmp);
     }
-    
+
     /*
      * Return successfully.
      */

@@ -56,9 +56,11 @@ TYPE should be `list' or `vector'."
 	   (error "Invalid type: %s" type)))
 ;;;    val)
 )
+
+;;;###autoload
 (make-obsolete 'string-to-sequence
-	       "Use `string-to-list' or `string-to-vector'"
-	       "21.3")
+	       "use `string-to-list' or `string-to-vector'."
+	       "21.4")
 
 ;;;###autoload
 (defsubst string-to-list (string)
@@ -193,7 +195,7 @@ defaults to \"...\"."
 ;; 		(("こhんeにlちlはo" 13 4 ?x "日本語") . "xex日本語")
 ;; 		))
 ;;   (let (ret)
-;;     (condition-case e 
+;;     (condition-case e
 ;; 	(setq ret (apply #'truncate-string-to-width (car test)))
 ;;       (error (setq ret e)))
 ;;     (unless (equal ret (cdr test))
@@ -208,6 +210,8 @@ defaults to \"...\"."
 ;;; For backward compatibility ...
 ;;;###autoload
 (defalias 'truncate-string 'truncate-string-to-width)
+
+;;;###autoload
 (make-obsolete 'truncate-string 'truncate-string-to-width "20.1")
 
 ;;; Nested alist handler.  Nested alist is alist whose elements are
@@ -219,7 +223,7 @@ defaults to \"...\"."
 
 Nested alist is a list of the form (ENTRY . BRANCHES), where ENTRY is
 any Lisp object, and BRANCHES is a list of cons cells of the form
-(KEY-ELEMENT . NESTED-ALIST).
+\(KEY-ELEMENT . NESTED-ALIST).
 
 You can use a nested alist to store any Lisp object (ENTRY) for a key
 sequence KEYSEQ, where KEYSEQ is a sequence of KEY-ELEMENT.  KEYSEQ
@@ -288,19 +292,6 @@ Optional 3rd argument NIL-FOR-TOO-LONG non-nil means return nil
 
 
 ;; Coding system related functions.
-
-;;;###autoload
-(defun coding-system-eol-type-mnemonic (coding-system)
-  "Return the string indicating end-of-line format of CODING-SYSTEM."
-  (let* ((eol-type (coding-system-eol-type coding-system))
-	 (val (cond ((vectorp eol-type) eol-mnemonic-undecided)
-		    ((eq eol-type 0) eol-mnemonic-unix)
-		    ((eq eol-type 1) eol-mnemonic-dos)
-		    ((eq eol-type 2) eol-mnemonic-mac)
-		    (t "-"))))
-    (if (stringp val)
-	val
-      (char-to-string val))))
 
 ;;;###autoload
 (defun coding-system-post-read-conversion (coding-system)

@@ -1,4 +1,4 @@
-;;; lao.el --- support for Lao -*- coding: iso-2022-7bit; -*-
+;;; lao.el --- support for Lao -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -31,7 +31,7 @@
  'lao 2 ?L
  "8-bit encoding for ASCII (MSB=0) and LAO (MSB=1)."
  '(ascii lao nil nil
-   nil nil)
+   nil nil nil nil nil nil nil nil nil nil nil t)
  '((safe-charsets ascii lao)
    (post-read-conversion . lao-post-read-conversion)))
 

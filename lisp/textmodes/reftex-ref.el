@@ -1,8 +1,8 @@
 ;;; reftex-ref.el --- code to create labels and references with RefTeX
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -165,8 +165,8 @@ This function is controlled by the settings of reftex-insert-label-flags."
 		(string-match "^[ \t]*$" default))
 	    (setq default prefix
 		  force-prompt t)	; need to prompt
-	  (setq default 
-		(concat prefix 
+	  (setq default
+		(concat prefix
 			(funcall reftex-string-to-label-function default)))
 
 	  ;; Make it unique.
@@ -212,7 +212,7 @@ This function is controlled by the settings of reftex-insert-label-flags."
 	     ((setq entry (assoc label
 				 (symbol-value reftex-docstruct-symbol)))
 	      (ding)
-	      (if (y-or-n-p 
+	      (if (y-or-n-p
 		   (format "Label '%s' exists. Use anyway? " label))
 		  (setq valid t)))
 
@@ -222,9 +222,9 @@ This function is controlled by the settings of reftex-insert-label-flags."
 	(setq label default))
 
       ;; Insert the label into the label list
-      (let* ((here-I-am-info 
+      (let* ((here-I-am-info
 	      (save-excursion
-		(if (and (or naked no-insert) 
+		(if (and (or naked no-insert)
 			 (integerp (cdr macro-cell)))
 		    (goto-char (cdr macro-cell)))
 		(reftex-where-am-I)))
@@ -279,7 +279,7 @@ also applies `reftex-translate-to-ascii-function' to the string."
   ;; Translate the upper 128 chars in the Latin-1 charset to ASCII equivalents
   (let ((tab "@@@@@@@@@@@@@@@@@@'@@@@@@@@@@@@@ icLxY|S\"ca<--R-o|23'uq..1o>423?AAAAAAACEEEEIIIIDNOOOOOXOUUUUYP3aaaaaaaceeeeiiiidnooooo:ouuuuypy")
 	(emacsp (not (featurep 'xemacs))))
-    (mapconcat 
+    (mapconcat
      (lambda (c)
        (cond ((and (> c 127) (< c 256))                 ; 8 bit Latin-1
 	      (char-to-string (aref tab (- c 128))))
@@ -407,7 +407,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	      type (car type))
       (setq type (reftex-query-label-type))))
 
-  (let* ((refstyle 
+  (let* ((refstyle
 	  (cond ((reftex-typekey-check type reftex-vref-is-default) "\\vref")
 		((reftex-typekey-check type reftex-fref-is-default) "\\fref")
 		(t "\\ref")))
@@ -421,7 +421,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 		   (reftex-offer-label-menu type)))
     (reftex-ensure-compiled-variables)
     (set-marker reftex-select-return-marker nil)
-    ;; If the first entry is the symbol 'concat, concat all all labels.
+    ;; If the first entry is the symbol 'concat, concat all labels.
     ;; We keep the cdr of the first label for typekey etc information.
     (if (eq (car labels) 'concat)
 	(setq labels (list (list (mapconcat 'car (cdr labels) ",")
@@ -429,7 +429,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
     (setq type (nth 1 (car labels))
 	  form (or (cdr (assoc type reftex-typekey-to-format-alist))
 		   form))
-    
+
     (cond
      (no-insert
       ;; Just return the first label
@@ -443,13 +443,13 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	      sep (nth 2 (car labels))
 	      sep1 (cdr (assoc sep reftex-multiref-punctuation))
 	      labels (cdr labels))
-	(when cut 
+	(when cut
 	  (backward-delete-char cut)
 	  (setq cut nil))
 
 	;; remove ~ if we do already have a space
 	(when (and (= ?~ (string-to-char form))
-		   (member (preceding-char) '(?\ ?\t ?\n)))
+		   (member (preceding-char) '(?\  ?\t ?\n)))
 	  (setq form (substring form 1)))
 	;; do we have a special format?
 	(setq reftex-format-ref-function
@@ -478,7 +478,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	matched	cell)
     (save-excursion
       (while (and (setq cell (pop words))
-		  (not (setq matched 
+		  (not (setq matched
 			     (re-search-backward (car cell) bound t))))))
     (if matched
 	(cons (cdr cell) (- (match-end 0) (match-end 1)))
@@ -543,9 +543,9 @@ When called with 2 C-u prefix args, disable magic word recognition."
 				context
 				counter
 				commented
-				(or here-I-am offset) 
+				(or here-I-am offset)
 				prefix
-				nil  ; no a toc buffer 
+				nil  ; no a toc buffer
 				))))
 	       (here-I-am
 		(setq offset (reftex-get-offset buf here-I-am typekey)))
@@ -640,13 +640,13 @@ When called with 2 C-u prefix args, disable magic word recognition."
       (save-excursion
 	(while reftex-buffers-with-changed-invisibility
 	  (set-buffer (car (car reftex-buffers-with-changed-invisibility)))
-	  (setq buffer-invisibility-spec 
+	  (setq buffer-invisibility-spec
 		(cdr (pop reftex-buffers-with-changed-invisibility)))))
       (mapcar (lambda (buf) (and (buffer-live-p buf) (bury-buffer buf)))
 	      selection-buffers)
       (reftex-kill-temporary-buffers))
     ;; Add the prefixes, put together the relevant information in the form
-    ;; (LABEL TYPEKEY SEPERATOR) and return a list of those.
+    ;; (LABEL TYPEKEY SEPARATOR) and return a list of those.
     (mapcar (lambda (x)
 	      (if (listp x)
 		  (list (concat prefix (car (car x)))
@@ -669,13 +669,13 @@ When called with 2 C-u prefix args, disable magic word recognition."
 
 (defun reftex-query-label-type ()
   ;; Ask for label type
-  (let ((key (reftex-select-with-char 
+  (let ((key (reftex-select-with-char
 	      reftex-type-query-prompt reftex-type-query-help 3)))
     (unless (member (char-to-string key) reftex-typekey-list)
       (error "No such label type: %s" (char-to-string key)))
     (char-to-string key)))
 
-(defun reftex-show-label-location (data forward no-revisit 
+(defun reftex-show-label-location (data forward no-revisit
 					&optional stay error)
   ;; View the definition site of a label in another window.
   ;; DATA is an entry from the docstruct list.
@@ -697,7 +697,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	(throw 'exit nil))
 
       ;; Goto the file in another window
-      (setq buffer 
+      (setq buffer
 	    (if no-revisit
 		(reftex-get-buffer-visiting file)
 	      (reftex-get-file-buffer-force
@@ -763,7 +763,7 @@ When called with 2 C-u prefix args, disable magic word recognition."
 	    (when (or (not (eq major-mode 'latex-mode))
 		      (not font-lock-mode))
 	      (latex-mode)
-	      (run-hook-with-args 
+	      (run-hook-with-args
 	       'reftex-pre-refontification-functions
 	       reftex-call-back-to-this-buffer 'reftex-hidden)
 	      (turn-on-font-lock))
@@ -801,5 +801,37 @@ When called with 2 C-u prefix args, disable magic word recognition."
   (format "\\Fref{%s}" label))
 (defun reftex-format-fref (label def-fmt)
   (format "\\fref{%s}" label))
+
+
+;(defun reftex-goto-label ()
+;  (interactive)
+;  (reftex-access-scan-info)
+;  (let* ((docstruct (symbol-value reftex-docstruct-symbol))
+;	 (label (completing-read "Label: " docstruct
+;				 (lambda (x) (stringp (car x))) t))
+;	 (selection (assoc label docstruct)))
+;    (reftex-show-label-location selection t nil 'stay)
+;    (reftex-unhighlight 0)))
+
+(defun reftex-goto-label (&optional other-window)
+  "Prompt for a label (with completion) and jump to the location of this label.
+Optional prefix argument OTHER-WINDOW goes to the label in another window."
+  (interactive "P")
+  (reftex-access-scan-info)
+  (let* ((wcfg (current-window-configuration))
+	 (docstruct (symbol-value reftex-docstruct-symbol))
+	 (label (completing-read "Label: " docstruct
+				 (lambda (x) (stringp (car x))) t))
+	 (selection (assoc label docstruct))
+	 (where (progn
+		  (reftex-show-label-location selection t nil 'stay)
+		  (point-marker))))
+    (unless other-window
+      (set-window-configuration wcfg)
+      (switch-to-buffer (marker-buffer where))
+      (goto-char where))
+    (reftex-unhighlight 0)))
+
+
 
 ;;; reftex-ref.el ends here

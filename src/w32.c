@@ -99,10 +99,206 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "systime.h"
 
+void globals_of_w32 ();
+
 extern Lisp_Object Vw32_downcase_file_names;
 extern Lisp_Object Vw32_generate_fake_inodes;
 extern Lisp_Object Vw32_get_true_file_attributes;
 extern Lisp_Object Vw32_num_mouse_buttons;
+
+
+/*
+	Initialization states
+ */
+static BOOL g_b_init_is_windows_9x;
+static BOOL g_b_init_open_process_token;
+static BOOL g_b_init_get_token_information;
+static BOOL g_b_init_lookup_account_sid;
+static BOOL g_b_init_get_sid_identifier_authority;
+
+/*
+  BEGIN: Wrapper functions around OpenProcessToken
+  and other functions in advapi32.dll that are only
+  supported in Windows NT / 2k / XP
+*/
+  /* ** Function pointer typedefs ** */
+typedef BOOL (WINAPI * OpenProcessToken_Proc) (
+    HANDLE ProcessHandle,
+    DWORD DesiredAccess,
+    PHANDLE TokenHandle);
+typedef BOOL (WINAPI * GetTokenInformation_Proc) (
+    HANDLE TokenHandle,
+    TOKEN_INFORMATION_CLASS TokenInformationClass,
+    LPVOID TokenInformation,
+    DWORD TokenInformationLength,
+    PDWORD ReturnLength);
+#ifdef _UNICODE
+const char * const LookupAccountSid_Name = "LookupAccountSidW";
+#else
+const char * const LookupAccountSid_Name = "LookupAccountSidA";
+#endif
+typedef BOOL (WINAPI * LookupAccountSid_Proc) (
+    LPCTSTR lpSystemName,
+    PSID Sid,
+    LPTSTR Name,
+    LPDWORD cbName,
+    LPTSTR DomainName,
+    LPDWORD cbDomainName,
+    PSID_NAME_USE peUse);
+typedef PSID_IDENTIFIER_AUTHORITY (WINAPI * GetSidIdentifierAuthority_Proc) (
+    PSID pSid);
+
+  /* ** A utility function ** */
+static BOOL is_windows_9x ()
+{
+  static BOOL s_b_ret=0;
+  OSVERSIONINFO os_ver;
+  if (g_b_init_is_windows_9x == 0)
+    {
+      g_b_init_is_windows_9x = 1;
+      ZeroMemory(&os_ver, sizeof(OSVERSIONINFO));
+      os_ver.dwOSVersionInfoSize = sizeof(OSVERSIONINFO);
+      if (GetVersionEx (&os_ver))
+        {
+          s_b_ret = (os_ver.dwPlatformId == VER_PLATFORM_WIN32_WINDOWS);
+        }
+    }
+  return s_b_ret;
+}
+
+  /* ** The wrapper functions ** */
+
+BOOL WINAPI open_process_token (
+    HANDLE ProcessHandle,
+    DWORD DesiredAccess,
+    PHANDLE TokenHandle)
+{
+  static OpenProcessToken_Proc s_pfn_Open_Process_Token = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_open_process_token == 0)
+    {
+      g_b_init_open_process_token = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Open_Process_Token =
+        (OpenProcessToken_Proc) GetProcAddress (hm_advapi32, "OpenProcessToken");
+    }
+  if (s_pfn_Open_Process_Token == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      s_pfn_Open_Process_Token (
+          ProcessHandle,
+          DesiredAccess,
+          TokenHandle)
+      );
+}
+
+BOOL WINAPI get_token_information (
+    HANDLE TokenHandle,
+    TOKEN_INFORMATION_CLASS TokenInformationClass,
+    LPVOID TokenInformation,
+    DWORD TokenInformationLength,
+    PDWORD ReturnLength)
+{
+  static GetTokenInformation_Proc s_pfn_Get_Token_Information = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_get_token_information == 0)
+    {
+      g_b_init_get_token_information = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Token_Information =
+        (GetTokenInformation_Proc) GetProcAddress (hm_advapi32, "GetTokenInformation");
+    }
+  if (s_pfn_Get_Token_Information == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      s_pfn_Get_Token_Information (
+          TokenHandle,
+          TokenInformationClass,
+          TokenInformation,
+          TokenInformationLength,
+          ReturnLength)
+      );
+}
+
+BOOL WINAPI lookup_account_sid (
+    LPCTSTR lpSystemName,
+    PSID Sid,
+    LPTSTR Name,
+    LPDWORD cbName,
+    LPTSTR DomainName,
+    LPDWORD cbDomainName,
+    PSID_NAME_USE peUse)
+{
+  static LookupAccountSid_Proc s_pfn_Lookup_Account_Sid = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return FALSE;
+    }
+  if (g_b_init_lookup_account_sid == 0)
+    {
+      g_b_init_lookup_account_sid = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Lookup_Account_Sid =
+        (LookupAccountSid_Proc) GetProcAddress (hm_advapi32, LookupAccountSid_Name);
+    }
+  if (s_pfn_Lookup_Account_Sid == NULL)
+    {
+      return FALSE;
+    }
+  return (
+      s_pfn_Lookup_Account_Sid (
+          lpSystemName,
+          Sid,
+          Name,
+          cbName,
+          DomainName,
+          cbDomainName,
+          peUse)
+      );
+}
+
+PSID_IDENTIFIER_AUTHORITY WINAPI get_sid_identifier_authority (
+    PSID pSid)
+{
+  static GetSidIdentifierAuthority_Proc s_pfn_Get_Sid_Identifier_Authority = NULL;
+  HMODULE hm_advapi32 = NULL;
+  if (is_windows_9x () == TRUE)
+    {
+      return NULL;
+    }
+  if (g_b_init_get_sid_identifier_authority == 0)
+    {
+      g_b_init_get_sid_identifier_authority = 1;
+      hm_advapi32 = LoadLibrary ("Advapi32.dll");
+      s_pfn_Get_Sid_Identifier_Authority =
+        (GetSidIdentifierAuthority_Proc) GetProcAddress (
+            hm_advapi32, "GetSidIdentifierAuthority");
+    }
+  if (s_pfn_Get_Sid_Identifier_Authority == NULL)
+    {
+      return NULL;
+    }
+  return (s_pfn_Get_Sid_Identifier_Authority (pSid));
+}
+
+/*
+  END: Wrapper functions around OpenProcessToken
+  and other functions in advapi32.dll that are only
+  supported in Windows NT / 2k / XP
+*/
 
 
 /* Equivalent of strerror for W32 error codes.  */
@@ -147,7 +343,7 @@ getwd (char *dir)
 int
 gethostname (char *buffer, int size)
 {
-  /* NT only allows small host names, so the buffer is 
+  /* NT only allows small host names, so the buffer is
      certainly large enough.  */
   return !GetComputerName (buffer, &size);
 }
@@ -160,7 +356,7 @@ getloadavg (double loadavg[], int nelem)
   int i;
 
   /* A faithful emulation is going to have to be saved for a rainy day.  */
-  for (i = 0; i < nelem; i++) 
+  for (i = 0; i < nelem; i++)
     {
       loadavg[i] = 0.0;
     }
@@ -177,7 +373,7 @@ static char the_passwd_gecos[PASSWD_FIELD_SIZE];
 static char the_passwd_dir[PASSWD_FIELD_SIZE];
 static char the_passwd_shell[PASSWD_FIELD_SIZE];
 
-static struct passwd the_passwd = 
+static struct passwd the_passwd =
 {
   the_passwd_name,
   the_passwd_passwd,
@@ -189,30 +385,30 @@ static struct passwd the_passwd =
   the_passwd_shell,
 };
 
-int 
-getuid () 
-{ 
+int
+getuid ()
+{
   return the_passwd.pw_uid;
 }
 
-int 
-geteuid () 
-{ 
+int
+geteuid ()
+{
   /* I could imagine arguing for checking to see whether the user is
      in the Administrators group and returning a UID of 0 for that
      case, but I don't know how wise that would be in the long run.  */
-  return getuid (); 
+  return getuid ();
 }
 
-int 
-getgid () 
-{ 
+int
+getgid ()
+{
   return the_passwd.pw_gid;
 }
 
-int 
-getegid () 
-{ 
+int
+getegid ()
+{
   return getgid ();
 }
 
@@ -228,7 +424,7 @@ struct passwd *
 getpwnam (char *name)
 {
   struct passwd *pw;
-  
+
   pw = getpwuid (getuid ());
   if (!pw)
     return pw;
@@ -254,11 +450,15 @@ init_user_info ()
   HANDLE          token = NULL;
   SID_NAME_USE    user_type;
 
-  if (OpenProcessToken (GetCurrentProcess (), TOKEN_QUERY, &token)
-      && GetTokenInformation (token, TokenUser,
+  if (
+			open_process_token (GetCurrentProcess (), TOKEN_QUERY, &token)
+      && get_token_information (
+					token, TokenUser,
 			      (PVOID) user_sid, sizeof (user_sid), &trash)
-      && LookupAccountSid (NULL, *((PSID *) user_sid), name, &length,
-			   domain, &dlength, &user_type))
+      && lookup_account_sid (
+					NULL, *((PSID *) user_sid), name, &length,
+			   domain, &dlength, &user_type)
+			)
     {
       strcpy (the_passwd.pw_name, name);
       /* Determine a reasonable uid value. */
@@ -271,7 +471,7 @@ init_user_info ()
 	{
 	  SID_IDENTIFIER_AUTHORITY * pSIA;
 
-	  pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	  pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
 	  /* I believe the relative portion is the last 4 bytes (of 6)
 	     with msb first. */
 	  the_passwd.pw_uid = ((pSIA->Value[2] << 24) +
@@ -282,12 +482,12 @@ init_user_info ()
 	  the_passwd.pw_uid = the_passwd.pw_uid % 60001;
 
 	  /* Get group id */
-	  if (GetTokenInformation (token, TokenPrimaryGroup,
+	  if (get_token_information (token, TokenPrimaryGroup,
 				   (PVOID) user_sid, sizeof (user_sid), &trash))
 	    {
 	      SID_IDENTIFIER_AUTHORITY * pSIA;
 
-	      pSIA = GetSidIdentifierAuthority (*((PSID *) user_sid));
+	      pSIA = get_sid_identifier_authority (*((PSID *) user_sid));
 	      the_passwd.pw_gid = ((pSIA->Value[2] << 24) +
 				   (pSIA->Value[3] << 16) +
 				   (pSIA->Value[4] << 8)  +
@@ -582,57 +782,57 @@ is_unc_volume (const char *filename)
 
 /* Routines that are no-ops on NT but are defined to get Emacs to compile.  */
 
-int 
-sigsetmask (int signal_mask) 
-{ 
+int
+sigsetmask (int signal_mask)
+{
   return 0;
 }
 
-int 
-sigmask (int sig) 
-{ 
+int
+sigmask (int sig)
+{
   return 0;
 }
 
-int 
-sigblock (int sig) 
-{ 
+int
+sigblock (int sig)
+{
   return 0;
 }
 
-int 
-sigunblock (int sig) 
-{ 
+int
+sigunblock (int sig)
+{
   return 0;
 }
 
-int 
-setpgrp (int pid, int gid) 
-{ 
+int
+setpgrp (int pid, int gid)
+{
   return 0;
 }
 
-int 
-alarm (int seconds) 
-{ 
+int
+alarm (int seconds)
+{
   return 0;
 }
 
-void 
-unrequest_sigio (void) 
-{ 
+void
+unrequest_sigio (void)
+{
   return;
 }
 
 void
-request_sigio (void) 
-{ 
+request_sigio (void)
+{
   return;
 }
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
-LPBYTE 
+LPBYTE
 w32_get_resource (key, lpdwtype)
     char *key;
     LPDWORD lpdwtype;
@@ -641,42 +841,42 @@ w32_get_resource (key, lpdwtype)
   HKEY hrootkey = NULL;
   DWORD cbData;
   BOOL ok = FALSE;
-  
-  /* Check both the current user and the local machine to see if 
+
+  /* Check both the current user and the local machine to see if
      we have any resources.  */
-  
+
   if (RegOpenKeyEx (HKEY_CURRENT_USER, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       lpvalue = NULL;
 
-      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS 
-	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL 
-	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
-	{
-	  return (lpvalue);
-	}
-
-      if (lpvalue) xfree (lpvalue);
-	
-      RegCloseKey (hrootkey);
-    } 
-  
-  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
-    {
-      lpvalue = NULL;
-	
       if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
 	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
 	{
 	  return (lpvalue);
 	}
-	
+
       if (lpvalue) xfree (lpvalue);
-	
+
       RegCloseKey (hrootkey);
-    } 
-  
+    }
+
+  if (RegOpenKeyEx (HKEY_LOCAL_MACHINE, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
+    {
+      lpvalue = NULL;
+
+      if (RegQueryValueEx (hrootkey, key, NULL, NULL, NULL, &cbData) == ERROR_SUCCESS
+	  && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
+	  && RegQueryValueEx (hrootkey, key, NULL, lpdwtype, lpvalue, &cbData) == ERROR_SUCCESS)
+	{
+	  return (lpvalue);
+	}
+
+      if (lpvalue) xfree (lpvalue);
+
+      RegCloseKey (hrootkey);
+    }
+
   return (NULL);
 }
 
@@ -733,7 +933,7 @@ init_environment (char ** argv)
     {
       char * name;
       char * def_value;
-    } env_vars[] = 
+    } env_vars[] =
     {
       {"HOME", "C:/"},
       {"PRELOAD_WINSOCK", NULL},
@@ -742,7 +942,6 @@ init_environment (char ** argv)
       {"SHELL", "%emacs_dir%/bin/cmdproxy.exe"},
       {"EMACSDATA", "%emacs_dir%/etc"},
       {"EMACSPATH", "%emacs_dir%/bin"},
-      {"EMACSLOCKDIR", "%emacs_dir%/lock"},
       /* We no longer set INFOPATH because Info-default-directory-list
 	 is then ignored.  */
       /*  {"INFOPATH", "%emacs_dir%/info"},  */
@@ -788,7 +987,7 @@ init_environment (char ** argv)
 	  *p = 0;
 	  for (p = modname; *p; p++)
 	    if (*p == '\\') *p = '/';
-		  
+
 	  _snprintf (buf, sizeof(buf)-1, "emacs_dir=%s", modname);
 	  _putenv (strdup (buf));
 	}
@@ -820,7 +1019,7 @@ init_environment (char ** argv)
 		else if (dwType == REG_SZ)
 		  {
 		    char buf[SET_ENV_BUF_SIZE];
-		  
+
 		    _snprintf (buf, sizeof(buf)-1, "%s=%s", env_vars[i].name, lpval);
 		    _putenv (strdup (buf));
 		  }
@@ -914,7 +1113,7 @@ get_emacs_configuration (void)
   static char configuration_buffer[32];
 
   /* Determine the processor type.  */
-  switch (get_processor_type ()) 
+  switch (get_processor_type ())
     {
 
 #ifdef PROCESSOR_INTEL_386
@@ -1031,7 +1230,7 @@ get_emacs_configuration_options (void)
 #include <sys/timeb.h>
 
 /* Emulate gettimeofday (Ulrich Leodolter, 1/11/95).  */
-void 
+void
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
   struct timeb tb;
@@ -1039,7 +1238,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 
   tv->tv_sec = tb.time;
   tv->tv_usec = tb.millitm * 1000L;
-  if (tz) 
+  if (tz)
     {
       tz->tz_minuteswest = tb.timezone;	/* minutes west of Greenwich  */
       tz->tz_dsttime = tb.dstflag;	/* type of dst correction  */
@@ -1051,7 +1250,7 @@ gettimeofday (struct timeval *tv, struct timezone *tz)
 /* ------------------------------------------------------------------------- */
 
 /* Place a wrapper around the MSVC version of ctime.  It returns NULL
-   on network directories, so we handle that case here.  
+   on network directories, so we handle that case here.
    (Ulrich Leodolter, 1/11/95).  */
 char *
 sys_ctime (const time_t *t)
@@ -1157,7 +1356,7 @@ GetCachedVolumeInformation (char * root_dir)
      tell whether they are or not.  Also, the UNC association of drive
      letters mapped to remote volumes can be changed at any time (even
      by other processes) without notice.
-   
+
      As a compromise, so we can benefit from caching info for remote
      volumes, we use a simple expiry mechanism to invalidate cache
      entries that are more than ten seconds old.  */
@@ -1263,7 +1462,7 @@ get_volume_info (const char * name, const char ** pPath)
 
   if (pPath)
     *pPath = name;
-    
+
   info = GetCachedVolumeInformation (rootname);
   if (info != NULL)
     {
@@ -1401,7 +1600,7 @@ is_exec (const char * name)
 	 stricmp (p, ".cmd") == 0));
 }
 
-/* Emulate the Unix directory procedures opendir, closedir, 
+/* Emulate the Unix directory procedures opendir, closedir,
    and readdir.  We can't use the procedures supplied in sysdep.c,
    so we provide them here.  */
 
@@ -1474,8 +1673,8 @@ readdir (DIR *dirp)
 {
   if (wnet_enum_handle != INVALID_HANDLE_VALUE)
     {
-      if (!read_unc_volume (wnet_enum_handle, 
-			      dir_find_data.cFileName, 
+      if (!read_unc_volume (wnet_enum_handle,
+			      dir_find_data.cFileName,
 			      MAX_PATH))
 	return NULL;
     }
@@ -1501,14 +1700,14 @@ readdir (DIR *dirp)
       if (!FindNextFile (dir_find_handle, &dir_find_data))
 	return NULL;
     }
-  
+
   /* Emacs never uses this value, so don't bother making it match
      value returned by stat().  */
   dir_static.d_ino = 1;
-  
+
   dir_static.d_reclen = sizeof (struct direct) - MAXNAMLEN + 3 +
     dir_static.d_namlen - dir_static.d_namlen % 4;
-  
+
   dir_static.d_namlen = strlen (dir_find_data.cFileName);
   strcpy (dir_static.d_name, dir_find_data.cFileName);
   if (dir_is_fat)
@@ -1522,27 +1721,27 @@ readdir (DIR *dirp)
       if (!*p)
 	_strlwr (dir_static.d_name);
     }
-  
+
   return &dir_static;
 }
 
 HANDLE
 open_unc_volume (char *path)
 {
-  NETRESOURCE nr; 
+  NETRESOURCE nr;
   HANDLE henum;
   int result;
 
-  nr.dwScope = RESOURCE_GLOBALNET; 
-  nr.dwType = RESOURCETYPE_DISK; 
-  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER; 
-  nr.dwUsage = RESOURCEUSAGE_CONTAINER; 
-  nr.lpLocalName = NULL; 
+  nr.dwScope = RESOURCE_GLOBALNET;
+  nr.dwType = RESOURCETYPE_DISK;
+  nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
+  nr.dwUsage = RESOURCEUSAGE_CONTAINER;
+  nr.lpLocalName = NULL;
   nr.lpRemoteName = map_w32_filename (path, NULL);
-  nr.lpComment = NULL; 
-  nr.lpProvider = NULL;   
+  nr.lpComment = NULL;
+  nr.lpProvider = NULL;
 
-  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,  
+  result = WNetOpenEnum(RESOURCE_GLOBALNET, RESOURCETYPE_DISK,
 			RESOURCEUSAGE_CONNECTABLE, &nr, &henum);
 
   if (result == NO_ERROR)
@@ -1603,7 +1802,7 @@ unc_volume_file_attributes (char *path)
 
 /* Shadow some MSVC runtime functions to map requests for long filenames
    to reasonable short names if necessary.  This was originally added to
-   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support 
+   permit running Emacs on NT 3.1 on a FAT partition, which doesn't support
    long file names.  */
 
 int
@@ -2207,7 +2406,7 @@ stat (const char * path, struct stat * buf)
     {
       /* Don't bother to make this information more accurate.  */
       buf->st_mode = (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) ?
-	_S_IFREG : _S_IFDIR;
+	_S_IFDIR : _S_IFREG;
       buf->st_nlink = 1;
       fake_inode = 0;
     }
@@ -2253,7 +2452,7 @@ stat (const char * path, struct stat * buf)
     permission = _S_IREAD;
   else
     permission = _S_IREAD | _S_IWRITE;
-  
+
   if (wfd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     permission |= _S_IEXEC;
   else if (is_exec (name))
@@ -2337,7 +2536,7 @@ fstat (int desc, struct stat * buf)
     permission = _S_IREAD;
   else
     permission = _S_IREAD | _S_IWRITE;
-  
+
   if (info.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
     permission |= _S_IEXEC;
   else
@@ -2589,7 +2788,7 @@ struct {
   WSAEFAULT               , "Bad address",
   WSAEINVAL               , "Invalid argument",
   WSAEMFILE               , "Too many open files",
-			
+
   WSAEWOULDBLOCK          , "Resource temporarily unavailable",
   WSAEINPROGRESS          , "Operation now in progress",
   WSAEALREADY             , "Operation already in progress",
@@ -2627,7 +2826,7 @@ struct {
   WSAEDQUOT               , "Double quote in host name",    /* really not sure */
   WSAESTALE               , "Data is stale",		    /* not sure */
   WSAEREMOTE              , "Remote error",		    /* not sure */
-			
+
   WSASYSNOTREADY          , "Network subsystem is unavailable",
   WSAVERNOTSUPPORTED      , "WINSOCK.DLL version out of range",
   WSANOTINITIALISED       , "Winsock not initialized successfully",
@@ -2645,7 +2844,7 @@ struct {
   WSA_E_CANCELLED         , "Operation already cancelled",  /* really not sure */
   WSAEREFUSED             , "Operation refused",	    /* not sure */
 #endif
-			
+
   WSAHOST_NOT_FOUND       , "Host not found",
   WSATRY_AGAIN            , "Authoritative host not found during name lookup",
   WSANO_RECOVERY          , "Non-recoverable error during name lookup",
@@ -2700,7 +2899,7 @@ sys_socket(int af, int type, int protocol)
 
   /* call the real socket function */
   s = pfn_socket (af, type, protocol);
-  
+
   if (s != INVALID_SOCKET)
     return socket_to_fd (s);
 
@@ -2773,7 +2972,7 @@ socket_to_fd (SOCKET s)
 		  {
 		    CloseHandle (new_s);
 		  }
-	      } 
+	      }
 	  }
       }
       fd_info[fd].hnd = (HANDLE) s;
@@ -2986,7 +3185,7 @@ sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3007,7 +3206,7 @@ sys_listen (int s, int backlog)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3028,7 +3227,7 @@ sys_getsockname (int s, struct sockaddr * name, int * namelen)
       return rc;
     }
   h_errno = ENOTSOCK;
-  return SOCKET_ERROR;      
+  return SOCKET_ERROR;
 }
 
 int
@@ -3226,7 +3425,7 @@ sys_dup2 (int src, int dst)
   /* make sure we close the destination first if it's a pipe or socket */
   if (src != dst && fd_info[dst].flags != 0)
     sys_close (dst);
-  
+
   rc = _dup2 (src, dst);
   if (rc == 0)
     {
@@ -3286,9 +3485,9 @@ _sys_read_ahead (int fd)
       DebPrint (("_sys_read_ahead: internal error: fd %d is not a pipe or socket!\n", fd));
       abort ();
     }
-  
+
   cp->status = STATUS_READ_IN_PROGRESS;
-  
+
   if (fd_info[fd].flags & FILE_PIPE)
     {
       rc = _read (fd, &cp->chr, sizeof (char));
@@ -3330,7 +3529,7 @@ _sys_read_ahead (int fd)
 	}
     }
 #endif
-  
+
   if (rc == sizeof (char))
     cp->status = STATUS_READ_SUCCEEDED;
   else
@@ -3529,7 +3728,7 @@ sys_write (int fd, const void * buffer, unsigned int count)
 		  next[0] = '\n';
 		  dst = next + 1;
 		  count++;
-		}	    
+		}
 	      else
 		/* copied remaining partial line -> now finished */
 		break;
@@ -3541,11 +3740,27 @@ sys_write (int fd, const void * buffer, unsigned int count)
 #ifdef HAVE_SOCKETS
   if (fd_info[fd].flags & FILE_SOCKET)
     {
+      unsigned long nblock = 0;
       if (winsock_lib == NULL) abort ();
+
+      /* TODO: implement select() properly so non-blocking I/O works. */
+      /* For now, make sure the write blocks.  */
+      if (fd_info[fd].flags & FILE_NDELAY)
+	pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+
       nchars =  pfn_send (SOCK_HANDLE (fd), buffer, count, 0);
+
+      /* Set the socket back to non-blocking if it was before,
+	 for other operations that support it.  */
+      if (fd_info[fd].flags & FILE_NDELAY)
+	{
+	  nblock = 1;
+	  pfn_ioctlsocket (SOCK_HANDLE (fd), FIONBIO, &nblock);
+	}
+
       if (nchars == SOCKET_ERROR)
         {
-	  DebPrint(("sys_read.send failed with error %d on socket %ld\n",
+	  DebPrint(("sys_write.send failed with error %d on socket %ld\n",
 		    pfn_WSAGetLastError (), SOCK_HANDLE (fd)));
 	  set_errno ();
 	}
@@ -3566,7 +3781,7 @@ check_windows_init_file ()
      it cannot find the Windows installation file.  If this file does
      not exist in the expected place, tell the user.  */
 
-  if (!noninteractive && !inhibit_window_system) 
+  if (!noninteractive && !inhibit_window_system)
     {
       extern Lisp_Object Vwindow_system, Vload_path, Qfile_exists_p;
       Lisp_Object objs[2];
@@ -3579,14 +3794,14 @@ check_windows_init_file ()
       full_load_path = Fappend (2, objs);
       init_file = build_string ("term/w32-win");
       fd = openp (full_load_path, init_file, Vload_suffixes, NULL, Qnil);
-      if (fd < 0) 
+      if (fd < 0)
 	{
 	  Lisp_Object load_path_print = Fprin1_to_string (full_load_path, Qnil);
-	  char *init_file_name = XSTRING (init_file)->data;
-	  char *load_path = XSTRING (load_path_print)->data;
+	  char *init_file_name = SDATA (init_file);
+	  char *load_path = SDATA (load_path_print);
 	  char *buffer = alloca (1024);
 
-	  sprintf (buffer, 
+	  sprintf (buffer,
 		   "The Emacs Windows initialization file \"%s.el\" "
 		   "could not be found in your Emacs installation.  "
 		   "Emacs checked the following directories for this file:\n"
@@ -3651,14 +3866,14 @@ init_ntproc ()
 
     /* ignore errors when duplicating and closing; typically the
        handles will be invalid when running as a gui program. */
-    DuplicateHandle (parent, 
-		     GetStdHandle (STD_INPUT_HANDLE), 
+    DuplicateHandle (parent,
+		     GetStdHandle (STD_INPUT_HANDLE),
 		     parent,
-		     &stdin_save, 
-		     0, 
-		     FALSE, 
+		     &stdin_save,
+		     0,
+		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     DuplicateHandle (parent,
 		     GetStdHandle (STD_OUTPUT_HANDLE),
 		     parent,
@@ -3666,7 +3881,7 @@ init_ntproc ()
 		     0,
 		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     DuplicateHandle (parent,
 		     GetStdHandle (STD_ERROR_HANDLE),
 		     parent,
@@ -3674,7 +3889,7 @@ init_ntproc ()
 		     0,
 		     FALSE,
 		     DUPLICATE_SAME_ACCESS);
-    
+
     fclose (stdin);
     fclose (stdout);
     fclose (stderr);
@@ -3711,7 +3926,7 @@ init_ntproc ()
     while (*drive <= 'Z')
     {
       /* Record if this drive letter refers to a fixed drive. */
-      fixed_drives[DRIVE_INDEX (*drive)] = 
+      fixed_drives[DRIVE_INDEX (*drive)] =
 	(GetDriveType (drive) == DRIVE_FIXED);
 
       (*drive)++;
@@ -3720,9 +3935,23 @@ init_ntproc ()
     /* Reset the volume info cache.  */
     volume_cache = NULL;
   }
-  
+
   /* Check to see if Emacs has been installed correctly.  */
   check_windows_init_file ();
+}
+
+/*
+	globals_of_w32 is used to initialize those global variables that
+	must always be initialized on startup even when the global variable
+	initialized is non zero (see the function main in emacs.c).
+*/
+void globals_of_w32 ()
+{
+  g_b_init_is_windows_9x = 0;
+  g_b_init_open_process_token = 0;
+  g_b_init_get_token_information = 0;
+  g_b_init_lookup_account_sid = 0;
+  g_b_init_get_sid_identifier_authority = 0;
 }
 
 /* end of nt.c */

@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -390,7 +391,7 @@
 	 (delete-region (match-beginning 0) (match-end 0))
 	 (if (looking-at ",")
 	     (delete-char 1)
-	   (while (memq (preceding-char) '(?\ ?\t))
+	   (while (memq (preceding-char) '(?\s ?\t))
 	     (forward-char -1))
 	   (if (eq (preceding-char) ?\,)
 	       (delete-backward-char 1))))
@@ -1398,7 +1399,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 				(and calc-gnuplot-geometry
 				     (list "-geometry"
 					   calc-gnuplot-geometry)))))
-	      (setq calc-gnuplot-process 
+	      (setq calc-gnuplot-process
 		    (apply 'start-process
 			   "gnuplot"
 			   calc-gnuplot-buffer

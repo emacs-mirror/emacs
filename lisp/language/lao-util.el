@@ -86,7 +86,7 @@
 	   (?(1Q(B vowel-upper "VOWEL SIGN MAI KAN")
 	   (?(1R(B vowel-base "VOWEL SIGN SARA AR")
 	   (?(1S(B vowel-base "VOWEL SIGN SARA AM")
-	   (?(1T(B vowel-upper "VOWEL SIGN SARA I") 
+	   (?(1T(B vowel-upper "VOWEL SIGN SARA I")
 	   (?(1U(B vowel-upper "VOWEL SIGN SARA II")
 	   (?(1V(B vowel-upper "VOWEL SIGN SARA EU")
 	   (?(1W(B vowel-upper "VOWEL SIGN SARA UR")
@@ -104,7 +104,7 @@
 	   (?(1c(B vowel-base "VOWEL SIGN SARA EI MAI MUAN\"")
 	   (?(1d(B vowel-base "VOWEL SIGN SARA AI MAI MAY")
 	   (?(1e(B invalid nil)
-	   (?(1f(B special "KO LA (REPETITION)") 
+	   (?(1f(B special "KO LA (REPETITION)")
 	   (?(1g(B invalid nil)
 	   (?(1h(B tone "TONE MAI EK")
 	   (?(1i(B tone "TONE MAI THO")
@@ -162,7 +162,7 @@
 	   (?$,1DQ(B vowel-upper "VOWEL SIGN MAI KAN")
 	   (?$,1DR(B vowel-base "VOWEL SIGN SARA AR")
 	   (?$,1DS(B vowel-base "VOWEL SIGN SARA AM")
-	   (?$,1DT(B vowel-upper "VOWEL SIGN SARA I") 
+	   (?$,1DT(B vowel-upper "VOWEL SIGN SARA I")
 	   (?$,1DU(B vowel-upper "VOWEL SIGN SARA II")
 	   (?$,1DV(B vowel-upper "VOWEL SIGN SARA EU")
 	   (?$,1DW(B vowel-upper "VOWEL SIGN SARA UR")
@@ -596,7 +596,7 @@ to compose.
 
 The return value is number of composed characters."
   (if (< (1+ from) to)
-      (prog1 (- to from)
+      (progn
 	(if string
 	    (compose-string string from to)
 	  (compose-region from to))

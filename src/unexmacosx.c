@@ -276,7 +276,7 @@ print_regions ()
 
       if (object_name != MACH_PORT_NULL)
 	mach_port_deallocate (target_task, object_name);
-      
+
       address += size;
     }
 }
@@ -329,15 +329,15 @@ build_region_list ()
       else
 	{
 	  r = (struct region_t *) malloc (sizeof (struct region_t));
-	  
+
 	  if (!r)
 	    unexec_error ("cannot allocate region structure");
-	  
+
 	  r->address = address;
 	  r->size = size;
 	  r->protection = info.protection;
 	  r->max_protection = info.max_protection;
-	  
+
 	  r->next = 0;
 	  if (region_list_head == 0)
 	    {
@@ -349,13 +349,13 @@ build_region_list ()
 	      region_list_tail->next = r;
 	      region_list_tail = r;
 	    }
-	  
+
 	  /* Deallocate (unused) object name returned by
 	     vm_region.  */
 	  if (object_name != MACH_PORT_NULL)
 	    mach_port_deallocate (target_task, object_name);
 	}
-      
+
       address += size;
     }
 
@@ -498,7 +498,7 @@ read_load_commands ()
 
   nlc = mh.ncmds;
   lca = (struct load_command **) malloc (nlc * sizeof (struct load_command *));
-  
+
   for (i = 0; i < nlc; i++)
     {
       struct load_command lc;
@@ -513,7 +513,7 @@ read_load_commands ()
       if (lc.cmd == LC_SEGMENT)
 	{
 	  struct segment_command *scp = (struct segment_command *) lca[i];
-	  
+
 	  if (scp->vmaddr + scp->vmsize > infile_lc_highest_addr)
 	    infile_lc_highest_addr = scp->vmaddr + scp->vmsize;
 
@@ -638,7 +638,8 @@ copy_data_segment (struct load_command *lc)
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
-	       || strncmp (sectp->sectname, "__const", 16) == 0)
+	       || strncmp (sectp->sectname, "__const", 16) == 0
+	       || strncmp (sectp->sectname, "__cfstring", 16) == 0)
 	{
 	  if (!unexec_copy (sectp->offset, old_file_offset, sectp->size))
 	    unexec_error ("cannot copy section %s", sectp->sectname);
@@ -647,7 +648,7 @@ copy_data_segment (struct load_command *lc)
 	}
       else
 	unexec_error ("unrecognized section name in __DATA segment");
-      
+
       printf ("        section %-16.16s at %#8x - %#8x (sz: %#8x)\n",
 	      sectp->sectname, sectp->offset, sectp->offset + sectp->size,
 	      sectp->size);
@@ -675,7 +676,7 @@ copy_data_segment (struct load_command *lc)
   for (j = 0; j < num_unexec_regions; j++)
     {
       struct segment_command sc;
-      
+
       sc.cmd = LC_SEGMENT;
       sc.cmdsize = sizeof (struct segment_command);
       strncpy (sc.segname, SEG_DATA, 16);
@@ -687,7 +688,7 @@ copy_data_segment (struct load_command *lc)
       sc.initprot = VM_PROT_READ | VM_PROT_WRITE;
       sc.nsects = 0;
       sc.flags = 0;
-      
+
       printf ("Writing segment %-16.16s at %#8x - %#8x (sz: %#8x)\n",
 	      sc.segname, sc.fileoff, sc.fileoff + sc.filesize,
 	      sc.filesize);
@@ -696,7 +697,7 @@ copy_data_segment (struct load_command *lc)
 	unexec_error ("cannot write new __DATA segment");
       delta += sc.filesize;
       file_offset += sc.filesize;
-      
+
       if (!unexec_write (curr_header_offset, &sc, sc.cmdsize))
 	unexec_error ("cannot write new __DATA segment's header");
       curr_header_offset += sc.cmdsize;
@@ -753,6 +754,25 @@ copy_dysymtab (struct load_command *lc)
   curr_header_offset += lc->cmdsize;
 }
 
+/* Copy a LC_TWOLEVEL_HINTS load command from the input file to the output
+   file, adjusting the file offset fields.  */
+static void
+copy_twolevelhints (struct load_command *lc)
+{
+  struct twolevel_hints_command *tlhp = (struct twolevel_hints_command *) lc;
+
+  if (tlhp->nhints > 0) {
+    tlhp->offset += delta;
+  }
+
+  printf ("Writing LC_TWOLEVEL_HINTS command\n");
+
+  if (!unexec_write (curr_header_offset, lc, lc->cmdsize))
+    unexec_error ("cannot write two level hint command to header");
+
+  curr_header_offset += lc->cmdsize;
+}
+
 /* Copy other kinds of load commands from the input file to the output
    file, ones that do not require adjustments of file offsets.  */
 static void
@@ -799,6 +819,9 @@ dump_it ()
       case LC_DYSYMTAB:
 	copy_dysymtab (lca[i]);
 	break;
+      case LC_TWOLEVEL_HINTS:
+	copy_twolevelhints (lca[i]);
+	break;
       default:
 	copy_other (lca[i]);
 	break;
@@ -828,7 +851,7 @@ unexec (char *outfile, char *infile, void *start_data, void *start_bss,
     {
       unexec_error ("cannot open input file `%s'", infile);
     }
-        
+
   outfd = open (outfile, O_WRONLY | O_TRUNC | O_CREAT, 0755);
   if (outfd < 0)
     {
@@ -888,7 +911,7 @@ unexec_realloc (void *old_ptr, size_t new_size)
 	/* 2002-04-15 T. Ikegami <ikegami@adam.uprr.pr>.  The original
 	   code to get size failed to reallocate read_buffer
 	   (lread.c).  */
-	int old_size = emacs_zone->size (emacs_zone, old_ptr);
+	int old_size = malloc_default_zone()->size (emacs_zone, old_ptr);
 	int size = new_size > old_size ? old_size : new_size;
 
 	if (size)

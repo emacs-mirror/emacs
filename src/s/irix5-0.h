@@ -4,7 +4,7 @@
 
 #undef sigsetmask  /* use sys_sigsetmask */
 #undef _longjmp /* use system versions, not conservative aliases */
-#undef _setjmp 
+#undef _setjmp
 
 #define SETPGRP_RELEASES_CTTY
 
@@ -28,12 +28,6 @@
 /* thomas@mathematik.uni-bremen.de says this is needed.  */
 /* Make process_send_signal work by "typing" a signal character on the pty.  */
 #define SIGNALS_VIA_CHARACTERS
-
-#ifndef NOT_C_CODE
-#ifndef __GNUC__
-#include <alloca.h>
-#endif
-#endif
 
 /* SGI has all the fancy wait stuff, but we can't include sys/wait.h
    because it defines BIG_ENDIAN and LITTLE_ENDIAN (ugh!.)  Instead
@@ -79,7 +73,7 @@ char *_getpty();
 
 /* Since we use POSIX constructs in PTY_OPEN, we must force POSIX
    throughout. */
-#define POSIX_SIGNALS  
+#define POSIX_SIGNALS
 
 /* Info from simon@lia.di.epfl.ch (Simon Leinen) suggests this is needed.  */
 #define GETPGRP_NO_ARG

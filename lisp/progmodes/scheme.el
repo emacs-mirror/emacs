@@ -53,59 +53,58 @@
 
 (require 'lisp-mode)
 
-(defvar scheme-mode-syntax-table nil)
-(if (not scheme-mode-syntax-table)
-    (let ((i 0))
-      (setq scheme-mode-syntax-table (make-syntax-table))
-      (set-syntax-table scheme-mode-syntax-table)
+(defvar scheme-mode-syntax-table
+  (let ((st (make-syntax-table))
+	(i 0))
 
-      ;; Default is atom-constituent.
-      (while (< i 256)
-	(modify-syntax-entry i "_   ")
-	(setq i (1+ i)))
+    ;; Default is atom-constituent.
+    (while (< i 256)
+      (modify-syntax-entry i "_   " st)
+      (setq i (1+ i)))
 
-      ;; Word components.
-      (setq i ?0)
-      (while (<= i ?9)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
-      (setq i ?A)
-      (while (<= i ?Z)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
-      (setq i ?a)
-      (while (<= i ?z)
-	(modify-syntax-entry i "w   ")
-	(setq i (1+ i)))
+    ;; Word components.
+    (setq i ?0)
+    (while (<= i ?9)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
+    (setq i ?A)
+    (while (<= i ?Z)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
+    (setq i ?a)
+    (while (<= i ?z)
+      (modify-syntax-entry i "w   " st)
+      (setq i (1+ i)))
 
-      ;; Whitespace
-      (modify-syntax-entry ?\t "    ")
-      (modify-syntax-entry ?\n ">   ")
-      (modify-syntax-entry ?\f "    ")
-      (modify-syntax-entry ?\r "    ")
-      (modify-syntax-entry ?  "    ")
+    ;; Whitespace
+    (modify-syntax-entry ?\t "    " st)
+    (modify-syntax-entry ?\n ">   " st)
+    (modify-syntax-entry ?\f "    " st)
+    (modify-syntax-entry ?\r "    " st)
+    (modify-syntax-entry ?  "    " st)
 
-      ;; These characters are delimiters but otherwise undefined.
-      ;; Brackets and braces balance for editing convenience.
-      (modify-syntax-entry ?\[ "(]  ")
-      (modify-syntax-entry ?\] ")[  ")
-      (modify-syntax-entry ?{ "(}  ")
-      (modify-syntax-entry ?} "){  ")
-      (modify-syntax-entry ?\| "  23")
+    ;; These characters are delimiters but otherwise undefined.
+    ;; Brackets and braces balance for editing convenience.
+    (modify-syntax-entry ?\[ "(]  " st)
+    (modify-syntax-entry ?\] ")[  " st)
+    (modify-syntax-entry ?{ "(}  " st)
+    (modify-syntax-entry ?} "){  " st)
+    (modify-syntax-entry ?\| "  23" st)
 
-      ;; Other atom delimiters
-      (modify-syntax-entry ?\( "()  ")
-      (modify-syntax-entry ?\) ")(  ")
-      (modify-syntax-entry ?\; "<   ")
-      (modify-syntax-entry ?\" "\"    ")
-      (modify-syntax-entry ?' "  p")
-      (modify-syntax-entry ?` "  p")
+    ;; Other atom delimiters
+    (modify-syntax-entry ?\( "()  " st)
+    (modify-syntax-entry ?\) ")(  " st)
+    (modify-syntax-entry ?\; "<   " st)
+    (modify-syntax-entry ?\" "\"    " st)
+    (modify-syntax-entry ?' "  p" st)
+    (modify-syntax-entry ?` "  p" st)
 
-      ;; Special characters
-      (modify-syntax-entry ?, "_ p")
-      (modify-syntax-entry ?@ "_ p")
-      (modify-syntax-entry ?# "_ p14")
-      (modify-syntax-entry ?\\ "\\   ")))
+    ;; Special characters
+    (modify-syntax-entry ?, "_ p" st)
+    (modify-syntax-entry ?@ "_ p" st)
+    (modify-syntax-entry ?# "_ p14" st)
+    (modify-syntax-entry ?\\ "\\   " st)
+    st))
 
 (defvar scheme-mode-abbrev-table nil)
 (define-abbrev-table 'scheme-mode-abbrev-table ())
@@ -167,7 +166,8 @@
         '((scheme-font-lock-keywords
            scheme-font-lock-keywords-1 scheme-font-lock-keywords-2)
           nil t (("+-*/.<>=!?$%_&~^:" . "w")) beginning-of-defun
-          (font-lock-mark-block-function . mark-defun))))
+          (font-lock-mark-block-function . mark-defun)
+          (font-lock-syntactic-face-function . lisp-font-lock-syntactic-face-function))))
 
 (defvar scheme-mode-line-process "")
 
@@ -430,7 +430,7 @@ that variable's value is a string."
     (parse-partial-sexp (point) calculate-lisp-indent-last-sexp 0 t)
     (if (and (elt state 2)
              (not (looking-at "\\sw\\|\\s_")))
-        ;; car of form doesn't seem to be a a symbol
+        ;; car of form doesn't seem to be a symbol
         (progn
           (if (not (> (save-excursion (forward-line 1) (point))
                       calculate-lisp-indent-last-sexp))
@@ -502,7 +502,7 @@ that variable's value is a string."
 (put 'let-syntax 'scheme-indent-function 1)
 (put 'letrec-syntax 'scheme-indent-function 1)
 (put 'syntax-rules 'scheme-indent-function 1)
-
+(put 'syntax-case 'scheme-indent-function 2) ; not r5rs
 
 (put 'call-with-input-file 'scheme-indent-function 1)
 (put 'with-input-from-file 'scheme-indent-function 1)

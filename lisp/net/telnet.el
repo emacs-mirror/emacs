@@ -30,7 +30,7 @@
 ;; sessions are supported.
 ;;
 ;; Normally, input is sent to the remote telnet/rsh line-by-line, as you
-;; type RET or LFD.  C-c C-c sends a C-c to the remote immediately; 
+;; type RET or LFD.  C-c C-c sends a C-c to the remote immediately;
 ;; C-c C-z sends C-z immediately.  C-c C-q followed by any character
 ;; sends that character immediately.
 ;;
@@ -112,7 +112,7 @@ rejecting one login and prompting again for a username and password.")
   (define-key telnet-mode-map "\C-m" 'telnet-send-input)
 ;  (define-key telnet-mode-map "\C-j" 'telnet-send-input)
   (define-key telnet-mode-map "\C-c\C-q" 'send-process-next-char)
-  (define-key telnet-mode-map "\C-c\C-c" 'telnet-interrupt-subjob) 
+  (define-key telnet-mode-map "\C-c\C-c" 'telnet-interrupt-subjob)
   (define-key telnet-mode-map "\C-c\C-z" 'telnet-c-z))
 
 ;;maybe should have a flag for when have found type
@@ -214,7 +214,7 @@ Normally input is edited in Emacs and sent a line at a time."
 	 process)
     (if (and buffer (get-buffer-process buffer))
 	(pop-to-buffer (concat "*" name "*"))
-      (pop-to-buffer 
+      (pop-to-buffer
        (apply 'make-comint name telnet-program nil telnet-options))
       (setq process (get-buffer-process (current-buffer)))
       (set-process-filter process 'telnet-initial-filter)

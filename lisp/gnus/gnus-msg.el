@@ -538,7 +538,7 @@ header line with the old Message-ID."
 	  (gnus-inews-yank-articles yank))))))
 
 (defun gnus-msg-treat-broken-reply-to ()
-  "Remove the Reply-to header iff broken-reply-to."
+  "Remove the Reply-to header if broken-reply-to."
   (when (gnus-group-find-parameter
 	 gnus-newsgroup-name 'broken-reply-to)
     (save-restriction
@@ -697,7 +697,7 @@ The original article will be yanked."
   (gnus-summary-reply-with-original n t))
 
 (defun gnus-summary-mail-forward (&optional arg post)
-  "Forward the current message to another user.  
+  "Forward the current message to another user.
 If ARG is nil, see `message-forward-as-mime' and `message-forward-show-mml';
 if ARG is 1, decode the message and forward directly inline;
 if ARG is 2, forward message as an rfc822 MIME section;
@@ -708,7 +708,7 @@ If POST, post instead of mail."
   (interactive "P")
   (let ((message-forward-as-mime message-forward-as-mime)
 	(message-forward-show-mml message-forward-show-mml))
-    (cond 
+    (cond
      ((null arg))
      ((eq arg 1) (setq message-forward-as-mime nil
 		       message-forward-show-mml t))

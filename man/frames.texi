@@ -31,8 +31,7 @@ so that you can use many of the features described in this chapter.
 
 @cindex MS Windows
   Emacs compiled for MS Windows mostly supports the same features as
-under X.  However, images and tool bars are not yet available in Emacs
-version 21.3 on MS-Windows.
+under X.
 
 @menu
 * Mouse Commands::      Moving, cutting, and pasting, with the mouse.
@@ -274,7 +273,7 @@ particularly under OpenWindows and Gnome.
   The command @kbd{M-x menu-bar-enable-clipboard} makes the @code{Cut},
 @code{Paste} and @code{Copy} menu items, as well as the keys of the same
 names, all use the clipboard.
- 
+
   You can customize the option @code{x-select-enable-clipboard} to make
 the Emacs yank functions consult the clipboard before the primary
 selection, and to make the kill functions to store in the clipboard as
@@ -300,9 +299,12 @@ message in the @samp{*Compilation*} buffer, you go to the source code
 for that error message.  If you click @kbd{Mouse-2} on a completion in
 the @samp{*Completions*} buffer, you choose that completion.
 
+@vindex mouse-highlight
   You can usually tell when @kbd{Mouse-2} has this special sort of
 meaning because the sensitive text highlights when you move the mouse
-over it.
+over it.  The variable @code{mouse-highlight} controls whether to do
+this highlighting always (even when such text appears where the mouse
+already is), never, or only immediately after you move the mouse.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
@@ -392,7 +394,7 @@ subcommands.  The difference is that @kbd{C-x 5} commands create a new
 frame rather than just a new window in the selected frame (@pxref{Pop
 Up Window}).  If an existing visible or iconified frame already displays
 the requested material, these commands use the existing frame, after
-raising or deiconifying as necessary. 
+raising or deiconifying as necessary.
 
   The various @kbd{C-x 5} commands differ in how they find or create the
 buffer to select:
@@ -605,10 +607,16 @@ to set it.
 @code{special-display-buffer-names} or @code{special-display-regexps}
 can also be a list.  Then the first element is the buffer name or
 regular expression; the rest of the list specifies how to create the
-frame.  It can be an association list specifying frame parameter values;
-these values take precedence over parameter values specified in
-@code{special-display-frame-alist}.  Alternatively, it can have this
-form:
+frame.  It can be an association list specifying frame parameter
+values; these values take precedence over parameter values specified
+in @code{special-display-frame-alist}.  If you specify the symbol
+@code{same-window} as a ``frame parameter'' in this list, with a
+non-@code{nil} value, that means to use the selected window if
+possible.  If you use the symbol @code{same-frame} as a ``frame
+parameter'' in this list, with a non-@code{nil} value, that means to
+use the selected frame if possible.
+
+  Alternatively, the value can have this form:
 
 @example
 (@var{function} @var{args}...)
@@ -815,7 +823,7 @@ menus.
 @section Tool Bars
 @cindex Tool Bar mode
 @cindex mode, Tool Bar
-@cindex icons, tool bar
+@cindex icons, toolbar
 
 The @dfn{tool bar} is a line (or multiple lines) of icons at the top
 of the Emacs window.  You can click on these icons with the mouse
@@ -863,8 +871,12 @@ tooltip-mode}.  The customization group @code{tooltip} controls
 various aspects of how tooltips work.  When Tooltip mode is disabled,
 the help text is displayed in the echo area instead.
 
-  @xref{X Resources}, for information on customizing the windows
-that display tooltips.
+@vindex tooltip-delay
+  The variables @code{tooltip-delay} specifies how long Emacs should
+wait before displaying a tooltip.  For additional customization
+options for displaying tooltips, use @kbd{M-x customize-group
+@key{RET} tooltip @key{RET}}.  @xref{X Resources}, for information on
+customizing the windows that display tooltips.
 
 @node Mouse Avoidance
 @section Mouse Avoidance

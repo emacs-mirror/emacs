@@ -1,6 +1,6 @@
 ;;; help-mode.el --- `help-mode' used by *Help* buffers
 
-;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001
+;; Copyright (C) 1985, 1986, 1993, 1994, 1998, 1999, 2000, 2001, 2002
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -31,7 +31,7 @@
 ;;; Code:
 
 (require 'button)
-(eval-when-compile (require 'view))
+(require 'view)
 
 (defvar help-mode-map (make-sparse-keymap)
   "Keymap for help mode.")
@@ -147,10 +147,11 @@ The format is (FUNCTION ARGS...).")
   :supertype 'help-xref
   'help-function (lambda (fun file)
 		   (require 'find-func)
-		  ;; Don't use find-function-noselect because it follows
+		   ;; Don't use find-function-noselect because it follows
 		   ;; aliases (which fails for built-in functions).
-		   (let* ((location (find-function-search-for-symbol
-				     fun nil file)))
+		   (let ((location
+			  (if (bufferp file) (cons file fun)
+			    (find-function-search-for-symbol fun nil file))))
 		     (pop-to-buffer (car location))
 		     (goto-char (cdr location))))
   'help-echo (purecopy "mouse-2, RET: find function's definition"))
@@ -176,8 +177,6 @@ Commands:
   (use-local-map help-mode-map)
   (setq mode-name "Help")
   (setq major-mode 'help-mode)
-  (make-local-variable 'font-lock-defaults)
-  (setq font-lock-defaults nil)         ; font-lock would defeat xref
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
@@ -199,27 +198,12 @@ Commands:
 	(list (cons (selected-window) help-return-method))))
 
 
-;;; Grokking cross-reference information in doc strings and
-;;; hyperlinking it.
+;; Grokking cross-reference information in doc strings and
+;; hyperlinking it.
 
 ;; This may have some scope for extension and the same or something
 ;; similar should be done for widget doc strings, which currently use
 ;; another mechanism.
-
-(defcustom help-highlight-p t
-  "*If non-nil, `help-make-xrefs' highlight cross-references.
-Under a window system it highlights them with face defined by
-`help-highlight-face'."
- :group 'help
- :version "20.3"
- :type 'boolean)
-
-(defcustom help-highlight-face 'underline
-  "Face used by `help-make-xrefs' to highlight cross-references.
-Must be previously-defined."
-  :group 'help
-  :version "20.3"
-  :type 'face)
 
 (defvar help-back-label (purecopy "[back]")
   "Label to use by `help-make-xrefs' for the go-back reference.")
@@ -237,7 +221,7 @@ Must be previously-defined."
 The words preceding the quoted symbol can be used in doc strings to
 distinguish references to variables, functions and symbols.")
 
-(defconst help-xref-mule-regexp nil
+(defvar help-xref-mule-regexp nil
   "Regexp matching doc string references to MULE-related keywords.
 
 It is usually nil, and is temporarily bound to an appropriate regexp
@@ -262,11 +246,12 @@ This should be called very early, before the output buffer is cleared,
 because we want to record the \"previous\" position of point so we can
 restore it properly when going back."
   (with-current-buffer (help-buffer)
-    (if interactive-p
-	;; Why do we want to prevent the user from going back ??  -stef
-	(setq help-xref-stack nil)
-      (when help-xref-stack-item
-	(push (cons (point) help-xref-stack-item) help-xref-stack)))
+    (when help-xref-stack-item
+      (push (cons (point) help-xref-stack-item) help-xref-stack))
+    (when interactive-p
+      (let ((tail (nthcdr 10 help-xref-stack)))
+	;; Truncate the stack.
+	(if tail (setcdr tail nil))))
     (setq help-xref-stack-item item)))
 
 (defvar help-xref-following nil
@@ -278,16 +263,22 @@ restore it properly when going back."
        (current-buffer)
      (get-buffer-create "*Help*"))))
 
+(defvar help-xref-override-view-map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map view-mode-map)
+    (define-key map "\r" nil)
+    map)
+  "Replacement keymap for `view-mode' in help buffers.")
+
 ;;;###autoload
 (defun help-make-xrefs (&optional buffer)
   "Parse and hyperlink documentation cross-references in the given BUFFER.
 
-Find cross-reference information in a buffer and, if
-`help-highlight-p' is non-nil, highlight it with face defined by
-`help-highlight-face'; activate such cross references for selection
-with `help-follow'.  Cross-references have the canonical form `...'
-and the type of reference may be disambiguated by the preceding
-word(s) used in `help-xref-symbol-regexp'.
+Find cross-reference information in a buffer and activate such cross
+references for selection with `help-follow'.  Cross-references have
+the canonical form `...'  and the type of reference may be
+disambiguated by the preceding word(s) used in
+`help-xref-symbol-regexp'.
 
 If the variable `help-xref-mule-regexp' is non-nil, find also
 cross-reference information related to multilingual environment
@@ -424,11 +415,7 @@ that."
 				   (current-buffer))))
       ;; View mode steals RET from us.
       (set (make-local-variable 'minor-mode-overriding-map-alist)
-           (list (cons 'view-mode
-                       (let ((map (make-sparse-keymap)))
-                         (set-keymap-parent map view-mode-map)
-                         (define-key map "\r" 'help-follow)
-                         map))))
+           (list (cons 'view-mode help-xref-override-view-map)))
       (set-buffer-modified-p old-modified))))
 
 ;;;###autoload
@@ -456,31 +443,29 @@ See `help-make-xrefs'."
 ;;;###autoload
 (defun help-xref-on-pp (from to)
   "Add xrefs for symbols in `pp's output between FROM and TO."
-  (let ((ost (syntax-table)))
-    (unwind-protect
-	(save-excursion
-	  (save-restriction
-	    (set-syntax-table emacs-lisp-mode-syntax-table)
-	    (narrow-to-region from to)
-	    (goto-char (point-min))
-	    (condition-case nil
-		(while (not (eobp))
-		  (cond
-		   ((looking-at "\"") (forward-sexp 1))
-		   ((looking-at "#<") (search-forward ">" nil 'move))
-		   ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
-		    (let* ((sym (intern-soft (match-string 1)))
-			   (type (cond ((fboundp sym) 'help-function)
-				       ((or (memq sym '(t nil))
-					    (keywordp sym))
-					nil)
-				       ((and sym (boundp sym))
-					'help-variable))))
-		      (when type (help-xref-button 1 type sym)))
-		    (goto-char (match-end 1)))
-		   (t (forward-char 1))))
-	      (error nil))))
-      (set-syntax-table ost))))
+  (if (> (- to from) 5000) nil
+    (with-syntax-table emacs-lisp-mode-syntax-table
+      (save-excursion
+	(save-restriction
+	  (narrow-to-region from to)
+	  (goto-char (point-min))
+	  (condition-case nil
+	      (while (not (eobp))
+		(cond
+		 ((looking-at "\"") (forward-sexp 1))
+		 ((looking-at "#<") (search-forward ">" nil 'move))
+		 ((looking-at "\\(\\(\\sw\\|\\s_\\)+\\)")
+		  (let* ((sym (intern-soft (match-string 1)))
+			 (type (cond ((fboundp sym) 'help-function)
+				     ((or (memq sym '(t nil))
+					  (keywordp sym))
+				      nil)
+				     ((and sym (boundp sym))
+				      'help-variable))))
+		    (when type (help-xref-button 1 type sym)))
+		  (goto-char (match-end 1)))
+		 (t (forward-char 1))))
+	    (error nil)))))))
 
 
 ;; Additional functions for (re-)creating types of help buffers.
@@ -535,7 +520,7 @@ help buffer."
 	  (help-setup-xref (list #'help-xref-interned symbol) nil)))))))
 
 
-;;; Navigation/hyperlinking with xrefs
+;; Navigation/hyperlinking with xrefs
 
 (defun help-follow-mouse (click)
   "Follow the cross-reference that you CLICK on."

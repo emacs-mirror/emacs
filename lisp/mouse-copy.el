@@ -115,12 +115,12 @@ The problem occurs under XFree86-3.1.1 (X11R6pl11) but not under X11R5,
 and under post-19.29 but not early versions of emacs.
 
 19.29 and 19.30 seems to drop mouse drag events
-sometimes. (Reproducable under XFree86-3.1.1 (X11R6pl11) and
+sometimes. (Reproducible under XFree86-3.1.1 (X11R6pl11) and
 XFree86-3.1.2 under Linux 1.2.x.  Doesn't occur under X11R5 and SunOS
 4.1.1.)
 
 To see if you have the problem:
-Disable this routine (with (setq mouse-copy-have-drag-bug nil))..
+Disable this routine (with (setq mouse-copy-have-drag-bug nil)).
 Click and drag for a while.
 If highlighting stops tracking, you have the bug.
 If you have the bug (or the real fix :-), please let me know."
@@ -151,7 +151,7 @@ If you have the bug (or the real fix :-), please let me know."
       (set-buffer end-buffer)
       (x-set-selection 'SECONDARY (buffer-substring beg end)))))
 
-    
+
 (defun mouse-drag-secondary-pasting (start-event)
   "Drag out a secondary selection, then paste it at the current point.
 
@@ -182,7 +182,7 @@ put the point at one place, then click and drag over some other region."
 	(insert (x-get-selection 'SECONDARY))
 	(setq mouse-copy-last-paste-end (point)))
     (setq mouse-copy-last-paste-start nil)))
-  
+
 
 (defun mouse-kill-preserving-secondary ()
   "Kill the text in the secondary selection, but leave the selection set.

@@ -76,7 +76,7 @@ extern Lisp_Object composition_temp;
 #define COMPOSITION_MODIFICATION_FUNC(prop)	\
   (COMPOSITION_REGISTERD_P (prop)		\
    ? XCDR (XCDR (XCDR (prop)))			\
-   : XCDR (prop))
+   : CONSP (prop) ? XCDR (prop) : Qnil)
 
 /* Return the method of composition.  */
 #define COMPOSITION_METHOD(prop)					\
@@ -147,7 +147,7 @@ extern Lisp_Object composition_temp;
 
    When a composition is assigned an ID number (by
    get_composition_id), this structure is allocated for the
-   composition and linked in composition_table[ID].  
+   composition and linked in composition_table[ID].
 
    Identical compositions appearing at different places have the same
    ID, and thus share the same instance of this structure.  */

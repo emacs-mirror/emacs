@@ -23,7 +23,7 @@
 ;; Boston, MA 02111-1307, USA.
 
 ;;; Commentary:
-;; 
+;;
 ;;  With the hi-lock commands text matching interactively entered
 ;;  regexp's can be highlighted.  For example, `M-x highlight-regexp
 ;;  RET clearly RET RET' will highlight all occurrences of `clearly'
@@ -58,7 +58,7 @@
 ;;    to the edit menu.
 ;;
 ;;    (hi-lock-mode 1)
-;;  
+;;
 ;;    You might also want to bind the hi-lock commands to more
 ;;    finger-friendly sequences:
 
@@ -83,7 +83,6 @@
 (eval-and-compile
   (require 'font-lock))
 
-;;;###autoload
 (defgroup hi-lock-interactive-text-highlighting nil
   "Interactively add and remove font-lock patterns for highlighting text."
   :group 'faces)
@@ -260,7 +259,7 @@ which can be called interactively, are:
   Highlight matches of phrase PHRASE in current buffer with FACE.
   (PHRASE can be any REGEXP, but spaces will be replaced by matches
   to whitespace and initial lower-case letters will become case insensitive.)
- 
+
 \\[highlight-lines-matching-regexp] REGEXP FACE
   Highlight lines containing matches of REGEXP in current buffer with FACE.
 

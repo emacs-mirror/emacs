@@ -1,6 +1,6 @@
 /* Session management module for systems which understand the X Session
    management protocol.
-   Copyright (C) 2002, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -57,15 +57,15 @@ Boston, MA 02111-1307, USA.  */
 
 extern Lisp_Object Vuser_login_name;
 
-/* This is the event used when save_session occurs */
+/* This is the event used when SAVE_SESSION_EVENT occurs.  */
 
 static struct input_event emacs_event;
 
-/* The descriptor that we use to check for data from the session manager. */
+/* The descriptor that we use to check for data from the session manager.  */
 
 static int ice_fd = -1;
 
-/* A flag that says if we are in shutdown interactions or not. */
+/* A flag that says if we are in shutdown interactions or not.  */
 
 static int doing_interact = False;
 
@@ -94,11 +94,17 @@ Lisp_Object Vx_session_previous_id;
 #define SMID_OPT "--smid="
 
 
+/* The option to start Emacs without the splash screen when
+   restarting Emacs. */
+
+#define NOSPLASH_OPT "--no-splash"
+
+
 /* Handle any messages from the session manager.  If no connection is
    open to a session manager, just return 0.
    Otherwise returns the number of events stored in buffer BUFP,
    which can hold up to *NUMCHARS characters.  At most one event is
-   stored, an save_session_event. */
+   stored, a SAVE_SESSION_EVENT. */
 int
 x_session_check_input (bufp, numchars)
      struct input_event *bufp;
@@ -106,20 +112,20 @@ x_session_check_input (bufp, numchars)
 {
   SELECT_TYPE read_fds;
   EMACS_TIME tmout;
-  
+
   if (ice_fd == -1) return 0;
-  
+
   FD_ZERO (&read_fds);
   FD_SET (ice_fd, &read_fds);
-      
+
   tmout.tv_sec = 0;
   tmout.tv_usec = 0;
-  
+
   /* Reset this so wo can check kind after callbacks have been called by
      IceProcessMessages.  The smc_interact_CB sets the kind to
-     save_session_event, but we don't know beforehand if that callback
+     SAVE_SESSION_EVENT, but we don't know beforehand if that callback
      will be called. */
-  emacs_event.kind = no_event;
+  emacs_event.kind = NO_EVENT;
 
   if (select (ice_fd+1, &read_fds,
               (SELECT_TYPE *)0, (SELECT_TYPE *)0, &tmout) < 0)
@@ -127,16 +133,16 @@ x_session_check_input (bufp, numchars)
       ice_fd = -1;
       return 0;
     }
-  
+
 
   if (FD_ISSET (ice_fd, &read_fds))
     IceProcessMessages (SmcGetIceConnection (smc_conn),
                         (IceReplyWaitInfo *)0, (Bool *)0);
 
-  
+
   /* Check if smc_interact_CB was called and we shall generate a
-     save_session event. */
-  if (*numchars > 0 && emacs_event.kind != no_event)
+     SAVE_SESSION_EVENT. */
+  if (*numchars > 0 && emacs_event.kind != NO_EVENT)
     {
       bcopy (&emacs_event, bufp, sizeof (struct input_event));
       bufp++;
@@ -156,7 +162,7 @@ x_session_have_connection ()
 }
 
 /* This is called when the session manager says it is OK to interact with the
-   user.  Here we set the kind to save_session so an event is generated.
+   user.  Here we set the kind to SAVE_SESSION_EVENT so an event is generated.
    Then lisp code can interact with the user. */
 static void
 smc_interact_CB (smcConn, clientData)
@@ -164,10 +170,10 @@ smc_interact_CB (smcConn, clientData)
      SmPointer clientData;
 {
   doing_interact = True;
-  emacs_event.kind = save_session_event;
+  emacs_event.kind = SAVE_SESSION_EVENT;
 }
 
-/* This is called when the session manager tells us to save ourself.
+/* This is called when the session manager tells us to save ourselves.
    We set the required properties so the session manager can restart us,
    plus the current working directory property (not mandatory) so we
    are started in the correct directory.
@@ -189,14 +195,14 @@ smc_save_yourself_CB (smcConn,
      Bool fast;
 {
 #define NR_PROPS 5
-  
+
   SmProp *props[NR_PROPS];
   SmProp prop_ptr[NR_PROPS];
-  
+
   SmPropValue values[20];
   int val_idx = 0;
   int props_idx = 0;
-  
+
   char cwd[MAXPATHLEN+1];
   char *smid_opt;
 
@@ -216,15 +222,15 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (XSTRING (Vinvocation_name)->data);
-  props[props_idx]->vals[0].value = XSTRING (Vinvocation_name)->data;
+  props[props_idx]->vals[0].length = strlen (SDATA (Vinvocation_name));
+  props[props_idx]->vals[0].value = SDATA (Vinvocation_name);
   ++props_idx;
-  
-  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx). */
+
+  /* How to restart Emacs (i.e.: /path/to/emacs --smid=xxxx --no-splash). */
   props[props_idx] = &prop_ptr[props_idx];
   props[props_idx]->name = SmRestartCommand;
   props[props_idx]->type = SmLISTofARRAY8;
-  props[props_idx]->num_vals = 2; /* 2 values: /path/to/emacs, --smid=xxx */
+  props[props_idx]->num_vals = 3; /* /path/to/emacs, --smid=xxx --no-splash */
   props[props_idx]->vals = &values[val_idx];
   props[props_idx]->vals[0].length = strlen (emacs_program);
   props[props_idx]->vals[0].value = emacs_program;
@@ -232,10 +238,13 @@ smc_save_yourself_CB (smcConn,
   smid_opt = xmalloc (strlen (SMID_OPT) + strlen (client_id) + 1);
   strcpy (smid_opt, SMID_OPT);
   strcat (smid_opt, client_id);
-  
+
   props[props_idx]->vals[1].length = strlen (smid_opt);
   props[props_idx]->vals[1].value = smid_opt;
-  val_idx += 2;
+
+  props[props_idx]->vals[2].length = strlen (NOSPLASH_OPT);
+  props[props_idx]->vals[2].value = NOSPLASH_OPT;
+  val_idx += 3;
   ++props_idx;
 
   /* User id */
@@ -244,8 +253,8 @@ smc_save_yourself_CB (smcConn,
   props[props_idx]->type = SmARRAY8;
   props[props_idx]->num_vals = 1;
   props[props_idx]->vals = &values[val_idx++];
-  props[props_idx]->vals[0].length = strlen (XSTRING (Vuser_login_name)->data);
-  props[props_idx]->vals[0].value = XSTRING (Vuser_login_name)->data;
+  props[props_idx]->vals[0].length = strlen (SDATA (Vuser_login_name));
+  props[props_idx]->vals[0].value = SDATA (Vuser_login_name);
   ++props_idx;
 
   /* The current directory property, not mandatory */
@@ -264,8 +273,8 @@ smc_save_yourself_CB (smcConn,
       props[props_idx]->vals[0].value = cwd;
       ++props_idx;
     }
-  
-  
+
+
   SmcSetProperties (smcConn, props_idx, props);
 
   xfree (smid_opt);
@@ -312,7 +321,7 @@ smc_shutdown_cancelled_CB (smcConn, clientData)
   /* Empty */
 }
 
-/* Error handlers for SM and ICE.  We don't wan't to exit Emacs just
+/* Error handlers for SM and ICE.  We don't want to exit Emacs just
    because there is some error in the session management. */
 static void
 smc_error_handler (smcConn,
@@ -375,7 +384,7 @@ ice_conn_watch_CB (iceConn, clientData, opening, watchData)
       ice_fd = -1;
       return;
     }
-  
+
   ice_fd = IceConnectionNumber (iceConn);
 #ifndef F_SETOWN_BUG
 #ifdef F_SETOWN
@@ -403,16 +412,16 @@ x_session_initialize ()
   char* previous_id = NULL;
   SmcCallbacks callbacks;
   int  name_len = 0;
-  
+
   /* Check if we where started by the session manager.  If so, we will
      have a previous id. */
   if (! EQ (Vx_session_previous_id, Qnil) && STRINGP (Vx_session_previous_id))
-    previous_id = XSTRING (Vx_session_previous_id)->data;
+    previous_id = SDATA (Vx_session_previous_id);
 
   /* Construct the path to the Emacs program. */
   if (! EQ (Vinvocation_directory, Qnil))
-    name_len += strlen (XSTRING (Vinvocation_directory)->data);
-  name_len += strlen (XSTRING (Vinvocation_name)->data);
+    name_len += strlen (SDATA (Vinvocation_directory));
+  name_len += strlen (SDATA (Vinvocation_name));
 
   /* This malloc will not be freed, but it is only done once, and hopefully
      not very large  */
@@ -420,9 +429,9 @@ x_session_initialize ()
   emacs_program[0] = '\0';
 
   if (! EQ (Vinvocation_directory, Qnil))
-    strcpy (emacs_program, XSTRING (Vinvocation_directory)->data);
-  strcat (emacs_program, XSTRING (Vinvocation_name)->data);
-  
+    strcpy (emacs_program, SDATA (Vinvocation_directory));
+  strcat (emacs_program, SDATA (Vinvocation_name));
+
   /* The SM protocol says all callbacks are mandatory, so set up all
      here and in the mask passed to SmcOpenConnection */
   callbacks.save_yourself.callback = smc_save_yourself_CB;
@@ -443,7 +452,7 @@ x_session_initialize ()
   IceAddConnectionWatch (ice_conn_watch_CB, 0);
 
   /* Open the connection to the session manager.  A failure is not
-     critical, it usualy means that no session manager is running.
+     critical, it usually means that no session manager is running.
      The errorstring is here for debugging. */
   smc_conn = SmcOpenConnection (NULL, NULL, 1, 0,
                                 (SmcSaveYourselfProcMask|
@@ -464,7 +473,7 @@ x_session_initialize ()
 DEFUN ("handle-save-session", Fhandle_save_session,
        Shandle_save_session, 1, 1, "e",
        doc: /* Handle the save_yourself event from a session manager.
-A session manager can tell Emacs that the window system is shutting down 
+A session manager can tell Emacs that the window system is shutting down
 by sending Emacs a save_yourself message.  Emacs executes this function when
 such an event occurs.  This function then executes `emacs-session-save'.
 After that, this function informs the session manager that it can continue
@@ -510,27 +519,27 @@ See also `x-session-previous-id', `emacs-save-session-functions',
 
   DEFVAR_LISP ("x-session-previous-id", &Vx_session_previous_id,
     doc: /* The previous session id Emacs got from session manager.
-If Emacs is running on a window system that has a session manager, the 
-session manager gives Emacs a session id.  It is feasible for Emacs lisp 
-code to use the session id to save configuration in, for example, a file 
-with a file name based on the session id.  If Emacs is running when the 
-window system is shut down, the session manager remembers that Emacs was 
+If Emacs is running on a window system that has a session manager, the
+session manager gives Emacs a session id.  It is feasible for Emacs lisp
+code to use the session id to save configuration in, for example, a file
+with a file name based on the session id.  If Emacs is running when the
+window system is shut down, the session manager remembers that Emacs was
 running and saves the session id Emacs had.
 
-When the window system is started again, the session manager restarts 
-Emacs and hands Emacs the session id it had the last time it was 
-running.  This is now the previous session id and the value of this 
-variable.  If configuration was saved in a file as stated above, the 
+When the window system is started again, the session manager restarts
+Emacs and hands Emacs the session id it had the last time it was
+running.  This is now the previous session id and the value of this
+variable.  If configuration was saved in a file as stated above, the
 previous session id shall be used to reconstruct the file name.
 
-The session id Emacs has while it is running is in the variable 
+The session id Emacs has while it is running is in the variable
 `x-session-id'.  The value of this variable and `x-session-id' may be the
 same, depending on how the session manager works.
 
 See also `emacs-save-session-functions', `emacs-session-save' and
 `emacs-session-restore'." */);
   Vx_session_previous_id = Qnil;
-  
+
   defsubr (&Shandle_save_session);
 }
 

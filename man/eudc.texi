@@ -2,29 +2,19 @@
 @c %**start of header
 @setfilename ../info/eudc
 @settitle Emacs Unified Directory Client (EUDC) Manual
-@iftex
 @afourpaper
-@end iftex
 @c %**end of header
 
-@footnotestyle end
-
-@ifinfo
-@dircategory Emacs
-@direntry
-* EUDC: (eudc).   An Emacs client for directory servers (LDAP, PH).
-@end direntry
-
-This file documents EUDC v1.30b
-
-EUDC is part of Emacs.
+@copying
+This file documents EUDC v1.30b.
 
 EUDC is the Emacs Unified Directory Client, a common interface to
 directory servers using various protocols such as LDAP or the CCSO white
 pages directory system (PH/QI)
 
-Copyright 1998, 2000, 2001 Free Software Foundation, Inc.
+Copyright 1998, 2000, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -41,7 +31,15 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* EUDC: (eudc).   An Emacs client for directory servers (LDAP, PH).
+@end direntry
+
+@footnotestyle end
 
 @titlepage
 @title{EUDC Manual}
@@ -51,27 +49,10 @@ license to the document, as described in section 6 of the license.
 
 @page
 @vskip 0pt plus 1fill
-Copyright @copyright{} 1998, 2000, 2001 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
-@ifinfo
+@ifnottex
 @node     Top, Overview, (dir), (dir)
 @comment  node-name,  next,         previous, up
 
@@ -81,7 +62,7 @@ This manual documents EUDC v1.30b, the Emacs Unified Directory Client.
 A common interface to directory servers using various protocols such as
 LDAP or the CCSO white pages directory system (PH/QI)
 
-@end ifinfo
+@end ifnottex
 
 @menu
 * Overview::                    Summary of EUDC features
@@ -89,7 +70,7 @@ LDAP or the CCSO white pages directory system (PH/QI)
 * Usage::                       The various usage possibilities explained
 * Credits::                     Who's done what
 * Command and Function Index::
-* Variables Index::             
+* Variables Index::
 @end menu
 
 
@@ -102,7 +83,7 @@ LDAP or the CCSO white pages directory system (PH/QI)
 
 EUDC, the @dfn{Emacs Unified Directory Client}, provides a common user
 interface to access directory servers using different directory
-protocols. 
+protocols.
 
 Currently supported back-ends are:
 
@@ -118,7 +99,7 @@ BBDB, Big Brother's Insiduous Database
 The main features of the EUDC interface are:
 
 @itemize @bullet
-@item 
+@item
 Queries using a customizable form
 @item
 Inline query expansion (for instance you can expand a name
@@ -235,10 +216,10 @@ initialization file to add a shortcut for email address expansion in
 email composition buffers (@pxref{Inline Query Expansion})
 
 @lisp
-(eval-after-load 
+(eval-after-load
  "message"
  '(define-key message-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
-(eval-after-load 
+(eval-after-load
  "sendmail"
  '(define-key mail-mode-map [(control ?c) (tab)] 'eudc-expand-inline))
 @end lisp
@@ -274,7 +255,7 @@ customization options are available through the @samp{Directory Search}
 submenu of the @samp{Tools} submenu.
 
 @menu
-* Querying Servers::            How queries are performed and handled 
+* Querying Servers::            How queries are performed and handled
 * Query Form::                  How to use and customize the query form
 * Display of Query Results::    Controlling how query results are presented
 * Inline Query Expansion::      How to use and customize inline queries
@@ -482,7 +463,7 @@ containing the results of the query.
 
 The fields that are returned for each record
 are controlled by @code{eudc-default-return-attributes} (@pxref{Return
-Attributes}).  
+Attributes}).
 
 The display of each individual field can be performed by an arbitrary
 function which allows specific processing for binary values, such as
@@ -503,12 +484,12 @@ This variable has protocol-local definitions (see @pxref{Server/Protocol
 Locals}).  For instance, it is defined as follows for LDAP:
 
 @lisp
-(eudc-protocol-set 'eudc-attribute-display-method-alist 
+(eudc-protocol-set 'eudc-attribute-display-method-alist
                    '(("jpegphoto" . eudc-display-jpeg-inline)
                      ("labeledurl" . eudc-display-url)
                      ("audio" . eudc-display-sound)
                      ("labeledurl" . eudc-display-url)
-                     ("url" . eudc-display-url)) 
+                     ("url" . eudc-display-url))
                    'ldap)
 @end lisp
 
@@ -566,7 +547,7 @@ controlled by the variables @code{eudc-inline-expansion-format},
 @code{eudc-expanding-overwrites-query} and
 @code{eudc-multiple-match-handling-method}.
 
-If the query fails for a server, other servers may be tried successively 
+If the query fails for a server, other servers may be tried successively
 until one of them finds a match (@pxref{Multi-server Queries}).
 
 @deffn Command eudc-expand-inline replace-p
@@ -583,7 +564,7 @@ is non-@code{nil} then the meaning of @var{replace-p} is negated.
 @end deffn
 
 @defvar eudc-inline-query-format
-Format of an inline expansion query.  
+Format of an inline expansion query.
 This is actually a list of @var{format}s.  A @var{format} is a list of
 one or more EUDC attribute names.  A @var{format} applies if it contains
 as many attributes as individual words in the inline query string.  If
@@ -591,7 +572,7 @@ several @var{format}s apply then they are tried in order until a match
 is found.  If @code{nil} all the words will be mapped onto the default
 server/protocol attribute name (generally @code{name}).
 
-For instance, use the following 
+For instance, use the following
 @lisp
 (setq eudc-inline-query-format '((name)
                                  (firstname)
@@ -601,7 +582,7 @@ For instance, use the following
 to indicate that single word expansion queries are to be considered as
 surnames and if no match is found then they should be tried as first
 names.  Inline queries consisting of two words are considered as
-consisting of a first name followed by a surname.  If the query consists 
+consisting of a first name followed by a surname.  If the query consists
 of more than two words, then the first one is considered as the first
 name and the remaining words are all considered as surname constituents.
 
@@ -639,7 +620,7 @@ for an inline expansion.  Possible values are:
 The first match is considered as being the only one, the others are
 discarded.
 @item select
-A selection buffer pops up where you can choose a particular match.  This 
+A selection buffer pops up where you can choose a particular match.  This
 is the default value of the variable.
 @item all
 The expansion uses all records successively
@@ -656,7 +637,7 @@ Default is @code{select}
 @comment  node-name,  next,  previous,  up
 @section The Server Hotlist
 
-EUDC lets you maintain a list of frequently used servers so that you 
+EUDC lets you maintain a list of frequently used servers so that you
 can easily switch from one to another.  This hotlist appears in the
 @samp{Server} submenu.  You select a server in this list by clicking on
 its name.  You can add the current server to the list with the command
@@ -680,7 +661,7 @@ Add the current server to the hotlist of servers
 
 @defvar eudc-options-file
 The name of a file where EUDC stores its internal variables
-(the hotlist and the current server).  EUDC will try to load 
+(the hotlist and the current server).  EUDC will try to load
 that file upon initialization so, if you choose a file name
 different from the defaults @file{~/.eudc-options}, be sure to set this
 variable to the appropriate value @emph{before} EUDC is itself
@@ -794,25 +775,25 @@ The value of this variable should be a symbol naming an alist defining a
 mapping between BBDB field names onto directory attribute names records.
 This is a protocol-local variable and is initialized upon protocol
 switch (@pxref{Server/Protocol Locals}).  The alist is made of cells of the
-form @code{(@var{bbdb-field} . @var{spec-or-list})}. 
+form @code{(@var{bbdb-field} . @var{spec-or-list})}.
 @var{bbdb-field} is the name of a field
 that must be defined in your BBDB environment (standard field names are
 @code{name}, @code{company}, @code{net}, @code{phone}, @code{address}
-and @code{notes}). 
+and @code{notes}).
 @var{spec-or-list} is either a single mapping specification or a list of
 mapping specifications.  Lists of mapping specifications are valid for
 the @code{phone} and @code{address} BBDB fields only. @var{spec}s are
 actually s-expressions which are evaluated as follows:
 
 @table @asis
-@item a string 
+@item a string
 evaluates to itself
 @item a symbol
 evaluates to the symbol value.  Symbols corresponding to directory
 attribute names present in the record evaluate to the value of the field
 in the record
 @item a form
-is evaluated as a function.  The argument list may contain attribute 
+is evaluated as a function.  The argument list may contain attribute
 names which evaluate to the corresponding values in the record.  The form
 evaluation should return something appropriate for the particular
 @var{bbdb-field} (see @code{bbdb-create-internal}).
@@ -835,7 +816,7 @@ The default value of the PH-specific value of that variable is
 This means that:
 
 @itemize @bullet
-@item 
+@item
 the @code{name} field of the BBDB record gets its value
 from the @code{name} attribute of the directory record
 @item
@@ -951,7 +932,7 @@ Return the value of @var{var} local to @var{protocol}.  Return
 @end defun
 
 @defun eudc-variable-server-value var [server]
-Return the value of @var{var} local to @var{server}.  
+Return the value of @var{var} local to @var{server}.
 Return @code{unbound} if @var{var} has no value local to @var{server}.
 @var{server} defaults to @code{eudc-server}.
 @end defun
@@ -971,7 +952,7 @@ Update all EUDC variables according to their local settings.
 @comment  node-name,  next,  previous,  up
 @chapter Credits
 
-EUDC was written by Oscar Figueiredo based on @file{ph.el} by the 
+EUDC was written by Oscar Figueiredo based on @file{ph.el} by the
 same author.
 
 Thanks to Soren Dayton for his suggestions, his enthusiasm and his help

@@ -1,6 +1,6 @@
 ;;; jka-compr.el --- reading/writing/loading compressed files
 
-;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003  Free Software Foundation, Inc.
 
 ;; Author: jka@ece.cmu.edu (Jay K. Adams)
 ;; Maintainer: FSF
@@ -77,9 +77,9 @@
 
 
 ;; ACKNOWLEDGMENTS
-;; 
+;;
 ;; jka-compr is a V19 adaptation of jka-compr for V18 of Emacs.  Many people
-;; have made helpful suggestions, reported bugs, and even fixed bugs in 
+;; have made helpful suggestions, reported bugs, and even fixed bugs in
 ;; jka-compr.  I recall the following people as being particularly helpful.
 ;;
 ;;   Jean-loup Gailly
@@ -117,7 +117,7 @@ for `jka-compr-compression-info-list')."
   :type 'string
   :group 'jka-compr)
 
-(defvar jka-compr-use-shell 
+(defvar jka-compr-use-shell
   (not (memq system-type '(ms-dos windows-nt))))
 
 ;;; I have this defined so that .Z files are assumed to be in unix
@@ -270,8 +270,8 @@ based on the filename itself and `jka-compr-compression-info-list'."
 
   (signal 'compression-error
 	  (list "Opening input file" (format "error %s" message) infile)))
-			
-   
+
+
 (defcustom jka-compr-dd-program "/bin/dd"
   "How to invoke `dd'."
   :type 'string
@@ -447,7 +447,7 @@ There should be no more than seven characters after the final `/'."
 
 	    (setq temp-file (jka-compr-make-temp-name)))
 
-	  (and 
+	  (and
 	   compress-message
 	   (message "%s %s..." compress-message base-name))
 
@@ -502,7 +502,7 @@ There should be no more than seven characters after the final `/'."
 	  (setq last-coding-system-used coding-system-used)
 
 	  nil)
-	      
+
       (jka-compr-run-real-handler 'write-region
 				  (list start end filename append visit)))))
 
@@ -527,20 +527,7 @@ There should be no more than seven characters after the final `/'."
 	      (local-copy
 	       (jka-compr-run-real-handler 'file-local-copy (list filename)))
 	      local-file
-	      size start
-              (coding-system-for-read
-	       (or coding-system-for-read
-		   ;; If multibyte characters are disabled,
-		   ;; don't do that conversion.
-		   (and (null enable-multibyte-characters)
-			(or (auto-coding-alist-lookup
-			     (jka-compr-byte-compiler-base-file-name file))
-			    'raw-text))
-		   (let ((coding (find-operation-coding-system
-				  'insert-file-contents
-				  (jka-compr-byte-compiler-base-file-name file))))
-		     (and (consp coding) (car coding)))
-		   'undecided)) )
+	      size start)
 
 	  (setq local-file (or local-copy filename))
 
@@ -551,14 +538,14 @@ There should be no more than seven characters after the final `/'."
 	  (unwind-protect		; to make sure local-copy gets deleted
 
 	      (progn
-		  
+
 		(and
 		 uncompress-message
 		 (message "%s %s..." uncompress-message base-name))
 
 		(condition-case error-code
 
-		    (progn
+		    (let ((coding-system-for-read 'no-conversion))
 		      (if replace
 			  (goto-char (point-min)))
 		      (setq start (point))
@@ -596,7 +583,7 @@ There should be no more than seven characters after the final `/'."
 			    (eq (nth 3 error-code) local-file))
 		       (if visit
 			   (setq notfound error-code)
-			 (signal 'file-error 
+			 (signal 'file-error
 				 (cons "Opening input file"
 				       (nthcdr 2 error-code))))
 		     (signal (car error-code) (cdr error-code))))))
@@ -606,6 +593,11 @@ There should be no more than seven characters after the final `/'."
 	     (file-exists-p local-copy)
 	     (delete-file local-copy)))
 
+	  (decode-coding-inserted-region
+	   (point) (+ (point) size)
+	   (jka-compr-byte-compiler-base-file-name file)
+	   visit beg end replace)
+
 	  (and
 	   visit
 	   (progn
@@ -613,7 +605,7 @@ There should be no more than seven characters after the final `/'."
 	     (setq buffer-file-name filename)
 	     (setq jka-compr-really-do-compress t)
 	     (set-visited-file-modtime)))
-	    
+
 	  (and
 	   uncompress-message
 	   (message "%s %s...done" uncompress-message base-name))
@@ -669,11 +661,11 @@ There should be no more than seven characters after the final `/'."
 	  (unwind-protect
 
 	      (with-current-buffer temp-buffer
-		  
+
 		(and
 		 uncompress-message
 		 (message "%s %s..." uncompress-message base-name))
-		  
+
 		;; Here we must read the output of uncompress program
 		;; and write it to TEMP-FILE without any code
 		;; conversion.  An appropriate code conversion (if
@@ -705,7 +697,7 @@ There should be no more than seven characters after the final `/'."
 	    (kill-buffer temp-buffer))
 
 	  temp-file)
-	    
+
       (jka-compr-run-real-handler 'file-local-copy (list filename)))))
 
 
@@ -757,6 +749,7 @@ There should be no more than seven characters after the final `/'."
 Lisp programs can bind this to t to do that.
 It is not recommended to set this variable permanently to anything but nil.")
 
+(put 'jka-compr-handler 'safe-magic t)
 (defun jka-compr-handler (operation &rest args)
   (save-match-data
     (let ((jka-op (get operation 'jka-compr)))
@@ -872,7 +865,7 @@ by `jka-compr-installed'."
 		   (eq (nth 2 entry) 'jka-compr)))
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
-    
+
     (setq auto-mode-alist (cdr ama)))
 
   (let* ((ama (cons nil file-coding-system-alist))
@@ -884,7 +877,7 @@ by `jka-compr-installed'."
       (if (member entry jka-compr-added-to-file-coding-system-alist)
 	  (setcdr last (cdr (cdr last)))
 	(setq last (cdr last))))
-    
+
     (setq file-coding-system-alist (cdr ama)))
 
   ;; Remove the suffixes that were added by jka-compr.
@@ -895,7 +888,7 @@ by `jka-compr-installed'."
 	(push suffix suffixes)))
     (setq load-suffixes (nreverse suffixes))))
 
-      
+
 (defun jka-compr-installed-p ()
   "Return non-nil if jka-compr is installed.
 The return value is the entry in `file-name-handler-alist' for jka-compr."

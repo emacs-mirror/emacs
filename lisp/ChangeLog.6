@@ -1194,7 +1194,7 @@
 
 	* winnt.el (using-unix-filesystems): Update doc string.
 
-1996-05-11  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-11  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* scroll-bar.el (scroll-bar-drag-position): New function.
 	(scroll-bar-maybe-set-window-start): New function.
@@ -1313,7 +1313,7 @@
 	* apropos.el (apropos-print): If command has no key bindings,
 	say how to run it with M-x.
 
-1996-05-03  Andrew Innes <andrewi@harlequin.co.uk>
+1996-05-03  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* winnt.el (original-make-auto-save-file-name): New symbol bound
 	to old value of make-auto-save-file-name.
@@ -1364,7 +1364,7 @@
 	* solar.el (diary-sabbath-candles): Don't correct for DST a second
 	time.
 
-1996-04-26  Andrew Innes <andrewi@harlequin.co.uk>
+1996-04-26  Andrew Innes  <andrewi@harlequin.co.uk>
 
 	* compile.el (compilation-error-regexp-alist): Add regexp
 	for Microsoft VC++ error messages containing drive letters.
@@ -1463,9 +1463,10 @@
 	(metamail-interpret-header, metamail-interpret-body): New functions.
 	(metamail-region, metamail-buffer): New arg VIEWMODE.
 
-	* Optional argument which value is passed to the environment
-	variable EMACS_VIEW_MODE is added to the function metamail-buffer
-	and metamail-region.
+	* metamail.el: Optional argument which value is passed to the
+	environment variable EMACS_VIEW_MODE is added to the function
+	metamail-buffer and metamail-region.
+
 	* files.el (after-find-file): Mention file name in
 	"auto save is newer" message.
 
@@ -1494,7 +1495,7 @@
 	(vc-clear-context): Initialise vc-comment-ring using make-ring.
 	(vc-finish-logentry): Don't initialise vc-comment-ring here.
 
-1996-04-15  Eric Ding <ericding@mit.edu>
+1996-04-15  Eric Ding  <ericding@mit.edu>
 
 	* goto-addr.el (goto-address-send-using-mh-e):
 	Renamed from goto-address-send-using-mhe.  Require `mh-comp'.
@@ -2861,7 +2862,7 @@
 	(timer-inc-time): Use timer-relative-time.
 	(timer-set-time, timer-set-time-with-usecs): Allow floating DELTA.
 
-1996-01-31  Caleb Deupree <cdeupree@cincom.com>
+1996-01-31  Caleb Deupree  <cdeupree@cincom.com>
 
 	* winnt.el (mode-line-format): Include column-number-mode.
 
@@ -3392,7 +3393,7 @@
 
 	* files.el (auto-mode-alist): Use "\\`" instead of "^".
 
-1996-01-17  Michael Staats <michael@thp.Uni-Duisburg.DE>
+1996-01-17  Michael Staats  <michael@thp.Uni-Duisburg.DE>
 
 	* pc-select.el: Add some keybindings.
 	(next-line-mark, next-line-nomark): Set this-command.
@@ -4256,7 +4257,7 @@
 	Look for an end-delimiter in case where the start-of-bounce
 	delimiter looks like -- plus some more text.
 
-1995-12-13  Kevin Rodgers <kevinr@ihs.com>
+1995-12-13  Kevin Rodgers  <kevinr@ihs.com>
 
 	* ange-ftp.el (ange-ftp-load): Added missing form to `cdr' down
 	tryfiles in `while' loop.
@@ -4274,7 +4275,7 @@
 
 	* rmail.el (rmail-search): Doc fix.
 
-1995-12-11  Ake Stenhoff <etxaksf@aom.ericsson.se>
+1995-12-11  Ake Stenhoff  <etxaksf@aom.ericsson.se>
 
 	* cc-mode.el (cc-imenu-c++-generic-expression): New variable.
 	(cc-imenu-c-generic-expression): New variable.
@@ -4348,12 +4349,12 @@
 	(isearch-repeat): If isearch-just-started, don't test for empty match.
 	(isearch-unread): Use store-kbd-macro-event.
 
-1995-12-01  Francesco Potorti` <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
 
 	* gud.el (gud-sdb-marker-filter): Modify the regexp for sysVR3 to
 	take care of the asterisk prompt.  Correctly set gud-marker-acc.
 
-1995-12-01  Francesco Potorti` <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
 
 	* make-mode.el: Add faces to menu only if window-system.
 	(makefile-mode): Do not check if makefile-define-space-face is
@@ -4695,7 +4696,7 @@
 	* disp-table.el (display-table-slot,set-display-table-slot):
 	Document the slot names.
 
-1995-12-01  Francesco Potorti` <pot@cnuce.cnr.it>
+1995-12-01  Francesco Potorti`  <pot@cnuce.cnr.it>
 
 	* gud.el (gud-sdb-marker-filter): start may be nil, so check it
 	with numberp before using it.
@@ -5101,7 +5102,7 @@
 
 	* view.el (View-scroll-lines-forward): Don't recenter at end.
 
-1995-11-10  Kevin Rodgers <kevinr@ihs.com>
+1995-11-10  Kevin Rodgers  <kevinr@ihs.com>
 
 	* files.el (find-file-noselect): Respect the value of
 	find-file-visit-truename when FILENAME is a directory and
@@ -5276,7 +5277,7 @@
 
 	* view.el (view-mode-map): Use ordinary Help command.
 
-1995-11-02  Daniel Pfeiffer <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1995-11-02  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* sh-script.el (sh-shells): Eliminated variable redundant with
 	`interpreter-mode-alist'.
@@ -5307,7 +5308,7 @@
 	Renamed from shrink-window-horizontally, enlarge-window-horizontally
 	to avoid redefining the standard functions.
 
-1995-11-02  Stephen Gildea <gildea@stop.mail-abuse.org>
+1995-11-02  Stephen Gildea  <gildea@stop.mail-abuse.org>
 
 	* mh-e.el (mh-make-folder-mode-line): support mh-msg-count.
 	(mh-delete-scan-msgs): use fast new mh-goto-msg.
@@ -5699,13 +5700,13 @@
 
 	* hippie-exp.el (he-transfer-case): Fix typo in prev change.
 
-1995-10-13  Michael Kifer  <Michael Kifer <kifer@cs.sunysb.edu>>
+1995-10-13  Michael Kifer  <Michael Kifer  <kifer@cs.sunysb.edu>>
 
 	* ediff.el (ediff-version): is now autoloaded.
 	* ediff-init.el: Moved defsubsts up.
 	* ediff-hook.el: Now defines [window] in menu-bar-ediff-menu.
 
-1995-10-13  Michael Kifer  <Michael Kifer <kifer@cs.sunysb.edu>>
+1995-10-13  Michael Kifer  <Michael Kifer  <kifer@cs.sunysb.edu>>
 
 	* viper.el (vip-set-hooks): Use view-mode-hook in emacs and view
 	hook in xemacs.
@@ -6049,7 +6050,7 @@
 	* edt.el (edt-setup-default-bindings): Revert function is
 	revert-buffer, not revert-file.
 
-1995-09-22  Torbjorn Einarsson <T.Einarsson@clab.ericsson.se>
+1995-09-22  Torbjorn Einarsson  <T.Einarsson@clab.ericsson.se>
 
 	* f90.el: Major revision.
 	Much improved and quicker highlighting using font-lock.
@@ -6682,7 +6683,7 @@
 	* jka-compr.el (jka-compr-byte-compiler-base-file-name): New function.
 	Use it to handle byte-compiler-base-file-name operation.
 
-1995-08-20  Michael Kifer  <Michael Kifer <kifer@cs.sunysb.edu>>
+1995-08-20  Michael Kifer  <kifer@cs.sunysb.edu>
 
 	* viper.el (vip-set-hooks): Use view-mode-hook in emacs and view
 	hook in xemacs.
@@ -6856,7 +6857,7 @@
 	* sh-script.el (sh-mode-map): Use new name skeleton-pair-insert-maybe.
 	(sh-mode): Use new names skeleton-pair-alist, skeleton-pair-filter.
 
-1995-08-15  Daniel Pfeiffer <Daniel.Pfeiffer@Informatik.START.dbp.de>
+1995-08-15  Daniel Pfeiffer  <Daniel.Pfeiffer@Informatik.START.dbp.de>
 
 	* skeleton.el (skeleton-pair-insert-maybe): Plain insert in Ovwrt mode
 	(skeleton-insert): If skeleton doesn't fit in window, put beginning
@@ -7783,7 +7784,7 @@ Wed Jul 26 15:40:00 Michael Kifer  (kifer@cs.sunysb.edu)
 
 	* term/x-win.el (x-colors): Doc fix.
 
-1995-06-30  Kevin Rodgers <kevinr@ihs.com>
+1995-06-30  Kevin Rodgers  <kevinr@ihs.com>
 
 	* mailabbrev.el (mail-resolve-all-aliases-1):
 	Downcase address before recursive call.

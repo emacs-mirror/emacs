@@ -82,15 +82,15 @@ extern unsigned int w32_key_to_modifier (int key);
 static INPUT_RECORD event_queue[EVENT_QUEUE_SIZE];
 static INPUT_RECORD *queue_ptr = event_queue, *queue_end = event_queue;
 
-static int 
+static int
 fill_queue (BOOL block)
 {
   BOOL rc;
   DWORD events_waiting;
-  
+
   if (queue_ptr < queue_end)
     return queue_end-queue_ptr;
-  
+
   if (!block)
     {
       /* Check to see if there are some events to read before we try
@@ -100,7 +100,7 @@ fill_queue (BOOL block)
       if (events_waiting == 0)
 	return 0;
     }
-  
+
   rc = ReadConsoleInput (keyboard_handle, event_queue, EVENT_QUEUE_SIZE,
 			 &events_waiting);
   if (!rc)
@@ -114,13 +114,13 @@ fill_queue (BOOL block)
    and return the frame for it
 
    Right now, there's only one frame so return it.  */
-static FRAME_PTR 
+static FRAME_PTR
 get_frame (void)
 {
   return SELECTED_FRAME ();
 }
 
-/* Translate console modifiers to emacs modifiers.  
+/* Translate console modifiers to emacs modifiers.
    German keyboard support (Kai Morgan Zeise 2/18/95).  */
 int
 w32_kbd_mods_to_emacs (DWORD mods, WORD key)
@@ -129,18 +129,18 @@ w32_kbd_mods_to_emacs (DWORD mods, WORD key)
 
   /* If we recognize right-alt and left-ctrl as AltGr, and it has been
      pressed, first remove those modifiers.  */
-  if (!NILP (Vw32_recognize_altgr) 
-      && (mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED)) 
+  if (!NILP (Vw32_recognize_altgr)
+      && (mods & (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
       == (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED))
     mods &= ~ (RIGHT_ALT_PRESSED | LEFT_CTRL_PRESSED);
 
   if (mods & (RIGHT_ALT_PRESSED | LEFT_ALT_PRESSED))
     retval = ((NILP (Vw32_alt_is_meta)) ? alt_modifier : meta_modifier);
-  
+
   if (mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
     {
       retval |= ctrl_modifier;
-      if ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED)) 
+      if ((mods & (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
 	  == (RIGHT_CTRL_PRESSED | LEFT_CTRL_PRESSED))
 	retval |= meta_modifier;
     }
@@ -212,14 +212,14 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
       isdead = 0;
       return 1;
     }
-  if (event->uChar.AsciiChar != 0) 
+  if (event->uChar.AsciiChar != 0)
     return 1;
 
   memset (keystate, 0, sizeof (keystate));
   keystate[key_code] = 0x80;
-  if (mods & SHIFT_PRESSED) 
+  if (mods & SHIFT_PRESSED)
     keystate[VK_SHIFT] = 0x80;
-  if (mods & CAPSLOCK_ON) 
+  if (mods & CAPSLOCK_ON)
     keystate[VK_CAPITAL] = 1;
   /* If we recognize right-alt and left-ctrl as AltGr, set the key
      states accordingly before invoking ToAscii.  */
@@ -272,7 +272,7 @@ w32_kbd_patch_key (KEY_EVENT_RECORD *event)
                         keystate, (LPWORD) ansi_code, 0);
     }
 
-  if (isdead == 0) 
+  if (isdead == 0)
     return 0;
   event->uChar.AsciiChar = ansi_code[0];
   return isdead;
@@ -283,9 +283,9 @@ extern char *lispy_function_keys[];
 
 static int faked_key = 0;
 
-/* return code -1 means that event_queue_ptr won't be incremented. 
+/* return code -1 means that event_queue_ptr won't be incremented.
    In other word, this event makes two key codes.   (by himi)       */
-int 
+int
 key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 {
   static int mod_key_state = 0;
@@ -426,7 +426,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
 
   if (lispy_function_keys[event->wVirtualKeyCode] == 0)
     {
-      emacs_ev->kind = ascii_keystroke;
+      emacs_ev->kind = ASCII_KEYSTROKE_EVENT;
 
       if (!NILP (Vw32_recognize_altgr)
 	  && (event->dwControlKeyState & LEFT_CTRL_PRESSED)
@@ -468,7 +468,7 @@ key_event (KEY_EVENT_RECORD *event, struct input_event *emacs_ev, int *isdead)
     }
   else
     {
-      emacs_ev->kind = non_ascii_keystroke;
+      emacs_ev->kind = NON_ASCII_KEYSTROKE_EVENT;
       XSETINT (emacs_ev->code, event->wVirtualKeyCode);
     }
 
@@ -506,7 +506,7 @@ w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state)
 }
 
 /* Mouse position hook.  */
-void 
+void
 w32_console_mouse_position (FRAME_PTR *f,
 			    int insist,
 			    Lisp_Object *bar_window,
@@ -523,16 +523,16 @@ w32_console_mouse_position (FRAME_PTR *f,
   *bar_window = Qnil;
   *part = 0;
   SELECTED_FRAME ()->mouse_moved = 0;
-  
+
   *x = movement_pos.X;
   *y = movement_pos.Y;
   *time = movement_time;
-  
+
   UNBLOCK_INPUT;
 }
 
 /* Remember mouse motion and notify emacs.  */
-static void 
+static void
 mouse_moved_to (int x, int y)
 {
   /* If we're in the same place, ignore it */
@@ -563,14 +563,14 @@ static int emacs_button_translation[NUM_TRANSLATED_MOUSE_BUTTONS] =
   0, 2, 1
 };
 
-static int 
+static int
 do_mouse_event (MOUSE_EVENT_RECORD *event,
 		struct input_event *emacs_ev)
 {
   static DWORD button_state = 0;
   DWORD but_change, mask;
   int i;
-  
+
   if (event->dwEventFlags == MOUSE_MOVED)
     {
       /* For movement events we just note that the mouse has moved
@@ -578,14 +578,14 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
       mouse_moved_to (event->dwMousePosition.X, event->dwMousePosition.Y);
       return 0;
     }
-  
+
   /* It looks like the console code sends us a mouse event with
      dwButtonState == 0 when a window is activated.  Ignore this case.  */
   if (event->dwButtonState == button_state)
     return 0;
-  
-  emacs_ev->kind = mouse_click;
-  
+
+  emacs_ev->kind = MOUSE_CLICK_EVENT;
+
   /* Find out what button has changed state since the last button event.  */
   but_change = button_state ^ event->dwButtonState;
   mask = 1;
@@ -603,7 +603,7 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
   emacs_ev->timestamp = GetTickCount ();
   emacs_ev->modifiers = w32_kbd_mods_to_emacs (event->dwControlKeyState, 0) |
     ((event->dwButtonState & mask) ? down_modifier : up_modifier);
-  
+
   XSETFASTINT (emacs_ev->x, event->dwMousePosition.X);
   XSETFASTINT (emacs_ev->y, event->dwMousePosition.Y);
 /* for Mule 2.2 (Based on Emacs 19.28 */
@@ -612,15 +612,15 @@ do_mouse_event (MOUSE_EVENT_RECORD *event,
 #else
   XSETFRAME (emacs_ev->frame_or_window, get_frame ());
 #endif
-  
+
   return 1;
 }
 
-static void 
+static void
 resize_event (WINDOW_BUFFER_SIZE_RECORD *event)
 {
   FRAME_PTR f = get_frame ();
-  
+
   change_frame_size (f, event->dwSize.Y, event->dwSize.X, 0, 1);
   SET_FRAME_GARBAGED (f);
 }
@@ -641,7 +641,7 @@ maybe_generate_resize_event ()
 		     0, 0);
 }
 
-int 
+int
 w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 			 int expected)
 {
@@ -654,10 +654,10 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
       interrupt_input_pending = 1;
       return -1;
     }
-  
+
   interrupt_input_pending = 0;
   BLOCK_INPUT;
-  
+
   for (;;)
     {
       nev = fill_queue (0);
@@ -677,7 +677,7 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
             case KEY_EVENT:
 	      add = key_event (&queue_ptr->Event.KeyEvent, bufp, &isdead);
 	      if (add == -1) /* 95.7.25 by himi */
-		{ 
+		{
 		  queue_ptr--;
 		  add = 1;
 		}
@@ -697,13 +697,13 @@ w32_console_read_socket (int sd, struct input_event *bufp, int numchars,
 	      if (w32_use_full_screen_buffer)
 		resize_event (&queue_ptr->Event.WindowBufferSizeEvent);
 	      break;
-            
+
             case MENU_EVENT:
             case FOCUS_EVENT:
 	      /* Internal event types, ignored. */
 	      break;
             }
-            
+
 	  queue_ptr++;
 	  nev--;
         }

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/eval
 @node Evaluation, Control Structures, Symbols, Top
@@ -30,7 +30,7 @@ function @code{eval}.
 @section Introduction to Evaluation
 
   The Lisp interpreter, or evaluator, is the program that computes
-the value of an expression that is given to it.  When a function 
+the value of an expression that is given to it.  When a function
 written in Lisp is called, the evaluator computes the value of the
 function by evaluating the expressions in the function body.  Thus,
 running any Lisp program really means running the Lisp interpreter.
@@ -300,7 +300,7 @@ function, not a symbol.
 @smallexample
 @group
 ((lambda (arg) (erste arg))
- '(1 2 3)) 
+ '(1 2 3))
      @result{} 1
 @end group
 @end smallexample

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
 @node Modes, Documentation,  Keymaps, Top
@@ -69,6 +69,11 @@ it is convenient to use @code{define-derived-mode} with a @code{nil}
 parent argument, since it automatically enforces the most important
 coding conventions for you.
 
+@findex define-generic-mode
+  For a very simple programming language major mode that handles
+comments and fontification, you can use @code{define-generic-mode}
+in @file{generic.el}.
+
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
 ordinary Emacs commands rather than Rmail commands).  In such cases, the
@@ -94,7 +99,7 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
 * Example Major Modes::     Text mode and Lisp modes.
 * Auto Major Mode::         How Emacs chooses the major mode automatically.
 * Mode Help::               Finding out how to use a mode.
-* Derived Modes::           Defining a new major mode based on another major 
+* Derived Modes::           Defining a new major mode based on another major
                               mode.
 @end menu
 
@@ -248,7 +253,7 @@ variable local to every buffer in which it is subsequently set, which
 would affect buffers that do not use this mode.  It is undesirable for a
 mode to have such global effects.  @xref{Buffer-Local Variables}.
 
-With rare exceptions, the only reasonable way to use 
+With rare exceptions, the only reasonable way to use
 @code{make-variable-buffer-local} in a Lisp package is for a variable
 which is used only within that package.  Using it on a variable used by
 other packages would interfere with them.
@@ -319,7 +324,7 @@ the conventions listed above:
 @smallexample
 @group
 ;; @r{Create mode-specific tables.}
-(defvar text-mode-syntax-table nil 
+(defvar text-mode-syntax-table nil
   "Syntax table used while in text mode.")
 @end group
 
@@ -398,7 +403,7 @@ correspondingly more complicated.  Here are excerpts from
 @smallexample
 @group
 ;; @r{Create mode-specific table variables.}
-(defvar lisp-mode-syntax-table nil "")  
+(defvar lisp-mode-syntax-table nil "")
 (defvar emacs-lisp-mode-syntax-table nil "")
 (defvar lisp-mode-abbrev-table nil "")
 @end group
@@ -414,7 +419,7 @@ correspondingly more complicated.  Here are excerpts from
       ;; @r{Set syntax of chars up to 0 to class of chars that are}
       ;;   @r{part of symbol names but not words.}
       ;;   @r{(The number 0 is @code{48} in the @sc{ascii} character set.)}
-      (while (< i ?0) 
+      (while (< i ?0)
         (modify-syntax-entry i "_   " emacs-lisp-mode-syntax-table)
         (setq i (1+ i)))
       @dots{}
@@ -508,7 +513,7 @@ And here is the code to set up the keymap for Lisp mode:
 @end smallexample
 
   Finally, here is the complete major mode function definition for
-Lisp mode.  
+Lisp mode.
 
 @smallexample
 @group
@@ -596,7 +601,7 @@ the @samp{mode:} local variable near the end of a file; the
 How Major Modes are Chosen, emacs, The GNU Emacs Manual}.
 @end defun
 
-@defopt default-major-mode 
+@defopt default-major-mode
 This variable holds the default major mode for new buffers.  The
 standard value is @code{fundamental-mode}.
 
@@ -644,7 +649,7 @@ For example,
 @end group
 @group
  ("\\.el\\'" . emacs-lisp-mode)
- ("\\.c\\'" . c-mode) 
+ ("\\.c\\'" . c-mode)
  ("\\.h\\'" . c-mode)
  @dots{})
 @end group
@@ -670,11 +675,11 @@ init file.)
 @smallexample
 @group
 (setq auto-mode-alist
-  (append 
+  (append
    ;; @r{File name (within directory) starts with a dot.}
-   '(("/\\.[^/]*\\'" . fundamental-mode)  
+   '(("/\\.[^/]*\\'" . fundamental-mode)
      ;; @r{File name has no dot.}
-     ("[^\\./]*\\'" . fundamental-mode)   
+     ("[^\\./]*\\'" . fundamental-mode)
      ;; @r{File name ends in @samp{.C}.}
      ("\\.C\\'" . c++-mode))
    auto-mode-alist))
@@ -737,7 +742,7 @@ This construct defines @var{variant} as a major mode command, using
 The new command @var{variant} is defined to call the function
 @var{parent}, then override certain aspects of that parent mode:
 
-@itemize @bullet 
+@itemize @bullet
 @item
 The new mode has its own keymap, named @code{@var{variant}-map}.
 @code{define-derived-mode} initializes this map to inherit from
@@ -746,25 +751,25 @@ The new mode has its own keymap, named @code{@var{variant}-map}.
 @item
 The new mode has its own syntax table, kept in the variable
 @code{@var{variant}-syntax-table}.
-@code{define-derived-mode} initializes this variable by copying 
+@code{define-derived-mode} initializes this variable by copying
 @code{@var{parent}-syntax-table}, if it is not already set.
 
 @item
 The new mode has its own abbrev table, kept in the variable
 @code{@var{variant}-abbrev-table}.
-@code{define-derived-mode} initializes this variable by copying 
+@code{define-derived-mode} initializes this variable by copying
 @code{@var{parent}-abbrev-table}, if it is not already set.
 
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook},
 which it runs in standard fashion as the very last thing that it does.
-(The new mode also runs the mode hook of @var{parent} as part 
+(The new mode also runs the mode hook of @var{parent} as part
 of calling @var{parent}.)
 @end itemize
 
 In addition, you can specify how to override other aspects of
 @var{parent} with @var{body}.  The command @var{variant}
-evaluates the forms in @var{body} after setting up all its usual 
+evaluates the forms in @var{body} after setting up all its usual
 overrides, just before running @code{@var{variant}-hook}.
 
 The argument @var{docstring} specifies the documentation string for the
@@ -1006,7 +1011,7 @@ specifying bindings in this form:
 @smallexample
 (define-minor-mode hungry-mode
   "Toggle Hungry mode.
-With no argument, this command toggles the mode. 
+With no argument, this command toggles the mode.
 Non-null prefix argument turns on the mode.
 Null prefix argument turns off the mode.
 
@@ -1020,7 +1025,7 @@ See the command \\[hungry-electric-delete]."
  ;; The minor mode bindings.
  '(("\C-\^?" . hungry-electric-delete)
    ("\C-\M-\^?"
-    . (lambda () 
+    . (lambda ()
         (interactive)
         (hungry-electric-delete t)))))
 @end smallexample
@@ -1208,22 +1213,22 @@ directory.
    'mode-line-mule-info
    'mode-line-modified
    'mode-line-frame-identification
-   "%b--" 
+   "%b--"
 @end group
 @group
    ;; @r{Note that this is evaluated while making the list.}
    ;; @r{It makes a mode line construct which is just a string.}
    (getenv "HOST")
 @end group
-   ":" 
+   ":"
    'default-directory
    "   "
    'global-mode-string
    "   %[("
    '(:eval (mode-line-mode-name))
-   'mode-line-process  
-   'minor-mode-alist 
-   "%n" 
+   'mode-line-process
+   'minor-mode-alist
+   "%n"
    ")%]--"
 @group
    '(which-func-mode ("" which-func-format "--"))
@@ -1320,9 +1325,9 @@ The default value of @code{minor-mode-alist} is:
 @group
 minor-mode-alist
 @result{} ((vc-mode vc-mode)
-    (abbrev-mode " Abbrev") 
-    (overwrite-mode overwrite-mode) 
-    (auto-fill-function " Fill")         
+    (abbrev-mode " Abbrev")
+    (overwrite-mode overwrite-mode)
+    (auto-fill-function " Fill")
     (defining-kbd-macro " Def")
     (isearch-mode isearch-mode))
 @end group
@@ -1381,8 +1386,8 @@ The default value of @code{default-mode-line-format} is this list:
  ;; @r{properties to make it mouse-sensitive.}
  (:eval (mode-line-mode-name))
  mode-line-process
- minor-mode-alist 
- "%n" 
+ minor-mode-alist
+ "%n"
  ")%]--"
 @end group
 @group
@@ -1666,7 +1671,7 @@ variables @code{imenu-prev-index-position-function} and
 If this variable is non-@code{nil}, its value should be a function that
 finds the next ``definition'' to put in the buffer index, scanning
 backward in the buffer from point.  It should return @code{nil} if it
-doesn't find another ``definition'' before point.  Otherwise it shuould
+doesn't find another ``definition'' before point.  Otherwise it should
 leave point at the place it finds a ``definition,'' and return any
 non-@code{nil} value.
 
@@ -2141,7 +2146,7 @@ Used (typically) for built-in function names.
 @item font-lock-function-name-face
 @vindex font-lock-function-name-face
 Used (typically) for the name of a function being defined or declared,
-in a function definition or declaration. 
+in a function definition or declaration.
 
 @item font-lock-variable-name-face
 @vindex font-lock-variable-name-face

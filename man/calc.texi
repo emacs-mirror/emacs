@@ -5,10 +5,6 @@
 @c [title]
 @settitle GNU Emacs Calc 2.02g Manual
 @setchapternewpage odd
-@dircategory Emacs
-@direntry
-* Calc: (calc). 	Advanced desk calculator and mathematical tool.
-@end direntry
 @comment %**end of header (This is for running Texinfo on a region.)
 
 @tex
@@ -67,11 +63,12 @@
 @end ignore
 @end iftex
 
-@ifnottex
+@copying
 This file documents Calc, the GNU Emacs calculator.
 
 Copyright (C) 1990, 1991, 2001, 2002 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -82,7 +79,13 @@ Texts as in (a) below.
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development.''
-@end ifnottex
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Calc: (calc). 	Advanced desk calculator and mathematical tool.
+@end direntry
 
 @titlepage
 @sp 6
@@ -99,17 +102,7 @@ Software Foundation raise funds for GNU development.''
 
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1990, 1991, 2001, 2002 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being just ``GNU GENERAL PUBLIC LICENSE'', with the
-Front-Cover texts being ``A GNU Manual,'' and with the Back-Cover
-Texts as in (a) below.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
+@insertcopying
 @end titlepage
 
 @c [begin]
@@ -2330,7 +2323,7 @@ trail-related commands.  Each entry on the line shows one command,
 with a single capital letter showing which letter you press to get
 that command.  We have used @kbd{t n}, @kbd{t p}, @kbd{t ]}, and
 @kbd{t y} so far.  The @samp{[MORE]} means you can press @kbd{?}
-again to see more @kbd{t}-prefix comands.  Notice that the commands
+again to see more @kbd{t}-prefix commands.  Notice that the commands
 are roughly divided (by semicolons) into related groups.
 
 When you are in the help display for a prefix key, the prefix is
@@ -4485,7 +4478,7 @@ infinity again.  Finally, we add this plus infinity to the minus
 infinity we had earlier.  If you work it out, you might expect
 the answer to be @i{-72} for this.  But the 72 has been completely
 lost next to the infinities; by the time we compute @w{@samp{inf - inf}}
-the finite difference between them, if any, is indetectable.
+the finite difference between them, if any, is undetectable.
 So we say the result is @dfn{indeterminate}, which Calc writes
 with the symbol @code{nan} (for Not A Number).
 
@@ -8236,14 +8229,8 @@ argument is exactly what we want to map over:
 @end group
 @end smallexample
 
-@ifinfo
 @noindent
-Et voila, September 13, 1991 is a Friday.
-@end ifinfo
-@tex
-\noindent
-{\it Et voil{\accent"12 a}}, September 13, 1991 is a Friday.
-@end tex
+Et voil@`a, September 13, 1991 is a Friday.
 
 @smallexample
 @group
@@ -10071,7 +10058,7 @@ Bugs'' sections of the manual.
 @noindent
 @cindex Stack basics
 @c [fix-tut RPN Calculations and the Stack]
-Calc uses RPN notation.  If you are not familar with RPN, @pxref{RPN
+Calc uses RPN notation.  If you are not familiar with RPN, @pxref{RPN
 Tutorial}.
 
 To add the numbers 1 and 2 in Calc you would type the keys:
@@ -11130,7 +11117,7 @@ precision is 15, the seconds will keep three digits after the
 decimal point.  Decreasing the precision below 12 may cause the
 time part of a date form to become inaccurate.  This can also happen
 if astronomically high years are used, though this will not be an
-issue in everyday (or even everymillenium) use.  Note that date
+issue in everyday (or even everymillennium) use.  Note that date
 forms without times are stored as exact integers, so roundoff is
 never an issue for them.
 
@@ -12449,7 +12436,7 @@ this calculation has infinity as an input.
 @cindex Positive infinite mode
 The @kbd{m i} command with a numeric prefix argument of zero,
 i.e., @kbd{C-u 0 m i}, turns on a ``positive infinite mode'' in
-which zero is treated as positive instead of being directionless.  
+which zero is treated as positive instead of being directionless.
 Thus, @samp{1 / 0 = inf} and @samp{-1 / 0 = -inf} in this mode.
 Note that zero never actually has a sign in Calc; there are no
 separate representations for @i{+0} and @i{-0}.  Positive
@@ -14184,7 +14171,7 @@ Calc      TeX           eqn
 ----      ---           ---
 acute     \acute
 bar       \bar          bar
-breve     \breve        
+breve     \breve
 check     \check
 dot       \dot          dot
 dotdot    \ddot         dotdot
@@ -14471,7 +14458,7 @@ Subscripts use double square brackets: @samp{a[[i]]}.@refill
 @cindex Maple language
 The @kbd{d W} (@code{calc-maple-language}) command selects the
 conventions of Maple, another mathematical tool from the University
-of Waterloo.  
+of Waterloo.
 
 Maple's language is much like C.  Underscores are allowed in symbol
 names; square brackets are used for subscripts; explicit @samp{*}s for
@@ -15053,7 +15040,7 @@ as an algebraic entry.
 
 @example
 @group
- C  +  C 
+ C  +  C
 a b   7 3
 @end group
 @end example
@@ -15577,7 +15564,7 @@ and 3 (HMS).  The @kbd{m d} command accepts these prefixes.
 @item
 Symbolic mode.  Value is 0 or 1; default is 0.  Command is @kbd{m s}.
 
-@item 
+@item
 Fraction mode.  Value is 0 or 1; default is 0.  Command is @kbd{m f}.
 
 @item
@@ -17174,7 +17161,7 @@ falls in this hour results in a time value for the following hour,
 from 3 a.m.@: to 4 a.m.  At the end of daylight savings time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
 form that falls in in this hour results in a time value for the first
-manifestion of that time (@emph{not} the one that occurs one hour later).
+manifestation of that time (@emph{not} the one that occurs one hour later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
 daylight savings adjustment is always taken to be zero.
@@ -17639,7 +17626,7 @@ fvb(rate, n, pmt) =     pmt * ----------------------------
 fvl(rate, n, pmt) =     pmt * (1 + rate)
 
                                             -n
-                              1 - (1 + rate)  
+                              1 - (1 + rate)
 pv(rate, n, pmt) =      pmt * ----------------
                                     rate
 
@@ -17971,7 +17958,7 @@ flag keys must be used to get some of these functions from the keyboard.
 @cindex @code{phi} variable
 @cindex Phi, golden ratio
 @cindex Golden ratio
-One miscellanous command is shift-@kbd{P} (@code{calc-pi}), which pushes
+One miscellaneous command is shift-@kbd{P} (@code{calc-pi}), which pushes
 the value of @c{$\pi$}
 @cite{pi} (at the current precision) onto the stack.  With the
 Hyperbolic flag, it pushes the value @cite{e}, the base of natural logarithms.
@@ -19927,7 +19914,7 @@ the integer 4 and the float 4.0 are considered equal even though they
 are not ``identical.''  Variables are treated like plain symbols without
 attached values by the set operations; subtracting the set @samp{[b]}
 from @samp{[a, b]} always yields the set @samp{[a]} even though if
-the variables @samp{a} and @samp{b} both equalled 17, you might
+the variables @samp{a} and @samp{b} both equaled 17, you might
 expect the answer @samp{[]}.
 
 If a set contains interval forms, then it is assumed to be a set of
@@ -22997,7 +22984,7 @@ indefinite integral in terms of variable @code{v} instead of @code{x}.
 With four arguments, @samp{integ(f(x),x,a,b)} represents a definite
 integral from @code{a} to @code{b}.
 @end ifinfo
-@tex  
+@tex
 If you use the @code{integ} function directly in an algebraic formula,
 you can also write @samp{integ(f,x,v)} which expresses the resulting
 indefinite integral in terms of variable @code{v} instead of @code{x}.
@@ -23262,7 +23249,7 @@ Two useful commands for working with the result of @kbd{a S} are
 to @cite{y/3 - 2}, and @kbd{s l} (@pxref{Let Command}) which evaluates
 another formula with @cite{x} set equal to @cite{y/3 - 2}.
 
-@menu 
+@menu
 * Multiple Solutions::
 * Solving Systems of Equations::
 * Decomposing Polynomials::
@@ -23379,7 +23366,7 @@ list of numerical roots, however, provided that symbolic mode (@kbd{m s})
 is not turned on.  (If you work with symbolic mode on, recall that the
 @kbd{N} (@code{calc-eval-num}) key is a handy way to reevaluate the
 formula on the stack with symbolic mode temporarily off.)  Naturally,
-@kbd{a P} can only provide numerical roots if the polynomial coefficents
+@kbd{a P} can only provide numerical roots if the polynomial coefficients
 are all numbers (real or complex).
 
 @node Solving Systems of Equations, Decomposing Polynomials, Multiple Solutions, Solving Equations
@@ -24145,7 +24132,7 @@ is simply scaled uniformly by @c{$1 / \sigma^2$}
 where it has a minimum).  But there @emph{will} be a difference
 in the estimated errors of the coefficients reported by @kbd{H a F}.
 
-Consult any text on statistical modelling of data for a discussion
+Consult any text on statistical modeling of data for a discussion
 of where these error estimates come from and how they should be
 interpreted.
 
@@ -26017,7 +26004,7 @@ binding one summand to @cite{x} and the other to @cite{y}, and it
 matches anything else by binding the whole expression to @cite{x} and
 zero to @cite{y}.  The other operators above work similarly.@refill
 
-For general miscellanous functions, the default value @code{def}
+For general miscellaneous functions, the default value @code{def}
 must be specified.  Optional arguments are dropped starting with
 the rightmost one during matching.  For example, the pattern
 @samp{f(opt(a,0), b, opt(c,b))} will match @samp{f(b)}, @samp{f(a,b)},
@@ -26499,7 +26486,7 @@ f(!!!a, a)  :=  g(a)
 will be careful to bind @samp{a} to the second argument of @code{f}
 before testing the first argument.  If Calc had tried to match the
 first argument of @code{f} first, the results would have been
-disasterous:  Since @code{a} was unbound so far, the pattern @samp{a}
+disastrous: since @code{a} was unbound so far, the pattern @samp{a}
 would have matched anything at all, and the pattern @samp{!!!a}
 therefore would @emph{not} have matched anything at all!
 
@@ -27050,7 +27037,7 @@ This will simplify the formula whenever @cite{b} and/or @cite{c} can
 be made simpler by squaring.  For example, applying this rule to
 @samp{2 / (sqrt(2) + 3)} yields @samp{6:7 - 2:7 sqrt(2)} (assuming
 Symbolic Mode has been enabled to keep the square root from being
-evaulated to a floating-point approximation).  This rule is also
+evaluated to a floating-point approximation).  This rule is also
 useful when working with symbolic complex numbers, e.g.,
 @samp{(a + b i) / (c + d i)}.
 
@@ -27903,7 +27890,7 @@ names rather than prompting for the variable name.
 @pindex calc-permanent-variable
 @cindex Storing variables
 @cindex Permanent variables
-@cindex @file{.emacs} file, veriables
+@cindex @file{.emacs} file, variables
 The @kbd{s p} (@code{calc-permanent-variable}) command saves a
 variable's value permanently in your @file{.emacs} file, so that its
 value will still be available in future Emacs sessions.  You can
@@ -29874,7 +29861,7 @@ Subformulas}, to see how this works).
 @kindex M-# j
 @pindex calc-embedded-select
 The @kbd{M-# j} (@code{calc-embedded-select}) command provides an
-easy way to operate on assigments.  It is just like @kbd{M-# e},
+easy way to operate on assignments.  It is just like @kbd{M-# e},
 except that if the enabled formula is an assignment, it uses
 @kbd{j 2} to select the righthand side.  If the enabled formula
 is an evaluates-to, it uses @kbd{j 1} to select the lefthand side.
@@ -31736,7 +31723,7 @@ The strategy is to ensure that @cite{x} is nonnegative before calling
 to a suitable range, namely, plus-or-minus @c{$\pi \over 4$}
 @cite{pi/4}.  Note that each
 test, and particularly the first comparison against 7, is designed so
-that small roundoff errors cannnot produce an infinite loop.  (Suppose
+that small roundoff errors cannot produce an infinite loop.  (Suppose
 we compared with @samp{(two-pi)} instead; if due to roundoff problems
 the modulo operator ever returned @samp{(two-pi)} exactly, an infinite
 recursion could result!)  We use modulo only for arguments that will
@@ -31911,7 +31898,7 @@ treat them as ``black box'' objects with no important internal
 structure.
 
 There is also a @code{rawnum} symbol, which is a combination of
-@code{raw} (returning a raw Calc object) and @code{num} (signalling
+@code{raw} (returning a raw Calc object) and @code{num} (signaling
 an error if that object is not a constant).
 
 You can pass a raw Calc object to @code{calc-eval} in place of a
@@ -34029,7 +34016,7 @@ If composition @var{c} is a ``flat'' composition, return the last
 
 @comment @node Lisp Variables, Hooks, Formatting Lisp Functions, Internals
 @comment @subsubsection Lisp Variables
-@comment 
+@comment
 @comment @noindent
 @comment (This section is currently unfinished.)
 
@@ -34410,8 +34397,8 @@ keystrokes are not listed in this summary.
 @r{       @:     M-# _  @:             @:    36  @:calc-grab-sum-across@:}
 @r{       @:     M-# `  @:editing      @:    30  @:calc-embedded-edit@:}
 @r{       @:     M-# 0  @:(zero)       @:        @:calc-reset@:}
- 
-@c 
+
+@c
 @r{       @:      0-9   @:number       @:        @:@:number}
 @r{       @:      .     @:number       @:        @:@:0.number}
 @r{       @:      _     @:number       @:        @:-@:number}
@@ -34422,12 +34409,12 @@ keystrokes are not listed in this summary.
 @r{       @:      @@ ' " @:  (in number)@:        @:@:HMS form}
 @r{       @:      h m s @:  (in number)@:        @:@:HMS form}
 
-@c 
+@c
 @r{       @:      '     @:formula      @: 37,46  @:@:formula}
 @r{       @:      $     @:formula      @: 37,46  @:$@:formula}
 @r{       @:      "     @:string       @: 37,46  @:@:string}
- 
-@c 
+
+@c
 @r{    a b@:      +     @:             @:     2  @:add@:(a,b)  a+b}
 @r{    a b@:      -     @:             @:     2  @:sub@:(a,b)  a@minus{}b}
 @r{    a b@:      *     @:             @:     2  @:mul@:(a,b)  a b, a*b}
@@ -34445,8 +34432,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      !     @:             @:     1  @:fact@:(a)  a!}
 @r{      a@:      =     @:             @:     1  @:evalv@:(a)}
 @r{      a@:      M-%   @:             @:        @:percent@:(a)  a%}
- 
-@c 
+
+@c
 @r{  ... a@:      @key{RET}   @:             @:     1  @:@:... a a}
 @r{  ... a@:      @key{SPC}   @:             @:     1  @:@:... a a}
 @r{... a b@:      @key{TAB}   @:             @:     3  @:@:... b a}
@@ -34456,8 +34443,8 @@ keystrokes are not listed in this summary.
 @r{... a b@:      M-@key{DEL} @:             @:     1  @:@:... b}
 @r{       @:      M-@key{RET} @:             @:     4  @:calc-last-args@:}
 @r{      a@:      `     @:editing      @:  1,30  @:calc-edit@:}
- 
-@c 
+
+@c
 @r{  ... a@:      C-d   @:             @:     1  @:@:...}
 @r{       @:      C-k   @:             @:    27  @:calc-kill@:}
 @r{       @:      C-w   @:             @:    27  @:calc-kill-region@:}
@@ -34465,8 +34452,8 @@ keystrokes are not listed in this summary.
 @r{       @:      C-_   @:             @:     4  @:calc-undo@:}
 @r{       @:      M-k   @:             @:    27  @:calc-copy-as-kill@:}
 @r{       @:      M-w   @:             @:    27  @:calc-copy-region-as-kill@:}
- 
-@c 
+
+@c
 @r{       @:      [     @:             @:        @:@:[...}
 @r{[.. a b@:      ]     @:             @:        @:@:[a,b]}
 @r{       @:      (     @:             @:        @:@:(...}
@@ -34475,15 +34462,15 @@ keystrokes are not listed in this summary.
 @r{       @:      ;     @:             @:        @:@:matrix or polar complex}
 @r{       @:      ..    @:             @:        @:@:interval}
 
-@c 
+@c
 @r{       @:      ~     @:             @:        @:calc-num-prefix@:}
 @r{       @:      <     @:             @:     4  @:calc-scroll-left@:}
 @r{       @:      >     @:             @:     4  @:calc-scroll-right@:}
 @r{       @:      @{     @:             @:     4  @:calc-scroll-down@:}
 @r{       @:      @}     @:             @:     4  @:calc-scroll-up@:}
 @r{       @:      ?     @:             @:        @:calc-help@:}
- 
-@c 
+
+@c
 @r{      a@:      n     @:             @:     1  @:neg@:(a)  @minus{}a}
 @r{       @:      o     @:             @:     4  @:calc-realign@:}
 @r{       @:      p     @:precision    @:    31  @:calc-precision@:}
@@ -34491,8 +34478,8 @@ keystrokes are not listed in this summary.
 @r{       @:      w     @:             @:        @:calc-why@:}
 @r{       @:      x     @:command      @:        @:M-x calc-@:command}
 @r{      a@:      y     @:            @:1,28,49  @:calc-copy-to-buffer@:}
- 
-@c 
+
+@c
 @r{      a@:      A     @:             @:     1  @:abs@:(a)}
 @r{    a b@:      B     @:             @:     2  @:log@:(a,b)}
 @r{    a b@:    I B     @:             @:     2  @:alog@:(a,b)  b^a}
@@ -34537,8 +34524,8 @@ keystrokes are not listed in this summary.
 @r{      a@:  I H T     @:             @:     1  @:arctanh@:(a)}
 @r{       @:      U     @:             @:     4  @:calc-undo@:}
 @r{       @:      X     @:             @:     4  @:calc-call-last-kbd-macro@:}
- 
-@c 
+
+@c
 @r{    a b@:      a =   @:             @:     2  @:eq@:(a,b)  a=b}
 @r{    a b@:      a #   @:             @:     2  @:neq@:(a,b)  a!=b}
 @r{    a b@:      a <   @:             @:     2  @:lt@:(a,b)  a<b}
@@ -34552,20 +34539,20 @@ keystrokes are not listed in this summary.
 @r{  a b c@:      a :   @:             @:    45  @:if@:(a,b,c)  a?b:c}
 @r{      a@:      a .   @:             @:     1  @:rmeq@:(a)}
 @r{      a@:      a "   @:             @:   7,8  @:calc-expand-formula@:}
- 
-@c 
+
+@c
 @r{      a@:      a +   @:i, l, h      @:  6,38  @:sum@:(a,i,l,h)}
 @r{      a@:      a -   @:i, l, h      @:  6,38  @:asum@:(a,i,l,h)}
 @r{      a@:      a *   @:i, l, h      @:  6,38  @:prod@:(a,i,l,h)}
 @r{    a b@:      a _   @:             @:     2  @:subscr@:(a,b)  a_b}
- 
-@c 
+
+@c
 @r{    a b@:      a \   @:             @:     2  @:pdiv@:(a,b)}
 @r{    a b@:      a %   @:             @:     2  @:prem@:(a,b)}
 @r{    a b@:      a /   @:             @:     2  @:pdivrem@:(a,b)  [q,r]}
 @r{    a b@:    H a /   @:             @:     2  @:pdivide@:(a,b)  q+r/b}
- 
-@c 
+
+@c
 @r{      a@:      a a   @:             @:     1  @:apart@:(a)}
 @r{      a@:      a b   @:old, new     @:    38  @:subst@:(a,old,new)}
 @r{      a@:      a c   @:v            @:    38  @:collect@:(a,v)}
@@ -34586,8 +34573,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      a t   @:v, n         @: 31,39  @:taylor@:(a,v,n)}
 @r{      a@:      a v   @:             @:   7,8  @:calc-alg-evaluate@:}
 @r{      a@:      a x   @:             @:   4,8  @:expand@:(a)}
- 
-@c 
+
+@c
 @r{   data@:      a F   @:model, vars  @:    48  @:fit@:(m,iv,pv,data)}
 @r{   data@:    I a F   @:model, vars  @:    48  @:xfit@:(m,iv,pv,data)}
 @r{   data@:    H a F   @:model, vars  @:    48  @:efit@:(m,iv,pv,data)}
@@ -34607,8 +34594,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      a T   @:i, l, h      @:  6,38  @:table@:(a,i,l,h)}
 @r{    a g@:      a X   @:v            @:    38  @:maximize@:(a,v,g)}
 @r{    a g@:    H a X   @:v            @:    38  @:wmaximize@:(a,v,g)}
- 
-@c 
+
+@c
 @r{    a b@:      b a   @:             @:     9  @:and@:(a,b,w)}
 @r{      a@:      b c   @:             @:     9  @:clip@:(a,w)}
 @r{    a b@:      b d   @:             @:     9  @:diff@:(a,b,w)}
@@ -34624,8 +34611,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      b u   @:             @:     1  @:vunpack@:(a)}
 @r{       @:      b w   @:w            @:  9,50  @:calc-word-size@:}
 @r{    a b@:      b x   @:             @:     9  @:xor@:(a,b,w)}
- 
-@c 
+
+@c
 @r{c s l p@:      b D   @:             @:        @:ddb@:(c,s,l,p)}
 @r{  r n p@:      b F   @:             @:        @:fv@:(r,n,p)}
 @r{  r n p@:    I b F   @:             @:        @:fvb@:(r,n,p)}
@@ -34654,8 +34641,8 @@ keystrokes are not listed in this summary.
 @r{  r p a@:    I b #   @:             @:        @:nperb@:(r,p,a)}
 @r{  r p a@:    H b #   @:             @:        @:nperl@:(r,p,a)}
 @r{    a b@:      b %   @:             @:        @:relch@:(a,b)}
- 
-@c 
+
+@c
 @r{      a@:      c c   @:             @:     5  @:pclean@:(a,p)}
 @r{      a@:      c 0-9 @:             @:        @:pclean@:(a,p)}
 @r{      a@:    H c c   @:             @:     5  @:clean@:(a,p)}
@@ -34667,15 +34654,15 @@ keystrokes are not listed in this summary.
 @r{      a@:      c p   @:             @:        @:polar@:(a)}
 @r{      a@:    I c p   @:             @:        @:rect@:(a)}
 @r{      a@:      c r   @:             @:     1  @:rad@:(a)}
- 
-@c 
+
+@c
 @r{      a@:      c F   @:             @:     5  @:pfrac@:(a,p)}
 @r{      a@:    H c F   @:             @:     5  @:frac@:(a,p)}
- 
-@c 
+
+@c
 @r{      a@:      c %   @:             @:        @:percent@:(a*100)}
- 
-@c 
+
+@c
 @r{       @:      d .   @:char         @:    50  @:calc-point-char@:}
 @r{       @:      d ,   @:char         @:    50  @:calc-group-char@:}
 @r{       @:      d <   @:             @: 13,50  @:calc-left-justify@:}
@@ -34688,14 +34675,14 @@ keystrokes are not listed in this summary.
 @r{       @:      d "   @:             @: 12,50  @:calc-display-strings@:}
 @r{       @:      d @key{SPC} @:             @:        @:calc-refresh@:}
 @r{       @:      d @key{RET} @:             @:     1  @:calc-refresh-top@:}
- 
-@c 
+
+@c
 @r{       @:      d 0   @:             @:    50  @:calc-decimal-radix@:}
 @r{       @:      d 2   @:             @:    50  @:calc-binary-radix@:}
 @r{       @:      d 6   @:             @:    50  @:calc-hex-radix@:}
 @r{       @:      d 8   @:             @:    50  @:calc-octal-radix@:}
- 
-@c 
+
+@c
 @r{       @:      d b   @:           @:12,13,50  @:calc-line-breaking@:}
 @r{       @:      d c   @:             @:    50  @:calc-complex-notation@:}
 @r{       @:      d d   @:format       @:    50  @:calc-date-notation@:}
@@ -34714,8 +34701,8 @@ keystrokes are not listed in this summary.
 @r{       @:      d t   @:             @:    27  @:calc-truncate-stack@:}
 @r{       @:      d w   @:             @: 12,13  @:calc-auto-why@:}
 @r{       @:      d z   @:             @: 12,50  @:calc-leading-zeros@:}
- 
-@c 
+
+@c
 @r{       @:      d B   @:             @:    50  @:calc-big-language@:}
 @r{       @:      d C   @:             @:    50  @:calc-c-language@:}
 @r{       @:      d E   @:             @:    50  @:calc-eqn-language@:}
@@ -34727,12 +34714,12 @@ keystrokes are not listed in this summary.
 @r{       @:      d T   @:             @:    50  @:calc-tex-language@:}
 @r{       @:      d U   @:             @:    50  @:calc-unformatted-language@:}
 @r{       @:      d W   @:             @:    50  @:calc-maple-language@:}
- 
-@c 
+
+@c
 @r{      a@:      f [   @:             @:     4  @:decr@:(a,n)}
 @r{      a@:      f ]   @:             @:     4  @:incr@:(a,n)}
- 
-@c 
+
+@c
 @r{    a b@:      f b   @:             @:     2  @:beta@:(a,b)}
 @r{      a@:      f e   @:             @:     1  @:erf@:(a)}
 @r{      a@:    I f e   @:             @:     1  @:erfc@:(a)}
@@ -34745,8 +34732,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      f s   @:             @:     1  @:sign@:(a)}
 @r{    a b@:      f x   @:             @:     2  @:max@:(a,b)}
 @r{    n a@:      f y   @:             @:     2  @:besY@:(n,a)}
- 
-@c 
+
+@c
 @r{      a@:      f A   @:             @:     1  @:abssqr@:(a)}
 @r{  x a b@:      f B   @:             @:        @:betaI@:(x,a,b)}
 @r{  x a b@:    H f B   @:             @:        @:betaB@:(x,a,b)}
@@ -34764,8 +34751,8 @@ keystrokes are not listed in this summary.
 @r{    a n@:      f S   @:             @:     2  @:scf@:(a,n)}
 @r{    y x@:      f T   @:             @:        @:arctan2@:(y,x)}
 @r{      a@:      f X   @:             @:     1  @:xpon@:(a)}
- 
-@c 
+
+@c
 @r{    x y@:      g a   @:             @: 28,40  @:calc-graph-add@:}
 @r{       @:      g b   @:             @:    12  @:calc-graph-border@:}
 @r{       @:      g c   @:             @:        @:calc-graph-clear@:}
@@ -34785,8 +34772,8 @@ keystrokes are not listed in this summary.
 @r{       @:      g v   @:             @:        @:calc-graph-view-commands@:}
 @r{       @:      g x   @:display      @:        @:calc-graph-display@:}
 @r{       @:      g z   @:             @:    12  @:calc-graph-zero-x@:}
- 
-@c 
+
+@c
 @r{  x y z@:      g A   @:             @: 28,40  @:calc-graph-add-3d@:}
 @r{       @:      g C   @:command      @:        @:calc-graph-command@:}
 @r{       @:      g D   @:device       @: 43,44  @:calc-graph-device@:}
@@ -34803,13 +34790,13 @@ keystrokes are not listed in this summary.
 @r{       @:      g V   @:             @:        @:calc-graph-view-trail@:}
 @r{       @:      g X   @:format       @:        @:calc-graph-geometry@:}
 @r{       @:      g Z   @:             @:    12  @:calc-graph-zero-y@:}
- 
-@c 
+
+@c
 @r{       @:      g C-l @:             @:    12  @:calc-graph-log-z@:}
 @r{       @:      g C-r @:range        @:        @:calc-graph-range-z@:}
 @r{       @:      g C-t @:title        @:        @:calc-graph-title-z@:}
- 
-@c 
+
+@c
 @r{       @:      h b   @:             @:        @:calc-describe-bindings@:}
 @r{       @:      h c   @:key          @:        @:calc-describe-key-briefly@:}
 @r{       @:      h f   @:function     @:        @:calc-describe-function@:}
@@ -34820,23 +34807,23 @@ keystrokes are not listed in this summary.
 @r{       @:      h s   @:             @:        @:calc-info-summary@:}
 @r{       @:      h t   @:             @:        @:calc-tutorial@:}
 @r{       @:      h v   @:var          @:        @:calc-describe-variable@:}
- 
-@c 
+
+@c
 @r{       @:      j 1-9 @:             @:        @:calc-select-part@:}
 @r{       @:      j @key{RET} @:             @:    27  @:calc-copy-selection@:}
 @r{       @:      j @key{DEL} @:             @:    27  @:calc-del-selection@:}
 @r{       @:      j '   @:formula      @:    27  @:calc-enter-selection@:}
 @r{       @:      j `   @:editing      @: 27,30  @:calc-edit-selection@:}
 @r{       @:      j "   @:             @:  7,27  @:calc-sel-expand-formula@:}
- 
-@c 
+
+@c
 @r{       @:      j +   @:formula      @:    27  @:calc-sel-add-both-sides@:}
 @r{       @:      j -   @:formula      @:    27  @:calc-sel-sub-both-sides@:}
 @r{       @:      j *   @:formula      @:    27  @:calc-sel-mul-both-sides@:}
 @r{       @:      j /   @:formula      @:    27  @:calc-sel-div-both-sides@:}
 @r{       @:      j &   @:             @:    27  @:calc-sel-invert@:}
- 
-@c 
+
+@c
 @r{       @:      j a   @:             @:    27  @:calc-select-additional@:}
 @r{       @:      j b   @:             @:    12  @:calc-break-selections@:}
 @r{       @:      j c   @:             @:        @:calc-clear-selections@:}
@@ -34851,8 +34838,8 @@ keystrokes are not listed in this summary.
 @r{       @:      j s   @:             @:  4,27  @:calc-select-here@:}
 @r{       @:      j u   @:             @:    27  @:calc-unselect@:}
 @r{       @:      j v   @:             @:  7,27  @:calc-sel-evaluate@:}
- 
-@c 
+
+@c
 @r{       @:      j C   @:             @:    27  @:calc-sel-commute@:}
 @r{       @:      j D   @:             @:  4,27  @:calc-sel-distribute@:}
 @r{       @:      j E   @:             @:    27  @:calc-sel-jump-equals@:}
@@ -34865,8 +34852,8 @@ keystrokes are not listed in this summary.
 @r{       @:      j R   @:             @:  4,27  @:calc-commute-right@:}
 @r{       @:      j S   @:             @:  4,27  @:calc-select-here-maybe@:}
 @r{       @:      j U   @:             @:    27  @:calc-sel-unpack@:}
- 
-@c 
+
+@c
 @r{       @:      k a   @:             @:        @:calc-random-again@:}
 @r{      n@:      k b   @:             @:     1  @:bern@:(n)}
 @r{    n x@:    H k b   @:             @:     2  @:bern@:(n,x)}
@@ -34887,8 +34874,8 @@ keystrokes are not listed in this summary.
 @r{    n m@:      k s   @:             @:     2  @:stir1@:(n,m)}
 @r{    n m@:    H k s   @:             @:     2  @:stir2@:(n,m)}
 @r{      n@:      k t   @:             @:     1  @:totient@:(n)}
- 
-@c 
+
+@c
 @r{  n p x@:      k B   @:             @:        @:utpb@:(x,n,p)}
 @r{  n p x@:    I k B   @:             @:        @:ltpb@:(x,n,p)}
 @r{    v x@:      k C   @:             @:        @:utpc@:(x,v)}
@@ -34902,8 +34889,8 @@ keystrokes are not listed in this summary.
 @r{    m x@:    I k P   @:             @:        @:ltpp@:(x,m)}
 @r{    v x@:      k T   @:             @:        @:utpt@:(x,v)}
 @r{    v x@:    I k T   @:             @:        @:ltpt@:(x,v)}
- 
-@c 
+
+@c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}
 @r{       @:      m d   @:             @:        @:calc-degrees-mode@:}
 @r{       @:      m f   @:             @:    12  @:calc-frac-mode@:}
@@ -34918,8 +34905,8 @@ keystrokes are not listed in this summary.
 @r{       @:      m v   @:             @: 12,13  @:calc-matrix-mode@:}
 @r{       @:      m w   @:             @:    13  @:calc-working@:}
 @r{       @:      m x   @:             @:        @:calc-always-load-extensions@:}
- 
-@c 
+
+@c
 @r{       @:      m A   @:             @:    12  @:calc-alg-simplify-mode@:}
 @r{       @:      m B   @:             @:    12  @:calc-bin-simplify-mode@:}
 @r{       @:      m C   @:             @:    12  @:calc-auto-recompute@:}
@@ -34931,8 +34918,8 @@ keystrokes are not listed in this summary.
 @r{       @:      m R   @:             @: 12,13  @:calc-mode-record-mode@:}
 @r{       @:      m S   @:             @:    12  @:calc-shift-prefix@:}
 @r{       @:      m U   @:             @:    12  @:calc-units-simplify-mode@:}
- 
-@c 
+
+@c
 @r{       @:      s c   @:var1, var2   @:    29  @:calc-copy-variable@:}
 @r{       @:      s d   @:var, decl    @:        @:calc-declare-variable@:}
 @r{       @:      s e   @:var, editing @: 29,30  @:calc-edit-variable@:}
@@ -34949,8 +34936,8 @@ keystrokes are not listed in this summary.
 @r{      a@:      t 0-9 @:             @:        @:calc-store-into-quick@:}
 @r{       @:      s u   @:var          @:    29  @:calc-unstore@:}
 @r{      a@:      s x   @:var          @:    29  @:calc-store-exchange@:}
- 
-@c 
+
+@c
 @r{       @:      s A   @:editing      @:    30  @:calc-edit-AlgSimpRules@:}
 @r{       @:      s D   @:editing      @:    30  @:calc-edit-Decls@:}
 @r{       @:      s E   @:editing      @:    30  @:calc-edit-EvalRules@:}
@@ -34964,8 +34951,8 @@ keystrokes are not listed in this summary.
 @r{       @:      s T   @:editing      @:    30  @:calc-edit-TimeZone@:}
 @r{       @:      s U   @:editing      @:    30  @:calc-edit-Units@:}
 @r{       @:      s X   @:editing      @:    30  @:calc-edit-ExtSimpRules@:}
- 
-@c 
+
+@c
 @r{      a@:      s +   @:var          @: 29,47  @:calc-store-plus@:  (v+a)}
 @r{      a@:      s -   @:var          @: 29,47  @:calc-store-minus@:  (v-a)}
 @r{      a@:      s *   @:var          @: 29,47  @:calc-store-times@:  (v*a)}
@@ -34977,15 +34964,15 @@ keystrokes are not listed in this summary.
 @r{       @:      s ]   @:var          @: 29,47  @:calc-store-incr@:  (v-(-1))}
 @r{    a b@:      s :   @:             @:     2  @:assign@:(a,b)  a @t{:=} b}
 @r{      a@:      s =   @:             @:     1  @:evalto@:(a,b)  a @t{=>}}
- 
-@c 
+
+@c
 @r{       @:      t [   @:             @:     4  @:calc-trail-first@:}
 @r{       @:      t ]   @:             @:     4  @:calc-trail-last@:}
 @r{       @:      t <   @:             @:     4  @:calc-trail-scroll-left@:}
 @r{       @:      t >   @:             @:     4  @:calc-trail-scroll-right@:}
 @r{       @:      t .   @:             @:    12  @:calc-full-trail-vectors@:}
- 
-@c 
+
+@c
 @r{       @:      t b   @:             @:     4  @:calc-trail-backward@:}
 @r{       @:      t d   @:             @: 12,50  @:calc-trail-display@:}
 @r{       @:      t f   @:             @:     4  @:calc-trail-forward@:}
@@ -34999,8 +34986,8 @@ keystrokes are not listed in this summary.
 @r{       @:      t r   @:string       @:        @:calc-trail-isearch-backward@:}
 @r{       @:      t s   @:string       @:        @:calc-trail-isearch-forward@:}
 @r{       @:      t y   @:             @:     4  @:calc-trail-yank@:}
- 
-@c 
+
+@c
 @r{      d@:      t C   @:oz, nz       @:        @:tzconv@:(d,oz,nz)}
 @r{d oz nz@:      t C   @:$            @:        @:tzconv@:(d,oz,nz)}
 @r{      d@:      t D   @:             @:    15  @:date@:(d)}
@@ -35020,12 +35007,12 @@ keystrokes are not listed in this summary.
 @r{      d@:      t U   @:             @:    16  @:unixtime@:(d,z)}
 @r{      d@:      t W   @:             @:    17  @:newweek@:(d,w)}
 @r{      d@:      t Y   @:             @:    17  @:newyear@:(d,n)}
- 
-@c 
+
+@c
 @r{    a b@:      t +   @:             @:     2  @:badd@:(a,b)}
 @r{    a b@:      t -   @:             @:     2  @:bsub@:(a,b)}
- 
-@c 
+
+@c
 @r{       @:      u a   @:             @:    12  @:calc-autorange-units@:}
 @r{      a@:      u b   @:             @:        @:calc-base-units@:}
 @r{      a@:      u c   @:units        @:    18  @:calc-convert-units@:}
@@ -35040,8 +35027,8 @@ keystrokes are not listed in this summary.
 @r{       @:      u v   @:             @:        @:calc-enter-units-table@:}
 @r{      a@:      u x   @:             @:        @:calc-extract-units@:}
 @r{      a@:      u 0-9 @:             @:        @:calc-quick-units@:}
- 
-@c 
+
+@c
 @r{  v1 v2@:      u C   @:             @:    20  @:vcov@:(v1,v2)}
 @r{  v1 v2@:    I u C   @:             @:    20  @:vpcov@:(v1,v2)}
 @r{  v1 v2@:    H u C   @:             @:    20  @:vcorr@:(v1,v2)}
@@ -35058,13 +35045,13 @@ keystrokes are not listed in this summary.
 @r{      v@:  I H u S   @:             @:    19  @:vpvar@:(v)}
 @r{       @:      u V   @:             @:        @:calc-view-units-table@:}
 @r{      v@:      u X   @:             @:    19  @:vmax@:(v)}
- 
-@c 
+
+@c
 @r{      v@:      u +   @:             @:    19  @:vsum@:(v)}
 @r{      v@:      u *   @:             @:    19  @:vprod@:(v)}
 @r{      v@:      u #   @:             @:    19  @:vcount@:(v)}
- 
-@c 
+
+@c
 @r{       @:      V (   @:             @:    50  @:calc-vector-parens@:}
 @r{       @:      V @{   @:             @:    50  @:calc-vector-braces@:}
 @r{       @:      V [   @:             @:    50  @:calc-vector-brackets@:}
@@ -35075,19 +35062,19 @@ keystrokes are not listed in this summary.
 @r{       @:      V >   @:             @:    50  @:calc-matrix-right-justify@:}
 @r{       @:      V /   @:             @: 12,50  @:calc-break-vectors@:}
 @r{       @:      V .   @:             @: 12,50  @:calc-full-vectors@:}
- 
-@c 
+
+@c
 @r{    s t@:      V ^   @:             @:     2  @:vint@:(s,t)}
 @r{    s t@:      V -   @:             @:     2  @:vdiff@:(s,t)}
 @r{      s@:      V ~   @:             @:     1  @:vcompl@:(s)}
 @r{      s@:      V #   @:             @:     1  @:vcard@:(s)}
 @r{      s@:      V :   @:             @:     1  @:vspan@:(s)}
 @r{      s@:      V +   @:             @:     1  @:rdup@:(s)}
- 
-@c 
+
+@c
 @r{      m@:      V &   @:             @:     1  @:inv@:(m)  1/m}
- 
-@c 
+
+@c
 @r{      v@:      v a   @:n            @:        @:arrange@:(v,n)}
 @r{      a@:      v b   @:n            @:        @:cvec@:(a,n)}
 @r{      v@:      v c   @:n >0         @: 21,31  @:mcol@:(v,n)}
@@ -35120,8 +35107,8 @@ keystrokes are not listed in this summary.
 @r{      v@:      v v   @:             @:     1  @:rev@:(v)}
 @r{       @:      v x   @:n            @:    31  @:index@:(n)}
 @r{  n s i@:  C-u v x   @:             @:        @:index@:(n,s,i)}
- 
-@c 
+
+@c
 @r{      v@:      V A   @:op           @:    22  @:apply@:(op,v)}
 @r{  v1 v2@:      V C   @:             @:     2  @:cross@:(v1,v2)}
 @r{      m@:      V D   @:             @:     1  @:det@:(m)}
@@ -35150,20 +35137,20 @@ keystrokes are not listed in this summary.
 @r{      a@:  I H V U   @:op           @:    22  @:afixp@:(op,a)}
 @r{    s t@:      V V   @:             @:     2  @:vunion@:(s,t)}
 @r{    s t@:      V X   @:             @:     2  @:vxor@:(s,t)}
- 
-@c 
+
+@c
 @r{       @:      Y     @:             @:        @:@:user commands}
- 
-@c 
+
+@c
 @r{       @:      z     @:             @:        @:@:user commands}
- 
-@c 
+
+@c
 @r{      c@:      Z [   @:             @:    45  @:calc-kbd-if@:}
 @r{      c@:      Z |   @:             @:    45  @:calc-kbd-else-if@:}
 @r{       @:      Z :   @:             @:        @:calc-kbd-else@:}
 @r{       @:      Z ]   @:             @:        @:calc-kbd-end-if@:}
- 
-@c 
+
+@c
 @r{       @:      Z @{   @:             @:     4  @:calc-kbd-loop@:}
 @r{      c@:      Z /   @:             @:    45  @:calc-kbd-break@:}
 @r{       @:      Z @}   @:             @:        @:calc-kbd-end-loop@:}
@@ -35171,17 +35158,17 @@ keystrokes are not listed in this summary.
 @r{       @:      Z >   @:             @:        @:calc-kbd-end-repeat@:}
 @r{    n m@:      Z (   @:             @:        @:calc-kbd-for@:}
 @r{      s@:      Z )   @:             @:        @:calc-kbd-end-for@:}
- 
-@c 
+
+@c
 @r{       @:      Z C-g @:             @:        @:@:cancel if/loop command}
- 
-@c 
+
+@c
 @r{       @:      Z `   @:             @:        @:calc-kbd-push@:}
 @r{       @:      Z '   @:             @:        @:calc-kbd-pop@:}
 @r{      a@:      Z =   @:message      @:    28  @:calc-kbd-report@:}
 @r{       @:      Z #   @:prompt       @:        @:calc-kbd-query@:}
- 
-@c 
+
+@c
 @r{   comp@:      Z C   @:func, args   @:    50  @:calc-user-define-composition@:}
 @r{       @:      Z D   @:key, command @:        @:calc-user-define@:}
 @r{       @:      Z E   @:key, editing @:    30  @:calc-user-define-edit@:}

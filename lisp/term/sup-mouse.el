@@ -66,7 +66,7 @@ on modeline		    on \"scroll bar\"	in minibuffer
  L scroll-up		    line to top		execute-extended-command
  C proportional goto-char   line to middle	mouse-help
  R scroll-down		    line to bottom	eval-expression"
-  
+
   (interactive)
   (let*
 ;; expect a string of <esc>:<buttons>;<x-pos>;<y-pos>c
@@ -150,7 +150,7 @@ on modeline		    on \"scroll bar\"	in minibuffer
 		 ((= buttons mouse-left)
 		  (call-interactively 'execute-extended-command))
 		 ((= buttons mouse-center)
-		  (describe-function 'sup-mouse-report)); silly self help 
+		  (describe-function 'sup-mouse-report)); silly self help
 		 ))
 	  (t				;in another window
 	   (select-window window)

@@ -1,5 +1,5 @@
 ;;; nnmail.el --- mail support functions for the Gnus mail backends
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -56,7 +56,7 @@
   :group 'nnmail)
 
 (defgroup nnmail-split nil
-  "Organizing the incomming mail in folders."
+  "Organizing the incoming mail in folders."
   :group 'nnmail)
 
 (defgroup nnmail-files nil
@@ -316,7 +316,7 @@ the following:
 GROUP: Mail will be stored in GROUP (a string).
 
 \(FIELD VALUE [- RESTRICT [- RESTRICT [...]]] SPLIT): If the message
-  field FIELD (a regexp) contains VALUE (a regexp), store the messages 
+  field FIELD (a regexp) contains VALUE (a regexp), store the messages
   as specified by SPLIT.  If RESTRICT (a regexp) matches some string
   after FIELD and before the end of the matched VALUE, return nil,
   otherwise process SPLIT.  Multiple RESTRICTs add up, further
@@ -364,12 +364,12 @@ Example:
 	     (any \"procmail@informatik\\\\.rwth-aachen\\\\.de\" \"procmail.list\")
 	     (any \"SmartList@informatik\\\\.rwth-aachen\\\\.de\" \"SmartList.list\")
              ;; Both lists below have the same suffix, so prevent
-             ;; cross-posting to mkpkg.list of messages posted only to 
+             ;; cross-posting to mkpkg.list of messages posted only to
              ;; the bugs- list, but allow cross-posting when the
              ;; message was really cross-posted.
              (any \"bugs-mypackage@somewhere\" \"mypkg.bugs\")
              (any \"mypackage@somewhere\" - \"bugs-mypackage\" \"mypkg.list\")
-             ;; 
+             ;;
 	     ;; People...
 	     (any \"larsi@ifi\\\\.uio\\\\.no\" \"people.Lars Magne Ingebrigtsen\"))
 	  ;; Unmatched mail goes to the catch all group.
@@ -467,7 +467,7 @@ parameter.  It should return nil, `warn' or `delete'."
   "Coding system used in reading inbox")
 
 (defvar nnmail-pathname-coding-system nil
-  "*Coding system for pathname.")
+  "*Coding system for file name.")
 
 (defun nnmail-find-file (file)
   "Insert FILE in server buffer safely."
@@ -484,7 +484,7 @@ parameter.  It should return nil, `warn' or `delete'."
       (file-error nil))))
 
 (defun nnmail-group-pathname (group dir &optional file)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (concat
    (let ((dir (file-name-as-directory (expand-file-name dir))))
      (setq group (nnheader-replace-duplicate-chars-in-string
@@ -760,7 +760,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	(setq head-end (point))
 	;; We try the Content-Length value.  The idea: skip over the header
 	;; separator, then check what happens content-length bytes into the
-	;; message body.  This should be either the end ot the buffer, the
+	;; message body.  This should be either the end of the buffer, the
 	;; message separator or a blank line followed by the separator.
 	;; The blank line should probably be deleted.  If neither of the
 	;; three is met, the content-length header is probably invalid.
@@ -1047,7 +1047,7 @@ Return the number of characters in the body."
   (let (lines chars)
     (save-excursion
       (goto-char (point-min))
-      (unless (search-forward "\n\n" nil t) 
+      (unless (search-forward "\n\n" nil t)
 	(goto-char (point-max))
 	(insert "\n"))
       (setq chars (- (point-max) (point)))

@@ -38,7 +38,7 @@
 	     (progn ,@body)
 	   (unless ,modified
 	     (restore-buffer-modified-p nil))))))
-  
+
   (defmacro with-buffer-prepared-for-jit-lock (&rest body)
     "Execute BODY in current buffer, overriding several variables.
 Preserves the `buffer-modified-p' state of the current buffer."
@@ -52,7 +52,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
 	    buffer-file-truename)
 	,@body))))
 
-  
+
 
 ;;; Customization.
 
@@ -82,9 +82,9 @@ To reduce machine load during stealth fontification, at the cost of stealth
 taking longer to fontify, you could increase the value of this variable.
 See also `jit-lock-stealth-load'."
   :type '(choice (const :tag "never" nil)
-		 (number :tag "seconds"))	  
+		 (number :tag "seconds"))
   :group 'jit-lock)
- 
+
 
 (defcustom jit-lock-stealth-load
   (if (condition-case nil (load-average) (error)) 200)
@@ -297,45 +297,43 @@ is active."
 Defaults to the whole buffer.  END can be out of bounds."
   (with-buffer-prepared-for-jit-lock
    (save-excursion
-     (save-restriction
-       (widen)
-       (unless start (setq start (point-min)))
-       (setq end (if end (min end (point-max)) (point-max)))
-       ;; This did bind `font-lock-beginning-of-syntax-function' to
-       ;; nil at some point, for an unknown reason.  Don't do this; it
-       ;; can make highlighting slow due to expensive calls to
-       ;; `parse-partial-sexp' in function
-       ;; `font-lock-fontify-syntactically-region'.  Example: paging
-       ;; from the end of a buffer to its start, can do repeated
-       ;; `parse-partial-sexp' starting from `point-min', which can
-       ;; take a long time in a large buffer.
-       (let (next)
-	 (save-match-data
-	   ;; Fontify chunks beginning at START.  The end of a
-	   ;; chunk is either `end', or the start of a region
-	   ;; before `end' that has already been fontified.
-	   (while start
-	     ;; Determine the end of this chunk.
-	     (setq next (or (text-property-any start end 'fontified t)
-			    end))
+     (unless start (setq start (point-min)))
+     (setq end (if end (min end (point-max)) (point-max)))
+     ;; This did bind `font-lock-beginning-of-syntax-function' to
+     ;; nil at some point, for an unknown reason.  Don't do this; it
+     ;; can make highlighting slow due to expensive calls to
+     ;; `parse-partial-sexp' in function
+     ;; `font-lock-fontify-syntactically-region'.  Example: paging
+     ;; from the end of a buffer to its start, can do repeated
+     ;; `parse-partial-sexp' starting from `point-min', which can
+     ;; take a long time in a large buffer.
+     (let (next)
+       (save-match-data
+	 ;; Fontify chunks beginning at START.  The end of a
+	 ;; chunk is either `end', or the start of a region
+	 ;; before `end' that has already been fontified.
+	 (while start
+	   ;; Determine the end of this chunk.
+	   (setq next (or (text-property-any start end 'fontified t)
+			  end))
 
-	     ;; Decide which range of text should be fontified.
-	     ;; The problem is that START and NEXT may be in the
-	     ;; middle of something matched by a font-lock regexp.
-	     ;; Until someone has a better idea, let's start
-	     ;; at the start of the line containing START and
-	     ;; stop at the start of the line following NEXT.
-	     (goto-char next)  (setq next (line-beginning-position 2))
-	     (goto-char start) (setq start (line-beginning-position))
-	     
-	     ;; Fontify the chunk, and mark it as fontified.
-	     ;; We mark it first, to make sure that we don't indefinitely
-	     ;; re-execute this fontification if an error occurs.
-	     (put-text-property start next 'fontified t)
-	     (run-hook-with-args 'jit-lock-functions start next)
+	   ;; Decide which range of text should be fontified.
+	   ;; The problem is that START and NEXT may be in the
+	   ;; middle of something matched by a font-lock regexp.
+	   ;; Until someone has a better idea, let's start
+	   ;; at the start of the line containing START and
+	   ;; stop at the start of the line following NEXT.
+	   (goto-char next)  (setq next (line-beginning-position 2))
+	   (goto-char start) (setq start (line-beginning-position))
 
-	     ;; Find the start of the next chunk, if any.
-	     (setq start (text-property-any next end 'fontified nil)))))))))
+	   ;; Fontify the chunk, and mark it as fontified.
+	   ;; We mark it first, to make sure that we don't indefinitely
+	   ;; re-execute this fontification if an error occurs.
+	   (put-text-property start next 'fontified t)
+	   (run-hook-with-args 'jit-lock-functions start next)
+
+	   ;; Find the start of the next chunk, if any.
+	   (setq start (text-property-any next end 'fontified nil))))))))
 
 
 ;;; Stealth fontification.
@@ -380,7 +378,7 @@ Value is nil if there is nothing more to fontify."
 			   ((< (- around start) (- next around)) start)
 			   (t next))))
 	result))))
-	
+
 
 (defun jit-lock-stealth-fontify ()
   "Fontify buffers stealthily.
@@ -395,7 +393,7 @@ This functions is called after Emacs has been idle for
       (while (and buffers (not (input-pending-p)))
 	(let ((buffer (car buffers)))
 	  (setq buffers (cdr buffers))
-	  
+
 	  (with-current-buffer buffer
 	    (when jit-lock-mode
 	      ;; This is funny.  Calling sit-for with 3rd arg non-nil
@@ -449,14 +447,14 @@ This functions is called after Emacs has been idle for
 		  (while (and (setq start
 				    (jit-lock-stealth-chunk-start point))
 			      (sit-for nice))
-		    
+
 		    ;; fontify a block.
 		    (jit-lock-fontify-now start (+ start jit-lock-chunk-size))
 		    ;; If stealth jit-locking is done backwards, this leads to
 		    ;; excessive O(n^2) refontification.   -stef
 		    ;; (when (>= jit-lock-first-unfontify-pos start)
 		    ;;   (setq jit-lock-first-unfontify-pos end))
-		    
+
 		    ;; Wait a little if load is too high.
 		    (when (and jit-lock-stealth-load
 			       (> (car (load-average)) jit-lock-stealth-load))
@@ -491,7 +489,7 @@ This functions is called after Emacs has been idle for
       (sit-for 0)
       ;; (message "Jit-Defer Done")
       )))
-      
+
 
 (defun jit-lock-after-change (start end old-len)
   "Mark the rest of the buffer as not fontified after a change.
@@ -510,7 +508,7 @@ will take place when text is fontified stealthily."
        ;; be inconsistent with the buffer's content.
        (goto-char start)
        (setq start (line-beginning-position))
-       
+
        ;; If we're in text that matches a multi-line font-lock pattern,
        ;; make sure the whole text will be redisplayed.
        ;; I'm not sure this is ever necessary and/or sufficient.  -stef
@@ -518,7 +516,7 @@ will take place when text is fontified stealthily."
 	 (setq start (or (previous-single-property-change
 			  start 'font-lock-multiline)
 			 (point-min))))
-       
+
        ;; Make sure we change at least one char (in case of deletions).
        (setq end (min (max end (1+ start)) (point-max)))
        ;; Request refontification.
@@ -527,7 +525,7 @@ will take place when text is fontified stealthily."
       (when jit-lock-first-unfontify-pos
 	(setq jit-lock-first-unfontify-pos
 	      (min jit-lock-first-unfontify-pos start))))))
-  
+
 (provide 'jit-lock)
 
 ;;; jit-lock.el ends here

@@ -348,7 +348,7 @@ _start ()
 {
 #ifdef sun
   finitfp_();
-#endif     
+#endif
 /* On 68000, _start pushes a6 onto stack  */
   start1 ();
 }

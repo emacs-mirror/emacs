@@ -27,47 +27,45 @@ Boston, MA 02111-1307, USA.  */
 
 #ifndef VMS
 
-/* Try the approach recommended by autoconf.  If this doesn't cause
-   trouble anywhere, remove the original code, which is #if'd out
-   below.  */
+/* This is now really the approach recommended by Autoconf.  If this
+   doesn't cause trouble anywhere, remove the original code, which is
+   #if'd out below.  */
 
 #if 1
 #include <sys/types.h>
 
 #ifdef HAVE_SYS_WAIT_H	/* We have sys/wait.h with POSIXoid definitions. */
-
 #include <sys/wait.h>
+#endif  /* !HAVE_SYS_WAIT_H */
+
 #ifndef WCOREDUMP		/* not POSIX */
 #define WCOREDUMP(status) ((status) & 0x80)
 #endif
-
-#else  /* !HAVE_SYS_WAIT_H */
-
-/* Note that sys/wait.h may still be included by stdlib.h or something
-   according to XPG.  */
-
-#undef WEXITSTATUS
+#ifndef WEXITSTATUS
 #define WEXITSTATUS(status) (((status)  & 0xff00) >> 8)
-#undef WIFEXITED
+#endif
+#ifndef WIFEXITED
 #define WIFEXITED(status) (WTERMSIG(status) == 0)
-#undef WIFSTOPPED
+#endif
+#ifndef WIFSTOPPED
 #define WIFSTOPPED(status) (((status) & 0xff) == 0x7f)
-#undef WIFSIGNALED
+#endif
+#ifndef WIFSIGNALED
 #define WIFSIGNALED(status) (!WIFSTOPPED(status) && !WIFEXITED(status))
-#undef WSTOPSIG
+#endif
+#ifndef WSTOPSIG
 #define WSTOPSIG(status) WEXITSTATUS(status)
-#undef WTERMSIG
+#endif
+#ifndef WTERMSIG
 #define WTERMSIG(status) ((status) & 0x7f)
-#undef WCOREDUMP
-#define WCOREDUMP(status) ((status) & 0x80)
-#endif /* HAVE_SYS_WAIT_H */
+#endif
 
 #undef WAITTYPE
 #define WAITTYPE int
 #undef WRETCODE
 #define WRETCODE(status) WEXITSTATUS (status)
 
-#else  /* !1 */
+#else  /* 0 */
 
 #ifndef WAITTYPE
 
@@ -92,7 +90,7 @@ Boston, MA 02111-1307, USA.  */
 #define WCOREDUMP(w) ((w&0200) != 0)
 #endif
 
-#else 
+#else
 
 #ifdef BSD4_1
 #include <wait.h>
@@ -134,7 +132,7 @@ Boston, MA 02111-1307, USA.  */
 #endif /* not WAIT_USE_INT */
 #endif /* no WAITTYPE */
 
-#endif /* 1 */
+#endif /* 0 */
 
 #else /* VMS */
 

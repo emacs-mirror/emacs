@@ -1,6 +1,6 @@
 \input texinfo
 @c This is an annex of the Emacs manual.
-@c Copyright (C) 1994, 1995 Free Software Foundation, Inc.
+@c Copyright (C) 1994, 1995, 2002 Free Software Foundation, Inc.
 @c Author: Daniel.Pfeiffer@Informatik.START.dbp.de, fax (+49 69) 7588-2389
 @setfilename ../info/autotype
 @c @node Autotypist, Picture, Abbrevs, Top
@@ -10,15 +10,10 @@
 @c  @cindex selfinserting text
 @c  @cindex autotypist
 
-@dircategory Emacs
-@direntry
-* Autotype: (autotype). Convenient features for text that you enter frequently
-                          in Emacs.
-@end direntry
-
-@ifnottex
+@copying
 Copyright @copyright{} 1994, 1995, 1999 Free Software Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -36,7 +31,14 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifnottex
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Autotype: (autotype). Convenient features for text that you enter frequently
+                          in Emacs.
+@end direntry
 
 @titlepage
 @sp 10
@@ -51,25 +53,7 @@ frequently in Emacs}
 
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1994, 1995, 1999 Free Software Foundation, Inc.
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
 
 @node Top
@@ -371,7 +355,7 @@ certain contexts.  For example an escaped character stands for itself.
 the buffer.  The main application for this function, as its name suggests,
 is to have it be called automatically every time an empty, and only an
 empty file is visited.  This is accomplished by putting @code{(add-hook
-'find-file-hooks 'auto-insert)} into your @file{~/.emacs} file
+'find-file-hook 'auto-insert)} into your @file{~/.emacs} file
 (@pxref{(emacs)Init File}).
 
 @vindex auto-insert-alist
@@ -409,7 +393,7 @@ files insert a skeleton with the usual frame.
 source files insert the usual header, with a copyright of your
 environment variable @env{$ORGANIZATION} or else the FSF, and prompt
 for valid keywords describing the contents.  Files in a @file{bin}
-directory for which Emacs could determine no specialised mode
+directory for which Emacs could determine no specialized mode
 (@pxref{(emacs)Choosing Modes}) are set to Shell script mode.
 
 @findex define-auto-insert
@@ -473,7 +457,7 @@ that is updated too.
 
   An interesting application for this function is to have it be called
 automatically every time a file is saved.  This is accomplished by putting
-@code{(add-hook 'write-file-hooks 'copyright-update)} into your @file{~/.emacs}
+@code{(add-hook 'write-file-functions 'copyright-update)} into your @file{~/.emacs}
 file (@pxref{(emacs)Init File}).
 
 @vindex copyright-query
@@ -481,7 +465,7 @@ file (@pxref{(emacs)Init File}).
 copyright or whether to ask about it.  When this is @code{nil} updating is
 only done with @kbd{M-x copyright-update}.  When this is @code{function}
 you are queried whenever @code{copyright-update} is called as a function,
-such as in the @code{write-file-hooks} feature mentioned above.  Otherwise
+such as in the @code{write-file-functions} feature mentioned above.  Otherwise
 you are always queried.
 
 
@@ -538,10 +522,10 @@ The ``interpreter'' used is @code{executable-self-display} with argument
 @cindex timestamps
 
 @findex time-stamp
-@vindex write-file-hooks
+@vindex write-file-functions
 The @code{time-stamp} command can be used to update automatically a
 template in a file with a new time stamp every time you save the file.
-Customize the hook @code{write-file-hooks} to add the function
+Customize the hook @code{write-file-functions} to add the function
 @code{time-stamp} to arrange this.
 
 @vindex time-stamp-active

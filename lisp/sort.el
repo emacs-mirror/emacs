@@ -1,6 +1,6 @@
 ;;; sort.el --- commands to sort text in an Emacs buffer
 
-;; Copyright (C) 1986, 1987, 1994, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1986, 1987, 1994, 1995, 2003 Free Software Foundation, Inc.
 
 ;; Author: Howie Kaye
 ;; Maintainer: FSF
@@ -42,7 +42,6 @@
 ;;;###autoload
 (defun sort-subr (reverse nextrecfun endrecfun &optional startkeyfun endkeyfun)
   "General text sorting routine to divide buffer into records and sort them.
-Arguments are REVERSE NEXTRECFUN ENDRECFUN &optional STARTKEYFUN ENDKEYFUN.
 
 We divide the accessible portion of the buffer into disjoint pieces
 called sort records.  A portion of each sort record (perhaps all of
@@ -97,7 +96,7 @@ same as ENDRECFUN."
 				   ((consp (car (car sort-lists)))
 				    (function
 				     (lambda (a b)
-				       (> 0 (compare-buffer-substrings 
+				       (> 0 (compare-buffer-substrings
 					     nil (car a) (cdr a)
 					     nil (car b) (cdr b))))))
 				   (t
@@ -108,7 +107,7 @@ same as ENDRECFUN."
 			      ((consp (car (car sort-lists)))
 			       (function
 				(lambda (a b)
-				  (> 0 (compare-buffer-substrings 
+				  (> 0 (compare-buffer-substrings
 					nil (car (car a)) (cdr (car a))
 					nil (car (car b)) (cdr (car b)))))))
 			      (t
@@ -193,19 +192,16 @@ same as ENDRECFUN."
       (set-buffer old-buffer)
       (let ((inhibit-quit t))
 	;; Make sure insertions done for reordering
-	;; do not go after any markers at the end of the sorted region,
-	;; by inserting a space to separate them.
-	(goto-char max)
-	(insert-before-markers " ")
-	;; Delete the original copy of the text.
-	(delete-region min max)
-	;; Now replace the separator " " with the sorted text.
-	(goto-char (point-max))
+	;; saves any markers at the end of the sorted region,
+	;; by leaving the last character of the region.
+	(delete-region min (1- max))
+  	;; Now replace the one remaining old character with the sorted text.
+	(goto-char (point-min))
 	(insert-buffer-substring temp-buffer)
-	(delete-region min (1+ min))))))
+	(delete-region max (1+ max))))))
 
 ;;;###autoload
-(defun sort-lines (reverse beg end) 
+(defun sort-lines (reverse beg end)
   "Sort lines in region alphabetically; argument means descending order.
 Called from a program, there are three arguments:
 REVERSE (non-nil means reverse order), BEG and END (region to sort).
@@ -429,7 +425,7 @@ For example: to sort lines in the region by the first word on each line
   ;; using negative prefix arg to mean "reverse" is now inconsistent with
   ;; other sort-.*fields functions but then again this was before, since it
   ;; didn't use the magnitude of the arg to specify anything.
-  (interactive "P\nsRegexp specifying records to sort: 
+  (interactive "P\nsRegexp specifying records to sort:
 sRegexp specifying key within record: \nr")
   (cond ((or (equal key-regexp "") (equal key-regexp "\\&"))
 	 (setq key-regexp 0))
@@ -441,7 +437,7 @@ sRegexp specifying key within record: \nr")
       (goto-char (point-min))
       (let (sort-regexp-record-end
 	    (sort-regexp-fields-regexp record-regexp))
-	(re-search-forward sort-regexp-fields-regexp)
+	(re-search-forward sort-regexp-fields-regexp nil t)
 	(setq sort-regexp-record-end (point))
 	(goto-char (match-beginning 0))
 	(sort-subr reverse

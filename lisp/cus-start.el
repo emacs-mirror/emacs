@@ -34,7 +34,7 @@
 
 ;;; Code:
 
-(let ((all '(;; abbrev.c 
+(let ((all '(;; abbrev.c
 	     (abbrev-all-caps abbrev-mode boolean)
 	     (pre-abbrev-expand-hook abbrev-mode hook)
 	     ;; alloc.c
@@ -53,10 +53,13 @@
 	     (ctl-arrow display boolean)
 	     (truncate-lines display boolean)
 	     (selective-display-ellipses display boolean)
-	     (transient-mark-mode editing-basics boolean)
 	     (indicate-empty-lines display boolean "21.1")
-	     (scroll-up-aggressively windows boolean "21.1")
-	     (scroll-down-aggressively windows boolean "21.1")
+	     (scroll-up-aggressively windows
+				     (choice (const :tag "off" nil) number)
+				     "21.1")
+	     (scroll-down-aggressively windows
+				       (choice (const :tag "off" nil) number)
+				       "21.1")
 	     ;; callint.c
 	     (mark-even-if-inactive editing-basics boolean)
 	     ;; callproc.c
@@ -83,8 +86,9 @@
 			    (coding-system :tag "Single coding system"
 					   :value undecided)
 			    (function :value ignore))))
+	     (selection-coding-system mule coding-system)
 	     ;; dired.c
-	     (completion-ignored-extensions dired 
+	     (completion-ignored-extensions dired
 					    (repeat (string :format "%v")))
 	     ;; dispnew.c
 	     (baud-rate display integer)
@@ -102,7 +106,7 @@
 						   :value (nil)
 						   (symbol :format "%v"))
 					   (const :tag "always" t)))
-	     (debug-on-error debug 
+	     (debug-on-error debug
 			     (choice (const :tag "off")
 				     (repeat :menu-tag "When"
 					     :value (nil)
@@ -138,6 +142,7 @@
 	     (polling-period keyboard integer)
 	     (double-click-time mouse (restricted-sexp
 				       :match-alternatives (integerp 'nil 't)))
+	     (double-click-fuzz mouse integer)
 	     (inhibit-local-menu-bar-menus menu boolean)
 	     (help-char keyboard character)
 	     (help-event-list keyboard (repeat (sexp :format "%v")))
@@ -150,7 +155,7 @@
 ;; version-specific directories when you upgrade.  We need
 ;; customization of the front of the list, maintaining the standard
 ;; value intact at the back.
-;;; 	     (load-path environment 
+;;; 	     (load-path environment
 ;;; 			(repeat (choice :tag "[Current dir?]"
 ;;; 					:format "%[Current dir?%] %v"
 ;;; 					(const :tag " current dir" nil)
@@ -200,8 +205,8 @@
 	     (display-buffer-function windows (choice (const nil) function))
 	     (pop-up-frames frames boolean)
 	     (pop-up-frame-function frames function)
-	     (special-display-buffer-names 
-	      frames 
+	     (special-display-buffer-names
+	      frames
 	      (repeat (choice :tag "Buffer"
 			      :value ""
 			      (string :format "%v")
@@ -214,7 +219,7 @@
 						  (symbol :tag "Parameter")
 						  (sexp :tag "Value")))))))
 	     (special-display-regexps
-	      frames 
+	      frames
 	      (repeat (choice :tag "Buffer"
 			      :value ""
 			      (regexp :format "%v")
@@ -255,6 +260,8 @@
 						     :format "%v")
 					    (other :tag "Unlimited" t)))
 	     (unibyte-display-via-language-environment mule boolean)
+	     ;; xfaces.c
+	     (scalable-fonts-allowed display boolean)
 	     ;; xfns.c
 	     (x-bitmap-file-path installation
 				 (repeat (directory :format "%v")))
@@ -276,7 +283,7 @@
 			(numberp sexp))
 		    sexp
 		  (list 'quote sexp)))))
-  (while all 
+  (while all
     (setq this (car all)
 	  all (cdr all)
 	  symbol (nth 0 this)
@@ -300,7 +307,7 @@
 	     (message "Note, built-in variable `%S' not bound" symbol))
       ;; Save the standard value, unless we already did.
       (or (get symbol 'standard-value)
-	  (put symbol 'standard-value 
+	  (put symbol 'standard-value
 	       (list (funcall quoter (default-value symbol)))))
       ;; If this is NOT while dumping Emacs,
       ;; set up the rest of the customization info.
@@ -312,6 +319,10 @@
 	(put symbol 'custom-version version)))))
 
 (custom-add-to-group 'iswitchb 'read-buffer-function 'custom-variable)
+(put 'selection-coding-system 'custom-set
+     (lambda (symbol value)
+       (set-selection-coding-system value)
+       (set symbol value)))
 
 ;; Record cus-start as loaded
 ;; if we have set up all the info that we can set up.

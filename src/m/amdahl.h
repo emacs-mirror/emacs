@@ -1,4 +1,4 @@
-/* amdahl machine description file 
+/* amdahl machine description file
    Copyright (C) 1987, 1999, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -90,10 +90,6 @@ compiler is so brain damaged that it is not even worth trying to use it.
 
 /* #define VIRT_ADDR_VARIES*/
 
-#ifdef HAVE_ALLOCA
-#define LIB_STANDARD -lPW -lc
-#endif
-
 /* Define NO_REMAP if memory segmentation makes it not work well
    to change the boundary between the text section and data section
    when Emacs is dumped.  If you define this, the preloaded Lisp
@@ -127,7 +123,7 @@ extern int sign_extend_temp;
 
 /* Put text and data on non-segment boundary; makes image smaller */
 
-#define LD_SWITCH_MACHINE	-N 
+#define LD_SWITCH_MACHINE	-N
 
 /* When writing the 'xemacs' file, make text segment ro */
 #define EXEC_MAGIC	0410

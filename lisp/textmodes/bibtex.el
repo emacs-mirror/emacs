@@ -7,7 +7,7 @@
 ;;	Mark Shapiro <shapiro@corto.inria.fr>
 ;;	Mike Newton <newton@gumby.cs.caltech.edu>
 ;;	Aaron Larson <alarson@src.honeywell.com>
-;; Maintainer: Dirk Herrmann <D.Herrmann@tu-bs.de>
+;; Maintainer: Roland Winkler <roland.winkler@physik.uni-erlangen.de>
 ;; Keywords: BibTeX, LaTeX, TeX
 
 ;; This file is part of GNU Emacs.
@@ -1019,7 +1019,7 @@ otherwise."
 		        "\\("
 			    "[^\"\\]"               ;; anything but quote or backslash
 			    "\\|"
-			    "\\(" 
+			    "\\("
 			        "\\\\\\(.\\|\n\\)"  ;; any backslash quoted character
 			    "\\)"
 			"\\)*"
@@ -1038,7 +1038,7 @@ end position of the field string is returned, nil otherwise."
       (if (looking-at "\"")
 	  (setq end-point (bibtex-parse-quoted-string)))
       (goto-char starting-point)
-      (if end-point 
+      (if end-point
 	  (cons starting-point end-point)
 	nil))))
 
@@ -1153,11 +1153,11 @@ BOUND."
     (setq bibtex-field-name-for-parsing name)
     (let ((starting-point (point))
 	  (boundaries nil))
-      (while (and (not boundaries) 
+      (while (and (not boundaries)
 		  (< (point) bound)
 		  (search-forward "," bound t))
 	(goto-char (match-beginning 0))
-	(let ((temp-boundaries 
+	(let ((temp-boundaries
 	       (bibtex-parse-association 'bibtex-parse-field-name
 					 'bibtex-parse-field-text)))
 	  (if (and temp-boundaries (<= (cdr (cdr temp-boundaries)) bound))
@@ -1178,7 +1178,7 @@ BOUND."
       (while (and (not boundaries)
 		  (>= (point) bound)
 		  (search-backward "," bound t))
-	(let ((temp-boundaries 
+	(let ((temp-boundaries
 	       (bibtex-parse-association 'bibtex-parse-field-name
 					 'bibtex-parse-field-text)))
 	  (if temp-boundaries
@@ -1224,7 +1224,7 @@ character of the string entry."
 	(progn
 	  (goto-char (cdr text-boundaries))
 	  (if (looking-at "[ \t\n]*[})]")
-	      (let ((boundaries (list (car text-boundaries) 
+	      (let ((boundaries (list (car text-boundaries)
 				      (cdr text-boundaries)
 				      (match-end 0))))
 		(goto-char (match-end 0))
@@ -1245,8 +1245,8 @@ the reference key and text parts of the string is returned."
     (let* ((case-fold-search t)
 	   (starting-point (point))
 	   (boundaries nil))
-      (while (and (not boundaries) 
-		  (search-forward-regexp 
+      (while (and (not boundaries)
+		  (search-forward-regexp
 		   "^[ \t]*@string[ \t\n]*[({][ \t\n]*" nil t))
 	(goto-char (match-beginning 0))
 	(let ((temp-boundaries (bibtex-parse-string)))
@@ -1265,7 +1265,7 @@ the reference key and text parts of the field is returned."
 	   (starting-point (point))
 	   (boundaries nil))
       (while (and (not boundaries)
-		  (search-backward-regexp 
+		  (search-backward-regexp
 		   "^[ \t]*@string[ \t\n]*[({][ \t\n]*" nil t))
 	(goto-char (match-beginning 0))
 	(let ((temp-boundaries (bibtex-parse-string)))
@@ -2090,7 +2090,7 @@ changed."
   (let* ((case-fold-search t)
 	 (year (bibtex-autokey-get-yearfield-digits max)))
     (if (and (string= year "") bibtex-autokey-year-use-crossref-entry)
-	(let* ((bounds 
+	(let* ((bounds
 		(bibtex-search-forward-field "\\(OPT\\)?crossref" max))
 	       (crossref-field
 		(if bounds
@@ -2518,12 +2518,12 @@ The generation algorithm works as follows:
 	  (while (and (not failure) (> arg 0))
 	    (cond ((eq direction 'previous)
 		   (setq bounds (bibtex-search-backward-field field-name (point-min)))
-		   (if bounds 
+		   (if bounds
 		       (goto-char (bibtex-start-of-field bounds))
 		     (setq failure t)))
 		  ((eq direction 'next)
 		   (setq bounds (bibtex-search-forward-field field-name (point-max)))
-		   (if bounds 
+		   (if bounds
 		       (goto-char (bibtex-end-of-field bounds))
 		     (setq failure t))))
 	    (setq arg (- arg 1)))
@@ -2557,7 +2557,7 @@ The generation algorithm works as follows:
 To submit a problem report, enter \\[bibtex-submit-bug-report] from a
 BibTeX mode buffer.  This automatically sets up a mail buffer with
 version information already added.  You just need to add a description
-of the problem, including a reproducable test case and send the
+of the problem, including a reproducible test case and send the
 message.
 
 
@@ -3175,7 +3175,7 @@ used as a reference key, an error is signaled.  However, if optional
 variable IGNORE-DUPS is non-nil, no error messages about duplicate
 entries are signaled, but the error handling is assumed to be made in
 the calling function.
-The value is nil if an duplicate entry error occurred,
+The value is nil if a duplicate entry error occurred,
 and t in all other cases."
   (let* ((case-fold-search t)
          (left

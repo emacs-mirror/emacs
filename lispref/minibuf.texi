@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2001
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/minibuf
 @node Minibuffers, Command Loop, Read and Print, Top
@@ -37,7 +37,7 @@ for reading an argument.
 @emph{within} a buffer, such as editing commands, work normally in a
 minibuffer.  However, many operations for managing buffers do not apply
 to minibuffers.  The name of a minibuffer always has the form @w{@samp{
-*Minibuf-@var{number}}}, and it cannot be changed.  Minibuffers are
+*Minibuf-@var{number}*}}, and it cannot be changed.  Minibuffers are
 displayed only in special windows used only for minibuffers; these
 windows always appear at the bottom of a frame.  (Sometimes frames have
 no minibuffer window, and sometimes a special kind of frame contains
@@ -374,7 +374,7 @@ text which is a valid form already:
 @group
 (edit-and-eval-command "Please edit: " '(forward-word 1))
 
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following appears in the minibuffer:}
 @end group
 
@@ -434,6 +434,20 @@ allow the user to reuse items on the list.  The only thing your program
 needs to do to use a history list is to initialize it and to pass its
 name to the input functions when you wish.  But it is safe to modify the
 list by hand when the minibuffer input functions are not using it.
+
+  Emacs functions that add a new element to a history list can also
+delete old elements if the list gets too long.  The variable
+@code{history-length} specifies the maximum length for most history
+lists.  To specify a different maximum length for a particular history
+list, put the length in the @code{history-length} property of the
+history list symbol.
+
+@defvar history-length
+The value of this variable specifies the maximum length for all
+history lists that don't specify their own maximum lengths.  If the
+value is @code{t}, that means there no maximum (don't delete old
+elements).
+@end defvar
 
   Here are some of the standard minibuffer history list variables:
 
@@ -568,7 +582,7 @@ is @code{t}.
 
 @smallexample
 @group
-(try-completion 
+(try-completion
  "foo"
  '(("foobar1" 1) ("barfoo" 2) ("foobaz" 3) ("foobar2" 4)))
      @result{} "fooba"
@@ -598,14 +612,14 @@ too short).  Both of those begin with the string @samp{foobar}.
 
 @smallexample
 @group
-(defun test (s) 
+(defun test (s)
   (> (length (car s)) 6))
      @result{} test
 @end group
 @group
-(try-completion 
+(try-completion
  "foo"
- '(("foobar1" 1) ("barfoo" 2) ("foobaz" 3) ("foobar2" 4)) 
+ '(("foobar1" 1) ("barfoo" 2) ("foobaz" 3) ("foobar2" 4))
  'test)
      @result{} "foobar"
 @end group
@@ -628,13 +642,13 @@ example for @code{try-completion}:
 
 @smallexample
 @group
-(defun test (s) 
+(defun test (s)
   (> (length (car s)) 6))
      @result{} test
 @end group
 
 @group
-(all-completions  
+(all-completions
  "foo"
  '(("foobar1" 1) ("barfoo" 2) ("foobaz" 3) ("foobar2" 4))
  'test)
@@ -644,7 +658,7 @@ example for @code{try-completion}:
 @end defun
 
 @defvar completion-ignore-case
-If the value of this variable is 
+If the value of this variable is
 non-@code{nil}, Emacs does not consider case significant in completion.
 @end defvar
 
@@ -724,7 +738,7 @@ Here's an example of using @code{completing-read}:
 @end group
 
 @group
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following appears in the minibuffer:}
 
 ---------- Buffer: Minibuffer ----------
@@ -909,7 +923,7 @@ only buffer name starting with the given input is
 @example
 (read-buffer "Buffer name? " "foo" t)
 @group
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears,}
 ;;   @r{with an empty minibuffer:}
 @end group
@@ -951,13 +965,13 @@ enters null input, the return value is @code{nil}.
 (read-command "Command name? ")
 
 @group
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears with an empty minibuffer:}
 @end group
 
 @group
----------- Buffer: Minibuffer ---------- 
-Command name?  
+---------- Buffer: Minibuffer ----------
+Command name?
 ---------- Buffer: Minibuffer ----------
 @end group
 @end example
@@ -976,7 +990,7 @@ complete in the set of extant Lisp symbols, and it uses the
 @group
 (read-command @var{prompt})
 @equiv{}
-(intern (completing-read @var{prompt} obarray 
+(intern (completing-read @var{prompt} obarray
                          'commandp t nil))
 @end group
 @end example
@@ -996,8 +1010,8 @@ user enters null input, the return value is @code{nil}.
 @group
 (read-variable "Variable name? ")
 
-;; @r{After evaluation of the preceding expression,} 
-;;   @r{the following prompt appears,} 
+;; @r{After evaluation of the preceding expression,}
+;;   @r{the following prompt appears,}
 ;;   @r{with an empty minibuffer:}
 @end group
 
@@ -1066,13 +1080,13 @@ case, point goes at the beginning of @var{initial}.  The default for
 @var{initial} does, try the command @kbd{C-x C-v}.  @strong{Note:} we
 recommend using @var{default} rather than @var{initial} in most cases.
 
-Here is an example: 
+Here is an example:
 
 @example
 @group
 (read-file-name "The file is ")
 
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following appears in the minibuffer:}
 @end group
 
@@ -1261,13 +1275,13 @@ invalid.  At the next prompt the user types @kbd{y}.
 @group
 (y-or-n-p "Do you need a lift? ")
 
-;; @r{After evaluation of the preceding expression,} 
+;; @r{After evaluation of the preceding expression,}
 ;;   @r{the following prompt appears in the echo area:}
 @end group
 
 @group
 ---------- Echo area ----------
-Do you need a lift? (y or n) 
+Do you need a lift? (y or n)
 ---------- Echo area ----------
 @end group
 
@@ -1275,7 +1289,7 @@ Do you need a lift? (y or n)
 
 @group
 ---------- Echo area ----------
-Please answer y or n.  Do you need a lift? (y or n) 
+Please answer y or n.  Do you need a lift? (y or n)
 ---------- Echo area ----------
 @end group
 
@@ -1321,14 +1335,14 @@ Here is an example:
 @group
 (yes-or-no-p "Do you really want to remove everything? ")
 
-;; @r{After evaluation of the preceding expression,} 
-;;   @r{the following prompt appears,} 
+;; @r{After evaluation of the preceding expression,}
+;;   @r{the following prompt appears,}
 ;;   @r{with an empty minibuffer:}
 @end group
 
 @group
 ---------- Buffer: minibuffer ----------
-Do you really want to remove everything? (yes or no) 
+Do you really want to remove everything? (yes or no)
 ---------- Buffer: minibuffer ----------
 @end group
 @end smallexample

@@ -156,10 +156,6 @@ Optional argument ARGS are the arguments to call FUNCTION with."
     (apply function args)))
 
 
-;;; Note this definition must be at the end of the file, because
-;;; `define-minor-mode' actually calls the mode-function if the
-;;; associated variable is non-nil, which requires that all needed
-;;; functions be already defined.  [This is arguably a bug in d-m-m]
 ;;;###autoload
 (define-minor-mode auto-image-file-mode
   "Toggle visiting of image files as images.

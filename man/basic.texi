@@ -262,7 +262,7 @@ if you set the variable @code{next-line-add-newlines} to a
 non-@code{nil} value, @kbd{C-n} on the last line of a buffer creates
 an additional line at the end and moves down onto it.
 
-@node Erasing	
+@node Erasing
 @section Erasing Text
 
 @table @kbd
@@ -605,12 +605,13 @@ current page.
 
 @kindex C-x =
 @findex what-cursor-position
-  The command @kbd{C-x =} (@code{what-cursor-position}) can be used to find out
-the column that the cursor is in, and other miscellaneous information about
-point.  It displays a line in the echo area that looks like this:
+  The command @kbd{C-x =} (@code{what-cursor-position}) shows what
+column the cursor is in, and other miscellaneous information about
+point and the character after it.  It displays a line in the echo area
+that looks like this:
 
 @smallexample
-Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53 
+Char: c (0143, 99, 0x63)  point=21044 of 26883(78%)  column 53
 @end smallexample
 
 @noindent
@@ -640,7 +641,7 @@ additional text describing the currently accessible range.  For example, it
 might display this:
 
 @smallexample
-Char: C (0103, 67, 0x43)  point=252 of 889(28%) <231 - 599>  column 0 
+Char: C (0103, 67, 0x43)  point=252 of 889(28%) <231 - 599>  column 0
 @end smallexample
 
 @noindent
@@ -665,8 +666,9 @@ identify the character within that character set; ASCII characters are
 identified as belonging to the @code{ascii} character set.  It also
 shows the character's syntax, categories, and encodings both
 internally in the buffer and externally if you save the file.  It also
-shows the character's text properties, if any, and the font used to
-display it.
+shows the character's text properties (@pxref{Text Properties,,,
+elisp, the Emacs Lisp Reference Manual}), and any overlays containing it
+(@pxref{Overlays,,, elisp, the same manual}).
 
   Here's an example showing the Latin-1 character A with grave accent,
 in a buffer whose coding system is @code{iso-2022-7bit}, whose
@@ -686,7 +688,7 @@ displays the character as @samp{@`A}), and which has font-lock-mode
 terminal code: C0
 
 Text properties
-  face: font-lock-variable-name-face
+  font-lock-face: font-lock-variable-name-face
   fontified: t
 @end smallexample
 

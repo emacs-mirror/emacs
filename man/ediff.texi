@@ -15,23 +15,20 @@
 @synindex pg cp
 @synindex ky cp
 
-@dircategory Emacs
-@direntry
-* Ediff: (ediff).       A visual interface for comparing and merging programs.
-@end direntry
-
 @iftex
 @finalout
 @end iftex
 @c      @smallbook
 @comment %**end of header (This is for running Texinfo on a region.)
 
-@ifinfo
+@copying
 This file documents Ediff, a comprehensive visual interface to Unix diff
 and patch utilities.
 
-Copyright 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
+Copyright 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software
+Foundation, Inc.
 
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with no
@@ -48,9 +45,14 @@ This document is part of a collection distributed under the GNU Free
 Documentation License.  If you want to distribute this document
 separately from the collection, you can do so by adding a copy of the
 license to the document, as described in section 6 of the license.
-@end ifinfo
+@end quotation
+@end copying
 
-@iftex
+@dircategory Emacs
+@direntry
+* Ediff: (ediff).       A visual interface for comparing and merging programs.
+@end direntry
+
 @titlepage
 @title Ediff User's Manual
 @sp 4
@@ -62,28 +64,9 @@ license to the document, as described in section 6 of the license.
 @page
 
 @vskip 0pt plus 1filll
-@noindent
-Copyright @copyright{} 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002 Free Software Foundation, Inc.
-
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with no
-Invariant Sections, with the Front-Cover texts being ``A GNU
-Manual'', and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License'' in the Emacs manual.
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
-
-This document is part of a collection distributed under the GNU Free
-Documentation License.  If you want to distribute this document
-separately from the collection, you can do so by adding a copy of the
-license to the document, as described in section 6 of the license.
+@insertcopying
 @end titlepage
-@page
-@end iftex
+
 
 @node Top, Introduction, (dir), (dir)
 
@@ -262,8 +245,8 @@ utility to change the original files on disk.  This is not that
 dangerous, since you will always have the original contents of the file
 saved in another file that has the extension @file{.orig}.
 Furthermore, if the file is under version control, then you can always back
-out to one of the previous versions (see the section on Version Countrol in
-Emacs manual).
+out to one of the previous versions (see the section on Version Control in
+the Emacs manual).
 
 @code{ediff-patch-file} is careful about versions control: if the file
 to be patched is checked in, then Ediff will offer to check it out, because
@@ -897,7 +880,7 @@ reduce the risk of developing a cataract.
 In other situations, the currently highlighted region might be big and you
 might want to reconcile of them interactively.
 
-All of this can be done with the above comand, @kbd{=}, which
+All of this can be done with the above command, @kbd{=}, which
 compares regions within Ediff buffers.  Typing @kbd{=} creates a
 child Ediff session for comparing regions in buffers A, B, or
 C as follows.
@@ -2451,6 +2434,7 @@ Tibor Polgar (tlp00@@spg.amdahl.com),
 David Prince (dave0d@@fegs.co.uk),
 Paul Raines (raines@@slac.stanford.edu),
 Stefan Reicher (xsteve@@riic.at),
+Charles Rich (rich@@merl.com),
 Bill Richter (richter@@math.nwu.edu),
 C.S.@: Roberson (roberson@@aur.alcatel.com),
 Kevin Rodgers (kevin.rodgers@@ihs.com),

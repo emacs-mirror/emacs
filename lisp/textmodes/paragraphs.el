@@ -43,14 +43,15 @@ only considered as a candidate to match `paragraph-start' or
 
 Prefix argument says to turn mode on if positive, off if negative.
 When the mode is turned on, if there are newlines in the buffer but no hard
-newlines, ask the user whether to mark as hard any newlines preceeding a 
+newlines, ask the user whether to mark as hard any newlines preceeding a
 `paragraph-start' line.  From a program, second arg INSERT specifies whether
 to do this; it can be `never' to change nothing, t or `always' to force
-marking, `guess' to try to do the right thing with no questions, nil 
+marking, `guess' to try to do the right thing with no questions, nil
 or anything else to ask the user.
 
 Newlines not marked hard are called \"soft\", and are always internal
 to paragraphs.  The fill functions insert and delete only soft newlines."
+  :group 'paragraphs
   :extra-args (insert)
   (when use-hard-newlines
     ;; Turn mode on
@@ -136,7 +137,7 @@ without a period."
    ;; This is a bit stupid since it's not auto-updated when the
    ;; other variables are changes, but it's still useful info.
    (concat (if sentence-end-without-period "\\w  \\|")
-	   "[.?!][]\"')}]*"
+	   "[.?!$B!#!%!)!*$A!##.#?#!$(0!$!%!)!*$(G!$!%!)!*(B][]\"')}]*"
 	   (if sentence-end-double-space
 	       "\\($\\| $\\|\t\\|  \\)" "\\($\\|[\t ]\\)")
 	   "[ \t\n]*"))
@@ -173,7 +174,8 @@ a negative argument ARG = -N means move backward N paragraphs.
 A line which `paragraph-start' matches either separates paragraphs
 \(if `paragraph-separate' matches it also) or is the first line of a paragraph.
 A paragraph end is the beginning of a line which is not part of the paragraph
-to which the end of the previous line belongs, or the end of the buffer."
+to which the end of the previous line belongs, or the end of the buffer.
+Returns the count of paragraphs left to move."
   (interactive "p")
   (or arg (setq arg 1))
   (let* ((opoint (point))
@@ -206,7 +208,7 @@ to which the end of the previous line belongs, or the end of the buffer."
       (if (and (not (looking-at parsep))
 	       (re-search-backward "^\n" (max (1- (point)) (point-min)) t)
 	       (looking-at parsep))
-	  nil
+	  (setq arg (1+ arg))
 	(setq start (point))
 	;; Move back over paragraph-separating lines.
 	(forward-char -1) (beginning-of-line)
@@ -216,6 +218,7 @@ to which the end of the previous line belongs, or the end of the buffer."
 	  (forward-line -1))
 	(if (bobp)
 	    nil
+	  (setq arg (1+ arg))
 	  ;; Go to end of the previous (non-separating) line.
 	  (end-of-line)
 	  ;; Search back for line that starts or separates paragraphs.
@@ -253,8 +256,8 @@ to which the end of the previous line belongs, or the end of the buffer."
 		  (setq found-start nil)
 		  (goto-char start))
 		found-start)
-	    ;; Found one.
-	    (progn
+	      ;; Found one.
+	      (progn
 		;; Move forward over paragraph separators.
 		;; We know this cannot reach the place we started
 		;; because we know we moved back over a non-separator.
@@ -270,15 +273,17 @@ to which the end of the previous line belongs, or the end of the buffer."
 		  (if (not (bolp))
 		      (forward-line 1))))
 	    ;; No starter or separator line => use buffer beg.
-	    (goto-char (point-min)))))
-      (setq arg (1+ arg)))
+	    (goto-char (point-min))))))
 
     (while (and (> arg 0) (not (eobp)))
-      ;; Move forward over separator lines, and one more line.
-      (while (prog1 (and (not (eobp))
-			 (progn (move-to-left-margin) (not (eobp)))
-			 (looking-at parsep))
-	       (forward-line 1)))
+      ;; Move forward over separator lines...
+      (while (and (not (eobp))
+		  (progn (move-to-left-margin) (not (eobp)))
+		  (looking-at parsep))
+	(forward-line 1))
+      (unless (eobp) (setq arg (1- arg)))
+      ;; ... and one more line.
+      (forward-line 1)
       (if fill-prefix-regexp
 	  ;; There is a fill prefix; it overrides parstart.
 	  (while (and (not (eobp))
@@ -297,9 +302,10 @@ to which the end of the previous line belongs, or the end of the buffer."
 			     (not (get-text-property (1- start) 'hard)))))
 	  (forward-char 1))
 	(if (< (point) (point-max))
-	    (goto-char start)))
-      (setq arg (1- arg)))
-    (constrain-to-field nil opoint t)))
+	    (goto-char start))))
+    (constrain-to-field nil opoint t)
+    ;; Return the number of steps that could not be done.
+    arg))
 
 (defun backward-paragraph (&optional arg)
   "Move backward to start of paragraph.
@@ -450,5 +456,9 @@ ones already marked."
   "Interchange this (next) and previous sentence."
   (interactive "*p")
   (transpose-subr 'forward-sentence arg))
+
+;;; Local Variables:
+;;; coding: iso-2022-7bit
+;;; End:
 
 ;;; paragraphs.el ends here

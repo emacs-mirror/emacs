@@ -113,7 +113,7 @@ avoid a more expansive scan.
 Point is at POS when this function returns."
   ;; Default values.
   (unless pos (setq pos (point)))
-  ;; 
+  ;;
   (let ((old-ppss (cdr syntax-ppss-last))
 	(old-pos (car syntax-ppss-last))
 	(ppss nil)
@@ -129,7 +129,7 @@ Point is at POS when this function returns."
 	  (incf (car (aref syntax-ppss-stats 0)))
 	  (incf (cdr (aref syntax-ppss-stats 0)) (- pos old-pos))
 	  (parse-partial-sexp old-pos pos nil nil old-ppss))
-      
+
       (cond
        ;; Use OLD-PPSS if possible and close enough.
        ((and (not old-pos) old-ppss
@@ -253,7 +253,7 @@ Point is at POS when this function returns."
 			   syntax-ppss-max-span))
 		    (push pair syntax-ppss-cache)
 		  (setcar syntax-ppss-cache pair)))))))))
-      
+
       (setq syntax-ppss-last (cons pos ppss))
       ppss)))
 
@@ -281,14 +281,6 @@ Point is at POS when this function returns."
 ;; This is an XEmacs compatibility function."
 ;;   (with-current-buffer (or buffer (current-buffer))
 ;;     (syntax-ppss-depth (syntax-ppss))))
-
-(defun syntax-after (pos)
-  "Return the syntax of the char after POS."
-  (unless (or (< pos (point-min)) (>= pos (point-max)))
-    (let ((st (if parse-sexp-lookup-properties
-		  (get-char-property pos 'syntax-table))))
-      (if (consp st) st
-	(aref (or st (syntax-table)) (char-after pos))))))
 
 (provide 'syntax)
 ;;; syntax.el ends here

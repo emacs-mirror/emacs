@@ -180,7 +180,7 @@ om M-< in te typen: zonder shift zou je M-, (Meta komma) typen.
 
 >> Type nu M-> om naar het eind van het bestand te springen.
    Gebruik daarna M-v om hier weer terug te komen.
-   
+
 Als je toetsenbord pijltjestoetsen heeft kan je ook die gebruiken om de
 cursor te verplaatsen.  We raden je aan om C-b, C-f, C-n en C-p op zijn
 minst te leren, om drie redenen.  Ten eerste werken ze op alle
@@ -877,7 +877,7 @@ scherm kan laten zien.
    om de cursor naar het andere venster te verplaatsen.
 
 >> Verschuif de tekst in het onderste venster, m.b.v. C-v en M-v.
-   Zorg ervoor dat je deze uitleg in het bovenste venster leest.  
+   Zorg ervoor dat je deze uitleg in het bovenste venster leest.
 
 >> Type weer C-x o om de cursor weer in het bovenste venster
    te zetten.  De cursor staat weer precies op de plaats waar

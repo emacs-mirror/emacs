@@ -128,7 +128,7 @@ in the Emacs distribution.  Type @kbd{C-h F} to read the FAQ; type
 @kbd{C-h P} to read the @file{PROBLEMS} file.
 
 @menu
-* DEL Does Not Delete::  What to do if @key{DEL} doesn't delete.
+* DEL Does Not Delete::   What to do if @key{DEL} doesn't delete.
 * Stuck Recursive::       `[...]' in mode line around the parentheses.
 * Screen Garbled::        Garbage on the screen.
 * Text Garbled::          Garbage in the text.
@@ -818,7 +818,7 @@ To make Lisp errors stop Emacs and return to GDB, put a breakpoint at
 @code{Fsignal}.
 
 For a short listing of Lisp functions running, type the GDB
-command @code{xbacktrace}.  
+command @code{xbacktrace}.
 
 The file @file{.gdbinit} defines several other commands that are useful
 for examining the data types and contents of Lisp objects.  Their names

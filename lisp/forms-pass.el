@@ -1,4 +1,4 @@
-;;; forms-pass.el --- passwd file demo for forms-mode
+;;; forms-pass.el --- passwd file demo for forms-mode -*- no-byte-compile: t -*-
 
 ;; This file is part of GNU Emacs.
 

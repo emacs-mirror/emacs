@@ -159,7 +159,7 @@ X frame."
 (defun standard-display-underline (c uc)
   "Display character C as character UC plus underlining."
   (aset standard-display-table c
-	(vector 
+	(vector
 	 (if window-system
 	     (logior uc (lsh (face-id 'underline) 19))
 	   (create-glyph (concat "\e[4m" (char-to-string uc) "\e[m"))))))

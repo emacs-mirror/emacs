@@ -34,6 +34,7 @@
 (require 'nnoo)
 (eval-when-compile (require 'cl))
 (require 'gnus-util)
+(require 'gnus-range)
 
 (nnoo-declare nnfolder)
 
@@ -94,7 +95,7 @@ message, a huge time saver for large mailboxes.")
 (defvoo nnfolder-scantime-alist nil)
 (defvoo nnfolder-active-timestamp nil)
 (defvoo nnfolder-active-file-coding-system mm-text-coding-system)
-(defvoo nnfolder-active-file-coding-system-for-write 
+(defvoo nnfolder-active-file-coding-system-for-write
     nnmail-active-file-coding-system)
 (defvoo nnfolder-file-coding-system mm-text-coding-system)
 (defvoo nnfolder-file-coding-system-for-write nnheader-file-coding-system
@@ -188,7 +189,7 @@ If nil, `nnfolder-file-coding-system' is used.")
 	      (cons nnfolder-current-group article)
 	    (goto-char (point-min))
 	    (cons nnfolder-current-group
-		  (if (search-forward (concat "\n" nnfolder-article-marker) 
+		  (if (search-forward (concat "\n" nnfolder-article-marker)
 				      nil t)
 		      (string-to-int
 		       (buffer-substring
@@ -312,7 +313,7 @@ If nil, `nnfolder-file-coding-system' is used.")
       (let ((marker (concat "\n" nnfolder-article-marker))
 	    (number "[0-9]+")
 	    numbers)
-      
+
 	(while (and (search-forward marker nil t)
 		    (re-search-forward number nil t))
 	  (let ((newnum (string-to-number (match-string 0))))
@@ -349,7 +350,14 @@ If nil, `nnfolder-file-coding-system' is used.")
 		       (buffer-substring
 			(point) (progn (end-of-line) (point)))
 		       force nnfolder-inhibit-expiry))
-	    (nnheader-message 5 "Deleting article %d..."
+	    (unless (eq nnmail-expiry-target 'delete)
+	      (with-temp-buffer
+		(nnfolder-request-article (car maybe-expirable)
+					  newsgroup server (current-buffer))
+		(let ((nnml-current-directory nil))
+		  (nnmail-expiry-target-group
+		   nnmail-expiry-target newsgroup))))
+	    (nnheader-message 5 "Deleting article %d in %s..."
 			      (car maybe-expirable) newsgroup)
 	    (nnfolder-delete-mail)
 	    ;; Must remember which articles were actually deleted
@@ -376,7 +384,7 @@ If nil, `nnfolder-file-coding-system' is used.")
 	 (goto-char (point-min))
 	 (while (re-search-forward
 		 (concat "^" nnfolder-article-marker)
-		 (save-excursion (and (search-forward "\n\n" nil t) (point))) 
+		 (save-excursion (and (search-forward "\n\n" nil t) (point)))
 		 t)
 	   (delete-region (progn (beginning-of-line) (point))
 			  (progn (forward-line 1) (point))))
@@ -403,7 +411,9 @@ If nil, `nnfolder-file-coding-system' is used.")
 	  result art-group)
       (goto-char (point-min))
       (when (looking-at "X-From-Line: ")
-	(replace-match "From "))
+	(replace-match "From ")
+	(while (progn (forward-line) (looking-at "[ \t]"))
+	  (delete-char -1)))
       (and
        (nnfolder-request-list)
        (save-excursion
@@ -621,7 +631,7 @@ deleted.  Point is left where the deleted region was."
 	      ;; See whether we need to create the new file.
 	      (unless (file-exists-p file)
 		(gnus-make-directory (file-name-directory file))
-		(let ((nnmail-file-coding-system 
+		(let ((nnmail-file-coding-system
 		       (or nnfolder-file-coding-system-for-write
 			   nnfolder-file-coding-system-for-write)))
 		  (nnmail-write-region (point-min) (point-min)
@@ -738,7 +748,7 @@ deleted.  Point is left where the deleted region was."
 (defun nnfolder-read-folder (group)
   (let* ((file (nnfolder-group-pathname group))
 	 (buffer (set-buffer
-		  (let ((nnheader-file-coding-system 
+		  (let ((nnheader-file-coding-system
 			 nnfolder-file-coding-system))
 		    (nnheader-find-file-noselect file)))))
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
@@ -862,7 +872,7 @@ This command does not work if you use short group names."
     (nnheader-message 5 "")))
 
 (defun nnfolder-group-pathname (group)
-  "Make pathname for GROUP."
+  "Make file name for GROUP."
   (setq group
 	(mm-encode-coding-string group nnmail-pathname-coding-system))
   (let ((dir (file-name-as-directory (expand-file-name nnfolder-directory))))
@@ -878,7 +888,7 @@ This command does not work if you use short group names."
   (when (buffer-modified-p)
     (run-hooks 'nnfolder-save-buffer-hook)
     (gnus-make-directory (file-name-directory (buffer-file-name)))
-    (let ((coding-system-for-write 
+    (let ((coding-system-for-write
 	   (or nnfolder-file-coding-system-for-write
 	       nnfolder-file-coding-system)))
       (save-buffer))))

@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -1228,21 +1229,23 @@
 ;;; Note: Longer names must appear before shorter names which are
 ;;;       substrings of them.
 (defvar math-tzone-names
-  '( ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
-     ( "METDST" -1 -1 ) ( "MET" -1 0 )
-     ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
-     ( "WEGT" 0 "WET" "WETDST" )                           ; Western Europe
-     ( "WETDST" 0 -1 ) ( "WET" 0 0 )
-     ( "BGT" 0 "GMT" "BST" ) ( "GMT" 0 0 ) ( "BST" 0 -1 )  ; Britain
-     ( "NGT" (float 35 -1) "NST" "NDT" )                   ; Newfoundland
-     ( "NST" (float 35 -1) 0 ) ( "NDT" (float 35 -1) -1 )
-     ( "AGT" 4 "AST" "ADT" ) ( "AST" 4 0 ) ( "ADT" 4 -1 )  ; Atlantic
-     ( "EGT" 5 "EST" "EDT" ) ( "EST" 5 0 ) ( "EDT" 5 -1 )  ; Eastern
-     ( "CGT" 6 "CST" "CDT" ) ( "CST" 6 0 ) ( "CDT" 6 -1 )  ; Central
-     ( "MGT" 7 "MST" "MDT" ) ( "MST" 7 0 ) ( "MDT" 7 -1 )  ; Mountain
-     ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
-     ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
-))
+  '(( "UTC" 0 0) 
+    ( "MEGT" -1 "MET" "METDST" )                          ; Middle Europe
+    ( "METDST" -1 -1 ) ( "MET" -1 0 )
+    ( "MEGZ" -1 "MEZ" "MESZ" ) ( "MEZ" -1 0 ) ( "MESZ" -1 -1 )
+    ( "WEGT" 0 "WET" "WETDST" )                           ; Western Europe
+    ( "WETDST" 0 -1 ) ( "WET" 0 0 )
+    ( "BGT" 0 "GMT" "BST" ) ( "GMT" 0 0 ) ( "BST" 0 -1 )  ; Britain
+    ( "NGT" (float 35 -1) "NST" "NDT" )                   ; Newfoundland
+    ( "NST" (float 35 -1) 0 ) ( "NDT" (float 35 -1) -1 )
+    ( "AGT" 4 "AST" "ADT" ) ( "AST" 4 0 ) ( "ADT" 4 -1 )  ; Atlantic
+    ( "EGT" 5 "EST" "EDT" ) ( "EST" 5 0 ) ( "EDT" 5 -1 )  ; Eastern
+    ( "CGT" 6 "CST" "CDT" ) ( "CST" 6 0 ) ( "CDT" 6 -1 )  ; Central
+    ( "MGT" 7 "MST" "MDT" ) ( "MST" 7 0 ) ( "MDT" 7 -1 )  ; Mountain
+    ( "PGT" 8 "PST" "PDT" ) ( "PST" 8 0 ) ( "PDT" 8 -1 )  ; Pacific
+    ( "YGT" 9 "YST" "YDT" ) ( "YST" 9 0 ) ( "YDT" 9 -1 )  ; Yukon
+    )
+  "No doc yet.  See calc manual for now. ")
 
 
 (defun math-daylight-savings-adjust (date zone &optional dt)

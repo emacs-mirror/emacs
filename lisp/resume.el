@@ -84,7 +84,7 @@
 	    ;; arguments are now in reverse order
 	    (setq args (nreverse args))
 	    ;; make sure they're not read again
-	    (erase-buffer))		
+	    (erase-buffer))
 	  (resume-write-buffer-to-file (current-buffer) resume-emacs-args-file)
 	  ;; if nothing was in buffer, args will be null
 	  (or (null args)

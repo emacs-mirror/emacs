@@ -85,7 +85,7 @@
 ;; -tip: use M-f and M-b for ease of navigation among elements.
 
 ;;; History:
-;; 
+;;
 ;; 2000-04-10:
 ;;
 ;;   first revamped version
@@ -211,7 +211,7 @@ and return t."
 	;; no candidate found
 	nil
       (progn
-	;; 
+	;;
 	(setq crm-beginning-of-element (match-beginning 1))
 	(setq crm-end-of-element end-index)
 	;; string to the left of the current element
@@ -226,7 +226,7 @@ and return t."
   "Return t if CANDIDATE is an exact match for a valid completion."
   (let ((completions
 	 ;; TODO: verify whether the arguments are appropriate
-	 (all-completions 
+	 (all-completions
 	  candidate crm-completion-table minibuffer-completion-predicate)))
     (if (member candidate completions)
 	t
@@ -271,20 +271,20 @@ The meanings of the return values are:
 			    minibuffer-completion-predicate))
       (setq last crm-last-exact-completion)
       (setq crm-last-exact-completion nil)
-      
+
       (catch 'crm-exit
-	
+
 	(if (null completion) ; no possible completion
 	    (progn
 	      (crm-temp-echo-area-glyphs " [No match]")
 	      (throw 'crm-exit 0)))
-	
+
 	(if (eq completion t) ; was already an exact and unique completion
 	    (throw 'crm-exit 1))
-	
+
 	(setq completedp
 	      (null (string-equal completion crm-current-element)))
-	
+
 	(if completedp
 	    (progn
 	      (erase-buffer)
@@ -295,7 +295,7 @@ The meanings of the return values are:
 	      (backward-char (length crm-right-of-element))
 	      ;; TODO: is this correct?
 	      (setq crm-current-element completion)))
-	
+
 	(if (null (crm-test-completion crm-current-element))
 	    (progn
 	      (if completedp ; some completion happened
@@ -306,13 +306,13 @@ The meanings of the return values are:
 	      (throw 'crm-exit 6))
 	  (if completedp
 	      (throw 'crm-exit 4)))
-	
+
 	(setq crm-last-exact-completion completion)
 	(if (not (null last))
 	    (progn
 	      (if (not (null (equal crm-current-element last)))
 		  (crm-minibuffer-completion-help))))
-	
+
 	;; returning -- was already an exact completion
 	(throw 'crm-exit 3)))))
 
@@ -472,24 +472,24 @@ to the location of mismatch and do not exit.
 
 This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
   (interactive)
-  
+
   (if (not (crm-find-current-element))
       nil
     (let (result)
-      
+
       (setq result
 	    (catch 'crm-exit
-	      
+
 	      (if (eq (point-min) (point-max))
 		  (throw 'crm-exit t))
-	      
+
 	      ;; TODO: this test is suspect?
 	      (if (not (null (crm-test-completion crm-current-element)))
 		  (throw 'crm-exit "check"))
-	      
+
 	      ;; TODO: determine how to detect errors
 	      (let ((result (crm-do-completion)))
-		
+
 		(cond
 		 ((or (eq 1 result)
 		      (eq 3 result))
@@ -501,7 +501,7 @@ This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
 			nil)
 		    (throw 'crm-exit "check")))
 		 (nil)))))
-      
+
       (if (null result)
 	  nil
 	(if (equal result "check")
@@ -541,7 +541,7 @@ and TAB to `crm-minibuffer-complete'."
     (define-key crm-local-completion-map
       (kbd "TAB")
       (function crm-minibuffer-complete)))
-  
+
   (unless crm-local-must-match-map
     (setq crm-local-must-match-map (make-sparse-keymap))
     (set-keymap-parent crm-local-must-match-map

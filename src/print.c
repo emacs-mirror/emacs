@@ -91,6 +91,9 @@ Lisp_Object Vfloat_output_format, Qfloat_output_format;
 /* Avoid actual stack overflow in print.  */
 int print_depth;
 
+/* Nonzero if inside outputting backquote in old style.  */
+int old_backquote_output;
+
 /* Detect most circularities to print finite output.  */
 #define PRINT_CIRCLE 200
 Lisp_Object being_printed[PRINT_CIRCLE];
@@ -186,13 +189,13 @@ void print_interval ();
    and must start with PRINTPREPARE, end with PRINTFINISH,
    and use PRINTDECLARE to declare common variables.
    Use PRINTCHAR to output one character,
-   or call strout to output a block of characters. */ 
+   or call strout to output a block of characters. */
 
 #define PRINTDECLARE							\
    struct buffer *old = current_buffer;					\
    int old_point = -1, start_point = -1;				\
    int old_point_byte = -1, start_point_byte = -1;			\
-   int specpdl_count = specpdl_ptr - specpdl;				\
+   int specpdl_count = SPECPDL_INDEX ();				\
    int free_print_buffer = 0;						\
    int multibyte = !NILP (current_buffer->enable_multibyte_characters);	\
    Lisp_Object original
@@ -290,7 +293,7 @@ static Lisp_Object
 print_unwind (saved_text)
      Lisp_Object saved_text;
 {
-  bcopy (XSTRING (saved_text)->data, print_buffer, XSTRING (saved_text)->size);
+  bcopy (SDATA (saved_text), print_buffer, SCHARS (saved_text));
   return Qnil;
 }
 
@@ -318,7 +321,7 @@ printchar (ch, fun)
       int len = CHAR_STRING (ch, str);
 
       QUIT;
-      
+
       if (NILP (fun))
 	{
 	  if (print_buffer_pos_byte + len >= print_buffer_size)
@@ -337,7 +340,7 @@ printchar (ch, fun)
 	{
 	  int multibyte_p
 	    = !NILP (current_buffer->enable_multibyte_characters);
-	  
+
 	  setup_echo_area_for_printing (multibyte_p);
 	  insert_char (ch);
 	  message_dolog (str, len, 0, multibyte_p);
@@ -394,10 +397,10 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
       int i;
       int multibyte_p
 	= !NILP (current_buffer->enable_multibyte_characters);
-      
+
       setup_echo_area_for_printing (multibyte_p);
       message_dolog (ptr, size_byte, 0, multibyte_p);
-      
+
       if (size == size_byte)
 	{
 	  for (i = 0; i < size; ++i)
@@ -412,7 +415,7 @@ strout (ptr, size, size_byte, printcharfun, multibyte)
 	      insert_char (ch);
 	    }
 	}
-      
+
 #ifdef MAX_PRINT_CHARS
       if (max_print)
         print_chars += size;
@@ -461,7 +464,7 @@ print_string (string, printcharfun)
       int chars;
 
       if (STRING_MULTIBYTE (string))
-	chars = XSTRING (string)->size;
+	chars = SCHARS (string);
       else if (EQ (printcharfun, Qt)
 	       ? ! NILP (buffer_defaults.enable_multibyte_characters)
 	       : ! NILP (current_buffer->enable_multibyte_characters))
@@ -472,22 +475,22 @@ print_string (string, printcharfun)
 	  Lisp_Object newstr;
 	  int bytes;
 
-	  chars = STRING_BYTES (XSTRING (string));
-	  bytes = parse_str_to_multibyte (XSTRING (string)->data, chars);
+	  chars = SBYTES (string);
+	  bytes = parse_str_to_multibyte (SDATA (string), chars);
 	  if (chars < bytes)
 	    {
 	      newstr = make_uninit_multibyte_string (chars, bytes);
-	      bcopy (XSTRING (string)->data, XSTRING (newstr)->data, chars);
-	      str_to_multibyte (XSTRING (newstr)->data, bytes, chars);
+	      bcopy (SDATA (string), SDATA (newstr), chars);
+	      str_to_multibyte (SDATA (newstr), bytes, chars);
 	      string = newstr;
 	    }
 	}
       else
-	chars = STRING_BYTES (XSTRING (string));
+	chars = SBYTES (string);
 
       /* strout is safe for output to a frame (echo area) or to print_buffer.  */
-      strout (XSTRING (string)->data,
-	      chars, STRING_BYTES (XSTRING (string)),
+      strout (SDATA (string),
+	      chars, SBYTES (string),
 	      printcharfun, STRING_MULTIBYTE (string));
     }
   else
@@ -495,24 +498,24 @@ print_string (string, printcharfun)
       /* Otherwise, string may be relocated by printing one char.
 	 So re-fetch the string address for each character.  */
       int i;
-      int size = XSTRING (string)->size;
-      int size_byte = STRING_BYTES (XSTRING (string));
+      int size = SCHARS (string);
+      int size_byte = SBYTES (string);
       struct gcpro gcpro1;
       GCPRO1 (string);
       if (size == size_byte)
 	for (i = 0; i < size; i++)
-	  PRINTCHAR (XSTRING (string)->data[i]);
+	  PRINTCHAR (SREF (string, i));
       else
 	for (i = 0; i < size_byte; i++)
 	  {
 	    /* Here, we must convert each multi-byte form to the
 	       corresponding character code before handing it to PRINTCHAR.  */
 	    int len;
-	    int ch = STRING_CHAR_AND_LENGTH (XSTRING (string)->data + i,
+	    int ch = STRING_CHAR_AND_LENGTH (SDATA (string) + i,
 					     size_byte - i, len);
 	    if (!CHAR_VALID_P (ch, 0))
 	      {
-		ch = XSTRING (string)->data[i];
+		ch = SREF (string, i);
 		len = 1;
 	      }
 	    PRINTCHAR (ch);
@@ -578,9 +581,9 @@ write_string_1 (data, size, printcharfun)
 
 void
 temp_output_buffer_setup (bufname)
-    char *bufname;
+    const char *bufname;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   register struct buffer *old = current_buffer;
   register Lisp_Object buf;
 
@@ -588,6 +591,7 @@ temp_output_buffer_setup (bufname)
 
   Fset_buffer (Fget_buffer_create (build_string (bufname)));
 
+  Fkill_all_local_variables ();
   current_buffer->directory = old->directory;
   current_buffer->read_only = Qnil;
   current_buffer->filename = Qnil;
@@ -608,11 +612,11 @@ temp_output_buffer_setup (bufname)
 
 Lisp_Object
 internal_with_output_to_temp_buffer (bufname, function, args)
-     char *bufname;
+     const char *bufname;
      Lisp_Object (*function) P_ ((Lisp_Object));
      Lisp_Object args;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object buf, val;
   struct gcpro gcpro1;
 
@@ -649,7 +653,7 @@ to display it temporarily selected.
 
 If variable `temp-buffer-show-function' is non-nil, call it at the end
 to get the buffer displayed instead of just displaying the non-selected
-buffer and calling the hook.  It gets one argument, the buffer to display.  
+buffer and calling the hook.  It gets one argument, the buffer to display.
 
 usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
      (args)
@@ -657,13 +661,13 @@ usage: (with-output-to-temp-buffer BUFFNAME BODY ...)  */)
 {
   struct gcpro gcpro1;
   Lisp_Object name;
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
   Lisp_Object buf, val;
 
   GCPRO1(args);
   name = Feval (Fcar (args));
   CHECK_STRING (name);
-  temp_output_buffer_setup (XSTRING (name)->data);
+  temp_output_buffer_setup (SDATA (name));
   buf = Vstandard_output;
   UNGCPRO;
 
@@ -771,6 +775,8 @@ A printed representation of an object is text which describes that object.  */)
   PRINTFINISH;
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   object = Fbuffer_string ();
+  if (SBYTES (object) == SCHARS (object))
+    STRING_SET_UNIBYTE (object);
 
   Ferase_buffer ();
   set_buffer_internal (old);
@@ -919,7 +925,7 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
       && NILP (XCDR (XCDR (obj))))
     return XCAR (XCDR (obj));
 
-  print_error_message (obj, Vprin1_to_string_buffer);
+  print_error_message (obj, Vprin1_to_string_buffer, 0, Qnil);
 
   set_buffer_internal (XBUFFER (Vprin1_to_string_buffer));
   value = Fbuffer_string ();
@@ -936,12 +942,26 @@ DEFUN ("error-message-string", Ferror_message_string, Serror_message_string,
    STREAM (suitable for the print functions).  */
 
 void
-print_error_message (data, stream)
+print_error_message (data, stream, context, caller)
      Lisp_Object data, stream;
+     char *context;
+     Lisp_Object caller;
 {
   Lisp_Object errname, errmsg, file_error, tail;
   struct gcpro gcpro1;
   int i;
+
+  if (context != 0)
+    write_string_1 (context, -1, stream);
+
+  /* If we know from where the error was signaled, show it in
+   *Messages*.  */
+  if (!NILP (caller) && SYMBOLP (caller))
+    {
+      const char *name = SDATA (SYMBOL_NAME (caller));
+      message_dolog (name, strlen (name), 0, 0);
+      message_dolog (": ", 2, 0, 0);
+    }
 
   errname = Fcar (data);
 
@@ -966,16 +986,6 @@ print_error_message (data, stream)
   tail = Fcdr_safe (data);
   GCPRO1 (tail);
 
-  /* If we know from where the error was signaled, show it in
-     *Messages*.  */
-  if (!NILP (Vsignaling_function) && SYMBOLP (Vsignaling_function))
-    {
-      char *name = XSTRING (SYMBOL_NAME (Vsignaling_function))->data;
-      message_dolog (name, strlen (name), 0, 0);
-      message_dolog (": ", 2, 0, 0);
-      Vsignaling_function = Qnil;
-    }
-
   /* For file-error, make error message by concatenating
      all the data items.  They are all strings.  */
   if (!NILP (file_error) && CONSP (tail))
@@ -997,7 +1007,7 @@ print_error_message (data, stream)
       else
 	Fprin1 (obj, stream);
     }
-  
+
   UNGCPRO;
 }
 
@@ -1008,9 +1018,9 @@ print_error_message (data, stream)
  * largest float, printed in the biggest notation.  This is undoubtedly
  * 20d float_output_format, with the negative of the C-constant "HUGE"
  * from <math.h>.
- * 
+ *
  * On the vax the worst case is -1e38 in 20d format which takes 61 bytes.
- * 
+ *
  * I assume that IEEE-754 format numbers can take 329 bytes for the worst
  * case of -1e307 in 20d float_output_format. What is one to do (short of
  * re-writing _doprnt to be more sane)?
@@ -1024,7 +1034,7 @@ float_to_string (buf, data)
 {
   unsigned char *cp;
   int width;
-      
+
   /* Check for plus infinity in a way that won't lose
      if there is no plus infinity.  */
   if (data == data / 2 && data > 1.0)
@@ -1053,7 +1063,7 @@ float_to_string (buf, data)
 	    *buf++ = '-';
 	    break;
 	  }
-      
+
       strcpy (buf, "0.0e+NaN");
       return;
     }
@@ -1083,7 +1093,7 @@ float_to_string (buf, data)
       /* Check that the spec we have is fully valid.
 	 This means not only valid for printf,
 	 but meant for floats, and reasonable.  */
-      cp = XSTRING (Vfloat_output_format)->data;
+      cp = SDATA (Vfloat_output_format);
 
       if (cp[0] != '%')
 	goto lose;
@@ -1113,7 +1123,7 @@ float_to_string (buf, data)
       if (cp[1] != 0)
 	goto lose;
 
-      sprintf (buf, XSTRING (Vfloat_output_format)->data, data);
+      sprintf (buf, SDATA (Vfloat_output_format), data);
     }
 
   /* Make sure there is a decimal point with digit after, or an
@@ -1149,6 +1159,7 @@ print (obj, printcharfun, escapeflag)
      int escapeflag;
 {
   print_depth = 0;
+  old_backquote_output = 0;
 
   /* Reset print_number_index and Vprint_number_table only when
      the variable Vprint_continuous_numbering is nil.  Otherwise,
@@ -1164,21 +1175,30 @@ print (obj, printcharfun, escapeflag)
   if (!NILP (Vprint_gensym) || !NILP (Vprint_circle))
     {
       int i, start, index;
-      /* Construct Vprint_number_table.  */
       start = index = print_number_index;
+      /* Construct Vprint_number_table.
+	 This increments print_number_index for the objects added.  */
       print_preprocess (obj);
+
       /* Remove unnecessary objects, which appear only once in OBJ;
-	 that is, whose status is Qnil.  */
+	 that is, whose status is Qnil.  Compactify the necessary objects.  */
       for (i = start; i < print_number_index; i++)
 	if (!NILP (PRINT_NUMBER_STATUS (Vprint_number_table, i)))
 	  {
 	    PRINT_NUMBER_OBJECT (Vprint_number_table, index)
 	      = PRINT_NUMBER_OBJECT (Vprint_number_table, i);
-	    /* Reset the status field for the next print step.  Now this
-	       field means whether the object has already been printed.  */
-	    PRINT_NUMBER_STATUS (Vprint_number_table, index) = Qnil;
 	    index++;
 	  }
+
+      /* Clear out objects outside the active part of the table.  */
+      for (i = index; i < print_number_index; i++)
+	PRINT_NUMBER_OBJECT (Vprint_number_table, i) = Qnil;
+
+      /* Reset the status field for the next print step.  Now this
+	 field means whether the object has already been printed.  */
+      for (i = start; i < print_number_index; i++)
+	PRINT_NUMBER_STATUS (Vprint_number_table, i) = Qnil;
+
       print_number_index = index;
     }
 
@@ -1252,7 +1272,7 @@ print_preprocess (obj)
 	{
 	case Lisp_String:
 	  /* A string may have text properties, which can be circular.  */
-	  traverse_intervals_noorder (XSTRING (obj)->intervals,
+	  traverse_intervals_noorder (STRING_INTERVALS (obj),
 				      print_preprocess_string, Qnil);
 	  break;
 
@@ -1388,15 +1408,15 @@ print_object (obj, printcharfun, escapeflag)
 
 	  GCPRO1 (obj);
 
-	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
 	      PRINTCHAR ('#');
 	      PRINTCHAR ('(');
 	    }
 
 	  PRINTCHAR ('\"');
-	  str = XSTRING (obj)->data;
-	  size_byte = STRING_BYTES (XSTRING (obj));
+	  str = SDATA (obj);
+	  size_byte = SBYTES (obj);
 
 	  for (i = 0, i_byte = 0; i_byte < size_byte;)
 	    {
@@ -1476,9 +1496,9 @@ print_object (obj, printcharfun, escapeflag)
 	    }
 	  PRINTCHAR ('\"');
 
-	  if (!NULL_INTERVAL_P (XSTRING (obj)->intervals))
+	  if (!NULL_INTERVAL_P (STRING_INTERVALS (obj)))
 	    {
-	      traverse_intervals (XSTRING (obj)->intervals,
+	      traverse_intervals (STRING_INTERVALS (obj),
 				  0, print_interval, printcharfun);
 	      PRINTCHAR (')');
 	    }
@@ -1490,8 +1510,8 @@ print_object (obj, printcharfun, escapeflag)
     case Lisp_Symbol:
       {
 	register int confusing;
-	register unsigned char *p = XSTRING (SYMBOL_NAME (obj))->data;
-	register unsigned char *end = p + STRING_BYTES (XSTRING (SYMBOL_NAME (obj)));
+	register unsigned char *p = SDATA (SYMBOL_NAME (obj));
+	register unsigned char *end = p + SBYTES (SYMBOL_NAME (obj));
 	register int c;
 	int i, i_byte, size_byte;
 	Lisp_Object name;
@@ -1526,7 +1546,7 @@ print_object (obj, printcharfun, escapeflag)
 	    PRINTCHAR (':');
 	  }
 
-	size_byte = STRING_BYTES (XSTRING (name));
+	size_byte = SBYTES (name);
 
 	for (i = 0, i_byte = 0; i_byte < size_byte;)
 	  {
@@ -1568,6 +1588,7 @@ print_object (obj, printcharfun, escapeflag)
 	  print_object (XCAR (XCDR (obj)), printcharfun, escapeflag);
 	}
       else if (print_quoted && CONSP (XCDR (obj)) && NILP (XCDR (XCDR (obj)))
+	       && ! old_backquote_output
 	       && ((EQ (XCAR (obj), Qbackquote)
 		    || EQ (XCAR (obj), Qcomma)
 		    || EQ (XCAR (obj), Qcomma_at)
@@ -1579,6 +1600,29 @@ print_object (obj, printcharfun, escapeflag)
       else
 	{
 	  PRINTCHAR ('(');
+
+	  /* If the first element is a backquote form,
+	     print it old-style so it won't be misunderstood.  */
+	  if (print_quoted && CONSP (XCAR (obj))
+	      && CONSP (XCDR (XCAR (obj)))
+	      && NILP (XCDR (XCDR (XCAR (obj))))
+	      && EQ (XCAR (XCAR (obj)), Qbackquote))
+	    {
+	      Lisp_Object tem;
+	      tem = XCAR (obj);
+	      PRINTCHAR ('(');
+
+	      print_object (Qbackquote, printcharfun, 0);
+	      PRINTCHAR (' ');
+
+	      ++old_backquote_output;
+	      print_object (XCAR (XCDR (tem)), printcharfun, 0);
+	      --old_backquote_output;
+	      PRINTCHAR (')');
+
+	      obj = XCDR (obj);
+	    }
+
 	  {
 	    int print_length, i;
 	    Lisp_Object halftail = obj;
@@ -1628,18 +1672,18 @@ print_object (obj, printcharfun, escapeflag)
 			    }
 		      }
 		  }
-		
+
 		if (i++)
 		  PRINTCHAR (' ');
-		
+
 		if (print_length && i > print_length)
 		  {
 		    strout ("...", 3, 3, printcharfun, 0);
 		    goto end_of_list;
 		  }
-		
+
 		print_object (XCAR (obj), printcharfun, escapeflag);
-		
+
 		obj = XCDR (obj);
 		if (!(i & 1))
 		  halftail = XCDR (halftail);
@@ -1652,7 +1696,7 @@ print_object (obj, printcharfun, escapeflag)
 	      strout (" . ", 3, 3, printcharfun, 0);
 	      print_object (obj, printcharfun, escapeflag);
 	    }
-	  
+
 	end_of_list:
 	  PRINTCHAR (')');
 	}
@@ -1744,9 +1788,9 @@ print_object (obj, printcharfun, escapeflag)
 	    {
 	      PRINTCHAR (' ');
 	      PRINTCHAR ('\'');
-	      strout (XSTRING (SYMBOL_NAME (h->test))->data, -1, -1, printcharfun, 0);
+	      strout (SDATA (SYMBOL_NAME (h->test)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
-	      strout (XSTRING (SYMBOL_NAME (h->weak))->data, -1, -1, printcharfun, 0);
+	      strout (SDATA (SYMBOL_NAME (h->weak)), -1, -1, printcharfun, 0);
 	      PRINTCHAR (' ');
 	      sprintf (buf, "%d/%d", XFASTINT (h->count),
 		       XVECTOR (h->next)->size);
@@ -2082,10 +2126,14 @@ This variable should not be set with `setq'; bind it with a `let' instead.  */);
   DEFVAR_LISP ("print-number-table", &Vprint_number_table,
 	       doc: /* A vector used internally to produce `#N=' labels and `#N#' references.
 The Lisp printer uses this vector to detect Lisp objects referenced more
-than once.  When `print-continuous-numbering' is bound to t, you should
-probably also bind `print-number-table' to nil.  This ensures that the
-value of `print-number-table' can be garbage-collected once the printing
-is done.  */);
+than once.
+
+When you bind `print-continuous-numbering' to t, you should probably
+also bind `print-number-table' to nil.  This ensures that the value of
+`print-number-table' can be garbage-collected once the printing is
+done.  If all elements of `print-number-table' are nil, it means that
+the printing done so far has not found any shared structure or objects
+that need to be recorded in the table.  */);
   Vprint_number_table = Qnil;
 
   /* prin1_to_string_buffer initialized in init_buffer_once in buffer.c */

@@ -1766,7 +1766,7 @@
 	* m/intel386.h (C_SWITCH_SYSTEM): Don't #undef or define it.
  	[SOLARIS2, SOLARIS2_4, !__GNUC__] (C_SWITCH_MACHINE): Define instead.
 
-1995-03-26  Germano Caronni <caronni@tik.ethz.ch>
+1995-03-26  Germano Caronni  <caronni@tik.ethz.ch>
 
 	* ralloc.c (r_re_alloc): Correct realloc behavior--allow shrinking
  	of blocks while reallocating, if shrinking by more than one page.
@@ -1789,7 +1789,7 @@
 
 	* textprop.c (Fnext_property_change): Fix previous change.
 
-1995-03-23  Kevin Rodgers <kevinr@ihs.com>
+1995-03-23  Kevin Rodgers  <kevinr@ihs.com>
 
 	* print.c (temp_output_buffer_setup): (Re)set the default
 	directory of the temp buffer to that of the current buffer.
@@ -3199,7 +3199,7 @@
 	* dispnew.c (scrolling): Fewer restrictions if scroll_region_ok is
 	set.  New vector old_draw_cost for direct scrolling method.
 
-1994-12-23  Michal Jankowski (Michal.Jankowski@fuw.edu.pl)
+1994-12-23  Michal Jankowski  (Michal.Jankowski@fuw.edu.pl)
 
 	* keyboard.c (read_char): Don't echo keys when echo_keystrokes is 0.
 
@@ -4314,7 +4314,7 @@
 
 	* buffer.c (list_buffers_1): Always mark current_buffer read-only.
 
-1994-10-20  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-10-20  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* m/dpx2.h (LD_SWITCH_MACHINE): Defined.
 
@@ -4614,7 +4614,7 @@
 	(FRAMEP): Define different versions for MULTI_FRAME and MSDOS.
 	Otherwise, don't define at all.
 
-	* makefile.in.in (MSDOS_SUPPORT): Add faces.elc.
+	* Makefile.in.in (MSDOS_SUPPORT): Add faces.elc.
 	(msdos.o, dosfns.o): Add dependencies.
 	(MSDOS_OBJ): New set of object files.
 	(obj): Include MSDOS_OBJ.
@@ -5279,7 +5279,7 @@
 
 	* window.c (syms_of_window): Doc fix.
 
-1994-09-26  Fred Pierresteguy <F.Pierresteguy@frcl.bull.fr>
+1994-09-26  Fred Pierresteguy  <F.Pierresteguy@frcl.bull.fr>
 
 	* m/dpx2.h (POSIX_SIGNALS): Define it.
 	(sigsetmask): Add #undef.
@@ -5485,7 +5485,7 @@
 
 	* editfns.c (Fmessage_box): Renamed from Fbox_message.
 
-1994-09-17  Michael Ben-Gershon (mybg@cs.huji.ac.il)
+1994-09-17  Michael Ben-Gershon  (mybg@cs.huji.ac.il)
 
 	* unexec.c (copy_text_and_data): Add RISCiX changes.
 
@@ -5793,7 +5793,7 @@
 
 	* term.c (clear_to_end): Fix reversed condition.
 
-1994-09-16  K. Berry <kb@cs.umb.edu>
+1994-09-16  K. Berry  <kb@cs.umb.edu>
 
 	* dired.c (Qcompletion_ignored_extensions): New symbol.
 	(syms_of_dired): Initialize it.
@@ -5804,7 +5804,7 @@
 	* s/msdos.h (MODE_LINE_BINARY_TEXT): Define this symbol.
 	* xdisp.c (decode_mode_spec): Use it when defined.
 
-1994-09-16  Andreas Schwab <schwab@issan.informatik.uni-dortmund.de>
+1994-09-16  Andreas Schwab  <schwab@issan.informatik.uni-dortmund.de>
 	* minibuf.c (read_minibuf): Don't add to the history list if the
 	minibuffer string is empty, since it is not very useful.
 
@@ -6045,7 +6045,7 @@
 	instead of whether SIGIO is defined.
 	* Makefile.in.in (xterm.o): Depend on keyboard.h.
 
-1994-08-26  Kevin Rodgers <kevinr@ihs.com>
+1994-08-26  Kevin Rodgers  <kevinr@ihs.com>
 
 	* xfns.c (Fx_color_defined_p): Return list of RGB values, not just t.
 

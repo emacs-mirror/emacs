@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -1291,7 +1292,7 @@
     (unwind-protect
 	(let ((p math-integral-cache)
 	      cur-record)
-	  (display-buffer (get-buffer-create "*Integral Cache*")) 
+	  (display-buffer (get-buffer-create "*Integral Cache*"))
 	  (set-buffer (get-buffer "*Integral Cache*"))
 	  (erase-buffer)
 	  (while p
@@ -2115,7 +2116,7 @@
 				       (setq t2 (math-simplify
 						 (math-sub (car t1)
 							   (math-mul high 2)))
-					     t3 (math-simplify 
+					     t3 (math-simplify
 						 (math-sub (car t1)
 							   (math-mul low
 								     2))))))
@@ -3094,7 +3095,7 @@
 		    (mapcar (function (lambda (x) (cons 'vec (cdr x)))) solns)
 		  (mapcar (function (lambda (x) (cons 'vec x))) eqn-list)))))
       (math-normalize
-       (cons 'vec 
+       (cons 'vec
 	     (if solns
 		 (mapcar (function (lambda (x) (cons 'calcFunc-eq x))) solns)
 	       (mapcar 'car eqn-list)))))))

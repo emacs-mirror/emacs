@@ -1,11 +1,11 @@
-;;; ebnf-otz.el --- syntatic chart OpTimiZer
+;;; ebnf-otz.el --- syntactic chart OpTimiZer
 
 ;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Maintainer: Vinicius Jose Latorre <vinicius@cpqd.com.br>
 ;; Keywords: wp, ebnf, PostScript
-;; Time-stamp: <2001/08/15 17:13:25 vinicius>
+;; Time-stamp: <2003-02-10 10:46:51 jbarranquero>
 ;; Version: 1.0
 
 ;; This file is part of GNU Emacs.
@@ -196,7 +196,7 @@
 ;;    A = B | C A D.           ==>   A = B | C A D.
 
 (defun ebnf-optimize (syntax-list)
-  "Syntatic chart optimizer."
+  "Syntactic chart optimizer."
   (if (not ebnf-optimize)
       syntax-list
     (let ((ebnf-total (length syntax-list))
@@ -225,7 +225,7 @@
 ;; 10. A = B C E | B D E.       ==>   A = B (C | D) E.
 
 (defun ebnf-optimize1 (prod)
-  (ebnf-message-info "Optimizing syntatic chart")
+  (ebnf-message-info "Optimizing syntactic chart")
   (let ((production (ebnf-node-production prod)))
     (and (eq (ebnf-node-kind production) 'ebnf-generate-alternative)
 	 (let* ((hlist (ebnf-split-header-prefix

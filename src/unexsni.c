@@ -90,24 +90,24 @@ what you give them.   Help stamp out software-hoarding!  */
  * is made the last in the table to avoid changing any existing index.
  */
 
-/* Modified by wtien@urbana.mcd.mot.com of Motorola Inc. 
- * 
+/* Modified by wtien@urbana.mcd.mot.com of Motorola Inc.
+ *
  * The above mechanism does not work if the unexeced ELF file is being
- * re-layout by other applications (such as `strip'). All the applications 
+ * re-layout by other applications (such as `strip'). All the applications
  * that re-layout the internal of ELF will layout all sections in ascending
- * order of their file offsets. After the re-layout, the data2 section will 
- * still be the LAST section in the section header vector, but its file offset 
+ * order of their file offsets. After the re-layout, the data2 section will
+ * still be the LAST section in the section header vector, but its file offset
  * is now being pushed far away down, and causes part of it not to be mapped
- * in (ie. not covered by the load segment entry in PHDR vector), therefore 
+ * in (ie. not covered by the load segment entry in PHDR vector), therefore
  * causes the new binary to fail.
  *
  * The solution is to modify the unexec algorithm to insert the new data2
  * section header right before the new bss section header, so their file
- * offsets will be in the ascending order. Since some of the section's (all 
- * sections AFTER the bss section) indexes are now changed, we also need to 
- * modify some fields to make them point to the right sections. This is done 
+ * offsets will be in the ascending order. Since some of the section's (all
+ * sections AFTER the bss section) indexes are now changed, we also need to
+ * modify some fields to make them point to the right sections. This is done
  * by macro PATCH_INDEX. All the fields that need to be patched are:
- * 
+ *
  * 1. ELF header e_shstrndx field.
  * 2. section header sh_link and sh_info field.
  * 3. symbol table entry st_shndx field.
@@ -124,7 +124,7 @@ what you give them.   Help stamp out software-hoarding!  */
  *
  * /home1/marco/emacs/emacs-19.22/src
  * dump -hv temacs
- * 
+ *
  * temacs:
  *
  *	   **** SECTION HEADER TABLE ****
@@ -132,83 +132,83 @@ what you give them.   Help stamp out software-hoarding!  */
  *	Link	Info	Adralgn      Entsize
  *
  * [1]	PBIT    -A--	0x4000f4     0xf4         0x13         	.interp
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [2]	REGI    -A--	0x400108     0x108        0x18         	.reginfo
- *	0	0	0x4          0x18         
+ *	0	0	0x4          0x18
  *
  * [3]	DYNM    -A--	0x400120     0x120        0xb8         	.dynamic
- *	6	0	0x4          0x8          
+ *	6	0	0x4          0x8
  *
  * [4]	HASH    -A--	0x4001d8     0x1d8        0x8a0        	.hash
- *	5	0	0x4          0x4          
+ *	5	0	0x4          0x4
  *
  * [5]	DYNS    -A--	0x400a78     0xa78        0x11f0       	.dynsym
- *	6	2	0x4          0x10         
+ *	6	2	0x4          0x10
  *
  * [6]	STRT    -A--	0x401c68     0x1c68       0xbf9        	.dynstr
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [7]	REL     -A--	0x402864     0x2864       0x18         	.rel.dyn
- *	5	14	0x4          0x8          
+ *	5	14	0x4          0x8
  *
  * [8]	PBIT    -AI-	0x402880     0x2880       0x60         	.init
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [9]	PBIT    -AI-	0x4028e0     0x28e0       0x1234       	.plt
- *	0	0	0x4          0x4          
+ *	0	0	0x4          0x4
  *
  * [10]	PBIT    -AI-	0x403b20     0x3b20       0xee400      	.text
- *	0	0	0x20         0x1          
+ *	0	0	0x20         0x1
  *
  * [11]	PBIT    -AI-	0x4f1f20     0xf1f20      0x60         	.fini
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [12]	PBIT    -A--	0x4f1f80     0xf1f80      0xd90        	.rdata
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [13]	PBIT    -A--	0x4f2d10     0xf2d10      0x17e0       	.rodata
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [14]	PBIT    WA--	0x5344f0     0xf44f0      0x4b3e4      	.data  <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [15]	PBIT    WA-G	0x57f8d4     0x13f8d4     0x2a84       	.got
- *	0	0	0x4          0x4          
+ *	0	0	0x4          0x4
  *
  * [16]	PBIT    WA-G	0x582360     0x142360     0x10         	.sdata <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [17]	NOBI    WA-G	0x582370     0x142370     0xb84        	.sbss  <<<<<
- *	0	0	0x4          0            
+ *	0	0	0x4          0
  *
  * [18]	NOBI    WA--	0x582f00     0x142370     0x27ec0      	.bss   <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [19]	SYMT    ----	0            0x142370     0x10e40      	.symtab
- *	20	1108	0x4          0x10         
+ *	20	1108	0x4          0x10
  *
  * [20]	STRT    ----	0            0x1531b0     0xed9e       	.strtab
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [21]	STRT    ----	0            0x161f4e     0xb5         	.shstrtab
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [22]	PBIT    ----	0            0x162003     0x28e2a      	.comment
- *	0	0	0x1          0x1          
+ *	0	0	0x1          0x1
  *
  * [23]	PBIT    ----	0            0x18ae2d     0x592        	.debug
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [24]	PBIT    ----	0            0x18b3bf     0x80         	.line
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [25]	MDBG    ----	0            0x18b440     0x60         	.mdebug
- *	0	0	0x4          0            
+ *	0	0	0x4          0
  *
  *
  * dump -hv emacs
- * 
+ *
  * emacs:
  *
  *	   **** SECTION HEADER TABLE ****
@@ -216,82 +216,82 @@ what you give them.   Help stamp out software-hoarding!  */
  *	Link	Info	Adralgn      Entsize
  *
  * [1]	PBIT    -A--	0x4000f4     0xf4         0x13         	.interp
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [2]	REGI    -A--	0x400108     0x108        0x18         	.reginfo
- *	0	0	0x4          0x18         
+ *	0	0	0x4          0x18
  *
  * [3]	DYNM    -A--	0x400120     0x120        0xb8         	.dynamic
- *	6	0	0x4          0x8          
+ *	6	0	0x4          0x8
  *
  * [4]	HASH    -A--	0x4001d8     0x1d8        0x8a0        	.hash
- *	5	0	0x4          0x4          
+ *	5	0	0x4          0x4
  *
  * [5]	DYNS    -A--	0x400a78     0xa78        0x11f0       	.dynsym
- *	6	2	0x4          0x10         
+ *	6	2	0x4          0x10
  *
  * [6]	STRT    -A--	0x401c68     0x1c68       0xbf9        	.dynstr
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [7]	REL     -A--	0x402864     0x2864       0x18         	.rel.dyn
- *	5	14	0x4          0x8          
+ *	5	14	0x4          0x8
  *
  * [8]	PBIT    -AI-	0x402880     0x2880       0x60         	.init
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [9]	PBIT    -AI-	0x4028e0     0x28e0       0x1234       	.plt
- *	0	0	0x4          0x4          
+ *	0	0	0x4          0x4
  *
  * [10]	PBIT    -AI-	0x403b20     0x3b20       0xee400      	.text
- *	0	0	0x20         0x1          
+ *	0	0	0x20         0x1
  *
  * [11]	PBIT    -AI-	0x4f1f20     0xf1f20      0x60         	.fini
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [12]	PBIT    -A--	0x4f1f80     0xf1f80      0xd90        	.rdata
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [13]	PBIT    -A--	0x4f2d10     0xf2d10      0x17e0       	.rodata
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [14]	PBIT    WA--	0x5344f0     0xf44f0      0x4b3e4      	.data  <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [15]	PBIT    WA-G	0x57f8d4     0x13f8d4     0x2a84       	.got
- *	0	0	0x4          0x4          
+ *	0	0	0x4          0x4
  *
  * [16]	PBIT    WA-G	0x582360     0x142360     0xb94        	.sdata <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [17]	PBIT    WA--	0x582f00     0x142f00     0x94100      	.data  <<<<<
- *	0	0	0x10         0x1          
+ *	0	0	0x10         0x1
  *
  * [18]	NOBI    WA-G	0x617000     0x1d7000     0            	.sbss  <<<<<
- *	0	0	0x4          0            
+ *	0	0	0x4          0
  *
  * [19]	NOBI    WA--	0x617000     0x1d7000     0            	.bss   <<<<<
- *	0	0	0x4          0x1          
+ *	0	0	0x4          0x1
  *
  * [20]	SYMT    ----	0            0x1d7000     0x10e40      	.symtab
- *	21	1109	0x4          0x10         
+ *	21	1109	0x4          0x10
  *
  * [21]	STRT    ----	0            0x1e7e40     0xed9e       	.strtab
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [22]	STRT    ----	0            0x1f6bde     0xb5         	.shstrtab
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [23]	PBIT    ----	0            0x1f6c93     0x28e2a      	.comment
- *	0	0	0x1          0x1          
+ *	0	0	0x1          0x1
  *
  * [24]	PBIT    ----	0            0x21fabd     0x592        	.debug
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [25]	PBIT    ----	0            0x22004f     0x80         	.line
- *	0	0	0x1          0            
+ *	0	0	0x1          0
  *
  * [26]	MDBG    ----	0            0x2200d0     0x60         	.mdebug
- *	0	0	0x4          0            
+ *	0	0	0x4          0
  *
  */
 
@@ -450,7 +450,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
     {
       old_sdata_index = old_sbss_index - 1;
     }
-  
+
 
   /* Find the old .bss section.
    */
@@ -683,7 +683,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
   if (old_data_index == old_file_h->e_shnum)
     fatal ("Can't find .data in %s.\n", old_name, 0);
 
-  /* Walk through all section headers, insert the new data2 section right 
+  /* Walk through all section headers, insert the new data2 section right
      before the new bss section. */
   for (n = 1, nn = 1; n < old_file_h->e_shnum; n++, nn++)
     {
@@ -698,7 +698,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    {
 	    memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(old_data_index),
 		    new_file_h->e_shentsize);
-	  
+
 	    NEW_SECTION_H(nn).sh_addr = new_data3_addr;
 	    NEW_SECTION_H(nn).sh_offset = new_data3_offset;
 	    NEW_SECTION_H(nn).sh_size = new_data3_size;
@@ -709,8 +709,8 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    NEW_SECTION_H(nn).sh_addralign = OLD_SECTION_H(n).sh_addralign;
 
 	    /* Now copy over what we have in the memory now. */
-	    memcpy (NEW_SECTION_H(nn).sh_offset + new_base, 
-		    (caddr_t) OLD_SECTION_H(n).sh_addr, 
+	    memcpy (NEW_SECTION_H(nn).sh_offset + new_base,
+		    (caddr_t) OLD_SECTION_H(n).sh_addr,
 		    new_data3_size);
 		  /* the new .data2 section should also come before the
 		   * new .sbss section */
@@ -721,14 +721,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    /* We always have a .sdata section: append the contents of the
 	     * old .sbss section.
 	     */
-	    memcpy (new_data3_offset + new_base, 
-		    (caddr_t) OLD_SECTION_H(n).sh_addr, 
+	    memcpy (new_data3_offset + new_base,
+		    (caddr_t) OLD_SECTION_H(n).sh_addr,
 		    new_data3_size);
 	    nn ++;
 	    }
 	}
       else if (n == old_bss_index)
-      
+
       /* If it is bss section, insert the new data2 section before it. */
 	{
 	  Elf32_Word tmp_align;
@@ -741,7 +741,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  /* Steal the data section header for this data2 section. */
 	  memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(old_data_index),
 		  new_file_h->e_shentsize);
-	  
+
 	  NEW_SECTION_H(nn).sh_addr = new_data2_addr;
 	  NEW_SECTION_H(nn).sh_offset = new_data2_offset;
 	  NEW_SECTION_H(nn).sh_size = new_data2_size;
@@ -751,14 +751,14 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H(nn).sh_addralign = tmp_align;
 
 	  /* Now copy over what we have in the memory now. */
-	  memcpy (NEW_SECTION_H(nn).sh_offset + new_base, 
+	  memcpy (NEW_SECTION_H(nn).sh_offset + new_base,
 		  (caddr_t) tmp_addr, new_data2_size);
 	  nn += 2;
 	}
-      
-      memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(n), 
+
+      memcpy (&NEW_SECTION_H(nn), &OLD_SECTION_H(n),
 	      old_file_h->e_shentsize);
-      
+
       if (old_sdata_index && n == old_sdata_index)
 	/* The old .sdata section has now a new size */
 	NEW_SECTION_H(nn).sh_size = new_sdata_size;
@@ -773,7 +773,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H(nn).sh_addr += new_data2_size + new_data2_align +
 	    new_data3_size;
 	  /* Let the new bss section address alignment be the same as the
-	     section address alignment followed the old bss section, so 
+	     section address alignment followed the old bss section, so
 	     this section will be placed in exactly the same place. */
 	  NEW_SECTION_H(nn).sh_addralign =
 	    OLD_SECTION_H(nn + (old_sdata_index ? 1 : 0)).sh_addralign;
@@ -786,7 +786,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	    new_data3_size - old_bss_padding;
 	  NEW_SECTION_H(nn).sh_addr += new_data2_size;
 	  /* Let the new bss section address alignment be the same as the
-	     section address alignment followed the old bss section, so 
+	     section address alignment followed the old bss section, so
 	     this section will be placed in exactly the same place. */
 	  NEW_SECTION_H(nn).sh_addralign =
 	    OLD_SECTION_H((nn - (old_sdata_index ? 0 : 1))).sh_addralign;
@@ -799,19 +799,19 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 				       new_data2_align +
 				       new_data3_size -
 				       old_bss_padding;
-      
+
       /* If any section hdr refers to the section after the new .data
-	 section, make it refer to next one because we have inserted 
+	 section, make it refer to next one because we have inserted
 	 a new section in between. */
-      
+
       PATCH_INDEX(NEW_SECTION_H(nn).sh_link);
       PATCH_INDEX(NEW_SECTION_H(nn).sh_info);
-      
+
       /* Now, start to copy the content of sections. */
       if (NEW_SECTION_H(nn).sh_type == SHT_NULL
 	  || NEW_SECTION_H(nn).sh_type == SHT_NOBITS)
 	continue;
-      
+
       /* Write out the sections. .data, .data1 and .sdata get copied from
        * the current process instead of the old file.
        */
@@ -821,7 +821,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	src = (caddr_t) OLD_SECTION_H(n).sh_addr;
       else
 	src = old_base + OLD_SECTION_H(n).sh_offset;
-      
+
       memcpy (NEW_SECTION_H(nn).sh_offset + new_base, src,
 	      ((n == old_sdata_index) ?
 	       old_sdata_size :
@@ -833,7 +833,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	{
 	  Elf32_Shdr *spt = &NEW_SECTION_H(nn);
 	  unsigned int num = spt->sh_size / spt->sh_entsize;
-	  Elf32_Sym * sym = (Elf32_Sym *) (NEW_SECTION_H(nn).sh_offset + 
+	  Elf32_Sym * sym = (Elf32_Sym *) (NEW_SECTION_H(nn).sh_offset +
 					   new_base);
 	  for (; num--; sym++)
 	    {
@@ -841,7 +841,7 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 		  || (sym->st_shndx == SHN_ABS)
 		  || (sym->st_shndx == SHN_COMMON))
 		continue;
-	
+
 	      PATCH_INDEX(sym->st_shndx);
 	    }
 	}

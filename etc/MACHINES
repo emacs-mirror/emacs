@@ -107,6 +107,11 @@ Amdahl UTS (580-amdahl-sysv)
   even worth trying to use it.  Success was obtained with the
   uts native C compiler on uts version 5.2.5.
 
+Apple Macintosh running Mac OS X
+
+  For installation on all versions of the Mac OS platform, see the file
+  mac/INSTALL.
+
 Apple PowerPC Macintosh running GNU/Linux
 
   There are special considerations for a variety of this system which
@@ -158,8 +163,8 @@ Apollo running X Windows (m68k-apollo-bsd)
   relocation."  This means you are linking with some code that has compressed
   data sections.  In some cases this comes from linking with X libraries.  Try
   using shared X libraries instead.  With some versions of Domain/OS this is
-  as simple as removing the "-lX11" from the LIBX line in src/Makefile.  
-  
+  as simple as removing the "-lX11" from the LIBX line in src/Makefile.
+
   When running the configure script, use the configuration name
   "m68k-apollo-bsd".  You will also need to use the "-with-gcc=no" and
   "-with-x" options.  Depending upon your site configuration, you may have to
@@ -175,9 +180,9 @@ Apollo running X Windows (m68k-apollo-bsd)
 
 AT&T 3b2, 3b5, 3b15, 3b20 (we32k-att-sysv)
 
-  Emacs will probably not work with certain kernel constants too small. 
+  Emacs will probably not work with certain kernel constants too small.
 
-  In param.h CDLIMIT should be at least (1L << 12) in order to allow 
+  In param.h CDLIMIT should be at least (1L << 12) in order to allow
   processes to write up to 2 Mbyte files.  This parameter is configurable
   by normal means in /etc/master.d/kernel; examine that file for the
   symbol CDLIMIT or ULIMIT, and raise it by several powers of 2.  Then
@@ -215,7 +220,7 @@ Bull DPX/2 models 2nn or 3nn (m68k-bull-sysv3)
   _POSIX_SOURCE, _XOPEN_SOURCE and _BULL_SOURCE.
 
   On bos2.00.45 there is a bug that makes the F_SETOWN fcntl
-  call enters in an infinite loop. F_SETOWN_BUG has been defined to avoid 
+  call enters in an infinite loop. F_SETOWN_BUG has been defined to avoid
   calling it.
 
 Bull DPX/20 (rs6000-bull-bosx)
@@ -269,7 +274,7 @@ Data General Aviion (m88k-dg-dgux)
   System versions other than DGUX 5.4R3.00 have not been tested.
 
   DGUX 5.4R3.10 works with 19.29 and 19.30.
-  
+
   DGUX R4.11 contains changes to the stdio internals and it doesn't work
   with versions before 20.2 without patches.  20.2 works in interactive
   mode but usually fails in batch mode.  The problem is that using
@@ -319,7 +324,7 @@ Motorola Delta 187 (m88k-motorola-sysv,
   One fix is to edit those files to protect against multiple inclusion.
 
   As of version 19.13, Emacs was reported to run under SYSVr3 and SYSVr4.
- 
+
 Dual running System V (m68k-dual-sysv)
 
   As of 17.46, this worked except for a few changes
@@ -368,7 +373,7 @@ Gould Power Node (pn-gould-bsd4.2 or pn-gould-bsd4.3)
   compiling `lib-src/sorted-doc' tickles a compiler bug: remove the -g
   flag to cc in the makefile.
 
-  UTX/32 1.3 has a bug in the bcopy library routine.  Fix it by 
+  UTX/32 1.3 has a bug in the bcopy library routine.  Fix it by
   #undef BSTRING in `src/m/gould.h'.
 
   Version 19 incorporates support for releases 2.1 and later of UTX/32.
@@ -416,7 +421,7 @@ Hewlett-Packard 9000 series 200 or 300 (m68k-hp-bsd or m68k-hp-hpux
   some problems on 10.10 which have not been resolved.  Emacs 19.34
   works on HPUX 10.20 provided you compile with GCC; with the HP C
   compiler, subprocess commands do not work.
-  
+
   On HPUX 9, Emacs sometimes crashes with SIGBUS or SIGSEGV after you
   delete a frame.  We think this is due to a bug in the X libraries
   provided by HP.  With the alternative X libraries in
@@ -483,7 +488,7 @@ HP 9000 series 700 or 800 (Spectrum) (hppa1.0-hp-hpux or hppa1.1-hp-hpux
   Some people report trouble using the GNU memory allocator under
   HP/UX version 9.  The problems often manifest as lots of ^@'s in the
   buffer.
-  
+
   We are told that these problems go away if you obtain the latest
   patches for the HP/UX C compiler.  James J Dempsey
   <jjd@spserv.bbn.com> says that this set of versions works for him:
@@ -539,17 +544,17 @@ HITACHI SR2001/SR2201 series (hppa1.1-hitachi-hiuxwe2)
 
   These machines are based on PA architecture running HI-UX/MPP
   (based on OSF1. `MPP' stands for `Massively Parallel Processor').
-  
+
   Emacs 19.34 is believed to work; its pretest was tested
-  both on SR2001 (output of `uname -rv' is `00-01-BB 0') and 
+  both on SR2001 (output of `uname -rv' is `00-01-BB 0') and
   SR2201 (`02-00 0').
 
   Emacs 20.7 was reported to build on a system whose `uname -rs'
   output is `HI-UX/MPP 03-04'.
-  
-  The machine description file is `src/m/sr2k.h' is based on 
+
+  The machine description file is `src/m/sr2k.h' is based on
   `src/m/hp800.h'. The system description file is `src/s/hiuxwe2.h'
-  based on `src/s/osf1.h'. Note that this system doesn't use COFF.   
+  based on `src/s/osf1.h'. Note that this system doesn't use COFF.
 
 IBM PS/2 (i386-ibm-aix1.1 or i386-ibm-aix1.2)
 
@@ -619,7 +624,7 @@ Integrated Solutions `Optimum V' (m68k-isi-bsd4.2 or -bsd4.3)
   BSD 4.2 (3.05e) system).  18.42 is reported to work on
   a Qbus 68010 system.  Has not been tried on `WorkStation' `Cluster
   Compute Node' `Cluster WorkStation' or `Server Node'  (Love the
-  StudLYCaps) 
+  StudLYCaps)
 
   Compilation with -O is rumored to break something.
 
@@ -632,7 +637,7 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
 	   i386-*-xenix,	i386-*-freebsd,  i386-*-linux-gnu,
 	   i386-*-sol2.4,	i386-*-sysv3,    i386-intsys-sysv,
 	   i386-*-sysv4,	i386-*-sysv4.2,
-	   i386-*-sysv5.3,	i386-*-bsd4.2,
+	   i386-*-sysv5.3,	i386-*-bsd4.2,   i386-*-cygwin,
 	   i386-*-sco3.2v4,	i386-*-bsd386,   i386-*-386bsd,
 	   i386-*-msdos,	i386-*-windowsnt.
 	   i386... can be replaced with i486... or i586...)
@@ -646,6 +651,8 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
 	i386-unknown-isc3.0 as your configuration name.
   Use i386-*-esix for Esix; Emacs runs as of version 19.6.
   Use i386-*-linux-gnu for GNU/Linux systems; Emacs runs as of version 19.26.
+  Use i386-*-cygwin for Cygwin; Emacs builds as of version 21.4, in both X11
+  and non-X11 modes.  (The Cygwin site has source and binaries for 21.2.)
   Use i386-intsys-sysv for Integrated Solutions 386 machines.
   It may also be correct for Microport systems.
   Use i386-*-sco3.2v4 for SCO 3.2v4; Emacs runs as of version 19.26.
@@ -693,7 +700,7 @@ Intel 386 (i386-*-isc, 		i386-*-esix,	 i386-*-bsdi2,
   puts spurious spaces in `src/xmakefile'.  If that happens,
   specify CPP=/lib/cpp as an option when you run make.
   There is no problem if you compile with GCC.
-    
+
   Note that use of Linux with GCC 2.4 and the DLL 4.4 libraries
   requires the experimental "net 2" network patches (no relation to
   Berkeley Net 2).  There is a report that (some version of) Linux
@@ -798,7 +805,7 @@ Masscomp (m68k-masscomp-rtu)
   was reported for 18.36 on a Masscomp (model and version unknown but probably
   a 68020 system).  The report sounds like a compiler bug.
 
-  A compiler bug affecting statements like 
+  A compiler bug affecting statements like
     unsigned char k; unsigned char *p;... x = p[k];
   has been reported for "C version 1.2 under RTU 3.1".  We do not wish
   to take the time to install the numerous workarounds required to
@@ -936,7 +943,7 @@ Pyramid (pyramid-pyramid-bsd)
 
   You need to build Emacs in the Berkeley universe with
   the `ucb' command, as in `ucb make' or `ucb build-install'.
-  
+
   In OSx 4.0, it seems necessary to add the following two lines
   to `src/m/pyramid.h':
      #define _longjmp longjmp
@@ -1074,8 +1081,8 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   19.32 works on Solaris 2.4 and 2.5.  On Solaris 2.5
   you may need one of these patches to prevent Emacs from crashing
   when it starts up:
-        103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes) 
-        102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes) 
+        103093-03: [README] SunOS 5.5: kernel patch (2140557 bytes)
+        102832-01: [README] OpenWindows 3.5: Xview Jumbo Patch (4181613 bytes)
 	103242-04: [README] SunOS 5.5: linker patch (595363 bytes)
 
   There are reports that using SunSoft cc with -xO4 -xdepend produces
@@ -1102,7 +1109,7 @@ Sun 3, Sun 4 (sparc), Sun 386 (m68k-sun-sunos, sparc-sun-sunos, i386-sun-sunos,
   `sparc-sun-sunos4.1'.  For SunOS release 4.1.3 on a Sparc, use
   `sparc-sun-sunos4.1.3'.  Note that shared libraries are now
   used by default on SunOS 4.1.
-  
+
   A user reported irreproducible segmentation faults when using 19.29
   on Solaris 2.3 and 2.4 after compiling it with the Sun compiler.
   The problem went away when GCC 2.7.0 was used instead.  We do not know

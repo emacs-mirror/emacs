@@ -2,8 +2,8 @@
 % Title:  GNU Emacs Survival Card
 % Author: Wlodek Bzyl <matwb@univ.gda.pl>
 %
-% $Revision: 1.4 $
-% $Date: 2001/03/22 23:07:14 $
+% $Revision: 1.2 $
+% $Date: 2003/02/04 14:30:42 $
 %
 %**start of header
 
@@ -14,7 +14,7 @@
 % optional paragraphs separated with \askip amount of vertical space
 % \key{KEY-NAME} description of key or
 % \mkey{M-x LONG-LISP-NAME} description of Elisp function
-%  
+%
 % \kbd{ARG} -- argument is typed literally
 
 \def\plainfmtname{plain}
@@ -22,7 +22,7 @@
 \else
   \errmessage{This file requires `plain' format to be typeset correctly}
   \endinput
-\fi 
+\fi
 
 % Copyright (c) 2000 Free Software Foundation, Inc.
 
@@ -95,7 +95,7 @@
 
 % The TeXbook, p. 257
 \let\lr=L \newbox\leftcolumn
-\output={\if L\lr 
+\output={\if L\lr
     \global\setbox\leftcolumn\columnbox \global\let\lr=R
   \else
        \doubleformat \global\let\lr=L\fi}
@@ -109,7 +109,7 @@
 
 \def\bye{\par\vfil\supereject
   \if R\lr \null\vfil\eject\fi
-  \end}  
+  \end}
 
 \outer\def\title#1#2{{\titlefont\centerline{#1}}\vskip 1ex plus 0.5ex
    \centerline{\ss#2}
@@ -138,7 +138,7 @@
 \def\nohyphens
    {\hyphenpenalty10000\exhyphenpenalty10000\pretolerance10000}
 \def\raggedspaces
-   {\spaceskip=0.3333em\relax 
+   {\spaceskip=0.3333em\relax
     \xspaceskip=0.5em\relax}
 \def\raggedright
    {\raggedstretch=6em

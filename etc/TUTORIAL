@@ -1,5 +1,5 @@
-Copyright (c) 1985 Free Software Foundation, Inc;  See end for conditions.
-You are looking at the Emacs tutorial.
+You are looking at the Emacs tutorial.  See end for copying conditions.
+Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation.
 
 Emacs commands generally involve the CONTROL key (sometimes labeled
 CTRL or CTL) or the META key (sometimes labeled EDIT or ALT).  Rather than
@@ -50,9 +50,9 @@ The following commands are useful for viewing screenfuls:
    Find the cursor again and notice that the same text
    is near the cursor now.
 
-You can also use the PageUp and PageDn keys to do scrolling, if your
-terminal has them, but you can edit more efficiently if you use C-v
-and M-v.
+You can also use the PageUp and PageDn keys to move by screenfuls, if
+your terminal has them, but you can edit more efficiently if you use
+C-v and M-v.
 
 
 * BASIC CURSOR CONTROL
@@ -65,7 +65,7 @@ There are several ways you can do this.  You can use the arrow keys,
 but it's more efficient to keep your hands in the standard position
 and use the commands C-p, C-b, C-f, and C-n.  These characters
 are equivalent to the four arrow keys, like this:
- 
+
 			  Previous line, C-p
 				  :
 				  :
@@ -198,7 +198,7 @@ any terminal.  The numeric argument is also called a "prefix argument",
 because you type the argument before the command it applies to.
 
 For instance, C-u 8 C-f moves forward eight characters.
-	
+
 >> Try using C-n or C-p with a numeric argument, to move the cursor
    to a line near this one with just one command.
 
@@ -303,15 +303,21 @@ can see, such as A, 7, *, etc. are taken by Emacs as text and inserted
 immediately.  Type <Return> (the carriage-return key) to insert a
 Newline character.
 
-You can delete the last character you typed by typing <Delete>.
-<Delete> is a key on the keyboard, which may be labeled "Del".  In
-some cases, the "Backspace" key serves as <Delete>, but not always!
+You can delete the last character you typed by typing <Delback>.
+<Delback> is a key on the keyboard--the same one you normally use,
+outside Emacs, for deleting the last character you typed.  It is
+normally a large key a couple of lines up from the <Return> key, and
+it is usually labeled "Delete", "Del" or "Backspace".
 
-More generally, <Delete> deletes the character immediately before the
+If the large key there is labeled "Backspace", then that's the one you
+use for <Delback>.  There may also be another key labeled "Delete"
+somewhere else, but that's not <Delback>.
+
+More generally, <Delback> deletes the character immediately before the
 current cursor position.
 
 >> Do this now--type a few characters, then delete them
-   by typing <Delete> a few times.  Don't worry about this file
+   by typing <Delback> a few times.  Don't worry about this file
    being changed; you will not alter the master tutorial.  This is
    your personal copy of it.
 
@@ -323,7 +329,7 @@ right margin indicates a line which has been continued.
 >> Insert text until you reach the right margin, and keep on inserting.
    You'll see a continuation line appear.
 
->> Use <Delete>s to delete the text until the line fits on one screen
+>> Use <Delback>s to delete the text until the line fits on one screen
    line again.  The continuation line goes away.
 
 You can delete a Newline character just like any other character.
@@ -331,7 +337,7 @@ Deleting the Newline character between two lines merges them into
 one line.  If the resulting combined line is too long to fit in the
 screen width, it will be displayed with a continuation line.
 
->> Move the cursor to the beginning of a line and type <Delete>.  This
+>> Move the cursor to the beginning of a line and type <Delback>.  This
    merges that line with the previous line.
 
 >> Type <Return> to reinsert the Newline you deleted.
@@ -346,17 +352,17 @@ You've now learned the most basic way of typing something in
 Emacs and correcting errors.  You can delete by words or lines
 as well.  Here is a summary of the delete operations:
 
-	<Delete>     delete the character just before the cursor
+	<Delback>    delete the character just before the cursor
 	C-d   	     delete the next character after the cursor
 
-	M-<Delete>   kill the word immediately before the cursor
+	M-<Delback>  kill the word immediately before the cursor
 	M-d	     kill the next word after the cursor
 
 	C-k	     kill from the cursor position to end of line
 	M-k	     kill to the end of the current sentence
 
-Notice that <Delete> and C-d vs M-<Delete> and M-d extend the parallel
-started by C-f and M-f (well, <Delete> is not really a control
+Notice that <Delback> and C-d vs M-<Delback> and M-d extend the parallel
+started by C-f and M-f (well, <Delback> is not really a control
 character, but let's not worry about that).  C-k and M-k are like C-e
 and M-e, sort of, in that lines are opposite sentences.
 
@@ -378,8 +384,8 @@ can be reinserted, whereas "deleted" things cannot be reinserted.
 Reinsertion of killed text is called "yanking".  Generally, the
 commands that can remove a lot of text kill the text (they set up so
 that you can yank the text), while the commands that remove just one
-character, or just blank lines and spaces, do deletion (so you cannot
-yank that text).
+character, or only remove blank lines and spaces, do deletion (so you
+cannot yank that text).
 
 >> Move the cursor to the  beginning of a line which is not empty.
    Then type C-k to kill the text on that line.
@@ -396,8 +402,8 @@ Bringing back killed text is called "yanking".  (Think of it as
 yanking back, or pulling back, some text that was taken away.)  You
 can yank the killed text either at the same place where it was killed,
 or at some other place in the buffer, or even in a different file.
-You can yank the text several times, which makes multiple copies of
-it.
+You can yank the same text several times; that makes multiple copies
+of it.
 
 The command for yanking is C-y.  It reinserts the last killed text,
 at the current cursor position.
@@ -575,7 +581,7 @@ is always part of some buffer.
 
 >> Type C-x 1 to get rid of the buffer list.
 
-When you have several buffers, only of of them is "current" at any
+When you have several buffers, only one of them is "current" at any
 time.  That buffer is the one you edit.  If you want to edit another
 buffer, you need to "switch" to it.  If you want to switch to a buffer
 that corresponds to a file, you can do it by visiting the file again
@@ -600,7 +606,7 @@ messages that have appeared on the bottom line during your Emacs
 session.
 
 >> Type C-x b *Messages* <Return> to look at the buffer of messages.
-   Then type C-b TUTORIAL <Return> to come back to this tutorial.
+   Then type C-x b TUTORIAL <Return> to come back to this tutorial.
 
 If you make changes to the text of one file, then find another file,
 this does not save the first file.  Its changes remain inside Emacs,
@@ -743,7 +749,7 @@ no stars, just dashes.
 
 The part of the mode line inside the parentheses is to tell you what
 editing modes you are in.  The default mode is Fundamental which is
-what you are using now.  It is an example of a "major mode".  
+what you are using now.  It is an example of a "major mode".
 
 Emacs has many different major modes.  Some of them are meant for
 editing different languages and/or kinds of text, such as Lisp mode,
@@ -759,7 +765,7 @@ major mode is the name of an extended command, which is how you can
 switch to that mode.  For example, M-x fundamental-mode is a command to
 switch to Fundamental mode.
 
-If you are going to be editing English text, such as this file, you
+If you are going to be editing human-language text, such as this file, you
 should probably use Text Mode.
 >> Type M-x text mode<Return>.
 
@@ -785,10 +791,10 @@ itself, independent of all other minor modes, and independent of your
 major mode.  So you can use no minor modes, or one minor mode, or any
 combination of several minor modes.
 
-One minor mode which is very useful, especially for editing English
-text, is Auto Fill mode.  When this mode is on, Emacs breaks the line
-in between words automatically whenever you insert text and make a
-line that is too wide.
+One minor mode which is very useful, especially for editing
+human-language text, is Auto Fill mode.  When this mode is on, Emacs
+breaks the line in between words automatically whenever you insert
+text and make a line that is too wide.
 
 You can turn Auto Fill mode on by doing M-x auto fill mode<Return>.
 When the mode is on, you can turn it off again by doing M-x
@@ -842,7 +848,7 @@ you want to search for.  <Return> terminates a search.
    character to notice what happens to the cursor.
    Now you have searched for "cursor", once.
 >> Type C-s again, to search for the next occurrence of "cursor".
->> Now type <Delete> four times and see how the cursor moves.
+>> Now type <Delback> four times and see how the cursor moves.
 >> Type <Return> to terminate the search.
 
 Did you see what happened?  Emacs, in an incremental search, tries to
@@ -858,12 +864,12 @@ letting it get through to Emacs.  To unfreeze the screen, type C-q.
 Then see the section "Spontaneous Entry to Incremental Search" in the
 Emacs manual for advice on dealing with this "feature".
 
-If you are in the middle of an incremental search and type <Delete>,
+If you are in the middle of an incremental search and type <Delback>,
 you'll notice that the last character in the search string is erased
 and the search backs up to the last place of the search.  For
 instance, suppose you have typed "c", to search for the first
 occurrence of "c".  Now if you type "u", the cursor will move
-to the first occurrence of "cu".  Now type <Delete>.  This erases
+to the first occurrence of "cu".  Now type <Delback>.  This erases
 the "u" from the search string, and the cursor moves back to
 the first occurrence of "c".
 
@@ -988,7 +994,8 @@ a command character or sequence; then Emacs displays a very brief
 description of the command.
 
 >> Type C-h c C-p.
-  The message should be something like
+
+The message should be something like this:
 
 	C-p runs the command previous-line
 
@@ -1092,7 +1099,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996 Free Software Foundation
+Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

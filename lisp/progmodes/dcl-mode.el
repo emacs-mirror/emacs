@@ -31,10 +31,10 @@
 ;;
 ;; Type `C-h m' when you are editing a .COM file to get more
 ;; information about this mode.
-;; 
+;;
 ;; To use templates you will need a version of tempo.el that is at
 ;; least later than the buggy 1.1.1, which was included with my versions of
-;; Emacs.  I used version 1.2.4. 
+;; Emacs.  I used version 1.2.4.
 ;; The latest tempo.el distribution can be fetched from
 ;; ftp.lysator.liu.se in the directory /pub/emacs.
 ;; I recommend setting (setq tempo-interactive t).  This will make
@@ -47,10 +47,11 @@
 ;;
 ;; Any feedback will be welcomed.  If you write functions for
 ;; dcl-calc-command-indent-function or dcl-calc-cont-indent-function,
-;; please send them to the maintainer. 
-;; 
+;; please send them to the maintainer.
+;;
 ;;
 ;; Ideas for improvement:
+;; * Better font-lock support.
 ;; * Change meaning of `left margin' when dcl-tab-always-indent is nil.
 ;;   Consider the following line (`_' is the cursor):
 ;;     $ label: _ command
@@ -70,6 +71,26 @@
 ;;; Code:
 
 ;;; *** Customization *****************************************************
+
+
+;; First, font lock.  This is a minimal approach, please improve!
+
+(defvar dcl-font-lock-keywords
+  '(("\\<\\(if\\|then\\|else\\|endif\\)\\>"
+     1 font-lock-keyword-face)
+    ("\\<f[$][a-z]+\\>"
+     0 font-lock-builtin-face)
+    ("[.]\\(eq\\|not\\|or\\|and\\|lt\\|gt\\|le\\|ge\\|eqs\\|nes\\)[.]"
+     0 font-lock-builtin-face))
+  "Font lock keyword specification for DCL mode.
+Presently this includes some syntax, .OP.erators, and \"f$\" lexicals.")
+
+(defvar dcl-font-lock-defaults
+  '(dcl-font-lock-keywords nil)
+  "Font lock specification for DCL mode.")
+
+
+;; Now the rest.
 
 (defgroup dcl nil
   "Major mode for editing DCL command files."
@@ -98,7 +119,7 @@ dcl-calc-cont-indent-function is set to a function."
 
 (defcustom dcl-margin-offset 8
   "*Indentation for the first command line in DCL.
-The first command line in a file or after a SUBROUTINE statement is indented 
+The first command line in a file or after a SUBROUTINE statement is indented
 this much.  Other command lines are indented the same number of columns as
 the preceding command line.
 A command line is a line that starts with `$'."
@@ -137,11 +158,11 @@ Set to nil to only indent at THEN-ELSE-ENDIF."
 
 (defcustom dcl-calc-command-indent-function nil
   "*Function to calculate indentation for a command line in DCL.
-If this variable is non-nil it is called as a function: 
+If this variable is non-nil it is called as a function:
 
 \(func INDENT-TYPE CUR-INDENT EXTRA-INDENT LAST-POINT THIS-POINT)
 
-The function must return the number of columns to indent the current line or 
+The function must return the number of columns to indent the current line or
 nil to get the default indentation.
 
 INDENT-TYPE is a symbol indicating what kind of indentation should be done.
@@ -150,14 +171,14 @@ It can have the following values:
   outdent     the lines indentation should be decreased, e.g a line with ENDIF.
   first-line  indentation for the first line in a buffer or SUBROUTINE.
 CUR-INDENT is the indentation of the preceding command line.
-EXTRA-INDENT is the default change in indentation for this line 
+EXTRA-INDENT is the default change in indentation for this line
 \(a negative number for 'outdent).
 LAST-POINT is the buffer position of the first significant word on the
 previous line or nil if the current line is the first line.
 THIS-POINT is the buffer position of the first significant word on the
 current line.
 
-If this variable is nil, the indentation is calculated as 
+If this variable is nil, the indentation is calculated as
 CUR-INDENT + EXTRA-INDENT.
 
 This package includes two functions suitable for this:
@@ -169,14 +190,14 @@ This package includes two functions suitable for this:
 
 (defcustom dcl-calc-cont-indent-function 'dcl-calc-cont-indent-relative
   "*Function to calculate indentation for a continuation line.
-If this variable is non-nil it is called as a function: 
+If this variable is non-nil it is called as a function:
 
 \(func CUR-INDENT EXTRA-INDENT)
 
-The function must return the number of columns to indent the current line or 
+The function must return the number of columns to indent the current line or
 nil to get the default indentation.
 
-If this variable is nil, the indentation is calculated as 
+If this variable is nil, the indentation is calculated as
 CUR-INDENT + EXTRA-INDENT.
 
 This package includes one function suitable for this:
@@ -189,7 +210,7 @@ This package includes one function suitable for this:
   "*Controls the operation of the TAB key in DCL mode.
 If t, pressing TAB always indents the current line.
 If nil, pressing TAB indents the current line if point is at the left margin.
-Data lines (i.e. lines not part of a command line or continuation line) are 
+Data lines (i.e. lines not part of a command line or continuation line) are
 never indented."
   :type 'boolean
   :group 'dcl)
@@ -246,7 +267,7 @@ never indented."
   "*Default imenu generic expression for DCL.
 
 The default includes SUBROUTINE labels in the main listing and
-sub-listings for other labels, CALL, GOTO and GOSUB statements. 
+sub-listings for other labels, CALL, GOTO and GOSUB statements.
 See `imenu-generic-expression' for details."
   :type '(repeat (sexp :tag "Imenu Expression"))
   :group 'dcl)
@@ -270,7 +291,7 @@ See `imenu-generic-expression' for details."
   (modify-syntax-entry ?\n ">" dcl-mode-syntax-table) ; comment end
   (modify-syntax-entry ?< "(>" dcl-mode-syntax-table) ; < and ...
   (modify-syntax-entry ?> ")<" dcl-mode-syntax-table) ; > is a matching pair
-) 
+)
 
 
 (defvar dcl-mode-map ()
@@ -357,7 +378,7 @@ A label is a name followed by a colon followed by white-space or end-of-line."
   :group 'dcl)
 
 
-(defcustom dcl-cmd-r 
+(defcustom dcl-cmd-r
   "^\\$\\(.*-[ \t]*\\(!.*\\)*\n\\)*[^!\"\n]*\\(\".*\\(\"\".*\\)*\"\\)*[^!\"\n]*"
   "Regular expression describing a DCL command line up to a trailing comment.
 A line starting with $, optionally followed by continuation lines,
@@ -368,7 +389,7 @@ optionally followed by a comment, followed by a newline."
   :group 'dcl)
 
 
-(defcustom dcl-command-regexp 
+(defcustom dcl-command-regexp
   "^\\$\\(.*-[ \t]*\\(!.*\\)*\n\\)*.*\\(\".*\\(\"\".*\\)*\"\\)*"
   "Regular expression describing a DCL command line.
 A line starting with $, optionally followed by continuation lines,
@@ -392,7 +413,7 @@ dcl-electric-character and the you have just typed the `f' in
   :group 'dcl)
 
 
-(defvar dcl-option-alist 
+(defvar dcl-option-alist
   '((dcl-basic-offset dcl-option-value-basic)
     (dcl-continuation-offset curval)
     (dcl-margin-offset dcl-option-value-margin-offset)
@@ -400,12 +421,12 @@ dcl-electric-character and the you have just typed the `f' in
     (dcl-comment-line-regexp dcl-option-value-comment-line)
     (dcl-block-begin-regexp curval)
     (dcl-block-end-regexp curval)
-    (dcl-tab-always-indent toggle)		
-    (dcl-electric-characters toggle)	
+    (dcl-tab-always-indent toggle)
+    (dcl-electric-characters toggle)
     (dcl-electric-reindent-regexps curval)
-    (dcl-tempo-comma curval)		
-    (dcl-tempo-left-paren curval)		
-    (dcl-tempo-right-paren curval)		
+    (dcl-tempo-comma curval)
+    (dcl-tempo-left-paren curval)
+    (dcl-tempo-right-paren curval)
     (dcl-calc-command-indent-function curval)
     (dcl-calc-cont-indent-function curval)
     (comment-start curval)
@@ -421,7 +442,7 @@ curval       the current value
 toggle       the opposite of the current value (for t/nil)")
 
 
-(defvar dcl-option-history 
+(defvar dcl-option-history
   (mapcar (lambda (option-assoc)
 	    (format "%s" (car option-assoc)))
 	  dcl-option-alist)
@@ -443,7 +464,7 @@ Preloaded with all known option names from dcl-option-alist")
 ;  "*Default imenu generic expression for DCL.
 
 ;The default includes SUBROUTINE labels in the main listing and
-;sub-listings for other labels, CALL, GOTO and GOSUB statements. 
+;sub-listings for other labels, CALL, GOTO and GOSUB statements.
 ;See `imenu-generic-expression' in a recent (e.g. Emacs 19.30) imenu.el
 ;for details.")
 
@@ -460,7 +481,7 @@ THEN-ELSE-ENDIF and between lines matching dcl-block-begin-regexp and
 dcl-block-end-regexp.)
 
 Labels are indented to a fixed position unless they begin or end a block.
-Whole-line comments (matching dcl-comment-line-regexp) are not indented. 
+Whole-line comments (matching dcl-comment-line-regexp) are not indented.
 Data lines are not indented.
 
 Key bindings:
@@ -488,7 +509,7 @@ Variables controlling indentation style and extra features:
     Indentation for a label.
 
  dcl-comment-line-regexp
-    Lines matching this regexp will not be indented. 
+    Lines matching this regexp will not be indented.
 
  dcl-block-begin-regexp
  dcl-block-end-regexp
@@ -511,10 +532,10 @@ Variables controlling indentation style and extra features:
 
  dcl-tab-always-indent
     If t, pressing TAB always indents the current line.
-    If nil, pressing TAB indents the current line if point is at the left 
+    If nil, pressing TAB indents the current line if point is at the left
     margin.
 
- dcl-electric-characters 
+ dcl-electric-characters
     Non-nil causes lines to be indented at once when a label, ELSE or ENDIF is
     typed.
 
@@ -530,7 +551,7 @@ Variables controlling indentation style and extra features:
  dcl-imenu-generic-expression
     Default value for imenu-generic-expression.  The default includes
     SUBROUTINE labels in the main listing and sub-listings for
-    other labels, CALL, GOTO and GOSUB statements. 
+    other labels, CALL, GOTO and GOSUB statements.
 
  dcl-imenu-label-labels
  dcl-imenu-label-goto
@@ -539,34 +560,37 @@ Variables controlling indentation style and extra features:
     Change the text that is used as sub-listing labels in imenu.
 
 Loading this package calls the value of the variable
-`dcl-mode-load-hook' with no args, if that value is non-nil. 
-Turning on DCL mode calls the value of the variable `dcl-mode-hook' 
+`dcl-mode-load-hook' with no args, if that value is non-nil.
+Turning on DCL mode calls the value of the variable `dcl-mode-hook'
 with no args, if that value is non-nil.
 
 
 The following example uses the default values for all variables:
 
-$! This is a comment line that is not indented (it matches 
+$! This is a comment line that is not indented (it matches
 $! dcl-comment-line-regexp)
 $! Next follows the first command line.  It is indented dcl-margin-offset.
 $       i = 1
 $       ! Other comments are indented like command lines.
 $       ! A margin label indented dcl-margin-label-offset:
-$ label: 
+$ label:
 $       if i.eq.1
 $       then
-$           ! Lines between THEN-ELSE and ELSE-ENDIF are 
+$           ! Lines between THEN-ELSE and ELSE-ENDIF are
 $           ! indented dcl-basic-offset
 $           loop1: ! This matches dcl-block-begin-regexp...
 $               ! ...so this line is indented dcl-basic-offset
-$               text = \"This \" + - ! is a continued line 
+$               text = \"This \" + - ! is a continued line
                        \"lined up with the command line\"
 $               type sys$input
-Data lines are not indented at all. 
+Data lines are not indented at all.
 $           endloop1: ! This matches dcl-block-end-regexp
 $       endif
 $
-"
+
+
+There is some minimal font-lock support (see vars
+`dcl-font-lock-defaults' and `dcl-font-lock-keywords')."
   (interactive)
   (kill-all-local-variables)
   (set-syntax-table dcl-mode-syntax-table)
@@ -582,7 +606,7 @@ $
 
   (make-local-variable 'comment-multi-line)
   (setq comment-multi-line nil)
-  
+
   ;; This used to be "^\\$[ \t]*![ \t]*" which looks more correct.
   ;; The drawback was that you couldn't make empty comment lines by pressing
   ;; C-M-j repeatedly - only the first line became a comment line.
@@ -608,7 +632,11 @@ $
   (make-local-variable 'dcl-calc-command-indent-function)
   (make-local-variable 'dcl-calc-cont-indent-function)
   (make-local-variable 'dcl-electric-reindent-regexps)
-  
+
+  ;; font lock
+  (make-local-variable 'font-lock-defaults)
+  (setq font-lock-defaults dcl-font-lock-defaults)
+
   (setq major-mode 'dcl-mode)
   (setq mode-name "DCL")
   (use-local-map dcl-mode-map)
@@ -668,7 +696,7 @@ $
   "Move backward to a command.
 Move point to the preceding command line that is not a comment line,
 a command line with only a comment, only contains a `$' or only
-contains a label. 
+contains a label.
 
 Returns point of the found command line or nil if not able to move."
   (interactive)
@@ -712,7 +740,7 @@ Returns point of the found command line or nil if not able to move."
   "Move forward to a command.
 Move point to the end of the next command line that is not a comment line,
 a command line with only a comment, only contains a `$' or only
-contains a label. 
+contains a label.
 
 Returns point of the found command line or nil if not able to move."
   (interactive)
@@ -762,9 +790,9 @@ Leading $ and labels counts as whitespace in this case.
 If this is a comment line then move to the first non-whitespace character
 in the comment.
 
-Typing \\[dcl-back-to-indentation] several times in a row will move point to other 
+Typing \\[dcl-back-to-indentation] several times in a row will move point to other
 `interesting' points closer to the left margin, and then back to the
-rightmost point again. 
+rightmost point again.
 
 E.g. on the following line, point would go to the positions indicated
 by the numbers in order 1-2-3-1-... :
@@ -785,7 +813,7 @@ by the numbers in order 1-2-3-1-... :
   ;;  $  !  text
   ;;  3  2  1
   ;;
-  ;;  $  l:  command  !  
+  ;;  $  l:  command  !
   ;;  3  2   1
   ;;
   ;;  text
@@ -807,7 +835,7 @@ by the numbers in order 1-2-3-1-... :
 	(setq last-good-point (point)))
 
     (cond
-     ;; Special treatment for comment lines.  We are trying to allow 
+     ;; Special treatment for comment lines.  We are trying to allow
      ;; things like "$ !*" as comment lines.
      ((looking-at dcl-comment-line-regexp)
       (re-search-forward (concat dcl-comment-line-regexp "[ \t]*") limit t)
@@ -901,7 +929,7 @@ Returns one of the following symbols:
     (dcl-back-to-indentation)
     (point)))
 
-		       
+
 ;;;---------------------------------------------------------------------------
 (defun dcl-show-line-type ()
   "Test dcl-get-line-type."
@@ -979,7 +1007,7 @@ $ xxx
 
 If you use this function you will probably want to add \"then\" to
 dcl-electric-reindent-regexps and define the key \"n\" as
-dcl-electric-character. 
+dcl-electric-character.
 "
   (let ((case-fold-search t))
     (save-excursion
@@ -1003,7 +1031,7 @@ dcl-electric-character.
 	  (- (+ cur-indent extra-indent) 2))
 	 ((looking-at "\\belse\\b")
 	  (- (+ cur-indent extra-indent) 2))))
-       ;; Outdent, this word is `endif' or `else': + 2 
+       ;; Outdent, this word is `endif' or `else': + 2
        ((equal indent-type 'outdent)
 	(goto-char this-point)
 	(cond
@@ -1028,19 +1056,19 @@ non-nil.
 
 If the current line should be outdented, calculate its indentation,
 either with the default method or by calling
-dcl-calc-command-indent-function if it is non-nil. 
+dcl-calc-command-indent-function if it is non-nil.
 
 
 Rules for default indentation:
 
 If it is the first line in the buffer, indent dcl-margin-offset.
 
-Go to the previous command line with a command on it. 
+Go to the previous command line with a command on it.
 Find out how much it is indented (cur-indent).
 Look at the first word on the line to see if the indentation should be
 adjusted.  Skip margin-label, continuations and comments while looking for
 the first word.  Save this buffer position as `last-point'.
-If the first word after a label is SUBROUTINE, set extra-indent to 
+If the first word after a label is SUBROUTINE, set extra-indent to
 dcl-margin-offset.
 
 First word  extra-indent
@@ -1050,7 +1078,7 @@ block-begin +dcl-basic-offset
 
 Then return to the current line and look at the first word to see if the
 indentation should be adjusted again.  Save this buffer position as
-`this-point'. 
+`this-point'.
 
 First word  extra-indent
 ELSE        -dcl-basic-offset
@@ -1063,7 +1091,7 @@ cur-indent to cur-indent+extra-indent.
 
 If an extra adjustment is necessary and if
 dcl-calc-command-indent-function is nil or returns nil set cur-indent
-to cur-indent+extra-indent. 
+to cur-indent+extra-indent.
 
 See also documentation for dcl-calc-command-indent-function.
 The indent-type classification could probably be expanded upon.
@@ -1106,7 +1134,7 @@ The indent-type classification could probably be expanded upon.
                 ;; We couldn't go further back, so this must have been the
 		;; first line.
                 (setq cur-indent dcl-margin-offset
-		      last-point (dcl-indentation-point)) 
+		      last-point (dcl-indentation-point))
                 (setq done t)))
 	    ;; Examine the line to get current indentation and possibly a
 	    ;; reason to indent.
@@ -1190,7 +1218,7 @@ Indented lines will align with either:
 * the second word on the command line
   $ set default -
         [-]
-* the word after an asignment
+* the word after an assignment
   $ a = b + -
         d
 * the third word if it's a qualifier
@@ -1202,7 +1230,7 @@ Indented lines will align with either:
                                 yyy)))
 "
   (let ((case-fold-search t)
-	indent) 
+	indent)
     (save-excursion
       (dcl-beginning-of-statement)
       (let ((end (save-excursion (forward-line 1) (point))))
@@ -1221,7 +1249,7 @@ Indented lines will align with either:
 			  (skip-chars-forward " \t:=" end)))
 		    ;; This could be the position to indent to
 		    (setq indent (current-column))
-		    
+
 		    ;; Move to the next word unless we have seen an
 		    ;; assignment.  If it starts with `/' it's a
 		    ;; qualifier and we will indent to that position
@@ -1328,7 +1356,7 @@ Find out how much it is indented."
             (re-search-forward dcl-label-r)))
       (dcl-indent-to indent 1)
       )
-    ;; 
+    ;;
     (if (> (- (point-max) pos) (point))
         (goto-char (- (point-max) pos)))
     ))
@@ -1376,7 +1404,7 @@ Adjusts indentation on the current line.  Data lines are not indented."
      (t
       (message "dcl-indent-line: unknown type"))
      )))
-     
+
 
 ;;;-------------------------------------------------------------------------
 (defun dcl-indent-command ()
@@ -1406,9 +1434,9 @@ the lines indentation; otherwise insert a tab."
         (start-point (point)))
     (cond
      ;; Data line : always insert tab
-     ((or (equal type 'data) (equal type 'empty-data)) 
+     ((or (equal type 'data) (equal type 'empty-data))
       (tab-to-tab-stop))
-     ;; Indent only at start of line 
+     ;; Indent only at start of line
      ((not dcl-tab-always-indent)       ; nil
       (let ((search-end-point
              (save-excursion
@@ -1428,7 +1456,7 @@ the lines indentation; otherwise insert a tab."
 ;;;-------------------------------------------------------------------------
 (defun dcl-electric-character (arg)
   "Inserts a character and indents if necessary.
-Insert a character if the user gave a numeric argument or the flag 
+Insert a character if the user gave a numeric argument or the flag
 `dcl-electric-characters' is not set.  If an argument was given,
 insert that many characters.
 
@@ -1443,7 +1471,7 @@ regexps in `dcl-electric-reindent-regexps'."
     (self-insert-command 1)
     (let ((case-fold-search t))
       ;; There must be a better way than (memq t ...).
-      ;; (apply 'or ...) didn't work  
+      ;; (apply 'or ...) didn't work
       (if (memq t (mapcar 'dcl-was-looking-at dcl-electric-reindent-regexps))
           (dcl-indent-line)))))
 
@@ -1463,7 +1491,7 @@ regexps in `dcl-electric-reindent-regexps'."
 	(progn
 	  (dcl-delete-chars " \t")
 	  (indent-to col minimum)))))
-    
+
 
 ;;;-------------------------------------------------------------------------
 (defun dcl-split-line ()
@@ -1511,7 +1539,7 @@ Inserts continuation marks and splits character strings."
     (if (not done)			; normal M-LFD action
 	(indent-new-comment-line))))
 
-	 
+
 ;;;-------------------------------------------------------------------------
 (defun dcl-delete-indentation (&optional arg)
   "Join this line to previous like delete-indentation.
@@ -1582,7 +1610,7 @@ Returns the column offset."
 (defun dcl-option-value-margin-offset (option-assoc)
   "Guess a value for margin offset.
 Find the column of the first non-blank character on the line, not
-counting labels. 
+counting labels.
 Returns a number as a string."
   (save-excursion
     (beginning-of-line)
@@ -1610,7 +1638,7 @@ Must return a string."
 	 (let ((regexp (buffer-substring (match-beginning 0) (match-end 0))))
 	   (concat "^" (regexp-quote regexp)))
        dcl-comment-line-regexp))))
-      
+
 
 ;;;-------------------------------------------------------------------------
 (defun dcl-guess-option-value (option)
@@ -1701,7 +1729,7 @@ Returns the name of the option variable as a string."
 		   (and next-indent
 			(/= (- this-indent next-indent) 0))))))
       "dcl-basic-offset")
-     ;; No more guesses. 
+     ;; No more guesses.
      (t
       ""))))
 
@@ -1739,8 +1767,8 @@ All variable names are available as completions and in the history list."
 ;;;-------------------------------------------------------------------------
 (defun dcl-save-local-variable (var &optional def-prefix def-suffix)
   "Save a variable in a `Local Variables' list.
-Set or update the value of VAR in the current buffers 
-`Local Variables:' list." 
+Set or update the value of VAR in the current buffers
+`Local Variables:' list."
   ;; Look for "Local variables:" line in last page.
   (save-excursion
     (goto-char (point-max))
@@ -1790,7 +1818,7 @@ Set or update the value of VAR in the current buffers
 		    ;; Not found.  Insert a new entry before this line
 		    (setq continue nil)
 		    (beginning-of-line)
-		    (insert (concat prefix-string (symbol-name var) ": " 
+		    (insert (concat prefix-string (symbol-name var) ": "
 				    (prin1-to-string (eval var)) " "
 				    suffix-string "\n")))
 		;; Is it the variable we are looking for?
@@ -1836,7 +1864,7 @@ Set or update the value of VAR in the current buffers
 		    comment-end
 		  (concat " " comment-end))))))
 	(insert (concat def-prefix "Local variables:" def-suffix "\n"))
-	(insert (concat def-prefix (symbol-name var) ": " 
+	(insert (concat def-prefix (symbol-name var) ": "
 			(prin1-to-string (eval var)) def-suffix "\n"))
 	(insert (concat def-prefix "end:" def-suffix)))
       )))
@@ -1909,9 +1937,9 @@ section at the end of the current buffer."
 (require 'tempo)
 (defvar dcl-tempo-tags nil
   "Tempo tags for DCL mode.")
-  
+
 (tempo-define-template "dcl-f$context"
-		       '("f$context" dcl-tempo-left-paren 
+		       '("f$context" dcl-tempo-left-paren
 			 (p "context-type: ") dcl-tempo-comma
 			 (p "context-symbol: ") dcl-tempo-comma
 			 (p "selection-item: ") dcl-tempo-comma
@@ -1920,33 +1948,33 @@ section at the end of the current buffer."
 		       "f$context" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$csid"
-		       '("f$csid" dcl-tempo-left-paren 
+		       '("f$csid" dcl-tempo-left-paren
 			 (p "context-symbol: ") dcl-tempo-right-paren)
 		       "f$csid" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$cvsi"
-		       '("f$cvsi" dcl-tempo-left-paren 
+		       '("f$cvsi" dcl-tempo-left-paren
 			 (p "start-bit: ") dcl-tempo-comma
 			 (p "number-of-bits: ") dcl-tempo-comma
 			 (p "string: ") dcl-tempo-right-paren)
 		       "f$cvsi" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$cvtime"
-		       '("f$cvtime" dcl-tempo-left-paren 
+		       '("f$cvtime" dcl-tempo-left-paren
 			 (p "[input_time]: ") dcl-tempo-comma
 			 (p "[output_time_format]: ") dcl-tempo-comma
 			 (p "[output_field]: ") dcl-tempo-right-paren)
 		       "f$cvtime" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$cvui"
-		       '("f$cvui" dcl-tempo-left-paren 
+		       '("f$cvui" dcl-tempo-left-paren
 			 (p "start-bit: ") dcl-tempo-comma
 			 (p "number-of-bits: ") dcl-tempo-comma
 			 (p "string") dcl-tempo-right-paren)
 		       "f$cvui" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$device"
-		       '("f$device" dcl-tempo-left-paren 
+		       '("f$device" dcl-tempo-left-paren
 			 (p "[search_devnam]: ") dcl-tempo-comma
 			 (p "[devclass]: ") dcl-tempo-comma
 			 (p "[devtype]: ") dcl-tempo-comma
@@ -1959,56 +1987,56 @@ section at the end of the current buffer."
 		       "f$directory" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$edit"
-		       '("f$edit" dcl-tempo-left-paren 
+		       '("f$edit" dcl-tempo-left-paren
 			 (p "string: ") dcl-tempo-comma
 			 (p "edit-list: ") dcl-tempo-right-paren)
 		       "f$edit" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$element"
-		       '("f$element" dcl-tempo-left-paren 
+		       '("f$element" dcl-tempo-left-paren
 			 (p "element-number: ") dcl-tempo-comma
 			 (p "delimiter: ") dcl-tempo-comma
 			 (p "string: ") dcl-tempo-right-paren)
 		       "f$element" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$environment"
-		       '("f$environment" dcl-tempo-left-paren 
+		       '("f$environment" dcl-tempo-left-paren
 			 (p "item: ") dcl-tempo-right-paren)
 		       "f$environment" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$extract"
-		       '("f$extract" dcl-tempo-left-paren 
+		       '("f$extract" dcl-tempo-left-paren
 			 (p "start: ") dcl-tempo-comma
 			 (p "length: ") dcl-tempo-comma
 			 (p "string: ") dcl-tempo-right-paren)
 		       "f$extract" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$fao"
-		       '("f$fao" dcl-tempo-left-paren 
+		       '("f$fao" dcl-tempo-left-paren
 			 (p "control-string: ") dcl-tempo-comma
 			 ("argument[,...]: ") dcl-tempo-right-paren)
 		       "f$fao" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$file_attributes"
-		       '("f$file_attributes" dcl-tempo-left-paren 
+		       '("f$file_attributes" dcl-tempo-left-paren
 			 (p "filespec: ") dcl-tempo-comma
 			 (p "item: ") dcl-tempo-right-paren)
 		       "f$file_attributes" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$getdvi"
-		       '("f$getdvi" dcl-tempo-left-paren 
+		       '("f$getdvi" dcl-tempo-left-paren
 			 (p "device-name: ") dcl-tempo-comma
 			 (p "item: ") dcl-tempo-right-paren)
 		       "f$getdvi" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$getjpi"
-		       '("f$getjpi" dcl-tempo-left-paren 
+		       '("f$getjpi" dcl-tempo-left-paren
 			 (p "pid: ") dcl-tempo-comma
 			 (p "item: ") dcl-tempo-right-paren )
 		       "f$getjpi" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$getqui"
-		       '("f$getqui" dcl-tempo-left-paren 
+		       '("f$getqui" dcl-tempo-left-paren
 			 (p "function: ") dcl-tempo-comma
 			 (p "[item]: ") dcl-tempo-comma
 			 (p "[object-id]: ") dcl-tempo-comma
@@ -2016,20 +2044,20 @@ section at the end of the current buffer."
 		       "f$getqui" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$getsyi"
-		       '("f$getsyi" dcl-tempo-left-paren 
+		       '("f$getsyi" dcl-tempo-left-paren
 			 (p "item: ") dcl-tempo-comma
 			 (p "[node-name]: ") dcl-tempo-comma
 			 (p "[cluster-id]: ") dcl-tempo-right-paren)
 		       "f$getsyi" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$identifier"
-		       '("f$identifier" dcl-tempo-left-paren 
+		       '("f$identifier" dcl-tempo-left-paren
 			 (p "identifier: ") dcl-tempo-comma
 			 (p "conversion-type: ") dcl-tempo-right-paren)
 		       "f$identifier" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$integer"
-		       '("f$integer" dcl-tempo-left-paren 
+		       '("f$integer" dcl-tempo-left-paren
 			 (p "expression: ") dcl-tempo-right-paren)
 		       "f$integer" "" 'dcl-tempo-tags)
 
@@ -2039,13 +2067,13 @@ section at the end of the current buffer."
 		       "f$length" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$locate"
-		       '("f$locate" dcl-tempo-left-paren 
+		       '("f$locate" dcl-tempo-left-paren
 			 (p "substring: ") dcl-tempo-comma
 			 (p "string: ") dcl-tempo-right-paren)
 		       "f$locate" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$message"
-		       '("f$message" dcl-tempo-left-paren 
+		       '("f$message" dcl-tempo-left-paren
 			 (p "status-code: ") dcl-tempo-right-paren )
 		       "f$message" "" 'dcl-tempo-tags)
 
@@ -2054,7 +2082,7 @@ section at the end of the current buffer."
 		       "f$mode" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$parse"
-		       '("f$parse" dcl-tempo-left-paren 
+		       '("f$parse" dcl-tempo-left-paren
 			 (p "filespec: ") dcl-tempo-comma
 			 (p "[default-spec]: ") dcl-tempo-comma
 			 (p "[related-spec]: ") dcl-tempo-comma
@@ -2063,12 +2091,12 @@ section at the end of the current buffer."
 		       "f$parse" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$pid"
-		       '("f$pid" dcl-tempo-left-paren 
+		       '("f$pid" dcl-tempo-left-paren
 			 (p "context-symbol: ") dcl-tempo-right-paren)
 		       "f$pid" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$privilege"
-		       '("f$privilege" dcl-tempo-left-paren 
+		       '("f$privilege" dcl-tempo-left-paren
 			 (p "priv-states: ") dcl-tempo-right-paren)
 		       "f$privilege" "" 'dcl-tempo-tags)
 
@@ -2077,18 +2105,18 @@ section at the end of the current buffer."
 		       "f$process" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$search"
-		       '("f$search" dcl-tempo-left-paren 
+		       '("f$search" dcl-tempo-left-paren
 			 (p "filespec: ") dcl-tempo-comma
 			 (p "[stream-id]: ") dcl-tempo-right-paren)
 		       "f$search" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$setprv"
-		       '("f$setprv" dcl-tempo-left-paren 
+		       '("f$setprv" dcl-tempo-left-paren
 			 (p "priv-states: ") dcl-tempo-right-paren)
 		       "f$setprv" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$string"
-		       '("f$string" dcl-tempo-left-paren 
+		       '("f$string" dcl-tempo-left-paren
 			 (p "expression: ") dcl-tempo-right-paren)
 		       "f$string" "" 'dcl-tempo-tags)
 
@@ -2097,7 +2125,7 @@ section at the end of the current buffer."
 		       "f$time" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$trnlnm"
-		       '("f$trnlnm" dcl-tempo-left-paren 
+		       '("f$trnlnm" dcl-tempo-left-paren
 			 (p "logical-name: ") dcl-tempo-comma
 			 (p "[table]: ") dcl-tempo-comma
 			 (p "[index]: ") dcl-tempo-comma
@@ -2107,7 +2135,7 @@ section at the end of the current buffer."
 		       "f$trnlnm" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$type"
-		       '("f$type" dcl-tempo-left-paren 
+		       '("f$type" dcl-tempo-left-paren
 			 (p "symbol-name: ") dcl-tempo-right-paren)
 		       "f$type" "" 'dcl-tempo-tags)
 
@@ -2116,7 +2144,7 @@ section at the end of the current buffer."
 		       "f$user" "" 'dcl-tempo-tags)
 
 (tempo-define-template "dcl-f$verify"
-		       '("f$verify" dcl-tempo-left-paren 
+		       '("f$verify" dcl-tempo-left-paren
 			 (p "[procedure-value]: ") dcl-tempo-comma
 			 (p "[image-value]: ") dcl-tempo-right-paren)
 		       "f$verify" "" 'dcl-tempo-tags)
@@ -2171,7 +2199,7 @@ otherwise return nil."
           ()
         (equal start (match-end 0))))))
 
-                         
+
 ;;;-------------------------------------------------------------------------
 (defun dcl-imenu-create-index-function ()
   "Jacket routine to make imenu searches non case sensitive."

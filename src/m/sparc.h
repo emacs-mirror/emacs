@@ -18,7 +18,7 @@ along with GNU Emacs; see the file COPYING.  If not, write to
 the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
-/* The following line tells the configuration script what sort of 
+/* The following line tells the configuration script what sort of
    operating system this machine is likely to run.
    USUAL-OPSYS="note"
 
@@ -58,12 +58,6 @@ NOTE-END  */
 /* Convert that into an integer that is 100 for a load average of 1.0  */
 
 #define LOAD_AVE_CVT(x) (int) (((double) (x)) * 100.0 / FSCALE)
-
-#ifndef NOT_C_CODE
-#if __GNUC__ < 2 /* Modern versions of GCC handle alloca directly.  */
-#include <alloca.h>
-#endif
-#endif
 
 /* Mask for address bits within a memory segment */
 

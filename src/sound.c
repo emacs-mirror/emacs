@@ -21,10 +21,26 @@ Boston, MA 02111-1307, USA.  */
 /* Written by Gerd Moellmann <gerd@gnu.org>.  Tested with Luigi's
    driver on FreeBSD 2.2.7 with a SoundBlaster 16.  */
 
+/*
+  Modified by Ben Key <Bkey1@tampabay.rr.com> to add a partial
+  implementation of the play-sound specification for Windows.
+
+  Notes:
+  In the Windows implementation of play-sound-internal only the
+  :file and :volume keywords are supported.  The :device keyword,
+  if present, is ignored.  The :data keyword, if present, will
+  cause an error to be generated.
+
+  The Windows implementation of play-sound is implemented via the
+  Win32 API functions mciSendString, waveOutGetVolume, and
+  waveOutSetVolume which are exported by Winmm.dll.
+*/
+
 #include <config.h>
 
 #if defined HAVE_SOUND
 
+/* BEGIN: Common Includes */
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/types.h>
@@ -34,6 +50,11 @@ Boston, MA 02111-1307, USA.  */
 #include "atimer.h"
 #include <signal.h>
 #include "syssignal.h"
+/* END: Common Includes */
+
+
+/* BEGIN: Non Windows Includes */
+#ifndef WINDOWSNT
 
 #ifndef MSDOS
 #include <sys/ioctl.h>
@@ -51,12 +72,55 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_SOUNDCARD_H
 #include <soundcard.h>
 #endif
+/* END: Non Windows Includes */
+
+#else /* WINDOWSNT */
+
+/* BEGIN: Windows Specific Includes */
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <limits.h>
+#include <windows.h>
+#include <mmsystem.h>
+/* END: Windows Specific Includes */
+
+#endif /* WINDOWSNT */
+
+/* BEGIN: Common Definitions */
+#define abs(X)    ((X) < 0 ? -(X) : (X))
+
+/* Symbols.  */
+
+extern Lisp_Object QCfile, QCdata;
+Lisp_Object QCvolume, QCdevice;
+Lisp_Object Qsound;
+Lisp_Object Qplay_sound_functions;
+
+/* Indices of attributes in a sound attributes vector.  */
+
+enum sound_attr
+{
+  SOUND_FILE,
+  SOUND_DATA,
+  SOUND_DEVICE,
+  SOUND_VOLUME,
+  SOUND_ATTR_SENTINEL
+};
+
+static void sound_perror P_ ((char *));
+static void sound_warning P_ ((char *));
+static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
+
+/* END: Common Definitions */
+
+/* BEGIN: Non Windows Definitions */
+#ifndef WINDOWSNT
 
 #ifndef DEFAULT_SOUND_DEVICE
 #define DEFAULT_SOUND_DEVICE "/dev/dsp"
 #endif
 
-#define abs(X)    ((X) < 0 ? -(X) : (X))
 
 /* Structure forward declarations.  */
 
@@ -163,7 +227,8 @@ struct sound_device
 			      struct sound *s));
 
   /* Write NYBTES bytes from BUFFER to device SD.  */
-  void (* write) P_ ((struct sound_device *sd, char *buffer, int nbytes));
+  void (* write) P_ ((struct sound_device *sd, const char *buffer,
+		      int nbytes));
 
   /* A place for devices to store additional data.  */
   void *data;
@@ -202,24 +267,6 @@ struct sound
   void (* play) P_ ((struct sound *s, struct sound_device *sd));
 };
 
-/* Indices of attributes in a sound attributes vector.  */
-
-enum sound_attr
-{
-  SOUND_FILE,
-  SOUND_DATA,
-  SOUND_DEVICE,
-  SOUND_VOLUME,
-  SOUND_ATTR_SENTINEL
-};
-
-/* Symbols.  */
-
-extern Lisp_Object QCfile, QCdata;
-Lisp_Object QCvolume, QCdevice;
-Lisp_Object Qsound;
-Lisp_Object Qplay_sound_functions;
-
 /* These are set during `play-sound-internal' so that sound_cleanup has
    access to them.  */
 
@@ -233,10 +280,7 @@ static void vox_configure P_ ((struct sound_device *));
 static void vox_close P_ ((struct sound_device *sd));
 static void vox_choose_format P_ ((struct sound_device *, struct sound *));
 static void vox_init P_ ((struct sound_device *));
-static void vox_write P_ ((struct sound_device *, char *, int));
-static void sound_perror P_ ((char *));
-static void sound_warning P_ ((char *));
-static int parse_sound P_ ((Lisp_Object, Lisp_Object *));
+static void vox_write P_ ((struct sound_device *, const char *, int));
 static void find_sound_type P_ ((struct sound *));
 static u_int32_t le2hl P_ ((u_int32_t));
 static u_int16_t le2hs P_ ((u_int16_t));
@@ -250,11 +294,21 @@ static void au_play P_ ((struct sound *, struct sound_device *));
 static u_int16_t be2hs P_ ((u_int16_t));
 #endif
 
+/* END: Non Windows Definitions */
+#else /* WINDOWSNT */
+
+/* BEGIN: Windows Specific Definitions */
+static int do_play_sound P_ ((const char *, unsigned long));
+/*
+  END: Windows Specific Definitions */
+#endif /* WINDOWSNT */
 
 
 /***********************************************************************
 			       General
  ***********************************************************************/
+
+/* BEGIN: Common functions */
 
 /* Like perror, but signals an error.  */
 
@@ -326,10 +380,21 @@ parse_sound (sound, attrs)
   attrs[SOUND_DEVICE] = Fplist_get (sound, QCdevice);
   attrs[SOUND_VOLUME] = Fplist_get (sound, QCvolume);
 
+#ifndef WINDOWSNT
   /* File name or data must be specified.  */
   if (!STRINGP (attrs[SOUND_FILE])
       && !STRINGP (attrs[SOUND_DATA]))
     return 0;
+#else /* WINDOWSNT */
+  /*
+    Data is not supported in Windows.  Therefore a
+    File name MUST be supplied.
+  */
+  if (!STRINGP (attrs[SOUND_FILE]))
+    {
+      return 0;
+    }
+#endif /* WINDOWSNT */
 
   /* Volume must be in the range 0..100 or unspecified.  */
   if (!NILP (attrs[SOUND_VOLUME]))
@@ -350,14 +415,23 @@ parse_sound (sound, attrs)
 	return 0;
     }
 
+#ifndef WINDOWSNT
   /* Device must be a string or unspecified.  */
   if (!NILP (attrs[SOUND_DEVICE])
       && !STRINGP (attrs[SOUND_DEVICE]))
     return 0;
-
+#endif  /* WINDOWSNT */
+  /*
+    Since device is ignored in Windows, it does not matter
+    what it is.
+   */
   return 1;
 }
 
+/* END: Common functions */
+
+/* BEGIN: Non Windows functions */
+#ifndef WINDOWSNT
 
 /* Find out the type of the sound file whose file descriptor is FD.
    S is the sound file structure to fill in.  */
@@ -388,105 +462,6 @@ sound_cleanup (arg)
   return Qnil;
 }
 
-
-DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 0,
-       doc: /* Play sound SOUND.
-
-Internal use only, use `play-sound' instead.  */)
-     (sound)
-     Lisp_Object sound;
-{
-  Lisp_Object attrs[SOUND_ATTR_SENTINEL];
-  Lisp_Object file;
-  struct gcpro gcpro1, gcpro2;
-  struct sound_device sd;
-  struct sound s;
-  Lisp_Object args[2];
-  int count = specpdl_ptr - specpdl;
-
-  file = Qnil;
-  GCPRO2 (sound, file);
-  bzero (&sd, sizeof sd);
-  bzero (&s, sizeof s);
-  current_sound_device = &sd;
-  current_sound = &s;
-  record_unwind_protect (sound_cleanup, Qnil);
-  s.header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
-
-  /* Parse the sound specification.  Give up if it is invalid.  */
-  if (!parse_sound (sound, attrs))
-    error ("Invalid sound specification");
-
-  if (STRINGP (attrs[SOUND_FILE]))
-    {
-      /* Open the sound file.  */
-      s.fd = openp (Fcons (Vdata_directory, Qnil),
-		    attrs[SOUND_FILE], Qnil, &file, Qnil);
-      if (s.fd < 0)
-	sound_perror ("Could not open sound file");
-
-      /* Read the first bytes from the file.  */
-      s.header_size = emacs_read (s.fd, s.header, MAX_SOUND_HEADER_BYTES);
-      if (s.header_size < 0)
-	sound_perror ("Invalid sound file header");
-    }
-  else
-    {
-      s.data = attrs[SOUND_DATA];
-      s.header_size = min (MAX_SOUND_HEADER_BYTES, STRING_BYTES (XSTRING (s.data)));
-      bcopy (XSTRING (s.data)->data, s.header, s.header_size);
-    }
-
-  /* Find out the type of sound.  Give up if we can't tell.  */
-  find_sound_type (&s);
-
-  /* Set up a device.  */
-  if (STRINGP (attrs[SOUND_DEVICE]))
-    {
-      int len = XSTRING (attrs[SOUND_DEVICE])->size;
-      sd.file = (char *) alloca (len + 1);
-      strcpy (sd.file, XSTRING (attrs[SOUND_DEVICE])->data);
-    }
-
-  if (INTEGERP (attrs[SOUND_VOLUME]))
-    sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
-  else if (FLOATP (attrs[SOUND_VOLUME]))
-    sd.volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
-
-  args[0] = Qplay_sound_functions;
-  args[1] = sound;
-  Frun_hook_with_args (2, args);
-
-  /* There is only one type of device we currently support, the VOX
-     sound driver.  Set up the device interface functions for that
-     device.  */
-  vox_init (&sd);
-
-  /* Open the device.  */
-  sd.open (&sd);
-
-  /* Play the sound.  */
-  s.play (&s, &sd);
-
-  /* Close the input file, if any.  */
-  if (!STRINGP (s.data))
-    {
-      emacs_close (s.fd);
-      s.fd = -1;
-    }
-
-  /* Close the device.  */
-  sd.close (&sd);
-
-  /* Clean up.  */
-  current_sound_device = NULL;
-  current_sound = NULL;
-  UNGCPRO;
-  unbind_to (count, Qnil);
-  return Qnil;
-}
-
-
 /***********************************************************************
 			Byte-order Conversion
  ***********************************************************************/
@@ -554,7 +529,6 @@ be2hs (value)
 
 #endif /* 0 */
 
-
 /***********************************************************************
 			  RIFF-WAVE (*.wav)
  ***********************************************************************/
@@ -624,8 +598,8 @@ wav_play (s, sd)
      files I found so far.  If someone feels inclined to implement the
      whole RIFF-WAVE spec, please do.  */
   if (STRINGP (s->data))
-    sd->write (sd, XSTRING (s->data)->data + sizeof *header,
-	       STRING_BYTES (XSTRING (s->data)) - sizeof *header);
+    sd->write (sd, SDATA (s->data) + sizeof *header,
+	       SBYTES (s->data) - sizeof *header);
   else
     {
       char *buffer;
@@ -644,7 +618,6 @@ wav_play (s, sd)
 }
 
 
-
 /***********************************************************************
 			   Sun Audio (*.au)
  ***********************************************************************/
@@ -712,8 +685,8 @@ au_play (s, sd)
   sd->configure (sd);
 
   if (STRINGP (s->data))
-    sd->write (sd, XSTRING (s->data)->data + header->data_offset,
-	       STRING_BYTES (XSTRING (s->data)) - header->data_offset);
+    sd->write (sd, SDATA (s->data) + header->data_offset,
+	       SBYTES (s->data) - header->data_offset);
   else
     {
       int blksize = 2048;
@@ -734,7 +707,6 @@ au_play (s, sd)
 }
 
 
-
 /***********************************************************************
 		       Voxware Driver Interface
  ***********************************************************************/
@@ -908,13 +880,12 @@ vox_init (sd)
   sd->write = vox_write;
 }
 
-
 /* Write NBYTES bytes from BUFFER to device SD.  */
 
 static void
 vox_write (sd, buffer, nbytes)
      struct sound_device *sd;
-     char *buffer;
+     const char *buffer;
      int nbytes;
 {
   int nwritten = emacs_write (sd->fd, buffer, nbytes);
@@ -922,7 +893,229 @@ vox_write (sd, buffer, nbytes)
     sound_perror ("Error writing to sound device");
 }
 
+/* END: Non Windows functions */
+#else /* WINDOWSNT */
 
+/* BEGIN: Windows specific functions */
+
+static int
+do_play_sound (psz_file, ui_volume)
+     const char *psz_file;
+     unsigned long ui_volume;
+{
+  int i_result = 0;
+  MCIERROR mci_error = 0;
+  char sz_cmd_buf[520] = {0};
+  char sz_ret_buf[520] = {0};
+  MMRESULT mm_result = MMSYSERR_NOERROR;
+  unsigned long ui_volume_org = 0;
+  BOOL b_reset_volume = FALSE;
+
+  memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
+  memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
+  sprintf (sz_cmd_buf,
+           "open \"%s\" alias GNUEmacs_PlaySound_Device wait",
+           psz_file);
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
+  if (mci_error != 0)
+    {
+      sound_warning ("The open mciSendString command failed to open\n"
+                     "the specified sound file");
+      i_result = (int) mci_error;
+      return i_result;
+    }
+  if ((ui_volume > 0) && (ui_volume != UINT_MAX))
+    {
+      mm_result = waveOutGetVolume ((HWAVEOUT) WAVE_MAPPER, &ui_volume_org);
+      if (mm_result == MMSYSERR_NOERROR)
+        {
+          b_reset_volume = TRUE;
+          mm_result = waveOutSetVolume ((HWAVEOUT) WAVE_MAPPER, ui_volume);
+          if ( mm_result != MMSYSERR_NOERROR)
+            {
+              sound_warning ("waveOutSetVolume failed to set the volume level\n"
+                             "of the WAVE_MAPPER device.\n"
+                             "As a result, the user selected volume level will\n"
+                             "not be used.");
+            }
+        }
+      else
+        {
+          sound_warning ("waveOutGetVolume failed to obtain the original\n"
+                         "volume level of the WAVE_MAPPER device.\n"
+                         "As a result, the user selected volume level will\n"
+                         "not be used.");
+        }
+    }
+  memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
+  memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
+  strcpy (sz_cmd_buf, "play GNUEmacs_PlaySound_Device wait");
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
+  if (mci_error != 0)
+    {
+      sound_warning ("The play mciSendString command failed to play the\n"
+                     "opened sound file.");
+      i_result = (int) mci_error;
+    }
+  memset (sz_cmd_buf, 0, sizeof(sz_cmd_buf));
+  memset (sz_ret_buf, 0, sizeof(sz_ret_buf));
+  strcpy (sz_cmd_buf, "close GNUEmacs_PlaySound_Device wait");
+  mci_error = mciSendString (sz_cmd_buf, sz_ret_buf, 520, NULL);
+  if (b_reset_volume == TRUE)
+    {
+      mm_result=waveOutSetVolume ((HWAVEOUT) WAVE_MAPPER, ui_volume_org);
+      if (mm_result != MMSYSERR_NOERROR)
+        {
+          sound_warning ("waveOutSetVolume failed to reset the original volume\n"
+                         "level of the WAVE_MAPPER device.");
+        }
+    }
+  return i_result;
+}
+
+/* END: Windows specific functions */
+
+#endif /* WINDOWSNT */
+
+DEFUN ("play-sound-internal", Fplay_sound_internal, Splay_sound_internal, 1, 1, 0,
+       doc: /* Play sound SOUND.
+
+Internal use only, use `play-sound' instead.\n  */)
+     (sound)
+     Lisp_Object sound;
+{
+  Lisp_Object attrs[SOUND_ATTR_SENTINEL];
+  int count = SPECPDL_INDEX ();
+
+#ifndef WINDOWSNT
+  Lisp_Object file;
+  struct gcpro gcpro1, gcpro2;
+  struct sound_device sd;
+  struct sound s;
+  Lisp_Object args[2];
+#else /* WINDOWSNT */
+  int len = 0;
+  Lisp_Object lo_file = {0};
+  char * psz_file = NULL;
+  unsigned long ui_volume_tmp = UINT_MAX;
+  unsigned long ui_volume = UINT_MAX;
+  int i_result = 0;
+#endif /* WINDOWSNT */
+
+  /* Parse the sound specification.  Give up if it is invalid.  */
+  if (!parse_sound (sound, attrs))
+    error ("Invalid sound specification");
+
+#ifndef WINDOWSNT
+  file = Qnil;
+  GCPRO2 (sound, file);
+  bzero (&sd, sizeof sd);
+  bzero (&s, sizeof s);
+  current_sound_device = &sd;
+  current_sound = &s;
+  record_unwind_protect (sound_cleanup, Qnil);
+  s.header = (char *) alloca (MAX_SOUND_HEADER_BYTES);
+
+  if (STRINGP (attrs[SOUND_FILE]))
+    {
+      /* Open the sound file.  */
+      s.fd = openp (Fcons (Vdata_directory, Qnil),
+		    attrs[SOUND_FILE], Qnil, &file, Qnil);
+      if (s.fd < 0)
+	sound_perror ("Could not open sound file");
+
+      /* Read the first bytes from the file.  */
+      s.header_size = emacs_read (s.fd, s.header, MAX_SOUND_HEADER_BYTES);
+      if (s.header_size < 0)
+	sound_perror ("Invalid sound file header");
+    }
+  else
+    {
+      s.data = attrs[SOUND_DATA];
+      s.header_size = min (MAX_SOUND_HEADER_BYTES, SBYTES (s.data));
+      bcopy (SDATA (s.data), s.header, s.header_size);
+    }
+
+  /* Find out the type of sound.  Give up if we can't tell.  */
+  find_sound_type (&s);
+
+  /* Set up a device.  */
+  if (STRINGP (attrs[SOUND_DEVICE]))
+    {
+      int len = SCHARS (attrs[SOUND_DEVICE]);
+      sd.file = (char *) alloca (len + 1);
+      strcpy (sd.file, SDATA (attrs[SOUND_DEVICE]));
+    }
+
+  if (INTEGERP (attrs[SOUND_VOLUME]))
+    sd.volume = XFASTINT (attrs[SOUND_VOLUME]);
+  else if (FLOATP (attrs[SOUND_VOLUME]))
+    sd.volume = XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
+
+  args[0] = Qplay_sound_functions;
+  args[1] = sound;
+  Frun_hook_with_args (2, args);
+
+  /* There is only one type of device we currently support, the VOX
+     sound driver.  Set up the device interface functions for that
+     device.  */
+  vox_init (&sd);
+
+  /* Open the device.  */
+  sd.open (&sd);
+
+  /* Play the sound.  */
+  s.play (&s, &sd);
+
+  /* Close the input file, if any.  */
+  if (!STRINGP (s.data))
+    {
+      emacs_close (s.fd);
+      s.fd = -1;
+    }
+
+  /* Close the device.  */
+  sd.close (&sd);
+
+  /* Clean up.  */
+  current_sound_device = NULL;
+  current_sound = NULL;
+  UNGCPRO;
+
+#else /* WINDOWSNT */
+
+  lo_file = Fexpand_file_name (attrs[SOUND_FILE], Qnil);
+  len = XSTRING (lo_file)->size;
+  psz_file = (char *) alloca (len + 1);
+  strcpy (psz_file, XSTRING (lo_file)->data);
+  if (INTEGERP (attrs[SOUND_VOLUME]))
+    {
+      ui_volume_tmp = XFASTINT (attrs[SOUND_VOLUME]);
+    }
+  else if (FLOATP (attrs[SOUND_VOLUME]))
+    {
+      ui_volume_tmp = (unsigned long) XFLOAT_DATA (attrs[SOUND_VOLUME]) * 100;
+    }
+  /*
+    Based on some experiments I have conducted, a value of 100 or less
+    for the sound volume is much too low.  You cannot even hear it.
+    A value of UINT_MAX indicates that you wish for the sound to played
+    at the maximum possible volume.  A value of UINT_MAX/2 plays the
+    sound at 50% maximum volume.  Therefore the value passed to do_play_sound
+    (and thus to waveOutSetVolume) must be some fraction of UINT_MAX.
+    The following code adjusts the user specified volume level appropriately.
+  */
+  if ((ui_volume_tmp > 0) && (ui_volume_tmp <= 100))
+    {
+      ui_volume = ui_volume_tmp * (UINT_MAX / 100);
+    }
+  i_result = do_play_sound (psz_file, ui_volume);
+
+#endif /* WINDOWSNT */
+
+  unbind_to (count, Qnil);
+  return Qnil;
+}
 
 /***********************************************************************
 			    Initialization

@@ -163,7 +163,7 @@ COND-FN takes one argument: the current element."
     fsom-rv))
 
 (defun filesets-some (fss-pred fss-lst)
-  "Return non-nil if FSS-PRED is non-nil for any element of FSS-LST. 
+  "Return non-nil if FSS-PRED is non-nil for any element of FSS-LST.
 Like `some', return the first value of FSS-PRED that is non-nil."
   (catch 'exit
     (dolist (fss-this fss-lst nil)
@@ -179,7 +179,7 @@ key is supported."
   (let ((fsm-test (or (plist-get fsm-keys ':test)
 		      (function equal))))
     (filesets-ormap (lambda (fsm-this)
-		      (funcall fsm-test fsm-item fsm-this)) 
+		      (funcall fsm-test fsm-item fsm-this))
 		    fsm-lst)))
 ;(fset 'filesets-member 'member*) ;; or use the cl function
 
@@ -199,7 +199,7 @@ key is supported."
   (let ((this (shell-command-to-string
 	       (format "which --skip-alias %s 2> /dev/null | head -n 1"
 		       cmd-list))))
-    (if (equal this "") 
+    (if (equal this "")
 	nil
       (file-name-nondirectory (substring this 0 (- (length this) 1))))))
 
@@ -353,7 +353,7 @@ Don't forget to check out `filesets-menu-ensure-use-cached'."
 (defcustom filesets-menu-cache-contents
   '(filesets-be-docile-flag
     filesets-submenus
-    filesets-menu-cache 
+    filesets-menu-cache
     filesets-ingroup-cache)
   "*Stuff we want to save in `filesets-menu-cache-file'.
 
@@ -745,7 +745,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master
 					      (concat file ".sty")
-					      (filesets-convert-path-list 
+					      (filesets-convert-path-list
 					       (or (getenv "MY_TEXINPUTS")
 						   (getenv "TEXINPUTS")))))))
       ((:name "Include")
@@ -753,7 +753,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master
 					      (concat file ".tex")
-					      (filesets-convert-path-list 
+					      (filesets-convert-path-list
 					       (or (getenv "MY_TEXINPUTS")
 						   (getenv "TEXINPUTS"))))))
        (:scan-depth 5))
@@ -763,7 +763,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master
 					      (concat file ".tex")
-					      (filesets-convert-path-list 
+					      (filesets-convert-path-list
 					       (or (getenv "MY_TEXINPUTS")
 						   (getenv "TEXINPUTS"))))))
        (:scan-depth 5))
@@ -772,7 +772,7 @@ In order to view pdf or rtf files in an Emacs buffer, you could use these:
        (:get-file-name (lambda (master file)
 			 (filesets-which-file master
 					      (concat file ".bib")
-					      (filesets-convert-path-list 
+					      (filesets-convert-path-list
 					       (or (getenv "MY_BIBINPUTS")
 						   (getenv "BIBINPUTS")))))))))
     ("^.+\\.el$" t
@@ -1066,7 +1066,7 @@ defined in `filesets-ingroup-patterns'."
 	(fset 'filesets-add-submenu 'add-submenu))
 
     (require 'easymenu)
-      
+
     (defun filesets-error (class &rest args)
       "`error' wrapper."
       (error (mapconcat 'identity args " ")))
@@ -1122,20 +1122,20 @@ non-nil."
     (let ((files nil)
 	  (dirs  nil))
       (dolist (this (file-name-all-completions "" dir))
-	(cond 
+	(cond
 	 ((string-match "^\\.+/$" this)
 	  nil)
 	 ((string-match "[:/\\]$" this)
 	  (when (or (not match-dirs-flag)
 		    (not pattern)
 		    (string-match pattern this))
-	    (filesets-message 5 "Filesets: matched dir %S with pattern %S" 
+	    (filesets-message 5 "Filesets: matched dir %S with pattern %S"
 			      this pattern)
 	    (setq dirs (cons this dirs))))
 	 (t
 	  (when (or (not pattern)
 		    (string-match pattern this))
-	    (filesets-message 5 "Filesets: matched file %S with pattern %S" 
+	    (filesets-message 5 "Filesets: matched file %S with pattern %S"
 			      this pattern)
 	    (setq files (cons (if full-flag
 				  (concat (file-name-as-directory dir) this)
@@ -1293,7 +1293,7 @@ on-close-all ... not used"
 		  (filesets-get-external-viewer filename)))))
     (when def
       (filesets-alist-get def property nil t))))
-    
+
 (defun filesets-reset-filename-on-change ()
   "Reset a buffer's filename if the buffer is being modified."
   (when filesets-output-buffer-flag
@@ -1530,8 +1530,8 @@ Use FILESET-ENTRY for finding the save function, if provided."
   (filesets-data-get entry ':ingroup nil t))
 
 (defun filesets-file-open (open-function file-name &optional fileset-name)
-  "Open FILE-NAME using OPEN-FUNCTION. If OPEN-FUNCTION is nil, it's
-value will be deduced from FILESET-NAME"
+  "Open FILE-NAME using OPEN-FUNCTION. If OPEN-FUNCTION is nil, its
+value will be deduced from FILESET-NAME."
   (let ((open-function (or open-function
 			   (filesets-entry-get-open-fn fileset-name))))
     (if (file-readable-p file-name)
@@ -1573,7 +1573,7 @@ SAVE-FUNCTION takes no argument, but works on the current buffer."
       (cond
        ((and (symbolp this) (fboundp this))
 	(let ((x (funcall this)))
-	  (setq rv (append rv (if (listp x) x (list x))))))	  
+	  (setq rv (append rv (if (listp x) x (list x))))))
        (t
 	(setq rv (append rv (list this))))))))
 
@@ -1618,7 +1618,7 @@ Replace <file-name> or <<file-name>> with filename."
 			     (or (equal mode ':ingroup)
 				 (equal mode ':tree)))
 			(filesets-get-filelist fileset mode event)
-		     (filesets-get-filelist 
+		     (filesets-get-filelist
 		      (filesets-get-fileset-from-name name)
 		      mode event))))
 	(when files
@@ -1644,7 +1644,7 @@ Replace <file-name> or <<file-name>> with filename."
 						       (if (equal txt "") "" " ")
 						       (format "%s" this))))))))
 				 (cmd (concat fn " " args)))
-			    (filesets-cmd-show-result 
+			    (filesets-cmd-show-result
 			     cmd (shell-command-to-string cmd))))
 			 ((symbolp fn)
 			  (let ((args
@@ -1800,7 +1800,7 @@ User will be queried, if no fileset name is provided."
 	  (cond
 	   (inlist
 	    (message "Filesets: '%s' is already in '%s'" this name))
-	   ((and (equal (filesets-entry-mode entry) ':files) 
+	   ((and (equal (filesets-entry-mode entry) ':files)
 		 this)
 	    (filesets-entry-set-files entry (cons this files) t)
 	    (filesets-set-config name 'filesets-data filesets-data))
@@ -1911,7 +1911,7 @@ User will be queried, if no fileset name is provided."
 						 (if (null (cdr x))
 						     ""
 						   ", "))))
-				  (setq rv 
+				  (setq rv
 					(concat
 					 rv
 					 (if filesets-menu-shortcuts-flag
@@ -2117,7 +2117,7 @@ FS is a fileset's name. FLIST is a list returned by
 		(append rv
 			(if files
 			    `((,nm
-			       [,(concat "Inclusion Group: " 
+			       [,(concat "Inclusion Group: "
 					 (file-name-nondirectory master))
 				(filesets-open ':ingroup ',master ',fsn)]
 			       "---"
@@ -2127,7 +2127,7 @@ FS is a fileset's name. FLIST is a list returned by
 				   (mapcar
 				    (lambda (this)
 				      (setq count (+ count 1))
-				      (let ((ff (filesets-ingroup-collect-build-menu 
+				      (let ((ff (filesets-ingroup-collect-build-menu
 						 fs (list this) count)))
 					(if (= (length ff) 1)
 					    (car ff)
@@ -2184,7 +2184,7 @@ FS is a fileset's name. FLIST is a list returned by
 			   (let* ((x  (file-name-as-directory x))
 				  (xx (concat dir x))
 				  (dd (filesets-build-dir-submenu-now
-				       (+ level 1) depth entry 
+				       (+ level 1) depth entry
 				       lookup-name xx patt fd))
 				  (nm (concat (filesets-get-shortcut count)
 					      x)))
@@ -2206,7 +2206,7 @@ FS is a fileset's name. FLIST is a list returned by
 		 (append
 		  dirsmenu
 		  filesmenu))
-		(filesets-get-menu-epilog `(,dir ,patt) ':tree 
+		(filesets-get-menu-epilog `(,dir ,patt) ':tree
 					  lookup-name rebuild-flag)))
     nil))
 
@@ -2346,7 +2346,8 @@ bottom up, set `filesets-submenus' to nil, first.)"
        filesets-menu-in-menu)
       (setq filesets-updated-buffers
 	    (cons cb filesets-updated-buffers))
-      (message nil)
+      ;; This wipes out other messages in the echo area.
+      ;; (message nil)
       ;;(message "Filesets updated: %s" cb)
       )))
 
@@ -2381,7 +2382,7 @@ fileset thinks this is necessary or not."
     (with-temp-buffer
       (dolist (this filesets-menu-cache-contents)
 	(if (get this 'custom-type)
-	    (progn 
+	    (progn
 	      (insert (format "(setq-default %s '%S)" this (eval this)))
 	      (when filesets-menu-ensure-use-cached
 		(newline)
@@ -2432,7 +2433,7 @@ transform all entries as shown in this example:
    	\(\"Test\" (:pattern \"~/dir/^pattern$\"))
 	--> \(\"Test\" (:pattern \"~/dir/\" \"^pattern$\"))
 
-2. `filesets-data': Change all occurances of \":document\" to \":ingroup\":
+2. `filesets-data': Change all occurrences of \":document\" to \":ingroup\":
 
       \(\(\"Test\" \(:document \"~/dir/file\"))
       --> \(\(\"Test\" \(:ingroup \"~/dir/file\"))

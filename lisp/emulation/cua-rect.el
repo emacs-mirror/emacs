@@ -88,7 +88,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   (let ((l cua--undo-list))
     (while l
       (if (eq (car (car l)) pending-undo-list)
-          (setq cua--restored-rectangle 
+          (setq cua--restored-rectangle
                 (and (vectorp (cdr (car l))) (cdr (car l)))
                 l nil)
         (setq l (cdr l)))))
@@ -126,7 +126,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
                   (setcdr cul nil))
                 (setq cua--tidy-undo-counter (1+ cua--tidy-undo-counter))
                 (if cua--debug
-                    (message "Clean undo list in %s (%d)" 
+                    (message "Clean undo list in %s (%d)"
                              (buffer-name) cc)))))))
       (setq buffers (cdr buffers)))
     (/= cnt cua--tidy-undo-counter)))
@@ -176,7 +176,7 @@ Knows about CUA rectangle highlighting in addition to standard undo."
   (let ((c (aref cua--rectangle 4)))
     (if (not (integerp advance))
         c
-      (aset cua--rectangle 4 
+      (aset cua--rectangle 4
             (if (= advance 0)
                 (- 3 c) ; opposite corner
               (mod (+ c 4 advance) 4)))
@@ -302,9 +302,9 @@ Knows about CUA rectangle highlighting in addition to standard undo."
         (cua--rectangle-right (1+ (cua--rectangle-right)))
         (move-to-column (cua--rectangle-right) pad))
        ((cua--rectangle-right-side)
-        (forward-char 1)                 
+        (forward-char 1)
         (cua--rectangle-right (current-column)))
-       ((or pad (eolp))                  
+       ((or pad (eolp))
         (cua--rectangle-left (1+ (cua--rectangle-left)))
         (move-to-column (cua--rectangle-right) pad))
        (t
@@ -575,7 +575,7 @@ If command is repeated at same position, delete the rectangle."
               (forward-char 1))
           (set-marker m (point))
           (move-to-column l pad)
-          (if fct
+          (if (and fct (>= (current-column) l) (<= (current-column) r))
               (let ((v t) (p (point)))
                 (when sel
                   (if (car (cdr sel))
@@ -614,7 +614,8 @@ If command is repeated at same position, delete the rectangle."
 (defun cua--delete-rectangle ()
   (cua--rectangle-operation nil nil t 2
     '(lambda (s e l r)
-       (delete-region s (if (> e s) e (1+ e))))))
+       (if (and (> e s) (<= e (point-max)))
+	   (delete-region s e)))))
 
 (defun cua--extract-rectangle ()
   (let (rect)
@@ -665,8 +666,8 @@ If command is repeated at same position, delete the rectangle."
   ;; Turn on rectangular marking mode by disabling transient mark mode
   ;; and manually handling highlighting from a post command hook.
   ;; Be careful if we are already marking a rectangle.
-  (setq cua--rectangle 
-        (if (and cua--last-rectangle 
+  (setq cua--rectangle
+        (if (and cua--last-rectangle
                  (eq (car cua--last-rectangle) (current-buffer))
                  (eq (car (cdr cua--last-rectangle)) (point)))
             (cdr (cdr cua--last-rectangle))
@@ -683,7 +684,7 @@ If command is repeated at same position, delete the rectangle."
 (defun cua--deactivate-rectangle ()
   ;; This is used to clean up after `cua--activate-rectangle'.
   (mapcar (function delete-overlay) cua--rectangle-overlays)
-  (setq cua--last-rectangle (cons (current-buffer) 
+  (setq cua--last-rectangle (cons (current-buffer)
                                   (cons (point) ;; cua-save-point
                                         cua--rectangle))
         cua--rectangle nil
@@ -826,7 +827,7 @@ With prefix argument, the toggle restriction."
           (cua--rectangle-restriction (car r) t (not (car (cdr (cdr r)))))
         (cua--rectangle-restriction "" nil nil))
       (cua--rectangle-restriction
-       (format "[%c]" 
+       (format "[%c]"
                (read-char "Restrictive rectangle (char): ")) t arg))))
 
 (defun cua-move-rectangle-up ()
@@ -1039,7 +1040,7 @@ The length of STRING need not be the same as the rectangle width."
 (defun cua-sequence-rectangle (first incr fmt)
   "Resequence each line of CUA rectangle starting from FIRST.
 The numbers are formatted according to the FORMAT string."
-  (interactive 
+  (interactive
    (list (if current-prefix-arg
              (prefix-numeric-value current-prefix-arg)
            (string-to-number
@@ -1168,7 +1169,7 @@ With prefix arg, replace rectangle with output from command."
   (interactive (list
                 current-prefix-arg
                 (read-from-minibuffer "Shell command on rectangle: "
-                                      nil nil nil 
+                                      nil nil nil
                                       'shell-command-history)))
   (cua--rectangle-aux-replace -1 t t replace 1
     '(lambda (s e)
@@ -1184,7 +1185,7 @@ With prefix arg, replace rectangle with output from command."
   "Remove the first line of the rectangle and scroll remaining lines up."
   (interactive)
   (cua--rectangle-aux-replace 0 t t t t
-    '(lambda (s e) 
+    '(lambda (s e)
        (if (= (forward-line 1) 0)
            (delete-region s (point))))))
 
@@ -1224,7 +1225,7 @@ With prefix arg, indent to that column."
         indent)
     (cua--rectangle-operation 'corners nil t pad
      '(lambda (s e l r)
-        (move-to-column 
+        (move-to-column
          (if (cua--rectangle-right-side t)
              (max (1+ r) col) l)
          pad)
@@ -1242,9 +1243,9 @@ With prefix arg, indent to that column."
 (defun cua-help-for-rectangle (&optional help)
   (interactive)
   (let ((M (if cua-use-hyper-key " H-" " M-")))
-    (message 
+    (message
      (concat (if help "C-?:help" "")
-             M "p:pad" M "o:open" M "c:close" M "b:blank" 
+             M "p:pad" M "o:open" M "c:close" M "b:blank"
              M "s:string" M "f:fill" M "i:incr" M "n:seq"))))
 
 
@@ -1272,7 +1273,7 @@ With prefix arg, indent to that column."
           (cua--rectangle-bot t)
         (cua--rectangle-top t))
       (if (cua--rectangle-padding)
-          (setq unread-command-events 
+          (setq unread-command-events
                 (cons (if cua-use-hyper-key ?\H-P ?\M-P) unread-command-events)))))
   (if cua--rectangle
       (if (and mark-active
@@ -1332,7 +1333,7 @@ With prefix arg, indent to that column."
   (define-key cua--rectangle-keymap [remap backward-delete-char-untabify] 'cua-delete-char-rectangle)
   (define-key cua--rectangle-keymap [remap self-insert-command]	 'cua-insert-char-rectangle)
   (define-key cua--rectangle-keymap [remap self-insert-iso]	 'cua-insert-char-rectangle)
-  
+
   ;; Catch self-inserting characters which are "stolen" by other modes
   (define-key cua--rectangle-keymap [t]
     '(menu-item "sic" cua-insert-char-rectangle :filter cua--self-insert-char-p))

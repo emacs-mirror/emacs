@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2000, 2001
-@c  Free Software Foundation, Inc. 
+@c  Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/positions
 @node Positions, Markers, Frames, Top
@@ -21,7 +21,7 @@ automatically when text is inserted or deleted so they stay with the
 surrounding characters.  @xref{Markers}.
 
   See also the ``field'' feature (@pxref{Fields}), which provides
-functions that are used by many cursur-motion commands.
+functions that are used by many cursor-motion commands.
 
 @menu
 * Point::         The special position where editing takes place.
@@ -594,7 +594,7 @@ regardless of what buffer is displayed in @var{window}.
 The return value is a list of five elements:
 
 @example
-(@var{pos} @var{vpos} @var{hpos} @var{prevhpos} @var{contin})
+(@var{pos} @var{hpos} @var{vpos} @var{prevhpos} @var{contin})
 @end example
 
 @noindent
@@ -631,7 +631,7 @@ beginning of the first screen line.  @xref{Minibuffer Misc}.
 
 @node List Motion
 @comment  node-name,  next,  previous,  up
-@subsection Moving over Balanced Expressions 
+@subsection Moving over Balanced Expressions
 @cindex sexp motion
 @cindex Lisp expression motion
 @cindex list motion
@@ -745,6 +745,10 @@ of using its normal method.
 characters.  For example, they are often used to skip whitespace.  For
 related functions, see @ref{Motion and Syntax}.
 
+These functions convert the set string to multibyte if the buffer is
+multibyte, and they convert it to unibyte if the buffer is unibyte, as
+the search functions do (@pxref{Searching and Matching}).
+
 @defun skip-chars-forward character-set &optional limit
 This function moves point in the current buffer forward, skipping over a
 given set of characters.  It examines the character following point,
@@ -785,6 +789,15 @@ I read "The cat in the hat@point{}
 comes back" twice.
 ---------- Buffer: foo ----------
 @end group
+@end example
+
+Note that char classes are not currently supported in
+@var{character-set}; they will be treated as literals.  Thus you
+cannot use @code{"[:alpha:]"} instead of @code{"a-zA-Z"} to include
+non-ASCII letters.  A way to skip forward over all letters is:
+
+@example
+(re-search-forward "\\=[[:alpha:]]*" nil t)
 @end example
 @end defun
 

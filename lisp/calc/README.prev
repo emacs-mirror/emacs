@@ -384,7 +384,7 @@ Version 2.00 alpha 1:
 
  * Redesigned user interface of `a F' (calc-curve-fit) command.
 
- * Added "phase" feature to the rewrite rule system. 
+ * Added "phase" feature to the rewrite rule system.
 
  * Added "&&&", "|||", "!!!" to the rewrite rule system.
 

@@ -1,4 +1,4 @@
-;;; korean.el --- support for Korean -*- coding: iso-2022-7bit; -*-
+;;; korean.el --- support for Korean -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
 ;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.

@@ -1,6 +1,6 @@
 ;;; mac-win.el --- support for "Macintosh windows"
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
 
@@ -104,18 +104,17 @@
 ;; Don't have this yet.
 (fset 'x-get-resource 'ignore)
 
-;; This variable specifies the Unix program to call (as a process) to
-;; deteremine the amount of free space on a file system (defaults to
-;; df).  If it is not set to nil, ls-lisp will not work correctly
-;; unless an external application df is implemented on the Mac.
-(require 'dired)
+(unless (eq system-type 'darwin)
+  ;; This variable specifies the Unix program to call (as a process) to
+  ;; deteremine the amount of free space on a file system (defaults to
+  ;; df).  If it is not set to nil, ls-lisp will not work correctly
+  ;; unless an external application df is implemented on the Mac.
+  (setq directory-free-space-program nil)
 
-(setq dired-free-space-program nil)
-
-;; Set this so that Emacs calls subprocesses with "sh" as shell to
-;; expand filenames Note no subprocess for the shell is actually
-;; started (see run_mac_command in sysdep.c).
-(setq shell-file-name "sh")
+  ;; Set this so that Emacs calls subprocesses with "sh" as shell to
+  ;; expand filenames Note no subprocess for the shell is actually
+  ;; started (see run_mac_command in sysdep.c).
+  (setq shell-file-name "sh"))
 
 ;; X Window emulation in macterm.c is not complete enough to start a
 ;; frame without a minibuffer properly.  Call this to tell ediff
@@ -126,15 +125,16 @@
 ;; mac-paste-function are defined in mac.c.
 (set-selection-coding-system 'compound-text-mac)
 
-(setq interprogram-cut-function 
-      '(lambda (str push) 
+(setq interprogram-cut-function
+      '(lambda (str push)
 	 (mac-cut-function
-	  (encode-coding-string str selection-coding-system t) push))) 
+	  (encode-coding-string str selection-coding-system t) push)))
 
-(setq interprogram-paste-function 
-      '(lambda () 
-	 (decode-coding-string
-	  (mac-paste-function) selection-coding-system t)))
+(setq interprogram-paste-function
+      '(lambda ()
+	 (let ((clipboard (mac-paste-function)))
+	   (if clipboard
+	       (decode-coding-string clipboard selection-coding-system t)))))
 
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop event.\n\
@@ -172,6 +172,13 @@ Switch to a buffer editing the last file dropped."
 	  '(lambda ()
 	     (defvar mac-ready-for-drag-n-drop t)))
 
+(defun iconify-or-deiconify-frame ()
+  "Iconify the selected frame, or deiconify if it's currently an icon."
+  (interactive)
+  (if (eq (cdr (assq 'visibility (frame-parameters))) t)
+      (iconify-frame)
+    (make-frame-visible)))
+
 ; Define constant values to be set to mac-keyboard-text-encoding
 (defconst kTextEncodingMacRoman 0)
 (defconst kTextEncodingISOLatin1 513 "0x201")
@@ -198,6 +205,8 @@ Switch to a buffer editing the last file dropped."
 
 (if (fboundp 'new-fontset)
     (progn
+      (require 'fontset)
+      (setup-default-fontset)
       (create-fontset-from-fontset-spec
        "-etl-fixed-medium-r-normal-*-16-*-*-*-*-*-fontset-mac,
 ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
@@ -206,26 +215,59 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 	 (function
 	  (lambda (key val)
 	    (or (generic-char-p key)
-		(memq (char-charset key)
+		(memq (char-charset val)
 		      '(ascii eight-bit-control eight-bit-graphic))
-		(set-fontset-font "fontset-mac" key monaco-font))))
-	 (get 'mac-roman-encoder 'translation-table)))))
+		(set-fontset-font "fontset-mac" val monaco-font))))
+	 (get 'mac-roman-decoder 'translation-table)))))
 
-;; To display filenames in Chinese or Japanese, replace mac-roman with
-;; big5 or sjis
-(setq file-name-coding-system 'mac-roman)
+(if (eq system-type 'darwin)
+    ;; On Darwin filenames are encoded in UTF-8
+    (setq file-name-coding-system 'utf-8)
+  ;; To display filenames in Chinese or Japanese, replace mac-roman with
+  ;; big5 or sjis
+  (setq file-name-coding-system 'mac-roman))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
 (if (string= default-directory "/")
     (cd "~"))
 
-;; Tell Emacs to use pipes instead of pty's for processes because the
-;; latter sometimes lose characters.  Pty support is compiled in since
-;; ange-ftp will not work without it.
-(setq process-connection-type nil)
+(unless (eq system-type 'darwin)
+  ;; Tell Emacs to use pipes instead of pty's for processes because the
+  ;; latter sometimes lose characters.  Pty support is compiled in since
+  ;; ange-ftp will not work without it.
+  (setq process-connection-type nil))
+
+;; Assume that fonts are always scalable on the Mac.  This sometimes
+;; results in characters with jagged edges.  However, without it,
+;; fonts with both truetype and bitmap representations but no italic
+;; or bold bitmap versions will not display these variants correctly.
+(setq scalable-fonts-allowed t)
+
+;; Make suspend-emacs [C-z] collapse the current frame
+(substitute-key-definition 'suspend-emacs 'iconify-frame
+			   global-map)
+
+;; Support mouse-wheel scrolling
+(autoload 'mwheel-scroll "mwheel")
+(global-set-key [mouse-wheel] 'mwheel-scroll)
+(global-set-key [C-mouse-wheel] 'mwheel-scroll)
+(global-set-key [S-mouse-wheel] 'mwheel-scroll)
 
 ;; (prefer-coding-system 'mac-roman)
+
+;; Map certain keypad keys into ASCII characters that people usually expect
+(define-key function-key-map [return] [?\C-m])
+(define-key function-key-map [M-return] [?\M-\C-m])
+(define-key function-key-map [tab] [?\t])
+(define-key function-key-map [M-tab] [?\M-\t])
+(define-key function-key-map [backspace] [127])
+(define-key function-key-map [M-backspace] [?\M-\d])
+(define-key function-key-map [escape] [?\e])
+(define-key function-key-map [M-escape] [?\M-\e])
+
+;; Tell read-char how to convert special chars to ASCII
+(put 'return 'ascii-character 13)
 
 ;;
 ;; Available colors

@@ -106,7 +106,7 @@ intermediate positions."
 ;;;
 ;;;###autoload
 (defun hanoi (nrings)
-  "Towers of Hanoi diversion.  Use NRINGS rings." 
+  "Towers of Hanoi diversion.  Use NRINGS rings."
   (interactive
    (list (if (null current-prefix-arg)
 	     3
@@ -132,7 +132,7 @@ Repent before ring 31 moves."
 
 ;;;###autoload
 (defun hanoi-unix-64 ()
-  "Like hanoi-unix, but pretend to have a 64-bit clock.  
+  "Like hanoi-unix, but pretend to have a 64-bit clock.
 This is, necessarily (as of emacs 20.3), a crock.  When the
 current-time interface is made s2G-compliant, hanoi.el will need
 to be updated."

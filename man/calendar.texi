@@ -1303,9 +1303,12 @@ the 11 above to @samp{'(1 2 3)} and have the entry apply to the last
 Thursday of January, February, and March.  If the month is @code{t}, the
 entry applies to all months of the year.@refill
 
-  Most generally, sexp diary entries can perform arbitrary
-computations to determine when they apply.  @xref{Sexp Diary Entries,,
-Sexp Diary Entries, elisp, The Emacs Lisp Reference Manual}.
+  Each of the standard sexp diary entries takes an optional parameter
+specifying the name of a face or a single-character string to use when
+marking the entry in the calendar.  Most generally, sexp diary entries
+can perform arbitrary computations to determine when they apply.
+@xref{Sexp Diary Entries,, Sexp Diary Entries, elisp, The Emacs Lisp
+Reference Manual}.
 
 @node Appointments
 @section Appointments
@@ -1347,7 +1350,7 @@ them.
 @example
 Monday
   9:30am Coffee break
- 12:00pm Lunch        
+ 12:00pm Lunch
 @end example
 
 @noindent

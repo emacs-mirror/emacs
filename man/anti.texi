@@ -1,280 +1,148 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+@c Copyright (C) 2002 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 
 @node Antinews, Mac OS, X Resources, Top
-@appendix Emacs 20 Antinews
+@appendix Emacs 21.3 Antinews
 
   For those users who live backwards in time, here is information about
-downgrading to Emacs version 20.  We hope you will enjoy the greater
-simplicity that results from the absence of many Emacs 21 features.
+downgrading to Emacs version 21.3.  We hope you will enjoy the greater
+simplicity that results from the absence of many newer features.
 
 @itemize @bullet
 @item
-The display engine has been greatly simplified by eliminating support
-for variable-size characters and other non-text display features.  This
-avoids the complexity of display layout in Emacs 21.  To wit:
-
-@itemize @minus
-@item
-Variable-size characters are not supported in Emacs 20.  You cannot use
-fonts which contain oversized characters, and using italic fonts can
-result in illegible display.  However, text which uses variable-size
-fonts is unreadable anyway.  With all characters in a frame laid out on
-a regular grid, each character having the same height and width, text is
-much easier to read.
+The input methods for Emacs are included in a separate distribution
+called ``Leim''.  To use them, you must extract the Leim tar file on
+top of the Emacs distribution, into the same directory, before you
+build Emacs.
 
 @item
-Emacs does not display images, or play sounds.  It just displays text,
-as you would expect from a @strong{text} editor.
+The file position and line number information is now at the end
+of the mode line.
 
 @item
-Specification of the font for a face now uses an XLFD font name, for
-compatibility with other X applications.  This means that font
-attributes cannot be merged when combining faces; however, experience
-shows that mergers are bad economics.  Face inheritance has also been
-removed, so no one can accumulate ``too much face.''
+When a file is managed with version control, the command @kbd{C-x C-q}
+(whose general meaning is to make a buffer read-only or writable) now
+does so by checking the file in or out.  Checking the file out makes
+the buffer writable; checking it in makes the buffer read-only (at
+least with RCS).
+
+You can still use @kbd{C-x v v} to do these operations if you wish;
+its meaning is unchanged.  If you want to control the buffer's
+read-only flag without performing any version control operation,
+use @kbd{M-x toggle-read-only}.
 
 @item
-Several face appearance attributes, including 3D, strike-through, and
-overline, have been eliminated.
+Filesets are not supported.
 
 @item
-Emacs now provides its own ``lean and mean'' scroll bars instead of using
-those from the X toolkit.  Toggle buttons and radio buttons in menus now
-look just like any other menu item, which simplifies them, and prevents
-them from standing out and distracting your attention from the other
-menu items.
+For simplicity, windows always have fringes.  We wouldn't want
+to in-fringe anyone's windows.  Likewise, horizontal scrolling
+always works the same automatic way.
 
 @item
-There are no toolbars and no tooltips; in particular, @acronym{GUD}
-mode cannot display variable values in a tooltip when you click on
-that variable's name.  Instead, Emacs 20 provides a direct interface to
-the debugger, so that you can type appropriate debugger commands, such
-as @kbd{display foo} and @kbd{print bar}.  As these commands use
-explicit words, their meaning is more self-evident.
+When you are logged in as root, all files now give you writable
+buffers in Emacs reflecting the fact that you can write any files.
 
 @item
-Colors are not available on text-only terminals.  If you @emph{must}
-have colors, but cannot afford to run X, you can now use the MS-DOG
-version of Emacs inside a DOS emulator.
+Unicode support and unification between Latin-@var{n} character
+sets have been removed.  Cutting and pasting X selections does not
+support ``extended segments'' so there are certain coding systems
+it cannot handle.
 
 @item
-The mode line is not mouse-sensitive, since it is meant only to
-display information.  Use keyboard commands to switch between buffers,
-toggle read-only and modified status, switch minor modes on and off,
-etc.
+@kbd{C-w} in an incremental search always grabs an entire word
+into the search string.  More precisely, it grabs text through
+the next end of a word.
 
 @item
-The support for ``wheeled'' mice under X has been removed, because
-of their slow scroll rate, and because you will find fewer and fewer of
-these mice as you go back in time.  Instead Emacs 20 provides the
-@kbd{C-v} and @kbd{M-v} keys for scrolling.  (You can also use the
-scroll bar, but be advised that it, too, may be absent in yet earlier
-Emacs versions.)
+Yanking now preserves all text properties that were in the killed
+text.  The variable @code{yank-excluded-properties} has no meaning.
 
 @item
-Busy-cursor display is gone, as it was found to be too hard to draw on
-displays whose resolution is getting lower and lower.  This means that
-you get the standard kind of cursor blinking that your terminal
-provides.
+Occur mode, Info mode, and Comint-derived modes now control
+fontification in their own way, and @kbd{M-x font-lock-mode}
+has nothing to do with it.  To control fontification in Info
+mode, use the variable @code{Info-fontify}.
 
 @item
-Some aspects of Emacs appearance, such as the colors of the scroll bar
-and the menus, can only be controlled via X resources.  Since colors
-aren't supported except on X, it doesn't make any sense to do this in
-any way but the X way.  For those users who aren't privy to X arcana,
-we've provided good default colors that should make everybody happy.
+In Dired's @kbd{!} command, @samp{*} and @samp{?} now
+cause substitution of the file names wherever they appear---not
+only when they are surrounded by whitespace.
 
 @item
-Emacs 20 adds new lines to the buffer when you move down from the last
-line with @kbd{C-n} or a down-arrow.
+Minibuffer completion commands now always complete the entire
+minibuffer contents, just as if you had typed them at the end
+of the minibuffer, no matter where point is actually located.
 
 @item
-The variable @code{show-trailing-whitespace} has no special meaning, so
-trailing whitespace on a line is now always displayed correctly: as
-empty space.  To see if a line ends with spaces or tabs, type @kbd{C-e}
-on that line.  Likewise, empty lines at the end of the buffer are not
-marked in any way; use @kbd{M->} to see where the end of the buffer is.
+An unquoted @samp{$} in a file name is now an error, if the following
+name is not recognized as an environment variable.  Thus,
+the file name @file{foo$bar} would probably be an error.  Meanwhile,
+the @code{setenv} command does not expand @samp{$} at all.
 
 @item
-The spacing between text lines on the display now always follows the
-font design and the rules of your window manager.  This provides for
-predictable appearance of the displayed text.
-@end itemize
+Commands to set the mark at a place away from point, including
+@kbd{M-@@}, @kbd{M-h}, etc., don't do anything special when you repeat
+them.  In most cases, typing these commands multiple times is
+equivalent to using them once.  @kbd{M-h} does not use its numeric
+argument.
 
 @item
-Emacs 20 has simpler support for multi-lingual editing.  While not as
-radical a simplification as Emacs 19 will be, it goes a long way toward
-eliminating some of the annoying features:
-
-@itemize @minus
-@item
-Translations of the Emacs reference cards to other languages are no
-longer part of the distribution, because in the past we expect
-computer users to speak English.
+@kbd{C-@key{SPC} C-@key{SPC}} has no special meaning and neither does
+@kbd{C-u C-x C-x}.
 
 @item
-To avoid extra confusion, many language environments have been
-eliminated.  For example, @samp{Polish} and @samp{Celtic} (Latin-8)
-environments are not supported.  The Latin-9 environment is gone,
-too, because you won't need the Euro sign in the past.
+There is no horizontal-bar cursor.
 
 @item
-Emacs 20 always asks you which coding system to use when saving 
-a buffer, unless it can use the same one that it used to read the buffer.
-It does not try to see if the preferred coding system is suitable.
+The faces @code{minibuffer-prompt} and @code{mode-line-inactive}
+do not exist, and the features they control don't exist either.
 
 @item
-Commands which provide detailed information about character sets and
-coding systems, such as @code{list-charset-chars},
-@code{describe-character-set}, and the @kbd{C-u C-x =} key-sequence,
-no longer exist.  The less said about non-ASCII characters, the
-better.
+The default value of @code{keyboard-coding-system} is always @code{nil}.
+Emacs does not set it based on your locale settings.
+If you want some other value, you must set it yourself.
 
 @item
-The terminal coding system cannot be set to something CCL-based, so
-keyboards which produce @code{KOI8} and DOS/Windows codepage codes
-cannot be supported directly.  Instead, you should use one of the input
-methods provided in the Leim package.
-@end itemize
+SGML mode does not handle XML syntax, and does not have indentation support.
 
 @item
-As you move back through time, some systems will become unimportant or
-enter the vaporware phase, so Emacs 20 does not support them:
-
-@itemize @minus
-@item
-Emacs 20 cannot be built on GNU/Linux systems running on IA64 machines,
-and you cannot build a 64-bit Emacs on Solaris or Irix even though there
-are still 64-bit versions of those OSes.
+The @kbd{C-h} subcommands have been rearranged--especially those that
+display specific files.  Type @kbd{C-h C-h} to see a list of these
+commands; that will show you what is different.
 
 @item
-LynxOS is also not supported, and neither is the Macintosh, though they
-still exist.
-@end itemize
+Emacs does not read @file{~/.abbrev_defs} automatically; if you want
+to load abbrev definitions from a file, you must always do so
+explicitly.
 
 @item
-The arrangement of menu bar items differs from most other @acronym{GUI}
-programs.  We think that uniformity of look-and-feel is boring, and that
-Emacs' unique features require its unique menu-bar configuration.
+The @samp{--fullwidth}, @samp{--fullheight} and @samp{--fullscreen}
+command line options are not supported.
 
 @item
-You cannot save the options that you set from the @samp{Options}
-menu-bar menu; instead, you need to set all the options again each time
-you start a new session.  However, if you follow the recommended
-practice and keep a single Emacs session running until you log out,
-you won't have to set the options very often.
+The @samp{--geometry} option now entirely applies only to the initial
+frame.
 
 @item
-Emacs 20 does not pop up a buffer with error messages when an error is
-signaled during loading of the user's init file.  Instead, it simply
-announces the fact that an error happened.  To know where in the init
-file that was, insert @code{(message "foo")} lines judiciously into the
-file and look for those messages in the @samp{*Messages*} buffer.
+Many commands have been removed from the menus or rearranged.
 
 @item
-Some commands no longer treat Transient Mark mode specially.  For
-example, @code{ispell} doesn't spell-check the region when Transient
-Mark mode is in effect and the mark is active; instead, it checks the
-current buffer.  (Transient Mark mode is alien to the spirit of Emacs,
-so we are planning to remove it altogether in an earlier version.)
+Many @code{etags} features for customizing parsing using regexps
+have been removed.
 
 @item
-@kbd{C-Down-Mouse-3} does not show what would be in the menu bar
-when the menu bar is not displayed.
+The CUA, ido, table, tramp, reveal, ruler-mode, and ibuffer packages
+have been removed.  So has the spreadsheet, SES, and the algebraic
+calculator, Calc.  (We distribute Calc separately.)
 
 @item
-For uniformity, the @key{delete} function key in Emacs 20 works exactly like
-the @key{DEL} key, on both text-only terminals and window systems---it
-always deletes backward.  This eliminates the inconsistency of Emacs 21,
-where the key labeled @key{delete} deletes forward when you are using a
-window system, and backward on a text-only terminals.
-
-@item
-The ability to place backup files in special subdirectories (controlled
-by @code{backup-directory-alist}) has been eliminated.  This makes
-finding your backup files much easier: they are always in the same
-directory as the original files.
-
-@item
-Emacs no longer refuses to load Lisp files compiled by incompatible
-versions of Emacs, which may contain invalid byte-code.  Instead,
-Emacs now dumps core when it encounters such byte-code.  However, this
-is a rare occurrence, and it won't happen at all when all Emacs
-versions merge together, in the distant past.
-
-@item
-The @kbd{C-x 5 1} command has been eliminated.  If you want to delete
-all the frames but the current one, delete them one by one instead.
-
-@item
-CC Mode now enforces identical values for some customizable options,
-such as indentation style, for better consistency.  In particular, if
-you select an indentation style for Java, the same style is used
-for C and C@t{++} buffers as well.
-
-@item
-Isearch does not highlight other possible matches; it shows only the
-current match, to avoid distracting your attention.  @kbd{Mouse-2} in
-the echo area during incremental search now signals an error, instead of
-inserting the current selection into the search string.  But you can
-accomplish more or less the same job by typing @kbd{M-y}.
-
-@item
-The ability to specify a port number when editing remote files with
-@code{ange-ftp} was removed.  Instead, Emacs 20 provides undocumented
-features in the function @code{ange-ftp-normal-login} (@cite{Use the
-source, Luke!}) to specify the port.
-
-@item
-Emacs 20 does not check for changing time stamps of remote files, since
-the old FTP programs you will encounter in the past could not provide
-the time stamp anyway.  Windows-style FTP clients which output the
-@samp{^M} character at the end of each line get special handling from
-@code{ange-ftp} in Emacs 20, with unexpected results that should make
-your life more interesting.
-
-@item
-Many complicated display features, including highlighting of
-mouse-sensitive text regions and popping up help strings for menu items,
-don't work in the MS-DOS version.  Spelling doesn't work on MS-DOS,
-and Eshell doesn't exist, so there's no workable shell-mode, either.
-This fits the spirit of MS-DOS, which resembles a dumb character
-terminal.
-
-@item
-The @code{woman} package has been removed, so Emacs users on non-Posix
-systems will need @emph{a real man} to read manual pages.  (Users who
-are not macho can read the Info documentation instead.)
-
-@item
-@code{recentf} has been removed, because we figure that you can remember
-the names of the files you edit frequently.  With decreasing disk size,
-you should have fewer files anyway, so you won't notice the absence of
-this feature.
-
-@item
-The @code{field} property does not exist in Emacs 20, so various
-packages that run subsidiary programs in Emacs buffers cannot in general
-distinguish which text was user input and which was output from the
-subprocess.  If you need to try to do this nonetheless, Emacs 20
-provides a variable @code{comint-prompt-regexp}, which lets you try to
-distinguish input by recognizing prompt strings.
-
-@item
-We have eliminated the special major modes for Delphi sources,
-PostScript files, context diffs, and @file{TODO} files.  Use Fundamental
-Mode instead.
-
-@item
-Many additional packages that unnecessarily complicate your life in
-Emacs 21 are absent in Emacs 20.  You cannot browse C@t{++} classes with
-Ebrowse, access @acronym{SQL} data bases, access @acronym{LDAP} and
-other directory servers, or mix shell commands and Lisp functions using
-Eshell.
+The kmacro package has been removed.  To start a keyboard macro you
+must use @kbd{C-x (}; to end one, @kbd{C-x )}; to execute the last
+one, @kbd{C-x e}.
 
 @item
 To keep up with decreasing computer memory capacity and disk space, many
-other functions and files have been eliminated in Emacs 20.
+other functions and files have been eliminated in Emacs 21.3.
 @end itemize

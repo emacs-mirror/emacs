@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -62,12 +63,12 @@
     ( tpt     "in/72.27"	     "Point (TeX conventions)" )
     ( Ang     "1e-10 m"	     "Angstrom" )
     ( mfi     "mi+ft+in"	     "Miles + feet + inches" )
-     
+
     ;; Area
     ( hect    "10000 m^2"	     "*Hectare" )
     ( acre    "mi^2 / 640"	     "Acre" )
     ( b       "1e-28 m^2"	     "Barn" )
-     
+
     ;; Volume
     ( l       "1e-3 m^3"	     "*Liter" )
     ( L       "1e-3 m^3"	     "Liter" )
@@ -82,7 +83,7 @@
     ( vol     "tsp+tbsp+ozfl+cup+pt+qt+gal" "Gallons + ... + teaspoons" )
     ( galC    "4.54609 l"	     "Canadian Gallon" )
     ( galUK   "4.546092 l"	     "UK Gallon" )
-     
+
     ;; Time
     ( s       nil		     "*Second" )
     ( sec     "s"		     "Second" )
@@ -98,8 +99,8 @@
     ( mph     "mi/hr"		     "*Miles per hour" )
     ( kph     "km/hr"		     "Kilometers per hour" )
     ( knot    "nmi/hr"		     "Knot" )
-    ( c       "2.99792458e8 m/s"    "Speed of light" )     
-     
+    ( c       "2.99792458e8 m/s"    "Speed of light" )
+
     ;; Acceleration
     ( ga      "9.80665 m/s^2"	     "*\"g\" acceleration" )
 

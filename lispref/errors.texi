@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1999 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/errors
 @node Standard Errors, Standard Buffer-Local Variables, GNU Emacs Internals, Top
@@ -87,7 +87,7 @@ error message is constructed from the data items alone when the error
 condition @code{file-error} is present.@*
 @xref{Files}.
 
-@item file-locked     
+@item file-locked
 This is a subcategory of @code{file-error}.@*
 @xref{File Locks}.
 
@@ -131,7 +131,7 @@ find invalid syntax or mismatched parentheses.@*
 @xref{Searching and Matching}.
 
 @item setting-constant
-@code{"Attempt to set a constant symbol"}@* 
+@code{"Attempt to set a constant symbol"}@*
 The values of the symbols @code{nil} and @code{t},
 and any symbols that start with @samp{:},
 may not be changed.@*

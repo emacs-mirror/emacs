@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -1441,14 +1442,14 @@
 		btrack nil)
 	  (aset regs 0 expr)
 	  (while pc
-	     
+
 	    (and tracing
 		 (progn (terpri) (princ (car pc))
 			(if (and (natnump (nth 1 (car pc)))
 				 (< (nth 1 (car pc)) (length regs)))
 			    (princ (format "\n  part = %s"
 					   (aref regs (nth 1 (car pc))))))))
-	    
+
 	    (cond ((eq (setq op (car (setq inst (car pc)))) 'func)
 		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
 			    (eq (car part)
@@ -1461,14 +1462,14 @@
 			      (not (or inst part))))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
-		  
+
 		  ((eq op 'same)
 		   (if (or (equal (setq part (aref regs (nth 1 inst)))
 				  (setq mark (aref regs (nth 2 inst))))
 			   (Math-equal part mark))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
-		  
+
 		  ((and (eq op 'try)
 			calc-matrix-mode
 			(not (eq calc-matrix-mode 'scalar))
@@ -1486,7 +1487,7 @@
 		     (aset mark 1 (cdr part)))
 		   (aset mark 0 (cdr part))
 		   (aset mark 2 0))
-		  
+
 		  ((eq op 'try)
 		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
 			    (memq (car part) (nth 2 inst))
@@ -1544,7 +1545,7 @@
 			   (aset regs (nth 4 inst) part)
 			   (aset mark 2 3))
 		       (math-rwfail))))
-		  
+
 		  ((eq op 'try2)
 		   (setq part (nth 1 inst)   ; try instr
 			 mark (nth 3 part)
@@ -1587,7 +1588,7 @@
 			   (car (aref mark 1)))
 			  ((eq op 3) (nth 5 part))
 			  (t (aref mark 1)))))
-		  
+
 		  ((eq op 'select)
 		   (setq pc (cdr pc))
 		   (if (and (consp (setq part (aref regs (nth 1 inst))))
@@ -1596,7 +1597,7 @@
 		     (if math-rewrite-selections
 			 (math-rwfail)
 		       (aset regs (nth 2 inst) part))))
-		  
+
 		  ((eq op 'same-neg)
 		   (if (or (equal (setq part (aref regs (nth 1 inst)))
 				  (setq mark (math-neg
@@ -1604,7 +1605,7 @@
 			   (Math-equal part mark))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
-		  
+
 		  ((eq op 'backtrack)
 		   (setq inst (car (car btrack))   ; "try" or "alt" instr
 			 pc (cdr (car btrack))
@@ -1675,7 +1676,7 @@
 			 ((eq op 4)
 			  (setq btrack (cdr btrack)))
 			 (t (math-rwfail t))))
-		  
+
 		  ((eq op 'integer)
 		   (if (Math-integerp (setq part (aref regs (nth 1 inst))))
 		       (setq pc (cdr pc))
@@ -1685,7 +1686,7 @@
 		       (if (Math-integerp part)
 			   (setq pc (cdr pc))
 			 (math-rwfail)))))
-		  
+
 		  ((eq op 'real)
 		   (if (Math-realp (setq part (aref regs (nth 1 inst))))
 		       (setq pc (cdr pc))
@@ -1695,7 +1696,7 @@
 		       (if (Math-realp part)
 			   (setq pc (cdr pc))
 			 (math-rwfail)))))
-		  
+
 		  ((eq op 'constant)
 		   (if (math-constp (setq part (aref regs (nth 1 inst))))
 		       (setq pc (cdr pc))
@@ -1705,7 +1706,7 @@
 		       (if (math-constp part)
 			   (setq pc (cdr pc))
 			 (math-rwfail)))))
-		  
+
 		  ((eq op 'negative)
 		   (if (math-looks-negp (setq part (aref regs (nth 1 inst))))
 		       (setq pc (cdr pc))
@@ -1715,7 +1716,7 @@
 		       (if (math-looks-negp part)
 			   (setq pc (cdr pc))
 			 (math-rwfail)))))
-		  
+
 		  ((eq op 'rel)
 		   (setq part (math-compare (aref regs (nth 1 inst))
 					    (aref regs (nth 3 inst)))
@@ -1740,7 +1741,7 @@
 			      (memq part '(0 1))))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
-		  
+
 		  ((eq op 'func-def)
 		   (if (and (consp (setq part (aref regs (car (cdr inst)))))
 			    (eq (car part)
@@ -1830,33 +1831,33 @@
 			  (math-rwapply-replace-regs (nth 1 inst)))))
 		       (setq pc (cdr pc))
 		     (math-rwfail)))
-		  
+
 		  ((eq op 'let)
 		   (aset regs (nth 1 inst)
 			 (math-rweval
 			  (math-normalize
 			   (math-rwapply-replace-regs (nth 2 inst)))))
 		   (setq pc (cdr pc)))
-		  
+
 		  ((eq op 'copy)
 		   (aset regs (nth 2 inst) (aref regs (nth 1 inst)))
 		   (setq pc (cdr pc)))
-		  
+
 		  ((eq op 'copy-neg)
 		   (aset regs (nth 2 inst)
 			 (math-rwapply-neg (aref regs (nth 1 inst))))
 		   (setq pc (cdr pc)))
-		  
+
 		  ((eq op 'alt)
 		   (setq btrack (cons pc btrack)
 			 pc (nth 1 inst)))
-		  
+
 		  ((eq op 'end-alt)
 		   (while (and btrack (not (eq (car btrack) (nth 1 inst))))
 		     (setq btrack (cdr btrack)))
 		   (setq btrack (cdr btrack)
 			 pc (cdr pc)))
-		  
+
 		  ((eq op 'done)
 		   (setq result (math-rwapply-replace-regs (nth 1 inst)))
 		   (if (or (and (eq (car-safe result) '+)
@@ -1876,7 +1877,7 @@
 		     (if part (math-rwapply-remember expr result))
 		     (setq rules nil))
 		   (setq pc nil))
-		  
+
 		  (t (error "%s is not a valid rewrite opcode" op))))))
        (setq rules (cdr rules)))
      result)))

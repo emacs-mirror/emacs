@@ -24,7 +24,7 @@
 
 ;;; Commentary:
 
-;; Provides `tool-bar-mode' to control display of the tool -bar and
+;; Provides `tool-bar-mode' to control display of the tool-bar and
 ;; bindings for the global tool bar with convenience functions
 ;; `tool-bar-add-item' and `tool-bar-add-item-from-menu'.
 
@@ -149,7 +149,8 @@ MAP must contain appropriate binding for `[menu-bar]' which holds a keymap.
 
 Use this function only to make bindings in the global value of `tool-bar-map'.
 To define items in any other map, use `tool-bar-local-item'."
-  (apply 'tool-bar-local-item-from-menu command icon tool-bar-map map props))
+  (apply 'tool-bar-local-item-from-menu command icon
+	 (default-value 'tool-bar-map) map props))
 
 ;;;###autoload
 (defun tool-bar-local-item-from-menu (command icon in-map &optional from-map &rest props)

@@ -14,9 +14,9 @@
 #define BSD4_2
 
 /* Define _BSD to tell the include files we're running under
-   the BSD universe and not the SYSV universe.  
-   Define HITACHI and OSF for Xt's Boolean type as int intead of char.  
-   (But for these defines, /usr/include/X11/Intrinsic.h defines 
+   the BSD universe and not the SYSV universe.
+   Define HITACHI and OSF for Xt's Boolean type as int intead of char.
+   (But for these defines, /usr/include/X11/Intrinsic.h defines
    Boolean as char, but libXt.a on HI-UX/MPP requires it as int.)  */
 
 #define C_SWITCH_SYSTEM	-D_BSD -DHITACHI -DOSF
@@ -34,7 +34,7 @@
 /* Here is how to find X Windows.  LD_SWITCH_X_SITE_AUX gives an -R option
    says where to find X windows at run time.  We convert it to a -rpath option
    which is what OSF1 uses.  */
-#define LD_SWITCH_SYSTEM 
+#define LD_SWITCH_SYSTEM
 
 #undef KERNEL_FILE
 #define KERNEL_FILE "/mach_kernel"

@@ -95,7 +95,7 @@ follows (the point `*' corresponds to both reference points):
       (or (integerp nref)
 	  (setq nref (cdr (assq nref reference-point-alist))))
       (or (and (>= gref 0) (< gref 12) (>= nref 0) (< nref 12))
-	  (error "Invalid composition rule: %S" rule))	
+	  (error "Invalid composition rule: %S" rule))
       (+ (* gref 12) nref))))
 
 ;; Decode encoded composition rule RULE-CODE.  The value is a cons of
@@ -158,13 +158,17 @@ follows (the point `*' corresponds to both reference points):
 (defun compose-region (start end &optional components modification-func)
   "Compose characters in the current region.
 
+Characters are composed relatively, i.e. composed by overstricking or
+stacking depending on ascent, descent and other properties.
+
 When called from a program, expects these four arguments.
 
 First two arguments START and END are positions (integers or markers)
 specifying the region.
 
 Optional 3rd argument COMPONENTS, if non-nil, is a character or a
-sequence (vector, list, or string) of integers.
+sequence (vector, list, or string) of integers.  In this case,
+characters are composed not relatively but according to COMPONENTS.
 
 If it is a character, it is an alternate character to display instead
 of the text in the region.
@@ -327,7 +331,7 @@ This function is the default value of `compose-chars-after-function'."
     (when tail
       (save-match-data
 	(save-excursion
-	  (while (and tail (not func))		  
+	  (while (and tail (not func))
 	    (setq pattern (car (car tail))
 		  func (cdr (car tail)))
 	    (goto-char pos)
@@ -364,20 +368,21 @@ after a sequence character events."
 
 
 ;;; The following codes are only for backward compatibility with Emacs
-;;; 20.4 and the earlier.
+;;; 20.4 and earlier.
 
 ;;;###autoload
 (defun decompose-composite-char (char &optional type with-composition-rule)
   "Convert CHAR to string.
-This is only for backward compatibility with Emacs 20.4 and the earlier.
 
 If optional 2nd arg TYPE is non-nil, it is `string', `list', or
-`vector'.  In this case, CHAR is converted string, list of CHAR, or
-vector of CHAR respectively."
+`vector'.  In this case, CHAR is converted to string, list of CHAR, or
+vector of CHAR respectively.
+Optional 3rd arg WITH-COMPOSITION-RULE is ignored."
   (cond ((or (null type) (eq type 'string)) (char-to-string char))
 	((eq type 'list) (list char))
 	(t (vector char))))
 
+;;;###autoload
 (make-obsolete 'decompose-composite-char 'char-to-string "21.1")
 
 

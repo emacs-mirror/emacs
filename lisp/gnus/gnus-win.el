@@ -1,5 +1,5 @@
 ;;; gnus-win.el --- window configuration functions for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2002
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -291,7 +291,7 @@ See the Gnus manual for an explanation of the syntax used.")
     (unless window
       (setq window current-window))
     (select-window window)
-    ;; This might be an old-stylee buffer config.
+    ;; This might be an old-style buffer config.
     (when (vectorp split)
       (setq split (append split nil)))
     (when (or (consp (car split))

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001, 2002
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
@@ -15,9 +15,10 @@ display it.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Changes::      Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
-* Trailing Whitespace::    Showing possibly-spurious trailing whitespace.
 * Scrolling::	           Moving text up and down in a window.
 * Horizontal Scrolling::   Moving text left and right in a window.
+* Fringes::                Enabling or disabling window fringes.
+* Useless Whitespace::     Showing possibly-spurious trailing whitespace.
 * Follow Mode::            Follow mode lets two windows scroll as one.
 * Selective Display::      Hiding lines with lots of indentation.
 * Optional Mode Line::     Optional mode line display features.
@@ -162,7 +163,8 @@ font of LessTif/Motif menus is currently not supported; attempts to set
 the font are ignored in this case.
 @item trailing-whitespace
 The face for highlighting trailing whitespace when
-@code{show-trailing-whitespace} is non-nil; see @ref{Trailing Whitespace}.
+@code{show-trailing-whitespace} is non-@code{nil}; see @ref{Useless
+Whitespace}.
 @item variable-pitch
 The basic variable-pitch face.
 @end table
@@ -193,13 +195,14 @@ on your screen using the command @code{ps-print-buffer-with-faces}.
 @cindex mode, Font Lock
 @cindex syntax highlighting and coloring
 
-  Font Lock mode is a minor mode, always local to a particular
-buffer, which highlights (or ``fontifies'') using various faces
-according to the syntax of the text you are editing.  It can
-recognize comments and strings in most languages; in several
-languages, it can also recognize and properly highlight various other
-important constructs---for example, names of functions being defined
-or reserved keywords.
+  Font Lock mode is a minor mode, always local to a particular buffer,
+which highlights (or ``fontifies'') using various faces according to
+the syntax of the text you are editing.  It can recognize comments and
+strings in most languages; in several languages, it can also recognize
+and properly highlight various other important constructs---for
+example, names of functions being defined or reserved keywords.
+Some special modes, such as Occur mode and Info mode, have completely
+specialized ways of assigning fonts for Font Lock mode.
 
 @findex font-lock-mode
 @findex turn-on-font-lock
@@ -401,46 +404,6 @@ This command does nothing if the major mode is a member of the list
 @code{hi-lock-exclude-modes}.
 @end table
 
-@node Trailing Whitespace
-@section Trailing Whitespace
-
-@cindex trailing whitespace
-@cindex whitespace, trailing
-@vindex show-trailing-whitespace
-  It is easy to leave unnecessary spaces at the end of a line without
-realizing it.  In most cases, this @dfn{trailing whitespace} has no
-effect, but there are special circumstances where it matters.
-
-  You can make trailing whitespace visible on the screen by setting the
-buffer-local variable @code{show-trailing-whitespace} to @code{t}.  Then
-Emacs displays trailing whitespace in the face
-@code{trailing-whitespace}.
-
-  Trailing whitespace is defined as spaces or tabs at the end of a
-line.  But trailing whitespace is not displayed specially if point is
-at the end of the line containing the whitespace.  (Doing that looks
-ugly while you are typing in new text, and the location of point is
-enough in that case to show you that the spaces are present.)
-
-@findex delete-trailing-whitespace
-  To delete all trailing whitespace within the current buffer's
-restriction (@pxref{Narrowing}), type @kbd{M-x
-delete-trailing-whitespace @key{RET}}.  (This command does not remove
-the form-feed characters.)
-
-@vindex indicate-empty-lines
-@vindex default-indicate-empty-lines
-@cindex empty lines
-@cindex fringes, and empty line indication
-  Emacs can indicate empty lines at the end of the buffer with a
-special bitmap on the left fringe of the window.  To enable this
-feature, set the buffer-local variable @code{indicate-empty-lines} to
-a non-@code{nil} value.  The default value of this variable is
-controlled by the variable @code{default-indicate-empty-lines};
-by setting that variable, you can enable or disable this feature
-for all new buffers.  (This feature currently doesn't work on
-character terminals.)
-
 @node Scrolling
 @section Scrolling
 
@@ -566,7 +529,7 @@ back on screen.  By default, @code{scroll-conservatively} is 0.
 
 @cindex aggressive scrolling
 @vindex scroll-up-aggressively
-@vindex scroll-down-aggressively 
+@vindex scroll-down-aggressively
   When the window does scroll by a longer distance, you can control
 how aggressively it scrolls, by setting the variables
 @code{scroll-up-aggressively} and @code{scroll-down-aggressively}.
@@ -658,6 +621,80 @@ the fraction of the window's width to scroll by.  The default is zero.
 @vindex auto-hscroll-mode
   To disable automatic horizontal scrolling, set the variable
 @code{auto-hscroll-mode} to @code{nil}.
+
+@node Fringes
+@section Window Fringes
+@cindex fringes
+
+  On a graphical display, each Emacs window normally has narrow
+@dfn{fringes} on the left and right edges.  The fringes display
+indications about the text in the window.
+
+  The most common use of the fringes is to indicate a continuation
+line, when one line of text is split into multiple lines on the
+screen.  The left fringe shows a curving arrow for each screen line
+except the first, indicating that ``this is not the real beginning.''
+The right fringe shows a curving arrow for each screen line except the
+last, indicating that ``this is not the real end.''
+
+  The fringes indicate line truncation with short horizontal arrows
+meaning ``there's more text on this line which is scrolled
+horizontally out of view;'' clicking the mouse on one of the arrows
+scrolls the display horizontally in the direction of the arrow.   The
+fringes also indicate other things such as empty lines, or where a
+program you are debugging is executing (@pxref{Debuggers}).
+
+@findex set-fringe-style
+@findex fringe-mode
+  You can enable and disable the fringes for all frames using
+@kbd{M-x fringe-mode}.  To enable and disable the fringes
+for the selected frame, use @kbd{M-x set-fringe-style}.
+
+@node Useless Whitespace
+@section Useless Whitespace
+
+@cindex trailing whitespace
+@cindex whitespace, trailing
+@vindex show-trailing-whitespace
+  It is easy to leave unnecessary spaces at the end of a line, or
+empty lines at the end of a file, without realizing it.  In most
+cases, this @dfn{trailing whitespace} has no effect, but there are
+special circumstances where it matters.
+
+  You can make trailing whitespace at the end of a line visible on the
+screen by setting the buffer-local variable
+@code{show-trailing-whitespace} to @code{t}.  Then Emacs displays
+trailing whitespace in the face @code{trailing-whitespace}.
+
+  This feature does not apply when point is at the end of the line
+containing the whitespace.  Strictly speaking, that is ``trailing
+whitespace'' nonetheless, but displaying it specially in that case
+looks ugly while you are typing in new text.  In this special case,
+the location of point is enough to show you that the spaces are
+present.
+
+@findex delete-trailing-whitespace
+  To delete all trailing whitespace within the current buffer's
+accessible portion (@pxref{Narrowing}), type @kbd{M-x
+delete-trailing-whitespace @key{RET}}.  (This command does not remove
+the form-feed characters.)
+
+@vindex indicate-unused-lines
+@vindex default-indicate-empty-lines
+@cindex unused lines
+@cindex fringes, and unused line indication
+  Emacs can indicate unused lines at the end of the window with a
+small image in the left fringe (@pxref{Fringes}).  The image appears
+for window lines that do not correspond to any buffer text.  Blank
+lines at the end of the buffer then stand out because they do not have
+this image in the fringe.
+
+  To enable this feature, set the buffer-local variable
+@code{indicate-unused-lines} to a non-@code{nil} value.  The default
+value of this variable is controlled by the variable
+@code{default-indicate-unused-lines}; by setting that variable, you
+can enable or disable this feature for all new buffers.  (This feature
+currently doesn't work on character terminals.)
 
 @node Follow Mode
 @section Follow Mode
@@ -777,12 +814,17 @@ to @code{t}.
 @cindex mail (on mode line)
 @vindex display-time-use-mail-icon
 @vindex display-time-mail-face
+@vindex display-time-mail-file
+@vindex display-time-mail-directory
   The word @samp{Mail} appears after the load level if there is mail
 for you that you have not read yet.  On a graphical display you can use
 an icon instead of @samp{Mail} by customizing
 @code{display-time-use-mail-icon}; this may save some space on the mode
 line.  You can customize @code{display-time-mail-face} to make the mail
-indicator prominent.
+indicator prominent.  Use @code{display-time-mail-file} to specify
+the mail file to check, or set @code{display-time-mail-directory}
+to specify the directory to check for incoming mail (any nonempty regular
+file in the directory is considered as ``newly arrived mail'').
 
 @cindex mode line, 3D appearance
 @cindex attributes of mode line, changing
@@ -958,33 +1000,39 @@ argument to suppress the effect of bold-face in this case.
 @node Cursor Display
 @section Displaying the Cursor
 
-@findex hl-line-mode
-@findex global-hl-line-mode
-@cindex highlight current line
 @findex blink-cursor-mode
+@vindex blink-cursor-alist
 @cindex cursor, locating visually
 @cindex cursor, blinking
-  There are a number of ways to customize the display of the cursor.
-@kbd{M-x hl-line-mode} enables or disables a minor mode which
-highlights the line containing point.  @kbd{M-x global-hl-line-mode}
-enables the minor mode globally.  On window systems, the command
-@kbd{M-x blink-cursor-mode} turns on or off the blinking of the
-cursor.  (On terminals, the terminal itself blinks the cursor, and
-Emacs has no control over it.)
-
   You can customize the cursor's color, and whether it blinks, using
-the @code{cursor} Custom group (@pxref{Easy Customization}).
-
-@vindex x-stretch-cursor
-@cindex wide block cursor
-  When displaying on a window system, Emacs can optionally draw the
-block cursor as wide as the character under the cursor---for example,
-if the cursor is on a tab character, it would cover the full width
-occupied by that tab character.  To enable this feature, set the
-variable @code{x-stretch-cursor} to a non-@code{nil} value.
+the @code{cursor} Custom group (@pxref{Easy Customization}).  On
+graphical terminals, the command @kbd{M-x blink-cursor-mode} enables
+or disables the blinking of the cursor.  (On text terminals, the
+terminal itself blinks the cursor, and Emacs has no control over it.)
+You can control how the cursor appears when it blinks off by setting
+the variable @code{blink-cursor-alist}.
 
 @cindex cursor in non-selected windows
 @vindex cursor-in-non-selected-windows
-  Normally, the cursor in non-selected windows is shown as a hollow box.
-To turn off cursor display in non-selected windows, customize the option
-@code{cursor-in-non-selected-windows} to assign it a @code{nil} value.
+  Normally, the cursor appears in non-selected windows in the ``off''
+state, with the same appearance as when the blinking cursor blinks
+``off''.  For a box cursor, this is a hollow box; for a bar cursor,
+this is a thinner bar.  To turn off cursors in non-selected windows,
+customize the option @code{cursor-in-non-selected-windows} and assign
+it a @code{nil} value.
+
+@vindex x-stretch-cursor
+@cindex wide block cursor
+  On graphical terminals, Emacs can optionally draw the block cursor
+as wide as the character under the cursor---for example, if the cursor
+is on a tab character, it would cover the full width occupied by that
+tab character.  To enable this feature, set the variable
+@code{x-stretch-cursor} to a non-@code{nil} value.
+
+@findex hl-line-mode
+@findex global-hl-line-mode
+@cindex highlight current line
+  If you find it hard to see the cursor, you might like HL Line mode,
+a minor mode that highlights the line containing point.  Use @kbd{M-x
+hl-line-mode} to enable or disable it in the current buffer.  @kbd{M-x
+global-hl-line-mode} enables or disables the same mode globally.

@@ -46,11 +46,12 @@ When the first bytes of an image file match REGEXP, it is assumed to
 be of image type IMAGE-TYPE if IMAGE-TYPE is a symbol.  If not a symbol,
 IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
-a non-nil value, TYPE is the image's type ")
+a non-nil value, TYPE is the image's type.")
 
 
 (defun image-jpeg-p (data)
-  "Value is non-nil if DATA, a string, consists of JFIF image data."
+  "Value is non-nil if DATA, a string, consists of JFIF image data.
+We accept the tag Exif because that is the same format."
   (when (string-match "\\`\xff\xd8" data)
     (catch 'jfif
       (let ((len (length data)) (i 2))
@@ -65,8 +66,8 @@ a non-nil value, TYPE is the image's type ")
 		(code (aref data i)))
 	    (when (and (>= code #xe0) (<= code #xef))
 	      ;; APP0 LEN1 LEN2 "JFIF\0"
-	      (throw 'jfif 
-		     (string-match "JFIF" (substring data i (+ i nbytes)))))
+	      (throw 'jfif
+		     (string-match "JFIF\\|Exif" (substring data i (+ i nbytes)))))
 	    (setq i (+ i 1 nbytes))))))))
 
 
@@ -202,11 +203,7 @@ means display it in the right marginal area."
   (let ((start (point)))
     (insert string)
     (add-text-properties start (point)
-			 (list 'display image
-			       ;; `image' has the right properties to
-			       ;; mark an intangible field.
-			       'intangible image
-			       'rear-nonsticky (list 'display)))))
+			 `(display ,image rear-nonsticky (display)))))
 
 
 ;;;###autoload

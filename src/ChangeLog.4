@@ -20,7 +20,7 @@
 
 	* xdisp.c (redisplay): If have window change at end, redisplay again.
 
-	* lread.c (defvar_bool, defvar_int, defvar_lisp, defvar_lisp_nopro): 
+	* lread.c (defvar_bool, defvar_int, defvar_lisp, defvar_lisp_nopro):
 	Delete third arg DOC.
 
 	* s/hpux8.h (LD_SWITCH_SYSTEM): Delete the -L options.
@@ -522,7 +522,7 @@
 	* floatfns.c: Don't guard DOMAIN && SING && OVERFLOW check by
 	an #ifndef MSDOS.
 
-1994-05-06  Francesco Potorti` (pot@cnuce.cnr.it)
+1994-05-06  Francesco Potorti`  (pot@cnuce.cnr.it)
 
 	* m/delta.h: (SYSTEM_MALLOC): deleted.  The problem isn't there.
 
@@ -626,7 +626,7 @@
 	x_destroy_window): Use row/col instead of buffer position to keep
 	track of highlighted area.
 
-1994-05-02  Francesco Potorti` (pot@cnuce.cnr.it)
+1994-05-02  Francesco Potorti`  (pot@cnuce.cnr.it)
 
 	* m/delta.h: (SYSTEM_MALLOC): Defined, since GNU malloc does not work.
 	(BCOPY_UPWARD_SAFE): Defined to 0 for the Green Hills compiler.
@@ -641,7 +641,7 @@
 	* xfns.c (Fx_create_frame): Set the size_hint_flags field.
 	Don't call x_calc_absolute_position.
 	* xterm.c (x_calc_absolute_position): Use size_hint_flags.
-	New FLAGS arg deleted.  Callers changed. 
+	New FLAGS arg deleted.  Callers changed.
 
 	* xfns.c (x_figure_window_size): Handle `-' for top or left.
 	(Fx_parse_geometry): Handle one element at a time.
@@ -864,7 +864,7 @@
 	* xterm.c (XTread_socket) [USE_X_TOOLKIT]: Never pass motion
 	events to the toolkit.
 
-	* CONFIGURATION now comes via config.h.
+	CONFIGURATION now comes via config.h.
 	* Makefile.in.in (emacs.o): Use the default .c.o command.
 	(configuration): Make variable deleted.
 	* config.h.in (CONFIGURATION): Add #undef.
@@ -892,7 +892,7 @@
 	* keyboard.c (read_char): Don't use menus if we have events waiting.
 
 	* xterm.c (XTread_socket) [USE_X_TOOLKIT]: Let toolkit handle
-	menu bar click. 
+	menu bar click.
 
 1994-04-25  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
 
@@ -1025,7 +1025,7 @@
 
 1994-04-20  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* frame.c (Fmodify_frame_parameters, Fframe_parameters): 
+	* frame.c (Fmodify_frame_parameters, Fframe_parameters):
 	Define even if not MULTI_FRAME.
 
 	* config.h.in (HAVE_INET_SOCKETS): Add #undef.
@@ -1359,7 +1359,7 @@
 	* buffer.h (Vafter_change_functions, Vbefore_change_functions):
 	Declared.
 
-	* insdel.c (before_change_functions_restore): 
+	* insdel.c (before_change_functions_restore):
 	(after_change_functions_restore): New functions.
 	(signal_before_change): Handle Vbefore_change_functions.
 	(signal_after_change): Handle Vafter_change_functions.
@@ -1389,7 +1389,7 @@
 
 	* xterm.c (x_new_font): Fix setting line_height.
 
-	* Support fonts of different heights, using tallest as line height:
+	Support fonts of different heights, using tallest as line height:
 
 	* xfaces.c (frame_update_line_height): New function.
 	(Fset_face_attribute_internal): Call that.
@@ -1605,7 +1605,7 @@
 
 1994-04-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* xterm.c (construct_menu_click, construct_mouse_click): 
+	* xterm.c (construct_menu_click, construct_mouse_click):
 	Use XSET when setting result->x and result->y.
 
 	* xmenu.c (xmenu_show): Undo part of March 11 change:
@@ -1649,13 +1649,13 @@
 
 	* xterm.h: Define HAVE_X11R4 if AIX3_2 is defined.
 
-	* xfns.c (x_window) [USE_X_TOOLKIT]: New args window_prompting and 
+	* xfns.c (x_window) [USE_X_TOOLKIT]: New args window_prompting and
 	minibuffer_only.
 	Don't pass top_pos and left_pos to XtCreatePopupShell.
 	Call initialize_frame_menubar before creating the Emacs frame if it is
 	not the minibuffer. Call XtManageChild for the menubar widget if any.
 	Compute some geometry management.
-	(Fx_create_frame): Pass window_prompting and minibuffer_only to 
+	(Fx_create_frame): Pass window_prompting and minibuffer_only to
 	x_window.
 	Don't call x_wm_set_size_hint.
 	Don't call initialize_frame_menubar.
@@ -1811,7 +1811,7 @@
 
 1994-03-24  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xfns.c (Fx_create_frame): Add USE_X_TOOLKIT conditional around the 
+	* xfns.c (Fx_create_frame): Add USE_X_TOOLKIT conditional around the
 	call to initialize_frame_menubar.
 
 1994-03-23  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -1851,7 +1851,7 @@
 
 1994-03-23  Frederic Pierresteguy  (fp@geech.gnu.ai.mit.edu)
 
-	* xmenu.c (update_frame_menubar): Function renamed from 
+	* xmenu.c (update_frame_menubar): Function renamed from
 	update_one_frame_psheets.
 	(initialize_frame_menubar): New function.
 	(set_frame_menubar): Call menu_bar_items when items is NIL.
@@ -2009,7 +2009,7 @@
 
 	* minibuf.c (read_minibuf): Disallow trailing junk.
 
-1994-03-16  Morten Welinder (terra@diku.dk)
+1994-03-16  Morten Welinder  (terra@diku.dk)
 
 	* fileio.c (Ffile_modes) [MSDOS]: set exec-bit based on file suffix.
 	* s/msdos.h: use bcopy when moving gap.
@@ -2285,7 +2285,7 @@
 
 1994-03-04  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xmenu.c (update_one_frame_psheets): Call EmacsFrameSetCharSize to 
+	* xmenu.c (update_one_frame_psheets): Call EmacsFrameSetCharSize to
 	force the paned widget to resize to the right value.
 	(xmenu_show): No need to check a second time whether the mouse has
 	moved to another menu bar item. This slows down execution.
@@ -2295,7 +2295,7 @@
 
 1994-03-04  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* xmenu.c [USE_X_TOOLKIT] (xmenu_show): Pass display to 
+	* xmenu.c [USE_X_TOOLKIT] (xmenu_show): Pass display to
 	XtWindowToWidget.
 
 1994-03-03  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2360,7 +2360,7 @@
 	* frame.c (make_frame): Init menu_bar_items field to 0.
 	* xdisp.c (update_menu_bar): Change call to menu_bar_items.
 	(display_menu_bar): Use FRAME_MENU_BAR_LINES as vector.
-	* xmenu.c (map_event_to_object, set_frame_menubar): 
+	* xmenu.c (map_event_to_object, set_frame_menubar):
 	Use FRAME_MENU_BAR_LINES as vector.
 
 1994-03-01  Karl Heuer  (kwzh@hal.gnu.ai.mit.edu)
@@ -2377,7 +2377,7 @@
 
 	* fileio.c (Finsert_file_contents): If undo_list was t, leave it t.
 
-	* alloc.c (memory_signal_data): No longer static. 
+	* alloc.c (memory_signal_data): No longer static.
 	(syms_of_alloc): Stick Qerror onto memory_signal_data.
 	* lisp.h (memory_signal_data): Declare it.
 	* eval.c (Fsignal): If DATA is memory_signal_data, don't add to it.
@@ -2729,7 +2729,7 @@
 	* xmenu.c (free_frame_menubar) [USE_X_TOOLKIT]: New function to destroy
 	the X Widget instance of the menubar.
 
-	* widget.c (EmacsFrameResize): Don't call XTranslateCoordinates. Code 
+	* widget.c (EmacsFrameResize): Don't call XTranslateCoordinates. Code
 	removed.
 
 	* xmenu.c (xmenu_show) [USE_X_TOOLKIT]: Return Qnil when val is null.
@@ -2764,7 +2764,7 @@
 
 1994-02-10  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xmenu.c (xmenu_show): Test again event.xmotion.x_root in the 
+	* xmenu.c (xmenu_show): Test again event.xmotion.x_root in the
 	MotionNotify case.
 
 1994-02-09  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2790,11 +2790,12 @@
 
 1994-02-09  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* Implement a Motif behavior for the menubar. Now, if you move the 
-	pointer on another menubar item while displaying the contents of a
-	selected menubar item, the current pulldown menu is closed and the new
-	one corresponding to the new pointed item is displayed.
-	* xmenu.c (xmenu_show) [USE_X_TOOLKIT]: Clean up code.
+	* xmenu.c: Implement a Motif behavior for the menubar.
+	Now, if you move the pointer on another menubar item while
+	displaying the contents of a selected menubar item, the current
+	pulldown menu is closed and the new one corresponding to the new
+	pointed item is displayed.
+	(xmenu_show) [USE_X_TOOLKIT]: Clean up code.
 	Handle the MotionNotify events in the XEvent loop.
 
 1994-02-08  Karl Heuer  (kwzh@mole.gnu.ai.mit.edu)
@@ -2821,12 +2822,12 @@
 	* xterm.c (x_set_window_size): New arg CHANGE_GRAVITY.
 	(x_new_font): Pass CHANGE_GRAVITY arg to x_set_window_size.
 	(x_wm_set_size_hint): New arg CHANGE_GRAVITY.
-	(x_set_offset, x_set_window_size): 
+	(x_set_offset, x_set_window_size):
 	Pass CHANGE_GRAVITY arg to x_set_window_size.
-	* xfns.c (x_set_internal_border_width, x_set_vertical_scroll_bars): 
+	* xfns.c (x_set_internal_border_width, x_set_vertical_scroll_bars):
 	Pass CHANGE_GRAVITY arg to x_set_window_size.
 	(Fx_create_frame): Pass CHANGE_GRAVITY arg to x_wm_set_size_hint.
-	* frame.c (Fset_frame_height, Fset_frame_width, Fset_frame_size): 
+	* frame.c (Fset_frame_height, Fset_frame_width, Fset_frame_size):
 	Pass CHANGE_GRAVITY arg to x_set_window_size.
 
 	* frame.c (other_visible_frames):
@@ -2874,7 +2875,7 @@
 
 1994-02-04  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xmenu.c (xmenu_show) [USE_X_TOOLKIT]: Remove the #if 0 directives 
+	* xmenu.c (xmenu_show) [USE_X_TOOLKIT]: Remove the #if 0 directives
 	and reverse one to avoid the flickering of the menubar.
 
 1994-02-04  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
@@ -2981,7 +2982,7 @@
 
 1994-01-28  Frederic Pierresteguy  (fp@mole.gnu.ai.mit.edu)
 
-	* xterm.c (x_set_window_size): Add USE_X_TOOLKIT conditional. Call 
+	* xterm.c (x_set_window_size): Add USE_X_TOOLKIT conditional. Call
 	EmacsFrameSetCharSize and return.
 
 	* xterm.c (x_term_init): Cast to (char **) before assignment to argv.
@@ -3122,8 +3123,8 @@
 
 1993-01-18  Frederic Pierresteguy  (F.Pierresteguy@frcl.bull.fr)
 
-	* Support use of X toolkit.
-	(USE_X_TOOLKIT): New macro to conditionalize the use of Xt.
+	Support use of X toolkit.
+	* (USE_X_TOOLKIT): New macro to conditionalize the use of Xt.
 	* widget.c, widgetP.h, widget.h: New files.
 	* frame.h (struct frame): New field external_menu_bar.
 	(FRAME_EXTERNAL_MENU_BAR): New macro.
@@ -3356,7 +3357,7 @@
 	* buffer.c, buffer.h [MSDOS]: New buffer-local variable:
 	buffer-file-type to handle DOS newlines.
 
-	* callproc.c (syms_of_callproc) [MSDOS]: New lisp variable: 
+	* callproc.c (syms_of_callproc) [MSDOS]: New lisp variable:
 	binary-process.
 	(init_callproc) [MSDOS]: Initialize binary-process.
 	[MSDOS]: Declare binary-process.
@@ -3368,7 +3369,7 @@
 	(Fcall_process) [not subprocesses]: Barf if zero buffer argument.
 	(call_process_cleanup) [MSDOS]: Close and erase temporary file
 	instead of the pid-stuff.
-	(Fcall_process_region) [MSDOS]: Create temporary file in $TMP or 
+	(Fcall_process_region) [MSDOS]: Create temporary file in $TMP or
 	$TEMP.
 	(Fchild_setup) [MSDOS]: #if 0, as it is not used.
 
@@ -3398,7 +3399,7 @@
 	in a slash.
 	(Finsert_file_contents) [MSDOS]: Determine file type by name (call
 	find-buffer-file-type) and change CR+LF to LF if it is a text file.
-	(Fwrite_region) [MSDOS]: Use text/binary mode as specified by 
+	(Fwrite_region) [MSDOS]: Use text/binary mode as specified by
 	buffer_file_type.
 	(syms_of_fileio) [MSDOS]: Set Qfind_buffer_file_type.
 	(Fsubstitute_in_file_name) [MSDOS]: Ignore case in environtment
@@ -3406,7 +3407,7 @@
 
 	* floatfns.c [MSDOS]: Don't define HAVE_MATHERR.
 
-	* keyboard.c [MSDOS]: #include <dos.h> and <time.h>, but not 
+	* keyboard.c [MSDOS]: #include <dos.h> and <time.h>, but not
 	<sys/ioctl.h>.
 	(read_avail_input) [MSDOS]: Work around `ioctl'.  Also read through
 	dos_keyread for better keyboard support.
@@ -3436,7 +3437,7 @@
 	* systty.h [MSDOS]: don't #include <sgtty.h>.  We haven't got it.
 	Declare dummy main field.  Don't ever use TABs.
 
-	* termcap.c (tgetent) [INTERNAL_TERMINAL]: Fake internal terminal 
+	* termcap.c (tgetent) [INTERNAL_TERMINAL]: Fake internal terminal
 	without reading any files.
 	(valid_file_name, tgetent) [MSDOS]: Drive letter support.
 	(tgetent) [MSDOS]: Use text mode for database.
@@ -3727,7 +3728,7 @@
 
 	* m/sun2.h (OTHER_FILES): Use ${libsrc} as dir.
 
-1993-12-15  Michal Jankowski (michalj@fuw.edu.pl)
+1993-12-15  Michal Jankowski  (michalj@fuw.edu.pl)
 
         * insdel.c (del_range): Second argument in call to
         offset_intervals is 'from', not 'point'.
@@ -3766,7 +3767,7 @@
 	(redisplay_window): Likewise.
 	(display_text_line): Likewise.
 	(display_menu_bar): Likewise.
-	(display_mode_element): 
+	(display_mode_element):
 
 	* editfns.c (Fmessage): Use message2.
 
@@ -3817,7 +3818,7 @@
 
 	* process.c (create_process): Delete SYSV4_PTYS code.
 	(deactivate_process): Likewise.
-	
+
 1993-12-06  Richard Stallman  (rms@gnu.ai.mit.edu)
 
 	* doc.c (Fsubstitute_command_keys): Ignore menu bar bindings.
@@ -3879,7 +3880,7 @@
 	* fileio.c (Fread_file_name): If defalt is nil and user tries to use
 	it, signal an error.
 
-	* lisp.h (DEFUN_ARGS_MANY, DEFUN_ARGS_UNEVALLED, DEFUN_ARGS_0,...): 
+	* lisp.h (DEFUN_ARGS_MANY, DEFUN_ARGS_UNEVALLED, DEFUN_ARGS_0,...):
 	New macros.
 	(DEFUN) [__STDC__]: Use those macros.
 
@@ -4080,7 +4081,7 @@
 
 1993-11-20  Paul Reilly  (pmr@legacy.pajato.com)
 
-	*  s/dgux.h (PTY_ITERATION, PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF): 
+	*  s/dgux.h (PTY_ITERATION, PTY_NAME_SPRINTF, PTY_TTY_NAME_SPRINTF):
 	Defined (copied from usg5-4.h).
 	(FIRST_PTY_LETTER): Deleted.
 
@@ -4092,7 +4093,7 @@
 	the case where there are no intervals.
 	(Fprevious_single_property_change, Fprevious_property_change)
 	Extra arg LIMIT.  Return value was off by 1.
-	(Fnext_single_property_change, Fnext_property_change): 
+	(Fnext_single_property_change, Fnext_property_change):
 	Extra arg LIMIT.
 	(Fnext_single_property_change): Require at least 2 args.
 	* indent.c (compute_motion):
@@ -4520,7 +4521,7 @@
 
 1993-09-10  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
-	* Support configuring in a different directory when ${srcdir} has
+	Support configuring in a different directory when ${srcdir} has
 	already been configured.
 	* frame.c, xfns.c, xdisp.c, casetab.c, cm.c, casefiddle.c, xterm.c,
 	xrdb.c, eval.c, doc.c, lread.c, callint.c, cmds.c, term.c, fns.c,
@@ -4593,7 +4594,7 @@
 
 1993-07-09  Karl Berry  (karl@cs.umb.edu)
 
-	* dired.c (file_name_completion): Install case-preserving 
+	* dired.c (file_name_completion): Install case-preserving
 	changes from Emacs 18 for completion_ignore_case.
 	(completion_ignore_case): Declare.
 
@@ -4616,11 +4617,11 @@
 	* sysdep.c (read_input_waiting): If the user specifies
 	`meta-flag', then notice characters with high-bit set.
 
-	* Added fixes from Karl Berry for ISC-2.2.
-	    * s/isc2-2.h (MEMMOVE_MISSING): Define.
-	    (SIGNALS_VIA_CHARACTERS): Define.
-	    (LIB_STANDARD): Do not include -lcposix.
-	    (C_SWITCH_SYSTEM) [__GNUC__]: Do not use -traditional.
+	Added fixes from Karl Berry for ISC-2.2.
+	* s/isc2-2.h (MEMMOVE_MISSING): Define.
+	(SIGNALS_VIA_CHARACTERS): Define.
+	(LIB_STANDARD): Do not include -lcposix.
+	(C_SWITCH_SYSTEM) [__GNUC__]: Do not use -traditional.
 
 1993-08-17  Brian Fox  (bfox@ai.mit.edu)
 
@@ -4784,7 +4785,7 @@
 
 	* buffer.c (verify_overlay_modification): Initialize endpos.
 
-	* keymap.c (describe_buffer_bindings): Declare shadow just once. 
+	* keymap.c (describe_buffer_bindings): Declare shadow just once.
 
 1993-08-10  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
@@ -4902,7 +4903,7 @@
 
 	* m/ibm370aix.h: Total rewrite; includes ibmps2-aix.h.
 
-	* m/ibmps2-aix.h (SYSTEM_TYPE): Don't redefine it here. 
+	* m/ibmps2-aix.h (SYSTEM_TYPE): Don't redefine it here.
 
 	* syntax.c: Doc fix.
 
@@ -4969,7 +4970,7 @@
 
 1993-08-01  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
-	* From daveg@synaptics.com:
+	From daveg@synaptics.com:
 	* keyboard.c (last_mouse_button): Renamed from button_up_button.
 	(last_mouse_x, last_mouse_y): Likewise.
 	(button_down_time): Replaces button_up_time.
@@ -5003,9 +5004,9 @@
 	(textget_direct, Qfront_sticky, Qrear_nonsticky): Declared.
 	* textprop.c (Qfront_sticky, Qrear_nonsticky): New variables.
 	(syms_of_textprop): Set them up.
-		
+
 	Change display code to handle the `invisible' text property.
-	* dispnew.c (direct_output_for_insert): Fail if character 
+	* dispnew.c (direct_output_for_insert): Fail if character
 	just inserted has text properties.
 	(direct_ouput_forward_char): Fail if moving near invisible chars.
 	* indent.c (compute_motion): Compute correctly for invisible text.
@@ -5216,7 +5217,7 @@
 
 	* s/sco4.h (HAVE_SOCKETS): Define, if HAVE_INET_SOCKETS.
 
-	* sunfns.c: Fix comment syntax.  Put back the comment 
+	* sunfns.c: Fix comment syntax.  Put back the comment
 	saying that we don't maintain this file.
 
 	* xterm.c (XTread_socket) [! HAVE_X11R5]:
@@ -5359,7 +5360,7 @@
 	be asked.
 
 	* textprop.c (syms_of_textprop): Don't forget defsubr for
-	Stext_property_all. 
+	Stext_property_all.
 
 	* textprop.c (Ftext_property_any, Ftext_property_all): Use EQ to
 	compare property values, not Fequal.
@@ -5587,7 +5588,7 @@
 1993-07-08  Roland McGrath  (roland@churchy.gnu.ai.mit.edu)
 
 	* callint.c (check_mark): Don't check mark-active unless in
-	transient-mark-mode.  
+	transient-mark-mode.
 	For inactive mark, signal mark-inactive instead of error with a
 	message.
 	* editfns.c (region_limit): Don't error if Vmark_even_if_inactive
@@ -5689,7 +5690,7 @@
 	against Qnil, not 0.
 
 	* keyboard.c (Vdouble_click_time): Renamed from double_click_time,
-	and made a Lisp_Object instead of an int.  
+	and made a Lisp_Object instead of an int.
 	(make_lispy_event): If Vdouble_click_time is t, impose no time
 	limit on double-clicks.
 	(syms_of_keyboard): DEFVAR_LISP (not DEFVAR_INT)
@@ -5843,7 +5844,7 @@
 1993-06-28  Richard Stallman  (rms@mole.gnu.ai.mit.edu)
 
 	* keymap.c (describe_map_2): Cleanups.
-	Check there's no previous definition in same keymap. 
+	Check there's no previous definition in same keymap.
 
 1993-06-24  Jim Blandy  (jimb@wookumz.gnu.ai.mit.edu)
 
@@ -6188,10 +6189,10 @@
 	* window.c (Fdelete_window): Mostly undo last change.
 	Don't initialize `frame' in the declaration.
 
-	* Make prefix keys work with keymap inheritance
+	* keymap.c: Make prefix keys work with keymap inheritance
 	by creating an inheritance structure for each subkeymap
 	that we create in the inheriting keymap.
-	* keymap.c (access_keymap): New arg NOINHERIT.  All calls changed.
+	(access_keymap): New arg NOINHERIT.  All calls changed.
 	(define_as_prefix): New function.
 	(Fdefine_key): Use them.
 
@@ -6273,7 +6274,7 @@
 	Dyke out code requesting -lXbsd and HAVE_RANDOM for XFREE386.
 	* xfns.c (Fx_open_connection): Test HAVE_XRMSETDATABASE instead of
 	NO_XRM_SET_DATABASE; the latter isn't used any more.
-	* m/delta88k, m/tekXD88.h, s/linux.h, s/usg5-4-2.h (HAVE_RANDOM):
+	* m/delta88k.h, m/tekXD88.h, s/linux.h, s/usg5-4-2.h (HAVE_RANDOM):
 	Dyke out these #definitions; to avoid conflict with autoconf.
 
 	* ymakefile (really-oldXMenu): Explicitly pass CC, CFLAGS, and

@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc. 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1995, 1998 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @node Calendar, System Interface, Display, Top
 @chapter Customizing the Calendar and Diary
@@ -16,7 +16,7 @@ diary suit your personal tastes.
 * Daylight Savings::       Changing the default.
 * Diary Customizing::      Defaults you can set.
 * Hebrew/Islamic Entries:: How to obtain them.
-* Fancy Diary Display::    Enhancing the diary display, sorting entries, 
+* Fancy Diary Display::    Enhancing the diary display, sorting entries,
                              using included diary files.
 * Sexp Diary Entries::     Fancy things you can do.
 * Appt Customizing::	   Customizing appointment reminders.
@@ -543,7 +543,7 @@ the fourth pattern.
 well as entries based on the world-standard Gregorian calendar.
 However, because recognition of such entries is time-consuming and most
 people don't use them, you must explicitly enable their use.  If you
-want the diary to recognize Hebrew-date diary entries, for example, 
+want the diary to recognize Hebrew-date diary entries, for example,
 you must do this:
 
 @vindex nongregorian-diary-listing-hook
@@ -603,7 +603,7 @@ entry matches any date that has the same Hebrew day-within-month as the
 selected date.
 @item i h y
 Add a diary entry for the day of the Hebrew year corresponding to the
-selected date (@code{insert-yearly-hebrew-diary-entry}).  This diary 
+selected date (@code{insert-yearly-hebrew-diary-entry}).  This diary
 entry matches any date which has the same Hebrew month and day-within-month
 as the selected date.
 @item i i d
@@ -626,7 +626,7 @@ selected date (@code{insert-yearly-islamic-diary-entry}).
   These commands work much like the corresponding commands for ordinary
 diary entries: they apply to the date that point is on in the calendar
 window, and what they do is insert just the date portion of a diary entry
-at the end of your diary file.  You must then insert the rest of the 
+at the end of your diary file.  You must then insert the rest of the
 diary entry.
 
 @node Fancy Diary Display
@@ -830,13 +830,25 @@ Pay rent
 @noindent
 on the last Monday of every month.
 
-  The generality of sexp diary entries lets you specify any diary entry
-that you can describe algorithmically.  A sexp diary entry contains an
-expression that computes whether the entry applies to any given date.
-If its value is non-@code{nil}, the entry applies to that date;
-otherwise, it does not.  The expression can use the variable  @code{date}
-to find the date being considered; its value is a list (@var{month}
-@var{day} @var{year}) that refers to the Gregorian calendar.
+  The generality of sexp diary entries lets you specify any diary
+entry that you can describe algorithmically.  A sexp diary entry
+contains an expression that computes whether the entry applies to any
+given date.  If its value is non-@code{nil}, the entry applies to that
+date; otherwise, it does not.  The expression can use the variable
+@code{date} to find the date being considered; its value is a list
+(@var{month} @var{day} @var{year}) that refers to the Gregorian
+calendar.
+
+  The sexp diary entry applies to a date when the expression's value
+is non-@code{nil}, but some values have more specific meanings.  If
+the value is a string, that string is a description of the event which
+occurs on that date.  The value can also have the form
+@code{(@var{mark} . @var{string})}; then @var{mark} specifies how to
+mark the date in the calendar, and @var{string} is the description of
+the event.  If @var{mark} is a single-character string, that character
+appears next to the date in the calendar.  If @var{mark} is a face
+name, the date is displayed in that face.  If @var{mark} is
+@code{nil}, that specifies no particular highlighting for the date.
 
   Suppose you get paid on the 21st of the month if it is a weekday, and
 on the Friday before if the 21st is on a weekend.  Here is how to write
@@ -932,6 +944,11 @@ on the proper Hebrew calendar anniversary and on the day before.  (In
 the European style, the order of the parameters is changed to @var{day},
 @var{month}, @var{year}.)
 @end table
+
+  All the functions documented above take an optional argument
+@var{mark} which specifies how to mark the date in the calendar display.
+If one of these functions decides that it applies to a certain date,
+it returns a value that contains @var{mark}.
 
 @node Appt Customizing
 @section Customizing Appointment Reminders

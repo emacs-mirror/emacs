@@ -3,13 +3,13 @@
 
 This file is part of the Lucid Widget Library.
 
-The Lucid Widget Library is free software; you can redistribute it and/or 
+The Lucid Widget Library is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License as published by
 the Free Software Foundation; either version 1, or (at your option)
 any later version.
 
 The Lucid Widget Library is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of 
+but WITHOUT ANY WARRANTY; without even the implied warranty of
 MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 GNU General Public License for more details.
 
@@ -72,7 +72,7 @@ enum do_call_type { pre_activate, selection, no_selection, post_activate };
 
 
 /* Structures to keep destroyed instances */
-typedef struct _destroyed_instance 
+typedef struct _destroyed_instance
 {
   char*		name;
   char*		type;
@@ -188,7 +188,7 @@ make_destroyed_instance (name, type, widget, parent, pop_up_p)
   instance->next = NULL;
   return instance;
 }
-			 
+
 static void
 free_destroyed_instance (instance)
      destroyed_instance* instance;
@@ -210,7 +210,7 @@ Boolean
 lw_motif_widget_p (widget)
      Widget widget;
 {
-  return 
+  return
     XtClass (widget) == xmDialogShellWidgetClass
       || XmIsPrimitive (widget) || XmIsManager (widget) || XmIsGadget (widget);
 }
@@ -222,7 +222,7 @@ resource_motif_string (widget, name)
 {
   XtResource resource;
   XmString result = 0;
-  
+
   resource.resource_name = name;
   resource.resource_class = XmCXmString;
   resource.resource_type = XmRXmString;
@@ -254,7 +254,7 @@ destroy_all_children (widget, first_child_to_destroy)
       XtUnmanageChildren (children + first_child_to_destroy,
 			  number - first_child_to_destroy);
 
-      /* Unmanage all children and destroy them.  They will only be 
+      /* Unmanage all children and destroy them.  They will only be
 	 really destroyed when we get out of DispatchEvent.  */
       for (i = first_child_to_destroy; i < number; i++)
 	{
@@ -265,10 +265,13 @@ destroy_all_children (widget, first_child_to_destroy)
 	     XtCompositeChildren.  So get it out of the cascade button
 	     and free it.  If this child is not a cascade button,
 	     then submenu should remain unchanged.  */
-	  XtSetArg (al[0], XmNsubMenuId, &submenu); 
+	  XtSetArg (al[0], XmNsubMenuId, &submenu);
   	  XtGetValues (children[i], al, 1);
 	  if (submenu)
-	    XtDestroyWidget (submenu);
+            {
+              destroy_all_children (submenu, 0);
+              XtDestroyWidget (submenu);
+            }
 	  XtDestroyWidget (children[i]);
 	}
 
@@ -326,7 +329,7 @@ xm_arm_callback (w, client_data, call_data)
    the value to update.
 
    Menus:
-   
+
    Emacs fills VAL->name with the text to display in the menu, and
    sets VAL->value to null.  Function make_menu_in_widget creates
    widgets with VAL->name as resource name.  This works because the
@@ -368,10 +371,10 @@ xm_update_label (instance, widget, val)
 	    XmStringCreateLtoR (val->value, XmSTRING_DEFAULT_CHARSET);
 	  XtSetArg (al [ac], XmNlabelString, built_string); ac++;
 	}
-      
+
       XtSetArg (al [ac], XmNlabelType, XmSTRING); ac++;
     }
-  
+
   if (val->key)
     {
       key_string = XmStringCreateLtoR (val->key, XmSTRING_DEFAULT_CHARSET);
@@ -563,7 +566,7 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
       XtSetArg (al[ac], XmNsensitive, cur->enabled); ac++;
       XtSetArg (al[ac], XmNalignment, XmALIGNMENT_BEGINNING); ac++;
       XtSetArg (al[ac], XmNuserData, cur->call_data); ac++;
-      
+
       if (instance->pop_up_p && !cur->contents && !cur->call_data
 	  && !lw_separator_p (cur->name, &separator, 1))
 	{
@@ -602,9 +605,9 @@ make_menu_in_widget (instance, widget, val, keep_first_children)
 	      XtAddCallback (button, XmNarmCallback, xm_arm_callback, cur);
 	      XtAddCallback (button, XmNdisarmCallback, xm_arm_callback, cur);
 	    }
-	  
+
 	  xm_update_label (instance, button, cur);
-	  
+
 	  /* Add a callback that is called when the button is
 	     selected.  Toggle buttons don't support
 	     XmNactivateCallback, we use XmNvalueChangedCallback in
@@ -681,7 +684,7 @@ update_one_menu_entry (instance, widget, val, deep_p)
   menu = NULL;
   XtSetArg (al [ac], XmNsubMenuId, &menu); ac++;
   XtGetValues (widget, al, ac);
-  
+
   contents = val->contents;
 
   if (!menu)
@@ -712,8 +715,8 @@ update_one_menu_entry (instance, widget, val, deep_p)
 	  else
 	    {
 	      Widget button;
-	      
-	      /* The current menuitem is a XmPushButtonGadget, it 
+
+	      /* The current menuitem is a XmPushButtonGadget, it
 		 needs to be replaced by a CascadeButtonGadget */
 	      XtDestroyWidget (widget_list[i]);
 	      menu = XmCreatePulldownMenu (parent, val->name, NULL, 0);
@@ -729,11 +732,14 @@ update_one_menu_entry (instance, widget, val, deep_p)
 #endif
 	      button = XmCreateCascadeButton (parent, val->name, al, ac);
 	      xm_update_label (instance, button, val);
-	      
+
 	      XtAddCallback (button, XmNcascadingCallback, xm_pull_down_callback,
 			     (XtPointer)instance);
 	      XtManageChild (button);
 	    }
+
+          if (widget_list)
+            XtFree ((char*) widget_list);
 	}
     }
   else if (!contents)
@@ -773,7 +779,7 @@ xm_update_menu (instance, widget, val, deep_p)
     {
       if (children)
 	{
-	  for (i = 0, cur = val->contents; 
+	  for (i = 0, cur = val->contents;
                (i < num_children
 		&& cur); /* how else to ditch unwanted children ?? - mgd */
 	       i++, cur = cur->next)
@@ -813,7 +819,7 @@ xm_update_menu (instance, widget, val, deep_p)
     {
       destroy_all_children (widget, num_children_to_keep);
       make_menu_in_widget (instance, widget, val->contents,
-			   num_children_to_keep);
+                           num_children_to_keep);
     }
 
   XtFree ((char *) children);
@@ -861,18 +867,18 @@ xm_update_one_widget (instance, widget, val, deep_p)
      Boolean deep_p;
 {
   WidgetClass class;
-  
+
   /* Mark as not edited */
   val->edited = False;
 
   /* Common to all widget types */
   XtSetSensitive (widget, val->enabled);
   XtVaSetValues (widget, XmNuserData, val->call_data, NULL);
-  
+
   /* Common to all label like widgets */
   if (XtIsSubclass (widget, xmLabelWidgetClass))
     xm_update_label (instance, widget, val);
-  
+
   class = XtClass (widget);
   /* Class specific things */
   if (class == xmPushButtonWidgetClass ||
@@ -894,10 +900,10 @@ xm_update_one_widget (instance, widget, val, deep_p)
       Boolean radiobox = 0;
       int ac = 0;
       Arg al [1];
-      
+
       XtSetArg (al [ac], XmNradioBehavior, &radiobox); ac++;
       XtGetValues (widget, al, ac);
-      
+
       if (radiobox)
 	xm_update_radiobox (instance, widget, val);
       else
@@ -934,7 +940,7 @@ xm_update_one_value (instance, widget, val)
 	val->call_data = old_wv->call_data;
 	break;
       }
-  
+
   if (class == xmToggleButtonWidgetClass || class == xmToggleButtonGadgetClass)
     {
       XtVaGetValues (widget, XmNset, &val->selected, NULL);
@@ -959,10 +965,10 @@ xm_update_one_value (instance, widget, val)
       Boolean radiobox = 0;
       int ac = 0;
       Arg al [1];
-      
+
       XtSetArg (al [ac], XmNradioBehavior, &radiobox); ac++;
       XtGetValues (widget, al, ac);
-      
+
       if (radiobox)
 	{
 	  CompositeWidget radio = (CompositeWidget)widget;
@@ -971,7 +977,7 @@ xm_update_one_value (instance, widget, val)
 	    {
 	      int set = False;
 	      Widget toggle = radio->composite.children [i];
-	      
+
 	      XtVaGetValues (toggle, XmNset, &set, NULL);
 	      if (set)
 		{
@@ -1014,7 +1020,7 @@ xm_update_one_value (instance, widget, val)
 /* This function is for activating a button from a program.  It's wrong because
    we pass a NULL argument in the call_data which is not Motif compatible.
    This is used from the XmNdefaultAction callback of the List widgets to
-   have a double-click put down a dialog box like the button would do. 
+   have a double-click put down a dialog box like the button would do.
    I could not find a way to do that with accelerators.
  */
 static void
@@ -1058,7 +1064,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
   Arg 	al[64];			/* Arg List */
   int 	ac;			/* Arg Count */
   int 	i;
-  
+
   if (pop_up_p)
     {
       ac = 0;
@@ -1083,9 +1089,9 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
 
   n_children = left_buttons + right_buttons + 1;
   ac = 0;
-  XtSetArg(al[ac], XmNpacking, n_children == 3? 
+  XtSetArg(al[ac], XmNpacking, n_children == 3?
 	   XmPACK_COLUMN: XmPACK_TIGHT); ac++;
-  XtSetArg(al[ac], XmNorientation, n_children == 3? 
+  XtSetArg(al[ac], XmNorientation, n_children == 3?
 	   XmVERTICAL: XmHORIZONTAL); ac++;
   XtSetArg(al[ac], XmNnumColumns, left_buttons + right_buttons + 1); ac++;
   XtSetArg(al[ac], XmNmarginWidth, 0); ac++;
@@ -1102,7 +1108,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
   XtSetArg(al[ac], XmNrightAttachment, XmATTACH_FORM); ac++;
   XtSetArg(al[ac], XmNrightOffset, 13); ac++;
   row = XmCreateRowColumn (form, "row", al, ac);
-  
+
   n_children = 0;
   for (i = 0; i < left_buttons; i++)
     {
@@ -1134,7 +1140,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
   XtSetArg (al[ac], XmNmappedWhenManaged, FALSE); ac++;
   children [n_children] = XmCreateLabel (row, "separator_button", al, ac);
   n_children++;
-  
+
   for (i = 0; i < right_buttons; i++)
     {
       char button_name [16];
@@ -1146,9 +1152,9 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       if (! button) button = children [n_children];
       n_children++;
     }
-  
+
   XtManageChildren (children, n_children);
-  
+
   ac = 0;
   XtSetArg(al[ac], XmNtopAttachment, XmATTACH_NONE); ac++;
   XtSetArg(al[ac], XmNbottomAttachment, XmATTACH_WIDGET); ac++;
@@ -1244,7 +1250,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
 	 list activate the default button */
       XtAddCallback (value, XmNdefaultActionCallback, activate_button, button);
     }
-  
+
   ac = 0;
   XtSetArg(al[ac], XmNalignment, XmALIGNMENT_BEGINNING); ac++;
   XtSetArg(al[ac], XmNtopAttachment, XmATTACH_FORM); ac++;
@@ -1259,7 +1265,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
   XtSetArg(al[ac], XmNrightAttachment, XmATTACH_FORM); ac++;
   XtSetArg(al[ac], XmNrightOffset, 13); ac++;
   message = XmCreateLabel (form, "message", al, ac);
-  
+
   if (list)
     XtManageChild (value);
 
@@ -1274,7 +1280,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
   children [i] = icon; i++;
   children [i] = icon_separator; i++;
   XtManageChildren (children, i);
-  
+
   if (text_input_slot || list)
     {
       XtInstallAccelerators (value, button);
@@ -1285,7 +1291,7 @@ make_dialog (name, parent, pop_up_p, shell_title, icon_name, text_input_slot,
       XtInstallAccelerators (form, button);
       XtSetKeyboardFocus (result, button);
     }
-  
+
   return result;
 }
 
@@ -1358,7 +1364,7 @@ recenter_widget (widget)
 
   x = (((Position)parent_width) - ((Position)child_width)) / 2;
   y = (((Position)parent_height) - ((Position)child_height)) / 2;
-  
+
   XtTranslateCoords (parent, x, y, &x, &y);
 
   if (x + child_width > screen_width)
@@ -1398,7 +1404,7 @@ recycle_instance (instance)
 	focus = XtNameToWidget (widget, "*button1");
       if (focus)
 	XtSetKeyboardFocus (widget, focus);
-      
+
       /* shrink the separator label back to their original size */
       separator = XtNameToWidget (widget, "*separator_button");
       if (separator)
@@ -1466,7 +1472,7 @@ xm_create_dialog (instance)
     shell_name = "Question";
     break;
   }
-  
+
   total_buttons = name [1] - '0';
 
   if (name [3] == 'T' || name [3] == 't')
@@ -1476,9 +1482,9 @@ xm_create_dialog (instance)
     }
   else if (name [3])
     right_buttons = name [4] - '0';
-  
+
   left_buttons = total_buttons - right_buttons;
-  
+
   widget = make_dialog (name, parent, pop_up_p,
 			shell_name, icon_name, text_input_slot, radio_box,
 			list, left_buttons, right_buttons);
@@ -1649,7 +1655,7 @@ make_project_display_dialog (widget_instance* instance)
 #endif /* ENERGIZE */
 
 widget_creation_entry
-xm_creation_table [] = 
+xm_creation_table [] =
 {
   {"menubar", 			make_menubar},
   {"popup",			make_popup_menu},
@@ -1738,7 +1744,7 @@ xm_popup_menu (widget, event)
 	  /* This is so totally ridiculous: there's NO WAY to tell Motif
 	     that *any* button can select a menu item.  Only one button
 	     can have that honor.  */
-      
+
 	  char *trans = 0;
 	  if      (event->xbutton.state & Button5Mask) trans = "<Btn5Down>";
 	  else if (event->xbutton.state & Button4Mask) trans = "<Btn4Down>";
@@ -1748,10 +1754,10 @@ xm_popup_menu (widget, event)
 	  if (trans) XtVaSetValues (widget, XmNmenuPost, trans, NULL);
 	}
 #endif
-      
+
       XmMenuPosition (widget, (XButtonPressedEvent *) event);
     }
-  
+
   XtManageChild (widget);
 }
 
@@ -1789,12 +1795,12 @@ xm_pop_instance (instance, up)
       if (up)
 	XtManageChild (widget);
       else
-	XtUnmanageChild (widget);	
+	XtUnmanageChild (widget);
     }
 }
 
 
-/* motif callback */ 
+/* motif callback */
 
 static void
 do_call (widget, closure, type)
@@ -1823,36 +1829,36 @@ do_call (widget, closure, type)
   user_data = NULL;
   XtSetArg (al [ac], XmNuserData, &user_data); ac++;
   XtGetValues (widget, al, ac);
-  
+
   switch (type)
     {
     case pre_activate:
       if (instance->info->pre_activate_cb)
 	instance->info->pre_activate_cb (widget, id, user_data);
       break;
-      
+
     case selection:
       if (instance->info->selection_cb)
 	instance->info->selection_cb (widget, id, user_data);
       break;
-      
+
     case no_selection:
       if (instance->info->selection_cb)
 	instance->info->selection_cb (widget, id, (XtPointer) -1);
       break;
-      
+
     case post_activate:
       if (instance->info->post_activate_cb)
 	instance->info->post_activate_cb (widget, id, user_data);
       break;
-      
+
     default:
       abort ();
     }
 }
 
 /* Like lw_internal_update_other_instances except that it does not do
-   anything if its shell parent is not managed.  This is to protect 
+   anything if its shell parent is not managed.  This is to protect
    lw_internal_update_other_instances to dereference freed memory
    if the widget was ``destroyed'' by caching it in the all_destroyed_instances
    list */
@@ -1918,7 +1924,7 @@ xm_pull_down_callback (widget, closure, call_data)
 
 
 /* XmNpopdownCallback for MenuShell widgets.  WIDGET is the MenuShell,
-   CLOSURE is a pointer to the widget_instance of the shell, 
+   CLOSURE is a pointer to the widget_instance of the shell,
 
    Note that this callback is called for each cascade button in a
    menu, whether or not its submenu is visible.  */

@@ -1,7 +1,7 @@
 /* src/config.in.  Generated from configure.in by autoheader.  */
 
-/* GNU Emacs site configuration template file.  -*- C -*-
-   Copyright (C) 1988, 1993, 1994, 1999, 2000 Free Software Foundation, Inc.
+/* GNU Emacs site configuration template file.
+   Copyright (C) 1988, 93, 94, 99, 2000, 2002 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -21,8 +21,8 @@ Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-/* No code in Emacs #includes config.h twice, but some of the code
-   intended to work with other packages as well (like gmalloc.c) 
+/* No code in Emacs #includes config.h twice, but some bits of code
+   intended to work with other packages as well (like gmalloc.c)
    think they can include it as many times as they like.  */
 #ifndef EMACS_CONFIG_H
 #define EMACS_CONFIG_H
@@ -64,6 +64,9 @@ Boston, MA 02111-1307, USA.  */
    */
 #undef GETLOADAVG_PRIVILEGED
 
+/* Define to 1 if the `getpgrp' function requires zero arguments. */
+#undef GETPGRP_VOID
+
 /* Define to 1 if gettimeofday accepts only one argument. */
 #undef GETTIMEOFDAY_ONE_ARGUMENT
 
@@ -89,6 +92,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
 
+/* Define to 1 if you have the `bzero' function. */
+#undef HAVE_BZERO
+
 /* Define to 1 if you are using the Carbon API on Mac OS X. */
 #undef HAVE_CARBON
 
@@ -103,6 +109,14 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <com_err.h> header file. */
 #undef HAVE_COM_ERR_H
+
+/* Define to 1 if you have the declaration of `sys_siglist', and to 0 if you
+   don't. */
+#undef HAVE_DECL_SYS_SIGLIST
+
+/* Define to 1 if you have the declaration of `__sys_siglist', and to 0 if you
+   don't. */
+#undef HAVE_DECL___SYS_SIGLIST
 
 /* Define to 1 if you have the <des.h> header file. */
 #undef HAVE_DES_H
@@ -133,6 +147,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #undef HAVE_FSEEKO
+
+/* Define to 1 if you have the `fsync' function. */
+#undef HAVE_FSYNC
 
 /* Define to 1 if you have the `ftime' function. */
 #undef HAVE_FTIME
@@ -188,6 +205,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `grantpt' function. */
 #undef HAVE_GRANTPT
 
+/* Define to 1 if using GTK. */
+#undef HAVE_GTK
+
 /* Define to 1 if netdb.h declares h_errno. */
 #undef HAVE_H_ERRNO
 
@@ -220,6 +240,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <krb.h> header file. */
 #undef HAVE_KRB_H
+
+/* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
+#undef HAVE_LANGINFO_CODESET
 
 /* Define to 1 if you have the `com_err' library (-lcom_err). */
 #undef HAVE_LIBCOM_ERR
@@ -320,8 +343,17 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `mbsinit' function. */
 #undef HAVE_MBSINIT
 
+/* Define to 1 if you have the `memcmp' function. */
+#undef HAVE_MEMCMP
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset' function. */
+#undef HAVE_MEMSET
 
 /* Define to 1 if you have mouse menus. (This is automatic if you use X, but
    the option to specify it remains.) It is also defined with other window
@@ -343,6 +375,9 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have Motif 2.1 or newer. */
 #undef HAVE_MOTIF_2_1
 
+/* Define to 1 if you have the `mremap' function. */
+#undef HAVE_MREMAP
+
 /* Define to 1 if you have the <nlist.h> header file. */
 #undef HAVE_NLIST_H
 
@@ -351,6 +386,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the `pstat_getdynamic' function. */
 #undef HAVE_PSTAT_GETDYNAMIC
+
+/* Define to 1 if you have the <pty.h> header file. */
+#undef HAVE_PTY_H
 
 /* Define to 1 if you have the `random' function. */
 #undef HAVE_RANDOM
@@ -397,11 +435,11 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `setsockopt' function. */
 #undef HAVE_SETSOCKOPT
 
-/* Define to the name of the shared game directory. */
-#undef HAVE_SHARED_GAME_DIR
-
 /* Define to 1 if you have the `shutdown' function. */
 #undef HAVE_SHUTDOWN
+
+/* Define to 1 if the system has the type `size_t'. */
+#undef HAVE_SIZE_T
 
 /* Define to 1 if you have the <soundcard.h> header file. */
 #undef HAVE_SOUNDCARD_H
@@ -445,6 +483,15 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 if you have the `sysinfo' function. */
 #undef HAVE_SYSINFO
 
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/resource.h> header file. */
+#undef HAVE_SYS_RESOURCE_H
+
 /* Define to 1 if you have the <sys/select.h> header file. */
 #undef HAVE_SYS_SELECT_H
 
@@ -468,6 +515,9 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define to 1 if you have the <sys/un.h> header file. */
 #undef HAVE_SYS_UN_H
+
+/* Define to 1 if you have the <sys/vlimit.h> header file. */
+#undef HAVE_SYS_VLIMIT_H
 
 /* Define to 1 if you have <sys/wait.h> that is POSIX.1 compatible. */
 #undef HAVE_SYS_WAIT_H
@@ -655,9 +705,6 @@ Boston, MA 02111-1307, USA.  */
 /* Define to 1 on System V Release 4. */
 #undef SVR4
 
-/* Define to 1 if `sys_siglist' is declared by <signal.h> or <unistd.h>. */
-#undef SYS_SIGLIST_DECLARED
-
 /* Define to 1 if you can safely include both <sys/time.h> and <time.h>. */
 #undef TIME_WITH_SYS_TIME
 
@@ -693,6 +740,11 @@ Boston, MA 02111-1307, USA.  */
 /* Number of bits in a file offset, on hosts where this is settable. */
 #undef _FILE_OFFSET_BITS
 
+/* Enable GNU extensions on systems that have them.  */
+#ifndef _GNU_SOURCE
+# undef _GNU_SOURCE
+#endif
+
 /* Define to 1 to make fseeko visible on some hosts (e.g. glibc 2.2). */
 #undef _LARGEFILE_SOURCE
 
@@ -701,6 +753,14 @@ Boston, MA 02111-1307, USA.  */
 
 /* Define like PROTOTYPES; this can be used by system headers. */
 #undef __PROTOTYPES
+
+/* Define to compiler's equivalent of C99 restrict keyword. Don't define if
+   equivalent is `__restrict'. */
+#undef __restrict
+
+/* Define to compiler's equivalent of C99 restrict keyword in array
+   declarations. Define as empty for no equivalent. */
+#undef __restrict_arr
 
 /* Define to the used machine dependent file. */
 #undef config_machfile
@@ -714,8 +774,8 @@ Boston, MA 02111-1307, USA.  */
 /* Define to `int' if <sys/types.h> does not define. */
 #undef pid_t
 
-/* Define to `unsigned' if <sys/types.h> does not define. */
-#undef size_t
+/* Define to any substitute for sys_siglist. */
+#undef sys_siglist
 
 /* Define as `fork' if `vfork' does not work. */
 #undef vfork
@@ -737,7 +797,6 @@ Boston, MA 02111-1307, USA.  */
 #ifdef HAVE_CARBON
 #define HAVE_WINDOW_SYSTEM
 #define HAVE_MOUSE
-#define HAVE_MENUS
 #endif
 
 /* Define USER_FULL_NAME to return a string
@@ -850,8 +909,6 @@ Boston, MA 02111-1307, USA.  */
 extern char *getenv ();
 #endif
 
-#endif /* EMACS_CONFIG_H */
-
 /* These default definitions are good for almost all machines.
    The exceptions override them in m/MACHINE.h.  */
 
@@ -891,16 +948,30 @@ extern char *getenv ();
 # endif  /* GCC.  */
 #endif /* __P */
 
-
 /* Don't include "string.h" or <stdlib.h> in non-C code.  */
 #ifndef NOT_C_CODE
 #ifdef HAVE_STRING_H
 #include "string.h"
 #endif
+#ifdef HAVE_STRINGS_H
+#include "strings.h"  /* May be needed for bcopy & al. */
+#endif
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
+#ifndef __GNUC__
+# ifdef HAVE_ALLOCA_H
+#  include <alloca.h>
+# else /* AIX files deal with #pragma.  */
+#  ifndef alloca /* predefined by HP cc +Olibcalls */
+char *alloca ();
+#  endif
+# endif /* HAVE_ALLOCA_H */
+#endif /* __GNUC__ */
+#ifndef HAVE_SIZE_T
+typedef unsigned size_t;
 #endif
+#endif /* NOT_C_CODE */
 
 /* Define HAVE_X_I18N if we have usable i18n support.  */
 
@@ -925,4 +996,43 @@ extern char *getenv ();
 #else
 #define NO_RETURN	/* nothing */
 #endif
+
+/* These won't be used automatically yet.  We also need to know, at least,
+   that the stack is continuous.  */
+#ifdef __GNUC__
+#  ifndef GC_SETJMP_WORKS
+  /* GC_SETJMP_WORKS is nearly always appropriate for GCC --
+     see NON_SAVING_SETJMP in the target descriptions.  */
+  /* Exceptions (see NON_SAVING_SETJMP in target description) are ns32k,
+     SCO5 non-ELF (but Emacs specifies ELF) and SVR3 on x86.
+     Fixme: Deal with ns32k, SVR3.  */
+#    define GC_SETJMP_WORKS 1
+#  endif
+#  ifndef GC_LISP_OBJECT_ALIGNMENT
+#    define GC_LISP_OBJECT_ALIGNMENT (__alignof__ (Lisp_Object))
+#  endif
+#endif
+
+#ifndef MAC_OSX
+/* On Mac OS X, macros already defined in precompiled headers.  */
+/* avoid deprecated functions */
+#if HAVE_MEMCPY
+#  define bcopy(a,b,s) memcpy (b,a,s)
+#endif
+#if HAVE_MEMSET
+#  define bzero(a,s) memset (a,0,s)
+#endif
+#if HAVE_MEMCMP
+#  define BCMP memcmp
+#  define bcmp memcmp
+#endif
+#endif /* MAC_OSX */
+
+#endif /* EMACS_CONFIG_H */
+
+/*
+Local Variables:
+mode: c
+End:
+*/
 

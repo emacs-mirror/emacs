@@ -45,13 +45,9 @@
 
 ;;; Code:
 
-(defun doctor-cadr (x) (car (cdr x)))
-(defun doctor-caddr (x) (car (cdr (cdr x))))
-(defun doctor-cddr (x) (cdr (cdr x)))
+(defun doc// (x) x)
 
-(defun // (x) x)
-
-(defmacro $ (what)
+(defmacro doc$ (what)
   "quoted arg form of doctor-$"
   (list 'doctor-$ (list 'quote what)))
 
@@ -83,7 +79,7 @@ reads the sentence before point, and prints the Doctor's answer."
   (setq mode-name "Doctor")
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
-		 ($ please) ($ describe) your ($ problems) \.
+		 (doc$ please) (doc$ describe) your (doc$ problems) \.
 		 each time you are finished talking, type \R\E\T twice \.))
   (insert "\n"))
 
@@ -91,8 +87,8 @@ reads the sentence before point, and prints the Doctor's answer."
   (make-local-variable 'typos)
   (setq typos
 	(mapcar (function (lambda (x)
-			    (put (car x) 'doctor-correction  (doctor-cadr x))
-			    (put (doctor-cadr x) 'doctor-expansion (doctor-caddr x))
+			    (put (car x) 'doctor-correction  (cadr x))
+			    (put (cadr x) 'doctor-expansion (car (cddr x)))
 			    (car x)))
 		'((theyll they\'ll (they will))
 		  (theyre they\'re (they are))
@@ -136,9 +132,9 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (some experiences you have had with)
 	  (how you feel about)))
   (make-local-variable 'fears)
-  (setq fears '( (($ whysay) you are ($ afraidof) (// feared) \?)
-		 (you seem terrified by (// feared) \.)
-		 (when did you first feel ($ afraidof) (// feared) \?) ))
+  (setq fears '( ((doc$ whysay) you are (doc$ afraidof) (doc// feared) \?)
+		 (you seem terrified by (doc// feared) \.)
+		 (when did you first feel (doc$ afraidof) (doc// feared) \?) ))
   (make-local-variable 'sure)
   (setq sure '((sure)(positive)(certain)(absolutely sure)))
   (make-local-variable 'afraidof)
@@ -153,9 +149,9 @@ reads the sentence before point, and prints the Doctor's answer."
 		     (could have caused)(could be the reason for) (are caused by)
 		     (are because of)))
   (make-local-variable 'moods)
-  (setq moods '( (($ areyou)(// found) often \?)
-		 (what causes you to be (// found) \?)
-		 (($ whysay) you are (// found) \?) ))
+  (setq moods '( ((doc$ areyou)(doc// found) often \?)
+		 (what causes you to be (doc// found) \?)
+		 ((doc$ whysay) you are (doc// found) \?) ))
   (make-local-variable 'maybe)
   (setq maybe
 	'((maybe)
@@ -170,22 +166,22 @@ reads the sentence before point, and prints the Doctor's answer."
 	'((how do you do \?) (hello \.) (howdy!) (hello \.) (hi \.) (hi there \.)))
   (make-local-variable 'drnk)
   (setq drnk
-	'((do you drink a lot of (// found) \?)
+	'((do you drink a lot of (doc// found) \?)
 	  (do you get drunk often \?)
-	  (($ describe) your drinking habits \.) )) 
+	  ((doc$ describe) your drinking habits \.) ))
   (make-local-variable 'drugs)
-  (setq drugs '( (do you use (// found) often \?)(($ areyou)
-						 addicted to (// found) \?)(do you realize that drugs can
-						 be very harmful \?)(($ maybe) you should try to quit using (// found)
+  (setq drugs '( (do you use (doc// found) often \?)((doc$ areyou)
+						 addicted to (doc// found) \?)(do you realize that drugs can
+						 be very harmful \?)((doc$ maybe) you should try to quit using (doc// found)
 						 \.)))
   (make-local-variable 'whywant)
-  (setq whywant '( (($ whysay) (// subj) might ($ want) (// obj) \?)
+  (setq whywant '( ((doc$ whysay) (doc// subj) might (doc$ want) (doc// obj) \?)
 		   (how does it feel to want \?)
-		   (why should (// subj) get (// obj) \?)
-		   (when did (// subj) first ($ want) (// obj) \?)
-		   (($ areyou) obsessed with (// obj) \?)
-		   (why should i give (// obj) to (// subj) \?)
-		   (have you ever gotten (// obj) \?) ))
+		   (why should (doc// subj) get (doc// obj) \?)
+		   (when did (doc// subj) first (doc$ want) (doc// obj) \?)
+		   ((doc$ areyou) obsessed with (doc// obj) \?)
+		   (why should i give (doc// obj) to (doc// subj) \?)
+		   (have you ever gotten (doc// obj) \?) ))
   (make-local-variable 'canyou)
   (setq canyou '((of course i can \.)
 		 (why should i \?)
@@ -202,32 +198,32 @@ reads the sentence before point, and prints the Doctor's answer."
   (make-local-variable 'shortlst)
   (setq shortlst
 	'((can you elaborate on that \?)
-	  (($ please) continue \.)
+	  ((doc$ please) continue \.)
 	  (go on\, don\'t be afraid \.)
 	  (i need a little more detail please \.)
-	  (you\'re being a bit brief\, ($ please) go into detail \.)
+	  (you\'re being a bit brief\, (doc$ please) go into detail \.)
 	  (can you be more explicit \?)
 	  (and \?)
-	  (($ please) go into more detail \?)
+	  ((doc$ please) go into more detail \?)
 	  (you aren\'t being very talkative today\!)
 	  (is that all there is to it \?)
 	  (why must you respond so briefly \?)))
 
   (make-local-variable 'famlst)
   (setq famlst
-	'((tell me ($ something) about (// owner) family \.)
-	  (you seem to dwell on (// owner) family \.)
-	  (($ areyou) hung up on (// owner) family \?)))
+	'((tell me (doc$ something) about (doc// owner) family \.)
+	  (you seem to dwell on (doc// owner) family \.)
+	  ((doc$ areyou) hung up on (doc// owner) family \?)))
   (make-local-variable 'huhlst)
   (setq huhlst
-	'((($ whysay)(// sent) \?)
-	  (is it because of ($ things) that you say (// sent) \?) ))
+	'(((doc$ whysay)(doc// sent) \?)
+	  (is it because of (doc$ things) that you say (doc// sent) \?) ))
   (make-local-variable 'longhuhlst)
   (setq longhuhlst
-	'((($ whysay) that \?)
+	'(((doc$ whysay) that \?)
 	  (i don\'t understand \.)
-	  (($ thlst))
-	  (($ areyou) ($ afraidof) that \?)))
+	  ((doc$ thlst))
+	  ((doc$ areyou) (doc$ afraidof) that \?)))
   (make-local-variable 'feelings-about)
   (setq feelings-about
 	'((feelings about)
@@ -260,7 +256,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (i understand \.)
 	  (oh \.) ))
   (make-local-variable 'please)
-  (setq please 
+  (setq please
 	'((please\,)
 	  (i would appreciate it if you would)
 	  (perhaps you could)
@@ -283,7 +279,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (more)
 	  (how you feel)))
   (make-local-variable 'things)
-  (setq things 
+  (setq things
 	'(;(your interests in computers)   ;; let's make this less computer oriented
 	  ;(the machines you use)
 	  (your plans)
@@ -310,7 +306,7 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (tell me more about)
 	  (elaborate on)))
   (make-local-variable 'ibelieve)
-  (setq ibelieve 
+  (setq ibelieve
 	'((i believe) (i think) (i have a feeling) (it seems to me that)
 	  (it looks like)))
   (make-local-variable 'problems)
@@ -328,89 +324,89 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (are you sorry)
 	  (are you satisfied with the fact that)))
   (make-local-variable 'machlst)
-  (setq machlst 
-	'((you have your mind on (// found) \, it seems \.)
-	  (you think too much about  (// found) \.)
-	  (you should try taking your mind off of (// found)\.)
+  (setq machlst
+	'((you have your mind on (doc// found) \, it seems \.)
+	  (you think too much about  (doc// found) \.)
+	  (you should try taking your mind off of (doc// found)\.)
 	  (are you a computer hacker \?)))
   (make-local-variable 'qlist)
   (setq qlist
 	'((what do you think \?)
 	  (i\'ll ask the questions\, if you don\'t mind!)
 	  (i could ask the same thing myself \.)
-	  (($ please) allow me to do the questioning \.)
+	  ((doc$ please) allow me to do the questioning \.)
 	  (i have asked myself that question many times \.)
-	  (($ please) try to answer that question yourself \.)))
+	  ((doc$ please) try to answer that question yourself \.)))
   (make-local-variable 'foullst)
   (setq foullst
-	'((($ please) watch your tongue!)
-	  (($ please) avoid such unwholesome thoughts \.)
-	  (($ please) get your mind out of the gutter \.)
+	'(((doc$ please) watch your tongue!)
+	  ((doc$ please) avoid such unwholesome thoughts \.)
+	  ((doc$ please) get your mind out of the gutter \.)
 	  (such lewdness is not appreciated \.)))
   (make-local-variable 'deathlst)
   (setq deathlst
 	'((this is not a healthy way of thinking \.)
-	  (($ bother) you\, too\, may die someday \?)
+	  ((doc$ bother) you\, too\, may die someday \?)
 	  (i am worried by your obsession with this topic!)
 	  (did you watch a lot of crime and violence on television as a child \?))
 	)
   (make-local-variable 'sexlst)
-  (setq sexlst 
-	'((($ areyou) ($ afraidof) sex \?)
-	  (($ describe)($ something) about your sexual history \.)
-	  (($ please)($ describe) your sex life \.\.\.)
-	  (($ describe) your ($ feelings-about) your sexual partner \.)
-	  (($ describe) your most ($ random-adjective) sexual experience \.)
-	  (($ areyou) satisfied with (// lover) \.\.\. \?)))
+  (setq sexlst
+	'(((doc$ areyou) (doc$ afraidof) sex \?)
+	  ((doc$ describe)(doc$ something) about your sexual history \.)
+	  ((doc$ please)(doc$ describe) your sex life \.\.\.)
+	  ((doc$ describe) your (doc$ feelings-about) your sexual partner \.)
+	  ((doc$ describe) your most (doc$ random-adjective) sexual experience \.)
+	  ((doc$ areyou) satisfied with (doc// lover) \.\.\. \?)))
   (make-local-variable 'neglst)
   (setq neglst
 	'((why not \?)
-	  (($ bother) i ask that \?)
+	  ((doc$ bother) i ask that \?)
 	  (why not \?)
 	  (why not \?)
 	  (how come \?)
-	  (($ bother) i ask that \?)))
+	  ((doc$ bother) i ask that \?)))
   (make-local-variable 'beclst)
   (setq beclst '(
-		 (is it because (// sent) that you came to me \?)
-		 (($ bother)(// sent) \?)
-		 (when did you first know that (// sent) \?)
-		 (is the fact that (// sent) the real reason \?)
-		 (does the fact that (// sent) explain anything else \?)
-		 (($ areyou)($ sure)(// sent) \? ) ))
+		 (is it because (doc// sent) that you came to me \?)
+		 ((doc$ bother)(doc// sent) \?)
+		 (when did you first know that (doc// sent) \?)
+		 (is the fact that (doc// sent) the real reason \?)
+		 (does the fact that (doc// sent) explain anything else \?)
+		 ((doc$ areyou)(doc$ sure)(doc// sent) \? ) ))
   (make-local-variable 'shortbeclst)
   (setq shortbeclst '(
-		      (($ bother) i ask you that \?)
+		      ((doc$ bother) i ask you that \?)
 		      (that\'s not much of an answer!)
-		      (($ inter) why won\'t you talk about it \?)
+		      ((doc$ inter) why won\'t you talk about it \?)
 		      (speak up!)
-		      (($ areyou) ($ afraidof) talking about it \?)
-		      (don\'t be ($ afraidof) elaborating \.)
-		      (($ please) go into more detail \.)))
+		      ((doc$ areyou) (doc$ afraidof) talking about it \?)
+		      (don\'t be (doc$ afraidof) elaborating \.)
+		      ((doc$ please) go into more detail \.)))
   (make-local-variable 'thlst)
   (setq thlst '(
-		(($ maybe)($ things)($ arerelated) this \.)
-		(is it because of ($ things) that you are going through all this \?)
-		(how do you reconcile ($ things) \? )
-		(($ maybe) this ($ isrelated)($ things) \?) ))
+		((doc$ maybe)(doc$ things)(doc$ arerelated) this \.)
+		(is it because of (doc$ things) that you are going through all this \?)
+		(how do you reconcile (doc$ things) \? )
+		((doc$ maybe) this (doc$ isrelated)(doc$ things) \?) ))
   (make-local-variable 'remlst)
-  (setq remlst '( (earlier you said ($ history) \?)
-		  (you mentioned that ($ history) \?)
-		  (($ whysay)($ history) \? ) ))
+  (setq remlst '( (earlier you said (doc$ history) \?)
+		  (you mentioned that (doc$ history) \?)
+		  ((doc$ whysay)(doc$ history) \? ) ))
   (make-local-variable 'toklst)
   (setq toklst
 	'((is this how you relax \?)
 	  (how long have you been smoking	grass \?)
-	  (($ areyou) ($ afraidof) of being drawn to using harder stuff \?)))
+	  ((doc$ areyou) (doc$ afraidof) of being drawn to using harder stuff \?)))
   (make-local-variable 'states)
   (setq states
-	'((do you get (// found) often \?)
-	  (do you enjoy being (// found) \?)
-	  (what makes you (// found) \?)
-	  (how often ($ areyou)(// found) \?)
-	  (when were you last (// found) \?)))
+	'((do you get (doc// found) often \?)
+	  (do you enjoy being (doc// found) \?)
+	  (what makes you (doc// found) \?)
+	  (how often (doc$ areyou)(doc// found) \?)
+	  (when were you last (doc// found) \?)))
   (make-local-variable 'replist)
-  (setq replist 
+  (setq replist
 	'((i . (you))
 	  (my . (your))
 	  (me . (you))
@@ -462,50 +458,50 @@ reads the sentence before point, and prints the Doctor's answer."
 	  (hasn\'t . (has not))))
   (make-local-variable 'stallmanlst)
   (setq stallmanlst '(
-		      (($ describe) your ($ feelings-about) him \.)
-		      (($ areyou) a friend of Stallman \?)
-		      (($ bother) Stallman is ($ random-adjective) \?)
-		      (($ ibelieve) you are ($ afraidof) him \.)))
+		      ((doc$ describe) your (doc$ feelings-about) him \.)
+		      ((doc$ areyou) a friend of Stallman \?)
+		      ((doc$ bother) Stallman is (doc$ random-adjective) \?)
+		      ((doc$ ibelieve) you are (doc$ afraidof) him \.)))
   (make-local-variable 'schoollst)
   (setq schoollst '(
-		    (($ describe) your (// found) \.)
-		    (($ bother) your grades could ($ improve) \?)
-		    (($ areyou) ($ afraidof) (// found) \?)
-		    (($ maybe) this ($ isrelated) to your attitude \.)
-		    (($ areyou) absent often \?)
-		    (($ maybe) you should study ($ something) \.)))
+		    ((doc$ describe) your (doc// found) \.)
+		    ((doc$ bother) your grades could (doc$ improve) \?)
+		    ((doc$ areyou) (doc$ afraidof) (doc// found) \?)
+		    ((doc$ maybe) this (doc$ isrelated) to your attitude \.)
+		    ((doc$ areyou) absent often \?)
+		    ((doc$ maybe) you should study (doc$ something) \.)))
   (make-local-variable 'improve)
   (setq improve '((improve) (be better) (be improved) (be higher)))
   (make-local-variable 'elizalst)
   (setq elizalst '(
-		   (($ areyou) ($ sure) \?)
-		   (($ ibelieve) you have ($ problems) with (// found) \.)
-		   (($ whysay) (// sent) \?)))
+		   ((doc$ areyou) (doc$ sure) \?)
+		   ((doc$ ibelieve) you have (doc$ problems) with (doc// found) \.)
+		   ((doc$ whysay) (doc// sent) \?)))
   (make-local-variable 'sportslst)
   (setq sportslst '(
-		    (tell me ($ something) about (// found) \.)
-		    (($ describe) ($ relation) (// found) \.)
-		    (do you find (// found) ($ random-adjective) \?)))
+		    (tell me (doc$ something) about (doc// found) \.)
+		    ((doc$ describe) (doc$ relation) (doc// found) \.)
+		    (do you find (doc// found) (doc$ random-adjective) \?)))
   (make-local-variable 'mathlst)
   (setq mathlst '(
-		  (($ describe) ($ something) about math \.)
-		  (($ maybe) your ($ problems) ($ arerelated) (// found) \.)
-		  (i don\'t know much (// found) \, but ($ continue)
+		  ((doc$ describe) (doc$ something) about math \.)
+		  ((doc$ maybe) your (doc$ problems) (doc$ arerelated) (doc// found) \.)
+		  (i don\'t know much (doc// found) \, but (doc$ continue)
 		     anyway \.)))
   (make-local-variable 'zippylst)
   (setq zippylst '(
-		   (($ areyou) Zippy \?)
-		   (($ ibelieve) you have some serious ($ problems) \.)
-		   (($ bother) you are a pinhead \?)))
+		   ((doc$ areyou) Zippy \?)
+		   ((doc$ ibelieve) you have some serious (doc$ problems) \.)
+		   ((doc$ bother) you are a pinhead \?)))
   (make-local-variable 'chatlst)
   (setq chatlst '(
-		  (($ maybe) we could chat \.)
-		  (($ please) ($ describe) ($ something) about chat mode \.)
-		  (($ bother) our discussion is so ($ random-adjective) \?)))
+		  ((doc$ maybe) we could chat \.)
+		  ((doc$ please) (doc$ describe) (doc$ something) about chat mode \.)
+		  ((doc$ bother) our discussion is so (doc$ random-adjective) \?)))
   (make-local-variable 'abuselst)
   (setq abuselst '(
-		   (($ please) try to be less abusive \.)
-		   (($ describe) why you call me (// found) \.)
+		   ((doc$ please) try to be less abusive \.)
+		   ((doc$ describe) why you call me (doc// found) \.)
 		   (i\'ve had enough of you!)))
   (make-local-variable 'abusewords)
   (setq abusewords '(boring bozo clown clumsy cretin dumb dummy
@@ -882,21 +878,21 @@ Otherwise call the Doctor to parse preceding sentence."
 (defun doctor-doc (sent)
   (cond
    ((equal sent '(foo))
-    (doctor-type '(bar! ($ please)($ continue) \.)))
+    (doctor-type '(bar! (doc$ please)(doc$ continue) \.)))
    ((member sent howareyoulst)
-    (doctor-type '(i\'m ok \.  ($ describe) yourself \.)))
+    (doctor-type '(i\'m ok \.  (doc$ describe) yourself \.)))
    ((or (member sent '((good bye) (see you later) (i quit) (so long)
 		       (go away) (get lost)))
 	(memq (car sent)
-	      '(bye halt break quit done exit goodbye 
+	      '(bye halt break quit done exit goodbye
 		    bye\, stop pause goodbye\, stop pause)))
-    (doctor-type ($ bye)))
+    (doctor-type (doc$ bye)))
    ((and (eq (car sent) 'you)
-	 (memq (doctor-cadr sent) abusewords))
-    (setq found (doctor-cadr sent))
-    (doctor-type ($ abuselst)))
+	 (memq (cadr sent) abusewords))
+    (setq found (cadr sent))
+    (doctor-type (doc$ abuselst)))
    ((eq (car sent) 'whatmeans)
-    (doctor-def (doctor-cadr sent)))
+    (doctor-def (cadr sent)))
    ((equal sent '(parse))
     (doctor-type (list  'subj '= subj ",  "
 			'verb '= verb "\n"
@@ -908,14 +904,16 @@ Otherwise call the Doctor to parse preceding sentence."
 			'is owner "\n"
 			'sentence 'used 'was
 			"..."
-			'(// bak))))
+			'(doc// bak))))
+   ((memq (car sent) '(are is do has have how when where who why))
+    (doctor-type (doc$ qlist)))
    ;;   ((eq (car sent) 'forget)
-   ;;    (set (doctor-cadr sent) nil)
-   ;;    (doctor-type '(($ isee)($ please)
-   ;;     ($ continue)\.)))
+   ;;    (set (cadr sent) nil)
+   ;;    (doctor-type '((doc$ isee)(doc$ please)
+   ;;     (doc$ continue)\.)))
    (t
     (if (doctor-defq sent) (doctor-define sent found))
-    (if (> (length sent) 12)(doctor-shorten sent))
+    (if (> (length sent) 12)(setq sent (doctor-shorten sent)))
     (setq sent (doctor-correct-spelling (doctor-replace sent replist)))
     (cond ((and (not (memq 'me sent))(not (memq 'i sent))
 		(memq 'am sent))
@@ -929,16 +927,16 @@ Otherwise call the Doctor to parse preceding sentence."
 	   (if (memq 'am sent)
 	       (setq sent (doctor-replace sent '((me . (i))))))
 	   (setq sent (doctor-fixup sent))
-	   (if (and (eq (car sent) 'do) (eq (doctor-cadr sent) 'not))
+	   (if (and (eq (car sent) 'do) (eq (cadr sent) 'not))
 	       (cond ((zerop (random 3))
-		      (doctor-type '(are you ($ afraidof) that \?)))
+		      (doctor-type '(are you (doc$ afraidof) that \?)))
 		     ((zerop (random 2))
 		      (doctor-type '(don\'t tell me what to do \. i am the
 					    psychiatrist here!))
 		      (doctor-rthing))
 		     (t
-		      (doctor-type '(($ whysay) that i shouldn\'t
-				     (doctor-cddr sent)
+		      (doctor-type '((doc$ whysay) that i shouldn\'t
+				     (cddr sent)
 				     \?))))
 	     (doctor-go (doctor-wherego sent))))))))
 
@@ -956,17 +954,15 @@ Otherwise call the Doctor to parse preceding sentence."
 (defun doctor-shorten (sent)
   "Make a sentence manageably short using a few hacks."
   (let (foo
-	retval
+	(retval sent)
 	(temp '(because but however besides anyway until
 		    while that except why how)))
     (while temp
 	   (setq foo (memq (car temp) sent))
 	   (if (and foo
 		    (> (length foo) 3))
-	       (setq sent foo
-		     sent (doctor-fixup sent)
-		     temp nil
-		     retval t)
+	       (setq retval (doctor-fixup foo)
+		     temp nil)
 	       (setq temp (cdr temp))))
     retval))
 
@@ -994,7 +990,7 @@ Otherwise call the Doctor to parse preceding sentence."
 
 (defun doctor-def (x)
   (progn
-   (doctor-type (list 'the 'word x 'means (doctor-meaning x) 'to 'me)) 
+   (doctor-type (list 'the 'word x 'means (doctor-meaning x) 'to 'me))
    nil))
 
 (defun doctor-forget ()
@@ -1097,9 +1093,9 @@ the subject noun, and return the portion of the sentence following it."
 		luse lusing lust lusts
 		made make makes making may mean means meant might
 		move moved moves moving must
-		need needed needs 
+		need needed needs
 		order ordered orders ought
-		paid pay pays pick picked picking picks 
+		paid pay pays pick picked picking picks
 		placed placing prefer prefers put puts
 		ran rape raped rapes
 		read reading reads recall receive received receives
@@ -1138,13 +1134,13 @@ the subject noun, and return the portion of the sentence following it."
 (defun doctor-setprep (sent key)
   (let ((val)
 	(foo (memq key sent)))
-    (cond ((doctor-prepp (doctor-cadr foo))
-	   (setq val (doctor-getnoun (doctor-cddr foo)))
+    (cond ((doctor-prepp (cadr foo))
+	   (setq val (doctor-getnoun (cddr foo)))
 	   (cond (val val)
 		 (t 'something)))
-	  ((doctor-articlep (doctor-cadr foo))
-	   (setq val (doctor-getnoun (doctor-cddr foo)))
-	   (cond (val (doctor-build (doctor-build (doctor-cadr foo) " ") val))
+	  ((doctor-articlep (cadr foo))
+	   (setq val (doctor-getnoun (cddr foo)))
+	   (cond (val (doctor-build (doctor-build (cadr foo) " ") val))
 		 (t 'something)))
 	  (t 'something))))
 
@@ -1170,7 +1166,9 @@ the subject noun, and return the portion of the sentence following it."
 						   (car x) (car x))))))
 				     " ")
 		       (doctor-getnoun (cdr x))))
-	(t (setq object (car x))) ))
+	(t (setq object (car x))
+	   (doctor-build (doctor-build (car x) " ") (doctor-getnoun (cdr x))))
+	))
 
 (defun doctor-modifierp (x)
   (or (doctor-adjectivep x)
@@ -1202,7 +1200,7 @@ the subject noun, and return the portion of the sentence following it."
 		half quarter
 		first second third fourth fifth
 		sixth seventh eighth ninth tenth)))
-		 
+
 (defun doctor-colorp (x)
   (memq x '(beige black blue brown crimson
 		  gray grey green
@@ -1275,33 +1273,33 @@ the subject noun, and return the portion of the sentence following it."
   (let ((foo sent))
     (while foo
       (if (and (eq (car foo) 'me)
-	       (doctor-verbp (doctor-cadr foo)))
+	       (doctor-verbp (cadr foo)))
 	  (rplaca foo 'i)
 	(cond ((eq (car foo) 'you)
-	       (cond ((memq (doctor-cadr foo) '(am be been is))
+	       (cond ((memq (cadr foo) '(am be been is))
 		      (rplaca (cdr foo) 'are))
-		     ((memq (doctor-cadr foo) '(has))
+		     ((memq (cadr foo) '(has))
 		      (rplaca (cdr foo) 'have))
-		     ((memq (doctor-cadr foo) '(was))
+		     ((memq (cadr foo) '(was))
 		      (rplaca (cdr foo) 'were))))
 	      ((equal (car foo) 'i)
-	       (cond ((memq (doctor-cadr foo) '(are is be been))
+	       (cond ((memq (cadr foo) '(are is be been))
 		      (rplaca (cdr foo) 'am))
-		     ((memq (doctor-cadr foo) '(were))
+		     ((memq (cadr foo) '(were))
 		      (rplaca (cdr foo) 'was))
-		     ((memq (doctor-cadr foo) '(has))
+		     ((memq (cadr foo) '(has))
 		      (rplaca (cdr foo) 'have))))
 	      ((and (doctor-verbp (car foo))
-		    (eq (doctor-cadr foo) 'i)
-		    (not (doctor-verbp (car (doctor-cddr foo)))))
+		    (eq (cadr foo) 'i)
+		    (not (doctor-verbp (car (cddr foo)))))
 	       (rplaca (cdr foo) 'me))
 	      ((and (eq (car foo) 'a)
 		    (doctor-vowelp (string-to-char
-				    (doctor-make-string (doctor-cadr foo)))))
+				    (doctor-make-string (cadr foo)))))
 	       (rplaca foo 'an))
 	      ((and (eq (car foo) 'an)
 		    (not (doctor-vowelp (string-to-char
-					 (doctor-make-string (doctor-cadr foo))))))
+					 (doctor-make-string (cadr foo))))))
 	       (rplaca foo 'a)))
 	(setq foo (cdr foo))))
     sent))
@@ -1321,7 +1319,7 @@ element pair in RLIST."
 	  sent)))
 
 (defun doctor-wherego (sent)
-  (cond ((null sent)($ whereoutp))
+  (cond ((null sent)(doc$ whereoutp))
 	((null (doctor-meaning (car sent)))
 	 (doctor-wherego (cond ((zerop (random 2))
 				(reverse (cdr sent)))
@@ -1423,31 +1421,31 @@ Hack on previous word, setting global variable OWNER to correct result."
   (funcall (intern (concat "doctor-" (doctor-make-string destination)))))
 
 (defun doctor-desire1 ()
-  (doctor-go ($ whereoutp)))
+  (doctor-go (doc$ whereoutp)))
 
 (defun doctor-huh ()
-  (cond ((< (length sent) 9) (doctor-type ($ huhlst)))
-	(t (doctor-type ($ longhuhlst)))))
+  (cond ((< (length sent) 9) (doctor-type (doc$ huhlst)))
+	(t (doctor-type (doc$ longhuhlst)))))
 
-(defun doctor-rthing () (doctor-type ($ thlst)))
+(defun doctor-rthing () (doctor-type (doc$ thlst)))
 
 (defun doctor-remem () (cond ((null history)(doctor-huh))
-			     ((doctor-type ($ remlst)))))
+			     ((doctor-type (doc$ remlst)))))
 
 (defun doctor-howdy ()
   (cond ((not howdyflag)
-	 (doctor-type '(($ hello) what brings you to see me \?))
+	 (doctor-type '((doc$ hello) what brings you to see me \?))
 	 (setq howdyflag t))
 	(t
-	 (doctor-type '(($ ibelieve) we\'ve introduced ourselves already \.))
-	 (doctor-type '(($ please) ($ describe) ($ things) \.)))))
+	 (doctor-type '((doc$ ibelieve) we\'ve introduced ourselves already \.))
+	 (doctor-type '((doc$ please) (doc$ describe) (doc$ things) \.)))))
 
 (defun doctor-when ()
   (cond ((< (length (memq found sent)) 3)(doctor-short))
 	(t
 	 (setq sent (cdr (memq found sent)))
 	 (setq sent (doctor-fixup sent))
-	 (doctor-type '(($ whatwhen)(// sent) \?)))))
+	 (doctor-type '((doc$ whatwhen)(doc// sent) \?)))))
 
 (defun doctor-conj ()
   (cond ((< (length (memq found sent)) 4)(doctor-short))
@@ -1455,11 +1453,11 @@ Hack on previous word, setting global variable OWNER to correct result."
 	 (setq sent (cdr (memq found sent)))
 	 (setq sent (doctor-fixup sent))
 	 (cond ((eq (car sent) 'of)
-		(doctor-type '(are you ($ sure) that is the real reason \?))
+		(doctor-type '(are you (doc$ sure) that is the real reason \?))
 		(setq things (cons (cdr sent) things)))
 	       (t
 		(doctor-remember sent)
-		(doctor-type ($ beclst)))))))
+		(doctor-type (doc$ beclst)))))))
 
 (defun doctor-short ()
   (cond ((= (car repetitive-shortness) (1- lincount))
@@ -1470,7 +1468,7 @@ Hack on previous word, setting global variable OWNER to correct result."
   (rplaca repetitive-shortness lincount)
   (cond ((> (cdr repetitive-shortness) 6)
 	 (cond ((not **mad**)
-		(doctor-type '(($ areyou)
+		(doctor-type '((doc$ areyou)
 			       just trying to see what kind of things
 			       i have in my vocabulary \? please try to
 			       carry on a reasonable conversation!))
@@ -1481,58 +1479,58 @@ Hack on previous word, setting global variable OWNER to correct result."
 		)))
 	(t
 	 (cond ((equal sent (doctor-assm '(yes)))
-		(doctor-type '(($ isee) ($ inter) ($ whysay) this is so \?)))
+		(doctor-type '((doc$ isee) (doc$ inter) (doc$ whysay) this is so \?)))
 	       ((equal sent (doctor-assm '(because)))
-		(doctor-type ($ shortbeclst)))
+		(doctor-type (doc$ shortbeclst)))
 	       ((equal sent (doctor-assm '(no)))
-		(doctor-type ($ neglst)))
-	       (t (doctor-type ($ shortlst)))))))
-	   
-(defun doctor-alcohol () (doctor-type ($ drnk)))
+		(doctor-type (doc$ neglst)))
+	       (t (doctor-type (doc$ shortlst)))))))
+
+(defun doctor-alcohol () (doctor-type (doc$ drnk)))
 
 (defun doctor-desire ()
   (let ((foo (memq found sent)))
     (cond ((< (length foo) 2)
 	   (doctor-go (doctor-build (doctor-meaning found) 1)))
-	  ((memq (doctor-cadr foo) '(a an))
+	  ((memq (cadr foo) '(a an))
 	   (rplacd foo (append '(to have) (cdr foo)))
 	   (doctor-svo sent found 1 nil)
 	   (doctor-remember (list subj 'would 'like obj))
-	   (doctor-type ($ whywant)))
-	  ((not (eq (doctor-cadr foo) 'to))
+	   (doctor-type (doc$ whywant)))
+	  ((not (eq (cadr foo) 'to))
 	   (doctor-go (doctor-build (doctor-meaning found) 1)))
 	  (t
 	   (doctor-svo sent found 1 nil)
 	   (doctor-remember (list subj 'would 'like obj))
-	   (doctor-type ($ whywant))))))
+	   (doctor-type (doc$ whywant))))))
 
 (defun doctor-drug ()
-  (doctor-type ($ drugs))
+  (doctor-type (doc$ drugs))
   (doctor-remember (list 'you 'used found)))
 
 (defun doctor-toke ()
-  (doctor-type ($ toklst)))
+  (doctor-type (doc$ toklst)))
 
 (defun doctor-state ()
-  (doctor-type ($ states))(doctor-remember (list 'you 'were found)))
+  (doctor-type (doc$ states))(doctor-remember (list 'you 'were found)))
 
 (defun doctor-mood ()
-  (doctor-type ($ moods))(doctor-remember (list 'you 'felt found)))
+  (doctor-type (doc$ moods))(doctor-remember (list 'you 'felt found)))
 
 (defun doctor-fear ()
   (setq feared (doctor-setprep sent found))
-  (doctor-type ($ fears))
+  (doctor-type (doc$ fears))
   (doctor-remember (list 'you 'were 'afraid 'of feared)))
 
 (defun doctor-hate ()
   (doctor-svo sent found 1 t)
   (cond ((memq 'not sent) (doctor-forget) (doctor-huh))
 	((equal subj 'you)
-	 (doctor-type '(why do you (// verb)(// obj) \?)))
-	(t (doctor-type '(($ whysay)(list subj verb obj))))))
+	 (doctor-type '(why do you (doc// verb)(doc// obj) \?)))
+	(t (doctor-type '((doc$ whysay)(list subj verb obj))))))
 
 (defun doctor-symptoms ()
-  (doctor-type '(($ maybe) you should consult a doctor of medicine\,
+  (doctor-type '((doc$ maybe) you should consult a doctor of medicine\,
 		 i am a psychiatrist \.)))
 
 (defun doctor-hates ()
@@ -1540,14 +1538,14 @@ Hack on previous word, setting global variable OWNER to correct result."
   (doctor-hates1))
 
 (defun doctor-hates1 ()
-  (doctor-type '(($ whysay)(list subj verb obj))))
+  (doctor-type '((doc$ whysay)(list subj verb obj) \?)))
 
 (defun doctor-loves ()
   (doctor-svo sent found 1 t)
   (doctor-qloves))
 
 (defun doctor-qloves ()
-  (doctor-type '(($ bother)(list subj verb obj) \?)))
+  (doctor-type '((doc$ bother)(list subj verb obj) \?)))
 
 (defun doctor-love ()
   (doctor-svo sent found 1 t)
@@ -1562,10 +1560,10 @@ Hack on previous word, setting global variable OWNER to correct result."
 		       (setq lover '(your partner))
 		       (doctor-forget)
 		       (doctor-type '(with whom are you in love \?)))
-		      ((doctor-type '(($ please)
-				      ($ describe)
-				      ($ relation)
-				      (// lover)
+		      ((doctor-type '((doc$ please)
+				      (doc$ describe)
+				      (doc$ relation)
+				      (doc// lover)
 				      \.)))))
 	       ((equal subj 'i)
 		(doctor-txtype '(we were discussing you!)))
@@ -1576,17 +1574,17 @@ Hack on previous word, setting global variable OWNER to correct result."
 
 (defun doctor-mach ()
   (setq found (doctor-plural found))
-  (doctor-type ($ machlst)))
+  (doctor-type (doc$ machlst)))
 
 (defun doctor-sexnoun () (doctor-sexverb))
 
 (defun doctor-sexverb ()
   (if (or (memq 'me sent)(memq 'myself sent)(memq 'i sent))
       (doctor-foul)
-    (doctor-type ($ sexlst))))
+    (doctor-type (doc$ sexlst))))
 
 (defun doctor-death ()
-  (cond (suicide-flag (doctor-type ($ deathlst)))
+  (cond (suicide-flag (doctor-type (doc$ deathlst)))
 	((or (equal found 'suicide)
              (and (or (equal found 'kill)
                       (equal found 'killing))
@@ -1598,46 +1596,41 @@ Hack on previous word, setting global variable OWNER to correct result."
 			   anonymous E-mail: samaritans@anon.twwells.com\ \.
                            or find a Befrienders crisis center at
 			   http://www.befrienders.org/\ \.
-			   ($ please) ($ continue) \.)))
-	(t (doctor-type ($ deathlst)))))
+			   (doc$ please) (doc$ continue) \.)))
+	(t (doctor-type (doc$ deathlst)))))
 
 (defun doctor-foul ()
-  (doctor-type ($ foullst)))
+  (doctor-type (doc$ foullst)))
 
 (defun doctor-family ()
   (doctor-possess sent found)
-  (doctor-type ($ famlst)))
+  (doctor-type (doc$ famlst)))
 
 ;; I did not add this -- rms.
 ;; But he might have removed it.  I put it back.  --roland
 (defun doctor-rms ()
-  (cond (rms-flag (doctor-type ($ stallmanlst)))
+  (cond (rms-flag (doctor-type (doc$ stallmanlst)))
 	(t (setq rms-flag t) (doctor-type '(do you know Stallman \?)))))
 
-(defun doctor-school nil (doctor-type ($ schoollst)))
+(defun doctor-school nil (doctor-type (doc$ schoollst)))
 
 (defun doctor-eliza ()
-  (cond (eliza-flag (doctor-type ($ elizalst)))
+  (cond (eliza-flag (doctor-type (doc$ elizalst)))
 	(t (setq eliza-flag t)
-	   (doctor-type '((// found) \? hah !
-			  ($ please) ($ continue) \.)))))
-	   
-(defun doctor-sports ()  (doctor-type ($ sportslst)))
+	   (doctor-type '((doc// found) \? hah !
+			  (doc$ please) (doc$ continue) \.)))))
 
-(defun doctor-math () (doctor-type ($ mathlst)))
+(defun doctor-sports ()  (doctor-type (doc$ sportslst)))
+
+(defun doctor-math () (doctor-type (doc$ mathlst)))
 
 (defun doctor-zippy ()
-  (cond (zippy-flag (doctor-type ($ zippylst)))
+  (cond (zippy-flag (doctor-type (doc$ zippylst)))
 	(t (setq zippy-flag t)
 	   (doctor-type '(yow! are we interactive yet \?)))))
 
 
-(defun doctor-chat () (doctor-type ($ chatlst)))
-
-(defun doctor-strangelove ()
-  (interactive)
-  (insert "Mein fuehrer!!\n")
-  (doctor-read-print))
+(defun doctor-chat () (doctor-type (doc$ chatlst)))
 
 (provide 'doctor)
 

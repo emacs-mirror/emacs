@@ -30,7 +30,27 @@ Boston, MA 02111-1307, USA.  */
 
 #define REG_ROOT "SOFTWARE\\GNU\\Emacs"
 
-LPBYTE 
+static char *
+w32_get_rdb_resource (rdb, resource)
+     char *rdb;
+     char *resource;
+{
+  char *value = rdb;
+  int len = strlen (resource);
+
+  while (*value)
+    {
+      /* Comparison is case-insensitive because registry searches are too.  */
+      if ((strnicmp (value, resource, len) == 0) && (value[len] == ':'))
+        return xstrdup (&value[len + 1]);
+
+      value = strchr (value, '\0') + 1;
+    }
+
+  return NULL;
+}
+
+LPBYTE
 w32_get_string_resource (name, class, dwexptype)
      char *name, *class;
      DWORD dwexptype;
@@ -41,23 +61,23 @@ w32_get_string_resource (name, class, dwexptype)
   DWORD cbData;
   BOOL ok = FALSE;
   HKEY hive = HKEY_CURRENT_USER;
-  
+
  trykey:
 
   BLOCK_INPUT;
-  
+
   /* Check both the current user and the local machine to see if we have
      any resources */
 
   if (RegOpenKeyEx (hive, REG_ROOT, 0, KEY_READ, &hrootkey) == ERROR_SUCCESS)
     {
       char *keyname;
-      
+
       if (RegQueryValueEx (hrootkey, name, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	  && dwType == dwexptype)
 	{
 	  keyname = name;
-	} 
+	}
       else if (RegQueryValueEx (hrootkey, class, NULL, &dwType, NULL, &cbData) == ERROR_SUCCESS
 	       && dwType == dwexptype)
 	{
@@ -67,17 +87,17 @@ w32_get_string_resource (name, class, dwexptype)
 	{
 	  keyname = NULL;
 	}
-      
+
       ok = (keyname
 	    && (lpvalue = (LPBYTE) xmalloc (cbData)) != NULL
 	    && RegQueryValueEx (hrootkey, keyname, NULL, NULL, lpvalue, &cbData) == ERROR_SUCCESS);
-      
+
       RegCloseKey (hrootkey);
     }
-  
+
   UNBLOCK_INPUT;
-  
-  if (!ok) 
+
+  if (!ok)
     {
       if (lpvalue)
 	{
@@ -90,7 +110,7 @@ w32_get_string_resource (name, class, dwexptype)
 	  goto trykey;
 	}
       return (NULL);
-    } 
+    }
   return (lpvalue);
 }
 
@@ -99,8 +119,18 @@ w32_get_string_resource (name, class, dwexptype)
 
 char *
 x_get_string_resource (rdb, name, class)
-     int rdb;
+     XrmDatabase rdb;
      char *name, *class;
 {
+  if (rdb)
+    {
+      char *resource;
+
+      if (resource = w32_get_rdb_resource (rdb, name))
+        return resource;
+      if (resource = w32_get_rdb_resource (rdb, class))
+        return resource;
+    }
+
   return (w32_get_string_resource (name, class, REG_SZ));
 }

@@ -5,7 +5,7 @@
 
 extern widget_creation_entry xaw_creation_table [];
 
-Widget 
+Widget
 xaw_create_dialog __P ((widget_instance*));
 
 Boolean

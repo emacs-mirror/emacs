@@ -124,11 +124,11 @@ If this variable is nil, no questions will be asked."
   "*A function used to determine the length of today's workday.
 The first time that a user clocks in each day, this function will be
 called to determine what the length of the current workday is.  If
-nil, or equal to `timeclock-workday', nothing special will be done.
-If it is a quantity different from `timeclock-workday', however, a
-record will be output to the timelog file to note the fact that that
-day has a different length from the norm."
-  :type '(choice (const nil) (function-item timeclock-workday) function)
+the return value is nil, or equal to `timeclock-workday', nothing special
+will be done.  If it is a quantity different from `timeclock-workday',
+however, a record will be output to the timelog file to note the fact that
+that day has a different length from the norm."
+  :type '(choice (const nil) function)
   :group 'timeclock)
 
 (defcustom timeclock-ask-before-exiting t
@@ -273,13 +273,13 @@ positive.  Returns the new status of timeclock modeline display
 		  (> (prefix-numeric-value arg) 0)
 		(not timeclock-modeline-display))))
     (if on-p
-	(let ((list-entry (memq 'global-mode-string
-				mode-line-format)))
+	(let ((list-entry (or (memq 'global-mode-string mode-line-format)
+			      ;; In Emacs 21.3 we must use assq
+			      (assq 'global-mode-string mode-line-format))))
 	  (unless (or (null list-entry)
 		      (memq 'timeclock-mode-string mode-line-format))
-	    (setcdr list-entry
-		    (cons 'timeclock-mode-string
-			  (cdr list-entry))))
+	    (setcdr list-entry (cons 'timeclock-mode-string
+				     (cdr list-entry))))
 	  (unless (memq 'timeclock-update-modeline timeclock-event-hook)
 	    (add-hook 'timeclock-event-hook 'timeclock-update-modeline))
 	  (when timeclock-update-timer
@@ -338,9 +338,11 @@ discover the name of the project."
       (error "You've already clocked in!")
     (unless timeclock-last-event
       (timeclock-reread-log))
-    (unless (equal (timeclock-time-to-date
-		    (cadr timeclock-last-event))
-		   (timeclock-time-to-date (current-time)))
+    ;; Either no log file, or day has rolled over.
+    (unless (and timeclock-last-event
+                 (equal (timeclock-time-to-date
+                         (cadr timeclock-last-event))
+                        (timeclock-time-to-date (current-time))))
       (let ((workday (or (and (numberp arg) arg)
 			 (and arg 0)
 			 (and timeclock-get-workday-function
@@ -349,7 +351,7 @@ discover the name of the project."
 	(run-hooks 'timeclock-first-in-hook)
 	;; settle the discrepancy for the new day
 	(setq timeclock-discrepancy
-	      (- timeclock-discrepancy workday))
+	      (- (or timeclock-discrepancy 0) workday))
 	(if (not (= workday timeclock-workday))
 	    (timeclock-log "h" (and (numberp arg)
 				    (number-to-string arg))))))
@@ -458,7 +460,7 @@ as with time remaining, where negative time really means overtime)."
 	    (% (truncate (/ (abs seconds) 60)) 60))))
 
 (defsubst timeclock-workday-remaining (&optional today-only)
-  "Return a the number of seconds until the workday is complete.
+  "Return the number of seconds until the workday is complete.
 The amount returned is relative to the value of `timeclock-workday'.
 If TODAY-ONLY is non-nil, the value returned will be relative only to
 the time worked today, and not to past time.  This argument only makes
@@ -491,7 +493,7 @@ See `timeclock-relative' for more information about the meaning of
       string)))
 
 (defsubst timeclock-workday-elapsed ()
-  "Return a the number of seconds worked so far today.
+  "Return the number of seconds worked so far today.
 If RELATIVE is non-nil, the amount returned will be relative to past
 time worked.  The default is to return only the time that has elapsed
 so far today."

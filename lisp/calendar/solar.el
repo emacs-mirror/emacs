@@ -73,8 +73,8 @@
   "*The pseudo-pattern that governs the way a time of day is formatted.
 
 A pseudo-pattern is a list of expressions that can involve the keywords
-`12-hours', `24-hours', and `minutes',  all numbers in string form,
-and `am-pm' and `time-zone',  both alphabetic strings.
+`12-hours', `24-hours', and `minutes', all numbers in string form,
+and `am-pm' and `time-zone', both alphabetic strings.
 
 For example, the form
 
@@ -194,8 +194,8 @@ delta.  At present, delta = 0.01 degrees, so the value of the variable
   '("Autumnal Equinox" "Winter Solstice" "Vernal Equinox" "Summer Solstice")
   "List of season changes for the southern hemisphere.")
 
-(defvar solar-sidereal-time-greenwich-midnight 
-   nil 
+(defvar solar-sidereal-time-greenwich-midnight
+   nil
    "Sidereal time at Greenwich at midnight (universal time).")
 
 (defvar solar-northern-spring-or-summer-season nil
@@ -239,7 +239,7 @@ Returns nil if nothing was entered."
   (condition-case nil
       (tan (degrees-to-radians (mod x 360.0)))
     (solar-tangent-degrees x)))
-      
+
 (defun solar-xy-to-quadrant (x y)
   "Determines the quadrant of the point X, Y."
   (if (> x 0)
@@ -262,7 +262,7 @@ Returns nil if nothing was entered."
    "Arctan of point X, Y."
    (if (= x 0)
        (if (> y 0) 90 270)
-     (solar-arctan (/ y x) x)))
+     (solar-arctan (/ y x) (solar-xy-to-quadrant x y))))
 
 (defun solar-arccos (x)
      "Arcos of X."
@@ -399,7 +399,7 @@ Format used is given by `calendar-time-display-form'."
           (floor (* 60 (- time (floor time))))))
 
 (defun solar-exact-local-noon (date)
-  "Date and Universal Time of local noon at *local date* date. 
+  "Date and Universal Time of local noon at *local date* date.
 
 The date may be different from the one asked for, but it will be the right
 local date.  The second component of date should be an integer."
@@ -408,12 +408,12 @@ local date.  The second component of date should be an integer."
          (te (solar-time-equation date ut)))
     (setq ut (- ut te))
     (if (>= ut 24)
-        (progn 
+        (progn
           (setq nd (list (car date) (+ 1 (car (cdr date)))
                          (car (cdr (cdr date)))))
           (setq ut (- ut 24))))
     (if (< ut 0)
-        (progn 
+        (progn
           (setq nd (list (car date) (- (car (cdr date)) 1)
                          (car (cdr (cdr date)))))
           (setq ut (+ ut 24))))
@@ -477,10 +477,10 @@ Corresponding value is nil if there is no sunrise/sunset."
 
 (defun solar-julian-ut-centuries (date)
   "Number of Julian centuries elapsed since 1 Jan, 2000 at noon  U.T. for Gregorian DATE."
-  (/ (- (calendar-absolute-from-gregorian date) 
+  (/ (- (calendar-absolute-from-gregorian date)
         (calendar-absolute-from-gregorian '(1 1.5 2000)))
      36525.0))
-  
+
 (defun solar-ephemeris-time(time)
   "Ephemeris Time at moment TIME.
 
@@ -534,7 +534,7 @@ calendar-time-zone are used to interpret local time."
         (setq end-long long)))
     (/ (+ start end) 2.0)))
 
-(defun solar-horizontal-coordinates 
+(defun solar-horizontal-coordinates
           (time latitude longitude for-sunrise-sunset)
   "Azimuth and height of the sun at TIME, LATITUDE, and LONGITUDE.
 
@@ -557,7 +557,7 @@ The azimuth is given in degrees as well as the height (between -180 and 180)."
                                 (* (solar-tangent-degrees de)
                                    (solar-cosine-degrees latitude)))
                               (solar-sin-degrees ah)))
-         (height (solar-arcsin 
+         (height (solar-arcsin
                   (+ (* (solar-sin-degrees latitude) (solar-sin-degrees de))
                      (* (solar-cosine-degrees latitude)
                         (solar-cosine-degrees de)
@@ -573,7 +573,7 @@ elapsed at 0 Universal Time, and the second component being the universal
 time.  For instance, the pair corresponding to November 28, 1995 at 16 UT is
 \(-0.040945 16), -0.040945 being the number of julian centuries elapsed between
 Jan 1, 2000 at 12 UT and November 28, 1995 at 0 UT."
-   (let* ((tm (solar-ephemeris-time time)) 
+   (let* ((tm (solar-ephemeris-time time))
           (ec (solar-ecliptic-coordinates tm for-sunrise-sunset)))
      (list (solar-right-ascension (car ec) (car (cdr ec)))
            (solar-declination (car ec) (car (cdr ec))))))
@@ -585,16 +585,16 @@ at moment `time', expressed in julian centuries of Ephemeris Time
 since January 1st, 2000, at 12 ET."
   (let* ((l (+ 280.46645
                (* 36000.76983 time)
-               (* 0.0003032 time time))) ; sun mean longitude 
+               (* 0.0003032 time time))) ; sun mean longitude
          (ml (+ 218.3165
-                (* 481267.8813 time))) ; moon mean longitude 
+                (* 481267.8813 time))) ; moon mean longitude
          (m (+ 357.52910
                (* 35999.05030 time)
                (* -0.0001559 time time)
-               (* -0.00000048 time time time))) ; sun mean anomaly 
+               (* -0.00000048 time time time))) ; sun mean anomaly
          (i (+ 23.43929111 (* -0.013004167 time)
                (* -0.00000016389 time time)
-               (* 0.0000005036 time time time))); mean inclination 
+               (* 0.0000005036 time time time))); mean inclination
          (c (+ (* (+ 1.914600
                      (* -0.004817 time)
                      (* -0.000014 time time))
@@ -602,8 +602,8 @@ since January 1st, 2000, at 12 ET."
                (* (+ 0.019993 (* -0.000101 time))
                   (solar-sin-degrees (* 2 m)))
                (* 0.000290
-                  (solar-sin-degrees (* 3 m))))) ; center equation 
-         (L (+ l c)) ; total longitude 
+                  (solar-sin-degrees (* 3 m))))) ; center equation
+         (L (+ l c)) ; total longitude
          (omega (+ 125.04
                    (* -1934.136 time))) ; longitude of moon's ascending node
                                         ; on the ecliptic
@@ -624,13 +624,13 @@ since January 1st, 2000, at 12 ET."
                  (* -0.00478
                     (solar-sin-degrees omega)))) ; apparent longitude of sun
          (y (if (not for-sunrise-sunset)
-                 (* (solar-tangent-degrees (/ i 2)) 
+                 (* (solar-tangent-degrees (/ i 2))
                   (solar-tangent-degrees (/ i 2)))
                 nil))
          (time-eq (if (not for-sunrise-sunset)
                     (/ (* 12 (+ (* y (solar-sin-degrees (* 2 l)))
                      (* -2 ecc (solar-sin-degrees m))
-                     (* 4 ecc y (solar-sin-degrees m) 
+                     (* 4 ecc y (solar-sin-degrees m)
                                 (solar-cosine-degrees (* 2 l)))
                      (* -0.5 y y  (solar-sin-degrees (* 4 l)))
                      (* -1.25 ecc ecc (solar-sin-degrees (* 2 m)))))
@@ -807,7 +807,7 @@ T0 must correspond to 0 hours UT."
           (nut-i (solar-ecliptic-coordinates et nil))
           (nut (car (cdr (cdr (cdr nut-i))))) ; nutation
           (i (car (cdr nut-i)))) ; inclination
-       (mod (+ (mod (+ mean-sid-time 
+       (mod (+ (mod (+ mean-sid-time
                     (/ (/ (* nut (solar-cosine-degrees i)) 15) 3600)) 24.0)
                24.0)
             24.0)))
@@ -895,7 +895,7 @@ This function is suitable for execution in a .emacs file."
                        "Type \\[delete-other-windows] to remove temp window."
                      "Type \\[switch-to-buffer] RET to remove temp window.")
                  "Type \\[switch-to-buffer-other-window] RET to restore old contents of temp window."))))))
- 
+
 (defun calendar-sunrise-sunset ()
   "Local time of sunrise and sunset for date under cursor.
 Accurate to a few seconds."
@@ -920,9 +920,12 @@ Accurate to a few seconds."
   :type 'integer
   :version "21.1")
 
-(defun diary-sabbath-candles ()
+(defun diary-sabbath-candles (&optional mark)
   "Local time of candle lighting diary entry--applies if date is a Friday.
-No diary entry if there is no sunset on that date."
+No diary entry if there is no sunset on that date.
+
+An optional parameter MARK specifies a face or single-character string to
+use when highlighting the day in the calendar."
   (if (not (and calendar-latitude calendar-longitude calendar-time-zone))
       (solar-setup))
   (if (= (% (calendar-absolute-from-gregorian date) 7) 5);;  Friday
@@ -932,13 +935,14 @@ No diary entry if there is no sunset on that date."
                                  (/ diary-sabbath-candles-minutes 60.0))
                               (cdr sunset)))))
         (if sunset
-            (format "%s Sabbath candle lighting"
-                    (apply 'solar-time-string light))))))
+            (cons mark
+		  (format "%s Sabbath candle lighting"
+                    (apply 'solar-time-string light)))))))
 
 (defun solar-equinoxes/solstices (k year)
   "Date of equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox;
-K=3, winter solstice. 
+K=3, winter solstice.
 RESULT is a gregorian local date.
 
 Accurate to less than a minute between 1951 and 2050."
@@ -947,13 +951,13 @@ Accurate to less than a minute between 1951 and 2050."
          (W (- (* 35999.373 T) 2.47))
          (Delta-lambda (+ 1 (* 0.0334 (solar-cosine-degrees W))
                             (* 0.0007 (solar-cosine-degrees (* 2 W)))))
-         (S (apply '+ (mapcar '(lambda(x) 
-                                 (* (car x) (solar-cosine-degrees 
+         (S (apply '+ (mapcar '(lambda(x)
+                                 (* (car x) (solar-cosine-degrees
                                              (+ (* (car (cdr (cdr x))) T)
-                                                  (car (cdr x)))))) 
+                                                  (car (cdr x))))))
                               solar-seasons-data)))
          (JDE (+ JDE0 (/ (* 0.00001 S) Delta-lambda)))
-         (correction (+ 102.3 (* 123.5 T) (* 32.5 T T))) 
+         (correction (+ 102.3 (* 123.5 T) (* 32.5 T T)))
              ; ephemeris time correction
          (JD (- JDE (/ correction 86400)))
          (date (calendar-gregorian-from-absolute (floor (- JD 1721424.5))))
@@ -965,7 +969,7 @@ Accurate to less than a minute between 1951 and 2050."
 
 ; from Meeus, 1991, page 166
 (defun solar-mean-equinoxes/solstices (k year)
-  "Julian day of mean equinox/solstice K for YEAR.  
+  "Julian day of mean equinox/solstice K for YEAR.
 K=0, spring equinox; K=1, summer solstice; K=2, fall equinox; K=3, winter
 solstice.  These formulas are only to be used between 1000 BC and 3000 AD."
   (let ((y (/ year 1000.0))
@@ -1057,13 +1061,14 @@ Requires floating point."
             (if calendar-time-zone calendar-daylight-savings-ends))
            (calendar-time-zone (if calendar-time-zone calendar-time-zone 0))
            (k (1- (/ m 3)))
-           (d0 (solar-equinoxes/solstices k y)) 
+           (d0 (solar-equinoxes/solstices k y))
            (d1 (list (car d0) (floor (car (cdr d0))) (car (cdr (cdr d0)))))
            (h0 (* 24 (- (car (cdr d0)) (floor (car (cdr d0))))))
            (adj (dst-adjust-time d1 h0))
-           (d (list (car d1) (+ (car (cdr d1))  
-                  (/ (car (cdr adj)) 24.0))
-                    (car (cdr (cdr d1)))))
+           (d (list (car (car adj))
+                    (+ (car (cdr (car adj))  )
+                       (/ (car (cdr adj)) 24.0))
+                    (car (cdr (cdr (car adj))))))
            ; The following is nearly as accurate, but not quite:
 	   ;(d0 (solar-date-next-longitude
            ;    (calendar-astro-from-absolute

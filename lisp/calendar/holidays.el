@@ -149,7 +149,7 @@ The optional LABEL is used to label the buffer created."
           (name (if (string-equal choice "Equinoxes/Solstices")
                     choice
                   (if (member choice '("Ask" ""))
-                      "Holidays" 
+                      "Holidays"
                     (format "%s Holidays" choice)))))
      (list start-year end-year which name)))
   (message "Computing holidays...")
@@ -466,7 +466,7 @@ date.  If date is nil, or if the date is not visible, there is no holiday."
            (filter-visible-calendar-holidays mandatory)))
      (if all-christian-calendar-holidays
          (setq output-list
-               (append 
+               (append
                 (filter-visible-calendar-holidays optional)
                 output-list)))
      output-list)))

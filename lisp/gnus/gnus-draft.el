@@ -118,8 +118,8 @@
     (while (setq article (pop articles))
       (gnus-summary-remove-process-mark article)
       (unless (memq article gnus-newsgroup-unsendable)
-	(let ((message-sending-message 
-	       (format "Sending message %d of %d..." 
+	(let ((message-sending-message
+	       (format "Sending message %d of %d..."
 		       (- total (length articles)) total)))
 	  (gnus-draft-send article gnus-newsgroup-name t))
 	(gnus-summary-mark-article article gnus-canceled-mark)))))
@@ -128,7 +128,7 @@
   "Send message ARTICLE."
   (let ((message-syntax-checks (if interactive nil
 				 'dont-check-for-anything-just-trust-me))
-	(message-inhibit-body-encoding (or (not group) 
+	(message-inhibit-body-encoding (or (not group)
 					   (equal group "nndraft:queue")
 					   message-inhibit-body-encoding))
 	(message-send-hook (and group (not (equal group "nndraft:queue"))
@@ -185,8 +185,8 @@
 	   article)
       (while (setq article (pop articles))
 	(unless (memq article unsendable)
-	  (let ((message-sending-message 
-		 (format "Sending message %d of %d..." 
+	  (let ((message-sending-message
+		 (format "Sending message %d of %d..."
 			 (- total (length articles)) total)))
 	    (gnus-draft-send article)))))))
 

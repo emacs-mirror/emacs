@@ -1,6 +1,6 @@
-;;; morse.el --- convert text to morse code and back
+;;; morse.el --- convert text to morse code and back             -*- coding: utf-8 -*-
 
-;; Copyright (C) 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2002 Free Software Foundation, Inc.
 
 ;; Author: Rick Farnbach <rick_farnbach@MENTORG.COM>
 ;; Keywords: games
@@ -76,7 +76,19 @@
 		     ("6" . "-....")
 		     ("7" . "--...")
 		     ("8" . "---..")
-		     ("9" . "----."))
+		     ("9" . "----.")
+		     ;; Non-ASCII
+		     ("Ä" . ".-.-")
+		     ("Æ" . ".-.-")
+		     ("Á" . ".--.-")
+		     ("Å" . ".--.-")
+		     ;; ligature character?? ("Ch" . "----")
+		     ("ß" . ".../...")
+		     ("É" . "..-..")
+		     ("Ñ" . "--.--")
+		     ("Ö" . "---.")
+		     ("Ø" . "---.")
+		     ("Ü" . "..--"))
   "Morse code character set.")
 
 ;;;###autoload

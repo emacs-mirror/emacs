@@ -1,4 +1,4 @@
-;;; internal.el --- support for PC internal terminal -*- coding: raw-text; -*-
+;;; internal.el --- support for PC internal terminal -*- coding: raw-text; no-byte-compile: t -*-
 
 ;; Copyright (C) 1993, 1994, 1998, 1999, 2001 Free Software Foundation, Inc.
 
@@ -626,7 +626,7 @@ display tables, and the language environment options as appropriate."
       ;; which are supported on all platforms.)
       (let* ((i 128)
 	     (modify (function
-		      (lambda (ch sy) 
+		      (lambda (ch sy)
 			(modify-syntax-entry ch sy text-mode-syntax-table)
 			(if (boundp 'tex-mode-syntax-table)
 			    (modify-syntax-entry ch sy tex-mode-syntax-table))

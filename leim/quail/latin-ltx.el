@@ -1,4 +1,4 @@
-;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: iso-2022-7bit-*-
+;;; latin-ltx.el --- Quail package for TeX-style input -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 2001 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
@@ -62,7 +62,7 @@ system, including many technical ones.  Examples:
  ("$^1$" ?,A9(B)
  ("$^o$" ?,A:(B)
  ("?`" ?,A?(B)
- 
+
  ("\\`{A}" ?,A@(B)  ("\\`A" ?,A@(B)
  ("\\'{A}" ?,AA(B)  ("\\'A" ?,AA(B)
  ("\\^{A}" ?,AB(B)  ("\\^A" ?,AB(B)

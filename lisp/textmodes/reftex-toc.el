@@ -1,8 +1,8 @@
 ;;; reftex-toc.el --- RefTeX's table of contents mode
 ;; Copyright (c) 1997, 1998, 1999, 2000 Free Software Foundation, Inc.
 
-;; Author: Carsten Dominik <dominik@strw.LeidenUniv.nl>
-;; Version: 4.16
+;; Author: Carsten Dominik <dominik@science.uva.nl>
+;; Version: 4.18
 
 ;; This file is part of GNU Emacs.
 
@@ -62,6 +62,10 @@ Here are all local bindings.
 	      "  T<" 'reftex-toc-max-level-indicator ">"
 	      " -%-"))
   (setq truncate-lines t)
+  (when (featurep 'xemacs)
+    ;; XEmacs needs the call to make-local-hook
+    (make-local-hook 'post-command-hook)
+    (make-local-hook 'pre-command-hook))
   (make-local-variable 'reftex-last-follow-point)
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
@@ -72,6 +76,7 @@ Here are all local bindings.
   "Stores the file name from which `reftex-toc' was called.  For redo command.")
 
 (defvar reftex-last-window-height nil)
+(defvar reftex-last-window-width nil)
 (defvar reftex-toc-include-labels-indicator nil)
 (defvar reftex-toc-include-index-indicator nil)
 (defvar reftex-toc-max-level-indicator nil)
@@ -90,7 +95,7 @@ C-c >      Display Index. With prefix arg, restrict index to current section.
 q / k      Hide/Kill *toc* buffer, return to position of reftex-toc command.
 l i c F    Toggle display of  [l]abels,  [i]ndex,  [c]ontext,  [F]ile borders.
 t          Change maximum toc depth (e.g. `3 t' hides levels greater than 3).
-f / g      Toggle follow mode on and off  / Refresh *toc* buffer.
+f / a / g  Toggle follow mode / toggle auto recenter / Refresh *toc* buffer.
 r / C-u r  Reparse the LaTeX document     / Reparse entire LaTeX document.
 .          In other window, show position from where `reftex-toc' was called.
 x          Switch to TOC of external document (with LaTeX package `xr').
@@ -127,7 +132,7 @@ When called with a raw C-u prefix, rescan the document first."
 	 (docstruct-symbol reftex-docstruct-symbol)
 	 (xr-data (assq 'xr (symbol-value reftex-docstruct-symbol)))
 	 (xr-alist (cons (cons "" (buffer-file-name)) (nth 1 xr-data)))
-	 (here-I-am (if rebuild 
+	 (here-I-am (if (boundp 'reftex-rebuilding-toc)
 			(get 'reftex-toc :reftex-data)
 		      (car (reftex-where-am-I))))
 	 offset)
@@ -137,8 +142,14 @@ When called with a raw C-u prefix, rescan the document first."
       (when (or (not reftex-toc-keep-other-windows)
 		(< (window-height) (* 2 window-min-height)))
 	(delete-other-windows))
-      (setq reftex-last-window-height (window-height))  ; remember
-      (split-window)
+
+      (setq reftex-last-window-width (window-width)
+	    reftex-last-window-height (window-height))  ; remember
+      (if reftex-toc-split-windows-horizontally
+	  (split-window-horizontally
+	   (floor (* (frame-width) reftex-toc-split-windows-horizontally-fraction)))
+	(split-window))
+
       (let ((default-major-mode 'reftex-toc-mode))
 	(switch-to-buffer "*toc*")))
 
@@ -180,11 +191,11 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 	     reftex-toc-include-context
 	     nil ; counter
 	     nil ; commented
-	     here-I-am 
+	     here-I-am
 	     ""     ; xr-prefix
 	     t      ; a toc buffer
 	     ))
-       
+
       (run-hooks 'reftex-display-copied-context-hook)
       (message "Building *toc* buffer...done.")
       (setq buffer-read-only t))
@@ -196,7 +207,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 				   t
 				   reftex-toc-include-index-entries
 				   reftex-toc-include-file-boundaries)
-		(reftex-last-assoc-before-elt 
+		(reftex-last-assoc-before-elt
 		 'toc here-I-am
 		 (symbol-value reftex-docstruct-symbol))))
       (put 'reftex-toc :reftex-line 3)
@@ -207,10 +218,31 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
     (reftex-find-start-point (point) offset (get 'reftex-toc :reftex-line))
     (setq reftex-last-follow-point (point))))
 
+(defun reftex-toc-recenter (&optional arg)
+  "Display the TOC window and highlight line corresponding to current position."
+  (interactive "P")
+  (let ((buf (current-buffer)))
+    (reftex-toc arg)
+    (if (= (count-lines 1 (point)) 2)
+	(let ((current-prefix-arg nil))
+	  (select-window (get-buffer-window buf))
+	  (reftex-toc nil)))
+    (and (> (point) 1)
+	 (not (get-text-property (point) 'intangible))
+	 (memq reftex-highlight-selection '(cursor both))
+	 (reftex-highlight 2
+	   (or (previous-single-property-change
+		(min (point-max) (1+ (point))) :data)
+	       (point-min))
+	   (or (next-single-property-change (point) :data)
+	       (point-max))))
+    (select-window (get-buffer-window buf))))
+
 (defun reftex-toc-pre-command-hook ()
   ;; used as pre command hook in *toc* buffer
   (reftex-unhighlight 0)
-  (reftex-unhighlight 1))
+;;  (reftex-unhighlight 1)  ;; remove highlight on leaving buffer.
+  )
 
 (defun reftex-toc-post-command-hook ()
   ;; used in the post-command-hook for the *toc* buffer
@@ -219,7 +251,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
     (and (> (point) 1)
 	 (not (get-text-property (point) 'intangible))
 	 (memq reftex-highlight-selection '(cursor both))
-	 (reftex-highlight 1
+	 (reftex-highlight 2
 	   (or (previous-single-property-change (1+ (point)) :data)
 	       (point-min))
 	   (or (next-single-property-change (point) :data)
@@ -237,9 +269,13 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 
 (defun reftex-re-enlarge ()
   ;; Enlarge windiw to a remembered size
-  (enlarge-window
-   (max 0 (- (or reftex-last-window-height (window-height))
-	     (window-height)))))
+  (if reftex-toc-split-windows-horizontally
+      (enlarge-window-horizontally
+       (max 0 (- (or reftex-last-window-width (window-width))
+		 (window-width))))
+    (enlarge-window
+     (max 0 (- (or reftex-last-window-height (window-height))
+	       (window-height))))))
 
 (defun reftex-toc-show-help ()
   "Show a summary of special key bindings."
@@ -256,7 +292,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
   (interactive "p")
   (setq reftex-callback-fwd t)
   (or (eobp) (forward-char 1))
-  (goto-char (or (next-single-property-change (point) :data) 
+  (goto-char (or (next-single-property-change (point) :data)
 		 (point))))
 (defun reftex-toc-previous (&optional arg)
   "Move to previous selectable item."
@@ -290,7 +326,7 @@ SPC=view TAB=goto RET=goto+hide [q]uit [r]escan [l]abels [f]ollow [x]r [?]Help
 With prefix ARG, prompt for a label type and include only labels of
 that specific type."
   (interactive "P")
-  (setq reftex-toc-include-labels 
+  (setq reftex-toc-include-labels
 	(if arg (reftex-query-label-type)
 	  (not reftex-toc-include-labels)))
   (reftex-toc-revert))
@@ -380,7 +416,7 @@ With prefix arg 1, restrict index to the section at point."
 (defun reftex-toc-rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing file of section at point."
   (interactive)
-  (if (and reftex-enable-partial-scans 
+  (if (and reftex-enable-partial-scans
 	   (null current-prefix-arg))
       (let* ((data (get-text-property (point) :data))
 	     (what (car data))
@@ -395,16 +431,20 @@ With prefix arg 1, restrict index to the section at point."
           (switch-to-buffer-other-window
            (reftex-get-file-buffer-force file))
 	  (setq current-prefix-arg '(4))
-          (reftex-toc t)))
+	  (let ((reftex-rebuilding-toc t))
+	    (reftex-toc))))
     (reftex-toc-Rescan))
   (reftex-kill-temporary-buffers))
 (defun reftex-toc-Rescan (&rest ignore)
   "Regenerate the *toc* buffer by reparsing the entire document."
   (interactive)
+  (let* ((line (+ (count-lines (point-min) (point)) (if (bolp) 1 0))))
+    (put 'reftex-toc :reftex-line line))
   (switch-to-buffer-other-window
    (reftex-get-file-buffer-force reftex-last-toc-file))
   (setq current-prefix-arg '(16))
-  (reftex-toc t))
+  (let ((reftex-rebuilding-toc t))
+    (reftex-toc)))
 (defun reftex-toc-revert (&rest ignore)
   "Regenerate the *toc* from the internal lists."
   (interactive)
@@ -412,7 +452,8 @@ With prefix arg 1, restrict index to the section at point."
    (reftex-get-file-buffer-force reftex-last-toc-file))
   (reftex-erase-buffer "*toc*")
   (setq current-prefix-arg nil)
-  (reftex-toc t))
+  (let ((reftex-rebuilding-toc t))
+    (reftex-toc t)))
 (defun reftex-toc-external (&rest ignore)
   "Switch to table of contents of an external document."
   (interactive)
@@ -453,9 +494,9 @@ Useful for large TOC's."
          show-window show-buffer match)
 
     (unless toc (error "Don't know which toc line to visit"))
-    
+
     (cond
-  
+
      ((eq (car toc) 'toc)
       ;; a toc entry
       (setq match (reftex-toc-find-section toc no-revisit)))
@@ -471,7 +512,7 @@ Useful for large TOC's."
 		  (file (nth 1 toc)))
 	      (if (or (not no-revisit) (reftex-get-buffer-visiting file))
 		  (progn
-		    (switch-to-buffer-other-window 
+		    (switch-to-buffer-other-window
 		     (reftex-get-file-buffer-force file nil))
 		    (goto-char (if (eq where 'bof) (point-min) (point-max))))
 		(message reftex-no-follow-message) nil))))
@@ -519,8 +560,8 @@ Useful for large TOC's."
 		(looking-at (reftex-make-desperate-section-regexp literal))
 		(looking-at (concat "\\\\"
 				    (regexp-quote
-				     (car 
-				      (rassq level 
+				     (car
+				      (rassq level
 					     reftex-section-levels-all)))
 				    "[[{]?"))))
 	   ((or (not no-revisit)
@@ -558,6 +599,38 @@ Useful for large TOC's."
       (setq old (substring old (match-end 0))))
     new))
 
+
+(defun reftex-recenter-toc-when-idle ()
+  (and (> (buffer-size) 5)
+       reftex-mode
+       (not (active-minibuffer-window))
+       (fboundp 'reftex-toc-mode)
+       (get-buffer-window "*toc*")
+       (string= reftex-last-toc-master (reftex-TeX-master-file))
+       (reftex-toc-recenter)))
+
+(defun reftex-toggle-auto-toc-recenter ()
+  "Toggle the automatic recentering of the toc window.
+When active, leaving point idle will make the toc window jump to the correct
+section."
+  (interactive)
+  (if reftex-toc-auto-recenter-timer
+      (progn
+	(if (featurep 'xemacs)
+	    (delete-itimer reftex-toc-auto-recenter-timer)
+	  (cancel-timer reftex-toc-auto-recenter-timer))
+	(setq reftex-toc-auto-recenter-timer nil)
+	(message "Automatic recentering of toc buffer was turned off"))
+    (setq reftex-toc-auto-recenter-timer
+	  (if (featurep 'xemacs)
+	      (start-itimer "RefTeX Idle Timer for recenter"
+			    'reftex-recenter-toc-when-idle
+			    reftex-idle-time reftex-idle-time t)
+	    (run-with-idle-timer
+	     reftex-idle-time t 'reftex-recenter-toc-when-idle)))
+    (message "Automatic recentering of toc window was turned on")))
+
+
 ;; Table of Contents map
 (define-key reftex-toc-map (if (featurep 'xemacs) [(button2)] [(mouse-2)])
   'reftex-toc-mouse-goto-line-and-hide)
@@ -581,6 +654,7 @@ Useful for large TOC's."
 	("q"    . reftex-toc-quit)
 	("k"    . reftex-toc-quit-and-kill)
 	("f"    . reftex-toc-toggle-follow)
+	("a"    . reftex-toggle-auto-toc-recenter)
 	("F"    . reftex-toc-toggle-file-boundary)
 	("i"    . reftex-toc-toggle-index)
 	("l"    . reftex-toc-toggle-labels)
@@ -598,7 +672,7 @@ Useful for large TOC's."
       (define-key reftex-toc-map (vector (list key)) 'digit-argument))
 (define-key reftex-toc-map "-" 'negative-argument)
 
-(easy-menu-define 
+(easy-menu-define
  reftex-toc-menu reftex-toc-map
  "Menu for Table of Contents buffer"
  '("TOC"
@@ -625,7 +699,7 @@ Useful for large TOC's."
     ["Context" reftex-toc-toggle-context :style toggle
      :selected reftex-toc-include-context]
     "--"
-    ["Follow Mode" reftex-toc-toggle-follow :style toggle 
+    ["Follow Mode" reftex-toc-toggle-follow :style toggle
      :selected reftex-toc-follow-mode])
    "--"
    ["Help" reftex-toc-show-help t]))

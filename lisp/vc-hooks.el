@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-hooks.el,v 1.138 2002/02/21 20:56:58 spiegel Exp $
+;; $Id: vc-hooks.el,v 1.147 2003/02/05 23:14:06 lektu Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -38,9 +38,12 @@
 
 ;; Customization Variables (the rest is in vc.el)
 
-(defvar vc-ignore-vc-files nil "Obsolete -- use `vc-handled-backends'.")
-(defvar vc-master-templates () "Obsolete -- use vc-BACKEND-master-templates.")
-(defvar vc-header-alist () "Obsolete -- use vc-BACKEND-header.")
+(defvar vc-ignore-vc-files nil)
+(make-obsolete-variable 'vc-ignore-vc-files 'vc-handled-backends)
+(defvar vc-master-templates ())
+(make-obsolete-variable 'vc-master-templates 'vc-BACKEND-master-templates)
+(defvar vc-header-alist ())
+(make-obsolete-variable 'vc-header-alist 'vc-BACKEND-header)
 
 (defcustom vc-handled-backends '(RCS CVS SCCS)
   "*List of version control backends for which VC will be used.
@@ -114,8 +117,9 @@ See also variable `vc-consult-headers'."
 	   (funcall vc-mistrust-permissions
 		    (vc-backend-subdirectory-name file)))))
 
+;;; This is handled specially now.
 ;; Tell Emacs about this new kind of minor mode
-(add-to-list 'minor-mode-alist '(vc-mode vc-mode))
+;; (add-to-list 'minor-mode-alist '(vc-mode vc-mode))
 
 (make-variable-buffer-local 'vc-mode)
 (put 'vc-mode 'permanent-local t)
@@ -169,7 +173,7 @@ VC commands are globally reachable under the prefix `\\[vc-prefix-map]':
 
 (defun vc-find-backend-function (backend fun)
   "Return BACKEND-specific implementation of FUN.
-If there is no such implementation, return the default implementation; 
+If there is no such implementation, return the default implementation;
 if that doesn't exist either, return nil."
   (let ((f (vc-make-backend-sym backend fun)))
     (if (fboundp f) f
@@ -216,8 +220,9 @@ It is usually called via the `vc-call' macro."
 
 Optional argument LIMIT is a regexp.  If present, the file is inserted
 in chunks of size BLOCKSIZE (default 8 kByte), until the first
-occurrence of LIMIT is found.  The function returns non-nil if FILE 
-exists and its contents were successfully inserted."
+occurrence of LIMIT is found.  Anything from the start of that occurrence
+to the end of the buffer is then deleted.  The function returns
+non-nil if FILE exists and its contents were successfully inserted."
   (erase-buffer)
   (when (file-exists-p file)
     (if (not limit)
@@ -228,7 +233,10 @@ exists and its contents were successfully inserted."
 	    (and (< 0 (cadr (insert-file-contents
 			     file nil filepos (incf filepos blocksize))))
 		 (progn (beginning-of-line)
-			(not (re-search-forward limit nil 'move)))))))
+                        (let ((pos (re-search-forward limit nil 'move)))
+                          (if pos (delete-region (match-beginning 0)
+                                                 (point-max)))
+                          (not pos)))))))
     (set-buffer-modified-p nil)
     t))
 
@@ -263,7 +271,7 @@ backend is tried first."
 	     (and (vc-call-backend b 'registered file)
 		  (vc-file-setprop file 'vc-backend b)
 		  (throw 'found t)))
-	   (if (or (not backend) (eq backend 'none)) 
+	   (if (or (not backend) (eq backend 'none))
 	       vc-handled-backends
 	     (cons backend vc-handled-backends))))
         ;; File is not registered.
@@ -311,11 +319,11 @@ For registered files, the possible values are:
               when the user saves the first changes to the file.
 
   'locking    FILE is read-only if up-to-date; user must type
-              \\[vc-toggle-read-only] before editing.  Strict locking
+              \\[vc-next-action] before editing.  Strict locking
               is assumed.
 
   'announce   FILE is read-only if up-to-date; user must type
-              \\[vc-toggle-read-only] before editing.  But other users
+              \\[vc-next-action] before editing.  But other users
               may be editing at the same time."
   (or (vc-file-getprop file 'vc-checkout-model)
       (if (vc-backend file)
@@ -346,7 +354,7 @@ For registered files, the value returned is one of:
 
   USER               The current version of the working file is locked by
                      some other USER (a string).
-            
+
   'needs-patch       The file has not been edited by the user, but there is
                      a more recent version on the current branch stored
                      in the master file.
@@ -377,6 +385,21 @@ It simply calls the real state computation function `vc-BACKEND-state'
 and does not employ any heuristic at all."
    (vc-call-backend backend 'state file))
 
+(defun vc-workfile-unchanged-p (file)
+  "Return non-nil if FILE has not changed since the last checkout."
+  (let ((checkout-time (vc-file-getprop file 'vc-checkout-time))
+        (lastmod (nth 5 (file-attributes file))))
+    (if checkout-time
+        (equal checkout-time lastmod)
+      (let ((unchanged (vc-call workfile-unchanged-p file)))
+        (vc-file-setprop file 'vc-checkout-time (if unchanged lastmod 0))
+        unchanged))))
+
+(defun vc-default-workfile-unchanged-p (backend file)
+  "Check if FILE is unchanged by diffing against the master version.
+Return non-nil if FILE is unchanged."
+  (zerop (vc-call diff file (vc-workfile-version file))))
+
 (defun vc-workfile-version (file)
   "Return the version level of the current workfile FILE.
 If FILE is not registered, this function always returns nil."
@@ -384,8 +407,6 @@ If FILE is not registered, this function always returns nil."
       (if (vc-backend file)
           (vc-file-setprop file 'vc-workfile-version
                            (vc-call workfile-version file)))))
-
-;;; actual version-control code starts here
 
 (defun vc-default-registered (backend file)
   "Check if FILE is registered in BACKEND using vc-BACKEND-master-templates."
@@ -453,19 +474,22 @@ this function."
 
 (defun vc-toggle-read-only (&optional verbose)
   "Change read-only status of current buffer, perhaps via version control.
+
 If the buffer is visiting a file registered with version control,
 then check the file in or out.  Otherwise, just change the read-only flag
 of the buffer.
 With prefix argument, ask for version number to check in or check out.
 Check-out of a specified version number does not lock the file;
-to do that, use this command a second time with no argument."
+to do that, use this command a second time with no argument.
+
+If you bind this function to \\[toggle-read-only], then Emacs checks files
+in or out whenever you toggle the read-only flag."
   (interactive "P")
   (if (or (and (boundp 'vc-dired-mode) vc-dired-mode)
 	  ;; use boundp because vc.el might not be loaded
 	  (vc-backend (buffer-file-name)))
       (vc-next-action verbose)
     (toggle-read-only)))
-(define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
 (defun vc-default-make-version-backups-p (backend file)
   "Return non-nil if unmodified versions should be backed up locally.
@@ -480,8 +504,8 @@ a regexp for matching all such backup files, regardless of the version."
   (if regexp
       (concat (regexp-quote (file-name-nondirectory file))
               "\\.~[0-9.]+" (unless manual "\\.") "~")
-    (expand-file-name (concat (file-name-nondirectory file) 
-                              ".~" (or rev (vc-workfile-version file)) 
+    (expand-file-name (concat (file-name-nondirectory file)
+                              ".~" (or rev (vc-workfile-version file))
                               (unless manual ".") "~")
                       (file-name-directory file))))
 
@@ -637,7 +661,7 @@ current, and kill the buffer that visits the link."
 		       (get-file-buffer
 			(abbreviate-file-name
                          (file-chase-links buffer-file-name))))
-		       
+
 		   (vc-follow-link)
 		   (message "Followed link to %s" buffer-file-name)
 		   (vc-find-file-hook))
@@ -677,8 +701,7 @@ Used in `find-file-not-found-hooks'."
   (if (buffer-file-name)
       (vc-file-clearprops (buffer-file-name))))
 
-;; ??? DL: why is this not done?
-;;;(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
+(add-hook 'kill-buffer-hook 'vc-kill-buffer-hook)
 
 ;; Now arrange for (autoloaded) bindings of the main package.
 ;; Bindings for this have to go in the global map, as we'll often

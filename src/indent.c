@@ -47,7 +47,7 @@ int indent_tabs_mode;
    Some things in set last_known_column_point to -1
    to mark the memorized value as invalid.  */
 
-float last_known_column;
+double last_known_column;
 
 /* Value of point when current_column was called.  */
 
@@ -57,8 +57,8 @@ int last_known_column_point;
 
 int last_known_column_modified;
 
-static float current_column_1 P_ ((void));
-static float position_indentation P_ ((int));
+static double current_column_1 P_ ((void));
+static double position_indentation P_ ((int));
 
 /* Cache of beginning of line found by the last call of
    current_column. */
@@ -355,7 +355,7 @@ invalidate_current_column ()
   last_known_column_point = 0;
 }
 
-float
+double
 current_column ()
 {
   register int col;
@@ -502,7 +502,7 @@ current_column ()
    This function handles characters that are invisible
    due to text properties or overlays.  */
 
-static float
+static double
 current_column_1 ()
 {
   register int tab_width = XINT (current_buffer->tab_width);
@@ -652,7 +652,7 @@ current_column_1 ()
    If BEG is nil, that stands for the beginning of STRING.
    If END is nil, that stands for the end of STRING.  */
 
-static float
+static double
 string_display_width (string, beg, end)
      Lisp_Object string, beg, end;
 {
@@ -667,7 +667,7 @@ string_display_width (string, beg, end)
   int b, e;
 
   if (NILP (end))
-    e = XSTRING (string)->size;
+    e = SCHARS (string);
   else
     {
       CHECK_NUMBER (end);
@@ -683,10 +683,10 @@ string_display_width (string, beg, end)
     }
 
   /* Make a pointer for decrementing through the chars before point.  */
-  ptr = XSTRING (string)->data + e;
+  ptr = SDATA (string) + e;
   /* Make a pointer to where consecutive chars leave off,
      going backwards from point.  */
-  stop = XSTRING (string)->data + b;
+  stop = SDATA (string) + b;
 
   if (tab_width <= 0 || tab_width > 1000) tab_width = 8;
 
@@ -778,7 +778,7 @@ even if that goes past COLUMN; by default, MININUM is zero.  */)
 }
 
 
-static float position_indentation P_ ((int));
+static double position_indentation P_ ((int));
 
 DEFUN ("current-indentation", Fcurrent_indentation, Scurrent_indentation,
        0, 0, 0,
@@ -797,7 +797,7 @@ following any initial whitespace.  */)
   return val;
 }
 
-static float
+static double
 position_indentation (pos_byte)
      register int pos_byte;
 {
@@ -890,9 +890,9 @@ position_indentation (pos_byte)
 int
 indented_beyond_p (pos, pos_byte, column)
      int pos, pos_byte;
-     float column;
+     double column;
 {
-  float val;
+  double val;
   int opoint = PT, opoint_byte = PT_BYTE;
 
   SET_PT_BOTH (pos, pos_byte);
@@ -1612,7 +1612,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 		{
 		  if (selective > 0
 		      && indented_beyond_p (pos, pos_byte,
-                                            (float) selective)) /* iftc */
+                                            (double) selective)) /* iftc */
 		    {
 		      /* If (pos == to), we don't have to take care of
 			 selective display.  */
@@ -1628,7 +1628,7 @@ compute_motion (from, fromvpos, fromhpos, did_motion, to, tovpos, tohpos, width,
 			    }
 			  while (pos < to
 				 && indented_beyond_p (pos, pos_byte,
-                                                       (float) selective)); /* iftc */
+                                                       (double) selective)); /* iftc */
 			  /* Allow for the " ..." that is displayed for them. */
 			  if (selective_rlen)
 			    {
@@ -1878,7 +1878,7 @@ vmotion (from, vtarget, w)
 		 && ((selective > 0
 		      && indented_beyond_p (XFASTINT (prevline),
 					    CHAR_TO_BYTE (XFASTINT (prevline)),
-					    (float) selective)) /* iftc */
+					    (double) selective)) /* iftc */
 		     /* watch out for newlines with `invisible' property */
 		     || (propval = Fget_char_property (prevline,
 						       Qinvisible,
@@ -1938,7 +1938,7 @@ vmotion (from, vtarget, w)
 	     && ((selective > 0
 		  && indented_beyond_p (XFASTINT (prevline),
 					CHAR_TO_BYTE (XFASTINT (prevline)),
-					(float) selective)) /* iftc */
+					(double) selective)) /* iftc */
 		 /* watch out for newlines with `invisible' property */
 		 || (propval = Fget_char_property (prevline, Qinvisible,
 						   text_prop_object),
@@ -2023,11 +2023,12 @@ whether or not it is currently displayed in some window.  */)
   SET_TEXT_POS (pt, PT, PT_BYTE);
   start_display (&it, w, pt);
 
-  /* Move to the start of the line containing PT.  If we don't do
-     this, we start moving with IT->current_x == 0, while PT is really
-     at some x > 0.  The effect is, in continuation lines, that we end
-     up with the iterator placed at where it thinks X is 0, while the
-     end position is really at some X > 0, the same X that PT had.  */
+  /* Move to the start of the display line containing PT.  If we don't
+     do this, we start moving with IT->current_x == 0, while PT is
+     really at some x > 0.  The effect is, in continuation lines, that
+     we end up with the iterator placed at where it thinks X is 0,
+     while the end position is really at some X > 0, the same X that
+     PT had.  */
   move_it_by_lines (&it, 0, 0);
 
   if (XINT (lines) != 0)

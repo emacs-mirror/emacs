@@ -1,6 +1,6 @@
 #include "copyright.h"
 
-/* $Header: /u/src/emacs/19.0/oldXMenu/RCS/DelSel.c,v 1.1 1992/04/11 22:10:18 jimb Exp $ */
+/* $Header: /cvsroot/emacs/emacs/oldXMenu/DelSel.c,v 1.2 2003/02/04 14:19:01 lektu Exp $ */
 /* Copyright    Massachusetts Institute of Technology    1985	*/
 
 /*
@@ -24,7 +24,7 @@ XMenuDeleteSelection(display, menu, p_num, s_num)
 {
     register XMPane *p_ptr;	/* Pointer to pane being deleted. */
     register XMSelect *s_ptr;	/* Pointer to selections being deleted. */
-        
+
     /*
      * Find the right pane.
      */
@@ -53,7 +53,7 @@ XMenuDeleteSelection(display, menu, p_num, s_num)
      * Destroy the selection transparency.
      */
     if (s_ptr->window) XDestroyWindow(display, s_ptr->window);
-    
+
     /*
      * Free the selection's XMSelect structure.
      */

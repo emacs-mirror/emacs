@@ -76,11 +76,15 @@ key with some other primary purpose.  Sometimes it is labeled
 it.
 
   If there is no @key{META} key, you can still type Meta characters
-using two-character sequences starting with @key{ESC}.  Thus, you can enter
-@kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter @kbd{C-M-a} by
-typing @kbd{@key{ESC} C-a}.  @key{ESC} is allowed on terminals with
-@key{META} keys, too, in case you have formed a habit of using it.
-  
+using two-character sequences starting with @key{ESC}.  Thus, you can
+enter @kbd{M-a} by typing @kbd{@key{ESC} a}.  You can enter
+@kbd{C-M-a} by typing @kbd{@key{ESC} C-a}.  Unlike @key{META}, which
+modifies other characters, @key{ESC} is a separate character.  You
+don't hold down @key{ESC} while typing the next character; instead,
+you press it and release it, then you enter the next character.
+@key{ESC} is allowed on terminals with @key{META} keys, too, in case
+you have formed a habit of using it.
+
   The X Window System provides several other modifier keys that can be
 applied to any input character.  These are called @key{SUPER},
 @key{HYPER} and @key{ALT}.  We write @samp{s-}, @samp{H-} and @samp{A-}
@@ -91,6 +95,14 @@ key labeled @key{ALT} which is really a @key{META} key.  The standard
 key bindings of Emacs do not include any characters with these
 modifiers.  But you can assign them meanings of your own by customizing
 Emacs.
+
+  If your keyboard lacks one of these modifier keys, you can enter it
+using @kbd{C-x @@}: @kbd{C-x @@ h} adds the ``hyper'' flag to the next
+character, @kbd{C-x @@ s} adds the ``super'' flag, and @kbd{C-x @@ a}
+adds the ``alt'' flag.  For instance, @kbd{C-x @@ h C-a} is a way to
+enter @kbd{Hyper-Control-a}.  (Unfortunately there is no way to add
+two modifiers by using @kbd{C-x @@} twice for the same character,
+because the first one goes to work on the @kbd{C-x}.)
 
   Keyboard input includes keyboard keys that are not characters at all:
 for example function keys and arrow keys.  Mouse buttons are also
@@ -171,7 +183,7 @@ There are a few prefix keys for which @kbd{C-h} does not
 work---for historical reasons, they have other meanings for @kbd{C-h}
 which are not easy to change.  But @key{F1} should work for all prefix
 keys.
-  
+
 @node Commands, Text Characters, Keys, Top
 @section Keys and Commands
 

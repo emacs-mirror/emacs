@@ -43,7 +43,8 @@ Use (derived-mode-p 'text-mode) instead.")
   (let ((st (make-syntax-table)))
     (modify-syntax-entry ?\" ".   " st)
     (modify-syntax-entry ?\\ ".   " st)
-    (modify-syntax-entry ?' "w   " st)
+    ;; We add `p' so that M-c on 'hello' leads to 'Hello' rather than 'hello'.
+    (modify-syntax-entry ?' "w p" st)
     st)
   "Syntax table used while in `text-mode'.")
 
@@ -67,6 +68,7 @@ You can thus get the full benefit of adaptive filling
 Turning on Text mode runs the normal hook `text-mode-hook'."
   (make-local-variable 'text-mode-variant)
   (setq text-mode-variant t)
+  (set (make-local-variable 'require-final-newline) t)
   (set (make-local-variable 'indent-line-function) 'indent-relative))
 
 (define-derived-mode paragraph-indent-text-mode text-mode "Parindent"
@@ -78,6 +80,7 @@ Special commands:
 \\{text-mode-map}
 Turning on Paragraph-Indent Text mode runs the normal hooks
 `text-mode-hook' and `paragraph-indent-text-mode-hook'."
+  :abbrev-table nil :syntax-table nil
   (paragraph-indent-minor-mode))
 
 (defun paragraph-indent-minor-mode ()
@@ -92,7 +95,7 @@ Turning on Paragraph-Indent minor mode runs the normal hook
        (concat "[ \t\n\f]\\|" paragraph-start))
   (set (make-local-variable 'indent-line-function) 'indent-to-left-margin)
   (run-hooks 'paragraph-indent-text-mode-hook))
-      
+
 (defalias 'indented-text-mode 'text-mode)
 
 ;; This can be made a no-op once all modes that use text-mode-hook

@@ -1,6 +1,6 @@
 ;;; ielm.el --- interaction mode for Emacs Lisp
 
-;; Copyright (C) 1994 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 2002, 2003 Free Software Foundation, Inc.
 
 ;; Author: David Smith <maa036@lancaster.ac.uk>
 ;; Maintainer: FSF
@@ -109,6 +109,27 @@ such as `edebug-defun' to work with such inputs."
 
 (defvar ielm-match-data nil
   "Match data saved at the end of last command.")
+
+(defvar *1 nil
+  "During IELM evaluation, most recent value evaluated in IELM.
+Normally identical to `*'.  However, if the working buffer is an IELM
+buffer, distinct from the process buffer, then `*' gives the value in
+the working buffer, `*1' the value in the process buffer.
+The intended value is only accessible during IELM evaluation.")
+
+(defvar *2 nil
+  "During IELM evaluation, second-most-recent value evaluated in IELM.
+Normally identical to `**'.  However, if the working buffer is an IELM
+buffer, distinct from the process buffer, then `**' gives the value in
+the working buffer, `*2' the value in the process buffer.
+The intended value is only accessible during IELM evaluation.")
+
+(defvar *3 nil
+  "During IELM evaluation, third-most-recent value evaluated in IELM.
+Normally identical to `***'.  However, if the working buffer is an IELM
+buffer, distinct from the process buffer, then `***' gives the value in
+the working buffer, `*3' the value in the process buffer.
+The intended value is only accessible during IELM evaluation.")
 
 ;;; System variables
 
@@ -260,22 +281,6 @@ simply inserts a newline."
   "Return non-nil if STRING is all whitespace."
   (or (string= string "") (string-match "\\`[ \t\n]+\\'" string)))
 
-(defun ielm-format-errors (errlist)
-  (let ((result ""))
-    (while errlist
-      (setq result (concat result (prin1-to-string (car errlist)) ", "))
-      (setq errlist (cdr errlist)))
-    (substring result 0 -2)))
-
-
-(defun ielm-format-error (err)
-  ;; Return a string form of the error ERR.
-  (format "%s%s"
-	  (or (get (car err) 'error-message) "Peculiar error")
-	  (if (cdr err)
-	      (format ": %s" (ielm-format-errors (cdr err)))
-	    "")))
-
 ;;; Evaluation
 
 (defun ielm-eval-input (ielm-string)
@@ -306,7 +311,7 @@ simply inserts a newline."
 		(setq rout (read-from-string ielm-string))
 		(setq ielm-form (car rout))
 		(setq ielm-pos (cdr rout)))
-	    (error (setq ielm-result (ielm-format-error err))
+	    (error (setq ielm-result (error-message-string err))
 		   (setq ielm-error-type "Read error")))
 	  (if ielm-error-type nil
 	    ;; Make sure working buffer has not been killed
@@ -315,30 +320,51 @@ simply inserts a newline."
 		      ielm-error-type "IELM Error"
 		      ielm-wbuf (current-buffer))
 	      (if (ielm-is-whitespace (substring ielm-string ielm-pos))
-		  ;; need this awful let convolution to work around
-		  ;; an Emacs bug involving local vbls and let binding
-		  (let ((*save *)
-			(**save **)
-			(***save ***))
+		  ;; To correctly handle the ielm-local variables *,
+		  ;; ** and ***, we need a temporary buffer to be
+		  ;; current at entry to the inner of the next two let
+		  ;; forms.  We need another temporary buffer to exit
+		  ;; that same let.  To avoid problems, neither of
+		  ;; these buffers should be alive during the
+		  ;; evaluation of ielm-form.
+		  (let ((*1 *)
+			(*2 **)
+			(*3 ***)
+			ielm-temp-buffer)
 		    (set-match-data ielm-match-data)
 		    (save-excursion
-		      (set-buffer ielm-working-buffer)
-		      (condition-case err
-			  (let ((* *save)
-				(** **save)
-				(*** ***save)
-				(ielm-obuf (current-buffer)))
-			    (setq ielm-result (eval ielm-form))
-			    (setq ielm-wbuf (current-buffer))
-			    ;; The eval may have changed current-buffer;
-			    ;; need to set it back here to avoid a bug
-			    ;; in let.  Don't want to use save-excursion
-			    ;; because we want to allow changes in point.
-			    (set-buffer ielm-obuf))
-			(error (setq ielm-result (ielm-format-error err))
-			       (setq ielm-error-type "Eval error"))
-			(quit (setq ielm-result "Quit during evaluation")
-			      (setq ielm-error-type "Eval error"))))
+		      (with-temp-buffer
+			(condition-case err
+			    (unwind-protect
+				;; The next let form creates default
+				;; bindings for *, ** and ***.  But
+				;; these default bindings are
+				;; identical to the ielm-local
+				;; bindings.  Hence, during the
+				;; evaluation of ielm-form, the
+				;; ielm-local values are going to be
+				;; used in all buffers except for
+				;; other ielm buffers, which override
+				;; them.  Normally, the variables *1,
+				;; *2 and *3 also have default
+				;; bindings, which are not overridden.
+				(let ((* *1)
+				      (** *2)
+				      (*** *3))
+				  (kill-buffer (current-buffer))
+				  (set-buffer ielm-wbuf)
+				  (setq ielm-result (eval ielm-form))
+				  (setq ielm-wbuf (current-buffer))
+				  (setq
+				   ielm-temp-buffer
+				   (generate-new-buffer " *ielm-temp*"))
+				  (set-buffer ielm-temp-buffer))
+			      (when ielm-temp-buffer
+				(kill-buffer ielm-temp-buffer)))
+			  (error (setq ielm-result (error-message-string err))
+				 (setq ielm-error-type "Eval error"))
+			  (quit (setq ielm-result "Quit during evaluation")
+				(setq ielm-error-type "Eval error")))))
 		    (setq ielm-match-data (match-data)))
 		(setq ielm-error-type "IELM error")
 		(setq ielm-result "More than one sexp in input"))))
@@ -393,8 +419,8 @@ simply inserts a newline."
   "Major mode for interactively evaluating Emacs Lisp expressions.
 Uses the interface provided by `comint-mode' (which see).
 
-* \\<ielm-map>\\[ielm-send-input] evaluates the sexp following the prompt. There must be at most
-  one top-level sexp per prompt.
+* \\<ielm-map>\\[ielm-send-input] evaluates the sexp following the prompt.  There must be at most
+  one top level sexp per prompt.
 
 * \\[ielm-return] inserts a newline and indents, or evaluates a
   complete expression (but see variable `ielm-dynamic-return').
@@ -404,16 +430,18 @@ Uses the interface provided by `comint-mode' (which see).
 * \\[comint-dynamic-complete] completes Lisp symbols (or filenames, within strings),
   or indents the line if there is nothing to complete.
 
-During evaluations, the values of the variables `*', `**', and `***'
-are the results of the previous, second previous and third previous
-evaluations respectively.
-
 The current working buffer may be changed (with a call to
 `set-buffer', or with \\[ielm-change-working-buffer]), and its value
 is preserved between successive evaluations.  In this way, expressions
 may be evaluated in a different buffer than the *ielm* buffer.
 Display the name of the working buffer with \\[ielm-print-working-buffer],
 or the buffer itself with \\[ielm-display-working-buffer].
+
+During evaluations, the values of the variables `*', `**', and `***'
+are the results of the previous, second previous and third previous
+evaluations respectively.  If the working buffer is another IELM
+buffer, then the values in the working buffer are used.  The variables
+`*1', `*2' and `*3', yield the process buffer values.
 
 Expressions evaluated by IELM are not subject to `debug-on-quit' or
 `debug-on-error'.
@@ -434,6 +462,7 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq paragraph-start comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
   (setq comint-process-echoes nil)
+  (make-local-variable 'comint-dynamic-complete-functions)
   (setq comint-dynamic-complete-functions
 	'(ielm-tab comint-replace-by-expanded-history ielm-complete-filename ielm-complete-symbol))
   (setq comint-get-old-input 'ielm-get-old-input)
@@ -454,12 +483,12 @@ Customised bindings may be defined in `ielm-map', which currently contains:
   (setq fill-paragraph-function 'lisp-fill-paragraph)
 
   ;; Value holders
-  (setq * nil)
   (make-local-variable '*)
-  (setq ** nil)
+  (setq * nil)
   (make-local-variable '**)
-  (setq *** nil)
+  (setq ** nil)
   (make-local-variable '***)
+  (setq *** nil)
   (set (make-local-variable 'ielm-match-data) nil)
 
   ;; font-lock support
@@ -468,18 +497,30 @@ Customised bindings may be defined in `ielm-map', which currently contains:
 	'(ielm-font-lock-keywords nil nil ((?: . "w") (?- . "w") (?* . "w"))))
 
   ;; A dummy process to keep comint happy. It will never get any input
-  (if (comint-check-proc (current-buffer)) nil
+  (unless (comint-check-proc (current-buffer))
     ;; Was cat, but on non-Unix platforms that might not exist, so
     ;; use hexl instead, which is part of the Emacs distribution.
-    (start-process "ielm" (current-buffer) "hexl")
+    (condition-case nil
+	(start-process "ielm" (current-buffer) "hexl")
+      (file-error (start-process "ielm" (current-buffer) "cat")))
     (process-kill-without-query (ielm-process))
     (goto-char (point-max))
+
+    ;; Lisp output can include raw characters that confuse comint's
+    ;; carriage control code.
+    (set (make-local-variable 'comint-inhibit-carriage-motion) t)
+
     ;; Add a silly header
     (insert ielm-header)
     (ielm-set-pm (point-max))
+    (unless comint-use-prompt-regexp-instead-of-fields
+      (add-text-properties
+       (point-min) (point-max)
+       '(rear-nonsticky t field output inhibit-line-move-field-capture t)))
     (comint-output-filter (ielm-process) ielm-prompt)
     (set-marker comint-last-input-start (ielm-pm))
     (set-process-filter (get-buffer-process (current-buffer)) 'comint-output-filter))
+
   (run-hooks 'ielm-mode-hook))
 
 (defun ielm-get-old-input nil

@@ -3,7 +3,8 @@
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
-;; Maintainer: Colin Walters <walters@debian.org>
+;; Maintainers: D. Goel <deego@gnufans.org>
+;;              Colin Walters <walters@debian.org>
 
 ;; This file is part of GNU Emacs.
 
@@ -431,7 +432,7 @@
 
 
 (defun calc-alg-digit-entry ()
-  (calc-alg-entry 
+  (calc-alg-entry
    (cond ((eq last-command-char ?e)
 	  (if (> calc-number-radix 14) (format "%d.^" calc-number-radix) "1e"))
 	 ((eq last-command-char ?#) (format "%d#" calc-number-radix))

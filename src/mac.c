@@ -26,10 +26,13 @@ Boston, MA 02111-1307, USA.  */
 #include <errno.h>
 #include <utime.h>
 #include <dirent.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <string.h>
 #include <pwd.h>
 #include <sys/param.h>
+#include <stdlib.h>
+#include <fcntl.h>
 #if __MWERKS__
 #include <unistd.h>
 #endif
@@ -40,6 +43,7 @@ Boston, MA 02111-1307, USA.  */
 #undef free
 #undef malloc
 #undef realloc
+#undef init_process
 #include <Carbon/Carbon.h>
 #undef free
 #define free unexec_free
@@ -47,6 +51,8 @@ Boston, MA 02111-1307, USA.  */
 #define malloc unexec_malloc
 #undef realloc
 #define realloc unexec_realloc
+#undef init_process
+#define init_process emacs_init_process
 #else /* not MAC_OSX */
 #include <Files.h>
 #include <MacTypes.h>
@@ -86,7 +92,7 @@ string_cat_and_replace (char *s1, const char *s2, int n, char a, char b)
   int l2 = strlen (s2);
   char *p = s1 + l1;
   int i;
-  
+
   strncat (s1, s2, n);
   for (i = 0; i < l2; i++)
     {
@@ -99,27 +105,27 @@ string_cat_and_replace (char *s1, const char *s2, int n, char a, char b)
 
 /* Convert a Mac pathname to Posix form.  A Mac full pathname is one
    that does not begin with a ':' and contains at least one ':'. A Mac
-   full pathname causes an '/' to be prepended to the Posix pathname.
+   full pathname causes a '/' to be prepended to the Posix pathname.
    The algorithm for the rest of the pathname is as follows:
      For each segment between two ':',
        if it is non-null, copy as is and then add a '/' at the end,
        otherwise, insert a "../" into the Posix pathname.
    Returns 1 if successful; 0 if fails.  */
-   
+
 int
 mac_to_posix_pathname (const char *mfn, char *ufn, int ufnbuflen)
 {
   const char *p, *q, *pe;
-	
+
   strcpy (ufn, "");
-	
+
   if (*mfn == '\0')
     return 1;
-	
+
   p = strchr (mfn, ':');
   if (p != 0 && p != mfn)  /* full pathname */
     strcat (ufn, "/");
-		
+
   p = mfn;
   if (*p == ':')
     p++;
@@ -154,7 +160,7 @@ mac_to_posix_pathname (const char *mfn, char *ufn, int ufnbuflen)
 	  p = pe;
 	}
     }
-	
+
   return 1;
 }
 
@@ -164,20 +170,20 @@ extern char *get_temp_dir_name ();
 
 /* Convert a Posix pathname to Mac form.  Approximately reverse of the
    above in algorithm.  */
-   
+
 int
 posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 {
   const char *p, *q, *pe;
   char expanded_pathname[MAXPATHLEN+1];
-	
+
   strcpy (mfn, "");
-	
+
   if (*ufn == '\0')
     return 1;
 
   p = ufn;
-  
+
   /* Check for and handle volume names.  Last comparison: strangely
      somewhere "/.emacs" is passed.  A temporary fix for now.  */
   if (*p == '/' && strchr (p+1, '/') == NULL && strcmp (p, "/.emacs") != 0)
@@ -211,10 +217,10 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
       strcat (expanded_pathname, p);
       p = expanded_pathname;
         /* now p points to the pathname with emacs dir prefix */
-    }    
+    }
   else if (*p != '/')  /* relative pathname */
     strcat (mfn, ":");
-		
+
   if (*p == '/')
     p++;
 
@@ -247,7 +253,7 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 	  p = pe;
 	}
     }
-	
+
   return 1;
 }
 
@@ -306,7 +312,7 @@ stat_noalias (const char *path, struct stat *buf)
   cipb.hFileInfo.ioDirID = 0;
   cipb.hFileInfo.ioFDirIndex = 0;
     /* set to 0 to get information about specific dir or file */
-  
+
   errno = PBGetCatInfo (&cipb, false);
   if (errno == -43) /* -43: fnfErr defined in Errors.h */
     errno = ENOENT;
@@ -316,7 +322,7 @@ stat_noalias (const char *path, struct stat *buf)
   if (cipb.hFileInfo.ioFlAttrib & 0x10)  /* bit 4 = 1 for directories */
     {
       buf->st_mode = S_IFDIR | S_IREAD | S_IEXEC;
-      
+
       if (!(cipb.hFileInfo.ioFlAttrib & 0x1))
 	buf->st_mode |= S_IWRITE;  /* bit 1 = 1 for locked files/directories */
       buf->st_ino = cipb.dirInfo.ioDrDirID;
@@ -372,7 +378,7 @@ lstat (const char *path, struct stat *buf)
 
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   return stat_noalias (true_pathname, buf);
 }
 
@@ -381,16 +387,16 @@ int
 stat (const char *path, struct stat *sb)
 {
   int result;
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
-  
+
   if ((result = stat_noalias (path, sb)) >= 0 &&
       ! (sb->st_mode & S_IFLNK))
     return result;
 
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     {
@@ -432,10 +438,10 @@ mkdir (const char *dirname, int mode)
 
   HFileParam hfpb;
   char true_pathname[MAXPATHLEN+1], mac_pathname[MAXPATHLEN+1];
-  
+
   if (find_true_pathname (dirname, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-	
+
   if (posix_to_mac_pathname (true_pathname, mac_pathname, MAXPATHLEN+1) == 0)
     return -1;
 
@@ -443,7 +449,7 @@ mkdir (const char *dirname, int mode)
   hfpb.ioNamePtr = mac_pathname;
   hfpb.ioVRefNum = 0;  /* ignored unless name is invalid */
   hfpb.ioDirID = 0;  /* parent is the root */
-  
+
   errno = PBDirCreate ((HParmBlkPtr) &hfpb, false);
     /* just return the Mac OSErr code for now */
   return errno == noErr ? 0 : -1;
@@ -455,7 +461,7 @@ sys_rmdir (const char *dirname)
 {
   HFileParam hfpb;
   char mac_pathname[MAXPATHLEN+1];
-	
+
   if (posix_to_mac_pathname (dirname, mac_pathname, MAXPATHLEN+1) == 0)
     return -1;
 
@@ -463,7 +469,7 @@ sys_rmdir (const char *dirname)
   hfpb.ioNamePtr = mac_pathname;
   hfpb.ioVRefNum = 0;  /* ignored unless name is invalid */
   hfpb.ioDirID = 0;  /* parent is the root */
-  
+
   errno = PBHDelete ((HParmBlkPtr) &hfpb, false);
   return errno == noErr ? 0 : -1;
 }
@@ -482,14 +488,14 @@ execvp (const char *path, ...)
 int
 utime (const char *path, const struct utimbuf *times)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
   CInfoPBRec cipb;
-  
+
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -503,9 +509,9 @@ utime (const char *path, const struct utimbuf *times)
   cipb.hFileInfo.ioNamePtr = mac_pathname;
   cipb.hFileInfo.ioVRefNum = 0;
   cipb.hFileInfo.ioDirID = 0;
-  cipb.hFileInfo.ioFDirIndex = 0; 
+  cipb.hFileInfo.ioFDirIndex = 0;
     /* set to 0 to get information about specific dir or file */
-  
+
   errno = PBGetCatInfo (&cipb, false);
   if (errno != noErr)
     return -1;
@@ -544,14 +550,14 @@ utime (const char *path, const struct utimbuf *times)
 int
 access (const char *path, int mode)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
   CInfoPBRec cipb;
-  
+
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -567,7 +573,7 @@ access (const char *path, int mode)
   cipb.hFileInfo.ioDirID = 0;
   cipb.hFileInfo.ioFDirIndex = 0;
     /* set to 0 to get information about specific dir or file */
-  
+
   errno = PBGetCatInfo (&cipb, false);
   if (errno != noErr)
     return -1;
@@ -600,16 +606,16 @@ access (const char *path, int mode)
 int
 sys_open (const char *path, int oflag)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
-	
+
   if (strcmp (path, "/dev/null") == 0)
     return DEV_NULL_FD;  /* some bogus fd to be ignored in write */
-  
+
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -637,10 +643,10 @@ sys_open (const char *path, int oflag)
 int
 sys_creat (const char *path, mode_t mode)
 {
-  char true_pathname[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
-	
+
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
 
@@ -663,13 +669,13 @@ sys_creat (const char *path, mode_t mode)
 int
 sys_unlink (const char *path)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
-	
+
   if (find_true_pathname (path, true_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -718,13 +724,13 @@ int
 sys_rename (const char * old_name, const char * new_name)
 {
   char true_old_pathname[MAXPATHLEN+1], true_new_pathname[MAXPATHLEN+1];
-  char fully_resolved_old_name[MAXPATHLEN+1];  
+  char fully_resolved_old_name[MAXPATHLEN+1];
   int len;
   char mac_old_name[MAXPATHLEN+1], mac_new_name[MAXPATHLEN+1];
-	
+
   if (find_true_pathname (old_name, true_old_pathname, MAXPATHLEN+1) == -1)
     return -1;
-  
+
   len = readlink (true_old_pathname, fully_resolved_old_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_old_name[len] = '\0';
@@ -733,7 +739,7 @@ sys_rename (const char * old_name, const char * new_name)
 
   if (find_true_pathname (new_name, true_new_pathname, MAXPATHLEN+1) == -1)
     return -1;
-	
+
   if (strcmp (fully_resolved_old_name, true_new_pathname) == 0)
     return 0;
 
@@ -741,7 +747,7 @@ sys_rename (const char * old_name, const char * new_name)
 			     mac_old_name,
 			     MAXPATHLEN+1))
     return -1;
-		
+
   if (!posix_to_mac_pathname(true_new_pathname, mac_new_name, MAXPATHLEN+1))
     return -1;
 
@@ -749,7 +755,7 @@ sys_rename (const char * old_name, const char * new_name)
      file in Unix.  CW version fails in these situation.  So we add a
      call to unlink here.  */
   (void) unlink (mac_new_name);
-  
+
   return rename (mac_old_name, mac_new_name);
 }
 
@@ -759,13 +765,13 @@ extern FILE *fopen (const char *name, const char *mode);
 FILE *
 sys_fopen (const char *name, const char *mode)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   int len;
   char mac_pathname[MAXPATHLEN+1];
-	
+
   if (find_true_pathname (name, true_pathname, MAXPATHLEN+1) == -1)
     return 0;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -838,7 +844,7 @@ select (n,  rfds, wfds, efds, timeout)
 
   EMACS_GET_TIME (end_time);
   EMACS_ADD_TIME (end_time, end_time, *timeout);
-  
+
   do
     {
       /* Also return true if an event other than a keyDown has
@@ -853,7 +859,7 @@ select (n,  rfds, wfds, efds, timeout)
       {
         Point mouse_pos;
         static Point old_mouse_pos = {-1, -1};
-        
+
         GetMouse (&mouse_pos);
         if (!EqualPt (mouse_pos, old_mouse_pos))
           {
@@ -861,10 +867,10 @@ select (n,  rfds, wfds, efds, timeout)
             return 1;
           }
       }
-      
+
       WaitNextEvent (0, &e, 1UL, NULL);	/* Accept no event; wait 1
 					   tic. by T.I. */
-      
+
       EMACS_GET_TIME (now);
       EMACS_SUB_TIME (now, end_time, now);
     }
@@ -882,18 +888,18 @@ pause ()
 {
   EventRecord e;
   unsigned long tick;
-  
+
   if (!target_ticks)  /* no alarm pending */
     return -1;
 
   if ((tick = TickCount ()) < target_ticks)
     WaitNextEvent (0, &e, target_ticks - tick, NULL); /* Accept no event;
 							 just wait. by T.I. */
-  
+
   target_ticks = 0;
   if (alarm_signal_func)
     (*alarm_signal_func)(SIGALRM);
-  
+
   return 0;
 }
 
@@ -902,9 +908,9 @@ int
 alarm (int seconds)
 {
   long remaining = target_ticks ? (TickCount () - target_ticks) / 60 : 0;
-	
+
   target_ticks = seconds ? TickCount () + 60 * seconds : 0;
-	
+
   return (remaining < 0) ? 0 : (unsigned int) remaining;
 }
 
@@ -927,9 +933,9 @@ sys_signal (int signal_num, __signal_func_ptr signal_func)
   else
     {
 #ifdef __MRC__
-      __sigfun old_signal_func;		
+      __sigfun old_signal_func;
 #elif __MWERKS__
-      __signal_func_ptr old_signal_func;		
+      __signal_func_ptr old_signal_func;
 #else
       You lose!!!
 #endif
@@ -974,7 +980,7 @@ gettimeofday (tp)
 
   /* Get time since boot */
   Microseconds (&uw_microseconds);
-  
+
   /* Convert to time since midnight*/
   w_microseconds.hi = uw_microseconds.hi;
   w_microseconds.lo = uw_microseconds.lo;
@@ -1014,7 +1020,7 @@ struct tm *
 sys_gmtime (const time_t *timer)
 {
   time_t unix_time = *timer + CW_OR_MPW_UNIX_EPOCH_DIFF;
-  
+
   return gmtime (&unix_time);
 }
 
@@ -1029,7 +1035,7 @@ sys_localtime (const time_t *timer)
 #else
   time_t unix_time = *timer + CW_OR_MPW_UNIX_EPOCH_DIFF;
 #endif
-  
+
   return localtime (&unix_time);
 }
 
@@ -1044,7 +1050,7 @@ sys_ctime (const time_t *timer)
 #else
   time_t unix_time = *timer + CW_OR_MPW_UNIX_EPOCH_DIFF;
 #endif
-  
+
   return ctime (&unix_time);
 }
 
@@ -1062,7 +1068,7 @@ sys_time (time_t *timer)
 
   if (timer)
     *timer = mac_time;
-    
+
   return mac_time;
 }
 
@@ -1125,23 +1131,23 @@ mktemp (char *template)
 {
   int len, k;
   static seqnum = 0;
-  
+
   len = strlen (template);
   k = len - 1;
   while (k >= 0 && template[k] == 'X')
     k--;
-  
+
   k++;  /* make k index of first 'X' */
-  
+
   if (k < len)
     {
       /* Zero filled, number of digits equal to the number of X's.  */
       sprintf (&template[k], "%0*d", len-k, seqnum++);
-  
+
       return template;
     }
   else
-    return 0;  
+    return 0;
 }
 
 
@@ -1152,7 +1158,7 @@ mktemp (char *template)
 static char my_passwd_name[PASSWD_FIELD_SIZE];
 static char my_passwd_dir[MAXPATHLEN+1];
 
-static struct passwd my_passwd = 
+static struct passwd my_passwd =
 {
   my_passwd_name,
   my_passwd_dir,
@@ -1196,7 +1202,7 @@ init_emacs_passwd_dir ()
 	    }
 	}
     }
-  
+
   if (!found)
     {
       /* Setting to "/" probably won't work but set it to something
@@ -1207,7 +1213,7 @@ init_emacs_passwd_dir ()
 }
 
 
-static struct passwd emacs_passwd = 
+static struct passwd emacs_passwd =
 {
   "emacs",
   emacs_passwd_dir,
@@ -1243,11 +1249,11 @@ struct passwd *
 getpwuid (uid_t uid)
 {
   if (!my_passwd_inited)
-    {  
+    {
       init_my_passwd ();
       my_passwd_inited = 1;
     }
-  
+
   return &my_passwd;
 }
 
@@ -1259,11 +1265,11 @@ getpwnam (const char *name)
   	return &emacs_passwd;
 
   if (!my_passwd_inited)
-    {  
+    {
       init_my_passwd ();
       my_passwd_inited = 1;
     }
-  
+
   return &my_passwd;
 }
 
@@ -1305,7 +1311,7 @@ int
 sigblock (int mask)
 {
   return 0;
-} 
+}
 
 
 void
@@ -1387,7 +1393,7 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
       err = PBGetCatInfo (&cipb, false);
       if (err != noErr)
         return 0;
-      
+
       p2cstr (dir_name);
       if (strlen (dir_name) + strlen (path) + 1 >= man_path_len)
         return 0;
@@ -1399,7 +1405,7 @@ path_from_vol_dir_name (char *path, int man_path_len, short vol_ref_num,
     }
   while (cipb.dirInfo.ioDrDirID != fsRtDirID);
     /* stop when we see the volume's root directory */
-  
+
   return 1;  /* success */
 }
 
@@ -1463,7 +1469,7 @@ find_true_pathname (const char *path, char *buf, int bufsiz)
     return -1;
 
   buf[0] = '\0';
-  
+
   p = path;
   if (*p == '/')
     q = strchr (p + 1, '/');
@@ -1487,10 +1493,10 @@ find_true_pathname (const char *path, char *buf, int bufsiz)
       p = q + 1;
       q = strchr(p, '/');
     }
-  
+
   if (len + strlen (p) + 1 >= bufsiz)
     return -1;
-  
+
   strcat (buf, p);
   return len + strlen (p);
 }
@@ -1538,7 +1544,7 @@ int
 dup2 (int oldd, int newd)
 {
   int fd, ret;
-  
+
   close (newd);
 
   fd = dup (oldd);
@@ -1649,7 +1655,7 @@ get_temp_dir_name ()
   CInfoPBRec cpb;
   char unix_dir_name[MAXPATHLEN+1];
   DIR *dir;
-  
+
   /* Cache directory name with pointer temp_dir_name.
      Look for it only the first time.  */
   if (!temp_dir_name)
@@ -1658,18 +1664,18 @@ get_temp_dir_name ()
 			&vol_ref_num, &dir_id);
       if (err != noErr)
 	return NULL;
-      
+
       if (!path_from_vol_dir_name (full_path, 255, vol_ref_num, dir_id, "\p"))
         return NULL;
 
       if (strlen (full_path) + 6 <= MAXPATHLEN)
 	strcat (full_path, "Emacs:");
-      else 
+      else
 	return NULL;
 
       if (!mac_to_posix_pathname (full_path, unix_dir_name, MAXPATHLEN+1))
 	return NULL;
-    
+
       dir = opendir (unix_dir_name);  /* check whether temp directory exists */
       if (dir)
 	closedir (dir);
@@ -1688,7 +1694,7 @@ get_temp_dir_name ()
 /* Allocate and construct an array of pointers to strings from a list
    of strings stored in a 'STR#' resource.  The returned pointer array
    is stored in the style of argv and environ: if the 'STR#' resource
-   contains numString strings, an pointer array with numString+1
+   contains numString strings, a pointer array with numString+1
    elements is returned in which the last entry contains a null
    pointer.  The pointer to the pointer array is passed by pointer in
    parameter t.  The resource ID of the 'STR#' resource is passed in
@@ -1742,19 +1748,19 @@ get_path_to_system_folder ()
   CInfoPBRec cpb;
   static char system_folder_unix_name[MAXPATHLEN+1];
   DIR *dir;
-  
+
   err = FindFolder (kOnSystemDisk, kSystemFolderType, kDontCreateFolder,
 		    &vol_ref_num, &dir_id);
   if (err != noErr)
     return NULL;
-      
+
   if (!path_from_vol_dir_name (full_path, 255, vol_ref_num, dir_id, "\p"))
     return NULL;
 
   if (!mac_to_posix_pathname (full_path, system_folder_unix_name,
 			      MAXPATHLEN+1))
     return NULL;
-    
+
   return system_folder_unix_name;
 }
 
@@ -1769,7 +1775,7 @@ void
 init_environ ()
 {
   int i;
-  
+
   get_string_list (&environ, ENVIRON_STRING_LIST_ID);
 
   i = 0;
@@ -1913,7 +1919,7 @@ mystrchr (char *s, char c)
 
 char *
 mystrtok (char *s)
-{	
+{
   while (*s)
     s++;
 
@@ -1969,7 +1975,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
   RgnHandle cursor_region_handle;
   TargetID targ;
   unsigned long ref_con, len;
- 	
+
   if (posix_to_mac_pathname (workdir, macworkdir, MAXPATHLEN+1) == 0)
     return -1;
   if (posix_to_mac_pathname (infn, macinfn, MAXPATHLEN+1) == 0)
@@ -1978,7 +1984,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     return -1;
   if (posix_to_mac_pathname (errfn, macerrfn, MAXPATHLEN+1) == 0)
     return -1;
-  
+
   paramlen = strlen (macworkdir) + strlen (macinfn) + strlen (macoutfn)
              + strlen (macerrfn) + 4;  /* count nulls at end of strings */
 
@@ -1997,14 +2003,14 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
       && argc == 3 && strcmp (argv[1], "-c") == 0)
     {
       char *command, *t, tempmacpathname[MAXPATHLEN+1];
-    
+
       /* The arguments for the command in argv[2] are separated by
 	 spaces.  Count them and put the count in newargc.  */
       command = (char *) alloca (strlen (argv[2])+2);
       strcpy (command, argv[2]);
       if (command[strlen (command) - 1] != ' ')
 	strcat (command, " ");
-    
+
       t = command;
       newargc = 0;
       t = mystrchr (t, ' ');
@@ -2013,9 +2019,9 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	  newargc++;
 	  t = mystrchr (t+1, ' ');
 	}
-    
+
       newargv = (char **) alloca (sizeof (char *) * newargc);
-    
+
       t = command;
       for (j = 0; j < newargc; j++)
 	{
@@ -2025,7 +2031,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 	  t = mystrtok (t);
 	  paramlen += strlen (newargv[j]) + 1;
 	}
-    
+
       if (strncmp (newargv[0], "~emacs/", 7) == 0)
 	{
 	  if (posix_to_mac_pathname (newargv[0], tempmacpathname, MAXPATHLEN+1)
@@ -2045,19 +2051,19 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 
 	  if (NILP (path))
 	    return -1;
-	  if (posix_to_mac_pathname (XSTRING (path)->data, tempmacpathname,
+	  if (posix_to_mac_pathname (SDATA (path), tempmacpathname,
 				    MAXPATHLEN+1) == 0)
 	    return -1;
 	}
       strcpy (macappname, tempmacpathname);
     }
   else
-    {      
+    {
       if (posix_to_mac_pathname (argv[0], macappname, MAXPATHLEN+1) == 0)
 	return -1;
 
       newargv = (char **) alloca (sizeof (char *) * argc);
-      newargc = argc;  
+      newargc = argc;
       for (j = 1; j < argc; j++)
 	{
 	  if (strncmp (argv[j], "~emacs/", 7) == 0)
@@ -2087,7 +2093,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 		}
 	    }
 	  else
-	    newargv[j] = argv[j];  
+	    newargv[j] = argv[j];
 	  paramlen += strlen (newargv[j]) + 1;
 	}
     }
@@ -2108,24 +2114,24 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     /* null terminate strings sent so it's possible to use strcpy over there */
   strcpy (p, macinfn);
   p += strlen (macinfn);
-  *p++ = '\0';  
+  *p++ = '\0';
   strcpy (p, macoutfn);
   p += strlen (macoutfn);
-  *p++ = '\0';  
+  *p++ = '\0';
   strcpy (p, macerrfn);
   p += strlen (macerrfn);
-  *p++ = '\0';  
+  *p++ = '\0';
   for (j = 1; j < newargc; j++)
     {
       strcpy (p, newargv[j]);
       p += strlen (newargv[j]);
-      *p++ = '\0';  
+      *p++ = '\0';
     }
-  
+
   c2pstr (macappname);
-  
+
   iErr = FSMakeFSSpec (0, 0, macappname, &spec);
-  
+
   if (iErr != noErr)
     {
       free (param);
@@ -2166,7 +2172,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
     }
 
   cursor_region_handle = NewRgn ();
-	
+
   /* Wait for the subprocess to finish, when it will send us a ERPY
      high level event.  */
   while (1)
@@ -2174,7 +2180,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 		       cursor_region_handle)
 	&& reply_event.message == kEmacsSubprocessReply)
       break;
-  
+
   /* The return code is sent through the refCon */
   iErr = AcceptHighLevelEvent (&targ, &ref_con, NULL, &len);
   if (iErr != noErr)
@@ -2183,7 +2189,7 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
       free (param);
       return -1;
     }
-  
+
   DisposeHandle ((Handle) cursor_region_handle);
   free (param);
 
@@ -2195,16 +2201,16 @@ run_mac_command (argv, workdir, infn, outfn, errfn)
 DIR *
 opendir (const char *dirname)
 {
-  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];  
+  char true_pathname[MAXPATHLEN+1], fully_resolved_name[MAXPATHLEN+1];
   char mac_pathname[MAXPATHLEN+1], vol_name[MAXPATHLEN+1];
   DIR *dirp;
   CInfoPBRec cipb;
   HVolumeParam vpb;
   int len, vol_name_len;
-  	
+
   if (find_true_pathname (dirname, true_pathname, MAXPATHLEN+1) == -1)
     return 0;
-  
+
   len = readlink (true_pathname, fully_resolved_name, MAXPATHLEN);
   if (len > -1)
     fully_resolved_name[len] = '\0';
@@ -2232,7 +2238,7 @@ opendir (const char *dirname)
   len = strlen (mac_pathname);
   if (mac_pathname[len - 1] != ':' && len < MAXPATHLEN)
     strcat (mac_pathname, ":");
-  
+
   /* Extract volume name */
   vol_name_len = strchr (mac_pathname, ':') - mac_pathname;
   strncpy (vol_name, mac_pathname, vol_name_len);
@@ -2246,7 +2252,7 @@ opendir (const char *dirname)
   cipb.hFileInfo.ioDirID = 0;
   cipb.hFileInfo.ioFDirIndex = 0;
     /* set to 0 to get information about specific dir or file */
-  
+
   errno = PBGetCatInfo (&cipb, false);
   if (errno != noErr)
     {
@@ -2274,7 +2280,7 @@ opendir (const char *dirname)
     }
 
   dirp->vol_ref_num = vpb.ioVRefNum;
-  
+
   return dirp;
 }
 
@@ -2307,14 +2313,14 @@ readdir (DIR *dp)
       hpblock.volumeParam.ioNamePtr = s_name;
       hpblock.volumeParam.ioVRefNum = 0;
       hpblock.volumeParam.ioVolIndex = dp->current_index;
-                
+
       errno = PBHGetVInfo (&hpblock, false);
       if (errno != noErr)
 	{
 	  errno = ENOENT;
 	  return 0;
 	}
-                        
+
       p2cstr (s_name);
       strcat (s_name, "/");  /* need "/" for stat to work correctly */
 
@@ -2322,7 +2328,7 @@ readdir (DIR *dp)
 
       s_dirent.d_ino = hpblock.volumeParam.ioVRefNum;
       s_dirent.d_name = s_name;
-  
+
       return &s_dirent;
     }
   else
@@ -2338,25 +2344,25 @@ readdir (DIR *dp)
 	  cipb.hFileInfo.ioDirID = dp->dir_id;
 	    /* directory ID found by opendir */
 	  cipb.hFileInfo.ioFDirIndex = dp->current_index;
-	  
+
 	  errno = PBGetCatInfo (&cipb, false);
 	  if (errno != noErr)
 	    {
 	      errno = ENOENT;
 	      return 0;
 	    }
-	  
-	  /* insist on an visibile entry */
+
+	  /* insist on a visible entry */
 	  if (cipb.hFileInfo.ioFlAttrib & 0x10)  /* directory? */
 	    done = !(cipb.dirInfo.ioDrUsrWds.frFlags & fInvisible);
 	  else
 	    done = !(cipb.hFileInfo.ioFlFndrInfo.fdFlags & fInvisible);
-	  
+
 	  dp->current_index++;
 	}
 
       p2cstr (s_name);
-      
+
       p = s_name;
       while (*p)
         {
@@ -2368,7 +2374,7 @@ readdir (DIR *dp)
       s_dirent.d_ino = cipb.dirInfo.ioDrDirID;
         /* value unimportant: non-zero for valid file */
       s_dirent.d_name = s_name;
-  
+
       return &s_dirent;
     }
 }
@@ -2399,7 +2405,7 @@ initialize_applescript ()
 {
   AEDesc null_desc;
   OSAError osaerror;
-  
+
   /* if open fails, as_scripting_component is set to NULL.  Its
      subsequent use in OSA calls will fail with badComponentInstance
      error.  */
@@ -2442,6 +2448,9 @@ do_applescript (char *script, char **result)
   long length;
 
   *result = 0;
+
+  if (!as_scripting_component)
+    initialize_applescript();
 
   error = AECreateDesc (typeChar, script, strlen(script), &script_desc);
   if (error)
@@ -2499,10 +2508,10 @@ do_applescript (char *script, char **result)
         }
       HUnlock (result_desc.dataHandle);
 #endif /* not TARGET_API_MAC_CARBON */
+      AEDisposeDesc (&result_desc);
     }
 
   AEDisposeDesc (&script_desc);
-  AEDisposeDesc (&result_desc);    
 
   return osaerror;
 }
@@ -2522,12 +2531,12 @@ component.  */)
   long status;
 
   CHECK_STRING (script);
-  
-  status = do_applescript (XSTRING (script)->data, &result);
+
+  status = do_applescript (SDATA (script), &result);
   if (status)
     {
       if (!result)
-        error ("AppleScript error %ld", status);
+        error ("AppleScript error %d", status);
       else
         {
           /* Unfortunately only OSADoScript in do_applescript knows how
@@ -2559,8 +2568,8 @@ DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
   char posix_filename[MAXPATHLEN+1];
 
   CHECK_STRING (mac_filename);
-  
-  if (mac_to_posix_pathname (XSTRING (mac_filename)->data, posix_filename,
+
+  if (mac_to_posix_pathname (SDATA (mac_filename), posix_filename,
 			   MAXPATHLEN))
     return build_string (posix_filename);
   else
@@ -2577,8 +2586,8 @@ DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac,
   char mac_filename[MAXPATHLEN+1];
 
   CHECK_STRING (posix_filename);
-  
-  if (posix_to_mac_pathname (XSTRING (posix_filename)->data, mac_filename,
+
+  if (posix_to_mac_pathname (SDATA (posix_filename), mac_filename,
 			   MAXPATHLEN))
     return build_string (mac_filename);
   else
@@ -2614,7 +2623,7 @@ DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
   if (GetScrapFlavorData (scrap, kScrapFlavorTypeText, &s, data) != noErr
       || s == 0)
     return Qnil;
-  
+
   /* Emacs expects clipboard contents have Unix-style eol's */
   for (i = 0; i < s; i++)
     if (data[i] == '\r')
@@ -2642,7 +2651,7 @@ DEFUN ("mac-paste-function", Fmac_paste_function, Smac_paste_function, 0, 0, 0,
   value = make_string (*my_handle, rc);
 
   HUnlock (my_handle);
-  
+
   DisposeHandle (my_handle);
 
   return value;
@@ -2663,12 +2672,12 @@ DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
   /* fixme: ignore the push flag for now */
 
   CHECK_STRING (value);
-  
-  len = XSTRING (value)->size;
+
+  len = SCHARS (value);
   buf = (char *) alloca (len+1);
-  bcopy (XSTRING (value)->data, buf, len);
+  bcopy (SDATA (value), buf, len);
   buf[len] = '\0';
-  
+
   /* convert to Mac-style eol's before sending to clipboard */
   for (i = 0; i < len; i++)
     if (buf[i] == '\n')
@@ -2689,7 +2698,7 @@ DEFUN ("mac-cut-function", Fmac_cut_function, Smac_cut_function, 1, 2, 0,
   ZeroScrap ();
   PutScrap (len, 'TEXT', buf);
 #endif /* not TARGET_API_MAC_CARBON */
-  
+
   return Qnil;
 }
 
@@ -2739,18 +2748,241 @@ and t is the same as `SECONDARY'.  */)
   return Qnil;
 }
 
+#ifdef MAC_OSX
+#undef select
+
+extern int inhibit_window_system;
+extern int noninteractive;
+
+/* When Emacs is started from the Finder, SELECT always immediately
+   returns as if input is present when file descriptor 0 is polled for
+   input.  Strangely, when Emacs is run as a GUI application from the
+   command line, it blocks in the same situation.  This `wrapper' of
+   the system call SELECT corrects this discrepancy.  */
+int
+sys_select (n, rfds, wfds, efds, timeout)
+  int n;
+  SELECT_TYPE *rfds;
+  SELECT_TYPE *wfds;
+  SELECT_TYPE *efds;
+  struct timeval *timeout;
+{
+  if (!inhibit_window_system && rfds && FD_ISSET (0, rfds))
+    return 1;
+  else if (inhibit_window_system || noninteractive ||
+	   (timeout && (EMACS_SECS(*timeout)==0) &&
+	    (EMACS_USECS(*timeout)==0)))
+    return select(n, rfds, wfds, efds, timeout);
+  else
+    {
+      EMACS_TIME end_time, now;
+
+      EMACS_GET_TIME (end_time);
+      if (timeout)
+	EMACS_ADD_TIME (end_time, end_time, *timeout);
+
+      do
+	{
+	  int r;
+	  EMACS_TIME one_second;
+	  SELECT_TYPE orfds;
+
+	  FD_ZERO (&orfds);
+	  if (rfds)
+	    {
+	      orfds = *rfds;
+	    }
+
+	  EMACS_SET_SECS (one_second, 1);
+	  EMACS_SET_USECS (one_second, 0);
+
+	  if (timeout && EMACS_TIME_LT(*timeout, one_second))
+	    one_second = *timeout;
+
+	  if ((r = select (n, &orfds, wfds, efds, &one_second)) > 0)
+	    {
+	      *rfds = orfds;
+	      return r;
+	    }
+
+	  mac_check_for_quit_char();
+
+	  EMACS_GET_TIME (now);
+	  EMACS_SUB_TIME (now, end_time, now);
+	}
+      while (!timeout || !EMACS_TIME_NEG_P (now));
+
+      return 0;
+    }
+}
+
+#undef read
+int sys_read (fds, buf, nbyte)
+     int fds;
+     char *buf;
+     unsigned int nbyte;
+{
+  SELECT_TYPE rfds;
+  EMACS_TIME one_second;
+  int r;
+
+  /* Use select to block on IO while still checking for quit_char */
+  if (!inhibit_window_system && !noninteractive &&
+      ! (fcntl(fds, F_GETFL, 0) & O_NONBLOCK))
+    {
+      FD_ZERO (&rfds);
+      FD_SET (fds, &rfds);
+      if (sys_select (fds+1, &rfds, 0, 0, NULL) < 0)
+	return -1;
+    }
+
+  return read (fds, buf, nbyte);
+}
+
+
+/* Set up environment variables so that Emacs can correctly find its
+   support files when packaged as an application bundle.  Directories
+   placed in /usr/local/share/emacs/<emacs-version>/, /usr/local/bin,
+   and /usr/local/libexec/emacs/<emacs-version>/<system-configuration>
+   by `make install' by default can instead be placed in
+   .../Emacs.app/Contents/Resources/ and
+   .../Emacs.app/Contents/MacOS/.  Each of these environment variables
+   is changed only if it is not already set.  Presumably if the user
+   sets an environment variable, he will want to use files in his path
+   instead of ones in the application bundle.  */
+void
+init_mac_osx_environment ()
+{
+  CFBundleRef bundle;
+  CFURLRef bundleURL;
+  CFStringRef cf_app_bundle_pathname;
+  int app_bundle_pathname_len;
+  char *app_bundle_pathname;
+  char *p, *q;
+  struct stat st;
+
+  /* Fetch the pathname of the application bundle as a C string into
+     app_bundle_pathname.  */
+
+  bundle = CFBundleGetMainBundle ();
+  if (!bundle)
+    return;
+
+  bundleURL = CFBundleCopyBundleURL (bundle);
+  if (!bundleURL)
+    return;
+
+  cf_app_bundle_pathname = CFURLCopyFileSystemPath (bundleURL,
+						    kCFURLPOSIXPathStyle);
+  app_bundle_pathname_len = CFStringGetLength (cf_app_bundle_pathname);
+  app_bundle_pathname = (char *) alloca (app_bundle_pathname_len + 1);
+
+  if (!CFStringGetCString (cf_app_bundle_pathname,
+			   app_bundle_pathname,
+			   app_bundle_pathname_len + 1,
+			   kCFStringEncodingISOLatin1))
+    {
+      CFRelease (cf_app_bundle_pathname);
+      return;
+    }
+
+  CFRelease (cf_app_bundle_pathname);
+
+  /* P should have sufficient room for the pathname of the bundle plus
+     the subpath in it leading to the respective directories.  Q
+     should have three times that much room because EMACSLOADPATH can
+     have the value "<path to lisp dir>:<path to leim dir>:<path to
+     site-lisp dir>".  */
+  p = (char *) alloca (app_bundle_pathname_len + 50);
+  q = (char *) alloca (3 * app_bundle_pathname_len + 150);
+  if (!getenv ("EMACSLOADPATH"))
+    {
+      q[0] = '\0';
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/lisp");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	strcat (q, p);
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/leim");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/site-lisp");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      if (q[0] != '\0')
+	setenv ("EMACSLOADPATH", q, 1);
+    }
+
+  if (!getenv ("EMACSPATH"))
+    {
+      q[0] = '\0';
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/MacOS/bin");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	strcat (q, p);
+
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/MacOS/libexec");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	{
+	  if (q[0] != '\0')
+	    strcat (q, ":");
+	  strcat (q, p);
+	}
+
+      if (q[0] != '\0')
+	setenv ("EMACSPATH", q, 1);
+    }
+
+  if (!getenv ("EMACSDATA"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/etc");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("EMACSDATA", p, 1);
+    }
+
+  if (!getenv ("EMACSDOC"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/etc");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("EMACSDOC", p, 1);
+    }
+
+  if (!getenv ("INFOPATH"))
+    {
+      strcpy (p, app_bundle_pathname);
+      strcat (p, "/Contents/Resources/info");
+      if (stat (p, &st) == 0 && (st.st_mode & S_IFMT) == S_IFDIR)
+	setenv ("INFOPATH", p, 1);
+    }
+}
+#endif /* MAC_OSX */
 
 void
 syms_of_mac ()
 {
   QCLIPBOARD = intern ("CLIPBOARD");
   staticpro (&QCLIPBOARD);
-  
+
   defsubr (&Smac_paste_function);
   defsubr (&Smac_cut_function);
-#if 0
   defsubr (&Sx_selection_exists_p);
-#endif /* 0 */
 
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);

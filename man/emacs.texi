@@ -1,31 +1,20 @@
 \input texinfo
 
-@setchapternewpage odd
-@settitle GNU Emacs Manual
 @setfilename ../info/emacs
-@defcodeindex op
-@synindex pg cp
+@settitle GNU Emacs Manual
 
 @c The edition number appears in several places in this file
 @set EDITION   Fourteenth
 @set EMACSVER  21.3.50
 
-@ifnottex
+@copying
 This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
-@dircategory Emacs
-@direntry
-* Emacs: (emacs).	The extensible self-documenting text editor.
-@end direntry
+Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
+1999, 2000, 2001, 2002 Free Software Foundation, Inc.
 
-Published by the Free Software Foundation
-59 Temple Place, Suite 330
-Boston, MA  02111-1307 USA
-
-Copyright (C) 1985, 1986,1987,1993,1994,1995,1996,1997,1998,1999,2000,2001,2002
-   Free Software Foundation, Inc.
-
+@quotation
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
 any later version published by the Free Software Foundation; with the
@@ -38,19 +27,30 @@ License.''
 (a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
 this GNU Manual, like GNU software.  Copies published by the Free
 Software Foundation raise funds for GNU development.''
-@end ifnottex
+@end quotation
+@end copying
+
+@dircategory Emacs
+@direntry
+* Emacs: (emacs).	The extensible self-documenting text editor.
+@end direntry
 
 @c in general, keep the following line commented out, unless doing a
 @c copy of this manual that will be published.  the manual should go
-@c onto the distribution in the full, 8.5 x 11" size.  
+@c onto the distribution in the full, 8.5 x 11" size.
 
 @c @smallbook
+
+@setchapternewpage odd
+@defcodeindex op
+@synindex pg cp
 
 @iftex
 @kbdinputstyle code
 
 @shorttitlepage GNU Emacs Manual
 @end iftex
+
 @titlepage
 @sp 6
 @center @titlefont{GNU Emacs Manual}
@@ -60,31 +60,13 @@ Software Foundation raise funds for GNU development.''
 @center Richard Stallman
 @page
 @vskip 0pt plus 1filll
-Copyright @copyright{} 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002
-   Free Software Foundation, Inc.
-@sp 2
-@value{EDITION} Edition @*
-Updated for Emacs Version @value{EMACSVER}, @*
-August 2000
+@insertcopying
 
-ISBN 1-882114-06-X
-@sp 1
+@sp 2
+ISBN 1-882114-06-X @*
 Published by the Free Software Foundation @*
 59 Temple Place, Suite 330 @*
 Boston, MA  02111-1307 USA
-@sp 1
-Permission is granted to copy, distribute and/or modify this document
-under the terms of the GNU Free Documentation License, Version 1.1 or
-any later version published by the Free Software Foundation; with the
-Invariant Sections being ``The GNU Manifesto'', ``Distribution'' and
-``GNU GENERAL PUBLIC LICENSE'', with the Front-Cover texts being ``A GNU
-Manual,'' and with the Back-Cover Texts as in (a) below.  A copy of the
-license is included in the section entitled ``GNU Free Documentation
-License.''
-
-(a) The FSF's Back-Cover Text is: ``You have freedom to copy and modify
-this GNU Manual, like GNU software.  Copies published by the Free
-Software Foundation raise funds for GNU development.''
 
 @sp 2
 Cover art by Etienne Suvasa.
@@ -102,7 +84,8 @@ some of how to customize it; it corresponds to GNU Emacs version
 
 @ifinfo
 If you never before used the Info documentation system, type @kbd{h},
-and Emacs will take you on a guided tour through the Info commands.
+and Emacs will take you to a programmed instruction sequence for the
+Info commands.
 @end ifinfo
 
 For information on extending Emacs, see @ref{Top, Emacs Lisp,, elisp, The
@@ -161,7 +144,7 @@ Important General Concepts
 * Keys::	        Key sequences: what you type to request one
                           editing action.
 * Commands::	        Named functions run by key sequences to do editing.
-* Text Characters::     Character set for text (the contents of buffers 
+* Text Characters::     Character set for text (the contents of buffers
 			  and strings).
 * Entering Emacs::      Starting Emacs from the shell.
 * Exiting::	        Stopping or killing Emacs.
@@ -299,7 +282,7 @@ Deletion and Killing
 			  blank areas.
 * Killing by Lines::	How to kill entire lines of text at one time.
 * Other Kill Commands:: Commands to kill large regions of text and
-			  syntactic units such as words and sentences. 
+			  syntactic units such as words and sentences.
 
 Yanking
 
@@ -393,7 +376,7 @@ Using Multiple Buffers
 * Kill Buffer::	        Killing buffers you no longer need.
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
-* Indirect Buffers::    An indirect buffer shares the text of another buffer. 
+* Indirect Buffers::    An indirect buffer shares the text of another buffer.
 
 Multiple Windows
 
@@ -428,7 +411,7 @@ Frames and X Windows
 * Font Lock::           Minor mode for syntactic highlighting using faces.
 * Highlight Changes::   Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
-* Trailing Whitespace:: Showing possibly-spurious trailing whitespace.
+* Useless Whitespace::  Showing possibly-spurious trailing whitespace.
 * Tooltips::            Showing "tooltips", AKA "ballon help" for active text.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
@@ -564,14 +547,14 @@ Compiling and Testing Programs
 * Compilation Mode::    The mode for visiting compiler errors.
 * Compilation Shell::   Customizing your shell properly
                           for use in the compilation buffer.
-* Debuggers::		Running symbolic debuggers for non-Lisp programs. 
-* Executing Lisp::	Various modes for editing Lisp programs, 
+* Debuggers::		Running symbolic debuggers for non-Lisp programs.
+* Executing Lisp::	Various modes for editing Lisp programs,
 			  with different facilities for running
-			  the Lisp programs. 
+			  the Lisp programs.
 * Lisp Libraries::      Creating Lisp programs to run in Emacs.
 * Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * Lisp Eval::		Executing a single Lisp expression in Emacs.
-* External Lisp::	Communicating through Emacs with a separate Lisp. 
+* External Lisp::	Communicating through Emacs with a separate Lisp.
 
 Running Debuggers Under Emacs
 
@@ -592,10 +575,10 @@ Maintaining Programs
 
 Tags Tables
 
-* Tag Syntax::		Tag syntax for various types of code and text files.  
+* Tag Syntax::		Tag syntax for various types of code and text files.
 * Create Tags Table::	Creating a tags table with @code{etags}.
 * Select Tags Table::	How to visit a tags table.
-* Find Tag::		Commands to find the definition of a specific tag. 
+* Find Tag::		Commands to find the definition of a specific tag.
 * Tags Search::		Using a tags table for searching and replacing.
 * List Tags::		Listing and finding tags defined in a file.
 
@@ -739,17 +722,17 @@ Customization
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
 * Keyboard Macros::	A keyboard macro records a sequence of
-			  keystrokes to be replayed with a single command. 
+			  keystrokes to be replayed with a single command.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
 * Keyboard Translations::
                         If your keyboard passes an undesired code
 			   for a key, you can tell Emacs to
-			   substitute another code. 
+			   substitute another code.
 * Syntax::		The syntax table controls how words and
 			   expressions are parsed.
 * Init File::		How to write common customizations in the
-			  @file{.emacs} file. 
+			  @file{.emacs} file.
 
 Variables
 
@@ -882,7 +865,7 @@ chapters when you need them.
 properly.  It explains how to cope with some common problems
 (@pxref{Lossage}), as well as when and how to report Emacs bugs
 (@pxref{Bugs}).
- 
+
   To find the documentation on a particular command, look in the index.
 Keys (character commands) and command names have separate indexes.  There
 is also a glossary, with a cross reference for each term.
@@ -976,8 +959,8 @@ Carpenter, Hans Chalupsky, Bob Chassell, James Clark, Mike Clarkson,
 Glynn Clements, Andrew Csillag, Doug Cutting, Michael DeCorte, Gary
 Delp, Matthieu Devin, Eri Ding, Carsten Dominik, Scott Draves, Viktor
 Dukhovni, John Eaton, Rolf Ebert, Stephen Eglen, Torbj@"orn Einarsson,
-Tsugumoto Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
-Frederick Farnback, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
+Tsugutomo Enami, Hans Henrik Eriksen, Michael Ernst, Ata Etemadi,
+Frederick Farnbach, Fred Fish, Karl Fogel, Gary Foster, Noah Friedman,
 Keith Gabryelski, Kevin Gallagher, Kevin Gallo, Howard Gayle, Stephen
 Gildea, David Gillespie, Bob Glickstein, Boris Goldowsky, Michelangelo
 Grigni, Michael Gschwind, Henry Guillaume, Doug Gwyn, Ken'ichi Handa,
@@ -1376,7 +1359,7 @@ when it starts in an interactive mode:
 Gnomovision version 69, Copyright (C) 20@var{yy} @var{name of author}
 Gnomovision comes with ABSOLUTELY NO WARRANTY; for details
 type `show w'.  This is free software, and you are welcome
-to redistribute it under certain conditions; type `show c' 
+to redistribute it under certain conditions; type `show c'
 for details.
 @end smallexample
 
@@ -1394,7 +1377,7 @@ necessary.  Here is a sample; alter the names:
 @group
 Yoyodyne, Inc., hereby disclaims all copyright
 interest in the program `Gnomovision'
-(which makes passes at compilers) written 
+(which makes passes at compilers) written
 by James Hacker.
 
 @var{signature of Ty Coon}, 1 April 1989

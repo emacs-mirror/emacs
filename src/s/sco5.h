@@ -150,7 +150,7 @@ extern SIGMASKTYPE sigprocmask_set;
 #define PENDING_OUTPUT_COUNT(FILE) ((FILE)->__ptr - (FILE)->__base)
 #endif
 
-/* Use ELF and get real shared libraries */ 
+/* Use ELF and get real shared libraries */
 
 #undef COFF
 #define ELF

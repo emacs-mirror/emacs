@@ -217,6 +217,7 @@ Boston, MA 02111-1307, USA.  */
 #define MAXPATHLEN      _MAX_PATH
 #endif
 
+#define HAVE_SOUND  1
 #define LISP_FLOAT_TYPE 1
 
 #undef  HAVE_SYS_SELECT_H
@@ -439,7 +440,7 @@ extern char *get_emacs_configuration_options (void);
 
 #include <sys/stat.h>
 
-/* Define for those source files that do not include enough NT 
+/* Define for those source files that do not include enough NT
    system files.  */
 #ifndef NULL
 #ifdef __cplusplus

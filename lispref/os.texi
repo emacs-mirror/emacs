@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/os
 @node System Interface, Antinews, Calendar, Top
@@ -28,7 +28,7 @@ pertaining to the terminal and the screen.
 * Terminal Input::      Recording terminal input for debugging.
 * Terminal Output::     Recording terminal output for debugging.
 * Sound Output::        Playing sounds on the computer's speaker.
-* Special Keysyms::     Defining system-specific key symbols for X.
+* X11 Keysyms::         Operating on key symbols for X Windows
 * Flow Control::        How to turn output flow control on or off.
 * Batch Mode::          Running Emacs without terminal interaction.
 * Session Management::  Saving and restoring state with X Session Management.
@@ -90,13 +90,13 @@ It loads the library @file{site-start}, unless the option
 @file{site-start.el}.
 @cindex @file{site-start.el}
 
-@item 
+@item
 It loads your init file (usually @file{~/.emacs}), unless @samp{-q},
 @samp{-no-init-file}, or @samp{-batch} was specified on the command line.
 The @samp{-u} option can specify another user whose home directory
 should be used instead of @file{~}.
 
-@item 
+@item
 It loads the library @file{default}, unless @code{inhibit-default-init}
 is non-@code{nil}.  (This is not done in @samp{-batch} mode or if
 @samp{-q} was specified on the command line.)  The library's file name
@@ -111,7 +111,7 @@ It sets the major mode according to @code{initial-major-mode}, provided
 the buffer @samp{*scratch*} is still current and still in Fundamental
 mode.
 
-@item 
+@item
 It loads the terminal-specific Lisp file, if any, except when in batch
 mode or using a window system.
 
@@ -119,10 +119,10 @@ mode or using a window system.
 It displays the initial echo area message, unless you have suppressed
 that with @code{inhibit-startup-echo-area-message}.
 
-@item 
+@item
 It processes the action arguments from the command line.
 
-@item 
+@item
 It runs @code{emacs-startup-hook} and then @code{term-setup-hook}.
 
 @item
@@ -130,10 +130,10 @@ It calls @code{frame-notice-user-settings}, which modifies the
 parameters of the selected frame according to whatever the init files
 specify.
 
-@item 
+@item
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
-@item 
+@item
 It displays copyleft, nonwarranty, and basic use information, provided
 there were no remaining command-line arguments (a few steps above),
 the value of @code{inhibit-startup-message} is @code{nil}, and the
@@ -311,7 +311,7 @@ On MS-DOS, if the environment variable @code{TERM} is not set, Emacs
 uses @samp{internal} as the terminal type.
 @end defvar
 
-@defvar term-setup-hook 
+@defvar term-setup-hook
 This variable is a normal hook that Emacs runs after loading your
 init file, the default initialization file (if any) and the
 terminal-specific Lisp file.
@@ -381,7 +381,7 @@ has the form:
 -@var{option}
 @end example
 
-The elements of the @code{command-switch-alist} look like this: 
+The elements of the @code{command-switch-alist} look like this:
 
 @example
 (@var{option} . @var{handler-function})
@@ -485,7 +485,7 @@ additional confirmation from the user.  If any of them returns
 @defvar kill-emacs-hook
 This variable is a normal hook; once @code{save-buffers-kill-emacs} is
 finished with all file saving and confirmation, it runs the functions in
-this hook.
+this hook.  This hook is not run in batch mode.
 @end defvar
 
 @node Suspending Emacs
@@ -613,6 +613,9 @@ AIX.
 @item berkeley-unix
 Berkeley BSD.
 
+@item cygwin
+Cygwin.
+
 @item dgux
 Data General DGUX operating system.
 
@@ -732,10 +735,10 @@ of this variable.
 process-environment
 @result{} ("l=/usr/stanford/lib/gnuemacs/lisp"
     "PATH=.:/user/lewis/bin:/usr/class:/nfsusr/local/bin"
-    "USER=lewis" 
+    "USER=lewis"
 @end group
 @group
-    "TERM=ibmapa16" 
+    "TERM=ibmapa16"
     "SHELL=/bin/csh"
     "HOME=/user/lewis")
 @end group
@@ -925,7 +928,7 @@ This function returns the real @sc{uid} of the user.
 @end defun
 
 @defun user-uid
-This function returns the effective @sc{uid} of the user.  
+This function returns the effective @sc{uid} of the user.
 @end defun
 
 @node Time of Day
@@ -1848,8 +1851,8 @@ A list of functions to be called before playing a sound.  Each function
 is called with one argument, a property list that describes the sound.
 @end defvar
 
-@node Special Keysyms
-@section System-Specific X11 Keysyms
+@node X11 Keysyms
+@section Operating on X11 Keysyms
 
 To define system-specific X11 keysyms, set the variable
 @code{system-key-alist}.
@@ -1858,11 +1861,11 @@ To define system-specific X11 keysyms, set the variable
 This variable's value should be an alist with one element for each
 system-specific keysym.  Each element has the form @code{(@var{code}
 . @var{symbol})}, where @var{code} is the numeric keysym code (not
-including the ``vendor specific'' bit, 
+including the ``vendor specific'' bit,
 @ifnottex
 -2**28),
 @end ifnottex
-@tex 
+@tex
 $-2^{28}$),
 @end tex
 and @var{symbol} is the name for the function key.
@@ -1872,7 +1875,7 @@ by HP X servers) whose numeric code is
 @ifnottex
 -2**28
 @end ifnottex
-@tex 
+@tex
 $-2^{28}$
 @end tex
 + 168.
@@ -1883,6 +1886,21 @@ used by the X server actually in use.
 
 The variable is always local to the current terminal, and cannot be
 buffer-local.  @xref{Multiple Displays}.
+@end defvar
+
+You can specify which keysyms Emacs should use for the Meta, Alt, Hyper, and Super modifiers by setting these variables:
+
+@defvar x-alt-keysym
+@defvarx x-meta-keysym
+@defvarx x-hyper-keysym
+@defvarx x-super-keysym
+The name of the keysym that should stand for the Alt modifier
+(respectively, for Meta, Hyper, and Super).  For example, here is
+how to swap the Meta and Alt modifiers within Emacs:
+@lisp
+(setq x-alt-keysym 'meta)
+(setq x-meta-keysym 'alt)
+@end lisp
 @end defvar
 
 @node Flow Control

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/numbers
 @node Numbers, Strings and Characters, Lisp Data Types, Top
@@ -40,14 +40,14 @@ minimum range is @minus{}134217728 to 134217727 (28 bits; i.e.,
 @ifnottex
 -2**27
 @end ifnottex
-@tex 
+@tex
 @math{-2^{27}}
 @end tex
-to 
+to
 @ifnottex
 2**27 - 1),
 @end ifnottex
-@tex 
+@tex
 @math{2^{27}-1}),
 @end tex
 but some machines may provide a wider range.  Many examples in this
@@ -76,7 +76,7 @@ binary (radix 2), @samp{#O@var{integer}} reads @var{integer} in octal
 (radix 8), @samp{#X@var{integer}} reads @var{integer} in hexadecimal
 (radix 16), and @samp{#@var{radix}r@var{integer}} reads @var{integer}
 in radix @var{radix} (where @var{radix} is between 2 and 36,
-inclusivley).  Case is not significant for the letter after @samp{#}
+inclusively).  Case is not significant for the letter after @samp{#}
 (@samp{B}, @samp{O}, etc.) that denotes the radix.
 
   To understand how various functions work on integers, especially the
@@ -746,7 +746,7 @@ like this (with 8-bit binary numbers):
 (lsh 3 2)
      @result{} 12
 ;; @r{Decimal 3 becomes decimal 12.}
-00000011 @result{} 00001100       
+00000011 @result{} 00001100
 @end group
 @end example
 
@@ -757,14 +757,14 @@ On the other hand, shifting one place to the right looks like this:
 (lsh 6 -1)
      @result{} 3
 ;; @r{Decimal 6 becomes decimal 3.}
-00000110 @result{} 00000011       
+00000110 @result{} 00000011
 @end group
 
 @group
 (lsh 5 -1)
      @result{} 2
 ;; @r{Decimal 5 becomes decimal 2.}
-00000101 @result{} 00000010       
+00000101 @result{} 00000010
 @end group
 @end example
 
@@ -787,7 +787,7 @@ In binary, in the 28-bit implementation, the argument looks like this:
 @example
 @group
 ;; @r{Decimal 134,217,727}
-0111  1111 1111  1111 1111  1111 1111         
+0111  1111 1111  1111 1111  1111 1111
 @end group
 @end example
 
@@ -797,7 +797,7 @@ which becomes the following when left shifted:
 @example
 @group
 ;; @r{Decimal @minus{}2}
-1111  1111 1111  1111 1111  1111 1110         
+1111  1111 1111  1111 1111  1111 1110
 @end group
 @end example
 @end defun
@@ -818,10 +818,10 @@ looks like this:
 
 @example
 @group
-(ash -6 -1) @result{} -3            
+(ash -6 -1) @result{} -3
 ;; @r{Decimal @minus{}6 becomes decimal @minus{}3.}
 1111  1111 1111  1111 1111  1111 1010
-     @result{} 
+     @result{}
 1111  1111 1111  1111 1111  1111 1101
 @end group
 @end example
@@ -834,7 +834,7 @@ In contrast, shifting the pattern of bits one place to the right with
 (lsh -6 -1) @result{} 134217725
 ;; @r{Decimal @minus{}6 becomes decimal 134,217,725.}
 1111  1111 1111  1111 1111  1111 1010
-     @result{} 
+     @result{}
 0111  1111 1111  1111 1111  1111 1101
 @end group
 @end example
@@ -992,7 +992,7 @@ bit is one in the result if, and only if, the @var{n}th bit is zero in
 @var{integer}, and vice-versa.
 
 @example
-(lognot 5)             
+(lognot 5)
      @result{} -6
 ;;  5  =  @r{0000  0000 0000  0000 0000  0000 0101}
 ;; @r{becomes}

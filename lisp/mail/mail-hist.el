@@ -122,7 +122,7 @@ the message."
 (defsubst mail-hist-forward-header (count)
   "Move forward COUNT headers (backward if COUNT is negative).
 If last/first header is encountered first, stop there and returns
-nil.  
+nil.
 
 Places point on the first non-whitespace on the line following the
 colon after the header name, or on the second space following that if
@@ -212,11 +212,11 @@ Optional argument CONTENTS is a string which will be the contents
 
 ;;;###autoload
 (defun mail-hist-put-headers-into-history ()
-  "Put headers and contents of this message into mail header history. 
+  "Put headers and contents of this message into mail header history.
 Each header has its own independent history, as does the body of the
 message.
 
-This function normally would be called when the message is sent." 
+This function normally would be called when the message is sent."
   (and
    mail-hist-keep-history
    (save-excursion
@@ -260,7 +260,7 @@ This function normally would be called when the message is sent."
           ;; bottom is often just the same quoted history for every
           ;; message in the thread, differing only in indentation
           ;; level.
-          (if (string-equal header "body") 
+          (if (string-equal header "body")
               (goto-char start)))
         ))))
 
@@ -283,7 +283,7 @@ its own independent history, as does the body of the message.
 
 Although you can do so, it does not make much sense to call this
 without having called `mail-hist-previous-header' first
-(\\[mail-hist-previous-header]).
+\(\\[mail-hist-previous-header]).
 
 The history only contains the contents of outgoing messages, not
 received mail."

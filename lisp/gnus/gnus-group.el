@@ -375,7 +375,7 @@ particular group line should be displayed, each form is evaluated.
 The icon from the file field after the first true form is used.  You
 can change how those group lines are displayed by editing the file
 field.  The File will either be found in the
-`gnus-group-glyph-directory' or by designating absolute path to the
+`gnus-group-glyph-directory' or by designating absolute name of the
 file.
 
 It is also possible to change and add form fields, but currently that
@@ -822,7 +822,7 @@ For example:
 
 ;; Emacs 21 tool bar.  Should be no-op otherwise.
 (defun gnus-group-make-tool-bar ()
-  (if (and 
+  (if (and
        (condition-case nil (require 'tool-bar) (error nil))
        (fboundp 'tool-bar-add-item-from-menu)
        (default-value 'tool-bar-mode)
@@ -938,7 +938,7 @@ The following commands are available:
   (let ((item (assoc method gnus-group-name-charset-method-alist))
 	(alist gnus-group-name-charset-group-alist)
 	result)
-    (if item 
+    (if item
 	(cdr item)
       (while (setq item (pop alist))
 	(if (string-match (car item) group)
@@ -1099,9 +1099,9 @@ If REGEXP, only list groups matching REGEXP."
 	    (gnus-add-text-properties
 	     (point) (prog1 (1+ (point))
 		       (insert " " mark "     *: "
-			       (gnus-group-name-decode group 
+			       (gnus-group-name-decode group
 						       (gnus-group-name-charset
-							nil group)) 
+							nil group))
 			       "\n"))
 	     (list 'gnus-group (gnus-intern-safe group gnus-active-hashtb)
 		   'gnus-unread t
@@ -1112,9 +1112,9 @@ If REGEXP, only list groups matching REGEXP."
 	(gnus-add-text-properties
 	 (point) (prog1 (1+ (point))
 		   (insert " " mark "     *: "
-			   (gnus-group-name-decode group 
+			   (gnus-group-name-decode group
 						   (gnus-group-name-charset
-						    nil group)) 
+						    nil group))
 			   "\n"))
 	 (list 'gnus-group (gnus-intern-safe group gnus-active-hashtb)
 	       'gnus-unread t
@@ -1168,7 +1168,7 @@ If REGEXP, only list groups matching REGEXP."
 						    gnus-tmp-method)
   "Insert a group line in the group buffer."
   (let* ((gnus-tmp-method
-	  (gnus-server-get-method gnus-tmp-group gnus-tmp-method)) 
+	  (gnus-server-get-method gnus-tmp-group gnus-tmp-method))
 	 (group-name-charset (gnus-group-name-charset gnus-tmp-method
 						      gnus-tmp-group))
 	 (gnus-tmp-active (gnus-active gnus-tmp-group))
@@ -1188,13 +1188,13 @@ If REGEXP, only list groups matching REGEXP."
 		((<= gnus-tmp-level gnus-level-unsubscribed) ?U)
 		((= gnus-tmp-level gnus-level-zombie) ?Z)
 		(t ?K)))
-	 (gnus-tmp-qualified-group 
+	 (gnus-tmp-qualified-group
 	  (gnus-group-name-decode (gnus-group-real-name gnus-tmp-group)
 				  group-name-charset))
 	 (gnus-tmp-newsgroup-description
 	  (if gnus-description-hashtb
 	      (or (gnus-group-name-decode
-		   (gnus-gethash gnus-tmp-group gnus-description-hashtb) 
+		   (gnus-gethash gnus-tmp-group gnus-description-hashtb)
 		   group-name-charset) "")
 	    ""))
 	 (gnus-tmp-moderated
@@ -1840,11 +1840,11 @@ If TEST-MARKED, the line must be marked."
      (test-marked
       (goto-char (point-min))
       (let (found)
-	(while (and (not found) 
+	(while (and (not found)
 		    (gnus-goto-char
 		     (text-property-any
 		      (point) (point-max)
-		      'gnus-group 
+		      'gnus-group
 		      (gnus-intern-safe group gnus-active-hashtb))))
 	  (if (gnus-group-mark-line-p)
 	      (setq found t)
@@ -2308,7 +2308,7 @@ If SOLID (the prefix), create a solid group."
 	    default-login 'gnus-group-warchive-login-history)
 	   user-mail-address))
 	 (method
-	  `(nnwarchive ,address 
+	  `(nnwarchive ,address
 		       (nnwarchive-type ,(intern type))
 		       (nnwarchive-login ,login))))
     (gnus-group-make-group group method)))
@@ -3175,7 +3175,7 @@ entail asking the server for the groups."
       (gnus-add-text-properties
        (point) (prog1 (1+ (point))
 		 (insert "       *: "
-			 (gnus-group-name-decode group 
+			 (gnus-group-name-decode group
 						 (gnus-group-name-charset
 						  nil group))
 			 "\n"))
@@ -3282,7 +3282,7 @@ to use."
     (gnus-group-group-name)
     (when current-prefix-arg
       (completing-read
-       "Faq dir: " (and (listp gnus-group-faq-directory)
+       "FAQ dir: " (and (listp gnus-group-faq-directory)
 			(mapcar #'list
 				gnus-group-faq-directory))))))
   (unless group
@@ -3338,7 +3338,7 @@ to use."
      (lambda (group)
        (setq b (point))
        (let ((charset (gnus-group-name-charset nil (symbol-name group))))
-	 (insert (format "      *: %-20s %s\n" 
+	 (insert (format "      *: %-20s %s\n"
 			 (gnus-group-name-decode
 			  (symbol-name group) charset)
 			 (gnus-group-name-decode
@@ -3709,7 +3709,7 @@ or `gnus-group-catchup-group-hook'."
 	""
       (gnus-time-iso8601 time))))
 
-(defun gnus-group-prepare-flat-list-dead-predicate 
+(defun gnus-group-prepare-flat-list-dead-predicate
   (groups level mark predicate)
   (let (group)
     (if predicate
@@ -3719,8 +3719,8 @@ or `gnus-group-catchup-group-hook'."
 	  (when (funcall predicate group)
 	    (gnus-add-text-properties
 	     (point) (prog1 (1+ (point))
-		       (insert " " mark "     *: " 
-			       (gnus-group-name-decode group 
+		       (insert " " mark "     *: "
+			       (gnus-group-name-decode group
 						       (gnus-group-name-charset
 							nil group))
 			       "\n"))
@@ -3789,11 +3789,11 @@ This command may read the active file."
 				      (assq 'cache marks)))
 				lowest
 				#'(lambda (group)
-				    (or (gnus-gethash group 
+				    (or (gnus-gethash group
 						      gnus-cache-active-hashtb)
-					;; Cache active file might use "." 
+					;; Cache active file might use "."
 					;; instead of ":".
-					(gnus-gethash 
+					(gnus-gethash
 					 (mapconcat 'identity
 						    (split-string group ":")
 						    ".")

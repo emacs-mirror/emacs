@@ -166,7 +166,7 @@ With ARG, do it that many times.  Negative arg -N
 means move forward to Nth following beginning of defun.
 Returns t unless search stops due to beginning or end of buffer.
 
-Normally a defun starts when there is an char with open-parenthesis
+Normally a defun starts when there is a char with open-parenthesis
 syntax at the beginning of a line.  If `defun-prompt-regexp' is
 non-nil, then a string which matches that regexp may precede the
 open-parenthesis, and point ends up at the beginning of the line.

@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/backups
 @node Backups and Auto-Saving, Buffers, Files, Top
@@ -78,9 +78,9 @@ save disk space.  (You would put this code in your init file.)
 
 @smallexample
 @group
-(add-hook 'rmail-mode-hook 
+(add-hook 'rmail-mode-hook
           (function (lambda ()
-                      (make-local-variable 
+                      (make-local-variable
                        'make-backup-files)
                       (setq make-backup-files nil))))
 @end group
@@ -157,7 +157,7 @@ files.  If you define it, you may need to change
 @subsection Backup by Renaming or by Copying?
 @cindex backup files, how to make them
 
-  There are two ways that Emacs can make a backup file: 
+  There are two ways that Emacs can make a backup file:
 
 @itemize @bullet
 @item
@@ -405,7 +405,7 @@ This function returns the name of the most recent backup file for
 
 Some file comparison commands use this function so that they can
 automatically compare a file with its most recent backup.
-@end defun 
+@end defun
 
 @node Auto-Saving
 @section Auto-Saving

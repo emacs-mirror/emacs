@@ -1,29 +1,28 @@
 ;;; ps-print.el --- print text from the buffer as PostScript
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001
-;; Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;; 2003 Free Software Foundation, Inc.
 
 ;; Author: Jim Thompson (was <thompson@wg2.waii.com>)
 ;;	Jacques Duthen (was <duthen@cegelec-red.fr>)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;	Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
-;;	Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2001/09/17 14:50:19 vinicius>
-;; Version: 6.5.5
+;; Time-stamp: <2003/03/05 21:54:55 vinicius>
+;; Version: 6.6
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.5.5"
-  "ps-print.el, v 6.5.5 <2001/09/17 vinicius>
+(defconst ps-print-version "6.6"
+  "ps-print.el, v 6.6 <2003/03/05 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
 report the version of Emacs, if any, that ps-print was distributed with.
 
 Please send all bug fixes and enhancements to
-	Vinicius Jose Latorre <vinicius@cpqd.com.br>.
-")
+	Vinicius Jose Latorre <viniciusjl@ig.com.br>.")
 
 ;; This file is part of GNU Emacs.
 
@@ -50,8 +49,8 @@ Please send all bug fixes and enhancements to
 ;;
 ;; This package provides printing of Emacs buffers on PostScript printers; the
 ;; buffer's bold and italic text attributes are preserved in the printer
-;; output.  ps-print is intended for use with Emacs or Lucid Emacs, together
-;; with a fontifying package such as font-lock or hilit.
+;; output.  ps-print is intended for use with Emacs or XEmacs, together with a
+;; fontifying package such as font-lock or hilit.
 ;;
 ;; ps-print uses the same face attributes defined through font-lock or hilit to
 ;; print a PostScript file, but some faces are better seeing on the screen than
@@ -1076,7 +1075,7 @@ Please send all bug fixes and enhancements to
 ;;    (face...)	list of faces whose background color will be used.
 ;;
 ;; Any other value will be treated as t.
-;; The default value is t.
+;; The default value is nil.
 ;;
 ;;
 ;; How Ps-Print Deals With Color
@@ -1212,7 +1211,7 @@ Please send all bug fixes and enhancements to
 ;; New since version 2.8
 ;; ---------------------
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    20010619
 ;;	 `ps-time-stamp-locale-default'
@@ -1264,7 +1263,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; `ps-print-region-function'
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    19990301
 ;;	 PostScript tumble and setpagedevice.
@@ -1277,7 +1276,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Multi-byte buffer handling.
 ;;
-;; [vinicius] Vinicius Jose Latorre <vinicius@cpqd.com.br>
+;; [vinicius] Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;;
 ;;    19980306
 ;;	 Skip invisible text.
@@ -1330,7 +1329,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;; Faces are always treated as opaque.
 ;;
-;; Epoch and Emacs 19 not supported.  At all.
+;; Epoch, Lucid and Emacs 19 not supported.  At all.
 ;;
 ;; Fixed-pitch fonts work better for line folding, but are not required.
 ;;
@@ -1443,6 +1442,20 @@ Please send all bug fixes and enhancements to
       (error "`ps-print' requires floating point support"))
 
 
+  (defvar ps-print-emacs-type
+    (let ((case-fold-search t))
+      (cond ((string-match "XEmacs" emacs-version) 'xemacs)
+	    ((string-match "Lucid" emacs-version)
+	     (error "`ps-print' doesn't support Lucid"))
+	    ((string-match "Epoch" emacs-version)
+	     (error "`ps-print' doesn't support Epoch"))
+	    (t
+	     (unless (and (boundp 'emacs-major-version)
+			  (> emacs-major-version 19))
+	       (error "`ps-print' only supports Emacs 20 and higher"))
+	     'emacs))))
+
+
   ;; For Emacs 20.2 and the earlier version.
 
   (or (fboundp 'set-buffer-multibyte)
@@ -1508,7 +1521,29 @@ Please send all bug fixes and enhancements to
   (defconst ps-windows-system
     (memq system-type '(emx win32 w32 mswindows ms-dos windows-nt)))
   (defconst ps-lp-system
-    (memq system-type '(usq-unix-v dgux hpux irix))))
+    (memq system-type '(usg-unix-v dgux hpux irix)))
+
+
+  (defun ps-xemacs-color-name (color)
+    (if (ps-x-color-specifier-p color)
+	(ps-x-color-name color)
+      color))
+
+
+  (cond ((eq ps-print-emacs-type 'emacs) ; emacs
+	 (defvar mark-active nil)
+	 (defun ps-mark-active-p ()
+	   mark-active)
+	 (defalias 'ps-face-foreground-name 'face-foreground)
+	 (defalias 'ps-face-background-name 'face-background)
+	 )
+	(t				; xemacs
+	 (defalias 'ps-mark-active-p 'region-active-p)
+	 (defun ps-face-foreground-name (face)
+	   (ps-xemacs-color-name (face-foreground face)))
+	 (defun ps-face-background-name (face)
+	   (ps-xemacs-color-name (face-background face)))
+	 )))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1653,8 +1688,7 @@ As an example for `ps-user-defined-prologue' setting:
    ;; Setting for HP PostScript printer
    (setq ps-user-defined-prologue
 	 (concat \"<</DeferredMediaSelection true /PageSize [612 792] \"
-		 \"/MediaPosition 2 /MediaType (Plain)>> setpagedevice\"))
-"
+		 \"/MediaPosition 2 /MediaType (Plain)>> setpagedevice\"))"
   :type '(choice :menu-tag "User Defined Prologue"
 		 :tag "User Defined Prologue"
 		 (const :tag "none" nil) string symbol)
@@ -1673,8 +1707,8 @@ more requirements put them first in `ps-print-prologue-header' using the
 \"%%+\" comment.  For example, if you need to set numcopies to 3 and jog on
 requirements and set %%LanguageLevel: to 2, do:
 
-(setq ps-print-prologue-header
-      \"%%+ numcopies(3) jog\\n%%LanguageLevel: 2\\n\")
+ (setq ps-print-prologue-header
+       \"%%+ numcopies(3) jog\\n%%LanguageLevel: 2\\n\")
 
 The duplex requirement is inserted by ps-print (see `ps-spool-duplex').
 
@@ -1729,18 +1763,19 @@ See also `ps-printer-name-option' for documentation."
 	 "-P" ))
   "*Option for `ps-printer-name' variable (see it).
 
-On Unix-like systems, if it's been used lpr utility, it should be the string
-\"-P\"; if it's been used lp utility, it should be the string \"-d\".
+On Unix-like systems, if `lpr' is in use, this should be the string
+\"-P\"; if `lp' is in use, this should be the string \"-d\".
 
-On MS-DOS and MS-Windows systems, if it's been used print utility, it should be
+On MS-DOS and MS-Windows systems, if `print' is in use, this should be
 the string \"/D:\".
 
-For any other printing utility, see the proper manual or documentation.
+For any other printing utility, see its documentation.
 
-Set to \"\" or nil, if the utility given by `ps-lpr-command' needs an empty
-option printer name option.
+Set this to \"\" or nil, if the utility given by `ps-lpr-command'
+needs an empty printer name option--that is, pass the printer name
+with no special option preceding it.
 
-Any other value is treated as nil, that is, an empty printer name option.
+Any value that is not a string is treated as nil.
 
 This variable is used only when `ps-printer-name' is a non-empty string."
   :type '(choice :menu-tag "Printer Name Option"
@@ -1810,6 +1845,7 @@ If it's nil, automatic feeding takes place."
 ;; B4         10.125 inch x 14.33  inch
 ;; B5          7.16  inch x 10.125 inch
 
+;;;###autoload
 (defcustom ps-page-dimensions-database
   (list (list 'a4    (/ (* 72 21.0) 2.54) (/ (* 72 29.7) 2.54) "A4")
 	(list 'a3    (/ (* 72 29.7) 2.54) (/ (* 72 42.0) 2.54) "A3")
@@ -1858,7 +1894,7 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
   :group 'ps-print-page)
 
 (defcustom ps-print-upside-down nil
-  "*Non-nil means print upside-down (that is, it's rotated by 180 grades)."
+  "*Non-nil means print upside-down (that is, rotated by 180 degrees)."
   :type 'boolean
   :version "21.1"
   :group 'ps-print-page)
@@ -1866,19 +1902,19 @@ It's used when `ps-spool-config' is set to `setpagedevice'."
 (defcustom ps-selected-pages nil
   "*Specify which pages to print.
 
-If it's nil, all pages are printed.
+If nil, print all pages.
 
-If it's a list, the list element may be an integer or a cons cell (FROM . TO)
+If a list, the lists element may be an integer or a cons cell (FROM . TO)
 designating FROM page to TO page; any invalid element is ignored, that is, an
 integer lesser than one or if FROM is greater than TO.
 
 Otherwise, it's treated as nil.
 
-After ps-print processing `ps-selected-pages' is set to nil.  But the latest
-`ps-selected-pages' is saved in `ps-last-selected-pages' (see it for
-documentation).  So you can restore the latest selected pages by using
-`ps-last-selected-pages' or by calling `ps-restore-selected-pages' command (see
-it for documentation).
+After ps-print processing `ps-selected-pages' is set to nil.  But the
+latest `ps-selected-pages' is saved in `ps-last-selected-pages' (which
+see).  So you can restore the latest selected pages by using
+`ps-last-selected-pages' or with the `ps-restore-selected-pages'
+command (which see).
 
 See also `ps-even-or-odd-pages'."
   :type '(repeat :tag "Selected Pages"
@@ -2035,7 +2071,7 @@ Any other value is treated as `left-top'."
   :group 'ps-print-n-up)
 
 (defcustom ps-number-of-columns (if ps-landscape-mode 2 1)
-  "*Specify the number of columns"
+  "*Specify the number of columns."
   :type 'number
   :group 'ps-print-miscellany)
 
@@ -2195,7 +2231,7 @@ page.
 If PAGES is nil, print background image on all pages.
 
 X, Y, XSCALE, YSCALE and ROTATION may be a floating point number, an integer
-number or a string. If it is a string, the string should contain PostScript
+number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
 For example, if you wish to print an EPS image on all pages do:
@@ -2245,7 +2281,7 @@ page.
 If PAGES is nil, print background text on all pages.
 
 X, Y, FONTSIZE, GRAY and ROTATION may be a floating point number, an integer
-number or a string. If it is a string, the string should contain PostScript
+number or a string.  If it is a string, the string should contain PostScript
 programming that returns a float or integer value.
 
 For example, if you wish to print text \"Preliminary\" on all pages do:
@@ -2320,8 +2356,9 @@ For example, if you wish to print text \"Preliminary\" on all pages do:
   :group 'ps-print-vertical)
 
 (defcustom ps-header-line-pad 0.15
-  "*Portion of a header title line height to insert between the header frame
-and the text it contains, both in the vertical and horizontal directions."
+  "*Portion of a header title line height to insert.
+The insertion is done between the header frame and the text it contains,
+both in the vertical and horizontal directions."
   :type 'number
   :group 'ps-print-vertical)
 
@@ -2331,8 +2368,9 @@ and the text it contains, both in the vertical and horizontal directions."
   :group 'ps-print-vertical)
 
 (defcustom ps-footer-line-pad 0.15
-  "*Portion of a footer title line height to insert between the footer frame
-and the text it contains, both in the vertical and horizontal directions."
+  "*Portion of a footer title line height to insert.
+The insertion is done between the footer frame and the text it contains,
+both in the vertical and horizontal directions."
   :type 'number
   :group 'ps-print-vertical)
 
@@ -2582,7 +2620,7 @@ WARNING: The setpagedevice PostScript operator affects ghostview utility when
 	 specified by setpagedevice, your printing will be aborted.
 	 So, if you need to use setpagedevice, set `ps-spool-config' to
 	 `setpagedevice', generate a test file and send it to your printer; if
-	 the printed file isn't ok, set `ps-spool-config' to nil."
+	 the printed file isn't OK, set `ps-spool-config' to nil."
   :type '(choice :menu-tag "Spool Config"
 		 :tag "Spool Config"
 		 (const lpr-switches) (const setpagedevice)
@@ -2718,7 +2756,8 @@ It has effect only when `ps-spool-duplex' is non-nil."
      (space-width . 2.2)
      (avg-char-width . 4.10811))
     )
-  "*Font info database: font family (the key), name, bold, italic, bold-italic,
+  "*Font info database.
+Each element comprises: font family (the key), name, bold, italic, bold-italic,
 reference size, line height, space width, average character width.
 To get the info for another specific font (say Helvetica), do the following:
 - create a new buffer
@@ -2852,10 +2891,11 @@ uses the fonts resident in your printer."
 ;;; Colors
 
 ;; Printing color requires x-color-values.
+;; XEmacs change: Need autoload for the "Options->Printing->Color Printing"
+;;                widget to work.
+;;;###autoload
 (defcustom ps-print-color-p
-  (or (and (fboundp 'color-values)	; Emacs
-	   (ps-e-color-values "Green"))
-      (fboundp 'x-color-values)		; Emacs
+  (or (fboundp 'x-color-values)		; Emacs
       (fboundp 'color-instance-rgb-components))
 					; XEmacs
   "*Specify how buffer's text color is printed.
@@ -2877,10 +2917,37 @@ Any other value is treated as t."
 		 (const :tag "Print Black/White Color" black-white))
   :group 'ps-print-color)
 
-(defcustom ps-default-fg '(0.0 0.0 0.0)
-  "*RGB values of the default foreground color.  Defaults to black."
+(defcustom ps-default-fg '(0.0 0.0 0.0) ; black
+  "*RGB values of the default foreground color.  Defaults to black.
+
+The `ps-default-fg' variable contains the default foreground color used by
+ps-print, that is, if there is a face in a text that doesn't have a foreground
+color, the `ps-default-fg' color should be used.
+
+Valid values are:
+
+   t		The foreground color of Emacs session will be used.
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string wich contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED, GREEN, BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and it's used the black color.
+
+It's used only when `ps-print-color-p' is non-nil."
   :type '(choice :menu-tag "Default Foreground Gray/Color"
 		 :tag "Default Foreground Gray/Color"
+		 (const :tag "Session Foreground" t)
 		 (number :tag "Gray Scale" :value 0.0)
 		 (string :tag "Color Name" :value "black")
 		 (list :tag "RGB Color" :value (0.0 0.0 0.0)
@@ -2889,10 +2956,39 @@ Any other value is treated as t."
 		       (number :tag "Blue")))
   :group 'ps-print-color)
 
-(defcustom ps-default-bg '(1.0 1.0 1.0)
-  "*RGB values of the default background color.  Defaults to white."
+(defcustom ps-default-bg '(1.0 1.0 1.0) ; white
+  "*RGB values of the default background color.  Defaults to white.
+
+The `ps-default-bg' variable contains the default background color used by
+ps-print, that is, if there is a face in a text that doesn't have a background
+color, the `ps-default-bg' color should be used.
+
+Valid values are:
+
+   t		The background color of Emacs session will be used.
+
+   NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
+		indicate the gray color.
+
+   COLOR-NAME	It's a string wich contains the color name.  For example:
+		\"yellow\".
+
+   LIST		It's a list of RGB values, that is a list of three real values
+		of the form:
+
+		  (RED, GREEN, BLUE)
+
+		Where RED, GREEN and BLUE are reals between 0.0 (no color) and
+		1.0 (full color).
+
+Any other value is ignored and it's used the white color.
+
+It's used only when `ps-print-color-p' is non-nil.
+
+See also `ps-use-face-background'."
   :type '(choice :menu-tag "Default Background Gray/Color"
 		 :tag "Default Background Gray/Color"
+		 (const :tag "Session Background" t)
 		 (number :tag "Gray Scale" :value 1.0)
 		 (string :tag "Color Name" :value "white")
 		 (list :tag "RGB Color" :value (1.0 1.0 1.0)
@@ -3040,7 +3136,7 @@ There are the following basic functions implemented:
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
 
 You can also create your own time stamp function by using `format-time-string'
-(which see)."
+\(which see)."
   :type '(repeat (choice :menu-tag "Right Header"
 			 :tag "Right Header"
 			 string symbol))
@@ -3087,7 +3183,7 @@ There are the following basic functions implemented:
    `ps-time-stamp-mon-dd-yyyy'		Return date as \"Jun 18 2001\".
 
 You can also create your own time stamp function by using `format-time-string'
-(which see)."
+\(which see)."
   :version "21.1"
   :type '(repeat (choice :menu-tag "Right Footer"
 			 :tag "Right Footer"
@@ -3136,9 +3232,16 @@ It's like the very first character of buffer (or region) is ^L (\\014)."
   :group 'ps-print-headers)
 
 (defcustom ps-postscript-code-directory
-  (or (and (fboundp 'locate-data-directory) ; xemacs
-	   (locate-data-directory "ps-print"))
-      data-directory)			; emacs
+  (or (cond
+       ((eq ps-print-emacs-type 'emacs)	; emacs
+	data-directory)
+       ((fboundp 'locate-data-directory) ; xemacs
+	(locate-data-directory "ps-print"))
+       ((boundp 'data-directory)	; xemacs
+	data-directory)
+       (t				; don't know what to do
+	nil))
+      (error "`ps-postscript-code-directory' isn't set properly"))
   "*Directory where it's located the PostScript prologue file used by ps-print.
 By default, this directory is the same as in the variable `data-directory'."
   :type 'directory
@@ -3201,7 +3304,8 @@ manual for more information.
 Variables `ps-begin-cut-regexp' and `ps-end-cut-regexp' control together what
 actually gets printed.  Both variables may be set to nil in which case no
 cutting occurs."
-  :type 'regexp
+  :type '(choice (const :tag "No Delimiter" nil)
+		 (regexp :tag "Delimiter Regexp"))
   :version "21.1"
   :group 'ps-print-miscellany)
 
@@ -3209,7 +3313,8 @@ cutting occurs."
   "*Specify regexp which is end of the region to cut out when printing.
 
 See `ps-begin-cut-regexp' for more information."
-  :type 'regexp
+  :type '(choice (const :tag "No Delimiter" nil)
+		 (regexp :tag "Delimiter Regexp"))
   :version "21.1"
   :group 'ps-print-miscellany)
 
@@ -3247,7 +3352,7 @@ See `ps-begin-cut-regexp' for more information."
 (defun ps-print-buffer (&optional filename)
   "Generate and print a PostScript image of the buffer.
 
-Interactively, when you use a prefix argument (C-u), the command prompts the
+Interactively, when you use a prefix argument (\\[universal-argument]), the command prompts the
 user for a file name, and saves the PostScript image in that file instead of
 sending it to the printer.
 
@@ -3334,7 +3439,7 @@ Use the command `ps-despool' to send the spooled images to the printer."
 (defun ps-despool (&optional filename)
   "Send the spooled PostScript to the printer.
 
-Interactively, when you use a prefix argument (C-u), the command prompts the
+Interactively, when you use a prefix argument (\\[universal-argument]), the command prompts the
 user for a file name, and saves the spooled PostScript image in that file
 instead of sending it to the printer.
 
@@ -3346,8 +3451,8 @@ image in a file with that name."
 
 ;;;###autoload
 (defun ps-line-lengths ()
-  "Display the correspondence between a line length and a font size, using the
-current ps-print setup.
+  "Display the correspondence between a line length and a font size.
+Done using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (interactive)
   (ps-line-lengths-internal))
@@ -3517,9 +3622,9 @@ generated is:
 
 If `ps-prefix-quote' is nil, it's set to t after generating string."
   (cond
-   ((null elt)    "")
    ((stringp elt) elt)
-   (t
+   ((and (consp elt) (integerp (car elt))
+	 (symbolp (cdr elt)) (boundp (cdr elt)))
     (let* ((col (car elt))
 	   (sym (cdr elt))
 	   (key (symbol-name sym))
@@ -3537,6 +3642,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 		    ((eq val t) "t")
 		    ((or (symbolp val) (listp val)) (format "'%S" val))
 		    (t          (format "%S" val))))))
+   (t "")
    ))
 
 
@@ -3594,24 +3700,21 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (eval-and-compile
-  (defvar ps-print-emacs-type
-    (cond ((string-match "XEmacs" emacs-version) 'xemacs)
-	  ((string-match "Lucid" emacs-version) 'lucid)
-	  ((string-match "Epoch" emacs-version) 'epoch)
-	  (t 'emacs)))
-
-  (if (memq ps-print-emacs-type '(lucid xemacs))
-      (if (< emacs-minor-version 12)
-	  (setq ps-print-color-p nil))
-    (require 'faces))			; face-font, face-underline-p,
-					; x-font-regexp
+  (and (eq ps-print-emacs-type 'xemacs)
+       ;; XEmacs change: Need to check for emacs-major-version too.
+       (or (< emacs-major-version 19)
+	   (and (= emacs-major-version 19) (< emacs-minor-version 12)))
+       (setq ps-print-color-p nil))
 
 
   ;; Return t if the device (which can be changed during an emacs session)
   ;; can handle colors.
   ;; This function is not yet implemented for GNU emacs.
   (cond ((and (eq ps-print-emacs-type 'xemacs)
-	      (>= emacs-minor-version 12)) ; xemacs
+	      ;; XEmacs change: Need to check for emacs-major-version too.
+	      (or (> emacs-major-version 19)
+		  (and (= emacs-major-version 19)
+		       (>= emacs-minor-version 12)))) ; xemacs >= 19.12
 	 (defun ps-color-device ()
 	   (eq (ps-x-device-class) 'color)))
 
@@ -3642,11 +3745,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	   (case-fold-search t))
       (and kind-spec (string-match kind-regex kind-spec))))
 
-  (defun ps-xemacs-color-name (color)
-    (if (ps-x-color-specifier-p color)
-	(ps-x-color-name color)
-      color))
-
   (cond ((eq ps-print-emacs-type 'emacs) ; emacs
 
 	 (defun ps-color-values (x-color)
@@ -3658,9 +3756,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	    (t
 	     (error "No available function to determine X color values"))))
 
-	 (defalias 'ps-face-foreground-name 'face-foreground)
-	 (defalias 'ps-face-background-name 'face-background)
-
 	 (defun ps-face-bold-p (face)
 	   (or (ps-e-face-bold-p face)
 	       (memq face ps-bold-faces)))
@@ -3669,9 +3764,8 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 	   (or (ps-e-face-italic-p face)
 	       (memq face ps-italic-faces)))
 	 )
-					; xemacs
-					; lucid
-	(t				; epoch
+
+	(t				; xemacs
 
 	 ;; to avoid XEmacs compilation gripes
 	 (defvar coding-system-for-write   nil)
@@ -3695,12 +3789,6 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 		  (ps-x-make-color-instance color))))
 	      (t
 	       (error "No available function to determine X color values")))))
-
-	 (defun ps-face-foreground-name (face)
-	   (ps-xemacs-color-name (face-foreground face)))
-
-	 (defun ps-face-background-name (face)
-	   (ps-xemacs-color-name (face-background face)))
 
 	 (defun ps-face-bold-p (face)
 	   (or (ps-xemacs-face-kind-p face 'WEIGHT_NAME "bold\\|demibold")
@@ -3727,7 +3815,7 @@ It can be retrieved with `(ps-get ALIST-SYM KEY)'."
 
 
 (defun ps-prologue-file (filenumber)
-  "If prologue FILENUMBER exists and is readable, returns contents as string.
+  "If prologue FILENUMBER exists and is readable, return contents as string.
 
 Note: No major/minor-mode is activated and no local variables are evaluated for
       FILENUMBER, but proper EOL-conversion and character interpretation is
@@ -3783,6 +3871,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
 
 (defvar ps-current-font 0)
 (defvar ps-default-foreground nil)
+(defvar ps-default-background nil)
 (defvar ps-default-color nil)
 (defvar ps-current-color nil)
 (defvar ps-current-bg nil)
@@ -3799,7 +3888,7 @@ Note: No major/minor-mode is activated and no local variables are evaluated for
       ;; PostScript output.
       "%0.3f %0.3f %0.3f"
 
-    ;; Lucid emacsen will have to make do with %s (princ) for floats.
+    ;; XEmacs will have to make do with %s (princ) for floats.
     "%s %s %s"))
 
 ;; These values determine how much print-height to deduct when headers/footers
@@ -3843,7 +3932,7 @@ This is in units of points (1/72 inch).")
 (defvar ps-black-white-faces-alist nil
   "Alist of symbolic faces used for black/white PostScript printers.
 An element of this list has the same form as `ps-print-face-extension-alist'
-(which see).
+\(which see).
 
 Don't change this list directly; instead,
 use `ps-extend-face' and `ps-extend-face-list'.
@@ -4138,8 +4227,8 @@ which long lines wrap around."
   (get font-sym 'avg-char-width))
 
 (defun ps-line-lengths-internal ()
-  "Display the correspondence between a line length and a font size,
-using the current ps-print setup.
+  "Display the correspondence between a line length and a font size.
+Done using the current ps-print setup.
 Try: pr -t file | awk '{printf \"%3d %s\n\", length($0), $0}' | sort -r | head"
   (let* ((ps-font-size-internal
 	  (or ps-font-size-internal
@@ -4408,7 +4497,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 
 (defun ps-print-preprint-region (prefix-arg)
-  (or mark-active
+  (or (ps-mark-active-p)
       (error "The mark is not set now"))
   (list (point) (mark) (ps-print-preprint prefix-arg)))
 
@@ -4484,7 +4573,12 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
   (while (progn (skip-chars-forward " -'*-[]-~") (not (eobp)))
     (let ((special (following-char)))
       (delete-char 1)
-      (insert (aref ps-string-escape-codes special))))
+      (insert
+       (if (and (<= 0 special) (<= special 255))
+	   (aref ps-string-escape-codes special)
+	 ;; insert hexadecimal representation if character code is out of range
+	 (format "\\%04X" special)
+	 ))))
   (goto-char (point-max))
   (insert ")"))				;insert end-string delimiter
 
@@ -4660,11 +4754,11 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
 
 ;; Emacs understands the %f format; we'll use it to limit color RGB values
 ;; to three decimals to cut down some on the size of the PostScript output.
-;; Lucid emacsen will have to make do with %s (princ) for floats.
+;; XEmacs will have to make do with %s (princ) for floats.
 
 (defvar ps-float-format (if (eq ps-print-emacs-type 'emacs)
 			    "%0.3f "	; emacs
-			  "%s "))	; Lucid emacsen
+			  "%s "))	; xemacs
 
 
 (defun ps-float-format (value &optional default)
@@ -5346,7 +5440,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	       "/ZebraColor       "
 	       (ps-format-color ps-zebra-color 0.95)
 	       "def\n/BackgroundColor  "
-	       (ps-format-color ps-default-bg 1.0)
+	       (ps-format-color ps-default-background 1.0)
 	       "def\n/UseSetpagedevice "
 	       (if (eq ps-spool-config 'setpagedevice)
 		   "/setpagedevice where{pop languagelevel 2 eq}{false}ifelse"
@@ -5530,10 +5624,19 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-get-size (symbol-value font-sym) "font size" font-sym))
 
 
-(defsubst ps-rgb-color (color default)
-  (cond ((and color (listp color)) color)
+(defun ps-rgb-color (color default)
+  (cond ((and color (listp color) (= (length color) 3)
+	      (let ((cl color)
+		    (ok t) e)
+		(while (and ok cl)
+		  (setq e  (car cl)
+			cl (cdr cl)
+			ok (and (floatp e) (<= 0.0 e) (<= e 1.0))))
+		ok))
+	 color)
+	((and (floatp color) (<= 0.0 color) (<= color 1.0))
+	 (list color color color))
 	((stringp color) (ps-color-scale color))
-	((numberp color) (list color color color))
 	(t (list default default default))
 	))
 
@@ -5607,7 +5710,16 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 	      ((eq ps-print-control-characters 'control)
 	       "[\000-\037\177]")
 	      (t "[\t\n\f]"))
-	ps-default-foreground (ps-rgb-color ps-default-fg 0.0)
+	ps-default-background (ps-rgb-color
+			       (if (eq ps-default-bg t)
+				   (ps-face-background-name 'default)
+				 ps-default-bg)
+			       1.0)
+	ps-default-foreground (ps-rgb-color
+			       (if (eq ps-default-fg t)
+				   (ps-face-foreground-name 'default)
+				 ps-default-fg)
+			       0.0)
 	ps-default-color (and (eq ps-print-color-p t) ps-default-foreground)
 	ps-current-color ps-default-color
 	;; Set the color scale.  We do it here instead of in the defvar so
@@ -5618,7 +5730,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
 				 (float (car (ps-color-values "white")))
 			       1.0))
   ;; initialize page dimensions
-  (ps-get-page-dimensions))
+  (ps-get-page-dimensions)
+  ;; final check
+  (and ps-color-p
+       (equal ps-default-background ps-default-foreground)
+       (error
+	(concat
+	 "`ps-default-fg' and `ps-default-bg' have the same color.\n"
+	 "Text won't appear on page.  Please, check these variables."))))
 
 
 (defun ps-page-number ()
@@ -6154,7 +6273,7 @@ If FACE is not a valid face name, it is used default face."
     (let ((face 'default)
 	  (position to))
       (cond
-       ((memq ps-print-emacs-type '(xemacs lucid))
+       ((eq ps-print-emacs-type 'xemacs)
 	;; Build the list of extents...
 	(let ((a (cons 'dummy nil))
 	      record type extent extent-list)

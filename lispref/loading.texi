@@ -1,7 +1,7 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
 @c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
-@c   Free Software Foundation, Inc. 
+@c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/loading
 @node Loading, Byte Compilation, Customization, Top
@@ -391,7 +391,7 @@ object, then it is defined as an autoload object like this:
 (autoload @var{filename} @var{docstring} @var{interactive} @var{type})
 @end example
 
-For example, 
+For example,
 
 @example
 @group
@@ -580,7 +580,7 @@ file should call @code{provide} at the top level to add the feature to
 @code{features}; if it fails to do so, @code{require} signals an error.
 @cindex load error with require
 
-  For example, in @file{emacs/lisp/prolog.el}, 
+  For example, in @file{emacs/lisp/prolog.el},
 the definition for @code{run-prolog} includes the following code:
 
 @smallexample
@@ -637,7 +637,7 @@ The compiler ignores the @code{provide}, then processes the
 execute the @code{provide} call, so the subsequent @code{require} call
 does nothing when the file is loaded.
 
-@defun provide feature
+@defun provide feature &optional subfeatures
 This function announces that @var{feature} is now loaded, or being
 loaded, into the current Emacs session.  This means that the facilities
 associated with @var{feature} are or will be available for other Lisp
@@ -647,6 +647,9 @@ The direct effect of calling @code{provide} is to add @var{feature} to
 the front of the list @code{features} if it is not already in the list.
 The argument @var{feature} must be a symbol.  @code{provide} returns
 @var{feature}.
+
+If provided, @var{subfeatures} should be a list of symbols indicating
+a set of specific subfeatures provided by this version of @var{feature}.
 
 @smallexample
 features
@@ -681,10 +684,13 @@ signals an error, @samp{Required feature @var{feature} was not
 provided}, unless @var{noerror} is non-@code{nil}.
 @end defun
 
-@defun featurep feature
+@defun featurep feature &optional subfeature
 This function returns @code{t} if @var{feature} has been provided in the
-current Emacs session (i.e., if @var{feature} is a member of
-@code{features}.)
+current Emacs session (i.e.@:, if @var{feature} is a member of
+@code{features}.)  If @var{subfeature} is non-nil, then the function
+returns @code{t} only if that subfeature is provided as well (i.e.@:
+if @var{subfeature} is a member of the @code{subfeature} property
+of the @var{feature} symbol.)
 @end defun
 
 @defvar features
@@ -744,19 +750,26 @@ names of functions and variables they define, the features they provide,
 and the features they require.
 
 Each element is a list and describes one library.  The @sc{car} of the
-list is the name of the library, as a string.  The rest of the list is
-composed of these kinds of objects:
+list is the name of the library, as a string.  The rest of the list
+elements have these forms:
 
-@itemize @bullet
-@item
-Symbols that were defined by this library.
-@item
-Cons cells of the form @code{(require . @var{feature})} indicating
-features that were required.
-@item
-Cons cells of the form @code{(provide . @var{feature})} indicating
-features that were provided.
-@end itemize
+@table @code
+@item @var{fun}
+The function @var{fun} was defined by this library.
+@item (t . @var{fun})
+The function @var{fun} was previously an autoload before this library
+redefined it as a function.  The following element is always the
+symbol @var{fun}, which signifies that the library defined @var{fun}
+as a function.
+@item (autoload . @var{fun})
+The function @var{fun} was defined as an autoload.
+@item (defvar . @var{var})
+The symbol @var{var} was defined as a variable.
+@item (require . @var{feature})
+The feature @var{feature} was required.
+@item (provide . @var{feature})
+The feature @var{feature} was provided.
+@end table
 
 The value of @code{load-history} may have one element whose @sc{car} is
 @code{nil}.  This element describes definitions made with
@@ -796,10 +809,13 @@ This function arranges to evaluate @var{form} at the end of loading the
 library @var{library}, if and when @var{library} is loaded.  If
 @var{library} is already loaded, it evaluates @var{form} right away.
 
-The library name @var{library} must exactly match the argument of
-@code{load}.  To get the proper results when an installed library is
-found by searching @code{load-path}, you should not include any
-directory names in @var{library}.
+If @var{library} is a string, it must exactly match the argument of
+@code{load} used to load the library.  To get the proper results when an
+installed library is found by searching @code{load-path}, you should not
+include any directory names in @var{library}.
+
+@var{library} can also be a feature (i.e.@: a symbol), in which case
+@var{form} is evaluated when @code{(provide @var{library})} is called.
 
 An error in @var{form} does not undo the load, but does prevent
 execution of the rest of @var{form}.

@@ -1,6 +1,6 @@
 ;;; sgml-mode.el --- SGML- and HTML-editing modes
 
-;; Copyright (C) 1992,95,96,98,2001,2002  Free Software Foundation, Inc.
+;; Copyright (C) 1992,95,96,98,2001,2002, 2003  Free Software Foundation, Inc.
 
 ;; Author: James Clark <jjc@jclark.com>
 ;; Maintainer: FSF
@@ -263,7 +263,7 @@ Any terminating `>' or `/' is not matched.")
 		      (regexp-opt (mapcar 'car sgml-tag-face-alist) t)
 		      "\\([ \t][^>]*\\)?>\\([^<]+\\)</\\1>")
 	      '(3 (cdr (assoc (downcase (match-string 1))
-			      sgml-tag-face-alist))))))))
+			      sgml-tag-face-alist)) prepend))))))
 
 ;; for font-lock, but must be defvar'ed after
 ;; sgml-font-lock-keywords-1 and sgml-font-lock-keywords-2 above
@@ -524,21 +524,23 @@ encoded keyboard operation."
   (delete-backward-char 1)
   (insert char)
   (undo-boundary)
-  (delete-backward-char 1)
-  (cond
-   ((< char 256)
-    (insert ?&
-	    (or (aref sgml-char-names char)
-		(format "#%d" char))
-	    ?\;))
-   ((aref sgml-char-names-table char)
-    (insert ?& (aref sgml-char-names-table char) ?\;))
-   ((let ((c (encode-char char 'ucs)))
-      (when c
-	(insert (format "&#%d;" c))
-	t)))
-   (t					; should be an error?  -- fx
-    (insert char))))
+  (sgml-namify-char))
+
+(defun sgml-namify-char ()
+  "Change the char before point into its `&name;' equivalent.
+Uses `sgml-char-names'."
+  (interactive)
+  (let* ((char (char-before))
+	 (name
+	  (cond
+	   ((null char) (error "No char before point"))
+	   ((< char 256) (or (aref sgml-char-names char) char))
+	   ((aref sgml-char-names-table char))
+	   ((encode-char char 'ucs)))))
+    (if (not name)
+	(error "Don't know the name of `%c'" char)
+      (delete-backward-char 1)
+      (insert (format (if (numberp name) "&#%d;" "&%s;") name)))))
 
 (defun sgml-name-self ()
   "Insert a symbolic character name according to `sgml-char-names'."
@@ -569,6 +571,8 @@ This only works for Latin-1 input."
 ;; inserted literally, one should obtain it as the return value of a
 ;; function, e.g. (identity "str").
 
+(defvar sgml-tag-last nil)
+(defvar sgml-tag-history nil)
 (define-skeleton sgml-tag
   "Prompt for a tag and insert it, optionally with attributes.
 Completion and configuration are done according to `sgml-tag-alist'.
@@ -576,7 +580,12 @@ If you like tags and attributes in uppercase do \\[set-variable]
 skeleton-transformation RET upcase RET, or put this in your `.emacs':
   (setq sgml-transformation 'upcase)"
   (funcall (or skeleton-transformation 'identity)
-           (completing-read "Tag: " sgml-tag-alist))
+           (setq sgml-tag-last
+		 (completing-read
+		  (if (> (length sgml-tag-last) 0)
+		      (format "Tag (default %s): " sgml-tag-last)
+		    "Tag: ")
+		  sgml-tag-alist nil nil nil 'sgml-tag-history sgml-tag-last)))
   ?< str |
   (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
   `(("") '(setq v2 (sgml-attributes ,str t)) ?>
@@ -686,50 +695,61 @@ With prefix argument, only self insert."
   "Skip to beginning of tag or matching opening tag if present.
 With prefix argument ARG, repeat this ARG times."
   (interactive "p")
+  ;; FIXME: use sgml-get-context or something similar.
   (while (>= arg 1)
     (search-backward "<" nil t)
     (if (looking-at "</\\([^ \n\t>]+\\)")
 	;; end tag, skip any nested pairs
 	(let ((case-fold-search t)
-	      (re (concat "</?" (regexp-quote (match-string 1)))))
+	      (re (concat "</?" (regexp-quote (match-string 1))
+			  ;; Ignore empty tags like <foo/>.
+			  "\\([^>]*[^/>]\\)?>")))
 	  (while (and (re-search-backward re nil t)
 		      (eq (char-after (1+ (point))) ?/))
 	    (forward-char 1)
 	    (sgml-skip-tag-backward 1))))
     (setq arg (1- arg))))
 
-(defun sgml-skip-tag-forward (arg &optional return)
+(defun sgml-skip-tag-forward (arg)
   "Skip to end of tag or matching closing tag if present.
 With prefix argument ARG, repeat this ARG times.
 Return t iff after a closing tag."
   (interactive "p")
-  (setq return t)
-  (while (>= arg 1)
-    (skip-chars-forward "^<>")
-    (if (eq (following-char) ?>)
-	(up-list -1))
-    (if (looking-at "<\\([^/ \n\t>]+\\)")
-	;; start tag, skip any nested same pairs _and_ closing tag
-	(let ((case-fold-search t)
-	      (re (concat "</?" (regexp-quote (match-string 1))))
-	      point close)
-	  (forward-list 1)
-	  (setq point (point))
-	  (while (and (re-search-forward re nil t)
-		      (not (setq close
-				 (eq (char-after (1+ (match-beginning 0))) ?/)))
-		      (not (up-list -1))
-		      (sgml-skip-tag-forward 1))
-	    (setq close nil))
-	  (if close
-	      (up-list 1)
-	    (goto-char point)
-	    (setq return)))
-      (forward-list 1))
-    (setq arg (1- arg)))
-  return)
+  ;; FIXME: Use sgml-get-context or something similar.
+  ;; It currently might jump to an unrelated </P> if the <P>
+  ;; we're skipping has no matching </P>.
+  (let ((return t))
+    (with-syntax-table sgml-tag-syntax-table
+      (while (>= arg 1)
+	(skip-chars-forward "^<>")
+	(if (eq (following-char) ?>)
+	    (up-list -1))
+	(if (looking-at "<\\([^/ \n\t>]+\\)\\([^>]*[^/>]\\)?>")
+	    ;; start tag, skip any nested same pairs _and_ closing tag
+	    (let ((case-fold-search t)
+		  (re (concat "</?" (regexp-quote (match-string 1))
+			      ;; Ignore empty tags like <foo/>.
+			      "\\([^>]*[^/>]\\)?>"))
+		  point close)
+	      (forward-list 1)
+	      (setq point (point))
+	      ;; FIXME: This re-search-forward will mistakenly match
+	      ;; tag-like text inside attributes.
+	      (while (and (re-search-forward re nil t)
+			  (not (setq close
+				     (eq (char-after (1+ (match-beginning 0))) ?/)))
+			  (goto-char (match-beginning 0))
+			  (sgml-skip-tag-forward 1))
+		(setq close nil))
+	      (unless close
+		(goto-char point)
+		(setq return nil)))
+	  (forward-list 1))
+	(setq arg (1- arg)))
+      return)))
 
 (defun sgml-delete-tag (arg)
+  ;; FIXME: Should be called sgml-kill-tag or should not touch the kill-ring.
   "Delete tag on or after cursor, and matching closing or opening tag.
 With prefix argument ARG, repeat this ARG times."
   (interactive "p")
@@ -763,13 +783,16 @@ With prefix argument ARG, repeat this ARG times."
 	      (goto-char close)
 	      (kill-sexp 1))
 	  (setq open (point))
-	  (sgml-skip-tag-forward 1)
-	  (backward-list)
-	  (forward-char)
-	  (if (eq (aref (sgml-beginning-of-tag) 0) ?/)
-	      (kill-sexp 1)))
+	  (when (sgml-skip-tag-forward 1)
+	    (kill-sexp -1)))
+	;; Delete any resulting empty line.  If we didn't kill-sexp,
+	;; this *should* do nothing, because we're right after the tag.
+	(if (progn (forward-line 0) (looking-at "\\(?:[ \t]*$\\)\n?"))
+	    (delete-region (match-beginning 0) (match-end 0)))
 	(goto-char open)
-	(kill-sexp 1)))
+	(kill-sexp 1)
+	(if (progn (forward-line 0) (looking-at "\\(?:[ \t]*$\\)\n?"))
+	    (delete-region (match-beginning 0) (match-end 0)))))
     (setq arg (1- arg))))
 
 
@@ -777,7 +800,6 @@ With prefix argument ARG, repeat this ARG times."
 (or (get 'sgml-tag 'invisible)
     (setplist 'sgml-tag
 	      (append '(invisible t
-			intangible t
 			point-entered sgml-point-entered
 			rear-nonsticky t
 			read-only t)
@@ -942,20 +964,51 @@ See `sgml-tag-alist' for info about attribute rules."
       (insert ?\"))))
 
 (defun sgml-quote (start end &optional unquotep)
-  "Quote SGML text in region.
-With prefix argument, unquote the region."
-  (interactive "r\np")
-  (if (< start end)
-      (goto-char start)
-    (goto-char end)
-    (setq end start))
-  (if unquotep
-      (while (re-search-forward "&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)[;\n]" end t)
-	(replace-match (if (match-end 3) ">" (if (match-end 2) "<" "&"))))
-    (while (re-search-forward "[&<>]" end t)
-      (replace-match (cdr (assq (char-before) '((?& . "&amp;")
-						(?< . "&lt;")
-						(?> . "&gt;"))))))))
+  "Quote SGML text in region START ... END.
+Only &, < and > are quoted, the rest is left untouched.
+With prefix argument UNQUOTEP, unquote the region."
+  (interactive "r\nP")
+  (save-restriction
+    (narrow-to-region start end)
+    (goto-char (point-min))
+    (if unquotep
+	;; FIXME: We should unquote other named character references as well.
+	(while (re-search-forward
+		"\\(&\\(amp\\|\\(l\\|\\(g\\)\\)t\\)\\)[][<>&;\n\t \"%!'(),/=?]"
+		nil t)
+	  (replace-match (if (match-end 4) ">" (if (match-end 3) "<" "&")) t t
+			 nil (if (eq (char-before (match-end 0)) ?\;) 0 1)))
+      (while (re-search-forward "[&<>]" nil t)
+	(replace-match (cdr (assq (char-before) '((?& . "&amp;")
+						  (?< . "&lt;")
+						  (?> . "&gt;"))))
+		       t t)))))
+
+(defun sgml-pretty-print (beg end)
+  "Simple-minded pretty printer for SGML.
+Re-indents the code and inserts newlines between BEG and END.
+You might want to turn on `auto-fill-mode' to get better results."
+  ;; TODO:
+  ;; - insert newline between some start-tag and text.
+  ;; - don't insert newline in front of some end-tags.
+  (interactive "r")
+  (save-excursion
+    (if (< beg end)
+	(goto-char beg)
+      (goto-char end)
+      (setq end beg)
+      (setq beg (point)))
+    ;; Don't use narrowing because it screws up auto-indent.
+    (setq end (copy-marker end t))
+    (with-syntax-table sgml-tag-syntax-table
+      (while (re-search-forward "<" end t)
+	(goto-char (match-beginning 0))
+	(unless (or ;;(looking-at "</")
+		    (progn (skip-chars-backward " \t") (bolp)))
+	  (reindent-then-newline-and-indent))
+	(forward-sexp 1)))
+    ;; (indent-region beg end)
+    ))
 
 
 ;; Parsing
@@ -975,12 +1028,12 @@ With prefix argument, unquote the region."
     (and (>= start (point-min))
          (equal str (buffer-substring-no-properties start (point))))))
 
-(defun sgml-parse-tag-backward ()
+(defun sgml-parse-tag-backward (&optional limit)
   "Parse an SGML tag backward, and return information about the tag.
 Assume that parsing starts from within a textual context.
 Leave point at the beginning of the tag."
   (let (tag-type tag-start tag-end name)
-    (or (search-backward ">" nil 'move)
+    (or (search-backward ">" limit 'move)
         (error "No tag found"))
     (setq tag-end (1+ (point)))
     (cond
@@ -1043,14 +1096,14 @@ immediately enclosing the current position."
 		      (/= (point) (sgml-tag-start (car context)))
                       (sgml-unclosed-tag-p (sgml-tag-name (car context)))))
 	     (setq tag-info (ignore-errors (sgml-parse-tag-backward))))
-      
+
       ;; This tag may enclose things we thought were tags.  If so,
       ;; discard them.
       (while (and context
                   (> (sgml-tag-end tag-info)
                      (sgml-tag-end (car context))))
         (setq context (cdr context)))
-           
+
       (cond
 
        ;; start-tag
@@ -1071,9 +1124,18 @@ immediately enclosing the current position."
 	 (t
 	  ;; The open and close tags don't match.
 	  (if (not sgml-xml-mode)
-	      ;; Assume the open tag is simply not closed.
 	      (unless (sgml-unclosed-tag-p (sgml-tag-name tag-info))
-		(message "Unclosed tag <%s>" (sgml-tag-name tag-info)))
+		(message "Unclosed tag <%s>" (sgml-tag-name tag-info))
+		(let ((tmp ignore))
+		  ;; We could just assume that the tag is simply not closed
+		  ;; but it's a bad assumption when tags *are* closed but
+		  ;; not properly nested.
+		  (while (and (cdr tmp)
+			      (not (eq t (compare-strings
+					  (sgml-tag-name tag-info) nil nil
+					  (cadr tmp) nil nil t))))
+		    (setq tmp (cdr tmp)))
+		  (if (cdr tmp) (setcdr tmp (cddr tmp)))))
 	    (message "Unmatched tags <%s> and </%s>"
 		     (sgml-tag-name tag-info) (pop ignore))))))
 
@@ -1092,13 +1154,21 @@ immediately enclosing the current position."
 If FULL is non-nil, parse back to the beginning of the buffer."
   (interactive "P")
   (with-output-to-temp-buffer "*XML Context*"
-    (pp (save-excursion (sgml-get-context full)))))
+    (save-excursion
+      (let ((context (sgml-get-context)))
+	(when full
+	  (let ((more nil))
+	    (while (setq more (sgml-get-context))
+	      (setq context (nconc more context)))))
+	(pp context)))))
 
 
 ;; Editing shortcuts
 
 (defun sgml-close-tag ()
-  "Insert an close-tag for the current element."
+  "Close current element.
+Depending on context, inserts a matching close-tag, or closes
+the current start-tag or the current comment or the current cdata, ..."
   (interactive)
   (case (car (sgml-lexical-context))
     (comment 	(insert " -->"))
@@ -1213,7 +1283,7 @@ If FULL is non-nil, parse back to the beginning of the buffer."
 	   (goto-char there)
 	   (+ (current-column)
 	      (* sgml-basic-offset (length context))))))
-      
+
       (otherwise
        (error "Unrecognised context %s" (car lcon)))
 
@@ -1242,7 +1312,7 @@ Add this to `sgml-mode-hook' for convenience."
     (if (re-search-forward "^\\([ \t]+\\)<" 500 'noerror)
         (progn
           (set (make-local-variable 'sgml-basic-offset)
-               (length (match-string 1)))
+               (1- (current-column)))
           (message "Guessed sgml-basic-offset = %d"
                    sgml-basic-offset)
           ))))
@@ -1694,7 +1764,7 @@ The second `match-string' matches extra tags and is ignored.
 The third `match-string' will be the used in the menu.")
 
 (defun html-imenu-index ()
-  "Return an table of contents for an HTML buffer for use with Imenu."
+  "Return a table of contents for an HTML buffer for use with Imenu."
   (let (toc-index)
     (save-excursion
       (goto-char (point-min))
@@ -1708,19 +1778,15 @@ The third `match-string' will be the used in the menu.")
 		    toc-index))))
     (nreverse toc-index)))
 
-(defun html-autoview-mode (&optional arg)
+(define-minor-mode html-autoview-mode
   "Toggle automatic viewing via `browse-url-of-buffer' upon saving buffer.
 With positive prefix ARG always turns viewing on, with negative ARG always off.
 Can be used as a value for `html-mode-hook'."
-  (interactive "P")
-  (if (setq arg (if arg
-		    (< (prefix-numeric-value arg) 0)
-		  (and (boundp 'after-save-hook)
-		       (memq 'browse-url-of-buffer after-save-hook))))
-      (setq after-save-hook (delq 'browse-url-of-buffer after-save-hook))
-    (add-hook 'after-save-hook 'browse-url-of-buffer nil t))
-  (message "Autoviewing turned %s."
-	   (if arg "off" "on")))
+  nil nil nil
+  :group 'sgml
+  (if html-autoview-mode
+      (add-hook 'after-save-hook 'browse-url-of-buffer nil t)
+    (remove-hook 'after-save-hook 'browse-url-of-buffer t)))
 
 
 (define-skeleton html-href-anchor

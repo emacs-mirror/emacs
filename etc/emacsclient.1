@@ -17,9 +17,9 @@ Instead, it has documentation in the GNU Info format; see below.
 .B emacsclient 
 works in conjunction with the built-in server of Emacs.
 .PP
-You typically does not call 
+You typically do not call 
 .B emacsclient
-directly. Instead, you set the environment variable EDITOR
+directly.  Instead, you set the environment variable EDITOR
 to 
 .B emacsclient
 and let programs like 'vipw' or 'bug' or anything run
@@ -49,6 +49,17 @@ options starting with two dashes (`-').
 .B \-n, \-\-no-wait
 returns
 immediately without waiting for you to "finish" the buffer in Emacs.
+.TP
+.B \-e, \-\-eval
+do not visit files but instead evaluate the arguments as Emacs
+Lisp expressions.
+.TP
+.B \-a, \-\-alternate-editor=EDITOR
+if the Emacs server is not running, run the specified editor instead.
+This can also be specified via the `ALTERNATE_EDITOR' environment variable.
+.TP
+.B \-d, \-\-display=DISPLAY
+tell the server to display the files on the given display.
 .SH "SEE ALSO"
 The program is documented fully in
 .IR "Using Emacs as a Server"

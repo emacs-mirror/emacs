@@ -159,6 +159,8 @@ checker program Ispell, which is not part of Emacs.
 @table @kbd
 @item M-x flyspell-mode
 Enable Flyspell mode, which highlights all misspelled words.
+@item M-x flyspell-progmode
+Enable Flyspell mode for comments and strings only.
 @item M-$
 Check and correct spelling of the word at point (@code{ispell-word}).
 @item M-@key{TAB}
@@ -171,7 +173,7 @@ Check and correct spelling of each word in the buffer.
 @item M-x ispell-region
 Check and correct spelling of each word in the region.
 @item M-x ispell-message
-Check and correct spelling of each word in a draft mail message, 
+Check and correct spelling of each word in a draft mail message,
 excluding cited material.
 @item M-x ispell-change-dictionary @key{RET} @var{dict} @key{RET}
 Restart the Ispell process, using @var{dict} as the dictionary.
@@ -192,6 +194,12 @@ flyspell-mode} to enable or disable this mode in the current buffer.
 it with @kbd{Mouse-2} to display a menu of possible corrections and
 actions.  You can also correct the word by editing it manually in any
 way you like.
+
+@findex flyspell-prog-mode
+Flyspell Prog mode works just like ordinary Flyspell mode, except that
+it only checks words in comments and string constants.  This feature
+is useful for editing programs.  Type @kbd{M-x flyspell-prog-mode} to
+enable or disable this mode in the current buffer.
 
   The other Emacs spell-checking features check or look up words when
 you give an explicit command to do so.  Checking all or part of the
@@ -319,14 +327,18 @@ more quickly.  If you want to get rid of the Ispell process, use
 process uses no time except when you do spelling correction.
 
 @vindex ispell-dictionary
-  Ispell uses two dictionaries: the standard dictionary and your private
-dictionary.  The variable @code{ispell-dictionary} specifies the file
-name of the standard dictionary to use.  A value of @code{nil} says to
-use the default dictionary.  The command @kbd{M-x
-ispell-change-dictionary} sets this variable and then restarts the
-Ispell subprocess, so that it will use a different dictionary.
+  Ispell uses two dictionaries together for spell checking: the
+standard dictionary and your private dictionary.  The variable
+@code{ispell-dictionary} specifies the file name to use for the
+standard dictionary; a value of @code{nil} selects the default
+dictionary.  The command @kbd{M-x ispell-change-dictionary} sets this
+variable and then restarts the Ispell subprocess, so that it will use
+a different standard dictionary.
 
 @vindex ispell-complete-word-dict
-  The dictionary used by @code{ispell-complete-word} can be
-customized separately by setting the value of the variable
-@code{ispell-complete-word-dict}.
+  Ispell uses a separate dictionary for word completion.  The variable
+@code{ispell-complete-word-dict} specifies the file name of this
+dictionary.  The completion dictionary must be different because it
+cannot use employ root and affix information.  For some languages
+there is a spell checking dictionary but no word completion
+dictionary.

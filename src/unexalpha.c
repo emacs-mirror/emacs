@@ -486,12 +486,12 @@ update_dynamic_symbols (old, new_name, new, aout)
       fprintf (stderr, "...relocated\n");
 #endif
 
-      if (rd_base[i].type == R_REFLONG) 
+      if (rd_base[i].type == R_REFLONG)
 	len = 4;
-      else if (rd_base[i].type == R_REFQUAD) 
+      else if (rd_base[i].type == R_REFQUAD)
 	len = 8;
       else
-	fatal_unexec ("unrecognized relocation type in .dyn.rel section (symbol #%d)", i);
+	fatal_unexec ("unrecognized relocation type in .dyn.rel section (symbol #%d)", (char *) i);
 
       SEEK (new, newref, "seeking to dynamic symbol in %s", new_name);
       WRITE (new, oldref, len, "writing old dynrel info in %s", new_name);

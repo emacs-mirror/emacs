@@ -49,8 +49,10 @@ menus, turn this variable off, otherwise it is probably better to keep it on."
 ;;;###autoload
 (defmacro easy-menu-define (symbol maps doc menu)
   "Define a menu bar submenu in maps MAPS, according to MENU.
-The menu keymap is stored in symbol SYMBOL, both as its value
-and as its function definition.   DOC is used as the doc string for SYMBOL.
+
+If SYMBOL is non-nil, store the menu keymap in the value of SYMBOL,
+and define SYMBOL as a function to pop up the menu, with DOC as its doc string.
+If SYMBOL is nil, just store the menu keymap into MAPS.
 
 The first element of MENU must be a string.  It is the menu bar item name.
 It may be followed by the following keyword argument pairs
@@ -146,7 +148,7 @@ as a solid horizontal line.
 
 A menu item can be a list with the same format as MENU.  This is a submenu."
   `(progn
-     (defvar ,symbol nil ,doc)
+     ,(if symbol `(defvar ,symbol nil ,doc))
      (easy-menu-do-define (quote ,symbol) ,maps ,doc ,menu)))
 
 ;;;###autoload
@@ -156,19 +158,20 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
   ;; compatible.  Therefore everything interesting is done in this
   ;; function.
   (let ((keymap (easy-menu-create-menu (car menu) (cdr menu))))
-    (set symbol keymap)
-    (fset symbol
-	  `(lambda (event) ,doc (interactive "@e")
-	     ;; FIXME: XEmacs uses popup-menu which calls the binding
-	     ;; while x-popup-menu only returns the selection.
-	     (x-popup-menu event
-			   (or (and (symbolp ,symbol)
-				    (funcall
-				     (or (plist-get (get ,symbol 'menu-prop)
-						    :filter)
-					 'identity)
-				     (symbol-function ,symbol)))
-			       ,symbol))))
+    (when symbol
+      (set symbol keymap)
+      (fset symbol
+	    `(lambda (event) ,doc (interactive "@e")
+	       ;; FIXME: XEmacs uses popup-menu which calls the binding
+	       ;; while x-popup-menu only returns the selection.
+	       (x-popup-menu event
+			     (or (and (symbolp ,symbol)
+				      (funcall
+				       (or (plist-get (get ,symbol 'menu-prop)
+						      :filter)
+					   'identity)
+				       (symbol-function ,symbol)))
+				 ,symbol)))))
     (mapcar (lambda (map)
 	      (define-key map (vector 'menu-bar (easy-menu-intern (car menu)))
 		(cons 'menu-item
@@ -187,11 +190,15 @@ In Emacs a menu filter must return a menu (a keymap), in XEmacs a filter must
 return a menu items list (without menu name and keywords).
 This function returns the right thing in the two cases.
 If NAME is provided, it is used for the keymap."
- (when (and (not (keymapp menu)) (consp menu))
+ (cond
+  ((and (not (keymapp menu)) (consp menu))
    ;; If it's a cons but not a keymap, then it can't be right
    ;; unless it's an XEmacs menu.
    (setq menu (easy-menu-create-menu (or name "") menu)))
- (easy-menu-get-map menu nil))		; Get past indirections.
+  ((vectorp menu)
+   ;; It's just a menu entry.
+   (setq menu (cdr (easy-menu-convert-item menu)))))
+ menu)
 
 ;;;###autoload
 (defun easy-menu-create-menu (menu-name menu-items)
@@ -259,14 +266,8 @@ would always fail because the key is `equal' but not `eq'."
 	       easy-menu-converted-items-table)))
 
 (defun easy-menu-convert-item-1 (item)
-  "Parse an item description and add the item to a keymap.
-This is the function that is used for item definition by the other easy-menu
-functions.
-MENU is a sparse keymap i.e. a list starting with the symbol `keymap'.
-ITEM defines an item as in `easy-menu-define'.
-Optional argument BEFORE is nil or a key in MENU.  If BEFORE is not nil
-put item before BEFORE in MENU, otherwise if item is already present in
-MENU, just change it, otherwise put it last in MENU."
+  "Parse an item description and convert it to a menu keymap element.
+ITEM defines an item as in `easy-menu-define'."
   (let (name command label prop remove help)
     (cond
      ((stringp item)			; An item or separator.
@@ -336,8 +337,7 @@ MENU, just change it, otherwise put it last in MENU."
 			   (postfix
 			    (if (< (match-end 1) (match-end 0))
 				(substring keys (match-end 1))))
-			   (cmd (intern (substring keys (match-beginning 2)
-						   (match-end 2)))))
+			   (cmd (intern (match-string 2 keys))))
 		       (setq keys (and (or prefix postfix)
 				       (cons prefix postfix)))
 		       (setq keys
@@ -414,10 +414,12 @@ NAME can be either a string, or a symbol."
 	  (eq (car-safe item) name)
 	(if (stringp name)
 	    ;; Match against the text that is displayed to the user.
-	    (or (member-ignore-case name item)
+	    (or (condition-case nil (member-ignore-case name item)
+		  (error nil))		;`item' might not be a proper list.
 		;; Also check the string version of the symbol name,
 		;; for backwards compatibility.
-		(eq (car-safe item) (intern name)))))))
+		(eq (car-safe item) (intern name))
+		(eq (car-safe item) (easy-menu-intern name)))))))
 
 (defun easy-menu-always-true (x)
   "Return true if form X never evaluates to nil."
@@ -452,17 +454,26 @@ the submenu named BEFORE, otherwise add it at the end of the menu.
 
 Either call this from `menu-bar-update-hook' or use a menu filter,
 to implement dynamic menus."
-  (easy-menu-add-item nil path (cons name items) before))
+  (easy-menu-add-item nil path (easy-menu-create-menu name items) before))
 
 ;; XEmacs needs the following two functions to add and remove menus.
 ;; In Emacs this is done automatically when switching keymaps, so
 ;; here easy-menu-remove is a noop and easy-menu-add only precalculates
 ;; equivalent keybindings (if easy-menu-precalculate-equivalent-keybindings
 ;; is on).
-(defalias 'easy-menu-remove 'ignore)
+(defalias 'easy-menu-remove 'ignore
+  "Remove MENU from the current menu bar.
+Contrary to XEmacs, this is a nop on Emacs since menus are automatically
+\(de)activated when the corresponding keymap is (de)activated.
+
+\(fn MENU)")
 
 (defun easy-menu-add (menu &optional map)
-  "Maybe precalculate equivalent key bindings.
+  "Add the menu to the menubar.
+This is a nop on Emacs since menus are automatically activated when the
+corresponding keymap is activated.  On XEmacs this is needed to actually
+add the menu to the current menubar.
+Maybe precalculate equivalent key bindings.
 Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
@@ -487,7 +498,7 @@ In the latter case, ITEM is normally added at the end of the submenu.
 However, if BEFORE is a string and there is an item in the submenu
 with that name, then ITEM is added before that item.
 
-MAP should normally be a keymap; nil stands for the global menu-bar keymap.
+MAP should normally be a keymap; nil stands for the local menu-bar keymap.
 It can also be a symbol, which has earlier been used as the first
 argument in a call to `easy-menu-define', or the value of such a symbol.
 
@@ -565,15 +576,6 @@ If item is an old format item, a new format item is returned."
     (setq submap (cdr submap)))
   submap)
 
-;; This should really be in keymap.c
-(defun easy-menu-current-active-maps ()
-  (let ((maps (list (current-local-map) global-map)))
-    (dolist (minor minor-mode-map-alist)
-      (when (and (boundp (car minor))
-		 (symbol-value (car minor)))
-	(push (cdr minor) maps)))
-    (delq nil maps)))
-
 (defun easy-menu-get-map (map path &optional to-modify)
   "Return a sparse keymap in which to add or remove an item.
 MAP and PATH are as defined in `easy-menu-add-item'.
@@ -594,7 +596,7 @@ In some cases we use that to select between the local and global maps."
 				   (list (if (and (symbolp map)
 						  (not (keymapp map)))
 					     (symbol-value map) map))
-				 (easy-menu-current-active-maps)))))
+				 (current-active-maps)))))
 	    ;; Prefer a map that already contains the to-be-modified entry.
 	    (when to-modify
 	      (dolist (map maps)

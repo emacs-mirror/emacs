@@ -74,6 +74,18 @@ buffer."
       (clear-abbrev-table (symbol-value (car tables)))
       (setq tables (cdr tables)))))
 
+(defun copy-abbrev-table (table)
+  "Make a new abbrev-table with the same abbrevs as TABLE."
+  (let ((new-table (make-abbrev-table)))
+    (mapatoms
+     (lambda (symbol)
+       (define-abbrev new-table
+	 (symbol-name symbol)
+	 (symbol-value symbol)
+	 (symbol-function symbol)))
+     table)
+    new-table))
+
 (defun insert-abbrevs ()
   "Insert after point a description of all defined abbrevs.
 Mark is set after the inserted text."
@@ -200,15 +212,11 @@ The argument FILE is the file name to write."
 		    abbrev-file-name)))
   (or (and file (> (length file) 0))
       (setq file abbrev-file-name))
-  (save-excursion
-   (set-buffer (get-buffer-create " write-abbrev-file"))
-   (erase-buffer)
-   (let ((tables abbrev-table-name-list))
-     (while tables
-       (insert-abbrev-table-description (car tables) nil)
-       (setq tables (cdr tables))))
-   (write-region 1 (point-max) file)
-   (erase-buffer)))
+  (let ((coding-system-for-write 'emacs-mule))
+    (with-temp-file file
+      (insert ";;-*-coding: emacs-mule;-*-\n")
+      (dolist (table abbrev-table-name-list)
+	(insert-abbrev-table-description table nil)))))
 
 (defun add-mode-abbrev (arg)
   "Define mode-specific abbrev for last word(s) before point.
@@ -221,7 +229,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
   (interactive "p")
   (add-abbrev
    (if only-global-abbrevs
-       global-abbrev-table 
+       global-abbrev-table
      (or local-abbrev-table
 	 (error "No per-mode abbrev table")))
    "Mode" arg))

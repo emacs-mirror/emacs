@@ -136,20 +136,20 @@
    (eq (device-class (selected-device)) 'color) ; xemacs
    (x-display-color-p)  ; emacs
    ))
-   
+
 (defsubst viper-get-cursor-color ()
   (viper-cond-compile-for-xemacs-or-emacs
    ;; xemacs
    (color-instance-name (frame-property (selected-frame) 'cursor-color))
    (cdr (assoc 'cursor-color (frame-parameters))) ; emacs
    ))
-  
+
 
 ;; OS/2
 (cond ((eq (viper-device-type) 'pm)
        (fset 'viper-color-defined-p
 	     (lambda (color) (assoc color pm-color-alist)))))
-    
+
 
 ;; cursor colors
 (defun viper-change-cursor-color (new-color)
@@ -163,7 +163,7 @@
 	(selected-frame) (list (cons 'cursor-color new-color)))
        )
     ))
-	 
+
 ;; By default, saves current frame cursor color in the
 ;; viper-saved-cursor-color-in-replace-mode property of viper-replace-overlay
 (defun viper-save-cursor-color (before-which-mode)
@@ -180,7 +180,7 @@
 		 'viper-saved-cursor-color-in-insert-mode)
 	       color)))
 	  ))))
-	
+
 
 (defsubst viper-get-saved-cursor-color-in-replace-mode ()
   (or
@@ -197,7 +197,7 @@
     (selected-frame)
     'viper-saved-cursor-color-in-insert-mode)
    viper-vi-state-cursor-color))
-	 
+
 ;; restore cursor color from replace overlay
 (defun viper-restore-cursor-color(after-which-mode)
   (if (viper-overlay-p viper-replace-overlay)
@@ -206,7 +206,7 @@
 	   (viper-get-saved-cursor-color-in-replace-mode)
 	 (viper-get-saved-cursor-color-in-insert-mode))
        )))
-   
+
 
 ;; Check the current version against the major and minor version numbers
 ;; using op: cur-vers op major.minor If emacs-major-version or
@@ -234,14 +234,14 @@
 		  (error "%S: Invalid op in viper-check-version" op))))
     (cond ((memq op '(= > >=)) nil)
 	  ((memq op '(< <=)) t))))
-	  
+
 
 (defun viper-get-visible-buffer-window (wind)
   (if viper-xemacs-p
       (get-buffer-window wind t)
     (get-buffer-window wind 'visible)))
-    
-    
+
+
 ;; Return line position.
 ;; If pos is 'start then returns position of line start.
 ;; If pos is 'end, returns line end.  If pos is 'mid, returns line center.
@@ -264,13 +264,16 @@
     (goto-char cur-pos)
     result))
 
-;; Emacs counts each multibyte character as several positions in the buffer, so
-;; we use Emacs' chars-in-region.  XEmacs is counting each char as just one pos,
-;; so we can simply subtract. 
+;; Emacs used to count each multibyte character as several positions in the buffer,
+;; so we had to use Emacs' chars-in-region to count characters. Since 20.3,
+;; Emacs counts multibyte characters as 1 position.  XEmacs has always been
+;; counting each char as just one pos. So, now we can simply subtract beg from
+;; end to determine the number of characters in a region.
 (defun viper-chars-in-region (beg end &optional preserve-sign)
-  (let ((count (abs (if (fboundp 'chars-in-region)
-			(chars-in-region beg end)
-		      (- end beg)))))
+  ;;(let ((count (abs (if (fboundp 'chars-in-region)
+  ;;    		(chars-in-region beg end)
+  ;;    	      (- end beg)))))
+  (let ((count (abs (- end beg))))
     (if (and (< end beg) preserve-sign)
 	(- count)
       count)))
@@ -283,7 +286,7 @@
 ;; Like move-marker but creates a virgin marker if arg isn't already a marker.
 ;; The first argument must eval to a variable name.
 ;; Arguments: (var-name position &optional buffer).
-;; 
+;;
 ;; This is useful for moving markers that are supposed to be local.
 ;; For this, VAR-NAME should be made buffer-local with nil as a default.
 ;; Then, each time this var is used in `viper-move-marker-locally' in a new
@@ -306,14 +309,14 @@
 
 
 ;;; List/alist utilities
-	
+
 ;; Convert LIST to an alist
 (defun viper-list-to-alist (lst)
   (let ((alist))
     (while lst
       (setq alist (cons (list (car lst)) alist))
       (setq lst (cdr lst)))
-    alist))	
+    alist))
 
 ;; Convert ALIST to a list.
 (defun viper-alist-to-list (alst)
@@ -331,8 +334,8 @@
       (if (string-match regexp (car (car inalst)))
 	  (setq outalst (cons (car inalst) outalst)))
       (setq inalst (cdr inalst)))
-    outalst))    
-       
+    outalst))
+
 ;; Filter LIST using REGEXP.  Return list whose elements match the regexp.
 (defun viper-filter-list (regexp lst)
   (interactive "s x")
@@ -341,9 +344,9 @@
       (if (string-match regexp (car inlst))
 	  (setq outlst (cons (car inlst) outlst)))
       (setq inlst (cdr inlst)))
-    outlst))    
+    outlst))
 
-   
+
 ;; Append LIS2 to LIS1, both alists, by side-effect and returns LIS1
 ;; LIS2 is modified by filtering it: deleting its members of the form
 ;; \(car elt\) such that (car elt') is in LIS1.
@@ -356,7 +359,7 @@
       (while (setq elt (assoc (car (car temp)) lis2))
 	(setq lis2 (delq elt lis2)))
       (setq temp (cdr temp)))
-    
+
     (nconc lis1 lis2)))
 
 
@@ -377,7 +380,7 @@
 	(command (cond (viper-ms-style-os-p (format "\"ls -1 -d %s\"" filespec))
 		       (t (format "ls -1 -d %s" filespec))))
 	status)
-    (save-excursion 
+    (save-excursion
       (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
       (erase-buffer)
       (setq status
@@ -422,7 +425,7 @@
 		((looking-at "'")
 		 (setq delim ?')
 		 (re-search-forward "[^']+" nil t)) ; noerror
-		(t 
+		(t
 		 (re-search-forward
 		  (concat "[^" skip-chars "]+") nil t))) ;noerror
 	  (setq fname
@@ -456,14 +459,14 @@
 (defun viper-glob-mswindows-files (filespec)
   (let ((case-fold-search t)
 	tmp tmp2)
-    (save-excursion 
+    (save-excursion
       (set-buffer (get-buffer-create viper-ex-tmp-buf-name))
       (erase-buffer)
       (insert filespec)
       (goto-char (point-min))
       (setq tmp (viper-get-filenames-from-buffer))
       (while tmp
-	(setq tmp2 (cons (directory-files 
+	(setq tmp2 (cons (directory-files
 			  ;; the directory part
 			  (or (file-name-directory (car tmp))
 			      "")
@@ -492,7 +495,7 @@
 			   (t (car ring))))
 	(viper-current-ring-item ring)
 	)))
-	
+
 (defun viper-special-ring-rotate1 (ring dir)
   (if (memq viper-intermediate-command
 	    '(repeating-display-destructive-command
@@ -500,14 +503,14 @@
       (viper-ring-rotate1 ring dir)
     ;; don't rotate otherwise
     (viper-ring-rotate1 ring 0)))
-    
+
 ;; current ring item; if N is given, then so many items back from the
 ;; current
 (defun viper-current-ring-item (ring &optional n)
   (setq n (or n 0))
   (if (and (ring-p ring) (> (ring-length ring) 0))
       (aref (cdr (cdr ring)) (mod (- (car ring) 1 n) (ring-length ring)))))
-    
+
 ;; Push item onto ring.  The second argument is a ring-variable, not value.
 (defun viper-push-onto-ring (item ring-var)
   (or (ring-p (eval ring-var))
@@ -529,7 +532,7 @@
 			 (viper-array-to-string (this-command-keys))))
       (viper-ring-insert (eval ring-var) item))
   )
-  
+
 
 ;; removing elts from ring seems to break it
 (defun viper-cleanup-ring (ring)
@@ -539,7 +542,7 @@
       (if (equal (viper-current-ring-item ring)
 		 (viper-current-ring-item ring 1))
 	  (viper-ring-pop ring))))
-	  
+
 ;; ring-remove seems to be buggy, so we concocted this for our purposes.
 (defun viper-ring-pop (ring)
   (let* ((ln (ring-length ring))
@@ -548,20 +551,20 @@
 	 (hd (car ring))
 	 (idx (max 0 (ring-minus1 hd ln)))
 	 (top-elt (aref vec idx)))
-	
+
 	;; shift elements
 	(while (< (1+ idx) veclen)
 	  (aset vec idx (aref vec (1+ idx)))
 	  (setq idx (1+ idx)))
 	(aset vec idx nil)
-	
+
 	(setq hd (max 0 (ring-minus1 hd ln)))
 	(if (= hd (1- ln)) (setq hd 0))
 	(setcar ring hd) ; move head
 	(setcar (cdr ring) (max 0 (1- ln))) ; adjust length
 	top-elt
 	))
-	
+
 (defun viper-ring-insert (ring item)
   (let* ((ln (ring-length ring))
 	 (vec (cdr (cdr ring)))
@@ -569,7 +572,7 @@
 	 (hd (car ring))
 	 (vecpos-after-hd (if (= hd 0) ln hd))
 	 (idx ln))
-	 
+
     (if (= ln veclen)
 	(progn
 	  (aset vec hd item) ; hd is always 1+ the actual head index in vec
@@ -581,7 +584,7 @@
 	(setq idx (1- idx)))
       (aset vec vecpos-after-hd item))
     item))
-	
+
 
 ;;; String utilities
 
@@ -589,12 +592,12 @@
 ;; PRE-STRING is a string to prepend to the abbrev string.
 ;; POST-STRING is a string to append to the abbrev string.
 ;; ABBREV_SIGN is a string to be inserted before POST-STRING
-;; if the orig string was truncated. 
+;; if the orig string was truncated.
 (defun viper-abbreviate-string (string max-len
 				     pre-string post-string abbrev-sign)
   (let (truncated-str)
     (setq truncated-str
-	  (if (stringp string) 
+	  (if (stringp string)
 	      (substring string 0 (min max-len (length string)))))
     (cond ((null truncated-str) "")
 	  ((> (length string) max-len)
@@ -607,7 +610,7 @@
   (save-excursion
     (beginning-of-line)
     (looking-at "^[ \t]*$")))
-	  
+
 
 ;;; Saving settings in custom file
 
@@ -641,7 +644,7 @@
 	    (sit-for 2)
 	    (message "")))
       ))
-      
+
 ;; Save STRING in CUSTOM-FILE.  If PATTERN is non-nil, remove strings that
 ;; match this pattern.
 (defun viper-save-string-in-file (string custom-file &optional pattern)
@@ -667,7 +670,7 @@
 		    ;; Can happen only in Emacs, since XEmacs has file-remote-p
 		    (ange-ftp-ftp-name file-name))))))
 
-    
+
 
 ;; This is a simple-minded check for whether a file is under version control.
 ;; If file,v exists but file doesn't, this file is considered to be not checked
@@ -718,9 +721,9 @@
 	       (viper-abbreviate-file-name file))))
 	(with-current-buffer buf
 	  (command-execute checkout-function)))))
-	 
 
-    
+
+
 
 ;;; Overlays
 (defun viper-put-on-search-overlay (beg end)
@@ -753,7 +756,7 @@
 
 (defsubst viper-move-replace-overlay (beg end)
   (viper-move-overlay viper-replace-overlay beg end))
-  
+
 (defun viper-set-replace-overlay (beg end)
   (if (viper-overlay-live-p viper-replace-overlay)
       (viper-move-replace-overlay beg end)
@@ -761,7 +764,7 @@
     ;; never detach
     (viper-overlay-put
      viper-replace-overlay (if viper-emacs-p 'evaporate 'detachable) nil)
-    (viper-overlay-put 
+    (viper-overlay-put
      viper-replace-overlay 'priority viper-replace-overlay-priority)
     ;; If Emacs will start supporting overlay maps, as it currently supports
     ;; text-property maps, we could do away with viper-replace-minor-mode and
@@ -770,15 +773,15 @@
     ;; viper-replace-overlay
     ;; (if viper-xemacs-p 'keymap 'local-map)
     ;; viper-replace-map)
-    ) 
+    )
   (if (viper-has-face-support-p)
       (viper-overlay-put
        viper-replace-overlay 'face viper-replace-overlay-face))
   (viper-save-cursor-color 'before-replace-mode)
   (viper-change-cursor-color viper-replace-overlay-cursor-color)
   )
-  
-      
+
+
 (defun viper-set-replace-overlay-glyphs (before-glyph after-glyph)
   (or (viper-overlay-live-p viper-replace-overlay)
       (viper-set-replace-overlay (point-min) (point-min)))
@@ -788,7 +791,7 @@
 	    (after-name (if viper-xemacs-p 'end-glyph 'after-string)))
 	(viper-overlay-put viper-replace-overlay before-name before-glyph)
 	(viper-overlay-put viper-replace-overlay after-name after-glyph))))
-  
+
 (defun viper-hide-replace-overlay ()
   (viper-set-replace-overlay-glyphs nil nil)
   (viper-restore-cursor-color 'after-replace-mode)
@@ -796,12 +799,12 @@
   (if (viper-has-face-support-p)
       (viper-overlay-put viper-replace-overlay 'face nil)))
 
-    
+
 (defsubst viper-replace-start ()
   (viper-overlay-start viper-replace-overlay))
 (defsubst viper-replace-end ()
   (viper-overlay-end viper-replace-overlay))
- 
+
 
 ;; Minibuffer
 
@@ -811,7 +814,7 @@
       (progn
 	(viper-overlay-put
 	 viper-minibuffer-overlay 'face viper-minibuffer-current-face)
-	(viper-overlay-put 
+	(viper-overlay-put
 	 viper-minibuffer-overlay 'priority viper-minibuffer-overlay-priority)
 	;; never detach
 	(viper-overlay-put
@@ -825,7 +828,7 @@
 	      (viper-overlay-put viper-minibuffer-overlay 'start-open nil)
 	      (viper-overlay-put viper-minibuffer-overlay 'end-open nil)))
 	)))
-       
+
 (defun viper-check-minibuffer-overlay ()
   (if (viper-overlay-live-p viper-minibuffer-overlay)
       (viper-move-overlay
@@ -846,7 +849,7 @@
 (defsubst viper-is-in-minibuffer ()
   (save-match-data
     (string-match "\*Minibuf-" (buffer-name))))
-  
+
 
 
 ;;; XEmacs compatibility
@@ -858,8 +861,8 @@
    ;; emacs
    (abbreviate-file-name file)
    ))
-    
-;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg 
+
+;; Sit for VAL milliseconds.  XEmacs doesn't support the millisecond arg
 ;; in sit-for, so this function smoothes out the differences.
 (defsubst viper-sit-for-short (val &optional nodisp)
   (if viper-xemacs-p
@@ -880,7 +883,7 @@
 	(save-excursion
 	  (set-buffer buf)
 	  (and (<= pos (point-max)) (<= (point-min) pos))))))
-  
+
 (defsubst viper-mark-marker ()
   (viper-cond-compile-for-xemacs-or-emacs
    (mark-marker t) ; xemacs
@@ -893,7 +896,7 @@
   (setq mark-ring (delete (viper-mark-marker) mark-ring))
   (set-mark-command nil)
   (setq viper-saved-mark (point)))
-       
+
 ;; In transient mark mode (zmacs mode), it is annoying when regions become
 ;; highlighted due to Viper's pushing marks.  So, we deactivate marks, unless
 ;; the user explicitly wants highlighting, e.g., by hitting '' or ``
@@ -924,8 +927,8 @@
 	  (and (<= ?A reg) (<= reg ?Z)))
       ))
 
-    
-    
+
+
 ;; it is suggested that an event must be copied before it is assigned to
 ;; last-command-event in XEmacs
 (defun viper-copy-event (event)
@@ -933,15 +936,15 @@
    (copy-event event) ; xemacs
    event ; emacs
    ))
-    
+
 ;; Uses different timeouts for ESC-sequences and others
 (defsubst viper-fast-keysequence-p ()
-  (not (viper-sit-for-short 
+  (not (viper-sit-for-short
 	(if (viper-ESC-event-p last-input-event)
 	    viper-ESC-keyseq-timeout
 	  viper-fast-keyseq-timeout)
 	t)))
-    
+
 ;; like read-event, but in XEmacs also try to convert to char, if possible
 (defun viper-read-event-convert-to-char ()
   (let (event)
@@ -975,7 +978,7 @@
 		;; keysequence. Otherwise, viper-fast-keysequence-p will be
 		;; always t -- whether there is anything after ESC or not
 		(viper-set-unread-command-events keyseq)
-		(setq keyseq (read-key-sequence nil))) 
+		(setq keyseq (read-key-sequence nil)))
 	    (viper-set-unread-command-events keyseq)
 	    (setq keyseq (read-key-sequence nil)))))
     keyseq))
@@ -986,13 +989,13 @@
 ;; macros, since it enables certain macros to be shared between X and TTY modes
 ;; by correctly mapping key sequences for Left/Right/... (one an ascii
 ;; terminal) into logical keys left, right, etc.
-(defun viper-read-key () 
-  (let ((overriding-local-map viper-overriding-map) 
+(defun viper-read-key ()
+  (let ((overriding-local-map viper-overriding-map)
 	(inhibit-quit t)
-	help-char key) 
-    (use-global-map viper-overriding-map) 
+	help-char key)
+    (use-global-map viper-overriding-map)
     (unwind-protect
-	(setq key (elt (viper-read-key-sequence nil) 0)) 
+	(setq key (elt (viper-read-key-sequence nil) 0))
       (use-global-map global-map))
     key))
 
@@ -1016,7 +1019,7 @@
 		    (event-key event))
 		   ((button-event-p event)
 		    (concat "mouse-" (prin1-to-string (event-button event))))
-		   (t 
+		   (t
 		    (error "viper-event-key: Unknown event, %S" event)))
 	     ;; Emacs doesn't handle capital letters correctly, since
 	     ;; \S-a isn't considered the same as A (it behaves as
@@ -1050,7 +1053,7 @@
       (if mod
 	  (append mod (list basis))
 	basis))))
-    
+
 (defun viper-key-to-emacs-key (key)
   (let (key-name char-p modifiers mod-char-list base-key base-key-name)
     (cond (viper-xemacs-p key)
@@ -1106,7 +1109,7 @@
 	       "viper-eventify-list-xemacs: can't convert to event, %S"
 	       elt))))
    lis))
-  
+
 
 ;; Smoothes out the difference between Emacs' unread-command-events
 ;; and XEmacs unread-command-event.  Arg is a character, an event, a list of
@@ -1151,7 +1154,7 @@
   (and (vectorp vec)
        (eval (cons 'and (mapcar '(lambda (elt) (if (eventp elt) t)) vec)))))
 
-			 
+
 ;; check if vec is a vector of character symbols
 (defun viper-char-symbol-sequence-p (vec)
   (and
@@ -1161,8 +1164,8 @@
 	  (mapcar (lambda (elt)
 		    (and (symbolp elt) (= (length (symbol-name elt)) 1)))
 		  vec)))))
-    
-  
+
+
 (defun viper-char-array-p (array)
   (eval (cons 'and (mapcar 'viper-characterp array))))
 
@@ -1185,7 +1188,7 @@
 		  (t (prin1-to-string (vconcat temp)))))
 	  ((viper-char-symbol-sequence-p event-seq)
 	   (mapconcat 'symbol-name event-seq ""))
-	  ((and (vectorp event-seq) 
+	  ((and (vectorp event-seq)
 		(viper-char-array-p
 		 (setq temp (mapcar 'viper-key-to-character event-seq))))
 	   (mapconcat 'char-to-string temp ""))
@@ -1198,8 +1201,8 @@
 	      )
 	     events
 	     ""))
-	   
-    
+
+
 (defun viper-read-char-exclusive ()
   (let (char
 	(echo-keystrokes 1))
@@ -1227,13 +1230,13 @@
 	      (= 1 (length (symbol-name (nth 1 key)))))
 	 (read (format "?\\C-%s" (symbol-name (nth 1 key)))))
 	(t key)))
-    
-      
+
+
 (defun viper-setup-master-buffer (&rest other-files-or-buffers)
   "Set up the current buffer as a master buffer.
 Arguments become related buffers.  This function should normally be used in
 the `Local variables' section of a file."
-  (setq viper-related-files-and-buffers-ring 
+  (setq viper-related-files-and-buffers-ring
 	(make-ring (1+ (length other-files-or-buffers))))
   (mapcar '(lambda (elt)
 	     (viper-ring-insert viper-related-files-and-buffers-ring elt))
@@ -1274,7 +1277,7 @@ Usually contains ` ', linefeed, TAB or formfeed.")
 
 
 ;; Set Viper syntax classes and related variables according to
-;; `viper-syntax-preference'.  
+;; `viper-syntax-preference'.
 (defun viper-update-syntax-classes (&optional set-default)
   (let ((preference (cond ((eq viper-syntax-preference 'emacs)
 			   "w")   ; Viper words have only Emacs word chars
@@ -1335,7 +1338,7 @@ This is most appropriate for major modes intended for editing programs.
 `emacs' means Viper words are the same as Emacs words as specified by Emacs
 syntax tables.
 This option is appropriate if you like Emacs-style words."
-  :type '(radio (const strict-vi) (const reformed-vi) 
+  :type '(radio (const strict-vi) (const reformed-vi)
 		 (const extended) (const emacs))
   :set 'viper-set-syntax-preference
   :group 'viper)
@@ -1379,7 +1382,7 @@ This option is appropriate if you like Emacs-style words."
 (defun viper-skip-alpha-forward (&optional addl-chars)
   (or (stringp addl-chars) (setq addl-chars ""))
   (viper-skip-syntax
-   'forward 
+   'forward
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  "")
 	 (t viper-ALPHA-char-class))
@@ -1390,7 +1393,7 @@ This option is appropriate if you like Emacs-style words."
 (defun viper-skip-alpha-backward (&optional addl-chars)
   (or (stringp addl-chars) (setq addl-chars ""))
   (viper-skip-syntax
-   'backward 
+   'backward
    (cond ((eq viper-syntax-preference 'strict-vi)
 	  "")
 	 (t viper-ALPHA-char-class))
@@ -1401,7 +1404,7 @@ This option is appropriate if you like Emacs-style words."
 ;; weird syntax tables may confuse strict-vi style
 (defsubst viper-skip-all-separators-forward (&optional within-line)
   (if (eq viper-syntax-preference 'strict-vi)
-      (if within-line 
+      (if within-line
 	  (skip-chars-forward viper-strict-SEP-chars-sans-newline)
 	(skip-chars-forward viper-strict-SEP-chars))
     (viper-skip-syntax 'forward
@@ -1410,7 +1413,7 @@ This option is appropriate if you like Emacs-style words."
 		       (if within-line (viper-line-pos 'end)))))
 (defsubst viper-skip-all-separators-backward (&optional within-line)
   (if (eq viper-syntax-preference 'strict-vi)
-      (if within-line 
+      (if within-line
 	  (skip-chars-backward viper-strict-SEP-chars-sans-newline)
 	(skip-chars-backward viper-strict-SEP-chars))
     (viper-skip-syntax 'backward
@@ -1434,7 +1437,7 @@ This option is appropriate if you like Emacs-style words."
      'forward
      (concat "^" viper-ALPHA-char-class viper-SEP-char-class)
      ;; Emacs may consider some of these as words, but we don't want them
-     viper-non-word-characters 
+     viper-non-word-characters
      (viper-line-pos 'end))))
 (defun viper-skip-nonalphasep-backward ()
   (if (eq viper-syntax-preference 'strict-vi)
@@ -1472,8 +1475,8 @@ This option is appropriate if you like Emacs-style words."
 		(t nil)))
     (if (memq ?^ syntax) (setq negated-syntax t))
 
-    (while (and (not (= local 0)) 
-		(cond ((eq direction 'forward) 
+    (while (and (not (= local 0))
+		(cond ((eq direction 'forward)
 		       (not (eobp)))
 		      (t (not (bobp)))))
       (setq char-looked-at (viper-char-at-pos direction)
@@ -1504,11 +1507,11 @@ This option is appropriate if you like Emacs-style words."
       (setq total (+ total local)))
     total
     ))
-  
 
-  
+
+
 (provide 'viper-util)
-  
+
 
 ;;; Local Variables:
 ;;; eval: (put 'viper-deflocalvar 'lisp-indent-hook 'defun)

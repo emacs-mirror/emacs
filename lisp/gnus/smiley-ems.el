@@ -148,7 +148,7 @@ With arg, turn displaying on if and only if arg is positive."
 (eval-when-compile (defvar gnus-article-buffer))
 
 (defun gnus-smiley-display (&optional arg)
-  "Display textual emoticaons (\"smilies\") as small graphical icons.
+  "Display textual emoticons (\"smilies\") as small graphical icons.
 With arg, turn displaying on if and only if arg is positive."
   (interactive "P")
   (save-excursion

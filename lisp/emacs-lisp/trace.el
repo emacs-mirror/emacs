@@ -34,7 +34,7 @@
 
 ;; Introduction:
 ;; =============
-;; A simple trace package that utilizes advice.el. It generates trace 
+;; A simple trace package that utilizes advice.el. It generates trace
 ;; information in a Lisp-style fashion and inserts it into a trace output
 ;; buffer. Tracing can be done in the background (or silently) so that
 ;; generation of trace output won't interfere with what you are currently
@@ -87,7 +87,7 @@
 ;;    (if (= n 0) 1
 ;;      (* n (fact (1- n)))))
 ;;  fact
-;;  
+;;
 ;;  (trace-function 'fact)
 ;;  fact
 ;;
@@ -111,11 +111,11 @@
 ;;
 ;;
 ;;  (defun ack (x y z)
-;;    (if (= x 0) 
+;;    (if (= x 0)
 ;;        (+ y z)
-;;      (if (and (<= x 2) (= z 0)) 
+;;      (if (and (<= x 2) (= z 0))
 ;;          (1- x)
-;;        (if (and (> x 2) (= z 0)) 
+;;        (if (and (> x 2) (= z 0))
 ;;            y
 ;;          (ack (1- x) y (ack x y (1- z)))))))
 ;;  ack
@@ -128,7 +128,7 @@
 ;;  (ack 3 3 1)
 ;;  27
 ;;
-;; 
+;;
 ;; The following does something similar to the functionality of the package
 ;; log-message.el by Robert Potter, which is giving you a chance to look at
 ;; messages that might have whizzed by too quickly (you won't see subr
@@ -264,7 +264,7 @@
 (defun trace-function (function &optional buffer)
   "Traces FUNCTION with trace output going to BUFFER.
 For every call of FUNCTION Lisp-style trace messages that display argument
-and return values will be inserted into BUFFER. This function generates the
+and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
 there might be!! The trace BUFFER will popup whenever FUNCTION is called.
 Do not use this to trace functions that switch buffers or do any other
@@ -279,7 +279,7 @@ display oriented stuff, use `trace-function-background' instead."
 (defun trace-function-background (function &optional buffer)
   "Traces FUNCTION with trace output going quietly to BUFFER.
 For every call of FUNCTION Lisp-style trace messages that display argument
-and return values will be inserted into BUFFER. This function generates the
+and return values will be inserted into BUFFER.  This function generates the
 trace advice for FUNCTION and activates it together with any other advice
 there might be!! Trace output will quietly go to BUFFER without changing
 the window or buffer configuration at all."
@@ -293,7 +293,7 @@ the window or buffer configuration at all."
 (defun untrace-function (function)
   "Untraces FUNCTION and possibly activates all remaining advice.
 Activation is performed with `ad-update', hence remaining advice will get
-activated only if the advice of FUNCTION is currently active. If FUNCTION
+activated only if the advice of FUNCTION is currently active.  If FUNCTION
 was not traced this is a noop."
   (interactive
    (list (ad-read-advised-function "Untrace function: " 'trace-is-traced)))

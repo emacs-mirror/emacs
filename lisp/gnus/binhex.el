@@ -232,7 +232,7 @@ If HEADER-ONLY is non-nil only decode header and return filename."
 			 (>= (buffer-size) data-fork-start)))
 		  (progn
 		    (binhex-verify-crc work-buffer
-				       1 data-fork-start)
+				       (point-min) data-fork-start)
 		    (setq header (binhex-header work-buffer))
 		    (if header-only (setq tmp nil counter 0))))
 	      (setq tmp (and tmp (not (eq inputpos end)))))

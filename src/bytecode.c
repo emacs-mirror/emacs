@@ -248,7 +248,7 @@ struct byte_stack
 {
   /* Program counter.  This points into the byte_string below
      and is relocated when that string is relocated.  */
-  unsigned char *pc;
+  const unsigned char *pc;
 
   /* Top and bottom of stack.  The bottom points to an area of memory
      allocated with alloca in Fbyte_code.  */
@@ -258,7 +258,7 @@ struct byte_stack
      Storing this here protects it from GC because mark_byte_stack
      marks it.  */
   Lisp_Object byte_string;
-  unsigned char *byte_string_start;
+  const unsigned char *byte_string_start;
 
   /* The vector of constants used during byte-code execution.  Storing
      this here protects it from GC because mark_byte_stack marks it.  */
@@ -336,10 +336,10 @@ unmark_byte_stack ()
       XUNMARK (stack->byte_string);
       XUNMARK (stack->constants);
 
-      if (stack->byte_string_start != XSTRING (stack->byte_string)->data)
+      if (stack->byte_string_start != SDATA (stack->byte_string))
 	{
 	  int offset = stack->pc - stack->byte_string_start;
-	  stack->byte_string_start = XSTRING (stack->byte_string)->data;
+	  stack->byte_string_start = SDATA (stack->byte_string);
 	  stack->pc = stack->byte_string_start + offset;
 	}
     }
@@ -456,7 +456,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
      int nargs;
      Lisp_Object *args;
 {
-  int count = specpdl_ptr - specpdl;
+  int count = SPECPDL_INDEX ();
 #ifdef BYTE_CODE_METER
   int this_op = 0;
   int prev_op;
@@ -496,11 +496,11 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
        convert them back to the originally intended unibyte form.  */
     bytestr = Fstring_as_unibyte (bytestr);
 
-  bytestr_length = STRING_BYTES (XSTRING (bytestr));
+  bytestr_length = SBYTES (bytestr);
   vectorp = XVECTOR (vector)->contents;
 
   stack.byte_string = bytestr;
-  stack.pc = stack.byte_string_start = XSTRING (bytestr)->data;
+  stack.pc = stack.byte_string_start = SDATA (bytestr);
   stack.constants = vector;
   stack.bottom = (Lisp_Object *) alloca (XFASTINT (maxdepth)
                                          * sizeof (Lisp_Object));
@@ -795,7 +795,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	  op -= Bunbind;
 	dounbind:
 	  BEFORE_POTENTIAL_GC ();
-	  unbind_to (specpdl_ptr - specpdl - op, Qnil);
+	  unbind_to (SPECPDL_INDEX () - op, Qnil);
 	  AFTER_POTENTIAL_GC ();
 	  break;
 
@@ -963,7 +963,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	case Btemp_output_buffer_setup:
 	  BEFORE_POTENTIAL_GC ();
 	  CHECK_STRING (TOP);
-	  temp_output_buffer_setup (XSTRING (TOP)->data);
+	  temp_output_buffer_setup (SDATA (TOP));
 	  AFTER_POTENTIAL_GC ();
 	  TOP = Vstandard_output;
 	  break;
@@ -976,7 +976,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
 	    temp_output_buffer_show (TOP);
 	    TOP = v1;
 	    /* pop binding of standard-output */
-	    unbind_to (specpdl_ptr - specpdl - 1, Qnil);
+	    unbind_to (SPECPDL_INDEX () - 1, Qnil);
 	    AFTER_POTENTIAL_GC ();
 	    break;
 	  }
@@ -1845,7 +1845,7 @@ exec_byte_code (bytestr, vector, maxdepth, args_template, nargs, args)
   byte_stack_list = byte_stack_list->next;
 
   /* Binds and unbinds are supposed to be compiled balanced.  */
-  if (specpdl_ptr - specpdl != count)
+  if (SPECPDL_INDEX () != count)
 #ifdef BYTE_CODE_SAFE
     error ("binding stack not balanced (serious byte compiler bug)");
 #else

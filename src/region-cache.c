@@ -131,7 +131,7 @@ static void revalidate_region_cache ();
 struct region_cache *
 new_region_cache ()
 {
-  struct region_cache *c 
+  struct region_cache *c
     = (struct region_cache *) xmalloc (sizeof (struct region_cache));
 
   c->gap_start = 0;
@@ -385,7 +385,7 @@ delete_cache_boundaries (c, start, end)
 
   c->cache_len -= len;
 }
-     
+
 
 
 /* Set the value for a region.  */
@@ -407,12 +407,12 @@ set_cache_region (c, start, end, value)
      both the locations of real characters in the buffer.  */
   if (start == end)
     return;
-  
+
   {
     /* We need to make sure that there are no boundaries in the area
        between start to end; the whole area will have the same value,
        so those boundaries will not be necessary.
-       
+
        Let start_ix be the cache index of the boundary governing the
        first character of start..end, and let end_ix be the cache
        index of the earliest boundary after the last character in
@@ -456,7 +456,7 @@ set_cache_region (c, start, end, value)
             start_ix++;
           }
       }
-          
+
     /* This is equivalent to letting end_ix float (like a buffer
        marker does) with the insertions and deletions we may have
        done.  */
@@ -553,7 +553,7 @@ invalidate_region_cache (buf, c, head, tail)
 }
 
 
-/* Clean out any cache entries applying to the modified region, and 
+/* Clean out any cache entries applying to the modified region, and
    make the positions of the remaining entries accurate again.
 
    After calling this function, the mess described in the comment in
@@ -606,7 +606,7 @@ revalidate_region_cache (buf, c)
      (which will give the modified region the same size in the cache
      as it has in the buffer), and then invalidate the modified
      region. */
-  if (c->buffer_beg + c->beg_unchanged 
+  if (c->buffer_beg + c->beg_unchanged
       == c->buffer_end - c->end_unchanged)
     {
       /* Move the gap so that all the boundaries in the unchanged head
@@ -721,7 +721,7 @@ know_region_cache (buf, c, start, end)
 /* Interface: using the cache.  */
 
 /* Return true if the text immediately after POS in BUF is known, for
-   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest 
+   the purposes of CACHE.  If NEXT is non-zero, set *NEXT to the nearest
    position after POS where the knownness changes.  */
 int
 region_cache_forward (buf, c, pos, next)

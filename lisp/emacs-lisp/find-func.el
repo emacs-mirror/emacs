@@ -97,8 +97,9 @@ default."
 (defcustom find-function-recenter-line 1
   "The window line-number from which to start displaying a symbol definition.
 A value of nil implies center the beginning of the definition.
-See the function `center-to-window-line' for more information, and
-`find-function' and `find-variable'."
+See `find-function' and `find-variable'."
+  :type '(choice (const :tag "Center" nil)
+		 integer)
   :group 'find-function
   :version "20.3")
 
@@ -111,33 +112,49 @@ See the functions `find-function' and `find-variable'."
 
 ;;; Functions:
 
+(defun find-library-suffixes ()
+  (let ((suffixes nil))
+    (dolist (suffix load-suffixes (nreverse suffixes))
+      (unless (string-match "elc" suffix) (push suffix suffixes)))))
+
+(defun find-library-name (library)
+  "Return the full name of the elisp source of LIBRARY."
+  ;; If the library is byte-compiled, try to find a source library by
+  ;; the same name.
+  (if (string-match "\\.el\\(c\\(\\..*\\)?\\)\\'" library)
+      (setq library (replace-match "" t t library)))
+  (or (locate-file library
+		   (or find-function-source-path load-path)
+		   (append (find-library-suffixes) '("")))
+      (error "Can't find library %s" library)))
+
+;;;###autoload
+(defun find-library (library)
+  "Find the elisp source of LIBRARY."
+  (interactive
+   (list
+    (completing-read "Library name: "
+		     'locate-file-completion
+		     (cons (or find-function-source-path load-path)
+			   (find-library-suffixes)))))
+  (let ((buf (find-file-noselect (find-library-name library))))
+    (condition-case nil (switch-to-buffer buf) (error (pop-to-buffer buf)))))
+
 ;;;###autoload
 (defun find-function-search-for-symbol (symbol variable-p library)
   "Search for SYMBOL.
 If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
-`find-variable-regexp' is used.   The search is done in library LIBRARY."
+`find-variable-regexp' is used.  The search is done in library LIBRARY."
   (if (null library)
       (error "Don't know where `%s' is defined" symbol))
+  ;; Some functions are defined as part of the construct
+  ;; that defines something else.
+  (while (get symbol 'definition-name)
+    (setq symbol (get symbol 'definition-name)))
   (save-match-data
     (if (string-match "\\.el\\(c\\)\\'" library)
 	(setq library (substring library 0 (match-beginning 1))))
-    (let* ((path find-function-source-path)
-	   (compression (or (rassq 'jka-compr-handler file-name-handler-alist)
-			    (member 'crypt-find-file-hook find-file-hooks)))
-	   (filename (progn
-		       ;; use `file-name-sans-extension' here? (if it gets fixed)
-		       (if (string-match "\\(\\.el\\)\\'" library)
-			   (setq library (substring library 0
-						    (match-beginning 1))))
-		       (or (locate-library (concat library ".el") t path)
-			   (locate-library library t path)
-			   (if compression
-			       (or (locate-library (concat library ".el.gz")
-						   t path)
-				   (locate-library (concat library ".gz")
-						   t path)))))))
-      (if (not filename)
-	  (error "The library `%s' is not in the path" library))
+    (let* ((filename (find-library-name library)))
       (with-current-buffer (find-file-noselect filename)
 	(let ((regexp (format (if variable-p
 				  find-variable-regexp
@@ -295,7 +312,8 @@ The library where VARIABLE is defined is searched for in FILE or
 `find-function-source-path', if non nil, otherwise in `load-path'."
   (if (not variable)
       (error "You didn't specify a variable"))
-  (let ((library (or file (symbol-file variable))))
+  ;; Fixme: I think `symbol-file' should be fixed instead.  -- fx
+  (let ((library (or file (symbol-file (cons 'defvar variable)))))
     (find-function-search-for-symbol variable 'variable library)))
 
 ;;;###autoload
