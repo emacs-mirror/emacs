@@ -1809,14 +1809,25 @@ default-directory
 
 @defun substitute-in-file-name filename
 This function replaces environment variables references in
-@var{filename} with the environment variable values.  Following standard
-Unix shell syntax, @samp{$} is the prefix to substitute an environment
-variable value.
+@var{filename} with the environment variable values.  Following
+standard Unix shell syntax, @samp{$} is the prefix to substitute an
+environment variable value.  If the input contains @samp{$$}, that is
+converted to @samp{$}; this gives the user a way to ``quote'' a
+@samp{$}.
 
 The environment variable name is the series of alphanumeric characters
 (including underscores) that follow the @samp{$}.  If the character following
 the @samp{$} is a @samp{@{}, then the variable name is everything up to the
 matching @samp{@}}.
+
+Calling @code{substitute-in-file-name} on output produced by
+@code{substitute-in-file-name} tends to give incorrect results.  For
+instance, use of @samp{$$} to quote a single @samp{$} won't work
+properly, and @samp{$} in an environment variable's value could lead
+to repeated substitution.  Therefore, programs that call this function
+and put the output where it will be passed to this function need to
+double all @samp{$} characters to prevent subsequent incorrect
+results.
 
 @c Wordy to avoid overfull hbox.  --rjc 15mar92
 Here we assume that the environment variable @code{HOME}, which holds
