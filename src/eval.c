@@ -1201,7 +1201,7 @@ See also the function `condition-case'.")
   if (gc_in_progress || waiting_for_input)
     abort ();
 
-#ifdef HAVE_X_WINDOWS
+#ifdef HAVE_WINDOW_SYSTEM
   TOTALLY_UNBLOCK_INPUT;
 #endif
 
