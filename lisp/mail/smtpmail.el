@@ -43,26 +43,43 @@
 (require 'sendmail)
 
 ;;;
-(defvar smtpmail-default-smtp-server nil
-  "*Specify default SMTP server.")
+(defgroup smtpmail nil
+  "SMTP protocol for sending mail."
+  :group 'mail)
 
-(defvar smtpmail-smtp-server 
+
+(defcustom smtpmail-default-smtp-server nil
+  "*Specify default SMTP server."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
+
+(defcustom smtpmail-smtp-server 
   (or (getenv "SMTPSERVER") smtpmail-default-smtp-server)
-  "*The name of the host running SMTP server.")
+  "*The name of the host running SMTP server."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
 
-(defvar smtpmail-smtp-service 25
-  "*SMTP service port number. smtp or 25 .")
+(defcustom smtpmail-smtp-service 25
+  "*SMTP service port number. smtp or 25 ."
+  :type 'integer
+  :group 'smtpmail)
 
-(defvar smtpmail-local-domain nil
+(defcustom smtpmail-local-domain nil
   "*Local domain name without a host name.
 If the function (system-name) returns the full internet address,
-don't define this value.")
+don't define this value."
+  :type '(choice (const nil) string)
+  :group 'smtpmail)
 
-(defvar smtpmail-debug-info nil
-  "*smtpmail debug info printout. messages and process buffer.")
+(defcustom smtpmail-debug-info nil
+  "*smtpmail debug info printout. messages and process buffer."
+  :type 'boolean
+  :group 'smtpmail)
 
-(defvar smtpmail-code-conv-from nil ;; *junet*
-  "*smtpmail code convert from this code to *internal*..for tiny-mime..")
+(defcustom smtpmail-code-conv-from nil ;; *junet*
+  "*smtpmail code convert from this code to *internal*..for tiny-mime.."
+  :type 'boolean
+  :group 'smtpmail)
 
 ;;;
 ;;;

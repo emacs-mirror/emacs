@@ -69,27 +69,41 @@
 
 (provide 'avoid)
 
+(defgroup avoid nil
+  "Make mouse pointer stay out of the way of editing."
+  :prefix "mouse-avoidance-"
+  :group 'mouse)
+
+
 (defvar mouse-avoidance-mode nil
   "Value is t or a symbol if the mouse pointer should avoid the cursor.
 See function `mouse-avoidance-mode' for possible values.  Changing this
 variable is NOT the recommended way to change modes; use that function 
 instead.")
 
-(defvar mouse-avoidance-nudge-dist 15
+(defcustom mouse-avoidance-nudge-dist 15
   "*Average distance that mouse will be moved when approached by cursor.
 Only applies in mouse-avoidance-mode `jump' and its derivatives.
-For best results make this larger than `mouse-avoidance-threshold'.")
+For best results make this larger than `mouse-avoidance-threshold'."
+  :type 'integer
+  :group 'avoid)
 
-(defvar mouse-avoidance-nudge-var 10
-  "*Variability of `mouse-avoidance-nudge-dist' (which see).")
+(defcustom mouse-avoidance-nudge-var 10
+  "*Variability of `mouse-avoidance-nudge-dist' (which see)."
+  :type 'integer
+  :group 'avoid)
 
-(defvar mouse-avoidance-animation-delay .01
-  "Delay between animation steps, in seconds.")
+(defcustom mouse-avoidance-animation-delay .01
+  "Delay between animation steps, in seconds."
+  :type 'number
+  :group 'avoid)
 
-(defvar mouse-avoidance-threshold 5
+(defcustom mouse-avoidance-threshold 5
   "*Mouse-pointer's flight distance.
 If the cursor gets closer than this, the mouse pointer will move away.
-Only applies in mouse-avoidance-modes `animate' and `jump'.")
+Only applies in mouse-avoidance-modes `animate' and `jump'."
+  :type 'integer
+  :group 'avoid)
 
 ;; Internal variables
 (defvar mouse-avoidance-state nil)

@@ -235,30 +235,49 @@
 
 ;;; Customarily customizable variable definitions
 
-(defvar pages-directory-buffer-narrowing-p t
-  "*If non-nil, `pages-directory-goto' narrows pages buffer to entry.")
+(defgroup pages nil
+  "Extended page-handling commands."
+  :group 'extensions)
 
-(defvar pages-directory-for-adding-page-narrowing-p t
-  "*If non-nil, `add-new-page' narrows page buffer to new entry.")
 
-(defvar pages-directory-for-adding-new-page-before-current-page-p t
-  "*If non-nil, `add-new-page' inserts new page before current page.")
+(defcustom pages-directory-buffer-narrowing-p t
+  "*If non-nil, `pages-directory-goto' narrows pages buffer to entry."
+  :type 'boolean
+  :group 'pages)
+
+(defcustom pages-directory-for-adding-page-narrowing-p t
+  "*If non-nil, `add-new-page' narrows page buffer to new entry."
+  :type 'boolean
+  :group 'pages)
+
+(defcustom pages-directory-for-adding-new-page-before-current-page-p t
+  "*If non-nil, `add-new-page' inserts new page before current page."
+  :type 'boolean
+  :group 'pages)
 
 
 ;;; Addresses related variables
 
-(defvar pages-addresses-file-name "~/addresses"
+(defcustom pages-addresses-file-name "~/addresses"
   "*Standard name for file of addresses. Entries separated by page-delimiter.
-Used by `pages-directory-for-addresses' function.")
+Used by `pages-directory-for-addresses' function."
+  :type 'file
+  :group 'pages)
 
-(defvar pages-directory-for-addresses-goto-narrowing-p t
-  "*If non-nil, `pages-directory-goto' narrows addresses buffer to entry.")
+(defcustom pages-directory-for-addresses-goto-narrowing-p t
+  "*If non-nil, `pages-directory-goto' narrows addresses buffer to entry."
+  :type 'boolean
+  :group 'pages)
 
-(defvar pages-directory-for-addresses-buffer-keep-windows-p t
-  "*If nil, `pages-directory-for-addresses' deletes other windows.")
+(defcustom pages-directory-for-addresses-buffer-keep-windows-p t
+  "*If nil, `pages-directory-for-addresses' deletes other windows."
+  :type 'boolean
+  :group 'pages)
 
-(defvar pages-directory-for-adding-addresses-narrowing-p t
-  "*If non-nil, `add-new-page' narrows addresses buffer to new entry.")
+(defcustom pages-directory-for-adding-addresses-narrowing-p t
+  "*If non-nil, `add-new-page' narrows addresses buffer to new entry."
+  :type 'boolean
+  :group 'pages)
 
 
 ;;; Key bindings for page handling functions

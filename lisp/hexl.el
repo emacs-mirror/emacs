@@ -53,25 +53,40 @@
 ;; vars here
 ;;
 
-(defvar hexl-program "hexl"
+(defgroup hexl nil
+  "Edit a file in a hex dump format using the hexl filter."
+  :group 'data)
+
+
+(defcustom hexl-program "hexl"
   "The program that will hexlify and dehexlify its stdin.
 `hexl-program' will always be concatenated with `hexl-options'
-and \"-de\" when dehexlifying a buffer.")
+and \"-de\" when dehexlifying a buffer."
+  :type 'string
+  :group 'hexl)
 
-(defvar hexl-iso ""
+(defcustom hexl-iso ""
   "If your emacs can handle ISO characters, this should be set to
-\"-iso\" otherwise it should be \"\".")
+\"-iso\" otherwise it should be \"\"."
+  :type 'string
+  :group 'hexl)
 
-(defvar hexl-options (format "-hex %s" hexl-iso)
-  "Options to hexl-program that suit your needs.")
+(defcustom hexl-options (format "-hex %s" hexl-iso)
+  "Options to hexl-program that suit your needs."
+  :type 'string
+  :group 'hexl)
 
-(defvar hexlify-command
+(defcustom hexlify-command
   (format "%s%s %s" exec-directory hexl-program hexl-options)
-  "The command to use to hexlify a buffer.")
+  "The command to use to hexlify a buffer."
+  :type 'string
+  :group 'hexl)
 
-(defvar dehexlify-command
+(defcustom dehexlify-command
   (format "%s%s -de %s" exec-directory hexl-program hexl-options)
-  "The command to use to unhexlify a buffer.")
+  "The command to use to unhexlify a buffer."
+  :type 'string
+  :group 'hexl)
 
 (defvar hexl-max-address 0
   "Maximum offset into hexl buffer.")

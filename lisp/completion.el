@@ -1,6 +1,6 @@
 ;;; completion.el --- dynamic word-completion code
 
-;; Copyright (C) 1990, 1993, 1995 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1993, 1995, 1997 Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: abbrev
@@ -279,44 +279,69 @@
 ;; User changeable parameters
 ;;---------------------------------------------------------------------------
 
-(defvar enable-completion t
+(defgroup completion nil
+  "Dynamic word-completion code."
+  :group 'matching)
+
+
+(defcustom enable-completion t
   "*Non-nil means enable recording and saving of completions.
-If nil, no new words added to the database or saved to the init file.")
+If nil, no new words added to the database or saved to the init file."
+  :type 'boolean
+  :group 'completion)
 
-(defvar save-completions-flag t
+(defcustom save-completions-flag t
   "*Non-nil means save most-used completions when exiting Emacs.
-See also `saved-completions-retention-time'.")
+See also `saved-completions-retention-time'."
+  :type 'boolean
+  :group 'completion)
 
-(defvar save-completions-file-name (convert-standard-filename "~/.completions")
-  "*The filename to save completions to.")
+(defcustom save-completions-file-name (convert-standard-filename "~/.completions")
+  "*The filename to save completions to."
+  :type 'file
+  :group 'completion)
 
-(defvar save-completions-retention-time 336
+(defcustom save-completions-retention-time 336
   "*Discard a completion if unused for this many hours.
 \(1 day = 24, 1 week = 168).  If this is 0, non-permanent completions
-will not be saved unless these are used.  Default is two weeks.")
+will not be saved unless these are used.  Default is two weeks."
+  :type 'integer
+  :group 'completion)
 
-(defvar completion-on-separator-character nil
+(defcustom completion-on-separator-character nil
   "*Non-nil means separator characters mark previous word as used.
-This means the word will be saved as a completion.")
+This means the word will be saved as a completion."
+  :type 'boolean
+  :group 'completion)
 
-(defvar completions-file-versions-kept kept-new-versions
-  "*Number of versions to keep for the saved completions file.")
+(defcustom completions-file-versions-kept kept-new-versions
+  "*Number of versions to keep for the saved completions file."
+  :type 'integer
+  :group 'completion)
 
-(defvar completion-prompt-speed-threshold 4800
-  "*Minimum output speed at which to display next potential completion.")
+(defcustom completion-prompt-speed-threshold 4800
+  "*Minimum output speed at which to display next potential completion."
+  :type 'integer
+  :group 'completion)
 
-(defvar completion-cdabbrev-prompt-flag nil
+(defcustom completion-cdabbrev-prompt-flag nil
   "*If non-nil, the next completion prompt does a cdabbrev search.
-This can be time consuming.")
+This can be time consuming."
+  :type 'boolean
+  :group 'completion)
 
-(defvar completion-search-distance 15000
+(defcustom completion-search-distance 15000
   "*How far to search in the buffer when looking for completions.
-In number of characters.  If nil, search the whole buffer.")
+In number of characters.  If nil, search the whole buffer."
+  :type 'integer
+  :group 'completion)
 
-(defvar completions-merging-modes '(lisp c)
+(defcustom completions-merging-modes '(lisp c)
   "*List of modes {`c' or `lisp'} for automatic completions merging.
 Definitions from visited files which have these modes
-are automatically added to the completion database.")
+are automatically added to the completion database."
+  :type '(set (const lisp) (const c))
+  :group 'completion)
 
 ;;(defvar *record-cmpl-statistics-p* nil
 ;;  "*If non-nil, record completion statistics.")

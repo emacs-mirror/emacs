@@ -1,6 +1,6 @@
 ;;; man.el --- browse UNIX manual pages
 
-;; Copyright (C) 1993, 1994, 1996 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1996, 1997 Free Software Foundation, Inc.
 
 ;; Author:		Barry A. Warsaw <bwarsaw@cen.com>
 ;; Keywords:		help
@@ -98,10 +98,16 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; empty defvars (keep the compiler quiet)
 
+(defgroup man nil
+  "Browse UNIX manual pages."
+  :prefix "Man-"
+  :group 'help)
+
+
 (defvar Man-notify)
 (defvar Man-current-page)
 (defvar Man-page-list)
-(defvar Man-filter-list nil
+(defcustom Man-filter-list nil
   "*Manpage cleaning filter command phrases.
 This variable contains a list of the following form:
 
@@ -111,7 +117,11 @@ Each phrase-string is concatenated onto the command-string to form a
 command filter.  The (standard) output (and standard error) of the Un*x
 man command is piped through each command filter in the order the
 commands appear in the association list.  The final output is placed in
-the manpage buffer.")
+the manpage buffer."
+  :type '(repeat (list (string :tag "Command String")
+		       (repeat :inline t
+			       (string :tag "Phrase String"))))
+  :group 'man)
 
 (defvar Man-original-frame)
 (defvar Man-arguments)
@@ -126,17 +136,23 @@ the manpage buffer.")
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 ;; user variables
 
-(defvar Man-fontify-manpage-flag t
-  "*Make up the manpage with fonts.")
+(defcustom Man-fontify-manpage-flag t
+  "*Make up the manpage with fonts."
+  :type 'boolean
+  :group 'man)
 
-(defvar Man-overstrike-face 'bold
-  "*Face to use when fontifying overstrike.")
+(defcustom Man-overstrike-face 'bold
+  "*Face to use when fontifying overstrike."
+  :type 'face
+  :group 'man)
 
-(defvar Man-underline-face 'underline
-  "*Face to use when fontifying underlining.")
+(defcustom Man-underline-face 'underline
+  "*Face to use when fontifying underlining."
+  :type 'face
+  :group 'man)
 
 ;; Use the value of the obsolete user option Man-notify, if set.
-(defvar Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
+(defcustom Man-notify-method (if (boundp 'Man-notify) Man-notify 'friendly)
   "*Selects the behavior when manpage is ready.
 This variable may have one of the following values, where (sf) means
 that the frames are switched, so the manpage is displayed in the frame
@@ -151,23 +167,33 @@ polite     -- don't display manpage, but prints message and beep when ready
 quiet      -- like `polite', but don't beep
 meek       -- make no indication that the manpage is ready
 
-Any other value of `Man-notify-method' is equivalent to `meek'.")
+Any other value of `Man-notify-method' is equivalent to `meek'."
+  :type '(radio (const newframe) (const pushy) (const bully)
+		(const aggressive) (const friendly)
+		(const polite) (const quiet) (const meek))
+  :group 'man)
 
-(defvar Man-frame-parameters nil
-  "*Frame parameter list for creating a new frame for a manual page.")
+(defcustom Man-frame-parameters nil
+  "*Frame parameter list for creating a new frame for a manual page."
+  :type 'sexp
+  :group 'man)
 
-(defvar Man-downcase-section-letters-flag t
+(defcustom Man-downcase-section-letters-flag t
   "*Letters in sections are converted to lower case.
 Some Un*x man commands can't handle uppercase letters in sections, for
 example \"man 2V chmod\", but they are often displayed in the manpage
 with the upper case letter.  When this variable is t, the section
 letter (e.g., \"2V\") is converted to lowercase (e.g., \"2v\") before
-being sent to the man background process.")
+being sent to the man background process."
+  :type 'boolean
+  :group 'man)
 
-(defvar Man-circular-pages-flag t
-  "*If t, the manpage list is treated as circular for traversal.")
+(defcustom Man-circular-pages-flag t
+  "*If t, the manpage list is treated as circular for traversal."
+  :type 'boolean
+  :group 'man)
 
-(defvar Man-section-translations-alist
+(defcustom Man-section-translations-alist
   (list
    '("3C++" . "3")
    ;; Some systems have a real 3x man section, so let's comment this.
@@ -178,7 +204,10 @@ being sent to the man background process.")
 Some manpages (e.g. the Sun C++ 2.1 manpages) have section numbers in
 their references which Un*x `man' does not recognize.  This
 association list is used to translate those sections, when found, to
-the associated section number.")
+the associated section number."
+  :type '(repeat (cons (string :tag "Bogus Section")
+		       (string :tag "Real Section")))
+  :group 'man)
 
 (defvar manual-program "man"
   "The name of the program that produces man pages.")
