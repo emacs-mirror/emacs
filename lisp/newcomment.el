@@ -622,22 +622,22 @@ comment markers."
   (save-excursion
     (goto-char beg)
     (setq end (copy-marker end))
-    (let ((numarg (prefix-numeric-value arg))
-	  (ccs comment-continue)
-	  (srei (comment-padright ccs 're))
-	  (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
-	  spt)
+    (let* ((numarg (prefix-numeric-value arg))
+           (ccs comment-continue)
+           (srei (comment-padright ccs 're))
+           (sre (and srei (concat "^\\s-*?\\(" srei "\\)")))
+           spt)
       (while (and (< (point) end)
 		  (setq spt (comment-search-forward end t)))
-	(let* ((ipt (point))
-	       ;; Find the end of the comment.
-	       (ept (progn
-		      (goto-char spt)
-		      (unless (comment-forward)
-			(error "Can't find the comment end"))
-		      (point)))
-	       (box nil)
-	       (box-equal nil))	   ;Whether we might be using `=' for boxes.
+	(let ((ipt (point))
+              ;; Find the end of the comment.
+              (ept (progn
+                     (goto-char spt)
+                     (unless (comment-forward)
+                       (error "Can't find the comment end"))
+                     (point)))
+              (box nil)
+              (box-equal nil))     ;Whether we might be using `=' for boxes.
 	  (save-restriction
 	    (narrow-to-region spt ept)
 
