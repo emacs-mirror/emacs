@@ -82,13 +82,13 @@ remaining command-line args are in the variable `command-line-args-left'.")
 (defvar command-line-functions nil    ;; lrs 7/31/89
   "List of functions to process unrecognized command-line arguments.
 Each function should access the dynamically bound variables
-argi (the current argument) and command-line-args-left (the remaining
+`argi' (the current argument) and `command-line-args-left' (the remaining
 arguments).  The function should return non-nil only if it recognizes and
-processes argi.  If it does so, it may consume successive arguments by
-altering command-line-args-left to remove them.")
+processes `argi'.  If it does so, it may consume successive arguments by
+altering `command-line-args-left' to remove them.")
 
 (defvar before-init-hook nil
-  "Functions to call after handling urgent options but before loading init file.
+  "Functions to call after handling urgent options but before init files.
 The frame system uses this to open frames to display messages while
 Emacs loads the user's initialization file.")
 
@@ -98,22 +98,21 @@ The call is not protected by a condition-case, so you can set `debug-on-error'
 in `.emacs', and put all the actual code on `after-init-hook'.")
 
 (defvar term-setup-hook nil
-  "Functions to be called after loading terminal-specific lisp code.
+  "Functions to be called after loading terminal-specific Lisp code.
 See `run-hooks'.  This variable exists for users to set,
 so as to override the definitions made by the terminal-specific file.
 Emacs never sets this variable itself.")
 
 (defvar keyboard-type nil
-  "The brand of keyboard you are using.  This variable is used to define
+  "The brand of keyboard you are using.
+This variable is used to define
 the proper function and keypad keys for use under X.  It is used in a
 fashion analogous to the environment value TERM.")
 
 (defvar window-setup-hook nil
-  "Function called to initialize window system display.
-Emacs calls this after processing the command line arguments and loading
-the user's init file.
-
-Users should not set this variable; use term-setup-hook instead.")
+  "Normal hook run to initialize window system display.
+Emacs runs this hook after processing the command line arguments and loading
+the user's init file.")
 
 (defconst initial-major-mode 'lisp-interaction-mode
   "Major mode command symbol to use for the initial *scratch* buffer.")
