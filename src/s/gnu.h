@@ -66,9 +66,7 @@ the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 #define NO_REMAP
 
 /* For the i386-mach a.out format: */
-#define A_TEXT_OFFSET(x) (sizeof (struct exec))
-#define A_TEXT_SEEK(hdr) (N_TXTOFF(hdr) + A_TEXT_OFFSET(hdr))
-
+#define A_TEXT_SEEK(hdr) (sizeof (struct exec))
 
 /* ptys are not done yet.  */
 #undef HAVE_PTYS
