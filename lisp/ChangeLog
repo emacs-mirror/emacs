@@ -3,6 +3,9 @@
 	* calendar/diary-lib.el (fancy-diary-display-mode): Bind "q" to
 	`quit-window' in the fancy diary buffer.
 
+	* emacs-lisp/cl-indent.el: `symbol-macrolet' is similar to `let',
+	not `multiple-value-bind'.
+
 2003-04-24  Lars Hansen  <larsh@math.ku.dk>
 
 	* subr.el (assq-delete-all): Ignore non-cons elememts.

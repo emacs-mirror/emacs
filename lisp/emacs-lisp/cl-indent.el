@@ -544,7 +544,7 @@ If nil, indent backquoted lists as data, i.e., like quoted lists."
            (progv       (4 4 &body))
            (return 0)
            (return-from (nil &body))
-           (symbol-macrolet . multiple-value-bind)
+           (symbol-macrolet . let)
            (tagbody     lisp-indent-tagbody)
            (throw 1)
            (unless 1)
