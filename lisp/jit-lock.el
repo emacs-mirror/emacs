@@ -238,7 +238,6 @@ Only applies to the current buffer."
 ;; fontifying eagerly the whole buffer.  This is important for
 ;; things like CWarn mode which adds/removes a few keywords and
 ;; does a refontify (which takes ages on large files).
-(defalias 'jit-lock-fontify-buffer 'jit-lock-refontify)
 (defun jit-lock-refontify (&optional beg end)
   "Force refontification of the region BEG..END (default whole buffer)."
   (with-buffer-prepared-for-jit-lock
