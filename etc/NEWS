@@ -57,8 +57,15 @@ before Emacs 21.1, but wasn't documented until now.
 group.
 
 ** The user option `backward-delete-char-untabify-method' controls the
-behavior of `backward-delete-char-untabify'.  [This change was made
-in Emacs 20.3 but not mentioned then.]
+behavior of `backward-delete-char-untabify'.  The following values
+are recognized:
+
+`untabify' -- turn a tab to many spaces, then delete one space;
+`hungry'   -- delete all whitespace, both tabs and spaces;
+`all'      -- delete all whitespace, including tabs, spaces and newlines;
+nil        -- just delete one character.
+
+[This change was made in Emacs 20.3 but not mentioned then.]
 
 ** The new user-option `confirm-kill-emacs' can be customized to
 let Emacs ask for confirmation before exiting.
