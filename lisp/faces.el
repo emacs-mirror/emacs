@@ -1500,7 +1500,7 @@ created."
   '((((type tty) (class color))
      (:background "cyan"))
     (((class color) (background light))
-     (:background "darkyellow"))
+     (:background "yellow"))
     (((class color) (background dark))
      (:background "yellow"))
     (t (:inverse-video t)))
