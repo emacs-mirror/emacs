@@ -871,9 +871,11 @@ struct Lisp_Symbol
      enum symbol_interned.  */
   unsigned interned : 2;
 
-  /* The symbol's name.  This should become a Lisp_Object
-     some day; there's no need for the Lisp_String pointer nowadays.  */
-  struct Lisp_String *name;
+  /* The symbol's name, as a Lisp string.
+
+     The name "xname" is used to intentionally break code referring to
+     the old field "name" of type pointer to struct Lisp_String.  */
+  Lisp_Object xname;
 
   /* Value of the symbol or Qunbound if unbound.  If this symbol is a
      defvaralias, `value' contains the symbol for which it is an
@@ -890,6 +892,11 @@ struct Lisp_Symbol
   /* Next symbol in obarray bucket, if the symbol is interned.  */
   struct Lisp_Symbol *next;
 };
+
+/* Value is name of symbol.  */
+
+#define SYMBOL_NAME(sym)  \
+     LISP_MAKE_RVALUE (XSYMBOL (sym)->xname)
 
 /* Value is non-zero if SYM is an interned symbol.  */
 
