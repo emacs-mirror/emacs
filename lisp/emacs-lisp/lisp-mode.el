@@ -342,11 +342,12 @@ Print value in minibuffer.
 With argument, insert value in current buffer after the defun."
   (interactive "P")
   (let ((standard-output (if eval-defun-arg-internal (current-buffer) t))
-	 end form)
+	 beg end form)
     ;; Read the form from the buffer, and record where it ends.
     (save-excursion
       (end-of-defun)
       (beginning-of-defun)
+      (setq beg (point))
       (setq form (read (current-buffer)))
       (setq end (point)))
     ;; Alter the form if necessary.
@@ -367,7 +368,7 @@ With argument, insert value in current buffer after the defun."
 		 ;; will make eval-region return.
 		 (goto-char end)
 		 form)))
-	(eval-region (point) end standard-output)))))
+	(eval-region beg end standard-output)))))
 
 (defun lisp-comment-indent ()
   (if (looking-at "\\s<\\s<\\s<")
