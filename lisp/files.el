@@ -788,6 +788,9 @@ documentation for additional customization information."
     (pop-to-buffer buffer t norecord)
     (raise-frame (window-frame (selected-window)))))
 
+(defvar find-file-default nil
+  "Used within `find-file-read-args'.")
+
 (defun find-file-read-args (prompt)
   (list (let ((find-file-default
 	       (and buffer-file-name
