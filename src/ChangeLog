@@ -1,3 +1,60 @@
+2002-03-17  Kim F. Storm  <storm@cua.dk>
+
+	The following changes adds support for network server processes,
+	datagram connections, and local (unix) sockets.
+
+	* process.h (struct Lisp_Process): New member log.
+	Doc fix: Member command used to indicate stopped network process.
+	Doc fix: Member childp contains plist for network process.
+	Doc fix: Member kill_without_query is inverse of query-on-exit flag.
+
+	* process.c (Qlocal, QCname, QCbuffer, QChost, QCservice, QCfamily)
+	(QClocal, QCremote, QCserver, QCdatagram, QCnowait, QCnoquery,QCstop)
+	(QCcoding, QCoptions, QCfilter, QCsentinel, QClog, QCfeature):
+	New variables.
+	(NETCONN1_P): New macro.
+	(DATAGRAM_SOCKETS): New conditional symbol.
+	(datagram_address): New array.
+	(DATAGRAM_CONN_P, DATAGRAM_CHAN_P): New macros.
+	(status_message): Use concat3.
+	(Fprocess_status): Add `listen' status to doc string.  Return `stop'
+	for a stopped network process.
+	(Fset_process_buffer): Update contact plist for network process.
+	(Fset_process_filter): Ditto.  Don't enable input for stopped
+	network processes.  Server must listen, even if filter is t.
+	(Fset_process_query_on_exit_flag, Fprocess_query_on_exit_flag):
+	New functions.
+	(Fprocess_kill_without_query): Removed.  Now defined in simple.el.
+	(Fprocess_contact): Added KEY argument.  Handle datagrams.
+	(list_processes_1): Optionally show only processes with the query
+	on exit flag set.  Dynamically adjust column widths.  Omit tty
+	column if not needed.  Report stopped network processes.
+	Identify server and datagram network processes.
+	(Flist_processes): New optional arg `query-only'.
+	(conv_sockaddr_to_lisp, get_lisp_to_sockaddr_size)
+	(conv_lisp_to_sockaddr, set_socket_options)
+	(network_process_featurep, unwind_request_sigio): New helper functions.
+	(Fprocess_datagram_address, Fset_process_datagram_address):
+	(Fset_network_process_options): New lisp functions.
+	(Fopen_network_stream): Removed.  Now defined in simple.el.
+	(Fmake_network_process): New lisp function.  Code is based on previous
+	Fopen_network_stream, but heavily reworked with new property list based
+	argument list, support for datagrams, server processes, and local
+	sockets in addition to old client-only functionality.
+	(server_accept_connection): New function.
+	(wait_reading_process_input): Use it to handle incoming connects.
+	Do not enable input on a new connection if process is stopped.
+	(read_process_output): Handle datagram sockets. Use 2k buffer for them.
+	(send_process): Handle datagram sockets.
+	(Fstop_process, Fcontinue_process): Apply to network processes.  A stopped
+	network process is indicated by setting command field to t .
+	(Fprocess_send_eof): No-op if datagram connection.
+	(Fstatus_notify): Don't read input for a stream server socket or a
+	stopped network process.
+	(init_process): Initialize datagram_address array.
+	(syms_of_process): Intern and staticpro new variables, defsubr new
+	functions.
+
 2002-03-16  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (w32_to_all_x_charsets): Return correct type in

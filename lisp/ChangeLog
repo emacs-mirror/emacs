@@ -1,3 +1,27 @@
+2002-03-17  Kim F. Storm  <storm@cua.dk>
+
+	The following changes are related to the enhanced network process
+	support.
+
+	* simple.el: Update copyright.
+	(clone-process): Use make-network-process to clone network
+	processes. Get command list via (process-contact ... t).
+	Use set-process-query-on-exit-flag and process-query-on-exit-flag
+	instead of process-kill-without-query.
+	(open-network-stream): Replaces C-version from process.c.
+	(open-network-stream-nowait, open-network-stream-server): New
+	functions.
+	(process-kill-without-query): Replaces C-version from process.c.
+
+	* files.el: Update copyright.
+	(save-buffers-kill-emacs): Also check for active server
+	processes.  Use process-query-on-exit-flag.  Only list processes
+	which has the query-on-exit flag set in connection with user query.
+
+	* shadowfile.el: Update copyright.
+	(shadow-save-buffers-kill-emacs): Also check for active server
+	processes.  Use process-query-on-exit-flag.
+
 2002-03-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* international/codepage.el (codepage-setup): Don't define a
