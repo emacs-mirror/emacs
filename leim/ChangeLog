@@ -1,3 +1,7 @@
+2003-05-01  Bzyl Wlodzimierz  <matwb@julia.univ.gda.pl>  (tiny change)
+
+	* quail/latin-pre.el ("polish-slash"): Add the rule "//"->?/.
+
 2003-04-05  Andreas Schwab  <schwab@suse.de>
 
 	* Makefile.in (install): Remove CVS related and backup files from
