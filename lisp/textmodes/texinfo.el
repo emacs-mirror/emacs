@@ -717,8 +717,8 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 	   (save-excursion
 	     (texinfo-last-unended-begin)
 	     (match-string 1)))))
-    (insert "@end "
-    (if string (insert string "\n")))))
+    (insert "@end ")
+    (if string (insert string "\n"))))
 
 ;; The following insert commands accept a prefix arg N, which is the
 ;; number of words (actually s-exprs) that should be surrounded by
