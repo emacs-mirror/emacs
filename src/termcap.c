@@ -561,8 +561,6 @@ tgetent (bp, name)
 
  ret:
   term_entry = bp;
-  if (malloc_size)
-    return (int) bp;
   return 1;
 }
 
