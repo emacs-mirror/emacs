@@ -3386,7 +3386,8 @@ usage: (format STRING &rest OBJECTS)  */)
 	       so we have to take into account what that function
 	       prints.  */
 	    /* Filter out flag value of -1.  */
-	    thissize = MAX_10_EXP + 100 + ((precision[n] > 0) ? precision[n] : 0);
+	    thissize = (MAX_10_EXP + 100
+			+ (precision[n] > 0 ? precision[n] : 0));
 	  }
 	else
 	  {
