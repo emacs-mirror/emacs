@@ -5,24 +5,35 @@
 
 2004-05-19  Kenichi Handa  <handa@m17n.org>
 
-	* international/characters.el: Fix syntax (open/close) of CJK
-	characters.
+	* international/characters.el: Fix syntax (open/close) of CJK chars.
+
+2004-05-18  Karl Chen  <quarl@hkn.eecs.berkeley.edu>  (tiny change)
+
+	* help-mode.el (help-go-back): Don't depend on position of back button.
+
+2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (auto-save-file-name-transforms): Make sure ange-ftp temp
+	files files don't contain an accidental additional /.
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors): Save excursion
+	in source buffer.
 
 2004-05-18  Masatake YAMATO  <jet@gyve.org>
 
 	* wid-edit.el (widget-radio-button-notify): Don't pass `widget'
-	to widget-apply. :action method assumes 2 arguments, not 3.
+	to widget-apply.  :action method assumes 2 arguments, not 3.
 
 2004-05-17  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): New
-	constants.
+	* progmodes/f90.el (f90-end-block-re, f90-start-block-re):
+	New constants.
 	(hs-special-modes-alist): Add an f90-mode entry.
 
 2004-05-17  Sam Steingold  <sds@gnu.org>
 
-	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1): Indent
-	"without-" forms just like "with-" and "do-".  Use regexp-opt.
+	* emacs-lisp/cl-indent.el (common-lisp-indent-function-1):
+	Indent "without-" forms just like "with-" and "do-".  Use regexp-opt.
 
 2004-05-16  Kim F. Storm  <storm@cua.dk>
 
@@ -30,15 +41,14 @@
 
 2004-05-15  John Wiegley  <johnw@newartisans.com>
 
-	* eshell/esh-io.el (eshell-get-target): whitespace changes.
+	* eshell/esh-io.el (eshell-get-target): Whitespace changes.
 	(eshell-output-object-to-target): Improve output speed 20% by not
-	calling `eshell-stringify' if something is already known to be a
-	string.
+	calling `eshell-stringify' if something is already known to be a string.
 
 2004-05-15  Alex Ott  <ott@jet.msk.su>
 
-	* textmodes/ispell.el (ispell-local-dictionary-alist): Add
-	windows-1251 to the choice of coding systems.
+	* textmodes/ispell.el (ispell-local-dictionary-alist):
+	Add windows-1251 to the choice of coding systems.
 	(ispell-dictionary-alist-6): Add support for "russianw.aff",
 	encoded in cp1251.
 
@@ -85,7 +95,7 @@
 
 2004-05-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
-	* language/european.el ("Brazilian Portuguese"): Added support for
+	* language/european.el ("Brazilian Portuguese"): Add support for
 	Brazilian Portuguese.
 
 2004-05-13  John Wiegley  <johnw@newartisans.com>
@@ -94,8 +104,7 @@
 	`recentf-mode' if this variable has been customized to t.
 
 	* eshell/esh-test.el (eshell-test): Call the function
-	`emacs-version' rather than trying to build a custom version
-	string.
+	`emacs-version' rather than trying to build a custom version string.
 
 2004-05-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -785,18 +794,17 @@
 	* progmodes/fortran.el (fortran-fill): Use local var `bol' rather
 	than duplicate call to `line-beginning-position'.
 
-	* progmodes/f90.el (f90-get-present-comment-type): Return
-	whitespace, as well as comment chars, for consistent filling
+	* progmodes/f90.el (f90-get-present-comment-type):
+	Return whitespace, as well as comment chars, for consistent filling
 	of comment blocks.  Use `match-string-no-properties'.
-	(f90-break-line): Do not leave trailing whitespace when filling
-	comments.
+	(f90-break-line): Trim trailing whitespace when filling comments.
 
 2004-04-30  Dave Love  <fx@gnu.org>
 
 	* calendar/diary-lib.el (diary-outlook-formats): New variable.
 	(diary-from-outlook-internal, diary-from-outlook)
-	(diary-from-outlook-gnus, diary-from-outlook-rmail): New
-	functions to import diary entries from Outlook-format
+	(diary-from-outlook-gnus, diary-from-outlook-rmail):
+	New functions to import diary entries from Outlook-format
 	appointments in mail messages.
 
 2004-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -824,8 +832,7 @@
 
 	* progmodes/sql.el (sql-product-alist): Rename variable
 	`sql-product-support'.  Add Postgres login parameters.
-	(sql-set-product, sql-product-feature): Update with renamed
-	variable.
+	(sql-set-product, sql-product-feature): Update with renamed variable.
 	(sql-connect-postgres): Add username prompt.
 	(sql-imenu-generic-expression, sql-mode-font-lock-object-name):
 	Make patterns less product specific.
@@ -847,8 +854,7 @@
 	(sql-mode-sqlite-font-lock-keywords)
 	(sql-mode-db2-font-lock-keywords): Default to nil.
 	(sql-product-font-lock): Always highlight ANSI keywords.
-	(sql-add-product-keywords): Made similar to
-	`font-lock-add-keywords'.
+	(sql-add-product-keywords): Made similar to `font-lock-add-keywords'.
 	(sql-send-string): Add function.
 
 2004-04-29  Dave Love  <fx@gnu.org>
