@@ -41,10 +41,8 @@
  "MIME ISO-2022-KR"
  '(ascii (nil korean-ksc5601) nil nil
 	 nil ascii-eol ascii-cntl seven locking-shift nil nil nil nil nil
-	 'designation-bol))
+	 designation-bol))
 
-(register-input-method
- "Korean" '("hanterm" encoded-kbd-select-terminal euc-kr))
 (register-input-method
  "Korean" '("quail-hangul" quail-use-package "quail/hangul"))
 (register-input-method
@@ -57,6 +55,9 @@
  "Korean" '("quail-hanja-jis" quail-use-package "quail/hanja-jis"))
 
 (defun setup-korean-environment ()
+  "Setup multilingual environment (MULE) for Korean."
+  (interactive)
+  (setup-english-environment)
   (setq coding-category-iso-8-2 'euc-kr)
 
   (set-coding-priority
@@ -69,12 +70,18 @@
   (setq default-input-method '("Korean" . "quail-hangul"))
   )
 
+(defun describe-korean-support ()
+  "Describe How Emacs supports Korean."
+  (interactive)
+  (describe-language-support-internal "Korean"))
+
 (set-language-info-alist
  "Korean" '((setup-function . setup-korean-environment)
+	    (describe-function . describe-korean-support)
 	    (tutorial . "TUTORIAL.kr")
 	    (charset . (korean-ksc5601))
 	    (coding-system . (euc-kr iso-2022-kr))
-	    (documentation . t)
-	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")))
+	    (sample-text . "Hangul (한글)	안녕하세요, 안녕하십니까")
+	    (documentation . nil)))
 
 ;;; korean.el ends here
