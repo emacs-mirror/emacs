@@ -261,7 +261,7 @@ the master name of FILE if LAST is 'MASTER, or the workfile of FILE if LAST is
 	    (if (string= (substring file 0 preflen) pwd)
 		(setq file (substring file preflen))))
 	  (setq squeezed (append squeezed (list file)))))
-    (let ((exec-path (if vc-path (append exec-path vc-path) exec-path))
+    (let ((exec-path (append vc-path exec-path))
 	  ;; Add vc-path to PATH for the execution of this command.
 	  (process-environment
 	   (cons (concat "PATH=" (getenv "PATH")
