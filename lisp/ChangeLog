@@ -1,3 +1,25 @@
+2003-05-23  Lute Kamstra  <Lute.Kamstra@cwi.nl>
+
+	* emacs-lisp/lisp-mnt.el: Make the description of the library more
+	accurate.
+	(lm-any-header): New user option.
+	(lm-section-start): New function; rewrite of `lm-section-mark'.
+	(lm-section-mark): Make alias of `lm-section-start'.
+	(lm-section-end): New function.
+	(lm-code-start): New function; rewrite of `lm-code-mark'.
+	(lm-code-mark): Make alias of `lm-code-start'.
+	(lm-commentary-start): New function; rewrite of
+	`lm-commentary-mark'.
+	(lm-commentary-mark): Make alias of `lm-commentary-start'.
+	(lm-commentary-end): New function.
+	(lm-history-start): New function; rewrite of `lm-history-mark'.
+	(lm-history-mark): Make alias of `lm-history-start'.
+	(lm-commentary): Use `lm-commentary-end' to find the end of the
+	commentary section.
+
+	* emacs-lisp/checkdoc.el (checkdoc-file-comments-engine): Use
+	`lm-commentary-end' to find the end of the commentary section.
+
 2003-05-22  Ken Stevens <kstevens@ichips.intel.com>
 
 	* ispell.el: Sync to version 3.6.
