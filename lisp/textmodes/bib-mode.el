@@ -34,6 +34,7 @@
 (defgroup bib nil
   "Major mode for editing bib files."
   :prefix "bib-"
+  :group 'external
   :group 'wp)
 
 (defcustom bib-file "~/my-bibliography.bib"
