@@ -2480,8 +2480,8 @@ substitute_object_recurse (object, placeholder, subtree)
 	INTERVAL    root_interval = XSTRING (subtree)->intervals;
 	Lisp_Object arg           = Fcons (object, placeholder);
 	   
-	traverse_intervals (root_interval, 1, 0,
-			    &substitute_in_interval, arg); 
+	traverse_intervals_noorder (root_interval,
+				    &substitute_in_interval, arg);
 
 	return subtree;
       }
@@ -3563,7 +3563,9 @@ the FORMS in the corresponding element are executed at the end of loading.\n\n\
 FILENAME must match exactly!  Normally FILENAME is the name of a library,\n\
 with no directory specified, since that is how `load' is normally called.\n\
 An error in FORMS does not undo the load,\n\
-but does prevent execution of the rest of the FORMS.");
+but does prevent execution of the rest of the FORMS.\n\
+FILENAME can also be a symbol (a feature) and FORMS are then executed\n\
+when the corresponding call to `provide' is made.");
   Vafter_load_alist = Qnil;
 
   DEFVAR_LISP ("load-history", &Vload_history,
