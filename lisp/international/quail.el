@@ -1981,7 +1981,7 @@ of each directory."
 	    (error
 	     ;; Delete the remaining contents because it seems that
 	     ;; this file is broken.
-	     (message "Garbages in %s deleted" leim-list)
+	     (message "Garbage in %s deleted" leim-list)
 	     (delete-region pos (point-max)))))))
 
     ;; Search for `quail' subdirector under each DIRNAMES.
@@ -1992,7 +1992,7 @@ of each directory."
 	(setq dirname (expand-file-name quail-directory-name (car l)))
 	(if (file-readable-p dirname)
 	    (setq quail-dirs (cons dirname quail-dirs))
-	  (message "%s doesn't has `%s' subdirectory, just ignored"
+	  (message "%s doesn't have `%s' subdirectory, just ignored"
 		   (car l) quail-directory-name)
 	  (setq quail-dirs (cons nil quail-dirs)))
 	(setq l (cdr l)))
