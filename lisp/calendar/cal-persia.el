@@ -199,7 +199,7 @@ Echo Persian date unless NOECHO is t."
 
 (defun diary-persian-date ()
   "Persian calendar equivalent of date diary entry."
- (calendar-persian-date-string (calendar-cursor-to-date t)))
+  (format "Persian date: %s" (calendar-persian-date-string date)))
 
 (provide 'cal-persia)
 
