@@ -2196,8 +2196,8 @@ See the documentation of `define-ccl-program' for the detail of CCL program.  */
   produced = ccl_driver (&ccl, SDATA (str), outbuf,
 			 SBYTES (str), outbufsize, (int *) 0);
   for (i = 0; i < 8; i++)
-    XSET (AREF (status, i), Lisp_Int, ccl.reg[i]);
-  XSETINT (AREF (status, 8), ccl.ic);
+    ASET (status, i, make_number (ccl.reg[i]));
+  ASET (status, 8, make_number (ccl.ic));
   UNGCPRO;
 
   if (NILP (unibyte_p))
