@@ -1,5 +1,5 @@
 /* Interface code for dealing with text properties.
-   Copyright (C) 1992 Free Software Foundation, Inc.
+   Copyright (C) 1993 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -43,7 +43,7 @@ Lisp_Object Qmouse_left;
 Lisp_Object Qmouse_entered;
 Lisp_Object Qpoint_left;
 Lisp_Object Qpoint_entered;
-Lisp_Object Qmodification;
+Lisp_Object Qmodification_hooks;
 
 /* Visual properties text (including strings) may have. */
 Lisp_Object Qforeground, Qbackground, Qfont, Qunderline, Qstipple;
@@ -1023,8 +1023,8 @@ percentage by which the left interval tree should not differ from the right.");
   Qpoint_left = intern ("point-left");
   staticpro (&Qpoint_entered);
   Qpoint_entered = intern ("point-entered");
-  staticpro (&Qmodification);
-  Qmodification = intern ("modification");
+  staticpro (&Qmodification_hooks);
+  Qmodification_hooks = intern ("modification-hooks");
 
   defsubr (&Stext_properties_at);
   defsubr (&Sget_text_property);
