@@ -28,13 +28,11 @@
 
 ;;; Code:
 
-(make-coding-system
- 'thai-tis620 2 ?T
- "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
- '(ascii thai-tis620 nil nil
-   nil ascii-eol)
- '((safe-charsets ascii thai-tis620)
-   (post-read-conversion . thai-post-read-conversion)))
+(define-coding-system 'thai-tis620
+  "8-bit encoding for ASCII (MSB=0) and Thai TIS620 (MSB=1)."
+  :coding-type 'charset
+  :mnemonic ?T
+  :charset-list '(tis620-2533))
 
 (define-coding-system-alias 'th-tis620 'thai-tis620)
 (define-coding-system-alias 'tis620 'thai-tis620)
@@ -45,7 +43,7 @@
 	  (charset thai-tis620)
 	  (coding-system thai-tis620)
 	  (coding-priority thai-tis620)
-	  (nonascii-translation . thai-tis620)
+	  (nonascii-translation . tis620-2533)
 	  (input-method . "thai-kesmanee")
 	  (unibyte-display . thai-tis620)
 	  (features thai-util)
@@ -56,11 +54,10 @@
 
 
 ;; Register a function to compose Thai characters.
-(let ((patterns '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?"
-		   . thai-composition-function))))
-  (aset composition-function-table (make-char 'thai-tis620) patterns)
-  (dotimes (i (1+ (- #xe7f #xe00)))
-    (aset composition-function-table (decode-char 'ucs (+ i #xe00)) patterns)))
+(set-char-table-range composition-function-table
+		      '(#x0E00 . #x0E7F)
+		      '(("\\c0\\c4\\|\\c0\\(\\c2\\|\\c3\\)\\c4?"
+			 . thai-composition-function)))
 
 (provide 'thai)
 

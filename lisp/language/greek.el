@@ -28,21 +28,20 @@
 
 ;;; Code:
 
-(make-coding-system
- 'greek-iso-8bit 2 ?7
- "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)."
- '(ascii greek-iso8859-7 nil nil
-   nil nil nil nil nil nil nil)
- '((safe-charsets ascii greek-iso8859-7)
-   (mime-charset . iso-8859-7)))
+(define-coding-system 'greek-iso-8bit
+  "ISO 2022 based 8-bit encoding for Greek (MIME:ISO-8859-7)."
+  :coding-type 'charset
+  :mnemonic ?7
+  :charset-list'(iso-8859-7)
+  :plist '(mime-charset iso-8859-7))
 
 (define-coding-system-alias 'iso-8859-7 'greek-iso-8bit)
 
 (set-language-info-alist
- "Greek" '((charset . (greek-iso8859-7))
+ "Greek" '((charset iso-8859-7)
 	   (coding-system . (greek-iso-8bit))
 	   (coding-priority greek-iso-8bit)
-	   (nonascii-translation . greek-iso8859-7)
+	   (nonascii-translation . iso-8859-7)
 	   (input-method . "greek")
 	   (unibyte-display . greek-iso-8bit)
 	   (documentation . t)))

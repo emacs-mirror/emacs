@@ -82,14 +82,12 @@
 ;;;
 
 
-(make-coding-system
- 'tibetan-iso-8bit 2 ?Q
- "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)."
- '(ascii tibetan nil nil
-   nil nil)
- '((safe-charsets ascii tibetan)
-   (post-read-conversion . tibetan-post-read-conversion)
-   (pre-write-conversion . tibetan-pre-write-conversion)))
+(define-coding-system 'tibetan-iso-8bit
+  "8-bit encoding for ASCII (MSB=0) and TIBETAN (MSB=1)."
+  :coding-type 'iso-2022
+  :mnemonic ?Q
+  :designation [ascii tibetan nil nil]
+  :charset-list '(ascii tibetan))
 
 (define-coding-system-alias 'tibetan 'tibetan-iso-8bit)
 
@@ -119,8 +117,11 @@
   "Regexp matching a composable sequence of Tibetan characters.")
 
 ;; Register a function to compose Tibetan characters.
-(aset composition-function-table (make-char 'tibetan)
-      (list (cons tibetan-composable-pattern 'tibetan-composition-function)))
+(set-char-table-range composition-function-table
+		      (cons (decode-char 'tibetan #x2121)
+			    (decode-char 'tibetan #x7E7E))
+		      (list (cons tibetan-composable-pattern
+				  'tibetan-composition-function)))
 
 ;;;
 ;;; Definitions of conversion data.

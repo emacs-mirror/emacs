@@ -31,13 +31,12 @@
 
 ;;; Code:
 
-(make-coding-system
- 'hebrew-iso-8bit 2 ?8
- "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)."
- '(ascii hebrew-iso8859-8 nil nil
-   nil ascii-eol ascii-cntl nil nil nil nil nil t)
- '((safe-charsets ascii hebrew-iso8859-8)
-   (mime-charset . iso-8859-8)))
+(define-coding-system 'hebrew-iso-8bit
+  "ISO 2022 based 8-bit encoding for Hebrew (MIME:ISO-8859-8)."
+  :coding-type 'charset
+  :mnemonic ?8
+  :charset-list '(iso-8859-8)
+  :plist '(mime-charset iso-8859-8))
 
 (define-coding-system-alias 'iso-8859-8 'hebrew-iso-8bit)
 
@@ -49,10 +48,10 @@
 (define-coding-system-alias 'iso-8859-8-i 'hebrew-iso-8bit)
 
 (set-language-info-alist
- "Hebrew" '((charset . (hebrew-iso8859-8))
+ "Hebrew" '((charset . iso-8859-8)
 	    (coding-priority hebrew-iso-8bit)
-	    (coding-system . (hebrew-iso-8bit))
-	    (nonascii-translation . hebrew-iso8859-8)
+	    (coding-system hebrew-iso-8bit)
+	    (nonascii-translation . iso-8859-8)
 	    (input-method . "hebrew")
 	    (unibyte-display . hebrew-iso-8bit)
 	    (sample-text . "Hebrew	,Hylem(B")

@@ -29,64 +29,72 @@
 
 ;;; Code:
 
-(make-coding-system
- 'iso-2022-jp 2 ?J
- "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)."
- '((ascii japanese-jisx0208-1978 japanese-jisx0208
-	  latin-jisx0201 japanese-jisx0212) nil nil nil
-   short ascii-eol ascii-cntl seven)
- '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
-		  latin-jisx0201 japanese-jisx0212)
-   (mime-charset . iso-2022-jp)))
+(define-coding-system 'iso-2022-jp
+  "ISO 2022 based 7bit encoding for Japanese (MIME:ISO-2022-JP)."
+  :coding-type 'iso-2022
+  :mnemonic ?J
+  :designation [(ascii japanese-jisx0208-1978 japanese-jisx0208
+		       latin-jisx0201 japanese-jisx0212)
+		nil nil nil]
+  :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation)
+  :charset-list '(ascii japanese-jisx0208-1978 japanese-jisx0208
+			   latin-jisx0201 japanese-jisx0212)
+  :plist '(mime-charset iso-2022-jp))
 
 (define-coding-system-alias 'junet 'iso-2022-jp)
 
-(make-coding-system
- 'iso-2022-jp-2 2 ?J
- "ISO 2022 based 7bit encoding for CJK, Latin-1, and Greek (MIME:ISO-2022-JP-2)."
- '((ascii japanese-jisx0208-1978 japanese-jisx0208
-	  latin-jisx0201 japanese-jisx0212
-	  chinese-gb2312 korean-ksc5601) nil
-	  (nil latin-iso8859-1 greek-iso8859-7) nil
- short ascii-eol ascii-cntl seven nil single-shift nil nil nil init-bol)
- '((safe-charsets ascii japanese-jisx0208-1978 japanese-jisx0208
-		  latin-jisx0201 japanese-jisx0212
-		  chinese-gb2312 korean-ksc5601
-		  latin-iso8859-1 greek-iso8859-7)
-   (mime-charset . iso-2022-jp-2)))
+(define-coding-system 'iso-2022-jp-2
+  "ISO 2022 based 7bit encoding for CJK, Latin-1, Greek (MIME:ISO-2022-JP-2)."
+  :coding-type 'iso-2022
+  :mnemonic ?J
+  :designation [(ascii japanese-jisx0208-1978 japanese-jisx0208
+		       latin-jisx0201 japanese-jisx0212
+		       chinese-gb2312 korean-ksc5601)
+		nil
+		(nil latin-iso8859-1 greek-iso8859-7)
+		nil]
+  :flags '(short ascii-at-eol ascii-at-cntl 7-bit designation single-shift
+		 init-at-bol)
+  :charset-list '(ascii japanese-jisx0208-1978 japanese-jisx0208
+			latin-jisx0201 japanese-jisx0212
+			chinese-gb2312 korean-ksc5601
+			latin-iso8859-1 greek-iso8859-7)
+  :plist '(mime-charset iso-2022-jp-2))
 
-(make-coding-system
- 'japanese-shift-jis 1 ?S
- "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)."
- nil
- '((safe-charsets ascii japanese-jisx0208 japanese-jisx0208-1978
-		  latin-jisx0201 katakana-jisx0201)
-   (mime-charset . shift_jis)
-   (charset-origin-alist (japanese-jisx0208 "SJIS" encode-sjis-char)
-			 (katakana-jisx0201 "SJIS" encode-sjis-char))))
+(define-coding-system 'japanese-shift-jis
+  "Shift-JIS 8-bit encoding for Japanese (MIME:SHIFT_JIS)"
+  :coding-type 'shift-jis
+  :mnemonic ?S
+  :charset-list '(ascii katakana-jisx0201 japanese-jisx0208)
+  :plist '(mime-charset shift_jis))
 
 (define-coding-system-alias 'shift_jis 'japanese-shift-jis)
 (define-coding-system-alias 'sjis 'japanese-shift-jis)
 
-(make-coding-system
- 'japanese-iso-7bit-1978-irv 2 ?j
- "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman."
- '((ascii japanese-jisx0208-1978 japanese-jisx0208
-	  latin-jisx0201 japanese-jisx0212 katakana-jisx0201 t) nil nil nil
-   short ascii-eol ascii-cntl seven nil nil use-roman use-oldjis)
- '(ascii japanese-jisx0208-1978 japanese-jisx0208 latin-jisx0201))
+(define-coding-system 'japanese-iso-7bit-1978-irv
+  "ISO 2022 based 7-bit encoding for Japanese JISX0208-1978 and JISX0201-Roman."
+  :coding-type 'iso-2022
+  :mnemonic ?j
+  :designation [(latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
+				japanese-jisx0212 katakana-jisx0201)
+		nil nil nil]
+  :flags '(short ascii-at-eol ascii-at-cntl 7-bit use-roman use-oldjis)
+  :charset-list '(latin-jisx0201 japanese-jisx0208-1978 japanese-jisx0208
+				 japanese-jisx0212))
 
 (define-coding-system-alias 'iso-2022-jp-1978-irv 'japanese-iso-7bit-1978-irv)
 (define-coding-system-alias 'old-jis 'japanese-iso-7bit-1978-irv)
 
-(make-coding-system
- 'japanese-iso-8bit 2 ?E
- "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)."
- '(ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212
-   short ascii-eol ascii-cntl nil nil single-shift)
- '((safe-charsets ascii latin-jisx0201 japanese-jisx0208 japanese-jisx0208-1978
-		 katakana-jisx0201 japanese-jisx0212)
-   (mime-charset . euc-jp)))
+(define-coding-system 'japanese-iso-8bit
+  "ISO 2022 based EUC encoding for Japanese (MIME:EUC-JP)."
+  :coding-type 'iso-2022
+  :mnemonic ?E
+  :designation [ascii japanese-jisx0208 katakana-jisx0201 japanese-jisx0212]
+  :flags '(short ascii-at-eol ascii-at-cntl single-shift)
+  :charset-list '(ascii latin-jisx0201 japanese-jisx0208
+			   japanese-jisx0208-1978
+			   katakana-jisx0201 japanese-jisx0212)
+  :plist '(mime-charset euc-jp))
 
 (define-coding-system-alias 'euc-japan-1990 'japanese-iso-8bit)
 (define-coding-system-alias 'euc-japan 'japanese-iso-8bit)
