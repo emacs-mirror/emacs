@@ -9,7 +9,6 @@
 	Move view-emacs-problems from P to C-e.
 	Bindings moved here from mule-cmds.el.
 	C-l binding for describe-language-environment deleted.	
-	Bind C-h like h, to view-hello-file.
 	(help-for-help): Update for all these changes.
 	
 	* emacs-lisp/copyright.el (copyright-regexp): Make (C) optional.

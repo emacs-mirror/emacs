@@ -58,6 +58,19 @@ width which is the minimum number of pixels necessary to display any
 of the currently defined fringe bitmaps.  The width of the built-in
 fringe bitmaps is 8 pixels.
 
+** Changes in C-h bindings:
+
+C-h e displays the *Messages* buffer.
+
+C-h followed by a control character is used for displaying files
+    that do not change:
+
+C-h C-f displays the FAQ.
+C-h C-e displays the PROBLEMS file.
+
+The info-search bindings on C-h C-f, C-h C-k and C-h C-i
+have been moved to C-h F, C-h K and C-h S.
+
 ** C-w in incremental search now grabs either a character or a word,
 making the decision in a heuristic way.  This new job is done by the
 command `isearch-yank-word-or-char'.  To restore the old behavior,
