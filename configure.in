@@ -1286,8 +1286,7 @@ if test "${HAVE_X11}" = "yes"; then
   if test "${with_jpeg}" != "no"; then
     old_c_flags="${CFLAGS}"
     CFLAGS="${LD_SWITCH_X_SITE} ${CFLAGS}"
-    AC_CHECK_HEADER(jpeglib.h,
-      AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11))
+    AC_CHECK_LIB(jpeg, jpeg_destroy_compress, HAVE_JPEG=yes, , -lX11)
     CFLAGS="${old_c_flags}"
   fi
 
@@ -1750,10 +1749,28 @@ AC_FUNC_ALLOCA
 AC_CHECK_LIB(m, sqrt)
 
 # Check for mail-locking functions in a "mail" library
-AC_CHECK_LIB(mail, maillock,
-	     AC_DEFINE(HAVE_LIBMAIL)
-	     AC_CHECK_FUNCS(touchlock)
-	     AC_CHECK_HEADERS(maillock.h))
+AC_CHECK_LIB(mail, maillock)
+dnl Debian, at least:
+dnl AC_CHECK_LIB(lockfile, maillock, [AC_DEFINE(HAVE_LIBMAIL)])
+AC_CHECK_LIB(lockfile, maillock)
+# If we have the shared liblockfile, assume we must use it for mail
+# locking (e.g. Debian).  If we couldn't link against liblockfile
+# (no liblockfile.a installed), ensure that we don't need to.
+if test "$ac_cv_lib_lockfile_maillock" = no; then
+  dnl This works for files generally, not just executables.
+  dnl Should we look elsewhere for it?  Maybe examine /etc/ld.so.conf?
+  AC_CHECK_PROG(liblockfile, liblockfile.so, yes, no,
+                /usr/lib:/lib:/usr/local/lib:$LD_LIBRARY_PATH)
+  if test $ac_cv_prog_liblockfile = yes; then
+    AC_MSG_ERROR([Shared liblockfile found but can't link against it.
+This probably means that movemail could lose mail.
+There may be a \`development' package to install containing liblockfile.])
+  else AC_DEFINE(LIBMAIL, -llockfile)
+  fi
+  else :
+fi
+AC_CHECK_FUNCS(touchlock)
+AC_CHECK_HEADERS(maillock.h)
 
 AC_CHECK_FUNCS(gettimeofday gethostname getdomainname dup2 \
 rename closedir mkdir rmdir sysinfo \
