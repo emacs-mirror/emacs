@@ -65,7 +65,6 @@
 ;;;
 ;;;   The following three lines are required:
 ;;; (display-time)
-;;; (autoload 'appt-make-list "appt.el" nil t)
 ;;; (add-hook 'diary-hook 'appt-make-list)
 ;;;
 ;;; 
@@ -445,73 +444,92 @@ The time should be in either 24 hour format or am/pm format."
 ;;                02/23/89
 ;;                  12:00pm lunch
 ;;                 Wednesday
-;;                   10:00am group meeting"
+;;                   10:00am group meeting
+;; We assume that the variables DATE and NUMBER
+;; hold the arguments that list-diary-entries received.
+;; They specify the range of dates that the diary is being processed for.
 
 ;;;###autoload
 (defun appt-make-list ()
-  (setq appt-time-msg-list nil)
+  ;; We have something to do if the range of dates that the diary is
+  ;; considering includes the current date.
+  (if (and (not (calendar-date-compare
+		 (list (calendar-current-date))
+		 (list original-date)))
+	   (calendar-date-compare
+	    (list (calendar-current-date))
+            (list (calendar-gregorian-from-absolute
+		   (+ (calendar-absolute-from-gregorian original-date)
+		      number)))))
+      (save-excursion
+	;; Clear the appointments list, then fill it in from the diary.
+	(setq appt-time-msg-list nil)
+	(if diary-entries-list
 
-  (save-excursion
-    (if diary-entries-list
+	    ;; Cycle through the entry-list (diary-entries-list)
+	    ;; looking for entries beginning with a time. If 
+	    ;; the entry begins with a time, add it to the
+	    ;; appt-time-msg-list. Then sort the list.
 
-        ;; Cycle through the entry-list (diary-entries-list)
-        ;; looking for entries beginning with a time. If 
-        ;; the entry begins with a time, add it to the
-        ;; appt-time-msg-list. Then sort the list.
-        
-        (let ((entry-list diary-entries-list)
-              (new-time-string ""))
-          (while (and entry-list 
-                      (calendar-date-equal 
-                       (calendar-current-date) (car (car entry-list))))
-            (let ((time-string (substring (prin1-to-string 
-                                           (cdr (car entry-list))) 2 -2)))
-              
-              (while (string-match
-                      "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?.*" 
-                      time-string)
-                (let* ((appt-time-string (substring time-string
-                                                    (match-beginning 0)
-                                                    (match-end 0))))
+	    (let ((entry-list diary-entries-list)
+		  (new-time-string ""))
+	      ;; Skip diary entries for dates before today.
+	      (while (and entry-list
+			  (calendar-date-compare
+			   (car entry-list) (list (calendar-current-date))))
+		(setq entry-list (cdr entry-list)))
+	      ;; Parse the entries for today.
+	      (while (and entry-list 
+			  (calendar-date-equal 
+			   (calendar-current-date) (car (car entry-list))))
+		(let ((time-string (substring (prin1-to-string 
+					       (cdr (car entry-list))) 2 -2)))
 
-                  (if (< (match-end 0) (length time-string))
-                      (setq new-time-string (substring time-string 
-                                                       (+ (match-end 0) 1)
-                                                       nil))
-                    (setq new-time-string ""))
-                  
-                  (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
-                                time-string)
-                    
-                  (let* ((appt-time (list (appt-convert-time 
-                                           (substring time-string
-                                                      (match-beginning 0)
-                                                      (match-end 0)))))
-                         (time-msg (cons appt-time
-                                         (list appt-time-string))))
-                    (setq time-string new-time-string)
-                    (setq appt-time-msg-list (append appt-time-msg-list
-                                                     (list time-msg)))))))
-            (setq entry-list (cdr entry-list)))))
-    (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
+		  (while (string-match
+			  "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?.*" 
+			  time-string)
+		    (let* ((appt-time-string (substring time-string
+							(match-beginning 0)
+							(match-end 0))))
 
-    ;; Get the current time and convert it to minutes
-    ;; from midnight. ie. 12:01am = 1, midnight = 0,
-    ;; so that the elements in the list
-    ;; that are earlier than the present time can
-    ;; be removed.
-  
-    (let* ((cur-hour(string-to-int 
-		     (substring (current-time-string) 11 13)))
-	   (cur-min (string-to-int 
-		     (substring (current-time-string) 14 16)))
-	   (cur-comp-time (+ (* cur-hour 60) cur-min))
-	   (appt-comp-time (car (car (car appt-time-msg-list)))))
+		      (if (< (match-end 0) (length time-string))
+			  (setq new-time-string (substring time-string 
+							   (+ (match-end 0) 1)
+							   nil))
+			(setq new-time-string ""))
 
-      (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
-	(setq appt-time-msg-list (cdr appt-time-msg-list)) 
-	(if appt-time-msg-list
-	    (setq appt-comp-time (car (car (car appt-time-msg-list)))))))))
+		      (string-match "[0-9]?[0-9]:[0-9][0-9]\\(am\\|pm\\)?"
+				    time-string)
+
+		      (let* ((appt-time (list (appt-convert-time 
+					       (substring time-string
+							  (match-beginning 0)
+							  (match-end 0)))))
+			     (time-msg (cons appt-time
+					     (list appt-time-string))))
+			(setq time-string new-time-string)
+			(setq appt-time-msg-list (append appt-time-msg-list
+							 (list time-msg)))))))
+		(setq entry-list (cdr entry-list)))))
+	(setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
+
+	;; Get the current time and convert it to minutes
+	;; from midnight. ie. 12:01am = 1, midnight = 0,
+	;; so that the elements in the list
+	;; that are earlier than the present time can
+	;; be removed.
+
+	(let* ((cur-hour(string-to-int 
+			 (substring (current-time-string) 11 13)))
+	       (cur-min (string-to-int 
+			 (substring (current-time-string) 14 16)))
+	       (cur-comp-time (+ (* cur-hour 60) cur-min))
+	       (appt-comp-time (car (car (car appt-time-msg-list)))))
+
+	  (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
+	    (setq appt-time-msg-list (cdr appt-time-msg-list)) 
+	    (if appt-time-msg-list
+		(setq appt-comp-time (car (car (car appt-time-msg-list))))))))))
   
 
 ;;Simple sort to put the appointments list in order.
