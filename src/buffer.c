@@ -2012,15 +2012,30 @@ advance_to_char_boundary (byte_pos)
   return byte_pos;
 }
 
+
+/* Symbols used as the 2nd arg of Fset_buffer_multibyte.  */
+static Lisp_Object Qas, Qmake, Qto;
+
+
 DEFUN ("set-buffer-multibyte", Fset_buffer_multibyte, Sset_buffer_multibyte,
-       1, 1, 0,
+       1, 2, 0,
        doc: /* Set the multibyte flag of the current buffer to FLAG.
 If FLAG is t, this makes the buffer a multibyte buffer.
-If FLAG is nil, this makes the buffer a single-byte buffer.
-The buffer contents remain unchanged as a sequence of bytes
-but the contents viewed as characters do change.  */)
-     (flag)
-     Lisp_Object flag;
+If FLAG is nil, this makes the buffer a unibyte buffer.
+
+Optional second arg METHOD specifies how to convert the byte sequence
+of the buffer.
+
+If it is nil or `as', the buffer contents remain unchanged as a
+sequence of bytes but the contents viewed as characters do change.
+
+If it is `make', convert each character by unibyte-char-to-multibyte
+or multibyte-char-to-unibyte.
+
+If it is `to', convert each character by byte-to-char or
+char-to-byte.  */)
+     (flag, method)
+     Lisp_Object flag, method;
 {
   Lisp_Object tail, markers;
   struct buffer *other;
@@ -2028,6 +2043,13 @@ but the contents viewed as characters do change.  */)
   int begv = BEGV, zv = ZV;
   int narrowed = (BEG != begv || Z != zv);
   int modified_p = !NILP (Fbuffer_modified_p (Qnil));
+
+  CHECK_SYMBOL (method);
+  if (NILP (method))
+    method = Qas;
+  else if (! EQ (method, Qas) && ! EQ (method, Qmake) && ! EQ (method, Qto))
+    error ("Invalid unibyte<->multibyte conversion method: %s",
+	   XSYMBOL (method)->name->data);
 
   if (current_buffer->base_buffer)
     error ("Cannot do `set-buffer-multibyte' on an indirect buffer");
@@ -2105,10 +2127,26 @@ but the contents viewed as characters do change.  */)
 		zv -= bytes;
 	      stop = Z;
 	    }
-	  else
+	  else if (EQ (method, Qas))
 	    {
 	      bytes = BYTES_BY_CHAR_HEAD (*p);
 	      p += bytes, pos += bytes;
+	    }
+	  else
+	    {
+	      /* Delete all bytes for this character but the last one,
+		 and change the last one to the unibyte code.  */
+	      c = STRING_CHAR_AND_LENGTH (p, stop - pos, bytes);
+	      bytes--;
+	      del_range_2 (pos, pos, pos + bytes, pos + bytes, 0);
+	      p = GAP_END_ADDR;
+	      *p++ = CHAR_TO_BYTE (c);
+	      pos++;
+	      if (begv > pos)
+		begv -= bytes;
+	      if (zv > pos)
+		zv -= bytes;
+	      stop = Z;
 	    }
 	}
       if (narrowed)
@@ -2124,7 +2162,8 @@ but the contents viewed as characters do change.  */)
 	 Ex: We change this: "...abc\302 _GAP_ \241def..."
 	     to: "...abc _GAP_ \302\241def..."  */
 
-      if (GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
+      if (EQ (method, Qas)
+	  && GPT_BYTE > 1 && GPT_BYTE < Z_BYTE
 	  && ! CHAR_HEAD_P (*(GAP_END_ADDR)))
 	{
 	  unsigned char *p = GPT_ADDR - 1;
@@ -2157,12 +2196,20 @@ but the contents viewed as characters do change.  */)
 	      stop = Z;
 	    }
 	      
-	  if ((bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
+	  if (ASCII_BYTE_P (*p))
+	    p++, pos++;
+	  else if (method == Qas
+		   && (bytes = MULTIBYTE_LENGTH (p, pend)) > 0)
 	    p += bytes, pos += bytes;
 	  else
 	    {
 	      unsigned char tmp[MAX_MULTIBYTE_LENGTH];
-	      int c = BYTE8_TO_CHAR (*p);
+	      int c;
+
+	      if (method == Qmake)
+		c = unibyte_char_to_multibyte (*p);
+	      else
+		c = BYTE8_TO_CHAR (*p);
 
 	      bytes = CHAR_STRING (c, tmp);
 	      *p = tmp[0];
@@ -4979,7 +5026,7 @@ init_buffer ()
   
   Fset_buffer (Fget_buffer_create (build_string ("*scratch*")));
   if (NILP (buffer_defaults.enable_multibyte_characters))
-    Fset_buffer_multibyte (Qnil);
+    Fset_buffer_multibyte (Qnil, Qnil);
 
   /* If PWD is accurate, use it instead of calling getwd.  PWD is
      sometimes a nicer name, and using it may avoid a fatal error if a
@@ -5072,6 +5119,13 @@ syms_of_buffer ()
   staticpro (&Qbefore_change_functions);
   Qafter_change_functions = intern ("after-change-functions");
   staticpro (&Qafter_change_functions);
+
+  Qas = intern ("as");
+  staticpro (&Qas);
+  Qmake = intern ("make");
+  staticpro (&Qmake);
+  Qto = intern ("to");
+  staticpro (&Qto);
 
   Fput (Qprotected_field, Qerror_conditions,
 	Fcons (Qprotected_field, Fcons (Qerror, Qnil)));
