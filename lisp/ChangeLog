@@ -14,6 +14,9 @@
 	that it's distinguishable from the :off-glyph on dark-background
 	displays.  Set its background color too.
 
+	* cus-start.el (all): Restore entry for `mode-line-inverse-video',
+	so that people can easily turn it off.
+
 2000-11-24  Michael Kifer  <kifer@cs.sunysb.edu>
 	
 	* ediff-diff.el: Moved variables around to have it compile under NT.
