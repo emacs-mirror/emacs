@@ -4519,7 +4519,7 @@ x_connection_closed (display, error_message)
 
   if (x_display_list == 0)
     {
-      fprintf (stderr, "%s", error_message);
+      fprintf (stderr, "%s\n", error_message);
       shut_down_emacs (0, 0, Qnil);
       exit (70);
     }
