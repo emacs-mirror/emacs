@@ -1,7 +1,10 @@
-2001-11-24  Eli Zaretskii  <eliz@gnu.org>
+2001-11-24  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	These changes add the Emacs Lisp Introduction manual to the
 	distribution:
+
+	* Makefile.in (install-arch-indep, uninstall): Add ELisp Intro
+	files.
 
 	* make-dist: Copy the files in lispintro directory.
 
