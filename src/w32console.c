@@ -576,7 +576,7 @@ initialize_win_nt_display (void)
   char_attr_reverse = ((char_attr & 0xf) << 4) + ((char_attr & 0xf0) >> 4);
   
   FRAME_HEIGHT (selected_frame) = info.dwSize.Y;	/* lines per page */
-  FRAME_WIDTH (selected_frame) = info.dwSize.X;  /* characters per line */
+  SET_FRAME_WIDTH (selected_frame, info.dwSize.X); /* characters per line */
   
   move_cursor (0, 0);
   
