@@ -692,15 +692,6 @@ Related buffers can be cycled through via :R and :P commands."
 
 ;;; Face-saving tricks
 
-(defcustom viper-replace-overlay-pixmap "gray3"
-  "Pixmap to use for search face on non-color displays."
-  :type 'string
-  :group 'viper)
-(defcustom viper-search-face-pixmap "gray3"
-  "Pixmap to use for search face on non-color displays."
-  :type 'string
-  :group 'viper)
-
 (defun viper-hide-face (face)
   (if (and (viper-has-face-support-p) viper-emacs-p)
       (add-to-list 'facemenu-unlisted-faces face)))
@@ -729,7 +720,7 @@ Related buffers can be cycled through via :R and :P commands."
 
 (defface viper-search-face
   '((((class color)) (:foreground "Black" :background "khaki"))
-    (t (:underline t :stipple viper-search-face-pixmap)))
+    (t (:underline t :stipple "gray3")))
   "*Face used to flash out the search pattern."
   :group 'viper-highlighting)
 ;; An internal variable. Viper takes the face from here.
@@ -755,7 +746,7 @@ Related buffers can be cycled through via :R and :P commands."
 
 (defface viper-replace-overlay-face
   '((((class color)) (:foreground "Black" :background "darkseagreen2"))
-    (t (:underline t :stipple viper-replace-overlay-face-pixmap)))
+    (t (:underline t :stipple "gray3")))
   "*Face for highlighting replace regions on a window display."
   :group 'viper-highlighting)
 ;; An internal variable. Viper takes the face from here.
