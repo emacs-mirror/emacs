@@ -275,8 +275,12 @@ positions (integers or markers) specifying the stretch of the region."
 	(work-buf (get-buffer-create " *viet-work*")))
     (set-buffer work-buf)
     (erase-buffer)
-    (insert-buffer-substring old-buf from to)
-    (viet-encode-viqr-region (point-min) (point-max))))
+    (if (stringp from)
+	(insert from)
+      (insert-buffer-substring old-buf from to))
+    (viet-encode-viqr-region (point-min) (point-max))
+    ;; Should return nil as annotations.
+    nil))
 
 ;;;
 (provide 'language/viet-util)
