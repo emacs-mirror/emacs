@@ -903,7 +903,7 @@ The returned value is a Quail map specific to KEY."
 	(while quail-translating
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (events (this-single-command-keys))
+		 (events (this-single-command-raw-keys))
 		 (cmd (lookup-key translation-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
@@ -951,7 +951,7 @@ The returned value is a Quail map specific to KEY."
 		(quail-setup-overlays nil)))
 	  (let* ((echo-keystrokes 0)
 		 (keyseq (read-key-sequence nil))
-		 (events (this-single-command-keys))
+		 (events (this-single-command-raw-keys))
 		 (cmd (lookup-key conversion-keymap keyseq)))
 	    (if (commandp cmd)
 		(progn
