@@ -502,7 +502,7 @@ This returns ARGS with the arguments that have been processed removed."
 ;; Unless/until there is a real conflict,
 ;; we need not try to make this list depend on
 ;; the type of X server in use.
-(setq vendor-key-syms
+(setq system-key-alist
       '(
 	;; These are some HP keys.
 	(  168 . mute-acute)
