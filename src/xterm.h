@@ -200,6 +200,7 @@ extern struct frame *x_window_to_frame ();
 
 #ifdef USE_X_TOOLKIT
 extern struct frame *x_any_window_to_frame ();
+extern struct frame *x_top_window_to_frame ();
 #endif
 
 /* The frame (if any) which has the X window that has keyboard focus.
