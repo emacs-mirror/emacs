@@ -1,7 +1,9 @@
-2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+2005-03-29  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* progmodes/which-func.el (which-function): Be robust in the face of an
 	imenu--make-index-alist failure.
+
+2005-03-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* reveal.el (reveal-mode-map): Don't override C-a and C-e.
 
