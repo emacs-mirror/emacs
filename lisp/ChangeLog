@@ -6,7 +6,7 @@
 
 	* vc.el (vc-print-log): Undo prev change, use new function
 	vc-arg-list from vc-hooks.el.
-	
+
 2004-03-26  Masatake YAMATO  <jet@gyve.org>
 
 	* simple.el (completion-setup-function): Emphasize the
@@ -41,6 +41,14 @@
 	* font-lock.el (fast-lock, lazy-lock):
 	* jit-lock.el (jit-lock): Remove links to removed Support Modes
 	Info node.
+
+	* eshell/eshell.el (eshell): Fix broken info-link.
+
+	* eshell/em-alias.el (eshell-alias, eshell-bad-command-tolerance):
+	* eshell/em-banner.el (eshell-banner):
+	* eshell/em-smart.el (eshell-smart):
+	* eshell/esh-cmd.el (eshell-cmd):
+	Comment out broken info-links to incomplete Info manual.
 
 	* info-xref.el: Fix commentary.
 
