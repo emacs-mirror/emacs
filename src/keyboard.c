@@ -1089,6 +1089,17 @@ single_kboard_state ()
 #endif
 }
 
+/* If we're in single_kboard state for kboard KBOARD,
+   get out of it.  */
+
+void
+not_single_kboard_state (kboard)
+     KBOARD *kboard;
+{
+  if (kboard == current_kboard)
+    single_kboard = 0;
+}
+
 /* Maintain a stack of kboards, so other parts of Emacs
    can switch temporarily to the kboard of a given frame
    and then revert to the previous status.  */
@@ -10175,9 +10186,7 @@ void
 stuff_buffered_input (stuffstring)
      Lisp_Object stuffstring;
 {
-/* stuff_char works only in BSD, versions 4.2 and up.  */
-#ifdef BSD_SYSTEM
-#ifndef BSD4_1
+#ifdef SIGTSTP  /* stuff_char is defined if SIGTSTP.  */
   register unsigned char *p;
 
   if (STRINGP (stuffstring))
@@ -10193,7 +10202,10 @@ stuff_buffered_input (stuffstring)
 
   /* Anything we have read ahead, put back for the shell to read.  */
   /* ?? What should this do when we have multiple keyboards??
-     Should we ignore anything that was typed in at the "wrong" kboard?  */
+     Should we ignore anything that was typed in at the "wrong" kboard?
+     
+     rms: we should stuff everything back into the kboard
+     it came from.  */
   for (; kbd_fetch_ptr != kbd_store_ptr; kbd_fetch_ptr++)
     {
 
@@ -10206,8 +10218,7 @@ stuff_buffered_input (stuffstring)
     }
 
   input_pending = 0;
-#endif
-#endif /* BSD_SYSTEM and not BSD4_1 */
+#endif /* SIGTSTP */
 }
 
 void
