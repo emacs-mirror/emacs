@@ -60,7 +60,7 @@
 ;; Modified by James Larus, BBN, July 1984 and UCB, 1984 & 1985.
 ;; Rewritten for GNU Emacs, James Larus 1985.  larus@ginger.berkeley.edu
 ;; Modified by Stephen Gildea 1988.  gildea@lcs.mit.edu
-(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.10 1996/01/04 23:45:17 kwzh Exp erik $")
+(defconst mh-e-RCS-id "$Id: mh-e.el,v 1.12 1996/01/20 02:47:33 erik Exp kwzh $")
 
 ;;; Code:
 
@@ -865,9 +865,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 	(folder mh-current-folder)
 	(new-mail-p nil))
     (with-mh-folder-updating (t)
-      (message (if maildrop-name
-		   (format "inc %s -file %s..." folder maildrop-name)
-		   (format "inc %s..." folder)))
+      (if maildrop-name
+	  (message "inc %s -file %s..." folder maildrop-name)
+	(message "inc %s..." folder))
       (setq mh-next-direction 'forward)
       (goto-char (point-max))
       (let ((start-of-inc (point)))
@@ -880,10 +880,9 @@ The value of mh-folder-mode-hook is called when a new folder is set up."
 				"-truncate")
 	    (mh-exec-cmd-output mh-inc-prog nil
 				"-width" (window-width)))
-	(message
-	 (if maildrop-name
-	     (format "inc %s -file %s...done" folder maildrop-name)
-	     (format "inc %s...done" folder)))
+	(if maildrop-name
+	    (message "inc %s -file %s...done" folder maildrop-name)
+	  (message "inc %s...done" folder))
 	(goto-char start-of-inc)
 	(cond ((save-excursion
 		 (re-search-forward "^inc: no mail" nil t))
