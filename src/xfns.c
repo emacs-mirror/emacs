@@ -379,10 +379,14 @@ x_top_window_to_frame (dpyinfo, wdesc)
       /* This frame matches if the window is its topmost widget.  */
       if (wdesc == XtWindow (x->widget))
 	return f;
+#if 0 /* I don't know why it did this,
+	 but it seems logically wrong,
+	 and it causes trouble for MapNotify events.  */
       /* Match if the window is this frame's menubar.  */
       if (x->menubar_widget 
 	  && wdesc == XtWindow (x->menubar_widget))
 	return f;
+#endif
     }
   return 0;
 }
@@ -2387,7 +2391,7 @@ x_window (f, window_prompting, minibuffer_only)
   XtSetArg (al[ac], XtNmappedWhenManaged, 0); ac++;
   XtSetArg (al[ac], XtNborderWidth, f->display.x->border_width); ac++;
   shell_widget = XtAppCreateShell (f->namebuf, EMACS_CLASS,
-				   topLevelShellWidgetClass,
+				   applicationShellWidgetClass,
 				   FRAME_X_DISPLAY (f), al, ac);
 
   f->display.x->widget = shell_widget;
@@ -2414,12 +2418,9 @@ x_window (f, window_prompting, minibuffer_only)
   frame_widget = XtCreateWidget (f->namebuf,
 				  emacsFrameClass,
 				  pane_widget, al, ac);
-  lw_set_main_areas (pane_widget, f->display.x->menubar_widget, frame_widget);
  
   f->display.x->edit_widget = frame_widget;
  
-  if (f->display.x->menubar_widget)
-    XtManageChild (f->display.x->menubar_widget);
   XtManageChild (frame_widget); 
 
   /* Do some needed geometry management.  */
@@ -2535,6 +2536,7 @@ x_window (f, window_prompting, minibuffer_only)
 
   if (!minibuffer_only && FRAME_EXTERNAL_MENU_BAR (f))
     initialize_frame_menubar (f);
+  lw_set_main_areas (pane_widget, f->display.x->menubar_widget, frame_widget);
 
   if (FRAME_X_WINDOW (f) == 0)
     error ("Unable to create window");
