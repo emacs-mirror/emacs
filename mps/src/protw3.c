@@ -1,7 +1,7 @@
 /*  impl.c.protnt
  *
  *               PROTECTION FOR WIN32
- *  $HopeName$
+ *  $HopeName: MMsrc/!protnt.c(trunk.1)$
  *
  *  Copyright (C) 1995 Harlequin Group, all rights reserved
  */
@@ -31,7 +31,7 @@ Addr ProtGrain(void)
   return grain;
 }
 
-void ProtSetUp(void)
+void ProtSetup(void)
 {
   return;
 }
@@ -54,7 +54,7 @@ void ProtSet(Addr base, Addr limit, ProtMode mode)
   if((mode & ProtWRITE) != 0)
     newProtect = PAGE_EXECUTE_READ;
   if((mode & ProtREAD) != 0)
-    newProtect = PAGE_EXECUTE;
+    newProtect = PAGE_NOACCESS;
 
   if(VirtualProtect((LPVOID)base, (DWORD)(limit - base),
                     newProtect, &oldProtect) != TRUE)
