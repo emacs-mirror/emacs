@@ -3,9 +3,9 @@
 ;; Copyright (C) 1992 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
-;; Version: 5.0
+;; Version: 5.2
 
-;;	$Id: vc-hooks.el,v 1.8.1.1 1993/03/16 20:17:07 eggert Exp $	
+;;	$Id: vc-hooks.el,v 1.9 1993/03/16 20:21:05 eggert Exp eric $	
 
 ;; This file is part of GNU Emacs.
 
