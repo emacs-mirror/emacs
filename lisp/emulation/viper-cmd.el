@@ -3186,7 +3186,7 @@ the Emacs binding of `/'."
 	   (setq msg "Search style remains unchanged")))
     (princ msg t)))
 
-(defun vip-set-search-style-toggling-macros (unset)
+(defun vip-set-searchstyle-toggling-macros (unset)
   "Set the macros for toggling the search style in Viper's vi-state.
 The macro that toggles case sensitivity is bound to `//', and the one that
 toggles regexp search is bound to `///'.
@@ -3233,7 +3233,7 @@ With a prefix argument, unsets the macro."
 	(vip-unrecord-kbd-macro "%%%" 'vi-state))))
 
 
-(defun vip-set-emacs-state-search-style-macros (unset &optional arg-majormode)
+(defun vip-set-emacs-state-searchstyle-macros (unset &optional arg-majormode)
   "Set the macros for toggling the search style in Viper's emacs-state.
 The macro that toggles case sensitivity is bound to `//', and the one that
 toggles regexp search is bound to `///'.

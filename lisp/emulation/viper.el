@@ -502,18 +502,19 @@ remains buffer-local."
    require-final-newline
    (viper-standard-value 
     'require-final-newline viper-saved-non-viper-variables) 
-   mark-even-if-inactive
-   (viper-standard-value
-    'mark-even-if-inactive viper-saved-non-viper-variables) 
    scroll-step
    (viper-standard-value 'scroll-step viper-saved-non-viper-variables) 
-   global-mode-string
-   (viper-standard-value 'global-mode-string viper-saved-non-viper-variables) )
-
-  (setq-default
    mode-line-buffer-identification
    (viper-standard-value
-    'mode-line-buffer-identification viper-saved-non-viper-variables))
+    'mode-line-buffer-identification viper-saved-non-viper-variables)
+   global-mode-string
+   (viper-standard-value 'global-mode-string viper-saved-non-viper-variables))
+
+  (if vip-emacs-p
+      (setq-default
+       mark-even-if-inactive
+       (viper-standard-value
+	'mark-even-if-inactive viper-saved-non-viper-variables)))
 
   ;; Ideally, we would like to be able to de-localize local variables 
   (viper-delocalize-var 'minor-mode-map-alist)
@@ -737,26 +738,26 @@ remains buffer-local."
   
   ;; Dired
   (vip-modify-major-mode 'dired-mode 'emacs-state vip-dired-modifier-map)
-  (vip-set-emacs-state-search-style-macros nil 'dired-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'dired-mode)
   (add-hook 'dired-mode-hook 'vip-change-state-to-emacs)
 
   ;; Tar
   (vip-modify-major-mode 'tar-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'tar-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'tar-mode)
 
   ;; MH-E
   (vip-modify-major-mode 'mh-folder-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'mh-folder-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'mh-folder-mode)
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'mh-folder-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'mh-show-mode-hook 'viper-mode)
 
   ;; Gnus
   (vip-modify-major-mode 'gnus-group-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'gnus-group-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'gnus-group-mode)
   (vip-modify-major-mode 
    'gnus-summary-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'gnus-summary-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'gnus-summary-mode)
   ;; changing state to emacs is needed so the preceding will take hold
   (add-hook 'gnus-group-mode-hook 'vip-change-state-to-emacs)
   (add-hook 'gnus-summary-mode-hook 'vip-change-state-to-emacs)
@@ -764,7 +765,7 @@ remains buffer-local."
 
   ;; Info
   (vip-modify-major-mode 'Info-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'Info-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'Info-mode)
   ;; Switching to emacs is needed  so the above will take hold
   (defadvice Info-mode (after vip-Info-ad activate)
     "Switch to emacs mode."
@@ -773,7 +774,7 @@ remains buffer-local."
   ;; Buffer menu
   (vip-modify-major-mode 
    'Buffer-menu-mode 'emacs-state vip-slash-and-colon-map)
-  (vip-set-emacs-state-search-style-macros nil 'Buffer-menu-mode)
+  (vip-set-emacs-state-searchstyle-macros nil 'Buffer-menu-mode)
   ;; Switching to emacs is needed  so the above will take hold
   (defadvice Buffer-menu-mode (after vip-Buffer-menu-ad activate)
     "Switch to emacs mode."
@@ -828,7 +829,8 @@ remains buffer-local."
   (make-variable-buffer-local 'require-final-newline)
   
   ;; don't bark when mark is inactive
-  (setq mark-even-if-inactive t)
+  (if vip-emacs-p
+      (setq mark-even-if-inactive t))
   
   (setq scroll-step 1)
   
@@ -1028,11 +1030,12 @@ Also, the startup file name has been changed from .vip to .viper"))
 	   (cons 'default-major-mode (list default-major-mode))
 	   (cons 'next-line-add-newlines (list next-line-add-newlines))
 	   (cons 'require-final-newline (list require-final-newline))
-	   (cons 'mark-even-if-inactive (list mark-even-if-inactive))
 	   (cons 'scroll-step (list scroll-step))
 	   (cons 'mode-line-buffer-identification
 		 (list (default-value 'mode-line-buffer-identification)))
 	   (cons 'global-mode-string (list global-mode-string))
+	   (if vip-emacs-p
+	       (cons 'mark-even-if-inactive (list mark-even-if-inactive)))
 	   )))
        
       
@@ -1054,7 +1057,7 @@ Also, the startup file name has been changed from .vip to .viper"))
        [(meta x) v i p - r e p e a t - f r o m - h i s t o r y return] 't)
       
       ;; set macros for toggling case sensitivity and regexp search 
-      (vip-set-search-style-toggling-macros nil)
+      (vip-set-searchstyle-toggling-macros nil)
       ;; Make %%% toggle parsing comments for matching parentheses
       (vip-set-parsing-style-toggling-macro nil)
       ))
