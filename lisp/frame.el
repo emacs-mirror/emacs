@@ -1072,7 +1072,7 @@ This timer calls `blink-cursor' every `blink-cursor-interval' seconds.")
 
 (defun blink-cursor-mode (arg)
   "Toggle blinking cursor mode.
-With arg, turn blinking cursor mode on iff arg is positive.
+With a numeric argument, turn blinking cursor mode on iff ARG is positive.
 When blinking cursor mode is enabled, the cursor of the selected
 window blinks."
   (interactive "P")
