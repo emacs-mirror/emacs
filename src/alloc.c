@@ -3412,7 +3412,7 @@ mark_maybe_pointer (p)
       switch (m->type)
 	{
 	case MEM_TYPE_NON_LISP:
-	  /* NOthing to do; not a pointer to Lisp memory.  */
+	  /* Nothing to do; not a pointer to Lisp memory.  */
 	  break;
 	  
 	case MEM_TYPE_BUFFER:
