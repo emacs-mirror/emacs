@@ -26,12 +26,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <signal.h>
 
-/* Define this temporarily to hunt a bug.  If defined, the size of
-   strings is redundantly recorded in sdata structures so that it can
-   be compared to the sizes recorded in Lisp strings.  */
-
-#define GC_CHECK_STRING_BYTES 1
-
 /* GC_MALLOC_CHECK defined means perform validity checks of malloc'd
    memory.  Can do this only if using gmalloc.c.  */
 
@@ -1201,50 +1195,84 @@ init_strings ()
 
 #ifdef GC_CHECK_STRING_BYTES
 
-/* Check validity of all live Lisp strings' string_bytes member.
-   Used for hunting a bug.  */
-
 static int check_string_bytes_count;
 
-void
-check_string_bytes ()
-{
-  struct sblock *b;
-  
-  for (b = large_sblocks; b; b = b->next)
-    {
-      struct Lisp_String *s = b->first_data.string;
-      if (s && GC_STRING_BYTES (s) != SDATA_NBYTES (SDATA_OF_STRING (s)))
-	abort ();
-    }
-      
-  for (b = oldest_sblock; b; b = b->next)
-    {
-      struct sdata *from, *end, *from_end;
-      
-      end = b->next_free;
-      
-      for (from = &b->first_data; from < end; from = from_end)
-	{
-	  /* Compute the next FROM here because copying below may
-	     overwrite data we need to compute it.  */
-	  int nbytes;
+void check_string_bytes P_ ((int));
+void check_sblock P_ ((struct sblock *));
 
-	  /* Check that the string size recorded in the string is the
-	     same as the one recorded in the sdata structure. */
-	  if (from->string
-	      && GC_STRING_BYTES (from->string) != SDATA_NBYTES (from))
-	    abort ();
-	  
-	  if (from->string)
-	    nbytes = GC_STRING_BYTES (from->string);
-	  else
-	    nbytes = SDATA_NBYTES (from);
-	  
-	  nbytes = SDATA_SIZE (nbytes);
-	  from_end = (struct sdata *) ((char *) from + nbytes);
-	}
+#define CHECK_STRING_BYTES(S)	STRING_BYTES (S)
+
+
+/* Like GC_STRING_BYTES, but with debugging check.  */
+
+int
+string_bytes (s)
+     struct Lisp_String *s;
+{
+  int nbytes = (s->size_byte < 0 ? s->size : s->size_byte) & ~MARKBIT;
+  if (!PURE_POINTER_P (s)
+      && s->data
+      && nbytes != SDATA_NBYTES (SDATA_OF_STRING (s)))
+    abort ();
+  return nbytes;
+}
+    
+/* Check validity Lisp strings' string_bytes member in B.  */
+
+void
+check_sblock (b)
+     struct sblock *b;
+{
+  struct sdata *from, *end, *from_end;
+      
+  end = b->next_free;
+      
+  for (from = &b->first_data; from < end; from = from_end)
+    {
+      /* Compute the next FROM here because copying below may
+	 overwrite data we need to compute it.  */
+      int nbytes;
+      
+      /* Check that the string size recorded in the string is the
+	 same as the one recorded in the sdata structure. */
+      if (from->string)
+	CHECK_STRING_BYTES (from->string);
+      
+      if (from->string)
+	nbytes = GC_STRING_BYTES (from->string);
+      else
+	nbytes = SDATA_NBYTES (from);
+      
+      nbytes = SDATA_SIZE (nbytes);
+      from_end = (struct sdata *) ((char *) from + nbytes);
     }
+}
+
+
+/* Check validity of Lisp strings' string_bytes member.  ALL_P
+   non-zero means check all strings, otherwise check only most
+   recently allocated strings.  Used for hunting a bug.  */
+
+void
+check_string_bytes (all_p)
+     int all_p;
+{
+  if (all_p)
+    {
+      struct sblock *b;
+
+      for (b = large_sblocks; b; b = b->next)
+	{
+	  struct Lisp_String *s = b->first_data.string;
+	  if (s)
+	    CHECK_STRING_BYTES (s);
+	}
+      
+      for (b = oldest_sblock; b; b = b->next)
+	check_sblock (b);
+    }
+  else
+    check_sblock (current_sblock);
 }
 
 #endif /* GC_CHECK_STRING_BYTES */
@@ -1294,12 +1322,17 @@ allocate_string ()
   consing_since_gc += sizeof *s;
 
 #ifdef GC_CHECK_STRING_BYTES
-  if (!noninteractive && ++check_string_bytes_count == 50)
+  if (!noninteractive)
     {
-      check_string_bytes_count = 0;
-      check_string_bytes ();
+      if (++check_string_bytes_count == 200)
+	{
+	  check_string_bytes_count = 0;
+	  check_string_bytes (1);
+	}
+      else
+	check_string_bytes (0);
     }
-#endif
+#endif /* GC_CHECK_STRING_BYTES */
 
   return s;
 }
@@ -4111,13 +4144,9 @@ mark_object (argptr)
 	MARK_INTERVAL_TREE (ptr->intervals);
 	MARK_STRING (ptr);
 #ifdef GC_CHECK_STRING_BYTES
-        {
-	  /* Check that the string size recorded in the string is the
-	     same as the one recorded in the sdata structure. */
-	  struct sdata *p = SDATA_OF_STRING (ptr);
-	  if (GC_STRING_BYTES (ptr) != SDATA_NBYTES (p))
-	    abort ();
-        }
+	/* Check that the string size recorded in the string is the
+	   same as the one recorded in the sdata structure. */
+	CHECK_STRING_BYTES (ptr);
 #endif /* GC_CHECK_STRING_BYTES */
       }
       break;
@@ -4608,6 +4637,10 @@ gc_sweep ()
   sweep_weak_hash_tables ();
 
   sweep_strings ();
+#ifdef GC_CHECK_STRING_BYTES
+  if (!noninteractive)
+    check_string_bytes (1);
+#endif
 
   /* Put all unmarked conses on free list */
   {
@@ -4960,6 +4993,11 @@ gc_sweep ()
 	  prev = vector, vector = vector->next;
 	}
   }
+  
+#ifdef GC_CHECK_STRING_BYTES
+  if (!noninteractive)
+    check_string_bytes (1);
+#endif
 }
 
 
