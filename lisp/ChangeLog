@@ -1,3 +1,21 @@
+2000-02-29  Kenichi Handa  <handa@etl.go.jp>
+
+	* international/mule-diag.el (list-character-sets): Completely
+	rewritten.
+	(sort-listed-character-sets): New function.
+	(list-character-sets-1): Completely rewritten.
+	(list-character-sets-2): New function.
+	(non-iso-charset-alist): New variable.
+	(decode-codepage-char): New function.
+	(charset-history): New variable.
+	(read-charset) (list-block-of-chars)
+	(list-iso-charset-chars)
+	(list-non-iso-charset-chars)
+	(list-charset-chars): New functions.
+	(mule-diag): Call list-character-sets-2, not
+	list-character-sets-2.
+	(dump-charsets): Likewise.
+
 2000-02-29  Gerd Moellmann  <gerd@gnu.org>
 
 	* frame.el (frame-notice-user-settings): Use assq-delete-all
