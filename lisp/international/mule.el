@@ -645,10 +645,10 @@ function by default."
 	      (or limit
 		  (setq limit len)))
 	  (setq limit len))
-	(when (and (string-match "-\\*-[ \t]*coding:[ \t]*\\([^ ;]+\\)" string)
-		   (< (match-beginning 1) limit))
+	(when (and (string-match "-\\*-\\(.*;\\)?[ \t]*coding:[ \t]*\\([^ ;]+\\)" string)
+		   (< (match-beginning 2) limit))
 	  (setq coding-system
-		(intern (substring string (match-beginning 1) (match-end 1))))
+		(intern (substring string (match-beginning 2) (match-end 2))))
 	  (if (not (coding-system-p coding-system))
 	      (setq coding-system nil)))
 
