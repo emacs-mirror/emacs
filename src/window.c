@@ -79,6 +79,7 @@ static void decode_next_window_args P_ ((Lisp_Object *, Lisp_Object *,
 static int foreach_window_1 P_ ((struct window *,
 				 int (* fn) (struct window *, void *),
 				 void *));
+static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
@@ -1549,9 +1550,35 @@ argument ALL_FRAMES is non-nil, cycle through all frames.")
 
 
 DEFUN ("window-list", Fwindow_list, Swindow_list, 0, 3, 0,
-  "Return a list of windows in canonical ordering.\n\
-Arguments are like for `next-window'.")
-  (window, minibuf, all_frames)
+  "Return a list of windows on FRAME, starting with WINDOW.\n\
+FRAME nil or omitted means use the selected frame.\n\
+WINDOW nil or omitted means use the selected window.\n\
+MINIBUF t means include the minibuffer window, even if it isn't active.\n\
+MINIBUF nil or omitted means include the minibuffer window only\n\
+if it's active.\n\
+MINIBUF neither nil nor t means never include the minibuffer window.")
+  (frame, minibuf, window)
+     Lisp_Object frame, minibuf, window;
+{
+  Lisp_Object list;
+
+  if (NILP (window))
+    window = selected_window;
+  if (NILP (frame))
+    frame = selected_frame;
+
+  if (!EQ (frame, XWINDOW (window)->frame))
+    error ("Window is on a different frame");
+
+  return window_list_1 (window, minibuf, frame);
+}
+
+
+/* Return a list of windows in canonical ordering.  Arguments are like
+   for `next-window'.  */
+
+static Lisp_Object
+window_list_1 (window, minibuf, all_frames)
      Lisp_Object window, minibuf, all_frames;
 {
   Lisp_Object tail, list;
@@ -1637,7 +1664,7 @@ window_loop (type, obj, mini, frames)
      We can't just wait until we hit the first window again, because
      it might be deleted.  */
 
-  windows = Fwindow_list (window, mini ? Qt : Qnil, frame_arg);
+  windows = window_list_1 (window, mini ? Qt : Qnil, frame_arg);
   GCPRO1 (windows);
   best_window = Qnil;
 
