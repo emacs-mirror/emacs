@@ -5,7 +5,7 @@
 ;; Author:     FSF (see vc.el for full credits)
 ;; Maintainer: Andre Spiegel <spiegel@gnu.org>
 
-;; $Id: vc-sccs.el,v 1.21 2003/02/04 12:11:54 lektu Exp $
+;; $Id: vc-sccs.el,v 1.22 2003/05/08 19:18:33 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -130,15 +130,19 @@ For a description of possible values, see `vc-check-master-templates'."
               (if (file-ownership-preserved-p file)
                   'edited
                 (vc-user-login-name owner-uid))
-          ;; Strange permissions.
-          ;; Fall through to real state computation.
-          (vc-sccs-state file)))
-    (vc-sccs-state file))))
+            ;; Strange permissions.
+            ;; Fall through to real state computation.
+            (vc-sccs-state file))))
+    (vc-sccs-state file)))
 
 (defun vc-sccs-workfile-version (file)
   "SCCS-specific version of `vc-workfile-version'."
   (with-temp-buffer
-    (vc-insert-file (vc-name file) "^\001e")
+    ;; The workfile version is always the latest version number.
+    ;; To find this number, search the entire delta table,
+    ;; rather than just the first entry, because the
+    ;; first entry might be a deleted ("R") version.
+    (vc-insert-file (vc-name file) "^\001e\n\001[^s]")
     (vc-parse-buffer "^\001d D \\([^ ]+\\)" 1)))
 
 (defun vc-sccs-checkout-model (file)
