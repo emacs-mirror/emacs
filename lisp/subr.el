@@ -203,15 +203,10 @@ in KEYMAP as NEWDEF those chars which are defined as OLDDEF in OLDMAP."
            (cons 'progn body)
            (list 'store-match-data original)))))
 
-;; Avoids useless byte-compilation.
-;; In the future, would be better to fix byte compiler
-;; not to really compile in cases like this,
-;; and use defun here.
-(fset 'ignore '(lambda (&rest ignore) 
-		 "Do nothing.
+(defun ignore (&rest ignore) 
+  "Do nothing.
 Accept any number of arguments, but ignore them."
-		 nil))
-
+  nil)
 
 ; old names
 (fset 'make-syntax-table 'copy-syntax-table)
