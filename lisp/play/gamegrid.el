@@ -166,10 +166,10 @@ static char *noname[] = {
     face))
 
 (defun gamegrid-make-color-tty-face (color)
-  (let* ((hex (gamegrid-color color 1.0))
-	 (name (intern (format "gamegrid-color-tty-face-%s" hex)))
+  (let* ((color-str (symbol-value color))
+	 (name (intern (format "gamegrid-color-tty-face-%s" color-str)))
 	 (face (make-face name)))
-    (gamegrid-setup-face face color)
+    (gamegrid-setup-face face color-str)
     face))
 
 (defun gamegrid-make-grid-x-face ()
@@ -190,7 +190,7 @@ static char *noname[] = {
   (let* ((hex (gamegrid-color color 1.0))
 	 (name (intern (format "gamegrid-color-x-face-%s" hex)))
 	 (face (make-face name)))
-    (gamegrid-setup-face face (gamegrid-color color 1.0))
+    (gamegrid-setup-face face hex)
     face))
 
 (defun gamegrid-make-face (data-spec-list color-spec-list)
@@ -257,6 +257,8 @@ static char *noname[] = {
   (let ((window-system-p 
 	 (or (and (fboundp 'console-on-window-system-p)
 		  (console-on-window-system-p))
+	     (and (fboundp 'display-color-p)
+		  (display-color-p))
 	     window-system)))
   (cond ((and gamegrid-use-glyphs
 		window-system-p
