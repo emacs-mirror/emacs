@@ -120,16 +120,29 @@ See the documentation of that variable."
   :group 'tex-run)
 
 ;;;###autoload
-(defcustom tex-start-options-string "\\nonstopmode\\input"
-  "*TeX options to use when running TeX.
-These precede the input file name. If nil, TeX runs without option.
+(defcustom tex-start-options nil
+  "*TeX options to use when starting TeX.
+These precede the commands in `tex-start-options'
+and the input file name.  If nil, TeX runs with no options.
 See the documentation of `tex-command'."
   :type '(radio (const :tag "Interactive \(nil\)" nil)
 		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
 		       "\\nonstopmode\\input")
 		(string :tag "String at your choice"))
   :group 'tex-run
-  :version "20.4")
+  :version "21.4")
+
+;;;###autoload
+(defcustom tex-start-commands "\\nonstopmode\\input"
+  "*TeX commands to use when starting TeX.
+These precede the input file name.  If nil, no commands are used.
+See the documentation of `tex-command'."
+  :type '(radio (const :tag "Interactive \(nil\)" nil)
+		(const :tag "Nonstop \(\"\\nonstopmode\\input\"\)"
+		       "\\nonstopmode\\input")
+		(string :tag "String at your choice"))
+  :group 'tex-run
+  :version "21.4")
 
 (defvar standard-latex-block-names
   '("abstract"		"array"		"center"	"description"
@@ -238,8 +251,9 @@ tex shell terminates.")
 (defvar tex-command nil
   "*Command to run TeX.
 If this string contains an asterisk \(`*'\), that is replaced by the file name\;
-otherwise the \(shell-quoted\) value of `tex-start-options-string' and
-the file name are added at the end, with blanks as separators.
+otherwise the value of `tex-start-options', the \(shell-quoted\)
+value of `tex-start-commands', and the file name are added at the end
+with blanks as separators.
 
 In TeX, LaTeX, and SliTeX Mode this variable becomes buffer local.
 In these modes, use \\[set-variable] if you want to change it for the
@@ -1447,9 +1461,10 @@ ALL other buffers."
 		      (comint-quote-filename file)
 		      (substring command (1+ star)))
             (concat command " "
-		    (if (< 0 (length tex-start-options-string))
+		    (if (< 0 (length tex-start-commands))
 			(concat
-			 (shell-quote-argument tex-start-options-string) " "))
+			 (shell-quote-argument tex-start-commands) " "))
+		    tex-start-options
 		    (comint-quote-filename file)))))
     (tex-send-tex-command compile-command dir)))
 
