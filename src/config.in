@@ -113,8 +113,9 @@ and this notice must be preserved on all copies.  */
 #undef HAVE_XRMSETDATABASE
 #undef HAVE_XSCREENRESOURCESTRING
 
+#undef HAVE_MKDIR
+#undef HAVE_RMDIR
 #undef HAVE_RANDOM
-
 #undef HAVE_BCOPY
 
 #undef HAVE_AIX_SMT_EXP
