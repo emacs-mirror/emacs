@@ -467,12 +467,12 @@ Does NOT find the source line like \\[next-error]."
 		      (compile-file-of-error
 		       (car (or errors
 				(if reversed
-				    (error "This is the first erring file")
+				    (error "%s the first erring file" file)
 				  (let ((compilation-error-list nil))
 				    ;; Parse some more.
 				    (compile-reinitialize-errors nil nil 2)
 				    (setq errors compilation-error-list)))
-				(error "This is the last erring file")))))
+				(error "%s is the last erring file" file)))))
 	(setq errors (cdr errors)))
 
       (setq n (1- n)))
