@@ -596,7 +596,8 @@ If there is no such live buffer, return nil."
 	       (while (and (not found) list)
 		 (save-excursion
 		   (set-buffer (car list))
-		   (if (and (equal buffer-file-number number)
+		   (if (and buffer-file-name
+			    (equal buffer-file-number number)
 			    ;; Verify this buffer's file number
 			    ;; still belongs to its file.
 			    (file-exists-p buffer-file-name)
