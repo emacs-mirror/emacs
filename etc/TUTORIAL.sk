@@ -348,13 +348,18 @@ paralelu zaèatú C-f a M-f (pravda, <Delete> naozaj nie je control
 znak, ale s tým sa nebudeme trápi»).  C-k a M-k sú ako C-e a M-e v zmysle
 vz»ahu riadkov k vetám.
 
-Keï zma¾ete viac znakov naraz, Emacs zmazaný text ulo¾í, aby ste ich
-mohli opä» vráti».  Vracanie zru¹eného ("killed") textu sa nazýva
-vhadzovanie ("yanking").
+¥ubovoµnú èas» buffera mô¾ete zru¹i» aj nasledujúcim spôsobom.  Presuòte sa
+na koniec tejto èasti a stlaète C-@ alebo C-SPC (µubovoµnú z týchto
+kombinácií). (SPC znamená medzerník.)  Presuòte sa na druhý koniec tejto
+èasti a stlaète C-w.  Text medzi týmito pozíciami bude zru¹ený.
 
-Zru¹ený text mô¾ete vhodi» na to isté miesto, kde bol zru¹ený, alebo na
-iné miesto v texte.  Text mô¾ete vhodi» niekoµko krát za sebou,
-ak potrebujete vyrobi» niekoµko jeho kópií.  Vhadzovací príkaz je C-y.
+>> Presuòte kurzor na písmeno L na zaèiatku predchádzajúceho odstavca.
+>> Stlaète C-SPC.  Emacs by mal zobrazi» v spodnom riadku obrazovky správu
+   "Mark set".
+>> Presuòte kurzor na písmeno c v slove "koniec" na druhom riadku
+   odstavca.
+>> Stlaète C-w.  Text, ktorý zaèína písmenom L a konèí pred písmenom "c"
+   bude zru¹ený.
 
 Uvedomte si, ¾e rozdiel medzi "ru¹ením" ("killing") a "mazaním"
 ("deleting") je ten, ¾e "zru¹ené" veci mô¾u by» vhodené spä», zatiaµ èo
@@ -373,14 +378,19 @@ argument ¹peciálne: zru¹í zodpovedajúci poèet riadkov VRÁTANE ich
 obsahu.  To u¾ nie je opakovanie.  C-u 2 C-k zru¹í dva riadky a ich
 obsah; dvojité stlaèenie C-k by toto obvykle nespravilo.
 
-Vytiahnutie posledného zru¹eného textu a jeho vlo¾enie na pozíciu, kde sa
-momentálne nachádza kurzor, dosiahnete stlaèením C-y.
+Vracanie textov spä» sa nazýva "vhadzovanie" ("yanking").  (Predstavte
+si opätovné vhadzovanie, vracanie spä» textu, ktorý bol odstránený.)
+Zmazaný text mô¾ete vhodi» buï na to isté miesto, odkiaµ bol zmazaný,
+alebo na iné miesto v bufferi, alebo dokonca aj do iného súboru.
+Text mô¾ete vhodi» aj viac krát, keï vytvárate jeho ïal¹ie kópie.
+
+Príkazom na vhadzovanie je C-y.  Tento príkaz vlo¾í posledný zmazaný
+text na pozíciu, na ktorej sa nachádza kurzor.
 
 >> Skúste to; stlaète C-y pre vhodenie textu spä».
 
-Chápte C-y, ako keby ste si spä» vzali nieèo, èo Vám niekto vzal.
-V¹imnite si, ¾e pokiaµ stlaèíte niekoµko C-k za sebou, v¹etok zru¹ený
-text je ulo¾ený spolu, aby jediné C-y vlo¾ilo v¹etky tieto riadky.
+Ak stlaèíte C-k niekoµko krát po sebe. v¹etok zmazaný text je ulo¾ený
+spolu tak, aby bolo mo¾né vhodi» spä» v¹etky riadky naraz.
 
 >> Stlaète niekoµko krát C-k.
 
@@ -414,7 +424,7 @@ bodu (posledne zru¹enému textu).
 ------
 
 Ak vykonáte v texte zmenu a potom zistíte, ¾e to bol omyl, mô¾ete
-zmenu vráti» príkazom undo C-x u.
+zmenu vráti» príkazom undo, C-x u.
 
 C-x u obvykle vráti zmeny vykonané jedným príkazom; pokiaµ C-x u
 zopakujete niekoµko krát po sebe, ka¾dé opakovanie vráti jeden ïal¹í
@@ -436,6 +446,10 @@ preèo ponúkame aj C-x u.  Na niektorých termináloch mô¾ete C-_ vyvola»
 stlaèením / pri stlaèenom CTRL.
 
 Numerický argument pre C-_ a C-x u funguje ako poèet opakovaní.
+
+Pomocou príkazu undo mô¾ete vráti» zru¹ený aj zmazaný text. Rozdiel medzi
+mazaním a ru¹ením textu ovplyvòuje mo¾nos» vhodenia tohto textu pomocou
+C-y, neovplyvòuje ale mo¾nosti príkazu undo.
 
 
 * SÚBORY
@@ -955,6 +969,10 @@ Tu sú ïal¹ie u¾itoèné voµby C-h:
    To vypí¹e v¹etky informácie, ktoré Emacs má o funkcii implementujúcej
    príkaz C-p.
 
+Podobný príkaz C-h v zobrazí dokumentáciu premennej, ktorej hodnotu
+mô¾ete nastavi» pre ovplyvnenie chovania Emacsu.  Meno premennej musíte
+zada», a¾ keï sa naò Emacs spýta.
+
    C-h a	Príkazové apropos.  Zadajte kµúèové slovo a Emacs vypí¹e
 		v¹etky príkazy, ktorých meno obsahuje toto kµúèové
 		slovo.  V¹etky tieto príkazy mô¾u by» vyvolané pomocou
@@ -971,6 +989,16 @@ zodpovedajúcich mien príkazov ako find-file.
 >> Stlaète C-M-v pre posun okna s nápovedou.  Urobte to viac krát.
 
 >> Stlaète C-x 1 pre zmazanie okna s nápovedou.
+
+   C-h i        Èítanie on-line manuálov (tie¾ Info).  Tento príkaz
+                Vás prepne do ¹peciálneho buffera s názvom `*info*',
+		v ktorom mô¾ete èíta» on-line manuály pre balíky
+                in¹talované na va¹om systéme.  Ak stlaèíte m emacs <Return>,
+		mô¾ete si napríklad preèíta» manuál k Emacsu.  Ak ste
+		doteraz nikdy nepou¾ívali Info, stlaète ? a Emacs vám
+		predstaví hlavné mo¾nosti módu pre Info.  Ak toto
+		predstavenie absolvujete, mali by ste pou¾íva» Info
+		manuál Emacsu ako svoju primárnu dokumentáciu.
 
 
 * ZÁVER
