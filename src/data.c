@@ -2101,8 +2101,9 @@ If the base used is not 10, floating point is not recognized.")
      register Lisp_Object string, base;
 {
   register unsigned char *p;
-  register int b, v = 0;
-  int negative = 1;
+  register int b;
+  int sign = 1;
+  Lisp_Object val;
 
   CHECK_STRING (string, 0);
 
@@ -2116,33 +2117,41 @@ If the base used is not 10, floating point is not recognized.")
 	Fsignal (Qargs_out_of_range, Fcons (base, Qnil));
     }
 
-  p = XSTRING (string)->data;
-
   /* Skip any whitespace at the front of the number.  Some versions of
      atoi do this anyway, so we might as well make Emacs lisp consistent.  */
+  p = XSTRING (string)->data;
   while (*p == ' ' || *p == '\t')
     p++;
 
   if (*p == '-')
     {
-      negative = -1;
+      sign = -1;
       p++;
     }
   else if (*p == '+')
     p++;
   
   if (isfloat_string (p) && b == 10)
-    return make_float (negative * atof (p));
-
-  while (1)
+    val = make_float (sign * atof (p));
+  else
     {
-      int digit = digit_to_number (*p++, b);
-      if (digit < 0)
-	break;
-      v = v * b + digit;
+      double v = 0;
+
+      while (1)
+	{
+	  int digit = digit_to_number (*p++, b);
+	  if (digit < 0)
+	    break;
+	  v = v * b + digit;
+	}
+
+      if (v > (EMACS_UINT) (VALMASK >> 1))
+	val = make_float (sign * v);
+      else
+	val = make_number (sign * (int) v);
     }
-  
-  return make_number (negative * v);
+
+  return val;
 }
 
 
