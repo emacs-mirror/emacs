@@ -196,6 +196,22 @@ concat2 (s1, s2)
 #endif /* NO_ARG_ARRAY */
 }
 
+/* ARGSUSED */
+Lisp_Object
+concat3 (s1, s2, s3)
+     Lisp_Object s1, s2, s3;
+{
+#ifdef NO_ARG_ARRAY
+  Lisp_Object args[3];
+  args[0] = s1;
+  args[1] = s2;
+  args[2] = s3;
+  return concat (3, args, Lisp_String, 0);
+#else
+  return concat (3, &s1, Lisp_String, 0);
+#endif /* NO_ARG_ARRAY */
+}
+
 DEFUN ("append", Fappend, Sappend, 0, MANY, 0,
   "Concatenate all the arguments and make the result a list.\n\
 The result is a list whose elements are the elements of all the arguments.\n\
