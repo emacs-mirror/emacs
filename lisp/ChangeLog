@@ -1,5 +1,9 @@
 2001-08-15  Gerd Moellmann  <gerd@gnu.org>
 
+	* emacs-lisp/cl-indent.el (lisp-indent-defmethod): New function.
+	(toplevel): Set it as `common-lisp-indent-function' for
+	`defmethod'.
+
 	* ediff-mult.el (ediff-get-meta-info): Fix the condition 
 	of a while-loop.
 
