@@ -132,24 +132,28 @@
 ;;; Input by Inscript
 ;;;
 
-(defun quail-indian-flatten-list (lst)
-  "Flatten the nested LIST so that there would be no innner list."
-  (if (listp lst)
-      (apply 'append (mapcar 'quail-indian-flatten-list lst))
-    (list lst)))
-
-(defun quail-define-inscript-package (char-table key-table pkgname lang title
-						 docstring)
-  (setq char-table (quail-indian-flatten-list char-table))
-  (setq key-table (quail-indian-flatten-list key-table))
+(defun quail-define-inscript-package (char-tables key-tables pkgname lang
+                                                  title docstring)
   (funcall 'quail-define-package pkgname lang title nil docstring
 	   nil nil nil nil nil nil nil nil)
-  (dolist (key key-table)
-    (let ((val (pop char-table)))
-      (if (and key val)
-	  (quail-defrule
-	    (if (characterp key) (char-to-string key) key)
-	    (if (stringp val) (vector val) val))))))
+  (let (char-table key-table char key)
+    (while (and char-tables key-tables)
+      (setq char-table  (car char-tables)
+            char-tables (cdr char-tables)
+            key-table   (car key-tables)
+            key-tables  (cdr key-tables))
+      (while (and char-table key-table)
+        (setq char       (car char-table)
+              char-table (cdr char-table)
+              key        (car key-table)
+              key-table  (cdr key-table))
+        (if (and (consp char) (consp key))
+            (setq char-table (append char char-table)
+                  key-table  (append key  key-table))
+          (if (and key char)
+              (quail-defrule
+               (if (characterp key) (char-to-string key) key)
+               (if (stringp char)   (vector char) char))))))))
 
 ;;
 
@@ -159,6 +163,29 @@
      (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
      (?+ ?=) ("F]" "f]") (?! ?@) (?Z ?z) (?S ?s) (?W ?w)
      (?| ?\\) (?~ ?`) (?A ?a) (?Q ?q) ("+]" "=]") ("R]" "r]"))
+    (;; CONSONANTS (42)
+     ?k ?K ?i ?I ?U                ;; GRUTTALS
+     ?\; ?: ?p ?P ?}               ;; PALATALS
+     ?' ?\" ?\[ ?{ ?C              ;; CEREBRALS
+     ?l ?L ?o ?O ?v ?V             ;; DENTALS
+     ?h ?H ?y ?Y ?c                ;; LABIALS
+     ?/ ?j ?J ?n ?N "N]" ?b        ;; SEMIVOWELS
+     ?M ?< ?m ?u                   ;; SIBILANTS
+     "k]" "K]" "i]" "p]" "[]" "{]" "H]" "/]" ;; NUKTAS
+     ?% ?&)
+    (;; Misc Symbols (7)
+     ?X ?x ?_ ">]" ?d "X]" ?>)
+    (;; Digits
+     ?0 ?1 ?2 ?3 ?4 ?5 ?6 ?7 ?8 ?9)
+    (;; Inscripts
+     ?# ?$ ?^ ?* ?\])))
+
+(defvar inscript-tml-keytable
+  '(
+    (;; VOWELS  (18)
+     (?D nil) (?E ?e) (?F ?f) (?R ?r) (?G ?g) (?T ?t)
+     nil nil nil (?S ?s) (?Z ?z) (?W ?w)
+     nil (?A ?a) (?~ ?`) (?Q ?q) nil nil)
     (;; CONSONANTS (42)
      ?k ?K ?i ?I ?U                ;; GRUTTALS
      ?\; ?: ?p ?P ?}               ;; PALATALS
@@ -242,7 +269,7 @@
 (if nil
     (quail-define-package "tamil-inscript" "Tamil" "TmlIS" t "Tamil keyboard Inscript"))
 (quail-define-inscript-package
- indian-tml-base-table inscript-dev-keytable
+ indian-tml-base-table inscript-tml-keytable
  "tamil-inscript" "Tamil" "TmlIS"
  "Tamil keyboard Inscript.")
 
