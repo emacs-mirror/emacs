@@ -1,5 +1,7 @@
 2001-09-24  Gerd Moellmann  <gerd@gnu.org>
 
+	* xterm.c (refreshicon): Removed.
+
 	* Makefile.in (xterm.o): Remove references to sink.h and sinkmask.h.
 
 	* sink11.h, sink11mask.h, sink.h, sinkmask.h: Removed.
