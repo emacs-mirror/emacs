@@ -1,3 +1,8 @@
+2002-08-28  Simon Josefsson  <jas@extundo.com>
+
+	* xfns.c (Fx_open_connection): Improve help when X connection
+	fails, xhost is insecure and xauth is better.
+
 2002-08-28  Juanma Barranquero  <lektu@terra.es>
 
 	* makefile.w32-in: Add missing dependencies on w32term.h and
