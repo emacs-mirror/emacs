@@ -177,6 +177,10 @@ Lisp_Object Vset_auto_coding_function;
 /* Functions to be called to process text properties in inserted file.  */
 Lisp_Object Vafter_insert_file_functions;
 
+/* Function to be called to adjust buffer-file-coding-system and the
+   multibyteness of the current buffer after inserting a file.  */
+Lisp_Object Vafter_insert_file_adjust_coding_function;
+
 /* Functions to be called to create text property annotations for file.  */
 Lisp_Object Vwrite_region_annotate_functions;
 
@@ -4540,6 +4544,20 @@ actually used.  */)
 			Fcons (orig_filename, Qnil)));
     }
 
+  if (set_coding_system)
+    Vlast_coding_system_used = coding.symbol;
+
+  if (FUNCTIONP (Vafter_insert_file_adjust_coding_function))
+    {
+      insval = call1 (Vafter_insert_file_adjust_coding_function,
+		      make_number (inserted));
+      if (! NILP (insval))
+	{
+	  CHECK_NUMBER (insval);
+	  inserted = XFASTINT (insval);
+	}
+    }
+
   /* Decode file format */
   if (inserted > 0)
     {
@@ -4562,9 +4580,6 @@ actually used.  */)
       if (!NILP (visit))
 	current_buffer->undo_list = empty_undo_list_p ? Qnil : Qt;
     }
-
-  if (set_coding_system)
-    Vlast_coding_system_used = coding.symbol;
 
   /* Call after-change hooks for the inserted text, aside from the case
      of normal visiting (not with REPLACE), which is done in a new buffer
@@ -6413,6 +6428,14 @@ specified in the heading lines with the format:
 	-*- ... coding: CODING-SYSTEM; ... -*-
 or local variable spec of the tailing lines with `coding:' tag.  */);
   Vset_auto_coding_function = Qnil;
+
+  DEFVAR_LISP ("after-insert-file-adjust-coding-function",
+	       &Vafter_insert_file_adjust_coding_function,
+	       doc: /* Function to call to adjust buffer-file-coding-system after inserting a file.
+The function is called with one arguemnt, the number of characters inserted.
+It should adjust `buffer-file-coding-system' and the multibyteness of
+the current buffer, and return the new character count.  */);
+  Vafter_insert_file_adjust_coding_function = Qnil;
 
   DEFVAR_LISP ("after-insert-file-functions", &Vafter_insert_file_functions,
 	       doc: /* A list of functions to be called at the end of `insert-file-contents'.
