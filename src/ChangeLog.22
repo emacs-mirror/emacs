@@ -1,3 +1,8 @@
+2004-01-24  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Pass -1 as POS to
+	FACE_FOR_CHAR if displaying a C-string.
+
 2004-01-23  Kenichi Handa  <handa@m17n.org>
 
 	* composite.c (get_composition_id): Handle xoff and yoff in a
