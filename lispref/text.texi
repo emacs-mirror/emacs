@@ -2568,6 +2568,7 @@ position if no change is found.
 @end defun
 
 @defun next-single-char-property-change pos prop &optional object limit
+@tindex next-single-char-property-change
 This is like @code{next-single-property-change} except that it
 considers overlay properties as well as text properties, and if no
 change is found before the end of the @var{object}, it returns the
@@ -2578,6 +2579,7 @@ text-properties are considered.
 @end defun
 
 @defun previous-single-char-property-change pos prop &optional object limit
+@tindex previous-single-char-property-change
 This is like @code{next-single-char-property-change}, but scans back
 from @var{pos} instead of forward, and returns the minimum valid
 position in @var{object} if no change is found.
