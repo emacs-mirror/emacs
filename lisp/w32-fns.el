@@ -2,7 +2,6 @@
 ;; Copyright (C) 1994 Free Software Foundation, Inc.
 
 ;; Author: Geoff Voelker (voelker@cs.washington.edu)
-;; Version: 1
 
 ;; This file is part of GNU Emacs.
 
@@ -60,6 +59,9 @@
 ;; The cmd.exe shell uses the "/c" switch instead of the "-c" switch
 ;; for executing its command line argument (from simple.el).
 (setq shell-command-switch "/c")
+
+;; Use ";" instead of ":" as a path separator (from files.el).
+(setq path-separator ";")
 
 ;; Taken from dos-fn.el ... don't want all that's in the file, maybe
 ;; separate it out someday.
