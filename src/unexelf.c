@@ -719,11 +719,19 @@ unexec (new_name, old_name, data_start, bss_start, entry_address)
 	  NEW_SECTION_H (nn).sh_addralign = OLD_SECTION_H (nn).sh_addralign;
 	  NEW_SECTION_H (nn).sh_size = 0;
 	}
-      /* Any section that was original placed AFTER the bss section should now
-	 be off by NEW_DATA2_SIZE. */
-      else if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
-	NEW_SECTION_H (nn).sh_offset += new_data2_size;
-      
+      else
+	{
+	  /* Any section that was original placed AFTER the bss
+	     section should now be off by NEW_DATA2_SIZE. */
+	  if (NEW_SECTION_H (nn).sh_offset >= new_data2_offset)
+	    NEW_SECTION_H (nn).sh_offset += new_data2_size;
+	  /* Any section that was originally placed after the section
+	     header table should now be off by the size of one section
+	     header table entry.  */
+	  if (NEW_SECTION_H (nn).sh_offset > new_file_h->e_shoff)
+	    NEW_SECTION_H (nn).sh_offset += new_file_h->e_shentsize;
+	}
+
       /* If any section hdr refers to the section after the new .data
 	 section, make it refer to next one because we have inserted 
 	 a new section in between.  */
