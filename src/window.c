@@ -257,7 +257,10 @@ DEFUN ("window-height", Fwindow_height, Swindow_height, 0, 1, 0,
 }
 
 DEFUN ("window-width", Fwindow_width, Swindow_width, 0, 1, 0,
-  "Return the number of columns in WINDOW.")
+  "Return the number of display columns in WINDOW.\n\
+This is the width that is usable columns available for text in WINDOW.\n\
+If you want to find out how many columns WINDOW takes up,\n\
+use  (let ((edges (window-edges))) (- (nth 2 edges) (nth 0 edges))).")
   (window)
      Lisp_Object window;
 {
