@@ -31,6 +31,7 @@ File: dir	Node: Top	This is the top of the INFO tree
 * CC mode: (ccmode).	The GNU Emacs mode for editing C, C++, Objective-C
 			  and Java code.
 * Ada mode: (ada-mode). The GNU Emacs mode editing Ada.
+* IDLWAVE: (idlwave).	Major mode and shell for IDL and WAVE/CL files.
 
 Editors
 * Autotype: (autotype). Convenient features for text that you enter frequently
