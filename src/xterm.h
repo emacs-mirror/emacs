@@ -1,5 +1,5 @@
 /* Definitions and headers for communication with X protocol.
-   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001
+   Copyright (C) 1989, 1993, 1994, 1998, 1999, 2000, 2001, 2001
    Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
@@ -209,6 +209,7 @@ struct x_display_info
   int mouse_face_past_end;
   Lisp_Object mouse_face_window;
   int mouse_face_face_id;
+  Lisp_Object mouse_face_overlay;
 
   /* 1 if a mouse motion event came and we didn't handle it right away because
      gc was in progress.  */
