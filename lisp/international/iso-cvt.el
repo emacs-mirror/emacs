@@ -86,7 +86,6 @@
 (defun iso-translate-conventions (trans-tab)
   "Use the translation table TRANS-TAB to translate the current buffer."
   (save-excursion
-    (widen)
     (goto-char (point-min))
     (let ((work-tab trans-tab)
 	  (buffer-read-only nil)
@@ -377,10 +376,10 @@ little.")
     ("\\\\o{a}" "\345")
     ("{\\\\copyright}" "\251")
     ("\\\\copyright{}" "\251")
-    ("?`" "¿")
-    ("!`" "¡")
-    ("{?`}" "¿")
+    ("{\\?`}" "¿")
     ("{!`}" "¡")
+    ("\\?`" "¿")
+    ("!`" "¡")
     )
   "Translation table for translating TeX sequences to ISO 8859-1 characters. 
 This table is not exhaustive (and due to TeX's power can never be). It only
@@ -649,9 +648,10 @@ contains commonly used sequences.")
 (defun iso-german-tex-p ()
  "Check if tex buffer is German LaTeX."
  (save-excursion
-   (widen)
-   (goto-char (point-min))
-   (re-search-forward "\\\\documentstyle\\[.*german.*\\]" nil t)))
+   (save-restriction
+     (widen)
+     (goto-char (point-min))
+     (re-search-forward "\\\\documentstyle\\[.*german.*\\]" nil t))))
 
 (defun iso-fix-iso2tex ()
   "Turn ISO 8859-1 (aka. ISO Latin-1) buffer into TeX sequences.
@@ -663,7 +663,7 @@ If German TeX is used, German TeX sequences are generated."
 	(iso-iso2tex)))
   (if (or (equal major-mode 'tex-mode)
 	  (equal major-mode 'TeX-mode) ; AucTeX wants this
-	  (equal major-mode 'plain-tex-mode)) ; AucTeX wants this
+	  (equal major-mode 'plain-tex-mode))
       (iso-iso2tex)))
 
 (defun iso-fix-tex2iso ()
@@ -676,7 +676,7 @@ This function recognices German TeX buffers."
 	(iso-tex2iso)))
   (if (or (equal major-mode 'tex-mode)
 	  (equal major-mode 'TeX-mode)  ; AucTeX wants this
-	  (equal major-mode 'plain-tex-mode)) ; AucTeX wants this
+	  (equal major-mode 'plain-tex-mode))
       (iso-tex2iso)))
 
 (defun iso-cvt-ffh ()
