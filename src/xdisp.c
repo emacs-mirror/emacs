@@ -19110,7 +19110,9 @@ x_produce_glyphs (it)
 
 	  height = get_line_height_property(it, Qline_height);
 	  /* Split (line-height total-height) list */
-	  if (CONSP (height) && CONSP (XCDR (height)))
+	  if (CONSP (height)
+	      && CONSP (XCDR (height))
+	      && NILP (XCDR (XCDR (height))))
 	    {
 	      total_height = XCAR (XCDR (height));
 	      height = XCAR (height);
