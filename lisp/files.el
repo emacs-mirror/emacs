@@ -2180,6 +2180,9 @@ to nil.
 Optional second argument NOCONFIRM means don't ask for confirmation at
 all.
 
+Optional third argument PRESERVE-MODES non-nil means don't alter
+the files modes.  Normally we reinitialize them using `normal-mode'.
+
 If the value of `revert-buffer-function' is non-nil, it is called to
 do the work.
 
