@@ -1,0 +1,183 @@
+#!/bin/sh
+#
+# make-dist: create an Emacs distribution tar file from the current
+# source tree.	This basically creates a duplicate directory
+# structure, and then hard links into it only those files that should
+# be distributed.  This means that if you add a file with an odd name,
+# you should make sure that this script will include it.
+
+progname="$0"
+
+# Exit if a command fails.
+set -e
+
+# Print out each line we read, for debugging's sake.
+# set -v
+
+cleanup=yes
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    "--no-cleanup" )
+      cleanup=no
+    ;;
+    * )
+      echo "${progname}: Unrecognized argument: $1" >&2
+      exit 1
+    ;;
+  esac
+  shift
+done
+
+# Make sure we're running in the right place.
+if [ ! -d src -o ! -f src/lisp.h -o ! -d lisp -o ! -f lisp/version.el ]; then
+  echo "${progname}: must run in the top directory of the Emacs" >&2
+  echo "distribution tree.  Cd to that directory and try again." >&2
+  exit 1
+fi
+
+# Find out which version of Emacs this is.
+version=`grep 'defconst[	 ]*emacs-version' lisp/version.el \
+	 | sed -e 's/^.*"\([0-9]+\.[0-9]+\)\..*$/\1/'`
+if [ ! "${version}" ]; then
+  echo "${progname}: can't find current emacs version in ./lisp/version.el." >&2
+  exit 1
+fi
+
+# Make sure the subdirectory is available.
+tempparent="make-dist.$$"
+if [ -d ${tempparent} ]; then
+  echo "${progname}: staging directory ${tempparent} already exists.
+Perhaps a previous invocation of ${progname} failed to clean up
+after itself.  Check that directories whose names are of the form
+make-dist.NNNNN don't contain any important information, remove them,
+and try again." >&2
+  exit 1
+fi
+
+echo "Creating staging directory: ${tempparent}"
+mkdir ${tempparent}
+emacsname="emacs-${version}"
+tempdir="${tempparent}/${emacsname}"
+
+echo "Creating top directory: ${tempdir}"
+mkdir ${tempdir}
+
+# We copy in the top-level files before creating the subdirectories in
+# hopes that this will make the top-level files appear first in the
+# tar file.
+echo "Copying top-level files." 
+ln INSTALL PROBLEMS README ${tempdir}
+ln ChangeLog Makefile.in build-install.in configure make-dist ${tempdir}
+
+echo "Creating subdirectories."
+for subdir in lisp lisp/term src src/m src/s lib-src oldXMenu \
+	      etc lock local-lisp arch-lib cpp info man shortnames; do
+  mkdir ${tempdir}/${subdir}
+done
+
+echo "Copying lisp."
+# Don't distribute =*.el files, site-init.el, or site-load.el.
+(cd lisp
+ ln [a-zA-Z]*.el ../${tempdir}/lisp
+ ln [a-zA-Z]*.elc ../${tempdir}/lisp
+ ln [a-zA-Z]*.defns ../${tempdir}/lisp
+ ln ChangeLog README ../${tempdir}/lisp
+ cd ../${tempdir}/lisp
+ rm -f site-init site-init.el site-init.elc
+ rm -f site-load site-load.el site-load.elc)
+
+echo "Copying lisp/term."
+# Don't distribute =*.el files.
+(cd lisp/term
+ ln [a-zA-Z]*.el ../../${tempdir}/lisp/term
+ ln [a-zA-Z]*.elc ../../${tempdir}/lisp/term
+ ln README ../../${tempdir}/lisp/term)
+
+echo "Copying src."
+# Don't distribute =*.[ch] files, or the configured versions of
+# config.h.in, paths.h.in, or Makefile.in.
+(cd src
+ ln [a-zA-Z]*.c ../${tempdir}/src
+ ln [a-zA-Z]*.h ../${tempdir}/src
+ ln [a-zA-Z]*.s ../${tempdir}/src
+ ln README Makefile.in ymakefile ChangeLog config.h.in paths.h.in \
+    ../${tempdir}/src
+ ln .gdbinit .dbxinit ../${tempdir}/src
+ ln *.com *.opt vms-pp.trans vmsbuild ../${tempdir}/src
+ cd ../${tempdir}/src
+ etags *.h *.c ../lisp/*.el)
+
+echo "Copying src/m."
+(cd src/m
+ ln README *.h ../../${tempdir}/src/m)
+
+echo "Copying src/s."
+(cd src/s
+ ln README *.h ../../${tempdir}/src/s)
+
+echo "Copying lib-src."
+(cd lib-src
+ ln [a-zA-Z]*.c [a-zA-Z]*.h [a-zA-Z]*.y [a-zA-Z]*.lex ../${tempdir}/lib-src
+ ln ChangeLog Makefile.in README testfile ../${tempdir}/lib-src)
+
+echo "Copying oldXMenu."
+(cd oldXMenu
+ ln *.c *.h ../${tempdir}/oldXMenu
+ ln README Makefile Imakefile ChangeLog ../${tempdir}/oldXMenu)
+
+echo "Copying etc."
+# Don't distribute DOC files, backups, autosaves, or tex litter.
+(cd etc
+ ln [0-9a-zA-Z]* ../${tempdir}/etc
+ cd ../${tempdir}/etc
+ # Avoid an error when expanding the wildcards later.
+ for dummy in DOC-dummy dummy~ \#dummy\# dummy.dvi dummy.log; do
+   ln MACHINES ${dummy}
+ done
+ rm -f DOC* *~ \#*\# *.dvi *.log core)
+
+# For now, we comment these out, since I'm not changing them any.
+#!! echo "Copying cpp."
+#!! (cd cpp
+#!!  ln cccp.c cexp.y Makefile README ../${tempdir}/cpp)
+#!! 
+#!! echo "Copying info."
+#!! # Don't distribute backups or autosaves.
+#!! (cd info
+#!!  ln [a-zA-Z]* ../${tempdir}/info
+#!!  cd ../${tempdir}/info
+#!!  # Avoid an error when expanding the wildcards later.
+#!!  ln emacs dummy~ ; ln emacs \#dummy\#
+#!!  rm -f *~ \#*\# core)
+#!! 
+#!! echo "Copying man."
+#!! (cd man
+#!!  ln *.tex *.texinfo *.texi *.aux *.cps *.fns *.kys *.vrs ../${tempdir}/man
+#!!  ln *.c ../${tempdir}/man
+#!!  ln ChangeLog Makefile README split-man ../${tempdir}/man)
+
+echo "Copying shortnames."
+(cd shortnames
+ ln *.c ../${tempdir}/shortnames
+ ln Makefile reserved special ../${tempdir}/shortnames)
+
+echo "Making sure copying notices are symlinks."
+if [ -f ${tempdir}/etc/COPYING ]; then
+  rm ${tempdir}/etc/COPYING
+  ln etc/COPYING ${tempdir}/etc/COPYING
+fi
+for subdir in lisp src lib-src info shortnames; do
+  if [ -f ${tempdir}/${subdir}/COPYING ]; then
+    rm ${tempdir}/${subdir}/COPYING
+  fi
+  ln -s ../etc/COPYING ${tempdir}/${subdir}
+done
+
+echo "Creating tar file."
+(cd ${tempparent}; tar cvf - ${emacsname}) | compress > ${emacsname}.tar.Z
+
+if [ "${cleanup}" = yes ]; then
+  echo "Cleaning up the staging directory."
+  rm -rf ${tempparent}
+fi

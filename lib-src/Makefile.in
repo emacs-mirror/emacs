@@ -1,0 +1,194 @@
+# DIST: This is the distribution Makefile for Emacs.  configure can
+# DIST: make most of the changes to this file you might want, so try
+# DIST: that first.
+
+# add -DUSG for SysV movemail and timer
+# For Xenix, add the following for movemail:
+#  LOADLIBES= -lx
+# For Mips, the following is needed for who knows what.
+#  LOADLIBES = -lmld /usr/bsd43/usr/lib/libc.a
+
+# Avoid trouble on systems where the `SHELL' variable might be
+# inherited from the environment.
+SHELL = /bin/sh
+
+# Allow the user to specify the install program.
+INSTALL = install
+INSTALLFLAGS =
+
+# Things that a user might actually run
+INSTALLABLES = etags ctags emacsclient b2m 
+
+# Things that Emacs runs internally, or during the build process.
+UTILITIES= test-distrib wakeup make-docfile digest-doc sorted-doc \
+	movemail cvtmail fakemail yow env emacsserver hexl timer
+
+EXECUTABLES= ${UTILITIES} ${INSTALLABLES}
+
+# These things are edited by ../configure; don't change anything before
+# or including the '='; everything after that gets blown away.
+CC=gcc
+CFLAGS= -g -O
+LOADLIBES=
+
+all: ../arch-lib
+
+../arch-lib: ${EXECUTABLES}
+	for file in ${EXECUTABLES} ; do \
+	  if [ -f $${file} ]; then \
+            if [ -f ../arch-lib/$${file} ]; then \
+	      rm ../arch-lib/$${file} ; \
+	    fi ; \
+	    ln $${file} ../arch-lib ; \
+          fi ; \
+	done
+
+# We don't need to install `wakeup' explicitly, because it will be copied when
+# this whole directory is copied.
+install: all
+	${INSTALL} ${INSTALLFLAGS} -c emacsclient ${BINDIR}/emacsclient
+	${INSTALL} ${INSTALLFLAGS} -c etags ${BINDIR}/etags
+	${INSTALL} ${INSTALLFLAGS} -c ctags ${BINDIR}/ctags
+	${INSTALL} ${INSTALLFLAGS} -c b2m ${BINDIR}/b2m
+	${INSTALL} ${INSTALLFLAGS} -c -m 444 emacs.1 ${MANDIR}/emacs.${MANEXT}
+
+install.sysv: all
+	-cp emacsclient ${BINDIR}/emacsclient.new
+	-chmod 755 ${BINDIR}/emacsclient.new
+	-chgrp bin ${BINDIR}/emacsclient.new
+	-chown bin ${BINDIR}/emacsclient.new
+	-mv ${BINDIR}/emacsclient.new ${BINDIR}/emacsclient
+	-cp etags ${BINDIR}/etags.new
+	-chmod 755 ${BINDIR}/etags.new
+	-chgrp bin ${BINDIR}/etags.new
+	-chown bin ${BINDIR}/etags.new
+	-mv ${BINDIR}/etags.new ${BINDIR}/etags
+	-cp ctags ${BINDIR}/ctags.new
+	-chmod 755 ${BINDIR}/ctags.new
+	-chgrp bin ${BINDIR}/ctags.new
+	-chown bin ${BINDIR}/ctags.new
+	-mv ${BINDIR}/ctags.new ${BINDIR}/ctags
+	-cp b2m ${BINDIR}/b2m.new
+	-chmod 755 ${BINDIR}/b2m.new
+	-chgrp bin ${BINDIR}/b2m.new
+	-chown bin ${BINDIR}/b2m.new
+	-mv ${BINDIR}/b2m.new ${BINDIR}/b2m
+	-cp emacs.1 ${MANDIR}/emacs.${MANEXT}.new
+	-chmod 444 ${MANDIR}/emacs.${MANEXT}.new
+	-mv ${MANDIR}/emacs.${MANEXT}.new ${MANDIR}/emacs.${MANEXT}
+
+install.xenix:
+	cp etags ctags emacsclient ${BINDIR}
+	chmod 755 ${BINDIR}/etags ${BINDIR}/ctags
+	chmod 755 ${BINDIR}/emacsclient
+	cp b2m ${BINDIR}
+	chmod 755 ${BINDIR}/b2m
+	cp emacs.1 ${MANDIR}/emacs.${MANEXT}
+	chmod 444 ${MANDIR}/emacs.${MANEXT}
+
+
+clean mostlyclean:
+	-rm -f ${EXECUTABLES} core *.o
+
+distclean:
+	-rm -f ${EXECUTABLES} *~ \#* ../etc/DOC* core *.o
+	cd ../arch-lib; rm -f ${EXECUTABLES}
+
+realclean: distclean
+	rm TAGS aixcc.c
+
+# Test the contents of the directory.
+check:
+	@echo "We don't have any tests for GNU Emacs yet."
+
+TAGS: etags
+	etags *.[ch]
+
+# This verifies that the non-ASCII characters in the file `testfile'
+# have not been clobbered by whatever means were used to copy and
+# distribute Emacs.  If they were clobbered, all the .elc files were
+# clobbered too.
+test-distrib: test-distrib.c
+	$(CC) -o test-distrib test-distrib.c
+	./test-distrib
+
+GETOPTOBJS = getopt.o getopt1.o
+GETOPTDEPS = $(GETOPTOBJS) getopt.h
+getopt.o: getopt.c getopt.h
+getopt1.o: getopt1.c getopt.h
+
+etags: etags.c $(GETOPTDEPS)
+	$(CC) -o etags ${CFLAGS} -DETAGS etags.c $(GETOPTOBJS) $(LOADLIBES)
+
+ctags: etags.c $(GETOPTDEPS)
+	$(CC) -o ctags ${CFLAGS} -DCTAGS etags.c $(GETOPTOBJS) $(LOADLIBES)
+
+wakeup: wakeup.c
+	$(CC) -o wakeup ${CFLAGS} wakeup.c $(LOADLIBES)
+
+make-docfile: make-docfile.c
+	$(CC) -o make-docfile ${CFLAGS} make-docfile.c $(LOADLIBES)
+
+digest-doc: digest-doc.c
+	$(CC) -o digest-doc ${CFLAGS} digest-doc.c $(LOADLIBES)
+
+sorted-doc: sorted-doc.c
+	$(CC) -o sorted-doc ${CFLAGS} sorted-doc.c $(LOADLIBES)
+
+b2m: b2m.c
+	$(CC) -o b2m ${CFLAGS} b2m.c $(LOADLIBES)
+
+movemail: movemail.c ../src/config.h
+	$(CC) -o movemail ${CFLAGS} movemail.c $(LOADLIBES)
+
+cvtmail: cvtmail.c
+	$(CC) -o cvtmail ${CFLAGS} cvtmail.c $(LOADLIBES)
+
+fakemail: fakemail.c ../src/config.h
+	$(CC) -o fakemail ${CFLAGS} fakemail.c $(LOADLIBES)
+
+yow: yow.c ../src/paths.h
+	$(CC) -o yow ${CFLAGS} yow.c $(LOADLIBES)
+
+env: env.c ../src/config.h
+	$(CC) -o env -DEMACS ${CFLAGS} env.c $(LOADLIBES)
+
+emacsserver: emacsserver.c ../src/config.h
+	$(CC) -o emacsserver ${CFLAGS} emacsserver.c $(LOADLIBES)
+
+emacsclient: emacsclient.c ../src/config.h
+	$(CC) -o emacsclient ${CFLAGS} emacsclient.c $(LOADLIBES)
+
+hexl: hexl.c
+	$(CC) -o hexl ${CFLAGS} hexl.c $(LOADLIBES)
+
+timer: getdate.o timer.o
+	$(CC) -o timer $(CFLAGS) getdate.o timer.o
+
+# These are NOT included in INSTALLABLES or UTILITIES.
+# See ../src/ymakefile.
+emacstool: emacstool.c
+	$(CC) emacstool.c -o emacstool ${CFLAGS} \
+	  -lsuntool -lsunwindow -lpixrect $(LOADLIBES)
+
+# For SUN Japanese Language Environment
+nemacstool: emacstool.c
+	$(CC) -o nemacstool -DJLE ${CFLAGS} emacstool.c \
+	  -lsuntool -lmle -lsunwindow -lpixrect $(LOADLIBES)
+
+xvetool: emacstool.c
+	$(CC) -o xvetool -DXVIEW ${CFLAGS} emacstool.c \
+	  -lxview -lX -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
+	  $(LOADLIBES)
+
+xveterm: emacstool.c
+	$(CC) -o xveterm -DXVIEW -DTTERM ${CFLAGS} emacstool.c \
+	  -lxview -lolgx -lX  -I$(OPENWINHOME)/include -L$(OPENWINHOME)/lib \
+	  $(LOADLIBES)
+
+aixcc: aixcc.c
+	$(CC) $(CFLAGS) -o aixcc aixcc.c
+
+aixcc.c: aixcc.lex
+	lex aixcc.lex
+	mv lex.yy.c aixcc.c
