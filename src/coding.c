@@ -308,12 +308,14 @@ char *coding_category_name[CODING_CATEGORY_IDX_MAX] = {
 /* Flag to tell if we look up unification table on character code
    conversion.  */
 Lisp_Object Venable_character_unification;
-/* Standard unification table to look up on reading (decoding).  */
-Lisp_Object Vstandard_character_unification_table_for_read;
-/* Standard unification table to look up on writing (encoding).  */
-Lisp_Object Vstandard_character_unification_table_for_write;
+/* Standard unification table to look up on decoding (reading).  */
+Lisp_Object Vstandard_character_unification_table_for_decode;
+/* Standard unification table to look up on encoding (writing).  */
+Lisp_Object Vstandard_character_unification_table_for_encode;
 
 Lisp_Object Qcharacter_unification_table;
+Lisp_Object Qcharacter_unification_table_for_decode;
+Lisp_Object Qcharacter_unification_table_for_encode;
 
 /* Alist of charsets vs revision number.  */
 Lisp_Object Vcharset_revision_alist;
@@ -732,10 +734,11 @@ decode_coding_iso2022 (coding, source, destination,
   /* Charsets invoked to graphic plane 0 and 1 respectively.  */
   int charset0 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 0);
   int charset1 = CODING_SPEC_ISO_PLANE_CHARSET (coding, 1);
-  Lisp_Object unification_table = coding->character_unification_table;
+  Lisp_Object unification_table
+      = coding->character_unification_table_for_decode;
 
   if (!NILP (Venable_character_unification) && NILP (unification_table))
-    unification_table = Vstandard_character_unification_table_for_read;
+    unification_table = Vstandard_character_unification_table_for_decode;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1189,7 +1192,7 @@ decode_coding_iso2022 (coding, source, destination,
     int c_alt, charset_alt;						  \
     if (!NILP (unification_table)					  \
 	&& ((c_alt = unify_char (unification_table, -1, charset, c1, c2)) \
-	    < 0))							  \
+	    >= 0))							  \
       SPLIT_CHAR (c_alt, charset_alt, c1, c2);				  \
     else								  \
       charset_alt = charset;						  \
@@ -1369,10 +1372,11 @@ encode_coding_iso2022 (coding, source, destination,
      from DST_END to assure overflow checking is necessary only at the
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 19;
-  Lisp_Object unification_table = coding->character_unification_table;
+  Lisp_Object unification_table
+      = coding->character_unification_table_for_encode;
 
   if (!NILP (Venable_character_unification) && NILP (unification_table))
-    unification_table = Vstandard_character_unification_table_for_write;
+    unification_table = Vstandard_character_unification_table_for_encode;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1608,6 +1612,63 @@ encode_coding_iso2022 (coding, source, destination,
     b2 += b2 < 0x3F ? 0x40 : 0x62;				  	\
   } while (0)
 
+#define DECODE_SJIS_BIG5_CHARACTER(charset, c1, c2)			\
+  do {									\
+    int c_alt, charset_alt = (charset);					\
+    if (!NILP (unification_table)					\
+	&& ((c_alt = unify_char (unification_table,			\
+				 -1, (charset), c1, c2)) >= 0))		\
+	  SPLIT_CHAR (c_alt, charset_alt, c1, c2);			\
+    if (charset_alt == CHARSET_ASCII || charset_alt < 0)		\
+      DECODE_CHARACTER_ASCII (c1);					\
+    else if (CHARSET_DIMENSION (charset_alt) == 1)			\
+      DECODE_CHARACTER_DIMENSION1 (charset_alt, c1);			\
+    else								\
+      DECODE_CHARACTER_DIMENSION2 (charset_alt, c1, c2);		\
+  } while (0)
+
+#define ENCODE_SJIS_BIG5_CHARACTER(charset, c1, c2)			  \
+  do {									  \
+    int c_alt, charset_alt;						  \
+    if (!NILP (unification_table)					  \
+        && ((c_alt = unify_char (unification_table, -1, charset, c1, c2)) \
+	    >= 0))							  \
+      SPLIT_CHAR (c_alt, charset_alt, c1, c2);				  \
+    else								  \
+      charset_alt = charset;						  \
+    if (charset_alt == charset_ascii)					  \
+      *dst++ = c1;							  \
+    else if (CHARSET_DIMENSION (charset_alt) == 1)			  \
+      {									  \
+	if (sjis_p && charset_alt == charset_katakana_jisx0201)		  \
+	  *dst++ = c1;							  \
+	else								  \
+	  *dst++ = charset_alt, *dst++ = c1;				  \
+      }									  \
+    else								  \
+      {									  \
+	c1 &= 0x7F, c2 &= 0x7F;						  \
+	if (sjis_p && charset_alt == charset_jisx0208)			  \
+	  {								  \
+	    unsigned char s1, s2;					  \
+									  \
+	    ENCODE_SJIS (c1, c2, s1, s2);				  \
+	    *dst++ = s1, *dst++ = s2;					  \
+	  }								  \
+	else if (!sjis_p						  \
+		 && (charset_alt == charset_big5_1			  \
+		     || charset_alt == charset_big5_2))			  \
+	  {								  \
+	    unsigned char b1, b2;					  \
+									  \
+	    ENCODE_BIG5 (c1, c2, c3, b1, b2);				  \
+	    *dst++ = b1, *dst++ = b2;					  \
+	  }								  \
+	else								  \
+	  *dst++ = charset_alt, *dst++ = c1, *dst++ = c2;		  \
+      }									  \
+  } while (0);
+
 /* See the above "GENERAL NOTES on `detect_coding_XXX ()' functions".
    Check if a text is encoded in SJIS.  If it is, return
    CODING_CATEGORY_MASK_SJIS, else return 0.  */
@@ -1679,6 +1740,11 @@ decode_coding_sjis_big5 (coding, source, destination,
      from DST_END to assure overflow checking is necessary only at the
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 3;
+  Lisp_Object unification_table
+      = coding->character_unification_table_for_decode;
+
+  if (!NILP (Venable_character_unification) && NILP (unification_table))
+    unification_table = Vstandard_character_unification_table_for_decode;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1703,8 +1769,10 @@ decode_coding_sjis_big5 (coding, source, destination,
 	  else
 	    *dst++ = c1;
 	}
-      else if (c1 < 0x80)
+      else if (c1 < 0x20)
 	*dst++ = c1;
+      else if (c1 < 0x80)
+	DECODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
       else if (c1 < 0xA0 || c1 >= 0xE0)
 	{
 	  /* SJIS -> JISX0208, BIG5 -> Big5 (only if 0xE0 <= c1 < 0xFF) */
@@ -1712,7 +1780,7 @@ decode_coding_sjis_big5 (coding, source, destination,
 	    {
 	      ONE_MORE_BYTE (c2);
 	      DECODE_SJIS (c1, c2, c3, c4);
-	      DECODE_CHARACTER_DIMENSION2 (charset_jisx0208, c3, c4);
+	      DECODE_SJIS_BIG5_CHARACTER (charset_jisx0208, c3, c4);
 	    }
 	  else if (c1 >= 0xE0 && c1 < 0xFF)
 	    {
@@ -1720,7 +1788,7 @@ decode_coding_sjis_big5 (coding, source, destination,
 
 	      ONE_MORE_BYTE (c2);
 	      DECODE_BIG5 (c1, c2, charset, c3, c4);
-	      DECODE_CHARACTER_DIMENSION2 (charset, c3, c4);
+	      DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
 	    }
 	  else			/* Invalid code */
 	    *dst++ = c1;
@@ -1729,14 +1797,14 @@ decode_coding_sjis_big5 (coding, source, destination,
 	{
 	  /* SJIS -> JISX0201-Kana, BIG5 -> Big5 */
 	  if (sjis_p)
-	    DECODE_CHARACTER_DIMENSION1 (charset_katakana_jisx0201, c1);
+	    DECODE_SJIS_BIG5_CHARACTER (charset_katakana_jisx0201, c1, /* dummy */ c2);
 	  else
 	    {
 	      int charset;
 
 	      ONE_MORE_BYTE (c2);
 	      DECODE_BIG5 (c1, c2, charset, c3, c4);
-	      DECODE_CHARACTER_DIMENSION2 (charset, c3, c4);
+	      DECODE_SJIS_BIG5_CHARACTER (charset, c3, c4);
 	    }
 	}
       continue;
@@ -1777,6 +1845,11 @@ encode_coding_sjis_big5 (coding, source, destination,
      from DST_END to assure overflow checking is necessary only at the
      head of loop.  */
   unsigned char *adjusted_dst_end = dst_end - 1;
+  Lisp_Object unification_table
+      = coding->character_unification_table_for_encode;
+
+  if (!NILP (Venable_character_unification) && NILP (unification_table))
+    unification_table = Vstandard_character_unification_table_for_encode;
 
   while (src < src_end && dst < adjusted_dst_end)
     {
@@ -1804,6 +1877,9 @@ encode_coding_sjis_big5 (coding, source, destination,
       switch (emacs_code_class[c1])
 	{
 	case EMACS_ascii_code:
+	  ENCODE_SJIS_BIG5_CHARACTER (charset_ascii, c1, /* dummy */ c2);
+	  break;
+
 	case EMACS_control_code:
 	  *dst++ = c1;
 	  break;
@@ -1828,36 +1904,17 @@ encode_coding_sjis_big5 (coding, source, destination,
 
 	case EMACS_leading_code_2:
 	  ONE_MORE_BYTE (c2);
-	  if (sjis_p && c1 == charset_katakana_jisx0201)
-	    *dst++ = c2;
-	  else
-	    *dst++ = c1, *dst++ = c2;
+	  ENCODE_SJIS_BIG5_CHARACTER (c1, c2, /* dummy */ c3);
 	  break;
 
 	case EMACS_leading_code_3:
 	  TWO_MORE_BYTES (c2, c3);
-	  c2 &= 0x7F, c3 &= 0x7F;
-	  if (sjis_p && c1 == charset_jisx0208)
-	    {
-	      unsigned char s1, s2;
-
-	      ENCODE_SJIS (c2, c3, s1, s2);
-	      *dst++ = s1, *dst++ = s2;
-	    }
-	  else if (!sjis_p && (c1 == charset_big5_1 || c1 == charset_big5_2))
-	    {
-	      unsigned char b1, b2;
-
-	      ENCODE_BIG5 (c1, c2, c3, b1, b2);
-	      *dst++ = b1, *dst++ = b2;
-	    }
-	  else
-	    *dst++ = c1, *dst++ = c2, *dst++ = c3;
+	  ENCODE_SJIS_BIG5_CHARACTER (c1, c2, c3);
 	  break;
 
 	case EMACS_leading_code_4:
 	  THREE_MORE_BYTES (c2, c3, c4);
-	  *dst++ = c1, *dst++ = c2, *dst++ = c3, *dst++ = c4;
+	  ENCODE_SJIS_BIG5_CHARACTER (c2, c3, c4);
 	  break;
 
 	case EMACS_leading_code_composition:
@@ -2106,15 +2163,16 @@ setup_coding_system (coding_system, coding)
   coding->direction = 0;
   coding->carryover_size = 0;
   coding->post_read_conversion = coding->pre_write_conversion = Qnil;
-  /* We have not yet implemented a way to specify unification table in
-     a coding system.  */
-  coding->character_unification_table = Qnil;
+  coding->character_unification_table_for_decode = Qnil;
+  coding->character_unification_table_for_encode = Qnil;
 
   Vlast_coding_system_used = coding->symbol = coding_system;
   eol_type = Qnil;
   /* Get value of property `coding-system' until we get a vector.
      While doing that, also get values of properties
-     `post-read-conversion', `pre-write-conversion', and `eol-type'.  */
+     `post-read-conversion', `pre-write-conversion',
+     `character-unification-table-for-decode',
+     `character-unification-table-for-encode' and `eol-type'.  */
   while (!NILP (coding_system) && SYMBOLP (coding_system))
     {
       if (NILP (coding->post_read_conversion))
@@ -2125,8 +2183,36 @@ setup_coding_system (coding_system, coding)
 					     Qpre_write_conversion);
       if (NILP (eol_type))
 	eol_type = Fget (coding_system, Qeol_type);
+
+      if (NILP (coding->character_unification_table_for_decode))
+	coding->character_unification_table_for_decode
+	  = Fget (coding_system, Qcharacter_unification_table_for_decode);
+
+      if (NILP (coding->character_unification_table_for_encode))
+	coding->character_unification_table_for_encode
+	  = Fget (coding_system, Qcharacter_unification_table_for_encode);
+
       coding_system = Fget (coding_system, Qcoding_system);
     }
+
+  while (!NILP (coding->character_unification_table_for_decode)
+	 && SYMBOLP (coding->character_unification_table_for_decode))
+	coding->character_unification_table_for_decode
+	  = Fget (coding->character_unification_table_for_decode,
+		  Qcharacter_unification_table_for_decode);
+  if (!NILP (coding->character_unification_table_for_decode)
+      && !CHAR_TABLE_P (coding->character_unification_table_for_decode))
+      coding->character_unification_table_for_decode = Qnil;
+
+  while (!NILP (coding->character_unification_table_for_encode)
+	 && SYMBOLP (coding->character_unification_table_for_encode))
+	coding->character_unification_table_for_encode
+	  = Fget (coding->character_unification_table_for_encode,
+		  Qcharacter_unification_table_for_encode);
+  if (!NILP (coding->character_unification_table_for_encode)
+      && !CHAR_TABLE_P (coding->character_unification_table_for_encode))
+      coding->character_unification_table_for_encode = Qnil;
+
   if (!VECTORP (coding_system)
       || XVECTOR (coding_system)->size != 5)
     goto label_invalid_coding_system;
@@ -3378,9 +3464,9 @@ DEFUN ("keyboard-coding-system",
 }
 
 
-DEFUN ("find-coding-system", Ffind_coding_system, Sfind_coding_system,
-       1, MANY, 0,
-  "Choose a coding system for a file operation based on file name.\n\
+DEFUN ("find-operation-coding-system", Ffind_operation_coding_system,
+       Sfind_operation_coding_system,  1, MANY, 0,
+  "Choose a coding system for an operation based on the target name.\n\
 The value names a pair of coding systems: (ENCODING-SYSTEM DECODING-SYSTEM).\n\
 ENCODING-SYSTEM is the coding system to use for encoding\n\
 \(in case OPERATION does encoding), and DECODING-SYSTEM is the coding system\n\
@@ -3588,6 +3674,14 @@ syms_of_coding ()
   Fput (Qcharacter_unification_table, Qchar_table_extra_slots,
 	make_number (0));
 
+  Qcharacter_unification_table_for_decode
+    = intern ("character-unification-table-for-decode");
+  staticpro (&Qcharacter_unification_table_for_decode);
+
+  Qcharacter_unification_table_for_encode
+    = intern ("character-unification-table-for-encode");
+  staticpro (&Qcharacter_unification_table_for_encode);
+
   defsubr (&Scoding_system_spec);
   defsubr (&Scoding_system_p);
   defsubr (&Sread_coding_system);
@@ -3606,7 +3700,7 @@ syms_of_coding ()
   defsubr (&Sterminal_coding_system);
   defsubr (&Sset_keyboard_coding_system_internal);
   defsubr (&Skeyboard_coding_system);
-  defsubr (&Sfind_coding_system);
+  defsubr (&Sfind_operation_coding_system);
 
   DEFVAR_LISP ("coding-category-list", &Vcoding_category_list,
     "List of coding-categories (symbols) ordered by priority.");
@@ -3701,15 +3795,15 @@ See also the function `find-coding-system'.");
     "Non-nil means ISO 2022 encoder/decoder do character unification.");
   Venable_character_unification = Qt;
 
-  DEFVAR_LISP ("standard-character-unification-table-for-read",
-    &Vstandard_character_unification_table_for_read,
+  DEFVAR_LISP ("standard-character-unification-table-for-decode",
+    &Vstandard_character_unification_table_for_decode,
     "Table for unifying characters when reading.");
-  Vstandard_character_unification_table_for_read = Qnil;
+  Vstandard_character_unification_table_for_decode = Qnil;
 
-  DEFVAR_LISP ("standard-character-unification-table-for-write",
-    &Vstandard_character_unification_table_for_write,
+  DEFVAR_LISP ("standard-character-unification-table-for-encode",
+    &Vstandard_character_unification_table_for_encode,
     "Table for unifying characters when writing.");
-  Vstandard_character_unification_table_for_write = Qnil;
+  Vstandard_character_unification_table_for_encode = Qnil;
 
   DEFVAR_LISP ("charset-revision-table", &Vcharset_revision_alist,
     "Alist of charsets vs revision numbers.\n\
