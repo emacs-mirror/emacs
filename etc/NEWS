@@ -79,6 +79,7 @@ insert a non-ASCII character from your current language environment,
 the file will be saved silently with the appropriate coding.
 Previously you would be prompted for a safe coding system.
 
++++
 ** New variable `inhibit-iso-escape-detection' determines if Emacs'
 coding system detection algorithm should pay attention to ISO2022's
 escape sequences.  If this variable is non-nil, the algorithm ignores
