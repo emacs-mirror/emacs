@@ -202,10 +202,11 @@ Commands:
 		  kkc-current-conversions (cons 0 nil)))))))
 
 ;;;###autoload
-(defun kkc-region (from to)
+(defun kkc-region (from to &optional kkc-mode-exit-function)
   "Convert Kana string in the current region to Kanji-Kana mixed string.
 After one candidate of conversion is shown in the region, users are
-put in KKC major mode to select a desirable conversion."
+put in KKC major mode to select a desirable conversion.
+Optional arg KKC-MODE-EXIT-FUNCTION if non-nil is called on exiting KKC mode."
   (interactive "r")
   (setq kkc-original-kana (buffer-substring from to))
   (goto-char from)
@@ -246,8 +247,11 @@ put in KKC major mode to select a desirable conversion."
       (goto-char (overlay-end kkc-overlay-tail))
       (delete-overlay kkc-overlay-head)
       (delete-overlay kkc-overlay-tail)
-      (use-local-map previous-local-map)))
-  kkc-canceled)
+      (use-local-map previous-local-map)
+      (if (and kkc-mode-exit-function
+	       (fboundp kkc-mode-exit-function))
+	  (funcall kkc-mode-exit-function (if kkc-canceled
+					      (cons kkc-canceled (point))))))))
 
 (defun kkc-terminate ()
   "Exit from KKC mode by fixing the current conversion."
