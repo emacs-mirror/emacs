@@ -1,6 +1,6 @@
 ;;; desktop.el --- save partial status of Emacs when killed
 
-;; Copyright (C) 1993, 1994, 1995, 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 2000 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@diku.dk>
 ;; Keywords: convenience
@@ -182,6 +182,14 @@ The variables are saved only when they really are local.")
   :type 'regexp
   :group 'desktop)
 
+(defcustom desktop-buffer-modes-to-save
+  '(Info-mode rmail-mode)
+  "If a buffer is of one of these major modes, save the buffer name.
+It is up to the functions in `desktop-buffer-handlers' to decide
+whether the buffer should be recreated or not, and how."
+  :type '(repeat symbol)
+  :group 'desktop)
+
 (defcustom desktop-modes-not-to-save nil
   "List of major modes whose buffers should not be saved."
   :type '(repeat symbol)
@@ -206,6 +214,21 @@ The variables are saved only when they really are local.")
   "When desktop creates a buffer, this holds a list of misc info.
 It is used by the `desktop-buffer-handlers' functions.")
 
+(defcustom desktop-buffer-misc-functions
+  '(desktop-buffer-info-misc-data
+    desktop-buffer-dired-misc-data)
+  "*Functions used to determine auxiliary information for a buffer.
+These functions are called in order, with no arguments.  If a function
+returns non-nil, its value is saved along with the desktop buffer for
+which it was called; no further functions will be called.
+
+Later, when desktop.el restores the buffers it has saved, each of the
+`desktop-buffer-handlers' functions will have access to a buffer local
+variable, named `desktop-buffer-misc', whose value is what the
+\"misc\" function returned previously."
+  :type '(repeat function)
+  :group 'desktop)
+
 (defcustom desktop-buffer-handlers
   '(desktop-buffer-dired
     desktop-buffer-rmail
@@ -220,6 +243,8 @@ If one function returns non-nil, no further functions are called.
 If the function returns t then the buffer is considered created."
   :type '(repeat function)
   :group 'desktop)
+
+(put 'desktop-buffer-handlers 'risky-local-variable t)
 
 (defvar desktop-create-buffer-form "(desktop-create-buffer 205"
   "Opening of form for creation of new buffers.")
@@ -442,7 +467,7 @@ MODE is the major mode."
 		    (not (string-match desktop-files-not-to-save
 				       default-directory))))
 	     (and (null filename)
-		  (memq mode '(Info-mode rmail-mode)))))))
+		  (memq mode desktop-buffer-modes-to-save))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-save (dirname)
   "Save the Desktop file.  Parameter DIRNAME specifies where to save desktop."
@@ -477,17 +502,8 @@ MODE is the major mode."
 			       (point)
 			       (list (mark t) mark-active)
 			       buffer-read-only
-			       (cond ((eq major-mode 'Info-mode)
-				      (list Info-current-file
-					    Info-current-node))
-				     ((eq major-mode 'dired-mode)
-				      (cons
-				       (expand-file-name dired-directory)
-				       (cdr
-					(nreverse
-					 (mapcar
-					  (function car)
-					  dired-subdir-alist))))))
+                               (run-hook-with-args-until-success
+                                'desktop-buffer-misc-functions)
 			       (let ((locals desktop-locals-to-save)
 				     (loclist (buffer-local-variables))
 				     (ll))
@@ -578,12 +594,30 @@ to provide correct modes for autoloaded files."
 ;; ----------------------------------------------------------------------------
 ;; Note: the following functions use the dynamic variable binding in Lisp.
 ;;
+(defun desktop-buffer-info-misc-data ()
+  (if (eq major-mode 'Info-mode)
+      (list Info-current-file
+            Info-current-node)))
+
+(defun desktop-buffer-dired-misc-data ()
+  (if (eq major-mode 'dired-mode)
+      (cons
+       (expand-file-name dired-directory)
+       (cdr
+        (nreverse
+         (mapcar
+          (function car)
+          dired-subdir-alist))))))
+
 (defun desktop-buffer-info () "Load an info file."
   (if (eq 'Info-mode desktop-buffer-major-mode)
       (progn
-	(require 'info)
-	(Info-find-node (nth 0 desktop-buffer-misc) (nth 1 desktop-buffer-misc))
-	(current-buffer))))
+	(let ((first (nth 0 desktop-buffer-misc))
+	      (second (nth 1 desktop-buffer-misc)))
+	(when (and first second)
+	  (require 'info)
+	  (Info-find-node first second)
+	  (current-buffer))))))
 ;; ----------------------------------------------------------------------------
 (defun desktop-buffer-rmail () "Load an RMAIL file."
   (if (eq 'rmail-mode desktop-buffer-major-mode)
@@ -649,7 +683,9 @@ to provide correct modes for autoloaded files."
       (cond ((equal '(t) mim)   (auto-fill-mode 1))	; backwards compatible
 	    ((equal '(nil) mim) (auto-fill-mode 0))
 	    (t (mapcar #'(lambda (minor-mode)
-			   (when minor-mode (funcall minor-mode 1)))
+			   (unless (or (eq minor-mode t) (eq minor-mode nil))
+			     (if (and minor-mode (fboundp minor-mode))
+				 (funcall minor-mode 1))))
 			   mim)))
       (goto-char pt)
       (if (consp mk)

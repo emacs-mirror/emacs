@@ -1,5 +1,25 @@
 2000-10-13  John Wiegley  <johnw@gnu.org>
 
+	* desktop.el (desktop-buffer-modes-to-save): Added a global for
+	specifying what "other" kinds of buffers should be saved.  This
+	used to be hard-coded.
+	(desktop-buffer-misc-functions): A global for specifying how
+	auxiliary data should be determined for special buffer types.
+	(desktop-save-buffer-p): Use `desktop-buffer-modes-to-save',
+	instead of hard-coding the special buffer types.
+	(desktop-save): Run `desktop-buffer-misc-functions' to gather
+	auxiliary data, instead of hard-coding for Info buffers and dired.
+	(desktop-buffer-info-misc-data): Aux function for determining Info
+	buffer auxiliary info.
+	(desktop-buffer-dired-misc-data): Likewise, but for dired buffers.
+	(desktop-buffer-info): Changed this function to use the info
+	gathered above.
+	(desktop-create-buffer): Be a little more careful about what
+	`minor-mode' means before calling it.  This is important for some
+	buffer types.
+
+2000-10-13  John Wiegley  <johnw@gnu.org>
+
 	* eshell/esh-util.el: Added a global form which declares an
 	autoload for `parse-time-string', if that function is not already
 	defined, and if parse-time.el is available on the user's system.
