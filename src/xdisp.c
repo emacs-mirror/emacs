@@ -143,6 +143,10 @@ static int scroll_step;
    when appropriate.  */
 static int scroll_conservatively;
 
+/* Recenter the window whenever point gets within this many lines
+   of the top or bottom of the window.  */
+int scroll_margin;
+
 /* Nonzero if try_window_id has made blank lines at window bottom
  since the last redisplay that paused */
 static int blank_end_of_window;
@@ -1699,11 +1703,23 @@ redisplay_window (window, just_this_one, preserve_echo_area)
       && XFASTINT (w->window_end_vpos) < XFASTINT (w->height)
       && !EQ (window, minibuf_window))
     {
+      int this_scroll_margin = scroll_margin;
+
       pos = *compute_motion (startp, 0, (hscroll ? 1 - hscroll : 0), 0,
 			    PT, height, 0, width, hscroll,
 			    pos_tab_offset (w, startp), w);
 
-      if (pos.vpos < height)
+      /* Don't use a scroll margin that is negative or too large.  */
+      if (this_scroll_margin < 0)
+	this_scroll_margin = 0;
+
+      if (XINT (w->height) < 4 * scroll_margin)
+	this_scroll_margin = XINT (w->height) / 4;
+
+      /* If point fits on the screen, and not within the scroll margin,
+	 we are ok.  */
+      if (pos.vpos < height - this_scroll_margin
+	  && (pos.vpos >= this_scroll_margin || startp == BEGV))
 	{
 	  /* Ok, point is still on frame */
 	  if (w == XWINDOW (FRAME_SELECTED_WINDOW (f)))
@@ -4473,6 +4489,12 @@ If this is zero, point is always centered after it moves off frame.");
   DEFVAR_INT ("scroll-conservatively", &scroll_conservatively,
     "*Scroll up to this many lines, to bring point back on screen.");
   scroll_conservatively = 0;
+
+  DEFVAR_INT ("scroll-margin", &scroll_margin,
+    "*Number of lines of margin at the top and bottom of a window.\n\
+Recenter the window whenever point gets within this many lines\n\
+of the top or bottom of the window.");
+  scroll_margin = 0;
 
   DEFVAR_INT ("debug-end-pos", &debug_end_pos, "Don't ask");
 
