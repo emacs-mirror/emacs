@@ -252,7 +252,7 @@ extern int charset_table_used;
 extern Lisp_Object Vcharset_ordered_list;
 
 /* Incremented everytime we change the priority of charsets.  */
-unsigned short charset_ordered_list_tick;
+extern unsigned short charset_ordered_list_tick;
 
 extern Lisp_Object Vcharset_list;
 extern Lisp_Object Viso_2022_charset_list;
