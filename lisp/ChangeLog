@@ -22,6 +22,10 @@
 2004-05-10  Juanma Barranquero  <lektu@terra.es>
 
 	* subr.el (remove-overlays, read-passwd): Fix docstring.
+	(start-process-shell-command): Fix docstring.  Put usage info in a
+	format usable by `describe-function'.
+	(open-network-stream, open-network-stream-nowait)
+	(open-network-stream-server): Fix docstring.
 
 	* help-fns.el (help-argument-name): Default to italic.
 	(help-highlight-arguments): Return always (usage . doc), even when
