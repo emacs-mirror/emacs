@@ -3,6 +3,7 @@
 ;; Copyright (C) 1990, 1994  Free Software Foundation, Inc.
 
 ;; Author: William F. Mann
+;; Maintainer: FSF
 ;; Adapted-By: ESR
 ;; Keywords: languages
 
@@ -282,8 +283,10 @@ Turning on Perl mode runs the normal hook `perl-mode-hook'."
       0					;Existing comment at bol stays there.
     (save-excursion
       (skip-chars-backward " \t")
-      (max (1+ (current-column))	;Else indent at comment column
-	   comment-column))))		; except leave at least one space.
+      (max (if (bolp)			;Else indent at comment column
+	       0			; except leave at least one space if
+	     (1+ (current-column)))	; not at beginning of line.
+	   comment-column))))
 
 (defun electric-perl-terminator (arg)
   "Insert character and adjust indentation.
