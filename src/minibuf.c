@@ -85,13 +85,17 @@ Lisp_Object Qminibuffer_setup_hook, Vminibuffer_setup_hook;
 
 int completion_ignore_case;
 
+/* Nonzero means raise the minibuffer frame when the minibuffer
+   is entered.  */
+
+int minibuffer_auto_raise;
+
 /* If last completion attempt reported "Complete but not unique"
    then this is the string completed then; otherwise this is nil.  */
 
 static Lisp_Object last_exact_completion;
 
 Lisp_Object Quser_variable_p;
-
 
 /* Actual minibuffer invocation. */
 
@@ -168,6 +172,8 @@ read_minibuf (map, initial, prompt, backup_n, expflag, histvar, histpos)
   if (XFRAME (mini_frame) != selected_frame)
     record_unwind_protect (Fset_window_configuration,
 			   Fcurrent_window_configuration (mini_frame));
+  if (minibuffer_auto_raise)
+    Fraise_frame (mini_frame);
 #endif
 
   val = current_buffer->directory;
@@ -1508,6 +1514,10 @@ Each minibuffer output is added with\n\
   DEFVAR_LISP ("minibuffer-history-position", &Vminibuffer_history_position,
     "Current position of redoing in the history list.");
   Vminibuffer_history_position = Qnil;
+
+  DEFVAR_BOOL ("minibuffer-auto-raise", &minibuffer_auto_raise,
+    "*Non-nil means entering the minibuffer raises the minibuffer's frame.");
+  minibuffer_auto_raise = 0;
 
   defsubr (&Sread_from_minibuffer);
   defsubr (&Seval_minibuffer);
