@@ -211,7 +211,7 @@ int inverse_video;
 
 /* Line speed of the terminal.  */
 
-int baud_rate;
+EMACS_INT baud_rate;
 
 /* Either nil or a symbol naming the window system under which Emacs
    is running.  */

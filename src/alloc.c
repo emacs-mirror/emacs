@@ -122,18 +122,18 @@ int consing_since_gc;
 
 /* Count the amount of consing of various sorts of space.  */
 
-int cons_cells_consed;
-int floats_consed;
-int vector_cells_consed;
-int symbols_consed;
-int string_chars_consed;
-int misc_objects_consed;
-int intervals_consed;
-int strings_consed;
+EMACS_INT cons_cells_consed;
+EMACS_INT floats_consed;
+EMACS_INT vector_cells_consed;
+EMACS_INT symbols_consed;
+EMACS_INT string_chars_consed;
+EMACS_INT misc_objects_consed;
+EMACS_INT intervals_consed;
+EMACS_INT strings_consed;
 
 /* Number of bytes of consing since GC before another GC should be done. */
 
-int gc_cons_threshold;
+EMACS_INT gc_cons_threshold;
 
 /* Nonzero during GC.  */
 
@@ -155,8 +155,8 @@ int malloc_sbrk_unused;
 
 /* Two limits controlling how much undo information to keep.  */
 
-int undo_limit;
-int undo_strong_limit;
+EMACS_INT undo_limit;
+EMACS_INT undo_strong_limit;
 
 /* Number of live and free conses etc.  */
 
@@ -215,7 +215,7 @@ static size_t pure_bytes_used_before_overflow;
 
 /* Index in pure at which next pure object will be allocated.. */
 
-int pure_bytes_used;
+EMACS_INT pure_bytes_used;
 
 /* If nonzero, this is a warning delivered by malloc and not yet
    displayed.  */

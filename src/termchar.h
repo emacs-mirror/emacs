@@ -19,7 +19,7 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 
-extern int baud_rate;		/* Output speed in baud */
+/* extern EMACS_INT baud_rate; */		/* Output speed in baud */
 extern int must_write_spaces;	/* Nonzero means spaces in the text
 				   must actually be output; can't just skip
 				   over some columns to leave them blank.  */

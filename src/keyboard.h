@@ -187,7 +187,7 @@ extern Lisp_Object Qrecompute_lucid_menubar, Qactivate_menubar_hook;
 extern int num_input_events;
 
 /* Total number of times read_char has returned, outside of macros.  */
-extern int num_nonmacro_input_events;
+extern EMACS_INT num_nonmacro_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;

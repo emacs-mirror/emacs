@@ -119,7 +119,7 @@ struct specbinding *specpdl_ptr;
 
 /* Maximum size allowed for specpdl allocation */
 
-int max_specpdl_size;
+EMACS_INT max_specpdl_size;
 
 /* Depth in Lisp evaluations and function calls.  */
 
@@ -127,7 +127,7 @@ int lisp_eval_depth;
 
 /* Maximum allowed depth in Lisp evaluations and function calls.  */
 
-int max_lisp_eval_depth;
+EMACS_INT max_lisp_eval_depth;
 
 /* Nonzero means enter debugger before next function call */
 

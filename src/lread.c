@@ -3249,7 +3249,7 @@ defalias (sname, string)
 void
 defvar_int (namestring, address)
      char *namestring;
-     int *address;
+     EMACS_INT *address;
 {
   Lisp_Object sym, val;
   sym = intern (namestring);

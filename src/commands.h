@@ -51,7 +51,7 @@ extern Lisp_Object Vunread_command_events;
 
 /* Command char event to be re-read, or -1 if none.
    Setting this is obsolete, but some things should still check it.  */
-extern int unread_command_char;
+extern EMACS_INT unread_command_char;
 
 /* The command being executed by the command loop.
    Commands may set this, and the value set will be copied into

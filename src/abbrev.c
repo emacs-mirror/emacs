@@ -77,7 +77,7 @@ Lisp_Object Vlast_abbrev_text;
 
 /* Character address of start of last abbrev expanded */
 
-int last_abbrev_point;
+EMACS_INT last_abbrev_point;
 
 /* Hook to run before expanding any abbrev.  */
 

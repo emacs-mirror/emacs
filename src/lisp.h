@@ -1068,7 +1068,7 @@ struct Lisp_Intfwd
   {
     int type : 16;	/* = Lisp_Misc_Intfwd */
     int spacer : 16;
-    int *intvar;
+    EMACS_INT *intvar;
   };
 
 /* Boolean forwarding pointer to an int variable.
@@ -1598,7 +1598,7 @@ extern void defsubr P_ ((struct Lisp_Subr *));
 extern void defvar_lisp P_ ((char *, Lisp_Object *));
 extern void defvar_lisp_nopro P_ ((char *, Lisp_Object *));
 extern void defvar_bool P_ ((char *, int *));
-extern void defvar_int P_ ((char *, int *));
+extern void defvar_int P_ ((char *, EMACS_INT *));
 extern void defvar_per_buffer P_ ((char *, Lisp_Object *, Lisp_Object, char *));
 extern void defvar_kboard P_ ((char *, int));
 
@@ -1653,7 +1653,7 @@ extern struct specbinding *specpdl;
 extern struct specbinding *specpdl_ptr;
 extern int specpdl_size;
 
-extern int max_specpdl_size;
+extern EMACS_INT max_specpdl_size;
 
 #define BINDING_STACK_SIZE()	(specpdl_ptr - specpdl)
 
@@ -1763,7 +1763,7 @@ extern int consing_since_gc;
 
 /* Threshold for doing another gc.  */
 
-extern int gc_cons_threshold;
+extern EMACS_INT gc_cons_threshold;
 
 /* Structure for recording stack slots that need marking.  */
 
@@ -2121,7 +2121,7 @@ extern Lisp_Object code_convert_string_norecord P_ ((Lisp_Object, Lisp_Object,
 						     int));
 
 /* Defined in charset.c */
-extern int nonascii_insert_offset;
+extern EMACS_INT nonascii_insert_offset;
 extern Lisp_Object Vnonascii_translation_table;
 EXFUN (Fchar_bytes, 1);
 EXFUN (Fchar_width, 1);
@@ -2289,6 +2289,7 @@ extern void syms_of_insdel P_ ((void));
 
 /* Defined in dispnew.c */
 extern Lisp_Object selected_frame;
+extern EMACS_INT baud_rate;
 EXFUN (Fding, 1);
 EXFUN (Fredraw_frame, 1);
 EXFUN (Fredraw_display, 0);

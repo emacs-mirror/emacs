@@ -383,7 +383,7 @@ extern int errno;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
 
-extern int extra_keyboard_modifiers;
+extern EMACS_INT extra_keyboard_modifiers;
 
 /* The keysyms to use for the various modifiers.  */
 

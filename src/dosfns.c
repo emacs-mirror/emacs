@@ -240,11 +240,11 @@ Return nil if startup screen is not available.  */)
 }
 
 /* country info */
-int dos_country_code;
-int dos_codepage;
-int dos_timezone_offset;
-int dos_decimal_point;
-int dos_keyboard_layout;
+EMACS_INT dos_country_code;
+EMACS_INT dos_codepage;
+EMACS_INT dos_timezone_offset;
+EMACS_INT dos_decimal_point;
+EMACS_INT dos_keyboard_layout;
 unsigned char dos_country_info[DOS_COUNTRY_INFO];
 static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0,				/* date format */
@@ -261,9 +261,9 @@ static unsigned char usa_country_info[DOS_COUNTRY_INFO] = {
   0, 0, 0, 0, 0, 0, 0, 0, 0, 0	/* reserved */
 };
 
-int dos_hyper_key;
-int dos_super_key;
-int dos_keypad_mode;
+EMACS_INT dos_hyper_key;
+EMACS_INT dos_super_key;
+EMACS_INT dos_keypad_mode;
 
 Lisp_Object Vdos_version;
 Lisp_Object Vdos_display_scancodes;

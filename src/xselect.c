@@ -154,7 +154,7 @@ static Lisp_Object Vselection_converter_alist;
 
 /* If the selection owner takes too long to reply to a selection request,
    we give up on it.  This is in milliseconds (0 = no timeout.)  */
-static int x_selection_timeout;
+static EMACS_INT x_selection_timeout;
 
 /* Utility functions */
 

@@ -323,7 +323,7 @@ tputs (str, nlines, outfun)
   register int speed;
 
 #ifdef emacs
-  extern int baud_rate;
+  extern EMACS_INT baud_rate;
   speed = baud_rate;
   /* For quite high speeds, convert to the smaller
      units to avoid overflow.  */

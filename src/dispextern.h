@@ -2188,7 +2188,7 @@ extern Lisp_Object Vtool_bar_button_margin;
 
 /* Thickness of relief to draw around tool-bar buttons.  */
 
-extern int tool_bar_button_relief;
+extern EMACS_INT tool_bar_button_relief;
 
 /* Default values of the above variables.  */
 

@@ -842,7 +842,7 @@ sys_subshell ()
 
 #ifdef SET_EMACS_PRIORITY
       {
-	extern int emacs_priority;
+	extern EMACS_INT emacs_priority;
 
 	if (emacs_priority < 0)
 	  nice (-emacs_priority);

@@ -298,7 +298,7 @@ Lisp_Object Vspecial_event_map;
 int command_loop_level;
 
 /* Total number of times command_loop has read a key sequence.  */
-int num_input_keys;
+EMACS_INT num_input_keys;
 
 /* Last input character read as a command.  */
 Lisp_Object last_command_char;
@@ -322,7 +322,7 @@ Lisp_Object Vunread_input_method_events;
 Lisp_Object Vunread_post_input_method_events;
 
 /* If not -1, an event to be read as subsequent command input.  */
-int unread_command_char;
+EMACS_INT unread_command_char;
 
 /* If not Qnil, this is a switch-frame event which we decided to put
    off until the end of a key sequence.  This should be read as the
@@ -334,7 +334,7 @@ int unread_command_char;
 Lisp_Object unread_switch_frame;
 
 /* A mask of extra modifier bits to put into every keyboard char.  */
-int extra_keyboard_modifiers;
+EMACS_INT extra_keyboard_modifiers;
 
 /* Char to use as prefix when a meta character is typed in.
    This is bound on entry to minibuffer in case ESC is changed there.  */
@@ -351,12 +351,12 @@ static Lisp_Object Vauto_save_timeout;
 int num_input_events;
 
 /* Total number of times read_char has returned, outside of macros.  */
-int num_nonmacro_input_events;
+EMACS_INT num_nonmacro_input_events;
 
 /* Auto-save automatically when this many characters have been typed
    since the last time.  */
 
-static int auto_save_interval;
+static EMACS_INT auto_save_interval;
 
 /* Value of num_nonmacro_input_events as of last auto save.  */
 
@@ -448,7 +448,7 @@ Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 Lisp_Object Qpost_command_idle_hook, Vpost_command_idle_hook;
 
 /* Delay time in microseconds before running post-command-idle-hook.  */
-int post_command_idle_delay;
+EMACS_INT post_command_idle_delay;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
@@ -1823,7 +1823,7 @@ safe_run_hooks (hook)
 /* Number of seconds between polling for input.  This is a Lisp
    variable that can be bound.  */
 
-int polling_period;
+EMACS_INT polling_period;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 
@@ -4664,7 +4664,7 @@ Lisp_Object Vdouble_click_time;
 /* Maximum number of pixels the mouse may be moved between clicks
    to make a double-click.  */
 
-int double_click_fuzz;
+EMACS_INT double_click_fuzz;
 
 /* The number of clicks in this multiple-click. */
 

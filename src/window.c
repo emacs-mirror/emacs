@@ -145,8 +145,8 @@ int mode_line_in_non_selected_windows;
 
 /* If a window gets smaller than either of these, it is removed. */
 
-int window_min_height;
-int window_min_width;
+EMACS_INT window_min_height;
+EMACS_INT window_min_width;
 
 /* Nonzero implies Fdisplay_buffer should create windows. */
 
@@ -199,11 +199,11 @@ Lisp_Object Qtemp_buffer_show_hook;
 /* Fdisplay_buffer always splits the largest window
    if that window is more than this high.  */
 
-int split_height_threshold;
+EMACS_INT split_height_threshold;
 
 /* Number of lines of continuity in scrolling by screenfuls.  */
 
-int next_screen_context_lines;
+EMACS_INT next_screen_context_lines;
 
 /* Incremented for each window created.  */
 
@@ -228,7 +228,7 @@ Lisp_Object Vscroll_preserve_screen_position;
 static int inhibit_frame_unsplittable;
 #endif /* 0 */
 
-extern int scroll_margin;
+extern EMACS_INT scroll_margin;
 
 extern Lisp_Object Qwindow_scroll_functions, Vwindow_scroll_functions;
 

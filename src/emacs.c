@@ -165,7 +165,7 @@ int inhibit_window_system;
 /* If nonzero, set Emacs to run at this priority.  This is also used
    in child_setup and sys_suspend to make sure subshells run at normal
    priority; those functions have their own extern declaration.  */
-int emacs_priority;
+EMACS_INT emacs_priority;
 
 /* If non-zero, a filter or a sentinel is running.  Tested to save the match
    data on the first attempt to change it inside asynchronous code.  */

@@ -242,7 +242,7 @@ Lisp_Object Vtool_bar_button_margin;
 
 /* Thickness of shadow to draw around tool bar buttons.  */
 
-int tool_bar_button_relief;
+EMACS_INT tool_bar_button_relief;
 
 /* Non-zero means automatically resize tool-bars so that all tool-bar
    items are visible, and no blank lines remain.  */
@@ -383,19 +383,19 @@ int highlight_nonselected_windows;
 /* If cursor motion alone moves point off frame, try scrolling this
    many lines up or down if that will bring it back.  */
 
-static int scroll_step;
+static EMACS_INT scroll_step;
 
 /* Nonzero means scroll just far enough to bring point back on the
    screen, when appropriate.  */
 
-static int scroll_conservatively;
+static EMACS_INT scroll_conservatively;
 
 /* Recenter the window whenever point gets within this many lines of
    the top or bottom of the window.  This value is translated into a
    pixel value by multiplying it with CANON_Y_UNIT, which means that
    there is really a fixed pixel height scroll margin.  */
 
-int scroll_margin;
+EMACS_INT scroll_margin;
 
 /* Number of windows showing the buffer of the selected window (or
    another buffer with the same base buffer).  keyboard.c refers to
@@ -463,7 +463,7 @@ Lisp_Object Vline_number_display_limit;
 
 /* Line width to consider when repositioning for line number display.  */
 
-static int line_number_display_limit_width;
+static EMACS_INT line_number_display_limit_width;
 
 /* Number of lines to keep in the message log buffer.  t means
    infinite.  nil means don't log at all.  */
@@ -733,7 +733,7 @@ static struct glyph_row *get_overlay_arrow_glyph_row P_ ((struct window *));
 static void extend_face_to_end_of_line P_ ((struct it *));
 static int append_space P_ ((struct it *, int));
 static int make_cursor_line_fully_visible P_ ((struct window *));
-static int try_scrolling P_ ((Lisp_Object, int, int, int, int));
+static int try_scrolling P_ ((Lisp_Object, int, EMACS_INT, EMACS_INT, int));
 static int try_cursor_movement P_ ((Lisp_Object, struct text_pos, int *));
 static int trailing_whitespace_p P_ ((int));
 static int message_log_check_duplicate P_ ((int, int, int, int));
@@ -8205,7 +8205,7 @@ int debug_delta, debug_delta_bytes;
 /* Values of window_end_pos and window_end_vpos at the end of
    try_window_id.  */
 
-int debug_end_pos, debug_end_vpos;
+EMACS_INT debug_end_pos, debug_end_vpos;
 
 /* Append a string to W->desired_matrix->method.  FMT is a printf
    format string.  A1...A9 are a supplement for a variable-length
@@ -9517,7 +9517,7 @@ try_scrolling (window, just_this_one_p, scroll_conservatively,
 	       scroll_step, temp_scroll_step)
      Lisp_Object window;
      int just_this_one_p;
-     int scroll_conservatively, scroll_step;
+     EMACS_INT scroll_conservatively, scroll_step;
      int temp_scroll_step;
 {
   struct window *w = XWINDOW (window);

@@ -1,3 +1,11 @@
+2002-03-04  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* dosfns.c, dosfns.h, dispnew.c, dispextern.h, commands.h, charset.c,
+	* alloc.c, abbrev.c, emacs.c, eval.c, keyboard.c, keyboard.h,
+	* lisp.h, lread.c, sysdep.c, termcap.c, termchar.h, w32term.c,
+	* window.c, xdisp.c, xselect.c, xterm.c: Change defvar_int definition
+	and variables to use EMACS_INT instead of just int.
+
 2002-03-04  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* sysdep.c (sys_subshell) [MSDOS]: If PWD is set in the
@@ -54,10 +62,9 @@
 
 	* xdisp.c (syms_of_xdisp) <auto-hscroll-mode>: Renamed from
 	automatic-hscrolling.  Users changed.
-	<hscroll-margin>: Renamed from automatic-hscroll-margin.  Users
-	changed.
-	<hscroll-step>: Renamed from automatic-hscroll-step.  Users
-	changed.
+	<hscroll-margin>: Renamed from automatic-hscroll-margin.
+	Users changed.
+	<hscroll-step>: Renamed from automatic-hscroll-step.  Users changed.
 
 2002-03-02  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -73,7 +80,7 @@
 	* window.h (struct window): New member phys_cursor_width.
 
 	* window.c (make_window, replace_window): Init phys_cursor_width.
-	
+
 	* xterm.c (x_display_and_set_cursor): Blink box cursor using
 	hollow box cursor.  Blink bar cursor using 1 pixel wide bar.
 
@@ -99,7 +106,7 @@
 	(wait_reading_process_input): Poll for status of non-blocking
 	connects.  Exec sentinel directly when connect succeeds.
 	(status_notify): Don't read process output if not yet connected.
-	
+
 2002-02-28  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (minibuf_selected_window): Renamed from
@@ -111,7 +118,7 @@
 	The following changes add a new Vminibuf_selected_window variable
 	which is similar to Vminibuf_scroll_window, but which is only set
 	on entry to the minibuffer (from a non-minibuffer window):
-	
+
 	* window.c: (Vminibuf_selected_window): New variable.
 	(struct save_window_data): New member minibuf_selected_window.
 	(Fset_window_configuration): Restore Vminibuf_selected_window.
@@ -164,16 +171,16 @@
 
 2002-02-23  Kim F. Storm  <storm@cua.dk>
 
-	The following changes rework my patch of 2002-02-06 which 
+	The following changes rework my patch of 2002-02-06 which
 	added command remapping by entering the commands directly into
 	the keymaps.  Now, command remapping uses an explicit `remap'
 	prefix in the keymaps, i.e. [remap COMMAND].
-	
+
 	* keymap.c (Qremap, remap_command_vector): New variables.
 	(is_command_symbol): Removed function.
-	(Fdefine_key): No longer accept a symbol for KEY.  Added
-	validation of [remap COMMAND] argument for KEY.  The DEF is no
-	longer required to be a symbol when remapping a command.
+	(Fdefine_key): No longer accept a symbol for KEY.
+	Added validation of [remap COMMAND] argument for KEY.
+	The DEF is no longer required to be a symbol when remapping a command.
 	(Fremap_command): New function to remap command through keymaps.
 	(Flookup_key): Perform command remapping initiated by
 	Fremap_command directly for speed.
@@ -184,7 +191,7 @@
 
 	* keymap.h (Fremap_command): Declare extern.
 	(is_command_symbol): Remove extern.
-	
+
 	* keyboard.c (command_loop_1): Use Fremap_command for command
 	remapping; now try command remapping for all symbols.
 
@@ -227,8 +234,8 @@
 	(w32_wnd_proc) <WM_TIMER>: Handle menu_free_timer.
 	<WM_EXITMENULOOP>: Delay before freeing menu.  Do nothing if a
 	menu command is in progress.
-	<WM_COMMAND>: Set the menu_command_in_progress flag.  Kill
-	any menu_free_timer that is running.
+	<WM_COMMAND>: Set the menu_command_in_progress flag.
+	Kill any menu_free_timer that is running.
 
 	* w32term.c (w32_text_out): Renamed from W32_TEXTOUT.
 	Call ExtTextOutA rather than ExtTextOut.
@@ -266,8 +273,8 @@
 
 	* frame.c (syms_of_frame): Change mouse-highlight default to t.
 
-	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]: Corrected
-	composing of language-change event.
+	* keyboard.c (kbd_buffer_get_event) [WINDOWSNT]:
+	Correct composing of language-change event.
 
 2002-02-20  Kim F. Storm  <storm@cua.dk>
 
@@ -306,15 +313,15 @@
 	(x_frame_parms) <"fullscreen">: New parameter.
 	(x_fullscreen_move, x_set_fullscreen): New functions.
 	(x_set_frame_parameters): Support Qfullscreen.
-	(x_real_positions): Save x/y_pixels_diff frame params. 
+	(x_real_positions): Save x/y_pixels_diff frame params.
 	(x_figure_window_size): Support full-screen frames.
 	(Fx_create_frame): Default the fullscreen parameter.
 
-	* w32term.c (x_check_fullscreen, x_check_fullscreen_move) 
+	* w32term.c (x_check_fullscreen, x_check_fullscreen_move)
 	(x_fullscreen_adjust): New functions.
 	(w32_read_socket) <WM_WINDOWPOSCHANGED>:  Don't	resize to
 	fullscreen.  Call x_check_fullscreen_move, and set the
- 	want_fullscreen member of output_data.w32
+	want_fullscreen member of output_data.w32
 	<WM_ACTIVATE, WM_ACTIVATEAPP>: Call x_check_fullscreen.
 
 	* w32term.h: New enum for FULLSCREEN_* constants.
@@ -362,8 +369,7 @@
 	(dos_rawgetc): Fix last change--if the mouse is in the same window
 	as recorded in last_mouse_window, don't select this window.
 
-	* Makefile.in (lisp, shortlisp): Use cus-start.elc, not
-	cus-start.el.
+	* Makefile.in (lisp, shortlisp): Use cus-start.elc, not cus-start.el.
 
 	* msdos.c (x_autoselect_window_p): New variable.
 	(syms_of_msdos): Defvar it.
@@ -371,8 +377,8 @@
 	in which the last mouse movement occured, unless it is already
 	selected.
 
-	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step): New
-	variables.
+	* xdisp.c (automatic_hscroll_margin, Vautomatic_hscroll_step):
+	New variables.
 	(syms_of_xdisp): DEVFAR them.
 	(hscroll_window_tree): Use automatic_hscroll_margin and
 	Vautomatic_hscroll_step to compute the amount of window scrolling.
@@ -398,8 +404,7 @@
 	(Vx_super_keysym): New variables.
 	(syms_of_xterm): DEFVAR_LISP them.
 	(x_x_to_emacs_modifiers, x_emacs_to_x_modifiers): Use the
-	variables to determine which keys to use for the various
-	modifiers.
+	variables to determine which keys to use for the various modifiers.
 
 2002-02-13  Kim F. Storm  <storm@cua.dk>
 
@@ -407,18 +412,18 @@
 	(mode_line_in_non_selected_windows): New variable.
 	(syms_of_window): DEFVAR_BOOL it.
 
-	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3): Use
-	mode_line_in_non_selected_windows.
+	* dispextern.h (CURRENT_MODE_LINE_FACE_ID_3):
+	Use mode_line_in_non_selected_windows.
 	(mode_line_in_non_selected_windows): Declare extern.
 	(Vmode_line_in_non_selected_windows): Removed extern.
 
 2002-02-13  Richard M. Stallman  <rms@gnu.org>
 
-	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector) 
-	(Fthis_single_command_keys, Fthis_single_command_raw_keys) 
+	* keyboard.c (Fthis_command_keys, Fthis_command_keys_vector)
+	(Fthis_single_command_keys, Fthis_single_command_raw_keys)
 	(Fclear_this_command_keys): Doc fixes.
 
-	* xfaces.c (Finternal_make_lisp_face, Finternal_copy_lisp_face) 
+	* xfaces.c (Finternal_make_lisp_face, Finternal_copy_lisp_face)
 	(update_face_from_frame_parameter): Increment face_change_count
 	and windows_or_buffers_changed to force redisplay using changed faces.
 
@@ -429,9 +434,9 @@
 	Handle literal output of strings by sharing the
 	main-line code for strings, using local var `literal'.
 	Handle :propertize feature.
-	(syms_of_xdisp): Initialze and staticpro QCpropertize and 
+	(syms_of_xdisp): Initialze and staticpro QCpropertize and
 	mode_line_proptrans_alist.
-	
+
 2002-02-11  Kim F. Storm  <storm@cua.dk>
 
 	* window.c: (Vmode_line_in_non_selected_windows): New variable.
@@ -486,14 +491,13 @@
 
 2002-02-08  Kim F. Storm  <storm@cua.dk>
 
-	* alloc.c (SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK): 
+	* alloc.c (SETJMP_WILL_LIKELY_WORK, SETJMP_WILL_NOT_WORK):
 	Changed mail addresses to emacs-devel@gnu.org.
 
 2002-02-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* fileio.c (Fsubstitute_in_file_name): If the file name includes
-	~user, and there's no such user, don't discard everything before
-	~user.
+	~user, and there's no such user, don't discard everything before ~user.
 
 	* floatfns.c (Fround): Doc fix.
 
@@ -540,8 +544,7 @@
 
 2002-02-06  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* keyboard.c (recursive_edit_1): Call cancel_hourglass
-	unconditionally.
+	* keyboard.c (recursive_edit_1): Call cancel_hourglass unconditionally.
 
 2002-02-06  Jason Rumney  <jasonr@gnu.org>
 
@@ -785,8 +788,8 @@
 
 2002-01-15  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
-	* buffer.c (Fkill_all_local_variables): Increment
-	`update_mode_lines' only once.
+	* buffer.c (Fkill_all_local_variables):
+	Increment `update_mode_lines' only once.
 
 2002-01-14  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
