@@ -324,7 +324,6 @@ FIELD, BEG and END.  BEG and END specify region to sort."
 	  (skip-chars-forward "^ \t\n")
 	  (setq i (1- i)))
 	(skip-chars-forward " \t")
-	(recursive-edit)
 	(if (eolp)
 	    (error "Line has too few fields: %s"
 		   (buffer-substring
