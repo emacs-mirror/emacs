@@ -356,7 +356,7 @@ if that value is non-nil and inserts the value of
 	       (lisp-indent-specform method state
 				     indent-point normal-indent))
 	      (method
-		(funcall method state indent-point)))))))
+		(funcall method state indent-point normal-indent)))))))
 
 
 ;;; Let is different in Scheme
@@ -378,11 +378,11 @@ if that value is non-nil and inserts the value of
 ;;      (scheme-indent-specform 2 state indent-point)
 ;;      (scheme-indent-specform 1 state indent-point)))
 
-(defun scheme-let-indent (state indent-point)
+(defun scheme-let-indent (state indent-point normal-indent)
   (skip-chars-forward " \t")
   (if (looking-at "[-a-zA-Z0-9+*/?!@$%^&_:~]")
-      (lisp-indent-specform 2 state indent-point (current-column))
-      (lisp-indent-specform 1 state indent-point (current-column))))
+      (lisp-indent-specform 2 state indent-point normal-indent)
+    (lisp-indent-specform 1 state indent-point normal-indent)))
 
 ;; (put 'begin 'scheme-indent-function 0), say, causes begin to be indented
 ;; like defun if the first form is placed on the next line, otherwise
