@@ -475,15 +475,6 @@ do_switch_frame (frame, no_enter, track)
 #endif /* HAVE_X_WINDOWS */
 #endif /* ! 0 */
 
-  if (FRAME_TERMCAP_P (XFRAME (frame)))
-    {
-      /* Since frames on an ASCII terminal share the same display area,
-	 switching means we must redisplay the whole thing.  */
-      windows_or_buffers_changed++;
-      SET_FRAME_GARBAGED (XFRAME (frame));
-      XSETFRAME (Vterminal_frame, frame);
-    }
-
   selected_frame = XFRAME (frame);
   if (! FRAME_MINIBUF_ONLY_P (selected_frame))
     last_nonminibuf_frame = selected_frame;
