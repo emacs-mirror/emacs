@@ -1,6 +1,6 @@
 ;;; eudc-vars.el --- Emacs Unified Directory Client
 
-;; Copyright (C) 1998, 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2002 Free Software Foundation, Inc.
 
 ;; Author: Oscar Figueiredo <oscar@xemacs.org>
 ;; Maintainer: Oscar Figueiredo <oscar@xemacs.org>
@@ -281,8 +281,7 @@ attribute values for display."
 		       (symbol :tag "Display Function")))
   :group 'eudc)
 
-(defcustom eudc-external-viewers '(("XV" "xv" "-")
-				   ("ImageMagick" "display" "-")
+(defcustom eudc-external-viewers '(("ImageMagick" "display" "-")
 				   ("ShowAudio" "showaudio"))
   "*A list of viewer program specifications.
 Viewers are programs which can be piped a directory attribute value for
