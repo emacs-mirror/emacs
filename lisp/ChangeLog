@@ -1,7 +1,7 @@
 2001-03-06  Gerd Moellmann  <gerd@gnu.org>
 
 	* bookmark.el (bookmark-get-bookmark): Use assoc-ignore-case if
-	bookmark-completion-ignore-case it t.
+	bookmark-completion-ignore-case is t.
 
 	* term/x-win.el (x-handle-xrm-switch): Accept more than one -xrm
 	switch, like xterm, and concat resource strings, with a newline
