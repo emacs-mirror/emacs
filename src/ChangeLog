@@ -604,8 +604,8 @@
 
 	* msdos.c (croak): Add `void' to definition.
 
-	* sysdep.c [MSDOS]: Don't define request_sigio and
-	unrequest_sigio, they are defined on msdos.c.
+	* sysdep.c [MSDOS] (request_sigio, unrequest_sigio):
+	Don't define them, they are defined in msdos.c.
 
 	* mem-limits.h [MSDOS]: Declare etext.
 
