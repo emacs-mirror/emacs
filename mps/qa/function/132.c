@@ -1,8 +1,9 @@
 /* 
 TEST_HEADER
- id = $HopeName: MMQA_test_function!132.c(trunk.3) $
+ id = $HopeName: MMQA_test_function!132.c(trunk.4) $
  summary = low-memory reservoir tests with commit limit, part I
  language = c
+ harness = 2.1
  link = testlib.o rankfmt.o
 OUTPUT_SPEC
  lim0 = 0
@@ -26,7 +27,7 @@ OUTPUT_SPEC
  failres2 = MEMORY
  shrink6 > 1000000
  spill6 <= 0
- result = pass
+ completed = yes
 END_HEADER
 */
 
@@ -86,33 +87,33 @@ static void test(void) {
  mps_reservoir_limit_set(arena, (size_t) (5ul*1024*1024));
  report("lim1", "%d", lim1 = mps_reservoir_limit(arena));
  report("avail1",  "%d", avail1 = mps_reservoir_available(arena));
- report("commit1", "%d", commit1 = mps_arena_committed(arena));
+ report("commit1", "%d", commit1 = arena_committed_and_used(arena));
  report("deficit1", "%d", lim1-avail1);
 
  mps_reservoir_limit_set(arena, (size_t) (1045));
  report("lim2", "%d", lim2 = mps_reservoir_limit(arena));
  report("avail2",  "%d", avail2 = mps_reservoir_available(arena));
- report("commit2", "%d", commit2 = mps_arena_committed(arena));
+ report("commit2", "%d", commit2 = arena_committed_and_used(arena));
  report("deficit2", "%d", lim2-avail2);
 
 /* set commit limit to whatever is currently committed plus 1 MB
 */
 
- mps_arena_commit_limit_set(arena, mps_arena_committed(arena)+1024*1024);
+ mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+1024*1024);
  mps_reservoir_limit_set(arena, (size_t) (10ul*1024*1024));
  report("lim3", "%d", lim3 = mps_reservoir_limit(arena));
  report("avail3",  "%d", avail3 = mps_reservoir_available(arena));
- report("commit3", "%d", commit3 = mps_arena_committed(arena));
+ report("commit3", "%d", commit3 = arena_committed_and_used(arena));
  report("deficit3", "%d", lim3-avail3);
  report("spill3", "%d", commit3-mps_arena_commit_limit(arena));
 
 /* now raise it by 1/2 MB -- reservoir should grow
 */
 
- mps_arena_commit_limit_set(arena, mps_arena_committed(arena)+512*1024);
+ mps_arena_commit_limit_set(arena, arena_committed_and_used(arena)+512*1024);
  report("lim4", "%d", lim4 = mps_reservoir_limit(arena));
  report("avail4",  "%d", avail4 = mps_reservoir_available(arena));
- report("commit4", "%d", commit4 = mps_arena_committed(arena));
+ report("commit4", "%d", commit4 = arena_committed_and_used(arena));
  report("grow4", "%d", avail4-avail3);
  report("spill4", "%d", commit4-mps_arena_commit_limit(arena));
 
@@ -138,7 +139,7 @@ static void test(void) {
 
  report("lim5", "%d", lim5 = mps_reservoir_limit(arena));
  report("avail5",  "%d", avail5 = mps_reservoir_available(arena));
- report("commit5", "%d", commit5 = mps_arena_committed(arena));
+ report("commit5", "%d", commit5 = arena_committed_and_used(arena));
  report("grow5", "%d", avail5-avail4);
  report("spill5", "%d", commit5-mps_arena_commit_limit(arena));
 
@@ -163,7 +164,7 @@ static void test(void) {
 
  report("lim6", "%d", lim6 = mps_reservoir_limit(arena));
  report("avail6",  "%d", avail6 = mps_reservoir_available(arena));
- report("commit6", "%d", commit6 = mps_arena_committed(arena));
+ report("commit6", "%d", commit6 = arena_committed_and_used(arena));
  report("spill6", "%d", commit6-mps_arena_commit_limit(arena));
  report("shrink6", "%d", avail5-avail6);
  
