@@ -73,7 +73,8 @@ casify_object (flag, obj)
 DEFUN ("upcase", Fupcase, Supcase, 1, 1, 0,
   "Convert argument to upper case and return that.\n\
 The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered.  See also `capitalize'.")
+The argument object is not altered--the value is a copy.\n\
+See also `capitalize', `downcase' and `upcase-initials'.")
   (obj)
      Lisp_Object obj;
 {
@@ -83,7 +84,7 @@ The argument object is not altered.  See also `capitalize'.")
 DEFUN ("downcase", Fdowncase, Sdowncase, 1, 1, 0,
   "Convert argument to lower case and return that.\n\
 The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered.")
+The argument object is not altered--the value is a copy.")
   (obj)
      Lisp_Object obj;
 {
@@ -95,11 +96,22 @@ DEFUN ("capitalize", Fcapitalize, Scapitalize, 1, 1, 0,
 This means that each word's first character is upper case\n\
 and the rest is lower case.\n\
 The argument may be a character or string.  The result has the same type.\n\
-The argument object is not altered.")
+The argument object is not altered--the value is a copy.")
   (obj)
      Lisp_Object obj;
 {
   return casify_object (CASE_CAPITALIZE, obj);
+}
+
+DEFUN ("upcase-initials", Fupcase_initials, Supcase_initials, 1, 1, 0,
+  "Convert the initial of each word in the argument to upper case.\n\
+Do not change the other letters of each word.\n\
+The argument may be a character or string.  The result has the same type.\n\
+The argument object is not altered--the value is a copy.")
+  (obj)
+     Lisp_Object obj;
+{
+  return casify_object (CASE_CAPITALIZE_UP, obj);
 }
 
 /* Like Fcapitalize but change only the initials.  */
@@ -186,6 +198,19 @@ character positions to operate on.")
   return Qnil;
 }
 
+DEFUN ("upcase-initials-region", Fupcase_initials_region,
+       Supcase_initials_region, 2, 2, "r",
+  "Upcase the initial of each word in the region.\n\
+Subsequent letters of each word are not changed.\n\
+In programs, give two arguments, the starting and ending\n\
+character positions to operate on.")
+  (b, e)
+     Lisp_Object b, e;
+{
+  casify_region (CASE_CAPITALIZE_UP, b, e);
+  return Qnil;
+}
+
 /* Like Fcapitalize_region but change only the initials.  */
 
 Lisp_Object
@@ -268,9 +293,11 @@ syms_of_casefiddle ()
   defsubr (&Supcase);
   defsubr (&Sdowncase);
   defsubr (&Scapitalize);
+  defsubr (&Supcase_initials);
   defsubr (&Supcase_region);
   defsubr (&Sdowncase_region);
   defsubr (&Scapitalize_region);
+  defsubr (&Supcase_initials_region);
   defsubr (&Supcase_word);
   defsubr (&Sdowncase_word);
   defsubr (&Scapitalize_word);
