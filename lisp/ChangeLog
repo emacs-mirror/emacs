@@ -1,3 +1,8 @@
+2003-04-12  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* net/ange-ftp.el (ange-ftp-insert-directory):
+	Fix handling of symlinks.
+
 2003-04-12  Morten Welinder  <terra@gnu.org>
 
 	* add-log.el (add-change-log-entry): Get add-log-full-name and
@@ -25,8 +30,8 @@
 
 2003-03-04  Rob Kaut  <rob@siworks.com>  (tiny change)
 
-	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region): Remove
-	two comment characters at start of line instead of one.
+	* progmodes/vhdl-mode.el (vhdl-comment-uncomment-region):
+	Remove two comment characters at start of line instead of one.
 
 2003-03-03  Kenichi Handa  <handa@m17n.org>
 
@@ -101,7 +106,7 @@
 
 2003-01-23  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/asm-mode.el (asm-mode): Added syntax table entries for
+	* progmodes/asm-mode.el (asm-mode): Add syntax table entries for
 	/* */ comments.
 
 2003-01-22  Juanma Barranquero  <lektu@terra.es>
@@ -125,13 +130,13 @@
 	* vc-rcs.el (vc-rcs-checkout): Handle t argument for REV.
 	(vc-rcs-checkin): By default, specify the current workfile
 	branch as the check-in revision.
-        (vc-rcs-revert): Unlock only if the user does have the lock.
+	(vc-rcs-revert): Unlock only if the user does have the lock.
 
 	* vc-cvs.el (vc-cvs-checkout): Handle t argument for REV.
 
 	* vc-sccs.el (vc-sccs-checkout): Likewise.
 
-        * log-view.el (log-view-message-re): The rev might be locked.
+	* log-view.el (log-view-message-re): The rev might be locked.
 
 2002-12-18  Gustav H,Ae(Bllberg  <gustav@virtutech.se>  (tiny change)
 

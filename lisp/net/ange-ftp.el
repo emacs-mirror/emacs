@@ -4340,9 +4340,11 @@ NEWNAME should be the name to give the new compressed or uncompressed file.")
 	  tem)
       (if parsed
 	  (if (and (not wildcard)
-		   (setq tem (file-symlink-p (directory-file-name file))))
+		   (stringp (setq tem (ange-ftp-get-file-entry
+				       (directory-file-name file)))))
 	      (ange-ftp-insert-directory
-	       (ange-ftp-replace-name-component file tem)
+	       (ange-ftp-expand-symlink
+		tem (file-name-directory (directory-file-name file)))
 	       switches wildcard full)
 	    (insert
 	     (if wildcard
