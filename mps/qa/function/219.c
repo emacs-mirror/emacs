@@ -1,10 +1,10 @@
-/* $HopeName: MMQA_test_function!102.c(trunk.3) $
+/* $HopeName: MMQA_test_function!219.c(trunk.1) $
 TEST_HEADER
  summary = MV2 from af_six measuring fragmentation
  language = c
  link = testlib.o
  stdin = af_six
- parameters = MINSIZE=8 AVGSIZE=1024 MAXSIZE=65536 LIMIT FRAGLIMIT
+ parameters = COMLIMIT=(1024*1024*100) MINSIZE=8 AVGSIZE=1024 MAXSIZE=65536 LIMIT FRAGLIMIT
 OUTPUT_SPEC
  result = pass
 END_HEADER
@@ -53,6 +53,7 @@ static void test(void)
 
  cdie(mps_arena_create(&arena, mps_arena_class_vm(), (size_t) (1024*1024*100)),
   "create space");
+ cdie(mps_arena_commit_limit_set(arena, COMLIMIT), "commit limit");
  cdie(mps_thread_reg(&thread, arena), "register thread");
 
  cdie(
