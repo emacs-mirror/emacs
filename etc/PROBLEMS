@@ -488,6 +488,20 @@ these problems.
 Upgrade to AUC TeX version 10 or later, and make sure it is
 byte-compiled with Emacs 21.
 
+** PCL-CVS
+
+*** Lines are not updated or new lines are added in the buffer upon commit.
+
+When committing files located higher in the hierarchy than the examined
+directory, some versions of the CVS program return an ambiguous message
+from which PCL-CVS cannot extract the full location of the committed
+files.  As a result, the corresponding lines in the PCL-CVS buffer are
+not updated with the new revision of these files, and new lines are
+added to the top-level directory.
+
+This can happen with CVS versions 1.12.8 and 1.12.9.  Upgrade to CVS
+1.12.10 or newer to fix this problem.
+
 ** Miscellaneous problems
 
 *** Self-documentation messages are garbled.

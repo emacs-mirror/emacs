@@ -1181,13 +1181,16 @@ minibuf_conform_representation (string, basis)
 DEFUN ("try-completion", Ftry_completion, Stry_completion, 2, 3, 0,
        doc: /* Return common substring of all completions of STRING in ALIST.
 Each car of each element of ALIST (or each element if it is not a cons cell)
-is tested to see if it begins with STRING.
+is tested to see if it begins with STRING.  The possible matches may be
+strings or symbols.  Symbols are converted to strings before testing,
+see `symbol-name'.
 All that match are compared together; the longest initial sequence
 common to all matches is returned as a string.
 If there is no match at all, nil is returned.
 For a unique match which is exact, t is returned.
 
-If ALIST is a hash-table, all the string keys are the possible matches.
+If ALIST is a hash-table, all the string and symbol keys are the
+possible matches.
 If ALIST is an obarray, the names of all symbols in the obarray
 are the possible matches.
 
@@ -1257,7 +1260,7 @@ is used to further constrain the set of candidates.  */)
 	  if (!EQ (bucket, zero))
 	    {
 	      elt = bucket;
-	      eltstring = Fsymbol_name (elt);
+	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)
 		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
 	      else
@@ -1283,6 +1286,9 @@ is used to further constrain the set of candidates.  */)
 	}
 
       /* Is this element a possible completion? */
+
+      if (SYMBOLP (eltstring))
+	eltstring = Fsymbol_name (eltstring);
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)
@@ -1440,10 +1446,13 @@ is used to further constrain the set of candidates.  */)
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
        doc: /* Search for partial matches to STRING in ALIST.
 Each car of each element of ALIST (or each element if it is not a cons cell)
-is tested to see if it begins with STRING.
+is tested to see if it begins with STRING.  The possible matches may be
+strings or symbols.  Symbols are converted to strings before testing,
+see `symbol-name'.
 The value is a list of all the strings from ALIST that match.
 
-If ALIST is a hash-table, all the string keys are the possible matches.
+If ALIST is a hash-table, all the string and symbol keys are the
+possible matches.
 If ALIST is an obarray, the names of all symbols in the obarray
 are the possible matches.
 
@@ -1512,7 +1521,7 @@ are ignored unless STRING itself starts with a space.  */)
 	  if (!EQ (bucket, zero))
 	    {
 	      elt = bucket;
-	      eltstring = Fsymbol_name (elt);
+	      eltstring = elt;
 	      if (XSYMBOL (bucket)->next)
 		XSETSYMBOL (bucket, XSYMBOL (bucket)->next);
 	      else
@@ -1538,6 +1547,9 @@ are ignored unless STRING itself starts with a space.  */)
 	}
 
       /* Is this element a possible completion? */
+
+      if (SYMBOLP (eltstring))
+	eltstring = Fsymbol_name (eltstring);
 
       if (STRINGP (eltstring)
 	  && SCHARS (string) <= SCHARS (eltstring)

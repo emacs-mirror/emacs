@@ -1,3 +1,40 @@
+2005-02-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-art.el (gnus-parse-news-url, gnus-button-handle-news):
+	Handle news URL with given port correctly.
+
+2005-02-19  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-msg.el (gnus-copy-article-buffer): Quote decoded words
+	containing special characters.
+
+	* gnus-sum.el (gnus-summary-edit-article): Ditto.
+
+	* mml.el (mime-to-mml): Ditto.
+
+	* rfc2047.el (rfc2047-encode-parameter): Use ietf-drums-tspecials.
+	(rfc2047-quote-decoded-words-containing-tspecials): New variable.
+	(rfc2047-decode-region): Quote decoded words containing special
+	characters when rfc2047-quote-decoded-words-containing-tspecials
+	is non-nil.
+
+2005-02-16  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* gnus-registry.el (gnus-registry-delete-group): minor bug fix
+
+	* gnus.el (gnus-install-group-spam-parameters): Doc fix.
+
+2005-02-15  Simon Josefsson  <jas@extundo.com>
+
+	* nnimap.el (nnimap-debug): Doc fix.
+
+	* imap.el (imap-debug): Doc fix.
+
+2005-02-14  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-group.el (gnus-group-make-doc-group): Mention prefix
+	argument in doc string.  Make query for type more clear.
+
 2005-02-13  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus.el (gnus-group-startup-message): Search for gnus images in

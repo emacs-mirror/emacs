@@ -671,7 +671,8 @@
 (defun calc-user-define-edit ()
   (interactive)  ; but no calc-wrapper!
   (message "Edit definition of command: z-")
-  (let* ((key (read-char))
+  (let* (cmdname
+         (key (read-char))
 	 (def (or (assq key (calc-user-key-map))
 		  (assq (upcase key) (calc-user-key-map))
 		  (assq (downcase key) (calc-user-key-map))
@@ -720,17 +721,19 @@
 
 ;; Formatting the macro buffer
 
+(defvar calc-edit-top)
+
 (defun calc-edit-macro-repeats ()
   (goto-char calc-edit-top)
   (while
       (re-search-forward "^\\([0-9]+\\)\\*" nil t)
-    (setq num (string-to-int (match-string 1)))
-    (setq line (buffer-substring (point) (line-end-position)))
-    (goto-char (line-beginning-position))
-    (kill-line 1)
-    (while (> num 0)
-      (insert line "\n")
-      (setq num (1- num)))))
+    (let ((num (string-to-int (match-string 1)))
+          (line (buffer-substring (point) (line-end-position))))
+      (goto-char (line-beginning-position))
+      (kill-line 1)
+      (while (> num 0)
+        (insert line "\n")
+        (setq num (1- num))))))
 
 (defun calc-edit-macro-adjust-buffer ()
   (calc-edit-macro-repeats)
@@ -916,7 +919,6 @@
     (delete-char 3)
     (insert "<return>")))
 
-(defvar calc-edit-top)
 (defun calc-edit-macro-finish-edit (cmdname key)
   "Finish editing a Calc macro.
 Redefine the corresponding command."

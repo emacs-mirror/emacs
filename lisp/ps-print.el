@@ -4855,9 +4855,7 @@ page-height == ((floor print-height ((th + ls) * zh)) * ((th + ls) * zh)) - th
   (and ps-print-footer
        (setq ps-lf-cache (ps-generate-string-list ps-left-footer)
 	     ps-rf-cache (ps-generate-string-list ps-right-footer)))
-  (mapconcat 'identity
-	     (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache)
-	     ""))
+  (append ps-lh-cache ps-rh-cache ps-lf-cache ps-rf-cache))
 
 ;; These functions insert the arrays that define the contents of the headers.
 

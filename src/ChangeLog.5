@@ -3405,7 +3405,7 @@
 	(UNISTD_H_INCLUDED): Don't define or test this.
 	* m/ibm370aix.h (NEED_UNISTD_H): Defined.
 	* s/aix3-1.h (NEED_UNISTD_H): Defined.
-	* s/irix4-0.h (NEED_UNISTD_H): Defined.
+	* s/irix4-0.h (NEED_UNISTD_H): Define.
 
 	* fileio.c (internal_delete_file, internal_delete_file_1):
 	New functions.
@@ -3419,7 +3419,7 @@
 1994-11-24  Francesco Potorti`  <pot@cnuce.cnr.it>
 
 	* m/delta.h (C_SWITCH_MACHINE): -inline-functions removed,
-        because the compiler shipped with R3V7 is not stable.
+	because the compiler shipped with R3V7 is not stable.
 
 1994-11-24  Richard Stallman  <rms@mole.gnu.ai.mit.edu>
 
@@ -3443,7 +3443,7 @@
 	(complete_and_exit_1, complete_and_exit_2): New subroutines.
 
 	* s/aix4.h: New file.
-	* s/aix3-1.h (AIXHFT): Defined.
+	* s/aix3-1.h (AIXHFT): Define.
 	* m/ibmrs6000.h (OBJECTS_MACHINE): Define only if AIXHFT.
 
 	* sysdep.c (init_sys_modes): Tes AIXHFT, not AIX.
@@ -6451,7 +6451,7 @@
 	Add an unwind protect to restore original buffer and kill the temp.
 
 	* sysdep.c (init_system_name): Retry gethostbyname after TRY_AGAIN
-        failure.
+	failure.
 
 	* process.c (Fopen_network_stream):
 	Retry gethostbyname after TRY_AGAIN failure.
@@ -6477,7 +6477,7 @@
 
 	* s/linux.h [emacs]: Include stdio.h.
 
-	* commands.h (unread_command_char): Declared.
+	* commands.h (unread_command_char): Declare.
 	* dispnew.c (sit_for): Return immediately if unread events exist.
 
 1994-07-17  Richard Stallman  (rms@mole.gnu.ai.mit.edu)

@@ -1,6 +1,6 @@
 ;;; ediff-mult.el --- support for multi-file/multi-buffer processing in Ediff
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 01, 02, 05 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -166,6 +166,9 @@ directories.")
 
 ;; buffer used to collect custom diffs from individual sessions in the group
 (ediff-defvar-local ediff-meta-diff-buffer nil "")
+
+;; t means recurse into subdirs when deciding which files have same contents
+(ediff-defvar-local ediff-recurse-to-subdirectories nil "")
 
 ;; history var to use for filtering groups of files
 (defvar ediff-filtering-regexp-history nil "")
@@ -2349,6 +2352,7 @@ last-command-char is used to decide which action to take."
 		))
       (setq list (cdr list)))
     (message "Comparing files ... Done"))
+  (setq ediff-recurse-to-subdirectories nil)
   (ediff-update-meta-buffer (current-buffer) 'must-redraw))
 
 ;; mark files 1 and 2 as equal, if they are.
@@ -2356,12 +2360,11 @@ last-command-char is used to decide which action to take."
 (defun ediff-mark-if-equal (fileinfo1 fileinfo2)
   (let ((f1 (car fileinfo1))
 	(f2 (car fileinfo2)))
-    (cond ((file-directory-p f1) nil)
-	  ((file-directory-p f2) nil)
-	  ((ediff-same-file-contents f1 f2)
-	   (ediff-set-file-eqstatus fileinfo1 t)
-	   (ediff-set-file-eqstatus fileinfo2 t)
-	   t))
+    (if (and (stringp f1) (stringp f2) (ediff-same-contents f1 f2))
+	(progn
+	  (ediff-set-file-eqstatus fileinfo1 t)
+	  (ediff-set-file-eqstatus fileinfo2 t)
+	  ))
     ))
 
 

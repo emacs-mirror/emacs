@@ -1063,7 +1063,7 @@ as a Meta key and any number of multiple escapes is allowed."
 
     ;; call the actual function to execute ESC (if no other symbols followed)
     ;; or the key bound to the ESC sequence (if the sequence was issued
-    ;; with very short delay between characters.
+    ;; with very short delay between characters).
     (if (eq cmd 'viper-intercept-ESC-key)
 	(setq cmd
 	      (cond ((eq viper-current-state 'vi-state)
@@ -1529,7 +1529,8 @@ as a Meta key and any number of multiple escapes is allowed."
   nil)
 
 (defun viper-exec-buffer-search (m-com com)
-  (setq viper-s-string (buffer-substring (point) viper-com-point))
+  (setq viper-s-string
+	(regexp-quote (buffer-substring (point) viper-com-point)))
   (setq viper-s-forward t)
   (setq viper-search-history (cons viper-s-string viper-search-history))
   (setq viper-intermediate-command 'viper-exec-buffer-search)
@@ -1982,6 +1983,16 @@ Undo previous insertion and inserts new."
   (let ((hook (if viper-vi-style-in-minibuffer
 		  'viper-change-state-to-insert
 		'viper-change-state-to-emacs)))
+    ;; making buffer-local variables so that normal buffers won't affect the
+    ;; minibuffer and vice versa. Otherwise, command arguments will affect
+    ;; minibuffer ops and insertions from the minibuffer will change those in
+    ;; the normal buffers
+    (make-local-variable 'viper-d-com)
+    (make-local-variable 'viper-last-insertion)
+    (make-local-variable 'viper-command-ring)
+    (setq viper-d-com nil
+	  viper-last-insertion nil
+	  viper-command-ring nil)
     (funcall hook)
     ))
 
@@ -2707,7 +2718,7 @@ On reaching beginning of line, stop and signal error."
     (viper-backward-char-carefully)
     (if (looking-at "\n")
 	(viper-skip-all-separators-backward 'within-line)
-      (or (bobp) (forward-char)))))
+      (or (viper-looking-at-separator) (forward-char)))))
 
 
 (defun viper-forward-word-kernel (val)
@@ -3630,33 +3641,39 @@ the Emacs binding of `/'."
 	   (setq msg "Search style remains unchanged")))
     (princ msg t)))
 
-(defun viper-set-searchstyle-toggling-macros (unset)
+(defun viper-set-searchstyle-toggling-macros (unset &optional major-mode)
   "Set the macros for toggling the search style in Viper's vi-state.
 The macro that toggles case sensitivity is bound to `//', and the one that
 toggles regexp search is bound to `///'.
-With a prefix argument, this function unsets the macros. "
+With a prefix argument, this function unsets the macros.
+If MAJOR-MODE is set, set the macros only in that major mode."
   (interactive "P")
-  (or noninteractive
-      (if (not unset)
-	  (progn
-	    ;; toggle case sensitivity in search
-	    (viper-record-kbd-macro
-	     "//" 'vi-state
-	     [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
-	     't)
-	    ;; toggle regexp/vanila search
-	    (viper-record-kbd-macro
-	     "///" 'vi-state
-	     [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
-	     't)
-	    (if (interactive-p)
-		(message
-		 "// and /// now toggle case-sensitivity and regexp search")))
-	(viper-unrecord-kbd-macro "//" 'vi-state)
-	(sit-for 2)
-	(viper-unrecord-kbd-macro "///" 'vi-state))))
-
-
+  (let (scope)
+    (if (and major-mode (symbolp major-mode))
+	(setq scope major-mode)
+      (setq scope 't))
+    (or noninteractive
+	(if (not unset)
+	    (progn
+	      ;; toggle case sensitivity in search
+	      (viper-record-kbd-macro
+	       "//" 'vi-state
+	       [1 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
+	       scope)
+	      ;; toggle regexp/vanila search
+	      (viper-record-kbd-macro
+	       "///" 'vi-state
+	       [2 (meta x) v i p e r - t o g g l e - s e a r c h - s t y l e return]
+	       scope)
+	      (if (interactive-p)
+		  (message
+		   "// and /// now toggle case-sensitivity and regexp search")))
+	  (viper-unrecord-kbd-macro "//" 'vi-state)
+	  (sit-for 2)
+	  (viper-unrecord-kbd-macro "///" 'vi-state)))
+    ))
+  
+  
 (defun viper-set-parsing-style-toggling-macro (unset)
   "Set `%%%' to be a macro that toggles whether comment fields should be parsed for matching parentheses.
 This is used in conjunction with the `%' command.
@@ -4112,7 +4129,8 @@ Null string will repeat previous search."
   (interactive)
   (if (and viper-ex-style-editing (bolp))
       (beep 1)
-    (delete-backward-char 1 t)))
+    ;; don't put on kill ring
+    (delete-backward-char 1 nil)))
 
 
 (defun viper-del-backward-char-in-replace ()
@@ -4124,13 +4142,15 @@ cursor move past the beginning of line."
   (interactive)
   (cond (viper-delete-backwards-in-replace
 	 (cond ((not (bolp))
-		(delete-backward-char 1 t))
+		;; don't put on kill ring
+		(delete-backward-char 1 nil))
 	       (viper-ex-style-editing
 		(beep 1))
 	       ((bobp)
 		(beep 1))
 	       (t
-		(delete-backward-char 1 t))))
+		;; don't put on kill ring
+		(delete-backward-char 1 nil))))
 	(viper-ex-style-editing
 	 (if (bolp)
 	     (beep 1)

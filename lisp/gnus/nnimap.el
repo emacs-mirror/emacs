@@ -1,5 +1,5 @@
 ;;; nnimap.el --- imap backend for Gnus
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <jas@pdc.kth.se>
@@ -409,7 +409,11 @@ If this is 'imap-mailbox-lsub, then use a server-side subscription list to
 restrict visible folders.")
 
 (defcustom nnimap-debug nil
-  "If non-nil, random debug spews are placed in *nnimap-debug* buffer."
+  "If non-nil, random debug spews are placed in *nnimap-debug* buffer.
+Note that username, passwords and other privacy sensitive
+information (such as e-mail) may be stored in the *nnimap-debug*
+buffer.  It is not written to disk, however.  Do not enable this
+variable unless you are comfortable with that."
   :group 'nnimap
   :type 'boolean)
 

@@ -2502,7 +2502,9 @@ group already exists:
   (gnus-group-position-point))
 
 (defun gnus-group-make-doc-group (file type)
-  "Create a group that uses a single file as the source."
+  "Create a group that uses a single file as the source.
+
+If called with a prefix argument, ask for the file type."
   (interactive
    (list (read-file-name "File name: ")
 	 (and current-prefix-arg 'ask)))
@@ -2511,7 +2513,7 @@ group already exists:
 	  char found)
       (while (not found)
 	(message
-	 "%sFile type (mbox, babyl, digest, forward, mmdf, guess) [mbdfag]: "
+	 "%sFile type (mbox, babyl, digest, forward, mmdf, guess) [m, b, d, f, a, g]: "
 	 err)
 	(setq found (cond ((= (setq char (read-char)) ?m) 'mbox)
 			  ((= char ?b) 'babyl)

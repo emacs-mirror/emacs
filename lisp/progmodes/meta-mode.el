@@ -898,7 +898,7 @@ The environment marked is the one that contains point or follows point."
 ;; Compatibility: XEmacs doesn't have the  `mark-active' variable.
 (defun meta-mark-active ()
   "Return whether the mark and region are currently active in this buffer."
-  (or (and (boundp 'mark-active) mark-active) (mark)))
+  (if (boundp 'mark-active) mark-active (mark)))
 
 
 

@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>
@@ -384,6 +384,14 @@ If non-nil, then open the URL in a new tab rather than a new window if
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-epiphany' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
+(defcustom browse-url-netscape-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new
+window if `browse-url-netscape' is asked to open it in a new
+window."
   :type 'boolean
   :group 'browse-url)
 
@@ -834,6 +842,10 @@ non-nil, load the document in a new Netscape window, otherwise use a
 random existing one.  A non-nil interactive prefix argument reverses
 the effect of `browse-url-new-window-flag'.
 
+If `browse-url-netscape-new-window-is-tab' is non-nil, then
+whenever a document would otherwise be loaded in a new window, it
+is loaded in a new tab in an existing window instead.
+
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'."
   (interactive (browse-url-interactive-arg "URL: "))
@@ -843,21 +855,24 @@ used instead of `browse-url-new-window-flag'."
     (setq url (replace-match
 	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
   (let* ((process-environment (browse-url-process-environment))
-         (process (apply 'start-process
-			 (concat "netscape " url) nil
-			 browse-url-netscape-program
-			 (append
-			  browse-url-netscape-arguments
-			  (if (eq window-system 'w32)
-			      (list url)
-			    (append
-			     (if new-window '("-noraise"))
-			     (list "-remote"
-				   (concat "openURL(" url
-					   (if (browse-url-maybe-new-window
-						new-window)
-					       ",new-window")
-					   ")"))))))))
+	 (process
+	  (apply 'start-process
+		 (concat "netscape " url) nil
+		 browse-url-netscape-program
+		 (append
+		  browse-url-netscape-arguments
+		  (if (eq window-system 'w32)
+		      (list url)
+		    (append
+		     (if new-window '("-noraise"))
+		     (list "-remote"
+			   (concat "openURL(" url
+				   (if (browse-url-maybe-new-window
+					new-window)
+				       (if browse-url-netscape-new-window-is-tab
+					   ",new-tab"
+					 ",new-window"))
+				   ")"))))))))
     (set-process-sentinel process
 			  `(lambda (process change)
 			     (browse-url-netscape-sentinel process ,url)))))

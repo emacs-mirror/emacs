@@ -1390,20 +1390,60 @@ FONTTAG should be a string \"/h0\" or \"/h1\"."
 	  (setq string (ps-mule-string-encoding font-spec string nil t))))))
   string)
 
-;;;###autoload
-(defun ps-mule-header-string-charsets ()
-  "Return a list of character sets that appears in header strings."
-  (let* ((str (ps-header-footer-string))
-	 (len (length str))
-	 (i 0)
-	 charset-list)
-    (while (< i len)
-      (let ((charset (char-charset (aref str i))))
-	(setq i (1+ i))
-	(or (eq charset 'ascii)
-	    (memq charset charset-list)
-	    (setq charset-list (cons charset charset-list)))))
-    charset-list))
+(defun ps-mule-show-warning (charsets from to header-footer-list)
+  (let ((table (make-category-table))
+	(buf (current-buffer))
+	char-pos-list)
+    (define-category ?u "Unprintable charset" table)
+    (dolist (cs charsets)
+      (modify-category-entry (make-char cs) ?u table))
+    (with-category-table table
+      (save-excursion
+	(goto-char from)
+	(while (and (< (length char-pos-list) 20)
+		    (re-search-forward "\\cu" to t))
+	  (push (cons (preceding-char) (1- (point))) char-pos-list))
+	(setq char-pos-list (nreverse char-pos-list))))
+    (with-output-to-temp-buffer "*Warning*"
+      (with-current-buffer standard-output
+	(when char-pos-list
+	  (let ((func #'(lambda (buf pos)
+			  (when (buffer-live-p buf)
+			    (pop-to-buffer buf)
+			    (goto-char pos)))))
+	    (insert "These characters in the buffer can't be printed:\n")
+	    (dolist (elt char-pos-list)
+	      (insert " ")
+	      (insert-text-button (string (car elt))
+				  :type 'help-xref
+				  'help-echo
+				  "mouse-2, RET: jump to this character"
+				  'help-function func
+				  'help-args (list buf (cdr elt)))
+	      (insert ","))
+	    ;; Delete the last comma.
+	    (delete-char -1)
+	    (insert "\nClick them to jump to the buffer position,\n"
+		    (substitute-command-keys "\
+or \\[universal-argument] \\[what-cursor-position] will give information about them.\n"))))
+
+	(with-category-table table
+	  (let (string-list idx)
+	    (dolist (elt header-footer-list)
+	      (when (stringp elt)
+		(when (string-match "\\cu+" elt)
+		  (setq elt (copy-sequence elt))
+		  (put-text-property (match-beginning 0) (match-end 0)
+				     'face 'highlight elt)
+		  (while (string-match "\\cu+" elt (match-end 0))
+		    (put-text-property (match-beginning 0) (match-end 0)
+				       'face 'highlight elt))
+		  (push elt string-list))))
+	    (when string-list
+	      (insert
+	       "These highlighted characters in header/footer can't be printed:\n")
+	      (dolist (elt string-list)
+		(insert "  " elt "\n")))))))))
 
 ;;;###autoload
 (defun ps-mule-begin-job (from to)
@@ -1424,58 +1464,55 @@ This checks if all multi-byte characters in the region are printable or not."
        enable-multibyte-characters
        ;; Initialize `ps-mule-charset-list'.  If some characters aren't
        ;; printable, warn it.
-       (let ((charsets (find-charset-region from to)))
-	 (setq charsets (delq 'ascii (delq 'unknown (delq nil charsets)))
-	       ps-mule-charset-list charsets)
-	 (save-excursion
-	   (goto-char from)
-	   (and (search-forward "\200" to t)
-		(setq ps-mule-charset-list
-		      (cons 'composition ps-mule-charset-list))))
-	 ;; We also have to check non-ASCII charsets in the header strings.
-	 (let ((tail (ps-mule-header-string-charsets)))
-	   (while tail
-	     (unless (eq (car tail) 'ascii)
-	       (setq ps-mule-header-charsets
-		     (cons (car tail) ps-mule-header-charsets))
-	       (or (memq (car tail) charsets)
-		   (setq charsets (cons (car tail) charsets))))
-	     (setq tail (cdr tail))))
-	 (while charsets
-	   (setq charsets
-		 (cond
-		  ((or (eq (car charsets) 'composition)
-		       (ps-mule-printable-p (car charsets)))
-		   (cdr charsets))
-		  ((y-or-n-p
-		    "Font for some characters not found, continue anyway? ")
-		   nil)
-		  (t
-		   (error "Printing cancelled")))))))
+       (let ((header-footer-list (ps-header-footer-string))
+	     unprintable-charsets)
+	 (setq ps-mule-charset-list
+	       (delq 'ascii (delq 'eight-bit-control
+				  (delq 'eight-bit-graphic 
+					(find-charset-region from to))))
+	       ps-mule-header-charsets
+	       (delq 'ascii (delq 'eight-bit-control
+				  (delq 'eight-bit-graphic 
+					(find-charset-string
+					 (mapconcat
+					  'identity header-footer-list ""))))))
+	 (dolist (cs ps-mule-charset-list)
+	   (or (ps-mule-printable-p cs)
+	       (push cs unprintable-charsets)))
+	 (dolist (cs ps-mule-header-charsets)
+	   (or (ps-mule-printable-p cs)
+	       (memq cs unprintable-charsets)
+	       (push cs unprintable-charsets)))
+	 (when unprintable-charsets
+	   (ps-mule-show-warning unprintable-charsets from to
+				 header-footer-list)
+	   (or
+	    (y-or-n-p "Font for some characters not found, continue anyway? ")
+	    (error "Printing cancelled")))
+
+	 (or ps-mule-composition-prologue-generated
+	     (let ((use-composition (nth 2 (find-composition from to))))
+	       (or use-composition
+		   (let (str)
+		     (while header-footer-list
+		       (setq str (car header-footer-list))
+		       (if (and (stringp str)
+				(nth 2 (find-composition 0 (length str) str)))
+			   (setq use-composition t
+				 header-footer-list nil)
+			 (setq header-footer-list (cdr header-footer-list))))))
+	       (when use-composition
+		 (progn
+		   (ps-mule-prologue-generated)
+		   (ps-output-prologue ps-mule-composition-prologue)
+		   (setq ps-mule-composition-prologue-generated t)))))))
 
   (setq ps-mule-current-charset 'ascii)
 
-  (if (and (nth 2 (find-composition from to))
-	   (not ps-mule-composition-prologue-generated))
-      (progn
-	(ps-mule-prologue-generated)
-	(ps-output-prologue ps-mule-composition-prologue)
-	(setq ps-mule-composition-prologue-generated t)))
-
   (if (or ps-mule-charset-list ps-mule-header-charsets)
-      (let ((the-list (append ps-mule-header-charsets ps-mule-charset-list))
-	    font-spec elt)
+      (dolist (elt (append ps-mule-header-charsets ps-mule-charset-list))
 	(ps-mule-prologue-generated)
-	;; If external functions are necessary, generate prologues for them.
-	(while the-list
-	  (setq elt (car the-list)
-		the-list (cdr the-list))
-	  (cond ((and (eq elt 'composition)
-		      (not ps-mule-composition-prologue-generated))
-		 (ps-output-prologue ps-mule-composition-prologue)
-		 (setq ps-mule-composition-prologue-generated t))
-		((setq font-spec (ps-mule-get-font-spec elt 'normal))
-		 (ps-mule-init-external-library font-spec))))))
+	(ps-mule-init-external-library (ps-mule-get-font-spec elt 'normal))))
 
   ;; If ASCII font is also specified in ps-mule-font-info-database,
   ;; use it instead of what specified in ps-font-info-database.
@@ -1496,7 +1533,8 @@ This checks if all multi-byte characters in the region are printable or not."
   ;; If the header contains non-ASCII and non-Latin1 characters, prepare a font
   ;; and glyphs for the first occurrence of such characters.
   (if (and ps-mule-header-charsets
-	   (not (eq (car ps-mule-header-charsets) 'latin-iso8859-1)))
+	   (not (eq (car ps-mule-header-charsets) 'latin-iso8859-1))
+	   (= (charset-dimension (car ps-mule-header-charsets)) 1))
       (let ((font-spec (ps-mule-get-font-spec (car ps-mule-header-charsets)
 					      'normal)))
 	(if font-spec

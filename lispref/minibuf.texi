@@ -595,9 +595,9 @@ the higher-level completion features that do use the minibuffer.
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
 completions of @var{string} in @var{collection}.  The value of
-@var{collection} must be a list of strings, an alist, an obarray, a
-hash table, or a function that implements a virtual set of strings
-(see below).
+@var{collection} must be a list of strings or symbols, an alist, an
+obarray, a hash table, or a function that implements a virtual set of
+strings (see below).
 
 Completion compares @var{string} against each of the permissible
 completions specified by @var{collection}; if the beginning of the
@@ -610,11 +610,13 @@ match.
 
 If @var{collection} is an alist (@pxref{Association Lists}), the
 permissible completions are the elements of the alist that are either
-strings or conses whose @sc{car} is a string.  Other elements of the
-alist are ignored. (Remember that in Emacs Lisp, the elements of
-alists do not @emph{have} to be conses.)  As all elements of the alist
-can be strings, this case actually includes lists of strings, even
-though we usually do not think of such lists as alists.
+strings, symbols, or conses whose @sc{car} is a string or symbol.
+Symbols are converted to strings using @code{symbol-name}.
+Other elements of the alist are ignored. (Remember that in Emacs Lisp,
+the elements of alists do not @emph{have} to be conses.)  As all
+elements of the alist can be strings, this case actually includes
+lists of strings or symbols, even though we usually do not think of
+such lists as alists.
 
 @cindex obarray in completion
 If @var{collection} is an obarray (@pxref{Creating Symbols}), the names

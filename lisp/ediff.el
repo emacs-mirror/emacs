@@ -1,13 +1,13 @@
 ;;; ediff.el --- a comprehensive visual interface to diff & patch
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 03 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 03, 05 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 ;; Created: February 2, 1994
 ;; Keywords: comparing, merging, patching, tools, unix
 
-(defconst ediff-version "2.78" "The current version of Ediff")
-(defconst ediff-date "May 18, 2003" "Date of last update")  
+(defconst ediff-version "2.80" "The current version of Ediff")
+(defconst ediff-date "February 19, 2005" "Date of last update")  
 
 
 ;; This file is part of GNU Emacs.
@@ -1080,8 +1080,11 @@ lines.  For small regions, use `ediff-regions-wordwise'."
 
 (defsubst ediff-merge-on-startup ()
   (ediff-do-merge 0)
-  (ediff-with-current-buffer ediff-buffer-C
-    (set-buffer-modified-p nil)))
+  ;; Can't remember why this is here, but it may cause the automatically merged
+  ;; buffer to be lost. So, keep the buffer modified.
+  ;;(ediff-with-current-buffer ediff-buffer-C
+  ;;  (set-buffer-modified-p nil))
+  )
 
 ;;;###autoload
 (defun ediff-merge-files (file-A file-B

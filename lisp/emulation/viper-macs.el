@@ -329,6 +329,8 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 ;; Accepts as macro names: strings and vectors.
 ;; strings must be strings of characters; vectors must be vectors of keys
 ;; in canonic form.  The canonic form is essentially the form used in XEmacs
+;; More general definitions are inherited by more specific scopes:
+;; global->major mode->buffer. More specific definitions override more general
 (defun viper-record-kbd-macro (macro-name state macro-body &optional scope)
   "Record a Vi macro.  Can be used in `.viper' file to define permanent macros.
 MACRO-NAME is a string of characters or a vector of keys.  STATE is
@@ -451,22 +453,22 @@ If SCOPE is nil, the user is asked to specify the scope."
 		       (list (list (cons scope nil)) nil (cons t nil))))))
     (setq old-elt (assoc macro-name (eval macro-alist-var)))
 
-      (if (null old-elt)
-	  (progn
-	    ;; insert new-elt in macro-alist-var and keep the list sorted
-	    (define-key
-	      keymap
-	      (vector (viper-key-to-emacs-key (aref macro-name 0)))
-	      'viper-exec-mapped-kbd-macro)
-	    (setq lis (eval macro-alist-var))
-	    (while (and lis (string< (viper-array-to-string (car (car lis)))
-				     (viper-array-to-string macro-name)))
-	      (setq lis2 (cons (car lis) lis2))
-	      (setq lis (cdr lis)))
-
-	    (setq lis2 (reverse lis2))
-	    (set macro-alist-var (append lis2 (cons new-elt lis)))
-	    (setq old-elt new-elt)))
+    (if (null old-elt)
+	(progn
+	  ;; insert new-elt in macro-alist-var and keep the list sorted
+	  (define-key
+	    keymap
+	    (vector (viper-key-to-emacs-key (aref macro-name 0)))
+	    'viper-exec-mapped-kbd-macro)
+	  (setq lis (eval macro-alist-var))
+	  (while (and lis (string< (viper-array-to-string (car (car lis)))
+				   (viper-array-to-string macro-name)))
+	    (setq lis2 (cons (car lis) lis2))
+	    (setq lis (cdr lis)))
+	  
+	  (setq lis2 (reverse lis2))
+	  (set macro-alist-var (append lis2 (cons new-elt lis)))
+	  (setq old-elt new-elt)))
     (setq old-sub-elt
 	  (cond ((eq scope t) (viper-kbd-global-pair old-elt))
 		((symbolp scope) (assoc scope (viper-kbd-mode-alist old-elt)))
@@ -484,6 +486,11 @@ If SCOPE is nil, the user is asked to specify the scope."
 
 
 ;; macro name must be a vector of viper-style keys
+;; viper-unrecord-kbd-macro doesn't have scope. Macro definitions are inherited
+;; from global -> major mode -> buffer
+;; More specific definition overrides more general
+;; Can't unrecord definition for more specific, if a more general definition is
+;; in effect
 (defun viper-unrecord-kbd-macro (macro-name state)
   "Delete macro MACRO-NAME from Viper STATE.
 MACRO-NAME must be a vector of viper-style keys.  This command is used by Viper
@@ -546,7 +553,7 @@ name from there."
 	   (setq macro-pair mode-mapping)
 	   (message "%S is unmapped for %s in %S"
 		    (viper-display-macro macro-name) state-name major-mode))
-	  ((cdr (setq macro-pair (viper-kbd-global-pair macro-entry)))
+	  ((cdr (setq macro-pair global-mapping))
 	   (message
 	    "Global mapping for %S in %s is removed"
 	    (viper-display-macro macro-name) state-name))
@@ -560,7 +567,7 @@ name from there."
 	(progn
 	  (set macro-alist-var (delq macro-entry (eval macro-alist-var)))
 	  (if (viper-can-release-key (aref macro-name 0)
-				   (eval macro-alist-var))
+				     (eval macro-alist-var))
 	      (define-key
 		keymap
 		(vector (viper-key-to-emacs-key (aref macro-name 0)))

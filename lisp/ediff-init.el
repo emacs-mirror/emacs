@@ -895,7 +895,8 @@ to temp files when Ediff needs to find fine differences."
 	 (sit-for 1)))))
 
 (defun ediff-hide-face (face)
-  (if (and (ediff-has-face-support-p) (boundp 'add-to-list)
+  (if (and (ediff-has-face-support-p)
+	   (boundp 'add-to-list)
 	   (boundp 'facemenu-unlisted-faces))
       (add-to-list 'facemenu-unlisted-faces face)))
 
@@ -1404,7 +1405,7 @@ This property can be toggled interactively."
 ;;; Misc
 
 ;; if nil, this silences some messages
-(defvar ediff-verbose-p t)
+(defconst ediff-verbose-p t)
 
 (defcustom ediff-autostore-merges  'group-jobs-only
   "*Save the results of merge jobs automatically.
@@ -1473,11 +1474,8 @@ This default should work without changes."
 (ediff-defvar-local ediff-temp-file-C nil "")
 
 
-;; If file-remote-p is defined (as in XEmacs, use it. Otherwise, check
-;; if find-file-name-handler is defined for 'file-local-copy
 (defun ediff-file-remote-p (file-name)
-  (or (and (fboundp 'file-remote-p) (file-remote-p file-name))
-      (find-file-name-handler file-name 'file-local-copy)))
+  (file-remote-p file-name))
 
 ;; File for which we can get attributes, such as size or date
 (defun ediff-listable-file (file-name)

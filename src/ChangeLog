@@ -1,3 +1,66 @@
+2005-02-22  Kim F. Storm  <storm@cua.dk>
+
+	* minibuf.c (Ftry_completion, Fall_completions): Allow both string
+	and symbol keys in alists and hash tables.
+
+	* xdisp.c (fast_find_position): Fix search for start of overlay.
+
+2005-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (window_scroll_pixel_based): When scrolling backwards,
+	handle partial visible line at end of window even when we hit PT.
+
+2005-02-21  Stefan  <monnier@iro.umontreal.ca>
+
+	* keymap.h: Declare Fcurrent_active_maps, used in doc.c.
+
+2005-02-21  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_vertically_backward): Eliminate two xasserts.
+	I think those asserts are bogus if buffer contains invisible text
+	or images.
+
+2005-02-21  David Kastrup <dak@gnu.org>
+
+	* gtkutil.c (xg_create_frame_widgets): UNBLOCK_INPUT on error.
+
+2005-02-20  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (pos_visible_p): Be sure to move to the specified
+	position.  Always get the full ascent / descent of the
+	corresponding row, to return reliable rtop and rbot values.
+	(back_to_previous_visible_line_start): Fix 2005-01-18 change.
+	Must look one character back, as back_to_previous_line_start
+	returns position after the newline.
+	(move_it_vertically_backward): Fix heuristic for when to move further
+	back in case line_height * 2/3 is larger than window height.
+	(cursor_row_fully_visible_p): Rename make_cursor_line_fully_visible_p
+	as it does not do anything anymore.  Add arg current_matrix_p to
+	use current matrix rather than desired matrix when set.
+	(try_cursor_movement): Don't scroll to make cursor row fully
+	visible if cursor didn't move.  This avoids unexpected recentering
+	in case of blinking cursor or accepting process output.
+	Use current matrix to check cursor row visibility.
+	(redisplay_window): Fix whether to recenter or move to top in case
+	cursor line is taller than window height.
+	(find_first_unchanged_at_end_row): Stop search if we reach a row
+	which not enabled (instead of abort).
+
+2005-02-18  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (Finternal_set_lisp_face_attribute): Allow :color property
+	to be nil in a :box attribute value list; customize prints that
+	as lisp value when no box color is specified.
+
+	* .gdbinit (pitx, pit): Pretty print display iterator.
+	(prowx, prow): Pretty print glyph row.
+	(pcursorx, pcursor): Pretty print a window cursor.
+	(pwinx, pwin): Pretty print struct window.
+
+2005-02-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (BLOCK_BYTES): Harmless typo.
+
 2005-02-17  Andreas Schwab  <schwab@suse.de>
 
 	* xfns.c (hack_wm_protocols): Use correct type for last parameter
@@ -811,13 +874,8 @@
 	(install_window_handler) [TARGET_API_MAC_CARBON]:
 	Register handlers for tracking/receiving drag-and-drop items.
 	(do_ae_open_documents): Generate unibyte strings for filenames.
-<<<<<<< ChangeLog
-	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
-	Reject only non-filename items.  Set event modifiers and return value.
-=======
 	(mac_do_receive_drag) [TARGET_API_MAC_CARBON] : Likewise.
 	Reject only non-filename items.  Set event modifiers, and return value.
->>>>>>> 1.4187
 
 2004-12-28  Dan Nicolaescu  <dann@ics.uci.edu>
 
@@ -927,12 +985,7 @@
 	(x_make_frame_visible) [TARGET_API_MAC_CARBON]: Reposition window
 	if the position is neither user-specified nor program-specified.
 	(x_free_frame_resources): Free size_hints.
-<<<<<<< ChangeLog
-	(x_wm_set_size_hint): Allocate size_hints if needed.
-	Set size_hints.
-=======
 	(x_wm_set_size_hint): Allocate size_hints if needed.  Set size_hints.
->>>>>>> 1.4187
 	(mac_clear_font_name_table): New function.
 	(mac_do_list_fonts): Initialize font_name_table if needed.
 	(x_list_fonts): Don't initialize font_name_table.  Add BLOCK_INPUT
@@ -984,11 +1037,7 @@
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
-<<<<<<< ChangeLog
-	* buffer.c (Fbuffer_disable_undo): Delete (moved to simple.el).
-=======
 	* buffer.c (Fbuffer_disable_undo): Delete (move to simple.el).
->>>>>>> 1.4187
 	(syms_of_buffer): Don't defsubr it.
 
 	* process.c (list_processes_1): Set undo_list instead

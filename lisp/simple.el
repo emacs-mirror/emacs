@@ -3158,12 +3158,12 @@ and more reliable (no dependence on goal column, etc.)."
 	  (let ((abbrev-mode nil))
 	    (end-of-line)
 	    (insert "\n"))
-	(line-move arg))
+	(line-move arg nil nil t))
     (if (interactive-p)
 	(condition-case nil
-	    (line-move arg)
+	    (line-move arg nil nil t)
 	  ((beginning-of-buffer end-of-buffer) (ding)))
-      (line-move arg)))
+      (line-move arg nil nil t)))
   nil)
 
 (defun previous-line (&optional arg)
@@ -3186,9 +3186,9 @@ to use and more reliable (no dependence on goal column, etc.)."
   (or arg (setq arg 1))
   (if (interactive-p)
       (condition-case nil
-	  (line-move (- arg))
+	  (line-move (- arg) nil nil t)
 	((beginning-of-buffer end-of-buffer) (ding)))
-    (line-move (- arg)))
+    (line-move (- arg) nil nil t))
   nil)
 
 (defcustom track-eol nil
@@ -3227,8 +3227,8 @@ Outline mode sets this."
 	  (assq prop buffer-invisibility-spec)))))
 
 ;; Perform vertical scrolling of tall images if necessary.
-(defun line-move (arg &optional noerror to-end)
-  (if auto-window-vscroll
+(defun line-move (arg &optional noerror to-end try-vscroll)
+  (if (and auto-window-vscroll try-vscroll)
       (let ((forward (> arg 0))
 	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
 	(if (and (consp part)
@@ -3244,7 +3244,14 @@ Outline mode sets this."
 					       (* (frame-char-height) (- arg))))))
 				t)
 	  (set-window-vscroll nil 0)
-	  (line-move-1 arg noerror to-end)))
+	  (when (line-move-1 arg noerror to-end)
+	    (sit-for 0)
+	    (if (and (not forward)
+		     (setq part (nth 2 (pos-visible-in-window-p
+					(line-beginning-position) nil t)))
+		     (> (cdr part) 0))
+		(set-window-vscroll nil (cdr part) t))
+	    t)))
     (line-move-1 arg noerror to-end)))
 
 ;; This is the guts of next-line and previous-line.
