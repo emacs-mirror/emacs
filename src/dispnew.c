@@ -4198,13 +4198,16 @@ update_text_area (w, vpos)
       struct glyph *current_glyph = current_row->glyphs[TEXT_AREA];
       struct glyph *desired_glyph = desired_row->glyphs[TEXT_AREA];
       int overlapping_glyphs_p = current_row->contains_overlapping_glyphs_p;
+      int desired_stop_pos = desired_row->used[TEXT_AREA];
 
+#if 0 /* This shouldn't be necessary.  Let's check it.  */
       /* If the desired row extends its face to the text area end,
 	 make sure we write at least one glyph, so that the face
 	 extension actually takes place.  */
-      int desired_stop_pos = (desired_row->used[TEXT_AREA]
-			      - (MATRIX_ROW_EXTENDS_FACE_P (desired_row)
-				 ? 1 : 0));
+      if (MATRIX_ROW_EXTENDS_FACE_P (desired_row)
+	  && !w->pseudo_window_p)
+	--desired_stop_pos;
+#endif
       
       stop = min (current_row->used[TEXT_AREA], desired_stop_pos);
       i = 0;
@@ -4316,11 +4319,13 @@ update_text_area (w, vpos)
       /* Maybe clear to end of line.  */
       if (MATRIX_ROW_EXTENDS_FACE_P (desired_row))
 	{
+#if 0 
 	  /* If new row extends to the end of the text area, nothing
 	     has to be cleared, if and only if we did a write_glyphs
 	     above.  This is made sure by setting desired_stop_pos
 	     appropriately above.  */
 	  xassert (i < desired_row->used[TEXT_AREA]);
+#endif
 	}
       else if (MATRIX_ROW_EXTENDS_FACE_P (current_row))
 	{
