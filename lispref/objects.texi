@@ -1499,7 +1499,7 @@ positions.
 @cindex @samp{#@var{n}=} read syntax
 @cindex @samp{#@var{n}#} read syntax
 
-  In Emacs 21, to represent shared or circular structure within a
+  In Emacs 21, to represent shared or circular structures within a
 complex of Lisp objects, you can use the reader constructs
 @samp{#@var{n}=} and @samp{#@var{n}#}.
 
