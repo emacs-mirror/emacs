@@ -36,7 +36,7 @@
   "SGML editing mode"
   :group 'languages)
 
-(defcustom sgml-transformation nil
+(defcustom sgml-transformation 'identity
   "*Default value for `skeleton-transformation' (which see) in SGML mode."
   :type 'function
   :group 'sgml)
@@ -358,8 +358,8 @@ An argument of N to a tag-inserting command means that the next N
 words should be wrapped.  When the region is highlighted, N defaults
 to -1, which means the current region.
 
-If you like upcased tags, put (setq skeleton-transformation 'upcase) in
-sgml-mode-hook. 
+If you like upcased tags, put (setq sgml-transformation 'upcase) in
+your .emacs file.
 
 Use \\[sgml-validate] to validate your document with an SGML parser.
 
@@ -464,19 +464,26 @@ or M-- for a soft hyphen."
 (defun sgml-name-8bit-mode ()
   "Toggle insertion of 8 bit characters."
   (interactive)
-  (setq sgml-name-8bit-mode (not sgml-name-8bit-mode)))
+  (setq sgml-name-8bit-mode (not sgml-name-8bit-mode))
+  (message "sgml name 8 bit mode  is now %"
+	   (if sgml-name-8bit-mode "ON" "OFF")))
 
 
+; When an element of a skeleton is a string "str", it is passed
+; through skeleton-transformation and inserted.  If "str" is to be
+; inserted literally, one should obtain it as the return value of a
+; function, e.g. (identity "str").
 
 (define-skeleton sgml-tag
   "Insert a tag you are prompted for, optionally with attributes.
-Completion and configuration is according to `sgml-tag-alist'.
-If you like tags and attributes in uppercase set `skeleton-transformation'
-to `upcase'."
+Completion and configuration is done according to `sgml-tag-alist'.
+If you like tags and attributes in uppercase do \\[set-variable]
+skeleton-transformation RET upcase RET, or put this in your .emacs
+  (setq sgml-transformation 'upcase)."
   (funcall skeleton-transformation
 	   (completing-read "Tag: " sgml-tag-alist))
   ?< (setq v1 (eval str)) |
-  (("") -1 '(undo-boundary) "&lt;") |
+  (("") -1 '(undo-boundary) (identity "&lt;")) |	; see comment above
   (("") '(setq v2 (sgml-attributes v1 t)) ?>
    (if (string= "![" v1)
        (prog1 '(("") " [ " _ " ]]")
@@ -494,14 +501,17 @@ to `upcase'."
 
 (autoload 'skeleton-read "skeleton")
 
-(defun sgml-attributes (alist &optional quiet)
-  "When at toplevel of a tag, interactively insert attributes."
+(defun sgml-attributes (tag &optional quiet)
+  "When at toplevel of a tag, interactively insert attributes.
+
+Completion and configuration of TAG is done according to `sgml-tag-alist'.
+If QUIET, does not print a message when there are no attributes for TAG."
   (interactive (list (save-excursion (sgml-beginning-of-tag t))))
-  (or (stringp alist) (error "Wrong context for adding attribute"))
-  (if alist
+  (or (stringp tag) (error "Wrong context for adding attribute"))
+  (if tag
       (let ((completion-ignore-case t)
+	    (alist (cdr (assoc (downcase tag) sgml-tag-alist)))
 	    car attribute i)
-	(setq alist (cdr (assoc (downcase alist) sgml-tag-alist)))
 	(if (or (symbolp (car alist))
 		(symbolp (car (car alist))))
 	    (setq car (car alist)
@@ -510,7 +520,8 @@ to `upcase'."
 	    (message "No attributes configured."))
 	(if (stringp (car alist))
 	    (progn
-	      (insert (if (eq (preceding-char) ? ) "" ? ) (car alist))
+	      (insert (if (eq (preceding-char) ? ) "" ? )
+		      (funcall skeleton-transformation (car alist)))
 	      (sgml-value alist))
 	  (setq i (length alist))
 	  (while (> i 0)
@@ -518,7 +529,7 @@ to `upcase'."
 	    (insert (funcall skeleton-transformation
 			     (setq attribute
 				   (skeleton-read '(completing-read
-						    "[Attribute]: "
+						    "Attribute: "
 						    alist)))))
 	    (if (string= "" attribute)
 		(setq i 0)
@@ -771,6 +782,8 @@ Else `t'."
 	t)))
 
 (defun sgml-value (alist)
+  "Interactively insert value taken from ALIST, which is an
+`attributerule' as described in sgml-tag-alist."
   (setq alist (cdr alist))
   (if (stringp (car alist))
       (insert "=\"" (car alist) ?\")
@@ -779,7 +792,7 @@ Else `t'."
 	    (progn
 	      (insert "=\"")
 	      (setq alist (skeleton-read '(completing-read
-					   "[Value]: " (cdr alist))))
+					   "Value: " (cdr alist))))
 	      (if (string< "" alist)
 		  (insert alist ?\")
 		(delete-backward-char 2))))
@@ -895,8 +908,8 @@ This takes effect when first loading the library.")
 
 ; should code exactly HTML 3 here when that is finished
 (defvar html-tag-alist
-  (let* ((1-9 '(("8") ("9")
-		("1") ("2") ("3") ("4") ("5") ("6") ("7")))
+  (let* ((1-7 '(("1") ("2") ("3") ("4") ("5") ("6") ("7")))
+	 (1-9 '(,@1-7 ("8") ("9")))
 	 (align '(("align" ("left") ("center") ("right"))))
 	 (valign '(("top") ("middle") ("bottom") ("baseline")))
 	 (rel '(("next") ("previous") ("parent") ("subdocument") ("made")))
@@ -908,10 +921,8 @@ This takes effect when first loading the library.")
 		 ("rel" ,@rel)
 		 ("rev" ,@rel)
 		 ("title")))
-	 (list '((nil \n
-		      ( "List item: "
-			"<li>" str \n))
-		 ("type" ("A") ("a") ("I") ("i") ("1"))))
+	 (list '((nil \n ( "List item: "
+			   "<li>" str \n))))
 	 (cell `(t
 		 ,align
 		 ("valign" ,@valign)
@@ -923,7 +934,7 @@ This takes effect when first loading the library.")
     `(("a" ,name ,@link)
       ("base" t ,@href)
       ("dir" ,@list)
-      ("font" ("size" ("-1") ("+1") ("-2") ("+2") ,@(cdr (cdr 1-9))))
+      ("font" nil "size" ("-1") ("+1") ("-2") ("+2") ,@1-7)
       ("form" (\n _ \n "<input type=\"submit\" value=\"\">")
        ("action" ,@(cdr href)) ("method" ("get") ("post")))
       ("h1" ,@align)
@@ -942,7 +953,7 @@ This takes effect when first loading the library.")
        ("value"))
       ("link" t ,@link)
       ("menu" ,@list)
-      ("ol" ,@list)
+      ("ol" ,@list ("type" ("A") ("a") ("I") ("i") ("1")))
       ("p" t ,@align)
       ("select" (nil \n
 		     ("Text: "
@@ -956,7 +967,7 @@ This takes effect when first loading the library.")
       ("td" ,@cell)
       ("textarea" ,name ("rows" ,@1-9) ("cols" ,@1-9))
       ("th" ,@cell)
-      ("ul" ,@list)
+      ("ul" ,@list ("type" ("disc") ("circle") ("square")))
 
       ,@sgml-tag-alist
 
@@ -987,7 +998,7 @@ This takes effect when first loading the library.")
 		   "<dt>" str "<dd>" _ \n)))
       ("dt" (t _ "<dd>"))
       ("em")
-      ("fn" "id" "fn")
+      ;("fn" "id" "fn")  ; ???
       ("head" \n)
       ("html" (\n
 	       "<head>\n"
@@ -1057,7 +1068,7 @@ This takes effect when first loading the library.")
     ("figa" . "Figure anchor")
     ("figd" . "Figure description")
     ("figt" . "Figure text")
-    ("fn" . "?")
+    ;("fn" . "?")  ; ???
     ("font" . "Font size")
     ("form" . "Form with input fields")
     ("group" . "Document grouping")
@@ -1266,7 +1277,7 @@ do:
   '(setq v1 nil
 	 v2 nil)
   ("Value: "
-   "<input type=\"" (identity "checkbox")
+   "<input type=\"" (identity "checkbox") ; see comment above about identity
    "\" name=\"" (or v1 (setq v1 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (if (y-or-n-p "Set \"checked\" attribute? ")
@@ -1283,7 +1294,7 @@ do:
   '(setq v1 nil
 	 v2 (cons nil nil))
   ("Value: "
-   "<input type=\"" (identity "radio")
+   "<input type=\"" (identity "radio") ; see comment above about identity
    "\" name=\"" (or (car v2) (setcar v2 (skeleton-read "Name: ")))
    "\" value=\"" str ?\"
    (if (and (not v1) (setq v1 (y-or-n-p "Set \"checked\" attribute? ")))
