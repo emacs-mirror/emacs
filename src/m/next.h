@@ -1,31 +1,31 @@
-/* Configuration file for the NeXT machine. */
-/*    Copyright (C) 1985, 1986 Free Software Foundation, Inc.
+/* Configuration file for the NeXT machine.
+   Copyright (C) 1990 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
+GNU Emacs is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 1, or (at your option)
+any later version.
+
 GNU Emacs is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY.  No author or distributor
-accepts responsibility to anyone for the consequences of using it
-or for whether it serves any particular purpose or works at all,
-unless he says so in writing.  Refer to the GNU Emacs General Public
-License for full details.
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
 
-Everyone is granted permission to copy, modify and redistribute
-GNU Emacs, but only under the conditions described in the
-GNU Emacs General Public License.   A copy of this license is
-supposed to have been given to you along with GNU Emacs so you
-can know your rights and responsibilities.  It should be in a
-file named COPYING.  Among other things, the copyright notice
-and this notice must be preserved on all copies.  */
+You should have received a copy of the GNU General Public License
+along with GNU Emacs; see the file COPYING.  If not, write to
+the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.  */
 
 
+/* Say this machine is a next if not previously defined */
 
-
-
-
+#ifndef NeXT
+#define NeXT
+#endif
 
 /* The following three symbols give information on
- the size of various data types.  */
+   the size of various data types.  */
 
 #define SHORTBITS 16		/* Number of bits in a short */
 
@@ -33,22 +33,20 @@ and this notice must be preserved on all copies.  */
 
 #define LONGBITS 32		/* Number of bits in a long */
 
-/* 68000 has lowest-numbered byte as most significant */
+/* Let the compiler tell us what byte order architecture we're compiling for */
 
+#ifdef __BIG_ENDIAN__
 #define BIG_ENDIAN
-
-/* Say this machine is a 68000 */
-
-#ifndef m68000
-#define m68000
 #endif
+
+/* Define how to take a char and sign-extend into an int.
+   On machines where char is signed, this is a no-op.  */
+
+#define SIGN_EXTEND_CHAR(c) (c)
 
 /* Use type int rather than a union, to represent Lisp_Object */
 
 #define NO_UNION_TYPE
-
-/* Sun can't write competent compilers */
-#define COMPILER_REGISTER_BUG
 
 /* XINT must explicitly sign-extend */
 
@@ -68,12 +66,10 @@ and this notice must be preserved on all copies.  */
 
 #define A_TEXT_OFFSET(HDR) sizeof (HDR)
 
-/* #define _setjmp setjmp */
-/* #define _longjmp longjmp */
-
 /* Use dk.h, not dkstat.h, in loadst.c.  */
 
 #define DK_HEADER_FILE
+
 /* Mask for address bits within a memory segment */
 
 #define SEGSIZ 0x20000
@@ -85,3 +81,47 @@ and this notice must be preserved on all copies.  */
 
 #define HAVE_UNIX_DOMAIN
 
+#define LIB_X11_LIB -L/usr/lib/X11 -lX11
+
+/* Conflicts in process.c between ioctl.h & tty.h use of t_foo fields */
+
+#define NO_T_CHARS_DEFINES
+
+/* Use our own unexec routines */
+
+#define UNEXEC unexnext.o
+
+/* We don't have a g library either, so override the -lg LIBS_DEBUG switch */
+
+#define LIBS_DEBUG
+
+/* We don't have a libgcc.a, so we can't let LIB_GCC default to -lgcc */
+
+#define LIB_GCC
+
+/* Compile "strict bsd" to avoid warnings from include files */
+
+#define C_SWITCH_MACHINE	-bsd
+
+/* Link this program just by running cc.  */
+#define ORDINARY_LINK
+
+/* start_of_text isn't actually used, so make it compile without error.  */
+#define TEXT_START 0
+/* This seems to be right for end_of_text, but it may not be used anyway.  */
+#define TEXT_END get_etext ()
+/* This seems to be right for end_of_data, but it may not be used anyway.  */
+#define DATA_END get_edata ()
+
+/* Defining KERNEL_FILE causes lossage because sys/file.h
+   stupidly gets confused by it.  */
+#undef KERNEL_FILE
+
+#define LD_SWITCH_MACHINE -X -noseglinkedit
+
+#define environ _environ
+
+#if 0 /* This is ok for NeXT system version 3.0 or above.  */
+/* Where to find the kernel, for load average.  */
+#define KERNEL_FILE "/mach"
+#endif
