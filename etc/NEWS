@@ -88,6 +88,13 @@ See the files mac/README and mac/INSTALL for build instructions.
 
 * Changes in Emacs 21.4
 
+** BibTeX mode:
+*** New `bibtex-entry-format' option `required-fields', enabled by default.
+*** bibtex-maintain-sorted-entries can take values `plain',
+`crossref', and `entry-class' which control the sorting scheme used
+for BibTeX entries. `bibtex-sort-entry-class' controls the sorting
+scheme `entry-class'.
+
 ** When display margins are present in a window, the fringes are now
 displayed between the margins and the buffer's text area, rather than
 at the edges of the window.
@@ -373,7 +380,7 @@ gives the fraction of the window's width to scroll the window.
 The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
-** TeX:
+** TeX modes:
 *** C-c C-c prompts for a command to run, and tries to offer a good default.
 +++
 *** The user option `tex-start-options-string' has been replaced
@@ -1261,6 +1268,8 @@ timing measurements of code (including the garbage collection component).
 
 
 * Lisp Changes in Emacs 21.4
+
+** The kill-buffer-hook is now permanent-local.
 
 ** The `local-map' property now also works at the ends of overlays and
 text-properties, according to their stickiness.  This also means that it
