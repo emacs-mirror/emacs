@@ -17,8 +17,7 @@
 
 2004-10-24  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* indent.el (set-left-margin, set-right-margin): Delete redundant
-	code.
+	* indent.el (set-left-margin, set-right-margin): Delete redundant code.
 	(increase-right-margin): Remove erroneous call to `interactive-p'.
 
 2004-10-24  Kim F. Storm  <storm@cua.dk>
@@ -39,24 +38,23 @@
 
 2004-10-24  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords): Handle
-	periods and underscores in a function name.
+	* progmodes/gdb-ui.el (gdb-assembler-font-lock-keywords):
+	Handle periods and underscores in a function name.
 	Remove the address fontification.
 
 2004-10-24 Masatake YAMATO <jet@gyve.org>
 
-	* progmodes/asm-mode.el (asm-font-lock-keywords): Use
-	font-lock-variable-name-face for registers.
+	* progmodes/asm-mode.el (asm-font-lock-keywords):
+	Use font-lock-variable-name-face for registers.
 
 2004-10-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-get-create-buffer): Allow modes to run
 	kill-all-local-variables.
 	(gdb-breakpoints-mode, gdb-frames-mode, gdb-threads-mode)
-	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode): Use
-	kill-all-local-variables and provide mode-hooks.
-	(gdb-assembler-font-lock-keywords): New font lock keywords
-	definition.
+	(gdb-registers-mode, gdb-locals-mode, gdb-assembler-mode):
+	Use kill-all-local-variables and provide mode-hooks.
+	(gdb-assembler-font-lock-keywords): New font lock keywords definition.
 	(gdb-assembler-mode): Use 'gdb-assembler-font-lock-keywords'.
 	Suggested by Masatake YAMATO <jet@gyve.org>.
 
@@ -101,12 +99,15 @@
 2004-10-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (calc-alg-ent-map, calc-alg-ent-esc-map):
-	Declared these variables with defvar.
+	Declare these variables with defvar.
 
 	* calc/calc-aent.el (calc-do-alg-entry): Since `calc-alg-ent-map'
 	is bound, only check to see if it is bound.
 
 2004-10-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compilation-parse-errors):
+	Don't output messages.
 
 	* calc/calc-help.el (calc-describe-bindings): Fix last change.
 
