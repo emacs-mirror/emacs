@@ -267,7 +267,7 @@ struct frame
 typedef struct frame *FRAME_PTR;
 
 #define XFRAME(p) ((struct frame *) XPNTR (p))
-#define XSETFRAME(p, v) XSET (p, Lisp_Frame, v)
+#define XSETFRAME(a, b) (XSETPSEUDOVECTOR (a, b, PVEC_FRAME))
 
 #define WINDOW_FRAME(w) (w)->frame
 
