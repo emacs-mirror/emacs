@@ -705,7 +705,7 @@ on the tag to the left of the expression.
 @kindex RET @r{(GDB speedbar)}
 @findex gdb-var-delete
 With the cursor over the root expression of a complex data type, type
-@key{RET} or click @kbd{Mouse-2} to delete it from the speedbar
+@key{D} to delete it from the speedbar
 (@code{gdb-var-delete}).
 
 @findex gdb-edit-value
@@ -714,13 +714,16 @@ data type which holds a value, type @key{RET} or click @kbd{Mouse-2} to edit
 its value.  A prompt for a new value appears in the mini-buffer
 (@code{gdb-edit-value}).
 
-If you set the variable @code{gdb-show-changed-values} to a
-non-@code{nil} value, then Emacs will use font-lock-warning-face to
-display values that have recently changed in the speedbar.
+If you set the variable @code{gdb-show-changed-values} to
+non-@code{nil} (the default value), then Emacs will use
+font-lock-warning-face to display values that have recently changed in
+the speedbar.
 
 If you set the variable @code{gdb-use-colon-colon-notation} to a
 non-@code{nil} value, then, in C, Emacs will use the
 FUNCTION::VARIABLE format to display variables in the speedbar.
+Since this does not work for variables defined in compound statements,
+the default value is @code{nil}.
 
 @node Other Buffers
 @subsubsection Other Buffers

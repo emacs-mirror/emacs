@@ -1,3 +1,26 @@
+2004-02-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* abbrev.c (Finsert_abbrev_table_description): Doc fix.
+
+2004-02-22  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (w32_draw_fringe_bitmap): Draw overlaid bitmaps
+	correctly over other bitmaps.
+
+2004-02-21  Eli Zaretskii  <eliz@elta.co.il>
+
+	* emacs.c (USAGE1): Split into two halves.
+	(USAGE2): Second half of the old USAGE1.
+	(USAGE3): Renamed from USAGE2.
+	(USAGE4): Renamed from USAGE3.
+
+2004-02-21  Juri Linkov  <juri@jurta.org>
+
+	* emacs.c (USAGE1): Add --no-desktop.  Move --display from USAGE2.
+	Fix --multibyte.  Move --help, --version to USAGE2.  Add alias
+	--file.  Fix -f, -l.  Sort options.  Untabify.
+	(USAGE2): Add -hb.  Fix --name, --title.  Sort options.  Untabify.
+
 2004-02-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* category.c (Fdefine_category, Fcategory_docstring)

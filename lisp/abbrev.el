@@ -201,10 +201,13 @@ Does not display any message."
   ;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
-(defun write-abbrev-file (file)
-  "Write all abbrev definitions to a file of Lisp code.
+(defun write-abbrev-file (&optional file)
+  "Write all user-level abbrev definitions to a file of Lisp code.
+This does not include system abbrevs; it includes only the abbrev tables
+listed in listed in `abbrev-table-name-list'.
 The file written can be loaded in another session to define the same abbrevs.
-The argument FILE is the file name to write."
+The argument FILE is the file name to write.  If omitted or nil, the file
+specified in `abbrev-file-name' is used."
   (interactive
    (list
     (read-file-name "Write abbrev file: "
@@ -307,7 +310,11 @@ Expands the abbreviation after defining it."
   "Mark current point as the beginning of an abbrev.
 Abbrev to be expanded starts here rather than at beginning of word.
 This way, you can expand an abbrev with a prefix: insert the prefix,
-use this command, then insert the abbrev."
+use this command, then insert the abbrev.  This command inserts a
+temporary hyphen after the prefix \(until the intended abbrev
+expansion occurs).
+If the prefix is itself an abbrev, this command expands it, unless
+ARG is non-nil.  Interactively, ARG is the prefix argument."
   (interactive "P")
   (or arg (expand-abbrev))
   (setq abbrev-start-location (point-marker)

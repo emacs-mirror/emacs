@@ -397,10 +397,13 @@ prefix (@samp{'}).  @xref{Motion and Syntax}.
   In this section we describe functions for creating, accessing and
 altering syntax tables.
 
-@defun make-syntax-table
-This function creates a new syntax table.  It inherits the syntax for
-letters and control characters from the standard syntax table.  For
-other characters, the syntax is copied from the standard syntax table.
+@defun make-syntax-table &optional table
+This function creates a new syntax table, with all values initialized
+to @code{nil}.  If @var{table} is non-@code{nil}, it becomes the
+parent of the new syntax table, otherwise the standard syntax table is
+the parent.  Like all char-tables, a syntax table inherits from its
+parent.  Thus the original syntax of all characters in the returned
+syntax table is determined by the parent.  @xref{Char-Tables}.
 
 Most major mode syntax tables are created in this way.
 @end defun
@@ -408,7 +411,7 @@ Most major mode syntax tables are created in this way.
 @defun copy-syntax-table &optional table
 This function constructs a copy of @var{table} and returns it.  If
 @var{table} is not supplied (or is @code{nil}), it returns a copy of the
-current syntax table.  Otherwise, an error is signaled if @var{table} is
+standard syntax table.  Otherwise, an error is signaled if @var{table} is
 not a syntax table.
 @end defun
 
@@ -425,7 +428,7 @@ This function always returns @code{nil}.  The old syntax information in
 the table for this character is discarded.
 
 An error is signaled if the first character of the syntax descriptor is not
-one of the twelve syntax class designator characters.  An error is also
+one of the seventeen syntax class designator characters.  An error is also
 signaled if @var{char} is not a character.
 
 @example
@@ -559,10 +562,11 @@ table.
 have certain syntax classes.
 
 @defun skip-syntax-forward syntaxes &optional limit
-This function moves point forward across characters having syntax classes
-mentioned in @var{syntaxes}.  It stops when it encounters the end of
-the buffer, or position @var{limit} (if specified), or a character it is
-not supposed to skip.
+This function moves point forward across characters having syntax
+classes mentioned in @var{syntaxes} (a string of syntax code
+characters).  It stops when it encounters the end of the buffer, or
+position @var{limit} (if specified), or a character it is not supposed
+to skip.
 
 If @var{syntaxes} starts with @samp{^}, then the function skips
 characters whose syntax is @emph{not} in @var{syntaxes}.
@@ -697,9 +701,10 @@ that can be nested.
 The minimum parenthesis depth encountered during this scan.
 
 @item
-What kind of comment is active: @code{nil} for a comment of style ``a'',
-@code{t} for a comment of style ``b'', and @code{syntax-table} for
-a comment that should be ended by a generic comment delimiter character.
+What kind of comment is active: @code{nil} for a comment of style
+``a'' or when not inside a comment, @code{t} for a comment of style
+``b'', and @code{syntax-table} for a comment that should be ended by a
+generic comment delimiter character.
 
 @item
 The string or comment start position.  While inside a comment, this is
@@ -709,6 +714,12 @@ this element is @code{nil}.
 @end enumerate
 
 Elements 0, 3, 4, 5 and 7 are significant in the argument @var{state}.
+
+Actually, the return value is currently a list of ten, rather than
+nine, elements and @var{state} is allowed to be a list of ten elements
+as well.  However, the meaning of the tenth element is subject to
+change and only the first eight elements of @var{state} need to be
+specified.
 
 @cindex indenting with parentheses
 This function is most often used to compute indentation for languages
@@ -757,11 +768,11 @@ of what the syntax table says about them.  (However, text properties
 can still override the syntax.)
 @end defvar
 
-@defvar parse-sexp-ignore-comments
+@defopt parse-sexp-ignore-comments
 @cindex skipping comments
 If the value is non-@code{nil}, then comments are treated as
 whitespace by the functions in this section and by @code{forward-sexp}.
-@end defvar
+@end defopt
 
 @vindex parse-sexp-lookup-properties
 The behaviour of @code{parse-partial-sexp} is also affected by
@@ -951,12 +962,12 @@ belongs to.  In this category set, if the element at index @var{cat} is
 @code{t}, that means category @var{cat} is a member of the set, and that
 character @var{c} belongs to category @var{cat}.
 
+For the next three functions, the optional argument @var{table}
+defaults to the current buffer's category table.
+
 @defun define-category char docstring &optional table
 This function defines a new category, with name @var{char} and
-documentation @var{docstring}.
-
-The new category is defined for category table @var{table}, which
-defaults to the current buffer's category table.
+documentation @var{docstring}, for the category table @var{table},
 @end defun
 
 @defun category-docstring category &optional table
@@ -971,7 +982,7 @@ in category table @var{table}.
 @end example
 @end defun
 
-@defun get-unused-category table
+@defun get-unused-category &optional table
 This function returns a category name (a character) which is not
 currently defined in @var{table}.  If all possible categories are in use
 in @var{table}, it returns @code{nil}.
@@ -993,7 +1004,7 @@ This function returns the standard category table.
 @defun copy-category-table &optional table
 This function constructs a copy of @var{table} and returns it.  If
 @var{table} is not supplied (or is @code{nil}), it returns a copy of the
-current category table.  Otherwise, an error is signaled if @var{table}
+standard category table.  Otherwise, an error is signaled if @var{table}
 is not a category table.
 @end defun
 
@@ -1023,11 +1034,11 @@ other categories.
 @end defun
 
 @defun char-category-set char
-This function returns the category set for character @var{char}.  This
-is the bool-vector which records which categories the character
-@var{char} belongs to.  The function @code{char-category-set} does not
-allocate storage, because it returns the same bool-vector that exists in
-the category table.
+This function returns the category set for character @var{char} in the
+current buffer's category table.  This is the bool-vector which
+records which categories the character @var{char} belongs to.  The
+function @code{char-category-set} does not allocate storage, because
+it returns the same bool-vector that exists in the category table.
 
 @example
 (char-category-set ?a)
@@ -1056,10 +1067,11 @@ But if @var{reset} is non-@code{nil}, then it deletes @var{category}
 instead.
 @end defun
 
-@deffn Command describe-categories
+@deffn Command describe-categories &optional buffer-or-name
 This function describes the category specifications in the current
-category table.  The descriptions are inserted in a buffer, which is
-then displayed.
+category table.  It inserts the descriptions in a buffer, and then
+displays that buffer.  If @var{buffer-or-name} is non-@code{nil}, it
+describes the category table of that buffer instead.
 @end deffn
 
 @ignore

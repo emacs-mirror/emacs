@@ -803,10 +803,18 @@ The default is not to surround any existing words with the braces."
   (texinfo-insert-@-with-arg "file" arg))
 
 (defun texinfo-insert-@item ()
-  "Insert the string `@item' in a Texinfo buffer."
+  "Insert the string `@item' in a Texinfo buffer.
+If in a table defined by @table, follow said string with a space.
+Otherwise, follow with a newline."
   (interactive)
-  (insert "@item")
-  (newline))
+  (insert "@item"
+	  (if (equal (ignore-errors
+		      (save-excursion
+			(texinfo-last-unended-begin)
+			(match-string 1)))
+		     "table")
+	      ? ;space
+	    ?\n)))
 
 (defun texinfo-insert-@kbd (&optional arg)
   "Insert a `@kbd{...}' command in a Texinfo buffer.

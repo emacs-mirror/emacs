@@ -540,7 +540,8 @@ is inserted.  Otherwise the description is an expression,
 a call to `define-abbrev-table', which would
 define the abbrev table NAME exactly as it is currently defined.
 
-Abbrevs marked as "system abbrevs" are omitted.  */)
+Abbrevs marked as "system abbrevs" are normally omitted.  However, if
+READABLE is non-nil, they are listed.  */)
      (name, readable)
      Lisp_Object name, readable;
 {

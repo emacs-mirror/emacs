@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,1997,2001, 2003 Free Software Foundation, Inc.
+@c Copyright (C) 1985,86,87,93,94,95,97,2001,03,2004 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Command Arguments, X Resources, Service, Top
 @appendix Command Line Arguments
@@ -46,27 +46,33 @@ and the tables below always show an equal sign.
 
 @cindex initial options (command line)
 @cindex action options (command line)
+@vindex command-line-args
   Most options specify how to initialize Emacs, or set parameters for
 the Emacs session.  We call them @dfn{initial options}.  A few options
 specify things to do: for example, load libraries, call functions, or
 terminate Emacs.  These are called @dfn{action options}.  These and file
 names together are called @dfn{action arguments}.  Emacs processes all
-the action arguments in the order they are written.
+the action arguments in the order they are written.  The @file{.emacs} file
+can access the values of the action arguments as the elements of a list in
+the variable @code{command-line-args}.
+
+
 
 @menu
-* Action Arguments::	Arguments to visit files, load libraries,
-			  and call functions.
+* Action Arguments::    Arguments to visit files, load libraries,
+                          and call functions.
 * Initial Options::     Arguments that take effect while starting Emacs.
 * Command Example::     Examples of using command line arguments.
-* Resume Arguments::	Specifying arguments when you resume a running Emacs.
+* Resume Arguments::    Specifying arguments when you resume a running Emacs.
 * Environment::         Environment variables that Emacs uses.
 * Display X::           Changing the default display and using remote login.
-* Font X::	        Choosing a font for text, under X.
-* Colors::	        Choosing display colors.
+* Font X::              Choosing a font for text, under X.
+* Colors::              Choosing display colors.
 * Window Size X::       Start-up window size, under X.
-* Borders X::	        Internal and external borders, under X.
+* Borders X::           Internal and external borders, under X.
 * Title X::             Specifying the initial frame's title.
 * Icons X::             Choosing what sort of icon to use, under X.
+* Misc X::              Other display options.
 @end menu
 
 @node Action Arguments
@@ -76,10 +82,12 @@ the action arguments in the order they are written.
 
 @table @samp
 @item @var{file}
-@opindex --visit
-@itemx --visit=@var{file}
 @opindex --file
 @itemx --file=@var{file}
+@opindex --find-file
+@itemx --find-file=@var{file}
+@opindex --visit
+@itemx --visit=@var{file}
 @cindex visiting files, command-line argument
 @vindex inhibit-startup-buffer-menu
 Visit @var{file} using @code{find-file}.  @xref{Visiting}.
@@ -107,6 +115,12 @@ Load a Lisp library named @var{file} with the function @code{load}.
 directory, or in the Emacs library search path as specified
 with @env{EMACSLOADPATH} (@pxref{General Variables}).
 
+@item -L @var{dir}
+@opindex -L
+@itemx --directory=@var{dir}
+@opindex --directory
+Add directory @var{dir} to the variable @code{load-path}.
+
 @item -f @var{function}
 @opindex -f
 @itemx --funcall=@var{function}
@@ -133,13 +147,16 @@ what @kbd{M-x insert-file} does.  @xref{Misc File Ops}.
 @item --kill
 @opindex --kill
 Exit from Emacs without asking for confirmation.
-@end table
 
-@vindex command-line-args
-  The init file can access the values of the action arguments as the
-elements of a list in the variable @code{command-line-args}.  The init
-file can override the normal processing of the action arguments, or
-define new ones, by reading and setting this variable.
+@item --help
+@opindex --help
+Print a usage message listing all available options, then exit
+successfully.
+
+@item --version
+@opindex --version
+Print Emacs version, then exit successfully.
+@end table
 
 @node Initial Options
 @appendixsec Initial Options
@@ -162,6 +179,7 @@ of these files or substitute other files for them.
 @opindex --terminal
 @cindex device for Emacs terminal I/O
 Use @var{device} as the device for terminal input and output.
+@samp{--terminal} implies @samp{--no-window-system}.
 
 @item -d @var{display}
 @opindex -d
@@ -205,6 +223,7 @@ been explicitly requested.
 
 @item --script @var{file}
 @opindex --script
+@cindex script mode
 Run Emacs in batch mode, like @samp{--batch}, and then read and
 execute the Lisp code in @var{file}.
 
@@ -224,11 +243,12 @@ comment delimiter.
 @opindex -q
 @itemx --no-init-file
 @opindex --no-init-file
-@cindex bypassing init and site-start file
+@cindex bypassing init and @file{default.el} file
 @cindex init file, not loading
 @cindex @file{default.el} file, not loading
 Do not load your Emacs init file @file{~/.emacs}, or @file{default.el}
-either.  When invoked like this, Emacs does not allow saving options
+either.  Regardless of this switch, @file{site-start.el} is still loaded.
+When invoked like this, Emacs does not allow saving options
 changed with the @kbd{M-x customize} command and its variants.
 @xref{Easy Customization}.
 
@@ -236,7 +256,7 @@ changed with the @kbd{M-x customize} command and its variants.
 @opindex --no-site-file
 @cindex @file{site-start.el} file, not loading
 Do not load @file{site-start.el}.  The options @samp{-q}, @samp{-u}
-and @samp{-batch} have no effect on the loading of this file---this is
+and @samp{--batch} have no effect on the loading of this file---this is
 the only option that blocks it.
 
 @item --no-splash
@@ -244,6 +264,10 @@ the only option that blocks it.
 @vindex inhibit-startup-message
 Do not display a splash screen on startup; this is equivalent to
 setting the variable @code{inhibit-startup-message} to non-@code{nil}.
+
+@item --no-desktop
+@opindex --no-desktop
+Do not reload any saved desktop.  @xref{Saving Emacs Sessions}.
 
 @item -u @var{user}
 @opindex -u
@@ -260,6 +284,8 @@ Enable the Emacs Lisp debugger for errors in the init file.
 
 @item --unibyte
 @opindex --unibyte
+@itemx --no-multibyte
+@opindex --no-multibyte
 @cindex unibyte operation, command-line argument
 Do almost everything with single-byte buffers and strings.
 All buffers and strings are unibyte unless you (or a Lisp program)
@@ -270,6 +296,8 @@ variable @env{EMACS_UNIBYTE} has the same effect.
 
 @item --multibyte
 @opindex --multibyte
+@itemx --no-unibyte
+@opindex --no-unibyte
 Inhibit the effect of @env{EMACS_UNIBYTE}, so that Emacs
 uses multibyte characters by default, as usual.
 @end table
@@ -290,7 +318,7 @@ emacs -batch foo.c -l hack-c -f save-buffer >& log
 This says to visit @file{foo.c}, load @file{hack-c.el} (which makes
 changes in the visited file), save @file{foo.c} (note that
 @code{save-buffer} is the function that @kbd{C-x C-s} is bound to), and
-then exit back to the shell (because of @samp{-batch}).  @samp{-batch}
+then exit back to the shell (because of @samp{--batch}).  @samp{--batch}
 also guarantees there will be no problem redirecting output to
 @file{log}, because Emacs will not assume that it has a display terminal
 to work with.
@@ -944,13 +972,12 @@ position of the initial Emacs frame:
 @table @samp
 @item -g @var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
 @opindex -g
+@itemx --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
+@opindex --geometry
+@cindex geometry, command-line argument
 Specify the size @var{width} and @var{height} (measured in character
 columns and lines), and positions @var{xoffset} and @var{yoffset}
 (measured in pixels).  This applies to all frames.
-
-@item --geometry=@var{width}x@var{height}@r{[@{}+-@r{@}}@var{xoffset}@r{@{}+-@r{@}}@var{yoffset}@r{]]}
-@opindex --geometry
-This is another way of writing the same thing.
 
 @item -fs
 @opindex -fs
@@ -1029,7 +1056,7 @@ specification assuming there is a tool bar, and then your
 @file{~/.emacs} file disables the tool bar, you will end up with a
 frame geometry different from what you asked for.  To get the intended
 size with no tool bar, use an X resource to specify ``no tool bar''
-(@pxref{Table of Resources});then Emacs will already know there's no
+(@pxref{Table of Resources}); then Emacs will already know there's no
 tool bar when it processes the specified geometry.
 
   When using one of @samp{--fullscreen}, @samp{--fullwidth} or
@@ -1057,13 +1084,15 @@ you can click on to move or iconify the window.
 @opindex -ib
 @itemx --internal-border=@var{width}
 @opindex --internal-border
-@cindex border width, command-line argument
-Specify @var{width} as the width of the internal border, in pixels.
+@cindex internal border width, command-line argument
+Specify @var{width} as the width of the internal border (between the text
+and the main border), in pixels.
 
 @item -bw @var{width}
 @opindex -bw
 @itemx --border-width=@var{width}
 @opindex --border-width
+@cindex main border width, command-line argument
 Specify @var{width} as the width of the main border, in pixels.
 @end table
 
@@ -1091,11 +1120,10 @@ there is more than one frame).
 line option:
 
 @table @samp
-@item -title @var{title}
-@opindex --title
-@itemx --title=@var{title}
-@itemx -T @var{title}
+@item -T @var{title}
 @opindex -T
+@itemx --title=@var{title}
+@opindex --title
 @cindex frame title, command-line argument
 Specify @var{title} as the title for the initial Emacs frame.
 @end table
@@ -1137,6 +1165,35 @@ rectangle containing the frame's title.
 rather than showing a frame right away.  In this situation, the icon
 is the only indication that Emacs has started; the text frame doesn't
 appear until you deiconify it.
+
+@node Misc X
+@appendixsec Other Display Options
+
+@table @samp
+@item -hb
+@opindex -hb
+@itemx --horizontal-scroll-bars
+@opindex --horizontal-scroll-bars
+@cindex horizontal scroll bars, command-line argument
+Enable horizontal scroll bars.
+
+@item -vb
+@opindex -vb
+@itemx --vertical-scroll-bars
+@opindex --vertical-scroll-bars
+@cindex vertical scroll bars, command-line argument
+Enable vertical scroll bars.
+
+@item -lsp @var{pixels}
+@opindex -lsp
+@itemx --line-spacing=@var{pixels}
+@opindex --line-spacing
+@cindex line spacing, command-line argument
+Specify @var{pixels} as additional space to put between lines, in pixels.
+@end table
+
+  The @samp{--xrm} option (@pxref{Resources}) specifies additional
+X resource values.
 
 @ignore
    arch-tag: fffecd9e-7329-4a51-a3cc-dd4a9889340e

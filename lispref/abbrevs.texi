@@ -24,12 +24,17 @@ each abbreviation.  The symbol's name is the abbreviation; its value
 is the expansion; its function definition is the hook function to do
 the expansion (@pxref{Defining Abbrevs}); its property list cell
 typically contains the use count, the number of times the abbreviation
-has been expanded.  (Alternatively, the use count is on the
+has been expanded.  Alternatively, the use count is on the
 @code{count} property and the system-abbrev flag is on the
-@code{system-type} property.)  Because these symbols are not interned
-in the usual obarray, they will never appear as the result of reading
-a Lisp expression; in fact, normally they are never used except by the
-code that handles abbrevs.  Therefore, it is safe to use them in an
+@code{system-type} property.  Abbrevs with a non-@code{nil}
+@code{system-type} property are called ``system'' abbrevs.  They are
+usually defined by modes or packages, instead of by the user, and are
+treated specially in certain respects.
+
+Because the symbols used for abbrevs are not interned in the usual
+obarray, they will never appear as the result of reading a Lisp
+expression; in fact, normally they are never used except by the code
+that handles abbrevs.  Therefore, it is safe to use them in an
 extremely nonstandard way.  @xref{Creating Symbols}.
 
   For the user-level commands for abbrevs, see @ref{Abbrevs,, Abbrev
@@ -82,7 +87,9 @@ leaving it empty.  It always returns @code{nil}.
 
 @defun copy-abbrev-table table
 This function returns a copy of abbrev table @var{table}---a new
-abbrev table that contains the same abbrev definitions.
+abbrev table that contains the same abbrev definitions.  The only
+difference between @var{table} and the returned copy is that this
+function sets the property lists of all copied abbrevs to 0.
 @end defun
 
 @defun define-abbrev-table tabname definitions
@@ -90,8 +97,16 @@ This function defines @var{tabname} (a symbol) as an abbrev table
 name, i.e., as a variable whose value is an abbrev table.  It defines
 abbrevs in the table according to @var{definitions}, a list of
 elements of the form @code{(@var{abbrevname} @var{expansion}
-@var{hook} @var{usecount} @r{[}@var{system-flag}@r{]})}.  The return
-value is always @code{nil}.
+@var{hook} @var{usecount} @var{system-flag})}.  If an element of
+@var{definitions} has length less than five, omitted elements default
+to @code{nil}.  A value of @code{nil} for @var{usecount} is equivalent
+to zero.  The return value is always @code{nil}.
+
+If this function is called more than once for the same @var{tabname},
+subsequent calls add the definitions in @var{definitions} to
+@var{tabname}, rather than overriding the entire original contents.
+(A subsequent call only overrides abbrevs explicitly redefined or
+undefined in @var{definitions}.)
 @end defun
 
 @defvar abbrev-table-name-list
@@ -105,38 +120,24 @@ named @var{name}.  The argument @var{name} is a symbol whose value is an
 abbrev table.  The return value is always @code{nil}.
 
 If @var{human} is non-@code{nil}, the description is human-oriented.
-Otherwise the description is a Lisp expression---a call to
-@code{define-abbrev-table} that would define @var{name} exactly as it
-is currently defined.
+System abbrevs are listed and identified as such.  Otherwise the
+description is a Lisp expression---a call to @code{define-abbrev-table}
+that would define @var{name} as it is currently defined, but without
+the system abbrevs.  (The mode or package using @var{name} is supposed
+to add these to @var{name} separately.)
 @end defun
 
 @node Defining Abbrevs, Abbrev Files, Abbrev Tables, Abbrevs
 @comment  node-name,  next,  previous,  up
 @section Defining Abbrevs
-
-  These functions define an abbrev in a specified abbrev table.
-@code{define-abbrev} is the low-level basic function, while
-@code{add-abbrev} is used by commands that ask for information from
-the user.  When major modes predefine standard abbrevs, they should
-call @code{define-abbrev} and specify @code{t} for @var{system-flag}.
-
-@defun add-abbrev table type arg
-This function adds an abbreviation to abbrev table @var{table} based on
-information from the user.  The argument @var{type} is a string
-describing in English the kind of abbrev this will be (typically,
-@code{"global"} or @code{"mode-specific"}); this is used in prompting
-the user.  The argument @var{arg} is the number of words in the
-expansion.
-
-The return value is the symbol that internally represents the new
-abbrev, or @code{nil} if the user declines to confirm redefining an
-existing abbrev.
-@end defun
+  @code{define-abbrev} is the low-level basic function for defining an
+abbrev in a specified abbrev table.  When major modes predefine
+standard abbrevs, they should call @code{define-abbrev} and specify
+@code{t} for @var{system-flag}.
 
 @defun define-abbrev table name expansion &optional hook count system-flag
 This function defines an abbrev named @var{name}, in @var{table}, to
-expand to @var{expansion} and call @var{hook}.  The return value is a
-symbol that represents the abbrev inside Emacs; its name is
+expand to @var{expansion} and call @var{hook}.  The return value is
 @var{name}.
 
 The value of @var{count}, if specified, initializes the abbrev's
@@ -210,9 +211,10 @@ This function does not display any messages.  It returns @code{nil}.
 @end defun
 
 @defopt save-abbrevs
-A non-@code{nil} value for @code{save-abbrev} means that Emacs should
-save abbrevs when files are saved.  @code{abbrev-file-name} specifies
-the file to save the abbrevs in.
+A non-@code{nil} value for @code{save-abbrevs} means that Emacs should
+offer the user to save abbrevs when files are saved.  If the value is
+@code{silently}, Emacs saves the abbrevs without asking the user.
+@code{abbrev-file-name} specifies the file to save the abbrevs in.
 @end defopt
 
 @defvar abbrevs-changed
@@ -222,11 +224,11 @@ various Emacs commands to offer to save your abbrevs.
 @end defvar
 
 @deffn Command write-abbrev-file &optional filename
-Save all abbrev definitions (except ``system'' abbrevs), in all abbrev
-tables, in the file @var{filename}, in the form of a Lisp program that
-when loaded will define the same abbrevs.  If @var{filename} is
-@code{nil} or omitted, @code{abbrev-file-name} is used.  This function
-returns @code{nil}.
+Save all abbrev definitions (except ``system'' abbrevs), for all abbrev
+tables listed in @code{abbrev-table-name-list}, in the file
+@var{filename}, in the form of a Lisp program that when loaded will
+define the same abbrevs.  If @var{filename} is @code{nil} or omitted,
+@code{abbrev-file-name} is used.  This function returns @code{nil}.
 @end deffn
 
 @node Abbrev Expansion, Standard Abbrev Tables, Abbrev Files, Abbrevs
@@ -249,9 +251,10 @@ abbrev table.
 
 @defun abbrev-expansion abbrev &optional table
 This function returns the string that @var{abbrev} would expand into (as
-defined by the abbrev tables used for the current buffer).  The optional
-argument @var{table} specifies the abbrev table to use, as in
-@code{abbrev-symbol}.
+defined by the abbrev tables used for the current buffer).  If
+@var{abbrev} is not a valid abbrev, the function returns @code{nil}.
+The optional argument @var{table} specifies the abbrev table to use,
+as in @code{abbrev-symbol}.
 @end defun
 
 @deffn Command expand-abbrev
@@ -266,10 +269,15 @@ returns @code{nil} even though expansion did occur.
 @end deffn
 
 @deffn Command abbrev-prefix-mark &optional arg
-Mark current point as the beginning of an abbrev.  The next call to
-@code{expand-abbrev} will use the text from here to point (where it is
-then) as the abbrev to expand, rather than using the previous word as
-usual.
+This command marks current point as the beginning of an abbrev.  The
+next call to @code{expand-abbrev} will use the text from here to point
+(where it is then) as the abbrev to expand, rather than using the
+previous word as usual.
+
+First, this command expands any abbrev before point, unless @var{arg}
+is non-@code{nil}.  (Interactively, @var{arg} is the prefix argument.)
+Then it inserts a hyphen before point, to indicate the start of the
+next abbrev to be expanded.  The actual expansion removes the hyphen.
 @end deffn
 
 @defopt abbrev-all-caps
@@ -280,11 +288,12 @@ expansion.
 @end defopt
 
 @defvar abbrev-start-location
-This is the buffer position for @code{expand-abbrev} to use as the start
-of the next abbrev to be expanded.  (@code{nil} means use the word
-before point instead.)  @code{abbrev-start-location} is set to
-@code{nil} each time @code{expand-abbrev} is called.  This variable is
-also set by @code{abbrev-prefix-mark}.
+This is a marker pointing to the buffer position for
+@code{expand-abbrev} to use as the start of the next abbrev to be
+expanded.  (@code{nil} means use the word before point instead.)
+@code{abbrev-start-location} is set to @code{nil} each time
+@code{expand-abbrev} is called.  This variable is also set by
+@code{abbrev-prefix-mark}.
 @end defvar
 
 @defvar abbrev-start-location-buffer

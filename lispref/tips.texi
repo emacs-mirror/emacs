@@ -538,7 +538,7 @@ important arguments.
 
 @item
 For consistency, phrase the verb in the first sentence of a function's
-documentation string as an imperative--for instance, use ``Return the
+documentation string as an imperative---for instance, use ``Return the
 cons of A and B.'' in preference to ``Returns the cons of A and B@.''
 Usually it looks good to do likewise for the rest of the first
 paragraph.  Subsequent paragraphs usually look better if each sentence
