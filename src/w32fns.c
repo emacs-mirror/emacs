@@ -3408,7 +3408,10 @@ w32_wnd_proc (hwnd, msg, wParam, lParam)
 
 	    /* The choice of message is somewhat arbitrary, as long as
 	       the main thread handler just ignores it. */
-	    msg = WM_QUIT;
+	    msg = WM_NULL;
+
+	    /* Interrupt any blocking system calls.  */
+	    signal_quit ();
 	  }
       }
 #endif
