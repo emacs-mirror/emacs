@@ -844,8 +844,10 @@ See also `fortran-window-create'."
   (interactive)
   (delete-horizontal-space)
   (if (save-excursion
-	(beginning-of-line)
-	(looking-at fortran-comment-line-start-skip))
+	(let ((pos (point)))
+	  (beginning-of-line)
+	  (and (fortran-find-comment-start-skip 'all)
+	       (< (match-beginning 0) pos))))
       (insert ?\n (match-string 0))
     (if indent-tabs-mode
 	(insert ?\n ?\t (fortran-numerical-continuation-char))
