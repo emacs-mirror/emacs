@@ -132,7 +132,7 @@
 	     ;; lread.c
 	     (load-path environment 
 			(repeat (choice :tag "Directory"
-					(const :tag "default" nil)
+					(const :tag "use current" nil)
 					(directory :format "%v"))))
 	     ;; minibuf.c
 	     (completion-auto-help minibuffer boolean)
