@@ -1,3 +1,7 @@
+2001-11-28  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (maybe_bootstrap): Don't bootstrap, just suggest it.
+
 2001-11-26  Richard M. Stallman  <rms@gnu.org>
 
 	* Makefile.in: bootstrap should not delete dumped executables.

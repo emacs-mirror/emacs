@@ -1,3 +1,10 @@
+2001-11-28  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffind_file_name_handler): Avoid initializer for `result'.
+
+	* Makefile.in (lispdir): New variable, referring to build dir.
+	(TAGS-LISP): Find Makefile in $(lispdir), not $(lispsource).
+
 2001-11-28  Andrew Innes  <andrewi@gnu.org>
 
 	* w32menu.c (w32_menu_display_help): Actually add the new argument

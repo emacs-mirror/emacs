@@ -1,3 +1,7 @@
+2001-11-28  Richard M. Stallman  <rms@gnu.org>
+
+	* Makefile.in (TAGS): Find the source files in $(srcdir).
+
 2001-10-20  Gerd Moellmann  <gerd@gnu.org>
 
 	* (Version 21.1 released.)
