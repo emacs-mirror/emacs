@@ -1,3 +1,7 @@
+2000-11-14  Miles Bader  <miles@lsi.nec.co.jp>
+
+	* faces.el (header-line): Use `:box nil' for color/gs displays too.
+
 2000-11-14  Gerd Moellmann  <gerd@gnu.org>
 
 	* emacs-lisp/byte-opt.el (byte-compile-unfold-lambda): Don't
