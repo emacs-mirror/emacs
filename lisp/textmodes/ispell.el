@@ -1264,8 +1264,7 @@ You can set this variable in hooks in your init file -- eg:
 
 
 
-;;;###autoload
-(define-key esc-map "$" 'ispell-word)
+;;;###autoload (define-key esc-map "$" 'ispell-word)
 
 
 (defun ispell-accept-output (&optional timeout-secs timeout-msecs)

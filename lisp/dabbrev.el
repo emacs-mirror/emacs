@@ -1,6 +1,6 @@
 ;;; dabbrev.el --- dynamic abbreviation package
 
-;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 2001
+;; Copyright (C) 1985, 86, 92, 94, 96, 1997, 2000, 01, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Don Morrison
@@ -357,11 +357,9 @@ this list.")
 ;; Exported functions
 ;;----------------------------------------------------------------
 
-;;;###autoload
-(define-key esc-map "/" 'dabbrev-expand)
+;;;###autoload (define-key esc-map "/" 'dabbrev-expand)
 ;;;??? Do we want this?
-;;;###autoload
-(define-key esc-map [?\C-/] 'dabbrev-completion)
+;;;###autoload (define-key esc-map [?\C-/] 'dabbrev-completion)
 
 ;;;###autoload
 (defun dabbrev-completion (&optional arg)

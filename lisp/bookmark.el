@@ -1,6 +1,6 @@
 ;;; bookmark.el --- set bookmarks, maybe annotate them, jump to them later
 
-;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001 Free Software Foundation
+;; Copyright (C) 1993, 1994, 1995, 1996, 1997, 2001, 2003 Free Software Foundation
 
 ;; Author: Karl Fogel <kfogel@red-bean.com>
 ;; Maintainer: Karl Fogel <kfogel@red-bean.com>
@@ -234,34 +234,21 @@ so that you have a bookmark prefix, just use `global-set-key' and bind a
 key of your choice to `bookmark-map'.  All interactive bookmark
 functions have a binding in this keymap.")
 
-;;;###autoload
-(define-prefix-command 'bookmark-map)
+;;;###autoload (define-prefix-command 'bookmark-map)
 
 ;; Read the help on all of these functions for details...
-;;;###autoload
-(define-key bookmark-map "x" 'bookmark-set)
-;;;###autoload
-(define-key bookmark-map "m" 'bookmark-set) ; "m" for "mark"
-;;;###autoload
-(define-key bookmark-map "j" 'bookmark-jump)
-;;;###autoload
-(define-key bookmark-map "g" 'bookmark-jump) ; "g" for "go"
-;;;###autoload
-(define-key bookmark-map "i" 'bookmark-insert)
-;;;###autoload
-(define-key bookmark-map "e" 'edit-bookmarks)
-;;;###autoload
-(define-key bookmark-map "f" 'bookmark-insert-location) ; "f" for "find"
-;;;###autoload
-(define-key bookmark-map "r" 'bookmark-rename)
-;;;###autoload
-(define-key bookmark-map "d" 'bookmark-delete)
-;;;###autoload
-(define-key bookmark-map "l" 'bookmark-load)
-;;;###autoload
-(define-key bookmark-map "w" 'bookmark-write)
-;;;###autoload
-(define-key bookmark-map "s" 'bookmark-save)
+;;;###autoload (define-key bookmark-map "x" 'bookmark-set)
+;;;###autoload (define-key bookmark-map "m" 'bookmark-set) ; "m" for "mark"
+;;;###autoload (define-key bookmark-map "j" 'bookmark-jump)
+;;;###autoload (define-key bookmark-map "g" 'bookmark-jump) ; "g" for "go"
+;;;###autoload (define-key bookmark-map "i" 'bookmark-insert)
+;;;###autoload (define-key bookmark-map "e" 'edit-bookmarks)
+;;;###autoload (define-key bookmark-map "f" 'bookmark-insert-location) ; "f" for "find"
+;;;###autoload (define-key bookmark-map "r" 'bookmark-rename)
+;;;###autoload (define-key bookmark-map "d" 'bookmark-delete)
+;;;###autoload (define-key bookmark-map "l" 'bookmark-load)
+;;;###autoload (define-key bookmark-map "w" 'bookmark-write)
+;;;###autoload (define-key bookmark-map "s" 'bookmark-save)
 
 
 ;;; The annotation maps.
@@ -2226,45 +2213,35 @@ corresponding bookmark function from Lisp \(the one without the
               (cons 'bookmark menu-bar-final-items)))
   (setq menu-bar-final-items '(bookmark)))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [load]
-  '("Load a Bookmark File..." . bookmark-load))
+;;;###autoload (define-key menu-bar-bookmark-map [load]
+;;;###autoload   '("Load a Bookmark File..." . bookmark-load))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [write]
-  '("Save Bookmarks As..." . bookmark-write))
+;;;###autoload (define-key menu-bar-bookmark-map [write]
+;;;###autoload   '("Save Bookmarks As..." . bookmark-write))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [save]
-  '("Save Bookmarks" . bookmark-save))
+;;;###autoload (define-key menu-bar-bookmark-map [save]
+;;;###autoload   '("Save Bookmarks" . bookmark-save))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [edit]
-  '("Edit Bookmark List" . bookmark-bmenu-list))
+;;;###autoload (define-key menu-bar-bookmark-map [edit]
+;;;###autoload   '("Edit Bookmark List" . bookmark-bmenu-list))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [delete]
-  '("Delete Bookmark" . bookmark-menu-delete))
+;;;###autoload (define-key menu-bar-bookmark-map [delete]
+;;;###autoload   '("Delete Bookmark" . bookmark-menu-delete))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [rename]
-  '("Rename Bookmark" . bookmark-menu-rename))
+;;;###autoload (define-key menu-bar-bookmark-map [rename]
+;;;###autoload   '("Rename Bookmark" . bookmark-menu-rename))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [locate]
-  '("Insert Location" . bookmark-menu-locate))
+;;;###autoload (define-key menu-bar-bookmark-map [locate]
+;;;###autoload   '("Insert Location" . bookmark-menu-locate))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [insert]
-  '("Insert Contents" . bookmark-menu-insert))
+;;;###autoload (define-key menu-bar-bookmark-map [insert]
+;;;###autoload   '("Insert Contents" . bookmark-menu-insert))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [set]
-  '("Set Bookmark" . bookmark-set))
+;;;###autoload (define-key menu-bar-bookmark-map [set]
+;;;###autoload   '("Set Bookmark" . bookmark-set))
 
-;;;###autoload
-(define-key menu-bar-bookmark-map [jump]
-  '("Jump to Bookmark" . bookmark-menu-jump))
+;;;###autoload (define-key menu-bar-bookmark-map [jump]
+;;;###autoload   '("Jump to Bookmark" . bookmark-menu-jump))
 
 ;;;; end bookmark menu stuff ;;;;
 
