@@ -564,12 +564,13 @@ of saved entire commands.  After finding the desired previous command,
 you can edit its expression as usual and then resubmit it by typing
 @key{RET} as usual.
 
-@vindex isearch-resume-enabled
+@vindex isearch-resume-in-command-history
   Incremental search does not, strictly speaking, use the minibuffer,
-but it does something similar, so normally it is treated as a complex
-command and it appears in the history list for @kbd{C-x @key{ESC}
-@key{ESC}}.  You can disable that by setting
-@code{isearch-resume-enabled} to @code{nil}.
+but it does something similar.  Although it behaves like a complex command,
+it normally does not appear in the history list for @kbd{C-x
+@key{ESC} @key{ESC}}.  You can make it appear in the history by
+setting @code{isearch-resume-in-command-history} to a non-@code{nil}
+value.
 
 @vindex command-history
   The list of previous minibuffer-using commands is stored as a Lisp

@@ -3668,11 +3668,13 @@ usage: (format STRING &rest OBJECTS)  */)
 
 	  /* Adjust the bounds of each text property
 	     to the proper start and end in the output string.  */
-	  /* We take advantage of the fact that the positions in PROPS
-	     are in increasing order, so that we can do (effectively)
-	     one scan through the position space of the format string.
 
-	     BYTEPOS is the byte position in the format string,
+	  /* Put the positions in PROPS in increasing order, so that
+	     we can do (effectively) one scan through the position
+	     space of the format string.  */
+	  props = Fnreverse (props);
+
+	  /* BYTEPOS is the byte position in the format string,
 	     POSITION is the untranslated char position in it,
 	     TRANSLATED is the translated char position in BUF,
 	     and ARGN is the number of the next arg we will come to.  */

@@ -1046,25 +1046,27 @@ alloca.o: alloca.c blockinput.h atimer.h
    and so rarely changed in ways that do require any.  */
 
 abbrev.o: abbrev.c buffer.h window.h dispextern.h commands.h charset.h \
-	$(config_h)
+	syntax.h $(config_h)
 buffer.o: buffer.c buffer.h region-cache.h commands.h window.h \
    dispextern.h $(INTERVAL_SRC) blockinput.h atimer.h systime.h charset.h \
    $(config_h)
-callint.o: callint.c window.h commands.h buffer.h \
+callint.o: callint.c window.h commands.h buffer.h keymap.h \
    keyboard.h dispextern.h $(config_h)
 callproc.o: callproc.c epaths.h buffer.h commands.h $(config_h) \
 	process.h systty.h syssignal.h charset.h coding.h ccl.h msdos.h \
         composite.h
-casefiddle.o: casefiddle.c syntax.h commands.h buffer.h composite.h $(config_h)
+casefiddle.o: casefiddle.c syntax.h commands.h buffer.h composite.h \
+	charset.h keymap.h $(config_h)
 casetab.o: casetab.c buffer.h $(config_h)
-category.o: category.c category.h buffer.h charset.h $(config_h)
+category.o: category.c category.h buffer.h charset.h keymap.h $(config_h)
 ccl.o: ccl.c ccl.h charset.h coding.h $(config_h)
 charset.o: charset.c charset.h buffer.h coding.h composite.h disptab.h \
 	$(config_h)
-coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h window.h frame.h termhooks.h $(config_h)
+coding.o: coding.c coding.h ccl.h buffer.h charset.h intervals.h composite.h \
+	window.h dispextern.h frame.h termhooks.h $(config_h)
 cm.o: cm.c frame.h cm.h termhooks.h termchar.h $(config_h)
 cmds.o: cmds.c syntax.h buffer.h charset.h commands.h window.h $(config_h) \
-	msdos.h dispextern.h
+	msdos.h dispextern.h keyboard.h keymap.h
 pre-crt0.o: pre-crt0.c
 ecrt0.o: ecrt0.c $(config_h)
 	CRT0_COMPILE ${srcdir}/ecrt0.c
@@ -1072,24 +1074,25 @@ dired.o: dired.c commands.h buffer.h $(config_h) charset.h coding.h regex.h \
    systime.h
 dispnew.o: dispnew.c systime.h commands.h process.h frame.h \
    window.h buffer.h dispextern.h termchar.h termopts.h termhooks.h cm.h \
-   disptab.h \
+   disptab.h indent.h intervals.h \
    xterm.h blockinput.h atimer.h charset.h msdos.h composite.h keyboard.h \
    $(config_h)
-doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h charset.h
+doc.o: doc.c $(config_h) epaths.h buffer.h keyboard.h keymap.h charset.h
 doprnt.o: doprnt.c charset.h $(config_h)
-dosfns.o: buffer.h termchar.h termhooks.h frame.h msdos.h dosfns.h $(config_h)
+dosfns.o: buffer.h termchar.h termhooks.h frame.h blockinput.h window.h \
+   msdos.h dosfns.h dispextern.h charset.h coding.h $(config_h)
 editfns.o: editfns.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
-   coding.h dispextern.h $(config_h)
+   coding.h dispextern.h frame.h $(config_h)
 emacs.o: emacs.c commands.h systty.h syssignal.h blockinput.h process.h \
    termhooks.h buffer.h atimer.h systime.h $(INTERVAL_SRC) $(config_h) \
-   window.h keyboard.h keymap.h
+   window.h dispextern.h keyboard.h keymap.h
 fileio.o: fileio.c window.h buffer.h systime.h $(INTERVAL_SRC) charset.h \
    coding.h ccl.h msdos.h dispextern.h $(config_h)
-filelock.o: filelock.c buffer.h systime.h epaths.h $(config_h)
+filelock.o: filelock.c buffer.h charset.h coding.h systime.h epaths.h $(config_h)
 filemode.o: filemode.c  $(config_h)
 frame.o: frame.c xterm.h window.h frame.h termhooks.h commands.h keyboard.h \
    blockinput.h atimer.h systime.h buffer.h charset.h fontset.h \
-   msdos.h dosfns.h dispextern.h termchar.h $(config_h)
+   msdos.h dosfns.h dispextern.h w32term.h macterm.h termchar.h $(config_h)
 fringe.o: fringe.c dispextern.h frame.h window.h buffer.h termhooks.h $(config_h)
 fontset.o: dispextern.h fontset.h fontset.c ccl.h buffer.h charset.h frame.h \
    keyboard.h termhooks.h $(config_h)
@@ -1100,11 +1103,11 @@ indent.o: indent.c frame.h window.h indent.h buffer.h $(config_h) termchar.h \
    termopts.h disptab.h region-cache.h charset.h composite.h dispextern.h \
    keyboard.h
 insdel.o: insdel.c window.h buffer.h $(INTERVAL_SRC) blockinput.h charset.h \
-   dispextern.h atimer.h systime.h $(config_h)
+   dispextern.h atimer.h systime.h region-cache.h $(config_h)
 keyboard.o: keyboard.c termchar.h termhooks.h termopts.h buffer.h charset.h \
    commands.h frame.h window.h macros.h disptab.h keyboard.h syssignal.h \
    systime.h dispextern.h syntax.h $(INTERVAL_SRC) blockinput.h \
-   atimer.h xterm.h puresize.h msdos.h $(config_h)
+   atimer.h xterm.h puresize.h msdos.h keymap.h w32term.h macterm.h $(config_h)
 keymap.o: keymap.c buffer.h commands.h keyboard.h termhooks.h blockinput.h \
    atimer.h systime.h puresize.h charset.h intervals.h $(config_h)
 lastfile.o: lastfile.c  $(config_h)
@@ -1117,11 +1120,12 @@ vm-limit.o: vm-limit.c mem-limits.h $(config_h)
 marker.o: marker.c buffer.h charset.h $(config_h)
 md5.o: md5.c md5.h $(config_h)
 minibuf.o: minibuf.c syntax.h dispextern.h frame.h window.h keyboard.h \
-   buffer.h commands.h charset.h msdos.h termhooks.h $(config_h)
+   buffer.h commands.h charset.h msdos.h $(INTERVAL_SRC)) keymap.h \
+   termhooks.h $(config_h)
 mktime.o: mktime.c $(config_h)
 msdos.o: msdos.c msdos.h dosfns.h systime.h termhooks.h dispextern.h frame.h \
    termopts.h termchar.h charset.h coding.h ccl.h disptab.h window.h \
-   keyboard.h intervals.h $(config_h)
+   keyboard.h intervals.h buffer.h commands.h blockinput.h $(config_h)
 process.o: process.c process.h buffer.h window.h termhooks.h termopts.h \
    commands.h syssignal.h systime.h systty.h syswait.h frame.h dispextern.h \
    blockinput.h atimer.h charset.h coding.h ccl.h msdos.h composite.h \
@@ -1131,15 +1135,17 @@ region-cache.o: region-cache.c buffer.h region-cache.h $(config_h)
 scroll.o: scroll.c termchar.h dispextern.h frame.h msdos.h keyboard.h \
    termhooks.h $(config_h)
 search.o: search.c regex.h commands.h buffer.h region-cache.h syntax.h \
-   blockinput.h atimer.h systime.h category.h charset.h composite.h $(config_h)
+   blockinput.h atimer.h systime.h category.h charset.h composite.h \
+   $(INTERVAL_SRC) $(config_h)
 strftime.o: strftime.c $(config_h)
 syntax.o: syntax.c syntax.h buffer.h commands.h category.h charset.h \
-   composite.h $(config_h)
+   composite.h keymap.h regex.h $(INTERVAL_SRC) $(config_h)
 sysdep.o: sysdep.c syssignal.h systty.h systime.h syswait.h blockinput.h \
    process.h dispextern.h termhooks.h termchar.h termopts.h \
    frame.h atimer.h window.h msdos.h dosfns.h keyboard.h cm.h $(config_h)
 term.o: term.c termchar.h termhooks.h termopts.h $(config_h) cm.h frame.h \
-   disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h
+   disptab.h dispextern.h keyboard.h charset.h coding.h ccl.h msdos.h \
+   window.h keymap.h
 termcap.o: termcap.c $(config_h)
 terminfo.o: terminfo.c $(config_h)
 tparam.o: tparam.c $(config_h)
@@ -1149,18 +1155,20 @@ undo.o: undo.c buffer.h commands.h $(config_h)
 UNEXEC_ALIAS=UNEXEC
 $(UNEXEC_ALIAS): UNEXEC_SRC $(config_h)
 w16select.o: w16select.c dispextern.h frame.h blockinput.h atimer.h systime.h \
-   msdos.h $(config_h)
+   msdos.h buffer.h charset.h coding.h composite.h $(config_h)
 widget.o: widget.c xterm.h frame.h dispextern.h widgetprv.h \
    $(srcdir)/../lwlib/lwlib.h $(config_h)
 window.o: window.c indent.h commands.h frame.h window.h buffer.h termchar.h \
    disptab.h keyboard.h dispextern.h msdos.h composite.h \
-   $(config_h)
+   keymap.h blockinput.h $(INTERVAL_SRC) xterm.h w32term.h macterm.h $(config_h)
 xdisp.o: xdisp.c macros.h commands.h process.h indent.h buffer.h dispextern.h coding.h \
    termchar.h frame.h window.h disptab.h termhooks.h charset.h $(config_h) \
+   keyboard.h $(INTERVAL_SRC) region-cache.h xterm.h w32term.h macterm.h \
    msdos.h composite.h fontset.h blockinput.h atimer.h systime.h keymap.h
 xfaces.o: xfaces.c dispextern.h frame.h xterm.h buffer.h blockinput.h \
    window.h charset.h msdos.h dosfns.h composite.h atimer.h systime.h \
-   termchar.h termhooks.h $(config_h)
+   keyboard.h fontset.h w32term.h macterm.h $(INTERVAL_SRC) termchar.h \
+   termhooks.h $(config_h)
 xfns.o: xfns.c buffer.h frame.h window.h keyboard.h xterm.h dispextern.h \
    $(srcdir)/../lwlib/lwlib.h blockinput.h atimer.h systime.h epaths.h \
    charset.h gtkutil.h termchar.h termhooks.h $(config_h)
@@ -1187,22 +1195,26 @@ atimer.o: atimer.c atimer.h systime.h $(config_h)
 
 alloc.o: alloc.c process.h frame.h window.h buffer.h  puresize.h syssignal.h keyboard.h \
  blockinput.h atimer.h systime.h charset.h dispextern.h $(config_h) $(INTERVAL_SRC)
-bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h $(config_h)
-data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h $(config_h)
+bytecode.o: bytecode.c buffer.h syntax.h charset.h window.h dispextern.h \
+  frame.h xterm.h $(config_h)
+data.o: data.c buffer.h puresize.h charset.h syssignal.h keyboard.h frame.h $(config_h)
 eval.o: eval.c commands.h keyboard.h blockinput.h atimer.h systime.h \
   dispextern.h $(config_h)
 floatfns.o: floatfns.c $(config_h)
 fns.o: fns.c commands.h $(config_h) frame.h buffer.h charset.h keyboard.h \
- frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h
+ keymap.h frame.h window.h dispextern.h $(INTERVAL_SRC) coding.h md5.h \
+ blockinput.h xterm.h
 print.o: print.c process.h frame.h window.h buffer.h keyboard.h charset.h \
-   $(config_h) dispextern.h msdos.h composite.h termchar.h intervals.h
-lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h $(config_h) \
- termhooks.h coding.h msdos.h
+   $(config_h) dispextern.h termchar.h $(INTERVAL_SRC) msdos.h composite.h \
+   termchar.h
+lread.o: lread.c commands.h keyboard.h buffer.h epaths.h charset.h \
+ $(config_h) $(INTERVAL_SRC) termhooks.h coding.h msdos.h
 
 /* Text properties support */
 textprop.o: textprop.c buffer.h window.h dispextern.h $(INTERVAL_SRC) \
 	$(config_h)
-intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h $(config_h)
+intervals.o: intervals.c buffer.h $(INTERVAL_SRC) keyboard.h puresize.h \
+	keymap.h $(config_h)
 composite.o: composite.c buffer.h  charset.h $(INTERVAL_SRC) $(config_h)
 
 /* System-specific programs to be made.

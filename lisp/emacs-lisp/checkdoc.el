@@ -1561,8 +1561,9 @@ mouse-[0-3]\\)\\)\\>"))
      ;; to describe the most important commands in your major mode, and
      ;; then use `\\{...}' to display the rest of the mode's keymap.
      (save-excursion
-       (if (re-search-forward "\\\\\\\\\\[\\w+" e t
-			      (1+ checkdoc-max-keyref-before-warn))
+       (if (and (re-search-forward "\\\\\\\\\\[\\w+" e t
+				   (1+ checkdoc-max-keyref-before-warn))
+		(not (re-search-forward "\\\\\\\\{\\w+}" e t)))
 	   (checkdoc-create-error
 	    "Too many occurrences of \\[function].  Use \\{keymap} instead"
 	    s (marker-position e))))

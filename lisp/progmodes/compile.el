@@ -849,6 +849,7 @@ Otherwise, construct a buffer name from MODE-NAME."
 
 (defun compilation-start (command &optional mode name-function highlight-regexp)
   "Run compilation command COMMAND (low level interface).
+If COMMAND starts with a cd command, that becomes the `default-directory'.
 The rest of the arguments are optional; for them, nil means use the default.
 
 MODE is the major mode to set in the compilation buffer.  Mode
@@ -861,26 +862,29 @@ global value of `compilation-highlight-regexp'.
 
 Returns the compilation buffer created."
   (or mode (setq mode 'compilation-mode))
-  (let ((name-of-mode
-	 (if (eq mode t)
-	     (prog1 "compilation" (require 'comint))
-	   (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
-	(process-environment
-	 (append
-	  compilation-environment
-	  (if (if (boundp 'system-uses-terminfo) ; `if' for compiler warning
-		  system-uses-terminfo)
-	      (list "TERM=dumb" "TERMCAP="
-		    (format "COLUMNS=%d" (window-width)))
-	    (list "TERM=emacs"
-		  (format "TERMCAP=emacs:co#%d:tc=unknown:"
-			  (window-width))))
-	  ;; Set the EMACS variable, but
-	  ;; don't override users' setting of $EMACS.
-	  (unless (getenv "EMACS") '("EMACS=t"))
-	  (copy-sequence process-environment)))
-	(thisdir default-directory)
-	outwin outbuf)
+  (let* ((name-of-mode
+	  (if (eq mode t)
+	      (prog1 "compilation" (require 'comint))
+	    (replace-regexp-in-string "-mode$" "" (symbol-name mode))))
+	 (process-environment
+	  (append
+	   compilation-environment
+	   (if (if (boundp 'system-uses-terminfo) ; `if' for compiler warning
+		   system-uses-terminfo)
+	       (list "TERM=dumb" "TERMCAP="
+		     (format "COLUMNS=%d" (window-width)))
+	     (list "TERM=emacs"
+		   (format "TERMCAP=emacs:co#%d:tc=unknown:"
+			   (window-width))))
+	   ;; Set the EMACS variable, but
+	   ;; don't override users' setting of $EMACS.
+	   (unless (getenv "EMACS") '("EMACS=t"))
+	   (copy-sequence process-environment)))
+	 cd-path		 ; in case process-environment contains CDPATH
+	 (thisdir (if (string-match "^\\s *cd\\s +\\(.+?\\)\\s *[;&\n]" command)
+		      (substitute-in-file-name (match-string 1 command))
+		    default-directory))
+	 outwin outbuf)
     (with-current-buffer
 	(setq outbuf
 	      (get-buffer-create
@@ -901,15 +905,16 @@ Returns the compilation buffer created."
 		     (buffer-name)))))
       ;; Clear out the compilation buffer and make it writable.
       ;; Change its default-directory to the directory where the compilation
-      ;; will happen, and insert a `cd' command to indicate this.
+      ;; will happen, and insert a `default-directory' to indicate this.
       (setq buffer-read-only nil)
       (buffer-disable-undo (current-buffer))
       (erase-buffer)
       (buffer-enable-undo (current-buffer))
-      (setq default-directory thisdir)
+      (cd thisdir)
       ;; output a mode setter, for saving and later reloading this buffer
-      (insert "cd " thisdir "	# -*-" name-of-mode
-	      "-*-\nEntering directory `" thisdir "'\n" command "\n")
+      (insert "-*- mode: " name-of-mode
+	      "; default-directory: " (prin1-to-string default-directory)
+	      " -*-\n" command "\n")
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.

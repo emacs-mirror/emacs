@@ -1,3 +1,57 @@
+2004-09-12  Kim F. Storm  <storm@cua.dk>
+
+	* editfns.c (Fformat): Handle format strings with multiple text
+	properties.  Reverse text property list from the format string,
+	so the positions are in increasing order.
+
+2004-09-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xselect.c (x_reply_selection_request): XSync and UNBLOCK before
+	x_uncatch_errors so that possible protocol errors are delivered.
+
+2004-09-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (msdos.o): Depend on buffer.h, commands.h, and
+	blockinput.h.
+	(dosfns.o): Depend on blockinput.h, window.h, dispextern.h,
+	charset.h, and coding.h
+	(w16select.o): Depend on buffer.h, charset.h, coding.h, and
+	composite.h.
+	(term.o): Depend on window.h and keymap.h.
+	(abbrev.o): Depend on syntax.h.
+	(callint.o): Depend on keymap.h.
+	(casefiddle.o): Depend on charset.h and keymap.h.
+	(category.o): Depend on keymap.h.
+	(coding.o): Depend on dispextern.h.
+	(cmds.o): Depend on keyboard.h and keymap.h.
+	(dispnew.o): Depend on indent.h and intervals.h.
+	(doc.o): Depend on keymap.h.
+	(editfns.o): Depend on frame.h.
+	(emacs.o): Depend on dispextern.h.
+	(fileio.o): Don't depend on ccl.h.
+	(filelock.o): Depend on charset.h and coding.h.
+	(frame.o): Depend on w32term.h and macterm.h.
+	(insdel.o): Depend on region-cache.h.
+	(keyboard.o): Depend on keymap.h, w32term.h, and macterm.h.
+	(minibuf.o): Depend on $(INTERVALS_SRC) and keymap.h.
+	(search.o): Depend on $(INTERVALS_SRC).
+	(syntax.o): Depend on keymap.h, regex.h, and $(INTERVALS_SRC).
+	(window.o): Depend on keymap.h, blockinput.h, $(INTERVALS_SRC),
+	xterm.h, w32term.h, and macterm.h.
+	(xdisp.o): Depend on keyboard.h, $(INTERVALS_SRC), xterm.h,
+	w32term.h, and macterm.h.
+	(xfaces.o): Depend on keyboard.h, $(INTERVALS_SRC),
+	region-cache.h, xterm.h, w32term.h, and macterm.h.
+	(bytecode.o): Depend on dispextern.h, frame.h, and xterm.h.
+	(data.o): Depend on frame.h.
+	(fns.o): Depend on keymap.h, xterm.h, and blockinput.h.
+	(print.o): Depend on termchar.h and $(INTERVALS_SRC).
+	(lread.o): Depend on $(INTERVALS_SRC), termhooks.h, and coding.h.
+	(intervals.o): Depend on keymap.h.
+
+	* msdos.c (msdos_set_cursor_shape, IT_display_cursor): Add
+	debugging print-out to termscript.
+
 2004-09-09  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (decode_mode_spec): Use current buffer for most purposes.

@@ -146,8 +146,10 @@ Ordinarily the text becomes invisible again at the end of the search."
   :type 'boolean
   :group 'isearch)
 
-(defcustom isearch-resume-enabled t
-  "*If non-nil, `isearch-resume' commands are added to the command history."
+(defcustom isearch-resume-in-command-history nil
+  "*If non-nil, `isearch-resume' commands are added to the command history.
+This allows you to resume earlier isearch sessions through the
+command history."
   :type 'boolean
   :group 'isearch)
 
@@ -651,7 +653,7 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq disable-point-adjustment t))
 
 (defun isearch-done (&optional nopush edit)
-  (if isearch-resume-enabled
+  (if isearch-resume-in-command-history
       (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
 				      ,isearch-word ,isearch-forward
 				      ,isearch-message
