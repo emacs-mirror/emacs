@@ -2107,7 +2107,7 @@ If FRAME is nil, describe the currently selected frame.  */)
 		 "unspecified".  We need to do the same here.  */
 	      if (STRINGP (value) && !FRAME_WINDOW_P (f))
 		{
-		  char *color_name;
+		  const char *color_name;
 		  EMACS_INT csz;
 
 		  if (EQ (parameter, Qbackground_color))
