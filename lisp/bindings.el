@@ -295,6 +295,8 @@ for \\[find-tag] (which see)."
 
 (setq help-event-list '(help f1))
 
+(make-variable-buffer-local 'minor-mode-overriding-map-alist)
+
 ;These commands are defined in editfns.c
 ;but they are not assigned to keys there.
 (put 'narrow-to-region 'disabled t)
