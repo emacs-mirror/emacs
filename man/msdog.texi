@@ -593,12 +593,15 @@ Each DOS codepage is identified by a 3-digit number, such as 850, 862,
 etc.
 
   In contrast to X, which lets you use several fonts at the same time,
-MS-DOS doesn't allow use of several codepages in a single session.
-Instead, MS-DOS loads a single codepage at system startup, and you must
-reboot MS-DOS to change it@footnote{Normally, one particular codepage is
-burnt into the display memory, while other codepages can be installed by
-modifying system configuration files, such as @file{CONFIG.SYS}, and
-rebooting.}.  Much the same limitation applies when you run DOS
+MS-DOS normally doesn't allow use of several codepages in a single
+session.  MS-DOS was designed to load a single codepage at system
+startup, and require you to reboot in order to change
+it@footnote{Normally, one particular codepage is burnt into the display
+memory, while other codepages can be installed by modifying system
+configuration files, such as @file{CONFIG.SYS}, and rebooting.  While
+third-party software is known to exist that allows to change the
+codepage without rebooting, we describe here how a stock MS-DOS system
+behaves.}.  Much the same limitation applies when you run DOS
 executables on other systems such as MS-Windows.
 
 @cindex unibyte operation @r{(MS-DOS)}
