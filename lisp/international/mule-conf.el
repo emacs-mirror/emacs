@@ -195,17 +195,18 @@
 (setup-special-charsets)
 
 
-;; These are tables for unifying characters on decoding and encoding.
-(define-character-unification-table
+;; These are tables for translating characters on decoding and
+;; encoding.
+(define-character-translation-table
   'oldjis-newjis-jisroman-ascii
   (list (cons (make-char 'japanese-jisx0208-1978)
 	      (make-char 'japanese-jisx0208))
 	(cons (make-char 'latin-jisx0201) (make-char 'ascii))))
 
-(setq standard-character-unification-table-for-decode
-      (get 'oldjis-newjis-jisroman-ascii 'unification-table))
+(setq standard-character-translation-table-for-decode
+      (get 'oldjis-newjis-jisroman-ascii 'character-translation-table))
 
-(setq standard-character-unification-table-for-encode nil)
+(setq standard-character-translation-table-for-encode nil)
 
 
 ;;; Make fundamental coding systems.
