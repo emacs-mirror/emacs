@@ -6128,6 +6128,13 @@ resize_mini_window (w, exact_p)
       int height, max_height;
       int unit = CANON_Y_UNIT (f);
       struct text_pos start;
+      struct buffer *old_current_buffer = NULL;
+
+      if (current_buffer != XBUFFER (w->buffer))
+	{
+	  old_current_buffer = current_buffer;
+	  set_buffer_internal (XBUFFER (w->buffer));
+	}
 
       init_iterator (&it, w, BEGV, BEGV_BYTE, NULL, DEFAULT_FACE_ID);
 
@@ -6215,6 +6222,9 @@ resize_mini_window (w, exact_p)
 	      window_height_changed_p = XFASTINT (w->height) != old_height;
 	    }
 	}
+
+      if (old_current_buffer)
+	set_buffer_internal (old_current_buffer);
     }
 
   return window_height_changed_p;
