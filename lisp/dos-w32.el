@@ -52,7 +52,7 @@
 					; Packers
     ("\\.\\(a\\|o\\|tar\\|z\\|gz\\|taz\\|jar\\)$" . t)
 					; Unix stuff
-    ("\\.sx[dmicw]$" . t)		; Open office
+    ("\\.sx[dmicw]$" . t)		; OpenOffice.org
     ("\\.tp[ulpw]$" . t)		; borland Pascal stuff
     ("[:/]tags$" . nil)			; emacs TAGS file
     )

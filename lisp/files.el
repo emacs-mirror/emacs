@@ -1559,7 +1559,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.tar\\'" . tar-mode)
      ("\\.\\(arc\\|zip\\|lzh\\|zoo\\|jar\\)\\'" . archive-mode)
      ("\\.\\(ARC\\|ZIP\\|LZH\\|ZOO\\|JAR\\)\\'" . archive-mode)
-     ("\\.sx[dmicw]\\'" . archive-mode)	; Open office
+     ("\\.sx[dmicw]\\'" . archive-mode)	; OpenOffice.org
      ;; Mailer puts message to be edited in
      ;; /tmp/Re.... or Message
      ("\\`/tmp/Re" . text-mode)
