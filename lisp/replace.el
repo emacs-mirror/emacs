@@ -576,8 +576,12 @@ which will run faster and probably do exactly what you want."
 	(stack nil)
 	(next-rotate-count 0)
 	(replace-count 0)
-	(lastrepl nil)			;Position after last match considered.
+	(nonempty-match nil)
+
+	;; Data for the next match.  If a cons, it has the same format as
+	;; (match-data); otherwise it is t if a match is possible at point.
 	(match-again t)
+
 	(message
 	 (if query-flag
 	     (substitute-command-keys
@@ -597,30 +601,37 @@ which will run faster and probably do exactly what you want."
 	;; Loop finding occurrences that perhaps should be replaced.
 	(while (and keep-going
 		    (not (eobp))
-		    (funcall search-function search-string nil t)
-		    ;; If the search string matches immediately after
-		    ;; the previous match, but it did not match there
-		    ;; before the replacement was done, ignore the match.
-		    (if (or (eq lastrepl (point))
-			    (and regexp-flag
-				 (eq lastrepl (match-beginning 0))
-				 (not match-again)))
-			(if (eobp)
-			    nil
-			  ;; Don't replace the null string 
-			  ;; right after end of previous replacement.
-			  (forward-char 1)
-			  (funcall search-function search-string nil t))
-		      t))
+		    ;; Use the next match if it is already known;
+		    ;; otherwise, search for a match after moving forward
+		    ;; one char if progress is required.
+		    (setq real-match-data
+			  (if (consp match-again)
+			      (progn (goto-char (nth 1 match-again))
+				     match-again)
+			    (and (or match-again
+				     (progn
+				       (forward-char 1)
+				       (not (eobp))))
+				 (funcall search-function search-string nil t)
+				 ;; For speed, use only integers and
+				 ;; reuse the list used last time.
+				 (match-data t real-match-data)))))
 
-	  ;; Save the data associated with the real match.
-	  ;; For speed, use only integers and reuse the list used last time.
-	  (setq real-match-data (match-data t real-match-data))
+	  ;; Record whether the match is nonempty, to avoid an infinite loop
+	  ;; repeatedly matching the same empty string.
+	  (setq nonempty-match
+		(/= (nth 0 real-match-data) (nth 1 real-match-data)))
 
-	  ;; Before we make the replacement, decide whether the search string
-	  ;; can match again just after this match.
-	  (if regexp-flag
-	      (setq match-again (looking-at search-string)))
+	  ;; If the match is empty, record that the next one can't be adjacent.
+	  ;; Otherwise, if matching a regular expression, do the next
+	  ;; match now, since the replacement for this match may
+	  ;; affect whether the next match is adjacent to this one.
+	  (setq match-again
+		(and nonempty-match
+		     (or (not regexp-flag)
+			 (and (looking-at search-string)
+			      (match-data t)))))
+
 	  ;; If time for a change, advance to next replacement string.
 	  (if (and (listp replacements)
 		   (= next-rotate-count replace-count))
@@ -714,8 +725,9 @@ which will run faster and probably do exactly what you want."
 		       ;; Before we make the replacement,
 		       ;; decide whether the search string
 		       ;; can match again just after this match.
-		       (if regexp-flag
-			   (setq match-again (looking-at search-string))))
+		       (if (and regexp-flag nonempty-match)
+			   (setq match-again (and (looking-at search-string)
+						  (match-data t)))))
 		      ((eq def 'delete-and-edit)
 		       (delete-region (match-beginning 0) (match-end 0))
 		       (store-match-data
@@ -738,8 +750,7 @@ which will run faster and probably do exactly what you want."
 	      (setq stack
 		    (cons (cons (point)
 				(or replaced (match-data t)))
-			  stack))))
-	  (setq lastrepl (point)))
+			  stack)))))
       (replace-dehighlight))
     (or unread-command-events
 	(message "Replaced %d occurrence%s"
