@@ -124,30 +124,30 @@ generic-x to enable the specified modes."
 
 (and generic-define-mswindows-modes
      (setq generic-extras-enable-list
-	   (append (list 'bat-generic-mode
-			 'ini-generic-mode
-			 'inf-generic-mode
-			 'rc-generic-mode
-			 'reg-generic-mode
-			 'rul-generic-mode
-			 'hosts-generic-mode
-			 'apache-conf-generic-mode
-			 'apache-log-generic-mode)
+	   (append '(bat-generic-mode
+		     ini-generic-mode
+		     inf-generic-mode
+		     rc-generic-mode
+		     reg-generic-mode
+		     rul-generic-mode
+		     hosts-generic-mode
+		     apache-conf-generic-mode
+		     apache-log-generic-mode)
 		   generic-extras-enable-list)))
 
 (and generic-define-unix-modes
      (setq generic-extras-enable-list
-	   (append (list 'apache-conf-generic-mode
-			 'apache-log-generic-mode
-			 'samba-generic-mode
-			 'hosts-generic-mode
-			 'fvwm-generic-mode
-			 'x-resource-generic-mode
-			 'alias-generic-mode
-			 'inetd-conf-generic-mode
-			 'etc-services-generic-mode
-			 'etc-passwd-generic-mode
-			 'etc-fstab-generic-mode)
+	   (append '(apache-conf-generic-mode
+		     apache-log-generic-mode
+		     samba-generic-mode
+		     hosts-generic-mode
+		     fvwm-generic-mode
+		     x-resource-generic-mode
+		     alias-generic-mode
+		     inetd-conf-generic-mode
+		     etc-services-generic-mode
+		     etc-passwd-generic-mode
+		     etc-fstab-generic-mode)
 		   generic-extras-enable-list)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -158,11 +158,11 @@ generic-x to enable the specified modes."
 (when (memq 'apache-conf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode apache-conf-generic-mode
-  (list ?#)
+  '(?#)
   nil
-  '(("^\\s-*\\(<.*>\\)"       1 'font-lock-constant-face)
-    ("^\\s-*\\(\\sw+\\)\\s-"  1 'font-lock-variable-name-face))
-  (list "srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
+  '(("^\\s-*\\(<.*>\\)"      1 font-lock-constant-face)
+    ("^\\s-*\\(\\sw+\\)\\s-" 1 font-lock-variable-name-face))
+  '("srm\\.conf\\'" "httpd\\.conf\\'" "access\\.conf\\'")
   (list
    (function
     (lambda ()
@@ -181,7 +181,7 @@ generic-x to enable the specified modes."
   '(("^\\([-a-zA-z0-9.]+\\) - [-A-Za-z]+ \\(\\[.*\\]\\)"
      (1 font-lock-constant-face)
      (2 font-lock-variable-name-face)))
-  (list "access_log\\'")
+  '("access_log\\'")
   nil
   "Mode for Apache log files"))
 
@@ -189,14 +189,14 @@ generic-x to enable the specified modes."
 (when (memq 'samba-generic-mode generic-extras-enable-list)
 
 (define-generic-mode samba-generic-mode
-  (list ?\; ?#)
+  '(?\; ?#)
   nil
-  '(("^\\(\\[.*\\]\\)"   1 'font-lock-constant-face)
+  '(("^\\(\\[.*\\]\\)" 1 font-lock-constant-face)
     ("^\\s-*\\(.+\\)=\\([^\r\n]*\\)"
-     (1 'font-lock-variable-name-face)
-     (2 'font-lock-type-face)))
-  (list "smb\\.conf\\'")
-  (list 'generic-bracket-support)
+     (1 font-lock-variable-name-face)
+     (2 font-lock-type-face)))
+  '("smb\\.conf\\'")
+  '(generic-bracket-support)
   "Generic mode for Samba configuration files."))
 
 ;;; Fvwm
@@ -205,23 +205,22 @@ generic-x to enable the specified modes."
 (when (memq 'fvwm-generic-mode generic-extras-enable-list)
 
 (define-generic-mode fvwm-generic-mode
-  (list ?#)
-  (list
-   "AddToMenu"
-   "AddToFunc"
-   "ButtonStyle"
-   "EndFunction"
-   "EndPopup"
-   "Function"
-   "IconPath"
-   "Key"
-   "ModulePath"
-   "Mouse"
-   "PixmapPath"
-   "Popup"
-   "Style")
+  '(?#)
+  '("AddToMenu"
+    "AddToFunc"
+    "ButtonStyle"
+    "EndFunction"
+    "EndPopup"
+    "Function"
+    "IconPath"
+    "Key"
+    "ModulePath"
+    "Mouse"
+    "PixmapPath"
+    "Popup"
+    "Style")
   nil
-  (list "\\.fvwmrc\\'" "\\.fvwm2rc\\'")
+  '("\\.fvwmrc\\'" "\\.fvwm2rc\\'")
   nil
   "Generic mode for FVWM configuration files."))
 
@@ -231,10 +230,10 @@ generic-x to enable the specified modes."
 (when (memq 'x-resource-generic-mode generic-extras-enable-list)
 
 (define-generic-mode x-resource-generic-mode
-  (list ?!)
+  '(?!)
   nil
-  '(("^\\([^:\n]+:\\)" 1 'font-lock-variable-name-face))
-  (list "\\.Xdefaults\\'" "\\.Xresources\\'" "\\.Xenvironment\\'" "\\.ad\\'")
+  '(("^\\([^:\n]+:\\)" 1 font-lock-variable-name-face))
+  '("\\.Xdefaults\\'" "\\.Xresources\\'" "\\.Xenvironment\\'" "\\.ad\\'")
   nil
   "Generic mode for X Resource configuration files."))
 
@@ -242,10 +241,10 @@ generic-x to enable the specified modes."
 (when (memq 'hosts-generic-mode generic-extras-enable-list)
 
 (define-generic-mode hosts-generic-mode
-  (list ?#)
-  (list "localhost")
-  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 'font-lock-constant-face))
-  (list "[hH][oO][sS][tT][sS]\\'")
+  '(?#)
+  '("localhost")
+  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face))
+  '("[hH][oO][sS][tT][sS]\\'")
   nil
   "Generic mode for HOSTS files."))
 
@@ -253,11 +252,11 @@ generic-x to enable the specified modes."
 (when (memq 'inf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode inf-generic-mode
-  (list ?\;)
+  '(?\;)
   nil
-  '(("^\\(\\[.*\\]\\)"   1 'font-lock-constant-face))
-  (list "\\.[iI][nN][fF]\\'")
-  (list 'generic-bracket-support)
+  '(("^\\(\\[.*\\]\\)" 1 font-lock-constant-face))
+  '("\\.[iI][nN][fF]\\'")
+  '(generic-bracket-support)
   "Generic mode for MS-Windows INF files."))
 
 ;;; Windows INI files
@@ -265,13 +264,13 @@ generic-x to enable the specified modes."
 (when (memq 'ini-generic-mode generic-extras-enable-list)
 
 (define-generic-mode ini-generic-mode
-  (list ?\;)
+  '(?\;)
   nil
-  '(("^\\(\\[.*\\]\\)"   1 'font-lock-constant-face)
+  '(("^\\(\\[.*\\]\\)" 1 font-lock-constant-face)
     ("^\\([^=\n\r]*\\)=\\([^\n\r]*\\)$"
      (1 font-lock-function-name-face)
      (2 font-lock-variable-name-face)))
-  (list "\\.[iI][nN][iI]\\'")
+  '("\\.[iI][nN][iI]\\'")
   (list
    (function
     (lambda ()
@@ -287,8 +286,8 @@ generic-x to enable the specified modes."
 (define-generic-mode reg-generic-mode
   '(?\;)
   '("key" "classes_root" "REGEDIT" "REGEDIT4")
-  '(("\\(\\[.*]\\)"     1 'font-lock-constant-face)
-    ("^\\([^\n\r]*\\)\\s-*="  1 'font-lock-variable-name-face))
+  '(("\\(\\[.*]\\)"          1 font-lock-constant-face)
+    ("^\\([^\n\r]*\\)\\s-*=" 1 font-lock-variable-name-face))
   '("\\.[rR][eE][gG]\\'")
   (list
    (function
@@ -303,77 +302,72 @@ generic-x to enable the specified modes."
 (define-generic-mode bat-generic-mode
   nil
   nil
-  (list
-   ;; Make this one first in the list, otherwise comments will
-   ;; be over-written by other variables
-   (list "^[@ \t]*\\([rR][eE][mM][^\n\r]*\\)" 1 'font-lock-comment-face t)
-   (list "^[ \t]*\\(::.*\\)"		        1 'font-lock-comment-face t)
-   (list
-    "^[@ \t]*\\([bB][rR][eE][aA][kK]\\|[vV][eE][rR][iI][fF][yY]\\)[ \t]+\\([oO]\\([nN]\\|[fF][fF]\\)\\)"
-    '(1 font-lock-builtin-face)
-    '(2 font-lock-constant-face t t))
-   ;; Any text (except ON/OFF) following ECHO is a string.
-   (list
-    "^[@ \t]*\\([eE][cC][hH][oO]\\)[ \t]+\\(\\([oO]\\([nN]\\|[fF][fF]\\)\\)\\|\\([^>|\r\n]+\\)\\)"
-    '(1 font-lock-builtin-face)
-    '(3 font-lock-constant-face t t)
-    '(5 font-lock-string-face t t))
-   ;; These keywords appear as the first word on a line.  (Actually, they
-   ;; can also appear after "if ..." or "for ..." clause, but since they
-   ;; are frequently used in simple text, we punt.)
-   ;; In `generic-bat-mode-setup-function' we make the keywords
-   ;; case-insensitive
-   (generic-make-keywords-list
+  (eval-when-compile
     (list
-     "for"
-     "if")
-    'font-lock-keyword-face "^[@ \t]*")
-   ;; These keywords can be anywhere on a line
-   ;; In `generic-bat-mode-setup-function' we make the keywords
-   ;; case-insensitive
-   (generic-make-keywords-list
-    (list
-     "do"
-     "exist"
-     "errorlevel"
-     "goto"
-     "not")
-    'font-lock-keyword-face)
-   ;; These are built-in commands.  Only frequently-used ones are listed.
-   (generic-make-keywords-list
-    (list
-     "CALL"	    "call"	 "Call"
-     "CD"	    "cd"	 "Cd"
-     "CLS"	    "cls"	 "Cls"
-     "COPY"	    "copy"	 "Copy"
-     "DEL"	    "del"	 "Del"
-     "ECHO"	    "echo"	 "Echo"
-     "MD"	    "md"	 "Md"
-     "PATH"	    "path"	 "Path"
-     "PAUSE"	    "pause"	 "Pause"
-     "PROMPT"	    "prompt"	 "Prompt"
-     "RD"	    "rd"	 "Rd"
-     "REN"	    "ren"	 "Ren"
-     "SET"	    "set"	 "Set"
-     "START"	    "start"	 "Start"
-     "SHIFT"	    "shift"	 "Shift")
-    'font-lock-builtin-face "[ \t|\n]")
-   (list "^[ \t]*\\(:\\sw+\\)"         1 'font-lock-function-name-face t)
-   (list "\\(%\\sw+%\\)"		 1 'font-lock-variable-name-face t)
-   (list "\\(%[0-9]\\)"		 1 'font-lock-variable-name-face t)
-   (list "\\(/[^/ \"\t\n]+\\)"	 1 'font-lock-type-face)
-   (list "[\t ]+\\([+-][^\t\n\" ]+\\)" 1 'font-lock-type-face)
-   (list "[ \t\n|]\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?"
-	 '(1 font-lock-keyword-face)
-	 '(2 font-lock-function-name-face nil t))
-   (list "[ \t\n|]\\<\\([sS][eE][tT]\\)\\>[ \t]*\\(\\sw+\\)?[ \t]*=?"
-	 '(1 font-lock-builtin-face)
-	 '(2 font-lock-variable-name-face t t)))
-  (list
-   "\\.[bB][aA][tT]\\'"
-   "\\`[cC][oO][nN][fF][iI][gG]\\."
-   "\\`[aA][uU][tT][oO][eE][xX][eE][cC]\\." )
-  (list 'generic-bat-mode-setup-function)
+     ;; Make this one first in the list, otherwise comments will
+     ;; be over-written by other variables
+     '("^[@ \t]*\\([rR][eE][mM][^\n\r]*\\)" 1 font-lock-comment-face t)
+     '("^[ \t]*\\(::.*\\)"                  1 font-lock-comment-face t)
+     '("^[@ \t]*\\([bB][rR][eE][aA][kK]\\|[vV][eE][rR][iI][fF][yY]\\)[ \t]+\\([oO]\\([nN]\\|[fF][fF]\\)\\)"
+       (1 font-lock-builtin-face)
+       (2 font-lock-constant-face t t))
+     ;; Any text (except ON/OFF) following ECHO is a string.
+     '("^[@ \t]*\\([eE][cC][hH][oO]\\)[ \t]+\\(\\([oO]\\([nN]\\|[fF][fF]\\)\\)\\|\\([^>|\r\n]+\\)\\)"
+       (1 font-lock-builtin-face)
+       (3 font-lock-constant-face t t)
+       (5 font-lock-string-face t t))
+     ;; These keywords appear as the first word on a line.  (Actually, they
+     ;; can also appear after "if ..." or "for ..." clause, but since they
+     ;; are frequently used in simple text, we punt.)
+     ;; In `generic-bat-mode-setup-function' we make the keywords
+     ;; case-insensitive
+     (generic-make-keywords-list
+      '("for"
+	"if")
+      'font-lock-keyword-face "^[@ \t]*")
+     ;; These keywords can be anywhere on a line
+     ;; In `generic-bat-mode-setup-function' we make the keywords
+     ;; case-insensitive
+     (generic-make-keywords-list
+      '("do"
+	"exist"
+	"errorlevel"
+	"goto"
+	"not")
+      'font-lock-keyword-face)
+     ;; These are built-in commands.  Only frequently-used ones are listed.
+     (generic-make-keywords-list
+      '("CALL"	    "call"	 "Call"
+	"CD"	    "cd"	 "Cd"
+	"CLS"	    "cls"	 "Cls"
+	"COPY"	    "copy"	 "Copy"
+	"DEL"	    "del"	 "Del"
+	"ECHO"	    "echo"	 "Echo"
+	"MD"	    "md"	 "Md"
+	"PATH"	    "path"	 "Path"
+	"PAUSE"	    "pause"	 "Pause"
+	"PROMPT"	    "prompt"	 "Prompt"
+	"RD"	    "rd"	 "Rd"
+	"REN"	    "ren"	 "Ren"
+	"SET"	    "set"	 "Set"
+	"START"	    "start"	 "Start"
+	"SHIFT"	    "shift"	 "Shift")
+      'font-lock-builtin-face "[ \t|\n]")
+     '("^[ \t]*\\(:\\sw+\\)"         1 font-lock-function-name-face t)
+     '("\\(%\\sw+%\\)"               1 font-lock-variable-name-face t)
+     '("\\(%[0-9]\\)"                1 font-lock-variable-name-face t)
+     '("\\(/[^/ \"\t\n]+\\)"         1 font-lock-type-face)
+     '("[\t ]+\\([+-][^\t\n\" ]+\\)" 1 font-lock-type-face)
+     '("[ \t\n|]\\<\\([gG][oO][tT][oO]\\)\\>[ \t]*\\(\\sw+\\)?"
+       (1 font-lock-keyword-face)
+       (2 font-lock-function-name-face nil t))
+     '("[ \t\n|]\\<\\([sS][eE][tT]\\)\\>[ \t]*\\(\\sw+\\)?[ \t]*=?"
+       (1 font-lock-builtin-face)
+       (2 font-lock-variable-name-face t t))))
+  '("\\.[bB][aA][tT]\\'"
+    "\\`[cC][oO][nN][fF][iI][gG]\\."
+    "\\`[aA][uU][tT][oO][eE][xX][eE][cC]\\.")
+  '(generic-bat-mode-setup-function)
   "Generic mode for MS-Windows BAT files.")
 
 (defvar bat-generic-mode-syntax-table nil
@@ -416,38 +410,38 @@ generic-x to enable the specified modes."
 ;; Make underscores count as words
 (unless bat-generic-mode-syntax-table
   (setq bat-generic-mode-syntax-table (make-syntax-table))
-  (modify-syntax-entry ?_  "w"  bat-generic-mode-syntax-table))
+  (modify-syntax-entry ?_ "w"  bat-generic-mode-syntax-table))
 
 ;; bat-generic-mode doesn't use the comment functionality of generic-mode
 ;; because it has a three-letter comment-string, so we do it
 ;; here manually instead
 (defun generic-bat-mode-setup-function ()
-  (make-local-variable	     'parse-sexp-ignore-comments)
-  (make-local-variable	     'comment-start)
-  (make-local-variable	     'comment-start-skip)
-  (make-local-variable	     'comment-end)
-  (setq imenu-generic-expression  '((nil "^:\\(\\sw+\\)" 1))
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (make-local-variable 'comment-start)
+  (make-local-variable 'comment-start-skip)
+  (make-local-variable 'comment-end)
+  (setq imenu-generic-expression '((nil "^:\\(\\sw+\\)" 1))
 	parse-sexp-ignore-comments t
-	comment-end                ""
-	comment-start		     "REM "
-	comment-start-skip	     "[Rr][Ee][Mm] *")
-  (set-syntax-table	      bat-generic-mode-syntax-table)
+	comment-end ""
+	comment-start "REM "
+	comment-start-skip "[Rr][Ee][Mm] *")
+  (set-syntax-table bat-generic-mode-syntax-table)
   ;; Make keywords case-insensitive
-  (setq font-lock-defaults (list 'generic-font-lock-defaults nil t))
+  (setq font-lock-defaults '(generic-font-lock-defaults nil t))
   (use-local-map bat-generic-mode-keymap)))
 
 ;;; Mailagent
-;; Mailagent is a Unix mail filtering program. Anyone wanna do a generic mode
-;; for procmail?
+;; Mailagent is a Unix mail filtering program.  Anyone wanna do a
+;; generic mode for procmail?
 (when (memq 'mailagent-rules-generic-mode generic-extras-enable-list)
 
 (define-generic-mode mailagent-rules-generic-mode
-  (list ?#)
-  (list "SAVE" "DELETE" "PIPE" "ANNOTATE" "REJECT")
-  '(("^\\(\\sw+\\)\\s-*="         1 'font-lock-variable-name-face)
-    ("\\s-/\\([^/]+\\)/[i, \t\n]" 1 'font-lock-constant-face))
-  (list "\\.rules\\'")
-  (list 'mailagent-rules-setup-function)
+  '(?#)
+  '("SAVE" "DELETE" "PIPE" "ANNOTATE" "REJECT")
+  '(("^\\(\\sw+\\)\\s-*="         1 font-lock-variable-name-face)
+    ("\\s-/\\([^/]+\\)/[i, \t\n]" 1 font-lock-constant-face))
+  '("\\.rules\\'")
+  '(mailagent-rules-setup-function)
   "Mode for Mailagent rules files.")
 
 (defun mailagent-rules-setup-function ()
@@ -459,7 +453,7 @@ generic-x to enable the specified modes."
 (when (memq 'prototype-generic-mode generic-extras-enable-list)
 
 (define-generic-mode prototype-generic-mode
-  (list ?#)
+  '(?#)
   nil
   '(("^\\([0-9]\\)?\\s-*\\([a-z]\\)\\s-+\\([A-Za-z_]+\\)\\s-+\\([^\n\r]*\\)$"
      (2 font-lock-constant-face)
@@ -474,7 +468,7 @@ generic-x to enable the specified modes."
     ("^\\(!\\s-*\\sw+\\)=\\([^\n\r]*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face)))
-  (list "prototype\\'")
+  '("prototype\\'")
   nil
   "Mode for Sys V prototype files."))
 
@@ -482,86 +476,84 @@ generic-x to enable the specified modes."
 (when (memq 'pkginfo-generic-mode generic-extras-enable-list)
 
 (define-generic-mode pkginfo-generic-mode
-  (list ?#)
+  '(?#)
   nil
   '(("^\\([A-Za-z_]+\\)=\\([^\n\r]*\\)$"
      (1 font-lock-keyword-face)
      (2 font-lock-variable-name-face)))
-  (list "pkginfo\\'")
+  '("pkginfo\\'")
   nil
   "Mode for Sys V pkginfo files."))
 
 ;; Javascript mode
 ;; Includes extra keywords from Armando Singer [asinger@MAIL.COLGATE.EDU]
 (define-generic-mode javascript-generic-mode
-  (list "//" '("/*" . "*/"))
-  (list
-   "break"
-   "case"
-   "continue"
-   "default"
-   "delete"
-   "do"
-   "else"
-   "export"
-   "for"
-   "function"
-   "if"
-   "import"
-   "in"
-   "new"
-   "return"
-   "switch"
-   "this"
-   "typeof"
-   "var"
-   "void"
-   "while"
-   "with"
-   ;; words reserved for ECMA extensions below
-   "catch"
-   "class"
-   "const"
-   "debugger"
-   "enum"
-   "extends"
-   "finally"
-   "super"
-   "throw"
-   "try"
-   ;; Java Keywords reserved by JavaScript
-   "abstract"
-   "boolean"
-   "byte"
-   "char"
-   "double"
-   "false"
-   "final"
-   "float"
-   "goto"
-   "implements"
-   "instanceof"
-   "int"
-   "interface"
-   "long"
-   "native"
-   "null"
-   "package"
-   "private"
-   "protected"
-   "public"
-   "short"
-   "static"
-   "synchronized"
-   "throws"
-   "transient"
-   "true")
-  (list
-   (list "^\\s-*function\\s-+\\([A-Za-z0-9_]+\\)"
-	 '(1 font-lock-function-name-face))
-   (list "^\\s-*var\\s-+\\([A-Za-z0-9_]+\\)"
-	 '(1 font-lock-variable-name-face)))
-  (list "\\.js\\'")
+  '("//" ("/*" . "*/"))
+  '("break"
+    "case"
+    "continue"
+    "default"
+    "delete"
+    "do"
+    "else"
+    "export"
+    "for"
+    "function"
+    "if"
+    "import"
+    "in"
+    "new"
+    "return"
+    "switch"
+    "this"
+    "typeof"
+    "var"
+    "void"
+    "while"
+    "with"
+    ;; words reserved for ECMA extensions below
+    "catch"
+    "class"
+    "const"
+    "debugger"
+    "enum"
+    "extends"
+    "finally"
+    "super"
+    "throw"
+    "try"
+    ;; Java Keywords reserved by JavaScript
+    "abstract"
+    "boolean"
+    "byte"
+    "char"
+    "double"
+    "false"
+    "final"
+    "float"
+    "goto"
+    "implements"
+    "instanceof"
+    "int"
+    "interface"
+    "long"
+    "native"
+    "null"
+    "package"
+    "private"
+    "protected"
+    "public"
+    "short"
+    "static"
+    "synchronized"
+    "throws"
+    "transient"
+    "true")
+  '(("^\\s-*function\\s-+\\([A-Za-z0-9_]+\\)"
+     (1 font-lock-function-name-face))
+    ("^\\s-*var\\s-+\\([A-Za-z0-9_]+\\)"
+     (1 font-lock-variable-name-face)))
+  '("\\.js\\'")
   (list
    (function
     (lambda ()
@@ -572,48 +564,45 @@ generic-x to enable the specified modes."
 
 ;; VRML files
 (define-generic-mode vrml-generic-mode
-  (list ?#)
-  (list
-   "DEF"
-   "NULL"
-   "USE"
-   "Viewpoint"
-   "ambientIntensity"
-   "appearance"
-   "children"
-   "color"
-   "coord"
-   "coordIndex"
-   "creaseAngle"
-   "diffuseColor"
-   "emissiveColor"
-   "fieldOfView"
-   "geometry"
-   "info"
-   "material"
-   "normal"
-   "orientation"
-   "position"
-   "shininess"
-   "specularColor"
-   "texCoord"
-   "texture"
-   "textureTransform"
-   "title"
-   "transparency"
-   "type")
-  (list
-   (list "USE\\s-+\\([-A-Za-z0-9_]+\\)"
-	 '(1 font-lock-constant-face))
-   (list "DEF\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([A-Za-z0-9]+\\)\\s-*{"
-	 '(1 font-lock-type-face)
-	 '(2 font-lock-constant-face))
-   (list "^\\s-*\\([-A-Za-z0-9_]+\\)\\s-*{"
-	 '(1 font-lock-function-name-face))
-   (list
-    "^\\s-*\\(geometry\\|appearance\\|material\\)\\s-+\\([-A-Za-z0-9_]+\\)"
-    '(2 font-lock-variable-name-face)))
-  (list "\\.wrl\\'")
+  '(?#)
+  '("DEF"
+    "NULL"
+    "USE"
+    "Viewpoint"
+    "ambientIntensity"
+    "appearance"
+    "children"
+    "color"
+    "coord"
+    "coordIndex"
+    "creaseAngle"
+    "diffuseColor"
+    "emissiveColor"
+    "fieldOfView"
+    "geometry"
+    "info"
+    "material"
+    "normal"
+    "orientation"
+    "position"
+    "shininess"
+    "specularColor"
+    "texCoord"
+    "texture"
+    "textureTransform"
+    "title"
+    "transparency"
+    "type")
+  '(("USE\\s-+\\([-A-Za-z0-9_]+\\)"
+     (1 font-lock-constant-face))
+    ("DEF\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([A-Za-z0-9]+\\)\\s-*{"
+     (1 font-lock-type-face)
+     (2 font-lock-constant-face))
+    ("^\\s-*\\([-A-Za-z0-9_]+\\)\\s-*{"
+     (1 font-lock-function-name-face))
+    ("^\\s-*\\(geometry\\|appearance\\|material\\)\\s-+\\([-A-Za-z0-9_]+\\)"
+     (2 font-lock-variable-name-face)))
+  '("\\.wrl\\'")
   (list
    (function
     (lambda ()
@@ -626,45 +615,45 @@ generic-x to enable the specified modes."
 
 ;; Java Manifests
 (define-generic-mode java-manifest-generic-mode
-  (list ?#)
-  (list
-   "Name"
-   "Digest-Algorithms"
-   "Manifest-Version"
-   "Required-Version"
-   "Signature-Version"
-   "Magic"
-   "Java-Bean"
-   "Depends-On")
+  '(?#)
+  '("Name"
+    "Digest-Algorithms"
+    "Manifest-Version"
+    "Required-Version"
+    "Signature-Version"
+    "Magic"
+    "Java-Bean"
+    "Depends-On")
   '(("^Name:\\s-+\\([^\n\r]*\\)$"
      (1 font-lock-variable-name-face))
     ("^\\(Manifest\\|Required\\|Signature\\)-Version:\\s-+\\([^\n\r]*\\)$"
      (2 font-lock-constant-face)))
-  (list "[mM][aA][nN][iI][fF][eE][sS][tT]\\.[mM][fF]\\'")
+  '("[mM][aA][nN][iI][fF][eE][sS][tT]\\.[mM][fF]\\'")
   nil
   "Mode for Java Manifest files")
 
 ;; Java properties files
 (define-generic-mode java-properties-generic-mode
-  (list ?! ?#)
+  '(?! ?#)
   nil
-  (let ((java-properties-key
-	 "\\(\\([-A-Za-z0-9_\\./]\\|\\(\\\\[ =:]\\)\\)+\\)")
-	(java-properties-value
-	 "\\([^\r\n]*\\)"))
-    ;; Property and value can be separated in a number of different ways:
-    ;;   * whitespace
-    ;;   * an equal sign
-    ;;   * a colon
-    (mapcar
-     (function
-      (lambda (elt)
-	(list
-	 (concat "^" java-properties-key elt java-properties-value "$")
-	 '(1 font-lock-constant-face)
-	 '(4 font-lock-variable-name-face))))
-     ;; These are the separators
-     (list ":\\s-*" "\\s-+" "\\s-*=\\s-*")))
+  (eval-when-compile
+    (let ((java-properties-key
+	   "\\(\\([-A-Za-z0-9_\\./]\\|\\(\\\\[ =:]\\)\\)+\\)")
+	  (java-properties-value
+	   "\\([^\r\n]*\\)"))
+      ;; Property and value can be separated in a number of different ways:
+      ;;   * whitespace
+      ;;   * an equal sign
+      ;;   * a colon
+      (mapcar
+       (function
+	(lambda (elt)
+	  (list
+	   (concat "^" java-properties-key elt java-properties-value "$")
+	   '(1 font-lock-constant-face)
+	   '(4 font-lock-variable-name-face))))
+       ;; These are the separators
+       '(":\\s-*" "\\s-+" "\\s-*=\\s-*"))))
   nil
   (list
    (function
@@ -677,13 +666,13 @@ generic-x to enable the specified modes."
 (when (memq 'alias-generic-mode generic-extras-enable-list)
 
 (define-generic-mode alias-generic-mode
-  (list ?#)
-  (list "alias" "unalias")
+  '(?#)
+  '("alias" "unalias")
   '(("^alias\\s-+\\([-A-Za-z0-9_]+\\)\\s-+"
      (1 font-lock-variable-name-face))
     ("^unalias\\s-+\\([-A-Za-z0-9_]+\\)\\s-*$"
      (1 font-lock-variable-name-face)))
-  (list "alias\\'")
+  '("alias\\'")
   (list
    (function
     (lambda ()
@@ -696,8 +685,8 @@ generic-x to enable the specified modes."
 (when (memq 'rc-generic-mode generic-extras-enable-list)
 
 (define-generic-mode rc-generic-mode
-  ;; (list ?\/)
-  (list "//")
+  ;; '(?\/)
+  '("//")
   '("ACCELERATORS"
     "AUTO3STATE"
     "AUTOCHECKBOX"
@@ -753,589 +742,585 @@ generic-x to enable the specified modes."
   ;; the choice of what tokens go where is somewhat arbitrary,
   ;; as is the choice of which value tokens are included, as
   ;; the choice of face for each token group
-  (list
-   (eval-when-compile
+  (eval-when-compile
+    (list
      (generic-make-keywords-list
-      (list
-       "FILEFLAGSMASK"
-       "FILEFLAGS"
-       "FILEOS"
-       "FILESUBTYPE"
-       "FILETYPE"
-       "FILEVERSION"
-       "PRODUCTVERSION")
-      'font-lock-type-face))
-   (eval-when-compile
+      '("FILEFLAGSMASK"
+	"FILEFLAGS"
+	"FILEOS"
+	"FILESUBTYPE"
+	"FILETYPE"
+	"FILEVERSION"
+	"PRODUCTVERSION")
+      'font-lock-type-face)
      (generic-make-keywords-list
-      (list
-       "BEGIN"
-       "BLOCK"
-       "END"
-       "VALUE")
-      'font-lock-function-name-face))
-   '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
-   '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
-   '("^#[ \t]*\\(elif\\|if\\)\\>"
-     ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
-      (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
-   '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-constant-face) (2 font-lock-variable-name-face nil t)))
-  (list "\\.[rR][cC]$")
-  nil
-  "Generic mode for MS-Windows Resource files."))
+      '("BEGIN"
+	"BLOCK"
+	"END"
+	"VALUE")
+      'font-lock-function-name-face)
+     '("^#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)" 1 font-lock-string-face)
+     '("^#[ \t]*define[ \t]+\\(\\sw+\\)("       1 font-lock-function-name-face)
+     '("^#[ \t]*\\(elif\\|if\\)\\>"
+       ("\\<\\(defined\\)\\>[ \t]*(?\\(\\sw+\\)?" nil nil
+	(1 font-lock-constant-face)
+	(2 font-lock-variable-name-face nil t)))
+     '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
+       (1 font-lock-constant-face)
+       (2 font-lock-variable-name-face nil t))))
+    '("\\.[rR][cC]$")
+    nil
+    "Generic mode for MS-Windows Resource files."))
 
 ;; InstallShield RUL files
 ;; Contributed by  Alfred.Correira@Pervasive.Com
 ;; Bugfixes by "Rolf Sandau" <Rolf.Sandau@marconi.com>
 (when (memq 'rul-generic-mode generic-extras-enable-list)
 
+(eval-when-compile
+
 ;;; build the regexp strings using regexp-opt
-(defvar installshield-statement-keyword-list
-  (list
-   "abort"
-   "begin"
-   "call"
-   "case"
-   "declare"
-   "default"
-   "downto"
-   "elseif"
-   "else"
-   "endfor"
-   "endif"
-   "endswitch"
-   "endwhile"
-   "end"
-   "exit"
-   "external"
-   "for"
-   "function"
-   ;; "goto" -- handled elsewhere
-   "if"
-   "program"
-   "prototype"
-   "repeat"
-   "return"
-   "step"
-   "switch"
-   "then"
-   "to"
-   "typedef"
-   "until"
-   "void"
-   "while")
+(defconst installshield-statement-keyword-list
+  '("abort"
+    "begin"
+    "call"
+    "case"
+    "declare"
+    "default"
+    "downto"
+    "elseif"
+    "else"
+    "endfor"
+    "endif"
+    "endswitch"
+    "endwhile"
+    "end"
+    "exit"
+    "external"
+    "for"
+    "function"
+    ;; "goto" -- handled elsewhere
+    "if"
+    "program"
+    "prototype"
+    "repeat"
+    "return"
+    "step"
+    "switch"
+    "then"
+    "to"
+    "typedef"
+    "until"
+    "void"
+    "while")
   "Statement keywords used in InstallShield 3 and 5.")
 
-(defvar installshield-system-functions-list
-  (list
-   "AddFolderIcon"
-   "AddProfString"
-   "AddressString"
-   "AppCommand"
-   "AskDestPath"
-   "AskOptions"
-   "AskPath"
-   "AskText"
-   "AskYesNo"
-   "BatchDeleteEx"
-   "BatchFileLoad"
-   "BatchFileSave"
-   "BatchFind"
-   "BatchGetFileName"
-   "BatchMoveEx"
-   "BatchSetFileName"
-   "ChangeDirectory"
-   "CloseFile"
-   "CmdGetHwndDlg"
-   "ComponentAddItem"			; differs between IS3 and IS5
-   "ComponentCompareSizeRequired"	; IS5 only
-   "ComponentDialog"
-   "ComponentError"			; IS5 only
-   "ComponentFileEnum"			; IS5 only
-   "ComponentFileInfo"			; IS5 only
-   "ComponentFilterLanguage"		; IS5 only
-   "ComponentFilterOS"			; IS5 only
-   "ComponentGetData"			; IS5 only
-   "ComponentGetItemInfo"		; IS3 only
-   "ComponentGetItemSize"		; differs between IS3 and IS5
-   "ComponentIsItemSelected"		; differs between IS3 and IS5
-   "ComponentListItems"
-   "ComponentMoveData"			; IS5 only
-   "ComponentSelectItem"		; differs between IS3 and IS5
-   "ComponentSetData"			; IS5 only
-   "ComponentSetItemInfo"		; IS3 only
-   "ComponentSetTarget"			; IS5 only
-   "ComponentSetupTypeEnum"		; IS5 only
-   "ComponentSetupTypeGetData"		; IS5 only
-   "ComponentSetupTypeSet"		; IS5 only
-   "ComponentTotalSize"
-   "ComponentValidate"			; IS5 only
-   "CompressAdd"			; IS3 only
-   "CompressDel"			; IS3 only
-   "CompressEnum"			; IS3 only
-   "CompressGet"			; IS3 only
-   "CompressInfo"			; IS3 only
-   "CopyFile"
-   "CreateDir"
-   "CreateFile"
-   "CreateProgramFolder"
-   "DeinstallSetReference"		; IS5 only
-   "DeinstallStart"
-   "Delay"
-   "DeleteDir"
-   "DeleteFile"
-   "DialogSetInfo"
-   "Disable"
-   "DoInstall"
-   "Do"
-   "Enable"
-   "EnterDisk"
-   "ExistsDir"
-   "ExistsDisk"
-   "ExitProgMan"
-   "EzBatchAddPath"
-   "EzBatchAddString"
-   "EzBatchReplace"
-   "EzConfigAddDriver"
-   "EzConfigAddString"
-   "EzConfigGetValue"
-   "EzConfigSetValue"
-   "EzDefineDialog"
-   "FileCompare"
-   "FileDeleteLine"
-   "FileGrep"
-   "FileInsertLine"
-   "FileSetBeginDefine"			; IS3 only
-   "FileSetEndDefine"			; IS3 only
-   "FileSetPerformEz"			; IS3 only
-   "FileSetPerform"			; IS3 only
-   "FileSetReset"			; IS3 only
-   "FileSetRoot"			; IS3 only
-   "FindAllDirs"
-   "FindAllFiles"
-   "FindFile"
-   "FindWindow"
-   "GetDiskSpace"
-   "GetDisk"
-   "GetEnvVar"
-   "GetExtents"
-   "GetFileInfo"
-   "GetLine"
-   "GetProfInt"
-   "GetProfString"
-   "GetSystemInfo"
-   "GetValidDrivesList"
-   "GetVersion"
-   "GetWindowHandle"
-   "InstallationInfo"
-   "Is"
-   "LaunchApp"
-   "LaunchAppAndWait"
-   "ListAddItem"
-   "ListAddString"
-   "ListCount"
-   "ListCreate"
-   "ListDestroy"
-   "ListFindItem"
-   "ListFindString"
-   "ListGetFirstItem"
-   "ListGetFirstString"
-   "ListGetNextItem"
-   "ListGetNextString"
-   "ListReadFromFile"
-   "ListSetCurrentItem"
-   "ListSetNextItem"
-   "ListSetNextString"
-   "ListSetIndex"
-   "ListWriteToFile"
-   "LongPathToQuote"
-   "LongPathToShortPath"
-   "MessageBox"
-   "NumToStr"
-   "OpenFileMode"
-   "OpenFile"
-   "ParsePath"
-   "PathAdd"
-   "PathDelete"
-   "PathFind"
-   "PathGet"
-   "PathMove"
-   "PathSet"
-   "Path"
-   "PlaceBitmap"
-   "PlaceWindow"
-   "PlayMMedia"				; IS5 only
-   "ProgDefGroupType"
-   "RegDBCreateKeyEx"
-   "RegDBDeleteValue"
-   "RegDBGetItem"
-   "RegDBKeyExist"
-   "RegDBSetItem"
-   "RegDBGetKeyValueEx"
-   "RegDBSetKeyValueEx"
-   "RegDBSetDefaultRoot"
-   "RenameFile"
-   "ReplaceFolderIcon"
-   "ReplaceProfString"
-   "SdAskDestPath"
-   "SdAskOptions"
-   "SdAskOptionsList"
-   "SdBitmap"
-   "SdCloseDlg"
-   "SdComponentAdvCheckSpace"
-   "SdComponentAdvInit"
-   "SdComponentAdvUpdateSpace"
-   "SdComponentDialog"
-   "SdComponentDialog2"
-   "SdComponentDialogAdv"
-   "SdComponentDialogEx"
-   "SdComponentDlgCheckSpace"
-   "SdComponentMult"
-   "SdConfirmNewDir"
-   "SdConfirmRegistration"
-   "SdDiskSpace"
-   "SdDisplayTopics"
-   "SdDoStdButton"
-   "SdEnablement"
-   "SdError"
-   "SdFinish"
-   "SdFinishInit32"
-   "SdFinishReboot"
-   "SdGeneralInit"
-   "SdGetItemName"
-   "SdGetTextExtent"
-   "SdGetUserCompanyInfo"
-   "SdInit"
-   "SdIsShellExplorer"
-   "SdIsStdButton"
-   "SdLicense"
-   "SdMakeName"
-   "SdOptionInit"
-   "SdOptionSetState"
-   "SdOptionsButtons"
-   "SdOptionsButtonsInit"
-   "SdPlugInProductName"
-   "SdProductName"
-   "SdRegEnableButton"
-   "SdRegExEnableButton"
-   "SdRegisterUser"
-   "SdRegisterUserEx"
-   "SdRemoveEndSpace"
-   "SdSelectFolder"
-   "SdSetSequentialItems"
-   "SdSetStatic"
-   "SdSetupTypeEx"			; IS5 only
-   "SdSetupType"
-   "SdShowAnyDialog"
-   "SdShowDlgEdit1"
-   "SdShowDlgEdit2"
-   "SdShowDlgEdit3"
-   "SdShowFileMods"
-   "SdShowInfoList"
-   "SdShowMsg"
-   "SdStartCopy"
-   "SdUnInit"
-   "SdUpdateComponentSelection"
-   "SdWelcome"
-   "SendMessage"
-   "SetColor"
-   "SetFont"
-   "SetDialogTitle"
-   "SetDisplayEffect"			; IS5 only
-   "SetFileInfo"
-   "SetForegroundWindow"
-   "SetStatusWindow"
-   "SetTitle"
-   "SetupType"
-   "ShowProgramFolder"
-   "Split"				; IS3 only
-   "SprintfBox"
-   "Sprintf"
-   "StatusUpdate"
-   "StrCompare"
-   "StrFind"
-   "StrGetTokens"
-   "StrLength"
-   "StrRemoveLastSlash"
-   "StrToLower"
-   "StrToNum"
-   "StrToUpper"
-   "StrSub"
-   "VarRestore"
-   "VarSave"
-   "VerCompare"
-   "VerGetFileVersion"
-   "WaitOnDialog"
-   "Welcome"
-   "WriteLine"
-   "WriteProfString"
-   "XCopyFile")
+(defconst installshield-system-functions-list
+  '("AddFolderIcon"
+    "AddProfString"
+    "AddressString"
+    "AppCommand"
+    "AskDestPath"
+    "AskOptions"
+    "AskPath"
+    "AskText"
+    "AskYesNo"
+    "BatchDeleteEx"
+    "BatchFileLoad"
+    "BatchFileSave"
+    "BatchFind"
+    "BatchGetFileName"
+    "BatchMoveEx"
+    "BatchSetFileName"
+    "ChangeDirectory"
+    "CloseFile"
+    "CmdGetHwndDlg"
+    "ComponentAddItem"			; differs between IS3 and IS5
+    "ComponentCompareSizeRequired"	; IS5 only
+    "ComponentDialog"
+    "ComponentError"			; IS5 only
+    "ComponentFileEnum"			; IS5 only
+    "ComponentFileInfo"			; IS5 only
+    "ComponentFilterLanguage"		; IS5 only
+    "ComponentFilterOS"			; IS5 only
+    "ComponentGetData"			; IS5 only
+    "ComponentGetItemInfo"		; IS3 only
+    "ComponentGetItemSize"		; differs between IS3 and IS5
+    "ComponentIsItemSelected"		; differs between IS3 and IS5
+    "ComponentListItems"
+    "ComponentMoveData"			; IS5 only
+    "ComponentSelectItem"		; differs between IS3 and IS5
+    "ComponentSetData"			; IS5 only
+    "ComponentSetItemInfo"		; IS3 only
+    "ComponentSetTarget"		; IS5 only
+    "ComponentSetupTypeEnum"		; IS5 only
+    "ComponentSetupTypeGetData"		; IS5 only
+    "ComponentSetupTypeSet"		; IS5 only
+    "ComponentTotalSize"
+    "ComponentValidate"			; IS5 only
+    "CompressAdd"			; IS3 only
+    "CompressDel"			; IS3 only
+    "CompressEnum"			; IS3 only
+    "CompressGet"			; IS3 only
+    "CompressInfo"			; IS3 only
+    "CopyFile"
+    "CreateDir"
+    "CreateFile"
+    "CreateProgramFolder"
+    "DeinstallSetReference"		; IS5 only
+    "DeinstallStart"
+    "Delay"
+    "DeleteDir"
+    "DeleteFile"
+    "DialogSetInfo"
+    "Disable"
+    "DoInstall"
+    "Do"
+    "Enable"
+    "EnterDisk"
+    "ExistsDir"
+    "ExistsDisk"
+    "ExitProgMan"
+    "EzBatchAddPath"
+    "EzBatchAddString"
+    "EzBatchReplace"
+    "EzConfigAddDriver"
+    "EzConfigAddString"
+    "EzConfigGetValue"
+    "EzConfigSetValue"
+    "EzDefineDialog"
+    "FileCompare"
+    "FileDeleteLine"
+    "FileGrep"
+    "FileInsertLine"
+    "FileSetBeginDefine"		; IS3 only
+    "FileSetEndDefine"			; IS3 only
+    "FileSetPerformEz"			; IS3 only
+    "FileSetPerform"			; IS3 only
+    "FileSetReset"			; IS3 only
+    "FileSetRoot"			; IS3 only
+    "FindAllDirs"
+    "FindAllFiles"
+    "FindFile"
+    "FindWindow"
+    "GetDiskSpace"
+    "GetDisk"
+    "GetEnvVar"
+    "GetExtents"
+    "GetFileInfo"
+    "GetLine"
+    "GetProfInt"
+    "GetProfString"
+    "GetSystemInfo"
+    "GetValidDrivesList"
+    "GetVersion"
+    "GetWindowHandle"
+    "InstallationInfo"
+    "Is"
+    "LaunchApp"
+    "LaunchAppAndWait"
+    "ListAddItem"
+    "ListAddString"
+    "ListCount"
+    "ListCreate"
+    "ListDestroy"
+    "ListFindItem"
+    "ListFindString"
+    "ListGetFirstItem"
+    "ListGetFirstString"
+    "ListGetNextItem"
+    "ListGetNextString"
+    "ListReadFromFile"
+    "ListSetCurrentItem"
+    "ListSetNextItem"
+    "ListSetNextString"
+    "ListSetIndex"
+    "ListWriteToFile"
+    "LongPathToQuote"
+    "LongPathToShortPath"
+    "MessageBox"
+    "NumToStr"
+    "OpenFileMode"
+    "OpenFile"
+    "ParsePath"
+    "PathAdd"
+    "PathDelete"
+    "PathFind"
+    "PathGet"
+    "PathMove"
+    "PathSet"
+    "Path"
+    "PlaceBitmap"
+    "PlaceWindow"
+    "PlayMMedia"			; IS5 only
+    "ProgDefGroupType"
+    "RegDBCreateKeyEx"
+    "RegDBDeleteValue"
+    "RegDBGetItem"
+    "RegDBKeyExist"
+    "RegDBSetItem"
+    "RegDBGetKeyValueEx"
+    "RegDBSetKeyValueEx"
+    "RegDBSetDefaultRoot"
+    "RenameFile"
+    "ReplaceFolderIcon"
+    "ReplaceProfString"
+    "SdAskDestPath"
+    "SdAskOptions"
+    "SdAskOptionsList"
+    "SdBitmap"
+    "SdCloseDlg"
+    "SdComponentAdvCheckSpace"
+    "SdComponentAdvInit"
+    "SdComponentAdvUpdateSpace"
+    "SdComponentDialog"
+    "SdComponentDialog2"
+    "SdComponentDialogAdv"
+    "SdComponentDialogEx"
+    "SdComponentDlgCheckSpace"
+    "SdComponentMult"
+    "SdConfirmNewDir"
+    "SdConfirmRegistration"
+    "SdDiskSpace"
+    "SdDisplayTopics"
+    "SdDoStdButton"
+    "SdEnablement"
+    "SdError"
+    "SdFinish"
+    "SdFinishInit32"
+    "SdFinishReboot"
+    "SdGeneralInit"
+    "SdGetItemName"
+    "SdGetTextExtent"
+    "SdGetUserCompanyInfo"
+    "SdInit"
+    "SdIsShellExplorer"
+    "SdIsStdButton"
+    "SdLicense"
+    "SdMakeName"
+    "SdOptionInit"
+    "SdOptionSetState"
+    "SdOptionsButtons"
+    "SdOptionsButtonsInit"
+    "SdPlugInProductName"
+    "SdProductName"
+    "SdRegEnableButton"
+    "SdRegExEnableButton"
+    "SdRegisterUser"
+    "SdRegisterUserEx"
+    "SdRemoveEndSpace"
+    "SdSelectFolder"
+    "SdSetSequentialItems"
+    "SdSetStatic"
+    "SdSetupTypeEx"			; IS5 only
+    "SdSetupType"
+    "SdShowAnyDialog"
+    "SdShowDlgEdit1"
+    "SdShowDlgEdit2"
+    "SdShowDlgEdit3"
+    "SdShowFileMods"
+    "SdShowInfoList"
+    "SdShowMsg"
+    "SdStartCopy"
+    "SdUnInit"
+    "SdUpdateComponentSelection"
+    "SdWelcome"
+    "SendMessage"
+    "SetColor"
+    "SetFont"
+    "SetDialogTitle"
+    "SetDisplayEffect"			; IS5 only
+    "SetFileInfo"
+    "SetForegroundWindow"
+    "SetStatusWindow"
+    "SetTitle"
+    "SetupType"
+    "ShowProgramFolder"
+    "Split"				; IS3 only
+    "SprintfBox"
+    "Sprintf"
+    "StatusUpdate"
+    "StrCompare"
+    "StrFind"
+    "StrGetTokens"
+    "StrLength"
+    "StrRemoveLastSlash"
+    "StrToLower"
+    "StrToNum"
+    "StrToUpper"
+    "StrSub"
+    "VarRestore"
+    "VarSave"
+    "VerCompare"
+    "VerGetFileVersion"
+    "WaitOnDialog"
+    "Welcome"
+    "WriteLine"
+    "WriteProfString"
+    "XCopyFile")
   "System functions defined in InstallShield 3 and 5.")
 
-(defvar installshield-system-variables-list
-  (list
-   "BATCH_INSTALL"
-   "CMDLINE"
-   "COMMONFILES"
-   "CORECOMPONENTHANDLING"
-   "DIALOGCACHE"
-   "ERRORFILENAME"
-   "FOLDER_DESKTOP"
-   "FOLDER_PROGRAMS"
-   "FOLDER_STARTMENU"
-   "FOLDER_STARTUP"
-   "INFOFILENAME"
-   "ISRES"
-   "ISUSER"
-   "ISVERSION"
-   "MEDIA"
-   "MODE"
-   "PROGRAMFILES"
-   "SELECTED_LANGUAGE"
-   "SRCDIR"
-   "SRCDISK"
-   "SUPPORTDIR"
-   "TARGETDIR"
-   "TARGETDISK"
-   "UNINST"
-   "WINDIR"
-   "WINDISK"
-   "WINMAJOR"
-   "WINSYSDIR"
-   "WINSYSDISK")
+(defconst installshield-system-variables-list
+  '("BATCH_INSTALL"
+    "CMDLINE"
+    "COMMONFILES"
+    "CORECOMPONENTHANDLING"
+    "DIALOGCACHE"
+    "ERRORFILENAME"
+    "FOLDER_DESKTOP"
+    "FOLDER_PROGRAMS"
+    "FOLDER_STARTMENU"
+    "FOLDER_STARTUP"
+    "INFOFILENAME"
+    "ISRES"
+    "ISUSER"
+    "ISVERSION"
+    "MEDIA"
+    "MODE"
+    "PROGRAMFILES"
+    "SELECTED_LANGUAGE"
+    "SRCDIR"
+    "SRCDISK"
+    "SUPPORTDIR"
+    "TARGETDIR"
+    "TARGETDISK"
+    "UNINST"
+    "WINDIR"
+    "WINDISK"
+    "WINMAJOR"
+    "WINSYSDIR"
+    "WINSYSDISK")
   "System variables used in InstallShield 3 and 5.")
 
-(defvar installshield-types-list
-  (list
-   "BOOL"
-   "BYREF"
-   "CHAR"
-   "HIWORD"
-   "HWND"
-   "INT"
-   "LIST"
-   "LONG"
-   "LOWORD"
-   "LPSTR"
-   "NUMBER"
-   "NUMBERLIST"
-   "POINTER"
-   "QUAD"
-   "RGB"
-   "SHORT"
-   "STRINGLIST"
-   "STRING")
+(defconst installshield-types-list
+  '("BOOL"
+    "BYREF"
+    "CHAR"
+    "HIWORD"
+    "HWND"
+    "INT"
+    "LIST"
+    "LONG"
+    "LOWORD"
+    "LPSTR"
+    "NUMBER"
+    "NUMBERLIST"
+    "POINTER"
+    "QUAD"
+    "RGB"
+    "SHORT"
+    "STRINGLIST"
+    "STRING")
   "Type keywords used in InstallShield 3 and 5.")
 
 ;;; some might want to skip highlighting these to improve performance
-(defvar installshield-funarg-constants-list
-  (list
-   "AFTER"
-   "APPEND"
-   "ALLCONTENTS"
-   "BACKBUTTON"
-   "BACKGROUNDCAPTION"
-   "BACKGROUND"
-   "BACK"
-   "BASEMEMORY"
-   "BEFORE"
-   "BIOS"
-   "BITMAPICON"
-   "BK_BLUE"
-   "BK_GREEN"
-   "BK_RED"
-   "BLUE"
-   "BOOTUPDRIVE"
-   "CANCEL"
-   "CDROM_DRIVE"
-   "CDROM"
-   "CHECKBOX95"
-   "CHECKBOX"
-   "CHECKLINE"
-   "CHECKMARK"
-   "COLORS"
-   "COMMANDEX"
-   "COMMAND"
-   "COMP_NORMAL"
-   "COMP_UPDATE_DATE"
-   "COMP_UPDATE_SAME"
-   "COMP_UPDATE_VERSION"
-   "COMPACT"
-   "CONTINUE"
-   "CPU"
-   "CUSTOM"
-   "DATE"
-   "DEFWINDOWMODE"
-   "DIR_WRITEABLE"
-   "DIRECTORY"
-   "DISABLE"
-   "DISK_TOTALSPACE"
-   "DISK"
-   "DLG_OPTIONS"
-   "DLG_PATH"
-   "DLG_TEXT"
-   "DLG_ASK_YESNO"
-   "DLG_ENTER_DISK"
-   "DLG_ERR"
-   "DLG_INFO_ALTIMAGE"
-   "DLG_INFO_CHECKSELECTION"
-   "DLG_INFO_KUNITS"
-   "DLG_INFO_USEDECIMAL"
-   "DLG_MSG_INFORMATION"
-   "DLG_MSG_SEVERE"
-   "DLG_MSG_WARNING"
-   "DLG_STATUS"
-   "DLG_WARNING"
-   "DLG_USER_CAPTION"
-   "DRIVE"
-   "ENABLE"
-   "END_OF_FILE"
-   "END_OF_LIST"
-   "ENVSPACE"
-   "EQUALS"
-   "EXCLUDE_SUBDIR"
-   "EXCLUSIVE"
-   "EXISTS"
-   "EXIT"
-   "EXTENDED_MEMORY"
-   "EXTENSION_ONLY"
-   "FAILIFEXISTS"
-   "FALSE"
-   "FEEDBACK_FULL"
-   "FILE_ATTR_ARCHIVED"
-   "FILE_ATTR_DIRECTORY"
-   "FILE_ATTR_HIDDEN"
-   "FILE_ATTR_NORMAL"
-   "FILE_ATTR_READONLY"
-   "FILE_ATTR_SYSTEM"
-   "FILE_ATTRIBUTE"
-   "FILE_DATE"
-   "FILE_LINE_LENGTH"
-   "FILE_MODE_APPEND"
-   "FILE_MODE_BINARYREADONLY"
-   "FILE_MODE_BINARY"
-   "FILE_MODE_NORMAL"
-   "FILE_NO_VERSION"
-   "FILE_NOT_FOUND"
-   "FILE_SIZE"
-   "FILE_TIME"
-   "FILENAME_ONLY"
-   "FILENAME"
-   "FIXED_DRIVE"
-   "FOLDER_DESKTOP"
-   "FOLDER_PROGRAMS"
-   "FOLDER_STARTMENU"
-   "FOLDER_STARTUP"
-   "FREEENVSPACE"
-   "FULLWINDOWMODE"
-   "FULL"
-   "FONT_TITLE"
-   "GREATER_THAN"
-   "GREEN"
-   "HKEY_CLASSES_ROOT"
-   "HKEY_CURRENT_USER"
-   "HKEY_LOCAL_MACHINE"
-   "HKEY_USERS"
-   "HOURGLASS"
-   "INCLUDE_SUBDIR"
-   "INDVFILESTATUS"
-   "INFORMATION"
-   "IS_WINDOWSNT"
-   "IS_WINDOWS95"
-   "IS_WINDOWS"
-   "IS_WIN32S"
-   "ISTYPE"
-   "LANGUAGE_DRV"
-   "LANGUAGE"
-   "LESS_THAN"
-   "LIST_NULL"
-   "LISTFIRST"
-   "LISTNEXT"
-   "LOCKEDFILE"
-   "LOGGING"
-   "LOWER_LEFT"
-   "LOWER_RIGHT"
-   "MAGENTA"
-   "MOUSE_DRV"
-   "MOUSE"
-   "NETWORK_DRV"
-   "NETWORK"
-   "NEXT"
-   "NONEXCLUSIVE"
-   "NORMALMODE"
-   "NOSET"
-   "NOTEXISTS"
-   "NOWAIT"
-   "NO"
-   "OFF"
-   "ONLYDIR"
-   "ON"
-   "OSMAJOR"
-   "OSMINOR"
-   "OS"
-   "OTHER_FAILURE"
-   "PARALLEL"
-   "PARTIAL"
-   "PATH_EXISTS"
-   "PATH"
-   "RED"
-   "REGDB_APPPATH_DEFAULT"
-   "REGDB_APPPATH"
-   "REGDB_BINARY"
-   "REGDB_ERR_CONNECTIONEXISTS"
-   "REGDB_ERR_CORRUPTEDREGSITRY"
-   "REGDB_ERR_INITIALIZATION"
-   "REGDB_ERR_INVALIDHANDLE"
-   "REGDB_ERR_INVALIDNAME"
-   "REGDB_NUMBER"
-   "REGDB_STRING_EXPAND"
-   "REGDB_STRING_MULTI"
-   "REGDB_STRING"
-   "REGDB_UNINSTALL_NAME"
-   "REMOTE_DRIVE"
-   "REMOVALE_DRIVE"
-   "REPLACE_ITEM"
-   "REPLACE"
-   "RESET"
-   "RESTART"
-   "ROOT"
-   "SELFREGISTER"
-   "SERIAL"
-   "SET"
-   "SEVERE"
-   "SHAREDFILE"
-   "SHARE"
-   "SILENTMODE"
-   "SRCTARGETDIR"
-   "STATUSBAR"
-   "STATUSDLG"
-   "STATUSOLD"
-   "STATUS"
-   "STYLE_NORMAL"
-   "SW_MAXIMIZE"
-   "SW_MINIMIZE"
-   "SW_RESTORE"
-   "SW_SHOW"
-   "SYS_BOOTMACHINE"
-   "TIME"
-   "TRUE"
-   "TYPICAL"
-   "UPPER_LEFT"
-   "UPPER_RIGHT"
-   "VALID_PATH"
-   "VERSION"
-   "VIDEO"
-   "VOLUMELABEL"
-   "YELLOW"
-   "YES"
-   "WAIT"
-   "WARNING"
-   "WINMAJOR"
-   "WINMINOR"
-   "WIN32SINSTALLED"
-   "WIN32SMAJOR"
-   "WIN32SMINOR")
-  "Function argument constants used in InstallShield 3 and 5.")
+(defconst installshield-funarg-constants-list
+  '("AFTER"
+    "APPEND"
+    "ALLCONTENTS"
+    "BACKBUTTON"
+    "BACKGROUNDCAPTION"
+    "BACKGROUND"
+    "BACK"
+    "BASEMEMORY"
+    "BEFORE"
+    "BIOS"
+    "BITMAPICON"
+    "BK_BLUE"
+    "BK_GREEN"
+    "BK_RED"
+    "BLUE"
+    "BOOTUPDRIVE"
+    "CANCEL"
+    "CDROM_DRIVE"
+    "CDROM"
+    "CHECKBOX95"
+    "CHECKBOX"
+    "CHECKLINE"
+    "CHECKMARK"
+    "COLORS"
+    "COMMANDEX"
+    "COMMAND"
+    "COMP_NORMAL"
+    "COMP_UPDATE_DATE"
+    "COMP_UPDATE_SAME"
+    "COMP_UPDATE_VERSION"
+    "COMPACT"
+    "CONTINUE"
+    "CPU"
+    "CUSTOM"
+    "DATE"
+    "DEFWINDOWMODE"
+    "DIR_WRITEABLE"
+    "DIRECTORY"
+    "DISABLE"
+    "DISK_TOTALSPACE"
+    "DISK"
+    "DLG_OPTIONS"
+    "DLG_PATH"
+    "DLG_TEXT"
+    "DLG_ASK_YESNO"
+    "DLG_ENTER_DISK"
+    "DLG_ERR"
+    "DLG_INFO_ALTIMAGE"
+    "DLG_INFO_CHECKSELECTION"
+    "DLG_INFO_KUNITS"
+    "DLG_INFO_USEDECIMAL"
+    "DLG_MSG_INFORMATION"
+    "DLG_MSG_SEVERE"
+    "DLG_MSG_WARNING"
+    "DLG_STATUS"
+    "DLG_WARNING"
+    "DLG_USER_CAPTION"
+    "DRIVE"
+    "ENABLE"
+    "END_OF_FILE"
+    "END_OF_LIST"
+    "ENVSPACE"
+    "EQUALS"
+    "EXCLUDE_SUBDIR"
+    "EXCLUSIVE"
+    "EXISTS"
+    "EXIT"
+    "EXTENDED_MEMORY"
+    "EXTENSION_ONLY"
+    "FAILIFEXISTS"
+    "FALSE"
+    "FEEDBACK_FULL"
+    "FILE_ATTR_ARCHIVED"
+    "FILE_ATTR_DIRECTORY"
+    "FILE_ATTR_HIDDEN"
+    "FILE_ATTR_NORMAL"
+    "FILE_ATTR_READONLY"
+    "FILE_ATTR_SYSTEM"
+    "FILE_ATTRIBUTE"
+    "FILE_DATE"
+    "FILE_LINE_LENGTH"
+    "FILE_MODE_APPEND"
+    "FILE_MODE_BINARYREADONLY"
+    "FILE_MODE_BINARY"
+    "FILE_MODE_NORMAL"
+    "FILE_NO_VERSION"
+    "FILE_NOT_FOUND"
+    "FILE_SIZE"
+    "FILE_TIME"
+    "FILENAME_ONLY"
+    "FILENAME"
+    "FIXED_DRIVE"
+    "FOLDER_DESKTOP"
+    "FOLDER_PROGRAMS"
+    "FOLDER_STARTMENU"
+    "FOLDER_STARTUP"
+    "FREEENVSPACE"
+    "FULLWINDOWMODE"
+    "FULL"
+    "FONT_TITLE"
+    "GREATER_THAN"
+    "GREEN"
+    "HKEY_CLASSES_ROOT"
+    "HKEY_CURRENT_USER"
+    "HKEY_LOCAL_MACHINE"
+    "HKEY_USERS"
+    "HOURGLASS"
+    "INCLUDE_SUBDIR"
+    "INDVFILESTATUS"
+    "INFORMATION"
+    "IS_WINDOWSNT"
+    "IS_WINDOWS95"
+    "IS_WINDOWS"
+    "IS_WIN32S"
+    "ISTYPE"
+    "LANGUAGE_DRV"
+    "LANGUAGE"
+    "LESS_THAN"
+    "LIST_NULL"
+    "LISTFIRST"
+    "LISTNEXT"
+    "LOCKEDFILE"
+    "LOGGING"
+    "LOWER_LEFT"
+    "LOWER_RIGHT"
+    "MAGENTA"
+    "MOUSE_DRV"
+    "MOUSE"
+    "NETWORK_DRV"
+    "NETWORK"
+    "NEXT"
+    "NONEXCLUSIVE"
+    "NORMALMODE"
+    "NOSET"
+    "NOTEXISTS"
+    "NOWAIT"
+    "NO"
+    "OFF"
+    "ONLYDIR"
+    "ON"
+    "OSMAJOR"
+    "OSMINOR"
+    "OS"
+    "OTHER_FAILURE"
+    "PARALLEL"
+    "PARTIAL"
+    "PATH_EXISTS"
+    "PATH"
+    "RED"
+    "REGDB_APPPATH_DEFAULT"
+    "REGDB_APPPATH"
+    "REGDB_BINARY"
+    "REGDB_ERR_CONNECTIONEXISTS"
+    "REGDB_ERR_CORRUPTEDREGSITRY"
+    "REGDB_ERR_INITIALIZATION"
+    "REGDB_ERR_INVALIDHANDLE"
+    "REGDB_ERR_INVALIDNAME"
+    "REGDB_NUMBER"
+    "REGDB_STRING_EXPAND"
+    "REGDB_STRING_MULTI"
+    "REGDB_STRING"
+    "REGDB_UNINSTALL_NAME"
+    "REMOTE_DRIVE"
+    "REMOVALE_DRIVE"
+    "REPLACE_ITEM"
+    "REPLACE"
+    "RESET"
+    "RESTART"
+    "ROOT"
+    "SELFREGISTER"
+    "SERIAL"
+    "SET"
+    "SEVERE"
+    "SHAREDFILE"
+    "SHARE"
+    "SILENTMODE"
+    "SRCTARGETDIR"
+    "STATUSBAR"
+    "STATUSDLG"
+    "STATUSOLD"
+    "STATUS"
+    "STYLE_NORMAL"
+    "SW_MAXIMIZE"
+    "SW_MINIMIZE"
+    "SW_RESTORE"
+    "SW_SHOW"
+    "SYS_BOOTMACHINE"
+    "TIME"
+    "TRUE"
+    "TYPICAL"
+    "UPPER_LEFT"
+    "UPPER_RIGHT"
+    "VALID_PATH"
+    "VERSION"
+    "VIDEO"
+    "VOLUMELABEL"
+    "YELLOW"
+    "YES"
+    "WAIT"
+    "WARNING"
+    "WINMAJOR"
+    "WINMINOR"
+    "WIN32SINSTALLED"
+    "WIN32SMAJOR"
+    "WIN32SMINOR")
+  "Function argument constants used in InstallShield 3 and 5."))
 
 (defvar rul-generic-mode-syntax-table nil
   "Syntax table to use in rul-generic-mode buffers.")
@@ -1343,18 +1328,18 @@ generic-x to enable the specified modes."
 (setq rul-generic-mode-syntax-table
       (make-syntax-table c++-mode-syntax-table))
 
-(modify-syntax-entry ?\r "> b"   rul-generic-mode-syntax-table)
-(modify-syntax-entry ?\n "> b"   rul-generic-mode-syntax-table)
+(modify-syntax-entry ?\r "> b" rul-generic-mode-syntax-table)
+(modify-syntax-entry ?\n "> b" rul-generic-mode-syntax-table)
 
 (modify-syntax-entry ?/  ". 124b" rul-generic-mode-syntax-table)
 (modify-syntax-entry ?*  ". 23"   rul-generic-mode-syntax-table)
 
 ;; here manually instead
 (defun generic-rul-mode-setup-function ()
-  (make-local-variable	     'parse-sexp-ignore-comments)
-  (make-local-variable	     'comment-start)
-  (make-local-variable	     'comment-start-skip)
-  (make-local-variable	     'comment-end)
+  (make-local-variable 'parse-sexp-ignore-comments)
+  (make-local-variable 'comment-start)
+  (make-local-variable 'comment-start-skip)
+  (make-local-variable 'comment-end)
   (setq imenu-generic-expression
 	'((nil "^function\\s-+\\([A-Za-z0-9_]+\\)" 1))
 	parse-sexp-ignore-comments t
@@ -1364,46 +1349,47 @@ generic-x to enable the specified modes."
 ;;; 	comment-start	     "//"
 ;;;	comment-start-skip	     ""
 	)
-  ;;     (set-syntax-table	      rul-generic-mode-syntax-table)
+  ;; (set-syntax-table rul-generic-mode-syntax-table)
   (setq font-lock-syntax-table rul-generic-mode-syntax-table))
 
 ;; moved mode-definition behind defun-definition to be warning-free - 15.11.02/RSan
 (define-generic-mode rul-generic-mode
   ;; Using "/*" and "*/" doesn't seem to be working right
-  (list "//" '("/*" . "*/" ))
-  installshield-statement-keyword-list
-  (list
-   ;; preprocessor constructs
-   '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
-     1 font-lock-string-face)
-   '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-reference-face)
-     (2 font-lock-variable-name-face nil t))
-   ;; indirect string constants
-   '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
-   ;; gotos
-   '("[ \t]*\\(\\sw+:\\)" 1 font-lock-reference-face)
-   '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
-     (1 font-lock-keyword-face)
-     (2 font-lock-reference-face nil t))
-   ;; system variables
-   (generic-make-keywords-list
-    installshield-system-variables-list
-    'font-lock-variable-name-face "[^_]" "[^_]")
-   ;; system functions
-   (generic-make-keywords-list
-    installshield-system-functions-list
-    'font-lock-function-name-face "[^_]" "[^_]")
-   ;; type keywords
-   (generic-make-keywords-list
-    installshield-types-list
-    'font-lock-type-face "[^_]" "[^_]")
-   ;; function argument constants
-   (generic-make-keywords-list
-    installshield-funarg-constants-list
-    'font-lock-variable-name-face "[^_]" "[^_]")) ; is this face the best choice?
-  (list "\\.[rR][uU][lL]$")
-  (list 'generic-rul-mode-setup-function)
+  '("//" ("/*" . "*/" ))
+  (eval-when-compile installshield-statement-keyword-list)
+  (eval-when-compile
+    (list
+     ;; preprocessor constructs
+     '("#[ \t]*include[ \t]+\\(<[^>\"\n]+>\\)"
+       1 font-lock-string-face)
+     '("#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
+       (1 font-lock-reference-face)
+       (2 font-lock-variable-name-face nil t))
+     ;; indirect string constants
+     '("\\(@[A-Za-z][A-Za-z0-9_]+\\)" 1 font-lock-builtin-face)
+     ;; gotos
+     '("[ \t]*\\(\\sw+:\\)"           1 font-lock-reference-face)
+     '("\\<\\(goto\\)\\>[ \t]*\\(\\sw+\\)?"
+       (1 font-lock-keyword-face)
+       (2 font-lock-reference-face nil t))
+     ;; system variables
+     (generic-make-keywords-list
+      installshield-system-variables-list
+      'font-lock-variable-name-face "[^_]" "[^_]")
+     ;; system functions
+     (generic-make-keywords-list
+      installshield-system-functions-list
+      'font-lock-function-name-face "[^_]" "[^_]")
+     ;; type keywords
+     (generic-make-keywords-list
+      installshield-types-list
+      'font-lock-type-face "[^_]" "[^_]")
+     ;; function argument constants
+     (generic-make-keywords-list
+      installshield-funarg-constants-list
+      'font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
+  '("\\.[rR][uU][lL]$")
+  '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files.")
 
 (define-skeleton rul-if
@@ -1432,24 +1418,23 @@ generic-x to enable the specified modes."
 
 ;; Additions by ACorreir@pervasive-sw.com (Alfred Correira)
 (define-generic-mode mailrc-generic-mode
-  (list ?#)
-  (list
-   "alias"
-   "else"
-   "endif"
-   "group"
-   "if"
-   "ignore"
-   "set"
-   "source"
-   "unset")
+  '(?#)
+  '("alias"
+    "else"
+    "endif"
+    "group"
+    "if"
+    "ignore"
+    "set"
+    "source"
+    "unset")
   '(("^\\s-*\\(alias\\|group\\)\\s-+\\([-A-Za-z0-9_]+\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
      (2 font-lock-constant-face) (3 font-lock-variable-name-face))
     ("^\\s-*\\(unset\\|set\\|ignore\\)\\s-+\\([-A-Za-z0-9_]+\\)=?\\([^\n\r#]*\\)\\(#.*\\)?$"
      (2 font-lock-constant-face) (3 font-lock-variable-name-face))
     ("^\\s-*\\(source\\)\\s-+\\([^\n\r#]*\\)\\(#.*\\)?$"
      (2 font-lock-variable-name-face)))
-  (list "\\.mailrc\\'")
+  '("\\.mailrc\\'")
   nil
   "Mode for mailrc files.")
 
@@ -1457,17 +1442,15 @@ generic-x to enable the specified modes."
 (when (memq 'inetd-conf-generic-mode generic-extras-enable-list)
 
 (define-generic-mode inetd-conf-generic-mode
-  (list ?#)
-  (list
-   "stream"
-   "dgram"
-   "tcp"
-   "udp"
-   "wait"
-   "nowait"
-   "internal")
-  '(("^\\([-A-Za-z0-9_]+\\)"
-     1 'font-lock-type-face))
+  '(?#)
+  '("stream"
+    "dgram"
+    "tcp"
+    "udp"
+    "wait"
+    "nowait"
+    "internal")
+  '(("^\\([-A-Za-z0-9_]+\\)" 1 font-lock-type-face))
   '("/etc/inetd.conf\\'")
   (list
    (function
@@ -1479,14 +1462,13 @@ generic-x to enable the specified modes."
 (when (memq 'etc-services-generic-mode generic-extras-enable-list)
 
 (define-generic-mode etc-services-generic-mode
-  (list ?#)
-  (list
-   "tcp"
-   "udp"
-   "ddp")
+  '(?#)
+  '("tcp"
+    "udp"
+    "ddp")
   '(("^\\([-A-Za-z0-9_]+\\)\\s-+\\([0-9]+\\)/"
-     (1 'font-lock-type-face)
-     (2 'font-lock-variable-name-face)))
+     (1 font-lock-type-face)
+     (2 font-lock-variable-name-face)))
   '("/etc/services\\'")
   (list
    (function
@@ -1499,35 +1481,36 @@ generic-x to enable the specified modes."
 
 (define-generic-mode etc-passwd-generic-mode
   nil              ;; No comment characters
-  (list "root")    ;; Only one keyword
-  (list
-   (list
-    (concat
-     "^"
-     ;; User name -- Never blank!
-     "\\([^:]+\\)"
-     ":"
-     ;; Password, UID and GID
-     (mapconcat
-      'identity
-      (make-list 3 "\\([^:]+\\)")
-      ":")
-     ":"
-     ;; GECOS/Name -- might be blank
-     "\\([^:]*\\)"
-     ":"
-     ;; Home directory and shell
-     "\\([^:]+\\)"
-     ":?"
-     "\\([^:]*\\)"
-     "$")
-    '(1 'font-lock-type-face)
-    '(5 'font-lock-variable-name-face)
-    '(6 'font-lock-constant-face)
-    '(7 'font-lock-warning-face))
-   '("^\\([^:]+\\):\\([^:]*\\):\\([0-9]+\\):\\(.*\\)$"
-     (1 'font-lock-type-face)
-     (4 'font-lock-variable-name-face)))
+  '("root")        ;; Only one keyword
+  (eval-when-compile
+    (list
+     (list
+      (concat
+       "^"
+       ;; User name -- Never blank!
+       "\\([^:]+\\)"
+       ":"
+       ;; Password, UID and GID
+       (mapconcat
+	'identity
+	(make-list 3 "\\([^:]+\\)")
+	":")
+       ":"
+       ;; GECOS/Name -- might be blank
+       "\\([^:]*\\)"
+       ":"
+       ;; Home directory and shell
+       "\\([^:]+\\)"
+       ":?"
+       "\\([^:]*\\)"
+       "$")
+      '(1 font-lock-type-face)
+      '(5 font-lock-variable-name-face)
+      '(6 font-lock-constant-face)
+      '(7 font-lock-warning-face))
+     '("^\\([^:]+\\):\\([^:]*\\):\\([0-9]+\\):\\(.*\\)$"
+       (1 font-lock-type-face)
+       (4 font-lock-variable-name-face))))
   '("/etc/passwd\\'" "/etc/group\\'")
   (list
    (function
@@ -1539,46 +1522,45 @@ generic-x to enable the specified modes."
 (when (memq 'etc-fstab-generic-mode generic-extras-enable-list)
 
 (define-generic-mode etc-fstab-generic-mode
-  (list ?#)
-  (list
-   "adfs"
-   "affs"
-   "autofs"
-   "coda"
-   "coherent"
-   "cramfs"
-   "devpts"
-   "efs"
-   "ext2"
-   "ext3"
-   "hfs"
-   "hpfs"
-   "iso9660"
-   "jfs"
-   "minix"
-   "msdos"
-   "ncpfs"
-   "nfs"
-   "ntfs"
-   "proc"
-   "qnx4"
-   "reiserfs"
-   "romfs"
-   "smbfs"
-   "sysv"
-   "tmpfs"
-   "udf"
-   "ufs"
-   "umsdos"
-   "vfat"
-   "xenix"
-   "xfs"
-   "swap"
-   "auto"
-   "ignore")
+  '(?#)
+  '("adfs"
+    "affs"
+    "autofs"
+    "coda"
+    "coherent"
+    "cramfs"
+    "devpts"
+    "efs"
+    "ext2"
+    "ext3"
+    "hfs"
+    "hpfs"
+    "iso9660"
+    "jfs"
+    "minix"
+    "msdos"
+    "ncpfs"
+    "nfs"
+    "ntfs"
+    "proc"
+    "qnx4"
+    "reiserfs"
+    "romfs"
+    "smbfs"
+    "sysv"
+    "tmpfs"
+    "udf"
+    "ufs"
+    "umsdos"
+    "vfat"
+    "xenix"
+    "xfs"
+    "swap"
+    "auto"
+    "ignore")
   '(("^\\([/-A-Za-z0-9_]+\\)\\s-+\\([/-A-Za-z0-9_]+\\)"
-     (1 'font-lock-type-face)
-     (2 'font-lock-variable-name-face)))
+     (1 font-lock-type-face)
+     (2 font-lock-variable-name-face)))
   '("/etc/[v]*fstab\\'")
   (list
    (function
@@ -1588,16 +1570,16 @@ generic-x to enable the specified modes."
 
 ;; From Jacques Duthen <jacques.duthen@sncf.fr>
 (defvar show-tabs-generic-mode-font-lock-defaults-1
-  '( ;; trailing spaces must come before...
-    ("[ \t]+$" . 'show-tabs-space-face)
+  '(;; trailing spaces must come before...
+    ("[ \t]+$" . show-tabs-space-face)
     ;; ...embedded tabs
-    ("[^\n\t]\\(\t+\\)" (1 'show-tabs-tab-face))))
+    ("[^\n\t]\\(\t+\\)" (1 show-tabs-tab-face))))
 
 (defvar show-tabs-generic-mode-font-lock-defaults-2
-  '( ;; trailing spaces must come before...
-    ("[ \t]+$" . 'show-tabs-space-face)
+  '(;; trailing spaces must come before...
+    ("[ \t]+$" . show-tabs-space-face)
     ;; ...tabs
-    ("\t+" . 'show-tabs-tab-face)))
+    ("\t+" . show-tabs-tab-face)))
 
 (defface show-tabs-tab-face
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
@@ -1618,11 +1600,11 @@ generic-x to enable the specified modes."
   :group 'show-tabs)
 
 (define-generic-mode show-tabs-generic-mode
-  () ;; no comment char
-  () ;; no keywords
+  nil ;; no comment char
+  nil ;; no keywords
   show-tabs-generic-mode-font-lock-defaults-1
-  () ;; no auto-mode-alist
-  ;; (list 'show-tabs-generic-mode-hook-fun)
+  nil ;; no auto-mode-alist
+  ;; '(show-tabs-generic-mode-hook-fun)
   nil
   "Generic mode to show tabs and trailing spaces")
 
@@ -1632,31 +1614,29 @@ generic-x to enable the specified modes."
 
 (define-generic-mode named-boot-generic-mode
   ;; List of comment characters
-  (list ?\;)
+  '(?\;)
   ;; List of keywords
-  (list "cache" "primary" "secondary" "forwarders" "limit" "options"
-	"directory" "check-names")
+  '("cache" "primary" "secondary" "forwarders" "limit" "options"
+    "directory" "check-names")
   ;; List of additional font-lock-expressions
-  (list
-   (list "\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 'font-lock-constant-face)
-   (list "^directory\\s-+\\(.*\\)" 1 'font-lock-variable-name-face)
-   (list "^\\(primary\\|cache\\)\\s-+\\([.A-Za-z]+\\)\\s-+\\(.*\\)"
-	 (list 2 'font-lock-variable-name-face)
-	 (list 3 'font-lock-constant-face)))
+  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face)
+    ("^directory\\s-+\\(.*\\)"              1 font-lock-variable-name-face)
+    ("^\\(primary\\|cache\\)\\s-+\\([.A-Za-z]+\\)\\s-+\\(.*\\)"
+     (2 font-lock-variable-name-face)
+     (3 font-lock-constant-face)))
   ;; List of additional automode-alist expressions
-  (list "/etc/named.boot\\'")
+  '("/etc/named.boot\\'")
   ;; List of set up functions to call
   nil)
 
 (define-generic-mode named-database-generic-mode
   ;; List of comment characters
-  (list ?\;)
+  '(?\;)
   ;; List of keywords
-  (list "IN" "NS" "CNAME" "SOA" "PTR" "MX" "A")
+  '("IN" "NS" "CNAME" "SOA" "PTR" "MX" "A")
   ;; List of additional font-lock-expressions
-  (list
-   (list "\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 'font-lock-constant-face)
-   (list "^\\([.A-Za-z0-9]+\\)" 1 'font-lock-variable-name-face))
+  '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face)
+    ("^\\([.A-Za-z0-9]+\\)"                 1 font-lock-variable-name-face))
   ;; List of additional automode-alist expressions
   nil
   ;; List of set up functions to call
@@ -1672,13 +1652,13 @@ generic-x to enable the specified modes."
 
 (define-generic-mode resolve-conf-generic-mode
   ;; List of comment characters
-  (list ?#)
+  '(?#)
   ;; List of keywords
-  (list "nameserver" "domain" "search" "sortlist" "options")
+  '("nameserver" "domain" "search" "sortlist" "options")
   ;; List of additional font-lock-expressions
   nil
   ;; List of additional automode-alist expressions
-  (list "/etc/resolv[e]?.conf\\'")
+  '("/etc/resolv[e]?.conf\\'")
   ;; List of set up functions to call
   nil)
 
@@ -1688,130 +1668,125 @@ generic-x to enable the specified modes."
 
 (define-generic-mode spice-generic-mode
   nil
-  (list
-   "and"
-   "cccs"
-   "ccvs"
-   "delay"
-   "nand"
-   "nor"
-   "npwl"
-   "or"
-   "par"
-   "ppwl"
-   "pwl"
-   "vccap"
-   "vccs"
-   "vcr"
-   "vcvs")
-  '(
-    ("^\\s-*\\([*].*\\)"                1 'font-lock-comment-face)
-    (" \\(\\$ .*\\)$"                   1 'font-lock-comment-face)
-    ("^\\(\\$ .*\\)$"                   1 'font-lock-comment-face)
-    ("\\([*].*\\)"                      1 'font-lock-comment-face)
-    ("^\\([+]\\)"                       1 'font-lock-string-face)
-    ("^\\s-*\\([.]\\w+\\>\\)"           1 'font-lock-keyword-face)
-    ("\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*=" 1 'font-lock-variable-name-face)
-    ("\\('[^']+'\\)"                    1 'font-lock-string-face)
-    ("\\(\"[^\"]+\"\\)"                 1 'font-lock-string-face))
-  (list "\\.[sS][pP]\\'"
-	"\\.[sS][pP][iI]\\'"
-	"\\.[sS][pP][iI][cC][eE]\\'"
-	"\\.[iI][nN][cC]\\'")
+  '("and"
+    "cccs"
+    "ccvs"
+    "delay"
+    "nand"
+    "nor"
+    "npwl"
+    "or"
+    "par"
+    "ppwl"
+    "pwl"
+    "vccap"
+    "vccs"
+    "vcr"
+    "vcvs")
+  '(("^\\s-*\\([*].*\\)"                1 font-lock-comment-face)
+    (" \\(\\$ .*\\)$"                   1 font-lock-comment-face)
+    ("^\\(\\$ .*\\)$"                   1 font-lock-comment-face)
+    ("\\([*].*\\)"                      1 font-lock-comment-face)
+    ("^\\([+]\\)"                       1 font-lock-string-face)
+    ("^\\s-*\\([.]\\w+\\>\\)"           1 font-lock-keyword-face)
+    ("\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*=" 1 font-lock-variable-name-face)
+    ("\\('[^']+'\\)"                    1 font-lock-string-face)
+    ("\\(\"[^\"]+\"\\)"                 1 font-lock-string-face))
+  '("\\.[sS][pP]\\'"
+    "\\.[sS][pP][iI]\\'"
+    "\\.[sS][pP][iI][cC][eE]\\'"
+    "\\.[iI][nN][cC]\\'")
   (list
    'generic-bracket-support
    ;; Make keywords case-insensitive
    (function
     (lambda()
-      (setq font-lock-defaults (list 'generic-font-lock-defaults nil t)))))
+      (setq font-lock-defaults '(generic-font-lock-defaults nil t)))))
   "Generic mode for SPICE circuit netlist files.")
 
 (define-generic-mode ibis-generic-mode
-  (list ?|)
+  '(?|)
   nil
-  '(
-    ("[[]\\([^]]*\\)[]]"          1 'font-lock-keyword-face)
-    ("\\(\\(_\\|\\w\\)+\\)\\s-*=" 1 'font-lock-variable-name-face))
-  (list "\\.[iI][bB][sS]\\'")
-  (list 'generic-bracket-support)
+  '(("[[]\\([^]]*\\)[]]"          1 font-lock-keyword-face)
+    ("\\(\\(_\\|\\w\\)+\\)\\s-*=" 1 font-lock-variable-name-face))
+  '("\\.[iI][bB][sS]\\'")
+  '(generic-bracket-support)
   "Generic mode for IBIS circuit netlist files.")
 
 (define-generic-mode astap-generic-mode
   nil
-  (list
-   "analyze"
-   "description"
-   "elements"
-   "execution"
-   "features"
-   "functions"
-   "ground"
-   "model"
-   "outputs"
-   "print"
-   "run"
-   "controls"
-   "table")
-  '(("^\\s-*\\([*].*\\)"      1 'font-lock-comment-face)
-    (";\\s-*\\([*].*\\)"      1 'font-lock-comment-face)
-    ("^\\s-*\\([.]\\w+\\>\\)" 1 'font-lock-keyword-face)
-    ("\\('[^']+'\\)"          1 'font-lock-string-face)
-    ("\\(\"[^\"]+\"\\)"       1 'font-lock-string-face)
-    ("[(,]\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*=" 1 'font-lock-variable-name-face))
-  (list "\\.[aA][pP]\\'"
-	"\\.[aA][sS][xX]\\'"
-	"\\.[aA][sS][tT][aA][pP]\\'"
-	"\\.[pP][sS][pP]\\'"
-	"\\.[dD][eE][cC][kK]\\'"
-	"\\.[gG][oO][dD][aA][tT][aA]")
+  '("analyze"
+    "description"
+    "elements"
+    "execution"
+    "features"
+    "functions"
+    "ground"
+    "model"
+    "outputs"
+    "print"
+    "run"
+    "controls"
+    "table")
+  '(("^\\s-*\\([*].*\\)"      1 font-lock-comment-face)
+    (";\\s-*\\([*].*\\)"      1 font-lock-comment-face)
+    ("^\\s-*\\([.]\\w+\\>\\)" 1 font-lock-keyword-face)
+    ("\\('[^']+'\\)"          1 font-lock-string-face)
+    ("\\(\"[^\"]+\"\\)"       1 font-lock-string-face)
+    ("[(,]\\s-*\\(\\([.]\\|_\\|\\w\\)+\\)\\s-*=" 1 font-lock-variable-name-face))
+  '("\\.[aA][pP]\\'"
+    "\\.[aA][sS][xX]\\'"
+    "\\.[aA][sS][tT][aA][pP]\\'"
+    "\\.[pP][sS][pP]\\'"
+    "\\.[dD][eE][cC][kK]\\'"
+    "\\.[gG][oO][dD][aA][tT][aA]")
   (list
    'generic-bracket-support
    ;; Make keywords case-insensitive
    (function
     (lambda()
-      (setq font-lock-defaults (list 'generic-font-lock-defaults nil t)))))
+      (setq font-lock-defaults '(generic-font-lock-defaults nil t)))))
   "Generic mode for ASTAP circuit netlist files.")
 
 (define-generic-mode etc-modules-conf-generic-mode
   ;; List of comment characters
-  (list ?#)
+  '(?#)
   ;; List of keywords
-  (list
-   "above"
-   "alias"
-   "below"
-   "define"
-   "depfile"
-   "else"
-   "elseif"
-   "endif"
-   "if"
-   "include"
-   "insmod_opt"
-   "install"
-   "keep"
-   "options"
-   "path"
-   "generic_stringfile"
-   "pcimapfile"
-   "isapnpmapfile"
-   "usbmapfile"
-   "parportmapfile"
-   "ieee1394mapfile"
-   "pnpbiosmapfile"
-   "probe"
-   "probeall"
-   "prune"
-   "post-install"
-   "post-remove"
-   "pre-install"
-   "pre-remove"
-   "remove"
-   "persistdir")
+  '("above"
+    "alias"
+    "below"
+    "define"
+    "depfile"
+    "else"
+    "elseif"
+    "endif"
+    "if"
+    "include"
+    "insmod_opt"
+    "install"
+    "keep"
+    "options"
+    "path"
+    "generic_stringfile"
+    "pcimapfile"
+    "isapnpmapfile"
+    "usbmapfile"
+    "parportmapfile"
+    "ieee1394mapfile"
+    "pnpbiosmapfile"
+    "probe"
+    "probeall"
+    "prune"
+    "post-install"
+    "post-remove"
+    "pre-install"
+    "pre-remove"
+    "remove"
+    "persistdir")
   ;; List of additional font-lock-expressions
   nil
   ;; List of additional automode-alist expressions
-  (list "/etc/modules.conf" "/etc/conf.modules")
+  '("/etc/modules.conf" "/etc/conf.modules")
   ;; List of set up functions to call
   nil)
 
