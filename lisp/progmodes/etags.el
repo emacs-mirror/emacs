@@ -1240,7 +1240,7 @@ See documentation of variable `tags-file-name'."
 
 (defun tag-exact-file-name-match-p (tag)
   (and (looking-at ",")
-       (save-excursion (backward-char (length tag)))
+       (save-excursion (backward-char (length tag))
 		       (looking-at "\f\n"))))
 
 ;; t if point is in a tag line with a tag containing TAG as a substring.
