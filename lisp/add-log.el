@@ -640,20 +640,20 @@ Has a preference of looking backwards."
                  (let ((case-fold-search t)) ; case-insensitive
                    ;; search for fortran subprogram start
                    (if (re-search-forward
-			 "^[ \t]*\\(program\\|subroutine\\|function\
+                        "^[ \t]*\\(program\\|subroutine\\|function\
 \\|[ \ta-z0-9*()]*[ \t]+function\\|\\(block[ \t]*data\\)\\)"
-			 (progn (end-of-fortran-subprogram)
-				(point))
-			 t)
+                        (save-excursion (end-of-fortran-subprogram)
+                                        (point))
+                        t)
                        (or (match-string 2)
-                       (progn
-                         ;; move to EOL or before first left paren
-                         (if (re-search-forward "[(\n]" nil t)
+                           (progn
+                             ;; move to EOL or before first left paren
+                             (if (re-search-forward "[(\n]" nil t)
 				 (progn (backward-char)
-				    (skip-chars-backward " \t"))
-			   (end-of-line))
-			 ;; Use the name preceding that.
-                         (buffer-substring (point)
+                                        (skip-chars-backward " \t"))
+                               (end-of-line))
+                             ;; Use the name preceding that.
+                             (buffer-substring (point)
 					       (progn (backward-sexp)
 						      (point)))))
 		     "main")))
