@@ -269,7 +269,7 @@ shadow\\(Double\\)?Etched\\(In\\|Out\\)\\(Dash\\)?\\)\\)$"
 	(if (and (or no-name cache-specified)
 		 (or (null cache) (stringp cache) (vectorp cache)))
 	    (setq prop (cons :key-sequence (cons cache prop))))))
-     (t (error "Invalid menu item in easymenu.")))
+     (t (error "Invalid menu item in easymenu")))
     (easy-menu-define-key menu (if (stringp name) (intern name) name)
 			  (and (not remove)
 			       (cons 'menu-item
@@ -403,13 +403,21 @@ NAME should be a string, the name of the element to be removed."
   ;; Return a sparse keymap in which to add or remove an item.
   ;; MAP and PATH are as defined in `easy-menu-add-item'.
   (if (null map)
-      (setq map (lookup-key global-map
-			     (vconcat '(menu-bar) (mapcar 'intern path))))
+      (setq map (or (lookup-key (current-local-map)
+				(vconcat '(menu-bar) (mapcar 'intern path)))
+		    (lookup-key global-map
+				(vconcat '(menu-bar) (mapcar 'intern path)))
+		    (let ((new (make-sparse-keymap)))
+		      (define-key (current-local-map)
+			(vconcat '(menu-bar) (mapcar 'intern path)) new)
+		      new)))
     (if (and (symbolp map) (not (keymapp map)))
 	(setq map (symbol-value map)))
     (if path (setq map (lookup-key map (vconcat (mapcar 'intern path))))))
   (while (and (symbolp map) (keymapp map))
     (setq map (symbol-function map)))
+  (unless map
+    (error "Menu specified in easy-menu is not defined"))
   (or (keymapp map) (error "Malformed menu in easy-menu: (%s)" map))
   map)
 
