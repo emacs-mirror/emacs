@@ -1,3 +1,10 @@
+2002-10-16   Markus Rost  <rost@math.ohio-state.edu>
+
+	* textmodes/reftex-vars.el: Move reftex-set-dirty here from
+	reftex.el.  Move the provide call to end of file.
+
+	* textmodes/reftex.el: Move reftex-set-dirty to reftex-vars.el.
+
 2002-10-15  Dave Love  <fx@gnu.org>
 
 	* man.el (Man-getpage-in-background): Set width in environment.
