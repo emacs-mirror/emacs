@@ -1,6 +1,6 @@
 ;;; frame.el --- multi-frame management independent of window systems
 
-;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001
+;; Copyright (C) 1993, 1994, 1996, 1997, 2000, 2001, 2003
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -816,7 +816,9 @@ pixels) is kept by adjusting the numbers of the lines and columns."
 			 (mapcar #'list
 				 ;; x-list-fonts will fail with an error
 				 ;; if this frame doesn't support fonts.
-				 (x-list-fonts "*" nil (selected-frame))))))
+				 (x-list-fonts "*" nil (selected-frame)))
+			 nil nil nil nil
+			 (frame-parameter nil 'font))))
      (list font current-prefix-arg)))
   (let (fht fwd)
     (if keep-size
