@@ -1,5 +1,12 @@
 2000-02-06  Stefan Monnier  <monnier@cs.yale.edu>
 
+	* diff-mode.el (diff-kill-junk): New interactive function.
+	(diff-reverse-direction): Use delete-and-extract-region.
+	(diff-post-command-hook): Restrict the area so that the hook also works
+	outside of any diff hunk.  This is necessary for the minor-mode.
+	(diff-mode): Use toggle-read-only and minor-mode-overriding-map-alist.
+	(diff-minor-mode): Setup the hooks for header-hunk rewriting.
+
 	* font-lock.el (font-lock-keywords): Fix doc for multiline matches.
 	(font-lock-add-keywords): Make it work even if font-lock-mode is nil,
 	so that it can be used more easily in <foo>-mode-hook.  Also make sure

@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: patch diff
-;; Revision: $Id$
+;; Revision: $Id: diff-mode.el,v 1.4 1999/12/07 07:04:03 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -369,6 +369,21 @@ If the prefix ARG is given, restrict the view to the current file instead."
     (diff-end-of-file)
     (kill-region start (point))))
 
+(defun diff-kill-junk ()
+  "Kill spurious empty diffs."
+  (interactive)
+  (save-excursion
+    (let ((inhibit-read-only t))
+      (goto-char (point-min))
+      (while (re-search-forward (concat "^\\(Index: .*\n\\)"
+					"\\([^-+!* <>].*\n\\)*?"
+					"\\(\\(Index:\\) \\|"
+					diff-file-header-re "\\)")
+				nil t)
+	(delete-region (if (match-end 4) (match-beginning 0) (match-end 1))
+		       (match-beginning 3))
+	(beginning-of-line)))))
+
 ;;;;
 ;;;; jump to other buffers
 ;;;;
@@ -693,8 +708,7 @@ else cover the whole bufer."
 		(while (looking-at "[-! \\][ \t]")
 		  (when (= (char-after) ?-) (delete-char 1) (insert "+"))
 		  (forward-line 1))
-		(let ((half1 (buffer-substring half1s (point))))
-		  (delete-region half1s (point))
+		(let ((half1 (delete-and-extract-region half1s (point))))
 		  (unless (looking-at "^--- \\([0-9]+,-?[0-9]+\\) ----$")
 		    (insert half1)
 		    (error "Can't find matching `--- n1,n2 ----' line"))
@@ -705,8 +719,7 @@ else cover the whole bufer."
 		      (while (looking-at "[!+ \\][ \t]")
 			(when (= (char-after) ?+) (delete-char 1) (insert "-"))
 			(forward-line 1))
-		      (let ((half2 (buffer-substring half2s (point))))
-			(delete-region half2s (point))
+		      (let ((half2 (delete-and-extract-region half2s (point))))
 			(insert half1)
 			(goto-char half1s)
 			(insert half2)))
@@ -724,8 +737,9 @@ else cover the whole bufer."
 			   (delete-char 1) (insert "-") t)
 		       (?\\ t)
 		       (t (when (and first last (< first last))
-			    (let ((str (buffer-substring first last)))
-			      (save-excursion (delete-region first last))
+			    (let ((str
+				   (save-excursion
+				     (delete-and-extract-region first last))))
 			      (insert str)))
 			  (setq first nil last nil)
 			  (equal ?\  c)))
@@ -784,9 +798,6 @@ else cover the whole bufer."
   (if (buffer-modified-p) (diff-fixup-modifs (point-min) (point-max)))
   nil)
 
-;; XEmacs doesn't seem to have this feature
-(defvar undo-in-progress nil)
-
 ;; It turns out that making changes in the buffer from within an
 ;; *-change-function is asking for trouble, whereas making them
 ;; from a post-command-hook doesn't pose much problems
@@ -806,7 +817,15 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
   (when (consp diff-unhandled-changes)
     (ignore-errors
       (save-excursion
-	(goto-char (car diff-unhandled-changes)) (diff-beginning-of-hunk)
+	(goto-char (car diff-unhandled-changes))
+	(unless (ignore-errors
+		  (diff-beginning-of-hunk)
+		  (save-excursion
+		    (diff-end-of-hunk)
+		    (> (point) (car diff-unhandled-changes))))
+	  (goto-char (car diff-unhandled-changes))
+	  (re-search-forward diff-hunk-header-re (cdr diff-unhandled-changes))
+	  (diff-beginning-of-hunk))
 	(diff-fixup-modifs (point) (cdr diff-unhandled-changes))))
     (setq diff-unhandled-changes nil)))
 
@@ -837,8 +856,8 @@ This mode runs `diff-mode-hook'.
     (set (make-local-variable 'compilation-current-file)
 	 (substring buffer-file-name 0 (match-beginning 0))))
   (compilation-shell-minor-mode 1)
-  ;; 
-  (setq buffer-read-only t)
+  ;; setup change hooks
+  (toggle-read-only t)
   (if (not diff-update-on-the-fly-flag)
       (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
     (make-local-variable 'diff-unhandled-changes)
@@ -847,9 +866,8 @@ This mode runs `diff-mode-hook'.
     (add-hook (make-local-hook 'post-command-hook)
 	      'diff-post-command-hook nil t))
   ;; Neat trick from Dave Love to add more bindings in read-only mode:
-  (add-to-list (make-local-variable 'minor-mode-map-alist)
-	       (cons 'buffer-read-only diff-mode-shared-map))
-  ;;
+  (add-to-list (make-local-variable 'minor-mode-overriding-map-alist)
+  	       (cons 'buffer-read-only diff-mode-shared-map))
   (run-hooks 'diff-mode-hook))
 
 ;;;###autoload
@@ -858,8 +876,14 @@ This mode runs `diff-mode-hook'.
 \\{diff-minor-mode-map}"
   nil " Diff" nil
   ;; FIXME: setup font-lock
-  ;; FIXME: setup change hooks
-  )
+  ;; setup change hooks
+  (if (not diff-update-on-the-fly-flag)
+      (add-hook 'write-contents-hooks 'diff-write-contents-hooks)
+    (make-local-variable 'diff-unhandled-changes)
+    (add-hook (make-local-hook 'after-change-functions)
+	      'diff-after-change-function nil t)
+    (add-hook (make-local-hook 'post-command-hook)
+	      'diff-post-command-hook nil t)))
 
 
 ;; provide the package
@@ -867,6 +891,17 @@ This mode runs `diff-mode-hook'.
 
 ;;; Change Log:
 ;; $Log: diff-mode.el,v $
+;; Revision 1.4  1999/12/07 07:04:03  monnier
+;; * diff-mode.el (diff-mode-shared-map): fset'd and doc change.
+;; (diff-minor-mode, diff-minor-mode-prefix, diff-minor-mode-map):
+;; New code to support the minor mode version.
+;; (diff-recenter): New function.
+;; (diff-next-hunk, diff-next-file): Use it.
+;; (diff-remembered-files-alist): New var.
+;; (diff-merge-strings): New function.
+;; (diff-find-file-name): Make it smarter and use the user's input more.
+;; (diff-mode): Cosmetic changes.
+;;
 ;; Revision 1.11  1999/10/09 23:38:29  monnier
 ;; (diff-mode-load-hook): dropped.
 ;; (auto-mode-alist): also catch *.diffs.
