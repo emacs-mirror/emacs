@@ -144,6 +144,7 @@ This variable is local to each buffer.")
     (file-executable-p . tramp-smb-handle-file-exists-p)
     (file-exists-p . tramp-smb-handle-file-exists-p)
     (file-local-copy . tramp-smb-handle-file-local-copy)
+    (file-remote-p . tramp-handle-file-remote-p)
     (file-modes . tramp-handle-file-modes)
     (file-name-all-completions . tramp-smb-handle-file-name-all-completions)
     ;; `file-name-as-directory' performed by default handler
@@ -1003,7 +1004,7 @@ Domain names in USER and port numbers in HOST are acknowledged."
 		       tramp-smb-program args)))
 
 	(tramp-message 9 "Started process %s" (process-command p))
-	(process-kill-without-query p)
+	(tramp-set-process-query-on-exit-flag p nil)
 	(set-buffer buffer)
 	(setq tramp-smb-share share)
 

@@ -911,12 +911,13 @@ The answer will be provided by `tramp-action-terminal', which see."
   :group 'tramp
   :type 'regexp)
 
-(defcustom tramp-out-of-band-prompt-regexp
+(defcustom tramp-process-alive-regexp
   ""
-  "Regular expression indicating an out-of-band copy has finished.
+  "Regular expression indicating a process has finished.
 In fact this expression is empty by intention, it will be used only to
 check regularly the status of the associated process.
-The answer will be provided by `tramp-action-out-of-band', which see."
+The answer will be provided by `tramp-action-process-alive' and
+`tramp-action-out-of-band', which see."
   :group 'tramp
   :type 'regexp)
 
@@ -1146,7 +1147,7 @@ Also see `tramp-file-name-structure'."
 
 ;;;###autoload
 (defconst tramp-completion-file-name-regexp-unified
-  "^/[^/]*$"
+  "^/$\\|^/[^/:][^/]*$"
   "Value for `tramp-completion-file-name-regexp' for unified remoting.
 Emacs (not XEmacs) uses a unified filename syntax for Ange-FTP and
 Tramp.  See `tramp-file-name-structure-unified' for more explanations.")
@@ -1288,7 +1289,8 @@ but it might be slow on large directories."
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
     (tramp-yesno-prompt-regexp tramp-action-yesno)
     (tramp-yn-prompt-regexp tramp-action-yn)
-    (tramp-terminal-prompt-regexp tramp-action-terminal))
+    (tramp-terminal-prompt-regexp tramp-action-terminal)
+    (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 Whenever a pattern matches, the corresponding action is performed.
 Each item looks like (PATTERN ACTION).
@@ -1306,7 +1308,7 @@ corresponding PATTERN matches, the ACTION function is called."
 (defcustom tramp-actions-copy-out-of-band
   '((tramp-password-prompt-regexp tramp-action-password)
     (tramp-wrong-passwd-regexp tramp-action-permission-denied)
-    (tramp-out-of-band-prompt-regexp tramp-action-out-of-band))
+    (tramp-process-alive-regexp tramp-action-out-of-band))
   "List of pattern/action pairs.
 This list is used for copying/renaming with out-of-band methods.
 See `tramp-actions-before-shell' for more info."
@@ -1318,7 +1320,8 @@ See `tramp-actions-before-shell' for more info."
     (tramp-login-prompt-regexp tramp-multi-action-login)
     (shell-prompt-pattern tramp-multi-action-succeed)
     (tramp-shell-prompt-pattern tramp-multi-action-succeed)
-    (tramp-wrong-passwd-regexp tramp-multi-action-permission-denied))
+    (tramp-wrong-passwd-regexp tramp-multi-action-permission-denied)
+    (tramp-process-alive-regexp tramp-action-process-alive))
   "List of pattern/action pairs.
 This list is used for each hop in multi-hop connections.
 See `tramp-actions-before-shell' for more info."
@@ -1326,7 +1329,8 @@ See `tramp-actions-before-shell' for more info."
   :type '(repeat (list variable function)))
 
 (defcustom tramp-initial-commands
-  '("unset correct"
+  '("unset HISTORY"
+    "unset correct"
     "unset autocorrect")
   "List of commands to send to the first remote shell that we see.
 These commands will be sent to any shell, and thus they should be
@@ -1768,6 +1772,7 @@ on the FILENAME argument, even if VISIT was a string.")
     (insert-directory . tramp-handle-insert-directory)
     (expand-file-name . tramp-handle-expand-file-name)
     (file-local-copy . tramp-handle-file-local-copy)
+    (file-remote-p . tramp-handle-file-remote-p)
     (insert-file-contents . tramp-handle-insert-file-contents)
     (write-region . tramp-handle-write-region)
     (find-backup-file-name . tramp-handle-find-backup-file-name)
@@ -2042,8 +2047,8 @@ target of the symlink differ."
   "Like `file-truename' for tramp files."
   (with-parsed-tramp-file-name filename nil
     (let* ((steps        (tramp-split-string localname "/"))
-	   (localnamedir (let ((directory-sep-char ?/))
-		      (file-name-as-directory localname)))
+	   (localnamedir (tramp-let-maybe directory-sep-char ?/	;for XEmacs
+			   (file-name-as-directory localname)))
 	   (is-dir (string= localname localnamedir))
 	   (thisstep nil)
 	   (numchase 0)
@@ -2984,7 +2989,7 @@ be a local filename.  The method used must be an out-of-band method."
       ;; Use rcp-like program for file transfer.
       (let ((p (apply 'start-process (buffer-name trampbuf) trampbuf
 		      copy-program copy-args)))
-	(process-kill-without-query p)
+	(tramp-set-process-query-on-exit-flag p nil)
 	(tramp-process-actions p multi-method method user host
 			       tramp-actions-copy-out-of-band))
       (kill-buffer trampbuf)
@@ -3297,7 +3302,7 @@ the result will be a local, non-Tramp, filename."
 	;; expand-file-name (this does "/./" and "/../").  We bind
 	;; directory-sep-char here for XEmacs on Windows, which
 	;; would otherwise use backslash.
-	(let ((directory-sep-char ?/))
+	(tramp-let-maybe directory-sep-char ?/
 	  (tramp-make-tramp-file-name
 	   multi-method (or method (tramp-find-default-method user host))
 	   user host
@@ -3525,6 +3530,9 @@ This will break if COMMAND prints a newline, followed by the value of
 	    (t (error "Wrong method specification for `%s'" method)))
       tmpfil)))
 
+(defun tramp-handle-file-remote-p (filename)
+  "Like `file-remote-p' for tramp files."
+  (when (tramp-tramp-file-p filename) t))
 
 (defun tramp-handle-insert-file-contents
   (filename &optional visit beg end replace)
@@ -3845,10 +3853,10 @@ pass to the OPERATION."
 
 ;; We handle here all file primitives.  Most of them have the file
 ;; name as first parameter; nevertheless we check for them explicitly
-;; in order to be be signalled if a new primitive appears.  This
+;; in order to be signalled if a new primitive appears.  This
 ;; scenario is needed because there isn't a way to decide by
 ;; syntactical means whether a foreign method must be called.  It would
-;; ease the live if `file-name-handler-alist' would support a decision
+;; ease the life if `file-name-handler-alist' would support a decision
 ;; function as well but regexp only.
 (defun tramp-file-name-for-operation (operation &rest args)
   "Return file name related to OPERATION file primitive.
@@ -3862,16 +3870,16 @@ ARGS are the arguments OPERATION has been called with."
 		  'dired-compress-file 'dired-uncache
 		  'file-accessible-directory-p 'file-attributes
 		  'file-directory-p 'file-executable-p 'file-exists-p
-		  'file-local-copy 'file-modes 'file-name-as-directory
-		  'file-name-directory 'file-name-nondirectory
-		  'file-name-sans-versions 'file-ownership-preserved-p
-		  'file-readable-p 'file-regular-p 'file-symlink-p
-		  'file-truename 'file-writable-p 'find-backup-file-name
-		  'find-file-noselect 'get-file-buffer 'insert-directory
-		  'insert-file-contents 'load 'make-directory
-		  'make-directory-internal 'set-file-modes
-		  'substitute-in-file-name 'unhandled-file-name-directory
-		  'vc-registered
+		  'file-local-copy 'file-remote-p 'file-modes
+		  'file-name-as-directory 'file-name-directory
+		  'file-name-nondirectory 'file-name-sans-versions
+		  'file-ownership-preserved-p 'file-readable-p
+		  'file-regular-p 'file-symlink-p 'file-truename
+		  'file-writable-p 'find-backup-file-name 'find-file-noselect
+		  'get-file-buffer 'insert-directory 'insert-file-contents
+		  'load 'make-directory 'make-directory-internal
+		  'set-file-modes 'substitute-in-file-name
+		  'unhandled-file-name-directory 'vc-registered
 		  ; XEmacs only
 		  'abbreviate-file-name 'create-file-buffer
 		  'dired-file-modtime 'dired-make-compressed-filename
@@ -3939,9 +3947,6 @@ Falls back to normal file name handler if no tramp file name handler exists."
       (cond
        (foreign (apply foreign operation args))
        (t (tramp-run-real-handler operation args))))))
-
-;;;###autoload
-(put 'tramp-file-name-handler 'file-remote-p t)	;for file-remote-p
 
 (defun tramp-sh-file-name-handler (operation &rest args)
   "Invoke remote-shell Tramp file name handler.
@@ -4887,16 +4892,16 @@ otherwise."
   "Checks whether the given `ls' executable in one of the dirs groks `-n'.
 Returns nil if none was found, else the command is returned."
   (let ((dl dirlist)
-        (result nil)
-	(directory-sep-char ?/))	;for XEmacs
-    ;; It would be better to use the CL function `find', but
-    ;; we don't want run-time dependencies on CL.
-    (while (and dl (not result))
-      (let ((x (concat (file-name-as-directory (car dl)) cmd)))
-        (when (tramp-check-ls-command multi-method method user host x)
-          (setq result x)))
-      (setq dl (cdr dl)))
-    result))
+        (result nil))
+    (tramp-let-maybe directory-sep-char ?/ ;for XEmacs
+      ;; It would be better to use the CL function `find', but
+      ;; we don't want run-time dependencies on CL.
+      (while (and dl (not result))
+	(let ((x (concat (file-name-as-directory (car dl)) cmd)))
+	  (when (tramp-check-ls-command multi-method method user host x)
+	    (setq result x)))
+	(setq dl (cdr dl)))
+      result)))
 
 (defun tramp-find-ls-command (multi-method method user host)
   "Finds an `ls' command which groks the `-n' option, returning nil if failed.
@@ -4975,6 +4980,11 @@ The terminal type can be configured with `tramp-terminal-type'."
   (erase-buffer)
   (process-send-string nil (concat tramp-terminal-type
 				   tramp-rsh-end-of-line)))
+
+(defun tramp-action-process-alive (p multi-method method user host)
+  "Check whether a process has finished."
+  (unless (memq (process-status p) '(run open))
+    (throw 'tramp-action 'process-died)))
 
 (defun tramp-action-out-of-band (p multi-method method user host)
   "Check whether an out-of-band copy has finished."
@@ -5165,7 +5175,7 @@ Maybe the different regular expressions need to be tuned.
 			user host 'tramp-login-args)))
              (found nil)
              (pw nil))
-        (process-kill-without-query p)
+        (tramp-set-process-query-on-exit-flag p nil)
 	(set-buffer (tramp-get-buffer multi-method method user host))
 	(erase-buffer)
 	(tramp-process-actions p multi-method method user host
@@ -5232,7 +5242,7 @@ arguments, and xx will be used as the host name to connect to.
                   (apply #'start-process bufnam buf login-program 
                          host login-args)))
              (found nil))
-        (process-kill-without-query p)
+        (tramp-set-process-query-on-exit-flag p nil)
 
 	(set-buffer buf)
 	(tramp-process-actions p multi-method method user host
@@ -5293,7 +5303,7 @@ prompt than you do, so it is not at all unlikely that the variable
 			 user host 'tramp-login-args))))
              (found nil)
              (pw nil))
-        (process-kill-without-query p)
+        (tramp-set-process-query-on-exit-flag p nil)
 	(set-buffer (tramp-get-buffer multi-method method user host))
 	(tramp-process-actions p multi-method method user host
 			       tramp-actions-before-shell)
@@ -5346,7 +5356,7 @@ log in as u2 to h2."
                                tramp-multi-sh-program))
              (num-hops (length method))
              (i 0))
-        (process-kill-without-query p)
+        (tramp-set-process-query-on-exit-flag p nil)
         (tramp-message 9 "Waiting 60s for local shell to come up...")
         (unless (tramp-wait-for-regexp
 		 p 60 (format "\\(%s\\)\\'\\|\\(%s\\)\\'"
@@ -5466,12 +5476,16 @@ nil."
              (with-timeout (timeout)
                (while (not found)
                  (accept-process-output proc 1)
+		 (unless (memq (process-status proc) '(run open))
+		   (error "Process has died"))
                  (goto-char (point-min))
                  (setq found (when (re-search-forward regexp nil t)
                                (tramp-match-string-list)))))))
           (t
            (while (not found)
              (accept-process-output proc 1)
+	     (unless (memq (process-status proc) '(run open))
+	       (error "Process has died"))
              (goto-char (point-min))
              (setq found (when (re-search-forward regexp nil t)
                            (tramp-match-string-list))))))
@@ -5526,7 +5540,7 @@ Uses PROMPT as a prompt and sends the password to process P."
 
 ;; HHH: Not Changed.  This might handle the case where USER is not
 ;;      given in the "File name" very poorly.  Then, the local
-;;      variable tramp-current user will be set to nil.
+;;      variable tramp-current-user will be set to nil.
 (defun tramp-pre-connection (multi-method method user host)
   "Do some setup before actually logging in.
 METHOD, USER and HOST specify the connection."
@@ -5621,9 +5635,10 @@ to set up.  METHOD, USER and HOST specify the connection."
 				     "stty -onlcr"))))
   (erase-buffer)
   (tramp-message
-   9 "Waiting 30s for `HISTFILE=$HOME/.tramp_history; HISTSIZE=1'")
-  (tramp-send-command-internal multi-method method user host
-			       "HISTFILE=$HOME/.tramp_history; HISTSIZE=1")
+   9 "Waiting 30s for `HISTFILE=$HOME/.tramp_history; HISTSIZE=1; export HISTFILE; export HISTSIZE'")
+  (tramp-send-command-internal
+   multi-method method user host
+   "HISTFILE=$HOME/.tramp_history; HISTSIZE=1; export HISTFILE; export HISTSIZE")
   (erase-buffer)
   (tramp-message 9 "Waiting 30s for `set +o vi +o emacs'")
   (tramp-send-command-internal multi-method method user host
@@ -6079,12 +6094,16 @@ Sends COMMAND, then waits 30 seconds for shell prompt."
                (with-timeout (timeout)
                  (while (not found)
                    (accept-process-output proc 1)
+		   (unless (memq (process-status proc) '(run open))
+		     (error "Process has died"))
                    (goto-char (point-max))
                    (forward-line -1)
                    (setq found (looking-at end-of-output))))))
             (t
              (while (not found)
                (accept-process-output proc 1)
+	       (unless (memq (process-status proc) '(run open))
+		 (error "Process has died"))
                (goto-char (point-max))
                (forward-line -1)
                (setq found (looking-at end-of-output))))))
@@ -6761,6 +6780,26 @@ Note: this function has been written for `tramp-handle-file-truename'.
 If you want to use it for something else, you'll have to check whether
 it does the right thing."
   (delete "" (split-string string pattern)))
+
+(defun tramp-set-process-query-on-exit-flag (process flag)
+  "Specify if query is needed for process when Emacs is exited.
+If the second argument flag is non-nil, Emacs will query the user before
+exiting if process is running."
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (set-process-query-on-exit-flag process flag)
+    (funcall (symbol-function 'process-kill-without-query)
+	     process flag)))
+
+(defmacro tramp-let-maybe (variable value &rest body)
+  "Let-bind VARIABLE to VALUE in BODY, but only if VARIABLE is not obsolete.
+BODY is executed whether or not the variable is obsolete.
+The intent is to protect against `obsolete variable' warnings."
+  `(if (get 'byte-obsolete-variable ',variable)
+       (progn ,@body)
+     (let ((,variable ,value))
+       ,@body)))
+(put 'tramp-let-maybe 'lisp-indent-function 2)
+
 
 ;; ------------------------------------------------------------ 
 ;; -- Kludges section -- 

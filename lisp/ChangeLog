@@ -1,3 +1,53 @@
+2004-05-29  Michael Albinus  <michael.albinus@gmx.de>
+
+	Version 2.0.41 of Tramp released.
+
+	* tramp.el (tramp-wait-for-regexp, tramp-wait-for-output): Throw
+	away if process has died.  Reported by Luc Teirlinck
+	<teirllm@dms.auburn.edu>.
+	(tramp-out-of-band-prompt-regexp): Renamed to
+	`tramp-process-alive-regexp', because its usage is widen.
+	(tramp-actions-copy-out-of-band): Apply it.
+	(tramp-actions-before-shell, tramp-multi-actions): Add
+	`tramp-action-process-alive' action.
+	(tramp-action-process-alive): New defun.
+	(tramp-file-name-handler-alist, tramp-file-name-for-operation):
+	Add entry for `file-remote-p'.
+	(tramp-handle-file-remote-p): New defun.
+	(top): Remove setting of `file-remote-p'.  Don't set
+	`inhibit-file-name-handlers' and `inhibit-file-name-operation'.
+
+	* tramp-smb.el (tramp-smb-file-name-handler-alist): Add entry for
+	`file-remote-p'.
+
+	* tramp-uu.el (tramp-uuencode-region): Padding characters aren't
+	counted for (last) line.  Reported by Aaron Ucko
+	<ucko@ncbi.nlm.nih.gov>.
+
+2004-05-29  Kai Grossjohann  <kai.grossjohann@gmx.net>
+
+	* tramp.el (tramp-initial-commands): Add "unset HISTFILE"; this is
+	not really necessary but seems to keep the shell history smaller
+	in some cases.  It is no substitute for setting HISTFILE and
+	HISTSIZE from tramp-open-connection-setup-interactive-shell,
+	though.  Suggested by Luc Teirlinck.
+	(tramp-open-connection-setup-interactive-shell): Export variables
+	HISTFILE and HISTSIZE, do not just set them.  From Luc Teirlinck.
+	(tramp-set-process-query-on-exit-flag): New compat function.
+	(tramp-open-connection-multi, tramp-open-connection-su)
+	(tramp-open-connection-rsh, tramp-open-connection-telnet)
+	(tramp-do-copy-or-rename-file-out-of-band): Use it.
+	(tramp-let-maybe): New macro, let-binds a variable only if it
+	isn't obsolete.
+	(tramp-check-ls-commands, tramp-handle-expand-file-name)
+	(tramp-handle-file-truename): Use it.
+	(tramp-completion-file-name-regexp-unified): Avoid matching
+	filenames starting with "/:" -- those are reserved for
+	file-name-non-special.
+
+	* tramp-smb.el (tramp-smb-open-connection): Use
+	tramp-set-process-query-on-exit-flag compat function.
+
 2004-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* net/browse-url.el (browse-url-interactive-arg): Doc fix.
@@ -150,7 +200,6 @@
 	(starttls-negotiate, starttls-open-stream): Check `starttls-use-gnutls'
 	and pass on to corresponding *-gnutls function if it is set.
 
->>>>>>> 1.6105
 2004-05-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-handler): Disable auto-reverting of
@@ -292,7 +341,6 @@
 	* progmodes/grep.el (grep-tree): Ensure that DIR argument is
 	interpreted as a directory.
 
->>>>>>> 1.6097
 2004-05-22  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/paragraphs.el (sentence-end): Match unicode curly quotes
