@@ -48,7 +48,7 @@ This function clears and redisplays all visible frames.
 Some terminal emulators record separate contents for display-oriented
 programs such as Emacs and for ordinary sequential display.  If you are
 using such a terminal, you might want to inhibit the redisplay on
-resumption.  @xref{Suspending Emacs}.
+resumption.
 
 @defvar no-redraw-on-reenter
 @cindex suspend (cf. @code{no-redraw-on-reenter})
@@ -71,7 +71,7 @@ input has been processed.
 @cindex display columns
 @cindex resize redisplay
 
-  The screen size functions report or tell Emacs the height or width of
+  The screen size functions access or specify the height or width of
 the terminal.  When you are using multiple frames, they apply to the
 selected frame (@pxref{Frames}).
 
@@ -242,7 +242,7 @@ choice of lines to hide is made automatically based on indentation.
 This variant is designed as a user-level feature.
 
   The way you control explicit selective display is by replacing a
-newline (control-j) with a carriage return (control-m).  The text which
+newline (control-j) with a carriage return (control-m).  The text that
 was formerly a line following that newline is now invisible.  Strictly
 speaking, it is temporarily no longer a line at all, since only newlines
 can separate lines; it is now part of the previous line.
@@ -350,18 +350,19 @@ interface to debuggers, the overlay arrow indicates the line of code
 about to be executed.
 
 @defvar overlay-arrow-string
-This variable holds the string to display as an arrow, or @code{nil} if
-the arrow feature is not in use.
+This variable holds the string to display to call attention to a
+particular line, or @code{nil} if the arrow feature is not in use.
 @end defvar
 
 @defvar overlay-arrow-position
-This variable holds a marker which indicates where to display the arrow.
-It should point at the beginning of a line.  The arrow text appears at
-the beginning of that line, overlaying any text that would otherwise
-appear.  Since the arrow is usually short, and the line usually begins
-with indentation, normally nothing significant is overwritten.
+This variable holds a marker that indicates where to display the overlay
+arrow.  It should point at the beginning of a line.  The arrow text
+appears at the beginning of that line, overlaying any text that would
+otherwise appear.  Since the arrow is usually short, and the line
+usually begins with indentation, normally nothing significant is
+overwritten.
 
-The overlay string is displayed only in the buffer which this marker
+The overlay string is displayed only in the buffer that this marker
 points into.  Thus, only one buffer can have an overlay arrow at any
 given time.
 @c !!! overlay-arrow-position: but the overlay string may remain in the display
@@ -419,7 +420,7 @@ The value of the last form in @var{forms} is returned.
 @end defspec
 
 @defvar temp-buffer-show-function
-If this variable, if non-@code{nil}, @code{with-output-to-temp-buffer}
+If this variable is non-@code{nil}, @code{with-output-to-temp-buffer}
 calls it as a function to do the job of displaying a help buffer.  The
 function gets one argument, which is the buffer it should display.
 
@@ -483,7 +484,7 @@ Type RET when done reading
 @cindex overlays
 
 You can use @dfn{overlays} to alter the appearance of a buffer's text on
-the screen.  An overlay is an object which belongs to a particular
+the screen.  An overlay is an object that belongs to a particular
 buffer, and has a specified beginning and end.  It also has properties
 that you can examine and set; these affect the display of the text
 within the overlay.
@@ -602,7 +603,7 @@ overlay properties and text properties for a given character.
 overlays, and to examine their contents.
 
 @defun make-overlay start end &optional buffer
-This function creates and returns an overlay which belongs to
+This function creates and returns an overlay that belongs to
 @var{buffer} and ranges from @var{start} to @var{end}.  Both @var{start}
 and @var{end} must specify buffer positions; they may be integers or
 markers.  If @var{buffer} is omitted, the overlay is created in the
@@ -735,7 +736,7 @@ face.
 
 @item
 With text properties.  A character may have a @code{face} property; if so,
-it's displayed with that face.  @xref{Special Properties}.
+it is displayed with that face.  @xref{Special Properties}.
 
 If the character has a @code{mouse-face} property, that is used instead
 of the @code{face} property when the mouse is ``near enough'' to the
@@ -803,8 +804,8 @@ new frames.
 
 @defun set-face-foreground face color &optional frame
 @defunx set-face-background face color &optional frame
-These functions set the foreground (respectively, background) color of
-face @var{face} to @var{color}.  The argument @var{color} should be a
+These functions set the foreground (or background, respectively) color
+of face @var{face} to @var{color}.  The argument @var{color} should be a
 string, the name of a color.
 @end defun
 
@@ -821,7 +822,8 @@ Non-@code{nil} means do underline; @code{nil} means don't.
 @defun invert-face face &optional frame
 Swap the foreground and background colors of face @var{face}.  If the
 face doesn't specify both foreground and background, then its foreground
-and background are set to the default background and foreground.
+and background are set to the default background and foreground,
+respectively.
 @end defun
 
   These functions examine the attributes of a face.  If you don't
@@ -829,8 +831,8 @@ specify @var{frame}, they refer to the default data for new frames.
 
 @defun face-foreground face &optional frame
 @defunx face-background face &optional frame
-These functions return the foreground (respectively, background) color
-of face @var{face}, as a string.
+These functions return the foreground color (or background color,
+respectively) of face @var{face}, as a string.
 @end defun
 
 @defun face-font face &optional frame
@@ -970,7 +972,7 @@ Character code 10 is a newline.
 
 @item
 All other codes in the range 0 through 31, and code 127, display in one
-of two ways according to the value of @code{ctl-arrow}.  If it is is
+of two ways according to the value of @code{ctl-arrow}.  If it is
 non-@code{nil}, these codes map to sequences of two glyphs, where the
 first glyph is the @sc{ASCII} code for @samp{^}.  (A display table can
 specify a glyph to use instead of @samp{^}.)  Otherwise, these codes map
@@ -1183,10 +1185,10 @@ set, you can arrange to use that character set as follows:
 @end example
 
 If you are editing buffers written in the ISO Latin 1 character set and
-your terminal doesn't handle anything but @sc{ASCII}, you can load the file
-@file{iso-ascii} to set up a display table which makes the other ISO
-characters display as sequences of @sc{ASCII} characters.  For example, the
-character ``o with umlaut'' displays as @samp{@{"o@}}.
+your terminal doesn't handle anything but @sc{ASCII}, you can load the
+file @file{iso-ascii} to set up a display table that displays the other
+ISO characters as explanatory sequences of @sc{ASCII} characters.  For
+example, the character ``o with umlaut'' displays as @samp{@{"o@}}.
 
 Some European countries have terminals that don't support ISO Latin 1
 but do support the special characters for that country's language.  You

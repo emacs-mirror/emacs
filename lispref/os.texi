@@ -7,7 +7,7 @@
 @chapter Operating System Interface
 
   This chapter is about starting and getting out of Emacs, access to
-values in the operating system environment, and terminal input, output
+values in the operating system environment, and terminal input, output,
 and flow control.
 
   @xref{Building Emacs}, for related information.  See also
@@ -71,15 +71,15 @@ It loads the library @file{site-start}, unless the option
 
 @item 
 It loads the file @file{~/.emacs} unless @samp{-q} was specified on
-command line.  (This is not done in @samp{-batch} mode.)  The @samp{-u}
+the command line.  (This is not done in @samp{-batch} mode.)  The @samp{-u}
 option can specify the user name whose home directory should be used
 instead of @file{~}.
 
 @item 
 It loads the library @file{default} unless @code{inhibit-default-init}
 is non-@code{nil}.  (This is not done in @samp{-batch} mode or if
-@samp{-q} was specified on command line.)  The library's file name is
-usually @file{default.el}.
+@samp{-q} was specified on the command line.)  The library's file name
+is usually @file{default.el}.
 @cindex @file{default.el}
 
 @item
@@ -113,7 +113,7 @@ specify.
 It runs @code{window-setup-hook}.  @xref{Window Systems}.
 
 @item 
-It displays copyleft, nonwarranty and basic use information, provided
+It displays copyleft, nonwarranty, and basic use information, provided
 there were no remaining command line arguments (a few steps above) and
 the value of @code{inhibit-startup-message} is @code{nil}.
 @end enumerate
@@ -260,7 +260,7 @@ your @file{.emacs} file: @code{(setq term-file-prefix nil)}.
 @end defvar
 
 @defvar term-setup-hook 
-This variable is a normal hook which Emacs runs after loading your
+This variable is a normal hook that Emacs runs after loading your
 @file{.emacs} file, the default initialization file (if any) and the
 terminal-specific Lisp file.
 
@@ -300,9 +300,9 @@ kill the Emacs until you are about to log out.)
 @end ignore
 
 @defun command-line
-This function parses the command line which Emacs was called with,
+This function parses the command line that Emacs was called with,
 processes it, loads the user's @file{.emacs} file and displays the
-initial nonwarranty information, etc.
+startup messages.
 @end defun
 
 @defvar command-line-processed
@@ -359,7 +359,7 @@ to Emacs.
 This variable's value is a list of functions for handling an
 unrecognized command-line argument.  Each time the next argument to be
 processed has no special meaning, the functions in this list are called,
-in the order they appear, until one of them returns a non-@code{nil}
+in order of appearance, until one of them returns a non-@code{nil}
 value.
 
 These functions are called with no arguments.  They can access the
@@ -470,7 +470,7 @@ normal hook; its value was a single function, and if its value was
 non-@code{nil}, then @code{suspend-emacs} returned immediately without
 actually suspending anything.
 
-After the user resumes Emacs, it runs the normal hook
+After the user resumes Emacs, @code{suspend-emacs} runs the normal hook
 @code{suspend-resume-hook}.  @xref{Hooks}.
 
 The next redisplay after resumption will redraw the entire screen,
@@ -665,11 +665,12 @@ invoked, or perhaps @code{nil} if that directory cannot be determined.
 If non-@code{nil}, this is a directory within which to look for the
 @file{lib-src} and @file{etc} subdirectories.  This is non-@code{nil}
 when Emacs can't find those directories in their standard installed
-locations, but can find them near where the Emacs executable was found.
+locations, but can find them in a directory related somehow to the one
+containing the Emacs executable.
 @end defvar
 
 @defun load-average
-This function returns the current 1 minute, 5 minute and 15 minute
+This function returns the current 1-minute, 5-minute and 15-minute
 load averages in a list.  The values are integers that are 100 times
 the system load averages.  (The load averages indicate the number of
 processes trying to run.)
@@ -793,7 +794,7 @@ integers: @code{(@var{high} @var{low} @var{microsec})}.  The integers
 @var{high} * 2**16 + @var{low}.
 @end ifinfo
 @tex
-$high*-2^{16}+low$.
+$high*2^{16}+low$.
 @end tex
 
 The third element, @var{microsec}, gives the microseconds since the
@@ -861,7 +862,13 @@ seconds.
 The argument @var{repeat} specifies how often to repeat the call.  If
 @var{repeat} is @code{nil}, there are no repetitions; @var{function} is
 called just once, at @var{time}.  If @var{repeat} is an integer, it
-specifies a repetition period measured in seconds.
+specifies a repetition period measured in seconds.  In any case, @var{repeat}
+has no effect on when @emph{first} call takes place---@var{time} specifies
+that.
+
+The function @code{run-at-time} returns a timer value that identifies
+the particular scheduled future action.  You can use this value to call
+@code{cancel-timer}. 
 @end defun
 
 @defun cancel-timer timer
@@ -897,7 +904,7 @@ This function sets the mode for reading keyboard input.  If
 @code{nil}, then it uses @sc{cbreak} mode.
 
 If @var{flow} is non-@code{nil}, then Emacs uses @sc{xon/xoff} (@kbd{C-q},
-@kbd{C-s}) flow control for output to terminal.  This has no effect except
+@kbd{C-s}) flow control for output to the terminal.  This has no effect except
 in @sc{cbreak} mode.  @xref{Flow Control}.
 
 The default setting is system dependent.  Some systems always use
@@ -1039,9 +1046,9 @@ or enlarges the translate table if necessary.
 @end defun
 
 @defvar function-key-map
-This variable holds a keymap which describes the character sequences
+This variable holds a keymap that describes the character sequences
 sent by function keys on an ordinary character terminal.  This keymap
-uses the data structure as other keymaps, but is used differently: it
+uses the same data structure as other keymaps, but is used differently: it
 specifies translations to make while reading events.
 
 If @code{function-key-map} ``binds'' a key sequence @var{k} to a vector
@@ -1145,7 +1152,7 @@ from the keyboard or mouse.  All input events are included, whether or
 not they were used as parts of key sequences.  Thus, you always get the
 last 100 inputs, not counting keyboard macros.  (Events from keyboard
 macros are excluded because they are less interesting for debugging; it
-should be enough to see the events which invoked the macros.)
+should be enough to see the events that invoked the macros.)
 @end defun
 
 @deffn Command open-dribble-file  filename
@@ -1185,7 +1192,7 @@ This variable's value is the output speed of the terminal, as far as
 Emacs knows.  Setting this variable does not change the speed of actual
 data transmission, but the value is used for calculations such as
 padding.  It also affects decisions about whether to scroll part of the
-screen or repaint---even when using a window system, (We designed it
+screen or repaint---even when using a window system.  (We designed it
 this way despite the fact that a window system has no true ``output
 speed'', to give you a way to tune these decisions.)
 
@@ -1336,7 +1343,7 @@ system to handle flow control, with @code{(set-input-mode nil t)}.
 
 @item
 It sets up @code{keyboard-translate-table} to translate @kbd{C-\} and
-@kbd{C-^} into @kbd{C-s} and @kbd{C-q} were typed.  Except at its very
+@kbd{C-^} into @kbd{C-s} and @kbd{C-q}.  Except at its very
 lowest level, Emacs never knows that the characters typed were anything
 but @kbd{C-s} and @kbd{C-q}, so you can in effect type them as @kbd{C-\}
 and @kbd{C-^} even when they are input for other commands.

@@ -492,7 +492,7 @@ were given to the program.
 
 @defun process-id process
 This function returns the @sc{pid} of @var{process}.  This is an
-integer which distinguishes the process @var{process} from all other
+integer that distinguishes the process @var{process} from all other
 processes running on the same computer at the current time.  The
 @sc{pid} of a process is chosen by the operating system kernel when the
 process is started and remains constant as long as the process exists.
@@ -665,7 +665,7 @@ process associated with the current buffer.  An error is signaled if
   The argument @var{current-group} is a flag that makes a difference
 when you are running a job-control shell as an Emacs subprocess.  If it
 is non-@code{nil}, then the signal is sent to the current process-group
-of the terminal which Emacs uses to communicate with the subprocess.  If
+of the terminal that Emacs uses to communicate with the subprocess.  If
 the process is a job-control shell, this means the shell's current
 subjob.  If it is @code{nil}, the signal is sent to the process group of
 the immediate subprocess of Emacs.  If the subprocess is a job-control
@@ -731,7 +731,9 @@ to send; it should be an integer.
   There are two ways to receive the output that a subprocess writes to
 its standard output stream.  The output can be inserted in a buffer,
 which is called the associated buffer of the process, or a function
-called the @dfn{filter function} can be called to act on the output.
+called the @dfn{filter function} can be called to act on the output.  If
+the process has no buffer and no filter function, its output is
+discarded.
 
 @menu
 * Process Buffers::       If no filter, output is put in a buffer.
@@ -753,11 +755,9 @@ be sent to the process, but this is not built into Emacs Lisp.
 
   Unless the process has a filter function (@pxref{Filter Functions}),
 its output is inserted in the associated buffer.  The position to insert
-the output is determined by the @code{process-mark} (@pxref{Process
-Information}), which is then updated to point to the end of the text
-just inserted.  Usually, but not always, the @code{process-mark} is at
-the end of the buffer.  If the process has no buffer and no filter
-function, its output is discarded.
+the output is determined by the @code{process-mark}, which is then
+updated to point to the end of the text just inserted.  Usually, but not
+always, the @code{process-mark} is at the end of the buffer.
 
 @defun process-buffer process
 This function returns the associated buffer of the process
@@ -823,9 +823,9 @@ subprocess with a @code{SIGHUP} signal (@pxref{Signals to Processes}).
 
   A process @dfn{filter function} is a function that receives the
 standard output from the associated process.  If a process has a filter,
-then @emph{all} output from that process, that would otherwise have been
-in a buffer, is passed to the filter.  The process buffer is used
-directly for output from the process only when there is no filter.
+then @emph{all} output from that process is passed to the filter.  The
+process buffer is used directly for output from the process only when
+there is no filter.
 
   A filter function must accept two arguments: the associated process and
 a string, which is the output.  The function is then free to do whatever it
@@ -835,9 +835,10 @@ chooses with the output.
 input, or for time to elapse, or for process output).  This avoids the
 timing errors that could result from running filters at random places in
 the middle of other Lisp programs.  You may explicitly cause Emacs to
-wait, so that filter functions will run, by calling @code{sit-for},
-@code{sleep-for} or @code{accept-process-output} (@pxref{Accepting
-Output}).  Emacs is also waiting when the command loop is reading input.
+wait, so that filter functions will run, by calling @code{sit-for} or
+@code{sleep-for} (@pxref{Waiting}), or @code{accept-process-output}
+(@pxref{Accepting Output}).  Emacs is also waiting when the command loop
+is reading input.
 
   Quitting is normally inhibited within a filter function---otherwise,
 the effect of typing @kbd{C-g} at command level or to quit a user
@@ -1037,9 +1038,9 @@ of event.
 or for time to elapse, or for process output).  This avoids the timing
 errors that could result from running them at random places in the
 middle of other Lisp programs.  A program can wait, so that sentinels
-will run, by calling @code{sit-for}, @code{sleep-for} or
-@code{accept-process-output} (@pxref{Accepting Output}).  Emacs is also
-waiting when the command loop is reading input.
+will run, by calling @code{sit-for} or @code{sleep-for}
+(@pxref{Waiting}), or @code{accept-process-output} (@pxref{Accepting
+Output}).  Emacs is also waiting when the command loop is reading input.
 
   Quitting is normally inhibited within a sentinel---otherwise, the
 effect of typing @kbd{C-g} at command level or to quit a user command
@@ -1103,7 +1104,7 @@ you can call @code{tq-enqueue} to send a transaction.
 This function creates and returns a transaction queue communicating with
 @var{process}.  The argument @var{process} should be a subprocess
 capable of sending and receiving streams of bytes.  It may be a child
-process, or it may be a TCP connection to a server possibly on another
+process, or it may be a TCP connection to a server, possibly on another
 machine.
 @end defun
 
@@ -1111,7 +1112,7 @@ machine.
 This function sends a transaction to queue @var{queue}.  Specifying the
 queue has the effect of specifying the subprocess to talk to.
 
-The argument @var{question} is the outgoing message which starts the
+The argument @var{question} is the outgoing message that starts the
 transaction.  The argument @var{fn} is the function to call when the
 corresponding answer comes back; it is called with two arguments:
 @var{closure}, and the answer received.
