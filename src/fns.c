@@ -1877,7 +1877,8 @@ and can edit it until it has been confirmed.")
   while (1)
     {
       ans = Fdowncase (Fread_from_minibuffer (prompt, Qnil, Qnil, Qnil,
-					      Qyes_or_no_p_history, Qnil));
+					      Qyes_or_no_p_history, Qnil,
+					      Qnil));
       if (XSTRING (ans)->size == 3 && !strcmp (XSTRING (ans)->data, "yes"))
 	{
 	  UNGCPRO;
