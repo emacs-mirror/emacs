@@ -628,7 +628,8 @@ DEFUN ("fboundp", Ffboundp, Sfboundp, 1, 1, 0,
 }
 
 DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's value be void.  */)
+       doc: /* Make SYMBOL's value be void.
+Return SYMBOL.  */)
      (symbol)
      register Lisp_Object symbol;
 {
@@ -640,7 +641,8 @@ DEFUN ("makunbound", Fmakunbound, Smakunbound, 1, 1, 0,
 }
 
 DEFUN ("fmakunbound", Ffmakunbound, Sfmakunbound, 1, 1, 0,
-       doc: /* Make SYMBOL's function definition be void.  */)
+       doc: /* Make SYMBOL's function definition be void.
+Return SYMBOL.  */)
      (symbol)
      register Lisp_Object symbol;
 {
@@ -793,7 +795,7 @@ indirect_variable (symbol)
       hare = XSYMBOL (hare)->value;
       if (!XSYMBOL (hare)->indirect_variable)
 	break;
-      
+
       hare = XSYMBOL (hare)->value;
       tortoise = XSYMBOL (tortoise)->value;
 
@@ -941,7 +943,7 @@ swap_in_global_binding (symbol)
      Lisp_Object symbol;
 {
   Lisp_Object valcontents, cdr;
-  
+
   valcontents = SYMBOL_VALUE (symbol);
   if (!BUFFER_LOCAL_VALUEP (valcontents)
       && !SOME_BUFFER_LOCAL_VALUEP (valcontents))
@@ -951,7 +953,7 @@ swap_in_global_binding (symbol)
   /* Unload the previously loaded binding.  */
   Fsetcdr (XCAR (cdr),
 	   do_symval_forwarding (XBUFFER_LOCAL_VALUE (valcontents)->realvalue));
-  
+
   /* Select the global binding in the symbol.  */
   XSETCAR (cdr, cdr);
   store_symval_forwarding (symbol, valcontents, XCDR (cdr), NULL);
@@ -975,7 +977,7 @@ swap_in_symval_forwarding (symbol, valcontents)
      Lisp_Object symbol, valcontents;
 {
   register Lisp_Object tem1;
-  
+
   tem1 = XBUFFER_LOCAL_VALUE (valcontents)->buffer;
 
   if (NILP (tem1)
@@ -985,7 +987,7 @@ swap_in_symval_forwarding (symbol, valcontents)
     {
       if (XSYMBOL (symbol)->indirect_variable)
 	symbol = indirect_variable (symbol);
-      
+
       /* Unload the previously loaded binding.  */
       tem1 = XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
       Fsetcdr (tem1,
@@ -1029,7 +1031,7 @@ find_symbol_value (symbol)
 {
   register Lisp_Object valcontents;
   register Lisp_Object val;
-  
+
   CHECK_SYMBOL (symbol);
   valcontents = SYMBOL_VALUE (symbol);
 
@@ -1142,7 +1144,7 @@ set_internal (symbol, newval, buf, bindflag)
     return Fsignal (Qsetting_constant, Fcons (symbol, Qnil));
 
   innercontents = valcontents = SYMBOL_VALUE (symbol);
-  
+
   if (BUFFER_OBJFWDP (valcontents))
     {
       int offset = XBUFFER_OBJFWD (valcontents)->offset;
@@ -1365,7 +1367,7 @@ for this variable.  */)
       if (idx > 0)
 	{
 	  struct buffer *b;
-	  
+
 	  for (b = all_buffers; b; b = b->next)
 	    if (!PER_BUFFER_VALUE_P (b, idx))
 	      PER_BUFFER_VALUE (b, offset) = value;
@@ -1395,7 +1397,7 @@ for this variable.  */)
 DEFUN ("setq-default", Fsetq_default, Ssetq_default, 2, UNEVALLED, 0,
        doc: /* Set the default value of variable VAR to VALUE.
 VAR, the variable name, is literal (not evaluated);
-VALUE is an expression and it is evaluated.
+VALUE is an expression: it is evaluated and its value returned.
 The default value of a variable is seen in buffers
 that do not have their own values for the variable.
 
@@ -1441,7 +1443,7 @@ unless the variable has never been set in this buffer,
 in which case the default value is in effect.
 Note that binding the variable with `let', or setting it while
 a `let'-style binding made in this buffer is in effect,
-does not make the variable buffer-local.
+does not make the variable buffer-local.  Return VARIABLE.
 
 The function `default-value' gets the default value and `set-default' sets it.  */)
      (variable)
@@ -1485,7 +1487,7 @@ DEFUN ("make-local-variable", Fmake_local_variable, Smake_local_variable,
 Other buffers will continue to share a common default value.
 \(The buffer-local value of VARIABLE starts out as the same value
 VARIABLE previously had.  If VARIABLE was void, it remains void.\)
-See also `make-variable-buffer-local'.
+See also `make-variable-buffer-local'.  Return VARIABLE.
 
 If the variable is already arranged to become local when set,
 this function causes a local value to exist for this buffer,
@@ -1575,7 +1577,7 @@ Instead, use `add-hook' and specify t for the LOCAL argument.  */)
 DEFUN ("kill-local-variable", Fkill_local_variable, Skill_local_variable,
        1, 1, "vKill Local Variable: ",
        doc: /* Make VARIABLE no longer have a separate value in the current buffer.
-From now on the default value will apply in this buffer.  */)
+From now on the default value will apply in this buffer.  Return VARIABLE.  */)
      (variable)
      register Lisp_Object variable;
 {
@@ -1636,8 +1638,8 @@ DEFUN ("make-variable-frame-local", Fmake_variable_frame_local, Smake_variable_f
 When a frame-local binding exists in the current frame,
 it is in effect whenever the current buffer has no buffer-local binding.
 A frame-local binding is actually a frame parameter value;
-thus, any given frame has a local binding for VARIABLE
-if it has a value for the frame parameter named VARIABLE.
+thus, any given frame has a local binding for VARIABLE if it has
+a value for the frame parameter named VARIABLE.  Return VARIABLE.
 See `modify-frame-parameters' for how to set frame parameters.  */)
      (variable)
      register Lisp_Object variable;
@@ -1950,8 +1952,8 @@ or a byte-code object.  IDX starts at 0.  */)
 
 DEFUN ("aset", Faset, Saset, 3, 3, 0,
        doc: /* Store into the element of ARRAY at index IDX the value NEWELT.
-ARRAY may be a vector, a string, a char-table or a bool-vector.
-IDX starts at 0.  */)
+Return NEWELT.  ARRAY may be a vector, a string, a char-table or a
+bool-vector.  IDX starts at 0.  */)
      (array, idx, newelt)
      register Lisp_Object array;
      Lisp_Object idx, newelt;
@@ -2267,7 +2269,7 @@ cons_to_long (c)
 }
 
 DEFUN ("number-to-string", Fnumber_to_string, Snumber_to_string, 1, 1, 0,
-       doc: /* Convert NUMBER to a string by printing it in decimal.
+       doc: /* Return the decimal representation of NUMBER as a string.
 Uses a minus sign if negative.
 NUMBER may be an integer or a floating point number.  */)
      (number)
@@ -2313,10 +2315,10 @@ digit_to_number (character, base)
     return -1;
   else
     return digit;
-}    
+}
 
 DEFUN ("string-to-number", Fstring_to_number, Sstring_to_number, 1, 2, 0,
-       doc: /* Convert STRING to a number by parsing it as a decimal number.
+       doc: /* Return a number obtained by parsing STRING as a decimal number.
 This parses both integers and floating point numbers.
 It ignores leading spaces and tabs.
 
@@ -2356,7 +2358,7 @@ If the base used is not 10, floating point is not recognized.  */)
     }
   else if (*p == '+')
     p++;
-  
+
   if (isfloat_string (p) && b == 10)
     val = make_float (sign * atof (p));
   else
@@ -2559,7 +2561,7 @@ usage: (+ &rest NUMBERS-OR-MARKERS)  */)
 }
 
 DEFUN ("-", Fminus, Sminus, 0, MANY, 0,
-       doc: /* Negate number or subtract numbers or markers.
+       doc: /* Negate number or subtract numbers or markers, returns the result.
 With one arg, negates it.  With more than one arg,
 subtracts all but the first from the first.
 usage: (- &optional NUMBER-OR-MARKER &rest MORE-NUMBERS-OR-MARKERS)  */)
@@ -3212,7 +3214,7 @@ syms_of_data ()
   DEFVAR_LISP ("most-positive-fixnum", &Vmost_positive_fixnum,
 	       doc: /* The largest value that is representable in a Lisp integer.  */);
   Vmost_positive_fixnum = make_number (MOST_POSITIVE_FIXNUM);
-  
+
   DEFVAR_LISP ("most-negative-fixnum", &Vmost_negative_fixnum,
 	       doc: /* The smallest value that is representable in a Lisp integer.  */);
   Vmost_negative_fixnum = make_number (MOST_NEGATIVE_FIXNUM);
