@@ -200,6 +200,10 @@ Boston, MA 02111-1307, USA.  */
 #include "macterm.h"
 #endif
 
+#ifndef FRAME_X_OUTPUT
+#define FRAME_X_OUTPUT(f) ((f)->output_data.x)
+#endif
+
 #define INFINITY 10000000
 
 #if defined (USE_X_TOOLKIT) || defined (HAVE_NTGUI) || defined (MAC_OS) \
@@ -7887,6 +7891,8 @@ update_menu_bar (f, save_match_data)
 			    Output Cursor
  ***********************************************************************/
 
+#ifdef HAVE_WINDOW_SYSTEM
+
 /* EXPORT:
    Nominal cursor position -- where to draw output.
    HPOS and VPOS are window relative glyph matrix coordinates.
@@ -7951,6 +7957,7 @@ x_cursor_to (vpos, hpos, y, x)
     }
 }
 
+#endif /* HAVE_WINDOW_SYSTEM */
 
 
 /***********************************************************************
