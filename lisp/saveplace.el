@@ -69,6 +69,9 @@ value of `version-control'.")
 (defvar save-place-loaded nil
   "Non-nil means that the `save-place-file' has been loaded.")
 
+(defvar save-place-limit nil
+  "Maximum number of entries to retain in the list; nil means no limit.")
+
 (defun toggle-save-place (&optional parg)
   "Toggle whether to save your place in this file between sessions.
 If this mode is enabled, point is recorded when you kill the buffer
@@ -133,7 +136,7 @@ To save places automatically in all files, put this in your `.emacs' file:
                t))))
         (write-file file)
         (kill-buffer (current-buffer))
-        (message (format "Saving places to %s... done." file))))))
+        (message (format "Saving places to %s...done" file))))))
 
 (defun load-save-place-alist-from-file ()
   (if (not save-place-loaded)
@@ -155,8 +158,26 @@ To save places automatically in all files, put this in your `.emacs' file:
                 (setq save-place-alist 
                       (car (read-from-string
                             (buffer-substring (point-min) (point-max)))))
+
+                ;; If there is a limit, and we're over it, then we'll
+                ;; have to truncate the end of the list:
+                (if save-place-limit
+                    (if (<= save-place-limit 0)
+                        ;; Zero gets special cased.  I'm not thrilled
+                        ;; with this, but the loop for >= 1 is tight.
+                        (setq save-place-alist nil)
+                      ;; Else the limit is >= 1, so enforce it by
+                      ;; counting and then `setcdr'ing.
+                      (let ((s save-place-alist)
+                            (count 1))
+                        (while s
+                          (if (>= count save-place-limit)
+                              (setcdr s nil)
+                            (setq count (1+ count)))
+                          (setq s (cdr s))))))
+                  
                 (kill-buffer (current-buffer))
-                (message (format "Loading places from %s... done." file))
+                (message (format "Loading places from %s...done" file))
                 t)
             t)
           nil))))
