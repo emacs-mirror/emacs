@@ -1,3 +1,8 @@
+2001-01-31  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* keymap.c (Fwhere_is_internal): Use the first valid binding
+	if no ascii binding is found (when firstonly is t).
+
 2001-01-31  Gerd Moellmann  <gerd@gnu.org>
 
 	* window.c (Fscroll_right, Fscroll_left): Use interactive_p
