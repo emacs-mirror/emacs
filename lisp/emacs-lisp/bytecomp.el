@@ -1,6 +1,7 @@
 ;;; bytecomp.el --- compilation of Lisp code into byte code.
 
-;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1992, 1994, 1998, 2000
+;;   Free Software Foundation, Inc.
 
 ;; Author: Jamie Zawinski <jwz@lucid.com>
 ;;	Hallvard Furuseth <hbf@ulrik.uio.no>
@@ -9,7 +10,7 @@
 
 ;;; This version incorporates changes up to version 2.10 of the 
 ;;; Zawinski-Furuseth compiler.
-(defconst byte-compile-version "$Revision: 2.61 $")
+(defconst byte-compile-version "$Revision: 2.62 $")
 
 ;; This file is part of GNU Emacs.
 
@@ -1092,12 +1093,15 @@ otherwise pop it")
   nil)
 
 
+(defsubst byte-compile-const-symbol-p (symbol)
+  (or (memq symbol '(nil t))
+      (keywordp symbol)))
+
 (defmacro byte-compile-constp (form)
   ;; Returns non-nil if FORM is a constant.
-  (` (cond ((consp (, form)) (eq (car (, form)) 'quote))
-	   ((not (symbolp (, form))))
-	   ((keywordp (, form)))
-	   ((memq (, form) '(nil t))))))
+  `(cond ((consp ,form) (eq (car ,form) 'quote))
+	 ((not (symbolp ,form)))
+	 ((byte-compile-const-symbol-p ,form))))
 
 (defmacro byte-compile-close-variables (&rest body)
   (cons 'let
@@ -2213,7 +2217,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 		     (if (if (eq (car (car rest)) 'byte-constant)
 			     (or (consp tmp)
 				 (and (symbolp tmp)
-				      (not (memq tmp '(nil t))))))
+				      (not (byte-compile-const-symbol-p tmp)))))
 			 (if maycall
 			     (setq body (cons (list 'quote tmp) body)))
 		       (setq body (cons tmp body))))
@@ -2266,7 +2270,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 (defun byte-compile-form (form &optional for-effect)
   (setq form (macroexpand form byte-compile-macro-environment))
   (cond ((not (consp form))
-	 (cond ((or (not (symbolp form)) (memq form '(nil t)))
+	 (cond ((or (not (symbolp form)) (byte-compile-const-symbol-p form))
 		(byte-compile-constant form))
 	       ((and for-effect byte-compile-delete-errors)
 		(setq for-effect nil))
@@ -2274,7 +2278,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	((symbolp (car form))
 	 (let* ((fn (car form))
 		(handler (get fn 'byte-compile)))
-	   (if (memq fn '(t nil))
+	   (if (byte-compile-const-symbol-p fn)
 	       (byte-compile-warn "%s called as a function" fn))
 	   (if (and handler
 		    (or (not (byte-compile-version-cond
@@ -2303,7 +2307,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-out 'byte-call (length (cdr form))))
 
 (defun byte-compile-variable-ref (base-op var)
-  (if (or (not (symbolp var)) (memq var '(nil t)))
+  (if (or (not (symbolp var)) (byte-compile-const-symbol-p var))
       (byte-compile-warn (if (eq base-op 'byte-varbind)
 			     "Attempt to let-bind %s %s"
 			   "Variable reference to %s %s")
@@ -2340,11 +2344,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
     (byte-compile-out base-op tmp)))
 
 (defmacro byte-compile-get-constant (const)
-  (` (or (if (stringp (, const))
-	     (assoc (, const) byte-compile-constants)
-	   (assq (, const) byte-compile-constants))
-	 (car (setq byte-compile-constants
-		    (cons (list (, const)) byte-compile-constants))))))
+  `(or (if (stringp ,const)
+	   (assoc ,const byte-compile-constants)
+	 (assq ,const byte-compile-constants))
+       (car (setq byte-compile-constants
+		  (cons (list ,const) byte-compile-constants)))))
 
 ;; Use this when the value of a form is a constant.  This obeys for-effect.
 (defun byte-compile-constant (const)
@@ -2868,11 +2872,11 @@ If FORM is a lambda or a macro, byte-compile it as a function."
   (byte-compile-body (cdr (cdr (cdr form))) t))
 
 (defmacro byte-compile-goto-if (cond discard tag)
-  (` (byte-compile-goto
-      (if (, cond)
-	  (if (, discard) 'byte-goto-if-not-nil 'byte-goto-if-not-nil-else-pop)
-	(if (, discard) 'byte-goto-if-nil 'byte-goto-if-nil-else-pop))
-      (, tag))))
+  `(byte-compile-goto
+    (if ,cond
+	(if ,discard 'byte-goto-if-not-nil 'byte-goto-if-not-nil-else-pop)
+      (if ,discard 'byte-goto-if-nil 'byte-goto-if-nil-else-pop))
+    ,tag))
 
 (defun byte-compile-if (form)
   (byte-compile-form (car (cdr form)))
