@@ -720,8 +720,21 @@ if it isn't already recorded.")
 	    && XFASTINT (w->last_modified) >= MODIFF))
     {
       int opoint = PT, opoint_byte = PT_BYTE;
-      TEMP_SET_PT_BOTH (XMARKER (w->start)->charpos,
-			XMARKER (w->start)->bytepos);
+
+      /* In case W->start is out of the range, use something
+         reasonable.  This situation occured when loading a file with
+         `-l' containing a call to `rmail' with subsequent other
+         commands.  At the end, W->start happened to be BEG, while
+         rmail had already narrowed the buffer.  This leads to an
+         abort in temp_set_pt_both.  */
+      if (XMARKER (w->start)->charpos < BEGV)
+	TEMP_SET_PT_BOTH (BEGV, BEGV_BYTE);
+      else if (XMARKER (w->start)->charpos > ZV)
+	TEMP_SET_PT_BOTH (ZV, ZV_BYTE);
+      else
+	TEMP_SET_PT_BOTH (XMARKER (w->start)->charpos,
+			  XMARKER (w->start)->bytepos);
+      
       Fvertical_motion (make_number (window_internal_height (w)), Qnil);
       XSETINT (value, PT);
       TEMP_SET_PT_BOTH (opoint, opoint_byte);
