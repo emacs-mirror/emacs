@@ -512,8 +512,18 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
                                 (throw 'foo t)))))
                       (error
                        "No such anchor in tag table or node in tag table or file: %s"
-                       nodename))))))
-
+                       nodename))))
+	      (goto-char (max (point-min) (- guesspos 1000)))
+	      ;; Now search from our advised position (or from beg of buffer)
+	      ;; to find the actual node.
+	      (catch 'foo
+		(while (search-forward "\n\^_" nil t)
+		  (forward-line 1)
+		  (let ((beg (point)))
+		    (forward-line 1)
+		    (if (re-search-backward regexp beg t)
+			(throw 'foo t))))
+		(error "No such node: %s" nodename))))
           (Info-select-node)
 	  (goto-char (point-min))))
     ;; If we did not finish finding the specified node,
@@ -536,6 +546,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 ;; constructed Info-dir-contents.
 (defvar Info-dir-file-attributes nil)
 
+(defvar Info-dir-file-name nil)
+
 ;; Construct the Info directory node by merging the files named `dir'
 ;; from various directories.  Set the *info* buffer's
 ;; default-directory to the first directory we actually get any text
@@ -552,10 +564,14 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 				    (setcar (nthcdr 4 (cdr elt)) 0)
 				    (equal (cdr elt) curr)))
 			       Info-dir-file-attributes))))
-      (insert Info-dir-contents)
+      (progn
+	(insert Info-dir-contents)
+	(goto-char (point-min)))
     (let ((dirs Info-directory-list)
 	  ;; Bind this in case the user sets it to nil.
 	  (case-fold-search t)
+	  ;; This is set non-nil if we find a problem in some input files.
+	  problems
 	  buffers buffer others nodes dirs-done)
 
       (setq Info-dir-file-attributes nil)
@@ -590,6 +606,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		      (condition-case nil
 			  (progn
 			    (insert-file-contents file)
+			    (make-local-variable 'Info-dir-file-name)
+			    (setq Info-dir-file-name file)
 			    (setq buffers (cons (current-buffer) buffers)
 				  Info-dir-file-attributes
 				  (cons (cons file attrs)
@@ -614,7 +632,8 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 
       ;; Look at each of the other buffers one by one.
       (while others
-	(let ((other (car others)))
+	(let ((other (car others))
+	      this-buffer-nodes)
 	  ;; In each, find all the menus.
 	  (save-excursion
 	    (set-buffer other)
@@ -630,7 +649,13 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
 		(search-forward "\n\^_" nil 'move)
 		(beginning-of-line)
 		(setq end (point))
-		(setq nodes (cons (list nodename other beg end) nodes))))))
+		(setq this-buffer-nodes
+		      (cons (list nodename other beg end)
+			    this-buffer-nodes))))
+	    (if (assoc-ignore-case "top" this-buffer-nodes)
+		(setq nodes (nconc this-buffer-nodes nodes))
+	      (setq problems t)
+	      (message "No `top' node in %s" Info-dir-file-name))))
 	(setq others (cdr others)))
       ;; Add to the main menu a menu item for each other node.
       (re-search-forward "^\\* Menu:")
@@ -676,7 +701,10 @@ In standalone mode, \\<Info-mode-map>\\[Info-exit] exits Emacs itself."
       (while buffers
 	(kill-buffer (car buffers))
 	(setq buffers (cdr buffers)))
-      (message "Composing main Info directory...done"))
+      (goto-char (point-min))
+      (if problems
+	  (message "Composing main Info directory...problems encountered, see `*Messages*'")
+	(message "Composing main Info directory...done")))
     (setq Info-dir-contents (buffer-string)))
   (setq default-directory Info-dir-contents-directory))
 
