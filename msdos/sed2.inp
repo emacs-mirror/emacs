@@ -8,6 +8,10 @@
 #if defined(__DJGPP__) && __DJGPP__ > 1\
 /* In v2.0 and later almost everything is defined in <sys/config.h>  */\
 #include <sys/config.h>\
+/* For those who still use DJGPP v2.01  */\
+#if __DJGPP__ == 2 && __DJGPP_MINOR__ == 1\
+#define NSIG 320\
+#endif\
 #define HAVE_SETITIMER 1\
 #undef HAVE_SELECT\
 #undef _LIBC\
