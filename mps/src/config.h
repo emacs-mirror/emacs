@@ -1,6 +1,6 @@
 /* impl.h.config: MPS CONFIGURATION
  *
- * $HopeName: MMsrc!config.h(trunk.34) $
+ * $HopeName: MMsrc!config.h(trunk.35) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * PURPOSE
@@ -257,14 +257,13 @@
 #define TRACE_MAX               ((Size)1)
 
 
-/*  impl.c.event
+/* Events
  *
  *  EVENT_BUFFER_SIZE is the number of words in the global event buffer.
- *  EVENT_HEADER_SIZE is the number of words in each event header
  */
 
-#define EVENT_BUFFER_SIZE       ((Count)4096)
-#define EVENT_HEADER_SIZE       ((Count)3)
+#define EVENT_BUFFER_SIZE ((size_t)4096)
+#define EventStringLengthMAX ((size_t)256) /* Including NUL */
 
 
 /* Assert Buffer
