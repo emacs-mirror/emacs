@@ -102,8 +102,7 @@ must be in `latin1-display-sets'.  With no arguments, reset the
 display for all of `latin1-display-sets'. See also
 `latin1-display-setup'.  As well as iso-8859 characters, this treats
 some characters in the `mule-unicode-...' charsets if you don't have
-a Unicode font with which to display them.
-"
+a Unicode font with which to display them."
   (if sets
       (progn
 	(mapc #'latin1-display-setup sets)
@@ -124,16 +123,17 @@ a Unicode font with which to display them.
 	   (lambda (l)
 	     (apply 'latin1-display-char l))
 	   '((?\œôòú ",") ;; SINGLE LOW-9 QUOTATION MARK
-	     (?\œôòþ ",,")	;; DOUBLE LOW-9 QUOTATION MARK
+	     (?\œôòþ ",,") ;; DOUBLE LOW-9 QUOTATION MARK
 	     (?\œôó¦ "...") ;; HORIZONTAL ELLIPSIS
 	     (?\œôó° "o/oo") ;; PER MILLE SIGN
 	     (?\œôó¹ "<") ;; SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-	     (?\œôòü "``")	;; LEFT DOUBLE QUOTATION MARK
-	     (?\œôòý "''")	;; RIGHT DOUBLE QUOTATION MARK
+	     (?\œôòü "``") ;; LEFT DOUBLE QUOTATION MARK
+	     (?\œôòý "''") ;; RIGHT DOUBLE QUOTATION MARK
 	     (?\œôòó "-") ;; EN DASH
-	     (?\œôòô "--")	;; EM DASH
-	     (?\œôõâ "TM")	;; TRADE MARK SIGN
-	     (?\œôóº ">")))) ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	     (?\œôòô "--") ;; EM DASH
+	     (?\œôõâ "TM") ;; TRADE MARK SIGN
+	     (?\œôóº ">") ;; SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+	     )))
 	  (setq latin1-display t))
     (mapc #'latin1-display-reset latin1-display-sets)
     (aset standard-display-table
@@ -184,8 +184,10 @@ LANGUAGE is a symbol naming a language environment using an ISO8859
 character set."
   (if (eq language 'cyrillic)
       (setq language 'cyrillic-iso))
-  (let ((charset (car (remq 'ascii (get-language-info language
-							'charset)))))
+  (let ((charset (if (eq language 'arabic)
+		     'arabic-iso8859-6
+		   (car (remq 'ascii (get-language-info language
+							'charset))))))
     (standard-display-default (make-char charset 32)
 			      (make-char charset 127)))
   (sit-for 0))
@@ -220,7 +222,8 @@ character set: `latin-2', `hebrew' etc."
 		 ;; Now FONT-PATTERN is a string or a cons of family
 		 ;; field pattern and registry field pattern.
 		 (or (stringp font-pattern)
-		     (setq font-pattern (concat (or (car font-pattern) "*")
+		     (setq font-pattern (concat "-"
+						(or (car font-pattern) "*")
 						"-*-"
 						(cdr font-pattern))))
 		 (x-list-fonts font-pattern 'default (selected-frame) 1)))))
