@@ -1,6 +1,6 @@
 /* impl.h.meter: METER INTERFACE
  *
- * $HopeName: MMsrc!meter.h(trunk.4) $
+ * $HopeName: MMsrc!meter.h(trunk.5) $
  * Copyright (C) 1998, 1999 Harlequin Group plc.  All rights reserved.
  *
  * .sources: mps.design.metrics.
@@ -44,7 +44,13 @@ extern void MeterEmit(Meter meter);
 /* Hack: owner is typically only used for MeterInit */
 #define METER_ACC(meter, delta) \
   STATISTIC(MeterAccumulate(&(meter), delta))
+#if defined(DIAGNOSTICS)
 #define METER_WRITE(meter, stream) MeterWrite(&(meter), stream)
+#elif defined(DIAGNOSTICS_NONE)
+#define METER_WRITE(meter, stream) (ResOK)
+#else
+#error "Diagnostics not configured."
+#endif
 #define METER_EMIT(meter) STATISTIC(MeterEmit(meter))
 
 
