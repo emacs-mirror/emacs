@@ -196,9 +196,6 @@ extern Lisp_Object Qunsplittable, Qmenu_bar_lines;
 
 extern Lisp_Object Vwindow_system_version;
 
-/* Mouse map for clicks in windows.  */
-extern Lisp_Object Vglobal_mouse_map;
-
 
 /* Error if we are not connected to X.  */
 static void
