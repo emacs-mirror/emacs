@@ -1,3 +1,8 @@
+2001-01-08  Richard M. Stallman  <rms@caffeine.ai.mit.edu>
+
+	* mouse-drag.el (mouse-drag-should-do-col-scrolling):
+	Change screen-width to frame-width.
+
 2001-01-08  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* info.el (Info-search): Print the default as part of the prompt.
