@@ -1,0 +1,406 @@
+              DESIGN OF THE MPS ALLOCATION FRAME PROTOCOL
+                         design.mps.alloc-frame
+                             incomplete doc
+                            tony 1998-10-02
+
+INTRODUCTION
+
+.intro: This document explains the design of the support for allocation frames 
+in MPS. 
+
+.readership: This document is intended for any MM developer.
+
+.overview: Allocation frames are used for implementing stack pools; each stack 
+frame corresponds to an allocation frame.  Allocation frames may also be 
+suitable for implementing other sub-pool groupings, such as generations and 
+ramp allocation patterns.  .overview.ambition: We now believe this to be a 
+design that loses too many advantages of stack allocation for questionable 
+gains.  The requirements are almost entirely based on unanalysed anecdote, 
+instead of actual clients.  [We plan to supersede this with a stack pool design 
+at some point in the future.  pekka 2000-03-09]
+
+.hist.0: Written by Tony 1998-10-02
+
+
+DEFINITIONS
+
+.def.alloc-frame: An allocation frame is a generic name for a device which 
+groups objects together with other objects at allocation time, and which may 
+have a perent/child relationship with other allocation frames.
+
+
+PURPOSE
+
+.purpose.stack-allocation: The allocation frame protocol is intended to support 
+efficient memory management for stack allocation, i.e., the allocation of 
+objects which have dynamic extent.
+
+.purpose.general: The allocation frame protocol is intended to be sufficiently 
+general that it will be useful in supporting other types of nested allocation 
+patterns too.  For example, it could be used to for EPVM-style save and 
+restore, ramp allocation patterns or generations. 
+
+
+REQUIREMENTS
+
+Known requirements
+
+.req.stack-alloc: Provide a interface for clients to describe a stack 
+allocation pattern, as an alternative to using the control stack.
+
+.req.efficient: Permit an implementation which is comparable in efficiency to 
+allocating on the control stack.
+
+.req.ap: Support allocation via allocation points (APs).
+
+.req.format: Support the allocation of formatted objects.
+
+.req.scan: Ensure that objects in allocation frames can participate in garbage 
+collection by being scanned.
+
+.req.fix: Ensure that objects in allocation frames can participate in garbage 
+collection by accepting Fix requests.
+
+.req.condemn: Ensure that objects in allocation frames can participate in 
+garbage collection by being condemned.
+
+.attr.locking: Minimize the synchronization cost for the creation and 
+destruction of frames.
+
+
+Proto-requirements
+
+.proto-req: The following are possible requirements that might be important in 
+the future. The design does not necessarily meet all these requirements, but it 
+does consider them all. Each requirement either has direct support in the 
+framework, or could be supported with future additions to the framework.
+
+.req.parallels: The allocation frame protocol should provide a framework for 
+exploiting the parallels between stack extents, generations and "ramps".
+
+.req.pool-destroy: It should be possible to use allocation frames to free all 
+objects in a pool without destroying the pool.
+
+.req.epvm: It should be possible to implement EPVM-style save and restore 
+operations by creating and destroying allocation frames.
+
+.req.subst: It should be possible to substitute a stack pool with a GC-ed pool 
+so that erroneous use of a stack pool can be detected.
+
+.req.format-extensions: It should be possible for stack pools to utilize the 
+same format as any other pool, including debugging formats that include 
+fenceposting, etc.
+
+.req.mis-nest: Should ensure "mis-nested" stacks are safe.
+
+.req.non-top-level: Should support allocation in the non-top stack extent.
+
+.req.copy-if-necessary: Should ensure that stack pools can support 
+"copy-if-necessary" (so that low-level system code can heapify stack objects.)
+
+.req.preserve: When an object is in an allocation frame which is being 
+destroyed, it should be possible to preserve that object in the parent frame.
+
+.req.contained: Should allow clients to ask if an object is "contained" in a 
+frame. The object is contained in a frame if it is affected when the frame is 
+ended.
+
+.req.alloc-with-other:  Should allow clients to allocate an object in the same 
+frame as another object.
+
+
+OVERVIEW
+
+.frame-classes: The protocol supports different types of allocation frames, 
+which are represented as "frame classes".  It's up to pools to determine which 
+classes of allocation frames they support.  Pools which support more than one 
+frame class rely on the client to indicate which class is currently of 
+interest.  The client indicates this by means of an operation which stores the 
+class in the buffer to which the allocation point is attached.
+
+.frame-handles: Allocation frames are described via abstract "frame handles".  
+Pools may choose what the representation of a frame handle should be.  Frame 
+handles are static, and the client need not store them in a GC root.
+
+.lightweight-frames: The design includes an extention to the allocation point 
+protocol, which permits the creation and destruction of allocation frames 
+without the necessity for claiming the arena lock.  Such frames are called 
+"lightweight frames".
+
+
+OPERATIONS
+
+.op.intro: Each operation has both an external (client) interface and an 
+internal (MPS) interface.  The external function takes an allocation point as a 
+parameter, determines which buffer and pool it belongs to, and calls the 
+internal function with the buffer and pool as parameters.
+
+.op.obligatory: The following operations are supported on any allocation point 
+which supports allocation frames:-
+
+.operation.push: The PushFrame operation creates a new allocation frame of the 
+currently chosen frame class, makes this new frame the current frame, and 
+returns a handle for the frame.
+
+.operation.pop: The PopFrame operation takes a frame handle as a parameter.  
+Some pool classes might insist or assume that this is the handle for the 
+current frame.  It finds the parent of that frame and makes it the current 
+frame.  The operation indicates that all children of the new current frame 
+contain objects which are likely to be dead.  The reclaim policy is up to the 
+pool; some classes might insist or assume that the objects must be dead, and 
+eagerly free them.  Note that this might introduce the possibility of leaving 
+dangling pointers elsewhere in the arena.  If so, it's up to the pool to decide 
+what to do about this.
+
+.op.optional: The following operations are supported for some allocation 
+frames, but not all. Pools may choose to support some or all of these 
+operations for certain frame classes. An unsupported operation will return a 
+failure value:-
+
+.operation.select: The SelectFrame operation takes a frame handle as a 
+parameter and makes that frame the current frame.  It does not indicate that 
+any children of the current frame contain objects which are likely to be dead.
+
+.operation.select-addr: The SelectFrameOfAddr operation takes an address as a 
+parameter and makes the frame of that address the current frame.  It does not 
+indicate that any children of the current frame contain objects which are 
+likely to be dead.
+
+.operation.in-frame: The AddrInFrame operation determines whether the supplied 
+address is the address of an object allocated in the supplied frame, or any 
+child of that frame.
+
+.operation.set: The SetFrameClass operation takes a frame class and an 
+allocation point as parameters, and makes that the current frame class for the 
+allocation point.  The next PushFrame operation will create a new frame of that 
+class.
+
+
+INTERFACE
+
+External types (used by all client of allocation frames)
+
+.type.client.frame-handle: Frame handles are defined as an abstract type:
+        typedef struct mps_frame_s *mps_frame_t;  
+
+
+External types  (complete set)
+
+.type.client.frame-class: Frame classes are defined as an abstract type:
+        typedef struct mps_frame_class_s *mps_frame_class_t;  
+
+.type.client.frame-class.access: Clients access frame classes by means of 
+dedicated functions for each frame class. 
+
+
+External functions (used by all client of allocation frames)
+
+.fn.client.push: The following function is used by clients to invoke the 
+PushFrame operation.  For lightweight frames, this might not invoke the 
+corresponding internal function:
+       mps_res_t mps_ap_frame_push(mps_frame_t *frame_o, mps_ap_t buf);  
+
+.fn.client.pop:  The following function is used by clients to invoke the 
+PopFrame operation.  For lightweight frames, this might not invoke the 
+corresponding internal function:
+       mps_res_t mps_ap_frame_pop(mps_ap_t buf, mps_frame_t frame);
+
+
+External functions (complete set)
+
+.fn.client.select:  The following function is used by clients to invoke the 
+SelectFrame operation:
+       mps_res_t mps_ap_frame_select(mps_ap_t buf, mps_frame_t frame);
+
+.fn.client.select-addr:  The following function is used by clients to invoke 
+the SelectFrameOfAddr operation:
+       mps_res_t mps_ap_frame_select_from_addr(mps_ap_t buf, mps_addr_t addr);
+
+.fn.client.in-frame:  The following function is used by clients to invoke the 
+AddrInFrame operation:
+       mps_res_t mps_ap_addr_in_frame(mps_bool_t *inframe_o, mps_ap_t buf, 
+                                      mps_addr_t *addrref, mps_frame_t frame);  
+
+.fn.client.set: The following function is used by clients to invoke the 
+SetFrameClass operation:
+       mps_res_t mps_ap_set_frame_class(mps_ap_t buf, mps_frame_class_t 
+class);  
+
+
+.fn.client.stack-frame-class: The following function is used by clients to 
+access the frame class used for simple stack allocation:
+       mps_frame_class_t mps_alloc_frame_class_stack(void);  
+
+
+Internal types (used by all implementations of allocation frames)
+
+.type.frame-handle: Frame handles are defined as an abstract type:
+       typedef struct AllocFrameStruct *AllocFrame;
+
+
+Internal types  (complete set)
+
+.type.frame-class: Frame classes are defined as an abstract type:
+       typedef struct AllocFrameClassStruct *AllocFrameClass;
+
+
+Internal functions (used by all implementations of allocation frames)
+
+
+.fn.push: A pool method of the following type is called (if needed) to invoke 
+the PushFrame operation:
+       typedef Res (*PoolFramePushMethod)(AllocFrame *frameReturn,
+                                          Pool pool, Buffer buf);
+ 
+.fn.pop: A pool method of the following type is called (if needed) to invoke 
+the PopFrame operation:
+       typedef Res (*PoolFramePopMethod)(Pool pool, Buffer buf,
+                                         AllocFrame frame);
+
+Internal functions (complete set)
+
+.fn.select: A pool method of the following type is called to invoke the 
+SelectFrame operation:
+       typedef Res (*PoolFrameSelectMethod)(Pool pool, Buffer buf,
+                                            AllocFrame frame);
+
+.fn.select-addr: A pool method of the following type is called to invoke the 
+SelectFrameOfAddr operation:
+       typedef Res (*PoolFrameSelectFromAddrMethod)(Pool pool, Buffer buf,
+                                                    Addr addr);
+
+.fn.in-frame: A pool method of the following type is called to invoke the 
+AddrInFrame operation:
+       typedef Res (*PoolAddrInFrameMethod)(Bool *inframeReturn, 
+                                            Pool pool, Seg seg, Addr *addrref, 
+                                            AllocFrame frame);
+
+.fn.set: A pool method of the following type is called to invoke the 
+SetFrameClass operation:
+       typedef Res (*PoolSetFrameClassMethod)(Pool pool, Buffer buf, 
+                                              AllocFrameClass class);
+
+
+LIGHTWEIGHT FRAMES 
+
+Overview
+
+.lw-frame.overview: Allocation points provide direct support for lightweight 
+frames, and are designed to permit PushFrame and PopFrame operations without 
+the need for locking and delegation to the pool method.  Pools can disable this 
+mechanism for any allocation point, so that the pool method is always called.  
+The pool method will be called whenever synchronization is required for other 
+reasons (e.g. the buffer is tripped).
+
+.lw-frame.model: Lightweight frames offer direct support for a particular model 
+of allocation frame use, whereby the PushFrame operation returns the current 
+allocation pointer as a frame handle, and the PopFrame operation causes the 
+allocation pointer to be reset to the address of the frame handle.  This model 
+should be suitable for simple stack frames, where more advanced operations like 
+SelectFrame are not supported.  It may also be suitable for more advanced 
+allocation frame models when they are being used simply.  The use of a complex 
+operation always involves synchronization via locking, and the pool may disable 
+lightweight synchronization temporarily at this time.
+
+State
+
+.lw-frame.states: Allocation points supporting lightweight frames will be in 
+one of the following states:-
+Valid:        Indicates that PushFrame can be a lightweight operation and need 
+not be synchronized
+PopPending:   Indicates that there has been a PopFrame operation that the pool 
+must respond to
+Disabled:     Indicates that the pool has disabled support for lightweight 
+operations for this AP
+These states are in addition to the state normally held by an AP for allocation 
+purposes. An AP will be in the Disabled state at creation.
+
+.lw-frame.transitions: State transitions happen under the following 
+circumstances:-
+Valid -> PopPending    :  As a result of a client PopFrame operation
+Valid -> Disabled      :  At the choice of the pool (e.g. when responding to a 
+SelectFrame operation)
+PopPending -> Valid    :  At the choice of the pool, when processing a PopFrame
+PopPending -> Disabled :  At the choice of the pool, when processing a PopFrame
+Disabled -> Valid      :  At the choice of the pool
+Disabled -> Popframe   :  Illegal
+
+.lw-frame.state-impl: Each AP contains 3 additional fields to hold this state:
+
+  mps_addr_t frameptr; 
+  mps_bool_t enabled; 
+  mps_bool_t lwPopPending;
+
+.lw-frame.enabled: The enabled slot holds the following values for each state:
+Valid:      TRUE
+PopPending: TRUE
+Disabled:   FALSE
+
+.lw-frame.frameptr: The frameptr slot holds the following values for each state:
+
+Valid:      NULL
+PopPending: Frame handle for most recently popped frame.
+Disabled:   NULL
+
+.lw-frame.lwPopPending: The lwPopPending slot holds the following values for 
+each state:
+
+Valid:      FALSE
+PopPending: TRUE
+Disabled:   FALSE
+
+
+.lw-frame.state-for-gc: It is not necessary for the tracer, format code, pool, 
+or any other part of the GC support in MPS to read either of the 2 additional 
+AP fields in order to scan a segment which supports a lightweight allocation 
+frame.
+
+
+Synchronization
+
+.lw-frame.sync: The purpose of the design is that mutator may access the state 
+of an AP without locking with MPS (via the external functions).  The design 
+assumes the normal MPS restriction that an operation on an AP may only be 
+performed by a single mutator thread at a time.  Each of the operations on 
+allocation frames counts as an operation on an AP.
+
+.lw-frame.sync.pool: Pools are permitted to read or modify the lightweight 
+frame state of an AP only in response to an operation on that AP.
+
+.lw-frame.sync.external: The external functions mps_ap_frame_push and 
+mps_ap_frame_pop are permitted to read the values of the enabled and frameptr 
+fields for the supplied AP without claiming the arena lock.  They are permitted 
+to modify the frameptr field iff enabled == FALSE.
+
+.lw-frame.sync.trip: When a buffer trip happens, and the trap wasn't set by MPS 
+itself (i.e. it wasn't because of a flip or for logging), then the buffer code 
+must check whether the AP has state PopPending.  If it does, the buffer code 
+must call the Pool.
+
+
+Implementation
+
+.lw-frame.push: The external PushFrame operation (mps_ap_frame_push) performs 
+the following operations:
+   IF (!APIsTrapped(ap) && StateOfFrame(ap) == Valid && ap->init == ap->alloc)
+      *frame_o = ap->init;
+   ELSE
+     WITH_ARENA_LOCK
+       PerformInternalPushFrameOperation(...)
+     END
+   END
+
+
+.lw-frame.pop: The external PopFrame operation (mps_ap_frame_pop) performs the 
+following operations:
+   IF (StateOfFrame(ap) != Disabled)
+     TrapAP(ap);  /* ensure next allocation or push involves the pool */
+     ap->frameptr = frame;
+     ap->lwpopPending = TRUE;
+   ELSE
+     WITH_ARENA_LOCK
+       PerformInternalPopFrameOperation(...)
+     END
+   END
+
+
