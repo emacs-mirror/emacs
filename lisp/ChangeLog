@@ -1,3 +1,11 @@
+2002-04-29  Richard M. Stallman  <rms@gnu.org>
+
+	* filesets.el (filesets-running-xemacs): Make defvar unconditional.
+	(filesets-ingroup-files): Renamed from filesets-ingroup-paths.
+	(filesets-error): Simplify definition and make conditional
+	on filesets-running-xemacs.
+	(filesets-find-file-using): Renamed from fsfind-file-using.
+
 2002-04-29  Colin Walters  <walters@verbum.org>
 
 	* ibuf-ext.el (ibuffer-kill-filter-group): Call `delete' function.
