@@ -72,7 +72,7 @@ Root must be the root of an Emacs source tree."
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.
 Root must be the root of an Emacs source tree."
-  (interactive "DEmacs root directory: \nNVersion number: ")
+  (interactive "DEmacs root directory: \nsVersion number: ")
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
   (set-version-in-file root "lisp/version.el" version
