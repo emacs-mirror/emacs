@@ -140,6 +140,7 @@ LIBS =  $(TLIB0)	\
 	$(USER32)	\
 	$(MPR)		\
 	$(SHELL32)	\
+	$(WINSPOOL)	\
 	$(libc)
 
 #
