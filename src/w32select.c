@@ -86,6 +86,10 @@ DEFUN ("win32-set-clipboard-data", Fwin32_set_clipboard_data, Swin32_set_clipboa
 {
   BOOL ok = TRUE;
   HANDLE htext;
+  int nbytes;
+  int truelen;
+  unsigned char *src;
+  unsigned char *dst;
   
   CHECK_STRING (string, 0);
   
@@ -93,40 +97,52 @@ DEFUN ("win32-set-clipboard-data", Fwin32_set_clipboard_data, Swin32_set_clipboa
     CHECK_LIVE_FRAME (frame, 0);
   
   BLOCK_INPUT;
-  
-  /* Allocate twice the amount so we can convert lf to cr-lf */
-  
-  if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, (2 * XSTRING (string)->size) + 1)) == NULL)
-    goto error;
-  
-  {
-    unsigned char *lptext;
-    
-    if ((lptext = (unsigned char *)GlobalLock (htext)) == NULL)
-      goto error;
-	    
+
+  nbytes = XSTRING (string)->size + 1;
+  src = XSTRING (string)->data;
+
+  /* need to know final size after '\r' chars are inserted (the
+     standard CF_TEXT clipboard format uses CRLF line endings,
+     while Emacs uses just LF internally) */
+
+  truelen = nbytes;
+  dst = src;
+  /* avoid using strchr because it recomputes the length everytime */
+  while ((dst = memchr (dst, '\n', nbytes - (dst - src))) != NULL)
     {
-      int i = XSTRING (string)->size;
-      int newsize = XSTRING (string)->size;
-      register char *p1 = XSTRING (string)->data;
-      register char *p2 = lptext;
-      
-      while (i--)
+      truelen++;
+      dst++;
+    }
+
+  if ((htext = GlobalAlloc (GMEM_MOVEABLE | GMEM_DDESHARE, truelen)) == NULL)
+    goto error;
+
+  if ((dst = (unsigned char *) GlobalLock (htext)) == NULL)
+    goto error;
+    
+  /* convert to CRLF line endings expected by clipboard */
+  while (1)
+    {
+      unsigned char *next;
+      /* copy next line or remaining bytes including '\0' */
+      next = _memccpy (dst, src, '\n', nbytes);
+      if (next)
 	{
-	  if (*p1 == '\n')
-	    {
-	      newsize++;
-	      *p2++ = '\r';
-	    }
-	  
-	  *p2++ = *p1++;
-	}
-      
-      *p2 = 0;
+	  /* copied one line ending with '\n' */
+	  int copied = next - dst;
+	  nbytes -= copied;
+	  src += copied;
+	  /* insert '\r' before '\n' */
+	  next[-1] = '\r';
+	  next[0] = '\n';
+	  dst = next + 1;
+	}	    
+      else
+	/* copied remaining partial line -> now finished */
+	break;
     }
     
-    GlobalUnlock (htext);
-  }
+  GlobalUnlock (htext);
   
   if (!OpenClipboard ((!NILP (frame) && FRAME_WIN32_P (XFRAME (frame))) ? FRAME_WIN32_WINDOW (XFRAME (frame)) : NULL))
     goto error;
@@ -167,41 +183,54 @@ DEFUN ("win32-get-clipboard-data", Fwin32_get_clipboard_data, Swin32_get_clipboa
   if ((htext = GetClipboardData (CF_TEXT)) == NULL)
     goto closeclip;
 
-	    
   {
-    unsigned char *lptext;
+    unsigned char *src;
+    unsigned char *dst;
     int nbytes;
+    int truelen;
     
-    if ((lptext = (unsigned char *)GlobalLock (htext)) == NULL)
+    if ((src = (unsigned char *) GlobalLock (htext)) == NULL)
       goto closeclip;
     
-    nbytes = strlen (lptext);
-    
-    {
-      char *buf = (char *) xmalloc (nbytes);
-      register char *p1 = lptext;
-      register char *p2 = buf;
-      int i = nbytes;
-      
-      if (buf == NULL) goto closeclip;
-      
-      while (i--)
-	{
-	  if (p1[0] == '\r' && i && p1[1] == '\n')
-	    {
-	      p1++;
-	      i--;
-	      nbytes--;
-	    }
+    nbytes = strlen (src);
 
-	  *p2++ = *p1++;
-	}
-      
-      ret = make_string (buf, nbytes);
-      
-      xfree (buf);
-    }
-    
+    /* need to know final size after '\r' chars are removed because
+       we can't change the string size manually, and doing an extra
+       copy is silly */
+
+    truelen = nbytes;
+    dst = src;
+    /* avoid using strchr because it recomputes the length everytime */
+    while ((dst = memchr (dst, '\r', nbytes - (dst - src))) != NULL)
+      {
+	truelen--;
+	dst++;
+      }
+
+    ret = make_uninit_string (truelen);
+
+    /* convert CRLF line endings (the standard CF_TEXT clipboard
+       format) to LF endings as used internally by Emacs */
+
+    dst = XSTRING (ret)->data;
+    while (1)
+      {
+	unsigned char *next;
+	/* copy next line or remaining bytes excluding '\0' */
+	next = _memccpy (dst, src, '\r', nbytes);
+	if (next)
+	  {
+	    /* copied one line ending with '\r' */
+	    int copied = next - dst;
+	    nbytes -= copied;
+	    dst += copied - 1;		/* overwrite '\r' */
+	    src += copied;
+	  }	    
+	else
+	  /* copied remaining partial line -> now finished */
+	  break;
+      }
+
     GlobalUnlock (htext);
   }
 
