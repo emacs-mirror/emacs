@@ -332,7 +332,7 @@ this command sets the region to the requested face.
 Otherwise, this command specifies the face for the next character
 inserted.  Moving point or switching buffers before
 typing a character to insert cancels the specification." 
-  (interactive (list (read-face-name "Use face: ")))
+  (interactive (list (read-face-name "Use face ")))
   (barf-if-buffer-read-only)
   (facemenu-add-new-face face)
   (if (and mark-active (not current-prefix-arg))
