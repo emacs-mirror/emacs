@@ -3,6 +3,9 @@
 	* progmodes/f90.el (f90-match-end, f90-break-line): Simplify a bit.
 	(f90-get-present-comment-type): Fix earlier change.
 	(f90-comment-indent): Doc fix.
+	(f90-equal-symbols, f90-looking-at-do, f90-looking-at-select-case)
+	(f90-looking-at-if-then): Remove lets.
+	(f90-looking-at-where-or-forall): Handle if split over lines.
 
 2002-05-19  Richard M. Stallman  <rms@gnu.org>
 
