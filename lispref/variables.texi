@@ -484,7 +484,8 @@ Here is an equivalent expression for the @code{defvar} special form:
 (progn
   (if (not (boundp '@var{symbol}))
       (setq @var{symbol} @var{value}))
-  (put '@var{symbol} 'variable-documentation '@var{doc-string})
+  (if '@var{doc-string}
+    (put '@var{symbol} 'variable-documentation '@var{doc-string}))
   '@var{symbol})
 @end group
 @end example
