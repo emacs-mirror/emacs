@@ -459,7 +459,7 @@ See documentation of variable `tags-file-name'."
 		 (find-tag-tag "Find tag: ")))
   (let ((local-find-tag-hook find-tag-hook))
     (if next-p
-	nil
+	(visit-tags-table-buffer 'same)
       (setq last-tag tagname)
       (visit-tags-table-buffer 'reset))
     (prog1
@@ -1102,8 +1102,12 @@ see the doc of that variable if you want to add names to the list."
   "Perform tags completion on the text around point.
 Completes to the set of names listed in the current tags table.  
 The string to complete is chosen in the same way as the default
-for \\[find-tag] (which see).  See also `visit-tags-table-buffer'."
+for \\[find-tag] (which see)."
   (interactive)
+  (or tags-table-list
+      tags-file-name
+      (error (substitute-command-keys
+	      "No tags table loaded.  Try \\[visit-tags-table].")))
   (let ((pattern (funcall (or find-tag-default-function
 			      (get major-mode 'find-tag-default-function)
 			      'find-tag-default)))
