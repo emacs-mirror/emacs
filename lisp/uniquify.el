@@ -202,10 +202,12 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 			      newbuffile)))
 		    (uniquify-buffer-file-name buffer)))
 	     (rawname (and bfn (uniquify-file-name-nondirectory bfn)))
+	     (bufname (buffer-name buffer))
 	     (deserving (and rawname
+			     (not (string= bufname " **lose**"))
 			     (not (and uniquify-ignore-buffers-re
 				       (string-match uniquify-ignore-buffers-re
-						     (buffer-name buffer))))
+						     bufname)))
 			     (or (not newbuffile)
 				 (equal rawname newbuffile-nd))))
 	     (min-proposed (if deserving
@@ -213,7 +215,7 @@ file name elements.  Arguments cause only a subset of buffers to be renamed."
 				rawname bfn uniquify-min-dir-content))))
 	(if deserving
 	    (push (list rawname bfn buffer min-proposed) fix-list)
-	  (push (list (buffer-name buffer)) uniquify-non-file-buffer-names))))
+	  (push (list bufname) uniquify-non-file-buffer-names))))
     ;; selects buffers whose names may need changing, and others that
     ;; may conflict.
     (setq fix-list
