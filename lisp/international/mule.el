@@ -1123,7 +1123,9 @@ Return the resulting coding system."
   "Define SYMBOL as a coding-system that is defined on demand.
 
 FROM is a form to evaluate to define the coding-system."
-  (put symbol 'coding-system-define-form form))
+  (put symbol 'coding-system-define-form form)
+  (setq coding-system-alist (cons (list (symbol-name symbol))
+				  coding-system-alist)))
 
 (defun set-buffer-file-coding-system (coding-system &optional force)
   "Set the file coding-system of the current buffer to CODING-SYSTEM.
