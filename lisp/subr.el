@@ -447,12 +447,6 @@ Please convert your programs to use the variable `baud-rate' directly."
 
 ;;;; Hook manipulation functions.
 
-;; We used to have this variable so that C code knew how to run hooks.  That
-;; calling convention is made obsolete now the hook running functions are in C.
-(defconst run-hooks 'run-hooks
-  "Variable by which C primitives find the function `run-hooks'.
-Don't change it.  Don't use it either; use the hook running C primitives.")
-
 (defun make-local-hook (hook)
   "Make the hook HOOK local to the current buffer.
 When a hook is local, its local and global values
