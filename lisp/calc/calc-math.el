@@ -1070,7 +1070,7 @@
 		      (math-div-float (math-mul-float (car sc) ch) d)
 		      (math-div-float (math-mul-float (cdr sc) sh) d)))))
 	((eq (car x) 'polar)
-	 (math-polar (math-sec-raw (math-complex x))))
+	 (math-polar (math-csc-raw (math-complex x))))
 	(t
 	 (let ((sn (math-sin-raw x)))
            (if (eq sn 0)
