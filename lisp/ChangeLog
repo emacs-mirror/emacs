@@ -1,3 +1,8 @@
+2005-01-23  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move): Fix last change.  Check partial
+	visibility at point rather than at window-start.
+
 2005-01-22  Jason Rumney  <jasonr@gnu.org>
 
 	* term/w32-win.el (xw-defined-colors): Remove debug-message.

@@ -1,6 +1,11 @@
 2005-01-23  Kim F. Storm  <storm@cua.dk>
 
+	* window.c (window_scroll_pixel_based): Force moving to next line
+	if scrolling doesn't move start point, e.g. if looking at tall image.
+
 	* xdisp.c (pos_visible_p): Return 0 if non-interactive.
+	Clear last_height before calling line_bottom_y to get real height.
+	Fix calculation of y.
 
 2005-01-22  Steven Tamm  <steventamm@mac.com>
 
