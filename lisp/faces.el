@@ -1432,6 +1432,10 @@ Set this to the symbol dark if your background color is dark, light if
 your background is light, or nil (default) if you want Emacs to
 examine the brightness for you."
   :group 'faces
+  :set #'(lambda (var value)
+	   (set var value)
+	   (mapcar 'frame-set-background-mode (frame-list)))
+  :initialize 'custom-initialize-changed
   :type '(choice (choice-item dark) 
 		 (choice-item light)
 		 (choice-item :tag "default" nil)))
