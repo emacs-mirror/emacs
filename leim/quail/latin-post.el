@@ -1372,68 +1372,6 @@ Doubling the postfix separates the letter and postfix: e.g. aee -> ae
  )
 
 (quail-define-package
- "turkish-latin-3-postfix" "Turkish" "TR3<" t
- "Turkish (Türkçe) input method with postfix modifiers.
-
-This is for those who use Latin-3 (ISO-8859-3) for Turkish.  If you
-use Latin-5 (ISO-8859-9), you should use \"turkish-postfix\" instead.
-
-Note for I, ı, İ, i.
-
-A^ -> Â
-C, -> Ç
-G^ -> Ğ
-I  -> I
-i  -> ı
-I. -> İ
-i. -> i
-O\" -> Ö
-S, -> Ş
-U\" -> Ü
-U^ -> Û
-
-Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
-" nil t nil nil nil nil nil nil nil nil t)
-
-(quail-define-rules
- ("A^" ?Â)
- ("a^" ?â)
- ("C," ?Ç)
- ("c," ?ç)
- ("G^" ?Ğ)
- ("g^" ?ğ)
- ("I." ?İ)
- ("i" ?ı)
- ("i." ?i)
- ("O\"" ?Ö)
- ("o\"" ?ö)
- ("S," ?Ş)
- ("s," ?ş)
- ("U\"" ?Ü)
- ("u\"" ?ü)
- ("U^" ?Û)
- ("u^" ?û)
-
- ("A^^" ["A^"])
- ("a^^" ["a^"])
- ("C,," ["C,"])
- ("c,," ["c,"])
- ("G^^" ["G^"])
- ("g^^" ["g^"])
- ("I.." ["I."])
- ("i" ["i"])
- ("i.." ["i."])
- ("O\"\"" ["O\""])
- ("o\"\"" ["o\""])
- ("S,," ["S,"])
- ("s,," ["s,"])
- ("U\"\"" ["U\""])
- ("u\"\"" ["u\""])
- ("U^^" ["U^"])
- ("u^^" ["u^"])
- )
-
-(quail-define-package
  "turkish-postfix" "Turkish" "TR<" t
  "Turkish (Türkçe) input method with postfix modifiers.
 
@@ -1495,6 +1433,11 @@ Doubling the postfix separates the letter and postfix: e.g. a^^ -> a^
  ("U^^" ["U^"])
  ("u^^" ["u^"])
  )
+
+;; Backwards compatibility.
+(push (cons "turkish-latin-3-postfix"
+	    (cdr (assoc "turkish-postfix" input-method-alist)))
+      input-method-alist)
 
 (quail-define-package
  "british" "Latin-1" "£@" t
