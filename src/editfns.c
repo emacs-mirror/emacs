@@ -708,36 +708,44 @@ ZONE is an integer indicating the number of seconds east of Greenwich.\n\
   return Flist (9, list_args);
 }
 
-DEFUN ("encode-time", Fencode_time, Sencode_time, 6, 7, 0,
+DEFUN ("encode-time", Fencode_time, Sencode_time, 6, MANY, 0,
   "Convert SECOND, MINUTE, HOUR, DAY, MONTH, YEAR and ZONE to internal time.\n\
-This is the reverse operation of `decode-time', which see.  ZONE defaults\n\
-to the current time zone rule if not specified; if specified, it can\n\
+This is the reverse operation of `decode-time', which see.\n\
+ZONE defaults to the current time zone rule.  This can\n\
 be a string (as from `set-time-zone-rule'), or it can be a list\n\
 (as from `current-time-zone') or an integer (as from `decode-time')\n\
 applied without consideration for daylight savings time.\n\
+\n\
+You can pass more than 7 arguments; then the first six arguments\n\
+are used as SECOND through YEAR, and the *last* argument is used as ZONE.\n\
+The intervening arguments are ignored.\n\
+This feature lets (apply 'encode-time (decode-time ...)) work.\n\
+\n\
 Out-of-range values for SEC, MINUTE, HOUR, DAY, or MONTH are allowed;\n\
 for example, a DAY of 0 means the day preceding the given month.\n\
 Year numbers less than 100 are treated just like other year numbers.\n\
 If you want them to stand for years in this century, you must do that yourself.")
-  (second, minute, hour, day, month, year, zone)
-     Lisp_Object second, minute, hour, day, month, year, zone;
+  (nargs, args)
+     int nargs;
+     register Lisp_Object *args;
 {
   time_t time;
   struct tm tm;
+  Lisp_Object zone = (nargs > 6)? args[nargs - 1] : Qnil;
 
-  CHECK_NUMBER (second, 0);
-  CHECK_NUMBER (minute, 1);
-  CHECK_NUMBER (hour, 2);
-  CHECK_NUMBER (day, 3);
-  CHECK_NUMBER (month, 4);
-  CHECK_NUMBER (year, 5);
+  CHECK_NUMBER (args[0], 0);	/* second */
+  CHECK_NUMBER (args[1], 1);	/* minute */
+  CHECK_NUMBER (args[2], 2);	/* hour */
+  CHECK_NUMBER (args[3], 3);	/* day */
+  CHECK_NUMBER (args[4], 4);	/* month */
+  CHECK_NUMBER (args[5], 5);	/* year */
 
-  tm.tm_sec = XINT (second);
-  tm.tm_min = XINT (minute);
-  tm.tm_hour = XINT (hour);
-  tm.tm_mday = XINT (day);
-  tm.tm_mon = XINT (month) - 1;
-  tm.tm_year = XINT (year) - 1900;
+  tm.tm_sec = XINT (args[0]);
+  tm.tm_min = XINT (args[1]);
+  tm.tm_hour = XINT (args[2]);
+  tm.tm_mday = XINT (args[3]);
+  tm.tm_mon = XINT (args[4]) - 1;
+  tm.tm_year = XINT (args[5]) - 1900;
   tm.tm_isdst = -1;
 
   if (CONSP (zone))
