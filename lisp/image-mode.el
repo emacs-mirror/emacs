@@ -109,4 +109,5 @@ and showing the image as an image."
 
 (provide 'image-mode)
 
+;; arch-tag: b5b2b7e6-26a7-4b79-96e3-1546b5c4c6cb
 ;;; image-mode.el ends here
