@@ -436,7 +436,7 @@ update_one_menu_entry (widget_instance* instance, Widget widget,
     {
       if (contents)
 	{
-	  menu = XmCreatePulldownMenu (widget, "pulldown", NULL, 0);
+	  menu = XmCreatePulldownMenu (XtParent (widget), "pulldown", NULL, 0);
 	  make_menu_in_widget (instance, menu, contents);
 	  ac = 0;
 	  XtSetArg (al [ac], XmNsubMenuId, menu); ac++;
