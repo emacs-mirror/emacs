@@ -1907,6 +1907,9 @@ make_ctrl_char (c)
    arguments; the function should return a help string or nil for
    none.  For all other types of HELP evaluate it to obtain a string.
 
+   WINDOW is the window in which the help was generated, if any.
+   It is nil if not in a window.
+
    OBJECT is the object where a `help-echo' property was found; POS
    is the position within OBJECT where it was found.  OBJECT is nil
    if HELP isn't from a `help-echo' text property.
@@ -1919,19 +1922,20 @@ make_ctrl_char (c)
    from X code running asynchronously.  */
 
 void
-show_help_echo (help, object, pos, ok_to_overwrite_keystroke_echo)
-     Lisp_Object help, object, pos;
+show_help_echo (help, window, object, pos, ok_to_overwrite_keystroke_echo)
+     Lisp_Object help, window, object, pos;
      int ok_to_overwrite_keystroke_echo;
 {
   if (!NILP (help) && !STRINGP (help))
     {
       if (FUNCTIONP (help))
 	{
-	  Lisp_Object args[3];
+	  Lisp_Object args[4];
 	  args[0] = help;
-	  args[1] = object;
-	  args[2] = pos;
-	  help = call_function (3, args);
+	  args[1] = window;
+	  args[2] = object;
+	  args[3] = pos;
+	  help = call_function (4, args);
 	}
       else
 	help = eval_form (help);
@@ -2710,12 +2714,13 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
   /* Display help if not echoing.  */
   if (CONSP (c) && EQ (XCAR (c), Qhelp_echo))
     {
-      /* (help-echo FRAME HELP OBJECT POS).  */
-      Lisp_Object help, object, position;
+      /* (help-echo FRAME HELP WINDOW OBJECT POS).  */
+      Lisp_Object help, object, position, window;
       help = Fnth (make_number (2), c);
-      object = Fnth (make_number (3), c);
-      position = Fnth (make_number (4), c);
-      show_help_echo (help, object, position, 0);
+      window = Fnth (make_number (3), c);
+      object = Fnth (make_number (4), c);
+      position = Fnth (make_number (5), c);
+      show_help_echo (help, window, object, position, 0);
       goto retry;
     }
   
@@ -3174,9 +3179,9 @@ kbd_buffer_store_event (event)
    Value is the number of input_events generated.  */
 
 int
-gen_help_event (bufp, help, frame, object, pos)
+gen_help_event (bufp, help, frame, window, object, pos)
      struct input_event *bufp;
-     Lisp_Object help, frame, object;
+     Lisp_Object help, frame, object, window;
      int pos;
 {
   bufp->kind = HELP_EVENT;
@@ -3187,10 +3192,10 @@ gen_help_event (bufp, help, frame, object, pos)
 
   ++bufp;
   bufp->kind = HELP_EVENT;
-  bufp->frame_or_window = frame;
+  bufp->frame_or_window = WINDOWP (window) ? window : frame;
   bufp->arg = help;
   bufp->code = 1;
-  
+
   return 2;
 }
 
@@ -3440,7 +3445,7 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	{
 	  /* There are always two consecutive HELP_EVENTs in the
 	     input queue.  */
-	  Lisp_Object object, position, help, frame;
+	  Lisp_Object object, position, help, frame, window;
 	  
 	  xassert (event->code == 0);
 	  frame = event->frame_or_window;
@@ -3448,10 +3453,11 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	  position = event->x;
 	  xassert ((event + 1)->code == 1);
 	  help = (event + 1)->arg;
-	  
-	  /* Event->frame_or_window is a frame, event->arg is the
-	     help to display.  */
-	  obj = list5 (Qhelp_echo, frame, help, object, position);
+	  window = (event + 1)->frame_or_window;
+	  if (!WINDOWP (window))
+	    window = Qnil;
+	  obj = Fcons (Qhelp_echo,
+		       list5 (frame, help, window, object, position));
 	  kbd_fetch_ptr = event + 2;
 	}
       else if (event->kind == FOCUS_IN_EVENT)
