@@ -1576,7 +1576,7 @@ interact nicely with `interprogram-cut-function' and
 interaction; you may want to use them instead of manipulating the kill
 ring directly.")
 
-(defcustom kill-ring-max 30
+(defcustom kill-ring-max 60
   "*Maximum length of kill ring before oldest elements are thrown away."
   :type 'integer
   :group 'killing)
