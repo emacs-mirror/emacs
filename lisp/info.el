@@ -311,7 +311,19 @@ Do the right thing if the file has been compressed or zipped."
     (let ((path (getenv "INFOPATH"))
 	  (source (expand-file-name "info/" source-directory))
 	  (sibling (if installation-directory
-		       (expand-file-name "info/" installation-directory)))
+		       (expand-file-name "info/" installation-directory)
+		     (if (and (memq system-type '(ms-dos windows-nt))
+			      invocation-directory)
+			 (let ((infodir (expand-file-name
+					 "../info/"
+					 invocation-directory)))
+			   (if (file-exists-p infodir)
+			       infodir
+			     (setq infodir (expand-file-name
+					    "../../../info/"
+					    invocation-directory))
+			     (and (file-exists-p infodir)
+				  infodir))))))
 	  alternative)
       (setq Info-directory-list
 	    (prune-directory-list
