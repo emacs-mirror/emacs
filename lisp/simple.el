@@ -4313,6 +4313,13 @@ of the differing parts is, by contrast, slightly highlighted."
     (if minibuffer-completing-file-name
 	(with-current-buffer mainbuf
 	  (setq default-directory (file-name-directory mbuf-contents))))
+    ;; If partial-completion-mode is on, point might not be after the
+    ;; last character in the minibuffer.
+    ;; FIXME: This still doesn't work if the text to be completed
+    ;; starts with a `-'.
+    (when (and partial-completion-mode (not (eobp)))
+      (setq mbuf-contents
+	    (substring mbuf-contents 0 (- (point) (point-max)))))
     (with-current-buffer standard-output
       (completion-list-mode)
       (make-local-variable 'completion-reference-buffer)
