@@ -5,7 +5,7 @@
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Created: 14 Jul 1992
-;; Version: $Id: lisp-mnt.el,v 1.3 1993/03/24 23:46:52 esr Exp $
+;; Version: $Id: lisp-mnt.el,v 1.2 1993/03/25 01:57:43 eric Exp eric $
 ;; Keywords: docs
 ;; Bogus-Bureaucratic-Cruft: Gruad will get you if you don't watch out!
 
@@ -117,7 +117,7 @@
 
 ;; These functions all parse the headers of the current buffer
 
-(defun lm-section-mark (hd)
+(defun lm-section-mark (hd &optional after)
   ;; Return the buffer location of a given section start marker
   (save-excursion
     (let ((case-fold-search t))
@@ -125,6 +125,7 @@
       (if (re-search-forward (concat "^;;; " hd ":$") nil t)
 	  (progn
 	    (beginning-of-line)
+	    (if after (forward-line 1))
 	    (point))
 	nil))))
 
@@ -312,19 +313,19 @@
 	  (kill-buffer (current-buffer)))
       )))
 
-(defun lm-commentary-region (&optional file)
-  ;; Return a pair of character locations enclosing the commentary region.
+(defun lm-commentary (&optional file)
+  ;; Return the commentary region of a file, as a string."
   (save-excursion
     (if file
 	(find-file file))
     (prog1
-	(let ((commentary (lm-section-mark "Commentary"))
+	(let ((commentary (lm-section-mark "Commentary" t))
 	      (change-log (lm-section-mark "Change Log"))
 	      (code (lm-section-mark "Code")))
-	  (if commentary
+	  (and commentary
 	      (if change-log
-		  (cons commentary change-log)
-		(cons commentary code)))
+		  (buffer-substring commentary change-log)
+		(buffer-substring commentary code)))
 	  )
       (if file
 	  (kill-buffer (current-buffer)))
