@@ -972,6 +972,8 @@ run `normal-mode' explicitly."
     ("\\.letter\\'" . text-mode)
     ("\\.tcl\\'" . tcl-mode)
     ("\\.exp\\'" . tcl-mode)
+    ("\\.itcl\\'" . tcl-mode)
+    ("\\.itk\\'" . tcl-mode)
     ("\\.f90\\'" . f90-mode)
     ("\\.lsp\\'" . lisp-mode)
     ("\\.awk\\'" . awk-mode)
