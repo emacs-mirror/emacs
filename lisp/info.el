@@ -51,7 +51,8 @@ in paths.el.")
   "*Non-nil enables highlighting and fonts in Info nodes.")
 
 (defvar Info-directory-list
-  (let ((path (getenv "INFOPATH")))
+  (let ((path (getenv "INFOPATH"))
+	(sibling (expand-file-name "../info/" (invocation-directory))))
     (if path
 	(let ((list nil)
 	      idx)
@@ -61,7 +62,10 @@ in paths.el.")
 		  path (substring path (min (1+ idx)
 					    (length path)))))
 	  (nreverse list))
-      Info-default-directory-list))
+      (if (or (member sibling Info-default-directory-list)
+	      (not (file-exists-p sibling)))
+	  Info-default-directory-list
+	(reverse (cons sibling (cdr (reverse Info-default-directory-list)))))))
   "List of directories to search for Info documentation files.
 nil means not yet initialized.  In this case, Info uses the environment
 variable INFOPATH to initialize it, or `Info-default-directory-list'
