@@ -4,6 +4,13 @@
   Copyright (c) 2001 Free Software Foundation, Inc.
   See the end of the file for copying permissions.
 
+  If you used WinZip to unpack the distribution, we suggest to
+  remove the files and unpack again with a different program!
+  WinZip is known to create some subtle and hard to debug problems,
+  such as converting files to DOS CR-LF format, not creating empty 
+  directories, etc.  We suggest to use djtarnt.exe from the GNU FTP
+  site.
+
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with Mingw
   and W32 API support and a port of GNU make.  You can use the Cygwin
