@@ -1,4 +1,4 @@
-/* $HopeName: MMQA_harness!testlib:versind.h(MMQA_harness_dev.2) $
+/* $HopeName: MMQA_harness!testlib:versind.h(trunk.8) $
 versind.h
    This file used to read header files depending on the
    value of the MPS_INTERFACE_VERSION parameter (aka MMQA_VERS_XX).
@@ -33,7 +33,11 @@ versind.h
 #define mps_space_destroy(a)   mps_arena_destroy(a)
 #define mps_space_reserved(a)  mps_arena_reserved(a)
 #define mps_space_committed(a) mps_arena_committed(a)
-
+#define mps_space_t mps_arena_t
+#include "mpsavm.h"
+#define ARENA_SIZE ((size_t)1<<30)
+#define mps_space_create(space) \
+  mps_arena_create(space, mps_arena_class_vm(), ARENA_SIZE)
 #endif
 #else
 #ifdef MMQA_DEFINED_mps_space_destroy
