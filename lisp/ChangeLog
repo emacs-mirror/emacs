@@ -1,3 +1,7 @@
+2000-06-01  Stefan Monnier  <monnier@cs.yale.edu>
+
+	* isearch.el (isearch-highlight): Turn internal-find-face into facep.
+
 2000-06-01  Dave Love  <fx@gnu.org>
 
 	* hl-line.el: Rewritten using define-minor-mode.
