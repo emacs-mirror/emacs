@@ -61,13 +61,13 @@ This association list has elements of the form
    gud-overload-alist))
 
 (defun gud-massage-args (file args)
-  (error "GUD not properly entered."))
+  (error "GUD not properly entered"))
 
 (defun gud-marker-filter (str)
-  (error "GUD not properly entered."))
+  (error "GUD not properly entered"))
 
 (defun gud-find-file (f)
-  (error "GUD not properly entered."))
+  (error "GUD not properly entered"))
 
 ;; ======================================================================
 ;; command definition
@@ -1103,7 +1103,8 @@ Obeying it means displaying in another window the specified file and line."
 ;; to get around the fact that this is called inside a save-excursion.
 
 (defun gud-display-line (true-file line)
-  (let* ((buffer (gud-find-file true-file))
+  (let* ((last-nonmenu-event t)	 ; Prevent use of dialog box for questions.
+	 (buffer (gud-find-file true-file))
 	 (window (display-buffer buffer))
 	 (pos))
 ;;;    (if (equal buffer (current-buffer))
