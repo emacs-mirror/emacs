@@ -28,10 +28,6 @@
 ;;
 ;; The funniest thing about this is that I can't imagine why a package
 ;; so obviously useful as this hasn't been written before!!
-;;
-;; Put this file in your `load-path', byte-compile it and add the
-;; following code in your init file:
-;;
 ;; ;;; find-func
 ;; (find-function-setup-keys)
 ;;
@@ -115,7 +111,8 @@ If VARIABLE-P is nil, `find-function-regexp' is used, otherwise
   (if (string-match "\\.el\\(c\\)\\'" library)
       (setq library (substring library 0 (match-beginning 1))))
   (let* ((path find-function-source-path)
-	 (filename (if (file-exists-p library)
+	 (filename (if (and (file-exists-p library)
+			    (not (file-directory-p library)))
 		       library
 		     ;; use `file-name-sans-extension' here? (if it gets fixed)
 		     (if (string-match "\\(\\.el\\)\\'" library)
