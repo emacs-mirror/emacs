@@ -368,8 +368,7 @@ useful for editing binary files."
   "Move point to the first non-whitespace character on this line."
   (interactive)
   (beginning-of-line 1)
-  (let ((limit (line-end-position)))
-    (skip-syntax-forward " " limit))
+  (skip-syntax-forward " " (line-end-position))
   ;; Move back over chars that have whitespace syntax but have the p flag.
   (backward-prefix-chars))
 
@@ -938,13 +937,22 @@ Return 0 if current buffer is not a mini-buffer."
 ;Put this on C-x u, so we can force that rather than C-_ into startup msg
 (defalias 'advertised-undo 'undo)
 
+(defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
+  "Table mapping redo records to the corresponding undo one.")
+
+(defvar undo-in-region nil
+  "Non-nil if `pending-undo-list' is not just a tail of `buffer-undo-list'.")
+
+(defvar undo-no-redo nil
+  "If t, `undo' doesn't go through redo entries.")
+
 (defun undo (&optional arg)
   "Undo some previous changes.
 Repeat this command to undo more changes.
 A numeric argument serves as a repeat count.
 
 In Transient Mark mode when the mark is active, only undo changes within
-the current region.  Similarly, when not in Transient Mark mode, just C-u
+the current region.  Similarly, when not in Transient Mark mode, just \\[universal-argument]
 as an argument limits undo to changes within the current region."
   (interactive "*P")
   ;; Make last-command indicate for the next command that this was an undo.
@@ -956,20 +964,39 @@ as an argument limits undo to changes within the current region."
   (setq this-command 'undo)
   (let ((modified (buffer-modified-p))
 	(recent-save (recent-auto-save-p)))
-    (or (eq (selected-window) (minibuffer-window))
-	(message (if (and transient-mark-mode mark-active)
-		     "Undo in region!"
-		   "Undo!")))
     (unless (eq last-command 'undo)
-      (if (if transient-mark-mode mark-active (and arg (not (numberp arg))))
+      (setq undo-in-region
+	    (if transient-mark-mode mark-active (and arg (not (numberp arg)))))
+      (if undo-in-region
 	  (undo-start (region-beginning) (region-end))
 	(undo-start))
       ;; get rid of initial undo boundary
       (undo-more 1))
+    ;; Check to see whether we're hitting a redo record, and if
+    ;; so, ask the user whether she wants to skip the redo/undo pair.
+    (let ((equiv (gethash pending-undo-list undo-equiv-table)))
+      (or (eq (selected-window) (minibuffer-window))
+	  (message (if undo-in-region
+		       (if equiv "Redo in region!" "Undo in region!")
+		     (if equiv "Redo!" "Undo!"))))
+      (when (and equiv undo-no-redo)
+	;; The equiv entry might point to another redo record if we have done
+	;; undo-redo-undo-redo-... so skip to the very last equiv.
+	(while (let ((next (gethash equiv undo-equiv-table)))
+		 (if next (setq equiv next))))
+	(setq pending-undo-list equiv)))
     (undo-more
      (if (or transient-mark-mode (numberp arg))
 	 (prefix-numeric-value arg)
        1))
+    ;; Record the fact that the just-generated undo records come from an
+    ;; undo operation, so we can skip them later on.
+    ;; I don't know how to do that in the undo-in-region case.
+    (unless undo-in-region
+      (when (eval-when-compile (fboundp 'assert))
+	(assert (or (null pending-undo-list) (car pending-undo-list)))
+	(assert (car buffer-undo-list)))
+      (puthash buffer-undo-list pending-undo-list undo-equiv-table))
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)
@@ -977,9 +1004,9 @@ as an argument limits undo to changes within the current region."
       (while (car tail)
 	(when (integerp (car tail))
 	  (let ((pos (car tail)))
-	    (if (null prev)
-		(setq buffer-undo-list (cdr tail))
-	      (setcdr prev (cdr tail)))
+	    (if prev
+		(setcdr prev (cdr tail))
+	      (setq buffer-undo-list (cdr tail)))
 	    (setq tail (cdr tail))
 	    (while (car tail)
 	      (if (eq pos (car tail))
@@ -993,6 +1020,15 @@ as an argument limits undo to changes within the current region."
 
     (and modified (not (buffer-modified-p))
 	 (delete-auto-save-file-if-necessary recent-save))))
+
+(defun undo-only (&optional arg)
+  "Undo some previous changes.
+Repeat this command to undo more changes.
+A numeric argument serves as a repeat count.
+Contrary to `undo', this will not redo a previous undo."
+  (interactive "*p")
+  (let ((undo-no-redo t)) (undo arg)))
+(define-key ctl-x-map "U" 'undo-only)
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.")
@@ -1307,8 +1343,7 @@ specifies the value of ERROR-BUFFER."
 		    (if (yes-or-no-p "A command is running.  Kill it? ")
 			(kill-process proc)
 		      (error "Shell command in progress")))
-		(save-excursion
-		  (set-buffer buffer)
+		(with-current-buffer buffer
 		  (setq buffer-read-only nil)
 		  (erase-buffer)
 		  (display-buffer buffer)
@@ -1316,7 +1351,7 @@ specifies the value of ERROR-BUFFER."
 		  (setq proc (start-process "Shell" buffer shell-file-name
 					    shell-command-switch command))
 		  (setq mode-line-process '(":%s"))
-		  (require 'shell) (shell-mode)
+		  (shell-mode)
 		  (set-process-sentinel proc 'shell-command-sentinel)
 		  ))
 	    (shell-command-on-region (point) (point) command
@@ -2276,7 +2311,7 @@ Puts mark after the inserted text.
 BUFFER may be a buffer or a buffer name.
 
 This function is meant for the user to run interactively.
-Don't call it from programs!"
+Don't call it from programs: use `insert-buffer-substring' instead!"
   (interactive
    (list
     (progn
@@ -2286,16 +2321,10 @@ Don't call it from programs!"
 		       (other-buffer (current-buffer))
 		     (window-buffer (next-window (selected-window))))
 		   t))))
-  (or (bufferp buffer)
-      (setq buffer (get-buffer buffer)))
-  (let (start end newmark)
-    (save-excursion
-      (save-excursion
-	(set-buffer buffer)
-	(setq start (point-min) end (point-max)))
-      (insert-buffer-substring buffer start end)
-      (setq newmark (point)))
-    (push-mark newmark))
+  (push-mark
+   (save-excursion
+     (insert-buffer-substring (get-buffer buffer))
+     (point)))
   nil)
 
 (defun append-to-buffer (buffer start end)
@@ -3040,6 +3069,8 @@ With argument 0, interchanges line point is in with line mark is in."
   (if (> (cdr pos1) (car pos2)) (error "Don't have two things to transpose"))
   (atomic-change-group
    (let (word2)
+     ;; FIXME: We first delete the two pieces of text, so markers that
+     ;; used to point to after the text end up pointing to before it :-(
      (setq word2 (delete-and-extract-region (car pos2) (cdr pos2)))
      (goto-char (car pos2))
      (insert (delete-and-extract-region (car pos1) (cdr pos1)))
@@ -4014,8 +4045,7 @@ The completion list buffer is available as the value of `standard-output'.")
 		  (- (point) (minibuffer-prompt-end))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(save-match-data
-	  (if (string-match "\\` \\*Minibuf-[0-9]+\\*\\'"
-			    (buffer-name mainbuf))
+	  (if (minibufferp mainbuf)
 	      (setq completion-base-size 0))))
       (goto-char (point-min))
       (if (display-mouse-p)
@@ -4055,27 +4085,27 @@ select the completion near point.\n\n")))))
 ;; to the following event.
 
 (defun event-apply-alt-modifier (ignore-prompt)
-  "Add the Alt modifier to the following event.
+  "\\<function-key-map>Add the Alt modifier to the following event.
 For example, type \\[event-apply-alt-modifier] & to enter Alt-&."
   (vector (event-apply-modifier (read-event) 'alt 22 "A-")))
 (defun event-apply-super-modifier (ignore-prompt)
-  "Add the Super modifier to the following event.
+  "\\<function-key-map>Add the Super modifier to the following event.
 For example, type \\[event-apply-super-modifier] & to enter Super-&."
   (vector (event-apply-modifier (read-event) 'super 23 "s-")))
 (defun event-apply-hyper-modifier (ignore-prompt)
-  "Add the Hyper modifier to the following event.
+  "\\<function-key-map>Add the Hyper modifier to the following event.
 For example, type \\[event-apply-hyper-modifier] & to enter Hyper-&."
   (vector (event-apply-modifier (read-event) 'hyper 24 "H-")))
 (defun event-apply-shift-modifier (ignore-prompt)
-  "Add the Shift modifier to the following event.
+  "\\<function-key-map>Add the Shift modifier to the following event.
 For example, type \\[event-apply-shift-modifier] & to enter Shift-&."
   (vector (event-apply-modifier (read-event) 'shift 25 "S-")))
 (defun event-apply-control-modifier (ignore-prompt)
-  "Add the Ctrl modifier to the following event.
+  "\\<function-key-map>Add the Ctrl modifier to the following event.
 For example, type \\[event-apply-control-modifier] & to enter Ctrl-&."
   (vector (event-apply-modifier (read-event) 'control 26 "C-")))
 (defun event-apply-meta-modifier (ignore-prompt)
-  "Add the Meta modifier to the following event.
+  "\\<function-key-map>Add the Meta modifier to the following event.
 For example, type \\[event-apply-meta-modifier] & to enter Meta-&."
   (vector (event-apply-modifier (read-event) 'meta 27 "M-")))
 
