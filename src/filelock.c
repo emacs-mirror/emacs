@@ -77,23 +77,23 @@ extern struct passwd *getpwuid ();
 
 /* The name of the directory in which we keep lock files, with a '/'
    appended.  */  
-char *lock_path;
+char *lock_dir;
 
 /* The name of the file in the lock directory which is used to
    arbitrate access to the entire directory.  */
 #define SUPERLOCK_NAME "!!!SuperLock!!!"
 
-/* The path to the superlock file.  This is SUPERLOCK_NAME appended to
-   lock_path.  */
-char *superlock_path;
+/* The name of the superlock file.  This is SUPERLOCK_NAME appended to
+   lock_dir.  */
+char *superlock_file;
 
 /* Set LOCK to the name of the lock file for the filename FILE.
    char *LOCK; Lisp_Object FILE;  */
 
 #ifndef HAVE_LONG_FILE_NAMES
 
-#define MAKE_LOCK_PATH(lock, file) \
-  (lock = (char *) alloca (14 + strlen (lock_path) + 1), \
+#define MAKE_LOCK_NAME(lock, file) \
+  (lock = (char *) alloca (14 + strlen (lock_dir) + 1), \
    fill_in_lock_short_file_name (lock, (file)))
 
 
@@ -124,15 +124,15 @@ fill_in_lock_short_file_name (lockfile, fn)
       crc.byte[1] = crc.byte[0];
       crc.byte[0] = new;
     }
-  sprintf (lockfile, "%s%.2x%.2x%.2x%.2x%.2x%.2x%.2x", lock_path,
+  sprintf (lockfile, "%s%.2x%.2x%.2x%.2x%.2x%.2x%.2x", lock_dir,
 	   crc.byte[0], crc.byte[1], crc.byte[2], crc.byte[3],
 	   crc.byte[4], crc.byte[5], crc.byte[6]);
 }
 
 #else /* defined HAVE_LONG_FILE_NAMES */
 
-#define MAKE_LOCK_PATH(lock, file) \
-  (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_path) + 1), \
+#define MAKE_LOCK_NAME(lock, file) \
+  (lock = (char *) alloca (XSTRING (file)->size + strlen (lock_dir) + 1), \
    fill_in_lock_file_name (lock, (file)))
 
 
@@ -142,7 +142,7 @@ fill_in_lock_file_name (lockfile, fn)
 {
   register char *p;
 
-  strcpy (lockfile, lock_path);
+  strcpy (lockfile, lock_dir);
 
   p = lockfile + strlen (lockfile);
 
@@ -202,7 +202,7 @@ lock_file (fn)
   register Lisp_Object attack;
   register char *lfname;
 
-  MAKE_LOCK_PATH (lfname, fn);
+  MAKE_LOCK_NAME (lfname, fn);
 
   /* See if this file is visited and has changed on disk since it was
      visited.  */
@@ -228,7 +228,7 @@ lock_file (fn)
     {
       lock_superlock (lfname);
       lock_file_1 (lfname, O_WRONLY) ;
-      unlink (superlock_path);
+      unlink (superlock_file);
       return;
     }
   /* User says ignore the lock */
@@ -329,14 +329,14 @@ unlock_file (fn)
 {
   register char *lfname;
 
-  MAKE_LOCK_PATH (lfname, fn);
+  MAKE_LOCK_NAME (lfname, fn);
 
   lock_superlock (lfname);
 
   if (current_lock_owner_1 (lfname) == getpid ())
     unlink (lfname);
 
-  unlink (superlock_path);
+  unlink (superlock_file);
 }
 
 lock_superlock (lfname)
@@ -345,7 +345,7 @@ lock_superlock (lfname)
   register int i, fd;
   DIR *lockdir;
 
-  for (i = -20; i < 0 && (fd = open (superlock_path,
+  for (i = -20; i < 0 && (fd = open (superlock_file,
 				     O_WRONLY | O_EXCL | O_CREAT, 0666)) < 0;
        i++)
     {
@@ -355,7 +355,7 @@ lock_superlock (lfname)
       /* This seems to be necessary to prevent Emacs from hanging when the
 	 competing process has already deleted the superlock, but it's still
 	 in the NFS cache.  So we force NFS to synchronize the cache.  */
-      if (lockdir = opendir (lock_path))
+      if (lockdir = opendir (lock_dir))
 	closedir (lockdir);
 
       sleep (1);
@@ -363,7 +363,7 @@ lock_superlock (lfname)
   if (fd >= 0)
     {
 #ifdef USG
-      chmod (superlock_path, 0666);
+      chmod (superlock_file, 0666);
 #else
       fchmod (fd, 0666);
 #endif
@@ -439,7 +439,7 @@ t if it is locked by you, else a string of the name of the locker.")
 
   fn = Fexpand_file_name (fn, Qnil);
 
-  MAKE_LOCK_PATH (lfname, fn);
+  MAKE_LOCK_NAME (lfname, fn);
 
   owner = current_lock_owner (lfname);
   if (owner <= 0)
@@ -455,25 +455,25 @@ t if it is locked by you, else a string of the name of the locker.")
 
 init_filelock ()
 {
-  char *new_path
+  char *new_name
 
-  lock_path = egetenv ("EMACSLOCKDIR");
-  if (! lock_path)
-    lock_path = PATH_LOCK;
+  lock_dir = egetenv ("EMACSLOCKDIR");
+  if (! lock_dir)
+    lock_dir = PATH_LOCK;
 
-  /* Copy the path in case egetenv got it from a Lisp string.  */
-  new_path = (char *) xmalloc (strlen (lock_path) + 2);
-  strcpy (new_path, lock_path);
-  lock_path = new_path;
+  /* Copy the name in case egetenv got it from a Lisp string.  */
+  new_name = (char *) xmalloc (strlen (lock_dir) + 2);
+  strcpy (new_name, lock_dir);
+  lock_dir = new_name;
 
   /* Make sure it ends with a slash.  */
-  if (lock_path[strlen (lock_path) - 1] != '/')
-    strcat (lock_path, "/");
+  if (lock_dir[strlen (lock_dir) - 1] != '/')
+    strcat (lock_dir, "/");
 
-  superlock_path = (char *) xmalloc ((strlen (lock_path)
+  superlock_file = (char *) xmalloc ((strlen (lock_dir)
 				      + sizeof (SUPERLOCK_NAME)));
-  strcpy (superlock_path, lock_path);
-  strcat (superlock_path, SUPERLOCK_NAME);
+  strcpy (superlock_file, lock_dir);
+  strcat (superlock_file, SUPERLOCK_NAME);
 }
 
 syms_of_filelock ()
