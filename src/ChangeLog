@@ -1,5 +1,12 @@
 2001-10-24  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
 
+	* xdisp.c: (display_prop_string_p): Remove unused local declaration
+	of `Qwhen'.
+	(single_display_prop_string_p): Remove unused local declarations
+	of `Qwhen' and `Qmargin'.
+	(string_buffer_position): Remove unused variable `around'.
+	(store_frame_title): Remove unused variable `width'.
+
 	* window.c: Don't define max.
 	(coordinates_in_window): Remove unused variable `uy'.
 
