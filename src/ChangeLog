@@ -1,3 +1,20 @@
+2000-02-12  Gerd Moellmann  <gerd@gnu.org>
+
+	* process.c (Fopen_network_stream) [POLL_FOR_INPUT]: Register
+	unwind function to undo the effect of stopping atimers.
+
+	* keyboard.c (bind_polling_period): Stop all timers except
+	poll_timer.
+
+	* atimer.c (stopped_atimers): New variable.
+	(stop_other_atimers, run_all_atimers, unwind_stop_other_atimers):
+	New functions.
+
+	* atimer.h (stop_other_atimers, run_all_atimers)
+	(unwind_stop_other_atimers): Add function prototypes.
+	
+	* s/hpux10.h (HAVE_XRMSETDATABASE): Define if not already defined.
+
 2000-02-11  Ken Raeburn  <raeburn@gnu.org>
 
 	* Makefile.in (LIBX): Link in tiff library before jpeg, since tiff
