@@ -347,9 +347,9 @@ value of this flag.")
 				     (match-end 1))))
 	  ;; ... and check for the locking state
 	  (if (re-search-forward 
-	       (concat "\\=[0-9]+/[0-9]+/[0-9]+ "    ; date
-		          "[0-9]+:[0-9]+:[0-9]+ "    ; time
-		          "[^ ]+ [^ ]+ ")            ; author & state
+	       (concat "\\=[0-9]+[/-][0-9]+[/-][0-9]+ "             ; date
+		          "[0-9]+:[0-9]+:[0-9]+\\([+-][0-9:]+\\)? " ; time
+		          "[^ ]+ [^ ]+ ")                 ; author & state
 	       nil t)
 	      (cond 
 	       ;; unlocked revision
