@@ -351,18 +351,18 @@ This doesn't include the mode-line (or header-line if any) or any
 partial-height lines in the text display area.
 
 If WINDOW is nil, the selected window is used.
-If HEIGHT is less than `window-min-height', then WINDOW is deleted.
 
 Note that the current implementation of this function cannot always set
 the height exactly, but attempts to be conservative, by allocating more
 lines than are actually needed in the case where some error may be present."
   (let ((delta (- height (window-text-height window))))
     (unless (zerop delta)
-      (if (and window (not (eq window (selected-window))))
-	  (save-selected-window
-	    (select-window window)
-	    (enlarge-window delta))
-	(enlarge-window delta)))))
+      (let ((window-min-height 1))
+	(if (and window (not (eq window (selected-window))))
+	    (save-selected-window
+	      (select-window window)
+	      (enlarge-window delta))
+	  (enlarge-window delta))))))
 
 
 (defun enlarge-window-horizontally (arg)
