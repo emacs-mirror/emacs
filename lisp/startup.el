@@ -351,7 +351,7 @@ from being initialized."
 	      (setq pending (nconc pending
 				   (list (expand-file-name (car contents)))))))
 	  (setq contents (cdr contents)))))
-    (normal-top-level-add-to-load-path dirs)))
+    (normal-top-level-add-to-load-path (cdr (nreverse dirs)))))
 
 ;; This function is called from the subdirs.el file.
 (defun normal-top-level-add-to-load-path (dirs)
