@@ -2338,6 +2338,12 @@ configuration files.
 
 * Lisp Changes in Emacs 21.4
 
+---
+** To manipulate the File menu using easy-menu, you must specify the
+proper name "file".  In previous Emacs versions, you had to specify
+"files", even though the menu item itself was changed to say "File"
+several versions ago.
+
 +++
 ** read-from-minibuffer now accepts an additional argument KEEP-ALL
 saying to put all inputs in the history list, even empty ones.
@@ -6448,9 +6454,8 @@ function was declared obsolete.
 ** Function `plist-member' is renamed from `widget-plist-member' (which is
 retained as an alias).
 
-** Easy-menu's :filter now works as in XEmacs.
-It takes the unconverted (i.e. XEmacs) form of the menu and the result
-is automatically converted to Emacs' form.
+** Easy-menu's :filter now takes the unconverted form of the menu and
+the result is automatically converted to Emacs' form.
 
 ** The new function `window-list' has been defined
 
