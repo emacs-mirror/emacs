@@ -1,3 +1,8 @@
+2004-04-27  Daniel M Coffman  <coffmand@us.ibm.com>  (tiny change)
+
+	* arc-mode.el (archive-maybe-copy): If ARCHIVE includes leading
+	directories, make sure they exist under archive-tmpdir.
+
 2004-04-27  Juri Linkov  <juri@jurta.org>
 
 	* help.el (view-emacs-news): With argument, display info for the
