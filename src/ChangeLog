@@ -1,3 +1,10 @@
+2002-01-16  Pavel Jan,Bm(Bk  <Pavel@Janik.cz>
+
+	* xterm.c (XTread_socket) [!USE_X_TOOLKIT]: Compute the value of
+	`dont_resize' only when used.
+
+	* xdisp.c: Remove forgotten extern declaration of `Qimage'.
+
 2002-01-15  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* xdisp.c (display_mode_element): When computing charpos, depend
