@@ -146,12 +146,12 @@ both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
 
-(defcustom find-file-revert-without-query
+(defcustom revert-without-query
   nil
   "*Specify which files should be reverted without query.
 The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
-then `find-file' reverts the file without querying
+then `revert-buffer' reverts the file without querying
 if the file has changed on disk and you have not edited the buffer."
   :type 'boolean
   :group 'find-file)
@@ -366,10 +366,10 @@ with a definition that really does change some file names."
 Not actually set up until the first time you you use it.")
 
 (defvar path-separator ":"
-  "Character used to separate concatenated paths.")
+  "Character used to separate directories in search paths.")
 
 (defun parse-colon-path (cd-path)
-  "Explode a colon-separated list of paths into a string list."
+  "Explode a colon-separated search path into a list of directory names."
   (and cd-path
        (let (cd-prefix cd-list (cd-start 0) cd-colon)
 	 (setq cd-path (concat cd-path path-separator))
@@ -879,7 +879,7 @@ Optional second arg RAWFILE non-nil means the file is read literally"
 		    ;; Certain files should be reverted automatically
 		    ;; if they have changed on disk and not in the buffer.
 		    ((and (not (buffer-modified-p buf))
-			  (let ((tail find-file-revert-without-query)
+			  (let ((tail revert-without-query)
 				(found nil))
 			    (while tail
 			      (if (string-match (car tail) filename)
@@ -2446,6 +2446,14 @@ non-nil, it is called instead of rereading visited file contents."
       (cond ((null file-name)
 	     (error "Buffer does not seem to be associated with any file"))
 	    ((or noconfirm
+		 (and (not (buffer-modified-p))
+		      (let ((tail revert-without-query)
+			    (found nil))
+			(while tail
+			  (if (string-match (car tail) file-name)
+			      (setq found t))
+			  (setq tail (cdr tail)))
+			found))
 		 (yes-or-no-p (format "Revert buffer from file %s? "
 				      file-name)))
 	     (run-hooks 'before-revert-hook)
