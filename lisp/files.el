@@ -3688,18 +3688,21 @@ This command is used in the special Dired buffer created by
 		  ;; a "visited file name" from that.
 		  (progn
 		    (forward-line 1)
-		    (setq autofile
-			  (buffer-substring-no-properties
-			   (point)
-			   (save-excursion
-			     (end-of-line)
-			     (point))))
-		    (setq thisfile
-			  (expand-file-name
-			   (substring
-			    (file-name-nondirectory autofile)
-			    1 -1)
-			   (file-name-directory autofile)))
+		    ;; If there is no auto-save file name, the
+		    ;; auto-save-list file is probably corrupted.
+		    (unless (eolp)
+		      (setq autofile
+			    (buffer-substring-no-properties
+			     (point)
+			     (save-excursion
+			       (end-of-line)
+			       (point))))
+		      (setq thisfile
+			    (expand-file-name
+			     (substring
+			      (file-name-nondirectory autofile)
+			      1 -1)
+			     (file-name-directory autofile))))
 		    (forward-line 1))
 		;; This pair of lines is a file-visiting
 		;; buffer.  Use the visited file name.
@@ -3713,7 +3716,7 @@ This command is used in the special Dired buffer created by
 			 (point) (progn (end-of-line) (point))))
 		  (forward-line 1)))
 	      ;; Ignore a file if its auto-save file does not exist now.
-	      (if (file-exists-p autofile)
+	      (if (and autofile (file-exists-p autofile))
 		  (setq files (cons thisfile files)))))
 	  (setq files (nreverse files))
 	  ;; The file contains a pair of line for each auto-saved buffer.
