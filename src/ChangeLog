@@ -1,5 +1,8 @@
 2000-05-26  Kenichi Handa  <handa@etl.go.jp>
 
+	* fontset.c (syms_of_fontset): Adjust the font name for ascii to
+	what Emacs uses by default.
+
 	* charset.c (init_charset_once): Set the table bytes_by_char_head
 	correctly.
 
