@@ -776,7 +776,7 @@ that Viper doesn't know about.")
 
 
 ;; Emacs has a bug in eventp, which causes (eventp nil) to return (nil)
-;; instead of nil, if '(nil) was previously inadvertantly assigned to
+;; instead of nil, if '(nil) was previously inadvertently assigned to
 ;; unread-command-events
 (defun vip-event-key (event)
   (or (and event (eventp event))
@@ -801,10 +801,17 @@ that Viper doesn't know about.")
 			 event event))
 		  ;; Emacs has the oddity whereby characters 128+char
 		  ;; represent M-char *if* this appears inside a string.
-		  ;; So, we convert them manually into (mata char).
+		  ;; So, we convert them manually to (meta char).
 		  ((and (numberp event) (< ?\C-? event) (<= event 255))
 		   (setq mod '(meta)
 			 event (- event ?\C-? 1)))
+		  ;; If EVENT is a list, e.g., (switch-frame frame), we
+		  ;; ignore it, since we can't save this kind of events in a
+		  ;; textual form. In most cases, such events are created
+		  ;; unintentionally, and ignoring them is the right thing.
+		  ;; If an event of this kind was created intentionally during
+		  ;; macro definition---too bad.
+		  ((consp event) nil)
 		  (t (event-basic-type event)))
 	    )))
     
