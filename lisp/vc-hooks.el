@@ -319,6 +319,8 @@ value of this flag.")
 	       (vc-file-setprop file 'vc-cvs-status 'needs-merge))
 	      ((string-match "Needs Checkout" status)
 	       (vc-file-setprop file 'vc-cvs-status 'needs-checkout))
+	      ((string-match "Unresolved Conflict" status)
+	       (vc-file-setprop file 'vc-cvs-status 'unresolved-conflict))
 	      (t (vc-file-setprop file 'vc-cvs-status nil))))))
     (if (get-buffer "*vc-info*")
 	(kill-buffer (get-buffer "*vc-info*")))))
@@ -447,6 +449,16 @@ value of this flag.")
 		   (vc-file-setprop file 'vc-name (car name-and-type))
 		   (vc-file-setprop file 'vc-backend (cdr name-and-type))))))))
 
+(defun vc-checkout-model (file)
+  ;; Return `manual' if the user has to type C-x C-q to check out FILE.
+  ;; Return `automatic' if the file can be modified without locking it first.
+  ;; Simplistic version, only returns the default for each backend.
+  (cond ((vc-file-getprop file 'vc-checkout-model))
+	((vc-file-setprop file 'vc-checkout-model
+			 (cond ((eq (vc-backend file) 'SCCS) 'manual)
+			       ((eq (vc-backend file) 'RCS)  'manual)
+			       ((eq (vc-backend file) 'CVS)  'automatic))))))
+
 ;;; properties indicating the locking state
 
 (defun vc-cvs-status (file)
@@ -495,7 +507,8 @@ value of this flag.")
        ;; in the CVS case, check the status
        ((eq (vc-backend file) 'CVS)
 	(if (and (not (eq (vc-cvs-status file) 'locally-modified))
-		 (not (eq (vc-cvs-status file) 'needs-merge)))
+		 (not (eq (vc-cvs-status file) 'needs-merge))
+		 (not (eq (vc-cvs-status file) 'unresolved-conflict)))
 	    (vc-file-setprop file 'vc-locking-user 'none)
 	  ;; The expression below should return the username of the owner
 	  ;; of the file.  It doesn't.  It returns the username if it is
@@ -722,6 +735,12 @@ of the buffer.  With prefix argument, ask for version number."
     (toggle-read-only)))
 (define-key global-map "\C-x\C-q" 'vc-toggle-read-only)
 
+(defun vc-after-save-hook ()
+  ;; Mark the file in the current buffer as "locked" by the user.
+  (remove-hook 'after-save-hook 'vc-after-save-hook t)
+  (vc-file-setprop (buffer-file-name) 'vc-locking-user (user-login-name))
+  (vc-mode-line (buffer-file-name)))
+
 (defun vc-mode-line (file &optional label)
   "Set `vc-mode' to display type of version control for FILE.
 The value is set in the current buffer, which should be the buffer
@@ -735,16 +754,19 @@ control system name."
 		       (and vc-display-status (vc-status file)))))
     (and vc-type 
 	 (equal file (buffer-file-name))
-	 ;; Make the buffer read-only if the file is not locked
-	 ;; (or unchanged, in the CVS case).
-	 (if (not (vc-locking-user file))
-	     (setq buffer-read-only t))
-	 ;; Even root shouldn't modify a registered file without
-	 ;; locking it first.
-	 (not buffer-read-only)
-	 (zerop (user-uid))
-	 (not (equal (user-login-name) (vc-locking-user file)))
-	 (setq buffer-read-only t))
+	 (if (vc-locking-user file)
+	     ;; If the file is locked by some other user, make
+	     ;; the buffer read-only.  Like this, even root
+	     ;; cannot modify a file without locking it first.
+	     (if (not (string= (user-login-name) (vc-locking-user file)))
+		 (setq buffer-read-only t))
+	   ;; If the file is not locked, and vc-checkout-model is
+	   ;; `automatic', install a hook that will make the file
+	   ;; "locked" when the buffer is saved.
+	   (cond ((eq (vc-checkout-model file) 'automatic)
+		  (make-local-variable 'after-save-hook)
+		  (make-local-hook 'after-save-hook)
+		  (add-hook 'after-save-hook 'vc-after-save-hook t)))))
     (force-mode-line-update)
     ;;(set-buffer-modified-p (buffer-modified-p)) ;;use this if Emacs 18
     vc-type))
