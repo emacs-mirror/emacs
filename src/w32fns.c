@@ -6451,7 +6451,8 @@ w32_to_all_x_charsets (fncharset)
       /* Handle startup case of w32-charset-info-alist not
          being set up yet. */
       if (NILP(Vw32_charset_info_alist))
-        return "iso8859-1";
+        return Fcons (build_string ("iso8859-1"), Qnil);
+
       charset_type = Qw32_charset_ansi;
       break;
     case DEFAULT_CHARSET:
