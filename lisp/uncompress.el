@@ -34,26 +34,36 @@
 ;; so that making the backup can work properly.
 ;; This is used as a write-file-hook.
 
+(defvar uncompress-program "gunzip"
+  "Program to use for uncompression.")
+
 (defun uncompress-backup-file ()
   (and buffer-file-name make-backup-files (not buffer-backed-up)
        (not (file-exists-p buffer-file-name))
-       (call-process "uncompress" nil nil nil buffer-file-name))
+       (call-process uncompress-program nil nil nil buffer-file-name))
   nil)
 
 (or (assoc "\\.Z$" auto-mode-alist)
     (setq auto-mode-alist
 	  (cons '("\\.Z$" . uncompress-while-visiting) auto-mode-alist)))
+(or (assoc "\\.gz$" auto-mode-alist)
+    (setq auto-mode-alist
+	  (cons '("\\.gz$" . uncompress-while-visiting) auto-mode-alist)))
 
 (defun uncompress-while-visiting ()
-  "Temporary \"major mode\" used for .Z files, to uncompress the contents.
+  "Temporary \"major mode\" used for .Z and .gz files, to uncompress them.
 It then selects a major mode from the uncompressed file name and contents."
   (if (and (not (null buffer-file-name))
 	   (string-match "\\.Z$" buffer-file-name))
       (set-visited-file-name
-       (substring buffer-file-name 0 (match-beginning 0))))
+       (substring buffer-file-name 0 (match-beginning 0)))
+    (if (and (not (null buffer-file-name))
+	     (string-match "\\.gz$" buffer-file-name))
+	(set-visited-file-name
+	 (substring buffer-file-name 0 (match-beginning 0)))))
   (message "Uncompressing...")
   (let ((buffer-read-only nil))
-    (shell-command-on-region (point-min) (point-max) "uncompress" t))
+    (shell-command-on-region (point-min) (point-max) uncompress-program t))
   (message "Uncompressing...done")
   (set-buffer-modified-p nil)
   (make-local-variable 'write-file-hooks)
@@ -69,13 +79,17 @@ It then selects a major mode from the uncompressed file name and contents."
   "Hook to read and uncompress the compressed version of a file."
   ;; Just pretend we had visited the compressed file,
   ;; and uncompress-while-visiting will do the rest.
-  (if (file-exists-p (concat buffer-file-name ".Z"))
-      (progn
-	(setq buffer-file-name (concat buffer-file-name ".Z"))
-	(insert-file-contents buffer-file-name t)
-	(goto-char (point-min))
-	(setq error nil)
-	t)))
+  (let (name)
+    (if (file-exists-p (setq name (concat buffer-file-name ".Z")))
+	(setq buffer-file-name name)
+      (if (file-exists-p (setq name (concat buffer-file-name ".gz")))
+	  (setq buffer-file-name name)))
+    (if (eq name buffer-file-name)
+	(progn
+	  (insert-file-contents buffer-file-name t)
+	  (goto-char (point-min))
+	  (setq error nil)
+	  t))))
 
 (provide 'uncompress)
 
