@@ -991,10 +991,11 @@ If `enable-local-variables' is nil, this function does not check for a
 		       (forward-char -1)
 		     (goto-char end))
 		   (skip-chars-backward " \t")
-		   (funcall (intern (concat (downcase (buffer-substring beg (point))) "-mode"))))
+		   (funcall (intern (concat (downcase (buffer-substring beg (point))) "-mode")))
+		   (setq done t))
 	       ;; Simple -*-MODE-*- case.
-	       (funcall (intern (concat (downcase (buffer-substring beg end)) "-mode"))))
-	     (setq done t)))
+	       (funcall (intern (concat (downcase (buffer-substring beg end)) "-mode")))
+	       (setq done t))))
       ;; If we didn't find a mode from a -*- line, try using the file name.
       (if (and (not done) buffer-file-name)
 	  (let ((name buffer-file-name)
