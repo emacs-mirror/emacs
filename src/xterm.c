@@ -4239,6 +4239,13 @@ XTread_socket (sd, bufp, numchars, expected)
 						&event.xkey, copy_buffer,
 						80, &keysym,
 						&status_return);
+		      if (status_return == XLookupNone)
+			break;
+		      else if (status_return == XLookupChars)
+			keysym = NoSymbol;
+		      else if (status_return != XLookupKeySym
+			       && status_return != XLookupBoth)
+			abort ();
 		    }
 		  else
 		    nbytes = XLookupString (&event.xkey, copy_buffer,
@@ -4357,6 +4364,9 @@ XTread_socket (sd, bufp, numchars, expected)
 
 			  count += nbytes;
 			  numchars -= nbytes;
+
+			  if (keysym == NoSymbol)
+			    break;
 			}
 		      else
 			abort ();
