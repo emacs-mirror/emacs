@@ -1254,15 +1254,17 @@ set_point (position, buffer)
   if (position == buffer->text.pt)
     return;
 
+  /* Check this now, before checking if the buffer has any intervals.
+     That way, we can catch conditions which break this sanity check
+     whether or not there are intervals in the buffer.  */
+  if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
+    abort ();
+
   if (NULL_INTERVAL_P (buffer->intervals))
     {
       buffer->text.pt = position;
       return;
     }
-
-  /* Perhaps we should just change `position' to the limit. */
-  if (position > BUF_Z (buffer) || position < BUF_BEG (buffer))
-    abort ();
 
   /* Position Z is really one past the last char in the buffer.  */
   if (position == BUF_ZV (buffer))
