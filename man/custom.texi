@@ -487,21 +487,11 @@ set, saved or reset.
   The customization buffer normally saves customizations in
 @file{~/.emacs}.  If you wish, you can save customizations in another
 file instead.  To make this work, your @file{~/.emacs} should set
-@code{custom-file} to the name of that file.  If you are using Emacs
-version 21.4 or later, Emacs loads the file right after your
-@file{.emacs} if you did not load it already.  In earlier versions,
-you have to load the file in your @file{~/emacs}.  If you customize
-@code{custom-file} through the @samp{Customize} interface, you still
-need to load it in your @file{.emacs}, but there is no need to set
-it.  For example:
+@code{custom-file} to the name of that file and load it.  For example:
 
 @example
-;; @r{if not set through the @samp{Customize} interface:}
-(setq custom-file "~/.emacs-custom")
-
-;; @r{in Emacs versions before 21.4 or if set through}
-;; @r{the @samp{Customize} interface.}
-(load "~/.emacs-custom")
+(setq custom-file "~/.emacs-custom.el")
+(load custom-file)
 @end example
 
   You can also use @code{custom-file} to specify different
