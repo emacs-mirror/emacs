@@ -412,9 +412,7 @@ For example, invoke `emacs -batch -f batch-update-autoloads *.el'."
  		      (princ ">>Error processing ")
  		      (princ file)
  		      (princ ": ")
- 		      (if (fboundp 'display-error)
- 			  (display-error lossage nil)
- 			(prin1 lossage))
+		      (princ (error-message-string lossage))
  		      (princ "\n")
  		      (setq lost t)))))))
       (while args
