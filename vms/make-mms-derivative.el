@@ -1,6 +1,6 @@
 ;;; make-mms-derivative.el --- framework to do horrible things for VMS support
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2005 Free Software Foundation, Inc.
 
 ;; Author: Thien-Thi Nguyen <ttn@gnu.org>
 ;; Keywords: maint build vms mms makefile levitte autoconf war-is-a-lose
@@ -26,7 +26,7 @@
 
 ;; Under OpenVMS the standard make-like program is called MMS, which
 ;; looks for an input file in the default directory named DESCRIP.MMS
-;; and runs the DCL command rules therein.  As of 2003, the build
+;; and runs the DCL command rules therein.  As of 2005, the build
 ;; process requires a hand translation of the Makefile.in and related
 ;; Emacs-specific methodology to DCL and TPU commands, so to alleviate
 ;; this pain, we provide `make-mms-derivative', which given a source
