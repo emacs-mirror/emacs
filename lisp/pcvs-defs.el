@@ -4,7 +4,7 @@
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
-;; Revision: $Id: pcvs-defs.el,v 1.18 2002/06/22 20:24:42 monnier Exp $
+;; Revision: $Id: pcvs-defs.el,v 1.19 2002/06/29 19:52:51 monnier Exp $
 
 ;; This file is part of GNU Emacs.
 
@@ -324,7 +324,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ("q" .	cvs-bury-buffer)
     ("z" .	kill-this-buffer)
     ("F" .	cvs-mode-set-flags)
-    ("\M-f" .	cvs-mode-force-command)
+    ;; ("\M-f" .	cvs-mode-force-command)
     ("!" .	cvs-mode-force-command)
     ("\C-c\C-c" . cvs-mode-kill-process)
     ;; marking
@@ -434,7 +434,9 @@ This variable is buffer local and only used in the *cvs* buffer.")
   :group 'pcl-cvs)
 
 (easy-mmode-defmap cvs-minor-mode-map
-  `((,cvs-minor-mode-prefix . cvs-mode-map))
+  `((,cvs-minor-mode-prefix . cvs-mode-map)
+    ("e" . (menu-item nil cvs-mode-edit-log
+	    :filter (lambda (x) (if (derived-mode-p 'log-view-mode) x)))))
   "Keymap for `cvs-minor-mode', used in buffers related to PCL-CVS.")
 
 (defvar cvs-buffer nil
