@@ -5,6 +5,7 @@
 ;; Author: Matthieu Devin <devin@lucid.com>
 ;; Maintainer: FSF
 ;; Created: 14 Jul 92
+;; Keywords: convenience emulations
 
 ;; This file is part of GNU Emacs.
 

@@ -3,7 +3,7 @@
 ;; Copyright (C) 1996, 1998 Free Software Foundation, Inc.
 
 ;; Author: Peter Breton <pbreton@cs.umb.edu>
-;; Keywords: unix
+;; Keywords: unix files
 
 ;; This file is part of GNU Emacs.
 

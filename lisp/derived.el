@@ -5,6 +5,7 @@
 
 ;; Author: David Megginson (dmeggins@aix1.uottawa.ca)
 ;; Maintainer: FSF
+;; Keywords: extensions
 
 ;; This file is part of GNU Emacs.
 
