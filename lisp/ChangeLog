@@ -1,3 +1,8 @@
+2003-01-08  Francesco Potort,Al(B  <pot@gnu.org>
+
+	* mail/undigest.el (unforward-rmail-message): Simplified.  No
+	functional change.
+
 2003-01-07  Markus Rost  <rost@math.ohio-state.edu>
 
 	* custom.el (custom-autoload, custom-variable-p): New functions.
