@@ -21,8 +21,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 
 ;;; Code:
 
@@ -255,6 +256,20 @@ Set by \\[tex-region], \\[tex-buffer], and \\[tex-file].")
   "Keymap for the TeX shell.
 Inherits `shell-mode-map' with a few additions.")
 
+(defvar tex-face-alist
+  '((bold . "{\\bf ")
+    (italic . "{\\it ")
+    (bold-italic . "{\\bi ")		; hypothetical
+    (underline . "\\underline{")
+    (default . "{\\rm "))
+  "Alist of face and TeX font name for facemenu.")
+
+(defvar tex-latex-face-alist
+  `((italic . "{\\em ")
+    ,@tex-face-alist)
+  "Alist of face and LaTeX font name for facemenu.")
+
+
 (defvar compare-windows-whitespace)	; Pacify the byte-compiler
 
 ;;; This would be a lot simpler if we just used a regexp search,
@@ -417,6 +432,8 @@ subshell is initiated, `tex-shell-hook' is run."
 \\\\marginpar\\|\\\\parbox\\|\\\\caption\\)[ \t]*\\($\\|%\\)")
   (make-local-variable 'imenu-generic-expression)
   (setq imenu-generic-expression latex-imenu-generic-expression)
+  (make-local-variable 'tex-face-alist)
+  (setq tex-face-alist tex-latex-face-alist)
   (run-hooks 'text-mode-hook 'tex-mode-hook 'latex-mode-hook))
 
 ;;;###autoload
@@ -466,7 +483,7 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq mode-name "SliTeX")
   (setq major-mode 'slitex-mode)
   (setq tex-command slitex-run-command)
-  (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\docuentclass{slides}")
+  (setq tex-start-of-header "\\\\documentstyle{slides}\\|\\\\documentclass{slides}")
   (setq tex-end-of-header "\\\\begin{document}")
   (setq tex-trailer "\\end{document}\n")
   ;; A line containing just $$ is treated as a paragraph separator.
@@ -535,6 +552,17 @@ Entering SliTeX mode runs the hook `text-mode-hook', then the hook
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'compare-windows-whitespace)
   (setq compare-windows-whitespace 'tex-categorize-whitespace)
+  (make-local-variable 'facemenu-add-face-function)
+  (make-local-variable 'facemenu-end-add-face)
+  (make-local-variable 'facemenu-remove-face-function)
+  (setq facemenu-add-face-function
+	(lambda (face end)
+	  (let ((face-text (cdr (assq face tex-face-alist))))
+	    (if face-text
+		face-text
+	      (error "Face %s not configured for %s mode" face mode-name))))
+	facemenu-end-add-face "}"
+	facemenu-remove-face-function t)
   (make-local-variable 'tex-command)
   (make-local-variable 'tex-start-of-header)
   (make-local-variable 'tex-end-of-header)
@@ -1121,7 +1149,7 @@ so normally SUFFIX starts with one."
   (if (stringp file-name)
       (let ((file (file-name-nondirectory file-name))
 	    trial-name)
-	;; Try spliting on last period.
+	;; Try splitting on last period.
 	;; The first-period split can get fooled when two files
 	;; named a.tex and a.b.tex are both tex'd;
 	;; the last-period split must be right if it matches at all.
