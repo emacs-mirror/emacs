@@ -57,6 +57,11 @@
 (defun vip-window-display-p ()
   (and (vip-device-type) (not (memq (vip-device-type) '(tty stream)))))
 
+(defvar vip-ms-style-os-p (memq system-type '(ms-dos windows-nt windows-95))
+  "Tells if Emacs is running under an MS-style OS: ms-dos, windows-nt, W95.")
+(defvar vip-vms-os-p (memq system-type '(vax-vms axp-vms))
+  "Tells if Emacs is running under VMS.")
+
 (defvar vip-force-faces nil
   "If t, Viper will think that it is running on a display that supports faces.
 This is provided as a temporary relief for users of face-capable displays
