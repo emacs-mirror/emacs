@@ -1,3 +1,8 @@
+2004-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* xfns.c (x_icon_verify): New function.
+	(Fx_create_frame): Use it.
+
 2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
 
 	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.
