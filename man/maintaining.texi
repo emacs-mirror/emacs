@@ -244,9 +244,10 @@ Tags for variables and functions in classes are named
 @item
 In La@TeX{} text, the argument of any of the commands @code{\chapter},
 @code{\section}, @code{\subsection}, @code{\subsubsection},
-@code{\eqno}, @code{\label}, @code{\ref}, @code{\cite}, @code{\bibitem},
-@code{\part}, @code{\appendix}, @code{\entry}, or @code{\index}, is a
-tag.@refill
+@code{\eqno}, @code{\label}, @code{\ref}, @code{\cite},
+@code{\bibitem}, @code{\part}, @code{\appendix}, @code{\entry},
+@code{\index}, @code{\def}, @code{\newcomand}, @code{\renewcommand},
+@code{\newenvironment} or @code{\renewenvironment} is a tag.@refill
 
 Other commands can make tags as well, if you specify them in the
 environment variable @env{TEXTAGS} before invoking @code{etags}.  The
@@ -254,13 +255,13 @@ value of this environment variable should be a colon-separated list of
 command names.  For example,
 
 @example
-TEXTAGS="def:newcommand:newenvironment"
+TEXTAGS="mycommand:myothercommand"
 export TEXTAGS
 @end example
 
 @noindent
-specifies (using Bourne shell syntax) that the commands @samp{\def},
-@samp{\newcommand} and @samp{\newenvironment} also define tags.
+specifies (using Bourne shell syntax) that the commands
+@samp{\mycommand} and @samp{\myothercommand} also define tags.
 
 @item
 In Lisp code, any function defined with @code{defun}, any variable
@@ -455,6 +456,12 @@ language from the file names and file contents.  Specify
 @samp{--language=none} to turn off language-specific processing
 entirely; then @code{etags} recognizes tags by regexp matching alone
 (@pxref{Etags Regexps}).
+
+  The option @samp{--parse-stdin=@var{file}} is mostly useful when
+calling @code{etags} from programs.  It can be used (only once) in
+place of a file name on the command line.  @code{Etags} will read from
+standard input and mark the produced tags as belonging to the file
+@var{file}.
 
   @samp{etags --help} prints the list of the languages @code{etags}
 knows, and the file name rules for guessing the language.  It also prints
