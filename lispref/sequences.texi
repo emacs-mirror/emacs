@@ -1,0 +1,484 @@
+@c -*-texinfo-*-
+@c This is part of the GNU Emacs Lisp Reference Manual.
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994 Free Software Foundation, Inc. 
+@c See the file elisp.texi for copying conditions.
+@setfilename ../info/sequences
+@node Sequences Arrays Vectors, Symbols, Lists, Top
+@chapter Sequences, Arrays, and Vectors
+@cindex sequence
+
+  Recall that the @dfn{sequence} type is the union of three other Lisp
+types: lists, vectors, and strings.  In other words, any list is a
+sequence, any vector is a sequence, and any string is a sequence.  The
+common property that all sequences have is that each is an ordered
+collection of elements.
+
+  An @dfn{array} is a single primitive object directly containing all
+its elements.  Therefore, all the elements are accessible in constant
+time.  The length of an existing array cannot be changed.  Both strings
+and vectors are arrays.  A list is a sequence of elements, but it is not
+a single primitive object; it is made of cons cells, one cell per
+element.  Therefore, elements farther from the beginning of the list
+take longer to access, but it is possible to add elements to the list or
+remove elements.
+
+  The following diagram shows the relationship between these types:
+
+@example
+@group
+            ___________________________________
+           |                                   |
+           |          Sequence                 |
+           |  ______   ______________________  |
+           | |      | |                      | |
+           | | List | |         Array        | |
+           | |      | |  ________   _______  | |   
+           | |______| | |        | |       | | |
+           |          | | String | | Vector| | |
+           |          | |________| |_______| | |
+           |          |______________________| |
+           |___________________________________|
+
+@center @r{The relationship between sequences, arrays, and vectors}
+@end group
+@end example
+
+  The elements of vectors and lists may be any Lisp objects.  The
+elements of strings are all characters.
+
+@menu
+* Sequence Functions::    Functions that accept any kind of sequence.
+* Arrays::                Characteristics of arrays in Emacs Lisp.
+* Array Functions::       Functions specifically for arrays.
+* Vectors::               Functions specifically for vectors.
+@end menu
+
+@node Sequence Functions
+@section Sequences
+
+  In Emacs Lisp, a @dfn{sequence} is either a list, a vector or a
+string.  The common property that all sequences have is that each is an
+ordered collection of elements.  This section describes functions that
+accept any kind of sequence.
+
+@defun sequencep object
+Returns @code{t} if @var{object} is a list, vector, or
+string, @code{nil} otherwise.
+@end defun
+
+@defun copy-sequence sequence
+@cindex copying sequences
+Returns a copy of @var{sequence}.  The copy is the same type of object
+as the original sequence, and it has the same elements in the same order.
+
+Storing a new element into the copy does not affect the original
+@var{sequence}, and vice versa.  However, the elements of the new
+sequence are not copies; they are identical (@code{eq}) to the elements
+of the original.  Therefore, changes made within these elements, as
+found via the copied sequence, are also visible in the original
+sequence.
+
+If the sequence is a string with text properties, the property list in
+the copy is itself a copy, not shared with the original's property
+list.  However, the actual values of the properties are shared.
+@xref{Text Properties}.
+
+See also @code{append} in @ref{Building Lists}, @code{concat} in
+@ref{Creating Strings}, and @code{vconcat} in @ref{Vectors}, for others
+ways to copy sequences.
+
+@example
+@group
+(setq bar '(1 2))
+     @result{} (1 2)
+@end group
+@group
+(setq x (vector 'foo bar))
+     @result{} [foo (1 2)]
+@end group
+@group
+(setq y (copy-sequence x))
+     @result{} [foo (1 2)]
+@end group
+
+@group
+(eq x y)
+     @result{} nil
+@end group
+@group
+(equal x y)
+     @result{} t
+@end group
+@group
+(eq (elt x 1) (elt y 1))
+     @result{} t
+@end group
+
+@group
+;; @r{Replacing an element of one sequence.}
+(aset x 0 'quux)
+x @result{} [quux (1 2)]
+y @result{} [foo (1 2)]
+@end group
+
+@group
+;; @r{Modifying the inside of a shared element.}
+(setcar (aref x 1) 69)
+x @result{} [quux (69 2)]
+y @result{} [foo (69 2)]
+@end group
+@end example
+@end defun
+
+@defun length sequence
+@cindex string length
+@cindex list length
+@cindex vector length
+@cindex sequence length
+Returns the number of elements in @var{sequence}.  If @var{sequence} is
+a cons cell that is not a list (because the final @sc{cdr} is not
+@code{nil}), a @code{wrong-type-argument} error is signaled.
+
+@example
+@group
+(length '(1 2 3))
+    @result{} 3
+@end group
+@group
+(length ())
+    @result{} 0
+@end group
+@group
+(length "foobar")
+    @result{} 6
+@end group
+@group
+(length [1 2 3])
+    @result{} 3
+@end group
+@end example
+@end defun
+
+@defun elt sequence index
+@cindex elements of sequences
+This function returns the element of @var{sequence} indexed by
+@var{index}.  Legitimate values of @var{index} are integers ranging from
+0 up to one less than the length of @var{sequence}.  If @var{sequence}
+is a list, then out-of-range values of @var{index} return @code{nil};
+otherwise, they trigger an @code{args-out-of-range} error.
+
+@example
+@group
+(elt [1 2 3 4] 2)
+     @result{} 3
+@end group
+@group
+(elt '(1 2 3 4) 2)
+     @result{} 3
+@end group
+@group
+(char-to-string (elt "1234" 2))
+     @result{} "3"
+@end group
+@group
+(elt [1 2 3 4] 4)
+     @error{}Args out of range: [1 2 3 4], 4
+@end group
+@group
+(elt [1 2 3 4] -1)
+     @error{}Args out of range: [1 2 3 4], -1
+@end group
+@end example
+
+This function duplicates @code{aref} (@pxref{Array Functions}) and
+@code{nth} (@pxref{List Elements}), except that it works for any kind of
+sequence.
+@end defun
+
+@node Arrays
+@section Arrays
+@cindex array
+
+  An @dfn{array} object refers directly to a number of other Lisp
+objects, called the elements of the array.  Any element of an array may
+be accessed in constant time.  In contrast, an element of a list
+requires access time that is proportional to the position of the element
+in the list.
+
+  When you create an array, you must specify how many elements it has.
+The amount of space allocated depends on the number of elements.
+Therefore, it is impossible to change the size of an array once it is
+created.  You cannot add or remove elements.  However, you can replace
+an element with a different value.
+
+  Emacs defines two types of array, both of which are one-dimensional:
+@dfn{strings} and @dfn{vectors}.  A vector is a general array; its
+elements can be any Lisp objects.  A string is a specialized array; its
+elements must be characters (i.e., integers between 0 and 255).  Each
+type of array has its own read syntax.  @xref{String Type}, and
+@ref{Vector Type}.
+
+  Both kinds of arrays share these characteristics:
+
+@itemize @bullet
+@item
+The first element of an array has index zero, the second element has
+index 1, and so on.  This is called @dfn{zero-origin} indexing.  For
+example, an array of four elements has indices 0, 1, 2, @w{and 3}.
+
+@item
+The elements of an array may be referenced or changed with the functions
+@code{aref} and @code{aset}, respectively (@pxref{Array Functions}).
+@end itemize
+
+  In principle, if you wish to have an array of characters, you could use
+either a string or a vector.  In practice, we always choose strings for
+such applications, for four reasons:
+
+@itemize @bullet
+@item
+They occupy one-fourth the space of a vector of the same elements.
+
+@item
+Strings are printed in a way that shows the contents more clearly
+as characters.
+
+@item
+Strings can hold text properties.  @xref{Text Properties}.
+
+@item
+Many of the specialized editing and I/O facilities of Emacs accept only
+strings.  For example, you cannot insert a vector of characters into a
+buffer the way you can insert a string.  @xref{Strings and Characters}.
+@end itemize
+
+@node Array Functions
+@section Functions that Operate on Arrays
+
+  In this section, we describe the functions that accept both strings
+and vectors.
+
+@defun arrayp object
+This function returns @code{t} if @var{object} is an array (i.e., either a
+vector or a string).
+
+@example
+@group
+(arrayp [a])
+@result{} t
+(arrayp "asdf")
+@result{} t
+@end group
+@end example
+@end defun
+
+@defun aref array index
+@cindex array elements
+This function returns the @var{index}th element of @var{array}.  The
+first element is at index zero.
+
+@example
+@group
+(setq primes [2 3 5 7 11 13])
+     @result{} [2 3 5 7 11 13]
+(aref primes 4)
+     @result{} 11
+(elt primes 4)
+     @result{} 11
+@end group
+
+@group
+(aref "abcdefg" 1)
+     @result{} 98           ; @r{@samp{b} is @sc{ASCII} code 98.}
+@end group
+@end example
+
+See also the function @code{elt}, in @ref{Sequence Functions}.
+@end defun
+
+@defun aset array index object
+This function sets the @var{index}th element of @var{array} to be
+@var{object}.  It returns @var{object}.
+
+@example
+@group
+(setq w [foo bar baz])
+     @result{} [foo bar baz]
+(aset w 0 'fu)
+     @result{} fu
+w
+     @result{} [fu bar baz]
+@end group
+
+@group
+(setq x "asdfasfd")
+     @result{} "asdfasfd"
+(aset x 3 ?Z)
+     @result{} 90
+x
+     @result{} "asdZasfd"
+@end group
+@end example
+
+If @var{array} is a string and @var{object} is not a character, a
+@code{wrong-type-argument} error results.
+@end defun
+
+@defun fillarray array object
+This function fills the array @var{array} with pointers to @var{object},
+replacing any previous values.  It returns @var{array}.
+
+@example
+@group
+(setq a [a b c d e f g])
+     @result{} [a b c d e f g]
+(fillarray a 0)
+     @result{} [0 0 0 0 0 0 0]
+a
+     @result{} [0 0 0 0 0 0 0]
+@end group
+@group
+(setq s "When in the course")
+     @result{} "When in the course"
+(fillarray s ?-)
+     @result{} "------------------"
+@end group
+@end example
+
+If @var{array} is a string and @var{object} is not a character, a
+@code{wrong-type-argument} error results.
+@end defun
+
+The general sequence functions @code{copy-sequence} and @code{length}
+are often useful for objects known to be arrays.  @xref{Sequence Functions}.
+
+@node Vectors
+@section Vectors
+@cindex vector
+
+  Arrays in Lisp, like arrays in most languages, are blocks of memory
+whose elements can be accessed in constant time.  A @dfn{vector} is a
+general-purpose array; its elements can be any Lisp objects.  (The other
+kind of array in Emacs Lisp is the @dfn{string}, whose elements must be
+characters.)  Vectors in Emacs serve as syntax tables (vectors of
+integers), as obarrays (vectors of symbols), and in keymaps (vectors of
+commands).  They are also used internally as part of the representation
+of a byte-compiled function; if you print such a function, you will see
+a vector in it.
+
+  In Emacs Lisp, the indices of the elements of a vector start from zero
+and count up from there.
+
+  Vectors are printed with square brackets surrounding the elements
+in their order.  Thus, a vector containing the symbols @code{a},
+@code{b} and @code{c} is printed as @code{[a b c]}.  You can write
+vectors in the same way in Lisp input.
+
+  A vector, like a string or a number, is considered a constant for
+evaluation: the result of evaluating it is the same vector.  This does
+not evaluate or even examine the elements of the vector.
+@xref{Self-Evaluating Forms}.
+
+  Here are examples of these principles:
+
+@example
+@group
+(setq avector [1 two '(three) "four" [five]])
+     @result{} [1 two (quote (three)) "four" [five]]
+(eval avector)
+     @result{} [1 two (quote (three)) "four" [five]]
+(eq avector (eval avector))
+     @result{} t
+@end group
+@end example
+
+  Here are some functions that relate to vectors:
+
+@defun vectorp object
+This function returns @code{t} if @var{object} is a vector.
+
+@example
+@group
+(vectorp [a])
+     @result{} t
+(vectorp "asdf")
+     @result{} nil
+@end group
+@end example
+@end defun
+
+@defun vector &rest objects
+This function creates and returns a vector whose elements are the
+arguments, @var{objects}.
+
+@example
+@group
+(vector 'foo 23 [bar baz] "rats")
+     @result{} [foo 23 [bar baz] "rats"]
+(vector)
+     @result{} []
+@end group
+@end example
+@end defun
+
+@defun make-vector length object
+This function returns a new vector consisting of @var{length} elements,
+each initialized to @var{object}.
+
+@example
+@group
+(setq sleepy (make-vector 9 'Z))
+     @result{} [Z Z Z Z Z Z Z Z Z]
+@end group
+@end example
+@end defun
+
+@defun vconcat &rest sequences
+@cindex copying vectors
+This function returns a new vector containing all the elements of the
+@var{sequences}.  The arguments @var{sequences} may be lists, vectors,
+or strings.  If no @var{sequences} are given, an empty vector is
+returned.
+
+The value is a newly constructed vector that is not @code{eq} to any
+existing vector.
+
+@example
+@group
+(setq a (vconcat '(A B C) '(D E F)))
+     @result{} [A B C D E F]
+(eq a (vconcat a))
+     @result{} nil
+@end group
+@group
+(vconcat)
+     @result{} []
+(vconcat [A B C] "aa" '(foo (6 7)))
+     @result{} [A B C 97 97 foo (6 7)]
+@end group
+@end example
+
+When an argument is an integer (not a sequence of integers), it is
+converted to a string of digits making up the decimal printed
+representation of the integer.  This special case exists for
+compatibility with Mocklisp, and we don't recommend you take advantage
+of it.  If you want to convert an integer to digits in this way, use
+@code{format} (@pxref{Formatting Strings}) or @code{number-to-string}
+(@pxref{String Conversion}).
+
+For other concatenation functions, see @code{mapconcat} in @ref{Mapping
+Functions}, @code{concat} in @ref{Creating Strings}, and @code{append}
+in @ref{Building Lists}.
+@end defun
+
+  The @code{append} function provides a way to convert a vector into a
+list with the same elements (@pxref{Building Lists}):
+
+@example
+@group
+(setq avector [1 two (quote (three)) "four" [five]])
+     @result{} [1 two (quote (three)) "four" [five]]
+(append avector nil)
+     @result{} (1 two (quote (three)) "four" [five])
+@end group
+@end example
