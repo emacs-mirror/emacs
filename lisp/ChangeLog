@@ -1,3 +1,12 @@
+2005-03-04  Robert J. Chassell  <bob@rattlesnake.com>
+
+	* textmodes/texinfmt.el (texinfo-append-refill):
+	Redefine the types of line to which @refill
+	is not appended by replacing a search for `@refill\\|@bye' with
+	`@refill\\|^[ \t]*@'.  The intent is to solve both the `@end
+	itemize@refill' bug and the unfilled long lines bug.
+	(texinfmt-version): update number and date.
+
 2005-03-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* international/code-pages.el (windows-1250, windows-125[2-8])
