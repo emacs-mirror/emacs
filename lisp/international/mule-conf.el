@@ -235,6 +235,9 @@
 (put 'undecided 'eol-type
      (make-subsidiary-coding-system 'undecided))
 
+(define-coding-system-alias 'dos 'undecided-dos)
+(define-coding-system-alias 'mac 'undecided-mac)
+
 ;; Coding systems not specific to each language environment.
 
 (make-coding-system
