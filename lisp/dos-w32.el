@@ -59,7 +59,7 @@
 					; Unix stuff
     ("\\.tp[ulpw]$" . t)
 					; Borland Pascal stuff
-    ("[:/]tags$" . t)
+    ("[:/]tags$" . nil)
 					; Emacs TAGS file
     )
   "*Alist for distinguishing text files from binary files.
