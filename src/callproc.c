@@ -967,7 +967,18 @@ If you quit, the process is killed with SIGINT, or SIGKILL if you quit again.")
 
   coding_systems = Qt;
 
+#ifdef HAVE_MKSTEMP
+ {
+   int fd = mkstemp (tempfile);
+   if (fd == -1)
+     report_file_error ("Failed to open temporary file",
+			Fcons (Vtemp_file_name_pattern, Qnil));
+   else
+     close (fd);
+ }
+#else
   mktemp (tempfile);
+#endif
 
   filename_string = build_string (tempfile);
   GCPRO1 (filename_string);
