@@ -636,108 +636,111 @@ If first char entered is \\[isearch-yank-word], then do word search instead."
   ;; Editing doesn't back up the search point.  Should it?
   (interactive)
   (condition-case err
-      (let ((isearch-nonincremental isearch-nonincremental)
+      (progn
+	(let ((isearch-nonincremental isearch-nonincremental)
 
-	    ;; Locally bind all isearch global variables to protect them
-	    ;; from recursive isearching.
-	    ;; isearch-string -message and -forward are not bound
-	    ;; so they may be changed.  Instead, save the values.
-	    (isearch-new-string isearch-string)
-	    (isearch-new-message isearch-message)
-	    (isearch-new-forward isearch-forward)
-	    (isearch-new-word isearch-word)
+	      ;; Locally bind all isearch global variables to protect them
+	      ;; from recursive isearching.
+	      ;; isearch-string -message and -forward are not bound
+	      ;; so they may be changed.  Instead, save the values.
+	      (isearch-new-string isearch-string)
+	      (isearch-new-message isearch-message)
+	      (isearch-new-forward isearch-forward)
+	      (isearch-new-word isearch-word)
 
-	    (isearch-regexp isearch-regexp)
-	    (isearch-op-fun isearch-op-fun)
-	    (isearch-cmds isearch-cmds)
-	    (isearch-success isearch-success)
-	    (isearch-wrapped isearch-wrapped)
-	    (isearch-barrier isearch-barrier)
-	    (isearch-adjusted isearch-adjusted)
-	    (isearch-yank-flag isearch-yank-flag)
-	    (isearch-invalid-regexp isearch-invalid-regexp)
-	    (isearch-within-brackets isearch-within-brackets)
-;;; Don't bind this.  We want isearch-search, below, to set it.
-;;; And the old value won't matter after that.
-;;;	    (isearch-other-end isearch-other-end)
-;;; Perhaps some of these other variables should be bound for a
-;;; shorter period, ending before the next isearch-search.
-;;; But there doesn't seem to be a real bug, so let's not risk it now.
-	    (isearch-opoint isearch-opoint)
-	    (isearch-slow-terminal-mode isearch-slow-terminal-mode)
-	    (isearch-small-window isearch-small-window)
-	    (isearch-recursive-edit isearch-recursive-edit)
-	    ;; Save current configuration so we can restore it here.
-	    (isearch-window-configuration (current-window-configuration))
-	    )
+	      (isearch-regexp isearch-regexp)
+	      (isearch-op-fun isearch-op-fun)
+	      (isearch-cmds isearch-cmds)
+	      (isearch-success isearch-success)
+	      (isearch-wrapped isearch-wrapped)
+	      (isearch-barrier isearch-barrier)
+	      (isearch-adjusted isearch-adjusted)
+	      (isearch-yank-flag isearch-yank-flag)
+	      (isearch-invalid-regexp isearch-invalid-regexp)
+	      (isearch-within-brackets isearch-within-brackets)
+  ;;; Don't bind this.  We want isearch-search, below, to set it.
+  ;;; And the old value won't matter after that.
+  ;;;	    (isearch-other-end isearch-other-end)
+  ;;; Perhaps some of these other variables should be bound for a
+  ;;; shorter period, ending before the next isearch-search.
+  ;;; But there doesn't seem to be a real bug, so let's not risk it now.
+	      (isearch-opoint isearch-opoint)
+	      (isearch-slow-terminal-mode isearch-slow-terminal-mode)
+	      (isearch-small-window isearch-small-window)
+	      (isearch-recursive-edit isearch-recursive-edit)
+	      ;; Save current configuration so we can restore it here.
+	      (isearch-window-configuration (current-window-configuration))
+	      )
 
-	;; Actually terminate isearching until editing is done.
-	;; This is so that the user can do anything without failure, 
-	;; like switch buffers and start another isearch, and return.
-	(condition-case err
-	    (isearch-done t t)
-	  (exit nil))			; was recursive editing
+	  ;; Actually terminate isearching until editing is done.
+	  ;; This is so that the user can do anything without failure, 
+	  ;; like switch buffers and start another isearch, and return.
+	  (condition-case err
+	      (isearch-done t t)
+	    (exit nil))			; was recursive editing
 
-	(isearch-message) ;; for read-char
-	(unwind-protect
-	    (let* (;; Why does following read-char echo?  
-		   ;;(echo-keystrokes 0) ;; not needed with above message
-		   (e (let ((cursor-in-echo-area t))
-			(read-event)))
-		   ;; Binding minibuffer-history-symbol to nil is a work-around
-		   ;; for some incompatibility with gmhist.
-		   (minibuffer-history-symbol)
-		   (message-log-max nil))
-	      ;; If the first character the user types when we prompt them
-	      ;; for a string is the yank-word character, then go into
-	      ;; word-search mode.  Otherwise unread that character and
-	      ;; read a key the normal way.
-	      ;; Word search does not apply (yet) to regexp searches,
-	      ;; no check is made here.
-	      (message (isearch-message-prefix nil nil t))
-	      (if (eq 'isearch-yank-word
-		      (lookup-key isearch-mode-map (vector e)))
-		  (setq isearch-word t;; so message-prefix is right
-			isearch-new-word t)
-		(cancel-kbd-macro-events)
-		(isearch-unread e))
-	      (setq cursor-in-echo-area nil)
-	      (setq isearch-new-string
-		    (let (junk-ring)
-		      (read-from-minibuffer
-		       (isearch-message-prefix nil nil isearch-nonincremental)
-		       isearch-string
-		       minibuffer-local-isearch-map nil
-		       'junk-ring))
-		    isearch-new-message
-		    (mapconcat 'isearch-text-char-description
-			       isearch-new-string "")))
-	  ;; Always resume isearching by restarting it.
-	  (isearch-mode isearch-forward 
-			isearch-regexp 
-			isearch-op-fun 
-			nil
-			isearch-word)
+	  (isearch-message) ;; for read-char
+	  (unwind-protect
+	      (let* (;; Why does following read-char echo?  
+		     ;;(echo-keystrokes 0) ;; not needed with above message
+		     (e (let ((cursor-in-echo-area t))
+			  (read-event)))
+		     ;; Binding minibuffer-history-symbol to nil is a work-around
+		     ;; for some incompatibility with gmhist.
+		     (minibuffer-history-symbol)
+		     (message-log-max nil))
+		;; If the first character the user types when we prompt them
+		;; for a string is the yank-word character, then go into
+		;; word-search mode.  Otherwise unread that character and
+		;; read a key the normal way.
+		;; Word search does not apply (yet) to regexp searches,
+		;; no check is made here.
+		(message (isearch-message-prefix nil nil t))
+		(if (eq 'isearch-yank-word
+			(lookup-key isearch-mode-map (vector e)))
+		    (setq isearch-word t;; so message-prefix is right
+			  isearch-new-word t)
+		  (cancel-kbd-macro-events)
+		  (isearch-unread e))
+		(setq cursor-in-echo-area nil)
+		(setq isearch-new-string
+		      (let (junk-ring)
+			(read-from-minibuffer
+			 (isearch-message-prefix nil nil isearch-nonincremental)
+			 isearch-string
+			 minibuffer-local-isearch-map nil
+			 'junk-ring))
+		      isearch-new-message
+		      (mapconcat 'isearch-text-char-description
+				 isearch-new-string "")))
+	    ;; Always resume isearching by restarting it.
+	    (isearch-mode isearch-forward 
+			  isearch-regexp 
+			  isearch-op-fun 
+			  nil
+			  isearch-word)
 
-	  ;; Copy new local values to isearch globals
-	  (setq isearch-string isearch-new-string
-		isearch-message isearch-new-message
-		isearch-forward isearch-new-forward
-		isearch-word isearch-new-word))
+	    ;; Copy new local values to isearch globals
+	    (setq isearch-string isearch-new-string
+		  isearch-message isearch-new-message
+		  isearch-forward isearch-new-forward
+		  isearch-word isearch-new-word))
 
-	;; Empty isearch-string means use default.
-	(if (= 0 (length isearch-string))
-	    (setq isearch-string (or (car (if isearch-regexp
-					      regexp-search-ring
-					    search-ring))
-				     ""))
-	  ;; This used to set the last search string,
-	  ;; but I think it is not right to do that here.
-	  ;; Only the string actually used should be saved.
-	  )
+	  ;; Empty isearch-string means use default.
+	  (if (= 0 (length isearch-string))
+	      (setq isearch-string (or (car (if isearch-regexp
+						regexp-search-ring
+					      search-ring))
+				       ""))
+	    ;; This used to set the last search string,
+	    ;; but I think it is not right to do that here.
+	    ;; Only the string actually used should be saved.
+	    ))
+
+	;; Push the state as of before this C-s.
+	(isearch-push-state)
 
 	;; Reinvoke the pending search.
-	(isearch-push-state)
 	(isearch-search)
 	(isearch-update)
 	(if isearch-nonincremental 
