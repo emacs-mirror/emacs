@@ -1945,8 +1945,9 @@ Otherwise use Man and record start of formatting time."
 	;; Highlight reference when mouse is over it.
 	;; (NB: WoMan does not hyphenate!)
 	;; [See (elisp)Clickable Text]
-	(put-text-property (match-beginning 1) (match-end 1)
-			   'mouse-face 'highlight)
+	(add-text-properties (match-beginning 1) (match-end 1)
+			     '(mouse-face highlight
+			       help-echo "mouse-2: display this man page"))
 	))))
 
 
