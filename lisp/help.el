@@ -621,7 +621,9 @@ It can also be nil, if the definition is not associated with any file."
 		     (vectorp def))
 		 "a keyboard macro")
 		((subrp def)
-		 (concat beg "built-in function"))
+		 (if (eq 'unevalled (cdr (subr-arity def)))
+		     (concat beg "special form")
+		   (concat beg "built-in function")))
 		((byte-code-function-p def)
 		 (concat beg "compiled Lisp function"))
 		((symbolp def)
@@ -716,19 +718,24 @@ It can also be nil, if the definition is not associated with any file."
       (if doc
 	  (progn (terpri)
 		 (princ doc)
-		 (with-current-buffer standard-output
-		   (beginning-of-line)
-		   ;; Builtins get the calling sequence at the end of
-		   ;; the doc string.  Move it to the same place as
-		   ;; for other functions.
-		   (when (looking-at (format "(%S[ )]" function))
-		     (let ((start (point-marker)))
-		       (goto-char (point-min))
-		       (forward-paragraph)
-		       (insert-buffer-substring (current-buffer) start)
-		       (insert ?\n)
-		       (delete-region (1- start) (point-max))
-		       (goto-char (point-max)))))
+		 (if (subrp (symbol-function function))
+		     (with-current-buffer standard-output
+		       (beginning-of-line)
+		       ;; Builtins get the calling sequence at the end of
+		       ;; the doc string.  Move it to the same place as
+		       ;; for other functions.
+		       (if (looking-at (format "(%S[ )]" function))
+			   (let ((start (point-marker)))
+			     (goto-char (point-min))
+			     (forward-paragraph)
+			     (insert-buffer-substring (current-buffer) start)
+			     (insert ?\n)
+			     (delete-region (1- start) (point-max)))
+			 (goto-char (point-min))
+			 (forward-paragraph)
+			 (insert
+			  "[Missing arglist.  Please make a bug report.]\n"))
+		       (goto-char (point-max))))
 		 (help-setup-xref (list #'describe-function function)
 				  interactive-p))
 	(princ "not documented")))))
