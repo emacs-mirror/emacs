@@ -1,28 +1,31 @@
 ;;; url-util.el --- Miscellaneous helper routines for URL library
+
+;; Copyright (c) 1996,97,98,99,2001,2004  Free Software Foundation, Inc.
+;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
+
 ;; Author: Bill Perry <wmperry@gnu.org>
 ;; Keywords: comm, data, processes
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; Copyright (c) 1993 - 1996 by William M. Perry <wmperry@cs.indiana.edu>
-;;; Copyright (c) 1996, 97, 98, 99, 2001 Free Software Foundation, Inc.
-;;;
-;;; This file is part of GNU Emacs.
-;;;
-;;; GNU Emacs is free software; you can redistribute it and/or modify
-;;; it under the terms of the GNU General Public License as published by
-;;; the Free Software Foundation; either version 2, or (at your option)
-;;; any later version.
-;;;
-;;; GNU Emacs is distributed in the hope that it will be useful,
-;;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;;; GNU General Public License for more details.
-;;;
-;;; You should have received a copy of the GNU General Public License
-;;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;;; Boston, MA 02111-1307, USA.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; This file is part of GNU Emacs.
+;;
+;; GNU Emacs is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; GNU Emacs is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs; see the file COPYING.  If not, write to the
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
+
+;;; Commentary:
+
+;;; Code:
 
 (require 'url-parse)
 (autoload 'timezone-parse-date "timezone")
@@ -63,8 +66,7 @@ If a list, it is a list of the types of messages to be logged."
   (if (or (eq url-debug t)
 	  (numberp url-debug)
 	  (and (listp url-debug) (memq tag url-debug)))
-      (save-excursion
-	(set-buffer (get-buffer-create "*URL-DEBUG*"))
+      (with-current-buffer (get-buffer-create "*URL-DEBUG*")
 	(goto-char (point-max))
 	(insert (symbol-name tag) " -> " (apply 'format args) "\n")
 	(if (numberp url-debug)
@@ -173,7 +175,7 @@ Strips out default port numbers, etc."
 ;;;###autoload
 (defun url-lazy-message (&rest args)
   "Just like `message', but is a no-op if called more than once a second.
-Will not do anything if url-show-status is nil."
+Will not do anything if `url-show-status' is nil."
   (if (or (null url-show-status)
 	  (active-minibuffer-window)
 	  (= url-lazy-message-time
@@ -502,4 +504,5 @@ Has a preference for looking backward when not directly on a symbol."
 
 (provide 'url-util)
 
-;;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
+;; arch-tag: 24352abc-5a5a-412e-90cd-313b26bed5c9
+;;; url-util.el ends here
