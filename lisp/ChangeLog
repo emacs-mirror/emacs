@@ -1,3 +1,7 @@
+2004-04-30  Mario Lang  <mlang@delysid.org>
+
+	* diff.el (diff-switches): Fix typo in docstring.
+
 2004-04-30  Alex Schroeder  <alex@gnu.org>
 
 	* xml.el (xml-debug-print-internal): Don't add newline and
@@ -35,8 +39,8 @@
 	* help-fns.el (help-C-file-name): Use new subr-name.
 	Prepend `src/' to the file name.
 	(help-C-source-directory, help-subr-name, help-find-C-source): Remove.
-	(describe-function-1, describe-variable): Only find a C source file name
-	if DOC is already loaded.
+	(describe-function-1, describe-variable): Only find a C source file
+	name if DOC is already loaded.
 
 	* help-mode.el (help-function-def, help-variable-def):
 	Use the new find-function-search-for-symbol functionality.
@@ -46,7 +50,7 @@
 	(find-function-C-source): New fun.
 	(find-function-search-for-symbol): Use it.
 
-2004-03-15  Michael Mauger  <mmaug@yahoo.com>
+2004-03-29  Michael Mauger  <mmaug@yahoo.com>
 
 	* progmodes/sql.el (sql-product-alist): Rename variable
 	`sql-product-support'.  Add Postgres login parameters.
