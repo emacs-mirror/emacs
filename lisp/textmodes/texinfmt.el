@@ -2129,7 +2129,7 @@ This command is executed when texinfmt sees @item inside @multitable."
     (setq fill-column existing-fill-column)))
 
 
-;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifnottex
+;;; @ifinfo,  @iftex, @tex, @ifhtml, @html, @ifnottex, @ifnotinfo, @ifnothtml
 
 (put 'ifinfo 'texinfo-format 'texinfo-discard-line)
 (put 'ifinfo 'texinfo-end 'texinfo-discard-command)
@@ -2158,8 +2158,17 @@ This command is executed when texinfmt sees @item inside @multitable."
                  (progn (re-search-forward "@end html[ \t]*\n")
                         (point))))
 
+(put 'ifnotinfo 'texinfo-format 'texinfo-format-ifnotinfo)
+(defun texinfo-format-ifnotinfo ()
+  (delete-region texinfo-command-start
+                 (progn (re-search-forward "@end ifnotinfo[ \t]*\n")
+                        (point))))
+
 (put 'ifnottex 'texinfo-format 'texinfo-discard-line)
 (put 'ifnottex 'texinfo-end 'texinfo-discard-command)
+
+(put 'ifnothtml 'texinfo-format 'texinfo-discard-line)
+(put 'ifnothtml 'texinfo-end 'texinfo-discard-command)
 
 
 ;;; @titlepage
