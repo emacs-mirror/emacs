@@ -291,10 +291,6 @@ always returns nil."
 
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
-;;; We use `eval' in case VALBITS differs from compile-time to load-time.
-(defconst most-positive-fixnum (eval '(lsh -1 -1)))
-(defconst most-negative-fixnum (eval '(- -1 (lsh -1 -1))))
-
 ;;; The following are actually set by cl-float-limits.
 (defconst most-positive-float nil)
 (defconst most-negative-float nil)
