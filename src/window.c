@@ -2296,10 +2296,12 @@ struct save_window_data
     int size_from_Lisp_Vector_struct;
     struct Lisp_Vector *next_from_Lisp_Vector_struct;
     Lisp_Object frame_width, frame_height;
+    Lisp_Object selected_frame;
     Lisp_Object current_window;
     Lisp_Object current_buffer;
     Lisp_Object minibuf_scroll_window;
     Lisp_Object root_window;
+    Lisp_Object focus_frame;
     /* A vector, interpreted as a struct saved_window */
     Lisp_Object saved_windows;
   };
@@ -2353,10 +2355,12 @@ by `current-window-configuration' (which see).")
   int k;
   FRAME_PTR f;
 
-  /* Save screen height here so we can go back to it at the end.  */
+  /* If the frame has been resized since this window configuration was
+     made, we change the frame to the size specified in the
+     configuration, restore the configuration, and then resize it
+     back.  We keep track of the prevailing height in these variables.  */
   int previous_frame_height;
   int previous_frame_width;
-  int frame_size_change;
 
   while (XTYPE (configuration) != Lisp_Window_Configuration)
     {
@@ -2369,17 +2373,11 @@ by `current-window-configuration' (which see).")
 
   f = XFRAME (XWINDOW (SAVED_WINDOW_N (saved_windows, 0)->window)->frame);
 
-  if (XFASTINT (data->frame_height) != FRAME_HEIGHT (f)
-      || XFASTINT (data->frame_width) != FRAME_WIDTH (f))
-    {
-      previous_frame_height = FRAME_HEIGHT (f);
-      previous_frame_width =  FRAME_WIDTH  (f);
-      frame_size_change = 1;
-
-      change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
-    }
-  else
-    frame_size_change = 0;
+  previous_frame_height = FRAME_HEIGHT (f);
+  previous_frame_width =  FRAME_WIDTH  (f);
+  if (XFASTINT (data->frame_height) != previous_frame_height
+      || XFASTINT (data->frame_width) != previous_frame_width)
+    change_frame_size (f, data->frame_height, data->frame_width, 0, 0);
 
   windows_or_buffers_changed++;
   new_current_buffer = data->current_buffer;
@@ -2391,7 +2389,7 @@ by `current-window-configuration' (which see).")
      Restoring the new configuration "undeletes" any that are in it.
 
      Save their current buffers in their height fields, since we may
-     need it later, if the buffer saved in the configuration is now
+     need it later, if a buffer saved in the configuration is now
      dead.  */
   delete_all_subwindows (XWINDOW (FRAME_ROOT_WINDOW (f)));
 
@@ -2456,6 +2454,9 @@ by `current-window-configuration' (which see).")
 	      Fset_marker (XBUFFER (w->buffer)->mark,
 			   Fmarker_position (p->mark), w->buffer);
 
+	      /* As documented in Fcurrent_window_configuration, don't
+		 save the location of point in the buffer which was current
+		 when the window configuration was recorded.  */
 	      if (!EQ (p->buffer, new_current_buffer) &&
 		  XBUFFER (p->buffer) == current_buffer)
 		Fgoto_char (w->pointm);
@@ -2486,9 +2487,26 @@ by `current-window-configuration' (which see).")
     }
 
   FRAME_ROOT_WINDOW (f) = data->root_window;
-  /* We also need to restore the frame's selected window; that's taken
-     care of below, either by calling Fselect_window, or by explicit
-     assignment.  */
+  Fselect_window (data->current_window);
+
+  /* Fselect_window will have made f the selected frame, so we
+     reselect the proper frame here.  Fselect_frame will change the
+     selected window too, but that doesn't make the call to
+     Fselect_window above totally superfluous; it still sets f's
+     selected window.  */
+  Fselect_frame (d->selected_frame);
+
+  if (!NILP (new_current_buffer))
+    Fset_buffer (new_current_buffer);
+
+#ifdef MULTI_FRAME
+  {
+    Lisp_Object frame;
+
+    XSET (frame, Lisp_Frame, f);
+    Fredirect_frame_focus (frame, data->focus_frame);
+  }
+#endif
 
 #if 0  /* I don't understand why this is needed, and it causes
 	  problems when the frame's old selected window has been
@@ -2500,19 +2518,9 @@ by `current-window-configuration' (which see).")
 #endif
 
   /* Set the screen height to the value it had before this function.  */
-  if (frame_size_change)
+  if (previous_frame_height != FRAME_HEIGHT (f)
+      || previous_frame_width != FRAME_WIDTH (f))
     change_frame_size (f, previous_frame_height, previous_frame_width, 0, 0);
-
-  if (f == selected_frame)
-    {
-      Fselect_window (data->current_window);
-      if (!NILP (new_current_buffer))
-	Fset_buffer (new_current_buffer);
-      else
-	Fset_buffer (XWINDOW (selected_window)->buffer);
-    }
-  else
-    FRAME_SELECTED_WINDOW (f) = data->current_window;
 
   Vminibuf_scroll_window = data->minibuf_scroll_window;
   return (Qnil);
@@ -2627,7 +2635,9 @@ If FRAME is nil or omitted, use the selected frame.\n\
 This describes the number of windows, their sizes and current buffers,\n\
 and for each displayed buffer, where display starts, and the positions of\n\
 point and mark.  An exception is made for point in the current buffer:\n\
-its value is -not- saved.")
+its value is -not- saved.\n\
+This also records the currently selected frame, and FRAME's focus\n\
+redirection (see `redirect-frame-focus').")
   (frame)
      Lisp_Object frame;
 {
@@ -2651,10 +2661,12 @@ its value is -not- saved.")
 				  Qnil));
   XFASTINT (data->frame_width) = FRAME_WIDTH (f);
   XFASTINT (data->frame_height) = FRAME_HEIGHT (f);
+  XSET (data->selected_frame, Lisp_Frame, selected_frame);
   data->current_window = FRAME_SELECTED_WINDOW (f);
   XSET (data->current_buffer, Lisp_Buffer, current_buffer);
   data->minibuf_scroll_window = Vminibuf_scroll_window;
   data->root_window = FRAME_ROOT_WINDOW (f);
+  data->focus_frame = FRAME_FOCUS_FRAME (f);
   tem = Fmake_vector (make_number (n_windows), Qnil);
   data->saved_windows = tem;
   for (i = 0; i < n_windows; i++)
