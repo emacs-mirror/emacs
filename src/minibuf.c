@@ -1289,42 +1289,6 @@ is used to further constrain the set of candidates.  */)
   XSETFASTINT (end, bestmatchsize);	/* all completions agree */
   return Fsubstring (bestmatch, zero, end);
 }
-
-/* Compare exactly LEN chars of strings at S1 and S2,
-   ignoring case if appropriate.
-   Return -1 if strings match,
-   else number of chars that match at the beginning.  */
-
-int
-scmp (s1, s2, len)
-     register unsigned char *s1, *s2;
-     int len;
-{
-  register int l = len;
-
-  if (completion_ignore_case)
-    {
-      while (l && DOWNCASE (*s1++) == DOWNCASE (*s2++))
-	l--;
-    }
-  else
-    {
-      while (l && *s1++ == *s2++)
-	l--;
-    }
-  if (l == 0)
-    return -1;
-  else
-    {
-      int match = len - l;
-
-      /* Now *--S1 is the unmatching byte.  If it is in the middle of
-         multi-byte form, we must say that the multi-byte character
-         there doesn't match.  */
-      while (match && *--s1 >= 0xA0) match--;
-      return match;
-    }
-}
 
 DEFUN ("all-completions", Fall_completions, Sall_completions, 2, 4, 0,
        doc: /* Search for partial matches to STRING in ALIST.
