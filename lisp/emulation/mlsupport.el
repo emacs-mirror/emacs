@@ -419,6 +419,16 @@
     (if (< to 0) (setq to (+ to length)))
     (substring string from (+ from to))))
 
+(defun ml-concat (&rest args)
+  (let ((newargs nil) this)
+    (while args
+      (setq this (car args))
+      (if (numberp this)
+	  (setq this (number-to-string this)))
+      (setq newargs (cons this newargs)
+	    args (cdr args)))
+    (apply 'concat (nreverse newargs))))
+
 (provide 'mlsupport)
 
 ;;; mlsupport.el ends here
