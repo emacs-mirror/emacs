@@ -488,9 +488,9 @@ This is relative to `smtpmail-queue-dir'.")
 	 (mech (car (smtpmail-intersection smtpmail-auth-supported mechs)))
 	 (cred (if (stringp smtpmail-auth-credentials)
 		   (let* ((netrc (netrc-parse smtpmail-auth-credentials))
-			  (hostentry (netrc-machine
-				      netrc host (format "%s" (or port "smtp"))
-				      "smtp")))
+                          (port-name (format "%s" (or port "smtp")))
+			  (hostentry (netrc-machine netrc host port-name
+                                                    port-name)))
                      (when hostentry
                        (list host port
                              (netrc-get hostentry "login")
@@ -504,7 +504,7 @@ This is relative to `smtpmail-queue-dir'.")
 				(smtpmail-cred-server cred)
 				(smtpmail-cred-port cred))))))
 	 ret)
-    (when cred
+    (when (and cred mech)
       (cond
        ((eq mech 'cram-md5)
 	(smtpmail-send-command process (format "AUTH %s" mech))

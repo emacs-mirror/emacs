@@ -19,13 +19,13 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
-#include <lisp.h>
 #include <signal.h>
+#include <stdio.h>
+#include <lisp.h>
 #include <syssignal.h>
 #include <systime.h>
 #include <blockinput.h>
 #include <atimer.h>
-#include <stdio.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>

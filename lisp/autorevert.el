@@ -70,7 +70,11 @@
 ;; Dependencies:
 
 (require 'timer)
-(eval-when-compile (require 'cl))
+(autoload 'dired-get-filename "dired")
+
+(eval-when-compile
+  (defvar dired-directory)
+  (require 'cl))
 
 
 ;; Custom Group:
@@ -244,6 +248,82 @@ Use `auto-revert-mode' to revert a particular buffer."
 			    'auto-revert-buffers)
 	  nil)))
 
+(defun auto-revert-active-p ()
+  "Check if auto-revert is active (in current buffer or globally)."
+  (or auto-revert-mode
+      (and
+       global-auto-revert-mode
+       (not global-auto-revert-ignore-buffer)
+       (not (memq major-mode
+		  global-auto-revert-ignore-modes)))))
+
+(defun auto-revert-list-diff (a b)
+  "Check if strings in list A differ from list B."
+  (when (and a b)
+    (setq a (sort a 'string-lessp))
+    (setq b (sort b 'string-lessp))
+    (let (elt1 elt2)
+      (catch 'break
+	(while (and (setq elt1 (and a (pop a)))
+		    (setq elt2 (and b (pop b))))
+	  (if (not (string= elt1 elt2))
+	      (throw 'break t)))))))
+
+(defun auto-revert-dired-file-list ()
+  "Return list of dired files."
+  (let (file list)
+    (save-excursion
+      (goto-char (point-min))
+      (while (not (eobp))
+	(if (setq file (dired-get-filename t t))
+	    (push file list))
+	(forward-line 1)))
+    list))
+
+(defun auto-revert-dired-changed-p ()
+  "Check if dired buffer has changed."
+  (when (and (stringp dired-directory)
+	     ;;	  Exclude remote buffers, would be too slow for user
+	     ;;	  modem, timeouts, network lag ... all is possible
+	     (not (string-match "@" dired-directory))
+	     (file-directory-p dired-directory))
+    (let ((files (directory-files dired-directory))
+	  (dired (auto-revert-dired-file-list)))
+      (or (not (eq (length files) (length dired)))
+	  (auto-revert-list-diff files dired)))))
+
+(defun auto-revert-buffer-p ()
+  "Check if current buffer should be reverted."
+  ;;  Always include dired buffers to list. It would be too expensive
+  ;;  to test the "revert" status here each time timer launches.
+  (or (eq major-mode 'dired-mode)
+      (and (not (buffer-modified-p))
+	   (if (buffer-file-name)
+	       (and (file-readable-p (buffer-file-name))
+		    (not (verify-visited-file-modtime (current-buffer))))
+	     (and revert-buffer-function
+		  (or (and global-auto-revert-mode
+			   global-auto-revert-non-file-buffers)
+		      auto-revert-mode))))))
+
+(defun auto-revert-handler ()
+  "Revert current buffer."
+  (let (done)
+    (cond
+     ((eq major-mode 'dired-mode)
+      ;;  Dired includes revert-buffer-function
+      (when (and revert-buffer-function
+		 (auto-revert-dired-changed-p))
+	(setq done t)
+	(revert-buffer t t t)))
+     ((or (buffer-file-name)
+	  revert-buffer-function)
+      (setq done t)
+      (revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)))
+    (if (and done
+	     auto-revert-verbose)
+	(message "Reverting buffer `%s'." (buffer-name)))))
+
 (defun auto-revert-buffers ()
   "Revert buffers as specified by Auto-Revert and Global Auto-Revert Mode.
 
@@ -294,24 +374,9 @@ the timer when no buffers need to be checked."
 		       (memq buf auto-revert-buffer-list))
 		  (setq auto-revert-buffer-list
 			(delq buf auto-revert-buffer-list)))
-	      (when (and
-		     (or auto-revert-mode
-			 (and
-			  global-auto-revert-mode
-			  (not global-auto-revert-ignore-buffer)
-			  (not (memq major-mode
-				     global-auto-revert-ignore-modes))))
-		     (not (buffer-modified-p))
-		     (if (buffer-file-name)
-			 (and (file-readable-p (buffer-file-name))
-			      (not (verify-visited-file-modtime buf)))
-		       (and revert-buffer-function
-			    (or (and global-auto-revert-mode
-				     global-auto-revert-non-file-buffers)
-				auto-revert-mode))))
-		(if auto-revert-verbose
-		    (message "Reverting buffer `%s'." buf))
-		(revert-buffer 'ignore-auto 'dont-ask 'preserve-modes)
+	      (when (and (auto-revert-active-p)
+			 (auto-revert-buffer-p))
+		(auto-revert-handler)
 		;; `preserve-modes' avoids changing the (minor) modes.  But we
 		;; do want to reset the mode for VC, so we do it explicitly.
 		(vc-find-file-hook)))

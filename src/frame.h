@@ -438,6 +438,10 @@ struct frame
      Clear the frame in clear_garbaged_frames if set.  */
   unsigned resized_p : 1;
 
+  /* Set to non-zero in when we want for force a flush_display in
+     update_frame, usually after resizing the frame.  */
+  unsigned force_flush_display_p : 1;
+  
   /* All display backends seem to need these two pixel values. */
   unsigned long background_pixel;
   unsigned long foreground_pixel;

@@ -1,3 +1,312 @@
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>  (tiny change)
+
+	* filecache.el: All message and error commands now use prefix
+	"Filecache:" to make it easy to read *Messages* buffer.
+
+2004-02-16  Jari Aalto  <jari.aalto@poboxes.com>
+
+	Autorevert: Add support to detect changed dired buffers.
+	* autorevert.el (auto-revert-active-p, auto-revert-list-diff)
+	(auto-revert-dired-file-list, auto-revert-dired-changed-p)
+	(auto-revert-handler, auto-revert-active-p): New functions.
+	(auto-revert-buffers): Moved revert logic to `auto-revert-handler'
+	and `auto-revert-active-p'.
+	(eval-when-compile): Defvar dired-directory.
+
+2004-02-16  Alfred M. Szmidt  <ams@kemisten.nu>  (tiny change)
+
+	* progmodes/compile.el (compilation-directory): New defvar.
+	(compile): Save current directory in compilation-directory.
+	(recompile): Bind default-directory to compilation-directory if
+	that is non-nil.
+
+2004-02-16  Dave Love  <fx@gnu.org>
+
+	* newcomment.el (comment-insert-comment-function) 
+	(comment-region-function, uncomment-region-function): New.
+	(comment-indent): Use comment-insert-comment-function.
+	(uncomment-region): Use uncomment-region-function.
+	(comment-region): Use comment-region-function.
+
+	* emacs-lisp/rx.el (rx-not): Bind case-fold-search to nil.
+
+2004-02-16  Richard Stallman  <rms@gnu.org>
+
+	* Makefile.in (TAGS, TAGS-LISP): Filter out of `els' only
+	loaddefs* and ldefs-boot*.
+
+2004-02-16  Eli Zaretskii  <eliz@elta.co.il>
+
+	* mail/mail-utils.el (rmail-dont-reply-to): Anchor user login name
+	and email address at the beginning and end of the address.
+
+	* mail/rmail.el (rmail-default-dont-reply-to-names): Make "info-"
+	anchored at the beginning of the email address.
+
+2004-02-16  TAKAI Kousuke  <tak@kmc.gr.jp>  (tiny change)
+
+	* international/ccl.el (ccl-compile-write): Pass `left' to
+	ccl-embed-code to generate correct code of write-expr-register.
+
+2004-02-15  Dan Nicolaescu  <dann@ics.uci.edu>  (tiny change)
+
+	* progmodes/grep.el (grep-compute-defaults): Fix typos.
+
+2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el: Mention support for Motif in commentary.
+	(x-dnd-handle-drag-n-drop-event): Ditto.
+
+2004-02-14  Jonathan Yavner  <jyavner@member.fsf.org>
+
+	* ses.el: Use "ses--" prefixes for buffer-local variables.
+	Use (point-min) instead of 1, even when we know the buffer
+	is unnarrowed.
+	(ses-build-load-map): Delete.  Distribute its content to defconst's for
+	the three maps.
+	(ses-menu, ses-header-line-menu): New menus.
+	(ses-mode-map): Use them.
+	(ses-read-number) New fun.  Duplicates code from interactive "N" spec.
+
+2004-02-14  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Makefile.in: Fixed the CC Mode recompile kludge so it works
+	when building in a different directory.
+
+2004-02-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (kill-new): Put yank-handler property on the entire string.
+
+2004-02-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-defs.el (cvs-menu): Add `tag'.
+
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* simple.el (kill-append): Doc fix.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Adapt outline-regexp to the new conventions for commenting out code.
+
+2004-02-11  John Paul Wallington  <jpw@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods): Fix typo.
+
+2004-02-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff.el (diff-switches): New fun.
+	(diff, diff-backup): Use it.
+	(diff): Clean up the args construction.  Use backquote.
+	Use listp instead of consp to avoid putting a nil arg.
+
+2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
+	handeled by x-dnd-handle-file-name.
+	(x-dnd-known-types): Add COMPOUND_TEXT.
+	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.
+	(x-dnd-get-state-cons-for-frame): Must do copy-sequence on
+	x-dnd-empty-state.
+	(x-dnd-forget-drop): Ditto.
+	(x-dnd-save-state): Add optional parameter extra-data (for Motif).
+	(x-dnd-handle-one-url): Return private when inserting text.
+	(x-dnd-insert-ctext): New function.
+	(x-dnd-handle-file-name): New function for FILE_NAME.
+	(x-dnd-handle-drag-n-drop-event): Add Motif, remove call to error.
+	(x-dnd-init-motif-for-frame, x-dnd-get-motif-value)
+	(x-dnd-motif-value-to-list, x-dnd-handle-motif): New functions.
+
+2004-02-10  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-select-utf8-or-ctext): Use compare-strings
+	instead of while loop.
+
+2004-02-10  Miles Bader  <miles@gnu.org>
+
+	* emacs-lisp/macroexp.el: New file, implements `macroexpand-all'.
+
+2004-02-09  Kenichi Handa  <handa@m17n.org>
+
+	* tar-mode.el (tar-extract): Fix for the case that a file doesn't
+	have end-of-line.
+
+2004-02-09  Martin Stjernholm  <bug-cc-mode@gnu.org>
+
+	* Makefile.in: Added extra dependencies in the recompile target
+	needed to cope with the compile time macro expansions in CC Mode.
+
+2004-02-09  Kim F. Storm  <storm@cua.dk>
+
+	* fringe.el (no-fringe-bitmap, undef-fringe-bitmap)
+	(left-truncation-fringe-bitmap, right-truncation-fringe-bitmap)
+	(up-arrow-fringe-bitmap, down-arrow-fringe-bitmap)
+	(continued-line-fringe-bitmap, continuation-line-fringe-bitmap)
+	(overlay-arrow-fringe-bitmap, top-left-angle-fringe-bitmap)
+	(top-right-angle-fringe-bitmap, bottom-left-angle-fringe-bitmap)
+	(bottom-right-angle-fringe-bitmap, left-bracket-fringe-bitmap)
+	(right-bracket-fringe-bitmap, filled-box-cursor-fringe-bitmap)
+	(hollow-box-cursor-fringe-bitmap, hollow-square-fringe-bitmap)
+	(bar-cursor-fringe-bitmap, hbar-cursor-fringe-bitmap)
+	(empty-line-fringe-bitmap): Define standard fringe bitmaps id's.
+
+2004-02-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.el (window-safely-shrinkable-p): Don't change the buffer-list.
+	Don't allow shrink if there's a window on our right.
+
+	* progmodes/prolog.el (prolog-program-name): Use gprolog if available.
+	(prolog-mode-syntax-table, prolog-mode-abbrev-table, prolog-mode-map):
+	Bring together declaration and initialization.
+	(prolog-mode-variables): Don't set the syntax table.
+	Don't set paragraph-start and comment-indent-function.
+	Add /*..*/ to the comment regexps.
+	(prolog-mode-commands): Remove.  Do it during init of prolog-mode-map.
+	(prolog-mode-map): Don't bind TAB.
+	(prolog-mode): Set the syntax table.
+	(prolog-comment-indent): Remove.
+	(inferior-prolog-mode-map): Initialize in the declaration.
+	(inferior-prolog-mode-syntax-table)
+	(inferior-prolog-mode-abbrev-table): New vars.
+	(inferior-prolog-mode): Derive from comint-mode.
+	(run-prolog): Avoid switch-to-buffer which can fail in dedicated and
+	minibuffer windows.
+
+	* progmodes/grep.el (grep-regexp-alist): Allow :, \t and (
+	in file names, as long as it is unabmiguous.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* textmodes/reftex-toc.el
+	(reftex-toc-load-all-files-for-promotion): Remove useless use of
+	format.  Doc fix.
+
+	* textmodes/refer.el (refer-find-entry-internal): Remove extra
+	format string arguments.
+
+	* tar-mode.el (tar-parse-octal-integer-safe): Add missing format
+	string argument.
+
+	* progmodes/xscheme.el (verify-xscheme-buffer): Fix format strings.
+
+	* play/zone.el (zone-call): Fix format string.
+
+	* net/webjump.el (webjump-builtin): Add missing format string argument.
+
+	* midnight.el (midnight-delay-set): Remove extra format string argument.
+
+	* mail/rmail.el (rmail-get-new-mail): Remove useless use of format.
+
+	* hexl.el (hexl-insert-char): Add missing format string argument.
+
+	* format.el (format-decode): Fix format string.
+
+	* emulation/vi.el (vi-mode): Remove extra format string argument.
+	(vi-repeat-last-search): Likewise.
+	(vi-reverse-last-search): Likewise.
+	(vi-goto-mark): Likewise.
+	(vi-reverse-last-find-char): Likewise.
+	(vi-repeat-last-find-char): Likewise.
+	(vi-locate-def): Likewise.
+
+	* emacs-lisp/lisp-mnt.el (lm-verify): Remove useless use of format.
+
+	* ediff-util.el (ediff-toggle-read-only): Remove extra format
+	string argument.
+	(ediff-toggle-regexp-match): Likewise.
+
+	* dired-aux.el (dired-do-query-replace-regexp): Add missing
+	format string argument.
+
+	* calc/calc-map.el (calc-get-operator): Remove extra format
+	string argument.
+
+	* calc/calc-forms.el (calc-convert-time-zones): Fix format string.
+
+	* calc/calc-ext.el (calc-do-prefix-help): Remove extra format
+	string argument.
+
+	* eshell/esh-mode.el (eshell-send-invisible): Fix format string.
+
+	* eshell/em-hist.el (eshell-hist-word-reference): Fix format string.
+
+	* emulation/viper-ex.el (ex-mark): Remove extra format string argument.
+
+	* emacs-lisp/cl-macs.el (defstruct): Remove extra format string arg.
+	(cl-struct-setf-expander): Likewise.
+
+	* vc.el (with-vc-file): Fix unsafe uses of error.
+	(vc-cancel-version): Likewise.
+
+2004-02-08  Jan Nieuwenhuizen  <jan.nieuwenhuizen@aspiratie.nl>  (tiny change)
+
+	* progmodes/gud.el (gud-jdb-marker-filter): Add period as optional
+	thousands separator; fixes <class>:<line-number> regexp for
+	non-english locales.
+
+2004-02-08  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (view-mode-enable): Revert previous change.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-number-at-pos): Rename from line-at-pos.
+	Uses changed (what-line and vc-annotate-warp-version).
+
+2004-02-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* diff-mode.el (diff-file-regexp-alist, diff-error-regexp-alist)
+	(diff-mode): Remove aborted attempt at support for compile.el.
+	(diff-mode, diff-minor-mode): Avoid obsolete write-contents-hooks.
+
+2004-02-06  Andreas Schwab  <schwab@suse.de>
+
+	* view.el (view-mode-enable): Add view-mode-map to
+	minor-mode-overriding-map-alist.
+
+2004-02-05  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el (x-dnd-get-local-file-name): Fix byte compiler warning
+
+2004-02-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-fill-paragraph): Call fill-paragraph
+	with point inside rather than after the paragraph.
+
+2004-02-04  Sam Steingold  <sds@gnu.org>
+
+	* mail/smtpmail.el (smtpmail-try-auth-methods):
+	Do not try authentication when no mechanism is available.
+	Pass port-name as defaultport to `netrc-machine'.
+
+2004-02-04  Stephen Eglen  <stephen@gnu.org>
+
+	* iswitchb.el (iswitchb-minibuffer-setup-hook): Update doc string
+	to show how minibuffer height can be constrained.
+
+2004-02-04  John Paul Wallington  <jpw@gnu.org>
+
+	* files.el (auto-mode-alist): Fix .scm, .stk, .ss, .sch entry.
+
+2004-02-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* x-dnd.el: New file for drag and drop.
+
+	* term/x-win.el: require x-dnd, set after-make-frame-functions
+	to x-dnd-init-frame, let x-dnd-handle-drag-n-drop-event handle
+	drag-n-drop event.
+
+	* dired.el (dired-dnd-test-function, dired-dnd-popup-notice)
+	(dired-dnd-do-ask-action, dired-dnd-handle-local-file)
+	(dired-dnd-handle-file): New functions for drag and drop support.
+	(dired-mode): Initialize drag and drop if x-dnd present.
+
+2004-02-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode-map, cperl-do-auto-fill)
+	(cperl-menu): Use fill-paragraph, not cperl-fill-paragraph.
+	(cperl-mode): Set fill-paragraph-function.
+	(cperl-fill-paragraph): Make it non-interactive.
+
 2004-02-02  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* diff-mode.el (diff-mode-shared-map): Bind q to `quit-window'.
@@ -10,8 +319,7 @@
 
 2004-02-01  Andreas Schwab  <schwab@suse.de>
 
-	* progmodes/executable.el (executable-command-find-posix-p): Doc
-	fix.
+	* progmodes/executable.el (executable-command-find-posix-p): Doc fix.
 
 2004-02-01  Stephen Eglen  <stephen@gnu.org>
 

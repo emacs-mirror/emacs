@@ -409,6 +409,13 @@ Here is an example of using @code{count-lines}:
 @end example
 @end defun
 
+@defun line-number-at-pos &optional pos
+@cindex line number
+This function returns the line number in the current buffer
+corresponding the buffer position @var{pos}.  If @var{pos} is nil or
+omitted, the current buffer position is used.
+@end defun
+
 @ignore
 @c ================
 The @code{previous-line} and @code{next-line} commands are functions

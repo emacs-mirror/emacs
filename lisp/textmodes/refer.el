@@ -1,6 +1,6 @@
 ;;; refer.el --- look up references in bibliography files
 
-;; Copyright (C) 1992, 1996, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 1996, 2001, 2004 Free Software Foundation, Inc.
 
 ;; Author: Ashwin Ram <ashwin@cc.gatech.edu>
 ;; Maintainer: Gernot Heiser <gernot@acm.org>
@@ -226,10 +226,12 @@ found on the last refer-find-entry or refer-find-next-entry."
                      (throw 'found (find-file file)))
                  (setq refer-saved-pos nil
                        files (cdr files)))
-             (progn (message "Scanning %s... No such file" (car files) (ding))
+             (progn (ding)
+		    (message "Scanning %s... No such file" (car files))
                     (sit-for 1)
                     (setq files (cdr files))))))
-       (message "Keywords \"%s\" not found in any \.bib file" keywords (ding)))
+       (ding)
+       (message "Keywords \"%s\" not found in any \.bib file" keywords))
      (select-window old-window)))
 
 (defun refer-find-entry-in-file (keywords-list file &optional old-pos)

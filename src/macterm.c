@@ -467,14 +467,20 @@ XClearWindow (display, w)
 /* Mac replacement for XCopyArea.  */
 
 static void
-mac_draw_bitmap (display, w, gc, x, y, bitmap)
+mac_draw_bitmap (display, w, gc, x, y, width, height, bits, overlay_p)
      Display *display;
      WindowPtr w;
      GC gc;
-     int x, y;
-     BitMap *bitmap;
+     int x, y, width, height;
+     unsigned short *bits;
+     int overlay_p;
 {
+  BitMap bitmap;
   Rect r;
+
+  bitmap.rowBytes = sizeof(unsigned short);
+  bitmap.baseAddr = bits;
+  SetRect (&(bitmap.bounds), 0, 0, width, height);
 
 #if TARGET_API_MAC_CARBON
   SetPort (GetWindowPort (w));
@@ -483,7 +489,7 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap)
 #endif
 
   mac_set_colors (gc);
-  SetRect (&r, x, y, x + bitmap->bounds.right, y + bitmap->bounds.bottom);
+  SetRect (&r, x, y, x + bitmap.bounds.right, y + bitmap.bounds.bottom);
 
 #if TARGET_API_MAC_CARBON
   {
@@ -491,11 +497,13 @@ mac_draw_bitmap (display, w, gc, x, y, bitmap)
 
     LockPortBits (GetWindowPort (w));
     pmh = GetPortPixMap (GetWindowPort (w));
-    CopyBits (bitmap, (BitMap *) *pmh, &(bitmap->bounds), &r, srcCopy, 0);
+    CopyBits (&bitmap, (BitMap *) *pmh, &(bitmap.bounds), &r,
+	      overlay_p ? srcOr : srcCopy, 0);
     UnlockPortBits (GetWindowPort (w));
   }
 #else /* not TARGET_API_MAC_CARBON */
-  CopyBits (bitmap, &(w->portBits), &(bitmap->bounds), &r, srcCopy, 0);
+  CopyBits (&bitmap, &(w->portBits), &(bitmap.bounds), &r,
+	    overlay_p ? srcOr : srcCopy, 0);
 #endif /* not TARGET_API_MAC_CARBON */
 }
 
@@ -1313,7 +1321,7 @@ x_draw_fringe_bitmap (w, row, p)
   else
     x_clip_to_row (w, row, gc);
 
-  if (p->bx >= 0)
+  if (p->bx >= 0 && !p->overlay_p)
     {
       XGCValues gcv;
       gcv.foreground = face->background;
@@ -1339,18 +1347,18 @@ x_draw_fringe_bitmap (w, row, p)
 #endif
     }
 
-  if (p->which != NO_FRINGE_BITMAP)
+  if (p->which)
     {
-      unsigned char *bits = fringe_bitmaps[p->which].bits + p->dh;
-      BitMap bitmap;
+      unsigned short *bits = p->bits + p->dh;
 
-      mac_create_bitmap_from_bitmap_data (&bitmap, bits, p->wd, p->h);
-      gcv.foreground = face->foreground;
+      gcv.foreground = (p->cursor_p
+			? (p->overlay_p ? face->background
+			   : f->output_data.mac->cursor_pixel)
+			: face->foreground);
       gcv.background = face->background;
 
-      mac_draw_bitmap (display, window, &gcv, p->x, p->y, &bitmap);
-
-      mac_free_bitmap (&bitmap);
+      mac_draw_bitmap (display, window, &gcv, p->x, p->y, 
+		       p->wd, p->h, bits, p->overlay_p);
     }
 
   mac_reset_clipping (display, window);
@@ -6455,11 +6463,18 @@ static long app_sleep_time = WNE_SLEEP_AT_RESUME;
 
 Boolean	terminate_flag = false;
 
+/* Contains the string "reverse", which is a constant for mouse button emu.*/
+Lisp_Object Qreverse;
+
 /* True if using command key as meta key.  */
 Lisp_Object Vmac_command_key_is_meta;
 
 /* True if the ctrl and meta keys should be reversed.  */
 Lisp_Object Vmac_reverse_ctrl_meta;
+
+/* True if the option and command modifiers should be used to emulate
+   a three button mouse */
+Lisp_Object Vmac_emulate_three_button_mouse;
 
 #if USE_CARBON_EVENTS
 /* True if the mouse wheel button (i.e. button 4) should map to
@@ -6533,6 +6548,20 @@ mac_to_emacs_modifiers (EventModifiers mods)
   return result;
 }
 
+static int
+mac_get_emulated_btn ( UInt32 modifiers )
+{
+  int result = 0;
+  if (Vmac_emulate_three_button_mouse != Qnil) {
+    int cmdIs3 = (Vmac_emulate_three_button_mouse != Qreverse);
+    if (modifiers & controlKey)
+      result = cmdIs3 ? 2 : 1;
+    else if (modifiers & optionKey)
+      result = cmdIs3 ? 1 : 2;      
+  }
+  return result;
+}
+
 #if USE_CARBON_EVENTS
 /* Obtains the event modifiers from the event ref and then calls
    mac_to_emacs_modifiers.  */
@@ -6542,6 +6571,11 @@ mac_event_to_emacs_modifiers (EventRef eventRef)
   UInt32 mods = 0;
   GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32, NULL,
 		    sizeof (UInt32), NULL, &mods);
+  if (Vmac_emulate_three_button_mouse != Qnil &&
+      GetEventClass(eventRef) == kEventClassMouse)
+    {
+      mods &= ~(optionKey & cmdKey);
+    }
   return mac_to_emacs_modifiers (mods);
 }
 
@@ -6556,7 +6590,14 @@ mac_get_mouse_btn (EventRef ref)
   switch (result)
     {
     case kEventMouseButtonPrimary:
-      return 0;
+      if (Vmac_emulate_three_button_mouse == Qnil) 
+	return 0;
+      else {
+	UInt32 mods = 0;
+	GetEventParameter (ref, kEventParamKeyModifiers, typeUInt32, NULL,
+			   sizeof (UInt32), NULL, &mods);
+	return mac_get_emulated_btn(mods);
+      }
     case kEventMouseButtonSecondary:
       return NILP (Vmac_wheel_button_is_mouse_2) ? 1 : 2;
     case kEventMouseButtonTertiary:
@@ -7692,7 +7733,7 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 #if USE_CARBON_EVENTS
 	      bufp->code = mac_get_mouse_btn (eventRef);
 #else
-	      bufp->code = 0;  /* only one mouse button */
+	      bufp_.code = mac_get_emulate_btn (er.modifiers);
 #endif
               bufp->kind = SCROLL_BAR_CLICK_EVENT;
               bufp->frame_or_window = tracked_scroll_bar->window;
@@ -7760,7 +7801,7 @@ XTread_socket (struct input_event *bufp, int numchars, int expected)
 #if USE_CARBON_EVENTS
 		  bufp->code = mac_get_mouse_btn (eventRef);
 #else
-	          bufp->code = 0;  /* only one mouse button */
+		  bufp_.code = mac_get_emulate_btn (er.modifiers);
 #endif
 		  XSETINT (bufp->x, mouse_loc.h);
 		  XSETINT (bufp->y, mouse_loc.v);
@@ -8517,6 +8558,8 @@ static struct redisplay_interface x_redisplay_interface =
   x_get_glyph_overhangs,
   x_fix_overlapping_area,
   x_draw_fringe_bitmap,
+  0, /* define_fringe_bitmap */
+  0, /* destroy_fringe_bitmap */
   mac_per_char_metric,
   mac_encode_char,
   NULL, /* mac_compute_glyph_string_overhangs */
@@ -8636,6 +8679,9 @@ syms_of_macterm ()
 
   Fprovide (intern ("mac-carbon"), Qnil);
 
+  staticpro (&Qreverse);
+  Qreverse = intern ("reverse");
+
   staticpro (&x_display_name_list);
   x_display_name_list = Qnil;
 
@@ -8679,6 +8725,17 @@ Otherwise the option key is used.  */);
     doc: /* Non-nil means that the control and meta keys are reversed.  This is
 	    useful for non-standard keyboard layouts.  */);
   Vmac_reverse_ctrl_meta = Qnil;
+
+  DEFVAR_LISP ("mac-emulate-three-button-mouse", 
+	       &Vmac_emulate_three_button_mouse,
+    doc: /* t means that when the option-key is held down while pressing the
+    mouse button, the click will register as mouse-2 and while the 
+    command-key is held down, the click will register as mouse-3.
+    'reverse means that the the option-key will register for mouse-3
+    and the command-key will register for mouse-2.  nil means that
+    not emulation should be done and the modifiers should be placed
+    on the mouse-1 event. */);
+  Vmac_emulate_three_button_mouse = Qnil;
 
 #if USE_CARBON_EVENTS
   DEFVAR_LISP ("mac-wheel-button-is-mouse-2", &Vmac_wheel_button_is_mouse_2,

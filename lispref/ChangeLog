@@ -1,3 +1,49 @@
+2004-02-12  Kim F. Storm  <storm@cua.dk>
+
+	* display.texi (Fringes): Use consistent wording.
+	Note that window-fringe's window arg is optional.
+	(Scroll Bars): Use consistent wording.
+
+2004-02-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* tips.texi (Comment Tips): Document the new conventions for
+	commenting out code.
+
+2004-02-07  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* positions.texi (Text Lines): Added missing end defun.
+
+2004-02-07  Kim F. Storm  <storm@cua.dk>
+
+	* positions.texi (Text Lines): Add line-number-at-pos.
+
+2004-02-06  John Paul Wallington  <jpw@gnu.org>
+
+	* display.texi (Button Properties, Button Buffer Commands):
+	mouse-2 invokes button, not down-mouse-1.
+
+2004-02-04  Jason Rumney  <jasonr@gnu.org>
+
+	* makefile.w32-in: Sync with Makefile.in changes.
+
+2004-02-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Text from Minibuffer): Various corrections and
+	clarifications.
+	(Object from Minibuffer): Correct Lisp description of
+	read-minibuffer.
+	(Minibuffer History): Clarify description of cons values for
+	HISTORY arguments.
+	(Basic Completion): Various corrections and clarifications.  Add
+	completion-regexp-list.
+	(Minibuffer Completion): Correct and clarify description of
+	completing-read.
+	(Completion Commands): Mention Partial Completion mode.  Various
+	other minor changes.
+	(High-Level Completion): Various corrections and clarifications.
+	(Reading File Names): Ditto.
+	(Minibuffer Misc): Ditto.
+
 2004-01-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* strings.texi (Text Comparison): assoc-string also matches

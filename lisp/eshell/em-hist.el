@@ -1,6 +1,6 @@
 ;;; em-hist.el --- history list management
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2004 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -523,7 +523,7 @@ See also `eshell-read-history'."
    ((string= "^" ref) 1)
    ((string= "$" ref) nil)
    ((string= "%" ref)
-    (error "`%' history word designator not yet implemented"))))
+    (error "`%%' history word designator not yet implemented"))))
 
 (defun eshell-hist-parse-arguments (&optional silent b e)
   "Parse current command arguments in a history-code-friendly way."

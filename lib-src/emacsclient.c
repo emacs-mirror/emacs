@@ -106,6 +106,8 @@ decode_options (argc, argv)
      int argc;
      char **argv;
 {
+  alternate_editor = getenv ("ALTERNATE_EDITOR");
+
   while (1)
     {
       int opt = getopt_long (argc, argv,
@@ -113,8 +115,6 @@ decode_options (argc, argv)
 
       if (opt == EOF)
 	break;
-
-      alternate_editor = getenv ("ALTERNATE_EDITOR");
 
       switch (opt)
 	{

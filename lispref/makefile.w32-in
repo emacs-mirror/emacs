@@ -39,9 +39,6 @@ texinputdir = $(srcdir)\..\nt\envadd.bat "TEXINPUTS=$(srcdir);$(TEXINPUTS)" /C
 VERSION=2.9
 manual = elisp-manual-21-$(VERSION)
 
-# Uncomment this line for permuted index.
-# permuted_index = 1 
-
 # List of all the texinfo files in the manual:
 
 srcs = \
@@ -95,8 +92,7 @@ srcs = \
   $(srcdir)/tips.texi \
   $(srcdir)/variables.texi \
   $(srcdir)/windows.texi \
-  $(srcdir)/index.unperm \
-  $(srcdir)/index.perm \
+  $(srcdir)/index.texi \
   $(srcdir)/gpl.texi \
   $(srcdir)/doclicense.texi
 
@@ -107,29 +103,16 @@ srcs = \
 info: $(infodir)/elisp
 	$(INSTALL_INFO) --info-dir=$(infodir) $(infodir)/elisp
 
-$(infodir)/elisp: $(srcs) index.texi
+$(infodir)/elisp: $(srcs)
 	$(MAKEINFO) -I. -I$(srcdir) $(srcdir)/elisp.texi -o $(infodir)/elisp
 
-elisp.dvi: $(srcs) index.texi
-#	Avoid losing old contents of aux file entirely.
-	-ren elisp.aux elisp.oaux
-#	First shot to define xrefs.
+elisp.dvi: $(srcs)
 	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
-	if not a$(permuted_index) == a  sh $(srcdir)/permute-index
-	if not a$(permuted_index) == a  ren permuted.fns elisp.fns
-	if not a$(permuted_index) == a  texindex elisp.tp
-	if a$(permuted_index) == a  texindex elisp.??
-	$(texinputdir) $(TEX) $(srcdir)/elisp.texi
-
-index.texi:
-	if a$(permuted_index) == a  cp $(srcdir)/index.unperm index.texi
-	if not a$(permuted_index) == a  cp $(srcdir)/index.perm index.texi
 
 clean:
 	rm -f *.toc *.aux *.log *.cp *.cps *.fn *.fns *.tp *.tps \
               *.vr *.vrs *.pg *.pgs *.ky *.kys
 	rm -f make.out core 
-	rm -f index.texi
 	rm -f $(infodir)/elisp*
 
 distclean: clean

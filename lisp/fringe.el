@@ -35,6 +35,33 @@
 
 ;;; Code:
 
+;; Standard fringe bitmaps
+
+(defconst no-fringe-bitmap 0)
+(defconst undef-fringe-bitmap 1)
+(defconst left-truncation-fringe-bitmap 2)
+(defconst right-truncation-fringe-bitmap 3)
+(defconst up-arrow-fringe-bitmap 4)
+(defconst down-arrow-fringe-bitmap 5)
+(defconst continued-line-fringe-bitmap 6)
+(defconst continuation-line-fringe-bitmap 7)
+(defconst overlay-arrow-fringe-bitmap 8)
+(defconst top-left-angle-fringe-bitmap 9)
+(defconst top-right-angle-fringe-bitmap 10)
+(defconst bottom-left-angle-fringe-bitmap 11)
+(defconst bottom-right-angle-fringe-bitmap 12)
+(defconst left-bracket-fringe-bitmap 13)
+(defconst right-bracket-fringe-bitmap 14)
+(defconst filled-box-cursor-fringe-bitmap 15)
+(defconst hollow-box-cursor-fringe-bitmap 16)
+(defconst hollow-square-fringe-bitmap 17)
+(defconst bar-cursor-fringe-bitmap 18)
+(defconst hbar-cursor-fringe-bitmap 19)
+(defconst empty-line-fringe-bitmap 20)
+
+
+;; Control presence of fringes
+
 (defvar fringe-mode)
 
 (defun set-fringe-mode-1 (ignore value)

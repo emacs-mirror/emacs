@@ -1619,7 +1619,7 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ltx\\'" . latex-mode)
      ("\\.dtx\\'" . doctex-mode)
      ("\\.el\\'" . emacs-lisp-mode)
-     ("\\.scm\\|\\.stk\\|\\.ss\\|\\.sch\\'" . scheme-mode)
+     ("\\.\\(scm\\|stk\\|ss\\|sch\\)\\'" . scheme-mode)
      ("\\.l\\'" . lisp-mode)
      ("\\.lisp\\'" . lisp-mode)
      ("\\.f\\'" . fortran-mode)

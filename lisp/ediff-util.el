@@ -1,6 +1,6 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 04 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -1080,8 +1080,10 @@ of the current buffer."
 		 (eq this-command 'ediff-toggle-read-only)
 		 (file-exists-p file)
 		 (not (file-writable-p file)))
-	    (message "Warning: file %s is read-only"
-		     (ediff-abbreviate-file-name file) (beep 1)))
+	    (progn
+	      (beep 1)
+	      (message "Warning: file %s is read-only"
+		       (ediff-abbreviate-file-name file))))
 	))))
 
 ;; checkout if visited file is checked in
@@ -2233,7 +2235,7 @@ a regular expression typed in by the user."
       (if (y-or-n-p
 	   (format
 	    "Ignore regions that match %s regexps, OK? "
-	    msg-connective alt-msg-connective))
+	    msg-connective))
 	  (message "Will ignore regions that match %s regexps" msg-connective)
 	(setq ediff-hide-regexp-connective alt-connective)
 	(message "Will ignore regions that match %s regexps"
@@ -2272,7 +2274,7 @@ a regular expression typed in by the user."
       (if (y-or-n-p
 	   (format
 	    "Focus on regions that match %s regexps, OK? "
-	    msg-connective alt-msg-connective))
+	    msg-connective))
 	  (message "Will focus on regions that match %s regexps"
 		   msg-connective)
 	(setq ediff-focus-regexp-connective alt-connective)

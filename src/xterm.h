@@ -1009,8 +1009,24 @@ extern void x_handle_selection_request P_ ((struct input_event *));
 extern void x_handle_selection_clear P_ ((struct input_event *));
 extern void x_clear_frame_selections P_ ((struct frame *));
 
+extern int x_handle_dnd_message P_ ((struct frame *,
+                                     XClientMessageEvent *,
+                                     struct x_display_info *,
+                                     struct input_event *bufp));
+extern int x_check_property_data P_ ((Lisp_Object));
+extern void x_fill_property_data P_ ((Display *,
+                                      Lisp_Object,
+                                      void *,
+                                      int));
+extern Lisp_Object x_property_data_to_lisp P_ ((struct frame *,
+                                                unsigned char *,
+                                                Atom,
+                                                int,
+                                                unsigned long));
+
 /* Defined in xfns.c */
 
+extern struct x_display_info * check_x_display_info P_ ((Lisp_Object frame));
 extern int have_menus_p P_ ((void));
 extern int x_bitmap_height P_ ((struct frame *, int));
 extern int x_bitmap_width P_ ((struct frame *, int));
@@ -1062,6 +1078,7 @@ extern void x_free_dpy_colors P_ ((Display *, Screen *, Colormap,
 extern void x_activate_menubar P_ ((struct frame *));
 extern int popup_activated P_ ((void));
 extern void initialize_frame_menubar P_ ((struct frame *));
+extern void free_frame_menubar P_ ((struct frame *));
 
 /* Defined in widget.c */
 

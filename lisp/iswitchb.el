@@ -377,18 +377,11 @@ See documentation of `walk-windows' for useful values.")
   "Iswitchb-specific customization of minibuffer setup.
 
 This hook is run during minibuffer setup iff `iswitchb' will be active.
-It is intended for use in customizing iswitchb for interoperation
-with other packages."
-;;;   For instance:
-
-;;;   \(add-hook 'iswitchb-minibuffer-setup-hook
-;;; 	    \(function
-;;; 	     \(lambda ()
-;;; 	       \(make-local-variable 'resize-minibuffer-window-max-height)
-;;; 	       \(setq resize-minibuffer-window-max-height 3))))
-
-;;; will constrain rsz-mini to a maximum minibuffer height of 3 lines when
-;;; iswitchb is running.  Copied from `icomplete-minibuffer-setup-hook'."
+For instance:
+\(add-hook 'iswitchb-minibuffer-setup-hook
+	  '\(lambda () (set (make-local-variable 'max-mini-window-height) 3)))
+will constrain the minibuffer to a maximum height of 3 lines when
+iswitchb is running."
   :type 'hook
   :group 'iswitchb)
 

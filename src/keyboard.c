@@ -1322,6 +1322,7 @@ cancel_hourglass_unwind (arg)
      Lisp_Object arg;
 {
   cancel_hourglass ();
+  return Qnil;
 }
 #endif
 

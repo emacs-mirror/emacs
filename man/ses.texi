@@ -406,11 +406,15 @@ safety belts!
 
 @table @kbd
 @item C-c M-C-h
-(@code{ses-read-header-row}).  The header line at the top of the SES
+(@code{ses-set-header-row}).  The header line at the top of the SES
 window normally shows the column letter for each column.  You can set
 it to show a copy of some row, such as a row of column titles, so that
-row will always be visible.  Set the header line to row 0 to show
-column letters again.
+row will always be visible.  Default is to set the current row as the
+header; use C-u to prompt for header row.  Set the header to row 0 to
+show column letters again.
+@item [header-line mouse-3]
+Pops up a menu to set the current row as the header, or revert to
+column letters.
 @end table
 
 @menu
@@ -816,6 +820,13 @@ cell.
 @node Acknowledgements,  , For Gurus, Top
 @chapter Acknowledgements
 
+Coding by:
+@quotation
+Jonathan Yavner @email{jyavner@@member.fsf.org}@*
+Stefan Monnier @email{monnier@@gnu.org}
+@end quotation
+
+Ideas from:
 @quotation
 Christoph Conrad @email{christoph.conrad@@gmx.de}@*
 CyberBob @email{cyberbob@@redneck.gacracker.org}@*
@@ -832,6 +843,7 @@ Pedro Pinto @email{ppinto@@cs.cmu.edu}@*
 Stefan Reichör @email{xsteve@@riic.at}@*
 Oliver Scholz @email{epameinondas@@gmx.de}@*
 Richard M. Stallman @email{rms@@gnu.org}@*
+Luc Teirlinck @email{teirllm@@dms.auburn.edu}@*
 J. Otto Tennant @email{jotto@@pobox.com}@*
 Jean-Philippe Theberge @email{jphil@@acs.pagesjaunes.fr}
 @end quotation

@@ -29,10 +29,10 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.52 2003/12/27 08:18:08 uid65632 Exp $'
+Id='$Id: rcs2log,v 1.53 2004/02/15 07:41:58 uid65632 Exp $'
 
-# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003
-#  Free Software Foundation, Inc.
+# Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
+# 2004 Free Software Foundation, Inc.
 
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -49,7 +49,7 @@ Id='$Id: rcs2log,v 1.52 2003/12/27 08:18:08 uid65632 Exp $'
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-Copyright='Copyright (C) 2003 Free Software Foundation, Inc.
+Copyright='Copyright (C) 2004 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.
 You may redistribute copies of this program
 under the terms of the GNU General Public License.
@@ -251,18 +251,24 @@ case $rlogfile in
 		rlog='cvs -q log'
 		repository=`sed 1q <CVS/Repository` || exit
 		test ! -f CVS/Root || CVSROOT=`cat <CVS/Root` || exit
+		pository=
 		case $CVSROOT in
-		*:/*:/*)
-			echo >&2 "$0: $CVSROOT: CVSROOT has multiple ':/'s"
-			exit 1;;
-		*:/*)
+		/* | :fork:* | :local:*) ;;
+		*/*)
 			# remote repository
-			pository=`expr "X$repository" : '.*:\(/.*\)'`;;
-		*)
+			pository=`expr "X$CVSROOT" : '[^/]*\(.*\)'`;;
+		esac
+		case $pository in
+		'')
 			# local repository
 			case $repository in
 			/*) ;;
-			*) repository=${CVSROOT?}/$repository;;
+			*)
+				repository=${CVSROOT?}/$repository
+				case $repository in
+				:fork:* | :local:*)
+					repository=`expr "$repository" : ':[^:]*:\(.*\)'`;;
+				esac;;
 			esac
 			if test ! -d "$repository"
 			then

@@ -1,3 +1,7 @@
+2004-02-16  J,bi(Br,bt(Bme Marant  <jmarant@nerim.net>  (tiny change)
+
+	* Makefile.in (distclean maintainer-clean): Depend on clean.
+
 2004-01-27  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>  (tiny change)
 
 	* quail/cyrillic.el ("bulgarian-bds"): Docstring fixed.

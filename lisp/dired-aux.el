@@ -1,6 +1,6 @@
 ;;; dired-aux.el --- less commonly used parts of dired  -*-byte-compile-dynamic: t;-*-
 
-;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001
+;; Copyright (C) 1985, 1986, 1992, 1994, 1998, 2000, 2001, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Sebastian Kremer <sk@thp.uni-koeln.de>.
@@ -2114,7 +2114,7 @@ with the command \\[tags-loop-continue]."
     (let ((buffer (get-file-buffer file)))
       (if (and buffer (with-current-buffer buffer
 			buffer-read-only))
-	  (error "File `%s' is visited read-only"))))
+	  (error "File `%s' is visited read-only" file))))
   (tags-query-replace from to delimited
 		      '(dired-get-marked-files nil nil 'dired-nondirectory-p)))
 

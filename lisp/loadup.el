@@ -194,6 +194,7 @@
 (when (fboundp 'x-create-frame)
   (load "mouse")
   (load "international/fontset")
+  (load "x-dnd")
   (load "term/x-win"))
 
 (message "%s" (garbage-collect))

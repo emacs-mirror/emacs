@@ -192,6 +192,7 @@ Boston, MA 02111-1307, USA.  */
    used to fill in unspecified attributes of the default face.  */
 
 #include <config.h>
+#include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <stdio.h>              /* This needs to be before termchar.h */

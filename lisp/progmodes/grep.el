@@ -1,6 +1,6 @@
 ;;; grep.el --- run compiler as inferior of Emacs, parse error messages
 
-;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 2002
+;; Copyright (C) 1985, 86, 87, 93, 94, 95, 96, 97, 98, 1999, 2001, 02, 2004
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
@@ -216,7 +216,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
 ;; Note: the character class after the optional drive letter does not
 ;; include a space to support file names with blanks.
 (defvar grep-regexp-alist
-  '(("\\([a-zA-Z]?:?[^:(\t\n]+\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
+  '(("\\([a-zA-Z]?:?.+?\\)[:( \t]+\\([0-9]+\\)[:) \t]" 1 2))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
 (defvar grep-program
@@ -318,9 +318,9 @@ Sets `grep-last-buffer' and runs `grep-setup-hook'."
 	      'gnu)))
   (unless grep-find-command
     (setq grep-find-command
-          (cond ((not (executable-command-find-unix-p "find"))
+          (cond ((not (executable-command-find-posix-p "find"))
 		 (message
-		  (concat "compile.el: Unix type find(1) not found. "
+		  (concat "compile.el: Posix-style find(1) not found. "
 			  "Please set `grep-find-command'."))
 		 nil)
 		((eq grep-find-use-xargs 'gnu)
@@ -542,6 +542,5 @@ those sub directories of DIR."
 
 (provide 'grep)
 
-;;; grep.el ends here
- 
 ;;; arch-tag: 5a5b9169-a79d-4f38-9c38-f69615f39c4d
+;;; grep.el ends here

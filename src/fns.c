@@ -2512,14 +2512,26 @@ character set, or a character code.  Return VALUE.  */)
   else if (SYMBOLP (range))
     {
       Lisp_Object charset_info;
+      int charset_id;
 
       charset_info = Fget (range, Qcharset);
-      CHECK_VECTOR (charset_info);
+      if (! VECTORP (charset_info)
+	  || ! NATNUMP (AREF (charset_info, 0))
+	  || (charset_id = XINT (AREF (charset_info, 0)),
+	      ! CHARSET_DEFINED_P (charset_id)))
+	error ("Invalid charset: %s", SDATA (SYMBOL_NAME (range)));
 
-      return Faset (char_table,
-		    make_number (XINT (XVECTOR (charset_info)->contents[0])
-				 + 128),
-		    value);
+      if (charset_id == CHARSET_ASCII)
+	for (i = 0; i < 128; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else if (charset_id == CHARSET_8_BIT_CONTROL)
+	for (i = 128; i < 160; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else if (charset_id == CHARSET_8_BIT_GRAPHIC)
+	for (i = 160; i < 256; i++)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      else
+	XCHAR_TABLE (char_table)->contents[charset_id + 128] = value;
     }
   else if (INTEGERP (range))
     Faset (char_table, range, value);

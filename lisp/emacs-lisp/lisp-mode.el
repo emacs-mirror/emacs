@@ -182,7 +182,7 @@
   (make-local-variable 'parse-sexp-ignore-comments)
   (setq parse-sexp-ignore-comments t)
   (make-local-variable 'outline-regexp)
-  (setq outline-regexp ";;;;* \\|(")
+  (setq outline-regexp ";;;;* [^ \t\n]\\|(")
   (make-local-variable 'outline-level)
   (setq outline-level 'lisp-outline-level)
   (make-local-variable 'comment-start)

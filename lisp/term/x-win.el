@@ -82,6 +82,7 @@
 (require 'select)
 (require 'menu-bar)
 (require 'fontset)
+(require 'x-dnd)
 
 (defvar x-invocation-args)
 
@@ -2180,13 +2181,11 @@ order until succeed.")
 	char)
     (if (/= len-utf8 len-ctext)
 	(if (> len-utf8 len-ctext) utf8 ctext)
-      (while (< i len-utf8)
-	(setq char (aref ctext i))
-	(if (and (< char 128) (/= char (aref utf8 i)))
-	    (setq selected utf8
-		  i len-utf8)
-	  (setq i (1+ i))))
-      selected)))
+      (let ((result (compare-strings utf8 0 len-utf8 ctext 0 len-ctext)))
+	(if (or (eq result t)
+		(>= (aref ctext (1- (abs result))) 128))
+	    ctext
+	  utf8)))))
 
 (defun x-selection-value (type)
   (let (text)
@@ -2483,6 +2482,10 @@ order until succeed.")
 (add-to-list 'window-system-initialization-alist '(x . x-initialize-window-system))
 
 (provide 'x-win)
+
+;; Initiate drag and drop
+(add-hook 'after-make-frame-functions 'x-dnd-init-frame)
+(global-set-key [drag-n-drop] 'x-dnd-handle-drag-n-drop-event)
 
 ;;; arch-tag: f1501302-db8b-4d95-88e3-116697d89f78
 ;;; x-win.el ends here
