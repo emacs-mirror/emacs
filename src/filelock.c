@@ -23,6 +23,7 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/stat.h>
 #include <signal.h>
 #include <config.h>
+#include <stdio.h>
 #ifdef HAVE_STDLIB_H
 #include <stdlib.h>
 #endif
@@ -125,7 +126,9 @@ extern Lisp_Object Vshell_file_name;
 static time_t
 get_boot_time ()
 {
+#if defined (BOOT_TIME) && ! defined (NO_WTMP_FILE)
   int counter;
+#endif
 
   if (boot_time_initialized)
     return boot_time;
