@@ -1,3 +1,20 @@
+2002-10-29  Dave Love  <fx@gnu.org>
+
+	* rfc2047.el (ietf-drums): Don't require.
+	(message-posting-charset): defvar when compiling.
+	(rfc2047-header-encoding-alist): Add `address-mime' part.
+	(rfc2047-charset-encoding-alist): Use B for iso-8859-7,
+	iso-8859-8.  Doc fix.
+	(rfc2047-q-encoding-alist): Augment header list.
+	(rfc2047-encoding-type, rfc2047-syntax-table): New.
+	(rfc2047-encode-message-header): Account for address-mime method.
+	(rfc2047-dissect-region): Rewritten for RFC2822 rules.  Now just
+	return list of strings.
+	(rfc2047-encode-region): Change test for need to encode word.
+	Change rfc2047-encode call.
+	(rfc2047-encode): Remove CHARSET arg and decide encoding from
+	region contents.
+
 2002-10-21  Juanma Barranquero  <lektu@terra.es>
 
 	* gnus-cus.el (gnus-group-customize): Fix typo.
