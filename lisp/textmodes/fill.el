@@ -97,7 +97,12 @@ From program, pass args FROM, TO and JUSTIFY-FLAG."
 	    )))
 
     (save-restriction
-      (narrow-to-region from to)
+      (goto-char (max from to))
+      ;; If specified region ends before a newline,
+      ;; include that newline.
+      (if (and (eolp) (not (eobp)))
+	  (forward-char 1))
+      (narrow-to-region (min from to) (point))
       (goto-char (point-min))
       (skip-chars-forward "\n")
       (narrow-to-region (point) (point-max))
@@ -256,16 +261,21 @@ If `sentence-end-double-space' is non-nil, then period followed by one
 space does not end a sentence, so don't break a line there."
   (interactive "r\nP")
   (save-restriction
-   (narrow-to-region from to)
-   (goto-char (point-min))
-   (while (not (eobp))
-     (let ((initial (point))
-	   (end (progn
-		 (forward-paragraph 1) (point))))
-       (forward-paragraph -1)
-       (if (>= (point) initial)
-	   (fill-region-as-paragraph (point) end justify-flag)
-	 (goto-char end))))))
+    (goto-char (max from to))
+    ;; If specified region ends before a newline,
+    ;; include that newline.
+    (if (and (eolp) (not (eobp)))
+	(forward-char 1))
+    (narrow-to-region (min from to) (point))
+    (goto-char (point-min))
+    (while (not (eobp))
+      (let ((initial (point))
+	    (end (progn
+		   (forward-paragraph 1) (point))))
+	(forward-paragraph -1)
+	(if (>= (point) initial)
+	    (fill-region-as-paragraph (point) end justify-flag)
+	  (goto-char end))))))
 
 (defun justify-current-line ()
   "Add spaces to line point is in, so it ends at `fill-column'."
