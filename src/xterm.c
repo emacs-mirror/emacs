@@ -1913,7 +1913,8 @@ note_mouse_highlight (f, x, y)
   if (WINDOWP (window) && portion == 0 && row >= 0 && column >= 0
       && row < FRAME_HEIGHT (f) && column < FRAME_WIDTH (f)
       && EQ (w->window_end_valid, w->buffer)
-      && w->last_modified == BUF_MODIFF (XBUFFER (w->buffer)))
+      && w->last_modified == BUF_MODIFF (XBUFFER (w->buffer))
+      && w->last_overlay_modified == BUF_OVERLAY_MODIFF (XBUFFER (w->buffer)))
     {
       int *ptr = FRAME_CURRENT_GLYPHS (f)->charstarts[row];
       int i, pos;
