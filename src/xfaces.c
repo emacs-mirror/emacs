@@ -375,6 +375,12 @@ Lisp_Object Vface_default_stipple;
 
 Lisp_Object Vface_alternative_font_family_alist;
 
+/* Alist of alternative font registries.  Each element is of the form
+   (REGISTRY REGISTRY1 REGISTRY2...).  If fonts of REGISTRY can't be
+   loaded, try REGISTRY1, then REGISTRY2, ...  */
+
+Lisp_Object Vface_alternative_font_registry_alist;
+
 /* Allowed scalable fonts.  A value of nil means don't allow any
    scalable fonts.  A value of t means allow the use of any scalable
    font.  Otherwise, value must be a list of regular expressions.  A
@@ -502,6 +508,8 @@ static void free_font_names P_ ((struct font_name *, int));
 static int sorted_font_list P_ ((struct frame *, char *,
 				 int (*cmpfn) P_ ((const void *, const void *)),
 				 struct font_name **));
+static int font_list_1 P_ ((struct frame *, Lisp_Object, Lisp_Object,
+			    Lisp_Object, struct font_name **));
 static int font_list P_ ((struct frame *, Lisp_Object, Lisp_Object,
 			  Lisp_Object, struct font_name **));
 static int try_font_list P_ ((struct frame *, Lisp_Object *, Lisp_Object,
@@ -2504,7 +2512,7 @@ cmp_font_names (a, b)
    Value is the number of fonts found.  */
 
 static int
-font_list (f, pattern, family, registry, fonts)
+font_list_1 (f, pattern, family, registry, fonts)
      struct frame *f;
      Lisp_Object pattern, family, registry;
      struct font_name **fonts;
@@ -2535,6 +2543,49 @@ font_list (f, pattern, family, registry, fonts)
     pattern_str = (char *) XSTRING (pattern)->data;
 
   return sorted_font_list (f, pattern_str, cmp_font_names, fonts);
+}
+
+
+/* Get a sorted list of fonts of family FAMILY on frame F.
+
+   If PATTERN is non-nil list fonts matching that pattern.
+
+   If REGISTRY is non-nil, retur fonts with that registry.  If none
+   are found, try alternative registries from
+   Vface_alternative_font_registry_alist.
+   
+   If REGISTRY is nil return fonts of any registry.
+
+   Set *FONTS to a vector of font_name structures allocated from the
+   heap containing the fonts found.  Value is the number of fonts
+   found.  */
+
+static int
+font_list (f, pattern, family, registry, fonts)
+     struct frame *f;
+     Lisp_Object pattern, family, registry;
+     struct font_name **fonts;
+{
+  int nfonts = font_list_1 (f, pattern, family, registry, fonts);
+  
+  if (nfonts == 0
+      && !NILP (registry)
+      && CONSP (Vface_alternative_font_registry_alist))
+    {
+      Lisp_Object alter;
+
+      alter = Fassoc (registry, Vface_alternative_font_registry_alist);
+      if (CONSP (alter))
+	{
+	  for (alter = XCDR (alter);
+	       CONSP (alter) && nfonts == 0;
+	       alter = XCDR (alter))
+	    if (STRINGP (XCAR (alter)))
+	      nfonts = font_list_1 (f, pattern, family, XCAR (alter), fonts);
+	}
+    }
+
+  return nfonts;
 }
 
 
@@ -5521,6 +5572,23 @@ be found.  Value is ALIST.")
 }
 
 
+DEFUN ("internal-set-alternative-font-registry-alist",
+       Finternal_set_alternative_font_registry_alist,
+       Sinternal_set_alternative_font_registry_alist, 1, 1, 0,
+  "Define alternative font registries to try in face font selection.\n\
+ALIST is an alist of (REGISTRY ALTERNATIVE1 ALTERNATIVE2 ...) entries.\n\
+Each ALTERNATIVE is tried in order if no fonts of font registry REGISTRY can\n\
+be found.  Value is ALIST.")
+  (alist)
+     Lisp_Object alist;
+{
+  CHECK_LIST (alist, 0);
+  Vface_alternative_font_registry_alist = alist;
+  free_all_realized_faces (Qnil);
+  return alist;
+}
+
+
 #ifdef HAVE_WINDOW_SYSTEM
 
 /* Value is non-zero if FONT is the name of a scalable font.  The
@@ -5824,13 +5892,11 @@ try_font_list (f, attrs, pattern, family, registry, fonts)
     family = attrs[LFACE_FAMILY_INDEX];
 
   nfonts = font_list (f, pattern, family, registry, fonts);
-
   if (nfonts == 0 && !NILP (family))
     {
       Lisp_Object alter;
 
-      /* Try alternative font families from
-	 Vface_alternative_font_family_alist.  */
+      /* Try alternative font families.  */
       alter = Fassoc (family, Vface_alternative_font_family_alist);
       if (CONSP (alter))
 	for (alter = XCDR (alter);
@@ -7066,6 +7132,8 @@ syms_of_xfaces ()
   staticpro (&Vparam_value_alist);
   Vface_alternative_font_family_alist = Qnil;
   staticpro (&Vface_alternative_font_family_alist);
+  Vface_alternative_font_registry_alist = Qnil;
+  staticpro (&Vface_alternative_font_registry_alist);
 
   defsubr (&Sinternal_make_lisp_face);
   defsubr (&Sinternal_lisp_face_p);
@@ -7085,6 +7153,7 @@ syms_of_xfaces ()
   defsubr (&Sframe_face_alist);
   defsubr (&Sinternal_set_font_selection_order);
   defsubr (&Sinternal_set_alternative_font_family_alist);
+  defsubr (&Sinternal_set_alternative_font_registry_alist);
 #if GLYPH_DEBUG
   defsubr (&Sdump_face);
   defsubr (&Sshow_face_resources);
