@@ -266,7 +266,7 @@ extern Lisp_Object Vcharset_table;
 /* Macros to access various information of CHARSET in Vcharset_table.
    We provide these macros for efficiency.  No range check of CHARSET.  */
 
-/* Return entry of CHARSET (lisp integer) in Vcharset_table.  */
+/* Return entry of CHARSET (C integer) in Vcharset_table.  */
 #define CHARSET_TABLE_ENTRY(charset)					\
   XCHAR_TABLE (Vcharset_table)->contents[((charset) == CHARSET_ASCII	\
 					  ? 0 : (charset) + 128)]
