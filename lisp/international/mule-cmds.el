@@ -599,6 +599,7 @@ and TO is ignored."
 
   (let ((codings (find-coding-systems-region from to))
 	(coding-system nil)
+	(bufname (buffer-name))
 	(l default-coding-system))
     (if (eq (car codings) 'undecided)
 	;; Any coding system is ok.
@@ -625,6 +626,9 @@ and TO is ignored."
 	      (setcar l mime-charset))
 	  (setq l (cdr l))))
 
+      ;; Make sure the offending buffer is displayed.
+      (or (stringp from)
+	  (pop-to-buffer bufname))
       ;; Then ask users to select one form CODINGS.
       (unwind-protect
 	  (save-window-excursion
@@ -632,15 +636,18 @@ and TO is ignored."
 	      (save-excursion
 		(set-buffer standard-output)
 		(if (not default-coding-system)
-		    (insert "No default coding systems to try.")
-		  (insert "These default coding systems were tried")
-		  (if (stringp from)
-		      (insert " to encode \""
-			      (if (> (length from) 10)
-				  (substring from 0 10)
-				from)
-			      "...\""))
-		  (insert ":\n")
+		    (insert "No default coding systems to try for "
+			    (if (stringp from)
+				(format "string \"%s\"." from)
+			      (format "buffer `%s'." bufname)))
+		  (insert
+		   "These default coding systems were tried to encode"
+		   (if (stringp from)
+		       (concat " \"" (if (> (length from) 10)
+					 (concat (substring from 0 10) "...\"")
+				       (concat from "\"")))
+		     (format " text\nin the buffer `%s'" bufname))
+		   ":\n")
 		  (let ((pos (point))
 			(fill-prefix "  "))
 		    (mapcar (function (lambda (x)
