@@ -928,7 +928,13 @@ directories if your program contains sources from more than one directory."
 (defvar gud-perldb-history nil)
 
 (defun gud-perldb-massage-args (file args)
-  (cons "-d" (cons (car args) (cons "-emacs" (cdr args)))))
+  (cond ((equal (car args) "-e") 
+	 (cons "-d" 
+	       (cons (car args) 
+		     (cons (nth 1 args) 
+			   (cons "--" (cons "-emacs" (cdr (cdr args))))))))
+	(t
+	 (cons "-d" (cons (car args) (cons "-emacs" (cdr args)))))))
 
 ;; There's no guarantee that Emacs will hand the filter the entire
 ;; marker at once; it could be broken up across several strings.  We
@@ -943,7 +949,7 @@ directories if your program contains sources from more than one directory."
   (let ((output ""))
 
     ;; Process all the complete markers in this chunk.
-    (while (string-match "\032\032\\([^:\n]*\\):\\([0-9]*\\):.*\n"
+    (while (string-match "\032\032\\(\\([a-zA-Z]:\\)?[^:\n]*\\):\\([0-9]*\\):.*\n"
 			 gud-marker-acc)
       (setq
 
@@ -951,8 +957,8 @@ directories if your program contains sources from more than one directory."
        gud-last-frame
        (cons (substring gud-marker-acc (match-beginning 1) (match-end 1))
 	     (string-to-int (substring gud-marker-acc
-				       (match-beginning 2)
-				       (match-end 2))))
+				       (match-beginning 3)
+				       (match-end 3))))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -1018,7 +1024,7 @@ and source-file directory for your debugger."
 ;  (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "%e"           "\C-p" "Evaluate perl expression at point.")
 
-  (setq comint-prompt-regexp "^  DB<[0-9]+> ")
+  (setq comint-prompt-regexp "^  DB<+[0-9]+>+ ")
   (setq paragraph-start comint-prompt-regexp)
   (run-hooks 'perldb-mode-hook)
   )
@@ -1136,6 +1142,9 @@ comint mode, which see."
   (make-local-variable 'gud-last-frame)
   (setq gud-last-frame nil)
   (make-local-variable 'comint-prompt-regexp)
+  ;; Don't put repeated commands in command history many times.
+  (make-local-variable 'comint-input-ignoredups)
+  (setq comint-input-ignoredups t)
   (make-local-variable 'paragraph-start)
   (make-local-variable 'gud-delete-prompt-marker)
   (setq gud-delete-prompt-marker (make-marker))
