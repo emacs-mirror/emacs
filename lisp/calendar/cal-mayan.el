@@ -256,13 +256,11 @@ Returns nil if such a tzolkin-haab combination is impossible."
          (haab-month-list (append calendar-mayan-haab-month-name-array 
                                   (and (< haab-day 5) '("Uayeb"))))
          (haab-month (cdr
-                      (assoc
-                       (capitalize
-                        (completing-read "Haab uinal: "
-                                         (mapcar 'list haab-month-list)
-                                         nil t))
-                       (calendar-make-alist
-                        haab-month-list 1 'capitalize)))))
+                      (assoc-ignore-case
+                       (completing-read "Haab uinal: "
+                                        (mapcar 'list haab-month-list)
+                                        nil t)
+                       (calendar-make-alist haab-month-list 1)))))
     (cons haab-day haab-month)))
 
 (defun calendar-read-mayan-tzolkin-date ()
@@ -273,13 +271,11 @@ Returns nil if such a tzolkin-haab combination is impossible."
                          '(lambda (x) (and (> x 0) (< x 14)))))
          (tzolkin-name-list (append calendar-mayan-tzolkin-names-array nil))
          (tzolkin-name (cdr
-                        (assoc
-                         (capitalize
+                        (assoc-ignore-case
                           (completing-read "Tzolkin uinal: " 
                                            (mapcar 'list tzolkin-name-list)
-                                           nil t))
-                         (calendar-make-alist
-                          tzolkin-name-list 1 'capitalize)))))
+                                           nil t)
+                         (calendar-make-alist tzolkin-name-list 1)))))
     (cons tzolkin-count tzolkin-name)))
 
 (defun calendar-next-calendar-round-date
