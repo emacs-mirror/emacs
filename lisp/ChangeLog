@@ -1,3 +1,31 @@
+2004-01-29 Tue  Jari Aalto  <jari.aalto <AT> poboxes.com>
+
+        * progmodes/executable.el (executable-command-find-posix-p):
+        New.  Check if find handles arguments Posix-style.
+
+        * progmodes/grep.el (grep-compute-defaults):
+	Use executable-command-find-posix-p.
+        (grep-find): Check `grep-find-command'.
+
+	* filecache.el (file-cache-find-posix-p): Deleted.
+	(file-cache-add-directory-using-find):
+	Use `executable-command-find-posix-p' 
+
+2004-01-29  Dave Love  <fx@gnu.org>
+
+	* emacs-lisp/lisp.el (beginning-of-defun-raw, end-of-defun):
+	Iterate the hook function if arg is given.
+	(mark-defun, narrow-to-defun): Change order of finding the limits.
+
+	* emacs-lisp/bytecomp.el (byte-compile-compatibility): Doc fix.
+	(byte-compile-format-warn): New.
+	(byte-compile-callargs-warn): Use it.
+	(Format, message, error): Add byte-compile-format-like property.
+	(byte-compile-maybe-guarded): New.
+	(byte-compile-if, byte-compile-cond): Use it.
+	(byte-compile-lambda): Compile interactive forms,
+	just to make warnings about them.
+
 2004-01-29  Jonathan Yavner  <jyavner@member.fsf.org>
 
 	* ses.el (ses-initial-column-width): Increase to 14, so it will
