@@ -773,6 +773,14 @@ the necessary utilities; search for "MS-DOS".  The configuration step
 (see below) will test for these utilities and will refuse to continue
 if any of them isn't found.
 
+Recompiling Lisp files in the `lisp' subdirectory using the various
+targets in the lisp/Makefile file requires additional utilities:
+`find' and `xargs' (from Findutils), `touch' (from Fileutils) GNU
+`echo' and `test' (from Sh-utils), `tr, `sort', and `uniq' (from
+Textutils), and a port of Bash.  However, you should not normally need
+to run lisp/Makefile, as all the Lisp files are distributed in
+byte-compiled form as well.
+
 If you are building the MSDOG version of Emacs on an MSDOG-like system
 which supports long file names (e.g. Windows 95), you need to make
 sure that long file names are handled consistently both when you
