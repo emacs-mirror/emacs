@@ -1,5 +1,8 @@
 2000-12-18  Gerd Moellmann  <gerd@gnu.org>
 
+	* server.el (server-buffer-done): Bury the buffer before
+	killing it.
+
 	* faces.el (face-spec-set): Interpret a nil in specs for
 	foreground and background colors as `unspecified', for
 	compatibility with 20.x.
