@@ -1069,6 +1069,19 @@ that are visiting the various files."
 			 (with-current-buffer buf
 			   (revert-buffer t t)))))
 	      (with-current-buffer buf
+
+		;; Check if a formerly read-only file has become
+		;; writable and vice versa.
+		(let ((read-only (not (file-writable-p buffer-file-name))))
+		  (unless (eq read-only buffer-read-only)
+		    (when (or nowarn
+			      (let ((question 
+				     (format "File %s is %s on disk.  Change buffer mode? "
+					     buffer-file-name
+					     (if read-only "read-only" "writable"))))
+				(y-or-n-p question)))
+		      (setq buffer-read-only read-only))))
+
 		(when (not (eq (not (null rawfile))
 			       (not (null find-file-literally))))
 		  (if (buffer-modified-p)
