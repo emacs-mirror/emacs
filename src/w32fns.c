@@ -57,6 +57,7 @@ Boston, MA 02111-1307, USA.  */
 
 void syms_of_w32fns ();
 void globals_of_w32fns ();
+static void init_external_image_libraries ();
 
 extern void free_frame_menubar ();
 extern void x_compute_fringe_widths P_ ((struct frame *, int));
@@ -9336,6 +9337,15 @@ forall_images_in_image_cache (f, fn)
 			    W32 support code
  ***********************************************************************/
 
+/* Macro for defining functions that will be loaded from image DLLs.  */
+#define DEF_IMGLIB_FN(func) FARPROC fn_##func
+    
+/* Macro for loading those image functions from the library.  */
+#define LOAD_IMGLIB_FN(lib,func) {					\
+    fn_##func = (void *) GetProcAddress (lib, #func);			\
+    if (!fn_##func) return 0;						\
+  } 
+
 static int x_create_x_image_and_pixmap P_ ((struct frame *, int, int, int,
                                             XImage **, Pixmap *));
 static void x_put_x_image P_ ((struct frame *, XImage *, Pixmap, int, int));
@@ -10843,7 +10853,7 @@ static void XPutPixel (ximg, x, y, color)
 	*pixel = *pixel & ~(1 << x % 8);
     }
   else
-    image_error ("XPutPixel: palette image not supported.", NULL, Qnil);
+    image_error ("XPutPixel: palette image not supported.", Qnil, Qnil);
 }
 
 /* Create IMG->pixmap from an array COLORS of XColor structures, whose
@@ -11625,6 +11635,59 @@ static struct image_type png_type =
   NULL
 };
 
+/* PNG library details.  */
+
+DEF_IMGLIB_FN (png_get_io_ptr);
+DEF_IMGLIB_FN (png_check_sig);
+DEF_IMGLIB_FN (png_create_read_struct);
+DEF_IMGLIB_FN (png_create_info_struct);
+DEF_IMGLIB_FN (png_destroy_read_struct);
+DEF_IMGLIB_FN (png_set_read_fn);
+DEF_IMGLIB_FN (png_init_io);  
+DEF_IMGLIB_FN (png_set_sig_bytes);
+DEF_IMGLIB_FN (png_read_info);
+DEF_IMGLIB_FN (png_get_IHDR);
+DEF_IMGLIB_FN (png_get_valid);
+DEF_IMGLIB_FN (png_set_strip_16);
+DEF_IMGLIB_FN (png_set_expand);
+DEF_IMGLIB_FN (png_set_gray_to_rgb);
+DEF_IMGLIB_FN (png_set_background);
+DEF_IMGLIB_FN (png_get_bKGD);
+DEF_IMGLIB_FN (png_read_update_info);
+DEF_IMGLIB_FN (png_get_channels);
+DEF_IMGLIB_FN (png_get_rowbytes);
+DEF_IMGLIB_FN (png_read_image);
+DEF_IMGLIB_FN (png_read_end);
+DEF_IMGLIB_FN (png_error);
+
+static int
+init_png_functions (library)
+     HMODULE library;
+{
+  LOAD_IMGLIB_FN (library, png_get_io_ptr);
+  LOAD_IMGLIB_FN (library, png_check_sig);
+  LOAD_IMGLIB_FN (library, png_create_read_struct);
+  LOAD_IMGLIB_FN (library, png_create_info_struct);
+  LOAD_IMGLIB_FN (library, png_destroy_read_struct);
+  LOAD_IMGLIB_FN (library, png_set_read_fn);
+  LOAD_IMGLIB_FN (library, png_init_io);  
+  LOAD_IMGLIB_FN (library, png_set_sig_bytes);
+  LOAD_IMGLIB_FN (library, png_read_info);
+  LOAD_IMGLIB_FN (library, png_get_IHDR);
+  LOAD_IMGLIB_FN (library, png_get_valid);
+  LOAD_IMGLIB_FN (library, png_set_strip_16);
+  LOAD_IMGLIB_FN (library, png_set_expand);
+  LOAD_IMGLIB_FN (library, png_set_gray_to_rgb);
+  LOAD_IMGLIB_FN (library, png_set_background);
+  LOAD_IMGLIB_FN (library, png_get_bKGD);
+  LOAD_IMGLIB_FN (library, png_read_update_info);
+  LOAD_IMGLIB_FN (library, png_get_channels);
+  LOAD_IMGLIB_FN (library, png_get_rowbytes);
+  LOAD_IMGLIB_FN (library, png_read_image);
+  LOAD_IMGLIB_FN (library, png_read_end);
+  LOAD_IMGLIB_FN (library, png_error);
+  return 1;
+}
 
 /* Return non-zero if OBJECT is a valid PNG image specification.  */
 
@@ -11687,10 +11750,10 @@ png_read_from_memory (png_ptr, data, length)
      png_size_t length;
 {
   struct png_memory_storage *tbr
-    = (struct png_memory_storage *) png_get_io_ptr (png_ptr);
+    = (struct png_memory_storage *) fn_png_get_io_ptr (png_ptr);
 
   if (length > tbr->len - tbr->index)
-    png_error (png_ptr, "Read error");
+    fn_png_error (png_ptr, "Read error");
   
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
@@ -11752,7 +11815,7 @@ png_load (f, img)
 
       /* Check PNG signature.  */
       if (fread (sig, 1, sizeof sig, fp) != sizeof sig
-	  || !png_check_sig (sig, sizeof sig))
+	  || !fn_png_check_sig (sig, sizeof sig))
 	{
 	  image_error ("Not a PNG file: `%s'", file, Qnil);
 	  UNGCPRO;
@@ -11769,7 +11832,7 @@ png_load (f, img)
 
       /* Check PNG signature.  */
       if (tbr.len < sizeof sig
-	  || !png_check_sig (tbr.bytes, sizeof sig))
+	  || !fn_png_check_sig (tbr.bytes, sizeof sig))
 	{
 	  image_error ("Not a PNG image: `%s'", img->spec, Qnil);
 	  UNGCPRO;
@@ -11781,8 +11844,8 @@ png_load (f, img)
     }
 
   /* Initialize read and info structs for PNG lib.  */
-  png_ptr = png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL,
-				    my_png_error, my_png_warning);
+  png_ptr = fn_png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL,
+				       my_png_error, my_png_warning);
   if (!png_ptr)
     {
       if (fp) fclose (fp);
@@ -11790,19 +11853,19 @@ png_load (f, img)
       return 0;
     }
 
-  info_ptr = png_create_info_struct (png_ptr);
+  info_ptr = fn_png_create_info_struct (png_ptr);
   if (!info_ptr)
     {
-      png_destroy_read_struct (&png_ptr, NULL, NULL);
+      fn_png_destroy_read_struct (&png_ptr, NULL, NULL);
       if (fp) fclose (fp);
       UNGCPRO;
       return 0;
     }
 
-  end_info = png_create_info_struct (png_ptr);
+  end_info = fn_png_create_info_struct (png_ptr);
   if (!end_info)
     {
-      png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
+      fn_png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
       if (fp) fclose (fp);
       UNGCPRO;
       return 0;
@@ -11814,7 +11877,7 @@ png_load (f, img)
     {
     error:
       if (png_ptr)
-        png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+        fn_png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
       xfree (pixels);
       xfree (rows);
       if (fp) fclose (fp);
@@ -11824,18 +11887,18 @@ png_load (f, img)
 
   /* Read image info.  */
   if (!NILP (specified_data))
-    png_set_read_fn (png_ptr, (void *) &tbr, png_read_from_memory);
+    fn_png_set_read_fn (png_ptr, (void *) &tbr, png_read_from_memory);
   else
-    png_init_io (png_ptr, fp);
+    fn_png_init_io (png_ptr, fp);
 
-  png_set_sig_bytes (png_ptr, sizeof sig);
-  png_read_info (png_ptr, info_ptr);
-  png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
-	        &interlace_type, NULL, NULL);
+  fn_png_set_sig_bytes (png_ptr, sizeof sig);
+  fn_png_read_info (png_ptr, info_ptr);
+  fn_png_get_IHDR (png_ptr, info_ptr, &width, &height, &bit_depth, &color_type,
+		   &interlace_type, NULL, NULL);
 
   /* If image contains simply transparency data, we prefer to 
      construct a clipping mask.  */
-  if (png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
+  if (fn_png_get_valid (png_ptr, info_ptr, PNG_INFO_tRNS))
     transparent_p = 1;
   else
     transparent_p = 0;
@@ -11846,16 +11909,16 @@ png_load (f, img)
 
   /* Strip more than 8 bits per channel.  */
   if (bit_depth == 16)
-    png_set_strip_16 (png_ptr);
+    fn_png_set_strip_16 (png_ptr);
 
   /* Expand data to 24 bit RGB, or 8 bit grayscale, with alpha channel
      if available.  */
-  png_set_expand (png_ptr);
+  fn_png_set_expand (png_ptr);
 
   /* Convert grayscale images to RGB.  */
   if (color_type == PNG_COLOR_TYPE_GRAY 
       || color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-    png_set_gray_to_rgb (png_ptr);
+    fn_png_set_gray_to_rgb (png_ptr);
 
   screen_gamma = (f->gamma ? 1 / f->gamma / 0.45455 : 2.2);
 
@@ -11897,15 +11960,15 @@ png_load (f, img)
 	      user_bg.green = 256 * GetGValue (color);
 	      user_bg.blue = 256 * GetBValue (color);
 
-	      png_set_background (png_ptr, &user_bg,
-				  PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+	      fn_png_set_background (png_ptr, &user_bg,
+				     PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	    }
 	}
-      else if (png_get_bKGD (png_ptr, info_ptr, &image_bg))
+      else if (fn_png_get_bKGD (png_ptr, info_ptr, &image_bg))
 	/* Image contains a background color with which to 
 	   combine the image.  */
-	png_set_background (png_ptr, image_bg,
-			    PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
+	fn_png_set_background (png_ptr, image_bg,
+			       PNG_BACKGROUND_GAMMA_FILE, 1, 1.0);
       else
 	{
 	  /* Image does not contain a background color with which
@@ -11926,24 +11989,24 @@ png_load (f, img)
 	  frame_background.green = 256 * GetGValue (color);
 	  frame_background.blue = 256 * GetBValue (color);
 
-	  png_set_background (png_ptr, &frame_background,
-			      PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
+	  fn_png_set_background (png_ptr, &frame_background,
+				 PNG_BACKGROUND_GAMMA_SCREEN, 0, 1.0);
 	}
     }
 
   /* Update info structure.  */
-  png_read_update_info (png_ptr, info_ptr);
+  fn_png_read_update_info (png_ptr, info_ptr);
 
   /* Get number of channels.  Valid values are 1 for grayscale images
      and images with a palette, 2 for grayscale images with transparency
      information (alpha channel), 3 for RGB images, and 4 for RGB
      images with alpha channel, i.e. RGBA.  If conversions above were
      sufficient we should only have 3 or 4 channels here.  */
-  channels = png_get_channels (png_ptr, info_ptr);
+  channels = fn_png_get_channels (png_ptr, info_ptr);
   xassert (channels == 3 || channels == 4);
 
   /* Number of bytes needed for one row of the image.  */
-  row_bytes = png_get_rowbytes (png_ptr, info_ptr);
+  row_bytes = fn_png_get_rowbytes (png_ptr, info_ptr);
 
   /* Allocate memory for the image.  */
   pixels = (png_byte *) xmalloc (row_bytes * height * sizeof *pixels);
@@ -11952,8 +12015,8 @@ png_load (f, img)
     rows[i] = pixels + i * row_bytes;
 
   /* Read the entire image.  */
-  png_read_image (png_ptr, rows);
-  png_read_end (png_ptr, info_ptr);
+  fn_png_read_image (png_ptr, rows);
+  fn_png_read_end (png_ptr, info_ptr);
   if (fp)
     {
       fclose (fp);
@@ -12028,7 +12091,7 @@ png_load (f, img)
        overrode it.  */
     {
       png_color_16 *bg;
-      if (png_get_bKGD (png_ptr, info_ptr, &bg))
+      if (fn_png_get_bKGD (png_ptr, info_ptr, &bg))
 	{
 #if 0 /* TODO: Color tables.  */
 	  img->background = lookup_rgb_color (f, bg->red, bg->green, bg->blue);
@@ -12047,7 +12110,7 @@ png_load (f, img)
 #endif
 
   /* Clean up.  */
-  png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
+  fn_png_destroy_read_struct (&png_ptr, &info_ptr, &end_info);
   xfree (rows);
   xfree (pixels);
 
@@ -13121,6 +13184,10 @@ gif_load (f, img)
  ***********************************************************************/
 
 Lisp_Object Qpostscript;
+
+/* Keyword symbols.  */
+
+Lisp_Object QCloader, QCbounding_box, QCpt_width, QCpt_height;
 
 #ifdef HAVE_GHOSTSCRIPT
 static int gs_image_p P_ ((Lisp_Object object));
@@ -15476,7 +15543,6 @@ versions of Windows) characters.  */);
   staticpro (&QCrelief);
   Qpostscript = intern ("postscript");
   staticpro (&Qpostscript);
-#if 0 /* TODO: These need entries at top of file.  */
   QCloader = intern (":loader");
   staticpro (&QCloader);
   QCbounding_box = intern (":bounding-box");
@@ -15485,7 +15551,6 @@ versions of Windows) characters.  */);
   staticpro (&QCpt_width);
   QCpt_height = intern (":pt-height");
   staticpro (&QCpt_height);
-#endif
   QCindex = intern (":index");
   staticpro (&QCindex);
   Qpbm = intern ("pbm");
@@ -15559,18 +15624,11 @@ void globals_of_w32fns ()
   track_mouse_event_fn = (TrackMouseEvent_Proc) GetProcAddress (user32_lib, "TrackMouseEvent");
 }
 
-	
-void
-init_xfns ()
+/* Initialize image types. Based on which libraries are available.  */
+static void
+init_external_image_libraries ()
 {
-  image_types = NULL;
-  Vimage_types = Qnil;
-
-  define_image_type (&pbm_type);
-  define_image_type (&xbm_type);
-#if 0 /* TODO : Image support for W32 */
-  define_image_type (&gs_type);
-#endif
+  HINSTANCE png_lib;
 
 #if HAVE_XPM
   define_image_type (&xpm_type);
@@ -15589,8 +15647,39 @@ init_xfns ()
 #endif
 
 #if HAVE_PNG
-  define_image_type (&png_type);
+  /* Ensure zlib is loaded.  Try debug version first.  */
+  if (!LoadLibrary ("zlibd.dll"))
+    LoadLibrary ("zlib.dll");
+
+  /* Try loading libpng under probable names.  */
+  if ((png_lib = LoadLibrary ("libpng13d.dll"))
+      || (png_lib = LoadLibrary ("libpng13.dll"))
+      || (png_lib = LoadLibrary ("libpng12d.dll"))
+      || (png_lib = LoadLibrary ("libpng12.dll"))
+      || (png_lib = LoadLibrary ("libpng.dll")))
+    {
+      if (init_png_functions (png_lib))
+	define_image_type (&png_type);
+    }
 #endif
+}
+
+void
+init_xfns ()
+{
+  image_types = NULL;
+  Vimage_types = Qnil;
+
+  define_image_type (&pbm_type);
+  define_image_type (&xbm_type);
+
+#if 0 /* TODO : Ghostscript support for W32 */
+  define_image_type (&gs_type);
+#endif
+
+  /* Image types that rely on external libraries are loaded dynamically
+     if the library is available.  */
+  init_external_image_libraries ();
 }
 
 #undef abort
