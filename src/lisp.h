@@ -1644,7 +1644,7 @@ extern Lisp_Object Qsetting_constant, Qinvalid_read_syntax;
 extern Lisp_Object Qinvalid_function, Qwrong_number_of_arguments, Qno_catch;
 extern Lisp_Object Qend_of_file, Qarith_error;
 extern Lisp_Object Qbeginning_of_buffer, Qend_of_buffer, Qbuffer_read_only;
-extern Lisp_Object Qmark_inactive;
+extern Lisp_Object Qmark_inactive, Qtext_read_only;
 
 extern Lisp_Object Qrange_error, Qdomain_error, Qsingularity_error;
 extern Lisp_Object Qoverflow_error, Qunderflow_error;
