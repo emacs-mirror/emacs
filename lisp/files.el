@@ -2160,7 +2160,7 @@ the last real save, but optional arg FORCE non-nil means delete anyway."
   "Save the current buffer in its visited file, if it has been modified.
 After saving the buffer, run `after-save-hook'."
   (interactive)
-  (save-excursion
+  (save-current-buffer
     ;; In an indirect buffer, save its base buffer instead.
     (if (buffer-base-buffer)
 	(set-buffer (buffer-base-buffer)))
@@ -2198,18 +2198,19 @@ After saving the buffer, run `after-save-hook'."
 	      (error "Save not confirmed"))
 	  (save-restriction
 	    (widen)
-	    (and (> (point-max) 1)
-		 (/= (char-after (1- (point-max))) ?\n)
-		 (not (and (eq selective-display t)
-			   (= (char-after (1- (point-max))) ?\r)))
-		 (or (eq require-final-newline t)
-		     (and require-final-newline
-			  (y-or-n-p
-			   (format "Buffer %s does not end in newline.  Add one? "
-				   (buffer-name)))))
-		 (save-excursion
-		   (goto-char (point-max))
-		   (insert ?\n)))
+	    (save-excursion
+	      (and (> (point-max) 1)
+		   (/= (char-after (1- (point-max))) ?\n)
+		   (not (and (eq selective-display t)
+			     (= (char-after (1- (point-max))) ?\r)))
+		   (or (eq require-final-newline t)
+		       (and require-final-newline
+			    (y-or-n-p
+			     (format "Buffer %s does not end in newline.  Add one? "
+				     (buffer-name)))))
+		   (save-excursion
+		     (goto-char (point-max))
+		     (insert ?\n))))
 	    (or (run-hook-with-args-until-success 'write-contents-hooks)
 		(run-hook-with-args-until-success 'local-write-file-hooks)
 		(run-hook-with-args-until-success 'write-file-hooks)
