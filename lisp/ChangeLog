@@ -1,3 +1,8 @@
+2002-03-06  ShengHuo ZHU  <zsh@cs.rochester.edu>
+
+	* textmodes/bibtex.el (bibtex-make-field): Call bibtex-find-text
+	with SILENT so that a new field can be added.
+
 2002-03-06  Eli Zaretskii  <eliz@is.elta.co.il>
 
 	* files.el (make-auto-save-file-name): Make sure the produced file

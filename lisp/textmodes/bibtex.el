@@ -2981,7 +2981,7 @@ using the minibuffer."
                 (car e-t))))
     (if (or (interactive-p) called-by-yank)
         (let (bibtex-help-message)
-          (bibtex-find-text nil t)
+          (bibtex-find-text nil t t)
           (if (looking-at "[}\"]")
               (forward-char))))
     (insert ",\n")
