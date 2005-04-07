@@ -190,7 +190,7 @@ wish to put something like the following in your `.emacs' file:
 	    (define-key comint-mode-map [C-S-backspace]
 	      'comint-kill-whole-line)))
 
-If you sometimes use comint-mode on text-only terminals or with `emacs-nw',
+If you sometimes use comint-mode on text-only terminals or with `emacs -nw',
 you might wish to use another binding for `comint-kill-whole-line'."
   :type 'boolean
   :group 'comint
