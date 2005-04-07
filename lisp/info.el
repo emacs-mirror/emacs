@@ -3240,6 +3240,7 @@ Advanced commands:
   (setq line-move-ignore-invisible t)
   (make-local-variable 'desktop-save-buffer)
   (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
+  (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
   (add-hook 'isearch-mode-hook 'Info-isearch-start nil t)
@@ -3253,6 +3254,13 @@ Advanced commands:
        Info-search-whitespace-regexp)
   (Info-set-mode-line)
   (run-hooks 'Info-mode-hook))
+
+;; When an Info buffer is killed, make sure the associated tags buffer
+;; is killed too.
+(defun Info-kill-buffer ()
+  (and (eq major-mode 'Info-mode)
+       Info-tag-table-buffer
+       (kill-buffer Info-tag-table-buffer)))
 
 (defun Info-clone-buffer-hook ()
   (when (bufferp Info-tag-table-buffer)
@@ -3887,16 +3895,6 @@ Preserve text properties."
 
       (set-buffer-modified-p nil))))
 
-
-;; When an Info buffer is killed, make sure the associated tags buffer
-;; is killed too.
-(defun Info-kill-buffer ()
-  (and (eq major-mode 'Info-mode)
-       Info-tag-table-buffer
-       (kill-buffer Info-tag-table-buffer)))
-
-(add-hook 'kill-buffer-hook 'Info-kill-buffer)
-
 ;;; Speedbar support:
 ;; These functions permit speedbar to display the "tags" in the
 ;; current info node.
