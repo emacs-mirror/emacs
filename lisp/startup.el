@@ -1481,8 +1481,14 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
+      ;; display-splash-screen at the end of command-line-1 calls
+      ;; use-fancy-splash-screens-p. This can cause image.el to be
+      ;; loaded, putting "Loading image... done" in the echo area.
+      ;; This hides startup-echo-area-message. So
+      ;; use-fancy-splash-screens-p is called here simply to get the
+      ;; loading of image.el (if needed) out of the way before
+      ;; display-startup-echo-area-message runs.
       (progn
-        ;; Stop any "Loading image..." message hiding echo-area-message.
         (use-fancy-splash-screens-p)
         (display-startup-echo-area-message)))
 
