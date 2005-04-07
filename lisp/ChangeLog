@@ -1,3 +1,7 @@
+2005-04-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-prompt-read-only): Doc fix.
+
 2005-04-07  Benjamin Rutt  <brutt@bloomington.in.us>
 
 	* ffap.el (ffap-pass-wildcards-to-dired): New user option to
