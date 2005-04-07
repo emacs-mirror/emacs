@@ -1,7 +1,7 @@
 2005-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (xterm-standard-colors): Update color values from
-	xterm-200. 
+	xterm-200.
 
 2005-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -1715,7 +1715,7 @@
 	(debug-entry-code): New const.
 	(debug-on-entry-1): Use it.
 
-2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
+2005-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/utf-16.el (ccl-encode-mule-utf-16le):
 	Fix BUFFER_MAGNIFICATION to 2.
