@@ -217,10 +217,13 @@ Sensible values are nil, \"news\", or \"mailto\"."
   "*A regexp matching filename wildcard characters, or nil.
 
 If `find-file-at-point' gets a filename matching this pattern,
-it passes it on to `find-file' with non-nil WILDCARDS argument,
-which expands wildcards and visits multiple files.  To visit
-a file whose name contains wildcard characters you can suppress
-wildcard expansion by setting `find-file-wildcards'.
+and `ffap-pass-wildcards-to-dired' is nil, it passes it on to
+`find-file' with non-nil WILDCARDS argument, which expands
+wildcards and visits multiple files.  To visit a file whose name
+contains wildcard characters you can suppress wildcard expansion
+by setting `find-file-wildcards'.  If `find-file-at-point' gets a
+filename matching this pattern and `ffap-pass-wildcards-to-dired'
+is non-nil, it passes it on to `dired'.
 
 If `dired-at-point' gets a filename matching this pattern,
 it passes it on to `dired'."
@@ -228,6 +231,11 @@ it passes it on to `dired'."
 		 (const :tag "Enable" "[*?][^/]*\\'")
 		 ;; regexp -- probably not useful
 		 )
+  :group 'ffap)
+
+(defcustom ffap-pass-wildcards-to-dired nil
+  "*If non-nil, pass filenames matching `ffap-dired-wildcards' to dired."
+  :type 'boolean
   :group 'ffap)
 
 (defcustom ffap-newfile-prompt nil
@@ -1386,6 +1394,10 @@ See <ftp://ftp.mathcs.emory.edu/pub/mic/emacs/> for latest version."
      ((ffap-url-p filename)
       (let (current-prefix-arg)		; w3 2.3.25 bug, reported by KPC
 	(funcall ffap-url-fetcher filename)))
+     ((and ffap-pass-wildcards-to-dired
+	   ffap-dired-wildcards
+	   (string-match ffap-dired-wildcards filename))
+      (funcall ffap-directory-finder filename))
      ((and ffap-dired-wildcards
 	   (string-match ffap-dired-wildcards filename)
 	   find-file-wildcards
