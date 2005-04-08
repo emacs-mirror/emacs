@@ -119,7 +119,7 @@ calls."
   :group 'hi-lock-interactive-text-highlighting)
 
 (defface hi-yellow
-  '((((min-colors 88) (background dark)) 
+  '((((min-colors 88) (background dark))
      (:background "yellow1" :foreground "black"))
     (((background dark)) (:background "yellow" :foreground "black"))
     (((min-colors 88)) (:background "yellow1"))
@@ -134,10 +134,10 @@ calls."
   :group 'hi-lock-faces)
 
 (defface hi-green
-  '((((min-colors 88) (background dark)) 
+  '((((min-colors 88) (background dark))
      (:background "green1" :foreground "black"))
     (((background dark)) (:background "green" :foreground "black"))
-    ((min-colors 88) (:background "green1"))
+    (((min-colors 88)) (:background "green1"))
     (t (:background "green")))
   "Face for hi-lock mode."
   :group 'hi-lock-faces)
