@@ -1647,7 +1647,7 @@ marked on the calendar."
       (or (diary-remind sexp (car days) marking)
           (diary-remind sexp (cdr days) marking))))))
 
-(defun add-to-diary-list (date string specifier marker &optional globcolor)
+(defun add-to-diary-list (date string specifier &optional marker globcolor)
   "Add the entry (DATE STRING SPECIFIER MARKER GLOBCOLOR) to `diary-entries-list'.
 Do nothing if DATE or STRING is nil."
   (when (and date string)
