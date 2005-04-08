@@ -182,7 +182,7 @@ man/regs.texi       "Luc Teirlinck"   Chong Yidong
 man/rmail.texi      Chong Yidong
 man/screen.texi     "Luc Teirlinck"   Chong Yidong
 man/search.texi     "Luc Teirlinck"   Chong Yidong
-man/sending.texi    Chong Yidong
+man/sending.texi    Chong Yidong      "Luc Teirlinck"
 man/text.texi       "Luc Teirlinck"   Chong Yidong
 man/trouble.texi    Chong Yidong
 man/windows.texi    "Luc Teirlinck"   Chong Yidong
