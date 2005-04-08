@@ -1,3 +1,9 @@
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-edit.el (custom-modified-face): 
+	* comint.el (comint-highlight-input): Fix previous changes.
+	* term.el (term-handle-ansi-escape): Add a comment.
+
 2005-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* whitespace.el (whitespace-highlight-the-space): Put the same overlay

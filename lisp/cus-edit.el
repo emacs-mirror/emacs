@@ -1646,7 +1646,7 @@ item in another window.\n\n"))
   "Face used when the customize item is not defined for customization."
   :group 'custom-magic-faces)
 
-(defface custom-modified-face '(((min-colors 88) ((class color))
+(defface custom-modified-face '((((min-colors 88) (class color))
 				 (:foreground "white" :background "blue1"))
 				(((class color))
 				 (:foreground "white" :background "blue"))
