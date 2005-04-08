@@ -268,7 +268,7 @@ etc/TUTORIAL.de          Werner LEMBERG <wl@gnu.org>
 etc/TUTORIAL.es          Marcelo Toledo
 etc/TUTORIAL.fr          Thien-Thi Nguyen
 etc/TUTORIAL.it          Thien-Thi Nguyen
-etc/TUTORIAL.ja
+etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
