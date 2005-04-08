@@ -1,6 +1,10 @@
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* comint.el (comint-highlight-prompt): Fix face spec.
+
 2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* cus-edit.el (custom-modified-face): 
+	* cus-edit.el (custom-modified-face):
 	* comint.el (comint-highlight-input): Fix previous changes.
 	* term.el (term-handle-ansi-escape): Add a comment.
 
