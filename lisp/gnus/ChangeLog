@@ -1,7 +1,22 @@
+2005-04-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-make-date): Add defvars in order to silence
+	the byte compiler inside the defun.
+
+	* nnimap.el (nnimap-date-days-ago): Ditto.
+
+	* gnus-demon.el (parse-time-string): Added autoload.
+
+	* gnus-delay.el (parse-time-string): Added autoload.
+
+	* gnus-art.el (parse-time-string): Added autoload.
+
+	* nnultimate.el (parse-time): Require for `parse-time-string'.
+
 2005-04-03  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-sum.el (gnus-summary-make-menu-bar): Fix an
-	"unrecognised menu descriptor" error.
+	* gnus-sum.el (gnus-summary-make-menu-bar): Avoid the
+	"Unrecognized menu descriptor" error in XEmacs.
 
 2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 

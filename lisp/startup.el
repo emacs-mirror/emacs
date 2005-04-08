@@ -662,7 +662,7 @@ opening the first frame (e.g. open a connection to the server).")
     (while (and (not done) args)
       (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
                          ("--debug-init") ("--iconic") ("--icon-type")
-			 ("--no-blinking-cursor")))
+			 ("--no-blinking-cursor") ("--bare-bones")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -682,7 +682,7 @@ opening the first frame (e.g. open a connection to the server).")
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
-	 ((equal argi "-Q")
+	 ((member argi '("-Q" "-bare-bones"))
 	  (setq init-file-user nil
 		site-run-file nil
 		no-blinking-cursor t
@@ -1485,9 +1485,16 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
-      ;; Stop any "Loading image..." message hiding echo-area-message.
-      (use-fancy-splash-screens-p)
-      (display-startup-echo-area-message))
+      ;; display-splash-screen at the end of command-line-1 calls
+      ;; use-fancy-splash-screens-p. This can cause image.el to be
+      ;; loaded, putting "Loading image... done" in the echo area.
+      ;; This hides startup-echo-area-message. So
+      ;; use-fancy-splash-screens-p is called here simply to get the
+      ;; loading of image.el (if needed) out of the way before
+      ;; display-startup-echo-area-message runs.
+      (progn
+        (use-fancy-splash-screens-p)
+        (display-startup-echo-area-message)))
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.

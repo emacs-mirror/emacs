@@ -40,7 +40,8 @@ ISOgrk2, ISOgrk3, ISOgrk4, ISOlat1, ISOlat2, ISOnum, ISOpub, ISOtech,
 HTMLspecial and HTMLsymbol.
 
 E.g.: &aacute; -> á"
- nil t nil nil nil nil nil nil nil nil t)
+ '(("\t" . quail-completion))
+ t nil nil nil nil nil nil nil nil t)
 
 (quail-define-rules
   ("&Aacgr;" ?\Ά) ;; GREEK CAPITAL LETTER ALPHA WITH TONOS

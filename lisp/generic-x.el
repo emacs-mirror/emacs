@@ -1616,7 +1616,7 @@ generic-x to enable the specified modes."
     (((class color)     (background dark))  (:background "red"))
     (t (:weight bold)))
   "Font Lock mode face used to highlight TABs."
-  :group 'show-tabs)
+  :group 'generic-x)
 
 (defface show-tabs-space-face
   '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
@@ -1625,7 +1625,7 @@ generic-x to enable the specified modes."
     (((class color)     (background dark))  (:background "yellow"))
     (t (:weight bold)))
   "Font Lock mode face used to highlight spaces."
-  :group 'show-tabs)
+  :group 'generic-x)
 
 (define-generic-mode show-tabs-generic-mode
   nil ;; no comment char

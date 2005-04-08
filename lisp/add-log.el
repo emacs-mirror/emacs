@@ -225,8 +225,8 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       (2 'change-log-email-face)))
     ;;
     ;; File names.
-    ("^\\(?: +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
-     (1 'change-log-file-face)
+    ("^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
+     (2 'change-log-file-face)
      ;; Possibly further names in a list:
      ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))
      ;; Possibly a parenthesized list of names:
@@ -236,8 +236,8 @@ Note: The search is conducted only within 10%, at the beginning of the file."
       nil nil (1 'change-log-list-face)))
     ;;
     ;; Function or variable names.
-    ("^\t(\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
-     (1 'change-log-list-face)
+    ("^\\( +\\|\t\\)(\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
+     (2 'change-log-list-face)
      ("\\=, *\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)" nil nil
       (1 'change-log-list-face)))
     ;;
@@ -250,8 +250,8 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Acknowledgements.
     ;; Don't include plain "From" because that is vague;
     ;; we want to encourage people to say something more specific.
-    ("\\(^\t\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     2 'change-log-acknowledgement-face))
+    ("\\(^\\( +\\|\t\\)\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
+     3 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map

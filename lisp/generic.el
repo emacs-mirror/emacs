@@ -219,12 +219,14 @@ additional setup.
 
 The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and
 values.  They will be passed to the generated `defcustom' form of
-the mode hook variable MODE-hook.  You can specify keyword
-arguments without specifying a docstring.
+the mode hook variable MODE-hook.  Defaults to MODE without the
+possible trailing \"-mode\".  (This default may not be a valid
+customization group defined with `defgroup'.  Make sure it is.)
+You can specify keyword arguments without specifying a docstring.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
-			&optional stringp))
+			[&optional stringp] &rest [keywordp form]))
 	   (indent 1))
 
   ;; Backward compatibility.
@@ -237,21 +239,20 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (push docstring custom-keyword-args)
     (setq docstring nil))
 
-  (let* ((mode-name (symbol-name mode))
+  (let* ((name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
-				   "-mode\\'" "" mode-name)))
-	 (mode-hook (intern (concat mode-name "-hook"))))
+				   "-mode\\'" "" name)))
+	 (mode-hook (intern (concat name "-hook"))))
 
     (unless (plist-get custom-keyword-args :group)
       (setq custom-keyword-args
 	    (plist-put custom-keyword-args 
-		       :group `(or (custom-current-group)
-				   ',(intern (replace-regexp-in-string
-					      "-mode\\'" "" mode-name))))))
+		       :group `',(intern (replace-regexp-in-string
+					  "-mode\\'" "" name)))))
 
     `(progn
        ;; Add a new entry.
-       (add-to-list 'generic-mode-list ,mode-name)
+       (add-to-list 'generic-mode-list ,name)
 
        ;; Add it to auto-mode-alist
        (dolist (re ,auto-mode-list)
@@ -274,10 +275,10 @@ See the file generic-x.el for some examples of `define-generic-mode'."
 (defun generic-mode-internal (mode comment-list keyword-list
 				   font-lock-list function-list)
   "Go into the generic mode MODE."
-  (let* ((mode-name (symbol-name mode))
+  (let* ((name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
-				   "-mode\\'" "" mode-name)))
-	 (mode-hook (intern (concat mode-name "-hook"))))
+				   "-mode\\'" "" name)))
+	 (mode-hook (intern (concat name "-hook"))))
 
     (kill-all-local-variables)
 

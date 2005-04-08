@@ -1,3 +1,19 @@
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* cmdargs.texi (Initial Options): Add --bare-bones alias for -Q.
+
+2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dired.texi (Dired Visiting): `dired-view-command-alist' has been
+	deleted.
+	(Marks vs Flags): Add some convenient key bindings.
+	(Hiding Subdirectories): Delete redundant and inaccurate sentence.
+	(Misc Dired Features): Correct and expand description of `w' command.
+
+	* frames.texi (XTerm Mouse): Delete apparently false info.
+	The GNU/Linux console currently does not appear to support
+	`xterm-mouse-mode'.
+
 2005-04-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Change Calc version number.

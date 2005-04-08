@@ -1,3 +1,19 @@
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (syms_of_xdisp): Init overlay-arrow-string to "=>".
+
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (standard_args): Add -Q, --bare-bones, -bare-bones.
+
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (cfdate_to_lisp): Add `const' for variable `epoch_gdate'.
+	(Fmac_get_preference): Doc fix.
+
+	* macfns.c (Fx_create_frame, x_create_tip_frame): Add
+	"fontset-mac" to fallback font/fontsets.
+
 2005-04-04  Kim F. Storm  <storm@cua.dk>
 
 	* alloc.c (Fgarbage_collect): Call CHECK_CONS_LIST before and after gc.
@@ -2865,7 +2881,7 @@
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
 
-2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-10-21  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): New member `xic_base_fontname'.
 	(FRAME_XIC_BASE_FONTNAME): New macro.
@@ -4146,7 +4162,7 @@
 	* keyboard.c (cmd_error): Don't call any_kboard_state
 	if inside a recursive edit level.
 
-2004-06-13  Lorentey K,Aa(Broly  <lorentey@elte.hu>
+2004-06-13  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.

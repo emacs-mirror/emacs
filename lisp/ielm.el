@@ -65,7 +65,7 @@ wish to put something like the following in your `.emacs' file:
 
 \(add-hook 'ielm-mode-hook
 	  '(lambda ()
-	     (define-key ielm-map \"\C-w\" 'comint-kill-region)
+	     (define-key ielm-map \"\\C-w\" 'comint-kill-region)
 	     (define-key ielm-map [C-S-backspace]
 	       'comint-kill-whole-line)))
 
