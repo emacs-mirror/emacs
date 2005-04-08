@@ -1,6 +1,6 @@
 ;;; ido.el --- interactively do things with buffers and files.
 
-;; Copyright (C) 1996-2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996-2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
 ;; Based on: iswitchb by Stephen Eglen <stephen@cns.ed.ac.uk>
@@ -747,13 +747,19 @@ subdirs in the alternatives."
   "*Font used by ido for highlighting only match."
   :group 'ido)
 
-(defface ido-subdir-face  '((((class color))
+(defface ido-subdir-face  '((((min-colors 88) (class color))
+                             (:foreground "red1"))
+			    (((class color))
                              (:foreground "red"))
                             (t (:underline t)))
   "*Font used by ido for highlighting subdirs in the alternatives."
   :group 'ido)
 
-(defface ido-indicator-face  '((((class color))
+(defface ido-indicator-face  '((((min-colors 88) (class color))
+				(:foreground "yellow1"
+				 :background "red1"
+				 :width condensed))
+			       (((class color))
 				(:foreground "yellow"
 				 :background "red"
 				 :width condensed))

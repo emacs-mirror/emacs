@@ -1,6 +1,6 @@
 ;;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985,86,92,93,94,95,96,97,98,99,2000,01,02,03,2004
+;; Copyright (C) 1985,86,92,93,94,95,96,97,98,99,2000,01,02,03,04,2005
 ;;  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -83,7 +83,11 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((class color) (background light)) :foreground "blue" :underline t)
+  '((((min-colors 88) 
+      (class color) (background light)) :foreground "blue1" :underline t)
+    (((class color) (background light)) :foreground "blue" :underline t)
+    (((min-colors 88) 
+      (class color) (background dark)) :foreground "cyan1" :underline t)
     (((class color) (background dark)) :foreground "cyan" :underline t)
     (t :underline t))
   "Face for Info cross-references."

@@ -1,3 +1,42 @@
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/table.el (table-cell-face): Add special case for
+	displays supporting a high number of colors.
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-speedbar-architecture-face)
+	(vhdl-speedbar-instantiation-face)
+	(vhdl-speedbar-architecture-selected-face)
+	(vhdl-speedbar-instantiation-selected-face): Likewise. 
+	* progmodes/sh-script.el (sh-heredoc-face): Likewise. 
+	* progmodes/idlw-help.el (idlwave-help-link-face): Likewise. 
+	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
+	(ebrowse-root-class-face, ebrowse-member-attribute-face)
+	(ebrowse-progress-face): Likewise. 
+	* progmodes/compile.el (compilation-info-face): Likewise. 
+	* progmodes/cc-fonts.el (c-invalid-face): Likewise. 
+	* emacs-lisp/re-builder.el (reb-match-3): Likewise. 
+	* calendar/calendar.el (diary-face): Likewise. 
+	* woman.el (woman-italic-face, woman-bold-face)
+	(woman-unknown-face): Likewise. 
+	* wid-edit.el (widget-button-pressed-face): Likewise. 
+	* whitespace.el (whitespace-highlight-face): Likewise. 
+	* smerge-mode.el (smerge-mine-face, smerge-base-face): Likewise. 
+	* pcvs-info.el (cvs-marked-face): Likewise. 
+	* info.el (info-xref): Likewise. 
+	* ido.el (ido-subdir-face, ido-indicator-face): Likewise. 
+	* hilit-chg.el (highlight-changes-face)
+	(highlight-changes-delete-face): Likewise. 
+	* hi-lock.el (hi-yellow, hi-green, hi-blue-b, hi-green-b)
+	(hi-red-b): Likewise. 
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Likewise. 
+	* font-lock.el (font-lock-keyword-face)
+	(font-lock-function-name-face, font-lock-warning-face): Likewise. 
+	* cus-edit.el (custom-invalid-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-variable-tag-face)
+	(custom-group-tag-face-1, custom-group-tag-face): Likewise. 
+	* comint.el (comint-highlight-prompt): Likewise. 
+
 2005-04-08  Lute Kamstra  <lute@gnu.org>
 
 	* font-lock.el (font-lock-keywords): Docstring fixes.

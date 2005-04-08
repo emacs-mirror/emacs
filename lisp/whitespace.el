@@ -1,6 +1,6 @@
 ;;; whitespace.el --- warn about and clean bogus whitespaces in the file
 
-;; Copyright (C) 1999, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2005 Free Software Foundation, Inc.
 
 ;; Author: Rajesh Vaidheeswarran <rv@gnu.org>
 ;; Keywords: convenience
@@ -319,7 +319,7 @@ To disable timer scans, set this to zero."
   :group 'faces)
 
 (defface whitespace-highlight-face '((((class color) (background light))
-				      (:background "green"))
+				      (:background "green1"))
 				     (((class color) (background dark))
 				      (:background "sea green"))
 				     (((class grayscale mono)

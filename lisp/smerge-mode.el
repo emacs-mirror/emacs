@@ -76,8 +76,12 @@ Used in `smerge-diff-base-mine' and related functions."
   :type 'boolean)
 
 (defface smerge-mine-face
-  '((((background light))
+  '((((min-colors 88) (background light))
+     (:foreground "blue1"))
+    (((background light))
      (:foreground "blue"))
+    (((min-colors 88) (background dark))
+     (:foreground "cyan1"))
     (((background dark))
      (:foreground "cyan")))
   "Face for your code."
@@ -94,7 +98,9 @@ Used in `smerge-diff-base-mine' and related functions."
 (defvar smerge-other-face 'smerge-other-face)
 
 (defface smerge-base-face
-  '((((background light))
+  '((((min-colors 88) (background light))
+     (:foreground "red1"))
+    (((background light))
      (:foreground "red"))
     (((background dark))
      (:foreground "orange")))

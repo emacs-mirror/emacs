@@ -1,6 +1,6 @@
 ;;; woman.el --- browse UN*X manual pages `wo (without) man'
 
-;; Copyright (C) 2000, 2002, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Francis J. Wright <F.J.Wright@qmul.ac.uk>
 ;; Maintainer: Francis J. Wright <F.J.Wright@qmul.ac.uk>
@@ -876,13 +876,16 @@ or different fonts."
 ;; You should probably select either italic or underline as you prefer, but
 ;; not both, although italic and underline work together perfectly well!
 (defface woman-italic-face
-  `((((background light)) (:slant italic :underline t :foreground "red"))
+  `((((min-colors 88) (background light)) 
+     (:slant italic :underline t :foreground "red1"))
+    (((background light)) (:slant italic :underline t :foreground "red"))
     (((background dark)) (:slant italic :underline t)))
   "Face for italic font in man pages."
   :group 'woman-faces)
 
 (defface woman-bold-face
-  '((((background light)) (:weight bold :foreground "blue"))
+  '((((min-colors 88) (background light)) (:weight bold :foreground "blue1"))
+    (((background light)) (:weight bold :foreground "blue"))
     (((background dark)) (:weight bold :foreground "green2")))
   "Face for bold font in man pages."
   :group 'woman-faces)
@@ -892,6 +895,7 @@ or different fonts."
 ;; non-standard fonts seem to do so badly or in idiosyncratic ways!)
 (defface woman-unknown-face
   '((((background light)) (:foreground "brown"))
+    (((min-colors 88) (background dark)) (:foreground "cyan1"))
     (((background dark)) (:foreground "cyan")))
   "Face for all unknown fonts in man pages."
   :group 'woman-faces)

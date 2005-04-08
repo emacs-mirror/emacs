@@ -1,6 +1,6 @@
 ;;; re-builder.el --- building Regexps with visual feedback
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Detlev Zundel <dzu@gnu.org>
 ;; Keywords: matching, lisp, tools
@@ -177,7 +177,9 @@ Set it to nil if you don't want limits here."
   :group 're-builder)
 
 (defface reb-match-3
-  '((((class color) (background light))
+  '((((min-colors 88) (class color) (background light))
+     :background "yellow1")
+    (((class color) (background light))
      :background "yellow")
     (((class color) (background dark))
      :background "sienna4")

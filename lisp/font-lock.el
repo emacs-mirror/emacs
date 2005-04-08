@@ -1657,7 +1657,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   '((((class grayscale) (background light)) (:foreground "LightGray" :weight bold))
     (((class grayscale) (background dark)) (:foreground "DimGray" :weight bold))
     (((class color) (min-colors 88) (background light)) (:foreground "Purple"))
-    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan"))
+    (((class color) (min-colors 88) (background dark)) (:foreground "Cyan1"))
     (((class color) (min-colors 16) (background light)) (:foreground "Purple"))
     (((class color) (min-colors 16) (background dark)) (:foreground "Cyan"))
     (((class color) (min-colors 8)) (:foreground "cyan" :weight bold))
@@ -1678,7 +1678,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-function-name-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Blue"))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Blue1"))
     (((class color) (min-colors 88) (background dark)) (:foreground "LightSkyBlue"))
     (((class color) (min-colors 16) (background light)) (:foreground "Blue"))
     (((class color) (min-colors 16) (background dark)) (:foreground "LightSkyBlue"))
@@ -1728,7 +1728,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-warning-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "Red" :weight bold))
+  '((((class color) (min-colors 88) (background light)) (:foreground "Red1" :weight bold))
     (((class color) (min-colors 88) (background dark)) (:foreground "Pink" :weight bold))
     (((class color) (min-colors 16) (background light)) (:foreground "Red" :weight bold))
     (((class color) (min-colors 16) (background dark)) (:foreground "Pink" :weight bold))

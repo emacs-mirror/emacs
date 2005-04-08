@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -464,6 +464,8 @@ starting the compilation process.")
 (defface compilation-info-face
   '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "Green1" :weight bold))
     (((class color) (min-colors 16) (background dark))
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
