@@ -1,3 +1,9 @@
+2005-04-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/lisp.el (defun-prompt-regexp)
+	(parens-require-spaces, buffer-end, end-of-defun)
+	(insert-parentheses): Doc fixes.
+
 2005-04-08  Kim F. Storm  <storm@cua.dk>
 
 	* comint.el (comint-highlight-prompt): Fix face spec.
