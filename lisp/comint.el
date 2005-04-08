@@ -228,7 +228,7 @@ This variable is buffer-local."
   :group 'comint)
 
 (defface comint-highlight-prompt
-  '((((min-colors 88) ((background dark))) (:foreground "cyan1"))
+  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
     (((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
   "Face to use to highlight prompts."
