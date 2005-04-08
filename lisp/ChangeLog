@@ -1,3 +1,7 @@
+2005-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (iso-latin-7): Fix the map.
+
 2005-04-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/lisp.el (defun-prompt-regexp)
