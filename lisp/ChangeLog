@@ -1,3 +1,11 @@
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Update list.
+	(authors-ignored-files): New list.
+	(authors-fixed-entries): Fix typo.
+	(authors-renamed-files-alist): Update list.
+	(authors-add): Check authors-ignored-files.
+
 2005-04-08  Carsten Dominik  <dominik@science.uva.nl>
 
 	* calendar/diary-lib.el (add-to-diary-list): MARKER argument made
