@@ -383,14 +383,14 @@ word \"bar\" following the word \"anchor\" then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
 
- (MATCH FACENAME OVERRIDE LAXMATCH)
+ (MATCH FACENAME [[OVERRIDE [LAXMATCH]])
 
 MATCH is the subexpression of MATCHER to be highlighted.  FACENAME is an
 expression whose value is the face name to use.  Face default attributes
 can be modified via \\[customize].  Instead of a face, FACENAME can
-evaluate to a property list of the form (face VAL1 PROP2 VAL2 PROP3 VAL3 ...)
+evaluate to a property list of the form (face FACE PROP1 VAL1 PROP2 VAL2 ...)
 in which case all the listed text-properties will be set rather than
-just `face'.  In such a case, you will most likely want to put those
+just FACE.  In such a case, you will most likely want to put those
 properties in `font-lock-extra-managed-props' or to override
 `font-lock-unfontify-region-function'.
 
@@ -426,7 +426,7 @@ the last, instance MATCH-ANCHORED's MATCHER is used.  Therefore they can be
 used to initialise before, and cleanup after, MATCHER is used.  Typically,
 PRE-MATCH-FORM is used to move to some position relative to the original
 MATCHER, before starting with MATCH-ANCHORED's MATCHER.  POST-MATCH-FORM might
-be used to move, before resuming with MATCH-ANCHORED's parent's MATCHER.
+be used to move back, before resuming with MATCH-ANCHORED's parent's MATCHER.
 
 For example, an element of the form highlights (if not already highlighted):
 
@@ -436,7 +436,7 @@ For example, an element of the form highlights (if not already highlighted):
  discrete occurrences of \"item\" (on the same line) in the value of `item-face'.
  (Here PRE-MATCH-FORM and POST-MATCH-FORM are nil.  Therefore \"item\" is
  initially searched for starting from the end of the match of \"anchor\", and
- searching for subsequent instance of \"anchor\" resumes from where searching
+ searching for subsequent instances of \"anchor\" resumes from where searching
  for \"item\" concluded.)
 
 The above-mentioned exception is as follows.  The limit of the MATCHER search
