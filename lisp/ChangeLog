@@ -1,3 +1,7 @@
+2005-04-08  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-keywords): Docstring fixes.
+
 2005-04-08  Kenichi Handa  <handa@m17n.org>
 
 	* ps-mule.el (ps-mule-show-warning): If the number of unprintable
