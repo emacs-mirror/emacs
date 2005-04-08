@@ -1,3 +1,10 @@
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to
+	mouse-face.
+
+	* mouse.el (mouse-on-link-p): Doc fix.
+
 2005-04-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only): Doc fix.
