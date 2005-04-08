@@ -1,3 +1,8 @@
+2005-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If the number of unprintable
+	chars are more than a limit, print " and more..." at the tail.
+
 2005-04-08  Kim F. Storm  <storm@cua.dk>
 
 	* emacs-lisp/authors.el (authors-aliases): Update list.
