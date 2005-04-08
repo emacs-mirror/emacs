@@ -1,3 +1,8 @@
+2005-04-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* calendar/diary-lib.el (add-to-diary-list): MARGER argument made
+	optional, to ensure backward compatibility.
+
 2005-04-08  Stephen Eglen  <stephen@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-large-region): Doc fix.
