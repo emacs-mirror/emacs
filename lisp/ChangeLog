@@ -1,6 +1,7 @@
 2005-04-08  Kim F. Storm  <storm@cua.dk>
 
 	* comint.el (comint-highlight-prompt): Fix face spec.
+	* hi-lock.el (hi-green): Likewise.
 
 2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
