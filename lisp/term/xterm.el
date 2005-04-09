@@ -123,7 +123,7 @@
 
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (min 65535 (round (* (/ prim 255.0) 65535.0))))
+  (logior prim (lsh prim 8)))
 
 (defun xterm-register-default-colors ()
   "Register the default set of colors for xterm or compatible emulator.
@@ -160,9 +160,10 @@ versions of xterm."
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)
 			      (mapcar 'xterm-rgb-convert-to-16bit
-				      (list (round (* r 42.5))
-					    (round (* g 42.5))
-					    (round (* b 42.5)))))
+				      (list (if (zerop r) 0 (+ (* r 40) 55))
+					    (if (zerop g) 0 (+ (* g 40) 55))
+					    (if (zerop b) 0 (+ (* b 40) 55)))))
+
 	    (setq b (1+ b))
 	    (if (> b 5)
 		(setq g (1+ g)
@@ -200,7 +201,7 @@ versions of xterm."
 	;; Now the 8 gray colors
 	(while (> ncolors 0)
 	  (setq color (xterm-rgb-convert-to-16bit
-		       (round
+		       (floor
 			(if (= ncolors 8)
 			    46.36363636
 			  (+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))

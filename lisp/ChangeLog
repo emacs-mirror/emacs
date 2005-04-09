@@ -1,3 +1,9 @@
+2005-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-rgb-convert-to-16bit): Simplify.
+	(xterm-register-default-colors): Update color values computation
+	to match xterm-200.
+
 2005-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (iso-latin-7): Fix the map.
