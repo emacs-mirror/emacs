@@ -3165,14 +3165,20 @@ mirror_line_dance (w, unchanged_at_top, nlines, copy_from, retained_p)
 		  int m2_from;
 
 		  w2 = frame_row_to_window (root, frame_from);
-		  m2 = w2->current_matrix;
-		  m2_from = frame_from - m2->matrix_y;
-		  copy_row_except_pointers (m->rows + window_to,
-					    m2->rows + m2_from);
+		  /* ttn@surf.glug.org: when enabling menu bar using `emacs
+		     -nw', FROM_FRAME sometimes has no associated window.
+		     This check avoids a segfault if W2 is null.  */
+		  if (w2)
+		    {
+		      m2 = w2->current_matrix;
+		      m2_from = frame_from - m2->matrix_y;
+		      copy_row_except_pointers (m->rows + window_to,
+						m2->rows + m2_from);
 
-		  /* If frame line is empty, window line is empty, too.  */
-		  if (!retained_p[copy_from[i]])
-		    m->rows[window_to].enabled_p = 0;
+		      /* If frame line is empty, window line is empty, too.  */
+		      if (!retained_p[copy_from[i]])
+			m->rows[window_to].enabled_p = 0;
+		    }
 		  sync_p = 1;
 		}
 	      else if (from_inside_window_p)
