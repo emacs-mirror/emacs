@@ -964,7 +964,7 @@ Convert it to flymake internal format."
 	(if (consp file)	(setq file (car file)))
 	(if (consp line)	(setq line (car line)))
 	(if (consp col)	(setq col (car col)))
-	
+
 	(when (not (functionp line))
 	  (setq converted-list (cons (list regexp file line col) converted-list)))))
     converted-list))
@@ -1508,7 +1508,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   "Minor mode to do on-the-fly syntax checking.
 When called interactively, toggles the minor mode.
 With arg, turn Flymake mode on if and only if arg is positive."
-  :lighter flymake-mode-line
+  :group 'flymake :lighter flymake-mode-line
   (if flymake-mode
       (if (flymake-can-syntax-check-file (buffer-file-name))
 	  (flymake-mode-on)

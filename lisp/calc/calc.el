@@ -231,7 +231,8 @@
     (f90-mode . fortran))
   "*Alist of major modes with appropriate Calc languages."
   :group 'calc
-  :type '(alist :key-type symbol :value-type symbol))
+  :type '(alist :key-type (symbol :tag "Major mode") 
+                :value-type (symbol :tag "Calc language")))
 
 (defcustom calc-embedded-announce-formula 
   "%Embed\n\\(% .*\n\\)*"

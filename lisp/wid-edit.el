@@ -1,6 +1,6 @@
 ;;; wid-edit.el --- Functions for creating and using widgets -*-byte-compile-dynamic: t;-*-
 ;;
-;; Copyright (C) 1996,97,1999,2000,01,02,2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1996,97,1999,2000,01,02,2003, 2004, 2005  Free Software Foundation, Inc.
 ;;
 ;; Author: Per Abrahamsen <abraham@dina.kvl.dk>
 ;; Maintainer: FSF
@@ -883,7 +883,9 @@ Recommended as a parent keymap for modes using widgets.")
        (lookup-key widget-global-map (this-command-keys))))))
 
 (defface widget-button-pressed-face
-  '((((class color))
+  '((((min-colors 88) (class color))
+     (:foreground "red1"))
+    (((class color))
      (:foreground "red"))
     (t
      (:weight bold :underline t)))
@@ -1185,9 +1187,17 @@ When not inside a field, move to the previous button or field."
     ;; or if a special `boundary' field has been added after the widget
     ;; field.
     (if (overlayp overlay)
-	(if (and (not (eq (get-char-property (overlay-end overlay)
-					     'field
-					     (widget-field-buffer widget))
+	(if (and (not (eq (with-current-buffer
+			      (widget-field-buffer widget)
+			    (save-restriction
+			      ;; `widget-narrow-to-field' can be
+			      ;; active when this function is called
+			      ;; from an change-functions hook. So
+			      ;; temporarily remove field narrowing
+			      ;; before to call `get-char-property'.
+			      (widen)
+			      (get-char-property (overlay-end overlay)
+						 'field)))
 			  'boundary))
 		 (or widget-field-add-space
 		     (null (widget-get widget :size))))

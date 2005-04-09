@@ -364,13 +364,13 @@ cfnumber_to_lisp (number)
 
 
 /* CFDate to a list of three integers as in a return value of
-   `current-time'xo.  */
+   `current-time'.  */
 
 Lisp_Object
 cfdate_to_lisp (date)
      CFDateRef date;
 {
-  static CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
+  static const CFGregorianDate epoch_gdate = {1970, 1, 1, 0, 0, 0.0};
   static CFAbsoluteTime epoch = 0.0, sec;
   int high, low;
 
@@ -668,7 +668,7 @@ parse_resource_name (p)
     return Qnil;
 
   result = Fcons (component, result);
-  while (binding = parse_binding (p))
+  while ((binding = parse_binding (p)) != '\0')
     {
       if (binding == '*')
 	result = Fcons (LOOSE_BINDING, result);
@@ -3662,7 +3662,7 @@ corresponding Lisp object as follows:
   CFDate             List of three integers         date
                        (cf. `current-time')
   CFData             Unibyte string                 data
-  CFArray            Array                          array
+  CFArray            Vector                         array
   CFDictionary       Alist or hash table            dictionary
                        (depending on HASH-BOUND)
 
@@ -4174,26 +4174,13 @@ syms_of_mac ()
   staticpro (&QCLIPBOARD);
 
 #if TARGET_API_MAC_CARBON
-  Qstring = intern ("string");
-  staticpro (&Qstring);
-
-  Qnumber = intern ("number");
-  staticpro (&Qnumber);
-
-  Qboolean = intern ("boolean");
-  staticpro (&Qboolean);
-
-  Qdate = intern ("date");
-  staticpro (&Qdate);
-
-  Qdata = intern ("data");
-  staticpro (&Qdata);
-
-  Qarray = intern ("array");
-  staticpro (&Qarray);
-
-  Qdictionary = intern ("dictionary");
-  staticpro (&Qdictionary);
+  Qstring  = intern ("string");		staticpro (&Qstring);
+  Qnumber  = intern ("number");		staticpro (&Qnumber);
+  Qboolean = intern ("boolean");	staticpro (&Qboolean);
+  Qdate	   = intern ("date");		staticpro (&Qdate);
+  Qdata    = intern ("data");		staticpro (&Qdata);
+  Qarray   = intern ("array");		staticpro (&Qarray);
+  Qdictionary = intern ("dictionary");	staticpro (&Qdictionary);
 
   Qxml = intern ("xml");
   staticpro (&Qxml);

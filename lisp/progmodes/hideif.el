@@ -1,6 +1,6 @@
 ;;; hideif.el --- hides selected code within ifdef
 
-;; Copyright (C) 1988,1994,2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 2001, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daniel LaLiberte <liberte@holonexus.org>
 ;; Maintainer: FSF
@@ -197,7 +197,7 @@ how the hiding is done:
 	After `show-ifdefs', read-only status is restored to previous value.
 
 \\{hide-ifdef-mode-map}"
-  nil " Ifdef" nil
+  :group 'hide-ifdef :lighter " Ifdef"
   (if hide-ifdef-mode
       (progn
 	;; inherit global values

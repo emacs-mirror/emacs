@@ -657,7 +657,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (while (and (not done) args)
       (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
                          ("--debug-init") ("--iconic") ("--icon-type")
-			 ("--no-blinking-cursor")))
+			 ("--no-blinking-cursor") ("--bare-bones")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -677,7 +677,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
-	 ((equal argi "-Q")
+	 ((member argi '("-Q" "-bare-bones"))
 	  (setq init-file-user nil
 		site-run-file nil
 		no-blinking-cursor t
@@ -1004,8 +1004,27 @@ If this is nil, no message will be displayed."
 using the mouse.\n\n"
 	   :face (variable-pitch :weight bold)
 	   "Important Help menu items:\n"
-	   :face variable-pitch "\
-Emacs Tutorial\tLearn-by-doing tutorial for using Emacs efficiently
+	   :face variable-pitch
+           (lambda ()
+             (let* ((en "TUTORIAL")
+                    (tut (or (get-language-info current-language-environment
+                                                'tutorial)
+                             en))
+                    (title (with-temp-buffer
+                             (insert-file-contents
+                              (expand-file-name tut data-directory)
+                              nil 0 256)
+                             (search-forward ".")
+                             (buffer-substring (point-min) (1- (point))))))
+               ;; If there is a specific tutorial for the current language
+               ;; environment and it is not English, append its title.
+               (concat
+                "Emacs Tutorial\tLearn how to use Emacs efficiently"
+                (if (string= en tut)
+                    ""
+                  (concat " (" title ")"))
+                "\n")))
+           :face variable-pitch "\
 Emacs FAQ\tFrequently asked questions and answers
 Read the Emacs Manual\tView the Emacs manual using Info
 \(Non)Warranty\tGNU Emacs comes with "
@@ -1069,14 +1088,18 @@ Values less than 60 seconds are ignored."
 
 (defun fancy-splash-insert (&rest args)
   "Insert text into the current buffer, with faces.
-Arguments from ARGS should be either strings or pairs `:face FACE',
+Arguments from ARGS should be either strings, functions called
+with no args that return a string, or pairs `:face FACE',
 where FACE is a valid face specification, as it can be used with
 `put-text-properties'."
   (let ((current-face nil))
     (while args
       (if (eq (car args) :face)
 	  (setq args (cdr args) current-face (car args))
-	(insert (propertize (car args)
+	(insert (propertize (let ((it (car args)))
+                              (if (functionp it)
+                                  (funcall it)
+                                it))
 			    'face current-face
 			    'help-echo fancy-splash-help-echo)))
       (setq args (cdr args)))))
@@ -1461,9 +1484,16 @@ normal otherwise."
 			    nil t))
 		       (error nil))
 		   (kill-buffer buffer)))))
-      ;; Stop any "Loading image..." message hiding echo-area-message.
-      (use-fancy-splash-screens-p)
-      (display-startup-echo-area-message))
+      ;; display-splash-screen at the end of command-line-1 calls
+      ;; use-fancy-splash-screens-p. This can cause image.el to be
+      ;; loaded, putting "Loading image... done" in the echo area.
+      ;; This hides startup-echo-area-message. So
+      ;; use-fancy-splash-screens-p is called here simply to get the
+      ;; loading of image.el (if needed) out of the way before
+      ;; display-startup-echo-area-message runs.
+      (progn
+        (use-fancy-splash-screens-p)
+        (display-startup-echo-area-message)))
 
   ;; Delay 2 seconds after an init file error message
   ;; was displayed, so user can read it.

@@ -1,5 +1,5 @@
-tutoriál k Emacsu.
-Copyright (c) 1985 Free Software Foundation, Inc;  podmínky viz na konci.
+Tutoriál k Emacsu.  Podmínky viz na konci.
+Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 Do èe¹tiny pøelo¾il Milan Zamazal <pdm@zamazal.org>.
 
 Máte pøed sebou tutoriál k Emacsu.

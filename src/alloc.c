@@ -4644,6 +4644,8 @@ returns nil, because real GC can't be done.  */)
   if (pure_bytes_used_before_overflow)
     return Qnil;
 
+  CHECK_CONS_LIST ();
+
   /* Don't keep undo information around forever.
      Do this early on, so it is no problem if the user quits.  */
   {
@@ -4836,6 +4838,8 @@ returns nil, because real GC can't be done.  */)
 #endif
 
   UNBLOCK_INPUT;
+
+  CHECK_CONS_LIST ();
 
   /* clear_marks (); */
   gc_in_progress = 0;

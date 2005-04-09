@@ -1,3 +1,11 @@
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
+	(CFBundleShortVersionString, CFBundleGetInfoString): Fix version
+	number and copyright.
+
+	* Emacs.r (DITL, vers): Likewise.
+
 2005-03-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Emacs.app/Contents/Info.plist (CFBundleIdentifier): Change to

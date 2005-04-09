@@ -918,23 +918,28 @@ This usually doesn't really work but is a handy initval in a prompt."
 ;;;;
 
 ;;;###autoload
-(defun cvs-checkout (modules dir flags)
+(defun cvs-checkout (modules dir flags &optional root)
   "Run a 'cvs checkout MODULES' in DIR.
 Feed the output to a *cvs* buffer, display it in the current window,
 and run `cvs-mode' on it.
 
 With a prefix argument, prompt for cvs FLAGS to use."
   (interactive
-   (list (cvs-string->strings (read-string "Module(s): " (cvs-get-module)))
-	 (read-directory-name "CVS Checkout Directory: "
-			 nil default-directory nil)
-	 (cvs-add-branch-prefix
-	  (cvs-flags-query 'cvs-checkout-flags "cvs checkout flags"))))
+   (let ((root (cvs-get-cvsroot)))
+     (if (or (null root) current-prefix-arg)
+	 (setq root (read-string "CVS Root: ")))
+     (list (cvs-string->strings (read-string "Module(s): " (cvs-get-module)))
+	   (read-directory-name "CVS Checkout Directory: "
+				nil default-directory nil)
+	   (cvs-add-branch-prefix
+	    (cvs-flags-query 'cvs-checkout-flags "cvs checkout flags"))
+	   root)))
   (when (eq flags t)
     (setf flags (cvs-flags-query 'cvs-checkout-flags nil 'noquery)))
-  (cvs-cmd-do "checkout" (or dir default-directory)
-	      (append flags modules) nil 'new
-	      :noexist t))
+  (let ((cvs-cvsroot root))
+    (cvs-cmd-do "checkout" (or dir default-directory)
+		(append flags modules) nil 'new
+		:noexist t)))
 
 (defun-cvs-mode (cvs-mode-checkout . NOARGS) (dir)
   "Run cvs checkout against the current branch.

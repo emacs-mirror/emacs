@@ -1,6 +1,6 @@
 ;;; ebrowse.el --- Emacs C++ class browser & tags facility
 
-;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002
+;; Copyright (C) 1992, 93, 94, 95, 96, 97, 98, 99, 2000, 2001, 2002, 2005
 ;;  Free Software Foundation Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
@@ -158,13 +158,15 @@ This space is used to display markers."
 
 
 (defface ebrowse-tree-mark-face
-  '((t (:foreground "red")))
+  '((((min-colors 88)) (:foreground "red1"))
+    (t (:foreground "red")))
   "*The face used for the mark character in the tree."
   :group 'ebrowse-faces)
 
 
 (defface ebrowse-root-class-face
-  '((t (:weight bold :foreground "blue")))
+  '((((min-colors 88)) (:weight bold :foreground "blue1"))
+    (t (:weight bold :foreground "blue")))
   "*The face used for root classes in the tree."
   :group 'ebrowse-faces)
 
@@ -182,7 +184,8 @@ This space is used to display markers."
 
 
 (defface ebrowse-member-attribute-face
-  '((t (:foreground "red")))
+  '((((min-colors 88)) (:foreground "red1"))
+    (t (:foreground "red")))
   "*Face used to display member attributes."
   :group 'ebrowse-faces)
 
@@ -194,7 +197,8 @@ This space is used to display markers."
 
 
 (defface ebrowse-progress-face
-  '((t (:background "blue")))
+  '((((min-colors 88)) (:background "blue1"))
+    (t (:background "blue")))
   "*Face for progress indicator."
   :group 'ebrowse-faces)
 

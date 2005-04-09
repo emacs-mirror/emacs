@@ -1937,10 +1937,11 @@ Return the position of the beginning of the filename, or nil if none found."
   "Copy names of marked (or next ARG) files into the kill ring.
 The names are separated by a space.
 With a zero prefix arg, use the absolute file name of each marked file.
-With \\[universal-argument], use the file name sans directory of each marked file.
+With \\[universal-argument], use the file name relative to the Dired buffer's
+`default-directory'.  (This still may contain slashes if in a subdirectory.)
 
-If on a subdir headerline, use subdirname instead; prefix arg is ignored
-in this case.
+If on a subdir headerline, use absolute subdirname instead;
+prefix arg and marked files are ignored in this case.
 
 You can then feed the file name(s) to other commands with \\[yank]."
   (interactive "P")
@@ -1950,10 +1951,11 @@ You can then feed the file name(s) to other commands with \\[yank]."
                         (if arg
                             (cond ((zerop (prefix-numeric-value arg))
                                    (dired-get-marked-files))
-                                  ((integerp arg)
-                                   (dired-get-marked-files 'no-dir arg))
-                                  (t    ; else a raw arg
-                                   (dired-get-marked-files t)))
+                                  ((consp arg)
+                                   (dired-get-marked-files t))
+                                  (t
+                                   (dired-get-marked-files
+				    'no-dir (prefix-numeric-value arg))))
                           (dired-get-marked-files 'no-dir))
                         " "))))
     (if (eq last-command 'kill-region)

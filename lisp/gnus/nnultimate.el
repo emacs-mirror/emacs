@@ -39,6 +39,7 @@
 (require 'mm-util)
 (require 'mm-url)
 (require 'nnweb)
+(require 'parse-time)
 (autoload 'w3-parse-buffer "w3-parse")
 
 (nnoo-declare nnultimate)

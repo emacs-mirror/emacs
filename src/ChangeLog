@@ -1,3 +1,37 @@
+2005-04-09  Kim F. Storm  <storm@cua.dk>
+
+	* lread.c (readevalloop): Add args START and END as region in
+	current buffer to read.  Callers changed.
+	When specified, narrow to this region only when reading,
+	not during eval.  Track next point to read from during eval.
+	Also restore point to "real" buffer position before eval.
+	(Feval_region): Don't save excursion and restriction here, and
+	don't narrow to region.  Just pass region to readevalloop.
+	Note: Point is now preserved even when PRINTFLAG is nil.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (syms_of_xdisp): Init overlay-arrow-string to "=>".
+
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* emacs.c (standard_args): Add -Q, --bare-bones, -bare-bones.
+
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c (cfdate_to_lisp): Add `const' for variable `epoch_gdate'.
+	(Fmac_get_preference): Doc fix.
+
+	* macfns.c (Fx_create_frame, x_create_tip_frame): Add
+	"fontset-mac" to fallback font/fontsets.
+
+2005-04-04  Kim F. Storm  <storm@cua.dk>
+
+	* alloc.c (Fgarbage_collect): Call CHECK_CONS_LIST before and after gc.
+
+	* eval.c (Ffuncall): Always call CHECK_CONS_LIST on entry.
+	Call it again after autoload.
+
 2005-04-02  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* alloc.c (allocate_string_data): Call BLOCK_INPUT before calling
@@ -2853,7 +2887,7 @@
 
 	* xfns.c (xic_create_xfontset): Initialize missing_list to NULL.
 
-2004-10-21  K,Aa(Broly L$,1 q(Brentey  <lorentey@elte.hu>
+2004-10-21  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* xterm.h (x_output): New member `xic_base_fontname'.
 	(FRAME_XIC_BASE_FONTNAME): New macro.
@@ -4134,7 +4168,7 @@
 	* keyboard.c (cmd_error): Don't call any_kboard_state
 	if inside a recursive edit level.
 
-2004-06-13  Lorentey K,Aa(Broly  <lorentey@elte.hu>
+2004-06-13  K,Ba(Broly L,Bu(Brentey  <lorentey@elte.hu>
 
 	* keyboard.c (command_loop): Call any_kboard_state before
 	command_loop_2 when at top level.

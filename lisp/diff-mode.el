@@ -1,7 +1,7 @@
 ;;; diff-mode.el --- a mode for viewing/editing context diffs
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004
-;;           Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: convenience patch diff
@@ -263,7 +263,7 @@ when editing big diffs)."
 	(save-excursion
 	  (while (re-search-backward re start t)
 	    (replace-match "" t t)))))))
-	
+
 
 (defvar diff-font-lock-keywords
   `(("^\\(@@ -[0-9,]+ \\+[0-9,]+ @@\\)\\(.*\\)$" ;unified
@@ -484,7 +484,7 @@ If the OLD prefix arg is passed, tell the file NAME of the old file."
   (let ((fs (diff-hunk-file-names old)))
     (unless fs (error "No file name to look for"))
     (push (cons fs name) diff-remembered-files-alist)))
-  
+
 (defun diff-hunk-file-names (&optional old)
   "Give the list of file names textually mentioned for the current hunk."
   (save-excursion
@@ -952,7 +952,7 @@ a diff with \\[diff-reverse-direction]."
 (define-minor-mode diff-minor-mode
   "Minor mode for viewing/editing context diffs.
 \\{diff-minor-mode-map}"
-  nil " Diff" nil
+  :group 'diff-mode :lighter " Diff"
   ;; FIXME: setup font-lock
   ;; setup change hooks
   (if (not diff-update-on-the-fly)

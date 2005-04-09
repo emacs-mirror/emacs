@@ -1,3 +1,323 @@
+2005-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (iso-latin-7): Fix the map.
+
+2005-04-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/lisp.el (defun-prompt-regexp)
+	(parens-require-spaces, buffer-end, end-of-defun)
+	(insert-parentheses): Doc fixes.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* comint.el (comint-highlight-prompt): Fix face spec.
+	* hi-lock.el (hi-green): Likewise.
+
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-edit.el (custom-modified-face):
+	* comint.el (comint-highlight-input): Fix previous changes.
+	* term.el (term-handle-ansi-escape): Add a comment.
+
+2005-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (whitespace-highlight-the-space): Put the same overlay
+	in the buffer and in whitespace-highlighted-space.
+	(whitespace-unhighlight-the-space): Simplify.
+	(whitespace-buffer): Simplify.
+
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/table.el (table-cell-face): Add special case for
+	displays supporting a high number of colors.
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-speedbar-architecture-face)
+	(vhdl-speedbar-instantiation-face)
+	(vhdl-speedbar-architecture-selected-face)
+	(vhdl-speedbar-instantiation-selected-face): Likewise.
+	* progmodes/sh-script.el (sh-heredoc-face): Likewise.
+	* progmodes/idlw-help.el (idlwave-help-link-face): Likewise.
+	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
+	(ebrowse-root-class-face, ebrowse-member-attribute-face)
+	(ebrowse-progress-face): Likewise.
+	* progmodes/compile.el (compilation-info-face): Likewise.
+	* progmodes/cc-fonts.el (c-invalid-face): Likewise.
+	* emacs-lisp/re-builder.el (reb-match-3): Likewise.
+	* calendar/calendar.el (diary-face): Likewise.
+	* woman.el (woman-italic-face, woman-bold-face)
+	(woman-unknown-face): Likewise.
+	* wid-edit.el (widget-button-pressed-face): Likewise.
+	* whitespace.el (whitespace-highlight-face): Likewise.
+	* smerge-mode.el (smerge-mine-face, smerge-base-face): Likewise.
+	* pcvs-info.el (cvs-marked-face): Likewise.
+	* info.el (info-xref): Likewise.
+	* ido.el (ido-subdir-face, ido-indicator-face): Likewise.
+	* hilit-chg.el (highlight-changes-face)
+	(highlight-changes-delete-face): Likewise.
+	* hi-lock.el (hi-yellow, hi-green, hi-blue-b, hi-green-b)
+	(hi-red-b): Likewise.
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Likewise.
+	* font-lock.el (font-lock-keyword-face)
+	(font-lock-function-name-face, font-lock-warning-face): Likewise.
+	* cus-edit.el (custom-invalid-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-variable-tag-face)
+	(custom-group-tag-face-1, custom-group-tag-face): Likewise.
+	* comint.el (comint-highlight-prompt): Likewise.
+
+2005-04-08  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-keywords): Docstring fixes.
+
+2005-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If the number of unprintable
+	chars are more than a limit, print " and more..." at the tail.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Update list.
+	(authors-ignored-files): New list.
+	(authors-fixed-entries): Fix typo.
+	(authors-renamed-files-alist): Update list.
+	(authors-add): Check authors-ignored-files.
+
+2005-04-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* calendar/diary-lib.el (add-to-diary-list): MARKER argument made
+	optional, to ensure backward compatibility.
+
+2005-04-08  Stephen Eglen  <stephen@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region): Doc fix.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to
+	mouse-face.
+
+	* mouse.el (mouse-on-link-p): Doc fix.
+
+2005-04-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* ielm.el (ielm-prompt-read-only): Doc fix.
+
+	* comint.el (comint-prompt-read-only): Doc fix.
+
+2005-04-07  Benjamin Rutt  <brutt@bloomington.in.us>
+
+	* ffap.el (ffap-pass-wildcards-to-dired): New user option to
+	ensure dired always handles wildcards passed to ffap.
+	(find-file-at-point): Use it.
+	(ffap-dired-wildcards): Doc fix.
+
+2005-04-07  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (next-error-overlay-arrow-position): New defvar.
+	Put "=>" on its property `overlay-arrow-string'.  Add it to
+	`overlay-arrow-variable-list'.
+
+	* progmodes/compile.el (compilation-setup):
+	Set `next-error-overlay-arrow-position' to nil.  Also set it to
+	nil in the local hook `kill-buffer-hook'.  Make local variable
+	`overlay-arrow-string' and set it to "=>".
+	(compilation-goto-locus): Set BOL position to
+	`next-error-overlay-arrow-position' instead of
+	`overlay-arrow-position'.
+
+	* info.el (Info-mode): Add `Info-kill-buffer' to `kill-buffer-hook'
+	locally instead of adding it to the global hook.
+	(Info-kill-buffer): Move up.
+
+2005-04-06  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-standard-colors): Update color values from
+	xterm-200.
+
+2005-04-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-font-lock-keywords-2): Add \bfseries.
+
+	* fast-lock.el:
+	* lazy-lock.el: Move them to the obsolete subdir.
+
+2005-04-06  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+
+	* wdired.el (wdired-advise-functions, wdired-add-skip-in-replace)
+	(wdired-add-replace-advice): Remove.
+	(wdired-change-to-wdired-mode): Use query-replace-skip-read-only.
+
+2005-04-06  Kim F. Storm  <storm@cua.dk>
+
+	* startup.el (command-line): Add --bare-bones alias for -Q.
+
+2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Use create-fontset-from-mac-roman-font to
+	create the startup fontset if a font specification ends with
+	`mac-roman'.
+
+2005-04-06  Lute Kamstra  <lute@gnu.org>
+
+	* add-log.el (change-log-font-lock-keywords): Complete 2005-04-03
+	change.
+
+	* emacs-lisp/copyright.el (copyright-update-year): Replace the
+	right subexpression.  Suggested by Jay Bingham <jay.bingham@hp.com>.
+
+2005-04-05  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el (generic-mode-internal): Fix 2005-03-31 change.
+	(define-generic-mode): Ditto.  Fix debug declaration.
+
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face):
+	Put them in the generic-x group.
+
+	* calendar/timeclock.el (timeclock): Doc fix.
+
+	* generic.el (define-generic-mode): Don't use custom-current-group.
+	Document default :group value.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Ditto.
+	(define-global-minor-mode): Don't use custom-current-group.
+
+2005-04-05  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* startup.el (command-line-1): Display startup-echo-area-message
+	when fancy splash screen is in use.
+
+	* progmodes/sh-script.el (sh-builtins) <bash>: Add `caller'.
+	(sh-escaped-newline): New face.
+	(sh-font-lock-keywords) <shell>: Improve regexp for escaped
+	newline, and use sh-escaped-newline face.
+
+	* progmodes/tcl.el (tcl-escaped-newline): New face.
+	(tcl-builtin-list): New variable.
+	(tcl-set-font-lock-keywords): Add builtins, variables, and escaped
+	newlines.  Fix keywords subexpression number.
+
+2005-04-05  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-diary-default-entry): Fix call to
+	`add-to-diary-entry'.
+
+2005-04-05  Kim F. Storm  <storm@cua.dk>
+
+	* ediff-init.el: Use (featurep 'xemacs).
+
+2005-04-05  David Ponce  <david@dponce.com>
+
+	* cus-edit.el (face): Derive from symbol widget.  Display sample
+	of the current face on the fly.
+	(widget-face-sample-face-get, widget-face-notify): New functions.
+	(widget-face-value-create): Remove.
+
+	* wid-edit.el (widget-field-end): Temporarily remove field
+	narrowing before to call `get-char-property'.
+
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-replacement-list): Add subscripts.
+	(math-read-subscripts): New variable.
+	(math-read-preprocess-string): Process subscripts.
+
+2005-04-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-prompt-read-only): Doc fix.
+
+	* dired.el (dired-copy-filename-as-kill): Make `-' arg behave like
+	`-1'.  Doc fix.
+
+2005-04-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-insert-mode-line-in-empty-file):
+	Change default value to nil.
+
+2005-04-04  Lute Kamstra  <lute@gnu.org>
+
+	* autorevert.el (auto-revert-mode): Specify :group.
+	* battery.el (display-battery-mode): Specify :group.
+	* diff-mode.el (diff-minor-mode): Specify :group.
+	* font-core.el (font-lock-mode): Specify :group.
+	* hl-line.el (hl-line-mode): Specify :group.
+	* iimage.el (iimage): New customization group.
+	(iimage-mode): Specify :group.
+	* longlines.el (longlines-mode): Specify :group.
+	* master.el: Don't require easy-mmode.
+	(master): New customization group.
+	(master-mode): Specify :group.
+	* msb.el (msb-mode): Specify :group.
+	* reveal.el (reveal-mode): Specify :group.
+	* simple.el (next-error-follow-minor-mode): Specify :group.
+	* smerge-mode.el (smerge-mode): Specify :group.
+	* emacs-lisp/eldoc.el (eldoc-mode): Specify :group.
+	* emulation/cua-base.el (cua-mode): Specify :group.
+	* international/encoded-kb.el (encoded-kbd-mode): Specify :group.
+	* language/thai-util.el (thai-auto-composition-mode)
+	(thai-word-mode): Specify :group.
+	* mail/supercite.el (sc-minor-mode): Specify :group.
+	* progmodes/cwarn.el (cwarn-mode): Specify :group.
+	* progmodes/flymake.el (flymake-mode): Specify :group.
+	* progmodes/glasses.el (glasses-mode): Specify :group.
+	* progmodes/hideif.el (hide-ifdef-mode): Specify :group.
+	* textmodes/enriched.el (enriched-mode): Specify :group.
+	* textmodes/refill.el (refill-mode): Specify :group.
+
+	* add-log.el (change-log-font-lock-keywords): Names in
+	parenthesized lists can contain spaces.
+
+2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* startup.el (fancy-splash-text): Shorten default text of
+	"Emacs Tutorial" line.  Also, if the current language env
+	indicates an available tutorial file other than TUTORIAL,
+	extract its title and append it to the line in parentheses.
+	(fancy-splash-insert): If arg is a thunk, funcall it.
+
+2005-04-04  Jay Belanger  <belanger@truman.edu>
+
+	* calc.el (calc-language-alist): Add tags to customization type.
+
+2005-04-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xt-mouse.el (xterm-mouse-mode): Add explicit Custom group, mouse.
+	Doc fix.
+
+2005-04-03  Marcelo Toledo  <marcelo@marcelotoledo.org>
+
+	* add-log.el (change-log-font-lock-keywords): The manual
+	describing a Change Log entry, says: (...) "Aside from these
+	header lines, every line in the change log starts with a space or
+	a tab.". The font-lock was not highlighting lines started with
+	spaces, added support for it.
+
+2005-04-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-url): Use format to generate the url.
+	(bibtex-generate-url-list): Update docstring accordingly. Put the
+	complex example in the docstring.
+	(bibtex-font-lock-url): Use pop.
+
+2005-04-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/tcl.el (tcl-set-font-lock-keywords): Use new \_< ops.
+
+	* pcvs.el (cvs-checkout): Prompt for cvsroot as well.
+
+2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* filesets.el (filesets-set-default): Doc fix.
+
+2005-04-03  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el (define-generic-mode): Add argument to specify
+	keywords for defcustom.
+	(default-generic-mode): Specify :group.
+
+	* generic-x.el: Specify :group for all generic modes.
+
+	* desktop.el (desktop-no-desktop-file-hook)
+	(desktop-after-read-hook): Doc fix.
+
 2005-04-02  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* simple.el (visible-mode): Use explicit :group keyword.
@@ -110,12 +430,12 @@
 
 2005-03-31  Karl Berry  <karl@freefriends.org>
 
-	* textmodes/tex-mode.el (tex-compile): shell-quote-argument,
+	* textmodes/tex-mode.el (tex-compile): Use shell-quote-argument,
 	not comint-quote-filename.
 
 2005-03-31  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
 
-	* textmodes/tex-mode.el (tex-start-tex) shell-quote-argument,
+	* textmodes/tex-mode.el (tex-start-tex) Use shell-quote-argument,
 	not comint-quote-filename.
 
 2005-03-31  Thien-Thi Nguyen  <ttn@gnu.org>
@@ -1526,7 +1846,7 @@
 	(debug-entry-code): New const.
 	(debug-on-entry-1): Use it.
 
-2005-02-28  Chong Yidong" <cyd@stupidchicken.com> (tiny change)
+2005-02-28  Chong Yidong  <cyd@stupidchicken.com>
 
 	* international/utf-16.el (ccl-encode-mule-utf-16le):
 	Fix BUFFER_MAGNIFICATION to 2.
@@ -2688,7 +3008,7 @@
 	* simple.el (eval-expression-print-format): Avoid warning
 	about edebug-active.
 
-2005-01-15  "James R. Van Zandt"  <jrvz@comcast.net>  (Tiny change)
+2005-01-15  James R. Van Zandt  <jrvz@comcast.net>  (Tiny change)
 
 	* progmodes/sh-script.el: Code copied from make-mode.el
 	with small changes,
@@ -7405,8 +7725,7 @@
 
 2004-09-21  Kenichi Handa  <handa@m17n.org>
 
-	* descr-text.el (describe-char): Checking of quail activation
-	fixed.
+	* descr-text.el (describe-char): Checking of quail activation fixed.
 
 2004-09-21  Jay Belanger  <belanger@truman.edu>
 

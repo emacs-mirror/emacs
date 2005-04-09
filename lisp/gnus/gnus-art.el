@@ -46,6 +46,7 @@
 (autoload 'gnus-msg-mail "gnus-msg" nil t)
 (autoload 'gnus-button-mailto "gnus-msg")
 (autoload 'gnus-button-reply "gnus-msg" nil t)
+(autoload 'parse-time-string "parse-time" nil nil)
 
 (defgroup gnus-article nil
   "Article display."

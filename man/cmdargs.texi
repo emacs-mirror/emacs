@@ -268,6 +268,8 @@ option and @samp{-Q} are the only options that block it.
 
 @item -Q
 @opindex -Q
+@itemx --bare-bones
+@opindex --bare-bones
 Start emacs with minimum customizations and window decorations.
 This is like using @samp{-q} and @samp{--no-site-file}, but in
 addition it also disables the menu-bar, the tool-bar, the scroll-bars,

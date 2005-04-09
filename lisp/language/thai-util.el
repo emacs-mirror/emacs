@@ -174,7 +174,7 @@
 
 (defun thai-compose-syllable (beg end &optional category-set string)
   (or category-set
-      (setq category-set 
+      (setq category-set
 	    (char-category-set (if string (aref string beg) (char-after beg)))))
   (if (aref category-set ?c)
       ;; Starting with a consonant.  We do relative composition.
@@ -183,9 +183,9 @@
 	(compose-region beg end))
     ;; Vowel tone sequence.
     (if string
-	(compose-string string beg end (list (aref string beg) '(Bc . Bc) 
+	(compose-string string beg end (list (aref string beg) '(Bc . Bc)
 					     (aref string (1+ beg))))
-      (compose-region beg end (list (char-after beg) '(Bc . Bc) 
+      (compose-region beg end (list (char-after beg) '(Bc . Bc)
 				    (char-after (1+ beg))))))
   (- end beg))
 
@@ -256,7 +256,7 @@ positions (integers or markers) specifying the region."
 (define-minor-mode thai-word-mode
   "Minor mode to make word-oriented commands aware of Thai words.
 The commands affected are \\[forward-word], \\[backward-word], \\[kill-word], \\[backward-kill-word], \\[transpose-words], and \\[fill-paragraph]."
-  :global t
+  :global t :group 'mule
   (cond (thai-word-mode
 	 ;; This enables linebreak between Thai characters.
 	 (modify-category-entry (make-char 'thai-tis620) ?|)

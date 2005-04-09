@@ -22757,7 +22757,7 @@ See also `overlay-arrow-string'.  */);
   DEFVAR_LISP ("overlay-arrow-string", &Voverlay_arrow_string,
     doc: /* String to display as an arrow in non-window frames.
 See also `overlay-arrow-position'.  */);
-  Voverlay_arrow_string = Qnil;
+  Voverlay_arrow_string = build_string ("=>");
 
   DEFVAR_LISP ("overlay-arrow-variable-list", &Voverlay_arrow_variable_list,
     doc: /* List of variables (symbols) which hold markers for overlay arrows.

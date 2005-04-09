@@ -1,3 +1,23 @@
+2005-04-04  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* message.el (message-make-date): Add defvars in order to silence
+	the byte compiler inside the defun.
+
+	* nnimap.el (nnimap-date-days-ago): Ditto.
+
+	* gnus-demon.el (parse-time-string): Added autoload.
+
+	* gnus-delay.el (parse-time-string): Added autoload.
+
+	* gnus-art.el (parse-time-string): Added autoload.
+
+	* nnultimate.el (parse-time): Require for `parse-time-string'.
+
+2005-04-03  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-sum.el (gnus-summary-make-menu-bar): Avoid the
+	"Unrecognized menu descriptor" error in XEmacs.
+
 2005-03-25  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* message.el (message-resend): Bind rfc2047-encode-encoded-words.
@@ -483,7 +503,7 @@
 
 2004-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art. (gnus-article-edit-article): Don't associate the
+	* gnus-art.el (gnus-article-edit-article): Don't associate the
 	article buffer with a draft file.  This is a temporary measure
 	against the 2004-08-22 change to gnus-article-edit-mode.
 

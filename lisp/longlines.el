@@ -101,7 +101,7 @@ wrapped whenever the buffer is changed.  You can always call
 
 If `longlines-show-hard-newlines' is non-nil, hard newlines will
 be marked by a symbol."
-  nil " ll" nil
+  :group 'longlines :lighter " ll"
   (if longlines-mode
       ;; Turn on longlines mode
       (progn

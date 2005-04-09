@@ -40,6 +40,8 @@
       (require 'itimer)
     (require 'timer)))
 
+(autoload 'parse-time-string "parse-time" nil nil)
+
 (defgroup gnus-demon nil
   "Demonic behaviour."
   :group 'gnus)

@@ -114,7 +114,7 @@ The text being displayed in the mode line is controlled by the variables
 `battery-mode-line-format' and `battery-status-function'.
 The mode line will be updated automatically every `battery-update-interval'
 seconds."
-  :global t
+  :global t :group 'battery
   (setq battery-mode-line-string "")
   (or global-mode-string (setq global-mode-string '("")))
   (and battery-update-timer (cancel-timer battery-update-timer))

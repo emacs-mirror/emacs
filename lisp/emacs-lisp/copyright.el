@@ -110,7 +110,7 @@ When this is `function', only ask when called non-interactively."
 			  (concat "Add " copyright-current-year
 				  " to copyright? "))))
 	  (if replace
-	      (replace-match copyright-current-year t t nil 1)
+	      (replace-match copyright-current-year t t nil 2)
 	    (let ((size (save-excursion (skip-chars-backward "0-9"))))
 	      (if (and (eq (% (- (string-to-number copyright-current-year)
 				 (string-to-number (buffer-substring

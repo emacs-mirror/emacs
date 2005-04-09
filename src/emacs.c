@@ -1814,6 +1814,8 @@ struct standard_args standard_args[] =
   { "-d", "--display", 60, 1 },
   { "-display", 0, 60, 1 },
   /* Now for the options handled in startup.el.  */
+  { "-Q", "--bare-bones", 55, 0 },
+  { "-bare-bones", 0, 55, 0 },
   { "-q", "--no-init-file", 50, 0 },
   { "-no-init-file", 0, 50, 0 },
   { "-no-site-file", "--no-site-file", 40, 0 },

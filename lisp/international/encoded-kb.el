@@ -346,7 +346,7 @@ automatically.
 In Encoded-kbd mode, a text sent from keyboard is accepted
 as a multilingual text encoded in a coding system set by
 \\[set-keyboard-coding-system]."
-  :global t
+  :global t :group 'keyboard :group 'mule
 
   (if encoded-kbd-mode
       ;; We are turning on Encoded-kbd mode.

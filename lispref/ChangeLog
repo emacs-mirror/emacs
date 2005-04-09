@@ -1,3 +1,23 @@
+2005-04-08  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Search-based Fontification): Fix cross references.
+	Use consistent terminology.  Document anchored highlighting.
+
+2005-04-05  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Document :group keyword
+	argument and its default value.
+
+2005-04-03  Lute Kamstra  <lute@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add some hooks.  Add cross
+	references and/or descriptions.  Delete major mode hooks; mention
+	them as a category instead.  Rename or delete obsolete hooks.
+
+2005-04-02  Richard M. Stallman  <rms@gnu.org>
+
+	* nonascii.texi (Coding System Basics): Another wording cleanup.
+
 2005-04-01  Richard M. Stallman  <rms@gnu.org>
 
 	* nonascii.texi (Coding System Basics): Clarify previous change.
@@ -2333,7 +2353,7 @@
 
 	* files.texi (Changing Files): copy-file allows dir as NEWNAME.
 	(Magic File Names): Specify precedence order of handlers.
-o
+
 	* commands.texi (Command Overview): Emacs server runs pre-command-hook
 	and post-command-hook.
 	(Waiting): New calling convention for sit-for.
