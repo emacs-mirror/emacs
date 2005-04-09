@@ -1,7 +1,12 @@
+2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-mode-map): Move initialization into
+	the declaration.  Override *all* bindings of `undo'.
+	(archive-lemacs): Remove, use (featurep 'xemacs) instead.
+
 2005-04-09  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-units.el (math-standard-units): Redefine Watt hour as
-	W*hr.
+	* calc/calc-units.el (math-standard-units): Redefine Watt hour as W*hr.
 
 2005-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
 
