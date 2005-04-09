@@ -54,17 +54,6 @@
   "\\cc\\(\\cu\\|\\cI\\cU\\|\\cv\\ct?\\)\\|\\cv\\ct\\|\\cI\\cU"
   "Regular expression matching a Thai composite sequence.")
 
-(defun thai-self-insert-command (&optional n)
-  "Insert the Thai character you type.
-The character will be composed with the surrounding Thai character
-if necessary."
-  (interactive "*p")
-  (let ((pos (point))
-	category-set ch)
-    (self-insert-command n)
-    (or thai-auto-composition-mode
-	(thai-auto-composition (1- (point)) (point) 0))))
-
 (let ((l '((?,T!(B consonant "LETTER KO KAI")				; 0xA1
 	   (?,T"(B consonant "LETTER KHO KHAI")				; 0xA2
 	   (?,T#(B consonant "LETTER KHO KHUAT")				; 0xA3
@@ -167,8 +156,7 @@ if necessary."
 	  (ptype (nth 1 elm)))
       (put-char-code-property char 'phonetic-type ptype)
       (cond ((eq ptype 'consonant)
-	     (modify-category-entry char ?c thai-category-table)
-	     (global-set-key (vector char) 'thai-self-insert-command))
+	     (modify-category-entry char ?c thai-category-table))
 	    ((memq ptype '(vowel-upper vowel-lower))
 	     (modify-category-entry char ?v thai-category-table)
 	     (if (= char ?,TT(B)
