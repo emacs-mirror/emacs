@@ -1,3 +1,8 @@
+2005-04-09  Lute Kamstra  <lute@gnu.org>
+
+	* print.c (PRINTPREPARE): Check if the marker PRINTCHARFUN is
+	within the accessible part of the buffer.
+
 2005-04-09  Kim F. Storm  <storm@cua.dk>
 
 	* lread.c (readevalloop): Add args START and END as region in
@@ -41,8 +46,8 @@
 
 2005-04-01  Kenichi Handa  <handa@m17n.org>
 
-	* lisp.h (Vascii_upcase_table, Vascii_canon_table,
-	Vascii_eqv_table): Extern them.
+	* lisp.h (Vascii_upcase_table, Vascii_canon_table)
+	(Vascii_eqv_table): Extern them.
 
 	* casetab.c (set_case_table): If standard is nonzero, setup
 	Vascii_upcase_table, Vascii_canon_table, and Vascii_eqv_table.
