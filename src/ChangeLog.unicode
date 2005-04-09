@@ -1,3 +1,9 @@
+2005-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (search_buffer): Fix the change for syncing with CVS
+	head.
+	(search_buffer): Likewise.
+
 2005-03-31  Kenichi Handa  <handa@m17n.org>
 
 	* xdisp.c (get_next_display_element): Sync with CVS head.
