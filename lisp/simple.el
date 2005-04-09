@@ -114,6 +114,10 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 
 (defvar next-error-highlight-timer nil)
 
+(defvar next-error-overlay-arrow-position nil)
+(put 'next-error-overlay-arrow-position 'overlay-arrow-string "=>")
+(add-to-list 'overlay-arrow-variable-list 'next-error-overlay-arrow-position)
+
 (defvar next-error-last-buffer nil
   "The most recent next-error buffer.
 A buffer becomes most recent when its compilation, grep, or
@@ -302,7 +306,7 @@ select the source buffer."
 When turned on, cursor motion in the compilation, grep, occur or diff
 buffer causes automatic display of the corresponding source code
 location."
-  nil " Fol" nil
+  :group 'next-error :init-value " Fol"
   (if (not next-error-follow-minor-mode)
       (remove-hook 'post-command-hook 'next-error-follow-mode-post-command-hook t)
     (add-hook 'post-command-hook 'next-error-follow-mode-post-command-hook nil t)

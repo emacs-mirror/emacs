@@ -213,14 +213,16 @@
 ;; indentation on inserts gets underlined (which can look pretty ugly!).
 
 (defface highlight-changes-face
-  '((((class color)) (:foreground "red" ))
+  '((((min-colors 88) (class color)) (:foreground "red1" ))
+    (((class color)) (:foreground "red" ))
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
 (defface highlight-changes-delete-face
-  '((((class color)) (:foreground "red" :underline t))
+  '((((min-colors 88) (class color)) (:foreground "red1" :underline t))
+    (((class color)) (:foreground "red" :underline t))
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)

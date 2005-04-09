@@ -209,8 +209,12 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
 (defvar diary-face 'diary-face
   "Face name to use for diary entries.")
 (defface diary-face
-  '((((class color) (background light))
+  '((((min-colors 88) (class color) (background light))
+     :foreground "red1")
+    (((class color) (background light))
      :foreground "red")
+    (((min-colors 88) (class color) (background dark))
+     :foreground "yellow1")
     (((class color) (background dark))
      :foreground "yellow")
     (t

@@ -1,6 +1,6 @@
 ;;; enriched.el --- read and save files in text/enriched format
 
-;; Copyright (c) 1994, 1995, 1996, 2002, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: wp, faces
@@ -183,7 +183,7 @@ etc/enriched.doc in the Emacs distribution directory.
 Commands:
 
 \\{enriched-mode-map}"
-  nil " Enriched" nil
+  :group 'enriched :lighter " Enriched"
   (cond ((null enriched-mode)
 	 ;; Turn mode off
 	 (setq buffer-file-format (delq 'text/enriched buffer-file-format))

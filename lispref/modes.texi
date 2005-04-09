@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999,
 @c   2003, 2004, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/modes
@@ -1127,6 +1127,12 @@ used.  The @var{keyword-args} consist of keywords followed by
 corresponding values.  A few keywords have special meanings:
 
 @table @code
+@item :group @var{group}
+Custom group name to use in all generated @code{defcustom} forms.
+Defaults to @var{mode} without the possible trailing @samp{-mode}.  Be
+aware that this default may not be a valid customization group defined
+with @code{defgroup}.  Please make sure it is.
+
 @item :global @var{global}
 If non-@code{nil} specifies that the minor mode should be global.
 By default, minor modes are buffer-local.
@@ -2105,7 +2111,7 @@ processes the elements of @code{font-lock-keywords} one by one, and for
 each element, it finds and handles all matches.  Ordinarily, once
 part of the text has been fontified already, this cannot be overridden
 by a subsequent match in the same text; but you can specify different
-behavior using the @var{override} element of a @var{highlighter}.
+behavior using the @var{override} element of a @var{subexp-highlighter}.
 
   Each element of @code{font-lock-keywords} should have one of these
 forms:
@@ -2116,14 +2122,14 @@ Highlight all matches for @var{regexp} using
 @code{font-lock-keyword-face}.  For example,
 
 @example
-;; @r{Highlight discrete occurrences of @samp{foo}}
+;; @r{Highlight occurrences of the word @samp{foo}}
 ;; @r{using @code{font-lock-keyword-face}.}
 "\\<foo\\>"
 @end example
 
-The function @code{regexp-opt} (@pxref{Syntax of Regexps}) is useful for
-calculating optimal regular expressions to match a number of different
-keywords.
+The function @code{regexp-opt} (@pxref{Regexp Functions}) is useful
+for calculating optimal regular expressions to match a number of
+different keywords.
 
 @item @var{function}
 Find text by calling @var{function}, and highlight the matches
@@ -2140,10 +2146,10 @@ and with point where the previous invocation left it, until
 @var{function} fails.  On failure, @var{function} need not reset point
 in any particular way.
 
-@item (@var{matcher} . @var{match})
+@item (@var{matcher} . @var{subexp})
 In this kind of element, @var{matcher} is either a regular
 expression or a function, as described above.  The @sc{cdr},
-@var{match}, specifies which subexpression of @var{matcher} should be
+@var{subexp}, specifies which subexpression of @var{matcher} should be
 highlighted (instead of the entire text that @var{matcher} matched).
 
 @example
@@ -2153,8 +2159,8 @@ highlighted (instead of the entire text that @var{matcher} matched).
 @end example
 
 If you use @code{regexp-opt} to produce the regular expression
-@var{matcher}, then you can use @code{regexp-opt-depth} (@pxref{Syntax
-of Regexps}) to calculate the value for @var{match}.
+@var{matcher}, then you can use @code{regexp-opt-depth} (@pxref{Regexp
+Functions}) to calculate the value for @var{subexp}.
 
 @item (@var{matcher} . @var{facespec})
 In this kind of element, @var{facespec} is an object which specifies
@@ -2167,37 +2173,39 @@ is a Lisp variable (a symbol), whose value should be a face name.
 ("fubar" . fubar-face)
 @end example
 
-However, @var{facespec} can also be a list of the form
+However, @var{facespec} can also be a list of the form:
 
 @example
 (face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
 @end example
 
-to specify various text properties to put on the text that matches.
-If you do this, be sure to add the other text property names that you
-set in this way to the value of @code{font-lock-extra-managed-props}
-so that the properties will also be cleared out when they are no longer
-appropriate.
+to specify the face @var{face} and various additional text properties
+to put on the text that matches.  If you do this, be sure to add the
+other text property names that you set in this way to the value of
+@code{font-lock-extra-managed-props} so that the properties will also
+be cleared out when they are no longer appropriate.  Alternatively,
+you can set the variable @code{font-lock-unfontify-region-function} to
+a function that clears these properties.
 
-@item (@var{matcher} . @var{highlighter})
-In this kind of element, @var{highlighter} is a list
+@item (@var{matcher} . @var{subexp-highlighter})
+In this kind of element, @var{subexp-highlighter} is a list
 which specifies how to highlight matches found by @var{matcher}.
-It has the form
+It has the form:
 
 @example
-(@var{subexp} @var{facespec} @var{override} @var{laxmatch})
+(@var{subexp} @var{facespec} [[@var{override} [@var{laxmatch}]])
 @end example
 
 The @sc{car}, @var{subexp}, is an integer specifying which subexpression
 of the match to fontify (0 means the entire matching text).  The second
 subelement, @var{facespec}, specifies the face, as described above.
 
-The last two values in @var{highlighter}, @var{override} and
-@var{laxmatch}, are flags.  If @var{override} is @code{t}, this
-element can override existing fontification made by previous elements
-of @code{font-lock-keywords}.  If it is @code{keep}, then each
-character is fontified if it has not been fontified already by some
-other element.  If it is @code{prepend}, the face specified by
+The last two values in @var{subexp-highlighter}, @var{override} and
+@var{laxmatch}, are optional flags.  If @var{override} is @code{t},
+this element can override existing fontification made by previous
+elements of @code{font-lock-keywords}.  If it is @code{keep}, then
+each character is fontified if it has not been fontified already by
+some other element.  If it is @code{prepend}, the face specified by
 @var{facespec} is added to the beginning of the @code{font-lock-face}
 property.  If it is @code{append}, the face is added to the end of the
 @code{font-lock-face} property.
@@ -2213,8 +2221,8 @@ terminates search-based fontification.
 Here are some examples of elements of this kind, and what they do:
 
 @smallexample
-;; @r{Highlight occurrences of either @samp{foo} or @samp{bar},}
-;; @r{using @code{foo-bar-face}, even if they have already been highlighted.}
+;; @r{Highlight occurrences of either @samp{foo} or @samp{bar}, using}
+;; @r{@code{foo-bar-face}, even if they have already been highlighted.}
 ;; @r{@code{foo-bar-face} should be a variable whose value is a face.}
 ("foo\\|bar" 0 foo-bar-face t)
 
@@ -2224,64 +2232,71 @@ Here are some examples of elements of this kind, and what they do:
 (fubar-match 1 fubar-face)
 @end smallexample
 
+@item (@var{matcher} . @var{anchored-highlighter})
+In this kind of element, @var{anchored-highlighter} specifies how to
+highlight text that follows a match found by @var{matcher}.  So a
+match found by @var{matcher} acts as the anchor for further searches
+specified by @var{anchored-highlighter}.  @var{anchored-highlighter}
+is a list of the following form:
+
+@example
+(@var{anchored-matcher} @var{pre-form} @var{post-form}
+                        @var{subexp-highlighters}@dots{})
+@end example
+
+Here, @var{anchored-matcher}, like @var{matcher}, is either a regular
+expression or a function.  After a match of @var{matcher} is found,
+point is at the end of the match.  Now, Font Lock evaluates the form
+@var{pre-form}.  Then it searches for matches of
+@var{anchored-matcher} and uses @var{subexp-highlighters} to highlight
+these.  A @var{subexp-highlighter} is as described above.  Finally,
+Font Lock evaluates @var{post-form}.
+
+The forms @var{pre-form} and @var{post-form} can be used to initialize
+before, and cleanup after, @var{anchored-matcher} is used.  Typically,
+@var{pre-form} is used to move point to some position relative to the
+match of @var{matcher}, before starting with @var{anchored-matcher}.
+@var{post-form} might be used to move back, before resuming with
+@var{matcher}.
+
+After Font Lock evaluates @var{pre-form}, it does not search for
+@var{anchored-matcher} beyond the end of the line.  However, if
+@var{pre-form} returns a buffer position that is greater than the
+position of point after @var{pre-form} is evaluated, then the position
+returned by @var{pre-form} is used as the limit of the search instead.
+It is generally a bad idea to return a position greater than the end
+of the line; in other words, the @var{anchored-matcher} search should
+not span lines.
+
+For example,
+
+@smallexample
+;; @r{Highlight occurrences of the word @samp{item} following}
+;; @r{an occurrence of the word @samp{anchor} (on the same line)}
+;; @r{in the value of @code{item-face}.}
+("\\<anchor\\>" "\\<item\\>" nil nil (0 item-face))
+@end smallexample
+
+Here, @var{pre-form} and @var{post-form} are @code{nil}.  Therefore
+searching for @samp{item} starts at the end of the match of
+@samp{anchor}, and searching for subsequent instances of @samp{anchor}
+resumes from where searching for @samp{item} concluded.
+
 @item (@var{matcher} @var{highlighters}@dots{})
 This sort of element specifies several @var{highlighter} lists for a
-single @var{matcher}.  In order for this to be useful, each
-@var{highlighter} should have a different value of @var{subexp}; that is,
-each one should apply to a different subexpression of @var{matcher}.
+single @var{matcher}.  A @var{highlighter} list can be of the type
+@var{subexp-highlighter} or @var{anchored-highlighter} as described
+above.
 
-@ignore
-@item (@var{matcher} . @var{anchored})
-In this kind of element, @var{anchored} acts much like a
-@var{highlighter}, but it is more complex and can specify multiple
-successive searches.
+For example,
 
-For highlighting single items, typically only @var{highlighter} is
-required.  However, if an item or (typically) items are to be
-highlighted following the instance of another item (the anchor) then
-@var{anchored} may be required.
-
-It has this format:
-
-@example
-(@var{submatcher} @var{pre-match-form} @var{post-match-form} @var{highlighters}@dots{})
-@end example
-
-@c I can't parse this text -- rms
-where @var{submatcher} is much like @var{matcher}, with one
-exception---see below.  @var{pre-match-form} and @var{post-match-form}
-are evaluated before the first, and after the last, instance
-@var{anchored}'s @var{submatcher} is used.  Therefore they can be used
-to initialize before, and cleanup after, @var{submatcher} is used.
-Typically, @var{pre-match-form} is used to move to some position
-relative to the original @var{submatcher}, before starting with
-@var{anchored}'s @var{submatcher}.  @var{post-match-form} might be used
-to move, before resuming with @var{anchored}'s parent's @var{matcher}.
-
-For example, an element of the form highlights (if not already highlighted):
-
-@example
-("\\<anchor\\>" (0 anchor-face) ("\\<item\\>" nil nil (0 item-face)))
-@end example
-
-Discrete occurrences of @samp{anchor} in the value of
-@code{anchor-face}, and subsequent discrete occurrences of @samp{item}
-(on the same line) in the value of @code{item-face}.  (Here
-@var{pre-match-form} and @var{post-match-form} are @code{nil}.
-Therefore @samp{item} is initially searched for starting from the end of
-the match of @samp{anchor}, and searching for subsequent instance of
-@samp{anchor} resumes from where searching for @samp{item} concluded.)
-
-The above-mentioned exception is as follows.  The limit of the
-@var{submatcher} search defaults to the end of the line after
-@var{pre-match-form} is evaluated.  However, if @var{pre-match-form}
-returns a position greater than the position after @var{pre-match-form}
-is evaluated, that position is used as the limit of the search.  It is
-generally a bad idea to return a position greater than the end of the
-line; in other words, the @var{submatcher} search should not span lines.
-
-@item (@var{matcher} @var{highlighters-or-anchoreds} ...)
-@end ignore
+@smallexample
+;; @r{Highlight occurrences of the word @samp{anchor} in the value}
+;; @r{of @code{anchor-face}, and subsequent occurrences of the word}
+;; @r{@samp{item} (on the same line) in the value of @code{item-face}.}
+("\\<anchor\\>" (0 anchor-face)
+                ("\\<item\\>" nil nil (0 item-face)))
+@end smallexample
 
 @item (eval . @var{form})
 Here @var{form} is an expression to be evaluated the first time
@@ -2295,7 +2310,7 @@ to match text which spans lines; this does not work reliably.  While
 updating when you edit the buffer does not, since it considers text one
 line at a time.  If you have patterns that typically only span one
 line but can occasionally span two or three, such as
-@samp{<title>...</title>}, you can ask font-lock to be more careful by
+@samp{<title>...</title>}, you can ask Font Lock to be more careful by
 setting @code{font-lock-multiline} to @code{t}.  But it still will not
 work in all cases.
 

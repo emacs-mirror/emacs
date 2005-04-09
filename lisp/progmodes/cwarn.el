@@ -1,6 +1,6 @@
 ;;; cwarn.el --- highlight suspicious C and C++ constructions
 
-;; Copyright (C) 1999, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: Anders Lindgren <andersl@andersl.com>
 ;; Keywords: c, languages, faces
@@ -193,7 +193,7 @@ be included in the variable `cwarn-configuration'.  By default C and
 C++ modes are included.
 
 With ARG, turn CWarn mode on if and only if arg is positive."
-  nil cwarn-mode-text nil
+  :group 'cwarn :lighter cwarn-mode-text
   (cwarn-font-lock-keywords cwarn-mode)
   (if font-lock-mode (font-lock-fontify-buffer)))
 

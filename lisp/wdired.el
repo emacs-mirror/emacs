@@ -1,10 +1,10 @@
 ;;; wdired.el --- Rename files editing their names in dired buffers
 
-;; Copyright (C) 2001, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Filename: wdired.el
-;; Author: Juan León Lahoz García <juan-leon.lahoz@tecsidel.es>
-;; Version: 1.91
+;; Author: Juan León Lahoz García <juanleon1@gmail.com>
+;; Version: 2.0
 ;; Keywords: dired, environment, files, renaming
 
 ;; This file is part of GNU Emacs.
@@ -156,9 +156,8 @@
 
 ;;; Code:
 
+(defvar dired-backup-overwrite) ; Only in emacs 20.x this is a custom var
 (eval-when-compile
-  (require 'advice)
-  (defvar dired-backup-overwrite) ; Only in emacs 20.x this is a custom var
   (set (make-local-variable 'byte-compile-dynamic) t))
 
 (eval-and-compile
@@ -197,19 +196,6 @@ If nil, \"up\" and \"down\" movement is done as in any other buffer."
   :type '(choice (const :tag "As in any other mode" nil)
 		 (const :tag "Smart cursor placement" sometimes)
 		 (other :tag "As in dired mode" t))
-  :group 'wdired)
-
-(defcustom wdired-advise-functions t
-  "*If t some editing commands are advised when wdired is loaded.
-The advice only has effect in wdired mode.  These commands are
-`query-replace' `query-replace-regexp' `replace-string', and the
-advice makes them to ignore read-only regions, so no attempts to
-modify these regions are done by them, and so they don't end
-prematurely.
-
-Setting this to nil does not unadvise the functions, if they are
-already advised, but new Emacs will not advise them."
-  :type 'boolean
   :group 'wdired)
 
 (defcustom wdired-allow-to-redirect-links t
@@ -309,6 +295,7 @@ See `wdired-mode'."
   (interactive)
   (set (make-local-variable 'wdired-old-content)
        (buffer-substring (point-min) (point-max)))
+  (set (make-local-variable 'query-replace-skip-read-only) t)
   (use-local-map wdired-mode-map)
   (force-mode-line-update)
   (setq buffer-read-only nil)
@@ -663,64 +650,6 @@ Like original function but it skips read-only words."
 Like original function but it skips read-only words."
   (interactive "p")
   (wdired-xcase-word 'capitalize-word arg))
-
-;; The following code is related to advice some interactive functions
-;; to make some editing commands in wdired mode not to fail trying to
-;; change read-only text. Notice that some advises advice and unadvise
-;; them-self to another functions: search-forward and
-;; re-search-forward. This is to keep these functions advised only
-;; when is necessary. Since they are built-in commands used heavily in
-;; lots of places, to have it permanently advised would cause some
-;; performance loss.
-
-
-(defun wdired-add-skip-in-replace (command)
-  "Advice COMMAND to skip matches while they have read-only properties.
-This is useful to avoid \"read-only\" errors in search and replace
-commands.  This advice only has effect in wdired mode."
-  (eval
-    `(defadvice ,command (around wdired-discard-read-only activate)
-       ,(format "Make %s to work better with wdired,\n%s."  command
-		"skipping read-only matches when invoked without argument")
-       ad-do-it
-       (if (eq major-mode 'wdired-mode)
-	   (while (and ad-return-value
-		       (text-property-any
-			(max 1 (1- (match-beginning 0))) (match-end 0)
-			'read-only t))
-	     ad-do-it))
-       ad-return-value)))
-
-
-(defun wdired-add-replace-advice (command)
-  "Advice COMMAND to skip matches while they have read-only properties.
-This is useful to avoid \"read-only\" errors in search and replace
-commands.  This advice only has effect in wdired mode."
-  (eval
-   `(defadvice ,command (around wdired-grok-read-only activate)
-       ,(format "Make %s to work better with wdired,\n%s."  command
-		"skipping read-only matches when invoked without argument")
-       (if (eq major-mode 'wdired-mode)
-           (progn
-             (wdired-add-skip-in-replace 'search-forward)
-             (wdired-add-skip-in-replace 're-search-forward)
-             (unwind-protect 
-                 ad-do-it
-               (progn
-                 (ad-remove-advice 'search-forward
-                                   'around 'wdired-discard-read-only)
-                 (ad-remove-advice 're-search-forward
-                                   'around 'wdired-discard-read-only)
-                 (ad-update 'search-forward)
-                 (ad-update 're-search-forward))))
-         ad-do-it)
-       ad-return-value)))
-
-
-(if wdired-advise-functions
-    (progn
-      (mapcar 'wdired-add-replace-advice
-              '(query-replace query-replace-regexp replace-string))))
 
 
 ;; The following code deals with changing the access bits (or

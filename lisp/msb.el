@@ -1,7 +1,7 @@
 ;;; msb.el --- customizable buffer-selection with multiple menus
 
-;; Copyright (C) 1993, 94, 95, 97, 98, 99, 2000, 2001, 2003
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 1995, 1997, 1998, 1999, 2000, 2001, 2003,
+;;   2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Lindberg <lars.lindberg@home.se>
 ;; Maintainer: FSF
@@ -1141,7 +1141,7 @@ variable `msb-menu-cond'."
 With arg, turn Msb mode on if and only if arg is positive.
 This mode overrides the binding(s) of `mouse-buffer-menu' to provide a
 different buffer menu using the function `msb'."
-  :global t
+  :global t :group 'msb
   (if msb-mode
       (progn
 	(add-hook 'menu-bar-update-hook 'msb-menu-bar-update-buffers)

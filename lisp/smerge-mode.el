@@ -1,6 +1,6 @@
 ;;; smerge-mode.el --- Minor mode to resolve diff3 conflicts
 
-;; Copyright (C) 1999, 2000, 01, 03, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: revision-control merge diff3 cvs conflict
@@ -76,8 +76,12 @@ Used in `smerge-diff-base-mine' and related functions."
   :type 'boolean)
 
 (defface smerge-mine-face
-  '((((background light))
+  '((((min-colors 88) (background light))
+     (:foreground "blue1"))
+    (((background light))
      (:foreground "blue"))
+    (((min-colors 88) (background dark))
+     (:foreground "cyan1"))
     (((background dark))
      (:foreground "cyan")))
   "Face for your code."
@@ -94,7 +98,9 @@ Used in `smerge-diff-base-mine' and related functions."
 (defvar smerge-other-face 'smerge-other-face)
 
 (defface smerge-base-face
-  '((((background light))
+  '((((min-colors 88) (background light))
+     (:foreground "red1"))
+    (((background light))
      (:foreground "red"))
     (((background dark))
      (:foreground "orange")))
@@ -667,7 +673,7 @@ buffer names."
 (define-minor-mode smerge-mode
   "Minor mode to simplify editing output from the diff3 program.
 \\{smerge-mode-map}"
-  nil " SMerge" nil
+  :group 'smerge :lighter " SMerge"
   (when (and (boundp 'font-lock-mode) font-lock-mode)
     (set (make-local-variable 'font-lock-multiline) t)
     (save-excursion

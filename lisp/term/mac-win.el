@@ -1577,7 +1577,10 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 	  (new-fontset font (x-complement-fontset-spec xlfd-fields nil))
 	;; Create a fontset from FONT.  The fontset name is
 	;; generated from FONT.
-	(create-fontset-from-ascii-font font resolved-name "startup"))))
+	(if (and (string= "mac" (aref xlfd-fields xlfd-regexp-registry-subnum))
+		 (string= "roman" (aref xlfd-fields xlfd-regexp-encoding-subnum)))
+	    (create-fontset-from-mac-roman-font font resolved-name "startup")
+	  (create-fontset-from-ascii-font font resolved-name "startup")))))
 
 ;; Apply a geometry resource to the initial frame.  Put it at the end
 ;; of the alist, so that anything specified on the command line takes

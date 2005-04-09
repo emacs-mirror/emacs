@@ -42,6 +42,7 @@
 ;; * tcl-typeword-list is similar, but uses font-lock-type-face.
 ;; * tcl-keyword-list is a list of keywords.  I've generally used this
 ;; for flow-control words.  Eg I add "unwind_protect" to this list.
+;; * tcl-builtin-list lists commands to be given font-lock-builtin-face.
 ;; * tcl-type-alist can be used to minimally customize indentation
 ;; according to context.
 
@@ -192,6 +193,11 @@ and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
 quoted for Tcl."
   :type 'string)
+
+(defface tcl-escaped-newline '((t :inherit font-lock-string-face))
+  "Face used for (non-escaped) backslash at end of a line in Tcl mode."
+  :group 'tcl
+  :version "22.1")
 
 ;;
 ;; Keymaps, abbrevs, syntax tables.
@@ -372,6 +378,21 @@ Call `tcl-set-font-lock-keywords' after changing this list.")
 Default list includes some TclX keywords.
 Call `tcl-set-font-lock-keywords' after changing this list.")
 
+(defvar tcl-builtin-list
+  '("after" "append" "array" "bgerror" "binary" "catch" "cd" "clock"
+    "close" "concat" "console" "dde" "encoding" "eof" "exec" "expr"
+    "fblocked" "fconfigure" "fcopy" "file" "fileevent" "flush"
+    "format" "gets" "glob" "history" "incr" "info" "interp" "join"
+    "lappend" "lindex" "linsert" "list" "llength" "load" "lrange"
+    "lreplace" "lsort" "namespace" "open" "package" "pid" "puts" "pwd"
+    "read" "regexp" "registry" "regsub" "rename" "scan" "seek" "set"
+    "socket" "source" "split" "string" "subst" "tell" "time" "trace"
+    "unknown" "unset" "vwait")
+  "List of Tcl commands.  Used only for highlighting.
+Call `tcl-set-font-lock-keywords' after changing this list.
+This list excludes those commands already found in `tcl-proc-list' and
+`tcl-keyword-list'.")
+
 (defvar tcl-font-lock-keywords nil
   "Keywords to highlight for Tcl.  See variable `font-lock-keywords'.
 This variable is generally set from `tcl-proc-regexp',
@@ -467,11 +488,30 @@ Uses variables `tcl-proc-regexp' and `tcl-keyword-list'."
 		       "\\(\\s-\\|$\\)")
 	       2 'font-lock-type-face)
 
+         (list (concat "\\_<" (regexp-opt tcl-builtin-list t) "\\_>")
+	       1 'font-lock-builtin-face)
+
+         ;; When variable names are enclosed in {} braces, any
+         ;; character can be used. Otherwise just letters, digits,
+         ;; underscores.  Variable names can be prefixed with any
+         ;; number of "namespace::" qualifiers.  A leading "::" refers
+         ;; to the global namespace.
+         '("\\${\\([^}]+\\)}" 1 font-lock-variable-name-face)
+         '("\\$\\(\\(?:::\\)?\\(?:[[:alnum:]_]+::\\)*[[:alnum:]_]+\\)"
+           1 font-lock-variable-name-face)
+         '("\\(?:\\s-\\|^\\|\\[\\)set\\s-+{\\([^}]+\\)}"
+           1 font-lock-variable-name-face keep)
+         '("\\(?:\\s-\\|^\\|\\[\\)set\\s-+\\(\\(?:::\\)?\
+\\(?:[[:alnum:]_]+::\\)*[[:alnum:]_]+\\)"
+           1 font-lock-variable-name-face keep)
+
+         '("\\(^\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\)$" 3 'tcl-escaped-newline)
+
 	 ;; Keywords.  Only recognized if surrounded by whitespace.
 	 ;; FIXME consider using "not word or symbol", not
 	 ;; "whitespace".
 	 (cons (concat "\\_<" (regexp-opt tcl-keyword-list t) "\\_>")
-	       2))))
+	       1))))
 
 (if tcl-proc-regexp
     ()
@@ -542,8 +582,8 @@ Commands:
 
   (set (make-local-variable 'font-lock-defaults)
        '(tcl-font-lock-keywords nil nil nil beginning-of-defun
-	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
-	 (parse-sexp-lookup-properties . t)))
+ 	 (font-lock-syntactic-keywords . tcl-font-lock-syntactic-keywords)
+ 	 (parse-sexp-lookup-properties . t)))
 
   (set (make-local-variable 'imenu-generic-expression)
        tcl-imenu-generic-expression)

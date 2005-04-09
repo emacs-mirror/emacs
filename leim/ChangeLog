@@ -1,3 +1,8 @@
+2005-04-06  Kenichi Handa  <handa@m17n.org>
+
+	* quail/sgml-input.el ("sgml"): Enable quail-completion by typing
+	TAB.
+
 2005-03-26  Kenichi Handa  <handa@m17n.org>
 
 	* quail/latin-ltx.el ("TeX"): Enable quail-completion by typing

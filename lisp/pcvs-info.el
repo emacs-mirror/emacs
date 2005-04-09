@@ -1,7 +1,7 @@
 ;;; pcvs-info.el --- internal representation of a fileinfo entry
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2004  Free Software Foundation, Inc.
+;;   2000, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -105,7 +105,9 @@ to confuse some users sometimes."
   :group 'pcl-cvs)
 
 (defface cvs-marked-face
-  '((((class color) (background dark))
+  '((((min-colors 88) (class color) (background dark))
+     (:foreground "green1" :weight bold))
+    (((class color) (background dark))
      (:foreground "green" :weight bold))
     (((class color) (background light))
      (:foreground "green3" :weight bold))

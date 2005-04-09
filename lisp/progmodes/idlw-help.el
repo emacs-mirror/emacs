@@ -1,7 +1,7 @@
 ;;; idlw-help.el --- HTML Help code for IDLWAVE
 ;; Copyright (c) 2000 Carsten Dominik
 ;; Copyright (c) 2001, 2002 J.D. Smith
-;; Copyright (c) 2003,2004 Free Software Foundation
+;; Copyright (c) 2003,2004,2005 Free Software Foundation
 ;;
 ;; Authors: J.D. Smith <jdsmith@as.arizona.edu>
 ;;          Carsten Dominik <dominik@astro.uva.nl>
@@ -183,7 +183,8 @@ support."
   :type 'string)
 
 (defface idlwave-help-link-face
-  '((((class color)) (:foreground "Blue"))
+  '((((min-colors 88) (class color)) (:foreground "Blue1"))
+    (((class color)) (:foreground "Blue"))
     (t (:weight bold)))
   "Face for highlighting links into IDLWAVE online help."
   :group 'idlwave-online-help)

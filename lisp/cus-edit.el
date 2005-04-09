@@ -1633,7 +1633,7 @@ item in another window.\n\n"))
   :group 'custom-buffer)
 
 (defface custom-invalid-face '((((class color))
-				(:foreground "yellow" :background "red"))
+				(:foreground "yellow1" :background "red1"))
 			       (t
 				(:weight bold :slant italic :underline t)))
   "Face used when the customize item is invalid."
@@ -1646,21 +1646,27 @@ item in another window.\n\n"))
   "Face used when the customize item is not defined for customization."
   :group 'custom-magic-faces)
 
-(defface custom-modified-face '((((class color))
+(defface custom-modified-face '((((min-colors 88) (class color))
+				 (:foreground "white" :background "blue1"))
+				(((class color))
 				 (:foreground "white" :background "blue"))
 				(t
 				 (:slant italic :bold)))
   "Face used when the customize item has been modified."
   :group 'custom-magic-faces)
 
-(defface custom-set-face '((((class color))
+(defface custom-set-face '((((min-colors 88) (class color))
+			    (:foreground "blue1" :background "white"))
+			   (((class color))
 			    (:foreground "blue" :background "white"))
 			   (t
 			    (:slant italic)))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
 
-(defface custom-changed-face '((((class color))
+(defface custom-changed-face '((((min-colors 88) (class color))
+				(:foreground "white" :background "blue1"))
+			       (((class color))
 				(:foreground "white" :background "blue"))
 			       (t
 				(:slant italic)))
@@ -2148,9 +2154,12 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
   `((((class color)
       (background dark))
      (:foreground "light blue" :weight bold :height 1.2 :inherit variable-pitch))
+    (((min-colors 88) (class color)
+      (background light))
+     (:foreground "blue1" :weight bold :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))
+     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))    
     (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
@@ -3296,65 +3305,37 @@ restoring it to the state of a face that has never been customized."
 (defvar widget-face-prompt-value-history nil
   "History of input to `widget-face-prompt-value'.")
 
-(define-widget 'face 'restricted-sexp
-  "A Lisp face name."
+(define-widget 'face 'symbol
+  "A Lisp face name (with sample)."
+  :format "%t: (%{sample%}) %v"
+  :tag "Face"
+  :value 'default
+  :sample-face-get 'widget-face-sample-face-get
+  :notify 'widget-face-notify
+  :match (lambda (widget value) (facep value))
   :complete-function (lambda ()
 		       (interactive)
 		       (lisp-complete-symbol 'facep))
-  :prompt-value 'widget-field-prompt-value
-  :prompt-internal 'widget-symbol-prompt-internal
   :prompt-match 'facep
   :prompt-history 'widget-face-prompt-value-history
-  :value-create 'widget-face-value-create
-  :action 'widget-field-action
-  :match-alternatives '(facep)
   :validate (lambda (widget)
 	      (unless (facep (widget-value widget))
-		(widget-put widget :error (format "Invalid face: %S"
-						  (widget-value widget)))
-		widget))
-  :value 'ignore
-  :tag "Function")
+		(widget-put widget
+			    :error (format "Invalid face: %S"
+					   (widget-value widget)))
+		widget)))
 
+(defun widget-face-sample-face-get (widget)
+  (let ((value (widget-value widget)))
+    (if (facep value)
+	value
+      'default)))
 
-;;; There is a bug here: the sample doesn't get redisplayed
-;;; in the new font when you specify one.  Does anyone know how to
-;;; make that work?  -- rms.
-
-(defun widget-face-value-create (widget)
-  "Create an editable face name field."
-  (let ((buttons (widget-get widget :buttons))
-	(symbol (widget-get widget :value)))
-    ;; Sample.
-    (push (widget-create-child-and-convert widget 'item
-					   :format "(%{%t%})"
-					   :sample-face symbol
-					   :tag "sample")
-	  buttons)
-    (insert " ")
-    ;; Update buttons.
-    (widget-put widget :buttons buttons))
-
-  (let ((size (widget-get widget :size))
-	(value (widget-get widget :value))
-	(from (point))
-	;; This is changed to a real overlay in `widget-setup'.  We
-	;; need the end points to behave differently until
-	;; `widget-setup' is called.
-	(overlay (cons (make-marker) (make-marker))))
-    (widget-put widget :field-overlay overlay)
-    (insert value)
-    (and size
-	 (< (length value) size)
-	 (insert-char ?\  (- size (length value))))
-    (unless (memq widget widget-field-list)
-      (setq widget-field-new (cons widget widget-field-new)))
-    (move-marker (cdr overlay) (point))
-    (set-marker-insertion-type (cdr overlay) nil)
-    (when (null size)
-      (insert ?\n))
-    (move-marker (car overlay) from)
-    (set-marker-insertion-type (car overlay) t)))
+(defun widget-face-notify (widget child &optional event)
+  "Update the sample, and notify the parent."
+  (overlay-put (widget-get widget :sample-overlay)
+	       'face (widget-apply widget :sample-face-get))
+  (widget-default-notify widget child event))
 
 
 ;;; The `hook' Widget.
@@ -3420,6 +3401,9 @@ and so forth.  The remaining group tags are shown with
   `((((class color)
       (background dark))
      (:foreground "pink" :weight bold :height 1.2 :inherit variable-pitch))
+    (((min-colors 88) (class color)
+      (background light))
+     (:foreground "red1" :weight bold :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
      (:foreground "red" :weight bold :height 1.2 :inherit variable-pitch))
@@ -3431,6 +3415,9 @@ and so forth.  The remaining group tags are shown with
   `((((class color)
       (background dark))
      (:foreground "light blue" :weight bold :height 1.2))
+    (((min-colors 88) (class color)
+      (background light))
+     (:foreground "blue1" :weight bold :height 1.2))
     (((class color)
       (background light))
      (:foreground "blue" :weight bold :height 1.2))

@@ -1,6 +1,7 @@
 ;;; ediff-init.el --- Macros, variables, and defsubsts used by Ediff
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 04 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;     2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -43,7 +44,7 @@
 ;; end pacifier
 
 ;; Is it XEmacs?
-(defconst ediff-xemacs-p (string-match "XEmacs" emacs-version))
+(defconst ediff-xemacs-p (featurep 'xemacs))
 ;; Is it Emacs?
 (defconst ediff-emacs-p (not ediff-xemacs-p))
 
@@ -53,7 +54,7 @@
 ;; compiler at hand.
 ;; Suggested by rms.
 (defmacro ediff-cond-compile-for-xemacs-or-emacs (xemacs-form emacs-form)
-  (if (string-match "XEmacs" emacs-version)
+  (if (featurep 'xemacs)
       xemacs-form emacs-form))
 
 (defvar ediff-force-faces nil
@@ -1145,9 +1146,9 @@ this variable represents.")
 
 (defface ediff-even-diff-face-B
   (if ediff-emacs-p
-      `((((class color) (min-colors 16)) 
+      `((((class color) (min-colors 16))
 	 (:foreground "White" :background "Grey"))
-	(((class color))    
+	(((class color))
 	 (:foreground "blue3" :background "Grey" :weight bold))
 	(t		     (:italic t :stipple ,stipple-pixmap)))
     `((((type tty))    (:foreground "blue3" :background "Grey" :weight bold))

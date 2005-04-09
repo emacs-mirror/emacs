@@ -1,6 +1,6 @@
 ;;; master.el --- make a buffer the master over another buffer
 
-;; Copyright (C) 1999, 2000, 2001  Alexander Schroeder
+;; Copyright (C) 1999, 2000, 2001, 2005  Alexander Schroeder
 
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: Alex Schroeder <alex@gnu.org>
@@ -55,7 +55,10 @@
 
 ;;; Code:
 
-(require 'easy-mmode)
+(defgroup master nil
+  "Support for master/slave relationships between buffers."
+  :version "22.1"
+  :group 'convenience)
 
 ;; Variables that don't need initialization.
 
@@ -83,16 +86,13 @@ following commands:
 The slave buffer is stored in the buffer-local variable `master-of'.
 You can set this variable using `master-set-slave'.  You can show
 yourself the value of `master-of' by calling `master-show-slave'."
- ;; The initial value.
- nil
- ;; The indicator for the mode line.
- nil
- ;; The minor mode bindings.
- '(("\C-c\C-n" . master-says-scroll-up)
-   ("\C-c\C-p" . master-says-scroll-down)
-   ("\C-c<" . master-says-beginning-of-buffer)
-   ("\C-c>" . master-says-end-of-buffer)
-   ("\C-c\C-l" . master-says-recenter)))
+  :group 'master
+  :keymap
+  '(("\C-c\C-n" . master-says-scroll-up)
+    ("\C-c\C-p" . master-says-scroll-down)
+    ("\C-c<" . master-says-beginning-of-buffer)
+    ("\C-c>" . master-says-end-of-buffer)
+    ("\C-c\C-l" . master-says-recenter)))
 
 ;; Initialize Master mode by setting a slave buffer.
 

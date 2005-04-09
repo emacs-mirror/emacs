@@ -3233,7 +3233,7 @@ See `term-prompt-regexp'."
    ((eq char ?P)
     (term-delete-chars (max 1 term-terminal-parameter)))
    ;; \E[@ - insert spaces
-   ((eq char ?@)
+   ((eq char ?@) ;; (terminfo: ich)
     (term-insert-spaces (max 1 term-terminal-parameter)))
    ;; \E[?h - DEC Private Mode Set
    ((eq char ?h)

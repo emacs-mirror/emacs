@@ -1,5 +1,5 @@
-Esercitazione di Emacs.  Copyright (c) 2003 Free Software Foundation, Inc.
-Condizioni d'uso alla fine del file.
+Esercitazione di Emacs.  Condizioni d'uso alla fine del file.
+Copyright (c) 2003 Free Software Foundation, Inc.
 
 I comandi di Emacs comportano generalmente l'uso del tasto CONTROL (a
 volte indicato con CTRL o CTL) o del tasto META (a volte indicato con EDIT
@@ -817,7 +817,7 @@ margine che si desidera.
    testo e osserva come Emacs interrompe le righe a 20 caratteri.  Infine
    torna di nuovo a un margine di 70 caratteri con C-x f.
 
-Se si modifica il testo all'interno di un paragrafo la modalità 
+Se si modifica il testo all'interno di un paragrafo la modalità
 "Auto Fill" non
 lo risistema.
 Per risistemare i margini di un paragrafo

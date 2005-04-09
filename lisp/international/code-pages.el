@@ -3944,21 +3944,21 @@ Return an updated `non-iso-charset-alist'."
  [nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   nil nil nil nil nil nil nil nil nil nil nil nil nil nil nil
   ?\ 
-  ?\¡
+  ?\”
   ?\¢
   ?\£
   ?\¤
   ?\„
   ?\¦
   ?\§
-  ?\¨
+  ?\Ø
   ?\©
-  ?\ª
+  ?\Ŗ
   ?\«
   ?\¬
   ?\­
   ?\®
-  ?\¯
+  ?\Æ
   ?\°
   ?\±
   ?\²
@@ -3967,14 +3967,14 @@ Return an updated `non-iso-charset-alist'."
   ?\µ
   ?\¶
   ?\·
-  ?\¸
+  ?\ø
   ?\¹
-  ?\º
+  ?\ŗ
   ?\»
   ?\¼
   ?\½
   ?\¾
-  ?\¿
+  ?\æ
   ?\Ą
   ?\Į
   ?\Ā

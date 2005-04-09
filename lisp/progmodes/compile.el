@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -464,6 +464,8 @@ starting the compilation process.")
 (defface compilation-info-face
   '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "Green1" :weight bold))
     (((class color) (min-colors 16) (background dark))
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
@@ -1233,6 +1235,10 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
+  (set (make-local-variable 'overlay-arrow-string) "=>")
+  (setq next-error-overlay-arrow-position nil)
+  (add-hook 'kill-buffer-hook
+	    (lambda () (setq next-error-overlay-arrow-position nil)) nil t)
   ;; Note that compilation-next-error-function is for interfacing
   ;; with the next-error function in simple.el, and it's only
   ;; coincidentally named similarly to compilation-next-error.
@@ -1641,8 +1647,9 @@ and overlay is highlighted between MK and END-MK."
 			 (numberp next-error-highlight)))
 		(delete-overlay compilation-highlight-overlay))))))
     (when (and (eq next-error-highlight 'fringe-arrow))
-      (set (make-local-variable 'overlay-arrow-position)
-	   (copy-marker (line-beginning-position))))))
+      (setq next-error-overlay-arrow-position
+	    (copy-marker (line-beginning-position))))))
+
 
 (defun compilation-find-file (marker filename dir &rest formats)
   "Find a buffer for file FILENAME.

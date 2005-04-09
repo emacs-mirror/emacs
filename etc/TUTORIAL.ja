@@ -1,5 +1,5 @@
-Emacs 入門ガイドです.
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation.
+Emacs 入門ガイド.  本ファイルの著作権については最後を御覧下さい。
+Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 
 Emacs のコマンドを入力するには、一般にコントロールキー（キートップに
 CONTROL とか CTRL とか CTL と書いてある）やメタキー（キートップに META
@@ -372,7 +372,7 @@ C-k は２つの行とそれぞれに続く改行文字を消しますが、C-k を２度タイプし
 
 $B消去した文章を復活させる操作を再入（yanking）と呼びます。消した文章は、
 元と同じ場所にでも元とは違う場所にでも、さらには別のファイルにも再入で
-きます。また、何度も再入して文章のコピーを複数作ることもできます。
+きます。また、何度も再入することで文章のコピーを複数作ることもできます。
 
 再入のためのコマンドは C-y です。これは、最後に消去した文章を現在カー
 ソルがある位置に再入します。
@@ -592,7 +592,7 @@ Emacs には、コントロール文字やメタ文字に割当てられるよりもずっとずっと
 使います。それには、以下の２つの種類があります。
 
      C-x     文字による拡張。続けて一文字を入力します。
-     ESC x   名前による拡張。続けてコマンドの名前を入力します。
+     M-x     名前による拡張。続けてコマンドの名前を入力します。
 
 これらは、一般的には便利だけれども、これまで見てきたものほどは頻繁に用
 いられないコマンドです。C-x C-f （ファイルを開く）や C-x C-s（ファイル
@@ -1027,7 +1027,7 @@ F10 h r）であろうと、それを読めば Emacs についてもっと多くを学べます。
 $B＊この翻訳版についての謝辞
 ==========================
 
-この文書は Emacs Ver.21 付属の英語版の入門ガイドを日本語に翻訳したもの
+この文書は Emacs Ver.22 付属の英語版の入門ガイドを日本語に翻訳したもの
 です。その際、Emacs Ver. 20 附属の日本語版入門ガイドをベースにしました。
 Emacs Ver. 20 附属の日本語版入門ガイドは、Mule 付属の日本語ガイドを参
 考にしたもので、その元は SANETO Takanori 氏が日本語 MicroEmacs(kemacs)
@@ -1048,7 +1048,7 @@ starting with the one written by Stuart Cracraft for the original Emacs.
 This version of the tutorial, like GNU Emacs, is copyrighted, and
 comes with permission to distribute copies on certain conditions:
 
-Copyright (c) 1985, 1996, 1998, 2001, 2002 Free Software Foundation
+Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the
