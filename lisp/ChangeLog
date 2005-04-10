@@ -1,3 +1,27 @@
+2005-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-tail): Update copyright year.
+	(command-line): Split part of -Q into -D.
+	(emacs-basic-display): New defvar.
+	(fancy-splash-text): Correct name of menu item.
+
+	* saveplace.el (save-place-alist-to-file): Catch errors writing file.
+
+	* info.el (Info-fontify-node): Handle fontification of multiple * Menu
+	lines in one node.
+
+	* comint.el (comint-send-input): New arg ARTIFICIAL.
+	Callers in this file changed.
+
+	* abbrev.el (define-abbrevs): Read system abbrevs properly.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Clarify RET/q in help message.
+
+2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url/url-ldap.el (url-ldap): Add docstring.  Fix call to
+	`ldap-search-internal'.
+
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (set-auto-mode-1): Use line-end-position.
@@ -42,6 +66,11 @@
 	* calendar/time-date.el (time-to-seconds, seconds-to-time)
 	(days-to-time, time-subtract, time-add): Don't use the #xhhhh
 	syntax which Emacs 20 doesn't support.
+
+2005-04-09  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (describe-key-briefly, describe-key): Replace
+	strings as event types with "(any string)".
 
 2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 

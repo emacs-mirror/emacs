@@ -1,3 +1,10 @@
+2005-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.c (standard_args): Rename --bare-bones to --quick.
+	Add -D aka --basic-display.
+
+	* buffer.c (Fmake_indirect_buffer): Clear out some local variables.
+
 2005-04-09  Richard M. Stallman  <rms@gnu.org>
 
 	* keymap.c (where_is_internal): Convert a string used as event type
