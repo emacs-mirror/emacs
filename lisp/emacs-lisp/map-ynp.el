@@ -200,10 +200,10 @@ Returns the number of actions taken."
 			       (concat
 				(format "Type SPC or `y' to %s the current %s;
 DEL or `n' to skip the current %s;
-RET or `q' to exit (skip all remaining %s);
-C-g to quit (cancel the operation);
+RET or `q' to give up on the %s (skip all remaining %s);
+C-g to quit (cancel the whole command);
 ! to %s all remaining %s;\n"
-					action object object objects action
+					action object object action objects action
 					objects)
 				(mapconcat (function
 					    (lambda (elt)
