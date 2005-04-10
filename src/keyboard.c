@@ -2258,12 +2258,16 @@ make_ctrl_char (c)
   return c;
 }
 
-/* Display help echo in the echo area.
+/* Display the help-echo property of the character after the mouse pointer.
+   Either show it in the echo area, or call show-help-function to display
+   it by other means (maybe in a tooltip).
 
-   HELP a string means display that string, HELP nil means clear the
-   help echo.  If HELP is a function, call it with OBJECT and POS as
-   arguments; the function should return a help string or nil for
-   none.  For all other types of HELP evaluate it to obtain a string.
+   If HELP is nil, that means clear the previous help echo.
+
+   If HELP is a string, display that string.  If HELP is a function,
+   call it with OBJECT and POS as arguments; the function should
+   return a help string or nil for none.  For all other types of HELP,
+   evaluate it to obtain a string.
 
    WINDOW is the window in which the help was generated, if any.
    It is nil if not in a window.
