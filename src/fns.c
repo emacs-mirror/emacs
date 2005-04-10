@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 03, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
+     2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1148,7 +1148,18 @@ If STRING is multibyte, the result is STRING itself.
 Otherwise it is a newly created string, with no text properties.
 If STRING is unibyte and contains an individual 8-bit byte (i.e. not
 part of a multibyte form), it is converted to the corresponding
-multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.  */)
+multibyte character of charset `eight-bit-control' or `eight-bit-graphic'.
+Beware, this often doesn't really do what you think it does.
+It is similar to (decode-coding-string STRING 'emacs-mule-unix).
+If you're not sure, whether to use `string-as-multibyte' or
+`string-to-multibyte', use `string-to-multibyte'.  Beware:
+   (aref (string-as-multibyte "\201") 0) -> 129 (aka ?\201)
+   (aref (string-as-multibyte "\300") 0) -> 192 (aka ?\300)
+   (aref (string-as-multibyte "\300\201") 0) -> 192 (aka ?\300)
+   (aref (string-as-multibyte "\300\201") 1) -> 129 (aka ?\201)
+but
+   (aref (string-as-multibyte "\201\300") 0) -> 2240
+   (aref (string-as-multibyte "\201\300") 1) -> <error>  */)
      (string)
      Lisp_Object string;
 {
@@ -1182,7 +1193,8 @@ Otherwise it is a newly created string, with no text properties.
 Characters 0200 through 0237 are converted to eight-bit-control
 characters of the same character code.  Characters 0240 through 0377
 are converted to eight-bit-graphic characters of the same character
-codes.  */)
+codes.
+This is similar to (decode-coding-string STRING 'binary)  */)
      (string)
      Lisp_Object string;
 {
