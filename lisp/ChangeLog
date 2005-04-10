@@ -1,13 +1,25 @@
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-mode-map-init): Don't override default
+	TAB binding so tab-always-indent is obeyed.
+	(vhdl-minibuffer-local-map): Move initialization into declaration.
+	(vhdl-mode-abbrev-table-init): Mark the abbrevs as `system'.
+	(vhdl-run-when-idle, vhdl-create-mode-menu, vhdl-character-to-event)
+	(vhdl-hooked-abbrev): Avoid test for XEmacs.
+	(vhdl-current-line): Use line-beginning-position.
+	(vhdl-doc-variable, vhdl-doc-mode): Call help-setup-xref before
+	with-output-to-temp-buffer, so the current position can be recorded.
+
 2005-04-10  Masatake YAMATO  <jet@gyve.org>
 
-	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
-	regexp for gcov.
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add regexp for gcov.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* calendar/time-date.el (time-to-seconds): Don't use the #xhhhh
+	* calendar/time-date.el (time-to-seconds, seconds-to-time)
+	(days-to-time, time-subtract, time-add): Don't use the #xhhhh
 	syntax which Emacs 20 doesn't support.
-	(seconds-to-time, days-to-time, time-subtract, time-add): Ditto.
 
 2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
