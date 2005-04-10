@@ -1,3 +1,18 @@
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/latin-1.el:
+	* international/latin-2.el:
+	* international/latin-3.el:
+	* international/latin-4.el:
+	* international/latin-5.el:
+	* international/latin-8.el:
+	* international/latin-9.el: Give punctuation syntax to NBSP.
+
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore)
+	(bibtex-reference-key, bibtex-autokey-demangle-name, bibtex-mode):
+	Use char-classes to accept non-ascii letters, accepted in some recent
+	bibtex implementations.
+
 2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-set-minor-mode): Any non-nil value for the

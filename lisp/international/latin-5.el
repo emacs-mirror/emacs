@@ -1,6 +1,6 @@
 ;;; latin-5.el --- set up case-conversion and syntax tables for ISO latin-5
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum
 ;; Maintainer: FSF
@@ -36,7 +36,9 @@
        (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-9) 128)
 	 0)))
-  (set-case-syntax 160 " " tbl)		;no-break space
+  ;; NBSP isn't semantically interchangeable with other whitespace chars,
+  ;; so it's more like punctation.
+  (set-case-syntax 160 "." tbl)		;no-break space
   (set-case-syntax 161 "." tbl)		;inverted exclamation mark
   (set-case-syntax 162 "w" tbl)		;cent sign
   (set-case-syntax 163 "w" tbl)		;pound sign
@@ -111,11 +113,11 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-5))
 
-;;; Don't compile this file: src/Makefile.in instructs make-docfile
-;;; to look at the .el file!
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; End:
+;; Don't compile this file: src/Makefile.in instructs make-docfile
+;; to look at the .el file!
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
-;;; arch-tag: 7f91a36a-39fb-4b5d-806f-f171abee71ad
+;; arch-tag: 7f91a36a-39fb-4b5d-806f-f171abee71ad
 ;;; latin-5.el ends here
