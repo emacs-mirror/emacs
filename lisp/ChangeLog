@@ -1,3 +1,8 @@
+2005-04-10  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist): Add
+	regexp for gcov.
+
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* calendar/time-date.el (time-to-seconds): Don't use the #xhhhh
