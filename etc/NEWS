@@ -1205,6 +1205,11 @@ amount of text shown any more (only a crude approximation of it).
 ** The pop up menus for Lucid now stay up if you do a fast click and can
 be navigated with the arrow keys (like Gtk+, Mac and W32).
 
++++
+** The Lucid menus can display multilingual text in your locale.  You have
+to explicitly specify a fontSet resource for this to work, for example
+`-xrm "Emacs*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*"'.
+
 ---
 ** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
 ESC, like they do for Gtk+, Mac and W32.
