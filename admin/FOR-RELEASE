@@ -179,7 +179,7 @@ man/m-x.texi        "Luc Teirlinck"  Chong Yidong
 man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
 man/programs.texi   "Stephen Eglen"  Chong Yidong
 man/regs.texi       "Luc Teirlinck"   Chong Yidong
-man/rmail.texi      Chong Yidong
+man/rmail.texi      Chong Yidong      "Luc Teirlinck"
 man/screen.texi     "Luc Teirlinck"   Chong Yidong
 man/search.texi     "Luc Teirlinck"   Chong Yidong
 man/sending.texi    Chong Yidong      "Luc Teirlinck"
