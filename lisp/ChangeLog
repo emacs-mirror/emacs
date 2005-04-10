@@ -1,3 +1,8 @@
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-set-minor-mode): Any non-nil value for the
+	variable should enable the mode when set through Custom.
+
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vhdl-mode.el (vhdl-mode-map-init): Don't override default

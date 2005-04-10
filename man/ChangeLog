@@ -1,3 +1,15 @@
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rmail.texi (Rmail Basics): Clarify description of `q' and `b'.
+	(Rmail Deletion): `C-d' in RMAIL buffer does not accept a numeric
+	argument.
+	(Rmail Inbox): Give full name of `rmail-primary-inbox-list'.
+	(Rmail Output): Clarify which statements apply to `o', `C-o' and
+	`w', respectively.
+	(Rmail Labels): Mention `l'.
+	(Rmail Attributes): Correct pxref.  Mention `stored' attribute.
+	(Rmail Summary Edit): Describe `j' and RET.
+
 2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Lucid Resources): Added fonSet resource.
