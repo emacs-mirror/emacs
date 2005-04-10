@@ -35,8 +35,6 @@ invalid pointer from string_free_list.
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
 
-** Fix up url-ldap.el.
-
 * BUGS
 
 ** Ange-ftp should ignore irrelevant IPv6 errors:
