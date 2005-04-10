@@ -193,7 +193,7 @@ static int new_backquote_flag;
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
 
-static Lisp_Object Vloads_in_progress;
+Lisp_Object Vloads_in_progress;
 
 /* Non-zero means load dangerous compiled Lisp files.  */
 
