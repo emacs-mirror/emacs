@@ -220,7 +220,9 @@ may have changed\) back to `save-place-alist'."
               ((eq 'nospecial save-place-version-control) version-control)
               (t
                t))))
-        (write-file file)
+	(condition-case nil
+	    (write-file file)
+	  (file-error (message "Can't write %s" file)))
         (kill-buffer (current-buffer))
         (message "Saving places to %s...done" file)))))
 
