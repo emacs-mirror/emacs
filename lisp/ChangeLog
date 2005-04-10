@@ -1,5 +1,7 @@
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (set-auto-mode-1): Use line-end-position.
+
 	* international/latin-1.el:
 	* international/latin-2.el:
 	* international/latin-3.el:
