@@ -1,3 +1,7 @@
+2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Lucid Resources): Added fonSet resource.
+
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (RSS): Addition.
