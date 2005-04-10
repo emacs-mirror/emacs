@@ -59,7 +59,7 @@
   '((wget "wget" "--user-agent=mm-url" "-q" "-O" "-")
     (w3m  "w3m" "-dump_source")
     (lynx "lynx" "-source")
-    (curl "curl")))
+    (curl "curl" "--silent")))
 
 (defcustom mm-url-program
   (cond

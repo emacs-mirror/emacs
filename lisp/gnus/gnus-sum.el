@@ -7254,11 +7254,12 @@ If BACKWARD, the previous article is selected instead of the next."
 	     (if (and group
 		      (not (gnus-ephemeral-group-p gnus-newsgroup-name)))
 		 (format " (Type %s for %s [%s])"
-			 (single-key-description cmd) group
+			 (single-key-description cmd)
+			 (gnus-group-decoded-name group)
 			 (car (gnus-gethash group gnus-newsrc-hashtb)))
 	       (format " (Type %s to exit %s)"
 		       (single-key-description cmd)
-		       gnus-newsgroup-name))))
+		       (gnus-group-decoded-name gnus-newsgroup-name)))))
       ;; Confirm auto selection.
       (setq key (car (setq keve (gnus-read-event-char prompt)))
 	    ended t)

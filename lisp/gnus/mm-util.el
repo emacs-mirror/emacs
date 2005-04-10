@@ -57,9 +57,11 @@
 		    mm-mime-mule-charset-alist)
 	    nil t))))
      (subst-char-in-string
-      . (lambda (from to string) ;; stolen (and renamed) from nnheader.el
-	  "Replace characters in STRING from FROM to TO."
-	  (let ((string (substring string 0)) ;Copy string.
+      . (lambda (from to string &optional inplace)
+	  ;; stolen (and renamed) from nnheader.el
+	  "Replace characters in STRING from FROM to TO.
+	  Unless optional argument INPLACE is non-nil, return a new string."
+	  (let ((string (if inplace string (copy-sequence string)))
 		(len (length string))
 		(idx 0))
 	    ;; Replace all occurrences of FROM with TO.
@@ -153,7 +155,7 @@ In XEmacs, also return non-nil if CS is a coding system object.
 If CS is available, return CS itself in Emacs, and return a coding
 system object in XEmacs."
   (if (fboundp 'find-coding-system)
-      (find-coding-system cs)
+      (and cs (find-coding-system cs))
     (if (fboundp 'coding-system-p)
 	(when (coding-system-p cs)
 	  cs)

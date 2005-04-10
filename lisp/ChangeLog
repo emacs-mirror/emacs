@@ -1,3 +1,9 @@
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (time-to-seconds): Don't use the #xhhhh
+	syntax which Emacs 20 doesn't support.
+	(seconds-to-time, days-to-time, time-subtract, time-add): Ditto.
+
 2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* arc-mode.el (archive-mode-map): Move initialization into
