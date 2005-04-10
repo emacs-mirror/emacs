@@ -1,3 +1,17 @@
+2005-04-09  Richard M. Stallman  <rms@gnu.org>
+
+	* keymap.c (where_is_internal): Convert a string used as event type
+	into "(any string)".
+
+	* lread.c (Vloads_in_progress): Not static.
+
+	* fns.c (Vloads_in_progress): Add extern.
+	(Frequire): Don't do LOADHIST_ATTACH if Vloads_in_progress is nil.
+
+2005-04-09  Thien-Thi Nguyen  <ttn@surf.glug.org>
+
+	* dispnew.c (mirror_line_dance): Avoid crash if W2 is null.
+
 2005-04-09  Lute Kamstra  <lute@gnu.org>
 
 	* print.c (PRINTPREPARE): Check if the marker PRINTCHARFUN is
