@@ -1,3 +1,8 @@
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-string-to-multibyte): New function.
+	(mm-detect-coding-region): Typo.
+
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-util.el (mm-coding-system-p): Don't return binary for the nil

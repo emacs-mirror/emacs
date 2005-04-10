@@ -72,7 +72,26 @@
 	    string)))
      (string-as-unibyte . identity)
      (string-make-unibyte . identity)
+     ;; string-as-multibyte often doesn't really do what you think it does.
+     ;; Example:
+     ;;    (aref (string-as-multibyte "\201") 0) -> 129 (aka ?\201)
+     ;;    (aref (string-as-multibyte "\300") 0) -> 192 (aka ?\300)
+     ;;    (aref (string-as-multibyte "\300\201") 0) -> 192 (aka ?\300)
+     ;;    (aref (string-as-multibyte "\300\201") 1) -> 129 (aka ?\201)
+     ;; but
+     ;;    (aref (string-as-multibyte "\201\300") 0) -> 2240
+     ;;    (aref (string-as-multibyte "\201\300") 1) -> <error>
+     ;; Better use string-to-multibyte or encode-coding-string.
+     ;; If you really need string-as-multibyte somewhere it's usually
+     ;; because you're using the internal emacs-mule representation (maybe
+     ;; because you're using string-as-unibyte somewhere), which is
+     ;; generally a problem in itself.
+     ;; Here is an approximate equivalence table to help think about it:
+     ;; (string-as-multibyte s)   ~= (decode-coding-string s 'emacs-mule)
+     ;; (string-to-multibyte s)   ~= (decode-coding-string s 'binary)
+     ;; (string-make-multibyte s) ~= (decode-coding-string s locale-coding-system)
      (string-as-multibyte . identity)
+     (string-to-multibyte . mm-string-as-multibyte)
      (multibyte-string-p . ignore)
      ;; It is not a MIME function, but some MIME functions use it.
      (make-temp-file . (lambda (prefix &optional dir-flag)
@@ -938,7 +957,7 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
     (defun mm-detect-coding-region (start end)
       "Like `detect-coding-region' except returning the best one."
       (let ((coding-systems
-	     (detect-coding-region (point) (point-max))))
+	     (detect-coding-region start end)))
 	(or (car-safe coding-systems)
 	    coding-systems)))
   (defun mm-detect-coding-region (start end)
@@ -962,5 +981,5 @@ If INHIBIT is non-nil, inhibit `mm-inhibit-file-name-handlers'."
 
 (provide 'mm-util)
 
-;;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
+;; arch-tag: 94dc5388-825d-4fd1-bfa5-2100aa351238
 ;;; mm-util.el ends here
