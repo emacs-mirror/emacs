@@ -1,3 +1,10 @@
+2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-version): Bump to 3.5
+
+	(whitespace-buffer-leading, whitespace-buffer-trailing): Invert
+	sense of the test to highlight the whitespace.
+
 2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-display-line): GUD uses its own

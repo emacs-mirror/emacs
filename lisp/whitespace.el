@@ -86,7 +86,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.4" "Version of the whitespace library.")
+(defvar whitespace-version "3.5" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -597,7 +597,7 @@ whitespace problems."
       (setq pmin (point))
       (end-of-line)
       (setq pmax (point))
-      (if (equal pmin pmax)
+      (if (not (equal pmin pmax))
 	  (progn
 	    (whitespace-highlight-the-space pmin pmax)
 	    t)
@@ -635,7 +635,7 @@ whitespace problems."
 	    (setq pmin (point))
 	    (end-of-line)
 	    (setq pmax (point))
-	    (if (equal pmin pmax)
+	    (if (not (equal pmin pmax))
 		(progn
 		  (whitespace-highlight-the-space pmin pmax)
 		  t)
