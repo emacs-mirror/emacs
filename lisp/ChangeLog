@@ -1,3 +1,8 @@
+2005-04-11  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo): Record t in undo-equiv-table
+	for the redo record made by an undo-in-region.
+
 2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-display-inferior-io-buffer)
