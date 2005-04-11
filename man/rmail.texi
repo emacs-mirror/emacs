@@ -891,10 +891,13 @@ message is selected in the Rmail buffer.
 
   Almost all Rmail commands work in the summary buffer as well as in the
 Rmail buffer.  Thus, @kbd{d} in the summary buffer deletes the current
-message, @kbd{u} undeletes, and @kbd{x} expunges.  @kbd{o} and @kbd{C-o}
-output the current message to a file; @kbd{r} starts a reply to it.  You
-can scroll the current message while remaining in the summary buffer
-using @key{SPC} and @key{DEL}.
+message, @kbd{u} undeletes, and @kbd{x} expunges.  (However, in the
+summary buffer, a numeric argument to @kbd{d}, @kbd{C-d} and @kbd{u}
+serves as a repeat count.  A negative argument reverses the meaning of
+@kbd{d} and @kbd{C-d}.)  @kbd{o} and @kbd{C-o} output the current
+message to a file; @kbd{r} starts a reply to it.  You can scroll the
+current message while remaining in the summary buffer using @key{SPC}
+and @key{DEL}.
 
   The Rmail commands to move between messages also work in the summary
 buffer, but with a twist: they move through the set of messages included
