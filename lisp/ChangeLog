@@ -1,3 +1,16 @@
+2005-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-ansi-current-bold, term-ansi-current-underline)
+	(term-ansi-current-reverse, term-ansi-current-invisible)
+	(term-ansi-face-already-done): Change to boolean.
+	(term-reset-terminal, term-handle-colors-array): Handle the above
+	vars accordingly.
+	(term-buffer-vertical-motion): Rename from buffer-vertical-motion.
+	(term-emulate-terminal): Use the new name.
+
+	* faces.el (secondary-selection): Use yellow1, not yellow.
+	(trailing-whitespace): Use red1, not red.
+
 2005-04-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
