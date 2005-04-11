@@ -30,9 +30,7 @@
 
 ;;; Code:
 
-(eval-when-compile 
-  (defvar dos-codepage)
-  (require 'wid-edit))
+(eval-when-compile (defvar dos-codepage))
 
 ;;; MULE related key bindings and menus.
 
