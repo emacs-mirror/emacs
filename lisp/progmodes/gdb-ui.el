@@ -79,7 +79,7 @@
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
-(defvar gdb-location-list nil "List of directories for source files.")
+(defvar gdb-location-list nil "Alist of breakpoint numbers and full filenames.")
 (defvar gdb-find-file-unhook nil)
 
 (defvar gdb-buffer-type nil
@@ -258,6 +258,7 @@ detailed description of this mode.
     'gdb-mouse-set-clear-breakpoint)
   (define-key gud-minor-mode-map [left-margin mouse-3]
     'gdb-mouse-toggle-breakpoint)
+;  Currently only works in margin.
 ;  (define-key gud-minor-mode-map [left-fringe mouse-3]
 ;    'gdb-mouse-toggle-breakpoint)
 
@@ -605,6 +606,21 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
   (concat "*input/output of "
 	  (gdb-get-target-string)
 	  "*"))
+
+(defun gdb-display-inferior-io-buffer ()
+  "Display IO of inferior in a separate window."
+  (interactive)
+  (if gdb-use-inferior-io-buffer
+      (gdb-display-buffer
+       (gdb-get-create-buffer 'gdb-inferior-io))))
+
+(defun gdb-frame-inferior-io-buffer ()
+  "Display IO of inferior in a new frame."
+  (interactive)
+  (if gdb-use-inferior-io-buffer
+      (let ((special-display-regexps (append special-display-regexps '(".*")))
+	    (special-display-frame-alist gdb-frame-parameters))
+	(display-buffer (gdb-get-create-buffer 'gdb-inferior-io)))))
 
 (defvar gdb-inferior-io-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1372,9 +1388,9 @@ static char *magick[] = {
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
 	  (save-selected-window
-	    (let* ((buf (find-file-noselect (if (file-exists-p file)
-						file
-					      (cdr (assoc bptno gdb-location-list)))))
+	    (let* ((buf (find-file-noselect
+			 (if (file-exists-p file) file
+			   (cdr (assoc bptno gdb-location-list)))))
 		   (window (display-buffer buf)))
 	      (with-current-buffer buf
 		(goto-line (string-to-number line))
@@ -1810,26 +1826,26 @@ corresponding to the mode line clicked."
 	   "Read address: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
-		       'help-echo (purecopy "mouse-1: Set memory address")
-		       'local-map (purecopy (gdb-make-header-line-mouse-map
-					     'mouse-1
-					     #'gdb-memory-set-address)))
+		       'help-echo "mouse-1: Set memory address"
+		       'local-map (gdb-make-header-line-mouse-map
+				   'mouse-1
+				   #'gdb-memory-set-address))
 	   "  Repeat Count: "
 	   (propertize (number-to-string gdb-memory-repeat-count)
 		       'face font-lock-warning-face
-		       'help-echo (purecopy "mouse-1: Set repeat count")
-		       'local-map (purecopy (gdb-make-header-line-mouse-map
-					     'mouse-1
-					     #'gdb-memory-set-repeat-count)))
+		       'help-echo "mouse-1: Set repeat count"
+		       'local-map (gdb-make-header-line-mouse-map
+				   'mouse-1
+				   #'gdb-memory-set-repeat-count))
 	   "  Display Format: "
 	   (propertize gdb-memory-format
 		       'face font-lock-warning-face
-		       'help-echo (purecopy "mouse-3: Select display format")
+		       'help-echo "mouse-3: Select display format"
 		       'local-map gdb-memory-format-keymap)
 	   "  Unit Size: "
 	   (propertize gdb-memory-unit
 		       'face font-lock-warning-face
-		       'help-echo (purecopy "mouse-3: Select unit size")
+		       'help-echo "mouse-3: Select unit size"
 		       'local-map gdb-memory-unit-keymap))))
   (run-mode-hooks 'gdb-memory-mode-hook)
   'gdb-invalidate-memory)
@@ -1936,11 +1952,12 @@ corresponding to the mode line clicked."
   (let ((answer (get-buffer-window buf 0))
 	(must-split nil))
     (if answer
-	(display-buffer buf)		;Raise the frame if necessary.
+	(display-buffer buf nil 0)	;Raise the frame if necessary.
       ;; The buffer is not yet displayed.
       (pop-to-buffer gud-comint-buffer)	;Select the right frame.
       (let ((window (get-lru-window)))
-	(if window
+	(if (and window
+	    (not (eq window (get-buffer-window gud-comint-buffer))))
 	    (progn
 	      (set-window-buffer window buf)
 	      (setq answer window))
@@ -1965,6 +1982,9 @@ corresponding to the mode line clicked."
   (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
   (define-key menu [assembler] '("Machine" . gdb-display-assembler-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
+  (define-key menu [inferior]
+    '(menu-item "Inferior IO" gdb-display-inferior-io-buffer
+		:enable gdb-use-inferior-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer)))
@@ -1977,6 +1997,9 @@ corresponding to the mode line clicked."
   (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
   (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
+  (define-key menu [inferior]
+    '(menu-item "Inferior IO" gdb-frame-inferior-io-buffer
+		:enable gdb-use-inferior-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
   (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer)))
@@ -1985,11 +2008,21 @@ corresponding to the mode line clicked."
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
   (define-key menu [gdb-restore-windows]
-    '("Restore Window Layout" . gdb-restore-windows))
+  '(menu-item "Restore Window Layout" gdb-restore-windows
+	      :help "Restore standard layout for debug session."))
   (define-key menu [gdb-many-windows]
-    (menu-bar-make-toggle gdb-many-windows gdb-many-windows
-     "Display Other Windows" "Many windows %s"
-     "Toggle display of locals, stack and breakpoint information")))
+  '(menu-item "Display Other Windows" gdb-many-windows
+	      :help "Toggle display of locals, stack and breakpoint information"
+	      :button (:toggle . gdb-many-windows)))
+  (define-key menu [gdb-use-inferior-io]
+    (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
+			  gdb-use-inferior-io-buffer
+     "Separate inferior IO" "Use separate IO %s"
+     "Toggle separate IO for inferior.")))
+
+(defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
+  (unless gdb-use-inferior-io-buffer
+    (kill-buffer (gdb-inferior-io-name))))
 
 (defun gdb-frame-gdb-buffer ()
   "Display GUD buffer in a new frame."
@@ -2038,7 +2071,8 @@ corresponding to the mode line clicked."
   (when gdb-use-inferior-io-buffer
     (split-window-horizontally)
     (other-window 1)
-    (gdb-set-window-buffer (gdb-inferior-io-name)))
+    (gdb-set-window-buffer
+     (gdb-get-create-buffer 'gdb-inferior-io)))
   (other-window 1)
   (gdb-set-window-buffer (gdb-stack-buffer-name))
   (split-window-horizontally)
