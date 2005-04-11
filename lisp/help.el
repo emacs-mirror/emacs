@@ -586,7 +586,15 @@ the last key hit are used."
       ;; Ok, now look up the key and name the command.
       (let ((defn (or (string-key-binding key)
 		      (key-binding key)))
-	    (key-desc (help-key-description key untranslated)))
+	    key-desc)
+	;; Don't bother user with strings from (e.g.) the select-paste menu.
+	(if (stringp (aref key (1- (length key))))
+	    (aset key (1- (length key)) "(any string)"))
+	(if (stringp (aref untranslated (1- (length untranslated))))
+	    (aset untranslated (1- (length untranslated))
+		  "(any string)"))
+	;; Now describe the key, perhaps as changed.
+	(setq key-desc (help-key-description key untranslated))
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (princ (format "%s is undefined" key-desc))
 	  (princ (format (if (windowp window)
@@ -623,6 +631,12 @@ the last key hit are used."
 	(if (or (null defn) (integerp defn) (equal defn 'undefined))
 	    (message "%s is undefined" (help-key-description key untranslated))
 	  (help-setup-xref (list #'describe-function defn) (interactive-p))
+	  ;; Don't bother user with strings from (e.g.) the select-paste menu.
+	  (if (stringp (aref key (1- (length key))))
+	      (aset key (1- (length key)) "(any string)"))
+	  (if (stringp (aref untranslated (1- (length untranslated))))
+	      (aset untranslated (1- (length untranslated))
+		    "(any string)"))
 	  (with-output-to-temp-buffer (help-buffer)
 	    (princ (help-key-description key untranslated))
 	    (if (windowp window)

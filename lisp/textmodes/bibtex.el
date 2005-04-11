@@ -652,7 +652,7 @@ See `bibtex-generate-autokey' for details."
 
 (defcustom bibtex-autokey-titleword-ignore
   '("A" "An" "On" "The" "Eine?" "Der" "Die" "Das"
-    "[^A-Z].*" ".*[^A-Z0-9].*")
+    "[^[:upper:]].*" ".*[^[:upper:]0-9].*")
   "Determines words from the title that are not to be used in the key.
 Each item of the list is a regexp.  If a word of the title matches a
 regexp from that list, it is not included in the title part of the key.
@@ -1078,10 +1078,10 @@ The CDRs of the elements are t for header keys and nil for crossref keys.")
 (defconst bibtex-entry-type (concat "@" bibtex-field-name)
   "Regexp matching the type part of a BibTeX entry.")
 
-(defconst bibtex-reference-key "[][a-zA-Z0-9.:;?!`'/*@+|()<>&_^$-]+"
+(defconst bibtex-reference-key "[][[:alnum:].:;?!`'/*@+|()<>&_^$-]+"
   "Regexp matching the reference key part of a BibTeX entry.")
 
-(defconst bibtex-field-const "[][a-zA-Z0-9.:;?!`'/*@+=|<>&_^$-]+"
+(defconst bibtex-field-const "[][[:alnum:].:;?!`'/*@+=|<>&_^$-]+"
   "Regexp matching a BibTeX field constant.")
 
 (defconst bibtex-entry-head
@@ -2103,7 +2103,7 @@ and `bibtex-autokey-names-stretch'."
 (defun bibtex-autokey-demangle-name (fullname)
   "Get the last part from a well-formed FULLNAME and perform abbreviations."
   (let* (case-fold-search
-         (name (cond ((string-match "\\([A-Z][^, ]*\\)[^,]*," fullname)
+         (name (cond ((string-match "\\([[:upper:]][^, ]*\\)[^,]*," fullname)
                       ;; Name is of the form "von Last, First" or
                       ;; "von Last, Jr, First"
                       ;; --> Take the first capital part before the comma
@@ -2112,7 +2112,7 @@ and `bibtex-autokey-names-stretch'."
                       ;; Strange name: we have a comma, but nothing capital
                       ;; So we accept even lowercase names
                       (match-string 1 fullname))
-                     ((string-match "\\(\\<[a-z][^ ]* +\\)+\\([A-Z][^ ]*\\)"
+                     ((string-match "\\(\\<[[:lower:]][^ ]* +\\)+\\([[:upper:]][^ ]*\\)"
                                     fullname)
                       ;; name is of the form "First von Last", "von Last",
                       ;; "First von von Last", or "d'Last"
@@ -2796,7 +2796,7 @@ if that value is non-nil.
   (set (make-local-variable 'comment-start-skip)
        (concat (regexp-quote bibtex-comment-start) "\\>[ \t]*"))
   (set (make-local-variable 'comment-column) 0)
-  (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[a-zA-Z0-9]+[ \t]*")
+  (set (make-local-variable 'defun-prompt-regexp) "^[ \t]*@[[:alnum:]]+[ \t]*")
   (set (make-local-variable 'outline-regexp) "[ \t]*@")
   (set (make-local-variable 'fill-paragraph-function) 'bibtex-fill-field)
   (set (make-local-variable 'fill-prefix) (make-string (+ bibtex-entry-offset
@@ -2825,7 +2825,7 @@ if that value is non-nil.
   ;; XEmacs needs easy-menu-add, Emacs does not care
   (easy-menu-add bibtex-edit-menu)
   (easy-menu-add bibtex-entry-menu)
-  (run-hooks 'bibtex-mode-hook))
+  (run-mode-hooks 'bibtex-mode-hook))
 
 (defun bibtex-field-list (entry-type)
   "Return list of allowed fields for entry ENTRY-TYPE.

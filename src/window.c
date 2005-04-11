@@ -3173,6 +3173,9 @@ selects the buffer of the selected window before each command.  */)
   if (EQ (window, selected_window))
     return window;
 
+  /* Store the current buffer's actual point into the
+     old selected window.  It belongs to that window,
+     and when the window is not selected, must be in the window.  */
   if (!NILP (selected_window))
     {
       ow = XWINDOW (selected_window);
@@ -5638,8 +5641,9 @@ the return value is nil.  Otherwise the value is t.  */)
 #endif
 #endif
 
-      /* "Swap out" point from the selected window
-	 into its buffer.  We do this now, before
+      /* "Swap out" point from the selected window's buffer
+	 into the window itself.  (Normally the pointm of the selected
+	 window holds garbage.)  We do this now, before
 	 restoring the window contents, and prevent it from
 	 being done later on when we select a new window.  */
       if (! NILP (XWINDOW (selected_window)->buffer))
@@ -5789,10 +5793,11 @@ the return value is nil.  Otherwise the value is t.  */)
       FRAME_ROOT_WINDOW (f) = data->root_window;
       /* Prevent "swapping out point" in the old selected window
 	 using the buffer that has been restored into it.
-	 Use the point value from the beginning of this function
-	 since unshow_buffer (called from delete_all_subwindows)
-	 could have altered it.  */
+	 We already swapped out point that from that window's old buffer.  */
       selected_window = Qnil;
+
+      /* Arrange *not* to restore point in the buffer that was
+	 current when the window configuration was saved.  */
       if (EQ (XWINDOW (data->current_window)->buffer, new_current_buffer))
 	set_marker_restricted (XWINDOW (data->current_window)->pointm,
 			       make_number (old_point),

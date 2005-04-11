@@ -351,12 +351,15 @@ the next/previous matching line found by M-x occur.
 +++
 ** Telnet now prompts you for a port number with C-u M-x telnet.
 
-+++
-** New command line option -Q or --bare-bones.
+** New command line option -Q or --quick.
 
 This is like using -q --no-site-file, but in addition it also disables
-the menu-bar, the tool-bar, the scroll-bars, tool tips, the blinking
-cursor, and the fancy startup screen.
+the fancy startup screen.
+
+** New command line option -D or --basic-display.
+
+Disables the menu-bar, the tool-bar, the scroll-bars, tool tips, and
+the blinking cursor.
 
 +++
 ** New command line option -nbc or --no-blinking-cursor disables
@@ -1204,6 +1207,11 @@ amount of text shown any more (only a crude approximation of it).
 ---
 ** The pop up menus for Lucid now stay up if you do a fast click and can
 be navigated with the arrow keys (like Gtk+, Mac and W32).
+
++++
+** The Lucid menus can display multilingual text in your locale.  You have
+to explicitly specify a fontSet resource for this to work, for example
+`-xrm "Emacs*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*"'.
 
 ---
 ** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing

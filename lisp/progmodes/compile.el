@@ -1,7 +1,7 @@
 ;;; compile.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2003, 2004  Free Software Foundation, Inc.
+;;   2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Authors: Roland McGrath <roland@gnu.org>,
 ;;	    Daniel Pfeiffer <occitan@esperanto.org>
@@ -280,7 +280,18 @@ File = \\(.+\\), Line = \\([0-9]+\\)\\(?:, Column = \\([0-9]+\\)\\)?"
 
     (4bsd
      "\\(?:^\\|::  \\|\\S ( \\)\\(/[^ \n\t()]+\\)(\\([0-9]+\\))\
-\\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3)))
+\\(?:: \\(warning:\\)?\\|$\\| ),\\)" 1 2 nil (3))
+
+    (gcov-file
+     "^ +-:    \\(0\\):Source:\\(.+\\)$" 2 1 nil 0)    
+    (gcov-bb-file
+     "^ +-:    \\(0\\):Object:\\(?:.+\\)$" nil 1 nil 0)    
+    (gcov-never-called-line
+     "^ +\\(#####\\): +\\([0-9]+\\):.+$" nil 2 nil 2 nil 
+     (1 compilation-error-face))
+    (gcov-called-line
+     "^ +[-0-9]+: +\\([1-9]\\|[0-9]\\{2,\\}\\):.*$" nil 1 nil 0)
+)
   "Alist of values for `compilation-error-regexp-alist'.")
 
 (defcustom compilation-error-regexp-alist
@@ -464,6 +475,8 @@ starting the compilation process.")
 (defface compilation-info-face
   '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "Green1" :weight bold))
     (((class color) (min-colors 16) (background dark))
      (:foreground "Green" :weight bold))
     (((class color)) (:foreground "green" :weight bold))
@@ -1843,6 +1856,9 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME)."
 	  ;; than at the insertion point.  If that's not possible, then
 	  ;; don't use a marker.  --Stef
 	  (if (> pos (point-min)) (copy-marker (1- pos)) pos))))
+
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.gcov\\'" . compilation-mode))
 
 (provide 'compile)
 

@@ -84,14 +84,16 @@ file after merging new mail from an inbox file (@pxref{Rmail Inbox}).
 @findex rmail-quit
 @kindex b @r{(Rmail)}
 @findex rmail-bury
-  You can exit Rmail with @kbd{q} (@code{rmail-quit}); this expunges and
-saves the Rmail file and then switches to another buffer.  But there is
-no need to ``exit'' formally.  If you switch from Rmail to editing in
-other buffers, and never happen to switch back, you have exited.  (The
-Rmail command @kbd{b}, @code{rmail-bury}, does this for you.)  Just make
-sure to save the Rmail file eventually (like any other file you have
-changed).  @kbd{C-x s} is a good enough way to do this
-(@pxref{Saving}).
+  You can exit Rmail with @kbd{q} (@code{rmail-quit}); this expunges
+and saves the Rmail file, then buries the Rmail buffer as well as its
+summary buffer, if present (@pxref{Rmail Summary}).  But there is no
+need to ``exit'' formally.  If you switch from Rmail to editing in
+other buffers, and never happen to switch back, you have exited.  Just
+make sure to save the Rmail file eventually (like any other file you
+have changed).  @kbd{C-x s} is a good enough way to do this
+(@pxref{Saving}).  The Rmail command @kbd{b}, @code{rmail-bury},
+buries the Rmail buffer and its summary buffer without expunging and
+saving the Rmail file.
 
 @node Rmail Scrolling
 @section Scrolling Within a Message
@@ -255,8 +257,8 @@ current message and select another message.  @kbd{d}
 messages already deleted, while @kbd{C-d} (@code{rmail-delete-backward})
 moves to the previous nondeleted message.  If there is no nondeleted
 message to move to in the specified direction, the message that was just
-deleted remains current.  A numeric argument to either command reverses
-the direction of motion after deletion.
+deleted remains current.  @kbd{d} with a numeric argument is
+equivalent to @kbd{C-d}.
 
 @vindex rmail-delete-message-hook
   Whenever Rmail deletes a message, it runs the hook
@@ -317,7 +319,7 @@ means to use the default inbox.  The default inbox is
 or @file{/usr/mail/@var{username}}, depending on your operating system.
 
   To see what the default is on your system, use @kbd{C-h v
-rmail-primary-inbox @key{RET}}.  You can specify the inbox file(s) for
+rmail-primary-inbox-list @key{RET}}.  You can specify the inbox file(s) for
 any Rmail file with the command @code{set-rmail-inbox-list}; see
 @ref{Rmail Files}.
 
@@ -508,13 +510,14 @@ second says which files in that directory to offer (all those that match
 the regular expression).
 
 @vindex rmail-delete-after-output
-  Copying a message gives the original copy of the message the
-@samp{filed} attribute, so that @samp{filed} appears in the mode line
-when such a message is current.  If you like to keep just a single copy
-of every mail message, set the variable @code{rmail-delete-after-output}
-to @code{t}; then the @kbd{o} and @kbd{C-o} commands delete the original
-message after copying it.  (You can undelete the original afterward if
-you wish.)
+  Copying a message with @kbd{o} or @kbd{C-o} gives the original copy
+of the message the @samp{filed} attribute, so that @samp{filed}
+appears in the mode line when such a message is current.  @kbd{w}
+gives it the @samp{stored} attribute.  If you like to keep just a
+single copy of every mail message, set the variable
+@code{rmail-delete-after-output} to @code{t}; then the @kbd{o},
+@kbd{C-o} and @kbd{w} commands delete the original message after
+copying it.  (You can undelete the original afterward if you wish.)
 
   Copying messages into files in system inbox format uses the header
 fields that are displayed in Rmail at the time.  Thus, if you use the
@@ -567,7 +570,8 @@ Move to the next message that has one of the labels @var{labels}
 @item C-M-p @var{labels} @key{RET}
 Move to the previous message that has one of the labels @var{labels}
 (@code{rmail-previous-labeled-message}).
-@item C-M-l @var{labels} @key{RET}
+@item l @var{labels} @key{RET}
+@itemx C-M-l @var{labels} @key{RET}
 Make a summary of all messages containing any of the labels @var{labels}
 (@code{rmail-summary-by-labels}).
 @end table
@@ -626,7 +630,9 @@ Means the message is deleted.  Assigned by deletion commands and
 removed by undeletion commands (@pxref{Rmail Deletion}).
 @item filed
 Means the message has been copied to some other file.  Assigned by the
-file output commands (@pxref{Rmail Files}).
+@kbd{o} and @kbd{C-o} file output commands (@pxref{Rmail Output}).
+@item stored
+Assigned by the @kbd{w} file output command (@pxref{Rmail Output}).
 @item answered
 Means you have mailed an answer to the message.  Assigned by the @kbd{r}
 command (@code{rmail-reply}).  @xref{Rmail Reply}.
@@ -912,6 +918,12 @@ Move to previous line and select its message.
 Move to the last line, and select its message.
 @item <
 Move to the first line, and select its message.
+@item j
+@itemx @key{RET}
+Select the message on the current line (ensuring that the RMAIL buffer
+appears on the screen).  With argument @var{n}, select message number
+@var{n} and move to its line in the summary buffer; this signals an
+error if the message is not listed in the summary buffer.
 @item M-s @var{pattern} @key{RET}
 Search through messages for @var{pattern} starting with the current
 message; select the message found, and move point in the summary buffer
@@ -1263,7 +1275,7 @@ specifies the remote user name to use, @var{pass} may be used to
 specify the user password, @var{host-or-file-name} is the name or IP
 address of the remote mail server to connect to; e.g.,
 @code{pop://smith:guessme@@remote.server.net}.
- 
+
 @item imap
 A remote mailbox to be accessed via IMAP4 protocol.  @var{User}
 specifies the remote user name to use, @var{pass} may be used to
@@ -1287,7 +1299,7 @@ absolute file name of the @code{movemail} executable.  If it is
 @code{nil}, Rmail searches for @code{movemail} in the directories
 listed in @code{rmail-movemail-search-path} and @code{exec-path}, then
 in @code{exec-directory}.
-  
+
 @node Remote Mailboxes
 @section Retrieving Mail from Remote Mailboxes
 @pindex movemail
@@ -1317,11 +1329,11 @@ Additionally, you may specify the password in the mailbox @acronym{URL}:
 @samp{pop://@var{username}:@var{password}@@@var{hostname}}.  In this
 case, @var{password} takes preference over the one set by
 @code{rmail-remote-password}.  This is especially useful if you have
-several remote mailboxes with different passwords. 
+several remote mailboxes with different passwords.
 
   For backward compatibility Rmail also supports two alternative ways
 of specifying remote POP mailboxes.  Specifying inbox name in the form
-@samp{po:@var{username}:@var{hostname}} is equivalent to 
+@samp{po:@var{username}:@var{hostname}} is equivalent to
 @samp{pop://@var{username}@@@var{hostname}}.  Alternatively, you may set
 a ``file name'' of @samp{po:@var{username}} in the inbox list of an
 Rmail file.  @code{Movemail} will handle such a name by opening a
@@ -1333,7 +1345,7 @@ will in this case specify the machine to look for the server on.
 supported only by the @code{mailutils movemail}.  To specify an IMAP
 mailbox in the inbox list, use the following mailbox @acronym{URL}:
 @samp{imap://@var{username}[:@var{password}]@@@var{hostname}}.  The
-@var{password} part is optional, as descrbed above.
+@var{password} part is optional, as described above.
 
 @vindex rmail-remote-password
 @vindex rmail-remote-password-required
@@ -1343,10 +1355,10 @@ mailbox in the inbox list, use the following mailbox @acronym{URL}:
 following algorithm to retrieve it:
 
 @enumerate
-@item 
+@item
 If the @var{password} is present in mailbox URL (see above), it is
 used.
-@item 
+@item
 If the variable @code{rmail-remote-password} is non-@code{nil}, its
 value is used.
 @item

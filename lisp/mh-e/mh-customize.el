@@ -1,6 +1,6 @@
 ;;; mh-customize.el --- MH-E customization
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -2345,9 +2345,9 @@ The background and foreground is used in the image."
 
 (defface mh-speedbar-selected-folder-face
   '((((class color) (background light))
-     (:foreground "red" :underline t))
+     (:foreground "red1" :underline t))
     (((class color) (background dark))
-     (:foreground "red" :underline t))
+     (:foreground "red1" :underline t))
     (t (:underline t)))
   "Face used for the current folder."
   :group 'mh-speed-faces)

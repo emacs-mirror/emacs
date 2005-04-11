@@ -1,3 +1,198 @@
+2005-04-10  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-write-file): Catch errors writing file.
+	This is the same change as revision 1.30 of saveplace.el.
+
+2005-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-tail): Update copyright year.
+	(command-line): Split part of -Q into -D.
+	(emacs-basic-display): New defvar.
+	(fancy-splash-text): Correct name of menu item.
+
+	* saveplace.el (save-place-alist-to-file): Catch errors writing file.
+
+	* info.el (Info-fontify-node): Handle fontification of multiple * Menu
+	lines in one node.
+
+	* comint.el (comint-send-input): New arg ARTIFICIAL.
+	Callers in this file changed.
+
+	* abbrev.el (define-abbrevs): Read system abbrevs properly.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Clarify RET/q in help message.
+
+2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url/url-ldap.el (url-ldap): Add docstring.  Fix call to
+	`ldap-search-internal'.
+
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (set-auto-mode-1): Use line-end-position.
+
+	* international/latin-1.el:
+	* international/latin-2.el:
+	* international/latin-3.el:
+	* international/latin-4.el:
+	* international/latin-5.el:
+	* international/latin-8.el:
+	* international/latin-9.el: Give punctuation syntax to NBSP.
+
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore)
+	(bibtex-reference-key, bibtex-autokey-demangle-name, bibtex-mode):
+	Use char-classes to accept non-ascii letters, accepted in some recent
+	bibtex implementations.
+
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-set-minor-mode): Any non-nil value for the
+	variable should enable the mode when set through Custom.
+
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-mode-map-init): Don't override default
+	TAB binding so tab-always-indent is obeyed.
+	(vhdl-minibuffer-local-map): Move initialization into declaration.
+	(vhdl-mode-abbrev-table-init): Mark the abbrevs as `system'.
+	(vhdl-run-when-idle, vhdl-create-mode-menu, vhdl-character-to-event)
+	(vhdl-hooked-abbrev): Avoid test for XEmacs.
+	(vhdl-current-line): Use line-beginning-position.
+	(vhdl-doc-variable, vhdl-doc-mode): Call help-setup-xref before
+	with-output-to-temp-buffer, so the current position can be recorded.
+
+2005-04-10  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add regexp for gcov.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (time-to-seconds, seconds-to-time)
+	(days-to-time, time-subtract, time-add): Don't use the #xhhhh
+	syntax which Emacs 20 doesn't support.
+
+2005-04-09  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (describe-key-briefly, describe-key): Replace
+	strings as event types with "(any string)".
+
+2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-mode-map): Move initialization into
+	the declaration.  Override *all* bindings of `undo'.
+	(archive-lemacs): Remove, use (featurep 'xemacs) instead.
+
+2005-04-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-standard-units): Redefine Watt hour as W*hr.
+
+2005-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-rgb-convert-to-16bit): Simplify.
+	(xterm-register-default-colors): Update color values computation
+	to match xterm-200.
+
+2005-04-09  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (iso-latin-7): Fix the map.
+
+2005-04-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/lisp.el (defun-prompt-regexp)
+	(parens-require-spaces, buffer-end, end-of-defun)
+	(insert-parentheses): Doc fixes.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* comint.el (comint-highlight-prompt): Fix face spec.
+	* hi-lock.el (hi-green): Likewise.
+
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* cus-edit.el (custom-modified-face):
+	* comint.el (comint-highlight-input): Fix previous changes.
+	* term.el (term-handle-ansi-escape): Add a comment.
+
+2005-04-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* whitespace.el (whitespace-highlight-the-space): Put the same overlay
+	in the buffer and in whitespace-highlighted-space.
+	(whitespace-unhighlight-the-space): Simplify.
+	(whitespace-buffer): Simplify.
+
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* textmodes/table.el (table-cell-face): Add special case for
+	displays supporting a high number of colors.
+	* progmodes/vhdl-mode.el (vhdl-font-lock-prompt-face)
+	(vhdl-font-lock-reserved-words-face)
+	(vhdl-speedbar-architecture-face)
+	(vhdl-speedbar-instantiation-face)
+	(vhdl-speedbar-architecture-selected-face)
+	(vhdl-speedbar-instantiation-selected-face): Likewise.
+	* progmodes/sh-script.el (sh-heredoc-face): Likewise.
+	* progmodes/idlw-help.el (idlwave-help-link-face): Likewise.
+	* progmodes/ebrowse.el (ebrowse-tree-mark-face)
+	(ebrowse-root-class-face, ebrowse-member-attribute-face)
+	(ebrowse-progress-face): Likewise.
+	* progmodes/compile.el (compilation-info-face): Likewise.
+	* progmodes/cc-fonts.el (c-invalid-face): Likewise.
+	* emacs-lisp/re-builder.el (reb-match-3): Likewise.
+	* calendar/calendar.el (diary-face): Likewise.
+	* woman.el (woman-italic-face, woman-bold-face)
+	(woman-unknown-face): Likewise.
+	* wid-edit.el (widget-button-pressed-face): Likewise.
+	* whitespace.el (whitespace-highlight-face): Likewise.
+	* smerge-mode.el (smerge-mine-face, smerge-base-face): Likewise.
+	* pcvs-info.el (cvs-marked-face): Likewise.
+	* info.el (info-xref): Likewise.
+	* ido.el (ido-subdir-face, ido-indicator-face): Likewise.
+	* hilit-chg.el (highlight-changes-face)
+	(highlight-changes-delete-face): Likewise.
+	* hi-lock.el (hi-yellow, hi-green, hi-blue-b, hi-green-b)
+	(hi-red-b): Likewise.
+	* generic-x.el (show-tabs-tab-face, show-tabs-space-face): Likewise.
+	* font-lock.el (font-lock-keyword-face)
+	(font-lock-function-name-face, font-lock-warning-face): Likewise.
+	* cus-edit.el (custom-invalid-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-variable-tag-face)
+	(custom-group-tag-face-1, custom-group-tag-face): Likewise.
+	* comint.el (comint-highlight-prompt): Likewise.
+
+2005-04-08  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-keywords): Docstring fixes.
+
+2005-04-08  Kenichi Handa  <handa@m17n.org>
+
+	* ps-mule.el (ps-mule-show-warning): If the number of unprintable
+	chars are more than a limit, print " and more..." at the tail.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* emacs-lisp/authors.el (authors-aliases): Update list.
+	(authors-ignored-files): New list.
+	(authors-fixed-entries): Fix typo.
+	(authors-renamed-files-alist): Update list.
+	(authors-add): Check authors-ignored-files.
+
+2005-04-08  Carsten Dominik  <dominik@science.uva.nl>
+
+	* calendar/diary-lib.el (add-to-diary-list): MARKER argument made
+	optional, to ensure backward compatibility.
+
+2005-04-08  Stephen Eglen  <stephen@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-large-region): Doc fix.
+
+2005-04-08  Kim F. Storm  <storm@cua.dk>
+
+	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to
+	mouse-face.
+
+	* mouse.el (mouse-on-link-p): Doc fix.
+
 2005-04-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* ielm.el (ielm-prompt-read-only): Doc fix.

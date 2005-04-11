@@ -228,7 +228,8 @@ This variable is buffer-local."
   :group 'comint)
 
 (defface comint-highlight-prompt
-  '((((background dark)) (:foreground "cyan"))
+  '((((min-colors 88) (background dark)) (:foreground "cyan1"))
+    (((background dark)) (:foreground "cyan"))
     (t (:foreground "dark blue")))
   "Face to use to highlight prompts."
   :group 'comint)
@@ -1387,14 +1388,15 @@ Ignore duplicates if `comint-input-ignoredups' is non-nil."
 				  cmd))))
       (ring-insert comint-input-ring cmd)))
 
-(defun comint-send-input (&optional no-newline)
+(defun comint-send-input (&optional no-newline artificial)
   "Send input to process.
 After the process output mark, sends all text from the process mark to
 point as input to the process.  Before the process output mark, calls
 value of variable `comint-get-old-input' to retrieve old input, copies
-it to the process mark, and sends it.  A terminal newline is also
-inserted into the buffer and sent to the process unless NO-NEWLINE is
-non-nil.
+it to the process mark, and sends it.
+
+This command also sends and inserts a final newline, unless
+NO-NEWLINE is non-nil.
 
 Any history reference may be expanded depending on the value of the variable
 `comint-input-autoexpand'.  The list of function names contained in the value
@@ -1408,6 +1410,8 @@ end of line before sending the input.
 After the input has been sent, if `comint-process-echoes' is non-nil,
 then `comint-send-input' waits to see if the process outputs a string
 matching the input, and if so, deletes that part of the output.
+If ARTIFICIAL is non-nil, it inhibits such deletion.
+Callers sending input not from the user should use ARTIFICIAL = t.
 
 The values of `comint-get-old-input', `comint-input-filter-functions', and
 `comint-input-filter' are chosen according to the command interpreter running
@@ -1512,7 +1516,7 @@ Similarly for Soar, Scheme, etc."
 	    (funcall comint-input-sender proc input))
 
 	  ;; Optionally delete echoed input (after checking it).
- 	  (when comint-process-echoes
+ 	  (when (and comint-process-echoes (not artificial))
 	    (let ((echo-len (- comint-last-input-end
 			       comint-last-input-start)))
 	      ;; Wait for all input to be echoed:
@@ -2087,7 +2091,7 @@ Useful if you accidentally suspend the top-level process."
 This means mark it as if it had been sent as input, without sending it."
   (let ((comint-input-sender 'ignore)
 	(comint-input-filter-functions nil))
-    (comint-send-input t))
+    (comint-send-input t t))
   (end-of-line)
   (let ((pos (point))
 	(marker (process-mark (get-buffer-process (current-buffer)))))
@@ -2114,7 +2118,7 @@ Sends an EOF only if point is at the end of the buffer and there is no input."
 (defun comint-send-eof ()
   "Send an EOF to the current buffer's process."
   (interactive)
-  (comint-send-input t)
+  (comint-send-input t t)
   (process-send-eof))
 
 

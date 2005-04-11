@@ -141,6 +141,7 @@ Auto Revert Mode.")
   (define-key Buffer-menu-mode-map "V" 'Buffer-menu-view)
   (define-key Buffer-menu-mode-map "T" 'Buffer-menu-toggle-files-only)
   (define-key Buffer-menu-mode-map [mouse-2] 'Buffer-menu-mouse-select)
+  (define-key Buffer-menu-mode-map [follow-link] 'mouse-face)
 )
 
 ;; Buffer Menu mode is suitable only for specially formatted data.

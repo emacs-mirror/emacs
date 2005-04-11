@@ -221,10 +221,10 @@ Set this to nil if you don't want a modeline indicator."
 
 (defcustom flyspell-large-region 1000
   "*The threshold that determines if a region is small.
-The `flyspell-region' function is invoked if the region is small, the
-word are checked one after the other using regular flyspell check
-means.  If the region is large, a new Ispell process is spawned to get
-speed."
+If the region is smaller than this number of characters,
+`flyspell-region' checks the words sequentially using regular
+flyspell methods.  Else, if the region is large, a new Ispell process is
+spawned for speed."
   :group 'flyspell
   :version "21.1"
   :type 'number)

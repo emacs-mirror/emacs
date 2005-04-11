@@ -1,6 +1,6 @@
 ;;; latin-4.el --- set up case-conversion and syntax tables for ISO Latin-4
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2005  Free Software Foundation, Inc.
 
 ;; Author: Erik Naggum
 ;; Maintainer: FSF
@@ -36,7 +36,9 @@
        (if set-case-syntax-set-multibyte
 	   (- (make-char 'latin-iso8859-4) 128)
 	 0)))
-  (set-case-syntax 160 " " tbl)		;no-break space
+  ;; NBSP isn't semantically interchangeable with other whitespace chars,
+  ;; so it's more like punctation.
+  (set-case-syntax 160 "." tbl)		;no-break space
   (set-case-syntax-pair 161 177 tbl)	;latin letter a with ogonek
   (set-case-syntax 162 "w" tbl)		;latin letter kra
   (set-case-syntax-pair 163 179 tbl)	;latin letter r with cedilla
@@ -98,11 +100,11 @@
 (or set-case-syntax-set-multibyte
     (provide 'latin-4))
 
-;;; Don't compile this file: src/Makefile.in instructs make-docfile
-;;; to look at the .el file!
-;;; Local Variables:
-;;; no-byte-compile: t
-;;; End:
+;; Don't compile this file: src/Makefile.in instructs make-docfile
+;; to look at the .el file!
+;; Local Variables:
+;; no-byte-compile: t
+;; End:
 
-;;; arch-tag: c6b2558b-1943-4626-beb5-139630c8e352
+;; arch-tag: c6b2558b-1943-4626-beb5-139630c8e352
 ;;; latin-4.el ends here

@@ -841,8 +841,8 @@ but if `custom-local-buffer' is non-nil,
 this sets the local binding in that buffer instead."
   (if custom-local-buffer
       (with-current-buffer custom-local-buffer
-	(funcall variable (or value 0)))
-    (funcall variable (or value 0))))
+	(funcall variable (if value 1 0)))
+    (funcall variable (if value 1 0))))
 
 (defun custom-quote (sexp)
   "Quote SEXP iff it is not self quoting."

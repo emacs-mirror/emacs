@@ -1,3 +1,136 @@
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* mm-util.el (mm-string-to-multibyte): New function.
+	(mm-detect-coding-region): Typo.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-util.el (mm-coding-system-p): Don't return binary for the nil
+	argument in XEmacs.
+
+	* nnrss.el (nnrss-compatible-encoding-alist): New variable.
+	(nnrss-request-group): Decode group name first.
+	(nnrss-request-article): Make a text/plain article if mml-to-mime
+	failed.
+	(nnrss-get-encoding): Return a compatible encoding according to
+	nnrss-compatible-encoding-alist.
+	(nnrss-opml-export): Use dolist.
+	(nnrss-find-el): Use consp instead of listp.
+	(nnrss-order-hrefs): Use dolist.
+
+2005-04-06  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* nnrss.el (nnrss-verbose): Remove.
+	(nnrss-request-group): Use `nnheader-message' instead.
+
+2005-04-06  Mark Plaksin  <happy@usg.edu>  (tiny change)
+
+	* nnrss.el (nnrss-verbose): New variable.
+	(nnrss-request-group): Make it say nnrss is requesting a group.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-agent-group-path): Decode group name.
+	(gnus-agent-group-pathname): Ditto.
+
+	* gnus-cache.el (gnus-cache-file-name): Decode group name.
+
+	* gnus-group.el (gnus-group-line-format-alist): Use decoded group
+	name for only %g and %c.
+	(gnus-group-insert-group-line): Bind gnus-tmp-decoded-group
+	instead of gnus-tmp-group to decoded group name.
+	(gnus-group-make-group): Decode group name.
+	(gnus-group-delete-group): Ditto.
+	(gnus-group-make-rss-group): Exclude `/'s from group names;
+	register the group data after opening the nnrss group; unify
+	non-ASCII group names; encode group name.
+	(gnus-group-catchup-current): Decode group name.
+	(gnus-group-expire-articles-1): Ditto.
+	(gnus-group-set-current-level): Ditto.
+	(gnus-group-kill-group): Ditto.
+
+	* gnus-spec.el (gnus-update-format-specifications): Flush the
+	group format spec cache if it doesn't support decoded group names.
+
+	* mm-url.el (mm-url-predefined-programs): Add --silent arg to curl.
+
+	* nnrss.el: Require rfc2047 and mml.
+	(nnrss-file-coding-system): New variable.
+	(nnrss-format-string): Redefine it as an inline function.
+	(nnrss-decode-group-name): New function.
+	(nnrss-string-as-multibyte): Remove.
+	(nnrss-retrieve-headers): Decode group name; don't use
+	nnrss-format-string.
+	(nnrss-request-group): Decode group name.
+	(nnrss-request-article): Decode group name; allow a Message-ID as
+	well as an article number; don't use nnrss-format-string; encode a
+	Message-ID string which may contain non-ASCII characters; use
+	mml-to-mime to compose a MIME article; use search-forward instead
+	of re-search-forward.
+	(nnrss-request-expire-articles): Decode group name.
+	(nnrss-request-delete-group): Delete entries in nnrss-group-alist
+	as well; decode group name.
+	(nnrss-get-encoding): Fix regexp.
+	(nnrss-fetch): Clarify error message.
+	(nnrss-read-server-data): Use insert-file-contents instead of load;
+	bind file-name-coding-system; use multibyte buffer.
+	(nnrss-save-server-data): Insert newline; bind
+	coding-system-for-write to the value of nnrss-file-coding-system;
+	bind file-name-coding-system; add coding cookie.
+	(nnrss-read-group-data): Use insert-file-contents instead of load;
+	bind file-name-coding-system; use multibyte buffer.
+	(nnrss-save-group-data): Bind coding-system-for-write to the
+	value of nnrss-file-coding-system; bind file-name-coding-system.
+	(nnrss-decode-entities-string): Rename from n-d-e-unibyte-string;
+	make it work with non-ASCII text.
+	(nnrss-opml-export): Use mm-set-buffer-file-coding-system instead
+	of set-buffer-file-coding-system.
+	(nnrss-find-el): Check carefully whether there's a list of string
+	which old xml.el may return rather than a string; make it work
+	with old xml.el as well.
+
+2005-04-06  Tsuyoshi AKIHO  <akiho@kawachi.zaq.ne.jp>
+
+	* gnus-sum.el (gnus-summary-walk-group-buffer): Decode group name.
+
+	* nnrss.el (nnrss-get-encoding): New function.
+	(nnrss-fetch): Use unibyte buffer initially; bind
+	coding-system-for-read while performing mm-url-insert; remove ^Ms;
+	decode contents according to the encoding attribute.
+	(nnrss-save-group-data): Add coding cookie.
+	(nnrss-mime-encode-string): New function.
+	(nnrss-check-group): Use it to encode subject and author.
+
+2005-04-06  Maciek Pasternacki  <maciekp@japhy.fnord.org>  (tiny change)
+
+	* nnrss.el (nnrss-fetch): Signal an error if w3-parse-buffer also
+	failed.
+
+2005-04-06  Jesper Harder  <harder@ifa.au.dk>
+
+	* mm-util.el (mm-subst-char-in-string): Support inplace.
+
+	* nnrss.el: Pedantic docstring and whitespace fixes (courtesy of
+	checkdoc.el).
+	(nnrss-request-article): Cleanup.
+	(nnrss-request-delete-group): Use nnrss-make-filename.
+	(nnrss-read-server-data): Use nnrss-make-filename; use load.
+	(nnrss-save-server-data): Use nnrss-make-filename; use gnus-prin1.
+	(nnrss-read-group-data): Fix off-by-one error.  From Joakim Verona
+	<joakim@verona.se>; hash on description if link is missing; use
+	nnrss-make-filename; use load.
+	(nnrss-save-group-data): Use nnrss-make-filename; use gnus-prin1.
+	(nnrss-make-filename): New function.
+	(nnrss-close): New function.
+	(nnrss-check-group): Hash on description if link is missing.
+	(nnrss-get-namespace-prefix): Use string= to compare strings!
+	Reported by David D. Smith <davidsmith@acm.org>.
+	(nnrss-opml-export): Turn on sgml-mode.
+
+2005-04-06  Mark A. Hershberger  <mah@everybody.org>
+
+	* nnrss.el (nnrss-opml-import, nnrss-opml-export): New functions.
+
 2005-04-04  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* message.el (message-make-date): Add defvars in order to silence
@@ -503,7 +636,7 @@
 
 2004-11-04  Katsumi Yamaoka  <yamaoka@jpl.org>
 
-	* gnus-art. (gnus-article-edit-article): Don't associate the
+	* gnus-art.el (gnus-article-edit-article): Don't associate the
 	article buffer with a draft file.  This is a temporary measure
 	against the 2004-08-22 change to gnus-article-edit-mode.
 

@@ -1,6 +1,6 @@
 ;;; calc-units.el --- unit conversion functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -137,7 +137,7 @@
     ( men     "100/invcm"	     "Inverse energy in meters" )
     ( Hzen    "h Hz"		     "Energy in Hertz")
     ( Ken     "k K"		     "Energy in Kelvins")
-    ( Wh      "W h"                 "Watt hour")
+    ( Wh      "W hr"                 "Watt hour")
     ( Ws      "W s"                 "Watt second")
 
     ;; Power

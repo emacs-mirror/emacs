@@ -1,3 +1,8 @@
+2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* mh-customize.el (mh-speedbar-selected-folder-face): Special case
+	high number of colors displays.
+
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
 	* mh-e.el, mh-identity.el, mh-mime.el: Replace `legal' with `valid'.
@@ -85,18 +90,18 @@
 2004-08-15  Bill Wohler  <wohler@newt.com>
 
 	* Released MH-E version 7.4.80.
-     
+
 	* MH-E-NEWS, README: Updated for release 7.4.80.
-     
+
 	* mh-e.el (Version, mh-version): Updated for release 7.4.80.
-	
+
 2004-08-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-funcs.el, mh-gnus.el, mh-inc.el, mh-init.el, mh-junk.el,
 	mh-pick.el, mh-print.el, mh-xemacs.el: Added 2004 to Copyright.
 
 	* mh-acros.el, mh-alias.el: Checkdoc fixes.
-	
+
 2004-08-12  Satyaki Das  <satyaki@theforce.stanford.edu>
 
 	* mh-acros.el (cl): Load cl in this file. That is all right, since
@@ -130,7 +135,7 @@
 	do a good job of suppressing compilation warnings in 21.3 and CVS
 	Emacs (21.4). This replaces (require 'cl) or (require
 	'utils) (mh-require-cl) calls:
-	
+
 	  (eval-when-compile (require 'mh-acros))
           (mh-require-cl)
 
@@ -151,7 +156,7 @@
 
 	* mh-seq.el (mh-thread-message, mh-thread-container): Use
 	mh-defstruct instead of defstruct.
-	(mh-thread-id-container, mh-thread-get-message-container) 
+	(mh-thread-id-container, mh-thread-get-message-container)
 	(mh-thread-get-message): Use the slightly different structure
 	constructor function.
 
@@ -240,8 +245,8 @@
 	programs are run in background. Running in foreground can be slow.
 	Defaults to nil to spare machines with little memory.
 
-	* mh-junk.el (mh-spamassassin-blacklist, mh-bogofilter-blacklist) 
-	(mh-bogofilter-whitelist, mh-spamprobe-blacklist) 
+	* mh-junk.el (mh-spamassassin-blacklist, mh-bogofilter-blacklist)
+	(mh-bogofilter-whitelist, mh-spamprobe-blacklist)
 	(mh-spamprobe-whitelist): Use new option mh-junk-background.
 
 2004-07-25  Satyaki Das  <satyaki@theforce.stanford.edu>
@@ -266,7 +271,7 @@
 	* mh-customize.el (mh-invisible-header-fields-internal): Added
 	header fields emitted by T-Mobile picture phones (X-Mms-*, and
 	commented out X-Operator field saying it's like X-Mailer).
-	
+
 2004-07-12  Bill Wohler  <wohler@newt.com>
 
 	* mh-gnus.el: Set local variables indent-tabs-mode and
@@ -306,7 +311,7 @@
 
 	* mh-init.el (mh-variant-set, mh-sys-path, mh-variant-mu-mh-info):
 	Prefer GNU mailutils over GNU Mailutils MH.
-	
+
 	* mh-comp.el (sc-cite-original, mh-smail, mh-smail-batch)
 	(mh-edit-again, mh-extract-rejected-mail, mh-forward)
 	(mh-smail-other-window, mh-reply, mh-send, mh-send-other-window):
@@ -325,8 +330,8 @@
 	* MH-E-NEWS, README: Updated for release 7.4.4.
 
 	* mh-e.el (Version, mh-version): Updated for release 7.4.4.
-	
-	* This patch release contains the following patches:
+
+	This patch release contains the following patches:
 
 	* mh-xemacs.el: New file from concatenation of mh-xemacs-compat.el
 	and mh-xemacs-icons.el which were removed since their names
@@ -390,9 +395,9 @@
 	(require 'mouse): To shush compiler.
 
 	* Use new function mh-require-cl throughout.
-	
+
 	* Add arch taglines (courtesy Miles Bader).
-	
+
 	* mh-unit.el (mh-unit-files): Replaced mh-xemacs-compat.el and
 	mh-xemacs-icons.el with mh-xemacs.el.
 
@@ -409,10 +414,10 @@
 
 2004-07-07  Stephen Gildea
 
-	* mh-customize.el (mh-invisible-header-fields-internal): 
+	* mh-customize.el (mh-invisible-header-fields-internal):
 	Add X-Greylist, X-Source*, and X-WebTV-Signature.
 	Replace specific X-Spam-* headers with general pattern.
-	
+
 2004-06-15  Bill Wohler  <wohler@newt.com>
 
 	* README: Vladimir Ivanovic reports that mh-rmail works with
@@ -438,7 +443,7 @@
 
 2004-04-07  Satyaki Das  <satyaki@theforce.stanford.edu>
 
-	* mh-mime.el (mh-insert-mime-button) 
+	* mh-mime.el (mh-insert-mime-button)
 	(mh-insert-mime-security-button): Add evaporate property to
 	overlays used in MIME part buttons.  This avoids problems with
 	CVS Emacs.
@@ -459,10 +464,10 @@
 
 2003-12-26  Jeffrey C Honig  <jch@honig.net>
 
-	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist) 
-	(mh-spamassassin-blacklist, mh-spamassassin-blacklist) 
-	(mh-spamassassin-blacklist, mh-spamassassin-whitelist) 
-	(mh-spamassassin-whitelist, mh-bogofilter-blacklist) 
+	* mh-junk.el (mh-junk-blacklist, mh-junk-whitelist)
+	(mh-spamassassin-blacklist, mh-spamassassin-blacklist)
+	(mh-spamassassin-blacklist, mh-spamassassin-whitelist)
+	(mh-spamassassin-whitelist, mh-bogofilter-blacklist)
 	(mh-spamprobe-blacklist): Add progress messages.  Change "Couldn't"
 	to "Unable" in error messages.  Run bogofilter and spamprobe in
 	the foreground to prevent a large number of processes from
@@ -536,9 +541,9 @@
 	* MH-E-NEWS, README: Updated for release 7.4.3.
 
 	* mh-e.el (Version, mh-version): Updated for release 7.4.3.
-	
+
 	* This patch release contains the following two patches:
-	
+
 	* mh-identity.el (mh-identity-make-menu): Removed condition on
 	mh-auto-fields-list. Use it to enable or disable menu item
 	instead.
@@ -576,10 +581,10 @@
 
 2003-11-14  Mark D. Baushke  <mdb@gnu.org>
 
-	* mh-customize.el (mh-invisible-header-fields-internal): 
+	* mh-customize.el (mh-invisible-header-fields-internal):
 	Add X-AntiAbuse and X-MailScanner.
 	(Patch from Stephen Gildea.)
-	
+
 2003-11-13  Peter S Galbraith  <psg@debian.org>
 
 	* mh-identity.el (mh-identity-handler-attribution-verb): New
@@ -689,14 +694,14 @@
 
 2003-11-02  Jeffrey C Honig  <jch@honig.net>
 
-	* mh-loaddefs.el: Regenerated.	
+	* mh-loaddefs.el: Regenerated.
 
 	* mh-funcs.el (mh-print-msg): Move to mh-print.el.
 
 	* mh-e.el (mh-folder-mode-map): Add mh-print-msg ("l") back, it
 	will print a message that this usage is deprecated.
 
-	* mh-print.el (require, mh-ps-print-msg, mh-ps-print-msg-file): 
+	* mh-print.el (require, mh-ps-print-msg, mh-ps-print-msg-file):
 	Require mh-funcs for mh-note-printed.  PS print functions were not
 	setting the printed notation.  Move mh-print-msg here for
 	consistency.  Print message if mh-print-msg invoked via deprecated
@@ -790,7 +795,7 @@
 	(custom-load.elc): Allow for '-no-autoloads'.
 	(compile-xemacs): New.  It allows for the '-no-autoloads' option
 	and byte-compiles all the source files with a single instance of
-	XEmacs. 
+	XEmacs.
 
 	* mh-e.el (mh-folder-mode): Only load the toolbar in XEmacs if
 	toolbar support is available.
@@ -874,7 +879,7 @@
 2003-10-09  Peter S Galbraith  <psg@debian.org>
 
 	* mh-customize.el (mail-citation-hook): Moved from mh-comp.el and
-	made into a defcustom. 
+	made into a defcustom.
 
 2003-10-09  Satyaki Das  <satyakid@stanford.edu>
 
@@ -938,10 +943,10 @@
 	parenthetical comment.
 
 	* mh-loaddefs.el: Regenerated.
-	
+
 	* mh-customize.el (mh-mml-method-default): What method should be
 	used in secure directives.
-	
+
 	* mh-mime.el (mh-secure-message): New function used to generate
 	the mml security tags.
 	(mh-mml-unsecure-message): New wrapper function around
@@ -1061,7 +1066,7 @@
 
 	* mh-customize.el (mh-identity-handlers): New defcustom.  Alist of
 	Handler functions for mh-identity (downcased) fields.
-	(mh-identity-list): Add support for pgg-default-user-id.	
+	(mh-identity-list): Add support for pgg-default-user-id.
 
 	* mh-identity.el (mh-insert-identity): Modified to use
 	`mh-identity-handlers', adding hacking flexibility for those who
@@ -1084,7 +1089,7 @@
 	(mh-header-field-delete): Make more robust wrt the field having a
 	trailing colon or not.
 	(mh-identity-make-menu): Add a "Customize Identities" menu entry.
-	
+
 	* mh-loaddefs.el: Regenerated.
 
 2003-09-21  Peter S Galbraith  <psg@debian.org>
@@ -1093,7 +1098,7 @@
 	with version numbers.
 
 	* mh-e.el (mh-scan-format): patch from Sergey Poznyakoff.
-	GNU mailutils now supports the %(decode) format 
+	GNU mailutils now supports the %(decode) format
 
 2003-09-20  Satyaki Das  <satyakid@stanford.edu>
 
@@ -1422,7 +1427,7 @@
 	* mh-utils.el (mh-find-path): Run setup code only if
 	`mh-find-path-run' is nil such that this is only done once.
 	Also remove the `setq' for `read-mail-command' and `mail-user-agent'.
-	
+
 2003-08-18  Peter S Galbraith  <psg@debian.org>
 
 	* mh-e.el: require 'mh-utils first
@@ -1441,16 +1446,16 @@
 	(mh-path-search): Deleted.  Was only used by `mh-find-progs'.
 
 	* mh-e.el: require mh-init.el.
-	(mh-version): Use simpler `mh-variant-in-use'.	
+	(mh-version): Use simpler `mh-variant-in-use'.
 	(mh-scan-format): Use (mh-variant-p 'nmh) instead of mh-nmh-flag.
 
 	* mh-comp.el (mh-insert-x-mailer): Use simpler `mh-variant-in-use'.
 
-	* mh-utils.el (mh-progs, mh-lib, mh-lib-progs) 
+	* mh-utils.el (mh-progs, mh-lib, mh-lib-progs)
 	(mh-flists-present-flag): Moved to mh-init.el.
 	(mh-nmh-flag): Deleted.  Use (mh-variant-p 'nmh) instead.
 
-	* mh-comp.el (mh-repl-group-formfile, mh-forward, mh-reply) 
+	* mh-comp.el (mh-repl-group-formfile, mh-forward, mh-reply)
 	(mh-send-letter): Use (mh-variant-p 'nmh) instead of mh-nmh-flag.
 
 	* mh-mime.el (mh-edit-mhn, mh-mime-save-parts): Use (mh-variant-p
@@ -1484,7 +1489,7 @@
 	(mh-variant-in-use, mh-variant-p): Developers may check which
         variant is currently in use with the variable `mh-variant-in-use'
         or the function `mh-variant-p'.
-	
+
 2003-08-15  Bill Wohler  <wohler@newt.com>
 
 	* mh-customize.el (mh-auto-fields-list): The manual uses Fcc
@@ -1653,7 +1658,7 @@
 
 	* mh-identity.el (mh-insert-identity): Refactor to use
 	mh-insert-signature
-	
+
 	* mh-comp.el (mh-signature-separator-p): Removed.
 
 	* mh-comp.el (mh-insert-signature): Merge MIME awareness from
@@ -1724,8 +1729,8 @@
 	* mh-funcs.el (mh-undo-folder): Ditto.
 
 	* mh-mime.el (mh-mime-save-parts): Ditto.
-	
-	* mh-seq.el (mh-subject-to-sequence-unthreaded) 
+
+	* mh-seq.el (mh-subject-to-sequence-unthreaded)
 	(mh-narrow-to-subject, mh-delete-subject): Ditto.
 
 	* mh-index.el (mh-index-sequenced-messages)
@@ -2021,7 +2026,7 @@
 	(mh-unit-equal): New function that throws an error if RESULT
 	doesn't equal EXPECTED.
 	(mh-unit): Call mh-unit-x-image-url-cache-canonicalize.
-	
+
 2003-07-29  Satyaki Das  <satyakid@stanford.edu>
 
 	* mh-unit.el (mh-unit-update-call-graph): Make the function work
@@ -2159,10 +2164,10 @@
 	hoping to quote the hint `t' but checkdoc wouldn't let me.
 	(mh-note-deleted, mh-note-refiled, mh-note-cur): Moved to Scan
 	Line Formats section.
-	(mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp) 
-	(mh-scan-refiled-msg-regexp, mh-scan-valid-regexp) 
-	(mh-scan-cur-msg-number-regexp, mh-scan-date-regexp) 
-	(mh-scan-rcpt-regexp, mh-scan-body-regexp) 
+	(mh-scan-good-msg-regexp, mh-scan-deleted-msg-regexp)
+	(mh-scan-refiled-msg-regexp, mh-scan-valid-regexp)
+	(mh-scan-cur-msg-number-regexp, mh-scan-date-regexp)
+	(mh-scan-rcpt-regexp, mh-scan-body-regexp)
 	(mh-scan-subject-regexp, mh-scan-format-regexp): Cleaned
 	up docstrings (changed phrases to sentences).
 	(mh-scan-cur-msg-regexp): Marked this variable as obsolete; it
@@ -2350,7 +2355,7 @@
 	* mh-utils.el (mh-replace-in-string): New function name instead of
 	`dired-replace-in-string'.
 	* mh-alias.el (mh-alias-gcos-name): Use it.
-	
+
 	* mh-alias.el (mh-alias-apropos): New command. Show all aliases
 	that match REGEXP either in name or content.
 
@@ -2374,7 +2379,7 @@
 2003-06-02  Peter S Galbraith  <psg@debian.org>
 
 	* mh-utils.el (dired-replace-in-string): Bind if not already
-	defined.  Borrowed from dired.el 
+	defined.  Borrowed from dired.el
 
 	* mh-alias.el (mh-alias-gcos-name): switch to using
 	dired-replace-in-string.
@@ -2425,7 +2430,7 @@
 	second time.  I have wrapped the value around \b word delimiters.
 	Hope there are no side effects for other code.
 
-	* mh-comp.el (mh-insert-auto-fields): Attempt regardless of 
+	* mh-comp.el (mh-insert-auto-fields): Attempt regardless of
 	`mh-insert-auto-fields-done-local' flag in interactive use.
 
 	* mh-comp.el (mh-insert-auto-fields-done-local): Keep track of
@@ -3153,7 +3158,7 @@
 	* mh-e.el (mh-folder-map): Add "F'" to the map for
 	mh-index-ticked-messages.
 	(mh-help-messages): Replace broken [t]hread with [n]ew messages.
-	
+
 	* mh-customize.el (mh-index-ticked-messages-folders): New user
 	customizable flag that controls the folders to be searched by
 	mh-index-ticked-messages.
@@ -3224,7 +3229,7 @@
 	* mh-unit.el (mh-unit): As it turns out, lm-crack-copyright has
 	been updated to handle multiple-line copyrights in 21.3, so
 	updated code to run lm-verify only if user has 21.3 or greater.
-	Delete buffers after use, unless user already had buffer open.	
+	Delete buffers after use, unless user already had buffer open.
 
 2003-04-27  Satyaki Das  <satyakid@stanford.edu>
 
@@ -3433,7 +3438,7 @@
 	'mh-customize'.
 
 	* mh-customize.el: Require 'mh-xemacs-icons' instead of
-	'mh-xemacs-toolbar'. 
+	'mh-xemacs-toolbar'.
 
 2003-04-17  Peter S Galbraith  <psg@debian.org>
 
@@ -10928,9 +10933,9 @@
 	$(EMACS_HOME)/src.
 	(dist): Leave release in current directory.
 
- 
-Copyright (C) 2003, 2004 Free Software Foundation, Inc.
-	
+
+Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.

@@ -779,7 +779,10 @@ See `sh-feature'.")
 ;; Font-Lock support
 
 (defface sh-heredoc-face
-  '((((class color)
+  '((((min-colors 88) (class color)
+      (background dark))
+     (:foreground "yellow1" :weight bold))
+    (((class color)
       (background dark))
      (:foreground "yellow" :weight bold))
     (((class color)

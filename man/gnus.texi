@@ -15873,13 +15873,44 @@ changes to a wiki (e.g. @url{http://cliki.net/recent-changes.rdf}).
 @acronym{RSS} has a quite regular and nice interface, and it's
 possible to get the information Gnus needs to keep groups updated.
 
+Note: you had better use Emacs which supports the @code{utf-8} coding
+system because @acronym{RSS} uses UTF-8 for encoding non-@acronym{ASCII}
+text by default.  It is also used by default for non-@acronym{ASCII}
+group names.
+
 @kindex G R (Summary)
-Use @kbd{G R} from the summary buffer to subscribe to a feed---you
-will be prompted for the location of the feed.
+Use @kbd{G R} from the summary buffer to subscribe to a feed---you will
+be prompted for the location, the title and the description of the feed.
+The title, which allows any characters, will be used for the group name
+and the name of the group data file.  The description can be omitted.
 
 An easy way to get started with @code{nnrss} is to say something like
 the following in the group buffer: @kbd{B nnrss RET RET y}, then
 subscribe to groups.
+
+The @code{nnrss} back end saves the group data file in
+@code{nnrss-directory} (see below) for each @code{nnrss} group.  File
+names containing non-@acronym{ASCII} characters will be encoded by the
+coding system specified with the @code{nnmail-pathname-coding-system}
+variable.  If it is @code{nil}, in Emacs the coding system defaults to
+the value of @code{default-file-name-coding-system}.  If you are using
+XEmacs and want to use non-@acronym{ASCII} group names, you should set
+the value for the @code{nnmail-pathname-coding-system} variable properly.
+
+@cindex OPML
+You can also use the following commands to import and export your
+subscriptions from a file in @acronym{OPML} format (Outline Processor
+Markup Language).
+
+@defun nnrss-opml-import file
+Prompt for an @acronym{OPML} file, and subscribe to each feed in the
+file.
+@end defun
+
+@defun nnrss-opml-export
+Write your current @acronym{RSS} subscriptions to a buffer in
+@acronym{OPML} format.
+@end defun
 
 The following @code{nnrss} variables can be altered:
 
@@ -15888,6 +15919,13 @@ The following @code{nnrss} variables can be altered:
 @vindex nnrss-directory
 The directory where @code{nnrss} stores its files.  The default is
 @file{~/News/rss/}.
+
+@item nnrss-file-coding-system
+@vindex nnrss-file-coding-system
+The coding system used when reading and writing the @code{nnrss} groups
+data files.  The default is the value of
+@code{mm-universal-coding-system} (which defaults to @code{emacs-mule}
+in Emacs or @code{escape-quoted} in XEmacs).
 
 @item nnrss-use-local
 @vindex nnrss-use-local

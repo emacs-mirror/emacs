@@ -1,6 +1,6 @@
 ;;; cc-fonts.el --- font lock support for CC Mode
 
-;; Copyright (C) 2002, 03 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Authors:    2003- Alan Mackenzie
 ;;             2002- Martin Stjernholm
@@ -194,7 +194,7 @@
 (unless (c-face-name-p c-invalid-face-name)
   (defconst c-invalid-face 'c-invalid-face) ; Necessary in Emacs 19.
   (defface c-invalid-face
-    '((((class color) (background light)) (:foreground "red"))
+    '((((class color) (background light)) (:foreground "red1"))
       (((class color)) (:foreground "hotpink"))
       (t (:inverse-video t)))
     "Face used to highlight invalid syntax."

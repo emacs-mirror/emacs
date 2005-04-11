@@ -1,5 +1,5 @@
 ;;; gnus-agent.el --- unplugged support for Gnus
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1371,7 +1371,7 @@ downloaded into the agent."
         (nnheader-translate-file-chars
          (nnheader-replace-duplicate-chars-in-string
           (nnheader-replace-chars-in-string
-           (gnus-group-real-name group)
+           (gnus-group-real-name (gnus-group-decoded-name group))
            ?/ ?_)
           ?. ?_)))
   (if (or nnmail-use-long-file-names
@@ -1387,8 +1387,10 @@ downloaded into the agent."
   ;; unplugged.  The agent must, therefore, use the same directory
   ;; while plugged.
   (let ((gnus-command-method (or gnus-command-method
-                                 (gnus-find-method-for-group group))))
-    (nnmail-group-pathname (gnus-group-real-name group) (gnus-agent-directory))))
+				 (gnus-find-method-for-group group))))
+    (nnmail-group-pathname (gnus-group-real-name
+			    (gnus-group-decoded-name group))
+			   (gnus-agent-directory))))
 
 (defun gnus-agent-get-function (method)
   (if (gnus-online method)

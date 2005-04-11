@@ -1,5 +1,5 @@
 ;;; url-ldap.el --- LDAP Uniform Resource Locator retrieval code
-;; Copyright (c) 1998 - 1999, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1998, 1999, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Keywords: comm, data, processes
 
@@ -112,10 +112,16 @@
   (format "<img alt='JPEG Photo' src='data:image/jpeg;base64,%s'>"
 	  (url-hexify-string (base64-encode-string data))))
 
-;; FIXME: This needs sorting out for the Emacs LDAP functions, specifically
-;; calls of ldap-open, ldap-close, ldap-search-internal
 ;;;###autoload
 (defun url-ldap (url)
+  "Perform an LDAP search specified by URL.
+The return value is a buffer displaying the search results in HTML.
+URL can be a URL string, or a URL vector of the type returned by
+`url-generic-parse-url'."
+  (if (stringp url)
+      (setq url (url-generic-parse-url (url-unhex-string url)))
+    (if (not (vectorp url))
+        (error "Argument is not a valid URL")))
   (save-excursion
     (set-buffer (generate-new-buffer " *url-ldap*"))
     (setq url-current-object url)
@@ -142,10 +148,7 @@
 	     (scope nil)
 	     (filter nil)
 	     (extensions nil)
-	     (connection nil)
-	     (results nil)
-	     (extract-dn (and (fboundp 'function-max-args)
-			      (= (function-max-args 'ldap-search-internal) 7))))
+	     (results nil))
 
 	;; Get rid of leading /
 	(if (string-match "^/" data)
@@ -163,7 +166,7 @@
 	      scope (intern (url-unhex-string (or scope "base")))
 	      filter (url-unhex-string (or filter "(objectClass=*)")))
 
-	(if (not (memq scope '(base one tree)))
+	(if (not (memq scope '(base one sub)))
 	    (error "Malformed LDAP URL: Unknown scope: %S" scope))
 
 	;; Convert to the internal LDAP support scoping names.
@@ -188,12 +191,14 @@
 				   (assoc "!bindname" extensions))))
     
 	;; Now, let's actually do something with it.
-	(setq connection (ldap-open host (if binddn (list 'binddn binddn)))
-	      results (if extract-dn
-			  (ldap-search-internal connection filter base-object scope attributes nil t)
-			(ldap-search-internal connection filter base-object scope attributes nil)))
-		      
-	(ldap-close connection)
+	(setq results (cdr (ldap-search-internal
+		       (list 'host (concat host ":" (number-to-string port))
+			     'base base-object
+			     'attributes attributes
+			     'scope scope
+			     'filter filter
+			     'binddn binddn))))
+
 	(insert "<html>\n"
 		" <head>\n"
 		"  <title>LDAP Search Results</title>\n"
@@ -205,8 +210,6 @@
 	(mapc (lambda (obj)
 		(insert "  <hr>\n"
 			"  <table border=1>\n")
-		(if extract-dn
-		    (insert "   <tr><th colspan=2>" (car obj) "</th></tr>\n"))
 		(mapc (lambda (attr)
 			(if (= (length (cdr attr)) 1)
 			    ;; single match, easy
@@ -225,7 +228,7 @@
 					     "<br>\n")
 				  "</td>"
 				  "   </tr>\n")))
-		      (if extract-dn (cdr obj) obj))
+                      obj)
 		(insert "  </table>\n"))
 	      results)
 

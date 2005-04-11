@@ -41,7 +41,6 @@ files.")
 
 (defconst authors-aliases
   '(
-    ("Andrew Innes" "Andrw Innes")
     ("Barry A. Warsaw" "Barry A. Warsaw, Century Computing, Inc."
      "Barry A. Warsaw, ITB" "Barry Warsaw")
     ("Bj,Av(Brn Torkelsson" "Bjorn Torkelsson")
@@ -57,7 +56,7 @@ files.")
     ("Edward M. Reingold" "Ed Reingold" "Edward M Reingold"
      "Reingold Edward M")
     ("Eli Zaretskii" "eliz")
-;    ("Emilio C. Lopes" "Emilio Lopes")
+    ("Emilio C. Lopes" "Emilio Lopes")
     ("Era Eriksson" "Era@Iki.Fi")
     ("Eric M. Ludlam" "Eric Ludlam")
     ("Eric S. Raymond" "Eric Raymond")
@@ -79,8 +78,10 @@ files.")
     ("Jay K. Adams" "jka@ece.cmu.edu" "Jay Adams")
     ("J,Ai(Br,At(Bme Marant" "J,bi(Br,bt(Bme Marant" "Jerome Marant")
     ("Jens-Ulrik Holger Petersen" "Jens-Ulrik Petersen")
+    ("John W. Eaton" "John Eaton")
     ("Jonathan I. Kamens" "Jonathan Kamens")
     ("Joseph Arceneaux" "Joe Arceneaux")
+    ("Juan Le,As(Bn Lahoz Garc,Am(Ba" "Juan-Leon Lahoz Garcia")
     ("K. Shane Hartman" "Shane Hartman")
     ("Kai Gro,A_(Bjohann" "Kai Grossjohann" "Kai Gro,b_(Bjohann"
      "Kai.Grossjohann@Cs.Uni-Dortmund.De"
@@ -89,14 +90,17 @@ files.")
     ("Kazushi Marukawa" "Kazushi")
     ("Ken Manheimer" "Kenneth Manheimer")
     ("Kenichi Handa" "Ken'ichi Handa" "Kenichi HANDA")
+    ("Kevin Greiner" "Kevin J. Greiner")
     ("Kim F. Storm" "Kim Storm")
     ("Kyle Jones" "Kyle E. Jones")
     ("Marcus G. Daniels" "Marcus Daniels")
     ("Mark D. Baushke" "Mark D Baushke")
     ("Martin Lorentzon" "Martin Lorentzson")
     ("Matt Swift" "Matthew Swift")
+    ("Michael R. Mauger" "Michael Mauger")
     ("Michael D. Ernst" "Michael Ernst")
     ("Michael I. Bushnell" "Michael I Bushnell" "Michael I. Bushnell, P/Bsg")
+    ("Mikio Nakajima" "Nakajima Mikio")
     ("Paul Eggert" "eggert")
     ("Paul Reilly" "(pmr@legacy.pajato.com)")
     ("Pavel Jan,Bm(Bk" "Pavel Jan,Am(Bk Ml." "Pavel Jan,Am(Bk" "Pavel@Janik.Cz")
@@ -114,6 +118,7 @@ files.")
     ("Stephen A. Wood" "(saw@cebaf.gov)")
     ("Steven L. Baur" "SL Baur" "Steven L Baur")
     ("Takaaki Ota" "Tak Ota")
+    ("Takahashi Naoto" "Naoto Takahashi")
     ("Teodor Zlatanov" "Ted Zlatanov")
     ("Torbj,Av(Brn Axelsson" "Torbjvrn Axelsson")
     ("Torbj,Av(Brn Einarsson" "Torbj.*rn Einarsson")
@@ -152,6 +157,13 @@ If REALNAME is nil, ignore that author.")
 Changes to files matching one of the regexps in this list are not
 listed.")
 
+(defconst authors-ignored-files
+  '("external-lisp"
+    "lock" "share-lib" "local-lisp"
+    "noleim-Makefile.in"
+    "NEWS" "PROBLEMS" "FAQ")
+  "List of files and directories to ignore.
+Changes to files in this list are not listed.")
 
 (defconst authors-fixed-entries
   '(("Richard M. Stallman" :wrote "[The original GNU emacs and numerous files]")
@@ -184,7 +196,7 @@ listed.")
      "mem-limits.h" "process.c" "template.h" "sysdep.c" "syssignal.h" "systty.h" "unexec.c"
       "ymakefile" "linux.h")
     ("Kyle E. Jones" :wrote "mldrag.el")
-    ("Kenry Kautz" :wrote "bib-mode.el")
+    ("Henry Kautz" :wrote "bib-mode.el")
     ("Joseph M. Kelsey" :changed "fileio.c" "vms-pwd.h" "vmsfns.c" "dir.h"
      "uaf.h")
     ("Sam Kendall" :changed "etags.c" "etags.el")
@@ -260,7 +272,8 @@ listed.")
 
 (defconst authors-valid-file-names
   '("aclocal.m4"
-    "makedist.bat")
+    "makedist.bat"
+    "make-delta")
   "File names which are valid, but no longer exists (or cannot be
 found) in the repository.")
 
@@ -274,6 +287,9 @@ found) in the repository.")
     ("s/windowsnt.h" . "s/ms-w32.h")
     ("config.emacs" . "configure")
     ("GETTING.GNU.SOFTWARE" . "FTP")
+    ("leim-Makefile" . "leim/Makefile")
+    ("leim-Makefile.in" . "leim/Makefile.in")
+    ("INSTALL-CVS" . "INSTALL.CVS")
     )
   "Alist of files which have been renamed during their lifetime.
 Elements are (OLDNAME . NEWNAME).")
@@ -372,7 +388,8 @@ from `authors-obsolete-files-regexps'."
 ACTION is a keyword symbol describing what he did.  Record file,
 author and what he did in hash table TABLE.  See the description of
 `authors-scan-change-log' for the structure of the hash table."
-  (unless (or (authors-obsolete-file-p file)
+  (unless (or (member file authors-ignored-files)
+	      (authors-obsolete-file-p file)
 	      (equal author ""))
     (let* ((value (gethash author table))
 	   (entry (assoc file value))

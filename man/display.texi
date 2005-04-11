@@ -679,7 +679,7 @@ accessible portion (@pxref{Narrowing}), type @kbd{M-x
 delete-trailing-whitespace @key{RET}}.  (This command does not remove
 the form-feed characters.)
 
-@vindex indicate-unused-lines
+@vindex indicate-empty-lines
 @vindex default-indicate-empty-lines
 @cindex unused lines
 @cindex fringes, and unused line indication
@@ -690,9 +690,9 @@ lines at the end of the buffer then stand out because they do not have
 this image in the fringe.
 
   To enable this feature, set the buffer-local variable
-@code{indicate-unused-lines} to a non-@code{nil} value.  The default
+@code{indicate-empty-lines} to a non-@code{nil} value.  The default
 value of this variable is controlled by the variable
-@code{default-indicate-unused-lines}; by setting that variable, you
+@code{default-indicate-empty-lines}; by setting that variable, you
 can enable or disable this feature for all new buffers.  (This feature
 currently doesn't work on character terminals.)
 

@@ -1,3 +1,8 @@
+2005-04-08  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Search-based Fontification): Fix cross references.
+	Use consistent terminology.  Document anchored highlighting.
+
 2005-04-05  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Defining Minor Modes): Document :group keyword
@@ -2348,7 +2353,7 @@
 
 	* files.texi (Changing Files): copy-file allows dir as NEWNAME.
 	(Magic File Names): Specify precedence order of handlers.
-o
+
 	* commands.texi (Command Overview): Emacs server runs pre-command-hook
 	and post-command-hook.
 	(Waiting): New calling convention for sit-for.

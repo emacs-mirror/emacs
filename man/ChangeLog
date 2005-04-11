@@ -1,3 +1,32 @@
+2005-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* cl.texi (Porting Common Lisp): Fix typo.
+
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rmail.texi (Rmail Basics): Clarify description of `q' and `b'.
+	(Rmail Deletion): `C-d' in RMAIL buffer does not accept a numeric
+	argument.
+	(Rmail Inbox): Give full name of `rmail-primary-inbox-list'.
+	(Rmail Output): Clarify which statements apply to `o', `C-o' and
+	`w', respectively.
+	(Rmail Labels): Mention `l'.
+	(Rmail Attributes): Correct pxref.  Mention `stored' attribute.
+	(Rmail Summary Edit): Describe `j' and RET.
+
+2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Lucid Resources): Added fonSet resource.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Addition.
+
+2005-04-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Useless Whitespace): `indicate-unused-lines' is
+	now called `indicate-empty-lines'.
+
 2005-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* cmdargs.texi (Initial Options): Add --bare-bones alias for -Q.

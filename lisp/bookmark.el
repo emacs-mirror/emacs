@@ -1355,7 +1355,9 @@ for a file, defaulting to the file defined by variable
 		((eq 'nospecial bookmark-version-control) version-control)
 		(t
 		 t))))
-	  (write-file file)
+          (condition-case nil
+              (write-file file)
+            (file-error (message "Can't write %s" file)))
 	  (kill-buffer (current-buffer))
 	  (if (>= baud-rate 9600)
 	      (message "Saving bookmarks to file %s...done" file)))))))

@@ -765,7 +765,9 @@ usage: (map-keymap FUNCTION KEYMAP)  */)
    remove that.  Also remove a menu help string as second element.
 
    If AUTOLOAD is nonzero, load autoloadable keymaps
-   that are referred to with indirection.  */
+   that are referred to with indirection.
+
+   This can GC because menu_item_eval_property calls Feval.  */
 
 Lisp_Object
 get_keyelt (object, autoload)
@@ -2555,6 +2557,19 @@ where_is_internal (definition, keymaps, firstonly, noindirect, no_remap)
 		continue;
 
 	    record_sequence:
+	      /* Don't annoy user with strings from a menu such as
+		 Select Paste.  Change them all to "(any string)",
+		 so that there seems to be only one menu item
+		 to report. */
+	      if (! NILP (sequence))
+		{
+		  Lisp_Object tem;
+		  tem = Faref (sequence, make_number (XVECTOR (sequence)->size - 1));
+		  if (STRINGP (tem))
+		    Faset (sequence, make_number (XVECTOR (sequence)->size - 1),
+			   build_string ("(any string)"));
+		}
+
 	      /* It is a true unshadowed match.  Record it, unless it's already
 		 been seen (as could happen when inheriting keymaps).  */
 	      if (NILP (Fmember (sequence, found)))
@@ -2732,7 +2747,7 @@ where_is_internal_2 (args, key, binding)
 }
 
 
-/* This function cannot GC.  */
+/* This function can GC because get_keyelt can.  */
 
 static Lisp_Object
 where_is_internal_1 (binding, key, definition, noindirect, this, last,

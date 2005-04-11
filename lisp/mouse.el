@@ -788,8 +788,7 @@ POS may be a mouse event location in any window.
 A clickable link is identified by one of the following methods:
 
 - If the character at POS has a non-nil `follow-link' text or
-overlay property, use the value of that property determines what
-to do.
+overlay property, the value of that property determines what to do.
 
 - If there is a local key-binding or a keybinding at position POS
 for the `follow-link' event, the binding of that event determines

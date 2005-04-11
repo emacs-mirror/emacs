@@ -2113,22 +2113,19 @@ Otherwise, return nil; point may be changed."
 	 (setq temp (cdr temp)))
        (not temp))
 
-     (search-forward "-*-" (save-excursion
-			     ;; If the file begins with "#!"
-			     ;; (exec interpreter magic), look
-			     ;; for mode frobs in the first two
-			     ;; lines.  You cannot necessarily
-			     ;; put them in the first line of
-			     ;; such a file without screwing up
-			     ;; the interpreter invocation.
-			     (end-of-line (and (looking-at "^#!") 2))
-			     (point)) t)
+     (search-forward "-*-" (line-end-position
+                            ;; If the file begins with "#!"
+                            ;; (exec interpreter magic), look
+                            ;; for mode frobs in the first two
+                            ;; lines.  You cannot necessarily
+                            ;; put them in the first line of
+                            ;; such a file without screwing up
+                            ;; the interpreter invocation.
+                            (and (looking-at "^#!") 2)) t)
      (progn
        (skip-chars-forward " \t")
        (setq beg (point))
-       (search-forward "-*-"
-		       (save-excursion (end-of-line) (point))
-		       t))
+       (search-forward "-*-" (line-end-position) t))
      (progn
        (forward-char -3)
        (skip-chars-backward " \t")

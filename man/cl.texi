@@ -5144,7 +5144,7 @@ difficult to port large Common Lisp applications to Emacs.  For
 one, some of the features in this package are not fully compliant
 with ANSI or Steele; @pxref{Common Lisp Compatibility}.  But there
 are also quite a few features that this package does not provide
-at all.  Here are some major omissions that you will want watch out
+at all.  Here are some major omissions that you will want to watch out
 for when bringing Common Lisp code into Emacs.
 
 @itemize @bullet
