@@ -733,12 +733,11 @@ Also with whitespaces whose testing has been turned off."
   "Highlight the current line, unhighlighting a previously jumped to line."
   (if whitespace-display-spaces-in-color
       (let ((ol (whitespace-make-overlay b e)))
-	(whitespace-unhighlight-the-space)
 	(push ol whitespace-highlighted-space)
 	(whitespace-overlay-put ol 'face 'whitespace-highlight-face))))
 ;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
 
-(defun whitespace-unhighlight-the-space ()
+(defun whitespace-unhighlight-the-space()
   "Unhighlight the currently highlight line."
   (if (and whitespace-display-spaces-in-color whitespace-highlighted-space)
       (progn
