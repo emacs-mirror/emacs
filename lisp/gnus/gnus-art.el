@@ -5309,7 +5309,7 @@ not have a face in `gnus-article-boring-faces'."
 	      (when (eq win (selected-window))
 		(setq new-sum-point (point)
 		      new-sum-start (window-start win)
-		      new-sum-hscroll (window-hscroll win))
+		      new-sum-hscroll (window-hscroll win)))
 	      (when (eq in-buffer (current-buffer))
 		(setq selected (gnus-summary-select-article))
 		(set-buffer obuf)
@@ -5325,7 +5325,7 @@ not have a face in `gnus-article-boring-faces'."
 			   new-sum-point)
 		  (set-window-point win new-sum-point)
 		  (set-window-start win new-sum-start)
-		  (set-window-hscroll win new-sum-hscroll)))))
+		  (set-window-hscroll win new-sum-hscroll))))
 	  (set-window-configuration owin)
 	  (ding))))))
 
