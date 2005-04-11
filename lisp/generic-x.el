@@ -41,6 +41,16 @@
 ;; You can also send in new modes; if the file types a reasonably common,
 ;; we would like to install them.
 ;;
+;; DEFAULT GENERIC MODE:
+;;
+;; This file provides a hook which automatically puts a file into
+;; `default-generic-mode' if the first few lines of a file in
+;; fundamental mode start with a hash comment character.  To disable
+;; this functionality, set the variable `generic-use-find-file-hook'
+;; to nil BEFORE loading generic-x.  See the variables
+;; `generic-lines-to-scan' and `generic-find-file-regexp' for
+;; customization options.
+;;
 ;; PROBLEMS WHEN USED WITH FOLDING MODE:
 ;;
 ;; [The following relates to the obsolete selective-display technique.
@@ -95,10 +105,95 @@
 (require 'font-lock)
 
 (defgroup generic-x nil
-  "Extra modes for generic mode."
+  "A collection of generic modes."
   :prefix "generic-"
-  :group 'generic
+  :group 'data
   :version "20.3")
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Default-Generic mode
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defcustom generic-use-find-file-hook t
+  "*If non-nil, add a hook to enter `default-generic-mode' automatically.
+This is done if the first few lines of a file in fundamental mode
+start with a hash comment character."
+  :group 'generic-x
+  :type  'boolean)
+
+(defcustom generic-lines-to-scan 3
+  "*Number of lines that `generic-mode-find-file-hook' looks at.
+Relevant when deciding whether to enter Default-Generic mode automatically.
+This variable should be set to a small positive number."
+  :group 'generic-x
+  :type  'integer)
+
+(defcustom generic-find-file-regexp "^#"
+  "*Regular expression used by `generic-mode-find-file-hook'.
+Files in fundamental mode whose first few lines contain a match
+for this regexp, should be put into Default-Generic mode instead.
+The number of lines tested for the matches is specified by the
+value of the variable `generic-lines-to-scan', which see."
+  :group 'generic-x
+  :type  'regexp)
+
+(defcustom generic-ignore-files-regexp "[Tt][Aa][Gg][Ss]\\'"
+  "*Regular expression used by `generic-mode-find-file-hook'.
+Files whose names match this regular expression should not be put
+into Default-Generic mode, even if they have lines which match
+the regexp in `generic-find-file-regexp'.  If the value is nil,
+`generic-mode-find-file-hook' does not check the file names."
+  :group 'generic-x
+  :type  '(choice (const :tag "Don't check file names" nil) regexp))
+
+;; This generic mode is always defined
+(define-generic-mode default-generic-mode (list ?#) nil nil nil nil :group 'generic)
+
+;; A more general solution would allow us to enter generic-mode for
+;; *any* comment character, but would require us to synthesize a new
+;; generic-mode on the fly. I think this gives us most of what we
+;; want.
+(defun generic-mode-find-file-hook ()
+  "Hook function to enter Default-Generic mode automatically.
+
+Done if the first few lines of a file in Fundamental mode start
+with a match for the regexp in `generic-find-file-regexp', unless
+the file's name matches the regexp which is the value of the
+variable `generic-ignore-files-regexp'.
+
+This hook will be installed if the variable
+`generic-use-find-file-hook' is non-nil.  The variable
+`generic-lines-to-scan' determines the number of lines to look at."
+  (when (and (eq major-mode 'fundamental-mode)
+	     (or (null generic-ignore-files-regexp)
+		 (not (string-match
+		       generic-ignore-files-regexp
+		       (file-name-sans-versions buffer-file-name)))))
+    (save-excursion
+      (goto-char (point-min))
+      (when (re-search-forward generic-find-file-regexp
+			       (save-excursion
+				 (forward-line generic-lines-to-scan)
+				 (point)) t)
+	(goto-char (point-min))
+	(default-generic-mode)))))
+
+(defun generic-mode-ini-file-find-file-hook ()
+  "Hook function to enter Default-Generic mode automatically for INI files.
+Done if the first few lines of a file in Fundamental mode look like an
+INI file.  This hook is NOT installed by default."
+  (and (eq major-mode 'fundamental-mode)
+       (save-excursion
+	 (goto-char (point-min))
+	 (and (looking-at "^\\s-*\\[.*\\]")
+	      (ini-generic-mode)))))
+
+(and generic-use-find-file-hook
+    (add-hook 'find-file-hook 'generic-mode-find-file-hook))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Other Generic modes
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defcustom generic-extras-enable-list nil
   "*List of generic modes to enable by default.
@@ -149,10 +244,6 @@ generic-x to enable the specified modes."
 		     etc-passwd-generic-mode
 		     etc-fstab-generic-mode)
 		   generic-extras-enable-list)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Generic-modes
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;; Apache
 (when (memq 'apache-conf-generic-mode generic-extras-enable-list)
