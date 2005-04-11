@@ -1,3 +1,9 @@
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-display-line): GUD uses its own
+	overlay arrow now so don't set overlay-arrow-string.
+	(gud-pdb-command-name): Revert back to "pdb" (2004-04-26).
+
 2005-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-ansi-current-bold, term-ansi-current-underline)
