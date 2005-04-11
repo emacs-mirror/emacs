@@ -1,3 +1,13 @@
+2005-04-11  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): -Q is now --quick, and does less.
+	(Misc X): Add -D, --basic-display.
+
+	* maintaining.texi (Change Log): Correct the description of
+	the example.
+
+	* major.texi (Choosing Modes): Document magic-mode-alist.
+
 2005-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* cl.texi (Porting Common Lisp): Fix typo.
@@ -52,6 +62,10 @@
 2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi (Diary): Mention shell utility `calendar'.
+
+2005-04-01  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Misc X): Explain horizontal scroll bars don't exist.
 
 2005-04-01  Jay Belanger  <belanger@truman.edu>
 
