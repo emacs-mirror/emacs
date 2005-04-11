@@ -1,3 +1,12 @@
+2005-04-12  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el (rc-generic-mode, rul-generic-mode): Fix
+	auto-mode-alist entries.
+	(etc-fstab-generic-mode): Tweak fontification.
+
+	* generic.el (generic-make-keywords-list): Fix docstring.
+	(generic-mode-internal): Simplify generic-font-lock-keywords.
+
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-version): Bump to 3.5
@@ -41,10 +50,10 @@
 	(x-dnd-types-alist, x-dnd-insert-utf8-text)
 	(x-dnd-insert-utf16-text, x-dnd-insert-ctext): Change x-dnd-insert-text
 	to dnd-insert-text.
-	(x-dnd-protocol-alist, x-dnd-open-file-other-window,
-	x-dnd-handle-one-url, x-dnd-get-local-file-uri,
-	x-dnd-get-local-file-name,  x-dnd-open-local-file,
-	x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
+	(x-dnd-protocol-alist, x-dnd-open-file-other-window)
+	(x-dnd-handle-one-url, x-dnd-get-local-file-uri)
+	(x-dnd-get-local-file-name,  x-dnd-open-local-file)
+	(x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
 
