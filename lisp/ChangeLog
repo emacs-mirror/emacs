@@ -1,3 +1,17 @@
+2005-04-11  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el: Commentary section cleanup.
+	(generic): Delete.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(default-generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Move to generic-x.el.
+	* generic-x.el (generic-x): Docstring fix.  Put it in the data group.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(default-generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Move from generic.el.
+
 2005-04-10  Karl Fogel  <kfogel@red-bean.com>
 
 	* bookmark.el (bookmark-write-file): Catch errors writing file.
