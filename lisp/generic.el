@@ -222,12 +222,10 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     ;; Font-lock functionality.
     ;; Font-lock-defaults is always set even if there are no keywords
     ;; or font-lock expressions, so comments can be highlighted.
-    (setq generic-font-lock-keywords
-	  (append
-	   (when keyword-list
-	     (list (generic-make-keywords-list keyword-list
-					       font-lock-keyword-face)))
-	   font-lock-list))
+    (setq generic-font-lock-keywords font-lock-list)
+    (when keyword-list
+      (push (concat "\\_<" (regexp-opt keyword-list t) "\\_>")
+	    generic-font-lock-keywords))
     (setq font-lock-defaults '(generic-font-lock-keywords nil))
 
     ;; Call a list of functions
@@ -324,14 +322,19 @@ Some generic modes are defined in `generic-x.el'."
         imenu-case-fold-search t))
 
 ;;;###autoload
-(defun generic-make-keywords-list (keywords-list face &optional prefix suffix)
-  "Return a regular expression matching the specified KEYWORDS-LIST.
-The regexp is highlighted with FACE."
-  (unless (listp keywords-list)
+(defun generic-make-keywords-list (keyword-list face &optional prefix suffix)
+  "Return a `font-lock-keywords' construct that highlights KEYWORD-LIST.
+KEYWORD-LIST is a list of keyword strings that should be
+highlighted with face FACE.  This function calculates a regular
+expression that matches these keywords and concatenates it with
+PREFIX and SUFFIX.  Then it returns a construct based on this
+regular expression that can be used as an element of
+`font-lock-keywords'."
+  (unless (listp keyword-list)
     (error "Keywords argument must be a list of strings"))
   (list (concat prefix "\\_<"
 		;; Use an optimized regexp.
-		(regexp-opt keywords-list t)
+		(regexp-opt keyword-list t)
 		"\\_>" suffix)
 	1
 	face))
