@@ -1,3 +1,9 @@
+2005-04-11  Lute Kamstra  <lute@gnu.org>
+
+	* message.el (message-make-date): Handle byte-compiler warnings
+	differently.
+	* nnimap.el (nnimap-date-days-ago): Ditto.
+
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-string-to-multibyte): New function.
