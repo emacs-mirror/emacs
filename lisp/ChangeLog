@@ -9,6 +9,11 @@
 	(gdb-setup-windows): Create IO buffer if not already there.
 	(gdb-memory-mode): Remove purecopy noops.
 
+2005-04-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-electric-insert): Add optional prefix arg,
+	and pass to self-insert-command.
+
 2005-04-11  Lute Kamstra  <lute@gnu.org>
 
 	* generic.el: Commentary section cleanup.
