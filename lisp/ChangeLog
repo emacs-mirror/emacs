@@ -9,6 +9,13 @@
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
+	* whitespace.el (whitespace-buffer-leading,
+	whitespace-buffer-trailing): Revert the incorrect test
+	inversion. However, fix the highlight area for the leading and
+	trailing whitespaces to show space.
+
+2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
+
 	* whitespace.el (whitespace-version): Bump to 3.5
 
 	(whitespace-buffer-leading, whitespace-buffer-trailing): Invert

@@ -597,9 +597,9 @@ whitespace problems."
       (setq pmin (point))
       (end-of-line)
       (setq pmax (point))
-      (if (not (equal pmin pmax))
+      (if (equal pmin pmax)
 	  (progn
-	    (whitespace-highlight-the-space pmin pmax)
+	    (whitespace-highlight-the-space pmin (1+ pmax))
 	    t)
 	nil))))
 
@@ -635,9 +635,9 @@ whitespace problems."
 	    (setq pmin (point))
 	    (end-of-line)
 	    (setq pmax (point))
-	    (if (not (equal pmin pmax))
+	    (if (equal pmin pmax)
 		(progn
-		  (whitespace-highlight-the-space pmin pmax)
+		  (whitespace-highlight-the-space (- pmin 1) pmax)
 		  t)
 	      nil))
 	nil))))
