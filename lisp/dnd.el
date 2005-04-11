@@ -188,4 +188,5 @@ TEXT is the text as a string, WINDOW is the window where the drop happened."
 
 (provide 'dnd)
 
+;; arch-tag: 0472f6a5-2e8f-4304-9e44-1a0877c771b7
 ;;; dnd.el ends here
