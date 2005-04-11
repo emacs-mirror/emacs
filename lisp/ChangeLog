@@ -1,3 +1,14 @@
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-inferior-io-buffer)
+	(gdb-frame-inferior-io-buffer): New Functions to control
+	display of separate IO buffer.
+	(menu): Add them to menu-bar.
+	(gdb-display-buffer): Check for buffer another frame.
+	Protect GUD buffer.
+	(gdb-setup-windows): Create IO buffer if not already there.
+	(gdb-memory-mode): Remove purecopy noops.
+
 2005-04-11  Lute Kamstra  <lute@gnu.org>
 
 	* generic.el: Commentary section cleanup.
