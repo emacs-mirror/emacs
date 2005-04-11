@@ -1,3 +1,27 @@
+2005-04-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
+	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
+	(dired-dnd-handle-file): Call dnd-get-local-file-uri
+
+	* cus-edit.el (dnd): New group.
+
+	* term/w32-win.el (dnd): Require dnd
+	(w32-drag-n-drop): Call dnd-handle-one-url.
+
+	* x-dnd.el: Require dnd.
+	(x-dnd-handle-uri-list, x-dnd-handle-file-name): Call
+	dnd-handle-one-url.
+	(x-dnd-types-alist, x-dnd-insert-utf8-text)
+	(x-dnd-insert-utf16-text, x-dnd-insert-ctext): Change x-dnd-insert-text
+	to dnd-insert-text.
+	(x-dnd-protocol-alist, x-dnd-open-file-other-window,
+	x-dnd-handle-one-url, x-dnd-get-local-file-uri,
+	x-dnd-get-local-file-name,  x-dnd-open-local-file,
+	x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
+
+	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
+
 2005-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* wdired.el: Doc fixes.
