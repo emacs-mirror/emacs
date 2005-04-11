@@ -876,7 +876,7 @@ generic-x to enable the specified modes."
      '("^#[ \t]*\\(\\sw+\\)\\>[ \t]*\\(\\sw+\\)?"
        (1 font-lock-constant-face)
        (2 font-lock-variable-name-face nil t))))
-    '("\\.[rR][cC]$")
+    '("\\.[rR][cC]\\'")
     nil
     "Generic mode for MS-Windows Resource files."
     :group 'generic-x))
@@ -1497,7 +1497,7 @@ generic-x to enable the specified modes."
      (generic-make-keywords-list
       installshield-funarg-constants-list
       font-lock-variable-name-face "[^_]" "[^_]"))) ; is this face the best choice?
-  '("\\.[rR][uU][lL]$")
+  '("\\.[rR][uU][lL]\\'")
   '(generic-rul-mode-setup-function)
   "Generic mode for InstallShield RUL files."
   :group 'generic-x)
@@ -1675,8 +1675,8 @@ generic-x to enable the specified modes."
     "auto"
     "ignore")
   '(("^\\([/-A-Za-z0-9_]+\\)\\s-+\\([/-A-Za-z0-9_]+\\)"
-     (1 font-lock-type-face)
-     (2 font-lock-variable-name-face)))
+     (1 font-lock-type-face t)
+     (2 font-lock-variable-name-face t)))
   '("/etc/[v]*fstab\\'")
   (list
    (function
@@ -1758,7 +1758,7 @@ generic-x to enable the specified modes."
   ;; List of additional font-lock-expressions
   '(("\\([0-9]+\.[0-9]+\.[0-9]+\.[0-9]+\\)" 1 font-lock-constant-face)
     ("^\\([.A-Za-z0-9]+\\)"                 1 font-lock-variable-name-face))
-  ;; List of additional automode-alist expressions
+  ;; List of additional auto-mode-alist expressions
   nil
   ;; List of set up functions to call
   nil
@@ -1779,7 +1779,7 @@ generic-x to enable the specified modes."
   '("nameserver" "domain" "search" "sortlist" "options")
   ;; List of additional font-lock-expressions
   nil
-  ;; List of additional automode-alist expressions
+  ;; List of additional auto-mode-alist expressions
   '("/etc/resolv[e]?.conf\\'")
   ;; List of set up functions to call
   nil
