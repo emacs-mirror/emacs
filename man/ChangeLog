@@ -1,3 +1,8 @@
+2005-04-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rmail.texi (Rmail Summary Edit): Explain numeric arguments to
+	`d', `C-d' and `u'.
+
 2005-04-11  Richard M. Stallman  <rms@gnu.org>
 
 	* cmdargs.texi (Initial Options): -Q is now --quick, and does less.
