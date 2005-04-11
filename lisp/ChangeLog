@@ -1,3 +1,13 @@
+2005-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* wdired.el: Doc fixes.
+	(wdired-confirm-overwrite): Rename from wdired-is-ok-overwrite.
+	(wdired-use-dired-vertical-movement): Rename from
+	wdired-always-move-to-filename-beginning.
+	(wdired-mode-map): Use `ignore' instead of `wdired-newline'.
+	(wdired-change-to-wdired-mode): Change mode name.
+	(wdired-newline): Delete.
+
 2005-04-11  Richard M. Stallman  <rms@gnu.org>
 
 	* whitespace.el (whitespace-highlight-the-space):
