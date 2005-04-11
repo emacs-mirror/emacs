@@ -31,8 +31,8 @@
 ;;
 ;; Have you ever wished to use C-x r t (string-rectangle), M-%
 ;; (query-replace), M-c (capitalize-word), etc. to change the name of
-;; the files in a "dired" buffer? Now you can do this. All the power
-;; of emacs commands are available to renaming files!
+;; the files in a "dired" buffer? Now you can do this.  All the power
+;; of Emacs commands are available to renaming files!
 ;; 
 ;; This package provides a function that makes the filenames of a a
 ;; dired buffer editable, by changing the buffer mode (which inhibits
@@ -40,7 +40,7 @@
 ;; one or more files and directories, and when you press C-c C-c, the
 ;; renaming takes effect and you are back to dired mode.
 ;;
-;; Another things you can do with wdired:
+;; Another things you can do with WDired:
 ;;
 ;; - To move files to another directory (by typing their path,
 ;;   absolute or relative, as a part of the new filename).
@@ -49,21 +49,16 @@
 ;;
 ;; - To change the permission bits of the filenames (in systems with a
 ;;   working unix-alike `dired-chmod-program'). See and customize the
-;;   variable `wdired-allow-to-change-permissions'. To change a single
+;;   variable `wdired-allow-to-change-permissions'.  To change a single
 ;;   char (toggling between its two more usual values) you can press
-;;   the space bar over it or left-click the mouse. To set any char to
+;;   the space bar over it or left-click the mouse.  To set any char to
 ;;   an specific value (this includes the SUID, SGID and STI bits) you
-;;   can use the key labeled as the letter you want. Please note that
+;;   can use the key labeled as the letter you want.  Please note that
 ;;   permissions of the links cannot be changed in that way, because
 ;;   the change would affect to their targets, and this would not be
 ;;   WYSIWYG :-).
 ;;
 ;; - To mark files for deletion, by deleting their whole filename.
-;;
-;; I do not have a URL to hang wdired, but you can use the one below
-;; to find the latest version:
-;;
-;; http://groups.google.com/groups?as_ugroup=gnu.emacs.sources&as_q=wdired
 
 ;;; Installation:
 
@@ -75,21 +70,19 @@
 ;; (require 'wdired)
 ;; (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 ;;
-;; This is recommended way for faster emacs startup time and lower
-;; memory consumption, but remind to add these lines before dired.el
-;; gets loaded (i.e., near the beginning of your .emacs file):
+;; This is the recommended way for faster Emacs startup time and lower
+;; memory consumption:
 ;;
 ;; (autoload 'wdired-change-to-wdired-mode "wdired")
-;; (add-hook 'dired-load-hook
+;; (eval-after-load "dired"
 ;;           '(lambda ()
 ;;              (define-key dired-mode-map "r" 'wdired-change-to-wdired-mode)
 ;;              (define-key dired-mode-map
 ;;                [menu-bar immediate wdired-change-to-wdired-mode]
 ;;                '("Edit File Names" . wdired-change-to-wdired-mode))))
 ;;
-;;
-;; Type "M-x customize-group RET wdired" if you want make changes to
-;; the default behavior.
+;; Type "M-x customize-group RET wdired" if you want to make changes
+;; to the default behavior.
 
 ;;; Usage:
 
@@ -103,60 +96,12 @@
 
 ;;; Change Log:
 
-;; From 1.9 to 1.91
-;;
-;; - Fixed a bug (introduced in 1.9) so now files can be marked for
-;;   deletion again, by deleting their whole filename.
-
-;; From 1.8 to 1.9
-;;
-;; - Another alternative way of editing permissions allowed, see
-;;   `wdired-allow-to-change-permissions' for details.
-;;
-;; - Now wdired doesn't rely on regexp so much. As a consequence of
-;;   this, you can add newlines to filenames and symlinks targets
-;;   (although this is not very usual, IMHO). Please note that dired
-;;   (at least in Emacs 21.1 and previous) does not work very well
-;;   with filenames with newlines in them, so RET is deactivated in
-;;   wdired mode. But you can activate it if you want.
-;;
-;; - Now `upcase-word' `capitalize-word' and `downcase-word' are not
-;;   advised to work better with wdired mode, but the keys bound to
-;;   them use wdired versions of those commands.
-;;
-;; - Now "undo" actions are not inherited from wdired mode when
-;;   changing to dired mode.
-;;
-;; - Code and documentation cleanups.
-;;
-;; - Fixed a bug that was making wdired to fail on users with
-;;   `dired-backup-overwrite' set to t.
-;;
-;; - C-c C-[ now abort changes.
-
-;; From 1.7 to 1.8
-;;
-;; - Now permission (access-control) bits of the files can be changed.
-;;   Please see the commentary section and the custom variable
-;;   `wdired-allow-to-change-permissions' for details.
-;;
-;; - Added another possible value for the variable
-;;   `wdired-always-move-to-filename-beginning', useful to change
-;;   permission bits of several files without the cursor jumping to
-;;   filenames when changing lines.
-
-;; From 0.1 to 1.7
-
-;; - I've moved the list of changes to another file, because it was
-;;   huge. Ask me for it or search older versions in google.
-
-;;; TODO:
-
-;; - Make it to work in XEmacs. Any volunteer?
+;; Google is your friend (previous versions with complete changelogs
+;; were posted to gnu.emacs.sources)
 
 ;;; Code:
 
-(defvar dired-backup-overwrite) ; Only in emacs 20.x this is a custom var
+(defvar dired-backup-overwrite) ; Only in Emacs 20.x this is a custom var
 (eval-when-compile
   (set (make-local-variable 'byte-compile-dynamic) t))
 
@@ -170,22 +115,22 @@
   :group 'dired)
 
 (defcustom wdired-use-interactive-rename nil
-  "*If t, confirmation is required before actually rename the files.
-Confirmation is required also for overwriting files.  If nil, no
-confirmation is required for change the file names, and the variable
-`wdired-is-ok-overwrite' is used to see if it is ok to overwrite files
-without asking."
+  "*If non-nil, WDired requires confirmation before actually renaming files.
+If nil, WDired doesn't require confirmation to change the file names,
+and the variable `wdired-confirm-overwrite' controls whether it is ok
+to overwrite files without asking."
   :type 'boolean
   :group 'wdired)
 
-(defcustom wdired-is-ok-overwrite nil
-  "*If non-nil the renames can overwrite files without asking. 
-This variable is used only if `wdired-use-interactive-rename' is nil."
+(defcustom wdired-confirm-overwrite t
+  "*If nil the renames can overwrite files without asking. 
+This variable has no effect at all if `wdired-use-interactive-rename'
+is not nil."
   :type 'boolean
   :group 'wdired)
 
-(defcustom wdired-always-move-to-filename-beginning nil
-  "*If t the \"up\" and \"down\" movement is done as in dired mode.
+(defcustom wdired-use-dired-vertical-movement nil
+  "*If t, the \"up\" and \"down\" movement works as in Dired mode.
 That is, always move the point to the beginning of the filename at line.
 
 If `sometimes, only move to the beginning of filename if the point is
@@ -199,20 +144,20 @@ If nil, \"up\" and \"down\" movement is done as in any other buffer."
   :group 'wdired)
 
 (defcustom wdired-allow-to-redirect-links t
-  "*If non-nil, the target of the symbolic links can be changed also.
+  "*If non-nil, the target of the symbolic links are editable.
 In systems without symbolic links support, this variable has no effect
 at all."
   :type 'boolean
   :group 'wdired)
 
 (defcustom wdired-allow-to-change-permissions nil
-  "*If non-nil, the permissions bits of the files can be changed also.
+  "*If non-nil, the permissions bits of the files are editable.
 
 If t, to change a single bit, put the cursor over it and press the
 space bar, or left click over it.  You can also hit the letter you want
 to set: if this value is allowed, the character in the buffer will be
 changed.  Anyway, the point is advanced one position, so, for example,
-you can keep the \"x\" key pressed to give execution permissions to
+you can keep the <x> key pressed to give execution permissions to
 everybody to that file.
 
 If `advanced, the bits are freely editable.  You can use
@@ -220,7 +165,7 @@ If `advanced, the bits are freely editable.  You can use
 newlines), but if you want your changes to be useful, you better put a
 intelligible value.
 
-Anyway, the real change of the permissions is done with the external
+Anyway, the real change of the permissions is done by the external
 program `dired-chmod-program', which must exist."
   :type '(choice (const :tag "Not allowed" nil)
                  (const :tag "Toggle/set bits" t)
@@ -233,9 +178,9 @@ program `dired-chmod-program', which must exist."
     (define-key map "\C-c\C-c" 'wdired-finish-edit)
     (define-key map "\C-c\C-k" 'wdired-abort-changes)
     (define-key map "\C-c\C-[" 'wdired-abort-changes)
-    (define-key map "\C-m"     'wdired-newline)
-    (define-key map "\C-j"     'wdired-newline)
-    (define-key map "\C-o"     'wdired-newline)
+    (define-key map "\C-m"     'ignore)
+    (define-key map "\C-j"     'ignore)
+    (define-key map "\C-o"     'ignore)
     (define-key map [up]       'wdired-previous-line)
     (define-key map "\C-p"     'wdired-previous-line)
     (define-key map [down]     'wdired-next-line)
@@ -261,7 +206,7 @@ program `dired-chmod-program', which must exist."
     map))
 
 (defvar wdired-mode-hook nil
-  "Hook run when changing to wdired mode.")
+  "Hooks run when changing to WDired mode.")
 
 ;; Local variables (put here to avoid compilation gripes)
 (defvar wdired-col-perm) ;; Column where the permission bits start
@@ -271,15 +216,15 @@ program `dired-chmod-program', which must exist."
 (defun wdired-mode ()
   "\\<wdired-mode-map>File Names Editing mode.
 
-Press \\[wdired-finish-edit] to make the changes to take effect and
-exit.  To abort the edit, use \\[wdired-abort-changes].
+Press \\[wdired-finish-edit] to make the changes to take effect
+and exit.  To abort the edit, use \\[wdired-abort-changes].
 
-In this mode you can edit the names of the files, the target of the
-links and the permission bits of the files.  You can `customize-group'
-wdired.
+In this mode you can edit the names of the files, the target of
+the links and the permission bits of the files.  You can use
+\\[customize-group] RET wdired to customize WDired behavior.
 
-Editing things out of the filenames, or adding or deleting lines is
-not allowed, because the rest of the buffer is read-only."
+The only editable texts in a WDired buffer are filenames,
+symbolic link targets, and filenames permission."
   (interactive)
   (error "This mode can be enabled only by `wdired-change-to-wdired-mode'"))
 (put 'wdired-mode 'mode-class 'special)
@@ -288,8 +233,10 @@ not allowed, because the rest of the buffer is read-only."
 ;;;###autoload
 (defun wdired-change-to-wdired-mode ()
   "Put a dired buffer in a mode in which filenames are editable.
-In this mode the names of the files can be changed, and after
-typing C-c C-c the files and directories in disk are renamed.
+\\<wdired-mode-map>
+This mode allows the user to change the names of the files, and after
+typing \\[wdired-finish-edit] Emacs renames the files and directories
+in disk.
 
 See `wdired-mode'."
   (interactive)
@@ -302,7 +249,7 @@ See `wdired-mode'."
   (dired-unadvertise default-directory)
   (add-hook 'kill-buffer-hook 'wdired-check-kill-buffer nil t)
   (setq major-mode 'wdired-mode)
-  (setq mode-name "Edit filenames")
+  (setq mode-name "Editable Dired")
   (setq revert-buffer-function 'wdired-revert)
   ;; I temp disable undo for performance: since I'm going to clear the
   ;; undo list, it can save more than a 9% of time with big
@@ -359,7 +306,7 @@ or \\[wdired-abort-changes] to abort changes")))
 (defun wdired-get-filename (&optional no-dir old)
   "Return the filename at line.
 Similar to `dired-get-filename' but it doesn't rely on regexps.  It
-relies on wdired buffer's properties.  Optional arg NO-DIR with value
+relies on WDired buffer's properties.  Optional arg NO-DIR with value
 non-nil means don't include directory.  Optional arg OLD with value
 non-nil means return old filename."
   ;; FIXME: Use dired-get-filename's new properties.
@@ -411,7 +358,7 @@ non-nil means return old filename."
   "Actually rename files based on your editing in the Dired buffer."
   (interactive)
   (wdired-change-to-dired-mode)
-  (let ((overwrite (or wdired-is-ok-overwrite 1))
+  (let ((overwrite (or (not wdired-confirm-overwrite) 1))
 	(changes nil)
 	(files-deleted nil)
 	(errors 0)
@@ -510,12 +457,13 @@ non-nil means return old filename."
 	(forward-line)))))
 
 (defun wdired-customize ()
-  "Customize wdired options."
+  "Customize WDired options."
   (interactive)
   (customize-apropos "wdired" 'groups))
 
 (defun wdired-revert (&optional arg noconfirm)
-  "Discard changes in the buffer and update the changes in the disk."
+  "Discard changes in the buffer and update it based on changes on disk.
+Optional arguments are ignored."
   (wdired-change-to-dired-mode)
   (revert-buffer)
   (wdired-change-to-wdired-mode))
@@ -529,12 +477,12 @@ non-nil means return old filename."
 
 (defun wdired-next-line (arg)
   "Move down lines then position at filename or the current column.
-See `wdired-always-move-to-filename-beginning'.  Optional prefix ARG
+See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
   (next-line arg)
-  (if (or (eq wdired-always-move-to-filename-beginning t)
-	  (and wdired-always-move-to-filename-beginning
+  (if (or (eq wdired-use-dired-vertical-movement t)
+	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)
 		  (save-excursion (dired-move-to-filename)
 				  (current-column)))))
@@ -542,21 +490,16 @@ says how many lines to move; default is one line."
 
 (defun wdired-previous-line (arg)
   "Move up lines then position at filename or the current column.
-See `wdired-always-move-to-filename-beginning'.  Optional prefix ARG
+See `wdired-use-dired-vertical-movement'.  Optional prefix ARG
 says how many lines to move; default is one line."
   (interactive "p")
   (previous-line arg)
-  (if (or (eq wdired-always-move-to-filename-beginning t)
-	  (and wdired-always-move-to-filename-beginning
+  (if (or (eq wdired-use-dired-vertical-movement t)
+	  (and wdired-use-dired-vertical-movement
 	       (< (current-column)
 		  (save-excursion (dired-move-to-filename)
 				  (current-column)))))
       (dired-move-to-filename)))
-
-;; dired doesn't works well with newlines, so ...
-(defun wdired-newline ()
-  "Do nothing."
-  (interactive))
 
 ;; Put the needed properties to allow the user to change links' targets
 (defun wdired-preprocess-symlinks ()
@@ -634,19 +577,19 @@ If OLD, return the old target.  If MOVE, move point before it."
 	       (setq arg 0))))))))
 
 (defun wdired-downcase-word (arg)
-  "Wdired version of `downcase-word'.
+  "WDired version of `downcase-word'.
 Like original function but it skips read-only words."
   (interactive "p")
   (wdired-xcase-word 'downcase-word arg))
 
 (defun wdired-upcase-word (arg)
-  "Wdired version of `upcase-word'.
+  "WDired version of `upcase-word'.
 Like original function but it skips read-only words."
   (interactive "p")
   (wdired-xcase-word 'upcase-word arg))
 
 (defun wdired-capitalize-word (arg)
-  "Wdired version of `capitalize-word'.
+  "WDired version of `capitalize-word'.
 Like original function but it skips read-only words."
   (interactive "p")
   (wdired-xcase-word 'capitalize-word arg))
