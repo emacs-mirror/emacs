@@ -2115,7 +2115,11 @@ poll_for_input (timer)
      struct atimer *timer;
 {
   if (poll_suppress_count == 0)
+#ifdef SYNC_INPUT
+    interrupt_input_pending = 1;
+#else
     poll_for_input_1 ();
+#endif
 }
 
 #endif /* POLL_FOR_INPUT */
