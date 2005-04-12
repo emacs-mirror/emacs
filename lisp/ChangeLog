@@ -1,3 +1,9 @@
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el, progmodes/gdb-ui.el (gdb-assembler-mode):
+	Don't set overlay-arrow-string to "=>" as this is done
+	globally in C now.
+
 2005-04-12  Lute Kamstra  <lute@gnu.org>
 
 	* generic-x.el (rc-generic-mode, rul-generic-mode): Fix
