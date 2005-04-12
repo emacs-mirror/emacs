@@ -1,3 +1,10 @@
+2005-04-12  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle-face)
+	(cua-rectangle-noselect-face): Define face attributes here.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Remove face setup.
+
 2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* startup.el (command-line): Turn off blinking cursor if
