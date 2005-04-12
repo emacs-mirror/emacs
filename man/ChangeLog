@@ -1,3 +1,8 @@
+2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by
+	default.
+
 2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xresources.texi (Table of Resources): Add cursorBlink.

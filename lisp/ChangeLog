@@ -2,7 +2,8 @@
 
 	* startup.el (command-line): Enable Xterm Mouse mode by default.
 	* xt-mouse.el (xterm-mouse-mode): Provide correct standard value
-	for Custom.  No longer show "Mouse" in mode line.  Doc fix.
+	for Custom.  No longer show "Mouse" in mode line when enabled.
+	Doc fix.
 
 2005-04-12  Kim F. Storm  <storm@cua.dk>
 
