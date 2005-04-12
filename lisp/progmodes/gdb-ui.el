@@ -2371,7 +2371,6 @@ BUFFER nil or omitted means use the current buffer."
   (setq mode-name "Machine")
   (setq gdb-overlay-arrow-position nil)
   (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
-  (put 'gdb-overlay-arrow-position 'overlay-arrow-string "=>")
   (setq fringes-outside-margins t)
   (setq buffer-read-only t)
   (use-local-map gdb-assembler-mode-map)
