@@ -20,6 +20,8 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
+** Adapt mouse-sel-mode to mouse-1-click-follows-link.
+
 
 * FATAL ERRORS
 
