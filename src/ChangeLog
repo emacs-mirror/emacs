@@ -1,3 +1,8 @@
+2005-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (poll_for_input) [SYNC_INPUT]: Don't call
+	poll_for_input_1.  Set interrupt_input_pending to 1 instead.
+
 2005-04-10  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.c (standard_args): Rename --bare-bones to --quick.
