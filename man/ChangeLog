@@ -1,3 +1,7 @@
+2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Table of Resources): Add cursorBlink.
+
 2005-04-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* rmail.texi (Rmail Summary Edit): Explain numeric arguments to

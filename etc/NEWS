@@ -968,6 +968,9 @@ If the configure option `--without-xim' was used to turn off use of
 XIM by default, the X resource useXIM can be used to turn it on.
 
 +++
+** The X resource cursorBlink can be used to turn off cursor blinking.
+
++++
 ** `undo-only' does an undo which does not redo any previous undo.
 
 ---

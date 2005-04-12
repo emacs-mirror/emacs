@@ -714,9 +714,18 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (and command-line-args
          (setcdr command-line-args args)))
 
-  ;; Under X Windows, this creates the X frame and deletes the terminal frame.
+  ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
+
+  ;; Turn off blinking cursor if so specified in X resources.  This is here
+  ;; only because all other settings of no-blinking-cursor is here.
+  (unless (or noninteractive
+	      emacs-basic-display
+	      (and (memq window-system '(x w32 mac))
+		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
+				'("off" "false")))))
+    (setq no-blinking-cursor t))
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive

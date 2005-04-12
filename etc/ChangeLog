@@ -1,3 +1,7 @@
+2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* NEWS: Mention cursorBlink resource.
+
 2005-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* NEWS: Mention dynamic change of keyboard-coding-system on Mac.
