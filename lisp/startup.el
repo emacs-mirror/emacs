@@ -746,6 +746,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
 
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the tooltip-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
 	      emacs-basic-display
               (not (display-graphic-p))
@@ -963,6 +966,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
+
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the xterm-mouse-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
               window-system
               (null term-file-prefix))
@@ -974,7 +981,10 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         (setq term
               (if (setq hyphend (string-match "[-_][^-_]+$" term))
                   (substring term 0 hyphend)
-                nil)))))
+                nil)))
+      (and term
+	   (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)" term)
+	   (xterm-mouse-mode 1))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
