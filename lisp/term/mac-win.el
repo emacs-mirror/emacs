@@ -77,7 +77,7 @@
 ;;(require 'select)
 (require 'menu-bar)
 (require 'fontset)
-(require 'x-dnd)
+(require 'dnd)
 
 (defvar x-invocation-args)
 
@@ -1648,8 +1648,8 @@ Switch to a buffer editing the last file dropped."
 		      (if (and (> start 0) (> end 0))
 			  (progn (set-mark start)
 				 (goto-char end)))))
-		(x-dnd-handle-one-url window 'private
-				      (concat "file:" file-name))))
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name))))
 	    (car (cdr (cdr event)))))
   (raise-frame))
 
