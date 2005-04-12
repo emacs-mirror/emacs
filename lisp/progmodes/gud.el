@@ -2518,7 +2518,6 @@ It is saved for when this flag is not set.")
 
 (defvar gud-minor-mode-type nil)
 (defvar gud-overlay-arrow-position nil)
-(put 'gud-overlay-arrow-position 'overlay-arrow-string "=>")
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
 (defun gud-sentinel (proc msg)
