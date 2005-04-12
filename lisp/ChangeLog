@@ -2,6 +2,16 @@
 
 	* term/mac-win.el (dnd): Require dnd.
 	(mac-drag-n-drop): Call dnd-handle-one-url.
+	(kTextEncodingMacRoman, kTextEncodingISOLatin1)
+	(kTextEncodingISOLatin2): Remove constants.
+	(mac-script-code-coding-systems): New constant.
+	(mac-handle-language-change): New function.
+	(special-event-map): Bind it to `language-change' event.
+	(mac-centraleurroman, mac-cyrillic): New coding systems.
+	(mac-font-encoder-list, ccl-encode-mac-centraleurroman-font)
+	(ccl-encode-mac-cyrillic-font): Rename mac-centraleurroman-encoder
+	and mac-cyrillic-encoder to encode-mac-centraleurroman and
+	encode-mac-cyrillic, respectively.
 
 2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
 

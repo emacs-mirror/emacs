@@ -2,6 +2,21 @@
 
 	* keyboard.c (poll_for_input) [SYNC_INPUT]: Don't call
 	poll_for_input_1.  Set interrupt_input_pending to 1 instead.
+	(Qlanguage_change) [MAC_OS]: New variable.
+	(syms_of_keyboard) [MAC_OS]: Intern and staticpro it.
+	(kbd_buffer_get_event) [MAC_OS]: Make event for
+	LANGUAGE_CHANGE_EVENT.
+
+	* macterm.c (mac_keyboard_text_encoding)
+	(current_mac_keyboard_text_encoding): Remove variables.
+	(XTread_socket): Store language-change event if keyboard script
+	change is detected.  Don't convert input to
+	`mac_keyboard_text_encoding'.
+	(syms_of_macterm): Delete DEFVAR_INT for
+	mac-keyboard-text-encoding.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Add
+	LANGUAGE_CHANGE_EVENT.
 
 2005-04-10  Richard M. Stallman  <rms@gnu.org>
 
