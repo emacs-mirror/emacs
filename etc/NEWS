@@ -2451,6 +2451,11 @@ temporary overlay showing in the course of an isearch operation.
 ** New command `recode-region' decodes the region again by a specified
 coding system.
 
+** On Mac OS, the value of the variable `keyboard-coding-system' is
+now dynamically changed according to the current keyboard script.  The
+variable `mac-keyboard-text-encoding' and the constants
+`kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
+`kTextEncodingISOLatin2' are obsolete.
 
 * New modes and packages in Emacs 22.1
 
