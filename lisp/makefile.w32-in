@@ -1,5 +1,5 @@
 #  -*- Makefile -*- for GNU Emacs on the Microsoft W32 API.
-#  Copyright (c) 2000,2001,2004 Free Software Foundation, Inc.
+#  Copyright (c) 2000, 2001, 2004, 2005 Free Software Foundation, Inc.
 #
 #  This file is part of GNU Emacs.
 #
@@ -45,77 +45,6 @@ EMACSLOADPATH=$(lisp)
 lisptagsfiles1 = $(lisp)/*.el
 lisptagsfiles2 = $(lisp)/*/*.el
 ETAGS = "../lib-src/$(BLD)/etags"
-
-# Files which should not be compiled.  If you change the name `DONTCOMPILE'
-# to something different, you'll have to change make-dist as well, and
-# modify the lists in $lisp and $shortlisp on src/Makefile.in.
-#
-# - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
-#   no point compiling it, although it doesn't hurt.
-
-DONTCOMPILE = \
-	$(lisp)/cus-load.el \
-	$(lisp)/emacs-lisp/cl-specs.el \
-	$(lisp)/eshell/esh-maint.el \
-	$(lisp)/eshell/esh-groups.el \
-	$(lisp)/finder-inf.el \
-	$(lisp)/forms-d2.el \
-	$(lisp)/forms-pass.el \
-	$(lisp)/generic-x.el \
-	$(lisp)/international/latin-1.el \
-	$(lisp)/international/latin-2.el \
-	$(lisp)/international/latin-3.el \
-	$(lisp)/international/latin-4.el \
-	$(lisp)/international/latin-5.el \
-	$(lisp)/international/latin-8.el \
-	$(lisp)/international/latin-9.el \
-	$(lisp)/international/mule-conf.el \
-	$(lisp)/language/czech.el \
-	$(lisp)/language/devanagari.el \
-	$(lisp)/language/kannada.el \
-	$(lisp)/language/malayalam.el \
-	$(lisp)/language/tamil.el \
-	$(lisp)/language/english.el \
-	$(lisp)/language/greek.el \
-	$(lisp)/language/hebrew.el \
-	$(lisp)/language/japanese.el \
-	$(lisp)/language/korean.el \
-	$(lisp)/language/lao.el \
-	$(lisp)/language/misc-lang.el \
-	$(lisp)/language/romanian.el \
-	$(lisp)/language/slovak.el \
-	$(lisp)/language/thai.el \
-	$(lisp)/language/utf-8-lang.el \
-	$(lisp)/language/georgian.el \
-	$(lisp)/loaddefs.el \
-	$(lisp)/ldefs-boot.el \
-	$(lisp)/loadup.el \
-	$(lisp)/mail/blessmail.el \
-	$(lisp)/patcomp.el \
-	$(lisp)/paths.el \
-	$(lisp)/play/bruce.el \
-	$(lisp)/subdirs.el \
-	$(lisp)/term/internal.el \
-	$(lisp)/term/AT386.el  \
-	$(lisp)/term/apollo.el \
-	$(lisp)/term/bobcat.el \
-	$(lisp)/term/iris-ansi.el \
-	$(lisp)/term/keyswap.el \
-	$(lisp)/term/linux.el \
-	$(lisp)/term/lk201.el \
-	$(lisp)/term/news.el \
-	$(lisp)/term/vt102.el \
-	$(lisp)/term/vt125.el \
-	$(lisp)/term/vt200.el \
-	$(lisp)/term/vt201.el \
-	$(lisp)/term/vt220.el \
-	$(lisp)/term/vt240.el \
-	$(lisp)/term/vt300.el \
-	$(lisp)/term/vt320.el \
-	$(lisp)/term/vt400.el \
-	$(lisp)/term/vt420.el \
-	$(lisp)/term/wyse50.el \
-	$(lisp)/version.el
 
 # Files to compile before others during a bootstrap.  This is done to
 # speed up the bootstrap process.  The CC files are compiled first
@@ -251,7 +180,7 @@ updates: update-subdirs autoloads finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+	$(emacs) -l authors -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	$(ETAGS) $(lisptagsfiles1) $(lisptagsfiles2)
@@ -264,19 +193,17 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 .el.elc:
 	-$(emacs) -f batch-byte-compile $<
 
-$(DONTCOMPILE:.el=.elc):
-	-$(DEL) $@
+# Compile all Lisp files, but don't recompile those that are up to
+# date.  Some files don't actually get compiled because they set the
+# local variable no-byte-compile.
 
-# Compile all Lisp files, except those from DONTCOMPILE,
-# but don't recompile those that are up to date.
-
-# All .elc files are made writable
-# before compilation in case we checked out read-only (CVS option -r).
-# Files MUST be compiled one by one.  If we compile several files in a
-# row we can't make sure that the compilation environment is clean.
-# We also set the load-path of the Emacs used for compilation to the
-# current directory and its subdirectories, to make sure require's and
-# load's in the files being compiled find the right files.
+# All .elc files are made writable before compilation in case we
+# checked out read-only (CVS option -r).  Files MUST be compiled one by
+# one.  If we compile several files in a row we can't make sure that
+# the compilation environment is clean.  We also set the load-path of
+# the Emacs used for compilation to the current directory and its
+# subdirectories, to make sure require's and load's in the files being
+# compiled find the right files.
 
 # Need separate version for sh and native cmd.exe
 compile: subdirs.el compile-$(SHELLTYPE) doit
@@ -304,8 +231,10 @@ compile-SH:
 	  done; \
 	done
 
-# Compile all Lisp files, except those from DONTCOMPILE.  This
-# is like `compile' but compiles files unconditionally.
+# Compile all Lisp files.  This is like `compile' but compiles files
+# unconditionally.  Some files don't actually get compiled because they
+# set the local variable no-byte-compile.
+
 compile-always: subdirs.el compile-always-$(SHELLTYPE) doit
 
 compile-always-CMD:
