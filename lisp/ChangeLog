@@ -1,3 +1,9 @@
+2005-04-13  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo): Fix previous change.
+
+	* custom.el (defface): Doc fix.
+
 2005-04-13  Lute Kamstra  <lute@gnu.org>
 
 	* Makefile.in (DONTCOMPILE): Remove list.
@@ -133,7 +139,7 @@
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
 
-2005-04-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+2005-04-11  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
 
 	* wdired.el: Doc fixes.
 	(wdired-confirm-overwrite): Rename from wdired-is-ok-overwrite.
