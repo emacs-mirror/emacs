@@ -1,3 +1,9 @@
+2005-04-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Handle `xterm-mouse-mode' before
+	reading init file.
+	* tooltip.el (tooltip-mode): Adapt to above change.
+
 2005-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/sh-script.el (sh-here-document-word): Make it a
