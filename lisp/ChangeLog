@@ -1,3 +1,8 @@
+2005-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Add mappings for A-, C-, S-
+	and C-S- function and cursor motion keys.
+
 2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Enable Xterm Mouse mode by default.
