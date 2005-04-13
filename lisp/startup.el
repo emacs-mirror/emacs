@@ -752,6 +752,16 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
               (not (fboundp 'x-show-tip)))
     (tooltip-mode 1))
 
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the xterm-mouse-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
+  (unless (or noninteractive
+	      window-system)
+    (let ((term (getenv "TERM")))
+      (and term
+	   (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)" term)
+	   (xterm-mouse-mode 1))))
+
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
   (unless (memq window-system '(x w32))
@@ -964,9 +974,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
 
-  ;; If you change the code below, you need to also change the
-  ;; corresponding code in the xterm-mouse-mode defcustom.  The two need
-  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
               window-system
               (null term-file-prefix))
@@ -978,10 +985,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
         (setq term
               (if (setq hyphend (string-match "[-_][^-_]+$" term))
                   (substring term 0 hyphend)
-                nil)))
-      (and term
-	   (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)" term)
-	   (xterm-mouse-mode 1))))
+                nil)))))
 
   ;; Update the out-of-memory error message based on user's key bindings
   ;; for save-some-buffers.
