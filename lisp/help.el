@@ -590,7 +590,8 @@ the last key hit are used."
 	;; Don't bother user with strings from (e.g.) the select-paste menu.
 	(if (stringp (aref key (1- (length key))))
 	    (aset key (1- (length key)) "(any string)"))
-	(if (stringp (aref untranslated (1- (length untranslated))))
+	(if (and (> (length untranslated) 0)
+		 (stringp (aref untranslated (1- (length untranslated)))))
 	    (aset untranslated (1- (length untranslated))
 		  "(any string)"))
 	;; Now describe the key, perhaps as changed.
@@ -602,7 +603,6 @@ the last key hit are used."
 			   "%s runs the command %s")
 			 key-desc
 			 (if (symbolp defn) defn (prin1-to-string defn)))))))))
-
 
 (defun describe-key (key &optional untranslated up-event)
   "Display documentation of the function invoked by KEY.
