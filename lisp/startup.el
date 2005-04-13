@@ -973,7 +973,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 
   ;; Load library for our terminal type.
   ;; User init file can set term-file-prefix to nil to prevent this.
-
   (unless (or noninteractive
               window-system
               (null term-file-prefix))
