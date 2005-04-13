@@ -1,3 +1,13 @@
+2005-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-here-document-word): Make it a
+	defcustom.  Doc fix.
+	(sh-add): Bash uses $(( )) for arithmetic.
+	(sh-while-getopts) <sh>: Set OPTIND back to 1 at end.
+	(sh-maybe-here-document): Remove quotes and leading whitespace
+	from heredoc word when closing.  Indent heredoc with tabs if word
+	starts with "-".
+
 2005-04-13  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (undo): Fix previous change.
