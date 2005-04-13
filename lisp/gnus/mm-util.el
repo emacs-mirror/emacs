@@ -91,7 +91,12 @@
      ;; (string-to-multibyte s)   ~= (decode-coding-string s 'binary)
      ;; (string-make-multibyte s) ~= (decode-coding-string s locale-coding-system)
      (string-as-multibyte . identity)
-     (string-to-multibyte . mm-string-as-multibyte)
+     (string-to-multibyte
+      . (lambda (string)
+	  "Return a multibyte string with the same individual chars as string."
+	  (mapconcat
+	   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
+	   string "")))
      (multibyte-string-p . ignore)
      ;; It is not a MIME function, but some MIME functions use it.
      (make-temp-file . (lambda (prefix &optional dir-flag)
