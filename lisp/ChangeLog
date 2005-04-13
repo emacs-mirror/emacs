@@ -1,5 +1,14 @@
 2005-04-13  Lute Kamstra  <lute@gnu.org>
 
+	* Makefile.in (DONTCOMPILE): Remove list.
+	(compile, compile-always): Don't use DONTCOMPILE.
+	(update-authors): Load the library in which batch-update-authors
+	is defined.
+	* makefile.w32-in (DONTCOMPILE): Remove list.
+	(compile, compile-always): Fix comments.
+	(update-authors): Load the library in which batch-update-authors
+	is defined.
+
 	* generic-x.el (generic-mode-ini-file-find-file-hook):
 	Rename to ini-generic-mode-find-file-hook.
 	Keep generic-mode-ini-file-find-file-hook as an alias.

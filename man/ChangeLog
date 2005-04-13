@@ -1,3 +1,7 @@
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* cc-mode.texi: Prevent creating an unnecessary empty cc-mode.ss file.
+
 2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by
@@ -906,7 +910,7 @@
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
- 	* man/rmail.texi (Movemail): Explain differences
+	* rmail.texi (Movemail): Explain differences
 	between standard and mailutils versions of movemail.
 	Describe command line and configuration options introduced
 	with the latter.
