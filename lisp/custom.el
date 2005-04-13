@@ -287,9 +287,18 @@ The following KEYWORDs are defined:
 
 SPEC should be an alist of the form ((DISPLAY ATTS)...).
 
-The first element of SPEC where the DISPLAY matches the frame
-is the one that takes effect in that frame.  The ATTRs in this
-element take effect; the other elements are ignored, on that frame.
+In the first element, DISPLAY can be :default.  The ATTS in that
+element then act as defaults for all the following elements.
+
+Aside from that, DISPLAY specifies conditions to match some or
+all frames.  For each frame, the first element of SPEC where the
+DISPLAY conditions are satisfied is the one that applies to that
+frame.  The ATTRs in this element take effect, and the following
+elements are ignored, on that frame.
+
+In the last element, DISPLAY can be t.  That element applies to a
+frame if none of the previous elements (except the :default if
+any) did.
 
 ATTS is a list of face attributes followed by their values:
   (ATTR VALUE ATTR VALUE...)
@@ -298,11 +307,12 @@ The possible attributes are `:family', `:width', `:height', `:weight',
 `:slant', `:underline', `:overline', `:strike-through', `:box',
 `:foreground', `:background', `:stipple', `:inverse-video', and `:inherit'.
 
-DISPLAY can either be the symbol t, which will match all frames, or an
-alist of elements of the form \(REQ ITEM...).  For the DISPLAY to match a
-FRAME, each of these elements must be satisfied, meaning that the
-REQ property of the frame must match one of the corresponding ITEMs.
-These are the defined REQ values:
+DISPLAY can be `:default' (only in the first element), the symbol
+t (only in the last element) to match all frames, or an alist of
+conditions of the form \(REQ ITEM...).  For such an alist to
+match a frame, each of the conditions must be satisfied, meaning
+that the REQ property of the frame must match one of the
+corresponding ITEMs.  These are the defined REQ values:
 
 `type' (the value of `window-system')
   Under X, in addition to the values `window-system' can take,
