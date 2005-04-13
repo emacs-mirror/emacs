@@ -162,23 +162,11 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
-  ;; Do not change the :init-value below, without corresponding
-  ;; changes in the related code in startup.el.
+   ;; If you change the code below, you also need to change the
+   ;; corresponding code in startup.el.
   :init-value (unless (or noninteractive
-			  window-system
-			  (null term-file-prefix))
-		(let ((term (getenv "TERM"))
-		      hyphend)
-		  (while
-		      (and term
-			   (not (load (concat term-file-prefix term) t t)))
-		    ;; Strip off last hyphen and what follows, then
-		    ;; try again
-		    (setq term
-			  (if (setq hyphend
-				    (string-match "[-_][^-_]+$" term))
-			      (substring term 0 hyphend)
-			    nil)))
+			  window-system)
+		(let ((term (getenv "TERM")))
 		  (and term
 		       (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
 				     term)
