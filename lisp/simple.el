@@ -1341,7 +1341,7 @@ as an argument limits undo to changes within the current region."
 	  (message (if undo-in-region
 		       (if equiv "Redo in region!" "Undo in region!")
 		     (if equiv "Redo!" "Undo!"))))
-      (when (and (listp equiv) undo-no-redo)
+      (when (and (consp equiv) undo-no-redo)
 	;; The equiv entry might point to another redo record if we have done
 	;; undo-redo-undo-redo-... so skip to the very last equiv.
 	(while (let ((next (gethash equiv undo-equiv-table)))
