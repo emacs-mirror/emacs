@@ -4358,21 +4358,16 @@ are decompressed."
 		    (mm-read-coding-system "Charset: "))))
 	 (t
 	  (if (mm-handle-undisplayer handle)
-	      (mm-remove-part handle))
-	  (setq contents
-		(if (fboundp 'string-to-multibyte)
-		    (string-to-multibyte contents)
-		  (mapconcat
-		   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-		   contents "")))))
+	      (mm-remove-part handle))))
 	(forward-line 2)
-	(mm-insert-inline handle
-			  (if (and charset
-				   (setq charset (mm-charset-to-coding-system
-						  charset))
-				   (not (eq charset 'ascii)))
-			      (mm-decode-coding-string contents charset)
-			    contents))
+	(mm-insert-inline
+	 handle
+	 (if (and charset
+		  (setq charset (mm-charset-to-coding-system
+				 charset))
+		  (not (eq charset 'ascii)))
+	     (mm-decode-coding-string contents charset)
+	   (mm-string-to-multibyte contents)))
 	(goto-char b)))))
 
 (defun gnus-mime-view-part-as-charset (&optional handle arg)
