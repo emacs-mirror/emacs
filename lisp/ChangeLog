@@ -1,3 +1,18 @@
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el (generic-mode-ini-file-find-file-hook):
+	Rename to ini-generic-mode-find-file-hook.
+	Keep generic-mode-ini-file-find-file-hook as an alias.
+	(ini-generic-mode-find-file-hook): Rename from
+	generic-mode-ini-file-find-file-hook.  Fix docstring.
+	(ini-generic-mode): Docstring change.
+	(bat-generic-mode-run-as-comint): Silence the byte compiler.
+
+	* help.el (describe-key-briefly): UNTRANSLATED can be nil when
+	called from lisp.
+
+	* generic.el: Move to the emacs-lisp subdir.
+
 2005-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (function-key-map): Add mappings for A-, C-, S-
