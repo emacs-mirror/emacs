@@ -178,16 +178,6 @@ This hook will be installed if the variable
 	(goto-char (point-min))
 	(default-generic-mode)))))
 
-(defun generic-mode-ini-file-find-file-hook ()
-  "Hook function to enter Default-Generic mode automatically for INI files.
-Done if the first few lines of a file in Fundamental mode look like an
-INI file.  This hook is NOT installed by default."
-  (and (eq major-mode 'fundamental-mode)
-       (save-excursion
-	 (goto-char (point-min))
-	 (and (looking-at "^\\s-*\\[.*\\]")
-	      (ini-generic-mode)))))
-
 (and generic-use-find-file-hook
     (add-hook 'find-file-hook 'generic-mode-find-file-hook))
 
@@ -375,8 +365,21 @@ generic-x to enable the specified modes."
       (setq imenu-generic-expression
 	    '((nil "^\\[\\(.*\\)\\]" 1)
 	      ("*Variables*" "^\\s-*\\([^=]+\\)\\s-*=" 1))))))
-  "Generic mode for MS-Windows INI files."
-  :group 'generic-x))
+  "Generic mode for MS-Windows INI files.
+You can use `ini-generic-mode-find-file-hook' to enter this mode
+automatically for INI files whose names do not end in \".ini\"."
+  :group 'generic-x)
+
+(defun ini-generic-mode-find-file-hook ()
+  "Hook function to enter Ini-Generic mode automatically for INI files.
+Done if the first few lines of a file in Fundamental mode look
+like an INI file.  You can add this hook to `find-file-hook'."
+  (and (eq major-mode 'fundamental-mode)
+       (save-excursion
+	 (goto-char (point-min))
+	 (and (looking-at "^\\s-*\\[.*\\]")
+	      (ini-generic-mode)))))
+(defalias 'generic-mode-ini-file-find-file-hook 'ini-generic-mode-find-file-hook))
 
 ;;; Windows REG files
 ;;; Unfortunately, Windows 95 and Windows NT have different REG file syntax!
@@ -487,6 +490,7 @@ generic-x to enable the specified modes."
     (compile
      (concat (w32-shell-name) " -c " (buffer-file-name)))))
 
+(eval-when-compile (require 'comint))
 (defun bat-generic-mode-run-as-comint ()
   "Run the current BAT file in a comint buffer."
   (interactive)
