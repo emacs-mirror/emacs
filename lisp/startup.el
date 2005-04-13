@@ -746,9 +746,6 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
 
-  ;; If you change the code below, you need to also change the
-  ;; corresponding code in the tooltip-mode defcustom.  The two need
-  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
 	      emacs-basic-display
               (not (display-graphic-p))
