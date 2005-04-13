@@ -2,7 +2,8 @@
 
 	* startup.el (command-line): Handle `xterm-mouse-mode' before
 	reading init file.
-	* tooltip.el (tooltip-mode): Adapt to above change.
+
+	* xt-mouse.el (xterm-mouse-mode): Adapt to above change.
 
 2005-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
