@@ -55,7 +55,9 @@
 @comment !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 @comment Define an index for syntactic symbols.
+@ifnottex
 @defindex ss
+@end ifnottex
 
 @comment Combine key, syntactic symbol and concept indices into one.
 @syncodeindex ss cp
