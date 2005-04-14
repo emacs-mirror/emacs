@@ -9829,10 +9829,6 @@ Toolbox for processing before Emacs sees it.  */);
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
 
-  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
-  Vmac_pass_control_to_system = Qt;
 #endif
 
   DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,

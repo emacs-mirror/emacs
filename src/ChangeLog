@@ -1,3 +1,8 @@
+2005-04-13  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm): Removing redundant definition of
+	mac-pass-control-to-system
+
 2005-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fset_window_configuration): Be careful when you choose
