@@ -1,7 +1,7 @@
 2005-04-13  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (syms_of_macterm): Removing redundant definition of
-	mac-pass-control-to-system
+	* macterm.c (syms_of_macterm): Remove redundant definition of
+	mac-pass-control-to-system.
 
 2005-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -18,13 +18,11 @@
 
 	* macterm.c (mac_keyboard_text_encoding)
 	(current_mac_keyboard_text_encoding): Remove variables.
-	(XTread_socket): Store language-change event if keyboard script
-	change is detected.  Don't convert input to
-	`mac_keyboard_text_encoding'.
+	(XTread_socket): Store language-change event if keyboard script	change
+	is detected.  Don't convert input to `mac_keyboard_text_encoding'.
 	(syms_of_macterm): Delete DEFVAR_INT for mac-keyboard-text-encoding.
 
-	* termhooks.h (enum event_kind) [MAC_OS]:
-	Add LANGUAGE_CHANGE_EVENT.
+	* termhooks.h (enum event_kind) [MAC_OS]: Add LANGUAGE_CHANGE_EVENT.
 
 2005-04-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -913,9 +911,9 @@
 
 2005-02-02  Steven Tamm  <steventamm@mac.com>
 
-	* macfns.c (unwind_create_frame): Fixing compile error due to
+	* macfns.c (unwind_create_frame): Fix compile error due to
 	xassert being uncondition, but predicate is.
-	* dispnew.c (update_window): Fixing compile error due to
+	* dispnew.c (update_window): Fix compile error due to
 	xassert being uncondition, but predicate is.
 
 2005-02-02  Miles Bader  <miles@gnu.org>
@@ -1059,6 +1057,7 @@
 
 	* s/darwin.h: Removed PTY_ITERATION from here.
 	(DARWIN): Define.
+
 	* process.c (init_process): Default process-connection-type to
 	nil on darwin 6 or less, t if it is 7 or higher.  This way the
 	broken pty behavior is still allowed on darwin 6 for interactive
@@ -3564,8 +3563,8 @@
 2004-08-26  Steven Tamm  <steventamm@mac.com>
 
 	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
-	tool-bar/menu click
-	* macfns.c (Fx_file_dialog): Implemented using NavServices
+	tool-bar/menu click.
+	* macfns.c (Fx_file_dialog): Implement using NavServices.
 
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -5052,7 +5051,7 @@
 
 2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
-	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+	* lread.c (init_lread): Fix typo in HAVE_CARBON test logic.
 
 2004-04-26  Miles Bader  <miles@gnu.org>
 
@@ -5507,10 +5506,10 @@
 
 2004-03-11  Steven Tamm <steventamm@mac.com>
 
-	* image.c [MAC_OSX]: Include sys/stat.h
+	* image.c [MAC_OSX]: Include sys/stat.h.
 
 	* macfns.c (syms_of_macfns): Remove definitions of things now
-	defined in image.c
+	defined in image.c.
 
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
@@ -6220,7 +6219,7 @@
 	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
 	controlling emulation of a three button mouse with option and
 	command keys.
-	(Qreverse, mac_get_enumlated_btn): Handle the emulation
+	(Qreverse, mac_get_enumlated_btn): Handle the emulation.
 	(mac_event_to_emacs_modifiers, XTread_socket): Ditto.
 
 2004-02-15  Kim F. Storm  <storm@cua.dk>
@@ -11160,7 +11159,7 @@
 
 2003-01-20  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (XTread_socket): Checks for valid, visible window
+	* macterm.c (XTread_socket): Check for valid, visible window
 	before sending a scroll-wheel event.
 
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
@@ -11519,7 +11518,7 @@
 
 2002-12-28  Steven Tamm  <steventamm@mac.com>
 
-	* Makefile.in (macosx-bundle): Fixes to Mac OS X/Carbon port to
+	* Makefile.in (macosx-bundle): Fix Mac OS X/Carbon port to
 	allow building in a different directory than source.  Uses some
 	GNU Make extensions, but there is no other make on Mac OS X.
 
@@ -11562,7 +11561,7 @@
 
 	* macterm.c (XTread_socket): Call KeyTranslate for control and
 	meta to deal correctly shifted non-alpha characters, like C-S-5
-	being treated like C-%.  Does not look for shift key to deal
+	being treated like C-%.  Do not look for shift key to deal
 	with masking off control-key with mac-reverse-ctrl-meta.
 
 2002-12-21  Richard M. Stallman  <rms@gnu.org>
