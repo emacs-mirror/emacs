@@ -719,7 +719,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (frame-initialize))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
-  ;; only because all other settings of no-blinking-cursor is here.
+  ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
 	      (and (memq window-system '(x w32 mac))
