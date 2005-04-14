@@ -100,15 +100,10 @@ You should probably avoid non-ASCII characters in this arg.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  (save-excursion
-    (goto-char from)
-    (if (fboundp 'string-to-multibyte)	; Emacs 23
-	(if (re-search-forward (string-to-multibyte "[^\x0-\x7f\x80-\xff]")
-			       to t)
-	    ;; Fixme: This is somewhat misleading.
-	    (error "Multibyte character in QP encoding region"))
-      (if (re-search-forward (mm-string-as-multibyte "[^\0-\377]") to t)
-	  (error "Multibyte character in QP encoding region"))))
+  (goto-char from)
+  (if (re-search-forward (mm-string-to-multibyte "[^\x0-\x7f\x80-\xff]")
+			 to t)
+      (error "Multibyte character in QP encoding region"))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="

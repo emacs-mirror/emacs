@@ -555,14 +555,24 @@ The actual command ends at the end of the first \\(grouping\\)."
 
 
 
-(defvar sh-here-document-word "EOF"
+(defcustom sh-here-document-word "EOF"
   "Word to delimit here documents.
-If the first character of this string is \"-\", this character will
-be removed from the string when it is used to close the here document.
-This convention is used by the Bash shell, for example, to indicate
-that leading tabs inside the here document should be ignored.
-Note that Emacs currently has no support for indenting inside here
-documents - you must insert literal tabs by hand.")
+If the first character of this string is \"-\", this is taken as
+part of the redirection operator, rather than part of the
+word (that is, \"<<-\" instead of \"<<\").  This is a feature
+used by some shells (for example Bash) to indicate that leading
+tabs inside the here document should be ignored.  In this case,
+Emacs indents the initial body and end of the here document with
+tabs, to the same level as the start (note that apart from this
+there is no support for indentation of here documents).  This
+will only work correctly if `sh-basic-offset' is a multiple of
+`tab-width'.
+
+Any quote characters or leading whitespace in the word are
+removed when closing the here document."
+  :type 'string
+  :group 'sh-script)
+
 
 (defvar sh-test
   '((sh "[  ]" . 3)
@@ -3247,7 +3257,7 @@ t means to return a list of all possible completions of STRING.
    (let ((sh-add-buffer (current-buffer)))
      (list (completing-read "Variable: " 'sh-add-completer)
 	   (prefix-numeric-value current-prefix-arg))))
-  (insert (sh-feature '((bash . "$[ ")
+  (insert (sh-feature '((bash . "$(( ")
 			(ksh88 . "$(( ")
 			(posix . "$(( ")
 			(rc . "`{expr $")
@@ -3256,7 +3266,7 @@ t means to return a list of all possible completions of STRING.
 	  (sh-remember-variable var)
 	  (if (< delta 0) " - " " + ")
 	  (number-to-string (abs delta))
-	  (sh-feature '((bash . " ]")
+	  (sh-feature '((bash . " ))")
 			(ksh88 . " ))")
 			(posix . " ))")
 			(rc . "}")
@@ -3482,7 +3492,8 @@ option followed by a colon `:' if the option accepts an argument."
       "esac" >
       \n "done"
       > \n
-      "shift " (sh-add "OPTIND" -1) \n))
+      "shift " (sh-add "OPTIND" -1) \n
+      "OPTIND=1" \n))
 
 
 
@@ -3500,7 +3511,6 @@ option followed by a colon `:' if the option accepts an argument."
 	     (match-string 1))))))
 
 
-
 (defun sh-maybe-here-document (arg)
   "Insert self.  Without prefix, following unquoted `<' inserts here document.
 The document is bounded by `sh-here-document-word'."
@@ -3511,18 +3521,21 @@ The document is bounded by `sh-here-document-word'."
       (save-excursion
 	(backward-char 2)
 	(sh-quoted-p))
-      (progn
+      (let ((tabs (if (string-match "\\`-" sh-here-document-word)
+                      (make-string (/ (current-indentation) tab-width) ?\t)
+                    ""))
+            (delim (replace-regexp-in-string "['\"]" ""
+                                            sh-here-document-word)))
 	(insert sh-here-document-word)
 	(or (eolp) (looking-at "[ \t]") (insert ? ))
 	(end-of-line 1)
 	(while
 	    (sh-quoted-p)
 	  (end-of-line 2))
-	(newline)
+	(insert ?\n tabs)
 	(save-excursion
-          (insert ?\n (substring
-                       sh-here-document-word
-                       (if (string-match "^-" sh-here-document-word) 1 0)))))))
+          (insert ?\n tabs (replace-regexp-in-string
+                            "\\`-?[ \t]*" "" delim))))))
 
 
 ;; various other commands
@@ -3574,7 +3587,7 @@ With an argument, deletes the backslashes.
 
 This function does not modify the last line of the region if the region ends
 right at the start of the following line; it does not modify blank lines
-at the start of the region.  So you can put the region around an entire 
+at the start of the region.  So you can put the region around an entire
 shell command and conveniently use this command."
   (interactive "r\nP")
   (save-excursion

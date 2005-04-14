@@ -77,7 +77,7 @@
 ;;(require 'select)
 (require 'menu-bar)
 (require 'fontset)
-(require 'x-dnd)
+(require 'dnd)
 
 (defvar x-invocation-args)
 
@@ -1085,13 +1085,29 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'escape 'ascii-character ?\e)
 
 
-;;;; Keysyms
+;;;; Keyboard layout/language change events
+(defconst mac-script-code-coding-systems
+  '((0 . mac-roman)			; smRoman
+    (1 . japanese-shift-jis)		; smJapanese
+    (2 . chinese-big5)			; smTradChinese
+    (3 . korean-iso-8bit)		; smKorean
+    (7 . mac-cyrillic)			; smCyrillic
+    (25 . chinese-iso-8bit)		; smSimpChinese
+    (29 . mac-centraleurroman)		; smCentralEuroRoman
+    )
+  "Alist of Mac script codes vs Emacs coding systems.")
 
-;; Define constant values to be set to mac-keyboard-text-encoding
-(defconst kTextEncodingMacRoman 0)
-(defconst kTextEncodingISOLatin1 513 "0x201")
-(defconst kTextEncodingISOLatin2 514 "0x202")
+;;;; Keyboard layout/language change events
+(defun mac-handle-language-change (event)
+  (interactive "e")
+  (let ((coding-system
+	 (cdr (assq (car (cadr event)) mac-script-code-coding-systems))))
+    (set-keyboard-coding-system (or coding-system 'mac-roman))
+    ;; MacJapanese maps reverse solidus to ?\x80.
+    (if (eq coding-system 'japanese-shift-jis)
+	(define-key key-translation-map [?\x80] "\\"))))
 
+(define-key special-event-map [language-change] 'mac-handle-language-change)
 
 ;;;; Selections and cut buffers
 
@@ -1249,8 +1265,8 @@ Switch to a buffer editing the last file dropped."
 		      (if (and (> start 0) (> end 0))
 			  (progn (set-mark start)
 				 (goto-char end)))))
-		(x-dnd-handle-one-url window 'private
-				      (concat "file:" file-name))))
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name))))
 	    (car (cdr (cdr event)))))
   (raise-frame))
 

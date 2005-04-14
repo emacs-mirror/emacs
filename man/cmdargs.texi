@@ -268,12 +268,10 @@ option and @samp{-Q} are the only options that block it.
 
 @item -Q
 @opindex -Q
-@itemx --bare-bones
-@opindex --bare-bones
-Start emacs with minimum customizations and window decorations.
-This is like using @samp{-q} and @samp{--no-site-file}, but in
-addition it also disables the menu-bar, the tool-bar, the scroll-bars,
-tool tips, the blinking cursor, and the fancy startup screen.
+@itemx --quick
+@opindex --quick
+Start emacs with minimum customizations.  This is like using @samp{-q}
+and @samp{--no-site-file}, but also disables the startup screen.
 
 @item --no-splash
 @opindex --no-splash
@@ -1222,6 +1220,14 @@ Specify @var{pixels} as additional space to put between lines, in pixels.
 @opindex --no-blinking-cursor
 @cindex blinking cursor disable, command-line argument
 Disable the blinking cursor on graphical terminals.
+
+@item -D
+@opindex -D
+@itemx --basic-display
+@opindex --basic-display
+Disable the menu-bar, the tool-bar, the scroll-bars, and tool tips,
+and turn off the blinking cursor.  This can be useful for making a
+test case that simplifies debugging of display problems.
 @end table
 
   The @samp{--xrm} option (@pxref{Resources}) specifies additional

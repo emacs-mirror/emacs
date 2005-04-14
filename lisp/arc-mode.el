@@ -1,6 +1,6 @@
 ;;; arc-mode.el --- simple editing of archives
 
-;; Copyright (C) 1995, 1997, 1998, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Morten Welinder <terra@gnu.org>
 ;; Keywords: archives msdog editing major-mode
@@ -330,7 +330,111 @@ Archive and member name will be added."
 (defvar archive-proper-file-start nil "Position of real archive's start.")
 (defvar archive-read-only nil "Non-nil if the archive is read-only on disk.")
 (defvar archive-local-name nil "Name of local copy of remote archive.")
-(defvar archive-mode-map nil "Local keymap for archive mode listings.")
+(defvar archive-mode-map
+  (let ((map (make-keymap)))
+    (suppress-keymap map)
+    (define-key map " " 'archive-next-line)
+    (define-key map "a" 'archive-alternate-display)
+    ;;(define-key map "c" 'archive-copy)
+    (define-key map "d" 'archive-flag-deleted)
+    (define-key map "\C-d" 'archive-flag-deleted)
+    (define-key map "e" 'archive-extract)
+    (define-key map "f" 'archive-extract)
+    (define-key map "\C-m" 'archive-extract)
+    (define-key map "g" 'revert-buffer)
+    (define-key map "h" 'describe-mode)
+    (define-key map "m" 'archive-mark)
+    (define-key map "n" 'archive-next-line)
+    (define-key map "\C-n" 'archive-next-line)
+    (define-key map [down] 'archive-next-line)
+    (define-key map "o" 'archive-extract-other-window)
+    (define-key map "p" 'archive-previous-line)
+    (define-key map "q" 'quit-window)
+    (define-key map "\C-p" 'archive-previous-line)
+    (define-key map [up] 'archive-previous-line)
+    (define-key map "r" 'archive-rename-entry)
+    (define-key map "u" 'archive-unflag)
+    (define-key map "\M-\C-?" 'archive-unmark-all-files)
+    (define-key map "v" 'archive-view)
+    (define-key map "x" 'archive-expunge)
+    (define-key map "\177" 'archive-unflag-backwards)
+    (define-key map "E" 'archive-extract-other-window)
+    (define-key map "M" 'archive-chmod-entry)
+    (define-key map "G" 'archive-chgrp-entry)
+    (define-key map "O" 'archive-chown-entry)
+
+    (if (fboundp 'command-remapping)
+        (progn
+          (define-key map [remap advertised-undo] 'archive-undo)
+          (define-key map [remap undo] 'archive-undo))
+      (substitute-key-definition 'advertised-undo 'archive-undo map global-map)
+      (substitute-key-definition 'undo 'archive-undo map global-map))
+
+    (define-key map
+      (if (featurep 'xemacs) 'button2 [mouse-2]) 'archive-mouse-extract)
+
+    (if (featurep 'xemacs)
+        ()				; out of luck
+
+      (define-key map [menu-bar immediate]
+        (cons "Immediate" (make-sparse-keymap "Immediate")))
+      (define-key map [menu-bar immediate alternate]
+        '(menu-item "Alternate Display" archive-alternate-display
+          :enable (boundp (archive-name "alternate-display"))
+          :help "Toggle alternate file info display"))
+      (define-key map [menu-bar immediate view]
+        '(menu-item "View This File" archive-view
+          :help "Display file at cursor in View Mode"))
+      (define-key map [menu-bar immediate display]
+        '(menu-item "Display in Other Window" archive-display-other-window
+          :help "Display file at cursor in another window"))
+      (define-key map [menu-bar immediate find-file-other-window]
+        '(menu-item "Find in Other Window" archive-extract-other-window
+          :help "Edit file at cursor in another window"))
+      (define-key map [menu-bar immediate find-file]
+        '(menu-item "Find This File" archive-extract
+          :help "Extract file at cursor and edit it"))
+
+      (define-key map [menu-bar mark]
+        (cons "Mark" (make-sparse-keymap "Mark")))
+      (define-key map [menu-bar mark unmark-all]
+        '(menu-item "Unmark All" archive-unmark-all-files
+          :help "Unmark all marked files"))
+      (define-key map [menu-bar mark deletion]
+        '(menu-item "Flag" archive-flag-deleted
+          :help "Flag file at cursor for deletion"))
+      (define-key map [menu-bar mark unmark]
+        '(menu-item "Unflag" archive-unflag
+          :help "Unmark file at cursor"))
+      (define-key map [menu-bar mark mark]
+        '(menu-item "Mark" archive-mark
+          :help "Mark file at cursor"))
+
+      (define-key map [menu-bar operate]
+        (cons "Operate" (make-sparse-keymap "Operate")))
+      (define-key map [menu-bar operate chown]
+        '(menu-item "Change Owner..." archive-chown-entry
+          :enable (fboundp (archive-name "chown-entry"))
+          :help "Change owner of marked files"))
+      (define-key map [menu-bar operate chgrp]
+        '(menu-item "Change Group..." archive-chgrp-entry
+          :enable (fboundp (archive-name "chgrp-entry"))
+          :help "Change group ownership of marked files"))
+      (define-key map [menu-bar operate chmod]
+        '(menu-item "Change Mode..." archive-chmod-entry
+          :enable (fboundp (archive-name "chmod-entry"))
+          :help "Change mode (permissions) of marked files"))
+      (define-key map [menu-bar operate rename]
+        '(menu-item "Rename to..." archive-rename-entry
+          :enable (fboundp (archive-name "rename-entry"))
+          :help "Rename marked files"))
+      ;;(define-key map [menu-bar operate copy]
+      ;;  '(menu-item "Copy to..." archive-copy))
+      (define-key map [menu-bar operate expunge]
+        '(menu-item "Expunge Marked Files" archive-expunge
+          :help "Delete all flagged files from archive"))
+      map))
+  "Local keymap for archive mode listings.")
 (defvar archive-file-name-indent nil "Column where file names start.")
 
 (defvar archive-remote nil "Non-nil if the archive is outside file system.")
@@ -362,9 +466,6 @@ Each descriptor is a vector of the form
  [EXT-FILE-NAME INT-FILE-NAME CASE-FIDDLED MODE ...]")
 (make-variable-buffer-local 'archive-files)
 
-(defvar archive-lemacs
-  (string-match "\\(Lucid\\|Xemacs\\)" emacs-version)
-  "*Non-nil when running under under Lucid Emacs or Xemacs.")
 ;; -------------------------------------------------------------------------
 ;; Section: Support functions.
 
@@ -609,116 +710,9 @@ archive.
 ;; -------------------------------------------------------------------------
 ;; Section: Key maps
 
-(if archive-mode-map nil
-  (setq archive-mode-map (make-keymap))
-  (suppress-keymap archive-mode-map)
-  (define-key archive-mode-map " " 'archive-next-line)
-  (define-key archive-mode-map "a" 'archive-alternate-display)
-  ;;(define-key archive-mode-map "c" 'archive-copy)
-  (define-key archive-mode-map "d" 'archive-flag-deleted)
-  (define-key archive-mode-map "\C-d" 'archive-flag-deleted)
-  (define-key archive-mode-map "e" 'archive-extract)
-  (define-key archive-mode-map "f" 'archive-extract)
-  (define-key archive-mode-map "\C-m" 'archive-extract)
-  (define-key archive-mode-map "g" 'revert-buffer)
-  (define-key archive-mode-map "h" 'describe-mode)
-  (define-key archive-mode-map "m" 'archive-mark)
-  (define-key archive-mode-map "n" 'archive-next-line)
-  (define-key archive-mode-map "\C-n" 'archive-next-line)
-  (define-key archive-mode-map [down] 'archive-next-line)
-  (define-key archive-mode-map "o" 'archive-extract-other-window)
-  (define-key archive-mode-map "p" 'archive-previous-line)
-  (define-key archive-mode-map "q" 'quit-window)
-  (define-key archive-mode-map "\C-p" 'archive-previous-line)
-  (define-key archive-mode-map [up] 'archive-previous-line)
-  (define-key archive-mode-map "r" 'archive-rename-entry)
-  (define-key archive-mode-map "u" 'archive-unflag)
-  (define-key archive-mode-map "\M-\C-?" 'archive-unmark-all-files)
-  (define-key archive-mode-map "v" 'archive-view)
-  (define-key archive-mode-map "x" 'archive-expunge)
-  (define-key archive-mode-map "\177" 'archive-unflag-backwards)
-  (define-key archive-mode-map "E" 'archive-extract-other-window)
-  (define-key archive-mode-map "M" 'archive-chmod-entry)
-  (define-key archive-mode-map "G" 'archive-chgrp-entry)
-  (define-key archive-mode-map "O" 'archive-chown-entry)
-
-  (if archive-lemacs
-      (progn
-	;; Not a nice "solution" but it'll have to do
-	(define-key archive-mode-map "\C-xu" 'archive-undo)
-	(define-key archive-mode-map "\C-_" 'archive-undo))
-    (define-key archive-mode-map [remap advertised-undo] 'archive-undo)
-    (define-key archive-mode-map [remap undo] 'archive-undo))
-
-  (define-key archive-mode-map
-    (if archive-lemacs 'button2 [mouse-2]) 'archive-mouse-extract)
-
-  (if archive-lemacs
-      ()				; out of luck
-
-    (define-key archive-mode-map [menu-bar immediate]
-      (cons "Immediate" (make-sparse-keymap "Immediate")))
-    (define-key archive-mode-map [menu-bar immediate alternate]
-      '(menu-item "Alternate Display" archive-alternate-display
-		  :enable (boundp (archive-name "alternate-display"))
-		  :help "Toggle alternate file info display"))
-    (define-key archive-mode-map [menu-bar immediate view]
-      '(menu-item "View This File" archive-view
-		  :help "Display file at cursor in View Mode"))
-    (define-key archive-mode-map [menu-bar immediate display]
-      '(menu-item "Display in Other Window" archive-display-other-window
-		  :help "Display file at cursor in another window"))
-    (define-key archive-mode-map [menu-bar immediate find-file-other-window]
-      '(menu-item "Find in Other Window" archive-extract-other-window
-		  :help "Edit file at cursor in another window"))
-    (define-key archive-mode-map [menu-bar immediate find-file]
-      '(menu-item "Find This File" archive-extract
-		  :help "Extract file at cursor and edit it"))
-
-    (define-key archive-mode-map [menu-bar mark]
-      (cons "Mark" (make-sparse-keymap "Mark")))
-    (define-key archive-mode-map [menu-bar mark unmark-all]
-      '(menu-item "Unmark All" archive-unmark-all-files
-		  :help "Unmark all marked files"))
-    (define-key archive-mode-map [menu-bar mark deletion]
-      '(menu-item "Flag" archive-flag-deleted
-		  :help "Flag file at cursor for deletion"))
-    (define-key archive-mode-map [menu-bar mark unmark]
-      '(menu-item "Unflag" archive-unflag
-		  :help "Unmark file at cursor"))
-    (define-key archive-mode-map [menu-bar mark mark]
-      '(menu-item "Mark" archive-mark
-		  :help "Mark file at cursor"))
-
-    (define-key archive-mode-map [menu-bar operate]
-      (cons "Operate" (make-sparse-keymap "Operate")))
-    (define-key archive-mode-map [menu-bar operate chown]
-      '(menu-item "Change Owner..." archive-chown-entry
-		  :enable (fboundp (archive-name "chown-entry"))
-		  :help "Change owner of marked files"))
-    (define-key archive-mode-map [menu-bar operate chgrp]
-      '(menu-item "Change Group..." archive-chgrp-entry
-		  :enable (fboundp (archive-name "chgrp-entry"))
-		  :help "Change group ownership of marked files"))
-    (define-key archive-mode-map [menu-bar operate chmod]
-      '(menu-item "Change Mode..." archive-chmod-entry
-		  :enable (fboundp (archive-name "chmod-entry"))
-		  :help "Change mode (permissions) of marked files"))
-    (define-key archive-mode-map [menu-bar operate rename]
-      '(menu-item "Rename to..." archive-rename-entry
-		  :enable (fboundp (archive-name "rename-entry"))
-		  :help "Rename marked files"))
-    ;;(define-key archive-mode-map [menu-bar operate copy]
-    ;;  '(menu-item "Copy to..." archive-copy))
-    (define-key archive-mode-map [menu-bar operate expunge]
-      '(menu-item "Expunge Marked Files" archive-expunge
-		  :help "Delete all flagged files from archive"))
-  ))
-
-(let* ((item1 '(archive-subfile-mode " Archive"))
-       (items (list item1)))
+(let ((item1 '(archive-subfile-mode " Archive")))
   (or (member item1 minor-mode-alist)
-      (setq minor-mode-alist (append items minor-mode-alist))))
+      (setq minor-mode-alist (cons item1 minor-mode-alist))))
 ;; -------------------------------------------------------------------------
 (defun archive-find-type ()
   (widen)
@@ -784,7 +778,7 @@ when parsing the archive."
 	;; Using `concat' here copies the text also, so we can add
 	;; properties without problems.
 	(let ((text (concat (aref fil 0) "\n")))
-	  (if archive-lemacs
+	  (if (featurep 'xemacs)
 	      ()			; out of luck
 	    (add-text-properties
 	     (aref fil 1) (aref fil 2)
@@ -1825,5 +1819,5 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 
 (provide 'arc-mode)
 
-;;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
+;; arch-tag: e5966a01-35ec-4f27-8095-a043a79b457b
 ;;; arc-mode.el ends here

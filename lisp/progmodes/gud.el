@@ -1417,7 +1417,7 @@ and source-file directory for your debugger."
 
     output))
 
-(defcustom gud-pdb-command-name "pydb"
+(defcustom gud-pdb-command-name "pdb"
   "File name for executing the Python debugger.
 This should be an executable on your path, or an absolute file name."
   :type 'string
@@ -2518,7 +2518,6 @@ It is saved for when this flag is not set.")
 
 (defvar gud-minor-mode-type nil)
 (defvar gud-overlay-arrow-position nil)
-(put 'gud-overlay-arrow-position 'overlay-arrow-string "=>")
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
 (defun gud-sentinel (proc msg)
@@ -2614,7 +2613,6 @@ Obeying it means displaying in another window the specified file and line."
 	      (widen)
 	      (goto-line line)
 	      (setq pos (point))
-	      (setq overlay-arrow-string "=>")
 	      (or gud-overlay-arrow-position
 		  (setq gud-overlay-arrow-position (make-marker)))
 	      (set-marker gud-overlay-arrow-position (point) (current-buffer)))

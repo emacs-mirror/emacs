@@ -1,3 +1,8 @@
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* make-dist: Don't use DONTCOMPILE from lisp/Makefile.in; check
+	for "no-byte-compile: t" in the file instead.
+
 2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in <Motif>: Don't let a special LessTif/Motif1.2 install

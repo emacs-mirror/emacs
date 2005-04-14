@@ -20,6 +20,8 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
+** Adapt mouse-sel-mode to mouse-1-click-follows-link.
+
 
 * FATAL ERRORS
 
@@ -34,8 +36,6 @@ invalid pointer from string_free_list.
 * LOSSAGE
 
 ** Clean up flymake.el to follow Emacs Lisp conventions.
-
-** Fix up url-ldap.el.
 
 * BUGS
 
@@ -179,7 +179,7 @@ man/m-x.texi        "Luc Teirlinck"  Chong Yidong
 man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
 man/programs.texi   "Stephen Eglen"  Chong Yidong
 man/regs.texi       "Luc Teirlinck"   Chong Yidong
-man/rmail.texi      Chong Yidong
+man/rmail.texi      Chong Yidong      "Luc Teirlinck"
 man/screen.texi     "Luc Teirlinck"   Chong Yidong
 man/search.texi     "Luc Teirlinck"   Chong Yidong
 man/sending.texi    Chong Yidong      "Luc Teirlinck"
@@ -275,7 +275,7 @@ etc/TUTORIAL.pl
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru
-etc/TUTORIAL.sk
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
 etc/TUTORIAL.th

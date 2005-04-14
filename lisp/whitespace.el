@@ -86,7 +86,7 @@
 
 ;;; Code:
 
-(defvar whitespace-version "3.4" "Version of the whitespace library.")
+(defvar whitespace-version "3.5" "Version of the whitespace library.")
 
 (defvar whitespace-all-buffer-files nil
   "An associated list of buffers and files checked for whitespace cleanliness.
@@ -599,7 +599,7 @@ whitespace problems."
       (setq pmax (point))
       (if (equal pmin pmax)
 	  (progn
-	    (whitespace-highlight-the-space pmin pmax)
+	    (whitespace-highlight-the-space pmin (1+ pmax))
 	    t)
 	nil))))
 
@@ -637,7 +637,7 @@ whitespace problems."
 	    (setq pmax (point))
 	    (if (equal pmin pmax)
 		(progn
-		  (whitespace-highlight-the-space pmin pmax)
+		  (whitespace-highlight-the-space (- pmin 1) pmax)
 		  t)
 	      nil))
 	nil))))
@@ -733,12 +733,11 @@ Also with whitespaces whose testing has been turned off."
   "Highlight the current line, unhighlighting a previously jumped to line."
   (if whitespace-display-spaces-in-color
       (let ((ol (whitespace-make-overlay b e)))
-	(whitespace-unhighlight-the-space)
 	(push ol whitespace-highlighted-space)
 	(whitespace-overlay-put ol 'face 'whitespace-highlight-face))))
 ;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
 
-(defun whitespace-unhighlight-the-space ()
+(defun whitespace-unhighlight-the-space()
   "Unhighlight the currently highlight line."
   (if (and whitespace-display-spaces-in-color whitespace-highlighted-space)
       (progn

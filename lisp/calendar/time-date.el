@@ -1,5 +1,6 @@
 ;;; time-date.el --- Date and time handling functions
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2004, 2005
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;;	Masanobu Umeda <umerin@mse.kyutech.ac.jp>
@@ -112,15 +113,15 @@ and type 3 is the list (HIGH LOW MICRO)."
   "Convert time value TIME to a floating point number.
 You can use `float-time' instead."
   (with-decoded-time-value ((high low micro time))
-    (+ (* 1.0 high #x10000)
+    (+ (* 1.0 high 65536)
        low
        (/ micro 1000000.0))))
 
 ;;;###autoload
 (defun seconds-to-time (seconds)
   "Convert SECONDS (a floating point number) to a time value."
-  (list (floor seconds #x10000)
-	(floor (mod seconds #x10000))
+  (list (floor seconds 65536)
+	(floor (mod seconds 65536))
 	(floor (* (- seconds (ffloor seconds)) 1000000))))
 
 ;;;###autoload
@@ -138,10 +139,10 @@ You can use `float-time' instead."
 (defun days-to-time (days)
   "Convert DAYS into a time value."
   (let* ((seconds (* 1.0 days 60 60 24))
-	 (high (condition-case nil (floor (/ seconds #x10000))
+	 (high (condition-case nil (floor (/ seconds 65536))
 		 (range-error most-positive-fixnum))))
-    (list high (condition-case nil (floor (- seconds (* 1.0 high #x10000)))
-		 (range-error #xffff)))))
+    (list high (condition-case nil (floor (- seconds (* 1.0 high 65536)))
+		 (range-error 65535)))))
 
 ;;;###autoload
 (defun time-since (time)
@@ -170,7 +171,7 @@ Return the difference in the format of a time value."
 	    micro (+ micro 1000000)))
     (when (< low 0)
       (setq high (1- high)
-	    low (+ low #x10000)))
+	    low (+ low 65536)))
     (encode-time-value high low micro type)))
 
 ;;;###autoload
@@ -185,9 +186,9 @@ Return the difference in the format of a time value."
     (when (>= micro 1000000)
       (setq low (1+ low)
 	    micro (- micro 1000000)))
-    (when (>= low #x10000)
+    (when (>= low 65536)
       (setq high (1+ high)
-	    low (- low #x10000)))
+	    low (- low 65536)))
     (encode-time-value high low micro type)))
 
 ;;;###autoload

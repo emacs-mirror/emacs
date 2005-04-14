@@ -23,16 +23,11 @@
 ;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;; Boston, MA 02111-1307, USA.
 
-;; Purpose:
-
-;; Meta-mode to create simple major modes
-;; with basic comment and font-lock support
-
 ;;; Commentary:
 
 ;; INTRODUCTION:
-
-;; Generic-mode is a meta-mode which can be used to define small modes
+;;
+;; The macro `define-generic-mode' can be used to define small modes
 ;; which provide basic comment and font-lock support.  These modes are
 ;; intended for the many configuration files and such which are too
 ;; small for a "real" mode, but still have a regular syntax, comment
@@ -68,20 +63,9 @@
 ;; more than this, or you find yourself writing extensive customizations,
 ;; perhaps you should be writing a major mode instead!
 ;;
-;; LOCAL VARIABLES:
+;; EXAMPLE:
 ;;
-;; To put a file into generic mode using local variables, use a line
-;; like this in a Local Variables block:
-;;
-;;   mode: default-generic
-;;
-;; Do NOT use "mode: generic"!
-;; See also "AUTOMATICALLY ENTERING GENERIC MODE" below.
-;;
-;; DEFINING NEW GENERIC MODES:
-;;
-;; Use the `define-generic-mode' function to define new modes.
-;; For example:
+;; You can use `define-generic-mode' like this:
 ;;
 ;;   (define-generic-mode 'foo-generic-mode
 ;;     (list ?%)
@@ -90,35 +74,24 @@
 ;;     (list "\\.FOO\\'")
 ;;     (list 'foo-setup-function))
 ;;
-;; defines a new generic-mode `foo-generic-mode', which has '%' as a
+;; to define a new generic-mode `foo-generic-mode', which has '%' as a
 ;; comment character, and "keyword" as a keyword.  When files which
 ;; end in '.FOO' are loaded, Emacs will go into foo-generic-mode and
 ;; call foo-setup-function.  You can also use the function
 ;; `foo-generic-mode' (which is interactive) to put a buffer into
 ;; foo-generic-mode.
 ;;
-;; AUTOMATICALLY ENTERING GENERIC MODE:
-;;
-;; Generic-mode provides a hook which automatically puts a file into
-;; default-generic-mode if the first few lines of a file in
-;; fundamental mode start with a hash comment character.  To disable
-;; this functionality, set the variable `generic-use-find-file-hook'
-;; to nil BEFORE loading generic-mode.  See the variables
-;; `generic-lines-to-scan' and `generic-find-file-regexp' for
-;; customization options.
-;;
 ;; GOTCHAS:
 ;;
 ;; Be careful that your font-lock definitions are correct.  Getting
 ;; them wrong can cause Emacs to continually attempt to fontify! This
 ;; problem is not specific to generic-mode.
-;;
 
 ;; Credit for suggestions, brainstorming, help with debugging:
 ;;   ACorreir@pervasive-sw.com (Alfred Correira)
 ;; Extensive cleanup by:
 ;;   Stefan Monnier (monnier+gnu/emacs@flint.cs.yale.edu)
-;;
+
 ;;; Code:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -136,47 +109,6 @@
   "A list of mode names for `generic-mode'.
 Do not add entries to this list directly; use `define-generic-mode'
 instead (which see).")
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; Customization Variables
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defgroup generic nil
-  "Define simple major modes with comment and font-lock support."
-  :prefix "generic-"
-  :group 'extensions)
-
-(defcustom generic-use-find-file-hook t
-  "*If non-nil, add a hook to enter `default-generic-mode' automatically.
-This is done if the first few lines of a file in fundamental mode
-start with a hash comment character."
-  :group 'generic
-  :type  'boolean)
-
-(defcustom generic-lines-to-scan 3
-  "*Number of lines that `generic-mode-find-file-hook' looks at.
-Relevant when deciding whether to enter Default-Generic mode automatically.
-This variable should be set to a small positive number."
-  :group 'generic
-  :type  'integer)
-
-(defcustom generic-find-file-regexp "^#"
-  "*Regular expression used by `generic-mode-find-file-hook'.
-Files in fundamental mode whose first few lines contain a match
-for this regexp, should be put into Default-Generic mode instead.
-The number of lines tested for the matches is specified by the
-value of the variable `generic-lines-to-scan', which see."
-  :group 'generic
-  :type  'regexp)
-
-(defcustom generic-ignore-files-regexp "[Tt][Aa][Gg][Ss]\\'"
-  "*Regular expression used by `generic-mode-find-file-hook'.
-Files whose names match this regular expression should not be put
-into Default-Generic mode, even if they have lines which match
-the regexp in `generic-find-file-regexp'.  If the value is nil,
-`generic-mode-find-file-hook' does not check the file names."
-  :group 'generic
-  :type  '(choice (const :tag "Don't check file names" nil) regexp))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Functions
@@ -290,12 +222,10 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     ;; Font-lock functionality.
     ;; Font-lock-defaults is always set even if there are no keywords
     ;; or font-lock expressions, so comments can be highlighted.
-    (setq generic-font-lock-keywords
-	  (append
-	   (when keyword-list
-	     (list (generic-make-keywords-list keyword-list
-					       font-lock-keyword-face)))
-	   font-lock-list))
+    (setq generic-font-lock-keywords font-lock-list)
+    (when keyword-list
+      (push (concat "\\_<" (regexp-opt keyword-list t) "\\_>")
+	    generic-font-lock-keywords))
     (setq font-lock-defaults '(generic-font-lock-keywords nil))
 
     ;; Call a list of functions
@@ -391,60 +321,20 @@ Some generic modes are defined in `generic-x.el'."
 	'((nil "^\\[\\(.*\\)\\]" 1))
         imenu-case-fold-search t))
 
-;; This generic mode is always defined
-(define-generic-mode default-generic-mode (list ?#) nil nil nil nil :group 'generic)
-
-;; A more general solution would allow us to enter generic-mode for
-;; *any* comment character, but would require us to synthesize a new
-;; generic-mode on the fly. I think this gives us most of what we
-;; want.
-(defun generic-mode-find-file-hook ()
-  "Hook function to enter Default-Generic mode automatically.
-
-Done if the first few lines of a file in Fundamental mode start
-with a match for the regexp in `generic-find-file-regexp', unless
-the file's name matches the regexp which is the value of the
-variable `generic-ignore-files-regexp'.
-
-This hook will be installed if the variable
-`generic-use-find-file-hook' is non-nil.  The variable
-`generic-lines-to-scan' determines the number of lines to look at."
-  (when (and (eq major-mode 'fundamental-mode)
-	     (or (null generic-ignore-files-regexp)
-		 (not (string-match
-		       generic-ignore-files-regexp
-		       (file-name-sans-versions buffer-file-name)))))
-    (save-excursion
-      (goto-char (point-min))
-      (when (re-search-forward generic-find-file-regexp
-			       (save-excursion
-				 (forward-line generic-lines-to-scan)
-				 (point)) t)
-	(goto-char (point-min))
-	(default-generic-mode)))))
-
-(defun generic-mode-ini-file-find-file-hook ()
-  "Hook function to enter Default-Generic mode automatically for INI files.
-Done if the first few lines of a file in Fundamental mode look like an
-INI file.  This hook is NOT installed by default."
-  (and (eq major-mode 'fundamental-mode)
-       (save-excursion
-	 (goto-char (point-min))
-	 (and (looking-at "^\\s-*\\[.*\\]")
-	      (ini-generic-mode)))))
-
-(and generic-use-find-file-hook
-    (add-hook 'find-file-hook 'generic-mode-find-file-hook))
-
 ;;;###autoload
-(defun generic-make-keywords-list (keywords-list face &optional prefix suffix)
-  "Return a regular expression matching the specified KEYWORDS-LIST.
-The regexp is highlighted with FACE."
-  (unless (listp keywords-list)
+(defun generic-make-keywords-list (keyword-list face &optional prefix suffix)
+  "Return a `font-lock-keywords' construct that highlights KEYWORD-LIST.
+KEYWORD-LIST is a list of keyword strings that should be
+highlighted with face FACE.  This function calculates a regular
+expression that matches these keywords and concatenates it with
+PREFIX and SUFFIX.  Then it returns a construct based on this
+regular expression that can be used as an element of
+`font-lock-keywords'."
+  (unless (listp keyword-list)
     (error "Keywords argument must be a list of strings"))
   (list (concat prefix "\\_<"
 		;; Use an optimized regexp.
-		(regexp-opt keywords-list t)
+		(regexp-opt keyword-list t)
 		"\\_>" suffix)
 	1
 	face))

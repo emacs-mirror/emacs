@@ -631,7 +631,21 @@ CLONE nil means the indirect buffer's state is reset to default values.  */)
       XMARKER (b->zv_marker)->insertion_type = 1;
     }
   else
-    clone_per_buffer_values (b->base_buffer, b);
+    {
+      struct buffer *old_b = current_buffer;
+
+      clone_per_buffer_values (b->base_buffer, b);
+      b->filename = Qnil;
+      b->file_truename = Qnil;
+      b->display_count = make_number (0);
+      b->backed_up = Qnil;
+      b->auto_save_file_name = Qnil;
+      set_buffer_internal_1 (b);
+      Fset (intern ("buffer-save-without-query"), Qnil);
+      Fset (intern ("buffer-file-number"), Qnil);
+      Fset (intern ("buffer-stale-function"), Qnil);
+      set_buffer_internal_1 (old_b);
+    }
 
   return buf;
 }
@@ -932,7 +946,7 @@ is the default binding of variable. */)
 }
 
 /* Return an alist of the Lisp-level buffer-local bindings of
-   buffer BUF.  That is, do't include  the variables maintained
+   buffer BUF.  That is, don't include the variables maintained
    in special slots in the buffer object.  */
 
 static Lisp_Object

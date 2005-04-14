@@ -76,7 +76,7 @@
 (require 'faces)
 (require 'select)
 (require 'menu-bar)
-(require 'x-dnd)
+(require 'dnd)
 (require 'code-pages)
 
 ;; Conditional on new-fontset so bootstrapping works on non-GUI compiles
@@ -109,8 +109,8 @@ Switch to a buffer editing the last file dropped."
       (if (and (> x 0) (> y 0))
 	  (set-frame-selected-window nil window))
       (mapcar (lambda (file-name) 
-		(x-dnd-handle-one-url window 'private 
-				      (concat "file:" file-name)))
+		(dnd-handle-one-url window 'private 
+				    (concat "file:" file-name)))
 		(car (cdr (cdr event)))))
   (raise-frame)))
 

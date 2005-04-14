@@ -3799,77 +3799,78 @@ Preserve text properties."
         (let ((n 0)
               cont)
           (while (re-search-forward
-                  (concat "^\\* +\\(" Info-menu-entry-name-re "\\)\\(:"
-                          Info-node-spec-re "\\([ \t]*\\)\\)")
+                  (concat "^\\* Menu:\\|\\(?:^\\* +\\(" Info-menu-entry-name-re "\\)\\(:"
+                          Info-node-spec-re "\\([ \t]*\\)\\)\\)")
                   nil t)
-            (when not-fontified-p
-              (setq n (1+ n))
-              (if (and (<= n 9) (zerop (% n 3))) ; visual aids to help with 1-9 keys
-                  (put-text-property (match-beginning 0)
-                                     (1+ (match-beginning 0))
-                                     'font-lock-face 'info-menu-5)))
-            (when not-fontified-p
-              (add-text-properties
-               (match-beginning 1) (match-end 1)
-               (list
-                'help-echo (if (and (match-end 3)
-                                    (not (equal (match-string 3) "")))
-                               (concat "mouse-2: go to " (match-string 3))
-                             "mouse-2: go to this node")
-                'mouse-face 'highlight)))
-            (when (or not-fontified-p fontify-visited-p)
-              (add-text-properties
-               (match-beginning 1) (match-end 1)
-               (list
-                'font-lock-face
-                ;; Display visited menu items in a different face
-                (if (and Info-fontify-visited-nodes
-                         (save-match-data
-                           (let ((node (if (equal (match-string 3) "")
-                                           (match-string 1)
-                                         (match-string 3)))
-                                 (file (file-name-nondirectory Info-current-file))
-                                 (hl Info-history-list)
-                                 res)
-                             (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
-                                 (setq file (file-name-nondirectory
-                                             (match-string 1 node))
-                                       node (if (equal (match-string 2 node) "")
-                                                "Top"
-                                              (match-string 2 node))))
-                             (while hl
-                               (if (and (string-equal node (nth 1 (car hl)))
-                                        (string-equal file
-                                                      (file-name-nondirectory
-                                                       (nth 0 (car hl)))))
-                                   (setq res (car hl) hl nil)
-                                 (setq hl (cdr hl))))
-                             res))) 'info-xref-visited 'info-xref))))
-            (when (and not-fontified-p (memq Info-hide-note-references '(t hide)))
-              (put-text-property (match-beginning 2) (1- (match-end 6))
-                                 'invisible t)
-              ;; Unhide the file name in parens
-              (if (and (match-end 4) (not (eq (char-after (match-end 4)) ?.)))
-                  (remove-text-properties (match-beginning 4) (match-end 4)
-                                          '(invisible t)))
-              ;; We need a stretchable space like :align-to but with
-              ;; a minimum value.
-              (put-text-property (1- (match-end 6)) (match-end 6) 'display
-                                 (if (>= 22 (- (match-end 1)
-                                               (match-beginning 0)))
-                                     '(space :align-to 24)
-                                   '(space :width 2)))
-              (setq cont (looking-at "."))
-              (while (and (= (forward-line 1) 0)
-                          (looking-at "\\([ \t]+\\)[^*\n]"))
-                (put-text-property (match-beginning 1) (1- (match-end 1))
-                                   'invisible t)
-                (put-text-property (1- (match-end 1)) (match-end 1)
-                                   'display
-                                   (if cont
-                                       '(space :align-to 26)
-                                     '(space :align-to 24)))
-                (setq cont t))))))
+	    (when (match-beginning 1)
+	      (when not-fontified-p
+		(setq n (1+ n))
+		(if (and (<= n 9) (zerop (% n 3))) ; visual aids to help with 1-9 keys
+		    (put-text-property (match-beginning 0)
+				       (1+ (match-beginning 0))
+				       'font-lock-face 'info-menu-5)))
+	      (when not-fontified-p
+		(add-text-properties
+		 (match-beginning 1) (match-end 1)
+		 (list
+		  'help-echo (if (and (match-end 3)
+				      (not (equal (match-string 3) "")))
+				 (concat "mouse-2: go to " (match-string 3))
+			       "mouse-2: go to this node")
+		  'mouse-face 'highlight)))
+	      (when (or not-fontified-p fontify-visited-p)
+		(add-text-properties
+		 (match-beginning 1) (match-end 1)
+		 (list
+		  'font-lock-face
+		  ;; Display visited menu items in a different face
+		  (if (and Info-fontify-visited-nodes
+			   (save-match-data
+			     (let ((node (if (equal (match-string 3) "")
+					     (match-string 1)
+					   (match-string 3)))
+				   (file (file-name-nondirectory Info-current-file))
+				   (hl Info-history-list)
+				   res)
+			       (if (string-match "(\\([^)]+\\))\\([^)]*\\)" node)
+				   (setq file (file-name-nondirectory
+					       (match-string 1 node))
+					 node (if (equal (match-string 2 node) "")
+						  "Top"
+						(match-string 2 node))))
+			       (while hl
+				 (if (and (string-equal node (nth 1 (car hl)))
+					  (string-equal file
+							(file-name-nondirectory
+							 (nth 0 (car hl)))))
+				     (setq res (car hl) hl nil)
+				   (setq hl (cdr hl))))
+			       res))) 'info-xref-visited 'info-xref))))
+	      (when (and not-fontified-p (memq Info-hide-note-references '(t hide)))
+		(put-text-property (match-beginning 2) (1- (match-end 6))
+				   'invisible t)
+		;; Unhide the file name in parens
+		(if (and (match-end 4) (not (eq (char-after (match-end 4)) ?.)))
+		    (remove-text-properties (match-beginning 4) (match-end 4)
+					    '(invisible t)))
+		;; We need a stretchable space like :align-to but with
+		;; a minimum value.
+		(put-text-property (1- (match-end 6)) (match-end 6) 'display
+				   (if (>= 22 (- (match-end 1)
+						 (match-beginning 0)))
+				       '(space :align-to 24)
+				     '(space :width 2)))
+		(setq cont (looking-at "."))
+		(while (and (= (forward-line 1) 0)
+			    (looking-at "\\([ \t]+\\)[^*\n]"))
+		  (put-text-property (match-beginning 1) (1- (match-end 1))
+				     'invisible t)
+		  (put-text-property (1- (match-end 1)) (match-end 1)
+				     'display
+				     (if cont
+					 '(space :align-to 26)
+				       '(space :align-to 24)))
+		  (setq cont t)))))))
 
       ;; Fontify menu headers
       ;; Add the face `info-menu-header' to any header before a menu entry

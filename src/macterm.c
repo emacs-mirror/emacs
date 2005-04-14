@@ -7172,11 +7172,6 @@ Lisp_Object Vmac_pass_command_to_system;
 Lisp_Object Vmac_pass_control_to_system;
 #endif
 
-/* convert input from Mac keyboard (assumed to be in Mac Roman coding)
-   to this text encoding */
-int mac_keyboard_text_encoding;
-int current_mac_keyboard_text_encoding = kTextEncodingMacRoman;
-
 /* Set in term/mac-win.el to indicate that event loop can now generate
    drag and drop events.  */
 Lisp_Object Qmac_ready_for_drag_n_drop;
@@ -8990,6 +8985,23 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 	      }
 #endif
+	    {
+	      static SInt16 last_key_script = -1;
+	      SInt16 current_key_script = GetScriptManagerVariable (smKeyScript);
+
+	      if (last_key_script != current_key_script)
+		{
+		  struct input_event event;
+		  
+		  EVENT_INIT (event);
+		  event.kind = LANGUAGE_CHANGE_EVENT;
+		  event.arg = Qnil;
+		  event.code = current_key_script;
+		  kbd_buffer_store_event (&event);
+		  count++;
+		}
+	      last_key_script = current_key_script;
+	    }
 
 	    ObscureCursor ();
 
@@ -9041,70 +9053,6 @@ XTread_socket (sd, expected, hold_quit)
 		inev.kind = ASCII_KEYSTROKE_EVENT;
 	      }
 	  }
-
-	  /* If variable mac-convert-keyboard-input-to-latin-1 is
-	     non-nil, convert non-ASCII characters typed at the Mac
-	     keyboard (presumed to be in the Mac Roman encoding) to
-	     iso-latin-1 encoding before they are passed to Emacs.
-	     This enables the Mac keyboard to be used to enter
-	     non-ASCII iso-latin-1 characters directly.  */
-	  if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	      && inev.kind == ASCII_KEYSTROKE_EVENT && inev.code >= 128)
-	    {
-	      static TECObjectRef converter = NULL;
-	      OSStatus the_err = noErr;
-	      OSStatus convert_status = noErr;
-
-	      if (converter ==  NULL)
-		{
-		  the_err = TECCreateConverter (&converter,
-						kTextEncodingMacRoman,
-						mac_keyboard_text_encoding);
-		  current_mac_keyboard_text_encoding
-		    = mac_keyboard_text_encoding;
-		}
-	      else if (mac_keyboard_text_encoding
-		       != current_mac_keyboard_text_encoding)
-		{
-		  /* Free the converter for the current encoding
-		     before creating a new one.  */
-		  TECDisposeConverter (converter);
-		  the_err = TECCreateConverter (&converter,
-						kTextEncodingMacRoman,
-						mac_keyboard_text_encoding);
-		  current_mac_keyboard_text_encoding
-		    = mac_keyboard_text_encoding;
-		}
-
-	      if (the_err == noErr)
-		{
-		  unsigned char ch = inev.code;
-		  ByteCount actual_input_length, actual_output_length;
-		  unsigned char outbuf[32];
-
-		  convert_status = TECConvertText (converter, &ch, 1,
-						   &actual_input_length,
-						   outbuf, 1,
-						   &actual_output_length);
-		  if (convert_status == noErr
-		      && actual_input_length == 1
-		      && actual_output_length == 1)
-		    inev.code = *outbuf;
-
-		  /* Reset internal states of the converter object.
-		     If it fails, create another one. */
-		  convert_status = TECFlushText (converter, outbuf,
-						 sizeof (outbuf),
-						 &actual_output_length);
-		  if (convert_status != noErr)
-		    {
-		      TECDisposeConverter (converter);
-		      TECCreateConverter (&converter,
-					  kTextEncodingMacRoman,
-					  mac_keyboard_text_encoding);
-		    }
-		}
-	    }
 
 #if USE_CARBON_EVENTS
 	  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
@@ -9918,21 +9866,6 @@ Toolbox for processing before Emacs sees it.  */);
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
-
-  DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
-    doc: /* One of the Text Encoding Base constant values defined in the
-Basic Text Constants section of Inside Macintosh - Text Encoding
-Conversion Manager.  Its value determines the encoding characters
-typed at the Mac keyboard (presumed to be in the MacRoman encoding)
-will convert into.  E.g., if it is set to kTextEncodingMacRoman (0),
-its default value, no conversion takes place.  If it is set to
-kTextEncodingISOLatin1 (0x201) or kTextEncodingISOLatin2 (0x202),
-characters typed on Mac keyboard are first converted into the
-ISO Latin-1 or ISO Latin-2 encoding, respectively before being
-passed to Emacs.  Together with Emacs's set-keyboard-coding-system
-command, this enables the Mac keyboard to be used to enter non-ASCII
-characters directly.  */);
-  mac_keyboard_text_encoding = kTextEncodingMacRoman;
 }
 
 /* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b

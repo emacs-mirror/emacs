@@ -1,6 +1,6 @@
 /* Random utility Lisp functions.
-   Copyright (C) 1985, 86, 87, 93, 94, 95, 97, 98, 99, 2000, 2001, 02, 03, 2004
-   Free Software Foundation, Inc.
+   Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1997, 1998, 1999, 2000,
+     2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -66,6 +66,7 @@ int use_file_dialog;
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
+extern Lisp_Object Vloads_in_progress;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -2907,9 +2908,15 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
   CHECK_SYMBOL (feature);
 
   /* Record the presence of `require' in this file
-     even if the feature specified is already loaded.  */
-  LOADHIST_ATTACH (Fcons (Qrequire, feature));
-
+     even if the feature specified is already loaded.
+     But not more than once in any file,
+     and not when we aren't loading a file.  */
+  if (! NILP (Vloads_in_progress))
+    {
+      tem = Fcons (Qrequire, feature);
+      if (NILP (Fmember (tem, Vcurrent_load_list)))
+	LOADHIST_ATTACH (tem);
+    }
   tem = Fmemq (feature, Vfeatures);
 
   if (NILP (tem))

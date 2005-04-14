@@ -1402,16 +1402,6 @@ With prefix arg, indent to that column."
   (cua--M/H-key cua--rectangle-keymap key cmd))
 
 (defun cua--init-rectangles ()
-  (unless (face-background 'cua-rectangle-face)
-    (copy-face 'region 'cua-rectangle-face)
-    (set-face-background 'cua-rectangle-face "maroon")
-    (set-face-foreground 'cua-rectangle-face "white"))
-
-  (unless (face-background 'cua-rectangle-noselect-face)
-    (copy-face 'region 'cua-rectangle-noselect-face)
-    (set-face-background 'cua-rectangle-noselect-face "dimgray")
-    (set-face-foreground 'cua-rectangle-noselect-face "white"))
-
   (unless (eq cua-use-hyper-key 'only)
     (define-key cua--rectangle-keymap [(shift return)] 'cua-clear-rectangle-mark)
     (define-key cua--region-keymap    [(shift return)] 'cua-toggle-rectangle-mark))

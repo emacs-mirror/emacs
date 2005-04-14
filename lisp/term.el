@@ -684,14 +684,13 @@ Buffer local variable.")
 (defvar term-ansi-at-save-user nil)
 (defvar term-ansi-at-save-pwd nil)
 (defvar term-ansi-at-save-anon nil)
-(defvar term-ansi-current-bold 0)
+(defvar term-ansi-current-bold nil)
 (defvar term-ansi-current-color 0)
-(defvar term-ansi-face-already-done 0)
+(defvar term-ansi-face-already-done nil)
 (defvar term-ansi-current-bg-color 0)
-(defvar term-ansi-current-underline 0)
-(defvar term-ansi-current-highlight 0)
-(defvar term-ansi-current-reverse 0)
-(defvar term-ansi-current-invisible 0)
+(defvar term-ansi-current-underline nil)
+(defvar term-ansi-current-reverse nil)
+(defvar term-ansi-current-invisible nil)
 
 ;;; Four should be enough, if you want more, just add. -mm
 (defvar term-terminal-more-parameters 0)
@@ -732,8 +731,7 @@ is buffer-local.")
      [ "Enable paging" term-pager-toggle (not term-pager-count)]
      [ "Disable paging" term-pager-toggle term-pager-count])))
 
-(if term-mode-map
-    nil
+(unless term-mode-map
   (setq term-mode-map (make-sparse-keymap))
   (define-key term-mode-map "\ep" 'term-previous-input)
   (define-key term-mode-map "\en" 'term-next-input)
@@ -1060,7 +1058,6 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-ansi-face-already-done)
   (make-local-variable 'term-ansi-current-bg-color)
   (make-local-variable 'term-ansi-current-underline)
-  (make-local-variable 'term-ansi-current-highlight)
   (make-local-variable 'term-ansi-current-reverse)
   (make-local-variable 'term-ansi-current-invisible)
 
@@ -2507,14 +2504,14 @@ See `term-prompt-regexp'."
 (defun term-horizontal-column ()
   (- (term-current-column) (term-start-line-column)))
 
-;; Calls either vertical-motion or buffer-vertical-motion
+;; Calls either vertical-motion or term-buffer-vertical-motion
 (defmacro term-vertical-motion (count)
   (list 'funcall 'term-vertical-motion count))
 
 ;; An emulation of vertical-motion that is independent of having a window.
 ;; Instead, it uses the term-width variable as the logical window width.
 
-(defun buffer-vertical-motion (count)
+(defun term-buffer-vertical-motion (count)
   (cond ((= count 0)
 	 (move-to-column (* term-width (/ (current-column) term-width)))
 	 0)
@@ -2699,7 +2696,7 @@ See `term-prompt-regexp'."
 	      (setq term-vertical-motion (symbol-function 'vertical-motion))
 	      (term-check-size proc))
 	  (setq term-vertical-motion
-		(symbol-function 'buffer-vertical-motion)))
+		(symbol-function 'term-buffer-vertical-motion)))
 
 	(setq save-marker (copy-marker (process-mark proc)))
 
@@ -3039,12 +3036,12 @@ See `term-prompt-regexp'."
   (setq term-current-column 1)
   (setq term-insert-mode nil)
   (setq term-current-face nil)
-  (setq term-ansi-current-underline 0)
-  (setq term-ansi-current-bold 0)
-  (setq term-ansi-current-reverse 0)
+  (setq term-ansi-current-underline nil)
+  (setq term-ansi-current-bold nil)
+  (setq term-ansi-current-reverse nil)
   (setq term-ansi-current-color 0)
-  (setq term-ansi-current-invisible 0)
-  (setq term-ansi-face-already-done 0)
+  (setq term-ansi-current-invisible nil)
+  (setq term-ansi-face-already-done nil)
   (setq term-ansi-current-bg-color 0))
 
 ;;; New function to deal with ansi colorized output, as you can see you can
@@ -3055,32 +3052,32 @@ See `term-prompt-regexp'."
 
 ;;; Bold  (terminfo: bold)
    ((eq parameter 1)
-    (setq term-ansi-current-bold 1))
+    (setq term-ansi-current-bold t))
 
 ;;; Underline
    ((eq parameter 4)
-    (setq term-ansi-current-underline 1))
+    (setq term-ansi-current-underline t))
 
 ;;; Blink (unsupported by Emacs), will be translated to bold.
 ;;; This may change in the future though.
    ((eq parameter 5)
-    (setq term-ansi-current-bold 1))
+    (setq term-ansi-current-bold t))
 
 ;;; Reverse
    ((eq parameter 7)
-    (setq term-ansi-current-reverse 1))
+    (setq term-ansi-current-reverse t))
 
 ;;; Invisible
    ((eq parameter 8)
-    (setq term-ansi-current-invisible 1))
+    (setq term-ansi-current-invisible t))
 
 ;;; Reset underline (i.e. terminfo rmul)
    ((eq parameter 24)
-    (setq term-ansi-current-underline 0))
+    (setq term-ansi-current-underline nil))
 
 ;;; Reset reverse (i.e. terminfo rmso)
    ((eq parameter 27)
-    (setq term-ansi-current-reverse 0))
+    (setq term-ansi-current-reverse nil))
 
 ;;; Foreground
    ((and (>= parameter 30) (<= parameter 37))
@@ -3101,12 +3098,12 @@ See `term-prompt-regexp'."
 ;;; 0 (Reset) or unknown (reset anyway)
    (t
     (setq term-current-face nil)
-    (setq term-ansi-current-underline 0)
-    (setq term-ansi-current-bold 0)
-    (setq term-ansi-current-reverse 0)
+    (setq term-ansi-current-underline nil)
+    (setq term-ansi-current-bold nil)
+    (setq term-ansi-current-reverse nil)
     (setq term-ansi-current-color 0)
-    (setq term-ansi-current-invisible 0)
-    (setq term-ansi-face-already-done 1)
+    (setq term-ansi-current-invisible nil)
+    (setq term-ansi-face-already-done t)
     (setq term-ansi-current-bg-color 0)))
 
 ;	(message "Debug: U-%d R-%d B-%d I-%d D-%d F-%d B-%d"
@@ -3119,9 +3116,9 @@ See `term-prompt-regexp'."
 ;		   term-ansi-current-bg-color)
 
 
-  (if (= term-ansi-face-already-done 0)
-      (if (= term-ansi-current-reverse 1)
-	  (if (= term-ansi-current-invisible 1)
+  (unless term-ansi-face-already-done
+      (if term-ansi-current-reverse
+	  (if term-ansi-current-invisible
 	      (setq term-current-face
 		    (if (= term-ansi-current-color 0)
 			(list :background
@@ -3143,13 +3140,13 @@ See `term-prompt-regexp'."
 			(if (= term-ansi-current-bg-color 0)
 			    (face-background 'default)
 			(elt ansi-term-color-vector term-ansi-current-bg-color))))
-	    (if (= term-ansi-current-bold 1)
+	    (when term-ansi-current-bold
 		(setq term-current-face
 		      (append '(:weight bold) term-current-face)))
-	    (if (= term-ansi-current-underline 1)
+	    (when term-ansi-current-underline
 		(setq term-current-face
 		      (append '(:underline t) term-current-face))))
-	(if (= term-ansi-current-invisible 1)
+	(if term-ansi-current-invisible
 	    (setq term-current-face
 		  (if (= term-ansi-current-bg-color 0)
 		      (list :background
@@ -3167,15 +3164,15 @@ See `term-prompt-regexp'."
 		      (elt ansi-term-color-vector term-ansi-current-color)
 		      :background
 		      (elt ansi-term-color-vector term-ansi-current-bg-color)))
-	  (if (= term-ansi-current-bold 1)
+	  (when term-ansi-current-bold
 	      (setq term-current-face
 		    (append '(:weight bold) term-current-face)))
-	  (if (= term-ansi-current-underline 1)
+	  (when term-ansi-current-underline
 	      (setq term-current-face
 		    (append '(:underline t) term-current-face))))))
 
 ;;;	(message "Debug %S" term-current-face)
-  (setq term-ansi-face-already-done 0))
+  (setq term-ansi-face-already-done nil))
 
 
 ;;; Handle a character assuming (eq terminal-state 2) -

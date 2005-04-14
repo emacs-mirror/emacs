@@ -182,6 +182,19 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** Xterm Mouse mode is now enabled by default in terminal emulators
+compatible with xterm.  This means that simple use of the mouse is
+now, by default, controlled by Emacs--basically, only non-modified
+single clicks are supported.  The normal xterm mouse functionality
+for such clicks is still available by holding down the SHIFT key
+when you press the mouse button.
+
+This is not without problems.  For instance, clicking with the mouse
+on the wrong place may produce unexpected results without warning.
+Put `(xterm-mouse-mode 0)' in your .emacs, or disable the option
+`xterm-mouse-mode' through Custom, if you prefer all mouse clicks to
+be handled by the terminal emulator.
+
 ** Improved Thai support.  A new minor mode `thai-word-mode' (which is
 automatically activated if you select Thai as a language
 environment) changes key bindings of most word-oriented commands to
@@ -427,11 +440,16 @@ the next/previous matching line found by M-x occur.
 ** Telnet now prompts you for a port number with C-u M-x telnet.
 
 +++
-** New command line option -Q or --bare-bones.
+** New command line option -Q or --quick.
 
 This is like using -q --no-site-file, but in addition it also disables
-the menu-bar, the tool-bar, the scroll-bars, tool tips, the blinking
-cursor, and the fancy startup screen.
+the fancy startup screen.
+
++++
+** New command line option -D or --basic-display.
+
+Disables the menu-bar, the tool-bar, the scroll-bars, tool tips, and
+the blinking cursor.
 
 +++
 ** New command line option -nbc or --no-blinking-cursor disables
@@ -1038,6 +1056,9 @@ If the configure option `--without-xim' was used to turn off use of
 XIM by default, the X resource useXIM can be used to turn it on.
 
 +++
+** The X resource cursorBlink can be used to turn off cursor blinking.
+
++++
 ** `undo-only' does an undo which does not redo any previous undo.
 
 ---
@@ -1279,6 +1300,11 @@ amount of text shown any more (only a crude approximation of it).
 ---
 ** The pop up menus for Lucid now stay up if you do a fast click and can
 be navigated with the arrow keys (like Gtk+, Mac and W32).
+
++++
+** The Lucid menus can display multilingual text in your locale.  You have
+to explicitly specify a fontSet resource for this to work, for example
+`-xrm "Emacs*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*"'.
 
 ---
 ** Dialogs for Lucid/Athena and Lesstif/Motif now pops down when pressing
@@ -2516,6 +2542,11 @@ temporary overlay showing in the course of an isearch operation.
 ** New command `recode-region' decodes the region again by a specified
 coding system.
 
+** On Mac OS, the value of the variable `keyboard-coding-system' is
+now dynamically changed according to the current keyboard script.  The
+variable `mac-keyboard-text-encoding' and the constants
+`kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
+`kTextEncodingISOLatin2' are obsolete.
 
 * New modes and packages in Emacs 22.1
 

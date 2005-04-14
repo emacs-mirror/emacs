@@ -530,7 +530,7 @@ Lisp_Object Qmouse_fixup_help_message;
 /* Symbols to denote kinds of events.  */
 Lisp_Object Qfunction_key;
 Lisp_Object Qmouse_click;
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (MAC_OS)
 Lisp_Object Qlanguage_change;
 #endif
 Lisp_Object Qdrag_n_drop;
@@ -2115,7 +2115,11 @@ poll_for_input (timer)
      struct atimer *timer;
 {
   if (poll_suppress_count == 0)
+#ifdef SYNC_INPUT
+    interrupt_input_pending = 1;
+#else
     poll_for_input_1 ();
+#endif
 }
 
 #endif /* POLL_FOR_INPUT */
@@ -2258,12 +2262,16 @@ make_ctrl_char (c)
   return c;
 }
 
-/* Display help echo in the echo area.
+/* Display the help-echo property of the character after the mouse pointer.
+   Either show it in the echo area, or call show-help-function to display
+   it by other means (maybe in a tooltip).
 
-   HELP a string means display that string, HELP nil means clear the
-   help echo.  If HELP is a function, call it with OBJECT and POS as
-   arguments; the function should return a help string or nil for
-   none.  For all other types of HELP evaluate it to obtain a string.
+   If HELP is nil, that means clear the previous help echo.
+
+   If HELP is a string, display that string.  If HELP is a function,
+   call it with OBJECT and POS as arguments; the function should
+   return a help string or nil for none.  For all other types of HELP,
+   evaluate it to obtain a string.
 
    WINDOW is the window in which the help was generated, if any.
    It is nil if not in a window.
@@ -4027,11 +4035,16 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
 	    x_activate_menubar (XFRAME (event->frame_or_window));
 	}
 #endif
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (MAC_OS)
       else if (event->kind == LANGUAGE_CHANGE_EVENT)
 	{
+#ifdef MAC_OS
+	  /* Make an event (language-change (KEY_SCRIPT)).  */
+	  obj = Fcons (make_number (event->code), Qnil);
+#else
 	  /* Make an event (language-change (FRAME CHARSET LCID)).  */
 	  obj = Fcons (event->frame_or_window, Qnil);
+#endif
 	  obj = Fcons (Qlanguage_change, Fcons (obj, Qnil));
 	  kbd_fetch_ptr = event + 1;
 	}
@@ -10835,7 +10848,7 @@ syms_of_keyboard ()
   staticpro (&Qfunction_key);
   Qmouse_click = intern ("mouse-click");
   staticpro (&Qmouse_click);
-#ifdef WINDOWSNT
+#if defined (WINDOWSNT) || defined (MAC_OS)
   Qlanguage_change = intern ("language-change");
   staticpro (&Qlanguage_change);
 #endif

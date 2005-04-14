@@ -277,6 +277,8 @@ from being initialized."
 
 (defvar emacs-quick-startup nil)
 
+(defvar emacs-basic-display nil)
+
 (defvar init-file-debug nil)
 
 (defvar init-file-had-error nil)
@@ -677,11 +679,13 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 		(setq argval nil
                       argi orig-argi)))))
 	(cond
-	 ((member argi '("-Q" "-bare-bones"))
+	 ((member argi '("-Q" "-quick"))
 	  (setq init-file-user nil
 		site-run-file nil
-		no-blinking-cursor t
-		emacs-quick-startup t)
+		emacs-quick-startup t))
+	 ((member argi '("-D" "-basic-display"))
+	  (setq no-blinking-cursor t
+		emacs-basic-display t)
 	  (push '(vertical-scroll-bars . nil) initial-frame-alist))
 	 ((member argi '("-q" "-no-init-file"))
 	  (setq init-file-user nil))
@@ -710,20 +714,29 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (and command-line-args
          (setcdr command-line-args args)))
 
-  ;; Under X Windows, this creates the X frame and deletes the terminal frame.
+  ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
 
+  ;; Turn off blinking cursor if so specified in X resources.  This is here
+  ;; only because all other settings of no-blinking-cursor is here.
+  (unless (or noninteractive
+	      emacs-basic-display
+	      (and (memq window-system '(x w32 mac))
+		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
+				'("off" "false")))))
+    (setq no-blinking-cursor t))
+
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
-	      emacs-quick-startup
+	      emacs-basic-display
               (and (memq window-system '(x w32))
                    (<= (frame-parameter nil 'menu-bar-lines) 0)))
     (menu-bar-mode 1))
 
   ;; If frame was created with a tool bar, switch tool-bar-mode on.
   (unless (or noninteractive
-	      emacs-quick-startup
+	      emacs-basic-display
               (not (display-graphic-p))
               (<= (frame-parameter nil 'tool-bar-lines) 0))
     (tool-bar-mode 1))
@@ -734,10 +747,20 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'normal-erase-is-backspace)
 
   (unless (or noninteractive
-	      emacs-quick-startup
+	      emacs-basic-display
               (not (display-graphic-p))
               (not (fboundp 'x-show-tip)))
     (tooltip-mode 1))
+
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the xterm-mouse-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
+  (unless (or noninteractive
+	      window-system)
+    (let ((term (getenv "TERM")))
+      (and term
+	   (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)" term)
+	   (xterm-mouse-mode 1))))
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
@@ -1041,7 +1064,7 @@ using the mouse.\n\n"
 	   "Useful File menu items:\n"
 	   :face variable-pitch "\
 Exit Emacs\t(Or type Control-x followed by Control-c)
-Recover Session\tRecover files you were editing before a crash
+Recover Crashed Session\tRecover files you were editing before a crash
 
 
 
@@ -1168,7 +1191,7 @@ where FACE is a valid face specification, as it can be used with
 			 (emacs-version)
 			 "\n"
 			 :face '(variable-pitch :height 0.5)
-			 "Copyright (C) 2004 Free Software Foundation, Inc.")
+			 "Copyright (C) 2005 Free Software Foundation, Inc.")
     (and auto-save-list-file-prefix
 	 ;; Don't signal an error if the
 	 ;; directory for auto-save-list files
