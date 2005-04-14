@@ -58,7 +58,7 @@ date, your name, and your email address (taken from the variable
 line in the change log starts with a space or a tab.  The bulk of the
 entry consists of @dfn{items}, each of which starts with a line starting
 with whitespace and a star.  Here are two entries, both dated in May
-1993, each with two items:
+1993, with two items and one item respectively.
 
 @iftex
 @medbreak
@@ -79,10 +79,10 @@ with whitespace and a star.  Here are two entries, both dated in May
 @end smallexample
 
   One entry can describe several changes; each change should have its
-own item.  Normally there should be a blank line between items.  When
-items are related (parts of the same change, in different places), group
-them by leaving no blank line between them.  The second entry above
-contains two items grouped in this way.
+own item, or its own line in an item.  Normally there should be a
+blank line between items.  When items are related (parts of the same
+change, in different places), group them by leaving no blank line
+between them.
 
   @kbd{C-x 4 a} visits the change log file and creates a new entry
 unless the most recent entry is for today's date and your name.  It
@@ -92,8 +92,8 @@ changed.
 
 @vindex add-log-keep-changes-together
   When the variable @code{add-log-keep-changes-together} is
-non-@code{nil}, @kbd{C-x 4 a} adds to any existing entry for the file
-rather than starting a new entry.
+non-@code{nil}, @kbd{C-x 4 a} adds to any existing item for the file
+rather than starting a new item.
 
 @vindex change-log-version-info-enabled
 @vindex change-log-version-number-regexp-list

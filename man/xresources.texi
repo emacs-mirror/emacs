@@ -175,6 +175,10 @@ Width in pixels of the external border.
 @item @code{cursorColor} (class @code{Foreground})
 Color name for text cursor (point).
 
+@item @code{cursorBlink} (class @code{CursorBlink})
+Specifies whether to make the cursor blink. The default is @samp{on}.  Use
+@samp{off} or @samp{false} to turn cursor blinking off.
+
 @item @code{font} (class @code{Font})
 Font name for text (or fontset name, @pxref{Fontsets}).
 
@@ -393,6 +397,19 @@ Emacs.dialog*.font:	8x16
 @end example
 
 @noindent
+The Lucid menus can display multilingual text in your locale.  For more 
+information about fontsets see the man page for XCreateFontSet.  To enable
+multilingual menu text you specify a fontSet resource instead of the font
+resource.  If both font and fontSet resources are specified, the fontSet
+resource is used.  To specify
+@samp{-*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*} for both the popup and
+menu bar menus, write this:
+
+@example
+Emacs*fontSet:  -*-helvetica-medium-r-*--*-120-*-*-*-*-*-*,*
+@end example
+
+@noindent
 Experience shows that on some systems you may need to add
 @samp{shell.}@: before the @samp{pane.menubar} or @samp{menu*}.  On
 some other systems, you must not add @samp{shell.}.
@@ -402,6 +419,8 @@ some other systems, you must not add @samp{shell.}.
 @table @code
 @item font
 Font for menu item text.
+@item fontSet
+Fontset for menu item text.
 @item foreground
 Color of the foreground.
 @item background

@@ -1,3 +1,304 @@
+2005-04-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Handle `xterm-mouse-mode' before
+	reading init file.
+
+	* xt-mouse.el (xterm-mouse-mode): Adapt to above change.
+
+2005-04-13  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-here-document-word): Make it a
+	defcustom.  Doc fix.
+	(sh-add): Bash uses $(( )) for arithmetic.
+	(sh-while-getopts) <sh>: Set OPTIND back to 1 at end.
+	(sh-maybe-here-document): Remove quotes and leading whitespace
+	from heredoc word when closing.  Indent heredoc with tabs if word
+	starts with "-".
+
+2005-04-13  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (undo): Fix previous change.
+
+	* custom.el (defface): Doc fix.
+
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in (DONTCOMPILE): Remove list.
+	(compile, compile-always): Don't use DONTCOMPILE.
+	(update-authors): Load the library in which batch-update-authors
+	is defined.
+	* makefile.w32-in (DONTCOMPILE): Remove list.
+	(compile, compile-always): Fix comments.
+	(update-authors): Load the library in which batch-update-authors
+	is defined.
+
+	* generic-x.el (generic-mode-ini-file-find-file-hook):
+	Rename to ini-generic-mode-find-file-hook.
+	Keep generic-mode-ini-file-find-file-hook as an alias.
+	(ini-generic-mode-find-file-hook): Rename from
+	generic-mode-ini-file-find-file-hook.  Fix docstring.
+	(ini-generic-mode): Docstring change.
+	(bat-generic-mode-run-as-comint): Silence the byte compiler.
+
+	* help.el (describe-key-briefly): UNTRANSLATED can be nil when
+	called from lisp.
+
+	* generic.el: Move to the emacs-lisp subdir.
+
+2005-04-12  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Add mappings for A-, C-, S-
+	and C-S- function and cursor motion keys.
+
+2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Enable Xterm Mouse mode by default.
+	* xt-mouse.el (xterm-mouse-mode): Provide correct standard value
+	for Custom.  No longer show "Mouse" in mode line when enabled.
+	Doc fix.
+
+2005-04-12  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle-face)
+	(cua-rectangle-noselect-face): Define face attributes here.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Remove face setup.
+
+2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* startup.el (command-line): Turn off blinking cursor if
+	cursorBlink in resources is off or false.
+
+2005-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (dnd): Require dnd.
+	(mac-drag-n-drop): Call dnd-handle-one-url.
+	(kTextEncodingMacRoman, kTextEncodingISOLatin1)
+	(kTextEncodingISOLatin2): Remove constants.
+	(mac-script-code-coding-systems): New constant.
+	(mac-handle-language-change): New function.
+	(special-event-map): Bind it to `language-change' event.
+	(mac-centraleurroman, mac-cyrillic): New coding systems.
+	(mac-font-encoder-list, ccl-encode-mac-centraleurroman-font)
+	(ccl-encode-mac-cyrillic-font): Rename mac-centraleurroman-encoder
+	and mac-cyrillic-encoder to encode-mac-centraleurroman and
+	encode-mac-cyrillic, respectively.
+
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el, progmodes/gdb-ui.el (gdb-assembler-mode):
+	Don't set overlay-arrow-string to "=>" as this is done
+	globally in C now.
+
+2005-04-12  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el (rc-generic-mode, rul-generic-mode): Fix
+	auto-mode-alist entries.
+	(etc-fstab-generic-mode): Tweak fontification.
+
+	* generic.el (generic-make-keywords-list): Fix docstring.
+	(generic-mode-internal): Simplify generic-font-lock-keywords.
+
+2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-buffer-leading,
+	whitespace-buffer-trailing): Revert the incorrect test
+	inversion. However, fix the highlight area for the leading and
+	trailing whitespaces to show space.
+
+2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
+
+	* whitespace.el (whitespace-version): Bump to 3.5
+
+	(whitespace-buffer-leading, whitespace-buffer-trailing): Invert
+	sense of the test to highlight the whitespace.
+
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-display-line): GUD uses its own
+	overlay arrow now so don't set overlay-arrow-string.
+	(gud-pdb-command-name): Revert back to "pdb" (2004-04-26).
+
+2005-04-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-ansi-current-bold, term-ansi-current-underline)
+	(term-ansi-current-reverse, term-ansi-current-invisible)
+	(term-ansi-face-already-done): Change to boolean.
+	(term-reset-terminal, term-handle-colors-array): Handle the above
+	vars accordingly.
+	(term-buffer-vertical-motion): Rename from buffer-vertical-motion.
+	(term-emulate-terminal): Use the new name.
+
+	* faces.el (secondary-selection): Use yellow1, not yellow.
+	(trailing-whitespace): Use red1, not red.
+
+2005-04-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dired.el (dired-mode): Use dnd-* instead of x-dnd-*
+	(dired-dnd-handle-local-file): Call dnd-get-local-file-name.
+	(dired-dnd-handle-file): Call dnd-get-local-file-uri
+
+	* cus-edit.el (dnd): New group.
+
+	* term/w32-win.el (dnd): Require dnd
+	(w32-drag-n-drop): Call dnd-handle-one-url.
+
+	* x-dnd.el: Require dnd.
+	(x-dnd-handle-uri-list, x-dnd-handle-file-name): Call
+	dnd-handle-one-url.
+	(x-dnd-types-alist, x-dnd-insert-utf8-text)
+	(x-dnd-insert-utf16-text, x-dnd-insert-ctext): Change x-dnd-insert-text
+	to dnd-insert-text.
+	(x-dnd-protocol-alist, x-dnd-open-file-other-window)
+	(x-dnd-handle-one-url, x-dnd-get-local-file-uri)
+	(x-dnd-get-local-file-name,  x-dnd-open-local-file)
+	(x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
+
+	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
+
+2005-04-11  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
+
+	* wdired.el: Doc fixes.
+	(wdired-confirm-overwrite): Rename from wdired-is-ok-overwrite.
+	(wdired-use-dired-vertical-movement): Rename from
+	wdired-always-move-to-filename-beginning.
+	(wdired-mode-map): Use `ignore' instead of `wdired-newline'.
+	(wdired-change-to-wdired-mode): Change mode name.
+	(wdired-newline): Delete.
+
+2005-04-11  Richard M. Stallman  <rms@gnu.org>
+
+	* whitespace.el (whitespace-highlight-the-space):
+	Don't call whitespace-unhighlight-the-space here.
+
+	* simple.el (undo): Record t in undo-equiv-table
+	for the redo record made by an undo-in-region.
+
+2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-display-inferior-io-buffer)
+	(gdb-frame-inferior-io-buffer): New Functions to control
+	display of separate IO buffer.
+	(menu): Add them to menu-bar.
+	(gdb-display-buffer): Check for buffer another frame.
+	Protect GUD buffer.
+	(gdb-setup-windows): Create IO buffer if not already there.
+	(gdb-memory-mode): Remove purecopy noops.
+
+2005-04-11  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-electric-insert): Add optional prefix arg,
+	and pass to self-insert-command.
+
+2005-04-11  Lute Kamstra  <lute@gnu.org>
+
+	* generic.el: Commentary section cleanup.
+	(generic): Delete.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(default-generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Move to generic-x.el.
+	* generic-x.el (generic-x): Docstring fix.  Put it in the data group.
+	(generic-use-find-file-hook, generic-lines-to-scan)
+	(generic-find-file-regexp, generic-ignore-files-regexp)
+	(default-generic-mode, generic-mode-find-file-hook)
+	(generic-mode-ini-file-find-file-hook): Move from generic.el.
+
+2005-04-10  Karl Fogel  <kfogel@red-bean.com>
+
+	* bookmark.el (bookmark-write-file): Catch errors writing file.
+	This is the same change as saveplace.el at 2005-04-10T23:32:00Z!rms@gnu.org.
+
+2005-04-10  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (fancy-splash-tail): Update copyright year.
+	(command-line): Split part of -Q into -D.
+	(emacs-basic-display): New defvar.
+	(fancy-splash-text): Correct name of menu item.
+
+	* saveplace.el (save-place-alist-to-file): Catch errors writing file.
+
+	* info.el (Info-fontify-node): Handle fontification of multiple * Menu
+	lines in one node.
+
+	* comint.el (comint-send-input): New arg ARTIFICIAL.
+	Callers in this file changed.
+
+	* abbrev.el (define-abbrevs): Read system abbrevs properly.
+
+	* emacs-lisp/map-ynp.el (map-y-or-n-p): Clarify RET/q in help message.
+
+2005-04-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* url/url-ldap.el (url-ldap): Add docstring.  Fix call to
+	`ldap-search-internal'.
+
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* files.el (set-auto-mode-1): Use line-end-position.
+
+	* international/latin-1.el:
+	* international/latin-2.el:
+	* international/latin-3.el:
+	* international/latin-4.el:
+	* international/latin-5.el:
+	* international/latin-8.el:
+	* international/latin-9.el: Give punctuation syntax to NBSP.
+
+	* textmodes/bibtex.el (bibtex-autokey-titleword-ignore)
+	(bibtex-reference-key, bibtex-autokey-demangle-name, bibtex-mode):
+	Use char-classes to accept non-ascii letters, accepted in some recent
+	bibtex implementations.
+
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-set-minor-mode): Any non-nil value for the
+	variable should enable the mode when set through Custom.
+
+2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-mode-map-init): Don't override default
+	TAB binding so tab-always-indent is obeyed.
+	(vhdl-minibuffer-local-map): Move initialization into declaration.
+	(vhdl-mode-abbrev-table-init): Mark the abbrevs as `system'.
+	(vhdl-run-when-idle, vhdl-create-mode-menu, vhdl-character-to-event)
+	(vhdl-hooked-abbrev): Avoid test for XEmacs.
+	(vhdl-current-line): Use line-beginning-position.
+	(vhdl-doc-variable, vhdl-doc-mode): Call help-setup-xref before
+	with-output-to-temp-buffer, so the current position can be recorded.
+
+2005-04-10  Masatake YAMATO  <jet@gyve.org>
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Add regexp for gcov.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* calendar/time-date.el (time-to-seconds, seconds-to-time)
+	(days-to-time, time-subtract, time-add): Don't use the #xhhhh
+	syntax which Emacs 20 doesn't support.
+
+2005-04-09  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (describe-key-briefly, describe-key): Replace
+	strings as event types with "(any string)".
+
+2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-mode-map): Move initialization into
+	the declaration.  Override *all* bindings of `undo'.
+	(archive-lemacs): Remove, use (featurep 'xemacs) instead.
+
+2005-04-09  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-standard-units): Redefine Watt hour as W*hr.
+
+2005-04-09  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (xterm-rgb-convert-to-16bit): Simplify.
+	(xterm-register-default-colors): Update color values computation
+	to match xterm-200.
+
 2005-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (iso-latin-7): Fix the map.

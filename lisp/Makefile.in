@@ -1,5 +1,5 @@
 # Maintenance productions for the Lisp directory
-# Copyright (C) 2000, 01, 03, 2004  Free Software Foundation, Inc.
+# Copyright (C) 2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
 
@@ -38,77 +38,6 @@ SOURCES = *.el COPYING Makefile
 lisptagsfiles1 = $(lisp)/[a-zA-Z]*.el
 lisptagsfiles2 = $(lisp)/[a-zA-Z]*/[a-zA-Z]*.el
 ETAGS = ../lib-src/etags
-
-# Files which should not be compiled.  If you change the name `DONTCOMPILE'
-# to something different, you'll have to change make-dist as well, and
-# modify the lists in $lisp and $shortlisp on src/Makefile.in.
-#
-# - emacs-lisp/cl-specs.el:  only contains `def-edebug-spec's so there's
-#   no point compiling it, although it doesn't hurt.
-
-DONTCOMPILE = \
-	$(lisp)/cus-load.el \
-	$(lisp)/emacs-lisp/cl-specs.el \
-	$(lisp)/eshell/esh-maint.el \
-	$(lisp)/eshell/esh-groups.el \
-	$(lisp)/finder-inf.el \
-	$(lisp)/forms-d2.el \
-	$(lisp)/forms-pass.el \
-	$(lisp)/generic-x.el \
-	$(lisp)/international/latin-1.el \
-	$(lisp)/international/latin-2.el \
-	$(lisp)/international/latin-3.el \
-	$(lisp)/international/latin-4.el \
-	$(lisp)/international/latin-5.el \
-	$(lisp)/international/latin-8.el \
-	$(lisp)/international/latin-9.el \
-	$(lisp)/international/mule-conf.el \
-	$(lisp)/language/czech.el \
-	$(lisp)/language/devanagari.el \
-	$(lisp)/language/malayalam.el \
-	$(lisp)/language/tamil.el \
-	$(lisp)/language/kannada.el \
-	$(lisp)/language/english.el \
-	$(lisp)/language/greek.el \
-	$(lisp)/language/hebrew.el \
-	$(lisp)/language/japanese.el \
-	$(lisp)/language/korean.el \
-	$(lisp)/language/lao.el \
-	$(lisp)/language/misc-lang.el \
-	$(lisp)/language/romanian.el \
-	$(lisp)/language/slovak.el \
-	$(lisp)/language/thai.el \
-	$(lisp)/language/utf-8-lang.el \
-	$(lisp)/language/georgian.el \
-	$(lisp)/loaddefs.el \
-	$(lisp)/ldefs-boot.el \
-	$(lisp)/loadup.el \
-	$(lisp)/mail/blessmail.el \
-	$(lisp)/patcomp.el \
-	$(lisp)/paths.el \
-	$(lisp)/play/bruce.el \
-	$(lisp)/subdirs.el \
-	$(lisp)/term/internal.el \
-	$(lisp)/term/AT386.el  \
-	$(lisp)/term/apollo.el \
-	$(lisp)/term/bobcat.el \
-	$(lisp)/term/iris-ansi.el \
-	$(lisp)/term/keyswap.el \
-	$(lisp)/term/linux.el \
-	$(lisp)/term/lk201.el \
-	$(lisp)/term/news.el \
-	$(lisp)/term/vt102.el \
-	$(lisp)/term/vt125.el \
-	$(lisp)/term/vt200.el \
-	$(lisp)/term/vt201.el \
-	$(lisp)/term/vt220.el \
-	$(lisp)/term/vt240.el \
-	$(lisp)/term/vt300.el \
-	$(lisp)/term/vt320.el \
-	$(lisp)/term/vt400.el \
-	$(lisp)/term/vt420.el \
-	$(lisp)/term/wyse50.el \
-	$(lisp)/version.el
 
 # Elisp files auto-generated.
 AUTOGENEL = loaddefs.el \
@@ -192,7 +121,7 @@ updates: update-subdirs autoloads finder-data custom-deps
 # Update the AUTHORS file.
 
 update-authors:
-	$(emacs) -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
+	$(emacs) -l authors -f batch-update-authors $(srcdir)/AUTHORS $(srcdir)
 
 TAGS: $(lisptagsfiles1) $(lisptagsfiles2)
 	els=`echo $(lisptagsfiles1) $(lisptagsfiles2) | sed -e "s,$(lisp)/loaddefs[^ ]*,," -e "s,$(lisp)/ldefs-boot[^ ]*,,"`; \
@@ -207,31 +136,23 @@ TAGS-LISP: $(lisptagsfiles1) $(lisptagsfiles2)
 .el.elc: $(lisp)/subdirs.el
 	-$(emacs) -f batch-byte-compile $<
 
-$(DONTCOMPILE:.el=.elc):
-	-rm -f $@
+# Compile all Lisp files, but don't recompile those that are up to
+# date.  Some files don't actually get compiled because they set the
+# local variable no-byte-compile.
 
-# Compile all Lisp files, except those from DONTCOMPILE,
-# but don't recompile those that are up to date.
-
-# All .elc files are made writable
-# before compilation in case we checked out read-only (CVS option -r).
-# Files MUST be compiled one by one.  If we compile several files in a
-# row we can't make sure that the compilation environment is clean.
-# We also set the load-path of the Emacs used for compilation to the
-# current directory and its subdirectories, to make sure require's and
-# load's in the files being compiled find the right files.
-
-# NOTE about DONTCOMPILE: in the `echo <foo> | sort | uniq -u' we pass
-# $(DONTCOMPILE) twice.  This is in case one of the files in DONTCOMPILE
-# is absent.  -stef
+# All .elc files are made writable before compilation in case we
+# checked out read-only (CVS option -r).  Files MUST be compiled one by
+# one.  If we compile several files in a row we can't make sure that
+# the compilation environment is clean.  We also set the load-path of
+# the Emacs used for compilation to the current directory and its
+# subdirectories, to make sure require's and load's in the files being
+# compiled find the right files.
 
 compile: $(lisp)/subdirs.el doit
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1; \
 	wd=$(lisp); $(setwins);	\
-	elpat=`echo $$wins | tr ' 	' '\012\012' | \
+	els=`echo $$wins | tr ' \011' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
-		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  if test -f $$el; \
 	  then \
@@ -240,17 +161,17 @@ compile: $(lisp)/subdirs.el doit
 	  fi \
 	done
 
-# Compile all Lisp files, except those from DONTCOMPILE.  This
-# is like `compile' but compiles files unconditionally.
+# Compile all Lisp files.  This is like `compile' but compiles files
+# unconditionally.  Some files don't actually get compiled because they
+# set the local variable no-byte-compile.
+
 compile-always: $(lisp)/subdirs.el doit
 	# `|| true' prevents old Bash versions from getting confused
 	# by an error.
 	find $(lisp) -name "*.elc" -print | xargs chmod +w >/dev/null 2>&1 || true; \
 	wd=$(lisp); $(setwins);	\
-	elpat=`echo $$wins | tr ' 	' '\012\012' | \
+	els=`echo $$wins | tr ' \011' '\012\012' | \
 		sed -e 's|\(.\)$$|\1/|' -e 's|^\./||' -e 's|$$|*.el|'`;	\
-	els=`echo $$elpat $(DONTCOMPILE) $(DONTCOMPILE) $(COMPILE_FIRST) | \
-		tr '	 ' '\012\012' | sort | uniq -u`; \
 	for el in $(COMPILE_FIRST) $$els; do \
 	  if test -f $$el; \
 	  then \

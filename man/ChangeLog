@@ -1,3 +1,60 @@
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* cc-mode.texi: Prevent creating an unnecessary empty cc-mode.ss file.
+
+2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by
+	default.
+
+2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Table of Resources): Add cursorBlink.
+
+2005-04-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rmail.texi (Rmail Summary Edit): Explain numeric arguments to
+	`d', `C-d' and `u'.
+
+2005-04-11  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Initial Options): -Q is now --quick, and does less.
+	(Misc X): Add -D, --basic-display.
+
+	* maintaining.texi (Change Log): Correct the description of
+	the example.
+
+	* major.texi (Choosing Modes): Document magic-mode-alist.
+
+2005-04-10  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* cl.texi (Porting Common Lisp): Fix typo.
+
+2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* rmail.texi (Rmail Basics): Clarify description of `q' and `b'.
+	(Rmail Deletion): `C-d' in RMAIL buffer does not accept a numeric
+	argument.
+	(Rmail Inbox): Give full name of `rmail-primary-inbox-list'.
+	(Rmail Output): Clarify which statements apply to `o', `C-o' and
+	`w', respectively.
+	(Rmail Labels): Mention `l'.
+	(Rmail Attributes): Correct pxref.  Mention `stored' attribute.
+	(Rmail Summary Edit): Describe `j' and RET.
+
+2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xresources.texi (Lucid Resources): Added fonSet resource.
+
+2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus.texi (RSS): Addition.
+
+2005-04-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Useless Whitespace): `indicate-unused-lines' is
+	now called `indicate-empty-lines'.
+
 2005-04-06  Kim F. Storm  <storm@cua.dk>
 
 	* cmdargs.texi (Initial Options): Add --bare-bones alias for -Q.
@@ -23,6 +80,10 @@
 2005-04-03  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar.texi (Diary): Mention shell utility `calendar'.
+
+2005-04-01  Richard M. Stallman  <rms@gnu.org>
+
+	* cmdargs.texi (Misc X): Explain horizontal scroll bars don't exist.
 
 2005-04-01  Jay Belanger  <belanger@truman.edu>
 
@@ -849,7 +910,7 @@
 
 2005-01-15  Sergey Poznyakoff  <gray@Mirddin.farlep.net>
 
- 	* man/rmail.texi (Movemail): Explain differences
+	* rmail.texi (Movemail): Explain differences
 	between standard and mailutils versions of movemail.
 	Describe command line and configuration options introduced
 	with the latter.

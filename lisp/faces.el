@@ -2015,7 +2015,7 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface secondary-selection
   '((((class color) (min-colors 88) (background light))
-     :background "yellow")
+     :background "yellow1")
     (((class color) (min-colors 88) (background dark))
      :background "SkyBlue4")
     (((class color) (min-colors 16) (background light))
@@ -2041,9 +2041,9 @@ Note: Other faces cannot inherit from the cursor face."
 
 (defface trailing-whitespace
   '((((class color) (background light))
-     :background "red")
+     :background "red1")
     (((class color) (background dark))
-     :background "red")
+     :background "red1")
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"

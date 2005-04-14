@@ -51,15 +51,85 @@
   (define-key map "\e[24~" [f12])
   (define-key map "\e[29~" [print])
 
+  (define-key map "\e[11;2~" [S-f1])
+  (define-key map "\e[12;2~" [S-f2])
+  (define-key map "\e[13;2~" [S-f3])
+  (define-key map "\e[14;2~" [S-f4])
+  (define-key map "\e[15;2~" [S-f5])
+  (define-key map "\e[17;2~" [S-f6])
+  (define-key map "\e[18;2~" [S-f7])
+  (define-key map "\e[19;2~" [S-f8])
+  (define-key map "\e[20;2~" [S-f9])
+  (define-key map "\e[21;2~" [S-f10])
+  (define-key map "\e[23;2~" [S-f11])
+  (define-key map "\e[24;2~" [S-f12])
+
+  (define-key map "\e[11;5~" [C-f1])
+  (define-key map "\e[12;5~" [C-f2])
+  (define-key map "\e[13;5~" [C-f3])
+  (define-key map "\e[14;5~" [C-f4])
+  (define-key map "\e[15;5~" [C-f5])
+  (define-key map "\e[17;5~" [C-f6])
+  (define-key map "\e[18;5~" [C-f7])
+  (define-key map "\e[19;5~" [C-f8])
+  (define-key map "\e[20;5~" [C-f9])
+  (define-key map "\e[21;5~" [C-f10])
+  (define-key map "\e[23;5~" [C-f11])
+  (define-key map "\e[24;5~" [C-f12])
+
+  (define-key map "\e[11;6~" [C-S-f1])
+  (define-key map "\e[12;6~" [C-S-f2])
+  (define-key map "\e[13;6~" [C-S-f3])
+  (define-key map "\e[14;6~" [C-S-f4])
+  (define-key map "\e[15;6~" [C-S-f5])
+  (define-key map "\e[17;6~" [C-S-f6])
+  (define-key map "\e[18;6~" [C-S-f7])
+  (define-key map "\e[19;6~" [C-S-f8])
+  (define-key map "\e[20;6~" [C-S-f9])
+  (define-key map "\e[21;6~" [C-S-f10])
+  (define-key map "\e[23;6~" [C-S-f11])
+  (define-key map "\e[24;6~" [C-S-f12])
+
+  (define-key map "\e[11;3~" [A-f1])
+  (define-key map "\e[12;3~" [A-f2])
+  (define-key map "\e[13;3~" [A-f3])
+  (define-key map "\e[14;3~" [A-f4])
+  (define-key map "\e[15;3~" [A-f5])
+  (define-key map "\e[17;3~" [A-f6])
+  (define-key map "\e[18;3~" [A-f7])
+  (define-key map "\e[19;3~" [A-f8])
+  (define-key map "\e[20;3~" [A-f9])
+  (define-key map "\e[21;3~" [A-f10])
+  (define-key map "\e[23;3~" [A-f11])
+  (define-key map "\e[24;3~" [A-f12])
+
   (define-key map "\e[1;2A" [S-up])
   (define-key map "\e[1;2B" [S-down])
   (define-key map "\e[1;2C" [S-right])
   (define-key map "\e[1;2D" [S-left])
+  (define-key map "\e[1;2F" [S-end])
+  (define-key map "\e[1;2H" [S-home])
 
   (define-key map "\e[1;5A" [C-up])
   (define-key map "\e[1;5B" [C-down])
   (define-key map "\e[1;5C" [C-right])
   (define-key map "\e[1;5D" [C-left])
+  (define-key map "\e[1;5F" [C-end])
+  (define-key map "\e[1;5H" [C-home])
+
+  (define-key map "\e[1;6A" [C-S-up])
+  (define-key map "\e[1;6B" [C-S-down])
+  (define-key map "\e[1;6C" [C-S-right])
+  (define-key map "\e[1;6D" [C-S-left])
+  (define-key map "\e[1;6F" [C-S-end])
+  (define-key map "\e[1;6H" [C-S-home])
+
+  (define-key map "\e[1;3A" [A-up])
+  (define-key map "\e[1;3B" [A-down])
+  (define-key map "\e[1;3C" [A-right])
+  (define-key map "\e[1;3D" [A-left])
+  (define-key map "\e[1;3F" [A-end])
+  (define-key map "\e[1;3H" [A-home])
 
   (define-key map "\e[2;2~" [S-insert])
   (define-key map "\e[3;2~" [S-delete])
@@ -70,6 +140,16 @@
   (define-key map "\e[3;5~" [C-delete])
   (define-key map "\e[5;5~" [C-prior])
   (define-key map "\e[6;5~" [C-next])
+
+  (define-key map "\e[2;6~" [C-S-insert])
+  (define-key map "\e[3;6~" [C-S-delete])
+  (define-key map "\e[5;6~" [C-S-prior])
+  (define-key map "\e[6;6~" [C-S-next])
+
+  (define-key map "\e[2;3~" [A-insert])
+  (define-key map "\e[3;3~" [A-delete])
+  (define-key map "\e[5;3~" [A-prior])
+  (define-key map "\e[6;3~" [A-next])
 
   (define-key map "\eOA" [up])
   (define-key map "\eOB" [down])
@@ -123,7 +203,7 @@
 
 (defun xterm-rgb-convert-to-16bit (prim)
   "Convert an 8-bit primary color value PRIM to a corresponding 16-bit value."
-  (min 65535 (round (* (/ prim 255.0) 65535.0))))
+  (logior prim (lsh prim 8)))
 
 (defun xterm-register-default-colors ()
   "Register the default set of colors for xterm or compatible emulator.
@@ -160,9 +240,10 @@ versions of xterm."
 	    (tty-color-define (format "color-%d" (- 256 ncolors))
 			      (- 256 ncolors)
 			      (mapcar 'xterm-rgb-convert-to-16bit
-				      (list (round (* r 42.5))
-					    (round (* g 42.5))
-					    (round (* b 42.5)))))
+				      (list (if (zerop r) 0 (+ (* r 40) 55))
+					    (if (zerop g) 0 (+ (* g 40) 55))
+					    (if (zerop b) 0 (+ (* b 40) 55)))))
+
 	    (setq b (1+ b))
 	    (if (> b 5)
 		(setq g (1+ g)
@@ -200,7 +281,7 @@ versions of xterm."
 	;; Now the 8 gray colors
 	(while (> ncolors 0)
 	  (setq color (xterm-rgb-convert-to-16bit
-		       (round
+		       (floor
 			(if (= ncolors 8)
 			    46.36363636
 			  (+ (* (- 8 ncolors) 23.18181818) 69.54545454)))))

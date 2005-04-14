@@ -4564,12 +4564,11 @@ Otherwise, generate and save a value for `canlock-password' first."
 	(when (re-search-forward ",+$" nil t)
 	  (replace-match "" t t))))))
 
+(eval-when-compile (require 'parse-time))
 (defun message-make-date (&optional now)
   "Make a valid data header.
 If NOW, use that time instead."
   (require 'parse-time)
-  (defvar parse-time-weekdays)
-  (defvar parse-time-months)
   (let* ((now (or now (current-time)))
 	 (zone (nth 8 (decode-time now)))
 	 (sign "+"))

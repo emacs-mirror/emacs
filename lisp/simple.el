@@ -1279,7 +1279,9 @@ Return 0 if current buffer is not a mini-buffer."
 (defalias 'advertised-undo 'undo)
 
 (defconst undo-equiv-table (make-hash-table :test 'eq :weakness t)
-  "Table mapping redo records to the corresponding undo one.")
+  "Table mapping redo records to the corresponding undo one.
+A redo record for undo-in-region maps to t.
+A redo record for ordinary undo maps to the following (earlier) undo.")
 
 (defvar undo-in-region nil
   "Non-nil if `pending-undo-list' is not just a tail of `buffer-undo-list'.")
@@ -1339,7 +1341,7 @@ as an argument limits undo to changes within the current region."
 	  (message (if undo-in-region
 		       (if equiv "Redo in region!" "Undo in region!")
 		     (if equiv "Redo!" "Undo!"))))
-      (when (and equiv undo-no-redo)
+      (when (and (consp equiv) undo-no-redo)
 	;; The equiv entry might point to another redo record if we have done
 	;; undo-redo-undo-redo-... so skip to the very last equiv.
 	(while (let ((next (gethash equiv undo-equiv-table)))
@@ -1350,10 +1352,13 @@ as an argument limits undo to changes within the current region."
 	 (prefix-numeric-value arg)
        1))
     ;; Record the fact that the just-generated undo records come from an
-    ;; undo operation, so we can skip them later on.
+    ;; undo operation--that is, they are redo records.
+    ;; In the ordinary case (not within a region), map the redo
+    ;; record to the following undos.
     ;; I don't know how to do that in the undo-in-region case.
-    (unless undo-in-region
-      (puthash buffer-undo-list pending-undo-list undo-equiv-table))
+    (puthash buffer-undo-list
+	     (if undo-in-region t pending-undo-list)
+	     undo-equiv-table)
     ;; Don't specify a position in the undo record for the undo command.
     ;; Instead, undoing this should move point to where the change is.
     (let ((tail buffer-undo-list)

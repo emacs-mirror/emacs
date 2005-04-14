@@ -4358,21 +4358,16 @@ are decompressed."
 		    (mm-read-coding-system "Charset: "))))
 	 (t
 	  (if (mm-handle-undisplayer handle)
-	      (mm-remove-part handle))
-	  (setq contents
-		(if (fboundp 'string-to-multibyte)
-		    (string-to-multibyte contents)
-		  (mapconcat
-		   (lambda (ch) (mm-string-as-multibyte (char-to-string ch)))
-		   contents "")))))
+	      (mm-remove-part handle))))
 	(forward-line 2)
-	(mm-insert-inline handle
-			  (if (and charset
-				   (setq charset (mm-charset-to-coding-system
-						  charset))
-				   (not (eq charset 'ascii)))
-			      (mm-decode-coding-string contents charset)
-			    contents))
+	(mm-insert-inline
+	 handle
+	 (if (and charset
+		  (setq charset (mm-charset-to-coding-system
+				 charset))
+		  (not (eq charset 'ascii)))
+	     (mm-decode-coding-string contents charset)
+	   (mm-string-to-multibyte contents)))
 	(goto-char b)))))
 
 (defun gnus-mime-view-part-as-charset (&optional handle arg)
@@ -5309,7 +5304,7 @@ not have a face in `gnus-article-boring-faces'."
 	      (when (eq win (selected-window))
 		(setq new-sum-point (point)
 		      new-sum-start (window-start win)
-		      new-sum-hscroll (window-hscroll win))
+		      new-sum-hscroll (window-hscroll win)))
 	      (when (eq in-buffer (current-buffer))
 		(setq selected (gnus-summary-select-article))
 		(set-buffer obuf)
@@ -5325,7 +5320,7 @@ not have a face in `gnus-article-boring-faces'."
 			   new-sum-point)
 		  (set-window-point win new-sum-point)
 		  (set-window-start win new-sum-start)
-		  (set-window-hscroll win new-sum-hscroll)))))
+		  (set-window-hscroll win new-sum-hscroll))))
 	  (set-window-configuration owin)
 	  (ding))))))
 

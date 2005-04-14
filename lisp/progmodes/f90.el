@@ -1055,10 +1055,10 @@ block[ \t]*data\\)\\>")
       (f90-change-keywords f90-auto-keyword-case
                            (line-beginning-position) (line-end-position))))
 
-(defun f90-electric-insert ()
+(defun f90-electric-insert (&optional arg)
   "Change keyword case and auto-fill line as operators are inserted."
-  (interactive)
-  (self-insert-command 1)
+  (interactive "*p")
+  (self-insert-command arg)
   (if auto-fill-function (f90-do-auto-fill) ; also updates line
     (f90-update-line)))
 
