@@ -1085,7 +1085,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'escape 'ascii-character ?\e)
 
 
-;;;; Keyboard layout/language change events
+;;;; Script codes and coding systems
 (defconst mac-script-code-coding-systems
   '((0 . mac-roman)			; smRoman
     (1 . japanese-shift-jis)		; smJapanese
@@ -1097,6 +1097,15 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     )
   "Alist of Mac script codes vs Emacs coding systems.")
 
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
   (interactive "e")
@@ -1739,14 +1748,11 @@ Switch to a buffer editing the last file dropped."
   ;; started (see run_mac_command in sysdep.c).
   (setq shell-file-name "sh")
 
-  ;; To display filenames in Chinese or Japanese, replace mac-roman with
-  ;; big5 or sjis
-  (setq file-name-coding-system 'mac-roman))
-
-;; X Window emulation in macterm.c is not complete enough to start a
-;; frame without a minibuffer properly.  Call this to tell ediff
-;; library to use a single frame.
-; (ediff-toggle-multiframe)
+  ;; Some system variables are encoded with the system script code.
+  (dolist (v '(system-name
+	       emacs-build-system	; Mac OS 9 version cannot dump
+	       user-login-name user-real-login-name user-full-name))
+    (set v (decode-coding-string (symbol-value v) mac-system-coding-system))))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
@@ -1762,8 +1768,6 @@ Switch to a buffer editing the last file dropped."
 ;; fonts with both truetype and bitmap representations but no italic
 ;; or bold bitmap versions will not display these variants correctly.
 (setq scalable-fonts-allowed t)
-
-;; (prefer-coding-system 'mac-roman)
 
 ;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here
