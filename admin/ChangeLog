@@ -1,5 +1,7 @@
 2005-04-14  Lute Kamstra  <lute@gnu.org>
 
+	* nt/makedist.bat (elfiles): Update.
+
 	* admin.el (add-release-logs): Fix require call.
 
 2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
