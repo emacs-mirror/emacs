@@ -1895,7 +1895,7 @@ x_set_name (f, name, explicit)
 #if TARGET_API_MAC_CARBON
 	name = ENCODE_UTF_8 (name);
 #else
-        return;
+	name = ENCODE_SYSTEM (name);
 #endif
 
       BLOCK_INPUT;
@@ -1977,7 +1977,7 @@ x_set_title (f, name, old_name)
 #if TARGET_API_MAC_CARBON
 	name = ENCODE_UTF_8 (name);
 #else
-        return;
+	name = ENCODE_SYSTEM (name);
 #endif
 
       BLOCK_INPUT;
@@ -3637,9 +3637,6 @@ x_create_tip_frame (dpyinfo, parms, text)
 
   check_mac ();
 
-  /* Use this general default value to start with until we know if
-     this frame has a specified name.  */
-  Vx_resource_name = Vinvocation_name;
 
 #ifdef MULTI_KBOARD
   kb = dpyinfo->kboard;
@@ -3653,7 +3650,6 @@ x_create_tip_frame (dpyinfo, parms, text)
       && !EQ (name, Qunbound)
       && !NILP (name))
     error ("Invalid frame name--not a string or nil");
-  Vx_resource_name = name;
 
   frame = Qnil;
   GCPRO3 (parms, name, frame);
@@ -4362,7 +4358,12 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 		  filename[len++] = '/';
 		CFStringGetCString(reply.saveFileName, filename+len, 
 				   sizeof (filename) - len,
-				   kCFStringEncodingUTF8);
+#if MAC_OSX
+				   kCFStringEncodingUTF8
+#else
+				   CFStringGetSystemEncoding ()
+#endif
+				   );
 	      }
 	    file = DECODE_FILE (make_unibyte_string (filename,
 						     strlen (filename)));
