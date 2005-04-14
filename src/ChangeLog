@@ -1,3 +1,20 @@
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.  Don't
+	include TextEncodingConverter.h.
+	(mac_system_script_code, Vmac_system_locale): New variables.
+	(syms_of_mac): Defvar them.
+	(mac_get_system_locale): New function.
+
+	* macfns.c (x_set_name, x_set_title) [!TARGET_API_MAC_CARBON]: Use
+	ENCODE_SYSTEM to encode title bar string.
+	(x_create_tip_frame): Apply 2005-03-18 change for xfns.c.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON && !MAC_OSX]: Use
+	CFStringGetSystemEncoding to get system default string encoding.
+
+	* macterm.c [!TARGET_API_MAC_CARBON]: Don't include
+	TextEncodingConverter.h.
+
 2005-04-13  Steven Tamm  <steventamm@mac.com>
 
 	* macterm.c (syms_of_macterm): Remove redundant definition of

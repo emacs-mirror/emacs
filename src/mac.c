@@ -49,6 +49,7 @@ Boston, MA 02111-1307, USA.  */
 #include <Events.h>
 #include <Processes.h>
 #include <EPPC.h>
+#include <MacLocales.h>
 #endif	/* not HAVE_CARBON */
 
 #include <utime.h>
@@ -66,6 +67,12 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 Lisp_Object QCLIPBOARD;
+
+/* The system script code. */
+static int mac_system_script_code;
+
+/* The system locale identifier string.  */
+static Lisp_Object Vmac_system_locale;
 
 /* An instance of the AppleScript component.  */
 static ComponentInstance as_scripting_component;
@@ -4167,6 +4174,29 @@ init_mac_osx_environment ()
 }
 #endif /* MAC_OSX */
 
+
+static Lisp_Object
+mac_get_system_locale ()
+{
+  OSErr err;
+  LangCode lang;
+  RegionCode region;
+  LocaleRef locale;
+  Str255 str;
+
+  lang = GetScriptVariable (smSystemScript, smScriptLang);
+  region = GetScriptManagerVariable (smRegionCode);
+  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
+  if (err == noErr)
+    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
+				  sizeof (str), str);
+  if (err == noErr)
+    return build_string (str);
+  else
+    return Qnil;
+}
+
+
 void
 syms_of_mac ()
 {
@@ -4197,6 +4227,16 @@ syms_of_mac ()
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
+
+  DEFVAR_INT ("mac-system-script-code", &mac_system_script_code,
+    doc: /* The system script code.  */);
+  mac_system_script_code = (ScriptCode) GetScriptManagerVariable (smSysScript);
+
+  DEFVAR_LISP ("mac-system-locale", &Vmac_system_locale,
+    doc: /* The system locale identifier string.
+This is not a POSIX locale ID, but an ICU locale ID.  So encoding
+information is not included.  */);
+  Vmac_system_locale = mac_get_system_locale ();
 }
 
 /* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff
