@@ -1,3 +1,15 @@
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* international/mule-cmds.el (set-locale-environment): On Mac OS,
+	use preferences AppleLocale and AppleLanguages, and variable
+	mac-system-locale for default locale.  On Mac OS Classic, use
+	mac-system-coding-system for default coding systems.
+
+	* term/mac-win.el: Don't set file-name-coding-system.  Decode
+	variables system-name, emacs-build-system, user-login-name, and
+	user-full-name by mac-system-coding-system on Mac OS Classic.
+	(mac-system-coding-system): New variable.
+
 2005-04-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Handle `xterm-mouse-mode' before

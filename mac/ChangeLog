@@ -1,3 +1,8 @@
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (NonCarbonLibs): Add LocalesLib.  Delete
+	TextEncodingConverter.
+
 2005-04-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Emacs.app/Contents/Resources/English.lproj/InfoPlist.strings
