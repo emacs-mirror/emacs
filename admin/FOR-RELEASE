@@ -274,11 +274,11 @@ etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
-etc/TUTORIAL.ru
+etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
 etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
-etc/TUTORIAL.th
+etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
 etc/TUTORIAL.zh
 
 
