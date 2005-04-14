@@ -7070,7 +7070,6 @@ x_find_ccl_program (fontp)
 #include <Dialogs.h>
 #include <Script.h>
 #include <Types.h>
-#include <TextEncodingConverter.h>
 #include <Resources.h>
 
 #if __MWERKS__
