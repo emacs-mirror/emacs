@@ -1,3 +1,44 @@
+2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el:  (org-agenda-date-prompt): Renamed from
+	`org-agenda-date-today'.
+	(org-evaluate-time-range): Insert at point instead of directly
+	after time range.
+	(org-first-headline-recenter, org-subtree-end-visible-p)
+	(org-optimize-window-after-visibility-change): New functions
+	(org-agenda-post-command-hook): Don't allow point at end of line,
+	to make sure it always hits the text properties.
+	(org-agenda-next-date-line, org-agenda-previous-date-line): New
+	commands.
+	(org-set-regexps-and-options): Category may contain white space.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): Improved
+	marker positions.
+	(org-agenda-new-marker): Argument POS made optional.
+	(org-agenda-get-timestamps): Deadlines which are done are listed
+	in org-done-face now.
+	(org-agenda-get-todos, org-agenda-get-timestamps)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled): set
+	`undone-face' and `done-face' properties.
+	(org-last-todo-state-is-todo): New variable.
+	(org-todo): Set `org-last-todo-state-is-todo'.
+	(org-agenda-todo): Change face according to
+	`org-last-todo-state-is-todo'.  And change other lines refering to
+	the same entry.
+	(org-calendar-goto-agenda): New command.
+	(org-calendar-to-agenda-key): New option.
+	(org-startup-folded): New allowed value `content'.
+	(org-set-regexps-and-options): Accept new value `content' for
+	`org-startup-folded'.
+	(org-get-current-options): Handle new value `content' for
+	`org-startup-folded'.
+	(org-insert-todo-heading): New command.
+	(org-mode): Insert first line "*-* mode: org-mode -*-" when called
+	interactively in empty file and option
+	`org-insert-mode-line-in-empty-file' has been set.
+	(org-agenda-todo,org-agenda-priority): Modified to use
+	`org-agenda-change-all-lines'.
+	(org-warning-face): Changed color on dark background
+
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* international/mule-cmds.el (set-locale-environment): On Mac OS,

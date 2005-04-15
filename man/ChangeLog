@@ -1,3 +1,7 @@
+2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Update to version 3.06.
+
 2005-04-13  Lute Kamstra  <lute@gnu.org>
 
 	* cc-mode.texi: Prevent creating an unnecessary empty cc-mode.ss file.
