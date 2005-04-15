@@ -89,16 +89,27 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 
 (defvar gud-running nil
   "Non-nil if debuggee is running.
-Used to grey out relevant toolbar icons.")
+Used to grey out relevant togolbar icons.")
 
+;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
   (interactive)
-  (select-frame (make-frame))
-  (require 'info)
-  (if (memq gud-minor-mode '(gdbmi gdba))
-      (Info-goto-node "(emacs)GDB Graphical Interface")
-    (Info-goto-node "(emacs)Debuggers")))
+  (let ((same-window-regexps same-window-regexps)
+	(display-buffer-reuse-frames t))
+    (catch 'info-found
+      (walk-windows
+       '(lambda (window)
+	  (if (eq (window-buffer window) (get-buffer "*info*"))
+	      (progn
+		(setq same-window-regexps nil)
+		(throw 'info-found nil))))
+       nil 0)
+      (require 'info)
+      (select-frame (make-frame)))
+    (if (memq gud-minor-mode '(gdbmi gdba))
+	(Info-goto-node "(emacs)GDB Graphical Interface")
+      (Info-goto-node "(emacs)Debuggers"))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
