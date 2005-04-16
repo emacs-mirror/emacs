@@ -1,3 +1,8 @@
+2005-04-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-up-heading-all): Fixed bug with
+	`outline-up-heading-all'. 
+
 2005-04-16  Andreas Schwab  <schwab@suse.de>
 
 	* files.el (auto-mode-alist): Handle /etc/sysconfig/*,
