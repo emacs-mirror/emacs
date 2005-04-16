@@ -1,3 +1,8 @@
+2005-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* filesets.el (filesets-add-buffer): If user supplies a name of a
+	non-existing fileset, create a new fileset.
+
 2005-04-16  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-up-heading-all): Fixed bug with
