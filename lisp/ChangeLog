@@ -1,3 +1,8 @@
+2005-04-16  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (auto-mode-alist): Handle /etc/sysconfig/*,
+	/etc/permissions.d/* and /etc/aliases.d/*.
+
 2005-04-16  Kenichi Handa  <handa@m17n.org>
 
 	* international/code-pages.el (cp-make-coding-system): Set
