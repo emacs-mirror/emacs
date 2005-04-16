@@ -1,3 +1,10 @@
+2005-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (with_echo_area_buffer): Delete WHICH < 0 case.
+	(set_message): Call with_echo_area_buffer with WHICH = 0.
+	(set_message_1): Erase the echo area buffer first thing.
+	(echo_area_display): Don't clear echo_message_buffer.
+
 2005-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in (mac.o): Depend on charset.h and coding.h.
