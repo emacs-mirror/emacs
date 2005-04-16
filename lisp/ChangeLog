@@ -1,3 +1,8 @@
+2005-04-16  Matt Hodges  <MPHodges@member.fsf.org>  (tiny change)
+
+	* repeat.el (repeat): Invoke pre-command-hook and
+	post-command-hook.
+
 2005-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
 	* filesets.el (filesets-add-buffer): If user supplies a name of a
