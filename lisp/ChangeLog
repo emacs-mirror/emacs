@@ -1,3 +1,8 @@
+2005-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	Disable when using unify-on-decoding.
+
 2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* emulation/cua-base.el (cua-global-mark-face): Add special case
@@ -5,8 +10,7 @@
 
 2005-04-16  Matt Hodges  <MPHodges@member.fsf.org>  (tiny change)
 
-	* repeat.el (repeat): Invoke pre-command-hook and
-	post-command-hook.
+	* repeat.el (repeat): Invoke pre-command-hook and post-command-hook.
 
 2005-04-16  Chong Yidong  <cyd@stupidchicken.com>
 
@@ -15,7 +19,7 @@
 
 2005-04-16  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el (org-up-heading-all): Fixed bug with
+	* textmodes/org.el (org-up-heading-all): Fix bug with
 	`outline-up-heading-all'. 
 
 2005-04-16  Andreas Schwab  <schwab@suse.de>
@@ -25,8 +29,8 @@
 
 2005-04-16  Kenichi Handa  <handa@m17n.org>
 
-	* international/code-pages.el (cp-make-coding-system): Set
-	`translation-table-for-input' property value to the symbol
+	* international/code-pages.el (cp-make-coding-system):
+	Set `translation-table-for-input' property value to the symbol
 	ucs-mule-to-mule-unicode, not to that value.
 	(pt154): Escape guillemet by `\'.
 
@@ -46,7 +50,7 @@
 
 2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el:  (org-agenda-date-prompt): Renamed from
+	* textmodes/org.el:  (org-agenda-date-prompt): Rename from
 	`org-agenda-date-today'.
 	(org-evaluate-time-range): Insert at point instead of directly
 	after time range.
@@ -54,17 +58,17 @@
 	(org-optimize-window-after-visibility-change): New functions
 	(org-agenda-post-command-hook): Don't allow point at end of line,
 	to make sure it always hits the text properties.
-	(org-agenda-next-date-line, org-agenda-previous-date-line): New
-	commands.
+	(org-agenda-next-date-line, org-agenda-previous-date-line):
+	New commands.
 	(org-set-regexps-and-options): Category may contain white space.
-	(org-agenda-get-deadlines, org-agenda-get-scheduled): Improved
-	marker positions.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled):
+	Improve marker positions.
 	(org-agenda-new-marker): Argument POS made optional.
 	(org-agenda-get-timestamps): Deadlines which are done are listed
 	in org-done-face now.
 	(org-agenda-get-todos, org-agenda-get-timestamps)
-	(org-agenda-get-deadlines, org-agenda-get-scheduled): set
-	`undone-face' and `done-face' properties.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled):
+	Set `undone-face' and `done-face' properties.
 	(org-last-todo-state-is-todo): New variable.
 	(org-todo): Set `org-last-todo-state-is-todo'.
 	(org-agenda-todo): Change face according to
@@ -81,9 +85,9 @@
 	(org-mode): Insert first line "*-* mode: org-mode -*-" when called
 	interactively in empty file and option
 	`org-insert-mode-line-in-empty-file' has been set.
-	(org-agenda-todo,org-agenda-priority): Modified to use
+	(org-agenda-todo,org-agenda-priority): Modify to use
 	`org-agenda-change-all-lines'.
-	(org-warning-face): Changed color on dark background
+	(org-warning-face): Change color on dark background
 
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -92,8 +96,8 @@
 	mac-system-locale for default locale.  On Mac OS Classic, use
 	mac-system-coding-system for default coding systems.
 
-	* term/mac-win.el: Don't set file-name-coding-system.  Decode
-	variables system-name, emacs-build-system, user-login-name, and
+	* term/mac-win.el: Don't set file-name-coding-system.
+	Decode variables system-name, emacs-build-system, user-login-name, and
 	user-full-name by mac-system-coding-system on Mac OS Classic.
 	(mac-system-coding-system): New variable.
 
@@ -191,8 +195,8 @@
 
 2005-04-12  Lute Kamstra  <lute@gnu.org>
 
-	* generic-x.el (rc-generic-mode, rul-generic-mode): Fix
-	auto-mode-alist entries.
+	* generic-x.el (rc-generic-mode, rul-generic-mode):
+	Fix auto-mode-alist entries.
 	(etc-fstab-generic-mode): Tweak fontification.
 
 	* generic.el (generic-make-keywords-list): Fix docstring.
@@ -200,8 +204,8 @@
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-buffer-leading,
-	whitespace-buffer-trailing): Revert the incorrect test
+	* whitespace.el (whitespace-buffer-leading)
+	(whitespace-buffer-trailing): Revert the incorrect test
 	inversion. However, fix the highlight area for the leading and
 	trailing whitespaces to show space.
 
@@ -209,8 +213,8 @@
 
 	* whitespace.el (whitespace-version): Bump to 3.5
 
-	(whitespace-buffer-leading, whitespace-buffer-trailing): Invert
-	sense of the test to highlight the whitespace.
+	(whitespace-buffer-leading, whitespace-buffer-trailing):
+	Invert sense of the test to highlight the whitespace.
 
 2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -243,15 +247,15 @@
 	(w32-drag-n-drop): Call dnd-handle-one-url.
 
 	* x-dnd.el: Require dnd.
-	(x-dnd-handle-uri-list, x-dnd-handle-file-name): Call
-	dnd-handle-one-url.
+	(x-dnd-handle-uri-list, x-dnd-handle-file-name):
+	Call dnd-handle-one-url.
 	(x-dnd-types-alist, x-dnd-insert-utf8-text)
 	(x-dnd-insert-utf16-text, x-dnd-insert-ctext): Change x-dnd-insert-text
 	to dnd-insert-text.
 	(x-dnd-protocol-alist, x-dnd-open-file-other-window)
 	(x-dnd-handle-one-url, x-dnd-get-local-file-uri)
 	(x-dnd-get-local-file-name,  x-dnd-open-local-file)
-	(x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
+	(x-dnd-open-file, x-dnd-insert-text): Move to dnd.el (without x-).
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
 
@@ -379,8 +383,8 @@
 
 2005-04-09  Richard M. Stallman  <rms@gnu.org>
 
-	* help.el (describe-key-briefly, describe-key): Replace
-	strings as event types with "(any string)".
+	* help.el (describe-key-briefly, describe-key):
+	Replace strings as event types with "(any string)".
 
 2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -493,8 +497,7 @@
 
 2005-04-08  Kim F. Storm  <storm@cua.dk>
 
-	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to
-	mouse-face.
+	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to mouse-face.
 
 	* mouse.el (mouse-on-link-p): Doc fix.
 
