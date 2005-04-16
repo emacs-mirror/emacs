@@ -1,3 +1,10 @@
+2005-04-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (cp-make-coding-system): Set
+	`translation-table-for-input' property value to the symbol
+	ucs-mule-to-mule-unicode, not to that value.
+	(pt154): Escape guillemet by `\'.
+
 2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* loadup.el: Load tooltip if x-show-tip is fboundp.
