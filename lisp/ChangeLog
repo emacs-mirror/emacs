@@ -1,3 +1,12 @@
+2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el: Load tooltip if x-show-tip is fboundp.
+
+	* startup.el (command-line): Add comment.
+
+	* tooltip.el (tooltip-mode): Specify correct standard value for
+	Custom in init-value.
+
 2005-04-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-goto-info): Use existing Info buffer, if

@@ -1,3 +1,9 @@
+2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Define new macro TOOLTIP_SUPPORT.
+	(lisp): Use it.
+	(SOME_MACHINE_LISP): Add tooltip.
+
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.  Don't
