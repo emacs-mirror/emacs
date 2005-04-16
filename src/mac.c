@@ -31,6 +31,8 @@ Boston, MA 02111-1307, USA.  */
 #include "sysselect.h"
 #include "systime.h"
 #include "blockinput.h"
+#include "charset.h"
+#include "coding.h"
 
 #include "macterm.h"
 
@@ -265,7 +267,6 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 #if TARGET_API_MAC_CARBON
 static Lisp_Object Qstring, Qnumber, Qboolean, Qdate, Qdata;
 static Lisp_Object Qarray, Qdictionary;
-extern Lisp_Object Qutf_8;
 #define DECODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 0)
 
 struct cfdict_context
@@ -274,7 +275,7 @@ struct cfdict_context
   int with_tag, hash_bound;
 };
 
-/* C string to CFString. */
+/* C string to CFString.  */
 
 CFStringRef
 cfstring_create_with_utf8_cstring (c_str)
@@ -288,6 +289,37 @@ cfstring_create_with_utf8_cstring (c_str)
     str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingMacRoman);
 
   return str;
+}
+
+
+/* Lisp string to CFString.  */
+
+CFStringRef
+cfstring_create_with_string (s)
+     Lisp_Object s;
+{
+  CFStringRef string = NULL;
+
+  if (STRING_MULTIBYTE (s))
+    {
+      char *p, *end = SDATA (s) + SBYTES (s);
+
+      for (p = SDATA (s); p < end; p++)
+	if (!isascii (*p))
+	  {
+	    s = ENCODE_UTF_8 (s);
+	    break;
+	  }
+      string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+					kCFStringEncodingUTF8, false);
+    }
+
+  if (string == NULL)
+    /* Failed to interpret as UTF 8.  Fall back on Mac Roman.  */
+    string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+				      kCFStringEncodingMacRoman, false);
+
+  return string;
 }
 
 
@@ -3711,11 +3743,11 @@ otherwise.  */)
   app_id = kCFPreferencesCurrentApplication;
   if (!NILP (application))
     {
-      app_id = cfstring_create_with_utf8_cstring (SDATA (application));
+      app_id = cfstring_create_with_string (application);
       if (app_id == NULL)
 	goto out;
     }
-  key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+  key_str = cfstring_create_with_string (XCAR (key));
   if (key_str == NULL)
     goto out;
   app_plist = CFPreferencesCopyAppValue (key_str, app_id);
@@ -3728,7 +3760,7 @@ otherwise.  */)
     {
       if (CFGetTypeID (plist) != CFDictionaryGetTypeID ())
 	break;
-      key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+      key_str = cfstring_create_with_string (XCAR (key));
       if (key_str == NULL)
 	goto out;
       plist = CFDictionaryGetValue (plist, key_str);
