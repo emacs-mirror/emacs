@@ -1,3 +1,42 @@
+2005-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (mac.o): Depend on charset.h and coding.h.
+
+	* mac.c: Include charset.h and coding.h.
+	[TARGET_API_MAC_CARBON] (Qutf_8): Remove extern.
+	[TARGET_API_MAC_CARBON] (cfstring_create_with_string): New
+	function.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference): Use it.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Likewise.
+
+	* macterm.c (x_autoselect_window_p): Remove variable.
+	(last_window): New variable.
+	(XTreassert_line_highlight, x_change_line_highlight): Remove
+	declarations.
+	(mac_focus_changed, x_detect_focus_change): New functions and
+	declarations.
+	(XTextExtents16, front_emacs_window): Remove function.
+	(mac_focus_frame): New function.
+	(XTmouse_position, do_menu_choice, do_zoom_window, XTread_socket)
+	(mac_check_for_quit_char): Use it instead of front_emacs_window.
+	(x_scroll_bar_report_motion): Obtain window from control owner.
+	(x_make_frame_invisible): Set window manager size hint.
+	(do_mouse_moved): Remove function.
+	(XTread_socket): Move its contents here.  Generate select-window
+	event on mouse movement if needed.  Use x_detect_focus_change on
+	activate/deactivate events.  Don't deiconify frame or invalidate
+	window rectangle when dnd items are dropped.  Don't
+	activate/deactivate root control.
+	(frame_highlight, frame_unhighlight): Activate/deactivate root
+	control here.
+	(syms_of_macterm): Delete DEFVAR_BOOL for x_autoselect_window_p.
+
+	* macterm.h (cfstring_create_with_string) [TARGET_API_MAC_CARBON]:
+	New extern.
+
 2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* Makefile.in: Define new macro TOOLTIP_SUPPORT.
