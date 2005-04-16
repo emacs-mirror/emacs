@@ -4248,8 +4248,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     options.optionFlags |= kNavSelectAllReadableItem;
     if (!NILP(prompt))
       {
-	message =
-	  cfstring_create_with_utf8_cstring (SDATA (ENCODE_UTF_8 (prompt)));
+	message = cfstring_create_with_string (prompt);
 	options.message = message;
       }
     /* Don't set the application, let it use default.
