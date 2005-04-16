@@ -686,6 +686,12 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define WINNT_SUPPORT
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
+#else
+#define TOOLTIP_SUPPORT
+#endif
+
 /* List of Lisp files loaded into the dumped Emacs.  It's arranged
    like this because it's easier to generate it semi-mechanically from
    loadup.el this way.
@@ -779,6 +785,7 @@ lisp= \
 	${lispsource}emacs-lisp/timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
+	TOOLTIP_SUPPORT \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
@@ -885,6 +892,7 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
+  ${dotdot}/lisp/tooltip.elc \
   ${dotdot}/lisp/international/ccl.elc \
   ${dotdot}/lisp/international/codepage.elc
 
