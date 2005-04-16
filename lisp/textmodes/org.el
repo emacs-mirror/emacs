@@ -8403,7 +8403,7 @@ If INVISIBLE-OK is non-nil, an invisible heading line is ok too."
 This function considers both visible and invisible heading lines.
 With argument, move up ARG levels."
   (if org-noutline-p
-      (outline-up-heading-all arg)
+      (outline-up-heading arg t)
     (org-back-to-heading t)
     (looking-at outline-regexp)
     (if (<= (- (match-end 0) (match-beginning 0)) arg)
