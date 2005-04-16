@@ -405,7 +405,8 @@ and after the region marked by the rectangle to search."
   :group 'cua)
 
 (defface cua-global-mark-face
-  '((((class color)) :foreground "black" :background "yellow")
+  '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
+    (((class color)) :foreground "black" :background "yellow")
     (t :bold t))
   "*Font used by CUA for highlighting the global mark."
   :group 'cua)
