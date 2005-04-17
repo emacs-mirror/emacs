@@ -5,6 +5,8 @@
 
 2005-04-17  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (yank-excluded-properties): Add follow-link to value.
+
 	* jka-compr.el (jka-compr-compression-info-list): Fix custom type.
 
 	* startup.el (fancy-splash-max-time): Just 30 seconds.
