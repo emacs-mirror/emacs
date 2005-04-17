@@ -1085,15 +1085,15 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 
-(defcustom fancy-splash-delay 10
+(defcustom fancy-splash-delay 7
   "*Delay in seconds between splash screens."
   :group 'fancy-splash-screen
   :type 'integer)
 
 
-(defcustom fancy-splash-max-time 60
+(defcustom fancy-splash-max-time 30
   "*Show splash screens for at most this number of seconds.
-Values less than 60 seconds are ignored."
+Values less than twice `fancy-splash-delay' are ignored."
   :group 'fancy-splash-screen
   :type 'integer)
 
@@ -1271,7 +1271,7 @@ mouse."
 		    mode-line-format (propertize "---- %b %-"
 						 'face '(:weight bold))
 		    fancy-splash-stop-time (+ (float-time)
-					      (max 60 fancy-splash-max-time))
+					      fancy-splash-max-time)
 		    timer (run-with-timer 0 fancy-splash-delay
 					  #'fancy-splash-screens-1
 					  splash-buffer))
