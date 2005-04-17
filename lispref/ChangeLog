@@ -1,3 +1,11 @@
+2005-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (Indirect Buffers): Clarify.
+
+	* positions.texi (Positions): Clarify converting marker to integer.
+
+	* strings.texi (String Basics): Mention string-match; clarify.
+
 2005-04-08  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Search-based Fontification): Fix cross references.

@@ -1,3 +1,26 @@
+2005-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* jka-compr.el (jka-compr-compression-info-list): Fix custom type.
+
+	* startup.el (fancy-splash-max-time): Just 30 seconds.
+	(fancy-splash-delay): Just 7.
+	(fancy-splash-screens): No time limit other than fancy-splash-max-time.
+
+	* loadhist.el (unload-feature): Update for new format of load-history.
+	Simplify the code.
+
+	* mail/rmail.el (rmail-ignored-headers): Ignore more headers
+	(rmail-font-lock-keywords): Don't fontify the text of a citation.
+
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Don't fontify subject text.
+	Don't fontify the text of a citation.
+
+2005-04-17  Mark H. Weaver  <mhw@netris.org>  (tiny change)
+
+	* comint.el (comint-output-filter): Run comint-output-filter-functions
+	with point where the user had it.
+
 2005-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/ucs-tables.el (ucs-set-table-for-input):
