@@ -1,3 +1,7 @@
+2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (struct keys): Add support for shifted keys.
+
 2005-04-16  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (with_echo_area_buffer): Delete WHICH < 0 case.
