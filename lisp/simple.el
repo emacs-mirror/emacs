@@ -2548,7 +2548,7 @@ The argument is used for internal purposes; do not supply one."
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler)
+    yank-handler follow-link)
   "*Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
