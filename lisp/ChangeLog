@@ -1,3 +1,8 @@
+2005-04-17  David Kastrup  <dak@gnu.org>
+
+	* cus-theme.el (custom-theme-write-variables): Quote variables
+	where necessary.
+
 2005-04-17  Richard M. Stallman  <rms@gnu.org>
 
 	* jka-compr.el (jka-compr-compression-info-list): Fix custom type.
