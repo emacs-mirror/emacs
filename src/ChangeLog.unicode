@@ -1,3 +1,8 @@
+2005-04-18  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (Fstring_as_multibyte): Fix the change for syncing with
+	CVS head.
+
 2005-04-09  Kenichi Handa  <handa@m17n.org>
 
 	* search.c (search_buffer): Fix the change for syncing with CVS
