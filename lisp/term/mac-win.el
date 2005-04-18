@@ -77,7 +77,7 @@
 ;;(require 'select)
 (require 'menu-bar)
 (require 'fontset)
-(require 'x-dnd)
+(require 'dnd)
 
 (defvar x-invocation-args)
 
@@ -1085,13 +1085,38 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'escape 'ascii-character ?\e)
 
 
-;;;; Keysyms
+;;;; Script codes and coding systems
+(defconst mac-script-code-coding-systems
+  '((0 . mac-roman)			; smRoman
+    (1 . japanese-shift-jis)		; smJapanese
+    (2 . chinese-big5)			; smTradChinese
+    (3 . korean-iso-8bit)		; smKorean
+    (7 . mac-cyrillic)			; smCyrillic
+    (25 . chinese-iso-8bit)		; smSimpChinese
+    (29 . mac-centraleurroman)		; smCentralEuroRoman
+    )
+  "Alist of Mac script codes vs Emacs coding systems.")
 
-;; Define constant values to be set to mac-keyboard-text-encoding
-(defconst kTextEncodingMacRoman 0)
-(defconst kTextEncodingISOLatin1 513 "0x201")
-(defconst kTextEncodingISOLatin2 514 "0x202")
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+;;;; Keyboard layout/language change events
+(defun mac-handle-language-change (event)
+  (interactive "e")
+  (let ((coding-system
+	 (cdr (assq (car (cadr event)) mac-script-code-coding-systems))))
+    (set-keyboard-coding-system (or coding-system 'mac-roman))
+    ;; MacJapanese maps reverse solidus to ?\x80.
+    (if (eq coding-system 'japanese-shift-jis)
+	(define-key key-translation-map [?\x80] "\\"))))
 
+(define-key special-event-map [language-change] 'mac-handle-language-change)
 
 ;;;; Selections and cut buffers
 
@@ -1139,21 +1164,14 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 (setq frame-creation-function 'x-create-frame-with-faces)
 
-(define-ccl-program ccl-encode-mac-roman-font
-  `(0
-    (if (r0 != ,(charset-id 'ascii))
-	(if (r0 <= ?\x8f)
-	    (translate-character mac-roman-encoder r0 r1)
-	  ((r1 <<= 7)
-	   (r1 |= r2)
-	   (translate-character mac-roman-encoder r0 r1)))))
-  "CCL program for Mac Roman font")
-
-(let
-    ((encoding-vector (make-vector 256 nil))
-     (i 0)
-     (vec	;; mac-centraleurroman (128..255) -> UCS mapping
-      [	#x00C4	;; 128:LATIN CAPITAL LETTER A WITH DIAERESIS
+(cp-make-coding-system
+ mac-centraleurroman
+ (apply
+  'vector
+  (mapcar
+   (lambda (c) (decode-char 'ucs c))
+   ;; mac-centraleurroman (128..255) -> UCS mapping
+   [	#x00C4	;; 128:LATIN CAPITAL LETTER A WITH DIAERESIS
 	#x0100	;; 129:LATIN CAPITAL LETTER A WITH MACRON
 	#x0101	;; 130:LATIN SMALL LETTER A WITH MACRON
 	#x00C9	;; 131:LATIN CAPITAL LETTER E WITH ACUTE
@@ -1281,26 +1299,18 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	#x017C	;; 253:LATIN SMALL LETTER Z WITH DOT ABOVE
 	#x0122	;; 254:LATIN CAPITAL LETTER G WITH CEDILLA
 	#x02C7	;; 255:CARON
-	])
-     translation-table)
-  (while (< i 128)
-    (aset encoding-vector i i)
-    (setq i (1+ i)))
-  (while (< i 256)
-    (aset encoding-vector i
-	  (decode-char 'ucs (aref vec (- i 128))))
-    (setq i (1+ i)))
-  (setq translation-table
-	(make-translation-table-from-vector encoding-vector))
-;;  (define-translation-table 'mac-centraleurroman-decoder translation-table)
-  (define-translation-table 'mac-centraleurroman-encoder
-    (char-table-extra-slot translation-table 0)))
+	]))
+ "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman).")
+(coding-system-put 'mac-centraleurroman 'mime-charset 'x-mac-centraleurroman)
 
-(let
-    ((encoding-vector (make-vector 256 nil))
-     (i 0)
-     (vec	;; mac-cyrillic (128..255) -> UCS mapping
-      [	#x0410	;; 128:CYRILLIC CAPITAL LETTER A
+(cp-make-coding-system
+ mac-cyrillic
+ (apply
+  'vector
+  (mapcar
+   (lambda (c) (decode-char 'ucs c))
+   ;; mac-cyrillic (128..255) -> UCS mapping
+   [	#x0410	;; 128:CYRILLIC CAPITAL LETTER A
 	#x0411	;; 129:CYRILLIC CAPITAL LETTER BE
 	#x0412	;; 130:CYRILLIC CAPITAL LETTER VE
 	#x0413	;; 131:CYRILLIC CAPITAL LETTER GHE
@@ -1428,27 +1438,16 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	#x044D	;; 253:CYRILLIC SMALL LETTER E
 	#x044E	;; 254:CYRILLIC SMALL LETTER YU
 	#x20AC	;; 255:EURO SIGN
-	])
-     translation-table)
-  (while (< i 128)
-    (aset encoding-vector i i)
-    (setq i (1+ i)))
-  (while (< i 256)
-    (aset encoding-vector i
-	  (decode-char 'ucs (aref vec (- i 128))))
-    (setq i (1+ i)))
-  (setq translation-table
-	(make-translation-table-from-vector encoding-vector))
-;;  (define-translation-table 'mac-cyrillic-decoder translation-table)
-  (define-translation-table 'mac-cyrillic-encoder
-    (char-table-extra-slot translation-table 0)))
+	]))
+ "Mac Cyrillic Encoding (MIME:x-mac-cyrillic).")
+(coding-system-put 'mac-cyrillic 'mime-charset 'x-mac-cyrillic)
 
 (defvar mac-font-encoder-list
   '(("mac-roman" mac-roman-encoder
      ccl-encode-mac-roman-font "%s")
-    ("mac-centraleurroman" mac-centraleurroman-encoder
+    ("mac-centraleurroman" encode-mac-centraleurroman
      ccl-encode-mac-centraleurroman-font "%s ce")
-    ("mac-cyrillic" mac-cyrillic-encoder
+    ("mac-cyrillic" encode-mac-cyrillic
      ccl-encode-mac-cyrillic-font "%s cy")))
 
 (let ((encoder-list
@@ -1468,24 +1467,34 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	    (if mac-encoded
 		(aset table c mac-encoded))))))))
 
+(define-ccl-program ccl-encode-mac-roman-font
+  `(0
+    (if (r0 != ,(charset-id 'ascii))
+	(if (r0 <= ?\x8f)
+	    (translate-character mac-roman-encoder r0 r1)
+	  ((r1 <<= 7)
+	   (r1 |= r2)
+	   (translate-character mac-roman-encoder r0 r1)))))
+  "CCL program for Mac Roman font")
+
 (define-ccl-program ccl-encode-mac-centraleurroman-font
   `(0
     (if (r0 != ,(charset-id 'ascii))
 	(if (r0 <= ?\x8f)
-	    (translate-character mac-centraleurroman-encoder r0 r1)
+	    (translate-character encode-mac-centraleurroman r0 r1)
 	  ((r1 <<= 7)
 	   (r1 |= r2)
-	   (translate-character mac-centraleurroman-encoder r0 r1)))))
+	   (translate-character encode-mac-centraleurroman r0 r1)))))
   "CCL program for Mac Central European Roman font")
 
 (define-ccl-program ccl-encode-mac-cyrillic-font
   `(0
     (if (r0 != ,(charset-id 'ascii))
 	(if (r0 <= ?\x8f)
-	    (translate-character mac-cyrillic-encoder r0 r1)
+	    (translate-character encode-mac-cyrillic r0 r1)
 	  ((r1 <<= 7)
 	   (r1 |= r2)
-	   (translate-character mac-cyrillic-encoder r0 r1)))))
+	   (translate-character encode-mac-cyrillic r0 r1)))))
   "CCL program for Mac Cyrillic font")
 
 
@@ -1648,8 +1657,8 @@ Switch to a buffer editing the last file dropped."
 		      (if (and (> start 0) (> end 0))
 			  (progn (set-mark start)
 				 (goto-char end)))))
-		(x-dnd-handle-one-url window 'private
-				      (concat "file:" file-name))))
+		(dnd-handle-one-url window 'private
+				    (concat "file:" file-name))))
 	    (car (cdr (cdr event)))))
   (raise-frame))
 
@@ -1739,14 +1748,11 @@ Switch to a buffer editing the last file dropped."
   ;; started (see run_mac_command in sysdep.c).
   (setq shell-file-name "sh")
 
-  ;; To display filenames in Chinese or Japanese, replace mac-roman with
-  ;; big5 or sjis
-  (setq file-name-coding-system 'mac-roman))
-
-;; X Window emulation in macterm.c is not complete enough to start a
-;; frame without a minibuffer properly.  Call this to tell ediff
-;; library to use a single frame.
-; (ediff-toggle-multiframe)
+  ;; Some system variables are encoded with the system script code.
+  (dolist (v '(system-name
+	       emacs-build-system	; Mac OS 9 version cannot dump
+	       user-login-name user-real-login-name user-full-name))
+    (set v (decode-coding-string (symbol-value v) mac-system-coding-system))))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
@@ -1762,8 +1768,6 @@ Switch to a buffer editing the last file dropped."
 ;; fonts with both truetype and bitmap representations but no italic
 ;; or bold bitmap versions will not display these variants correctly.
 (setq scalable-fonts-allowed t)
-
-;; (prefer-coding-system 'mac-roman)
 
 ;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

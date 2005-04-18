@@ -1794,8 +1794,17 @@ User will be queried, if no fileset name is provided."
 	 (name   (or name
 		     (completing-read
 		      (format "Add '%s' to fileset: " buffer)
-		      filesets-data nil t)))
-	 (entry  (assoc name filesets-data)))
+		      filesets-data nil)))
+         (entry  (or (assoc name filesets-data)
+                     (when (y-or-n-p
+                            (format "Fileset %s does not exist. Create it?"
+                                    name))
+                       (progn
+      (add-to-list 'filesets-data (list name '(:files)))
+      (message
+       "Fileset %s created.  Call `M-x filesets-save-config' to save."
+       name)
+      (car filesets-data))))))
     (if entry
 	(let* ((files  (filesets-entry-get-files entry))
 	       (this   (buffer-file-name buffer))

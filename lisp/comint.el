@@ -1701,7 +1701,10 @@ Make backspaces delete the previous character."
 	      ;; Interpret any carriage motion characters (newline, backspace)
 	      (comint-carriage-motion comint-last-output-start (point)))
 
+	    ;; Run these hooks with point where the user had it.
+	    (goto-char saved-point)
 	    (run-hook-with-args 'comint-output-filter-functions string)
+	    (set-marker saved-point (point))
 
 	    (goto-char (process-mark process)) ; in case a filter moved it
 

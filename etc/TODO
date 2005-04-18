@@ -22,6 +22,11 @@ to the FSF.
 ** The buttons at the top of a custom buffer should not omit
   variables whose values are currently hidden.
 
+** Clean up the variables in browse-url.  Perhaps use a shell command string to
+  specify the browser instead of the mushrooming set of functions.
+  See also ESR's proposal for a BROWSER environment variable
+  <URL:http://www.catb.org/~esr/BROWSER/browse-url.patch>.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,
@@ -54,10 +59,10 @@ to the FSF.
 
 ** Make movemail work with IMAP.
 
-** Internationalize Emacs's messages.  [Note that this is of limited
-  use until the menus can display multilingual text.  It also doesn't
-  address important issues like using the names of symbols essentially
-  as documentation, e.g. in command names and Custom.  -- fx]
+** Internationalize Emacs's messages.
+
+** Address internationalization of symbols names essentially
+  as documentation, e.g. in command names and Custom.
 
 ** Make the Lucid menu widget display multilingual text.  [This
   probably needs to be done from actual Emacs buffers, either directly

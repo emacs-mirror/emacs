@@ -89,16 +89,27 @@ If SOFT is non-nil, returns nil if the symbol doesn't already exist."
 
 (defvar gud-running nil
   "Non-nil if debuggee is running.
-Used to grey out relevant toolbar icons.")
+Used to grey out relevant togolbar icons.")
 
+;; Use existing Info buffer, if possible.
 (defun gud-goto-info ()
   "Go to relevant Emacs info node."
   (interactive)
-  (select-frame (make-frame))
-  (require 'info)
-  (if (memq gud-minor-mode '(gdbmi gdba))
-      (Info-goto-node "(emacs)GDB Graphical Interface")
-    (Info-goto-node "(emacs)Debuggers")))
+  (let ((same-window-regexps same-window-regexps)
+	(display-buffer-reuse-frames t))
+    (catch 'info-found
+      (walk-windows
+       '(lambda (window)
+	  (if (eq (window-buffer window) (get-buffer "*info*"))
+	      (progn
+		(setq same-window-regexps nil)
+		(throw 'info-found nil))))
+       nil 0)
+      (require 'info)
+      (select-frame (make-frame)))
+    (if (memq gud-minor-mode '(gdbmi gdba))
+	(Info-goto-node "(emacs)GDB Graphical Interface")
+      (Info-goto-node "(emacs)Debuggers"))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
@@ -1417,7 +1428,7 @@ and source-file directory for your debugger."
 
     output))
 
-(defcustom gud-pdb-command-name "pydb"
+(defcustom gud-pdb-command-name "pdb"
   "File name for executing the Python debugger.
 This should be an executable on your path, or an absolute file name."
   :type 'string
@@ -2518,7 +2529,6 @@ It is saved for when this flag is not set.")
 
 (defvar gud-minor-mode-type nil)
 (defvar gud-overlay-arrow-position nil)
-(put 'gud-overlay-arrow-position 'overlay-arrow-string "=>")
 (add-to-list 'overlay-arrow-variable-list 'gud-overlay-arrow-position)
 
 (defun gud-sentinel (proc msg)
@@ -2614,7 +2624,6 @@ Obeying it means displaying in another window the specified file and line."
 	      (widen)
 	      (goto-line line)
 	      (setq pos (point))
-	      (setq overlay-arrow-string "=>")
 	      (or gud-overlay-arrow-position
 		  (setq gud-overlay-arrow-position (make-marker)))
 	      (set-marker gud-overlay-arrow-position (point) (current-buffer)))

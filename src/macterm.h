@@ -195,14 +195,14 @@ struct mac_display_info
   int bitmaps_last;
 
   /* The frame (if any) which has the window that has keyboard focus.
-     Zero if none.  This is examined by Ffocus_frame in w32fns.c.  Note
+     Zero if none.  This is examined by Ffocus_frame in macfns.c.  Note
      that a mere EnterNotify event can set this; if you need to know the
      last frame specified in a FocusIn or FocusOut event, use
-     w32_focus_event_frame.  */
+     x_focus_event_frame.  */
   struct frame *x_focus_frame;
 
   /* The last frame mentioned in a FocusIn or FocusOut event.  This is
-     separate from w32_focus_frame, because whether or not LeaveNotify
+     separate from x_focus_frame, because whether or not LeaveNotify
      events cause us to lose focus depends on whether or not we have
      received a FocusIn event for it.  */
   struct frame *x_focus_event_frame;
@@ -210,7 +210,7 @@ struct mac_display_info
   /* The frame which currently has the visual highlight, and should get
      keyboard input (other sorts of input have the frame encoded in the
      event).  It points to the focus frame's selected window's
-     frame.  It differs from w32_focus_frame when we're using a global
+     frame.  It differs from x_focus_frame when we're using a global
      minibuffer.  */
   struct frame *x_highlight_frame;
 
@@ -418,7 +418,7 @@ typedef struct mac_output mac_output;
 
 #define FRAME_SIZE_HINTS(f) ((f)->output_data.mac->size_hints)
 
-/* This gives the w32_display_info structure for the display F is on.  */
+/* This gives the mac_display_info structure for the display F is on.  */
 #define FRAME_MAC_DISPLAY_INFO(f) (&one_mac_display_info)
 #define FRAME_X_DISPLAY_INFO(f) (&one_mac_display_info)
 
@@ -624,6 +624,7 @@ extern OSErr fsspec_to_posix_pathname P_ ((const FSSpec *, char *, int));
 extern void mac_clear_font_name_table P_ ((void));
 #if TARGET_API_MAC_CARBON
 extern CFStringRef cfstring_create_with_utf8_cstring P_ ((const char *));
+extern CFStringRef cfstring_create_with_string P_ ((Lisp_Object));
 extern Lisp_Object cfdata_to_lisp P_ ((CFDataRef));
 extern Lisp_Object cfstring_to_lisp P_ ((CFStringRef));
 extern Lisp_Object cfnumber_to_lisp P_ ((CFNumberRef));

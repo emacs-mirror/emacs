@@ -175,6 +175,10 @@ Width in pixels of the external border.
 @item @code{cursorColor} (class @code{Foreground})
 Color name for text cursor (point).
 
+@item @code{cursorBlink} (class @code{CursorBlink})
+Specifies whether to make the cursor blink. The default is @samp{on}.  Use
+@samp{off} or @samp{false} to turn cursor blinking off.
+
 @item @code{font} (class @code{Font})
 Font name for text (or fontset name, @pxref{Fontsets}).
 

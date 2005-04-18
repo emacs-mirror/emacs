@@ -1,6 +1,6 @@
 ;;; ucs-tables.el --- translation to, from and via Unicode  -*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 2001, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2005  Free Software Foundation, Inc.
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n
@@ -2496,8 +2496,10 @@ See also command `unify-8859-on-encoding-mode' and the user option
 ;; normal-mode and minibuffer-setup-hook.
 (defun ucs-set-table-for-input (&optional buffer)
   "Set up an appropriate `translation-table-for-input' for BUFFER.
-BUFFER defaults to the current buffer."
+BUFFER defaults to the current buffer.
+This function is automatically called directly at the end of `get-buffer-create'."
   (when (and unify-8859-on-encoding-mode
+             (not unify-8859-on-decoding-mode)
 	     (char-table-p translation-table-for-input))
     (let ((cs (and buffer-file-coding-system
 		   (coding-system-base buffer-file-coding-system)))
@@ -2535,5 +2537,5 @@ Intended to be added to `minibuffer-setup-hook'."
 
 (provide 'ucs-tables)
 
-;;; arch-tag: b497e22b-7fe1-486a-9352-e2d7f7d76a76
+;; arch-tag: b497e22b-7fe1-486a-9352-e2d7f7d76a76
 ;;; ucs-tables.el ends here

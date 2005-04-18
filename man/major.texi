@@ -98,6 +98,21 @@ the element has the form @code{(@var{regexp} @var{mode-function}
 @var{mode-function}, Emacs discards the suffix that matched
 @var{regexp} and searches the list again for another match.
 
+@vindex magic-mode-alist
+  Sometimes the major mode is determined from the way the file's text
+begins.  The variable @code{magic-mode-alist} controls this.  Its value
+is a list of elements of this form:
+
+@example
+(@var{regexp} . @var{mode-function})
+@end example
+
+@noindent
+This looks like an element of @code{auto-mode-alist}, but it doesn't work
+the same: this @var{regexp} is matched against the text at the start
+of the buffer, not against the file name.  @code{magic-mode-alist}
+takes priority over @code{auto-mode-alist}.
+
   You can specify the major mode to use for editing a certain file by
 special text in the first nonblank line of the file.  The
 mode name should appear in this line both preceded and followed by

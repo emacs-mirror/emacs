@@ -1,6 +1,6 @@
 ;;; admin.el --- utilities for Emacs administration
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2005 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -21,8 +21,8 @@
 
 ;;; Commentary:
 
-;; add-release-log	add ``Version X released'' change log entries
-;; set-version		change Emacs version number in source tree.
+;; add-release-logs	Add ``Version X released'' change log entries.
+;; set-version		Change Emacs version number in source tree.
 
 ;;; Code:
 
@@ -43,7 +43,6 @@ Signal an error if the program returns with a non-zero exit status."
 	  (forward-line 1))
 	(nreverse lines)))))
 
-
 (defun add-release-logs (root version)
   "Add \"Version VERSION released.\" change log entries in ROOT.
 Root must be the root of an Emacs source tree."
@@ -51,8 +50,8 @@ Root must be the root of an Emacs source tree."
   (setq root (expand-file-name root))
   (unless (file-exists-p (expand-file-name "src/emacs.c" root))
     (error "%s doesn't seem to be the root of an Emacs source tree" root))
+  (require 'add-log)
   (let* ((logs (process-lines "find" root "-name" "ChangeLog"))
-	 (require 'add-log)
 	 (entry (format "%s  %s  <%s>\n\n\t* Version %s released.\n\n"
 			(funcall add-log-time-format)
 			(or add-log-full-name (user-full-name))
@@ -64,14 +63,12 @@ Root must be the root of an Emacs source tree."
 	(goto-char (point-min))
 	(insert entry)))))
 
-
 (defun set-version-in-file (root file version rx)
   (find-file (expand-file-name file root))
   (goto-char (point-min))
   (unless (re-search-forward rx nil t)
     (error "Version not found in %s" file))
   (replace-match (format "%s" version) nil nil nil 1))
-
 
 (defun set-version (root version)
   "Set Emacs version to VERSION in relevant files under ROOT.

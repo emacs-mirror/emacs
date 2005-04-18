@@ -719,9 +719,18 @@ opening the first frame (e.g. open a connection to the server).")
     (and command-line-args
          (setcdr command-line-args args)))
 
-  ;; Under X Windows, this creates the X frame and deletes the terminal frame.
+  ;; Under X Window, this creates the X frame and deletes the terminal frame.
   (when (fboundp 'frame-initialize)
     (frame-initialize))
+
+  ;; Turn off blinking cursor if so specified in X resources.  This is here
+  ;; only because all other settings of no-blinking-cursor are here.
+  (unless (or noninteractive
+	      emacs-basic-display
+	      (and (memq window-system '(x w32 mac))
+		   (not (member (x-get-resource "cursorBlink" "CursorBlink")
+				'("off" "false")))))
+    (setq no-blinking-cursor t))
 
   ;; If frame was created with a menu bar, set menu-bar-mode on.
   (unless (or noninteractive
@@ -742,6 +751,9 @@ opening the first frame (e.g. open a connection to the server).")
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
 
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the tooltip-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
 	      emacs-basic-display
               (not (display-graphic-p))
@@ -1067,15 +1079,15 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 
-(defcustom fancy-splash-delay 10
+(defcustom fancy-splash-delay 7
   "*Delay in seconds between splash screens."
   :group 'fancy-splash-screen
   :type 'integer)
 
 
-(defcustom fancy-splash-max-time 60
+(defcustom fancy-splash-max-time 30
   "*Show splash screens for at most this number of seconds.
-Values less than 60 seconds are ignored."
+Values less than twice `fancy-splash-delay' are ignored."
   :group 'fancy-splash-screen
   :type 'integer)
 
@@ -1253,7 +1265,7 @@ mouse."
 		    mode-line-format (propertize "---- %b %-"
 						 'face '(:weight bold))
 		    fancy-splash-stop-time (+ (float-time)
-					      (max 60 fancy-splash-max-time))
+					      fancy-splash-max-time)
 		    timer (run-with-timer 0 fancy-splash-delay
 					  #'fancy-splash-screens-1
 					  splash-buffer))

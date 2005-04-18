@@ -679,8 +679,11 @@ It is useful when `(setq nnrss-use-local t)'."
 	 (text (if (and node (listp node))
 		   (nnrss-node-just-text node)
 		 node))
-	 (cleaned-text (if text (gnus-replace-in-string
-				 text "^[\000-\037\177]+\\|^ +\\| +$" ""))))
+	 (cleaned-text (if text
+			   (gnus-replace-in-string
+			    (gnus-replace-in-string
+			     text "^[\000-\037\177]+\\|^ +\\| +$" "")
+			    "\r\n" "\n"))))
     (if (string-equal "" cleaned-text)
 	nil
       cleaned-text)))

@@ -156,10 +156,12 @@
 With prefix arg, turn XTerm mouse mode on iff arg is positive.
 
 Turn it on to use Emacs mouse commands, and off to use xterm mouse commands.
-This works in terminal emulators compatible with xterm.  Only single clicks
-are supported.  When turned on, the normal xterm mouse functionality is still
-available by holding down the SHIFT key while pressing the mouse button."
-  nil " Mouse" nil :global t :group 'mouse
+This works in terminal emulators compatible with xterm.  It only
+works for simple uses of the mouse.  Basically, only non-modified
+single clicks are supported.  When turned on, the normal xterm
+mouse functionality for such clicks is still available by holding
+down the SHIFT key while pressing the mouse button."
+  :global t :group 'mouse
   (if xterm-mouse-mode
       ;; Turn it on
       (unless window-system

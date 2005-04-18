@@ -1,3 +1,102 @@
+2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (struct keys): Add support for shifted keys.
+
+2005-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (with_echo_area_buffer): Delete WHICH < 0 case.
+	(set_message): Call with_echo_area_buffer with WHICH = 0.
+	(set_message_1): Erase the echo area buffer first thing.
+	(echo_area_display): Don't clear echo_message_buffer.
+
+2005-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (mac.o): Depend on charset.h and coding.h.
+
+	* mac.c: Include charset.h and coding.h.
+	[TARGET_API_MAC_CARBON] (Qutf_8): Remove extern.
+	[TARGET_API_MAC_CARBON] (cfstring_create_with_string): New
+	function.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference): Use it.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Likewise.
+
+	* macterm.c (x_autoselect_window_p): Remove variable.
+	(last_window): New variable.
+	(XTreassert_line_highlight, x_change_line_highlight): Remove
+	declarations.
+	(mac_focus_changed, x_detect_focus_change): New functions and
+	declarations.
+	(XTextExtents16, front_emacs_window): Remove function.
+	(mac_focus_frame): New function.
+	(XTmouse_position, do_menu_choice, do_zoom_window, XTread_socket)
+	(mac_check_for_quit_char): Use it instead of front_emacs_window.
+	(x_scroll_bar_report_motion): Obtain window from control owner.
+	(x_make_frame_invisible): Set window manager size hint.
+	(do_mouse_moved): Remove function.
+	(XTread_socket): Move its contents here.  Generate select-window
+	event on mouse movement if needed.  Use x_detect_focus_change on
+	activate/deactivate events.  Don't deiconify frame or invalidate
+	window rectangle when dnd items are dropped.  Don't
+	activate/deactivate root control.
+	(frame_highlight, frame_unhighlight): Activate/deactivate root
+	control here.
+	(syms_of_macterm): Delete DEFVAR_BOOL for x_autoselect_window_p.
+
+	* macterm.h (cfstring_create_with_string) [TARGET_API_MAC_CARBON]:
+	New extern.
+
+2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Define new macro TOOLTIP_SUPPORT.
+	(lisp): Use it.
+	(SOME_MACHINE_LISP): Add tooltip.
+
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.  Don't
+	include TextEncodingConverter.h.
+	(mac_system_script_code, Vmac_system_locale): New variables.
+	(syms_of_mac): Defvar them.
+	(mac_get_system_locale): New function.
+
+	* macfns.c (x_set_name, x_set_title) [!TARGET_API_MAC_CARBON]: Use
+	ENCODE_SYSTEM to encode title bar string.
+	(x_create_tip_frame): Apply 2005-03-18 change for xfns.c.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON && !MAC_OSX]: Use
+	CFStringGetSystemEncoding to get system default string encoding.
+
+	* macterm.c [!TARGET_API_MAC_CARBON]: Don't include
+	TextEncodingConverter.h.
+
+2005-04-13  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm): Remove redundant definition of
+	mac-pass-control-to-system.
+
+2005-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Fset_window_configuration): Be careful when you choose
+	among several possible points for the new_current_buffer.
+
+2005-04-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* keyboard.c (poll_for_input) [SYNC_INPUT]: Don't call
+	poll_for_input_1.  Set interrupt_input_pending to 1 instead.
+	(Qlanguage_change) [MAC_OS]: New variable.
+	(syms_of_keyboard) [MAC_OS]: Intern and staticpro it.
+	(kbd_buffer_get_event) [MAC_OS]: Make event for LANGUAGE_CHANGE_EVENT.
+
+	* macterm.c (mac_keyboard_text_encoding)
+	(current_mac_keyboard_text_encoding): Remove variables.
+	(XTread_socket): Store language-change event if keyboard script	change
+	is detected.  Don't convert input to `mac_keyboard_text_encoding'.
+	(syms_of_macterm): Delete DEFVAR_INT for mac-keyboard-text-encoding.
+
+	* termhooks.h (enum event_kind) [MAC_OS]: Add LANGUAGE_CHANGE_EVENT.
+
 2005-04-10  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.c (standard_args): Rename --bare-bones to --quick.
@@ -48,8 +147,8 @@
 	* mac.c (cfdate_to_lisp): Add `const' for variable `epoch_gdate'.
 	(Fmac_get_preference): Doc fix.
 
-	* macfns.c (Fx_create_frame, x_create_tip_frame): Add
-	"fontset-mac" to fallback font/fontsets.
+	* macfns.c (Fx_create_frame, x_create_tip_frame):
+	Add "fontset-mac" to fallback font/fontsets.
 
 2005-04-04  Kim F. Storm  <storm@cua.dk>
 
@@ -80,8 +179,8 @@
 	Vascii_downcase_table.
 	(fast_string_match_ignore_case): Likewise.
 	(search_buffer): Fix checking of boyer-moore usability.
-	(boyer_moore): Calculate translate_prev_byte1/2/3 in advance.  No
-	need of tranlating characters in PAT.  Fix calculation of
+	(boyer_moore): Calculate translate_prev_byte1/2/3 in advance.
+	No need of tranlating characters in PAT.  Fix calculation of
 	simple_translate.
 
 2005-03-31  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -885,9 +984,9 @@
 
 2005-02-02  Steven Tamm  <steventamm@mac.com>
 
-	* macfns.c (unwind_create_frame): Fixing compile error due to
+	* macfns.c (unwind_create_frame): Fix compile error due to
 	xassert being uncondition, but predicate is.
-	* dispnew.c (update_window): Fixing compile error due to
+	* dispnew.c (update_window): Fix compile error due to
 	xassert being uncondition, but predicate is.
 
 2005-02-02  Miles Bader  <miles@gnu.org>
@@ -1031,6 +1130,7 @@
 
 	* s/darwin.h: Removed PTY_ITERATION from here.
 	(DARWIN): Define.
+
 	* process.c (init_process): Default process-connection-type to
 	nil on darwin 6 or less, t if it is 7 or higher.  This way the
 	broken pty behavior is still allowed on darwin 6 for interactive
@@ -3536,8 +3636,8 @@
 2004-08-26  Steven Tamm  <steventamm@mac.com>
 
 	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
-	tool-bar/menu click
-	* macfns.c (Fx_file_dialog): Implemented using NavServices
+	tool-bar/menu click.
+	* macfns.c (Fx_file_dialog): Implement using NavServices.
 
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -5024,7 +5124,7 @@
 
 2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
-	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+	* lread.c (init_lread): Fix typo in HAVE_CARBON test logic.
 
 2004-04-26  Miles Bader  <miles@gnu.org>
 
@@ -5479,10 +5579,10 @@
 
 2004-03-11  Steven Tamm <steventamm@mac.com>
 
-	* image.c [MAC_OSX]: Include sys/stat.h
+	* image.c [MAC_OSX]: Include sys/stat.h.
 
 	* macfns.c (syms_of_macfns): Remove definitions of things now
-	defined in image.c
+	defined in image.c.
 
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
@@ -6192,7 +6292,7 @@
 	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
 	controlling emulation of a three button mouse with option and
 	command keys.
-	(Qreverse, mac_get_enumlated_btn): Handle the emulation
+	(Qreverse, mac_get_enumlated_btn): Handle the emulation.
 	(mac_event_to_emacs_modifiers, XTread_socket): Ditto.
 
 2004-02-15  Kim F. Storm  <storm@cua.dk>
@@ -11132,7 +11232,7 @@
 
 2003-01-20  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (XTread_socket): Checks for valid, visible window
+	* macterm.c (XTread_socket): Check for valid, visible window
 	before sending a scroll-wheel event.
 
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
@@ -11491,7 +11591,7 @@
 
 2002-12-28  Steven Tamm  <steventamm@mac.com>
 
-	* Makefile.in (macosx-bundle): Fixes to Mac OS X/Carbon port to
+	* Makefile.in (macosx-bundle): Fix Mac OS X/Carbon port to
 	allow building in a different directory than source.  Uses some
 	GNU Make extensions, but there is no other make on Mac OS X.
 
@@ -11534,7 +11634,7 @@
 
 	* macterm.c (XTread_socket): Call KeyTranslate for control and
 	meta to deal correctly shifted non-alpha characters, like C-S-5
-	being treated like C-%.  Does not look for shift key to deal
+	being treated like C-%.  Do not look for shift key to deal
 	with masking off control-key with mac-reverse-ctrl-meta.
 
 2002-12-21  Richard M. Stallman  <rms@gnu.org>

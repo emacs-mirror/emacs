@@ -1,3 +1,14 @@
+2005-04-14  Lute Kamstra  <lute@gnu.org>
+
+	* make-dist: Distribute all ChangeLog files in lisp/.
+	Don't distribute ldefs-boot.el.
+	lisp/makefile.nt no longer exists.
+
+2005-04-13  Lute Kamstra  <lute@gnu.org>
+
+	* make-dist: Don't use DONTCOMPILE from lisp/Makefile.in; check
+	for "no-byte-compile: t" in the file instead.
+
 2005-03-16  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* configure.in <Motif>: Don't let a special LessTif/Motif1.2 install

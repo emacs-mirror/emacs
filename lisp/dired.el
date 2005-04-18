@@ -1523,15 +1523,13 @@ Keybindings:
   (setq dired-switches-alist nil)
   (dired-sort-other dired-actual-switches t)
   (run-mode-hooks 'dired-mode-hook)
-  (when (featurep 'x-dnd)
-    (make-variable-buffer-local 'x-dnd-test-function)
-    (make-variable-buffer-local 'x-dnd-protocol-alist)
-    (setq x-dnd-test-function 'dired-dnd-test-function)
-    (setq x-dnd-protocol-alist
+  (when (featurep 'dnd)
+    (make-variable-buffer-local 'dnd-protocol-alist)
+    (setq dnd-protocol-alist
 	  (append '(("^file:///" . dired-dnd-handle-local-file)
 		    ("^file://"  . dired-dnd-handle-file)
 		    ("^file:"    . dired-dnd-handle-local-file))
-		  x-dnd-protocol-alist))))
+		  dnd-protocol-alist))))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
 
@@ -3136,18 +3134,6 @@ Anything else means ask for each directory."
 		 (const :tag "Copy directories without asking" always))
   :group 'dired)
 
-(defun dired-dnd-test-function (window action types)
-  "The test function for drag and drop into dired buffers.
-WINDOW is where the mouse is when this function is called.  It may be a frame
-if the mouse is over the menu bar, scroll bar or tool bar.
-ACTION is the suggested action from the source, and TYPES are the
-types the drop data can have.  This function only accepts drops with
-types in `x-dnd-known-types'.  It returns the action suggested by the source."
-  (let ((type (x-dnd-choose-type types)))
-    (if type
-	(cons action type)
-      nil)))
-
 (defun dired-dnd-popup-notice ()
   (x-popup-dialog
    t
@@ -3176,7 +3162,7 @@ types in `x-dnd-known-types'.  It returns the action suggested by the source."
 URI is the file to handle, ACTION is one of copy, move, link or ask.
 Ask means pop up a menu for the user to select one of copy, move or link."
   (require 'dired-aux)
-  (let* ((from (x-dnd-get-local-file-name uri t))
+  (let* ((from (dnd-get-local-file-name uri t))
 	 (to (if from (concat (dired-current-directory)
 			   (file-name-nondirectory from))
 	       nil)))
@@ -3214,7 +3200,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
 URI is the file to handle.  If the hostname in the URI isn't local, do nothing.
 ACTION is one of copy, move, link or ask.
 Ask means pop up a menu for the user to select one of copy, move or link."
-  (let ((local-file (x-dnd-get-local-file-uri uri)))
+  (let ((local-file (dnd-get-local-file-uri uri)))
     (if local-file (dired-dnd-handle-local-file local-file action)
       nil)))
 

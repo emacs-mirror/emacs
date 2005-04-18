@@ -1,7 +1,31 @@
+2005-04-13  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-mime-inline-part): Use mm-string-to-multibyte.
+	* qp.el (quoted-printable-encode-region): Use mm-string-to-multibyte.
+
+2005-04-13  Miles Bader  <miles@gnu.org>
+
+	* mm-util.el (mm-string-to-multibyte): Use Gnus trunk definition.
+
+2005-04-12  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* nnrss.el (nnrss-node-text): Replace CRLFs (which might be
+	contained in text because xml.el decodes entities) with LFs.
+
+2005-04-11  Lute Kamstra  <lute@gnu.org>
+
+	* message.el (message-make-date): Handle byte-compiler warnings
+	differently.
+	* nnimap.el (nnimap-date-days-ago): Ditto.
+
 2005-04-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* mm-util.el (mm-string-to-multibyte): New function.
 	(mm-detect-coding-region): Typo.
+
+2005-04-11  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (gnus-article-read-summary-keys): Fix misplaced parens.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -525,9 +549,6 @@
 	headers according to message-forward-ignored-headers.
 
 2004-11-26  Katsumi Yamaoka  <yamaoka@jpl.org>
-
-	* lpath.el: Remove bbdb-create-internal, bbdb-records,
-	spam-BBDB-register-routine and spam-enter-ham-BBDB.
 
 	* nnrss.el (nnrss-string-as-multibyte): Redefine it as a macro in
 	order to silence the byte compiler.

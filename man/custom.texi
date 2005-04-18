@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002,2004
+@c Copyright (C) 1985,86,87,93,94,95,97,2000,2001,2002,2004,2005
 @c  Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Customization, Quitting, Amusements, Top
@@ -2313,7 +2313,43 @@ Enable the use of the command @code{narrow-to-region} without confirmation.
 @example
 (put 'narrow-to-region 'disabled nil)
 @end example
+
+@item
+Adjusting the configuration to various contexts.
+
+In most of the cases, people want their Emacs to behave the same on
+all their machines, so their configuration should be the same, no
+matter whether it's GNU/Linux or not, under X11 or on a tty, with one
+version of  Emacs or another, ...
+
+What can happen, tho, is that depending on the circumstance some
+features may or may not be available.  In that case just prepend each
+such customization with a little test that ensures that the feature
+can be used.  The best tests are usually checking that the feature is
+available, rather than checking what kind of environment is
+being used.
+
+@example
+(if (fboundp 'blinking-cursor-mode)
+    (blinking-cursor-mode 0))
+@end example
+
+@example
+(if (boundp 'coding-category-utf-8)
+  (set-coding-priority '(coding-category-utf-8)))
+@end example
+
+@example
+(require 'cl)                   ; To define `ignore-errors'.
+(ignore-errors (set-face-background 'region "grey75"))
+@end example
+
+Note also that a @code{setq} on a variable which does not exist is
+generally harmless, so those usually do not need to be made
+conditional on any kind of test.
+
 @end itemize
+
 
 @node Terminal Init
 @subsection Terminal-specific Initialization

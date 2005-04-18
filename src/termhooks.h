@@ -103,10 +103,11 @@ enum event_kind
 				   the wheel event occurred in.
 				   .timestamp gives a timestamp (in
 				   milliseconds) for the event.  */
-#ifdef WINDOWSNT
-  LANGUAGE_CHANGE_EVENT,	/* A LANGUAGE_CHANGE_EVENT is generated
-				   on WINDOWSNT when the keyboard layout
-				   or input language is changed by the
+#if defined (WINDOWSNT) || defined (MAC_OS)
+  LANGUAGE_CHANGE_EVENT,	/* A LANGUAGE_CHANGE_EVENT is
+				   generated on WINDOWSNT or Mac OS
+				   when the keyboard layout or input
+				   language is changed by the
 				   user.  */
 #endif
   SCROLL_BAR_CLICK_EVENT,	/* .code gives the number of the mouse button

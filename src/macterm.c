@@ -95,6 +95,7 @@ Boston, MA 02111-1307, USA.  */
 			: controlKey)
 #define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
 
+#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
@@ -110,9 +111,8 @@ Lisp_Object Vmac_use_core_graphics;
 
 static int any_help_event_p;
 
-/* Non-zero means autoselect window with the mouse cursor.  */
-
-int x_autoselect_window_p;
+/* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
+static Lisp_Object last_window;
 
 /* Non-zero means make use of UNDERLINE_POSITION font properties.  */
 
@@ -273,14 +273,16 @@ static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTreassert_line_highlight P_ ((int, int));
-static void x_change_line_highlight P_ ((int, int, int, int));
 static void XTset_terminal_modes P_ ((void));
 static void XTreset_terminal_modes P_ ((void));
 static void x_clear_frame P_ ((void));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
 static void x_new_focus_frame P_ ((struct x_display_info *, struct frame *));
+static void mac_focus_changed P_ ((int, struct mac_display_info *,
+				   struct frame *, struct input_event *));
+static void x_detect_focus_change P_ ((struct mac_display_info *,
+				       EventRecord *, struct input_event *));
 static void XTframe_rehighlight P_ ((struct frame *));
 static void x_frame_rehighlight P_ ((struct x_display_info *));
 static void x_draw_hollow_cursor P_ ((struct window *, struct glyph_row *));
@@ -1195,15 +1197,6 @@ XSetFont (display, gc, font)
      XFontStruct *font;
 {
   gc->font = font;
-}
-
-
-static void
-XTextExtents16 (XFontStruct *font, XChar2b *text, int nchars,
-                     int *direction,int *font_ascent,
-                     int *font_descent, XCharStruct *cs)
-{
-  /* MAC_TODO: Use GetTextMetrics to do this and inline it below. */
 }
 
 
@@ -3494,6 +3487,14 @@ static void
 frame_highlight (f)
      struct frame *f;
 {
+  OSErr err;
+  ControlRef root_control;
+
+  BLOCK_INPUT;
+  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+  if (err == noErr)
+    ActivateControl (root_control);
+  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -3501,6 +3502,14 @@ static void
 frame_unhighlight (f)
      struct frame *f;
 {
+  OSErr err;
+  ControlRef root_control;
+
+  BLOCK_INPUT;
+  err = GetRootControl (FRAME_MAC_WINDOW (f), &root_control);
+  if (err == noErr)
+    DeactivateControl (root_control);
+  UNBLOCK_INPUT;
   x_update_cursor (f, 1);
 }
 
@@ -3542,6 +3551,68 @@ x_new_focus_frame (dpyinfo, frame)
 
   x_frame_rehighlight (dpyinfo);
 }
+
+/* Handle FocusIn and FocusOut state changes for FRAME.
+   If FRAME has focus and there exists more than one frame, puts
+   a FOCUS_IN_EVENT into *BUFP.  */
+
+static void
+mac_focus_changed (type, dpyinfo, frame, bufp)
+     int type;
+     struct mac_display_info *dpyinfo;
+     struct frame *frame;
+     struct input_event *bufp;
+{
+  if (type == activeFlag)
+    {
+      if (dpyinfo->x_focus_event_frame != frame)
+        {
+          x_new_focus_frame (dpyinfo, frame);
+          dpyinfo->x_focus_event_frame = frame;
+
+          /* Don't stop displaying the initial startup message
+             for a switch-frame event we don't need.  */
+          if (GC_NILP (Vterminal_frame)
+              && GC_CONSP (Vframe_list)
+              && !GC_NILP (XCDR (Vframe_list)))
+            {
+              bufp->kind = FOCUS_IN_EVENT;
+              XSETFRAME (bufp->frame_or_window, frame);
+            }
+        }
+    }
+  else
+    {
+      if (dpyinfo->x_focus_event_frame == frame)
+        {
+          dpyinfo->x_focus_event_frame = 0;
+          x_new_focus_frame (dpyinfo, 0);
+        }
+    }
+}
+
+/* The focus may have changed.  Figure out if it is a real focus change,
+   by checking both FocusIn/Out and Enter/LeaveNotify events.
+
+   Returns FOCUS_IN_EVENT event in *BUFP. */
+
+static void
+x_detect_focus_change (dpyinfo, event, bufp)
+     struct mac_display_info *dpyinfo;
+     EventRecord *event;
+     struct input_event *bufp;
+{
+  struct frame *frame;
+
+  frame = mac_window_to_frame ((WindowPtr) event->message);
+  if (! frame)
+    return;
+
+  /* On Mac, this is only called from focus events, so no switch needed.  */
+  mac_focus_changed ((event->modifiers & activeFlag),
+		     dpyinfo, frame, bufp);
+}
+
 
 /* Handle an event saying the mouse has moved out of an Emacs frame.  */
 
@@ -3980,25 +4051,19 @@ remember_mouse_glyph (f1, gx, gy)
 }
 
 
-static WindowPtr
-front_emacs_window ()
+static struct frame *
+mac_focus_frame (dpyinfo)
+     struct mac_display_info *dpyinfo;
 {
-#if TARGET_API_MAC_CARBON
-  WindowPtr wp = GetFrontWindowOfClass (kDocumentWindowClass, true);
-
-  while (wp && !is_emacs_window (wp))
-    wp = GetNextWindowOfClass (wp, kDocumentWindowClass, true);
-#else
-  WindowPtr wp = FrontWindow ();
-
-  while (wp && (wp == tip_window || !is_emacs_window (wp)))
-    wp = GetNextWindow (wp);
-#endif
-
-  return wp;
+  if (dpyinfo->x_focus_frame)
+    return dpyinfo->x_focus_frame;
+  else
+    /* Mac version may get events, such as a menu bar click, even when
+       all the frames are invisible.  In this case, we regard the
+       event came to the selected frame.  */
+    return SELECTED_FRAME ();
 }
 
-#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 /* Return the current position of the mouse.
    *fp should be a frame which indicates which display to ask about.
@@ -4031,12 +4096,9 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 {
   Point mouse_pos;
   int ignore1, ignore2;
-  WindowPtr wp = front_emacs_window ();
-  struct frame *f;
+  struct frame *f = mac_focus_frame (FRAME_MAC_DISPLAY_INFO (*fp));
+  WindowPtr wp = FRAME_MAC_WINDOW (f);
   Lisp_Object frame, tail;
-
-  if (is_emacs_window(wp))
-    f = mac_window_to_frame (wp);
 
   BLOCK_INPUT;
 
@@ -4604,7 +4666,12 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
      unsigned long *time;
 {
   struct scroll_bar *bar = XSCROLL_BAR (last_mouse_scroll_bar);
-  WindowPtr wp = front_emacs_window ();
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+#if TARGET_API_MAC_CARBON
+  WindowPtr wp = GetControlOwner (ch);
+#else
+  WindowPtr wp = (*ch)->contrlOwner;
+#endif
   Point mouse_pos;
   struct frame *f = mac_window_to_frame (wp);
   int win_y, top_range;
@@ -5050,7 +5117,7 @@ x_new_fontset (f, fontsetname)
     return Qnil;
 
   /* Since x_new_font doesn't update any fontset information, do it now.  */
-  FRAME_FONTSET(f) = fontset;
+  FRAME_FONTSET (f) = fontset;
 
   return build_string (fontsetname);
 }
@@ -5497,6 +5564,13 @@ x_make_frame_invisible (f)
     FRAME_MAC_DISPLAY_INFO (f)->x_highlight_frame = 0;
 
   BLOCK_INPUT;
+
+  /* Before unmapping the window, update the WM_SIZE_HINTS property to claim
+     that the current position of the window is user-specified, rather than
+     program-specified, so that when the window is mapped again, it will be
+     placed at the same location, without forcing the user to position it
+     by hand again (they have already done that once for this window.)  */
+  x_wm_set_size_hint (f, (long) 0, 1);
 
   HideWindow (FRAME_MAC_WINDOW (f));
 
@@ -7070,7 +7144,6 @@ x_find_ccl_program (fontp)
 #include <Dialogs.h>
 #include <Script.h>
 #include <Types.h>
-#include <TextEncodingConverter.h>
 #include <Resources.h>
 
 #if __MWERKS__
@@ -7145,11 +7218,6 @@ Lisp_Object Vmac_pass_command_to_system;
    for processing before Emacs sees it.  */
 Lisp_Object Vmac_pass_control_to_system;
 #endif
-
-/* convert input from Mac keyboard (assumed to be in Mac Roman coding)
-   to this text encoding */
-int mac_keyboard_text_encoding;
-int current_mac_keyboard_text_encoding = kTextEncodingMacRoman;
 
 /* Set in term/mac-win.el to indicate that event loop can now generate
    drag and drop events.  */
@@ -7460,21 +7528,6 @@ do_app_resume ()
 {
   /* Window-activate events will do the job. */
 #if 0
-  WindowPtr wp;
-  struct frame *f;
-
-  wp = front_emacs_window ();
-  if (wp)
-    {
-      f = mac_window_to_frame (wp);
-
-      if (f)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), f);
-	  activate_scroll_bars (f);
-	}
-    }
-
   app_is_suspended = false;
   app_sleep_time = WNE_SLEEP_AT_RESUME;
 #endif
@@ -7485,58 +7538,9 @@ do_app_suspend ()
 {
   /* Window-deactivate events will do the job. */
 #if 0
-  WindowPtr wp;
-  struct frame *f;
-
-  wp = front_emacs_window ();
-  if (wp)
-    {
-      f = mac_window_to_frame (wp);
-
-      if (f == FRAME_MAC_DISPLAY_INFO (f)->x_focus_frame)
-	{
-	  x_new_focus_frame (FRAME_MAC_DISPLAY_INFO (f), 0);
-	  deactivate_scroll_bars (f);
-	}
-    }
-
   app_is_suspended = true;
   app_sleep_time = WNE_SLEEP_AT_SUSPEND;
 #endif
-}
-
-
-static void
-do_mouse_moved (mouse_pos, f)
-     Point mouse_pos;
-     FRAME_PTR *f;
-{
-  WindowPtr wp = front_emacs_window ();
-  struct x_display_info *dpyinfo;
-
-  if (wp)
-    {
-      *f = mac_window_to_frame (wp);
-      dpyinfo = FRAME_MAC_DISPLAY_INFO (*f);
-
-      if (dpyinfo->mouse_face_hidden)
-	{
-	  dpyinfo->mouse_face_hidden = 0;
-	  clear_mouse_face (dpyinfo);
-	}
-
-      SetPortWindowPort (wp);
-
-      GlobalToLocal (&mouse_pos);
-
-      if (dpyinfo->grabbed && tracked_scroll_bar)
-	x_scroll_bar_note_movement (tracked_scroll_bar,
-				    mouse_pos.v
-				    - XINT (tracked_scroll_bar->top),
-				    TickCount() * (1000 / 60));
-      else
-	note_mouse_movement (*f, &mouse_pos);
-    }
 }
 
 
@@ -7576,7 +7580,7 @@ do_menu_choice (SInt32 menu_choice)
 
     default:
       {
-        struct frame *f = mac_window_to_frame (front_emacs_window ());
+        struct frame *f = mac_focus_frame (&one_mac_display_info);
         MenuHandle menu = GetMenuHandle (menu_id);
         if (menu)
           {
@@ -7654,13 +7658,14 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
   Point top_left;
   int w_title_height, columns, rows, width, height;
   struct frame *f = mac_window_to_frame (w);
+  struct mac_display_info *dpyinfo = FRAME_MAC_DISPLAY_INFO (f);
 
 #if TARGET_API_MAC_CARBON
   {
     Point standard_size;
 
     standard_size.h = FRAME_TEXT_COLS_TO_PIXEL_WIDTH (f, DEFAULT_NUM_COLS);
-    standard_size.v = FRAME_MAC_DISPLAY_INFO (f)->height;
+    standard_size.v = dpyinfo->height;
 
     if (IsWindowInStandardState (w, &standard_size, &zoom_rect))
       zoom_in_or_out = inZoomIn;
@@ -7716,7 +7721,7 @@ do_zoom_window (WindowPtr w, int zoom_in_or_out)
 	= zoom_rect;
     }
 
-  ZoomWindow (w, zoom_in_or_out, w == front_emacs_window ());
+  ZoomWindow (w, zoom_in_or_out, f == mac_focus_frame (dpyinfo));
 
   SetPort (save_port);
 #endif /* not TARGET_API_MAC_CARBON */
@@ -8582,10 +8587,13 @@ XTread_socket (sd, expected, hold_quit)
 	      {
 		SInt32 delta;
 		Point point;
-		WindowPtr window_ptr = front_emacs_window ();
+		struct frame *f = mac_focus_frame (dpyinfo);
+		WindowPtr window_ptr;
 
-		if (!IsValidWindowPtr (window_ptr))
+		if (!f)
 		  {
+		    /* Beep if wheel move occurs when all the frames
+		       are invisible.  */
 		    SysBeep(1);
 		    break;
 		  }
@@ -8601,6 +8609,7 @@ XTread_socket (sd, expected, hold_quit)
 		inev.modifiers = (mac_event_to_emacs_modifiers (eventRef)
 				  | ((delta < 0) ? down_modifier
 				     : up_modifier));
+		window_ptr = FRAME_MAC_WINDOW (f);
 		SetPortWindowPort (window_ptr);
 		GlobalToLocal (&point);
 		XSETINT (inev.x, point.h);
@@ -8659,14 +8668,14 @@ XTread_socket (sd, expected, hold_quit)
 	    switch (part_code)
 	      {
 	      case inMenuBar:
-		f = mac_window_to_frame (front_emacs_window ());
+		f = mac_focus_frame (dpyinfo);
 		saved_menu_event_location = er.where;
 		inev.kind = MENU_BAR_ACTIVATE_EVENT;
 		XSETFRAME (inev.frame_or_window, f);
 		break;
 
 	      case inContent:
-		if (window_ptr != front_emacs_window ())
+		if (window_ptr != FRAME_MAC_WINDOW (mac_focus_frame (dpyinfo)))
 		  SelectWindow (window_ptr);
 		else
 		  {
@@ -8857,7 +8866,61 @@ XTread_socket (sd, expected, hold_quit)
 	      help_echo_string = help_echo_object = help_echo_window = Qnil;
 	      help_echo_pos = -1;
 
-	      do_mouse_moved (er.where, &f);
+	      if (dpyinfo->grabbed && last_mouse_frame
+		  && FRAME_LIVE_P (last_mouse_frame))
+		f = last_mouse_frame;
+	      else
+		f = dpyinfo->x_focus_frame;
+
+	      if (dpyinfo->mouse_face_hidden)
+		{
+		  dpyinfo->mouse_face_hidden = 0;
+		  clear_mouse_face (dpyinfo);
+		}
+
+	      if (f)
+		{
+		  WindowPtr wp = FRAME_MAC_WINDOW (f);
+		  Point mouse_pos = er.where;
+
+		  SetPortWindowPort (wp);
+
+		  GlobalToLocal (&mouse_pos);
+
+		  if (dpyinfo->grabbed && tracked_scroll_bar)
+		    x_scroll_bar_note_movement (tracked_scroll_bar,
+						mouse_pos.v
+						- XINT (tracked_scroll_bar->top),
+						TickCount() * (1000 / 60));
+		  else
+		    {
+		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
+		      if (mouse_autoselect_window)
+			{
+			  Lisp_Object window;
+
+			  window = window_from_coordinates (f,
+							    mouse_pos.h,
+							    mouse_pos.v,
+							    0, 0, 0, 0);
+
+			  /* Window will be selected only when it is
+			     not selected now and last mouse movement
+			     event was not in it.  Minibuffer window
+			     will be selected iff it is active.  */
+			  if (WINDOWP (window)
+			      && !EQ (window, last_window)
+			      && !EQ (window, selected_window))
+			    {
+			      inev.kind = SELECT_WINDOW_EVENT;
+			      inev.frame_or_window = window;
+			    }
+
+			  last_window=window;
+			}
+		      note_mouse_movement (f, &mouse_pos);
+		    }
+		}
 
 	      /* If the contents of the global variable
 		 help_echo_string has changed, generate a
@@ -8871,7 +8934,6 @@ XTread_socket (sd, expected, hold_quit)
 	case activateEvt:
 	  {
 	    WindowPtr window_ptr = (WindowPtr) er.message;
-	    ControlRef root_control;
 
 #if USE_CARBON_EVENTS
 	    if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
@@ -8887,16 +8949,12 @@ XTread_socket (sd, expected, hold_quit)
 	    if (!is_emacs_window (window_ptr))
 	      break;
 
-	    f = mac_window_to_frame (window_ptr);
-	    GetRootControl (window_ptr, &root_control);
-
 	    if ((er.modifiers & activeFlag) != 0)
 	      {
 		/* A window has been activated */
 		Point mouse_loc = er.where;
 
-		x_new_focus_frame (dpyinfo, f);
-		ActivateControl (root_control);
+		x_detect_focus_change (dpyinfo, &er, &inev);
 
 		SetPortWindowPort (window_ptr);
 		GlobalToLocal (&mouse_loc);
@@ -8910,13 +8968,9 @@ XTread_socket (sd, expected, hold_quit)
 		/* A window has been deactivated */
 		dpyinfo->grabbed = 0;
 
-		if (f == dpyinfo->x_focus_frame)
-		  {
-		    x_new_focus_frame (dpyinfo, 0);
-		    DeactivateControl (root_control);
-		  }
+		x_detect_focus_change (dpyinfo, &er, &inev);
 
-
+		f = mac_window_to_frame (window_ptr);
 		if (f == dpyinfo->mouse_face_mouse_frame)
 		  {
 		    /* If we move outside the frame, then we're
@@ -8957,13 +9011,31 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 #endif
 
-#if TARGET_API_MAC_CARBON
-	    if (!IsValidWindowPtr (front_emacs_window ()))
+	    if (dpyinfo->x_focus_frame == NULL)
 	      {
+		/* Beep if keyboard input occurs when all the frames
+		   are invisible.  */
 		SysBeep (1);
 		break;
 	      }
-#endif
+
+	    {
+	      static SInt16 last_key_script = -1;
+	      SInt16 current_key_script = GetScriptManagerVariable (smKeyScript);
+
+	      if (last_key_script != current_key_script)
+		{
+		  struct input_event event;
+
+		  EVENT_INIT (event);
+		  event.kind = LANGUAGE_CHANGE_EVENT;
+		  event.arg = Qnil;
+		  event.code = current_key_script;
+		  kbd_buffer_store_event (&event);
+		  count++;
+		}
+	      last_key_script = current_key_script;
+	    }
 
 	    ObscureCursor ();
 
@@ -8998,95 +9070,32 @@ XTread_socket (sd, expected, hold_quit)
 		    unsigned long some_state = 0;
 		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
 					      &some_state) & 0xff;
-		  } else if (!NILP(Vmac_option_modifier) && (er.modifiers & optionKey))
-            {
-                /* When using the option key as an emacs modifier, convert
-                   the pressed key code back to one without the Mac option
-                   modifier applied. */
-                int new_modifiers = er.modifiers & ~optionKey;
-                int new_keycode = keycode | new_modifiers;
-                Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
-                unsigned long some_state = 0;
-                inev.code = KeyTranslate (kchr_ptr, new_keycode,
-                                          &some_state) & 0xff;
-            }
+		  }
+		else if (!NILP (Vmac_option_modifier)
+			 && (er.modifiers & optionKey))
+		  {
+		    /* When using the option key as an emacs modifier,
+		       convert the pressed key code back to one
+		       without the Mac option modifier applied. */
+		    int new_modifiers = er.modifiers & ~optionKey;
+		    int new_keycode = keycode | new_modifiers;
+		    Ptr kchr_ptr = (Ptr) GetScriptManagerVariable (smKCHRCache);
+		    unsigned long some_state = 0;
+		    inev.code = KeyTranslate (kchr_ptr, new_keycode,
+					      &some_state) & 0xff;
+		  }
 		else
 		  inev.code = er.message & charCodeMask;
 		inev.kind = ASCII_KEYSTROKE_EVENT;
 	      }
 	  }
 
-	  /* If variable mac-convert-keyboard-input-to-latin-1 is
-	     non-nil, convert non-ASCII characters typed at the Mac
-	     keyboard (presumed to be in the Mac Roman encoding) to
-	     iso-latin-1 encoding before they are passed to Emacs.
-	     This enables the Mac keyboard to be used to enter
-	     non-ASCII iso-latin-1 characters directly.  */
-	  if (mac_keyboard_text_encoding != kTextEncodingMacRoman
-	      && inev.kind == ASCII_KEYSTROKE_EVENT && inev.code >= 128)
-	    {
-	      static TECObjectRef converter = NULL;
-	      OSStatus the_err = noErr;
-	      OSStatus convert_status = noErr;
-
-	      if (converter ==  NULL)
-		{
-		  the_err = TECCreateConverter (&converter,
-						kTextEncodingMacRoman,
-						mac_keyboard_text_encoding);
-		  current_mac_keyboard_text_encoding
-		    = mac_keyboard_text_encoding;
-		}
-	      else if (mac_keyboard_text_encoding
-		       != current_mac_keyboard_text_encoding)
-		{
-		  /* Free the converter for the current encoding
-		     before creating a new one.  */
-		  TECDisposeConverter (converter);
-		  the_err = TECCreateConverter (&converter,
-						kTextEncodingMacRoman,
-						mac_keyboard_text_encoding);
-		  current_mac_keyboard_text_encoding
-		    = mac_keyboard_text_encoding;
-		}
-
-	      if (the_err == noErr)
-		{
-		  unsigned char ch = inev.code;
-		  ByteCount actual_input_length, actual_output_length;
-		  unsigned char outbuf[32];
-
-		  convert_status = TECConvertText (converter, &ch, 1,
-						   &actual_input_length,
-						   outbuf, 1,
-						   &actual_output_length);
-		  if (convert_status == noErr
-		      && actual_input_length == 1
-		      && actual_output_length == 1)
-		    inev.code = *outbuf;
-
-		  /* Reset internal states of the converter object.
-		     If it fails, create another one. */
-		  convert_status = TECFlushText (converter, outbuf,
-						 sizeof (outbuf),
-						 &actual_output_length);
-		  if (convert_status != noErr)
-		    {
-		      TECDisposeConverter (converter);
-		      TECCreateConverter (&converter,
-					  kTextEncodingMacRoman,
-					  mac_keyboard_text_encoding);
-		    }
-		}
-	    }
-
 #if USE_CARBON_EVENTS
 	  inev.modifiers = mac_event_to_emacs_modifiers (eventRef);
 #else
 	  inev.modifiers = mac_to_emacs_modifiers (er.modifiers);
 #endif
-	  XSETFRAME (inev.frame_or_window,
-		     mac_window_to_frame (front_emacs_window ()));
+	  XSETFRAME (inev.frame_or_window, mac_focus_frame (dpyinfo));
 	  inev.timestamp = er.when * (1000 / 60);  /* ticks to milliseconds */
 	  break;
 
@@ -9099,21 +9108,9 @@ XTread_socket (sd, expected, hold_quit)
 	     constuct_drag_n_drop in w32term.c.  */
 	  if (!NILP (drag_and_drop_file_list))
 	    {
-	      struct frame *f = NULL;
+	      struct frame *f = mac_focus_frame (dpyinfo);
 	      WindowPtr wp;
 	      Lisp_Object frame;
-
-	      wp = front_emacs_window ();
-
-	      if (!wp)
-		{
-		  struct frame *f = XFRAME (XCAR (Vframe_list));
-		  CollapseWindow (FRAME_MAC_WINDOW (f), false);
-		  wp = front_emacs_window ();
-		}
-
-	      if (wp)
-		f = mac_window_to_frame (wp);
 
 	      inev.kind = DRAG_N_DROP_EVENT;
 	      inev.code = 0;
@@ -9131,10 +9128,12 @@ XTread_socket (sd, expected, hold_quit)
 	      XSETFRAME (frame, f);
 	      inev.frame_or_window = Fcons (frame, drag_and_drop_file_list);
 
+#if 0
 	      /* Regardless of whether Emacs was suspended or in the
 		 foreground, ask it to redraw its entire screen.
 		 Otherwise parts of the screen can be left in an
 		 inconsistent state.  */
+	      wp = FRAME_MAC_WINDOW (f);
 	      if (wp)
 #if TARGET_API_MAC_CARBON
 		{
@@ -9146,6 +9145,7 @@ XTread_socket (sd, expected, hold_quit)
 #else /* not TARGET_API_MAC_CARBON */
                 InvalRect (&(wp->portRect));
 #endif /* not TARGET_API_MAC_CARBON */
+#endif
 	    }
 	default:
 	  break;
@@ -9625,7 +9625,7 @@ mac_check_for_quit_char ()
       e.arg = Qnil;
       e.modifiers = NULL;
       e.timestamp = EventTimeToTicks (GetEventTime (event)) * (1000/60);
-      XSETFRAME (e.frame_or_window, mac_window_to_frame (front_emacs_window ()));
+      XSETFRAME (e.frame_or_window, mac_focus_frame (&one_mac_display_info));
       /* Remove event from queue to prevent looping. */
       RemoveEventFromQueue (GetMainEventQueue (), event);
       ReleaseEvent (event);
@@ -9819,10 +9819,6 @@ syms_of_macterm ()
   Qeuc_kr = intern ("euc-kr");
   staticpro (&Qeuc_kr);
 
-  DEFVAR_BOOL ("x-autoselect-window", &x_autoselect_window_p,
-    doc: /* *Non-nil means autoselect window with mouse pointer.  */);
-  x_autoselect_window_p = 0;
-
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
   Vx_toolkit_scroll_bars = Qt;
@@ -9882,10 +9878,6 @@ Toolbox for processing before Emacs sees it.  */);
 Toolbox for processing before Emacs sees it.  */);
   Vmac_pass_control_to_system = Qt;
 
-  DEFVAR_LISP ("mac-pass-control-to-system", &Vmac_pass_control_to_system,
-   doc: /* If non-nil, the Mac \"Control\" key is passed on to the Mac
-Toolbox for processing before Emacs sees it.  */);
-  Vmac_pass_control_to_system = Qt;
 #endif
 
   DEFVAR_LISP ("mac-allow-anti-aliasing", &Vmac_use_core_graphics,
@@ -9893,21 +9885,6 @@ Toolbox for processing before Emacs sees it.  */);
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
-
-  DEFVAR_INT ("mac-keyboard-text-encoding", &mac_keyboard_text_encoding,
-    doc: /* One of the Text Encoding Base constant values defined in the
-Basic Text Constants section of Inside Macintosh - Text Encoding
-Conversion Manager.  Its value determines the encoding characters
-typed at the Mac keyboard (presumed to be in the MacRoman encoding)
-will convert into.  E.g., if it is set to kTextEncodingMacRoman (0),
-its default value, no conversion takes place.  If it is set to
-kTextEncodingISOLatin1 (0x201) or kTextEncodingISOLatin2 (0x202),
-characters typed on Mac keyboard are first converted into the
-ISO Latin-1 or ISO Latin-2 encoding, respectively before being
-passed to Emacs.  Together with Emacs's set-keyboard-coding-system
-command, this enables the Mac keyboard to be used to enter non-ASCII
-characters directly.  */);
-  mac_keyboard_text_encoding = kTextEncodingMacRoman;
 }
 
 /* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b

@@ -433,6 +433,10 @@
   "Input from the menus."
   :group 'environment)
 
+(defgroup dnd nil
+  "Handling data from drag and drop."
+  :group 'environment)
+
 (defgroup auto-save nil
   "Preventing accidential loss of data."
   :group 'files)

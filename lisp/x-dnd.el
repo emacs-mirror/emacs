@@ -31,9 +31,9 @@
 
 ;;; Code:
 
+(require 'dnd)
+
 ;;; Customizable variables
-
-
 (defcustom x-dnd-test-function 'x-dnd-default-test-function
   "The function drag and drop uses to determine if to accept or reject a drop.
 The function takes three arguments, WINDOW ACTION and TYPES.
@@ -51,28 +51,6 @@ The default value for this variable is `x-dnd-default-test-function'."
   :type 'symbol
   :group 'x)
 
-(defcustom x-dnd-protocol-alist
-  '(
-    ("^file:///" . x-dnd-open-local-file)	; XDND format.
-    ("^file://"  . x-dnd-open-file)		; URL with host
-    ("^file:"    . x-dnd-open-local-file)	; Old KDE, Motif, Sun
-    )
-
-  "The functions to call for different protocols when a drop is made.
-This variable is used by `x-dnd-handle-uri-list', `x-dnd-handle-file-name'
-and `x-dnd-handle-moz-url'.  The list contains of (REGEXP . FUNCTION) pairs.
-The functions shall take two arguments, URL, which is the URL dropped and
-ACTION which is the action to be performed for the drop (move, copy, link,
-private or ask).
-If no match is found here, and the value of `browse-url-browser-function'
-is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
-Insertion of text is not handeled by these functions, see `x-dnd-types-alist'
-for that.
-The function shall return the action done (move, copy, link or private)
-if some action was made, or nil if the URL is ignored."
-  :version "22.1"
-  :type 'alist
-  :group 'x)
 
 
 (defcustom x-dnd-types-alist
@@ -85,10 +63,10 @@ if some action was made, or nil if the URL is ignored."
     ("text/plain;charset=UTF-8" . x-dnd-insert-utf8-text)
     ("text/plain;charset=utf-8" . x-dnd-insert-utf8-text)
     ("text/unicode" . x-dnd-insert-utf16-text)
-    ("text/plain" . x-dnd-insert-text)
+    ("text/plain" . dnd-insert-text)
     ("COMPOUND_TEXT" . x-dnd-insert-ctext)
-    ("STRING" . x-dnd-insert-text)
-    ("TEXT"   . x-dnd-insert-text)
+    ("STRING" . dnd-insert-text)
+    ("TEXT"   . dnd-insert-text)
     )
   "Which function to call to handle a drop of that type.
 If the type for the drop is not present, or the function is nil,
@@ -100,12 +78,6 @@ The function shall return the action used (copy, move, link or private) if drop
 is successful, nil if not."
   :version "22.1"
   :type 'alist
-  :group 'x)
-
-(defcustom x-dnd-open-file-other-window nil
-  "If non-nil, always use find-file-other-window to open dropped files."
-  :version "22.1"
-  :type 'boolean
   :group 'x)
 
 (defcustom x-dnd-known-types
@@ -236,109 +208,6 @@ EXTRA-DATA is data needed for a specific protocol."
     (setcdr (x-dnd-get-state-cons-for-frame window) current-state)))
 
 
-(defun x-dnd-handle-one-url (window action arg)
-  "Handle one dropped url by calling the appropriate handler.
-The handler is first localted by looking at `x-dnd-protocol-alist'.
-If no match is found here, and the value of `browse-url-browser-function'
-is a pair of (REGEXP . FUNCTION), those regexps are tried for a match.
-If no match is found, just call `x-dnd-insert-text'.
-WINDOW is where the drop happend, ACTION is the action for the drop,
-ARG is the URL that has been dropped.
-Returns ACTION."
-  (require 'browse-url)
-  (let* ((uri (replace-regexp-in-string
-	       "%[A-Z0-9][A-Z0-9]"
-	       (lambda (arg)
-		 (format "%c" (string-to-number (substring arg 1) 16)))
-	       arg))
-	 ret)
-    (or
-     (catch 'done
-       (dolist (bf x-dnd-protocol-alist)
-	 (when (string-match (car bf) uri)
-	   (setq ret (funcall (cdr bf) uri action))
-	   (throw 'done t)))
-       nil)
-     (when (not (functionp browse-url-browser-function))
-       (catch 'done
-	 (dolist (bf browse-url-browser-function)
-	   (when (string-match (car bf) uri)
-	     (setq ret 'private)
-	     (funcall (cdr bf) uri action)
-	     (throw 'done t)))
-	 nil))
-     (progn
-       (x-dnd-insert-text window action uri)
-       (setq ret 'private)))
-    ret))
-
-
-(defun x-dnd-get-local-file-uri (uri)
-  "Return an uri converted to file:/// syntax if uri is a local file.
-Return nil if URI is not a local file."
-
-  ;; The hostname may be our hostname, in that case, convert to a local
-  ;; file.  Otherwise return nil.  TODO:  How about an IP-address as hostname?
-  (let ((hostname (when (string-match "^file://\\([^/]*\\)" uri)
-		      (downcase (match-string 1 uri))))
-	(system-name-no-dot
-	 (downcase (if (string-match "^[^\\.]+" system-name)
-		       (match-string 0 system-name)
-		     system-name))))
-    (when (and hostname
-	     (or (string-equal "localhost" hostname)
-		 (string-equal (downcase system-name) hostname)
-		 (string-equal system-name-no-dot hostname)))
-	(concat "file://" (substring uri (+ 7 (length hostname)))))))
-
-(defun x-dnd-get-local-file-name (uri &optional must-exist)
-  "Return file name converted from file:/// or file: syntax.
-URI is the uri for the file.  If MUST-EXIST is given and non-nil,
-only return non-nil if the file exists.
-Return nil if URI is not a local file."
-  (let ((f (cond ((string-match "^file:///" uri)	; XDND format.
-		  (substring uri (1- (match-end 0))))
-		 ((string-match "^file:" uri)		; Old KDE, Motif, Sun
-		  (substring uri (match-end 0))))))
-    (when (and f must-exist)
-      (let* ((decoded-f (decode-coding-string
-			 f
-			 (or file-name-coding-system
-			     default-file-name-coding-system)))
-	     (try-f (if (file-readable-p decoded-f) decoded-f f)))
-	(when (file-readable-p try-f) try-f)))))
-
-
-(defun x-dnd-open-local-file (uri action)
-  "Open a local file.
-The file is opened in the current window, or a new window if
-`x-dnd-open-file-other-window' is set.  URI is the url for the file,
-and must have the format file:file-name or file:///file-name.
-The last / in file:/// is part of the file name.  ACTION is ignored."
-
-  (let* ((f (x-dnd-get-local-file-name uri t)))
-    (if (and f (file-readable-p f))
-	(progn
-	  (if x-dnd-open-file-other-window
-	      (find-file-other-window f)
-	    (find-file f))
-	  'private)
-      (error "Can not read %s" uri))))
-
-(defun x-dnd-open-file (uri action)
-  "Open a local or remote file.
-The file is opened in the current window, or a new window if
-`x-dnd-open-file-other-window' is set.  URI is the url for the file,
-and must have the format file://hostname/file-name.  ACTION is ignored.
-The last / in file://hostname/ is part of the file name."
-
-  ;; The hostname may be our hostname, in that case, convert to a local
-  ;; file.  Otherwise return nil.
-  (let ((local-file (x-dnd-get-local-file-uri uri)))
-    (if local-file (x-dnd-open-local-file local-file action)
-      (error "Remote files not supported"))))
-
-
 (defun x-dnd-handle-moz-url (window action data)
   "Handle one item of type text/x-moz-url.
 WINDOW is the window where the drop happened.  ACTION is ignored.
@@ -360,49 +229,36 @@ DATA is encoded in utf-16.  Decode the URL and call `x-dnd-handle-uri-list'."
 (defun x-dnd-insert-utf8-text (window action text)
   "Decode the UTF-8 text and insert it at point.
 TEXT is the text as a string, WINDOW is the window where the drop happened."
-  (x-dnd-insert-text window action (decode-coding-string text 'utf-8)))
+  (dnd-insert-text window action (decode-coding-string text 'utf-8)))
 
 (defun x-dnd-insert-utf16-text (window action text)
   "Decode the UTF-16 text and insert it at point.
 TEXT is the text as a string, WINDOW is the window where the drop happened."
   ;; See comment in x-dnd-handle-moz-url about coding.
   (let ((coding (if (eq (byteorder) ?B) 'utf-16be 'utf-16le)))
-    (x-dnd-insert-text window action (decode-coding-string text coding))))
+    (dnd-insert-text window action (decode-coding-string text coding))))
 
 (defun x-dnd-insert-ctext (window action text)
   "Decode the compound text and insert it at point.
 TEXT is the text as a string, WINDOW is the window where the drop happened."
-  (x-dnd-insert-text window action
-		     (decode-coding-string text
-					   'compound-text-with-extensions)))
-
-(defun x-dnd-insert-text (window action text)
-  "Insert text at point or push to the kill ring if buffer is read only.
-TEXT is the text as a string, WINDOW is the window where the drop happened."
-  (if (or buffer-read-only
-	  (not (windowp window)))
-      (progn
-	(kill-new text)
-	(message
-	 (substitute-command-keys
-	  "The dropped text can be accessed with \\[yank]")))
-    (insert text))
-  action)
+  (dnd-insert-text window action
+		   (decode-coding-string text
+					 'compound-text-with-extensions)))
 
 (defun x-dnd-handle-uri-list (window action string)
-  "Split an uri-list into separate URIs and call `x-dnd-handle-one-url'.
+  "Split an uri-list into separate URIs and call `dnd-handle-one-url'.
 WINDOW is the window where the drop happened.
 STRING is the uri-list as a string.  The URIs are separated by \r\n."
   (let ((uri-list (split-string string "[\0\r\n]" t))
 	retval)
     (dolist (bf uri-list)
       ;; If one URL is handeled, treat as if the whole drop succeeded.
-      (let ((did-action (x-dnd-handle-one-url window action bf)))
+      (let ((did-action (dnd-handle-one-url window action bf)))
 	(when did-action (setq retval did-action))))
     retval))
 
 (defun x-dnd-handle-file-name (window action string)
-  "Prepend file:// to file names and call `x-dnd-handle-one-url'.
+  "Prepend file:// to file names and call `dnd-handle-one-url'.
 WINDOW is the window where the drop happened.
 STRING is the file names as a string, separated by nulls."
   (let ((uri-list (split-string string "[\0\r\n]" t))
@@ -410,7 +266,7 @@ STRING is the file names as a string, separated by nulls."
     (dolist (bf uri-list)
       ;; If one URL is handeled, treat as if the whole drop succeeded.
       (let* ((file-uri (concat "file://" bf))
-	     (did-action (x-dnd-handle-one-url window action file-uri)))
+	     (did-action (dnd-handle-one-url window action file-uri)))
 	(when did-action (setq retval did-action))))
     retval))
 
@@ -456,10 +312,10 @@ nil if not."
       (if (and (windowp w) (window-live-p w))
 	  ;; If dropping in a window, open files in that window rather
 	  ;; than in a new widow.
-	  (let ((x-dnd-open-file-other-window nil))
+	  (let ((dnd-open-file-other-window nil))
 	    (goto-char (posn-point (event-start event)))
 	    (funcall handler window action data))
-	(let ((x-dnd-open-file-other-window t))  ;; Dropping on non-window.
+	(let ((dnd-open-file-other-window t))  ;; Dropping on non-window.
 	  (select-frame frame)
 	  (funcall handler window action data))))))
 
@@ -880,7 +736,6 @@ FORMAT is 32 (not used).  MESSAGE is the data part of an XClientMessageEvent."
 
 
 ;;;
-
 
 (provide 'x-dnd)
 

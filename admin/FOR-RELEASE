@@ -20,6 +20,8 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
+** Adapt mouse-sel-mode to mouse-1-click-follows-link.
+
 
 * FATAL ERRORS
 
@@ -78,42 +80,6 @@ Redisplay may loop if there is an error in some display property, e.g.
 
 A fix would be to somehow disable handling of display properties if an error
 is encountered.
-
-
-** custom mode-line face makes Emacs freeze up
-
-From: Stephen Berman <Stephen.Berman@gmx.net>
-Date: Sun, 24 Oct 2004 02:08:56 +0200
-
-1. Start Emacs with -q -no-site-file.
-
-2. Type `M-x customize-face' and at the prompt `mode-line'.
-
-3. In the Custom buffer for mode-line face
-   a. check width and give it the value `narrow';
-   b. check height and give it the value 120 in 1/10 pt;
-   c. check underline and give it the value `on' (or `colored');
-   d. check overline and give it the value `on' (or `colored').
-
-4. Set for current session.
-
-5. Invoke Ediff on any two files.
-
-6. Now Emacs is frozen and consumes 95-99% of CPU.
-
-The customizations in step 3 appear to be the minimum necessary to
-induce this bug.  Leave out any one of them and Ediff runs without a
-problem.  Also if the 1/10 point value of height is 130 or greater
-there's no bug (with the default font family; with e.g. Helvetica the
-bug is induced only by a value of 100 or less).
-
-I've noticed this freeze up only when invoking Ediff.  The only thing
-I've been able to do is kill Emacs externally, via top or with kill
-when run in gdb, after interrupting.  When the freeze up happens
-within a gdb session, there is no automatic debugging feedback.  After
-interrupting I can get a backtrace, here's an example:
-
-Update: Maybe only reveals itself when compiled with GTK+
 
 
 * DOCUMENTATION
@@ -272,11 +238,11 @@ etc/TUTORIAL.nl		 Lute Kamstra
 etc/TUTORIAL.pl
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
-etc/TUTORIAL.ru
-etc/TUTORIAL.sk
+etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>
+etc/TUTORIAL.sk          Pavel Janík <Pavel@Janik.cz>
 etc/TUTORIAL.sl          Primoz PETERLIN <primoz.peterlin@biofiz.mf.uni-lj.si>
 etc/TUTORIAL.sv          Mats Lidell <matsl@contactor.se>
-etc/TUTORIAL.th
+etc/TUTORIAL.th          Virach Sornlertlamvanich <virach@tcllab.org>
 etc/TUTORIAL.zh
 
 

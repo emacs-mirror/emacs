@@ -139,10 +139,8 @@ only tooltips in the buffer containing the overlay arrow."
   :tag "GUD buffers predicate"
   :group 'tooltip)
 
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames.
-This is only relevant GUD display, since otherwise it is equivalent to
-turning off Tooltip mode."
+(defcustom tooltip-gud-echo-area nil
+  "Use the echo area instead of frames for GUD tooltips."
   :type 'boolean
   :tag "Use echo area"
   :group 'tooltip)
@@ -187,6 +185,12 @@ This might return nil if the event did not occur over a buffer."
   "Toggle Tooltip display.
 With ARG, turn tooltip mode on if and only if ARG is positive."
   :global t
+  ;; If you change the :init-value below, you also need to change the
+  ;; corresponding code in startup.el.
+  :init-value (not (or noninteractive
+		       emacs-quick-startup
+		       (not (display-graphic-p))
+		       (not (fboundp 'x-show-tip))))
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))
@@ -285,17 +289,19 @@ change the existing association.  Value is the resulting alist."
       (push (cons key value) alist))
     alist))
 
-(defun tooltip-show (text)
+(defun tooltip-show (text gud-tip)
   "Show a tooltip window displaying TEXT.
 
-Text larger than `x-max-tooltip-size' (which see) is clipped.
+Text larger than `x-max-tooltip-size' is clipped.
 
 If the alist in `tooltip-frame-parameters' includes `left' and `top'
 parameters, they determine the x and y position where the tooltip
 is displayed.  Otherwise, the tooltip pops at offsets specified by
 `tooltip-x-offset' and `tooltip-y-offset' from the current mouse
-position."
-  (if tooltip-use-echo-area
+position.
+
+GUD-TIP is t if the tooltip is from a GUD session and nil otherwise."
+  (if (and gud-tip tooltip-gud-echo-area)
       (message "%s" text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
@@ -411,7 +417,7 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
-  (tooltip-show (tooltip-strip-prompt process output)))
+  (tooltip-show (tooltip-strip-prompt process output) t))
 
 (defun tooltip-gud-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -457,8 +463,8 @@ This function must return nil if it doesn't handle EVENT."
   (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (let ((string (buffer-string)))
-       ;; remove newline for tooltip-use-echo-area
-       (substring string 0 (- (length string) 1))))))
+       ;; remove newline for tooltip-gud-echo-area
+       (substring string 0 (- (length string) 1)))) t))
 
 
 ;;; Tooltip help.
@@ -491,7 +497,7 @@ This is installed on the hook `tooltip-hook', which is run when
 the timer with ID `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message)
+    (tooltip-show tooltip-help-message nil)
     t))
 
 (provide 'tooltip)

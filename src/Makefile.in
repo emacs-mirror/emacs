@@ -686,6 +686,12 @@ otherobj= $(termcapobj) lastfile.o $(mallocobj) $(allocaobj) $(widgetobj) $(LIBO
 #define WINNT_SUPPORT
 #endif
 
+#ifdef HAVE_WINDOW_SYSTEM
+#define TOOLTIP_SUPPORT ${lispsource}tooltip.elc
+#else
+#define TOOLTIP_SUPPORT
+#endif
+
 /* List of Lisp files loaded into the dumped Emacs.  It's arranged
    like this because it's easier to generate it semi-mechanically from
    loadup.el this way.
@@ -780,6 +786,7 @@ lisp= \
 	${lispsource}emacs-lisp/timer.elc \
 	${lispsource}vc-hooks.elc \
 	${lispsource}ediff-hook.elc \
+	TOOLTIP_SUPPORT \
 	VMS_SUPPORT \
 	MSDOS_SUPPORT \
 	WINNT_SUPPORT \
@@ -887,6 +894,7 @@ SOME_MACHINE_LISP = ${dotdot}/lisp/mouse.elc \
   ${dotdot}/lisp/ls-lisp.elc ${dotdot}/lisp/dos-fns.elc \
   ${dotdot}/lisp/w32-fns.elc ${dotdot}/lisp/dos-w32.elc \
   ${dotdot}/lisp/disp-table.elc ${dotdot}/lisp/dos-vars.elc \
+  ${dotdot}/lisp/tooltip.elc \
   ${dotdot}/lisp/international/ccl.elc \
   ${dotdot}/lisp/international/codepage.elc \
   ${dotdot}/lisp/mouse.elc ${dotdot}/lisp/international/fontset.elc \
@@ -1233,7 +1241,8 @@ abbrev.o buffer.o callint.o cmds.o dispnew.o editfns.o fileio.o frame.o \
   fontset.o indent.o insdel.o keyboard.o macros.o minibuf.o msdos.o process.o \
   scroll.o sysdep.o term.o widget.o window.o xdisp.o xfaces.o xfns.o xmenu.o \
   xterm.o xselect.o sound.o: macgui.h
-mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h $(config_h)
+mac.o: mac.c process.h sysselect.h blockinput.h atimer.h systime.h charset.h \
+  coding.h $(config_h)
 macfns.o: macfns.c charset.h macterm.h macgui.h frame.h window.h buffer.h \
   dispextern.h macgui.h fontset.h $(INTERVAL_SRC) keyboard.h blockinput.h \
   atimer.h systime.h epaths.h termhooks.h coding.h systime.h $(config_h)
