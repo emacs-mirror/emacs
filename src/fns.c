@@ -1072,7 +1072,12 @@ Otherwise it is a newly created string, with no text properties.
 If STRING is unibyte and contains an individual 8-bit byte (i.e. not
 part of a correct utf-8 sequence), it is converted to the corresponding
 multibyte character of charset `eight-bit'.
-See also `string-to-multibyte'.  */)
+See also `string-to-multibyte'.
+
+Beware, this often doesn't really do what you think it does.
+It is similar to (decode-coding-string STRING 'utf-8-emacs).
+If you're not sure, whether to use `string-as-multibyte' or
+`string-to-multibyte', use `string-to-multibyte'.  */)
      (string)
      Lisp_Object string;
 {
