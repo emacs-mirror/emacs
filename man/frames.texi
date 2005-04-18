@@ -1061,7 +1061,7 @@ are supported.  The normal @code{xterm} mouse functionality for such
 clicks is still available by holding down the @kbd{SHIFT} key when you
 press the mouse button.
 
-  @code{xterm-mouse-mode} is a global minor mode (@pxref{Minor Modes}).
+  Xterm Mouse mode is a global minor mode (@pxref{Minor Modes}).
 Repeating the command turns the mode off again.
 
 @ignore
