@@ -1,3 +1,7 @@
+2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xmenu.c (Fx_popup_menu): Initialize error_name to NULL.
+
 2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (XTread_socket): Don't beep on keyboard input even if
