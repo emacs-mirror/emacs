@@ -3204,6 +3204,20 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
 
 
+static Lisp_Object
+internal_resolve_face_name (nargs, args)
+     int nargs;
+     Lisp_Object *args;
+{
+  Fget (args[0], args[1]);
+}
+
+static Lisp_Object
+resolve_face_name_error (ignore)
+     Lisp_Object ignore;
+{
+  return Qnil;
+}
 
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
    to make it a symvol.  If FACE_NAME is an alias for another face,
@@ -3214,17 +3228,25 @@ resolve_face_name (face_name)
      Lisp_Object face_name;
 {
   Lisp_Object aliased;
+  Lisp_Object args[2];
+  int c = 0;
 
   if (STRINGP (face_name))
     face_name = intern (SDATA (face_name));
 
-  while (SYMBOLP (face_name))
+  /* Protect against loops by limiting the number of indirections.  */
+  while (SYMBOLP (face_name) && c < 10)
     {
-      aliased = Fget (face_name, Qface_alias);
+      /* Fget can signal an error; just ignore it.  */
+      args[0] = face_name;
+      args[1] = Qface_alias;
+      aliased = internal_condition_case_2 (internal_resolve_face_name, 2, args, Qt,
+                                           resolve_face_name_error);
       if (NILP (aliased))
 	break;
       else
 	face_name = aliased;
+      c++;
     }
 
   return face_name;
