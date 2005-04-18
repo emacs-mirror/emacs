@@ -9643,22 +9643,14 @@ redisplay ()
 
 
 static Lisp_Object
-overlay_arrow_string_or_property (var, pbitmap)
+overlay_arrow_string_or_property (var)
      Lisp_Object var;
-     int *pbitmap;
 {
-  Lisp_Object pstr = Fget (var, Qoverlay_arrow_string);
-  Lisp_Object bitmap;
+  Lisp_Object val;
 
-  if (pbitmap)
-    {
-      *pbitmap = 0;
-      if (bitmap  = Fget (var, Qoverlay_arrow_bitmap), INTEGERP (bitmap))
-	*pbitmap = XINT (bitmap);
-    }
+  if (val = Fget (var, Qoverlay_arrow_string), STRINGP (val))
+    return val;
 
-  if (!NILP (pstr))
-    return pstr;
   return Voverlay_arrow_string;
 }
 
@@ -9708,7 +9700,7 @@ overlay_arrows_changed_p ()
 	continue;
       if (! EQ (COERCE_MARKER (val),
 		Fget (var, Qlast_arrow_position))
-	  || ! (pstr = overlay_arrow_string_or_property (var, 0),
+	  || ! (pstr = overlay_arrow_string_or_property (var),
 		EQ (pstr, Fget (var, Qlast_arrow_string))))
 	return 1;
     }
@@ -9738,7 +9730,7 @@ update_overlay_arrows (up_to_date)
 	  Fput (var, Qlast_arrow_position,
 		COERCE_MARKER (val));
 	  Fput (var, Qlast_arrow_string,
-		overlay_arrow_string_or_property (var, 0));
+		overlay_arrow_string_or_property (var));
 	}
       else if (up_to_date < 0
 	       || !NILP (Fget (var, Qlast_arrow_position)))
@@ -9751,14 +9743,13 @@ update_overlay_arrows (up_to_date)
 
 
 /* Return overlay arrow string to display at row.
-   Return t if display as bitmap in left fringe.
+   Return integer (bitmap number) for arrow bitmap in left fringe.
    Return nil if no overlay arrow.  */
 
 static Lisp_Object
-overlay_arrow_at_row (it, row, pbitmap)
+overlay_arrow_at_row (it, row)
      struct it *it;
      struct glyph_row *row;
-     int *pbitmap;
 {
   Lisp_Object vlist;
 
@@ -9778,17 +9769,21 @@ overlay_arrow_at_row (it, row, pbitmap)
 	  && current_buffer == XMARKER (val)->buffer
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
-	  val = overlay_arrow_string_or_property (var, pbitmap);
 	  if (FRAME_WINDOW_P (it->f)
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
-	    return Qt;
-	  if (STRINGP (val))
-	    return val;
-	  break;
+	    {
+	      if (val = Fget (var, Qoverlay_arrow_bitmap), SYMBOLP (val))
+		{
+		  int fringe_bitmap;
+		  if ((fringe_bitmap = lookup_fringe_bitmap (val)) != 0)
+		    return make_number (fringe_bitmap);
+		}
+	      return make_number (-1); /* Use default arrow bitmap */
+	    }
+	  return overlay_arrow_string_or_property (var);
 	}
     }
 
-  *pbitmap = 0;
   return Qnil;
 }
 
@@ -14846,7 +14841,6 @@ display_line (it)
      struct it *it;
 {
   struct glyph_row *row = it->glyph_row;
-  int overlay_arrow_bitmap;
   Lisp_Object overlay_arrow_string;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
@@ -15254,9 +15248,9 @@ display_line (it)
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
-  if ((overlay_arrow_string
-       = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
-       !NILP (overlay_arrow_string)))
+  if ((row->displays_text_p || !overlay_arrow_seen)
+      && (overlay_arrow_string = overlay_arrow_at_row (it, row),
+	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (STRINGP (overlay_arrow_string))
@@ -15286,8 +15280,8 @@ display_line (it)
 	}
       else
 	{
-	  it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
-	  row->overlay_arrow_p = 1;
+	  xassert (INTEGERP (overlay_arrow_string));
+	  row->overlay_arrow_bitmap = XINT (overlay_arrow_string);
 	}
       overlay_arrow_seen = 1;
     }
