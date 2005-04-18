@@ -1,3 +1,11 @@
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show): Change second arg to USE-ECHO-AREA
+	and make it optional.  Don't test tooltip-gud-echo-area here.
+	(tooltip-gud-process-output, gdb-tooltip-print): Pass
+	tooltip-gud-echo-area to tooltip-show.
+	(tooltip-help-tips): Remove second optional arg.
+
 2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* tooltip.el (tooltip-mode): `emacs-quick-startup' and
