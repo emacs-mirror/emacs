@@ -1066,10 +1066,20 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 	;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
 	(if movement
 	    (cond
-	     ((memq 'shift (event-modifiers
-			    (aref (if window-system
-				      (this-single-command-raw-keys)
-				    (this-single-command-keys)) 0)))
+	     ((if window-system
+		  (memq 'shift (event-modifiers
+				(aref (this-single-command-raw-keys) 0)))
+		(or
+		 (memq 'shift (event-modifiers
+			       (aref (this-single-command-keys) 0)))
+		 ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
+		 (and (boundp 'function-key-map)
+		      function-key-map
+		      (let ((ev (lookup-key function-key-map
+					   (this-single-command-raw-keys))))
+			(and (vector ev)
+			     (symbolp (setq ev (aref ev 0)))
+			     (string-match "S-" (symbol-name ev)))))))
 	      (unless mark-active
 		(push-mark-command nil t))
 	      (setq cua--last-region-shifted t)
