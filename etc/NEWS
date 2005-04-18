@@ -107,19 +107,6 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
-** Xterm Mouse mode is now enabled by default in terminal emulators
-compatible with xterm.  This means that simple use of the mouse is
-now, by default, controlled by Emacs--basically, only non-modified
-single clicks are supported.  The normal xterm mouse functionality
-for such clicks is still available by holding down the SHIFT key
-when you press the mouse button.
-
-This is not without problems.  For instance, clicking with the mouse
-on the wrong place may produce unexpected results without warning.
-Put `(xterm-mouse-mode 0)' in your .emacs, or disable the option
-`xterm-mouse-mode' through Custom, if you prefer all mouse clicks to
-be handled by the terminal emulator.
-
 ** Improved Thai support.  A new minor mode `thai-word-mode' (which is
 automatically activated if you select Thai as a language
 environment) changes key bindings of most word-oriented commands to

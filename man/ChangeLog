@@ -1,3 +1,10 @@
+2005-04-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (XTerm Mouse): Xterm Mouse mode is no longer enabled
+	by default in terminals compatible with xterm.  Mention that
+	xterm-mouse-mode is a minor mode and put in pxref to Minor Modes
+	node.
+
 2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Update to version 3.06.

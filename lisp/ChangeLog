@@ -1,3 +1,10 @@
+2005-04-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): No longer enable Xterm Mouse mode by
+	default in terminals compatible with xterm.
+
+	* xt-mouse.el (xterm-mouse-mode): Set init value back to nil.
+
 2005-04-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el (tooltip-gud-echo-area): Rename from
@@ -58,7 +65,7 @@
 2005-04-16  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-up-heading-all): Fix bug with
-	`outline-up-heading-all'. 
+	`outline-up-heading-all'.
 
 2005-04-16  Andreas Schwab  <schwab@suse.de>
 
