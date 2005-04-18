@@ -1,3 +1,8 @@
+2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Don't beep on keyboard input even if
+	no frame is visible.
+
 2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.c (struct keys): Add support for shifted keys.
