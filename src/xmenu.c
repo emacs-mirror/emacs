@@ -771,7 +771,7 @@ cached information about equivalent key sequences.  */)
   Lisp_Object keymap, tem;
   int xpos = 0, ypos = 0;
   Lisp_Object title;
-  char *error_name;
+  char *error_name = NULL;
   Lisp_Object selection;
   FRAME_PTR f = NULL;
   Lisp_Object x, y, window;
