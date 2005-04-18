@@ -1,3 +1,11 @@
+2005-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-edit-string): Make the search-ring available for
+	minibuffer history commands.
+	(minibuffer-local-isearch-map): Remove bindings for M-p	and M-n,
+	the default history commands now work just as well.
+	(isearch-ring-retreat-edit, isearch-ring-advance-edit): Remove.
+
 2005-04-18  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua--pre-command-handler): Add more
@@ -11,8 +19,8 @@
 
 	* tooltip.el (tooltip-show): Change second arg to USE-ECHO-AREA
 	and make it optional.  Don't test tooltip-gud-echo-area here.
-	(tooltip-gud-process-output, gdb-tooltip-print): Pass
-	tooltip-gud-echo-area to tooltip-show.
+	(tooltip-gud-process-output, gdb-tooltip-print):
+	Pass tooltip-gud-echo-area to tooltip-show.
 	(tooltip-help-tips): Remove second optional arg to tooltip-show.
 
 2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
