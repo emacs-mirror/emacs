@@ -1,3 +1,11 @@
+2005-04-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-gud-echo-area): Rename from
+	tooltip-use-echo-area.
+	(tooltip-show, tooltip-gud-process-output, gdb-tooltip-print)
+	(tooltip-help-tips): Allow GUD tooltips to be displayed in echo
+	area independently of where help tooltips are displayed.
+
 2005-04-17  David Kastrup  <dak@gnu.org>
 
 	* cus-theme.el (custom-theme-write-variables): Quote variables
