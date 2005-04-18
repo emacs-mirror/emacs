@@ -1,3 +1,7 @@
+2005-04-18  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el: Make "--no-desktop" turn off `desktop-save-mode'.
+
 2005-04-18  Kim F. Storm  <storm@cua.dk>
 
 	* tooltip.el (tooltip-show): Change second arg to USE-ECHO-AREA
