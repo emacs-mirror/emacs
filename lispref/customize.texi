@@ -283,17 +283,14 @@ those other variables already have their intended values.
 operation of a certain feature.  Assuming that the package is coded to
 check the value of the option, you still need to arrange for the package
 to be loaded.  You can do that with @code{:require}.  @xref{Common
-Keywords}.  Here is an example, from the library @file{tooltip.el}:
+Keywords}.  Here is an example, from the library @file{saveplace.el}:
 
 @example
-(defcustom tooltip-mode nil
-  "Non-nil if Tooltip mode is enabled..."
-  :set (lambda (symbol value)
-	 (tooltip-mode (or value 0)))
-  :initialize 'custom-initialize-default
+(defcustom save-place nil
+  "*Non-nil means automatically save place in each file..."
   :type 'boolean
-  :require 'tooltip
-  :group 'tooltip)
+  :require 'saveplace
+  :group 'save-place)
 @end example
 
 If a customization item has a type such as @code{hook} or @code{alist},
