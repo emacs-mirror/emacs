@@ -1,3 +1,10 @@
+2005-04-18  Lute Kamstra  <lute@gnu.org>
+
+	* lread.c (Vloads_in_progress): Static.
+	* fns.c (Vloads_in_progress): Remove extern.
+	(load_in_progress): Add extern.
+	(Frequire): Use load_in_progress instead of Vloads_in_progress.
+
 2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xmenu.c (Fx_popup_menu): Initialize error_name to NULL.
@@ -119,7 +126,6 @@
 	into "(any string)".
 
 	* lread.c (Vloads_in_progress): Not static.
-
 	* fns.c (Vloads_in_progress): Add extern.
 	(Frequire): Don't do LOADHIST_ATTACH if Vloads_in_progress is nil.
 
