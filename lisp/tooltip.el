@@ -188,8 +188,9 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
   ;; If you change the :init-value below, you also need to change the
   ;; corresponding code in startup.el.
   :init-value (not (or noninteractive
-		       emacs-quick-startup
-		       (not (display-graphic-p))
+		       (and (boundp 'emacs-quick-startup) emacs-quick-startup)
+		       (not (and (fboundp 'display-graphic-p)
+				 (display-graphic-p)))
 		       (not (fboundp 'x-show-tip))))
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
