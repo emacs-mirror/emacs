@@ -1,3 +1,35 @@
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct glyph_row): New member overlay_arrow_bitmap.
+	It replaces the corresponding member from struct window, as a
+	window may now show multiple overlay arrows.
+	Remove member overlay_arrow_p, superseeded by overlay_arrow_bitmap.
+
+	* dispnew.c (row_equal_p, update_window_line, scrolling_window):
+	Compare overlay_arrow_bitmap than overlay_arrow_p members.
+
+	* fringe.c (draw_fringe_bitmap): Use overlay_arrow_bitmap from row
+	rather than from window.
+	(update_window_fringes): Compare overlay_arrow_bitmap rather than
+	overlay_arrow_p members.
+	(Ffringe_bitmaps_at_pos): Return fringe overlay_arrow_bitmap name
+	if not default.
+
+	* window.h (struct window): Remove member overlay_arrow_bitmap.
+
+	* window.c (make_window): Don't initialize overlay_arrow_bitmap.
+
+	* xdisp.c (overlay_arrow_string_or_property): Remove PBITMAP arg.
+	Calls changed.  Don't check for overlay-arrow-bitmap property here.
+	(overlay_arrow_at_row): Remove PBITMAP arg.  Instead, if left
+	fringe is present, return Lisp integer for bitmap (or -1 for default).
+	Fix value of overlay-arrow-bitmap property to be a symbol, use
+	lookup_fringe_bitmap to parse it.
+	(display_line): Change call to overlay_arrow_at_row.  Store integer
+	return value as overlay bitmap in row rather than window.
+	Only show overlay arrow if row displays text, or if no other overlay
+	arrow is seen in window (if overlay marker is at point-max).
+
 2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xfaces.c (realize_x_face) [!HAVE_WINDOW_SYSTEM]: Return NULL.
