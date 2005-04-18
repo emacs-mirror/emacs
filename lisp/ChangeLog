@@ -1,3 +1,8 @@
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--pre-command-handler): Add more
+	elaborate check for shift modifier on non-window systems.
+
 2005-04-18  Lars Hansen  <larsh@math.ku.dk>
 
 	* desktop.el: Make "--no-desktop" turn off `desktop-save-mode'.
