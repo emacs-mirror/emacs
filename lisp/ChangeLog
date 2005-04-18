@@ -4,7 +4,7 @@
 	and make it optional.  Don't test tooltip-gud-echo-area here.
 	(tooltip-gud-process-output, gdb-tooltip-print): Pass
 	tooltip-gud-echo-area to tooltip-show.
-	(tooltip-help-tips): Remove second optional arg.
+	(tooltip-help-tips): Remove second optional arg to tooltip-show.
 
 2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
