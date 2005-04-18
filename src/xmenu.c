@@ -2483,7 +2483,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
         if (FRAME_X_DISPLAY_INFO (f)->grabbed & (1 << i))
           break;
     }
-  
+
   /* Display the menu.  */
   gtk_widget_show_all (menu);
   gtk_menu_popup (GTK_MENU (menu), 0, 0, pos_func, &popup_x_y, i, 0);
@@ -2601,7 +2601,7 @@ create_and_show_popup_menu (f, first_wv, x, y, for_click)
   /* Display the menu.  */
   lw_popup_menu (menu, (XEvent *) &dummy);
   popup_activated_flag = 1;
-  
+
   {
     int fact = 4 * sizeof (LWLIB_ID);
     int specpdl_count = SPECPDL_INDEX ();
@@ -3225,7 +3225,7 @@ pop_down_menu (arg)
 {
   struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
   struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
-  
+
   FRAME_PTR f = p1->pointer;
   XMenu *menu = p2->pointer;
 
@@ -3459,7 +3459,7 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 #ifndef MSDOS
   XMenuActivateSetWaitFunction (x_menu_wait_for_event, FRAME_X_DISPLAY (f));
 #endif
-  
+
   record_unwind_protect (pop_down_menu,
                          Fcons (make_save_value (f, 0),
                                 make_save_value (menu, 0)));
