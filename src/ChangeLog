@@ -1,3 +1,7 @@
+2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xmenu.c (Fx_popup_menu): Initialize error_name to NULL.
+
 2005-03-24  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* print.c (print_object): Delete `\ ' from printed rep of frame.
