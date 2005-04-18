@@ -196,6 +196,7 @@
 (when (fboundp 'x-create-frame)
   (load "mouse")
   (load "international/fontset")
+  (load "dnd")
   (load "x-dnd")
   (load "term/x-win"))
 
