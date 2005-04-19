@@ -1,3 +1,35 @@
+2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (MacFontStruct): Remove member `fontname'.  Add member
+	`full_name'.
+	[TARGET_API_MAC_CARBON] (MacFontStruct): Use type int for
+	mac_scriptcode member.
+
+	* macterm.c (Qbig5, Qcn_gb, Qsjis, Qeuc_kr): Remove variables.
+	(syms_of_mac): Don't initialize them.
+	(Vmac_charset_info_alist): New variable.
+	(syms_of_mac): Defvar it.
+	(create_text_encoding_info_alist): New function.
+	(decode_mac_font_name, mac_to_x_fontname)
+	(x_font_name_to_mac_font_name, init_font_name_table): Don't hard
+	code the correspondence among XLFD charsets, Mac script codes, and
+	Emacs coding systems.  Use Vmac_charset_info_alist and result of
+	create_text_encoding_info_alist instead.
+	(init_font_name_table) [TARGET_API_MAC_CARBON]: Use Font Manager
+	routines also on Mac OS Classic.
+	(init_font_name_table) [!TARGET_API_MAC_CARBON]: Use
+	add_font_name_table_entry.
+	(mac_do_list_fonts): Regard 0 in XLFD scaleble fields as
+	specified.  Derive unspecified scalable fields from specified one.
+	(x_list_fonts): Consider Valternate_fontname_alist.
+	(kDefaultFontSize): Change value from 9 to 12.
+	(XLoadQueryFont): Get decoded font family, font face, and charset
+	from x_font_name_to_mac_font_name.  Set full name of loaded font.
+	(mac_unload_font): Free `full_name' member.
+	(x_load_font): Don't try XLoadQueryFont if x_list_fonts returns
+	NULL.  Copy full_name member of struct MacFontStruct to that of
+	struct font_info.
+
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (handle_stop): Set saved_face_id to current face if

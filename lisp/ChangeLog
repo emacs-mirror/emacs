@@ -1,3 +1,16 @@
+2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add coding: tag and set it to iso-2022-7bit.
+	(mac-add-charset-info): New function.  Initialize variable
+	mac-charset-info-alist using it.
+	(mac-centraleurroman, mac-cyrillic): Do not use UCS in table data
+	for translation.
+	(mac-symbol-encoder, mac-dingbats-encoder): New translation table.
+	(mac-font-encoder-list): Add entries for mac-symbol and
+	mac-dingbats.
+	(ccl-encode-mac-symbol-font, ccl-encode-mac-dingbats-font): New
+	CCL programs.
+
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (next-buffer, prev-buffer, next-error)
