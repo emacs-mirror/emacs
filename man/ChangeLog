@@ -1,8 +1,12 @@
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* building.texi (Compilation Mode): Add M-g M-n and M-g M-p bindings.
+
 2005-04-18  Lars Hansen  <larsh@math.ku.dk>
 
 	* misc.texi (Saving Emacs Sessions): Add that "--no-desktop" now
 	turns off desktop-save-mode.
-	
+
 2005-04-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (XTerm Mouse): Xterm Mouse mode is no longer enabled

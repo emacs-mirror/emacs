@@ -1,5 +1,11 @@
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (handle_stop): Set saved_face_id to current face if
+	selective_display_ellipsis_p so ellipsis will be shown in same
+	face as preceding text.
+	(setup_for_ellipsis): Don't set saved_face_id here.
+	(next_element_from_display_vector): Default to saved_face_id.
+
 	* fns.c (Fsafe_get): New function.
 	(syms_of_fns): Defsubr it.
 

@@ -142,7 +142,11 @@ commands cp, mv, and ln follow.)  Thus, M-x copy-file RET ~/foo RET
 M-o M-o requests refontification.
 
 +++
-** M-g is now a prefix key.  M-g g and M-g M-g run goto-line.
+** M-g is now a prefix key.
+
+M-g g and M-g M-g run goto-line.
+M-g n and M-g M-n run next-error (like C-x `).
+M-g p and M-g M-p run previous-error.
 
 +++
 ** font-lock-lines-before specifies a number of lines before the
@@ -309,8 +313,9 @@ characters.
 in the current input method to input a character at point.
 
 +++
-** Convenient commands to switch buffers in a cyclic order are C-x <left>
-(prev-buffer) and C-x <right> (next-buffer).
+** You can now switch buffers in a cyclic order with C-x C-left and
+(prev-buffer) and C-x C-right (next-buffer).  C-x left and C-x right
+can be used as well.
 
 ---
 ** Commands winner-redo and winner-undo, from winner.el, are now bound to

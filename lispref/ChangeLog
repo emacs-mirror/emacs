@@ -1,3 +1,8 @@
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Symbol Plists): Add safe-get.
+	Mention that `get' may signal an error.
+
 2005-04-18  Nick Roberts  <nickrob@snap.net.nz>
 
 	* customize.texi (Variable Definitions): Replace tooltip-mode

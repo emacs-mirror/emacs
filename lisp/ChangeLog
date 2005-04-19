@@ -1,3 +1,15 @@
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-buffer, prev-buffer, next-error)
+	(scroll-other-window, keyboard-quit, keyboard-escape-quit)
+	(clone-indirect-buffer-other-window): Move bindings to bindings.el.
+
+	* bindings.el (next-buffer, prev-buffer, next-error)
+	(scroll-other-window, keyboard-quit, keyboard-escape-quit)
+	(clone-indirect-buffer-other-window): Move bindings from simple.el.
+	(next-buffer, prev-buffer): Add C-x C-right and C-x C-left bindings.
+	(next-error, previous-error): Add M-g M-n/n and M-g M-p/p bindings.
+
 2005-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* isearch.el (isearch-edit-string): Make the search-ring available for
