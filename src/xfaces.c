@@ -3211,17 +3211,19 @@ resolve_face_name (face_name)
      Lisp_Object face_name;
 {
   Lisp_Object aliased;
+  int alias_loop_max = 10;
 
   if (STRINGP (face_name))
     face_name = intern (SDATA (face_name));
 
   while (SYMBOLP (face_name))
     {
-      aliased = Fget (face_name, Qface_alias);
+      aliased = Fsafe_get (face_name, Qface_alias);
       if (NILP (aliased))
 	break;
-      else
-	face_name = aliased;
+      if (--alias_loop_max == 0)
+	break;
+      face_name = aliased;
     }
 
   return face_name;
