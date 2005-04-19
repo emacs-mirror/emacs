@@ -1,4 +1,4 @@
-;;; mac-win.el --- parse switches controlling interface with Mac window system
+;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
@@ -1105,6 +1105,31 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	base
       (coding-system-change-eol-conversion base 'mac)))
   "Coding system derived from the system script code.")
+
+(defun mac-add-charset-info (xlfd-charset mac-text-encoding)
+  "Function to add character sets to display with Mac fonts.
+Creates entries in `mac-charset-info-alist'.
+XLFD-CHARSET is a string which will appear in the XLFD font name
+to identify the character set.  MAC-TEXT-ENCODING is the
+correspoinding TextEncodingBase value."
+  (add-to-list 'mac-charset-info-alist
+               (list xlfd-charset mac-text-encoding
+		     (cdr (assq mac-text-encoding
+				mac-script-code-coding-systems)))))
+
+(setq mac-charset-info-alist nil)
+(mac-add-charset-info "mac-roman" 0)
+(mac-add-charset-info "jisx0208.1983-sjis" 1)
+(mac-add-charset-info "jisx0201.1976-0" 1)
+(mac-add-charset-info "big5-0" 2)
+(mac-add-charset-info "ksc5601.1989-0" 3)
+(mac-add-charset-info "mac-cyrillic" 7)
+(mac-add-charset-info "gb2312.1980-0" 25)
+(mac-add-charset-info "mac-centraleurroman" 29)
+(mac-add-charset-info "mac-symbol" 33)
+(mac-add-charset-info "adobe-fontspecific" 33) ; for X-Symbol
+(mac-add-charset-info "mac-dingbats" 34)
+
 
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
@@ -1166,281 +1191,112 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 (cp-make-coding-system
  mac-centraleurroman
- (apply
-  'vector
-  (mapcar
-   (lambda (c) (decode-char 'ucs c))
-   ;; mac-centraleurroman (128..255) -> UCS mapping
-   [	#x00C4	;; 128:LATIN CAPITAL LETTER A WITH DIAERESIS
-	#x0100	;; 129:LATIN CAPITAL LETTER A WITH MACRON
-	#x0101	;; 130:LATIN SMALL LETTER A WITH MACRON
-	#x00C9	;; 131:LATIN CAPITAL LETTER E WITH ACUTE
-	#x0104	;; 132:LATIN CAPITAL LETTER A WITH OGONEK
-	#x00D6	;; 133:LATIN CAPITAL LETTER O WITH DIAERESIS
-	#x00DC	;; 134:LATIN CAPITAL LETTER U WITH DIAERESIS
-	#x00E1	;; 135:LATIN SMALL LETTER A WITH ACUTE
-	#x0105	;; 136:LATIN SMALL LETTER A WITH OGONEK
-	#x010C	;; 137:LATIN CAPITAL LETTER C WITH CARON
-	#x00E4	;; 138:LATIN SMALL LETTER A WITH DIAERESIS
-	#x010D	;; 139:LATIN SMALL LETTER C WITH CARON
-	#x0106	;; 140:LATIN CAPITAL LETTER C WITH ACUTE
-	#x0107	;; 141:LATIN SMALL LETTER C WITH ACUTE
-	#x00E9	;; 142:LATIN SMALL LETTER E WITH ACUTE
-	#x0179	;; 143:LATIN CAPITAL LETTER Z WITH ACUTE
-	#x017A	;; 144:LATIN SMALL LETTER Z WITH ACUTE
-	#x010E	;; 145:LATIN CAPITAL LETTER D WITH CARON
-	#x00ED	;; 146:LATIN SMALL LETTER I WITH ACUTE
-	#x010F	;; 147:LATIN SMALL LETTER D WITH CARON
-	#x0112	;; 148:LATIN CAPITAL LETTER E WITH MACRON
-	#x0113	;; 149:LATIN SMALL LETTER E WITH MACRON
-	#x0116	;; 150:LATIN CAPITAL LETTER E WITH DOT ABOVE
-	#x00F3	;; 151:LATIN SMALL LETTER O WITH ACUTE
-	#x0117	;; 152:LATIN SMALL LETTER E WITH DOT ABOVE
-	#x00F4	;; 153:LATIN SMALL LETTER O WITH CIRCUMFLEX
-	#x00F6	;; 154:LATIN SMALL LETTER O WITH DIAERESIS
-	#x00F5	;; 155:LATIN SMALL LETTER O WITH TILDE
-	#x00FA	;; 156:LATIN SMALL LETTER U WITH ACUTE
-	#x011A	;; 157:LATIN CAPITAL LETTER E WITH CARON
-	#x011B	;; 158:LATIN SMALL LETTER E WITH CARON
-	#x00FC	;; 159:LATIN SMALL LETTER U WITH DIAERESIS
-	#x2020	;; 160:DAGGER
-	#x00B0	;; 161:DEGREE SIGN
-	#x0118	;; 162:LATIN CAPITAL LETTER E WITH OGONEK
-	#x00A3	;; 163:POUND SIGN
-	#x00A7	;; 164:SECTION SIGN
-	#x2022	;; 165:BULLET
-	#x00B6	;; 166:PILCROW SIGN
-	#x00DF	;; 167:LATIN SMALL LETTER SHARP S
-	#x00AE	;; 168:REGISTERED SIGN
-	#x00A9	;; 169:COPYRIGHT SIGN
-	#x2122	;; 170:TRADE MARK SIGN
-	#x0119	;; 171:LATIN SMALL LETTER E WITH OGONEK
-	#x00A8	;; 172:DIAERESIS
-	#x2260	;; 173:NOT EQUAL TO
-	#x0123	;; 174:LATIN SMALL LETTER G WITH CEDILLA
-	#x012E	;; 175:LATIN CAPITAL LETTER I WITH OGONEK
-	#x012F	;; 176:LATIN SMALL LETTER I WITH OGONEK
-	#x012A	;; 177:LATIN CAPITAL LETTER I WITH MACRON
-	#x2264	;; 178:LESS-THAN OR EQUAL TO
-	#x2265	;; 179:GREATER-THAN OR EQUAL TO
-	#x012B	;; 180:LATIN SMALL LETTER I WITH MACRON
-	#x0136	;; 181:LATIN CAPITAL LETTER K WITH CEDILLA
-	#x2202	;; 182:PARTIAL DIFFERENTIAL
-	#x2211	;; 183:N-ARY SUMMATION
-	#x0142	;; 184:LATIN SMALL LETTER L WITH STROKE
-	#x013B	;; 185:LATIN CAPITAL LETTER L WITH CEDILLA
-	#x013C	;; 186:LATIN SMALL LETTER L WITH CEDILLA
-	#x013D	;; 187:LATIN CAPITAL LETTER L WITH CARON
-	#x013E	;; 188:LATIN SMALL LETTER L WITH CARON
-	#x0139	;; 189:LATIN CAPITAL LETTER L WITH ACUTE
-	#x013A	;; 190:LATIN SMALL LETTER L WITH ACUTE
-	#x0145	;; 191:LATIN CAPITAL LETTER N WITH CEDILLA
-	#x0146	;; 192:LATIN SMALL LETTER N WITH CEDILLA
-	#x0143	;; 193:LATIN CAPITAL LETTER N WITH ACUTE
-	#x00AC	;; 194:NOT SIGN
-	#x221A	;; 195:SQUARE ROOT
-	#x0144	;; 196:LATIN SMALL LETTER N WITH ACUTE
-	#x0147	;; 197:LATIN CAPITAL LETTER N WITH CARON
-	#x2206	;; 198:INCREMENT
-	#x00AB	;; 199:LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-	#x00BB	;; 200:RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-	#x2026	;; 201:HORIZONTAL ELLIPSIS
-	#x00A0	;; 202:NO-BREAK SPACE
-	#x0148	;; 203:LATIN SMALL LETTER N WITH CARON
-	#x0150	;; 204:LATIN CAPITAL LETTER O WITH DOUBLE ACUTE
-	#x00D5	;; 205:LATIN CAPITAL LETTER O WITH TILDE
-	#x0151	;; 206:LATIN SMALL LETTER O WITH DOUBLE ACUTE
-	#x014C	;; 207:LATIN CAPITAL LETTER O WITH MACRON
-	#x2013	;; 208:EN DASH
-	#x2014	;; 209:EM DASH
-	#x201C	;; 210:LEFT DOUBLE QUOTATION MARK
-	#x201D	;; 211:RIGHT DOUBLE QUOTATION MARK
-	#x2018	;; 212:LEFT SINGLE QUOTATION MARK
-	#x2019	;; 213:RIGHT SINGLE QUOTATION MARK
-	#x00F7	;; 214:DIVISION SIGN
-	#x25CA	;; 215:LOZENGE
-	#x014D	;; 216:LATIN SMALL LETTER O WITH MACRON
-	#x0154	;; 217:LATIN CAPITAL LETTER R WITH ACUTE
-	#x0155	;; 218:LATIN SMALL LETTER R WITH ACUTE
-	#x0158	;; 219:LATIN CAPITAL LETTER R WITH CARON
-	#x2039	;; 220:SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-	#x203A	;; 221:SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-	#x0159	;; 222:LATIN SMALL LETTER R WITH CARON
-	#x0156	;; 223:LATIN CAPITAL LETTER R WITH CEDILLA
-	#x0157	;; 224:LATIN SMALL LETTER R WITH CEDILLA
-	#x0160	;; 225:LATIN CAPITAL LETTER S WITH CARON
-	#x201A	;; 226:SINGLE LOW-9 QUOTATION MARK
-	#x201E	;; 227:DOUBLE LOW-9 QUOTATION MARK
-	#x0161	;; 228:LATIN SMALL LETTER S WITH CARON
-	#x015A	;; 229:LATIN CAPITAL LETTER S WITH ACUTE
-	#x015B	;; 230:LATIN SMALL LETTER S WITH ACUTE
-	#x00C1	;; 231:LATIN CAPITAL LETTER A WITH ACUTE
-	#x0164	;; 232:LATIN CAPITAL LETTER T WITH CARON
-	#x0165	;; 233:LATIN SMALL LETTER T WITH CARON
-	#x00CD	;; 234:LATIN CAPITAL LETTER I WITH ACUTE
-	#x017D	;; 235:LATIN CAPITAL LETTER Z WITH CARON
-	#x017E	;; 236:LATIN SMALL LETTER Z WITH CARON
-	#x016A	;; 237:LATIN CAPITAL LETTER U WITH MACRON
-	#x00D3	;; 238:LATIN CAPITAL LETTER O WITH ACUTE
-	#x00D4	;; 239:LATIN CAPITAL LETTER O WITH CIRCUMFLEX
-	#x016B	;; 240:LATIN SMALL LETTER U WITH MACRON
-	#x016E	;; 241:LATIN CAPITAL LETTER U WITH RING ABOVE
-	#x00DA	;; 242:LATIN CAPITAL LETTER U WITH ACUTE
-	#x016F	;; 243:LATIN SMALL LETTER U WITH RING ABOVE
-	#x0170	;; 244:LATIN CAPITAL LETTER U WITH DOUBLE ACUTE
-	#x0171	;; 245:LATIN SMALL LETTER U WITH DOUBLE ACUTE
-	#x0172	;; 246:LATIN CAPITAL LETTER U WITH OGONEK
-	#x0173	;; 247:LATIN SMALL LETTER U WITH OGONEK
-	#x00DD	;; 248:LATIN CAPITAL LETTER Y WITH ACUTE
-	#x00FD	;; 249:LATIN SMALL LETTER Y WITH ACUTE
-	#x0137	;; 250:LATIN SMALL LETTER K WITH CEDILLA
-	#x017B	;; 251:LATIN CAPITAL LETTER Z WITH DOT ABOVE
-	#x0141	;; 252:LATIN CAPITAL LETTER L WITH STROKE
-	#x017C	;; 253:LATIN SMALL LETTER Z WITH DOT ABOVE
-	#x0122	;; 254:LATIN CAPITAL LETTER G WITH CEDILLA
-	#x02C7	;; 255:CARON
-	]))
+ [?\,AD(B ?\$,1  (B ?\$,1 !(B ?\,AI(B ?\$,1 $(B ?\,AV(B ?\,A\(B ?\,Aa(B ?\$,1 %(B ?\$,1 ,(B ?\,Ad(B ?\$,1 -(B ?\$,1 &(B ?\$,1 '(B ?\,Ai(B ?\$,1!9(B
+  ?\$,1!:(B ?\$,1 .(B ?\,Am(B ?\$,1 /(B ?\$,1 2(B ?\$,1 3(B ?\$,1 6(B ?\,As(B ?\$,1 7(B ?\,At(B ?\,Av(B ?\,Au(B ?\,Az(B ?\$,1 :(B ?\$,1 ;(B ?\,A|(B
+  ?\$,1s (B ?\,A0(B ?\$,1 8(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\,A_(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1 9(B ?\,A((B ?\$,1y (B ?\$,1 C(B ?\$,1 N(B
+  ?\$,1 O(B ?\$,1 J(B ?\$,1y$(B ?\$,1y%(B ?\$,1 K(B ?\$,1 V(B ?\$,1x"(B ?\$,1x1(B ?\$,1 b(B ?\$,1 [(B ?\$,1 \(B ?\$,1 ](B ?\$,1 ^(B ?\$,1 Y(B ?\$,1 Z(B ?\$,1 e(B
+  ?\$,1 f(B ?\$,1 c(B ?\,A,(B ?\$,1x:(B ?\$,1 d(B ?\$,1 g(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1 h(B ?\$,1 p(B ?\,AU(B ?\$,1 q(B ?\$,1 l(B
+  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,2"*(B ?\$,1 m(B ?\$,1 t(B ?\$,1 u(B ?\$,1 x(B ?\$,1s9(B ?\$,1s:(B ?\$,1 y(B ?\$,1 v(B
+  ?\$,1 w(B ?\$,1! (B ?\$,1rz(B ?\$,1r~(B ?\$,1!!(B ?\$,1 z(B ?\$,1 {(B ?\,AA(B ?\$,1!$(B ?\$,1!%(B ?\,AM(B ?\$,1!=(B ?\$,1!>(B ?\$,1!*(B ?\,AS(B ?\,AT(B
+  ?\$,1!+(B ?\$,1!.(B ?\,AZ(B ?\$,1!/(B ?\$,1!0(B ?\$,1!1(B ?\$,1!2(B ?\$,1!3(B ?\,A](B ?\,A}(B ?\$,1 W(B ?\$,1!;(B ?\$,1 a(B ?\$,1!<(B ?\$,1 B(B ?\$,1$g(B]
  "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman).")
 (coding-system-put 'mac-centraleurroman 'mime-charset 'x-mac-centraleurroman)
 
 (cp-make-coding-system
  mac-cyrillic
- (apply
-  'vector
-  (mapcar
-   (lambda (c) (decode-char 'ucs c))
-   ;; mac-cyrillic (128..255) -> UCS mapping
-   [	#x0410	;; 128:CYRILLIC CAPITAL LETTER A
-	#x0411	;; 129:CYRILLIC CAPITAL LETTER BE
-	#x0412	;; 130:CYRILLIC CAPITAL LETTER VE
-	#x0413	;; 131:CYRILLIC CAPITAL LETTER GHE
-	#x0414	;; 132:CYRILLIC CAPITAL LETTER DE
-	#x0415	;; 133:CYRILLIC CAPITAL LETTER IE
-	#x0416	;; 134:CYRILLIC CAPITAL LETTER ZHE
-	#x0417	;; 135:CYRILLIC CAPITAL LETTER ZE
-	#x0418	;; 136:CYRILLIC CAPITAL LETTER I
-	#x0419	;; 137:CYRILLIC CAPITAL LETTER SHORT I
-	#x041A	;; 138:CYRILLIC CAPITAL LETTER KA
-	#x041B	;; 139:CYRILLIC CAPITAL LETTER EL
-	#x041C	;; 140:CYRILLIC CAPITAL LETTER EM
-	#x041D	;; 141:CYRILLIC CAPITAL LETTER EN
-	#x041E	;; 142:CYRILLIC CAPITAL LETTER O
-	#x041F	;; 143:CYRILLIC CAPITAL LETTER PE
-	#x0420	;; 144:CYRILLIC CAPITAL LETTER ER
-	#x0421	;; 145:CYRILLIC CAPITAL LETTER ES
-	#x0422	;; 146:CYRILLIC CAPITAL LETTER TE
-	#x0423	;; 147:CYRILLIC CAPITAL LETTER U
-	#x0424	;; 148:CYRILLIC CAPITAL LETTER EF
-	#x0425	;; 149:CYRILLIC CAPITAL LETTER HA
-	#x0426	;; 150:CYRILLIC CAPITAL LETTER TSE
-	#x0427	;; 151:CYRILLIC CAPITAL LETTER CHE
-	#x0428	;; 152:CYRILLIC CAPITAL LETTER SHA
-	#x0429	;; 153:CYRILLIC CAPITAL LETTER SHCHA
-	#x042A	;; 154:CYRILLIC CAPITAL LETTER HARD SIGN
-	#x042B	;; 155:CYRILLIC CAPITAL LETTER YERU
-	#x042C	;; 156:CYRILLIC CAPITAL LETTER SOFT SIGN
-	#x042D	;; 157:CYRILLIC CAPITAL LETTER E
-	#x042E	;; 158:CYRILLIC CAPITAL LETTER YU
-	#x042F	;; 159:CYRILLIC CAPITAL LETTER YA
-	#x2020	;; 160:DAGGER
-	#x00B0	;; 161:DEGREE SIGN
-	#x0490	;; 162:CYRILLIC CAPITAL LETTER GHE WITH UPTURN
-	#x00A3	;; 163:POUND SIGN
-	#x00A7	;; 164:SECTION SIGN
-	#x2022	;; 165:BULLET
-	#x00B6	;; 166:PILCROW SIGN
-	#x0406	;; 167:CYRILLIC CAPITAL LETTER BYELORUSSIAN-UKRAINIAN I
-	#x00AE	;; 168:REGISTERED SIGN
-	#x00A9	;; 169:COPYRIGHT SIGN
-	#x2122	;; 170:TRADE MARK SIGN
-	#x0402	;; 171:CYRILLIC CAPITAL LETTER DJE
-	#x0452	;; 172:CYRILLIC SMALL LETTER DJE
-	#x2260	;; 173:NOT EQUAL TO
-	#x0403	;; 174:CYRILLIC CAPITAL LETTER GJE
-	#x0453	;; 175:CYRILLIC SMALL LETTER GJE
-	#x221E	;; 176:INFINITY
-	#x00B1	;; 177:PLUS-MINUS SIGN
-	#x2264	;; 178:LESS-THAN OR EQUAL TO
-	#x2265	;; 179:GREATER-THAN OR EQUAL TO
-	#x0456	;; 180:CYRILLIC SMALL LETTER BYELORUSSIAN-UKRAINIAN I
-	#x00B5	;; 181:MICRO SIGN
-	#x0491	;; 182:CYRILLIC SMALL LETTER GHE WITH UPTURN
-	#x0408	;; 183:CYRILLIC CAPITAL LETTER JE
-	#x0404	;; 184:CYRILLIC CAPITAL LETTER UKRAINIAN IE
-	#x0454	;; 185:CYRILLIC SMALL LETTER UKRAINIAN IE
-	#x0407	;; 186:CYRILLIC CAPITAL LETTER YI
-	#x0457	;; 187:CYRILLIC SMALL LETTER YI
-	#x0409	;; 188:CYRILLIC CAPITAL LETTER LJE
-	#x0459	;; 189:CYRILLIC SMALL LETTER LJE
-	#x040A	;; 190:CYRILLIC CAPITAL LETTER NJE
-	#x045A	;; 191:CYRILLIC SMALL LETTER NJE
-	#x0458	;; 192:CYRILLIC SMALL LETTER JE
-	#x0405	;; 193:CYRILLIC CAPITAL LETTER DZE
-	#x00AC	;; 194:NOT SIGN
-	#x221A	;; 195:SQUARE ROOT
-	#x0192	;; 196:LATIN SMALL LETTER F WITH HOOK
-	#x2248	;; 197:ALMOST EQUAL TO
-	#x2206	;; 198:INCREMENT
-	#x00AB	;; 199:LEFT-POINTING DOUBLE ANGLE QUOTATION MARK
-	#x00BB	;; 200:RIGHT-POINTING DOUBLE ANGLE QUOTATION MARK
-	#x2026	;; 201:HORIZONTAL ELLIPSIS
-	#x00A0	;; 202:NO-BREAK SPACE
-	#x040B	;; 203:CYRILLIC CAPITAL LETTER TSHE
-	#x045B	;; 204:CYRILLIC SMALL LETTER TSHE
-	#x040C	;; 205:CYRILLIC CAPITAL LETTER KJE
-	#x045C	;; 206:CYRILLIC SMALL LETTER KJE
-	#x0455	;; 207:CYRILLIC SMALL LETTER DZE
-	#x2013	;; 208:EN DASH
-	#x2014	;; 209:EM DASH
-	#x201C	;; 210:LEFT DOUBLE QUOTATION MARK
-	#x201D	;; 211:RIGHT DOUBLE QUOTATION MARK
-	#x2018	;; 212:LEFT SINGLE QUOTATION MARK
-	#x2019	;; 213:RIGHT SINGLE QUOTATION MARK
-	#x00F7	;; 214:DIVISION SIGN
-	#x201E	;; 215:DOUBLE LOW-9 QUOTATION MARK
-	#x040E	;; 216:CYRILLIC CAPITAL LETTER SHORT U
-	#x045E	;; 217:CYRILLIC SMALL LETTER SHORT U
-	#x040F	;; 218:CYRILLIC CAPITAL LETTER DZHE
-	#x045F	;; 219:CYRILLIC SMALL LETTER DZHE
-	#x2116	;; 220:NUMERO SIGN
-	#x0401	;; 221:CYRILLIC CAPITAL LETTER IO
-	#x0451	;; 222:CYRILLIC SMALL LETTER IO
-	#x044F	;; 223:CYRILLIC SMALL LETTER YA
-	#x0430	;; 224:CYRILLIC SMALL LETTER A
-	#x0431	;; 225:CYRILLIC SMALL LETTER BE
-	#x0432	;; 226:CYRILLIC SMALL LETTER VE
-	#x0433	;; 227:CYRILLIC SMALL LETTER GHE
-	#x0434	;; 228:CYRILLIC SMALL LETTER DE
-	#x0435	;; 229:CYRILLIC SMALL LETTER IE
-	#x0436	;; 230:CYRILLIC SMALL LETTER ZHE
-	#x0437	;; 231:CYRILLIC SMALL LETTER ZE
-	#x0438	;; 232:CYRILLIC SMALL LETTER I
-	#x0439	;; 233:CYRILLIC SMALL LETTER SHORT I
-	#x043A	;; 234:CYRILLIC SMALL LETTER KA
-	#x043B	;; 235:CYRILLIC SMALL LETTER EL
-	#x043C	;; 236:CYRILLIC SMALL LETTER EM
-	#x043D	;; 237:CYRILLIC SMALL LETTER EN
-	#x043E	;; 238:CYRILLIC SMALL LETTER O
-	#x043F	;; 239:CYRILLIC SMALL LETTER PE
-	#x0440	;; 240:CYRILLIC SMALL LETTER ER
-	#x0441	;; 241:CYRILLIC SMALL LETTER ES
-	#x0442	;; 242:CYRILLIC SMALL LETTER TE
-	#x0443	;; 243:CYRILLIC SMALL LETTER U
-	#x0444	;; 244:CYRILLIC SMALL LETTER EF
-	#x0445	;; 245:CYRILLIC SMALL LETTER HA
-	#x0446	;; 246:CYRILLIC SMALL LETTER TSE
-	#x0447	;; 247:CYRILLIC SMALL LETTER CHE
-	#x0448	;; 248:CYRILLIC SMALL LETTER SHA
-	#x0449	;; 249:CYRILLIC SMALL LETTER SHCHA
-	#x044A	;; 250:CYRILLIC SMALL LETTER HARD SIGN
-	#x044B	;; 251:CYRILLIC SMALL LETTER YERU
-	#x044C	;; 252:CYRILLIC SMALL LETTER SOFT SIGN
-	#x044D	;; 253:CYRILLIC SMALL LETTER E
-	#x044E	;; 254:CYRILLIC SMALL LETTER YU
-	#x20AC	;; 255:EURO SIGN
-	]))
+ [?\$,1(0(B ?\$,1(1(B ?\$,1(2(B ?\$,1(3(B ?\$,1(4(B ?\$,1(5(B ?\$,1(6(B ?\$,1(7(B ?\$,1(8(B ?\$,1(9(B ?\$,1(:(B ?\$,1(;(B ?\$,1(<(B ?\$,1(=(B ?\$,1(>(B ?\$,1(?(B
+  ?\$,1(@(B ?\$,1(A(B ?\$,1(B(B ?\$,1(C(B ?\$,1(D(B ?\$,1(E(B ?\$,1(F(B ?\$,1(G(B ?\$,1(H(B ?\$,1(I(B ?\$,1(J(B ?\$,1(K(B ?\$,1(L(B ?\$,1(M(B ?\$,1(N(B ?\$,1(O(B
+  ?\$,1s (B ?\,A0(B ?\$,1)P(B ?\,A#(B ?\,A'(B ?\$,1s"(B ?\,A6(B ?\$,1(&(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1("(B ?\$,1(r(B ?\$,1y (B ?\$,1(#(B ?\$,1(s(B
+  ?\$,1x>(B ?\,A1(B ?\$,1y$(B ?\$,1y%(B ?\$,1(v(B ?\,A5(B ?\$,1)Q(B ?\$,1(((B ?\$,1($(B ?\$,1(t(B ?\$,1('(B ?\$,1(w(B ?\$,1()(B ?\$,1(y(B ?\$,1(*(B ?\$,1(z(B
+  ?\$,1(x(B ?\$,1(%(B ?\,A,(B ?\$,1x:(B ?\$,1!R(B ?\$,1xh(B ?\$,1x&(B ?\,A+(B ?\,A;(B ?\$,1s&(B ?\,A (B ?\$,1(+(B ?\$,1({(B ?\$,1(,(B ?\$,1(|(B ?\$,1(u(B
+  ?\$,1rs(B ?\$,1rt(B ?\$,1r|(B ?\$,1r}(B ?\$,1rx(B ?\$,1ry(B ?\,Aw(B ?\$,1r~(B ?\$,1(.(B ?\$,1(~(B ?\$,1(/(B ?\$,1((B ?\$,1uV(B ?\$,1(!(B ?\$,1(q(B ?\$,1(o(B
+  ?\$,1(P(B ?\$,1(Q(B ?\$,1(R(B ?\$,1(S(B ?\$,1(T(B ?\$,1(U(B ?\$,1(V(B ?\$,1(W(B ?\$,1(X(B ?\$,1(Y(B ?\$,1(Z(B ?\$,1([(B ?\$,1(\(B ?\$,1(](B ?\$,1(^(B ?\$,1(_(B
+  ?\$,1(`(B ?\$,1(a(B ?\$,1(b(B ?\$,1(c(B ?\$,1(d(B ?\$,1(e(B ?\$,1(f(B ?\$,1(g(B ?\$,1(h(B ?\$,1(i(B ?\$,1(j(B ?\$,1(k(B ?\$,1(l(B ?\$,1(m(B ?\$,1(n(B ?\$,1tL(B]
  "Mac Cyrillic Encoding (MIME:x-mac-cyrillic).")
 (coding-system-put 'mac-cyrillic 'mime-charset 'x-mac-cyrillic)
+
+(let
+    ((encoding-vector (make-vector 256 nil))
+     (i 0)
+     (vec
+      (vconcat
+       (make-vector 32 nil)
+       ;; mac-symbol (32..126) -> emacs-mule mapping
+       [?\  ?\! ?\$,1x (B ?\# ?\$,1x#(B ?\% ?\& ?\$,1x-(B ?\( ?\) ?\$,1x7(B ?\+ ?\, ?\$,1x2(B ?\. ?\/
+	?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
+	?\$,1xe(B ?\$,1&q(B ?\$,1&r(B ?\$,1''(B ?\$,1&t(B ?\$,1&u(B ?\$,1'&(B ?\$,1&s(B ?\$,1&w(B ?\$,1&y(B ?\$,1'Q(B ?\$,1&z(B ?\$,1&{(B ?\$,1&|(B ?\$,1&}(B ?\$,1&(B
+	?\$,1' (B ?\$,1&x(B ?\$,1'!(B ?\$,1'#(B ?\$,1'$(B ?\$,1'%(B ?\$,1'B(B ?\$,1')(B ?\$,1&~(B ?\$,1'((B ?\$,1&v(B ?\[ ?\$,1xT(B ?\] ?\$,1ye(B ?\_
+	?\$,3bE(B ?\$,1'1(B ?\$,1'2(B ?\$,1'G(B ?\$,1'4(B ?\$,1'5(B ?\$,1'F(B ?\$,1'3(B ?\$,1'7(B ?\$,1'9(B ?\$,1'U(B ?\$,1':(B ?\$,1';(B ?\$,1'<(B ?\$,1'=(B ?\$,1'?(B
+	?\$,1'@(B ?\$,1'8(B ?\$,1'A(B ?\$,1'C(B ?\$,1'D(B ?\$,1'E(B ?\$,1'V(B ?\$,1'I(B ?\$,1'>(B ?\$,1'H(B ?\$,1'6(B ?\{ ?\| ?\} ?\$,1x\(B]
+       (make-vector (- 160 127) nil)
+       ;; mac-symbol (160..254) -> emacs-mule mapping
+       [?\$,1tL(B ?\$,1'R(B ?\$,1s2(B ?\$,1y$(B ?\$,1sD(B ?\$,1x>(B ?\$,1!R(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1vt(B ?\$,1vp(B ?\$,1vq(B ?\$,1vr(B ?\$,1vs(B
+	?\,A0(B ?\,A1(B ?\$,1s3(B ?\$,1y%(B ?\,AW(B ?\$,1x=(B ?\$,1x"(B ?\$,1s"(B ?\,Aw(B ?\$,1y (B ?\$,1y!(B ?\$,1xh(B ?\$,1s&(B ?\$,1|p(B ?\$,1|O(B ?\$,1w5(B
+	?\$,1uu(B ?\$,1uQ(B ?\$,1u\(B ?\$,1uX(B ?\$,1yW(B ?\$,1yU(B ?\$,1x%(B ?\$,1xI(B ?\$,1xJ(B ?\$,1yC(B ?\$,1yG(B ?\$,1yD(B ?\$,1yB(B ?\$,1yF(B ?\$,1x((B ?\$,1x)(B
+	?\$,1x@(B ?\$,1x'(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x/(B ?\$,1x:(B ?\$,1z%(B ?\,A,(B ?\$,1xG(B ?\$,1xH(B ?\$,1wT(B ?\$,1wP(B ?\$,1wQ(B ?\$,1wR(B ?\$,1wS(B
+	?\$,2"*(B ?\$B!R(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
+	?\$,3b_(B ?\$B!S(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B]
+       ))
+     len translation-table)
+  (setq len (length vec))
+  (while (< i len)
+    (aset encoding-vector i
+	  (if (null (aref vec i)) i
+	    ;; (decode-char 'ucs (aref vec i))
+	    (aref vec i)
+	    ))
+    (setq i (1+ i)))
+  (while (< i 256)
+    (setq i (1+ i)))
+  (setq translation-table
+	(make-translation-table-from-vector encoding-vector))
+;;  (define-translation-table 'mac-symbol-decoder translation-table)
+  (define-translation-table 'mac-symbol-encoder
+    (char-table-extra-slot translation-table 0)))
+
+(let
+    ((encoding-vector (make-vector 256 nil))
+     (i 0)
+     (vec
+      (vconcat
+       (make-vector 32 nil)
+       ;; mac-dingbats (32..126) -> emacs-mule mapping
+       [?\  ?\$,2%A(B ?\$,2%B(B ?\$,2%C(B ?\$,2%D(B ?\$,2"n(B ?\$,2%F(B ?\$,2%G(B ?\$,2%H(B ?\$,2%I(B ?\$,2"{(B ?\$,2"~(B ?\$,2%L(B ?\$,2%M(B ?\$,2%N(B ?\$,2%O(B
+	?\$,2%P(B ?\$,2%Q(B ?\$,2%R(B ?\$,2%S(B ?\$,2%T(B ?\$,2%U(B ?\$,2%V(B ?\$,2%W(B ?\$,2%X(B ?\$,2%Y(B ?\$,2%Z(B ?\$,2%[(B ?\$,2%\(B ?\$,2%](B ?\$,2%^(B ?\$,2%_(B
+	?\$,2%`(B ?\$,2%a(B ?\$,2%b(B ?\$,2%c(B ?\$,2%d(B ?\$,2%e(B ?\$,2%f(B ?\$,2%g(B ?\$,2"e(B ?\$,2%i(B ?\$,2%j(B ?\$,2%k(B ?\$,2%l(B ?\$,2%m(B ?\$,2%n(B ?\$,2%o(B
+	?\$,2%p(B ?\$,2%q(B ?\$,2%r(B ?\$,2%s(B ?\$,2%t(B ?\$,2%u(B ?\$,2%v(B ?\$,2%w(B ?\$,2%x(B ?\$,2%y(B ?\$,2%z(B ?\$,2%{(B ?\$,2%|(B ?\$,2%}(B ?\$,2%~(B ?\$,2%(B
+	?\$,2& (B ?\$,2&!(B ?\$,2&"(B ?\$,2&#(B ?\$,2&$(B ?\$,2&%(B ?\$,2&&(B ?\$,2&'(B ?\$,2&((B ?\$,2&)(B ?\$,2&*(B ?\$,2&+(B ?\$,2"/(B ?\$,2&-(B ?\$,2!`(B ?\$,2&/(B
+	?\$,2&0(B ?\$,2&1(B ?\$,2&2(B ?\$,2!r(B ?\$,2!|(B ?\$,2"&(B ?\$,2&6(B ?\$,2"7(B ?\$,2&8(B ?\$,2&9(B ?\$,2&:(B ?\$,2&;(B ?\$,2&<(B ?\$,2&=(B ?\$,2&>(B]
+       [nil]
+       ;; mac-dingbats (128..141) -> emacs-mule mapping
+       [?\$,2&H(B ?\$,2&I(B ?\$,2&J(B ?\$,2&K(B ?\$,2&L(B ?\$,2&M(B ?\$,2&N(B ?\$,2&O(B ?\$,2&P(B ?\$,2&Q(B ?\$,2&R(B ?\$,2&S(B ?\$,2&T(B ?\$,2&U(B]
+       (make-vector (- 161 142) nil)
+       ;; mac-dingbats (161..239) -> emacs-mule mapping
+       [?\$,2&A(B ?\$,2&B(B ?\$,2&C(B ?\$,2&D(B ?\$,2&E(B ?\$,2&F(B ?\$,2&G(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1~@(B ?\$,1~A(B ?\$,1~B(B ?\$,1~C(B
+	?\$,1~D(B ?\$,1~E(B ?\$,1~F(B ?\$,1~G(B ?\$,1~H(B ?\$,1~I(B ?\$,2&V(B ?\$,2&W(B ?\$,2&X(B ?\$,2&Y(B ?\$,2&Z(B ?\$,2&[(B ?\$,2&\(B ?\$,2&](B ?\$,2&^(B ?\$,2&_(B
+	?\$,2&`(B ?\$,2&a(B ?\$,2&b(B ?\$,2&c(B ?\$,2&d(B ?\$,2&e(B ?\$,2&f(B ?\$,2&g(B ?\$,2&h(B ?\$,2&i(B ?\$,2&j(B ?\$,2&k(B ?\$,2&l(B ?\$,2&m(B ?\$,2&n(B ?\$,2&o(B
+	?\$,2&p(B ?\$,2&q(B ?\$,2&r(B ?\$,2&s(B ?\$,2&t(B ?\$,1vr(B ?\$,1vt(B ?\$,1vu(B ?\$,2&x(B ?\$,2&y(B ?\$,2&z(B ?\$,2&{(B ?\$,2&|(B ?\$,2&}(B ?\$,2&~(B ?\$,2&(B
+	?\$,2' (B ?\$,2'!(B ?\$,2'"(B ?\$,2'#(B ?\$,2'$(B ?\$,2'%(B ?\$,2'&(B ?\$,2''(B ?\$,2'((B ?\$,2')(B ?\$,2'*(B ?\$,2'+(B ?\$,2',(B ?\$,2'-(B ?\$,2'.(B ?\$,2'/(B]
+       [nil]
+       ;; mac-dingbats (241..254) -> emacs-mule mapping
+       [?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B]
+       ))
+     len translation-table)
+  (setq len (length vec))
+  (while (< i len)
+    (aset encoding-vector i
+	  (if (null (aref vec i)) i
+	    ;; (decode-char 'ucs (aref vec i))
+	    (aref vec i)
+	    ))
+    (setq i (1+ i)))
+  (while (< i 256)
+    (setq i (1+ i)))
+  (setq translation-table
+	(make-translation-table-from-vector encoding-vector))
+;;  (define-translation-table 'mac-dingbats-decoder translation-table)
+  (define-translation-table 'mac-dingbats-encoder
+    (char-table-extra-slot translation-table 0)))
 
 (defvar mac-font-encoder-list
   '(("mac-roman" mac-roman-encoder
@@ -1448,7 +1304,11 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     ("mac-centraleurroman" encode-mac-centraleurroman
      ccl-encode-mac-centraleurroman-font "%s ce")
     ("mac-cyrillic" encode-mac-cyrillic
-     ccl-encode-mac-cyrillic-font "%s cy")))
+     ccl-encode-mac-cyrillic-font "%s cy")
+    ("mac-symbol" mac-symbol-encoder
+     ccl-encode-mac-symbol-font "symbol")
+    ("mac-dingbats" mac-dingbats-encoder
+     ccl-encode-mac-dingbats-font "zapf dingbats")))
 
 (let ((encoder-list
        (mapcar (lambda (lst) (nth 1 lst)) mac-font-encoder-list))
@@ -1496,6 +1356,26 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 	   (r1 |= r2)
 	   (translate-character encode-mac-cyrillic r0 r1)))))
   "CCL program for Mac Cyrillic font")
+
+(define-ccl-program ccl-encode-mac-symbol-font
+  `(0
+    (if (r0 != ,(charset-id 'ascii))
+	(if (r0 <= ?\x8f)
+	    (translate-character mac-symbol-encoder r0 r1)
+	  ((r1 <<= 7)
+	   (r1 |= r2)
+	   (translate-character mac-symbol-encoder r0 r1)))))
+  "CCL program for Mac Symbol font")
+
+(define-ccl-program ccl-encode-mac-dingbats-font
+  `(0
+    (if (r0 != ,(charset-id 'ascii))
+	(if (r0 <= ?\x8f)
+	    (translate-character mac-dingbats-encoder r0 r1)
+	  ((r1 <<= 7)
+	   (r1 |= r2)
+	   (translate-character mac-dingbats-encoder r0 r1)))))
+  "CCL program for Mac Dingbats font")
 
 
 (setq font-ccl-encoder-alist
