@@ -1216,9 +1216,7 @@ correspoinding TextEncodingBase value."
 (coding-system-put 'mac-cyrillic 'mime-charset 'x-mac-cyrillic)
 
 (let
-    ((encoding-vector (make-vector 256 nil))
-     (i 0)
-     (vec
+    ((encoding-vector
       (vconcat
        (make-vector 32 nil)
        ;; mac-symbol (32..126) -> emacs-mule mapping
@@ -1235,18 +1233,13 @@ correspoinding TextEncodingBase value."
 	?\$,1uu(B ?\$,1uQ(B ?\$,1u\(B ?\$,1uX(B ?\$,1yW(B ?\$,1yU(B ?\$,1x%(B ?\$,1xI(B ?\$,1xJ(B ?\$,1yC(B ?\$,1yG(B ?\$,1yD(B ?\$,1yB(B ?\$,1yF(B ?\$,1x((B ?\$,1x)(B
 	?\$,1x@(B ?\$,1x'(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x/(B ?\$,1x:(B ?\$,1z%(B ?\,A,(B ?\$,1xG(B ?\$,1xH(B ?\$,1wT(B ?\$,1wP(B ?\$,1wQ(B ?\$,1wR(B ?\$,1wS(B
 	?\$,2"*(B ?\$B!R(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
-	?\$,3b_(B ?\$B!S(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B]
-       ))
-     len translation-table)
-  (setq len (length vec))
-  (while (< i len)
-    (aset encoding-vector i
-	  (if (null (aref vec i)) i
-	    ;; (decode-char 'ucs (aref vec i))
-	    (aref vec i)
-	    ))
-    (setq i (1+ i)))
+	?\$,3b_(B ?\$B!S(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B
+	nil]))
+     (i 0)
+     translation-table)
   (while (< i 256)
+    (if (null (aref encoding-vector i))
+	(aset encoding-vector i i))
     (setq i (1+ i)))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
@@ -1255,9 +1248,7 @@ correspoinding TextEncodingBase value."
     (char-table-extra-slot translation-table 0)))
 
 (let
-    ((encoding-vector (make-vector 256 nil))
-     (i 0)
-     (vec
+    ((encoding-vector 
       (vconcat
        (make-vector 32 nil)
        ;; mac-dingbats (32..126) -> emacs-mule mapping
@@ -1266,31 +1257,26 @@ correspoinding TextEncodingBase value."
 	?\$,2%`(B ?\$,2%a(B ?\$,2%b(B ?\$,2%c(B ?\$,2%d(B ?\$,2%e(B ?\$,2%f(B ?\$,2%g(B ?\$,2"e(B ?\$,2%i(B ?\$,2%j(B ?\$,2%k(B ?\$,2%l(B ?\$,2%m(B ?\$,2%n(B ?\$,2%o(B
 	?\$,2%p(B ?\$,2%q(B ?\$,2%r(B ?\$,2%s(B ?\$,2%t(B ?\$,2%u(B ?\$,2%v(B ?\$,2%w(B ?\$,2%x(B ?\$,2%y(B ?\$,2%z(B ?\$,2%{(B ?\$,2%|(B ?\$,2%}(B ?\$,2%~(B ?\$,2%(B
 	?\$,2& (B ?\$,2&!(B ?\$,2&"(B ?\$,2&#(B ?\$,2&$(B ?\$,2&%(B ?\$,2&&(B ?\$,2&'(B ?\$,2&((B ?\$,2&)(B ?\$,2&*(B ?\$,2&+(B ?\$,2"/(B ?\$,2&-(B ?\$,2!`(B ?\$,2&/(B
-	?\$,2&0(B ?\$,2&1(B ?\$,2&2(B ?\$,2!r(B ?\$,2!|(B ?\$,2"&(B ?\$,2&6(B ?\$,2"7(B ?\$,2&8(B ?\$,2&9(B ?\$,2&:(B ?\$,2&;(B ?\$,2&<(B ?\$,2&=(B ?\$,2&>(B]
-       [nil]
+	?\$,2&0(B ?\$,2&1(B ?\$,2&2(B ?\$,2!r(B ?\$,2!|(B ?\$,2"&(B ?\$,2&6(B ?\$,2"7(B ?\$,2&8(B ?\$,2&9(B ?\$,2&:(B ?\$,2&;(B ?\$,2&<(B ?\$,2&=(B ?\$,2&>(B
+       nil
        ;; mac-dingbats (128..141) -> emacs-mule mapping
-       [?\$,2&H(B ?\$,2&I(B ?\$,2&J(B ?\$,2&K(B ?\$,2&L(B ?\$,2&M(B ?\$,2&N(B ?\$,2&O(B ?\$,2&P(B ?\$,2&Q(B ?\$,2&R(B ?\$,2&S(B ?\$,2&T(B ?\$,2&U(B]
+       ?\$,2&H(B ?\$,2&I(B ?\$,2&J(B ?\$,2&K(B ?\$,2&L(B ?\$,2&M(B ?\$,2&N(B ?\$,2&O(B ?\$,2&P(B ?\$,2&Q(B ?\$,2&R(B ?\$,2&S(B ?\$,2&T(B ?\$,2&U(B]
        (make-vector (- 161 142) nil)
        ;; mac-dingbats (161..239) -> emacs-mule mapping
        [?\$,2&A(B ?\$,2&B(B ?\$,2&C(B ?\$,2&D(B ?\$,2&E(B ?\$,2&F(B ?\$,2&G(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1~@(B ?\$,1~A(B ?\$,1~B(B ?\$,1~C(B
 	?\$,1~D(B ?\$,1~E(B ?\$,1~F(B ?\$,1~G(B ?\$,1~H(B ?\$,1~I(B ?\$,2&V(B ?\$,2&W(B ?\$,2&X(B ?\$,2&Y(B ?\$,2&Z(B ?\$,2&[(B ?\$,2&\(B ?\$,2&](B ?\$,2&^(B ?\$,2&_(B
 	?\$,2&`(B ?\$,2&a(B ?\$,2&b(B ?\$,2&c(B ?\$,2&d(B ?\$,2&e(B ?\$,2&f(B ?\$,2&g(B ?\$,2&h(B ?\$,2&i(B ?\$,2&j(B ?\$,2&k(B ?\$,2&l(B ?\$,2&m(B ?\$,2&n(B ?\$,2&o(B
 	?\$,2&p(B ?\$,2&q(B ?\$,2&r(B ?\$,2&s(B ?\$,2&t(B ?\$,1vr(B ?\$,1vt(B ?\$,1vu(B ?\$,2&x(B ?\$,2&y(B ?\$,2&z(B ?\$,2&{(B ?\$,2&|(B ?\$,2&}(B ?\$,2&~(B ?\$,2&(B
-	?\$,2' (B ?\$,2'!(B ?\$,2'"(B ?\$,2'#(B ?\$,2'$(B ?\$,2'%(B ?\$,2'&(B ?\$,2''(B ?\$,2'((B ?\$,2')(B ?\$,2'*(B ?\$,2'+(B ?\$,2',(B ?\$,2'-(B ?\$,2'.(B ?\$,2'/(B]
-       [nil]
+	?\$,2' (B ?\$,2'!(B ?\$,2'"(B ?\$,2'#(B ?\$,2'$(B ?\$,2'%(B ?\$,2'&(B ?\$,2''(B ?\$,2'((B ?\$,2')(B ?\$,2'*(B ?\$,2'+(B ?\$,2',(B ?\$,2'-(B ?\$,2'.(B ?\$,2'/(B
+	nil
        ;; mac-dingbats (241..254) -> emacs-mule mapping
-       [?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B]
-       ))
-     len translation-table)
-  (setq len (length vec))
-  (while (< i len)
-    (aset encoding-vector i
-	  (if (null (aref vec i)) i
-	    ;; (decode-char 'ucs (aref vec i))
-	    (aref vec i)
-	    ))
-    (setq i (1+ i)))
+	?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B
+	nil]))
+     (i 0)
+     translation-table)
   (while (< i 256)
+    (if (null (aref encoding-vector i))
+	(aset encoding-vector i i))
     (setq i (1+ i)))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
