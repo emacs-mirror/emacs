@@ -4193,7 +4193,8 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(not (syntax-class (syntax-after blinkpos)) 8)) ;Not syntax '$'.
+                ;; Not syntax '$'.
+		(not (eq (syntax-class (syntax-after blinkpos)) 8))
 		(setq matching-paren
 		      (let ((syntax (syntax-after blinkpos)))
 			(and (consp syntax)
