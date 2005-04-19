@@ -163,8 +163,13 @@ non-@code{nil} value, then the compilation buffer always scrolls to
 follow output as it comes in.
 
 @table @kbd
-@item C-x `
+@item M-g M-n
+@itemx M-g n
+@itemx C-x `
 Visit the locus of the next compiler error message or @code{grep} match.
+@item M-g M-p
+@itemx M-g p
+Visit the locus of the previous compiler error message or @code{grep} match.
 @item @key{RET}
 Visit the locus of the error message that point is on.
 This command is used in the compilation buffer.
@@ -187,6 +192,8 @@ Toggle Next Error Follow minor mode, which makes cursor motion in the
 compilation buffer produce automatic source display.
 @end table
 
+@kindex M-g M-n
+@kindex M-g n
 @kindex C-x `
 @findex next-error
   You can visit the source for any particular error message by moving
