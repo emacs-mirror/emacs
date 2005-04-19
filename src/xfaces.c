@@ -7115,8 +7115,9 @@ realize_x_face (cache, attrs, c, base_face)
      int c;
      struct face *base_face;
 {
+  struct face *face = NULL;
 #ifdef HAVE_WINDOW_SYSTEM
-  struct face *face, *default_face;
+  struct face *default_face;
   struct frame *f;
   Lisp_Object stipple, overline, strike_through, box;
 
@@ -7312,8 +7313,8 @@ realize_x_face (cache, attrs, c, base_face)
     face->stipple = load_pixmap (f, stipple, &face->pixmap_w, &face->pixmap_h);
 
   xassert (FACE_SUITABLE_FOR_CHAR_P (face, c));
-  return face;
 #endif /* HAVE_WINDOW_SYSTEM */
+  return face;
 }
 
 

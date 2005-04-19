@@ -8590,13 +8590,15 @@ XTread_socket (sd, expected, hold_quit)
 		struct frame *f = mac_focus_frame (dpyinfo);
 		WindowPtr window_ptr;
 
-		if (!f)
+#if 0
+		if (dpyinfo->x_focus_frame == NULL)
 		  {
 		    /* Beep if wheel move occurs when all the frames
 		       are invisible.  */
 		    SysBeep(1);
 		    break;
 		  }
+#endif
 
 		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
 				  typeSInt32, NULL, sizeof (SInt32),
@@ -9011,6 +9013,7 @@ XTread_socket (sd, expected, hold_quit)
 		break;
 #endif
 
+#if 0
 	    if (dpyinfo->x_focus_frame == NULL)
 	      {
 		/* Beep if keyboard input occurs when all the frames
@@ -9018,6 +9021,7 @@ XTread_socket (sd, expected, hold_quit)
 		SysBeep (1);
 		break;
 	      }
+#endif
 
 	    {
 	      static SInt16 last_key_script = -1;

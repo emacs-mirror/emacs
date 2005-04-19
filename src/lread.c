@@ -1,6 +1,6 @@
 /* Lisp parsing and input streams.
    Copyright (C) 1985, 1986, 1987, 1988, 1989, 1993, 1994, 1995, 1997, 1998,
-     1999, 2000, 2001, 2003, 2004  Free Software Foundation, Inc.
+     1999, 2000, 2001, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -90,7 +90,7 @@ Lisp_Object Qinhibit_file_name_operation;
 extern Lisp_Object Qevent_symbol_element_mask;
 extern Lisp_Object Qfile_exists_p;
 
-/* non-zero if inside `load' */
+/* non-zero iff inside `load' */
 int load_in_progress;
 
 /* Directory in which the sources were found.  */
@@ -194,7 +194,7 @@ static int new_backquote_flag;
 /* A list of file names for files being loaded in Fload.  Used to
    check for recursive loads.  */
 
-Lisp_Object Vloads_in_progress;
+static Lisp_Object Vloads_in_progress;
 
 /* Non-zero means load dangerous compiled Lisp files.  */
 

@@ -188,8 +188,9 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
   ;; If you change the :init-value below, you also need to change the
   ;; corresponding code in startup.el.
   :init-value (not (or noninteractive
-		       emacs-quick-startup
-		       (not (display-graphic-p))
+		       (and (boundp 'emacs-quick-startup) emacs-quick-startup)
+		       (not (and (fboundp 'display-graphic-p)
+				 (display-graphic-p)))
 		       (not (fboundp 'x-show-tip))))
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
@@ -289,7 +290,7 @@ change the existing association.  Value is the resulting alist."
       (push (cons key value) alist))
     alist))
 
-(defun tooltip-show (text gud-tip)
+(defun tooltip-show (text &optional use-echo-area)
   "Show a tooltip window displaying TEXT.
 
 Text larger than `x-max-tooltip-size' is clipped.
@@ -300,8 +301,9 @@ is displayed.  Otherwise, the tooltip pops at offsets specified by
 `tooltip-x-offset' and `tooltip-y-offset' from the current mouse
 position.
 
-GUD-TIP is t if the tooltip is from a GUD session and nil otherwise."
-  (if (and gud-tip tooltip-gud-echo-area)
+Optional second arg USE-ECHO-AREA non-nil means to show tooltip
+in echo area."
+  (if use-echo-area
       (message "%s" text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
@@ -417,7 +419,8 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
-  (tooltip-show (tooltip-strip-prompt process output) t))
+  (tooltip-show (tooltip-strip-prompt process output)
+		tooltip-gud-echo-area))
 
 (defun tooltip-gud-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -464,7 +467,8 @@ This function must return nil if it doesn't handle EVENT."
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (let ((string (buffer-string)))
        ;; remove newline for tooltip-gud-echo-area
-       (substring string 0 (- (length string) 1)))) t))
+       (substring string 0 (- (length string) 1))))
+   tooltip-gud-echo-area))
 
 
 ;;; Tooltip help.
@@ -497,7 +501,7 @@ This is installed on the hook `tooltip-hook', which is run when
 the timer with ID `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message nil)
+    (tooltip-show tooltip-help-message)
     t))
 
 (provide 'tooltip)

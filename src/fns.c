@@ -66,7 +66,7 @@ int use_file_dialog;
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
-extern Lisp_Object Vloads_in_progress;
+extern int load_in_progress;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -3460,7 +3460,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
      even if the feature specified is already loaded.
      But not more than once in any file,
      and not when we aren't loading a file.  */
-  if (! NILP (Vloads_in_progress))
+  if (load_in_progress)
     {
       tem = Fcons (Qrequire, feature);
       if (NILP (Fmember (tem, Vcurrent_load_list)))
