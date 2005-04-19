@@ -2163,9 +2163,10 @@ If you use @code{regexp-opt} to produce the regular expression
 Functions}) to calculate the value for @var{subexp}.
 
 @item (@var{matcher} . @var{facespec})
-In this kind of element, @var{facespec} is an object which specifies
-the face variable to use for highlighting.  In the simplest case, it
-is a Lisp variable (a symbol), whose value should be a face name.
+In this kind of element, @var{facespec} is an expression whose value
+specifies the face to use for highlighting.  In the simplest case,
+@var{facespec} is a Lisp variable (a symbol) whose value is a face
+name.
 
 @example
 ;; @r{Highlight occurrences of @samp{fubar},}
@@ -2173,12 +2174,13 @@ is a Lisp variable (a symbol), whose value should be a face name.
 ("fubar" . fubar-face)
 @end example
 
-However, @var{facespec} can also be a list of the form:
+However, @var{facespec} can also evaluate to a list of this form:
 
 @example
 (face @var{face} @var{prop1} @var{val1} @var{prop2} @var{val2}@dots{})
 @end example
 
+@noindent
 to specify the face @var{face} and various additional text properties
 to put on the text that matches.  If you do this, be sure to add the
 other text property names that you set in this way to the value of
@@ -2198,7 +2200,8 @@ It has the form:
 
 The @sc{car}, @var{subexp}, is an integer specifying which subexpression
 of the match to fontify (0 means the entire matching text).  The second
-subelement, @var{facespec}, specifies the face, as described above.
+subelement, @var{facespec}, is an expression whose value specifies the
+face, as described above.
 
 The last two values in @var{subexp-highlighter}, @var{override} and
 @var{laxmatch}, are optional flags.  If @var{override} is @code{t},
