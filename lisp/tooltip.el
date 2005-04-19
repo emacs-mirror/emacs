@@ -145,6 +145,8 @@ only tooltips in the buffer containing the overlay arrow."
   :tag "Use echo area"
   :group 'tooltip)
 
+(defvaralias 'tooltip-use-echo-area 'tooltip-gud-echo-area)
+(make-obsolete-variable 'tooltip-use-echo-area 'tooltip-gud-echo-area "22.1")
 
 ;;; Variables that are not customizable.
 
