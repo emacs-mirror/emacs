@@ -1,3 +1,12 @@
+2005-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (syntax-class): New function.
+
+	* simple.el (blink-matching-open): Use it.
+
+	* paren.el (show-paren-function): Use it to recognize parens that are
+	also used in 2-char comment markers.
+
 2005-04-19  Lute Kamstra  <lute@gnu.org>
 
 	* loadhist.el (unload-feature): Update for new format of
@@ -11,10 +20,9 @@
 	(mac-centraleurroman, mac-cyrillic): Do not use UCS in table data
 	for translation.
 	(mac-symbol-encoder, mac-dingbats-encoder): New translation table.
-	(mac-font-encoder-list): Add entries for mac-symbol and
-	mac-dingbats.
-	(ccl-encode-mac-symbol-font, ccl-encode-mac-dingbats-font): New
-	CCL programs.
+	(mac-font-encoder-list): Add entries for mac-symbol and mac-dingbats.
+	(ccl-encode-mac-symbol-font, ccl-encode-mac-dingbats-font):
+	New CCL programs.
 
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
