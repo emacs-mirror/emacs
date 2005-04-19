@@ -1,3 +1,8 @@
+2005-04-19  Lute Kamstra  <lute@gnu.org>
+
+	* loadhist.el (unload-feature): Update for new format of
+	load-history.  Simplify the code.
+
 2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Add coding: tag and set it to iso-2022-7bit.
