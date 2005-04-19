@@ -3386,11 +3386,11 @@ setup_for_ellipsis (it, len)
   it->current.dpvec_index = 0;
   it->dpvec_face_id = -1;
 
-#if 0  /* Already saved in handle_stop */
   /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.  */
-  it->saved_face_id = it->face_id;
-#endif
+     IT's face is restored in set_iterator_to_next.
+     saved_face_id was set to preceding char's face in handle_stop.  */
+  if (it->saved_face_id < 0 || it->saved_face_id != it->face_id)
+    it->saved_face_id = it->face_id = DEFAULT_FACE_ID;
 
   it->method = GET_FROM_DISPLAY_VECTOR;
   it->ellipsis_p = 1;
