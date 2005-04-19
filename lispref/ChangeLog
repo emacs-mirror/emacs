@@ -1,3 +1,8 @@
+2005-04-19  Kevin Ryde  <user42@zip.com.au>
+
+        * streams.texi (Output Functions): Fix xref.
+	* strings.texi (String Conversion): Fix xref.
+
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
 	* symbols.texi (Symbol Plists): Add safe-get.
