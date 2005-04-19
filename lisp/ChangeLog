@@ -1,5 +1,8 @@
 2005-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* progmodes/flymake.el (flymake-get-absolute-file-name-basedir):
+	Remove.  Update callers to use expand-file-name instead.
+
 	* subr.el (syntax-class): New function.
 
 	* simple.el (blink-matching-open): Use it.
