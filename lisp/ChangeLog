@@ -1,3 +1,7 @@
+2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-use-echo-area): Replace as alias and deprecate.
+
 2005-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-get-absolute-file-name-basedir):
