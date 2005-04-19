@@ -4190,9 +4190,15 @@ This returns the mode-line or header-line of the selected (or a
 specified) window as a string with or without text properties.
 
 +++
-** New function safe-plist-get.
+** New function `safe-get'.
 
-This function is like plist-get, but never signals an error for
+This function is like `get', but never signals an error for
+a malformed symbol property list.
+
++++
+** New function `safe-plist-get'.
+
+This function is like `plist-get', but never signals an error for
 a malformed property list.
 
 +++

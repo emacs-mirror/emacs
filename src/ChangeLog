@@ -1,3 +1,14 @@
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fsafe_get): New function.
+	(syms_of_fns): Defsubr it.
+
+	* lisp.h (Fsafe_get): EXFUN it.
+
+	* xfaces.c (resolve_face_name): Use Fsafe_get to avoid redisplay
+	loops in case of bad face property lists.  Limit number of face
+	alias lookups to 10 (in case of face alias loops).
+
 2005-04-18  Kim F. Storm  <storm@cua.dk>
 
 	* dispextern.h (struct glyph_row): New member overlay_arrow_bitmap.
