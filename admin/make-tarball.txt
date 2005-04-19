@@ -21,10 +21,11 @@ For each step, check for possible errors.
 
 5.   rm configure; make bootstrap
 
-6.  Commit configure, README, AUTHORS, lisp/loaddefs.el,
-    lisp/cus-load.el, lisp/finder-inf.el, lisp/version.el,
-    man/emacs.texi.  For a release, also commit the ChangeLog files in
-    all directories.
+6.  Commit configure, README, AUTHORS, lisp/cus-load.el,
+    lisp/finder-inf.el, lisp/version.el, man/emacs.texi.
+    Copy lisp/loaddefs.el to lisp/ldefs-boot.el and commit
+    lisp/ldefs-boot.el.  For a release, also commit the ChangeLog
+    files in all directories.
 
 7.   make-dist --snapshot.  Check the contents of the new tar with
      admin/diff-tar-files against an older tar file.  Some old pretest
@@ -34,12 +35,12 @@ For each step, check for possible errors.
 8.   xdelta delta emacs-OLD.tar.gz emacs-NEW.tar.gz emacs-OLD-NEW.xdelta
 
 9.   tar -zxf emacs-NEW.tar.gz; cd emacs-NEW
-     configure && make && make -n install
+     ./configure && make && make -n install
     Use `script' or M-x compile to save the compilation log in
     compile-NEW.log and compare it against an old one.  The easiest way
     to do that is to visit the old log in Emacs, change the version
     number of the old Emacs to __, do the same with the new log and do
-    M-x ediff. Especially check that Info files aren't built.
+    M-x ediff.  Especially check that Info files aren't built.
 
 10.  cd EMACS_ROOT_DIR; cvs tag TAG
     TAG is EMACS_PRETEST_XX_YY_ZZZ for a pretest, EMACS_XX_YY for a
