@@ -1,3 +1,9 @@
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (setup_for_ellipsis): Reset saved_face_id to use default
+	face unless last visible char and first invisible char have the
+	same face.  Also use default face if saved_face_id is undefined.
+
 2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macgui.h (MacFontStruct): Remove member `fontname'.  Add member
