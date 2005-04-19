@@ -1,3 +1,8 @@
+2005-04-19  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Search-based Fontification): Explain that
+	facespec is an expression to be evaluated.
+
 2005-04-19  Kevin Ryde  <user42@zip.com.au>
 
         * streams.texi (Output Functions): Fix xref.
