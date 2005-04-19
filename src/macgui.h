@@ -101,12 +101,16 @@ typedef struct _XCharStruct
    (xcs).descent = (bds).bottom)
 
 struct MacFontStruct {
-  char *fontname;
+  char *full_name;
 
   short mac_fontnum;  /* font number of font used in this window */
   int mac_fontsize;  /* size of font */
   short mac_fontface;  /* plain, bold, italics, etc. */
+#if TARGET_API_MAC_CARBON
+  int mac_scriptcode;  /* Mac OS script code for font used */
+#else
   short mac_scriptcode;  /* Mac OS script code for font used */
+#endif
 
 #if 0
   SInt16 mFontNum;  /* font number of font used in this window */
