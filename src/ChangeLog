@@ -1,5 +1,9 @@
 2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
+	* sysdep.c: Remove reference to defunct vms-pwd.h.
+	* dired.c: Likewise.  Also, for pwd.h, use HAVE_PWD_H, not !VMS.
+	* editfns.c, fileio.c, filelock.c, sysdep.c, xrdb.c: Likewise.
+
 	* config.in: Regenerate.
 
 2005-04-20  Kenichi Handa  <handa@m17n.org>
