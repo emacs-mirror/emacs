@@ -2754,12 +2754,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 * Lisp Changes in Emacs 22.1
 
----
-** easy-mmode-define-global-mode has been renamed to
-define-global-minor-mode.  The old name remains as an alias.
+** New functions, macros, and commands
 
 +++
-** The new function `filter-buffer-substring' extracts a buffer
+*** The new function `filter-buffer-substring' extracts a buffer
 substring, passes it through a set of filter functions, and returns
 the filtered substring.  It is used instead of `buffer-substring' or
 `delete-and-extract-region' when copying text into a user-accessible
@@ -2768,6 +2766,81 @@ list of filter function is specified by the new variable
 `buffer-substring-filters'.  For example, Longlines mode uses
 `buffer-substring-filters' to remove soft newlines from the copied
 text.
+
++++
+*** (while-no-input BODY...) runs BODY, but only so long as no input
+arrives.  If the user types or clicks anything, BODY stops as if a
+quit had occurred.  while-no-input returns the value of BODY, if BODY
+finishes.  It returns nil if BODY was aborted.
+
++++
+*** New function `looking-back' checks whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
+*** New functions `make-progress-reporter', `progress-reporter-update',
+`progress-reporter-force-update', `progress-reporter-done', and
+`dotimes-with-progress-reporter' provide a simple and efficient way for
+a command to present progress messages for the user.
+
++++
+*** The new primitive `get-internal-run-time' returns the processor
+run time used by Emacs since start-up.
+
++++
+*** The new function `called-interactively-p' does what many people
+have mistakenly believed `interactive-p' did: it returns t if the
+calling function was called through `call-interactively'.  This should
+only be used when you cannot add a new "interactive" argument to the
+command.
+
++++
+*** The new function `assoc-string' replaces `assoc-ignore-case' and
+`assoc-ignore-representation', which are still available, but have
+been declared obsolete.
+
+---
+*** New function quail-find-key returns a list of keys to type in the
+current input method to input a character.
+
++++
+*** New functions posn-at-point and posn-at-x-y return
+click-event-style position information for a given visible buffer
+position or for a given window pixel coordinate.
+
++++
+*** The new primitive `set-file-times' sets a file's access and
+modification times.  Magic file name handlers can handle this
+operation.
+
++++
+*** The new function syntax-after returns the syntax code
+of the character after a specified buffer position, taking account
+of text properties as well as the character code.
+
+*** `syntax-class' extracts the class of a syntax code (as returned
+by syntax-after).
+
++++
+*** New function `line-number-at-pos' returns line number of current
+line in current buffer, or if optional buffer position is given, line
+number of corresponding line in current buffer.
+
++++
+*** New function `macroexpand-all' expands all macros in a form.
+It is similar to the Common-Lisp function of the same name.
+One difference is that it guarantees to return the original argument
+if no expansion is done, which may be tested using `eq'.
+
++++
+*** New macro with-local-quit temporarily sets inhibit-quit to nil for use
+around potentially blocking or long-running code in timers
+and post-command-hooks.
+
+---
+** easy-mmode-define-global-mode has been renamed to
+define-global-minor-mode.  The old name remains as an alias.
 
 +++
 ** An element of buffer-undo-list can now have the form (apply FUNNAME
@@ -2801,27 +2874,10 @@ clickable link with the new function `mouse-on-link-p'.  This is the
 function used by the new `mouse-1-click-follows-link' functionality.
 
 +++
-** (while-no-input BODY...) runs BODY, but only so long as no input
-arrives.  If the user types or clicks anything, BODY stops as if a
-quit had occurred.  while-no-input returns the value of BODY, if BODY
-finishes.  It returns nil if BODY was aborted.
-
-+++
 ** `set-auto-mode' now gives the interpreter magic line (if present)
 precedence over the file name.  Likewise an <?xml or <!DOCTYPE declaration
 will give the buffer XML or SGML mode, based on the new var
 `magic-mode-alist'.
-
-+++
-** New function `looking-back' checks whether a regular expression matches
-the text before point.  Specifying the LIMIT argument bounds how far
-back the match can start; this is a way to keep it from taking too long.
-
-+++
-** New functions `make-progress-reporter', `progress-reporter-update',
-`progress-reporter-force-update', `progress-reporter-done', and
-`dotimes-with-progress-reporter' provide a simple and efficient way for
-a command to present progress messages for the user.
 
 ---
 ** To manipulate the File menu using easy-menu, you must specify the
@@ -2849,27 +2905,6 @@ If it is non-nil, it specifies which buffers to list.
 ---
 ** set-buffer-file-coding-system now takes an additional argument,
 NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
-
-+++
-** The new function syntax-after returns the syntax code
-of the character after a specified buffer position, taking account
-of text properties as well as the character code.
-
-+++
-** The new primitive `get-internal-run-time' returns the processor
-run time used by Emacs since start-up.
-
-+++
-** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactive-p' did: it returns t if the
-calling function was called through `call-interactively'.  This should
-only be used when you cannot add a new "interactive" argument to the
-command.
-
-+++
-** The new function `assoc-string' replaces `assoc-ignore-case' and
-`assoc-ignore-representation', which are still available, but have
-been declared obsolete.
 
 +++
 ** An interactive specification may now use the code letter 'U' to get
@@ -2930,15 +2965,6 @@ changed to "connection broken by remote peer".
 undo-outer-limit, garbage collection empties it.  This is to prevent
 it from using up the available memory and choking Emacs.
 
----
-** New function quail-find-key returns a list of keys to type in the
-current input method to input a character.
-
-+++
-** New functions posn-at-point and posn-at-x-y return
-click-event-style position information for a given visible buffer
-position or for a given window pixel coordinate.
-
 +++
 ** skip-chars-forward and skip-chars-backward now handle
 character classes such as [:alpha:], along with individual characters
@@ -2951,11 +2977,6 @@ arg is non-nil.
 
 +++
 ** The function `eql' is now available without requiring the CL package.
-
-+++
-** The new primitive `set-file-times' sets a file's access and
-modification times.  Magic file name handlers can handle this
-operation.
 
 +++
 ** The display space :width and :align-to text properties are now
@@ -3081,11 +3102,6 @@ text property string that may be present at the current window
 position.  The cursor may now be placed on any character of such
 strings by giving that character a non-nil `cursor' text property.
 
-+++
-** New macro with-local-quit temporarily sets inhibit-quit to nil for use
-around potentially blocking or long-running code in timers
-and post-command-hooks.
-
 ** The first face specification element in a defface can specify
 `default' instead of frame classification.  Then its attributes act as
 defaults that apply to all the subsequent cases (and may be overridden
@@ -3143,11 +3159,6 @@ If either property is not set, the default `overlay-arrow-string' or
 'overlay-arrow-fringe-bitmap' will be used.
 
 +++
-** New function `line-number-at-pos' returns line number of current
-line in current buffer, or if optional buffer position is given, line
-number of corresponding line in current buffer.
-
-+++
 ** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space' which contains such characters
 that end a sentence without following spaces.
@@ -3163,12 +3174,6 @@ then this function returns the regexp constructed from the variables
 ** The flags, width, and precision options for %-specifications in function
 `format' are now documented.  Some flags that were accepted but not
 implemented (such as "*") are no longer accepted.
-
-+++
-** New function `macroexpand-all' expands all macros in a form.
-It is similar to the Common-Lisp function of the same name.
-One difference is that it guarantees to return the original argument
-if no expansion is done, which may be tested using `eq'.
 
 +++
 ** New function `delete-dups' destructively removes `equal' duplicates
