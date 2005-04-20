@@ -1,3 +1,15 @@
+2005-04-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp): New defgroup.
+	(inferior-lisp-filter-regexp, inferior-lisp-program)
+	(inferior-lisp-load-command, inferior-lisp-prompt)
+	(inferior-lisp-mode-hook, lisp-source-modes)
+	(inferior-lisp-load-hook): defvar->defcustom.
+	(inferior-lisp-program, inferior-lisp-prompt)
+	(inferior-lisp-load-hook): Doc fixes.
+	(inferior-lisp-install-letter-bindings): Small change in
+	introductory comment.
+
 2005-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* vc.el (vc-annotate-color-map): Change some colors so that text
