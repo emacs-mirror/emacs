@@ -1228,19 +1228,19 @@ correspoinding TextEncodingBase value."
 	?\$,1'@(B ?\$,1'8(B ?\$,1'A(B ?\$,1'C(B ?\$,1'D(B ?\$,1'E(B ?\$,1'V(B ?\$,1'I(B ?\$,1'>(B ?\$,1'H(B ?\$,1'6(B ?\{ ?\| ?\} ?\$,1x\(B]
        (make-vector (- 160 127) nil)
        ;; mac-symbol (160..254) -> emacs-mule mapping
+       ;; Mapping of the following characters are changed from the
+       ;; original one:
+       ;; 0xE2	0x00AE+0xF87F -> 0x00AE # REGISTERED SIGN, alternate: sans serif
+       ;; 0xE3	0x00A9+0xF87F -> 0x00A9	# COPYRIGHT SIGN, alternate: sans serif
+       ;; 0xE4	0x2122+0xF87F -> 0x2122	# TRADE MARK SIGN, alternate: sans serif
        [?\$,1tL(B ?\$,1'R(B ?\$,1s2(B ?\$,1y$(B ?\$,1sD(B ?\$,1x>(B ?\$,1!R(B ?\$,2#c(B ?\$,2#f(B ?\$,2#e(B ?\$,2#`(B ?\$,1vt(B ?\$,1vp(B ?\$,1vq(B ?\$,1vr(B ?\$,1vs(B
 	?\,A0(B ?\,A1(B ?\$,1s3(B ?\$,1y%(B ?\,AW(B ?\$,1x=(B ?\$,1x"(B ?\$,1s"(B ?\,Aw(B ?\$,1y (B ?\$,1y!(B ?\$,1xh(B ?\$,1s&(B ?\$,1|p(B ?\$,1|O(B ?\$,1w5(B
 	?\$,1uu(B ?\$,1uQ(B ?\$,1u\(B ?\$,1uX(B ?\$,1yW(B ?\$,1yU(B ?\$,1x%(B ?\$,1xI(B ?\$,1xJ(B ?\$,1yC(B ?\$,1yG(B ?\$,1yD(B ?\$,1yB(B ?\$,1yF(B ?\$,1x((B ?\$,1x)(B
 	?\$,1x@(B ?\$,1x'(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x/(B ?\$,1x:(B ?\$,1z%(B ?\,A,(B ?\$,1xG(B ?\$,1xH(B ?\$,1wT(B ?\$,1wP(B ?\$,1wQ(B ?\$,1wR(B ?\$,1wS(B
-	?\$,2"*(B ?\$B!R(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
-	?\$,3b_(B ?\$B!S(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B
+	?\$,2"*(B ?\$,2=H(B ?\,A.(B ?\,A)(B ?\$,1ub(B ?\$,1x1(B ?\$,1|;(B ?\$,1|<(B ?\$,1|=(B ?\$,1|A(B ?\$,1|B(B ?\$,1|C(B ?\$,1|G(B ?\$,1|H(B ?\$,1|I(B ?\$,1|J(B
+	?\$,3b_(B ?\$,2=I(B ?\$,1xK(B ?\$,1{ (B ?\$,1|N(B ?\$,1{!(B ?\$,1|>(B ?\$,1|?(B ?\$,1|@(B ?\$,1|D(B ?\$,1|E(B ?\$,1|F(B ?\$,1|K(B ?\$,1|L(B ?\$,1|M(B
 	nil]))
-     (i 0)
      translation-table)
-  (while (< i 256)
-    (if (null (aref encoding-vector i))
-	(aset encoding-vector i i))
-    (setq i (1+ i)))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
 ;;  (define-translation-table 'mac-symbol-decoder translation-table)
@@ -1272,12 +1272,7 @@ correspoinding TextEncodingBase value."
        ;; mac-dingbats (241..254) -> emacs-mule mapping
 	?\$,2'1(B ?\$,2'2(B ?\$,2'3(B ?\$,2'4(B ?\$,2'5(B ?\$,2'6(B ?\$,2'7(B ?\$,2'8(B ?\$,2'9(B ?\$,2':(B ?\$,2';(B ?\$,2'<(B ?\$,2'=(B ?\$,2'>(B
 	nil]))
-     (i 0)
      translation-table)
-  (while (< i 256)
-    (if (null (aref encoding-vector i))
-	(aset encoding-vector i i))
-    (setq i (1+ i)))
   (setq translation-table
 	(make-translation-table-from-vector encoding-vector))
 ;;  (define-translation-table 'mac-dingbats-decoder translation-table)
