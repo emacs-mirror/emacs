@@ -1,5 +1,28 @@
 2005-04-20  Kenichi Handa  <handa@m17n.org>
 
+	* lisp.h (CHAR_TABLE_DEFAULT_SLOT_ASCII): New macro.
+	(CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL): New macro.
+	(CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC): New macro.
+
+	* alloc.c (make_sub_char_table): Argument changed to initial
+	value of the slots.
+
+	* data.c (Faref): Handle special slots used as default values of
+	ascii, eight-bit-control, eight-bit-control.  Don't ignore a
+	default value set for a group of characters.
+	(Faset): Signal an error if IDXVAL is not a valid character code.
+	Make a sub-chartable with correct initial value.
+
+	* fns.c (Fset_char_table_range): Don't set slots used as default
+	values for ascii, eight-bit-control, eight-bit-graphic.  Don't
+	call Faref with charset-id.
+	(Fset_char_table_default): Document how to treat normal character
+	argument.  Handle special slots used as default values of ascii,
+	eight-bit-control, eight-bit-control.  Make a sub chartable if
+	necessary.
+
+2005-04-20  Kenichi Handa  <handa@m17n.org>
+
 	* search.c (boyer_moore): Fix previous change.
 
 2005-04-19  Kim F. Storm  <storm@cua.dk>
