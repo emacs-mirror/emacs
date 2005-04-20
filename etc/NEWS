@@ -123,7 +123,7 @@ versions which recognize Thai words.  Affected commands are
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
-** Languange environment and various default coding systems are setup
+** Language environment and various default coding systems are setup
 more correctly according to the current locale name.  If the locale
 name doesn't specify a charset, the default is what glibc defines.
 This change may result in using the different coding systems as
