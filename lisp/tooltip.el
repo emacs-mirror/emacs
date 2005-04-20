@@ -117,7 +117,10 @@ position to pop up the tooltip."
   :group 'tooltip)
 
 (defcustom tooltip-gud-tips-p nil
-  "*Non-nil means show tooltips in GUD sessions."
+  "*Non-nil means show tooltips in GUD sessions.
+
+This allows you to display a variable's value in a tooltip simply by
+pointing at it with the mouse."
   :type 'boolean
   :tag "GUD"
   :group 'tooltip)
@@ -412,12 +415,22 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
     (message "Dereferencing is now %s."
 	     (if tooltip-gud-dereference "on" "off"))))
 
+(defun tooltip-toggle-gud-tips ()
+  "Toggle the display of GUD tooltips."
+  (interactive)
+  (setq tooltip-gud-tips-p (not tooltip-gud-tips-p))
+  ;; Reconsider for all buffers whether mouse motion events are desired.
+  (tooltip-change-major-mode)
+  (when (interactive-p)
+    (message (format "GUD tooltips %sabled"
+		     (if tooltip-gud-tips-p "en" "dis")))))
+
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
 ; the tootip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
-; it may be difficult to do better. gdba in gdb-ui.el
-; gets round this problem.
+; it may be difficult to do better. Using annotations as in
+; gdb-ui.el gets round this problem.
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
