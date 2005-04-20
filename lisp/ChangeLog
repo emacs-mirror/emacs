@@ -1,3 +1,10 @@
+2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Add tooltip-toggle-gud-tips.
+
+	* tooltip.el (tooltip-gud-tips-p): Expand documentation.
+	(tooltip-toggle-gud-tips): New function.
+
 2005-04-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-symbol-encoder): Fix mappings of left and
