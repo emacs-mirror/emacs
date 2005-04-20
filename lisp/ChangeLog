@@ -1,3 +1,9 @@
+2005-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-color-map): Change some colors so that text
+	using them as foreground is readable on both white and black
+	backgrounds.
+
 2005-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-conf.el (translation-table-for-input):
