@@ -1,3 +1,8 @@
+2005-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (translation-table-for-input):
+	Remove redundant declaration.
+
 2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-menu-map): Add tooltip-toggle-gud-tips.
