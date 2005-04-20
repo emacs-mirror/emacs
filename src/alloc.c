@@ -3014,18 +3014,18 @@ The property's value should be an integer between 0 and 10.  */)
 }
 
 
-/* Return a newly created sub char table with default value DEFALT.
+/* Return a newly created sub char table with slots initialized by INIT.
    Since a sub char table does not appear as a top level Emacs Lisp
    object, we don't need a Lisp interface to make it.  */
 
 Lisp_Object
-make_sub_char_table (defalt)
-     Lisp_Object defalt;
+make_sub_char_table (init)
+     Lisp_Object init;
 {
   Lisp_Object vector
-    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), Qnil);
+    = Fmake_vector (make_number (SUB_CHAR_TABLE_STANDARD_SLOTS), init);
   XCHAR_TABLE (vector)->top = Qnil;
-  XCHAR_TABLE (vector)->defalt = defalt;
+  XCHAR_TABLE (vector)->defalt = Qnil;
   XSETCHAR_TABLE (vector, XCHAR_TABLE (vector));
   return vector;
 }
