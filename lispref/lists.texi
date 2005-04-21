@@ -1667,6 +1667,15 @@ alist
 @end example
 @end defun
 
+@defun rassq-delete-all value alist
+This function deletes from @var{alist} all the elements whose @sc{cdr}
+is @code{eq} to @var{value}.  It returns the shortened alist, and
+often modifies the original list structure of @var{alist}.
+@code{rassq-delete-all} is like @code{assq-delete-all} except that it
+compares the @sc{cdr} of each @var{alist} association instead of the
+@sc{car}.
+@end defun
+
 @ignore
    arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4
 @end ignore
