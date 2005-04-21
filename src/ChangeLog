@@ -1,3 +1,7 @@
+2005-04-21  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (dump_glyph_row): Don't display overlay_arrow_p field.
+
 2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* sysdep.c: Remove reference to defunct vms-pwd.h.

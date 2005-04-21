@@ -14155,10 +14155,10 @@ dump_glyph_row (row, vpos, glyphs)
 {
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oEI><O\\CTZFesm     X    Y    W    H    V    A    P\n");
-      fprintf (stderr, "=======================================================================\n");
+      fprintf (stderr, "Row Start   End Used oEI><\\CTZFesm     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "======================================================================\n");
 
-      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
@@ -14168,7 +14168,6 @@ dump_glyph_row (row, vpos, glyphs)
 	       row->enabled_p,
 	       row->truncated_on_left_p,
 	       row->truncated_on_right_p,
-	       row->overlay_arrow_p,
 	       row->continued_p,
 	       MATRIX_ROW_CONTINUATION_LINE_P (row),
 	       row->displays_text_p,
