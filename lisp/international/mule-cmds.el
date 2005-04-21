@@ -27,7 +27,9 @@
 
 ;;; Code:
 
-(eval-when-compile (defvar dos-codepage))
+(eval-when-compile
+  (defvar dos-codepage)
+  (autoload 'widget-value "wid-edit"))
 
 ;;; MULE related key bindings and menus.
 
