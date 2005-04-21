@@ -1,3 +1,10 @@
+2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): 
+	Add tooltip-mode.
+
+	* bindings.el (mode-line-mode-menu): Remove tooltip-mode.
+
 2005-04-20  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* progmodes/inf-lisp.el (inferior-lisp): New defgroup.
