@@ -3218,7 +3218,7 @@ resolve_face_name (face_name)
 
   while (SYMBOLP (face_name))
     {
-      aliased = Fsafe_get (face_name, Qface_alias);
+      aliased = Fget (face_name, Qface_alias);
       if (NILP (aliased))
 	break;
       if (--alias_loop_max == 0)
