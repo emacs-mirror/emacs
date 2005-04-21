@@ -1,5 +1,9 @@
 2005-04-21  Lute Kamstra  <lute@gnu.org>
 
+	* subr.el (assq-delete-all): New implementation that is linear,
+	not quadratic.  Suggested by David Kastrup <dak@gnu.org>.
+	(rassq-delete-all): New function.
+
 	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): Add
 	size-indication-mode.
 
