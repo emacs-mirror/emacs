@@ -441,7 +441,10 @@
   ;; reviewed.  (Note that the following all implicitly have word
   ;; syntax: ¢£¤¥¨ª¯²³´¶¸¹º.)  There should be a well-defined way of
   ;; relating Unicode categories to Emacs syntax codes.
-  (set-case-syntax ?  " " tbl)		; dubious
+
+  ;; NBSP isn't semantically interchangeable with other whitespace chars,
+  ;; so it's more like punctation.
+  (set-case-syntax ?  "." tbl)
   (set-case-syntax ?¡ "." tbl)
   (set-case-syntax ?¦ "_" tbl)
   (set-case-syntax ?§ "." tbl)
