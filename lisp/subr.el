@@ -2376,15 +2376,34 @@ macros."
       (eq (car-safe object) 'lambda)))
 
 (defun assq-delete-all (key alist)
-  "Delete from ALIST all elements whose car is KEY.
+  "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-  (let ((tail alist))
-    (while tail
-      (if (and (consp (car tail)) (eq (car (car tail)) key))
-	  (setq alist (delq (car tail) alist)))
-      (setq tail (cdr tail)))
-    alist))
+  (while (and (consp (car alist)) 
+	      (eq (car (car alist)) key))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (car (car tail-cdr)) key))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
+
+(defun rassq-delete-all (value alist)
+  "Delete from ALIST all elements whose cdr is `eq' to VALUE.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+  (while (and (consp (car alist)) 
+	      (eq (cdr (car alist)) value))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (cdr (car tail-cdr)) value))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
 
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.
