@@ -1,3 +1,7 @@
+2005-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/characters.el: Set syntax of NBSP to punctuation.
+
 2005-04-11  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el: Don't require wid-edit.
