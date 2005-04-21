@@ -1,3 +1,7 @@
+2005-04-21  Lute Kamstra  <lute@gnu.org>
+
+	* lists.texi (Association Lists): Document rassq-delete-all.
+
 2005-04-19  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Search-based Fontification): Explain that
