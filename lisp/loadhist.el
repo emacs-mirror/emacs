@@ -188,27 +188,34 @@ such as redefining an Emacs function."
 			     (string-match "-hooks?\\'" (symbol-name x)))
 			(memq x unload-feature-special-hooks)))	; Known abnormal hooks etc.
 	   (dolist (y unload-hook-features-list)
-	     (when (eq (car-safe y) 'defun)
-	       (remove-hook x (cdr y))))))))
+	     (when (and (eq (car-safe y) 'defun)
+			(not (get (cdr y) 'autoload)))
+	       (remove-hook x (cdr y)))))))
+      ;; Remove any feature-symbols from auto-mode-alist as well.
+      (dolist (y unload-hook-features-list)
+	(when (and (eq (car-safe y) 'defun)
+		   (not (get (cdr y) 'autoload)))
+	  (setq auto-mode-alist
+		(rassq-delete-all (cdr y) auto-mode-alist)))))
     (when (fboundp 'elp-restore-function) ; remove ELP stuff first
       (dolist (elt unload-hook-features-list)
 	(when (symbolp elt)
 	  (elp-restore-function elt))))
     (dolist (x unload-hook-features-list)
       (if (consp x)
-	  (progn
-	    ;; Remove any feature names that this file provided.
-	    (when (eq (car x) 'provide)
-	      (setq features (delq (cdr x) features)))
-	    (when (eq (car x) 'defun)
-	      (let ((fun (cdr x)))
-		(when (fboundp fun)
-		  (when (fboundp 'ad-unadvise)
-		    (ad-unadvise fun))
-		  (fmakunbound fun)
-		  (let ((aload (get fun 'autoload)))
-		    (when aload 
-		      (fset fun (cons 'autoload aload))))))))
+	  (cond
+	   ;; Remove any feature names that this file provided.
+	   ((eq (car x) 'provide)
+	    (setq features (delq (cdr x) features)))
+	   ((eq (car x) 'defun)
+	    (let ((fun (cdr x)))
+	      (when (fboundp fun)
+		(when (fboundp 'ad-unadvise)
+		  (ad-unadvise fun))
+		(fmakunbound fun)
+		(let ((aload (get fun 'autoload)))
+		  (when aload
+		    (fset fun (cons 'autoload aload))))))))
 	;; Kill local values as much as possible.
 	(dolist (buf (buffer-list))
 	  (with-current-buffer buf
@@ -217,8 +224,7 @@ such as redefining an Emacs function."
 	(unless (local-variable-if-set-p x)
 	  (makunbound x))))
     ;; Delete the load-history element for this file.
-    (let ((elt (assoc file load-history)))
-      (setq load-history (delq elt load-history)))))
+    (setq load-history (delq (assoc file load-history) load-history))))
 
 (provide 'loadhist)
 
