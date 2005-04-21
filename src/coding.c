@@ -6675,7 +6675,7 @@ highest priority.  */)
 			       STRING_MULTIBYTE (string));
 }
 
-/*  Subroutine for Fsafe_coding_systems_region_internal.
+/*  Subroutine for Ffind_coding_systems_region_internal.
 
     Return a list of coding systems that safely encode the multibyte
     text between P and PEND.  SAFE_CODINGS, if non-nil, is an alist of
