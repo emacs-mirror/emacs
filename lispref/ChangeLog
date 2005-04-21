@@ -1,3 +1,8 @@
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Symbol Plists): Remove safe-get, as get is now safe.
+	(Other Plists): Remove safe-plist-get, as plist-get is now safe.
+
 2005-04-21  Lute Kamstra  <lute@gnu.org>
 
 	* lists.texi (Association Lists): Document rassq-delete-all.

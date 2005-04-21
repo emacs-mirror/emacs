@@ -1,3 +1,18 @@
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fplist_get): Replace by Fsafe_plist_get.
+	(Fsafe_plist_get): Rename to Fplist_get.
+	(Fsafe_get): Remove, as Fget now uses safe Fplist_get.
+	(defsubr): Remove defsubr for Fsafe_plist_get and Fsafe_get.
+
+	* lisp.h (Fsafe_plist_get, Fsafe_get): Remove EXFUN.
+
+	* xdisp.c (store_mode_line_string, produce_stretch_glyph)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Use Fplist_get instead of Fsafe_plist_get.
+
+	* xfaces.c (resolve_face_name): Use Fget instead of Fsafe_get.
+
 2005-04-21  Miles Bader  <miles@gnu.org>
 
 	* xdisp.c (dump_glyph_row): Don't display overlay_arrow_p field.
