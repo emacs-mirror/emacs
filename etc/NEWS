@@ -2838,6 +2838,10 @@ if no expansion is done, which may be tested using `eq'.
 around potentially blocking or long-running code in timers
 and post-command-hooks.
 
++++
+*** The new function `rassq-delete-all' deletes all elements from an
+alist whose cdr is `eq' to a specified value.
+
 ---
 ** easy-mmode-define-global-mode has been renamed to
 define-global-minor-mode.  The old name remains as an alias.
