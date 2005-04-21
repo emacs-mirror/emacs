@@ -1,3 +1,8 @@
+2005-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Add autoload for widget-value in
+	eval-when-compile
+
 2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
 	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): 
