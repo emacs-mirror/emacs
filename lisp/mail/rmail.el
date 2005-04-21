@@ -246,7 +246,7 @@ It is useful to set this variable in the site customization file.")
 
 ;;;###autoload
 (defcustom rmail-ignored-headers
-  (concat "^via:\\|^mail-from:\\|^origin:\\|^references:"
+  (concat "^via:\\|^mail-from:\\|^origin:\\|^references:\\|^sender:"
 	  "\\|^status:\\|^received:\\|^x400-originator:\\|^x400-recipients:"
 	  "\\|^x400-received:\\|^x400-mts-identifier:\\|^x400-content-type:"
 	  "\\|^\\(resent-\\|\\)message-id:\\|^summary-line:\\|^resent-date:"
@@ -254,14 +254,17 @@ It is useful to set this variable in the site customization file.")
 	  "\\|^x-mailer:\\|^delivered-to:\\|^lines:\\|^mime-version:"
 	  "\\|^content-transfer-encoding:\\|^x-coding-system:"
 	  "\\|^return-path:\\|^errors-to:\\|^return-receipt-to:"
-	  "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:"
+	  "\\|^x-sign:\\|^x-beenthere:\\|^x-mailman-version:\\|^x-mailman-copy:"
 	  "\\|^precedence:\\|^list-help:\\|^list-post:\\|^list-subscribe:"
 	  "\\|^list-id:\\|^list-unsubscribe:\\|^list-archive:"
 	  "\\|^content-type:\\|^content-length:"
 	  "\\|^x-attribution:\\|^x-disclaimer:\\|^x-trace:"
 	  "\\|^x-complaints-to:\\|^nntp-posting-date:\\|^user-agent"
 	  "\\|^importance:\\|^envelope-to:\\|^delivery-date"
-	  "\\|^x.*-priority:\\|^x-mimeole:")
+	  "\\|^x.*-priority:\\|^x-mimeole:\\|^x-archive:"
+	  "\\|^resent-face:\\|^resent-x.*:\\|^resent-organization\\|^resent-openpgp"
+	  "\\|^openpgp:\\|^x-request-pgp:\\|^x-original.*:"
+	  "\\|^x-virus-scanned:\\|^x-spam-[^s].*:")
   "*Regexp to match header fields that Rmail should normally hide.
 This variable is used for reformatting the message header,
 which normally happens once for each message,
@@ -653,6 +656,7 @@ The first parenthesized expression should match the MIME-charset name.")
 	      . font-lock-function-name-face)
 	    '("^Reply-To:.*$" . font-lock-function-name-face)
 	    '("^Subject:" . font-lock-comment-face)
+	    '("^X-Spam-Status:" . font-lock-keyword-face)
 	    '("^\\(To\\|Apparently-To\\|Cc\\|Newsgroups\\):"
 	      . font-lock-keyword-face)
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
@@ -662,8 +666,7 @@ The first parenthesized expression should match the MIME-charset name.")
 			"\\(" cite-chars "[ \t]*\\)\\)+"
 			"\\(.*\\)")
 	       (beginning-of-line) (end-of-line)
-	       (2 font-lock-constant-face nil t)
-	       (4 font-lock-comment-face nil t)))
+	       (3 font-lock-comment-face nil t)))
 	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")

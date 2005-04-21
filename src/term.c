@@ -1476,7 +1476,26 @@ static struct fkey_table keys[] =
   {"k6", "f6"},
   {"k7", "f7"},
   {"k8", "f8"},
-  {"k9", "f9"}
+  {"k9", "f9"},
+
+  {"&0", "S-cancel"},    /*shifted cancel key*/
+  {"&9", "S-begin"},     /*shifted begin key*/
+  {"*0", "S-find"},      /*shifted find key*/
+  {"*1", "S-execute"},   /*shifted execute? actually shifted command key*/
+  {"*4", "S-delete"},    /*shifted delete-character key*/
+  {"*7", "S-end"},       /*shifted end key*/
+  {"*8", "S-clearline"}, /*shifted clear-to end-of-line key*/
+  {"#1", "S-help"},      /*shifted help key*/
+  {"#2", "S-home"},      /*shifted home key*/
+  {"#3", "S-insert"},    /*shifted insert-character key*/
+  {"#4", "S-left"},      /*shifted left-arrow key*/
+  {"%d", "S-menu"},      /*shifted menu? actually shifted options key*/
+  {"%c", "S-next"},      /*shifted next key*/
+  {"%e", "S-prior"},     /*shifted previous key*/
+  {"%f", "S-print"},     /*shifted print key*/
+  {"%g", "S-redo"},      /*shifted redo key*/
+  {"%i", "S-right"},     /*shifted right-arrow key*/
+  {"!3", "S-undo"}       /*shifted undo key*/
   };
 
 static char **term_get_fkeys_arg;

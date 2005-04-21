@@ -1030,9 +1030,10 @@ If there are no buffers left to create, kill the timer."
   'after-init-hook
   '(lambda ()
     (let ((key "--no-desktop"))
-      (if (member key command-line-args)
-        (delete key command-line-args)
-        (when desktop-save-mode (desktop-read))))))
+      (when (member key command-line-args)
+        (setq command-line-args (delete key command-line-args))
+        (setq desktop-save-mode nil)))
+    (when desktop-save-mode (desktop-read))))
 
 (provide 'desktop)
 

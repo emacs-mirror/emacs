@@ -184,9 +184,9 @@ fi
 if [ $check = yes ];
 then
   ### Check for .elc files with no corresponding .el file.
-  ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el \
+  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el | sed 's/\.el$/.elc/' > /tmp/el
-  ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc \
+  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
 	leim/[a-z]*/[a-z]*.elc > /tmp/elc
   bogosities="`comm -13 /tmp/el /tmp/elc`"
   if [ "${bogosities}" != "" ]; then
@@ -196,9 +196,9 @@ then
   rm -f /tmp/el /tmp/elc
 
   ### Check for .el files with no corresponding .elc file.
-  ls -1 lisp/[a-z]*.el lisp/[a-z]*/[a-z]*.el \
+  ls -1 lisp/[a-zA-Z]*.el lisp/[a-z]*/[a-zA-Z0-9]*.el \
 	leim/[a-z]*/[a-z]*.el > /tmp/el
-  ls -1 lisp/[a-z]*.elc lisp/[a-z]*/[a-z]*.elc \
+  ls -1 lisp/[a-zA-Z]*.elc lisp/[a-z]*/[a-zA-Z0-9]*.elc \
 	leim/[a-z]*/[a-z]*.elc | sed 's/\.elc$/.el/' > /tmp/elc
   losers="`comm -23 /tmp/el /tmp/elc`"
   bogosities=
@@ -344,11 +344,12 @@ echo "Making links to \`lisp' and its subdirectories"
  done
  ## simula.el doesn't keep abbreviations in simula.defns any more.
  ## ln [a-zA-Z]*.defns ../${tempdir}/lisp
- ln ChangeLog Makefile.in makefile.nt ChangeLog.? ../${tempdir}/lisp
- ln makefile.w32-in ../${tempdir}/lisp
+ ln ChangeLog ChangeLog.*[0-9] ../${tempdir}/lisp
+ ln Makefile.in makefile.w32-in ../${tempdir}/lisp
  test -f README && ln README ../${tempdir}/lisp
  (cd ../${tempdir}/lisp
   rm -f TAGS =*
+  rm -f ldefs-boot.el
   rm -f site-init site-init.el site-init.elc
   rm -f site-load site-load.el site-load.elc
   rm -f site-start site-start.el site-start.elc
@@ -384,7 +385,7 @@ echo "Making links to \`lisp' and its subdirectories"
 
    if [ -f $file/ChangeLog ]; then
      ln $file/ChangeLog ../${tempdir}/lisp/$file
-     for f in $file/ChangeLog.[0-9]; do
+     for f in $file/ChangeLog.*[0-9]; do
        if [ -f $f ]; then
 	 ln $f ../${tempdir}/lisp/$file
        fi
@@ -404,6 +405,8 @@ echo "Making links to \`leim' and its subdirectories"
  ln ja-dic/*.el ja-dic/*.elc ../${tempdir}/leim/ja-dic
  ln Makefile.in ../${tempdir}/leim/Makefile.in
  ln leim-ext.el ../${tempdir}/leim/leim-ext.el
+ ## Lisp files that start with a capital are generated from TIT
+ ## dictionaries so we don't distribute them.
  ln quail/[a-z]*.el quail/[a-z]*.elc ../${tempdir}/leim/quail
  rm -f ../${tempdir}/leim/quail/quick-b5.*
  rm -f ../${tempdir}/leim/quail/quick-cns.*

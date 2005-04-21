@@ -1519,7 +1519,7 @@ row_equal_p (w, a, b, mouse_face_p)
 	  || a->left_fringe_face_id != b->left_fringe_face_id
 	  || a->right_fringe_bitmap != b->right_fringe_bitmap
 	  || a->right_fringe_face_id != b->right_fringe_face_id
-	  || a->overlay_arrow_p != b->overlay_arrow_p
+	  || a->overlay_arrow_bitmap != b->overlay_arrow_bitmap
 	  || a->exact_window_width_line_p != b->exact_window_width_line_p
 	  || a->overlapped_p != b->overlapped_p
 	  || (MATRIX_ROW_CONTINUATION_LINE_P (a)
@@ -4521,7 +4521,7 @@ update_window_line (w, vpos, mouse_face_overwritten_p)
 	  || desired_row->y != current_row->y
 	  || desired_row->visible_height != current_row->visible_height
 	  || desired_row->cursor_in_fringe_p != current_row->cursor_in_fringe_p
-	  || desired_row->overlay_arrow_p != current_row->overlay_arrow_p
+	  || desired_row->overlay_arrow_bitmap != current_row->overlay_arrow_bitmap
 	  || current_row->redraw_fringe_bitmaps_p
 	  || desired_row->mode_line_p != current_row->mode_line_p
 	  || desired_row->exact_window_width_line_p != current_row->exact_window_width_line_p
@@ -5031,7 +5031,7 @@ scrolling_window (w, header_line_p)
 		    || to->right_fringe_bitmap != from->right_fringe_bitmap
 		    || to->left_fringe_face_id != from->left_fringe_face_id
 		    || to->right_fringe_face_id != from->right_fringe_face_id
-		    || to->overlay_arrow_p != from->overlay_arrow_p))
+		    || to->overlay_arrow_bitmap != from->overlay_arrow_bitmap))
 	      from->redraw_fringe_bitmaps_p = 1;
 	    assign_row (to, from);
 	    to->enabled_p = 1, from->enabled_p = 0;

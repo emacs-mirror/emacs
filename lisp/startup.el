@@ -719,7 +719,7 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     (frame-initialize))
 
   ;; Turn off blinking cursor if so specified in X resources.  This is here
-  ;; only because all other settings of no-blinking-cursor is here.
+  ;; only because all other settings of no-blinking-cursor are here.
   (unless (or noninteractive
 	      emacs-basic-display
 	      (and (memq window-system '(x w32 mac))
@@ -746,21 +746,14 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   (custom-reevaluate-setting 'blink-cursor-mode)
   (custom-reevaluate-setting 'normal-erase-is-backspace)
 
+  ;; If you change the code below, you need to also change the
+  ;; corresponding code in the tooltip-mode defcustom.  The two need
+  ;; to be equivalent under all conditions, or Custom will get confused.
   (unless (or noninteractive
 	      emacs-basic-display
               (not (display-graphic-p))
               (not (fboundp 'x-show-tip)))
     (tooltip-mode 1))
-
-  ;; If you change the code below, you need to also change the
-  ;; corresponding code in the xterm-mouse-mode defcustom.  The two need
-  ;; to be equivalent under all conditions, or Custom will get confused.
-  (unless (or noninteractive
-	      window-system)
-    (let ((term (getenv "TERM")))
-      (and term
-	   (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)" term)
-	   (xterm-mouse-mode 1))))
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
@@ -1082,15 +1075,15 @@ Each element in the list should be a list of strings or pairs
   :group 'initialization)
 
 
-(defcustom fancy-splash-delay 10
+(defcustom fancy-splash-delay 7
   "*Delay in seconds between splash screens."
   :group 'fancy-splash-screen
   :type 'integer)
 
 
-(defcustom fancy-splash-max-time 60
+(defcustom fancy-splash-max-time 30
   "*Show splash screens for at most this number of seconds.
-Values less than 60 seconds are ignored."
+Values less than twice `fancy-splash-delay' are ignored."
   :group 'fancy-splash-screen
   :type 'integer)
 
@@ -1271,7 +1264,7 @@ mouse."
 		    mode-line-format (propertize "---- %b %-"
 						 'face '(:weight bold))
 		    fancy-splash-stop-time (+ (float-time)
-					      (max 60 fancy-splash-max-time))
+					      fancy-splash-max-time)
 		    timer (run-with-timer 0 fancy-splash-delay
 					  #'fancy-splash-screens-1
 					  splash-buffer))

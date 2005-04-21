@@ -30,7 +30,9 @@
 
 ;;; Code:
 
-(eval-when-compile (defvar dos-codepage))
+(eval-when-compile
+  (defvar dos-codepage)
+  (autoload 'widget-value "wid-edit"))
 
 ;;; MULE related key bindings and menus.
 
@@ -2358,6 +2360,15 @@ See also `locale-charset-language-names', `locale-language-names',
 		    (= 0 (length locale))) ; nil or empty string
 	  (setq locale (getenv (pop vars))))))
 
+    (unless (or locale (not (fboundp 'mac-get-preference)))
+      (setq locale (mac-get-preference "AppleLocale"))
+      (unless locale
+	(let ((languages (mac-get-preference "AppleLanguages")))
+	  (unless (= (length languages) 0) ; nil or empty vector
+	    (setq locale (aref languages 0))))))
+    (unless (or locale (not (boundp 'mac-system-locale)))
+      (setq locale mac-system-locale))
+
     (when locale
 
       ;; Translate "swedish" into "sv_SE.ISO8859-1", and so on,
@@ -2389,7 +2400,8 @@ See also `locale-charset-language-names', `locale-language-names',
 		 (when locale
 		   (if (string-match "\\.\\([^@]+\\)" locale)
 		       (locale-charset-to-coding-system
-			(match-string 1 locale)))))))
+			(match-string 1 locale))))
+		 (and (eq system-type 'macos) mac-system-coding-system))))
 
 	(if (consp language-name)
 	    ;; locale-language-names specify both lang-env and coding.

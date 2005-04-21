@@ -1,3 +1,273 @@
+2005-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Add autoload for widget-value in
+	eval-when-compile
+
+2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): 
+	Add tooltip-mode.
+
+	* bindings.el (mode-line-mode-menu): Remove tooltip-mode.
+
+2005-04-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp): New defgroup.
+	(inferior-lisp-filter-regexp, inferior-lisp-program)
+	(inferior-lisp-load-command, inferior-lisp-prompt)
+	(inferior-lisp-mode-hook, lisp-source-modes)
+	(inferior-lisp-load-hook): defvar->defcustom.
+	(inferior-lisp-program, inferior-lisp-prompt)
+	(inferior-lisp-load-hook): Doc fixes.
+	(inferior-lisp-install-letter-bindings): Small change in
+	introductory comment.
+
+2005-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-color-map): Change some colors so that text
+	using them as foreground is readable on both white and black
+	backgrounds.
+
+2005-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (translation-table-for-input):
+	Remove redundant declaration.
+
+2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Add tooltip-toggle-gud-tips.
+
+	* tooltip.el (tooltip-gud-tips-p): Expand documentation.
+	(tooltip-toggle-gud-tips): New function.
+
+2005-04-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-symbol-encoder): Fix mappings of left and
+	right angle brackets.
+
+2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-use-echo-area): Replace as alias and deprecate.
+
+2005-04-19  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-get-absolute-file-name-basedir):
+	Remove.  Update callers to use expand-file-name instead.
+
+	* subr.el (syntax-class): New function.
+
+	* simple.el (blink-matching-open): Use it.
+
+	* paren.el (show-paren-function): Use it to recognize parens that are
+	also used in 2-char comment markers.
+
+2005-04-19  Lute Kamstra  <lute@gnu.org>
+
+	* loadhist.el (unload-feature): Update for new format of
+	load-history.  Simplify the code.
+
+2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Add coding: tag and set it to iso-2022-7bit.
+	(mac-add-charset-info): New function.  Initialize variable
+	mac-charset-info-alist using it.
+	(mac-centraleurroman, mac-cyrillic): Do not use UCS in table data
+	for translation.
+	(mac-symbol-encoder, mac-dingbats-encoder): New translation table.
+	(mac-font-encoder-list): Add entries for mac-symbol and mac-dingbats.
+	(ccl-encode-mac-symbol-font, ccl-encode-mac-dingbats-font):
+	New CCL programs.
+
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (next-buffer, prev-buffer, next-error)
+	(scroll-other-window, keyboard-quit, keyboard-escape-quit)
+	(clone-indirect-buffer-other-window): Move bindings to bindings.el.
+
+	* bindings.el (next-buffer, prev-buffer, next-error)
+	(scroll-other-window, keyboard-quit, keyboard-escape-quit)
+	(clone-indirect-buffer-other-window): Move bindings from simple.el.
+	(next-buffer, prev-buffer): Add C-x C-right and C-x C-left bindings.
+	(next-error, previous-error): Add M-g M-n/n and M-g M-p/p bindings.
+
+2005-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* isearch.el (isearch-edit-string): Make the search-ring available for
+	minibuffer history commands.
+	(minibuffer-local-isearch-map): Remove bindings for M-p	and M-n,
+	the default history commands now work just as well.
+	(isearch-ring-retreat-edit, isearch-ring-advance-edit): Remove.
+
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua--pre-command-handler): Add more
+	elaborate check for shift modifier on non-window systems.
+
+2005-04-18  Lars Hansen  <larsh@math.ku.dk>
+
+	* desktop.el: Make "--no-desktop" turn off `desktop-save-mode'.
+
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* tooltip.el (tooltip-show): Change second arg to USE-ECHO-AREA
+	and make it optional.  Don't test tooltip-gud-echo-area here.
+	(tooltip-gud-process-output, gdb-tooltip-print):
+	Pass tooltip-gud-echo-area to tooltip-show.
+	(tooltip-help-tips): Remove second optional arg to tooltip-show.
+
+2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* tooltip.el (tooltip-mode): `emacs-quick-startup' and
+	`display-graphic-p' may not be bound yet.
+
+2005-04-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): No longer enable Xterm Mouse mode by
+	default in terminals compatible with xterm.
+
+	* xt-mouse.el (xterm-mouse-mode): Set init value back to nil.
+
+2005-04-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el (tooltip-gud-echo-area): Rename from
+	tooltip-use-echo-area.
+	(tooltip-show, tooltip-gud-process-output, gdb-tooltip-print)
+	(tooltip-help-tips): Allow GUD tooltips to be displayed in echo
+	area independently of where help tooltips are displayed.
+
+2005-04-17  David Kastrup  <dak@gnu.org>
+
+	* cus-theme.el (custom-theme-write-variables): Quote variables
+	where necessary.
+
+2005-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (yank-excluded-properties): Add follow-link to value.
+
+	* jka-compr.el (jka-compr-compression-info-list): Fix custom type.
+
+	* startup.el (fancy-splash-max-time): Just 30 seconds.
+	(fancy-splash-delay): Just 7.
+	(fancy-splash-screens): No time limit other than fancy-splash-max-time.
+
+	* loadhist.el (unload-feature): Update for new format of load-history.
+	Simplify the code.
+
+	* mail/rmail.el (rmail-ignored-headers): Ignore more headers
+	(rmail-font-lock-keywords): Don't fontify the text of a citation.
+
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Don't fontify subject text.
+	Don't fontify the text of a citation.
+
+2005-04-17  Mark H. Weaver  <mhw@netris.org>  (tiny change)
+
+	* comint.el (comint-output-filter): Run comint-output-filter-functions
+	with point where the user had it.
+
+2005-04-16  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	Disable when using unify-on-decoding.
+
+2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* emulation/cua-base.el (cua-global-mark-face): Add special case
+	for displays supporting a high number of colors.
+
+2005-04-16  Matt Hodges  <MPHodges@member.fsf.org>  (tiny change)
+
+	* repeat.el (repeat): Invoke pre-command-hook and post-command-hook.
+
+2005-04-16  Chong Yidong  <cyd@stupidchicken.com>
+
+	* filesets.el (filesets-add-buffer): If user supplies a name of a
+	non-existing fileset, create a new fileset.
+
+2005-04-16  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-up-heading-all): Fix bug with
+	`outline-up-heading-all'.
+
+2005-04-16  Andreas Schwab  <schwab@suse.de>
+
+	* files.el (auto-mode-alist): Handle /etc/sysconfig/*,
+	/etc/permissions.d/* and /etc/aliases.d/*.
+
+2005-04-16  Kenichi Handa  <handa@m17n.org>
+
+	* international/code-pages.el (cp-make-coding-system):
+	Set `translation-table-for-input' property value to the symbol
+	ucs-mule-to-mule-unicode, not to that value.
+	(pt154): Escape guillemet by `\'.
+
+2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* loadup.el: Load tooltip if x-show-tip is fboundp.
+
+	* startup.el (command-line): Add comment.
+
+	* tooltip.el (tooltip-mode): Specify correct standard value for
+	Custom in init-value.
+
+2005-04-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-goto-info): Use existing Info buffer, if
+	possible.
+
+2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el:  (org-agenda-date-prompt): Rename from
+	`org-agenda-date-today'.
+	(org-evaluate-time-range): Insert at point instead of directly
+	after time range.
+	(org-first-headline-recenter, org-subtree-end-visible-p)
+	(org-optimize-window-after-visibility-change): New functions
+	(org-agenda-post-command-hook): Don't allow point at end of line,
+	to make sure it always hits the text properties.
+	(org-agenda-next-date-line, org-agenda-previous-date-line):
+	New commands.
+	(org-set-regexps-and-options): Category may contain white space.
+	(org-agenda-get-deadlines, org-agenda-get-scheduled):
+	Improve marker positions.
+	(org-agenda-new-marker): Argument POS made optional.
+	(org-agenda-get-timestamps): Deadlines which are done are listed
+	in org-done-face now.
+	(org-agenda-get-todos, org-agenda-get-timestamps)
+	(org-agenda-get-deadlines, org-agenda-get-scheduled):
+	Set `undone-face' and `done-face' properties.
+	(org-last-todo-state-is-todo): New variable.
+	(org-todo): Set `org-last-todo-state-is-todo'.
+	(org-agenda-todo): Change face according to
+	`org-last-todo-state-is-todo'.  And change other lines refering to
+	the same entry.
+	(org-calendar-goto-agenda): New command.
+	(org-calendar-to-agenda-key): New option.
+	(org-startup-folded): New allowed value `content'.
+	(org-set-regexps-and-options): Accept new value `content' for
+	`org-startup-folded'.
+	(org-get-current-options): Handle new value `content' for
+	`org-startup-folded'.
+	(org-insert-todo-heading): New command.
+	(org-mode): Insert first line "*-* mode: org-mode -*-" when called
+	interactively in empty file and option
+	`org-insert-mode-line-in-empty-file' has been set.
+	(org-agenda-todo,org-agenda-priority): Modify to use
+	`org-agenda-change-all-lines'.
+	(org-warning-face): Change color on dark background
+
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* international/mule-cmds.el (set-locale-environment): On Mac OS,
+	use preferences AppleLocale and AppleLanguages, and variable
+	mac-system-locale for default locale.  On Mac OS Classic, use
+	mac-system-coding-system for default coding systems.
+
+	* term/mac-win.el: Don't set file-name-coding-system.
+	Decode variables system-name, emacs-build-system, user-login-name, and
+	user-full-name by mac-system-coding-system on Mac OS Classic.
+	(mac-system-coding-system): New variable.
+
 2005-04-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Handle `xterm-mouse-mode' before
@@ -92,8 +362,8 @@
 
 2005-04-12  Lute Kamstra  <lute@gnu.org>
 
-	* generic-x.el (rc-generic-mode, rul-generic-mode): Fix
-	auto-mode-alist entries.
+	* generic-x.el (rc-generic-mode, rul-generic-mode):
+	Fix auto-mode-alist entries.
 	(etc-fstab-generic-mode): Tweak fontification.
 
 	* generic.el (generic-make-keywords-list): Fix docstring.
@@ -101,8 +371,8 @@
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
-	* whitespace.el (whitespace-buffer-leading,
-	whitespace-buffer-trailing): Revert the incorrect test
+	* whitespace.el (whitespace-buffer-leading)
+	(whitespace-buffer-trailing): Revert the incorrect test
 	inversion. However, fix the highlight area for the leading and
 	trailing whitespaces to show space.
 
@@ -110,8 +380,8 @@
 
 	* whitespace.el (whitespace-version): Bump to 3.5
 
-	(whitespace-buffer-leading, whitespace-buffer-trailing): Invert
-	sense of the test to highlight the whitespace.
+	(whitespace-buffer-leading, whitespace-buffer-trailing):
+	Invert sense of the test to highlight the whitespace.
 
 2005-04-12  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -144,15 +414,15 @@
 	(w32-drag-n-drop): Call dnd-handle-one-url.
 
 	* x-dnd.el: Require dnd.
-	(x-dnd-handle-uri-list, x-dnd-handle-file-name): Call
-	dnd-handle-one-url.
+	(x-dnd-handle-uri-list, x-dnd-handle-file-name):
+	Call dnd-handle-one-url.
 	(x-dnd-types-alist, x-dnd-insert-utf8-text)
 	(x-dnd-insert-utf16-text, x-dnd-insert-ctext): Change x-dnd-insert-text
 	to dnd-insert-text.
 	(x-dnd-protocol-alist, x-dnd-open-file-other-window)
 	(x-dnd-handle-one-url, x-dnd-get-local-file-uri)
 	(x-dnd-get-local-file-name,  x-dnd-open-local-file)
-	(x-dnd-open-file, x-dnd-insert-text): Moved to dnd.el (without x-).
+	(x-dnd-open-file, x-dnd-insert-text): Move to dnd.el (without x-).
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
 
@@ -280,8 +550,8 @@
 
 2005-04-09  Richard M. Stallman  <rms@gnu.org>
 
-	* help.el (describe-key-briefly, describe-key): Replace
-	strings as event types with "(any string)".
+	* help.el (describe-key-briefly, describe-key):
+	Replace strings as event types with "(any string)".
 
 2005-04-09  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -394,8 +664,7 @@
 
 2005-04-08  Kim F. Storm  <storm@cua.dk>
 
-	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to
-	mouse-face.
+	* buff-menu.el (Buffer-menu-mode-map): Map follow-link to mouse-face.
 
 	* mouse.el (mouse-on-link-p): Doc fix.
 

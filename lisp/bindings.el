@@ -392,9 +392,6 @@ Menu of mode operations in the mode line.")
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
-(define-key mode-line-mode-menu [tooltip-mode]
-  `(menu-item ,(purecopy "Tooltip") tooltip-mode
-	      :button (:toggle . tooltip-mode)))
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
 	      :button (:toggle . overwrite-mode)))
@@ -622,6 +619,10 @@ language you are using."
 ;; (define-key ctl-x-map "n" 'narrow-to-region)
 ;; (define-key ctl-x-map "w" 'widen)
 
+;; Quitting
+(define-key global-map "\e\e\e" 'keyboard-escape-quit)
+(define-key global-map "\C-g" 'keyboard-quit)
+
 (define-key global-map "\C-j" 'newline-and-indent)
 (define-key global-map "\C-m" 'newline)
 (define-key global-map "\C-o" 'open-line)
@@ -646,8 +647,17 @@ language you are using."
 ;; Many people are used to typing C-/ on X terminals and getting C-_.
 (define-key global-map [?\C-/] 'undo)
 (define-key global-map "\C-_" 'undo)
+;; Richard said that we should not use C-x <uppercase letter> and I have
+;; no idea whereas to bind it.  Any suggestion welcome.  -stef
+;; (define-key ctl-x-map "U" 'undo-only)
+
 (define-key esc-map "!" 'shell-command)
 (define-key esc-map "|" 'shell-command-on-region)
+
+(define-key global-map [?\C-x right] 'next-buffer)
+(define-key global-map [?\C-x C-right] 'next-buffer)
+(define-key global-map [?\C-x left] 'prev-buffer)
+(define-key global-map [?\C-x C-left] 'prev-buffer)
 
 (let ((map minibuffer-local-map))
   (define-key map "\en"   'next-history-element)
@@ -703,6 +713,13 @@ language you are using."
 (define-key esc-map "g\M-g" 'goto-line)
 (define-key esc-map "gg" 'goto-line)
 
+(define-key esc-map "gn" 'next-error)
+(define-key esc-map "g\M-n" 'next-error)
+(define-key ctl-x-map "`" 'next-error)
+
+(define-key esc-map "gp" 'previous-error)
+(define-key esc-map "g\M-p" 'previous-error)
+
 ;;(defun function-key-error ()
 ;;  (interactive)
 ;;  (error "That function key is not bound to anything"))
@@ -731,6 +748,7 @@ language you are using."
 (define-key global-map [C-next]		'scroll-left)
 (define-key global-map [M-next]		'scroll-other-window)
 (define-key global-map [M-prior]	'scroll-other-window-down)
+(define-key esc-map [?\C-\S-v]		'scroll-other-window-down)
 (define-key global-map [end]		'end-of-line)
 (define-key global-map [C-end]		'end-of-buffer)
 (define-key global-map [M-end]		'end-of-buffer-other-window)
@@ -1013,6 +1031,8 @@ language you are using."
 (define-key ctl-x-map "'" 'expand-abbrev)
 
 (define-key ctl-x-map "z" 'repeat)
+
+(define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
 ;; Don't look for autoload cookies in this file.
 ;; Local Variables:

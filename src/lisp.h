@@ -2346,6 +2346,7 @@ EXFUN (Fsort, 2);
 EXFUN (Freverse, 1);
 EXFUN (Fnreverse, 1);
 EXFUN (Fget, 2);
+EXFUN (Fsafe_get, 2);
 EXFUN (Fput, 3);
 EXFUN (Fequal, 2);
 EXFUN (Ffillarray, 2);

@@ -1,4 +1,4 @@
-;;; mac-win.el --- parse switches controlling interface with Mac window system
+;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
@@ -1085,7 +1085,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (put 'escape 'ascii-character ?\e)
 
 
-;;;; Keyboard layout/language change events
+;;;; Script codes and coding systems
 (defconst mac-script-code-coding-systems
   '((0 . mac-roman)			; smRoman
     (1 . japanese-shift-jis)		; smJapanese
@@ -1097,6 +1097,40 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
     )
   "Alist of Mac script codes vs Emacs coding systems.")
 
+(defconst mac-system-coding-system
+  (let ((base (or (cdr (assq mac-system-script-code
+			     mac-script-code-coding-systems))
+		  'mac-roman)))
+    (if (eq system-type 'darwin)
+	base
+      (coding-system-change-eol-conversion base 'mac)))
+  "Coding system derived from the system script code.")
+
+(defun mac-add-charset-info (xlfd-charset mac-text-encoding)
+  "Function to add character sets to display with Mac fonts.
+Creates entries in `mac-charset-info-alist'.
+XLFD-CHARSET is a string which will appear in the XLFD font name
+to identify the character set.  MAC-TEXT-ENCODING is the
+correspoinding TextEncodingBase value."
+  (add-to-list 'mac-charset-info-alist
+               (list xlfd-charset mac-text-encoding
+		     (cdr (assq mac-text-encoding
+				mac-script-code-coding-systems)))))
+
+(setq mac-charset-info-alist nil)
+(mac-add-charset-info "mac-roman" 0)
+(mac-add-charset-info "jisx0208.1983-sjis" 1)
+(mac-add-charset-info "jisx0201.1976-0" 1)
+(mac-add-charset-info "big5-0" 2)
+(mac-add-charset-info "ksc5601.1989-0" 3)
+(mac-add-charset-info "mac-cyrillic" 7)
+(mac-add-charset-info "gb2312.1980-0" 25)
+(mac-add-charset-info "mac-centraleurroman" 29)
+(mac-add-charset-info "mac-symbol" 33)
+(mac-add-charset-info "adobe-fontspecific" 33) ; for X-Symbol
+(mac-add-charset-info "mac-dingbats" 34)
+
+
 ;;;; Keyboard layout/language change events
 (defun mac-handle-language-change (event)
   (interactive "e")
@@ -1356,14 +1390,11 @@ Switch to a buffer editing the last file dropped."
   ;; started (see run_mac_command in sysdep.c).
   (setq shell-file-name "sh")
 
-  ;; To display filenames in Chinese or Japanese, replace mac-roman with
-  ;; big5 or sjis
-  (setq file-name-coding-system 'mac-roman))
-
-;; X Window emulation in macterm.c is not complete enough to start a
-;; frame without a minibuffer properly.  Call this to tell ediff
-;; library to use a single frame.
-; (ediff-toggle-multiframe)
+  ;; Some system variables are encoded with the system script code.
+  (dolist (v '(system-name
+	       emacs-build-system	; Mac OS 9 version cannot dump
+	       user-login-name user-real-login-name user-full-name))
+    (set v (decode-coding-string (symbol-value v) mac-system-coding-system))))
 
 ;; If Emacs is started from the Finder, change the default directory
 ;; to the user's home directory.
@@ -1379,8 +1410,6 @@ Switch to a buffer editing the last file dropped."
 ;; fonts with both truetype and bitmap representations but no italic
 ;; or bold bitmap versions will not display these variants correctly.
 (setq scalable-fonts-allowed t)
-
-;; (prefer-coding-system 'mac-roman)
 
 ;; arch-tag: 71dfcd14-cde8-4d66-b05c-85ec94fb23a6
 ;;; mac-win.el ends here

@@ -284,7 +284,9 @@ can be modified by the global variable `repeat-on-final-keystroke'."
 	      ;; does not alter it.
 	      (let ((real-last-command real-last-command))
 		(execute-kbd-macro real-last-command))
-	    (call-interactively real-last-command)))))
+            (run-hooks 'pre-command-hook)
+	    (call-interactively real-last-command)
+            (run-hooks 'post-command-hook)))))
     (when repeat-repeat-char
       ;; A simple recursion here gets into trouble with max-lisp-eval-depth
       ;; on long sequences of repetitions of a command like `forward-word'

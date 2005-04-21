@@ -66,7 +66,7 @@ int use_file_dialog;
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
-extern Lisp_Object Vloads_in_progress;
+extern int load_in_progress;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -1971,6 +1971,18 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
+DEFUN ("safe-get", Fsafe_get, Ssafe_get, 2, 2, 0,
+       doc: /* Return the value of SYMBOL's PROPNAME property.
+This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.
+This function never signals an error.  */)
+     (symbol, propname)
+     Lisp_Object symbol, propname;
+{
+  if (!SYMBOLP (symbol))
+    return Qnil;
+  return Fsafe_plist_get (XSYMBOL (symbol)->plist, propname);
+}
+
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
@@ -2916,7 +2928,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
      even if the feature specified is already loaded.
      But not more than once in any file,
      and not when we aren't loading a file.  */
-  if (! NILP (Vloads_in_progress))
+  if (load_in_progress)
     {
       tem = Fcons (Qrequire, feature);
       if (NILP (Fmember (tem, Vcurrent_load_list)))
@@ -5253,6 +5265,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Splist_get);
   defsubr (&Ssafe_plist_get);
   defsubr (&Sget);
+  defsubr (&Ssafe_get);
   defsubr (&Splist_put);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);

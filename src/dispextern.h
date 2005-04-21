@@ -726,6 +726,11 @@ struct glyph_row
      position of the next row.  */
   struct display_pos end;
 
+  /* Non-zero means the overlay arrow bitmap is on this line.
+     -1 means use default overlay arrow bitmap, else
+     it specifies actual fringe bitmap number.  */
+  int overlay_arrow_bitmap;
+
   /* Left fringe bitmap number (enum fringe_bitmap_type).  */
   unsigned left_user_fringe_bitmap : FRINGE_ID_BITS;
 
@@ -763,9 +768,6 @@ struct glyph_row
      right side.  */
   unsigned truncated_on_left_p : 1;
   unsigned truncated_on_right_p : 1;
-
-  /* 1 means the overlay arrow is on this line.  */
-  unsigned overlay_arrow_p : 1;
 
   /* 1 means that this row displays a continued line, i.e. it has a
      continuation mark at the right side.  */

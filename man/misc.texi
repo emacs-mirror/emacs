@@ -1937,7 +1937,8 @@ another directory by typing @kbd{M-x desktop-change-dir}.  Typing
 @kbd{M-x desktop-revert} reverts to the desktop previously reloaded.
 
   Specify the option @samp{--no-desktop} on the command line when you
-don't want it to reload any saved desktop.
+don't want it to reload any saved desktop.  This turns off
+@code{desktop-save-mode} for the current session.
 
 @vindex desktop-restore-eager
   By default, all the buffers in the desktop are restored at one go.

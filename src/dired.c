@@ -26,10 +26,10 @@ Boston, MA 02111-1307, USA.  */
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
+#endif
+#ifndef VMS
 #include <grp.h>
 #endif
 

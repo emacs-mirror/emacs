@@ -401,12 +401,6 @@ A value of nil means highlight all matches."
   (let ((map (make-sparse-keymap)))
     (set-keymap-parent map minibuffer-local-map)
     (define-key map "\r"    'isearch-nonincremental-exit-minibuffer)
-    (define-key map "\M-n"  'isearch-ring-advance-edit)
-    (define-key map [next]  'isearch-ring-advance-edit)
-    (define-key map [down]  'isearch-ring-advance-edit)
-    (define-key map "\M-p"  'isearch-ring-retreat-edit)
-    (define-key map [prior] 'isearch-ring-retreat-edit)
-    (define-key map [up]    'isearch-ring-retreat-edit)
     (define-key map "\M-\t" 'isearch-complete-edit)
     (define-key map "\C-s"  'isearch-forward-exit-minibuffer)
     (define-key map "\C-r"  'isearch-reverse-exit-minibuffer)
@@ -933,8 +927,6 @@ The following additional command keys are active while editing.
 \\[isearch-nonincremental-exit-minibuffer] to do one nonincremental search.
 \\[isearch-forward-exit-minibuffer] to resume isearching forward.
 \\[isearch-reverse-exit-minibuffer] to resume isearching backward.
-\\[isearch-ring-advance-edit] to replace the search string with the next item in the search ring.
-\\[isearch-ring-retreat-edit] to replace the search string with the previous item in the search ring.
 \\[isearch-complete-edit] to complete the search string using the search ring.
 \\<isearch-mode-map>
 If first char entered is \\[isearch-yank-word-or-char], then do word search instead."
@@ -1020,12 +1012,12 @@ If first char entered is \\[isearch-yank-word-or-char], then do word search inst
 		  (isearch-unread e))
 		(setq cursor-in-echo-area nil)
 		(setq isearch-new-string
-		      (let (junk-ring)
-			(read-from-minibuffer
-			 (isearch-message-prefix nil nil isearch-nonincremental)
-			 isearch-string
-			 minibuffer-local-isearch-map nil
-			 'junk-ring nil t))
+                      (read-from-minibuffer
+                       (isearch-message-prefix nil nil isearch-nonincremental)
+                       isearch-string
+                       minibuffer-local-isearch-map nil
+                       (if isearch-regexp 'regexp-search-ring 'search-ring)
+                       nil t)
 		      isearch-new-message
 		      (mapconcat 'isearch-text-char-description
 				 isearch-new-string "")))
@@ -1855,49 +1847,6 @@ Obsolete."
   "Retreat to the previous search string in the ring."
   (interactive)
   (isearch-ring-adjust nil))
-
-(defun isearch-ring-advance-edit (n)
-  "Insert the next element of the search history into the minibuffer.
-With prefix arg N, insert the Nth element."
-  (interactive "p")
-  (let* ((yank-pointer-name (if isearch-regexp
-				'regexp-search-ring-yank-pointer
-			      'search-ring-yank-pointer))
-	 (yank-pointer (eval yank-pointer-name))
-	 (ring (if isearch-regexp regexp-search-ring search-ring))
-	 (length (length ring)))
-    (if (zerop length)
-	()
-      (set yank-pointer-name
-	   (setq yank-pointer
-		 (mod (- (or yank-pointer 0) n)
-		      length)))
-
-      (delete-field)
-      (insert (nth yank-pointer ring))
-      (goto-char (point-max)))))
-
-(defun isearch-ring-retreat-edit (n)
-  "Insert the previous element of the search history into the minibuffer.
-With prefix arg N, insert the Nth element."
-  (interactive "p")
-  (isearch-ring-advance-edit (- n)))
-
-;;(defun isearch-ring-adjust-edit (advance)
-;;  "Use the next or previous search string in the ring while in minibuffer."
-;;  (isearch-ring-adjust1 advance)
-;;  (erase-buffer)
-;;  (insert isearch-string))
-
-;;(defun isearch-ring-advance-edit ()
-;;  (interactive)
-;;  (isearch-ring-adjust-edit 'advance))
-
-;;(defun isearch-ring-retreat-edit ()
-;;  "Retreat to the previous search string in the ring while in the minibuffer."
-;;  (interactive)
-;;  (isearch-ring-adjust-edit nil))
-
 
 (defun isearch-complete1 ()
   ;; Helper for isearch-complete and isearch-complete-edit

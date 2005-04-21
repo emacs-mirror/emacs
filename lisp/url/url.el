@@ -180,15 +180,23 @@ no further processing).  URL is either a string or a parsed URL."
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
-	  ;; We used to use `sit-for' here, but in some cases it wouldn't
-	  ;; work because apparently pending keyboard input would always
-	  ;; interrupt it before it got a chance to handle process input.
-	  ;; `sleep-for' was tried but it lead to other forms of
-	  ;; hanging.  --Stef
-	  (unless (accept-process-output proc)
-	    ;; accept-process-output returned nil, maybe because the process
-	    ;; exited (and may have been replaced with another).
-	    (setq proc (get-buffer-process asynch-buffer)))))
+	  (if (memq (process-status proc) '(closed exit signal failed))
+	      ;; FIXME: It's not clear whether url-retrieve's callback is
+	      ;; guaranteed to be called or not.  It seems that url-http
+	      ;; decides sometimes consciously not to call it, so it's not
+	      ;; clear that it's a bug, but even if we need to decide how
+	      ;; url-http can then warn us that the download has completed.
+              ;; In the mean time, we use this here workaround.
+              (setq retrieval-done t)
+            ;; We used to use `sit-for' here, but in some cases it wouldn't
+            ;; work because apparently pending keyboard input would always
+            ;; interrupt it before it got a chance to handle process input.
+            ;; `sleep-for' was tried but it lead to other forms of
+            ;; hanging.  --Stef
+            (unless (accept-process-output proc)
+              ;; accept-process-output returned nil, maybe because the process
+              ;; exited (and may have been replaced with another).
+              (setq proc (get-buffer-process asynch-buffer))))))
       asynch-buffer)))
 
 (defun url-mm-callback (&rest ignored)

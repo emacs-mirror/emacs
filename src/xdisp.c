@@ -568,12 +568,21 @@ Lisp_Object Vmessage_log_max;
 
 static Lisp_Object Vmessages_buffer_name;
 
-/* Current, index 0, and last displayed echo area message.  Either
-   buffers from echo_buffers, or nil to indicate no message.  */
+/* Index 0 is the buffer that holds the current (desired) echo area message,
+   or nil if none is desired right now.
+
+   Index 1 is the buffer that holds the previously displayed echo area message,
+   or nil to indicate no message.  This is normally what's on the screen now.
+
+   These two can point to the same buffer.  That happens when the last
+   message output by the user (or made by echoing) has been displayed.  */
 
 Lisp_Object echo_area_buffer[2];
 
-/* The buffers referenced from echo_area_buffer.  */
+/* Permanent pointers to the two buffers that are used for echo area
+   purposes.  Once the two buffers are made, and their pointers are
+   placed here, these two slots remain unchanged unless those buffers
+   need to be created afresh.  */
 
 static Lisp_Object echo_buffer[2];
 
@@ -2700,6 +2709,10 @@ handle_stop (it)
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
 
+  /* Use face of preceding text for ellipsis (if invisible) */
+  if (it->selective_display_ellipsis_p)
+    it->saved_face_id = it->face_id;
+
   do
     {
       handled = HANDLED_NORMALLY;
@@ -3377,8 +3390,11 @@ setup_for_ellipsis (it, len)
   it->dpvec_face_id = -1;
 
   /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.  */
-  it->saved_face_id = it->face_id;
+     IT's face is restored in set_iterator_to_next.
+     saved_face_id was set to preceding char's face in handle_stop.  */
+  if (it->saved_face_id < 0 || it->saved_face_id != it->face_id)
+    it->saved_face_id = it->face_id = DEFAULT_FACE_ID;
+
   it->method = GET_FROM_DISPLAY_VECTOR;
   it->ellipsis_p = 1;
 }
@@ -5514,6 +5530,8 @@ next_element_from_display_vector (it)
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
 
+  it->face_id = it->saved_face_id;
+
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))
     {
@@ -7328,10 +7346,6 @@ ensure_echo_area_buffers ()
    WHICH > 0 means use echo_area_buffer[1].  If that is nil, choose a
    suitable buffer from echo_buffer[] and clear it.
 
-   If WHICH < 0, set echo_area_buffer[1] to echo_area_buffer[0], so
-   that the current message becomes the last displayed one, make
-   choose a suitable buffer for echo_area_buffer[0], and clear it.
-
    Value is what FN returns.  */
 
 static int
@@ -7356,17 +7370,6 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
     this_one = 0, the_other = 1;
   else if (which > 0)
     this_one = 1, the_other = 0;
-  else
-    {
-      this_one = 0, the_other = 1;
-      clear_buffer_p = 1;
-
-      /* We need a fresh one in case the current echo buffer equals
-	 the one containing the last displayed echo area message.  */
-      if (!NILP (echo_area_buffer[this_one])
-	  && EQ (echo_area_buffer[this_one], echo_area_buffer[the_other]))
-	echo_area_buffer[this_one] = Qnil;
-    }
 
   /* Choose a suitable buffer from echo_buffer[] is we don't
      have one.  */
@@ -7986,7 +7989,7 @@ set_message (s, string, nbytes, multibyte_p)
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
 
-  with_echo_area_buffer (0, -1, set_message_1,
+  with_echo_area_buffer (0, 0, set_message_1,
 			 (EMACS_INT) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
@@ -8018,6 +8021,7 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
+  Ferase_buffer ();
 
   if (STRINGP (string))
     {
@@ -8235,10 +8239,8 @@ echo_area_display (update_frame_p)
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
 
-  /* Last displayed message is now the current message.  */
+  /* The current message is now also the last one displayed.  */
   echo_area_buffer[1] = echo_area_buffer[0];
-  /* Inform read_char that we're not echoing.  */
-  echo_message_buffer = Qnil;
 
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
@@ -9762,22 +9764,14 @@ redisplay ()
 
 
 static Lisp_Object
-overlay_arrow_string_or_property (var, pbitmap)
+overlay_arrow_string_or_property (var)
      Lisp_Object var;
-     int *pbitmap;
 {
-  Lisp_Object pstr = Fget (var, Qoverlay_arrow_string);
-  Lisp_Object bitmap;
+  Lisp_Object val;
 
-  if (pbitmap)
-    {
-      *pbitmap = 0;
-      if (bitmap  = Fget (var, Qoverlay_arrow_bitmap), INTEGERP (bitmap))
-	*pbitmap = XINT (bitmap);
-    }
+  if (val = Fget (var, Qoverlay_arrow_string), STRINGP (val))
+    return val;
 
-  if (!NILP (pstr))
-    return pstr;
   return Voverlay_arrow_string;
 }
 
@@ -9827,7 +9821,7 @@ overlay_arrows_changed_p ()
 	continue;
       if (! EQ (COERCE_MARKER (val),
 		Fget (var, Qlast_arrow_position))
-	  || ! (pstr = overlay_arrow_string_or_property (var, 0),
+	  || ! (pstr = overlay_arrow_string_or_property (var),
 		EQ (pstr, Fget (var, Qlast_arrow_string))))
 	return 1;
     }
@@ -9857,7 +9851,7 @@ update_overlay_arrows (up_to_date)
 	  Fput (var, Qlast_arrow_position,
 		COERCE_MARKER (val));
 	  Fput (var, Qlast_arrow_string,
-		overlay_arrow_string_or_property (var, 0));
+		overlay_arrow_string_or_property (var));
 	}
       else if (up_to_date < 0
 	       || !NILP (Fget (var, Qlast_arrow_position)))
@@ -9870,14 +9864,13 @@ update_overlay_arrows (up_to_date)
 
 
 /* Return overlay arrow string to display at row.
-   Return t if display as bitmap in left fringe.
+   Return integer (bitmap number) for arrow bitmap in left fringe.
    Return nil if no overlay arrow.  */
 
 static Lisp_Object
-overlay_arrow_at_row (it, row, pbitmap)
+overlay_arrow_at_row (it, row)
      struct it *it;
      struct glyph_row *row;
-     int *pbitmap;
 {
   Lisp_Object vlist;
 
@@ -9897,17 +9890,21 @@ overlay_arrow_at_row (it, row, pbitmap)
 	  && current_buffer == XMARKER (val)->buffer
 	  && (MATRIX_ROW_START_CHARPOS (row) == marker_position (val)))
 	{
-	  val = overlay_arrow_string_or_property (var, pbitmap);
 	  if (FRAME_WINDOW_P (it->f)
 	      && WINDOW_LEFT_FRINGE_WIDTH (it->w) > 0)
-	    return Qt;
-	  if (STRINGP (val))
-	    return val;
-	  break;
+	    {
+	      if (val = Fget (var, Qoverlay_arrow_bitmap), SYMBOLP (val))
+		{
+		  int fringe_bitmap;
+		  if ((fringe_bitmap = lookup_fringe_bitmap (val)) != 0)
+		    return make_number (fringe_bitmap);
+		}
+	      return make_number (-1); /* Use default arrow bitmap */
+	    }
+	  return overlay_arrow_string_or_property (var);
 	}
     }
 
-  *pbitmap = 0;
   return Qnil;
 }
 
@@ -14954,7 +14951,6 @@ display_line (it)
      struct it *it;
 {
   struct glyph_row *row = it->glyph_row;
-  int overlay_arrow_bitmap;
   Lisp_Object overlay_arrow_string;
 
   /* We always start displaying at hpos zero even if hscrolled.  */
@@ -15362,9 +15358,9 @@ display_line (it)
      mark this glyph row as the one containing the overlay arrow.
      This is clearly a mess with variable size fonts.  It would be
      better to let it be displayed like cursors under X.  */
-  if ((overlay_arrow_string
-       = overlay_arrow_at_row (it, row, &overlay_arrow_bitmap),
-       !NILP (overlay_arrow_string)))
+  if ((row->displays_text_p || !overlay_arrow_seen)
+      && (overlay_arrow_string = overlay_arrow_at_row (it, row),
+	  !NILP (overlay_arrow_string)))
     {
       /* Overlay arrow in window redisplay is a fringe bitmap.  */
       if (STRINGP (overlay_arrow_string))
@@ -15394,8 +15390,8 @@ display_line (it)
 	}
       else
 	{
-	  it->w->overlay_arrow_bitmap = overlay_arrow_bitmap;
-	  row->overlay_arrow_p = 1;
+	  xassert (INTEGERP (overlay_arrow_string));
+	  row->overlay_arrow_bitmap = XINT (overlay_arrow_string);
 	}
       overlay_arrow_seen = 1;
     }

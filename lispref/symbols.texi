@@ -496,11 +496,19 @@ This function finds the value of the property named @var{property} in
 @var{symbol}'s property list.  If there is no such property, @code{nil}
 is returned.  Thus, there is no distinction between a value of
 @code{nil} and the absence of the property.
+A @code{wrong-type-argument} error may be signaled if @var{symbol}
+has a malformed property list.
 
 The name @var{property} is compared with the existing property names
 using @code{eq}, so any object is a legitimate property.
 
 See @code{put} for an example.
+@end defun
+
+@defun safe-get symbol property
+This function finds the value of the property named @var{property} in
+@var{symbol}'s property list.  Unlike @code{get}, it just returns
+@code{nil} if @var{symbol} has a malformed property list.
 @end defun
 
 @defun put symbol property value

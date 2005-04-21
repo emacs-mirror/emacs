@@ -1,3 +1,223 @@
+2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* sysdep.c: Remove reference to defunct vms-pwd.h.
+	* dired.c: Likewise.  Also, for pwd.h, use HAVE_PWD_H, not !VMS.
+	* editfns.c, fileio.c, filelock.c, sysdep.c, xrdb.c: Likewise.
+
+	* config.in: Regenerate.
+
+2005-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* lisp.h (CHAR_TABLE_DEFAULT_SLOT_ASCII): New macro.
+	(CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL): New macro.
+	(CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC): New macro.
+
+	* alloc.c (make_sub_char_table): Argument changed to initial
+	value of the slots.
+
+	* data.c (Faref): Handle special slots used as default values of
+	ascii, eight-bit-control, eight-bit-control.  Don't ignore a
+	default value set for a group of characters.
+	(Faset): Signal an error if IDXVAL is not a valid character code.
+	Make a sub-chartable with correct initial value.
+
+	* fns.c (Fset_char_table_range): Don't set slots used as default
+	values for ascii, eight-bit-control, eight-bit-graphic.  Don't
+	call Faref with charset-id.
+	(Fset_char_table_default): Document how to treat normal character
+	argument.  Handle special slots used as default values of ascii,
+	eight-bit-control, eight-bit-control.  Make a sub chartable if
+	necessary.
+
+2005-04-20  Kenichi Handa  <handa@m17n.org>
+
+	* search.c (boyer_moore): Fix previous change.
+
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (setup_for_ellipsis): Reset saved_face_id to use default
+	face unless last visible char and first invisible char have the
+	same face.  Also use default face if saved_face_id is undefined.
+
+2005-04-19  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macgui.h (MacFontStruct): Remove member `fontname'.  Add member
+	`full_name'.
+	[TARGET_API_MAC_CARBON] (MacFontStruct): Use type int for
+	mac_scriptcode member.
+
+	* macterm.c (Qbig5, Qcn_gb, Qsjis, Qeuc_kr): Remove variables.
+	(syms_of_mac): Don't initialize them.
+	(Vmac_charset_info_alist): New variable.
+	(syms_of_mac): Defvar it.
+	(create_text_encoding_info_alist): New function.
+	(decode_mac_font_name, mac_to_x_fontname)
+	(x_font_name_to_mac_font_name, init_font_name_table): Don't hard
+	code the correspondence among XLFD charsets, Mac script codes, and
+	Emacs coding systems.  Use Vmac_charset_info_alist and result of
+	create_text_encoding_info_alist instead.
+	(init_font_name_table) [TARGET_API_MAC_CARBON]: Use Font Manager
+	routines also on Mac OS Classic.
+	(init_font_name_table) [!TARGET_API_MAC_CARBON]: Use
+	add_font_name_table_entry.
+	(mac_do_list_fonts): Regard 0 in XLFD scaleble fields as
+	specified.  Derive unspecified scalable fields from specified one.
+	(x_list_fonts): Consider Valternate_fontname_alist.
+	(kDefaultFontSize): Change value from 9 to 12.
+	(XLoadQueryFont): Get decoded font family, font face, and charset
+	from x_font_name_to_mac_font_name.  Set full name of loaded font.
+	(mac_unload_font): Free `full_name' member.
+	(x_load_font): Don't try XLoadQueryFont if x_list_fonts returns
+	NULL.  Copy full_name member of struct MacFontStruct to that of
+	struct font_info.
+
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (handle_stop): Set saved_face_id to current face if
+	selective_display_ellipsis_p so ellipsis will be shown in same
+	face as preceding text.
+	(setup_for_ellipsis): Don't set saved_face_id here.
+	(next_element_from_display_vector): Default to saved_face_id.
+
+	* fns.c (Fsafe_get): New function.
+	(syms_of_fns): Defsubr it.
+
+	* lisp.h (Fsafe_get): EXFUN it.
+
+	* xfaces.c (resolve_face_name): Use Fsafe_get to avoid redisplay
+	loops in case of bad face property lists.  Limit number of face
+	alias lookups to 10 (in case of face alias loops).
+
+2005-04-18  Kim F. Storm  <storm@cua.dk>
+
+	* dispextern.h (struct glyph_row): New member overlay_arrow_bitmap.
+	It replaces the corresponding member from struct window, as a
+	window may now show multiple overlay arrows.
+	Remove member overlay_arrow_p, superseeded by overlay_arrow_bitmap.
+
+	* dispnew.c (row_equal_p, update_window_line, scrolling_window):
+	Compare overlay_arrow_bitmap than overlay_arrow_p members.
+
+	* fringe.c (draw_fringe_bitmap): Use overlay_arrow_bitmap from row
+	rather than from window.
+	(update_window_fringes): Compare overlay_arrow_bitmap rather than
+	overlay_arrow_p members.
+	(Ffringe_bitmaps_at_pos): Return fringe overlay_arrow_bitmap name
+	if not default.
+
+	* window.h (struct window): Remove member overlay_arrow_bitmap.
+
+	* window.c (make_window): Don't initialize overlay_arrow_bitmap.
+
+	* xdisp.c (overlay_arrow_string_or_property): Remove PBITMAP arg.
+	Calls changed.  Don't check for overlay-arrow-bitmap property here.
+	(overlay_arrow_at_row): Remove PBITMAP arg.  Instead, if left
+	fringe is present, return Lisp integer for bitmap (or -1 for default).
+	Fix value of overlay-arrow-bitmap property to be a symbol, use
+	lookup_fringe_bitmap to parse it.
+	(display_line): Change call to overlay_arrow_at_row.  Store integer
+	return value as overlay bitmap in row rather than window.
+	Only show overlay arrow if row displays text, or if no other overlay
+	arrow is seen in window (if overlay marker is at point-max).
+
+2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xfaces.c (realize_x_face) [!HAVE_WINDOW_SYSTEM]: Return NULL.
+
+2005-04-18  Lute Kamstra  <lute@gnu.org>
+
+	* lread.c (Vloads_in_progress): Static.
+	* fns.c (Vloads_in_progress): Remove extern.
+	(load_in_progress): Add extern.
+	(Frequire): Use load_in_progress instead of Vloads_in_progress.
+
+2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xmenu.c (Fx_popup_menu): Initialize error_name to NULL.
+
+2005-04-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (XTread_socket): Don't beep on keyboard input even if
+	no frame is visible.
+
+2005-04-16  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.c (struct keys): Add support for shifted keys.
+
+2005-04-16  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (with_echo_area_buffer): Delete WHICH < 0 case.
+	(set_message): Call with_echo_area_buffer with WHICH = 0.
+	(set_message_1): Erase the echo area buffer first thing.
+	(echo_area_display): Don't clear echo_message_buffer.
+
+2005-04-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in (mac.o): Depend on charset.h and coding.h.
+
+	* mac.c: Include charset.h and coding.h.
+	[TARGET_API_MAC_CARBON] (Qutf_8): Remove extern.
+	[TARGET_API_MAC_CARBON] (cfstring_create_with_string): New
+	function.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference): Use it.
+
+	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
+
+	* image.c [MAC_OSX] (image_load_quartz2d): Likewise.
+
+	* macterm.c (x_autoselect_window_p): Remove variable.
+	(last_window): New variable.
+	(XTreassert_line_highlight, x_change_line_highlight): Remove
+	declarations.
+	(mac_focus_changed, x_detect_focus_change): New functions and
+	declarations.
+	(XTextExtents16, front_emacs_window): Remove function.
+	(mac_focus_frame): New function.
+	(XTmouse_position, do_menu_choice, do_zoom_window, XTread_socket)
+	(mac_check_for_quit_char): Use it instead of front_emacs_window.
+	(x_scroll_bar_report_motion): Obtain window from control owner.
+	(x_make_frame_invisible): Set window manager size hint.
+	(do_mouse_moved): Remove function.
+	(XTread_socket): Move its contents here.  Generate select-window
+	event on mouse movement if needed.  Use x_detect_focus_change on
+	activate/deactivate events.  Don't deiconify frame or invalidate
+	window rectangle when dnd items are dropped.  Don't
+	activate/deactivate root control.
+	(frame_highlight, frame_unhighlight): Activate/deactivate root
+	control here.
+	(syms_of_macterm): Delete DEFVAR_BOOL for x_autoselect_window_p.
+
+	* macterm.h (cfstring_create_with_string) [TARGET_API_MAC_CARBON]:
+	New extern.
+
+2005-04-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* Makefile.in: Define new macro TOOLTIP_SUPPORT.
+	(lisp): Use it.
+	(SOME_MACHINE_LISP): Add tooltip.
+
+2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.  Don't
+	include TextEncodingConverter.h.
+	(mac_system_script_code, Vmac_system_locale): New variables.
+	(syms_of_mac): Defvar them.
+	(mac_get_system_locale): New function.
+
+	* macfns.c (x_set_name, x_set_title) [!TARGET_API_MAC_CARBON]: Use
+	ENCODE_SYSTEM to encode title bar string.
+	(x_create_tip_frame): Apply 2005-03-18 change for xfns.c.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON && !MAC_OSX]: Use
+	CFStringGetSystemEncoding to get system default string encoding.
+
+	* macterm.c [!TARGET_API_MAC_CARBON]: Don't include
+	TextEncodingConverter.h.
+
+2005-04-13  Steven Tamm  <steventamm@mac.com>
+
+	* macterm.c (syms_of_macterm): Remove redundant definition of
+	mac-pass-control-to-system.
+
 2005-04-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Fset_window_configuration): Be careful when you choose
@@ -13,13 +233,11 @@
 
 	* macterm.c (mac_keyboard_text_encoding)
 	(current_mac_keyboard_text_encoding): Remove variables.
-	(XTread_socket): Store language-change event if keyboard script
-	change is detected.  Don't convert input to
-	`mac_keyboard_text_encoding'.
+	(XTread_socket): Store language-change event if keyboard script	change
+	is detected.  Don't convert input to `mac_keyboard_text_encoding'.
 	(syms_of_macterm): Delete DEFVAR_INT for mac-keyboard-text-encoding.
 
-	* termhooks.h (enum event_kind) [MAC_OS]:
-	Add LANGUAGE_CHANGE_EVENT.
+	* termhooks.h (enum event_kind) [MAC_OS]: Add LANGUAGE_CHANGE_EVENT.
 
 2005-04-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -34,7 +252,6 @@
 	into "(any string)".
 
 	* lread.c (Vloads_in_progress): Not static.
-
 	* fns.c (Vloads_in_progress): Add extern.
 	(Frequire): Don't do LOADHIST_ATTACH if Vloads_in_progress is nil.
 
@@ -908,9 +1125,9 @@
 
 2005-02-02  Steven Tamm  <steventamm@mac.com>
 
-	* macfns.c (unwind_create_frame): Fixing compile error due to
+	* macfns.c (unwind_create_frame): Fix compile error due to
 	xassert being uncondition, but predicate is.
-	* dispnew.c (update_window): Fixing compile error due to
+	* dispnew.c (update_window): Fix compile error due to
 	xassert being uncondition, but predicate is.
 
 2005-02-02  Miles Bader  <miles@gnu.org>
@@ -1054,6 +1271,7 @@
 
 	* s/darwin.h: Removed PTY_ITERATION from here.
 	(DARWIN): Define.
+
 	* process.c (init_process): Default process-connection-type to
 	nil on darwin 6 or less, t if it is 7 or higher.  This way the
 	broken pty behavior is still allowed on darwin 6 for interactive
@@ -3554,8 +3772,8 @@
 2004-08-26  Steven Tamm  <steventamm@mac.com>
 
 	* fileio.c (Fread_file_name): Call x_file_dialog on carbon on
-	tool-bar/menu click
-	* macfns.c (Fx_file_dialog): Implemented using NavServices
+	tool-bar/menu click.
+	* macfns.c (Fx_file_dialog): Implement using NavServices.
 
 2004-08-24  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -5042,7 +5260,7 @@
 
 2004-04-26  Steven Tamm  <tamm@Steven-Tamms-Computer.local>
 
-	* lread.c (init_lread): Fixing typo HAVE_CARBON test logic
+	* lread.c (init_lread): Fix typo in HAVE_CARBON test logic.
 
 2004-04-26  Miles Bader  <miles@gnu.org>
 
@@ -5497,10 +5715,10 @@
 
 2004-03-11  Steven Tamm <steventamm@mac.com>
 
-	* image.c [MAC_OSX]: Include sys/stat.h
+	* image.c [MAC_OSX]: Include sys/stat.h.
 
 	* macfns.c (syms_of_macfns): Remove definitions of things now
-	defined in image.c
+	defined in image.c.
 
 2004-03-11  Kim F. Storm  <storm@cua.dk>
 
@@ -6210,7 +6428,7 @@
 	* macterm.c (Vmac_emulate_three_button_mouse): New variable for
 	controlling emulation of a three button mouse with option and
 	command keys.
-	(Qreverse, mac_get_enumlated_btn): Handle the emulation
+	(Qreverse, mac_get_enumlated_btn): Handle the emulation.
 	(mac_event_to_emacs_modifiers, XTread_socket): Ditto.
 
 2004-02-15  Kim F. Storm  <storm@cua.dk>
@@ -11150,7 +11368,7 @@
 
 2003-01-20  Steven Tamm  <steventamm@mac.com>
 
-	* macterm.c (XTread_socket): Checks for valid, visible window
+	* macterm.c (XTread_socket): Check for valid, visible window
 	before sending a scroll-wheel event.
 
 2003-01-20  Richard M. Stallman  <rms@gnu.org>
@@ -11509,7 +11727,7 @@
 
 2002-12-28  Steven Tamm  <steventamm@mac.com>
 
-	* Makefile.in (macosx-bundle): Fixes to Mac OS X/Carbon port to
+	* Makefile.in (macosx-bundle): Fix Mac OS X/Carbon port to
 	allow building in a different directory than source.  Uses some
 	GNU Make extensions, but there is no other make on Mac OS X.
 
@@ -11552,7 +11770,7 @@
 
 	* macterm.c (XTread_socket): Call KeyTranslate for control and
 	meta to deal correctly shifted non-alpha characters, like C-S-5
-	being treated like C-%.  Does not look for shift key to deal
+	being treated like C-%.  Do not look for shift key to deal
 	with masking off control-key with mac-reverse-ctrl-meta.
 
 2002-12-21  Richard M. Stallman  <rms@gnu.org>

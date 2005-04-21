@@ -3274,17 +3274,19 @@ resolve_face_name (face_name)
      Lisp_Object face_name;
 {
   Lisp_Object aliased;
+  int alias_loop_max = 10;
 
   if (STRINGP (face_name))
     face_name = intern (SDATA (face_name));
 
   while (SYMBOLP (face_name))
     {
-      aliased = Fget (face_name, Qface_alias);
+      aliased = Fsafe_get (face_name, Qface_alias);
       if (NILP (aliased))
 	break;
-      else
-	face_name = aliased;
+      if (--alias_loop_max == 0)
+	break;
+      face_name = aliased;
     }
 
   return face_name;
@@ -7301,8 +7303,9 @@ realize_x_face (cache, attrs)
      struct face_cache *cache;
      Lisp_Object *attrs;
 {
+  struct face *face = NULL;
 #ifdef HAVE_WINDOW_SYSTEM
-  struct face *face, *default_face;
+  struct face *default_face;
   struct frame *f;
   Lisp_Object stipple, overline, strike_through, box;
 
@@ -7476,9 +7479,9 @@ realize_x_face (cache, attrs)
   stipple = attrs[LFACE_STIPPLE_INDEX];
   if (!NILP (stipple))
     face->stipple = load_pixmap (f, stipple, &face->pixmap_w, &face->pixmap_h);
+#endif /* HAVE_WINDOW_SYSTEM */
 
   return face;
-#endif /* HAVE_WINDOW_SYSTEM */
 }
 
 

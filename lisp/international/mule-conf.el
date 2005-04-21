@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2005  Free Software Foundation, Inc.
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009
@@ -1158,12 +1158,6 @@
 (setq standard-translation-table-for-decode nil)
 
 (setq standard-translation-table-for-encode nil)
-
-;; Fixme: should this be retained?  I guess it could be useful for
-;; non-unified charsets.
-(defvar translation-table-for-input nil
-  "If non-nil, a char table used to translate characters from input methods.
-\(Currently only used by Quail.)")
 
 ;;; Make fundamental coding systems.
 
@@ -1495,5 +1489,5 @@ for decoding and encoding files, process I/O, etc."
 ;; no-byte-compile: t
 ;; End:
 
-;;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
+;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

@@ -699,11 +699,11 @@ draw_fringe_bitmap (w, row, left_p)
 
   draw_fringe_bitmap_1 (w, row, left_p, overlay, NO_FRINGE_BITMAP);
 
-  if (left_p && row->overlay_arrow_p)
+  if (left_p && row->overlay_arrow_bitmap != NO_FRINGE_BITMAP)
     draw_fringe_bitmap_1 (w, row, 1, 1,
-			  (w->overlay_arrow_bitmap
-			   ? w->overlay_arrow_bitmap
-			   : OVERLAY_ARROW_BITMAP));
+			  (row->overlay_arrow_bitmap < 0
+			   ? OVERLAY_ARROW_BITMAP
+			   : row->overlay_arrow_bitmap));
 }
 
 
@@ -959,10 +959,10 @@ update_window_fringes (w, force_p)
 	  cur->right_fringe_face_id = right_face_id;
 	}
 
-      if (row->overlay_arrow_p != cur->overlay_arrow_p)
+      if (row->overlay_arrow_bitmap != cur->overlay_arrow_bitmap)
 	{
 	  redraw_p = row->redraw_fringe_bitmaps_p = cur->redraw_fringe_bitmaps_p = 1;
-	  cur->overlay_arrow_p = row->overlay_arrow_p;
+	  cur->overlay_arrow_bitmap = row->overlay_arrow_bitmap;
 	}
 
       row->left_fringe_bitmap = left;
@@ -1408,7 +1408,9 @@ Return nil if POS is not visible in WINDOW.  */)
   if (row)
     return list3 (get_fringe_bitmap_name (row->left_fringe_bitmap),
 		  get_fringe_bitmap_name (row->right_fringe_bitmap),
-		  (row->overlay_arrow_p ? Qt : Qnil));
+		  (row->overlay_arrow_bitmap == 0 ? Qnil
+		   : row->overlay_arrow_bitmap < 0 ? Qt
+		   : get_fringe_bitmap_name (row->overlay_arrow_bitmap)));
   else
     return Qnil;
 }

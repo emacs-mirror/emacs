@@ -1,6 +1,6 @@
 ;;; loadhist.el --- lisp functions for working with feature groups
 
-;; Copyright (C) 1995, 1998, 2000 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2000, 2005 Free Software Foundation, Inc.
 
 ;; Author: Eric S. Raymond <esr@snark.thyrsus.com>
 ;; Maintainer: FSF
@@ -155,16 +155,16 @@ variable `unload-hook-features-list' and could remove features from it
 in the event that the package has done something normally-ill-advised,
 such as redefining an Emacs function."
   (interactive (list (read-feature "Feature: ") current-prefix-arg))
-  (if (not (featurep feature))
-      (error "%s is not a currently loaded feature" (symbol-name feature)))
-  (if (not force)
-      (let* ((file (feature-file feature))
-	     (dependents (delete file (copy-sequence (file-dependents file)))))
-	(if dependents
-	    (error "Loaded libraries %s depend on %s"
-		   (prin1-to-string dependents) file))))
+  (unless (featurep feature)
+    (error "%s is not a currently loaded feature" (symbol-name feature)))
+  (unless force
+    (let* ((file (feature-file feature))
+	   (dependents (delete file (copy-sequence (file-dependents file)))))
+      (when dependents
+	(error "Loaded libraries %s depend on %s"
+	       (prin1-to-string dependents) file))))
   (let* ((unload-hook-features-list (feature-symbols feature))
-         (file (car unload-hook-features-list))
+         (file (pop unload-hook-features-list))
          (unload-hook (intern-soft (concat (symbol-name feature)
                                            "-unload-hook"))))
     ;; Try to avoid losing badly when hooks installed in critical
@@ -183,40 +183,39 @@ such as redefining an Emacs function."
       ;; normally works.
       (mapatoms
        (lambda (x)
-         (if (or (and (boundp x)        ; Random hooks.
-                      (consp (symbol-value x))
-                      (string-match "-hooks?\\'" (symbol-name x)))
-                 (and (boundp x)       ; Known abnormal hooks etc.
-                      (memq x unload-feature-special-hooks)))
-	     (dolist (y (cdr unload-hook-features-list))
-	       (remove-hook x y))))))
-    (if (fboundp 'elp-restore-function)	; remove ELP stuff first
-	(dolist (elt (cdr unload-hook-features-list))
-	  (if (symbolp elt)
-	      (elp-restore-function elt))))
-    (mapc
-     (lambda (x)
-       (cond ((stringp x) nil)
-             ((consp x)
-              ;; Remove any feature names that this file provided.
-              (if (eq (car x) 'provide)
-                  (setq features (delq (cdr x) features)))
-              (when (eq (car x) 'defvar)
-		;; Kill local values as much as possible.
-		(dolist (buf (buffer-list))
-		  (with-current-buffer buf
-		    (kill-local-variable (cdr x))))
-		;; Get rid of the default binding if we can.
-		(unless (local-variable-if-set-p (cdr x))
-		  (makunbound (cdr x)))))
-	     (t
-	      (when (fboundp x)
-		(if (fboundp 'ad-unadvise)
-		    (ad-unadvise x))
-		(fmakunbound x)
-		(let ((aload (get x 'autoload)))
-		  (if aload (fset x (cons 'autoload aload))))))))
-     (cdr unload-hook-features-list))
+         (when (and (boundp x)
+		    (or (and (consp (symbol-value x)) ; Random hooks.
+			     (string-match "-hooks?\\'" (symbol-name x)))
+			(memq x unload-feature-special-hooks)))	; Known abnormal hooks etc.
+	   (dolist (y unload-hook-features-list)
+	     (when (eq (car-safe y) 'defun)
+	       (remove-hook x (cdr y))))))))
+    (when (fboundp 'elp-restore-function) ; remove ELP stuff first
+      (dolist (elt unload-hook-features-list)
+	(when (symbolp elt)
+	  (elp-restore-function elt))))
+    (dolist (x unload-hook-features-list)
+      (if (consp x)
+	  (progn
+	    ;; Remove any feature names that this file provided.
+	    (when (eq (car x) 'provide)
+	      (setq features (delq (cdr x) features)))
+	    (when (eq (car x) 'defun)
+	      (let ((fun (cdr x)))
+		(when (fboundp fun)
+		  (when (fboundp 'ad-unadvise)
+		    (ad-unadvise fun))
+		  (fmakunbound fun)
+		  (let ((aload (get fun 'autoload)))
+		    (when aload 
+		      (fset fun (cons 'autoload aload))))))))
+	;; Kill local values as much as possible.
+	(dolist (buf (buffer-list))
+	  (with-current-buffer buf
+	    (kill-local-variable x)))
+	;; Get rid of the default binding if we can.
+	(unless (local-variable-if-set-p x)
+	  (makunbound x))))
     ;; Delete the load-history element for this file.
     (let ((elt (assoc file load-history)))
       (setq load-history (delq elt load-history)))))

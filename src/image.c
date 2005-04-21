@@ -2423,7 +2423,7 @@ image_load_quartz2d (f, img, png_p)
 	  UNGCPRO;
 	  return 0;
 	}
-      path = cfstring_create_with_utf8_cstring (SDATA (file));
+      path = cfstring_create_with_string (file);
       url = CFURLCreateWithFileSystemPath (NULL, path,
 					   kCFURLPOSIXPathStyle, 0);
       CFRelease (path);
