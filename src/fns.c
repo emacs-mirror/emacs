@@ -462,9 +462,10 @@ static Lisp_Object
 copy_sub_char_table (arg)
      Lisp_Object arg;
 {
-  Lisp_Object copy = make_sub_char_table (XCHAR_TABLE (arg)->defalt);
+  Lisp_Object copy = make_sub_char_table (Qnil);
   int i;
 
+  XCHAR_TABLE (copy)->defalt = XCHAR_TABLE (arg)->defalt;
   /* Copy all the contents.  */
   bcopy (XCHAR_TABLE (arg)->contents, XCHAR_TABLE (copy)->contents,
 	 SUB_CHAR_TABLE_ORDINARY_SLOTS * sizeof (Lisp_Object));
