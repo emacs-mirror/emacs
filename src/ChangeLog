@@ -1,3 +1,11 @@
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (copy_sub_char_table): Explicitly copy the default value
+	of the sub-chartable.
+
+	* fontset.c (fontset_set): When a sub-chartable is created,
+	explicitly sets the defalt value.
+
 2005-04-22  Kim F. Storm  <storm@cua.dk>
 
 	* fns.c (Fplist_get): Replace by Fsafe_plist_get.
