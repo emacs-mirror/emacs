@@ -1,3 +1,8 @@
+2005-04-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (Fx_create_frame, x_create_tip_frame): Pass Lisp
+	string as the second argument for x_new_fontset.
+
 2005-04-18  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (Fstring_as_multibyte): Fix the change for syncing with
