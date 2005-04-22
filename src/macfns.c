@@ -2632,7 +2632,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_fontset (f, "fontset-mac");
+      font = x_new_fontset (f, build_string ("fontset-mac"));
     if (! STRINGP (font))
       font = x_new_font (f, "-*-monaco-*-12-*-mac-roman");
     if (! STRINGP (font))
@@ -3730,7 +3730,7 @@ x_create_tip_frame (dpyinfo, parms, text)
       font = x_new_font (f, "-ETL-fixed-medium-r-*--*-160-*-*-*-*-iso8859-1");
     /* If those didn't work, look for something which will at least work.  */
     if (! STRINGP (font))
-      font = x_new_fontset (f, "fontset-mac");
+      font = x_new_fontset (f, build_string ("fontset-mac"));
     if (! STRINGP (font))
       font = x_new_font (f, "-*-monaco-*-12-*-mac-roman");
     if (! STRINGP (font))
