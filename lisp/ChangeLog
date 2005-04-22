@@ -1,3 +1,7 @@
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): New macro.
+
 2005-04-21  Lute Kamstra  <lute@gnu.org>
 
 	* loadhist.el (unload-feature): Don't remove a function from hooks
