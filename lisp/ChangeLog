@@ -1,3 +1,9 @@
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* recentf.el (recentf-save-file-coding-system): New variable.
+	(recentf-save-list): Encode the file by
+	recentf-save-file-coding-system and add coding: tag.
+
 2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): New macro.
