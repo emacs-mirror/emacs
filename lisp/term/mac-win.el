@@ -1362,9 +1362,8 @@ an appropriate name is generated automatically.
 It returns a name of the created fontset."
   (or resolved-font
       (setq resolved-font (x-resolve-font-name font)))
-  (let* ((xlfd-fields (x-decompose-font-name resolved-font))
-	 (base-family (aref (x-decompose-font-name ascii-font)
-			    xlfd-regexp-family-subnum)))
+  (let ((base-family (aref (x-decompose-font-name resolved-font)
+			   xlfd-regexp-family-subnum)))
     (if (string= base-family "*")
 	(setq base-family nil))
     (new-fontset fontset-name (list (cons 'ascii resolved-font)))
