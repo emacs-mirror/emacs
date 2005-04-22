@@ -2843,10 +2843,6 @@ and post-command-hooks.
 alist whose cdr is `eq' to a specified value.
 
 +++
-*** New function make-obsolete-variable to warn that a variable may be removed
-at some stage in the future.
-
-+++
 *** New macro define-obsolete-variable-alias to combine defvaralias and
 make-obsolete-variable.
 
