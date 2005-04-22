@@ -1,3 +1,7 @@
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix `list' completion.
+
 2005-04-22  Kenichi Handa  <handa@m17n.org>
 
 	* recentf.el (recentf-save-file-coding-system): New variable.
@@ -28,7 +32,7 @@
 
 2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
-	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): 
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
 	Add tooltip-mode.
 
 	* bindings.el (mode-line-mode-menu): Remove tooltip-mode.
