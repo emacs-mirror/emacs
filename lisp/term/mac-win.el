@@ -1,4 +1,4 @@
-;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
+;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: utf-8
 
 ;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
@@ -1187,23 +1187,198 @@ correspoinding TextEncodingBase value."
 		     ;; Exit Emacs with fatal error if this fails.
 		     t))
 
-(setq frame-creation-function 'x-create-frame-with-faces);; Setup the default fontset.
+(setq frame-creation-function 'x-create-frame-with-faces)
+
+(define-charset 'mac-centraleurroman
+  "Mac Central European Roman"
+  :short-name "Mac CE"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map
+  (let ((tbl
+	 [?\Ä ?\Ā ?\ā ?\É ?\Ą ?\Ö ?\Ü ?\á ?\ą ?\Č ?\ä ?\č ?\Ć ?\ć ?\é ?\Ź
+	  ?\ź ?\Ď ?\í ?\ď ?\Ē ?\ē ?\Ė ?\ó ?\ė ?\ô ?\ö ?\õ ?\ú ?\Ě ?\ě ?\ü
+	  ?\† ?\° ?\Ę ?\£ ?\§ ?\• ?\¶ ?\ß ?\® ?\© ?\™ ?\ę ?\¨ ?\≠ ?\ģ ?\Į
+	  ?\į ?\Ī ?\≤ ?\≥ ?\ī ?\Ķ ?\∂ ?\∑ ?\ł ?\Ļ ?\ļ ?\Ľ ?\ľ ?\Ĺ ?\ĺ ?\Ņ
+	  ?\ņ ?\Ń ?\¬ ?\√ ?\ń ?\Ň ?\∆ ?\« ?\» ?\… ?\  ?\ň ?\Ő ?\Õ ?\ő ?\Ō
+	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\◊ ?\ō ?\Ŕ ?\ŕ ?\Ř ?\‹ ?\› ?\ř ?\Ŗ
+	  ?\ŗ ?\Š ?\‚ ?\„ ?\š ?\Ś ?\ś ?\Á ?\Ť ?\ť ?\Í ?\Ž ?\ž ?\Ū ?\Ó ?\Ô
+	  ?\ū ?\Ů ?\Ú ?\ů ?\Ű ?\ű ?\Ų ?\ų ?\Ý ?\ý ?\ķ ?\Ż ?\Ł ?\ż ?\Ģ ?\ˇ])
+	(map (make-vector 512 nil)))
+    (or (= (length tbl) 128)
+	(error "Invalid vector length: %d" (length tbl)))
+    (dotimes (i 128)
+      (aset map (* i 2) i)
+      (aset map (1+ (* i 2)) i))
+    (dotimes (i 128)
+      (aset map (+ 256 (* i 2)) (+ 128 i))
+      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
+    map))
+
+(define-coding-system 'mac-centraleurroman
+  "Mac Central European Roman Encoding (MIME:x-mac-centraleurroman)."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(mac-centraleurroman)
+  :mime-charset 'x-mac-centraleurroman)
+
+(define-charset 'mac-cyrillic
+  "Mac Cyrillic"
+  :short-name "Mac CYRILLIC"
+  :ascii-compatible-p t
+  :code-space [0 255]
+  :map
+  (let ((tbl
+	 [?\А ?\Б ?\В ?\Г ?\Д ?\Е ?\Ж ?\З ?\И ?\Й ?\К ?\Л ?\М ?\Н ?\О ?\П
+	  ?\Р ?\С ?\Т ?\У ?\Ф ?\Х ?\Ц ?\Ч ?\Ш ?\Щ ?\Ъ ?\Ы ?\Ь ?\Э ?\Ю ?\Я
+	  ?\† ?\° ?\Ґ ?\£ ?\§ ?\• ?\¶ ?\І ?\® ?\© ?\™ ?\Ђ ?\ђ ?\≠ ?\Ѓ ?\ѓ
+	  ?\∞ ?\± ?\≤ ?\≥ ?\і ?\µ ?\ґ ?\Ј ?\Є ?\є ?\Ї ?\ї ?\Љ ?\љ ?\Њ ?\њ
+	  ?\ј ?\Ѕ ?\¬ ?\√ ?\ƒ ?\≈ ?\∆ ?\« ?\» ?\… ?\  ?\Ћ ?\ћ ?\Ќ ?\ќ ?\ѕ
+	  ?\– ?\— ?\“ ?\” ?\‘ ?\’ ?\÷ ?\„ ?\Ў ?\ў ?\Џ ?\џ ?\№ ?\Ё ?\ё ?\я
+	  ?\а ?\б ?\в ?\г ?\д ?\е ?\ж ?\з ?\и ?\й ?\к ?\л ?\м ?\н ?\о ?\п
+	  ?\р ?\с ?\т ?\у ?\ф ?\х ?\ц ?\ч ?\ш ?\щ ?\ъ ?\ы ?\ь ?\э ?\ю ?\€])
+	(map (make-vector 512 nil)))
+    (or (= (length tbl) 128)
+	(error "Invalid vector length: %d" (length tbl)))
+    (dotimes (i 128)
+      (aset map (* i 2) i)
+      (aset map (1+ (* i 2)) i))
+    (dotimes (i 128)
+      (aset map (+ 256 (* i 2)) (+ 128 i))
+      (aset map (+ 256 (1+ (* i 2))) (aref tbl i)))
+    map))
+
+(define-coding-system 'mac-cyrillic
+  "Mac Cyrillic Encoding (MIME:x-mac-cyrillic)."
+  :coding-type 'charset
+  :mnemonic ?*
+  :charset-list '(mac-cyrillic)
+  :mime-charset 'x-mac-cyrillic)
+
+(define-charset 'mac-symbol
+  "Mac Symbol"
+  :short-name "Mac SYMBOL"
+  :code-space [32 254]
+  :map
+  (let ((tbl-32-126
+	 [?\  ?\! ?\∀ ?\# ?\∃ ?\% ?\& ?\∍ ?\( ?\) ?\∗ ?\+ ?\, ?\− ?\. ?\/
+	  ?\0 ?\1 ?\2 ?\3 ?\4 ?\5 ?\6 ?\7 ?\8 ?\9 ?\: ?\; ?\< ?\= ?\> ?\?
+	  ?\≅ ?\Α ?\Β ?\Χ ?\Δ ?\Ε ?\Φ ?\Γ ?\Η ?\Ι ?\ϑ ?\Κ ?\Λ ?\Μ ?\Ν ?\Ο
+	  ?\Π ?\Θ ?\Ρ ?\Σ ?\Τ ?\Υ ?\ς ?\Ω ?\Ξ ?\Ψ ?\Ζ ?\[ ?\∴ ?\] ?\⊥ ?\_
+	  ?\ ?\α ?\β ?\χ ?\δ ?\ε ?\φ ?\γ ?\η ?\ι ?\ϕ ?\κ ?\λ ?\μ ?\ν ?\ο
+	  ?\π ?\θ ?\ρ ?\σ ?\τ ?\υ ?\ϖ ?\ω ?\ξ ?\ψ ?\ζ ?\{ ?\| ?\} ?\∼])
+	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
+	(tbl-160-254
+	 ;; Mapping of the following characters are changed from the
+	 ;; original one:
+	 ;; 0xE2 0x00AE+0xF87F->0x00AE # REGISTERED SIGN, alternate: sans serif
+	 ;; 0xE3 0x00A9+0xF87F->0x00A9 # COPYRIGHT SIGN, alternate: sans serif
+	 ;; 0xE4 0x2122+0xF87F->0x2122 # TRADE MARK SIGN, alternate: sans serif
+	 [?\€ ?\ϒ ?\′ ?\≤ ?\⁄ ?\∞ ?\ƒ ?\♣ ?\♦ ?\♥ ?\♠ ?\↔ ?\← ?\↑ ?\→ ?\↓
+	  ?\° ?\± ?\″ ?\≥ ?\× ?\∝ ?\∂ ?\• ?\÷ ?\≠ ?\≡ ?\≈ ?\… ?\⏐ ?\⎯ ?\↵
+	  ?\ℵ ?\ℑ ?\ℜ ?\℘ ?\⊗ ?\⊕ ?\∅ ?\∩ ?\∪ ?\⊃ ?\⊇ ?\⊄ ?\⊂ ?\⊆ ?\∈ ?\∉
+	  ?\∠ ?\∇ ?\® ?\© ?\™ ?\∏ ?\√ ?\⋅ ?\¬ ?\∧ ?\∨ ?\⇔ ?\⇐ ?\⇑ ?\⇒ ?\⇓
+	  ?\◊ ?\〈 ?\® ?\© ?\™ ?\∑ ?\⎛ ?\⎜ ?\⎝ ?\⎡ ?\⎢ ?\⎣ ?\⎧ ?\⎨ ?\⎩ ?\⎪
+	  ?\ ?\〉 ?\∫ ?\⌠ ?\⎮ ?\⌡ ?\⎞ ?\⎟ ?\⎠ ?\⎤ ?\⎥ ?\⎦ ?\⎫ ?\⎬ ?\⎭])
+	(map-160-254 (make-vector (* (1+ (- 254 160)) 2) nil)))
+    (dotimes (i (1+ (- 126 32)))
+      (aset map-32-126 (* i 2) (+ 32 i))
+      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
+    (dotimes (i (1+ (- 254 160)))
+      (aset map-160-254 (* i 2) (+ 160 i))
+      (aset map-160-254 (1+ (* i 2)) (aref tbl-160-254 i)))
+    (vconcat map-32-126 map-160-254)))
+
+(define-charset 'mac-dingbats
+  "Mac Dingbats"
+  :short-name "Mac Dingbats"
+  :code-space [32 254]
+  :map
+  (let ((tbl-32-126
+	 [?\  ?\✁ ?\✂ ?\✃ ?\✄ ?\☎ ?\✆ ?\✇ ?\✈ ?\✉ ?\☛ ?\☞ ?\✌ ?\✍ ?\✎ ?\✏
+	  ?\✐ ?\✑ ?\✒ ?\✓ ?\✔ ?\✕ ?\✖ ?\✗ ?\✘ ?\✙ ?\✚ ?\✛ ?\✜ ?\✝ ?\✞ ?\✟
+	  ?\✠ ?\✡ ?\✢ ?\✣ ?\✤ ?\✥ ?\✦ ?\✧ ?\★ ?\✩ ?\✪ ?\✫ ?\✬ ?\✭ ?\✮ ?\✯
+	  ?\✰ ?\✱ ?\✲ ?\✳ ?\✴ ?\✵ ?\✶ ?\✷ ?\✸ ?\✹ ?\✺ ?\✻ ?\✼ ?\✽ ?\✾ ?\✿
+	  ?\❀ ?\❁ ?\❂ ?\❃ ?\❄ ?\❅ ?\❆ ?\❇ ?\❈ ?\❉ ?\❊ ?\❋ ?\● ?\❍ ?\■ ?\❏
+	  ?\❐ ?\❑ ?\❒ ?\▲ ?\▼ ?\◆ ?\❖ ?\◗ ?\❘ ?\❙ ?\❚ ?\❛ ?\❜ ?\❝ ?\❞])
+	(map-32-126 (make-vector (* (1+ (- 126 32)) 2) nil))
+	(tbl-128-141
+	 [?\❨ ?\❩ ?\❪ ?\❫ ?\❬ ?\❭ ?\❮ ?\❯ ?\❰ ?\❱ ?\❲ ?\❳ ?\❴ ?\❵])
+	(map-128-141 (make-vector (* (1+ (- 141 128)) 2) nil))
+	(tbl-161-239
+	 [?\❡ ?\❢ ?\❣ ?\❤ ?\❥ ?\❦ ?\❧ ?\♣ ?\♦ ?\♥ ?\♠ ?\① ?\② ?\③ ?\④
+	  ?\⑤ ?\⑥ ?\⑦ ?\⑧ ?\⑨ ?\⑩ ?\❶ ?\❷ ?\❸ ?\❹ ?\❺ ?\❻ ?\❼ ?\❽ ?\❾ ?\❿
+	  ?\➀ ?\➁ ?\➂ ?\➃ ?\➄ ?\➅ ?\➆ ?\➇ ?\➈ ?\➉ ?\➊ ?\➋ ?\➌ ?\➍ ?\➎ ?\➏
+	  ?\➐ ?\➑ ?\➒ ?\➓ ?\➔ ?\→ ?\↔ ?\↕ ?\➘ ?\➙ ?\➚ ?\➛ ?\➜ ?\➝ ?\➞ ?\➟
+	  ?\➠ ?\➡ ?\➢ ?\➣ ?\➤ ?\➥ ?\➦ ?\➧ ?\➨ ?\➩ ?\➪ ?\➫ ?\➬ ?\➭ ?\➮ ?\➯])
+	(map-161-239 (make-vector (* (1+ (- 239 161)) 2) nil))
+	(tbl-241-254
+	 [?\➱ ?\➲ ?\➳ ?\➴ ?\➵ ?\➶ ?\➷ ?\➸ ?\➹ ?\➺ ?\➻ ?\➼ ?\➽ ?\➾])
+	(map-241-254 (make-vector (* (1+ (- 254 241)) 2) nil)))
+    (dotimes (i (1+ (- 126 32)))
+      (aset map-32-126 (* i 2) (+ 32 i))
+      (aset map-32-126 (1+ (* i 2)) (aref tbl-32-126 i)))
+    (dotimes (i (1+ (- 141 128)))
+      (aset map-128-141 (* i 2) (+ 128 i))
+      (aset map-128-141 (1+ (* i 2)) (aref tbl-128-141 i)))
+    (dotimes (i (1+ (- 239 161)))
+      (aset map-161-239 (* i 2) (+ 161 i))
+      (aset map-161-239 (1+ (* i 2)) (aref tbl-161-239 i)))
+    (dotimes (i (1+ (- 254 241)))
+      (aset map-241-254 (* i 2) (+ 241 i))
+      (aset map-241-254 (1+ (* i 2)) (aref tbl-241-254 i)))
+    (vconcat map-32-126 map-128-141 map-161-239 map-241-254)))
+
+(setq font-encoding-alist
+      (append
+       '(("mac-roman" . mac-roman)
+	 ("mac-centraleurroman" . mac-centraleurroman)
+	 ("mac-cyrillic" . mac-cyrillic)
+	 ("mac-symbol" . mac-symbol)
+	 ("mac-dingbats" . mac-dingbats))
+       font-encoding-alist))
+
+(defun fontset-add-mac-fonts (fontset &optional base-family)
+  (dolist (elt `((latin . (,(or base-family "Monaco") . "mac-roman"))
+		 (mac-roman . (,base-family . "mac-roman"))
+		 (mac-centraleurroman . (,base-family . "mac-centraleurroman"))
+		 (mac-cyrillic . (,base-family . "mac-cyrillic"))
+		 (mac-symbol . (,base-family . "mac-symbol"))
+		 (mac-dingbats . (,base-family . "mac-dingbats"))))
+    (set-fontset-font fontset (car elt) (cdr elt))))
+
+(defun create-fontset-from-mac-roman-font (font &optional resolved-font
+						fontset-name)
+  "Create a fontset from a Mac roman font FONT.
+
+Optional 1st arg RESOLVED-FONT is a resolved name of FONT.  If
+omitted, `x-resolve-font-name' is called to get the resolved name.  At
+this time, if FONT is not available, error is signaled.
+
+Optional 2nd arg FONTSET-NAME is a string to be used in
+`<CHARSET_ENCODING>' fields of a new fontset name.  If it is omitted,
+an appropriate name is generated automatically.
+
+It returns a name of the created fontset."
+  (or resolved-font
+      (setq resolved-font (x-resolve-font-name font)))
+  (let* ((xlfd-fields (x-decompose-font-name resolved-font))
+	 (base-family (aref (x-decompose-font-name ascii-font)
+			    xlfd-regexp-family-subnum)))
+    (if (string= base-family "*")
+	(setq base-family nil))
+    (new-fontset fontset-name (list (cons 'ascii resolved-font)))
+    (fontset-add-mac-fonts fontset-name base-family)))
+
+;; Setup the default fontset.
 (setup-default-fontset)
 
-;; Carbon uses different fonts than commonly found on X, so
-;; we define our own standard fontset here.
-(defvar mac-standard-fontset-spec
- "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac"
- "String of fontset spec of the standard fontset.
-This defines a fontset consisting of the Monaco variations for
-European languages which are distributed with Mac OS X.
-
-See the documentation of `create-fontset-from-fontset-spec for the format.")
-
 ;; Create a fontset that uses mac-roman font.  With this fontset,
-;; characters decoded from mac-roman encoding (ascii, latin-iso8859-1,
-;; and mule-unicode-xxxx-yyyy) are displayed by a mac-roman font.
-(create-fontset-from-fontset-spec mac-standard-fontset-spec t)
+;; characters belonging to mac-roman charset (that contains ASCII and
+;; more Latin characters) are displayed by a mac-roman font.
+(create-fontset-from-mac-roman-font
+ "-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman" nil
+ "-apple-Monaco-normal-r-*-*-12-*-*-*-*-*-fontset-mac")
 
 ;; Create fontset specified in X resources "Fontset-N" (N is 0, 1, ...).
 (create-fontset-from-x-resource)
