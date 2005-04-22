@@ -1,3 +1,7 @@
+2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* s/ms-w32.h (HAVE_PWD_H): Define.
+
 2005-04-22  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (copy_sub_char_table): Explicitly copy the default value
