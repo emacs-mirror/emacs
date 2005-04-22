@@ -1793,7 +1793,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		(ido-name (car ido-matches))))
 
 	(cond
-	 ((eq item 'buffer)
+	 ((memq item '(buffer list))
 	  (setq done t))
 
 	 ((string-equal "./" ido-selected)
