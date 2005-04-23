@@ -79,10 +79,6 @@ static int foreach_window_1 P_ ((struct window *,
 				 void *));
 static Lisp_Object window_list_1 P_ ((Lisp_Object, Lisp_Object, Lisp_Object));
 
-/* The value of `window-size-fixed'.  */
-
-int window_size_fixed;
-
 /* This is the window in which the terminal's cursor should
    be left when nothing is being done with it.  This must
    always be a leaf window, and its buffer is selected by
@@ -6669,6 +6665,7 @@ syms_of_window ()
 {
   Qwindow_size_fixed = intern ("window-size-fixed");
   staticpro (&Qwindow_size_fixed);
+  Fset (Qwindow_size_fixed, Qnil);
 
   staticpro (&Qwindow_configuration_change_hook);
   Qwindow_configuration_change_hook
@@ -6876,16 +6873,6 @@ scroll as specified.  */);
 	       doc: /* Functions to call when window configuration changes.
 The selected frame is the one whose configuration has changed.  */);
   Vwindow_configuration_change_hook = Qnil;
-
-  DEFVAR_BOOL ("window-size-fixed", &window_size_fixed,
-	       doc: /* Non-nil in a buffer means windows displaying the buffer are fixed-size.
-If the value is`height', then only the window's height is fixed.
-If the value is `width', then only the window's width is fixed.
-Any other non-nil value fixes both the width and the height.
-Emacs won't change the size of any window displaying that buffer,
-unless you explicitly change the size, or Emacs has no other choice.  */);
-  Fmake_variable_buffer_local (Qwindow_size_fixed);
-  window_size_fixed = 0;
 
   defsubr (&Sselected_window);
   defsubr (&Sminibuffer_window);
