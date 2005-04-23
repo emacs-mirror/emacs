@@ -309,6 +309,9 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-comment-face		'font-lock-comment-face
   "Face name to use for comments.")
 
+(defvar font-lock-comment-delimiter-face 'font-lock-comment-delimiter-face
+  "Face name to use for comments.")
+
 (defvar font-lock-string-face		'font-lock-string-face
   "Face name to use for strings.")
 
@@ -1615,7 +1618,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;; But now we do it the custom way.  Note that `defface' will not overwrite any
 ;; faces declared above via `custom-declare-face'.
-(defface font-lock-comment-face
+(defface font-lock-comment-delimiter-face
   '((((class grayscale) (background light))
      (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
@@ -1632,6 +1635,27 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
      (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
      (:foreground "red1"))
+    (t (:weight bold :slant italic)))
+  "Font Lock mode face used to highlight comments."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-comment-face
+  '((((class grayscale) (background light))
+     (:foreground "DimGray" :weight bold :slant italic))
+    (((class grayscale) (background dark))
+     (:foreground "LightGray" :weight bold :slant italic))
+    (((class color) (min-colors 88) (background light))
+     (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "chocolate1"))
+    (((class color) (min-colors 16) (background light))
+     (:foreground "red"))
+    (((class color) (min-colors 16) (background dark))
+     (:foreground "red1"))
+    (((class color) (min-colors 8) (background light))
+     )
+    (((class color) (min-colors 8) (background dark))
+     )
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-highlighting-faces)
