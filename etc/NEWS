@@ -120,6 +120,7 @@ versions which recognize Thai words.  Affected commands are
 
 ** fast-lock.el and lazy-lock.el are obsolete.  Use jit-lock.el instead.
 
+---
 ** The default settings for JIT stealth lock parameters are changed.
 The default value forthe user option jit-lock-stealth-time is now 16
 instead of 3, and the default value of jit-lock-stealth-nice is now
