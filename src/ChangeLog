@@ -1,3 +1,10 @@
+2005-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* m/macppc.h (LD_SWITCH_MACHINE) [LINUX]: Don't define.
+	(START_FILES, LIB_STANDARD) [LINUX && _ARCH_PPC64]: Override to
+	use lib64 instead of lib.
+	(_LP64) [_ARCH_PPC64]: Define if not defined.
+
 2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
 
 	* s/ms-w32.h (HAVE_PWD_H): Define.
