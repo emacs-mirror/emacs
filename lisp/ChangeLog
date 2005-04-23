@@ -1,3 +1,50 @@
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (read-directory-name): Always pass non-nil
+	DEFAULT-FILENAME arg to read-file-name.
+	(backup-buffer-copy, basic-save-buffer-2): Take care against
+	writing thru an unexpected existing symlink.
+	(revert-buffer): In indirect buffer, revert the base buffer.
+	(magic-mode-alist): Doc fix.
+	(buffer-stale-function): Doc fix.
+	(minibuffer-with-setup-hook): Avoid warning.
+	(mode-require-final-newline): Doc and custom fix.
+	
+	* follow.el (follow-end-of-buffer): Use with-no-warnings.
+
+	* font-lock.el (font-lock-comment-face): On terminals with few colors,
+	use the default appearance.
+	(font-lock-comment-delimiter-face): New face, new variable.
+
+	* imenu.el (imenu--generic-function): The official position of a
+	definition is the start of the line that BEG is in.
+
+	* midnight.el (midnight-timer): Move defvar up.
+
+	* mouse.el (mouse-drag-region-1): Delete some debugging code.
+
+	* saveplace.el (save-place-to-alist): Use with-no-warnings.
+
+	* startup.el (command-line): Use with-no-warnings.
+
+	* window.el (window-size-fixed): New defvar.
+
+	* emacs-lisp/easymenu.el (easy-menu-do-define): Use defalias, not fset.
+
+	* mail/rmail.el (rmail-font-lock-keywords): 
+	Use font-lock-comment-delimiter-face.
+
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Use font-lock-comment-delimiter-face.
+
+	* progmodes/compile.el (next-error-highlight-timer): New defvar.
+
+2005-04-23  SAITO Takuya  <tabmore@rivo.mediatti.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords): 
+	Specify t for LAXMATCH when matching directories.
+	Save match data around compilation-compat-error-properties form.
+
 2005-04-23  David Kastrup  <dak@gnu.org>
 
 	* textmodes/tex-mode.el (TeX-mode, plain-TeX-mode, LaTeX-mode):

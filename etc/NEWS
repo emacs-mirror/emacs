@@ -2856,6 +2856,7 @@ alist whose cdr is `eq' to a specified value.
 *** New macro define-obsolete-variable-alias to combine defvaralias and
 make-obsolete-variable.
 
++++
 ** copy-file now takes an additional option arg MUSTBENEW.
 
 This argument works like the MUSTBENEW argument of write-file.

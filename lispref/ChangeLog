@@ -1,3 +1,7 @@
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Changing Files): Document MUSTBENEW arg in copy-file.
+
 2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* windows.texi (Cyclic Window Ordering): Clarify window-list.

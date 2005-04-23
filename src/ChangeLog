@@ -1,3 +1,12 @@
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fcopy_file): New arg MUSTBENEW.
+	(Frename_file): Pass new arg to Fcopy_file.
+
+	* window.c (window_size_fixed): Variable deleted.
+	(syms_of_window): Initialize window-size-fixed to nil.
+	But don't DEFVAR window_size_fixed.
+
 2005-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* m/macppc.h (LD_SWITCH_MACHINE) [LINUX]: Don't define.
