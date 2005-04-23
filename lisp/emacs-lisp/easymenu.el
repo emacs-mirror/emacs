@@ -160,18 +160,18 @@ A menu item can be a list with the same format as MENU.  This is a submenu."
   (let ((keymap (easy-menu-create-menu (car menu) (cdr menu))))
     (when symbol
       (set symbol keymap)
-      (fset symbol
-	    `(lambda (event) ,doc (interactive "@e")
-	       ;; FIXME: XEmacs uses popup-menu which calls the binding
-	       ;; while x-popup-menu only returns the selection.
-	       (x-popup-menu event
-			     (or (and (symbolp ,symbol)
-				      (funcall
-				       (or (plist-get (get ,symbol 'menu-prop)
-						      :filter)
-					   'identity)
-				       (symbol-function ,symbol)))
-				 ,symbol)))))
+      (defalias symbol
+	`(lambda (event) ,doc (interactive "@e")
+	   ;; FIXME: XEmacs uses popup-menu which calls the binding
+	   ;; while x-popup-menu only returns the selection.
+	   (x-popup-menu event
+			 (or (and (symbolp ,symbol)
+				  (funcall
+				   (or (plist-get (get ,symbol 'menu-prop)
+						  :filter)
+				       'identity)
+				   (symbol-function ,symbol)))
+			     ,symbol)))))
     (mapcar (lambda (map)
 	      (define-key map (vector 'menu-bar (easy-menu-intern (car menu)))
 		(cons 'menu-item
