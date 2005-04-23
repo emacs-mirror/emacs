@@ -1,3 +1,8 @@
+2005-04-23  David Kastrup  <dak@gnu.org>
+
+	* textmodes/tex-mode.el (TeX-mode, plain-TeX-mode, LaTeX-mode):
+	Mention that the autoloaded aliases should be kept for AUCTeX.
+
 2005-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* isearch.el (isearch-forward): Doc fix.
