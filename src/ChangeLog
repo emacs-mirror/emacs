@@ -2794,7 +2794,7 @@
 
 	* doc.c: New variable Vbuild_files.
 	(Fsnarf_documentation): If Vbuild_files is nil, populate it with
-	file names from buildobh.lst.  Only attach docstrings from files
+	file names from buildobj.lst.  Only attach docstrings from files
 	that are in Vbuild_files.
 	(syms_of_doc): Defvar Vbuild_files.
 
