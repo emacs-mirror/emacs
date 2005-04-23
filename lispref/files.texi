@@ -1364,7 +1364,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time
+@deffn Command copy-file oldname newname &optional ok-if-exists time mustbenew
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1379,6 +1379,10 @@ This function copies the file modes, too.
 
 In an interactive call, a prefix argument specifies a non-@code{nil}
 value for @var{time}.
+
+The argument @var{mustbenew} controls whether an existing file can be
+overwritten.  It works like the similarly-named argument of
+@code{write-file} (@pref{Writing to Files}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
