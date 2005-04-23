@@ -1,3 +1,8 @@
+2005-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* jit-lock.el (jit-lock-stealth-time): Change default value to 16.
+	(jit-lock-stealth-nice): Change default value to 0.5.
+
 2005-04-23  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
 
 	* abbrev.el (write-abbrev-file): Write table entries in
