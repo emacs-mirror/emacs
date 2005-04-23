@@ -531,9 +531,9 @@ Type \\[isearch-quote-char] to quote control character to search for it.
  starting point.
 
 Type \\[isearch-query-replace] to start `query-replace' with string to\
-replace from  last search string.
+ replace from last search string.
 Type \\[isearch-query-replace-regexp] to start `query-replace-regexp'\
-with string to replace from last search string..
+ with string to replace from last search string..
 
 Type \\[isearch-toggle-case-fold] to toggle search case-sensitivity.
 Type \\[isearch-toggle-regexp] to toggle regular-expression mode.
