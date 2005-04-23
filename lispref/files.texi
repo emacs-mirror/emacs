@@ -1382,7 +1382,7 @@ value for @var{time}.
 
 The argument @var{mustbenew} controls whether an existing file can be
 overwritten.  It works like the similarly-named argument of
-@code{write-file} (@pref{Writing to Files}).
+@code{write-file} (@pxref{Writing to Files}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
