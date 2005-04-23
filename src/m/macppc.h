@@ -86,11 +86,16 @@ Boston, MA 02111-1307, USA.  */
 
 #ifdef LINUX
 #define LINKER $(CC) -nostdlib
-#define LD_SWITCH_MACHINE -Xlinker -m -Xlinker elf32ppc
 /* s/gnu-linux.h defines this to `-z nocombreloc' which does not work here
    because prefix-args is not used.  */
 #undef LD_SWITCH_SYSTEM_TEMACS
 #define LD_SWITCH_MACHINE_TEMACS -Xlinker -znocombreloc
+#ifdef _ARCH_PPC64
+#undef START_FILES
+#define START_FILES pre-crt0.o /usr/lib64/crt1.o /usr/lib64/crti.o
+#undef LIB_STANDARD
+#define LIB_STANDARD -lgcc -lc -lgcc /usr/lib64/crtn.o
+#endif
 #endif
 
 #if 0  /* This breaks things on PPC GNU/Linux ecept for Yellowdog,
@@ -104,6 +109,12 @@ Boston, MA 02111-1307, USA.  */
 #endif
 #endif
 #endif /* 0 */
+
+#ifdef _ARCH_PPC64
+#ifndef _LP64
+#define _LP64
+#endif
+#endif
 
 /* arch-tag: 41913e4e-e7d1-4023-aadb-210cc31712ed
    (do not change this comment) */
