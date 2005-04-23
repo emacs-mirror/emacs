@@ -2514,6 +2514,9 @@ buffers to change filenames, permissions, etc...
 ** The thumbs.el package allows you to preview image files as thumbnails
 and can be invoked from a Dired buffer.
 
+** Image files are normally visited in Image mode, which lets you toggle
+between viewing the image and viewing the text using C-c C-c.
+
 +++
 ** The new python.el package is used to edit Python and Jython programs.
 
@@ -2852,6 +2855,10 @@ alist whose cdr is `eq' to a specified value.
 +++
 *** New macro define-obsolete-variable-alias to combine defvaralias and
 make-obsolete-variable.
+
+** copy-file now takes an additional option arg MUSTBENEW.
+
+This argument works like the MUSTBENEW argument of write-file.
 
 ---
 ** easy-mmode-define-global-mode has been renamed to

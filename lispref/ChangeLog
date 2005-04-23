@@ -1,5 +1,9 @@
 2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
 
+	* windows.texi (Cyclic Window Ordering): Clarify window-list.
+
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
 	* variables.texi (Variable Aliases): Describe make-obsolete-variable
 	and define-obsolete-variable-alias.
 
