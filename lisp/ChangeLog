@@ -1,3 +1,9 @@
+2005-04-24  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Save and restore old read-buffer-function
+	and read-file-name-function values.  Don't overwrite existing
+	non-nil values if ido-mode is enabled without ido-everywhere.
+
 2005-04-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (mode-require-final-newline): Minor doc fix.
