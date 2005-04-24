@@ -662,13 +662,12 @@ The first parenthesized expression should match the MIME-charset name.")
 	    ;; Use MATCH-ANCHORED to effectively anchor the regexp left side.
 	    `(,cite-chars
 	      (,(concat "\\=[ \t]*"
-			"\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
-			"\\(" cite-chars "[ \t]*\\)\\)+"
+			"\\(\\(\\([" cite-prefix "]+[" cite-suffix "]*\\)?"
+			"\\(" cite-chars "[ \t]*\\)\\)+\\)"
 			"\\(.*\\)")
 	       (beginning-of-line) (end-of-line)
-	       (2 font-lock-comment-delimiter-face nil t)
-	       (3 font-lock-comment-delimiter-face nil t)
-	       (4 font-lock-comment-face nil t)))
+	       (1 font-lock-comment-delimiter-face nil t)
+	       (5 font-lock-comment-face nil t)))
 	    '("^\\(X-[a-z0-9-]+\\|In-reply-to\\|Date\\):.*\\(\n[ \t]+.*\\)*$"
 	      . font-lock-string-face))))
   "Additional expressions to highlight in Rmail mode.")
