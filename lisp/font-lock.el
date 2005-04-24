@@ -310,7 +310,7 @@ If a number, only buffers greater than this size have fontification messages."
   "Face name to use for comments.")
 
 (defvar font-lock-comment-delimiter-face 'font-lock-comment-delimiter-face
-  "Face name to use for comments.")
+  "Face name to use for comment delimiters.")
 
 (defvar font-lock-string-face		'font-lock-string-face
   "Face name to use for strings.")
