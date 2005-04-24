@@ -122,7 +122,7 @@ versions which recognize Thai words.  Affected commands are
 
 ---
 ** The default settings for JIT stealth lock parameters are changed.
-The default value forthe user option jit-lock-stealth-time is now 16
+The default value for the user option jit-lock-stealth-time is now 16
 instead of 3, and the default value of jit-lock-stealth-nice is now
 0.5 instead of 0.125.  The new defaults should lower the CPU usage
 when Emacs is fontifying in the background.
