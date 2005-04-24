@@ -1,5 +1,8 @@
 2005-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* regex.c (re_search_2, re_match_2_internal): Convert second arg
+	of RE_TRANSLATE to int, to shut up GCC warnings.
+
 	* fileio.c (Fcopy_file): Doc fix.
 	[MSDOS]: Fix call to emacs_open: buffer_file_type not defined and
 	not needed.
