@@ -1,3 +1,7 @@
+2005-04-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (mode-require-final-newline): Minor doc fix.
+
 2005-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (syntax-after): Doc fix.
@@ -37,7 +41,7 @@
 	(buffer-stale-function): Doc fix.
 	(minibuffer-with-setup-hook): Avoid warning.
 	(mode-require-final-newline): Doc and custom fix.
-	
+
 	* follow.el (follow-end-of-buffer): Use with-no-warnings.
 
 	* font-lock.el (font-lock-comment-face): On terminals with few colors,
@@ -59,7 +63,7 @@
 
 	* emacs-lisp/easymenu.el (easy-menu-do-define): Use defalias, not fset.
 
-	* mail/rmail.el (rmail-font-lock-keywords): 
+	* mail/rmail.el (rmail-font-lock-keywords):
 	Use font-lock-comment-delimiter-face.
 
 	* mail/sendmail.el (mail-font-lock-keywords):
@@ -69,7 +73,7 @@
 
 2005-04-23  SAITO Takuya  <tabmore@rivo.mediatti.net>  (tiny change)
 
-	* progmodes/compile.el (compilation-mode-font-lock-keywords): 
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
 	Specify t for LAXMATCH when matching directories.
 	Save match data around compilation-compat-error-properties form.
 
