@@ -1,3 +1,8 @@
+2005-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-calculate-indent): Fix treatment of first
+	statement in buffer (broken by 2004-11-24 change).
+
 2005-04-24  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-everywhere): Save and restore old read-buffer-function
