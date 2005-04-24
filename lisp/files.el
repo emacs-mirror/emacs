@@ -307,8 +307,8 @@ whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (const :tag "Don't add newlines" nil)
-		 (other :tag "Ask" ask))
+		 (other :tag "Ask" ask)
+		 (const :tag "Don't add newlines" nil))
   :group 'editing-basics
   :version "22.1")
 
