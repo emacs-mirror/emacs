@@ -286,7 +286,7 @@ from `mode-require-final-newline'."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (const :tag "Never" nil)
+		 (const :tag "Don't add newlines" nil)
 		 (other :tag "Ask" ask))
   :group 'editing-basics)
 
@@ -300,15 +300,16 @@ A value of t means do this only when the file is about to be saved.
 A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
-nil means do not add newlines when saving.
 
-If you set this to nil, you must be careful to manually add a final newline
-whenever you save a file that really needs one."
+nil means do not add newlines.  That is a risky choice in this variable
+since this value is used for modes for files that ought to have final newlines.
+So if you set this to nil, you must explicitly check and add
+a final newline, whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (other :tag "Ask" ask)
-		 (const :tag "Don't add newlines" nil))
+		 (const :tag "Don't add newlines" nil)
+		 (other :tag "Ask each time" ask))
   :group 'editing-basics
   :version "22.1")
 
