@@ -65,6 +65,8 @@ static double position_indentation P_ ((int));
 
 int current_column_bol_cache;
 
+extern Lisp_Object Qfontification_functions;
+
 /* Get the display table to use for the current buffer.  */
 
 struct Lisp_Char_Table *
@@ -2047,6 +2049,7 @@ whether or not it is currently displayed in some window.  */)
   struct window *w;
   Lisp_Object old_buffer;
   struct gcpro gcpro1;
+  int count = SPECPDL_INDEX ();
 
   CHECK_NUMBER (lines);
   if (! NILP (window))
@@ -2063,6 +2066,9 @@ whether or not it is currently displayed in some window.  */)
       old_buffer = w->buffer;
       XSETBUFFER (w->buffer, current_buffer);
     }
+
+  /* Don't fontify text that we just move across.  */
+  specbind (Qfontification_functions, Qnil);
 
   if (noninteractive)
     {
@@ -2109,6 +2115,7 @@ whether or not it is currently displayed in some window.  */)
   if (BUFFERP (old_buffer))
     w->buffer = old_buffer;
 
+  unbind_to (count, Qnil);
   RETURN_UNGCPRO (make_number (it.vpos));
 }
 
