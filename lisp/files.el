@@ -302,7 +302,7 @@ A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
 nil means do not add newlines when saving.
 
-If you set this to nil, you must careful to manually add a final newline
+If you set this to nil, you be must careful to manually add a final newline
 whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
@@ -2766,7 +2766,8 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	    ;; the file was somehow created by someone else between
 	    ;; `make-temp-name' and `write-region', let's try again.
 	    nil)
-	  (copy-file from-name to-name t t 'excl))
+;	  (copy-file from-name to-name t t 'excl))
+	  (copy-file from-name to-name t t))
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes
