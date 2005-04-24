@@ -2400,14 +2400,15 @@ Always sets the file modes of the output file to match the input file.
 
 Fourth arg KEEP-TIME non-nil means give the output file the same
 last-modified time as the old one.  (This works on only some systems.)
-The optional fifth arg MUSTBENEW, if non-nil, insists on a check
-  for an existing file with the same name.  If MUSTBENEW is `excl',
-  that means to get an error if the file already exists; never overwrite.
-  If MUSTBENEW is neither nil nor `excl', that means ask for
-  confirmation before overwriting, but do go ahead and overwrite the file
-  if the user confirms.
 
-A prefix arg makes KEEP-TIME non-nil.  */)
+A prefix arg makes KEEP-TIME non-nil.
+
+The optional fifth arg MUSTBENEW, if non-nil, insists on a check
+for an existing file with the same name.  If MUSTBENEW is `excl',
+that means to get an error if the file already exists; never overwrite.
+If MUSTBENEW is neither nil nor `excl', that means ask for
+confirmation before overwriting, but do go ahead and overwrite the file
+if the user confirms.  */)
   (file, newname, ok_if_already_exists, keep_time, mustbenew)
      Lisp_Object file, newname, ok_if_already_exists, keep_time, mustbenew;
 {
@@ -2529,8 +2530,8 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 #ifdef MSDOS
   /* System's default file type was set to binary by _fmode in emacs.c.  */
   ofd = emacs_open (SDATA (encoded_newname),
-		    O_WRONLY | O_CREAT | buffer_file_type
-		    | (EQ (mustbenew, Qexcl) ? O_EXCL : O_TRUNC),
+		    O_WRONLY | O_TRUNC | O_CREAT
+		    | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
 		    S_IREAD | S_IWRITE);
 #else  /* not MSDOS */
   ofd = emacs_open (SDATA (encoded_newname),
