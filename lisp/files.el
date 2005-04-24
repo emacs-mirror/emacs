@@ -302,13 +302,13 @@ A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
 nil means do not add newlines when saving.
 
-If you set this to nil, you be must careful to manually add a final newline
+If you set this to nil, you must be careful to manually add a final newline
 whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (other :tag "Ask" ask)
-		 (const :tag "Don't add newlines" nil))
+		 (const :tag "Don't add newlines" nil)
+		 (other :tag "Ask" ask))
   :group 'editing-basics
   :version "22.1")
 
