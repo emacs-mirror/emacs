@@ -1,3 +1,7 @@
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Bind fontification-functions to nil.
+
 2005-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* regex.c (re_search_2, re_match_2_internal): Convert second arg

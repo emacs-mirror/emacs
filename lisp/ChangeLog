@@ -1,3 +1,16 @@
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* mail/rmail.el (rmail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* font-lock.el (font-lock-comment-delimiter-face): Doc fix.
+
+	* files.el (mode-require-final-newline): Fix previous change.
+	(require-final-newline): Fix type label.
+
 2005-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/f90.el (f90-calculate-indent): Fix treatment of first
