@@ -2829,6 +2829,7 @@ operation.
 of the character after a specified buffer position, taking account
 of text properties as well as the character code.
 
++++
 *** `syntax-class' extracts the class of a syntax code (as returned
 by syntax-after).
 
