@@ -1,5 +1,8 @@
 2005-04-24  Eli Zaretskii  <eliz@gnu.org>
 
+	* syntax.texi (Syntax Table Internals): Elaborate documentation of
+	syntax-after and syntax-class.
+
 	* files.texi (Changing Files): Fix last change's cross-reference.
 	(Unique File Names): Don't mention "numbers" in the documentation
 	of make-temp-file and make-temp-name.

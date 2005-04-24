@@ -1,7 +1,8 @@
 2005-04-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* subr.el (syntax-after): Doc fix.
-	(syntax-class): If argument is nil, return nil.
+	(syntax-class): If argument is nil, return nil.  Mask off upper 16
+	bits, not 8 bits.
 
 	* files.el (mode-require-final-newline): Doc fix.
 	(backup-buffer-copy): Fix last change.
