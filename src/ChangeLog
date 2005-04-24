@@ -1,3 +1,9 @@
+2005-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fcopy_file): Doc fix.
+	[MSDOS]: Fix call to emacs_open: buffer_file_type not defined and
+	not needed.
+
 2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* Makefile.in [HAVE_CARBON] (MAC_OBJ): Add macselect.o.
