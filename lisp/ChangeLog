@@ -1,3 +1,22 @@
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require select.  Set selection-coding-system to
+	mac-system-coding-system.  Call menu-bar-enable-clipboard.
+	(x-last-selected-text-clipboard, x-last-selected-text-primary)
+	(x-select-enable-clipboard): New variables.
+	(x-select-text, x-get-selection, x-selection-value)
+	(x-get-selection-value, mac-select-convert-to-string)
+	(mac-services-open-file, mac-services-open-selection)
+	(mac-services-insert-text): New functions.
+	(CLIPBOARD, FIND): Put mac-scrap-name property.
+	(com.apple.traditional-mac-plain-text, public.utf16-plain-text)
+	(public.tiff): Put mac-ostype property.
+	(selection-converter-alist): Add entries for them.
+	(mac-application-menu-map): New keymap.
+	(interprogram-cut-function, interprogram-paste-function): Set to
+	x-select-text and x-get-selection-value, respectively.
+	(split-window-keep-point): Set to t.
+
 2005-04-23  Richard M. Stallman  <rms@gnu.org>
 
 	* files.el (read-directory-name): Always pass non-nil

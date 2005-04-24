@@ -1,3 +1,57 @@
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in [HAVE_CARBON] (MAC_OBJ): Add macselect.o.
+	(SOME_MACHINE_OBJECTS): Likewise.
+	(mac.o): Depend on ccl.h.
+	(macselect.o): New target.
+
+	* emacs.c (main) [MAC_OS8 || MAC_OSX && HAVE_CARBON]: Call
+	syms_of_macselect.
+
+	* frame.c (Fdelete_frame) [MAC_OS]: Call x_clear_frame_selections.
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Don't include charset.h or
+	coding.h.
+	(QCLIPBOARD): Remove variable.
+	(syms_of_mac): Don't initialize it.
+	(Fmac_paste_function, Fmac_cut_function, Fx_selection_exists_p):
+	Remove functions.
+	(syms_of_mac): Don't defsubr them.
+	[TARGET_API_MAC_CARBON] (Qmime_charset, QNFD, QNFKD, QNFC, QNFKC)
+	(QHFS_plus_D, QHFS_plus_C): New variables.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Initialize them.
+	[TARGET_API_MAC_CARBON] (get_cfstring_encoding_from_lisp)
+	(cfstring_create_normalized): New functions.
+	[TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Likewise.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
+
+	* macterm.c (handling_window_update, terminate_flag): Remove
+	variables.
+	(do_window_update, do_ae_quit_application, XTread_socket): Don't
+	use them.
+	(WNE_SLEEP_AT_SUSPEND, WNE_SLEEP_AT_RESUME): Don't define.
+	[USE_CARBON_EVENTS && MAC_OSX] (mac_handle_service_event)
+	(init_service_handler): Move to macselect.c.  Remove declarations.
+	[USE_CARBON_EVENTS && MAC_OSX] (init_service_handler): Add extern.
+	(Qapplication, Qabout): New variables.
+	(syms_of_mac): Initialize them.
+	[USE_CARBON_EVENTS && MAC_OSX] (Qpreferences, Qservices, Qpaste)
+	(Qperform): New variables.
+	(syms_of_mac) [USE_CARBON_EVENTS && MAC_OSX]: Initialize them.
+	(do_get_menus) [!TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
+	(do_menu_choice): Unhighlight menu bar also when menu_id is 0.
+	(mac_store_application_menu_event, init_menu_bar): New functions.
+	[USE_CARBON_EVENTS] (mac_handle_command_event)
+	(init_command_handler): New functions.
+	(mac_handle_window_event): Return noErr on window update event.
+	(do_ae_quit_application): Call mac_store_application_menu_event.
+	(mac_initialize) [USE_CARBON_EVENTS]: Call init_command_handler
+	and init_menu_bar.
+
+	* macterm.h (x_clear_frame_selections): Add extern.
+
+	* macselect.c: New file for selection processing on Mac OS.
+
 2005-04-23  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Fcopy_file): New arg MUSTBENEW.
