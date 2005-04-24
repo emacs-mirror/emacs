@@ -696,21 +696,9 @@ Brian Marick and Daniel LaLiberte wrote @file{hideif.el}, support for
 hiding selected code within C @code{#ifdef} clauses.
 
 @item
-Simon Marshall wrote:
-
-@itemize @minus
-@item
-@file{fast-lock.el}, which caches the face data computed by Font Lock mode,
-@item
-@file{lazy-lock.el}, which delays fontification in Font Lock mode
-until text is actually displayed, and
-@item
-@file{regexp-opt.el}, which generates a regular expression from a list
-of strings.
-@end itemize
-
-Simon also extended @file{comint.el}, originally written by Olin
-Shivers.
+Simon Marshall wrote @file{regexp-opt.el}, which generates a regular
+expression from a list of strings.  He also extended @file{comint.el},
+originally written by Olin Shivers.
 
 @item
 Bengt Martensson, Mark Shapiro, Mike Newton, Aaron Larson, and Stefan
