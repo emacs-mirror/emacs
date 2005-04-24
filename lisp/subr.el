@@ -2279,7 +2279,8 @@ from `standard-syntax-table' otherwise."
     table))
 
 (defun syntax-after (pos)
-  "Return the raw syntax of the char after POS."
+  "Return the raw syntax of the char after POS.
+If POS is outside the buffer's accessible portion, return nil."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
@@ -2287,8 +2288,9 @@ from `standard-syntax-table' otherwise."
 	(aref (or st (syntax-table)) (char-after pos))))))
 
 (defun syntax-class (syntax)
-  "Return the syntax class part of the syntax descriptor SYNTAX."
-  (logand (car syntax) 255))
+  "Return the syntax class part of the syntax descriptor SYNTAX.
+If SYNTAX is nil, return nil."
+  (and syntax (logand (car syntax) 65535)))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.
