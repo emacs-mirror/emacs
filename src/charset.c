@@ -505,7 +505,7 @@ load_charset_map_from_vector (charset, vec, control_flag)
       if (from < min_code || to > max_code || from > to || c > MAX_CHAR)
 	continue;
 
-      if ((n_entries % 0x10000) == 0)
+      if (n_entries > 0 && (n_entries % 0x10000) == 0)
 	{
 	  entries->next = ((struct charset_map_entries *)
 			   alloca (sizeof (struct charset_map_entries)));
