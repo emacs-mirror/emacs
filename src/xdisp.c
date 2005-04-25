@@ -2702,6 +2702,10 @@ handle_stop (it)
   it->dpvec = NULL;
   it->current.dpvec_index = -1;
 
+  /* Use face of preceding text for ellipsis (if invisible) */
+  if (it->selective_display_ellipsis_p)
+    it->saved_face_id = it->face_id;
+
   do
     {
       handled = HANDLED_NORMALLY;
@@ -3379,8 +3383,11 @@ setup_for_ellipsis (it, len)
   it->dpvec_face_id = -1;
 
   /* Remember the current face id in case glyphs specify faces.
-     IT's face is restored in set_iterator_to_next.  */
-  it->saved_face_id = it->face_id;
+     IT's face is restored in set_iterator_to_next.
+     saved_face_id was set to preceding char's face in handle_stop.  */
+  if (it->saved_face_id < 0 || it->saved_face_id != it->face_id)
+    it->saved_face_id = it->face_id = DEFAULT_FACE_ID;
+
   it->method = GET_FROM_DISPLAY_VECTOR;
   it->ellipsis_p = 1;
 }
@@ -5418,6 +5425,8 @@ next_element_from_display_vector (it)
 {
   /* Precondition.  */
   xassert (it->dpvec && it->current.dpvec_index >= 0);
+
+  it->face_id = it->saved_face_id;
 
   if (INTEGERP (*it->dpvec)
       && GLYPH_CHAR_VALID_P (XFASTINT (*it->dpvec)))

@@ -5841,121 +5841,59 @@ char **font_name_table = NULL;
 int font_name_table_size = 0;
 int font_name_count = 0;
 
-#if 0
-/* compare two strings ignoring case */
-static int
-stricmp (const char *s, const char *t)
+/* Alist linking character set strings to Mac text encoding and Emacs
+   coding system. */
+static Lisp_Object Vmac_charset_info_alist;
+
+static Lisp_Object
+create_text_encoding_info_alist ()
 {
-  for ( ; tolower (*s) == tolower (*t); s++, t++)
-    if (*s == '\0')
-      return 0;
-  return tolower (*s) - tolower (*t);
-}
+  Lisp_Object result = Qnil, rest;
 
-/* compare two strings ignoring case and handling wildcard */
-static int
-wildstrieq (char *s1, char *s2)
-{
-  if (strcmp (s1, "*") == 0 || strcmp (s2, "*") == 0)
-    return true;
-
-  return stricmp (s1, s2) == 0;
-}
-
-/* Assume parameter 1 is fully qualified, no wildcards. */
-static int
-mac_font_pattern_match (fontname, pattern)
-    char * fontname;
-    char * pattern;
-{
-  char *regex = (char *) alloca (strlen (pattern) * 2 + 3);
-  char *font_name_copy = (char *) alloca (strlen (fontname) + 1);
-  char *ptr;
-
-  /* Copy fontname so we can modify it during comparison.  */
-  strcpy (font_name_copy, fontname);
-
-  ptr = regex;
-  *ptr++ = '^';
-
-  /* Turn pattern into a regexp and do a regexp match.  */
-  for (; *pattern; pattern++)
+  for (rest = Vmac_charset_info_alist; CONSP (rest); rest = XCDR (rest))
     {
-      if (*pattern == '?')
-        *ptr++ = '.';
-      else if (*pattern == '*')
-        {
-          *ptr++ = '.';
-          *ptr++ = '*';
-        }
+      Lisp_Object charset_info = XCAR (rest);
+      Lisp_Object charset, coding_system, text_encoding;
+      Lisp_Object existing_info;
+
+      if (!(CONSP (charset_info)
+	    && STRINGP (charset = XCAR (charset_info))
+	    && CONSP (XCDR (charset_info))
+	    && INTEGERP (text_encoding = XCAR (XCDR (charset_info)))
+	    && CONSP (XCDR (XCDR (charset_info)))
+	    && SYMBOLP (coding_system = XCAR (XCDR (XCDR (charset_info))))))
+	continue;
+
+      existing_info = assq_no_quit (text_encoding, result);
+      if (NILP (existing_info))
+	result = Fcons (list3 (text_encoding, coding_system, charset),
+			result);
       else
-        *ptr++ = *pattern;
+	if (NILP (Fmember (charset, XCDR (XCDR (existing_info)))))
+	  XSETCDR (XCDR (existing_info),
+		   Fcons (charset, XCDR (XCDR (existing_info))));
     }
-  *ptr = '$';
-  *(ptr + 1) = '\0';
 
-  return (fast_c_string_match_ignore_case (build_string (regex),
-                                           font_name_copy) >= 0);
+  return result;
 }
 
-/* Two font specs are considered to match if their foundry, family,
-   weight, slant, and charset match.  */
-static int
-mac_font_match (char *mf, char *xf)
-{
-  char m_foundry[50], m_family[50], m_weight[20], m_slant[2], m_charset[20];
-  char x_foundry[50], x_family[50], x_weight[20], x_slant[2], x_charset[20];
-
-  if (sscanf (mf, "-%49[^-]-%49[^-]-%19[^-]-%1[^-]-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%19s",
-              m_foundry, m_family, m_weight, m_slant, m_charset) != 5)
-    return mac_font_pattern_match (mf, xf);
-
-  if (sscanf (xf, "-%49[^-]-%49[^-]-%19[^-]-%1[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%19s",
-              x_foundry, x_family, x_weight, x_slant, x_charset) != 5)
-    return mac_font_pattern_match (mf, xf);
-
-  return (wildstrieq (m_foundry, x_foundry)
-          && wildstrieq (m_family, x_family)
-          && wildstrieq (m_weight, x_weight)
-          && wildstrieq (m_slant, x_slant)
-          && wildstrieq (m_charset, x_charset))
-         || mac_font_pattern_match (mf, xf);
-}
-#endif
-
-static Lisp_Object Qbig5, Qcn_gb, Qsjis, Qeuc_kr;
 
 static void
-decode_mac_font_name (name, size, scriptcode)
+decode_mac_font_name (name, size, coding_system)
      char *name;
      int size;
-#if TARGET_API_MAC_CARBON
-     int scriptcode;
-#else
-     short scriptcode;
-#endif
+     Lisp_Object coding_system;
 {
-  Lisp_Object coding_system;
   struct coding_system coding;
-  char *buf;
+  char *buf, *p;
 
-  switch (scriptcode)
-    {
-    case smTradChinese:
-      coding_system = Qbig5;
+  for (p = name; *p; p++)
+    if (!isascii (*p) || iscntrl (*p))
       break;
-    case smSimpChinese:
-      coding_system = Qcn_gb;
-      break;
-    case smJapanese:
-      coding_system = Qsjis;
-      break;
-    case smKorean:
-      coding_system = Qeuc_kr;
-      break;
-    default:
-      return;
-    }
+
+  if (*p == '\0'
+      || NILP (coding_system) || NILP (Fcoding_system_p (coding_system)))
+    return;
 
   setup_coding_system (coding_system, &coding);
   coding.src_multibyte = 0;
@@ -5971,68 +5909,26 @@ decode_mac_font_name (name, size, scriptcode)
 
 
 static char *
-mac_to_x_fontname (name, size, style, scriptcode)
+mac_to_x_fontname (name, size, style, charset)
      char *name;
      int size;
      Style style;
-#if TARGET_API_MAC_CARBON
-     int scriptcode;
-#else
-     short scriptcode;
-#endif
+     char *charset;
 {
   char foundry[32], family[32], cs[32];
   char xf[256], *result, *p;
 
-  if (sscanf (name, "%31[^-]-%31[^-]-%31s", foundry, family, cs) != 3)
+  if (sscanf (name, "%31[^-]-%31[^-]-%31s", foundry, family, cs) == 3)
+    charset = cs;
+  else
     {
       strcpy(foundry, "Apple");
       strcpy(family, name);
-
-      switch (scriptcode)
-      {
-      case smTradChinese:	/* == kTextEncodingMacChineseTrad */
-        strcpy(cs, "big5-0");
-        break;
-      case smSimpChinese:	/* == kTextEncodingMacChineseSimp */
-        strcpy(cs, "gb2312.1980-0");
-        break;
-      case smJapanese:		/* == kTextEncodingMacJapanese */
-        strcpy(cs, "jisx0208.1983-sjis");
-        break;
-      case -smJapanese:
-	/* Each Apple Japanese font is entered into the font table
-	   twice: once as a jisx0208.1983-sjis font and once as a
-	   jisx0201.1976-0 font.  The latter can be used to display
-	   the ascii charset and katakana-jisx0201 charset.  A
-	   negative script code signals that the name of this latter
-	   font is being built.  */
-	strcpy(cs, "jisx0201.1976-0");
-	break;
-      case smKorean:		/* == kTextEncodingMacKorean */
-        strcpy(cs, "ksc5601.1989-0");
-        break;
-#if TARGET_API_MAC_CARBON
-      case kTextEncodingMacCyrillic:
-	strcpy(cs, "mac-cyrillic");
-	break;
-      case kTextEncodingMacCentralEurRoman:
-	strcpy(cs, "mac-centraleurroman");
-	break;
-      case kTextEncodingMacSymbol:
-      case kTextEncodingMacDingbats:
-	strcpy(cs, "adobe-fontspecific");
-	break;
-#endif
-      default:
-	strcpy(cs, "mac-roman");
-	break;
-      }
     }
 
   sprintf(xf, "-%s-%s-%s-%c-normal--%d-%d-75-75-m-%d-%s",
           foundry, family, style & bold ? "bold" : "medium",
-	  style & italic ? 'i' : 'r', size, size * 10, size * 10, cs);
+	  style & italic ? 'i' : 'r', size, size * 10, size * 10, charset);
 
   result = (char *) xmalloc (strlen (xf) + 1);
   strcpy (result, xf);
@@ -6050,10 +5946,13 @@ mac_to_x_fontname (name, size, style, scriptcode)
    "ETL-Fixed-iso8859-1", "ETL-Fixed-koi8-r", etc.  Both types of font
    names are handled accordingly.  */
 static void
-x_font_name_to_mac_font_name (char *xf, char *mf)
+x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
+     char *xf, *mf, *mf_decoded;
+     Style *style;
+     char *cs;
 {
-  char foundry[32], family[32], weight[20], slant[2], cs[32];
-  Lisp_Object coding_system = Qnil;
+  char foundry[32], family[32], weight[20], slant[2], *p;
+  Lisp_Object charset_info, coding_system = Qnil;
   struct coding_system coding;
 
   strcpy (mf, "");
@@ -6064,30 +5963,36 @@ x_font_name_to_mac_font_name (char *xf, char *mf)
               foundry, family, weight, slant, cs) != 5)
     return;
 
-  if (strcmp (cs, "big5-0") == 0)
-    coding_system = Qbig5;
-  else if (strcmp (cs, "gb2312.1980-0") == 0)
-    coding_system = Qcn_gb;
-  else if (strcmp (cs, "jisx0208.1983-sjis") == 0
-	   || strcmp (cs, "jisx0201.1976-0") == 0)
-    coding_system = Qsjis;
-  else if (strcmp (cs, "ksc5601.1989-0") == 0)
-    coding_system = Qeuc_kr;
-  else if (strcmp (cs, "mac-roman") == 0
-	   || strcmp (cs, "mac-cyrillic") == 0
-	   || strcmp (cs, "mac-centraleurroman") == 0
-	   || strcmp (cs, "adobe-fontspecific") == 0)
-    strcpy (mf, family);
-  else
-    sprintf (mf, "%s-%s-%s", foundry, family, cs);
+  *style = normal;
+  if (strcmp (weight, "bold") == 0)
+    *style |= bold;
+  if (*slant == 'i')
+    *style |= italic;
 
-  if (!NILP (coding_system))
+  charset_info = Fassoc (build_string (cs), Vmac_charset_info_alist);
+  if (!NILP (charset_info))
+    {
+      strcpy (mf_decoded, family);
+      coding_system = Fcar (Fcdr (Fcdr (charset_info)));
+    }
+  else
+    sprintf (mf_decoded, "%s-%s-%s", foundry, family, cs);
+
+  for (p = mf_decoded; *p; p++)
+    if (!isascii (*p) || iscntrl (*p))
+      break;
+
+  if (*p == '\0'
+      || NILP (coding_system) || NILP (Fcoding_system_p (coding_system)))
+    strcpy (mf, mf_decoded);
+  else
     {
       setup_coding_system (coding_system, &coding);
       coding.src_multibyte = 1;
       coding.dst_multibyte = 1;
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&coding, family, mf, strlen (family), sizeof (Str32) - 1);
+      encode_coding (&coding, mf_decoded, mf,
+		     strlen (mf_decoded), sizeof (Str32) - 1);
       mf[coding.produced] = '\0';
     }
 }
@@ -6122,181 +6027,180 @@ static void
 init_font_name_table ()
 {
 #if TARGET_API_MAC_CARBON
-  SInt32 sv;
+  FMFontFamilyIterator ffi;
+  FMFontFamilyInstanceIterator ffii;
+  FMFontFamily ff;
+  Lisp_Object text_encoding_info_alist;
+  struct gcpro gcpro1;
 
-  if (Gestalt (gestaltSystemVersion, &sv) == noErr && sv >= 0x1000)
+  /* Create a dummy instance iterator here to avoid creating and
+     destroying it in the loop.  */
+  if (FMCreateFontFamilyInstanceIterator (0, &ffii) != noErr)
+    return;
+  /* Create an iterator to enumerate the font families.  */
+  if (FMCreateFontFamilyIterator (NULL, NULL, kFMDefaultOptions, &ffi)
+      != noErr)
     {
-      FMFontFamilyIterator ffi;
-      FMFontFamilyInstanceIterator ffii;
-      FMFontFamily ff;
+      FMDisposeFontFamilyInstanceIterator (&ffii);
+      return;
+    }
 
-      /* Create a dummy instance iterator here to avoid creating and
-	 destroying it in the loop.  */
-      if (FMCreateFontFamilyInstanceIterator (0, &ffii) != noErr)
-	return;
-      /* Create an iterator to enumerate the font families.  */
-      if (FMCreateFontFamilyIterator (NULL, NULL, kFMDefaultOptions, &ffi)
-	  != noErr)
+  text_encoding_info_alist = create_text_encoding_info_alist ();
+
+  GCPRO1 (text_encoding_info_alist);
+
+  while (FMGetNextFontFamily (&ffi, &ff) == noErr)
+    {
+      Str255 name;
+      FMFont font;
+      FMFontStyle style;
+      FMFontSize size;
+      TextEncoding encoding;
+      TextEncodingBase sc;
+      Lisp_Object text_encoding_info;
+
+      if (FMGetFontFamilyName (ff, name) != noErr)
+	break;
+      p2cstr (name);
+      if (*name == '.')
+	continue;
+
+      if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
+	break;
+      sc = GetTextEncodingBase (encoding);
+      text_encoding_info = assq_no_quit (make_number (sc),
+					 text_encoding_info_alist);
+      if (!NILP (text_encoding_info))
+	decode_mac_font_name (name, sizeof (name),
+			      XCAR (XCDR (text_encoding_info)));
+      else
+	text_encoding_info = assq_no_quit (make_number (kTextEncodingMacRoman),
+					   text_encoding_info_alist);
+
+      /* Point the instance iterator at the current font family.  */
+      if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
+	break;
+
+      while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
+	     == noErr)
 	{
-	  FMDisposeFontFamilyInstanceIterator (&ffii);
-	  return;
-	}
+	  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-      while (FMGetNextFontFamily (&ffi, &ff) == noErr)
-	{
-	  Str255 name;
-	  FMFont font;
-	  FMFontStyle style;
-	  FMFontSize size;
-	  TextEncoding encoding;
-	  TextEncodingBase sc;
-
-	  if (FMGetFontFamilyName (ff, name) != noErr)
-	    break;
-	  p2cstr (name);
-	  if (*name == '.')
-	    continue;
-
-	  if (FMGetFontFamilyTextEncoding (ff, &encoding) != noErr)
-	    break;
-	  sc = GetTextEncodingBase (encoding);
-	  decode_mac_font_name (name, sizeof (name), sc);
-
-	  /* Point the instance iterator at the current font family.  */
-	  if (FMResetFontFamilyInstanceIterator (ff, &ffii) != noErr)
-	    break;
-
-	  while (FMGetNextFontFamilyInstance (&ffii, &font, &style, &size)
-		 == noErr)
+	  for (; !NILP (rest); rest = XCDR (rest))
 	    {
-	      /* Both jisx0208.1983-sjis and jisx0201.1976-0 parts are
-		 contained in Apple Japanese (SJIS) font.  */
-	    again:
+	      char *cs = SDATA (XCAR (rest));
+
 	      if (size == 0)
 		{
 		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								style, sc));
+								style, cs));
 		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								italic, sc));
+								italic, cs));
 		  add_font_name_table_entry (mac_to_x_fontname (name, size,
-								bold, sc));
+								bold, cs));
 		  add_font_name_table_entry (mac_to_x_fontname (name, size,
 								italic | bold,
-								sc));
+								cs));
 		}
 	      else
-		add_font_name_table_entry (mac_to_x_fontname (name, size,
-							      style, sc));
-	      if (sc == smJapanese)
 		{
-		  sc = -smJapanese;
-		  goto again;
+		  add_font_name_table_entry (mac_to_x_fontname (name, size,
+								style, cs));
 		}
-	      else if (sc == -smJapanese)
-		sc = smJapanese;
 	    }
 	}
-
-      /* Dispose of the iterators.  */
-      FMDisposeFontFamilyIterator (&ffi);
-      FMDisposeFontFamilyInstanceIterator (&ffii);
     }
-  else
+
+  UNGCPRO;
+
+  /* Dispose of the iterators.  */
+  FMDisposeFontFamilyIterator (&ffi);
+  FMDisposeFontFamilyInstanceIterator (&ffii);
+#else  /* !TARGET_API_MAC_CARBON */
+  GrafPtr port;
+  SInt16 fontnum, old_fontnum;
+  int num_mac_fonts = CountResources('FOND');
+  int i, j;
+  Handle font_handle, font_handle_2;
+  short id, scriptcode;
+  ResType type;
+  Str32 name;
+  struct FontAssoc *fat;
+  struct AsscEntry *assc_entry;
+  Lisp_Object text_encoding_info_alist, text_encoding_info;
+  struct gcpro gcpro1;
+
+  GetPort (&port);  /* save the current font number used */
+  old_fontnum = port->txFont;
+
+  text_encoding_info_alist = create_text_encoding_info_alist ();
+
+  GCPRO1 (text_encoding_info_alist);
+
+  for (i = 1; i <= num_mac_fonts; i++)  /* get all available fonts */
     {
-#endif  /* TARGET_API_MAC_CARBON */
-      GrafPtr port;
-      SInt16 fontnum, old_fontnum;
-      int num_mac_fonts = CountResources('FOND');
-      int i, j;
-      Handle font_handle, font_handle_2;
-      short id, scriptcode;
-      ResType type;
-      Str32 name;
-      struct FontAssoc *fat;
-      struct AsscEntry *assc_entry;
+      font_handle = GetIndResource ('FOND', i);
+      if (!font_handle)
+	continue;
 
-      GetPort (&port);  /* save the current font number used */
-#if TARGET_API_MAC_CARBON
-      old_fontnum = GetPortTextFont (port);
-#else
-      old_fontnum = port->txFont;
-#endif
+      GetResInfo (font_handle, &id, &type, name);
+      GetFNum (name, &fontnum);
+      p2cstr (name);
+      if (fontnum == 0)
+	continue;
 
-      for (i = 1; i <= num_mac_fonts; i++)  /* get all available fonts */
+      TextFont (fontnum);
+      scriptcode = FontToScript (fontnum);
+      text_encoding_info = assq_no_quit (make_number (scriptcode),
+					 text_encoding_info_alist);
+      if (!NILP (text_encoding_info))
+	decode_mac_font_name (name, sizeof (name),
+			      XCAR (XCDR (text_encoding_info)));
+      else
+	text_encoding_info = assq_no_quit (make_number (smRoman),
+					   text_encoding_info_alist);
+      do
 	{
-	  font_handle = GetIndResource ('FOND', i);
-	  if (!font_handle)
-	    continue;
+	  HLock (font_handle);
 
-	  GetResInfo (font_handle, &id, &type, name);
-	  GetFNum (name, &fontnum);
-	  p2cstr (name);
-	  if (fontnum == 0)
-	    continue;
-
-	  TextFont (fontnum);
-	  scriptcode = FontToScript (fontnum);
-	  decode_mac_font_name (name, sizeof (name), scriptcode);
-	  do
+	  if (GetResourceSizeOnDisk (font_handle)
+	      >= sizeof (struct FamRec))
 	    {
-	      HLock (font_handle);
+	      fat = (struct FontAssoc *) (*font_handle
+					  + sizeof (struct FamRec));
+	      assc_entry
+		= (struct AsscEntry *) (*font_handle
+					+ sizeof (struct FamRec)
+					+ sizeof (struct FontAssoc));
 
-	      if (GetResourceSizeOnDisk (font_handle)
-		  >= sizeof (struct FamRec))
+	      for (j = 0; j <= fat->numAssoc; j++, assc_entry++)
 		{
-		  fat = (struct FontAssoc *) (*font_handle
-					      + sizeof (struct FamRec));
-		  assc_entry
-		    = (struct AsscEntry *) (*font_handle
-					    + sizeof (struct FamRec)
-					    + sizeof (struct FontAssoc));
+		  Lisp_Object rest = XCDR (XCDR (text_encoding_info));
 
-		  for (j = 0; j <= fat->numAssoc; j++, assc_entry++)
+		  for (; !NILP (rest); rest = XCDR (rest))
 		    {
-		      if (font_name_table_size == 0)
-			{
-			  font_name_table_size = 16;
-			  font_name_table = (char **)
-			    xmalloc (font_name_table_size * sizeof (char *));
-			}
-		      else if (font_name_count >= font_name_table_size)
-			{
-			  font_name_table_size += 16;
-			  font_name_table = (char **)
-			    xrealloc (font_name_table,
-				      font_name_table_size * sizeof (char *));
-			}
-		      font_name_table[font_name_count++]
-			= mac_to_x_fontname (name,
-					     assc_entry->fontSize,
-					     assc_entry->fontStyle,
-					     scriptcode);
-		      /* Both jisx0208.1983-sjis and jisx0201.1976-0
-			 parts are contained in Apple Japanese (SJIS)
-			 font.  */
-		      if (smJapanese == scriptcode)
-			{
-			  font_name_table[font_name_count++]
-			    = mac_to_x_fontname (name,
-						 assc_entry->fontSize,
-						 assc_entry->fontStyle,
-						 -smJapanese);
-			}
+		      char *cs = SDATA (XCAR (rest));
+
+		      add_font_name_table_entry (mac_to_x_fontname (name,
+								    assc_entry->fontSize,
+								    assc_entry->fontStyle,
+								    cs));
 		    }
 		}
-
-	      HUnlock (font_handle);
-	      font_handle_2 = GetNextFOND (font_handle);
-	      ReleaseResource (font_handle);
-	      font_handle = font_handle_2;
 	    }
-	  while (ResError () == noErr && font_handle);
-	}
 
-      TextFont (old_fontnum);
-#if TARGET_API_MAC_CARBON
+	  HUnlock (font_handle);
+	  font_handle_2 = GetNextFOND (font_handle);
+	  ReleaseResource (font_handle);
+	  font_handle = font_handle_2;
+	}
+      while (ResError () == noErr && font_handle);
     }
-#endif  /* TARGET_API_MAC_CARBON */
+
+  UNGCPRO;
+
+  TextFont (old_fontnum);
+#endif  /* !TARGET_API_MAC_CARBON */
 }
 
 
@@ -6384,7 +6288,7 @@ mac_do_list_fonts (pattern, maxnames)
 	ptr++;
 	if (i == *field)
 	  {
-	    if ('1' <= *ptr && *ptr <= '9')
+	    if ('0' <= *ptr && *ptr <= '9')
 	      {
 		*val = *ptr++ - '0';
 		while ('0' <= *ptr && *ptr <= '9' && *val < 10000)
@@ -6402,21 +6306,21 @@ mac_do_list_fonts (pattern, maxnames)
 
   if (i == 14 && ptr == NULL)
     {
-      if (scl_val[XLFD_SCL_POINT_SIZE] > 0)
-	{
-	  scl_val[XLFD_SCL_PIXEL_SIZE] = scl_val[XLFD_SCL_POINT_SIZE] / 10;
-	  scl_val[XLFD_SCL_AVGWIDTH] = scl_val[XLFD_SCL_POINT_SIZE];
-	}
-      else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0)
-	{
-	  scl_val[XLFD_SCL_POINT_SIZE] =
-	    scl_val[XLFD_SCL_AVGWIDTH] = scl_val[XLFD_SCL_PIXEL_SIZE] * 10;
-	}
-      else if (scl_val[XLFD_SCL_AVGWIDTH] > 0)
-	{
-	  scl_val[XLFD_SCL_PIXEL_SIZE] = scl_val[XLFD_SCL_AVGWIDTH] / 10;
-	  scl_val[XLFD_SCL_POINT_SIZE] = scl_val[XLFD_SCL_AVGWIDTH];
-	}
+      if (scl_val[XLFD_SCL_PIXEL_SIZE] < 0)
+	scl_val[XLFD_SCL_PIXEL_SIZE] =
+	  (scl_val[XLFD_SCL_POINT_SIZE] > 0 ? scl_val[XLFD_SCL_POINT_SIZE] / 10
+	   : (scl_val[XLFD_SCL_AVGWIDTH] > 0 ? scl_val[XLFD_SCL_AVGWIDTH] / 10
+	      : -1));
+      if (scl_val[XLFD_SCL_POINT_SIZE] < 0)
+	scl_val[XLFD_SCL_POINT_SIZE] =
+	  (scl_val[XLFD_SCL_PIXEL_SIZE] > 0 ? scl_val[XLFD_SCL_PIXEL_SIZE] * 10
+	   : (scl_val[XLFD_SCL_AVGWIDTH] > 0 ? scl_val[XLFD_SCL_AVGWIDTH]
+	      : -1));
+      if (scl_val[XLFD_SCL_AVGWIDTH] < 0)
+	scl_val[XLFD_SCL_AVGWIDTH] =
+	  (scl_val[XLFD_SCL_PIXEL_SIZE] > 0 ? scl_val[XLFD_SCL_PIXEL_SIZE] * 10
+	   : (scl_val[XLFD_SCL_POINT_SIZE] > 0 ? scl_val[XLFD_SCL_POINT_SIZE]
+	      : -1));
     }
   else
     scl_val[XLFD_SCL_PIXEL_SIZE] = -1;
@@ -6507,49 +6411,62 @@ mac_do_list_fonts (pattern, maxnames)
   return font_list;
 }
 
-/* Return a list of at most MAXNAMES font specs matching the one in
-   PATTERN.  Cache matching fonts for patterns in
-   dpyinfo->name_list_element to avoid looking them up again by
-   calling mac_font_pattern_match (slow).  Return as many matching
-   fonts as possible if MAXNAMES = -1.  */
+/* Return a list of names of available fonts matching PATTERN on frame F.
+
+   Frame F null means we have not yet created any frame on Mac, and
+   consult the first display in x_display_list.  MAXNAMES sets a limit
+   on how many fonts to match.  */
 
 Lisp_Object
-x_list_fonts (struct frame *f,
-              Lisp_Object pattern,
-              int size,
-              int maxnames)
+x_list_fonts (f, pattern, size, maxnames)
+     struct frame *f;
+     Lisp_Object pattern;
+     int size, maxnames;
 {
-  Lisp_Object newlist = Qnil, tem, key;
-  struct mac_display_info *dpyinfo = f ? FRAME_MAC_DISPLAY_INFO (f) : NULL;
+  Lisp_Object list = Qnil, patterns, tem, key;
+  struct mac_display_info *dpyinfo
+    = f ? FRAME_MAC_DISPLAY_INFO (f) : x_display_list;
 
-  if (dpyinfo)
+  xassert (size <= 0);
+
+  patterns = Fassoc (pattern, Valternate_fontname_alist);
+  if (NILP (patterns))
+    patterns = Fcons (pattern, Qnil);
+
+  for (; CONSP (patterns); patterns = XCDR (patterns))
     {
+      pattern = XCAR (patterns);
+
+      if (!STRINGP (pattern))
+        continue;
+
       tem = XCAR (XCDR (dpyinfo->name_list_element));
       key = Fcons (pattern, make_number (maxnames));
 
-      newlist = Fassoc (key, tem);
-      if (!NILP (newlist))
+      list = Fassoc (key, tem);
+      if (!NILP (list))
 	{
-	  newlist = Fcdr_safe (newlist);
+	  list = Fcdr_safe (list);
+	  /* We have a cashed list.  Don't have to get the list again.  */
 	  goto label_cached;
 	}
-    }
 
-  BLOCK_INPUT;
-  newlist = mac_do_list_fonts (SDATA (pattern), maxnames);
-  UNBLOCK_INPUT;
+      BLOCK_INPUT;
+      list = mac_do_list_fonts (SDATA (pattern), maxnames);
+      UNBLOCK_INPUT;
 
-  /* MAC_TODO: add code for matching outline fonts here */
+      /* MAC_TODO: add code for matching outline fonts here */
 
-  if (dpyinfo)
-    {
+      /* Now store the result in the cache.  */
       XSETCAR (XCDR (dpyinfo->name_list_element),
-	       Fcons (Fcons (key, newlist),
+	       Fcons (Fcons (key, list),
 		      XCAR (XCDR (dpyinfo->name_list_element))));
-    }
- label_cached:
 
-  return newlist;
+    label_cached:
+      if (NILP (list)) continue; /* Try the remaining alternatives.  */
+    }
+
+  return list;
 }
 
 
@@ -6668,7 +6585,7 @@ is_fully_specified_xlfd (char *p)
 }
 
 
-const int kDefaultFontSize = 9;
+const int kDefaultFontSize = 12;
 
 
 /* XLoadQueryFont creates and returns an internal representation for a
@@ -6680,17 +6597,25 @@ const int kDefaultFontSize = 9;
 static MacFontStruct *
 XLoadQueryFont (Display *dpy, char *fontname)
 {
-  int i, size, is_two_byte_font, char_width;
+  int i, size, point_size, avgwidth, is_two_byte_font, char_width;
   char *name;
   GrafPtr port;
   SInt16 old_fontnum, old_fontsize;
   Style old_fontface;
-  Str32 mfontname;
+  Str32 mfontname, mfontname_decoded, charset;
   SInt16 fontnum;
-  Style fontface = normal;
+  Style fontface;
+#if TARGET_API_MAC_CARBON
+  TextEncoding encoding;
+  int scriptcode;
+#else
+  short scriptcode;
+#endif
   MacFontStruct *font;
   FontInfo the_fontinfo;
-  char s_weight[7], c_slant;
+#ifdef MAC_OSX
+  UInt32 old_flags, new_flags;
+#endif
 
   if (is_fully_specified_xlfd (fontname))
     name = fontname;
@@ -6715,46 +6640,50 @@ XLoadQueryFont (Display *dpy, char *fontname)
   old_fontface = port->txFace;
 #endif
 
-  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%d-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", &size) != 1)
+  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%d-%d-%*[^-]-%*[^-]-%*c-%d-%*s", &size, &point_size, &avgwidth) != 3)
+    size = 0;
+  else
+    {
+      if (size == 0)
+	if (point_size > 0)
+	  size = point_size / 10;
+	else if (avgwidth > 0)
+	  size = avgwidth / 10;
+    }
+  if (size == 0)
     size = kDefaultFontSize;
 
-  if (sscanf (name, "-%*[^-]-%*[^-]-%6[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", s_weight) == 1)
-    if (strcmp (s_weight, "bold") == 0)
-      fontface |= bold;
-
-  if (sscanf (name, "-%*[^-]-%*[^-]-%*[^-]-%c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%*s", &c_slant) == 1)
-    if (c_slant == 'i')
-      fontface |= italic;
-
-  x_font_name_to_mac_font_name (name, mfontname);
+  x_font_name_to_mac_font_name (name, mfontname, mfontname_decoded,
+				&fontface, charset);
   c2pstr (mfontname);
+#if TARGET_API_MAC_CARBON
+  fontnum = FMGetFontFamilyFromName (mfontname);
+  if (fontnum == kInvalidFontFamily
+      || FMGetFontFamilyTextEncoding (fontnum, &encoding) != noErr)
+    return NULL;
+  scriptcode = GetTextEncodingBase (encoding);
+#else
   GetFNum (mfontname, &fontnum);
   if (fontnum == 0)
     return NULL;
+  scriptcode = FontToScript (fontnum);
+#endif
 
   font = (MacFontStruct *) xmalloc (sizeof (struct MacFontStruct));
-
-  font->fontname = (char *) xmalloc (strlen (name) + 1);
-  bcopy (name, font->fontname, strlen (name) + 1);
 
   font->mac_fontnum = fontnum;
   font->mac_fontsize = size;
   font->mac_fontface = fontface;
-  font->mac_scriptcode = FontToScript (fontnum);
+  font->mac_scriptcode = scriptcode;
 
   /* Apple Japanese (SJIS) font is listed as both
      "*-jisx0208.1983-sjis" (Japanese script) and "*-jisx0201.1976-0"
      (Roman script) in init_font_name_table ().  The latter should be
      treated as a one-byte font.  */
-  {
-    char cs[32];
+  if (scriptcode == smJapanese && strcmp (charset, "jisx0201.1976-0") == 0)
+    font->mac_scriptcode = smRoman;
 
-    if (sscanf (name,
-		"-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]--%*[^-]-%*[^-]-%*[^-]-%*[^-]-%*c-%*[^-]-%31s",
-		cs) == 1
-	&& 0 == strcmp (cs, "jisx0201.1976-0"))
-      font->mac_scriptcode = smRoman;
-  }
+  font->full_name = mac_to_x_fontname (mfontname_decoded, size, fontface, charset);
 
   is_two_byte_font = font->mac_scriptcode == smJapanese ||
                      font->mac_scriptcode == smTradChinese ||
@@ -6879,7 +6808,7 @@ mac_unload_font (dpyinfo, font)
      struct mac_display_info *dpyinfo;
      XFontStruct *font;
 {
-  xfree (font->fontname);
+  xfree (font->full_name);
   if (font->per_char)
     xfree (font->per_char);
   xfree (font);
@@ -6919,6 +6848,8 @@ x_load_font (f, fontname, size)
 			      SDATA (XCAR (tail)))))
 	    return (dpyinfo->font_table + i);
     }
+  else
+    return NULL;
 
   /* Load the font and add it to the table.  */
   {
@@ -6928,13 +6859,7 @@ x_load_font (f, fontname, size)
     unsigned long value;
     int i;
 
-    /* If we have found fonts by x_list_font, load one of them.  If
-       not, we still try to load a font by the name given as FONTNAME
-       because XListFonts (called in x_list_font) of some X server has
-       a bug of not finding a font even if the font surely exists and
-       is loadable by XLoadQueryFont.  */
-    if (size > 0 && !NILP (font_names))
-      fontname = (char *) SDATA (XCAR (font_names));
+    fontname = (char *) SDATA (XCAR (font_names));
 
     BLOCK_INPUT;
     font = (MacFontStruct *) XLoadQueryFont (FRAME_MAC_DISPLAY (f), fontname);
@@ -6967,8 +6892,8 @@ x_load_font (f, fontname, size)
     bzero (fontp, sizeof (*fontp));
     fontp->font = font;
     fontp->font_idx = i;
-    fontp->name = (char *) xmalloc (strlen (font->fontname) + 1);
-    bcopy (font->fontname, fontp->name, strlen (font->fontname) + 1);
+    fontp->name = (char *) xmalloc (strlen (fontname) + 1);
+    bcopy (fontname, fontp->name, strlen (fontname) + 1);
 
     if (font->min_bounds.width == font->max_bounds.width)
       {
@@ -6999,7 +6924,8 @@ x_load_font (f, fontname, size)
 	  fontp->average_width = FONT_WIDTH (font);
       }
 
-    fontp->full_name = fontp->name;
+    fontp->full_name = (char *) xmalloc (strlen (font->full_name) + 1);
+    bcopy (font->full_name, fontp->full_name, strlen (font->full_name) + 1);
 
     fontp->size = font->max_bounds.width;
     fontp->height = FONT_HEIGHT (font);
@@ -9811,18 +9737,6 @@ syms_of_macterm ()
   Qmac_ready_for_drag_n_drop = intern ("mac-ready-for-drag-n-drop");
   staticpro (&Qmac_ready_for_drag_n_drop);
 
-  Qbig5 = intern ("big5");
-  staticpro (&Qbig5);
-
-  Qcn_gb = intern ("cn-gb");
-  staticpro (&Qcn_gb);
-
-  Qsjis = intern ("sjis");
-  staticpro (&Qsjis);
-
-  Qeuc_kr = intern ("euc-kr");
-  staticpro (&Qeuc_kr);
-
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
   Vx_toolkit_scroll_bars = Qt;
@@ -9889,6 +9803,22 @@ Toolbox for processing before Emacs sees it.  */);
 The text will be rendered using Core Graphics text rendering which
 may anti-alias the text.  */);
   Vmac_use_core_graphics = Qnil;
+
+  /* Register an entry for `mac-roman' so that it can be used when
+     creating the terminal frame on Mac OS 9 before loading
+     term/mac-win.elc.  */
+  DEFVAR_LISP ("mac-charset-info-alist", &Vmac_charset_info_alist,
+               doc: /* Alist linking Emacs character sets to Mac text encoding and Emacs coding system.
+Each entry should be of the form:
+
+   (CHARSET-NAME TEXT-ENCODING CODING-SYSTEM)
+
+where CHARSET-NAME is a string used in font names to identify the
+charset, TEXT-ENCODING is a TextEncodingBase value, and CODING_SYSTEM
+is a coding system corresponding to TEXT-ENCODING.  */);
+  Vmac_charset_info_alist =
+    Fcons (list3 (build_string ("mac-roman"),
+		  make_number (smRoman), Qnil), Qnil);
 }
 
 /* arch-tag: f2259165-4454-4c04-a029-a133c8af7b5b

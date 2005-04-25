@@ -2298,6 +2298,10 @@ from `standard-syntax-table' otherwise."
       (if (consp st) st
 	(aref (or st (syntax-table)) (char-after pos))))))
 
+(defun syntax-class (syntax)
+  "Return the syntax class part of the syntax descriptor SYNTAX."
+  (logand (car syntax) 255))
+
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.
 See documentation for `buffer-invisibility-spec' for the kind of elements

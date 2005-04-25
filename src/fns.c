@@ -2051,6 +2051,18 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
+DEFUN ("safe-get", Fsafe_get, Ssafe_get, 2, 2, 0,
+       doc: /* Return the value of SYMBOL's PROPNAME property.
+This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.
+This function never signals an error.  */)
+     (symbol, propname)
+     Lisp_Object symbol, propname;
+{
+  if (!SYMBOLP (symbol))
+    return Qnil;
+  return Fsafe_plist_get (XSYMBOL (symbol)->plist, propname);
+}
+
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
@@ -5792,6 +5804,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Splist_get);
   defsubr (&Ssafe_plist_get);
   defsubr (&Sget);
+  defsubr (&Ssafe_get);
   defsubr (&Splist_put);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);

@@ -659,7 +659,7 @@ characters in the output.  (This argument is supported in Emacs versions
 @end group
 @end example
 
-See @code{format}, in @ref{String Conversion}, for other ways to obtain
+See @code{format}, in @ref{Formatting Strings}, for other ways to obtain
 the printed representation of a Lisp object as a string.
 @end defun
 

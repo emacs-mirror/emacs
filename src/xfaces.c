@@ -3228,25 +3228,19 @@ resolve_face_name (face_name)
      Lisp_Object face_name;
 {
   Lisp_Object aliased;
-  Lisp_Object args[2];
-  int c = 0;
+  int alias_loop_max = 10;
 
   if (STRINGP (face_name))
     face_name = intern (SDATA (face_name));
 
-  /* Protect against loops by limiting the number of indirections.  */
-  while (SYMBOLP (face_name) && c < 10)
+  while (SYMBOLP (face_name))
     {
-      /* Fget can signal an error; just ignore it.  */
-      args[0] = face_name;
-      args[1] = Qface_alias;
-      aliased = internal_condition_case_2 (internal_resolve_face_name, 2, args, Qt,
-                                           resolve_face_name_error);
+      aliased = Fsafe_get (face_name, Qface_alias);
       if (NILP (aliased))
 	break;
-      else
-	face_name = aliased;
-      c++;
+      if (--alias_loop_max == 0)
+	break;
+      face_name = aliased;
     }
 
   return face_name;

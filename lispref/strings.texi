@@ -549,7 +549,8 @@ for a kind of string comparison; see @ref{Regexp Search}.
 @cindex conversion of strings
 
   This section describes functions for conversions between characters,
-strings and integers.  @code{format} and @code{prin1-to-string}
+strings and integers.  @code{format} (@pxref{Formatting Strings})
+and @code{prin1-to-string}
 (@pxref{Output Functions}) can also convert Lisp objects into strings.
 @code{read-from-string} (@pxref{Input Functions}) can ``convert'' a
 string representation of a Lisp object into an object.  The functions
