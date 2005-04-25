@@ -927,7 +927,9 @@ and TO is ignored."
     ;; give when file is re-read.
     ;; But don't do this if we explicitly ignored the cookie
     ;; by using `find-file-literally'.
-    (unless (or (stringp from) find-file-literally)
+    (unless (or (stringp from)
+		find-file-literally
+		(memq (coding-system-type coding-system) '(0 5)))
       (let ((auto-cs (save-excursion
 		       (save-restriction
 			 (widen)
