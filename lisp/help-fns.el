@@ -498,10 +498,11 @@ If ANY-SYMBOL is non-nil, don't insist the symbol be bound."
       0))
 
 ;;;###autoload
-(defun describe-variable (variable &optional buffer)
+(defun describe-variable (variable &optional buffer frame)
   "Display the full documentation of VARIABLE (a symbol).
 Returns the documentation as a string, also.
-If VARIABLE has a buffer-local value in BUFFER (default to the current buffer),
+If VARIABLE has a buffer-local value in BUFFER or FRAME
+\(default to the current buffer and current frame),
 it is displayed along with the global value."
   (interactive
    (let ((v (variable-at-point))
@@ -516,13 +517,19 @@ it is displayed along with the global value."
      (list (if (equal val "")
 	       v (intern val)))))
   (unless (buffer-live-p buffer) (setq buffer (current-buffer)))
+  (unless (frame-live-p frame) (setq frame (selected-frame)))
   (if (not (symbolp variable))
       (message "You did not specify a variable")
     (save-excursion
-      (let* ((valvoid (not (with-current-buffer buffer (boundp variable))))
-	     ;; Extract the value before setting up the output buffer,
-	     ;; in case `buffer' *is* the output buffer.
-	     (val (unless valvoid (buffer-local-value variable buffer))))
+      (let ((valvoid (not (with-current-buffer buffer (boundp variable))))
+	    val locus)
+	;; Extract the value before setting up the output buffer,
+	;; in case `buffer' *is* the output buffer.
+	(unless valvoid
+	  (with-selected-frame frame
+	    (with-current-buffer buffer
+	      (setq val (symbol-value variable)
+		    locus (variable-binding-locus variable)))))
 	(help-setup-xref (list #'describe-variable variable buffer)
 			 (interactive-p))
 	(with-output-to-temp-buffer (help-buffer)
@@ -539,11 +546,13 @@ it is displayed along with the global value."
 		  (if (< (point) (+ from 20))
 		      (delete-region (1- from) from)))))
 	    (terpri)
-	    (when (local-variable-p variable)
-	      (princ (format "%socal in buffer %s; "
-			     (if (get variable 'permanent-local)
-				 "Permanently l" "L")
-			     (buffer-name)))
+	    (when locus
+	      (if (bufferp locus)
+		  (princ (format "%socal in buffer %s; "
+				 (if (get variable 'permanent-local)
+				     "Permanently l" "L")
+				 (buffer-name)))
+		(princ (format "It is a frame-local variable; ")))
 	      (if (not (default-boundp variable))
 		  (princ "globally void")
 		(let ((val (default-value variable)))
