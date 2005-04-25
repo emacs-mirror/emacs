@@ -496,7 +496,7 @@ sometimes be slightly incorrect.")
   "Function to determine which face to use when fontifying syntactically.
 The function is called with a single parameter (the state as returned by
 `parse-partial-sexp' at the beginning of the region to highlight) and
-should return a face.")
+should return a face.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-syntactic-keywords nil
   "A list of the syntactic keywords to highlight.
@@ -646,6 +646,7 @@ Major/minor modes can set this variable if they know which option applies.")
 ;;;###autoload
 (defun font-lock-add-keywords (mode keywords &optional append)
   "Add highlighting KEYWORDS for MODE.
+
 MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are added for the current buffer.
 KEYWORDS should be a list; see the variable `font-lock-keywords'.
