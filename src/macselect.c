@@ -1116,3 +1116,6 @@ set to nil.  */);
   Qmac_ostype = intern ("mac-ostype");
   staticpro (&Qmac_ostype);
 }
+
+/* arch-tag: f3c91ad8-99e0-4bd6-9eef-251b2f848732
+   (do not change this comment) */
