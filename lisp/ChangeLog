@@ -1,3 +1,9 @@
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (ansi-term-color-vector): Use the xterm colors.
+	(term-raw-map): Don't add mappings for \eO and \e[. Map
+	deletechar.
+
 2005-04-25  Lute Kamstra  <lute@gnu.org>
 
 	* font-core.el (font-lock-defaults): Fix docstring.

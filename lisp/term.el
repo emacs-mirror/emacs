@@ -711,9 +711,10 @@ Buffer local variable.")
   :group 'term
   :type 'string)
 
+;;; Use the same colors that xterm uses, see `xterm-standard-colors'.
 (defvar ansi-term-color-vector
-  [unspecified "black" "red" "green" "yellow" "blue"
-   "magenta" "cyan" "white"])
+  [unspecified "black" "red3" "green3" "yellow3" "blue2"
+   "magenta3" "cyan3" "white"])
 
 ;;; Inspiration came from comint.el -mm
 (defvar term-buffer-maximum-size 2048
@@ -886,7 +887,9 @@ is buffer-local.")
        (i 0))
   (while (< i 128)
     (define-key map (make-string 1 i) 'term-send-raw)
-    (define-key esc-map (make-string 1 i) 'term-send-raw-meta)
+    ;; Avoid O and [. They are used in escape sequences for various keys.
+    (unless (or (eq i ?O) (eq i 91)) 
+		(define-key esc-map (make-string 1 i) 'term-send-raw-meta))
     (setq i (1+ i)))
   (dolist (elm (generic-character-list))
     (define-key map (vector elm) 'term-send-raw))
@@ -909,6 +912,7 @@ is buffer-local.")
     (define-key term-raw-map [right] 'term-send-right)
     (define-key term-raw-map [left] 'term-send-left)
     (define-key term-raw-map [delete] 'term-send-del)
+    (define-key term-raw-map [deletechar] 'term-send-del)
     (define-key term-raw-map [backspace] 'term-send-backspace)
     (define-key term-raw-map [home] 'term-send-home)
     (define-key term-raw-map [end] 'term-send-end)
