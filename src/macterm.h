@@ -617,6 +617,10 @@ extern void remove_window_handler P_ ((WindowPtr));
 #define FONT_TYPE_FOR_UNIBYTE(font, ch) 0
 #define FONT_TYPE_FOR_MULTIBYTE(font, ch) 0
 
+/* Defined in macselect.c */
+
+extern void x_clear_frame_selections P_ ((struct frame *));
+
 /* Defined in mac.c.  */
 
 extern OSErr posix_pathname_to_fsspec P_ ((const char *, FSSpec *));

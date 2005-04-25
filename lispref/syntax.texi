@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2004, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/syntax
@@ -940,7 +940,25 @@ This function returns the internal form @code{(@var{syntax-code} .
 @defun syntax-after pos
 This function returns the syntax code of the character in the buffer
 after position @var{pos}, taking account of syntax properties as well
-as the syntax table.
+as the syntax table.  If @var{pos} is outside the buffer's accessible
+portion (@pxref{Narrowing, accessible portion}), this function returns
+@code{nil}.
+@end defun
+
+@defun syntax-class syntax
+This function returns the syntax class of the syntax code
+@var{syntax}.  (It masks off the high 16 bits that hold the flags
+encoded in the syntax descriptor.)  If @var{syntax} is @code{nil}, it
+returns @code{nil}; this is so evaluating the expression
+
+@example
+(syntax-class (syntax-after pos))
+@end example
+
+@noindent
+where @code{pos} is outside the buffer's accessible portion, will
+yield @code{nil} without throwing errors or producing wrong syntax
+class codes.
 @end defun
 
 @node Categories

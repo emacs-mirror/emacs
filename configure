@@ -1816,11 +1816,6 @@ _ACEOF
     machine=arm opsys=gnu-linux
   ;;
 
-  ppc-*-linux | \
-  powerpc-*-linux* )
-    machine=macppc opsys=gnu-linux
-  ;;
-
   ## Altos 3068
   m68*-altos-sysv* )
     machine=altos opsys=usg5-2
@@ -5297,11 +5292,12 @@ fi
 
 
 
+
 for ac_header in sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h
+  sys/utsname.h pwd.h
 do
 as_ac_Header=`echo "ac_cv_header_$ac_header" | $as_tr_sh`
 if eval "test \"\${$as_ac_Header+set}\" = set"; then

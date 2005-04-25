@@ -48,6 +48,11 @@
   :group 'calendar
   :version "20.3")
 
+(defvar midnight-timer nil
+  "Timer running the `midnight-hook' `midnight-delay' seconds after midnight.
+Use `cancel-timer' to stop it and `midnight-delay-set' to change
+the time when it is run.")
+
 (defcustom midnight-mode nil
   "*Non-nil means run `midnight-hook' at midnight.
 Setting this variable outside customize has no effect;
@@ -203,11 +208,6 @@ The default value is `clean-buffer-list'."
   "Return the number of seconds till the next midnight."
   (multiple-value-bind (sec min hrs) (decode-time)
     (- (* 24 60 60) (* 60 60 hrs) (* 60 min) sec)))
-
-(defvar midnight-timer nil
-  "Timer running the `midnight-hook' `midnight-delay' seconds after midnight.
-Use `cancel-timer' to stop it and `midnight-delay-set' to change
-the time when it is run.")
 
 ;;;###autoload
 (defun midnight-delay-set (symb tm)

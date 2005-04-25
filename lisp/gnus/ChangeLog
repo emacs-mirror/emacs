@@ -1,3 +1,24 @@
+2005-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
+
+	* spam-report.el (spam-report-unplug-agent)
+	(spam-report-plug-agent, spam-report-deagentize)
+	(spam-report-agentize, spam-report-url-ping-temp-agent-function):
+	support for the Agent in spam-report: when unplugged, report to a
+	file; when plugged, submit all the requests.
+	[Added missing offline functionality from trunk.]
+
+2005-04-24  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* spam-report.el (spam-report-url-to-file)
+	(spam-report-requests-file): New function and variable for offline
+	reporting.
+	(spam-report-url-ping-function): Add `spam-report-url-to-file'
+	and user defined function.
+	(spam-report-process-queue): New function.
+	Process requests from `spam-report-requests-file'.
+	(spam-report-url-ping-mm-url): Autoload.
+	[Added missing offline functionality from trunk.]
+	
 2005-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* qp.el (quoted-printable-encode-region): Save excursion.

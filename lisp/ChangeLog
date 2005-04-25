@@ -1,3 +1,200 @@
+2005-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Don't
+	check consistency with coding: spec, etc if raw-text or
+	no-conversion was found to be safe.
+
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* mail/rmail.el (rmail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* font-lock.el (font-lock-comment-delimiter-face): Doc fix.
+
+	* files.el (mode-require-final-newline): Fix previous change.
+	(require-final-newline): Fix type label.
+
+2005-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-calculate-indent): Fix treatment of first
+	statement in buffer (broken by 2004-11-24 change).
+
+2005-04-24  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Save and restore old read-buffer-function
+	and read-file-name-function values.  Don't overwrite existing
+	non-nil values if ido-mode is enabled without ido-everywhere.
+
+2005-04-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (mode-require-final-newline): Minor doc fix.
+
+2005-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (syntax-after): Doc fix.
+	(syntax-class): If argument is nil, return nil.  Mask off upper 16
+	bits, not 8 bits.
+
+	* files.el (mode-require-final-newline): Doc fix.
+	(backup-buffer-copy): Fix last change.
+
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require select.  Set selection-coding-system to
+	mac-system-coding-system.  Call menu-bar-enable-clipboard.
+	(x-last-selected-text-clipboard, x-last-selected-text-primary)
+	(x-select-enable-clipboard): New variables.
+	(x-select-text, x-get-selection, x-selection-value)
+	(x-get-selection-value, mac-select-convert-to-string)
+	(mac-services-open-file, mac-services-open-selection)
+	(mac-services-insert-text): New functions.
+	(CLIPBOARD, FIND): Put mac-scrap-name property.
+	(com.apple.traditional-mac-plain-text, public.utf16-plain-text)
+	(public.tiff): Put mac-ostype property.
+	(selection-converter-alist): Add entries for them.
+	(mac-application-menu-map): New keymap.
+	(interprogram-cut-function, interprogram-paste-function): Set to
+	x-select-text and x-get-selection-value, respectively.
+	(split-window-keep-point): Set to t.
+
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (read-directory-name): Always pass non-nil
+	DEFAULT-FILENAME arg to read-file-name.
+	(backup-buffer-copy, basic-save-buffer-2): Take care against
+	writing thru an unexpected existing symlink.
+	(revert-buffer): In indirect buffer, revert the base buffer.
+	(magic-mode-alist): Doc fix.
+	(buffer-stale-function): Doc fix.
+	(minibuffer-with-setup-hook): Avoid warning.
+	(mode-require-final-newline): Doc and custom fix.
+
+	* follow.el (follow-end-of-buffer): Use with-no-warnings.
+
+	* font-lock.el (font-lock-comment-face): On terminals with few colors,
+	use the default appearance.
+	(font-lock-comment-delimiter-face): New face, new variable.
+
+	* imenu.el (imenu--generic-function): The official position of a
+	definition is the start of the line that BEG is in.
+
+	* midnight.el (midnight-timer): Move defvar up.
+
+	* mouse.el (mouse-drag-region-1): Delete some debugging code.
+
+	* saveplace.el (save-place-to-alist): Use with-no-warnings.
+
+	* startup.el (command-line): Use with-no-warnings.
+
+	* window.el (window-size-fixed): New defvar.
+
+	* emacs-lisp/easymenu.el (easy-menu-do-define): Use defalias, not fset.
+
+	* mail/rmail.el (rmail-font-lock-keywords):
+	Use font-lock-comment-delimiter-face.
+
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Use font-lock-comment-delimiter-face.
+
+	* progmodes/compile.el (next-error-highlight-timer): New defvar.
+
+2005-04-23  SAITO Takuya  <tabmore@rivo.mediatti.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Specify t for LAXMATCH when matching directories.
+	Save match data around compilation-compat-error-properties form.
+
+2005-04-23  David Kastrup  <dak@gnu.org>
+
+	* textmodes/tex-mode.el (TeX-mode, plain-TeX-mode, LaTeX-mode):
+	Mention that the autoloaded aliases should be kept for AUCTeX.
+
+2005-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* isearch.el (isearch-forward): Doc fix.
+
+2005-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* jit-lock.el (jit-lock-stealth-time): Change default value to 16.
+	(jit-lock-stealth-nice): Change default value to 0.5.
+
+2005-04-23  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* abbrev.el (write-abbrev-file): Write table entries in
+	alphabetical order by table name.
+
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix `list' completion.
+
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* recentf.el (recentf-save-file-coding-system): New variable.
+	(recentf-save-list): Encode the file by
+	recentf-save-file-coding-system and add coding: tag.
+
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): New macro.
+
+2005-04-21  Lute Kamstra  <lute@gnu.org>
+
+	* loadhist.el (unload-feature): Don't remove a function from hooks
+	if it is about to be restored to an autoload .  Remove functions
+	that will become unbound from auto-mode-alist.  Simplify the code.
+
+	* subr.el (assq-delete-all): New implementation that is linear,
+	not quadratic.  Suggested by David Kastrup <dak@gnu.org>.
+	(rassq-delete-all): New function.
+
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): Add
+	size-indication-mode.
+
+2005-04-21  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el: Add autoload for widget-value in
+	eval-when-compile
+
+2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
+
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
+	Add tooltip-mode.
+
+	* bindings.el (mode-line-mode-menu): Remove tooltip-mode.
+
+2005-04-20  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp): New defgroup.
+	(inferior-lisp-filter-regexp, inferior-lisp-program)
+	(inferior-lisp-load-command, inferior-lisp-prompt)
+	(inferior-lisp-mode-hook, lisp-source-modes)
+	(inferior-lisp-load-hook): defvar->defcustom.
+	(inferior-lisp-program, inferior-lisp-prompt)
+	(inferior-lisp-load-hook): Doc fixes.
+	(inferior-lisp-install-letter-bindings): Small change in
+	introductory comment.
+
+2005-04-20  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* vc.el (vc-annotate-color-map): Change some colors so that text
+	using them as foreground is readable on both white and black
+	backgrounds.
+
+2005-04-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (translation-table-for-input):
+	Remove redundant declaration.
+
+2005-04-20  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-menu-map): Add tooltip-toggle-gud-tips.
+
+	* tooltip.el (tooltip-gud-tips-p): Expand documentation.
+	(tooltip-toggle-gud-tips): New function.
+
 2005-04-20  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-symbol-encoder): Fix mappings of left and

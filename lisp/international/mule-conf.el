@@ -2,6 +2,7 @@
 
 ;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
 ;; Licensed to the Free Software Foundation.
+;; Copyright (C) 2005  Free Software Foundation, Inc.
 
 ;; Keywords: mule, multilingual, character set, coding system
 
@@ -289,10 +290,6 @@
       (get 'oldjis-newjis-jisroman-ascii 'translation-table))
 
 (setq standard-translation-table-for-encode nil)
-
-(defvar translation-table-for-input nil
-  "If non-nil, a char table used to translate characters from input methods.
-\(Currently only used by Quail.)")
 
 ;;; Make fundamental coding systems.
 
@@ -559,5 +556,5 @@ for decoding and encoding files, process I/O, etc."
 
 (update-coding-systems-internal)
 
-;;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
+;; arch-tag: 7d5fed55-b6df-42f6-8d3d-0011190551f5
 ;;; mule-conf.el ends here

@@ -1,3 +1,13 @@
+2005-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* configure.in: Remove duplicate match for powerpc configuration.
+	* configure: Regenerate.
+
+2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* configure.in: Check for <pwd.h>.
+	* configure: Regenerate.
+
 2005-04-14  Lute Kamstra  <lute@gnu.org>
 
 	* make-dist: Distribute all ChangeLog files in lisp/.

@@ -828,6 +828,14 @@ says which mode to use."
       (tex-mode-internal)
     (tex-guess-mode)))
 
+;; The following three autoloaded aliases appear to conflict with
+;; AUCTeX.  However, even though AUCTeX uses the mixed case variants
+;; for all mode relevant variables and hooks, the invocation function
+;; and setting of `major-mode' themselves need to be lowercase for
+;; AUCTeX to provide a fully functional user-level replacement.  So
+;; these aliases should remain as they are, in particular since AUCTeX
+;; users are likely to use them.
+
 ;;;###autoload
 (defalias 'TeX-mode 'tex-mode)
 ;;;###autoload

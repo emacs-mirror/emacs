@@ -999,7 +999,8 @@ opening the first frame (e.g. open a connection to the server).")
   ;; the session manager and we have a session manager connection.
   (if (and (boundp 'x-session-previous-id)
            (stringp x-session-previous-id))
-      (emacs-session-restore x-session-previous-id)))
+      (with-no-warnings
+	(emacs-session-restore x-session-previous-id))))
 
 (defcustom initial-scratch-message (purecopy "\
 ;; This buffer is for notes you don't want to save, and for Lisp evaluation.

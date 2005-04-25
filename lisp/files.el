@@ -286,7 +286,7 @@ from `mode-require-final-newline'."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (const :tag "Never" nil)
+		 (const :tag "Don't add newlines" nil)
 		 (other :tag "Ask" ask))
   :group 'editing-basics)
 
@@ -300,16 +300,16 @@ A value of t means do this only when the file is about to be saved.
 A value of `visit' means do this right after the file is visited.
 A value of `visit-save' means do it at both of those times.
 Any other non-nil value means ask user whether to add a newline, when saving.
-nil means don't add newlines.
 
-You will have to be careful if you set this to nil: you will have
-to remember to manually add a final newline whenever you finish a
-file that really needs one."
+nil means do not add newlines.  That is a risky choice in this variable
+since this value is used for modes for files that ought to have final newlines.
+So if you set this to nil, you must explicitly check and add
+a final newline, whenever you save a file that really needs one."
   :type '(choice (const :tag "When visiting" visit)
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
-		 (const :tag "Never" nil)
-		 (other :tag "Ask" ask))
+		 (const :tag "Don't add newlines" nil)
+		 (other :tag "Ask each time" ask))
   :group 'editing-basics
   :version "22.1")
 
@@ -529,8 +529,8 @@ See Info node `(elisp)Standard File Names' for more details."
 Value is not expanded---you must call `expand-file-name' yourself.
 Default name to DEFAULT-DIRNAME if user exits with the same
 non-empty string that was inserted by this function.
- (If DEFAULT-DIRNAME is omitted, the current buffer's directory is used,
-  except that if INITIAL is specified, that combined with DIR is used.)
+ (If DEFAULT-DIRNAME is omitted, DIR combined with INITIAL is used,
+  or just DIR if INITIAL is nil.)
 If the user exits with an empty minibuffer, this function returns
 an empty string.  (This can only happen if the user erased the
 pre-inserted contents or if `insert-default-directory' is nil.)
@@ -544,7 +544,10 @@ the value of `default-directory'."
   (unless default-dirname
     (setq default-dirname
 	  (if initial (concat dir initial) default-directory)))
-  (read-file-name prompt dir default-dirname mustmatch initial
+  (read-file-name prompt dir (or default-dirname 
+				 (if initial (expand-file-name initial dir)
+				   dir))
+		  mustmatch initial
 		  'file-directory-p))
 
 
@@ -940,12 +943,13 @@ BODY should use the minibuffer at most once.
 Recursive uses of the minibuffer will not be affected."
   (declare (indent 1) (debug t))
   (let ((hook (make-symbol "setup-hook")))
-    `(let ((,hook
-	    (lambda ()
-	      ;; Clear out this hook so it does not interfere
-	      ;; with any recursive minibuffer usage.
-	      (remove-hook 'minibuffer-setup-hook ,hook)
-	      (,fun))))
+    `(let (,hook)
+       (setq ,hook
+	     (lambda ()
+	       ;; Clear out this hook so it does not interfere
+	       ;; with any recursive minibuffer usage.
+	       (remove-hook 'minibuffer-setup-hook ,hook)
+	       (,fun)))
        (unwind-protect
 	   (progn
 	     (add-hook 'minibuffer-setup-hook ,hook)
@@ -1973,8 +1977,13 @@ with that interpreter in `interpreter-mode-alist'.")
     ("%![^V]" . ps-mode)
     ("# xmcd " . conf-unix-mode))
   "Alist of buffer beginnings vs. corresponding major mode functions.
-Each element looks like (REGEXP . FUNCTION).  FUNCTION will be
-called, unless it is nil (to allow `auto-mode-alist' to override).")
+Each element looks like (REGEXP . FUNCTION).  After visiting a file,
+if REGEXP matches the text at the beginning of the buffer,
+`normal-mode' will call FUNCTION rather than allowing `auto-mode-alist'
+to decide the buffer's major mode.
+
+If FUNCTION is nil, then it is not called.  (That is a way of saying
+\"allow `auto-mode-alist' to decide for these files.")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2740,15 +2749,28 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 	    (file-error nil))))))
 
 (defun backup-buffer-copy (from-name to-name modes)
-  (condition-case ()
-      (copy-file from-name to-name t t)
-    (file-error
-     ;; If copying fails because file TO-NAME
-     ;; is not writable, delete that file and try again.
-     (if (and (file-exists-p to-name)
-	      (not (file-writable-p to-name)))
-	 (delete-file to-name))
-     (copy-file from-name to-name t t)))
+  (let ((umask (default-file-modes)))
+    (unwind-protect
+	(progn
+	  ;; Create temp files with strict access rights.  It's easy to
+	  ;; loosen them later, whereas it's impossible to close the
+	  ;; time-window of loose permissions otherwise.
+	  (set-default-file-modes ?\700)
+	  (while (condition-case ()
+		     (progn
+		       (condition-case nil
+			   (delete-file to-name)
+			 (file-error nil))
+		       (write-region "" nil to-name nil 'silent nil 'excl)
+		       nil)
+		   (file-already-exists t))
+	    ;; the file was somehow created by someone else between
+	    ;; `make-temp-name' and `write-region', let's try again.
+	    nil)
+;	  (copy-file from-name to-name t t 'excl))
+	  (copy-file from-name to-name t t))
+      ;; Reset the umask.
+      (set-default-file-modes umask)))
   (and modes
        (set-file-modes to-name (logand modes #o1777))))
 
@@ -3331,39 +3353,41 @@ Before and after saving the buffer, this function runs
 	  ;; This requires write access to the containing dir,
 	  ;; which is why we don't try it if we don't have that access.
 	  (let ((realname buffer-file-name)
-		tempname nogood i succeed
+		tempname succeed
+		(umask (default-file-modes))
 		(old-modtime (visited-file-modtime)))
-	    (setq i 0)
-	    (setq nogood t)
-	    ;; Find the temporary name to write under.
-	    (while nogood
-	      (setq tempname (format
-			      (if (and (eq system-type 'ms-dos)
-				       (not (msdos-long-file-names)))
-				  "%s#%d.tm#" ; MSDOS limits files to 8+3
-				(if (memq system-type '(vax-vms axp-vms))
-				    "%s$tmp$%d"
-				  "%s#tmp#%d"))
-			      dir i))
-	      (setq nogood (file-exists-p tempname))
-	      (setq i (1+ i)))
+	    ;; Create temp files with strict access rights.  It's easy to
+	    ;; loosen them later, whereas it's impossible to close the
+	    ;; time-window of loose permissions otherwise.
 	    (unwind-protect
-		(progn (clear-visited-file-modtime)
-		       (write-region (point-min) (point-max)
-				     tempname nil realname
-				     buffer-file-truename)
-		       (setq succeed t))
-	      ;; If writing the temp file fails,
-	      ;; delete the temp file.
-	      (or succeed
-		  (progn
-		    (condition-case nil
-			(delete-file tempname)
-		      (file-error nil))
-		    (set-visited-file-modtime old-modtime))))
-	    ;; Since we have created an entirely new file
-	    ;; and renamed it, make sure it gets the
-	    ;; right permission bits set.
+		(progn
+		  (clear-visited-file-modtime)
+		  (set-default-file-modes ?\700)
+		  ;; Try various temporary names.
+		  ;; This code follows the example of make-temp-file,
+		  ;; but it calls write-region in the appropriate way
+		  ;; for saving the buffer.
+		  (while (condition-case ()
+			     (progn
+			       (setq tempname
+				     (make-temp-name
+				      (expand-file-name "tmp" dir)))
+			       (write-region (point-min) (point-max)
+					     tempname nil  realname
+					     buffer-file-truename 'excl)
+			       nil)
+			   (file-already-exists t))
+		    ;; The file was somehow created by someone else between
+		    ;; `make-temp-name' and `write-region', let's try again.
+		    nil)
+		  (setq succeed t))
+	      ;; Reset the umask.
+	      (set-default-file-modes umask)
+	      ;; If we failed, restore the buffer's modtime.
+	      (unless succeed
+		(set-visited-file-modtime old-modtime)))
+	    ;; Since we have created an entirely new file,
+	    ;; make sure it gets the right permission bits set.
 	    (setq setmodes (or setmodes (cons (file-modes buffer-file-name)
 					      buffer-file-name)))
 	    ;; We succeeded in writing the temp file,
@@ -3649,7 +3673,7 @@ The function you specify is responsible for updating (or preserving) point.")
 (defvar buffer-stale-function nil
   "Function to check whether a non-file buffer needs reverting.
 This should be a function with one optional argument NOCONFIRM.
-Auto Revert Mode sets NOCONFIRM to t.  The function should return
+Auto Revert Mode passes t for NOCONFIRM.  The function should return
 non-nil if the buffer should be reverted.  A return value of
 `fast' means that the need for reverting was not checked, but
 that reverting the buffer is fast.  The buffer is current when
@@ -3718,91 +3742,93 @@ non-nil, it is called instead of rereading visited file contents."
   (interactive (list (not current-prefix-arg)))
   (if revert-buffer-function
       (funcall revert-buffer-function ignore-auto noconfirm)
-    (let* ((auto-save-p (and (not ignore-auto)
-			     (recent-auto-save-p)
-			     buffer-auto-save-file-name
-			     (file-readable-p buffer-auto-save-file-name)
-			     (y-or-n-p
-   "Buffer has been auto-saved recently.  Revert from auto-save file? ")))
-	   (file-name (if auto-save-p
-			  buffer-auto-save-file-name
-			buffer-file-name)))
-      (cond ((null file-name)
-	     (error "Buffer does not seem to be associated with any file"))
-	    ((or noconfirm
-		 (and (not (buffer-modified-p))
-		      (let ((tail revert-without-query)
-			    (found nil))
-			(while tail
-			  (if (string-match (car tail) file-name)
-			      (setq found t))
-			  (setq tail (cdr tail)))
-			found))
-		 (yes-or-no-p (format "Revert buffer from file %s? "
-				      file-name)))
-	     (run-hooks 'before-revert-hook)
-	     ;; If file was backed up but has changed since,
-	     ;; we shd make another backup.
-	     (and (not auto-save-p)
-		  (not (verify-visited-file-modtime (current-buffer)))
-		  (setq buffer-backed-up nil))
-	     ;; Get rid of all undo records for this buffer.
-	     (or (eq buffer-undo-list t)
-		 (setq buffer-undo-list nil))
-	     ;; Effectively copy the after-revert-hook status,
-	     ;; since after-find-file will clobber it.
-	     (let ((global-hook (default-value 'after-revert-hook))
-		   (local-hook-p (local-variable-p 'after-revert-hook))
-		   (local-hook (and (local-variable-p 'after-revert-hook)
-				    after-revert-hook)))
-	       (let (buffer-read-only
-		     ;; Don't make undo records for the reversion.
-		     (buffer-undo-list t))
-		 (if revert-buffer-insert-file-contents-function
-		     (funcall revert-buffer-insert-file-contents-function
-			      file-name auto-save-p)
-		   (if (not (file-exists-p file-name))
-		       (error (if buffer-file-number
-				  "File %s no longer exists!"
-				"Cannot revert nonexistent file %s")
-			      file-name))
-		   ;; Bind buffer-file-name to nil
-		   ;; so that we don't try to lock the file.
-		   (let ((buffer-file-name nil))
-		     (or auto-save-p
-			 (unlock-buffer)))
-		   (widen)
-		   (let ((coding-system-for-read
-			  ;; Auto-saved file shoule be read by Emacs'
-			  ;; internal coding.
-			  (if auto-save-p 'auto-save-coding
-			    (or coding-system-for-read
-				buffer-file-coding-system-explicit))))
-		     ;; This force after-insert-file-set-coding
-		     ;; (called from insert-file-contents) to set
-		     ;; buffer-file-coding-system to a proper value.
-		     (kill-local-variable 'buffer-file-coding-system)
+    (with-current-buffer (or (buffer-base-buffer (current-buffer))
+			     (current-buffer))
+      (let* ((auto-save-p (and (not ignore-auto)
+			       (recent-auto-save-p)
+			       buffer-auto-save-file-name
+			       (file-readable-p buffer-auto-save-file-name)
+			       (y-or-n-p
+     "Buffer has been auto-saved recently.  Revert from auto-save file? ")))
+	     (file-name (if auto-save-p
+			    buffer-auto-save-file-name
+			  buffer-file-name)))
+	(cond ((null file-name)
+	       (error "Buffer does not seem to be associated with any file"))
+	      ((or noconfirm
+		   (and (not (buffer-modified-p))
+			(let ((tail revert-without-query)
+			      (found nil))
+			  (while tail
+			    (if (string-match (car tail) file-name)
+				(setq found t))
+			    (setq tail (cdr tail)))
+			  found))
+		   (yes-or-no-p (format "Revert buffer from file %s? "
+					file-name)))
+	       (run-hooks 'before-revert-hook)
+	       ;; If file was backed up but has changed since,
+	       ;; we shd make another backup.
+	       (and (not auto-save-p)
+		    (not (verify-visited-file-modtime (current-buffer)))
+		    (setq buffer-backed-up nil))
+	       ;; Get rid of all undo records for this buffer.
+	       (or (eq buffer-undo-list t)
+		   (setq buffer-undo-list nil))
+	       ;; Effectively copy the after-revert-hook status,
+	       ;; since after-find-file will clobber it.
+	       (let ((global-hook (default-value 'after-revert-hook))
+		     (local-hook-p (local-variable-p 'after-revert-hook))
+		     (local-hook (and (local-variable-p 'after-revert-hook)
+				      after-revert-hook)))
+		 (let (buffer-read-only
+		       ;; Don't make undo records for the reversion.
+		       (buffer-undo-list t))
+		   (if revert-buffer-insert-file-contents-function
+		       (funcall revert-buffer-insert-file-contents-function
+				file-name auto-save-p)
+		     (if (not (file-exists-p file-name))
+			 (error (if buffer-file-number
+				    "File %s no longer exists!"
+				  "Cannot revert nonexistent file %s")
+				file-name))
+		     ;; Bind buffer-file-name to nil
+		     ;; so that we don't try to lock the file.
+		     (let ((buffer-file-name nil))
+		       (or auto-save-p
+			   (unlock-buffer)))
+		     (widen)
+		     (let ((coding-system-for-read
+			    ;; Auto-saved file shoule be read by Emacs'
+			    ;; internal coding.
+			    (if auto-save-p 'auto-save-coding
+			      (or coding-system-for-read
+				  buffer-file-coding-system-explicit))))
+		       ;; This force after-insert-file-set-coding
+		       ;; (called from insert-file-contents) to set
+		       ;; buffer-file-coding-system to a proper value.
+		       (kill-local-variable 'buffer-file-coding-system)
 
-		     ;; Note that this preserves point in an intelligent way.
-		     (if preserve-modes
-			 (let ((buffer-file-format buffer-file-format))
-			   (insert-file-contents file-name (not auto-save-p)
-						 nil nil t))
-		       (insert-file-contents file-name (not auto-save-p)
-					     nil nil t)))))
-	       ;; Recompute the truename in case changes in symlinks
-	       ;; have changed the truename.
-	       (setq buffer-file-truename
-		     (abbreviate-file-name (file-truename buffer-file-name)))
-	       (after-find-file nil nil t t preserve-modes)
-	       ;; Run after-revert-hook as it was before we reverted.
-	       (setq-default revert-buffer-internal-hook global-hook)
-	       (if local-hook-p
-		   (set (make-local-variable 'revert-buffer-internal-hook)
-			local-hook)
-		 (kill-local-variable 'revert-buffer-internal-hook))
-	       (run-hooks 'revert-buffer-internal-hook))
-	     t)))))
+		       ;; Note that this preserves point in an intelligent way.
+		       (if preserve-modes
+			   (let ((buffer-file-format buffer-file-format))
+			     (insert-file-contents file-name (not auto-save-p)
+						   nil nil t))
+			 (insert-file-contents file-name (not auto-save-p)
+					       nil nil t)))))
+		 ;; Recompute the truename in case changes in symlinks
+		 ;; have changed the truename.
+		 (setq buffer-file-truename
+		       (abbreviate-file-name (file-truename buffer-file-name)))
+		 (after-find-file nil nil t t preserve-modes)
+		 ;; Run after-revert-hook as it was before we reverted.
+		 (setq-default revert-buffer-internal-hook global-hook)
+		 (if local-hook-p
+		     (set (make-local-variable 'revert-buffer-internal-hook)
+			  local-hook)
+		   (kill-local-variable 'revert-buffer-internal-hook))
+		 (run-hooks 'revert-buffer-internal-hook))
+	       t))))))
 
 (defun recover-this-file ()
   "Recover the visited file--get contents from its last auto-save file."

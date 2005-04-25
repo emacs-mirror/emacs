@@ -1364,7 +1364,7 @@ with @code{add-name-to-file} and then deleting @var{filename} has the
 same effect as renaming, aside from momentary intermediate states.
 @end deffn
 
-@deffn Command copy-file oldname newname &optional ok-if-exists time
+@deffn Command copy-file oldname newname &optional ok-if-exists time mustbenew
 This command copies the file @var{oldname} to @var{newname}.  An
 error is signaled if @var{oldname} does not exist.  If @var{newname}
 names a directory, it copies @var{oldname} into that directory,
@@ -1379,6 +1379,10 @@ This function copies the file modes, too.
 
 In an interactive call, a prefix argument specifies a non-@code{nil}
 value for @var{time}.
+
+The argument @var{mustbenew} controls whether an existing file can be
+overwritten.  It works like the similarly-named argument of
+@code{write-region} (@pxref{Writing to Files, mustbenew}).
 @end deffn
 
 @deffn Command make-symbolic-link filename newname  &optional ok-if-exists
@@ -2024,10 +2028,13 @@ two different jobs from trying to use the exact same file name.
 
 @defun make-temp-file prefix &optional dir-flag suffix
 @tindex make-temp-file
-This function creates a temporary file and returns its name.
-The name starts with @var{prefix}; it also contains a number that is
-different in each Emacs job.  If @var{prefix} is a relative file name,
-it is expanded against @code{temporary-file-directory}.
+This function creates a temporary file and returns its name.  Emacs
+creates the temporary file's name by adding to @var{prefix} some
+random characters that are different in each Emacs job.  The result is
+guaranteed to be a newly created empty file.  On MS-DOS, this function
+can truncate the @var{string} prefix to fit into the 8+3 file-name
+limits.  If @var{prefix} is a relative file name, it is expanded
+against @code{temporary-file-directory}.
 
 @example
 @group
@@ -2072,13 +2079,13 @@ you should use @code{make-temp-name} instead:
 @end example
 
 @defun make-temp-name string
-This function generates a string that can be used as a unique file name.
-The name starts with @var{string}, and contains a number that is
-different in each Emacs job.  It is like @code{make-temp-file} except
-that it just constructs a name, and does not create a file.  Another
-difference is that @var{string} should be an absolute file name.  On
-MS-DOS, this function can truncate the @var{string} prefix to fit into
-the 8+3 file-name limits.
+This function generates a string that can be used as a unique file
+name.  The name starts with @var{string}, and has several random
+characters appended to it, which are different in each Emacs job.  It
+is like @code{make-temp-file} except that it just constructs a name,
+and does not create a file.  Another difference is that @var{string}
+should be an absolute file name.  On MS-DOS, this function can
+truncate the @var{string} prefix to fit into the 8+3 file-name limits.
 @end defun
 
 @defvar temporary-file-directory

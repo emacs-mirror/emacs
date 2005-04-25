@@ -392,9 +392,6 @@ Menu of mode operations in the mode line.")
   "Return the value of symbol VAR if it is bound, else nil."
   `(and (boundp (quote ,var)) ,var))
 
-(define-key mode-line-mode-menu [tooltip-mode]
-  `(menu-item ,(purecopy "Tooltip") tooltip-mode
-	      :button (:toggle . tooltip-mode)))
 (define-key mode-line-mode-menu [overwrite-mode]
   `(menu-item ,(purecopy "Overwrite (Ovwrt)") overwrite-mode
 	      :button (:toggle . overwrite-mode)))

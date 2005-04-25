@@ -1714,6 +1714,33 @@ of the variable at the end of the chain of aliases.
 This function returns @var{base-var}.
 @end defun
 
+Variables aliases are often used prior to replacing an old name for a variable
+with a new name. To allow some time for existing code to adapt to this change,
+@code{make-obsolete-variable} declares that the old name is obsolete and
+therefore that it may be removed at some stage in the future.
+
+@defmac make-obsolete-variable variable new &optional when
+This macro makes the byte-compiler warn that symbol @var{variable} is
+obsolete and that symbol @var{new} should be used instead.  If
+@var{new} is a string, this is the message and there is no replacement
+variable.  If it is provided, @var{when} should be a string indicating
+when the variable was first made obsolete, for example a date or a
+release number.
+@end defmac
+
+You can make two variables synonyms and declare one obsolete at the
+same time using the macro @code{define-obsolete-variable-alias}.
+
+@defmac define-obsolete-variable-alias variable new &optional when docstring
+This macro defines the symbol @var{variable} as a variable alias for
+symbol @var{new} and warns that @var{variable} is obsolete.  If it is
+provided, @var{when} should be a string indicating when @var{variable}
+was first made obsolete.  The optional argument @var{docstring}
+specifies the documentation string for @var{variable}.  If
+@var{docstring} is omitted or nil, @var{variable} uses the
+documentation string of @var{new} unless it already has one.
+@end defmac
+
 @defun indirect-variable variable
 This function returns the variable at the end of the chain of aliases
 of @var{variable}.  If @var{variable} is not a symbol, or if @var{variable} is

@@ -1692,22 +1692,31 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	i = infinity;
       if (! NILP (trt))
 	{
-	  /* If the byte currently looking at is a head of a character
-	     to check case-equivalents, set CH to that character.  An
-	     ASCII character and a non-ASCII character matching with
-	     CHARSET_BASE are to be checked.  */
+	  /* If the byte currently looking at is the last of a
+	     character to check case-equivalents, set CH to that
+	     character.  An ASCII character and a non-ASCII character
+	     matching with CHARSET_BASE are to be checked.  */
 	  int ch = -1;
 
 	  if (ASCII_BYTE_P (*ptr) || ! multibyte)
 	    ch = *ptr;
-	  else if (charset_base && CHAR_HEAD_P (*ptr))
+	  else if (charset_base
+		   && (pat_end - ptr) == 1 || CHAR_HEAD_P (ptr[1]))
 	    {
-	      ch = STRING_CHAR (ptr, pat_end - ptr);
+	      unsigned char *charstart = ptr - 1;
+
+	      while (! (CHAR_HEAD_P (*charstart)))
+		charstart--;
+	      ch = STRING_CHAR (charstart, ptr - charstart + 1);
 	      if (charset_base != (ch & ~CHAR_FIELD3_MASK))
 		ch = -1;
 	    }
 
-	  j = *ptr;
+	  if (ch > 0400)
+	    j = ((unsigned char) ch) | 0200;
+	  else
+	    j = *ptr;
+
 	  if (i == infinity)
 	    stride_for_teases = BM_tab[j];
 
@@ -1717,12 +1726,8 @@ boyer_moore (n, base_pat, len, len_byte, trt, inverse_trt,
 	  if (ch >= 0)
 	    {
 	      int starting_ch = ch;
-	      int starting_j;
+	      int starting_j = j;
 
-	      if (ch > 0400)
-		starting_j = ((unsigned char) ch) | 0200;
-	      else
-		starting_j = (unsigned char) ch;
 	      while (1)
 		{
 		  TRANSLATE (ch, inverse_trt, ch);

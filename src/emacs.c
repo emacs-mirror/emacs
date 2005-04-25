@@ -1318,6 +1318,7 @@ main (argc, argv
       syms_of_fontset ();
       syms_of_macterm ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_data ();
       syms_of_search ();
       syms_of_frame ();
@@ -1632,6 +1633,7 @@ main (argc, argv
       syms_of_macterm ();
       syms_of_macfns ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_fontset ();
 #endif /* MAC_OSX && HAVE_CARBON */
 

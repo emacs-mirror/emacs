@@ -1979,9 +1979,19 @@ or a byte-code object.  IDX starts at 0.  */)
 	args_out_of_range (array, idx);
       if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
 	{
+	  if (! SINGLE_BYTE_CHAR_P (idxval))
+	    args_out_of_range (array, idx);
 	  /* For ASCII and 8-bit European characters, the element is
              stored in the top table.  */
 	  val = XCHAR_TABLE (array)->contents[idxval];
+	  if (NILP (val))
+	    {
+	      int default_slot
+		= (idxval < 0x80 ? CHAR_TABLE_DEFAULT_SLOT_ASCII
+		   : idxval < 0xA0 ? CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL
+		   : CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC);
+	      val = XCHAR_TABLE (array)->contents[default_slot];
+	    }
 	  if (NILP (val))
 	    val = XCHAR_TABLE (array)->defalt;
 	  while (NILP (val))	/* Follow parents until we find some value.  */
@@ -1999,6 +2009,7 @@ or a byte-code object.  IDX starts at 0.  */)
 	{
 	  int code[4], i;
 	  Lisp_Object sub_table;
+	  Lisp_Object current_default;
 
 	  SPLIT_CHAR (idxval, code[0], code[1], code[2]);
 	  if (code[1] < 32) code[1] = -1;
@@ -2012,16 +2023,21 @@ or a byte-code object.  IDX starts at 0.  */)
 	  code[3] = -1;		/* anchor */
 
 	try_parent_char_table:
+	  current_default = XCHAR_TABLE (array)->defalt;
 	  sub_table = array;
 	  for (i = 0; code[i] >= 0; i++)
 	    {
 	      val = XCHAR_TABLE (sub_table)->contents[code[i]];
 	      if (SUB_CHAR_TABLE_P (val))
-		sub_table = val;
+		{
+		  sub_table = val;
+		  if (! NILP (XCHAR_TABLE (sub_table)->defalt))
+		    current_default = XCHAR_TABLE (sub_table)->defalt;
+		}
 	      else
 		{
 		  if (NILP (val))
-		    val = XCHAR_TABLE (sub_table)->defalt;
+		    val = current_default;
 		  if (NILP (val))
 		    {
 		      array = XCHAR_TABLE (array)->parent;
@@ -2031,9 +2047,12 @@ or a byte-code object.  IDX starts at 0.  */)
 		  return val;
 		}
 	    }
-	  /* Here, VAL is a sub char table.  We try the default value
-             and parent.  */
-	  val = XCHAR_TABLE (val)->defalt;
+	  /* Reaching here means IDXVAL is a generic character in
+	     which each character or a group has independent value.
+	     Essentially it's nonsense to get a value for such a
+	     generic character, but for backward compatibility, we try
+	     the default value and parent.  */
+	  val = current_default;
 	  if (NILP (val))
 	    {
 	      array = XCHAR_TABLE (array)->parent;
@@ -2102,7 +2121,11 @@ bool-vector.  IDX starts at 0.  */)
       if (idxval < 0)
 	args_out_of_range (array, idx);
       if (idxval < CHAR_TABLE_ORDINARY_SLOTS)
-	XCHAR_TABLE (array)->contents[idxval] = newelt;
+	{
+	  if (! SINGLE_BYTE_CHAR_P (idxval))
+	    args_out_of_range (array, idx);
+	  XCHAR_TABLE (array)->contents[idxval] = newelt;
+	}
       else
 	{
 	  int code[4], i;
@@ -2125,12 +2148,9 @@ bool-vector.  IDX starts at 0.  */)
 		  Lisp_Object temp;
 
 		  /* VAL is a leaf.  Create a sub char table with the
-		     default value VAL or XCHAR_TABLE (array)->defalt
-		     and look into it.  */
+		     initial value VAL and look into it.  */
 
-		  temp = make_sub_char_table (NILP (val)
-					      ? XCHAR_TABLE (array)->defalt
-					      : val);
+		  temp = make_sub_char_table (val);
 		  XCHAR_TABLE (array)->contents[code[i]] = temp;
 		  array = temp;
 		}

@@ -133,6 +133,7 @@ MacObjects = ¶
 	"{Src}mac.c.x" ¶
 	"{Src}macfns.c.x" ¶
 	"{Src}macmenu.c.x" ¶
+	"{Src}macselect.c.x" ¶
 	"{Src}macterm.c.x"
 
 StdLibraries = ¶
@@ -881,6 +882,14 @@ NonCarbon Ä
 	"{Includes}sys:types.h" ¶
 	{DISPEXTERN_H_GROUP}
 
+{Src}macselect.c.x Ä ¶
+	{CONFIG_H_GROUP} ¶
+	"{Src}lisp.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	{BLOCKINPUT_H_GROUP}
+
 {Src}mac.c Ä ¶
 	{CONFIG_H_GROUP} ¶
 	"{Includes}utime.h" ¶
@@ -895,7 +904,14 @@ NonCarbon Ä
 	"{Src}sysselect.h" ¶
 	"{Src}systime.h" ¶
 		"{Includes}sys:time.h" ¶
-	"{Includes}utsname.h"
+	"{Includes}utsname.h" ¶
+	"{Src}macterm.h" ¶
+		"{Src}macgui.h" ¶
+		"{Src}frame.h" ¶
+	{BLOCKINPUT_H_GROUP} ¶
+	"{Src}charset.h" ¶
+	"{Src}coding.h" ¶
+		"{Src}ccl.h"
 
 {Src}macfns.c Ä ¶
 	{CONFIG_H_GROUP} ¶

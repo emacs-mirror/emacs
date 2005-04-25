@@ -1473,6 +1473,10 @@ The functions are run with one arg, the frame to be deleted.  */)
   if (FRAME_X_P (f))
     x_clear_frame_selections (f);
 #endif
+#ifdef MAC_OS
+  if (FRAME_MAC_P (f))
+    x_clear_frame_selections (f);
+#endif
 
   /* Free glyphs.
      This function must be called before the window tree of the

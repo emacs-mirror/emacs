@@ -2291,7 +2291,8 @@ from `standard-syntax-table' otherwise."
     table))
 
 (defun syntax-after (pos)
-  "Return the raw syntax of the char after POS."
+  "Return the raw syntax of the char after POS.
+If POS is outside the buffer's accessible portion, return nil."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
@@ -2299,8 +2300,9 @@ from `standard-syntax-table' otherwise."
 	(aref (or st (syntax-table)) (char-after pos))))))
 
 (defun syntax-class (syntax)
-  "Return the syntax class part of the syntax descriptor SYNTAX."
-  (logand (car syntax) 255))
+  "Return the syntax class part of the syntax descriptor SYNTAX.
+If SYNTAX is nil, return nil."
+  (and syntax (logand (car syntax) 65535)))
 
 (defun add-to-invisibility-spec (arg)
   "Add elements to `buffer-invisibility-spec'.
@@ -2388,15 +2390,34 @@ macros."
       (eq (car-safe object) 'lambda)))
 
 (defun assq-delete-all (key alist)
-  "Delete from ALIST all elements whose car is KEY.
+  "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-  (let ((tail alist))
-    (while tail
-      (if (and (consp (car tail)) (eq (car (car tail)) key))
-	  (setq alist (delq (car tail) alist)))
-      (setq tail (cdr tail)))
-    alist))
+  (while (and (consp (car alist)) 
+	      (eq (car (car alist)) key))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (car (car tail-cdr)) key))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
+
+(defun rassq-delete-all (value alist)
+  "Delete from ALIST all elements whose cdr is `eq' to VALUE.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+  (while (and (consp (car alist)) 
+	      (eq (cdr (car alist)) value))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (cdr (car tail-cdr)) value))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
 
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.

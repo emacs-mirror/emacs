@@ -639,14 +639,15 @@ by \"Save Options\" in Custom buffers.")
   (let ((need-save nil))
     ;; These are set with menu-bar-make-mm-toggle, which does not
     ;; put on a customized-value property.
-    (dolist (elt '(line-number-mode column-number-mode cua-mode show-paren-mode
-		   transient-mark-mode global-font-lock-mode
-		   blink-cursor-mode))
+    (dolist (elt '(line-number-mode column-number-mode size-indication-mode
+		   cua-mode show-paren-mode transient-mark-mode
+		   global-font-lock-mode blink-cursor-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
     (dolist (elt '(scroll-bar-mode
-		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
+		   debug-on-quit debug-on-error
+		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   fringe-indicators case-fold-search
 		   display-time-mode auto-compression-mode
@@ -690,6 +691,11 @@ by \"Save Options\" in Custom buffers.")
   (menu-bar-make-mm-toggle line-number-mode
 			   "Line Numbers"
 			   "Show the current line number in the mode line"))
+
+(define-key menu-bar-showhide-menu [size-indication-mode]
+  (menu-bar-make-mm-toggle size-indication-mode
+			   "Size Indication"
+			   "Show the size of the buffer in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))
@@ -909,6 +915,12 @@ by \"Save Options\" in Custom buffers.")
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
 	:visible `(display-graphic-p)
 	:help "Select scroll-bar mode"))
+
+(define-key menu-bar-showhide-menu [showhide-tooltip-mode]
+  (list 'menu-item "Tooltips" 'tooltip-mode
+	:help "Toggle tooltips on/off"
+	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
+	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   '(menu-item "Menu-bar" menu-bar-mode

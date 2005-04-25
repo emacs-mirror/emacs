@@ -113,6 +113,11 @@ Used to grey out relevant togolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
+    ([tooltips] menu-item "Toggle GUD tooltips" tooltip-toggle-gud-tips
+                  :enable  (and (not emacs-basic-display)
+				(display-graphic-p)
+				(fboundp 'x-show-tip))
+	          :button (:toggle . tooltip-gud-tips-p))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)

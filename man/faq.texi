@@ -2549,17 +2549,6 @@ information, see the documentation for
 @code{font-lock-maximum-decoration} with @kbd{C-h v} (or @kbd{M-x
 describe-variable @key{RET}}).
 
-@cindex Lazy font-lock
-You might also want to investigate @code{fast-lock-mode} and
-@code{lazy-lock-mode}, versions of @code{font-lock-mode} that speed up
-highlighting.  These are the alternatives for @code{jit-lock-mode} in
-versions of Emacs before 21.1.  The advantage of @code{lazy-lock-mode}
-is that it only fontifies buffers when certain conditions are met, such
-as after a certain amount of idle time, or after you have finished
-scrolling through text.  See the documentation for @code{lazy-lock-mode}
-by typing @kbd{C-h f @code{lazy-lock-mode}} (@kbd{M-x describe-function
-@key{RET} lazy-lock-mode @key{RET}}).
-
 Also see the documentation for the function @code{font-lock-mode},
 available by typing @kbd{C-h f font-lock-mode} (@kbd{M-x
 describe-function @key{RET} font-lock-mode @key{RET}}).

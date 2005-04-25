@@ -29,6 +29,15 @@
 
 ;;; Code:
 
+(defvar window-size-fixed nil
+ "*Non-nil in a buffer means windows displaying the buffer are fixed-size.
+If the value is`height', then only the window's height is fixed.
+If the value is `width', then only the window's width is fixed.
+Any other non-nil value fixes both the width and the height.
+Emacs won't change the size of any window displaying that buffer,
+unless you explicitly change the size, or Emacs has no other choice.")
+(make-variable-buffer-local 'window-size-fixed)
+
 (defmacro save-selected-window (&rest body)
   "Execute BODY, then select the window that was selected before BODY.
 Also restore the selected window of each frame as it was at the start

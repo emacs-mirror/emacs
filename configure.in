@@ -337,11 +337,6 @@ dnl see the `changequote' comment above.
     machine=arm opsys=gnu-linux
   ;;
 
-  ppc-*-linux | \
-  powerpc-*-linux* )
-    machine=macppc opsys=gnu-linux
-  ;;
-
   ## Altos 3068
   m68*-altos-sysv* )
     machine=altos opsys=usg5-2
@@ -1455,7 +1450,7 @@ AC_CHECK_HEADERS(sys/select.h sys/timeb.h sys/time.h unistd.h utime.h \
   linux/version.h sys/systeminfo.h termios.h limits.h string.h stdlib.h \
   termcap.h stdio_ext.h fcntl.h strings.h coff.h pty.h sys/mman.h \
   sys/param.h sys/vlimit.h sys/resource.h locale.h sys/_mbstate_t.h \
-  sys/utsname.h)
+  sys/utsname.h pwd.h)
 
 AC_MSG_CHECKING(if personality LINUX32 can be set)
 AC_TRY_COMPILE([#include <sys/personality.h>], [personality (PER_LINUX32)],
@@ -1555,7 +1550,7 @@ AC_CHECK_MEMBER(struct tm.tm_gmtoff,
 		[AC_DEFINE(HAVE_TM_GMTOFF, 1,
 			   [Define to 1 if `tm_gmtoff' is member of `struct tm'.])],,
 		[#include <time.h>])
-AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr, 
+AC_CHECK_MEMBERS([struct ifreq.ifr_flags, struct ifreq.ifr_hwaddr,
 		  struct ifreq.ifr_netmask, struct ifreq.ifr_broadaddr,
 		  struct ifreq.ifr_addr], , ,
 		 [AC_INCLUDES_DEFAULT
@@ -1765,7 +1760,7 @@ else
   HAVE_XFREE386=no
 fi
 AC_MSG_RESULT($HAVE_XFREE386)
-  
+
 dnl Check for need for bigtoc support on IBM AIX
 
 case ${host_os} in
@@ -2178,7 +2173,7 @@ if test "${with_xim}" != "no"; then
   AC_DEFINE(USE_XIM, 1,
 	    [Define to 1 if we should use XIM, if it is available.])
 fi
- 
+
 
 if test "${HAVE_XIM}" != "no"; then
   late_CFLAGS=$CFLAGS
@@ -2662,7 +2657,7 @@ dnl The following looks like a useful start.
 dnl
 dnl AC_SYS_POSIX_TERMIOS
 dnl if test $ac_cv_sys_posix_termios = yes; then
-dnl    AC_DEFINE(HAVE_TERMIOS, 1, [Define to 1 if you have POSIX-style functions 
+dnl    AC_DEFINE(HAVE_TERMIOS, 1, [Define to 1 if you have POSIX-style functions
 dnl                                and macros for terminal control.])
 dnl    AC_DEFINE(HAVE_TCATTR, 1, [Define to 1 if you have tcgetattr and tcsetattr.])
 dnl fi

@@ -1,3 +1,9 @@
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* ack.texi: Delete info about lazy-lock.el and fast-lock.el.
+
+	* faq.texi: Delete info about lazy-lock.el and fast-lock.el.
+
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
 	* building.texi (Compilation Mode): Add M-g M-n and M-g M-p bindings.
