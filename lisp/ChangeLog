@@ -1,3 +1,9 @@
+2005-04-25  Lute Kamstra  <lute@gnu.org>
+
+	* font-core.el (font-lock-defaults): Fix docstring.
+
+	* font-lock.el (font-lock-syntactic-face-function): Fix docstring.
+
 2005-04-25  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Don't
