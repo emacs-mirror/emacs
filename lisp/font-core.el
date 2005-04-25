@@ -32,7 +32,7 @@
   "Defaults for Font Lock mode specified by the major mode.
 Defaults should be of the form:
 
- (KEYWORDS KEYWORDS-ONLY CASE-FOLD SYNTAX-ALIST SYNTAX-BEGIN ...)
+ (KEYWORDS [KEYWORDS-ONLY [CASE-FOLD [SYNTAX-ALIST [SYNTAX-BEGIN ...]]]])
 
 KEYWORDS may be a symbol (a variable or function whose value is the keywords to
 use for fontification) or a list of symbols.  If KEYWORDS-ONLY is non-nil,
@@ -66,11 +66,10 @@ textual modes (i.e., the mode-dependent function is known to put point and mark
 around a text block relevant to that mode).
 
 Other variables include that for syntactic keyword fontification,
-`font-lock-syntactic-keywords'
-and those for buffer-specialized fontification functions,
-`font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
-`font-lock-fontify-region-function', `font-lock-unfontify-region-function',
-`font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.")
+`font-lock-syntactic-keywords' and those for buffer-specialized fontification
+functions, `font-lock-fontify-buffer-function',
+`font-lock-unfontify-buffer-function', `font-lock-fontify-region-function',
+`font-lock-unfontify-region-function', and `font-lock-inhibit-thing-lock'.")
 (make-variable-buffer-local 'font-lock-defaults)
 
 (defvar font-lock-defaults-alist nil
