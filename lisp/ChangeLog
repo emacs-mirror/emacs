@@ -1,3 +1,8 @@
+2005-04-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-view-news): Let-bind inhibit-read-only
+	to t while inserting information; use help-mode.
+
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (ansi-term-color-vector): Use the xterm colors.
