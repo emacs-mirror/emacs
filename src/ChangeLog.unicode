@@ -1,3 +1,8 @@
+2005-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* charset.c (load_charset_map_from_vector): Fix for the first
+	iteration.
+
 2005-04-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macfns.c (Fx_create_frame, x_create_tip_frame): Pass Lisp
