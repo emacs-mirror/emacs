@@ -355,7 +355,7 @@ fontset_set (fontset, c, newelt)
       if (!SUB_CHAR_TABLE_P (*elt))
 	{
 	  Lisp_Object val = *elt;
-	  *elt = make_sub_char_table (val);
+	  *elt = make_sub_char_table (Qnil);
 	  XCHAR_TABLE (*elt)->defalt = val;
 	}
       elt = &XCHAR_TABLE (*elt)->contents[code[i]];
