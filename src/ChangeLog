@@ -1,5 +1,8 @@
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
+	* window.c (Fsame_window_p, Fspecial_display_p): Doc fixes.
+	(syms_of_window): Doc fixes.
+
 	* indent.c (Fvertical_motion): Undo previous change.
 
 2005-04-26  Kenichi Handa  <handa@m17n.org>
