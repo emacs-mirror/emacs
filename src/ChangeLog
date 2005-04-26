@@ -1,3 +1,7 @@
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Undo previous change.
+
 2005-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (char_table_range): New function.

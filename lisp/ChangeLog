@@ -1,5 +1,7 @@
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (line-move-1): Avoid using vertical-motion in easy cases.
+
 	* progmodes/python.el (python-mode):
 	Use new name eldoc-documentation-function.
 
