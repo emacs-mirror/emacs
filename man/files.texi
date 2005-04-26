@@ -37,6 +37,7 @@ on file directories.
 * Quoted File Names::   Quoting special characters in file names.
 * File Name Cache::     Completion against a list of files you often use.
 * File Conveniences::   Convenience Features for Finding Files.
+* Filesets::            Handling sets of files.
 @end menu
 
 @node File Names
@@ -3325,6 +3326,15 @@ point.  Partial Completion mode offers other features extending
 @code{find-file}, which can be used with @code{ffap}.
 @xref{Completion Options}.
 
+@findex image-mode
+@findex image-toggle-display
+@cindex images, viewing
+  Visiting image files automatically selects Image mode.  This major
+mode allows you to toggle between displaying the file as an image in
+the Emacs buffer, and displaying its underlying text representation,
+using the command @kbd{C-c C-c} (@code{image-toggle-display}).  This
+works only when Emacs can display the specific image type.
+
 @findex thumbs-mode
 @findex mode, thumbs
   Thumbs mode is a major mode for viewing directories containing many
@@ -3334,6 +3344,43 @@ a @samp{Thumbs} buffer as @dfn{thumbnails}; type @kbd{RET} on a
 thumbnail to view the full-size image.  Thumbs mode requires the
 @file{convert} program, which is part of the ImageMagick software
 package.
+
+@node Filesets
+@section Filesets
+@cindex filesets
+
+@findex filesets-init
+  If you regularly edit a certain group of files, you can define them
+as a @dfn{fileset}.  This lets you perform certain operations, such as
+visiting, @code{query-replace}, and shell commands on all the files
+at once.  To make use of filesets, you must first add the expression
+@code{(filesets-init)} to your @file{.emacs} file (@pxref{Init File}).
+This adds a @samp{Filesets} menu to the menu bar.
+
+@findex filesets-add-buffer
+@findex filesets-remove-buffer
+  The simplest way to define filesets is by adding files to them one
+at a time.  To add a file to fileset @var{name}, visit the file and
+type @kbd{M-x filesets-add-buffer @kbd{RET} @var{name} @kbd{RET}}.  If
+there is no fileset @var{name}, this creates a new one, which
+initially creates only the current file.  The command @kbd{M-x
+filesets-remove-buffer} removes the current file from a fileset.
+
+  You can also edit the list of filesets directly, with @kbd{M-x
+filesets-edit} (or by choosing @samp{Edit Filesets} from the
+@samp{Filesets} menu).  The editing is performed in a Customize buffer
+(@pxref{Easy Customization}).  Filesets need not be a simple list of
+files---you can also define filesets using regular expression matching
+file names.  Some examples of these more complicated filesets are
+shown in the Customize buffer.  Remember to select @samp{Save for
+future sessions} if you want to use the same filesets in future Emacs
+sessions.
+
+  You can use the command @kbd{M-x filesets-open} to visit all the
+files in a fileset, and @kbd{M-x filesets-close} to close them.  Use
+@kbd{M-x filesets-run-cmd} to run a shell command on all the files in
+a fileset.  These commands are also available from the @samp{Filesets}
+menu, where each existing fileset is represented by a submenu.
 
 @ignore
    arch-tag: 768d32cb-e15a-4cc1-b7bf-62c00ee12250
