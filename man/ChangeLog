@@ -1,3 +1,23 @@
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update submenus from files.texi.
+
+	* files.texi (Filesets): Clarify previous change.
+
+	* dired.texi (Misc Dired Features): Clarify previous change.
+
+2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+ 	* ack.texi (Acknowledgments): Delete info about iso-acc.el
+
+ 	* dired.texi (Misc Dired Features): Document
+ 	dired-compare-directories.
+
+ 	* files.texi (Filesets): New node.
+ 	(File Conveniences): Document Image mode.
+
+ 	* text.texi (TeX Print): Document tex-compile.
+
 2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Tooltips): Tooltip mode is enabled by default.
