@@ -51,10 +51,15 @@
   (define-key map "\e[24~" [f12])
   (define-key map "\e[29~" [print])
 
-  (define-key map "\e[11;2~" [S-f1])
-  (define-key map "\e[12;2~" [S-f2])
-  (define-key map "\e[13;2~" [S-f3])
-  (define-key map "\e[14;2~" [S-f4])
+  (define-key map "\eOP" [f1])
+  (define-key map "\eOQ" [f2])
+  (define-key map "\eOR" [f3])
+  (define-key map "\eOS" [f4])
+
+  (define-key map "\eO2P" [S-f1])
+  (define-key map "\eO2Q" [S-f2])
+  (define-key map "\eO2R" [S-f3])
+  (define-key map "\eO2S" [S-f4])
   (define-key map "\e[15;2~" [S-f5])
   (define-key map "\e[17;2~" [S-f6])
   (define-key map "\e[18;2~" [S-f7])
@@ -64,10 +69,10 @@
   (define-key map "\e[23;2~" [S-f11])
   (define-key map "\e[24;2~" [S-f12])
 
-  (define-key map "\e[11;5~" [C-f1])
-  (define-key map "\e[12;5~" [C-f2])
-  (define-key map "\e[13;5~" [C-f3])
-  (define-key map "\e[14;5~" [C-f4])
+  (define-key map "\eO5P" [C-f1])
+  (define-key map "\eO5Q" [C-f2])
+  (define-key map "\eO5R" [C-f3])
+  (define-key map "\eO5S" [C-f4])
   (define-key map "\e[15;5~" [C-f5])
   (define-key map "\e[17;5~" [C-f6])
   (define-key map "\e[18;5~" [C-f7])
@@ -77,10 +82,10 @@
   (define-key map "\e[23;5~" [C-f11])
   (define-key map "\e[24;5~" [C-f12])
 
-  (define-key map "\e[11;6~" [C-S-f1])
-  (define-key map "\e[12;6~" [C-S-f2])
-  (define-key map "\e[13;6~" [C-S-f3])
-  (define-key map "\e[14;6~" [C-S-f4])
+  (define-key map "\eO6P" [C-S-f1])
+  (define-key map "\eO6Q" [C-S-f2])
+  (define-key map "\eO6R" [C-S-f3])
+  (define-key map "\eO6S" [C-S-f4])
   (define-key map "\e[15;6~" [C-S-f5])
   (define-key map "\e[17;6~" [C-S-f6])
   (define-key map "\e[18;6~" [C-S-f7])
@@ -90,10 +95,10 @@
   (define-key map "\e[23;6~" [C-S-f11])
   (define-key map "\e[24;6~" [C-S-f12])
 
-  (define-key map "\e[11;3~" [A-f1])
-  (define-key map "\e[12;3~" [A-f2])
-  (define-key map "\e[13;3~" [A-f3])
-  (define-key map "\e[14;3~" [A-f4])
+  (define-key map "\eO3P" [A-f1])
+  (define-key map "\eO3Q" [A-f2])
+  (define-key map "\eO3R" [A-f3])
+  (define-key map "\eO3S" [A-f4])
   (define-key map "\e[15;3~" [A-f5])
   (define-key map "\e[17;3~" [A-f6])
   (define-key map "\e[18;3~" [A-f7])
@@ -177,6 +182,66 @@
   ;; made in the .emacs file.
   (set-keymap-parent map (keymap-parent function-key-map))
   (set-keymap-parent function-key-map map))
+
+;;; The terminal intialization C code file might have initialized
+;;; function keys F13->F60 from the termcap/terminfo information.  On
+;;; a PC-style keyboard these keys correspond to
+;;; MODIFIER-FUNCTION_KEY, where modifier is S-, C, A-, C-S-.  The
+;;; code here subsitutes the corresponding defintions in
+;;; function-key-map. This substitution is needed because if a key
+;;; definition if found in function-key-map, there are no further
+;;; lookups in other keymaps.
+(substitute-key-definition [f13] [S-f1] function-key-map) 
+(substitute-key-definition [f14] [S-f2] function-key-map)
+(substitute-key-definition [f15] [S-f3] function-key-map)
+(substitute-key-definition [f16] [S-f4] function-key-map)
+(substitute-key-definition [f17] [S-f5] function-key-map)
+(substitute-key-definition [f18] [S-f6] function-key-map)
+(substitute-key-definition [f19] [S-f7] function-key-map)
+(substitute-key-definition [f20] [S-f8] function-key-map)
+(substitute-key-definition [f21] [S-f9] function-key-map)
+(substitute-key-definition [f22] [S-f10] function-key-map)
+(substitute-key-definition [f23] [S-f11] function-key-map)
+(substitute-key-definition [f24] [S-f12] function-key-map)
+
+(substitute-key-definition [f25] [C-f1] function-key-map) 
+(substitute-key-definition [f26] [C-f2] function-key-map)
+(substitute-key-definition [f27] [C-f3] function-key-map)
+(substitute-key-definition [f28] [C-f4] function-key-map)
+(substitute-key-definition [f29] [C-f5] function-key-map)
+(substitute-key-definition [f30] [C-f6] function-key-map)
+(substitute-key-definition [f31] [C-f7] function-key-map)
+(substitute-key-definition [f32] [C-f8] function-key-map)
+(substitute-key-definition [f33] [C-f9] function-key-map)
+(substitute-key-definition [f34] [C-f10] function-key-map)
+(substitute-key-definition [f35] [C-f11] function-key-map)
+(substitute-key-definition [f36] [C-f12] function-key-map)
+
+(substitute-key-definition [f37] [C-S-f1] function-key-map) 
+(substitute-key-definition [f38] [C-S-f2] function-key-map)
+(substitute-key-definition [f39] [C-S-f3] function-key-map)
+(substitute-key-definition [f40] [C-S-f4] function-key-map)
+(substitute-key-definition [f41] [C-S-f5] function-key-map)
+(substitute-key-definition [f42] [C-S-f6] function-key-map)
+(substitute-key-definition [f43] [C-S-f7] function-key-map)
+(substitute-key-definition [f44] [C-S-f8] function-key-map)
+(substitute-key-definition [f45] [C-S-f9] function-key-map)
+(substitute-key-definition [f46] [C-S-f10] function-key-map)
+(substitute-key-definition [f47] [C-S-f11] function-key-map)
+(substitute-key-definition [f48] [C-S-f12] function-key-map)
+
+(substitute-key-definition [f49] [A-f1] function-key-map) 
+(substitute-key-definition [f50] [A-f2] function-key-map)
+(substitute-key-definition [f51] [A-f3] function-key-map)
+(substitute-key-definition [f52] [A-f4] function-key-map)
+(substitute-key-definition [f53] [A-f5] function-key-map)
+(substitute-key-definition [f54] [A-f6] function-key-map)
+(substitute-key-definition [f55] [A-f7] function-key-map)
+(substitute-key-definition [f56] [A-f8] function-key-map)
+(substitute-key-definition [f57] [A-f9] function-key-map)
+(substitute-key-definition [f58] [A-f10] function-key-map)
+(substitute-key-definition [f59] [A-f11] function-key-map)
+(substitute-key-definition [f60] [A-f12] function-key-map)
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors

@@ -1,3 +1,9 @@
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Fix strings for
+	{C,S,A,C-S}-f[1-4]. Use substitute-key-definition to bind 
+	{C,S,A,C-S}-{f1-f12}.
+
 2005-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Fix

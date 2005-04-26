@@ -1,5 +1,7 @@
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* NEWS: Mention xterm key bindings.
+
 	* e/eterm.ti: Add a comment.
 	* e/eterm: Regenerate.
 
