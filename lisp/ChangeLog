@@ -1,3 +1,15 @@
+2005-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-info.el (cvs-fileinfo->full-path, cvs-display-full-path):
+	New fun and var, to preserve compatibility.
+
+	* pcvs.el, pcvs-info.el: Rename "full-path" -> "full-name".
+
+2005-04-26  Dominique de Waleffe  <ddw@missioncriticalit.com>  (tiny change)
+
+	* pcvs-info.el (cvs-fileinfo->backup-file): Don't pass the full file
+	name to file-newer-than-file-p.
+
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (line-move-1): Avoid using vertical-motion in easy cases.
@@ -9,7 +21,7 @@
 
 	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
 	(eldoc-documentation-function):
-	Renamed from eldoc-print-current-symbol-info-function.  Calls changed.
+	Rename from eldoc-print-current-symbol-info-function.  Calls changed.
 
 2005-04-26  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -18,13 +30,13 @@
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (function-key-map): Fix strings for
-	{C,S,A,C-S}-f[1-4]. Use substitute-key-definition to bind 
+	{C,S,A,C-S}-f[1-4].  Use substitute-key-definition to bind
 	{C,S,A,C-S}-{f1-f12}.
 
 2005-04-26  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-safe-coding-system): Fix
-	previous change.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Fix previous change.
 
 2005-04-26  Lute Kamstra  <lute@gnu.org>
 
@@ -43,8 +55,7 @@
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (ansi-term-color-vector): Use the xterm colors.
-	(term-raw-map): Don't add mappings for \eO and \e[. Map
-	deletechar.
+	(term-raw-map): Don't add mappings for \eO and \e[. Map deletechar.
 
 2005-04-25  Lute Kamstra  <lute@gnu.org>
 
@@ -54,8 +65,8 @@
 
 2005-04-25  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-safe-coding-system): Don't
-	check consistency with coding: spec, etc if raw-text or
+	* international/mule-cmds.el (select-safe-coding-system):
+	Don't check consistency with coding: spec, etc if raw-text or
 	no-conversion was found to be safe.
 
 2005-04-24  Richard M. Stallman  <rms@gnu.org>
@@ -204,13 +215,13 @@
 	not quadratic.  Suggested by David Kastrup <dak@gnu.org>.
 	(rassq-delete-all): New function.
 
-	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): Add
-	size-indication-mode.
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
+	Add size-indication-mode.
 
 2005-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el: Add autoload for widget-value in
-	eval-when-compile
+	eval-when-compile.
 
 2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -581,8 +592,8 @@
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-buffer-leading)
-	(whitespace-buffer-trailing): Revert the incorrect test
-	inversion. However, fix the highlight area for the leading and
+	(whitespace-buffer-trailing): Revert the incorrect test inversion.
+	However, fix the highlight area for the leading and
 	trailing whitespaces to show space.
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
