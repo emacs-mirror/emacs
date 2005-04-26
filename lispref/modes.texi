@@ -255,6 +255,11 @@ variable @code{imenu-generic-expression}, for the pair of variables
 @code{imenu-create-index-function} (@pxref{Imenu}).
 
 @item
+The mode can specify a local value for
+@code{eldoc-documentation-function} to tell ElDoc mode how to handle
+this mode.
+
+@item
 Use @code{defvar} or @code{defcustom} to set mode-related variables, so
 that they are not reinitialized if they already have a value.  (Such
 reinitialization could discard customizations made by the user.)
