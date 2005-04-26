@@ -973,10 +973,9 @@ sometimes known as @dfn{balloon help}.)  Help text may be available for
 menu items too.
 
 @findex tooltip-mode
-  To use tooltips, enable Tooltip mode with the command @kbd{M-x
-tooltip-mode}.  The customization group @code{tooltip} controls
-various aspects of how tooltips work.  When Tooltip mode is disabled,
-the help text is displayed in the echo area instead.
+  You can toggle Tooltip mode with the command @kbd{M-x tooltip-mode}.
+When Tooltip mode is disabled, the help text is displayed in the echo
+area instead.
 
 @vindex tooltip-delay
   The variables @code{tooltip-delay} specifies how long Emacs should
