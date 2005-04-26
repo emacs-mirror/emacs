@@ -1,3 +1,9 @@
+2005-04-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-location-alist): Rename from
+	gdb-location-list.
+	Break lines that are over 80 characters wide.
+
 2005-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs-info.el (cvs-fileinfo->full-path, cvs-display-full-path):
