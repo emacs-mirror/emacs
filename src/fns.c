@@ -2508,50 +2508,143 @@ DEFUN ("set-char-table-extra-slot", Fset_char_table_extra_slot,
   return XCHAR_TABLE (char_table)->extras[XINT (n)] = value;
 }
 
+static Lisp_Object
+char_table_range (table, from, to, defalt)
+     Lisp_Object table;
+     int from, to;
+     Lisp_Object defalt;
+{
+  Lisp_Object val;
+
+  if (! NILP (XCHAR_TABLE (table)->defalt))
+    defalt = XCHAR_TABLE (table)->defalt;
+  val = XCHAR_TABLE (table)->contents[from];
+  if (SUB_CHAR_TABLE_P (val))
+    val = char_table_range (val, 32, 127, defalt);
+  else if (NILP (val))
+    val = defalt;
+  for (from++; from <= to; from++)
+    {
+      Lisp_Object this_val;
+
+      this_val = XCHAR_TABLE (table)->contents[from];
+      if (SUB_CHAR_TABLE_P (this_val))
+	this_val = char_table_range (this_val, 32, 127, defalt);
+      else if (NILP (this_val))
+	this_val = defalt;
+      if (! EQ (val, this_val))
+	error ("Characters in the range have inconsistent values");
+    }
+  return val;
+}  
+
+
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
        doc: /* Return the value in CHAR-TABLE for a range of characters RANGE.
 RANGE should be nil (for the default value)
 a vector which identifies a character set or a row of a character set,
-a character set name, or a character code.  */)
+a character set name, or a character code.
+If the characters in the specified range have different values,
+an error is signalled.
+
+Note that this function doesn't check the parent of CHAR_TABLE.  */)
      (char_table, range)
      Lisp_Object char_table, range;
 {
+  int charset_id, c1 = 0, c2 = 0;
+  int size, i;
+  Lisp_Object ch, val, current_default;
+
   CHECK_CHAR_TABLE (char_table);
 
   if (EQ (range, Qnil))
     return XCHAR_TABLE (char_table)->defalt;
-  else if (INTEGERP (range))
-    return Faref (char_table, range);
+  if (INTEGERP (range))
+    {
+      int c = XINT (range);
+      if (! CHAR_VALID_P (c, 0))
+	error ("Invalid character code: %d", c);
+      ch = range;
+      SPLIT_CHAR (c, charset_id, c1, c2);
+    }
   else if (SYMBOLP (range))
     {
       Lisp_Object charset_info;
 
       charset_info = Fget (range, Qcharset);
       CHECK_VECTOR (charset_info);
-
-      return Faref (char_table,
-		    make_number (XINT (XVECTOR (charset_info)->contents[0])
-				 + 128));
+      charset_id = XINT (XVECTOR (charset_info)->contents[0]);
+      ch = Fmake_char_internal (make_number (charset_id),
+				make_number (0), make_number (0));
     }
   else if (VECTORP (range))
     {
-      if (XVECTOR (range)->size == 1)
-	return Faref (char_table,
-		      make_number (XINT (XVECTOR (range)->contents[0]) + 128));
-      else
+      size = ASIZE (range);
+      if (size == 0)
+	args_out_of_range (range, 0);
+      CHECK_NUMBER (AREF (range, 0));
+      charset_id = XINT (AREF (range, 0));
+      if (size > 1)
 	{
-	  int size = XVECTOR (range)->size;
-	  Lisp_Object *val = XVECTOR (range)->contents;
-	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-						size <= 1 ? Qnil : val[1],
-						size <= 2 ? Qnil : val[2]);
-	  return Faref (char_table, ch);
+	  CHECK_NUMBER (AREF (range, 1));
+	  c1 = XINT (AREF (range, 1));
+	  if (size > 2)
+	    {
+	      CHECK_NUMBER (AREF (range, 2));
+	      c2 = XINT (AREF (range, 2));
+	    }
 	}
+
+      /* This checks if charset_id, c0, and c1 are all valid or not.  */
+      ch = Fmake_char_internal (make_number (charset_id),
+				make_number (c1), make_number (c2));
     }
   else
     error ("Invalid RANGE argument to `char-table-range'");
-  return Qt;
+
+  if (c1 > 0 && (CHARSET_DIMENSION (charset_id) == 1 || c2 > 0))
+    {
+      /* Fully specified character.  */
+      Lisp_Object parent = XCHAR_TABLE (char_table)->parent;
+
+      XCHAR_TABLE (char_table)->parent = Qnil;
+      val = Faref (char_table, ch);
+      XCHAR_TABLE (char_table)->parent = parent;
+      return val;
+    }
+
+  current_default = XCHAR_TABLE (char_table)->defalt;
+  if (charset_id == CHARSET_ASCII
+      || charset_id == CHARSET_8_BIT_CONTROL
+      || charset_id == CHARSET_8_BIT_GRAPHIC)
+    {
+      int from, to, defalt;
+
+      if (charset_id == CHARSET_ASCII)
+	from = 0, to = 127, defalt = CHAR_TABLE_DEFAULT_SLOT_ASCII;
+      else if (charset_id == CHARSET_8_BIT_CONTROL)
+	from = 128, to = 159, defalt = CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL;
+      else
+	from = 160, to = 255, defalt = CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC;
+      if (! NILP (XCHAR_TABLE (char_table)->contents[defalt]))
+	current_default = XCHAR_TABLE (char_table)->contents[defalt];
+      return char_table_range (char_table, from, to, current_default);
+    }
+  
+  val = XCHAR_TABLE (char_table)->contents[128 + charset_id];
+  if (! SUB_CHAR_TABLE_P (val))
+    return (NILP (val) ? current_default : val);
+  if (! NILP (XCHAR_TABLE (val)->defalt))
+    current_default = XCHAR_TABLE (val)->defalt;
+  if (c1 == 0)
+    return char_table_range (val, 32, 127, current_default);
+  val = XCHAR_TABLE (val)->contents[c1];
+  if (! SUB_CHAR_TABLE_P (val))
+    return (NILP (val) ? current_default : val);
+  if (! NILP (XCHAR_TABLE (val)->defalt))
+    current_default = XCHAR_TABLE (val)->defalt;
+  return char_table_range (val, 32, 127, current_default);
 }
 
 DEFUN ("set-char-table-range", Fset_char_table_range, Sset_char_table_range,
