@@ -45,7 +45,7 @@
 
 ;; Major modes for other languages may use Eldoc by defining an
 ;; appropriate function as the buffer-local value of
-;; `eldoc-print-current-symbol-info-function'.
+;; `eldoc-documentation-function'.
 
 ;;; Code:
 

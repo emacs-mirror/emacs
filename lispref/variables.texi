@@ -1722,10 +1722,9 @@ stage in the future.
 @defmac make-obsolete-variable variable new &optional when
 This macro makes the byte-compiler warn that the variable
 @var{variable} is obsolete.  If @var{new} is a symbol, it is the
-variable's new name; the warning messages say to use @var{new}
-instead of @var{variable}.
-If @var{new} is a string, this is the message and there is no
-replacement variable.
+variable's new name; then the warning messages says to use @var{new}
+instead of @var{variable}.  If @var{new} is a string, this is the
+message and there is no replacement variable.
 
 If provided, @var{when} should be a string indicating when the
 variable was first made obsolete---for example, a date or a release
