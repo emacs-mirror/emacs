@@ -568,8 +568,8 @@ This is normally set via `font-lock-defaults'.")
 (defvar font-lock-fontify-region-function 'font-lock-default-fontify-region
   "Function to use for fontifying a region.
 It should take two args, the beginning and end of the region, and an optional
-third arg VERBOSE.  If non-nil, the function should print status messages.
-This is normally set via `font-lock-defaults'.")
+third arg VERBOSE.  If VERBOSE is non-nil, the function should print status
+messages.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-unfontify-region-function 'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
@@ -1637,7 +1637,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8) (background dark))
      (:foreground "red1"))
     (t (:weight bold :slant italic)))
-  "Font Lock mode face used to highlight comments."
+  "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-comment-face
