@@ -79,7 +79,8 @@
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
 (defvar gdb-flush-pending-output nil)
-(defvar gdb-location-list nil "Alist of breakpoint numbers and full filenames.")
+(defvar gdb-location-alist nil
+  "Alist of breakpoint numbers and full filenames.")
 (defvar gdb-find-file-unhook nil)
 
 (defvar gdb-buffer-type nil
@@ -281,7 +282,7 @@ detailed description of this mode.
   (setq gdb-output-sink 'user)
   (setq gdb-server-prefix "server ")
   (setq gdb-flush-pending-output nil)
-  (setq gdb-location-list nil)
+  (setq gdb-location-alist nil)
   (setq gdb-find-file-unhook nil)
   ;;
   (setq gdb-buffer-type 'gdba)
@@ -301,7 +302,7 @@ detailed description of this mode.
   (run-hooks 'gdba-mode-hook))
 
 (defcustom gdb-use-colon-colon-notation nil
-  "If non-nil use FUN::VAR format to display variables in the speedbar." ;
+  "If non-nil use FUN::VAR format to display variables in the speedbar."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -430,7 +431,8 @@ detailed description of this mode.
 	(let ((varnum (match-string 1)))
 	  (gdb-enqueue-input
 	   (list
-	    (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+	    (if (with-current-buffer gud-comint-buffer
+		  (eq gud-minor-mode 'gdba))
 		(concat "server interpreter mi \"-var-evaluate-expression "
 			varnum "\"\n")
 	      (concat "-var-evaluate-expression " varnum "\n"))
@@ -482,7 +484,8 @@ detailed description of this mode.
      (list
       (if (with-current-buffer gud-comint-buffer
 	    (eq gud-minor-mode 'gdba))
-	  (concat "server interpreter mi \"-var-assign " varnum " " value "\"\n")
+	  (concat "server interpreter mi \"-var-assign "
+		  varnum " " value "\"\n")
 	(concat "-var-assign " varnum " " value "\n"))
 	   'ignore))))
 
@@ -981,7 +984,8 @@ happens to be appropriate."
 						(match-beginning 0))))
 	    ;;
 	    ;; Everything after, we save, to combine with later input.
-	    (setq gud-marker-acc (substring gud-marker-acc (match-beginning 0))))
+	    (setq gud-marker-acc (substring gud-marker-acc
+					    (match-beginning 0))))
 	;;
 	;; In case we know the gud-marker-acc contains no partial annotations:
 	(progn
@@ -1045,7 +1049,7 @@ happens to be appropriate."
 ;; annotation rule binding of whatever gdb sends to tell us this command
 ;; might have changed it's output.
 ;;
-;; NAME is the function name.  DEMAND-PREDICATE tests if output is really needed.
+;; NAME is the function name. DEMAND-PREDICATE tests if output is really needed.
 ;; GDB-COMMAND is a string of such.  OUTPUT-HANDLER is the function bound to the
 ;; input in the input queue (see comment about ``gdb communications'' above).
 
@@ -1077,8 +1081,9 @@ happens to be appropriate."
      ;; put customisation here
      (,custom-defun)))
 
-(defmacro def-gdb-auto-updated-buffer (buffer-key trigger-name gdb-command
-						  output-handler-name custom-defun)
+(defmacro def-gdb-auto-updated-buffer (buffer-key
+				       trigger-name gdb-command
+				       output-handler-name custom-defun)
   `(progn
      (def-gdb-auto-update-trigger ,trigger-name
        ;; The demand predicate:
@@ -1225,7 +1230,7 @@ static char *magick[] = {
 			 '(mouse-face highlight
 			   help-echo "mouse-2, RET: visit breakpoint"))
 			(unless (file-exists-p file)
-			   (setq file (cdr (assoc bptno gdb-location-list))))
+			   (setq file (cdr (assoc bptno gdb-location-alist))))
 			(unless (string-equal file "File not found")
 			  (if file
 			      (with-current-buffer (find-file-noselect file)
@@ -1233,13 +1238,15 @@ static char *magick[] = {
 				     'gdba)
 				(set (make-local-variable 'tool-bar-map)
 				     gud-tool-bar-map)
-				;; only want one breakpoint icon at each location
+				;; only want one breakpoint icon at each
+				;; location
 				(save-excursion
 				  (goto-line (string-to-number line))
 				  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
 			    (gdb-enqueue-input
-			     (list (concat "list "
-					   (match-string-no-properties 1) ":1\n")
+			     (list
+			      (concat "list "
+				      (match-string-no-properties 1) ":1\n")
 				   'ignore))
 			    (gdb-enqueue-input
 			     (list "info source\n"
@@ -1351,7 +1358,7 @@ static char *magick[] = {
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
 	    (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
 	  (looking-at
-      "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+     "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
 	(gdb-enqueue-input
 	 (list
 	  (concat gdb-server-prefix
@@ -1383,14 +1390,15 @@ static char *magick[] = {
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
 	    (looking-at "\\([0-9]+\\) .* in .* at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
 	  (looking-at
- "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\(\\S-*\\):\\([0-9]+\\)"))
+	   "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\
+\\(\\S-*\\):\\([0-9]+\\)"))
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
 	  (save-selected-window
 	    (let* ((buf (find-file-noselect
 			 (if (file-exists-p file) file
-			   (cdr (assoc bptno gdb-location-list)))))
+			   (cdr (assoc bptno gdb-location-alist)))))
 		   (window (display-buffer buf)))
 	      (with-current-buffer buf
 		(goto-line (string-to-number line))
@@ -1481,7 +1489,8 @@ static char *magick[] = {
   (interactive (list last-input-event))
   (if event (mouse-set-point event))
   (gdb-enqueue-input
-   (list (concat gdb-server-prefix "frame " (gdb-get-frame-number) "\n") 'ignore))
+   (list (concat gdb-server-prefix "frame "
+		 (gdb-get-frame-number) "\n") 'ignore))
   (gud-display-frame))
 
 
@@ -1987,7 +1996,8 @@ corresponding to the mode line clicked."
 		:enable gdb-use-inferior-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-display-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-display-stack-buffer))
-  (define-key menu [breakpoints] '("Breakpoints" . gdb-display-breakpoints-buffer)))
+  (define-key menu [breakpoints]
+    '("Breakpoints" . gdb-display-breakpoints-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
@@ -2002,7 +2012,8 @@ corresponding to the mode line clicked."
 		:enable gdb-use-inferior-io-buffer))
   (define-key menu [locals] '("Locals" . gdb-frame-locals-buffer))
   (define-key menu [frames] '("Stack" . gdb-frame-stack-buffer))
-  (define-key menu [breakpoints] '("Breakpoints" . gdb-frame-breakpoints-buffer)))
+  (define-key menu [breakpoints]
+    '("Breakpoints" . gdb-frame-breakpoints-buffer)))
 
 (let ((menu (make-sparse-keymap "GDB-UI")))
   (define-key gud-menu-map [ui]
@@ -2157,9 +2168,9 @@ Put in buffer and place breakpoint icon."
   (catch 'file-not-found
     (if (search-forward "Located in " nil t)
 	(if (looking-at "\\S-*")
-	    (push (cons bptno (match-string 0)) gdb-location-list))
+	    (push (cons bptno (match-string 0)) gdb-location-alist))
       (gdb-resync)
-      (push (cons bptno "File not found") gdb-location-list)
+      (push (cons bptno "File not found") gdb-location-alist)
       (message-box "Cannot find source file for breakpoint location.\n\
 Add directory to search path for source files using the GDB command, dir.")
       (throw 'file-not-found nil))
@@ -2214,7 +2225,7 @@ BUFFER nil or omitted means use the current buffer."
   (unless buffer
     (setq buffer (current-buffer)))
   (dolist (overlay (overlays-in start end))
-	(when (overlay-get overlay 'put-break)
+    (when (overlay-get overlay 'put-break)
 	  (delete-overlay overlay))))
 
 (defun gdb-put-breakpoint-icon (enabled bptno)
@@ -2416,7 +2427,8 @@ BUFFER nil or omitted means use the current buffer."
 		      (setq gdb-input-queue
 			    (delete item gdb-input-queue))))))
 	    (gdb-enqueue-input
-	     (list (concat gdb-server-prefix "disassemble " gdb-current-address "\n")
+	     (list (concat gdb-server-prefix "disassemble "
+			   gdb-current-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
 	    (setq gdb-previous-address gdb-current-address)
