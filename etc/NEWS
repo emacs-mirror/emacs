@@ -2861,8 +2861,9 @@ and post-command-hooks.
 alist whose cdr is `eq' to a specified value.
 
 +++
-*** New macro define-obsolete-variable-alias to combine defvaralias and
-make-obsolete-variable.
+*** New macros define-obsolete-variable-alias to combine defvaralias and
+make-obsolete-variable and define-obsolete-function-alias to combine defalias
+and make-obsolete.
 
 +++
 ** copy-file now takes an additional option arg MUSTBENEW.
