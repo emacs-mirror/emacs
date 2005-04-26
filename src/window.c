@@ -3263,9 +3263,10 @@ display_buffer_1 (window)
 
 DEFUN ("special-display-p", Fspecial_display_p, Sspecial_display_p, 1, 1, 0,
        doc: /* Returns non-nil if a buffer named BUFFER-NAME gets a special frame.
-If the value is t, a frame would be created for that buffer
-using the default frame parameters.  If the value is a list,
-it is a list of frame parameters that would be used
+If the value is t, `display-buffer' or `pop-to-buffer' would create a
+special frame for that buffer using the default frame parameters.
+
+If the value is a list, it is a list of frame parameters that would be used
 to make a frame for that buffer.
 The variables `special-display-buffer-names'
 and `special-display-regexps' control this.  */)
@@ -3299,7 +3300,9 @@ and `special-display-regexps' control this.  */)
 }
 
 DEFUN ("same-window-p", Fsame_window_p, Ssame_window_p, 1, 1, 0,
-       doc: /* Returns non-nil if a new buffer named BUFFER-NAME would use the same window.
+       doc: /* Returns non-nil if a buffer named BUFFER-NAME would use the same window.
+More precisely, if `display-buffer' or `pop-to-buffer' would display
+that buffer in the selected window rather than (as usual) in some other window.
 See `same-window-buffer-names' and `same-window-regexps'.  */)
      (buffer_name)
      Lisp_Object buffer_name;
@@ -6748,7 +6751,8 @@ where `pop-up-frame-alist' would hold the default frame parameters.  */);
 
   DEFVAR_LISP ("special-display-buffer-names", &Vspecial_display_buffer_names,
 	       doc: /* *List of buffer names that should have their own special frames.
-Displaying a buffer whose name is in this list makes a special frame for it
+Displaying a buffer with `display-buffer' or `pop-to-buffer',
+if its name is in this list, makes a special frame for it
 using `special-display-function'.  See also `special-display-regexps'.
 
 An element of the list can be a list instead of just a string.
@@ -6773,9 +6777,9 @@ Those variables take precedence over this one.  */);
 
   DEFVAR_LISP ("special-display-regexps", &Vspecial_display_regexps,
 	       doc: /* *List of regexps saying which buffers should have their own special frames.
-If a buffer name matches one of these regexps, it gets its own frame.
-Displaying a buffer whose name is in this list makes a special frame for it
-using `special-display-function'.
+When displaying a buffer with `display-buffer' or `pop-to-buffer',
+if any regexp in this list matches the buffer name, it makes a
+special frame for the buffer by calling `special-display-function'.
 
 An element of the list can be a list instead of just a string.
 There are two ways to use a list as an element:
