@@ -1,3 +1,32 @@
+2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* shell.el (shell-prompt-pattern): Doc fix.
+	(shell-mode): Set paragraph-separate buffer locally to "\\'".
+
+	* comint.el (comint-prompt-regexp, comint-get-old-input)
+	(comint-use-prompt-regexp)
+	(comint-use-prompt-regexp-instead-of-fields)
+	(comint-replace-by-expanded-history, comint-send-input)
+	(comint-output-filter, comint-get-old-input-default)
+	(comint-line-beginning-position, comint-bol, comint-show-output)
+	(comint-backward-matching-input, comint-forward-matching-input)
+	(comint-next-prompt, comint-previous-prompt): Rename
+	`comint-use-prompt-regexp-instead-of-fields' to
+	`comint-use-prompt-regexp'.  Keep old name as alias and declare
+	obsolete.
+	(comint-use-prompt-regexp): Shorten first line of doc string.
+
+	* ielm.el (inferior-emacs-lisp-mode): Adapt to above name change.
+	Set paragraph-separate buffer locally to "\\'".
+
+	* hippie-exp.el (try-expand-line, try-expand-line-all-buffers):
+	Adapt to above name change.
+
+	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp)
+	(smbclient-prompt-regexp): Ditto.
+
+	* progmodes/inf-lisp.el (inferior-lisp-prompt): Ditto.
+
 2005-04-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-location-alist): Rename from
