@@ -26,6 +26,11 @@
 
 2005-04-26  Lute Kamstra  <lute@gnu.org>
 
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix docstring.
+
+	* font-lock.el (font-lock-fontify-region-function): Fix docstring.
+	(font-lock-comment-delimiter-face): Ditto.
+
 	* calc/calc.el (calc-trail-mode): Don't set font-lock-defaults.
 
 2005-04-25  Jay Belanger  <belanger@truman.edu>
