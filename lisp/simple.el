@@ -3403,19 +3403,33 @@ Outline mode sets this."
 		  (goto-char (next-char-property-change (point))))
 		;; Now move a line.
 		(end-of-line)
-		(and (zerop (vertical-motion 1))
-		     (if (not noerror)
-			 (signal 'end-of-buffer nil)
-		       (setq done t)))
+		;; If there's no invisibility here, move over the newline.
+		(if (not (line-move-invisible-p (point)))
+		    ;; We avoid vertical-motion when possible
+		    ;; because that has to fontify.
+		    (if (eobp)
+			(setq done t)
+		      (forward-line 1))
+		  ;; Otherwise move a more sophisticated way.
+		  ;; (What's the logic behind this code?)
+		  (and (zerop (vertical-motion 1))
+		       (if (not noerror)
+			   (signal 'end-of-buffer nil)
+			 (setq done t))))
 		(unless done
 		  (setq arg (1- arg))))
+	      ;; The logic of this is the same as the loop above, 
+	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-
-		(if (zerop (vertical-motion -1))
-		    (if (not noerror)
-			(signal 'beginning-of-buffer nil)
-		      (setq done t)))
+		(if (not (line-move-invisible-p (1- (point))))
+		    (if (bobp)
+			(setq done t)
+		      (forward-line -1))
+		  (if (zerop (vertical-motion -1))
+		      (if (not noerror)
+			  (signal 'beginning-of-buffer nil)
+			(setq done t))))
 		(unless done
 		  (setq arg (1+ arg))
 		  (while (and ;; Don't move over previous invis lines
