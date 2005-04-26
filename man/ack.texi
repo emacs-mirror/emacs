@@ -1312,9 +1312,8 @@ Geoffrey Voelker wrote the Windows NT support.  He also wrote
 of Emacs, and @file{w32-fns.el}, MS-Windows specific support functions.
 
 @item
-Johan Vromans wrote @file{forms.el} and its associated files, defining a
-mode for filling in forms, and @file{iso-acc.el}, a minor mode providing
-electric accent keys for text using the ISO-8859 character set.
+Johan Vromans wrote @file{forms.el} and its associated files, a
+mode for filling in forms.
 
 @item
 Colin Walters wrote @file{ibuffer.el}, a Dired-like major mode for
