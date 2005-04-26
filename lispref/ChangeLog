@@ -1,3 +1,16 @@
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Faces):
+	Document `default' elements of defface spec.
+
+	* modes.texi (Major Mode Conventions): Explain customizing ElDoc mode.
+
+	* variables.texi (Variable Aliases): Clarify text.
+
+2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Window Hooks): Remove reference to obsolete Lazy Lock.
+
 2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* hooks.texi (Standard Hooks): Most minor modes have mode hooks too.

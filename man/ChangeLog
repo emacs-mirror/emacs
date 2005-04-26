@@ -8,15 +8,15 @@
 
 2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
 
- 	* ack.texi (Acknowledgments): Delete info about iso-acc.el
+	* ack.texi (Acknowledgments): Delete info about iso-acc.el
 
- 	* dired.texi (Misc Dired Features): Document
- 	dired-compare-directories.
+	* dired.texi (Misc Dired Features): Document
+	dired-compare-directories.
 
- 	* files.texi (Filesets): New node.
- 	(File Conveniences): Document Image mode.
+	* files.texi (Filesets): New node.
+	(File Conveniences): Document Image mode.
 
- 	* text.texi (TeX Print): Document tex-compile.
+	* text.texi (TeX Print): Document tex-compile.
 
 2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
 

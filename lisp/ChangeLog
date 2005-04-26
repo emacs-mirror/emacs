@@ -1,3 +1,14 @@
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/python.el (python-mode):
+	Use new name eldoc-documentation-function.
+
+	* hexl.el (hexl-mode): Use new name eldoc-documentation-function.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
+	(eldoc-documentation-function):
+	Renamed from eldoc-print-current-symbol-info-function.  Calls changed.
+
 2005-04-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs-lisp/byte-run.el (define-obsolete-function-alias): New macro.
