@@ -1,3 +1,9 @@
+2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Tooltips): Tooltip mode is enabled by default.
+	Delete redundant reference to tooltip Custom group.   It is
+	referred too again in the next paragraph.
+
 2005-04-24  Richard M. Stallman  <rms@gnu.org>
 
 	* ack.texi: Delete info about lazy-lock.el and fast-lock.el.

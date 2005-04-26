@@ -1,3 +1,35 @@
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Fix strings for
+	{C,S,A,C-S}-f[1-4]. Use substitute-key-definition to bind 
+	{C,S,A,C-S}-{f1-f12}.
+
+2005-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Fix
+	previous change.
+
+2005-04-26  Lute Kamstra  <lute@gnu.org>
+
+	* calc/calc.el (calc-trail-mode): Don't set font-lock-defaults.
+
+2005-04-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-view-news): Let-bind inhibit-read-only
+	to t while inserting information; use help-mode.
+
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (ansi-term-color-vector): Use the xterm colors.
+	(term-raw-map): Don't add mappings for \eO and \e[. Map
+	deletechar.
+
+2005-04-25  Lute Kamstra  <lute@gnu.org>
+
+	* font-core.el (font-lock-defaults): Fix docstring.
+
+	* font-lock.el (font-lock-syntactic-face-function): Fix docstring.
+
 2005-04-25  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Don't

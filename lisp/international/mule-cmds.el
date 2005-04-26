@@ -929,7 +929,8 @@ and TO is ignored."
     ;; by using `find-file-literally'.
     (unless (or (stringp from)
 		find-file-literally
-		(memq (coding-system-type coding-system) '(0 5)))
+		(and coding-system
+		     (memq (coding-system-type coding-system) '(0 5))))
       (let ((auto-cs (save-excursion
 		       (save-restriction
 			 (widen)

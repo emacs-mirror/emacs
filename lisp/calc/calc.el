@@ -1174,8 +1174,6 @@ commands given here will actually operate on the *Calculator* stack."
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
   (when buf
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)

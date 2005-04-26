@@ -1,3 +1,13 @@
+2005-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (char_table_range): New function.
+	(Fchar_table_range): Signal an error if characters in the range
+	have inconsistent values.  Don't check the parent.
+
+2005-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_set): Fix previous change.
+
 2005-04-24  Richard M. Stallman  <rms@gnu.org>
 
 	* indent.c (Fvertical_motion): Bind fontification-functions to nil.
