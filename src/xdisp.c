@@ -567,21 +567,12 @@ Lisp_Object Vmessage_log_max;
 
 static Lisp_Object Vmessages_buffer_name;
 
-/* Index 0 is the buffer that holds the current (desired) echo area message,
-   or nil if none is desired right now.
-
-   Index 1 is the buffer that holds the previously displayed echo area message,
-   or nil to indicate no message.  This is normally what's on the screen now.
-
-   These two can point to the same buffer.  That happens when the last
-   message output by the user (or made by echoing) has been displayed.  */
+/* Current, index 0, and last displayed echo area message.  Either
+   buffers from echo_buffers, or nil to indicate no message.  */
 
 Lisp_Object echo_area_buffer[2];
 
-/* Permanent pointers to the two buffers that are used for echo area
-   purposes.  Once the two buffers are made, and their pointers are
-   placed here, these two slots remain unchanged unless those buffers
-   need to be created afresh.  */
+/* The buffers referenced from echo_area_buffer.  */
 
 static Lisp_Object echo_buffer[2];
 
@@ -7231,6 +7222,10 @@ ensure_echo_area_buffers ()
    WHICH > 0 means use echo_area_buffer[1].  If that is nil, choose a
    suitable buffer from echo_buffer[] and clear it.
 
+   If WHICH < 0, set echo_area_buffer[1] to echo_area_buffer[0], so
+   that the current message becomes the last displayed one, make
+   choose a suitable buffer for echo_area_buffer[0], and clear it.
+
    Value is what FN returns.  */
 
 static int
@@ -7255,6 +7250,17 @@ with_echo_area_buffer (w, which, fn, a1, a2, a3, a4)
     this_one = 0, the_other = 1;
   else if (which > 0)
     this_one = 1, the_other = 0;
+  else
+    {
+      this_one = 0, the_other = 1;
+      clear_buffer_p = 1;
+
+      /* We need a fresh one in case the current echo buffer equals
+	 the one containing the last displayed echo area message.  */
+      if (!NILP (echo_area_buffer[this_one])
+	  && EQ (echo_area_buffer[this_one], echo_area_buffer[the_other]))
+	echo_area_buffer[this_one] = Qnil;
+    }
 
   /* Choose a suitable buffer from echo_buffer[] is we don't
      have one.  */
@@ -7874,7 +7880,7 @@ set_message (s, string, nbytes, multibyte_p)
     = ((s && multibyte_p)
        || (STRINGP (string) && STRING_MULTIBYTE (string)));
 
-  with_echo_area_buffer (0, 0, set_message_1,
+  with_echo_area_buffer (0, -1, set_message_1,
 			 (EMACS_INT) s, string, nbytes, multibyte_p);
   message_buf_print = 0;
   help_echo_showing_p = 0;
@@ -7906,7 +7912,6 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 
   /* Insert new message at BEG.  */
   TEMP_SET_PT_BOTH (BEG, BEG_BYTE);
-  Ferase_buffer ();
 
   if (STRINGP (string))
     {
@@ -8122,8 +8127,10 @@ echo_area_display (update_frame_p)
   else if (!EQ (mini_window, selected_window))
     windows_or_buffers_changed++;
 
-  /* The current message is now also the last one displayed.  */
+  /* Last displayed message is now the current message.  */
   echo_area_buffer[1] = echo_area_buffer[0];
+  /* Inform read_char that we're not echoing.  */
+  echo_message_buffer = Qnil;
 
   /* Prevent redisplay optimization in redisplay_internal by resetting
      this_line_start_pos.  This is done because the mini-buffer now
