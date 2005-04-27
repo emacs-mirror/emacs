@@ -1,3 +1,8 @@
+2005-04-27  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* man.el (man-mode-syntax-table): Set up `:' to have
+	word-constituent syntax.
+
 2005-04-27  Lute Kamstra  <lute@gnu.org>
 
 	* novice.el (disable-command): Don't add spurious newlines to the
