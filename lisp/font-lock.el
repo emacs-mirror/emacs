@@ -1008,7 +1008,8 @@ a very meaningful entity to highlight.")
 
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
-      ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
+      ((parse-sexp-lookup-properties
+        (or parse-sexp-lookup-properties font-lock-syntactic-keywords))
        (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
