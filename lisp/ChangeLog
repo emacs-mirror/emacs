@@ -1,3 +1,19 @@
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el: (cc-create-define-alist): New function.
+	(cc-define-alist): New variable.
+	(c-mode): Make it local and initialise it.
+
+	* progmodes/gdb-ui.el (gdb-active-process): New variable.
+	(gdb-exited): New function.
+	(gdb-annotation-rules): Use it.
+	(gdb-starting): Set gdb-active-process to t.
+	(gdb-stopping): Amend doc string.
+	(gdb-reset): Set gdb-active-process to nil.
+
+	* tooltip.el (tooltip-gud-tips): Show the associated #define
+	directives when a C program under GDB is not executing.
+
 2005-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/cperl-mode.el (cperl-mode): Don't precompile the

@@ -1,3 +1,7 @@
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs.c (USAGE1): Add --basic-display and --quick options.
+
 2005-04-27  Kim F. Storm  <storm@cua.dk>
 
 	* data.c (syms_of_data) Staticpro Qcyclic_variable_indirection.
