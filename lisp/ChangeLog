@@ -1,3 +1,8 @@
+2005-04-27  Lute Kamstra  <lute@gnu.org>
+
+	* novice.el (disable-command): Don't add spurious newlines to the
+	init file.  Reported by Dan Jacobson <jidanni@jidanni.org>.
+
 2005-04-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-yank.el (calc-edit-finish): Make sure there is more
