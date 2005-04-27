@@ -1,3 +1,11 @@
+2005-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode): Don't precompile the
+	font-lock-fontify-syntactic-keywords.
+
+	* font-lock.el (font-lock-default-fontify-region): Don't force
+	parse-sexp-lookup-properties to nil.
+
 2005-04-27  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
 
 	* man.el (man-mode-syntax-table): Set up `:' to have
@@ -25,8 +33,8 @@
 	(comint-output-filter, comint-get-old-input-default)
 	(comint-line-beginning-position, comint-bol, comint-show-output)
 	(comint-backward-matching-input, comint-forward-matching-input)
-	(comint-next-prompt, comint-previous-prompt): Rename
-	`comint-use-prompt-regexp-instead-of-fields' to
+	(comint-next-prompt, comint-previous-prompt):
+	Rename `comint-use-prompt-regexp-instead-of-fields' to
 	`comint-use-prompt-regexp'.  Keep old name as alias and declare
 	obsolete.
 	(comint-use-prompt-regexp): Shorten first line of doc string.
