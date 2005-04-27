@@ -1,3 +1,8 @@
+2005-04-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-yank.el (calc-edit-finish): Make sure there is more
+	than one window before deleting window.
+
 2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* shell.el (shell-prompt-pattern): Doc fix.
