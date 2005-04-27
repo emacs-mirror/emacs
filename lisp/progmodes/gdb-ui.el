@@ -82,6 +82,8 @@
 (defvar gdb-location-alist nil
   "Alist of breakpoint numbers and full filenames.")
 (defvar gdb-find-file-unhook nil)
+(defvar gdb-active-process nil "GUD tooltips display variable values when t, \
+and #define directives otherwise.")
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -776,8 +778,8 @@ This filter may simply queue input for a later time."
     ("post-prompt" gdb-post-prompt)
     ("source" gdb-source)
     ("starting" gdb-starting)
-    ("exited" gdb-stopping)
-    ("signalled" gdb-stopping)
+    ("exited" gdb-exited)
+    ("signalled" gdb-exited)
     ("signal" gdb-stopping)
     ("breakpoint" gdb-stopping)
     ("watchpoint" gdb-stopping)
@@ -853,6 +855,7 @@ This sends the next command (if any) to gdb."
   "An annotation handler for `starting'.
 This says that I/O for the subprocess is now the program being debugged,
 not GDB."
+  (setq gdb-active-process t)
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user)
@@ -865,7 +868,7 @@ not GDB."
       (error "Unexpected `starting' annotation")))))
 
 (defun gdb-stopping (ignored)
-  "An annotation handler for `exited' and other annotations.
+  "An annotation handler for `breakpoint' and other annotations.
 They say that I/O for the subprocess is now GDB, not the program
 being debugged."
   (if gdb-use-inferior-io-buffer
@@ -876,6 +879,16 @@ being debugged."
 	 (t
 	  (gdb-resync)
 	  (error "Unexpected stopping annotation"))))))
+
+(defun gdb-exited (ignored)
+  "An annotation handler for `exited' and `signalled'.
+They say that I/O for the subprocess is now GDB, not the program
+being debugged and that the program is no longer running. This
+function is used to change the focus of GUD tooltips to #define
+directives."
+  (setq gdb-active-process nil)
+  (gdb-stopping ignored))
+ 
 
 (defun gdb-frame-begin (ignored)
   (let ((sink gdb-output-sink))
@@ -2140,7 +2153,8 @@ Kills the gdb buffers and resets the source buffers."
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)
 	      (kill-local-variable 'tool-bar-map)
-	      (setq gud-running nil))))))
+	      (setq gud-running nil)
+	      (setq gdb-active-process nil))))))
   (when (markerp gdb-overlay-arrow-position)
     (move-marker gdb-overlay-arrow-position nil)
     (setq gdb-overlay-arrow-position nil))
