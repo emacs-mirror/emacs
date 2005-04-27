@@ -107,9 +107,13 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** `comint-use-prompt-regexp-instead-of-fields' has been renamed
+`comint-use-prompt-regexp'.  The old name has been kept as an alias,
+but declared obsolete.
+
 ** Improved key bindings support when running in an xterm.
 When emacs is running in an xterm more key bindings are available. The
-following should work: 
+following should work:
 {C,S,C-S,A}-{right,left,up,down,prior,next,delete,insert,F1-12}.
 These key bindings work on xterm from X.org 6.8, they might not work on
 some older versions of xterm, or on some proprietary versions.
