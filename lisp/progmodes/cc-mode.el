@@ -639,6 +639,21 @@ Note that the style variables are always made local to the buffer."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.y\\(acc\\)?\\'" . c-mode))
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.lex\\'" . c-mode))
 
+(defvar cc-define-alist nil "Alist of #define directives for GUD tooltips.")
+
+(defun cc-create-define-alist ()
+  (let* ((file (buffer-file-name))
+	 (output
+	  (with-output-to-string
+	    (with-current-buffer standard-output
+	      (call-process "/lib/cpp"
+			    file t nil "-dM"))))
+	(define-list (split-string output "\n" t))
+	(name))
+    (dolist (define define-list)
+      (setq name (nth 1 (split-string define "[( ]")))
+      (push (cons name define) cc-define-alist))))
+
 ;;;###autoload
 (defun c-mode ()
   "Major mode for editing K&R and ANSI C code.
@@ -662,11 +677,13 @@ Key bindings:
 	mode-name "C"
 	local-abbrev-table c-mode-abbrev-table
 	abbrev-mode t)
+  (make-local-variable 'cc-define-alist)
   (use-local-map c-mode-map)
   (c-init-language-vars-for 'c-mode)
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
+  (cc-create-define-alist)
   (run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
   (c-update-modeline))
 
