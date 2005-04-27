@@ -1,3 +1,7 @@
+2005-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* data.c (syms_of_data) Staticpro Qcyclic_variable_indirection.
+
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (Fsame_window_p, Fspecial_display_p): Doc fixes.
