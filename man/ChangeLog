@@ -1,3 +1,14 @@
+2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* misc.texi (Shell): Add `Shell Prompts' to menu.
+	(Shell Mode): Add xref to `Shell Prompts'.  Clarify `C-c C-u'
+	description.  Delete remarks moved to new node.
+	(Shell Prompts): New node.
+	(History References): Replace remarks moved to `Shell Prompts'
+	with xref to that node.
+	(Remote Host): Clarify how to specify the terminal type when
+	logging in to a different machine.
+
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs.texi (Top): Update submenus from files.texi.
