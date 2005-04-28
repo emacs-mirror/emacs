@@ -1,3 +1,8 @@
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Add description for
+	GUD tooltips when program is not running.
+
 2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* misc.texi (Shell): Add `Shell Prompts' to menu.
