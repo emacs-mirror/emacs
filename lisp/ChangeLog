@@ -28,6 +28,7 @@
 
 	* emacs-lisp/generic.el (generic-mode-internal): Simplify
 	font-lock-defaults.
+	(define-generic-mode): Fix docstring.
 
 2005-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
 
