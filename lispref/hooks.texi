@@ -148,6 +148,27 @@ for appointment notification.
 @item first-change-hook
 @xref{Change Hooks}.
 
+@item font-lock-beginning-of-syntax-function
+@xref{Syntactic Font Lock}.
+
+@item font-lock-fontify-buffer-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-fontify-region-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-mark-block-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-syntactic-face-function
+@xref{Syntactic Font Lock}.
+
+@item font-lock-unfontify-buffer-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-unfontify-region-function
+@xref{Other Font Lock Variables}.
+
 @item initial-calendar-window-hook
 @inforef{Calendar Customizing,, emacs-xtra}.
 
