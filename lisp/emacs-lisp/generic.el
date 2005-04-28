@@ -129,11 +129,11 @@ string will be used instead.
 COMMENT-LIST is a list, whose entries are either a single
 character, a one or two character string or a cons pair.  If the
 entry is a character or a string, it is added to the mode's
-syntax table with `comment-start' syntax.  If the entry is a cons
-pair, the elements of the pair are considered to be
-`comment-start' and `comment-end' respectively.  (The latter
-should be nil if you want comments to end at end of line.)  Note
-that Emacs has limitations regarding comment characters.
+syntax table with \"comment starter\" syntax.  If the entry is a
+cons pair, the elements of the pair are considered to be
+\"comment starter\" and \"comment ender\" respectively.  (The
+latter should be nil if you want comments to end at end of line.)
+Note that Emacs has limitations regarding comment characters.
 
 KEYWORD-LIST is a list of keywords to highlight with
 `font-lock-keyword-face'.  Each keyword should be a string.
@@ -143,18 +143,20 @@ Each entry in the list should have the same form as an entry in
 `font-lock-keywords'.
 
 AUTO-MODE-LIST is a list of regular expressions to add to
-`auto-mode-alist'.  These regexps are added to `auto-mode-alist'
-as soon as `define-generic-mode' is called.
+`auto-mode-alist'.  These regular expressions are added as soon
+as `define-generic-mode' is called.
 
 FUNCTION-LIST is a list of functions to call to do some
-additional setup.
+additional setup.  The mode command calls these functions just
+before it runs the mode hook.
 
 The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and
-values.  They will be passed to the generated `defcustom' form of
-the mode hook variable MODE-hook.  Defaults to MODE without the
-possible trailing \"-mode\".  (This default may not be a valid
-customization group defined with `defgroup'.  Make sure it is.)
-You can specify keyword arguments without specifying a docstring.
+values.  They are passed to the generated `defcustom' form of the
+mode hook variable MODE-hook.  The default value for the `:group'
+keyword is MODE without the possible trailing \"-mode\".  (Don't
+use this default group name unless you have written a `defgroup'
+to define that group properly.)  You can specify keyword
+arguments without specifying a docstring.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
