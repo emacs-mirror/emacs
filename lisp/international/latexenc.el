@@ -167,4 +167,5 @@ coding system names is determined from `latex-inputenc-coding-alist'."
 
 (provide 'latexenc)
 
+;; arch-tag: f971bc3e-1fec-4609-8f2f-73dd41ab22e1
 ;;; latexenc.el ends here
