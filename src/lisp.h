@@ -2234,6 +2234,9 @@ extern void keys_of_cmds P_ ((void));
 
 /* Defined in coding.c */
 EXFUN (Fcoding_system_p, 1);
+EXFUN (Fcoding_system_base, 1);
+EXFUN (Fcoding_system_eol_type, 1);
+EXFUN (Fcheck_coding_system, 1);
 EXFUN (Fcheck_coding_system, 1);
 EXFUN (Fread_coding_system, 2);
 EXFUN (Fread_non_nil_coding_system, 1);
