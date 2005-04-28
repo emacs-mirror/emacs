@@ -1,3 +1,10 @@
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* term/mac-win.el: Sync with the main trunk.
+	(mac-centraleurroman, mac-cyrillic): New charsets and coding
+	systems.
+	(mac-symbol, mac-dingbats): New charsets.
+
 2005-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/characters.el: Set syntax of NBSP to punctuation.

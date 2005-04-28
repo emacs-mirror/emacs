@@ -1,3 +1,22 @@
+2005-04-28  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
+
+	* w32select.c (validate_coding_system)
+	(setup_windows_coding_system): New functions.
+	(convert_to_handle_as_coded, Fw32_get_clipboard_data): Use
+	setup_windows_coding_system.
+	(setup_config, Fw32_get_clipboard_data): Use
+	validate_coding_system.
+	(Fx_selection_exists): Move call to setup_config to a place
+	were signals are allowed. 
+
+	* lisp.h (Fcoding_system_base, Fcoding_system_eol_type)
+	(Fcheck_coding_system): Add declarations.
+
+2005-04-28  Kenichi Handa  <handa@m17n.org>
+
+	* s/ms-w32.h (STDC_HEADERS): Sync with the change in
+	HEAD (2005-04-23).
+
 2005-04-25  Kenichi Handa  <handa@m17n.org>
 
 	* charset.c (load_charset_map_from_vector): Fix for the first
