@@ -496,6 +496,8 @@ history commands to repeat them.  @xref{Shell Mode}.
 You activate this feature by setting the variable
 @code{tooltip-gud-tips-p} to @code{t}.  Then you can display a
 variable's value in a tooltip simply by pointing at it with the mouse.
+In graphical mode, with a C program, you can also display the #define
+directive assiciated with an identifier when program is not executing.
 This operates in the GUD buffer and in source buffers with major modes
 in the list @code{tooltip-gud-modes}.
 
@@ -907,7 +909,7 @@ current frame for simple data types (@pxref{Frame Info,,, gdb, The GNU
 debugger}).
 
 Arrays and structures display their type only.  You must display them
-separately to examine their values.  @ref{Watch Expressions}.
+separately to examine their values.  @xref{Watch Expressions}.
 
 @item Registers Buffer
 The registers buffer displays the values held by the registers
