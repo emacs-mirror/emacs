@@ -1,3 +1,9 @@
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (resolve_face_name): Add arg SIGNAL_P.  Calls changed.
+	Fix cyclic alias check.  If alias loop is detected, signal
+	circular-list error if SIGNAL_P, and return Qdefault if !SIGNAL_P.
+
 2005-04-28  Lute Kamstra  <lute@gnu.org>
 
 	* eval.c (do_autoload): Record only autoloads in the autoload
