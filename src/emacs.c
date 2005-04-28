@@ -264,7 +264,8 @@ Initialization options:\n\
 --no-shared-memory, -nl     do not use shared memory\n\
 --no-site-file              do not load site-start.el\n\
 --no-splash                 do not display a splash screen on startup\n\
---no-window-system, -nw     don't communicate with X, ignoring $DISPLAY\n\
+--no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
+--quick, -Q                 equivalent to -q --no-site-file\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
@@ -294,6 +295,8 @@ FILE                    visit FILE using find-file\n\
 Display options:\n\
 \n\
 --background-color, -bg COLOR   window background color\n\
+--basic-display, -D             disable many display features;\n\
+                                  used for debugging Emacs\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
 --color, --color=MODE           color mode for character terminals;\n\
