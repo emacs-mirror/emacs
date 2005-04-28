@@ -333,6 +333,8 @@ extern Lisp_Object Qmode_line;
 
 Lisp_Object Qface_alias;
 
+extern Lisp_Object Qcircular_list;
+
 /* Default stipple pattern used on monochrome displays.  This stipple
    pattern is used on monochrome displays instead of shades of gray
    for a face background color.  See `set-face-stipple' for possible
@@ -468,7 +470,7 @@ struct named_merge_point;
 
 static void map_tty_color P_ ((struct frame *, struct face *,
 			       enum lface_attribute_index, int *));
-static Lisp_Object resolve_face_name P_ ((Lisp_Object));
+static Lisp_Object resolve_face_name P_ ((Lisp_Object, int));
 static int may_use_scalable_font_p P_ ((const char *));
 static void set_font_frame_param P_ ((Lisp_Object, Lisp_Object));
 static int better_font_p P_ ((int *, struct font_name *, struct font_name *,
@@ -3203,27 +3205,47 @@ push_named_merge_point (struct named_merge_point *new_named_merge_point,
 
 
 /* Resolve face name FACE_NAME.  If FACE_NAME is a string, intern it
-   to make it a symvol.  If FACE_NAME is an alias for another face,
-   return that face's name.  */
+   to make it a symbol.  If FACE_NAME is an alias for another face,
+   return that face's name.
+
+   Return default face in case of errors.  */
 
 static Lisp_Object
-resolve_face_name (face_name)
+resolve_face_name (face_name, signal_p)
      Lisp_Object face_name;
+     int signal_p;
 {
-  Lisp_Object aliased;
-  int alias_loop_max = 10;
+  Lisp_Object orig_face;
+  Lisp_Object tortoise, hare;
 
   if (STRINGP (face_name))
     face_name = intern (SDATA (face_name));
 
-  while (SYMBOLP (face_name))
+  if (NILP (face_name) || !SYMBOLP (face_name))
+    return face_name;
+
+  orig_face = face_name;
+  tortoise = hare = face_name;
+
+  while (1)
     {
-      aliased = Fget (face_name, Qface_alias);
-      if (NILP (aliased))
+      face_name = hare;
+      hare = Fget (hare, Qface_alias);
+      if (NILP (hare) || !SYMBOLP (hare))
 	break;
-      if (--alias_loop_max == 0)
+
+      face_name = hare;
+      hare = Fget (hare, Qface_alias);
+      if (NILP (hare) || !SYMBOLP (hare))
 	break;
-      face_name = aliased;
+
+      tortoise = Fget (tortoise, Qface_alias);
+      if (EQ (hare, tortoise))
+	{
+	  if (signal_p)
+	    Fsignal (Qcircular_list, Fcons (orig_face, Qnil));
+	  return Qdefault;
+	}
     }
 
   return face_name;
@@ -3247,7 +3269,7 @@ lface_from_face_name (f, face_name, signal_p)
 {
   Lisp_Object lface;
 
-  face_name = resolve_face_name (face_name);
+  face_name = resolve_face_name (face_name, signal_p);
 
   if (f)
     lface = assq_no_quit (face_name, f->face_alist);
@@ -3982,7 +4004,7 @@ FRAME 0 means change the face on all frames, and change the default
   CHECK_SYMBOL (face);
   CHECK_SYMBOL (attr);
 
-  face = resolve_face_name (face);
+  face = resolve_face_name (face, 1);
 
   /* If FRAME is 0, change face on all frames, and change the
      default for new frames.  */
