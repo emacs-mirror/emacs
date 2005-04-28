@@ -1347,19 +1347,17 @@ This function also adds a hook to the minibuffer."
 			   (> (prefix-numeric-value arg) 0)
 			 (not ido-everywhere)))
   (when (get 'ido-everywhere 'file)
-    (setq read-file-name-function (get 'ido-everywhere 'file))
+    (setq read-file-name-function (car (get 'ido-everywhere 'file)))
     (put 'ido-everywhere 'file nil))
   (when (get 'ido-everywhere 'buffer)
-    (setq read-buffer-function (get 'ido-everywhere 'buffer))
+    (setq read-buffer-function (car (get 'ido-everywhere 'buffer)))
     (put 'ido-everywhere 'buffer nil))
   (when ido-everywhere
     (when (memq ido-mode '(both file))
-      (unless (get 'ido-everywhere 'file)
-	(put 'ido-everywhere 'file read-file-name-function))
+      (put 'ido-everywhere 'file (cons read-file-name-function nil))
       (setq read-file-name-function 'ido-read-file-name))
     (when (memq ido-mode '(both buffer))
-      (unless (get 'ido-everywhere 'buffer)
-	(put 'ido-everywhere 'buffer read-buffer-function))
+      (put 'ido-everywhere 'buffer (cons read-buffer-function nil))
       (setq read-buffer-function 'ido-read-buffer))))
 
 
