@@ -1,3 +1,33 @@
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix previous change.
+	(Font Lock Mode): Simplify.
+	(Font Lock Basics): Say that font-lock-defaults is buffer-local
+	when set and that some parts are optional.  Add cross references.
+	(Search-based Fontification): Say how to specify font-lock-keywords.
+	Add cross references.  Add font-lock-multiline to index.  Move
+	font-lock-keywords-case-fold-search here from node "Other Font
+	Lock Variables".  Document font-lock-add-keywords and
+	font-lock-remove-keywords
+	(Other Font Lock Variables): Move font-lock-keywords-only,
+	font-lock-syntax-table, font-lock-beginning-of-syntax-function,
+	and font-lock-syntactic-face-function to node "Syntactic Font
+	Lock".  Move font-lock-keywords-case-fold-search to node
+	"Search-based Fontification".  Document font-lock-inhibit-thing-lock
+	and font-lock-{,un}fontify-{buffer,region}-function.
+	(Precalculated Fontification): Remove reference to deleted variable
+	font-lock-core-only.
+	(Faces for Font Lock): Add font-lock-comment-delimiter-face.
+	(Syntactic Font Lock): Add intro.  Move font-lock-keywords-only,
+	font-lock-syntax-table, font-lock-beginning-of-syntax-function,
+	and font-lock-syntactic-face-function here from node "Other Font
+	Lock Variables".  Move font-lock-syntactic-keywords to "Setting
+	Syntax Properties".  Add cross references.
+	(Setting Syntax Properties): New node.  Move
+	font-lock-syntactic-keywords here from "Syntactic Font Lock".
+	* syntax.texi (Syntax Properties): Add cross reference.
+	* hooks.texi (Standard Hooks): Add Font-Lock hooks.
+
 2005-04-26  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Defining Faces):

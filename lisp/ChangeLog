@@ -1,5 +1,11 @@
 2005-04-28  Lute Kamstra  <lute@gnu.org>
 
+	* font-lock.el (font-lock-add-keywords)
+	(font-lock-remove-keywords): Clarify docstring.
+	(font-lock-keywords-alist, font-lock-removed-keywords-alist):
+	Don't start docstrings with a `*'.
+	(font-lock-update-removed-keyword-alist): Give it a docstring.
+
 	* generic-x.el: Update commentary section.
 	Only require font-lock when compiling.
 	Define all modes conditionally.
