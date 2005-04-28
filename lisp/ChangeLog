@@ -1,3 +1,7 @@
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Fix last change.
+
 2005-04-28  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el: New file.
