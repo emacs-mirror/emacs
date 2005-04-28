@@ -226,7 +226,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (when keyword-list
       (push (concat "\\_<" (regexp-opt keyword-list t) "\\_>")
 	    generic-font-lock-keywords))
-    (setq font-lock-defaults '(generic-font-lock-keywords nil))
+    (setq font-lock-defaults '(generic-font-lock-keywords))
 
     ;; Call a list of functions
     (mapcar 'funcall function-list)
