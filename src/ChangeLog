@@ -1,3 +1,8 @@
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* eval.c (do_autoload): Record only autoloads in the autoload
+	property of symbols.
+
 2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs.c (USAGE1): Add --basic-display and --quick options.

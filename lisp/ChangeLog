@@ -1,3 +1,27 @@
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* generic-x.el: Update commentary section.
+	Only require font-lock when compiling.
+	Define all modes conditionally.
+	Place all generic modes in the generic-x-modes customization group.
+	(generic-x-modes): New customization group.
+	(generic-default-modes, generic-mswindows-modes)
+	(generic-unix-modes, generic-other-modes): New constants.
+	(generic-define-mswindows-modes, generic-define-unix-modes):
+	Update docstrings.  Make them obsolete.
+	(generic-extras-enable-list): New default value.  Update
+	docstring.  Improve :type.  Change :set function.
+	(bat-generic-mode-syntax-table, rul-generic-mode-syntax-table):
+	Fix docstring.
+
+	* emacs-lisp/generic.el (generic-mode-internal): Simplify
+	font-lock-defaults.
+
+2005-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords): Use the
+	font-lock-face property to highlight matches.
+
 2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cc-mode.el: (cc-create-define-alist): New function.
