@@ -1,3 +1,9 @@
+2005-04-28  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el: New file.
+	* international/mule-conf.el (file-coding-system-alist): For .tex,
+	.ltx, .dtx and .drv extensions, use `latexenc-find-file-coding-system'.
+
 2005-04-28  Lute Kamstra  <lute@gnu.org>
 
 	* font-lock.el (font-lock-add-keywords)
