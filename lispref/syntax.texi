@@ -528,10 +528,12 @@ execution starts.  Other buffers are not affected.
 @section Syntax Properties
 @kindex syntax-table @r{(text property)}
 
-When the syntax table is not flexible enough to specify the syntax of a
-language, you can use @code{syntax-table} text properties to override
-the syntax table for specific character occurrences in the buffer.
-@xref{Text Properties}.
+When the syntax table is not flexible enough to specify the syntax of
+a language, you can use @code{syntax-table} text properties to
+override the syntax table for specific character occurrences in the
+buffer.  @xref{Text Properties}.  You can use Font Lock mode to set
+@code{syntax-table} text properties.  @xref{Setting Syntax
+Properties}.
 
 The valid values of @code{syntax-table} text property are:
 
