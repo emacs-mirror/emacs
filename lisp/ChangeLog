@@ -1,3 +1,8 @@
+2005-04-29  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-mode.el (cc-mode-cpp-program): New user variable.
+	(cc-create-define-alist): Use it instead of the hard-coded string.
+
 2005-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/mule-conf.el (file-coding-system-alist): Fix regexp

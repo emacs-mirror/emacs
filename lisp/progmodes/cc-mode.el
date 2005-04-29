@@ -640,13 +640,15 @@ Note that the style variables are always made local to the buffer."
 ;;;###autoload (add-to-list 'auto-mode-alist '("\\.lex\\'" . c-mode))
 
 (defvar cc-define-alist nil "Alist of #define directives for GUD tooltips.")
+(defvar cc-mode-cpp-program "/lib/cpp"
+  "*The program name for the CPP pre-processor.")
 
 (defun cc-create-define-alist ()
   (let* ((file (buffer-file-name))
 	 (output
 	  (with-output-to-string
 	    (with-current-buffer standard-output
-	      (call-process "/lib/cpp"
+	      (call-process cc-mode-cpp-program
 			    file t nil "-dM"))))
 	(define-list (split-string output "\n" t))
 	(name))
