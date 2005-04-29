@@ -1,3 +1,9 @@
+2005-04-29  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Generic Modes): New node.
+	(Major Modes): Add it to the menu.
+	(Derived Modes): Add "derived mode" to concept index.
+
 2005-04-28  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Defining Minor Modes): Fix previous change.

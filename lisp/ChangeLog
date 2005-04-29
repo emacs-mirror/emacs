@@ -1,3 +1,8 @@
+2005-04-29  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el: Improve commentary section.
+	(define-generic-mode): Improve docstring.
+
 2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (many places): Change to quiet the byte compiler.
