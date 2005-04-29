@@ -1,3 +1,34 @@
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: 
+	Many small changes to keep the byte compiler happy. Furthermore:
+	(org-prefix-format-compiled): New variable.
+	(org-compile-prefix-format): New function.
+	(org-timeline, org-agenda, org-diary): Call
+	`org-compile-prefix-format'.
+	(org-agenda-prefix-format,org-timeline-prefix-format): New
+	options.
+	(org-agenda-get-scheduled): Check if file is openned in
+	`org-mode'.
+	(org-get-entries-from-diary): Use `org-get-time-of-day', for
+	consistency with entries from `org-mode' files.
+	(org-get-time-of-day): Fixed bug with partial matches early in a
+	line.
+	(org-non-link-chars): New constant.
+	(org-link-regexp): Respect `org-non-link-chars'.
+	(org-agenda-day-view): Command removed.
+	(org-agenda-toggle-week-view): Renamed from
+	`org-agenda-week-view'.
+	(org-follow-bbdb-link, org-store-link): Search also company field.
+	(org-highlight-overlay): New variable.
+	(org-highlight, org-unhighlight): New functions.
+	(org-agenda-mode): Added pre-command-hook to remove highlight.
+	(org-evaluate-time-range): Behavior depend upon time stamp format:
+	Does it contain a time or not?
+	(org-show-subtree, org-show-entry): New functions.
+	(org-agenda-cleanup-fancy-diary): Remove empty lines.
+	
+
 2005-04-28  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-output-filter-functions): Add autoload cookie.

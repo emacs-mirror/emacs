@@ -1,3 +1,7 @@
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.08, structure reorganized.
+
 2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Debugger Operation): Add description for
