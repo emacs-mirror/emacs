@@ -1,3 +1,9 @@
+2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
+	exists. Initialise cc-define-alist.
+	(c-mode): Add cc-create-define-alist locally to after-save-hook.
+
 2005-04-29  Sam Steingold  <sds@gnu.org>
 
 	* progmodes/cc-mode.el (cc-mode-cpp-program): New user variable.
