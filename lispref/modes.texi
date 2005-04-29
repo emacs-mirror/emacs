@@ -103,6 +103,8 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
 * Mode Help::               Finding out how to use a mode.
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
+* Generic Modes::           Defining a simple major mode that supports
+                              comment syntax and Font Lock mode.
 * Mode Hooks::              Hooks run at the end of major mode functions.
 @end menu
 
@@ -798,6 +800,7 @@ mode.
 
 @node Derived Modes
 @subsection Defining Derived Modes
+@cindex derived mode
 
   It's often useful to define a new major mode in terms of an existing
 one.  An easy way to do this is to use @code{define-derived-mode}.
@@ -858,6 +861,57 @@ Here is a hypothetical example:
 
 Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
+@end defmac
+
+@node Generic Modes
+@subsection Generic Modes
+@cindex generic mode
+
+@dfn{Generic modes} are simple major modes with basic support for
+comment syntax and Font Lock mode.  They are primarily useful for
+configuration files.  To define a generic mode, use the macro
+@code{define-generic-mode}.  See the file @file{generic-x.el} for some
+examples of the use of @code{define-generic-mode}.
+
+@defmac define-generic-mode mode comment-list keyword-list font-lock-list auto-mode-list function-list &optional docstring &rest custom-keyword-args
+This macro creates a new generic mode.  The argument @var{mode} (an
+unquoted symbol) is the major mode command.  The optional argument
+@var{docstring} is the documentation for the mode command.  If you do
+not supply it, @code{define-generic-mode} uses a default documentation
+string instead.
+
+@var{comment-list} is a list in which each element is either a
+character, a string of one or two characters, or a cons cell.  A
+character or a string is set up in the mode's syntax table as a
+``comment starter.''  If the entry is a cons cell, the @sc{car} is set
+up as a ``comment starter'' and the @sc{cdr} as a ``comment ender.''
+(Use @code{nil} for the latter if you want comments to end at the end
+of the line.)  Note that the syntax table has limitations about what
+comment starters and enders are actually possible.  @xref{Syntax
+Tables}.
+
+@var{keyword-list} is a list of keywords to highlight with
+@code{font-lock-keyword-face}.  Each keyword should be a string.
+@var{font-lock-list} is a list of additional expressions to highlight.
+Each element of this list should have the same form as an element of
+@code{font-lock-keywords}.  @xref{Search-based Fontification}.
+
+@var{auto-mode-list} is a list of regular expressions to add to the
+variable @code{auto-mode-alist}.  These regular expressions are added
+when Emacs runs the macro expansion.
+
+@var{function-list} is a list of functions to call to do some
+additional setup.  The mode command calls these functions just before
+it runs the mode hook.
+
+The optional @var{custom-keyword-args} are pairs of keywords and
+values to include in the generated @code{defcustom} form for the mode
+hook variable @code{@var{mode}-hook}.  The default value for the
+@samp{:group} keyword is @var{mode} with the final @samp{-mode} (if
+any) removed.  Don't use this default group name unless you have
+written a @code{defgroup} to define that group properly (@pxref{Group
+Definitions}).  You can specify keyword arguments without specifying a
+docstring.
 @end defmac
 
 @node Mode Hooks
