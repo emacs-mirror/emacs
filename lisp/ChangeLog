@@ -1,3 +1,8 @@
+2005-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (file-coding-system-alist): Fix regexp
+	for latexenc.
+
 2005-04-29  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/generic.el: Improve commentary section.
@@ -58,13 +63,13 @@
 	(generic-unix-modes, generic-other-modes): New constants.
 	(generic-define-mswindows-modes, generic-define-unix-modes):
 	Update docstrings.  Make them obsolete.
-	(generic-extras-enable-list): New default value.  Update
-	docstring.  Improve :type.  Change :set function.
+	(generic-extras-enable-list): New default value.  Update docstring.
+	Improve :type.  Change :set function.
 	(bat-generic-mode-syntax-table, rul-generic-mode-syntax-table):
 	Fix docstring.
 
-	* emacs-lisp/generic.el (generic-mode-internal): Simplify
-	font-lock-defaults.
+	* emacs-lisp/generic.el (generic-mode-internal):
+	Simplify font-lock-defaults.
 	(define-generic-mode): Fix docstring.
 
 2005-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
