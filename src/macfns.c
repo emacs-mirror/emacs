@@ -2969,8 +2969,13 @@ If omitted or nil, that stands for the selected frame's display.  */)
 {
   int mac_major_version;
   SInt32 response;
+  OSErr err;
 
-  if (Gestalt (gestaltSystemVersion, &response) != noErr)
+  BLOCK_INPUT;
+  err = Gestalt (gestaltSystemVersion, &response);
+  UNBLOCK_INPUT;
+
+  if (err != noErr)
     error ("Cannot get Mac OS version");
 
   mac_major_version = (response >> 8) & 0xff;
