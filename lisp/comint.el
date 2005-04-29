@@ -373,6 +373,7 @@ history list.  Default is to save anything that isn't all whitespace.")
   "Abnormal hook run before input is sent to the process.
 These functions get one argument, a string containing the text to send.")
 
+;;;###autoload
 (defvar comint-output-filter-functions '(comint-postoutput-scroll-to-bottom comint-watch-for-password-prompt)
   "Functions to call after output is inserted into the buffer.
 One possible function is `comint-postoutput-scroll-to-bottom'.
