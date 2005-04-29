@@ -1,3 +1,13 @@
+2005-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include time.h.  Include sysselect.h after
+	systime.h.
+
+	* macfns.c (Fx_server_version): Add BLOCK_INPUT around Gestalt.
+
+	* macgui.h [HAVE_CARBON && MAC_OSX]: Don't undefine/define mktime
+	before/after including Carbon.h if there is a working mktime.
+
 2005-04-28  Kim F. Storm  <storm@cua.dk>
 
 	* xfaces.c (resolve_face_name): Add arg SIGNAL_P.  Calls changed.
@@ -87,7 +97,7 @@
 	[USE_CARBON_EVENTS && MAC_OSX] (Qpreferences, Qservices, Qpaste)
 	(Qperform): New variables.
 	(syms_of_mac) [USE_CARBON_EVENTS && MAC_OSX]: Initialize them.
-	(do_get_menus) [!TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
+	(do_get_menus) [TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
 	(do_menu_choice): Unhighlight menu bar also when menu_id is 0.
 	(mac_store_application_menu_event, init_menu_bar): New functions.
 	[USE_CARBON_EVENTS] (mac_handle_command_event)
