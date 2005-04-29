@@ -1,3 +1,7 @@
+2005-04-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-output-filter-functions): Add autoload cookie.
+
 2005-04-28  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-everywhere): Fix last change.
