@@ -649,9 +649,10 @@ Note that the style variables are always made local to the buffer."
 	  (with-output-to-string
 	    (with-current-buffer standard-output
 	      (call-process cc-mode-cpp-program
-			    file t nil "-dM"))))
+			    (if (file-exists-p file) file nil) t nil "-dM"))))
 	(define-list (split-string output "\n" t))
 	(name))
+    (setq cc-define-alist nil)
     (dolist (define define-list)
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) cc-define-alist))))
@@ -686,6 +687,7 @@ Key bindings:
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
   (cc-create-define-alist)
+  (add-hook 'after-save-hook 'cc-create-define-alist nil t)
   (run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
   (c-update-modeline))
 
