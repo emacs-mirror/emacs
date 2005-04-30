@@ -113,7 +113,9 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 (defvar next-error-highlight-timer nil)
 
 (defvar next-error-overlay-arrow-position nil)
-(put 'next-error-overlay-arrow-position 'overlay-arrow-string "=>")
+;; This is nil so as not to really display anything on text
+;; terminals.  On text terminals, it would hide part of the file name.
+(put 'next-error-overlay-arrow-position 'overlay-arrow-string "")
 (add-to-list 'overlay-arrow-variable-list 'next-error-overlay-arrow-position)
 
 (defvar next-error-last-buffer nil
