@@ -3030,23 +3030,22 @@ support them, this command is not defined.
 @cindex mode, Auto Compression
 @pindex gzip
 
-@findex auto-compression-mode
-@vindex auto-compression-mode
-  Emacs comes with a library that can automatically uncompress
-compressed files when you visit them, and automatically recompress them
-if you alter them and save them.  To enable this feature, type the
-command @kbd{M-x auto-compression-mode}.  You can enable it permanently
-by customizing the variable @code{auto-compression-mode}.
-
-  When automatic compression (which implies automatic uncompression as
-well) is enabled, Emacs recognizes compressed files by their file names.
-File names ending in @samp{.gz} indicate a file compressed with
+  Emacs automatically uncompresses compressed files when you visit
+them, and automatically recompress them if you alter them and save
+them.  Emacs recognizes compressed files by their file names.  File
+names ending in @samp{.gz} indicate a file compressed with
 @code{gzip}.  Other endings indicate other compression programs.
 
   Automatic uncompression and compression apply to all the operations in
 which Emacs uses the contents of a file.  This includes visiting it,
 saving it, inserting its contents into a buffer, loading it, and byte
 compiling it.
+
+@findex auto-compression-mode
+@vindex auto-compression-mode
+  To disable this feature, type the command @kbd{M-x
+auto-compression-mode}.  You can disenable it permanently by
+customizing the variable @code{auto-compression-mode}.
 
 @node File Archives
 @section File Archives
