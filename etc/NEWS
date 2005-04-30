@@ -17,6 +17,7 @@ so we will look at it and add it to the manual.
 
 * Installation Changes in Emacs 22.1
 
+---
 ** Emacs includes now support for loading image libraries on demand.
 (Currently this feature is only used on MS Windows.)  You can configure
 the supported image types and their associated dynamic libraries by
@@ -135,6 +136,16 @@ versions which recognize Thai words.  Affected commands are
     M-t     (transpose-words)
     M-q     (fill-paragraph)
 
++++
+** Auto Compression mode is now enabled by default.
+
+** C-x C-f RET, typing nothing in the minibuffer, is no longer a special case.
+
+Since the default input is the current directory, this has the effect
+of specifying the current directory.  Normally that means to visit the
+directory with Dired.
+
+---
 ** fast-lock.el and lazy-lock.el are obsolete.  Use jit-lock.el instead.
 
 ---
@@ -144,6 +155,7 @@ instead of 3, and the default value of jit-lock-stealth-nice is now
 0.5 instead of 0.125.  The new defaults should lower the CPU usage
 when Emacs is fontifying in the background.
 
+---
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
@@ -804,6 +816,7 @@ list starting after point.
 dired-ignored, dired-directory, dired-symlink, dired-warning
 introduced for Dired mode instead of font-lock faces.
 
++++
 *** New Dired command `dired-compare-directories' marks files
 with different file attributes in two dired buffers.
 
@@ -1278,6 +1291,7 @@ cursor does.
 ** On X, MS Windows, and Mac OS, the blinking cursor's "off" state is
 now controlled by the variable `blink-cursor-alist'.
 
++++
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
 program files that include other program files.
@@ -1321,6 +1335,7 @@ The variable `automatic-hscrolling' was renamed to
 
 ** TeX modes:
 
++++
 *** C-c C-c prompts for a command to run, and tries to offer a good default.
 
 +++
@@ -2483,6 +2498,7 @@ temporary overlay showing in the course of an isearch operation.
 ** New command `recode-region' decodes the region again by a specified
 coding system.
 
+---
 ** On Mac OS, the value of the variable `keyboard-coding-system' is
 now dynamically changed according to the current keyboard script.  The
 variable `mac-keyboard-text-encoding' and the constants
@@ -2519,6 +2535,7 @@ to increment the SOA serial.
 ** The new package flymake.el does on-the-fly syntax checking of program
 source files.  See the Flymake's Info manual for more details.
 
+---
 ** The library tree-widget.el provides a new widget to display a set
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
@@ -2531,12 +2548,14 @@ buffers to change filenames, permissions, etc...
 ** The thumbs.el package allows you to preview image files as thumbnails
 and can be invoked from a Dired buffer.
 
++++
 ** Image files are normally visited in Image mode, which lets you toggle
 between viewing the image and viewing the text using C-c C-c.
 
 +++
 ** The new python.el package is used to edit Python and Jython programs.
 
+---
 ** The URL package (which had been part of W3) is now part of Emacs.
 
 +++
@@ -3144,6 +3163,7 @@ text property string that may be present at the current window
 position.  The cursor may now be placed on any character of such
 strings by giving that character a non-nil `cursor' text property.
 
++++
 ** The first face specification element in a defface can specify
 `default' instead of frame classification.  Then its attributes act as
 defaults that apply to all the subsequent cases (and may be overridden
@@ -3225,6 +3245,17 @@ the first one is kept.
 +++
 ** `declare' is now a macro.  This change was made mostly for
 documentation purposes and should have no real effect on Lisp code.
+
++++
+** A file name handler can declare which operations it handles.
+
+You do this by putting an `operation' property on the handler name
+symbol.  The property value should be a list of the operations that
+the handler really handles.  It won't be called for any other
+operations.
+
+This is useful for autoloaded handlers, to prevent them from being
+autoloaded when not really necessary.
 
 +++
 ** The new hook `before-save-hook' is invoked by `basic-save-buffer'
@@ -3358,7 +3389,8 @@ new element gets added at the end of the list instead of at the
 beginning.  This change actually occurred in Emacs-21.1, but was not
 documented.
 
-** Major modes can define `eldoc-print-current-symbol-info-function'
++++
+** Major modes can define `eldoc-documentation-function'
 locally to provide Eldoc functionality by some method appropriate to
 the language.
 

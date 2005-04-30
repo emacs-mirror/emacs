@@ -1,5 +1,6 @@
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
+	* simple.el (next-error-overlay-arrow-position): Turn off, for ttys.
 
 	* loadup.el: load jka-comp-hook.
 

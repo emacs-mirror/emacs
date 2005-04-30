@@ -1,3 +1,12 @@
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffind_file_name_handler): Handle the `operations'
+	property of the file name handler.
+	(Qoperations): New variable.
+	(syms_of_fileio): Initialize and staticpro it.
+
+	* xdisp.c (set_message_1): Delete xassert.
+
 2005-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c: Don't include time.h.  Include sysselect.h after

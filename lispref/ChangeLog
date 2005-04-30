@@ -1,3 +1,7 @@
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Magic File Names): Document `operations' property.
+
 2005-04-29  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Generic Modes): New node.
