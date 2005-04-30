@@ -686,7 +686,7 @@ Key bindings:
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
-  (cc-create-define-alist)
+  (if (buffer-file-name) (cc-create-define-alist))
   (add-hook 'after-save-hook 'cc-create-define-alist nil t)
   (run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
   (c-update-modeline))
