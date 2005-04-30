@@ -3,6 +3,7 @@
 	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
 	exists. Initialise cc-define-alist.
 	(c-mode): Add cc-create-define-alist locally to after-save-hook.
+	If there is no file (Macroexpansion) don't create an alist.
 
 2005-04-29  Sam Steingold  <sds@gnu.org>
 
