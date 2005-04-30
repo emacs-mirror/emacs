@@ -175,6 +175,10 @@ Lisp_Object Vdefault_file_name_coding_system;
    whose I/O is done with a special handler.  */
 Lisp_Object Vfile_name_handler_alist;
 
+/* Property name of a file name handler,
+   which gives a list of operations it handles..  */
+Lisp_Object Qoperations;
+
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
@@ -366,13 +370,16 @@ use the standard functions without calling themselves recursively.  */)
       elt = XCAR (chain);
       if (CONSP (elt))
 	{
-	  Lisp_Object string;
+	  Lisp_Object string = XCAR (elt);
 	  int match_pos;
-	  string = XCAR (elt);
+	  Lisp_Object handler = XCDR (elt);
+	  Lisp_Object operations = Fget (handler, Qoperations);
+
 	  if (STRINGP (string)
-	      && (match_pos = fast_string_match (string, filename)) > pos)
+	      && (match_pos = fast_string_match (string, filename)) > pos
+	      && (NILP (operations) || ! NILP (Fmemq (operation, operations))))
 	    {
-	      Lisp_Object handler, tem;
+	      Lisp_Object tem;
 
 	      handler = XCDR (elt);
 	      tem = Fmemq (handler, inhibited_handlers);
@@ -6437,6 +6444,7 @@ init_fileio_once ()
 void
 syms_of_fileio ()
 {
+  Qoperations = intern ("operations");
   Qexpand_file_name = intern ("expand-file-name");
   Qsubstitute_in_file_name = intern ("substitute-in-file-name");
   Qdirectory_file_name = intern ("directory-file-name");
@@ -6471,6 +6479,7 @@ syms_of_fileio ()
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
   Qauto_save_coding = intern ("auto-save-coding");
 
+  staticpro (&Qoperations);
   staticpro (&Qexpand_file_name);
   staticpro (&Qsubstitute_in_file_name);
   staticpro (&Qdirectory_file_name);
