@@ -2441,7 +2441,7 @@ check the given file name against @code{file-name-handler-alist}.  If
 the file name matches @var{regexp}, the primitives handle that file by
 calling @var{handler}.
 
-The first argument given to @var{handler} is the name of the
+  The first argument given to @var{handler} is the name of the
 primitive, as a symbol; the remaining arguments are the arguments that
 were passed to that primitive.  (The first of these arguments is most
 often the file name itself.)  For example, if you do this:
@@ -2458,7 +2458,7 @@ called like this:
 (funcall @var{handler} 'file-exists-p @var{filename})
 @end example
 
-When a function takes two or more arguments that must be file names,
+  When a function takes two or more arguments that must be file names,
 it checks each of those names for a handler.  For example, if you do
 this:
 
@@ -2479,7 +2479,7 @@ this:
 The @var{handler} then needs to figure out whether to handle
 @var{filename} or @var{dirname}.
 
-If the specified file name matches more than one handler, the one
+  If the specified file name matches more than one handler, the one
 whose match starts last in the file name gets precedence.  This rule
 is chosen so that handlers for jobs such as uncompression are handled
 first, before handlers for jobs such as remote file access.
@@ -2575,12 +2575,12 @@ Here are the operations that a magic file name handler gets to handle:
 @end flushleft
 @end iftex
 
-Handlers for @code{insert-file-contents} typically need to clear the
+  Handlers for @code{insert-file-contents} typically need to clear the
 buffer's modified flag, with @code{(set-buffer-modified-p nil)}, if the
 @var{visit} argument is non-@code{nil}.  This also has the effect of
 unlocking the buffer if it is locked.
 
-The handler function must handle all of the above operations, and
+  The handler function must handle all of the above operations, and
 possibly others to be added in the future.  It need not implement all
 these operations itself---when it has nothing special to do for a
 certain operation, it can reinvoke the primitive, to handle the
@@ -2603,7 +2603,7 @@ for an operation it does not recognize.  Here's one way to do this:
              (apply operation args)))))
 @end smallexample
 
-When a handler function decides to call the ordinary Emacs primitive for
+  When a handler function decides to call the ordinary Emacs primitive for
 the operation at hand, it needs to prevent the primitive from calling
 the same handler once again, thus leading to an infinite recursion.  The
 example above shows how to do this, with the variables
@@ -2614,7 +2614,7 @@ multiple handlers, and for operations that have two file names that may
 each have handlers.
 
 @kindex safe-magic (@r{property})
-Handlers that don't really do anything special for actual access to the
+  Handlers that don't really do anything special for actual access to the
 file---such as the ones that implement completion of host names for
 remote file names---should have a non-@code{nil} @code{safe-magic}
 property.  For instance, Emacs normally ``protects'' directory names
@@ -2622,6 +2622,15 @@ it finds in @code{PATH} from becoming magic, if they look like magic
 file names, by prefixing them with @samp{/:}.  But if the handler that
 would be used for them has a non-@code{nil} @code{safe-magic}
 property, the @samp{/:} is not added.
+
+@kindex operations (@r{property})
+  A file name handler can have an @code{operations} property to
+declare which operations it handles in a nontrivial way.  If this
+property has a non-@code{nil} value, it should be a list of
+operations; then only those operations will call the handler.  This
+avoids inefficiency, but its main purpose is for autoloaded handler
+functions, so that they won't be loaded except when they have real
+work to do.
 
 @defvar inhibit-file-name-handlers
 This variable holds a list of handlers whose use is presently inhibited
