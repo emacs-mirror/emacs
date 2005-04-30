@@ -1,3 +1,32 @@
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+
+	* loadup.el: load jka-comp-hook.
+
+	* jka-compr.el: Many functions and vars moved to jka-compr-hook.el.
+	(jka-compr-handler): Add autoload.  `put' calls moved
+	to jka-compr-hook.el.
+	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
+	(jka-compr-inhibit): Autoload.
+	
+	* jka-comp-hook.el: New file.
+	Enable the mode by default.
+
+	* files.el (backup-buffer-copy): Use copy-file instead
+	of write-region, and put back the 'excl.
+
+2005-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/flymake.el (flymake-split-string)
+	(flymake-split-string, flymake-log, flymake-pid-to-names)
+	(flymake-reg-names, flymake-get-source-buffer-name)
+	(flymake-unreg-names, flymake-add-line-err-info)
+	(flymake-add-err-info): Clarify docstrings.
+	(flymake-popup-menu, flymake-make-emacs-menu)
+	(flymake-make-xemacs-menu): Add docstrings.
+	(flymake-get-buffer-*, flymake-set-buffer-*): Functions deleted.
+	Set variables directly throughout.
+
 2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
