@@ -955,9 +955,8 @@ however, still run out of stack space when using Edebug.
 
 @item
 The state of keyboard macro execution is saved and restored.  While
-Edebug is active, @code{executing-kbd-macro} is bound to
-@code{edebug-continue-kbd-macro}.
-
+Edebug is active, @code{executing-kbd-macro} is bound to @code{nil}
+unless @code{edebug-continue-kbd-macro} is non-@code{nil}.
 @end itemize
 
 
