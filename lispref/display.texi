@@ -717,10 +717,9 @@ by a visible newline, it displays an ellipsis.
 
 @defun add-to-invisibility-spec element
 This function adds the element @var{element} to
-@code{buffer-invisibility-spec} (if it is not already present in that
-list).  If @code{buffer-invisibility-spec} was @code{t}, it changes to
-a list, @code{(t)}, so that text whose @code{invisible} property
-is @code{t} remains invisible.
+@code{buffer-invisibility-spec}.  If @code{buffer-invisibility-spec}
+was @code{t}, it changes to a list, @code{(t)}, so that text whose
+@code{invisible} property is @code{t} remains invisible.
 @end defun
 
 @defun remove-from-invisibility-spec element
