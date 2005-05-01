@@ -760,14 +760,9 @@ and `event-end' functions."
 (defalias 'send-region 'process-send-region)
 (defalias 'show-buffer 'set-window-buffer)
 (defalias 'eval-current-buffer 'eval-buffer)
-(defalias 'define-function 'defalias)
 
-(defalias 'sref 'aref)
-(make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
-(make-obsolete 'define-function 'defalias "20.1")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
