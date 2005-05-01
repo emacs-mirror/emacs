@@ -3201,6 +3201,14 @@ Invoke \\[apropos-documentation] and type \"transient\" or
 commands which are sensitive to the Transient Mark mode."
   :global t :group 'editing-basics :require nil)
 
+(defvar widen-automatically t
+  "Non-nil means it is ok for commands to call `widen' when they want to.
+Some commands will do this in order to go to positions outside
+the current accessible part of the buffer.
+
+If `widen-automatically' is nil, these commands will do something else
+as a fallback, and won't change the buffer bounds.")
+
 (defun pop-global-mark ()
   "Pop off global mark ring and jump to the top location."
   (interactive)
@@ -3217,7 +3225,9 @@ commands which are sensitive to the Transient Mark mode."
     (set-buffer buffer)
     (or (and (>= position (point-min))
 	     (<= position (point-max)))
-	(widen))
+	(if widen-automatically
+	    (error "Global mark position is outside accessible part of buffer")
+	  (widen)))
     (goto-char position)
     (switch-to-buffer buffer)))
 
