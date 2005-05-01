@@ -1142,9 +1142,9 @@ This function removes all the overlays between @var{start} and
 @var{end} whose property @var{name} has the value @var{value}.  It can
 move the endpoints of the overlays in the region, or split them.
 
-If @var{name} is omitted or nil, it means to delete all overlays in
+If @var{name} is omitted or @code{nil}, it means to delete all overlays in
 the specified region.  If @var{start} and/or @var{end} are omitted or
-nil, that means the beginning and end of the buffer respectively.
+@code{nil}, that means the beginning and end of the buffer respectively.
 Therefore, @code{(remove-overlays)} removes all the overlays in the
 current buffer.
 @end defun
@@ -1556,7 +1556,7 @@ This case is useful for tiling small images or image slices without
 adding blank areas between the images.
 
   If the property value is not @code{t}, it is a height spec.  A height
-spec stands for a numeric height value; this heigh spec specifies the
+spec stands for a numeric height value; this height spec specifies the
 actual line height, @var{line-height}.  There are several ways to
 write a height spec; here's how each of them translates into a numeric
 height:
@@ -1572,7 +1572,7 @@ If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of face @var{face}.  @var{ratio} can
 be any type of number, or @code{nil} which means a ratio of 1.
 If @var{face} is @code{t}, it refers to the current face.
-@item (@code{nil} . @var{ratio})
+@item (nil . @var{ratio})
 If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of the contents of the line.
 @end table
@@ -1583,7 +1583,7 @@ is less than @var{line-height}, Emacs adds extra vertical space above
 the line to achieve the total height @var{line-height}.  Otherwise,
 @var{line-height} has no effect.
 
-  If you don't specify the @code{line-height} propery, the line's
+  If you don't specify the @code{line-height} property, the line's
 height consists of the contents' height plus the line spacing.
 There are several ways to specify the line spacing for different
 parts of Emacs text.
@@ -2984,7 +2984,7 @@ given time.
 @code{overlay-arrow-variable-list}.
 
 @defvar overlay-arrow-variable-list
-This variable's value is a list of varibles, each of which specifies
+This variable's value is a list of variables, each of which specifies
 the position of an overlay arrow.  The variable
 @code{overlay-arrow-position} has its normal meaning because it is on
 this list.
@@ -3160,7 +3160,7 @@ results:
 @noindent
 This illustrates that what matters is the property value for
 each character.  If two consecutive characters have the same
-object as the @code{display} property value, it's irrelevent
+object as the @code{display} property value, it's irrelevant
 whether they got this property from a single call to
 @code{put-text-property} or from two different calls.
 
