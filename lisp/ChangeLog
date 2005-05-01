@@ -1,5 +1,8 @@
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
+	* allout.el (allout-exposure): Remove macro and obsolete declaration.
+	Remove references to allout-exposure/change to allout-new-exposure.
+
 	* emacs-lisp/bytecomp.el (dot, dot-min, dot-max): Don't create
 	bytecode symbols.
 
