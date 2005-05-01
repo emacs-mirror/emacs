@@ -841,7 +841,7 @@ into the kill ring.  With a zero prefix arg, copies absolute file names.
 
 +++
 *** Omitting files is now a minor mode, dired-omit-mode. The mode toggling
-command is bound to M-o. A new command dired-mark-omitted, bound to M-O,
+command is bound to M-o. A new command dired-mark-omitted, bound to * O,
 marks omitted files. The variable dired-omit-files-p is obsoleted, use the
 mode toggling function instead.
 
@@ -1265,7 +1265,7 @@ to explicitly specify a fontSet resource for this to work, for example
 ESC, like they do for Gtk+, Mac and W32.
 
 ---
-**  Dialogs and menus pop down when pressing C-g.
+** Dialogs and menus pop down when pressing C-g.
 
 ---
 ** The menu item "Open File..." has been split into two items, "New File..."
