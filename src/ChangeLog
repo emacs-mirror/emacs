@@ -1,3 +1,7 @@
+2005-05-02  Nozomu Ando  <nand@mac.com>
+
+	* sysselect.h: Fix typo.
+
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* charset.c (Fchars_in_region): Remove as obsolete.
