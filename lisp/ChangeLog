@@ -4,6 +4,8 @@
 
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
+	* progmodes/cc-mode.el (cc-mode-cpp-program): Change to "gcc -E".
+
 	* international/mule-util.el (truncate-string): Remove alias and
 	obsolete declaration.
 
