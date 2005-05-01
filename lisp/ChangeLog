@@ -1,3 +1,7 @@
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Fix check for CUA-mode if no init file.
+
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* international/mule-util.el (truncate-string): Remove alias and
@@ -23,15 +27,14 @@
 2005-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (function-key-map): Call substitute-key-definition
-	before the keymap size is increased by a lot of define-key
-	calls.
+	before the keymap size is increased by a lot of define-key calls.
 
 2005-05-01  Richard M. Stallman  <rms@gnu.org>
 
-	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec): 
+	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec):
 	Rename ARG to ELEMENT.  Doc fix.
 
-2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* allout.el (allout-exposure): Remove macro and obsolete declaration.
 	Remove references to allout-exposure/change to allout-new-exposure.

@@ -1,3 +1,8 @@
+2005-05-01  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Stop if we move beyond TO_CHARPOS.
+	This may happen if last glyphs was an image or stretch glyph.
+
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* dispnew.c (sit_for): Vexecuting_macro -> Vexecuting_kbd_macro.
