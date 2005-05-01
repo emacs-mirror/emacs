@@ -1,3 +1,7 @@
+2005-05-01  Lars Hansen  <larsh@math.ku.dk>
+
+	* NEWS: Correct key binding for dired-mark-omitted.
+
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* NEWS: Mention xterm key bindings.
