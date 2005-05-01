@@ -1,3 +1,15 @@
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c [not HAVE_X_TOOLKIT] (xmenu_show):
+	If user cancels the menu, quit unless FOR_CLICK.
+
+	* macros.c (Vexecuting_kbd_macro): Renamed from Vexecuting_macro.
+	All uses changed.
+	(syms_of_macros): Define only executing-kbd-macro, not executing-macro.
+	* keyboard.c: Change Vexecuting_macro to Vexecuting_kbd_macro.
+	* macros.h (Vexecuting_kbd_macro): Declare instead of Vexecuting_macro.
+	* commands.h (Vexecuting_kbd_macro): Likewise.
+
 2005-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* sysdep.c (get_frame_size) [VMS]: Use a fresh i/o channel.

@@ -1,3 +1,10 @@
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-mode): Set widen-automatically to nil, locally.
+
+	* simple.el (widen-automatically): New variable.
+	(pop-global-mark): Obey widen-automatically.
+
 2005-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (function-key-map): Call substitute-key-definition
