@@ -1,3 +1,7 @@
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dispnew.c (sit_for): Vexecuting_macro -> Vexecuting_kbd_macro.
+
 2005-05-01  Richard M. Stallman  <rms@gnu.org>
 
 	* xmenu.c [not HAVE_X_TOOLKIT] (xmenu_show):
