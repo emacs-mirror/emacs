@@ -1,5 +1,7 @@
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* display.texi: Fix typos and Texinfo usage.
+
 	* edebug.texi (Checking Whether to Stop): executing-macro ->
 	executing-kbd-macro.
 
