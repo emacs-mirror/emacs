@@ -1,3 +1,7 @@
+2005-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* sysdep.c (get_frame_size) [VMS]: Use a fresh i/o channel.
+
 2005-04-18  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xfaces.c (realize_x_face) [!HAVE_WINDOW_SYSTEM]: Return NULL.
