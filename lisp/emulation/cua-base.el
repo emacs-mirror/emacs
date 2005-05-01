@@ -1397,10 +1397,12 @@ paste (in addition to the normal emacs bindings)."
 ;;;###autoload  '(error (concat "\n\n"
 ;;;###autoload  "CUA-mode is now part of the standard GNU Emacs distribution,\n"
 ;;;###autoload  "so you may now enable and customize CUA via the Options menu.\n\n"
-;;;###autoload  "Your " (file-name-nondirectory user-init-file) " loads an older version of CUA-mode which does\n"
+;;;###autoload  (if user-init-file (concat
+;;;###autoload  "Your " (file-name-nondirectory user-init-file)
+;;;###autoload  " loads an older version of CUA-mode which does\n"
 ;;;###autoload  "not work correctly with this version of GNU Emacs.\n"
 ;;;###autoload  "To correct this, remove the loading and customization of the\n"
-;;;###autoload  "old version from the " user-init-file " file.\n\n")))
+;;;###autoload  "old version from the " user-init-file " file.\n\n") ""))))
 
 (provide 'cua)
 
