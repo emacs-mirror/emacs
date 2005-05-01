@@ -1,3 +1,8 @@
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Checking Whether to Stop): executing-macro ->
+	executing-kbd-macro.
+
 2005-05-01  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Invisible Text): Correct add-to-invisibility-spec.
