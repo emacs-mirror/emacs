@@ -5877,6 +5877,15 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
     {
       int x, i, ascent = 0, descent = 0;
 
+      /* Stop if we move beyond TO_CHARPOS (after an image or stretch glyph).  */
+      if ((op & MOVE_TO_POS) != 0
+	  && BUFFERP (it->object)
+	  && IT_CHARPOS (*it) > to_charpos)
+	{
+	  result = MOVE_POS_MATCH_OR_ZV;
+	  break;
+	}
+
       /* Stop when ZV reached.
          We used to stop here when TO_CHARPOS reached as well, but that is
          too soon if this glyph does not fit on this line.  So we handle it
