@@ -1,3 +1,7 @@
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (string-to-int): Make obsolete.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (next-error-overlay-arrow-position): Turn off, for ttys.
