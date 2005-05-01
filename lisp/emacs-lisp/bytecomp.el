@@ -2900,9 +2900,6 @@ That command is designed for interactive use only" fn))
 (put 'byte-concatN 'byte-opcode-invert 'concat)
 (put 'byte-insertN 'byte-opcode-invert 'insert)
 
-(byte-defop-compiler (dot byte-point)		0)
-(byte-defop-compiler (dot-max byte-point-max)	0)
-(byte-defop-compiler (dot-min byte-point-min)	0)
 (byte-defop-compiler point		0)
 ;;(byte-defop-compiler mark		0) ;; obsolete
 (byte-defop-compiler point-max		0)
