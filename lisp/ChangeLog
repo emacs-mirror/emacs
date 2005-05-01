@@ -1,3 +1,13 @@
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/bytecomp.el (dot, dot-min, dot-max): Don't create
+	bytecode symbols.
+
+	* subr.el (dot, dot-marker, dot-min, dot-max, buffer-flush-undo)
+	(compiled-function-p, focus-frame, unfocus-frame):
+	Remove aliases and obsolete declarations.
+	Back out inadvertant changes from previous commit.
+
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (require-final-newline): Make Custom tags consistent
