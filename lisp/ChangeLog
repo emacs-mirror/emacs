@@ -1,3 +1,9 @@
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (require-final-newline): Make Custom tags consistent
+	with mode-require-final-newline.
+	(mode-require-final-newline): Doc fix.
+
 2005-05-01  Lute Kamstra  <lute@gnu.org>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
@@ -19,7 +25,7 @@
 	to jka-compr-hook.el.
 	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
 	(jka-compr-inhibit): Autoload.
-	
+
 	* jka-comp-hook.el: New file.
 	Enable the mode by default.
 
