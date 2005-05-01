@@ -1141,7 +1141,7 @@
 
 	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
 	renamed to `disabled-command-function'.
-	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor.
 	(Command Loop Info): Replace reference to it.
 	(Disabling Commands): `disabled-command-hook' has been renamed to
 	`disabled-command-function'.
