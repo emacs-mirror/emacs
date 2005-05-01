@@ -3243,6 +3243,8 @@ Advanced commands:
   (make-local-variable 'line-move-ignore-invisible)
   (setq line-move-ignore-invisible t)
   (make-local-variable 'desktop-save-buffer)
+  (make-local-variable 'widen-automatically)
+  (setq widen-automatically nil)
   (setq desktop-save-buffer 'Info-desktop-buffer-misc-data)
   (add-hook 'kill-buffer-hook 'Info-kill-buffer nil t)
   (add-hook 'clone-buffer-hook 'Info-clone-buffer-hook nil t)
