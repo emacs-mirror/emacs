@@ -1,3 +1,7 @@
+2005-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* sysdep.c (get_frame_size) [VMS]: Use a fresh i/o channel.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffind_file_name_handler): Handle the `operations'
