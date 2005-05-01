@@ -6,7 +6,7 @@
 
 	* charset.c (Fchars_in_region): Remove as obsolete.
 
-005-05-01  Kim F. Storm  <storm@cua.dk>
+2005-05-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to): Stop if we move beyond
 	TO_CHARPOS. This may happen if last glyphs was an image or stretch
