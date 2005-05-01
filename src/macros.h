@@ -21,7 +21,7 @@ Boston, MA 02111-1307, USA.  */
 
 /* Kbd macro currently being executed (a string or vector).  */
 
-extern Lisp_Object Vexecuting_macro;
+extern Lisp_Object Vexecuting_kbd_macro;
 
 /* Index of next character to fetch from that macro.  */
 
