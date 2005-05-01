@@ -1,3 +1,9 @@
+2005-05-01  Lute Kamstra  <lute@gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix regular expressions.  Suggested by David Kastrup <dak@gnu.org>
+	and Stefan Monnier <monnier@iro.umontreal.ca>.
+
 2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* subr.el (string-to-int): Make obsolete.
