@@ -121,8 +121,8 @@ coding system names is determined from `latex-inputenc-coding-alist'."
         ;; try to find the coding system in this file
         (goto-char (point-min))
         (if (or
-             (re-search-forward "^[^%$]*\\inputencoding{\\(.*\\)}" nil t)
-             (re-search-forward "^[^%$]*\\usepackage\\[\\(.*\\)\\]{inputenc}" nil t))
+             (re-search-forward "^[^%\n]*\\\\inputencoding{\\(.*\\)}" nil t)
+             (re-search-forward "^[^%\n]*\\\\usepackage\\[\\(.*\\)\\]{inputenc}" nil t))
             (let* ((match (match-string 1))
                    (sym (intern match)))
               (when (latexenc-inputenc-to-coding-system match)
