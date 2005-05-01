@@ -1,3 +1,7 @@
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): Correct add-to-invisibility-spec.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Magic File Names): Document `operations' property.

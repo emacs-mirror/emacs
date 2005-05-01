@@ -1,3 +1,8 @@
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec): 
+	Rename ARG to ELEMENT.  Doc fix.
+
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 
 	* allout.el (allout-exposure): Remove macro and obsolete declaration.
@@ -10,11 +15,6 @@
 	(compiled-function-p, focus-frame, unfocus-frame):
 	Remove aliases and obsolete declarations.
 	Back out inadvertant changes from previous commit.
-
-2005-05-01  Richard M. Stallman  <rms@gnu.org>
-
-	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec): 
-	Rename ARG to ELEMENT.  Doc fix.
 
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
