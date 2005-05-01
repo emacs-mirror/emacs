@@ -2889,6 +2889,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 	}
     }
+  else if (!for_click)
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -3519,8 +3522,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       entry = Qnil;
       break;
     case XM_NO_SELECT:
-      /* Make "Cancel" equivalent to C-g unless this menu was popped up by
-         a mouse press.  */
+      /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
+	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)
         Fsignal (Qquit, Qnil);
       entry = Qnil;
