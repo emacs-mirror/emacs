@@ -1,3 +1,9 @@
+2005-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Call substitute-key-definition
+	before the keymap size keymap is increased by a lot of define-key
+	calls.
+
 2005-05-01  Richard M. Stallman  <rms@gnu.org>
 
 	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec): 
