@@ -2275,19 +2275,19 @@ If POS is outside the buffer's accessible portion, return nil."
 If SYNTAX is nil, return nil."
   (and syntax (logand (car syntax) 65535)))
 
-(defun add-to-invisibility-spec (arg)
-  "Add elements to `buffer-invisibility-spec'.
+(defun add-to-invisibility-spec (element)
+  "Add ELEMENT to `buffer-invisibility-spec'.
 See documentation for `buffer-invisibility-spec' for the kind of elements
 that can be added."
   (if (eq buffer-invisibility-spec t)
       (setq buffer-invisibility-spec (list t)))
   (setq buffer-invisibility-spec
-	(cons arg buffer-invisibility-spec)))
+	(cons element buffer-invisibility-spec)))
 
-(defun remove-from-invisibility-spec (arg)
-  "Remove elements from `buffer-invisibility-spec'."
+(defun remove-from-invisibility-spec (element)
+  "Remove ELEMENT from `buffer-invisibility-spec'."
   (if (consp buffer-invisibility-spec)
-    (setq buffer-invisibility-spec (delete arg buffer-invisibility-spec))))
+    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
 
 (defun global-set-key (key command)
   "Give KEY a global binding as COMMAND.
