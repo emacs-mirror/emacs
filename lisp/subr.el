@@ -349,14 +349,10 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 (defvar key-substitution-in-progress nil
  "Used internally by substitute-key-definition.")
 
-(defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
-  "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
-In other words, OLDDEF is replaced with NEWDEF where ever it appears.
-Alternatively, if optional fourth argument OLDMAP is specified, we redefine
-in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
-
-For most uses, it is simpler and safer to use command remappping like this:
-  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
+(defun substitute-key-definitions (subst keymap &optional oldmap prefix)
+  "Applies the SUBST remapping to key bindings in KEYMAP.
+SUBST will be a list of elements of the form (OLDDEF . NEWDEF).
+See `substitue-key-definition'."
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -374,11 +370,28 @@ For most uses, it is simpler and safer to use command remappping like this:
     (map-keymap
      (lambda (char defn)
        (aset prefix1 (length prefix) char)
-       (substitute-key-definition-key defn olddef newdef prefix1 keymap))
+       (substitute-key-definitions-key defn subst prefix1 keymap))
      scan)))
 
-(defun substitute-key-definition-key (defn olddef newdef prefix keymap)
-  (let (inner-def skipped menu-item)
+(defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
+  "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
+In other words, OLDDEF is replaced with NEWDEF where ever it appears.
+Alternatively, if optional fourth argument OLDMAP is specified, we redefine
+in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
+
+For most uses, it is simpler and safer to use command remappping like this:
+  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
+  ;; Don't document PREFIX in the doc string because we don't want to
+  ;; advertise it.  It's meant for recursive calls only.  Here's its
+  ;; meaning
+
+  ;; If optional argument PREFIX is specified, it should be a key
+  ;; prefix, a string.  Redefined bindings will then be bound to the
+  ;; original key, with PREFIX added at the front.
+  (substitute-key-definitions (list (cons olddef newdef)) keymap oldmap prefix))
+
+(defun substitute-key-definitions-key (defn subst prefix keymap)
+  (let (inner-def skipped menu-item mapping)
     ;; Find the actual command name within the binding.
     (if (eq (car-safe defn) 'menu-item)
 	(setq menu-item defn defn (nth 2 defn))
@@ -388,17 +401,17 @@ For most uses, it is simpler and safer to use command remappping like this:
       ;; Skip past cached key-equivalence data for menu items.
       (if (consp (car-safe defn))
 	  (setq defn (cdr defn))))
-    (if (or (eq defn olddef)
+    (if (or (setq mapping (assq defn subst))
 	    ;; Compare with equal if definition is a key sequence.
 	    ;; That is useful for operating on function-key-map.
 	    (and (or (stringp defn) (vectorp defn))
-		 (equal defn olddef)))
+		 (setq mapping (assoc defn subst))))
 	(define-key keymap prefix
 	  (if menu-item
 	      (let ((copy (copy-sequence menu-item)))
-		(setcar (nthcdr 2 copy) newdef)
+		(setcar (nthcdr 2 copy) (cdr mapping))
 		copy)
-	    (nconc (nreverse skipped) newdef)))
+	    (nconc (nreverse skipped) (cdr mapping))))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
 	    (and defn
@@ -414,7 +427,7 @@ For most uses, it is simpler and safer to use command remappping like this:
 	       ;; Avoid recursively rescanning keymap being scanned.
 	       (not (memq inner-def key-substitution-in-progress)))
 	  ;; If this one isn't being scanned already, scan it now.
-	  (substitute-key-definition olddef newdef keymap inner-def prefix)))))
+	  (substitute-key-definitions subst keymap inner-def prefix)))))
 
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
@@ -843,7 +856,7 @@ is converted into a string by expressing it in decimal."
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
-(defalias 'string-to-int 'string-to-number)
+(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 ;;;; Hook manipulation functions.
 
