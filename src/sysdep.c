@@ -387,7 +387,7 @@ init_baud_rate ()
       emacs_ospeed = sg.c_cflag & CBAUD;
 #else /* neither VMS nor TERMIOS nor TERMIO */
       struct sgttyb sg;
-      
+
       sg.sg_ospeed = B9600;
       if (ioctl (input_fd, TIOCGETP, &sg) < 0)
 	abort ();
@@ -398,7 +398,7 @@ init_baud_rate ()
 #endif /* not DOS_NT */
 #endif /* not INIT_BAUD_RATE */
     }
-   
+
   baud_rate = (emacs_ospeed < sizeof baud_convert / sizeof baud_convert[0]
 	       ? baud_convert[emacs_ospeed] : 9600);
   if (baud_rate == 0)
@@ -543,7 +543,7 @@ wait_for_termination (pid)
  *	flush any pending output
  *      (may flush input as well; it does not matter the way we use it)
  */
- 
+
 void
 flush_pending_output (channel)
      int channel;
@@ -812,7 +812,7 @@ sys_subshell ()
   save_signal_handlers (saved_handlers);
   synch_process_alive = 1;
 #endif /* __DJGPP__ > 1 */
-#else  
+#else
   pid = vfork ();
   if (pid == -1)
     error ("Can't spawn subshell");
@@ -987,7 +987,7 @@ unrequest_sigio ()
 }
 
 #else /* not FASYNC, not STRIDE */
- 
+
 #ifdef _CX_UX
 
 #include <termios.h>
@@ -1030,7 +1030,7 @@ request_sigio ()
 
   croak ("request_sigio");
 }
- 
+
 void
 unrequest_sigio ()
 {
@@ -1039,7 +1039,7 @@ unrequest_sigio ()
 
   croak ("unrequest_sigio");
 }
- 
+
 #endif /* _CX_UX */
 #endif /* STRIDE */
 #endif /* FASYNC */
@@ -1241,7 +1241,7 @@ emacs_set_tty (fd, settings, flushp)
       || ioctl (fd, TIOCLSET, &settings->lmode) < 0)
     return -1;
 #endif
-  
+
   /* We have survived the tempest.  */
   return 0;
 }
@@ -1281,13 +1281,13 @@ unsigned char _sobuf[BUFSIZ+8];
 char _sobuf[BUFSIZ];
 #endif
 #endif
- 
+
 #ifdef HAVE_LTCHARS
 static struct ltchars new_ltchars = {-1,-1,-1,-1,-1,-1};
 #endif
 #ifdef HAVE_TCHARS
 static struct tchars new_tchars = {-1,-1,-1,-1,-1,-1};
-#endif 
+#endif
 
 void
 init_sys_modes ()
@@ -1396,7 +1396,7 @@ nil means don't delete them until `list-processes' is run.");
 	}
       else
 	tty.main.c_iflag &= ~IXON;	/* Disable start/stop output control */
-      tty.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL 
+      tty.main.c_oflag &= ~ONLCR;	/* Disable map of NL to CR-NL
 					   on output */
       tty.main.c_oflag &= ~TAB3;	/* Disable tab expansion */
 #ifdef CS8
@@ -1537,7 +1537,7 @@ nil means don't delete them until `list-processes' is run.");
 	 anything, and leaving it in breaks the meta key.  Go figure.  */
       tty.lmode &= ~LLITOUT;
 #endif
-      
+
 #ifdef BSD4_1
       lmode = tty.lmode;
 #endif
@@ -1662,7 +1662,7 @@ nil means don't delete them until `list-processes' is run.");
 
 /* Return nonzero if safe to use tabs in output.
    At the time this is called, init_sys_modes has not been done yet.  */
-   
+
 int
 tabs_safe_p ()
 {
@@ -1698,7 +1698,7 @@ get_frame_size (widthp, heightp)
 #ifdef TIOCGSIZE
 
   /* SunOS - style.  */
-  struct ttysize size;  
+  struct ttysize size;
 
   if (ioctl (input_fd, TIOCGSIZE, &size) == -1)
     *widthp = *heightp = 0;
@@ -1711,10 +1711,16 @@ get_frame_size (widthp, heightp)
 #else
 #ifdef VMS
 
+  /* Use a fresh channel since the current one may have stale info
+     (for example, from prior to a suspend); and to avoid a dependency
+     in the init sequence.  */
+  int chan;
   struct sensemode tty;
-  
-  SYS$QIOW (0, input_fd, IO$_SENSEMODE, &tty, 0, 0,
-	    &tty.class, 12, 0, 0, 0, 0);
+
+  SYS$ASSIGN (&input_dsc, &chan, 0, 0);
+  SYS$QIOW (0, chan, IO$_SENSEMODE, &tty, 0, 0,
+            &tty.class, 12, 0, 0, 0, 0);
+  SYS$DASSGN (chan);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
 
@@ -1755,7 +1761,7 @@ set_window_size (fd, height, width)
 #ifdef TIOCSSIZE
 
   /* SunOS - style.  */
-  struct ttysize size;  
+  struct ttysize size;
   size.ts_lines = height;
   size.ts_cols = width;
 
@@ -1776,7 +1782,7 @@ void
 reset_sys_modes ()
 {
   struct frame *sf;
-  
+
   if (noninteractive)
     {
       fflush (stdout);
@@ -1803,7 +1809,7 @@ reset_sys_modes ()
   cursor_to (FRAME_HEIGHT (sf) - 1, 0);
 #if defined (IBMR2AIX) && defined (AIXHFT)
   {
-    /* HFT devices normally use ^J as a LF/CR.  We forced it to 
+    /* HFT devices normally use ^J as a LF/CR.  We forced it to
        do the LF only.  Now, we need to reset it. */
     struct termio tty;
 
@@ -1886,13 +1892,13 @@ setup_pty (fd)
      does this.  Also it is known that telnet mode will hang
      in such a way that Emacs must be stopped (perhaps this
      is the same problem).
-     
+
      If TIOCREMOTE is turned off, then there is a bug in
      hp-ux which sometimes loses data.  Apparently the
      code which blocks the master process when the internal
      buffer fills up does not work.  Other than this,
      though, everything else seems to work fine.
-     
+
      Since the latter lossage is more benign, we may as well
      lose that way.  -- cph */
 #ifdef FIONBIO
@@ -1924,7 +1930,7 @@ void
 init_vms_input ()
 {
   int status;
-  
+
   if (input_fd == 0)
     {
       status = SYS$ASSIGN (&input_dsc, &input_fd, 0, 0);
@@ -2125,7 +2131,7 @@ sys_sleep (timeval)
   int time [2];
   static int zero = 0;
   static int large = -10000000;
-  
+
   LIB$EMUL (&timeval, &large, &zero, time); 	  /* Convert to VMS format */
 
   SYS$CANTIM (1, 0);
@@ -2225,7 +2231,7 @@ start_of_text ()
  *	will be patched by unexec to the correct value.
  *
  */
- 
+
 char *
 start_of_data ()
 {
@@ -2257,7 +2263,7 @@ start_of_data ()
  *	Return the address of the end of the text segment prior to
  *	doing an unexec.  After unexec the return value is undefined.
  */
- 
+
 char *
 end_of_text ()
 {
@@ -2268,7 +2274,7 @@ end_of_text ()
   return ((char *) &etext);
 #endif
 }
- 
+
 /*
  *	Return the address of the end of the data segment prior to
  *	doing an unexec.  After unexec the return value is undefined.
@@ -2558,7 +2564,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
   /* Once a second, till the timer expires, check all the flagged read
    * descriptors to see if any input is available.  If there is some then
    * set the corresponding bit in the return copy of rfds.
-   */ 
+   */
   while (1)
     {
       register int to_check, fd;
@@ -2605,7 +2611,7 @@ sys_select (nfds, rfds, wfds, efds, timeout)
       signal (SIGALRM, select_alarm);
       select_alarmed = 0;
       alarm (SELECT_PAUSE);
-      
+
       /* Wait for a SIGALRM (or maybe a SIGTINT) */
       while (select_alarmed == 0 && *local_timeout != 0
 	     && process_tick == update_tick)
@@ -2623,10 +2629,10 @@ sys_select (nfds, rfds, wfds, efds, timeout)
 	    pause ();
 	}
       (*local_timeout) -= SELECT_PAUSE;
-      
+
       /* Reset the old alarm if there was one.  */
       turn_on_atimers (1);
-      
+
       if (*local_timeout == 0)  /* Stop on timer being cleared */
 	break;
     }
@@ -3253,10 +3259,10 @@ emacs_open (path, oflag, mode)
   register int rtnval;
 
 #ifdef BSD4_1
-  if (oflag & O_CREAT) 
+  if (oflag & O_CREAT)
     return creat (path, mode);
 #endif
-  
+
   while ((rtnval = open (path, oflag, mode)) == -1
 	 && (errno == EINTR));
   return (rtnval);
@@ -3289,7 +3295,7 @@ emacs_read (fildes, buf, nbyte)
      unsigned int nbyte;
 {
   register int rtnval;
-  
+
   while ((rtnval = read (fildes, buf, nbyte)) == -1
 	 && (errno == EINTR));
   return (rtnval);
@@ -3429,7 +3435,7 @@ dup2 (oldd, newd)
      int newd;
 {
   register int fd, ret;
-  
+
   emacs_close (newd);
 
 #ifdef F_DUPFD
@@ -3458,7 +3464,7 @@ dup2 (oldd, newd)
 #ifndef VMS
 #ifndef HAVE_GETTIMEOFDAY
 #ifdef HAVE_TIMEVAL
- 
+
 /* ARGSUSED */
 int
 gettimeofday (tp, tzp)
@@ -3467,18 +3473,18 @@ gettimeofday (tp, tzp)
 {
   extern long time ();
 
-  tp->tv_sec = time ((long *)0);    
+  tp->tv_sec = time ((long *)0);
   tp->tv_usec = 0;
   if (tzp != 0)
     tzp->tz_minuteswest = -1;
   return 0;
 }
- 
+
 #endif
 #endif
 #endif
 #endif /* subprocess && !HAVE_GETTIMEOFDAY && HAVE_TIMEVAL && !VMS */
-  
+
 /*
  *	This function will go away as soon as all the stubs fixed. (fnf)
  */
@@ -3845,7 +3851,7 @@ vmserrstr (status)
 
 #ifdef access
 #undef access
-  
+
 /* The following is necessary because 'access' emulation by VMS C (2.0) does
  * not work correctly.  (It also doesn't work well in version 2.3.)
  */
@@ -3886,7 +3892,7 @@ sys_access (path, mode)
    * access can treat the directory like a file.  */
   if (directory_file_name (path, dir_fn))
     path = dir_fn;
-  
+
   if (mode == F_OK)
     return access (path, mode);
   if (user == NULL && (user = (char *) getenv ("USER")) == NULL)
@@ -3900,7 +3906,7 @@ sys_access (path, mode)
     static int constant = ACL$C_FILE;
     DESCRIPTOR (path_desc, path);
     DESCRIPTOR (user_desc, user);
- 
+
     flags = 0;
     acces = 0;
     if ((mode & X_OK) && ((stat = access (path, mode)) < 0 || mode == X_OK))
@@ -3965,7 +3971,7 @@ sys_access (filename, type)
     return access (filename, type);
 
   /* Check write protection. */
-    
+
 #define CHECKPRIV(bit)    (prvmask.bit)
 #define WRITABLE(field)  (! ((xab.xab$w_pro >> field) & XAB$M_NOWRITE))
 
@@ -4027,7 +4033,7 @@ sys_access (filename, type)
 }
 #endif /* not VMS4_4 */
 #endif /* access */
-  
+
 static char vtbuf[NAM$C_MAXRSS+1];
 
 /* translate a vms file spec to a unix path */
@@ -4068,7 +4074,7 @@ sys_translate_vms (vfile)
 	    *targ++ = '.';
 	    *targ++ = '.';
 	    break;
-	    
+
 	  default:
 	    *targ++ = *vfile;
 	    break;
@@ -4161,7 +4167,7 @@ sys_translate_unix (ufile)
       ufile++;
     }
   *targ = '\0';
-  
+
   return utbuf;
 }
 
@@ -4183,7 +4189,7 @@ getwd (pathname)
     }
   strcpy (pathname, ptr);
   xfree (ptr);
-  
+
  return pathname;
 }
 
@@ -4520,7 +4526,7 @@ sys_fwrite (ptr, size, num, fp)
  * when this is not the desired behavior, for instance, when writing an
  * auto save file (you only want one version), or when you don't have
  * write permission in the directory containing the file (but the file
- * itself is writable).  Hence this routine, which is equivalent to 
+ * itself is writable).  Hence this routine, which is equivalent to
  * "close (creat (fn, 0));" on Unix if fn already exists.
  */
 int
@@ -4577,7 +4583,7 @@ get_uaf_name (uname)
   register status;
   struct FAB uaf_fab;
   struct RAB uaf_rab;
-  
+
   uaf_fab = cc$rms_fab;
   uaf_rab = cc$rms_rab;
   /* initialize fab fields */
@@ -4641,7 +4647,7 @@ get_uaf_uic (uic)
   register status;
   struct FAB uaf_fab;
   struct RAB uaf_rab;
-  
+
   uaf_fab = cc$rms_fab;
   uaf_rab = cc$rms_rab;
   /* initialize fab fields */
@@ -4934,7 +4940,7 @@ rename (from, to)
    bits).  To maintain portability, the VMS implementation of `chmod' wires
    the W and D bits together.  */
 
- 
+
 static struct fibdef fib;	/* We need this initialized to zero */
 char vms_file_written[NAM$C_MAXRSS];
 
@@ -5102,7 +5108,7 @@ hft_init ()
 
   /* If we're not on an HFT we shouldn't do any of this.  We determine
      if we are on an HFT by trying to get an HFT error code.  If this
-     call fails, we're not on an HFT. */ 
+     call fails, we're not on an HFT. */
 #ifdef IBMR2AIX
   if (ioctl (0, HFQERROR, &junk) < 0)
     return;
