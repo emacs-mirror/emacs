@@ -349,10 +349,14 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 (defvar key-substitution-in-progress nil
  "Used internally by substitute-key-definition.")
 
-(defun substitute-key-definitions (subst keymap &optional oldmap prefix)
-  "Applies the SUBST remapping to key bindings in KEYMAP.
-SUBST will be a list of elements of the form (OLDDEF . NEWDEF).
-See `substitue-key-definition'."
+(defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
+  "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
+In other words, OLDDEF is replaced with NEWDEF where ever it appears.
+Alternatively, if optional fourth argument OLDMAP is specified, we redefine
+in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
+
+For most uses, it is simpler and safer to use command remappping like this:
+  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
   ;; Don't document PREFIX in the doc string because we don't want to
   ;; advertise it.  It's meant for recursive calls only.  Here's its
   ;; meaning
@@ -370,28 +374,11 @@ See `substitue-key-definition'."
     (map-keymap
      (lambda (char defn)
        (aset prefix1 (length prefix) char)
-       (substitute-key-definitions-key defn subst prefix1 keymap))
+       (substitute-key-definition-key defn olddef newdef prefix1 keymap))
      scan)))
 
-(defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
-  "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
-In other words, OLDDEF is replaced with NEWDEF where ever it appears.
-Alternatively, if optional fourth argument OLDMAP is specified, we redefine
-in KEYMAP as NEWDEF those keys which are defined as OLDDEF in OLDMAP.
-
-For most uses, it is simpler and safer to use command remappping like this:
-  \(define-key KEYMAP [remap OLDDEF] NEWDEF)"
-  ;; Don't document PREFIX in the doc string because we don't want to
-  ;; advertise it.  It's meant for recursive calls only.  Here's its
-  ;; meaning
-
-  ;; If optional argument PREFIX is specified, it should be a key
-  ;; prefix, a string.  Redefined bindings will then be bound to the
-  ;; original key, with PREFIX added at the front.
-  (substitute-key-definitions (list (cons olddef newdef)) keymap oldmap prefix))
-
-(defun substitute-key-definitions-key (defn subst prefix keymap)
-  (let (inner-def skipped menu-item mapping)
+(defun substitute-key-definition-key (defn olddef newdef prefix keymap)
+  (let (inner-def skipped menu-item)
     ;; Find the actual command name within the binding.
     (if (eq (car-safe defn) 'menu-item)
 	(setq menu-item defn defn (nth 2 defn))
@@ -401,17 +388,17 @@ For most uses, it is simpler and safer to use command remappping like this:
       ;; Skip past cached key-equivalence data for menu items.
       (if (consp (car-safe defn))
 	  (setq defn (cdr defn))))
-    (if (or (setq mapping (assq defn subst))
+    (if (or (eq defn olddef)
 	    ;; Compare with equal if definition is a key sequence.
 	    ;; That is useful for operating on function-key-map.
 	    (and (or (stringp defn) (vectorp defn))
-		 (setq mapping (assoc defn subst))))
+		 (equal defn olddef)))
 	(define-key keymap prefix
 	  (if menu-item
 	      (let ((copy (copy-sequence menu-item)))
-		(setcar (nthcdr 2 copy) (cdr mapping))
+		(setcar (nthcdr 2 copy) newdef)
 		copy)
-	    (nconc (nreverse skipped) (cdr mapping))))
+	    (nconc (nreverse skipped) newdef)))
       ;; Look past a symbol that names a keymap.
       (setq inner-def
 	    (and defn
@@ -427,7 +414,7 @@ For most uses, it is simpler and safer to use command remappping like this:
 	       ;; Avoid recursively rescanning keymap being scanned.
 	       (not (memq inner-def key-substitution-in-progress)))
 	  ;; If this one isn't being scanned already, scan it now.
-	  (substitute-key-definitions subst keymap inner-def prefix)))))
+	  (substitute-key-definition olddef newdef keymap inner-def prefix)))))
 
 (defun define-key-after (keymap key definition &optional after)
   "Add binding in KEYMAP for KEY => DEFINITION, right after AFTER's binding.
@@ -766,35 +753,21 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(defalias 'dot 'point)
-(defalias 'dot-marker 'point-marker)
-(defalias 'dot-min 'point-min)
-(defalias 'dot-max 'point-max)
 (defalias 'window-dot 'window-point)
 (defalias 'set-window-dot 'set-window-point)
 (defalias 'read-input 'read-string)
 (defalias 'send-string 'process-send-string)
 (defalias 'send-region 'process-send-region)
 (defalias 'show-buffer 'set-window-buffer)
-(defalias 'buffer-flush-undo 'buffer-disable-undo)
 (defalias 'eval-current-buffer 'eval-buffer)
-(defalias 'compiled-function-p 'byte-code-function-p)
 (defalias 'define-function 'defalias)
 
 (defalias 'sref 'aref)
 (make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
 (make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
-(make-obsolete 'dot 'point		"before 19.15")
-(make-obsolete 'dot-max 'point-max	"before 19.15")
-(make-obsolete 'dot-min 'point-min	"before 19.15")
-(make-obsolete 'dot-marker 'point-marker "before 19.15")
-(make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
-(make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
 (make-obsolete 'define-function 'defalias "20.1")
-(make-obsolete 'focus-frame "it does nothing." "19.32")
-(make-obsolete 'unfocus-frame "it does nothing." "19.32")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -810,9 +783,6 @@ is converted into a string by expressing it in decimal."
 (defun baud-rate ()
   "Return the value of the `baud-rate' variable."
   baud-rate)
-
-(defalias 'focus-frame 'ignore "")
-(defalias 'unfocus-frame 'ignore "")
 
 
 ;;;; Obsolescence declarations for variables, and aliases.
