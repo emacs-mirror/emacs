@@ -108,6 +108,10 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 
 * Changes in Emacs 22.1
 
+** Moving or scrolling through images (and other lines) taller that
+the window now works sensible, by automatically adjusting the window's
+vscroll property.
+
 +++
 ** In graphical mode, with a C program, GUD Tooltips have been extended to
 display the #define directive associated with an identifier when program is
