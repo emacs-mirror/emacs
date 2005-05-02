@@ -1,3 +1,27 @@
+2005-05-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token): Replace `string-to-int' by
+	`string-to-number'.
+	* calc/calc-bin.el (calc-word-size): Replace `string-to-int' by
+	`string-to-number'.
+	* calc-ext.el (calc-read-number-fancy): Replace `string-to-int' by
+	`string-to-number'.
+	* calc-forms.el (calc-time, calc-date-notation, math-this-year)
+	(math-parse-date, math-parse-standard-date, calcFunc-tzone):
+	Replace `string-to-int' by `string-to-number'.
+	* calc/calc-frac.el (calc-over-notation): Replace `string-to-int'
+	by `string-to-number'.
+	* calc/calc-graph.el (calc-graph-plot, calc-graph-set-styles)
+	(calc-graph-num-points, calc-graph-init): Replace `string-to-int'
+	by `string-to-number'.
+	* calc/calc-prog.el (calc-read-parse-table-part)
+	(calc-edit-macro-repeats): Replace `string-to-int' by
+	'string-to-number'.
+	* calc/calc-yank.el (calc-do-grab-rectangle): Replace
+	`string-to-int' by `string-to-number'.
+	* calc/calc.el (calcDigit-key, math-read-number)
+	(math-read-bignum): Replace `string-to-int' by `string-to-number'.
+
 2005-05-02  Kim F. Storm  <storm@cua.dk>
 
 	* kmacro.el: Use executing-kbd-macro-index variable.
