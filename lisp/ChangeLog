@@ -1,3 +1,11 @@
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+	* progmodes/cc-mode.el (cc-create-define-alist): Use a shell.
+	(cc-mode-cpp-program): Rename to cc-define-list-program and
+	move to cc-vars.el.
+	
+	* progmodes/cc-vars.el (cc-define-list-program):
+	Change to "gcc -E -dM -". Make customizable.
+
 2005-05-02  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el: Fix check for CUA-mode if no init file.
