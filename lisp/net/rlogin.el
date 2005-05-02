@@ -182,7 +182,12 @@ variable."
                    (append (split-string input-args)
                            rlogin-explicit-args)
                  (split-string input-args)))
-	 (host (car args))
+         (host (let ((tail args))
+                 ;; Find first arg that doesn't look like an option.
+                 ;; This still loses for args that take values, feh.
+                 (while (and tail (= ?- (aref (car tail) 0)))
+                   (setq tail (cdr tail)))
+                 (car tail)))
 	 (user (or (car (cdr (member "-l" args)))
                    (user-login-name)))
          (buffer-name (if (string= user (user-login-name))
