@@ -1,3 +1,7 @@
+2005-05-02  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs.c (USAGE3, USAGE4): Keep strings below 2048 bytes.
+
 2005-05-02  Nozomu Ando  <nand@mac.com>
 
 	* sysselect.h: Fix typo.
