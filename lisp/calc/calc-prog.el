@@ -1,6 +1,6 @@
 ;;; calc-prog.el --- user programmability functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -637,7 +637,7 @@
 	     (setq part (nconc part (list (if (= (match-beginning 1)
 						 (match-end 1))
 					      0
-					    (string-to-int
+					    (string-to-number
 					     (buffer-substring
 					      (1+ (match-beginning 1))
 					      (match-end 1)))))))
@@ -727,7 +727,7 @@
   (goto-char calc-edit-top)
   (while
       (re-search-forward "^\\([0-9]+\\)\\*" nil t)
-    (let ((num (string-to-int (match-string 1)))
+    (let ((num (string-to-number (match-string 1)))
           (line (buffer-substring (point) (line-end-position))))
       (goto-char (line-beginning-position))
       (kill-line 1)
