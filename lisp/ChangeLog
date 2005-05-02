@@ -1,8 +1,12 @@
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (executing-macro): Use `define-obsolete-variable-alias'.
+
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
 	* progmodes/cc-mode.el (cc-create-define-alist): Use a shell.
 	(cc-mode-cpp-program): Rename to cc-define-list-program and
 	move to cc-vars.el.
-	
+
 	* progmodes/cc-vars.el (cc-define-list-program):
 	Change to "gcc -E -dM -". Make customizable.
 

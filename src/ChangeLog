@@ -1,5 +1,7 @@
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* xmenu.c (Fx_popup_menu): Doc fix.
+
 	* charset.c (syms_of_charset): Delete defsubr for Schars_in_region.
 
 2005-05-02  Jason Rumney  <jasonr@gnu.org>
