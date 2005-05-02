@@ -1,5 +1,8 @@
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* variables.texi (Variable Aliases): `make-obsolete-variable' is a
+	function and not a macro.
+
 	* frames.texi (Pop-Up Menus): Correct and clarify description of
 	`x-popup-menu'.
 	(Dialog Boxes): Clarify description of `x-popup-dialog'.
