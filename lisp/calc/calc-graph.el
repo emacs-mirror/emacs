@@ -407,13 +407,13 @@
 				       (prin1-to-string output)))))
 	 (setq calc-graph-resolution (calc-graph-find-command "samples"))
 	 (if calc-graph-resolution
-	     (setq calc-graph-resolution (string-to-int calc-graph-resolution))
+	     (setq calc-graph-resolution (string-to-number calc-graph-resolution))
 	   (setq calc-graph-resolution (if calc-graph-is-splot
 				calc-graph-default-resolution-3d
 			      calc-graph-default-resolution)))
 	 (setq precision (calc-graph-find-command "precision"))
 	 (if precision
-	     (setq precision (string-to-int precision))
+	     (setq precision (string-to-number precision))
 	   (setq precision calc-graph-default-precision))
 	 (calc-graph-set-command "terminal")
 	 (calc-graph-set-command "output")
@@ -1078,11 +1078,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 		(setq mode (buffer-substring (match-beginning 1)
 					     (match-end 1))))
 	    (if (looking-at "[ \ta-z]+\\([0-9]+\\)")
-		(setq lstyle (string-to-int
+		(setq lstyle (string-to-number
 			      (buffer-substring (match-beginning 1)
 						(match-end 1)))))
 	    (if (looking-at "[ \ta-z]+[0-9]+[ \t]+\\([0-9]+\\)")
-		(setq pstyle (string-to-int
+		(setq pstyle (string-to-number
 			      (buffer-substring (match-beginning 1)
 						(match-end 1)))))))
       (setq lenbl (or (equal mode "lines") (equal mode "linespoints"))
@@ -1195,11 +1195,11 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 	  (if (equal res "")
 	      (message "Default resolution is %d"
 		       calc-graph-default-resolution)
-	    (setq calc-graph-default-resolution (string-to-int res)))
+	    (setq calc-graph-default-resolution (string-to-number res)))
 	(if (equal res "")
 	    (message "Default 3D resolution is %d"
 		     calc-graph-default-resolution-3d)
-	  (setq calc-graph-default-resolution-3d (string-to-int res))))
+	  (setq calc-graph-default-resolution-3d (string-to-number res))))
     (calc-graph-set-command "samples" (if (not (equal res "")) res))))
 
 (defun calc-graph-device (name flag)
@@ -1456,7 +1456,7 @@ This \"dumb\" driver will be present in Gnuplot 3.0."
 		(goto-char origin)
 		(re-search-forward
 		 "G N U P L O T.*\n.*version \\([0-9]+\\)\\." nil t))
-	      (setq calc-gnuplot-version (string-to-int (buffer-substring
+	      (setq calc-gnuplot-version (string-to-number (buffer-substring
 							 (match-beginning 1)
 							 (match-end 1))))
 	    (setq calc-gnuplot-version 1))
