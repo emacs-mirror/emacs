@@ -323,16 +323,16 @@ Display options:\n\
 --xrm XRESOURCES                set additional X resources\n\
 --help                          display this help and exit\n\
 --version                       output version information and exit\n\
-\n\
+\n"
+
+#define USAGE4 "\
 You can generally also specify long option names with a single -; for\n\
 example, -batch as well as --batch.  You can use any unambiguous\n\
 abbreviation for a --option.\n\
 \n\
 Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
-\n"
-
-#define USAGE4 "\
+\n\
 Report bugs to %s.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
