@@ -1,15 +1,254 @@
+2005-05-01  Lute Kamstra  <lute@gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix regular expressions.  Suggested by David Kastrup <dak@gnu.org>
+	and Stefan Monnier <monnier@iro.umontreal.ca>.
+
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (string-to-int): Make obsolete.
+
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (next-error-overlay-arrow-position): Turn off, for ttys.
+
+	* loadup.el: load jka-comp-hook.
+
+	* jka-compr.el: Many functions and vars moved to jka-compr-hook.el.
+	(jka-compr-handler): Add autoload.  `put' calls moved
+	to jka-compr-hook.el.
+	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
+	(jka-compr-inhibit): Autoload.
+	
+	* jka-comp-hook.el: New file.
+	Enable the mode by default.
+
+	* files.el (backup-buffer-copy): Use copy-file instead
+	of write-region, and put back the 'excl.
+
+2005-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/flymake.el (flymake-split-string)
+	(flymake-split-string, flymake-log, flymake-pid-to-names)
+	(flymake-reg-names, flymake-get-source-buffer-name)
+	(flymake-unreg-names, flymake-add-line-err-info)
+	(flymake-add-err-info): Clarify docstrings.
+	(flymake-popup-menu, flymake-make-emacs-menu)
+	(flymake-make-xemacs-menu): Add docstrings.
+	(flymake-get-buffer-*, flymake-set-buffer-*): Functions deleted.
+	Set variables directly throughout.
+
+2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
+	exists. Initialise cc-define-alist.
+	(c-mode): Add cc-create-define-alist locally to after-save-hook.
+	If there is no file (Macroexpansion) don't create an alist.
+
+2005-04-29  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-mode.el (cc-mode-cpp-program): New user variable.
+	(cc-create-define-alist): Use it instead of the hard-coded string.
+
+2005-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (file-coding-system-alist): Fix regexp
+	for latexenc.
+
+2005-04-29  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el: Improve commentary section.
+	(define-generic-mode): Improve docstring.
+
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (many places): Change to quiet the byte compiler.
+	(org-prefix-format-compiled): New variable.
+	(org-compile-prefix-format): New function.
+	(org-timeline, org-agenda, org-diary): Call org-compile-prefix-format.
+	(org-agenda-prefix-format,org-timeline-prefix-format): New options.
+	(org-agenda-get-scheduled): Check if file is opened in `org-mode'.
+	(org-get-entries-from-diary): Use `org-get-time-of-day' for
+	consistency with entries from `org-mode' files.
+	(org-get-time-of-day): Fix bug with partial matches early in a line.
+	(org-non-link-chars): New constant.
+	(org-link-regexp): Respect `org-non-link-chars'.
+	(org-agenda-day-view): Remove command.
+	(org-agenda-toggle-week-view): Rename from `org-agenda-week-view'.
+	(org-follow-bbdb-link, org-store-link): Search also company field.
+	(org-highlight-overlay): New variable.
+	(org-highlight, org-unhighlight): New functions.
+	(org-agenda-mode): Add pre-command-hook to remove highlight.
+	(org-evaluate-time-range): Behavior depends upon whether time stamp
+	contains a time or not.
+	(org-show-subtree, org-show-entry): New functions.
+	(org-agenda-cleanup-fancy-diary): Remove empty lines.
+
+2005-04-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-output-filter-functions): Add autoload cookie.
+
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Fix last change.
+
+2005-04-28  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el: New file.
+	* international/mule-conf.el (file-coding-system-alist): For .tex,
+	.ltx, .dtx and .drv extensions, use `latexenc-find-file-coding-system'.
+
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-add-keywords)
+	(font-lock-remove-keywords): Clarify docstring.
+	(font-lock-keywords-alist, font-lock-removed-keywords-alist):
+	Don't start docstrings with a `*'.
+	(font-lock-update-removed-keyword-alist): Give it a docstring.
+
+	* generic-x.el: Update commentary section.
+	Only require font-lock when compiling.
+	Define all modes conditionally.
+	Place all generic modes in the generic-x-modes customization group.
+	(generic-x-modes): New customization group.
+	(generic-default-modes, generic-mswindows-modes)
+	(generic-unix-modes, generic-other-modes): New constants.
+	(generic-define-mswindows-modes, generic-define-unix-modes):
+	Update docstrings.  Make them obsolete.
+	(generic-extras-enable-list): New default value.  Update docstring.
+	Improve :type.  Change :set function.
+	(bat-generic-mode-syntax-table, rul-generic-mode-syntax-table):
+	Fix docstring.
+
+	* emacs-lisp/generic.el (generic-mode-internal):
+	Simplify font-lock-defaults.
+	(define-generic-mode): Fix docstring.
+
+2005-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords): Use the
+	font-lock-face property to highlight matches.
+
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el: (cc-create-define-alist): New function.
+	(cc-define-alist): New variable.
+	(c-mode): Make it local and initialise it.
+
+	* progmodes/gdb-ui.el (gdb-active-process): New variable.
+	(gdb-exited): New function.
+	(gdb-annotation-rules): Use it.
+	(gdb-starting): Set gdb-active-process to t.
+	(gdb-stopping): Amend doc string.
+	(gdb-reset): Set gdb-active-process to nil.
+
+	* tooltip.el (tooltip-gud-tips): Show the associated #define
+	directives when a C program under GDB is not executing.
+
+2005-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode): Don't precompile the
+	font-lock-fontify-syntactic-keywords.
+
+	* font-lock.el (font-lock-default-fontify-region): Don't force
+	parse-sexp-lookup-properties to nil.
+
+2005-04-27  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* man.el (man-mode-syntax-table): Set up `:' to have
+	word-constituent syntax.
+
+2005-04-27  Lute Kamstra  <lute@gnu.org>
+
+	* novice.el (disable-command): Don't add spurious newlines to the
+	init file.  Reported by Dan Jacobson <jidanni@jidanni.org>.
+
+2005-04-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-yank.el (calc-edit-finish): Make sure there is more
+	than one window before deleting window.
+
+2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* shell.el (shell-prompt-pattern): Doc fix.
+	(shell-mode): Set paragraph-separate buffer locally to "\\'".
+
+	* comint.el (comint-prompt-regexp, comint-get-old-input)
+	(comint-use-prompt-regexp)
+	(comint-use-prompt-regexp-instead-of-fields)
+	(comint-replace-by-expanded-history, comint-send-input)
+	(comint-output-filter, comint-get-old-input-default)
+	(comint-line-beginning-position, comint-bol, comint-show-output)
+	(comint-backward-matching-input, comint-forward-matching-input)
+	(comint-next-prompt, comint-previous-prompt):
+	Rename `comint-use-prompt-regexp-instead-of-fields' to
+	`comint-use-prompt-regexp'.  Keep old name as alias and declare
+	obsolete.
+	(comint-use-prompt-regexp): Shorten first line of doc string.
+
+	* ielm.el (inferior-emacs-lisp-mode): Adapt to above name change.
+	Set paragraph-separate buffer locally to "\\'".
+
+	* hippie-exp.el (try-expand-line, try-expand-line-all-buffers):
+	Adapt to above name change.
+
+	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp)
+	(smbclient-prompt-regexp): Ditto.
+
+	* progmodes/inf-lisp.el (inferior-lisp-prompt): Ditto.
+
+2005-04-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-location-alist): Rename from
+	gdb-location-list.
+	Break lines that are over 80 characters wide.
+
+2005-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-info.el (cvs-fileinfo->full-path, cvs-display-full-path):
+	New fun and var, to preserve compatibility.
+
+	* pcvs.el, pcvs-info.el: Rename "full-path" -> "full-name".
+
+2005-04-26  Dominique de Waleffe  <ddw@missioncriticalit.com>  (tiny change)
+
+	* pcvs-info.el (cvs-fileinfo->backup-file): Don't pass the full file
+	name to file-newer-than-file-p.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-1): Avoid using vertical-motion in easy cases.
+
+	* progmodes/python.el (python-mode):
+	Use new name eldoc-documentation-function.
+
+	* hexl.el (hexl-mode): Use new name eldoc-documentation-function.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
+	(eldoc-documentation-function):
+	Rename from eldoc-print-current-symbol-info-function.  Calls changed.
+
+2005-04-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias): New macro.
+
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el (function-key-map): Fix strings for
-	{C,S,A,C-S}-f[1-4]. Use substitute-key-definition to bind 
+	{C,S,A,C-S}-f[1-4].  Use substitute-key-definition to bind
 	{C,S,A,C-S}-{f1-f12}.
 
 2005-04-26  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-safe-coding-system): Fix
-	previous change.
+	* international/mule-cmds.el (select-safe-coding-system):
+	Fix previous change.
 
 2005-04-26  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix docstring.
+
+	* font-lock.el (font-lock-fontify-region-function): Fix docstring.
+	(font-lock-comment-delimiter-face): Ditto.
 
 	* calc/calc.el (calc-trail-mode): Don't set font-lock-defaults.
 
@@ -21,8 +260,7 @@
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (ansi-term-color-vector): Use the xterm colors.
-	(term-raw-map): Don't add mappings for \eO and \e[. Map
-	deletechar.
+	(term-raw-map): Don't add mappings for \eO and \e[. Map deletechar.
 
 2005-04-25  Lute Kamstra  <lute@gnu.org>
 
@@ -32,8 +270,8 @@
 
 2005-04-25  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule-cmds.el (select-safe-coding-system): Don't
-	check consistency with coding: spec, etc if raw-text or
+	* international/mule-cmds.el (select-safe-coding-system):
+	Don't check consistency with coding: spec, etc if raw-text or
 	no-conversion was found to be safe.
 
 2005-04-24  Richard M. Stallman  <rms@gnu.org>
@@ -182,13 +420,13 @@
 	not quadratic.  Suggested by David Kastrup <dak@gnu.org>.
 	(rassq-delete-all): New function.
 
-	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): Add
-	size-indication-mode.
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
+	Add size-indication-mode.
 
 2005-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el: Add autoload for widget-value in
-	eval-when-compile
+	eval-when-compile.
 
 2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -559,8 +797,8 @@
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-buffer-leading)
-	(whitespace-buffer-trailing): Revert the incorrect test
-	inversion. However, fix the highlight area for the leading and
+	(whitespace-buffer-trailing): Revert the incorrect test inversion.
+	However, fix the highlight area for the leading and
 	trailing whitespaces to show space.
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>

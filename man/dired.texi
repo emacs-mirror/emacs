@@ -1161,6 +1161,32 @@ if in a subdirectory.)  As a special case, if point is on a directory
 headerline, @kbd{w} gives you the absolute name of that directory.
 Any prefix argument or marked files are ignored in this case.
 
+@findex dired-compare-directories
+  The command @kbd{M-x dired-compare-directories} is used to compare
+the current Dired buffer with another directory.  It marks all the files
+that are ``different'' between the two directories.  It puts these marks
+in all Dired buffers where these files are listed, which of course includes
+the current buffer.
+
+  The default comparison method (used if you type @key{RET} at the
+prompt) is to compare just the file names---each file name that does
+not appear in the other directory is ``different''.  You can specify
+more stringent comparisons by entering a Lisp expression, which can
+refer to the variables @code{size1} and @code{size2}, the respective
+file sizes; @code{mtime1} and @code{mtime2}, the last modification
+times in seconds, as floating point numers; and @code{fa1} and
+@code{fa2}, the respective file attribute lists (as returned by the
+function @code{file-attributes}).  This expression is evaluated for
+each pair of like-named files, and if the expression's value is
+non-@code{nil}, those files are considered ``different''.
+
+  For instance, @code{M-x dired-compare-directories @key{RET} (>
+mtime1 mtime2) @key{RET}} marks files newer in this directory than in
+the other, and marks files older in the other directory than in this
+one.  It also marks files with no counterpart, in both directories, as
+always.
+
+@cindex drag and drop, Dired
   On the X window system, Emacs supports the ``drag and drop''
 protocol.  You can drag a file object from another program, and drop
 it onto a Dired buffer; this either moves, copies, or creates a link

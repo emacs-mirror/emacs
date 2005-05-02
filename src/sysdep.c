@@ -1793,10 +1793,16 @@ get_tty_size (int fd, int *widthp, int *heightp)
 #else
 #ifdef VMS
 
+  /* Use a fresh channel since the current one may have stale info
+     (for example, from prior to a suspend); and to avoid a dependency
+     in the init sequence.  */
+  int chan;
   struct sensemode tty;
 
-  SYS$QIOW (0, fd, IO$_SENSEMODE, &tty, 0, 0,
-	    &tty.class, 12, 0, 0, 0, 0);
+  SYS$ASSIGN (&input_dsc, &chan, 0, 0);
+  SYS$QIOW (0, chan, IO$_SENSEMODE, &tty, 0, 0,
+            &tty.class, 12, 0, 0, 0, 0);
+  SYS$DASSGN (chan);
   *widthp = tty.scr_wid;
   *heightp = tty.scr_len;
 

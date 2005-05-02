@@ -136,8 +136,9 @@ Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
 This variable is used to initialise `comint-prompt-regexp' in the
 shell buffer.
 
-This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil.
+If `comint-use-prompt-regexp' is nil, then this variable is only used
+to determine paragraph boundaries.  See Info node `Shell Prompts' for
+how Shell mode treats paragraphs.
 
 The pattern should probably not match more than one line.  If it does,
 Shell mode may become confused trying to distinguish prompt from input
@@ -422,6 +423,7 @@ buffer."
   (setq comint-file-name-chars shell-file-name-chars)
   (setq comint-file-name-quote-list shell-file-name-quote-list)
   (setq comint-dynamic-complete-functions shell-dynamic-complete-functions)
+  (set (make-local-variable 'paragraph-separate) "\\'")
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
   (make-local-variable 'font-lock-defaults)

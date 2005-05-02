@@ -7901,8 +7901,6 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
   const char *s = (const char *) a1;
   Lisp_Object string = a2;
 
-  xassert (BEG == Z);
-
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
       != !NILP (current_buffer->enable_multibyte_characters))

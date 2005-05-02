@@ -453,29 +453,46 @@ If TOOLTIP-GUD-DEREFERENCE is t, also prepend a `*' to EXPR."
   "Show tip for identifier or selection under the mouse.
 The mouse must either point at an identifier or inside a selected
 region for the tip window to be shown.  If tooltip-gud-dereference is t,
-add a `*' in front of the printed expression.
+add a `*' in front of the printed expression. In the case of a C program
+controlled by GDB, show the associated #define directives when program is
+not executing.
 
 This function must return nil if it doesn't handle EVENT."
   (let (process)
     (when (and (eventp event)
 	       tooltip-gud-tips-p
 	       (boundp 'gud-comint-buffer)
+	       gud-comint-buffer
+	       (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
 	       (setq process (get-buffer-process gud-comint-buffer))
 	       (posn-point (event-end event))
-	       (progn (setq tooltip-gud-event event)
-		      (eval (cons 'and tooltip-gud-display))))
+	       (or (eq gud-minor-mode 'gdba)
+		   (progn (setq tooltip-gud-event event)
+			  (eval (cons 'and tooltip-gud-display)))))
       (let ((expr (tooltip-expr-to-print event)))
 	(when expr
-	  (let ((cmd (tooltip-gud-print-command expr)))
-	    (unless (null cmd)	       ; CMD can be nil if unknown debugger
-	      (case gud-minor-mode
-		    (gdba (gdb-enqueue-input
-			   (list  (concat cmd "\n") 'gdb-tooltip-print)))
-		    (t
-		     (setq tooltip-gud-original-filter (process-filter process))
-		       (set-process-filter process 'tooltip-gud-process-output)
-		       (gud-basic-call cmd)))
-		    expr)))))))
+	  (if (and (eq gud-minor-mode 'gdba)
+		   (not gdb-active-process))
+	      (progn
+		(with-current-buffer
+		    (window-buffer (let ((mouse (mouse-position)))
+				     (window-at (cadr mouse)
+						(cddr mouse))))
+		  (when (boundp 'cc-define-alist) ; might be a Fortran program
+		    (let ((define-elt (assoc expr cc-define-alist)))
+		      (unless (null define-elt)
+			(tooltip-show (cdr define-elt))
+			expr)))))
+	    (let ((cmd (tooltip-gud-print-command expr)))
+	      (unless (null cmd) ; CMD can be nil if unknown debugger
+		(case gud-minor-mode
+		  (gdba (gdb-enqueue-input
+			 (list  (concat cmd "\n") 'gdb-tooltip-print)))
+		  (t
+		   (setq tooltip-gud-original-filter (process-filter process))
+		   (set-process-filter process 'tooltip-gud-process-output)
+	       	  (gud-basic-call cmd)))
+		expr))))))))
 
 (defun gdb-tooltip-print ()
   (tooltip-show

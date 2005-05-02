@@ -2761,14 +2761,12 @@ BACKUPNAME is the backup file name, which is the old file renamed."
 		       (condition-case nil
 			   (delete-file to-name)
 			 (file-error nil))
-		       (write-region "" nil to-name nil 'silent nil 'excl)
+		       (copy-file from-name to-name t t 'excl)
 		       nil)
 		   (file-already-exists t))
-	    ;; the file was somehow created by someone else between
-	    ;; `make-temp-name' and `write-region', let's try again.
-	    nil)
-;	  (copy-file from-name to-name t t 'excl))
-	  (copy-file from-name to-name t t))
+	    ;; The file was somehow created by someone else between
+	    ;; `delete-file' and `copy-file', so let's try again.
+	    nil))
       ;; Reset the umask.
       (set-default-file-modes umask)))
   (and modes

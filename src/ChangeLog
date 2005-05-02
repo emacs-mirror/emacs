@@ -1,3 +1,52 @@
+2005-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* sysdep.c (get_frame_size) [VMS]: Use a fresh i/o channel.
+
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffind_file_name_handler): Handle the `operations'
+	property of the file name handler.
+	(Qoperations): New variable.
+	(syms_of_fileio): Initialize and staticpro it.
+
+	* xdisp.c (set_message_1): Delete xassert.
+
+2005-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include time.h.  Include sysselect.h after
+	systime.h.
+
+	* macfns.c (Fx_server_version): Add BLOCK_INPUT around Gestalt.
+
+	* macgui.h [HAVE_CARBON && MAC_OSX]: Don't undefine/define mktime
+	before/after including Carbon.h if there is a working mktime.
+
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (resolve_face_name): Add arg SIGNAL_P.  Calls changed.
+	Fix cyclic alias check.  If alias loop is detected, signal
+	circular-list error if SIGNAL_P, and return Qdefault if !SIGNAL_P.
+
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* eval.c (do_autoload): Record only autoloads in the autoload
+	property of symbols.
+
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs.c (USAGE1): Add --basic-display and --quick options.
+
+2005-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* data.c (syms_of_data) Staticpro Qcyclic_variable_indirection.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fsame_window_p, Fspecial_display_p): Doc fixes.
+	(syms_of_window): Doc fixes.
+
+	* indent.c (Fvertical_motion): Undo previous change.
+
 2005-04-26  Kenichi Handa  <handa@m17n.org>
 
 	* fns.c (char_table_range): New function.
@@ -61,7 +110,7 @@
 	[USE_CARBON_EVENTS && MAC_OSX] (Qpreferences, Qservices, Qpaste)
 	(Qperform): New variables.
 	(syms_of_mac) [USE_CARBON_EVENTS && MAC_OSX]: Initialize them.
-	(do_get_menus) [!TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
+	(do_get_menus) [TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
 	(do_menu_choice): Unhighlight menu bar also when menu_id is 0.
 	(mac_store_application_menu_event, init_menu_bar): New functions.
 	[USE_CARBON_EVENTS] (mac_handle_command_event)

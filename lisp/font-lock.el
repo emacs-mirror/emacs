@@ -466,12 +466,12 @@ user-level keywords, but normally their values have been
 optimized.")
 
 (defvar font-lock-keywords-alist nil
-  "*Alist of `font-lock-keywords' local to a `major-mode'.
+  "Alist of `font-lock-keywords' local to a `major-mode'.
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-removed-keywords-alist nil
-  "*Alist of `font-lock-keywords' removed from `major-mode'.
+  "Alist of `font-lock-keywords' removed from `major-mode'.
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
@@ -568,8 +568,8 @@ This is normally set via `font-lock-defaults'.")
 (defvar font-lock-fontify-region-function 'font-lock-default-fontify-region
   "Function to use for fontifying a region.
 It should take two args, the beginning and end of the region, and an optional
-third arg VERBOSE.  If non-nil, the function should print status messages.
-This is normally set via `font-lock-defaults'.")
+third arg VERBOSE.  If VERBOSE is non-nil, the function should print status
+messages.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-unfontify-region-function 'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
@@ -664,9 +664,9 @@ For example:
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
 
-When used from an elisp package (such as a minor mode), it is recommended
-to use nil for MODE (and place the call in a loop or on a hook) to avoid
-subtle problems due to details of the implementation.
+When used from a Lisp program (such as a minor mode), it is recommended to
+use nil for MODE (and place the call on a hook) to avoid subtle problems
+due to details of the implementation.
 
 Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
@@ -707,9 +707,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 		    (font-lock-compile-keywords font-lock-keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords append)
-  ;; Update `font-lock-removed-keywords-alist' when adding new
-  ;; KEYWORDS to MODE.
-  ;;
+  "Update `font-lock-removed-keywords-alist' when adding new KEYWORDS to MODE."
   ;; When font-lock is enabled first all keywords in the list
   ;; `font-lock-keywords-alist' are added, then all keywords in the
   ;; list `font-lock-removed-keywords-alist' are removed.  If a
@@ -757,9 +755,9 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are removed for the current buffer.
 
-When used from an elisp package (such as a minor mode), it is recommended
-to use nil for MODE (and place the call in a loop or on a hook) to avoid
-subtle problems due to details of the implementation."
+When used from a Lisp program (such as a minor mode), it is recommended to
+use nil for MODE (and place the call on a hook) to avoid subtle problems
+due to details of the implementation."
   (cond (mode
 	 ;; Remove one keyword at the time.
 	 (dolist (keyword keywords)
@@ -1008,7 +1006,8 @@ a very meaningful entity to highlight.")
 
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
-      ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
+      ((parse-sexp-lookup-properties
+        (or parse-sexp-lookup-properties font-lock-syntactic-keywords))
        (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
@@ -1637,7 +1636,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8) (background dark))
      (:foreground "red1"))
     (t (:weight bold :slant italic)))
-  "Font Lock mode face used to highlight comments."
+  "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-comment-face

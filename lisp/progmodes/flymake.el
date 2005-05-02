@@ -62,7 +62,8 @@
     (replace-in-string str regexp rep)))
 
 (defun flymake-split-string (str pattern)
-  "Split, then remove first and/or last in case it's empty."
+  "Split STR into a list of substrings bounded by PATTERN.
+Zero-length substrings at the beginning and end of the list are omitted."
   (let* ((splitted (split-string str pattern)))
     (if (and (> (length splitted) 0) (= 0 (length (elt splitted 0))))
 	(setq splitted (cdr splitted)))
@@ -86,7 +87,12 @@
     (lambda (&optional arg) (save-excursion (end-of-line arg) (point)))))
 
 (defun flymake-popup-menu (pos menu-data)
-  (if (and (fboundp 'popup-menu) (fboundp 'make-event))
+  "Pop up the flymake menu at position POS, using the data MENU-DATA.
+POS is a list of the form ((X Y) WINDOW), where X and Y are
+pixels positions from the top left corner of WINDOW's frame.
+MENU-DATA is a list of error and warning messages returned by
+`flymake-make-err-menu-data'."
+  (if (featurep 'xemacs)
       (let* ((x-pos       (nth 0 (nth 0 pos)))
 	     (y-pos       (nth 1 (nth 0 pos)))
 	     (fake-event-props  '(button 1 x 1 y 1)))
@@ -96,6 +102,10 @@
     (x-popup-menu pos (flymake-make-emacs-menu menu-data))))
 
 (defun flymake-make-emacs-menu (menu-data)
+  "Return a menu specifier using MENU-DATA.
+MENU-DATA is a list of error and warning messages returned by
+`flymake-make-err-menu-data'.
+See `x-popup-menu' for the menu specifier format."
   (let* ((menu-title     (nth 0 menu-data))
 	 (menu-items     (nth 1 menu-data))
 	 (menu-commands  nil))
@@ -109,6 +119,7 @@
 (defun flymake-nop ())
 
 (defun flymake-make-xemacs-menu (menu-data)
+  "Return a menu specifier using MENU-DATA."
   (let* ((menu-title     (nth 0 menu-data))
 	 (menu-items     (nth 1 menu-data))
 	 (menu-commands  nil))
@@ -152,7 +163,11 @@
   :type 'integer)
 
 (defun flymake-log (level text &rest args)
-  "Log a message with optional arguments."
+  "Log a message at level LEVEL.
+If LEVEL is higher than `flymake-log-level', the message is
+ignored.  Otherwise, it is printed using `message'.
+TEXT is a format control string, and the remaining arguments ARGS
+are the string substitutions (see `format')."
   (if (<= level flymake-log-level)
       (let* ((msg (apply 'format text args)))
 	(message msg)
@@ -176,68 +191,36 @@
     tmp))
 
 (defvar flymake-pid-to-names (flymake-makehash)
-  "pid -> source buffer name, output file name mapping.")
+  "Hash table mapping PIDs to source buffer names and output files.")
 
 (defun flymake-reg-names (pid source-buffer-name)
-  "Save into in PID map."
+  "Associate PID with SOURCE-BUFFER-NAME in `flymake-pid-to-names'."
   (unless (stringp source-buffer-name)
     (error "Invalid buffer name"))
   (puthash pid (list source-buffer-name) flymake-pid-to-names))
 
 (defun flymake-get-source-buffer-name (pid)
-  "Return buffer name stored in PID map."
+  "Return buffer name associated with PID in `flymake-pid-to-names'."
   (nth 0 (gethash pid flymake-pid-to-names)))
 
 (defun flymake-unreg-names (pid)
-  "Delete PID->buffer name mapping."
+  "Remove the entry associated with PID from `flymake-pid-to-names'."
   (remhash pid flymake-pid-to-names))
-
-(defun flymake-get-buffer-var (buffer var-name)
-  "Switch to BUFFER if necessary and return local variable VAR-NAME."
-  (unless (bufferp buffer)
-    (error "Invalid buffer"))
-
-  (if (eq buffer (current-buffer))
-      (symbol-value var-name)
-    (with-current-buffer buffer
-      (symbol-value var-name))))
-
-(defun flymake-set-buffer-var (buffer var-name var-value)
-  "Switch to BUFFER if necessary and set local variable VAR-NAME to VAR-VALUE."
-  (unless (bufferp buffer)
-    (error "Invalid buffer"))
-
-  (if (eq buffer (current-buffer))
-      (set var-name var-value)
-    (with-current-buffer buffer
-      (set var-name var-value))))
 
 (defvar flymake-buffer-data (flymake-makehash)
   "Data specific to syntax check tool, in name-value pairs.")
 
 (make-variable-buffer-local 'flymake-buffer-data)
 
-(defun flymake-get-buffer-data (buffer)
-  (flymake-get-buffer-var buffer 'flymake-buffer-data))
-
-(defun flymake-set-buffer-data (buffer data)
-  (flymake-set-buffer-var buffer 'flymake-buffer-data data))
-
 (defun flymake-get-buffer-value (buffer name)
-  (gethash name (flymake-get-buffer-data buffer)))
+  (gethash name (with-current-buffer buffer flymake-buffer-data)))
 
 (defun flymake-set-buffer-value (buffer name value)
-  (puthash name value (flymake-get-buffer-data buffer)))
+  (puthash name value (with-current-buffer buffer flymake-buffer-data)))
 
 (defvar flymake-output-residual nil)
 
 (make-variable-buffer-local 'flymake-output-residual)
-
-(defun flymake-get-buffer-output-residual (buffer)
-  (flymake-get-buffer-var buffer 'flymake-output-residual))
-
-(defun flymake-set-buffer-output-residual (buffer residual)
-  (flymake-set-buffer-var buffer 'flymake-output-residual residual))
 
 (defcustom flymake-allowed-file-name-masks
   '((".+\\.c$" flymake-simple-make-init flymake-simple-cleanup flymake-get-real-file-name)
@@ -642,35 +625,38 @@ It's flymake process filter."
 
 		  (flymake-parse-residual source-buffer)
 		  (flymake-post-syntax-check source-buffer exit-status command)
-		  (flymake-set-buffer-is-running source-buffer nil))))
+		  (setq flymake-is-running nil))))
 	  (error
 	   (let ((err-str (format "Error in process sentinel for buffer %s: %s"
 				  source-buffer (error-message-string err))))
 	     (flymake-log 0 err-str)
-	     (flymake-set-buffer-is-running source-buffer nil)))))))
+	     (with-current-buffer source-buffer
+	       (setq flymake-is-running nil))))))))
 
 (defun flymake-post-syntax-check (source-buffer exit-status command)
-  (flymake-set-buffer-err-info source-buffer (flymake-get-buffer-new-err-info source-buffer))
-  (flymake-set-buffer-new-err-info source-buffer nil)
-
-  (flymake-set-buffer-err-info source-buffer (flymake-fix-line-numbers
-					      (flymake-get-buffer-err-info source-buffer)
-					      1
-					      (flymake-count-lines source-buffer)))
+  (with-current-buffer source-buffer
+    (setq flymake-err-info flymake-new-err-info)
+    (setq flymake-new-err-info nil)
+    (setq flymake-err-info
+	  (flymake-fix-line-numbers
+	   flymake-err-info 1 (flymake-count-lines source-buffer))))
   (flymake-delete-own-overlays source-buffer)
-  (flymake-highlight-err-lines source-buffer (flymake-get-buffer-err-info source-buffer))
-
-  (let ((err-count   (flymake-get-err-count (flymake-get-buffer-err-info source-buffer) "e"))
-	(warn-count  (flymake-get-err-count (flymake-get-buffer-err-info source-buffer) "w")))
-
-    (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
+  (flymake-highlight-err-lines
+   source-buffer (with-current-buffer source-buffer flymake-err-info))
+  (let (err-count warn-count)
+    (with-current-buffer source-buffer
+      (setq err-count (flymake-get-err-count flymake-err-info "e"))
+      (setq warn-count  (flymake-get-err-count flymake-err-info "w"))
+      (flymake-log 2 "%s: %d error(s), %d warning(s) in %.2f second(s)"
 		 (buffer-name source-buffer) err-count warn-count
-		 (- (flymake-float-time) (flymake-get-buffer-check-start-time source-buffer)))
-    (flymake-set-buffer-check-start-time source-buffer nil)
+		 (- (flymake-float-time) flymake-check-start-time))
+      (setq flymake-check-start-time nil))
+
     (if (and (equal 0 err-count) (equal 0 warn-count))
 	(if (equal 0 exit-status)
 	    (flymake-report-status source-buffer "" "")	; PASSED
-	  (if (not (flymake-get-buffer-check-was-interrupted source-buffer))
+	  (if (not (with-current-buffer source-buffer
+		     flymake-check-was-interrupted))
 	      (flymake-report-fatal-status (current-buffer) "CFGERR"
 					   (format "Configuration error has occured while running %s" command))
 	    (flymake-report-status source-buffer nil ""))) ; "STOPPED"
@@ -679,37 +665,33 @@ It's flymake process filter."
 (defun flymake-parse-output-and-residual (source-buffer output)
   "Split OUTPUT into lines, merge in residual if necessary."
   (with-current-buffer source-buffer
-    (let* ((buffer-residual     (flymake-get-buffer-output-residual source-buffer))
+    (let* ((buffer-residual     flymake-output-residual)
 	   (total-output        (if buffer-residual (concat buffer-residual output) output))
 	   (lines-and-residual  (flymake-split-output total-output))
 	   (lines               (nth 0 lines-and-residual))
 	   (new-residual        (nth 1 lines-and-residual)))
-
-      (flymake-set-buffer-output-residual source-buffer new-residual)
-      (flymake-set-buffer-new-err-info source-buffer (flymake-parse-err-lines
-						      (flymake-get-buffer-new-err-info source-buffer)
-						      source-buffer lines)))))
+      (with-current-buffer source-buffer
+	(setq flymake-output-residual new-residual)
+	(setq flymake-new-err-info
+	      (flymake-parse-err-lines
+	       flymake-new-err-info
+	       source-buffer lines))))))
 
 (defun flymake-parse-residual (source-buffer)
   "Parse residual if it's non empty."
   (with-current-buffer source-buffer
-    (when (flymake-get-buffer-output-residual source-buffer)
-      (flymake-set-buffer-new-err-info source-buffer (flymake-parse-err-lines
-						      (flymake-get-buffer-new-err-info source-buffer)
-						      source-buffer
-						      (list (flymake-get-buffer-output-residual source-buffer))))
-      (flymake-set-buffer-output-residual source-buffer nil))))
+    (when flymake-output-residual
+      (setq flymake-new-err-info
+	    (flymake-parse-err-lines
+	     flymake-new-err-info
+	     source-buffer
+	     (list flymake-output-residual)))
+      (setq flymake-output-residual nil))))
 
 (defvar flymake-err-info nil
   "Sorted list of line numbers and lists of err info in the form (file, err-text).")
 
 (make-variable-buffer-local 'flymake-err-info)
-
-(defun flymake-get-buffer-err-info (buffer)
-  (flymake-get-buffer-var buffer 'flymake-err-info))
-
-(defun flymake-set-buffer-err-info (buffer err-info)
-  (flymake-set-buffer-var buffer 'flymake-err-info err-info))
 
 (defun flymake-er-make-er (line-no line-err-info-list)
   (list line-no line-err-info-list))
@@ -724,12 +706,6 @@ It's flymake process filter."
   "Same as 'flymake-err-info', effective when a syntax check is in progress.")
 
 (make-variable-buffer-local 'flymake-new-err-info)
-
-(defun flymake-get-buffer-new-err-info (buffer)
-  (flymake-get-buffer-var buffer 'flymake-new-err-info))
-
-(defun flymake-set-buffer-new-err-info (buffer new-err-info)
-  (flymake-set-buffer-var buffer 'flymake-new-err-info new-err-info))
 
 ;; getters/setters for line-err-info: (file, line, type, text).
 (defun flymake-ler-make-ler (file line type text &optional full-file)
@@ -1067,7 +1043,11 @@ Return its components if so, nil if no."
 	       (and (not (flymake-ler-get-file line-one)) (not (flymake-ler-get-file line-two)))))))
 
 (defun flymake-add-line-err-info (line-err-info-list line-err-info)
-  "Insert new err info favoring sorting: err-type e/w, filename nil/non-nil."
+  "Update LINE-ERR-INFO-LIST with the error LINE-ERR-INFO.
+For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'.
+The new element is inserted in the proper position, according to
+the predicate `flymake-line-err-info-is-less-or-equal'.
+The updated value of LINE-ERR-INFO-LIST is returned."
   (if (not line-err-info-list)
       (list line-err-info)
     (let* ((count  (length line-err-info-list))
@@ -1079,7 +1059,10 @@ Return its components if so, nil if no."
       line-err-info-list)))
 
 (defun flymake-add-err-info (err-info-list line-err-info)
-  "Add error info (file line type text) to err info list preserving sort order."
+  "Update ERR-INFO-LIST with the error LINE-ERR-INFO, preserving sort order.
+Returns the updated value of ERR-INFO-LIST.
+For the format of ERR-INFO-LIST, see `flymake-err-info'.
+For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (let* ((line-no             (if (flymake-ler-get-file line-err-info) 1 (flymake-ler-get-line line-err-info)))
 	 (info-and-pos        (flymake-find-err-info err-info-list line-no))
 	 (exists              (car info-and-pos))
@@ -1202,16 +1185,16 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (unless (bufferp buffer)
     (error "Expected a buffer"))
   (with-current-buffer buffer
-    (flymake-log 3 "flymake is running: %s" (flymake-get-buffer-is-running buffer))
-    (when (and (not (flymake-get-buffer-is-running buffer))
+    (flymake-log 3 "flymake is running: %s" flymake-is-running)
+    (when (and (not flymake-is-running)
 	       (flymake-can-syntax-check-file (buffer-file-name buffer)))
       (when (or (not flymake-compilation-prevents-syntax-check)
 		(not (flymake-compilation-is-running)))	;+ (flymake-rep-ort-status buffer "COMP")
 	(flymake-clear-buildfile-cache)
 	(flymake-clear-project-include-dirs-cache)
 
-	(flymake-set-buffer-check-was-interrupted buffer nil)
-	(flymake-set-buffer-data buffer (flymake-makehash 'equal))
+	(setq flymake-check-was-interrupted nil)
+	(setq flymake-buffer-data (flymake-makehash 'equal))
 
 	(let* ((source-file-name  (buffer-file-name buffer))
 	       (init-f (flymake-get-init-function source-file-name))
@@ -1225,7 +1208,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 		(flymake-log 0 "init function %s for %s failed, cleaning up" init-f source-file-name)
 		(funcall cleanup-f buffer))
 	    (progn
-	      (flymake-set-buffer-last-change-time buffer nil)
+	      (setq flymake-last-change-time nil)
 	      (flymake-start-syntax-check-process buffer cmd args dir))))))))
 
 (defun flymake-start-syntax-check-process (buffer cmd args dir)
@@ -1242,9 +1225,10 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
 	  (flymake-reg-names (process-id process) (buffer-name buffer))
 
-	  (flymake-set-buffer-is-running buffer t)
-	  (flymake-set-buffer-last-change-time buffer nil)
-	  (flymake-set-buffer-check-start-time buffer (flymake-float-time))
+	  (with-current-buffer buffer
+	    (setq flymake-is-running t)
+	    (setq flymake-last-change-time nil)
+	    (setq flymake-check-start-time (flymake-float-time)))
 
 	  (flymake-report-status buffer nil "*")
 	  (flymake-log 2 "started process %d, command=%s, dir=%s"
@@ -1264,7 +1248,8 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (signal-process pid 9)
   (let* ((buffer-name (flymake-get-source-buffer-name pid)))
     (when (and buffer-name (get-buffer buffer-name))
-      (flymake-set-buffer-check-was-interrupted (get-buffer buffer-name) t)))
+      (with-current-buffer (get-buffer buffer-name)
+	(setq flymake-check-was-interrupted t))))
   (flymake-log 1 "killed process %d" pid))
 
 (defun flymake-stop-all-syntax-checks ()
@@ -1288,55 +1273,25 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
 (make-variable-buffer-local 'flymake-is-running)
 
-(defun flymake-get-buffer-is-running (buffer)
-  (flymake-get-buffer-var buffer 'flymake-is-running))
-
-(defun flymake-set-buffer-is-running (buffer is-running)
-  (flymake-set-buffer-var buffer 'flymake-is-running is-running))
-
 (defvar flymake-timer nil
   "Timer for starting syntax check.")
 
 (make-variable-buffer-local 'flymake-timer)
-
-(defun flymake-get-buffer-timer (buffer)
-  (flymake-get-buffer-var buffer 'flymake-timer))
-
-(defun flymake-set-buffer-timer (buffer timer)
-  (flymake-set-buffer-var buffer 'flymake-timer timer))
 
 (defvar flymake-last-change-time nil
   "Time of last buffer change.")
 
 (make-variable-buffer-local 'flymake-last-change-time)
 
-(defun flymake-get-buffer-last-change-time (buffer)
-  (flymake-get-buffer-var buffer 'flymake-last-change-time))
-
-(defun flymake-set-buffer-last-change-time (buffer change-time)
-  (flymake-set-buffer-var buffer 'flymake-last-change-time change-time))
-
 (defvar flymake-check-start-time nil
   "Time at which syntax check was started.")
 
 (make-variable-buffer-local 'flymake-check-start-time)
 
-(defun flymake-get-buffer-check-start-time (buffer)
-  (flymake-get-buffer-var buffer 'flymake-check-start-time))
-
-(defun flymake-set-buffer-check-start-time (buffer check-start-time)
-  (flymake-set-buffer-var buffer 'flymake-check-start-time check-start-time))
-
 (defvar flymake-check-was-interrupted nil
   "Non-nil if syntax check was killed by `flymake-compile'.")
 
 (make-variable-buffer-local 'flymake-check-was-interrupted)
-
-(defun flymake-get-buffer-check-was-interrupted (buffer)
-  (flymake-get-buffer-var buffer 'flymake-check-was-interrupted))
-
-(defun flymake-set-buffer-check-was-interrupted (buffer interrupted)
-  (flymake-set-buffer-var buffer 'flymake-check-was-interrupted interrupted))
 
 (defcustom flymake-no-changes-timeout 0.5
   "Time to wait after last change before starting compilation."
@@ -1345,12 +1300,13 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
 (defun flymake-on-timer-event (buffer)
   "Start a syntax check for buffer BUFFER if necessary."
-  ;;+(flymake-log 3 "timer: running=%s, time=%s, cur-time=%s" (flymake-get-buffer-is-running buffer) (flymake-get-buffer-last-change-time buffer) (flymake-float-time))
-  (when (and (bufferp buffer) (not (flymake-get-buffer-is-running buffer)))
+  (when (bufferp buffer)
     (with-current-buffer buffer
-      (when (and (flymake-get-buffer-last-change-time buffer)
-		 (> (flymake-float-time) (+ flymake-no-changes-timeout (flymake-get-buffer-last-change-time buffer))))
-	(flymake-set-buffer-last-change-time buffer nil)
+      (when (and (not flymake-is-running)
+		 flymake-last-change-time
+		 (> (flymake-float-time) (+ flymake-no-changes-timeout flymake-last-change-time)))
+
+	(setq flymake-last-change-time nil)
 	(flymake-log 3 "starting syntax check as more than 1 second passed since last change")
 	(flymake-start-syntax-check buffer)))))
 
@@ -1391,7 +1347,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   "Display a menu with errors/warnings for current line if it has errors and/or warnings."
   (interactive)
   (let* ((line-no             (flymake-current-line-no))
-	 (line-err-info-list  (nth 0 (flymake-find-err-info (flymake-get-buffer-err-info (current-buffer)) line-no)))
+	 (line-err-info-list  (nth 0 (flymake-find-err-info flymake-err-info line-no)))
 	 (menu-data           (flymake-make-err-menu-data line-no line-err-info-list))
 	 (choice              nil)
 	 (mouse-pos           (flymake-get-point-pixel-pos))
@@ -1442,46 +1398,27 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 
 (make-variable-buffer-local 'flymake-mode-line)
 
-(defun flymake-get-buffer-mode-line (buffer)
-  (flymake-get-buffer-var buffer 'flymake-mode-line))
-
-(defun flymake-set-buffer-mode-line (buffer mode-line-string)
-  (flymake-set-buffer-var buffer 'flymake-mode-line mode-line-string))
-
 (defvar flymake-mode-line-e-w nil)
 
 (make-variable-buffer-local 'flymake-mode-line-e-w)
 
-(defun flymake-get-buffer-mode-line-e-w (buffer)
-  (flymake-get-buffer-var buffer 'flymake-mode-line-e-w))
-
-(defun flymake-set-buffer-mode-line-e-w (buffer e-w)
-  (flymake-set-buffer-var buffer 'flymake-mode-line-e-w e-w))
-
 (defvar flymake-mode-line-status nil)
 
 (make-variable-buffer-local 'flymake-mode-line-status)
-
-(defun flymake-get-buffer-mode-line-status (buffer)
-  (flymake-get-buffer-var buffer 'flymake-mode-line-status))
-
-(defun flymake-set-buffer-mode-line-status (buffer status)
-  (flymake-set-buffer-var buffer 'flymake-mode-line-status status))
 
 (defun flymake-report-status (buffer e-w &optional status)
   "Show status in mode line."
   (when (bufferp buffer)
     (with-current-buffer buffer
       (when e-w
-	(flymake-set-buffer-mode-line-e-w buffer e-w)
-	)
+	(setq flymake-mode-line-e-w e-w))
       (when status
-	(flymake-set-buffer-mode-line-status buffer status))
+	(setq flymake-mode-line-status status))
       (let* ((mode-line " Flymake"))
-	(when (> (length (flymake-get-buffer-mode-line-e-w buffer)) 0)
-	  (setq mode-line (concat mode-line ":"  (flymake-get-buffer-mode-line-e-w buffer))))
-	(setq mode-line (concat mode-line (flymake-get-buffer-mode-line-status buffer)))
-	(flymake-set-buffer-mode-line buffer mode-line)
+	(when (> (length flymake-mode-line-e-w) 0)
+	  (setq mode-line (concat mode-line ":" flymake-mode-line-e-w)))
+	(setq mode-line (concat mode-line flymake-mode-line-status))
+	(setq flymake-mode-line mode-line)
 	(force-mode-line-update)))))
 
 (defun flymake-display-warning (warning)
@@ -1532,7 +1469,8 @@ With arg, turn Flymake mode on if and only if arg is positive."
 
     (flymake-report-status (current-buffer) "" "")
 
-    (flymake-set-buffer-timer (current-buffer) (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
+    (setq flymake-timer
+	  (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
     (setq flymake-mode t)
     (flymake-log 1 "flymake mode turned ON for buffer %s" (buffer-name (current-buffer)))
@@ -1550,12 +1488,11 @@ With arg, turn Flymake mode on if and only if arg is positive."
 
     (flymake-delete-own-overlays (current-buffer))
 
-    (when (flymake-get-buffer-timer (current-buffer))
-      (cancel-timer (flymake-get-buffer-timer (current-buffer)))
-      (flymake-set-buffer-timer (current-buffer) nil))
+    (when flymake-timer
+      (cancel-timer flymake-timer)
+      (setq flymake-timer nil))
 
-    (flymake-set-buffer-is-running (current-buffer) nil)
-
+    (setq flymake-is-running nil)
     (setq flymake-mode nil)
     (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name (current-buffer)))))
 
@@ -1571,7 +1508,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     (when (and flymake-start-syntax-check-on-newline (equal new-text "\n"))
       (flymake-log 3 "starting syntax check as new-line has been seen")
       (flymake-start-syntax-check-for-current-buffer))
-    (flymake-set-buffer-last-change-time (current-buffer) (flymake-float-time))))
+    (setq flymake-last-change-time (flymake-float-time))))
 
 (defun flymake-after-save-hook ()
   (if (local-variable-p 'flymake-mode (current-buffer))	; (???) other way to determine whether flymake is active in buffer being saved?
@@ -1580,9 +1517,9 @@ With arg, turn Flymake mode on if and only if arg is positive."
 	(flymake-start-syntax-check-for-current-buffer)))) ; no more mode 3. cannot start check if mode 3 (to temp copies) is active - (???)
 
 (defun flymake-kill-buffer-hook ()
-  (when (flymake-get-buffer-timer (current-buffer))
-    (cancel-timer (flymake-get-buffer-timer (current-buffer)))
-    (flymake-set-buffer-timer (current-buffer) nil)))
+  (when flymake-timer
+    (cancel-timer flymake-timer)
+    (setq flymake-timer nil)))
 
 (defun flymake-find-file-hook ()
   ;;+(when flymake-start-syntax-check-on-find-file
@@ -1636,9 +1573,9 @@ With arg, turn Flymake mode on if and only if arg is positive."
 (defun flymake-goto-next-error ()
   "Go to next error in err ring."
   (interactive)
-  (let ((line-no (flymake-get-next-err-line-no (flymake-get-buffer-err-info (current-buffer)) (flymake-current-line-no))))
+  (let ((line-no (flymake-get-next-err-line-no flymake-err-info (flymake-current-line-no))))
     (when (not line-no)
-      (setq line-no (flymake-get-first-err-line-no (flymake-get-buffer-err-info (current-buffer))))
+      (setq line-no (flymake-get-first-err-line-no flymake-err-info))
       (flymake-log 1 "passed end of file"))
     (if line-no
 	(flymake-goto-line line-no)
@@ -1647,9 +1584,9 @@ With arg, turn Flymake mode on if and only if arg is positive."
 (defun flymake-goto-prev-error ()
   "Go to prev error in err ring."
   (interactive)
-  (let ((line-no (flymake-get-prev-err-line-no (flymake-get-buffer-err-info (current-buffer)) (flymake-current-line-no))))
+  (let ((line-no (flymake-get-prev-err-line-no flymake-err-info (flymake-current-line-no))))
     (when (not line-no)
-      (setq line-no (flymake-get-last-err-line-no (flymake-get-buffer-err-info (current-buffer))))
+      (setq line-no (flymake-get-last-err-line-no flymake-err-info))
       (flymake-log 1 "passed beginning of file"))
     (if line-no
 	(flymake-goto-line line-no)
@@ -1721,7 +1658,8 @@ With arg, turn Flymake mode on if and only if arg is positive."
 Delete temp file."
   (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
     (flymake-safe-delete-file temp-source-file-name)
-    (flymake-set-buffer-last-change-time buffer nil)))
+    (with-current-buffer buffer
+      (setq flymake-last-change-time nil))))
 
 (defun flymake-get-real-file-name (buffer file-name-from-err-msg)
   "Translate file name from error message to \"real\" file name.

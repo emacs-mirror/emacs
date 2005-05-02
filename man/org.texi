@@ -1,9 +1,10 @@
 \input texinfo
 @c %**start of header
+@c @setfilename org
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.06
+@set VERSION 3.08
 @set DATE April 2005
 
 @dircategory Emacs
@@ -76,9 +77,9 @@ Software Foundation raise funds for GNU development.''
 @menu
 * Introduction::                Getting started
 * Document Structure::          A tree works like your brain
-* TODO items::                  Every tree branch can be a TODO item
 * Tables::                      Pure magic for quick formatting
 * Hyperlinks::                  Notes in context
+* TODO items::                  Every tree branch can be a TODO item
 * Timestamps::                  Assign date and time to items
 * Timeline and Agenda::         Use time-stamped items to produce an agenda
 * Exporting::                   Sharing and publishing of notes
@@ -93,6 +94,7 @@ Introduction
 
 * Summary::                     Brief summary of what Org-mode does
 * Installation and Activation::  How to install Org-mode
+* Feedback::                    Bug reportes, ideas, patches etc.
 
 Document Structure
 
@@ -102,6 +104,17 @@ Document Structure
 * Motion::                      Jumping to other headlines
 * Structure editing::           Changing sequence and level of headlines
 * Sparse trees::                Matches embedded in context
+
+Tables
+
+* Built-in table editor::       Simple tables
+* table.el::                    Complex tables
+* orgtbl-mode::                 The table editor as minor mode
+
+Hyperlinks
+
+* Links::                       URL-like links to the world
+* Remember::                    Org-trees store quick notes
 
 TODO items
 
@@ -114,17 +127,6 @@ Extended use of TODO keywords
 * Workflow states::             From TODO to DONE in steps
 * TODO types::                  I do this, Fred the rest
 * Per file keywords::           Different files, different requirements
-
-Tables
-
-* Built-in table editor::       Simple tables
-* table.el::                    Complex tables
-* orgtbl-mode::                 The table editor as minor mode
-
-Hyperlinks
-
-* Links::                       URL-like links to the world
-* Remember::                    Org-trees store quick notes
 
 Timestamps
 
@@ -169,6 +171,7 @@ Miscellaneous
 @menu
 * Summary::                     Brief summary of what Org-mode does
 * Installation and Activation::  How to install Org-mode
+* Feedback::                    Bug reportes, ideas, patches etc.
 @end menu
 
 @node Summary, Installation and Activation, Introduction, Introduction
@@ -214,7 +217,7 @@ and example files.  This page is located at
 
 @page
 
-@node Installation and Activation,  , Summary, Introduction
+@node Installation and Activation, Feedback, Summary, Introduction
 @section Installation and Activation
 @cindex installation
 @cindex autoload
@@ -263,7 +266,32 @@ MY PROJECTS    -*- mode: org; -*-
 the file's name is.  See also the variable
 @code{org-insert-mode-line-in-empty-file'}. 
 
-@node Document Structure, TODO items, Introduction, Top
+@node Feedback,  , Installation and Activation, Introduction
+@section Feedback
+@cindex feedback
+@cindex bug reports
+@cindex maintainer
+@cindex author
+
+If you find problems with Org-mode, or if you have questions, remarks,
+or ideas about it, please contact the maintainer Carsten Dominik at
+@value{MAINTAINEREMAIL}.
+
+For bug reports, please provide as much information as possible,
+including the version information of Emacs (@kbd{C-h v emacs-version
+@key{RET}}) and Org-mode (@kbd{M-x org-version}), as well as the
+Org-mode related setup in @file{.emacs}.  If an error occurs, a
+traceback can be very useful.  Often a small example file helps, along
+with clear information about:
+@enumerate
+@item What exactly did you do?
+@item What did you expect to happen?
+@item What happened instead?
+@end enumerate
+@noindent Thanks for helping to improve this mode.
+
+
+@node Document Structure, Tables, Introduction, Top
 @chapter Document Structure
 @cindex document structure
 @cindex structure of document
@@ -503,209 +531,7 @@ Or you can use the command @kbd{C-c C-x v} to copy the visible part of
 the document to another file (extension @file{.txt}) which then can be
 printed in any desired way.
 
-@node TODO items, Tables, Document Structure, Top
-@chapter TODO items
-@cindex TODO items
-
-Org-mode does not maintain TODO lists as a separate document.  TODO
-items are an integral part of the notes file, because TODO items
-usually come up while taking notes!  With Org-mode, you simply mark
-any entry in a tree as being a TODO item.  In this way, the
-information is not duplicated, and the entire context from which the
-item emerged is always present when you check.
-
-Of course, this technique causes TODO items to be scattered throughout
-your file.  Org-mode provides methods to give you an overview over all
-things you have to do.
-
-@menu
-* TODO basics::                 Marking and displaying TODO entries
-* TODO extensions::             Workflow and assignments
-* Priorities::                  Some things are more important than others
-@end menu
-
-@node TODO basics, TODO extensions, TODO items, TODO items
-@section Basic TODO functionality
-
-Any headline can become a TODO item by starting it with the word TODO,
-for example
-
-@example
-*** TODO Write letter to Sam Fortune
-@end example
-
-@noindent
-The most important commands to work with TODO entries are:
-
-@table @kbd
-@kindex C-c C-t
-@item C-c C-t
-Rotate the TODO state of the current item between
-@example
-,-> (unmarked) -> TODO -> DONE --.
-'--------------------------------'
-@end example
-The same rotation can also be done ``remotely'' from the timeline and
-agenda buffers with the @kbd{t} command key (@pxref{Agenda commands}).
-@kindex C-c C-v
-@cindex sparse tree, for TODO
-@item C-c C-v
-View TODO items in a @emph{sparse tree} (@pxref{Sparse trees}).  Folds
-the entire buffer, but shows all TODO items and the headings hierarchy
-above them.  With prefix arg, show also the DONE entries.
-@item C-u C-c a
-A @kbd{C-u} argument to the @code{org-agenda command} (@pxref{Agenda})
-collects all unfinished TODO items into a single place.
-@end table
-
-@node TODO extensions, Priorities, TODO basics, TODO items
-@section Extended use of TODO keywords
-@cindex extended TODO keywords
-
-The default implementation of TODO entries is just two states:  TODO
-and DONE.  You can, however, use the TODO feature for more
-complicated things by configuring the variables
-@code{org-todo-keywords} and @code{org-todo-interpretation}.  Using
-special setup, you can even use TODO keywords in different ways in
-different org files.
-
-@menu
-* Workflow states::             From TODO to DONE in steps
-* TODO types::                  I do this, Fred the rest
-* Per file keywords::           Different files, different requirements
-@end menu
-
-@node Workflow states, TODO types, TODO extensions, TODO extensions
-@subsection TODO keywords as workflow states
-@cindex TODO workflow
-@cindex workflow states as TODO keywords
-
-You can use TODO keywords to indicate different states in the process
-of working on an item, for example
-
-@lisp
-(setq org-todo-keywords '("TODO" "FEEDBACK" "VERIFY" "DONE")
-      org-todo-interpretation 'sequence)
-@end lisp
-
-With this setup, the command @kbd{C-c C-t} will cycle an entry from
-TODO to FEEDBACK, then to VERIFY, and finally too DONE.  You may also
-use a prefix argument to quickly select a specific state.  For example
-@kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
-If you define many keywords, you can use in-buffer completion (see
-@ref{Completion}) to insert these words into the buffer.
-
-@node TODO types, Per file keywords, Workflow states, TODO extensions
-@subsection TODO keywords as types
-@cindex TODO types
-@cindex names as TODO keywords
-@cindex types as TODO keywords
-
-The second possibility is to use TODO keywords to indicate different
-types of action items.  For example, you might want to indicate that
-items are for ``work'' or ``home''.  Or, when you work with several
-people on a single project, you might want to assign action items
-directly to persons, by using their names as TODO keywords.  This
-would be set up like this:
-
-@lisp
-(setq org-todo-keywords '("Fred" "Sara" "Lucy" "Mike" "DONE")
-      org-todo-interpretation 'type)
-@end lisp
-
-In this case, different keywords do not indicate a sequence, but
-rather different types.  So it is normally not useful to change from
-one type to another.  Therefore, in this case the the behavior of the
-command @kbd{C-c C-t} is changed slightly@footnote{This is also true
-for the @kbd{t} command in the timeline and agenda buffers}.  When
-used several times in succession, it will still cycle through all
-names.  But when when you return to the item after some time and
-execute @kbd{C-c C-t} again, it will switch from each name directly to
-DONE.  Use prefix arguments or completion to quickly select a specific
-name.
-
-@node Per file keywords,  , TODO types, TODO extensions
-@subsection Setting up TODO keywords for individual files
-@cindex keyword options
-@cindex per file keywords
-
-It can be very useful to use different aspects of the TODO mechanism
-in different files, which is not possible with the global settings
-described above.  For file-local settings, you need to add special
-lines to the file which set the keywords and interpretation for that
-file only.  For example, to set one of the two examples discussed
-above, you need one of the following lines, starting in column zero
-anywhere in the file:
-
-@example
-#+SEQ_TODO: TODO FEEDBACK VERIFY DONE
-#+TYP_TODO: Fred Sara Lucy Mike DONE
-@end example
-
-@cindex Completing option keywords
-@kindex M-@key{TAB}
-@noindent To make sure you are using the correct keyword, type
-@samp{#+} into the buffer and then use @kbd{M-@key{TAB}} completion.
-
-@cindex DONE, final TODO keyword
-Remember that the last keyword must always mean that the item is DONE
-(you may use a different word, though).  Also note that in each file,
-only one of the two aspects of TODO keywords can be used.  After
-changing one of these lines, use @kbd{C-c C-c} with the cursor still
-in the line to make the changes known to Org-mode@footnote{Org-mode
-parses these lines only when Org-mode is activated after visiting a
-file.  @kbd{C-c C-c} with the cursor in a line starting with @samp{#-}
-is simply restarting Org-mode, making sure that these changes will be
-respected.}. 
-
-If you want to use very many keywords, for example when working with a
-large group of people, you may split the names over several lines:
-
-@example
-#+TYP_TODO: Fred Sara Lucy Mike
-#+TYP_TODO: Luis George Jules Jessica
-#+TYP_TODO: Kim Arnold Peter
-#+TYP_TODO: DONE
-@end example
-
-@node Priorities,  , TODO extensions, TODO items
-@section Priorities
-@cindex priorities
-
-If you use Org-mode extensively to organize your work, you may end up
-with a number of TODO entries so large that you'd like to prioritize
-them.  This can be done by placing a @emph{priority cookie} into the
-headline, like this
-
-@example
-*** TODO [#A] Write letter to Sam Fortune
-@end example
-
-@noindent
-With its standard setup, Org-mode supports priorities @samp{A},
-@samp{B}, and @samp{C}.  @samp{A} is the highest priority.  An entry
-without a cookie is treated as priority @samp{B}.  Priorities make a
-difference only in the agenda (@pxref{Agenda}).
-
-@table @kbd
-@kindex @kbd{C-c ,}
-@item @kbd{C-c ,}
-Set the priority of the current item.  The command prompts for a
-priority character @samp{A}, @samp{B} or @samp{C}.  When you press
-@key{SPC} instead, the priority cookie is removed from the headline.
-The priorities can also be changed ``remotely'' from the timeline and
-agenda buffer with the @kbd{,} command (@pxref{Agenda commands}).
-
-@kindex S-@key{up}
-@kindex S-@key{down}
-@item S-@key{up}
-@itemx S-@key{down}
-Increase/decrease priority of current item.  Note that these keys are
-also used to modify time stamps (@pxref{Creating timestamps}).
-@end table
-
-
-@node Tables, Hyperlinks, TODO items, Top
+@node Tables, Hyperlinks, Document Structure, Top
 @chapter Tables
 @cindex tables
 
@@ -951,14 +777,14 @@ possible.
 
 If you like the intuitive way the Org-mode table editor works, you
 might want to use it also in other modes like text-mode or mail-mode.
-The minor mode Orgtbl-mode make this possible.  You can always toggle
+The minor mode Orgtbl-mode makes this possible.  You can always toggle
 the mode with @kbd{M-x orgtbl-mode}.  To turn it on by default, for
 example in mail mode, use
 @lisp
 (add-hook 'mail-mode-hook 'turn-on-orgtbl)
 @end lisp
 
-@node Hyperlinks, Timestamps, Tables, Top
+@node Hyperlinks, TODO items, Tables, Top
 @chapter Hyperlinks
 @cindex hyperlinks
 
@@ -1006,7 +832,8 @@ shell:ls *.org                           @r{A shell command}
 @end example
 
 A link may contain space characters and is terminated by the end of
-the line.  Therefore, there can be only one link per line (but see the
+the line or, in tables, by the end of the table field.  Therefore,
+outside of tables there can be only one link per line (but see the
 variable @code{org-allow-space-in-links}).
 
 @cindex storing links
@@ -1115,7 +942,210 @@ additional data.  If the variable @code{org-adapt-indentation} is
 non-nil, the entire text is also indented so that it starts in the
 same column as the headline (after the asterisks).
 
-@node Timestamps, Timeline and Agenda, Hyperlinks, Top
+@node TODO items, Timestamps, Hyperlinks, Top
+@chapter TODO items
+@cindex TODO items
+
+Org-mode does not maintain TODO lists as a separate document.  TODO
+items are an integral part of the notes file, because TODO items
+usually come up while taking notes!  With Org-mode, you simply mark
+any entry in a tree as being a TODO item.  In this way, the
+information is not duplicated, and the entire context from which the
+item emerged is always present when you check.
+
+Of course, this technique causes TODO items to be scattered throughout
+your file.  Org-mode provides methods to give you an overview over all
+things you have to do.
+
+@menu
+* TODO basics::                 Marking and displaying TODO entries
+* TODO extensions::             Workflow and assignments
+* Priorities::                  Some things are more important than others
+@end menu
+
+@node TODO basics, TODO extensions, TODO items, TODO items
+@section Basic TODO functionality
+
+Any headline can become a TODO item by starting it with the word TODO,
+for example
+
+@example
+*** TODO Write letter to Sam Fortune
+@end example
+
+@noindent
+The most important commands to work with TODO entries are:
+
+@table @kbd
+@kindex C-c C-t
+@item C-c C-t
+Rotate the TODO state of the current item between
+@example
+,-> (unmarked) -> TODO -> DONE --.
+'--------------------------------'
+@end example
+The same rotation can also be done ``remotely'' from the timeline and
+agenda buffers with the @kbd{t} command key (@pxref{Agenda commands}).
+@kindex C-c C-v
+@cindex sparse tree, for TODO
+@item C-c C-v
+View TODO items in a @emph{sparse tree} (@pxref{Sparse trees}).  Folds
+the entire buffer, but shows all TODO items and the headings hierarchy
+above them.  With prefix arg, show also the DONE entries.
+@item C-u C-c a
+A @kbd{C-u} argument to the @code{org-agenda command} (@pxref{Agenda})
+collects all unfinished TODO items into a single place.
+@end table
+
+@node TODO extensions, Priorities, TODO basics, TODO items
+@section Extended use of TODO keywords
+@cindex extended TODO keywords
+
+The default implementation of TODO entries is just two states:  TODO
+and DONE.  You can, however, use the TODO feature for more
+complicated things by configuring the variables
+@code{org-todo-keywords} and @code{org-todo-interpretation}.  Using
+special setup, you can even use TODO keywords in different ways in
+different org files.
+
+@menu
+* Workflow states::             From TODO to DONE in steps
+* TODO types::                  I do this, Fred the rest
+* Per file keywords::           Different files, different requirements
+@end menu
+
+@node Workflow states, TODO types, TODO extensions, TODO extensions
+@subsection TODO keywords as workflow states
+@cindex TODO workflow
+@cindex workflow states as TODO keywords
+
+You can use TODO keywords to indicate different states in the process
+of working on an item, for example
+
+@lisp
+(setq org-todo-keywords '("TODO" "FEEDBACK" "VERIFY" "DONE")
+      org-todo-interpretation 'sequence)
+@end lisp
+
+With this setup, the command @kbd{C-c C-t} will cycle an entry from
+TODO to FEEDBACK, then to VERIFY, and finally too DONE.  You may also
+use a prefix argument to quickly select a specific state.  For example
+@kbd{C-3 C-c C-t} will change the state immediately to VERIFY.
+If you define many keywords, you can use in-buffer completion (see
+@ref{Completion}) to insert these words into the buffer.
+
+@node TODO types, Per file keywords, Workflow states, TODO extensions
+@subsection TODO keywords as types
+@cindex TODO types
+@cindex names as TODO keywords
+@cindex types as TODO keywords
+
+The second possibility is to use TODO keywords to indicate different
+types of action items.  For example, you might want to indicate that
+items are for ``work'' or ``home''.  Or, when you work with several
+people on a single project, you might want to assign action items
+directly to persons, by using their names as TODO keywords.  This
+would be set up like this:
+
+@lisp
+(setq org-todo-keywords '("Fred" "Sara" "Lucy" "Mike" "DONE")
+      org-todo-interpretation 'type)
+@end lisp
+
+In this case, different keywords do not indicate a sequence, but
+rather different types.  So it is normally not useful to change from
+one type to another.  Therefore, in this case the the behavior of the
+command @kbd{C-c C-t} is changed slightly@footnote{This is also true
+for the @kbd{t} command in the timeline and agenda buffers}.  When
+used several times in succession, it will still cycle through all
+names.  But when when you return to the item after some time and
+execute @kbd{C-c C-t} again, it will switch from each name directly to
+DONE.  Use prefix arguments or completion to quickly select a specific
+name.
+
+@node Per file keywords,  , TODO types, TODO extensions
+@subsection Setting up TODO keywords for individual files
+@cindex keyword options
+@cindex per file keywords
+
+It can be very useful to use different aspects of the TODO mechanism
+in different files, which is not possible with the global settings
+described above.  For file-local settings, you need to add special
+lines to the file which set the keywords and interpretation for that
+file only.  For example, to set one of the two examples discussed
+above, you need one of the following lines, starting in column zero
+anywhere in the file:
+
+@example
+#+SEQ_TODO: TODO FEEDBACK VERIFY DONE
+#+TYP_TODO: Fred Sara Lucy Mike DONE
+@end example
+
+@cindex Completing option keywords
+@kindex M-@key{TAB}
+@noindent To make sure you are using the correct keyword, type
+@samp{#+} into the buffer and then use @kbd{M-@key{TAB}} completion.
+
+@cindex DONE, final TODO keyword
+Remember that the last keyword must always mean that the item is DONE
+(you may use a different word, though).  Also note that in each file,
+only one of the two aspects of TODO keywords can be used.  After
+changing one of these lines, use @kbd{C-c C-c} with the cursor still
+in the line to make the changes known to Org-mode@footnote{Org-mode
+parses these lines only when Org-mode is activated after visiting a
+file.  @kbd{C-c C-c} with the cursor in a line starting with @samp{#-}
+is simply restarting Org-mode, making sure that these changes will be
+respected.}. 
+
+If you want to use very many keywords, for example when working with a
+large group of people, you may split the names over several lines:
+
+@example
+#+TYP_TODO: Fred Sara Lucy Mike
+#+TYP_TODO: Luis George Jules Jessica
+#+TYP_TODO: Kim Arnold Peter
+#+TYP_TODO: DONE
+@end example
+
+@node Priorities,  , TODO extensions, TODO items
+@section Priorities
+@cindex priorities
+
+If you use Org-mode extensively to organize your work, you may end up
+with a number of TODO entries so large that you'd like to prioritize
+them.  This can be done by placing a @emph{priority cookie} into the
+headline, like this
+
+@example
+*** TODO [#A] Write letter to Sam Fortune
+@end example
+
+@noindent
+With its standard setup, Org-mode supports priorities @samp{A},
+@samp{B}, and @samp{C}.  @samp{A} is the highest priority.  An entry
+without a cookie is treated as priority @samp{B}.  Priorities make a
+difference only in the agenda (@pxref{Agenda}).
+
+@table @kbd
+@kindex @kbd{C-c ,}
+@item @kbd{C-c ,}
+Set the priority of the current item.  The command prompts for a
+priority character @samp{A}, @samp{B} or @samp{C}.  When you press
+@key{SPC} instead, the priority cookie is removed from the headline.
+The priorities can also be changed ``remotely'' from the timeline and
+agenda buffer with the @kbd{,} command (@pxref{Agenda commands}).
+
+@kindex S-@key{up}
+@kindex S-@key{down}
+@item S-@key{up}
+@itemx S-@key{down}
+Increase/decrease priority of current item.  Note that these keys are
+also used to modify time stamps (@pxref{Creating timestamps}).
+@end table
+
+
+
+@node Timestamps, Timeline and Agenda, TODO items, Top
 @chapter Timestamps
 
 Items can be labeled with timestamps to make them useful for project
@@ -1415,10 +1445,11 @@ with a special line anywhere in the buffer, looking like this:
 @end example
 @noindent
 After changing this line, press @kbd{C-c C-c} with the cursor still in
-the line, to make the changes know to org-mode.  Otherwise, the change
-will only be active the next time you visit this file with Emacs.
+the line, to make the changes known to org-mode.  Otherwise, the
+change will only be active the next time you visit this file with
+Emacs.
 
-The display in the agenda buffer looks best if the category is no
+The display in the agenda buffer looks best if the category is not
 longer than 10 characters.
 
 @subsection Sorting of agenda items
@@ -2078,10 +2109,9 @@ Org mode cooperates with table.el, see @ref{table.el}.
 @cindex acknowledgments
 
 Org-mode was written by Carsten Dominik, who still maintains it at the
-Org-mode homepage
-@uref{http://www.astro.uva.nl/~dominik/Tools/org/}.  The following
-people have helped the development along with ideas, suggestions and
-patches. 
+Org-mode homepage @uref{http://www.astro.uva.nl/~dominik/Tools/org/}.
+The following people have helped the development along with ideas,
+suggestions and patches.
 
 @itemize @bullet
 @item
@@ -2112,6 +2142,9 @@ Oliver Oppitz sent several useful suggestions.
 @item
 Carsten Wimmer suggested some changes and helped fix a bug in linking
 to GNUS.
+@item
+Stefan Monnier provided a patch with lots of little fixes to keep the
+Emacs-Lisp compiler happy.
 @end itemize
 
 @node Bugs,  , Acknowledgments, Miscellaneous
@@ -2153,6 +2186,7 @@ The exporters work well, but could be made more efficient.
 @printindex ky
 
 @bye
+
 
 @ignore
    arch-tag: 7893d1fe-cc57-4d13-b5e5-f494a1bcc7ac

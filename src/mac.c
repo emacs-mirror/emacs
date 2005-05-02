@@ -24,12 +24,11 @@ Boston, MA 02111-1307, USA.  */
 
 #include <stdio.h>
 #include <errno.h>
-#include <time.h>
 
 #include "lisp.h"
 #include "process.h"
-#include "sysselect.h"
 #include "systime.h"
+#include "sysselect.h"
 #include "blockinput.h"
 
 #include "macterm.h"

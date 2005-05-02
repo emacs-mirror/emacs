@@ -103,6 +103,8 @@ Fundamental mode.  Rmail mode is a complicated and specialized mode.
 * Mode Help::               Finding out how to use a mode.
 * Derived Modes::           Defining a new major mode based on another major
                               mode.
+* Generic Modes::           Defining a simple major mode that supports
+                              comment syntax and Font Lock mode.
 * Mode Hooks::              Hooks run at the end of major mode functions.
 @end menu
 
@@ -253,6 +255,11 @@ variable @code{imenu-generic-expression}, for the pair of variables
 @code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function}, or for the variable
 @code{imenu-create-index-function} (@pxref{Imenu}).
+
+@item
+The mode can specify a local value for
+@code{eldoc-documentation-function} to tell ElDoc mode how to handle
+this mode.
 
 @item
 Use @code{defvar} or @code{defcustom} to set mode-related variables, so
@@ -793,6 +800,7 @@ mode.
 
 @node Derived Modes
 @subsection Defining Derived Modes
+@cindex derived mode
 
   It's often useful to define a new major mode in terms of an existing
 one.  An easy way to do this is to use @code{define-derived-mode}.
@@ -853,6 +861,57 @@ Here is a hypothetical example:
 
 Do not write an @code{interactive} spec in the definition;
 @code{define-derived-mode} does that automatically.
+@end defmac
+
+@node Generic Modes
+@subsection Generic Modes
+@cindex generic mode
+
+@dfn{Generic modes} are simple major modes with basic support for
+comment syntax and Font Lock mode.  They are primarily useful for
+configuration files.  To define a generic mode, use the macro
+@code{define-generic-mode}.  See the file @file{generic-x.el} for some
+examples of the use of @code{define-generic-mode}.
+
+@defmac define-generic-mode mode comment-list keyword-list font-lock-list auto-mode-list function-list &optional docstring &rest custom-keyword-args
+This macro creates a new generic mode.  The argument @var{mode} (an
+unquoted symbol) is the major mode command.  The optional argument
+@var{docstring} is the documentation for the mode command.  If you do
+not supply it, @code{define-generic-mode} uses a default documentation
+string instead.
+
+@var{comment-list} is a list in which each element is either a
+character, a string of one or two characters, or a cons cell.  A
+character or a string is set up in the mode's syntax table as a
+``comment starter.''  If the entry is a cons cell, the @sc{car} is set
+up as a ``comment starter'' and the @sc{cdr} as a ``comment ender.''
+(Use @code{nil} for the latter if you want comments to end at the end
+of the line.)  Note that the syntax table has limitations about what
+comment starters and enders are actually possible.  @xref{Syntax
+Tables}.
+
+@var{keyword-list} is a list of keywords to highlight with
+@code{font-lock-keyword-face}.  Each keyword should be a string.
+@var{font-lock-list} is a list of additional expressions to highlight.
+Each element of this list should have the same form as an element of
+@code{font-lock-keywords}.  @xref{Search-based Fontification}.
+
+@var{auto-mode-list} is a list of regular expressions to add to the
+variable @code{auto-mode-alist}.  These regular expressions are added
+when Emacs runs the macro expansion.
+
+@var{function-list} is a list of functions to call to do some
+additional setup.  The mode command calls these functions just before
+it runs the mode hook.
+
+The optional @var{custom-keyword-args} are pairs of keywords and
+values to include in the generated @code{defcustom} form for the mode
+hook variable @code{@var{mode}-hook}.  The default value for the
+@samp{:group} keyword is @var{mode} with the final @samp{-mode} (if
+any) removed.  Don't use this default group name unless you have
+written a @code{defgroup} to define that group properly (@pxref{Group
+Definitions}).  You can specify keyword arguments without specifying a
+docstring.
 @end defmac
 
 @node Mode Hooks
@@ -1129,9 +1188,10 @@ corresponding values.  A few keywords have special meanings:
 @table @code
 @item :group @var{group}
 Custom group name to use in all generated @code{defcustom} forms.
-Defaults to @var{mode} without the possible trailing @samp{-mode}.  Be
-aware that this default may not be a valid customization group defined
-with @code{defgroup}.  Please make sure it is.
+Defaults to @var{mode} without the possible trailing @samp{-mode}.
+@strong{Warning:} don't use this default group name unless you have
+written a @code{defgroup} to define that group properly.  @xref{Group
+Definitions}.
 
 @item :global @var{global}
 If non-@code{nil} specifies that the minor mode should be global.
@@ -2020,12 +2080,11 @@ most major modes define syntactic criteria for which faces to use in
 which contexts.  This section explains how to customize Font Lock for a
 particular major mode.
 
-  Font Lock mode finds text to highlight in two ways: through syntactic
-parsing based on the syntax table, and through searching (usually for
-regular expressions).  Syntactic fontification happens first; it finds
-comments and string constants, and highlights them using
-@code{font-lock-comment-face} and @code{font-lock-string-face}
-(@pxref{Faces for Font Lock}).  Search-based fontification follows.
+  Font Lock mode finds text to highlight in two ways: through
+syntactic parsing based on the syntax table, and through searching
+(usually for regular expressions).  Syntactic fontification happens
+first; it finds comments and string constants and highlights them.
+Search-based fontification happens second.
 
 @menu
 * Font Lock Basics::            Overview of customizing Font Lock.
@@ -2036,7 +2095,8 @@ comments and string constants, and highlights them using
 * Precalculated Fontification:: How Lisp programs that produce the buffer
                                   contents can also specify how to fontify it.
 * Faces for Font Lock::         Special faces specifically for Font Lock.
-* Syntactic Font Lock::         Defining character syntax based on context
+* Syntactic Font Lock::         Fontification based on syntax tables.
+* Setting Syntax Properties::   Defining character syntax based on context
                                   using the Font Lock mechanism.
 @end menu
 
@@ -2051,45 +2111,48 @@ Lock mode is enabled, to set all the other variables.
 
 @defvar font-lock-defaults
 This variable is set by major modes, as a buffer-local variable, to
-specify how to fontify text in that mode.  The value should look like
-this:
+specify how to fontify text in that mode.  It automatically becomes
+buffer-local when you set it.  The value should look like this:
 
 @example
-(@var{keywords} @var{keywords-only} @var{case-fold}
- @var{syntax-alist} @var{syntax-begin} @var{other-vars}@dots{})
+(@var{keywords} [@var{keywords-only} [@var{case-fold}
+ [@var{syntax-alist} [@var{syntax-begin} @var{other-vars}@dots{}]]]])
 @end example
 
 The first element, @var{keywords}, indirectly specifies the value of
-@code{font-lock-keywords}.  It can be a symbol, a variable whose value
-is the list to use for @code{font-lock-keywords}.  It can also be a list of
-several such symbols, one for each possible level of fontification.  The
-first symbol specifies how to do level 1 fontification, the second
-symbol how to do level 2, and so on.
+@code{font-lock-keywords} which directs search-based fontification.
+It can be a symbol, a variable or a function whose value is the list
+to use for @code{font-lock-keywords}.  It can also be a list of
+several such symbols, one for each possible level of fontification.
+The first symbol specifies how to do level 1 fontification, the second
+symbol how to do level 2, and so on.  @xref{Levels of Font Lock}.
 
 The second element, @var{keywords-only}, specifies the value of the
 variable @code{font-lock-keywords-only}.  If this is non-@code{nil},
 syntactic fontification (of strings and comments) is not performed.
+@xref{Syntactic Font Lock}.
 
 The third element, @var{case-fold}, specifies the value of
-@code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil}, Font Lock
-mode ignores case when searching as directed by
+@code{font-lock-keywords-case-fold-search}.  If it is non-@code{nil},
+Font Lock mode ignores case when searching as directed by
 @code{font-lock-keywords}.
 
-If the fourth element, @var{syntax-alist}, is non-@code{nil}, it should be
-a list of cons cells of the form @code{(@var{char-or-string}
+If the fourth element, @var{syntax-alist}, is non-@code{nil}, it
+should be a list of cons cells of the form @code{(@var{char-or-string}
 . @var{string})}.  These are used to set up a syntax table for
-fontification (@pxref{Syntax Table Functions}).  The resulting syntax
-table is stored in @code{font-lock-syntax-table}.
+syntactic fontification (@pxref{Syntax Table Functions}).  The
+resulting syntax table is stored in @code{font-lock-syntax-table}.
 
 The fifth element, @var{syntax-begin}, specifies the value of
-@code{font-lock-beginning-of-syntax-function} (see below).
+@code{font-lock-beginning-of-syntax-function}.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
-@code{(@var{variable} . @var{value})}---which means, make @var{variable}
-buffer-local and then set it to @var{value}.  You can use these
-@var{other-vars} to set other variables that affect fontification,
-aside from those you can control with the first five elements.
+@code{(@var{variable} . @var{value})}---which means, make
+@var{variable} buffer-local and then set it to @var{value}.  You can
+use these @var{other-vars} to set other variables that affect
+fontification, aside from those you can control with the first five
+elements.  @xref{Other Font Lock Variables}.
 @end defvar
 
 @node Search-based Fontification
@@ -2097,7 +2160,8 @@ aside from those you can control with the first five elements.
 
   The most important variable for customizing Font Lock mode is
 @code{font-lock-keywords}.  It specifies the search criteria for
-search-based fontification.
+search-based fontification.  You should specify the value of this
+variable with @var{keywords} in @code{font-lock-defaults}.
 
 @defvar font-lock-keywords
 This variable's value is a list of the keywords to highlight.  Be
@@ -2187,7 +2251,8 @@ other text property names that you set in this way to the value of
 @code{font-lock-extra-managed-props} so that the properties will also
 be cleared out when they are no longer appropriate.  Alternatively,
 you can set the variable @code{font-lock-unfontify-region-function} to
-a function that clears these properties.
+a function that clears these properties.  @xref{Other Font Lock
+Variables}.
 
 @item (@var{matcher} . @var{subexp-highlighter})
 In this kind of element, @var{subexp-highlighter} is a list
@@ -2307,6 +2372,7 @@ this value of @code{font-lock-keywords} is used in a buffer.
 Its value should have one of the forms described in this table.
 @end table
 
+@vindex font-lock-multiline
 @strong{Warning:} Do not design an element of @code{font-lock-keywords}
 to match text which spans lines; this does not work reliably.  While
 @code{font-lock-fontify-buffer} handles multi-line patterns correctly,
@@ -2317,52 +2383,75 @@ line but can occasionally span two or three, such as
 setting @code{font-lock-multiline} to @code{t}.  But it still will not
 work in all cases.
 
-@node Other Font Lock Variables
-@subsection Other Font Lock Variables
-
-  This section describes additional variables that a major mode
-can set by means of @code{font-lock-defaults}.
-
-@defvar font-lock-keywords-only
-Non-@code{nil} means Font Lock should not fontify comments or strings
-syntactically; it should only fontify based on
-@code{font-lock-keywords}.
-@end defvar
-
-@ignore
-Other variables include those for buffer-specialized fontification functions,
-`font-lock-fontify-buffer-function', `font-lock-unfontify-buffer-function',
-`font-lock-fontify-region-function', `font-lock-unfontify-region-function',
-`font-lock-inhibit-thing-lock' and `font-lock-maximum-size'.
-@end ignore
+You can use @var{case-fold} in @code{font-lock-defaults} to specify
+the value of @code{font-lock-keywords-case-fold-search} which says
+whether search-based fontification should be case-insensitive.
 
 @defvar font-lock-keywords-case-fold-search
 Non-@code{nil} means that regular expression matching for the sake of
 @code{font-lock-keywords} should be case-insensitive.
 @end defvar
 
-@defvar font-lock-syntax-table
-This variable specifies the syntax table to use for fontification of
-comments and strings.
-@end defvar
+You can use @code{font-lock-add-keywords} to add additional
+search-based fontification rules to a major mode, and
+@code{font-lock-remove-keywords} to removes rules.
 
-@defvar font-lock-beginning-of-syntax-function
-If this variable is non-@code{nil}, it should be a function to move
-point back to a position that is syntactically at ``top level'' and
-outside of strings or comments.  Font Lock uses this when necessary
-to get the right results for syntactic fontification.
+@defun font-lock-add-keywords mode keywords &optional append
+This function adds highlighting @var{keywords} for @var{mode}.  The
+argument @var{keywords} should be a list with the same format as the
+variable @code{font-lock-keywords}.  @var{mode} should be a symbol,
+the major mode command name, such as @code{c-mode}.  When Font Lock
+mode is turned on in @var{mode}, it adds @var{keywords} to
+@code{font-lock-keywords}.  @var{mode} can also be @code{nil}; the
+highlighting @var{keywords} are immediately added to
+@code{font-lock-keywords} in the current buffer in that case.
 
-This function is called with no arguments.  It should leave point at the
-beginning of any enclosing syntactic block.  Typical values are
-@code{beginning-of-line} (i.e., the start of the line is known to be
-outside a syntactic block), or @code{beginning-of-defun} for programming
-modes or @code{backward-paragraph} for textual modes (i.e., the
-mode-dependent function is known to move outside a syntactic block).
+By default, @var{keywords} are added at the beginning of
+@code{font-lock-keywords}.  If the optional argument @var{append} is
+@code{set}, they are used to replace the value of
+@code{font-lock-keywords}.  If @var{append} is any other
+non-@code{nil} value, they are added at the end of
+@code{font-lock-keywords}.
 
-If the value is @code{nil}, the beginning of the buffer is used as a
-position outside of a syntactic block.  This cannot be wrong, but it can
-be slow.
-@end defvar
+For example:
+
+@smallexample
+(font-lock-add-keywords 'c-mode
+ '(("\\<\\(FIXME\\):" 1 font-lock-warning-face prepend)
+   ("\\<\\(and\\|or\\|not\\)\\>" . font-lock-keyword-face)))
+@end smallexample
+
+adds two fontification patterns for C mode: one to fontify the word
+@samp{FIXME}, even in comments, and another to fontify the words
+@samp{and}, @samp{or} and @samp{not} as keywords.
+
+Some modes have specialized support for additional patterns.  See the
+variables @code{c-font-lock-extra-types},
+@code{c++-font-lock-extra-types}, @code{objc-font-lock-extra-types}
+and @code{java-font-lock-extra-types}, for example.
+@end defun
+
+@defun font-lock-remove-keywords mode keywords
+This function removes highlighting @var{keywords} for @var{mode}.  As
+in @code{font-lock-add-keywords}, @var{mode} should be a major mode
+command name or @code{nil}.  If @code{nil}, the highlighting
+@var{keywords} are immediately removed in the current buffer.
+@end defun
+
+@strong{Warning:} Only use a non-@code{nil} @var{mode} argument when
+you use @code{font-lock-add-keywords} or
+@code{font-lock-remove-keywords} in your @file{.emacs} file.  When you
+use these functions from a Lisp program (such as a minor mode), we
+recommend that you use @code{nil} for @var{mode} (and place the call
+on a hook) to avoid subtle problems due to the details of the
+implementation.
+
+@node Other Font Lock Variables
+@subsection Other Font Lock Variables
+
+  This section describes additional variables that a major mode can
+set by means of @var{other-vars} in @code{font-lock-defaults}
+(@pxref{Font Lock Basics}).
 
 @defvar font-lock-mark-block-function
 If this variable is non-@code{nil}, it should be a function that is
@@ -2378,25 +2467,38 @@ textual modes.
 @end defvar
 
 @defvar font-lock-extra-managed-props
-Additional properties (other than @code{font-lock-face}) that are
-being managed by Font Lock mode.  Font Lock mode normally manages only
-the @code{font-lock-face} property; if you want it to manage others as
-well, you must specify them in a @var{facespec} in
-@code{font-lock-keywords} as well as adding them to this list.
+This variable specifies additional properties (other than
+@code{font-lock-face}) that are being managed by Font Lock mode.  It
+is used by @code{font-lock-default-unfontify-region}, which normally
+only manages the @code{font-lock-face} property.  If you want Font
+Lock to manage other properties as well, you must specify them in a
+@var{facespec} in @code{font-lock-keywords} as well as add them to
+this list.  @xref{Search-based Fontification}.
 @end defvar
 
-@defvar font-lock-syntactic-face-function
-A function to determine which face to use for a given syntactic
-element (a string or a comment).  The function is called with one
-argument, the parse state at point returned by
-@code{parse-partial-sexp}, and should return a face.  The default
-value returns @code{font-lock-comment-face} for comments and
-@code{font-lock-string-face} for strings.
+@defvar font-lock-fontify-buffer-function
+Function to use for fontifying the buffer.  The default value is
+@code{font-lock-default-fontify-buffer}.
+@end defvar
 
-This can be used to highlighting different kinds of strings or
-comments differently.  It is also sometimes abused together with
-@code{font-lock-syntactic-keywords} to highlight elements that span
-multiple lines, but this is too obscure to document in this manual.
+@defvar font-lock-unfontify-buffer-function
+Function to use for unfontifying the buffer.  This is used when
+turning off Font Lock mode.  The default value is
+@code{font-lock-default-unfontify-buffer}.
+@end defvar
+
+@defvar font-lock-fontify-region-function
+Function to use for fontifying a region.  It should take two
+arguments, the beginning and end of the region, and an optional third
+argument @var{verbose}.  If @var{verbose} is non-@code{nil}, the
+function should print status messages.  The default value is
+@code{font-lock-default-fontify-region}.
+@end defvar
+
+@defvar font-lock-unfontify-region-function
+Function to use for unfontifying a region.  It should take two
+arguments, the beginning and end of the region.  The default value is
+@code{font-lock-default-unfontify-region}.
 @end defvar
 
 @defvar font-lock-lines-before
@@ -2406,6 +2508,14 @@ refontifying from that number of lines before the changed region.  The
 default is 1, but using a larger value can be useful for coping with
 multi-line patterns.
 @end defvar
+
+@ignore
+@defvar font-lock-inhibit-thing-lock
+List of Font Lock mode related modes that should not be turned on.
+Currently, valid mode names are @code{fast-lock-mode},
+@code{jit-lock-mode} and @code{lazy-lock-mode}.
+@end defvar
+@end ignore
 
 @node Levels of Font Lock
 @subsection Levels of Font Lock
@@ -2451,16 +2561,9 @@ which construct their text programmatically, such as
 @code{list-buffers} and @code{occur}.
 
 If your mode does not use any of the other machinery of Font Lock
-(i.e. it only uses the @code{font-lock-face} property), you can tell
-Emacs not to load all of font-lock.el (unless it's already loaded), by
-setting the variable @code{font-lock-core-only} to non-@code{nil} as
-part of the @code{font-lock-defaults} settings.  Here is the canonical
-way to do this:
-
-@example
-(set (make-local-variable 'font-lock-defaults)
-     '(nil t nil nil nil (font-lock-core-only . t)))
-@end example
+(i.e. it only uses the @code{font-lock-face} property), it should not
+set the variable @code{font-lock-defaults}.  That way, it will not
+cause loading of the @file{font-lock} library.
 
 @node Faces for Font Lock
 @subsection Faces for Font Lock
@@ -2477,6 +2580,10 @@ Thus, the default value of @code{font-lock-comment-face} is
 @item font-lock-comment-face
 @vindex font-lock-comment-face
 Used (typically) for comments.
+
+@item font-lock-comment-delimiter-face
+@vindex font-lock-comment-delimiter-face
+Used (typically) for comments delimiters.
 
 @item font-lock-doc-face
 @vindex font-lock-doc-face
@@ -2529,14 +2636,78 @@ directives in C.
 @node Syntactic Font Lock
 @subsection Syntactic Font Lock
 
+Syntactic fontification uses the syntax table to find comments and
+string constants (@pxref{Syntax Tables}).  It highlights them using
+@code{font-lock-comment-face} and @code{font-lock-string-face}
+(@pxref{Faces for Font Lock}).  There are several variables that
+affect syntactic fontification; you should set them by means of
+@code{font-lock-defaults} (@pxref{Font Lock Basics}).
+
+@defvar font-lock-keywords-only
+Non-@code{nil} means Font Lock should not do syntactic fontification;
+it should only fontify based on @code{font-lock-keywords}.  The normal
+way for a mode to set this variable to @code{t} is with
+@var{keywords-only} in @code{font-lock-defaults}.
+@end defvar
+
+@defvar font-lock-syntax-table
+This variable holds the syntax table to use for fontification of
+comments and strings.  Specify it using @var{syntax-alist} in
+@code{font-lock-defaults}.
+@end defvar
+
+@c ???
+@c The docstring says that font-lock-syntax-table is semi-obsolete.
+@c How the alternative should be used is not clear.  --lute
+
+@defvar font-lock-beginning-of-syntax-function
+If this variable is non-@code{nil}, it should be a function to move
+point back to a position that is syntactically at ``top level'' and
+outside of strings or comments.  Font Lock uses this when necessary
+to get the right results for syntactic fontification.
+
+This function is called with no arguments.  It should leave point at
+the beginning of any enclosing syntactic block.  Typical values are
+@code{beginning-of-line} (used when the start of the line is known to
+be outside a syntactic block), or @code{beginning-of-defun} for
+programming modes, or @code{backward-paragraph} for textual modes.
+
+If the value is @code{nil}, the beginning of the buffer is used as a
+position outside of a syntactic block.  This cannot be wrong, but it
+can be slow.
+
+Specify this variable using @var{syntax-begin} in
+@code{font-lock-defaults}.
+@end defvar
+
+@defvar font-lock-syntactic-face-function
+A function to determine which face to use for a given syntactic
+element (a string or a comment).  The function is called with one
+argument, the parse state at point returned by
+@code{parse-partial-sexp}, and should return a face.  The default
+value returns @code{font-lock-comment-face} for comments and
+@code{font-lock-string-face} for strings.
+
+This can be used to highlighting different kinds of strings or
+comments differently.  It is also sometimes abused together with
+@code{font-lock-syntactic-keywords} to highlight elements that span
+multiple lines, but this is too obscure to document in this manual.
+
+Specify this variable using @var{other-vars} in
+@code{font-lock-defaults}.
+@end defvar
+
+@node Setting Syntax Properties
+@subsection Setting Syntax Properties
+
   Font Lock mode can be used to update @code{syntax-table} properties
-automatically.  This is useful in languages for which a single syntax
-table by itself is not sufficient.
+automatically (@pxref{Syntax Properties}).  This is useful in
+languages for which a single syntax table by itself is not sufficient.
 
 @defvar font-lock-syntactic-keywords
-This variable enables and controls syntactic Font Lock.  It is
-normally set via @code{font-lock-defaults}.  Its value should be a
-list of elements of this form:
+This variable enables and controls updating @code{syntax-table}
+properties by Font Lock.  Its value should be a list of elements of
+this form:
 
 @example
 (@var{matcher} @var{subexp} @var{syntax} @var{override} @var{laxmatch})
@@ -2546,10 +2717,10 @@ The parts of this element have the same meanings as in the corresponding
 sort of element of @code{font-lock-keywords},
 
 @example
-(@var{matcher} @var{subexp} @var{facename} @var{override} @var{laxmatch})
+(@var{matcher} @var{subexp} @var{facespec} @var{override} @var{laxmatch})
 @end example
 
-However, instead of specifying the value @var{facename} to use for the
+However, instead of specifying the value @var{facespec} to use for the
 @code{face} property, it specifies the value @var{syntax} to use for
 the @code{syntax-table} property.  Here, @var{syntax} can be a string
 (as taken by @code{modify-syntax-entry}), a syntax table, a cons cell
@@ -2586,6 +2757,8 @@ the form @samp{'@var{c}'} as strings syntactically.  Other forms, such
 as @samp{foo'bar} or @samp{'fubar'}, will not be highlighted as
 strings.
 
+Major modes normally set this variable with @var{other-vars} in
+@code{font-lock-defaults}.
 @end defvar
 
 @node Desktop Save Mode

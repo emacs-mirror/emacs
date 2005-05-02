@@ -1800,19 +1800,28 @@ When @code{defface} executes, it defines the face according to
 init file (@pxref{Init File}) to override that specification.
 
 The purpose of @var{spec} is to specify how the face should appear on
-different kinds of terminals.  It should be an alist whose elements have
-the form @code{(@var{display} @var{atts})}.  Each element's @sc{car},
-@var{display}, specifies a class of terminals.  The element's second element,
-@var{atts}, is a list of face attributes and their values; it specifies
-what the face should look like on that kind of terminal.  The possible
-attributes are defined in the value of @code{custom-face-attributes}.
+different kinds of terminals.  It should be an alist whose elements
+have the form @code{(@var{display} @var{atts})}.  Each element's
+@sc{car}, @var{display}, specifies a class of terminals.  (The first
+element, if it s @sc{car} is @code{default}, is special---it specifies
+defaults for the remaining elements).  The element's @sc{cadr},
+@var{atts}, is a list of face attributes and their values; it
+specifies what the face should look like on that kind of terminal.
+The possible attributes are defined in the value of
+@code{custom-face-attributes}.
 
 The @var{display} part of an element of @var{spec} determines which
-frames the element applies to.  If more than one element of @var{spec}
-matches a given frame, the first matching element is the only one used
-for that frame.  There are two possibilities for @var{display}:
+frames the element matches.  If more than one element of @var{spec}
+matches a given frame, the first element that matches is the one used
+for that frame.  There are three possibilities for @var{display}:
 
 @table @asis
+@item @code{default}
+This element of @var{spec} doesn't match any frames; instead, it
+specifies defaults that apply to all frames.  This kind of element, if
+used, must be the first element of @var{spec}.  Each of the following
+elements can override any or all of these defaults.
+
 @item @code{t}
 This element of @var{spec} matches all frames.  Therefore, any
 subsequent elements of @var{spec} are never used.  Normally
@@ -1840,8 +1849,9 @@ What kinds of colors the frame supports---either @code{color},
 The kind of background---either @code{light} or @code{dark}.
 
 @item min-colors
-An integer that represents the minimum number of colors the frame should
-support, it is compared with the result of @code{display-color-cells}.
+An integer that represents the minimum number of colors the frame
+should support.  This matches a frame if its
+@code{display-color-cells} value is at least the specified integer.
 
 @item supports
 Whether or not the frame can display the face attributes given in

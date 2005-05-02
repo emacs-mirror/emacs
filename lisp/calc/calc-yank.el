@@ -528,7 +528,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (goto-char calc-edit-top)
     (if (buffer-modified-p)
 	(eval calc-edit-handler))
-    (if one-window
+    (if (and one-window (not (one-window-p t)))
 	(delete-window))
     (if (get-buffer-window return)
 	(select-window (get-buffer-window return))
