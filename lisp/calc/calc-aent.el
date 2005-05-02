@@ -1,6 +1,6 @@
 ;;; calc-aent.el --- algebraic entry functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: Dave Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -734,7 +734,7 @@ in Calc algebraic input.")
 		       math-exp-pos (match-end 1))
 	       (if (eq (string-match "\\$\\([1-9][0-9]*\\)" math-exp-str math-exp-pos)
 		       math-exp-pos)
-		   (setq math-expr-data (- (string-to-int (math-match-substring
+		   (setq math-expr-data (- (string-to-number (math-match-substring
 						     math-exp-str 1))))
 		 (string-match "\\$+" math-exp-str math-exp-pos)
 		 (setq math-expr-data (- (match-end 0) (match-beginning 0))))
@@ -743,7 +743,7 @@ in Calc algebraic input.")
 	    ((eq ch ?\#)
 	     (if (eq (string-match "#\\([1-9][0-9]*\\)" math-exp-str math-exp-pos)
 		     math-exp-pos)
-		 (setq math-expr-data (string-to-int
+		 (setq math-expr-data (string-to-number
 				 (math-match-substring math-exp-str 1))
 		       math-exp-pos (match-end 0))
 	       (setq math-expr-data 1
