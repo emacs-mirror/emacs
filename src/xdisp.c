@@ -621,12 +621,6 @@ Lisp_Object Qmessage_truncate_lines;
 
 static int message_cleared_p;
 
-/* Non-zero means we want a hollow cursor in windows that are not
-   selected.  Zero means there's no cursor in such windows.  */
-
-Lisp_Object Vcursor_in_non_selected_windows;
-Lisp_Object Qcursor_in_non_selected_windows;
-
 /* How to blink the default frame cursor off.  */
 Lisp_Object Vblink_cursor_alist;
 
@@ -20133,7 +20127,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use cursor-in-non-selected-windows for non-selected window or frame.  */
   if (non_selected)
     {
-      alt_cursor = Fbuffer_local_value (Qcursor_in_non_selected_windows, w->buffer);
+      alt_cursor = XBUFFER (w->buffer)->cursor_in_non_selected_windows;
       return get_specified_cursor_type (alt_cursor, width);
     }
 
@@ -22497,8 +22491,6 @@ syms_of_xdisp ()
   staticpro (&Qpoly);
   Qmessage_truncate_lines = intern ("message-truncate-lines");
   staticpro (&Qmessage_truncate_lines);
-  Qcursor_in_non_selected_windows = intern ("cursor-in-non-selected-windows");
-  staticpro (&Qcursor_in_non_selected_windows);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
@@ -22791,12 +22783,6 @@ A value of `grow-only', the default, means let mini-windows grow
 only, until their display becomes empty, at which point the windows
 go back to their normal size.  */);
   Vresize_mini_windows = Qgrow_only;
-
-  DEFVAR_LISP ("cursor-in-non-selected-windows",
-	       &Vcursor_in_non_selected_windows,
-    doc: /* *Cursor type to display in non-selected windows.
-t means to use hollow box cursor.  See `cursor-type' for other values.  */);
-  Vcursor_in_non_selected_windows = Qt;
 
   DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
     doc: /* Alist specifying how to blink the cursor off.
