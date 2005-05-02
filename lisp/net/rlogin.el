@@ -179,9 +179,9 @@ variable."
 
   (let* ((process-connection-type rlogin-process-connection-type)
          (args (if rlogin-explicit-args
-                   (append (rlogin-parse-words input-args)
+                   (append (split-string input-args)
                            rlogin-explicit-args)
-                 (rlogin-parse-words input-args)))
+                 (split-string input-args)))
 	 (host (car args))
 	 (user (or (car (cdr (member "-l" args)))
                    (user-login-name)))
@@ -281,19 +281,6 @@ local one share the same directories (through NFS)."
           (goto-char orig-point)))))))
 
 
-;; Parse a line into its constituent parts (words separated by
-;; whitespace).  Return a list of the words.
-(defun rlogin-parse-words (line)
-  (let ((list nil)
-	(posn 0)
-        (match-data (match-data)))
-    (while (string-match "[^ \t\n]+" line posn)
-      (setq list (cons (substring line (match-beginning 0) (match-end 0))
-                       list))
-      (setq posn (match-end 0)))
-    (set-match-data (match-data))
-    (nreverse list)))
-
 (defun rlogin-send-Ctrl-C ()
   (interactive)
   (process-send-string nil "\C-c"))
