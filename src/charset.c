@@ -1839,7 +1839,6 @@ syms_of_charset ()
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
-  defsubr (&Schars_in_region);
   defsubr (&Sstring);
   defsubr (&Ssetup_special_charsets);
 
