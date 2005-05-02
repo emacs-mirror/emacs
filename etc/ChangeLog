@@ -1,3 +1,7 @@
+2005-05-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* NEWS: Items rearranged in logical order.
+
 2005-05-01  Lars Hansen  <larsh@math.ku.dk>
 
 	* NEWS: Correct key binding for dired-mark-omitted.
