@@ -960,9 +960,9 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 (defun kmacro-step-edit-prompt (macro index)
   ;; Show step-edit prompt
   (let ((keys (and (not kmacro-step-edit-appending)
-		   index (substring macro index executing-macro-index)))
+		   index (substring macro index executing-kbd-macro-index)))
 	(future (and (not kmacro-step-edit-appending)
-		     (substring macro executing-macro-index)))
+		     (substring macro executing-kbd-macro-index)))
 	(message-log-max nil)
 	(curmsg (current-message)))
 
@@ -1020,12 +1020,12 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	   (not (eq kmacro-step-edit-action t)))
       ;; Find the actual end of this key sequence.
       ;; Must be able to backtrack in case we actually execute it.
-      (setq restore-index executing-macro-index)
+      (setq restore-index executing-kbd-macro-index)
       (let (unread-command-events)
 	(quoted-insert 0)
 	(when unread-command-events
-	  (setq executing-macro-index (- executing-macro-index (length unread-command-events))
-		next-index executing-macro-index)))))
+	  (setq executing-kbd-macro-index (- executing-kbd-macro-index (length unread-command-events))
+		next-index executing-kbd-macro-index)))))
 
     ;; Query the user; stop macro exection temporarily
     (let ((macro executing-kbd-macro)
@@ -1045,7 +1045,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	    (when unread-command-events
 	      (setq kmacro-step-edit-new-macro
 		    (substring kmacro-step-edit-new-macro 0 (- (length unread-command-events)))
-		    executing-macro-index (- executing-macro-index (length unread-command-events)))))
+		    executing-kbd-macro-index (- executing-kbd-macro-index (length unread-command-events)))))
 	  (setq current-prefix-arg nil
 		prefix-arg nil)
 	  (setq act 'ignore))
@@ -1099,24 +1099,24 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq act t)
 	t)
        ((member act '(insert-1 insert))
-	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
 	(setq kmacro-step-edit-inserting (if (eq act 'insert-1) 1 t))
 	nil)
        ((member act '(replace-1 replace))
 	(setq kmacro-step-edit-inserting (if (eq act 'replace-1) 1 t))
 	(setq kmacro-step-edit-prefix-index nil)
-	(if (= executing-macro-index (length executing-kbd-macro))
+	(if (= executing-kbd-macro-index (length executing-kbd-macro))
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-appending t))
 	nil)
        ((eq act 'append)
 	(setq kmacro-step-edit-inserting t)
-	(if (= executing-macro-index (length executing-kbd-macro))
+	(if (= executing-kbd-macro-index (length executing-kbd-macro))
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-appending t))
 	t)
        ((eq act 'append-end)
-	(if (= executing-macro-index (length executing-kbd-macro))
+	(if (= executing-kbd-macro-index (length executing-kbd-macro))
 	    (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		  kmacro-step-edit-inserting t
 		  kmacro-step-edit-appending t)
@@ -1124,21 +1124,21 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(setq act t)
 	t)
        ((eq act 'help)
-	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
 	(setq kmacro-step-edit-help (not kmacro-step-edit-help))
 	nil)
        (t ;; Ignore unknown responses
-	(setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+	(setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
 	nil))
-      (if (> executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
+      (if (> executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index))
 	  (setq kmacro-step-edit-new-macro
 		(vconcat kmacro-step-edit-new-macro
 			 (substring executing-kbd-macro
 				    (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
-				    (if (eq act t) nil executing-macro-index)))
+				    (if (eq act t) nil executing-kbd-macro-index)))
 		kmacro-step-edit-prefix-index nil))
       (if restore-index
-	  (setq executing-macro-index restore-index)))
+	  (setq executing-kbd-macro-index restore-index)))
      (t
       (setq this-command 'ignore)))
     (setq kmacro-step-edit-key-index next-index)))
@@ -1151,7 +1151,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	(executing-kbd-macro nil)
 	(defining-kbd-macro nil)
 	cmd keys next-index)
-    (setq executing-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
+    (setq executing-kbd-macro-index (or kmacro-step-edit-prefix-index kmacro-step-edit-key-index)
 	  kmacro-step-edit-prefix-index nil)
     (kmacro-step-edit-prompt macro nil)
     ;; Now, we have read a key sequence from the macro, but we don't want
@@ -1172,8 +1172,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
 	    (setq kmacro-step-edit-inserting nil)
 	    (when unread-command-events
 	      (setq keys (substring keys 0 (- (length unread-command-events)))
-		    executing-macro-index (- executing-macro-index (length unread-command-events))
-		    next-index executing-macro-index
+		    executing-kbd-macro-index (- executing-kbd-macro-index (length unread-command-events))
+		    next-index executing-kbd-macro-index
 		    unread-command-events nil)))
 	  (setq cmd 'ignore)
 	  nil)
@@ -1217,7 +1217,7 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
      ((eq kmacro-step-edit-active 'ignore)
       (setq this-command 'ignore))
      ((eq kmacro-step-edit-active 'append-end)
-      (if (= executing-macro-index (length executing-kbd-macro))
+      (if (= executing-kbd-macro-index (length executing-kbd-macro))
 	  (setq executing-kbd-macro (vconcat executing-kbd-macro [nil])
 		kmacro-step-edit-inserting t
 		kmacro-step-edit-appending t
@@ -1243,8 +1243,8 @@ following additional answers: `insert', `insert-1', `replace', `replace-1',
   (when kmacro-step-edit-active
     (add-hook 'pre-command-hook 'kmacro-step-edit-pre-command nil nil)
     (if kmacro-step-edit-key-index
-	(setq executing-macro-index kmacro-step-edit-key-index)
-      (setq kmacro-step-edit-key-index executing-macro-index))))
+	(setq executing-kbd-macro-index kmacro-step-edit-key-index)
+      (setq kmacro-step-edit-key-index executing-kbd-macro-index))))
 
 
 (defun kmacro-step-edit-macro ()
