@@ -737,7 +737,7 @@ DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
 POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)
 where XOFFSET and YOFFSET are positions in pixels from the top left
-corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
 This controls the position of the top left of the menu as a whole.
 If POSITION is t, it means to use the current mouse position.
 
@@ -752,8 +752,11 @@ Otherwise, REAL-DEFINITION should be a valid key binding definition.
 
 You can also use a list of keymaps as MENU.
   Then each keymap makes a separate pane.
-When MENU is a keymap or a list of keymaps, the return value
-is a list of events.
+
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
 
 Alternatively, you can specify a menu of multiple panes
   with a list of the form (TITLE PANE1 PANE2...),
