@@ -5880,6 +5880,7 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
       /* Stop if we move beyond TO_CHARPOS (after an image or stretch glyph).  */
       if ((op & MOVE_TO_POS) != 0
 	  && BUFFERP (it->object)
+	  && it->method == GET_FROM_BUFFER
 	  && IT_CHARPOS (*it) > to_charpos)
 	{
 	  result = MOVE_POS_MATCH_OR_ZV;
