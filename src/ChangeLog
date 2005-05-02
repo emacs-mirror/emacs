@@ -1,3 +1,15 @@
+2005-05-02  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer): Define cursor-in-non-selected-windows.
+
+	* buffer.h (struct buffer): Add cursor_in_non_selected_windows slot.
+
+	* xdisp.c (Vcursor_in_non_selected_windows)
+	(Qcursor_in_non_selected_windows): Vars deleted.
+	(syms_of_xdisp): Don't initialize them.
+	(get_window_cursor_type): Use cursor_in_non_selected_windows
+	buffer slot.
+
 2005-05-02  Kim F. Storm  <storm@cua.dk>
 
 	* macros.c (executing_kbd_macro_index): Rename from
