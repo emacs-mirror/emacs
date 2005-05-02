@@ -1,3 +1,7 @@
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Fix last change.
+
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* xmenu.c (Fx_popup_menu): Doc fix.
