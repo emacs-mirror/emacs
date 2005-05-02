@@ -1173,13 +1173,13 @@ cmd_error (data)
     cancel_hourglass ();
 #endif
 
-  if (!NILP (executing_macro))
+  if (!NILP (executing_kbd_macro))
     {
-      if (executing_macro_iterations == 1)
+      if (executing_kbd_macro_iterations == 1)
 	sprintf (macroerror, "After 1 kbd macro iteration: ");
       else
 	sprintf (macroerror, "After %d kbd macro iterations: ",
-		 executing_macro_iterations);
+		 executing_kbd_macro_iterations);
     }
   else
     *macroerror = 0;
@@ -1187,7 +1187,7 @@ cmd_error (data)
   Vstandard_output = Qt;
   Vstandard_input = Qt;
   Vexecuting_kbd_macro = Qnil;
-  executing_macro = Qnil;
+  executing_kbd_macro = Qnil;
   current_kboard->Vprefix_arg = Qnil;
   current_kboard->Vlast_prefix_arg = Qnil;
   cancel_echoing ();
@@ -1288,7 +1288,7 @@ command_loop ()
     {
       Lisp_Object val;
       val = internal_catch (Qexit, command_loop_2, Qnil);
-      executing_macro = Qnil;
+      executing_kbd_macro = Qnil;
       return val;
     }
   else
@@ -1300,7 +1300,7 @@ command_loop ()
 	   other reason.  */
 	any_kboard_state ();
 	internal_catch (Qtop_level, command_loop_2, Qnil);
-	executing_macro = Qnil;
+	executing_kbd_macro = Qnil;
 
 	/* End of file in -batch run causes exit here.  */
 	if (noninteractive)
@@ -2517,18 +2517,18 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 	 Also, some things replace the macro with t
 	 to force an early exit.  */
       if (EQ (Vexecuting_kbd_macro, Qt)
-	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_kbd_macro)))
+	  || executing_kbd_macro_index >= XFASTINT (Flength (Vexecuting_kbd_macro)))
 	{
 	  XSETINT (c, -1);
 	  goto exit;
 	}
 
-      c = Faref (Vexecuting_kbd_macro, make_number (executing_macro_index));
+      c = Faref (Vexecuting_kbd_macro, make_number (executing_kbd_macro_index));
       if (STRINGP (Vexecuting_kbd_macro)
 	  && (XINT (c) & 0x80) && (XUINT (c) <= 0xff))
 	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
 
-      executing_macro_index++;
+      executing_kbd_macro_index++;
 
       goto from_macro;
     }
