@@ -1,8 +1,17 @@
+2005-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/rlogin.el (rlogin-parse-words): Delete func.
+	(rlogin): Use split-string, not rlogin-parse-words.
+	Also, if there are option-like elements in the parsed args,
+	take the host to be the first arg immediately following them.
+	Suggested by Michael Mauger.
+
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* subr.el (executing-macro): Use `define-obsolete-variable-alias'.
 
 2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
 	* progmodes/cc-mode.el (cc-create-define-alist): Use a shell.
 	(cc-mode-cpp-program): Rename to cc-define-list-program and
 	move to cc-vars.el.
