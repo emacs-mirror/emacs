@@ -66,10 +66,10 @@ item was added to the menu bar that makes it easy accessible
 
 ---
 ** New translations of the Emacs Tutorial are available in the
-   following languages: Brasilian Portuguese, Bulgarian, Chinese (both
-   with simplified and traditional characters), French, and Italian.
-   Type `C-u C-h t' to choose one of them in case your language setup
-   doesn't automatically select the right one.
+following languages: Brasilian Portuguese, Bulgarian, Chinese (both
+with simplified and traditional characters), French, and Italian.
+Type `C-u C-h t' to choose one of them in case your language setup
+doesn't automatically select the right one.
 
 ---
 ** A French translation of the `Emacs Survival Guide' is available.
@@ -524,7 +524,7 @@ gives the fraction of the window's width to scroll the window.
 
 The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
- 
+
 *** Moving or scrolling through images (and other lines) taller that
 the window now works sensible, by automatically adjusting the window's
 vscroll property.
@@ -1323,7 +1323,7 @@ display margin, when run in an xterm.
 ---
 *** Improved key bindings support when running in an xterm.
 When emacs is running in an xterm more key bindings are available. The
-following should work: 
+following should work:
 {C,S,C-S,A}-{right,left,up,down,prior,next,delete,insert,F1-12}.
 These key bindings work on xterm from X.org 6.8, they might not work on
 some older versions of xterm, or on some proprietary versions.
