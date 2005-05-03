@@ -35,6 +35,8 @@
   (if (not (keymapp news-fkey-prefix))
       (error "What?  Your news termcap/terminfo has no keycaps in it"))
 
+  ;; XXX We need to find a way to have these define-keys be display-local. -- Lorentey
+
   ;; Termcap or terminfo will set these
   ;; (define-key news-fkey-prefix "P" [f1])
   ;; (define-key news-fkey-prefix "Q" [f2])

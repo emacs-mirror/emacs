@@ -92,6 +92,8 @@
 ;; so we ignore them on the way down
 ;;
 
+;; XXX We need to find a way to have these define-keys be display-local. -- Lorentey
+
 (defvar sun-raw-prefix (make-sparse-keymap))
 (define-key function-key-map "\e[" sun-raw-prefix)
 

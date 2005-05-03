@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+;; XXX We need to find a way to have these define-keys be display-local. -- Lorentey
+
 (define-key function-key-map "\e[120q" [S-escape])
 (define-key function-key-map "\e[121q" [C-escape])
 
