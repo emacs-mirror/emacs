@@ -118,6 +118,7 @@
 	      (file-exists-p "/opt/SUNWspro/SC3.0.1/bin/acomp"))
 	 "/opt/SUNWspro/SC3.0.1/bin/acomp -C -E")
         ((file-exists-p "/usr/ccs/lib/cpp") "/usr/ccs/lib/cpp -C")
+	((eq system-type 'darwin) "cpp -C")
 	(t "/lib/cpp -C"))
   "The preprocessor used by the cmacexp package.
 
