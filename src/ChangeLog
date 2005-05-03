@@ -1,3 +1,7 @@
+2005-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mac.c: #undef init_process so not to conflict with system headers.
+
 2005-05-02  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (syms_of_buffer): Define cursor-in-non-selected-windows.

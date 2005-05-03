@@ -27,6 +27,7 @@ Boston, MA 02111-1307, USA.  */
 
 #include "lisp.h"
 #include "process.h"
+#undef init_process
 #include "systime.h"
 #include "sysselect.h"
 #include "blockinput.h"
