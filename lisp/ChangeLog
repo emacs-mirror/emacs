@@ -1,3 +1,29 @@
+2005-05-3  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Now at 0.12.
+	(icalendar-duration-correction): Remove.
+	(icalendar--get-event-properties): Split result at commas.
+	(icalendar--decode-isoduration): New optional argument
+	DURATION-CORRECTION.
+	(icalendar--convert-ordinary-to-ical)
+	(icalendar--convert-weekly-to-ical)
+	(icalendar--convert-yearly-to-ical)
+	(icalendar--convert-sexp-to-ical)
+	(icalendar--convert-block-to-ical)
+	(icalendar--convert-float-to-ical)
+	(icalendar--convert-date-to-ical)
+	(icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): New functions, extracted
+	from icalendar-export-region, with bug fixes.
+	(icalendar-export-region): Use the above functions.
+	(icalendar-import-buffer): Check before saving diary file.
+	(icalendar--convert-recurring-to-diary)
+	(icalendar--convert-non-recurring-all-day-to-diary)
+	(icalendar--convert-non-recurring-not-all-day-to-diary): New
+	functions, extracted from icalendar--convert-ical-to-diary, with
+	bug fixes.
+	(icalendar--convert-ical-to-diary): Use the above functions.
+
 2005-05-03  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cc-mode.el (cc-define-alist, cc-create-define-alist):
