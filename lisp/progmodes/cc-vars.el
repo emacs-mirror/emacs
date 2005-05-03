@@ -1476,13 +1476,6 @@ names)."))
   :type 'c-extra-types-widget
   :group 'c)
 
-(defcustom cc-define-list-program "gcc -E -dM -"
-  "The program name for generating a list of #define directives.
-This list is used to display the #define directive associated
-with an identifier as a tooltip. It works in a debug session
-with GDB, when tooltip-gud-tips-p is t."
-  :type 'string
-  :group 'c)
 
 ;; Non-customizable variables, still part of the interface to CC Mode
 (defvar c-file-style nil
