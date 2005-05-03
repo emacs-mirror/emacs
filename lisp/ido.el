@@ -56,7 +56,7 @@
 ;; so I invented a common "ido-" namespace for the merged packages.
 ;;
 ;; This version is based on ido.el version 1.57 released on
-;; gnu.emacs.sources adapted for emacs 21.5 to use command remapping
+;; gnu.emacs.sources adapted for emacs 22.1 to use command remapping
 ;; and optionally hooking the read-buffer and read-file-name functions.
 ;;
 ;; Prefix matching was added by Klaus Berndl <klaus.berndl@sdm.de> based on
