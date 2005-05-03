@@ -651,10 +651,10 @@ The following commands are accepted by the client:
 		    (setq request (substring request (match-end 0)))
 		    (unless (server-client-get client 'version)
 		      (error "Protocol error; make sure you use the correct version of emacsclient"))
-		    ;; Set up client's environment for tgetent(3)
-		    ;; according to ncurses(3).
 		    (server-with-client-environment proc
-			("BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
+			("LANG" "LC_CTYPE" "LC_ALL"
+			 ;; For tgetent(3); list according to ncurses(3).
+			 "BAUDRATE" "COLUMNS" "ESCDELAY" "HOME" "LINES"
 			 "NCURSES_ASSUMED_COLORS" "NCURSES_NO_PADDING"
 			 "NCURSES_NO_SETBUF" "TERM" "TERMCAP" "TERMINFO"
 			 "TERMINFO_DIRS" "TERMPATH")
@@ -664,10 +664,6 @@ The following commands are accepted by the client:
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (display-name frame))
 		    (server-client-set client 'display (frame-display frame))
-
-		    ;; Set up display for the remote locale.
-		    ;; XXX This function has been removed from mule-cmds.el, we need to find another way.
-		    ;; (configure-display-for-locale)
 
 		    ;; Reply with our pid.
 		    (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))

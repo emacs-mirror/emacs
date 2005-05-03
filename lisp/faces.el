@@ -1782,6 +1782,7 @@ created."
 	  ;; Make sure the kill and yank functions do not touch the X clipboard.
 	  (modify-frame-parameters frame '((interprogram-cut-function . nil)))
 	  (modify-frame-parameters frame '((interprogram-paste-function . nil)))
+	  (set-locale-environment nil frame)
 	  (setq success t))
       (unless success
 	(delete-frame frame)))

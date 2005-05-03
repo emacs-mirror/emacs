@@ -257,69 +257,72 @@ extremely unstable X server for some time while I was developing these
 patches, and running Emacs this way has saved me a number of M-x
 recover-session invocations.)
 
-I use the following two bash functions to handle my Emacs sessions:
+I use the following two bash scripts to handle my Emacs sessions:
 
-,----[ ~/.bash_profile
-| # Usage: preload_emacs <name> [<waitp>]
-| #
-| # Preloads the Emacs instance called NAME in a detached screen
-| # session.  Does nothing if the instance is already running.  If WAITP
-| # is non-empty, the function waits until the server starts up and
-| # creates its socket; otherwise it returns immediately.
-| function preload_emacs {
-|     local name="$1"
-|     local waitp="$2"
-|     local screendir="/var/run/screen/S-$USER"
-|     local serverdir="/tmp/emacs$UID"
-|     local emacs=emacs # Or wherever you installed your multi-tty Emacs
-| 
-|     if [ -z "$name" ]; then 
-| 	echo "Usage: preload_emacs <name> [<waitp>]" >&2
-| 	return 1
-|     fi
-| 
-|     if [ ! -e "$screendir"/*."$name" ]; then
-| 	if [ -e "$serverdir/$name" ]; then
-| 	    # Delete leftover socket (for the wait option)
-| 	    rm "$serverdir/$name"
-| 	fi
-| 	screen -dmS "$name" "$emacs" -nw --eval "(setq server-name \"$name\")" -f server-start
-|     fi
-|     if [ ! -z "$waitp" ]; then
-| 	while [ ! -e "$serverdir/$name" ]; do sleep 0.1; done
-|     fi
-|     return 0
-| }
-| 
-| # Usage: connect_emacs <name> <args>...
-| #
-| # Connects to the Emacs instance called NAME.  Starts up the instance
-| # if it is not already running.  The rest of the arguments are passed
-| # to emacsclient.
-| function connect_emacs {
-|     local name="$1"
-|     shift
-|     
-|     if [ -z "$name" ]; then
-| 	echo "Usage: connect_emacs <name> <args>..." >&2
-|     fi
-|     preload_emacs "$name" wait
-|     emacsclient -s "$name" "$@"
-| }
-| 
-| export -f preload_emacs connect_emacs
-|
-| # Preload editor and gnus sessions for speedy initial connects.
-| preload_emacs editor
-| preload_emacs gnus
-`----
+-------------------------------------------------------connect-emacs--
+#!/bin/bash
+# Usage: connect-emacs <name> <args>...
+#
+# Connects to the Emacs instance called NAME.  Starts up the instance
+# if it is not already running.  The rest of the arguments are passed
+# to emacsclient.
 
-,----[ ~/.bashrc
-| alias gnus="connect_emacs gnus"
-| alias edit="connect_emacs editor"
-| alias et="connect_emacs editor -t"
-| alias e=edit
-`----
+name="$1"
+shift
+    
+if [ -z "$name" ]; then
+    echo "Usage: connect_emacs <name> <args>..." >&2
+    exit 1
+fi
+preload-emacs "$name" wait
+/usr/bin/emacsclient.emacs-multi-tty -s "$name" "$@"
+----------------------------------------------------------------------
+
+-------------------------------------------------------preload-emacs--
+#!/bin/bash
+# Usage: preload-emacs <name> [<waitp>]
+#
+# Preloads the Emacs instance called NAME in a detached screen
+# session.  Does nothing if the instance is already running.  If WAITP
+# is non-empty, the function waits until the server starts up and
+# creates its socket; otherwise it returns immediately.
+
+name="$1"
+waitp="$2"
+screendir="/var/run/screen/S-$USER"
+serverdir="/tmp/emacs$UID"
+emacs=/usr/bin/emacs-multi-tty # Or wherever you installed your multi-tty Emacs
+
+if [ -z "$name" ]; then 
+    echo "Usage: preload_emacs <name> [<waitp>]" >&2
+    exit 1
+fi
+
+if [ ! -e "$screendir"/*."$name" ]; then
+    if [ -e "$serverdir/$name" ]; then
+	# Delete leftover socket (for the wait option)
+	rm "$serverdir/$name"
+    fi
+    screen -dmS "$name" "$emacs" -nw --eval "(setq server-name \"$name\")" -f server-start
+fi
+if [ ! -z "$waitp" ]; then
+    while [ ! -e "$serverdir/$name" ]; do sleep 0.1; done
+fi
+----------------------------------------------------------------------
+
+I have the following in my profile to have two instances automatically
+preloaded for editing and email:
+
+	preload-emacs editor
+	preload-emacs gnus
+
+It is useful to set up short aliases for connect-emacs.  I use the
+following:
+
+	alias edit="connect-emacs editor"
+	alias e=edit
+	alias et="connect-emacs editor -t"
+	alias gnus="connect-emacs gnus"
 
 
 NEWS
@@ -406,21 +409,23 @@ THINGS TO DO
 ** rif->flush_display_optional (NULL) calls should be replaced by a
    new global function.
 
-** Support multiple character locales.  
+** The set-locale-environment hack (adding the DISPLAY option) should
+   be replaced with a clean design.
 
-	(1) A version of `set-locale-environment' needs to be written
-	    for setting up display-local settings on ttys.  I think
-	    calling set-display-table-and-terminal-coding-system and
-	    set-keyboard-coding-system would be enough.  The language
-	    environment itself should remain a global setting.
+** standard-display-table should be display-local.
+   standard-display-european should be display-local.
 
-	(2) Have a look at Vlocale_coding_system.  Seems like it would
-	    be a tedious job to localize it, although most references
-	    use it for interfacing with libc and are therefore OK with
-	    the global definition.
+** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
+   what if we'd blow it up into several separate functions (with a
+   compatibility definition)?
 
-            Exceptions found so far: x-select-text and
-            x-cut-buffer-or-selection-value.
+** Have a look at Vlocale_coding_system.  Seems like it would be a
+   tedious job to localize it, although most references use it for
+   interfacing with libc and are therefore OK with the global
+   definition.
+
+   Exceptions found so far: x-select-text and
+   x-cut-buffer-or-selection-value.
 
 ** Have a look at fatal_error_hook.
 
@@ -439,10 +444,6 @@ THINGS TO DO
 		=> nil
 
    (This is likely an error in the CVS trunk.)
-
-** Fix set-input-mode for multi-tty.  It's a truly horrible interface;
-   what if we'd blow it up into several separate functions (with a
-   compatibility definition)?
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
@@ -496,8 +497,6 @@ THINGS TO DO
    useful.  (Update: Look again. X unconditionally enables this, maybe
    that's why raw terminal support is broken again.  I really do need
    to understand input.)
-
-** Maybe standard-display-table should be display-local.
 
 DIARY OF CHANGES
 ----------------
@@ -1041,5 +1040,14 @@ DIARY OF CHANGES
    error-prone.  But maybe I just haven't yet fully understood it.
 
    (Nothing to do.  It doesn't seem ugly any more.  It's rather clever.)
+
+-- Support multiple character locales.  A version of
+   `set-locale-environment' needs to be written for setting up
+   display-local settings on ttys.  I think calling
+   set-display-table-and-terminal-coding-system and
+   set-keyboard-coding-system would be enough.  The language
+   environment itself should remain a global setting.
+
+   (Done, by an ugly hack.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
