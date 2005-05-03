@@ -119,8 +119,10 @@ position to pop up the tooltip."
 (defcustom tooltip-gud-tips-p nil
   "*Non-nil means show tooltips in GUD sessions.
 
-This allows you to display a variable's value in a tooltip simply by
-pointing at it with the mouse."
+This allows you to display a variable's value in a tooltip simply
+by pointing at it with the mouse.  In the case of a C program
+controlled by GDB, it shows the associated #define directives
+when program is not executing."
   :type 'boolean
   :tag "GUD"
   :group 'tooltip)
@@ -478,11 +480,10 @@ This function must return nil if it doesn't handle EVENT."
 		    (window-buffer (let ((mouse (mouse-position)))
 				     (window-at (cadr mouse)
 						(cddr mouse))))
-		  (when (boundp 'cc-define-alist) ; might be a Fortran program
-		    (let ((define-elt (assoc expr cc-define-alist)))
-		      (unless (null define-elt)
-			(tooltip-show (cdr define-elt))
-			expr)))))
+		  (let ((define-elt (assoc expr gdb-define-alist)))
+		    (unless (null define-elt)
+		      (tooltip-show (cdr define-elt))
+		      expr))))
 	    (let ((cmd (tooltip-gud-print-command expr)))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(case gud-minor-mode
