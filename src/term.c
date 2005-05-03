@@ -2111,7 +2111,7 @@ set_tty_color_mode (f, val)
 struct display *
 get_display (Lisp_Object display, int throw)
 {
-  Lisp_Object result = NULL;
+  struct display *result = NULL;
 
   if (NILP (display))
     display = selected_frame;
