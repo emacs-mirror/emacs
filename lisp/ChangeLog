@@ -1,3 +1,8 @@
+2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update to work on
+	Mac OSX.
+
 2005-05-03  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Now at 0.12.
