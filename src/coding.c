@@ -7305,12 +7305,13 @@ Return the corresponding character code in Big5.  */)
 }
 
 DEFUN ("set-terminal-coding-system-internal", Fset_terminal_coding_system_internal,
-       Sset_terminal_coding_system_internal, 1, 1, 0,
+       Sset_terminal_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, display)
      Lisp_Object coding_system;
+     Lisp_Object display;
 {
-  struct coding_system *terminal_coding = FRAME_TERMINAL_CODING (SELECTED_FRAME ());
+  struct coding_system *terminal_coding = DISPLAY_TERMINAL_CODING (get_display (display, 1));
   CHECK_SYMBOL (coding_system);
   setup_coding_system (Fcheck_coding_system (coding_system), terminal_coding);
   /* We had better not send unsafe characters to terminal.  */
@@ -7343,33 +7344,39 @@ DEFUN ("set-safe-terminal-coding-system-internal", Fset_safe_terminal_coding_sys
 }
 
 DEFUN ("terminal-coding-system", Fterminal_coding_system,
-       Sterminal_coding_system, 0, 0, 0,
-       doc: /* Return coding system specified for terminal output.  */)
-     ()
+       Sterminal_coding_system, 0, 1, 0,
+       doc: /* Return coding system specified for terminal output on the given display.
+DISPLAY may be a display id, a frame, or nil for the selected frame's display.  */)
+     (display)
+     Lisp_Object display;
 {
-  return FRAME_TERMINAL_CODING (SELECTED_FRAME ())->symbol;
+  return DISPLAY_TERMINAL_CODING (get_display (display, 1))->symbol;
 }
 
 DEFUN ("set-keyboard-coding-system-internal", Fset_keyboard_coding_system_internal,
-       Sset_keyboard_coding_system_internal, 1, 1, 0,
+       Sset_keyboard_coding_system_internal, 1, 2, 0,
        doc: /* Internal use only.  */)
-     (coding_system)
+     (coding_system, display)
      Lisp_Object coding_system;
+     Lisp_Object display;
 {
+  struct display *d = get_display (display, 1);
   CHECK_SYMBOL (coding_system);
+
   setup_coding_system (Fcheck_coding_system (coding_system),
-                       FRAME_KEYBOARD_CODING (SELECTED_FRAME ()));
+                       DISPLAY_KEYBOARD_CODING (d));
   /* Character composition should be disabled.  */
-  FRAME_KEYBOARD_CODING (SELECTED_FRAME ())->composing = COMPOSITION_DISABLED;
+  DISPLAY_KEYBOARD_CODING (d)->composing = COMPOSITION_DISABLED;
   return Qnil;
 }
 
 DEFUN ("keyboard-coding-system", Fkeyboard_coding_system,
-       Skeyboard_coding_system, 0, 0, 0,
+       Skeyboard_coding_system, 0, 1, 0,
        doc: /* Return coding system specified for decoding keyboard input.  */)
-     ()
+     (display)
+     Lisp_Object display;
 {
-  return FRAME_KEYBOARD_CODING (SELECTED_FRAME ())->symbol;
+  return DISPLAY_KEYBOARD_CODING (get_display (display, 1))->symbol;
 }
 
 

@@ -2105,16 +2105,16 @@ set_tty_color_mode (f, val)
 
 /* Return the display object specified by DISPLAY.  DISPLAY may be a
    display id, a frame, or nil for the display device of the current
-   frame. */
+   frame.  If THROW is zero, return NULL for failure, otherwise throw
+   an error.  */
 
 struct display *
-get_display (Lisp_Object display)
+get_display (Lisp_Object display, int throw)
 {
+  Lisp_Object result = NULL;
+
   if (NILP (display))
     display = selected_frame;
-
-  if (! INTEGERP (display) && ! FRAMEP (display))
-    return NULL;
 
   if (INTEGERP (display))
     {
@@ -2123,15 +2123,21 @@ get_display (Lisp_Object display)
       for (d = display_list; d; d = d->next_display)
         {
           if (d->id == XINT (display))
-            return d;
+            {
+              result = d;
+              break;
+            }
         }
-      return NULL;
     }
   else if (FRAMEP (display))
     {
-      return FRAME_DISPLAY (XFRAME (display));
+      result = FRAME_DISPLAY (XFRAME (display));
     }
-  return NULL;
+
+  if (result == NULL && throw)
+    wrong_type_argument (Qdisplay_live_p, display);
+
+  return result;
 }
 
 /* Return the tty display object specified by DISPLAY. */
@@ -2139,7 +2145,7 @@ get_display (Lisp_Object display)
 static struct display *
 get_tty_display (Lisp_Object display)
 {
-  struct display *d = get_display (display);
+  struct display *d = get_display (display, 0);
   
   if (d && d->type == output_initial)
     d = NULL;
@@ -2194,10 +2200,7 @@ frame's display). */)
   (display)
      Lisp_Object display;
 {
-  struct display *d = get_display (display);
-
-  if (!d)
-    wrong_type_argument (Qdisplay_live_p, display);
+  struct display *d = get_display (display, 1);
 
   if (d->name)
     return build_string (d->name);
@@ -2210,10 +2213,8 @@ DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
   (display)
      Lisp_Object display;
 {
-  struct display *d = get_display (display);
+  struct display *d = get_display (display, 1);
 
-  if (!d)
-    wrong_type_argument (Qdisplay_live_p, display);
   if (d->type != output_termcap)
     error ("Display %d is not a termcap display", d->id);
            
@@ -2228,10 +2229,7 @@ DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_control
   (display)
      Lisp_Object display;
 {
-  struct display *d = get_display (display);
-
-  if (!d)
-    wrong_type_argument (Qdisplay_live_p, display);
+  struct display *d = get_display (display, 1);
 
   if (d->type != output_termcap || d->display_info.tty->name)
     return Qnil;
@@ -3157,7 +3155,7 @@ but if the second argument FORCE is non-nil, you may do so. */)
 {
   struct display *d, *p;
 
-  d = get_display (display);
+  d = get_display (display, 0);
 
   if (!d)
     return Qnil;
@@ -3193,7 +3191,7 @@ Displays are represented by their integer identifiers. */)
   if (!INTEGERP (object))
     return Qnil;
 
-  d = get_display (object);
+  d = get_display (object, 0);
 
   if (!d)
     return Qnil;

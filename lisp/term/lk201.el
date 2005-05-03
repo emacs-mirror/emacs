@@ -1,6 +1,8 @@
 ;; -*- no-byte-compile: t -*-
 ;; Define function key sequences for DEC terminals.
 
+;; XXX We need to find a way to have these define-keys be display-local. -- Lorentey
+
 ;; Termcap or terminfo should set these.
 ;; (define-key function-key-map "\e[A" [up])
 ;; (define-key function-key-map "\e[B" [down])

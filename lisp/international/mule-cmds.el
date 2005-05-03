@@ -2470,11 +2470,14 @@ See also `locale-charset-language-names', `locale-language-names',
 	  ;; Set the `keyboard-coding-system' if appropriate (tty
 	  ;; only).  At least X and MS Windows can generate
 	  ;; multilingual input.
-	  (unless window-system
-	    (let ((kcs (or coding-system
-			   (car (get-language-info language-name
-						   'coding-system)))))
-	      (if kcs (set-keyboard-coding-system kcs))))
+	  ;; XXX This was disabled unless `window-system', but that
+	  ;; leads to buggy behaviour when a tty frame is opened
+	  ;; later.  Setting the keyboard coding system has no adverse
+	  ;; effect on X, so let's do it anyway. -- Lorentey
+	  (let ((kcs (or coding-system
+			 (car (get-language-info language-name
+						 'coding-system)))))
+	    (if kcs (set-keyboard-coding-system kcs)))
 
 	  (setq locale-coding-system
 		(car (get-language-info language-name 'coding-priority))))

@@ -550,6 +550,9 @@ extern struct display *display_list;
 #define FRAME_TERMINAL_CODING(f) ((f)->display->terminal_coding)
 #define FRAME_KEYBOARD_CODING(f) ((f)->display->keyboard_coding)
 
+#define DISPLAY_TERMINAL_CODING(d) ((d)->terminal_coding)
+#define DISPLAY_KEYBOARD_CODING(d) ((d)->keyboard_coding)
+
 #define FRAME_RIF(f) ((f)->display->rif)
 
 #define FRAME_DISPLAY(f) ((f)->display)

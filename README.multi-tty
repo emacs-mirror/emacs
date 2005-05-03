@@ -383,18 +383,19 @@ THINGS TO DO
    Update: selecting a region with the mouse enables single_kboard
    under X.  This is very confusing.
 
-   Update: After discussions with Richard, this will be resolved by
-   having locked displays warn the user to wait, and introducing a
-   complex protocol to remotely bail out of single-kboard mode by
-   pressing C-g.
+   Update: After discussions with Richard Stallman, this will be
+   resolved by having locked displays warn the user to wait, and
+   introducing a complex protocol to remotely bail out of
+   single-kboard mode by pressing C-g.
 
    Update: Warning the user is not trivial to implement, as Emacs has
-   only one echo area.  Ideally the warning should not be displayed on
-   the display that is locking the others.  Perhaps the high
-   probability of user confusion caused by single_kboard mode deserves
-   a special case in the display code.  Alternatively, it might be
-   good enough to signal single_kboard mode by changing the modelines
-   or some other frame-local display element on the locked out displays.
+   only one echo area, shared by all frames.  Ideally the warning
+   should not be displayed on the display that is locking the others.
+   Perhaps the high probability of user confusion caused by
+   single_kboard mode deserves a special case in the display code.
+   Alternatively, it might be good enough to signal single_kboard mode
+   by changing the modelines or some other frame-local display element
+   on the locked out displays.
 
 ** normal-erase-is-backspace-mode in simple.el needs to be updated for
    multi-tty (rep. by Dan Waber).
@@ -404,6 +405,22 @@ THINGS TO DO
 
 ** rif->flush_display_optional (NULL) calls should be replaced by a
    new global function.
+
+** Support multiple character locales.  
+
+	(1) A version of `set-locale-environment' needs to be written
+	    for setting up display-local settings on ttys.  I think
+	    calling set-display-table-and-terminal-coding-system and
+	    set-keyboard-coding-system would be enough.  The language
+	    environment itself should remain a global setting.
+
+	(2) Have a look at Vlocale_coding_system.  Seems like it would
+	    be a tedious job to localize it, although most references
+	    use it for interfacing with libc and are therefore OK with
+	    the global definition.
+
+            Exceptions found so far: x-select-text and
+            x-cut-buffer-or-selection-value.
 
 ** Have a look at fatal_error_hook.
 
@@ -429,7 +446,8 @@ THINGS TO DO
 
 ** The terminal customization files in term/*.el tend to change global
    parameters, which may confuse Emacs with multiple displays.  Change
-   them to tweak only frame-local settings, if possible.
+   them to tweak only frame-local settings, if possible.  (They tend
+   to call define-key to set function key sequences a lot.)
 
 ** Dan Nicolaescu suggests that -nw should be added as an alias for -t
    in emacsclient.  Good idea.  (Alas, implementing this is not
@@ -448,9 +466,6 @@ THINGS TO DO
 ** Very strange bug: visible-bell does not work on secondary
    terminals in xterm and konsole.  The screen does flicker a bit,
    but it's so quick it isn't noticable.
-
-** Clean up the frame-local variable system.  I think it's ugly and
-   error-prone.  But maybe I just haven't yet fully understood it.
 
 ** Move baud_rate to struct display.
 
@@ -963,7 +978,7 @@ DIARY OF CHANGES
 
    (Fixed.  Emacs now uses the locale settings as seen by the
    emacsclient process for server tty frames.)
-
+   (Update: Not really; Vlocale_coding_system is still global.)
 
 -- Make `struct display' accessible to Lisp programs.  Accessor functions:
 
@@ -1022,5 +1037,9 @@ DIARY OF CHANGES
 
    (Done.  This is the new default.  No complaints so far.)
 
+-- Clean up the frame-local variable system.  I think it's ugly and
+   error-prone.  But maybe I just haven't yet fully understood it.
+
+   (Nothing to do.  It doesn't seem ugly any more.  It's rather clever.)
 
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d

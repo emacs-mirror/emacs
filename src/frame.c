@@ -698,9 +698,7 @@ affects all frames on the same terminal device.  */)
       {
         display_device = XCDR (display_device);
         CHECK_NUMBER (display_device);
-        d = get_display (XINT (display_device));
-        if (!d)
-          wrong_type_argument (Qdisplay_live_p, display_device);
+        d = get_display (XINT (display_device), 1);
       }
   }
   
@@ -1073,7 +1071,7 @@ The display device is represented by its integer identifier.  */)
 
   CHECK_LIVE_FRAME (frame);
 
-  d = get_display (frame);
+  d = get_display (frame, 0);
 
   if (!d)
     return Qnil;

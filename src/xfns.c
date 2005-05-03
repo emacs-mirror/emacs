@@ -263,10 +263,8 @@ check_x_display_info (frame)
     }
   else if (INTEGERP (frame))
     {
-      struct display *d = get_display (XINT (frame));
+      struct display *d = get_display (XINT (frame), 1);
 
-      if (!d)
-        wrong_type_argument (Qdisplay_live_p, frame);
       if (d->type != output_x_window)
         error ("Display %d is not an X display", XINT (frame));
 
