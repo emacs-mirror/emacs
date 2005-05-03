@@ -1,3 +1,25 @@
+2005-05-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-define-alist, cc-create-define-alist):
+	Remove these recent additions.
+	(c-mode): Restore to before 2005-04-28.
+
+	* progmodes/cc-vars.el (cc-define-list-program): Remove this
+	recent addition.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-program)
+	(gdb-define-alist): New variables.
+	(gdb-create-define-alist): New function.
+	(gdb-set-gud-minor-mode-1): Handle gdb-define-alist.
+	(gdb-source, gdb-memory-set-repeat-count): Replace string-to-int
+	with string-to-number.
+	(gdb-reset): Kill gdb-define-alist. Move assignments outside loop.
+
+	* progmodes/gud.el: Replace string-to-int with string-to-number.
+	(gud-find-file): Handle gdb-define-alist.
+
+	* tooltip.el (tooltip-gud-tips): Use gdb-define-alist.
+
 2005-05-02  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-aent.el (math-read-token): Replace `string-to-int' by
