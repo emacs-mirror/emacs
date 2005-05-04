@@ -1,7 +1,15 @@
+2005-05-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for BSD and
+	use gcc instead of cpp.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-flags): New variable.
+	(gdb-create-define-alist): Use. it.
+	(gdb-cpp-define-alist-program): Update for MS-DOS?
+
 2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/cmacexp.el (c-macro-preprocessor): Update to work on
-	Mac OSX.
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
 
 2005-05-03  Ulf Jasper  <ulf.jasper@web.de>
 
