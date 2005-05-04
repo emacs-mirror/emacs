@@ -196,7 +196,9 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
-(defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
+(defcustom gdb-cpp-define-alist-program 
+  (cond ((eq system-type 'ms-dos) "gcc -E -dM -o - -")
+	(t "gcc -E -dM -"))
   "The program name for generating an alist of #define directives.
 This list is used to display the #define directive associated
 with an identifier as a tooltip. It works in a debug session with
@@ -205,9 +207,16 @@ GDB, when tooltip-gud-tips-p is t."
   :group 'gud
   :version "22.1")
 
+(defcustom gdb-cpp-define-alist-flags ""
+  "*Preprocessor flags used by `gdb-create-define-alist'."
+  :type 'string
+  :group 'gud
+  :version "22.1")
+
 (defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
 
 (defun gdb-create-define-alist ()
+  "Create an alist of #define directives for GUD tooltips."
   (let* ((file (buffer-file-name))
 	 (output
 	  (with-output-to-string
@@ -215,7 +224,8 @@ GDB, when tooltip-gud-tips-p is t."
 	      (call-process shell-file-name
 			    (if (file-exists-p file) file nil)
 			    (list t nil) nil "-c"
-			    gdb-cpp-define-alist-program))))
+			    (concat gdb-cpp-define-alist-program " "
+				    gdb-cpp-define-alist-flags)))))
 	(define-list (split-string output "\n" t))
 	(name))
     (setq gdb-define-alist nil)
