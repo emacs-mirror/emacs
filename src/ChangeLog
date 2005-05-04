@@ -1,3 +1,10 @@
+2005-05-05  Kim F. Storm  <storm@cua.dk>
+
+	* buffer.c (init_buffer_once): Set cursor_in_non_selected_windows
+	default value.
+	(syms_of_buffer): Add default-cursor-in-non-selected-windows.
+	Fix type of cursor-in-non-selected-windows.
+
 2005-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* mac.c: #undef init_process so not to conflict with system headers.
