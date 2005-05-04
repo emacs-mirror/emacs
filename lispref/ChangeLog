@@ -1,3 +1,8 @@
+2005-05-04  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Interactive Codes): Fix Texinfo usage.
+	Document U more clearly.
+
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (Variable Aliases): `make-obsolete-variable' is a
