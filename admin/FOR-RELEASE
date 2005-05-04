@@ -7,8 +7,6 @@ has to be set to nil: when t, it can leak memory and cause other problems.
 
 * NEW FEATURES
 
-** Face remapping.
-
 ** Make VC-over-Tramp work where possible, or at least fail
 gracefully if something isn't supported over Tramp.
 To be done by Andre Spiegel <spiegel@gnu.org>.
@@ -32,10 +30,6 @@ See msg from rms to emacs-devel on 21 Dec.
 ** Investigate reported crashes related to using an
 invalid pointer from string_free_list.
 
-
-* LOSSAGE
-
-** Clean up flymake.el to follow Emacs Lisp conventions.
 
 * BUGS
 
@@ -92,9 +86,10 @@ is encountered.
 
 *** Update man/info.texi.
 
-*** Update man/ack.texi.
-
 ** Add missing years in copyright notices of all files.
+
+Please record your name here and say which part of the distribution
+you're going to handle.
 
 ** Update AUTHORS.
 
