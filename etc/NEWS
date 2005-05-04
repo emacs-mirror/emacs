@@ -3391,15 +3391,6 @@ changes to mode lines, header lines, or display properties may require
 forcing an explicit window update.
 
 +++
-** You can now make a window as short as one line.
-
-A window that is just one line tall does not display either a mode
-line or a header line, even if the variables `mode-line-format' and
-`header-line-format' call for them.  A window that is two lines tall
-cannot display both a mode line and a header line at once; if the
-variables call for both, only the mode line actually appears.
-
-+++
 ** The line-move, scroll-up, and scroll-down functions will now
 modify the window vscroll to scroll through display rows that are
 taller that the height of the window, for example in the presense of
@@ -3416,31 +3407,42 @@ the usable window height and width is used.
 and partial visiblity state of the corresponding row, if the PARTIALLY
 arg is non-nil.
 
+** Changes in using window objects:
+
 +++
-** The new function `window-inside-edges' returns the edges of the
+*** You can now make a window as short as one line.
+
+A window that is just one line tall does not display either a mode
+line or a header line, even if the variables `mode-line-format' and
+`header-line-format' call for them.  A window that is two lines tall
+cannot display both a mode line and a header line at once; if the
+variables call for both, only the mode line actually appears.
+
++++
+*** The new function `window-inside-edges' returns the edges of the
 actual text portion of the window, not including the scroll bar or
 divider line, the fringes, the display margins, the header line and
 the mode line.
 
 +++
-** The new functions `window-pixel-edges' and `window-inside-pixel-edges'
+*** The new functions `window-pixel-edges' and `window-inside-pixel-edges'
 return window edges in units of pixels, rather than columns and lines.
 
 +++
-** The new macro `with-selected-window' temporarily switches the
+*** The new macro `with-selected-window' temporarily switches the
 selected window without impacting the order of buffer-list.
 
 +++
-** `select-window' takes an optional second argument `norecord', like
+*** `select-window' takes an optional second argument `norecord', like
 `switch-to-buffer'.
 
 +++
-** `save-selected-window' now saves and restores the selected window
+*** `save-selected-window' now saves and restores the selected window
 of every frame.  This way, it restores everything that can be changed
 by calling `select-window'.
 
 +++
-** The function `set-window-buffer' now has an optional third argument
+*** The function `set-window-buffer' now has an optional third argument
 KEEP-MARGINS which will preserve the window's current margin, fringe,
 and scroll-bar settings if non-nil.
 
