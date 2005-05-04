@@ -1714,7 +1714,7 @@ of the variable at the end of the chain of aliases.
 This function returns @var{base-var}.
 @end defun
 
-Variable aliases are convenient for replacing an old name for a
+  Variable aliases are convenient for replacing an old name for a
 variable with a new name.  @code{make-obsolete-variable} declares that
 the old name is obsolete and therefore that it may be removed at some
 stage in the future.
@@ -1731,7 +1731,7 @@ variable was first made obsolete---for example, a date or a release
 number.
 @end defun
 
-You can make two variables synonyms and declare one obsolete at the
+  You can make two variables synonyms and declare one obsolete at the
 same time using the macro @code{define-obsolete-variable-alias}.
 
 @defmac define-obsolete-variable-alias variable new &optional when docstring
