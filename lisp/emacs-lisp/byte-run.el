@@ -121,7 +121,7 @@ If provided, WHEN should be a string indicating when FUNCTION was
 first made obsolete, for example a date or a release number.  The
 optional argument DOCSTRING specifies the documentation string
 for FUNCTION; if DOCSTRING is omitted or nil, FUNCTION uses the
-documentation string of NEW unluess it already has one."
+documentation string of NEW unless it already has one."
   `(progn
      (defalias ,function ,new ,docstring)
      (make-obsolete ,function ,new ,when)))
