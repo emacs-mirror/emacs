@@ -1,5 +1,8 @@
 2005-05-06  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (line-move-1): Fix 2005-04-26 change.  Must still use
+	vertical-motion when selective-display is active.
+
 	* ido.el (ido-setup-hook): New hook.
 	(ido-define-mode-map-hook): Remove hook; use ido-setup-hook instead.
 	(ido-input-stack): New var.
