@@ -1402,6 +1402,13 @@ Each item should normally be a cons cell @code{(@var{line} . @var{value})},
 where @var{line} is a string, and @var{value} is the value to return if
 that @var{line} is chosen.  An item can also be a string; this makes a
 non-selectable line in the menu.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+@code{x-popup-menu} does not return.  But if @var{position} is a mouse
+button event (indicating that the user invoked the menu with the
+mouse) then no quit occurs and @code{x-popup-menu} returns @code{nil}.
 @end defun
 
   @strong{Usage note:} Don't use @code{x-popup-menu} to display a menu
@@ -1470,6 +1477,10 @@ window don't matter; only the frame matters.
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
 frame.
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+@code{x-popup-dialog} does not return.
 @end defun
 
 @node Pointer Shapes
