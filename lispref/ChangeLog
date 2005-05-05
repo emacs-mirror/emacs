@@ -1,3 +1,120 @@
+2005-05-04  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Interactive Codes): Fix Texinfo usage.
+	Document U more clearly.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Variable Aliases): `make-obsolete-variable' is a
+	function and not a macro.
+
+	* frames.texi (Pop-Up Menus): Correct and clarify description of
+	`x-popup-menu'.
+	(Dialog Boxes): Clarify description of `x-popup-dialog'.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* edebug.texi (Checking Whether to Stop): Fix previous change.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi: Fix typos and Texinfo usage.
+
+	* edebug.texi (Checking Whether to Stop): executing-macro ->
+	executing-kbd-macro.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): Correct add-to-invisibility-spec.
+
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Magic File Names): Document `operations' property.
+
+2005-04-29  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Generic Modes): New node.
+	(Major Modes): Add it to the menu.
+	(Derived Modes): Add "derived mode" to concept index.
+
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Fix previous change.
+	(Font Lock Mode): Simplify.
+	(Font Lock Basics): Say that font-lock-defaults is buffer-local
+	when set and that some parts are optional.  Add cross references.
+	(Search-based Fontification): Say how to specify font-lock-keywords.
+	Add cross references.  Add font-lock-multiline to index.  Move
+	font-lock-keywords-case-fold-search here from node "Other Font
+	Lock Variables".  Document font-lock-add-keywords and
+	font-lock-remove-keywords
+	(Other Font Lock Variables): Move font-lock-keywords-only,
+	font-lock-syntax-table, font-lock-beginning-of-syntax-function,
+	and font-lock-syntactic-face-function to node "Syntactic Font
+	Lock".  Move font-lock-keywords-case-fold-search to node
+	"Search-based Fontification".  Document font-lock-inhibit-thing-lock
+	and font-lock-{,un}fontify-{buffer,region}-function.
+	(Precalculated Fontification): Remove reference to deleted variable
+	font-lock-core-only.
+	(Faces for Font Lock): Add font-lock-comment-delimiter-face.
+	(Syntactic Font Lock): Add intro.  Move font-lock-keywords-only,
+	font-lock-syntax-table, font-lock-beginning-of-syntax-function,
+	and font-lock-syntactic-face-function here from node "Other Font
+	Lock Variables".  Move font-lock-syntactic-keywords to "Setting
+	Syntax Properties".  Add cross references.
+	(Setting Syntax Properties): New node.  Move
+	font-lock-syntactic-keywords here from "Syntactic Font Lock".
+	* syntax.texi (Syntax Properties): Add cross reference.
+	* hooks.texi (Standard Hooks): Add Font-Lock hooks.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Defining Faces):
+	Document `default' elements of defface spec.
+
+	* modes.texi (Major Mode Conventions): Explain customizing ElDoc mode.
+
+	* variables.texi (Variable Aliases): Clarify text.
+
+2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* windows.texi (Window Hooks): Remove reference to obsolete Lazy Lock.
+
+2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* hooks.texi (Standard Hooks): Most minor modes have mode hooks too.
+
+2005-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* syntax.texi (Syntax Table Internals): Elaborate documentation of
+	syntax-after and syntax-class.
+
+	* files.texi (Changing Files): Fix last change's cross-reference.
+	(Unique File Names): Don't mention "numbers" in the documentation
+	of make-temp-file and make-temp-name.
+
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Changing Files): Document MUSTBENEW arg in copy-file.
+
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* windows.texi (Cyclic Window Ordering): Clarify window-list.
+
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* variables.texi (Variable Aliases): Describe make-obsolete-variable
+	and define-obsolete-variable-alias.
+
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Symbol Plists): Remove safe-get, as get is now safe.
+	(Other Plists): Remove safe-plist-get, as plist-get is now safe.
+
+2005-04-21  Lute Kamstra  <lute@gnu.org>
+
+	* lists.texi (Association Lists): Document rassq-delete-all.
+
 2005-04-19  Richard M. Stallman  <rms@gnu.org>
 
 	* modes.texi (Search-based Fontification): Explain that
@@ -1044,7 +1161,7 @@
 
 	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
 	renamed to `disabled-command-function'.
-	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor.
 	(Command Loop Info): Replace reference to it.
 	(Disabling Commands): `disabled-command-hook' has been renamed to
 	`disabled-command-function'.

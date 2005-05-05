@@ -3975,18 +3975,16 @@ need not be quoted in `allout-new-exposure'.
 
 Cursor is left at start position.
 
-Use this instead of obsolete `allout-exposure'.
-
 Examples:
-\(allout-exposure (-1 () () () 1) 0)
+\(allout-new-exposure (-1 () () () 1) 0)
 	Close current topic at current level so only the immediate
 	subtopics are shown, except also show the children of the
 	third subtopic; and close the next topic at the current level.
-\(allout-exposure : -1 0)
+\(allout-new-exposure : -1 0)
 	Close all topics at current level to expose only their
 	immediate children, except for the last topic at the current
 	level, in which even its immediate children are hidden.
-\(allout-exposure -2 : -1 *)
+\(allout-new-exposure -2 : -1 *)
         Expose children and grandchildren of first topic at current
 	level, and expose children of subsequent topics at current
 	level *except* for the last, which should be opened completely."
@@ -3995,17 +3993,6 @@ Examples:
 		      (allout-next-heading)))
 	     (error "allout-new-exposure: Can't find any outline topics"))
 	(list 'allout-expose-topic (list 'quote spec))))
-;;;_   > allout-exposure '()
-(defmacro allout-exposure (&rest spec)
-  "Literal frontend for `allout-old-expose-topic', doesn't evaluate arguments
-and retains start position."
-  (list 'save-excursion
-	'(if (not (or (allout-goto-prefix)
-		      (allout-next-heading)))
-	     (error "Can't find any outline topics"))
-	(cons 'allout-old-expose-topic
-	      (mapcar (function (lambda (x) (list 'quote x))) spec))))
-(make-obsolete 'allout-exposure 'allout-new-exposure "19.23")
 
 ;;;_ #7 Systematic outline presentation - copying, printing, flattening
 

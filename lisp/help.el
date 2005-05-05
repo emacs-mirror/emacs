@@ -611,6 +611,7 @@ pass a string or a vector.
 If non-nil UNTRANSLATED is a vector of the untranslated events.
 It can also be a number in which case the untranslated events from
 the last key hit are used."
+  ;; UP-EVENT is the up-event that was discarded by reading KEY, or nil.
   (interactive "kDescribe key: \np\nU")
   (if (numberp untranslated)
       (setq untranslated (this-single-command-raw-keys)))
@@ -634,7 +635,8 @@ the last key hit are used."
 	  ;; Don't bother user with strings from (e.g.) the select-paste menu.
 	  (if (stringp (aref key (1- (length key))))
 	      (aset key (1- (length key)) "(any string)"))
-	  (if (stringp (aref untranslated (1- (length untranslated))))
+	  (if (and untranslated
+		   (stringp (aref untranslated (1- (length untranslated)))))
 	      (aset untranslated (1- (length untranslated))
 		    "(any string)"))
 	  (with-output-to-temp-buffer (help-buffer)

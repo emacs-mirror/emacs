@@ -7106,14 +7106,11 @@ x_find_ccl_program (fontp)
 #define MIN_DOC_SIZE 64
 #define MAX_DOC_SIZE 32767
 
+#if 0
 /* sleep time for WaitNextEvent */
 #define WNE_SLEEP_AT_SUSPEND 10
 #define WNE_SLEEP_AT_RESUME  1
 
-/* true when cannot handle any Mac OS events */
-static int handling_window_update = 0;
-
-#if 0
 /* the flag appl_is_suspended is used both for determining the sleep
    time to be passed to WaitNextEvent and whether the cursor should be
    drawn when updating the display.  The cursor is turned off when
@@ -7130,8 +7127,6 @@ static long app_sleep_time = WNE_SLEEP_AT_RESUME;
 #define ARGV_STRING_LIST_ID 129
 #define ABOUT_ALERT_ID	128
 #define RAM_TOO_LARGE_ALERT_ID 129
-
-Boolean	terminate_flag = false;
 
 /* Contains the string "reverse", which is a constant for mouse button emu.*/
 Lisp_Object Qreverse;
@@ -7188,11 +7183,11 @@ static DragTrackingHandlerUPP mac_do_track_dragUPP = NULL;
 static DragReceiveHandlerUPP mac_do_receive_dragUPP = NULL;
 #endif
 
+static Lisp_Object Qapplication, Qabout;
 #if USE_CARBON_EVENTS
 #ifdef MAC_OSX
-/* Preliminary Support for the OSX Services Menu */
-static OSStatus mac_handle_service_event (EventHandlerCallRef,EventRef,void*);
-static void init_service_handler ();
+extern void init_service_handler ();
+static Lisp_Object Qpreferences, Qservices, Qpaste, Qperform;
 #endif
 /* Window Event Handler */
 static pascal OSStatus mac_handle_window_event (EventHandlerCallRef,
@@ -7350,11 +7345,13 @@ do_get_menus (void)
   SetMenuBar (menubar_handle);
   DrawMenuBar ();
 
+#if !TARGET_API_MAC_CARBON
   menu_handle = GetMenuHandle (M_APPLE);
   if(menu_handle != NULL)
     AppendResMenu (menu_handle,'DRVR');
   else
     abort ();
+#endif
 }
 
 
@@ -7426,8 +7423,6 @@ do_window_update (WindowPtr win)
         {
 	  Rect r;
 
-          handling_window_update = 1;
-
 #if TARGET_API_MAC_CARBON
 	  {
 	    RgnHandle region = NewRgn ();
@@ -7443,8 +7438,6 @@ do_window_update (WindowPtr win)
 	  expose_frame (f, r.left, r.top, r.right - r.left, r.bottom - r.top);
 	  UpdateControls (win, win->visRgn);
 #endif
-
-          handling_window_update = 0;
         }
     }
 
@@ -7513,11 +7506,11 @@ do_menu_choice (SInt32 menu_choice)
   menu_id = HiWord (menu_choice);
   menu_item = LoWord (menu_choice);
 
-  if (menu_id == 0)
-    return;
-
   switch (menu_id)
     {
+    case 0:
+      break;
+
     case M_APPLE:
       do_apple_menu (menu_item);
       break;
@@ -7767,104 +7760,156 @@ init_required_apple_events ()
     abort ();
 }
 
-#if USE_CARBON_EVENTS
-#ifdef MAC_OSX
 void
-init_service_handler ()
-{
-  EventTypeSpec specs[] = {{kEventClassService, kEventServiceGetTypes},
-			   {kEventClassService, kEventServiceCopy},
-			   {kEventClassService, kEventServicePaste}};
-  InstallApplicationEventHandler (NewEventHandlerUPP (mac_handle_service_event),
-				  3, specs, NULL, NULL);
-}
-
-/*
-   MAC_TODO: Check to see if this is called by AEProcessDesc...
- */
-OSStatus
-mac_handle_service_event (EventHandlerCallRef callRef,
-			  EventRef event, void *data)
-{
-  OSStatus err = noErr;
-  switch (GetEventKind (event))
-    {
-    case kEventServiceGetTypes:
-      {
-	CFMutableArrayRef copyTypes, pasteTypes;
-	CFStringRef type;
-	Boolean selection = true;
-	/*
-	  GetEventParameter(event, kEventParamServicePasteTypes,
-	  typeCFMutableArrayRef, NULL,
-	  sizeof (CFMutableArrayRef), NULL, &pasteTypes);
-	*/
-	GetEventParameter(event, kEventParamServiceCopyTypes,
-			  typeCFMutableArrayRef, NULL,
-			  sizeof (CFMutableArrayRef), NULL, &copyTypes);
-	type = CreateTypeStringWithOSType (kScrapFlavorTypeText);
-	if (type) {
-	  CFArrayAppendValue (copyTypes, type);
-	  //CFArrayAppendValue (pasteTypes, type);
-	  CFRelease (type);
-	}
-      }
-    case kEventServiceCopy:
-      {
-	ScrapRef currentScrap, specificScrap;
-	char * buf = "";
-	Size byteCount = 0;
-
-	GetCurrentScrap (&currentScrap);
-
-	err = GetScrapFlavorSize (currentScrap, kScrapFlavorTypeText, &byteCount);
-	if (err == noErr)
-	  {
-	    void *buffer = xmalloc (byteCount);
-	    if (buffer != NULL)
-	      {
-		GetEventParameter (event, kEventParamScrapRef, typeScrapRef, NULL,
-				   sizeof (ScrapRef), NULL, &specificScrap);
-
-		err = GetScrapFlavorData (currentScrap, kScrapFlavorTypeText,
-					  &byteCount, buffer);
-		if (err == noErr)
-		  PutScrapFlavor (specificScrap, kScrapFlavorTypeText,
-				  kScrapFlavorMaskNone, byteCount, buffer);
-		xfree (buffer);
-	      }
-	  }
-	err = noErr;
-      }
-    case kEventServicePaste:
-      {
-	/*
-	// Get the current location
-        Size     byteCount;
-        ScrapRef specificScrap;
-        GetEventParameter(event, kEventParamScrapRef, typeScrapRef, NULL,
-			  sizeof(ScrapRef), NULL, &specificScrap);
-        err = GetScrapFlavorSize(specificScrap, kScrapFlavorTypeText, &byteCount);
-        if (err == noErr) {
-	  void * buffer = xmalloc(byteCount);
-	  if (buffer != NULL ) {
-	    err = GetScrapFlavorData(specificScrap, kScrapFlavorTypeText,
-				     &byteCount, buffer);
-	    if (err == noErr) {
-	      // Actually place in the buffer
-	      BLOCK_INPUT;
-	      // Get the current "selection" string here
-	      UNBLOCK_INPUT;
-	    }
-	  }
-	  xfree(buffer);
-        }
-        */
-      }
-    }
-  return err;
-}
+mac_store_application_menu_event (event)
+#if USE_CARBON_EVENTS
+     EventRef event;
+#else
+     UInt32 event;
 #endif
+{
+  struct input_event buf;
+  Lisp_Object frame, entry;
+
+  EVENT_INIT (buf);
+
+  XSETFRAME (frame, mac_focus_frame (&one_mac_display_info));
+  buf.kind = MENU_BAR_EVENT;
+  buf.frame_or_window = frame;
+  buf.arg = frame;
+  kbd_buffer_store_event (&buf);
+
+  buf.arg = Qapplication;
+  kbd_buffer_store_event (&buf);
+
+#if USE_CARBON_EVENTS
+  switch (GetEventClass (event))
+    {
+#ifdef MAC_OSX
+    case kEventClassService:
+      buf.arg = Qservices;
+      kbd_buffer_store_event (&buf);
+      switch (GetEventKind (event))
+	{
+	case kEventServicePaste:
+	  entry = Qpaste;
+	  break;
+
+	case kEventServicePerform:
+	  {
+	    OSErr err;
+	    CFStringRef message;
+
+	    err = GetEventParameter (event, kEventParamServiceMessageName,
+				     typeCFStringRef, NULL,
+				     sizeof (CFStringRef), NULL, &message);
+	    buf.arg = Qperform;
+	    kbd_buffer_store_event (&buf);
+	    if (err == noErr && message)
+	      entry = intern (SDATA (cfstring_to_lisp (message)));
+	    else
+	      entry = Qnil;
+	  }
+	  break;
+
+	default:
+	  abort ();
+	}
+      break;
+#endif	/* MAC_OSX */
+    case kEventClassCommand:
+      {
+	HICommand command;
+
+	GetEventParameter(event, kEventParamDirectObject, typeHICommand,
+			  NULL, sizeof (HICommand), NULL, &command);
+	switch (command.commandID)
+	  {
+	  case kHICommandAbout:
+	    entry = Qabout;
+	    break;
+#ifdef MAC_OSX
+	  case kHICommandPreferences:
+	    entry = Qpreferences;
+	    break;
+#endif /* MAC_OSX */
+	  case kHICommandQuit:
+	    entry = Qquit;
+	    break;
+	  default:
+	    abort ();
+	  }
+      }
+      break;
+
+    default:
+      abort ();
+    }
+#else  /* USE_CARBON_EVENTS */
+  switch (event)
+    {
+    case kHICommandAbout:
+      entry = Qabout;
+      break;
+    case kHICommandQuit:
+      entry = Qquit;
+      break;
+    default:
+      abort ();
+    }
+#endif
+
+  buf.arg = entry;
+  kbd_buffer_store_event (&buf);
+}
+
+#if USE_CARBON_EVENTS
+static pascal OSStatus
+mac_handle_command_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  HICommand command;
+  OSErr result;
+
+  GetEventParameter(event, kEventParamDirectObject, typeHICommand, NULL,
+		    sizeof (HICommand), NULL, &command);
+
+  switch (command.commandID)
+    {
+    case kHICommandAbout:
+#ifdef MAC_OSX
+    case kHICommandPreferences:
+#endif	/* MAC_OSX */
+      result = CallNextEventHandler (next_handler, event);
+      if (result != eventNotHandledErr)
+	return result;
+
+      mac_store_application_menu_event (event);
+      return noErr;
+
+    default:
+      break;
+    }
+
+  return eventNotHandledErr;
+}
+
+static OSErr
+init_command_handler (window)
+     WindowPtr window;
+{
+  OSErr err = noErr;
+  EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
+  static EventHandlerUPP handle_command_eventUPP = NULL;
+
+  if (handle_command_eventUPP == NULL)
+    handle_command_eventUPP = NewEventHandlerUPP (mac_handle_command_event);
+  return InstallApplicationEventHandler (handle_command_eventUPP,
+					 GetEventTypeCount (specs), specs,
+					 NULL, NULL);
+}
 
 static pascal OSStatus
 mac_handle_window_event (next_handler, event, data)
@@ -7888,7 +7933,7 @@ mac_handle_window_event (next_handler, event, data)
 	return result;
 
       do_window_update (wp);
-      break;
+      return noErr;
 
     case kEventWindowBoundsChanging:
       result = CallNextEventHandler (next_handler, event);
@@ -8267,14 +8312,30 @@ do_ae_print_documents (const AppleEvent *pAE, AppleEvent *reply, long refcon)
 static pascal OSErr
 do_ae_quit_application (AppleEvent* message, AppleEvent *reply, long refcon)
 {
-  /* FixMe: Do we need an unwind-protect or something here?  And what
-     do we do about unsaved files. Currently just forces quit rather
-     than doing recursive callback to get user input.  */
+#if USE_CARBON_EVENTS
+  OSErr err;
+  EventRef event = NULL;
+  static const HICommand quit_command = {kEventAttributeNone, kHICommandQuit};
 
-  terminate_flag = true;
+  err = CreateEvent (NULL, kEventClassCommand, kEventCommandProcess, 0,
+		     kEventAttributeUserEvent, &event);
+  if (err == noErr)
+    err = SetEventParameter (event, kEventParamDirectObject, typeHICommand,
+			     sizeof (HICommand), &quit_command);
+  if (err == noErr)
+    mac_store_application_menu_event (event);
+  if (event)
+    ReleaseEvent (event);
 
-  /* Fkill_emacs doesn't return.  We have to return. (TI) */
+  if (err == noErr)
+    return noErr;
+  else
+    return errAEEventNotHandled;
+#else
+  mac_store_application_menu_event (kHICommandQuit);
+
   return noErr;
+#endif
 }
 
 
@@ -8473,20 +8534,6 @@ XTread_socket (sd, expected, hold_quit)
 
   /* So people can tell when we have read the available input.  */
   input_signal_count++;
-
-  /* Don't poll for events to process (specifically updateEvt) if
-     window update currently already in progress.  A call to redisplay
-     (in do_window_update) can be preempted by another call to
-     redisplay, causing blank regions to be left on the screen and the
-     cursor to be left at strange places.  */
-  if (handling_window_update)
-    {
-      UNBLOCK_INPUT;
-      return 0;
-    }
-
-  if (terminate_flag)
-    Fkill_emacs (make_number (1));
 
 #if USE_CARBON_EVENTS
   toolbox_dispatcher = GetEventDispatcherTarget ();
@@ -9580,8 +9627,40 @@ mac_check_for_quit_char ()
       kbd_buffer_store_event (&e);
     }
 }
-
 #endif /* MAC_OSX */
+
+static void
+init_menu_bar ()
+{
+#ifdef MAC_OSX
+  OSErr err;
+  MenuRef menu;
+  MenuItemIndex menu_index;
+
+  err = GetIndMenuItemWithCommandID (NULL, kHICommandQuit, 1,
+				     &menu, &menu_index);
+  if (err == noErr)
+    SetMenuItemCommandKey (menu, menu_index, false, 0);
+#if USE_CARBON_EVENTS
+  EnableMenuCommand (NULL, kHICommandPreferences);
+  err = GetIndMenuItemWithCommandID (NULL, kHICommandPreferences, 1,
+				     &menu, &menu_index);
+  if (err == noErr)
+    {
+      SetMenuItemCommandKey (menu, menu_index, false, 0);
+      InsertMenuItemTextWithCFString (menu, NULL,
+				      0, kMenuItemAttrSeparator, 0);
+      InsertMenuItemTextWithCFString (menu, CFSTR ("About Emacs"),
+				      0, 0, kHICommandAbout);
+    }
+#endif	/* USE_CARBON_EVENTS */
+#else	/* !MAC_OSX */
+#if USE_CARBON_EVENTS
+  SetMenuItemCommandID (GetMenuHandle (M_APPLE), I_ABOUT, kHICommandAbout);
+#endif
+#endif
+}
+
 
 /* Set up use of X before we make the first connection.  */
 
@@ -9699,13 +9778,17 @@ mac_initialize ()
 #if TARGET_API_MAC_CARBON
   init_required_apple_events ();
 
-#if USE_CARBON_EVENTS && defined (MAC_OSX)
+#if USE_CARBON_EVENTS
+#ifdef MAC_OSX
   init_service_handler ();
 
   init_quit_char_handler ();
-#endif
+#endif	/* MAC_OSX */
 
-  DisableMenuCommand (NULL, kHICommandQuit);
+  init_command_handler ();
+
+  init_menu_bar ();
+#endif	/* USE_CARBON_EVENTS */
 
 #ifdef MAC_OSX
   if (!inhibit_window_system)
@@ -9731,6 +9814,16 @@ syms_of_macterm ()
   Fput (Qhyper, Qmodifier_value, make_number (hyper_modifier));
   Qsuper = intern ("super");
   Fput (Qsuper, Qmodifier_value, make_number (super_modifier));
+
+  Qapplication = intern ("application");  staticpro (&Qapplication);
+  Qabout       = intern ("about");	  staticpro (&Qabout);
+
+#if USE_CARBON_EVENTS && defined (MAC_OSX)
+  Qpreferences = intern ("preferences");  staticpro (&Qpreferences);
+  Qservices    = intern ("services");	  staticpro (&Qservices);
+  Qpaste       = intern ("paste");	  staticpro (&Qpaste);
+  Qperform     = intern ("perform");	  staticpro (&Qperform);
+#endif
 
 #ifdef MAC_OSX
   Fprovide (intern ("mac-carbon"), Qnil);

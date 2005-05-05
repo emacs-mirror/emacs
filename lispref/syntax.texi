@@ -528,10 +528,12 @@ execution starts.  Other buffers are not affected.
 @section Syntax Properties
 @kindex syntax-table @r{(text property)}
 
-When the syntax table is not flexible enough to specify the syntax of a
-language, you can use @code{syntax-table} text properties to override
-the syntax table for specific character occurrences in the buffer.
-@xref{Text Properties}.
+When the syntax table is not flexible enough to specify the syntax of
+a language, you can use @code{syntax-table} text properties to
+override the syntax table for specific character occurrences in the
+buffer.  @xref{Text Properties}.  You can use Font Lock mode to set
+@code{syntax-table} text properties.  @xref{Setting Syntax
+Properties}.
 
 The valid values of @code{syntax-table} text property are:
 
@@ -940,11 +942,25 @@ This function returns the internal form @code{(@var{syntax-code} .
 @defun syntax-after pos
 This function returns the syntax code of the character in the buffer
 after position @var{pos}, taking account of syntax properties as well
-as the syntax table.
+as the syntax table.  If @var{pos} is outside the buffer's accessible
+portion (@pxref{Narrowing, accessible portion}), this function returns
+@code{nil}.
 @end defun
 
 @defun syntax-class syntax
-This function returns the syntax class of a syntax code.
+This function returns the syntax class of the syntax code
+@var{syntax}.  (It masks off the high 16 bits that hold the flags
+encoded in the syntax descriptor.)  If @var{syntax} is @code{nil}, it
+returns @code{nil}; this is so evaluating the expression
+
+@example
+(syntax-class (syntax-after pos))
+@end example
+
+@noindent
+where @code{pos} is outside the buffer's accessible portion, will
+yield @code{nil} without throwing errors or producing wrong syntax
+class codes.
 @end defun
 
 @node Categories

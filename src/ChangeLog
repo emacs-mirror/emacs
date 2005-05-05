@@ -1,3 +1,245 @@
+2005-05-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* mac.c: #undef init_process so not to conflict with system headers.
+
+2005-05-02  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (syms_of_buffer): Define cursor-in-non-selected-windows.
+
+	* buffer.h (struct buffer): Add cursor_in_non_selected_windows slot.
+
+	* xdisp.c (Vcursor_in_non_selected_windows)
+	(Qcursor_in_non_selected_windows): Vars deleted.
+	(syms_of_xdisp): Don't initialize them.
+	(get_window_cursor_type): Use cursor_in_non_selected_windows
+	buffer slot.
+
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* macros.c (executing_kbd_macro_index): Rename from
+	executing_macro_index.  All uses changed.
+	(executing_kbd_macro_iterations): Rename from
+	executing_macro_iterations.  All uses changed.
+	(executing_kbd_macro): Rename from executing_macro.
+	All uses changed.
+	(syms_of_macros): Rename Lisp var executing-macro-index to
+	executing-kbd-macro-index.
+
+	* xdisp.c (move_it_in_display_line_to): Fix last change.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* xmenu.c (Fx_popup_menu): Doc fix.
+
+	* charset.c (syms_of_charset): Delete defsubr for Schars_in_region.
+
+2005-05-02  Jason Rumney  <jasonr@gnu.org>
+
+	* emacs.c (USAGE3, USAGE4): Keep strings below 2048 bytes.
+
+2005-05-02  Nozomu Ando  <nand@mac.com>
+
+	* sysselect.h: Fix typo.
+
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* charset.c (Fchars_in_region): Remove as obsolete.
+
+2005-05-01  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (move_it_in_display_line_to): Stop if we move beyond
+	TO_CHARPOS. This may happen if last glyphs was an image or stretch
+	glyph.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* dispnew.c (sit_for): Vexecuting_macro -> Vexecuting_kbd_macro.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c [not HAVE_X_TOOLKIT] (xmenu_show):
+	If user cancels the menu, quit unless FOR_CLICK.
+
+	* macros.c (Vexecuting_kbd_macro): Renamed from Vexecuting_macro.
+	All uses changed.
+	(syms_of_macros): Define only executing-kbd-macro, not executing-macro.
+	* keyboard.c: Change Vexecuting_macro to Vexecuting_kbd_macro.
+	* macros.h (Vexecuting_kbd_macro): Declare instead of Vexecuting_macro.
+	* commands.h (Vexecuting_kbd_macro): Likewise.
+
+2005-05-01  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* sysdep.c (get_frame_size) [VMS]: Use a fresh i/o channel.
+
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffind_file_name_handler): Handle the `operations'
+	property of the file name handler.
+	(Qoperations): New variable.
+	(syms_of_fileio): Initialize and staticpro it.
+
+	* xdisp.c (set_message_1): Delete xassert.
+
+2005-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include time.h.  Include sysselect.h after
+	systime.h.
+
+	* macfns.c (Fx_server_version): Add BLOCK_INPUT around Gestalt.
+
+	* macgui.h [HAVE_CARBON && MAC_OSX]: Don't undefine/define mktime
+	before/after including Carbon.h if there is a working mktime.
+
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* xfaces.c (resolve_face_name): Add arg SIGNAL_P.  Calls changed.
+	Fix cyclic alias check.  If alias loop is detected, signal
+	circular-list error if SIGNAL_P, and return Qdefault if !SIGNAL_P.
+
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* eval.c (do_autoload): Record only autoloads in the autoload
+	property of symbols.
+
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs.c (USAGE1): Add --basic-display and --quick options.
+
+2005-04-27  Kim F. Storm  <storm@cua.dk>
+
+	* data.c (syms_of_data) Staticpro Qcyclic_variable_indirection.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Fsame_window_p, Fspecial_display_p): Doc fixes.
+	(syms_of_window): Doc fixes.
+
+	* indent.c (Fvertical_motion): Undo previous change.
+
+2005-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (char_table_range): New function.
+	(Fchar_table_range): Signal an error if characters in the range
+	have inconsistent values.  Don't check the parent.
+
+2005-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* fontset.c (fontset_set): Fix previous change.
+
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* indent.c (Fvertical_motion): Bind fontification-functions to nil.
+
+2005-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* regex.c (re_search_2, re_match_2_internal): Convert second arg
+	of RE_TRANSLATE to int, to shut up GCC warnings.
+
+	* fileio.c (Fcopy_file): Doc fix.
+	[MSDOS]: Fix call to emacs_open: buffer_file_type not defined and
+	not needed.
+
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Makefile.in [HAVE_CARBON] (MAC_OBJ): Add macselect.o.
+	(SOME_MACHINE_OBJECTS): Likewise.
+	(mac.o): Depend on ccl.h.
+	(macselect.o): New target.
+
+	* emacs.c (main) [MAC_OS8 || MAC_OSX && HAVE_CARBON]: Call
+	syms_of_macselect.
+
+	* frame.c (Fdelete_frame) [MAC_OS]: Call x_clear_frame_selections.
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Don't include charset.h or
+	coding.h.
+	(QCLIPBOARD): Remove variable.
+	(syms_of_mac): Don't initialize it.
+	(Fmac_paste_function, Fmac_cut_function, Fx_selection_exists_p):
+	Remove functions.
+	(syms_of_mac): Don't defsubr them.
+	[TARGET_API_MAC_CARBON] (Qmime_charset, QNFD, QNFKD, QNFC, QNFKC)
+	(QHFS_plus_D, QHFS_plus_C): New variables.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Initialize them.
+	[TARGET_API_MAC_CARBON] (get_cfstring_encoding_from_lisp)
+	(cfstring_create_normalized): New functions.
+	[TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Likewise.
+	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
+
+	* macterm.c (handling_window_update, terminate_flag): Remove
+	variables.
+	(do_window_update, do_ae_quit_application, XTread_socket): Don't
+	use them.
+	(WNE_SLEEP_AT_SUSPEND, WNE_SLEEP_AT_RESUME): Don't define.
+	[USE_CARBON_EVENTS && MAC_OSX] (mac_handle_service_event)
+	(init_service_handler): Move to macselect.c.  Remove declarations.
+	[USE_CARBON_EVENTS && MAC_OSX] (init_service_handler): Add extern.
+	(Qapplication, Qabout): New variables.
+	(syms_of_mac): Initialize them.
+	[USE_CARBON_EVENTS && MAC_OSX] (Qpreferences, Qservices, Qpaste)
+	(Qperform): New variables.
+	(syms_of_mac) [USE_CARBON_EVENTS && MAC_OSX]: Initialize them.
+	(do_get_menus) [TARGET_API_MAC_CARBON]: Don't call AppendResMenu.
+	(do_menu_choice): Unhighlight menu bar also when menu_id is 0.
+	(mac_store_application_menu_event, init_menu_bar): New functions.
+	[USE_CARBON_EVENTS] (mac_handle_command_event)
+	(init_command_handler): New functions.
+	(mac_handle_window_event): Return noErr on window update event.
+	(do_ae_quit_application): Call mac_store_application_menu_event.
+	(mac_initialize) [USE_CARBON_EVENTS]: Call init_command_handler
+	and init_menu_bar.
+
+	* macterm.h (x_clear_frame_selections): Add extern.
+
+	* macselect.c: New file for selection processing on Mac OS.
+
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Fcopy_file): New arg MUSTBENEW.
+	(Frename_file): Pass new arg to Fcopy_file.
+
+	* window.c (window_size_fixed): Variable deleted.
+	(syms_of_window): Initialize window-size-fixed to nil.
+	But don't DEFVAR window_size_fixed.
+
+2005-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* m/macppc.h (LD_SWITCH_MACHINE) [LINUX]: Don't define.
+	(START_FILES, LIB_STANDARD) [LINUX && _ARCH_PPC64]: Override to
+	use lib64 instead of lib.
+	(_LP64) [_ARCH_PPC64]: Define if not defined.
+
+2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* s/ms-w32.h (HAVE_PWD_H): Define.
+
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* fns.c (copy_sub_char_table): Explicitly copy the default value
+	of the sub-chartable.
+
+	* fontset.c (fontset_set): When a sub-chartable is created,
+	explicitly sets the defalt value.
+
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fplist_get): Replace by Fsafe_plist_get.
+	(Fsafe_plist_get): Rename to Fplist_get.
+	(Fsafe_get): Remove, as Fget now uses safe Fplist_get.
+	(defsubr): Remove defsubr for Fsafe_plist_get and Fsafe_get.
+
+	* lisp.h (Fsafe_plist_get, Fsafe_get): Remove EXFUN.
+
+	* xdisp.c (store_mode_line_string, produce_stretch_glyph)
+	(note_mode_line_or_margin_highlight, note_mouse_highlight):
+	Use Fplist_get instead of Fsafe_plist_get.
+
+	* xfaces.c (resolve_face_name): Use Fget instead of Fsafe_get.
+
+2005-04-21  Miles Bader  <miles@gnu.org>
+
+	* xdisp.c (dump_glyph_row): Don't display overlay_arrow_p field.
+
 2005-04-20  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* sysdep.c: Remove reference to defunct vms-pwd.h.
@@ -2763,7 +3005,7 @@
 
 	* doc.c: New variable Vbuild_files.
 	(Fsnarf_documentation): If Vbuild_files is nil, populate it with
-	file names from buildobh.lst.  Only attach docstrings from files
+	file names from buildobj.lst.  Only attach docstrings from files
 	that are in Vbuild_files.
 	(syms_of_doc): Defvar Vbuild_files.
 

@@ -717,10 +717,9 @@ by a visible newline, it displays an ellipsis.
 
 @defun add-to-invisibility-spec element
 This function adds the element @var{element} to
-@code{buffer-invisibility-spec} (if it is not already present in that
-list).  If @code{buffer-invisibility-spec} was @code{t}, it changes to
-a list, @code{(t)}, so that text whose @code{invisible} property
-is @code{t} remains invisible.
+@code{buffer-invisibility-spec}.  If @code{buffer-invisibility-spec}
+was @code{t}, it changes to a list, @code{(t)}, so that text whose
+@code{invisible} property is @code{t} remains invisible.
 @end defun
 
 @defun remove-from-invisibility-spec element
@@ -1143,9 +1142,9 @@ This function removes all the overlays between @var{start} and
 @var{end} whose property @var{name} has the value @var{value}.  It can
 move the endpoints of the overlays in the region, or split them.
 
-If @var{name} is omitted or nil, it means to delete all overlays in
+If @var{name} is omitted or @code{nil}, it means to delete all overlays in
 the specified region.  If @var{start} and/or @var{end} are omitted or
-nil, that means the beginning and end of the buffer respectively.
+@code{nil}, that means the beginning and end of the buffer respectively.
 Therefore, @code{(remove-overlays)} removes all the overlays in the
 current buffer.
 @end defun
@@ -1557,7 +1556,7 @@ This case is useful for tiling small images or image slices without
 adding blank areas between the images.
 
   If the property value is not @code{t}, it is a height spec.  A height
-spec stands for a numeric height value; this heigh spec specifies the
+spec stands for a numeric height value; this height spec specifies the
 actual line height, @var{line-height}.  There are several ways to
 write a height spec; here's how each of them translates into a numeric
 height:
@@ -1573,7 +1572,7 @@ If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of face @var{face}.  @var{ratio} can
 be any type of number, or @code{nil} which means a ratio of 1.
 If @var{face} is @code{t}, it refers to the current face.
-@item (@code{nil} . @var{ratio})
+@item (nil . @var{ratio})
 If the height spec is a cons of the format shown, the numeric height
 is @var{ratio} times the height of the contents of the line.
 @end table
@@ -1584,7 +1583,7 @@ is less than @var{line-height}, Emacs adds extra vertical space above
 the line to achieve the total height @var{line-height}.  Otherwise,
 @var{line-height} has no effect.
 
-  If you don't specify the @code{line-height} propery, the line's
+  If you don't specify the @code{line-height} property, the line's
 height consists of the contents' height plus the line spacing.
 There are several ways to specify the line spacing for different
 parts of Emacs text.
@@ -1800,19 +1799,28 @@ When @code{defface} executes, it defines the face according to
 init file (@pxref{Init File}) to override that specification.
 
 The purpose of @var{spec} is to specify how the face should appear on
-different kinds of terminals.  It should be an alist whose elements have
-the form @code{(@var{display} @var{atts})}.  Each element's @sc{car},
-@var{display}, specifies a class of terminals.  The element's second element,
-@var{atts}, is a list of face attributes and their values; it specifies
-what the face should look like on that kind of terminal.  The possible
-attributes are defined in the value of @code{custom-face-attributes}.
+different kinds of terminals.  It should be an alist whose elements
+have the form @code{(@var{display} @var{atts})}.  Each element's
+@sc{car}, @var{display}, specifies a class of terminals.  (The first
+element, if it s @sc{car} is @code{default}, is special---it specifies
+defaults for the remaining elements).  The element's @sc{cadr},
+@var{atts}, is a list of face attributes and their values; it
+specifies what the face should look like on that kind of terminal.
+The possible attributes are defined in the value of
+@code{custom-face-attributes}.
 
 The @var{display} part of an element of @var{spec} determines which
-frames the element applies to.  If more than one element of @var{spec}
-matches a given frame, the first matching element is the only one used
-for that frame.  There are two possibilities for @var{display}:
+frames the element matches.  If more than one element of @var{spec}
+matches a given frame, the first element that matches is the one used
+for that frame.  There are three possibilities for @var{display}:
 
 @table @asis
+@item @code{default}
+This element of @var{spec} doesn't match any frames; instead, it
+specifies defaults that apply to all frames.  This kind of element, if
+used, must be the first element of @var{spec}.  Each of the following
+elements can override any or all of these defaults.
+
 @item @code{t}
 This element of @var{spec} matches all frames.  Therefore, any
 subsequent elements of @var{spec} are never used.  Normally
@@ -1840,8 +1848,9 @@ What kinds of colors the frame supports---either @code{color},
 The kind of background---either @code{light} or @code{dark}.
 
 @item min-colors
-An integer that represents the minimum number of colors the frame should
-support, it is compared with the result of @code{display-color-cells}.
+An integer that represents the minimum number of colors the frame
+should support.  This matches a frame if its
+@code{display-color-cells} value is at least the specified integer.
 
 @item supports
 Whether or not the frame can display the face attributes given in
@@ -2975,7 +2984,7 @@ given time.
 @code{overlay-arrow-variable-list}.
 
 @defvar overlay-arrow-variable-list
-This variable's value is a list of varibles, each of which specifies
+This variable's value is a list of variables, each of which specifies
 the position of an overlay arrow.  The variable
 @code{overlay-arrow-position} has its normal meaning because it is on
 this list.
@@ -3151,7 +3160,7 @@ results:
 @noindent
 This illustrates that what matters is the property value for
 each character.  If two consecutive characters have the same
-object as the @code{display} property value, it's irrelevent
+object as the @code{display} property value, it's irrelevant
 whether they got this property from a single call to
 @code{put-text-property} or from two different calls.
 

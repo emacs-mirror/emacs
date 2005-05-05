@@ -980,7 +980,8 @@ of the way from the true end."
 	  (t
 	   (select-window (car (reverse followers)))))
     (goto-char pos)
-    (end-of-buffer arg)))
+    (with-no-warnings
+      (end-of-buffer arg))))
 
 ;;}}}
 

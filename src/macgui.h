@@ -32,7 +32,9 @@ typedef unsigned long Time;
 #ifdef HAVE_CARBON
 #undef Z
 #ifdef MAC_OSX
+#if ! HAVE_MKTIME || BROKEN_MKTIME
 #undef mktime
+#endif
 #undef DEBUG
 #undef free
 #undef malloc
@@ -43,8 +45,10 @@ typedef unsigned long Time;
 #undef min
 #undef init_process
 #include <Carbon/Carbon.h>
+#if ! HAVE_MKTIME || BROKEN_MKTIME
 #undef mktime
 #define mktime emacs_mktime
+#endif
 #undef free
 #define free unexec_free
 #undef malloc

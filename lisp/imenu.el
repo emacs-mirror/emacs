@@ -777,7 +777,7 @@ They may also be nested index alists like:
 depending on PATTERNS."
 
   (let ((index-alist (list 'dummy))
-	prev-pos beg
+	prev-pos
         (case-fold-search (if (or (local-variable-p 'imenu-case-fold-search)
 				  (not (local-variable-p 'font-lock-defaults)))
 			      imenu-case-fold-search
@@ -807,7 +807,7 @@ depending on PATTERNS."
 		  (index (nth 2 pat))
 		  (function (nth 3 pat))
 		  (rest (nthcdr 4 pat))
-		  start)
+		  start beg)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
 	      (while (and (re-search-backward regexp nil t)
@@ -815,32 +815,35 @@ depending on PATTERNS."
 			  ;; because it means a bad regexp was specified.
 			  (not (= (match-beginning 0) (match-end 0))))
 		(setq start (point))
-		(goto-char (match-end index))
-		(setq beg (match-beginning index))
-		;; Go to the start of the match.
+		;; Record the start of the line in which the match starts.
 		;; That's the official position of this definition.
-		(goto-char start)
+		(goto-char (match-beginning index))
+		(beginning-of-line)
+		(setq beg (point))
 		(imenu-progress-message prev-pos nil t)
 		;; Add this sort of submenu only when we've found an
 		;; item for it, avoiding empty, duff menus.
 		(unless (assoc menu-title index-alist)
 		  (push (list menu-title) index-alist))
 		(if imenu-use-markers
-		    (setq start (copy-marker start)))
+		    (setq beg (copy-marker beg)))
 		(let ((item
 		       (if function
 			   (nconc (list (match-string-no-properties index)
-					start function)
+					beg function)
 				  rest)
 			 (cons (match-string-no-properties index)
-			       start)))
+			       beg)))
 		      ;; This is the desired submenu,
 		      ;; starting with its title (or nil).
 		      (menu (assoc menu-title index-alist)))
 		  ;; Insert the item unless it is already present.
 		  (unless (member item (cdr menu))
 		    (setcdr menu
-			    (cons item (cdr menu))))))))
+			    (cons item (cdr menu)))))
+		;; Go to the start of the match, to make sure we
+		;; keep making progress backwards.
+		(goto-char start))))
 	  (set-syntax-table old-table)))
     (imenu-progress-message prev-pos 100 t)
     ;; Sort each submenu by position.

@@ -1,3 +1,13 @@
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (MacObjects): Add macselect.c.x.
+	(macselect.c.x): New target.
+	(mac.c): Fix dependency.
+
+	* Emacs.app/Contents/Info.plist: Add NSServices key and data.
+
+	* inc/s-mac.h: Define HAVE_PWD_H.
+
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (NonCarbonLibs): Add LocalesLib.  Delete

@@ -1,7 +1,7 @@
 /* Basic character support.
    Copyright (C) 1995, 1997, 1998, 2001 Electrotechnical Laboratory, JAPAN.
      Licensed to the Free Software Foundation.
-   Copyright (C) 2001 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2005 Free Software Foundation, Inc.
    Copyright (C) 2003
      National Institute of Advanced Industrial Science and Technology (AIST)
      Registration Number H13PRO009
@@ -532,23 +532,6 @@ The returned value is 0 for left-to-right and 1 for right-to-left.  */)
   return CHAR_TABLE_REF (Vchar_direction_table, c);
 }
 
-DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
-       doc: /* Return number of characters between BEG and END.
-This is now an obsolete function.  We keep it just for backward compatibility.  */)
-     (beg, end)
-     Lisp_Object beg, end;
-{
-  int from, to;
-
-  CHECK_NUMBER_COERCE_MARKER (beg);
-  CHECK_NUMBER_COERCE_MARKER (end);
-
-  from = min (XFASTINT (beg), XFASTINT (end));
-  to = max (XFASTINT (beg), XFASTINT (end));
-
-  return make_number (to - from);
-}
-
 /* Return the number of characters in the NBYTES bytes at PTR.
    This works by looking at the contents and checking for multibyte
    sequences while assuming that there's no invalid sequence.
@@ -943,7 +926,6 @@ syms_of_character ()
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
-  defsubr (&Schars_in_region);
   defsubr (&Sstring);
 
   DEFVAR_LISP ("translation-table-vector",  &Vtranslation_table_vector,

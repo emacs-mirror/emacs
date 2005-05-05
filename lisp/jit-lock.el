@@ -69,7 +69,7 @@ Preserves the `buffer-modified-p' state of the current buffer."
   :group 'jit-lock)
 
 
-(defcustom jit-lock-stealth-time 3
+(defcustom jit-lock-stealth-time 16
   "*Time in seconds to wait before beginning stealth fontification.
 Stealth fontification occurs if there is no input within this time.
 If nil, stealth fontification is never performed.
@@ -80,7 +80,7 @@ The value of this variable is used when JIT Lock mode is turned on."
   :group 'jit-lock)
 
 
-(defcustom jit-lock-stealth-nice 0.125
+(defcustom jit-lock-stealth-nice 0.5
   "*Time in seconds to pause between chunks of stealth fontification.
 Each iteration of stealth fontification is separated by this amount of time,
 thus reducing the demand that stealth fontification makes on the system.

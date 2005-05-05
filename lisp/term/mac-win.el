@@ -74,7 +74,7 @@
 (require 'mouse)
 (require 'scroll-bar)
 (require 'faces)
-;;(require 'select)
+(require 'select)
 (require 'menu-bar)
 (require 'fontset)
 (require 'dnd)
@@ -1143,23 +1143,232 @@ correspoinding TextEncodingBase value."
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 
-;;;; Selections and cut buffers
+;;;; Selections and Services menu
 
-;; Setup to use the Mac clipboard.  The functions mac-cut-function and
-;; mac-paste-function are defined in mac.c.
-(set-selection-coding-system 'compound-text-mac)
+;; Setup to use the Mac clipboard.
+(set-selection-coding-system mac-system-coding-system)
 
-(setq interprogram-cut-function
-      '(lambda (str push)
-	 (mac-cut-function
-	  (encode-coding-string str selection-coding-system t) push)))
+;;; We keep track of the last text selected here, so we can check the
+;;; current selection against it, and avoid passing back our own text
+;;; from x-get-selection-value.
+(defvar x-last-selected-text-clipboard nil
+  "The value of the CLIPBOARD selection last time we selected or
+pasted text.")
+(defvar x-last-selected-text-primary nil
+  "The value of the PRIMARY X selection last time we selected or
+pasted text.")
 
-(setq interprogram-paste-function
-      '(lambda ()
-	 (let ((clipboard (mac-paste-function)))
-	   (if clipboard
-	       (decode-coding-string clipboard selection-coding-system t)))))
+(defcustom x-select-enable-clipboard t
+  "*Non-nil means cutting and pasting uses the clipboard.
+This is in addition to the primary selection."
+  :type 'boolean
+  :group 'killing)
 
+;;; Make TEXT, a string, the primary X selection.
+(defun x-select-text (text &optional push)
+  (x-set-selection 'PRIMARY text)
+  (setq x-last-selected-text-primary text)
+  (when x-select-enable-clipboard
+    (x-set-selection 'CLIPBOARD text)
+    (setq x-last-selected-text-clipboard text))
+  )
+
+(defun x-get-selection (&optional type data-type)
+  "Return the value of a selection.
+The argument TYPE (default `PRIMARY') says which selection,
+and the argument DATA-TYPE (default `STRING') says
+how to convert the data.
+
+TYPE may be any symbol \(but nil stands for `PRIMARY').  However,
+only a few symbols are commonly used.  They conventionally have
+all upper-case names.  The most often used ones, in addition to
+`PRIMARY', are `SECONDARY' and `CLIPBOARD'.
+
+DATA-TYPE is usually `STRING', but can also be one of the symbols
+in `selection-converter-alist', which see."
+  (let ((data (x-get-selection-internal (or type 'PRIMARY)
+					(or data-type 'STRING)))
+	(coding (or next-selection-coding-system
+		    selection-coding-system)))
+    (when (and (stringp data)
+	       (setq data-type (get-text-property 0 'foreign-selection data)))
+      (cond ((eq data-type 'public.utf16-plain-text)
+	     (let ((encoded (and (fboundp 'mac-code-convert-string)
+				 (mac-code-convert-string data
+							  'utf-16 coding))))
+	       (if encoded
+		   (let ((coding-save last-coding-system-used))
+		     (setq data (decode-coding-string encoded coding))
+		     (setq last-coding-system-used coding-save))
+		 (setq data
+		       (decode-coding-string data 'utf-16)))))
+	    ((eq data-type 'com.apple.traditional-mac-plain-text)
+	     (setq data (decode-coding-string data coding))))
+      (put-text-property 0 (length data) 'foreign-selection data-type data))
+    data))
+
+(defun x-selection-value (type)
+  (let (text tiff-image)
+    (setq text (condition-case nil
+		   (x-get-selection type 'public.utf16-plain-text)
+		 (error nil)))
+    (if (not text)
+	(setq text (condition-case nil
+		       (x-get-selection type
+					'com.apple.traditional-mac-plain-text)
+		     (error nil))))
+    (if text
+	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
+    (setq tiff-image (condition-case nil
+			 (x-get-selection type 'public.tiff)
+		       (error nil)))
+    (when tiff-image
+      (remove-text-properties 0 (length tiff-image)
+			      '(foreign-selection nil) tiff-image)
+      (setq tiff-image (create-image tiff-image 'tiff t))
+      (or text (setq text " "))
+      (put-text-property 0 (length text) 'display tiff-image text))
+    text))
+
+;;; Return the value of the current selection.
+;;; Treat empty strings as if they were unset.
+;;; If this function is called twice and finds the same text,
+;;; it returns nil the second time.  This is so that a single
+;;; selection won't be added to the kill ring over and over.
+(defun x-get-selection-value ()
+  (let (clip-text primary-text)
+    (when x-select-enable-clipboard
+      (setq clip-text (x-selection-value 'CLIPBOARD))
+      (if (string= clip-text "") (setq clip-text nil))
+
+      ;; Check the CLIPBOARD selection for 'newness', is it different
+      ;; from what we remebered them to be last time we did a
+      ;; cut/paste operation.
+      (setq clip-text
+	    (cond;; check clipboard
+	     ((or (not clip-text) (string= clip-text ""))
+	      (setq x-last-selected-text-clipboard nil))
+	     ((eq      clip-text x-last-selected-text-clipboard) nil)
+	     ((string= clip-text x-last-selected-text-clipboard)
+	      ;; Record the newer string,
+	      ;; so subsequent calls can use the `eq' test.
+	      (setq x-last-selected-text-clipboard clip-text)
+	      nil)
+	     (t
+	      (setq x-last-selected-text-clipboard clip-text))))
+      )
+
+    (setq primary-text (x-selection-value 'PRIMARY))
+    ;; Check the PRIMARY selection for 'newness', is it different
+    ;; from what we remebered them to be last time we did a
+    ;; cut/paste operation.
+    (setq primary-text
+	  (cond;; check primary selection
+	   ((or (not primary-text) (string= primary-text ""))
+	    (setq x-last-selected-text-primary nil))
+	   ((eq      primary-text x-last-selected-text-primary) nil)
+	   ((string= primary-text x-last-selected-text-primary)
+	    ;; Record the newer string,
+	    ;; so subsequent calls can use the `eq' test.
+	    (setq x-last-selected-text-primary primary-text)
+	    nil)
+	   (t
+	    (setq x-last-selected-text-primary primary-text))))
+
+    ;; As we have done one selection, clear this now.
+    (setq next-selection-coding-system nil)
+
+    ;; At this point we have recorded the current values for the
+    ;; selection from clipboard (if we are supposed to) and primary,
+    ;; So return the first one that has changed (which is the first
+    ;; non-null one).
+    (or clip-text primary-text)
+    ))
+
+(put 'CLIPBOARD 'mac-scrap-name "com.apple.scrap.clipboard")
+(if (eq system-type 'darwin)
+    (put 'FIND 'mac-scrap-name "com.apple.scrap.find"))
+(put 'com.apple.traditional-mac-plain-text 'mac-ostype "TEXT")
+(put 'public.utf16-plain-text 'mac-ostype "utxt")
+(put 'public.tiff 'mac-ostype "TIFF")
+
+(defun mac-select-convert-to-string (selection type value)
+  (let ((str (cdr (xselect-convert-to-string selection nil value)))
+	coding)
+    (setq coding (or next-selection-coding-system selection-coding-system))
+    (if coding
+	(setq coding (coding-system-base coding))
+      (setq coding 'raw-text))
+    (when str
+      ;; If TYPE is nil, this is a local request, thus return STR as
+      ;; is.  Otherwise, encode STR.
+      (if (not type)
+	  str
+	(let ((inhibit-read-only t))
+	  (remove-text-properties 0 (length str) '(composition nil) str)
+	  (cond
+	   ((eq type 'public.utf16-plain-text)
+	    (let (s)
+	      (when (and (fboundp 'mac-code-convert-string)
+			 (memq coding (find-coding-systems-string str)))
+		(setq coding (coding-system-change-eol-conversion coding 'mac))
+		(setq s (mac-code-convert-string
+			 (encode-coding-string str coding)
+			 coding 'utf-16)))
+	      (setq str (or s (encode-coding-string str 'utf-16-mac)))))
+	   ((eq type 'com.apple.traditional-mac-plain-text)
+	    (setq coding (coding-system-change-eol-conversion coding 'mac))
+	    (setq str (encode-coding-string str coding)))
+	   (t
+	    (error "Unknown selection type: %S" type))
+	   )))
+
+      (setq next-selection-coding-system nil)
+      (cons type str))))
+
+(setq selection-converter-alist
+      (nconc
+       '((public.utf16-plain-text . mac-select-convert-to-string)
+	 (com.apple.traditional-mac-plain-text . mac-select-convert-to-string)
+	 ;; This is not enabled by default because the `Import Image'
+	 ;; menu makes Emacs crash or hang for unknown reasons.
+	 ;; (public.tiff . nil)
+	 )
+       selection-converter-alist))
+
+(defun mac-services-open-file ()
+  (interactive)
+  (find-file-existing (x-selection-value mac-services-selection)))
+
+(defun mac-services-open-selection ()
+  (interactive)
+  (switch-to-buffer (generate-new-buffer "*untitled*"))
+  (insert (x-selection-value mac-services-selection))
+  (sit-for 0)
+  (save-buffer) ; It pops up the save dialog.
+  )
+
+(defun mac-services-insert-text ()
+  (interactive)
+  (let ((text (x-selection-value mac-services-selection)))
+    (if (not buffer-read-only)
+	(insert text)
+      (kill-new text)
+      (message
+       (substitute-command-keys
+	"The text from the Services menu can be accessed with \\[yank]")))))
+
+(defvar mac-application-menu-map (make-sparse-keymap))
+(define-key mac-application-menu-map [quit] 'save-buffers-kill-emacs)
+(define-key mac-application-menu-map [services perform open-file]
+  'mac-services-open-file)
+(define-key mac-application-menu-map [services perform open-selection]
+  'mac-services-open-selection)
+(define-key mac-application-menu-map [services paste]
+  'mac-services-insert-text)
+(define-key mac-application-menu-map [preferences] 'customize)
+(define-key mac-application-menu-map [about] 'display-splash-screen)
+(global-set-key [menu-bar application] mac-application-menu-map)
 
 ;;; Do the actual Windows setup here; the above code just defines
 ;;; functions and variables that we use now.
@@ -1444,11 +1653,24 @@ It returns a name of the created fontset."
   (error "Suspending an Emacs running under Mac makes no sense"))
 (add-hook 'suspend-hook 'x-win-suspend-error)
 
+;;; Arrange for the kill and yank functions to set and check the clipboard.
+(setq interprogram-cut-function 'x-select-text)
+(setq interprogram-paste-function 'x-get-selection-value)
+
+
+;;; Turn off window-splitting optimization; Mac is usually fast enough
+;;; that this is only annoying.
+(setq split-window-keep-point t)
+
 ;; Don't show the frame name; that's redundant.
 (setq-default mode-line-frame-identification "  ")
 
 ;; Turn on support for mouse wheels.
 (mouse-wheel-mode 1)
+
+
+;; Enable CLIPBOARD copy/paste through menu bar commands.
+(menu-bar-enable-clipboard)
 
 (defun mac-drag-n-drop (event)
   "Edit the files listed in the drag-n-drop EVENT.

@@ -908,7 +908,6 @@ at the same position."
       (track-mouse
 	(while (progn
 		 (setq event (read-event))
-		 (setq mve (cons event (and (boundp 'mve) mve)))
 		 (or (mouse-movement-p event)
 		     (memq (car-safe event) '(switch-frame select-window))))
 	  (if (memq (car-safe event) '(switch-frame select-window))

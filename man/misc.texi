@@ -342,6 +342,7 @@ Start the Emacs shell.
 * Single Shell::           How to run one shell command and return.
 * Interactive Shell::      Permanent shell taking input via Emacs.
 * Shell Mode::             Special Emacs commands used with permanent shell.
+* Shell Prompts::          Two ways to recognize shell prompts.
 * History: Shell History.  Repeating previous commands in a shell buffer.
 * Directory Tracking::     Keeping track when the subshell changes directory.
 * Options: Shell Options.  Options for customizing Shell mode.
@@ -405,7 +406,7 @@ searched; this list is initialized based on the environment variable
 either or both of these default initializations.@refill
 
   Both @kbd{M-!} and @kbd{M-|} wait for the shell command to complete,
-unless you end the command with @samp{&} to make it asyncronous.  To
+unless you end the command with @samp{&} to make it asynchronous.  To
 stop waiting, type @kbd{C-g} to quit; that terminates the shell
 command with the signal @code{SIGINT}---the same signal that @kbd{C-c}
 normally generates in the shell.  Emacs waits until the command
@@ -506,8 +507,8 @@ of the special key bindings of Shell mode:
 At end of buffer send line as input; otherwise, copy current line to
 end of buffer and send it (@code{comint-send-input}).  When a line is
 copied, any prompt at the beginning of the line (text output by
-programs preceding your input) is omitted.  (See also the variable
-@code{comint-use-prompt-regexp-instead-of-fields}.)
+programs preceding your input) is omitted.  @xref{Shell Prompts}, for
+how Shell mode recognizes prompts.
 
 @item @key{TAB}
 @kindex TAB @r{(Shell mode)}
@@ -562,7 +563,8 @@ the newline that separates them), when you type @key{RET}.
 @kindex C-c C-u @r{(Shell mode)}
 @findex comint-kill-input
 Kill all text pending at end of buffer to be sent as input
-(@code{comint-kill-input}).
+(@code{comint-kill-input}).  If point is not at end of buffer,
+this only kills the part of this text that precedes point.
 
 @item C-c C-w
 @kindex C-c C-w @r{(Shell mode)}
@@ -684,10 +686,6 @@ subshell:
 @end example
 @end table
 
-  Shell mode also customizes the paragraph commands so that only shell
-prompts start new paragraphs.  Thus, a paragraph consists of an input
-command plus the output that follows it in the buffer.
-
 @cindex Comint mode
 @cindex mode, Comint
   Shell mode is a derivative of Comint mode, a general-purpose mode for
@@ -703,6 +701,45 @@ the directory tracking feature, and a few user commands.
   You can use @kbd{M-x comint-run} to execute any program of your choice
 in a subprocess using unmodified Comint mode---without the
 specializations of Shell mode.
+
+@node Shell Prompts
+@subsection Shell Prompts
+
+@vindex shell-prompt-pattern
+@vindex comint-prompt-regexp
+@vindex comint-use-prompt-regexp
+@cindex prompt, shell
+  A prompt is text output by a program to show that it is ready to
+accept new user input.  Normally, Comint mode (and thus Shell mode)
+considers the prompt to be any text output by a program at the
+beginning of an input line.  However, if the variable
+@code{comint-use-prompt-regexp} is non-@code{nil}, then Comint mode
+uses a regular expression to recognize prompts.  In Shell mode,
+@code{shell-prompt-pattern} specifies the regular expression.
+
+  The value of @code{comint-use-prompt-regexp} also affects many
+motion and paragraph commands.  If the value is non-@code{nil}, the
+general Emacs motion commands behave as they normally do in buffers
+without special text properties.  However, if the value is @code{nil},
+the default, then Comint mode divides the buffer into two types of
+``fields'' (ranges of consecutive characters having the same
+@code{field} text property): input and output.  Prompts are part of
+the output.  Most Emacs motion commands do not cross field boundaries,
+unless they move over multiple lines.  For instance, when point is in
+input on the same line as a prompt, @kbd{C-a} puts point at the
+beginning of the input if @code{comint-use-prompt-regexp} is
+@code{nil} and at the beginning of the line otherwise.
+
+  In Shell mode, only shell prompts start new paragraphs.  Thus, a
+paragraph consists of a prompt and the input and output that follow
+it.  However, if @code{comint-use-prompt-regexp} is @code{nil}, the
+default, most paragraph commands do not cross field boundaries.  This
+means that prompts, ranges of input, and ranges of non-prompt output
+behave mostly like separate paragraphs; with this setting, numeric
+arguments to most paragraph commands yield essentially undefined
+behavior.  For the purpose of finding paragraph boundaries, Shell mode
+uses @code{shell-prompt-pattern}, regardless of
+@code{comint-use-prompt-regexp}.
 
 @node Shell History
 @subsection Shell Command History
@@ -810,7 +847,7 @@ that these commands access.
 
 @vindex shell-input-ring-file-name
   Some shells store their command histories in files so that you can
-refer to previous commands from previous shell sessions.  Emacs reads
+refer to commands from previous shell sessions.  Emacs reads
 the command history file for your chosen shell, to initialize its own
 command history.  The file name is @file{~/.bash_history} for bash,
 @file{~/.sh_history} for ksh, and @file{~/.history} for other shells.
@@ -876,19 +913,8 @@ when you send them to the shell.  To request this, set the variable
 @key{SPC} perform history expansion by binding @key{SPC} to the
 command @code{comint-magic-space}.
 
-@vindex shell-prompt-pattern
-@vindex comint-prompt-regexp
-@vindex comint-use-prompt-regexp-instead-of-fields
-@cindex prompt, shell
   Shell mode recognizes history references when they follow a prompt.
-Normally, any text output by a program at the beginning of an input
-line is considered a prompt.  However, if the variable
-@code{comint-use-prompt-regexp-instead-of-fields} is non-@code{nil},
-then Comint mode uses a regular expression to recognize prompts.  In
-general, the variable @code{comint-prompt-regexp} specifies the
-regular expression; Shell mode uses the variable
-@code{shell-prompt-pattern} to set up @code{comint-prompt-regexp} in
-the shell buffer.
+@xref{Shell Prompts}, for how Shell mode recognizes prompts.
 
 @node Directory Tracking
 @subsection Directory Tracking
@@ -1119,8 +1145,11 @@ temporarily visible, but will be erased when you hit return.  (This
 happens automatically; there is no special password processing.)
 
   When you log in to a different machine, you need to specify the type
-of terminal you're using.  Terminal types @samp{ansi} or @samp{vt100}
-will work on most systems.
+of terminal you're using, by setting the @env{TERM} environment
+variable in the environment for the remote login command.  (If you use
+bash, you do that by writing the variable assignment before the remote
+login command, without separating comma.)  Terminal types @samp{ansi}
+or @samp{vt100} will work on most systems.
 
 @c   If you are talking to a Bourne-compatible
 @c shell, and your system understands the @env{TERMCAP} variable,
@@ -2078,7 +2107,7 @@ applications.  @kbd{C-x} means cut (kill), @kbd{C-c} copy, @kbd{C-v}
 paste (yank), and @kbd{C-z} undo.  Standard Emacs commands like
 @kbd{C-x C-c} still work, because @kbd{C-x} and @kbd{C-c} only take
 effect when the mark is active.  However, if you don't want these
-bindings at all, set @code{cua-enable-cua-keys} to nil.
+bindings at all, set @code{cua-enable-cua-keys} to @code{nil}.
 
 In CUA mode, using @kbd{Shift} together with the movement keys
 activates the region over which they move.  The standard (unshifted)

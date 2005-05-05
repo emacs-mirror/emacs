@@ -753,35 +753,16 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(defalias 'dot 'point)
-(defalias 'dot-marker 'point-marker)
-(defalias 'dot-min 'point-min)
-(defalias 'dot-max 'point-max)
 (defalias 'window-dot 'window-point)
 (defalias 'set-window-dot 'set-window-point)
 (defalias 'read-input 'read-string)
 (defalias 'send-string 'process-send-string)
 (defalias 'send-region 'process-send-region)
 (defalias 'show-buffer 'set-window-buffer)
-(defalias 'buffer-flush-undo 'buffer-disable-undo)
 (defalias 'eval-current-buffer 'eval-buffer)
-(defalias 'compiled-function-p 'byte-code-function-p)
-(defalias 'define-function 'defalias)
 
-(defalias 'sref 'aref)
-(make-obsolete 'sref 'aref "20.4")
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'chars-in-region "use (abs (- BEG END))." "20.3")
-(make-obsolete 'dot 'point		"before 19.15")
-(make-obsolete 'dot-max 'point-max	"before 19.15")
-(make-obsolete 'dot-min 'point-min	"before 19.15")
-(make-obsolete 'dot-marker 'point-marker "before 19.15")
-(make-obsolete 'buffer-flush-undo 'buffer-disable-undo "before 19.15")
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
-(make-obsolete 'compiled-function-p 'byte-code-function-p "before 19.15")
-(make-obsolete 'define-function 'defalias "20.1")
-(make-obsolete 'focus-frame "it does nothing." "19.32")
-(make-obsolete 'unfocus-frame "it does nothing." "19.32")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -798,9 +779,6 @@ is converted into a string by expressing it in decimal."
   "Return the value of the `baud-rate' variable."
   baud-rate)
 
-(defalias 'focus-frame 'ignore "")
-(defalias 'unfocus-frame 'ignore "")
-
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -809,11 +787,14 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'unread-command-char
   "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
   "before 19.15")
-(make-obsolete-variable 'executing-macro 'executing-kbd-macro "before 19.34")
 (make-obsolete-variable 'post-command-idle-hook
   "use timers instead, with `run-with-idle-timer'." "before 19.34")
 (make-obsolete-variable 'post-command-idle-delay
   "use timers instead, with `run-with-idle-timer'." "before 19.34")
+
+;; Lisp manual only updated in 22.1.
+(define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
+			      "before 19.34")
 
 (defvaralias 'x-lost-selection-hooks 'x-lost-selection-functions)
 (make-obsolete-variable 'x-lost-selection-hooks 'x-lost-selection-functions "22.1")
@@ -843,7 +824,7 @@ is converted into a string by expressing it in decimal."
 
 ;;; Should this be an obsolete name?  If you decide it should, you get
 ;;; to go through all the sources and change them.
-(defalias 'string-to-int 'string-to-number)
+(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 ;;;; Hook manipulation functions.
 
@@ -2279,7 +2260,8 @@ from `standard-syntax-table' otherwise."
     table))
 
 (defun syntax-after (pos)
-  "Return the raw syntax of the char after POS."
+  "Return the raw syntax of the char after POS.
+If POS is outside the buffer's accessible portion, return nil."
   (unless (or (< pos (point-min)) (>= pos (point-max)))
     (let ((st (if parse-sexp-lookup-properties
 		  (get-char-property pos 'syntax-table))))
@@ -2287,22 +2269,23 @@ from `standard-syntax-table' otherwise."
 	(aref (or st (syntax-table)) (char-after pos))))))
 
 (defun syntax-class (syntax)
-  "Return the syntax class part of the syntax descriptor SYNTAX."
-  (logand (car syntax) 255))
+  "Return the syntax class part of the syntax descriptor SYNTAX.
+If SYNTAX is nil, return nil."
+  (and syntax (logand (car syntax) 65535)))
 
-(defun add-to-invisibility-spec (arg)
-  "Add elements to `buffer-invisibility-spec'.
+(defun add-to-invisibility-spec (element)
+  "Add ELEMENT to `buffer-invisibility-spec'.
 See documentation for `buffer-invisibility-spec' for the kind of elements
 that can be added."
   (if (eq buffer-invisibility-spec t)
       (setq buffer-invisibility-spec (list t)))
   (setq buffer-invisibility-spec
-	(cons arg buffer-invisibility-spec)))
+	(cons element buffer-invisibility-spec)))
 
-(defun remove-from-invisibility-spec (arg)
-  "Remove elements from `buffer-invisibility-spec'."
+(defun remove-from-invisibility-spec (element)
+  "Remove ELEMENT from `buffer-invisibility-spec'."
   (if (consp buffer-invisibility-spec)
-    (setq buffer-invisibility-spec (delete arg buffer-invisibility-spec))))
+    (setq buffer-invisibility-spec (delete element buffer-invisibility-spec))))
 
 (defun global-set-key (key command)
   "Give KEY a global binding as COMMAND.
@@ -2376,15 +2359,34 @@ macros."
       (eq (car-safe object) 'lambda)))
 
 (defun assq-delete-all (key alist)
-  "Delete from ALIST all elements whose car is KEY.
+  "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-  (let ((tail alist))
-    (while tail
-      (if (and (consp (car tail)) (eq (car (car tail)) key))
-	  (setq alist (delq (car tail) alist)))
-      (setq tail (cdr tail)))
-    alist))
+  (while (and (consp (car alist)) 
+	      (eq (car (car alist)) key))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (car (car tail-cdr)) key))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
+
+(defun rassq-delete-all (value alist)
+  "Delete from ALIST all elements whose cdr is `eq' to VALUE.
+Return the modified alist.
+Elements of ALIST that are not conses are ignored."
+  (while (and (consp (car alist)) 
+	      (eq (cdr (car alist)) value))
+    (setq alist (cdr alist)))
+  (let ((tail alist) tail-cdr)
+    (while (setq tail-cdr (cdr tail))
+      (if (and (consp (car tail-cdr))
+	       (eq (cdr (car tail-cdr)) value))
+	  (setcdr tail (cdr tail-cdr))
+	(setq tail tail-cdr))))
+  alist)
 
 (defun make-temp-file (prefix &optional dir-flag suffix)
   "Create a temporary file.

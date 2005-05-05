@@ -31,25 +31,25 @@ Lisp_Object Qexecute_kbd_macro, Qkbd_macro_termination_hook;
 
 /* Kbd macro currently being executed (a string or vector).  */
 
-Lisp_Object Vexecuting_macro;
+Lisp_Object Vexecuting_kbd_macro;
 
 /* Index of next character to fetch from that macro.  */
 
-EMACS_INT executing_macro_index;
+EMACS_INT executing_kbd_macro_index;
 
 /* Number of successful iterations so far
    for innermost keyboard macro.
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.  */
 
-int executing_macro_iterations;
+int executing_kbd_macro_iterations;
 
 /* This is the macro that was executing.
    This is not bound at each level,
    so after an error, it describes the innermost interrupted macro.
    We use it only as a kind of flag, so no need to protect it.  */
 
-Lisp_Object executing_macro;
+Lisp_Object executing_kbd_macro;
 
 extern Lisp_Object real_this_command;
 
@@ -114,7 +114,7 @@ macro before appending to it. */)
 	}
 
       /* Must convert meta modifier when copying string to vector.  */
-      cvt = STRINGP (current_kboard->Vlast_kbd_macro); 
+      cvt = STRINGP (current_kboard->Vlast_kbd_macro);
       for (i = 0; i < len; i++)
 	{
 	  Lisp_Object c;
@@ -285,17 +285,17 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   return Qnil;
 }
 
-/* Restore Vexecuting_macro and executing_macro_index - called when
-   the unwind-protect in Fexecute_kbd_macro gets invoked.  */
+/* Restore Vexecuting_kbd_macro and executing_kbd_macro_index.
+   Called when the unwind-protect in Fexecute_kbd_macro gets invoked.  */
 
 static Lisp_Object
 pop_kbd_macro (info)
      Lisp_Object info;
 {
   Lisp_Object tem;
-  Vexecuting_macro = XCAR (info);
+  Vexecuting_kbd_macro = XCAR (info);
   tem = XCDR (info);
-  executing_macro_index = XINT (XCAR (tem));
+  executing_kbd_macro_index = XINT (XCAR (tem));
   real_this_command = XCDR (tem);
   Frun_hooks (1, &Qkbd_macro_termination_hook);
   return Qnil;
@@ -318,7 +318,7 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   struct gcpro gcpro1, gcpro2;
   int success_count = 0;
 
-  executing_macro_iterations = 0;
+  executing_kbd_macro_iterations = 0;
 
   if (!NILP (count))
     {
@@ -330,17 +330,17 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
   if (!STRINGP (final) && !VECTORP (final))
     error ("Keyboard macros must be strings or vectors");
 
-  tem = Fcons (Vexecuting_macro,
-	       Fcons (make_number (executing_macro_index),
+  tem = Fcons (Vexecuting_kbd_macro,
+	       Fcons (make_number (executing_kbd_macro_index),
 		      real_this_command));
   record_unwind_protect (pop_kbd_macro, tem);
 
   GCPRO2 (final, loopfunc);
   do
     {
-      Vexecuting_macro = final;
-      executing_macro = final;
-      executing_macro_index = 0;
+      Vexecuting_kbd_macro = final;
+      executing_kbd_macro = final;
+      executing_kbd_macro_index = 0;
 
       current_kboard->Vprefix_arg = Qnil;
 
@@ -354,16 +354,16 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 
       command_loop_1 ();
 
-      executing_macro_iterations = ++success_count;
+      executing_kbd_macro_iterations = ++success_count;
 
       QUIT;
     }
   while (--repeat
-	 && (STRINGP (Vexecuting_macro) || VECTORP (Vexecuting_macro)));
+	 && (STRINGP (Vexecuting_kbd_macro) || VECTORP (Vexecuting_kbd_macro)));
 
-  executing_macro = Qnil;
+  executing_kbd_macro = Qnil;
 
-  real_this_command = Vexecuting_macro;
+  real_this_command = Vexecuting_kbd_macro;
 
   UNGCPRO;
   return unbind_to (pdlcount, Qnil);
@@ -372,8 +372,8 @@ each iteration of the macro.  Iteration stops if LOOPFUNC returns nil.  */)
 void
 init_macros ()
 {
-  Vexecuting_macro = Qnil;
-  executing_macro = Qnil;
+  Vexecuting_kbd_macro = Qnil;
+  executing_kbd_macro = Qnil;
 }
 
 void
@@ -396,14 +396,12 @@ syms_of_macros ()
 The value is the symbol `append' while appending to the definition of
 an existing macro.  */);
 
-  DEFVAR_LISP ("executing-macro", &Vexecuting_macro,
-	       doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
+  DEFVAR_LISP ("executing-kbd-macro", &Vexecuting_kbd_macro,
+	       doc: /* Currently executing keyboard macro (string or vector).
+This is nil when not executing a keyboard macro.  */);
 
-  DEFVAR_INT ("executing-macro-index", &executing_macro_index,
+  DEFVAR_INT ("executing-kbd-macro-index", &executing_kbd_macro_index,
 	      doc: /* Index in currently executing keyboard macro; undefined if none executing.  */);
-
-  DEFVAR_LISP_NOPRO ("executing-kbd-macro", &Vexecuting_macro,
-		     doc: /* Currently executing keyboard macro (string or vector); nil if none executing.  */);
 
   DEFVAR_KBOARD ("last-kbd-macro", Vlast_kbd_macro,
 		 doc: /* Last kbd macro defined, as a string or vector; nil if none defined.  */);

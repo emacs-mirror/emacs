@@ -665,17 +665,16 @@ for details.
 
 @defun window-list &optional frame minibuf window
 This function returns a list of the windows on @var{frame}, starting
-with @var{window}.  If @var{frame} is @code{nil} or omitted, the
-selected frame is used instead; if @var{window} is @code{nil} or
-omitted, the selected window is used instead.
+with @var{window}.  If @var{frame} is @code{nil} or omitted,
+@code{window-list} uses the selected frame instead; if @var{window} is
+@code{nil} or omitted, it uses the selected window.
 
-The value of @var{minibuf} determines if the minibuffer window will be
-included in the result list.  If @var{minibuf} is @code{t}, the
-minibuffer window will be included, even if it isn't active.  If
-@var{minibuf} is @code{nil} or omitted, the minibuffer window will
-only be included in the list if it is active.  If @var{minibuf} is
-neither @code{nil} nor @code{t}, the minibuffer window is not
-included, whether or not it is active.
+The value of @var{minibuf} determines if the minibuffer window is
+included in the result list.  If @var{minibuf} is @code{t}, the result
+always includes the minibuffer window.  If @var{minibuf} is @code{nil}
+or omitted, that includes the minibuffer window if it is active.  If
+@var{minibuf} is neither @code{nil} nor @code{t}, the result never
+includes the minibuffer window.
 @end defun
 
 @node Buffers and Windows
@@ -2289,8 +2288,7 @@ window displays a different part of its buffer or a different buffer.
 There are three actions that can change this: scrolling the window,
 switching buffers in the window, and changing the size of the window.
 The first two actions run @code{window-scroll-functions}; the last runs
-@code{window-size-change-functions}.  The paradigmatic use of these
-hooks is in the implementation of Lazy Lock mode; see @file{lazy-lock.el}.
+@code{window-size-change-functions}.
 
 @defvar window-scroll-functions
 This variable holds a list of functions that Emacs should call before

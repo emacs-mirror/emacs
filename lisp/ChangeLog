@@ -1,11 +1,590 @@
+2005-05-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for BSD and
+	use gcc instead of cpp.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-flags): New variable.
+	(gdb-create-define-alist): Use. it.
+	(gdb-cpp-define-alist-program): Update for MS-DOS?
+
+2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
+
+2005-05-03  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Now at 0.12.
+	(icalendar-duration-correction): Remove.
+	(icalendar--get-event-properties): Split result at commas.
+	(icalendar--decode-isoduration): New optional argument
+	DURATION-CORRECTION.
+	(icalendar--convert-ordinary-to-ical, icalendar--convert-sexp-to-ical)
+	(icalendar--convert-yearly-to-ical, icalendar--convert-weekly-to-ical)
+	(icalendar--convert-block-to-ical, icalendar--convert-float-to-ical)
+	(icalendar--convert-date-to-ical, icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): New functions, extracted
+	from icalendar-export-region, with bug fixes.
+	(icalendar-export-region): Use the above functions.
+	(icalendar-import-buffer): Check before saving diary file.
+	(icalendar--convert-recurring-to-diary)
+	(icalendar--convert-non-recurring-all-day-to-diary)
+	(icalendar--convert-non-recurring-not-all-day-to-diary): New functions,
+	extracted from icalendar--convert-ical-to-diary, with bug fixes.
+	(icalendar--convert-ical-to-diary): Use the above functions.
+
+2005-05-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-define-alist, cc-create-define-alist):
+	Remove these recent additions.
+	(c-mode): Restore to before 2005-04-28.
+
+	* progmodes/cc-vars.el (cc-define-list-program): Remove this
+	recent addition.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-program)
+	(gdb-define-alist): New variables.
+	(gdb-create-define-alist): New function.
+	(gdb-set-gud-minor-mode-1): Handle gdb-define-alist.
+	(gdb-source, gdb-memory-set-repeat-count): Replace string-to-int
+	with string-to-number.
+	(gdb-reset): Kill gdb-define-alist. Move assignments outside loop.
+
+	* progmodes/gud.el: Replace string-to-int with string-to-number.
+	(gud-find-file): Handle gdb-define-alist.
+
+	* tooltip.el (tooltip-gud-tips): Use gdb-define-alist.
+
+2005-05-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token):
+	* calc/calc-bin.el (calc-word-size):
+	* calc/calc-ext.el (calc-read-number-fancy):
+	* calc/calc-forms.el (calc-time, calc-date-notation, math-this-year)
+	(math-parse-date, math-parse-standard-date, calcFunc-tzone):
+	* calc/calc-frac.el (calc-over-notation):
+	* calc/calc-graph.el (calc-graph-plot, calc-graph-set-styles)
+	(calc-graph-num-points, calc-graph-init):
+	* calc/calc-prog.el (calc-read-parse-table-part)
+	(calc-edit-macro-repeats):
+	* calc/calc-yank.el (calc-do-grab-rectangle):
+	* calc/calc.el (calcDigit-key, math-read-number, math-read-bignum):
+	Replace `string-to-int' by `string-to-number'.
+
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el: Use executing-kbd-macro-index variable.
+
+2005-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/rlogin.el (rlogin-parse-words): Delete func.
+	(rlogin): Use split-string, not rlogin-parse-words.
+	Also, if there are option-like elements in the parsed args,
+	take the host to be the first arg immediately following them.
+	Suggested by Michael Mauger.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (executing-macro): Use `define-obsolete-variable-alias'.
+
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-create-define-alist): Use a shell.
+	(cc-mode-cpp-program): Rename to cc-define-list-program and
+	move to cc-vars.el.
+
+	* progmodes/cc-vars.el (cc-define-list-program):
+	Change to "gcc -E -dM -". Make customizable.
+
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Fix check for CUA-mode if no init file.
+
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-mode-cpp-program): Change to "gcc -E".
+
+	* international/mule-util.el (truncate-string): Remove alias and
+	obsolete declaration.
+
+	* international/mule-cmds.el (update-iso-coding-systems):
+	Remove alias and obsolete declaration.
+
+	* international/mule.el (coding-system-parent): Remove alias and
+	obsolete declaration.
+
+	* subr.el (define-function, sref): Remove aliases and obsolete
+	declarations.
+	(chars-in-region): Remove obsolete declaration.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-mode): Set widen-automatically to nil, locally.
+
+	* simple.el (widen-automatically): New variable.
+	(pop-global-mark): Obey widen-automatically.
+
+2005-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Call substitute-key-definition
+	before the keymap size is increased by a lot of define-key calls.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec):
+	Rename ARG to ELEMENT.  Doc fix.
+
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* allout.el (allout-exposure): Remove macro and obsolete declaration.
+	Remove references to allout-exposure/change to allout-new-exposure.
+
+	* emacs-lisp/bytecomp.el (dot, dot-min, dot-max): Don't create
+	bytecode symbols.
+
+	* subr.el (dot, dot-marker, dot-min, dot-max, buffer-flush-undo)
+	(compiled-function-p, focus-frame, unfocus-frame):
+	Remove aliases and obsolete declarations.
+	Back out inadvertant changes from previous commit.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (require-final-newline): Make Custom tags consistent
+	with mode-require-final-newline.
+	(mode-require-final-newline): Doc fix.
+
+2005-05-01  Lute Kamstra  <lute@gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix regular expressions.  Suggested by David Kastrup <dak@gnu.org>
+	and Stefan Monnier <monnier@iro.umontreal.ca>.
+
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (string-to-int): Make obsolete.
+
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (next-error-overlay-arrow-position): Turn off, for ttys.
+
+	* loadup.el: load jka-comp-hook.
+
+	* jka-compr.el: Many functions and vars moved to jka-compr-hook.el.
+	(jka-compr-handler): Add autoload.  `put' calls moved
+	to jka-compr-hook.el.
+	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
+	(jka-compr-inhibit): Autoload.
+
+	* jka-comp-hook.el: New file.
+	Enable the mode by default.
+
+	* files.el (backup-buffer-copy): Use copy-file instead
+	of write-region, and put back the 'excl.
+
+2005-04-30  Chong Yidong  <cyd@stupidchicken.com>
+
+	* progmodes/flymake.el (flymake-split-string)
+	(flymake-split-string, flymake-log, flymake-pid-to-names)
+	(flymake-reg-names, flymake-get-source-buffer-name)
+	(flymake-unreg-names, flymake-add-line-err-info)
+	(flymake-add-err-info): Clarify docstrings.
+	(flymake-popup-menu, flymake-make-emacs-menu)
+	(flymake-make-xemacs-menu): Add docstrings.
+	(flymake-get-buffer-*, flymake-set-buffer-*): Functions deleted.
+	Set variables directly throughout.
+
+2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
+	exists. Initialise cc-define-alist.
+	(c-mode): Add cc-create-define-alist locally to after-save-hook.
+	If there is no file (Macroexpansion) don't create an alist.
+
+2005-04-29  Sam Steingold  <sds@gnu.org>
+
+	* progmodes/cc-mode.el (cc-mode-cpp-program): New user variable.
+	(cc-create-define-alist): Use it instead of the hard-coded string.
+
+2005-04-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/mule-conf.el (file-coding-system-alist): Fix regexp
+	for latexenc.
+
+2005-04-29  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el: Improve commentary section.
+	(define-generic-mode): Improve docstring.
+
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (many places): Change to quiet the byte compiler.
+	(org-prefix-format-compiled): New variable.
+	(org-compile-prefix-format): New function.
+	(org-timeline, org-agenda, org-diary): Call org-compile-prefix-format.
+	(org-agenda-prefix-format,org-timeline-prefix-format): New options.
+	(org-agenda-get-scheduled): Check if file is opened in `org-mode'.
+	(org-get-entries-from-diary): Use `org-get-time-of-day' for
+	consistency with entries from `org-mode' files.
+	(org-get-time-of-day): Fix bug with partial matches early in a line.
+	(org-non-link-chars): New constant.
+	(org-link-regexp): Respect `org-non-link-chars'.
+	(org-agenda-day-view): Remove command.
+	(org-agenda-toggle-week-view): Rename from `org-agenda-week-view'.
+	(org-follow-bbdb-link, org-store-link): Search also company field.
+	(org-highlight-overlay): New variable.
+	(org-highlight, org-unhighlight): New functions.
+	(org-agenda-mode): Add pre-command-hook to remove highlight.
+	(org-evaluate-time-range): Behavior depends upon whether time stamp
+	contains a time or not.
+	(org-show-subtree, org-show-entry): New functions.
+	(org-agenda-cleanup-fancy-diary): Remove empty lines.
+
+2005-04-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-output-filter-functions): Add autoload cookie.
+
+2005-04-28  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Fix last change.
+
+2005-04-28  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el: New file.
+	* international/mule-conf.el (file-coding-system-alist): For .tex,
+	.ltx, .dtx and .drv extensions, use `latexenc-find-file-coding-system'.
+
+2005-04-28  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-add-keywords)
+	(font-lock-remove-keywords): Clarify docstring.
+	(font-lock-keywords-alist, font-lock-removed-keywords-alist):
+	Don't start docstrings with a `*'.
+	(font-lock-update-removed-keyword-alist): Give it a docstring.
+
+	* generic-x.el: Update commentary section.
+	Only require font-lock when compiling.
+	Define all modes conditionally.
+	Place all generic modes in the generic-x-modes customization group.
+	(generic-x-modes): New customization group.
+	(generic-default-modes, generic-mswindows-modes)
+	(generic-unix-modes, generic-other-modes): New constants.
+	(generic-define-mswindows-modes, generic-define-unix-modes):
+	Update docstrings.  Make them obsolete.
+	(generic-extras-enable-list): New default value.  Update docstring.
+	Improve :type.  Change :set function.
+	(bat-generic-mode-syntax-table, rul-generic-mode-syntax-table):
+	Fix docstring.
+
+	* emacs-lisp/generic.el (generic-mode-internal):
+	Simplify font-lock-defaults.
+	(define-generic-mode): Fix docstring.
+
+2005-04-28  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/grep.el (grep-mode-font-lock-keywords): Use the
+	font-lock-face property to highlight matches.
+
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el: (cc-create-define-alist): New function.
+	(cc-define-alist): New variable.
+	(c-mode): Make it local and initialise it.
+
+	* progmodes/gdb-ui.el (gdb-active-process): New variable.
+	(gdb-exited): New function.
+	(gdb-annotation-rules): Use it.
+	(gdb-starting): Set gdb-active-process to t.
+	(gdb-stopping): Amend doc string.
+	(gdb-reset): Set gdb-active-process to nil.
+
+	* tooltip.el (tooltip-gud-tips): Show the associated #define
+	directives when a C program under GDB is not executing.
+
+2005-04-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-mode): Don't precompile the
+	font-lock-fontify-syntactic-keywords.
+
+	* font-lock.el (font-lock-default-fontify-region): Don't force
+	parse-sexp-lookup-properties to nil.
+
+2005-04-27  Alexander Klimov  <alserkli@inbox.ru>  (tiny change)
+
+	* man.el (man-mode-syntax-table): Set up `:' to have
+	word-constituent syntax.
+
+2005-04-27  Lute Kamstra  <lute@gnu.org>
+
+	* novice.el (disable-command): Don't add spurious newlines to the
+	init file.  Reported by Dan Jacobson <jidanni@jidanni.org>.
+
+2005-04-26  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-yank.el (calc-edit-finish): Make sure there is more
+	than one window before deleting window.
+
+2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* shell.el (shell-prompt-pattern): Doc fix.
+	(shell-mode): Set paragraph-separate buffer locally to "\\'".
+
+	* comint.el (comint-prompt-regexp, comint-get-old-input)
+	(comint-use-prompt-regexp)
+	(comint-use-prompt-regexp-instead-of-fields)
+	(comint-replace-by-expanded-history, comint-send-input)
+	(comint-output-filter, comint-get-old-input-default)
+	(comint-line-beginning-position, comint-bol, comint-show-output)
+	(comint-backward-matching-input, comint-forward-matching-input)
+	(comint-next-prompt, comint-previous-prompt):
+	Rename `comint-use-prompt-regexp-instead-of-fields' to
+	`comint-use-prompt-regexp'.  Keep old name as alias and declare
+	obsolete.
+	(comint-use-prompt-regexp): Shorten first line of doc string.
+
+	* ielm.el (inferior-emacs-lisp-mode): Adapt to above name change.
+	Set paragraph-separate buffer locally to "\\'".
+
+	* hippie-exp.el (try-expand-line, try-expand-line-all-buffers):
+	Adapt to above name change.
+
+	* net/net-utils.el (nslookup-prompt-regexp, ftp-prompt-regexp)
+	(smbclient-prompt-regexp): Ditto.
+
+	* progmodes/inf-lisp.el (inferior-lisp-prompt): Ditto.
+
+2005-04-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-location-alist): Rename from
+	gdb-location-list.
+	Break lines that are over 80 characters wide.
+
+2005-04-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs-info.el (cvs-fileinfo->full-path, cvs-display-full-path):
+	New fun and var, to preserve compatibility.
+
+	* pcvs.el, pcvs-info.el: Rename "full-path" -> "full-name".
+
+2005-04-26  Dominique de Waleffe  <ddw@missioncriticalit.com>  (tiny change)
+
+	* pcvs-info.el (cvs-fileinfo->backup-file): Don't pass the full file
+	name to file-newer-than-file-p.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-1): Avoid using vertical-motion in easy cases.
+
+	* progmodes/python.el (python-mode):
+	Use new name eldoc-documentation-function.
+
+	* hexl.el (hexl-mode): Use new name eldoc-documentation-function.
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
+	(eldoc-documentation-function):
+	Rename from eldoc-print-current-symbol-info-function.  Calls changed.
+
+2005-04-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias): New macro.
+
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Fix strings for
+	{C,S,A,C-S}-f[1-4].  Use substitute-key-definition to bind
+	{C,S,A,C-S}-{f1-f12}.
+
+2005-04-26  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Fix previous change.
+
+2005-04-26  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Fix docstring.
+
+	* font-lock.el (font-lock-fontify-region-function): Fix docstring.
+	(font-lock-comment-delimiter-face): Ditto.
+
+	* calc/calc.el (calc-trail-mode): Don't set font-lock-defaults.
+
+2005-04-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-view-news): Let-bind inhibit-read-only
+	to t while inserting information; use help-mode.
+
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (ansi-term-color-vector): Use the xterm colors.
+	(term-raw-map): Don't add mappings for \eO and \e[. Map deletechar.
+
+2005-04-25  Lute Kamstra  <lute@gnu.org>
+
+	* font-core.el (font-lock-defaults): Fix docstring.
+
+	* font-lock.el (font-lock-syntactic-face-function): Fix docstring.
+
+2005-04-25  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system):
+	Don't check consistency with coding: spec, etc if raw-text or
+	no-conversion was found to be safe.
+
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* mail/sendmail.el (mail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* mail/rmail.el (rmail-font-lock-keywords): Match any number of
+	citation markers at start of each line.
+
+	* font-lock.el (font-lock-comment-delimiter-face): Doc fix.
+
+	* files.el (mode-require-final-newline): Fix previous change.
+	(require-final-newline): Fix type label.
+
+2005-04-24  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/f90.el (f90-calculate-indent): Fix treatment of first
+	statement in buffer (broken by 2004-11-24 change).
+
+2005-04-24  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-everywhere): Save and restore old read-buffer-function
+	and read-file-name-function values.  Don't overwrite existing
+	non-nil values if ido-mode is enabled without ido-everywhere.
+
+2005-04-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (mode-require-final-newline): Minor doc fix.
+
+2005-04-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* subr.el (syntax-after): Doc fix.
+	(syntax-class): If argument is nil, return nil.  Mask off upper 16
+	bits, not 8 bits.
+
+	* files.el (mode-require-final-newline): Doc fix.
+	(backup-buffer-copy): Fix last change.
+
+2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Require select.  Set selection-coding-system to
+	mac-system-coding-system.  Call menu-bar-enable-clipboard.
+	(x-last-selected-text-clipboard, x-last-selected-text-primary)
+	(x-select-enable-clipboard): New variables.
+	(x-select-text, x-get-selection, x-selection-value)
+	(x-get-selection-value, mac-select-convert-to-string)
+	(mac-services-open-file, mac-services-open-selection)
+	(mac-services-insert-text): New functions.
+	(CLIPBOARD, FIND): Put mac-scrap-name property.
+	(com.apple.traditional-mac-plain-text, public.utf16-plain-text)
+	(public.tiff): Put mac-ostype property.
+	(selection-converter-alist): Add entries for them.
+	(mac-application-menu-map): New keymap.
+	(interprogram-cut-function, interprogram-paste-function): Set to
+	x-select-text and x-get-selection-value, respectively.
+	(split-window-keep-point): Set to t.
+
+2005-04-23  Richard M. Stallman  <rms@gnu.org>
+
+	* files.el (read-directory-name): Always pass non-nil
+	DEFAULT-FILENAME arg to read-file-name.
+	(backup-buffer-copy, basic-save-buffer-2): Take care against
+	writing thru an unexpected existing symlink.
+	(revert-buffer): In indirect buffer, revert the base buffer.
+	(magic-mode-alist): Doc fix.
+	(buffer-stale-function): Doc fix.
+	(minibuffer-with-setup-hook): Avoid warning.
+	(mode-require-final-newline): Doc and custom fix.
+
+	* follow.el (follow-end-of-buffer): Use with-no-warnings.
+
+	* font-lock.el (font-lock-comment-face): On terminals with few colors,
+	use the default appearance.
+	(font-lock-comment-delimiter-face): New face, new variable.
+
+	* imenu.el (imenu--generic-function): The official position of a
+	definition is the start of the line that BEG is in.
+
+	* midnight.el (midnight-timer): Move defvar up.
+
+	* mouse.el (mouse-drag-region-1): Delete some debugging code.
+
+	* saveplace.el (save-place-to-alist): Use with-no-warnings.
+
+	* startup.el (command-line): Use with-no-warnings.
+
+	* window.el (window-size-fixed): New defvar.
+
+	* emacs-lisp/easymenu.el (easy-menu-do-define): Use defalias, not fset.
+
+	* mail/rmail.el (rmail-font-lock-keywords):
+	Use font-lock-comment-delimiter-face.
+
+	* mail/sendmail.el (mail-font-lock-keywords):
+	Use font-lock-comment-delimiter-face.
+
+	* progmodes/compile.el (next-error-highlight-timer): New defvar.
+
+2005-04-23  SAITO Takuya  <tabmore@rivo.mediatti.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-mode-font-lock-keywords):
+	Specify t for LAXMATCH when matching directories.
+	Save match data around compilation-compat-error-properties form.
+
+2005-04-23  David Kastrup  <dak@gnu.org>
+
+	* textmodes/tex-mode.el (TeX-mode, plain-TeX-mode, LaTeX-mode):
+	Mention that the autoloaded aliases should be kept for AUCTeX.
+
+2005-04-23  Andreas Schwab  <schwab@suse.de>
+
+	* isearch.el (isearch-forward): Doc fix.
+
+2005-04-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* jit-lock.el (jit-lock-stealth-time): Change default value to 16.
+	(jit-lock-stealth-nice): Change default value to 0.5.
+
+2005-04-23  Eric Hanchrow  <offby1@blarg.net>  (tiny change)
+
+	* abbrev.el (write-abbrev-file): Write table entries in
+	alphabetical order by table name.
+
+2005-04-22  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-internal): Fix `list' completion.
+
+2005-04-22  Kenichi Handa  <handa@m17n.org>
+
+	* recentf.el (recentf-save-file-coding-system): New variable.
+	(recentf-save-list): Encode the file by
+	recentf-save-file-coding-system and add coding: tag.
+
+2005-04-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/byte-run.el (define-obsolete-variable-alias): New macro.
+
+2005-04-21  Lute Kamstra  <lute@gnu.org>
+
+	* loadhist.el (unload-feature): Don't remove a function from hooks
+	if it is about to be restored to an autoload .  Remove functions
+	that will become unbound from auto-mode-alist.  Simplify the code.
+
+	* subr.el (assq-delete-all): New implementation that is linear,
+	not quadratic.  Suggested by David Kastrup <dak@gnu.org>.
+	(rassq-delete-all): New function.
+
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
+	Add size-indication-mode.
+
 2005-04-21  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el: Add autoload for widget-value in
-	eval-when-compile
+	eval-when-compile.
 
 2005-04-21  Nick Roberts  <nickrob@snap.net.nz>
 
-	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu): 
+	* menu-bar.el (menu-bar-options-save, menu-bar-showhide-menu):
 	Add tooltip-mode.
 
 	* bindings.el (mode-line-mode-menu): Remove tooltip-mode.
@@ -372,8 +951,8 @@
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>
 
 	* whitespace.el (whitespace-buffer-leading)
-	(whitespace-buffer-trailing): Revert the incorrect test
-	inversion. However, fix the highlight area for the leading and
+	(whitespace-buffer-trailing): Revert the incorrect test inversion.
+	However, fix the highlight area for the leading and
 	trailing whitespaces to show space.
 
 2005-04-11  Rajesh Vaidheeswarran  <rv@gnu.org>

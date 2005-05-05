@@ -95,8 +95,8 @@ BODY contains code that will be executed each time the mode is (dis)activated.
   will be passed to `defcustom' if the minor mode is global):
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 		Defaults to MODE without the possible trailing \"-mode\".
-		(This default may not be a valid customization group defined
-		with `defgroup'.  Make sure it is.)
+		Don't use this default group name unless you have written a
+		`defgroup' to define that group properly.
 :global GLOBAL	If non-nil specifies that the minor mode is not meant to be
 		buffer-local, so don't make the variable MODE buffer-local.
 		By default, the mode is buffer-local.

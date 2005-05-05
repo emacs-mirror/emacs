@@ -114,6 +114,18 @@ was first made obsolete, for example a date or a release number."
     (put function 'byte-obsolete-info (list new handler when)))
   function)
 
+(defmacro define-obsolete-function-alias (function new
+						   &optional when docstring)
+  "Set FUNCTION's function definition to NEW and warn that FUNCTION is obsolete.
+If provided, WHEN should be a string indicating when FUNCTION was
+first made obsolete, for example a date or a release number.  The
+optional argument DOCSTRING specifies the documentation string
+for FUNCTION; if DOCSTRING is omitted or nil, FUNCTION uses the
+documentation string of NEW unluess it already has one."
+  `(progn
+     (defalias ,function ,new ,docstring)
+     (make-obsolete ,function ,new ,when)))
+
 (defun make-obsolete-variable (variable new &optional when)
   "Make the byte-compiler warn that VARIABLE is obsolete.
 The warning will say that NEW should be used instead.
@@ -128,6 +140,18 @@ was first made obsolete, for example a date or a release number."
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
   (put variable 'byte-obsolete-variable (cons new when))
   variable)
+
+(defmacro define-obsolete-variable-alias (variable new
+						 &optional when docstring)
+  "Make VARIABLE a variable alias for NEW and warn that VARIABLE is obsolete.
+If provided, WHEN should be a string indicating when VARIABLE was
+first made obsolete, for example a date or a release number.  The
+optional argument DOCSTRING specifies the documentation string
+for VARIABLE; if DOCSTRING is omitted or nil, VARIABLE uses the
+documentation string of NEW unless it already has one."
+  `(progn
+     (defvaralias ,variable ,new ,docstring)
+      (make-obsolete-variable ,variable ,new ,when)))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).

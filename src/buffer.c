@@ -5084,6 +5084,7 @@ init_buffer_once ()
   XSETFASTINT (buffer_local_flags.header_line_format, idx); ++idx;
   XSETFASTINT (buffer_local_flags.cursor_type, idx); ++idx;
   XSETFASTINT (buffer_local_flags.extra_line_spacing, idx); ++idx;
+  XSETFASTINT (buffer_local_flags.cursor_in_non_selected_windows, idx); ++idx;
 
   /* Need more room? */
   if (idx >= MAX_PER_BUFFER_VARS)
@@ -5953,6 +5954,11 @@ this variable has no effect; the cursor appears as a hollow box.  */);
 The space is measured in pixels, and put below lines on window systems.
 If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  */);
+
+  DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
+		     &current_buffer->cursor_in_non_selected_windows, Qt,
+    doc: /* *Cursor type to display in non-selected windows.
+t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 
   DEFVAR_LISP ("kill-buffer-query-functions", &Vkill_buffer_query_functions,
 	       doc: /* List of functions called with no args to query before killing a buffer.  */);

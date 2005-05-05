@@ -639,9 +639,9 @@ by \"Save Options\" in Custom buffers.")
   (let ((need-save nil))
     ;; These are set with menu-bar-make-mm-toggle, which does not
     ;; put on a customized-value property.
-    (dolist (elt '(line-number-mode column-number-mode cua-mode show-paren-mode
-		   transient-mark-mode global-font-lock-mode
-		   blink-cursor-mode))
+    (dolist (elt '(line-number-mode column-number-mode size-indication-mode
+		   cua-mode show-paren-mode transient-mark-mode
+		   global-font-lock-mode blink-cursor-mode))
       (and (customize-mark-to-save elt)
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
@@ -691,6 +691,11 @@ by \"Save Options\" in Custom buffers.")
   (menu-bar-make-mm-toggle line-number-mode
 			   "Line Numbers"
 			   "Show the current line number in the mode line"))
+
+(define-key menu-bar-showhide-menu [size-indication-mode]
+  (menu-bar-make-mm-toggle size-indication-mode
+			   "Size Indication"
+			   "Show the size of the buffer in the mode line"))
 
 (define-key menu-bar-showhide-menu [linecolumn-separator]
   '("--"))

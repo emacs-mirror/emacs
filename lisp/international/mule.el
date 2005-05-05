@@ -843,9 +843,6 @@ like `mime-charset' as well as the current style like `:mime-charset'."
 	  (plist-get (coding-system-plist coding-system)
 		     (intern (concat ":" (symbol-name prop)))))))
 
-(defalias 'coding-system-parent 'coding-system-base)
-(make-obsolete 'coding-system-parent 'coding-system-base "20.3")
-
 (defun coding-system-eol-type-mnemonic (coding-system)
   "Return the string indicating end-of-line format of CODING-SYSTEM."
   (let* ((eol-type (coding-system-eol-type coding-system))

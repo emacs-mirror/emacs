@@ -264,7 +264,8 @@ Initialization options:\n\
 --no-shared-memory, -nl     do not use shared memory\n\
 --no-site-file              do not load site-start.el\n\
 --no-splash                 do not display a splash screen on startup\n\
---no-window-system, -nw     don't communicate with X, ignoring $DISPLAY\n\
+--no-window-system, -nw     do not communicate with X, ignoring $DISPLAY\n\
+--quick, -Q                 equivalent to -q --no-site-file\n\
 --script FILE               run FILE as an Emacs Lisp script\n\
 --terminal, -t DEVICE       use DEVICE for terminal I/O\n\
 --unibyte, --no-multibyte   run Emacs in unibyte mode\n\
@@ -294,6 +295,8 @@ FILE                    visit FILE using find-file\n\
 Display options:\n\
 \n\
 --background-color, -bg COLOR   window background color\n\
+--basic-display, -D             disable many display features;\n\
+                                  used for debugging Emacs\n\
 --border-color, -bd COLOR       main border color\n\
 --border-width, -bw WIDTH       width of main border\n\
 --color, --color=MODE           color mode for character terminals;\n\
@@ -320,16 +323,16 @@ Display options:\n\
 --xrm XRESOURCES                set additional X resources\n\
 --help                          display this help and exit\n\
 --version                       output version information and exit\n\
-\n\
+\n"
+
+#define USAGE4 "\
 You can generally also specify long option names with a single -; for\n\
 example, -batch as well as --batch.  You can use any unambiguous\n\
 abbreviation for a --option.\n\
 \n\
 Various environment variables and window system resources also affect\n\
 Emacs' operation.  See the main documentation.\n\
-\n"
-
-#define USAGE4 "\
+\n\
 Report bugs to %s.  First, please see the Bugs\n\
 section of the Emacs manual or the file BUGS.\n"
 
@@ -1318,6 +1321,7 @@ main (argc, argv
       syms_of_fontset ();
       syms_of_macterm ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_data ();
       syms_of_search ();
       syms_of_frame ();
@@ -1637,6 +1641,7 @@ main (argc, argv
       syms_of_macterm ();
       syms_of_macfns ();
       syms_of_macmenu ();
+      syms_of_macselect ();
       syms_of_fontset ();
 #endif /* MAC_OSX && HAVE_CARBON */
 

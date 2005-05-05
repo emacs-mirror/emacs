@@ -1,3 +1,8 @@
+2005-05-04  Miles Bader  <miles@gnu.org>
+
+	* character.c (chars-in-region): Obsolete function removed.
+	(syms_of_character): Remove its initialization.
+
 2005-04-28  Benjamin Riefenstahl  <b.riefenstahl@turtle-trading.net>
 
 	* w32select.c (validate_coding_system)

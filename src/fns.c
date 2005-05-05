@@ -184,8 +184,7 @@ To get the number of bytes, use `string-bytes'. */)
   return val;
 }
 
-/* This does not check for quits.  That is safe
-   since it must terminate.  */
+/* This does not check for quits.  That is safe since it must terminate.  */
 
 DEFUN ("safe-length", Fsafe_length, Ssafe_length, 1, 1, 0,
        doc: /* Return the length of a list, but avoid error or infinite loop.
@@ -1901,6 +1900,7 @@ merge (org_l1, org_l2, pred)
 }
 
 
+#if 0 /* Unsafe version.  */
 DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
        doc: /* Extract a value from a property list.
 PLIST is a property list, which is a list of the form
@@ -1931,14 +1931,16 @@ one of the properties on the list.  */)
 
   return Qnil;
 }
+#endif
 
-DEFUN ("safe-plist-get", Fsafe_plist_get, Ssafe_plist_get, 2, 2, 0,
+/* This does not check for quits.  That is safe since it must terminate.  */
+
+DEFUN ("plist-get", Fplist_get, Splist_get, 2, 2, 0,
        doc: /* Extract a value from a property list.
 PLIST is a property list, which is a list of the form
 \(PROP1 VALUE1 PROP2 VALUE2...).  This function returns the value
-corresponding to the given PROP, or nil if PROP is not
-one of the properties on the list.
-This function never signals an error.  */)
+corresponding to the given PROP, or nil if PROP is not one of the
+properties on the list.  This function never signals an error.  */)
      (plist, prop)
      Lisp_Object plist;
      Lisp_Object prop;
@@ -1969,18 +1971,6 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
 {
   CHECK_SYMBOL (symbol);
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
-}
-
-DEFUN ("safe-get", Fsafe_get, Ssafe_get, 2, 2, 0,
-       doc: /* Return the value of SYMBOL's PROPNAME property.
-This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.
-This function never signals an error.  */)
-     (symbol, propname)
-     Lisp_Object symbol, propname;
-{
-  if (!SYMBOLP (symbol))
-    return Qnil;
-  return Fsafe_plist_get (XSYMBOL (symbol)->plist, propname);
 }
 
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
@@ -5263,9 +5253,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Sreverse);
   defsubr (&Ssort);
   defsubr (&Splist_get);
-  defsubr (&Ssafe_plist_get);
   defsubr (&Sget);
-  defsubr (&Ssafe_get);
   defsubr (&Splist_put);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);
