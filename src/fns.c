@@ -66,7 +66,7 @@ int use_file_dialog;
 extern int minibuffer_auto_raise;
 extern Lisp_Object minibuf_window;
 extern Lisp_Object Vlocale_coding_system;
-extern Lisp_Object Vloads_in_progress;
+extern int load_in_progress;
 
 Lisp_Object Qstring_lessp, Qprovide, Qrequire;
 Lisp_Object Qyes_or_no_p_history;
@@ -2051,6 +2051,18 @@ This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.  */)
   return Fplist_get (XSYMBOL (symbol)->plist, propname);
 }
 
+DEFUN ("safe-get", Fsafe_get, Ssafe_get, 2, 2, 0,
+       doc: /* Return the value of SYMBOL's PROPNAME property.
+This is the last value stored with `(put SYMBOL PROPNAME VALUE)'.
+This function never signals an error.  */)
+     (symbol, propname)
+     Lisp_Object symbol, propname;
+{
+  if (!SYMBOLP (symbol))
+    return Qnil;
+  return Fsafe_plist_get (XSYMBOL (symbol)->plist, propname);
+}
+
 DEFUN ("plist-put", Fplist_put, Splist_put, 3, 3, 0,
        doc: /* Change value in PLIST of PROP to VAL.
 PLIST is a property list, which is a list of the form
@@ -2566,7 +2578,14 @@ character set, or a character code.  Return VALUE.  */)
 
   if (EQ (range, Qt))
     for (i = 0; i < CHAR_TABLE_ORDINARY_SLOTS; i++)
-      XCHAR_TABLE (char_table)->contents[i] = value;
+      {
+	/* Don't set these special slots used for default values of
+	   ascii, eight-bit-control, and eight-bit-graphic.  */
+	if (i != CHAR_TABLE_DEFAULT_SLOT_ASCII
+	    && i != CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL
+	    && i != CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC)
+	  XCHAR_TABLE (char_table)->contents[i] = value;
+      }
   else if (EQ (range, Qnil))
     XCHAR_TABLE (char_table)->defalt = value;
   else if (SYMBOLP (range))
@@ -2597,19 +2616,12 @@ character set, or a character code.  Return VALUE.  */)
     Faset (char_table, range, value);
   else if (VECTORP (range))
     {
-      if (XVECTOR (range)->size == 1)
-	return Faset (char_table,
-		      make_number (XINT (XVECTOR (range)->contents[0]) + 128),
-		      value);
-      else
-	{
-	  int size = XVECTOR (range)->size;
-	  Lisp_Object *val = XVECTOR (range)->contents;
-	  Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
-						size <= 1 ? Qnil : val[1],
-						size <= 2 ? Qnil : val[2]);
-	  return Faset (char_table, ch, value);
-	}
+      int size = XVECTOR (range)->size;
+      Lisp_Object *val = XVECTOR (range)->contents;
+      Lisp_Object ch = Fmake_char_internal (size <= 0 ? Qnil : val[0],
+					    size <= 1 ? Qnil : val[1],
+					    size <= 2 ? Qnil : val[2]);
+      Faset (char_table, ch, value);
     }
   else
     error ("Invalid RANGE argument to `set-char-table-range'");
@@ -2621,6 +2633,8 @@ DEFUN ("set-char-table-default", Fset_char_table_default,
        Sset_char_table_default, 3, 3, 0,
        doc: /* Set the default value in CHAR-TABLE for generic character CH to VALUE.
 The generic character specifies the group of characters.
+If CH is a normal character, set the default value for a group of
+characters to which CH belongs.
 See also the documentation of `make-char'.  */)
      (char_table, ch, value)
      Lisp_Object char_table, ch, value;
@@ -2640,27 +2654,34 @@ See also the documentation of `make-char'.  */)
   if (! CHARSET_VALID_P (charset))
     invalid_character (c);
 
-  if (charset == CHARSET_ASCII)
-    return (XCHAR_TABLE (char_table)->defalt = value);
+  if (SINGLE_BYTE_CHAR_P (c))
+    {
+      /* We use special slots for the default values of single byte
+	 characters.  */
+      int default_slot
+	= (c < 0x80 ? CHAR_TABLE_DEFAULT_SLOT_ASCII
+	   : c < 0xA0 ? CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL
+	   : CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC);
+
+      return (XCHAR_TABLE (char_table)->contents[default_slot] = value);
+    }
 
   /* Even if C is not a generic char, we had better behave as if a
      generic char is specified.  */
   if (!CHARSET_DEFINED_P (charset) || CHARSET_DIMENSION (charset) == 1)
     code1 = 0;
   temp = XCHAR_TABLE (char_table)->contents[charset + 128];
+  if (! SUB_CHAR_TABLE_P (temp))
+    {
+      temp = make_sub_char_table (temp);
+      XCHAR_TABLE (char_table)->contents[charset + 128] = temp;
+    }
   if (!code1)
     {
-      if (SUB_CHAR_TABLE_P (temp))
-	XCHAR_TABLE (temp)->defalt = value;
-      else
-	XCHAR_TABLE (char_table)->contents[charset + 128] = value;
+      XCHAR_TABLE (temp)->defalt = value;
       return value;
     }
-  if (SUB_CHAR_TABLE_P (temp))
-    char_table = temp;
-  else
-    char_table = (XCHAR_TABLE (char_table)->contents[charset + 128]
-		  = make_sub_char_table (temp));
+  char_table = temp;
   temp = XCHAR_TABLE (char_table)->contents[code1];
   if (SUB_CHAR_TABLE_P (temp))
     XCHAR_TABLE (temp)->defalt = value;
@@ -3460,7 +3481,7 @@ The normal messages at start and end of loading FILENAME are suppressed.  */)
      even if the feature specified is already loaded.
      But not more than once in any file,
      and not when we aren't loading a file.  */
-  if (! NILP (Vloads_in_progress))
+  if (load_in_progress)
     {
       tem = Fcons (Qrequire, feature);
       if (NILP (Fmember (tem, Vcurrent_load_list)))
@@ -5792,6 +5813,7 @@ used if both `use-dialog-box' and this variable are non-nil.  */);
   defsubr (&Splist_get);
   defsubr (&Ssafe_plist_get);
   defsubr (&Sget);
+  defsubr (&Ssafe_get);
   defsubr (&Splist_put);
   defsubr (&Sput);
   defsubr (&Slax_plist_get);

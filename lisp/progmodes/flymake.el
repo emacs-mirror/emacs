@@ -1765,7 +1765,7 @@ Return full-name.  Names are real, not patched."
 	       (this-real-name  (nth 1 (nth (1- file-count) files))))
 	  ;;+(flymake-log 0 "this-dir=%s this-file=%s this-real=%s msg-file=%s" this-dir this-file this-real-name file-name-from-err-msg)
 	  (when (and this-dir this-file (flymake-same-files
-					 (flymake-get-absolute-file-name-basedir file-name-from-err-msg this-dir)
+					 (expand-file-name file-name-from-err-msg this-dir)
 					 this-file))
 	    (setq real-name this-real-name)))
 	(setq file-count (1- file-count)))
@@ -1778,17 +1778,12 @@ Return full-name.  Names are real, not patched."
 	(setq real-name file-name-from-err-msg)
       (let* ((base-dirs-count  (length base-dirs)))
 	(while (and (not real-name) (> base-dirs-count 0))
-	  (let* ((full-name (flymake-get-absolute-file-name-basedir file-name-from-err-msg
-								    (nth (1- base-dirs-count) base-dirs))))
+	  (let* ((full-name (expand-file-name file-name-from-err-msg
+					      (nth (1- base-dirs-count) base-dirs))))
 	    (if (file-exists-p full-name)
 		(setq real-name full-name))
 	    (setq base-dirs-count (1- base-dirs-count))))))
     real-name))
-
-(defun flymake-get-absolute-file-name-basedir (file-name dir-name)
-  (if (file-name-absolute-p file-name)
-      file-name
-    (concat dir-name "/" file-name)))
 
 (defun flymake-init-find-buildfile-dir (buffer source-file-name buildfile-name)
   "Find buildfile, store its dir in buffer data and return its dir, if found."

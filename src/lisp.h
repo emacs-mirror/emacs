@@ -723,6 +723,14 @@ struct Lisp_Vector
    indexed by (charset-id + 128).  */
 #define CHAR_TABLE_ORDINARY_SLOTS 384
 
+/* These are the slot of the default values for single byte
+   characters.  As 0x9A is never be a charset-id, it is safe to use
+   that slot for ASCII.  0x9E and 0x80 are charset-ids of
+   eight-bit-control and eight-bit-graphic respectively.  */
+#define CHAR_TABLE_DEFAULT_SLOT_ASCII (0x9A + 128)
+#define CHAR_TABLE_DEFAULT_SLOT_8_BIT_CONTROL (0x9E + 128)
+#define CHAR_TABLE_DEFAULT_SLOT_8_BIT_GRAPHIC (0x80 + 128)
+
 /* This is the number of slots that apply to characters of ASCII and
    8-bit Europeans only.  */
 #define CHAR_TABLE_SINGLE_BYTE_SLOTS 256
@@ -2348,6 +2356,7 @@ EXFUN (Fsort, 2);
 EXFUN (Freverse, 1);
 EXFUN (Fnreverse, 1);
 EXFUN (Fget, 2);
+EXFUN (Fsafe_get, 2);
 EXFUN (Fput, 3);
 EXFUN (Fequal, 2);
 EXFUN (Ffillarray, 2);

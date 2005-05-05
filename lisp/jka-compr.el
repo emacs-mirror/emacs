@@ -198,12 +198,16 @@ invoked."
 			 (choice :tag "Compress Message"
 				 (string :format "%v")
 				 (const :tag "No Message" nil))
-			 (string :tag "Compress Program")
+			 (choice :tag "Compress Program"
+				 (string)
+				 (const :tag "None" nil))
 			 (repeat :tag "Compress Arguments" string)
 			 (choice :tag "Uncompress Message"
 				 (string :format "%v")
 				 (const :tag "No Message" nil))
-			 (string :tag "Uncompress Program")
+			 (choice :tag "Uncompress Program"
+				 (string)
+				 (const :tag "None" nil))
 			 (repeat :tag "Uncompress Arguments" string)
 			 (boolean :tag "Append")
 			 (boolean :tag "Strip Extension")

@@ -1,6 +1,7 @@
 ;;; qp.el --- Quoted-Printable functions
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2005
+;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: mail, extensions
@@ -100,15 +101,15 @@ You should probably avoid non-ASCII characters in this arg.
 If `mm-use-ultra-safe-encoding' is set, fold lines unconditionally and
 encode lines starting with \"From\"."
   (interactive "r")
-  (goto-char from)
-  (if (re-search-forward (mm-string-to-multibyte "[^\x0-\x7f\x80-\xff]")
-			 to t)
-      (error "Multibyte character in QP encoding region"))
   (unless class
     ;; Avoid using 8bit characters. = is \075.
     ;; Equivalent to "^\000-\007\013\015-\037\200-\377="
     (setq class "\010-\012\014\040-\074\076-\177"))
   (save-excursion
+    (goto-char from)
+    (if (re-search-forward (mm-string-to-multibyte "[^\x0-\x7f\x80-\xff]")
+			   to t)
+	(error "Multibyte character in QP encoding region"))
     (save-restriction
       (narrow-to-region from to)
       ;; Encode all the non-ascii and control characters.

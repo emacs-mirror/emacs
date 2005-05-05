@@ -146,7 +146,7 @@ NonCarbonLibs = ¶
 	"{SharedLibraries}StdCLib" ¶
 	"{SharedLibraries}MathLib" ¶
 	"{SharedLibraries}AppleScriptLib" ¶
-	"{SharedLibraries}TextEncodingConverter" ¶
+	"{SharedLibraries}LocalesLib" ¶
 	"{SharedLibraries}AppearanceLib" ¶
 	"{SharedLibraries}QuickTimeLib" ¶
 	"{PPCLibraries}StdCRuntime.o" ¶

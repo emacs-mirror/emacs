@@ -117,7 +117,10 @@ position to pop up the tooltip."
   :group 'tooltip)
 
 (defcustom tooltip-gud-tips-p nil
-  "*Non-nil means show tooltips in GUD sessions."
+  "*Non-nil means show tooltips in GUD sessions.
+
+This allows you to display a variable's value in a tooltip simply by
+pointing at it with the mouse."
   :type 'boolean
   :tag "GUD"
   :group 'tooltip)
@@ -139,14 +142,14 @@ only tooltips in the buffer containing the overlay arrow."
   :tag "GUD buffers predicate"
   :group 'tooltip)
 
-(defcustom tooltip-use-echo-area nil
-  "Use the echo area instead of tooltip frames.
-This is only relevant GUD display, since otherwise it is equivalent to
-turning off Tooltip mode."
+(defcustom tooltip-gud-echo-area nil
+  "Use the echo area instead of frames for GUD tooltips."
   :type 'boolean
   :tag "Use echo area"
   :group 'tooltip)
 
+(defvaralias 'tooltip-use-echo-area 'tooltip-gud-echo-area)
+(make-obsolete-variable 'tooltip-use-echo-area 'tooltip-gud-echo-area "22.1")
 
 ;;; Variables that are not customizable.
 
@@ -187,6 +190,13 @@ This might return nil if the event did not occur over a buffer."
   "Toggle Tooltip display.
 With ARG, turn tooltip mode on if and only if ARG is positive."
   :global t
+  ;; If you change the :init-value below, you also need to change the
+  ;; corresponding code in startup.el.
+  :init-value (not (or noninteractive
+		       (and (boundp 'emacs-quick-startup) emacs-quick-startup)
+		       (not (and (fboundp 'display-graphic-p)
+				 (display-graphic-p)))
+		       (not (fboundp 'x-show-tip))))
   :group 'tooltip
   (unless (or (null tooltip-mode) (fboundp 'x-show-tip))
     (error "Sorry, tooltips are not yet available on this system"))
@@ -285,17 +295,20 @@ change the existing association.  Value is the resulting alist."
       (push (cons key value) alist))
     alist))
 
-(defun tooltip-show (text)
+(defun tooltip-show (text &optional use-echo-area)
   "Show a tooltip window displaying TEXT.
 
-Text larger than `x-max-tooltip-size' (which see) is clipped.
+Text larger than `x-max-tooltip-size' is clipped.
 
 If the alist in `tooltip-frame-parameters' includes `left' and `top'
 parameters, they determine the x and y position where the tooltip
 is displayed.  Otherwise, the tooltip pops at offsets specified by
 `tooltip-x-offset' and `tooltip-y-offset' from the current mouse
-position."
-  (if tooltip-use-echo-area
+position.
+
+Optional second arg USE-ECHO-AREA non-nil means to show tooltip
+in echo area."
+  (if use-echo-area
       (message "%s" text)
     (condition-case error
 	(let ((params (copy-sequence tooltip-frame-parameters))
@@ -402,16 +415,27 @@ This event can be examined by forms in TOOLTIP-GUD-DISPLAY.")
     (message "Dereferencing is now %s."
 	     (if tooltip-gud-dereference "on" "off"))))
 
+(defun tooltip-toggle-gud-tips ()
+  "Toggle the display of GUD tooltips."
+  (interactive)
+  (setq tooltip-gud-tips-p (not tooltip-gud-tips-p))
+  ;; Reconsider for all buffers whether mouse motion events are desired.
+  (tooltip-change-major-mode)
+  (when (interactive-p)
+    (message (format "GUD tooltips %sabled"
+		     (if tooltip-gud-tips-p "en" "dis")))))
+
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
 ; the tootip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
-; it may be difficult to do better. gdba in gdb-ui.el
-; gets round this problem.
+; it may be difficult to do better. Using annotations as in
+; gdb-ui.el gets round this problem.
 (defun tooltip-gud-process-output (process output)
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process tooltip-gud-original-filter)
-  (tooltip-show (tooltip-strip-prompt process output)))
+  (tooltip-show (tooltip-strip-prompt process output)
+		tooltip-gud-echo-area))
 
 (defun tooltip-gud-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -457,8 +481,9 @@ This function must return nil if it doesn't handle EVENT."
   (tooltip-show
    (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
      (let ((string (buffer-string)))
-       ;; remove newline for tooltip-use-echo-area
-       (substring string 0 (- (length string) 1))))))
+       ;; remove newline for tooltip-gud-echo-area
+       (substring string 0 (- (length string) 1))))
+   tooltip-gud-echo-area))
 
 
 ;;; Tooltip help.

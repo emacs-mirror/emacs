@@ -26,9 +26,14 @@ if not (%4) == () goto end
 
 set eld=emacs-%1/lisp
 
-rem Keep this list in sync with the DONTCOMPILE list in lisp/makefile.w32-in
+rem List of Lisp files that are not compiled and that should be
+rem included in the bin distribution.
 
-set elfiles=%eld%/cus-load.el %eld%/cus-start.el %eld%/emacs-lisp/cl-specs.el %eld%/eshell/esh-maint.el %eld%/eshell/esh-groups.el %eld%/finder-inf.el %eld%/forms-d2.el %eld%/forms-pass.el %eld%/generic-x.el %eld%/international/latin-1.el %eld%/international/latin-2.el %eld%/international/latin-3.el %eld%/international/latin-4.el %eld%/international/latin-5.el %eld%/international/latin-8.el %eld%/international/latin-9.el %eld%/international/mule-conf.el %eld%/loaddefs.el %eld%/loadup.el %eld%/mail/blessmail.el %eld%/patcomp.el %eld%/paths.el %eld%/play/bruce.el %eld%/subdirs.el %eld%/version.el
+rem It would be better to generate this list automatically.  It is the
+rem list of all .el files for which there is no corresponding .elc
+rem file, minus ldefs-boot.el.  --lute
+
+set elfiles=%eld%/cus-load.el %eld%/emacs-lisp/cl-specs.el %eld%/eshell/esh-groups.el %eld%/eshell/esh-maint.el %eld%/finder-inf.el %eld%/forms-d2.el %eld%/forms-pass.el %eld%/international/latin-1.el %eld%/international/latin-2.el %eld%/international/latin-3.el %eld%/international/latin-4.el %eld%/international/latin-5.el %eld%/international/latin-8.el %eld%/international/latin-9.el %eld%/international/mule-conf.el %eld%/language/czech.el %eld%/language/devanagari.el %eld%/language/english.el %eld%/language/georgian.el %eld%/language/greek.el %eld%/language/hebrew.el %eld%/language/japanese.el %eld%/language/kannada.el %eld%/language/korean.el %eld%/language/lao.el %eld%/language/malayalam.el %eld%/language/misc-lang.el %eld%/language/romanian.el %eld%/language/slovak.el %eld%/language/tamil.el %eld%/language/thai.el %eld%/language/utf-8-lang.el %eld%/loaddefs.el %eld%/loadup.el %eld%/mail/blessmail.el %eld%/mh-e/mh-acros.el %eld%/mh-e/mh-gnus.el %eld%/mh-e/mh-loaddefs.el %eld%/obsolete/keyswap.el %eld%/patcomp.el %eld%/paths.el %eld%/play/bruce.el %eld%/subdirs.el %eld%/term/AT386.el %eld%/term/apollo.el %eld%/term/bobcat.el %eld%/term/internal.el %eld%/term/iris-ansi.el %eld%/term/linux.el %eld%/term/lk201.el %eld%/term/news.el %eld%/term/vt102.el %eld%/term/vt125.el %eld%/term/vt200.el %eld%/term/vt201.el %eld%/term/vt220.el %eld%/term/vt240.el %eld%/term/vt300.el %eld%/term/vt320.el %eld%/term/vt400.el %eld%/term/vt420.el %eld%/term/wyse50.el %eld%/version.el
 
 set fns_el=
 for %%f in (emacs-%1/bin/fns*) do set fns_el=%fns_el% emacs-%1/bin/%%f
@@ -42,7 +47,6 @@ for %%f in (emacs-%1/bin/fns*) do echo emacs-%1/bin/%%f>>#elfiles#
 for %%f in (emacs-%1/bin emacs-%1/etc emacs-%1/info emacs-%1/lisp) do echo %%f>>#files#
 for %%f in (emacs-%1/lock emacs-%1/site-lisp) do echo %%f>>#files#
 for %%f in (%elfiles% emacs-%1/site-lisp/subdirs.el) do echo %%f>>#elfiles#
-for %%f in (%eld%/term/*.el) do echo %eld%/term/%%f>>#elfiles#
 
 %TAR% --exclude temacs.exe --exclude emacs.mdp --exclude *.pdb --exclude *.opt --exclude "*.el" --exclude "*~" -T #files# -cvf %2-bin-i386.tar
 %TAR% -T #elfiles# -rvf %2-bin-i386.tar

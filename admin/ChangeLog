@@ -1,3 +1,13 @@
+2005-04-19  Lute Kamstra  <lute@gnu.org>
+
+	* make-tarball.txt: Don't commit lisp/loaddefs.el.
+
+2005-04-14  Lute Kamstra  <lute@gnu.org>
+
+	* nt/makedist.bat (elfiles): Update.
+
+	* admin.el (add-release-logs): Fix require call.
+
 2005-03-30  Marcelo Toledo  <marcelo@marcelotoledo.org>
 
 	* FOR-RELEASE (Documentation): Added check the Emacs Tutorial. The

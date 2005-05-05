@@ -1067,11 +1067,11 @@ in the other.  This includes the text properties as well as the characters
 themselves.
 
   In all other respects, the indirect buffer and its base buffer are
-completely separate.  They have different names, different values of
-point, different narrowing, different markers and overlays (though
+completely separate.  They have different names, independent values of
+point, independent narrowing, independent markers and overlays (though
 inserting or deleting text in either buffer relocates the markers and
-overlays for both), different major modes, and different buffer-local
-variables.
+overlays for both), independent major modes, and independent
+buffer-local variable bindings.
 
   An indirect buffer cannot visit a file, but its base buffer can.  If
 you try to save the indirect buffer, that actually saves the base

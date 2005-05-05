@@ -646,7 +646,8 @@ by \"Save Options\" in Custom buffers.")
 	   (setq need-save t)))
     ;; These are set with `customize-set-variable'.
     (dolist (elt '(scroll-bar-mode
-		   debug-on-quit debug-on-error menu-bar-mode tool-bar-mode
+		   debug-on-quit debug-on-error
+		   tooltip-mode menu-bar-mode tool-bar-mode
 		   save-place uniquify-buffer-name-style fringe-mode
 		   fringe-indicators case-fold-search
 		   display-time-mode auto-compression-mode
@@ -909,6 +910,12 @@ by \"Save Options\" in Custom buffers.")
   (list 'menu-item "Scroll-bar" menu-bar-showhide-scroll-bar-menu
 	:visible `(display-graphic-p)
 	:help "Select scroll-bar mode"))
+
+(define-key menu-bar-showhide-menu [showhide-tooltip-mode]
+  (list 'menu-item "Tooltips" 'tooltip-mode
+	:help "Toggle tooltips on/off"
+	:visible  `(and (display-graphic-p) (fboundp 'x-show-tip))
+	:button `(:toggle . tooltip-mode)))
 
 (define-key menu-bar-showhide-menu [menu-bar-mode]
   '(menu-item "Menu-bar" menu-bar-mode

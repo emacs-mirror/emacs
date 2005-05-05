@@ -119,7 +119,7 @@ It includes all variables in list VARS."
 		(princ " '(")
 		(prin1 symbol)
 		(princ " ")
-		(prin1 (symbol-value symbol))
+		(prin1 (custom-quote (symbol-value symbol)))
 		(princ ")")))
 	      vars)
       (if (bolp)

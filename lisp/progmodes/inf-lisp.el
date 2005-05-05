@@ -66,12 +66,20 @@
 (require 'lisp-mode)
 
 
+(defgroup inferior-lisp nil
+  "Run an outside Lisp in an Emacs buffer."
+  :group 'lisp
+  :version "22.1")
+
 ;;;###autoload
-(defvar inferior-lisp-filter-regexp "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
+(defcustom inferior-lisp-filter-regexp
+  "\\`\\s *\\(:\\(\\w\\|\\s_\\)\\)?\\s *\\'"
   "*What not to save on inferior Lisp's input history.
 Input matching this regexp is not saved on the input history in Inferior Lisp
 mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
-\(as in :a, :c, etc.)")
+\(as in :a, :c, etc.)"
+  :type 'regexp
+  :group 'inferior-lisp)
 
 (defvar inferior-lisp-mode-map nil)
 (unless inferior-lisp-mode-map
@@ -111,7 +119,7 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
 ;;;where they are more accessible. C-c <letter> bindings are reserved for the
 ;;;user, so these bindings are non-standard. If you want them, you should
 ;;;have this function called by the inferior-lisp-load-hook:
-;;;    (setq inferior-lisp-load-hook '(inferior-lisp-install-letter-bindings))
+;;;  (add-hook 'inferior-lisp-load-hook 'inferior-lisp-install-letter-bindings)
 ;;;You can modify this function to install just the bindings you want."
 (defun inferior-lisp-install-letter-bindings ()
   (define-key lisp-mode-map "\C-ce" 'lisp-eval-defun-and-go)
@@ -133,23 +141,26 @@ mode.  Default is whitespace followed by 0 or 1 single-letter colon-keyword
   (define-key inferior-lisp-mode-map "\C-cv"
     'lisp-show-variable-documentation))
 
+;;;###autoload
+(defcustom inferior-lisp-program "lisp"
+  "*Program name for invoking an inferior Lisp in Inferior Lisp mode."
+  :type 'string
+  :group 'inferior-lisp)
 
 ;;;###autoload
-(defvar inferior-lisp-program "lisp"
-  "*Program name for invoking an inferior Lisp with for Inferior Lisp mode.")
-
-;;;###autoload
-(defvar inferior-lisp-load-command "(load \"%s\")\n"
+(defcustom inferior-lisp-load-command "(load \"%s\")\n"
   "*Format-string for building a Lisp expression to load a file.
 This format string should use `%s' to substitute a file name
 and should result in a Lisp expression that will command the inferior Lisp
 to load that file.  The default works acceptably on most Lisps.
 The string \"(progn (load \\\"%s\\\" :verbose nil :print t) (values))\\n\"
 produces cosmetically superior output for this application,
-but it works only in Common Lisp.")
+but it works only in Common Lisp."
+  :type 'string
+  :group 'inferior-lisp)
 
 ;;;###autoload
-(defvar inferior-lisp-prompt "^[^> \n]*>+:? *"
+(defcustom inferior-lisp-prompt "^[^> \n]*>+:? *"
   "Regexp to recognise prompts in the Inferior Lisp mode.
 Defaults to \"^[^> \\n]*>+:? *\", which works pretty good for Lucid, kcl,
 and franz.  This variable is used to initialize `comint-prompt-regexp' in the
@@ -163,7 +174,9 @@ Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"
 franz: \"^\\\\(->\\\\|<[0-9]*>:\\\\) *\"
 kcl: \"^>+ *\"
 
-This is a fine thing to set in your .emacs file.")
+This is a fine thing to set in your .emacs file or through Custom."
+  :type 'regexp
+  :group 'inferior-lisp)
 
 (defvar inferior-lisp-buffer nil "*The current inferior-lisp process buffer.
 
@@ -201,8 +214,10 @@ processes, you can change `inferior-lisp-buffer' to another process
 buffer with \\[set-variable].")
 
 ;;;###autoload
-(defvar inferior-lisp-mode-hook '()
-  "*Hook for customising Inferior Lisp mode.")
+(defcustom inferior-lisp-mode-hook '()
+  "*Hook for customising Inferior Lisp mode."
+  :type 'hook
+  :group 'inferior-lisp)
 
 (put 'inferior-lisp-mode 'mode-class 'special)
 
@@ -427,11 +442,13 @@ With argument, positions cursor at end of buffer."
 This holds a cons cell of the form `(DIRECTORY . FILE)'
 describing the last `lisp-load-file' or `lisp-compile-file' command.")
 
-(defvar lisp-source-modes '(lisp-mode)
+(defcustom lisp-source-modes '(lisp-mode)
   "*Used to determine if a buffer contains Lisp source code.
 If it's loaded into a buffer that is in one of these major modes, it's
 considered a Lisp source file by `lisp-load-file' and `lisp-compile-file'.
-Used by these commands to determine defaults.")
+Used by these commands to determine defaults."
+  :type '(repeat symbol)
+  :group 'inferior-lisp)
 
 (defun lisp-load-file (file-name)
   "Load a Lisp file into the inferior Lisp process."
@@ -573,9 +590,10 @@ See variable `lisp-describe-sym-command'."
 
 ;;; Do the user's customisation...
 ;;;===============================
-(defvar inferior-lisp-load-hook nil
-  "This hook is run when the library `inf-lisp' is loaded.
-This is a good place to put keybindings.")
+(defcustom inferior-lisp-load-hook nil
+  "This hook is run when the library `inf-lisp' is loaded."
+  :type 'hook
+  :group 'inferior-lisp)
 
 (run-hooks 'inferior-lisp-load-hook)
 

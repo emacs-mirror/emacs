@@ -31,6 +31,8 @@ Boston, MA 02111-1307, USA.  */
 #include "sysselect.h"
 #include "systime.h"
 #include "blockinput.h"
+#include "charset.h"
+#include "coding.h"
 
 #include "macterm.h"
 
@@ -49,6 +51,7 @@ Boston, MA 02111-1307, USA.  */
 #include <Events.h>
 #include <Processes.h>
 #include <EPPC.h>
+#include <MacLocales.h>
 #endif	/* not HAVE_CARBON */
 
 #include <utime.h>
@@ -66,6 +69,12 @@ Boston, MA 02111-1307, USA.  */
 #endif
 
 Lisp_Object QCLIPBOARD;
+
+/* The system script code. */
+static int mac_system_script_code;
+
+/* The system locale identifier string.  */
+static Lisp_Object Vmac_system_locale;
 
 /* An instance of the AppleScript component.  */
 static ComponentInstance as_scripting_component;
@@ -258,7 +267,6 @@ posix_to_mac_pathname (const char *ufn, char *mfn, int mfnbuflen)
 #if TARGET_API_MAC_CARBON
 static Lisp_Object Qstring, Qnumber, Qboolean, Qdate, Qdata;
 static Lisp_Object Qarray, Qdictionary;
-extern Lisp_Object Qutf_8;
 #define DECODE_UTF_8(str) code_convert_string_norecord (str, Qutf_8, 0)
 
 struct cfdict_context
@@ -267,7 +275,7 @@ struct cfdict_context
   int with_tag, hash_bound;
 };
 
-/* C string to CFString. */
+/* C string to CFString.  */
 
 CFStringRef
 cfstring_create_with_utf8_cstring (c_str)
@@ -281,6 +289,37 @@ cfstring_create_with_utf8_cstring (c_str)
     str = CFStringCreateWithCString (NULL, c_str, kCFStringEncodingMacRoman);
 
   return str;
+}
+
+
+/* Lisp string to CFString.  */
+
+CFStringRef
+cfstring_create_with_string (s)
+     Lisp_Object s;
+{
+  CFStringRef string = NULL;
+
+  if (STRING_MULTIBYTE (s))
+    {
+      char *p, *end = SDATA (s) + SBYTES (s);
+
+      for (p = SDATA (s); p < end; p++)
+	if (!isascii (*p))
+	  {
+	    s = ENCODE_UTF_8 (s);
+	    break;
+	  }
+      string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+					kCFStringEncodingUTF8, false);
+    }
+
+  if (string == NULL)
+    /* Failed to interpret as UTF 8.  Fall back on Mac Roman.  */
+    string = CFStringCreateWithBytes (NULL, SDATA (s), SBYTES (s),
+				      kCFStringEncodingMacRoman, false);
+
+  return string;
 }
 
 
@@ -3704,11 +3743,11 @@ otherwise.  */)
   app_id = kCFPreferencesCurrentApplication;
   if (!NILP (application))
     {
-      app_id = cfstring_create_with_utf8_cstring (SDATA (application));
+      app_id = cfstring_create_with_string (application);
       if (app_id == NULL)
 	goto out;
     }
-  key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+  key_str = cfstring_create_with_string (XCAR (key));
   if (key_str == NULL)
     goto out;
   app_plist = CFPreferencesCopyAppValue (key_str, app_id);
@@ -3721,7 +3760,7 @@ otherwise.  */)
     {
       if (CFGetTypeID (plist) != CFDictionaryGetTypeID ())
 	break;
-      key_str = cfstring_create_with_utf8_cstring (SDATA (XCAR (key)));
+      key_str = cfstring_create_with_string (XCAR (key));
       if (key_str == NULL)
 	goto out;
       plist = CFDictionaryGetValue (plist, key_str);
@@ -4167,6 +4206,29 @@ init_mac_osx_environment ()
 }
 #endif /* MAC_OSX */
 
+
+static Lisp_Object
+mac_get_system_locale ()
+{
+  OSErr err;
+  LangCode lang;
+  RegionCode region;
+  LocaleRef locale;
+  Str255 str;
+
+  lang = GetScriptVariable (smSystemScript, smScriptLang);
+  region = GetScriptManagerVariable (smRegionCode);
+  err = LocaleRefFromLangOrRegionCode (lang, region, &locale);
+  if (err == noErr)
+    err = LocaleRefGetPartString (locale, kLocaleAllPartsMask,
+				  sizeof (str), str);
+  if (err == noErr)
+    return build_string (str);
+  else
+    return Qnil;
+}
+
+
 void
 syms_of_mac ()
 {
@@ -4197,6 +4259,16 @@ syms_of_mac ()
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);
+
+  DEFVAR_INT ("mac-system-script-code", &mac_system_script_code,
+    doc: /* The system script code.  */);
+  mac_system_script_code = (ScriptCode) GetScriptManagerVariable (smSysScript);
+
+  DEFVAR_LISP ("mac-system-locale", &Vmac_system_locale,
+    doc: /* The system locale identifier string.
+This is not a POSIX locale ID, but an ICU locale ID.  So encoding
+information is not included.  */);
+  Vmac_system_locale = mac_get_system_locale ();
 }
 
 /* arch-tag: 29d30c1f-0c6b-4f88-8a6d-0558d7f9dbff

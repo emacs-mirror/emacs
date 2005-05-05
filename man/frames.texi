@@ -1055,15 +1055,14 @@ when the frame is selected.
 
 Some terminal emulators under X support mouse clicks in the terminal
 window.  In a terminal emulator which is compatible with @code{xterm},
-simple use of the mouse is, by default, controlled by Emacs---basically,
-only non-modified single clicks are supported.  The normal
-@code{xterm} mouse functionality for such clicks is still available by
-holding down the @kbd{SHIFT} key when you press the mouse button.
+you can use @kbd{M-x xterm-mouse-mode} to give Emacs control over
+simple use of the mouse---basically, only non-modified single clicks
+are supported.  The normal @code{xterm} mouse functionality for such
+clicks is still available by holding down the @kbd{SHIFT} key when you
+press the mouse button.
 
-Put @code{(xterm-mouse-mode 0)} in your @file{.emacs}, or disable the
-option @code{xterm-mouse-mode} through the @samp{Customize} interface
-(@pxref{Easy Customization}), if you prefer all mouse clicks to be
-handled by the terminal emulator.
+  Xterm Mouse mode is a global minor mode (@pxref{Minor Modes}).
+Repeating the command turns the mode off again.
 
 @ignore
    arch-tag: 7dcf3a31-a43b-45d4-a900-445b10d77e49

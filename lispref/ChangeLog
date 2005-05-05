@@ -1,3 +1,31 @@
+2005-04-19  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Search-based Fontification): Explain that
+	facespec is an expression to be evaluated.
+
+2005-04-19  Kevin Ryde  <user42@zip.com.au>
+
+        * streams.texi (Output Functions): Fix xref.
+	* strings.texi (String Conversion): Fix xref.
+
+2005-04-19  Kim F. Storm  <storm@cua.dk>
+
+	* symbols.texi (Symbol Plists): Add safe-get.
+	Mention that `get' may signal an error.
+
+2005-04-18  Nick Roberts  <nickrob@snap.net.nz>
+
+	* customize.texi (Variable Definitions): Replace tooltip-mode
+	example with save-place.
+
+2005-04-17  Richard M. Stallman  <rms@gnu.org>
+
+	* buffers.texi (Indirect Buffers): Clarify.
+
+	* positions.texi (Positions): Clarify converting marker to integer.
+
+	* strings.texi (String Basics): Mention string-match; clarify.
+
 2005-04-08  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Search-based Fontification): Fix cross references.

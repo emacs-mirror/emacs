@@ -162,15 +162,6 @@ single clicks are supported.  When turned on, the normal xterm
 mouse functionality for such clicks is still available by holding
 down the SHIFT key while pressing the mouse button."
   :global t :group 'mouse
-   ;; If you change the code below, you also need to change the
-   ;; corresponding code in startup.el.
-  :init-value (unless (or noninteractive
-			  window-system)
-		(let ((term (getenv "TERM")))
-		  (and term
-		       (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
-				     term)
-		       t)))
   (if xterm-mouse-mode
       ;; Turn it on
       (unless window-system

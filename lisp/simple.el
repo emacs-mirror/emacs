@@ -51,8 +51,6 @@ wait this many seconds after Emacs becomes idle before doing an update."
   "Highlight (un)matching of parens and expressions."
   :group 'matching)
 
-(define-key global-map [?\C-x right] 'next-buffer)
-(define-key global-map [?\C-x left] 'prev-buffer)
 (defun next-buffer ()
   "Switch to the next buffer in cyclic order."
   (interactive)
@@ -257,8 +255,6 @@ See variables `compilation-parse-errors-function' and
 
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)
-
-(define-key ctl-x-map "`" 'next-error)
 
 (defun previous-error (&optional n)
   "Visit previous next-error message and corresponding source code.
@@ -1398,9 +1394,6 @@ A numeric argument serves as a repeat count.
 Contrary to `undo', this will not redo a previous undo."
   (interactive "*p")
   (let ((undo-no-redo t)) (undo arg)))
-;; Richard said that we should not use C-x <uppercase letter> and I have
-;; no idea whereas to bind it.  Any suggestion welcome.  -stef
-;; (define-key ctl-x-map "U" 'undo-only)
 
 (defvar undo-in-progress nil
   "Non-nil while performing an undo.
@@ -2548,7 +2541,7 @@ The argument is used for internal purposes; do not supply one."
 ;; This is actually used in subr.el but defcustom does not work there.
 (defcustom yank-excluded-properties
   '(read-only invisible intangible field mouse-face help-echo local-map keymap
-    yank-handler)
+    yank-handler follow-link)
   "*Text properties to discard when yanking.
 The value should be a list of text properties to discard or t,
 which means to discard all text properties."
@@ -3631,7 +3624,6 @@ For more details, see the documentation for `scroll-other-window'."
    (if (eq lines '-) nil
      (if (null lines) '-
        (- (prefix-numeric-value lines))))))
-(define-key esc-map [?\C-\S-v] 'scroll-other-window-down)
 
 (defun beginning-of-buffer-other-window (arg)
   "Move point to the beginning of the buffer in the other window.
@@ -4201,11 +4193,12 @@ when it is off screen)."
 		   (setq blinkpos (scan-sexps oldpos -1)))
 	       (error nil)))
 	   (and blinkpos
-		(not (eq (car (syntax-after blinkpos)) 8)) ;Not syntax '$'.
+                ;; Not syntax '$'.
+		(not (eq (syntax-class (syntax-after blinkpos)) 8))
 		(setq matching-paren
 		      (let ((syntax (syntax-after blinkpos)))
 			(and (consp syntax)
-			     (eq (logand (car syntax) 255) 4)
+			     (eq (syntax-class syntax) 4)
 			     (cdr syntax)))
 		      mismatch
 		      (or (null matching-paren)
@@ -4275,8 +4268,6 @@ At top-level, as an editor command, this simply beeps."
   (setq defining-kbd-macro nil)
   (signal 'quit nil))
 
-(define-key global-map "\C-g" 'keyboard-quit)
-
 (defvar buffer-quit-function nil
   "Function to call to \"quit\" the current buffer, or nil if none.
 \\[keyboard-escape-quit] calls this function when its more local actions
@@ -4319,7 +4310,6 @@ specification for `play-sound'."
     (push 'sound sound)
     (play-sound sound)))
 
-(define-key global-map "\e\e\e" 'keyboard-escape-quit)
 
 (defcustom read-mail-command 'rmail
   "*Your preference for a mail reading package.
@@ -5112,7 +5102,6 @@ the front of the list of recently selected ones."
     (set-buffer buffer)
     (clone-indirect-buffer nil t norecord)))
 
-(define-key ctl-x-4-map "c" 'clone-indirect-buffer-other-window)
 
 ;;; Handling of Backspace and Delete keys.
 

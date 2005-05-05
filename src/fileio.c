@@ -45,9 +45,7 @@ Boston, MA 02111-1307, USA.  */
 #  define S_ISREG(m) (((m) & S_IFMT) == S_IFREG)
 #endif
 
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
 
