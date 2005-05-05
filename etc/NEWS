@@ -500,6 +500,11 @@ elements are deleted.
 
 ** Redisplay Changes
 
+*** Easy to overlook single character negation is now font-locked.
+You can use the new variable `font-lock-negation-char-face' and the face of
+the same name to customize this.  Currently the cc-modes, sh-script-mode,
+cperl-mode and make-mode support this.
+
 +++
 *** Control characters and escape glyphs are now shown in the new
 escape-glyph face.
