@@ -4868,7 +4868,7 @@ For file links, arg negates `org-line-numbers-in-file-links'."
         (setq link (concat (if (org-xor arg org-usenet-links-prefer-google)
                                "http://groups.google.com/groups?group="
                              "gnus:")
-                           group)))))
+                           group))))
 
      ((memq major-mode '(gnus-summary-mode gnus-article-mode))
       (and (eq major-mode 'gnus-article-mode) (gnus-article-show-summary))
