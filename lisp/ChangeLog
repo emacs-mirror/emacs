@@ -1,3 +1,16 @@
+2005-05-05  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* font-lock.el (font-lock-negation-char-face): New face and
+	variable.
+
+	* progmodes/cc-fonts.el (c-cpp-matchers): Use it.
+
+	* progmodes/sh-script.el (sh-font-lock-keywords): Use it.
+
+	* progmodes/cperl-mode.el (cperl-init-faces): Use it.
+
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Use it.
+
 2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/byte-run.el (define-obsolete-function-alias): Fix
