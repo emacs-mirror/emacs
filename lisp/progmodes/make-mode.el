@@ -47,7 +47,7 @@
 ;; prerequisites.
 ;;
 ;; The command C-c C-b pops up a browser window listing all target and
-;; macro names.  You can mark or unmark items wit C-c SPC, and insert
+;; macro names.  You can mark or unmark items with C-c SPC, and insert
 ;; all marked items back in the Makefile with C-c TAB.
 ;;
 ;; The command C-c TAB in the makefile buffer inserts a GNU make builtin.
@@ -283,6 +283,9 @@ not be enclosed in { } or ( )."
 			  "export" "unexport" "vpath") t)
 	    "\\>[ \t]*\\([^: \t\n#]*\\)")
     '(1 font-lock-keyword-face) '(2 font-lock-variable-name-face))
+
+   '("^\\(?: [ \t]*\\)?if\\(n\\)\\(?:def\\|eq\\)\\>"
+     1 font-lock-negation-char-face prepend)
 
    ;; Highlight lines that contain just whitespace.
    ;; They can cause trouble, especially if they start with a tab.
