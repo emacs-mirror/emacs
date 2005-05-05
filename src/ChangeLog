@@ -1,3 +1,9 @@
+2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* eval.c (Fdefvaralias): Doc fix.
+
+	* xmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
+
 2005-05-05  Kim F. Storm  <storm@cua.dk>
 
 	* buffer.c (init_buffer_once): Set cursor_in_non_selected_windows
