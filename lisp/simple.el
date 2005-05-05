@@ -3416,13 +3416,14 @@ Outline mode sets this."
 		;; Now move a line.
 		(end-of-line)
 		;; If there's no invisibility here, move over the newline.
-		(if (not (line-move-invisible-p (point)))
+		(if (and (not (integerp selective-display))
+			 (not (line-move-invisible-p (point))))
 		    ;; We avoid vertical-motion when possible
 		    ;; because that has to fontify.
 		    (if (eobp)
-		       (if (not noerror)
-			   (signal 'end-of-buffer nil)
-			 (setq done t))
+			(if (not noerror)
+			    (signal 'end-of-buffer nil)
+			  (setq done t))
 		      (forward-line 1))
 		  ;; Otherwise move a more sophisticated way.
 		  ;; (What's the logic behind this code?)
@@ -3432,11 +3433,13 @@ Outline mode sets this."
 			 (setq done t))))
 		(unless done
 		  (setq arg (1- arg))))
-	      ;; The logic of this is the same as the loop above, 
+	      ;; The logic of this is the same as the loop above,
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-		(if (or (bobp) (not (line-move-invisible-p (1- (point)))))
+		(if (or (bobp)
+			(and (not (integerp selective-display))
+			     (not (line-move-invisible-p (1- (point))))))
 		    (if (bobp)
 			(if (not noerror)
 			    (signal 'beginning-of-buffer nil)
