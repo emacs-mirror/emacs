@@ -3,6 +3,10 @@
 	* emacs-lisp/byte-run.el (define-obsolete-function-alias): Fix
 	typo in docstring.
 
+	* progmodes/ebrowse.el (ebrowse-install-1-to-9-keys)
+	(ebrowse-print-statistics-line)
+	(ebrowse-electric-position-mode-hook): Fix typo in docstring.
+
 	* term/w32-win.el (image-library-alist): Add additional name for
 	Xpm library.
 
