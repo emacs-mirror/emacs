@@ -495,6 +495,12 @@ stuff.  Used on level 1 and higher."
 			 "[" (c-lang-const c-symbol-chars) "]+"
 			 "\\)")
 		 `(,(1+ ncle-depth) c-preprocessor-face-name t)))
+
+	      ;; fontify the n in ifndef
+	      (,(concat noncontinued-line-end
+			(c-lang-const c-opt-cpp-prefix)
+			"if\\(n\\)def\\>")
+	       ,(+ ncle-depth 1) font-lock-negation-char-face prepend)
 	      )))
 
       ,@(when (c-major-mode-is 'pike-mode)
@@ -666,6 +672,8 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		      (narrow-to-region (point-min) limit)
 		      (c-font-lock-objc-iip-decl)))
 		  nil))))))
+
+      ("!" . font-lock-negation-char-face)
       ))
 
 (defun c-font-lock-complex-decl-prepare (limit)
