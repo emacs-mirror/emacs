@@ -776,8 +776,8 @@ If non-nil, the column for the equal sign is the value of
   :type '(repeat string))
 
 (defcustom bibtex-summary-function 'bibtex-summary
-  "Function to call for generating a one-line summary of a BibTeX entry.
-It takes one argument, the key of the entry.
+  "Function to call for generating a summary of current BibTeX entry.
+It takes no arguments.  Point must be at beginning of entry.
 Used by `bibtex-complete-crossref-cleanup' and `bibtex-copy-summary-as-kill'."
   :group 'bibtex
   :type '(choice (const :tag "Default" bibtex-summary)
@@ -2550,25 +2550,24 @@ Use `bibtex-summary-function' to generate summary."
   (save-excursion
     (if (and (stringp key)
              (bibtex-find-entry key t))
-        (message "Ref: %s" (funcall bibtex-summary-function key)))))
+        (message "Ref: %s" (funcall bibtex-summary-function)))))
 
 (defun bibtex-copy-summary-as-kill ()
   "Push summery of current BibTeX entry to kill ring.
 Use `bibtex-summary-function' to generate summary."
   (interactive)
-  (let ((key (save-excursion
-               (bibtex-beginning-of-entry)
-               (if (looking-at bibtex-entry-maybe-empty-head)
-                   (bibtex-key-in-head)
-                 (error "No key found")))))
-    (kill-new (message "%s" (funcall bibtex-summary-function key)))))
+  (save-excursion
+    (bibtex-beginning-of-entry)
+    (if (looking-at bibtex-entry-maybe-empty-head)
+        (kill-new (message "%s" (funcall bibtex-summary-function)))
+      (error "No entry found"))))
 
-(defun bibtex-summary (key)
-  "Return summary of BibTeX entry KEY.
+(defun bibtex-summary ()
+  "Return summary of current BibTeX entry.
 Used as default value of `bibtex-summary-function'."
   ;; It would be neat to customize this function.  How?
   (save-excursion
-    (if (bibtex-find-entry key t)
+    (if (looking-at bibtex-entry-maybe-empty-head)
         (let* ((bibtex-autokey-name-case-convert 'identity)
                (bibtex-autokey-name-length 'infty)
                (bibtex-autokey-names 1)
@@ -2594,7 +2593,7 @@ Used as default value of `bibtex-summary-function'."
                      `((" " . ,names) (" " . ,year) (": " . ,title)
                        (", " . ,journal) (" " . ,volume) (":" . ,pages))
                      ""))
-      (error "Key `%s' not found" key))))
+      (error "Entry not found"))))
 
 (defun bibtex-pop (arg direction)
   "Fill current field from the ARGth same field's text in DIRECTION.
@@ -2743,7 +2742,7 @@ works only with buffers containing valid (syntactical correct) and sorted
 entries.  This is usually the case, if you have created a buffer completely
 with BibTeX mode and finished every new entry with \\[bibtex-clean-entry].
 
-For third party BibTeX files, call the function `bibtex-convert-alien'
+For third party BibTeX files, call the command \\[bibtex-convert-alien]
 to fully take advantage of all features of BibTeX mode.
 
 
@@ -3346,7 +3345,7 @@ INDEX is a list (KEY CROSSREF-KEY ENTRY-NAME).
 Move point where the entry KEY should be placed.
 If `bibtex-maintain-sorted-entries' is non-nil, perform a binary
 search to look for place for KEY.  This requires that buffer is sorted,
-see \\[bibtex-validate].)
+see `bibtex-validate'.
 Return t if preparation was successful or nil if entry KEY already exists."
   (let ((key (nth 0 index))
         key-exist)
@@ -3770,7 +3769,7 @@ but do not actually kill it."
   "Reinsert the last BibTeX item.
 More precisely, reinsert the field or entry killed or yanked most recently.
 With argument N, reinsert the Nth most recently killed BibTeX item.
-See also the command \\[bibtex-yank-pop]]."
+See also the command \\[bibtex-yank-pop]."
   (interactive "*p")
   (bibtex-insert-kill (1- n))
   (setq this-command 'bibtex-yank))
