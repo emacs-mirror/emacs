@@ -1736,14 +1736,19 @@ same time using the macro @code{define-obsolete-variable-alias}.
 
 @defmac define-obsolete-variable-alias variable new &optional when docstring
 This macro marks the variable @var{variable} as obsolete and also
-makes it an alias for the variable @var{new}.
+makes it an alias for the variable @var{new}.  A typical call has the form:
 
-If provided, @var{when} should be a string indicating when
-@var{variable} was first made obsolete.  The optional argument
-@var{docstring} specifies the documentation string for @var{variable}.
-If @var{docstring} is omitted or nil, @var{variable} uses the
-documentation string of @var{new} unless it already has one of its
-own.
+@example
+(define-obsolete-variable-alias 'old-var 'new-var "22.1" "Doc.")
+@end example
+
+@noindent
+which is equivalent to the following two lines of code:
+
+@example
+(defvaralias 'oldvar 'newvar "Doc.")
+(make-obsolete-variable 'old-var 'new-var "22.1")
+@end example
 @end defmac
 
 @defun indirect-variable variable
