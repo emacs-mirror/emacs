@@ -4752,8 +4752,8 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		       3 font-lock-variable-name-face)))
 	    '("\\<for\\(each\\)?\\([ \t]+\\(my\\|local\\|our\\)\\)?[ \t]*\\(\\$[a-zA-Z_][a-zA-Z_0-9]*\\)[ \t]*("
 	      4 font-lock-variable-name-face)
-	    ;; Avoid s!!, qq!! etc. when not fontifying syntaxically
-	    '("\\(?:^\\|[^smywqrx]\\)\\(!\\)" 1 font-lock-negation-char-face)
+	    ;; Avoid $!, and s!!, qq!! etc. when not fontifying syntaxically
+	    '("\\(?:^\\|[^smywqrx$]\\)\\(!\\)" 1 font-lock-negation-char-face)
 	    '("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
 	  (setq
 	   t-font-lock-keywords-1
