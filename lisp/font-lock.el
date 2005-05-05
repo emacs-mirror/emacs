@@ -339,6 +339,10 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-warning-face		'font-lock-warning-face
   "Face name to use for things that should stand out.")
 
+(defvar font-lock-negation-char-face	'font-lock-negation-char-face
+  "Face name to use for easy to overlook negation.
+This can be an \"!\" or the \"n\" in \"ifndef\".")
+
 (defvar font-lock-preprocessor-face	'font-lock-preprocessor-face
   "Face name to use for preprocessor directives.")
 
@@ -386,7 +390,7 @@ word \"bar\" following the word \"anchor\" then MATCH-ANCHORED may be required.
 
 MATCH-HIGHLIGHT should be of the form:
 
- (MATCH FACENAME [[OVERRIDE [LAXMATCH]])
+ (MATCH FACENAME [OVERRIDE [LAXMATCH]])
 
 MATCH is the subexpression of MATCHER to be highlighted.  FACENAME is an
 expression whose value is the face name to use.  Face default attributes
@@ -1759,6 +1763,16 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
     (((class color) (min-colors 8)) (:foreground "red"))
     (t (:inverse-video t :weight bold)))
   "Font Lock mode face used to highlight warnings."
+  :group 'font-lock-highlighting-faces)
+
+;; Matches font-lock-builtin-face, because that is used for #ifndef and
+;; font-lock-keyword-face, which alas make-mode uses for ifndef
+(defface font-lock-negation-char-face
+  '((((class color) (min-colors 88) (background light)) (:foreground "VioletRed" :weight bold))
+    (((class color) (min-colors 88) (background dark)) (:foreground "MediumOrchid1" :weight bold))
+    (((class color) (min-colors 8)) (:foreground "red" :weight bold))
+    (t (:inverse-video t :weight bold)))
+  "Font Lock mode face used to highlight easy to overlook negation."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-preprocessor-face
