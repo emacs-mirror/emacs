@@ -1,3 +1,26 @@
+2005-05-02  Richard M. Stallman  <rms@gnu.org>
+
+	* NEWS: More rearrangements.
+
+2005-05-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* NEWS: Items rearranged in logical order.
+
+2005-05-01  Lars Hansen  <larsh@math.ku.dk>
+
+	* NEWS: Correct key binding for dired-mark-omitted.
+
+2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* NEWS: Mention xterm key bindings.
+
+	* e/eterm.ti: Add a comment.
+	* e/eterm: Regenerate.
+
+2005-04-25  Alex Ott  <ott@jet.msk.su>
+
+	* TUTORIAL.ru: Update.
+
 2005-04-13  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
 	* TUTORIAL.sk: Updated header.
@@ -16,7 +39,7 @@
 
 2005-04-10  Masatake YAMATO  <jet@gyve.org>
 
-	* compilation.txt (symbol): Added gcov-file 
+	* compilation.txt (symbol): Added gcov-file
 	gcov-bb-file gcov-never-called-line gcov-called-line .
 
 2005-04-08  Kenichi Handa  <handa@m17n.org>

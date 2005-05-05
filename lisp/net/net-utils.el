@@ -160,7 +160,7 @@ These options can be used to limit how many ICMP packets are emitted."
   "Regexp to match the nslookup prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
 
@@ -183,7 +183,7 @@ This variable is only used if the variable
   "Regexp which matches the FTP program's prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
 
@@ -201,7 +201,7 @@ This variable is only used if the variable
   "Regexp which matches the smbclient program's prompt.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil."
+`comint-use-prompt-regexp' is non-nil."
   :group 'net-utils
   :type  'regexp)
 

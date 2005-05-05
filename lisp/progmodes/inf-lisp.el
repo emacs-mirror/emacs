@@ -167,7 +167,7 @@ and franz.  This variable is used to initialize `comint-prompt-regexp' in the
 Inferior Lisp buffer.
 
 This variable is only used if the variable
-`comint-use-prompt-regexp-instead-of-fields' is non-nil.
+`comint-use-prompt-regexp' is non-nil.
 
 More precise choices:
 Lucid Common Lisp: \"^\\\\(>\\\\|\\\\(->\\\\)+\\\\) *\"

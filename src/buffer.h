@@ -761,6 +761,11 @@ struct buffer
   /* An integer > 0 means put that number of pixels below text lines
      in the display of this buffer.  */
   Lisp_Object extra_line_spacing;
+
+  /* *Cursor type to display in non-selected windows.
+     t means to use hollow box cursor.
+     See `cursor-type' for other values.  */
+  Lisp_Object cursor_in_non_selected_windows;
 };
 
 

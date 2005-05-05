@@ -92,11 +92,11 @@ Mark is set after the inserted text."
   (interactive)
   (push-mark
    (save-excursion
-    (let ((tables abbrev-table-name-list))
-      (while tables
-	(insert-abbrev-table-description (car tables) t)
-	(setq tables (cdr tables))))
-    (point))))
+     (let ((tables abbrev-table-name-list))
+       (while tables
+	 (insert-abbrev-table-description (car tables) t)
+	 (setq tables (cdr tables))))
+     (point))))
 
 (defun list-abbrevs (&optional local)
   "Display a list of defined abbrevs.
@@ -168,23 +168,23 @@ the ones defined from the buffer now."
   (interactive "P")
   (if arg (kill-all-abbrevs))
   (save-excursion
-   (goto-char (point-min))
-   (while (and (not (eobp)) (re-search-forward "^(" nil t))
-     (let* ((buf (current-buffer))
-	    (table (read buf))
-	    abbrevs name hook exp count sys)
-       (forward-line 1)
-       (while (progn (forward-line 1)
-		     (not (eolp)))
-	 (setq name (read buf) count (read buf))
-	 (if (equal count '(sys))
-	     (setq sys t count (read buf)))
-	 (setq exp (read buf))
-	 (skip-chars-backward " \t\n\f")
-	 (setq hook (if (not (eolp)) (read buf)))
-	 (skip-chars-backward " \t\n\f")
-	 (setq abbrevs (cons (list name exp hook count sys) abbrevs)))
-       (define-abbrev-table table abbrevs)))))
+    (goto-char (point-min))
+    (while (and (not (eobp)) (re-search-forward "^(" nil t))
+      (let* ((buf (current-buffer))
+	     (table (read buf))
+	     abbrevs name hook exp count sys)
+	(forward-line 1)
+	(while (progn (forward-line 1)
+		      (not (eolp)))
+	  (setq name (read buf) count (read buf))
+	  (if (equal count '(sys))
+	      (setq sys t count (read buf)))
+	  (setq exp (read buf))
+	  (skip-chars-backward " \t\n\f")
+	  (setq hook (if (not (eolp)) (read buf)))
+	  (skip-chars-backward " \t\n\f")
+	  (setq abbrevs (cons (list name exp hook count sys) abbrevs)))
+	(define-abbrev-table table abbrevs)))))
 
 (defun read-abbrev-file (&optional file quietly)
   "Read abbrev definitions from file written with `write-abbrev-file'.
@@ -201,7 +201,7 @@ Optional second argument QUIETLY non-nil means don't display a message."
 Optional argument FILE is the name of the file to read;
 it defaults to the value of `abbrev-file-name'.
 Does not display any message."
-  ;(interactive "fRead abbrev file: ")
+					;(interactive "fRead abbrev file: ")
   (read-abbrev-file file t))
 
 (defun write-abbrev-file (&optional file)
@@ -221,7 +221,17 @@ specified in `abbrev-file-name' is used."
   (let ((coding-system-for-write 'emacs-mule))
     (with-temp-file file
       (insert ";;-*-coding: emacs-mule;-*-\n")
-      (dolist (table abbrev-table-name-list)
+      (dolist (table
+               ;; We sort the table in order to ease the automatic
+               ;; merging of different versions of the user's abbrevs
+               ;; file.  This is useful, for example, for when the
+               ;; user keeps their home directory in a revision
+               ;; control system, and is therefore keeping multiple
+               ;; slightly-differing copies loosely synchronized.
+               (sort (copy-sequence abbrev-table-name-list)
+                     (lambda (s1 s2)
+                       (string< (symbol-name s1)
+                                (symbol-name s2)))))
 	(insert-abbrev-table-description table nil)))))
 
 (defun add-mode-abbrev (arg)

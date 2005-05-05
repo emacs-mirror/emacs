@@ -1680,7 +1680,7 @@ Repeating the command scrolls the completion window."
 ;;;; Modes.
 
 (defvar outline-heading-end-regexp)
-(defvar eldoc-print-current-symbol-info-function)
+(defvar eldoc-documentation-function)
 
 ;;;###autoload
 (define-derived-mode python-mode fundamental-mode "Python"
@@ -1740,7 +1740,7 @@ lines count as headers.
        'python-beginning-of-defun)
   (set (make-local-variable 'end-of-defun-function) 'python-end-of-defun)
   (setq imenu-create-index-function #'python-imenu-create-index)
-  (set (make-local-variable 'eldoc-print-current-symbol-info-function)
+  (set (make-local-variable 'eldoc-documentation-function)
        #'python-eldoc-function)
   (add-hook 'eldoc-mode-hook
 	    '(lambda () (run-python 0 t)) nil t) ; need it running

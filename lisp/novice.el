@@ -1,6 +1,6 @@
 ;;; novice.el --- handling of disabled commands ("novice mode") for Emacs
 
-;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2004
+;; Copyright (C) 1985, 1986, 1987, 1994, 2002, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -182,9 +182,10 @@ to future sessions."
       (if (search-forward (concat "(put '" (symbol-name command) " ") nil t)
 	  (delete-region
 	   (progn (beginning-of-line) (point))
-	   (progn (forward-line 1) (point))))
-      (goto-char (point-max))
-      (insert "\n(put '" (symbol-name command) " 'disabled t)\n")
+	   (progn (forward-line 1) (point)))
+	(goto-char (point-max))
+	(insert ?\n))
+      (insert "(put '" (symbol-name command) " 'disabled t)\n")
       (save-buffer))))
 
 (provide 'novice)

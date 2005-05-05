@@ -710,7 +710,7 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 			`(,(car elt)
 			  (compilation-directory-properties
 			   ,(car elt) ,(cdr elt))
-			  t))
+			  t t))
 		      (cdr compilation-directory-matcher)))))
 
      ;; Compiler warning/error lines.
@@ -733,11 +733,12 @@ FILE should be (ABSOLUTE-FILENAME) or (RELATIVE-FILENAME . DIRNAME) or nil."
 	      ;; allowed `line' to be a function that computed the actual
 	      ;; error location.  Let's do our best.
 	      `(,(car item)
-		(0 (compilation-compat-error-properties
-		    (funcall ',line (cons (match-string ,file)
-					  (cons default-directory
-						',(nthcdr 4 item)))
-			     ,(if col `(match-string ,col)))))
+		(0 (save-match-data
+		     (compilation-compat-error-properties
+		      (funcall ',line (cons (match-string ,file)
+					    (cons default-directory
+						  ',(nthcdr 4 item)))
+			       ,(if col `(match-string ,col))))))
 		(,file compilation-error-face t))
 
 	    (unless (or (null (nth 5 item)) (integerp (nth 5 item)))
@@ -1588,6 +1589,8 @@ If nil, don't scroll the compilation output window."
                             (beginning-of-line (- 1 compilation-context-lines))
                             (point))))
   (set-window-point w mk))
+
+(defvar next-error-highlight-timer)
 
 (defun compilation-goto-locus (msg mk end-mk)
   "Jump to an error corresponding to MSG at MK.

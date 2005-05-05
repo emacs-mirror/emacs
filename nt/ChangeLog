@@ -1,3 +1,7 @@
+2005-04-23  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* config.nt (HAVE_PWD_H): Undef.
+
 2004-06-07  Juanma Barranquero  <lektu@terra.es>
 
 	* INSTALL: Clarify paragraph about compatibility between image

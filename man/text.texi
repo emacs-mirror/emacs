@@ -1540,6 +1540,9 @@ Preview the output from the last @kbd{C-c C-r}, @kbd{C-c C-b}, or @kbd{C-c
 C-f} command (@code{tex-view}).
 @item C-c C-q
 Show the printer queue (@code{tex-show-print-queue}).
+@item C-c C-c
+Invoke some other compilation command on the entire current buffer
+(@code{tex-compile}).
 @end table
 
 @findex tex-buffer
@@ -1683,6 +1686,15 @@ current buffer's file.  Generally, you need to do @kbd{C-c C-f}
 (@code{tex-file}) once to generate the @samp{.aux} file, then do
 @kbd{C-c TAB} (@code{tex-bibtex-file}), and then repeat @kbd{C-c C-f}
 (@code{tex-file}) twice more to get the cross-references correct.
+
+@findex tex-compile
+@kindex C-c C-c @r{(@TeX{} mode)}
+  To invoke some other compilation program on the current @TeX{}
+buffer, type @kbd{C-c C-c} (@code{tex-compile}).  This command knows
+how to pass arguments to many common programs, including
+@file{pdflatex}, @file{yap}, @file{xdvi}, and @file{dvips}.  You can
+select your desired compilation program using the standard completion
+keys (@pxref{Completion}).
 
 @node TeX Misc
 @subsection @TeX{} Mode Miscellany

@@ -76,11 +76,11 @@ extern Lisp_Object last_point_position_buffer;
 /* Nonzero means ^G can quit instantly */
 extern int immediate_quit;
 
-extern Lisp_Object Vexecuting_macro;
+extern Lisp_Object Vexecuting_kbd_macro;
 
 /* Nonzero if input is coming from the keyboard */
 
-#define INTERACTIVE (NILP (Vexecuting_macro) && !noninteractive)
+#define INTERACTIVE (NILP (Vexecuting_kbd_macro) && !noninteractive)
 
 /* Set this nonzero to force reconsideration of mode line. */
 

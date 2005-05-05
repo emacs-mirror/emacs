@@ -309,6 +309,9 @@ If a number, only buffers greater than this size have fontification messages."
 (defvar font-lock-comment-face		'font-lock-comment-face
   "Face name to use for comments.")
 
+(defvar font-lock-comment-delimiter-face 'font-lock-comment-delimiter-face
+  "Face name to use for comment delimiters.")
+
 (defvar font-lock-string-face		'font-lock-string-face
   "Face name to use for strings.")
 
@@ -463,12 +466,12 @@ user-level keywords, but normally their values have been
 optimized.")
 
 (defvar font-lock-keywords-alist nil
-  "*Alist of `font-lock-keywords' local to a `major-mode'.
+  "Alist of `font-lock-keywords' local to a `major-mode'.
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-removed-keywords-alist nil
-  "*Alist of `font-lock-keywords' removed from `major-mode'.
+  "Alist of `font-lock-keywords' removed from `major-mode'.
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
@@ -493,7 +496,7 @@ sometimes be slightly incorrect.")
   "Function to determine which face to use when fontifying syntactically.
 The function is called with a single parameter (the state as returned by
 `parse-partial-sexp' at the beginning of the region to highlight) and
-should return a face.")
+should return a face.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-syntactic-keywords nil
   "A list of the syntactic keywords to highlight.
@@ -565,8 +568,8 @@ This is normally set via `font-lock-defaults'.")
 (defvar font-lock-fontify-region-function 'font-lock-default-fontify-region
   "Function to use for fontifying a region.
 It should take two args, the beginning and end of the region, and an optional
-third arg VERBOSE.  If non-nil, the function should print status messages.
-This is normally set via `font-lock-defaults'.")
+third arg VERBOSE.  If VERBOSE is non-nil, the function should print status
+messages.  This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-unfontify-region-function 'font-lock-default-unfontify-region
   "Function to use for unfontifying a region.
@@ -643,6 +646,7 @@ Major/minor modes can set this variable if they know which option applies.")
 ;;;###autoload
 (defun font-lock-add-keywords (mode keywords &optional append)
   "Add highlighting KEYWORDS for MODE.
+
 MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are added for the current buffer.
 KEYWORDS should be a list; see the variable `font-lock-keywords'.
@@ -660,9 +664,9 @@ For example:
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
 
-When used from an elisp package (such as a minor mode), it is recommended
-to use nil for MODE (and place the call in a loop or on a hook) to avoid
-subtle problems due to details of the implementation.
+When used from a Lisp program (such as a minor mode), it is recommended to
+use nil for MODE (and place the call on a hook) to avoid subtle problems
+due to details of the implementation.
 
 Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
@@ -703,9 +707,7 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 		    (font-lock-compile-keywords font-lock-keywords t)))))))
 
 (defun font-lock-update-removed-keyword-alist (mode keywords append)
-  ;; Update `font-lock-removed-keywords-alist' when adding new
-  ;; KEYWORDS to MODE.
-  ;;
+  "Update `font-lock-removed-keywords-alist' when adding new KEYWORDS to MODE."
   ;; When font-lock is enabled first all keywords in the list
   ;; `font-lock-keywords-alist' are added, then all keywords in the
   ;; list `font-lock-removed-keywords-alist' are removed.  If a
@@ -753,9 +755,9 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are removed for the current buffer.
 
-When used from an elisp package (such as a minor mode), it is recommended
-to use nil for MODE (and place the call in a loop or on a hook) to avoid
-subtle problems due to details of the implementation."
+When used from a Lisp program (such as a minor mode), it is recommended to
+use nil for MODE (and place the call on a hook) to avoid subtle problems
+due to details of the implementation."
   (cond (mode
 	 ;; Remove one keyword at the time.
 	 (dolist (keyword keywords)
@@ -1004,7 +1006,8 @@ a very meaningful entity to highlight.")
 
 (defun font-lock-default-fontify-region (beg end loudly)
   (save-buffer-state
-      ((parse-sexp-lookup-properties font-lock-syntactic-keywords)
+      ((parse-sexp-lookup-properties
+        (or parse-sexp-lookup-properties font-lock-syntactic-keywords))
        (old-syntax-table (syntax-table)))
     (unwind-protect
 	(save-restriction
@@ -1615,7 +1618,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;; But now we do it the custom way.  Note that `defface' will not overwrite any
 ;; faces declared above via `custom-declare-face'.
-(defface font-lock-comment-face
+(defface font-lock-comment-delimiter-face
   '((((class grayscale) (background light))
      (:foreground "DimGray" :weight bold :slant italic))
     (((class grayscale) (background dark))
@@ -1632,6 +1635,27 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
      (:foreground "red"))
     (((class color) (min-colors 8) (background dark))
      (:foreground "red1"))
+    (t (:weight bold :slant italic)))
+  "Font Lock mode face used to highlight comment delimiters."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-comment-face
+  '((((class grayscale) (background light))
+     (:foreground "DimGray" :weight bold :slant italic))
+    (((class grayscale) (background dark))
+     (:foreground "LightGray" :weight bold :slant italic))
+    (((class color) (min-colors 88) (background light))
+     (:foreground "Firebrick"))
+    (((class color) (min-colors 88) (background dark))
+     (:foreground "chocolate1"))
+    (((class color) (min-colors 16) (background light))
+     (:foreground "red"))
+    (((class color) (min-colors 16) (background dark))
+     (:foreground "red1"))
+    (((class color) (min-colors 8) (background light))
+     )
+    (((class color) (min-colors 8) (background dark))
+     )
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
   :group 'font-lock-highlighting-faces)

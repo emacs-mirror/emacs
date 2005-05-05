@@ -1,7 +1,7 @@
 ;;; grep.el --- run compiler as inferior of Emacs, parse error messages
 
 ;; Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2001, 2002, 2004  Free Software Foundation, Inc.
+;;   2001, 2002, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Roland McGrath <roland@gnu.org>
 ;; Maintainer: FSF
@@ -294,7 +294,10 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (2 compilation-line-face))
      ;; Highlight grep matches and delete markers
      ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
-      (2 grep-match-face)
+      ;; Refontification does not work after the markers have been
+      ;; deleted.  So we use the font-lock-face property here as Font
+      ;; Lock does not clear that.
+      (2 (list 'face nil 'font-lock-face grep-match-face))
       ((lambda (p))
        (progn
 	 ;; Delete markers with `replace-match' because it updates

@@ -19,7 +19,8 @@ to put a new function on such a hook is to call @code{add-hook}.
 Every major mode defines a mode hook named
 @samp{@var{modename}-mode-hook}.  The major mode command runs this
 normal hook with @code{run-mode-hooks} as the very last thing it does.
-@xref{Mode Hooks}.  Mode hooks are omitted in the list below.
+@xref{Mode Hooks}.  Most minor modes have mode hooks too.  Mode hooks
+are omitted in the list below.
 
 The variables whose names end in @samp{-hooks} or @samp{-functions} are
 usually @dfn{abnormal hooks}; their values are lists of functions, but
@@ -146,6 +147,27 @@ for appointment notification.
 
 @item first-change-hook
 @xref{Change Hooks}.
+
+@item font-lock-beginning-of-syntax-function
+@xref{Syntactic Font Lock}.
+
+@item font-lock-fontify-buffer-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-fontify-region-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-mark-block-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-syntactic-face-function
+@xref{Syntactic Font Lock}.
+
+@item font-lock-unfontify-buffer-function
+@xref{Other Font Lock Variables}.
+
+@item font-lock-unfontify-region-function
+@xref{Other Font Lock Variables}.
 
 @item initial-calendar-window-hook
 @inforef{Calendar Customizing,, emacs-xtra}.

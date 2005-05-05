@@ -1,3 +1,61 @@
+2005-04-30  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Compressed Files): Auto Compression normally enabled.
+
+	* building.texi (Debugger Operation): Clarify previous change.
+
+2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.08, structure reorganized.
+
+2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Add description for
+	GUD tooltips when program is not running.
+
+2005-04-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* misc.texi (Shell): Add `Shell Prompts' to menu.
+	(Shell Mode): Add xref to `Shell Prompts'.  Clarify `C-c C-u'
+	description.  Delete remarks moved to new node.
+	(Shell Prompts): New node.
+	(History References): Replace remarks moved to `Shell Prompts'
+	with xref to that node.
+	(Remote Host): Clarify how to specify the terminal type when
+	logging in to a different machine.
+
+2005-04-26  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs.texi (Top): Update submenus from files.texi.
+
+	* files.texi (Filesets): Clarify previous change.
+
+	* dired.texi (Misc Dired Features): Clarify previous change.
+
+2005-04-25  Chong Yidong  <cyd@stupidchicken.com>
+
+	* ack.texi (Acknowledgments): Delete info about iso-acc.el
+
+	* dired.texi (Misc Dired Features): Document
+	dired-compare-directories.
+
+	* files.texi (Filesets): New node.
+	(File Conveniences): Document Image mode.
+
+	* text.texi (TeX Print): Document tex-compile.
+
+2005-04-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Tooltips): Tooltip mode is enabled by default.
+	Delete redundant reference to tooltip Custom group.   It is
+	referred too again in the next paragraph.
+
+2005-04-24  Richard M. Stallman  <rms@gnu.org>
+
+	* ack.texi: Delete info about lazy-lock.el and fast-lock.el.
+
+	* faq.texi: Delete info about lazy-lock.el and fast-lock.el.
+
 2005-04-19  Kim F. Storm  <storm@cua.dk>
 
 	* building.texi (Compilation Mode): Add M-g M-n and M-g M-p bindings.

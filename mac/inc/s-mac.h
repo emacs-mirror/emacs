@@ -96,6 +96,8 @@ Boston, MA 02111-1307, USA.  */
 
 /* #define HAVE_PTYS */
 
+#define HAVE_PWD_H 1
+
 /*
  *	Define NONSYSTEM_DIR_LIBRARY to make Emacs emulate
  *      The 4.2 opendir, etc., library functions.

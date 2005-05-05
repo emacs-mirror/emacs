@@ -175,6 +175,10 @@ Lisp_Object Vdefault_file_name_coding_system;
    whose I/O is done with a special handler.  */
 Lisp_Object Vfile_name_handler_alist;
 
+/* Property name of a file name handler,
+   which gives a list of operations it handles..  */
+Lisp_Object Qoperations;
+
 /* Lisp functions for translating file formats */
 Lisp_Object Qformat_decode, Qformat_annotate_function;
 
@@ -366,13 +370,16 @@ use the standard functions without calling themselves recursively.  */)
       elt = XCAR (chain);
       if (CONSP (elt))
 	{
-	  Lisp_Object string;
+	  Lisp_Object string = XCAR (elt);
 	  int match_pos;
-	  string = XCAR (elt);
+	  Lisp_Object handler = XCDR (elt);
+	  Lisp_Object operations = Fget (handler, Qoperations);
+
 	  if (STRINGP (string)
-	      && (match_pos = fast_string_match (string, filename)) > pos)
+	      && (match_pos = fast_string_match (string, filename)) > pos
+	      && (NILP (operations) || ! NILP (Fmemq (operation, operations))))
 	    {
-	      Lisp_Object handler, tem;
+	      Lisp_Object tem;
 
 	      handler = XCDR (elt);
 	      tem = Fmemq (handler, inhibited_handlers);
@@ -2388,7 +2395,7 @@ barf_or_query_if_file_exists (absname, querystring, interactive, statptr, quick)
   return;
 }
 
-DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 4,
+DEFUN ("copy-file", Fcopy_file, Scopy_file, 2, 5,
        "fCopy file: \nGCopy %s to file: \np\nP",
        doc: /* Copy FILE to NEWNAME.  Both args must be strings.
 If NEWNAME names a directory, copy FILE there.
@@ -2397,11 +2404,20 @@ unless a third argument OK-IF-ALREADY-EXISTS is supplied and non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
 This is what happens in interactive use with M-x.
 Always sets the file modes of the output file to match the input file.
+
 Fourth arg KEEP-TIME non-nil means give the output file the same
 last-modified time as the old one.  (This works on only some systems.)
-A prefix arg makes KEEP-TIME non-nil.  */)
-     (file, newname, ok_if_already_exists, keep_time)
-     Lisp_Object file, newname, ok_if_already_exists, keep_time;
+
+A prefix arg makes KEEP-TIME non-nil.
+
+The optional fifth arg MUSTBENEW, if non-nil, insists on a check
+for an existing file with the same name.  If MUSTBENEW is `excl',
+that means to get an error if the file already exists; never overwrite.
+If MUSTBENEW is neither nil nor `excl', that means ask for
+confirmation before overwriting, but do go ahead and overwrite the file
+if the user confirms.  */)
+  (file, newname, ok_if_already_exists, keep_time, mustbenew)
+     Lisp_Object file, newname, ok_if_already_exists, keep_time, mustbenew;
 {
   int ifd, ofd, n;
   char buf[16 * 1024];
@@ -2416,6 +2432,9 @@ A prefix arg makes KEEP-TIME non-nil.  */)
   GCPRO4 (file, newname, encoded_file, encoded_newname);
   CHECK_STRING (file);
   CHECK_STRING (newname);
+
+  if (!NILP (mustbenew) && !EQ (mustbenew, Qexcl))
+    barf_or_query_if_file_exists (newname, "overwrite", 1, 0, 1);
 
   if (!NILP (Ffile_directory_p (newname)))
     newname = Fexpand_file_name (Ffile_name_nondirectory (file), newname);
@@ -2517,9 +2536,15 @@ A prefix arg makes KEEP-TIME non-nil.  */)
 #else
 #ifdef MSDOS
   /* System's default file type was set to binary by _fmode in emacs.c.  */
-  ofd = creat (SDATA (encoded_newname), S_IREAD | S_IWRITE);
-#else /* not MSDOS */
-  ofd = creat (SDATA (encoded_newname), 0666);
+  ofd = emacs_open (SDATA (encoded_newname),
+		    O_WRONLY | O_TRUNC | O_CREAT
+		    | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
+		    S_IREAD | S_IWRITE);
+#else  /* not MSDOS */
+  ofd = emacs_open (SDATA (encoded_newname),
+		    O_WRONLY | O_TRUNC | O_CREAT
+		    | (EQ (mustbenew, Qexcl) ? O_EXCL : 0),
+		    0666);
 #endif /* not MSDOS */
 #endif /* VMS */
   if (ofd < 0)
@@ -2749,7 +2774,8 @@ This is what happens in interactive use with M-x.  */)
             Fcopy_file (file, newname,
                         /* We have already prompted if it was an integer,
                            so don't have copy-file prompt again.  */
-                        NILP (ok_if_already_exists) ? Qnil : Qt, Qt);
+                        NILP (ok_if_already_exists) ? Qnil : Qt,
+			Qt, Qnil);
 	  Fdelete_file (file);
 	}
       else
@@ -6418,6 +6444,7 @@ init_fileio_once ()
 void
 syms_of_fileio ()
 {
+  Qoperations = intern ("operations");
   Qexpand_file_name = intern ("expand-file-name");
   Qsubstitute_in_file_name = intern ("substitute-in-file-name");
   Qdirectory_file_name = intern ("directory-file-name");
@@ -6452,6 +6479,7 @@ syms_of_fileio ()
   Qset_visited_file_modtime = intern ("set-visited-file-modtime");
   Qauto_save_coding = intern ("auto-save-coding");
 
+  staticpro (&Qoperations);
   staticpro (&Qexpand_file_name);
   staticpro (&Qsubstitute_in_file_name);
   staticpro (&Qdirectory_file_name);

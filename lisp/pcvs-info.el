@@ -41,11 +41,13 @@
 ;;;; config variables
 ;;;;
 
-(defcustom cvs-display-full-path t
-  "*Specifies how the filenames should look like in the listing.
-If t, their full path name will be displayed, else only the filename."
+(defcustom cvs-display-full-name t
+  "*Specifies how the filenames should be displayed in the listing.
+If non-nil, their full filename name will be displayed, else only the
+non-directory part."
   :group 'pcl-cvs
   :type '(boolean))
+(define-obsolete-variable-alias 'cvs-display-full-path 'cvs-display-full-name)
 
 (defcustom cvs-allow-dir-commit nil
   "*Allow `cvs-mode-commit' on directories.
@@ -165,7 +167,7 @@ to confuse some users sometimes."
   ;; In addition to the above, the following values can be extracted:
 
   ;; handled    ;; t if this file doesn't require further action.
-  ;; full-path  ;; The complete relative filename.
+  ;; full-name  ;; The complete relative filename.
   ;; pp-name    ;; The printed file name
   ;; backup-file;; For MERGED and CONFLICT files after a \"cvs update\",
                 ;; this is a full path to the backup file where the
@@ -201,7 +203,7 @@ to confuse some users sometimes."
 
 ;; Fake selectors:
 
-(defun cvs-fileinfo->full-path (fileinfo)
+(defun cvs-fileinfo->full-name (fileinfo)
   "Return the full path for the file that is described in FILEINFO."
   (let ((dir (cvs-fileinfo->dir fileinfo)))
     (if (eq (cvs-fileinfo->type fileinfo) 'DIRCHANGE)
@@ -209,11 +211,12 @@ to confuse some users sometimes."
       ;; Here, I use `concat' rather than `expand-file-name' because I want
       ;; the resulting path to stay relative if `dir' is relative.
       (concat dir (cvs-fileinfo->file fileinfo)))))
+(define-obsolete-function-alias 'cvs-fileinfo->full-path 'cvs-fileinfo->full-name)
 
 (defun cvs-fileinfo->pp-name (fi)
   "Return the filename of FI as it should be displayed."
-  (if cvs-display-full-path
-      (cvs-fileinfo->full-path fi)
+  (if cvs-display-full-name
+      (cvs-fileinfo->full-name fi)
     (cvs-fileinfo->file fi)))
 
 (defun cvs-fileinfo->backup-file (fileinfo)
@@ -225,10 +228,11 @@ to confuse some users sometimes."
 				 (concat "\\`" (regexp-quote cvs-bakprefix)
 					 (regexp-quote file) "\\(\\.[0-9]+\\.[0-9]+\\)+\\'")))
 	 bf)
-    (dolist (f files bf)
+    (dolist (f files)
       (when (and (file-readable-p f)
 		 (or (null bf) (file-newer-than-file-p f bf)))
-	(setq bf (concat dir f))))))
+	(setq bf f)))
+    (concat dir bf)))
 
 ;; (defun cvs-fileinfo->handled (fileinfo)
 ;;   "Tell if this requires further action"
@@ -327,7 +331,7 @@ For use by the cookie package."
     (insert
      (case type
        (DIRCHANGE (concat "In directory "
-			  (cvs-add-face (cvs-fileinfo->full-path fileinfo)
+			  (cvs-add-face (cvs-fileinfo->full-name fileinfo)
 					'cvs-header-face t
 					'cvs-goal-column t)
 			  ":"))

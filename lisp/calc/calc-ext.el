@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -2815,7 +2815,7 @@ calc-kill calc-kill-region calc-yank))))
 
    ;; Integer+fraction with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]\\)$" s)
-    (let ((radix (string-to-int (math-match-substring s 1)))
+    (let ((radix (string-to-number (math-match-substring s 1)))
 	  (int (math-match-substring s 3))
 	  (num (math-match-substring s 4))
 	  (den (math-match-substring s 5)))
@@ -2829,7 +2829,7 @@ calc-kill calc-kill-region calc-yank))))
 
    ;; Fraction with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)[:/]\\([0-9a-zA-Z]*\\)$" s)
-    (let ((radix (string-to-int (math-match-substring s 1)))
+    (let ((radix (string-to-number (math-match-substring s 1)))
 	  (num (math-match-substring s 3))
 	  (den (math-match-substring s 4)))
       (let ((num (if (> (length num) 0) (math-read-radix num radix) 1))
@@ -2839,7 +2839,7 @@ calc-kill calc-kill-region calc-yank))))
    ;; Float with explicit radix and exponent
    ((or (string-match "^0*\\(\\([2-9]\\|1[0-4]\\)\\(#\\|\\^\\^\\)[0-9a-dA-D.]+\\)[eE]\\([-+]?[0-9]+\\)$" s)
 	(string-match "^\\(\\([0-9]+\\)\\(#\\|\\^\\^\\)[0-9a-zA-Z.]+\\) *\\* *\\2\\.? *\\^ *\\([-+]?[0-9]+\\)$" s))
-    (let ((radix (string-to-int (math-match-substring s 2)))
+    (let ((radix (string-to-number (math-match-substring s 2)))
 	  (mant (math-match-substring s 1))
 	  (exp (math-match-substring s 4)))
       (let ((mant (math-read-number mant))
@@ -2849,7 +2849,7 @@ calc-kill calc-kill-region calc-yank))))
 
    ;; Float with explicit radix, no exponent
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]*\\)\\.\\([0-9a-zA-Z]*\\)$" s)
-    (let ((radix (string-to-int (math-match-substring s 1)))
+    (let ((radix (string-to-number (math-match-substring s 1)))
 	  (int (math-match-substring s 3))
 	  (fracs (math-match-substring s 4)))
       (let ((int (if (> (length int) 0) (math-read-radix int radix) 0))
@@ -2861,7 +2861,7 @@ calc-kill calc-kill-region calc-yank))))
    ;; Integer with explicit radix
    ((string-match "^\\([0-9]+\\)\\(#\\|\\^\\^\\)\\([0-9a-zA-Z]+\\)$" s)
     (math-read-radix (math-match-substring s 3)
-		     (string-to-int (math-match-substring s 1))))
+		     (string-to-number (math-match-substring s 1))))
 
    ;; C language hexadecimal notation
    ((and (eq calc-language 'c)

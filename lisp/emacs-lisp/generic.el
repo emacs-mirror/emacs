@@ -35,15 +35,15 @@
 ;;
 ;; Each generic mode can define the following:
 ;;
-;; * List of comment-characters.  The entries in this list should be
-;;   either a character, a one or two character string or a cons pair.
-;;   If the entry is a character or a string, it is added to the
-;;   mode's syntax table with `comment-start' syntax.  If the entry is
-;;   a cons pair, the elements of the pair are considered to be
-;;   `comment-start' and `comment-end' respectively.  (The latter
-;;   should be nil if you want comments to end at end of line.)
-;;   LIMITATIONS: Emacs does not support comment strings of more than
-;;   two characters in length.
+;; * List of comment-characters.  The elements of this list should be
+;;   either a character, a one or two character string, or a cons
+;;   cell.  If the entry is a character or a string, it is added to
+;;   the mode's syntax table with "comment starter" syntax.  If the
+;;   entry is a cons cell, the `car' and `cdr' of the pair are
+;;   considered the "comment starter" and "comment ender"
+;;   respectively.  (The latter should be nil if you want comments to
+;;   end at the end of the line.)  Emacs does not support comment
+;;   strings of more than two characters in length.
 ;;
 ;; * List of keywords to font-lock.  Each keyword should be a string.
 ;;   If you have additional keywords which should be highlighted in a
@@ -121,40 +121,42 @@ instead (which see).")
 				    &rest custom-keyword-args)
   "Create a new generic mode MODE.
 
-MODE is the name of the command for the generic mode; it need not
-be quoted.  The optional DOCSTRING is the documentation for the
-mode command.  If you do not supply it, a default documentation
-string will be used instead.
+MODE is the name of the command for the generic mode; don't quote
+it.  The optional DOCSTRING is the documentation for the mode
+command.  If you do not supply it, `define-generic-mode' uses a
+default documentation string instead.
 
-COMMENT-LIST is a list, whose entries are either a single
-character, a one or two character string or a cons pair.  If the
-entry is a character or a string, it is added to the mode's
-syntax table with `comment-start' syntax.  If the entry is a cons
-pair, the elements of the pair are considered to be
-`comment-start' and `comment-end' respectively.  (The latter
-should be nil if you want comments to end at end of line.)  Note
-that Emacs has limitations regarding comment characters.
+COMMENT-LIST is a list in which each element is either a
+character, a string of one or two characters, or a cons cell.  A
+character or a string is set up in the mode's syntax table as a
+\"comment starter\".  If the entry is a cons cell, the `car' is
+set up as a \"comment starter\" and the `cdr' as a \"comment
+ender\".  (Use nil for the latter if you want comments to end at
+the end of the line.)  Note that the syntax table has limitations
+about what comment starters and enders are actually possible.
 
 KEYWORD-LIST is a list of keywords to highlight with
 `font-lock-keyword-face'.  Each keyword should be a string.
 
 FONT-LOCK-LIST is a list of additional expressions to highlight.
-Each entry in the list should have the same form as an entry in
-`font-lock-keywords'.
+Each element of this list should have the same form as an element
+of `font-lock-keywords'.
 
 AUTO-MODE-LIST is a list of regular expressions to add to
-`auto-mode-alist'.  These regexps are added to `auto-mode-alist'
-as soon as `define-generic-mode' is called.
+`auto-mode-alist'.  These regular expressions are added when
+Emacs runs the macro expansion.
 
 FUNCTION-LIST is a list of functions to call to do some
-additional setup.
+additional setup.  The mode command calls these functions just
+before it runs the mode hook.
 
-The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and
-values.  They will be passed to the generated `defcustom' form of
-the mode hook variable MODE-hook.  Defaults to MODE without the
-possible trailing \"-mode\".  (This default may not be a valid
-customization group defined with `defgroup'.  Make sure it is.)
-You can specify keyword arguments without specifying a docstring.
+The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and values
+to include in the generated `defcustom' form for the mode hook
+variable `MODE-hook'.  The default value for the `:group' keyword
+is MODE with the final \"-mode\" (if any) removed.  (Don't use
+this default group name unless you have written a `defgroup' to
+define that group properly.)  You can specify keyword arguments
+without specifying a docstring.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
@@ -178,7 +180,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
 
     (unless (plist-get custom-keyword-args :group)
       (setq custom-keyword-args
-	    (plist-put custom-keyword-args 
+	    (plist-put custom-keyword-args
 		       :group `',(intern (replace-regexp-in-string
 					  "-mode\\'" "" name)))))
 
@@ -226,7 +228,7 @@ See the file generic-x.el for some examples of `define-generic-mode'."
     (when keyword-list
       (push (concat "\\_<" (regexp-opt keyword-list t) "\\_>")
 	    generic-font-lock-keywords))
-    (setq font-lock-defaults '(generic-font-lock-keywords nil))
+    (setq font-lock-defaults '(generic-font-lock-keywords))
 
     ;; Call a list of functions
     (mapcar 'funcall function-list)

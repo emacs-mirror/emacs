@@ -482,6 +482,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
   (interactive)
   (comint-mode)
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
+  (set (make-local-variable 'paragraph-separate) "\\'")
   (make-local-variable 'paragraph-start)
   (setq paragraph-start comint-prompt-regexp)
   (setq comint-input-sender 'ielm-input-sender)
@@ -538,7 +539,7 @@ Customized bindings may be defined in `ielm-map', which currently contains:
     ;; Add a silly header
     (insert ielm-header)
     (ielm-set-pm (point-max))
-    (unless comint-use-prompt-regexp-instead-of-fields
+    (unless comint-use-prompt-regexp
       (let ((inhibit-read-only t))
         (add-text-properties
          (point-min) (point-max)

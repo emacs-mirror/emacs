@@ -621,12 +621,6 @@ Lisp_Object Qmessage_truncate_lines;
 
 static int message_cleared_p;
 
-/* Non-zero means we want a hollow cursor in windows that are not
-   selected.  Zero means there's no cursor in such windows.  */
-
-Lisp_Object Vcursor_in_non_selected_windows;
-Lisp_Object Qcursor_in_non_selected_windows;
-
 /* How to blink the default frame cursor off.  */
 Lisp_Object Vblink_cursor_alist;
 
@@ -5877,6 +5871,16 @@ move_it_in_display_line_to (it, to_charpos, to_x, op)
     {
       int x, i, ascent = 0, descent = 0;
 
+      /* Stop if we move beyond TO_CHARPOS (after an image or stretch glyph).  */
+      if ((op & MOVE_TO_POS) != 0
+	  && BUFFERP (it->object)
+	  && it->method == GET_FROM_BUFFER
+	  && IT_CHARPOS (*it) > to_charpos)
+	{
+	  result = MOVE_POS_MATCH_OR_ZV;
+	  break;
+	}
+
       /* Stop when ZV reached.
          We used to stop here when TO_CHARPOS reached as well, but that is
          too soon if this glyph does not fit on this line.  So we handle it
@@ -7898,8 +7902,6 @@ set_message_1 (a1, a2, nbytes, multibyte_p)
 {
   const char *s = (const char *) a1;
   Lisp_Object string = a2;
-
-  xassert (BEG == Z);
 
   /* Change multibyteness of the echo buffer appropriately.  */
   if (message_enable_multibyte
@@ -14155,10 +14157,10 @@ dump_glyph_row (row, vpos, glyphs)
 {
   if (glyphs != 1)
     {
-      fprintf (stderr, "Row Start   End Used oEI><O\\CTZFesm     X    Y    W    H    V    A    P\n");
-      fprintf (stderr, "=======================================================================\n");
+      fprintf (stderr, "Row Start   End Used oEI><\\CTZFesm     X    Y    W    H    V    A    P\n");
+      fprintf (stderr, "======================================================================\n");
 
-      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d%1.1d\
+      fprintf (stderr, "%3d %5d %5d %4d %1.1d%1.1d%1.1d%1.1d\
 %1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d%1.1d  %4d %4d %4d %4d %4d %4d %4d\n",
 	       vpos,
 	       MATRIX_ROW_START_CHARPOS (row),
@@ -14168,7 +14170,6 @@ dump_glyph_row (row, vpos, glyphs)
 	       row->enabled_p,
 	       row->truncated_on_left_p,
 	       row->truncated_on_right_p,
-	       row->overlay_arrow_p,
 	       row->continued_p,
 	       MATRIX_ROW_CONTINUATION_LINE_P (row),
 	       row->displays_text_p,
@@ -16088,7 +16089,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	props = mode_line_string_face_prop;
       else if (!NILP (mode_line_string_face))
 	{
-	  Lisp_Object face = Fsafe_plist_get (props, Qface);
+	  Lisp_Object face = Fplist_get (props, Qface);
 	  props = Fcopy_sequence (props);
 	  if (NILP (face))
 	    face = mode_line_string_face;
@@ -16113,7 +16114,7 @@ store_mode_line_string (string, lisp_string, copy_string, field_width, precision
 	  Lisp_Object face;
 	  if (NILP (props))
 	    props = Ftext_properties_at (make_number (0), lisp_string);
-	  face = Fsafe_plist_get (props, Qface);
+	  face = Fplist_get (props, Qface);
 	  if (NILP (face))
 	    face = mode_line_string_face;
 	  else
@@ -18916,14 +18917,14 @@ produce_stretch_glyph (it)
   plist = XCDR (it->object);
 
   /* Compute the width of the stretch.  */
-  if ((prop = Fsafe_plist_get (plist, QCwidth), !NILP (prop))
+  if ((prop = Fplist_get (plist, QCwidth), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 1, 0))
     {
       /* Absolute width `:width WIDTH' specified and valid.  */
       zero_width_ok_p = 1;
       width = (int)tem;
     }
-  else if (prop = Fsafe_plist_get (plist, QCrelative_width),
+  else if (prop = Fplist_get (plist, QCrelative_width),
 	   NUMVAL (prop) > 0)
     {
       /* Relative width `:relative-width FACTOR' specified and valid.
@@ -18947,7 +18948,7 @@ produce_stretch_glyph (it)
       x_produce_glyphs (&it2);
       width = NUMVAL (prop) * it2.pixel_width;
     }
-  else if ((prop = Fsafe_plist_get (plist, QCalign_to), !NILP (prop))
+  else if ((prop = Fplist_get (plist, QCalign_to), !NILP (prop))
 	   && calc_pixel_width_or_height (&tem, it, prop, font, 1, &align_to))
     {
       if (it->glyph_row == NULL || !it->glyph_row->mode_line_p)
@@ -18967,13 +18968,13 @@ produce_stretch_glyph (it)
     width = 1;
 
   /* Compute height.  */
-  if ((prop = Fsafe_plist_get (plist, QCheight), !NILP (prop))
+  if ((prop = Fplist_get (plist, QCheight), !NILP (prop))
       && calc_pixel_width_or_height (&tem, it, prop, font, 0, 0))
     {
       height = (int)tem;
       zero_height_ok_p = 1;
     }
-  else if (prop = Fsafe_plist_get (plist, QCrelative_height),
+  else if (prop = Fplist_get (plist, QCrelative_height),
 	   NUMVAL (prop) > 0)
     height = FONT_HEIGHT (font) * NUMVAL (prop);
   else
@@ -18985,7 +18986,7 @@ produce_stretch_glyph (it)
   /* Compute percentage of height used for ascent.  If
      `:ascent ASCENT' is present and valid, use that.  Otherwise,
      derive the ascent from the font in use.  */
-  if (prop = Fsafe_plist_get (plist, QCascent),
+  if (prop = Fplist_get (plist, QCascent),
       NUMVAL (prop) > 0 && NUMVAL (prop) <= 100)
     ascent = height * NUMVAL (prop) / 100.0;
   else if (!NILP (prop)
@@ -20126,7 +20127,7 @@ get_window_cursor_type (w, glyph, width, active_cursor)
   /* Use cursor-in-non-selected-windows for non-selected window or frame.  */
   if (non_selected)
     {
-      alt_cursor = Fbuffer_local_value (Qcursor_in_non_selected_windows, w->buffer);
+      alt_cursor = XBUFFER (w->buffer)->cursor_in_non_selected_windows;
       return get_specified_cursor_type (alt_cursor, width);
     }
 
@@ -21243,7 +21244,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   if (IMAGEP (object))
     {
       Lisp_Object image_map, hotspot;
-      if ((image_map = Fsafe_plist_get (XCDR (object), QCmap),
+      if ((image_map = Fplist_get (XCDR (object), QCmap),
 	   !NILP (image_map))
 	  && (hotspot = find_hot_spot (image_map, dx, dy),
 	      CONSP (hotspot))
@@ -21259,10 +21260,10 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	  if (CONSP (hotspot)
 	      && (plist = XCAR (hotspot), CONSP (plist)))
 	    {
-	      pointer = Fsafe_plist_get (plist, Qpointer);
+	      pointer = Fplist_get (plist, Qpointer);
 	      if (NILP (pointer))
 		pointer = Qhand;
-	      help = Fsafe_plist_get (plist, Qhelp_echo);
+	      help = Fplist_get (plist, Qhelp_echo);
 	      if (!NILP (help))
 		{
 		  help_echo_string = help;
@@ -21274,7 +21275,7 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	    }
 	}
       if (NILP (pointer))
-	pointer = Fsafe_plist_get (XCDR (object), QCpointer);
+	pointer = Fplist_get (XCDR (object), QCpointer);
     }
 
   if (STRINGP (string))
@@ -21427,7 +21428,7 @@ note_mouse_highlight (f, x, y)
 	  if (img != NULL && IMAGEP (img->spec))
 	    {
 	      Lisp_Object image_map, hotspot;
-	      if ((image_map = Fsafe_plist_get (XCDR (img->spec), QCmap),
+	      if ((image_map = Fplist_get (XCDR (img->spec), QCmap),
 		   !NILP (image_map))
 		  && (hotspot = find_hot_spot (image_map,
 					       glyph->slice.x + dx,
@@ -21445,10 +21446,10 @@ note_mouse_highlight (f, x, y)
 		  if (CONSP (hotspot)
 		      && (plist = XCAR (hotspot), CONSP (plist)))
 		    {
-		      pointer = Fsafe_plist_get (plist, Qpointer);
+		      pointer = Fplist_get (plist, Qpointer);
 		      if (NILP (pointer))
 			pointer = Qhand;
-		      help_echo_string = Fsafe_plist_get (plist, Qhelp_echo);
+		      help_echo_string = Fplist_get (plist, Qhelp_echo);
 		      if (!NILP (help_echo_string))
 			{
 			  help_echo_window = window;
@@ -21458,7 +21459,7 @@ note_mouse_highlight (f, x, y)
 		    }
 		}
 	      if (NILP (pointer))
-		pointer = Fsafe_plist_get (XCDR (img->spec), QCpointer);
+		pointer = Fplist_get (XCDR (img->spec), QCpointer);
 	    }
 	}
 
@@ -22490,8 +22491,6 @@ syms_of_xdisp ()
   staticpro (&Qpoly);
   Qmessage_truncate_lines = intern ("message-truncate-lines");
   staticpro (&Qmessage_truncate_lines);
-  Qcursor_in_non_selected_windows = intern ("cursor-in-non-selected-windows");
-  staticpro (&Qcursor_in_non_selected_windows);
   Qgrow_only = intern ("grow-only");
   staticpro (&Qgrow_only);
   Qinhibit_menubar_update = intern ("inhibit-menubar-update");
@@ -22784,12 +22783,6 @@ A value of `grow-only', the default, means let mini-windows grow
 only, until their display becomes empty, at which point the windows
 go back to their normal size.  */);
   Vresize_mini_windows = Qgrow_only;
-
-  DEFVAR_LISP ("cursor-in-non-selected-windows",
-	       &Vcursor_in_non_selected_windows,
-    doc: /* *Cursor type to display in non-selected windows.
-t means to use hollow box cursor.  See `cursor-type' for other values.  */);
-  Vcursor_in_non_selected_windows = Qt;
 
   DEFVAR_LISP ("blink-cursor-alist", &Vblink_cursor_alist,
     doc: /* Alist specifying how to blink the cursor off.

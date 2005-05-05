@@ -387,6 +387,7 @@ Otherwise, the value is whatever the function
   (let ((table (copy-syntax-table (standard-syntax-table))))
     (modify-syntax-entry ?. "w" table)
     (modify-syntax-entry ?_ "w" table)
+    (modify-syntax-entry ?: "w" table)	; for PDL::Primitive in Perl man pages
     table)
   "Syntax table used in Man mode buffers.")
 

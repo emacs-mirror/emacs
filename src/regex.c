@@ -4290,12 +4290,19 @@ re_search_2 (bufp, str1, size1, str2, size2, startpos, range, regs, stop)
 			d += buf_charlen;
 		      }
 		  else
-		    while (range > lim
-			   && !fastmap[RE_TRANSLATE (translate, *d)])
-		      {
-			d++;
-			range--;
-		      }
+		    {
+		      /* Convert *d to integer to shut up GCC's
+			 whining about comparison that is always
+			 true.  */
+		      int di = *d;
+
+		      while (range > lim
+			     && !fastmap[RE_TRANSLATE (translate, di)])
+			{
+			  di = *(++d);
+			  range--;
+			}
+		    }
 		}
 	      else
 		while (range > lim && !fastmap[*d])
@@ -5244,8 +5251,13 @@ re_match_2_internal (bufp, string1, size1, string2, size2, pos, regs, stop)
 	      else
 		do
 		  {
+		    /* Avoid compiler whining about comparison being
+		       always true.  */
+		    int di;
+
 		    PREFETCH ();
-		    if (RE_TRANSLATE (translate, *d) != *p++)
+		    di = *d;
+		    if (RE_TRANSLATE (translate, di) != *p++)
 		      {
 			d = dfail;
 			goto fail;

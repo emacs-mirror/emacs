@@ -501,6 +501,7 @@ for decoding and encoding files, process I/O, etc."
 	("\\(\\`\\|/\\)loaddefs.el\\'" . (raw-text . raw-text-unix))
 	("\\.tar\\'" . (no-conversion . no-conversion))
 	( "\\.po[tx]?\\'\\|\\.po\\." . po-find-file-coding-system)
+	("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system)
 	("" . (undecided . nil))))
 
 

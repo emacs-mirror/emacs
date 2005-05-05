@@ -1514,14 +1514,14 @@ or as help on variables `cperl-tips', `cperl-problems',
 	(set 'font-lock-unfontify-region-function ; not present with old Emacs
 	      'cperl-font-lock-unfontify-region-function)
 	(make-local-variable 'cperl-syntax-done-to)
-	;; Another bug: unless font-lock-syntactic-keywords, font-lock
-	;;  ignores syntax-table text-property.  (t) is a hack
-	;;  to make font-lock think that font-lock-syntactic-keywords
-	;;  are defined
 	(make-local-variable 'font-lock-syntactic-keywords)
 	(setq font-lock-syntactic-keywords
 	      (if cperl-syntaxify-by-font-lock
-		  '(t (cperl-fontify-syntaxically))
+		  '((cperl-fontify-syntaxically))
+                ;; unless font-lock-syntactic-keywords, font-lock (pre-22.1)
+                ;;  used to ignore syntax-table text-properties.  (t) is a hack
+                ;;  to make font-lock think that font-lock-syntactic-keywords
+                ;;  are defined.
 		'(t)))))
   (make-local-variable 'cperl-old-style)
   (if (boundp 'normal-auto-fill-function) ; 19.33 and later

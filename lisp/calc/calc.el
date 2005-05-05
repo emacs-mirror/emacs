@@ -1174,8 +1174,6 @@ commands given here will actually operate on the *Calculator* stack."
   (setq buffer-read-only t)
   (make-local-variable 'overlay-arrow-position)
   (make-local-variable 'overlay-arrow-string)
-  (set (make-local-variable 'font-lock-defaults)
-       '(nil t nil nil nil (font-lock-core-only . t)))
   (when buf
     (set (make-local-variable 'calc-main-buffer) buf))
   (when (= (buffer-size) 0)
@@ -2138,7 +2136,7 @@ See calc-keypad for details."
      (t
       (insert (char-to-string last-command-char))
       (if (or (and (calc-minibuffer-contains "[-+]?\\(.*\\+/- *\\|.*mod *\\)?\\([0-9][0-9]?\\)#[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\(:[0-9a-zA-Z]*\\)?\\|.[0-9a-zA-Z]*\\(e[-+]?[0-9]*\\)?\\)?\\'")
-		   (let ((radix (string-to-int
+		   (let ((radix (string-to-number
 				 (buffer-substring
 				  (match-beginning 2) (match-end 2)))))
 		     (and (>= radix 2)
@@ -3280,7 +3278,7 @@ See calc-keypad for details."
 		(eq (aref digs 0) ?0))
 	   (math-read-number (concat "8#" digs))
 	 (if (<= (length digs) 6)
-	     (string-to-int digs)
+	     (string-to-number digs)
 	   (cons 'bigpos (math-read-bignum digs))))))
 
     ;; Clean up the string if necessary
@@ -3317,7 +3315,7 @@ See calc-keypad for details."
 	   (exp (math-match-substring s 2)))
        (let ((mant (if (> (length mant) 0) (math-read-number mant) 1))
 	     (exp (if (<= (length exp) (if (memq (aref exp 0) '(?+ ?-)) 8 7))
-		      (string-to-int exp))))
+		      (string-to-number exp))))
 	 (and mant exp (Math-realp mant) (> exp -4000000) (< exp 4000000)
 	      (let ((mant (math-float mant)))
 		(list 'float (nth 1 mant) (+ (nth 2 mant) exp)))))))
@@ -3332,9 +3330,9 @@ See calc-keypad for details."
 
 (defun math-read-bignum (s)   ; [l X]
   (if (> (length s) 3)
-      (cons (string-to-int (substring s -3))
+      (cons (string-to-number (substring s -3))
 	    (math-read-bignum (substring s 0 -3)))
-    (list (string-to-int s))))
+    (list (string-to-number s))))
 
 
 (defconst math-tex-ignore-words

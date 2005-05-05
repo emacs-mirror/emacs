@@ -3192,6 +3192,7 @@ syms_of_data ()
   staticpro (&Qargs_out_of_range);
   staticpro (&Qvoid_function);
   staticpro (&Qcyclic_function_indirection);
+  staticpro (&Qcyclic_variable_indirection);
   staticpro (&Qvoid_variable);
   staticpro (&Qsetting_constant);
   staticpro (&Qinvalid_read_syntax);
