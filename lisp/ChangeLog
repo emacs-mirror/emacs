@@ -1,3 +1,8 @@
+2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* term/w32-win.el (image-library-alist): Add additional name for
+	Xpm library.
+
 2005-05-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cmacexp.el (c-macro-preprocessor): Update for BSD and
