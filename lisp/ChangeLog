@@ -1,5 +1,8 @@
 2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias): Fix
+	typo in docstring.
+
 	* term/w32-win.el (image-library-alist): Add additional name for
 	Xpm library.
 
@@ -9,7 +12,7 @@
 	use gcc instead of cpp.
 
 	* progmodes/gdb-ui.el (gdb-cpp-define-alist-flags): New variable.
-	(gdb-create-define-alist): Use. it.
+	(gdb-create-define-alist): Use it.
 	(gdb-cpp-define-alist-program): Update for MS-DOS?
 
 2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
