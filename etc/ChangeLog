@@ -1,3 +1,8 @@
+2005-05-05  Marcelo Toledo  <marcelo@marcelotoledo.org>  (tiny change)
+
+        * TUTORIAL.pl: Updated header. Patch by Slawomir Nowaczyk
+        <slawek@cs.lth.se>.
+
 2005-05-02  Richard M. Stallman  <rms@gnu.org>
 
 	* NEWS: More rearrangements.

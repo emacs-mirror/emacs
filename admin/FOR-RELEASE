@@ -230,7 +230,7 @@ etc/TUTORIAL.it          Thien-Thi Nguyen
 etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
-etc/TUTORIAL.pl
+etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>

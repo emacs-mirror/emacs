@@ -1,5 +1,5 @@
-krótki samouczek Emacsa. Copyright (c) 1985, 2001
-Free Software Foundation, Inc. Szczegó³y na koñcu pliku.
+Krótki samouczek Emacsa.  Warunki kopiowania znajduj± sie na koñcu pliku.
+Copyright (c) 1985, 1996, 1998, 2001, 2002, 2005 Free Software Foundation.
 
 Polecenia Emacsa wymagaj± na ogó³ wci¶niêcia klawisza CONTROL (oznaczanego
 czasami Ctrl lub CTL) lub klawisza META (oznaczanego czasami EDIT
