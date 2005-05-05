@@ -21,6 +21,7 @@ define them.
 * Anonymous Functions::   Lambda expressions are functions with no names.
 * Function Cells::        Accessing or setting the function definition
                             of a symbol.
+* Obsolete Functions::    Declaring functions obsolete.
 * Inline Functions::	  Defining functions that the compiler will open code.
 * Function Safety::       Determining whether a function is safe to call.
 * Related Topics::        Cross-references to specific Lisp primitives
@@ -601,7 +602,7 @@ which file defined the function, just like @code{defun}
 
 By contrast, in programs that manipulate function definitions for other
 purposes, it is better to use @code{fset}, which does not keep such
-records.
+records.  @xref{Function Cells}.
 @end defun
 
   You cannot create a new primitive function with @code{defun} or
@@ -1150,6 +1151,44 @@ file to redefine a function defined elsewhere.  If you want to modify
 a function defined by another package, it is cleaner to use
 @code{defadvice} (@pxref{Advising Functions}).
 
+@node Obsolete Functions
+@section Declaring Functions Obsolete
+
+You can use @code{make-obsolete} to declare a function obsolete.  This
+indicates that the function may be removed at some stage in the future.
+
+@defun make-obsolete function new &optional when
+This function makes the byte compiler warn that the function
+@var{function} is obsolete.  If @var{new} is a symbol, the warning
+message says to use @var{new} instead of @var{function}.  @var{new}
+does not need to be an alias for @var{function}; it can be a different
+function with similar functionality.  If @var{new} is a string, it is
+the warning message.
+
+If provided, @var{when} should be a string indicating when the function
+was first made obsolete---for example, a date or a release number.
+@end defun
+
+You can define a function as an alias and declare it obsolete at the
+same time using the macro @code{define-obsolete-function-alias}.
+
+@defmac define-obsolete-function-alias function new &optional when docstring
+This macro marks the function @var{function} obsolete and also defines
+it as an alias for the function @var{new}.  A typical call has the form:
+
+@example
+(define-obsolete-function-alias 'old-fun 'new-fun "22.1" "Doc.")
+@end example
+
+@noindent
+which is equivalent to the following two lines of code:
+
+@example
+(defalias 'old-fun 'new-fun "Doc.")
+(make-obsolete 'old-fun 'new-fun "22.1")
+@end example
+@end defmac
+
 @node Inline Functions
 @section Inline Functions
 @cindex inline functions
@@ -1186,7 +1225,7 @@ Inline functions can be used and open-coded later on in the same file,
 following the definition, just like macros.
 
 @node Function Safety
-@section Determining whether a function is safe to call
+@section Determining whether a Function is Safe to Call
 @cindex function safety
 @cindex safety of functions
 
