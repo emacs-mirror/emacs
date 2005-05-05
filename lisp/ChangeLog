@@ -1,14 +1,31 @@
+2005-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-setup-hook): New hook.
+	(ido-define-mode-map-hook): Remove hook; use ido-setup-hook instead.
+	(ido-input-stack): New var.
+	(ido-define-mode-map): Bind M-b to ido-push-dir. Move old
+	ido-next-work-file binding to M-O.
+	Bind M-f to ido-wide-find-file-or-pop-dir.
+	(ido-define-mode-map): Don't run ido-define-mode-map-hook.
+	(ido-read-internal): Run ido-setup-hook.
+	Catch quit in read-file-name and read-string to cancel edit.
+	Handle new push, pop, and pop-all exit codes (for M-b/M-f).
+	Automatically pop-all when completing a directory name (RET).
+	(ido-file-internal): Add with-no-warnings around ffap and dired code.
+	(ido-exit-minibuffer): Use exit-minibuffer instead of throw.
+	(ido-wide-find-file, ido-wide-find-dir): Catch quit to cancel find.
+	(ido-push-dir, ido-pop-dir, ido-wide-find-file-or-pop-dir): New
+	functions for M-b/M-f to move among the directory components.
+	(ido-make-merged-file-list): Catch quit to cancel merge.
+	(ido-make-dir-list): Delete "." when ido-input-stack is non-empty.
+	(ido-completion-help): No warnings for ido-completion-buffer-full.
+
 2005-05-05  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* font-lock.el (font-lock-negation-char-face): New face and
-	variable.
-
+	* font-lock.el (font-lock-negation-char-face): New face and variable.
 	* progmodes/cc-fonts.el (c-cpp-matchers): Use it.
-
 	* progmodes/sh-script.el (sh-font-lock-keywords): Use it.
-
 	* progmodes/cperl-mode.el (cperl-init-faces): Use it.
-
 	* progmodes/make-mode.el (makefile-font-lock-keywords): Use it.
 
 2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
