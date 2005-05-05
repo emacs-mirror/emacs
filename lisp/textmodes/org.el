@@ -636,7 +636,7 @@ do have a time.  When nil, the default time is before 0:00."
 (defcustom org-cycle-hook '(org-optimize-window-after-visibility-change)
   "Hook that is run after `org-cycle' has changed the buffer visibility.
 The function(s) in this hook must accept a single argument which indicates
-the new state that was set by the most recent `org-cycle' command. The
+the new state that was set by the most recent `org-cycle' command.  The
 argument is a symbol.  After a global state change, it can have the values
 `overview', `content', or `all'.  After a local state change, it can have
 the values `folded', `children', or `subtree'."
@@ -677,8 +677,8 @@ It is not recommended to change this constant.")
 (defcustom org-show-following-heading t
   "Non-nil means, show heading following match in `org-occur'.
 When doing an `org-occur' it is useful to show the headline which
-follows the match, even if they do not match the regexp. This makes it
-easier to edit directly inside the sparse tree. However, if you use
+follows the match, even if they do not match the regexp.  This makes it
+easier to edit directly inside the sparse tree.  However, if you use
 org-occur mainly as an overview, the following headlines are
 unnecessary clutter."
   :group 'org-structure
@@ -712,7 +712,7 @@ negates this setting for the duration of the command."
   "Non-nil means, keep link in list for entire session.
 
 The command `org-store-link' adds a link pointing to the current
-location to an internal list. These links accumulate during a session.
+location to an internal list.  These links accumulate during a session.
 The command `org-insert-link' can be used to insert links into any
 Org-mode file (offering completion for all stored links).  When this
 option is nil, every link which has been inserted once using \\[org-insert-link]
@@ -1124,7 +1124,7 @@ This option can also be set with the +OPTIONS line, e.g. \"::nil\"."
   :type 'boolean)
 
 (defcustom org-export-with-tables t
-  "If non-nil, lines starting with \"|\" define a table
+  "If non-nil, lines starting with \"|\" define a table.
 For example:
 
   | Name        | Address  | Birthday  |
@@ -1496,7 +1496,7 @@ The following commands are available:
       (save-excursion
         (goto-char (point-min))
         (insert "    -*- mode: org -*-\n\n")))
-  (run-hooks 'org-mode-hook)
+  (run-hooks 'org-mode-hook)       ;FIXME: Should be run-mode-hooks.
   (unless org-inhibit-startup
     (if org-startup-with-deadline-check
         (call-interactively 'org-check-deadlines)
@@ -1565,7 +1565,7 @@ The following commands are available:
   (save-excursion
     (org-back-to-heading t)
     (- (match-end 0) (match-beginning 0))))
-
+    
 (defvar org-font-lock-keywords nil)
 
 (defun org-set-font-lock-defaults ()
@@ -1982,7 +1982,7 @@ See also `org-promote'."
 
 (defun org-do-promote ()
   "Promote the current heading higher up the tree.
-If the region is active in t`ransient-mark-mode', promote all headings
+If the region is active in `transient-mark-mode', promote all headings
 in the region."
   (interactive)
   (save-excursion
@@ -2614,7 +2614,7 @@ but this can be configured with the variables `parse-time-months' and
 
 While prompting, a calendar is popped up - you can also select the
 date with the mouse (button 1).  The calendar shows a period of three
-month. To scroll it to other months, use the keys `>' and `<'.  
+month.  To scroll it to other months, use the keys `>' and `<'.  
 If you don't like the calendar, turn it off with 
        \(setq org-popup-calendar-for-date-prompt nil).
 
@@ -3524,9 +3524,9 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
   "Get the (Emacs Calendar) diary entries for DATE."
   (let* ((fancy-diary-buffer "*temporary-fancy-diary-buffer*")
          (diary-display-hook '(fancy-diary-display))
-         (list-diary-entries-hook 
+         (list-diary-entries-hook
           (cons 'org-diary-default-entry list-diary-entries-hook))
-         entries tod tods
+         entries
          (org-disable-diary t))
     (save-excursion
       (save-window-excursion
@@ -4367,8 +4367,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
                      (org-agenda-error)))
          (buffer (marker-buffer marker))
          (pos (marker-position marker)))
-    (save-excursion
-      (set-buffer buffer)
+    (with-current-buffer buffer
       (widen)
       (goto-char pos)
       (if (not (org-at-timestamp-p))
@@ -4866,10 +4865,10 @@ For file links, arg negates `org-line-numbers-in-file-links'."
                          ((fboundp 'gnus-group-name)
                           (gnus-group-name))
                          (t "???"))))
-        (if (org-xor arg org-usenet-links-prefer-google)
-            (setq link (format "http://groups.google.com/groups?group=%s"
-                               group))
-          (setq link (concat "gnus:" group)))))
+        (setq link (concat (if (org-xor arg org-usenet-links-prefer-google)
+                               "http://groups.google.com/groups?group="
+                             "gnus:")
+                           group)))))
 
      ((memq major-mode '(gnus-summary-mode gnus-article-mode))
       (and (eq major-mode 'gnus-article-mode) (gnus-article-show-summary))
@@ -4920,6 +4919,7 @@ For file links, arg negates `org-line-numbers-in-file-links'."
 
 (defun org-xor (a b)
   "Exclusive or."
+  ;; (if a (not b) b)
   (or (and a (not b))
       (and b (not a))))
 
@@ -4958,7 +4958,7 @@ For file links, arg negates `org-line-numbers-in-file-links'."
   s)
 
 (defun org-insert-link (&optional complete-file)
-  "Insert a link. At the prompt, enter the link.
+  "Insert a link.  At the prompt, enter the link.
 
 Completion can be used to select a link previously stored with
 `org-store-link'.  When the empty string is entered (i.e. if you just
@@ -5586,7 +5586,7 @@ I.e. not on a hline or before the first or after the last column?"
       (error "Not in table data field")))
 
 (defvar org-table-clip nil
-  "Clipboard for table regions")
+  "Clipboard for table regions.")
 
 (defun org-table-blank-field ()
   "Blank the current table field or active region."
@@ -5827,7 +5827,7 @@ However, when FORCE is non-nil, create new columns if necessary."
   (org-table-move-row 'up))
 
 (defun org-table-move-row (&optional up)
-  "Move the current table line down. With arg UP, move it up."
+  "Move the current table line down.  With arg UP, move it up."
   (interactive "P")
   (let ((col (current-column))
         (pos (point))
@@ -7662,7 +7662,7 @@ But it has the disadvantage, that Org-mode's HTML conversions cannot be used."
     (buffer-substring (point-min) (point-max))))
 
 (defun org-html-expand (string)
-  "Prepare STRING for HTML export. Applies all active conversions."
+  "Prepare STRING for HTML export.  Applies all active conversions."
   ;; First check if there is a link in the line - if yes, apply conversions
   ;; only before the start of the link.
   (let* ((m (string-match org-link-regexp string))
@@ -7697,8 +7697,8 @@ Opening delimiter is LEFT, and closing delimiter is RIGHT, both given
 as single character strings.
 The regexp returned will match the entire expression including the
 delimiters.  It will also define a single group which contains the
-match except for the outermost delimiters. The maximum depth of
-stacked delimiters is N. Escaping delimiters is not possible."
+match except for the outermost delimiters.  The maximum depth of
+stacked delimiters is N.  Escaping delimiters is not possible."
   (let* ((nothing (concat "[^" "\\" left "\\" right "]*?"))
          (or "\\|")
          (re nothing)
@@ -8549,7 +8549,7 @@ Of course, only for the old outline mode."
       regexp)))
 
 (defun org-flag-heading (flag &optional entry)
-  "Flag the current heading. FLAG non-nil means make invisible.
+  "Flag the current heading.  FLAG non-nil means make invisible.
 When ENTRY is non-nil, show the entire entry."
   (save-excursion
     (org-back-to-heading t)
