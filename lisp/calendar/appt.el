@@ -688,10 +688,6 @@ ARG is positive, otherwise off."
       (appt-check t))))
 
 
-;; This is needed for backwards compatibility. Feh.
-(appt-activate 1)
-
-
 (provide 'appt)
 
 ;;; arch-tag: bf5791c4-8921-499e-a26f-772b1788d347
