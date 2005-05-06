@@ -1,3 +1,45 @@
+2005-05-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: Move code for GUD tooltips into gud.el.
+	(require): CL no longer needed to compile case.
+	(tooltip-mode): Do not toggle functions for GUD tooltips.
+	(tooltip-gud-tips-p): Remove. Replace with minor mode
+	gud-tooltip-mode in gud.el.
+	(tooltip-gud-modes, tooltip-gud-display, tooltip-gud-echo-area)
+	(tooltip-gud-toggle-dereference): Rename in gud.el by replacing
+	tooltip-gud prefix with gud-tooltip and obsolete.
+	(tooltip-change-major-mode, tooltip-activate-mouse-motions-if-enabled)
+	(tooltip-mouse-motions-active, tooltip-activate-mouse-motions)
+	(tooltip-mouse-motion): Mouse movement functions/variable.
+	Rename in gud.el by adding gud prefix.
+	(tooltip-gud-original-filter, tooltip-gud-dereference)
+	(tooltip-gud-event, tooltip-toggle-gud-tips)
+	(tooltip-gud-process-output, tooltip-gud-print-command)
+	(tooltip-gud-tips): GUD tooltip functions/variables. Rename in
+	gud.el by replacing tooltip-gud prefix with gud-tooltip.
+	(gdb-tooltip-print): Move to gdb-ui.el.
+
+	* progmodes/gud.el: Move code for GUD tooltips from tooltip.el.
+	(require): CL needed to compile case.
+	(gud-tooltip-mode): Use to toggle GUD tooltips unstead of
+	tooltip-gud-tips-p. Make it a minor-mode.
+	(gud-find-file): Only prepare GUD tooltips if gud-tooltip-mode is t.
+	(gud-menu-map): GUD tooltips use gud-tooltip-mode now.
+	(gud-tooltip-modes, gud-tooltip-display, gud-tooltip-echo-area)
+	(gud-tooltip-change-major-mode)
+	(gud-tooltip-activate-mouse-motions-if-enabled)
+	(gud-tooltip-mouse-motions-active, gud-tooltip-activate-mouse-motions)
+	(gud-tooltip-mouse-motion, gud-tooltip-toggle-dereference)
+	(gud-tooltip-original-filter, gud-tooltip-dereference)
+	(gud-tooltip-event, tooltip-toggle-gud-tips)
+	(gud-tooltip-process-output, gud-tooltip-print-command)
+	(gud-tooltip-tips): Moved from tooltip.el.
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print): Moved from tooltip.el.
+	(gdb-cpp-define-alist-flags): Doc fix.
+	(gdb-set-gud-minor-mode-1): Only prepare GUD tooltips if
+	gud-tooltip-mode is t.
+
 2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* net/goto-addr.el (goto-address-fontify): Make sure the overlays
