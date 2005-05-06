@@ -196,10 +196,8 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
-(defcustom gdb-cpp-define-alist-program 
-  (cond ((eq system-type 'ms-dos) "gcc -E -dM -o - -")
-	(t "gcc -E -dM -"))
-  "The program name for generating an alist of #define directives.
+(defcustom gdb-cpp-define-alist-program "gcc -E -dM -"
+  "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
 with an identifier as a tooltip. It works in a debug session with
 GDB, when tooltip-gud-tips-p is t."
