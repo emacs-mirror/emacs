@@ -1,3 +1,17 @@
+2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el: Don't define or bind scroll bar functions if
+	x-toolkit-scroll-bars is t.
+	(x-select-text, x-get-selection-value): Clear
+	x-last-selected-text-clipboard if x-select-enable-clipboard is
+	nil.
+	(PRIMARY): Put mac-scrap-name property.
+	(mac-select-convert-to-file-url): New function.
+	(public.file-url): New selection target type.  Add to
+	selection-converter-alist.
+	(x-get-selection, x-selection-value): Handle it.
+	(x-cut-buffer-or-selection-value): New alias.
+
 2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/byte-run.el (define-obsolete-function-alias)

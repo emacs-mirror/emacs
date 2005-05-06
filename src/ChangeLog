@@ -1,3 +1,56 @@
+2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (x_own_selection): Accept Lisp string as result of
+	selection converter function.
+	(x_clear_frame_selections): Don't call x-lost-selection-functions
+	if Emacs is not owner of the selection.
+	(Vmac_services_selection): Put variable and initialization in
+	#ifdef MAC_OSX.
+	(syms_of_macselect) [MAC_OSX]: Set default value of
+	Vmac_services_selection to PRIMARY.
+
+	* macterm.c (toolkit_scroll_bar_interaction): Remove unused
+	variable.
+	(mac_handle_tool_bar_click): Remove unused function and
+	declaration.
+	[USE_TOOLKIT_SCROLL_BARS] (scroll_bar_timer_callback)
+	(install_scroll_bar_timer, set_scroll_bar_timer)
+	(control_part_code_to_scroll_bar_part, construct_scroll_bar_click)
+	(get_control_part_bound, x_scroll_bar_handle_press)
+	(x_scroll_bar_handle_release, x_scroll_bar_handle_drag)
+	(x_set_toolkit_scroll_bar_thumb): New functions and declarations.
+	[USE_TOOLKIT_SCROLL_BARS] (last_scroll_bar_part, scroll_bar_timer)
+	(scroll_bar_timer_event_posted_p): New variables.
+	[USE_TOOLKIT_SCROLL_BARS] (SCROLL_BAR_FIRST_DELAY)
+	(SCROLL_BAR_CONTINUOUS_DELAY): New macros.
+	(x_scroll_bar_create): Set control reference with NewControl.
+	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]: Initialize
+	track_top and track_height to nil.
+	(x_scroll_bar_set_handle, x_scroll_bar_note_movement): Put
+	functions in #ifndef USE_TOOLKIT_SCROLL_BARS.
+	(XTset_vertical_scroll_bar): Don't make space between scroll bar
+	and associated window.
+	(XTset_vertical_scroll_bar) [MAC_OSX]: Get scroll bar area width
+	from window config.
+	(XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: Set
+	track_top and track_height to nil when scroll bar size is changed.
+	Recalculate them if they are nil.
+	(XTread_socket) [MAC_OSX]: Use control kind to determine if the
+	clicked control is a scroll bar.
+	(XTread_socket) [USE_TOOLKIT_SCROLL_BARS]: Use toolkit scroll bar
+	event handler functions.  Don't add modifiers to scroll bar click
+	events.  Call scroll bar release handler when window is
+	deactivated.
+	(mac_initialize): Remove unused code for X toolkit.
+	(syms_of_macterm) [!USE_TOOLKIT_SCROLL_BARS]: Initialize
+	Vx_toolkit_scroll_bars to nil.
+
+	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: New
+	members track_top and track_height.
+
+	* sysselect.h [DARWIN || MAC_OSX]: Temporarily undefine
+	init_process when including sys/select.h.
+
 2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* eval.c (Fdefvaralias): Doc fix.
