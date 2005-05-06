@@ -1,7 +1,6 @@
-2005-05-05  Marcelo Toledo  <marcelo@marcelotoledo.org>  (tiny change)
+2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
-        * TUTORIAL.pl: Updated header. Patch by Slawomir Nowaczyk
-        <slawek@cs.lth.se>.
+        * TUTORIAL.pl: Updated header.
 
 2005-05-02  Richard M. Stallman  <rms@gnu.org>
 
