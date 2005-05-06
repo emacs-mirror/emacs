@@ -1,3 +1,7 @@
+2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fns.c (Fchar_table_range): Yet Another Int/Lisp_Object Mixup.
+
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* lread.c (Flocate_file_internal): Doc fix.
@@ -15,10 +19,8 @@
 	(syms_of_macselect) [MAC_OSX]: Set default value of
 	Vmac_services_selection to PRIMARY.
 
-	* macterm.c (toolkit_scroll_bar_interaction): Remove unused
-	variable.
-	(mac_handle_tool_bar_click): Remove unused function and
-	declaration.
+	* macterm.c (toolkit_scroll_bar_interaction): Remove unused variable.
+	(mac_handle_tool_bar_click): Remove unused function and declaration.
 	[USE_TOOLKIT_SCROLL_BARS] (scroll_bar_timer_callback)
 	(install_scroll_bar_timer, set_scroll_bar_timer)
 	(control_part_code_to_scroll_bar_part, construct_scroll_bar_click)
@@ -30,29 +32,28 @@
 	[USE_TOOLKIT_SCROLL_BARS] (SCROLL_BAR_FIRST_DELAY)
 	(SCROLL_BAR_CONTINUOUS_DELAY): New macros.
 	(x_scroll_bar_create): Set control reference with NewControl.
-	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]: Initialize
-	track_top and track_height to nil.
-	(x_scroll_bar_set_handle, x_scroll_bar_note_movement): Put
-	functions in #ifndef USE_TOOLKIT_SCROLL_BARS.
+	(x_scroll_bar_create) [USE_TOOLKIT_SCROLL_BARS]:
+	Initialize track_top and track_height to nil.
+	(x_scroll_bar_set_handle, x_scroll_bar_note_movement):
+	Put functions in #ifndef USE_TOOLKIT_SCROLL_BARS.
 	(XTset_vertical_scroll_bar): Don't make space between scroll bar
 	and associated window.
 	(XTset_vertical_scroll_bar) [MAC_OSX]: Get scroll bar area width
 	from window config.
-	(XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: Set
-	track_top and track_height to nil when scroll bar size is changed.
+	(XTset_vertical_scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
+	Set track_top and track_height to nil when scroll bar size is changed.
 	Recalculate them if they are nil.
 	(XTread_socket) [MAC_OSX]: Use control kind to determine if the
 	clicked control is a scroll bar.
 	(XTread_socket) [USE_TOOLKIT_SCROLL_BARS]: Use toolkit scroll bar
 	event handler functions.  Don't add modifiers to scroll bar click
-	events.  Call scroll bar release handler when window is
-	deactivated.
+	events.  Call scroll bar release handler when window is deactivated.
 	(mac_initialize): Remove unused code for X toolkit.
-	(syms_of_macterm) [!USE_TOOLKIT_SCROLL_BARS]: Initialize
-	Vx_toolkit_scroll_bars to nil.
+	(syms_of_macterm) [!USE_TOOLKIT_SCROLL_BARS]:
+	Initialize Vx_toolkit_scroll_bars to nil.
 
-	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]: New
-	members track_top and track_height.
+	* macterm.h (struct scroll_bar) [USE_TOOLKIT_SCROLL_BARS]:
+	New members track_top and track_height.
 
 	* sysselect.h [DARWIN || MAC_OSX]: Temporarily undefine
 	init_process when including sys/select.h.
@@ -120,7 +121,7 @@
 2005-05-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (move_it_in_display_line_to): Stop if we move beyond
-	TO_CHARPOS. This may happen if last glyphs was an image or stretch
+	TO_CHARPOS.  This may happen if last glyphs was an image or stretch
 	glyph.
 
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
@@ -132,7 +133,7 @@
 	* xmenu.c [not HAVE_X_TOOLKIT] (xmenu_show):
 	If user cancels the menu, quit unless FOR_CLICK.
 
-	* macros.c (Vexecuting_kbd_macro): Renamed from Vexecuting_macro.
+	* macros.c (Vexecuting_kbd_macro): Rename from Vexecuting_macro.
 	All uses changed.
 	(syms_of_macros): Define only executing-kbd-macro, not executing-macro.
 	* keyboard.c: Change Vexecuting_macro to Vexecuting_kbd_macro.
@@ -154,8 +155,7 @@
 
 2005-04-29  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c: Don't include time.h.  Include sysselect.h after
-	systime.h.
+	* mac.c: Don't include time.h.  Include sysselect.h after systime.h.
 
 	* macfns.c (Fx_server_version): Add BLOCK_INPUT around Gestalt.
 
@@ -218,13 +218,12 @@
 	(mac.o): Depend on ccl.h.
 	(macselect.o): New target.
 
-	* emacs.c (main) [MAC_OS8 || MAC_OSX && HAVE_CARBON]: Call
-	syms_of_macselect.
+	* emacs.c (main) [MAC_OS8 || MAC_OSX && HAVE_CARBON]:
+	Call syms_of_macselect.
 
 	* frame.c (Fdelete_frame) [MAC_OS]: Call x_clear_frame_selections.
 
-	* mac.c [!TARGET_API_MAC_CARBON]: Don't include charset.h or
-	coding.h.
+	* mac.c [!TARGET_API_MAC_CARBON]: Don't include charset.h or coding.h.
 	(QCLIPBOARD): Remove variable.
 	(syms_of_mac): Don't initialize it.
 	(Fmac_paste_function, Fmac_cut_function, Fx_selection_exists_p):
@@ -238,10 +237,10 @@
 	[TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Likewise.
 	(syms_of_mac) [TARGET_API_MAC_CARBON]: Defsubr it.
 
-	* macterm.c (handling_window_update, terminate_flag): Remove
-	variables.
-	(do_window_update, do_ae_quit_application, XTread_socket): Don't
-	use them.
+	* macterm.c (handling_window_update, terminate_flag):
+	Remove variables.
+	(do_window_update, do_ae_quit_application, XTread_socket):
+	Don't use them.
 	(WNE_SLEEP_AT_SUSPEND, WNE_SLEEP_AT_RESUME): Don't define.
 	[USE_CARBON_EVENTS && MAC_OSX] (mac_handle_service_event)
 	(init_service_handler): Move to macselect.c.  Remove declarations.
@@ -336,8 +335,8 @@
 	Make a sub-chartable with correct initial value.
 
 	* fns.c (Fset_char_table_range): Don't set slots used as default
-	values for ascii, eight-bit-control, eight-bit-graphic.  Don't
-	call Faref with charset-id.
+	values for ascii, eight-bit-control, eight-bit-graphic.
+	Don't call Faref with charset-id.
 	(Fset_char_table_default): Document how to treat normal character
 	argument.  Handle special slots used as default values of ascii,
 	eight-bit-control, eight-bit-control.  Make a sub chartable if
@@ -372,8 +371,8 @@
 	create_text_encoding_info_alist instead.
 	(init_font_name_table) [TARGET_API_MAC_CARBON]: Use Font Manager
 	routines also on Mac OS Classic.
-	(init_font_name_table) [!TARGET_API_MAC_CARBON]: Use
-	add_font_name_table_entry.
+	(init_font_name_table) [!TARGET_API_MAC_CARBON]:
+	Use add_font_name_table_entry.
 	(mac_do_list_fonts): Regard 0 in XLFD scaleble fields as
 	specified.  Derive unspecified scalable fields from specified one.
 	(x_list_fonts): Consider Valternate_fontname_alist.
@@ -471,8 +470,7 @@
 
 	* mac.c: Include charset.h and coding.h.
 	[TARGET_API_MAC_CARBON] (Qutf_8): Remove extern.
-	[TARGET_API_MAC_CARBON] (cfstring_create_with_string): New
-	function.
+	[TARGET_API_MAC_CARBON] (cfstring_create_with_string): New function.
 	[TARGET_API_MAC_CARBON] (Fmac_get_preference): Use it.
 
 	* macfns.c [TARGET_API_MAC_CARBON] (Fx_file_dialog): Likewise.
@@ -481,8 +479,8 @@
 
 	* macterm.c (x_autoselect_window_p): Remove variable.
 	(last_window): New variable.
-	(XTreassert_line_highlight, x_change_line_highlight): Remove
-	declarations.
+	(XTreassert_line_highlight, x_change_line_highlight):
+	Remove declarations.
 	(mac_focus_changed, x_detect_focus_change): New functions and
 	declarations.
 	(XTextExtents16, front_emacs_window): Remove function.
@@ -495,8 +493,8 @@
 	(XTread_socket): Move its contents here.  Generate select-window
 	event on mouse movement if needed.  Use x_detect_focus_change on
 	activate/deactivate events.  Don't deiconify frame or invalidate
-	window rectangle when dnd items are dropped.  Don't
-	activate/deactivate root control.
+	window rectangle when dnd items are dropped.
+	Don't activate/deactivate root control.
 	(frame_highlight, frame_unhighlight): Activate/deactivate root
 	control here.
 	(syms_of_macterm): Delete DEFVAR_BOOL for x_autoselect_window_p.
@@ -512,17 +510,17 @@
 
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.  Don't
-	include TextEncodingConverter.h.
+	* mac.c [!TARGET_API_MAC_CARBON]: Include MacLocales.h.
+	Don't include TextEncodingConverter.h.
 	(mac_system_script_code, Vmac_system_locale): New variables.
 	(syms_of_mac): Defvar them.
 	(mac_get_system_locale): New function.
 
-	* macfns.c (x_set_name, x_set_title) [!TARGET_API_MAC_CARBON]: Use
-	ENCODE_SYSTEM to encode title bar string.
+	* macfns.c (x_set_name, x_set_title) [!TARGET_API_MAC_CARBON]:
+	Use ENCODE_SYSTEM to encode title bar string.
 	(x_create_tip_frame): Apply 2005-03-18 change for xfns.c.
-	(Fx_file_dialog) [TARGET_API_MAC_CARBON && !MAC_OSX]: Use
-	CFStringGetSystemEncoding to get system default string encoding.
+	(Fx_file_dialog) [TARGET_API_MAC_CARBON && !MAC_OSX]:
+	Use CFStringGetSystemEncoding to get system default string encoding.
 
 	* macterm.c [!TARGET_API_MAC_CARBON]: Don't include
 	TextEncodingConverter.h.

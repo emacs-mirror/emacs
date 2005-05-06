@@ -2582,7 +2582,7 @@ Note that this function doesn't check the parent of CHAR_TABLE.  */)
     {
       size = ASIZE (range);
       if (size == 0)
-	args_out_of_range (range, 0);
+	args_out_of_range (range, make_number (0));
       CHECK_NUMBER (AREF (range, 0));
       charset_id = XINT (AREF (range, 0));
       if (size > 1)
