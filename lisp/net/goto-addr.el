@@ -119,7 +119,7 @@ A value of t means there is no limit--fontify regardless of the size."
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
     (define-key m (if (featurep 'xemacs) (kbd "<button2>") (kbd "<mouse-2>"))
-      'goto-address-at-point))
+      'goto-address-at-point)
     (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
