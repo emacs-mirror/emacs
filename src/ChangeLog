@@ -1,5 +1,7 @@
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* lread.c (Flocate_file_internal): Doc fix.
+
 	* Makefile.in (lisp, shortlisp): Add jka-cmpr-hook.elc.
 
 2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>

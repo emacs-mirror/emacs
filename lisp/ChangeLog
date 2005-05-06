@@ -1,5 +1,7 @@
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* files.el (locate-file): Doc fix.
+
 	* progmodes/gdb-ui.el (gdb-cpp-define-alist-program): Doc fix.
 	Remove the redundant test for ms-dos.
 
