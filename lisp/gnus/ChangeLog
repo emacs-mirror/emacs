@@ -1,3 +1,15 @@
+2005-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-date-ut): Support converting date in
+	forwarded parts as well.
+	(gnus-article-save-original-date): New macro.
+	(gnus-display-mime): Use it.
+
+2005-04-28  David Hansen  <david.hansen@physik.fu-berlin.de>
+
+	* nnrss.el (nnrss-check-group, nnrss-request-article): Support the
+	enclosure element of <item>.
+
 2005-04-24  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* spam-report.el (spam-report-unplug-agent)
@@ -18,7 +30,7 @@
 	Process requests from `spam-report-requests-file'.
 	(spam-report-url-ping-mm-url): Autoload.
 	[Added missing offline functionality from trunk.]
-	
+
 2005-04-18  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* qp.el (quoted-printable-encode-region): Save excursion.

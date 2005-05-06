@@ -195,6 +195,7 @@ for decoding when the cdr that the data specify is not available.")
 				   (delete "" (split-string (nth 6 e) "\n+"))
 				   " ")))
 	      (link (nth 2 e))
+	      (enclosure (nth 7 e))
 	      ;; Enable encoding of Newsgroups header in XEmacs.
 	      (default-enable-multibyte-characters t)
 	      (rfc2047-header-encoding-alist
@@ -203,18 +204,21 @@ for decoding when the cdr that the data specify is not available.")
 			 rfc2047-header-encoding-alist)
 		 rfc2047-header-encoding-alist))
 	      rfc2047-encode-encoded-words body)
-	  (when (or text link)
+	  (when (or text link enclosure)
 	    (insert "\n")
 	    (insert "<#multipart type=alternative>\n"
 		    "<#part type=\"text/plain\">\n")
 	    (setq body (point))
-	    (if text
-		(progn
-		  (insert text "\n")
-		  (when link
-		    (insert "\n" link "\n")))
-	      (when link
-		(insert link "\n")))
+	    (when text
+	      (insert text "\n")
+	      (when (or link enclosure)
+		(insert "\n")))
+	    (when link
+	      (insert link "\n"))
+	    (when enclosure
+	      (insert (car enclosure) " "
+		      (nth 2 enclosure) " "
+		      (nth 3 enclosure) "\n"))
 	    (setq body (buffer-substring body (point)))
 	    (insert "<#/part>\n"
 		    "<#part type=\"text/html\">\n"
@@ -223,6 +227,10 @@ for decoding when the cdr that the data specify is not available.")
 	      (insert text "\n"))
 	    (when link
 	      (insert "<p><a href=\"" link "\">link</a></p>\n"))
+	    (when enclosure
+	      (insert "<p><a href=\"" (car enclosure) "\">"
+		      (cadr enclosure) "</a> " (nth 2 enclosure)
+		      " " (nth 3 enclosure) "</p>\n"))
 	    (insert "</body></html>\n"
 		    "<#/part>\n"
 		    "<#/multipart>\n"))
@@ -518,8 +526,8 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 ;;; Snarf functions
 
 (defun nnrss-check-group (group server)
-  (let (file xml subject url extra changed author
-	     date rss-ns rdf-ns content-ns dc-ns)
+  (let (file xml subject url extra changed author date
+	     enclosure rss-ns rdf-ns content-ns dc-ns)
     (if (and nnrss-use-local
 	     (file-exists-p (setq file (expand-file-name
 					(nnrss-translate-file-chars
@@ -567,6 +575,27 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 	(setq date (or (nnrss-node-text dc-ns 'date item)
 		       (nnrss-node-text rss-ns 'pubDate item)
 		       (message-make-date)))
+	(when (setq enclosure (cadr (assq (intern (concat rss-ns "enclosure")) item)))
+	  (let ((url (cdr (assq 'url enclosure)))
+		(len (cdr (assq 'length enclosure)))
+		(type (cdr (assq 'type enclosure)))
+		(name))
+	    (setq len
+		  (if (and len (integerp (setq len (string-to-number len))))
+		      ;; actually already in `ls-lisp-format-file-size' but
+		      ;; probably not worth to require it for one function
+		      (do ((size (/ len 1.0) (/ size 1024.0))
+			   (post-fixes (list "" "k" "M" "G" "T" "P" "E")
+				       (cdr post-fixes)))
+			  ((< size 1024)
+			   (format "%.1f%s" size (car post-fixes))))
+		    "0"))
+	    (setq url (or url ""))
+	    (setq name (if (string-match "/\\([^/]*\\)$" url)
+			   (match-string 1 url)
+			 "file"))
+	    (setq type (or type ""))
+	    (setq enclosure (list url name len type))))
 	(push
 	 (list
 	  (incf nnrss-group-max)
@@ -575,7 +604,8 @@ nnrss: %s: Not valid XML %s and w3-parse doesn't work %s"
 	  (and subject (nnrss-mime-encode-string subject))
 	  (and author (nnrss-mime-encode-string author))
 	  date
-	  (and extra (nnrss-decode-entities-string extra)))
+	  (and extra (nnrss-decode-entities-string extra))
+	  enclosure)
 	 nnrss-group-data)
 	(gnus-sethash (or url extra) t nnrss-group-hashtb)
 	(setq changed t))
