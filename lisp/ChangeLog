@@ -1,5 +1,8 @@
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-program): Doc fix.
+	Remove the redundant test for ms-dos.
+
 	* progmodes/cmacexp.el (c-macro-preprocessor): Use locate-file to
 	look for the preprocessor with exec-suffixes.  If not found in
 	standard places, look in exec-path.  Remove most of the tests that
