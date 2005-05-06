@@ -1,5 +1,10 @@
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
+	* progmodes/cmacexp.el (c-macro-preprocessor): Use locate-file to
+	look for the preprocessor with exec-suffixes.  If not found in
+	standard places, look in exec-path.  Remove most of the tests that
+	used system-type.
+
 	* loadup.el: Load jka-cmpr-hook instead of jka-comp-hook.
 
 	* jka-compr.el (jka-compr-uninstall): Add autoload cookie.
