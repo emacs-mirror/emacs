@@ -19,7 +19,13 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #ifdef HAVE_SYS_SELECT_H
+#if defined (DARWIN) || defined (MAC_OSX)
+#undef init_process
+#endif
 #include <sys/select.h>
+#if defined (DARWIN) || defined (MAC_OSX)
+#define init_process emacs_init_process
+#endif
 #endif
 
 #ifdef FD_SET
