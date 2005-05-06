@@ -80,14 +80,15 @@ Do so according to FILENAME's declared charset."
 	    assoc)
        (list (cond
 	      ((setq assoc
-		     (assoc-ignore-case charset
-					po-content-type-charset-alist))
+		     (assoc-string charset
+                                   po-content-type-charset-alist
+                                   t))
 	       (cdr assoc))
-	      ((or (setq assoc (assoc-ignore-case charset coding-system-alist))
+	      ((or (setq assoc (assoc-string charset coding-system-alist t))
 		   (setq assoc
-			 (assoc-ignore-case (subst-char-in-string ?_ ?-
-								  charset)
-					    coding-system-alist)))
+			 (assoc-string (subst-char-in-string ?_ ?-
+                                                             charset)
+                                       coding-system-alist t)))
 	       (intern (car assoc)))
 	      ;; In principle we should also check the `mime-charset'
 	      ;; property of everything in the base coding system
@@ -101,10 +102,10 @@ Do so according to FILENAME's declared charset."
 	       ;; to require it initially?
 	       (require 'code-pages nil t)
 	       (if (or
-		    (setq assoc (assoc-ignore-case charset coding-system-alist))
-		    (setq assoc (assoc-ignore-case (subst-char-in-string
-						    ?_ ?- charset)
-						   coding-system-alist)))
+		    (setq assoc (assoc-string charset coding-system-alist t))
+		    (setq assoc (assoc-string (subst-char-in-string
+                                               ?_ ?- charset)
+                                              coding-system-alist t)))
 		   (intern (car assoc))
 		 'raw-text))))))))
 
