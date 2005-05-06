@@ -274,9 +274,9 @@ Please submit bug reports and other feedback to the author, Neil W. Van Dyke
 <nwv@acm.org>."
   (interactive)
   (let* ((completion-ignore-case t)
-	 (item (assoc-ignore-case
+	 (item (assoc-string
 		(completing-read "WebJump to site: " webjump-sites nil t)
-		webjump-sites))
+		webjump-sites t))
 	 (name (car item))
 	 (expr (cdr item)))
     (browse-url (webjump-url-fix
