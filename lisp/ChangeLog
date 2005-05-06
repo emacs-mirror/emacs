@@ -1,3 +1,10 @@
+2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* net/goto-addr.el (goto-address-fontify): Make sure the overlays
+	evaporate if their text is deleted.
+	(goto-address-at-point): Make it work as a mouse binding as well.
+	(goto-address-at-mouse): Obsolete it.  Update users.
+
 2005-05-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/solar.el (solar-setup): Throw error if called
@@ -11,8 +18,8 @@
 	* net/webjump.el (webjump):
 	* progmodes/idlw-help.el (idlwave-do-context-help1)
 	(idlwave-highlight-linked-completions):
-	* textmodes/po.el (po-find-file-coding-system-guts): Replace
-	`assoc-ignore-case' by `assoc-string'.
+	* textmodes/po.el (po-find-file-coding-system-guts):
+	Replace `assoc-ignore-case' by `assoc-string'.
 
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -37,8 +44,8 @@
 
 	* term/mac-win.el: Don't define or bind scroll bar functions if
 	x-toolkit-scroll-bars is t.
-	(x-select-text, x-get-selection-value): Clear
-	x-last-selected-text-clipboard if x-select-enable-clipboard is
+	(x-select-text, x-get-selection-value):
+	Clear x-last-selected-text-clipboard if x-select-enable-clipboard is
 	nil.
 	(PRIMARY): Put mac-scrap-name property.
 	(mac-select-convert-to-file-url): New function.
@@ -71,8 +78,8 @@
 	(ido-file-internal): Add with-no-warnings around ffap and dired code.
 	(ido-exit-minibuffer): Use exit-minibuffer instead of throw.
 	(ido-wide-find-file, ido-wide-find-dir): Catch quit to cancel find.
-	(ido-push-dir, ido-pop-dir, ido-wide-find-file-or-pop-dir): New
-	functions for M-b/M-f to move among the directory components.
+	(ido-push-dir, ido-pop-dir, ido-wide-find-file-or-pop-dir):
+	New functions for M-b/M-f to move among the directory components.
 	(ido-make-merged-file-list): Catch quit to cancel merge.
 	(ido-make-dir-list): Delete "." when ido-input-stack is non-empty.
 	(ido-completion-help): No warnings for ido-completion-buffer-full.
@@ -87,8 +94,8 @@
 
 2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacs-lisp/byte-run.el (define-obsolete-function-alias): Fix
-	typo in docstring.
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias):
+	Fix typo in docstring.
 
 	* progmodes/ebrowse.el (ebrowse-install-1-to-9-keys)
 	(ebrowse-print-statistics-line)
