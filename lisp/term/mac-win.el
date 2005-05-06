@@ -1168,7 +1168,8 @@ This is in addition to the primary selection."
 (defun x-select-text (text &optional push)
   (x-set-selection 'PRIMARY text)
   (setq x-last-selected-text-primary text)
-  (when x-select-enable-clipboard
+  (if (not x-select-enable-clipboard)
+      (setq x-last-selected-text-clipboard nil)
     (x-set-selection 'CLIPBOARD text)
     (setq x-last-selected-text-clipboard text))
   )
@@ -1203,20 +1204,26 @@ in `selection-converter-alist', which see."
 		 (setq data
 		       (decode-coding-string data 'utf-16)))))
 	    ((eq data-type 'com.apple.traditional-mac-plain-text)
-	     (setq data (decode-coding-string data coding))))
+	     (setq data (decode-coding-string data coding)))
+	    ((eq data-type 'public.file-url)
+	     (setq data (decode-coding-string data 'utf-8))
+	     ;; Remove a trailing nul character.
+	     (let ((len (length data)))
+	       (if (and (> len 0) (= (aref data (1- len)) ?\0))
+		   (setq data (substring data 0 (1- len)))))))
       (put-text-property 0 (length data) 'foreign-selection data-type data))
     data))
 
 (defun x-selection-value (type)
-  (let (text tiff-image)
-    (setq text (condition-case nil
-		   (x-get-selection type 'public.utf16-plain-text)
-		 (error nil)))
-    (if (not text)
-	(setq text (condition-case nil
-		       (x-get-selection type
-					'com.apple.traditional-mac-plain-text)
-		     (error nil))))
+  (let ((data-types '(public.utf16-plain-text
+		      com.apple.traditional-mac-plain-text
+		      public.file-url))
+	text tiff-image)
+    (while (and (null text) data-types)
+      (setq text (condition-case nil
+		     (x-get-selection type (car data-types))
+		   (error nil)))
+      (setq data-types (cdr data-types)))
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     (setq tiff-image (condition-case nil
@@ -1237,7 +1244,8 @@ in `selection-converter-alist', which see."
 ;;; selection won't be added to the kill ring over and over.
 (defun x-get-selection-value ()
   (let (clip-text primary-text)
-    (when x-select-enable-clipboard
+    (if (not x-select-enable-clipboard)
+	(setq x-last-selected-text-clipboard nil)
       (setq clip-text (x-selection-value 'CLIPBOARD))
       (if (string= clip-text "") (setq clip-text nil))
 
@@ -1286,11 +1294,14 @@ in `selection-converter-alist', which see."
     ))
 
 (put 'CLIPBOARD 'mac-scrap-name "com.apple.scrap.clipboard")
-(if (eq system-type 'darwin)
-    (put 'FIND 'mac-scrap-name "com.apple.scrap.find"))
+(when (eq system-type 'darwin)
+  (put 'FIND 'mac-scrap-name "com.apple.scrap.find")
+  (put 'PRIMARY 'mac-scrap-name
+       (format "org.gnu.Emacs.%d.selection.PRIMARY" (emacs-pid))))
 (put 'com.apple.traditional-mac-plain-text 'mac-ostype "TEXT")
 (put 'public.utf16-plain-text 'mac-ostype "utxt")
 (put 'public.tiff 'mac-ostype "TIFF")
+(put 'public.file-url 'mac-ostype "furl")
 
 (defun mac-select-convert-to-string (selection type value)
   (let ((str (cdr (xselect-convert-to-string selection nil value)))
@@ -1326,6 +1337,16 @@ in `selection-converter-alist', which see."
       (setq next-selection-coding-system nil)
       (cons type str))))
 
+(defun mac-select-convert-to-file-url (selection type value)
+  (let ((filename (xselect-convert-to-filename selection type value))
+	(coding (or file-name-coding-system default-file-name-coding-system)))
+    (if (and filename coding)
+	(setq filename (encode-coding-string filename coding)))
+    (and filename
+	 (concat "file://localhost"
+		 (mapconcat 'url-hexify-string
+			    (split-string filename "/") "/")))))
+
 (setq selection-converter-alist
       (nconc
        '((public.utf16-plain-text . mac-select-convert-to-string)
@@ -1333,6 +1354,7 @@ in `selection-converter-alist', which see."
 	 ;; This is not enabled by default because the `Import Image'
 	 ;; menu makes Emacs crash or hang for unknown reasons.
 	 ;; (public.tiff . nil)
+	 (public.file-url . mac-select-convert-to-file-url)
 	 )
        selection-converter-alist))
 
@@ -1702,6 +1724,7 @@ ascii:-*-Monaco-*-*-*-*-12-*-*-*-*-*-mac-roman")
 (setq interprogram-cut-function 'x-select-text)
 (setq interprogram-paste-function 'x-get-selection-value)
 
+(defalias 'x-cut-buffer-or-selection-value 'x-get-selection-value)
 
 ;;; Turn off window-splitting optimization; Mac is usually fast enough
 ;;; that this is only annoying.
@@ -1756,7 +1779,9 @@ Switch to a buffer editing the last file dropped."
 	  '(lambda ()
 	     (defvar mac-ready-for-drag-n-drop t)))
 
-;;;; Scroll bars
+;;;; Non-toolkit Scroll bars
+
+(unless x-toolkit-scroll-bars
 
 ;; for debugging
 ;; (defun mac-handle-scroll-bar-event (event) (interactive "e") (princ event))
@@ -1816,6 +1841,7 @@ Switch to a buffer editing the last file dropped."
     (mac-scroll-ignore-events)
     (scroll-up 1)))
 
+)
 
 ;;;; Others
 
