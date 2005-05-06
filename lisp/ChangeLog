@@ -1,3 +1,12 @@
+2005-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* loadup.el: Load jka-cmpr-hook instead of jka-comp-hook.
+
+	* jka-compr.el (jka-compr-uninstall): Add autoload cookie.
+
+	* jka-cmpr-hook.el: Renamed from jka-comp-hook.el, to avoid
+	file-name clash with jka-compr.el on 8+3 filesystems.
+
 2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el: Don't define or bind scroll bar functions if
@@ -232,10 +241,10 @@
 
 	* loadup.el: load jka-comp-hook.
 
-	* jka-compr.el: Many functions and vars moved to jka-compr-hook.el.
+	* jka-compr.el: Many functions and vars moved to jka-comp-hook.el.
 	(jka-compr-handler): Add autoload.  `put' calls moved
-	to jka-compr-hook.el.
-	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
+	to jka-comp-hook.el.
+	(compression, jka-compr): defgroups moved to jka-comp-hook.el.
 	(jka-compr-inhibit): Autoload.
 
 	* jka-comp-hook.el: New file.

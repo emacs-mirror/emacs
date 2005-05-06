@@ -1,3 +1,7 @@
+2005-05-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* Makefile.in (lisp, shortlisp): Add jka-cmpr-hook.elc.
+
 2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macselect.c (x_own_selection): Accept Lisp string as result of
