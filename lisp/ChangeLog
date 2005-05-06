@@ -1,3 +1,12 @@
+2005-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calendar/cal-bahai.el (mark-bahai-diary-entries):
+	* net/webjump.el (webjump):
+	* progmodes/idlw-help.el (idlwave-do-context-help1)
+	(idlwave-highlight-linked-completions):
+	* textmodes/po.el (po-find-file-coding-system-guts): Replace
+	`assoc-ignore-case' by `assoc-string'.
+
 2005-05-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* files.el (locate-file): Doc fix.
@@ -88,7 +97,7 @@
 
 	* progmodes/gdb-ui.el (gdb-cpp-define-alist-flags): New variable.
 	(gdb-create-define-alist): Use it.
-	(gdb-cpp-define-alist-program): Update for MS-DOS?
+	(gdb-cpp-define-alist-program): Update for MS-DOS.
 
 2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -2222,7 +2231,7 @@
 	(menu-bar-showhide-menu): Use menu-bar-make-mm-toggle.
 	(menu-bar-make-mm-toggle): Simplify.
 
-2005-03-22  JUAN-LEON Lahoz Garcia <juanleon1@gmail.com>
+2005-03-22  JUAN-LEON Lahoz Garcia  <juanleon1@gmail.com>
 
 	* progmodes/perl-mode.el (perl-font-lock-keywords-2):
 	Accept qualified variable and function names.
@@ -2396,7 +2405,7 @@
 	(recentf-cleanup): Use it to conditionally check availablity of
 	remote files.
 
-2005-03-19  Joe Edmonds <joe-bugs-debian-org@elem.com>  (tiny change)
+2005-03-19  Joe Edmonds  <joe-bugs-debian-org@elem.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Recognize `@' in
 	function names.
@@ -3971,7 +3980,7 @@
 	(bibtex-parse-field-name): Fix typos in docstrings.
 	(bibtex-field-list, bibtex-find-crossref): Fix typos in error messages.
 
-2005-01-24  Carsten Dominik <dominik@science.uva.nl>
+2005-01-24  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex-global.el (reftex-isearch-push-state-function)
 	(reftex-isearch-pop-state-function, reftex-isearch-isearch-search)
@@ -5103,7 +5112,7 @@
 	* ffap.el (ffap-string-at-point-mode-alist): Add "*" to url chars,
 	it can appear unencoded and has been seen from yahoo.
 
-2004-12-27  Sergey Poznyakoff <gray@Mirddin.farlep.net>  (tiny change)
+2004-12-27  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
 
 	* mail/smtpmail.el (smtpmail-try-auth-methods): Send AUTH CRAM-MD5
 	in upper case.  Reported by Wojciech Polak <polak@gnu.org>.
@@ -6473,7 +6482,7 @@
 	other frames.
 	(gdb-reset): Remove dedicated property after debugging.
 
-2004-11-24  Jay Belanger <belanger@truman.edu>
+2004-11-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-sel.el: Add comment.
 
@@ -7761,7 +7770,7 @@
 	(gud-gdba-command-name, gdb-show-main, gdb-many-windows):
 	Add :version keyword.
 
-2004-11-02  Pavel Kobiakov <pk_at_work@yahoo.com>
+2004-11-02  Pavel Kobiakov  <pk_at_work@yahoo.com>
 
 	* progmodes/flymake.el (flymake-err-line-patterns):
 	Use `flymake-reformat-err-line-patterns-from-compile-el' to convert
@@ -8170,7 +8179,7 @@
 	Handle periods and underscores in a function name.
 	Remove the address fontification.
 
-2004-10-24 Masatake YAMATO <jet@gyve.org>
+2004-10-24  Masatake YAMATO  <jet@gyve.org>
 
 	* progmodes/asm-mode.el (asm-font-lock-keywords):
 	Use font-lock-variable-name-face for registers.
@@ -8312,7 +8321,7 @@
 
 	* paths.el (news-path): Fix previous change.
 
-2004-10-18 Jay Belanger  <belanger@truman.edu>
+2004-10-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-describe-bindings):
 	Set `buffer-read-only' to nil while working in the keybindings buffer;
@@ -9452,7 +9461,7 @@
 
 	* terminal.el (te-escape): Show `?' in prompt for help key.
 
-2004-09-04  Emilio C. Lopes <eclig@gmx.net>
+2004-09-04  Emilio C. Lopes  <eclig@gmx.net>
 
 	* emacs-lisp/lisp.el (kill-backward-up-list): New function.
 
@@ -9860,7 +9869,7 @@
 
 	* imenu.el: Several doc fixes: don't say variables are buffer-local.
 
-2004-08-16  Davis Herring <herring@lanl.gov>
+2004-08-16  Davis Herring  <herring@lanl.gov>
 
 	* isearch.el (isearch-string, isearch-message-string, isearch-point)
 	(isearch-success, isearch-forward-flag, isearch-other-end)
