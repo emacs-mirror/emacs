@@ -1,3 +1,9 @@
+2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* pcvs.el (cvs-mode-commit, cvs-mode-edit-log): Don't fiddle with
+	list-buffers-directory.  This caused the *cvs-commit* buffer to be
+	sometimes mistakenly reused as a *cvs* buffer.
+
 2005-05-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el: Move code for GUD tooltips into gud.el.
@@ -33,9 +39,9 @@
 	(gud-tooltip-original-filter, gud-tooltip-dereference)
 	(gud-tooltip-event, tooltip-toggle-gud-tips)
 	(gud-tooltip-process-output, gud-tooltip-print-command)
-	(gud-tooltip-tips): Moved from tooltip.el.
+	(gud-tooltip-tips): Move from tooltip.el.
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print): Moved from tooltip.el.
+	* progmodes/gdb-ui.el (gdb-tooltip-print): Move from tooltip.el.
 	(gdb-cpp-define-alist-flags): Doc fix.
 	(gdb-set-gud-minor-mode-1): Only prepare GUD tooltips if
 	gud-tooltip-mode is t.
