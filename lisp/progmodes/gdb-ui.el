@@ -200,13 +200,16 @@ detailed description of this mode.
   "Shell command for generating a list of defined macros in a source file.
 This list is used to display the #define directive associated
 with an identifier as a tooltip. It works in a debug session with
-GDB, when tooltip-gud-tips-p is t."
+GDB, when gud-tooltip-mode is t.
+
+Set `gdb-cpp-define-alist-flags' for any include paths or
+predefined macros."
   :type 'string
   :group 'gud
   :version "22.1")
 
 (defcustom gdb-cpp-define-alist-flags ""
-  "*Preprocessor flags used by `gdb-create-define-alist'."
+  "*Preprocessor flags for `gdb-cpp-define-alist-program'."
   :type 'string
   :group 'gud
   :version "22.1")
@@ -231,6 +234,14 @@ GDB, when tooltip-gud-tips-p is t."
       (setq name (nth 1 (split-string define "[( ]")))
       (push (cons name define) gdb-define-alist))))
 
+(defun gdb-tooltip-print ()
+  (tooltip-show
+   (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
+     (let ((string (buffer-string)))
+       ;; remove newline for gud-tooltip-echo-area
+       (substring string 0 (- (length string) 1))))
+   gud-tooltip-echo-area))
+
 (defun gdb-set-gud-minor-mode (buffer)
   "Set gud-minor-mode from find-file if appropriate."
   (goto-char (point-min))
@@ -250,9 +261,10 @@ GDB, when tooltip-gud-tips-p is t."
     (with-current-buffer buffer
       (set (make-local-variable 'gud-minor-mode) 'gdba)
       (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-      (make-local-variable 'gdb-define-alist)
-      (gdb-create-define-alist)
-      (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))
+      (when gud-tooltip-mode
+	(make-local-variable 'gdb-define-alist)
+	(gdb-create-define-alist)
+	(add-hook 'after-save-hook 'gdb-create-define-alist nil t)))))
 
 (defun gdb-set-gud-minor-mode-existing-buffers ()
   (dolist (buffer (buffer-list))
