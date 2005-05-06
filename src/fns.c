@@ -2536,19 +2536,19 @@ char_table_range (table, from, to, defalt)
 	error ("Characters in the range have inconsistent values");
     }
   return val;
-}  
+}
 
 
 DEFUN ("char-table-range", Fchar_table_range, Schar_table_range,
        2, 2, 0,
        doc: /* Return the value in CHAR-TABLE for a range of characters RANGE.
-RANGE should be nil (for the default value)
+RANGE should be nil (for the default value),
 a vector which identifies a character set or a row of a character set,
 a character set name, or a character code.
 If the characters in the specified range have different values,
 an error is signalled.
 
-Note that this function doesn't check the parent of CHAR_TABLE.  */)
+Note that this function doesn't check the parent of CHAR-TABLE.  */)
      (char_table, range)
      Lisp_Object char_table, range;
 {
@@ -2631,7 +2631,7 @@ Note that this function doesn't check the parent of CHAR_TABLE.  */)
 	current_default = XCHAR_TABLE (char_table)->contents[defalt];
       return char_table_range (char_table, from, to, current_default);
     }
-  
+
   val = XCHAR_TABLE (char_table)->contents[128 + charset_id];
   if (! SUB_CHAR_TABLE_P (val))
     return (NILP (val) ? current_default : val);
