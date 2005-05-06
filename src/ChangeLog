@@ -1,3 +1,7 @@
+2005-05-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fchar_table_range): Fix typos in docstring.
+
 2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fns.c (Fchar_table_range): Yet Another Int/Lisp_Object Mixup.
@@ -1137,7 +1141,7 @@
 	* xdisp.c (init_from_display_pos): Don't read past end of
 	it->overlay_strings array.
 
-2005-02-25  Stephan Stahl <stahl@eos.franken.de>  (tiny change)
+2005-02-25  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* buffer.c (syms_of_buffer): Fix typo.
 
@@ -1167,7 +1171,7 @@
 	I think those asserts are bogus if buffer contains invisible text
 	or images.
 
-2005-02-21  David Kastrup <dak@gnu.org>
+2005-02-21  David Kastrup  <dak@gnu.org>
 
 	* gtkutil.c (xg_create_frame_widgets): UNBLOCK_INPUT on error.
 
@@ -3767,7 +3771,7 @@
 	compositions to encode.
 	(encode_coding_string): Likewise.  Free composition data.
 
-2004-09-30  Florian Weimer <fw@deneb.enyo.de>
+2004-09-30  Florian Weimer  <fw@deneb.enyo.de>
 
 	* coding.c (code_convert_region): Free composition data.
 
@@ -4305,7 +4309,7 @@
 	* xfns.c (x_icon_verify): New function.
 	(Fx_create_frame): Use it.
 
-2004-07-22  Barry Fishman <barry_fishman@att.net>  (tiny change)
+2004-07-22  Barry Fishman  <barry_fishman@att.net>  (tiny change)
 
 	* s/gnu-linux.h: Use GC_MARK_STACK if __amd64__ is defined.
 
@@ -5968,7 +5972,7 @@
 	* xdisp.c (note_mode_line_or_margin_highlight): Accept HEADER_LINE
 	when keymap and cursor are setup.
 
-2004-03-14  Steven Tamm <steventamm@mac.com>
+2004-03-14  Steven Tamm  <steventamm@mac.com>
 
 	* Makefile.in (XMENU_OBJ) [HAVE_CARBON]: Do not include xmenu.o.
 
@@ -6030,7 +6034,7 @@
 	(GTK_OBJ) [USE_GTK]: New declaration.
 	(obj): Add $(GTK_OBJ) to list.
 
-2004-03-11  Steven Tamm <steventamm@mac.com>
+2004-03-11  Steven Tamm  <steventamm@mac.com>
 
 	* image.c [MAC_OSX]: Include sys/stat.h.
 
