@@ -1,3 +1,7 @@
+2005-05-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (top-level): No longer activate on load.
+
 2005-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calendar/cal-bahai.el (mark-bahai-diary-entries):
