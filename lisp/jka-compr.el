@@ -669,7 +669,7 @@ It is not recommended to set this variable permanently to anything but nil.")
 	(inhibit-file-name-operation operation))
     (apply operation args)))
 
-
+;;;###autoload
 (defun jka-compr-uninstall ()
   "Uninstall jka-compr.
 This removes the entries in `file-name-handler-alist' and `auto-mode-alist'
