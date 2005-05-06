@@ -1,6 +1,6 @@
 ;;; calc-frac.el --- fraction functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -56,7 +56,7 @@
    (if (string-match "\\`\\([^ 0-9][^ 0-9]?\\)[0-9]*\\'" fmt)
        (let ((n nil))
 	 (if (/= (match-end 0) (match-end 1))
-	     (setq n (string-to-int (substring fmt (match-end 1)))
+	     (setq n (string-to-number (substring fmt (match-end 1)))
 		   fmt (math-match-substring fmt 1)))
 	 (if (eq n 0) (error "Bad denominator"))
 	 (calc-change-mode 'calc-frac-format (list fmt n) t))

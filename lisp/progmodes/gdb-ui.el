@@ -196,6 +196,43 @@ detailed description of this mode.
   :group 'gud
   :version "22.1")
 
+(defcustom gdb-cpp-define-alist-program 
+  (cond ((eq system-type 'ms-dos) "gcc -E -dM -o - -")
+	(t "gcc -E -dM -"))
+  "The program name for generating an alist of #define directives.
+This list is used to display the #define directive associated
+with an identifier as a tooltip. It works in a debug session with
+GDB, when tooltip-gud-tips-p is t."
+  :type 'string
+  :group 'gud
+  :version "22.1")
+
+(defcustom gdb-cpp-define-alist-flags ""
+  "*Preprocessor flags used by `gdb-create-define-alist'."
+  :type 'string
+  :group 'gud
+  :version "22.1")
+
+(defvar gdb-define-alist nil "Alist of #define directives for GUD tooltips.")
+
+(defun gdb-create-define-alist ()
+  "Create an alist of #define directives for GUD tooltips."
+  (let* ((file (buffer-file-name))
+	 (output
+	  (with-output-to-string
+	    (with-current-buffer standard-output
+	      (call-process shell-file-name
+			    (if (file-exists-p file) file nil)
+			    (list t nil) nil "-c"
+			    (concat gdb-cpp-define-alist-program " "
+				    gdb-cpp-define-alist-flags)))))
+	(define-list (split-string output "\n" t))
+	(name))
+    (setq gdb-define-alist nil)
+    (dolist (define define-list)
+      (setq name (nth 1 (split-string define "[( ]")))
+      (push (cons name define) gdb-define-alist))))
+
 (defun gdb-set-gud-minor-mode (buffer)
   "Set gud-minor-mode from find-file if appropriate."
   (goto-char (point-min))
@@ -208,13 +245,16 @@ detailed description of this mode.
 
 (defun gdb-set-gud-minor-mode-1 (buffer)
   (goto-char (point-min))
-  (if (and (search-forward "Located in " nil t)
-	   (looking-at "\\S-*")
-	   (string-equal (buffer-file-name buffer)
-			 (match-string 0)))
-      (with-current-buffer buffer
-	(set (make-local-variable 'gud-minor-mode) 'gdba)
-	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map))))
+  (when (and (search-forward "Located in " nil t)
+	     (looking-at "\\S-*")
+	     (string-equal (buffer-file-name buffer)
+			   (match-string 0)))
+    (with-current-buffer buffer
+      (set (make-local-variable 'gud-minor-mode) 'gdba)
+      (set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+      (make-local-variable 'gdb-define-alist)
+      (gdb-create-define-alist)
+      (add-hook 'after-save-hook 'gdb-create-define-alist nil t))))
 
 (defun gdb-set-gud-minor-mode-existing-buffers ()
   (dolist (buffer (buffer-list))
@@ -805,7 +845,7 @@ This filter may simply queue input for a later time."
   (setq gud-last-frame
 	(cons
 	 (match-string 1 args)
-	 (string-to-int (match-string 2 args))))
+	 (string-to-number (match-string 2 args))))
   (setq gdb-current-address (match-string 3 args))
   ;; cover for auto-display output which comes *before*
   ;; stopped annotation
@@ -889,7 +929,6 @@ directives."
   (setq gdb-active-process nil)
   (gdb-stopping ignored))
  
-
 (defun gdb-frame-begin (ignored)
   (let ((sink gdb-output-sink))
     (cond
@@ -1690,7 +1729,7 @@ static char *magick[] = {
   (save-selected-window
     (select-window (posn-window (event-start event)))
     (let* ((arg (read-from-minibuffer "Repeat count: "))
-	  (count (string-to-int arg)))
+	  (count (string-to-number arg)))
       (if (< count 0)
 	  (error "Non-negative numbers only")
 	(customize-set-variable 'gdb-memory-repeat-count count)
@@ -1998,7 +2037,8 @@ corresponding to the mode line clicked."
 
 (let ((menu (make-sparse-keymap "GDB-Windows")))
   (define-key gud-menu-map [displays]
-    `(menu-item "GDB-Windows" ,menu :visible (eq gud-minor-mode 'gdba)))
+    `(menu-item "GDB-Windows" ,menu
+		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
@@ -2014,7 +2054,8 @@ corresponding to the mode line clicked."
 
 (let ((menu (make-sparse-keymap "GDB-Frames")))
   (define-key gud-menu-map [frames]
-    `(menu-item "GDB-Frames" ,menu :visible (eq gud-minor-mode 'gdba)))
+    `(menu-item "GDB-Frames" ,menu
+		:visible (memq gud-minor-mode '(gdbmi gdba))))
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
@@ -2153,13 +2194,15 @@ Kills the gdb buffers and resets the source buffers."
 	      (gdb-remove-breakpoint-icons (point-min) (point-max) t)
 	      (setq gud-minor-mode nil)
 	      (kill-local-variable 'tool-bar-map)
-	      (setq gud-running nil)
-	      (setq gdb-active-process nil))))))
+	      (kill-local-variable 'gdb-define-alist))))))
   (when (markerp gdb-overlay-arrow-position)
     (move-marker gdb-overlay-arrow-position nil)
     (setq gdb-overlay-arrow-position nil))
   (setq overlay-arrow-variable-list
-	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list)))
+	(delq 'gdb-overlay-arrow-position overlay-arrow-variable-list))
+  (setq gud-running nil)
+  (setq gdb-active-process nil)
+  (remove-hook 'after-save-hook 'gdb-create-define-alist t))
 
 (defun gdb-source-info ()
   "Find the source file where the program starts and displays it with related

@@ -365,8 +365,9 @@ until a command (or undefined command) is found in the current key
 maps.  The key sequence argument is represented as a string or vector.
 The cursor does not move into the echo area.  Prompt.
 
-If the key sequence is a down-event, the following up-event is discarded,
-but can be read via the @code{U} code character.
+If @samp{k} reads a key sequence that ends with a down-event, it also
+reads and discards the following up-event.  You can get access to that
+up-event with the @samp{U} code character.
 
 This kind of input is used by commands such as @code{describe-key} and
 @code{global-set-key}.
@@ -425,9 +426,10 @@ the string.)  Other characters that normally terminate a symbol (e.g.,
 parentheses and brackets) do not do so here.  Prompt.
 
 @item U
-A key sequence or @code{nil}.  May be used after a @code{k} or @code{K}
-argument to get the up-event that was discarded in case the key
-sequence read for that argument was a down-event.  No I/O.
+A key sequence or @code{nil}.  Can be used after a @samp{k} or
+@samp{K} argument to get the up-event that was discarded (if any)
+after @samp{k} or @samp{K} read a down-event.  If no up-event has been
+discarded, @samp{U} provides @code{nil} as the argument.  No I/O.
 
 @item v
 A variable declared to be a user option (i.e., satisfying the
@@ -442,8 +444,9 @@ Minibuffer}.  Prompt.
 
 @item X
 @cindex evaluated expression argument
-A Lisp form is read as with @kbd{x}, but then evaluated so that its
-value becomes the argument for the command.  Prompt.
+A Lisp form's value.  @samp{X} reads as @samp{x} does, then evaluates
+the form so that its value becomes the argument for the command.
+Prompt.
 
 @item z
 A coding system name (a symbol).  If the user enters null input, the

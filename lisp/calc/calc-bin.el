@@ -1,6 +1,6 @@
 ;;; calc-bin.el --- binary functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -135,7 +135,7 @@
 	       (if (equal n "")
 		   calc-word-size
 		 (if (string-match "\\`[-+]?[0-9]+\\'" n)
-		     (string-to-int n)
+		     (string-to-number n)
 		   (error "Expected an integer")))
 	     (prefix-numeric-value n)))
    (or (= n calc-word-size)

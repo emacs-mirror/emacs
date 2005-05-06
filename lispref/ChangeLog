@@ -1,3 +1,45 @@
+2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Variable Aliases): Change description of
+	`define-obsolete-variable-alias'.
+
+	* functions.texi (Functions): Add "Obsolete Functions" to menu.
+	(Defining Functions): Add xref.
+	(Obsolete Functions): New node.
+	(Function Safety): Standardize capitalization of section title.
+
+	* frames.texi (Pop-Up Menus): Complete description of `x-popup-menu'.
+	(Dialog Boxes): Complete description of `x-popup-dialog'.
+
+2005-05-04  Richard M. Stallman  <rms@gnu.org>
+
+	* commands.texi (Interactive Codes): Fix Texinfo usage.
+	Document U more clearly.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Variable Aliases): `make-obsolete-variable' is a
+	function and not a macro.
+
+	* frames.texi (Pop-Up Menus): Correct and clarify description of
+	`x-popup-menu'.
+	(Dialog Boxes): Clarify description of `x-popup-dialog'.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* edebug.texi (Checking Whether to Stop): Fix previous change.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi: Fix typos and Texinfo usage.
+
+	* edebug.texi (Checking Whether to Stop): executing-macro ->
+	executing-kbd-macro.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Invisible Text): Correct add-to-invisibility-spec.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Magic File Names): Document `operations' property.
@@ -1132,7 +1174,7 @@
 
 	* hooks.texi (Standard Hooks): `disabled-command-hook' has been
 	renamed to `disabled-command-function'.
-	* commands.texi (Key Sequence Input): Remove unnecessary anchor,
+	* commands.texi (Key Sequence Input): Remove unnecessary anchor.
 	(Command Loop Info): Replace reference to it.
 	(Disabling Commands): `disabled-command-hook' has been renamed to
 	`disabled-command-function'.

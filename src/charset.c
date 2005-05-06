@@ -1431,22 +1431,6 @@ The returned value is 0 for left-to-right and 1 for right-to-left.  */)
   return CHARSET_TABLE_INFO (charset, CHARSET_DIRECTION_IDX);
 }
 
-DEFUN ("chars-in-region", Fchars_in_region, Schars_in_region, 2, 2, 0,
-       doc: /* Return number of characters between BEG and END.  */)
-     (beg, end)
-     Lisp_Object beg, end;
-{
-  int from, to;
-
-  CHECK_NUMBER_COERCE_MARKER (beg);
-  CHECK_NUMBER_COERCE_MARKER (end);
-
-  from = min (XFASTINT (beg), XFASTINT (end));
-  to = max (XFASTINT (beg), XFASTINT (end));
-
-  return make_number (to - from);
-}
-
 /* Return the number of characters in the NBYTES bytes at PTR.
    This works by looking at the contents and checking for multibyte sequences.
    However, if the current buffer has enable-multibyte-characters = nil,
@@ -1855,7 +1839,6 @@ syms_of_charset ()
   defsubr (&Schar_width);
   defsubr (&Sstring_width);
   defsubr (&Schar_direction);
-  defsubr (&Schars_in_region);
   defsubr (&Sstring);
   defsubr (&Ssetup_special_charsets);
 

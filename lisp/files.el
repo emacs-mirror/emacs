@@ -287,13 +287,13 @@ from `mode-require-final-newline'."
 		 (const :tag "When saving" t)
 		 (const :tag "When visiting or saving" visit-save)
 		 (const :tag "Don't add newlines" nil)
-		 (other :tag "Ask" ask))
+		 (other :tag "Ask each time" ask))
   :group 'editing-basics)
 
 (defcustom mode-require-final-newline t
   "*Whether to add a newline at end of file, in certain major modes.
 Those modes set `require-final-newline' to this value when you enable them.
-They do so because they are used for files that are supposed
+They do so because they are often used for files that are supposed
 to end in newlines, and the question is how to arrange that.
 
 A value of t means do this only when the file is about to be saved.

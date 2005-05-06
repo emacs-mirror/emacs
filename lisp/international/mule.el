@@ -486,9 +486,6 @@ A base coding system is what made by `make-coding-system'.
 Any alias nor subsidiary coding systems are not base coding system."
   (car (coding-system-get coding-system 'alias-coding-systems)))
 
-(defalias 'coding-system-parent 'coding-system-base)
-(make-obsolete 'coding-system-parent 'coding-system-base "20.3")
-
 ;; Coding system also has a property `eol-type'.
 ;;
 ;; This property indicates how the coding system handles end-of-line

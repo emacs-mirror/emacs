@@ -1162,21 +1162,21 @@ cmd_error (data)
     cancel_hourglass ();
 #endif
 
-  if (!NILP (executing_macro))
+  if (!NILP (executing_kbd_macro))
     {
-      if (executing_macro_iterations == 1)
+      if (executing_kbd_macro_iterations == 1)
 	sprintf (macroerror, "After 1 kbd macro iteration: ");
       else
 	sprintf (macroerror, "After %d kbd macro iterations: ",
-		 executing_macro_iterations);
+		 executing_kbd_macro_iterations);
     }
   else
     *macroerror = 0;
 
   Vstandard_output = Qt;
   Vstandard_input = Qt;
-  Vexecuting_macro = Qnil;
-  executing_macro = Qnil;
+  Vexecuting_kbd_macro = Qnil;
+  executing_kbd_macro = Qnil;
   current_kboard->Vprefix_arg = Qnil;
   current_kboard->Vlast_prefix_arg = Qnil;
   cancel_echoing ();
@@ -1273,7 +1273,7 @@ command_loop ()
     {
       Lisp_Object val;
       val = internal_catch (Qexit, command_loop_2, Qnil);
-      executing_macro = Qnil;
+      executing_kbd_macro = Qnil;
       return val;
     }
   else
@@ -1285,7 +1285,7 @@ command_loop ()
            other reason. */
         any_kboard_state ();
 	internal_catch (Qtop_level, command_loop_2, Qnil);
-	executing_macro = Qnil;
+	executing_kbd_macro = Qnil;
 
 	/* End of file in -batch run causes exit here.  */
 	if (noninteractive)
@@ -1438,7 +1438,7 @@ command_loop_1 ()
 	  if (NILP (Vunread_command_events)
 	      && NILP (Vunread_input_method_events)
 	      && NILP (Vunread_post_input_method_events)
-	      && NILP (Vexecuting_macro)
+	      && NILP (Vexecuting_kbd_macro)
 	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	    safe_run_hooks (Qpost_command_idle_hook);
 	}
@@ -1567,11 +1567,11 @@ command_loop_1 ()
 	}
 
       cmd = read_key_sequence_cmd;
-      if (!NILP (Vexecuting_macro))
+      if (!NILP (Vexecuting_kbd_macro))
 	{
 	  if (!NILP (Vquit_flag))
 	    {
-	      Vexecuting_macro = Qt;
+	      Vexecuting_kbd_macro = Qt;
 	      QUIT;		/* Make some noise. */
 				/* Will return since macro now empty. */
 	    }
@@ -1670,7 +1670,7 @@ command_loop_1 ()
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
-		      && NILP (Vexecuting_macro))
+		      && NILP (Vexecuting_kbd_macro))
 		    direct_output_forward_char (1);
 		  goto directly_done;
 		}
@@ -1705,7 +1705,7 @@ command_loop_1 ()
 		      && EQ (current_buffer->selective_display, Qnil)
 		      && !detect_input_pending ()
 		      && NILP (XWINDOW (selected_window)->column_number_displayed)
-		      && NILP (Vexecuting_macro))
+		      && NILP (Vexecuting_kbd_macro))
 		    direct_output_forward_char (-1);
 		  goto directly_done;
 		}
@@ -1718,7 +1718,7 @@ command_loop_1 ()
 		    = translate_char (Vtranslation_table_for_input,
 				      XFASTINT (last_command_char), 0, 0, 0);
 		  int value;
-		  if (NILP (Vexecuting_macro)
+		  if (NILP (Vexecuting_kbd_macro)
 		      && !EQ (minibuf_window, selected_window))
 		    {
 		      if (!nonundocount || nonundocount >= 20)
@@ -1740,7 +1740,7 @@ command_loop_1 ()
 			  || !EQ (current_buffer->selective_display, Qnil)
 			  || detect_input_pending ()
 			  || !NILP (XWINDOW (selected_window)->column_number_displayed)
-			  || !NILP (Vexecuting_macro));
+			  || !NILP (Vexecuting_kbd_macro));
 
 		  value = internal_self_insert (c, 0);
 
@@ -1768,7 +1768,7 @@ command_loop_1 ()
             int scount = SPECPDL_INDEX ();
 
             if (display_hourglass_p
-                && NILP (Vexecuting_macro))
+                && NILP (Vexecuting_kbd_macro))
               {
                 record_unwind_protect (cancel_hourglass_unwind, Qnil);
                 start_hourglass ();
@@ -1786,7 +1786,7 @@ command_loop_1 ()
 	     hourglass cursor anyway.
 	     But don't cancel the hourglass within a macro
 	     just because a command in the macro finishes.  */
-	  if (NILP (Vexecuting_macro))
+	  if (NILP (Vexecuting_kbd_macro))
             unbind_to (scount, Qnil);
 #endif
           }
@@ -1812,7 +1812,7 @@ command_loop_1 ()
 	  if (NILP (Vunread_command_events)
 	      && NILP (Vunread_input_method_events)
 	      && NILP (Vunread_post_input_method_events)
-	      && NILP (Vexecuting_macro)
+	      && NILP (Vexecuting_kbd_macro)
 	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
 	    safe_run_hooks (Qpost_command_idle_hook);
 	}
@@ -2493,7 +2493,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   this_command_key_count_reset = 0;
 
-  if (!NILP (Vexecuting_macro))
+  if (!NILP (Vexecuting_kbd_macro))
     {
       /* We set this to Qmacro; since that's not a frame, nobody will
 	 try to switch frames on us, and the selected window will
@@ -2510,19 +2510,19 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
       /* Exit the macro if we are at the end.
 	 Also, some things replace the macro with t
 	 to force an early exit.  */
-      if (EQ (Vexecuting_macro, Qt)
-	  || executing_macro_index >= XFASTINT (Flength (Vexecuting_macro)))
+      if (EQ (Vexecuting_kbd_macro, Qt)
+	  || executing_kbd_macro_index >= XFASTINT (Flength (Vexecuting_kbd_macro)))
 	{
 	  XSETINT (c, -1);
 	  goto exit;
 	}
 
-      c = Faref (Vexecuting_macro, make_number (executing_macro_index));
-      if (STRINGP (Vexecuting_macro)
+      c = Faref (Vexecuting_kbd_macro, make_number (executing_kbd_macro_index));
+      if (STRINGP (Vexecuting_kbd_macro)
 	  && (XINT (c) & 0x80) && (XUINT (c) <= 0xff))
 	XSETFASTINT (c, CHAR_META | (XINT (c) & ~0x80));
 
-      executing_macro_index++;
+      executing_kbd_macro_index++;
 
       goto from_macro;
     }
@@ -9886,7 +9886,7 @@ DEFUN ("execute-extended-command", Fexecute_extended_command, Sexecute_extended_
 
   /* If enabled, show which key runs this command.  */
   if (!NILP (Vsuggest_key_bindings)
-      && NILP (Vexecuting_macro)
+      && NILP (Vexecuting_kbd_macro)
       && SYMBOLP (function))
     bindings = Fwhere_is_internal (function, Voverriding_local_map,
 				   Qt, Qnil, Qnil);

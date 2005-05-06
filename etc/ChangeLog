@@ -1,3 +1,16 @@
+2005-05-05  Marcelo Toledo  <marcelo@marcelotoledo.org>  (tiny change)
+
+        * TUTORIAL.pl: Updated header. Patch by Slawomir Nowaczyk
+        <slawek@cs.lth.se>.
+
+2005-05-02  Richard M. Stallman  <rms@gnu.org>
+
+	* NEWS: More rearrangements.
+
+2005-05-02  Chong Yidong  <cyd@stupidchicken.com>
+
+	* NEWS: Items rearranged in logical order.
+
 2005-05-01  Lars Hansen  <larsh@math.ku.dk>
 
 	* NEWS: Correct key binding for dired-mark-omitted.

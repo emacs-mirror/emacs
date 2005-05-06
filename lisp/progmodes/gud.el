@@ -228,6 +228,10 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
       (with-current-buffer buf
 	(set (make-local-variable 'gud-minor-mode) minor-mode)
 	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
+	(when (memq gud-minor-mode '(gdbmi gdba))
+	  (make-local-variable 'gdb-define-alist)
+	  (unless  gdb-define-alist (gdb-create-define-alist))
+	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))
 	(make-local-variable 'gud-keep-buffer))
       buf)))
 
@@ -474,7 +478,7 @@ off the specialized speedbar mode."
 
        ;; Extract the frame position from the marker.
        gud-last-frame (cons (match-string 1 gud-marker-acc)
-			    (string-to-int (match-string 2 gud-marker-acc)))
+			    (string-to-number (match-string 2 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -775,14 +779,14 @@ SKIP is the number of chars to skip on each lines, it defaults to 0."
 			gud-marker-acc start)
 	  (setq gud-last-frame
 		(cons (match-string 3 gud-marker-acc)
-		      (string-to-int (match-string 4 gud-marker-acc)))))
+		      (string-to-number (match-string 4 gud-marker-acc)))))
 	 ;; System V Release 4.0 quite often clumps two lines together
 	 ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n\\([0-9]+\\):"
 			gud-marker-acc start)
 	  (setq gud-sdb-lastfile (match-string 2 gud-marker-acc))
 	  (setq gud-last-frame
 		(cons gud-sdb-lastfile
-		      (string-to-int (match-string 3 gud-marker-acc)))))
+		      (string-to-number (match-string 3 gud-marker-acc)))))
 	 ;; System V Release 4.0
 	 ((string-match "^\\(BREAKPOINT\\|STEPPED\\) process [0-9]+ function [^ ]+ in \\(.+\\)\n"
 			gud-marker-acc start)
@@ -791,7 +795,7 @@ SKIP is the number of chars to skip on each lines, it defaults to 0."
 					      gud-marker-acc start))
 	       (setq gud-last-frame
 		     (cons gud-sdb-lastfile
-			   (string-to-int (match-string 1 gud-marker-acc)))))
+			   (string-to-number (match-string 1 gud-marker-acc)))))
 	 (t
 	  (setq gud-sdb-lastfile nil)))
       (setq start (match-end 0)))
@@ -877,7 +881,7 @@ containing the executable being debugged."
 		gud-marker-acc start))
       (setq gud-last-frame
 	    (cons (match-string 2 gud-marker-acc)
-		  (string-to-int (match-string 1 gud-marker-acc)))
+		  (string-to-number (match-string 1 gud-marker-acc)))
 	    start (match-end 0)))
 
     ;; Search for the last incomplete line in this chunk
@@ -924,7 +928,7 @@ containing the executable being debugged."
        ;; Extract the frame position from the marker.
        gud-last-frame
        (cons (match-string 1 gud-marker-acc)
-	     (string-to-int (match-string 2 gud-marker-acc)))
+	     (string-to-number (match-string 2 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -1032,7 +1036,7 @@ a better solution in 6.1 upwards.")
 	    (if (file-exists-p file)
 		(setq gud-last-frame
 		      (cons (match-string 1 result)
-			    (string-to-int (match-string 2 result))))))
+			    (string-to-number (match-string 2 result))))))
 	  result)
 	 ((string-match			; kluged-up marker as above
 	   "\032\032\\([0-9]*\\):\\(.*\\)\n" result)
@@ -1040,7 +1044,7 @@ a better solution in 6.1 upwards.")
 	    (if (and file (file-exists-p file))
 		(setq gud-last-frame
 		      (cons file
-			    (string-to-int (match-string 1 result))))))
+			    (string-to-number (match-string 1 result))))))
 	  (setq result (substring result 0 (match-beginning 0))))))
     (or result "")))
 
@@ -1077,7 +1081,7 @@ This was tested using R4.11.")
     (while (string-match re gud-marker-acc start)
       (setq gud-last-frame
 	    (cons (match-string 4 gud-marker-acc)
-		  (string-to-int (match-string 3 gud-marker-acc)))
+		  (string-to-number (match-string 3 gud-marker-acc)))
 	    start (match-end 0)))
 
     ;; Search for the last incomplete line in this chunk
@@ -1196,7 +1200,7 @@ containing the executable being debugged."
 			      result)
                 (string-match "[^: \t]+:[ \t]+\\([^:]+\\): [^:]+: \\([0-9]+\\):"
                               result))
-            (let ((line (string-to-int (match-string 2 result)))
+            (let ((line (string-to-number (match-string 2 result)))
                   (file (gud-file-name (match-string 1 result))))
               (if file
                   (setq gud-last-frame (cons file line))))))
@@ -1298,7 +1302,7 @@ into one that invokes an Emacs-enabled debugging session.
        ;; Extract the frame position from the marker.
        gud-last-frame
        (cons (match-string 1 gud-marker-acc)
-	     (string-to-int (match-string 3 gud-marker-acc)))
+	     (string-to-number (match-string 3 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -1396,7 +1400,7 @@ and source-file directory for your debugger."
        gud-last-frame
        (let ((file (match-string gud-pdb-marker-regexp-file-group
 				 gud-marker-acc))
-	     (line (string-to-int
+	     (line (string-to-number
 		    (match-string gud-pdb-marker-regexp-line-group
 				  gud-marker-acc))))
 	 (if (string-equal file "<string>")
@@ -2028,7 +2032,7 @@ nil)
       ;;     (<file-name> . <line-number>) .
       (if (if (match-beginning 1)
 	      (let (n)
-		(setq n (string-to-int (substring
+		(setq n (string-to-number (substring
 					gud-marker-acc
 					(1+ (match-beginning 1))
 					(- (match-end 1) 2))))
@@ -2039,7 +2043,7 @@ nil)
 		    (gud-jdb-find-source (match-string 2 gud-marker-acc)))
 	      (setq gud-last-frame
 		    (cons file-found
-			  (string-to-int
+			  (string-to-number
 			   (let
                                ((numstr (match-string 4 gud-marker-acc)))
                              (if (string-match "[.,]" numstr)
@@ -2187,7 +2191,7 @@ gud, see `gud-mode'."
        ;; Extract the frame position from the marker.
        gud-last-frame
        (cons (match-string 2 gud-marker-acc)
-	     (string-to-int (match-string 4 gud-marker-acc)))
+	     (string-to-number (match-string 4 gud-marker-acc)))
 
        ;; Append any text before the marker to the output we're going
        ;; to return - we don't include the marker in this text.
@@ -2977,6 +2981,7 @@ class of the file (using s to separate nested class ids)."
 	(message "gud-find-class: class for file %s not found in gud-jdb-class-source-alist!" f)
 	nil))))
 
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; GDB script mode ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

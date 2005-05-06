@@ -1360,8 +1360,9 @@ This function displays a pop-up menu and returns an indication of
 what selection the user makes.
 
 The argument @var{position} specifies where on the screen to put the
-menu.  It can be either a mouse button event (which says to put the menu
-where the user actuated the button) or a list of this form:
+top left corner of the menu.  It can be either a mouse button event
+(which says to put the menu where the user actuated the button) or a
+list of this form:
 
 @example
 ((@var{xoffset} @var{yoffset}) @var{window})
@@ -1369,7 +1370,8 @@ where the user actuated the button) or a list of this form:
 
 @noindent
 where @var{xoffset} and @var{yoffset} are coordinates, measured in
-pixels, counting from the top left corner of @var{window}'s frame.
+pixels, counting from the top left corner of @var{window}.  @var{window}
+may be a window or a frame.
 
 If @var{position} is @code{t}, it means to use the current mouse
 position.  If @var{position} is @code{nil}, it means to precompute the
@@ -1377,8 +1379,13 @@ key binding equivalents for the keymaps specified in @var{menu},
 without actually displaying or popping up the menu.
 
 The argument @var{menu} says what to display in the menu.  It can be a
-keymap or a list of keymaps (@pxref{Menu Keymaps}).  Alternatively, it
-can have the following form:
+keymap or a list of keymaps (@pxref{Menu Keymaps}).  In this case, the
+return value is the list of events corresponding to the user's choice.
+(This list has more than one element if the choice occurred in a
+submenu.)  Note that @code{x-popup-menu} does not actually execute the
+command bound to that sequence of events.
+
+Alternatively, @var{menu} can have the following form:
 
 @example
 (@var{title} @var{pane1} @var{pane2}...)
@@ -1388,11 +1395,20 @@ can have the following form:
 where each pane is a list of form
 
 @example
-(@var{title} (@var{line} . @var{item})...)
+(@var{title} @var{item1} @var{item2}...)
 @end example
 
-Each @var{line} should be a string, and each @var{item} should be the
-value to return if that @var{line} is chosen.
+Each item should normally be a cons cell @code{(@var{line} . @var{value})},
+where @var{line} is a string, and @var{value} is the value to return if
+that @var{line} is chosen.  An item can also be a string; this makes a
+non-selectable line in the menu.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+@code{x-popup-menu} does not return.  But if @var{position} is a mouse
+button event (indicating that the user invoked the menu with the
+mouse) then no quit occurs and @code{x-popup-menu} returns @code{nil}.
 @end defun
 
   @strong{Usage note:} Don't use @code{x-popup-menu} to display a menu
@@ -1443,9 +1459,9 @@ which looks like the list that specifies a single pane for
 
 The return value is @var{value} from the chosen alternative.
 
-An element of the list may be just a string instead of a cons cell
-@code{(@var{string} . @var{value})}.  That makes a box that cannot
-be selected.
+As for @code{x-popup-menu}, an element of the list may be just a
+string instead of a cons cell @code{(@var{string} . @var{value})}.
+That makes a box that cannot be selected.
 
 If @code{nil} appears in the list, it separates the left-hand items from
 the right-hand items; items that precede the @code{nil} appear on the
@@ -1455,12 +1471,16 @@ items appear on each side.
 
 Dialog boxes always appear in the center of a frame; the argument
 @var{position} specifies which frame.  The possible values are as in
-@code{x-popup-menu}, but the precise coordinates don't matter; only the
-frame matters.
+@code{x-popup-menu}, but the precise coordinates or the individual
+window don't matter; only the frame matters.
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
 frame.
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+@code{x-popup-dialog} does not return.
 @end defun
 
 @node Pointer Shapes

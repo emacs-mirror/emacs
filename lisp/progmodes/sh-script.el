@@ -827,7 +827,9 @@ See `sh-feature'.")
 	;; Function names.
 	("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
 	("\\<\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
-	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
+	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+	("\\(?:^\\s *\\|[[();&|]\\s *\\|\\(?:\\s +-[ao]\\|if\\|else\\|then\\|while\\|do\\)\\s +\\)\\(!\\)"
+	 1 font-lock-negation-char-face))
 
     ;; The next entry is only used for defining the others
     (shell sh-append executable-font-lock-keywords

@@ -737,7 +737,7 @@ DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
 POSITION is a position specification.  This is either a mouse button event
 or a list ((XOFFSET YOFFSET) WINDOW)
 where XOFFSET and YOFFSET are positions in pixels from the top left
-corner of WINDOW's frame.  (WINDOW may be a frame object instead of a window.)
+corner of WINDOW.  (WINDOW may be a window or a frame object.)
 This controls the position of the top left of the menu as a whole.
 If POSITION is t, it means to use the current mouse position.
 
@@ -752,8 +752,11 @@ Otherwise, REAL-DEFINITION should be a valid key binding definition.
 
 You can also use a list of keymaps as MENU.
   Then each keymap makes a separate pane.
-When MENU is a keymap or a list of keymaps, the return value
-is a list of events.
+
+When MENU is a keymap or a list of keymaps, the return value is the
+list of events corresponding to the user's choice. Note that
+`x-popup-menu' does not actually execute the command bound to that
+sequence of events.
 
 Alternatively, you can specify a menu of multiple panes
   with a list of the form (TITLE PANE1 PANE2...),
@@ -764,7 +767,14 @@ in the menu.
 With this form of menu, the return value is VALUE from the chosen item.
 
 If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.  */)
+cached information about equivalent key sequences.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+`x-popup-menu' does not return.  But if POSITION is a mouse button
+event (indicating that the user invoked the menu with the mouse) then
+no quit occurs and `x-popup-menu' returns nil.  */)
      (position, menu)
      Lisp_Object position, menu;
 {
@@ -1002,7 +1012,11 @@ The return value is VALUE from the chosen item.
 An ITEM may also be just a string--that makes a nonselectable item.
 An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)  */)
+\(By default, approximately half appear on each side.)
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+`x-popup-dialog' does not return.  */)
      (position, contents)
      Lisp_Object position, contents;
 {
@@ -2889,6 +2903,9 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 	}
     }
+  else if (!for_click)
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }
@@ -3519,8 +3536,8 @@ xmenu_show (f, x, y, for_click, keymaps, title, error)
       entry = Qnil;
       break;
     case XM_NO_SELECT:
-      /* Make "Cancel" equivalent to C-g unless this menu was popped up by
-         a mouse press.  */
+      /* Make "Cancel" equivalent to C-g unless FOR_CLICK (which means
+	 the menu was invoked with a mouse event as POSITION).  */
       if (! for_click)
         Fsignal (Qquit, Qnil);
       entry = Qnil;

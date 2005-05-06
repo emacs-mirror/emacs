@@ -1,3 +1,207 @@
+2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias)
+	(define-obsolete-variable-alias): Doc Fixes.
+
+2005-05-06  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Fix 2005-04-26 change.  Must still use
+	vertical-motion when selective-display is active.
+
+	* ido.el (ido-setup-hook): New hook.
+	(ido-define-mode-map-hook): Remove hook; use ido-setup-hook instead.
+	(ido-input-stack): New var.
+	(ido-define-mode-map): Bind M-b to ido-push-dir. Move old
+	ido-next-work-file binding to M-O.
+	Bind M-f to ido-wide-find-file-or-pop-dir.
+	(ido-define-mode-map): Don't run ido-define-mode-map-hook.
+	(ido-read-internal): Run ido-setup-hook.
+	Catch quit in read-file-name and read-string to cancel edit.
+	Handle new push, pop, and pop-all exit codes (for M-b/M-f).
+	Automatically pop-all when completing a directory name (RET).
+	(ido-file-internal): Add with-no-warnings around ffap and dired code.
+	(ido-exit-minibuffer): Use exit-minibuffer instead of throw.
+	(ido-wide-find-file, ido-wide-find-dir): Catch quit to cancel find.
+	(ido-push-dir, ido-pop-dir, ido-wide-find-file-or-pop-dir): New
+	functions for M-b/M-f to move among the directory components.
+	(ido-make-merged-file-list): Catch quit to cancel merge.
+	(ido-make-dir-list): Delete "." when ido-input-stack is non-empty.
+	(ido-completion-help): No warnings for ido-completion-buffer-full.
+
+2005-05-05  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* font-lock.el (font-lock-negation-char-face): New face and variable.
+	* progmodes/cc-fonts.el (c-cpp-matchers): Use it.
+	* progmodes/sh-script.el (sh-font-lock-keywords): Use it.
+	* progmodes/cperl-mode.el (cperl-init-faces): Use it.
+	* progmodes/make-mode.el (makefile-font-lock-keywords): Use it.
+
+2005-05-05  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/byte-run.el (define-obsolete-function-alias): Fix
+	typo in docstring.
+
+	* progmodes/ebrowse.el (ebrowse-install-1-to-9-keys)
+	(ebrowse-print-statistics-line)
+	(ebrowse-electric-position-mode-hook): Fix typo in docstring.
+
+	* term/w32-win.el (image-library-alist): Add additional name for
+	Xpm library.
+
+2005-05-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for BSD and
+	use gcc instead of cpp.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-flags): New variable.
+	(gdb-create-define-alist): Use it.
+	(gdb-cpp-define-alist-program): Update for MS-DOS?
+
+2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
+
+2005-05-03  Ulf Jasper  <ulf.jasper@web.de>
+
+	* calendar/icalendar.el (icalendar-version): Now at 0.12.
+	(icalendar-duration-correction): Remove.
+	(icalendar--get-event-properties): Split result at commas.
+	(icalendar--decode-isoduration): New optional argument
+	DURATION-CORRECTION.
+	(icalendar--convert-ordinary-to-ical, icalendar--convert-sexp-to-ical)
+	(icalendar--convert-yearly-to-ical, icalendar--convert-weekly-to-ical)
+	(icalendar--convert-block-to-ical, icalendar--convert-float-to-ical)
+	(icalendar--convert-date-to-ical, icalendar--convert-cyclic-to-ical)
+	(icalendar--convert-anniversary-to-ical): New functions, extracted
+	from icalendar-export-region, with bug fixes.
+	(icalendar-export-region): Use the above functions.
+	(icalendar-import-buffer): Check before saving diary file.
+	(icalendar--convert-recurring-to-diary)
+	(icalendar--convert-non-recurring-all-day-to-diary)
+	(icalendar--convert-non-recurring-not-all-day-to-diary): New functions,
+	extracted from icalendar--convert-ical-to-diary, with bug fixes.
+	(icalendar--convert-ical-to-diary): Use the above functions.
+
+2005-05-03  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-define-alist, cc-create-define-alist):
+	Remove these recent additions.
+	(c-mode): Restore to before 2005-04-28.
+
+	* progmodes/cc-vars.el (cc-define-list-program): Remove this
+	recent addition.
+
+	* progmodes/gdb-ui.el (gdb-cpp-define-alist-program)
+	(gdb-define-alist): New variables.
+	(gdb-create-define-alist): New function.
+	(gdb-set-gud-minor-mode-1): Handle gdb-define-alist.
+	(gdb-source, gdb-memory-set-repeat-count): Replace string-to-int
+	with string-to-number.
+	(gdb-reset): Kill gdb-define-alist. Move assignments outside loop.
+
+	* progmodes/gud.el: Replace string-to-int with string-to-number.
+	(gud-find-file): Handle gdb-define-alist.
+
+	* tooltip.el (tooltip-gud-tips): Use gdb-define-alist.
+
+2005-05-02  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-aent.el (math-read-token):
+	* calc/calc-bin.el (calc-word-size):
+	* calc/calc-ext.el (calc-read-number-fancy):
+	* calc/calc-forms.el (calc-time, calc-date-notation, math-this-year)
+	(math-parse-date, math-parse-standard-date, calcFunc-tzone):
+	* calc/calc-frac.el (calc-over-notation):
+	* calc/calc-graph.el (calc-graph-plot, calc-graph-set-styles)
+	(calc-graph-num-points, calc-graph-init):
+	* calc/calc-prog.el (calc-read-parse-table-part)
+	(calc-edit-macro-repeats):
+	* calc/calc-yank.el (calc-do-grab-rectangle):
+	* calc/calc.el (calcDigit-key, math-read-number, math-read-bignum):
+	Replace `string-to-int' by `string-to-number'.
+
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* kmacro.el: Use executing-kbd-macro-index variable.
+
+2005-05-02  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* net/rlogin.el (rlogin-parse-words): Delete func.
+	(rlogin): Use split-string, not rlogin-parse-words.
+	Also, if there are option-like elements in the parsed args,
+	take the host to be the first arg immediately following them.
+	Suggested by Michael Mauger.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (executing-macro): Use `define-obsolete-variable-alias'.
+
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-create-define-alist): Use a shell.
+	(cc-mode-cpp-program): Rename to cc-define-list-program and
+	move to cc-vars.el.
+
+	* progmodes/cc-vars.el (cc-define-list-program):
+	Change to "gcc -E -dM -". Make customizable.
+
+2005-05-02  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el: Fix check for CUA-mode if no init file.
+
+2005-05-02  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/cc-mode.el (cc-mode-cpp-program): Change to "gcc -E".
+
+	* international/mule-util.el (truncate-string): Remove alias and
+	obsolete declaration.
+
+	* international/mule-cmds.el (update-iso-coding-systems):
+	Remove alias and obsolete declaration.
+
+	* international/mule.el (coding-system-parent): Remove alias and
+	obsolete declaration.
+
+	* subr.el (define-function, sref): Remove aliases and obsolete
+	declarations.
+	(chars-in-region): Remove obsolete declaration.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* info.el (Info-mode): Set widen-automatically to nil, locally.
+
+	* simple.el (widen-automatically): New variable.
+	(pop-global-mark): Obey widen-automatically.
+
+2005-05-01  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term/xterm.el (function-key-map): Call substitute-key-definition
+	before the keymap size is increased by a lot of define-key calls.
+
+2005-05-01  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (add-to-invisibility-spec, remove-from-invisibility-spec):
+	Rename ARG to ELEMENT.  Doc fix.
+
+2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* allout.el (allout-exposure): Remove macro and obsolete declaration.
+	Remove references to allout-exposure/change to allout-new-exposure.
+
+	* emacs-lisp/bytecomp.el (dot, dot-min, dot-max): Don't create
+	bytecode symbols.
+
+	* subr.el (dot, dot-marker, dot-min, dot-max, buffer-flush-undo)
+	(compiled-function-p, focus-frame, unfocus-frame):
+	Remove aliases and obsolete declarations.
+	Back out inadvertant changes from previous commit.
+
+2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (require-final-newline): Make Custom tags consistent
+	with mode-require-final-newline.
+	(mode-require-final-newline): Doc fix.
+
 2005-05-01  Lute Kamstra  <lute@gnu.org>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
@@ -19,7 +223,7 @@
 	to jka-compr-hook.el.
 	(compression, jka-compr): defgroups moved to jka-compr-hook.el.
 	(jka-compr-inhibit): Autoload.
-	
+
 	* jka-comp-hook.el: New file.
 	Enable the mode by default.
 

@@ -39,9 +39,9 @@
      (calc-enter-result 0 "time"
 			(list 'mod
 			      (list 'hms
-				    (string-to-int (substring time 11 13))
-				    (string-to-int (substring time 14 16))
-				    (string-to-int (substring time 17 19)))
+				    (string-to-number (substring time 11 13))
+				    (string-to-number (substring time 14 16))
+				    (string-to-number (substring time 17 19)))
 			      (list 'hms 24 0 0))))))
 
 (defun calc-to-hms (arg)
@@ -80,7 +80,7 @@
    (if (equal fmt "")
        (setq fmt "1"))
    (if (string-match "\\` *[0-9] *\\'" fmt)
-       (setq fmt (nth (string-to-int fmt) calc-standard-date-formats)))
+       (setq fmt (nth (string-to-number fmt) calc-standard-date-formats)))
    (or (string-match "[a-zA-Z]" fmt)
        (error "Bad date format specifier"))
    (and arg
@@ -441,7 +441,7 @@
 
 
 (defun math-this-year ()
-  (string-to-int (substring (current-time-string) -4)))
+  (string-to-number (substring (current-time-string) -4)))
 
 (defun math-leap-year-p (year)
   (if (Math-lessp year 1752)
@@ -730,14 +730,14 @@
 	  (if (or (string-match "\\([0-9][0-9]?\\):\\([0-9][0-9]?\\)\\(:\\([0-9][0-9]?\\(\\.[0-9]+\\)?\\)\\)? *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)?" math-pd-str)
 		  (string-match "\\([0-9][0-9]?\\)\\(\\)\\(\\(\\(\\)\\)\\) *\\([ap]m?\\|[ap]\\. *m\\.\\|noon\\|n\\>\\|midnight\\|mid\\>\\|m\\>\\)" math-pd-str))
 	      (let ((ampm (math-match-substring math-pd-str 6)))
-		(setq hour (string-to-int (math-match-substring math-pd-str 1))
+		(setq hour (string-to-number (math-match-substring math-pd-str 1))
 		      minute (math-match-substring math-pd-str 2)
 		      second (math-match-substring math-pd-str 4)
 		      math-pd-str (concat (substring math-pd-str 0 (match-beginning 0))
 				  (substring math-pd-str (match-end 0))))
 		(if (equal minute "")
 		    (setq minute 0)
-		  (setq minute (string-to-int minute)))
+		  (setq minute (string-to-number minute)))
 		(if (equal second "")
 		    (setq second 0)
 		  (setq second (math-read-number second)))
@@ -801,7 +801,7 @@
 	  (setq temp 0)
 	  (while (string-match "[0-9]+" math-pd-str temp)
 	    (and c (throw 'syntax "Too many numbers in date"))
-	    (setq c (string-to-int (math-match-substring math-pd-str 0)))
+	    (setq c (string-to-number (math-match-substring math-pd-str 0)))
 	    (or b (setq b c c nil))
 	    (or a (setq a b b nil))
 	    (setq temp (match-end 0)))
@@ -1021,7 +1021,7 @@
 				  (string-match "\\` *[0-9][0-9][0-9]" math-pd-str)
 				(string-match "\\` *[0-9][0-9]" math-pd-str))
 			    (string-match "\\` *[0-9]+" math-pd-str)))
-		     (and (setq num (string-to-int
+		     (and (setq num (string-to-number
 				     (math-match-substring math-pd-str 0))
 				math-pd-str (substring math-pd-str (match-end 0)))
 			  nil))
@@ -1236,13 +1236,13 @@
 	      (setq p (cdr p))))
 	  (if (looking-at "\\([-+][0-9]?[0-9]\\)\\([0-9][0-9]\\)?\\(\\'\\|[^0-9]\\)")
 	      (setq offset (math-add
-			    (string-to-int (buffer-substring
+			    (string-to-number (buffer-substring
 					    (match-beginning 1)
 					    (match-end 1)))
 			    (if (match-beginning 2)
-				(math-div (string-to-int (buffer-substring
-							  (match-beginning 2)
-							  (match-end 2)))
+				(math-div (string-to-number (buffer-substring
+                                                             (match-beginning 2)
+                                                             (match-end 2)))
 					  60)
 			      0)))))
 	(if p
