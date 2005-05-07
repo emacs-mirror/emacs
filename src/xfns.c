@@ -4384,6 +4384,10 @@ start_hourglass ()
   EMACS_TIME delay;
   int secs, usecs = 0;
 
+  /* Don't bother for ttys.  */
+  if (NILP (Vwindow_system))
+    return;
+
   cancel_hourglass ();
 
   if (INTEGERP (Vhourglass_delay)
