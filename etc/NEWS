@@ -739,7 +739,8 @@ Traditionally, Emacs uses a Mouse-1 click to set point and a Mouse-2
 click to follow a link, whereas most other applications use a Mouse-1
 click for both purposes, depending on whether you click outside or
 inside a link.  Now the behavior of a Mouse-1 click has been changed
-to match this context-sentitive dual behavior.
+to match this context-sentitive dual behavior.  (If you prefer the old
+behavior, set the user option `mouse-1-click-follows-link' to nil.)
 
 Depending on the current mode, a Mouse-2 click in Emacs may do much
 more than just follow a link, so the new Mouse-1 behavior is only

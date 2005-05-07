@@ -1,3 +1,8 @@
+2005-05-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Mouse References): Clarify `mouse-1-click-follows-link'.
+	Correct index entry.
+
 2005-05-07  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Debugger Operation): Update to reflect changes
