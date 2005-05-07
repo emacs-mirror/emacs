@@ -1,3 +1,8 @@
+2005-05-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Update to reflect changes
+	in GUD tooltips.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Compressed Files): Auto Compression normally enabled.

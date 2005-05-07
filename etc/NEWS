@@ -500,6 +500,9 @@ elements are deleted.
 
 ** Redisplay Changes
 
+*** GUD tooltips can be toggled independently of normal tooltips
+with the minor mode, gud-tooltip-mode.
+
 *** Easy to overlook single character negation is now font-locked.
 You can use the new variable `font-lock-negation-char-face' and the face of
 the same name to customize this.  Currently the cc-modes, sh-script-mode,
