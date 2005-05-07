@@ -1,3 +1,9 @@
+2005-05-07  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
+
+	* make-dist: Remove references to makefile.nt and makefile.def.
+	Include widgets and images subdirectories of etc.  Do not exclude
+	ldefs-boot.el.
+
 2005-04-23  Andreas Schwab  <schwab@suse.de>
 
 	* configure.in: Remove duplicate match for powerpc configuration.

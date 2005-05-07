@@ -1,5 +1,8 @@
 2005-05-07  Eli Zaretskii  <eliz@gnu.org>
 
+	* progmodes/compile.el (compilation-setup): Set
+	overlay-arrow-string to an empty string on text terminals.
+
 	* textmodes/ispell.el (ispell-program-name): Try looking for
 	"aspell" along exec-path, and if found, use it as the default
 	speller program.
