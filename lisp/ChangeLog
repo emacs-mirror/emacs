@@ -1,3 +1,12 @@
+2005-05-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calcsel2.el (calc-commute-left, calc-commute-right)
+	(calc-sel-unpack, calc-sel-isolate): Rename variable `reselect' to
+	`calc-sel-reselect'.
+
+	* calc/calc-mode.el (calc-save-modes): Reset the modes list if
+	Calc is in embedded mode.
+
 2005-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* progmodes/compile.el (compilation-setup): Set
