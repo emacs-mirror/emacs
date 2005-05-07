@@ -201,6 +201,11 @@
 
 	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
 
+2005-05-04  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-1): Fix previous change to signal errors
+	appropriately.
+
 2005-05-03  Ulf Jasper  <ulf.jasper@web.de>
 
 	* calendar/icalendar.el (icalendar-version): Now at 0.12.
