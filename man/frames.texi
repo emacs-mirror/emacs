@@ -48,7 +48,7 @@ so that you can use many of the features described in this chapter.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
-* Tooltips::            Showing "tooltips", AKA "balloon help" for active text.
+* Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -969,19 +969,25 @@ value.  If Emacs is built with a Gtk+ version that has only one file dialog,
 the setting of this variable has no effect.
 
 @node Tooltips
-@section Tooltips (or ``Balloon Help'')
+@section Tooltips
 
-@cindex balloon help
-  Tooltips are small X windows displaying a help string at the current
-mouse position, typically over text---including the mode line---which
-can be activated with the mouse or other keys.  (This facility is
-sometimes known as @dfn{balloon help}.)  Help text may be available for
-menu items too.
+  Tooltips are small windows that display text information at the
+current mouse position.  They activate when there is a pause in mouse
+movement.
+
+There are two types of tooltip: help tooltips and GUD tooltips.
+
+Help tooltips typically display over text--including the mode
+line--but may be also available for many other parts of the Emacs
+frame such as the toolbar and menu items.
 
 @findex tooltip-mode
-  You can toggle Tooltip mode with the command @kbd{M-x tooltip-mode}.
-When Tooltip mode is disabled, the help text is displayed in the echo
-area instead.
+  You can toggle help tooltips (Tooltip mode) with the command
+@kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
+is displayed in the echo area instead.
+
+GUD tooltips are useful when you are debugging a
+program. @xref{Debugger Operation}.
 
 @vindex tooltip-delay
   The variables @code{tooltip-delay} specifies how long Emacs should
