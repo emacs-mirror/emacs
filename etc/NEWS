@@ -121,6 +121,23 @@ the blinking cursor.
 the blinking cursor on graphical terminals.
 
 +++
+** The option --script FILE runs Emacs in batch mode and loads FILE.
+It is useful for writing Emacs Lisp shell script files, because they
+can start with this line:
+
+   #!/usr/bin/emacs --script
+
++++
+** The option --directory DIR now modifies `load-path' immediately.
+Directories are added to the front of `load-path' in the order they
+appear on the command line.  For example, with this command line:
+
+  emacs -batch -L .. -L /tmp --eval "(require 'foo)"
+
+Emacs looks for library `foo' in the parent directory, then in /tmp, then
+in the other directories in `load-path'.  (-L is short for --directory.)
+
++++
 ** The command line option --no-windows has been changed to
 --no-window-system.  The old one still works, but is deprecated.
 
@@ -2842,22 +2859,17 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 * Lisp Changes in Emacs 22.1
 
-+++
-** The option --script FILE runs Emacs in batch mode and loads FILE.
-It is useful for writing Emacs Lisp shell script files, because they
-can start with this line:
+** New function `locate-file' searches for a file in a list of directories.
+`locate-file' accepts a name of a file to search (a string), and two
+lists: a list of directories to search in and a list of suffixes to
+try; typical usage might use `exec-path' and `load-path' for the list
+of directories, and `exec-suffixes' and `load-suffixes' for the list
+of suffixes.  The function also accepts a predicate argument to
+further filter candidate files.
 
-   #!/usr/bin/emacs --script
-
-+++
-** The option --directory DIR now modifies `load-path' immediately.
-Directories are added to the front of `load-path' in the order they
-appear on the command line.  For example, with this command line:
-
-  emacs -batch -L .. -L /tmp --eval "(require 'foo)"
-
-Emacs looks for library `foo' in the parent directory, then in /tmp, then
-in the other directories in `load-path'.  (-L is short for --directory.)
+One advantage of using this function is that the list of suffixes in
+`exec-suffixes' is OS-dependant, so this function will find
+executables without polluting Lisp code with OS dependancies.
 
 +++
 ** The default value of `sentence-end' is now defined using the new
