@@ -1,3 +1,11 @@
+2005-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Explain
+	more about the LIGHTER arg's usage in the doc string.  Add
+	commentary to clarify what the code does.  Fix the regexp that
+	strips whitespace from LIGHTER.  Quote LIGHTER before using it,
+	since it could have characters special to regular expressions.
+
 2005-05-07  Matt Hodges  <MPHodges@member.fsf.org>  (tiny change)
 
 	* replace.el (occur-1): Bind inhibit-read-only so that
