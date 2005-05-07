@@ -1,3 +1,11 @@
+2005-05-07  Matt Hodges  <MPHodges@member.fsf.org>  (tiny change)
+
+	* replace.el (occur-1): Bind inhibit-read-only so that
+	erase-buffer doesn't barf on read-only text properties (likewise
+	for add-text-properties in occur-engine).  Mark buffer as
+	unmodified.
+	(occur-engine): Don't set buffer-read-only here.
+
 2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* pcvs.el (cvs-mode-commit, cvs-mode-edit-log): Don't fiddle with
