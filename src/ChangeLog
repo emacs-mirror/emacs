@@ -1,3 +1,7 @@
+2005-05-07  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* xfns.c (start_hourglass): Do nothing when running on a tty.
+
 2005-05-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fns.c (Fchar_table_range): Fix typos in docstring.
