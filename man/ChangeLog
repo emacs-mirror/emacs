@@ -1,3 +1,10 @@
+2005-05-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Describe gud-tooltip-echo-area.
+
+	* frames.texi (Tooltips): Describe help tooltips and GUD tooltips
+	as different animals.
+
 2005-05-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Mouse References): Clarify `mouse-1-click-follows-link'.
