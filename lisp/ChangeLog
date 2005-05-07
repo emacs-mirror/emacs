@@ -100,9 +100,6 @@
 
 2005-05-06  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
-	* calendar/solar.el (solar-setup): Throw error if called
-	non-interactively.
-
 	* calendar/appt.el (top-level): No longer activate on load.
 
 2005-05-06  Juanma Barranquero  <lekktu@gmail.com>
