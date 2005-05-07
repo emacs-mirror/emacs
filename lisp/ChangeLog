@@ -1,3 +1,9 @@
+2005-05-07  Johan  Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+
+	* emacs-lisp/cl-macs.el (cl-transform-lambda): Recognize `declare'
+	as well as `interactive', so that defmacro* would recognize
+	`declare' forms.
+
 2005-05-07  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Explain
