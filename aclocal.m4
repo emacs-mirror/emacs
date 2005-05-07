@@ -27,7 +27,7 @@ ifelse(_AC_VERSION_COMPARE(AC_ACVERSION, [2.14]), -1,
 # various options that select ANSI C on some system or another.  It
 # considers the compiler to be in ANSI C mode if it handles function
 # prototypes correctly.
-AC_DEFUN(AC_PROG_CC_STDC,
+AC_DEFUN([AC_PROG_CC_STDC],
 [AC_REQUIRE([AC_PROG_CC])dnl
 AC_BEFORE([$0], [AC_C_INLINE])dnl
 AC_BEFORE([$0], [AC_C_CONST])dnl
@@ -96,7 +96,7 @@ esac
 
 # AC_FUNC_MKTIME
 # --------------
-AC_DEFUN(AC_FUNC_MKTIME,
+AC_DEFUN([AC_FUNC_MKTIME],
 [AC_REQUIRE([AC_HEADER_TIME])dnl
 AC_CHECK_HEADERS(sys/time.h unistd.h)
 AC_CHECK_FUNCS(alarm)
@@ -264,7 +264,7 @@ AC_SUBST(LIBOBJS)dnl
 # optimizations that could break the user's code.  So, do not #define
 # volatile away unless it is really necessary to allow the user's code
 # to compile cleanly.  Benign compiler failures should be tolerated.
-AC_DEFUN(AC_C_VOLATILE,
+AC_DEFUN([AC_C_VOLATILE],
 [AC_REQUIRE([AC_PROG_CC_STDC])dnl
 AC_CACHE_CHECK([for working volatile], ac_cv_c_volatile,
 [AC_TRY_COMPILE(,[
@@ -283,7 +283,7 @@ fi
 # ---------------
 # Check if the C compiler supports prototypes, included if it needs
 # options.
-AC_DEFUN(AC_C_PROTOTYPES,
+AC_DEFUN([AC_C_PROTOTYPES],
 [AC_REQUIRE([AC_PROG_CC_STDC])dnl
 AC_REQUIRE([AC_PROG_CPP])dnl
 AC_MSG_CHECKING([for function prototypes])
@@ -308,18 +308,18 @@ dnl Written by Paul Eggert <eggert@twinsun.com>.
 
 dnl Internal subroutine of AC_SYS_LARGEFILE.
 dnl AC_SYS_LARGEFILE_TEST_INCLUDES
-AC_DEFUN(AC_SYS_LARGEFILE_TEST_INCLUDES,
+AC_DEFUN([AC_SYS_LARGEFILE_TEST_INCLUDES],
   [[#include <sys/types.h>
     int a[(off_t) 9223372036854775807 == 9223372036854775807 ? 1 : -1];
   ]])
 
 dnl Internal subroutine of AC_SYS_LARGEFILE.
 dnl AC_SYS_LARGEFILE_MACRO_VALUE(C-MACRO, VALUE, CACHE-VAR, COMMENT, INCLUDES, FUNCTION-BODY)
-AC_DEFUN(AC_SYS_LARGEFILE_MACRO_VALUE,
+AC_DEFUN([AC_SYS_LARGEFILE_MACRO_VALUE],
   [AC_CACHE_CHECK([for $1 value needed for large files], $3,
      [$3=no
       AC_TRY_COMPILE([$5],
-	[$6], 
+	[$6],
 	,
 	[AC_TRY_COMPILE([#define $1 $2]
 [$5]
@@ -330,7 +330,7 @@ AC_DEFUN(AC_SYS_LARGEFILE_MACRO_VALUE,
      AC_DEFINE_UNQUOTED([$1], [$]$3, [$4])
    fi])
 
-AC_DEFUN(AC_SYS_LARGEFILE,
+AC_DEFUN([AC_SYS_LARGEFILE],
   [AC_REQUIRE([AC_PROG_CC])
    AC_ARG_ENABLE(largefile,
      [  --disable-largefile     omit support for large files])
@@ -364,7 +364,7 @@ AC_DEFUN(AC_SYS_LARGEFILE,
    fi
   ])
 
-AC_DEFUN(AC_FUNC_FSEEKO,
+AC_DEFUN([AC_FUNC_FSEEKO],
   [AC_SYS_LARGEFILE_MACRO_VALUE(_LARGEFILE_SOURCE, 1,
      ac_cv_sys_largefile_source,
      [Define to make fseeko visible on some hosts (e.g. glibc 2.2).],
