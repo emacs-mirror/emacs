@@ -493,13 +493,13 @@ history commands to repeat them.  @xref{Shell Mode}.
 @vindex tooltip-gud-modes
 @vindex tooltip-gud-tips-p
   The Tooltip facility (@pxref{Tooltips}) provides support for GUD@.
-You activate this feature by setting the variable
-@code{tooltip-gud-tips-p} to @code{t}.  Then you can display a
-variable's value in a tooltip simply by pointing at it with the mouse.
-In graphical mode, with a C program, you can also display the
-@code{#define} directive associated with an identifier when program is
-not executing.  This operates in the GUD buffer and in source buffers
-with major modes in the list @code{tooltip-gud-modes}.
+You activate this feature by turning on the minor mode
+@code{gud-tooltip-mode}.  Then you can display a variable's value in a
+tooltip simply by pointing at it with the mouse.  In graphical mode,
+with a C program, you can also display the @code{#define} directive
+associated with an identifier when the program is not executing.  This
+operates in the GUD buffer and in source buffers with major modes in
+the list @code{gud-tooltip-modes}.
 
 @node Commands of GUD
 @subsection Commands of GUD
