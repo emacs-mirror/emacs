@@ -1,3 +1,9 @@
+2005-05-07  Eli Zaretskii  <eliz@gnu.org>
+
+	* textmodes/ispell.el (ispell-program-name): Try looking for
+	"aspell" along exec-path, and if found, use it as the default
+	speller program.
+
 2005-05-07  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
 
 	* international/mule.el (sgml-xml-auto-coding-function): Recognize
