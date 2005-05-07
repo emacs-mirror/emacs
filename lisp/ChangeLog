@@ -1,3 +1,8 @@
+2005-05-07  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
+
+	* international/mule.el (sgml-xml-auto-coding-function): Recognize
+	encoding='FOO' in single quotes as well as in double quotes.
+
 2005-05-07  Johan  Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/cl-macs.el (cl-transform-lambda): Recognize `declare'
