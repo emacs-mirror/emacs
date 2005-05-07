@@ -1,3 +1,14 @@
+2005-05-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/uni-bidi.el, international/uni-category.el,
+	international/uni-combining.el, international/uni-comment.el,
+	international/uni-decimal.el, international/uni-decomposition.el,
+	international/uni-digit.el, international/uni-lowercase.el,
+	international/uni-mirrored.el, international/uni-name.el,
+	international/uni-numeric.el, international/uni-old-name.el,
+	international/uni-titlecase.el, international/uni-uppercase.el,
+	international/charprop.el: Re-generated.
+
 2005-04-22  Kenichi Handa  <handa@m17n.org>
 
 	* term/mac-win.el: Sync with the main trunk.
