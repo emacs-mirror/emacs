@@ -3825,7 +3825,6 @@ rmdir (dpath)
 
 /* Functions for VMS */
 #ifdef VMS
-#include "vms-pwd.h"
 #include <acldef.h>
 #include <chpdef.h>
 #include <jpidef.h>
