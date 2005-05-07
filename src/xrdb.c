@@ -53,9 +53,7 @@ Boston, MA 02111-1307, USA.  */
 #include <X11/X.h>
 #include <X11/Xutil.h>
 #include <X11/Xresource.h>
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
 #endif
 #include <sys/stat.h>

@@ -26,11 +26,9 @@ Boston, MA 02111-1307, USA.  */
 #include <signal.h>
 #include <stdio.h>
 
-#ifdef VMS
-#include "vms-pwd.h"
-#else
+#ifdef HAVE_PWD_H
 #include <pwd.h>
-#endif /* not VMS */
+#endif
 
 #include <sys/file.h>
 #ifdef HAVE_FCNTL_H
