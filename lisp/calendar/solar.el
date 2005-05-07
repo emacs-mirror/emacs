@@ -208,11 +208,6 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 
 (defun solar-setup ()
   "Prompt user for latitude, longitude, and time zone."
-  (unless (or (and calendar-longitude calendar-latitude calendar-time-zone)
-              (interactive-p))
-    ;; Defaults must be nil, else results could be subtlely wrong for
-    ;; user's real location.
-    (error "Calendar latitude, longitude and/or time-zone unset"))
   (beep)
   (if (not calendar-longitude)
       (setq calendar-longitude
