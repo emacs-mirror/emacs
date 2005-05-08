@@ -1,3 +1,11 @@
+2005-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* config.in (HAVE_PWD_H): Add undef.
+
+	* sysdep.c: Remove reference to defunct vms-pwd.h.
+	* editfns.c: Likewise.  Also, for pwd.h, use HAVE_PWD_H, not !VMS.
+	* fileio.c, filelock.c, xrdb.c: Likewise.
+
 2005-05-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xfns.c (start_hourglass): Do nothing when running on a tty.
