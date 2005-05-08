@@ -61,9 +61,11 @@
 If provided, LIGHTER will be used to help choose capitalization by,
 replacing its case-insensitive matches with the literal string in LIGHTER."
   (let* ((case-fold-search t)
-	 ;; Produce "Foo-Bar Minor mode" from foo-bar-minor-mode.
+	 ;; Produce "Foo-Bar minor mode" from foo-bar-minor-mode.
 	 (name (concat (replace-regexp-in-string
-			;; "Foo-Bar-Minor" -> "Foo-Bar minor"
+			;; If the original mode name included "-minor" (some
+			;; of them don't, e.g. auto-revert-mode), then
+			;; replace it with " minor".
 			"-Minor" " minor"
 			;; "foo-bar-minor" -> "Foo-Bar-Minor"
 			(capitalize (replace-regexp-in-string
