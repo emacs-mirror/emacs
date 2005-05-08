@@ -1,3 +1,8 @@
+2005-05-08  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (next-error-overlay-arrow-position): Revert the change
+	made on 2005-04-30.
+
 2005-05-07  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcsel2.el (calc-commute-left, calc-commute-right)
