@@ -1,3 +1,10 @@
+2005-05-09  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-copy-region, cua-cut-region)
+	(cua-paste): Handle clipboard action.
+	(cua--init-keymaps): Remap clipboard-kill-region and
+	clipboard-kill-ring-save.
+
 2005-05-08  Eli Zaretskii  <eliz@gnu.org>
 
 	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Improve
