@@ -1,5 +1,8 @@
 2005-05-08  Eli Zaretskii  <eliz@gnu.org>
 
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Improve
+	commentary.
+
 	* simple.el (next-error-overlay-arrow-position): Revert the change
 	made on 2005-04-30.
 
