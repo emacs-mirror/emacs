@@ -1050,7 +1050,7 @@ Optionally, place the new pattern first in the pattern list"
 
   (and (equal pstart "") (error "Must specify starting regex"))
   (cond ((equal pend "") (setq pend 0))
-	((string-match "^[0-9]+$" pend) (setq pend (string-to-int pend))))
+	((string-match "^[0-9]+$" pend) (setq pend (string-to-number pend))))
   (or mode (setq mode major-mode))
   (let ((old-patterns (cdr (assq mode hilit-patterns-alist)))
 	(new-pat (list pstart pend face)))
