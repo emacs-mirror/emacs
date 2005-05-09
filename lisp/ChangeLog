@@ -1,3 +1,19 @@
+2005-05-10  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-macro-info): New variable.
+	(gdb-source-info): Check for preprocessor info.
+	(gdb-tooltip-print-1): New function. Don't print tooltip if it is
+	a macro for a function.
+	found (user might have used GDB dir command).
+	(gdb-info-breakpoints-custom): Try to find file again if not already
+	(gdb-get-location): Update gdb-location-alist correctly for change
+	to gdb-info-breakpoints-custom.
+
+	* progmodes/gud.el (gud-tooltip-mode): Require tooltip to be safe.
+	(gud-tooltip-print-command): Add gdbmi case.
+	(gud-tooltip-tips): Call gdb-tooltip-print-1 first if there is
+	preprocessor info.
+
 2005-05-09  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* startup.el (fancy-splash-insert): Fix typo in doc string.
