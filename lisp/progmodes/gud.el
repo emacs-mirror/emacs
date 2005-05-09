@@ -39,6 +39,8 @@
 
 ;;; Code:
 
+(eval-when-compile (require 'cl)) ; for case macro
+
 (require 'comint)
 (require 'etags)
 
@@ -113,11 +115,11 @@ Used to grey out relevant togolbar icons.")
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
-    ([tooltips] menu-item "Toggle GUD tooltips" tooltip-toggle-gud-tips
+    ([tooltips] menu-item "Toggle GUD tooltips" gud-tooltip-mode
                   :enable  (and (not emacs-basic-display)
 				(display-graphic-p)
 				(fboundp 'x-show-tip))
-	          :button (:toggle . tooltip-gud-tips-p))
+	          :button (:toggle . gud-tooltip-mode))
     ([refresh]	"Refresh" . gud-refresh)
     ([run]	menu-item "Run" gud-run
                   :enable (and (not gud-running)
@@ -228,7 +230,8 @@ Uses `gud-<MINOR-MODE>-directories' to find the source files."
       (with-current-buffer buf
 	(set (make-local-variable 'gud-minor-mode) minor-mode)
 	(set (make-local-variable 'tool-bar-map) gud-tool-bar-map)
-	(when (memq gud-minor-mode '(gdbmi gdba))
+	(when (and gud-tooltip-mode
+		   (memq gud-minor-mode '(gdbmi gdba)))
 	  (make-local-variable 'gdb-define-alist)
 	  (unless  gdb-define-alist (gdb-create-define-alist))
 	  (add-hook 'after-save-hook 'gdb-create-define-alist nil t))
@@ -3099,6 +3102,204 @@ Treats actions as defuns."
 	  . gdb-script-font-lock-syntactic-keywords)
 	 (font-lock-syntactic-face-function
 	  . gdb-script-font-lock-syntactic-face))))
+
+
+;;; tooltips for GUD
+
+;;; Customizable settings
+(defcustom gud-tooltip-modes '(gud-mode c-mode c++-mode fortran-mode)
+  "List of modes for which to enable GUD tips."
+  :type 'sexp
+  :tag "GUD modes"
+  :group 'tooltip)
+
+(defcustom gud-tooltip-display
+  '((eq (tooltip-event-buffer gud-tooltip-event)
+	(marker-buffer gud-overlay-arrow-position)))
+  "List of forms determining where GUD tooltips are displayed.
+
+Forms in the list are combined with AND.  The default is to display
+only tooltips in the buffer containing the overlay arrow."
+  :type 'sexp
+  :tag "GUD buffers predicate"
+  :group 'tooltip)
+
+(defcustom gud-tooltip-echo-area nil
+  "Use the echo area instead of frames for GUD tooltips."
+  :type 'boolean
+  :tag "Use echo area"
+  :group 'tooltip)
+
+(define-obsolete-variable-alias 'tooltip-gud-modes
+                                'gud-tooltip-modes "22.1")
+(define-obsolete-variable-alias 'tooltip-gud-display
+                                'gud-tooltip-display "22.1")
+(define-obsolete-variable-alias 'tooltip-use-echo-area
+                                'gud-tooltip-echo-area "22.1")
+
+;;; Reacting on mouse movements
+
+(defun gud-tooltip-change-major-mode ()
+  "Function added to `change-major-mode-hook' when tooltip mode is on."
+  (add-hook 'post-command-hook 'gud-tooltip-activate-mouse-motions-if-enabled))
+
+(defun gud-tooltip-activate-mouse-motions-if-enabled ()
+  "Reconsider for all buffers whether mouse motion events are desired."
+  (remove-hook 'post-command-hook
+	       'gud-tooltip-activate-mouse-motions-if-enabled)
+  (dolist (buffer (buffer-list))
+    (save-excursion
+      (set-buffer buffer)
+      (if (and gud-tooltip-mode
+	       (memq major-mode gud-tooltip-modes))
+	  (gud-tooltip-activate-mouse-motions t)
+	(gud-tooltip-activate-mouse-motions nil)))))
+
+(defvar gud-tooltip-mouse-motions-active nil
+  "Locally t in a buffer if tooltip processing of mouse motion is enabled.")
+
+(defun gud-tooltip-activate-mouse-motions (activatep)
+  "Activate/deactivate mouse motion events for the current buffer.
+ACTIVATEP non-nil means activate mouse motion events."
+  (if activatep
+      (progn
+	(make-local-variable 'gud-tooltip-mouse-motions-active)
+	(setq gud-tooltip-mouse-motions-active t)
+	(make-local-variable 'track-mouse)
+	(setq track-mouse t))
+    (when gud-tooltip-mouse-motions-active
+      (kill-local-variable 'gud-tooltip-mouse-motions-active)
+      (kill-local-variable 'track-mouse))))
+
+(defun gud-tooltip-mouse-motion (event)
+  "Command handler for mouse movement events in `global-map'."
+  (interactive "e")
+  (tooltip-hide)
+  (when (car (mouse-pixel-position))
+    (setq tooltip-last-mouse-motion-event (copy-sequence event))
+    (tooltip-start-delayed-tip)))
+
+;;; Tips for `gud'
+
+(defvar gud-tooltip-original-filter nil
+  "Process filter to restore after GUD output has been received.")
+
+(defvar gud-tooltip-dereference nil
+  "Non-nil means print expressions with a `*' in front of them.
+For C this would dereference a pointer expression.")
+
+(defvar gud-tooltip-event nil
+  "The mouse movement event that led to a tooltip display.
+This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
+
+(defun gud-tooltip-toggle-dereference ()
+  "Toggle whether tooltips should show `* expr' or `expr'."
+  (interactive)
+  (setq gud-tooltip-dereference (not gud-tooltip-dereference))
+  (when (interactive-p)
+    (message "Dereferencing is now %s."
+	     (if gud-tooltip-dereference "on" "off"))))
+
+(define-obsolete-function-alias 'tooltip-gud-toggle-dereference
+                                'gud-tooltip-toggle-dereference "22.1")
+
+(define-minor-mode gud-tooltip-mode
+  "Toggle the display of GUD tooltips."
+  :global t
+  :group 'gud
+  (if gud-tooltip-mode
+      (progn
+	(add-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
+	(add-hook 'pre-command-hook 'tooltip-hide)
+	(add-hook 'tooltip-hook 'gud-tooltip-tips)
+	(define-key global-map [mouse-movement] 'gud-tooltip-mouse-motion))
+    (unless tooltip-mode (remove-hook 'pre-command-hook 'tooltip-hide)
+    (remove-hook 'change-major-mode-hook 'tooltip-change-major-mode)
+    (remove-hook 'tooltip-hook 'gud-tooltip-tips)
+    (define-key global-map [mouse-movement] 'ignore)))
+  (gud-tooltip-activate-mouse-motions-if-enabled)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+      (if gud-tooltip-mode
+	  (progn
+	    (dolist (buffer (buffer-list))
+	      (unless (eq buffer gud-comint-buffer)
+		(with-current-buffer buffer
+		  (when (and (memq gud-minor-mode '(gdbmi gdba))
+			     (not (string-match "\\`\\*.+\\*\\'"
+						(buffer-name))))
+		    (make-local-variable 'gdb-define-alist)
+		    (gdb-create-define-alist)
+		    (add-hook 'after-save-hook
+			      'gdb-create-define-alist nil t))))))
+	(kill-local-variable 'gdb-define-alist)
+	(remove-hook 'after-save-hook 'gdb-create-define-alist t))))
+
+; This will only display data that comes in one chunk.
+; Larger arrays (say 400 elements) are displayed in
+; the tootip incompletely and spill over into the gud buffer.
+; Switching the process-filter creates timing problems and
+; it may be difficult to do better. Using annotations as in
+; gdb-ui.el gets round this problem.
+(defun gud-tooltip-process-output (process output)
+  "Process debugger output and show it in a tooltip window."
+  (set-process-filter process gud-tooltip-original-filter)
+  (tooltip-show (tooltip-strip-prompt process output)
+		gud-tooltip-echo-area))
+
+(defun gud-tooltip-print-command (expr)
+  "Return a suitable command to print the expression EXPR.
+If GUD-TOOLTIP-DEREFERENCE is t, also prepend a `*' to EXPR."
+  (when gud-tooltip-dereference
+    (setq expr (concat "*" expr)))
+  (case gud-minor-mode
+    ((gdb gdba) (concat "server print " expr))
+    (dbx (concat "print " expr))
+    (xdb (concat "p " expr))
+    (sdb (concat expr "/"))
+    (perldb expr)))
+
+(defun gud-tooltip-tips (event)
+  "Show tip for identifier or selection under the mouse.
+The mouse must either point at an identifier or inside a selected
+region for the tip window to be shown.  If gud-tooltip-dereference is t,
+add a `*' in front of the printed expression. In the case of a C program
+controlled by GDB, show the associated #define directives when program is
+not executing.
+
+This function must return nil if it doesn't handle EVENT."
+  (let (process)
+    (when (and (eventp event)
+	       gud-tooltip-mode
+	       (boundp 'gud-comint-buffer)
+	       gud-comint-buffer
+	       (buffer-name gud-comint-buffer); gud-comint-buffer might be killed
+	       (setq process (get-buffer-process gud-comint-buffer))
+	       (posn-point (event-end event))
+	       (or (and (eq gud-minor-mode 'gdba) (not gdb-active-process))
+		   (progn (setq gud-tooltip-event event)
+			  (eval (cons 'and gud-tooltip-display)))))
+      (let ((expr (tooltip-expr-to-print event)))
+	(when expr
+	  (if (and (eq gud-minor-mode 'gdba)
+		   (not gdb-active-process))
+	      (progn
+		(with-current-buffer
+		    (window-buffer (let ((mouse (mouse-position)))
+				     (window-at (cadr mouse)
+						(cddr mouse))))
+		  (let ((define-elt (assoc expr gdb-define-alist)))
+		    (unless (null define-elt)
+		      (tooltip-show (cdr define-elt))
+		      expr))))
+	    (let ((cmd (gud-tooltip-print-command expr)))
+	      (unless (null cmd) ; CMD can be nil if unknown debugger
+		(if (eq gud-minor-mode 'gdba)
+		    (gdb-enqueue-input
+		     (list  (concat cmd "\n") 'gdb-tooltip-print))
+		  (setq gud-tooltip-original-filter (process-filter process))
+		  (set-process-filter process 'gud-tooltip-process-output)
+		  (gud-basic-call cmd))
+		expr))))))))
 
 (provide 'gud)
 

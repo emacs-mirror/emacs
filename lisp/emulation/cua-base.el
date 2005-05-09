@@ -777,9 +777,13 @@ With numeric prefix arg, copy to register 0-9 instead."
   (let ((start (mark)) (end (point)))
     (or (<= start end)
 	(setq start (prog1 end (setq end start))))
-    (if cua--register
-	(copy-to-register cua--register start end nil)
-      (copy-region-as-kill start end))
+    (cond
+     (cua--register
+      (copy-to-register cua--register start end nil))
+     ((eq this-original-command 'clipboard-kill-ring-save)
+      (clipboard-kill-ring-save start end))
+     (t
+      (copy-region-as-kill start end)))
     (if cua-keep-region-after-copy
 	(cua--keep-active)
       (cua--deactivate))))
@@ -795,9 +799,13 @@ With numeric prefix arg, copy to register 0-9 instead."
     (let ((start (mark)) (end (point)))
       (or (<= start end)
 	  (setq start (prog1 end (setq end start))))
-      (if cua--register
-	  (copy-to-register cua--register start end t)
-	(kill-region start end)))
+      (cond
+       (cua--register
+	(copy-to-register cua--register start end t))
+       ((eq this-original-command 'clipboard-kill-region)
+	(clipboard-kill-region start end))
+       (t
+	(kill-region start end))))
     (cua--deactivate)))
 
 ;;; Generic commands for regions, rectangles, and global marks
@@ -864,6 +872,8 @@ If global mark is active, copy from register or one character."
 	  (cua--insert-rectangle (cdr cua--last-killed-rectangle)
 				 nil paste-column paste-lines)
 	  (if arg (goto-char pt))))
+       ((eq this-original-command 'clipboard-yank)
+	(clipboard-yank))
        (t (yank arg)))))))
 
 (defun cua-paste-pop (arg)
@@ -1282,9 +1292,11 @@ If ARG is the atom `-', scroll upward by nearly full screen."
   (define-key cua--region-keymap [remap delete-char]		'cua-delete-region)
   ;; kill region
   (define-key cua--region-keymap [remap kill-region]		'cua-cut-region)
+  (define-key cua--region-keymap [remap clipboard-kill-region]	'cua-cut-region)
   ;; copy region
   (define-key cua--region-keymap [remap copy-region-as-kill]	'cua-copy-region)
   (define-key cua--region-keymap [remap kill-ring-save]		'cua-copy-region)
+  (define-key cua--region-keymap [remap clipboard-kill-ring-save] 'cua-copy-region)
   ;; cancel current region/rectangle
   (define-key cua--region-keymap [remap keyboard-escape-quit]	'cua-cancel)
   (define-key cua--region-keymap [remap keyboard-quit]		'cua-cancel)

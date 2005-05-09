@@ -632,8 +632,13 @@ The path separator is colon in GNU and GNU-like systems."
 
 (defun locate-file (filename path &optional suffixes predicate)
   "Search for FILENAME through PATH.
+If found, return the absolute file name of FILENAME, with its suffixes;
+otherwise return nil.
+PATH should be a list of directories to look in, like the lists in
+`exec-path' or `load-path'.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.  If SUFFIXES is nil, it is equivalent to '(\"\").
+Use '(\"/\") to disable PATH search, but still try the suffixes in SUFFIXES.
 If non-nil, PREDICATE is used instead of `file-readable-p'.
 PREDICATE can also be an integer to pass to the `access' system call,
 in which case file-name handlers are ignored.  This usage is deprecated.

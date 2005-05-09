@@ -1247,7 +1247,8 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
-  (set (make-local-variable 'overlay-arrow-string) "=>")
+  (set (make-local-variable 'overlay-arrow-string)
+       (if (display-graphic-p) "=>" ""))
   (setq next-error-overlay-arrow-position nil)
   (add-hook 'kill-buffer-hook
 	    (lambda () (setq next-error-overlay-arrow-position nil)) nil t)

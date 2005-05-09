@@ -98,8 +98,10 @@ static Lisp_Object Vselection_converter_alist;
    selection type with a scrap flavor type via `mac-ostype'.  */
 static Lisp_Object Qmac_scrap_name, Qmac_ostype;
 
+#ifdef MAC_OSX
 /* Selection name for communication via Services menu.  */
 static Lisp_Object Vmac_services_selection;
+#endif
 
 /* Get a reference to the scrap corresponding to the symbol SYM.  The
    reference is set to *SCRAP, and it becomes NULL if there's no
@@ -455,9 +457,11 @@ x_own_selection (selection_name, selection_value)
 	    value = call3 (handler_fn, selection_name,
 			   type, selection_value);
 
-	  if (CONSP (value)
-	      && EQ (XCAR (value), type)
-	      && STRINGP (XCDR (value)))
+	  if (STRINGP (value))
+	    err = put_scrap_string (scrap, type, value);
+	  else if (CONSP (value)
+		   && EQ (XCAR (value), type)
+		   && STRINGP (XCDR (value)))
 	    err = put_scrap_string (scrap, type, XCDR (value));
 	}
 
@@ -622,7 +626,8 @@ x_clear_frame_selections (f)
       hooks = Vx_lost_selection_functions;
       selection_symbol = Fcar (Fcar (Vselection_alist));
 
-      if (!EQ (hooks, Qunbound))
+      if (!EQ (hooks, Qunbound)
+	  && !NILP (Fx_selection_owner_p (selection_symbol)))
 	{
 	  for (; CONSP (hooks); hooks = Fcdr (hooks))
 	    call1 (Fcar (hooks), selection_symbol);
@@ -646,7 +651,8 @@ x_clear_frame_selections (f)
 	hooks = Vx_lost_selection_functions;
 	selection_symbol = Fcar (Fcar (XCDR (rest)));
 
-	if (!EQ (hooks, Qunbound))
+	if (!EQ (hooks, Qunbound)
+	  && !NILP (Fx_selection_owner_p (selection_symbol)))
 	  {
 	    for (; CONSP (hooks); hooks = Fcdr (hooks))
 	      call1 (Fcar (hooks), selection_symbol);

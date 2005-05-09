@@ -1,3 +1,14 @@
+2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (File Local Variables): `(hack-local-variables t)'
+	now also checks whether a mode is specified in the local variables
+	list.
+
+2005-05-05  Kevin Ryde  <user42@zip.com.au>
+
+	* display.texi (The Echo Area): Correct format function cross
+	reference.
+
 2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (Variable Aliases): Change description of

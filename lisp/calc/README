@@ -2,7 +2,7 @@
 This directory contains Calc, an advanced desk calculator for GNU
 Emacs.
 
-"Calc"  Copyright 1990, 1991, 1992, 1993, 2001 Free Software Foundation, Inc.
+"Calc"  Copyright 1990, 1991, 1992, 1993, 2001, 2005  Free Software Foundation, Inc.
 
 Written by:
 	Dave Gillespie
@@ -52,20 +52,9 @@ From the introduction to the manual:
 
 
 Calc is written entirely in Emacs Lisp, for maximum portability.
-You do not need to recompile Emacs to install and use Calc.
-
-You will need about six megabytes of disk space to install Calc
-and its Info documentation.
-
-See the file INSTALL for installation instructions.  The instructions
-may seem long, but on typical systems you will only need to follow the
-steps shown in the first section.
-
-Don't even try to run Calc in uncompiled (.el) form!  It's far too slow.
-
 
 I am anxious to hear about your experiences using Calc.  Send mail to
-"daveg@synaptics.com".  A bug report is most useful if you include the
+"belanger@truman.edu".  A bug report is most useful if you include the
 exact input and output that occurred, any modes in effect (such as the
 current precision), and so on.  If you find Calc is difficult to operate
 in any way, or if you have other suggestions, don't hesitate to let me
@@ -73,21 +62,32 @@ know.  If you find errors (including simple typos) in the manual, let
 me know.  Even if you find no bugs at all I would love to hear your
 opinions.
 
-The latest Calc tar files and patches are always available for anonymous
-FTP on prep.ai.mit.edu.
-
-Thanks,
-
-								-- Dave
-
-
-
 
 
 Summary of changes to "Calc"
 ------- -- ------- --  ----
 
 
+Version 2.1:
+
+* Added new functions: sec, csc, cot, sech, csch, coth.
+
+* 0^0 now evaluates to 1.
+
+* Added a new language mode for LaTeX.
+
+* Calc now tries to use an appropriate language mode in embedded mode.
+
+* Calc now restores original modes when leaving embedded mode.
+
+* User settable variables which are not set with keystrokes are now
+  customizable.
+
+* Made ~/.calc.el the default Calc settings file.
+
+* Miscellaneous updates and bugfixes.
+
+
 Version 2.02f:
 
  * Fixed a bug which broke `I', `H', `K' prefix keys in recent Emacs.

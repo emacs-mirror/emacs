@@ -747,6 +747,8 @@ The return value is ALIASED.  */)
   LOADHIST_ATTACH (symbol);
   if (!NILP (docstring))
     Fput (symbol, Qvariable_documentation, docstring);
+  else
+    Fput (symbol, Qvariable_documentation, Qnil);
 
   return aliased;
 }

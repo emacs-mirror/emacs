@@ -301,7 +301,9 @@ Must be greater than 1."
   :type 'integer
   :group 'ispell)
 
-(defcustom ispell-program-name "ispell"
+(defcustom ispell-program-name
+  (or (locate-file "aspell" exec-path exec-suffixes 'file-executable-p)
+      "ispell")
   "Program invoked by \\[ispell-word] and \\[ispell-region] commands."
   :type 'string
   :group 'ispell)

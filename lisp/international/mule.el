@@ -2188,9 +2188,9 @@ This function is intended to be added to `auto-coding-functions'."
   (when (re-search-forward "\\`[[:space:]\n]*<\\?xml" size t)
     (let ((end (save-excursion
 		 ;; This is a hack.
-		 (re-search-forward "\"\\s-*\\?>" size t))))
+		 (re-search-forward "[\"']\\s-*\\?>" size t))))
       (when end
-	(if (re-search-forward "encoding=\"\\(.+?\\)\"" end t)
+	(if (re-search-forward "encoding=[\"']\\(.+?\\)[\"']" end t)
 	    (let* ((match (match-string 1))
 		   (sym (intern (downcase match))))
 	      (if (coding-system-p sym)

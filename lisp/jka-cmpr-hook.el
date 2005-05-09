@@ -1,4 +1,4 @@
-;;; jka-comp-hook.el --- preloaded code to enable jka-compr.el
+;;; jka-cmpr-hook.el --- preloaded code to enable jka-compr.el
 
 ;; Copyright (C) 1993, 1994, 1995, 1997, 1999, 2000, 2003, 2004, 2005  Free Software Foundation, Inc.
 
@@ -287,7 +287,7 @@ Returns the new status of auto compression (non-nil means on)."
 ;;; Turn on the mode.
 (auto-compression-mode 1)
 
-(provide 'jka-comp-hook)
+(provide 'jka-cmpr-hook)
 
 ;; arch-tag: 4bd73429-f400-45fe-a065-270a113e31a8
-;;; jka-comp-hook.el ends here
+;;; jka-cmpr-hook.el ends here

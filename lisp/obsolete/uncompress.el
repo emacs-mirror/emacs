@@ -83,14 +83,10 @@ It then selects a major mode from the uncompressed file name and contents."
   (goto-char (point-min))
   (message "Uncompressing...done")
   (set-buffer-modified-p nil)
-  (make-local-variable 'write-file-hooks)
-  (or (memq 'uncompress-backup-file write-file-hooks)
-      (setq write-file-hooks (cons 'uncompress-backup-file write-file-hooks)))
+  (add-hook 'write-file-functions 'uncompress-backup-file nil t)
   (normal-mode))
 
-(or (memq 'find-compressed-version find-file-not-found-hooks)
-    (setq find-file-not-found-hooks
-	  (cons 'find-compressed-version find-file-not-found-hooks)))
+(add-hook 'find-file-not-found-functions 'find-compressed-version)
 
 (defun find-compressed-version ()
   "Hook to read and uncompress the compressed version of a file."

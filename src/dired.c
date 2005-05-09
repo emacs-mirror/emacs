@@ -400,7 +400,7 @@ DEFUN ("file-name-completion", Ffile_name_completion, Sfile_name_completion,
 Returns the longest string
 common to all file names in DIRECTORY that start with FILE.
 If there is only one and FILE matches it exactly, returns t.
-Returns nil if DIR contains no name starting with FILE.
+Returns nil if DIRECTORY contains no name starting with FILE.
 
 This function ignores some of the possible completions as
 determined by the variable `completion-ignored-extensions', which see.  */)

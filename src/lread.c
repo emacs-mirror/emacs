@@ -1006,6 +1006,7 @@ complete_filename_p (pathname)
 
 DEFUN ("locate-file-internal", Flocate_file_internal, Slocate_file_internal, 2, 4, 0,
        doc: /* Search for FILENAME through PATH.
+Returns the file's name in absolute form, or nil if not found.
 If SUFFIXES is non-nil, it should be a list of suffixes to append to
 file name when searching.
 If non-nil, PREDICATE is used instead of `file-readable-p'.

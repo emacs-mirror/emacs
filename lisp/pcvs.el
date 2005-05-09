@@ -1438,12 +1438,10 @@ The POSTPROC specified there (typically `log-edit') is then called,
   ;; displayed in the wrong minibuffer).
   (cvs-mode!)
   (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
-	(lbd list-buffers-directory)
 	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
 		      'log-edit)))
     (funcall setupfun 'cvs-do-commit setup 'cvs-commit-filelist buf)
     (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-commit-minor-wrap)
-    (set (make-local-variable 'list-buffers-directory) lbd)
     (run-hooks 'cvs-mode-commit-hook)))
 
 (defun cvs-commit-minor-wrap (buf f)
@@ -1494,14 +1492,12 @@ This is best called from a `log-view-mode' buffer."
   ;; displayed in the wrong minibuffer).
   (cvs-mode!)
   (let ((buf (cvs-temp-buffer "message" 'normal 'nosetup))
-	(lbd list-buffers-directory)
 	(setupfun (or (nth 2 (cdr (assoc "message" cvs-buffer-name-alist)))
 		      'log-edit)))
     (funcall setupfun 'cvs-do-edit-log nil 'cvs-edit-log-filelist buf)
     (when text (erase-buffer) (insert text))
     (set (make-local-variable 'cvs-edit-log-revision) rev)
     (set (make-local-variable 'cvs-minor-wrap-function) 'cvs-edit-log-minor-wrap)
-    (set (make-local-variable 'list-buffers-directory) lbd)
     ;; (run-hooks 'cvs-mode-commit-hook)
     ))
 
