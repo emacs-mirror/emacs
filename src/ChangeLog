@@ -1,5 +1,9 @@
 2005-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* fileio.c (Fexpand_file_name, Frename_file, Fadd_name_to_file)
+	(Fmake_symbolic_link, Faccess_file, Frecent_auto_save_p):
+	Doc fixes.
+
 	* dired.c (Ffile_name_completion): Make argument name
 	match its use in docstring.
 

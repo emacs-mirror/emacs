@@ -1,3 +1,10 @@
+2005-05-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* obsolete/uncompress.el: Set `find-file-not-found-functions', not
+	`find-file-not-found-hooks'; use `add-hook'.
+	(uncompress-while-visiting): Set `write-file-functions', not
+	`write-file-hooks'; use `add-hook'.
+
 2005-05-09  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-copy-region, cua-cut-region)
@@ -36,7 +43,7 @@
 	* international/mule.el (sgml-xml-auto-coding-function): Recognize
 	encoding='FOO' in single quotes as well as in double quotes.
 
-2005-05-07  Johan  Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
+2005-05-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
 	* emacs-lisp/cl-macs.el (cl-transform-lambda): Recognize `declare'
 	as well as `interactive', so that defmacro* would recognize
