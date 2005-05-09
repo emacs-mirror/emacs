@@ -170,7 +170,7 @@ them).  Others do more sophisticated things.
 @kindex RIGHT
 @kindex UP
 @kindex DOWN
-@findex beginning-of-line
+@findex move-beginning-of-line
 @findex move-end-of-line
 @findex forward-char
 @findex backward-char
@@ -183,7 +183,7 @@ them).  Others do more sophisticated things.
 @findex move-to-window-line
 @table @kbd
 @item C-a
-Move to the beginning of the line (@code{beginning-of-line}).
+Move to the beginning of the line (@code{move-beginning-of-line}).
 @item C-e
 Move to the end of the line (@code{move-end-of-line}).
 @item C-f
@@ -261,7 +261,7 @@ to the end of another line.  Normally, @code{track-eol} is @code{nil}.
 @xref{Variables}, for how to set variables such as @code{track-eol}.
 
 @vindex next-line-add-newlines
-  @kbd{C-n} normally stops at the end of the bufer when you use it on
+  @kbd{C-n} normally stops at the end of the buffer when you use it on
 the last line of the buffer.  But if you set the variable
 @code{next-line-add-newlines} to a non-@code{nil} value, @kbd{C-n} on
 the last line of a buffer creates an additional line at the end and
@@ -510,7 +510,7 @@ type the text for the new line.  @kbd{C-o F O O} has the same effect as
 
   You can make several blank lines by typing @kbd{C-o} several times, or
 by giving it a numeric argument to tell it how many blank lines to make.
-@xref{Arguments}, for how.  If you have a fill prefix, then @kbd{C-o}
+@xref{Arguments}, for how.  If you have a fill prefix, the @kbd{C-o}
 command inserts the fill prefix on the new line, when you use it at the
 beginning of a line.  @xref{Fill Prefix}.
 
@@ -677,7 +677,7 @@ point=26957 of 26956(100%)  column 0
 @cindex character set of character at point
 @cindex font of character at point
 @cindex text properties at point
-  @w{@kbd{C-u C-x =}} displays these additional information about a
+  @w{@kbd{C-u C-x =}} displays the following additional information about a
 character.
 
 @itemize @bullet
@@ -780,7 +780,7 @@ without digits normally means @minus{}1.
 sign has the special meaning of ``multiply by four.''  It multiplies the
 argument for the next command by four.  @kbd{C-u} twice multiplies it by
 sixteen.  Thus, @kbd{C-u C-u C-f} moves forward sixteen characters.  This
-is a good way to move forward ``fast,'' since it moves about 1/5 of a line
+is a good way to move forward ``fast'', since it moves about 1/5 of a line
 in the usual size screen.  Other useful combinations are @kbd{C-u C-n},
 @kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u C-u
 C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four
