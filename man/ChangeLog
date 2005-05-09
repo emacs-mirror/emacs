@@ -1,3 +1,8 @@
+2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi: Various typo and grammar fixes.
+	(Moving Point): C-a now runs move-beginning-of-line.
+
 2005-05-08  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Debugger Operation): Describe gud-tooltip-echo-area.
