@@ -1,3 +1,7 @@
+2005-05-09  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* startup.el (fancy-splash-insert): Fix typo in doc string.
+
 2005-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* obsolete/float.el (string-to-float):
