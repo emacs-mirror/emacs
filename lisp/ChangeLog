@@ -24,8 +24,8 @@
 
 2005-05-08  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Improve
-	commentary.
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name):
+	Improve commentary.
 
 	* simple.el (next-error-overlay-arrow-position): Revert the change
 	made on 2005-04-30.
@@ -41,8 +41,8 @@
 
 2005-05-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* progmodes/compile.el (compilation-setup): Set
-	overlay-arrow-string to an empty string on text terminals.
+	* progmodes/compile.el (compilation-setup):
+	Set overlay-arrow-string to an empty string on text terminals.
 
 	* textmodes/ispell.el (ispell-program-name): Try looking for
 	"aspell" along exec-path, and if found, use it as the default
@@ -50,8 +50,8 @@
 
 2005-05-07  Jirka Kosek  <jirka@kosek.cz>  (tiny change)
 
-	* international/mule.el (sgml-xml-auto-coding-function): Recognize
-	encoding='FOO' in single quotes as well as in double quotes.
+	* international/mule.el (sgml-xml-auto-coding-function):
+	Recognize encoding='FOO' in single quotes as well as in double quotes.
 
 2005-05-07  Johan Bockg,Ae(Brd  <bojohan@dd.chalmers.se>
 
@@ -61,9 +61,9 @@
 
 2005-05-07  Eli Zaretskii  <eliz@gnu.org>
 
-	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name): Explain
-	more about the LIGHTER arg's usage in the doc string.  Add
-	commentary to clarify what the code does.  Fix the regexp that
+	* emacs-lisp/easy-mmode.el (easy-mmode-pretty-mode-name):
+	Explain more about the LIGHTER arg's usage in the doc string.
+	Add commentary to clarify what the code does.  Fix the regexp that
 	strips whitespace from LIGHTER.  Quote LIGHTER before using it,
 	since it could have characters special to regular expressions.
 
@@ -71,8 +71,7 @@
 
 	* replace.el (occur-1): Bind inhibit-read-only so that
 	erase-buffer doesn't barf on read-only text properties (likewise
-	for add-text-properties in occur-engine).  Mark buffer as
-	unmodified.
+	for add-text-properties in occur-engine).  Mark buffer as unmodified.
 	(occur-engine): Don't set buffer-read-only here.
 
 2005-05-06  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -167,14 +166,26 @@
 	* term/mac-win.el: Don't define or bind scroll bar functions if
 	x-toolkit-scroll-bars is t.
 	(x-select-text, x-get-selection-value):
-	Clear x-last-selected-text-clipboard if x-select-enable-clipboard is
-	nil.
+	Clear x-last-selected-text-clipboard if x-select-enable-clipboard is nil.
 	(PRIMARY): Put mac-scrap-name property.
 	(mac-select-convert-to-file-url): New function.
 	(public.file-url): New selection target type.  Add to
 	selection-converter-alist.
 	(x-get-selection, x-selection-value): Handle it.
 	(x-cut-buffer-or-selection-value): New alias.
+
+2005-05-05  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-summary): Use current BibTeX
+	entry to avoid calling bibtex-find-entry with arg global
+	being t.  Remove arg key.
+	(bibtex-summary-function, bibtex-complete-crossref-cleanup)
+	(bibtex-copy-summary-as-kill): Change accordingly.
+
+2005-05-05  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/org.el (org-get-entries-from-diary): Remove unused vars.
+	(org-agenda-date-later): Use with-current-buffer.
 
 2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
 
