@@ -1804,10 +1804,9 @@ function does not look for the @samp{mode:} local variable in the
 @code{enable-local-variables} into account.
 
 If the optional argument @var{mode-only} is non-@code{nil}, then all
-this function does is return @code{t} if the @w{@samp{-*-}} line
-specifies a mode and @code{nil} otherwise.  It does not set the mode
-nor any other file local variable.  It does not check whether a mode
-is specified in the local variables list at the end of the file.
+this function does is return @code{t} if the @w{@samp{-*-}} line or
+the local variables list specifies a mode and @code{nil} otherwise.
+It does not set the mode nor any other file local variable.
 @end defun
 
   If a file local variable list could specify a function that would
