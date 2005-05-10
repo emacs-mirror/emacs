@@ -1,3 +1,8 @@
+2005-05-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-m-prefix-help): Add mention of
+	preserving embedded modes.
+
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/sh-script.el (sh-indent-for-do): Default to 0.
