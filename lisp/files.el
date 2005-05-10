@@ -541,9 +541,6 @@ DIR should be an absolute directory name.  It defaults to
 the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
-  (unless default-dirname
-    (setq default-dirname
-	  (if initial (concat dir initial) default-directory)))
   (read-file-name prompt dir (or default-dirname 
 				 (if initial (expand-file-name initial dir)
 				   dir))
@@ -2147,6 +2144,26 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
+(defun hack-local-variables-confirm ()
+  (or (eq enable-local-variables t)
+      (and enable-local-variables
+	   (save-window-excursion
+	     (condition-case nil
+		 (switch-to-buffer (current-buffer))
+	       (error
+		;; If we fail to switch in the selected window,
+		;; it is probably a minibuffer or dedicated window.
+		;; So try another window.
+		(let ((pop-up-frames nil))
+		  ;; Refrain from popping up frames since it can't
+		  ;; be undone by save-window-excursion.
+		  (pop-to-buffer (current-buffer)))))
+	     (save-excursion
+	       (beginning-of-line)
+	       (set-window-start (selected-window) (point)))
+	     (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
+			       (file-name-nondirectory buffer-file-name)))))))
+
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
@@ -2201,21 +2218,7 @@ is specified, returning t if it is specified."
       (if mode-only mode-specified
 	(if (and result
 		 (or mode-only
-		     (eq enable-local-variables t)
-		     (and enable-local-variables
-			  (save-window-excursion
-			    (condition-case nil
-				(switch-to-buffer (current-buffer))
-			      (error
-			       ;; If we fail to switch in the selected window,
-			       ;; it is probably a minibuffer.
-			       ;; So try another window.
-			       (condition-case nil
-				   (switch-to-buffer-other-window (current-buffer))
-				 (error
-				  (switch-to-buffer-other-frame (current-buffer))))))
-			    (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-					      (file-name-nondirectory buffer-file-name)))))))
+		     (hack-local-variables-confirm)))
 	    (let ((enable-local-eval enable-local-eval))
 	      (while result
 		(hack-one-local-variable (car (car result)) (cdr (car result)))
@@ -2244,20 +2247,8 @@ is specified, returning t if it is specified."
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
       (when (let ((case-fold-search t))
 	      (and (search-forward "Local Variables:" nil t)
-		   (or (eq enable-local-variables t)
-		       mode-only
-		       (and enable-local-variables
-			    (save-window-excursion
-			      (switch-to-buffer (current-buffer))
-			      (save-excursion
-				(beginning-of-line)
-				(set-window-start (selected-window) (point)))
-			      (y-or-n-p (format "Set local variables as specified at end of %s? "
-						(if buffer-file-name
-						    (file-name-nondirectory
-						     buffer-file-name)
-						  (concat "buffer "
-							  (buffer-name))))))))))
+		   (or mode-only
+		       (hack-local-variables-confirm))))
 	(skip-chars-forward " \t")
 	(let ((enable-local-eval enable-local-eval)
 	      ;; suffix is what comes after "local variables:" in its line.
@@ -2478,18 +2469,7 @@ is considered risky."
 		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
-		      (or (eq enable-local-eval t)
-			  (and enable-local-eval
-			       (save-window-excursion
-				 (switch-to-buffer (current-buffer))
-				 (save-excursion
-				   (beginning-of-line)
-				   (set-window-start (selected-window) (point)))
-				 (setq enable-local-eval
-				       (y-or-n-p (format "Process `eval' or hook local variables in %s? "
-							 (if buffer-file-name
-							     (concat "file " (file-name-nondirectory buffer-file-name))
-							   (concat "buffer " (buffer-name)))))))))))
+		      (hack-local-variables-confirm)))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
