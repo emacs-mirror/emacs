@@ -1,3 +1,8 @@
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Menu item filter functions
+	can be called at any time.
+
 2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (File Local Variables): `(hack-local-variables t)'

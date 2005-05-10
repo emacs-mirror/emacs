@@ -96,7 +96,6 @@ DIRECTORY		STATUS		IN CHARGE
 lisp/international	working		Kenichi Handa
 lisp/languages		working		Kenichi Handa
 
-
 ** Update AUTHORS.
 
 ** Reorder NEWS entries.

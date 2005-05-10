@@ -1,3 +1,19 @@
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/sh-script.el (sh-indent-for-do): Default to 0.
+
+	* progmodes/ada-mode.el (ada-adjust-case-skeleton):
+	Moved from ada-stmt.el.
+	(ada-mode): Add ada-adjust-case-skeleton to skeleton-end-hook.
+
+	* progmodes/ada-stmt.el (ada-adjust-case-skeleton):
+	Moved to ada-mode.el.
+	(ada-stmt-mode-hook): Deleted; do the work in ada-mode.
+
+	* cus-edit.el (custom-file): Call file-chase-links.
+
+	* files.el (read-directory-name): Fix previous change.
+
 2005-05-10  Lute Kamstra  <lute@gnu.org>
 
 	* font-lock.el (font-lock-keywords-alist)
@@ -272,6 +288,8 @@
 	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
 
 2005-05-04  Richard M. Stallman  <rms@gnu.org>
+
+	* help.el (describe-key): No error when UNTRANSLATED is nil.
 
 	* simple.el (line-move-1): Fix previous change to signal errors
 	appropriately.
@@ -4920,7 +4938,7 @@
 
 	* vc-svn.el (vc-svn-diff): Stay local if possible.
 
-2005-01-02  Stefan  <monnier@iro.umontreal.ca>
+2005-01-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* vc-arch.el (vc-arch-workfile-version): Handle the empty-branch case.
 

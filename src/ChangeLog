@@ -1,3 +1,9 @@
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* xterm.c (noinclude): Add #undef.
+
+	* image.c, xfns.c, xmenu.c: Don't include signal.h.
+
 2005-05-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fileio.c (Fexpand_file_name, Frename_file, Fadd_name_to_file)
