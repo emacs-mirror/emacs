@@ -470,12 +470,27 @@ user-level keywords, but normally their values have been
 optimized.")
 
 (defvar font-lock-keywords-alist nil
-  "Alist of `font-lock-keywords' local to a `major-mode'.
+  "Alist of additional `font-lock-keywords' elements for major modes.
+
+Each element has the form (MODE KEYWORDS . APPEND).
+`font-lock-set-defaults' adds the elements in the list KEYWORDS to
+`font-lock-keywords' when Font Lock is turned on in major mode MODE.
+
+If APPEND is nil, KEYWORDS are added at the beginning of
+`font-lock-keywords'.  If it is `set', they are used to replace the
+value of `font-lock-keywords'.  If APPEND is any other non-nil value,
+they are added at the end.
+
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-removed-keywords-alist nil
-  "Alist of `font-lock-keywords' removed from `major-mode'.
+  "Alist of `font-lock-keywords' elements to be removed for major modes.
+
+Each element has the form (MODE . KEYWORDS).  `font-lock-set-defaults'
+removes the elements in the list KEYWORDS from `font-lock-keywords'
+when Font Lock is turned on in major mode MODE.
+
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
