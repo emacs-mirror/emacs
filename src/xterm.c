@@ -7762,6 +7762,12 @@ x_error_handler (display, error)
 #define NO_INLINE
 #endif
 
+/* Some versions of GNU/Linux define noinline in their headers.  */
+
+#ifdef noinclude
+#undef noinclude
+#endif
+
 /* On older GCC versions, just putting x_error_quitter
    after x_error_handler prevents inlining into the former.  */
 
