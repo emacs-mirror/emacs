@@ -1,3 +1,8 @@
+2005-05-10  Lute Kamstra  <lute@gnu.org>
+
+	* font-lock.el (font-lock-keywords-alist)
+	(font-lock-removed-keywords-alist): Clarify docstrings.
+
 2005-05-10  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-macro-info): New variable.
@@ -412,11 +417,15 @@
 	with mode-require-final-newline.
 	(mode-require-final-newline): Doc fix.
 
-2005-05-01  Lute Kamstra  <lute@gnu.org>
+2005-05-01  Stefan Monnier <monnier@iro.umontreal.ca>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
-	Fix regular expressions.  Suggested by David Kastrup <dak@gnu.org>
-	and Stefan Monnier <monnier@iro.umontreal.ca>.
+	Fix regular expressions.
+
+2005-05-01  David Kastrup <dak@gnu.org>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Fix regular expressions.
 
 2005-05-01  Nick Roberts  <nickrob@snap.net.nz>
 
