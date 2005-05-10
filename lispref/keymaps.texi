@@ -1909,6 +1909,10 @@ This property provides a way to compute the menu item dynamically.
 The property value @var{filter-fn} should be a function of one argument;
 when it is called, its argument will be @var{real-binding}.  The
 function should return the binding to use instead.
+
+Emacs can call this function at any time that it does redisplay or
+operates on menu data structures, so you should write it so it can
+safely be called at any time.
 @end table
 
 @node Menu Separators
