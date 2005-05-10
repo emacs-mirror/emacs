@@ -7764,8 +7764,8 @@ x_error_handler (display, error)
 
 /* Some versions of GNU/Linux define noinline in their headers.  */
 
-#ifdef noinclude
-#undef noinclude
+#ifdef noinline
+#undef noinline
 #endif
 
 /* On older GCC versions, just putting x_error_quitter
