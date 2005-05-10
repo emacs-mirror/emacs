@@ -22,23 +22,29 @@
 
 ;;; Commentary:
 
+;; SPECIAL NOTICE
+;;
+;;   This file must be byte-compilable/loadable by `temacs' and also
+;;   the entry function `unidata-gen-files' must be runnable by
+;;   `temacs'.
+
 ;; FILES TO BE GENERATED
 ;;
-;;   The entry function `unidata-gen-files' generated these filese in
+;;   The entry function `unidata-gen-files' generates these files in
 ;;   the current directory.
 ;;
 ;;   charprop.el
 ;;	It contains a series of forms of this format:
 ;;	  (char-code-property-register PROP FILE)
 ;;	where PROP is a symbol representing a character property
-;;	(name, geneirc-category, etc), and FILE is a name of one of
+;;	(name, generic-category, etc), and FILE is a name of one of
 ;;	the following files.
 ;;
 ;;   uni-name.el, uni-cat.el, uni-comb.el, uni-bidi.el
 ;;	It contains a single form of this format:
 ;;	  (char-code-property-register PROP CHAR-TABLE)
 ;;	where PROP is the same as above, and CHAR-TABLE is a
-;;	char-table containing property values in a comporessed format.
+;;	char-table containing property values in a compressed format.
 ;;
 ;;   When they are installed in .../lisp/international/, the file
 ;;   "charprop.el" is preloaded in loadup.el.  The other files are
@@ -55,7 +61,7 @@
 ;;   data in a char-table as below.
 ;;
 ;;   If succeeding 128*N characters have the same property value, we
-;;   store that value for them.  Otherwise, comporess values for
+;;   store that value for them.  Otherwise, compress values for
 ;;   succeeding 128 characters into a single string and store it as a
 ;;   value for those characters.  The way of compression depends on a
 ;;   property.  See the section "SIMPLE TABLE", "RUN-LENGTH TABLE",
@@ -67,14 +73,10 @@
 ;;	3nd: function to call to put a property value
 ;;	4th: function to call to get a description of a property value
 ;;	5th: data referred by the above functions
-;;
-;;   The actual 
-;;   For more detail, see the comments in the section "SIMPLE TABLE"
-;;   and "NAME TABLE".
 
 ;; The name of the file UnicodeData.txt.
 (defconst unidata-text-file
-  (expand-file-name "admin/unidata/UnicodeData.txt" source-directory))
+  (expand-file-name "admin/unidata/unidata.txt" source-directory))
 
 ;; List of elements of this form:
 ;;   (CHAR-or-RANGE PROP1 PROP2 ... PROPn)
@@ -92,9 +94,7 @@
     (or (file-readable-p unidata-text-file)
 	(error "File not readable: %s" unidata-text-file))
     (with-temp-buffer
-      (call-process "sed" unidata-text-file t nil
-		    "-e" "s/\\([^;]*\\);\\(.*\\)/(#x\\1 \\\"\\2\\\")/"
-		    "-e" "s/;/\\\" \\\"/g")
+      (insert-file-contents unidata-text-file)
       (goto-char (point-min))
       (condition-case nil
 	  (while t
@@ -166,7 +166,7 @@ Property value is one of the following symbols:
      5 unidata-gen-table-decomposition "uni-decomposition.el"
      "Unicode decomposition mapping.
 Property value is a list of characters.  The first element may be
-one of these symbols representing compatiblity formatting tag:
+one of these symbols representing compatibility formatting tag:
   <font>, <noBreak>, <initial>, <medial>, <final>, <isolated>, <circle>,
   <super>, <sub>, <vertical>, <wide>, <narrow>, <small>, <square>, <fraction>,
   <compat>"
@@ -231,7 +231,7 @@ Property value is a character."
 ;;
 ;; The first character of the string is FIRST-INDEX.
 ;; The Nth (N > 0) character of the string is a property value of the
-;; character (BLOCk-HEAD + FIRST-INDEX + N - 1), where BLOCK-HEAD is
+;; character (BLOCK-HEAD + FIRST-INDEX + N - 1), where BLOCK-HEAD is
 ;; the first of the characters in the block.
 ;;
 ;; The 4th extra slot of a char-table is nil.
@@ -763,9 +763,23 @@ Property value is a character."
 	    (aset vec idx (nconc word-list tail-list)))
 	(dotimes (i 128)
 	  (aset table (+ first-char i) (aref vec i)))
-	(aref vec (- char first-char)))))))
+	(aref vec (- char first-char)))))
 
-;; Store VAL as the name of CHAR in TABLE.
+   ;; Hangul syllable
+   ((and (eq val 0) (>= char #xAC00) (<= char #xD7A3))
+    ;; SIndex = S (char) - SBase (#xAC00)
+    (setq char (- char #xAC00))
+    (let (;; L = LBase + SIndex / NCount
+	  (L (+ #x1100 (/ char 588)))
+	  ;; V = VBase + (SIndex % NCount) * TCount
+	  (V (+ #x1161 (/ (% char 588) 28)))
+	  ;; T = TBase + SIndex % TCount
+	  (T (+ #x11A7 (% char 28))))
+      (list L V T)))
+
+   ))
+
+;; Store VAL as the decomposition information of CHAR in TABLE.
 
 (defun unidata-put-decomposition (char val table)
   (let ((current-val (aref table char)))
@@ -871,7 +885,7 @@ Property value is a character."
 
     (if (and (eq prop 'decomposition)
 	     (> idx 32))
-	(error "Too many symobls in decomposition data"))
+	(error "Too many symbols in decomposition data"))
 
     (dotimes (i (/ #x110000 128))
       (let* ((idx (* i 128))
@@ -956,11 +970,11 @@ Property value is a character."
 	  (if (= c 32)
 	      (setq l (if (= (aref str idx) ?<)
 			  (cons (intern (substring str idx i)) l)
-			(cons (string-to-int (substring str idx i) 16) l))
+			(cons (string-to-number (substring str idx i) 16) l))
 		    idx (1+ i))))
 	(if (= (aref str idx) ?<)
 	    (setq l (cons (intern (substring str idx len)) l))
-	  (setq l (cons (string-to-int (substring str idx len) 16) l)))
+	  (setq l (cons (string-to-number (substring str idx len) 16) l)))
 	(nreverse l)))))
 
 
@@ -1091,9 +1105,9 @@ Property value is a character."
 		(cond ((eq generator 'unidata-gen-table-symbol)
 		       (setq val1 (intern val1)))
 		      ((eq generator 'unidata-gen-table-integer)
-		       (setq val1 (string-to-int val1)))
+		       (setq val1 (string-to-number val1)))
 		      ((eq generator 'unidata-gen-table-character)
-		       (setq val1 (string-to-int val1 16)))
+		       (setq val1 (string-to-number val1 16)))
 		      ((eq generator 'unidata-gen-table-decomposition)
 		       (setq val1 (unidata-split-decomposition val1)))))
 	    (when (>= char check)
@@ -1136,19 +1150,19 @@ Property value is a character."
 	    (insert ";; Automatically generated from UnicodeData.txt.\n"
 		    (format "(define-char-code-property '%S %S %S)\n"
 			    prop table docstring)
-		    ;; \040 below is to avoid error on reading this file.
-		    ";; Local\040Variables:\n"
+		    ";; Local Variables:\n"
 		    ";; coding: utf-8\n"
 		    ";; no-byte-compile: t\n"
 		    ";; End:\n\n"
 		    (format ";; %s ends here\n" file)))))
       (message "Writing %s..." charprop-file)
-       ;; \040 below is to avoid error on reading this file.
-      (insert ";; Local\040Variables:\n"
+      (insert ";; Local Variables:\n"
 	      ";; coding: utf-8\n"
 	      ";; no-byte-compile: t\n"
 	      ";; End:\n\n"
 	      (format ";; %s ends here\n" charprop-file)))))
+
+
 
 ;; arch-tag: 961c862e-b821-447e-9b8a-bfbab9c2d525
 ;;; unidata-gen.el ends here
