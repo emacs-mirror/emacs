@@ -466,22 +466,6 @@ Invoke right after `ada-function-spec' or `ada-procedure-spec'."
   > "terminate;")
 
 
-(defun ada-adjust-case-skeleton ()
-  "Adjust the case of the text inserted by a skeleton."
-  (save-excursion
-    (let ((aa-end (point)))
-      (ada-adjust-case-region
-       (progn (goto-char (symbol-value 'beg)) (forward-word -1) (point))
-       (goto-char aa-end)))))
-
-(defun ada-stmt-mode-hook ()
-  (set (make-local-variable 'skeleton-further-elements)
-       '((< '(backward-delete-char-untabify
-	      (min ada-indent (current-column))))))
-  (add-hook 'skeleton-end-hook  'ada-adjust-case-skeleton nil t))
-
-(add-hook 'ada-mode-hook 'ada-stmt-mode-hook)
-
 (provide 'ada-stmt)
 
 ;;; arch-tag: 94f51555-cc0e-44e5-8865-8788aae8ecd3
