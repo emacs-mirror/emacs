@@ -819,6 +819,7 @@ shortlisp= \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
+	../lisp/international/charprop.el \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
@@ -941,6 +942,22 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
+	if test -f $(admindir)/unidata/UnicodeData.txt; then \
+	  $(MAKE) $(MFLAGS) $(lispdir)international/charprop.el; \
+	fi
+
+/* The files charprop.el and uni-*.el in the subdir
+   `../lisp/international' should be re-generated if
+   ../admin/unidata/UnicodeData.txt exists and it's newer than
+   charprop.el.  */
+
+admindir = $(srcdir)/$(dot)$(dot)/admin
+
+$(lispsource)international/charprop.el: $(admindir)/unidata/UnicodeData.txt
+	TEMACS=`/bin/pwd`/temacs${EXEEXT}; \
+	cd $(admindir)/unidata; \
+	$(MAKE) $(MFLAGS) install \
+	  TEMACS=$${TEMACS} DSTDIR=$(lispsource)international
 
 /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs's crt0,
