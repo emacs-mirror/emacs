@@ -977,13 +977,13 @@ current mouse position.  They activate when there is a pause in mouse
 movement.  There are two types of tooltip: help tooltips and GUD
 tooltips.
 
-  @dfn{Help tooltips} typically display over text--including the mode
+  @dfn{Help tooltips} typically display over text---including the mode
 line---but may be also available for many other parts of the Emacs
 frame such as the toolbar and menu items.
 
 @findex tooltip-mode
   You can toggle help tooltips (Tooltip mode) with the command
-@kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
+  @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
 is displayed in the echo area instead.
 
   @dfn{GUD tooltips} show values of variables.  They are useful when
