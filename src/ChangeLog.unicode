@@ -1,3 +1,10 @@
+2005-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (shortlisp): Add ../lisp/international/charprop.el.
+	(temacs${EXEEXT}): Build charprop.el if necessary.
+	(admindir): New variable.
+	($(lispsource)international/charprop.el): New target.
+
 2005-05-04  Miles Bader  <miles@gnu.org>
 
 	* character.c (chars-in-region): Obsolete function removed.

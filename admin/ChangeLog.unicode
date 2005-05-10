@@ -1,3 +1,19 @@
+2005-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el: Typo fixed in comments.  Change
+	string-to-int to string-to-number.
+	(unidata-text-file): Defined to .../unidata.txt.
+	(unidata-list): Just insert unidata-text-file.
+	(unidata-get-decomposition): Handle Hangul decomposition.
+	(unidata-gen-files): Don't use \040, instead at ^L near the end of
+	file.
+
+	* unidata/Makefile (TEMACS): Renamed from EMACS.  Set to temacs.
+	Caller changed.
+	(unidata.txt): New target.
+	(charprop.el): Depends on unidata.txt.
+	(clean): Remove unidata.txt.
+
 2005-03-02  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-get-name): Handle "CJK IDEOGRAPH".

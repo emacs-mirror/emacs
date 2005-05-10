@@ -20,16 +20,19 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-EMACS = ../../src/emacs
+TEMACS = ../../src/temacs
 DSTDIR = ../../lisp/international
-RUNEMACS = ${EMACS} -q --no-site-file --multibyte -batch
+RUNEMACS = ${TEMACS} -Q --multibyte -batch
 
 all: charprop.el
 
 unidata-gen.elc: unidata-gen.el
 	${RUNEMACS} -f batch-byte-compile ./unidata-gen.el
 
-charprop.el: unidata-gen.elc UnicodeData.txt
+unidata.txt: UnicodeData.txt
+	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
+
+charprop.el: unidata-gen.elc unidata.txt
 	${RUNEMACS} -l ./unidata-gen.elc -f unidata-gen-files
 
 install: charprop.el
@@ -40,4 +43,4 @@ clean:
 	if test -f charprop.el; then \
 	  rm -f `sed -n 's/^;; FILE: //p' < charprop.el`; \
 	fi
-	rm -f charprop.el unidata-gen.elc
+	rm -f charprop.el unidata-gen.elc unidata.txt

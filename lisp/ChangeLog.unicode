@@ -1,3 +1,9 @@
+2005-05-10  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: Load international/charprop.el with NOERROR t.
+
+	* Makefile.in (AUTOGENEL): Add charprop.el and uni-*.el.
+
 2005-05-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/uni-bidi.el, international/uni-category.el,
