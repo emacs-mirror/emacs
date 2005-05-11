@@ -1,3 +1,8 @@
+2005-05-11  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set the
+	syntax of $ to "'" (quote).
+
 2005-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* dnd.el (dnd-protocol-alist): Improve custom type.

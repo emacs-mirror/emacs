@@ -414,6 +414,10 @@ This is buffer-local in every such buffer.")
 	?\" "\"\""
 	?\' "\"'"
 	?\` "\"`"
+	;; ?$ might also have a ". p" syntax. Both "'" and ". p" seem
+	;; to work fine. This is needed so that dabbrev-expand
+	;; $VARNAME works.
+	?$ "'"
 	?! "_"
 	?% "_"
 	?: "_"
