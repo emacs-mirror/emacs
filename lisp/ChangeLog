@@ -1737,7 +1737,7 @@
 	* xt-mouse.el (xterm-mouse-mode): Add explicit Custom group, mouse.
 	Doc fix.
 
-2005-04-03  Marcelo Toledo  <marcelo@marcelotoledo.org>
+2005-04-03  Marcelo Toledo  <marcelo@gnu.org>
 
 	* add-log.el (change-log-font-lock-keywords): The manual
 	describing a Change Log entry, says: (...) "Aside from these
@@ -12097,7 +12097,7 @@
 
 	* tree-widget.el: New file.
 
-2004-05-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
+2004-05-13  Marcelo Toledo  <marcelo@gnu.org>
 
 	* language/european.el ("Brazilian Portuguese"): Add support for
 	Brazilian Portuguese.
