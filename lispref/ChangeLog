@@ -1,3 +1,7 @@
+2005-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Signals to Processes): Fix typo.
+
 2005-05-11  Lute Kamstra  <lute@gnu.org>
 
 	* elisp.texi (Top): Add some nodes from the chapter "Major and
