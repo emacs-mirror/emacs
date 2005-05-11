@@ -1,3 +1,11 @@
+2005-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* configure.in: While running cpp on junk.c, include
+	-DHAVE_UNIDATA in CPPFLAGS if admin/unidata/UnicodeData.txt
+	exists.
+
+	* configure: Re-generated.
+
 2005-02-13  Miles Bader  <miles@gnu.org>
 
 	Rename unicode-branch-specific ChangeLog files to

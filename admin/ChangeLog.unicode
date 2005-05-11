@@ -1,5 +1,12 @@
 2005-05-11  Kenichi Handa  <handa@m17n.org>
 
+	* unidata/unidata-gen.el (unidata-text-file): Delete it.
+	(unidata-list): Initialize to nil.
+	(unidata-setup-list): New function.
+	(unidata-gen-files): New optional arg unidata-text-file.  If it's
+	nil, set unidata-text-file the left command line arg.  Call
+	unidate-setup-list at first.
+
 	* unidata/Makefile (EMACS): Rename back to Emacs and set to emacs.
 	Caller changed.
 	(all): Depends on ${DSTDIR}/charprop.el.

@@ -1,3 +1,13 @@
+2005-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* Makefile.in (shortlisp): Cancel previous change.
+	(RUN_TEMACS): Include "-nl" if HAVE_SHM is defined.
+	(emacs${EXEEXT}): Run $(RUN_TEMACS) unconditionally.
+	(UNIDATA): New variable.
+	(${lispsource}international/charprop.el): Depends on ${UNIDATA}.
+	(bootstrap-emacs${EXEEXT}): Depends on charprop.el.  Run
+	$(RUN_TEMACS) unconditionally.
+
 2005-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (shortlisp): Add ../lisp/international/charprop.el.

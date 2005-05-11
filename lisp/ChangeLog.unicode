@@ -1,3 +1,8 @@
+2005-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* loadup.el: If we are byte-compiling unidata-gen.el or running
+	unidata-ge-files, set purify-flag to nil.
+
 2005-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* loadup.el: Load international/charprop.el with NOERROR t.
