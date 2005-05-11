@@ -1314,10 +1314,10 @@ START should be at the beginning of a line."
 (defun font-lock-fontify-syntactically-region (start end &optional loudly ppss)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
-  (let (state face beg
-	      (comment-end-regexp
-	       (regexp-quote
-		(replace-regexp-in-string "^ *" "" comment-end))))
+  (let ((comment-end-regexp
+         (regexp-quote
+          (replace-regexp-in-string "^ *" "" comment-end)))
+        state face beg)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
     ;;
@@ -1333,18 +1333,18 @@ START should be at the beginning of a line."
 	    (setq state (parse-partial-sexp (point) end nil nil state
 					    'syntax-table))
 	    (when face (put-text-property beg (point) 'face face))
-	    (when (eq face 'font-lock-comment-face)
+	    (when (and (eq face 'font-lock-comment-face)
+                       comment-start-skip)
 	      ;; Find the comment delimiters
 	      ;; and use font-lock-comment-delimiter-face for them.
 	      (save-excursion
 		(goto-char beg)
-		(if (and comment-start-skip (looking-at comment-start-skip))
+		(if (looking-at comment-start-skip)
 		    (put-text-property beg (match-end 0) 'face
-				       'font-lock-comment-delimiter-face)))
-	      (if (and comment-end
-		       (looking-back comment-end-regexp (point-at-bol)))
+				       font-lock-comment-delimiter-face)))
+	      (if (looking-back comment-end-regexp (point-at-bol))
 		  (put-text-property (match-beginning 0) (point) 'face
-				     'font-lock-comment-delimiter-face))))
+				     font-lock-comment-delimiter-face))))
 	  (< (point) end))
       (setq state (parse-partial-sexp (point) end nil nil state
 				      'syntax-table)))))
@@ -1856,7 +1856,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;  (put 'font-lock-fontify-more 'menu-enable '(identity))
 ;  (put 'font-lock-fontify-less 'menu-enable '(identity)))
 ;
-;;; Put the appropriate symbol property values on now.  See above.
+; ;; Put the appropriate symbol property values on now.  See above.
 ;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode)
 ;(put 'font-lock-mode 'menu-selected 'font-lock-mode)
 ;(put 'font-lock-fontify-more 'menu-enable '(nth 2 font-lock-fontify-level))
@@ -1890,7 +1890,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;      (font-lock-fontify-level (1+ (car font-lock-fontify-level)))
 ;    (error "No more decoration")))
 ;
-;;; This should be called by `font-lock-set-defaults'.
+; ;; This should be called by `font-lock-set-defaults'.
 ;(defun font-lock-set-menu ()
 ;  ;; Activate less/more fontification entries if there are multiple levels for
 ;  ;; the current buffer.  Sets `font-lock-fontify-level' to be of the form
@@ -1911,7 +1911,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;      (setq font-lock-fontify-level (list level (> level 1)
 ;					  (< level (1- (length keywords))))))))
 ;
-;;; This should be called by `font-lock-unset-defaults'.
+; ;; This should be called by `font-lock-unset-defaults'.
 ;(defun font-lock-unset-menu ()
 ;  ;; Deactivate less/more fontification entries.
 ;  (setq font-lock-fontify-level nil))
@@ -1919,7 +1919,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;;; End of Menu support.
 
 ;;; Various regexp information shared by several modes.
-;;; Information specific to a single mode should go in its load library.
+; ;; Information specific to a single mode should go in its load library.
 
 ;; Font Lock support for C, C++, Objective-C and Java modes is now in
 ;; cc-fonts.el (and required by cc-mode.el).  However, the below function
@@ -2071,9 +2071,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\sw+\\>" . font-lock-type-face)
       ;;
-;;; This is too general -- rms.
-;;; A user complained that he has functions whose names start with `do'
-;;; and that they get the wrong color.
+;;;  This is too general -- rms.
+;;;  A user complained that he has functions whose names start with `do'
+;;;  and that they get the wrong color.
 ;;;      ;; CL `with-' and `do-' constructs
 ;;;      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
