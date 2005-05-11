@@ -32,6 +32,8 @@
 ;; get autoloaded when bootstrapping
 (if (or (equal (nth 3 command-line-args) "bootstrap")
 	(equal (nth 4 command-line-args) "bootstrap")
+	(equal (nth 3 command-line-args) "unidata-gen.el")
+	(equal (nth 4 command-line-args) "unidata-gen-files")
 	;; in case CANNOT_DUMP
 	(equal (nth 0 command-line-args) "../src/bootstrap-emacs"))
     (let ((dir (car load-path)))
