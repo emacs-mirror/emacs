@@ -1,5 +1,8 @@
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* files.el (executable-find): Move from executable.el. Use locate-file.
+	* progmodes/executable.el (executable-find): Move to files.el.
+
 	* font-lock.el (font-lock-fontify-keywords-region): Use a marker
 	when trying to ensure forward progress.
 
@@ -19,7 +22,7 @@
 	* progmodes/sh-script.el (sh-indent-for-do): Default to 0.
 
 	* progmodes/ada-mode.el (ada-adjust-case-skeleton):
-	Moved from ada-stmt.el.
+	Move from ada-stmt.el.
 	(ada-mode): Add ada-adjust-case-skeleton to skeleton-end-hook.
 
 	* progmodes/ada-stmt.el (ada-adjust-case-skeleton):
