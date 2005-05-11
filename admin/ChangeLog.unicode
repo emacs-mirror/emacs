@@ -1,3 +1,10 @@
+2005-05-11  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/Makefile (EMACS): Rename back to Emacs and set to emacs.
+	Caller changed.
+	(all): Depends on ${DSTDIR}/charprop.el.
+	(${DSTDIR}/charprop.el): Run emacs after cd to DISDIR.
+
 2005-05-10  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el: Typo fixed in comments.  Change
