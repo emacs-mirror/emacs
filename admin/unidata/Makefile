@@ -20,20 +20,23 @@
 # Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 # Boston, MA 02111-1307, USA.
 
-TEMACS = ../../src/temacs
+EMACS = ../../src/emacs
 DSTDIR = ../../lisp/international
-RUNEMACS = ${TEMACS} -Q --multibyte -batch
+RUNEMACS = ${EMACS} -Q --multibyte -batch
 
-all: charprop.el
+all: ${DSTDIR}/charprop.el
 
-unidata-gen.elc: unidata-gen.el
-	${RUNEMACS} -f batch-byte-compile ./unidata-gen.el
+.el.elc:
+	${RUNEMACS} -batch -f batch-byte-compile $<
 
 unidata.txt: UnicodeData.txt
 	sed -e 's/\([^;]*\);\(.*\)/(#x\1 "\2")/' -e 's/;/" "/g' < $< > $@
 
-charprop.el: unidata-gen.elc unidata.txt
-	${RUNEMACS} -l ./unidata-gen.elc -f unidata-gen-files
+${DSTDIR}/charprop.el: unidata-gen.elc unidata.txt
+	ELC=`/bin/pwd`/unidata-gen.elc; \
+	DATA=`/bin/pwd`/unidata.txt; \
+	cd ${DSTDIR}; \
+	${RUNEMACS} -batch --load $${ELC} -f unidata-gen-files $${DATA}
 
 install: charprop.el
 	cp charprop.el ${DSTDIR}
