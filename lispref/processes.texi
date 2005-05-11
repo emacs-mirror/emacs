@@ -870,7 +870,7 @@ processes.  (@code{SIGHUP} is a signal that usually indicates that the
 user hung up the phone.)
 
   Each of the signal-sending functions takes two optional arguments:
-@var{process-name} and @var{current-group}.
+@var{process} and @var{current-group}.
 
   The argument @var{process} must be either a process, a process
 name, a buffer, a buffer name, or @code{nil}.  A buffer or buffer name
