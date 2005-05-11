@@ -1,3 +1,9 @@
+2005-05-11  Chong Yidong  <cyd@stupidchicken.com>
+
+	* mouse-sel.el (mouse-sel-follow-link-p): New function.
+	(mouse-select, mouse-select-internal, mouse-extend-internal):
+	Use it to implement mouse-1-click-follows-link functionality.
+
 2005-05-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-m-prefix-help): Add mention of
