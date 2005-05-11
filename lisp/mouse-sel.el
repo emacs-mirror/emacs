@@ -465,10 +465,12 @@ Clicking mouse-1 or mouse-3 kills the selected text.
 
 This should be bound to a down-mouse event."
   (interactive "@e")
-  (let (direction)
+  (let (select)
     (unwind-protect
-	(setq direction (mouse-select-internal 'PRIMARY event))
-      (mouse-sel-primary-to-region direction))))
+    	(setq select (mouse-select-internal 'PRIMARY event))
+      (if (and select (listp select))
+	  (push (cons 'mouse-2 (cdr event)) unread-command-events)
+	(mouse-sel-primary-to-region select)))))
 
 (defun mouse-select-secondary (event)
   "Set secondary selection using the mouse.
@@ -487,7 +489,14 @@ This should be bound to a down-mouse event."
   (mouse-select-internal 'SECONDARY event))
 
 (defun mouse-select-internal (selection event)
-  "Set SELECTION using the mouse."
+  "Set SELECTION using the mouse, with EVENT as the initial down-event.
+Normally, this returns the direction in which the selection was
+made: a value of 1 indicates that the mouse was dragged
+left-to-right, otherwise it was dragged right-to-left.
+
+However, if `mouse-1-click-follows-link' is non-nil and the
+subsequent mouse events specify following a link, this returns
+the final mouse-event.  In that case, the selection is not set."
   (mouse-sel-eval-at-event-end event
     (let ((thing-symbol (mouse-sel-selection-thing selection))
 	  (overlay (mouse-sel-selection-overlay selection)))
@@ -501,7 +510,8 @@ This should be bound to a down-mouse event."
 			    (car object-bounds) (cdr object-bounds)
 			    (current-buffer)))
 	  (move-overlay overlay (point) (point) (current-buffer)))))
-    (mouse-extend-internal selection)))
+    (catch 'follow-link
+      (mouse-extend-internal selection event t))))
 
 ;;=== Extend ==============================================================
 
@@ -523,11 +533,12 @@ This should be bound to a down-mouse event."
   (save-window-excursion
     (mouse-extend-internal 'SECONDARY event)))
 
-(defun mouse-extend-internal (selection &optional initial-event)
+(defun mouse-extend-internal (selection &optional initial-event no-process)
   "Extend specified SELECTION using the mouse.
 Track mouse-motion events, adjusting the SELECTION appropriately.
-Optional argument INITIAL-EVENT specifies an initial down-mouse event to
-process.
+Optional argument INITIAL-EVENT specifies an initial down-mouse event.
+Optional argument NO-PROCESS means not to process the initial
+event.
 
 See documentation for mouse-select-internal for more details."
   (mouse-sel-eval-at-event-end initial-event
@@ -564,7 +575,8 @@ See documentation for mouse-select-internal for more details."
 	    ;; Handle dragging
 	    (track-mouse
 
-	      (while (if initial-event	; Use initial event
+	      (while (if (and initial-event (not no-process))
+			 ;; Use initial event
 			 (prog1
 			     (setq event initial-event)
 			   (setq initial-event nil))
@@ -643,6 +655,10 @@ See documentation for mouse-select-internal for more details."
 
 		  )))			; end track-mouse
 
+	    ;; Detect follow-link events
+	    (when (mouse-sel-follow-link-p initial-event event)
+	      (throw 'follow-link event))
+
 	    ;; Finish up after dragging
 	    (let ((overlay-start (overlay-start overlay))
 		  (overlay-end (overlay-end overlay)))
@@ -678,6 +694,25 @@ See documentation for mouse-select-internal for more details."
 	     (selected-frame) (list (cons 'cursor-type orig-cursor-type))))
 
 	))))
+
+(defun mouse-sel-follow-link-p (initial final)
+  "Return t if we should follow a link, given INITIAL and FINAL mouse events.
+See `mouse-1-click-follows-link' for details.  Currently, Mouse
+Sel mode does not support using a `double' value to follow links
+using double-clicks."
+  (and initial final mouse-1-click-follows-link
+       (eq (car initial) 'down-mouse-1)
+       (mouse-on-link-p	(posn-point (event-start initial)))
+       (= (posn-point (event-start initial))
+	  (posn-point (event-end final)))
+       (= (event-click-count initial) 1)
+       (or (not (integerp mouse-1-click-follows-link))
+	   (let ((t0 (posn-timestamp (event-start initial)))
+		 (t1 (posn-timestamp (event-end final))))
+	     (and (integerp t0) (integerp t1)
+		  (if (> mouse-1-click-follows-link 0)
+		      (<= (- t1 t0) mouse-1-click-follows-link)
+		    (< (- t0 t1) mouse-1-click-follows-link)))))))
 
 ;;=== Paste ===============================================================
 
