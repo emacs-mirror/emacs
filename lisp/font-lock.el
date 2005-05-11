@@ -1420,6 +1420,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cddr font-lock-keywords))
 	(bufname (buffer-name)) (count 0)
+        (pos (make-marker))
 	keyword matcher highlights)
     ;;
     ;; Fontify each item in `font-lock-keywords' from `start' to `end'.
@@ -1454,12 +1455,14 @@ LOUDLY, if non-nil, allows progress-meter bar."
 	(while highlights
 	  (if (numberp (car (car highlights)))
 	      (font-lock-apply-highlight (car highlights))
-	    (let ((pos (point)))
-	      (font-lock-fontify-anchored-keywords (car highlights) end)
-	      ;; Ensure forward progress.
-	      (if (< (point) pos) (goto-char pos))))
+	    (set-marker pos (point))
+            (font-lock-fontify-anchored-keywords (car highlights) end)
+            ;; Ensure forward progress.  `pos' is a marker because anchored
+            ;; keyword may add/delete text (this happens e.g. in grep.el).
+            (if (< (point) pos) (goto-char pos)))
 	  (setq highlights (cdr highlights))))
-      (setq keywords (cdr keywords)))))
+      (setq keywords (cdr keywords)))
+    (set-marker pos nil)))
 
 ;;; End of Keyword regexp fontification functions.
 

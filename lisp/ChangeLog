@@ -1,3 +1,8 @@
+2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-fontify-keywords-region): Use a marker
+	when trying to ensure forward progress.
+
 2005-05-11  Chong Yidong  <cyd@stupidchicken.com>
 
 	* mouse-sel.el (mouse-sel-follow-link-p): New function.
@@ -18,8 +23,8 @@
 	(ada-mode): Add ada-adjust-case-skeleton to skeleton-end-hook.
 
 	* progmodes/ada-stmt.el (ada-adjust-case-skeleton):
-	Moved to ada-mode.el.
-	(ada-stmt-mode-hook): Deleted; do the work in ada-mode.
+	Move to ada-mode.el.
+	(ada-stmt-mode-hook): Delete; do the work in ada-mode.
 
 	* cus-edit.el (custom-file): Call file-chase-links.
 
