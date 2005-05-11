@@ -1,3 +1,8 @@
+2005-05-11  Lute Kamstra  <lute@gnu.org>
+
+	* elisp.texi (Top): Add some nodes from the chapter "Major and
+	Minor Modes" to the detailed node listing.
+
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* keymaps.texi (Extended Menu Items): Menu item filter functions
