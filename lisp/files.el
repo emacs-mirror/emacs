@@ -676,6 +676,13 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
        ((null action) (try-completion string names))
        (t (test-completion string names))))))
 
+(defun executable-find (command)
+  "Search for COMMAND in `exec-path' and return the absolute file name.
+Return nil if COMMAND is not found anywhere in `exec-path'."
+  ;; Use 1 rather than file-executable-p to better match the behavior of
+  ;; call-process.
+  (locate-file command exec-path exec-suffixes 1))
+
 (defun load-library (library)
   "Load the library named LIBRARY.
 This is an interface to the function `load'."
@@ -4855,5 +4862,5 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 
-;;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
+;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here
