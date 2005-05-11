@@ -175,7 +175,7 @@ lispref/customize.texi   Chong Yidong
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong
-lispref/elisp.texi       "Luc Teirlinck"
+lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong

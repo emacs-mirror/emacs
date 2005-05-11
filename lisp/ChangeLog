@@ -1,3 +1,11 @@
+2005-05-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Avoid `re-search-forward' when looking for input encoding because
+	of speed and safety.  Better regular expressions for recognizing
+	input encoding.  Limit a search for TeX-master/tex-main-file to
+	the local variable section.
+
 2005-05-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* progmodes/sh-script.el (sh-mode-default-syntax-table): Set the
