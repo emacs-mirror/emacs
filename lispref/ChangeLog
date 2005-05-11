@@ -1,6 +1,7 @@
 2005-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
 
-	* processes.texi (Signals to Processes): Fix typo.
+	* processes.texi (Signals to Processes)
+	(Low-Level Network): Fix typos.
 
 2005-05-11  Lute Kamstra  <lute@gnu.org>
 
