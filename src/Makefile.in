@@ -50,6 +50,7 @@ LIBOBJS = @LIBOBJS@
 dot = .
 dotdot = ${dot}${dot}
 lispsource = ${srcdir}/$(dot)$(dot)/lisp/
+admindir = $(srcdir)/$(dot)$(dot)/admin/
 libsrc = $(dot)$(dot)/lib-src/
 etc = $(dot)$(dot)/etc/
 oldXMenudir = $(dot)$(dot)/oldXMenu/
@@ -819,7 +820,6 @@ shortlisp= \
 	../lisp/international/mule-conf.el \
 	../lisp/international/mule-cmds.elc \
 	../lisp/international/characters.elc \
-	../lisp/international/charprop.el \
 	../lisp/case-table.elc \
 	../lisp/language/chinese.el \
 	../lisp/language/cyrillic.el \
@@ -899,7 +899,11 @@ LIBES = $(LOADLIBES) $(LIBS) $(LIBX) $(LIBSOUND) \
 #define OBJECTS_MACHINE
 #endif
 
-RUN_TEMACS = ./temacs
+#ifdef HAVE_SHM
+RUN_TEMACS = `/bin/pwd`/temacs -nl
+#else
+RUN_TEMACS = `/bin/pwd`/temacs
+#endif
 
 all: emacs${EXEEXT} OTHER_FILES
 
@@ -908,11 +912,7 @@ emacs${EXEEXT}: temacs${EXEEXT} ${etc}DOC ${lisp}
 	rm -f emacs${EXEEXT}
 	ln temacs${EXEEXT} emacs${EXEEXT}
 #else
-#ifdef HAVE_SHM
-	LC_ALL=C $(RUN_TEMACS) -nl -batch -l loadup dump
-#else /* ! defined (HAVE_SHM) */
 	LC_ALL=C $(RUN_TEMACS) -batch -l loadup dump
-#endif /* ! defined (HAVE_SHM) */
 #endif /* ! defined (CANNOT_DUMP) */
 	-./emacs -q -batch -f list-load-path-shadows
 
@@ -932,6 +932,16 @@ ${etc}DOC: ${libsrc}make-docfile${EXEEXT} ${obj} ${shortlisp} ${SOME_MACHINE_LIS
 ${libsrc}make-docfile${EXEEXT}:
 	cd ${libsrc}; ${MAKE} ${MFLAGS} make-docfile${EXEEXT}
 
+#ifdef HAVE_UNIDATA
+UNIDATA=${admindir}unidata/UnicodeData.txt
+#endif
+
+${lispsource}international/charprop.el: ${UNIDATA}
+	RUNEMACS="$(RUN_TEMACS)"; \
+	cd ${admindir}unidata; \
+	$(MAKE) $(MFLAGS) \
+	  RUNEMACS="$${RUNEMACS}" DSTDIR=${lispsource}international
+
 /* Some systems define this to cause parallel Make-ing.  */
 #ifndef MAKE_PARALLEL
 #define MAKE_PARALLEL
@@ -942,22 +952,6 @@ temacs${EXEEXT}: MAKE_PARALLEL $(LOCALCPP) $(STARTFILES) stamp-oldxmenu ${obj} $
 	$(LD) YMF_PASS_LDFLAGS (${STARTFLAGS} ${TEMACS_LDFLAGS}) $(LDFLAGS) \
     -o temacs ${STARTFILES} ${obj} ${otherobj}  \
     OBJECTS_MACHINE ${LIBES}
-	if test -f $(admindir)/unidata/UnicodeData.txt; then \
-	  $(MAKE) $(MFLAGS) $(lispdir)international/charprop.el; \
-	fi
-
-/* The files charprop.el and uni-*.el in the subdir
-   `../lisp/international' should be re-generated if
-   ../admin/unidata/UnicodeData.txt exists and it's newer than
-   charprop.el.  */
-
-admindir = $(srcdir)/$(dot)$(dot)/admin
-
-$(lispsource)international/charprop.el: $(admindir)/unidata/UnicodeData.txt
-	TEMACS=`/bin/pwd`/temacs${EXEEXT}; \
-	cd $(admindir)/unidata; \
-	$(MAKE) $(MFLAGS) install \
-	  TEMACS=$${TEMACS} DSTDIR=$(lispsource)international
 
 /* We don't use ALL_LDFLAGS because LD_SWITCH_SYSTEM and LD_SWITCH_MACHINE
    often contain options that have to do with using Emacs's crt0,
@@ -1355,14 +1349,10 @@ bootstrap: bootstrap-emacs${EXEEXT}
 /* Dump an Emacs executable named bootstrap-emacs containing the
    files from loadup.el in source form.  */
 
-bootstrap-emacs${EXEEXT}: temacs${EXEEXT}
+bootstrap-emacs${EXEEXT}: temacs${EXEEXT} ${lispsource}international/charprop.el
 #ifdef CANNOT_DUMP
 	ln temacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #else
-#ifdef HAVE_SHM
-	$(RUN_TEMACS) -nl -batch -l loadup bootstrap
-#else /* ! defined (HAVE_SHM) */
 	$(RUN_TEMACS) --batch --load loadup bootstrap
-#endif /* ! defined (HAVE_SHM) */
 	mv -f emacs${EXEEXT} bootstrap-emacs${EXEEXT}
 #endif /* ! defined (CANNOT_DUMP) */
