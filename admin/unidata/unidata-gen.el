@@ -74,16 +74,14 @@
 ;;	4th: function to call to get a description of a property value
 ;;	5th: data referred by the above functions
 
-;; The name of the file UnicodeData.txt.
-(defconst unidata-text-file
-  (expand-file-name "admin/unidata/unidata.txt" source-directory))
-
 ;; List of elements of this form:
 ;;   (CHAR-or-RANGE PROP1 PROP2 ... PROPn)
 ;; CHAR-or-RANGE: a character code or a cons of character codes
 ;; PROPn: string representing the nth property value
 
-(defvar unidata-list
+(defvar unidata-list nil)
+
+(defun unidata-setup-list (unidata-text-file)
   (let* ((table (list nil))
 	 (tail table)
 	 (block-names '(("^<CJK Ideograph" . CJK\ IDEOGRAPH)
@@ -128,7 +126,7 @@
 	      (setcdr tail (list val))
 	      (setq tail (cdr tail))))
 	(error nil)))
-    (cdr table)))
+    (setq unidata-list (cdr table))))
 
 ;; Alist of this form:
 ;;   (PROP INDEX GENERATOR FILENAME)
@@ -1121,8 +1119,11 @@ Property value is a character."
 ;; The entry function.  It generates files described in the header
 ;; comment of this file.
 
-(defun unidata-gen-files ()
-  (interactive)
+(defun unidata-gen-files (&optional unidata-text-file)
+  (or unidata-text-file
+      (setq unidata-text-file (car command-line-args-left)
+	    command-line-args-left (cdr command-line-args-left)))
+  (unidata-setup-list unidata-text-file)
   (let ((coding-system-for-write 'utf-8)
 	(charprop-file "charprop.el"))
     (with-temp-file charprop-file
