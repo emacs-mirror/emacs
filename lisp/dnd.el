@@ -55,7 +55,7 @@ If no match is found, the URL is inserted as text by calling `dnd-insert-text'.
 The function shall return the action done (move, copy, link or private)
 if some action was made, or nil if the URL is ignored."
   :version "22.1"
-  :type 'alist
+  :type '(repeat (cons (regexp) (function)))
   :group 'dnd)
 
 

@@ -1,3 +1,11 @@
+2005-05-11  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* dnd.el (dnd-protocol-alist): Improve custom type.
+
+	* dired.el (dired-dnd-protocol-alist): New variable.
+	(dired-mode): Use `dired-dnd-protocol-alist'.  Move call of
+	`dired-mode-hook' to the end.
+
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (executable-find): Move from executable.el. Use locate-file.
