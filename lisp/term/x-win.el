@@ -1,6 +1,6 @@
 ;;; x-win.el --- parse relevant switches and set up for X  -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1993, 1994, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2001, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: FSF
 ;; Keywords: terminals, i18n
