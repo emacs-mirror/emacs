@@ -1,3 +1,12 @@
+2005-05-12  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el (define-generic-mode): Don't generate a
+	defcustom for the mode hook variable.  Delete the last argument.
+	* generic-x.el: Fix callers of define-generic-mode.
+	(generic-x-modes): Delete group.
+	(show-tabs-tab-face, show-tabs-space-face): Put them in the
+	generic-x customization group.
+
 2005-05-12  Kim F. Storm  <storm@cua.dk>
 
 	* font-lock.el (font-lock-negation-char-face): Default to "off".

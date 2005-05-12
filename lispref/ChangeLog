@@ -1,5 +1,8 @@
 2005-05-12  Lute Kamstra  <lute@gnu.org>
 
+	* modes.texi (Generic Modes): Update.
+	(Major Modes): Refer to node "Generic Modes".
+
 	* elisp.texi (Top): Update to the current structure of the manual.
 	* processes.texi (Processes): Add menu description.
 	* customize.texi (Customization): Add menu descriptions.
