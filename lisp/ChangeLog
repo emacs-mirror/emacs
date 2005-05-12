@@ -45,6 +45,11 @@
 	(mouse-select, mouse-select-internal, mouse-extend-internal):
 	Use it to implement mouse-1-click-follows-link functionality.
 
+2005-05-11  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Use font-lock-comment-delimiter-face for comment delimiters.
+
 2005-05-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-m-prefix-help): Add mention of
