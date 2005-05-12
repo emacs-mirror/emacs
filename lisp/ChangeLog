@@ -1,3 +1,7 @@
+2005-05-12  Andreas Schwab  <schwab@suse.de>
+
+	* eshell/esh-mode.el (eshell-send-input): Doc fix.
+
 2005-05-12  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/generic.el (define-generic-mode): Don't generate a
