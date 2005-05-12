@@ -1798,13 +1798,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-highlighting-faces)
 
-;; Matches font-lock-builtin-face, because that is used for #ifndef and
-;; font-lock-keyword-face, which alas make-mode uses for ifndef
 (defface font-lock-negation-char-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "VioletRed" :weight bold))
-    (((class color) (min-colors 88) (background dark)) (:foreground "MediumOrchid1" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red" :weight bold))
-    (t (:inverse-video t :weight bold)))
+  '((t nil))
   "Font Lock mode face used to highlight easy to overlook negation."
   :group 'font-lock-highlighting-faces)
 
