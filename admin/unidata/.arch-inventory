@@ -1,0 +1,5 @@
+# Unlike most emacs dirs, admin/unidata has a simple non-autoconf-generated
+# makefile
+source ^(Makefile)$
+
+# arch-tag: 7640ff84-9e72-45e6-a7c7-b7b307b73959
