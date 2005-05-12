@@ -1,3 +1,9 @@
+2005-05-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (normal-mode): Extend the scope of the
+	`enable-local-variables' binding to include the `set-auto-mode' call.
+	(magic-mode-alist): Doc fix.
+
 2005-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-comment-delimiter-face): Inherit from
