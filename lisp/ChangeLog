@@ -1,3 +1,10 @@
+2005-05-12  Kim F. Storm  <storm@cua.dk>
+
+	* font-lock.el (font-lock-negation-char-face): Default to "off".
+
+	* progmodes/cc-fonts.el (c-basic-matchers-before): Don't apply
+	font-lock-negation-char-face to ! in !=.
+
 2005-05-12  Masatake YAMATO  <jet@gyve.org>
 
 	* add-log.el (find-change-log): Fix typos in the docstring
