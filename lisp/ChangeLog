@@ -1,3 +1,8 @@
+2005-05-12  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (find-change-log): Fix typos in the docstring
+	of function.
+
 2005-05-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
