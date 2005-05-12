@@ -1677,7 +1677,11 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-comment-delimiter-face
-  '((t :inherit font-lock-comment-face))
+  '((default :inherit font-lock-comment-face)
+    (((class color) (min-colors 8) (background light))
+     :foreground "red")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "red1"))
   "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-highlighting-faces)
 
