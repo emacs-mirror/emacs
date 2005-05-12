@@ -108,18 +108,23 @@
   :group 'c-macro)
 
 (defcustom c-macro-preprocessor
-  ;; Cannot rely on standard directory on MS-DOS to find CPP.  In
-  ;; fact, cannot rely on having cpp.exe, either, in latest GCC
-  ;; versions.
-  (cond ((eq system-type 'ms-dos) "gcc -E -C -o - -")
-	;; Solaris has it in an unusual place.
+  (cond ;; Solaris has it in an unusual place.
 	((and (string-match "^[^-]*-[^-]*-\\(solaris\\|sunos5\\)"
 			    system-configuration)
 	      (file-exists-p "/opt/SUNWspro/SC3.0.1/bin/acomp"))
 	 "/opt/SUNWspro/SC3.0.1/bin/acomp -C -E")
-        ((file-exists-p "/usr/ccs/lib/cpp") "/usr/ccs/lib/cpp -C")
-	((memq system-type '(darwin berkeley-unix)) "gcc -E -C -")
-	(t "/lib/cpp -C"))
+        ((locate-file "/usr/ccs/lib/cpp"
+		      '("/") exec-suffixes 'file-executable-p)
+	 "/usr/ccs/lib/cpp -C")
+	((locate-file "/lib/cpp"
+		      '("/") exec-suffixes 'file-executable-p)
+	 "/lib/cpp -C")
+	;; On some systems, we cannot rely on standard directories to
+	;; find CPP.  In fact, we cannot rely on having cpp, either,
+	;; in some GCC versions.
+	((locate-file "cpp" exec-path exec-suffixes 'file-executable-p)
+	 "cpp -C")
+	(t "gcc -E -C -o - -"))
   "The preprocessor used by the cmacexp package.
 
 If you change this, be sure to preserve the `-C' (don't strip comments)

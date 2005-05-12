@@ -3937,7 +3937,7 @@ Prefix arg ARG says how much."
 
 
 (defvar ebrowse-electric-position-mode-hook nil
-  "If non-nil, its value is called by ebrowse-electric-position-mode.")
+  "If non-nil, its value is called by `ebrowse-electric-position-mode'.")
 
 
 (unless ebrowse-electric-position-mode-map
@@ -4185,7 +4185,7 @@ Otherwise, FILE-NAME specifies the file to save the tree in."
 
 (defun ebrowse-print-statistics-line (title value)
   "Print a line in the statistics buffer.
-TITLE is the title of the line, VALUE is number to be printed
+TITLE is the title of the line, VALUE is a number to be printed
 after that."
   (insert title)
   (indent-to 40)
@@ -4319,7 +4319,7 @@ NUMBER-OF-STATIC-VARIABLES:"
 
 
 (defun ebrowse-install-1-to-9-keys ()
-  "Define keys 1..9 to select the 1st to 0nth entry in the list."
+  "Define keys 1..9 to select the 1st to 9nth entry in the list."
   (dotimes (i 9)
     (define-key (current-local-map) (char-to-string (+ i ?1))
       'ebrowse-select-1st-to-9nth)))

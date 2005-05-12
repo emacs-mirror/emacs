@@ -116,12 +116,16 @@ was first made obsolete, for example a date or a release number."
 
 (defmacro define-obsolete-function-alias (function new
 						   &optional when docstring)
-  "Set FUNCTION's function definition to NEW and warn that FUNCTION is obsolete.
-If provided, WHEN should be a string indicating when FUNCTION was
-first made obsolete, for example a date or a release number.  The
-optional argument DOCSTRING specifies the documentation string
-for FUNCTION; if DOCSTRING is omitted or nil, FUNCTION uses the
-documentation string of NEW unluess it already has one."
+  "Set FUNCTION's function definition to NEW and mark it obsolete.
+
+\(define-obsolete-function-alias 'old-fun 'new-fun \"22.1\" \"old-fun's doc.\")
+
+is equivalent to the following two lines of code:
+
+\(defalias 'old-fun 'new-fun \"old-fun's doc.\")
+\(make-obsolete 'old-fun 'new-fun \"22.1\")
+
+See the docstrings of `defalias' and `make-obsolete' for more details."
   `(progn
      (defalias ,function ,new ,docstring)
      (make-obsolete ,function ,new ,when)))
@@ -143,12 +147,17 @@ was first made obsolete, for example a date or a release number."
 
 (defmacro define-obsolete-variable-alias (variable new
 						 &optional when docstring)
-  "Make VARIABLE a variable alias for NEW and warn that VARIABLE is obsolete.
-If provided, WHEN should be a string indicating when VARIABLE was
-first made obsolete, for example a date or a release number.  The
-optional argument DOCSTRING specifies the documentation string
-for VARIABLE; if DOCSTRING is omitted or nil, VARIABLE uses the
-documentation string of NEW unless it already has one."
+  "Make VARIABLE a variable alias for NEW and mark it obsolete.
+
+\(define-obsolete-variable-alias 'old-var 'new-var \"22.1\" \"old-var's doc.\")
+
+is equivalent to the following two lines of code:
+
+\(defvaralias 'old-var 'new-var \"old-var's doc.\")
+\(make-obsolete-variable 'old-var 'new-var \"22.1\")
+
+See the docstrings of `defvaralias' and `make-obsolete-variable' or
+Info node `(elisp)Variable Aliases' for more details."
   `(progn
      (defvaralias ,variable ,new ,docstring)
       (make-obsolete-variable ,variable ,new ,when)))

@@ -321,7 +321,9 @@ for subdir in lisp site-lisp lispref lispintro \
 	      leim/SKK-DIC leim/ja-dic leim/quail \
 	      src src/m src/s src/bitmaps lib-src oldXMenu lwlib \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
-	      etc etc/e info man msdos vms mac mac/inc mac/inc/sys \
+	      etc etc/e etc/images etc/images/gnus etc/images/smilies \
+	      etc/tree-widget etc/tree-widget/default etc/tree-widget/folder \
+	      info man msdos vms mac mac/inc mac/inc/sys \
 	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
@@ -349,7 +351,6 @@ echo "Making links to \`lisp' and its subdirectories"
  test -f README && ln README ../${tempdir}/lisp
  (cd ../${tempdir}/lisp
   rm -f TAGS =*
-  rm -f ldefs-boot.el
   rm -f site-init site-init.el site-init.elc
   rm -f site-load site-load.el site-load.elc
   rm -f site-start site-start.el site-start.elc
@@ -396,7 +397,7 @@ echo "Making links to \`lisp' and its subdirectories"
 echo "Making links to \`leim' and its subdirectories"
 ### Don't distribute TAGS, or =*.el files.
 (cd leim
- ln makefile.nt makefile.w32-in ../${tempdir}/leim
+ ln makefile.w32-in ../${tempdir}/leim
  ln ChangeLog README ../${tempdir}/leim
 
  ln CXTERM-DIC/*.tit ../${tempdir}/leim/CXTERM-DIC
@@ -443,7 +444,7 @@ echo "Making links to \`src'"
    fi
  done
  ln README ChangeLog ChangeLog.*[0-9] ../${tempdir}/src
- ln makefile.nt makefile.w32-in ../${tempdir}/src
+ ln makefile.w32-in ../${tempdir}/src
  ln .gdbinit .dbxinit ../${tempdir}/src
  cd ../${tempdir}/src
  rm -f config.h epaths.h Makefile Makefile.c
@@ -466,7 +467,7 @@ echo "Making links to \`lib-src'"
 (cd lib-src
  ln [a-zA-Z]*.[chy] ../${tempdir}/lib-src
  ln ChangeLog Makefile.in README testfile vcdiff ../${tempdir}/lib-src
- ln grep-changelog rcs2log rcs-checkin makefile.nt ../${tempdir}/lib-src
+ ln grep-changelog rcs2log rcs-checkin ../${tempdir}/lib-src
  ln makefile.w32-in ../${tempdir}/lib-src
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -492,7 +493,7 @@ echo "Making links to \`nt'"
 (cd nt
  ln emacs.rc config.nt [a-z]*.c ../${tempdir}/nt
  ln nmake.defs gmake.defs subdirs.el ../${tempdir}/nt
- ln [a-z]*.bat [a-z]*.h makefile.def makefile.nt ../${tempdir}/nt
+ ln [a-z]*.bat [a-z]*.h ../${tempdir}/nt
  ln ChangeLog INSTALL README makefile.w32-in ../${tempdir}/nt)
 
 echo "Making links to \`nt/inc'"
@@ -563,7 +564,8 @@ echo "Making links to \`etc'"
 ### tex litter.
 ### Don't distribute gfdl.1, since no man page references it.
 (cd etc
- files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$'`
+ files=`ls -d * | grep -v CVS | grep -v RCS | grep -v 'Old' | grep -v '^e$' \
+        | grep -v '^images$' | grep -v '^tree-widget$'`
  ln $files ../${tempdir}/etc
  ## If we ended up with a symlink, or if we did not get anything
  ## due to a cross-device symlink, copy the file.
@@ -591,6 +593,15 @@ echo "Making links to \`etc/e'"
  ln `ls -d * | grep -v CVS | grep -v RCS` ../../${tempdir}/etc/e
  cd ../../${tempdir}/etc/e
  rm -f *~ \#*\# *,v =* core)
+
+for dir in etc/images/gnus etc/images/smilies \
+           etc/tree-widget/default etc/tree-widget/folder ; do
+    echo "Making links to \`${dir}'"
+    (cd ${dir}
+     ln `ls -d * | grep -v CVS | grep -v RCS` ../../../${tempdir}/${dir}
+     cd ../../../${tempdir}/${dir}
+     rm -f *~ \#*\# *,v =* core)
+done
 
 echo "Making links to \`info'"
 # Don't distribute backups or autosaves.

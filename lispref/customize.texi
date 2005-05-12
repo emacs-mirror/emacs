@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1998, 1999, 2000, 2002, 2003, 2005 Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/customize
 @node Customization, Loading, Macros, Top
@@ -12,10 +12,11 @@ and also customization groups for classifying them.  We use the term
 definitions---as well as face definitions (@pxref{Defining Faces}).
 
 @menu
-* Common Keywords::
-* Group Definitions::
-* Variable Definitions::
-* Customization Types::
+* Common Keywords::      Common keyword arguments for all kinds of 
+                           customization declarations.
+* Group Definitions::    Writing customization group definitions.
+* Variable Definitions:: Declaring user options.
+* Customization Types::  Specifying the type of a user option.
 @end menu
 
 @node Common Keywords

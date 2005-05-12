@@ -48,7 +48,7 @@ so that you can use many of the features described in this chapter.
 * Menu Bars::	        Enabling and disabling the menu bar.
 * Tool Bars::           Enabling and disabling the tool bar.
 * Dialog Boxes::        Controlling use of dialog boxes.
-* Tooltips::            Showing "tooltips", AKA "balloon help" for active text.
+* Tooltips::            Displaying information at the current mouse position.
 * Mouse Avoidance::     Moving the mouse pointer out of the way.
 * Non-Window Terminals::  Multiple frames on terminals that show only one.
 * XTerm Mouse::         Using the mouse in an XTerm terminal emulator.
@@ -319,16 +319,14 @@ you go to the source code for that error message.  If you click
 @kbd{Mouse-2} on a completion in the @samp{*Completions*} buffer, you
 choose that completion.
 
-@vindex mouse-1-click-follows-link
   However, most applications use @kbd{Mouse-1} to do this sort of
 thing, so Emacs implements this too.  If you click @kbd{Mouse-1}
 quickly on a reference or button, it follows or activates.  If you
 click slowly, it moves point as usual.  Dragging, meaning moving the
 mouse while it is held down, also has its usual behavior of setting
-the region.  The variable @code{mouse-1-click-follows-link} controls
-whether @kbd{Mouse-1} has this behavior.
+the region.
 
-@vindex mouse-1-click-follows-link
+@vindex mouse-1-click-in-non-selected-windows
   Normally, the @kbd{Mouse-1} click behavior is performed on links in
 any window.  The variable @code{mouse-1-click-in-non-selected-windows}
 controls whether @kbd{Mouse-1} has this behavior even in non-selected
@@ -341,6 +339,14 @@ move the mouse over it.  The variable @code{mouse-highlight} controls
 whether to do this highlighting always (even when such text appears
 where the mouse already is), never, or only immediately after you move
 the mouse.
+
+@vindex mouse-1-click-follows-link
+  In Emacs versions before 22, only @kbd{Mouse-2} follows links and
+@kbd{Mouse-1} always sets points.  If you prefer this behavior, set
+the variable @code{mouse-1-click-follows-link} to @code{nil}.  This
+variable also lets you choose various other alternatives for following
+links with the mouse.  Type @kbd{C-h v mouse-1-click-follows-link @key{RET}}
+for more details.
 
 @node Menu Mouse Clicks
 @section Mouse Clicks for Menus
@@ -963,19 +969,25 @@ value.  If Emacs is built with a Gtk+ version that has only one file dialog,
 the setting of this variable has no effect.
 
 @node Tooltips
-@section Tooltips (or ``Balloon Help'')
+@section Tooltips
+@cindex tooltips
 
-@cindex balloon help
-  Tooltips are small X windows displaying a help string at the current
-mouse position, typically over text---including the mode line---which
-can be activated with the mouse or other keys.  (This facility is
-sometimes known as @dfn{balloon help}.)  Help text may be available for
-menu items too.
+  @dfn{Tooltips} are small windows that display text information at the
+current mouse position.  They activate when there is a pause in mouse
+movement.  There are two types of tooltip: help tooltips and GUD
+tooltips.
+
+  @dfn{Help tooltips} typically display over text---including the mode
+line---but may be also available for many other parts of the Emacs
+frame such as the toolbar and menu items.
 
 @findex tooltip-mode
-  You can toggle Tooltip mode with the command @kbd{M-x tooltip-mode}.
-When Tooltip mode is disabled, the help text is displayed in the echo
-area instead.
+  You can toggle help tooltips (Tooltip mode) with the command
+  @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
+is displayed in the echo area instead.
+
+  @dfn{GUD tooltips} show values of variables.  They are useful when
+you are debugging a program.  @xref{Debugger Operation}.
 
 @vindex tooltip-delay
   The variables @code{tooltip-delay} specifies how long Emacs should

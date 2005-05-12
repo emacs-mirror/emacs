@@ -183,7 +183,7 @@
 (message "%s" (garbage-collect))
 
 (load "vc-hooks")
-(load "jka-comp-hook")
+(load "jka-cmpr-hook")
 (load "ediff-hook")
 (if (fboundp 'x-show-tip) (load "tooltip"))
 (message "%s" (garbage-collect))

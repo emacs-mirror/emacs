@@ -156,10 +156,6 @@ extern int waiting_for_input;
 
 struct frame *pending_autoraise_frame;
 
-/* Non-zero means user is interacting with a toolkit scroll bar.  */
-
-static int toolkit_scroll_bar_interaction;
-
 /* Mouse movement.
 
    Formerly, we used PointerMotionHintMask (in standard_event_mask)
@@ -258,7 +254,6 @@ QDGlobals qd;  /* QuickDraw global information structure.  */
 struct frame * x_window_to_frame (struct mac_display_info *, WindowPtr);
 struct mac_display_info *mac_display_info_for_display (Display *);
 static void x_update_window_end P_ ((struct window *, int, int));
-static void mac_handle_tool_bar_click P_ ((struct frame *, EventRecord *));
 static int x_io_error_quitter P_ ((Display *));
 int x_catch_errors P_ ((Display *));
 void x_uncatch_errors P_ ((Display *, int));
@@ -4137,29 +4132,315 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 }
 
 
-/***********************************************************************
-			       Tool-bars
- ***********************************************************************/
+/************************************************************************
+			 Toolkit scroll bars
+ ************************************************************************/
 
-/* Handle mouse button event on the tool-bar of frame F, at
-   frame-relative coordinates X/Y.  EVENT_TYPE is either ButtionPress
-   or ButtonRelase.  */
+#ifdef USE_TOOLKIT_SCROLL_BARS
+
+static pascal void scroll_bar_timer_callback P_ ((EventLoopTimerRef, void *));
+static OSStatus install_scroll_bar_timer P_ ((void));
+static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
+static int control_part_code_to_scroll_bar_part P_((ControlPartCode));
+static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
+					    unsigned long,
+					    struct input_event *));
+static OSErr get_control_part_bound P_((ControlHandle, ControlPartCode,
+					Rect *));
+static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
+					   ControlPartCode,
+					   unsigned long,
+					   struct input_event *));
+static void x_scroll_bar_handle_release P_ ((struct scroll_bar *,
+					     unsigned long,
+					     struct input_event *));
+static void x_scroll_bar_handle_drag P_ ((WindowPtr, struct scroll_bar *,
+					  Point, unsigned long,
+					  struct input_event *));
+static void x_set_toolkit_scroll_bar_thumb P_ ((struct scroll_bar *,
+						int, int, int));
+
+/* Last scroll bar part sent in x_scroll_bar_handle_*.  */
+
+static int last_scroll_bar_part;
+
+static EventLoopTimerRef scroll_bar_timer;
+
+static int scroll_bar_timer_event_posted_p;
+
+#define SCROLL_BAR_FIRST_DELAY 0.5
+#define SCROLL_BAR_CONTINUOUS_DELAY (1.0 / 15)
+
+static pascal void
+scroll_bar_timer_callback (timer, data)
+     EventLoopTimerRef timer;
+     void *data;
+{
+  EventRef event = NULL;
+  OSErr err;
+
+  err = CreateEvent (NULL, kEventClassMouse, kEventMouseMoved, 0,
+		     kEventAttributeNone, &event);
+  if (err == noErr)
+    {
+      Point mouse_pos;
+
+      GetMouse (&mouse_pos);
+      LocalToGlobal (&mouse_pos);
+      err = SetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			       sizeof (Point), &mouse_pos);
+    }
+  if (err == noErr)
+    {
+      UInt32 modifiers = GetCurrentKeyModifiers ();
+
+      err = SetEventParameter (event, kEventParamKeyModifiers, typeUInt32,
+			       sizeof (UInt32), &modifiers);
+    }
+  if (err == noErr)
+    err = PostEventToQueue (GetCurrentEventQueue (), event,
+			    kEventPriorityStandard);
+  if (err == noErr)
+    scroll_bar_timer_event_posted_p = 1;
+
+  if (event)
+    ReleaseEvent (event);
+}
+
+static OSStatus
+install_scroll_bar_timer ()
+{
+  static EventLoopTimerUPP scroll_bar_timer_callbackUPP = NULL;
+
+  if (scroll_bar_timer_callbackUPP == NULL)
+    scroll_bar_timer_callbackUPP =
+      NewEventLoopTimerUPP (scroll_bar_timer_callback);
+
+  if (scroll_bar_timer == NULL)
+    /* Mac OS X and CarbonLib 1.5 and later allow us to specify
+       kEventDurationForever as delays.  */
+    return
+      InstallEventLoopTimer (GetCurrentEventLoop (),
+			     kEventDurationForever, kEventDurationForever,
+			     scroll_bar_timer_callbackUPP, NULL,
+			     &scroll_bar_timer);
+}
+
+static OSStatus
+set_scroll_bar_timer (delay)
+     EventTimerInterval delay;
+{
+  if (scroll_bar_timer == NULL)
+    install_scroll_bar_timer ();
+
+  scroll_bar_timer_event_posted_p = 0;
+
+  return SetEventLoopTimerNextFireTime (scroll_bar_timer, delay);
+}
+
+static int
+control_part_code_to_scroll_bar_part (part_code)
+     ControlPartCode part_code;
+{
+  switch (part_code)
+    {
+    case kControlUpButtonPart:		return scroll_bar_up_arrow;
+    case kControlDownButtonPart:	return scroll_bar_down_arrow;
+    case kControlPageUpPart:		return scroll_bar_above_handle;
+    case kControlPageDownPart:		return scroll_bar_below_handle;
+    case kControlIndicatorPart:		return scroll_bar_handle;
+    }
+
+  return -1;
+}
 
 static void
-mac_handle_tool_bar_click (f, button_event)
-     struct frame *f;
-     EventRecord *button_event;
+construct_scroll_bar_click (bar, part, timestamp, bufp)
+     struct scroll_bar *bar;
+     int part;
+     unsigned long timestamp;
+     struct input_event *bufp;
 {
-  int x = button_event->where.h;
-  int y = button_event->where.v;
-
-  if (button_event->what == mouseDown)
-    handle_tool_bar_click (f, x, y, 1, 0);
-  else
-    handle_tool_bar_click (f, x, y, 0,
-			   x_mac_to_emacs_modifiers (FRAME_MAC_DISPLAY_INFO (f),
-						     button_event->modifiers));
+  bufp->kind = SCROLL_BAR_CLICK_EVENT;
+  bufp->frame_or_window = bar->window;
+  bufp->arg = Qnil;
+  bufp->part = part;
+  bufp->code = 0;
+  bufp->timestamp = timestamp;
+  XSETINT (bufp->x, 0);
+  XSETINT (bufp->y, 0);
+  bufp->modifiers = 0;
 }
+
+static OSErr
+get_control_part_bound (ch, part_code, rect)
+     ControlHandle ch;
+     ControlPartCode part_code;
+     Rect *rect;
+{
+  RgnHandle region = NewRgn ();
+  OSStatus err;
+
+  err = GetControlRegion (ch, part_code, region);
+  if (err == noErr)
+    GetRegionBounds (region, rect);
+  DisposeRgn (region);
+
+  return err;
+}
+
+static void
+x_scroll_bar_handle_press (bar, part_code, timestamp, bufp)
+     struct scroll_bar *bar;
+     ControlPartCode part_code;
+     unsigned long timestamp;
+     struct input_event *bufp;
+{
+  int part = control_part_code_to_scroll_bar_part (part_code);
+
+  if (part < 0)
+    return;
+
+  if (part != scroll_bar_handle)
+    {
+      construct_scroll_bar_click (bar, part, timestamp, bufp);
+      HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+      set_scroll_bar_timer (SCROLL_BAR_FIRST_DELAY);
+    }
+
+  last_scroll_bar_part = part;
+  bar->dragging = Qnil;
+  tracked_scroll_bar = bar;
+}
+
+static void
+x_scroll_bar_handle_release (bar, timestamp, bufp)
+     struct scroll_bar *bar;
+     unsigned long timestamp;
+     struct input_event *bufp;
+{
+  if (last_scroll_bar_part != scroll_bar_handle
+      || !GC_NILP (bar->dragging))
+    construct_scroll_bar_click (bar, scroll_bar_end_scroll, timestamp, bufp);
+
+  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+  set_scroll_bar_timer (kEventDurationForever);
+
+  last_scroll_bar_part = -1;
+  bar->dragging = Qnil;
+  tracked_scroll_bar = NULL;
+}
+
+static void
+x_scroll_bar_handle_drag (win, bar, mouse_pos, timestamp, bufp)
+     WindowPtr win;
+     struct scroll_bar *bar;
+     Point mouse_pos;
+     unsigned long timestamp;
+     struct input_event *bufp;
+{
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+
+  if (last_scroll_bar_part == scroll_bar_handle)
+    {
+      int top, top_range;
+      Rect r;
+
+      get_control_part_bound (SCROLL_BAR_CONTROL_HANDLE (bar),
+			      kControlIndicatorPart, &r);
+
+      if (GC_NILP (bar->dragging))
+	XSETINT (bar->dragging, mouse_pos.v - r.top);
+
+      top = mouse_pos.v - XINT (bar->dragging) - XINT (bar->track_top);
+      top_range = (XINT (bar->track_height) - (r.bottom - r.top)) *
+	(1.0 + (float) GetControlViewSize (ch) / GetControl32BitMaximum (ch))
+	+ .5;
+      
+      if (top < 0)
+	top = 0;
+      if (top > top_range)
+	top = top_range;
+
+      construct_scroll_bar_click (bar, scroll_bar_handle, timestamp, bufp);
+      XSETINT (bufp->x, top);
+      XSETINT (bufp->y, top_range);
+    }
+  else
+    {
+      ControlPartCode part_code;
+      int unhilite_p = 0, part;
+
+      if (ch != FindControlUnderMouse (mouse_pos, win, &part_code))
+	unhilite_p = 1;
+      else
+	{
+	  part = control_part_code_to_scroll_bar_part (part_code);
+
+	  switch (last_scroll_bar_part)
+	    {
+	    case scroll_bar_above_handle:
+	    case scroll_bar_below_handle:
+	      if (part != scroll_bar_above_handle
+		  && part != scroll_bar_below_handle)
+		unhilite_p = 1;
+	      break;
+
+	    case scroll_bar_up_arrow:
+	    case scroll_bar_down_arrow:
+	      if (part != scroll_bar_up_arrow
+		  && part != scroll_bar_down_arrow)
+		unhilite_p = 1;
+	      break;
+	    }
+	}
+
+      if (unhilite_p)
+	HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), 0);
+      else if (part != last_scroll_bar_part
+	       || scroll_bar_timer_event_posted_p)
+	{
+	  construct_scroll_bar_click (bar, part, timestamp, bufp);
+	  last_scroll_bar_part = part;
+	  HiliteControl (SCROLL_BAR_CONTROL_HANDLE (bar), part_code);
+	  set_scroll_bar_timer (SCROLL_BAR_CONTINUOUS_DELAY);
+	}
+    }
+}
+
+/* Set the thumb size and position of scroll bar BAR.  We are currently
+   displaying PORTION out of a whole WHOLE, and our position POSITION.  */
+
+static void
+x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole)
+     struct scroll_bar *bar;
+     int portion, position, whole;
+{
+  ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+
+  int value, viewsize, maximum;
+
+  if (whole == 0 || XINT (bar->track_height) == 0)
+    value = 0, viewsize = 1, maximum = 0;
+  else
+    {
+      value = position;
+      viewsize = portion;
+      maximum = max (0, whole - portion);
+    }
+
+  BLOCK_INPUT;
+
+  SetControl32BitMinimum (ch, 0);
+  SetControl32BitMaximum (ch, maximum);
+  SetControl32BitValue (ch, value);
+  SetControlViewSize (ch, viewsize);
+
+  UNBLOCK_INPUT;
+}
+
+#endif /* USE_TOOLKIT_SCROLL_BARS */
+
 
 
 /************************************************************************
@@ -4191,13 +4472,12 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
 
 #if TARGET_API_MAC_CARBON
   ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
-		   kControlScrollBarProc, 0L);
+		   kControlScrollBarProc, (long) bar);
 #else
-  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0, scrollBarProc,
-		   0L);
+  ch = NewControl (FRAME_MAC_WINDOW (f), &r, "\p", 1, 0, 0, 0,
+		   scrollBarProc, (long) bar);
 #endif
   SET_SCROLL_BAR_CONTROL_HANDLE (bar, ch);
-  SetControlReference (ch, (long) bar);
 
   XSETWINDOW (bar->window, w);
   XSETINT (bar->top, top);
@@ -4207,6 +4487,10 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
   XSETINT (bar->start, 0);
   XSETINT (bar->end, 0);
   bar->dragging = Qnil;
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  bar->track_top = Qnil;
+  bar->track_height = Qnil;
+#endif
 
   /* Add bar to its frame's list of scroll bars.  */
   bar->next = FRAME_SCROLL_BARS (f);
@@ -4232,6 +4516,8 @@ x_scroll_bar_create (w, top, left, width, height, disp_top, disp_height)
    bar handle, we want to let them drag it down all the way, so that
    the bar's top is as far down as it goes; otherwise, there's no way
    to move to the very end of the buffer.  */
+
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 static void
 x_scroll_bar_set_handle (bar, start, end, rebuild)
@@ -4292,6 +4578,7 @@ x_scroll_bar_set_handle (bar, start, end, rebuild)
   UNBLOCK_INPUT;
 }
 
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
 /* Destroy scroll bar BAR, and set its Emacs window's scroll bar to
    nil.  */
@@ -4330,11 +4617,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
   /* Get window dimensions.  */
   window_box (w, -1, 0, &window_y, 0, &window_height);
   top = window_y;
-#ifdef MAC_OSX
-  width = 16;
-#else
   width = WINDOW_CONFIG_SCROLL_BAR_COLS (w) * FRAME_COLUMN_WIDTH (f);
-#endif
   height = window_height;
 
   /* Compute the left edge of the scroll bar area.  */
@@ -4349,9 +4632,9 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
   /* Compute the left edge of the scroll bar.  */
   if (WINDOW_HAS_VERTICAL_SCROLL_BAR_ON_RIGHT (w))
-    sb_left = left + width - sb_width - (width - sb_width) / 2;
+    sb_left = left;
   else
-    sb_left = left + (width - sb_width) / 2;
+    sb_left = left + width - sb_width;
 
   /* Adjustments according to Inside Macintosh to make it look nice */
   disp_top = top;
@@ -4424,11 +4707,44 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
           XSETINT (bar->top, top);
           XSETINT (bar->width, sb_width);
           XSETINT (bar->height, height);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+	  bar->track_top = Qnil;
+	  bar->track_height = Qnil;
+#endif
         }
 
       UNBLOCK_INPUT;
     }
 
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  if (NILP (bar->track_top))
+    {
+      ControlHandle ch = SCROLL_BAR_CONTROL_HANDLE (bar);
+      Rect r0, r1;
+
+      BLOCK_INPUT;
+
+      SetControl32BitMinimum (ch, 0);
+      SetControl32BitMaximum (ch, 1);
+      SetControlViewSize (ch, 1);
+
+      /* Move the scroll bar thumb to the top.  */
+      SetControl32BitValue (ch, 0);
+      get_control_part_bound (ch, kControlIndicatorPart, &r0);
+
+      /* Move the scroll bar thumb to the bottom.  */
+      SetControl32BitValue (ch, 1);
+      get_control_part_bound (ch, kControlIndicatorPart, &r1);
+
+      UnionRect (&r0, &r1, &r0);
+      XSETINT (bar->track_top, r0.top);
+      XSETINT (bar->track_height, r0.bottom - r0.top);
+
+      UNBLOCK_INPUT;
+    }
+
+  x_set_toolkit_scroll_bar_thumb (bar, portion, position, whole);
+#else /* not USE_TOOLKIT_SCROLL_BARS */
   /* Set the scroll bar's current state, unless we're currently being
      dragged.  */
   if (NILP (bar->dragging))
@@ -4444,6 +4760,7 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 	  x_scroll_bar_set_handle (bar, start, end, 0);
 	}
     }
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
 }
 
 
@@ -4625,6 +4942,7 @@ x_scroll_bar_handle_click (bar, part_code, er, bufp)
   XSETINT (bufp->y, top_range);
 }
 
+#ifndef USE_TOOLKIT_SCROLL_BARS
 
 /* Handle some mouse motion while someone is dragging the scroll bar.
 
@@ -4659,6 +4977,7 @@ x_scroll_bar_note_movement (bar, y_pos, t)
     }
 }
 
+#endif /* !USE_TOOLKIT_SCROLL_BARS */
 
 /* Return information to the user about the current position of the
    mouse on the scroll bar.  */
@@ -8675,6 +8994,9 @@ XTread_socket (sd, expected, hold_quit)
 		    SInt16 control_part_code;
 		    ControlHandle ch;
 		    Point mouse_loc = er.where;
+#ifdef MAC_OSX
+		    ControlKind control_kind;
+#endif
 
 		    f = mac_window_to_frame (window_ptr);
 		    /* convert to local coordinates of new window */
@@ -8684,6 +9006,10 @@ XTread_socket (sd, expected, hold_quit)
 #if TARGET_API_MAC_CARBON
 		    ch = FindControlUnderMouse (mouse_loc, window_ptr,
 						&control_part_code);
+#ifdef MAC_OSX
+		    if (ch)
+		      GetControlKind (ch, &control_kind);
+#endif
 #else
 		    control_part_code = FindControl (mouse_loc, window_ptr,
 						     &ch);
@@ -8702,19 +9028,42 @@ XTread_socket (sd, expected, hold_quit)
 		    /* ticks to milliseconds */
 
 		    if (dpyinfo->grabbed && tracked_scroll_bar
+			|| ch != 0
+#ifndef USE_TOOLKIT_SCROLL_BARS
 			/* control_part_code becomes kControlNoPart if
-			   a progress indicator is clicked.  */
-			|| ch != 0 && control_part_code != kControlNoPart)
+ 			   a progress indicator is clicked.  */
+			&& control_part_code != kControlNoPart
+#else  /* USE_TOOLKIT_SCROLL_BARS */
+#ifdef MAC_OSX
+			&& control_kind.kind == kControlKindScrollBar
+#endif	/* MAC_OSX */
+#endif	/* USE_TOOLKIT_SCROLL_BARS */
+			)
 		      {
 			struct scroll_bar *bar;
 
 			if (dpyinfo->grabbed && tracked_scroll_bar)
 			  {
 			    bar = tracked_scroll_bar;
+#ifndef USE_TOOLKIT_SCROLL_BARS
 			    control_part_code = kControlIndicatorPart;
+#endif
 			  }
 			else
 			  bar = (struct scroll_bar *) GetControlReference (ch);
+#ifdef USE_TOOLKIT_SCROLL_BARS
+			/* Make the "Ctrl-Mouse-2 splits window" work
+			   for toolkit scroll bars.  */
+			if (er.modifiers & controlKey)
+			  x_scroll_bar_handle_click (bar, control_part_code,
+						     &er, &inev);
+			else if (er.what == mouseDown)
+			  x_scroll_bar_handle_press (bar, control_part_code,
+						     inev.timestamp, &inev);
+			else
+			  x_scroll_bar_handle_release (bar, inev.timestamp,
+						       &inev);
+#else  /* not USE_TOOLKIT_SCROLL_BARS */
 			x_scroll_bar_handle_click (bar, control_part_code,
 						   &er, &inev);
 			if (er.what == mouseDown
@@ -8722,6 +9071,7 @@ XTread_socket (sd, expected, hold_quit)
 			  tracked_scroll_bar = bar;
 			else
 			  tracked_scroll_bar = NULL;
+#endif  /* not USE_TOOLKIT_SCROLL_BARS */
 		      }
 		    else
 		      {
@@ -8771,15 +9121,18 @@ XTread_socket (sd, expected, hold_quit)
 			  dpyinfo->grabbed &= ~(1 << inev.code);
 		      }
 
-		    switch (er.what)
-		      {
-		      case mouseDown:
-			inev.modifiers |= down_modifier;
-			break;
-		      case mouseUp:
-			inev.modifiers |= up_modifier;
-			break;
-		      }
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		    if (inev.kind == MOUSE_CLICK_EVENT)
+#endif
+		      switch (er.what)
+			{
+			case mouseDown:
+			  inev.modifiers |= down_modifier;
+			  break;
+			case mouseUp:
+			  inev.modifiers |= up_modifier;
+			  break;
+			}
 		  }
 		break;
 
@@ -8881,10 +9234,16 @@ XTread_socket (sd, expected, hold_quit)
 		  GlobalToLocal (&mouse_pos);
 
 		  if (dpyinfo->grabbed && tracked_scroll_bar)
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		    x_scroll_bar_handle_drag (wp, tracked_scroll_bar,
+					      mouse_pos, er.when * (1000 / 60),
+					      &inev);
+#else /* not USE_TOOLKIT_SCROLL_BARS */
 		    x_scroll_bar_note_movement (tracked_scroll_bar,
 						mouse_pos.v
 						- XINT (tracked_scroll_bar->top),
-						TickCount() * (1000 / 60));
+						er.when * (1000 / 60));
+#endif /* not USE_TOOLKIT_SCROLL_BARS */
 		  else
 		    {
 		      /* Generate SELECT_WINDOW_EVENTs when needed.  */
@@ -8959,6 +9318,23 @@ XTread_socket (sd, expected, hold_quit)
 	    else
 	      {
 		/* A window has been deactivated */
+#if USE_TOOLKIT_SCROLL_BARS
+		if (dpyinfo->grabbed && tracked_scroll_bar)
+		  {
+		    struct input_event event;
+
+		    EVENT_INIT (event);
+		    event.kind = NO_EVENT;
+		    x_scroll_bar_handle_release (tracked_scroll_bar,
+						 er.when * (1000 / 60),
+						 &event);
+		    if (event.kind != NO_EVENT)
+		      {
+			kbd_buffer_store_event_hold (&event, hold_quit);
+			count++;
+		      }
+		  }
+#endif
 		dpyinfo->grabbed = 0;
 
 		x_detect_focus_change (dpyinfo, &er, &inev);
@@ -9737,42 +10113,6 @@ mac_initialize ()
   /* Try to use interrupt input; if we can't, then start polling.  */
   Fset_input_mode (Qt, Qnil, Qt, Qnil);
 
-#ifdef USE_X_TOOLKIT
-  XtToolkitInitialize ();
-  Xt_app_con = XtCreateApplicationContext ();
-  XtAppSetFallbackResources (Xt_app_con, Xt_default_resources);
-
-  /* Install an asynchronous timer that processes Xt timeout events
-     every 0.1s.  This is necessary because some widget sets use
-     timeouts internally, for example the LessTif menu bar, or the
-     Xaw3d scroll bar.  When Xt timouts aren't processed, these
-     widgets don't behave normally.  */
-  {
-    EMACS_TIME interval;
-    EMACS_SET_SECS_USECS (interval, 0, 100000);
-    start_atimer (ATIMER_CONTINUOUS, interval, x_process_timeouts, 0);
-  }
-#endif
-
-#if USE_TOOLKIT_SCROLL_BARS
-  xaw3d_arrow_scroll = False;
-  xaw3d_pick_top = True;
-#endif
-
-#if 0
-  /* Note that there is no real way portable across R3/R4 to get the
-     original error handler.  */
-  XSetErrorHandler (x_error_handler);
-  XSetIOErrorHandler (x_io_error_quitter);
-
-  /* Disable Window Change signals;  they are handled by X events.  */
-#ifdef SIGWINCH
-  signal (SIGWINCH, SIG_DFL);
-#endif /* ! defined (SIGWINCH) */
-
-  signal (SIGPIPE, x_connection_signal);
-#endif
-
   BLOCK_INPUT;
 
 #if TARGET_API_MAC_CARBON
@@ -9849,7 +10189,11 @@ syms_of_macterm ()
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);
+#ifdef USE_TOOLKIT_SCROLL_BARS
   Vx_toolkit_scroll_bars = Qt;
+#else
+  Vx_toolkit_scroll_bars = Qnil;
+#endif
 
   DEFVAR_BOOL ("x-use-underline-position-properties",
                &x_use_underline_position_properties,

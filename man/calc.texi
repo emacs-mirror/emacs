@@ -30634,11 +30634,15 @@ use @kbd{M-# u} to update the buffer by hand.
 @node Mode Settings in Embedded Mode, Customizing Embedded Mode, Assignments in Embedded Mode, Embedded Mode
 @section Mode Settings in Embedded Mode
 
+@kindex m e
+@pindex calc-embedded-preserve-modes
 @noindent
 The mode settings can be changed while Calc is in embedded mode, but
-will revert to their original values when embedded mode is ended
-(except for the modes saved when the mode-recording mode is
-@code{Save}; see below).
+by default they will revert to their original values when embedded mode
+is ended. However, the modes saved when the mode-recording mode is
+@code{Save} (see below) and the modes in effect when the @kbd{m e}
+(@code{calc-embedded-preserve-modes}) command is given
+will be preserved when embedded mode is ended.
 
 Embedded mode has a rather complicated mechanism for handling mode
 settings in Embedded formulas.  It is possible to put annotations
@@ -35580,6 +35584,7 @@ keystrokes are not listed in this summary.
 @c
 @r{       @:      m a   @:             @: 12,13  @:calc-algebraic-mode@:}
 @r{       @:      m d   @:             @:        @:calc-degrees-mode@:}
+@r{       @:      m e   @:             @:        @:calc-embedded-preserve-modes@:}
 @r{       @:      m f   @:             @:    12  @:calc-frac-mode@:}
 @r{       @:      m g   @:             @:    52  @:calc-get-modes@:}
 @r{       @:      m h   @:             @:        @:calc-hms-mode@:}

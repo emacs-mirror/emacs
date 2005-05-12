@@ -20,7 +20,6 @@ the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
-#include <signal.h>
 #include <stdio.h>
 #include <math.h>
 
@@ -4367,6 +4366,10 @@ start_hourglass ()
 {
   EMACS_TIME delay;
   int secs, usecs = 0;
+
+  /* Don't bother for ttys.  */
+  if (NILP (Vwindow_system))
+    return;
 
   cancel_hourglass ();
 

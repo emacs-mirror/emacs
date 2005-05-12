@@ -91,6 +91,14 @@ is encountered.
 Please record your name here and say which part of the distribution
 you're going to handle.
 
+DIRECTORY		STATUS		IN CHARGE
+---------		------		---------
+lisp/international	working		Kenichi Handa
+lisp/languages		working		Kenichi Handa
+lisp/net		working		Thien-Thi Nguyen
+lisp/play		done		Thien-Thi Nguyen
+lisp/term		working		Thien-Thi Nguyen
+
 ** Update AUTHORS.
 
 ** Reorder NEWS entries.
@@ -169,7 +177,7 @@ lispref/customize.texi   Chong Yidong
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong
-lispref/elisp.texi       "Luc Teirlinck"
+lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong
@@ -194,7 +202,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong
+lispref/processes.texi   Chong Yidong	   Thien-Thi Nguyen
 lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
@@ -230,7 +238,7 @@ etc/TUTORIAL.it          Thien-Thi Nguyen
 etc/TUTORIAL.ja		 Kenichi Handa <handa@m17n.org>
 etc/TUTORIAL.ko
 etc/TUTORIAL.nl		 Lute Kamstra
-etc/TUTORIAL.pl
+etc/TUTORIAL.pl          Slawomir Nowaczyk <slawek@cs.lth.se>
 etc/TUTORIAL.pt_BR       Marcelo Toledo
 etc/TUTORIAL.ro
 etc/TUTORIAL.ru          Alex Ott <alexott@gmail.com>

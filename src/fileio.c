@@ -1024,7 +1024,7 @@ DEFUN ("expand-file-name", Fexpand_file_name, Sexpand_file_name, 1, 2, 0,
        doc: /* Convert filename NAME to absolute, and canonicalize it.
 Second arg DEFAULT-DIRECTORY is directory to start with if NAME is relative
 \(does not start with slash); if DEFAULT-DIRECTORY is nil or missing,
-the current buffer's value of default-directory is used.
+the current buffer's value of `default-directory' is used.
 File name components that are `.' are removed, and
 so are file name components followed by `..', along with the `..' itself;
 note that these simplifications are done without checking the resulting
@@ -2711,7 +2711,7 @@ internal_delete_file (filename)
 
 DEFUN ("rename-file", Frename_file, Srename_file, 2, 3,
        "fRename file: \nGRename %s to file: \np",
-       doc: /* Rename FILE as NEWNAME.  Both args strings.
+       doc: /* Rename FILE as NEWNAME.  Both args must be strings.
 If file has names other than FILE, it continues to have those names.
 Signals a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
@@ -2800,7 +2800,7 @@ This is what happens in interactive use with M-x.  */)
 
 DEFUN ("add-name-to-file", Fadd_name_to_file, Sadd_name_to_file, 2, 3,
        "fAdd name to file: \nGName to add to %s: \np",
-       doc: /* Give FILE additional name NEWNAME.  Both args strings.
+       doc: /* Give FILE additional name NEWNAME.  Both args must be strings.
 Signals a `file-already-exists' error if a file NEWNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if NEWNAME already exists.
@@ -2867,7 +2867,7 @@ This is what happens in interactive use with M-x.  */)
 #ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to FILENAME, named LINKNAME.  Both args strings.
+       doc: /* Make a symbolic link to FILENAME, named LINKNAME.  Both args must be strings.
 Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if LINKNAME already exists.
@@ -3212,7 +3212,7 @@ DEFUN ("file-writable-p", Ffile_writable_p, Sfile_writable_p, 1, 1, 0,
 DEFUN ("access-file", Faccess_file, Saccess_file, 2, 2, 0,
        doc: /* Access file FILENAME, and get an error if that does not work.
 The second argument STRING is used in the error message.
-If there is no error, we return nil.  */)
+If there is no error, returns nil.  */)
      (filename, string)
      Lisp_Object filename, string;
 {
@@ -5952,7 +5952,7 @@ DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
 
 DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
        0, 0, 0,
-       doc: /* Return t if buffer has been auto-saved since last read in or saved.  */)
+       doc: /* Return t if current buffer has been auto-saved since last read in or saved.  */)
      ()
 {
   return (SAVE_MODIFF < current_buffer->auto_save_modified) ? Qt : Qnil;

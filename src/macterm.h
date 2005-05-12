@@ -495,6 +495,12 @@ struct scroll_bar {
      place where the user grabbed it.  If the handle isn't currently
      being dragged, this is Qnil.  */
   Lisp_Object dragging;
+
+#ifdef USE_TOOLKIT_SCROLL_BARS
+  /* The position and size of the scroll bar handle track area in
+     pixels, relative to the frame.  */
+  Lisp_Object track_top, track_height;
+#endif
 };
 
 /* The number of elements a vector holding a struct scroll_bar needs.  */

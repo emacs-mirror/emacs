@@ -977,32 +977,33 @@ See also `multi-occur'."
     (setq occur-buf (get-buffer-create buf-name))
 
     (with-current-buffer occur-buf
-      (setq buffer-read-only nil)
       (occur-mode)
-      (erase-buffer)
-      (let ((count (occur-engine
-		    regexp active-bufs occur-buf
-		    (or nlines list-matching-lines-default-context-lines)
-		    (and case-fold-search
-			 (isearch-no-upper-case-p regexp t))
-		    list-matching-lines-buffer-name-face
-		    nil list-matching-lines-face t)))
-	(let* ((bufcount (length active-bufs))
-	       (diff (- (length bufs) bufcount)))
-	  (message "Searched %d buffer%s%s; %s match%s for `%s'"
-		   bufcount (if (= bufcount 1) "" "s")
-		   (if (zerop diff) "" (format " (%d killed)" diff))
-		   (if (zerop count) "no" (format "%d" count))
-		   (if (= count 1) "" "es")
-		   regexp))
-	(setq occur-revert-arguments (list regexp nlines bufs)
-	      buffer-read-only t)
-	(if (> count 0)
-	    (progn
-	      (display-buffer occur-buf)
-	      (setq next-error-last-buffer occur-buf))
-	  (kill-buffer occur-buf)))
-      (run-hooks 'occur-hook))))
+      (let ((inhibit-read-only t))
+	(erase-buffer)
+	(let ((count (occur-engine
+		      regexp active-bufs occur-buf
+		      (or nlines list-matching-lines-default-context-lines)
+		      (and case-fold-search
+			   (isearch-no-upper-case-p regexp t))
+		      list-matching-lines-buffer-name-face
+		      nil list-matching-lines-face t)))
+	  (let* ((bufcount (length active-bufs))
+		 (diff (- (length bufs) bufcount)))
+	    (message "Searched %d buffer%s%s; %s match%s for `%s'"
+		     bufcount (if (= bufcount 1) "" "s")
+		     (if (zerop diff) "" (format " (%d killed)" diff))
+		     (if (zerop count) "no" (format "%d" count))
+		     (if (= count 1) "" "es")
+		     regexp))
+	  (setq occur-revert-arguments (list regexp nlines bufs))
+	  (if (> count 0)
+	      (progn
+		(display-buffer occur-buf)
+		(setq next-error-last-buffer occur-buf))
+	    (kill-buffer occur-buf)))
+	(run-hooks 'occur-hook))
+      (setq buffer-read-only t)
+      (set-buffer-modified-p nil))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
@@ -1013,7 +1014,6 @@ See also `multi-occur'."
 (defun occur-engine (regexp buffers out-buf nlines case-fold-search
 			    title-face prefix-face match-face keep-props)
   (with-current-buffer out-buf
-    (setq buffer-read-only nil)
     (let ((globalcount 0)
 	  (coding nil))
       ;; Map over all the buffers

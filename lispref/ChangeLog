@@ -1,3 +1,48 @@
+2005-05-12  Lute Kamstra  <lute@gnu.org>
+
+	* elisp.texi (Top): Update to the current structure of the manual.
+	* processes.texi (Processes): Add menu description.
+	* customize.texi (Customization): Add menu descriptions.
+
+2005-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Signals to Processes)
+	(Low-Level Network): Fix typos.
+
+2005-05-11  Lute Kamstra  <lute@gnu.org>
+
+	* elisp.texi (Top): Add some nodes from the chapter "Major and
+	Minor Modes" to the detailed node listing.
+
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Menu item filter functions
+	can be called at any time.
+
+2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (File Local Variables): `(hack-local-variables t)'
+	now also checks whether a mode is specified in the local variables
+	list.
+
+2005-05-05  Kevin Ryde  <user42@zip.com.au>
+
+	* display.texi (The Echo Area): Correct format function cross
+	reference.
+
+2005-05-05  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Variable Aliases): Change description of
+	`define-obsolete-variable-alias'.
+
+	* functions.texi (Functions): Add "Obsolete Functions" to menu.
+	(Defining Functions): Add xref.
+	(Obsolete Functions): New node.
+	(Function Safety): Standardize capitalization of section title.
+
+	* frames.texi (Pop-Up Menus): Complete description of `x-popup-menu'.
+	(Dialog Boxes): Complete description of `x-popup-dialog'.
+
 2005-05-04  Richard M. Stallman  <rms@gnu.org>
 
 	* commands.texi (Interactive Codes): Fix Texinfo usage.

@@ -378,6 +378,7 @@
   (define-key calc-mode-map "m?" 'calc-m-prefix-help)
   (define-key calc-mode-map "ma" 'calc-algebraic-mode)
   (define-key calc-mode-map "md" 'calc-degrees-mode)
+  (define-key calc-mode-map "me" 'calc-embedded-preserve-modes)
   (define-key calc-mode-map "mf" 'calc-frac-mode)
   (define-key calc-mode-map "mg" 'calc-get-modes)
   (define-key calc-mode-map "mh" 'calc-hms-mode)
@@ -737,7 +738,8 @@ math-polar math-want-polar)
 
  ("calc-embed" calc-do-embedded
 calc-do-embedded-activate calc-embedded-evaluate-expr
-calc-embedded-modes-change calc-embedded-var-change)
+calc-embedded-modes-change calc-embedded-var-change
+calc-embedded-preserve-modes)
 
  ("calc-fin" calc-to-percentage calcFunc-ddb
 calcFunc-fv calcFunc-fvb calcFunc-fvl calcFunc-irr calcFunc-irrb

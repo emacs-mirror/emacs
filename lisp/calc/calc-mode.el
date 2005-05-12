@@ -304,7 +304,9 @@
 	       vals (cdr vals))))
      (run-hooks 'calc-mode-save-hook)
      (insert ";;; End of mode settings\n")
-     (save-buffer))))
+     (save-buffer)
+     (if calc-embedded-info
+         (calc-embedded-save-original-modes)))))
 
 (defun calc-settings-file-name (name &optional arg)
   (interactive

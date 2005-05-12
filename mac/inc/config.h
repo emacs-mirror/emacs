@@ -91,7 +91,9 @@ Boston, MA 02111-1307, USA.  */
 /* #undef HAVE_XAW3D */
 
 /* Define if we should use toolkit scroll bars.  */
-/* #undef USE_TOOLKIT_SCROLL_BARS */
+#ifdef HAVE_CARBON
+#define USE_TOOLKIT_SCROLL_BARS 1
+#endif
 
 /* Define if we should use XIM, if it is available.  */
 /* #undef USE_XIM */

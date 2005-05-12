@@ -1,3 +1,38 @@
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Compilation): Clarify recompile's directory choice.
+
+	* frames.texi (Tooltips): Cleanups.
+
+	* basic.texi (Arguments): Fix punctuation.
+
+2005-05-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* screen.texi (Menu Bar): The up and down (not left and right)
+	arrow keys move through a keyboard menu.
+
+2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi: Various typo and grammar fixes.
+	(Moving Point): C-a now runs move-beginning-of-line.
+
+2005-05-08  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Describe gud-tooltip-echo-area.
+
+	* frames.texi (Tooltips): Describe help tooltips and GUD tooltips
+	as different animals.
+
+2005-05-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Mouse References): Clarify `mouse-1-click-follows-link'.
+	Correct index entry.
+
+2005-05-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Update to reflect changes
+	in GUD tooltips.
+
 2005-04-30  Richard M. Stallman  <rms@gnu.org>
 
 	* files.texi (Compressed Files): Auto Compression normally enabled.
@@ -1656,8 +1691,8 @@
 	(Indentation Commands): Correct description of `indent-relative'.
 	(Tab Stops): <TAB> is no longer bound to `tab-to-tab-stop' in Text
 	mode.  The *Tab Stops* buffer uses Overwrite Mode.
-	(Just Spaces): `untabify' converts sequences of at least two
-	spaces to tabs.
+	(Just Spaces): `tabify' converts sequences of at least two spaces
+	to tabs.
 
 2004-08-28  Eli Zaretskii  <eliz@gnu.org>
 

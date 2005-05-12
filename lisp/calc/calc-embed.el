@@ -148,6 +148,15 @@
           (setq calc-embedded-original-modes (cons lang modes)))
       (setq calc-embedded-original-modes nil))))
 
+(defun calc-embedded-preserve-modes ()
+  "Preserve the current modes when leaving embedded mode."
+  (interactive)
+  (if calc-embedded-info
+      (progn
+        (calc-embedded-save-original-modes)
+        (message "Current modes will be preserved when leaving embedded mode."))
+    (message "Not in embedded mode.")))
+
 (defun calc-embedded-restore-original-modes ()
   "Restore the original Calc modes when leaving embedded mode."
   (let ((calcbuf (get-buffer "*Calculator*"))

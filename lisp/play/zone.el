@@ -1,6 +1,6 @@
 ;;; zone.el --- idle display hacks
 
-;; Copyright (C) 2000, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: Victor Zandy <zandy@cs.wisc.edu>
 ;; Maintainer: Thien-Thi Nguyen <ttn@gnu.org>

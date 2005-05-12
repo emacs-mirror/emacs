@@ -58,16 +58,31 @@
 
 (defun easy-mmode-pretty-mode-name (mode &optional lighter)
   "Turn the symbol MODE into a string intended for the user.
-If provided LIGHTER will be used to help choose capitalization."
+If provided, LIGHTER will be used to help choose capitalization by,
+replacing its case-insensitive matches with the literal string in LIGHTER."
   (let* ((case-fold-search t)
+	 ;; Produce "Foo-Bar minor mode" from foo-bar-minor-mode.
 	 (name (concat (replace-regexp-in-string
+			;; If the original mode name included "-minor" (some
+			;; of them don't, e.g. auto-revert-mode), then
+			;; replace it with " minor".
 			"-Minor" " minor"
+			;; "foo-bar-minor" -> "Foo-Bar-Minor"
 			(capitalize (replace-regexp-in-string
+				     ;; "foo-bar-minor-mode" -> "foo-bar-minor"
 				     "-mode\\'" "" (symbol-name mode))))
 		       " mode")))
     (if (not (stringp lighter)) name
-      (setq lighter (replace-regexp-in-string "\\`\\s-+\\|\\-s+\\'" "" lighter))
-      (replace-regexp-in-string lighter lighter name t t))))
+      ;; Strip leading and trailing whitespace from LIGHTER.
+      (setq lighter (replace-regexp-in-string "\\`\\s-+\\|\\s-+\\'" ""
+					      lighter))
+      ;; Replace any (case-insensitive) matches for LIGHTER in NAME
+      ;; with a literal LIGHTER.  E.g., if NAME is "Iimage mode" and
+      ;; LIGHTER is " iImag", then this will produce "iImage mode".
+      ;; (LIGHTER normally comes from the mode-line string passed to
+      ;; define-minor-mode, and normally includes at least one leading
+      ;; space.)
+      (replace-regexp-in-string (regexp-quote lighter) lighter name t t))))
 
 ;;;###autoload
 (defalias 'easy-mmode-define-minor-mode 'define-minor-mode)

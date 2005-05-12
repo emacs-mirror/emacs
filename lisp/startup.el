@@ -1108,7 +1108,7 @@ Values less than twice `fancy-splash-delay' are ignored."
 Arguments from ARGS should be either strings, functions called
 with no args that return a string, or pairs `:face FACE',
 where FACE is a valid face specification, as it can be used with
-`put-text-properties'."
+`put-text-property'."
   (let ((current-face nil))
     (while args
       (if (eq (car args) :face)

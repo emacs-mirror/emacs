@@ -251,8 +251,8 @@
 ;;
 ;; Customize the `ido' group to change the `ido' functionality.
 ;;
-;; To modify the keybindings, use the hook provided.  For example:
-;;(add-hook 'ido-define-mode-map-hook 'ido-my-keys)
+;; To modify the keybindings, use the ido-setup-hook.  For example:
+;;(add-hook 'ido-setup-hook 'ido-my-keys)
 ;;
 ;;(defun ido-my-keys ()
 ;;  "Add my keybindings for ido."
@@ -705,8 +705,11 @@ ask user whether to create buffer, or 'never to never create new buffer."
 		 (const never))
   :group 'ido)
 
-(defcustom ido-define-mode-map-hook  nil
-  "*Hook to define keys in `ido-mode-map' for extra keybindings."
+(defcustom ido-setup-hook  nil
+  "*Hook run after the ido variables and keymap has been setup.
+The dynamic variable `ido-cur-item' contains the current type of item that
+is read by ido, possible values are file, dir, buffer, and list.
+Additional keys can be defined in `ido-mode-map'."
   :type 'hook
   :group 'ido)
 
@@ -930,6 +933,9 @@ Copied from `icomplete-eoinput'.")
 
 (defvar ido-text-init nil
   "The initial string for the users string it is typed in.")
+
+(defvar ido-input-stack nil
+  "Stores the users strings when user hits M-b/M-f.")
 
 (defvar ido-matches nil
   "List of files currently matching `ido-text'.")
@@ -1399,13 +1405,14 @@ This function also adds a hook to the minibuffer."
       (define-key map [(meta backspace)] 'ido-delete-backward-word-updir)
       (define-key map [(control backspace)] 'ido-up-directory)
       (define-key map "\C-l" 'ido-reread-directory)
-      (define-key map [(meta ?b)] 'ido-next-work-file)
       (define-key map [(meta ?d)] 'ido-wide-find-dir)
-      (define-key map [(meta ?f)] 'ido-wide-find-file)
+      (define-key map [(meta ?b)] 'ido-push-dir)
+      (define-key map [(meta ?f)] 'ido-wide-find-file-or-pop-dir)
       (define-key map [(meta ?k)] 'ido-forget-work-directory)
       (define-key map [(meta ?m)] 'ido-make-directory)
       (define-key map [(meta ?n)] 'ido-next-work-directory)
       (define-key map [(meta ?o)] 'ido-prev-work-file)
+      (define-key map [(meta ?O)] 'ido-next-work-file)
       (define-key map [(meta ?p)] 'ido-prev-work-directory)
       (define-key map [(meta ?s)] 'ido-merge-work-directories)
       )
@@ -1431,8 +1438,7 @@ This function also adds a hook to the minibuffer."
 	(define-key map [remap viper-del-backward-char-in-insert] 'ido-delete-backward-updir)
 	(define-key map [remap viper-delete-backward-word] 'ido-delete-backward-word-updir)))
 
-    (setq ido-mode-map map)
-    (run-hooks 'ido-define-mode-map-hook)))
+    (setq ido-mode-map map)))
 
 (defun ido-final-slash (dir &optional fix-it)
   ;; return DIR if DIR has final slash.
@@ -1601,6 +1607,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 
     (ido-define-mode-map)
     (setq ido-text-init initial)
+    (setq ido-input-stack nil)
+
+    (run-hooks 'ido-setup-hook)
+
     (while (not done)
       (ido-trace "\n_LOOP_" ido-text-init)
       (setq ido-exit nil)
@@ -1742,9 +1752,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 	    (setq ido-text-init "")
 	    (while new
 	      (setq new (if edit
-			     (read-file-name (concat prompt "[EDIT] ")
-					     (expand-file-name d)
-					     (concat d f) nil f)
+			    (condition-case nil
+				(read-file-name (concat prompt "[EDIT] ")
+						(expand-file-name d)
+						(concat d f) nil f)
+			      (quit (concat d f)))
 			   f)
 		    d (or (file-name-directory new) "/")
 		    f (file-name-nondirectory new)
@@ -1763,7 +1775,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 		    (setq ido-text-init f
 			  new nil))))))
 	 (t
-	  (setq ido-text-init (read-string (concat prompt "[EDIT] ") ido-final-text))))
+	  (setq ido-text-init
+		(condition-case nil
+		    (read-string (concat prompt "[EDIT] ") ido-final-text)
+		  (quit ido-final-text)))))
+
 	nil)
 
        ((eq ido-exit 'keep)
@@ -1772,7 +1788,7 @@ If INITIAL is non-nil, it specifies the initial input string."
        ((memq ido-exit '(dired fallback find-file switch-to-buffer insert-buffer insert-file))
 	(setq done t))
 
-       ((eq ido-exit 'updir)
+       ((memq ido-exit '(updir push))
 	;; cannot go up if already at the root-dir (Unix) or at the
 	;; root-dir of a certain drive (Windows or MS-DOS).
         (if (ido-is-tramp-root)
@@ -1781,8 +1797,30 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (ido-set-current-directory (match-string 1 ido-current-directory))
 	      (setq ido-set-default-item t))
 	  (unless (ido-is-root-directory)
+	    (when (eq ido-exit 'push)
+	      (setq ido-input-stack (cons (cons ido-cur-item ido-text) ido-input-stack))
+	      (setq ido-cur-item 'dir)
+	      (setq ido-text-init (file-name-nondirectory (substring ido-current-directory 0 -1)))
+	      (ido-trace "push" ido-input-stack))
 	    (ido-set-current-directory (file-name-directory (substring ido-current-directory 0 -1)))
 	    (setq ido-set-default-item t))))
+
+       ((eq ido-exit 'pop)
+	(ido-trace "pop" ido-input-stack)
+	(let ((elt (car ido-input-stack)))
+	  (setq ido-input-stack (cdr ido-input-stack))
+	  (ido-set-current-directory (concat ido-current-directory ido-text))
+	  (setq ido-cur-item (car elt))
+	  (setq ido-text-init (cdr elt))))
+
+       ((eq ido-exit 'pop-all)
+	(ido-trace "pop-all" ido-input-stack)
+	(while ido-input-stack
+	  (let ((elt (car ido-input-stack)))
+	    (setq ido-input-stack (cdr ido-input-stack))
+	    (ido-set-current-directory (concat ido-current-directory ido-text))
+	    (setq ido-cur-item (car elt))
+	    (setq ido-text-init (cdr elt)))))
 
        ;; Handling the require-match must be done in a better way.
        ((and require-match
@@ -1838,7 +1876,14 @@ If INITIAL is non-nil, it specifies the initial input string."
 		  (setq ido-last-directory-list
 			(cons (cons ido-current-directory ido-selected) ido-last-directory-list)))))
 	  (ido-set-current-directory ido-current-directory ido-selected)
-	  (setq ido-set-default-item t))
+	  (if ido-input-stack
+	      (while ido-input-stack
+		(let ((elt (car ido-input-stack)))
+		  (if (setq ido-input-stack (cdr ido-input-stack))
+		      (ido-set-current-directory ido-current-directory (cdr elt))
+		    (setq ido-text-init (cdr elt)))
+		  (setq ido-cur-item (car elt))))
+	    (setq ido-set-default-item t)))
 
 	 (t
 	  (setq done t))))))
@@ -1968,10 +2013,11 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(require 'ffap)
 	;; Duplicate code from ffap-guesser as we want different behaviour for files and URLs.
 	(cond
-	 ((and ido-use-url-at-point
-	       ffap-url-regexp
-	       (ffap-fixup-url (or (ffap-url-at-point)
-				   (ffap-gopher-at-point))))
+	 ((with-no-warnings
+	    (and ido-use-url-at-point
+		 ffap-url-regexp
+		 (ffap-fixup-url (or (ffap-url-at-point)
+				     (ffap-gopher-at-point)))))
 	  (setq ido-exit 'ffap
 		filename t))
 
@@ -2041,7 +2087,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 	      (ido-record-work-directory)
 	      (funcall method ido-current-directory)
 	      (if (eq method 'dired)
-		  (dired-goto-file (expand-file-name file))))
+		  (with-no-warnings
+		    (dired-goto-file (expand-file-name file)))))
 	     ((string-match "[[*?]" filename)
 	      (setq dirname (concat ido-current-directory filename))
 	      (ido-record-command method dirname)
@@ -2283,7 +2330,7 @@ timestamp has not changed (e.g. with ftp or on Windows)."
   (interactive)
   (if (or (not ido-require-match)
 	   (ido-existing-item-p))
-      (throw 'exit nil)))
+      (exit-minibuffer)))
 
 (defun ido-select-text ()
   "Select the buffer or file named by the prompt.
@@ -2432,7 +2479,9 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   (unless file
     (let ((enable-recursive-minibuffers t))
       (setq file
-	    (read-string (concat "Wide find file: " ido-current-directory) ido-text))))
+	    (condition-case nil
+		(read-string (concat "Wide find file: " ido-current-directory) ido-text)
+	      (quit "")))))
   (when (> (length file) 0)
     (setq ido-use-merged-list t ido-try-merged-list 'wide)
     (setq ido-exit 'refresh)
@@ -2446,13 +2495,35 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   (unless dir
     (let ((enable-recursive-minibuffers t))
       (setq dir
-	    (read-string (concat "Wide find directory: " ido-current-directory) ido-text))))
+	    (condition-case nil
+		(read-string (concat "Wide find directory: " ido-current-directory) ido-text)
+	      (quit "")))))
   (when (> (length dir) 0)
     (setq ido-use-merged-list t ido-try-merged-list 'wide)
     (setq ido-exit 'refresh)
     (setq ido-text-init (ido-final-slash dir t))
     (setq ido-rotate-temp t)
     (exit-minibuffer)))
+
+(defun ido-push-dir ()
+  "Move to previous directory in file name, push current input on stack."
+  (interactive)
+  (setq ido-exit 'push)
+  (exit-minibuffer))
+
+(defun ido-pop-dir (arg)
+  "Pop directory from input stack back to input.
+With \\[universal-argument], pop all element."
+  (interactive "P")
+  (when ido-input-stack
+    (setq ido-exit (if arg 'pop-all 'pop))
+    (exit-minibuffer)))
+
+(defun ido-wide-find-file-or-pop-dir (arg)
+  (interactive "P")
+  (if ido-input-stack
+      (ido-pop-dir arg)
+    (ido-wide-find-file)))
 
 (defun ido-make-directory (&optional dir)
   "Prompt for DIR to create in current directory."
@@ -2771,67 +2842,69 @@ for first matching file."
 (defun ido-make-merged-file-list (text auto wide)
   (let (res)
     (message "Searching for `%s'...." text)
-    (if (and (ido-final-slash text) ido-dir-file-cache)
-	(if wide
-	    (setq res (ido-wide-find-dirs-or-files
-		       ido-current-directory (substring text 0 -1) ido-enable-prefix t))
-	  ;; Use list of cached directories
-	  (let ((re (concat (regexp-quote (substring text 0 -1)) "[^/:]*/\\'"))
-		(dirs ido-dir-file-cache)
-		dir b d f)
-	    (if nil ;; simple
-		(while dirs
-		  (setq dir (car (car dirs))
-			dirs (cdr dirs))
-		  (when (and (string-match re dir)
-			     (not (ido-ignore-item-p dir ido-ignore-directories-merge))
-			     (file-directory-p dir))
-		    (setq b (substring dir 0 -1)
-			  f (concat (file-name-nondirectory b) "/")
-			  d (file-name-directory b)
-			  res (cons (cons f d) res))))
+    (condition-case nil
+	(if (and (ido-final-slash text) ido-dir-file-cache)
+	    (if wide
+		(setq res (ido-wide-find-dirs-or-files
+			   ido-current-directory (substring text 0 -1) ido-enable-prefix t))
+	      ;; Use list of cached directories
+	      (let ((re (concat (regexp-quote (substring text 0 -1)) "[^/:]*/\\'"))
+		    (dirs ido-dir-file-cache)
+		    dir b d f)
+		(if nil ;; simple
+		    (while dirs
+		      (setq dir (car (car dirs))
+			    dirs (cdr dirs))
+		      (when (and (string-match re dir)
+				 (not (ido-ignore-item-p dir ido-ignore-directories-merge))
+				 (file-directory-p dir))
+			(setq b (substring dir 0 -1)
+			      f (concat (file-name-nondirectory b) "/")
+			      d (file-name-directory b)
+			      res (cons (cons f d) res))))
+		  (while dirs
+		    (setq dir (car dirs)
+			  d (car dir)
+			  dirs (cdr dirs))
+		    (when (not (ido-ignore-item-p d ido-ignore-directories-merge))
+		      (setq dir (cdr (cdr dir)))
+		      (while dir
+			(setq f (car dir)
+			      dir (cdr dir))
+			(if (and (string-match re f)
+				 (not (ido-ignore-item-p f ido-ignore-directories)))
+			    (setq res (cons (cons f d) res)))))
+		    (if (and auto (input-pending-p))
+			(setq dirs nil
+			      res t))))))
+	  (if wide
+	      (setq res (ido-wide-find-dirs-or-files
+			 ido-current-directory text ido-enable-prefix nil))
+	    (let ((ido-text text)
+		  (dirs ido-work-directory-list)
+		  (must-match (and text (> (length text) 0)))
+		  dir fl)
+	      (if (and auto (not (member ido-current-directory dirs)))
+		  (setq dirs (cons ido-current-directory dirs)))
 	      (while dirs
 		(setq dir (car dirs)
-		      d (car dir)
 		      dirs (cdr dirs))
-		(when (not (ido-ignore-item-p d ido-ignore-directories-merge))
-		  (setq dir (cdr (cdr dir)))
-		  (while dir
-		    (setq f (car dir)
-			  dir (cdr dir))
-		    (if (and (string-match re f)
-			     (not (ido-ignore-item-p f ido-ignore-directories)))
-			(setq res (cons (cons f d) res)))))
+		(when (and dir (stringp dir)
+			   (or ido-merge-ftp-work-directories
+			       (not (ido-is-ftp-directory dir)))
+			   (file-directory-p dir)
+			   ;; TODO. check for nonreadable and too-big.
+			   (setq fl (if (eq ido-cur-item 'file)
+					(ido-make-file-list1 dir t)
+				      (ido-make-dir-list1 dir t))))
+		  (if must-match
+		      (setq fl (ido-set-matches1 fl)))
+		  (if fl
+		      (setq res (nconc fl res))))
 		(if (and auto (input-pending-p))
 		    (setq dirs nil
 			  res t))))))
-      (if wide
-	  (setq res (ido-wide-find-dirs-or-files
-		     ido-current-directory text ido-enable-prefix nil))
-	(let ((ido-text text)
-	      (dirs ido-work-directory-list)
-	      (must-match (and text (> (length text) 0)))
-	      dir fl)
-	  (if (and auto (not (member ido-current-directory dirs)))
-	      (setq dirs (cons ido-current-directory dirs)))
-	  (while dirs
-	    (setq dir (car dirs)
-		  dirs (cdr dirs))
-	    (when (and dir (stringp dir)
-		       (or ido-merge-ftp-work-directories
-			   (not (ido-is-ftp-directory dir)))
-		       (file-directory-p dir)
-		       ;; TODO. check for nonreadable and too-big.
-		       (setq fl (if (eq ido-cur-item 'file)
-				    (ido-make-file-list1 dir t)
-				  (ido-make-dir-list1 dir t))))
-	      (if must-match
-		  (setq fl (ido-set-matches1 fl)))
-	      (if fl
-		  (setq res (nconc fl res))))
-	    (if (and auto (input-pending-p))
-		(setq dirs nil
-		      res t))))))
+      (quit (setq res t)))
     (if (and res (not (eq res t)))
 	(setq res (ido-sort-merged-list res auto)))
     (when (and (or ido-rotate-temp ido-rotate-file-list-default)
@@ -3063,7 +3136,8 @@ for first matching file."
 	  (setq ido-temp-list
 		(cons default ido-temp-list))))
     (setq ido-temp-list (delete "." ido-temp-list))
-    (setq ido-temp-list (cons "." ido-temp-list))
+    (unless ido-input-stack
+      (setq ido-temp-list (cons "." ido-temp-list)))
     (run-hooks 'ido-make-dir-list-hook)
     ido-temp-list))
 
@@ -3265,7 +3339,8 @@ for first matching file."
 	  (if (pos-visible-in-window-p (point-max) win)
 	      (if (or ido-completion-buffer-all-completions (boundp 'ido-completion-buffer-full))
 		  (set-window-start win (point-min))
-		(set (make-local-variable 'ido-completion-buffer-full) t)
+		(with-no-warnings
+		  (set (make-local-variable 'ido-completion-buffer-full) t))
 		(setq full-list t
 		      display-it t))
 	    (scroll-other-window))

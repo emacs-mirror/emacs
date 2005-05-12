@@ -34,6 +34,10 @@
 ;; The variable calc-keep-selection is declared and set in calc-sel.el.
 (defvar calc-keep-selection)
 
+;; The variable calc-sel-reselect is local to the methods below,
+;; but is used by some functions in calc-sel.el which are called
+;; by the functions below.
+
 (defun calc-commute-left (arg)
   (interactive "p")
   (if (< arg 0)
@@ -41,7 +45,7 @@
     (calc-wrapper
      (calc-preserve-point)
      (let ((num (max 1 (calc-locate-cursor-element (point))))
-	   (reselect calc-keep-selection))
+	   (calc-sel-reselect calc-keep-selection))
        (if (= arg 0) (setq arg nil))
        (while (or (null arg) (>= (setq arg (1- arg)) 0))
 	 (let* ((entry (calc-top num 'entry))
@@ -106,14 +110,14 @@
 	   (if (null new)
 	       (if arg
 		   (error "Term is already leftmost")
-		 (or reselect
+		 (or calc-sel-reselect
 		     (calc-pop-push-list 1 (list expr) num '(nil)))
 		 (setq arg 0))
 	     (calc-pop-push-record-list
 	      1 "left"
 	      (list (calc-replace-sub-formula expr parent new))
 	      num
-	      (list (and (or (not (eq arg 0)) reselect)
+	      (list (and (or (not (eq arg 0)) calc-sel-reselect)
 			 sel))))))))))
 
 (defun calc-commute-right (arg)
@@ -123,7 +127,7 @@
     (calc-wrapper
      (calc-preserve-point)
      (let ((num (max 1 (calc-locate-cursor-element (point))))
-	   (reselect calc-keep-selection))
+	   (calc-sel-reselect calc-keep-selection))
        (if (= arg 0) (setq arg nil))
        (while (or (null arg) (>= (setq arg (1- arg)) 0))
 	 (let* ((entry (calc-top num 'entry))
@@ -189,14 +193,14 @@
 	   (if (null new)
 	       (if arg
 		   (error "Term is already rightmost")
-		 (or reselect
+		 (or calc-sel-reselect
 		     (calc-pop-push-list 1 (list expr) num '(nil)))
 		 (setq arg 0))
 	     (calc-pop-push-record-list
 	      1 "rght"
 	      (list (calc-replace-sub-formula expr parent new))
 	      num
-	      (list (and (or (not (eq arg 0)) reselect)
+	      (list (and (or (not (eq arg 0)) calc-sel-reselect)
 			 sel))))))))))
 
 (defun calc-build-assoc-term (op lhs rhs)
@@ -225,7 +229,7 @@
   (calc-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) expr)))
@@ -236,14 +240,14 @@
 				(list (calc-replace-sub-formula
 				       expr sel (nth 1 sel)))
 				num
-				(list (and reselect (nth 1 sel)))))))
+				(list (and calc-sel-reselect (nth 1 sel)))))))
 
 (defun calc-sel-isolate ()
   (interactive)
   (calc-slow-wrapper
    (calc-preserve-point)
    (let* ((num (max 1 (calc-locate-cursor-element (point))))
-	  (reselect calc-keep-selection)
+	  (calc-sel-reselect calc-keep-selection)
 	  (entry (calc-top num 'entry))
 	  (expr (car entry))
 	  (sel (or (calc-auto-selection entry) (error "No selection")))
@@ -266,7 +270,7 @@
 				(list (calc-replace-sub-formula
 				       expr eqn soln))
 				num
-				(list (and reselect sel)))
+				(list (and calc-sel-reselect sel)))
      (calc-handle-whys))))
 
 (defun calc-sel-commute (many)
