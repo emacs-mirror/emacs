@@ -95,7 +95,9 @@ DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 lisp/international	working		Kenichi Handa
 lisp/languages		working		Kenichi Handa
-lisp/play		working		Thien-Thi Nguyen
+lisp/net		working		Thien-Thi Nguyen
+lisp/play		done		Thien-Thi Nguyen
+lisp/term		working		Thien-Thi Nguyen
 
 ** Update AUTHORS.
 
