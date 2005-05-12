@@ -1728,10 +1728,10 @@ or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (or find-file (funcall (or default-major-mode 'fundamental-mode)))
-  (report-errors "File mode specification error: %s"
-    (set-auto-mode))
-  (report-errors "File local-variables error: %s"
-    (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+  (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    (report-errors "File mode specification error: %s"
+      (set-auto-mode))
+    (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
@@ -1992,7 +1992,7 @@ if REGEXP matches the text at the beginning of the buffer,
 to decide the buffer's major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.")
+\"allow `auto-mode-alist' to decide for these files.)")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
