@@ -117,46 +117,37 @@ instead (which see).")
 ;;;###autoload
 (defmacro define-generic-mode (mode comment-list keyword-list
 				    font-lock-list auto-mode-list
-				    function-list &optional docstring
-				    &rest custom-keyword-args)
+				    function-list &optional docstring)
   "Create a new generic mode MODE.
 
-MODE is the name of the command for the generic mode; don't quote
-it.  The optional DOCSTRING is the documentation for the mode
-command.  If you do not supply it, `define-generic-mode' uses a
-default documentation string instead.
+MODE is the name of the command for the generic mode; don't quote it.
+The optional DOCSTRING is the documentation for the mode command.  If
+you do not supply it, `define-generic-mode' uses a default
+documentation string instead.
 
-COMMENT-LIST is a list in which each element is either a
-character, a string of one or two characters, or a cons cell.  A
-character or a string is set up in the mode's syntax table as a
-\"comment starter\".  If the entry is a cons cell, the `car' is
-set up as a \"comment starter\" and the `cdr' as a \"comment
-ender\".  (Use nil for the latter if you want comments to end at
-the end of the line.)  Note that the syntax table has limitations
-about what comment starters and enders are actually possible.
+COMMENT-LIST is a list in which each element is either a character, a
+string of one or two characters, or a cons cell.  A character or a
+string is set up in the mode's syntax table as a \"comment starter\".
+If the entry is a cons cell, the `car' is set up as a \"comment
+starter\" and the `cdr' as a \"comment ender\".  (Use nil for the
+latter if you want comments to end at the end of the line.)  Note that
+the syntax table has limitations about what comment starters and
+enders are actually possible.
 
 KEYWORD-LIST is a list of keywords to highlight with
 `font-lock-keyword-face'.  Each keyword should be a string.
 
-FONT-LOCK-LIST is a list of additional expressions to highlight.
-Each element of this list should have the same form as an element
-of `font-lock-keywords'.
+FONT-LOCK-LIST is a list of additional expressions to highlight.  Each
+element of this list should have the same form as an element of
+`font-lock-keywords'.
 
 AUTO-MODE-LIST is a list of regular expressions to add to
-`auto-mode-alist'.  These regular expressions are added when
-Emacs runs the macro expansion.
+`auto-mode-alist'.  These regular expressions are added when Emacs
+runs the macro expansion.
 
-FUNCTION-LIST is a list of functions to call to do some
-additional setup.  The mode command calls these functions just
-before it runs the mode hook.
-
-The optional CUSTOM-KEYWORD-ARGS are pairs of keywords and values
-to include in the generated `defcustom' form for the mode hook
-variable `MODE-hook'.  The default value for the `:group' keyword
-is MODE with the final \"-mode\" (if any) removed.  (Don't use
-this default group name unless you have written a `defgroup' to
-define that group properly.)  You can specify keyword arguments
-without specifying a docstring.
+FUNCTION-LIST is a list of functions to call to do some additional
+setup.  The mode command calls these functions just before it runs the
+mode hook `MODE-hook'.
 
 See the file generic-x.el for some examples of `define-generic-mode'."
   (declare (debug (sexp def-form def-form def-form form def-form
@@ -167,22 +158,9 @@ See the file generic-x.el for some examples of `define-generic-mode'."
   (when (eq (car-safe mode) 'quote)
     (setq mode (eval mode)))
 
-  (when (and docstring (not (stringp docstring)))
-    ;; DOCSTRING is not a string so we assume that it's actually the
-    ;; first keyword of CUSTOM-KEYWORD-ARGS.
-    (push docstring custom-keyword-args)
-    (setq docstring nil))
-
   (let* ((name (symbol-name mode))
 	 (pretty-name (capitalize (replace-regexp-in-string
-				   "-mode\\'" "" name)))
-	 (mode-hook (intern (concat name "-hook"))))
-
-    (unless (plist-get custom-keyword-args :group)
-      (setq custom-keyword-args
-	    (plist-put custom-keyword-args
-		       :group `',(intern (replace-regexp-in-string
-					  "-mode\\'" "" name)))))
+				   "-mode\\'" "" name))))
 
     `(progn
        ;; Add a new entry.
@@ -192,15 +170,11 @@ See the file generic-x.el for some examples of `define-generic-mode'."
        (dolist (re ,auto-mode-list)
 	 (add-to-list 'auto-mode-alist (cons re ',mode)))
 
-       (defcustom ,mode-hook nil
-	 ,(concat "Hook run when entering " pretty-name " mode.")
-	 :type 'hook
-	 ,@custom-keyword-args)
-
        (defun ,mode ()
 	 ,(or docstring
 	      (concat pretty-name " mode.\n"
-		      "This a generic mode defined with `define-generic-mode'."))
+		      "This a generic mode defined with `define-generic-mode'.\n"
+		      "It runs `" name "-hook' as the last thing it does."))
 	 (interactive)
 	 (generic-mode-internal ',mode ,comment-list ,keyword-list
 				,font-lock-list ,function-list)))))
