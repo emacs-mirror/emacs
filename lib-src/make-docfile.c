@@ -60,8 +60,16 @@ Boston, MA 02111-1307, USA.  */
 #define READ_BINARY "r"
 #endif /* not DOS_NT */
 
+#ifndef DIRECTORY_SEP
+#ifdef MAC_OS8
+#define DIRECTORY_SEP ':'
+#else  /* not MAC_OS8 */
+#define DIRECTORY_SEP '/'
+#endif	/* not MAC_OS8 */
+#endif
+
 #ifndef IS_DIRECTORY_SEP
-#define IS_DIRECTORY_SEP(_c_) ((_c_) == '/')
+#define IS_DIRECTORY_SEP(_c_) ((_c_) == DIRECTORY_SEP)
 #endif
 
 int scan_file ();
