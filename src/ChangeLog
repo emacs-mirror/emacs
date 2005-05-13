@@ -51,7 +51,6 @@
 	(unexec_malloc, unexec_realloc, unexec_free): Store and use
 	allocated size information in unexec_malloc_header.
 
->>>>>>> 1.4385
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (noinclude): Add #undef.
