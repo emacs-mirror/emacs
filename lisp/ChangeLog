@@ -1,3 +1,8 @@
+2005-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-comment-delimiter-face): Fix up
+	the inheritance.
+
 2005-05-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* progmodes/inf-lisp.el (inferior-lisp-mode-hook)
@@ -57,6 +62,12 @@
 	* dired.el (dired-dnd-protocol-alist): New variable.
 	(dired-mode): Use `dired-dnd-protocol-alist'.  Move call of
 	`dired-mode-hook' to the end.
+
+2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-fontify-syntactically-region): Don't use
+	comment-end if comment-start-skip is not set.
+	Obey the font-lock-comment-delimiter-face variables.
 
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
