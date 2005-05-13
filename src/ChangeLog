@@ -1,3 +1,48 @@
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* emacs.c (main) [MAC_OS8]: Call init_atimer before mac_term_init.
+
+	* keyboard.c (readable_events) [USE_TOOLKIT_SCROLL_BARS]: Regard
+	toolkit scroll bar thumb drag events as squeezable and prevent
+	redisplay from being paused by them.
+
+	* mac.c [!MAC_OSX]: Include keyboard.h and syssignal.h.
+	[!MAC_OSX] (target_ticks): Remove variable.
+	[!MAC_OSX] (check_alarm, pause, index): Remove functions.
+	[!MAC_OSX && __MRC__] (sys_strftime): Likewise.
+	[!MAC_OSX] (select): If fd 0 is not set in rfds and some input
+	event occurs before timeout, behave as if the function were
+	interrupted.
+	[!MAC_OSX] (sigblock, sigsetmask, alarm): Simulate SIGALRM
+	handling using Time Manager routines.
+	[!MAC_OSX] (mac_atimer_task, mac_atimer_qlink, signal_mask): New
+	variables.
+	[!MAC_OSX] (mac_atimer_handler, set_mac_atimer, remove_mac_atimer)
+	(setitimer): New functions.
+
+	* macfns.c, macmenu.c: Don't include signal.h.
+
+	* macterm.c [USE_TOOLKIT_SCROLL_BARS] (get_control_part_bounds):
+	Rename from get_control_part_bound.  All callers changed.
+	(x_scroll_bar_clear): New function.
+	(x_clear_frame): Use it.
+	(XTset_vertical_scroll_bar): Don't call Draw1Control.
+	(x_scroll_bar_handle_click): Change type of second argument from
+	int to ControlPartCode.
+	(check_alarm): Remove declaration.
+	(XTread_Socket) [!TARGET_API_MAC_CARBON]: Don't call it.
+	(XTread_Socket): Use ControlPartCode instead of SInt16.
+
+2005-05-13  Nozomu Ando  <nand@mac.com>
+
+	* unexmacosx.c: Include assert.h.
+	(MACOSX_MALLOC_MULT16): New define.
+	[MACOSX_MALLOC_MULT16] (ptr_in_unexec_regions): Determine whether
+	ptr is in unexec regions by checking it is multiple of 16.
+	(unexec_malloc_header_t): New typedef.
+	(unexec_malloc, unexec_realloc, unexec_free): Store and use
+	allocated size information in unexec_malloc_header.
+
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (noinclude): Add #undef.

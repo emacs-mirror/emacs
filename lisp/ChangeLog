@@ -1,3 +1,9 @@
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-select-convert-to-string): Try coding
+	systems in mac-script-code-coding-systems if specified one cannot
+	encode string for `com.apple.traditional-mac-plain-text'.
+
 2005-05-13  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-targets-face)
