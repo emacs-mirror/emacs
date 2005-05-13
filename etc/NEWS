@@ -1755,6 +1755,11 @@ an error if the argument actually returns differing values.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Makefile mode has now been split up into specialized modes for automake,
+gmake, makepp and BSD make.  The former two couldn't be differentiated before,
+and the latter two are new.  Font-locking is robust now and offers new
+customizable faces.
+
 +++
 ** In Outline mode, hide-body no longer hides lines at the top
 of the file that precede the first header line.
