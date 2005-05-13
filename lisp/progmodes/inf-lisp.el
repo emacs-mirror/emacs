@@ -214,10 +214,8 @@ processes, you can change `inferior-lisp-buffer' to another process
 buffer with \\[set-variable].")
 
 ;;;###autoload
-(defcustom inferior-lisp-mode-hook '()
-  "*Hook for customising Inferior Lisp mode."
-  :type 'hook
-  :group 'inferior-lisp)
+(defvar inferior-lisp-mode-hook '()
+  "*Hook for customising Inferior Lisp mode.")
 
 (put 'inferior-lisp-mode 'mode-class 'special)
 
@@ -590,10 +588,8 @@ See variable `lisp-describe-sym-command'."
 
 ;;; Do the user's customisation...
 ;;;===============================
-(defcustom inferior-lisp-load-hook nil
-  "This hook is run when the library `inf-lisp' is loaded."
-  :type 'hook
-  :group 'inferior-lisp)
+(defvar inferior-lisp-load-hook nil
+  "This hook is run when the library `inf-lisp' is loaded.")
 
 (run-hooks 'inferior-lisp-load-hook)
 
