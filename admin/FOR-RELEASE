@@ -94,7 +94,7 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 lisp/emulation		working		Thien-Thi Nguyen
-lisp/international	working		Kenichi Handa
+lisp/international	done		Kenichi Handa
 lisp/languages		working		Kenichi Handa
 lisp/net		working		Thien-Thi Nguyen
 lisp/play		done		Thien-Thi Nguyen
