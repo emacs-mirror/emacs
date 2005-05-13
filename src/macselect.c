@@ -1104,9 +1104,11 @@ next communication only.  After the communication, this variable is
 set to nil.  */);
   Vnext_selection_coding_system = Qnil;
 
+#ifdef MAC_OSX
   DEFVAR_LISP ("mac-services-selection", &Vmac_services_selection,
 	       doc: /* Selection name for communication via Services menu.  */);
-  Vmac_services_selection = intern ("CLIPBOARD");
+  Vmac_services_selection = intern ("PRIMARY");
+#endif
 
   QPRIMARY   = intern ("PRIMARY");	staticpro (&QPRIMARY);
   QSECONDARY = intern ("SECONDARY");	staticpro (&QSECONDARY);
