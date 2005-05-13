@@ -28,6 +28,21 @@ struct timeval {
   long tv_usec;  /* microseconds */
 };
 
+#define ITIMER_REAL      0
+#if 0
+#define ITIMER_VIRTUAL   1
+#define ITIMER_PROF      2
+#endif
+
+struct itimerval {
+#if 0
+  struct timeval it_interval;    /* timer interval */
+#endif
+  struct timeval it_value;       /* current value */
+};
+
+extern int setitimer(int, const struct itimerval *, struct itimerval *);
+
 #endif  /* _SYS_TYPES_H */
 
 /* arch-tag: f85ed04d-0e99-4f97-892b-fe029d0e92f9

@@ -630,7 +630,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Deg, Rad, HMS; Frac; Polar; Inf; Alg, Total; Symb; Vec/mat"
-     "Working; Xtensions; Mode-save"
+     "Working; Xtensions; Mode-save; preserve Embedded modes"
      "SHIFT + Shifted-prefixes, mode-Filename; Record; reCompute"
      "SHIFT + simplify: Off, Num, Default, Bin, Alg, Ext, Units")
    "mode" ?m))

@@ -970,24 +970,24 @@ the setting of this variable has no effect.
 
 @node Tooltips
 @section Tooltips
+@cindex tooltips
 
-  Tooltips are small windows that display text information at the
+  @dfn{Tooltips} are small windows that display text information at the
 current mouse position.  They activate when there is a pause in mouse
-movement.
+movement.  There are two types of tooltip: help tooltips and GUD
+tooltips.
 
-There are two types of tooltip: help tooltips and GUD tooltips.
-
-Help tooltips typically display over text--including the mode
-line--but may be also available for many other parts of the Emacs
+  @dfn{Help tooltips} typically display over text---including the mode
+line---but may be also available for many other parts of the Emacs
 frame such as the toolbar and menu items.
 
 @findex tooltip-mode
   You can toggle help tooltips (Tooltip mode) with the command
-@kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
+  @kbd{M-x tooltip-mode}.  When Tooltip mode is disabled, the help text
 is displayed in the echo area instead.
 
-GUD tooltips are useful when you are debugging a
-program. @xref{Debugger Operation}.
+  @dfn{GUD tooltips} show values of variables.  They are useful when
+you are debugging a program.  @xref{Debugger Operation}.
 
 @vindex tooltip-delay
   The variables @code{tooltip-delay} specifies how long Emacs should

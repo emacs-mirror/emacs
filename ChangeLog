@@ -1,3 +1,10 @@
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* configure.in: Don't check HAVE_CARBON if HAVE_X11 is set to yes.
+	Check HAVE_CARBON before USE_TOOLKIT_SCROLL_BARS.  Define
+	USE_TOOLKIT_SCROLL_BARS by default if HAVE_CARBON is set to yes.
+	* configure: Regenerate.
+
 2005-05-07  J,Ai(Br,At(Bme Marant  <jerome@marant.org>
 
 	* make-dist: Remove references to makefile.nt and makefile.def.

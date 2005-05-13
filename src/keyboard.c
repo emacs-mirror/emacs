@@ -3525,9 +3525,11 @@ readable_events (flags)
      READABLE_EVENTS_FILTER_EVENTS is set, report it as empty.  */
   if (kbd_fetch_ptr != kbd_store_ptr)
     {
-      int have_live_event = 1;
-
-      if (flags & READABLE_EVENTS_FILTER_EVENTS)
+      if (flags & (READABLE_EVENTS_FILTER_EVENTS
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		   | READABLE_EVENTS_IGNORE_SQUEEZABLES
+#endif
+		   ))
         {
           struct input_event *event;
 
@@ -3535,16 +3537,29 @@ readable_events (flags)
                    ? kbd_fetch_ptr
                    : kbd_buffer);
 
-          while (have_live_event && event->kind == FOCUS_IN_EVENT)
-            {
-              event++;
+	  do
+	    {
+	      if (!(
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		    (flags & READABLE_EVENTS_FILTER_EVENTS) &&
+#endif
+		    event->kind == FOCUS_IN_EVENT)
+#ifdef USE_TOOLKIT_SCROLL_BARS
+		  && !((flags & READABLE_EVENTS_IGNORE_SQUEEZABLES)
+		       && event->kind == SCROLL_BAR_CLICK_EVENT
+		       && event->part == scroll_bar_handle
+		       && event->modifiers == 0)
+#endif
+		  )
+		return 1;
+	      event++;
               if (event == kbd_buffer + KBD_BUFFER_SIZE)
                 event = kbd_buffer;
-              if (event == kbd_store_ptr)
-                have_live_event = 0;
-            }
+	    }
+	  while (event != kbd_store_ptr);
         }
-      if (have_live_event) return 1;
+      else
+	return 1;
     }
 
 #ifdef HAVE_MOUSE
@@ -6543,7 +6558,7 @@ lucid_event_type_list_p (object)
    If READABLE_EVENTS_FILTER_EVENTS is set in FLAGS, ignore internal
    events (FOCUS_IN_EVENT).
    If READABLE_EVENTS_IGNORE_SQUEEZABLES is set in FLAGS, ignore mouse
-   movements. */
+   movements and toolkit scroll bar thumb drags. */
 
 static void
 get_input_pending (addr, flags)

@@ -84,6 +84,8 @@
 (defvar gdb-find-file-unhook nil)
 (defvar gdb-active-process nil "GUD tooltips display variable values when t, \
 and #define directives otherwise.")
+(defvar gdb-macro-info nil
+  "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
 
 (defvar gdb-buffer-type nil
   "One of the symbols bound in `gdb-buffer-rules'.")
@@ -242,6 +244,18 @@ predefined macros."
        (substring string 0 (- (length string) 1))))
    gud-tooltip-echo-area))
 
+;; If expr is a macro for a function don't print because of possible dangerous
+;; side-effects. Also printing a function within a tooltip generates an
+;; unexpected starting annotation (phase error).
+(defun gdb-tooltip-print-1 (expr)
+  (with-current-buffer (gdb-get-buffer 'gdb-partial-output-buffer)
+    (goto-char (point-min))
+    (if (search-forward "expands to: " nil t)
+	(unless (looking-at "\\S+.*(.*).*")
+	  (gdb-enqueue-input
+	   (list  (concat gdb-server-prefix "print " expr "\n")
+		  'gdb-tooltip-print))))))
+
 (defun gdb-set-gud-minor-mode (buffer)
   "Set gud-minor-mode from find-file if appropriate."
   (goto-char (point-min))
@@ -336,6 +350,7 @@ predefined macros."
   (setq gdb-flush-pending-output nil)
   (setq gdb-location-alist nil)
   (setq gdb-find-file-unhook nil)
+  (setq gdb-macro-info nil)
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -1293,27 +1308,27 @@ static char *magick[] = {
 			   help-echo "mouse-2, RET: visit breakpoint"))
 			(unless (file-exists-p file)
 			   (setq file (cdr (assoc bptno gdb-location-alist))))
-			(unless (string-equal file "File not found")
-			  (if file
-			      (with-current-buffer (find-file-noselect file)
-				(set (make-local-variable 'gud-minor-mode)
-				     'gdba)
-				(set (make-local-variable 'tool-bar-map)
-				     gud-tool-bar-map)
-				;; only want one breakpoint icon at each
-				;; location
-				(save-excursion
-				  (goto-line (string-to-number line))
-				  (gdb-put-breakpoint-icon (eq flag ?y) bptno)))
-			    (gdb-enqueue-input
-			     (list
-			      (concat "list "
-				      (match-string-no-properties 1) ":1\n")
-				   'ignore))
-			    (gdb-enqueue-input
-			     (list "info source\n"
-				   `(lambda () (gdb-get-location
-						,bptno ,line ,flag)))))))))))
+			(if (and file
+				 (not (string-equal file "File not found")))
+			    (with-current-buffer (find-file-noselect file)
+			      (set (make-local-variable 'gud-minor-mode)
+				   'gdba)
+			      (set (make-local-variable 'tool-bar-map)
+				   gud-tool-bar-map)
+			      ;; only want one breakpoint icon at each
+			      ;; location
+			      (save-excursion
+				(goto-line (string-to-number line))
+				(gdb-put-breakpoint-icon (eq flag ?y) bptno)))
+			  (gdb-enqueue-input
+			   (list
+			    (concat "list "
+				    (match-string-no-properties 1) ":1\n")
+			    'ignore))
+			  (gdb-enqueue-input
+			   (list "info source\n"
+				 `(lambda () (gdb-get-location
+					      ,bptno ,line ,flag))))))))))
 	  (end-of-line)))))
   (if (gdb-get-buffer 'gdb-assembler-buffer) (gdb-assembler-custom)))
 
@@ -2221,6 +2236,9 @@ buffers."
   (if (and (search-forward "Located in " nil t)
 	   (looking-at "\\S-*"))
       (setq gdb-main-file (match-string 0)))
+  (goto-char (point-min))
+  (if (search-forward "Includes preprocessor macro info." nil t)
+      (setq gdb-macro-info t))
  (if gdb-many-windows
       (gdb-setup-windows)
    (gdb-get-create-buffer 'gdb-breakpoints-buffer)
@@ -2234,12 +2252,14 @@ Put in buffer and place breakpoint icon."
   (goto-char (point-min))
   (catch 'file-not-found
     (if (search-forward "Located in " nil t)
-	(if (looking-at "\\S-*")
-	    (push (cons bptno (match-string 0)) gdb-location-alist))
+	(when (looking-at "\\S-*")
+	  (delete (cons bptno "File not found") gdb-location-alist)
+	  (push (cons bptno (match-string 0)) gdb-location-alist))
       (gdb-resync)
-      (push (cons bptno "File not found") gdb-location-alist)
-      (message-box "Cannot find source file for breakpoint location.\n\
-Add directory to search path for source files using the GDB command, dir.")
+      (unless (assoc bptno gdb-location-alist)
+	(push (cons bptno "File not found") gdb-location-alist)
+	(message-box "Cannot find source file for breakpoint location.\n\
+Add directory to search path for source files using the GDB command, dir."))
       (throw 'file-not-found nil))
     (with-current-buffer
 	(find-file-noselect (match-string 0))

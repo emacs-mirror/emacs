@@ -1,3 +1,27 @@
+2005-05-12  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Generic Modes): Update.
+	(Major Modes): Refer to node "Generic Modes".
+
+	* elisp.texi (Top): Update to the current structure of the manual.
+	* processes.texi (Processes): Add menu description.
+	* customize.texi (Customization): Add menu descriptions.
+
+2005-05-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* processes.texi (Signals to Processes)
+	(Low-Level Network): Fix typos.
+
+2005-05-11  Lute Kamstra  <lute@gnu.org>
+
+	* elisp.texi (Top): Add some nodes from the chapter "Major and
+	Minor Modes" to the detailed node listing.
+
+2005-05-10  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Extended Menu Items): Menu item filter functions
+	can be called at any time.
+
 2005-05-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (File Local Variables): `(hack-local-variables t)'

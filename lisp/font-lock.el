@@ -470,12 +470,27 @@ user-level keywords, but normally their values have been
 optimized.")
 
 (defvar font-lock-keywords-alist nil
-  "Alist of `font-lock-keywords' local to a `major-mode'.
+  "Alist of additional `font-lock-keywords' elements for major modes.
+
+Each element has the form (MODE KEYWORDS . APPEND).
+`font-lock-set-defaults' adds the elements in the list KEYWORDS to
+`font-lock-keywords' when Font Lock is turned on in major mode MODE.
+
+If APPEND is nil, KEYWORDS are added at the beginning of
+`font-lock-keywords'.  If it is `set', they are used to replace the
+value of `font-lock-keywords'.  If APPEND is any other non-nil value,
+they are added at the end.
+
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
 (defvar font-lock-removed-keywords-alist nil
-  "Alist of `font-lock-keywords' removed from `major-mode'.
+  "Alist of `font-lock-keywords' elements to be removed for major modes.
+
+Each element has the form (MODE . KEYWORDS).  `font-lock-set-defaults'
+removes the elements in the list KEYWORDS from `font-lock-keywords'
+when Font Lock is turned on in major mode MODE.
+
 This is normally set via `font-lock-add-keywords' and
 `font-lock-remove-keywords'.")
 
@@ -1299,7 +1314,10 @@ START should be at the beginning of a line."
 (defun font-lock-fontify-syntactically-region (start end &optional loudly ppss)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
-  (let (state face beg)
+  (let ((comment-end-regexp
+         (regexp-quote
+          (replace-regexp-in-string "^ *" "" comment-end)))
+        state face beg)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
     ;;
@@ -1314,7 +1332,19 @@ START should be at the beginning of a line."
 	    (setq beg (max (nth 8 state) start))
 	    (setq state (parse-partial-sexp (point) end nil nil state
 					    'syntax-table))
-	    (when face (put-text-property beg (point) 'face face)))
+	    (when face (put-text-property beg (point) 'face face))
+	    (when (and (eq face 'font-lock-comment-face)
+                       comment-start-skip)
+	      ;; Find the comment delimiters
+	      ;; and use font-lock-comment-delimiter-face for them.
+	      (save-excursion
+		(goto-char beg)
+		(if (looking-at comment-start-skip)
+		    (put-text-property beg (match-end 0) 'face
+				       font-lock-comment-delimiter-face)))
+	      (if (looking-back comment-end-regexp (point-at-bol))
+		  (put-text-property (match-beginning 0) (point) 'face
+				     font-lock-comment-delimiter-face))))
 	  (< (point) end))
       (setq state (parse-partial-sexp (point) end nil nil state
 				      'syntax-table)))))
@@ -1405,6 +1435,7 @@ LOUDLY, if non-nil, allows progress-meter bar."
   (let ((case-fold-search font-lock-keywords-case-fold-search)
 	(keywords (cddr font-lock-keywords))
 	(bufname (buffer-name)) (count 0)
+        (pos (make-marker))
 	keyword matcher highlights)
     ;;
     ;; Fontify each item in `font-lock-keywords' from `start' to `end'.
@@ -1439,12 +1470,14 @@ LOUDLY, if non-nil, allows progress-meter bar."
 	(while highlights
 	  (if (numberp (car (car highlights)))
 	      (font-lock-apply-highlight (car highlights))
-	    (let ((pos (point)))
-	      (font-lock-fontify-anchored-keywords (car highlights) end)
-	      ;; Ensure forward progress.
-	      (if (< (point) pos) (goto-char pos))))
+	    (set-marker pos (point))
+            (font-lock-fontify-anchored-keywords (car highlights) end)
+            ;; Ensure forward progress.  `pos' is a marker because anchored
+            ;; keyword may add/delete text (this happens e.g. in grep.el).
+            (if (< (point) pos) (goto-char pos)))
 	  (setq highlights (cdr highlights))))
-      (setq keywords (cdr keywords)))))
+      (setq keywords (cdr keywords)))
+    (set-marker pos nil)))
 
 ;;; End of Keyword regexp fontification functions.
 
@@ -1622,27 +1655,6 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 ;; But now we do it the custom way.  Note that `defface' will not overwrite any
 ;; faces declared above via `custom-declare-face'.
-(defface font-lock-comment-delimiter-face
-  '((((class grayscale) (background light))
-     (:foreground "DimGray" :weight bold :slant italic))
-    (((class grayscale) (background dark))
-     (:foreground "LightGray" :weight bold :slant italic))
-    (((class color) (min-colors 88) (background light))
-     (:foreground "Firebrick"))
-    (((class color) (min-colors 88) (background dark))
-     (:foreground "chocolate1"))
-    (((class color) (min-colors 16) (background light))
-     (:foreground "red"))
-    (((class color) (min-colors 16) (background dark))
-     (:foreground "red1"))
-    (((class color) (min-colors 8) (background light))
-     (:foreground "red"))
-    (((class color) (min-colors 8) (background dark))
-     (:foreground "red1"))
-    (t (:weight bold :slant italic)))
-  "Font Lock mode face used to highlight comment delimiters."
-  :group 'font-lock-highlighting-faces)
-
 (defface font-lock-comment-face
   '((((class grayscale) (background light))
      (:foreground "DimGray" :weight bold :slant italic))
@@ -1662,6 +1674,17 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
      )
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight comments."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-comment-delimiter-face
+  '((default :inherit font-lock-comment-face)
+    (((class grayscale)))
+    (((class color) (min-colors 16)))
+    (((class color) (min-colors 8) (background light))
+     :foreground "red")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "red1"))
+  "Font Lock mode face used to highlight comment delimiters."
   :group 'font-lock-highlighting-faces)
 
 (defface font-lock-string-face
@@ -1765,13 +1788,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight warnings."
   :group 'font-lock-highlighting-faces)
 
-;; Matches font-lock-builtin-face, because that is used for #ifndef and
-;; font-lock-keyword-face, which alas make-mode uses for ifndef
 (defface font-lock-negation-char-face
-  '((((class color) (min-colors 88) (background light)) (:foreground "VioletRed" :weight bold))
-    (((class color) (min-colors 88) (background dark)) (:foreground "MediumOrchid1" :weight bold))
-    (((class color) (min-colors 8)) (:foreground "red" :weight bold))
-    (t (:inverse-video t :weight bold)))
+  '((t nil))
   "Font Lock mode face used to highlight easy to overlook negation."
   :group 'font-lock-highlighting-faces)
 
@@ -1823,7 +1841,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;  (put 'font-lock-fontify-more 'menu-enable '(identity))
 ;  (put 'font-lock-fontify-less 'menu-enable '(identity)))
 ;
-;;; Put the appropriate symbol property values on now.  See above.
+; ;; Put the appropriate symbol property values on now.  See above.
 ;(put 'global-font-lock-mode 'menu-selected 'global-font-lock-mode)
 ;(put 'font-lock-mode 'menu-selected 'font-lock-mode)
 ;(put 'font-lock-fontify-more 'menu-enable '(nth 2 font-lock-fontify-level))
@@ -1857,7 +1875,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;      (font-lock-fontify-level (1+ (car font-lock-fontify-level)))
 ;    (error "No more decoration")))
 ;
-;;; This should be called by `font-lock-set-defaults'.
+; ;; This should be called by `font-lock-set-defaults'.
 ;(defun font-lock-set-menu ()
 ;  ;; Activate less/more fontification entries if there are multiple levels for
 ;  ;; the current buffer.  Sets `font-lock-fontify-level' to be of the form
@@ -1878,7 +1896,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;      (setq font-lock-fontify-level (list level (> level 1)
 ;					  (< level (1- (length keywords))))))))
 ;
-;;; This should be called by `font-lock-unset-defaults'.
+; ;; This should be called by `font-lock-unset-defaults'.
 ;(defun font-lock-unset-menu ()
 ;  ;; Deactivate less/more fontification entries.
 ;  (setq font-lock-fontify-level nil))
@@ -1886,7 +1904,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 ;;; End of Menu support.
 
 ;;; Various regexp information shared by several modes.
-;;; Information specific to a single mode should go in its load library.
+; ;; Information specific to a single mode should go in its load library.
 
 ;; Font Lock support for C, C++, Objective-C and Java modes is now in
 ;; cc-fonts.el (and required by cc-mode.el).  However, the below function
@@ -2038,9 +2056,9 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
       ;; ELisp and CLisp `&' keywords as types.
       '("\\&\\sw+\\>" . font-lock-type-face)
       ;;
-;;; This is too general -- rms.
-;;; A user complained that he has functions whose names start with `do'
-;;; and that they get the wrong color.
+;;;  This is too general -- rms.
+;;;  A user complained that he has functions whose names start with `do'
+;;;  and that they get the wrong color.
 ;;;      ;; CL `with-' and `do-' constructs
 ;;;      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))

@@ -105,6 +105,8 @@ Boston, MA 02111-1307, USA.  */
 #include <objc/malloc.h>
 #endif
 
+#include <assert.h>
+
 
 #define VERBOSE 1
 
@@ -998,6 +1000,23 @@ unexec_init_emacs_zone ()
   malloc_set_zone_name (emacs_zone, "EmacsZone");
 }
 
+#ifndef MACOSX_MALLOC_MULT16
+#define MACOSX_MALLOC_MULT16 1
+#endif
+
+typedef struct unexec_malloc_header {
+  union {
+    char c[8];
+    size_t size;
+  } u;
+} unexec_malloc_header_t;
+
+#if MACOSX_MALLOC_MULT16
+
+#define ptr_in_unexec_regions(p) ((((vm_address_t) (p)) & 8) != 0)
+
+#else
+
 int
 ptr_in_unexec_regions (void *ptr)
 {
@@ -1011,36 +1030,75 @@ ptr_in_unexec_regions (void *ptr)
   return 0;
 }
 
+#endif
+
 void *
 unexec_malloc (size_t size)
 {
   if (in_dumped_exec)
-    return malloc (size);
+    {
+      void *p;
+
+      p = malloc (size);
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) p % 16) == 0);
+#endif
+      return p;
+    }
   else
-    return malloc_zone_malloc (emacs_zone, size);
+    {
+      unexec_malloc_header_t *ptr;
+
+      ptr = (unexec_malloc_header_t *)
+	malloc_zone_malloc (emacs_zone, size + sizeof (unexec_malloc_header_t));
+      ptr->u.size = size;
+      ptr++;
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) ptr % 16) == 8);
+#endif
+      return (void *) ptr;
+    }
 }
 
 void *
 unexec_realloc (void *old_ptr, size_t new_size)
 {
   if (in_dumped_exec)
-    if (ptr_in_unexec_regions (old_ptr))
-      {
-	char *p = malloc (new_size);
-	/* 2002-04-15 T. Ikegami <ikegami@adam.uprr.pr>.  The original
-	   code to get size failed to reallocate read_buffer
-	   (lread.c).  */
-	int old_size = malloc_default_zone()->size (emacs_zone, old_ptr);
-	int size = new_size > old_size ? old_size : new_size;
+    {
+      void *p;
 
-	if (size)
-	  memcpy (p, old_ptr, size);
-	return p;
-      }
-    else
-      return realloc (old_ptr, new_size);
+      if (ptr_in_unexec_regions (old_ptr))
+	{
+	  p = (size_t *) malloc (new_size);
+	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
+	  size_t size = new_size > old_size ? old_size : new_size;
+
+	  if (size)
+	    memcpy (p, old_ptr, size);
+	}
+      else
+	{
+	  p = realloc (old_ptr, new_size);
+	}
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) p % 16) == 0);
+#endif
+      return p;
+    }
   else
-    return malloc_zone_realloc (emacs_zone, old_ptr, new_size);
+    {
+      unexec_malloc_header_t *ptr;
+
+      ptr = (unexec_malloc_header_t *)
+	malloc_zone_realloc (emacs_zone, (unexec_malloc_header_t *) old_ptr - 1,
+			     new_size + sizeof (unexec_malloc_header_t));
+      ptr->u.size = new_size;
+      ptr++;
+#if MACOSX_MALLOC_MULT16
+      assert (((vm_address_t) ptr % 16) == 8);
+#endif
+      return (void *) ptr;
+    }
 }
 
 void
@@ -1052,7 +1110,7 @@ unexec_free (void *ptr)
 	free (ptr);
     }
   else
-    malloc_zone_free (emacs_zone, ptr);
+    malloc_zone_free (emacs_zone, (unexec_malloc_header_t *) ptr - 1);
 }
 
 /* arch-tag: 1a784f7b-a184-4c4f-9544-da8619593d72

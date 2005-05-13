@@ -780,7 +780,7 @@ without digits normally means @minus{}1.
 sign has the special meaning of ``multiply by four.''  It multiplies the
 argument for the next command by four.  @kbd{C-u} twice multiplies it by
 sixteen.  Thus, @kbd{C-u C-u C-f} moves forward sixteen characters.  This
-is a good way to move forward ``fast'', since it moves about 1/5 of a line
+is a good way to move forward ``fast,'' since it moves about 1/5 of a line
 in the usual size screen.  Other useful combinations are @kbd{C-u C-n},
 @kbd{C-u C-u C-n} (move down a good fraction of a screen), @kbd{C-u C-u
 C-o} (make ``a lot'' of blank lines), and @kbd{C-u C-k} (kill four

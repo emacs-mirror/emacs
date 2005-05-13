@@ -3207,6 +3207,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
   "Toggle the display of GUD tooltips."
   :global t
   :group 'gud
+  (require 'tooltip)
   (if gud-tooltip-mode
       (progn
 	(add-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
@@ -3253,7 +3254,7 @@ If GUD-TOOLTIP-DEREFERENCE is t, also prepend a `*' to EXPR."
     (setq expr (concat "*" expr)))
   (case gud-minor-mode
     ((gdb gdba) (concat "server print " expr))
-    (dbx (concat "print " expr))
+    ((dbx gdbmi) (concat "print " expr))
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
     (perldb expr)))
@@ -3293,9 +3294,14 @@ This function must return nil if it doesn't handle EVENT."
 		      expr))))
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
-		(if (eq gud-minor-mode 'gdba)
-		    (gdb-enqueue-input
-		     (list  (concat cmd "\n") 'gdb-tooltip-print))
+		(if (memq gud-minor-mode '(gdba gdbmi))
+		      (if gdb-macro-info
+			  (gdb-enqueue-input
+			   (list (concat
+				  gdb-server-prefix "macro expand " expr "\n")
+				 `(lambda () (gdb-tooltip-print-1 ,expr))))
+			(gdb-enqueue-input
+			 (list  (concat cmd "\n") 'gdb-tooltip-print)))
 		  (setq gud-tooltip-original-filter (process-filter process))
 		  (set-process-filter process 'gud-tooltip-process-output)
 		  (gud-basic-call cmd))

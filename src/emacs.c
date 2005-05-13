@@ -1326,6 +1326,7 @@ main (argc, argv
       syms_of_search ();
       syms_of_frame ();
 
+      init_atimer ();
       mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
@@ -1351,7 +1352,9 @@ main (argc, argv
 #ifdef CLASH_DETECTION
   init_filelock ();
 #endif
+#ifndef MAC_OS8
   init_atimer ();
+#endif
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,

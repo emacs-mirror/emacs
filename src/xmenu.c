@@ -33,8 +33,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#if 0  /* Why was this included?  And without syssignal.h?  */
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
+#endif
 
 #include <stdio.h>
 

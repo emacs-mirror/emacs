@@ -93,9 +93,12 @@ you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
-lisp/international	working		Kenichi Handa
+lisp/emulation		working		Thien-Thi Nguyen
+lisp/international	done		Kenichi Handa
 lisp/languages		working		Kenichi Handa
-
+lisp/net		working		Thien-Thi Nguyen
+lisp/play		done		Thien-Thi Nguyen
+lisp/term		done		Thien-Thi Nguyen
 
 ** Update AUTHORS.
 
@@ -175,7 +178,7 @@ lispref/customize.texi   Chong Yidong
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
 lispref/edebug.texi      Chong Yidong
-lispref/elisp.texi       "Luc Teirlinck"
+lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong
 lispref/files.texi       "Luc Teirlinck"   Chong Yidong
@@ -200,7 +203,7 @@ lispref/numbers.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/objects.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/os.texi		 "Luc Teirlinck"   Chong Yidong
 lispref/positions.texi	 "Luc Teirlinck"   Chong Yidong
-lispref/processes.texi   Chong Yidong
+lispref/processes.texi   Chong Yidong	   Thien-Thi Nguyen
 lispref/searching.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/sequences.texi	 "Luc Teirlinck"   Chong Yidong
 lispref/streams.texi	 "Luc Teirlinck"   Chong Yidong
@@ -214,10 +217,10 @@ lispref/windows.texi     "Luc Teirlinck"   Chong Yidong
 
 ** Check the Emacs Tutorial.
 
-The first line of every tutorial must begin with a sentence saying
-"Emacs Tutorial" in the respective language.  This should be followed
-by "See end for copying conditions", likewise in the respective
-language.
+The first line of every tutorial must begin with text ending in a period
+(".", ASCII 0x2E) saying "Emacs Tutorial" in the respective language.
+This should be followed by "See end for copying conditions", likewise
+in the respective language.
 
 After each file name, on the same line or the following line, come the
 names of the people who have checked it.

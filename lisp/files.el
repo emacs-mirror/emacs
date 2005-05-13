@@ -541,9 +541,6 @@ DIR should be an absolute directory name.  It defaults to
 the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
-  (unless default-dirname
-    (setq default-dirname
-	  (if initial (concat dir initial) default-directory)))
   (read-file-name prompt dir (or default-dirname 
 				 (if initial (expand-file-name initial dir)
 				   dir))
@@ -678,6 +675,13 @@ PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
        ((eq action t) (all-completions string names))
        ((null action) (try-completion string names))
        (t (test-completion string names))))))
+
+(defun executable-find (command)
+  "Search for COMMAND in `exec-path' and return the absolute file name.
+Return nil if COMMAND is not found anywhere in `exec-path'."
+  ;; Use 1 rather than file-executable-p to better match the behavior of
+  ;; call-process.
+  (locate-file command exec-path exec-suffixes 1))
 
 (defun load-library (library)
   "Load the library named LIBRARY.
@@ -1724,10 +1728,10 @@ or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (or find-file (funcall (or default-major-mode 'fundamental-mode)))
-  (report-errors "File mode specification error: %s"
-    (set-auto-mode))
-  (report-errors "File local-variables error: %s"
-    (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+  (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    (report-errors "File mode specification error: %s"
+      (set-auto-mode))
+    (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
@@ -1758,9 +1762,11 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("\\.mk\\'" . makefile-mode)
-     ("\\([Mm]\\|GNUm\\)akep*file\\'" . makefile-mode)
-     ("\\.am\\'" . makefile-mode)	;For Automake.
+     ("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+     ("[Mm]akefile\\'" . makefile-mode)
+     ("GNUmakefile\\'" . makefile-gmake-mode)
+     ("Makeppfile\\'" . makefile-makepp-mode)
+     ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
      ;; so more common ones above are found faster.
      ("\\.texinfo\\'" . texinfo-mode)
@@ -1932,7 +1938,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("more" . text-mode)
      ("less" . text-mode)
      ("pg" . text-mode)
-     ("make" . makefile-mode)		; Debian uses this
+     ("make" . makefile-gmake-mode)		; Debian uses this
      ("guile" . scheme-mode)
      ("clisp" . lisp-mode)))
   "Alist mapping interpreter names to major modes.
@@ -1988,7 +1994,7 @@ if REGEXP matches the text at the beginning of the buffer,
 to decide the buffer's major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.")
+\"allow `auto-mode-alist' to decide for these files.)")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2147,6 +2153,26 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
+(defun hack-local-variables-confirm ()
+  (or (eq enable-local-variables t)
+      (and enable-local-variables
+	   (save-window-excursion
+	     (condition-case nil
+		 (switch-to-buffer (current-buffer))
+	       (error
+		;; If we fail to switch in the selected window,
+		;; it is probably a minibuffer or dedicated window.
+		;; So try another window.
+		(let ((pop-up-frames nil))
+		  ;; Refrain from popping up frames since it can't
+		  ;; be undone by save-window-excursion.
+		  (pop-to-buffer (current-buffer)))))
+	     (save-excursion
+	       (beginning-of-line)
+	       (set-window-start (selected-window) (point)))
+	     (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
+			       (file-name-nondirectory buffer-file-name)))))))
+
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
 Ignore any specification for `mode:' and `coding:';
@@ -2201,21 +2227,7 @@ is specified, returning t if it is specified."
       (if mode-only mode-specified
 	(if (and result
 		 (or mode-only
-		     (eq enable-local-variables t)
-		     (and enable-local-variables
-			  (save-window-excursion
-			    (condition-case nil
-				(switch-to-buffer (current-buffer))
-			      (error
-			       ;; If we fail to switch in the selected window,
-			       ;; it is probably a minibuffer.
-			       ;; So try another window.
-			       (condition-case nil
-				   (switch-to-buffer-other-window (current-buffer))
-				 (error
-				  (switch-to-buffer-other-frame (current-buffer))))))
-			    (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-					      (file-name-nondirectory buffer-file-name)))))))
+		     (hack-local-variables-confirm)))
 	    (let ((enable-local-eval enable-local-eval))
 	      (while result
 		(hack-one-local-variable (car (car result)) (cdr (car result)))
@@ -2244,20 +2256,8 @@ is specified, returning t if it is specified."
       (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
       (when (let ((case-fold-search t))
 	      (and (search-forward "Local Variables:" nil t)
-		   (or (eq enable-local-variables t)
-		       mode-only
-		       (and enable-local-variables
-			    (save-window-excursion
-			      (switch-to-buffer (current-buffer))
-			      (save-excursion
-				(beginning-of-line)
-				(set-window-start (selected-window) (point)))
-			      (y-or-n-p (format "Set local variables as specified at end of %s? "
-						(if buffer-file-name
-						    (file-name-nondirectory
-						     buffer-file-name)
-						  (concat "buffer "
-							  (buffer-name))))))))))
+		   (or mode-only
+		       (hack-local-variables-confirm))))
 	(skip-chars-forward " \t")
 	(let ((enable-local-eval enable-local-eval)
 	      ;; suffix is what comes after "local variables:" in its line.
@@ -2478,18 +2478,7 @@ is considered risky."
 		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
-		      (or (eq enable-local-eval t)
-			  (and enable-local-eval
-			       (save-window-excursion
-				 (switch-to-buffer (current-buffer))
-				 (save-excursion
-				   (beginning-of-line)
-				   (set-window-start (selected-window) (point)))
-				 (setq enable-local-eval
-				       (y-or-n-p (format "Process `eval' or hook local variables in %s? "
-							 (if buffer-file-name
-							     (concat "file " (file-name-nondirectory buffer-file-name))
-							   (concat "buffer " (buffer-name)))))))))))
+		      (hack-local-variables-confirm)))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
@@ -4875,5 +4864,5 @@ With prefix arg, silently save all file-visiting buffers, then kill."
 (define-key ctl-x-5-map "\C-f" 'find-file-other-frame)
 (define-key ctl-x-5-map "r" 'find-file-read-only-other-frame)
 
-;;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
+;; arch-tag: bc68d3ea-19ca-468b-aac6-3a4a7766101f
 ;;; files.el ends here

@@ -1,6 +1,6 @@
 ;;; mac-win.el --- parse switches controlling interface with Mac window system -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 1999, 2000, 2002, 2003, 2004, 2005
+;; Copyright (C) 1999, 2000, 2002, 2003, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Andrew Choi <akochoi@mac.com>
@@ -1328,6 +1328,13 @@ in `selection-converter-alist', which see."
 			 coding 'utf-16)))
 	      (setq str (or s (encode-coding-string str 'utf-16-mac)))))
 	   ((eq type 'com.apple.traditional-mac-plain-text)
+	    (let ((encodables (find-coding-systems-string str))
+		  (rest mac-script-code-coding-systems))
+	      (unless (memq coding encodables)
+		(while (and rest (not (memq (cdar rest) encodables)))
+		  (setq rest (cdr rest)))
+		(if rest
+		    (setq coding (cdar rest)))))
 	    (setq coding (coding-system-change-eol-conversion coding 'mac))
 	    (setq str (encode-coding-string str coding)))
 	   (t

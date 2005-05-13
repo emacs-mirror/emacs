@@ -3271,11 +3271,9 @@ x_clear_frame ()
   BLOCK_INPUT;
   XClearWindow (FRAME_MAC_DISPLAY (f), FRAME_MAC_WINDOW (f));
 
-#if 0  /* Clearing frame on Mac OS clears scroll bars.  */
   /* We have to clear the scroll bars, too.  If we have changed
      colors or something like that, then they should be notified.  */
   x_scroll_bar_clear (f);
-#endif
 
   XFlush (FRAME_MAC_DISPLAY (f));
   UNBLOCK_INPUT;
@@ -4135,12 +4133,12 @@ XTmouse_position (fp, insist, bar_window, part, x, y, time)
 static pascal void scroll_bar_timer_callback P_ ((EventLoopTimerRef, void *));
 static OSStatus install_scroll_bar_timer P_ ((void));
 static OSStatus set_scroll_bar_timer P_ ((EventTimerInterval));
-static int control_part_code_to_scroll_bar_part P_((ControlPartCode));
+static int control_part_code_to_scroll_bar_part P_ ((ControlPartCode));
 static void construct_scroll_bar_click P_ ((struct scroll_bar *, int,
 					    unsigned long,
 					    struct input_event *));
-static OSErr get_control_part_bound P_((ControlHandle, ControlPartCode,
-					Rect *));
+static OSErr get_control_part_bounds P_ ((ControlHandle, ControlPartCode,
+					  Rect *));
 static void x_scroll_bar_handle_press P_ ((struct scroll_bar *,
 					   ControlPartCode,
 					   unsigned long,
@@ -4267,7 +4265,7 @@ construct_scroll_bar_click (bar, part, timestamp, bufp)
 }
 
 static OSErr
-get_control_part_bound (ch, part_code, rect)
+get_control_part_bounds (ch, part_code, rect)
      ControlHandle ch;
      ControlPartCode part_code;
      Rect *rect;
@@ -4340,8 +4338,8 @@ x_scroll_bar_handle_drag (win, bar, mouse_pos, timestamp, bufp)
       int top, top_range;
       Rect r;
 
-      get_control_part_bound (SCROLL_BAR_CONTROL_HANDLE (bar),
-			      kControlIndicatorPart, &r);
+      get_control_part_bounds (SCROLL_BAR_CONTROL_HANDLE (bar),
+			       kControlIndicatorPart, &r);
 
       if (GC_NILP (bar->dragging))
 	XSETINT (bar->dragging, mouse_pos.v - r.top);
@@ -4669,13 +4667,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
       BLOCK_INPUT;
 
       /* If already correctly positioned, do nothing.  */
-      if (XINT (bar->left) == sb_left
-          && XINT (bar->top) == top
-          && XINT (bar->width) == sb_width
-          && XINT (bar->height) == height)
-        Draw1Control (ch);
-      else
-        {
+      if (!(XINT (bar->left) == sb_left
+	    && XINT (bar->top) == top
+	    && XINT (bar->width) == sb_width
+	    && XINT (bar->height) == height))
+	{
 	  /* Clear areas not covered by the scroll bar because it's not as
 	     wide as the area reserved for it .  This makes sure a
 	     previous mode line display is cleared after C-x 2 C-x 1, for
@@ -4724,11 +4720,11 @@ XTset_vertical_scroll_bar (w, portion, whole, position)
 
       /* Move the scroll bar thumb to the top.  */
       SetControl32BitValue (ch, 0);
-      get_control_part_bound (ch, kControlIndicatorPart, &r0);
+      get_control_part_bounds (ch, kControlIndicatorPart, &r0);
 
       /* Move the scroll bar thumb to the bottom.  */
       SetControl32BitValue (ch, 1);
-      get_control_part_bound (ch, kControlIndicatorPart, &r1);
+      get_control_part_bounds (ch, kControlIndicatorPart, &r1);
 
       UnionRect (&r0, &r1, &r0);
       XSETINT (bar->track_top, r0.top);
@@ -4876,7 +4872,7 @@ XTjudge_scroll_bars (f)
 static void
 x_scroll_bar_handle_click (bar, part_code, er, bufp)
      struct scroll_bar *bar;
-     int part_code;
+     ControlPartCode part_code;
      EventRecord *er;
      struct input_event *bufp;
 {
@@ -5034,6 +5030,21 @@ x_scroll_bar_report_motion (fp, bar_window, part, x, y, time)
 
   *time = last_mouse_movement_time;
 }
+
+
+/* The screen has been cleared so we may have changed foreground or
+   background colors, and the scroll bars may need to be redrawn.
+   Clear out the scroll bars, and ask for expose events, so we can
+   redraw them.  */
+
+void
+x_scroll_bar_clear (f)
+     FRAME_PTR f;
+{
+  XTcondemn_scroll_bars (f);
+  XTjudge_scroll_bars (f);
+}
+
 
 /***********************************************************************
 			     Text Cursor
@@ -7498,7 +7509,6 @@ OSErr install_window_handler (WindowPtr);
 
 extern void init_emacs_passwd_dir ();
 extern int emacs_main (int, char **, char **);
-extern void check_alarm ();
 
 extern void initialize_applescript();
 extern void terminate_applescript();
@@ -8650,23 +8660,18 @@ profiler_exit_proc ()
 #endif
 
 /* These few functions implement Emacs as a normal Mac application
-   (almost): set up the heap and the Toolbox, handle necessary
-   system events plus a few simple menu events.  They also set up
-   Emacs's access to functions defined in the rest of this file.
-   Emacs uses function hooks to perform all its terminal I/O.  A
-   complete list of these functions appear in termhooks.h.  For what
-   they do, read the comments there and see also w32term.c and
-   xterm.c.  What's noticeably missing here is the event loop, which
-   is normally present in most Mac application.  After performing the
-   necessary Mac initializations, main passes off control to
-   emacs_main (corresponding to main in emacs.c).  Emacs_main calls
-   mac_read_socket (defined further below) to read input.  This is
-   where WaitNextEvent is called to process Mac events.  This is also
-   where check_alarm in sysdep.c is called to simulate alarm signals.
-   This makes the cursor jump back to its correct position after
-   briefly jumping to that of the matching parenthesis, print useful
-   hints and prompts in the minibuffer after the user stops typing for
-   a wait, etc.  */
+   (almost): set up the heap and the Toolbox, handle necessary system
+   events plus a few simple menu events.  They also set up Emacs's
+   access to functions defined in the rest of this file.  Emacs uses
+   function hooks to perform all its terminal I/O.  A complete list of
+   these functions appear in termhooks.h.  For what they do, read the
+   comments there and see also w32term.c and xterm.c.  What's
+   noticeably missing here is the event loop, which is normally
+   present in most Mac application.  After performing the necessary
+   Mac initializations, main passes off control to emacs_main
+   (corresponding to main in emacs.c).  Emacs_main calls XTread_socket
+   (defined further below) to read input.  This is where
+   WaitNextEvent/ReceiveNextEvent is called to process Mac events.  */
 
 #ifdef MAC_OS8
 #undef main
@@ -8929,7 +8934,7 @@ XTread_socket (sd, expected, hold_quit)
 	case mouseUp:
 	  {
 	    WindowPtr window_ptr;
-	    SInt16 part_code;
+	    ControlPartCode part_code;
 	    int tool_bar_p = 0;
 
 #if USE_CARBON_EVENTS
@@ -8973,7 +8978,7 @@ XTread_socket (sd, expected, hold_quit)
 		  SelectWindow (window_ptr);
 		else
 		  {
-		    SInt16 control_part_code;
+		    ControlPartCode control_part_code;
 		    ControlHandle ch;
 		    Point mouse_loc = er.where;
 #ifdef MAC_OSX
@@ -9547,10 +9552,6 @@ XTread_socket (sd, expected, hold_quit)
       x_raise_frame (pending_autoraise_frame);
       pending_autoraise_frame = 0;
     }
-
-#if !TARGET_API_MAC_CARBON
-  check_alarm ();  /* simulate the handling of a SIGALRM */
-#endif
 
   UNBLOCK_INPUT;
   return count;

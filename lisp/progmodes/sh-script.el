@@ -414,6 +414,10 @@ This is buffer-local in every such buffer.")
 	?\" "\"\""
 	?\' "\"'"
 	?\` "\"`"
+	;; ?$ might also have a ". p" syntax. Both "'" and ". p" seem
+	;; to work fine. This is needed so that dabbrev-expand
+	;; $VARNAME works.
+	?$ "'"
 	?! "_"
 	?% "_"
 	?: "_"
@@ -1126,7 +1130,7 @@ does not affect then else elif or fi statements themselves."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
-(defcustom sh-indent-for-do '*
+(defcustom sh-indent-for-do 0
   "*How much to indent a do statement.
 This is relative to the statement before the do, i.e. the
 while until or for statement."

@@ -1,6 +1,47 @@
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* makefile.MPW (buildobj.lst): New target.
+	(Clean): Delete file buildobj.lst.
+	(Emacs, {DocTarget}DOC): Depend on buildobj.lst.
+	(EmacsSource, MacSource, LispSource, LispSourceDontCompile):
+	Remove variables.
+	(SOME_MACHINE_OBJECTS, shortlisp, SOME_MACHINE_LISP): New
+	variables.
+	({DocTarget}DOC): Use them.
+	(Make-DocFile-PPCCOptions): Add `-d MAC_OS -d MAC_OS8'.
+
+	* inc/config.h: Sync with src/config.in.
+	(DO_BLOCK_INPUT, HAVE_DIFFTIME, HAVE_LOCALE_H, HAVE_MEMCMP)
+	(HAVE_MEMCPY, HAVE_MEMMOVE, HAVE_MEMSET, HAVE_SETITIMER)
+	(HAVE_SIZE_T, HAVE_SYS_IOCTL_H, HAVE_SYS_PARAM_H, HAVE_SYS_STAT_H)
+	(HAVE_SYS_TYPES_H, TIME_WITH_SYS_TIME, SYNC_INPUT): Define them.
+	[__MRC__] (HAVE_ALLOCA_H): Likewise.
+	(config_machfile, config_opsysfile, my_strftime): New macros.
+	(HAVE_PWD_H): Move from s-mac.h.
+	(HAVE_ALLOCA, C_ALLOCA): Move from m-mac.h.
+	(PTR): Move to s-mac.h.
+
+	* inc/m-mac.h: (HAVE_ALLOCA, C_ALLOCA): Move to config.h.
+
+	* inc/s-mac.h: Sync with src/s/template.h.  Don't include fcntl.h,
+	time.h, or signal.h.
+	(index, rindex): New macros.
+	[__MRC__] (sigmask, __signal_max, NSIG): Adjust signal numbers for
+	compatibility with predefined ones.
+	(PTR): Move from s-mac.h.
+	(HAVE_PWD_H): Move to config.h.
+	(volatile): Remove macro.
+	[__MRC__] (strftime): Likewise.
+	(read_input_waiting, sys_gmtime, sys_localtime, sys_ctime)
+	(sys_time, sys_signal, atof): Remove declarations.
+
+	* inc/sys/time.h (ITIMER_REAL): New macro.
+	(struct itimerval): New struct.
+	(setitimer): New extern.
+
 2005-05-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* inc/config.h [HAVE_CARBON]: Define USE_TOOLKIT_SCROLL_BARS.
+	* inc/config.h [HAVE_CARBON] (USE_TOOLKIT_SCROLL_BARS): Define.
 
 2005-04-24  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -10,7 +51,7 @@
 
 	* Emacs.app/Contents/Info.plist: Add NSServices key and data.
 
-	* inc/s-mac.h: Define HAVE_PWD_H.
+	* inc/s-mac.h (HAVE_PWD_H): Define.
 
 2005-04-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 

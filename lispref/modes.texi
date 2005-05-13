@@ -71,10 +71,9 @@ it is convenient to use @code{define-derived-mode} with a @code{nil}
 parent argument, since it automatically enforces the most important
 coding conventions for you.
 
-@findex define-generic-mode
   For a very simple programming language major mode that handles
-comments and fontification, you can use @code{define-generic-mode}
-in @file{generic.el}.
+comments and fontification, you can use @code{define-generic-mode}.
+@xref{Generic Modes}.
 
   Rmail Edit mode offers an example of changing the major mode
 temporarily for a buffer, so it can be edited in a different way (with
@@ -873,7 +872,7 @@ configuration files.  To define a generic mode, use the macro
 @code{define-generic-mode}.  See the file @file{generic-x.el} for some
 examples of the use of @code{define-generic-mode}.
 
-@defmac define-generic-mode mode comment-list keyword-list font-lock-list auto-mode-list function-list &optional docstring &rest custom-keyword-args
+@defmac define-generic-mode mode comment-list keyword-list font-lock-list auto-mode-list function-list &optional docstring
 This macro creates a new generic mode.  The argument @var{mode} (an
 unquoted symbol) is the major mode command.  The optional argument
 @var{docstring} is the documentation for the mode command.  If you do
@@ -902,16 +901,7 @@ when Emacs runs the macro expansion.
 
 @var{function-list} is a list of functions to call to do some
 additional setup.  The mode command calls these functions just before
-it runs the mode hook.
-
-The optional @var{custom-keyword-args} are pairs of keywords and
-values to include in the generated @code{defcustom} form for the mode
-hook variable @code{@var{mode}-hook}.  The default value for the
-@samp{:group} keyword is @var{mode} with the final @samp{-mode} (if
-any) removed.  Don't use this default group name unless you have
-written a @code{defgroup} to define that group properly (@pxref{Group
-Definitions}).  You can specify keyword arguments without specifying a
-docstring.
+it runs the mode hook variable @code{@var{mode}-hook}.
 @end defmac
 
 @node Mode Hooks

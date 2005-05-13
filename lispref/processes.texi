@@ -1,6 +1,6 @@
 @c -*-texinfo-*-
 @c This is part of the GNU Emacs Lisp Reference Manual.
-@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999
+@c Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1998, 1999, 2005
 @c   Free Software Foundation, Inc.
 @c See the file elisp.texi for copying conditions.
 @setfilename ../info/processes
@@ -49,7 +49,7 @@ This function returns @code{t} if @var{object} is a process,
 * Transaction Queues::	     Transaction-based communication with subprocesses.
 * Network::                  Opening network connections.
 * Network Servers::          Network servers let Emacs accept net connections.
-* Datagrams::
+* Datagrams::                UDP network connections.
 * Low-Level Network::        Lower-level but more general function
                                to create connections and servers.
 @end menu
@@ -870,7 +870,7 @@ processes.  (@code{SIGHUP} is a signal that usually indicates that the
 user hung up the phone.)
 
   Each of the signal-sending functions takes two optional arguments:
-@var{process-name} and @var{current-group}.
+@var{process} and @var{current-group}.
 
   The argument @var{process} must be either a process, a process
 name, a buffer, a buffer name, or @code{nil}.  A buffer or buffer name
@@ -1767,7 +1767,7 @@ equivalent to specifying it with value @code{nil}, except for
 are the meaningful keywords:
 
 @table @asis
-@item :name name
+@item :name @var{name}
 Use the string @var{name} as the process name.  It is modified if
 necessary to make it unique.
 

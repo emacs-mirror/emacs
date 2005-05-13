@@ -673,7 +673,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 		      (c-font-lock-objc-iip-decl)))
 		  nil))))))
 
-      ("!" . font-lock-negation-char-face)
+      ("\\(!\\)[^=]" 1 font-lock-negation-char-face)
       ))
 
 (defun c-font-lock-complex-decl-prepare (limit)

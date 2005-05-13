@@ -663,7 +663,7 @@ waiting for input."
   (eshell-match-result "alpha\n"))
 
 (defun eshell-send-input (&optional use-region queue-p no-newline)
-  "Send the input received to Eshell for parsing and processing..
+  "Send the input received to Eshell for parsing and processing.
 After `eshell-last-output-end', sends all text from that marker to
 point as input.  Before that marker, calls `eshell-get-old-input' to
 retrieve old input, copies it to the end of the buffer, and sends it.

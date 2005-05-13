@@ -1,6 +1,9 @@
 ;;; utf-16.el --- UTF-16 encoding/decoding
 
-;; Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: Unicode, UTF-16, i18n
