@@ -1762,9 +1762,11 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("\\.mk\\'" . makefile-mode)
-     ("\\([Mm]\\|GNUm\\)akep*file\\'" . makefile-mode)
-     ("\\.am\\'" . makefile-mode)	;For Automake.
+     ("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+     ("[Mm]akefile\\'" . makefile-mode)
+     ("GNUmakefile\\'" . makefile-gmake-mode)
+     ("Makeppfile\\'" . makefile-makepp-mode)
+     ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
      ;; so more common ones above are found faster.
      ("\\.texinfo\\'" . texinfo-mode)
@@ -1936,7 +1938,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("more" . text-mode)
      ("less" . text-mode)
      ("pg" . text-mode)
-     ("make" . makefile-mode)		; Debian uses this
+     ("make" . makefile-gmake-mode)		; Debian uses this
      ("guile" . scheme-mode)
      ("clisp" . lisp-mode)))
   "Alist mapping interpreter names to major modes.
