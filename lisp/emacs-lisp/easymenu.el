@@ -65,7 +65,7 @@ It returns the remaining items of the displayed menu.
    :visible INCLUDE
 
 INCLUDE is an expression; this menu is only visible if this
-expression has a non-nil value.  `:include' is an alias for `:visible'.
+expression has a non-nil value.  `:included' is an alias for `:visible'.
 
    :active ENABLE
 
@@ -110,10 +110,10 @@ keyboard equivalent.
 ENABLE is an expression; the item is enabled for selection
 whenever this expression's value is non-nil.
 
-   :included INCLUDE
+   :visible INCLUDE
 
 INCLUDE is an expression; this item is only visible if this
-expression has a non-nil value.
+expression has a non-nil value.  `:included' is an alias for `:visible'.
 
    :suffix FORM
 
