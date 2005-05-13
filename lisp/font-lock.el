@@ -1678,6 +1678,8 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
 
 (defface font-lock-comment-delimiter-face
   '((default :inherit font-lock-comment-face)
+    (((class grayscale)))
+    (((class color) (min-colors 16)))
     (((class color) (min-colors 8) (background light))
      :foreground "red")
     (((class color) (min-colors 8) (background dark))
