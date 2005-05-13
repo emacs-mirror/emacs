@@ -1,3 +1,30 @@
+2005-05-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-targets-face)
+	(makefile-shell-face, makefile-makepp-perl-face): New faces.
+	(makefile-dependency-regex): Fix it to not make the colon in
+	$(var:a=b) special.
+	(makefile-rule-action-regex): New regexp for highlighting embedded
+	Shell strings.
+	(makefile-macroassign-regex): Handle != for highlighting as
+	embedded Shell strings.
+	(makefile-var-use-regex): New const.
+	(makefile-statements, makefile-automake-statements)
+	(makefile-gmake-statements, makefile-makepp-statements)
+	(makefile-bsdmake-statements): New consts.
+	(makefile-make-font-lock-keywords): New function.
+	(makefile-automake-font-lock-keywords)
+	(makefile-gmake-font-lock-keywords)
+	(makefile-makepp-font-lock-keywords)
+	(makefile-bsdmake-font-lock-keywords): New consts.
+	(makefile-mode-map): Add switchers between the various submodes.
+	(makefile-mode): Document the availability of the variants.
+	(makefile-automake-mode, makefile-gmake-mode)
+	(makefile-makepp-mode, makefile-bsdmake-mode): New derived modes.
+
+	* files.el (auto-mode-alist, interpreter-mode-alist): Set up the
+	new variants of makefile-mode.
+
 2005-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (font-lock-comment-delimiter-face): Fix up
