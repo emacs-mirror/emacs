@@ -1,3 +1,9 @@
+2005-05-13  Kenichi Handa  <handa@m17n.org>
+
+	* unidata/unidata-gen.el (unidata-get-decomposition): For Hangul
+	decomposition, if T is the same as TBase, don't include it in the
+	returned list.
+
 2005-05-11  Kenichi Handa  <handa@m17n.org>
 
 	* unidata/unidata-gen.el (unidata-text-file): Delete it.
