@@ -4516,8 +4516,10 @@ actually used.  */)
 
   if (inserted == 0)
     {
+#ifdef CLASH_DETECTION
       if (we_locked_file)
 	unlock_file (current_buffer->file_truename);
+#endif
       Vdeactivate_mark = old_Vdeactivate_mark;
     }
 
