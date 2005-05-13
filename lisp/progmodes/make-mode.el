@@ -100,9 +100,32 @@
   :prefix "makefile-")
 
 (defface makefile-space-face
-   '((((class color)) (:background  "hotpink"))
-     (t (:reverse-video t)))
+  '((((class color)) (:background  "hotpink"))
+    (t (:reverse-video t)))
   "Face to use for highlighting leading spaces in Font-Lock mode."
+  :group 'faces
+  :group 'makefile)
+
+(defface makefile-targets-face
+  ;; This needs to go along both with foreground and background colors (i.e. shell)
+  '((t (:underline t)))
+  "Face to use for additionally highlighting rule targets in Font-Lock mode."
+  :group 'faces
+  :group 'makefile)
+
+(defface makefile-shell-face
+  '((((class color) (background light)) (:background  "seashell1"))
+    (((class color) (background dark)) (:background  "seashell4"))
+    (t (:reverse-video t)))
+  "Face to use for additionally highlighting Shell commands in Font-Lock mode."
+  :group 'faces
+  :group 'makefile)
+
+(defface makefile-makepp-perl-face
+  '((((class color) (background light)) (:background  "LightBlue1")) ; Camel Book
+    (((class color) (background dark)) (:background  "DarkBlue"))
+    (t (:reverse-video t)))
+  "Face to use for additionally highlighting Perl code in Font-Lock mode."
   :group 'faces
   :group 'makefile)
 
@@ -235,15 +258,26 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu
 ;; index in makefile-imenu-generic-expression.
 (defconst makefile-dependency-regex
-  "^ *\\([^ \n\t#:=]+\\([ \t]+\\([^ \t\n#:=]+\\|\\$[({][^ \t\n#})]+[})]\\)\\)*\\)[ \t]*:\\([ \t]*$\\|\\([^=\n].*$\\)\\)"
+  ;; Allow for one nested level $($(var:a=b):c=d)
+  ;; Scan non-$ constructs char by char, so we don't miss a $ while allowing $$.
+  ;; Since we must allow space between targets, I then don't know how to evite a command starting with :.
+  "^ *\\(\\(?:\\$[({]\\(?:\\$[({][^ \t\n#})]+?[})]\\|[^\n#]\\)+?[})]\\|[^\n#:=]\\)+?\\)[ \t]*:\\(?:[ \t]*$\\|[^=\n].*$\\)"
   "Regex used to find dependency lines in a makefile.")
 
-;; Note that the first subexpression is used by font lock.  Note
-;; that if you change this regexp you might have to fix the imenu
-;; index in makefile-imenu-generic-expression.
+(defconst makefile-rule-action-regex
+  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(.+\\)"
+  "Regex used to highlight rule action lines in font lock mode.")
+
+;; Note that the first and second subexpression is used by font lock.  Note
+;; that if you change this regexp you might have to fix the imenu index in
+;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*[*:+]?[:?]?="
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(.*\\)\\|[*:+]?[:?]?=\\)"
   "Regex used to find macro assignment lines in a makefile.")
+
+(defconst makefile-var-use-regex
+  "[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
+  "Regex used to find $(macro) uses in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
   "\\(^\\..*\\)\\|\\(.*~$\\)\\|\\(.*,v$\\)\\|\\(\\.[chy]\\)"
@@ -254,50 +288,195 @@ not be enclosed in { } or ( )."
 (defvar makefile-space-face 'makefile-space-face
   "Face to use for highlighting leading spaces in Font-Lock mode.")
 
+;; These lists were inspired by the old solution.  But they are silly, because
+;; you can't differentiate what follows.  They need to be split up.
+(defconst makefile-statements '("include")
+  "List of keywords understood by standard make.")
+
+(defconst makefile-automake-statements
+  `("if" "else" "endif" ,@makefile-statements)
+  "List of keywords understood by automake.")
+
+(defconst makefile-gmake-statements
+  `("-sinclude" "sinclude" "override" "vpath"
+    "ifdef" "ifndef" "ifeq" "ifneq" "-include" "define" "endef" "export"
+    "unexport"
+    ,@(cdr makefile-automake-statements))
+  "List of keywords understood by gmake.")
+
+;; These are even more silly, because you can have more spaces in between.
+(defconst makefile-makepp-statements
+  `("and ifdef" "and ifndef" "and ifeq" "and ifneq" "and ifperl"
+    "and ifmakeperl" "and ifsys" "and ifnsys" "build_cache" "build_check"
+    "else ifdef" "else ifndef" "else ifeq" "else ifneq" "else ifperl"
+    "else ifmakeperl" "else ifsys" "else ifnsys" "enddef" "load_makefile"
+    "ifperl" "ifmakeperl" "ifsys" "ifnsys" "_include"  "makeperl" "makesub"
+    "no_implicit_load" "perl" "perl-begin" "perl_begin" "perl-end" "perl_end"
+    "prebuild" "or ifdef" "or ifndef" "or ifeq" "or ifneq" "or ifperl"
+    "or ifmakeperl" "or ifsys" "or ifnsys" "register_command_parser"
+    "register_scanner" "repository" "runtime" "signature" "sub"
+    ,@(nthcdr 4 makefile-gmake-statements))
+  "List of keywords understood by gmake.")
+
+(defconst makefile-bsdmake-statements
+  `(".elif" ".elifdef" ".elifmake" ".elifndef" ".elifnmake" ".else" ".endfor"
+    ".endif" ".for" ".if" ".ifdef" ".ifmake" ".ifndef" ".ifnmake" ".undef")
+  "List of keywords understood by BSD make.")
+
+(defun makefile-make-font-lock-keywords (dependency action var keywords space
+						    &optional negation
+						    &rest font-lock-keywords)
+  `(;; Do macro assignments.  These get the "variable-name" face.
+    (,makefile-macroassign-regex
+     (1 font-lock-variable-name-face)
+     ;; This is for after !=
+     (2 'makefile-shell-face prepend t))
+
+    ;; Do dependencies.
+    (,dependency 1 'makefile-targets-face prepend)
+
+    ;; Rule actions.
+    (,action
+     (1 font-lock-type-face)
+     (2 'makefile-shell-face prepend)
+     ;; Only makepp has builtin commands.
+     (3 font-lock-builtin-face prepend t))
+
+    ;; Variable references even in targets/strings/comments.
+    (,var 1 font-lock-variable-name-face prepend)
+
+    ;; Automatic variable references and single character variable references,
+    ;; but not shell variables references.
+    ("[^$]\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)"
+     1 font-lock-constant-face prepend)
+    ("[^$]\\(\\$[@%*]\\)"
+     1 'makefile-targets-face prepend)
+
+    ;; Fontify conditionals and includes.
+    ;; Note that plain `if' is an automake conditional, and not a bug.
+    (,(concat "^\\(?: [ \t]*\\)?"
+	      (regexp-opt keywords t)
+	      "\\>[ \t]*\\([^: \t\n#]*\\)")
+     (1 font-lock-keyword-face) (2 font-lock-variable-name-face))
+
+    ,(if negation
+	 `(,negation (1 font-lock-negation-char-face prepend)
+		     (2 font-lock-negation-char-face prepend t)))
+
+    ,@(if space
+	  '(;; Highlight lines that contain just whitespace.
+	    ;; They can cause trouble, especially if they start with a tab.
+	    ("^[ \t]+$" . makefile-space-face)
+
+	    ;; Highlight shell comments that Make treats as commands,
+	    ;; since these can fool people.
+	    ("^\t+#" 0 makefile-space-face t)
+
+	    ;; Highlight spaces that precede tabs.
+	    ;; They can make a tab fail to be effective.
+	    ("^\\( +\\)\t" 1 makefile-space-face)))
+
+    ,@font-lock-keywords))
+
 (defconst makefile-font-lock-keywords
-  (list
+  (makefile-make-font-lock-keywords
+   makefile-dependency-regex
+   makefile-rule-action-regex
+   makefile-var-use-regex
+   makefile-statements
+   t))
 
-   ;; Do macro assignments.  These get the "variable-name" face rather
-   ;; arbitrarily.
-   (list makefile-macroassign-regex 1 'font-lock-variable-name-face)
+(defconst makefile-automake-font-lock-keywords
+  (makefile-make-font-lock-keywords
+   makefile-dependency-regex
+   makefile-rule-action-regex
+   makefile-var-use-regex
+   makefile-automake-statements
+   t))
 
-   ;; Do dependencies.  These get the function name face.
-   (list makefile-dependency-regex 1 'font-lock-function-name-face)
+(defconst makefile-gmake-font-lock-keywords
+  (makefile-make-font-lock-keywords
+   makefile-dependency-regex
+   makefile-rule-action-regex
+   makefile-var-use-regex
+   makefile-gmake-statements
+   t
+   "^\\(?: [ \t]*\\)?if\\(n\\)\\(?:def\\|eq\\)\\>"
 
-   ;; Variable references even in targets/strings/comments.
-   '("[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
-     1 font-lock-constant-face prepend)
+   '("[^$]\\(\\$[({][@%*][DF][})]\\)"
+     1 'makefile-targets-face prepend)
 
-   ;; Automatic variable references and single character variable references,
-   ;; but not shell variables references.
-   '("[^$]\\$\\([@%<?^+*_]\\|[a-zA-Z0-9]\\>\\)"
-     1 font-lock-constant-face prepend)
+   ;; $(function ...) ${function ...}
+   '("[^$]\\$[({]\\(\\S +\\s \\)"
+     1 font-lock-function-name-face)
 
-   ;; Fontify conditionals and includes.
-   ;; Note that plain `if' is an automake conditional, and not a bug.
-   (list
-    (concat "^\\(?: [ \t]*\\)?"
-	    (regexp-opt '("-include" "-sinclude" "include" "sinclude" "ifeq"
-			  "if" "ifneq" "ifdef" "ifndef" "endif" "else"
-			  "define" "endef" "override"
-			  "export" "unexport" "vpath") t)
-	    "\\>[ \t]*\\([^: \t\n#]*\\)")
-    '(1 font-lock-keyword-face) '(2 font-lock-variable-name-face))
+   ;; $(shell ...) ${shell ...}
+   '("[^$]\\$\\([({]\\)shell[ \t]+"
+     makefile-match-function-end nil nil
+     (1 'makefile-shell-face prepend t))))
 
-   '("^\\(?: [ \t]*\\)?if\\(n\\)\\(?:def\\|eq\\)\\>"
-     1 font-lock-negation-char-face prepend)
+(defconst makefile-makepp-font-lock-keywords
+  (makefile-make-font-lock-keywords
+   makefile-dependency-regex
+   ;; Don't care about initial tab, but I don't know how to font-lock correctly without.
+   "^\t[ \t]*\\(\\(?:[ \t]*noecho\\>\\|[ \t]*ignore[-_]error\\>\\|[ \t]*[-@]+\\)*\\)[ \t]*\\(\\(&\\S +\\)?.+\\)"
+   makefile-var-use-regex
+   makefile-makepp-statements
+   nil
+   "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
 
-   ;; Highlight lines that contain just whitespace.
-   ;; They can cause trouble, especially if they start with a tab.
-   '("^[ \t]+$" . makefile-space-face)
+   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?[})]\\)"
+     1 'makefile-targets-face prepend)
 
-   ;; Highlight shell comments that Make treats as commands,
-   ;; since these can fool people.
-   '("^\t+#" 0 makefile-space-face t)
+   ;; Colon modifier keywords.
+   '(":\\s *\\(build_c\\(?:ache\\|heck\\)\\|env\\(?:ironment\\)?\\|foreach\\|signature\\|scanner\\|quickscan\\|smartscan\\)\\>"
+     1 font-lock-keyword-face t)
 
-   ;; Highlight spaces that precede tabs.
-   ;; They can make a tab fail to be effective.
-   '("^\\( +\\)\t" 1 makefile-space-face)))
+   ;; $(function ...) $((function ...)) ${function ...} ${{function ...}}
+   '("[^$]\\$\\(((?\\|{{?\\)\\(\\S +\\s \\)"
+     2 font-lock-function-name-face)
+
+   ;; $(shell ...) $((shell ...)) ${shell ...} ${{shell ...}}
+   '("[^$]\\$\\(((?\\|{{?\\)shell\\(?:[-_]\\(?:global[-_]\\)?once\\)?[ \t]+"
+     makefile-match-function-end nil nil
+     (1 'makefile-shell-face prepend t))
+
+   ;; $(perl ...) $((perl ...)) ${perl ...} ${{perl ...}}
+   '("[^$]\\$\\(((?\\|{{?\\)makeperl[ \t]+"
+     makefile-match-function-end nil nil
+     (1 'makefile-makepp-perl-face prepend t))
+   '("[^$]\\$\\(((?\\|{{?\\)perl[ \t]+"
+     makefile-match-function-end nil nil
+     (1 'makefile-makepp-perl-face t t))
+
+   ;; Can we unify these with (if (match-end 1) 'prepend t)?
+   '("ifmakeperl\\s +\\(.*\\)" 1 'makefile-makepp-perl-face prepend)
+   '("ifperl\\s +\\(.*\\)" 1 'makefile-makepp-perl-face t)
+
+   ;; Perl block single- or multiline, as statement or rule action.
+   ;; Don't know why the initial newline in 2nd variant of group 2 doesn't get skipped.
+   '("\\<make\\(?:perl\\|sub\\s +\\S +\\)\\s *\n?\\s *{\\(?:{\\s *\n?\\(\\(?:.*\n\\)+?\\)\\s *}\\|\\s *\\(\\(?:.*?\\|\n?\\(?:.*\n\\)+?\\)\\)\\)}"
+     (1 'makefile-makepp-perl-face prepend t)
+     (2 'makefile-makepp-perl-face prepend t))
+   '("\\<\\(?:perl\\|sub\\s +\\S +\\)\\s *\n?\\s *{\\(?:{\\s *\n?\\(\\(?:.*\n\\)+?\\)\\s *}\\|\\s *\\(\\(?:.*?\\|\n?\\(?:.*\n\\)+?\\)\\)\\)}"
+     (1 'makefile-makepp-perl-face t t)
+     (2 'makefile-makepp-perl-face t t))
+
+   ;; Statement style perl block.
+   '("perl[-_]begin\\s *\\(?:\\s #.*\\)?\n\\(\\(?:.*\n\\)+?\\)\\s *perl[-_]end\\>"
+     1 'makefile-makepp-perl-face t)))
+
+;; A lot more could be done for variables here:
+(defconst makefile-bsdmake-font-lock-keywords
+  (makefile-make-font-lock-keywords
+   "^ *\\(\\(?:\\$[({]\\(?:\\$[({][^\n#})]+?[})]\\|[^\n#]\\)+?[})]\\|[^\n#:=]\\)+?\\)[ \t]*[:!]\\(?:[ \t]*$\\|[^=\n].*$\\)"
+   "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(.+\\)"
+   makefile-var-use-regex
+   makefile-bsdmake-statements
+   t
+   "^\\(?: [ \t]*\\)?\\.\\(?:el\\)?if\\(n?\\)\\(?:def\\|make\\)?\\>[ \t]*\\(!?\\)"
+   '("^[ \t]*\\.for[ \t].+[ \t]\\(in\\)\\>" 1 font-lock-keyword-face)))
+
 
 (defconst makefile-font-lock-syntactic-keywords
   ;; From sh-script.el.
@@ -371,46 +550,49 @@ The function must satisfy this calling convention:
     ()
   (define-abbrev-table 'makefile-mode-abbrev-table ()))
 
-(defvar makefile-mode-map nil
+(defvar makefile-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; set up the keymap
+    (define-key map "\C-c:" 'makefile-insert-target-ref)
+    (if makefile-electric-keys
+	(progn
+	  (define-key map "$" 'makefile-insert-macro-ref)
+	  (define-key map ":" 'makefile-electric-colon)
+	  (define-key map "=" 'makefile-electric-equal)
+	  (define-key map "." 'makefile-electric-dot)))
+    (define-key map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
+    (define-key map "\C-c\C-b" 'makefile-switch-to-browser)
+    (define-key map "\C-c\C-c" 'comment-region)
+    (define-key map "\C-c\C-p" 'makefile-pickup-everything)
+    (define-key map "\C-c\C-u" 'makefile-create-up-to-date-overview)
+    (define-key map "\C-c\C-i" 'makefile-insert-gmake-function)
+    (define-key map "\C-c\C-\\" 'makefile-backslash-region)
+    (define-key map "\C-c\C-m\C-a" 'makefile-automake-mode)
+    (define-key map "\C-c\C-m\C-b" 'makefile-bsdmake-mode)
+    (define-key map "\C-c\C-m\C-g" 'makefile-gmake-mode)
+    (define-key map "\C-c\C-m\C-m" 'makefile-mode)
+    (define-key map "\C-c\C-m\C-p" 'makefile-makepp-mode)
+    (define-key map "\M-p"     'makefile-previous-dependency)
+    (define-key map "\M-n"     'makefile-next-dependency)
+    (define-key map "\e\t"     'makefile-complete)
+
+    ;; Make menus.
+    (define-key map [menu-bar makefile-mode]
+      (cons "Makefile" (make-sparse-keymap "Makefile")))
+
+    (define-key map [menu-bar makefile-mode browse]
+      '("Pop up Makefile Browser" . makefile-switch-to-browser))
+    (define-key map [menu-bar makefile-mode complete]
+      '("Complete Target or Macro" . makefile-complete))
+    (define-key map [menu-bar makefile-mode pickup]
+      '("Find Targets and Macros" . makefile-pickup-everything))
+
+    (define-key map [menu-bar makefile-mode prev]
+      '("Move to Previous Dependency" . makefile-previous-dependency))
+    (define-key map [menu-bar makefile-mode next]
+      '("Move to Next Dependency" . makefile-next-dependency))
+    map)
   "The keymap that is used in Makefile mode.")
-
-(if makefile-mode-map
-    ()
-  (setq makefile-mode-map (make-sparse-keymap))
-  ;; set up the keymap
-  (define-key makefile-mode-map "\C-c:" 'makefile-insert-target-ref)
-  (if makefile-electric-keys
-      (progn
-	(define-key makefile-mode-map "$" 'makefile-insert-macro-ref)
-	(define-key makefile-mode-map ":" 'makefile-electric-colon)
-	(define-key makefile-mode-map "=" 'makefile-electric-equal)
-	(define-key makefile-mode-map "." 'makefile-electric-dot)))
-  (define-key makefile-mode-map "\C-c\C-f" 'makefile-pickup-filenames-as-targets)
-  (define-key makefile-mode-map "\C-c\C-b" 'makefile-switch-to-browser)
-  (define-key makefile-mode-map "\C-c\C-c" 'comment-region)
-  (define-key makefile-mode-map "\C-c\C-p" 'makefile-pickup-everything)
-  (define-key makefile-mode-map "\C-c\C-u" 'makefile-create-up-to-date-overview)
-  (define-key makefile-mode-map "\C-c\C-i" 'makefile-insert-gmake-function)
-  (define-key makefile-mode-map "\C-c\C-\\" 'makefile-backslash-region)
-  (define-key makefile-mode-map "\M-p"     'makefile-previous-dependency)
-  (define-key makefile-mode-map "\M-n"     'makefile-next-dependency)
-  (define-key makefile-mode-map "\e\t"     'makefile-complete)
-
-  ;; Make menus.
-  (define-key makefile-mode-map [menu-bar makefile-mode]
-    (cons "Makefile" (make-sparse-keymap "Makefile")))
-
-  (define-key makefile-mode-map [menu-bar makefile-mode browse]
-    '("Pop up Makefile Browser" . makefile-switch-to-browser))
-  (define-key makefile-mode-map [menu-bar makefile-mode complete]
-    '("Complete Target or Macro" . makefile-complete))
-  (define-key makefile-mode-map [menu-bar makefile-mode pickup]
-    '("Find Targets and Macros" . makefile-pickup-everything))
-
-  (define-key makefile-mode-map [menu-bar makefile-mode prev]
-    '("Move to Previous Dependency" . makefile-previous-dependency))
-  (define-key makefile-mode-map [menu-bar makefile-mode next]
-    '("Move to Next Dependency" . makefile-next-dependency)))
 
 (defvar makefile-browser-map nil
   "The keymap that is used in the macro- and target browser.")
@@ -504,8 +686,14 @@ The function must satisfy this calling convention:
 
 ;;;###autoload
 (defun makefile-mode ()
-  "Major mode for editing Makefiles.
-This function ends by invoking the function(s) `makefile-mode-hook'.
+  "Major mode for editing standard Makefiles.
+
+If you are editing a file for a different make, try one of the
+variants `makefile-automake-mode', `makefile-gmake-mode',
+`makefile-makepp-mode' or `makefile-bsdmake-mode'.  All but the
+last should be correctly chosen based on the file name, except if
+it is *.mk.  This function ends by invoking the function(s)
+`makefile-mode-hook'.
 
 \\{makefile-mode-map}
 
@@ -644,6 +832,31 @@ Makefile mode can be configured by modifying the following variables:
   ;; Real TABs are important in makefiles
   (setq indent-tabs-mode t)
   (run-hooks 'makefile-mode-hook))
+
+;; These should do more than just differentiate font-lock.
+;;;###autoload
+(define-derived-mode makefile-automake-mode makefile-mode "Makefile.am"
+  "An adapted `makefile-mode' that knows about automake."
+  (setq font-lock-defaults
+	`(makefile-automake-font-lock-keywords ,@(cdr font-lock-defaults))))
+
+;;;###autoload
+(define-derived-mode makefile-gmake-mode makefile-mode "GNUmakefile"
+  "An adapted `makefile-mode' that knows about gmake."
+  (setq font-lock-defaults
+	`(makefile-gmake-font-lock-keywords ,@(cdr font-lock-defaults))))
+
+;;;###autoload
+(define-derived-mode makefile-makepp-mode makefile-mode "Makeppfile"
+  "An adapted `makefile-mode' that knows about makepp."
+  (setq font-lock-defaults
+	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))))
+
+;;;###autoload
+(define-derived-mode makefile-bsdmake-mode makefile-mode "BSDmakefile"
+  "An adapted `makefile-mode' that knows about BSD make."
+  (setq font-lock-defaults
+	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
 
 
 
@@ -1452,6 +1665,16 @@ Then prompts for all required parameters."
 ;;; ------------------------------------------------------------
 ;;; Utility functions
 ;;; ------------------------------------------------------------
+
+(defun makefile-match-function-end (end)
+  "To be called as an anchored matcher by font-lock.
+The anchor must have matched the opening parens in the first group."
+  (let ((s (match-string-no-properties 1)))
+    (setq s (cond ((string= s "(") "\\(.*?\\)[ \t]*)")
+		  ((string= s "{") "\\(.*?\\)[ \t]*}")
+		  ((string= s "((") "\\(.*?\\)[ \t]*))")
+		  ((string= s "{{") "\\(.*?\\)[ \t]*}}")))
+    (if s (looking-at s))))
 
 (defun makefile-do-macro-insertion (macro-name)
   "Insert a macro reference."
