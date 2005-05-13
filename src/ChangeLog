@@ -1,3 +1,11 @@
+2005-05-13  Richard M. Stallman  <rms@gnu.org>
+
+	* fileio.c (Ffind_file_name_handler): Handle lambda-exp as handler.
+	(Finsert_file_contents): If we read 0 bytes from a special file,
+	unlock the visited file if we locked it.
+	(Fmake_symbolic_link, Frecent_auto_save_p): Doc fixes.
+	(Ffile_exists_p, Ffile_symlink_p): Doc fixes. 
+
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* emacs.c (main) [MAC_OS8]: Call init_atimer before mac_term_init.
@@ -43,6 +51,7 @@
 	(unexec_malloc, unexec_realloc, unexec_free): Store and use
 	allocated size information in unexec_malloc_header.
 
+>>>>>>> 1.4385
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* xterm.c (noinclude): Add #undef.
