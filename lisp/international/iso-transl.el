@@ -1,6 +1,7 @@
 ;;; iso-transl.el --- keyboard input definitions for ISO 8859-1  -*- coding: iso-8859-1 -*-
 
-;; Copyright (C) 1987, 1993, 1994, 1995, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1987, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2001
+;;   Free Software Foundation, Inc.
 
 ;; Author: Howard Gayle
 ;; Maintainer: FSF
