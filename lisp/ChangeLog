@@ -1,5 +1,8 @@
 2005-05-12  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* progmodes/inf-lisp.el (inferior-lisp-mode-hook)
+	(inferior-lisp-load-hook): Convert defcustoms back to defvars.
+
 	* files.el (normal-mode): Extend the scope of the
 	`enable-local-variables' binding to include the `set-auto-mode' call.
 	(magic-mode-alist): Doc fix.
