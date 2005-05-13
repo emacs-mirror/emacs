@@ -1,3 +1,7 @@
+2005-05-14  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs.c (syms_of_emacs): Fix doc string for system-type.
+
 2005-05-13  Richard M. Stallman  <rms@gnu.org>
 
 	* fileio.c (Ffind_file_name_handler): Handle lambda-exp as handler.

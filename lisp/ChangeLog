@@ -1,3 +1,10 @@
+2005-05-13  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* tmm.el (tmm-get-keymap): Include only active menus and menu
+	items.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fixes.
+
 2005-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-mode): make-variable-buffer-local =>
