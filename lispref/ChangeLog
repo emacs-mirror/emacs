@@ -1,3 +1,22 @@
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Modes): Update Menu.
+	(Hooks):  Move to beginning of chapter.
+	Most minor modes run mode hooks too.
+	`add-hook' can handle void hooks or hooks whose value is a single
+	function.
+	(Major Modes): Update Menu.
+	(Major Mode Basics): New node, split off from `Major Modes'.
+	(Major Mode Conventions): Correct xref.  Explain how to handle
+	auto-mode-alist if the major mode command has an autoload cookie.
+	(Auto Major Mode): Major update.  Add magic-mode-alist.
+	(Derived Modes): Major update.
+	(Mode Line Format): Update Menu.
+	(Mode Line Basics): New node, split off from `Mode Line Format'.
+
+	* loading.texi (Autoload): Mention `autoload cookie' as synonym
+	for `magic autoload comment'.  Add index entries and anchor.
+
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
 	* tips.texi (Coding Conventions): Explain how important it is
