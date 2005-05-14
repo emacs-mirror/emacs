@@ -2417,6 +2417,7 @@ remaining buffers are restored lazily (when Emacs is idle).
 
 ---
 ** The saveplace.el package now filters out unreadable files.
+
 When you exit Emacs, the saved positions in visited files no longer
 include files that aren't readable, e.g. files that don't exist.
 Customize the new option `save-place-forget-unreadable-files' to nil
@@ -2449,6 +2450,7 @@ backup using `ediff'.  If you specify the name of a backup file,
 *** New regular expressions features
 
 **** New syntax for regular expressions, multi-line regular expressions.
+
 The syntax --ignore-case-regexp=/regex/ is now undocumented and retained
 only for backward compatibility.  The new equivalent syntax is
 --regex=/regex/i.  More generally, it is --regex=/TAGREGEX/TAGNAME/MODS,
@@ -2460,39 +2462,47 @@ expressions: `m' allows regexps to match more than one line, while `s'
 span newlines allows writing of much more powerful regular expressions
 and rapid prototyping for tagging new languages.
 
-**** Regular expressions can use char escape sequences as in Gcc.
+**** Regular expressions can use char escape sequences as in GCC.
+
 The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
 respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
 CR, TAB, VT,
 
 **** Regular expressions can be bound to a given language.
+
 The syntax --regex={LANGUAGE}REGEX means that REGEX is used to make tags
 only for files of language LANGUAGE, and ignored otherwise.  This is
 particularly useful when storing regexps in a file.
 
 **** Regular expressions can be read from a file.
+
 The --regex=@regexfile option means read the regexps from a file, one
 per line.  Lines beginning with space or tab are ignored.
 
 *** New language parsing features
 
 **** The `::' qualifier triggers C++ parsing in C file.
+
 Previously, only the `template' and `class' keywords had this effect.
 
-**** The gnucc __attribute__ keyword is now recognised and ignored.
+**** The GCC __attribute__ keyword is now recognised and ignored.
 
 **** New language HTML.
-Title and h1, h2, h3 are tagged.  Also, tags are generated when name= is
-used inside an anchor and whenever id= is used.
+
+Tags are generated for `title' as well as `h1', `h2', and `h3'.  Also,
+when `name=' is used inside an anchor and whenever `id=' is used.
 
 **** In Makefiles, constants are tagged.
+
 If you want the old behavior instead, thus avoiding to increase the
 size of the tags file, use the --no-globals option.
 
 **** New language Lua.
+
 All functions are tagged.
 
 **** In Perl, packages are tags.
+
 Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
 package::sub.
@@ -2500,14 +2510,17 @@ package::sub.
 **** In Prolog, etags creates tags for rules in addition to predicates.
 
 **** New language PHP.
-Tags are functions, classes and defines.
-If the --members option is specified to etags, tags are variables also.
+
+Functions, classes and defines are tags.  If the --members option is
+specified to etags, variables are tags also.
 
 **** New default keywords for TeX.
+
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
 *** Honour #line directives.
+
 When Etags parses an input file that contains C preprocessor's #line
 directives, it creates tags using the file name and line number
 specified in those directives.  This is useful when dealing with code
@@ -2515,6 +2528,7 @@ created from Cweb source files.  When Etags tags the generated file, it
 writes tags pointing to the source file.
 
 *** New option --parse-stdin=FILE.
+
 This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
 reads from standard input and marks the produced tags as belonging to
@@ -2523,31 +2537,33 @@ the file FILE.
 ** VC Changes
 
 +++
-*** The key C-x C-q no longer checks files in or out, it only changes
-the read-only state of the buffer (toggle-read-only).  We made this
-change because we held a poll and found that many users were unhappy
-with the previous behavior.  If you do prefer this behavior, you
-can bind `vc-toggle-read-only' to C-x C-q in your .emacs:
+*** The key C-x C-q only changes the read-only state of the buffer
+(toggle-read-only).  It no longer checks files in or out.
+
+We made this change because we held a poll and found that many users
+were unhappy with the previous behavior.  If you do prefer this
+behavior, you can bind `vc-toggle-read-only' to C-x C-q in your
+`.emacs' file:
 
     (global-set-key "\C-x\C-q" 'vc-toggle-read-only)
 
 The function `vc-toggle-read-only' will continue to exist.
 
 +++
-*** There is a new user option `vc-cvs-global-switches' that allows
-you to specify switches that are passed to any CVS command invoked
-by VC.  These switches are used as "global options" for CVS, which
-means they are inserted before the command name.  For example, this
-allows you to specify a compression level using the "-z#" option for
-CVS.
+*** The new variable `vc-cvs-global-switches' specifies switches that
+are passed to any CVS command invoked by VC.
+
+These switches are used as "global options" for CVS, which means they
+are inserted before the command name.  For example, this allows you to
+specify a compression level using the `-z#' option for CVS.
 
 +++
 *** New backends for Subversion and Meta-CVS.
 
 +++
-*** vc-annotate-mode enhancements
+*** VC-Annotate mode enhancements
 
-In vc-annotate mode, you can now use the following key bindings for
+In VC-Annotate mode, you can now use the following key bindings for
 enhanced functionality to browse the annotations of past revisions, or
 to view diffs or log entries directly from vc-annotate-mode:
 
@@ -2569,18 +2585,18 @@ in the repository.
 +++
 *** In pcl-cvs mode, there is a new `d r' command to view the changes
 anyone has committed to the repository since you last executed
-"checkout", "update" or "commit".  That means using cvs diff options
+`checkout', `update' or `commit'.  That means using cvs diff options
 -rBASE -rHEAD.
 
 +++
-** There is a new user option `mail-default-directory' that allows you
-to specify the value of `default-directory' for mail buffers.  This
-directory is used for auto-save files of mail buffers.  It defaults to
-"~/".
+** The new variable `mail-default-directory' specifies
+`default-directory' for mail buffers.  This directory is used for
+auto-save files of mail buffers.  It defaults to "~/".
 
 +++
-** Emacs can now indicate in the mode-line the presence of new e-mail
-in a directory or in a file.  See the documentation of the user option
+** The mode line can indicate new mail in a directory or file.
+
+See the documentation of the user option
 `display-time-mail-directory'.
 
 ** Rmail changes:
@@ -2590,6 +2606,7 @@ in a directory or in a file.  See the documentation of the user option
 
 +++
 *** Support for `movemail' from GNU mailutils was added to Rmail.
+
 This version of `movemail' allows to read mail from a wide range of
 mailbox formats, including remote POP3 and IMAP4 mailboxes with or
 without TLS encryption.  If GNU mailutils is installed on the system
@@ -2600,11 +2617,13 @@ used instead of the native one.
 
 ---
 *** Gnus now includes Sieve and PGG
+
 Sieve is a library for managing Sieve scripts.  PGG is a library to handle
 PGP/MIME.
 
 ---
 *** There are many news features, bug fixes and improvements.
+
 See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 
 ---
@@ -2656,10 +2675,10 @@ This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
 
 +++
-*** The procedure for activating appointment reminders has changed: use
-the new function `appt-activate'. The new variable
+*** The procedure for activating appointment reminders has changed:
+use the new function `appt-activate'.  The new variable
 `appt-display-format' controls how reminders are displayed, replacing
-appt-issue-message, appt-visible, and appt-msg-window.
+`appt-issue-message', `appt-visible', and `appt-msg-window'.
 
 +++
 *** The new functions `diary-from-outlook', `diary-from-outlook-gnus',
@@ -2697,24 +2716,26 @@ The current product name will be shown on the mode line following the
 SQL mode indicator.
 
 The technique of setting `sql-mode-font-lock-defaults' directly in
-your .emacs will no longer establish the default highlighting -- Use
+your `.emacs' will no longer establish the default highlighting -- Use
 `sql-product' to accomplish this.
 
 ANSI keywords are always highlighted.
 
 *** The function `sql-add-product-keywords' can be used to add
 font-lock rules to the product specific rules.  For example, to have
-all identifiers ending in "_t" under MS SQLServer treated as a type,
+all identifiers ending in `_t' under MS SQLServer treated as a type,
 you would use the following line in your .emacs file:
 
   (sql-add-product-keywords 'ms
              '(("\\<\\w+_t\\>" . font-lock-type-face)))
 
-*** Oracle support includes keyword highlighting for Oracle 9i.  Most
-SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
+*** Oracle support includes keyword highlighting for Oracle 9i.
+
+Most SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
 highlighted in `font-lock-doc-face'.
 
 *** Microsoft SQLServer support has been significantly improved.
+
 Keyword highlighting for SqlServer 2000 is implemented.
 sql-interactive-mode defaults to use osql, rather than isql, because
 osql flushes its error stream more frequently.  Thus error messages
@@ -2722,7 +2743,7 @@ are displayed when they occur rather than when the session is
 terminated.
 
 If the username and password are not provided to `sql-ms', osql is
-called with the -E command line argument to use the operating system
+called with the `-E' command line argument to use the operating system
 credentials to authenticate the user.
 
 *** Postgres support is enhanced.
@@ -2737,33 +2758,36 @@ packages, procedures, functions, triggers, sequences, rules, and
 defaults.
 
 *** Added SQL->Start SQLi Session menu entry which calls the
-appropriate sql-interactive-mode wrapper for the current setting of
+appropriate `sql-interactive-mode' wrapper for the current setting of
 `sql-product'.
 
 ---
-*** Support for the SQLite interpreter has been added to sql.el by calling
-'sql-sqlite'.
+*** sql.el supports the SQLite interpreter--call 'sql-sqlite'.
 
 ** FFAP changes:
 
 +++
-*** New ffap commands and keybindings: C-x C-r (`ffap-read-only'),
+*** New ffap commands and keybindings:
+
+C-x C-r (`ffap-read-only'),
 C-x C-v (`ffap-alternate-file'), C-x C-d (`ffap-list-directory'),
 C-x 4 r (`ffap-read-only-other-window'), C-x 4 d (`ffap-dired-other-window'),
 C-x 5 r (`ffap-read-only-other-frame'), C-x 5 d (`ffap-dired-other-frame').
 
 ---
-*** FFAP accepts wildcards in a file name by default.  C-x C-f passes
-it to `find-file' with non-nil WILDCARDS argument, which visits
-multiple files, and C-x d passes it to `dired'.
+*** FFAP accepts wildcards in a file name by default.
+
+C-x C-f passes the file name to `find-file' with non-nil WILDCARDS
+argument, which visits multiple files, and C-x d passes it to `dired'.
 
 ---
-** skeleton.el now supports using - to mark the skeleton-point without
-   interregion interaction.  @ has reverted to only setting
-   skeleton-positions and no longer sets skeleton-point.  Skeletons
-   which used @ to mark skeleton-point independent of _ should now use -
-   instead.  The updated skeleton-insert docstring explains these new
-   features along with other details of skeleton construction.
+** In skeleton.el, `-' marks the `skeleton-point' without interregion interaction.
+
+`@' has reverted to only setting `skeleton-positions' and no longer
+sets `skeleton-point'.  Skeletons which used @ to mark
+`skeleton-point' independent of `_' should now use `-' instead.  The
+updated `skeleton-insert' docstring explains these new features along
+with other details of skeleton construction.
 
 ---
 ** New variable `hs-set-up-overlay' allows customization of the overlay
@@ -2772,25 +2796,25 @@ handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
 +++
-** hide-ifdef-mode now uses overlays rather than selective-display
+** `hide-ifdef-mode' now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands like C-e and C-p.
 
 ---
-** partial-completion-mode now does partial completion on directory names.
+** `partial-completion-mode' now handles partial completion on directory names.
 
 ---
 ** The type-break package now allows `type-break-file-name' to be nil
 and if so, doesn't store any data across sessions.  This is handy if
-you don't want the .type-break file in your home directory or are
+you don't want the `.type-break' file in your home directory or are
 annoyed by the need for interaction when you kill Emacs.
 
 ---
 ** `ps-print' can now print characters from the mule-unicode charsets.
 
 Printing text with characters from the mule-unicode-* sets works with
-ps-print, provided that you have installed the appropriate BDF fonts.
-See the file INSTALL for URLs where you can find these fonts.
+`ps-print', provided that you have installed the appropriate BDF
+fonts.  See the file INSTALL for URLs where you can find these fonts.
 
 ---
 ** New command `strokes-global-set-stroke-string'.
@@ -2821,11 +2845,10 @@ expression and to use the given display when visiting files.
 
 +++
 ** You can now disable pc-selection-mode after enabling it.
-M-x pc-selection-mode behaves like a proper minor mode, and with no
-argument it toggles the mode.
 
-Turning off PC-Selection mode restores the global key bindings
-that were replaced by turning on the mode.
+M-x pc-selection-mode behaves like a proper minor mode, and with no
+argument it toggles the mode.  Turning off PC-Selection mode restores
+the global key bindings that were replaced by turning on the mode.
 
 ---
 ** `uniquify-strip-common-suffix' tells uniquify to prefer
@@ -2833,9 +2856,10 @@ that were replaced by turning on the mode.
 
 ---
 ** Support for `magic cookie' standout modes has been removed.
-Emacs will still work on terminals that require magic cookies in order
-to use standout mode, however they will not be able to display
-mode-lines in inverse-video.
+
+Emacs still works on terminals that require magic cookies in order to
+use standout mode, but they can no longer display mode-lines in
+inverse-video.
 
 ---
 ** The game `mpuz' is enhanced.
@@ -2845,14 +2869,15 @@ default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
 ---
-** display-battery has been replaced by display-battery-mode.
+** display-battery-mode replaces display-battery.
 
 ---
-** calculator.el now has radix grouping mode, which is available when
-`calculator-output-radix' is non-nil.  In this mode a separator
-character is used every few digits, making it easier to see byte
-boundries etc.  For more info, see the documentation of the variable
-`calculator-radix-grouping-mode'.
+** calculator.el now has radix grouping mode.
+
+To enable this, set `calculator-output-radix' non-nil.  In this mode a
+separator character is used every few digits, making it easier to see
+byte boundries etc.  For more info, see the documentation of the
+variable `calculator-radix-grouping-mode'.
 
 ---
 ** fast-lock.el and lazy-lock.el are obsolete.  Use jit-lock.el instead.
@@ -2861,12 +2886,13 @@ boundries etc.  For more info, see the documentation of the variable
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
-** cplus-md.el has been removed to avoid problems with Custom.
+** cplus-md.el has been deleted.
 
 * Changes in Emacs 22.1 on non-free operating systems
 
 +++
 ** Passing resources on the command line now works on MS Windows.
+
 You can use --xrm to pass resource settings to Emacs, overriding any
 existing values.  For example:
 
@@ -2877,15 +2903,18 @@ irrespective of geometry or background setting on the Windows registry.
 
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
+
 This enables Emacs to work better with programs that need to track
 the cursor, for example screen magnifiers and text to speech programs.
 
 ---
 ** Tooltips now work on MS Windows.
+
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ---
 ** Images are now supported on MS Windows.
+
 PBM and XBM images are supported out of the box. Other image formats
 depend on external libraries.  All of these libraries have been ported
 to Windows, and can be found in both source and binary form at
@@ -2895,6 +2924,7 @@ against.  For additional information, see nt/INSTALL.
 
 ---
 ** Sound is now supported on MS Windows.
+
 WAV format is supported on all versions of Windows, other formats such
 as AU, AIFF and MP3 may be supported in the more recent versions of
 Windows, or when other software provides hooks into the system level
@@ -2902,16 +2932,19 @@ sound support for those formats.
 
 ---
 ** Different shaped mouse pointers are supported on MS Windows.
+
 The mouse pointer changes shape depending on what is under the pointer.
 
 ---
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
+
 The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
 pass them to Windows to be handled with system-wide functions.
 
 ---
 ** Emacs takes note of colors defined in Control Panel on MS-Windows.
+
 The Control Panel defines some default colors for applications in much
 the same way as wildcard X Resources do on X.  Emacs now adds these
 colors to the colormap prefixed by System (eg SystemMenu for the
@@ -2922,6 +2955,7 @@ you wish to use them in other faces.
 
 ---
 ** On MS Windows NT/W2K/XP, Emacs uses Unicode for clipboard operations.
+
 Those systems use Unicode internally, so this allows Emacs to share
 multilingual text with other applications. On other versions of
 MS Windows, Emacs now uses the appropriate locale coding-system, so
@@ -2929,9 +2963,10 @@ the clipboard should work correctly for your local language without
 any customizations.
 
 ---
-** On Mac OS, the value of the variable `keyboard-coding-system' is
-now dynamically changed according to the current keyboard script.  The
-variable `mac-keyboard-text-encoding' and the constants
+** On Mac OS, `keyboard-coding-system' changes based on the keyboard script.
+
+---
+** The variable `mac-keyboard-text-encoding' and the constants
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
 
@@ -4807,8 +4842,11 @@ The hook is run with GC inhibited, so use it with care.
 * New Packages for Lisp Programming in Emacs 22.1
 
 +++
-** The new library benchmark.el contains simple support for convenient
-timing measurements of code (including the garbage collection component).
+** The new library button.el implements simple and fast `clickable
+buttons' in emacs buffers.  Buttons are much lighter-weight than the
+`widgets' implemented by widget.el, and can be used by lisp code that
+doesn't require the full power of widgets.  Emacs uses buttons for
+such things as help and apropos buffers.
 
 ---
 ** The new library tree-widget.el provides a widget to display a set
@@ -4818,13 +4856,6 @@ well suited to display a hierarchy of directories and files.
 ** The new library bindat.el provides functions to unpack and pack
 binary data structures, such as network packets, to and from Lisp
 data structures.
-
-+++
-** The new library button.el implements simple and fast `clickable
-buttons' in emacs buffers.  Buttons are much lighter-weight than the
-`widgets' implemented by widget.el, and can be used by lisp code that
-doesn't require the full power of widgets.  Emacs uses buttons for
-such things as help and apropos buffers.
 
 ---
 ** master-mode.el implements a minor mode for scrolling a slave
@@ -4846,6 +4877,11 @@ SQL buffer.
 (add-hook 'sql-set-sqli-hook
    (function (lambda ()
 	       (master-set-slave sql-buffer))))
+
++++
+** The new library benchmark.el does timing measurements on Lisp code.
+
+This includes measuring garbage collection time.
 
 +++
 ** The new library testcover.el does test coverage checking.
