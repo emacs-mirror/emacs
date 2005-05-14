@@ -1,5 +1,9 @@
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn): New function.
+	(byte-compile-form): Call byte-compile-nogroup-warn.
+	(byte-compile-warning-types): Doc fix.
+
 	* progmodes/cc-engine.el (c-literal-faces):
 	Add font-lock-comment-delimiter-face.
 
