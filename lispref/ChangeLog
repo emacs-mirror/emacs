@@ -1,5 +1,7 @@
 2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* elisp.texi (Top): Update detailed menu for node changes.
+
 	* modes.texi (Modes): Update Menu.
 	(Hooks):  Move to beginning of chapter.
 	Most minor modes run mode hooks too.
