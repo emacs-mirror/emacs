@@ -436,8 +436,12 @@ define function @var{function-name}"}.
 
 @findex update-file-autoloads
 @findex update-directory-autoloads
-  A magic autoload comment consists of @samp{;;;###autoload}, on a line
-by itself, just before the real definition of the function in its
+@cindex magic autoload comment
+@cindex autoload cookie
+@anchor{autoload cookie}
+  A magic autoload comment (often called an @dfn{autoload cookie})
+consists of @samp{;;;###autoload}, on a line by itself,
+just before the real definition of the function in its
 autoloadable source file.  The command @kbd{M-x update-file-autoloads}
 writes a corresponding @code{autoload} call into @file{loaddefs.el}.
 Building Emacs loads @file{loaddefs.el} and thus calls @code{autoload}.
