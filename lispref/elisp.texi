@@ -617,6 +617,8 @@ Keymaps
 
 Major and Minor Modes
 
+* Hooks::                   How to use hooks; how to write code that
+                              provides hooks.
 * Major Modes::             Defining major modes.
 * Minor Modes::             Defining minor modes.
 * Mode Line Format::        Customizing the text that appears in the mode line.
@@ -625,11 +627,10 @@ Major and Minor Modes
 * Font Lock Mode::          How modes can highlight text according to syntax.
 * Desktop Save Mode::       How modes can have buffer state saved between
                               Emacs sessions.
-* Hooks::                   How to use hooks; how to write code that
-                              provides hooks.
 
 Major Modes
 
+* Major Mode Basics::
 * Major Mode Conventions::  Coding conventions for keymaps, etc.
 * Example Major Modes::     Text mode and Lisp modes.
 * Auto Major Mode::         How Emacs chooses the major mode automatically.
@@ -648,6 +649,7 @@ Minor Modes
 
 Mode Line Format
 
+* Mode Line Basics::
 * Mode Line Data::          The data structure that controls the mode line.
 * Mode Line Variables::     Variables used in that data structure.
 * %-Constructs::            Putting information into a mode line.
