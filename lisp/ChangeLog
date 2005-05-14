@@ -1,3 +1,14 @@
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/derived.el (define-derived-mode): Add link to Elisp
+	manual to docstring.
+
+	* files.el (hack-local-variables-confirm): Add STRING argument.
+	Make the function handle non file visiting buffers correctly.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use STRING arg of
+	`hack-local-variables-confirm'.
+
 2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.49.
@@ -232,6 +243,9 @@
 	* cus-edit.el (custom-file): Call file-chase-links.
 
 	* files.el (read-directory-name): Fix previous change.
+	(hack-local-variables-confirm): New function.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use it.
 
 2005-05-10  Lute Kamstra  <lute@gnu.org>
 
