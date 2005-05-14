@@ -517,7 +517,8 @@ This is used by `eshell-watch-for-password-prompt'."
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
-    (setq tagname (car (find-tag-interactive "Find tag: ")))
+    (with-no-warnings
+      (setq tagname (car (find-tag-interactive "Find tag: "))))
     (find-tag tagname next-p regexp-p)))
 
 (defun eshell-move-argument (limit func property arg)
