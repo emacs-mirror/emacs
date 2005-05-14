@@ -22660,11 +22660,10 @@ to @expr{a / (c - b)}, and @expr{(a - b) / (-c)} to @expr{(b - a) / c}.
 
 The formula @expr{x^0} is simplified to @expr{1}, or to @samp{idn(1)}
 in Matrix mode.  The formula @expr{0^x} is simplified to @expr{0}
-unless @expr{x} is a negative number or complex number, in which
-case the result is an infinity or an unsimplified formula according
-to the current infinite mode.  Note that @expr{0^0} is an
-indeterminate form, as evidenced by the fact that the simplifications
-for @expr{x^0} and @expr{0^x} conflict when @expr{x=0}.
+unless @expr{x} is a negative number, complex number or zero.
+If @expr{x} is negative, complex or @expr{0.0}, @expr{0^x} is an
+infinity or an unsimplified formula according to the current infinite
+mode.  The expression @expr{0^0} is simplified to @expr{1}.
 
 Powers of products or quotients @expr{(a b)^c}, @expr{(a/b)^c}
 are distributed to @expr{a^c b^c}, @expr{a^c / b^c} only if @expr{c}
