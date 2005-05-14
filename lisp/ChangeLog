@@ -10,6 +10,8 @@
 
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
+	* subr.el (symbol-file): Doc fix.
+
 	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn): New function.
 	(byte-compile-form): Call byte-compile-nogroup-warn.
 	(byte-compile-warning-types): Doc fix.
