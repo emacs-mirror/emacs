@@ -1132,16 +1132,16 @@ does not affect the `else', `elif' or `fi' statements themselves."
 
 (defcustom sh-indent-for-do 0
   "*How much to indent a `do' statement.
-This is relative to the statement before the `do', i.e. the
-`while', `until' or `for' statement."
+This is relative to the statement before the `do', typically a
+`while', `until', `for', `repeat' or `select' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-do '+
   "*How much to indent a line after a `do' statement.
 This is used when the `do' is the first word of the line.
-This is relative to the statement before the `do', e.g. a
-`while', `for', `repeat' or `select' statement."
+This is relative to the statement before the `do', typically a
+`while', `until', `for', `repeat' or `select' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
