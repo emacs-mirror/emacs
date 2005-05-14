@@ -1,3 +1,7 @@
+2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.49.
+
 2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* basic.texi (Moving Point): Mention `M-g g' binding for `goto-line'.
