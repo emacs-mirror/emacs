@@ -1024,7 +1024,9 @@ currently used by buffers."
   (ibuffer-awhen (with-current-buffer buf
 		   (or buffer-file-name
 		       (and (boundp 'dired-directory)
-			    dired-directory
+			    (if (stringp dired-directory)
+				dired-directory
+			      (car dired-directory))
 			    (expand-file-name dired-directory))))
     (string-match qualifier it)))
 
