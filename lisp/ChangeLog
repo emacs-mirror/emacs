@@ -16,7 +16,7 @@
 	<kifer@cs.sunysb.edu> (and a lot of other people all the years).
 	(tramp-handle-shell-command): `insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
-	insertion (`expand-file' and alike).  Reported by Frédéric Bothamy
+	insertion (`expand-file' and alike).  Reported by Fr,Ai(Bd,Ai(Bric Bothamy
 	<frederic.bothamy@free.fr>.
 	(tramp-set-auto-save): Actions should be done for Tramp file name
 	handler only.  Ange-FTP has its own auto-save mechanism.  Reported
