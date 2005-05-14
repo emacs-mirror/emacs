@@ -1,3 +1,13 @@
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (message3): Call cancel_echoing.
+
+	* alloc.c (Fmemory_full_p): New function.
+	(syms_of_alloc): defsubr it.
+
+	* process.c (send_process_trap): Unblock SIGPIPE.
+	(send_process): Reset SIGPIPE handler before reporting error.
+
 2005-05-14  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs.c (syms_of_emacs): Fix doc string for system-type.
