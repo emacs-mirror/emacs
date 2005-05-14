@@ -1,3 +1,13 @@
+2005-05-14  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename): 
+	If `dired-directory' is a list, use its car.
+
+2005-05-14  Daniel Brockman  <daniel@brockman.se>  (tiny change)
+
+	* ibuffer.el (define-ibuffer-column filename):
+	If `dired-directory' is a list, use its car.
+
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn): New function.
