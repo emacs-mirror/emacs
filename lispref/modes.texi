@@ -1184,8 +1184,9 @@ written a @code{defgroup} to define that group properly.  @xref{Group
 Definitions}.
 
 @item :global @var{global}
-If non-@code{nil} specifies that the minor mode should be global.
-By default, minor modes are buffer-local.
+If non-@code{nil} specifies that the minor mode should be global.  By
+default, minor modes defined with @code{define-minor-mode} are
+buffer-local.
 
 @item :init-value @var{init-value}
 This is equivalent to specifying @var{init-value} positionally.
@@ -1265,6 +1266,17 @@ See the command \\[hungry-electric-delete]."
         (hungry-electric-delete t))))
  :group 'hunger)
 @end smallexample
+
+@defmac define-global-minor-mode global-mode mode turn-on keyword-args...
+This defines a global minor mode named @var{global-mode} whose meaning
+is to enable the buffer-local minor mode @var{mode} in every buffer.
+To turn on the minor mode in a buffer, it uses the function
+@var{turn-on}; to turn off the minor mode, it calls @code{mode} with
+@minus{}1 as argument.
+
+Use @code{:group @var{group}} in @var{keyword-args} to specify the
+custom group for the mode variable of the global minor mode.
+@end defmac
 
 @node Mode Line Format
 @section Mode-Line Format
