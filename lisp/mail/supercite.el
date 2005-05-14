@@ -153,6 +153,7 @@ a variable whose value is a citation frame."
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
   :group 'supercite-frames)
+(put 'sc-cite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-uncite-frame-alist '()
   "*Alist for frame selection during unciting.
@@ -161,6 +162,7 @@ See the variable `sc-cite-frame-alist' for details."
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
   :group 'supercite-frames)
+(put 'sc-uncite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-recite-frame-alist '()
   "*Alist for frame selection during reciting.
@@ -169,6 +171,7 @@ See the variable `sc-cite-frame-alist' for details."
 					    (choice (repeat (repeat sexp))
 						    symbol)))))
   :group 'supercite-frames)
+(put 'sc-recite-frame-alist 'risky-local-variable t)
 
 (defcustom sc-default-cite-frame
   '(;; initialize fill state and temporary variables when entering
@@ -214,6 +217,7 @@ See the variable `sc-cite-frame-alist' for details."
   "*Default REGI frame for citing a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
+(put 'sc-default-cite-frame 'risky-local-variable t)
 
 (defcustom sc-default-uncite-frame
   '(;; do nothing on a blank line
@@ -224,6 +228,7 @@ See the variable `sc-cite-frame-alist' for details."
   "*Default REGI frame for unciting a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
+(put 'sc-default-uncite-frame 'risky-local-variable t)
 
 (defcustom sc-default-recite-frame
   '(;; initialize fill state when entering frame
@@ -240,6 +245,7 @@ See the variable `sc-cite-frame-alist' for details."
   "*Default REGI frame for reciting a region."
   :type '(repeat (repeat sexp))
   :group 'supercite-frames)
+(put 'sc-default-recite-frame 'risky-local-variable t)
 
 (defcustom sc-cite-region-limit t
   "*This variable controls automatic citation of yanked text.
@@ -427,6 +433,7 @@ to be consulted during attribution selection."
 				     (choice (sexp :tag "List to eval")
 					     string)))))
   :group 'supercite-attr)
+(put 'sc-attrib-selection-list 'risky-local-variable t)
 
 (defcustom sc-attribs-preselect-hook nil
   "*Hook to run before selecting an attribution."
@@ -482,6 +489,7 @@ this list is chosen for automatic reference header insertions.
 Electric reference mode will cycle through this list of functions."
   :type '(repeat sexp)
   :group 'supercite)
+(put 'sc-rewrite-header-list 'risky-local-variable t)
 
 (defcustom sc-titlecue-regexp "\\s +-+\\s +"
   "*Regular expression describing the separator between names and titles.
