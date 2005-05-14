@@ -1,3 +1,8 @@
+2005-05-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (interpreter-mode-alist)
+	(auto-mode-interpreter-regexp): Doc fixes.
+
 2005-05-13  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* tmm.el (tmm-get-keymap): Include only active menus and menu
