@@ -541,7 +541,7 @@ DIR should be an absolute directory name.  It defaults to
 the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
-  (read-file-name prompt dir (or default-dirname 
+  (read-file-name prompt dir (or default-dirname
 				 (if initial (expand-file-name initial dir)
 				   dir))
 		  mustmatch initial
@@ -1944,7 +1944,7 @@ and `magic-mode-alist', which determines modes based on file contents.")
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
-The car of each element is compared with
+The car of each element, a regular expression, is compared with
 the name of the interpreter specified in the first line.
 If it matches, mode MODE is selected.
 
@@ -1961,13 +1961,12 @@ from the end of the file name anything that matches one of these regexps.")
 (defvar auto-mode-interpreter-regexp
   "#![ \t]?\\([^ \t\n]*\
 /bin/env[ \t]\\)?\\([^ \t\n]+\\)"
-  "Regular expression matching interpreters, for file mode determination.
+  "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
-to determine the file's mode in `set-auto-mode' when Emacs can't deduce
-a mode from the file's name.  If it matches, the file is assumed to
-be interpreted by the interpreter matched by the second group of the
-regular expression.  The mode is then determined as the mode associated
-with that interpreter in `interpreter-mode-alist'.")
+to determine the file's mode in `set-auto-mode'.  If it matches, the file
+is assumed to be interpreted by the interpreter matched by the second group
+of the regular expression.  The mode is then determined as the mode
+associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
   `(;; The < comes before the groups (but the first) to reduce backtracking.
