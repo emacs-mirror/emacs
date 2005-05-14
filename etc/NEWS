@@ -1695,43 +1695,46 @@ This was actually done in Emacs-21.1, and was not documented.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
-** Makefile mode has now been split up into specialized modes for automake,
-gmake, makepp and BSD make.  The former two couldn't be differentiated before,
-and the latter two are new.  Font-locking is robust now and offers new
-customizable faces.
+** Makefile mode has submodes for automake, gmake, makepp and BSD make.
+
+The former two couldn't be differentiated before, and the latter two
+are new.  Font-locking is robust now and offers new customizable
+faces.
 
 +++
-** In Outline mode, hide-body no longer hides lines at the top
+** In Outline mode, `hide-body' no longer hides lines at the top
 of the file that precede the first header line.
 
 +++
 ** Telnet now prompts you for a port number with C-u M-x telnet.
 
 ---
-** The terminal emulation code in term.el has been improved, it can
+** The terminal emulation code in term.el has been improved; it can
 run most curses applications now.
 
 +++
-** M-x diff uses diff-mode instead of compilation-mode.
+** M-x diff uses Diff mode instead of Compilation mode.
 
 +++
-** You can now customize fill-nobreak-predicate to control where
+** You can now customize `fill-nobreak-predicate' to control where
 filling can break lines.  The value is now normally a list of
 functions, but it can also be a single function, for compatibility.
 
-We provide two sample predicates, fill-single-word-nobreak-p and
-fill-french-nobreak-p, for use in the value of fill-nobreak-predicate.
+Emacs provide two predicates, `fill-single-word-nobreak-p' and
+`fill-french-nobreak-p', for use as the value of
+`fill-nobreak-predicate'.
 
 ---
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
 ---
-** Commands winner-redo and winner-undo, from winner.el, are now bound to
-C-c <left> and C-c <right>, respectively.  This is an incompatible change.
+** Commands `winner-redo' and `winner-undo', from winner.el, are now
+bound to C-c <left> and C-c <right>, respectively.  This is an
+incompatible change.
 
 ---
-** global-whitespace-mode is a new alias for whitespace-global-mode.
+** `global-whitespace-mode' is a new alias for `whitespace-global-mode'.
 
 +++
 ** M-x compare-windows now can automatically skip non-matching text to
@@ -1739,6 +1742,7 @@ resync points in both windows.
 
 +++
 ** New user option `add-log-always-start-new-record'.
+
 When this option is enabled, M-x add-change-log-entry always
 starts a new record regardless of when the last record is.
 
@@ -1750,10 +1754,11 @@ when Emacs visits them.
 
 +++
 *** A numeric prefix argument of `info' selects an Info buffer
-with the number appended to the *info* buffer name (e.g. "*info*<2>").
+with the number appended to the `*info*' buffer name (e.g. "*info*<2>").
 
 ---
 *** isearch in Info uses Info-search and searches through multiple nodes.
+
 Before leaving the initial Info node isearch fails once with the error
 message [initial node], and with subsequent C-s/C-r continues through
 other nodes.  When isearch fails for the rest of the manual, it wraps
@@ -1792,11 +1797,13 @@ references and following them calls `browse-url'.
 
 +++
 *** Info now hides node names in menus and cross references by default.
+
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
 
 ---
 *** Images in Info pages are supported.
+
 Info pages show embedded images, in Emacs frames with image support.
 Info documentation that includes images, processed with makeinfo
 version 4.7 or newer, compiles to Info pages with embedded images.
@@ -1805,25 +1812,24 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 *** The default value for `Info-scroll-prefer-subnodes' is now nil.
 
 ---
-*** Info-index offers completion.
+*** `Info-index' offers completion.
 
 ** Lisp mode changes:
 
 ---
-*** Lisp mode now uses font-lock-doc-face for the docstrings.
+*** Lisp mode now uses `font-lock-doc-face' for doc strings.
 
 +++
-*** A prefix argument of C-M-q in Emacs Lisp mode pretty-printifies the
-list starting after point.
+*** C-u C-M-q in Emacs Lisp mode pretty-prints the list after point.
 
 *** New features in evaluation commands
 
 +++
-*** The function `eval-defun' (C-M-x) called on defface reinitializes
+**** The function `eval-defun' (C-M-x) called on defface reinitializes
 the face to the value specified in the defface expression.
 
 +++
-*** Typing C-x C-e twice prints the value of the integer result
+**** Typing C-x C-e twice prints the value of the integer result
 in additional formats (octal, hexadecimal, character) specified
 by the new function `eval-expression-print-format'.  The same
 function also defines the result format for `eval-expression' (M-:),
@@ -1949,23 +1955,23 @@ module-open, module-close, inmodule, composition-open,
 composition-close, and incomposition.
 
 *** New functions to do hungry delete without enabling hungry delete mode.
-The functions c-hungry-backspace and c-hungry-delete-forward can be
+The functions `c-hungry-backspace' and `c-hungry-delete-forward' can be
 bound to keys to get this feature without toggling a mode.
-Contributed by Kevin Ryde.
 
-*** Better control over require-final-newline.  The variable that
-controls how to handle a final newline when the buffer is saved,
-require-final-newline, is now customizable on a per-mode basis through
-c-require-final-newline.  That is a list of modes, and only those
-modes set require-final-newline.  By default that's C, C++ and
-Objective-C.
+*** Better control over `require-final-newline'.
 
-The specified modes set require-final-newline based on
-mode-require-final-newline, as usual.
+The variable `c-require-final-newline' specifies which of the modes
+implemented by CC mode should insert final newlines.  Its value is a
+list of modes, and only those modes should do it.  By default the list
+includes C, C++ and Objective-C modes.
+
+Whichever modes are in this list will set `require-final-newline'
+based on `mode-require-final-newline'.
 
 *** Format change for syntactic context elements.
-The elements in the syntactic context returned by c-guess-basic-syntax
-and stored in c-syntactic-context has been changed somewhat to allow
+
+The elements in the syntactic context returned by `c-guess-basic-syntax'
+and stored in `c-syntactic-context' has been changed somewhat to allow
 attaching more information.  They are now lists instead of single cons
 cells.  E.g. a line that previously had the syntactic analysis
 
@@ -1978,12 +1984,13 @@ is now analysed as
 In some cases there are more than one position given for a syntactic
 symbol.
 
-This change might affect code that call c-guess-basic-syntax directly,
-and custom lineup functions if they use c-syntactic-context.  However,
+This change might affect code that call `c-guess-basic-syntax' directly,
+and custom lineup functions if they use `c-syntactic-context'.  However,
 the argument given to lineup functions is still a single cons cell
 with nil or an integer in the cdr.
 
 *** API changes for derived modes.
+
 There have been extensive changes "under the hood" which can affect
 derived mode writers.  Some of these changes are likely to cause
 incompatibilities with existing derived modes, but on the other hand
@@ -1995,8 +2002,8 @@ See the comment blurb near the top of cc-langs.el.
 
 **** New initialization functions.
 The initialization procedure has been split up into more functions to
-give better control: c-basic-common-init, c-font-lock-init, and
-c-init-language-vars.
+give better control: `c-basic-common-init', `c-font-lock-init', and
+`c-init-language-vars'.
 
 *** Changes in analysis of nested syntactic constructs.
 The syntactic analysis engine has better handling of cases where
@@ -2022,33 +2029,34 @@ its substatement.  E.g:
 **** Syntactic indentation inside macros.
 The contents of multiline #define's are now analyzed and indented
 syntactically just like other code.  This can be disabled by the new
-variable c-syntactic-indentation-in-macros.  A new syntactic symbol
-cpp-define-intro has been added to control the initial indentation
-inside #define's.
+variable `c-syntactic-indentation-in-macros'.  A new syntactic symbol
+`cpp-define-intro' has been added to control the initial indentation
+inside `#define's.
 
-**** New lineup function c-lineup-cpp-define.
+**** New lineup function `c-lineup-cpp-define'.
+
 Now used by default to line up macro continuation lines.  The behavior
 of this function closely mimics the indentation one gets if the macro
 is indented while the line continuation backslashes are temporarily
 removed.  If syntactic indentation in macros is turned off, it works
-much line c-lineup-dont-change, which was used earlier, but handles
+much line `c-lineup-dont-change', which was used earlier, but handles
 empty lines within the macro better.
 
 **** Automatically inserted newlines continues the macro if used within one.
 This applies to the newlines inserted by the auto-newline mode, and to
-c-context-line-break and c-context-open-line.
+`c-context-line-break' and `c-context-open-line'.
 
 **** Better alignment of line continuation backslashes.
-c-backslash-region tries to adapt to surrounding backslashes.  New
-variable c-backslash-max-column which put a limit on how far out
+`c-backslash-region' tries to adapt to surrounding backslashes.  New
+variable `c-backslash-max-column' which put a limit on how far out
 backslashes can be moved.
 
 **** Automatic alignment of line continuation backslashes.
-This is controlled by the new variable c-auto-align-backslashes.  It
-affects c-context-line-break, c-context-open-line and newlines
-inserted in auto-newline mode.
-
+This is controlled by the new variable `c-auto-align-backslashes'.  It
+affects `c-context-line-break', `c-context-open-line' and newlines
+inserted in Auto-Newline mode.
 **** Line indentation works better inside macros.
+
 Regardless whether syntactic indentation and syntactic indentation
 inside macros are enabled or not, line indentation now ignores the
 line continuation backslashes.  This is most noticeable when syntactic
@@ -2057,37 +2065,35 @@ backslash) in the macro.
 
 *** indent-for-comment is more customizable.
 The behavior of M-; (indent-for-comment) is now configurable through
-the variable c-indent-comment-alist.  The indentation behavior based
+the variable `c-indent-comment-alist'.  The indentation behavior based
 on the preceding code on the line, e.g. to get two spaces after #else
-and #endif but indentation to comment-column in most other cases
+and #endif but indentation to `comment-column' in most other cases
 (something which was hardcoded earlier).
 
-*** New function c-context-open-line.
-It's the open-line equivalent of c-context-line-break.
+*** New function `c-context-open-line'.
+It's the open-line equivalent of `c-context-line-break'.
 
 *** New lineup functions
 
-**** c-lineup-string-cont
+**** `c-lineup-string-cont'
 This lineup function lines up a continued string under the one it
 continues.  E.g:
 
 result = prefix + "A message "
                   "string.";      <- c-lineup-string-cont
 
-**** c-lineup-cascaded-calls
+**** `c-lineup-cascaded-calls'
 Lines up series of calls separated by "->" or ".".
 
-**** c-lineup-knr-region-comment
+**** `c-lineup-knr-region-comment'
 Gives (what most people think is) better indentation of comments in
 the "K&R region" between the function header and its body.
 
-**** c-lineup-gcc-asm-reg
-Provides better indentation inside asm blocks.  Contributed by Kevin
-Ryde.
+**** `c-lineup-gcc-asm-reg'
+Provides better indentation inside asm blocks.
 
-**** c-lineup-argcont
+**** `c-lineup-argcont'
 Lines up continued function arguments after the preceding comma.
-Contributed by Kevin Ryde.
 
 *** Better caching of the syntactic context.
 CC Mode caches the positions of the opening parentheses (of any kind)
@@ -2107,7 +2113,7 @@ Statements are recognized most of the time even when they occur in an
 "invalid" context, e.g. in a function argument.  In practice that can
 happen when macros are involved.
 
-*** Improved the way c-indent-exp chooses the block to indent.
+*** Improved the way `c-indent-exp' chooses the block to indent.
 It now indents the block for the closest sexp following the point
 whose closing paren ends on a different line.  This means that the
 point doesn't have to be immediately before the block to indent.
@@ -2115,7 +2121,7 @@ Also, only the block and the closing line is indented; the current
 line is left untouched.
 
 *** Added toggle for syntactic indentation.
-The function c-toggle-syntactic-indentation can be used to toggle
+The function `c-toggle-syntactic-indentation' can be used to toggle
 syntactic indentation.
 
 ---
@@ -2145,7 +2151,7 @@ Lines that match are never indented, and are given distinctive font-locking.
 `fortran-beginning-of-block'.
 
 ---
-*** F90 mode and Fortran mode have support for hs-minor-mode (hideshow).
+*** F90 mode and Fortran mode have support for `hs-minor-mode' (hideshow).
 It cannot deal with every code format, but ought to handle a sizeable
 majority.
 
@@ -2190,50 +2196,51 @@ TeX commands to use at startup.
 and super/sub-scripts are made into super/sub-scripts.
 
 +++
-*** New major mode doctex-mode for *.dtx files.
+*** New major mode Doctex mode, for *.dtx files.
 
 ** BibTeX mode:
-*** The new command bibtex-url browses a URL for the BibTeX entry at
+
+*** The new command `bibtex-url' browses a URL for the BibTeX entry at
 point (bound to C-c C-l and mouse-2, RET on clickable fields).
 
-*** The new command bibtex-entry-update (bound to C-c C-u) updates
+*** The new command `bibtex-entry-update' (bound to C-c C-u) updates
 an existing BibTeX entry.
 
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 
-*** bibtex-maintain-sorted-entries can take values `plain',
+*** `bibtex-maintain-sorted-entries' can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
 for BibTeX entries.  `bibtex-sort-entry-class' controls the sorting
 scheme `entry-class'.  TAB completion for reference keys and
 automatic detection of duplicates does not require anymore that
-bibtex-maintain-sorted-entries is non-nil.
+`bibtex-maintain-sorted-entries' is non-nil.
 
-*** If the new variable bibtex-parse-keys-fast is non-nil,
+*** If the new variable `bibtex-parse-keys-fast' is non-nil,
 use fast but simplified algorithm for parsing BibTeX keys.
 
-*** If the new variable bibtex-autoadd-commas is non-nil,
+*** If the new variable `bibtex-autoadd-commas' is non-nil,
 automatically add missing commas at end of BibTeX fields.
 
-*** The new variable bibtex-autofill-types contains a list of entry
+*** The new variable `bibtex-autofill-types' contains a list of entry
 types for which fields are filled automatically (if possible).
 
-*** The new command bibtex-complete completes word fragment before
+*** The new command `bibtex-complete' completes word fragment before
 point according to context (bound to M-tab).
 
-*** The new commands bibtex-find-entry and bibtex-find-crossref
+*** The new commands `bibtex-find-entry' and `bibtex-find-crossref'
 locate entries and crossref'd entries (bound to C-c C-s and C-c C-x).
 Crossref fields are clickable (bound to mouse-2, RET).
 
-*** In BibTeX mode the command fill-paragraph (bound to M-q) fills
+*** In BibTeX mode the command `fill-paragraph' (M-q) fills
 individual fields of a BibTeX entry.
 
-*** The new variables bibtex-files and bibtex-file-path define a set
+*** The new variables `bibtex-files' and `bibtex-file-path' define a set
 of BibTeX files that are searched for entry keys.
 
-*** The new command bibtex-validate-globally checks for duplicate keys
+*** The new command `bibtex-validate-globally' checks for duplicate keys
 in multiple BibTeX files.
 
-*** The new command bibtex-copy-summary-as-kill pushes summary
+*** The new command `bibtex-copy-summary-as-kill' pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
 
 +++
@@ -2262,7 +2269,7 @@ Emacs 21 such as the display margin for breakpoints, and the toolbar.
 Use M-x gdba to start GDB-UI.
 
 *** GUD tooltips can be toggled independently of normal tooltips
-with the minor mode, gud-tooltip-mode.
+with the minor mode `gud-tooltip-mode'.
 
 +++
 *** In graphical mode, with a C program, GUD Tooltips have been extended to
@@ -2288,27 +2295,27 @@ not executing.
 
 *** The previous method of searching for source files has been
     preserved in case someone still wants/needs to use it.
-    Set gud-jdb-use-classpath to nil.
+    Set `gud-jdb-use-classpath' to nil.
 
   Added Customization Variables
 
-*** gud-jdb-command-name.  What command line to use to invoke jdb.
+*** `gud-jdb-command-name'.  What command line to use to invoke jdb.
 
-*** gud-jdb-use-classpath. Allows selection of java source file searching
-    method: set to t for new method, nil to scan gud-jdb-directories for
+*** `gud-jdb-use-classpath'. Allows selection of java source file searching
+    method: set to t for new method, nil to scan `gud-jdb-directories' for
     java sources (previous method).
 
-*** gud-jdb-directories. List of directories to scan and search for java
-    classes using the original gud-jdb method (if gud-jdb-use-classpath
+*** `gud-jdb-directories'. List of directories to scan and search for java
+    classes using the original gud-jdb method (if `gud-jdb-use-classpath'
     is nil).
 
   Minor Improvements
 
 *** The STARTTLS wrapper (starttls.el) can now use GNUTLS
-instead of the OpenSSL based "starttls" tool.  For backwards
-compatibility, it prefers "starttls", but you can toggle
+instead of the OpenSSL based `starttls' tool.  For backwards
+compatibility, it prefers `starttls', but you can toggle
 `starttls-use-gnutls' to switch to GNUTLS (or simply remove the
-"starttls" tool).
+`starttls' tool).
 
 *** Do not allow debugger output history variable to grow without bounds.
 
@@ -2316,6 +2323,7 @@ compatibility, it prefers "starttls", but you can toggle
 
 +++
 *** You can now use Auto Revert mode to `tail' a file.
+
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
 displayed at the end of a file buffer in any window, it stays at
@@ -2371,17 +2379,20 @@ old name remains available as alias, but has been marked obsolete.
 ** Desktop package
 
 +++
-*** Desktop saving is now a minor mode, desktop-save-mode. Variable
-desktop-enable is obsolete. Customize desktop-save-mode to enable desktop
-saving.
+*** Desktop saving is now a minor mode, `desktop-save-mode'.
+
+*** The variable `desktop-enable' is obsolete.
+
+Customize `desktop-save-mode' to enable desktop saving.
 
 ---
 *** Buffers are saved in the desktop file in the same order as that in the
 buffer list.
 
 +++
-*** The desktop package can be customized to restore only some buffers immediately,
-remaining buffers are restored lazily (when Emacs is idle).
+*** The desktop package can be customized to restore only some buffers
+immediately, remaining buffers are restored lazily (when Emacs is
+idle).
 
 +++
 *** New commands:
