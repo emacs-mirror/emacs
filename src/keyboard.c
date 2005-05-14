@@ -3167,6 +3167,161 @@ some_mouse_moved ()
 
 #endif	/* HAVE_MOUSE */
 
+/* This routine is called at interrupt level in response to C-G.
+   
+   If interrupt_input, this is the handler for SIGINT.  Otherwise, it
+   is called from kbd_buffer_store_event, in handling SIGIO or
+   SIGTINT.
+
+   If `waiting_for_input' is non zero, then unless `echoing' is
+   nonzero, immediately throw back to read_char.
+
+   Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
+   eval to throw, when it gets a chance.  If quit-flag is already
+   non-nil, it stops the job right away.  */
+
+SIGTYPE
+interrupt_signal (signalnum)	/* If we don't have an argument, */
+     int signalnum;		/* some compilers complain in signal calls. */
+{
+  char c;
+  /* Must preserve main program's value of errno.  */
+  int old_errno = errno;
+  struct frame *sf = SELECTED_FRAME ();
+
+#if defined (USG) && !defined (POSIX_SIGNALS)
+  if (!read_socket_hook && NILP (Vwindow_system))
+    {
+      /* USG systems forget handlers when they are used;
+	 must reestablish each time */
+      signal (SIGINT, interrupt_signal);
+      signal (SIGQUIT, interrupt_signal);
+    }
+#endif /* USG */
+
+  cancel_echoing ();
+
+  if (!NILP (Vquit_flag)
+      && (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf)))
+    {
+      /* If SIGINT isn't blocked, don't let us be interrupted by
+	 another SIGINT, it might be harmful due to non-reentrancy
+	 in I/O functions.  */
+      sigblock (sigmask (SIGINT));
+
+      fflush (stdout);
+      reset_sys_modes ();
+
+#ifdef SIGTSTP			/* Support possible in later USG versions */
+/*
+ * On systems which can suspend the current process and return to the original
+ * shell, this command causes the user to end up back at the shell.
+ * The "Auto-save" and "Abort" questions are not asked until
+ * the user elects to return to emacs, at which point he can save the current
+ * job and either dump core or continue.
+ */
+      sys_suspend ();
+#else
+#ifdef VMS
+      if (sys_suspend () == -1)
+	{
+	  printf ("Not running as a subprocess;\n");
+	  printf ("you can continue or abort.\n");
+	}
+#else /* not VMS */
+      /* Perhaps should really fork an inferior shell?
+	 But that would not provide any way to get back
+	 to the original shell, ever.  */
+      printf ("No support for stopping a process on this operating system;\n");
+      printf ("you can continue or abort.\n");
+#endif /* not VMS */
+#endif /* not SIGTSTP */
+#ifdef MSDOS
+      /* We must remain inside the screen area when the internal terminal
+	 is used.  Note that [Enter] is not echoed by dos.  */
+      cursor_to (0, 0);
+#endif
+      /* It doesn't work to autosave while GC is in progress;
+	 the code used for auto-saving doesn't cope with the mark bit.  */
+      if (!gc_in_progress)
+	{
+	  printf ("Auto-save? (y or n) ");
+	  fflush (stdout);
+	  if (((c = getchar ()) & ~040) == 'Y')
+	    {
+	      Fdo_auto_save (Qt, Qnil);
+#ifdef MSDOS
+	      printf ("\r\nAuto-save done");
+#else /* not MSDOS */
+	      printf ("Auto-save done\n");
+#endif /* not MSDOS */
+	    }
+	  while (c != '\n') c = getchar ();
+	}
+      else 
+	{
+	  /* During GC, it must be safe to reenable quitting again.  */
+	  Vinhibit_quit = Qnil;
+#ifdef MSDOS
+	  printf ("\r\n");
+#endif /* not MSDOS */
+	  printf ("Garbage collection in progress; cannot auto-save now\r\n");
+	  printf ("but will instead do a real quit after garbage collection ends\r\n");
+	  fflush (stdout);
+	}
+
+#ifdef MSDOS
+      printf ("\r\nAbort?  (y or n) ");
+#else /* not MSDOS */
+#ifdef VMS
+      printf ("Abort (and enter debugger)? (y or n) ");
+#else /* not VMS */
+      printf ("Abort (and dump core)? (y or n) ");
+#endif /* not VMS */
+#endif /* not MSDOS */
+      fflush (stdout);
+      if (((c = getchar ()) & ~040) == 'Y')
+	abort ();
+      while (c != '\n') c = getchar ();
+#ifdef MSDOS
+      printf ("\r\nContinuing...\r\n");
+#else /* not MSDOS */
+      printf ("Continuing...\n");
+#endif /* not MSDOS */
+      fflush (stdout);
+      init_sys_modes ();
+      sigfree ();
+    }
+  else
+    {
+      /* If executing a function that wants to be interrupted out of
+	 and the user has not deferred quitting by binding `inhibit-quit'
+	 then quit right away.  */
+      if (immediate_quit && NILP (Vinhibit_quit))
+	{
+	  struct gl_state_s saved;
+	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
+
+	  immediate_quit = 0;
+          sigfree ();
+	  saved = gl_state;
+	  GCPRO4 (saved.object, saved.global_code,
+		  saved.current_syntax_table, saved.old_prop);
+	  Fsignal (Qquit, Qnil);
+	  gl_state = saved;
+	  UNGCPRO;
+	}
+      else
+	/* Else request quit when it's safe */
+	Vquit_flag = Qt;
+    }
+
+  if (waiting_for_input && !echoing)
+    quit_throw_to_read_char ();
+
+  errno = old_errno;
+}
+
 /* Low level keyboard/mouse input.
    kbd_buffer_store_event places events in kbd_buffer, and
    kbd_buffer_get_event retrieves them.  */
@@ -3248,7 +3403,6 @@ kbd_buffer_store_event (event)
 
       if (c == quit_char)
 	{
-	  extern SIGTYPE interrupt_signal ();
 #ifdef MULTI_KBOARD
 	  KBOARD *kb;
 	  struct input_event *sp;
@@ -9811,161 +9965,6 @@ clear_waiting_for_input ()
   /* Tell interrupt_signal not to throw back to read_char,  */
   waiting_for_input = 0;
   input_available_clear_time = 0;
-}
-
-/* This routine is called at interrupt level in response to C-G.
-   
-   If interrupt_input, this is the handler for SIGINT.  Otherwise, it
-   is called from kbd_buffer_store_event, in handling SIGIO or
-   SIGTINT.
-
-   If `waiting_for_input' is non zero, then unless `echoing' is
-   nonzero, immediately throw back to read_char.
-
-   Otherwise it sets the Lisp variable quit-flag not-nil.  This causes
-   eval to throw, when it gets a chance.  If quit-flag is already
-   non-nil, it stops the job right away.  */
-
-SIGTYPE
-interrupt_signal (signalnum)	/* If we don't have an argument, */
-     int signalnum;		/* some compilers complain in signal calls. */
-{
-  char c;
-  /* Must preserve main program's value of errno.  */
-  int old_errno = errno;
-  struct frame *sf = SELECTED_FRAME ();
-
-#if defined (USG) && !defined (POSIX_SIGNALS)
-  if (!read_socket_hook && NILP (Vwindow_system))
-    {
-      /* USG systems forget handlers when they are used;
-	 must reestablish each time */
-      signal (SIGINT, interrupt_signal);
-      signal (SIGQUIT, interrupt_signal);
-    }
-#endif /* USG */
-
-  cancel_echoing ();
-
-  if (!NILP (Vquit_flag)
-      && (FRAME_TERMCAP_P (sf) || FRAME_MSDOS_P (sf)))
-    {
-      /* If SIGINT isn't blocked, don't let us be interrupted by
-	 another SIGINT, it might be harmful due to non-reentrancy
-	 in I/O functions.  */
-      sigblock (sigmask (SIGINT));
-
-      fflush (stdout);
-      reset_sys_modes ();
-
-#ifdef SIGTSTP			/* Support possible in later USG versions */
-/*
- * On systems which can suspend the current process and return to the original
- * shell, this command causes the user to end up back at the shell.
- * The "Auto-save" and "Abort" questions are not asked until
- * the user elects to return to emacs, at which point he can save the current
- * job and either dump core or continue.
- */
-      sys_suspend ();
-#else
-#ifdef VMS
-      if (sys_suspend () == -1)
-	{
-	  printf ("Not running as a subprocess;\n");
-	  printf ("you can continue or abort.\n");
-	}
-#else /* not VMS */
-      /* Perhaps should really fork an inferior shell?
-	 But that would not provide any way to get back
-	 to the original shell, ever.  */
-      printf ("No support for stopping a process on this operating system;\n");
-      printf ("you can continue or abort.\n");
-#endif /* not VMS */
-#endif /* not SIGTSTP */
-#ifdef MSDOS
-      /* We must remain inside the screen area when the internal terminal
-	 is used.  Note that [Enter] is not echoed by dos.  */
-      cursor_to (0, 0);
-#endif
-      /* It doesn't work to autosave while GC is in progress;
-	 the code used for auto-saving doesn't cope with the mark bit.  */
-      if (!gc_in_progress)
-	{
-	  printf ("Auto-save? (y or n) ");
-	  fflush (stdout);
-	  if (((c = getchar ()) & ~040) == 'Y')
-	    {
-	      Fdo_auto_save (Qt, Qnil);
-#ifdef MSDOS
-	      printf ("\r\nAuto-save done");
-#else /* not MSDOS */
-	      printf ("Auto-save done\n");
-#endif /* not MSDOS */
-	    }
-	  while (c != '\n') c = getchar ();
-	}
-      else 
-	{
-	  /* During GC, it must be safe to reenable quitting again.  */
-	  Vinhibit_quit = Qnil;
-#ifdef MSDOS
-	  printf ("\r\n");
-#endif /* not MSDOS */
-	  printf ("Garbage collection in progress; cannot auto-save now\r\n");
-	  printf ("but will instead do a real quit after garbage collection ends\r\n");
-	  fflush (stdout);
-	}
-
-#ifdef MSDOS
-      printf ("\r\nAbort?  (y or n) ");
-#else /* not MSDOS */
-#ifdef VMS
-      printf ("Abort (and enter debugger)? (y or n) ");
-#else /* not VMS */
-      printf ("Abort (and dump core)? (y or n) ");
-#endif /* not VMS */
-#endif /* not MSDOS */
-      fflush (stdout);
-      if (((c = getchar ()) & ~040) == 'Y')
-	abort ();
-      while (c != '\n') c = getchar ();
-#ifdef MSDOS
-      printf ("\r\nContinuing...\r\n");
-#else /* not MSDOS */
-      printf ("Continuing...\n");
-#endif /* not MSDOS */
-      fflush (stdout);
-      init_sys_modes ();
-      sigfree ();
-    }
-  else
-    {
-      /* If executing a function that wants to be interrupted out of
-	 and the user has not deferred quitting by binding `inhibit-quit'
-	 then quit right away.  */
-      if (immediate_quit && NILP (Vinhibit_quit))
-	{
-	  struct gl_state_s saved;
-	  struct gcpro gcpro1, gcpro2, gcpro3, gcpro4;
-
-	  immediate_quit = 0;
-          sigfree ();
-	  saved = gl_state;
-	  GCPRO4 (saved.object, saved.global_code,
-		  saved.current_syntax_table, saved.old_prop);
-	  Fsignal (Qquit, Qnil);
-	  gl_state = saved;
-	  UNGCPRO;
-	}
-      else
-	/* Else request quit when it's safe */
-	Vquit_flag = Qt;
-    }
-
-  if (waiting_for_input && !echoing)
-    quit_throw_to_read_char ();
-
-  errno = old_errno;
 }
 
 /* Handle a C-g by making read_char return C-g.  */

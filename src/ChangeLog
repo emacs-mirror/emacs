@@ -1,3 +1,10 @@
+2005-05-14  Eli Zaretskii  <eliz@gnu.org>
+
+	* keyboard.c (interrupt_signal): Move before readable_events to
+	avoid forward references (that could cause gas errors).
+	(kbd_buffer_store_event): Remove now redundant declaration of
+	interrupt_signal.
+
 2004-02-18  Jason Rumney  <jasonr@gnu.org>
 
 	* unexw32.c (_start): Remove _fmode initialization.
