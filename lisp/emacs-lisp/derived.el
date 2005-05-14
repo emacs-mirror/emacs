@@ -158,7 +158,9 @@ Note that if the documentation string had been left out, it would have
 been generated automatically, with a reference to the keymap.
 
 The new mode runs the hook constructed by the function
-`derived-mode-hook-name'."
+`derived-mode-hook-name'.
+
+See Info node `(elisp)Derived Modes' for more details."
   (declare (debug (&define name symbolp sexp [&optional stringp]
 			   [&rest keywordp sexp] def-body)))
 
