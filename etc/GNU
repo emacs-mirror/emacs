@@ -446,7 +446,7 @@ operating systems onto the new hardware.
    The sale of teaching, hand-holding and maintenance services could
 also employ programmers.
 
-   People with new ideas could distribute programs as freeware, asking
+   People with new ideas could distribute programs as freeware(7), asking
 for donations from satisfied users, or selling hand-holding services.
 I have met people who are already working this way successfully.
 
@@ -534,3 +534,10 @@ lead others to suppose that those laws form one coherent issue.  The way to be
 clear is to to discuss patents, copyrights, and trademarks separately.
 See http://www.gnu.org/philosophy/not-ipr.xhtml for more explanation
 of how this term spreads confusion and bias.
+
+   (7) In 1985 I had not yet recognize it is important to distinguish
+clearly between "free software" and "freeware".  The term "freeware"
+means you are free to redistribute the software--but not necessarily
+free to study and change the source code.  So it is not the same as
+free software.  See http://www.gnu.org/philosophy/words-to-avoid.html
+for more explanation.
