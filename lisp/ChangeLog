@@ -1,3 +1,28 @@
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/cc-engine.el (c-literal-faces):
+	Add font-lock-comment-delimiter-face.
+
+	* net/net-utils.el (dig): Use with-no-warnings.
+
+	* mail/supercite.el (sc-cite-frame-alist, sc-uncite-frame-alist)
+	(sc-recite-frame-alist, sc-default-cite-frame)
+	(sc-default-uncite-frame, sc-default-recite-frame)
+	(sc-attrib-selection-list, sc-rewrite-header-list): 
+	Mark as risky-local-variable.
+
+	* international/ogonek.el (ogonek-jak, ogonek-how):
+	Don't use beginning-of-buffer.
+
+	* emacs-lisp/eldoc.el (eldoc-documentation-function): Add autoload.
+
+	* calendar/solar.el (solar-data-list): Move definition up.
+
+	* dnd.el (dnd-protocol-alist): Add autoload.
+
+	* progmodes/sh-script.el: Many doc usage fixes.
+	(sh-indent-after-do): Change default to match common styles.
+
 2005-05-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.el (interpreter-mode-alist)
