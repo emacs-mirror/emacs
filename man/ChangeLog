@@ -1,3 +1,14 @@
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi (Moving Point): Mention `M-g g' binding for `goto-line'.
+	(Position Info): Delete discussion of `goto-line'.  It is already
+	described in `Moving point'.
+
+	* mini.texi (Completion Commands): Correct reference.
+	(Completion Options): Fix typo.
+
+	* killing.texi (Deletion): Complete description of `C-x C-o'.
+
 2005-05-10  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Default Simplifications): Mention that 0^0 simplifies
