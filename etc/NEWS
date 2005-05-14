@@ -677,14 +677,8 @@ elements are deleted.
 When the file is maintained under version control, that information
 appears between the position information and the major mode.
 
-*** Easy to overlook single character negation is now font-locked.
-You can use the new variable `font-lock-negation-char-face' and the face of
-the same name to customize this.  Currently the cc-modes, sh-script-mode,
-cperl-mode and make-mode support this.
-
 +++
-*** Control characters and escape glyphs are now shown in the new
-escape-glyph face.
+*** New face `escape-glyph' highlights control characters and escape glyphs.
 
 +++
 *** Non-breaking space and hyphens are now prefixed with an escape
@@ -819,6 +813,16 @@ an open-paren in column 0 is always outside of any string or comment,
 font-lock now highlights any such open-paren-in-column-zero in bold-red
 if it is inside a string or a comment, to indicate that it can cause
 trouble with fontification and/or indentation.
+
++++
+*** New standard font-lock face `font-lock-preprocessor-face'.
+
+*** New standard font-lock face `font-lock-comment-delimiter-face'.
+
+*** Easy to overlook single character negation is now font-locked.
+You can use the new variable `font-lock-negation-char-face' and the face of
+the same name to customize this.  Currently the cc-modes, sh-script-mode,
+cperl-mode and make-mode support this.
 
 ---
 *** The default settings for JIT stealth lock parameters are changed.
@@ -3921,35 +3925,38 @@ number P is represented as a five element vector [A B C D P], and the
 printable string returned for this vector is "A.B.C.D:P".  See the doc
 string for other formatting options.
 
-*** By default, the function process-contact still returns (HOST SERVICE)
-for a network process.  Using the new optional KEY arg, the complete list
-of network process properties or a specific property can be selected.
+*** `process-contact' has an optional KEY argument.
 
-Using :local and :remote as the KEY, the address of the local or
-remote end-point is returned.  An Inet address is represented as a 5
-element vector, where the first 4 elements contain the IP address and
-the fifth is the port number.
+Depending on this argument, you can get the complete list of network
+process properties or a specific property.  Using :local or :remote as
+the KEY, you get the address of the local or remote end-point.
 
-*** Network processes can now be stopped and restarted with
-`stop-process' and `continue-process'.  For a server process, no
-connections are accepted in the stopped state.  For a client process,
-no input is received in the stopped state.
+An Inet address is represented as a 5 element vector, where the first
+4 elements contain the IP address and the fifth is the port number.
 
-*** New function network-interface-list.
+*** New functions `stop-process' and `continue-process'.
+
+These functions stop and restart communication through a network
+connection.  For a server process, no connections are accepted in the
+stopped state.  For a client process, no input is received in the
+stopped state.
+
+*** New function `network-interface-list'.
 
 This function returns a list of network interface names and their
 current network addresses.
 
-*** New function network-interface-info.
+*** New function `network-interface-info'.
 
 This function returns the network address, hardware address, current
 status, and other information about a specific network interface.
 
-*** The sentinel is now called when a network process is deleted with
-delete-process.  The status message passed to the sentinel for a
-deleted network process is "deleted".  The message passed to the
-sentinel when the connection is closed by the remote peer has been
-changed to "connection broken by remote peer".
+*** Deleting a network process with `delete-process' calls the sentinel.
+
+The status message passed to the sentinel for a deleted network
+process is "deleted".  The message passed to the sentinel when the
+connection is closed by the remote peer has been changed to
+"connection broken by remote peer".
 
 ** Using window objects:
 
@@ -3962,7 +3969,7 @@ header line.
 +++
 *** New function `window-body-height'.
 
-This is like window-height but does not count the mode line
+This is like `window-height' but does not count the mode line
 or the header line.
 
 +++
@@ -3989,7 +3996,7 @@ return window edges in units of pixels, rather than columns and lines.
 selected window without impacting the order of `buffer-list'.
 
 +++
-*** `select-window' takes an optional second argument `norecord'.
+*** `select-window' takes an optional second argument NORECORD.
 
 This is like `switch-to-buffer'.
 
@@ -4016,12 +4023,12 @@ identifing the bitmap such as `left-truncation or `continued-line'.
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
 
-*** New function `set-fringe-bitmap-face' can now be used to set a
-specific face to be used for a specific fringe bitmap.  The face is
-automatically merged with the `fringe' face, so normally, the face
-should only specify the foreground color of the bitmap.
+*** New function `set-fringe-bitmap-face' specifies the face to be
+used for a specific fringe bitmap.  The face is automatically merged
+with the `fringe' face, so normally, the face should only specify the
+foreground color of the bitmap.
 
-*** There are new display properties, `left-fringe; and `right-fringe',
+*** There are new display properties, `left-fringe' and `right-fringe',
 that can be used to show a specific bitmap in the left or right fringe
 bitmap of the display line.
 
@@ -4164,7 +4171,7 @@ If the `line-spacing' property is a float or cons, the line spacing
 is calculated as specified above for the `line-height' property.
 
 +++
-*** The buffer local line-spacing variable can now have a float value,
+*** The buffer local `line-spacing' variable can now have a float value,
 which is used as a height relative to the default frame line height.
 
 +++
@@ -4214,7 +4221,7 @@ For example, to align to the center of the left-margin, use
 
 If no specific base offset is set for alignment, it is always relative
 to the left edge of the text area.  For example, :align-to 0 in a
-header-line aligns with the first text column in the text area.
+header line aligns with the first text column in the text area.
 
 The value of the form `(NUM . EXPR)' is the value of NUM multiplied by
 the value of the expression EXPR.  For example, (2 . in) specifies a
@@ -4240,10 +4247,10 @@ supported on text terminals.
 **** New display property (slice X Y WIDTH HEIGHT) can be used with
 an image property to display only a specific slice of the image.
 
-**** Function insert-image has new optional fourth arg to
+**** Function `insert-image' has new optional fourth arg to
 specify image slice (X Y WIDTH HEIGHT).
 
-**** New function insert-sliced-image inserts a given image as a
+**** New function `insert-sliced-image' inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
 +++
@@ -4262,7 +4269,7 @@ When the mouse pointer is above a hot-spot area of an image, the
 PLIST of that hot-spot is consulted; if it contains a `help-echo'
 property it defines a tool-tip for the hot-spot, and if it contains
 a `pointer' property, it defines the shape of the mouse cursor when
-it is over the hot-spot.  See the variable 'void-area-text-pointer'
+it is over the hot-spot.  See the variable `void-area-text-pointer'
 for possible pointer shapes.
 
 When you click the mouse when the mouse pointer is over a hot-spot,
@@ -4290,38 +4297,37 @@ controlled/overriden via the `pointer' text property.
 ** Mouse event enhancements:
 
 +++
-*** Mouse clicks on fringes now generates left-fringe or right-fringes
-events, rather than a text area click event.
+*** Mouse events for clicks on window fringes now specify `left-fringe'
+or `right-fringe' as the area.
 
 +++
-*** Mouse clicks in the left and right marginal areas now includes a
-sensible buffer position corresponding to the first character in the
-corresponding text row.
-
-+++
-*** Function `mouse-set-point' now works for events outside text area.
-
-+++
-*** Mouse events now includes buffer position for all event types.
+*** All mouse events now include a buffer position regardless of where
+you clicked.  For mouse clicks in window margins and fringes, this is
+a sensible buffer position corresponding to the surrounding text.
 
 +++
 *** `posn-point' now returns buffer position for non-text area events.
+
++++
+*** Function `mouse-set-point' now works for events outside text area.
 
 +++
 *** New function `posn-area' returns window area clicked on (nil means
 text area).
 
 +++
-*** Mouse events include actual glyph column and row for all event types.
+*** Mouse events include actual glyph column and row for all event types
+and all areas.
 
 +++
-*** New function `posn-actual-col-row' returns actual glyph coordinates.
+*** New function `posn-actual-col-row' returns the actual glyph coordinates
+of the mouse event position.
 
 +++
-*** Mouse events can now include image object in addition to string object.
+*** Mouse events can now indicate an image object clicked on.
 
 +++
-*** Mouse events include relative x and y pixel coordinates relative to
+*** Mouse events include relative X and Y pixel coordinates relative to
 the top left corner of the object (image or character) clicked on.
 
 +++
@@ -4329,19 +4335,20 @@ the top left corner of the object (image or character) clicked on.
 (image or character) clicked on.
 
 +++
-*** New functions 'posn-object', 'posn-object-x-y', and
-'posn-object-width-height' return the image or string object of a mouse
-click, the x and y pixel coordinates relative to the top left corner
-of that object, and the total width and height of that object.
+*** New functions 'posn-object', 'posn-object-x-y', 'posn-object-width-height'.
+
+These return the image or string object of a mouse click, the X and Y
+pixel coordinates relative to the top left corner of that object, and
+the total width and height of that object.
 
 ** Text property and overlay changes:
 
 +++
-*** Arguments for remove-overlays are now optional, so that you can
-remove all overlays in the buffer by just calling (remove-overlays).
+*** Arguments for `remove-overlays' are now optional, so that you can
+remove all overlays in the buffer with just (remove-overlays).
 
 +++
-*** New variable char-property-alias-alist.
+*** New variable `char-property-alias-alist'.
 
 This variable allows you to create alternative names for text
 properties.  It works at the same level as `default-text-properties',
@@ -4356,9 +4363,10 @@ whose cdr is the overlay in which the property was found, or nil if
 it was found as a text property or not found at all.
 
 +++
-*** The new function remove-list-of-text-properties is almost the same
-as `remove-text-properties'.  The only difference is that it takes a
-list of property names as argument rather than a property list.
+*** The new function `remove-list-of-text-properties'.
+
+It is like `remove-text-properties' except that it takes a list of
+property names as argument rather than a property list.
 
 ** Face changes
 
@@ -4371,12 +4379,12 @@ is now the preferred method for defining default faces in a way that
 makes a good use of the capabilities of the display.
 
 +++
-*** New function display-supports-face-attributes-p can be used to test
+*** New function `display-supports-face-attributes-p' can be used to test
 whether a given set of face attributes is actually displayable.
 
 A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
-defined with defface.
+defined with `defface'.
 
 ---
 *** The special treatment of faces whose names are of the form `fg:COLOR'
@@ -4404,10 +4412,11 @@ whether the given face displays differently from the default face or
 not (previously it did only a very cursory check).
 
 +++
-*** `face-attribute', `face-foreground', `face-background', and
-`face-stipple' now accept a new optional argument, INHERIT, which
-controls how face inheritance is used when determining the value of a
-face attribute.
+*** `face-attribute', `face-foreground', `face-background', `face-stipple'.
+
+These now accept a new optional argument, INHERIT, which controls how
+face inheritance is used when determining the value of a face
+attribute.
 
 +++
 *** New functions `face-attribute-relative-p' and `merge-face-attribute'
@@ -4421,9 +4430,6 @@ faces in the list override later faces in the list; in previous
 releases of Emacs, the order was the opposite.  This change was made
 so that :inherit face lists operate identically to face lists in text
 `face' properties.
-
-+++
-*** New standard font-lock face `font-lock-preprocessor-face'.
 
 ---
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
@@ -4442,11 +4448,11 @@ new variable `char-property-alias-alist'.
 +++
 *** font-lock can manage arbitrary text-properties beside `face'.
 
-*** the FACENAME returned in `font-lock-keywords' can be a list of the
+**** the FACENAME returned in `font-lock-keywords' can be a list of the
 form (face FACE PROP1 VAL1 PROP2 VAL2 ...) so you can set other
 properties than `face'.
 
-*** `font-lock-extra-managed-props' can be set to make sure those
+**** `font-lock-extra-managed-props' can be set to make sure those
 extra properties are automatically cleaned up by font-lock.
 
 ---
@@ -4478,8 +4484,12 @@ declaration will give the buffer XML or SGML mode, based on the new
 var `magic-mode-alist'.
 
 +++
-*** Major mode functions now run the new normal hook
-`after-change-major-mode-hook', at their very end, after the mode hooks.
+*** Use the new function `run-mode-hooks' to run the major mode's mode hook.
+
++++
+*** All major mode functions should now run the new normal hook
+`after-change-major-mode-hook', at their very end, after the mode
+hooks.  `run-mode-hooks' does this automatically.
 
 ---
 *** If a major mode function has a non-nil `no-clone-indirect'
@@ -4509,7 +4519,7 @@ and simply passes them to `defcustom', if applicable.
 +++
 *** `minor-mode-list' now holds a list of minor mode commands.
 
----
++++
 *** `define-global-minor-mode'.
 
 This is a new name for what was formerly called
@@ -4519,9 +4529,10 @@ This is a new name for what was formerly called
 
 +++
 *** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactive-p' did: it returns t if the
-calling function was called through `call-interactively'.  This should
-only be used when you cannot solve the problem by adding a new
+have mistakenly believed `interactive-p' to do: it returns t if the
+calling function was called through `call-interactively'.
+
+Only use this when you cannot solve the problem by adding a new
 INTERACTIVE argument to the command.
 
 +++
@@ -4570,8 +4581,8 @@ current file redefined it).
 defined.  For a variable, it records just the variable name.
 
 +++
-*** The function symbol-file can now search specifically for function or
-variable definitions.
+*** The function `symbol-file' can now search specifically for function,
+variable or face definitions.
 
 +++
 *** `provide' and `featurep' now accept an optional second argument
@@ -4586,10 +4597,11 @@ than 3 levels of nesting.
 +++
 ** Byte compiler changes:
 
-*** The byte-compiler now displays the actual line and character
+*** The byte compiler now displays the actual line and character
 position of errors, where possible.  Additionally, the form of its
-warning and error messages have been brought more in line with the
-output of other GNU tools.
+warning and error messages have been brought into line with GNU standards
+for these.  As a result, you can use next-error and friends on the
+compilation output buffer.
 
 *** The new macro `with-no-warnings' suppresses all compiler warnings
 inside its body.  In terms of execution, it is equivalent to `progn'.
@@ -4665,7 +4677,7 @@ the time it takes to convert the format.
 wasteful.
 
 ---
-*** set-buffer-file-coding-system now takes an additional argument,
+*** `set-buffer-file-coding-system' now takes an additional argument,
 NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 
 +++
@@ -4692,7 +4704,7 @@ it is read from a file without decoding.
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
 ---
-*** New function quail-find-key returns a list of keys to type in the
+*** New function `quail-find-key' returns a list of keys to type in the
 current input method to input a character.
 
 ** Mode line changes:
@@ -4700,7 +4712,7 @@ current input method to input a character.
 +++
 *** New function `format-mode-line'.
 
-This returns the mode-line or header-line of the selected (or a
+This returns the mode line or header line of the selected (or a
 specified) window as a string with or without text properties.
 
 +++
@@ -4762,13 +4774,13 @@ debugging output on the stderr file handle to a file.
 +++
 *** A number of hooks have been renamed to better follow the conventions:
 
-find-file-hooks to find-file-hook,
-find-file-not-found-hooks to find-file-not-found-functions,
-write-file-hooks to write-file-functions,
-write-contents-hooks to write-contents-functions,
-x-lost-selection-hooks to x-lost-selection-functions,
-x-sent-selection-hooks to x-sent-selection-functions,
-delete-frame-hook to delete-frame-functions.
+`find-file-hooks' to `find-file-hook',
+`find-file-not-found-hooks' to `find-file-not-found-functions',
+`write-file-hooks' to `write-file-functions',
+`write-contents-hooks' to `write-contents-functions',
+`x-lost-selection-hooks' to `x-lost-selection-functions',
+`x-sent-selection-hooks' to `x-sent-selection-functions',
+`delete-frame-hook' to `delete-frame-functions'.
 
 In each case the old name remains as an alias for the moment.
 
