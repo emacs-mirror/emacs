@@ -2152,7 +2152,7 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-confirm ()
+(defun hack-local-variables-confirm (string)
   (or (eq enable-local-variables t)
       (and enable-local-variables
 	   (save-window-excursion
@@ -2169,8 +2169,10 @@ Otherwise, return nil; point may be changed."
 	     (save-excursion
 	       (beginning-of-line)
 	       (set-window-start (selected-window) (point)))
-	     (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-			       (file-name-nondirectory buffer-file-name)))))))
+	     (y-or-n-p (format string
+			       (if buffer-file-name
+				   (file-name-nondirectory buffer-file-name)
+				 (concat "buffer " (buffer-name)))))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
@@ -2226,7 +2228,8 @@ is specified, returning t if it is specified."
       (if mode-only mode-specified
 	(if (and result
 		 (or mode-only
-		     (hack-local-variables-confirm)))
+		     (hack-local-variables-confirm
+		      "Set local variables as specified in -*- line of %s? ")))
 	    (let ((enable-local-eval enable-local-eval))
 	      (while result
 		(hack-one-local-variable (car (car result)) (cdr (car result)))
@@ -2256,7 +2259,8 @@ is specified, returning t if it is specified."
       (when (let ((case-fold-search t))
 	      (and (search-forward "Local Variables:" nil t)
 		   (or mode-only
-		       (hack-local-variables-confirm))))
+		       (hack-local-variables-confirm
+			"Set local variables as specified at end of %s? "))))
 	(skip-chars-forward " \t")
 	(let ((enable-local-eval enable-local-eval)
 	      ;; suffix is what comes after "local variables:" in its line.
@@ -2477,7 +2481,8 @@ is considered risky."
 		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
-		      (hack-local-variables-confirm)))
+		      (hack-local-variables-confirm
+		       "Process `eval' or hook local variables in %s? ")))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
