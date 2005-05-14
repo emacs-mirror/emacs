@@ -31,7 +31,7 @@ when you run configure.  This requires Gtk+ 2.0 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
 
 ---
-** The `emacsserver' program has been removed, replaced with elisp code.
+** The `emacsserver' program has been removed, replaced with Lisp code.
 
 ---
 ** By default, Emacs now uses a setgid helper program to update game
@@ -2300,7 +2300,7 @@ not executing.
 
   Minor Improvements
 
-*** The STARTTLS elisp wrapper (starttls.el) can now use GNUTLS
+*** The STARTTLS wrapper (starttls.el) can now use GNUTLS
 instead of the OpenSSL based "starttls" tool.  For backwards
 compatibility, it prefers "starttls", but you can toggle
 `starttls-use-gnutls' to switch to GNUTLS (or simply remove the
@@ -2806,7 +2806,7 @@ using strokes as an input method.
 
 +++
 *** The `emacsclient' command understands the options `--eval' and
-`--display' which tell Emacs respectively to evaluate the given elisp
+`--display' which tell Emacs respectively to evaluate the given Lisp
 expression and to use the given display when visiting files.
 
 +++
@@ -3891,9 +3891,9 @@ create a stream or datagram server inside emacs.
 To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
 
-*** Original open-network-stream is now emulated using make-network-process.
+*** The old `open-network-stream' now uses `make-network-process'.
 
-*** New function open-network-stream-nowait.
+*** New function `open-network-stream-nowait'.
 
 This function initiates a non-blocking connect and returns immediately
 without waiting for the connection to be established.  It takes the
@@ -3901,21 +3901,21 @@ filter and sentinel functions as arguments; when the non-blocking
 connect completes, the sentinel is called with a status string
 matching "open" or "failed".
 
-*** New function open-network-stream-server.
+*** New function `open-network-stream-server'.
 
 This function creates a network server process for a TCP service.
 When a client connects to the specified service, a new subprocess
 is created to handle the new connection, and the sentinel function
 is called for the new process.
 
-*** New functions process-datagram-address and set-process-datagram-address.
+*** New functions `process-datagram-address', `set-process-datagram-address'.
 
 These functions are used with datagram-based network processes to get
 and set the current address of the remote partner.
 
-*** New function format-network-address.
+*** New function `format-network-address'.
 
-This function reformats the lisp representation of a network address
+This function reformats the Lisp representation of a network address
 to a printable string.  For example, an IP address A.B.C.D and port
 number P is represented as a five element vector [A B C D P], and the
 printable string returned for this vector is "A.B.C.D:P".  See the doc
@@ -4617,7 +4617,7 @@ efficient.  Since byte code from recent versions of XEmacs won't
 generally run in Emacs and vice versa, this optimization doesn't lose
 you anything.
 
-*** The local variable `no-byte-compile' in elisp files is now obeyed.
+*** The local variable `no-byte-compile' in Lisp files is now obeyed.
 
 ---
 *** When a Lisp file uses CL functions at run-time, compiling the file
@@ -10688,8 +10688,8 @@ can make FCC copies more closely resemble copies that recipients get
 
 **** you can specify an arbitrary function for actually transmitting
 the message; included in feedmail are interfaces for /bin/[r]mail,
-/usr/lib/sendmail, and elisp smtpmail; it's easy to write a new
-function for something else (10-20 lines of elisp)
+/usr/lib/sendmail, and Emacs Lisp smtpmail; it's easy to write a new
+function for something else (10-20 lines of Lisp code).
 
 ** Dired changes
 
