@@ -1,3 +1,8 @@
+2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* major.texi (Choosing Modes): normal-mode processes the -*- line.
+	Add xref.
+
 2005-05-14  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Default Simplifications): Insert missing ! (logical

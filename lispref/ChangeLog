@@ -1,3 +1,12 @@
+2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* elisp.texi (Top): Update detailed menu.
+
+	* variables.texi: Reorder nodes.
+	(Variables): Update menu.
+	(File Local Variables): Do not refer to the `-*-' line as
+	a "local variables list".  Add pxref.
+
 2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* elisp.texi (Top): Update detailed menu for node changes.
