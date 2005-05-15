@@ -1,4 +1,4 @@
-Copyright (C) 1985, 1993, 2003 Free Software Foundation, Inc.
+Copyright (C) 1985, 1993, 2003, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
 of this document, in any medium, provided that the copyright notice and
@@ -518,7 +518,7 @@ friends or over the net.  But it does suggest the wrong idea.
 
    (3)  Several such companies now exist.
 
-   (4)  The Free Software Foundation raisesd most of its funds for 10
+   (4)  The Free Software Foundation raised most of its funds for 10
 years from a distribution service, although it is a charity rather
 than a company.
 
@@ -535,9 +535,9 @@ clear is to to discuss patents, copyrights, and trademarks separately.
 See http://www.gnu.org/philosophy/not-ipr.xhtml for more explanation
 of how this term spreads confusion and bias.
 
-   (7) In 1985 I had not yet recognize it is important to distinguish
-clearly between "free software" and "freeware".  The term "freeware"
-means you are free to redistribute the software--but not necessarily
-free to study and change the source code.  So it is not the same as
-free software.  See http://www.gnu.org/philosophy/words-to-avoid.html
-for more explanation.
+   (7) In 1985 I had not yet recognized the importance of distinguishing
+between "free software" and "freeware".  The term "freeware" means
+software you are free to redistribute, but usually you are not free to study
+and change the source code, so most of it is not free software.
+See http://www.gnu.org/philosophy/words-to-avoid.html for more
+explanation.
