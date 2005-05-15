@@ -1,3 +1,8 @@
+2005-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network): Remove open-network-stream-nowait.
+	(Network Servers): Remove open-network-stream-server.
+
 2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* elisp.texi (Top): Update detailed menu.

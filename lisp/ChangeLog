@@ -1,3 +1,8 @@
+2005-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (open-network-stream-nowait): Remove.
+	(open-network-stream-server): Remove.
+
 2005-05-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
