@@ -760,7 +760,10 @@ Otherwise, the rule is a compression rule, and compression is done with gzip.")
   ;; The files used are determined by ARG (as in dired-get-marked-files).
   (or (eq dired-no-confirm t)
       (memq op-symbol dired-no-confirm)
-      (let ((files (dired-get-marked-files t arg))
+      ;; Pass t for DISTINGUISH-ONE-MARKED so that a single file which
+      ;; is marked pops up a window.  That will help the user see
+      ;; it isn't the current line file.
+      (let ((files (dired-get-marked-files t arg nil t))
 	    (string (if (eq op-symbol 'compress) "Compress or uncompress"
 		      (capitalize (symbol-name op-symbol)))))
 	(dired-mark-pop-up nil op-symbol files (function y-or-n-p)
