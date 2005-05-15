@@ -2294,6 +2294,9 @@ configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
 
+(defsubst left-fringe-p ()
+  (equal (car (window-fringes)) 0))
+
 (defun functionp (object)
   "Non-nil if OBJECT is any kind of function or a special form.
 Also non-nil if OBJECT is a symbol and its function definition is
