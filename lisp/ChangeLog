@@ -1,3 +1,12 @@
+2005-05-15  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Set font-lock-comment-start-skip.
+
+	* font-lock.el (font-lock-comment-start-skip): New variable.
+	(font-lock-comment-end-skip): New variable.
+	(font-lock-fontify-syntactically-region): Use them if non-nil.
+
 2005-05-15  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-store.el (calc-store-value): Return a string rather
