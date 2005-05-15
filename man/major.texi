@@ -176,7 +176,8 @@ mode is taken from the previously current buffer.
 mode Emacs would choose automatically: use the command @kbd{M-x
 normal-mode} to do this.  This is the same function that
 @code{find-file} calls to choose the major mode.  It also processes
-the file's local variables list (if any).
+the file's @samp{-*-} line or local variables list (if any).
+@xref{File Variables}.
 
 @vindex change-major-mode-with-file-name
   The commands @kbd{C-x C-w} and @code{set-visited-file-name} change to
