@@ -22765,7 +22765,7 @@ simplified to @expr{x} for any @expr{x}.  This occurs even if you have
 stored a different value in the Calc variable @samp{e}; but this would
 be a bad idea in any case if you were also using natural logarithms!
 
-Among the logical functions, @tfn{(@var{a} <= @var{b})} changes to
+Among the logical functions, @tfn{!(@var{a} <= @var{b})} changes to
 @tfn{@var{a} > @var{b}} and so on.  Equations and inequalities where both sides
 are either negative-looking or zero are simplified by negating both sides
 and reversing the inequality.  While it might seem reasonable to simplify
