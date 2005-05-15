@@ -383,8 +383,8 @@ Variables
 * Buffer-Local Variables::  Variable values in effect only in one buffer.
 * Frame-Local Variables::   Variable values in effect only in one frame.
 * Future Local Variables::  New kinds of local values we might add some day.
-* Variable Aliases::        Variables that are aliases for other variables.
 * File Local Variables::    Handling local variable lists in files.
+* Variable Aliases::        Variables that are aliases for other variables.
 * Variables with Restricted Values::  Non-constant variables whose value can
                                         @emph{not} be an arbitrary Lisp object.
 
