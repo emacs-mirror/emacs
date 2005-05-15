@@ -1311,12 +1311,19 @@ START should be at the beginning of a line."
 
 ;;; Syntactic fontification functions.
 
+(defvar font-lock-comment-start-skip nil
+  "If non-nil, Font Lock mode uses this instead of `comment-start-skip'.")
+
+(defvar font-lock-comment-end-skip nil
+  "If non-nil, Font Lock mode uses this instead of `comment-end'.")
+
 (defun font-lock-fontify-syntactically-region (start end &optional loudly ppss)
   "Put proper face on each string and comment between START and END.
 START should be at the beginning of a line."
   (let ((comment-end-regexp
-         (regexp-quote
-          (replace-regexp-in-string "^ *" "" comment-end)))
+	 (or font-lock-comment-end-skip
+	     (regexp-quote
+	      (replace-regexp-in-string "^ *" "" comment-end))))
         state face beg)
     (if loudly (message "Fontifying %s... (syntactically...)" (buffer-name)))
     (goto-char start)
@@ -1334,12 +1341,14 @@ START should be at the beginning of a line."
 					    'syntax-table))
 	    (when face (put-text-property beg (point) 'face face))
 	    (when (and (eq face 'font-lock-comment-face)
-                       comment-start-skip)
+                       (or font-lock-comment-start-skip
+			   comment-start-skip))
 	      ;; Find the comment delimiters
 	      ;; and use font-lock-comment-delimiter-face for them.
 	      (save-excursion
 		(goto-char beg)
-		(if (looking-at comment-start-skip)
+		(if (looking-at (or font-lock-comment-start-skip
+				    comment-start-skip))
 		    (put-text-property beg (match-end 0) 'face
 				       font-lock-comment-delimiter-face)))
 	      (if (looking-back comment-end-regexp (point-at-bol))
