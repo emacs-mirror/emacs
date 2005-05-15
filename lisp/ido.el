@@ -1392,10 +1392,15 @@ This function also adds a hook to the minibuffer."
     (define-key map [left] 'ido-prev-match)
     (define-key map "?" 'ido-completion-help)
 
+    ;; Magic commands.
+    (define-key map "\C-b" 'ido-magic-backward-char)
+    (define-key map "\C-f" 'ido-magic-forward-char)
+    (define-key map "\C-d" 'ido-magic-delete-char)
+
     (when (memq ido-cur-item '(file dir))
-      (define-key map "\C-b" (or ido-context-switch-command 'ido-enter-switch-buffer))
-      (define-key map "\C-d" (or (and ido-context-switch-command 'ignore) 'ido-enter-dired))
-      (define-key map "\C-f" 'ido-fallback-command)
+      (define-key map "\C-x\C-b" (or ido-context-switch-command 'ido-enter-switch-buffer))
+      (define-key map "\C-x\C-f" 'ido-fallback-command)
+      (define-key map "\C-x\C-d" (or (and ido-context-switch-command 'ignore) 'ido-enter-dired))
       (define-key map [down] 'ido-next-match-dir)
       (define-key map [up]   'ido-prev-match-dir)
       (define-key map [(meta up)] 'ido-prev-work-directory)
@@ -1405,7 +1410,7 @@ This function also adds a hook to the minibuffer."
       (define-key map [(meta backspace)] 'ido-delete-backward-word-updir)
       (define-key map [(control backspace)] 'ido-up-directory)
       (define-key map "\C-l" 'ido-reread-directory)
-      (define-key map [(meta ?d)] 'ido-wide-find-dir)
+      (define-key map [(meta ?d)] 'ido-wide-find-dir-or-delete-dir)
       (define-key map [(meta ?b)] 'ido-push-dir)
       (define-key map [(meta ?f)] 'ido-wide-find-file-or-pop-dir)
       (define-key map [(meta ?k)] 'ido-forget-work-directory)
@@ -1426,8 +1431,8 @@ This function also adds a hook to the minibuffer."
       )
 
     (when (eq ido-cur-item 'buffer)
-      (define-key map "\C-f" (or ido-context-switch-command 'ido-enter-find-file))
-      (define-key map "\C-b" 'ido-fallback-command)
+      (define-key map "\C-x\C-f" (or ido-context-switch-command 'ido-enter-find-file))
+      (define-key map "\C-x\C-b" 'ido-fallback-command)
       (define-key map "\C-k" 'ido-kill-buffer-at-head)
       )
 
@@ -2258,6 +2263,52 @@ If no merge has yet taken place, toggle automatic merging option."
    ((not ido-use-merged-list)
     (ido-merge-work-directories))))
 
+;;; Magic C-f
+
+(defun ido-magic-forward-char ()
+  "Move forward in user input or perform magic action.
+If no user input is present, perform magic actions:
+C-x C-f C-f  fallback to non-ido find-file.
+C-x C-d C-f  fallback to non-ido brief dired.
+C-x d C-f    fallback to non-ido dired."
+  (interactive)
+  (cond
+   ((not (eobp))
+    (forward-char 1))
+   ((and (= (length ido-text) 0)
+	 (memq ido-cur-item '(file dir)))
+    (ido-fallback-command))))
+
+;;; Magic C-b
+
+(defun ido-magic-backward-char ()
+  "Move backward in user input or perform magic action.
+If no user input is present, perform magic actions:
+C-x C-b C-b  fallback to non-ido switch-to-buffer."
+  (interactive)
+  (cond
+   ((> (length ido-text) 0)
+    (if (> (point) (minibuffer-prompt-end))
+	(forward-char -1)))
+   ((eq ido-cur-item 'buffer)
+    (ido-fallback-command))))
+
+;;; Magic C-d
+
+(defun ido-magic-delete-char ()
+  "Delete following char in user input or perform magic action.
+If at end of user input, perform magic actions:
+C-x C-f ... C-d  enter dired on current directory."
+  (interactive)
+  (cond
+   ((not (eobp))
+    (delete-char 1))
+   (ido-context-switch-command
+    nil)
+   ((memq ido-cur-item '(file dir))
+    (ido-enter-dired))))
+
+
 ;;; TOGGLE FUNCTIONS
 
 (defun ido-toggle-case ()
@@ -2504,6 +2555,14 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
     (setq ido-text-init (ido-final-slash dir t))
     (setq ido-rotate-temp t)
     (exit-minibuffer)))
+
+(defun ido-wide-find-dir-or-delete-dir (&optional dir)
+  "Prompt for DIR to search for using find, starting from current directory.
+If input stack is non-empty, delete current directory component."
+  (interactive)
+  (if ido-input-stack
+      (ido-delete-backward-word-updir 1)
+    (ido-wide-find-dir)))
 
 (defun ido-push-dir ()
   "Move to previous directory in file name, push current input on stack."
@@ -4077,6 +4136,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 ;;; Helper functions for other programs
 
 (put 'dired-do-rename 'ido 'ignore)
+(put 'ibuffer-find-file 'ido 'find-file)
 
 ;;;###autoload
 (defun ido-read-buffer (prompt &optional default require-match)
@@ -4111,7 +4171,8 @@ See `read-file-name' for additional parameters."
 	   (not (memq this-command ido-read-file-name-non-ido))
 	   (or (null predicate) (eq predicate 'file-exists-p)))
       (let* (ido-saved-vc-hb
-	     (ido-context-switch-command 'ignore)
+	     (ido-context-switch-command
+	      (if (eq (get this-command 'ido) 'find-file) nil 'ignore))
 	     (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
 	     (ido-current-directory (ido-expand-directory dir))
 	     (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
@@ -4126,6 +4187,8 @@ See `read-file-name' for additional parameters."
 	(cond
 	 ((eq ido-exit 'fallback)
 	  (setq filename 'fallback))
+	 ((eq ido-exit 'dired)
+	  (setq filename ido-current-directory))
 	 (filename
 	  (setq filename
 		(concat ido-current-directory filename))))))
