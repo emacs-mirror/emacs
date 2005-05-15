@@ -1011,7 +1011,7 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks}.
+@code{run-mode-hooks} (@pxref{Mode Hooks}).
 @end itemize
 
 In addition, you can specify how to override other aspects of
@@ -1047,8 +1047,8 @@ is equivalent with not specifying the argument.)
 @item :abbrev-table
 You can use this to explicitly specify an abbrev table for the new
 mode.  If you specify a @code{nil} value, the new mode uses the same
-abbrev-table as @var{parent}, or @code{fundamental-mode-abbrev-table}
-if @var{parent} is @code{nil}.  (Again,a @code{nil} value is
+abbrev table as @var{parent}, or @code{fundamental-mode-abbrev-table}
+if @var{parent} is @code{nil}.  (Again, a @code{nil} value is
 @emph{not} equivalent to not specifying this keyword.)
 @end table
 
