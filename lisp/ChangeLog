@@ -1,3 +1,14 @@
+2005-05-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-store-value): Return a string rather
+	than display it as a message.
+	Use calc-var-name for variable name.
+	(calc-store-into): Add the result of calc-store-value to message.
+	(calc-copy-variable): Add a message.
+	(calc-store-exchange): Improve error messages.
+	(calc-store-binary, calc-store-map): Don't reset the values of
+	special constants.
+
 2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/derived.el (define-derived-mode): Add link to Elisp

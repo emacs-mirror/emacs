@@ -1,3 +1,8 @@
+2005-05-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Default Simplifications): Insert missing ! (logical
+	not operator).
+
 2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
 
 	Sync with Tramp 2.0.49.
