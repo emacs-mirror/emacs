@@ -189,6 +189,8 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 	    last)
 	(set-marker e (1+ (match-end 2)))
 	(goto-char s)
+	;; Back up one character so that our search can match the first year.
+	(backward-char 1)
 	(while (and (< (point) (marker-position e))
 		    (re-search-forward "\\([^0-9]\\)\\([0-9]+\\)[^0-9]"
 				       (marker-position e) t))
@@ -204,8 +206,12 @@ Uses heuristic: year >= 50 means 19xx, < 50 means 20xx."
 	    (setq last p)))
 	(when last
 	  (goto-char last)
-	  (let ((fill-prefix "     "))
-	    (fill-region s last))
+	  ;; Don't mess up whitespace after the years.
+	  (skip-chars-backward " \t")
+	  (save-restriction
+	    (narrow-to-region (point-min) (point))
+	    (let ((fill-prefix "     "))
+	      (fill-region s last)))
 	  )
 	(set-marker e nil)
 	(copyright-update nil t))
