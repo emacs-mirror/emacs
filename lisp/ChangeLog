@@ -5,6 +5,17 @@
 
 2005-05-15  Richard M. Stallman  <rms@gnu.org>
 
+	* emacs-lisp/copyright.el (copyright-fix-years):
+	Match properly if the first year is 2-digit.
+	Don't mess up the whitespace after the years by filling.
+
+	* dired-aux.el (dired-mark-confirm):
+	Pass t to dired-get-marked-files for DISTINGUISH-ONE-MARKED.
+
+	* dired.el (dired-map-over-marks): New arg DISTINGUISH-ONE-MARKED.
+	(dired-get-marked-files): New arg DISTINGUISH-ONE-MARKED.
+	(dired-mark-pop-up): Handle FILES = (t FILE) specially.
+
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
 	Set font-lock-comment-start-skip.
 
