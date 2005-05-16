@@ -759,7 +759,7 @@ Environment variables are expanded, see function `substitute-in-file-name'."
 ;; If STR is of the form +n, for n>0, return n. Otherwise, nil.
 (defun shell-extract-num (str)
   (and (string-match "^\\+[1-9][0-9]*$" str)
-       (string-to-int str)))
+       (string-to-number str)))
 
 
 (defun shell-dirtrack-mode ()

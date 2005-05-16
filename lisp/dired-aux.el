@@ -428,7 +428,7 @@ with a prefix argument."
 	 (setq base-version-list	; there was a base version to which
 	       (assoc (substring fn 0 start-vn)	; this looks like a
 		      dired-file-version-alist))	; subversion
-	 (not (memq (string-to-int (substring fn (+ 2 start-vn)))
+	 (not (memq (string-to-number (substring fn (+ 2 start-vn)))
 		    base-version-list))	; this one doesn't make the cut
 	 (progn (beginning-of-line)
 		(delete-char 1)

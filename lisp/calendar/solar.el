@@ -227,7 +227,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 Returns nil if nothing was entered."
   (let ((x (read-string prompt "")))
     (if (not (string-equal x ""))
-        (string-to-int x))))
+        (string-to-number x))))
 
 ;; The condition-case stuff is needed to catch bogus arithmetic
 ;; exceptions that occur on some machines (like Sparcs)

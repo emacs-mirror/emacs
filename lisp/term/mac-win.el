@@ -106,7 +106,7 @@
 	(let ((param (nth 3 aelt)))
 	  (setq default-frame-alist
 		(cons (cons param
-			    (string-to-int (car x-invocation-args)))
+			    (string-to-number (car x-invocation-args)))
 		      default-frame-alist)
 		x-invocation-args
 		(cdr x-invocation-args))))))

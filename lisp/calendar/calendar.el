@@ -2574,7 +2574,7 @@ ERROR is t, otherwise just returns nil."
           (if (not (looking-at " "))
                    (re-search-backward "[^0-9]"))
           (list month
-                (string-to-int (buffer-substring (1+ (point)) (+ 4 (point))))
+                (string-to-number (buffer-substring (1+ (point)) (+ 4 (point))))
                 year))
       (if (looking-at "\\*")
           (save-excursion
@@ -2964,7 +2964,7 @@ calendar window has been prepared."
     (make-local-variable 'calendar-starred-day)
     (forward-char 1)
     (setq calendar-starred-day
-          (string-to-int
+          (string-to-number
            (buffer-substring (point) (- (point) 2))))
     (delete-char -2)
     (insert "**")

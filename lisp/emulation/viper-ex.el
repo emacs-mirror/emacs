@@ -434,7 +434,7 @@ reversed."
 			 ((eq ex-token-type 'minus) 'sub-number)
 			 (t 'abs-number)))
 	     (setq ex-token
-		   (string-to-int (buffer-substring (point) (mark t)))))
+		   (string-to-number (buffer-substring (point) (mark t)))))
 	    ((looking-at "\\$")
 	     (forward-char 1)
 	     (setq ex-token-type 'end))
@@ -912,7 +912,7 @@ reversed."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark t))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
@@ -938,7 +938,7 @@ reversed."
 	(progn
 	  (set-mark (point))
 	  (re-search-forward "[0-9][0-9]*")
-	  (setq ex-count (string-to-int (buffer-substring (point) (mark t))))
+	  (setq ex-count (string-to-number (buffer-substring (point) (mark t))))
 	  (skip-chars-forward " \t")))
     (if (looking-at "[pl#]")
 	(progn
@@ -1490,7 +1490,7 @@ reversed."
 		(progn
 		  (ex-edit t)
 		  (throw 'ex-edit nil))
-	      (setq count (string-to-int ex-file))
+	      (setq count (string-to-number ex-file))
 	      (if (= count 0) (setq count 1))
 	      (if (< count 0) (error "Usage: `next <count>' (count >= 0)"))))
 	(setq count 1))

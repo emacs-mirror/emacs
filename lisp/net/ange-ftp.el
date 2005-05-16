@@ -2109,7 +2109,7 @@ suffix of the form #PORT to specify a non-default port"
 	       (line (cdr status)))
 	  (save-match-data
 	    (if (string-match ange-ftp-hash-mark-msgs line)
-		(let ((size (string-to-int (match-string 1 line))))
+		(let ((size (string-to-number (match-string 1 line))))
 		  (setq ange-ftp-ascii-hash-mark-size size
 			ange-ftp-hash-mark-unit (ash size -4))
 
@@ -5082,7 +5082,7 @@ Other orders of $ and _ seem to all work just fine.")
 		     (and (string-match regexp name)
 			  (setq version
 				(max version
-				     (string-to-int (match-string 1 name))))))
+				     (string-to-number (match-string 1 name))))))
 		   files)
 		  (setq version (1+ version))
 		  (puthash

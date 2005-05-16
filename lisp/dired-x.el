@@ -1501,10 +1501,10 @@ to mark all zero length files."
               (if (looking-at dired-re-inode-size)
                   (progn
                     (goto-char (match-end 0))
-                    (setq inode (string-to-int (buffer-substring (match-beginning 1)
-                                                                 (match-end 1)))
-                          s (string-to-int (buffer-substring (match-beginning 2)
-                                                             (match-end 2)))))
+                    (setq inode (string-to-number (buffer-substring (match-beginning 1)
+                                                                    (match-end 1)))
+                          s (string-to-number (buffer-substring (match-beginning 2)
+                                                                (match-end 2)))))
                 (setq inode nil
                       s nil))
               (setq mode (buffer-substring (point) (+ mode-len (point))))
@@ -1516,10 +1516,10 @@ to mark all zero length files."
               (re-search-forward dired-move-to-filename-regexp)
               (goto-char (match-beginning 1))
               (forward-char -1)
-              (setq size (string-to-int (buffer-substring (save-excursion
-                                                            (backward-word 1)
-                                                            (setq pos (point)))
-                                                          (point))))
+              (setq size (string-to-number (buffer-substring (save-excursion
+                                                               (backward-word 1)
+                                                               (setq pos (point)))
+                                                             (point))))
               (goto-char pos)
               (backward-word 1)
               ;; if no gid is displayed, gid will be set to uid

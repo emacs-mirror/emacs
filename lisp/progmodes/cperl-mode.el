@@ -120,7 +120,7 @@
 	;; Probably will not work due to some save-excursion???
 	;; Or save-file-position?
 	;; (message "Did I get to line %s?" (elt (, elt) 1))
-	`(goto-line (string-to-int (elt ,elt 1))))
+	`(goto-line (string-to-number (elt ,elt 1))))
     ;;)
     (defmacro cperl-etags-goto-tag-location (elt)
       `(etags-goto-tag-location ,elt))))

@@ -2296,9 +2296,9 @@ Optional third arg SHIFT is an offset to apply based on previous corrections."
       (setq output (substring output (match-end 0))) ; skip over misspelling
       (if (eq type ?#)
 	  (setq count 0)		; no misses for type #
-	(setq count (string-to-int output) ; get number of misses.
+	(setq count (string-to-number output) ; get number of misses.
 	      output (substring output (1+ (string-match " " output 1)))))
-      (setq offset (string-to-int output))
+      (setq offset (string-to-number output))
       (if (eq type ?#)			; No miss or guess list.
 	  (setq output nil)
 	(setq output (substring output (1+ (string-match " " output 1)))))

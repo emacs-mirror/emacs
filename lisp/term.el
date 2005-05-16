@@ -3339,7 +3339,7 @@ The top-most line is line 0."
 		(second-colon
 		 (string-match ":" string (1+ first-colon)))
 		(filename (substring string 1 first-colon))
-		(fileline (string-to-int
+		(fileline (string-to-number
 			   (substring string (1+ first-colon) second-colon))))
 	   (setq term-pending-frame (cons filename fileline))))
 	((= (aref string 0) ?/)

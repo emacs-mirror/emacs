@@ -2988,7 +2988,7 @@ Uses the free variable `backup-extract-version-start', whose value should be
 the index in the name where the version number begins."
   (if (and (string-match "[0-9]+~$" fn backup-extract-version-start)
 	   (= (match-beginning 0) backup-extract-version-start))
-      (string-to-int (substring fn backup-extract-version-start -1))
+      (string-to-number (substring fn backup-extract-version-start -1))
       0))
 
 ;; I believe there is no need to alter this behavior for VMS;
@@ -4552,7 +4552,7 @@ normally equivalent short `-D' option is just passed on to
 	      (if (string-match "ls (.*utils) \\([0-9.]*\\)$" version-out)
 		  (let* ((version (match-string 1 version-out))
 			 (split (split-string version "[.]"))
-			 (numbers (mapcar 'string-to-int split))
+			 (numbers (mapcar 'string-to-number split))
 			 (min '(5 2 1))
 			 comparison)
 		    (while (and (not comparison) (or numbers min))

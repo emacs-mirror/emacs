@@ -134,7 +134,7 @@ closing requests for requests that are used in matched pairs."
   (save-excursion
     (looking-at outline-regexp)
     (skip-chars-forward ".H ")
-    (string-to-int (buffer-substring (point) (+ 1 (point))))))
+    (string-to-number (buffer-substring (point) (+ 1 (point))))))
 
 ;;; Compute how much to indent a comment in nroff/troff source.
 ;;; By mit-erl!gildea April 86

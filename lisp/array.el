@@ -647,7 +647,7 @@ of array-rows-numbered."
 	       (<= new-columns-per-line array-max-column))
 	  (setq check nil)
 	(setq new-columns-per-line
-	      (string-to-int
+	      (string-to-number
 	       (read-input
 		(format "Columns per line (1 - %d): " array-max-column)))))))
   ;; Check on new-rows-numbered.  It has to be done this way
@@ -927,22 +927,22 @@ Entering array mode calls the function `array-mode-hook'."
 (defun array-init-max-row (&optional arg)
   "Initialize the value of `array-max-row'."
   (setq array-max-row
-	(or arg (string-to-int (read-input "Number of array rows: ")))))
+	(or arg (string-to-number (read-input "Number of array rows: ")))))
 
 (defun array-init-max-column (&optional arg)
   "Initialize the value of `array-max-column'."
   (setq array-max-column
-	(or arg (string-to-int (read-input "Number of array columns: ")))))
+	(or arg (string-to-number (read-input "Number of array columns: ")))))
 
 (defun array-init-columns-per-line (&optional arg)
   "Initialize the value of `array-columns-per-line'."
   (setq array-columns-per-line
-	(or arg (string-to-int (read-input "Array columns per line: ")))))
+	(or arg (string-to-number (read-input "Array columns per line: ")))))
 
 (defun array-init-field-width (&optional arg)
   "Initialize the value of `array-field-width'."
   (setq array-field-width
-	(or arg (string-to-int (read-input "Field width: ")))))
+	(or arg (string-to-number (read-input "Field width: ")))))
 
 (defun array-init-rows-numbered (&optional arg)
   "Initialize the value of `array-rows-numbered'."

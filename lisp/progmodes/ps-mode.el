@@ -1173,7 +1173,7 @@ Use line numbers if `ps-run-error-line-numbers' is not nil"
 	(let (i)
 	  (setq
 	   i
-	   (string-to-int
+	   (string-to-number
 	    (buffer-substring (match-beginning 0) (match-end 0))))
 	  (goto-char p)
 	  (pop-to-buffer ps-run-parent)

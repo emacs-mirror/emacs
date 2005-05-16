@@ -418,7 +418,7 @@ ISO-DATE non-nil means return the date in ISO 8601 format."
 	    (format "%s-%s-%s" yyyy mm dd)
 	  (format "%s %s %s"
 		  dd
-		  (nth (string-to-int mm)
+		  (nth (string-to-number mm)
 		       '("" "Jan" "Feb" "Mar" "Apr" "May" "Jun"
 			 "Jul" "Aug" "Sep" "Oct" "Nov" "Dec"))
 		  yyyy))))))

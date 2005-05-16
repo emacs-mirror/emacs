@@ -331,7 +331,7 @@ update which can wait for the next redisplay."
 			      ;; Record that mail file is accessible.
 			      (setq display-time-server-down-time nil)))))))
          (24-hours (substring time 11 13))
-         (hour (string-to-int 24-hours))
+         (hour (string-to-number 24-hours))
          (12-hours (int-to-string (1+ (% (+ hour 11) 12))))
          (am-pm (if (>= hour 12) "pm" "am"))
          (minutes (substring time 14 16))

@@ -1014,7 +1014,7 @@ name of the attribute for prompting.  Value is the new attribute value."
 	  ((member new-value '("unspecified-fg" "unspecified-bg"))
 	   new-value)
 	  (t
-	   (string-to-int new-value)))))
+	   (string-to-number new-value)))))
 
 
 (defun read-face-attribute (face attribute &optional frame)

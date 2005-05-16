@@ -280,7 +280,7 @@ or nil, use a compact 80-column format."
 		    (let ((str (buffer-substring (match-beginning 1)
 						 (match-end 1))))
 		      (unless (equal str "")
-			(setq mac-counter (string-to-int str))))
+			(setq mac-counter (string-to-number str))))
 		    t)
 		   ((looking-at "Format:[ \t]*\"\\([^\n]*\\)\"[ \t]*$")
 		    (when edmacro-store-hook
@@ -698,7 +698,7 @@ This function assumes that the events can be stored in a string."
 	    (times 1))
 	(setq pos (match-end 0))
 	(when (string-match "\\([0-9]+\\)\\*." word)
-	  (setq times (string-to-int (substring word 0 (match-end 1))))
+	  (setq times (string-to-number (substring word 0 (match-end 1))))
 	  (setq word (substring word (1+ (match-end 1)))))
 	(cond ((string-match "^<<.+>>$" word)
 	       (setq key (vconcat (if (eq (key-binding [?\M-x])

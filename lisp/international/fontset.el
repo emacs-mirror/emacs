@@ -492,7 +492,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	      name)
 	  (if (not (string= "fontset" charset))
 	      fontset
-	    (if (> (string-to-int size) 0)
+	    (if (> (string-to-number size) 0)
 		(setq name (format "%s: %s-dot" nickname size))
 	      (setq name nickname))
 	    (cond ((string-match "^medium$" weight)

@@ -325,11 +325,11 @@ PROC is the server process.  Format of STRING is \"PATH PATH PATH... \\n\"."
 		       (setq request "")))))
 	   ;; ARG is a line number option.
 	   ((string-match "\\`\\+[0-9]+\\'" arg)
-	    (setq lineno (string-to-int (substring arg 1))))
+	    (setq lineno (string-to-number (substring arg 1))))
 	   ;; ARG is line number:column option.
 	   ((string-match "\\`+\\([0-9]+\\):\\([0-9]+\\)\\'" arg)
-	    (setq lineno (string-to-int (match-string 1 arg))
-		  columnno (string-to-int (match-string 2 arg))))
+	    (setq lineno (string-to-number (match-string 1 arg))
+		  columnno (string-to-number (match-string 2 arg))))
 	   (t
 	    ;; Undo the quoting that emacsclient does
 	    ;; for certain special characters.

@@ -93,7 +93,7 @@ If the logical name `EMACS_FILE_NAME' is defined, `find-file' that file."
     (if (not args)
 	(if file
 	    (progn (find-file file)
-		   (if line (goto-line (string-to-int line)))))
+		   (if line (goto-line (string-to-number line)))))
       (cd (file-name-directory file))
       (vms-command-line-again))))
 

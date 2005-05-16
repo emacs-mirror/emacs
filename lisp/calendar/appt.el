@@ -633,11 +633,11 @@ hour and minute parts."
         (min 0))
 
     (string-match "[:.]\\([0-9][0-9]\\)" time2conv)
-    (setq min (string-to-int
+    (setq min (string-to-number
                (match-string 1 time2conv)))
 
     (string-match "[0-9]?[0-9][:.]" time2conv)
-    (setq hr (string-to-int
+    (setq hr (string-to-number
               (match-string 0 time2conv)))
 
     ;; convert the time appointment time into 24 hour time
