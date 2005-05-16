@@ -1,5 +1,7 @@
 2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/cl-extra.el (equalp): Doc fix.
+
 	* align.el (align-regexp):
 	* ansi-color.el (ansi-color-get-face):
 	* array.el (array-reconfigure-rows, array-init-max-row)
