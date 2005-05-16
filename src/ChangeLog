@@ -1,5 +1,10 @@
 2005-05-16  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (handle_display_prop): Handle empty replacement.
+	(handle_single_display_spec): Return -1 for empty replacement.
+
+	* keyboard.c (adjust_point_for_property): Skip empty overlay string.
+
 	* .gdbinit (pitx): Print more info about iterator.
 
 2005-05-16  Andreas Schwab  <schwab@suse.de>
