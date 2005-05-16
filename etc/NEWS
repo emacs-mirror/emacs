@@ -1283,6 +1283,15 @@ buffer causes automatic display in another window of the corresponding
 matches, compilation errors, etc.  This minor mode can be toggled with
 C-c C-f.
 
+*** When the left fringe is displayed, an overlay arrow points to current
+message in the compilation buffer.  
+
+*** The new variable `compilation-context-lines' controls lines of leading
+context before the current message.  If nil and the left fringe is displayed,
+it doesn't scroll the compilation output window.  If there is no left fringe,
+no arrow is displayed and a value of nil means display the message at the top
+of the window.
+
 ** Occur mode changes:
 
 +++
@@ -2262,11 +2271,12 @@ and other common debugger commands.
 *** The new package gdb-ui.el provides an enhanced graphical interface to
 GDB. You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
-state of your program.  It separates the input/output of your program from
+state of your program.  It can separate the input/output of your program from
 that of GDB and watches expressions in the speedbar.  It also uses features of
-Emacs 21 such as the display margin for breakpoints, and the toolbar.
+Emacs 21/22 such as the the toolbar, and bitmaps in the fringe to indicate
+breakpoints.
 
-Use M-x gdba to start GDB-UI.
+Use M-x gdb to start GDB-UI.
 
 *** GUD tooltips can be toggled independently of normal tooltips
 with the minor mode `gud-tooltip-mode'.

@@ -2,10 +2,10 @@
 
 	* subr.el (left-fringe-p): New function.
 
-	* progmodes/compile.el (compilation-setup): Set local value
-	of overlay-arrow-string to "" always.
-	(compilation-set-window): Left fringe then scroll. No left
-	fringe then no arrow and don't scroll.
+	* progmodes/compile.el (compilation-setup): Set local value of
+	overlay-arrow-string to "" always.
+	(compilation-set-window): Left fringe then don't scroll. No left
+	fringe then no arrow and scroll message to top.
 	(compilation-context-lines): Adjust doc string accordingly.
 
 2005-05-16  Kim F. Storm  <storm@cua.dk>
