@@ -1,5 +1,84 @@
 2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
+	* align.el (align-regexp):
+	* ansi-color.el (ansi-color-get-face):
+	* array.el (array-reconfigure-rows, array-init-max-row)
+	(array-init-max-column, array-init-columns-per-line)
+	(array-init-field-width):
+	* dired-aux.el (dired-trample-file-versions):
+	* dired-x.el (dired-mark-sexp):
+	* ediff-diff.el (ediff-extract-diffs, ediff-get-diff3-group):
+	* edmacro.el (edmacro-finish-edit, edmacro-parse-keys):
+	* emerge.el (emerge-extract-diffs, emerge-get-diff3-group):
+	* faces.el (face-read-integer):
+	* files.el (backup-extract-version, insert-directory):
+	* hexl.el (hexl-insert-decimal-char):
+	* server.el (server-process-filter):
+	* shell.el (shell-extract-num):
+	* startup.el (command-line-1):
+	* term.el (term-command-hook):
+	* time-stamp.el (time-stamp, time-stamp-string-preprocess)
+	(time-stamp-do-number):
+	* time.el (display-time-update):
+	* timezone.el (timezone-parse-date, timezone-zone-to-minute)
+	(timezone-fix-time):
+	* vms-patch.el (vms-suspend-resume-hook):
+	* calendar/appt.el (appt-convert-time):
+	* calendar/cal-bahai.el (mark-bahai-diary-entries):
+	* calendar/cal-hebrew.el (mark-hebrew-diary-entries):
+	* calendar/cal-islam.el (mark-islamic-diary-entries):
+	* calendar/calendar.el (calendar-cursor-to-date)
+	(calendar-star-date):
+	* calendar/diary-lib.el (diary-attrtype-convert)
+	(mark-diary-entries, diary-entry-time):
+	* calendar/solar.el (solar-get-number):
+	* emacs-lisp/lisp-mnt.el (lm-last-modified-date):
+	* emacs-lisp/re-builder.el (reb-display-subexp):
+	* emulation/edt.el (edt-set-scroll-margins):
+	* emulation/tpu-extras.el (tpu-set-scroll-margins):
+	* emulation/vip.el (vip-get-ex-token, vip-get-ex-buffer)
+	(vip-get-ex-count):
+	* emulation/viper-ex.el (viper-get-ex-token)
+	(viper-get-ex-buffer, viper-get-ex-count, ex-next):
+	* international/fontset.el (fontset-plain-name):
+	* mail/feedmail.el (feedmail-look-at-queue-directory):
+	* mail/mailalias.el (mail-get-names):
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	* mail/rmailsum.el (rmail-make-basic-summary-line)
+	(rmail-summary-next-same-subject, rmail-summary-rmail-update)
+	(rmail-summary-goto-msg):
+	* mail/smtpmail.el (smtpmail-read-response):
+	* net/ange-ftp.el (ange-ftp-guess-hash-mark-size)
+	(ange-ftp-vms-add-file-entry):
+	* play/gametree.el (gametree-looking-at-ply)
+	(gametree-current-branch-score):
+	* progmodes/ada-xref.el (ada-prj-find-prj-file)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path):
+	* progmodes/cperl-mode.el (condition-case):
+	* progmodes/ebrowse.el (ebrowse-set-tree-indentation)
+	(ebrowse-set-member-buffer-column-width)
+	(ebrowse-select-1st-to-9nth):
+	* progmodes/etags.el (etags-snarf-tag):
+	* progmodes/flymake.el (flymake-parse-line):
+	* progmodes/idlw-shell.el (idlwave-shell-parse-line)
+	(idlwave-shell-filter-bp, idlwave-shell-goto-next-error)
+	(idlwave-shell-menu-def):
+	* progmodes/ps-mode.el (ps-run-goto-error):
+	* progmodes/vhdl-mode.el (vhdl-read-offset, vhdl-load-cache)
+	(vhdl-speedbar-contract-level):
+	* term/mac-win.el (x-handle-numeric-switch):
+	* term/sun-mouse.el (sun-get-frame-data):
+	* term/w32-win.el (x-handle-numeric-switch):
+	* term/x-win.el (x-handle-numeric-switch):
+	* textmodes/ispell.el (ispell-parse-output):
+	* textmodes/nroff-mode.el (nroff-outline-level):
+	* textmodes/reftex-cite.el (reftex-bib-sort-year)
+	(reftex-bib-sort-year-reverse, reftex-format-citation):
+	* textmodes/reftex-parse.el (reftex-init-section-numbers)
+	(reftex-section-number):
+	* textmodes/texinfmt.el (texinfo-paragraphindent): Replace
+	`string-to-int' by `string-to-number'.
+
 	* international/latexenc.el: Add page marker to force the "Local
 	Variables:" string out of the last page.
 
