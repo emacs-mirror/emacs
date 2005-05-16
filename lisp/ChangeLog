@@ -1,3 +1,8 @@
+2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/latexenc.el: Add page marker to force the "Local
+	Variables:" string out of the last page.
+
 2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tooltip-mode): Add gud prefix to
