@@ -1947,10 +1947,13 @@ adjust_point_for_property (last_pt, modified)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
 	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
 		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
-	  && beg < PT) /* && end > PT   <- It's always the case.  */
+	  && (beg < PT /* && end > PT   <- It's always the case.  */
+	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{
 	  xassert (end > PT);
-	  SET_PT (PT < last_pt ? beg : end);
+	  SET_PT (PT < last_pt
+		  ? (STRINGP (val) && SCHARS (val) == 0 ? beg - 1 : beg)
+		  : end);
 	  check_composition = check_invisible = 1;
 	}
       check_display = 0;
