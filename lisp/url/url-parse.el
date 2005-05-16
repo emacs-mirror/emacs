@@ -167,7 +167,7 @@ Format is:
 		  (setq pass (match-string 2 user)
 			user (match-string 1 user)))
 	      (if (string-match ":\\([0-9+]+\\)" host)
-		  (setq port (string-to-int (match-string 1 host))
+		  (setq port (string-to-number (match-string 1 host))
 			host (substring host 0 (match-beginning 0))))
 	      (if (string-match ":$" host)
 		  (setq host (substring host 0 (match-beginning 0))))

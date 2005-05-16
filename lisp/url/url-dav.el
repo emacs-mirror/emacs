@@ -121,17 +121,17 @@
 
     ;; Nobody else handles iso8601 correctly, lets do it ourselves.
     (when (string-match date-re date-string re-start)
-      (setq year (string-to-int (match-string 1 date-string))
-	    month (string-to-int (match-string 2 date-string))
-	    day (string-to-int (match-string 3 date-string))
+      (setq year (string-to-number (match-string 1 date-string))
+	    month (string-to-number (match-string 2 date-string))
+	    day (string-to-number (match-string 3 date-string))
 	    re-start (match-end 0))
       (when (string-match time-re date-string re-start)
-	(setq hour (string-to-int (match-string 1 date-string))
-	      minute (string-to-int (match-string 2 date-string))
-	      seconds (string-to-int (match-string 3 date-string))
-	      fractional-seconds (string-to-int (or
-						 (match-string 4 date-string)
-						 "0"))
+	(setq hour (string-to-number (match-string 1 date-string))
+	      minute (string-to-number (match-string 2 date-string))
+	      seconds (string-to-number (match-string 3 date-string))
+	      fractional-seconds (string-to-number (or
+                                                    (match-string 4 date-string)
+                                                    "0"))
 	      re-start (match-end 0))
 	(when (string-match tz-re date-string re-start)
 	  (setq tz (match-string 1 date-string)))
@@ -149,7 +149,7 @@
     time))
 
 (defun url-dav-process-boolean-property (node)
-  (/= 0 (string-to-int (url-dav-node-text node))))
+  (/= 0 (string-to-number (url-dav-node-text node))))
 
 (defun url-dav-process-uri-property (node)
   ;; Returns a parsed representation of the URL...
@@ -318,7 +318,7 @@
   ;; only care about the numeric status code.
   (let ((status (url-dav-node-text node)))
     (if (string-match "\\`[ \r\t\n]*HTTP/[0-9.]+ \\([0-9]+\\)" status)
-	(string-to-int (match-string 1 status))
+	(string-to-number (match-string 1 status))
       500)))
 
 (defun url-dav-process-DAV:propstat (node)
