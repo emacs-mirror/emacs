@@ -954,7 +954,7 @@ Domain names in USER and port numbers in HOST are acknowledged."
       (when port   (setq args (append args (list "-p" port))))
 
       ; OK, let's go
-      (tramp-pre-connection nil tramp-smb-method user host)
+      (tramp-pre-connection nil tramp-smb-method user host tramp-chunksize)
       (tramp-message 7 "Opening connection for //%s@%s/%s..."
 		     user host (or share ""))
 
