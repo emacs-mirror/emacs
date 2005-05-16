@@ -1,3 +1,29 @@
+2005-05-16  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Set
+	`font-lock-negation-char-face' for [^...] char group.
+	(lisp-font-lock-keywords-2): Highlight regexp's \\( \\| \\).
+
+	* progmodes/make-mode.el (makefile-dependency-regex): Turn it into
+	a var, and refine it to mask one more level of nested vars.
+	(makefile-rule-action-regex): Turn it into a var, and refine it so
+	it recognizes backslashed continuation lines as belonging to the
+	same command.
+	(makefile-macroassign-regex): Refine it so it recognizes
+	backslashed continuation lines as belonging to the same command.
+	(makefile-var-use-regex): Don't look at the next char, because it
+	might be the same one to be skipped by the initial [^$], leading
+	to an overlooked variable use.
+	(makefile-make-font-lock-keywords): Remove two parameters, which
+	are now variables that some of the modes set locally.  Handle
+	dependency and rule action matching through functions, because
+	regexps alone match too often.  Dependency matching now comes
+	last, so it can check, whether a colon already matched something
+	else.
+	(makefile-mode): Inform that font-lock improves makefile parsing
+	capabilities.
+	(makefile-match-dependency, makefile-match-action): New functions.
+
 2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-extra.el (equalp): Doc fix.
