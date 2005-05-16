@@ -3953,21 +3953,6 @@ To test for the availability of a given feature, use featurep like this:
 
 *** The old `open-network-stream' now uses `make-network-process'.
 
-*** New function `open-network-stream-nowait'.
-
-This function initiates a non-blocking connect and returns immediately
-without waiting for the connection to be established.  It takes the
-filter and sentinel functions as arguments; when the non-blocking
-connect completes, the sentinel is called with a status string
-matching "open" or "failed".
-
-*** New function `open-network-stream-server'.
-
-This function creates a network server process for a TCP service.
-When a client connects to the specified service, a new subprocess
-is created to handle the new connection, and the sentinel function
-is called for the new process.
-
 *** New functions `process-datagram-address', `set-process-datagram-address'.
 
 These functions are used with datagram-based network processes to get
