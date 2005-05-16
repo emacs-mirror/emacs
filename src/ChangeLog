@@ -1,3 +1,8 @@
+2005-05-16  Andreas Schwab  <schwab@suse.de>
+
+	* unexmacosx.c (unexec_realloc): Move declarations before
+	statements.
+
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (message3): Call cancel_echoing.
