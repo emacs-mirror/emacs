@@ -1257,17 +1257,32 @@ If FRAME is omitted or nil, use the selected frame."
 	  (insert "Face: " (symbol-name f))
 	  (if (not (facep f))
 	      (insert "   undefined face.\n")
-	    (let ((customize-label "customize this face"))
+	    (let ((customize-label "customize this face")
+		  file-name)
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)
 			  "Not documented as a face.")
-		      "\n\n")
+		      "\n")
 	      (with-current-buffer standard-output
 		(save-excursion
 		  (re-search-backward
 		   (concat "\\(" customize-label "\\)") nil t)
 		  (help-xref-button 1 'help-customize-face f)))
+	      ;; The next 4 sexps are copied from describe-function-1
+	      ;; and simplified.
+	      (setq file-name (symbol-file f 'defface))
+	      (when file-name
+		(princ "Defined in `")
+		(princ file-name)
+		(princ "'")
+		;; Make a hyperlink to the library.
+		(save-excursion
+		  (re-search-backward "`\\([^`']+\\)'" nil t)
+		  (help-xref-button 1 'help-face-def f file-name))
+		(princ ".")
+		(terpri)
+		(terpri))
 	      (dolist (a attrs)
 		(let ((attr (face-attribute f (car a) frame)))
 		  (insert (make-string (- max-width (length (cdr a))) ?\ )
@@ -2047,7 +2062,7 @@ Note: Other faces cannot inherit from the cursor face."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'font-lock			; like `show-trailing-whitespace'
+  :group 'whitespace		; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")
