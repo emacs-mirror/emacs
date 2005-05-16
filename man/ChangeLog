@@ -1,3 +1,7 @@
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing Variables): Mention `calc-copy-special-constant'.
+
 2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi: Replace toolbar with "tool bar" for consistency.

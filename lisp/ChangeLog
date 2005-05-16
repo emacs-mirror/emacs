@@ -1,3 +1,13 @@
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-copy-special-constant): New function.
+
+	* calc/calc-ext.el (calc-init-extensions): Add binding for
+	`calc-copy-special-constant'.
+
+	* calc/calc-prog.el (calc-edit-format-macro-buffer): Add a case
+	for the `calc-copy-special-constant' command.
+
 2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
 
 	* subr.el (left-fringe-p): New function.
