@@ -1247,8 +1247,7 @@ Optional argument MINOR indicates this is called from
   (make-local-variable 'compilation-messages-start)
   (make-local-variable 'compilation-error-screen-columns)
   (make-local-variable 'overlay-arrow-position)
-  (set (make-local-variable 'overlay-arrow-string)
-       (if (display-graphic-p) "=>" ""))
+  (set (make-local-variable 'overlay-arrow-string) "")
   (setq next-error-overlay-arrow-position nil)
   (add-hook 'kill-buffer-hook
 	    (lambda () (setq next-error-overlay-arrow-position nil)) nil t)
@@ -1575,9 +1574,12 @@ region and the first line of the next region."
       (setcdr loc (list line file marker)))
     loc))
 
-(defcustom compilation-context-lines 0
-  "*Display this many lines of leading context before message.
-If nil, don't scroll the compilation output window."
+(defcustom compilation-context-lines nil
+  "Display this many lines of leading context before the current message.
+If nil and the left fringe is displayed, don't scroll the
+compilation output window; an arrow in the left fringe points to
+the current message.  If nil and there is no left fringe, the message
+displays at the top of the window; there is no arrow."
   :type '(choice integer (const :tag "No window scrolling" nil))
   :group 'compilation
   :version "22.1")
@@ -1586,10 +1588,16 @@ If nil, don't scroll the compilation output window."
   "Align the compilation output window W with marker MK near top."
   (if (integerp compilation-context-lines)
       (set-window-start w (save-excursion
-                            (goto-char mk)
-                            (beginning-of-line (- 1 compilation-context-lines))
-                            (point))))
-  (set-window-point w mk))
+			    (goto-char mk)
+			    (beginning-of-line
+			     (- 1 compilation-context-lines))
+			    (point)))
+    (if (left-fringe-p)
+	(set-window-start w (save-excursion
+			      (goto-char mk)
+			    (beginning-of-line 1)
+			    (point)))))
+    (set-window-point w mk))
 
 (defvar next-error-highlight-timer)
 
