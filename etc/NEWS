@@ -1283,8 +1283,8 @@ buffer causes automatic display in another window of the corresponding
 matches, compilation errors, etc.  This minor mode can be toggled with
 C-c C-f.
 
-*** When the left fringe is displayed, an overlay arrow points to current
-message in the compilation buffer.  
+*** When the left fringe is displayed, an arrow points to current message in
+the compilation buffer.
 
 *** The new variable `compilation-context-lines' controls lines of leading
 context before the current message.  If nil and the left fringe is displayed,

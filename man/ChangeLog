@@ -1,3 +1,13 @@
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Replace toolbar with "tool bar" for consistency.
+	(Compilation Mode): Describe compilation-context-lines
+	and use of arrow in compilation buffer.
+	(Debugger Operation): Replace help text with variable's value.
+
+	* frames.texi (Tooltips): Replace toolbar with "tool bar" for
+	consistency.
+
 2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* major.texi (Choosing Modes): normal-mode processes the -*- line.
