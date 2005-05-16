@@ -1,7 +1,10 @@
 ;;; ethio-util.el --- utilities for Ethiopic -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1997, 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 1998, 2002
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2001, 2004, 2005
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, Ethiopic
 

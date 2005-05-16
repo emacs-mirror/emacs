@@ -1,7 +1,9 @@
 ;;; tibet-util.el --- utilities for Tibetan   -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Tibetan
 

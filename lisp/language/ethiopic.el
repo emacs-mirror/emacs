@@ -1,7 +1,9 @@
 ;;; ethiopic.el --- support for Ethiopic -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1995, 2001 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
+;; Copyright (C) 1997  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2001
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: multilingual, Ethiopic
 
