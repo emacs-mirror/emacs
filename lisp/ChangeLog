@@ -25,6 +25,10 @@
 
 2005-05-15  Richard M. Stallman  <rms@gnu.org>
 
+	* faces.el (describe-face): Output a definition link button.
+
+	* help-mode.el (help-face-def): New button type.
+
 	* emacs-lisp/copyright.el (copyright-fix-years):
 	Match properly if the first year is 2-digit.
 	Don't mess up the whitespace after the years by filling.
