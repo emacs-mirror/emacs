@@ -515,6 +515,11 @@ the list @code{gud-tooltip-modes}.  If the variable
 @code{gud-tooltip-echo-area} is non-@code{nil} then the variable's
 value is displayed in the echo area.
 
+With GDB in text command mode (@pxref{GDB Graphical Interface}),
+it is possible that use of GUD tooltips can cause a function to be
+called with harmful side-effects.  In this case, Emacs disables
+gud-tooltip-mode.
+
 @node Commands of GUD
 @subsection Commands of GUD
 
