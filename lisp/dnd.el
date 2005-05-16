@@ -36,6 +36,7 @@
 ;;; Customizable variables
 
 
+;;;###autoload
 (defcustom dnd-protocol-alist
   '(
     ("^file:///" . dnd-open-local-file)	; XDND format.

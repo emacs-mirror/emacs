@@ -450,7 +450,8 @@ Return value is the number of files marked, or nil if none were marked."
                             "flagged" "marked"))))
     (and (> count 0) count)))
 
-(defmacro dired-map-over-marks (body arg &optional show-progress)
+(defmacro dired-map-over-marks (body arg &optional show-progress
+				     distinguish-one-marked)
   "Eval BODY with point on each marked line.  Return a list of BODY's results.
 If no marked file could be found, execute BODY on the current line.
   If ARG is an integer, use the next ARG (or previous -ARG, if ARG<0)
@@ -465,7 +466,10 @@ No guarantee is made about the position on the marked line.
 Search starts at the beginning of the buffer, thus the car of the list
   corresponds to the line nearest to the buffer's bottom.  This
   is also true for (positive and negative) integer values of ARG.
-BODY should not be too long as it is expanded four times."
+BODY should not be too long as it is expanded four times.
+
+If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
+return (t FILENAME) instead of (FILENAME)."
   ;;
   ;;Warning: BODY must not add new lines before point - this may cause an
   ;;endless loop.
@@ -505,13 +509,15 @@ BODY should not be too long as it is expanded four times."
 		 (set-marker next-position nil)
 		 (setq next-position (and (re-search-forward regexp nil t)
 					  (point-marker)))))
+	     (if (and ,distinguish-one-marked (= (length results) 1))
+		 (setq results (cons t results)))
 	     (if found
 		 results
 	       (list ,body)))))
      ;; save-excursion loses, again
      (dired-move-to-filename)))
 
-(defun dired-get-marked-files (&optional localp arg filter)
+(defun dired-get-marked-files (&optional localp arg filter distinguish-one-marked)
   "Return the marked files' names as list of strings.
 The list is in the same order as the buffer, that is, the car is the
   first marked file.
@@ -522,13 +528,21 @@ Optional second argument ARG specifies files near point
   If ARG is otherwise non-nil, use file.  Usually ARG comes from
   the command's prefix arg.
 Optional third argument FILTER, if non-nil, is a function to select
-  some of the files--those for which (funcall FILTER FILENAME) is non-nil."
-  (let ((all-of-them
-	 (save-excursion
-	   (dired-map-over-marks (dired-get-filename localp) arg)))
-	result)
+  some of the files--those for which (funcall FILTER FILENAME) is non-nil.
+
+If DISTINGUISH-ONE-MARKED is non-nil, then if we find just one marked file,
+return (t FILENAME) instead of (FILENAME).
+Don't use that together with FILTER."
+  (let* ((all-of-them
+	  (save-excursion
+	    (dired-map-over-marks
+	     (dired-get-filename localp)
+	     arg nil distinguish-one-marked)))
+	 result)
     (if (not filter)
-	(nreverse all-of-them)
+	(if (and distinguish-one-marked (eq (car all-of-them) t))
+	    all-of-them
+	  (nreverse all-of-them))
       (dolist (file all-of-them)
 	(if (funcall filter file)
 	    (push file result)))
@@ -1535,7 +1549,7 @@ Keybindings:
   (setq dired-switches-alist nil)
   (dired-sort-other dired-actual-switches t)
   (when (featurep 'dnd)
-    (make-variable-buffer-local 'dnd-protocol-alist)
+    (make-local-variable 'dnd-protocol-alist)
     (setq dnd-protocol-alist
 	  (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (run-mode-hooks 'dired-mode-hook))
@@ -2537,15 +2551,21 @@ FUNCTION should not manipulate files, just read input
  (an argument or confirmation).
 The window is not shown if there is just one file or
  OP-SYMBOL is a member of the list in `dired-no-confirm'.
-FILES is the list of marked files."
+FILES is the list of marked files.  It can also be (t FILENAME)
+in the case of one marked file, to distinguish that from using
+just the current file."
   (or bufname (setq bufname  " *Marked Files*"))
   (if (or (eq dired-no-confirm t)
 	  (memq op-symbol dired-no-confirm)
+	  ;; If FILES defaulted to the current line's file.
 	  (= (length files) 1))
       (apply function args)
     (with-current-buffer (get-buffer-create bufname)
       (erase-buffer)
-      (dired-format-columns-of-files files)
+      ;; Handle (t FILE) just like (FILE), here.
+      ;; That value is used (only in some cases), to mean
+      ;; just one file that was marked, rather than the current line file.
+      (dired-format-columns-of-files (if (eq (car files) t) (cdr files) files))
       (remove-text-properties (point-min) (point-max)
 			      '(mouse-face nil help-echo nil)))
     (save-window-excursion

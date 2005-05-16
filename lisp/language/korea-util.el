@@ -1,6 +1,9 @@
 ;;; korea-util.el --- utilities for Korean
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, Korean
 

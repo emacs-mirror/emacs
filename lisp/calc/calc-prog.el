@@ -902,6 +902,7 @@
         (calc-edit-macro-combine-var-name))
        ((or
          (string-equal type "calc-copy-variable")
+         (string-equal type "calc-copy-special-constant")
          (string-equal type "calc-declare-variable"))
         (forward-line 1)
         (calc-edit-macro-combine-var-name)

@@ -1,3 +1,13 @@
+2005-05-15  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Correct/improve previous change.
+
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Update footnotes.
+
+	* NEWS: Lots of clarifications and cleanups.
+
 2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
         * TUTORIAL.pl: Updated header.

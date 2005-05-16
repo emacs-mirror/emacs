@@ -983,7 +983,8 @@ It can also be nil, if the definition is not associated with any file.
 
 If TYPE is nil, then any kind of definition is acceptable.
 If TYPE is `defun' or `defvar', that specifies function
-definition only or variable definition only."
+definition only or variable definition only.
+`defface' specifies a face definition only."
   (if (and (or (null type) (eq type 'defun))
 	   (symbolp symbol) (fboundp symbol)
 	   (eq 'autoload (car-safe (symbol-function symbol))))
@@ -1040,12 +1041,10 @@ This makes or adds to an entry on `after-load-alist'.
 FILE should be the name of a library, with no directory name."
   (eval-after-load file (read)))
 
-;;; make-network-process wrappers
+;;; open-network-stream is a wrapper around make-network-process.
 
-(if (featurep 'make-network-process)
-    (progn
-
-(defun open-network-stream (name buffer host service)
+(when (featurep 'make-network-process)
+  (defun open-network-stream (name buffer host service)
   "Open a TCP connection for a service to a host.
 Returns a subprocess-object to represent the connection.
 Input and output work as for subprocesses; `delete-process' closes it.
@@ -1061,56 +1060,7 @@ HOST is name of the host to connect to, or its IP address.
 SERVICE is name of the service desired, or an integer specifying
  a port number to connect to."
   (make-network-process :name name :buffer buffer
-			:host host :service service))
-
-(defun open-network-stream-nowait (name buffer host service &optional sentinel filter)
-  "Initiate connection to a TCP connection for a service to a host.
-It returns nil if non-blocking connects are not supported; otherwise,
-it returns a subprocess-object to represent the connection.
-
-This function is similar to `open-network-stream', except that it
-returns before the connection is established.  When the connection
-is completed, the sentinel function will be called with second arg
-matching `open' (if successful) or `failed' (on error).
-
-Args are NAME BUFFER HOST SERVICE SENTINEL FILTER.
-NAME, BUFFER, HOST, and SERVICE are as for `open-network-stream'.
-Optional args SENTINEL and FILTER specify the sentinel and filter
-functions to be used for this network stream."
-  (if (featurep 'make-network-process  '(:nowait t))
-      (make-network-process :name name :buffer buffer :nowait t
-			    :host host :service service
-			    :filter filter :sentinel sentinel)))
-
-(defun open-network-stream-server (name buffer service &optional sentinel filter)
-  "Create a network server process for a TCP service.
-It returns nil if server processes are not supported; otherwise,
-it returns a subprocess-object to represent the server.
-
-When a client connects to the specified service, a new subprocess
-is created to handle the new connection, and the sentinel function
-is called for the new process.
-
-Args are NAME BUFFER SERVICE SENTINEL FILTER.
-NAME is name for the server process.  Client processes are named by
- appending the ip-address and port number of the client to NAME.
-BUFFER is the buffer (or buffer name) to associate with the server
- process.  Client processes will not get a buffer if a process filter
- is specified or BUFFER is nil; otherwise, a new buffer is created for
- the client process.  The name is similar to the process name.
-Third arg SERVICE is name of the service desired, or an integer
- specifying a port number to connect to.  It may also be t to select
- an unused port number for the server.
-Optional args SENTINEL and FILTER specify the sentinel and filter
- functions to be used for the client processes; the server process
- does not use these function."
-  (if (featurep 'make-network-process '(:server t))
-      (make-network-process :name name :buffer buffer
-			    :service service :server t :noquery t
-			    :sentinel sentinel :filter filter)))
-
-))  ;; (featurep 'make-network-process)
-
+			:host host :service service)))
 
 ;; compatibility
 
@@ -2356,6 +2306,9 @@ configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
 
+(defsubst left-fringe-p ()
+  (equal (car (window-fringes)) 0))
+
 (defun functionp (object)
   "Non-nil if OBJECT is any kind of function or a special form.
 Also non-nil if OBJECT is a symbol and its function definition is
@@ -2374,7 +2327,7 @@ macros."
   "Delete from ALIST all elements whose car is `eq' to KEY.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-  (while (and (consp (car alist)) 
+  (while (and (consp (car alist))
 	      (eq (car (car alist)) key))
     (setq alist (cdr alist)))
   (let ((tail alist) tail-cdr)
@@ -2389,7 +2342,7 @@ Elements of ALIST that are not conses are ignored."
   "Delete from ALIST all elements whose cdr is `eq' to VALUE.
 Return the modified alist.
 Elements of ALIST that are not conses are ignored."
-  (while (and (consp (car alist)) 
+  (while (and (consp (car alist))
 	      (eq (cdr (car alist)) value))
     (setq alist (cdr alist)))
   (let ((tail alist) tail-cdr)

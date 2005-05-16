@@ -335,7 +335,8 @@ This function does not do any hidden buffer changes."
 ;; locking is in use.  This variable is extended with the face in
 ;; `c-doc-face-name' when fontification is activated in cc-fonts.el.
 (defvar c-literal-faces
-  '(font-lock-comment-face font-lock-string-face))
+  '(font-lock-comment-face font-lock-string-face
+			   font-lock-comment-delimiter-face))
 
 (defun c-shift-line-indentation (shift-amt)
   ;; This function does not do any hidden buffer changes.

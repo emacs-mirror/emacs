@@ -6909,7 +6909,9 @@ message2_nolog (m, nbytes, multibyte)
 /* Display an echo area message M with a specified length of NBYTES
    bytes.  The string may include null characters.  If M is not a
    string, clear out any existing message, and let the mini-buffer
-   text show through.  */
+   text show through.
+
+   This function cancels echoing.  */
 
 void
 message3 (m, nbytes, multibyte)
@@ -6921,6 +6923,7 @@ message3 (m, nbytes, multibyte)
 
   GCPRO1 (m);
   clear_message (1,1);
+  cancel_echoing ();
 
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
@@ -6932,7 +6935,10 @@ message3 (m, nbytes, multibyte)
 }
 
 
-/* The non-logging version of message3.  */
+/* The non-logging version of message3.
+   This does not cancel echoing, because it is used for echoing.
+   Perhaps we need to make a separate function for echoing
+   and make this cancel echoing.  */
 
 void
 message3_nolog (m, nbytes, multibyte)

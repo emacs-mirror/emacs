@@ -1,3 +1,189 @@
+2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* international/latexenc.el: Add page marker to force the "Local
+	Variables:" string out of the last page.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-mode): Add gud prefix to
+	tooltip-change-major-mode.
+	(gud-tooltip-print-command): Remove case where gud-minor-mode
+	is gdb ("--fullname").
+	(gud-tooltip-tips): Turn GUD tooltips off for this case and
+	explain to user.
+
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-copy-special-constant): New function.
+
+	* calc/calc-ext.el (calc-init-extensions): Add binding for
+	`calc-copy-special-constant'.
+
+	* calc/calc-prog.el (calc-edit-format-macro-buffer): Add a case
+	for the `calc-copy-special-constant' command.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (left-fringe-p): New function.
+
+	* progmodes/compile.el (compilation-setup): Set local value of
+	overlay-arrow-string to "" always.
+	(compilation-set-window): Left fringe then don't scroll. No left
+	fringe then no arrow and scroll message to top.
+	(compilation-context-lines): Adjust doc string accordingly.
+
+2005-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-magic-forward-char, ido-magic-backward-char)
+	(ido-magic-delete-char): New commands for C-f, C-b, C-d.
+	(ido-wide-find-dir-or-delete-dir): New command for M-d.
+	(ido-define-mode-map): Bind them.  Add C-x prefix to fallback commands.
+	(ido-read-file-name): Handle commands with ido property value
+	equal to find-file as reading a file name, to allow C-d to enter dired.
+	(ibuffer-find-file): Add ido property with value find-file.
+
+2005-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (open-network-stream-nowait): Remove.
+	(open-network-stream-server): Remove.
+
+2005-05-15  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (describe-face): Output a definition link button.
+
+	* help-mode.el (help-face-def): New button type.
+
+	* emacs-lisp/copyright.el (copyright-fix-years):
+	Match properly if the first year is 2-digit.
+	Don't mess up the whitespace after the years by filling.
+
+	* dired-aux.el (dired-mark-confirm):
+	Pass t to dired-get-marked-files for DISTINGUISH-ONE-MARKED.
+
+	* dired.el (dired-map-over-marks): New arg DISTINGUISH-ONE-MARKED.
+	(dired-get-marked-files): New arg DISTINGUISH-ONE-MARKED.
+	(dired-mark-pop-up): Handle FILES = (t FILE) specially.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Set font-lock-comment-start-skip.
+
+	* font-lock.el (font-lock-comment-start-skip): New variable.
+	(font-lock-comment-end-skip): New variable.
+	(font-lock-fontify-syntactically-region): Use them if non-nil.
+
+2005-05-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-store-value): Return a string rather
+	than display it as a message.
+	Use calc-var-name for variable name.
+	(calc-store-into): Add the result of calc-store-value to message.
+	(calc-copy-variable): Add a message.
+	(calc-store-exchange): Improve error messages.
+	(calc-store-binary, calc-store-map): Don't reset the values of
+	special constants.
+
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/derived.el (define-derived-mode): Add link to Elisp
+	manual to docstring.
+
+	* files.el (hack-local-variables-confirm): Add STRING argument.
+	Make the function handle non file visiting buffers correctly.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use STRING arg of
+	`hack-local-variables-confirm'.
+
+2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.49.
+
+	* tramp.el (tramp-handle-dired-call-process)
+	(tramp-handle-insert-directory):`insert-buffer' cannot be used
+	because the contents of the Tramp buffer is changed before
+	insertion (`expand-file' and alike).
+	(tramp-handle-insert-directory): If `localname' has an empty
+	nondirectory name, it must not be quoted.
+	(tramp-pre-connection): Add parameter CHUNKSIZE.  Make local
+	variable `tramp-chunksize'.  Change callees.
+	(tramp-open-connection-setup-interactive-shell): Check remote host
+	for buggy `send-process-string' implementation.  Set
+	`tramp-chunksize' if found.  Reported by Michael Kifer
+	<kifer@cs.sunysb.edu> (and a lot of other people all the years).
+	(tramp-handle-shell-command): `insert-buffer' cannot be used
+	because the contents of the Tramp buffer is changed before
+	insertion (`expand-file' and alike).  Reported by Fr,Ai(Bd,Ai(Bric Bothamy
+	<frederic.bothamy@free.fr>.
+	(tramp-set-auto-save): Actions should be done for Tramp file name
+	handler only.  Ange-FTP has its own auto-save mechanism.  Reported
+	by Richard G. Bielawski <Richard.G.Bielawski@wellsfargo.com>.
+	(tramp-set-auto-save-file-modes): Set file modes of
+	`buffer-auto-save-file-name' to ?\600 as fallback solution.
+	Reported by Ferenc Wagner <wferi@tba.elte.hu>.
+	(tramp-bug): Remove obsolete variable.
+	(tramp-append-tramp-buffers): Rewrite partly.  More suitable check
+	for presence of `mml-mode'.  Make it running for older Emacsen as
+	well.
+
+2005-05-14  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename):
+	If `dired-directory' is a list, use its car.
+
+2005-05-14  Daniel Brockman  <daniel@brockman.se>  (tiny change)
+
+	* ibuffer.el (define-ibuffer-column filename):
+	If `dired-directory' is a list, use its car.
+
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (symbol-file): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn): New function.
+	(byte-compile-form): Call byte-compile-nogroup-warn.
+	(byte-compile-warning-types): Doc fix.
+
+	* eshell/esh-mode.el (eshell-find-tag): Use with-no-warnings.
+
+	* progmodes/cc-engine.el (c-literal-faces):
+	Add font-lock-comment-delimiter-face.
+
+	* net/net-utils.el (dig): Use with-no-warnings.
+
+	* mail/supercite.el (sc-cite-frame-alist, sc-uncite-frame-alist)
+	(sc-recite-frame-alist, sc-default-cite-frame)
+	(sc-default-uncite-frame, sc-default-recite-frame)
+	(sc-attrib-selection-list, sc-rewrite-header-list):
+	Mark as risky-local-variable.
+
+	* international/ogonek.el (ogonek-jak, ogonek-how):
+	Don't use beginning-of-buffer.
+
+	* emacs-lisp/eldoc.el (eldoc-documentation-function): Add autoload.
+
+	* calendar/solar.el (solar-data-list): Move definition up.
+
+	* dnd.el (dnd-protocol-alist): Add autoload.
+
+	* progmodes/sh-script.el: Many doc usage fixes.
+	(sh-indent-after-do): Change default to match common styles.
+
+2005-05-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (interpreter-mode-alist)
+	(auto-mode-interpreter-regexp): Doc fixes.
+
+2005-05-13  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* tmm.el (tmm-get-keymap): Include only active menus and menu
+	items.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fixes.
+
+2005-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dired.el (dired-mode): make-variable-buffer-local =>
+	make-local-variable
+
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-select-convert-to-string): Try coding
@@ -141,6 +327,9 @@
 	* cus-edit.el (custom-file): Call file-chase-links.
 
 	* files.el (read-directory-name): Fix previous change.
+	(hack-local-variables-confirm): New function.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use it.
 
 2005-05-10  Lute Kamstra  <lute@gnu.org>
 

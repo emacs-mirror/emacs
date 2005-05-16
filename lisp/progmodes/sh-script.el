@@ -1015,7 +1015,7 @@ Anything else means:   whenever we have a \"good guess\" as to the value."
   :group 'sh-indentation)
 
 (defcustom sh-popup-occur-buffer nil
-  "*Controls when  `sh-learn-buffer-indent' pops the *indent* buffer.
+  "*Controls when  `sh-learn-buffer-indent' pops the `*indent*' buffer.
 If t it is always shown.  If nil, it is shown only when there
 are conflicts."
   :type '(choice
@@ -1044,7 +1044,7 @@ Can be set to a number, or to nil which means leave it as is."
 
 (defcustom sh-basic-offset 4
   "*The default indentation increment.
-This value is used for the + and - symbols in an indentation variable."
+This value is used for the `+' and `-' symbols in an indentation variable."
   :type 'integer
   :group 'sh-indentation)
 
@@ -1088,7 +1088,7 @@ a number means align to that column, e.g. 0 means fist column."
 	   :menu-tag "/   Indent left  half sh-basic-offset")))
 
 (defcustom sh-indent-for-else 0
-  "*How much to indent an else relative to an if.  Usually 0."
+  "*How much to indent an `else' relative to its `if'.  Usually 0."
   :type `(choice
 	  (integer :menu-tag "A number (positive=>indent right)"
 		   :tag "A number")
@@ -1104,75 +1104,75 @@ a number means align to that column, e.g. 0 means fist column."
 	  sh-symbol-list))
 
 (defcustom sh-indent-for-fi 0
-  "*How much to indent a fi relative to an if.  Usually 0."
+  "*How much to indent a `fi' relative to its `if'.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
-(defcustom sh-indent-for-done '0
-  "*How much to indent a done relative to its matching stmt.  Usually 0."
+(defcustom sh-indent-for-done 0
+  "*How much to indent a `done' relative to its matching stmt.  Usually 0."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-else '+
-  "*How much to indent a statement after an else statement."
+  "*How much to indent a statement after an `else' statement."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-if '+
-  "*How much to indent a statement after an if statement.
-This includes lines after else and elif statements, too, but
-does not affect then else elif or fi statements themselves."
+  "*How much to indent a statement after an `if' statement.
+This includes lines after `else' and `elif' statements, too, but
+does not affect the `else', `elif' or `fi' statements themselves."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-then 0
-  "*How much to indent a then relative to an if."
+  "*How much to indent a `then' relative to its `if'."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-do 0
-  "*How much to indent a do statement.
-This is relative to the statement before the do, i.e. the
-while until or for statement."
+  "*How much to indent a `do' statement.
+This is relative to the statement before the `do', typically a
+`while', `until', `for', `repeat' or `select' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
-(defcustom sh-indent-after-do '*
-  "*How much to indent a line after a do statement.
-This is used when the do is the first word of the line.
-This is relative to the statement before the do, e.g. a
-while for repeat or select statement."
+(defcustom sh-indent-after-do '+
+  "*How much to indent a line after a `do' statement.
+This is used when the `do' is the first word of the line.
+This is relative to the statement before the `do', typically a
+`while', `until', `for', `repeat' or `select' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-loop-construct '+
   "*How much to indent a statement after a loop construct.
 
-This variable is used when the keyword \"do\" is on the same line as the
-loop statement (e.g.  \"until\", \"while\" or \"for\").
-If the do is on a line by itself, then `sh-indent-after-do' is used instead."
+This variable is used when the keyword `do' is on the same line as the
+loop statement (e.g., `until', `while' or `for').
+If the `do' is on a line by itself, then `sh-indent-after-do' is used instead."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 
 (defcustom sh-indent-after-done 0
-  "*How much to indent a statement after a \"done\" keyword.
-Normally this is 0, which aligns the \"done\" to the matching
+  "*How much to indent a statement after a `done' keyword.
+Normally this is 0, which aligns the `done' to the matching
 looping construct line.
-Setting it non-zero allows you to have the \"do\" statement on a line
+Setting it non-zero allows you to have the `do' statement on a line
 by itself and align the done under to do."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-case-label '+
   "*How much to indent a case label statement.
-This is relative to the line containing the case statement."
+This is relative to the line containing the `case' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-for-case-alt '++
   "*How much to indent statements after the case label.
-This is relative to the line containing the case statement."
+This is relative to the line containing the `case' statement."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
@@ -1184,7 +1184,7 @@ This is relative to the line containing the case statement."
 
 (defcustom sh-indent-after-open '+
   "*How much to indent after a line with an opening parenthesis or brace.
-For an open paren after a function `sh-indent-after-function' is used."
+For an open paren after a function, `sh-indent-after-function' is used."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
@@ -1196,13 +1196,13 @@ For an open paren after a function `sh-indent-after-function' is used."
 ;; These 2 are for the rc shell:
 
 (defcustom sh-indent-after-switch '+
-  "*How much to indent a case statement relative to the switch statement.
+  "*How much to indent a `case' statement relative to the `switch' statement.
 This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)
 
 (defcustom sh-indent-after-case '+
-  "*How much to indent a statement relative to the case statement.
+  "*How much to indent a statement relative to the `case' statement.
 This is for the rc shell."
   :type `(choice ,@ sh-number-or-symbol-list)
   :group 'sh-indentation)

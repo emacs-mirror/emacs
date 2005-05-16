@@ -1688,7 +1688,9 @@ If point is on a group name, this function operates on that group."
     (abbreviate-file-name
      (or buffer-file-name
 	 (and (boundp 'dired-directory)
-	      dired-directory)
+	      (if (stringp dired-directory)
+		  dired-directory
+		(car dired-directory)))	
 	 ""))))
 
 (define-ibuffer-column filename-and-process

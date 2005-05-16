@@ -979,7 +979,7 @@ tooltips.
 
   @dfn{Help tooltips} typically display over text---including the mode
 line---but may be also available for many other parts of the Emacs
-frame such as the toolbar and menu items.
+frame such as the tool bar and menu items.
 
 @findex tooltip-mode
   You can toggle help tooltips (Tooltip mode) with the command

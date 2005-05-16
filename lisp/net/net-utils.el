@@ -468,7 +468,8 @@ If your system's ping continues until interrupted, you can try setting
       (require 'ffap)
       (read-from-minibuffer
        "Lookup host: "
-       (or (ffap-string-at-point 'machine) "")))))
+       (with-no-warnings
+	 (or (ffap-string-at-point 'machine) ""))))))
   (net-utils-run-program
    "Dig"
    (concat "** "
