@@ -387,6 +387,26 @@
   (interactive)
   (calc-recall (intern (format "var-q%c" last-command-char))))
 
+(defun calc-copy-special-constant (&optional sconst var)
+  (interactive)
+  (let ((sc '(("")
+              ("e" . (special-const (math-e)))
+              ("pi" . (special-const (math-pi)))
+              ("i" . (special-const (math-imaginary 1)))
+              ("phi" . (special-const (math-phi)))
+              ("gamma" . (special-const (math-gamma-const))))))
+  (calc-wrapper
+   (or sconst (setq sconst (completing-read "Special constant: " sc nil t)))
+   (unless (string= sconst "")
+     (let ((value (cdr (assoc sconst sc))))
+       (or var (setq var (calc-read-var-name
+                            (format "Copy special constant %s, to: " 
+                                    sconst))))
+       (if var
+           (let ((msg (calc-store-value var value "")))
+             (message (concat "Special constant \"%s\" copied to \"%s\"" msg)
+                      sconst (calc-var-name var)))))))))
+
 (defun calc-copy-variable (&optional var1 var2)
   (interactive)
   (calc-wrapper
