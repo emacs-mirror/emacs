@@ -1,6 +1,6 @@
 ;;; authors.el --- utility for maintaining Emacs' AUTHORS file -*-coding: iso-2022-7bit;-*-
 
-;; Copyright (C) 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Gerd Moellmann <gerd@gnu.org>
 ;; Maintainer: Kim F. Storm <storm@cua.dk>
@@ -597,8 +597,7 @@ buffer *Authors Errors* containing references to unknown files."
     (unless (file-exists-p (expand-file-name "src/emacs.c" root))
       (error "Not the root directory of Emacs: %s" root))
     (dolist (log logs)
-      (when (and (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
-		 (not (string-match "/lispref/" log)))
+      (when (string-match "ChangeLog\\(.[0-9]+\\)?$" log)
 	(message "Scanning %s..." log)
 	(authors-scan-change-log log table)))
     (let ((els (authors-process-lines "find" root "-name" "*.el")))
