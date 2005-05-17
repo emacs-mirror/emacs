@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001
+;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
