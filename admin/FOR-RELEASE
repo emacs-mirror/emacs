@@ -96,7 +96,7 @@ DIRECTORY		STATUS		IN CHARGE
 leim			working		Kenichi Handa
 lisp/calc		working		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
-lisp/emulation		working		Thien-Thi Nguyen
+lisp/emulation		done		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
 lisp/net		done		Thien-Thi Nguyen
