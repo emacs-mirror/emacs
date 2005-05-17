@@ -93,7 +93,7 @@ URIs have the form @var{scheme}:@var{scheme-specific-part}, where the
 @var{scheme}s supported by this library are described below.
 @xref{Supported URL Types}.
 
-FTP NFS, HTTP, HTTPS, @code{rlogin}, @code{telnet}, tn3270,
+FTP, NFS, HTTP, HTTPS, @code{rlogin}, @code{telnet}, tn3270,
 IRC and gopher URLs all have the form
 
 @example
@@ -110,9 +110,8 @@ the possible exception of @code{telnet}, it is rare for ports to be
 specified, and it is possible using a non-standard port may have
 undesired consequences if a different service is listening on that
 port (e.g., an HTTP URL specifying the SMTP port can cause mail to be
-sent).@c , but @xref{Other Variables, url-bad-port-list}.
-The meaning of
-the @var{path} component depends on the service.
+sent). @c , but @xref{Other Variables, url-bad-port-list}.
+The meaning of the @var{path} component depends on the service.
 
 @menu
 * Configuration::
