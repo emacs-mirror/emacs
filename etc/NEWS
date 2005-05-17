@@ -1482,7 +1482,7 @@ region (like delete-selection-mode).  Do not enable these modes with
 cua-mode.  Customize the variable `cua-mode' to enable cua.
 
 In addition, cua provides unified rectangle support with visible
-rectangle highlighting: Use S-return to start a rectangle, extend it
+rectangle highlighting: Use C-return to start a rectangle, extend it
 using the movement commands (or mouse-3), and cut or copy it using C-x
 or C-c (using C-w and M-w also works).
 
