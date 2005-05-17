@@ -1,5 +1,8 @@
 2005-05-17  Lute Kamstra  <lute@gnu.org>
 
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't generate a
+	defcustom for the mode hook variable.
+
 	* emacs-lisp/authors.el (authors): Do parse the ChangeLogs of the
 	Emacs Lisp Reference Manual.
 
