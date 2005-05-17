@@ -1,5 +1,10 @@
 2005-05-17  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/cl.el (eql, floatp-safe, plusp, minusp, oddp)
+	(evenp, list*):
+	* emacs-lisp/cl-macs.el (macrolet, symbol-macrolet):
+	* emacs-lisp/cl-seq.el (subsetp, tree-equal): Doc fixes.
+
 	* net/tramp-smb.el (tramp-smb-open-connection):
 	Pass `tramp-chunksize' as fifth (required) argument.
 
