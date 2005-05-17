@@ -1408,9 +1408,10 @@ This is equivalent to specifying @var{keymap} positionally.
 Any other keyword arguments are passed passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
 
-The command named @var{mode} finishes by executing the @var{body} forms,
-if any, after it has performed the standard actions such as setting
-the variable named @var{mode}.
+The command named @var{mode} first performs the standard actions such
+as setting the variable named @var{mode} and then executes the
+@var{body} forms, if any.  It finishes by running the mode hook
+variable @code{@var{mode}-hook}.
 @end defmac
 
 @findex easy-mmode-define-minor-mode
