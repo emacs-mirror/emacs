@@ -1,3 +1,13 @@
+2005-05-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-dependency-skip): New variable.
+	(makefile-previous-dependency): Inline the new matcher, because it
+	is too complex to work in both directions.
+	(makefile-match-dependency): Eliminate `backward' arg (see above).
+	Completely reimplemented so as to not sometimes go into an endless
+	loop.  It should also be more efficient, because first it only
+	searches for `:', instead of applying the very complex regexp.
+
 2005-05-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* dired.el (dired-mode): Simplify.
