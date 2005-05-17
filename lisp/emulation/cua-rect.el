@@ -1403,8 +1403,8 @@ With prefix arg, indent to that column."
 
 (defun cua--init-rectangles ()
   (unless (eq cua-use-hyper-key 'only)
-    (define-key cua--rectangle-keymap [(shift return)] 'cua-clear-rectangle-mark)
-    (define-key cua--region-keymap    [(shift return)] 'cua-toggle-rectangle-mark))
+    (define-key cua--rectangle-keymap [(control return)] 'cua-clear-rectangle-mark)
+    (define-key cua--region-keymap    [(control return)] 'cua-toggle-rectangle-mark))
   (when cua-use-hyper-key
     (cua--rect-M/H-key 'space			       'cua-clear-rectangle-mark)
     (cua--M/H-key cua--region-keymap 'space	       'cua-toggle-rectangle-mark))
