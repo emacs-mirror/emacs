@@ -762,7 +762,7 @@ and `event-end' functions."
 (defalias 'eval-current-buffer 'eval-buffer)
 
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
+(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -771,6 +771,7 @@ is converted into a string by expressing it in decimal."
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
 (make-obsolete 'insert-string 'insert "22.1")
+
 (defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
 (make-obsolete 'makehash 'make-hash-table "22.1")
 
@@ -778,6 +779,7 @@ is converted into a string by expressing it in decimal."
 (defun baud-rate ()
   "Return the value of the `baud-rate' variable."
   baud-rate)
+(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
 
 ;;;; Obsolescence declarations for variables, and aliases.
@@ -822,9 +824,6 @@ is converted into a string by expressing it in decimal."
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
 
-;;; Should this be an obsolete name?  If you decide it should, you get
-;;; to go through all the sources and change them.
-(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 ;;;; Hook manipulation functions.
 
