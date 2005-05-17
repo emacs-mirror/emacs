@@ -1549,9 +1549,8 @@ Keybindings:
   (setq dired-switches-alist nil)
   (dired-sort-other dired-actual-switches t)
   (when (featurep 'dnd)
-    (make-local-variable 'dnd-protocol-alist)
-    (setq dnd-protocol-alist
-	  (append dired-dnd-protocol-alist dnd-protocol-alist)))
+    (set (make-local-variable 'dnd-protocol-alist)
+	 (append dired-dnd-protocol-alist dnd-protocol-alist)))
   (run-mode-hooks 'dired-mode-hook))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
