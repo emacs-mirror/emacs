@@ -1,12 +1,18 @@
 2005-05-17  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-dependency-skip): New variable.
+	(makefile-macroassign-regex, makefile-make-font-lock-keywords):
+	Also fontify plain strings assigned to variables, mostly so that a
+	colon has a face and is thus not taken as a dependency separator.
 	(makefile-previous-dependency): Inline the new matcher, because it
 	is too complex to work in both directions.
 	(makefile-match-dependency): Eliminate `backward' arg (see above).
 	Completely reimplemented so as to not sometimes go into an endless
 	loop.  It should also be more efficient, because first it only
 	searches for `:', instead of applying the very complex regexp.
+	(makefile-mode): Cancel `font-lock-support-mode', because blocks
+	to be fontified in one piece can be too long for JIT.  Makefiles
+	are never *that* big.
 
 2005-05-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
