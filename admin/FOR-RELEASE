@@ -94,11 +94,12 @@ you're going to handle.
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 leim			working		Kenichi Handa
+lisp/calc		working		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
 lisp/emulation		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
-lisp/net		working		Thien-Thi Nguyen
+lisp/net		done		Thien-Thi Nguyen
 lisp/play		done		Thien-Thi Nguyen
 lisp/term		done		Thien-Thi Nguyen
 
