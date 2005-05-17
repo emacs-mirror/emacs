@@ -273,7 +273,7 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -331,7 +331,9 @@ not be enclosed in { } or ( )."
     (,makefile-macroassign-regex
      (1 font-lock-variable-name-face)
      ;; This is for after !=
-     (2 'makefile-shell-face prepend t))
+     (2 'makefile-shell-face prepend t)
+     ;; This is for after normal assignment
+     (3 'font-lock-string-face prepend t))
 
     ;; Rule actions.
     (makefile-match-action
@@ -787,7 +789,8 @@ Makefile mode can be configured by modifying the following variables:
  	  nil nil
  	  ((?$ . "."))
  	  backward-paragraph
-	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)))
+	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)
+	  (font-lock-support-mode)))	; JIT breaks on long series of continuation lines.
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
