@@ -262,6 +262,9 @@ not be enclosed in { } or ( )."
   "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
   "Regex used to find dependency lines in a makefile.")
 
+(defvar makefile-dependency-skip "^:"
+  "Characters to skip to find a line that might be a dependency.")
+
 (defvar makefile-rule-action-regex
   "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)"
   "Regex used to highlight rule action lines in font lock mode.")
@@ -857,6 +860,7 @@ Makefile mode can be configured by modifying the following variables:
   (set (make-local-variable 'makefile-dependency-regex)
        ;; Identical to default, except allows `!' instead of `:'.
        "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\([:!]\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)")
+  (set (make-local-variable 'makefile-dependency-skip) "^:!")
   (set (make-local-variable 'makefile-rule-action-regex)
        "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
   (setq font-lock-defaults
@@ -874,18 +878,26 @@ Makefile mode can be configured by modifying the following variables:
   (interactive)
   (let ((here (point)))
     (end-of-line)
-    (if (makefile-match-dependency (point-max))
+    (if (makefile-match-dependency nil)
 	(progn (beginning-of-line) t)	; indicate success
       (goto-char here) nil)))
 
 (defun makefile-previous-dependency ()
   "Move point to the beginning of the previous dependency line."
   (interactive)
-  (let ((here (point)))
+  (let ((pt (point)))
     (beginning-of-line)
-    (if (makefile-match-dependency (point-min) t)
-	(progn (beginning-of-line) t)	; indicate success
-      (goto-char here) nil)))
+    ;; makefile-match-dependency done backwards:
+    (catch 'found
+      (while (and (< (skip-chars-backward makefile-dependency-skip) 0)
+		  (not (bobp)))
+	(backward-char)
+	(or (get-text-property (point) 'face)
+	    (beginning-of-line)
+	    (if (looking-at makefile-dependency-regex)
+		(throw 'found t))))
+      (goto-char pt)
+      nil)))
 
 
 
@@ -1683,16 +1695,23 @@ The anchor must have matched the opening parens in the first group."
 		  ((string= s "{{") "\\(.*?\\)[ \t]*}}")))
     (if s (looking-at s))))
 
-(defun makefile-match-dependency (bound &optional backward)
+(defun makefile-match-dependency (bound)
   "Search for `makefile-dependency-regex' up to BOUND.
-Optionally search BACKWARD.
 Checks that the colon has not already been fontified, else we
 matched in a rule action."
   (catch 'found
-    (while (funcall (if backward 're-search-backward 're-search-forward)
-		    makefile-dependency-regex bound t)
-      (or (get-text-property (match-beginning 2) 'face)
-	  (throw 'found t)))))
+    (let ((pt (point)))
+      (while (and (> (skip-chars-forward makefile-dependency-skip bound) 0)
+		  (not (eobp)))
+	(forward-char)
+	(or (get-text-property (1- (point)) 'face)
+	    (when (save-excursion
+		    (beginning-of-line)
+		    (looking-at makefile-dependency-regex))
+	      (end-of-line)
+	      (throw 'found (point)))))
+      (goto-char pt))
+    nil))
 
 (defun makefile-match-action (bound)
   (catch 'found
