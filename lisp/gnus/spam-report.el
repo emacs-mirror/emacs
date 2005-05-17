@@ -159,7 +159,7 @@ symbol `ask', query before flushing the queue file."
     (goto-char (point-min))
     (while (and (not (eobp))
 		(re-search-forward
-		 "http://\\([^/]+\\)\\(/.*\\) *$" (point-at-eol) t))
+		 "http://\\([^/]+\\)\\(/.*\\) *$" (gnus-point-at-eol) t))
       (funcall spam-report-url-ping-function (match-string 1) (match-string 2))
       (forward-line 1))
     (if (or (eq keep nil)
