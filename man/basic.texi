@@ -240,8 +240,10 @@ Position 1 is the beginning of the buffer.
 @item M-g M-g
 @itemx M-g g
 @itemx M-x goto-line
-Read a number @var{n} and move point to line number @var{n}.  Line 1
-is the beginning of the buffer.
+Read a number @var{n} and move point to the beginning of line number
+@var{n}.  Line 1 is the beginning of the buffer.  If point is on or
+just after a number, then that is the default for @var{n}, if you just
+press @key{RET} with an empty minibuffer.
 @item C-x C-n
 @findex set-goal-column
 @kindex C-x C-n
