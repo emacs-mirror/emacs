@@ -1,3 +1,8 @@
+2005-05-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-s-prefix-help): Add
+	`calc-copy-special-constant' to help string.
+
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
