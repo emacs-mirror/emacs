@@ -1,3 +1,8 @@
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Derived Modes): Correct references to non-existing
+	variable standard-syntax-table.
+
 2005-05-17  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Defining Minor Modes): Mention the mode hook.
