@@ -1001,7 +1001,7 @@ The new mode has its own syntax table, kept in the variable
 @code{:syntax-table} keyword (see below).  @code{define-derived-mode}
 makes the parent mode's syntax-table the parent of
 @code{@var{variant}-syntax-table}, unless the latter is already set
-and already has a parent different from @code{standard-syntax-table}.
+and already has a parent different from the standard syntax table.
 
 @item
 The new mode has its own abbrev table, kept in the variable
@@ -1039,7 +1039,7 @@ If this is specified, it is the customization group for this mode.
 @item :syntax-table
 You can use this to explicitly specify a syntax table for the new
 mode.  If you specify a @code{nil} value, the new mode uses the same
-syntax table as @var{parent}, or @code{standard-syntax-table} if
+syntax table as @var{parent}, or the standard syntax table if
 @var{parent} is @code{nil}.  (Note that this does @emph{not} follow
 the convention used for non-keyword arguments that a @code{nil} value
 is equivalent with not specifying the argument.)
