@@ -1,3 +1,8 @@
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* programs.texi (Lisp Doc): Eldoc mode shows only the first line
+	of a variable's docstring.
+
 2005-05-18  Lute Kamstra  <lute@gnu.org>
 
 	* maintaining.texi (Overview of Emerge): Add cross reference.
