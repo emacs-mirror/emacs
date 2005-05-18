@@ -1,0 +1,45 @@
+How to Maintain Copyright Years for GNU Emacs
+
+
+Principle: Individual files need to have the year of the release
+           in the copyright notice if there is significant change.
+
+
+Practice:
+
+- individual files
+  - each must be examined, along w/ its history, by a human
+  - automated tools facilitate but can never replace this process
+
+- year of the release
+  - may be different from year of file introduction,
+    or year of last significant change
+  - sometimes the release year slips, leaving a file w/ prematurely
+    marked release year => need update (e.g., s/2004/2005/ for Emacs 22)
+  - intervening years (between releases) are not valid and may cause
+    embarrassment later in case of dispute => remove (however, see next)
+  - years for new files (merged, contributed) that have been separately
+    published are valid even if between releases => leave alone
+
+- significant change
+  - insignificant
+    - whitespace
+    - copyright notice
+    - version control tags
+    - simple var/func renaming
+    - in-file reorganization/reordering
+    - typos
+    - small bugfixes
+    - small docfixes
+    - filename renaming
+  - most everything else is significant
+    - change to interface
+    - change in functionality
+    - new file
+  - many small changes may be significant in aggregate
+
+- when in doubt, ask (and update these guidelines -- thanks!)
+
+- sometimes people make mistakes
+  - if they have not read these guidelines, point them here
+  - if the guidelines are not helpful, improve the guidelines
