@@ -1,5 +1,9 @@
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* buffers.texi (Select Buffer): Document `C-u M-g M-g'.
+
+	* basic.texi (Moving Point): Mention default for `goto-line'.
+
 	* programs.texi (Lisp Doc): Eldoc mode shows only the first line
 	of a variable's docstring.
 

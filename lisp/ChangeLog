@@ -1,3 +1,7 @@
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
+
 2005-05-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-poly.el (math-factor-poly-coefs): Make sure the terms
