@@ -1,3 +1,7 @@
+2005-05-18  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/lisp.el (check-parens): Fix docstring.
+
 2005-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (window-dot, set-window-dot, read-input, send-string)
