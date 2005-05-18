@@ -2278,8 +2278,9 @@ breakpoints.
 
 Use M-x gdb to start GDB-UI.
 
-*** GUD tooltips can be toggled independently of normal tooltips
-with the minor mode `gud-tooltip-mode'.
+*** The variable tooltip-gud-tips-p is obsoleted.  GUD tooltips can now be
+toggled independently of normal tooltips with the minor mode
+`gud-tooltip-mode'.
 
 +++
 *** In graphical mode, with a C program, GUD Tooltips have been extended to
