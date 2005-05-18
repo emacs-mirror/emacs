@@ -489,7 +489,7 @@ lets you type a terminal emulator command."
 	     (progn
 	       (and terminal-more-processing (null (cdr te-pending-output))
 		    (te-set-more-count nil))
-	       (send-string te-process (make-string 1 last-input-char))
+	       (process-send-string te-process (make-string 1 last-input-char))
 	       (te-process-output t))
 	   (message "Function key `%s' ignored"
 		    (single-key-description last-input-char))))))
