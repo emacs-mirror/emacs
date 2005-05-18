@@ -526,7 +526,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Store, inTo, Xchg, Unstore; Recall, 0-9; : (:=); = (=>)"
-     "Let; Copy; Declare; Insert, Perm; Edit"
+     "Let; Copy, K=copy constant; Declare; Insert, Perm; Edit"
      "Negate, +, -, *, /, ^, &, |, [, ]; Map"
      "SHIFT + Decls, GenCount, TimeZone, Holidays; IntegLimit"
      "SHIFT + LineStyles, PointStyles, plotRejects; Units"
