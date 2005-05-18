@@ -753,16 +753,16 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(defalias 'window-dot 'window-point)
-(defalias 'set-window-dot 'set-window-point)
-(defalias 'read-input 'read-string)
-(defalias 'send-string 'process-send-string)
-(defalias 'send-region 'process-send-region)
-(defalias 'show-buffer 'set-window-buffer)
-(defalias 'eval-current-buffer 'eval-buffer)
+(define-obsolete-function-alias 'window-dot 'window-point)
+(define-obsolete-function-alias 'set-window-dot 'set-window-point)
+(define-obsolete-function-alias 'read-input 'read-string)
+(define-obsolete-function-alias 'send-string 'process-send-string)
+(define-obsolete-function-alias 'send-region 'process-send-region)
+(define-obsolete-function-alias 'show-buffer 'set-window-buffer)
+(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer)
+(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
-(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
