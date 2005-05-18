@@ -1,3 +1,9 @@
+2005-05-18  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-previous-dependency)
+	(makefile-match-dependency): Check for := (and in bsd mode also
+	!=) to give a better result, even when font-lock is not on.
+
 2005-05-18  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-help.el (calc-s-prefix-help): Add
