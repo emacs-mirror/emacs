@@ -675,7 +675,7 @@ Returns t unless files were locked; then returns nil."
 	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
-	(eval-current-buffer))
+	(eval-buffer))
       (when shadow-todo-file
 	(set-buffer (setq shadow-todo-buffer
 			  (find-file-noselect shadow-todo-file)))
@@ -686,7 +686,7 @@ Returns t unless files were locked; then returns nil."
 	  (message "Data recovered from %s."
 		   (car (insert-file-contents (make-auto-save-file-name))))
 	  (sit-for 1))
-	(eval-current-buffer nil))
+	(eval-buffer nil))
       (shadow-invalidate-hashtable))
     t))
 

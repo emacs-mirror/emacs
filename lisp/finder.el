@@ -182,7 +182,7 @@ no arguments compiles from `load-path'."
 ;;; End:
 ;;; " (file-name-nondirectory generated-finder-keywords-file) " ends here\n")
       (kill-buffer "*finder-scratch*")
-      (eval-current-buffer) ;; So we get the new keyword list immediately
+      (eval-buffer) ;; So we get the new keyword list immediately
       (basic-save-buffer))))
 
 (defun finder-compile-keywords-make-dist ()
