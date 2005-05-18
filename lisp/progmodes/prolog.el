@@ -234,8 +234,8 @@ Entry to this mode calls the value of `prolog-mode-hook' with no arguments,
 if that value is non-nil.  Likewise with the value of `comint-mode-hook'.
 `prolog-mode-hook' is called after `comint-mode-hook'.
 
-You can send text to the inferior Prolog from other buffers
-using the commands `send-region', `send-string' and \\[prolog-consult-region].
+You can send text to the inferior Prolog from other buffers using the commands
+`process-send-region', `process-send-string' and \\[prolog-consult-region].
 
 Commands:
 Tab indents for Prolog; with argument, shifts rest
@@ -265,12 +265,12 @@ If COMPILE (prefix arg) is not nil, use compile mode rather than consult mode."
   (interactive "P\nr")
   (save-excursion
     (if compile
-	(send-string "prolog" prolog-compile-string)
-      (send-string "prolog" prolog-consult-string))
-    (send-region "prolog" beg end)
-    (send-string "prolog" "\n")		;May be unnecessary
+	(process-send-string "prolog" prolog-compile-string)
+      (process-send-string "prolog" prolog-consult-string))
+    (process-send-region "prolog" beg end)
+    (process-send-string "prolog" "\n")		;May be unnecessary
     (if prolog-eof-string
-	(send-string "prolog" prolog-eof-string)
+	(process-send-string "prolog" prolog-eof-string)
       (process-send-eof "prolog")))) ;Send eof to prolog process.
 
 (defun prolog-consult-region-and-go (compile beg end)
