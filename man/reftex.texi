@@ -7,9 +7,9 @@
 @syncodeindex fn cp
 
 @c Version and Contact Info
-@set VERSION 4.24
-@set EDITION 4.24
-@set DATE March 2005
+@set VERSION 4.28
+@set EDITION 4.28
+@set DATE May 2005
 @set AUCTEXSITE @uref{http://www.nongnu.org/auctex/,AUCTeX distribution site}
 @set MAINTAINERSITE @uref{http://www.astro.uva.nl/~dominik/Tools/,maintainers webpage}
 @set MAINTAINER Carsten Dominik
@@ -25,8 +25,7 @@ citations and indices for LaTeX documents with Emacs.
 This is edition @value{EDITION} of the @b{Ref@TeX{}} User Manual for
 @b{Ref@TeX{}} @value{VERSION}
 
-Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2005
-Free Software Foundation, Inc.
+Copyright (c) 1997, 1998, 1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -1817,22 +1816,25 @@ keymap @code{reftex-select-bib-map} may be used.
 @cindex Citation styles, @code{natbib}
 @cindex Citation styles, @code{harvard}
 @cindex Citation styles, @code{chicago}
+@cindex Citation styles, @code{jurabib}
 @cindex @code{natbib}, citation style
 @cindex @code{harvard}, citation style
 @cindex @code{chicago}, citation style
+@cindex @code{jurabib}, citation style
 
 @vindex reftex-cite-format
 The standard LaTeX macro @code{\cite} works well with numeric or simple
 key citations.  To deal with the more complex task of author-year
 citations as used in many natural sciences, a variety of packages has
 been developed which define derived forms of the @code{\cite} macro.
-@b{Ref@TeX{}} can be configured to produce these citation macros as well by
-setting the variable @code{reftex-cite-format}.  For the most commonly
-used packages (@code{natbib}, @code{harvard}, @code{chicago}) this may
-be done from the menu, under @code{Ref->Citation Styles}.  Since there
-are usually several macros to create the citations, executing
-@code{reftex-citation} (@kbd{C-c [}) starts by prompting for the correct
-macro.  For the Natbib style, this looks like this:
+@b{Ref@TeX{}} can be configured to produce these citation macros as well
+by setting the variable @code{reftex-cite-format}.  For the most
+commonly used packages (@code{natbib}, @code{harvard}, @code{chicago},
+@code{jurabib}) this may be done from the menu, under
+@code{Ref->Citation Styles}.  Since there are usually several macros to
+create the citations, executing @code{reftex-citation} (@kbd{C-c [})
+starts by prompting for the correct macro.  For the Natbib style, this
+looks like this:
 
 @example
 SELECT A CITATION FORMAT
@@ -3520,15 +3522,15 @@ the Emacs 19 version supports many but not all features described in
 this manual.
 
 Thanks to the people on the Net who have used @b{Ref@TeX{}} and helped
-developing it with their reports.  In particular thanks to @i{Fran
-Burstall, Alastair Burt, Lars Clausen, Soren Dayton, Stephen Eglen,
-Karl Eichwalder, Erik Frisk, Peter Galbraith, Kai Grossjohann, Frank
-Harrell, Peter Heslin, Stephan Heuel, Alan Ho, Lute Kamstra, Dieter
-Kraft, David Kastrup, Adrian Lanz, Juri Linkov, Rory Molinari, Stefan
-Monnier, Laurent Mugnier, Dan Nicolaescu, Sudeep Kumar Palat, Daniel
-Polani, Alan Shutko, Robin Socha, Richard Stanton, Allan Strand, Jan
-Vroonhof, Christoph Wedler, Alan Williams, Roland Winkler,
-Hans-Christoph Wirth, Eli Zaretskii}.
+developing it with their reports.  In particular thanks to @i{Ralf
+Angeli, Fran Burstall, Alastair Burt, Lars Clausen, Soren Dayton,
+Stephen Eglen, Karl Eichwalder, Erik Frisk, Peter Galbraith, Kai
+Grossjohann, Frank Harrell, Till A. Heilmann, Peter Heslin, Stephan
+Heuel, Alan Ho, Lute Kamstra, Dieter Kraft, David Kastrup, Adrian Lanz,
+Juri Linkov, Rory Molinari, Stefan Monnier, Laurent Mugnier, Dan
+Nicolaescu, Sudeep Kumar Palat, Daniel Polani, Alan Shutko, Robin Socha,
+Richard Stanton, Allan Strand, Jan Vroonhof, Christoph Wedler, Alan
+Williams, Roland Winkler, Hans-Christoph Wirth, Eli Zaretskii}.
 
 
 The @code{view-crossref} feature was inspired by @i{Peter Galbraith's}
@@ -5152,10 +5154,18 @@ options for a specific part of @b{Ref@TeX{}}.
 
 Here is a list of recent changes to @b{Ref@TeX{}}.
 
+@noindent @b{Version 4.28}
+@itemize @bullet
+@item Support for the Jurabib package.
+@item Improvements when selecting several items in a selection buffer.
+@end itemize
+
 @noindent @b{Version 4.26}
 @itemize @bullet
 @item
-Bug fixes only.
+Support for global incremental search.
+@item
+Some improvements for XEmacs compatibility.
 @end itemize
 
 @noindent @b{Version 4.25}
