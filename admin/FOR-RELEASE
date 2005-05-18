@@ -97,9 +97,10 @@ leim			working		Kenichi Handa
 lisp/calc		done		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
 lisp/emulation		done		Thien-Thi Nguyen
+lisp/eshell		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
-lisp/mh-e		working		Thien-Thi Nguyen
+lisp/mh-e		done		Thien-Thi Nguyen
 lisp/net		done		Thien-Thi Nguyen
 lisp/play		done		Thien-Thi Nguyen
 lisp/term		done		Thien-Thi Nguyen
