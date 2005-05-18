@@ -77,6 +77,10 @@ Similar, but select @var{buffer} in another window
 @item C-x 5 b @var{buffer} @key{RET}
 Similar, but select @var{buffer} in a separate frame
 (@code{switch-to-buffer-other-frame}).
+@item C-u M-g M-g
+@itemx C-u M-g g
+Read a number @var{n} and move to line @var{n} in the most recently
+selected buffer other than the current buffer.
 @end table
 
 @kindex C-x b
@@ -138,6 +142,19 @@ Modes}).
   Note that @kbd{C-x C-f}, and any other command for visiting a file,
 can also be used to switch to an existing file-visiting buffer.
 @xref{Visiting}.
+
+  @kbd{C-u M-g M-g}, that is @code{goto-line} with a prefix argument
+of just @kbd{C-u}, reads a number @var{n} using the minibuffer,
+selects the most recently selected buffer other than the current
+buffer in another window, and then moves point to the beginning of
+line number @var{n} in that buffer.  This is mainly useful in a buffer
+that refers to line numbers in another buffer: if point is on or just
+after a number, @code{goto-line} uses that number as the default for
+@var{n}.  Note that prefix arguments other than just @kbd{C-u} behave
+differently.  @kbd{C-u 4 M-g M-g} goes to line 4 in the @emph{current}
+buffer, without reading a number from the minibuffer.  (Remember that
+@kbd{M-g M-g} without prefix argument reads a number @var{n} and then
+moves to line number @var{n} in the current buffer.)
 
   Emacs uses buffer names that start with a space for internal purposes.
 It treats these buffers specially in minor ways---for example, by
