@@ -1,3 +1,26 @@
+
+2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin): Support
+	for jurabib.
+
+	* textmodes/reftex.el (featurep): Define aliases for overlay
+	commands, for XEmacs compatibility, and use these aliases in
+	overlay initializations.
+	(reftex-highlight): Use `reftex-move-overlay'.
+	(reftex-unhighlight): Use `reftex-delete-overlay'.
+	(reftex-uniq): Funktion removed.  Use `reftex-uniquify' instead.
+	(reftex-access-search-path): Use `reftex-uniquify' instead of
+	`reftex-uniq'
+
+	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
+	`before-string' property modification enables for Emacs as well.
+	(reftex-select-item): Use `reftex-delete-overlay'.
+	(reftex-select-mark): Use `reftex-make-overlay' and
+	`reftex-overlay-put'.
+	(reftex-select-unmark): Use `reftex-delete-overlay' and
+	`reftex-overlay-put'.
+
 2005-05-18  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/lisp.el (check-parens): Fix docstring.
