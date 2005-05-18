@@ -1,3 +1,7 @@
+2005-05-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-poly.el (math-factor-poly-coefs): Make sure the terms
+	in linear factors are in proper order.
 
 2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
 
