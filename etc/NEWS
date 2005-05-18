@@ -819,7 +819,7 @@ trouble with fontification and/or indentation.
 
 *** New standard font-lock face `font-lock-comment-delimiter-face'.
 
-*** Easy to overlook single character negation is now font-locked.
+*** Easy to overlook single character negation can now be font-locked.
 You can use the new variable `font-lock-negation-char-face' and the face of
 the same name to customize this.  Currently the cc-modes, sh-script-mode,
 cperl-mode and make-mode support this.
