@@ -3,7 +3,7 @@
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 
 ;; This file is part of GNU Emacs.
 
@@ -681,7 +681,7 @@ While entering the regexp, completion on knows citation keys is possible.
         ;; Should we cleanup empty optional arguments?
         ;; if the first is empty, it can be removed.  If the second is empty,
         ;; it has to go.  If there is only a single arg and empty, it can go
-	;; as well.
+        ;; as well.
         (when reftex-cite-cleanup-optional-args
           (cond 
            ((string-match "\\([a-zA-Z0-9]\\)\\[\\]{" string)

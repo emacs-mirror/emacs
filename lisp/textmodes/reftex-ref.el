@@ -3,7 +3,7 @@
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 
 ;; This file is part of GNU Emacs.
 
@@ -29,6 +29,7 @@
 (eval-when-compile (require 'cl))
 (provide 'reftex-ref)
 (require 'reftex)
+(require 'reftex-parse)
 ;;;
 
 (defun reftex-label-location (&optional bound)
@@ -200,13 +201,13 @@ This function is controlled by the settings of reftex-insert-label-flags."
               force-prompt)
 
           (while (not valid)
-            ;; iterate until we get a legal label
+            ;; iterate until we get a valid label
 
             (setq label (read-string
                          (if naked "Naked Label: " "Label: ")
                          default))
 
-            ;; Lets make sure that this is a legal label
+            ;; Lets make sure that this is a valid label
             (cond
 
              ((string-match (concat "\\`\\(" (regexp-quote prefix)
