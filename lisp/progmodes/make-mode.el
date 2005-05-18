@@ -353,15 +353,14 @@ not be enclosed in { } or ( )."
      1 'makefile-targets-face prepend)
 
     ;; Fontify conditionals and includes.
-    ;; Note that plain `if' is an automake conditional, and not a bug.
     (,(concat "^\\(?: [ \t]*\\)?"
 	      (regexp-opt keywords t)
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
      (1 font-lock-keyword-face) (2 font-lock-variable-name-face))
 
     ,@(if negation
-	 `((,negation (1 font-lock-negation-char-face prepend)
-		      (2 font-lock-negation-char-face prepend t))))
+	  `((,negation (1 font-lock-negation-char-face prepend)
+		       (2 font-lock-negation-char-face prepend t))))
 
     ,@(if space
 	  '(;; Highlight lines that contain just whitespace.
@@ -894,8 +893,9 @@ Makefile mode can be configured by modifying the following variables:
     (catch 'found
       (while (and (< (skip-chars-backward makefile-dependency-skip) 0)
 		  (not (bobp)))
-	(backward-char)
-	(or (get-text-property (point) 'face)
+	(or (prog1 (eq (char-after) ?=)
+	      (backward-char))
+	    (get-text-property (point) 'face)
 	    (beginning-of-line)
 	    (if (looking-at makefile-dependency-regex)
 		(throw 'found t))))
@@ -1707,7 +1707,8 @@ matched in a rule action."
       (while (and (> (skip-chars-forward makefile-dependency-skip bound) 0)
 		  (not (eobp)))
 	(forward-char)
-	(or (get-text-property (1- (point)) 'face)
+	(or (eq (char-after) ?=)
+	    (get-text-property (1- (point)) 'face)
 	    (when (save-excursion
 		    (beginning-of-line)
 		    (looking-at makefile-dependency-regex))
