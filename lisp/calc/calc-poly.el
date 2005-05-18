@@ -692,12 +692,13 @@
 
 	  ;; Check if linear in math-fet-x.
 	  ((not (cdr (cdr p)))
-	   (math-add (math-factor-protect
-		      (math-sort-terms
-		       (math-factor-expr (car p))))
-		     (math-mul math-fet-x (math-factor-protect
-				  (math-sort-terms
-				   (math-factor-expr (nth 1 p)))))))
+           (math-sort-terms
+            (math-add (math-factor-protect
+                       (math-sort-terms
+                        (math-factor-expr (car p))))
+                      (math-mul math-fet-x (math-factor-protect
+                                            (math-sort-terms
+                                             (math-factor-expr (nth 1 p))))))))
 
 	  ;; If symbolic coefficients, use FactorRules.
 	  ((let ((pp p))
