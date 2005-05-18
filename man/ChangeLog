@@ -1,5 +1,8 @@
 2005-05-18  Lute Kamstra  <lute@gnu.org>
 
+	* maintaining.texi (Overview of Emerge): Add cross reference.
+	Remove duplication.
+
 	* emacs.texi (Top): Update to the current structure of the manual.
 	* misc.texi (Emacs Server): Add menu description.
 	* files.texi (Saving): Fix menu.
