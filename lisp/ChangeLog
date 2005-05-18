@@ -4,6 +4,34 @@
 
 2005-05-18  Juanma Barranquero  <lekktu@gmail.com>
 
+	* add-log.el (add-change-log-entry):
+	* array.el (array-make-template, array-reconfigure-rows)
+	(array-init-max-row, array-init-max-column)
+	(array-init-columns-per-line, array-init-field-width):
+	* replace.el (replace-match-maybe-edit, perform-replace):
+	* textmodes/spell.el (spell-region):
+	Replace `read-input' by `read-string'.
+
+	* forms.el (forms-mode):
+	* finder.el (finder-compile-keywords):
+	* shadowfile.el (shadow-read-files):
+	Replace `eval-current-buffer' by `eval-buffer'.
+
+	* terminal.el (te-pass-through):
+	* net/ange-ftp.el (ange-ftp-process-filter, ange-ftp-gwp-filter)
+	(ange-ftp-raw-send-cmd):
+	* net/telnet.el (telnet-interrupt-subjob, telnet-c-z)
+	(send-process-next-char, telnet-initial-filter, telnet):
+	Replace `send-string' by `process-send-string'.
+
+	* progmodes/prolog.el (inferior-prolog-mode): Doc fix.
+	(prolog-consult-region): Replace `send-string' by
+	`process-send-string'; replace `send-region' by
+	`process-send-region'.
+
+	* progmodes/delphi.el (delphi-log-msg):
+	Replace `set-window-dot' by `set-window-point'.
+
 	* subr.el (window-dot, set-window-dot, read-input, send-string)
 	(send-region, show-buffer, eval-current-buffer):
 	Make really obsolete, as the comment says.
