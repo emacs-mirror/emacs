@@ -1,3 +1,8 @@
+2005-05-19  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-fix-years): Make sure all
+	years are fixed.  Don't insert a space after a dash.
+
 2005-05-19  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/crisp.el (crisp-home, crisp-end): Put CUA property.
