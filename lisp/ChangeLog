@@ -1,3 +1,7 @@
+2005-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/crisp.el (crisp-home, crisp-end): Put CUA property.
+
 2005-05-19  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* font-lock.el (lisp-font-lock-keywords-2): Do \\) only in
