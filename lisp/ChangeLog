@@ -1,3 +1,8 @@
+2005-05-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-graph-format-data): Make sure
+	var-PlotRejects is bound before trying to check its value.
+
 2005-05-19  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/reftex.el (reftex-isearch-minor-mode): Moved the
