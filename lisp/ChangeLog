@@ -1,3 +1,11 @@
+2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (send-string, send-region):
+	Remove obsolescence declaration.
+	(window-dot, set-window-dot, read-input, show-buffer)
+	(eval-current-buffer, string-to-int):
+	Add release number to obsolescence declarations.
+
 2005-05-19  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-magic-forward-char): Enter ido-find-file at end of input.
