@@ -758,14 +758,12 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(define-obsolete-function-alias 'window-dot 'window-point)
-(define-obsolete-function-alias 'set-window-dot 'set-window-point)
-(define-obsolete-function-alias 'read-input 'read-string)
-(define-obsolete-function-alias 'send-string 'process-send-string)
-(define-obsolete-function-alias 'send-region 'process-send-region)
-(define-obsolete-function-alias 'show-buffer 'set-window-buffer)
-(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer)
-(define-obsolete-function-alias 'string-to-int 'string-to-number)
+(define-obsolete-function-alias 'window-dot 'window-point "22.1")
+(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
+(define-obsolete-function-alias 'read-input 'read-string "22.1")
+(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
+(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
+(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
 
@@ -808,6 +806,8 @@ is converted into a string by expressing it in decimal."
 
 ;;;; Alternate names for functions - these are not being phased out.
 
+(defalias 'send-string 'process-send-string)
+(defalias 'send-region 'process-send-region)
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
 (defalias 'move-marker 'set-marker)
