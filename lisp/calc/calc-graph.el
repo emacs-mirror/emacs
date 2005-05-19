@@ -864,6 +864,7 @@
 			  "e" (int-to-string (nth 2 calc-graph-zval))))))
 	  (insert "\n"))
       (and (not (equal calc-graph-zval '(skip)))
+           (boundp 'var-PlotRejects)
 	   (eq (car-safe var-PlotRejects) 'vec)
 	   (nconc var-PlotRejects
 		  (list (list 'vec
