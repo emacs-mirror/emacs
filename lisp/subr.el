@@ -789,10 +789,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'unread-command-char
   "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
   "before 19.15")
-(make-obsolete-variable 'post-command-idle-hook
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
-(make-obsolete-variable 'post-command-idle-delay
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
