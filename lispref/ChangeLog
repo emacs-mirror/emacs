@@ -1,3 +1,17 @@
+2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Hooks): Delete confusing and unnecessary sentence.
+	(Major Mode Conventions): Refer to `Auto Major Mode' in more
+	appropriate place.
+	(Derived Modes): Small clarifications.
+	(Minor Mode Conventions, Keymaps and Minor Modes): Replace
+	references to nodes with references to anchors.
+	(Mode Line Data): Warn that `(:eval FORM)' should not load any files.
+	Clarify description of lists whose first element is an integer.
+	(Mode Line Variables): Add anchor.
+	(%-Constructs): Clarify description of integer after %.
+	(Emulating Mode Line): Describe nil value for FACE.
+
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* modes.texi (Derived Modes): Correct references to non-existing
