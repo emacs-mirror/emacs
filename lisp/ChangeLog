@@ -1,5 +1,9 @@
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
+	* subr.el (post-command-idle-hook, post-command-idle-delay): 
+	Remove obsoletion of post-command-idle-hook and
+	post-command-idle-delay.
+
 	* faces.el (list-faces-display): Provide button when describe-face
 	is called to take user back to  the list of faces.
 
