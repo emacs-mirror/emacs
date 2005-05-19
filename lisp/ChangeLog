@@ -1,3 +1,25 @@
+2005-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-mode): Use run-mode-hooks.
+
+	* subr.el (event-basic-type): Don't get an error.
+	(left-fringe-p): Function deleted.
+
+	* buff-menu.el (Buffer-menu-buffer-face): In group Buffer-menu.
+
+	* dired-aux.el (dired-copy-file-recursive): Handle symlinks
+	in recursive copy.
+
+	* frame.el (show-trailing-whitespace): In group `whitespace-faces'.
+
+	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable):
+	Call byte-compile-nogroup-warn if appropriate.
+
+	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
+	(compilation-set-window): Don't call left-fringe-p; do it directly.
+	
 2005-05-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-graph.el (calc-graph-format-data): Make sure
