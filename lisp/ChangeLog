@@ -1,3 +1,7 @@
+2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/compile.el (compilation-finish-function): Fix defvar.
+
 2005-05-19  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/make-mode.el (makefile-mode): Use run-mode-hooks.
@@ -19,7 +23,7 @@
 
 	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
 	(compilation-set-window): Don't call left-fringe-p; do it directly.
-	
+
 2005-05-19  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-graph.el (calc-graph-format-data): Make sure
