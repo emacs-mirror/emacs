@@ -1,3 +1,7 @@
+2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* TODO: post-command-idle-hook has gone.
+
 2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* NEWS: Remove references to open-network-stream-nowait and

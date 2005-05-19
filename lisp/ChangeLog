@@ -1,5 +1,11 @@
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
+	* faces.el (list-faces-display): Provide button when describe-face
+	is called to take user back to  the list of faces.
+
+	* help-fns.el (describe-variable): Remove hyperlinks in a
+	variable's value as these are quite frequently inappropriate.
+
 	* follow.el (follow-submit-feedback, follow-mode): Remove
 	references to post-command-idle-hook.
 

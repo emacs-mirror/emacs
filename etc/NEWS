@@ -2278,7 +2278,7 @@ breakpoints.
 
 Use M-x gdb to start GDB-UI.
 
-*** The variable tooltip-gud-tips-p is obsoleted.  GUD tooltips can now be
+*** The variable tooltip-gud-tips-p has been removed.  GUD tooltips can now be
 toggled independently of normal tooltips with the minor mode
 `gud-tooltip-mode'.
 
@@ -3011,6 +3011,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 * Lisp Changes in Emacs 22.1
 
 ** General Lisp changes:
+
+---
+*** The variables post-command-idle-hook and post-command-idle-delay have
+    been removed.  Use run-with-idle-timer instead.
 
 +++
 *** The function `eql' is now available without requiring the CL package.
