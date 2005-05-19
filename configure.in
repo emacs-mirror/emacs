@@ -142,6 +142,16 @@ else
 fi
 AC_SUBST(MAINT)
 
+AC_ARG_ENABLE(locallisppath,
+[  --enable-locallisppath=PATH
+                          directories Emacs should search for lisp files
+                          specific to this site],
+if test "${enableval}" = "no"; then
+  locallisppath=
+elif test "${enableval}" != "yes"; then
+  locallisppath=${enableval}
+fi)
+
 #### Make srcdir absolute, if it isn't already.  It's important to
 #### avoid running the path through pwd unnecessarily, since pwd can
 #### give you automounter prefixes, which can go away.  We do all this
