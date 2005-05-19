@@ -1,3 +1,8 @@
+2005-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-magic-forward-char): Enter ido-find-file at end of input.
+	(ido-magic-backward-char): Enter ido-switch-buffer at start of input.
+
 2005-05-20  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* faces.el (list-faces-display): Make back button respect optional
