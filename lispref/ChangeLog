@@ -1,5 +1,7 @@
 2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* keymaps.texi (Active Keymaps): Add anchor.
+
 	* modes.texi (Hooks): Delete confusing and unnecessary sentence.
 	(Major Mode Conventions): Refer to `Auto Major Mode' in more
 	appropriate place.
