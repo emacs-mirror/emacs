@@ -831,7 +831,7 @@ Makefile mode can be configured by modifying the following variables:
 
   ;; Real TABs are important in makefiles
   (setq indent-tabs-mode t)
-  (run-hooks 'makefile-mode-hook))
+  (run-mode-hooks 'makefile-mode-hook))
 
 ;; These should do more than just differentiate font-lock.
 ;;;###autoload
