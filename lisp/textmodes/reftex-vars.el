@@ -1388,7 +1388,9 @@ Inserting indexing commands in a line makes the line longer - often
 so long that it does not fit onto the screen.  When this variable is
 non-nil, newlines will be added as necessary before and/or after the
 indexing command to keep lines short.  However, the matched text
-phrase and its index command will always end up on a single line.")
+phrase and its index command will always end up on a single line."
+  :group 'reftex-index-support
+  :type 'boolean)
 
 (defcustom reftex-index-phrases-sort-prefers-entry nil
   "*Non-nil means when sorting phrase lines, the explicit index entry is used.
