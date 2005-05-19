@@ -1,3 +1,8 @@
+2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-cookie.el (url-cookie-multiple-line):
+	Specify group and type in defcustom.
+
 2005-05-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-auth.el (url-register-auth-scheme):
