@@ -417,10 +417,6 @@ Also checks if buffers visiting the files are in read-only mode."
 	(find-file  (car flist))))))
 
 ;;;###autoload
-(defvar reftex-isearch-minor-mode nil)
-(make-variable-buffer-local 'reftex-isearch-minor-mode)
-
-;;;###autoload
 (defun reftex-isearch-minor-mode (&optional arg)
   "When on, isearch searches the whole document, not only the current file.
 This minor mode allows isearch to search through all the files of
