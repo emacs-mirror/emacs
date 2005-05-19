@@ -87,7 +87,9 @@
   "*If nil, HTTP requests put all cookies for the server on one line.
 Some web servers, such as http://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behaviour, but just try
-telling Microsoft that.")
+telling Microsoft that."
+  :type 'boolean
+  :group 'url-cookie)
 
 (defvar url-cookies-changed-since-last-save nil
   "Whether the cookies list has changed since the last save operation.")
