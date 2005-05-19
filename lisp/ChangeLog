@@ -1,3 +1,43 @@
+2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calculator.el (calculator-radix-grouping-mode)
+	(calculator-radix-grouping-digits, calculator-displayer)
+	(calculator-radix-grouping-separator, calculator-copy-displayer):
+	* dabbrev.el (dabbrev-search-these-buffers-only):
+	* diff-mode.el (diff-jump-to-old-file, diff-update-on-the-fly)
+	(diff-advance-after-apply-hunk, diff-mode-hook)
+	(diff-minor-mode-prefix):
+	* imenu.el (imenu-use-popup-menu):
+	* jit-lock.el (jit-lock-context-time):
+	* newcomment.el (comment-fill-column, comment-column)
+	(comment-style, comment-padding, comment-multi-line)
+	(comment-empty-lines, comment-auto-fill-only-comments):
+	* reveal.el (reveal-around-mark):
+	* uniquify.el (uniquify-buffer-name-style)
+	(uniquify-after-kill-buffer-p)
+	(uniquify-ask-about-buffer-names-p, uniquify-ignore-buffers-re)
+	(uniquify-min-dir-content, uniquify-separator)
+	(uniquify-trailing-separator-p, uniquify-strip-common-suffix):
+	* w32-vars.el (w32-fixed-font-alist):
+	* emacs-lisp/testcover.el (testcover-potentially-1value-functions):
+	* obsolete/rsz-mini.el (resize-minibuffer-frame-max-height):
+	* progmodes/antlr-mode.el (antlr-font-lock-maximum-decoration):
+	* progmodes/perl-mode.el (perl-indent-level)
+	(perl-continued-statement-offset, perl-continued-brace-offset)
+	(perl-brace-offset, perl-brace-imaginary-offset)
+	(perl-label-offset, perl-indent-continued-arguments)
+	(perl-tab-always-indent, perl-tab-to-comment, perl-nochange):
+	* progmodes/tcl.el (tcl-indent-level)
+	(tcl-continued-indent-level, tcl-auto-newline)
+	(tcl-tab-always-indent, tcl-electric-hash-style)
+	(tcl-help-directory-list, tcl-use-smart-word-finder)
+	(tcl-application, tcl-command-switches, tcl-prompt-regexp)
+	(inferior-tcl-source-command):
+	* textmodes/fill.el (enable-kinsoku):
+	* textmodes/reftex-vars.el (reftex-index-phrases-wrap-long-lines):
+	* textmodes/table.el (table-yank-handler):
+	Specify missing group (and type, if simple) in defcustom.
+
 2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* progmodes/compile.el (compilation-finish-function): Fix defvar.
