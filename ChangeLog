@@ -1,3 +1,8 @@
+2005-05-11  J,Ai(Br,At(Bme Marant  <jmarant@marant.org>
+
+	* configure.in: Add --enable-locallisppath.
+	* configure: Regenerate.
+
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* configure.in: Don't check HAVE_CARBON if HAVE_X11 is set to yes.
