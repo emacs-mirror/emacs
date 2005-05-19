@@ -2267,31 +2267,41 @@ If no merge has yet taken place, toggle automatic merging option."
 
 (defun ido-magic-forward-char ()
   "Move forward in user input or perform magic action.
-If no user input is present, perform magic actions:
-C-x C-f C-f  fallback to non-ido find-file.
-C-x C-d C-f  fallback to non-ido brief dired.
-C-x d C-f    fallback to non-ido dired."
+If no user input is present or at end of input, perform magic actions:
+C-x C-b ... C-f  switch to ido-find-file.
+C-x C-f ... C-f  fallback to non-ido find-file.
+C-x C-d ... C-f  fallback to non-ido brief dired.
+C-x d ... C-f    fallback to non-ido dired."
   (interactive)
   (cond
    ((not (eobp))
     (forward-char 1))
-   ((and (= (length ido-text) 0)
-	 (memq ido-cur-item '(file dir)))
-    (ido-fallback-command))))
+   ((memq ido-cur-item '(file dir))
+    (ido-fallback-command))
+   (ido-context-switch-command
+    (call-interactively ido-context-switch-command))
+   ((eq ido-cur-item 'buffer)
+    (ido-enter-find-file))))
 
 ;;; Magic C-b
 
 (defun ido-magic-backward-char ()
   "Move backward in user input or perform magic action.
-If no user input is present, perform magic actions:
+If no user input is present, or at start of input, perform magic actions:
+C-x C-f C-b  switch to ido-switch-buffer.
+C-x C-d C-b  switch to ido-switch-buffer.
+C-x d C-b    switch to ido-switch-buffer.
 C-x C-b C-b  fallback to non-ido switch-to-buffer."
   (interactive)
   (cond
-   ((> (length ido-text) 0)
-    (if (> (point) (minibuffer-prompt-end))
-	(forward-char -1)))
+   ((> (point) (minibuffer-prompt-end))
+    (forward-char -1))
    ((eq ido-cur-item 'buffer)
-    (ido-fallback-command))))
+    (ido-fallback-command))
+   (ido-context-switch-command
+    (call-interactively ido-context-switch-command))
+   (t
+    (ido-enter-switch-buffer))))
 
 ;;; Magic C-d
 
