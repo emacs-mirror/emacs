@@ -2424,10 +2424,10 @@ IGNORE-WORDS List of words which should be removed from the string."
 
 ;; Define a menu for the menu bar if Emacs is running under X
 
-(require 'easymenu)
-
 (defvar reftex-isearch-minor-mode nil)
 (make-variable-buffer-local 'reftex-isearch-minor-mode)
+
+(require 'easymenu)
 
 (easy-menu-define reftex-mode-menu reftex-mode-map
  "Menu used in RefTeX mode"

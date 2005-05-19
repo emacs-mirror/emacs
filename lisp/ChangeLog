@@ -1,3 +1,9 @@
+2005-05-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-isearch-minor-mode): Moved the
+	definition of this variable from reftex-global.el to reftex.el,
+	because it is needed in the menu.
+
 2005-05-19  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/copyright.el (copyright-fix-years): Make sure all
