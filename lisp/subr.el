@@ -603,8 +603,13 @@ in the current Emacs session, then this function may return nil."
       (setq event (car event)))
   (if (symbolp event)
       (car (get event 'event-symbol-elements))
-    (let ((base (logand event (1- ?\A-\^@))))
-      (downcase (if (< base 32) (logior base 64) base)))))
+    (let* ((base (logand event (1- ?\A-\^@)))
+	   (uncontrolled (if (< base 32) (logior base 64) base)))
+      ;; There are some numbers that are invalid characters and
+      ;; cause `downcase' to get an error.
+      (condition-case ()
+	  (downcase uncontrolled)
+	(error uncontrolled)))))
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
@@ -2288,9 +2293,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defsubst left-fringe-p ()
-  (equal (car (window-fringes)) 0))
 
 (defun functionp (object)
   "Non-nil if OBJECT is any kind of function or a special form.
