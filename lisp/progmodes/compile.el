@@ -117,7 +117,11 @@ nil means compute the name with `(concat \"*\" (downcase major-mode) \"*\")'.")
 (defvar compilation-finish-function nil
   "Function to call when a compilation process finishes.
 It is called with two arguments: the compilation buffer, and a string
-describing how the process finished.")
+describing how the process finished.
+
+(make-obsolete-variable 'compilation-finish-function
+  "Use `compilation-finish-functions', but it works a little differently."
+  "22.1")
 
 ;;;###autoload
 (defvar compilation-finish-functions nil
@@ -1592,7 +1596,8 @@ displays at the top of the window; there is no arrow."
 			    (beginning-of-line
 			     (- 1 compilation-context-lines))
 			    (point)))
-    (if (left-fringe-p)
+    ;; If there is no left fringe.
+    (if (equal (car (window-fringes)) 0)
 	(set-window-start w (save-excursion
 			      (goto-char mk)
 			    (beginning-of-line 1)
