@@ -1,3 +1,8 @@
+2005-05-20  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* faces.el (list-faces-display): Make back button respect optional
+	regexp arg.
+
 2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* calculator.el (calculator-radix-grouping-mode)
