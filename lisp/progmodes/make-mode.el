@@ -891,8 +891,8 @@ Makefile mode can be configured by modifying the following variables:
     (beginning-of-line)
     ;; makefile-match-dependency done backwards:
     (catch 'found
-      (while (and (< (skip-chars-backward makefile-dependency-skip) 0)
-		  (not (bobp)))
+      (while (progn (skip-chars-backward makefile-dependency-skip)
+		    (not (bobp)))
 	(or (prog1 (eq (char-after) ?=)
 	      (backward-char))
 	    (get-text-property (point) 'face)
@@ -998,74 +998,56 @@ Anywhere else just self-inserts."
 (defun makefile-pickup-targets ()
   "Notice names of all target definitions in Makefile."
   (interactive)
-  (if (not makefile-need-target-pickup)
-      nil
-    (setq makefile-need-target-pickup nil)
-    (setq makefile-target-table nil)
-    (setq makefile-has-prereqs nil)
+  (when makefile-need-target-pickup
+    (setq makefile-need-target-pickup nil
+	  makefile-target-table nil
+	  makefile-has-prereqs nil)
     (save-excursion
       (goto-char (point-min))
       (while (makefile-match-dependency nil)
-	(makefile-add-this-line-targets)))
-    (message "Read targets OK.")))
-
-(defun makefile-add-this-line-targets ()
-  (save-excursion
-    (beginning-of-line)
-    (let ((done-with-line nil)
-	  (line-number (1+ (count-lines (point-min) (point)))))
-      (while (not done-with-line)
-	(skip-chars-forward " \t")
-	(if (not (setq done-with-line (or (eolp)
-					  (char-equal (char-after (point)) ?:))))
-	    (progn
-	      (let* ((start-of-target-name (point))
-		     (target-name
-		      (progn
-			(skip-chars-forward "^ \t:#")
-			(buffer-substring start-of-target-name (point))))
+	(goto-char (match-beginning 1))
+	(while (let ((target-name
+		      (buffer-substring-no-properties (point)
+						      (progn
+							(skip-chars-forward "^ \t:#")
+							(point))))
 		     (has-prereqs
 		      (not (looking-at ":[ \t]*$"))))
-		(if (makefile-remember-target target-name has-prereqs)
-		    (message "Picked up target \"%s\" from line %d"
-			     target-name line-number)))))))))
+		 (if (makefile-remember-target target-name has-prereqs)
+		     (message "Picked up target \"%s\" from line %d"
+			      target-name (line-number-at-pos)))
+		 (skip-chars-forward " \t")
+		 (not (or (eolp) (eq (char-after) ?:)))))
+	(forward-line)))
+    (message "Read targets OK.")))
 
 (defun makefile-pickup-macros ()
   "Notice names of all macro definitions in Makefile."
   (interactive)
-  (if (not makefile-need-macro-pickup)
-      nil
-    (setq makefile-need-macro-pickup nil)
-    (setq makefile-macro-table nil)
+  (when makefile-need-macro-pickup
+    (setq makefile-need-macro-pickup nil
+	  makefile-macro-table nil)
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward makefile-macroassign-regex nil t)
-	(makefile-add-this-line-macro)
-	(forward-line 1)))
+	(goto-char (match-beginning 1))
+	(let ((macro-name (buffer-substring-no-properties (point)
+							  (progn
+							    (skip-chars-forward "^ \t:#=*")
+							    (point)))))
+	  (if (makefile-remember-macro macro-name)
+	      (message "Picked up macro \"%s\" from line %d"
+		       macro-name (line-number-at-pos))))
+	(forward-line)))
     (message "Read macros OK.")))
-
-(defun makefile-add-this-line-macro ()
-  (save-excursion
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (unless (eolp)
-      (let* ((start-of-macro-name (point))
-	     (line-number (1+ (count-lines (point-min) (point))))
-	     (macro-name (progn
-			   (skip-chars-forward "^ \t:#=*")
-			   (buffer-substring start-of-macro-name (point)))))
-	(if (makefile-remember-macro macro-name)
-	    (message "Picked up macro \"%s\" from line %d"
-		     macro-name line-number))))))
 
 (defun makefile-pickup-everything (arg)
   "Notice names of all macros and targets in Makefile.
 Prefix arg means force pickups to be redone."
   (interactive "P")
   (if arg
-      (progn
-	(setq makefile-need-target-pickup t)
-	(setq makefile-need-macro-pickup t)))
+      (setq makefile-need-target-pickup t
+	    makefile-need-macro-pickup t))
   (makefile-pickup-macros)
   (makefile-pickup-targets)
   (if makefile-pickup-everything-picks-up-filenames-p
@@ -1076,17 +1058,12 @@ Prefix arg means force pickups to be redone."
 Checks each filename against `makefile-ignored-files-in-pickup-regex'
 and adds all qualifying names to the list of known targets."
   (interactive)
-  (let* ((dir (file-name-directory (buffer-file-name)))
-	 (raw-filename-list (if dir
-				(file-name-all-completions "" dir)
-			      (file-name-all-completions "" ""))))
-    (mapcar (lambda (name)
-	       (if (and (not (file-directory-p name))
-			(not (string-match makefile-ignored-files-in-pickup-regex
-					   name)))
-		   (if (makefile-remember-target name)
-		       (message "Picked up file \"%s\" as target" name))))
-	    raw-filename-list)))
+  (mapc (lambda (name)
+	  (or (file-directory-p name)
+	      (string-match makefile-ignored-files-in-pickup-regex name)
+	      (if (makefile-remember-target name)
+		  (message "Picked up file \"%s\" as target" name))))
+	(file-name-all-completions "" (or (file-name-directory (buffer-file-name)) ""))))
 
 
 
@@ -1704,8 +1681,8 @@ Checks that the colon has not already been fontified, else we
 matched in a rule action."
   (catch 'found
     (let ((pt (point)))
-      (while (and (> (skip-chars-forward makefile-dependency-skip bound) 0)
-		  (not (eobp)))
+      (while (progn (skip-chars-forward makefile-dependency-skip bound)
+		    (not (eobp)))
 	(forward-char)
 	(or (eq (char-after) ?=)
 	    (get-text-property (1- (point)) 'face)
