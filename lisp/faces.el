@@ -1184,7 +1184,7 @@ arg, prompt for a regular expression."
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
-	      (setq help-xref-stack-item '(list-faces-display))
+	      (setq help-xref-stack-item `(list-faces-display ,regexp))
 	      (help-xref-button 0 'help-customize-face face)))
 	  (let ((beg (point))
 		(line-beg (line-beginning-position)))
