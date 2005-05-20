@@ -12364,8 +12364,8 @@ File statistics: \"%s\"\n\
 	  (save-match-data
 	    (goto-char (match-end 1))
 	    ;; move to next item
-	    (if (looking-at "\\(\\s-*,\\)")
-		(goto-char (match-end 1))
+	    (if (looking-at "\\s-*,")
+		(goto-char (match-end 0))
 	      (end-of-line) t))))
     (error t)))
 
@@ -12736,7 +12736,7 @@ This does background highlighting of translate-off regions.")
 	 '(font-lock-syntactic-keywords . vhdl-font-lock-syntactic-keywords)))
   (when (fboundp 'font-lock-unset-defaults)
     (font-lock-unset-defaults))		; not implemented in XEmacs
-  (font-lock-set-defaults)
+  (font-lock-set-defaults)              ;What for?  --Stef
   (font-lock-mode nil)
   (font-lock-mode t))
 
