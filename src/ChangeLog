@@ -1,3 +1,9 @@
+2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (lookup_image, png_read_from_memory): Remove hacks (and
+	misleading comments).
+	(DEF_IMGLIB_FN): Use C calling convention for image libraries.
+
 2005-05-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
 
 	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges):
