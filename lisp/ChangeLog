@@ -1,3 +1,8 @@
+2005-05-20  David Kastrup  <dak@gnu.org>
+
+	* emacs-lisp/easymenu.el (easy-menu-add): Correct docstring since
+	easy-menu-add is not a nop on Emacs; and clarify when to call it.
+
 2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-toggle-time-grid): New command.
