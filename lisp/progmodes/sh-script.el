@@ -1389,7 +1389,7 @@ with your script for an edit-interpret-debug cycle."
 	   (cond ((looking-at "#![ \t]?\\([^ \t\n]*/bin/env[ \t]\\)?\\([^ \t\n]+\\)")
 		  (match-string 2))
 		 ((and buffer-file-name
-		       (string-match "\\.m?spec$" buffer-file-name))
+		       (string-match "\\.m?spec\\'" buffer-file-name))
 		  "rpm")))))
     (sh-set-shell (or interpreter sh-shell-file) nil nil))
   (run-hooks 'sh-mode-hook))
@@ -2290,7 +2290,7 @@ we go to the end of the previous line and do not check for continuations."
 	(if (looking-at "[\"'`]")
 	    (sh-safe-forward-sexp)
 	  ;; (> (skip-chars-forward "^ \t\n\"'`") 0)
-	  (> (skip-chars-forward "-_a-zA-Z\$0-9") 0)
+	  (> (skip-chars-forward "-_a-zA-Z$0-9") 0)
 	  ))
     (buffer-substring start (point))
     ))
