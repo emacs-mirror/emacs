@@ -88,8 +88,7 @@ in Lisp Interaction mode:
 @end example
 
   At the appropriate time, Emacs uses the @code{run-hooks} function to
-run particular hooks.  This function calls the hook functions that have
-been added with @code{add-hook}.
+run particular hooks.
 
 @defun run-hooks &rest hookvars
 This function takes one or more normal hook variable names as
@@ -470,13 +469,13 @@ and Buffer List use this feature.
 @item
 If you want to make the new mode the default for files with certain
 recognizable names, add an element to @code{auto-mode-alist} to select
-the mode for those file names.  If you define the mode command to
-autoload, you should add this element in the same file that calls
-@code{autoload}.  If you use an autoload cookie for the mode command,
-you can also use an autoload cookie for the form that adds the element
-(@pxref{autoload cookie}).  If you do not autoload the mode command,
-it is sufficient to add the element in the file that contains the mode
-definition.  @xref{Auto Major Mode}.
+the mode for those file names (@pxref{Auto Major Mode}).  If you
+define the mode command to autoload, you should add this element in
+the same file that calls @code{autoload}.  If you use an autoload
+cookie for the mode command, you can also use an autoload cookie for
+the form that adds the element (@pxref{autoload cookie}).  If you do
+not autoload the mode command, it is sufficient to add the element in
+the file that contains the mode definition.
 
 @item
 In the comments that document the file, you should provide a sample
@@ -1001,7 +1000,7 @@ The new mode has its own syntax table, kept in the variable
 @code{:syntax-table} keyword (see below).  @code{define-derived-mode}
 makes the parent mode's syntax-table the parent of
 @code{@var{variant}-syntax-table}, unless the latter is already set
-and already has a parent different from @code{standard-syntax-table}.
+and already has a parent different from the standard syntax table.
 
 @item
 The new mode has its own abbrev table, kept in the variable
@@ -1011,13 +1010,13 @@ The new mode has its own abbrev table, kept in the variable
 @item
 The new mode has its own mode hook, @code{@var{variant}-hook}.  It
 runs this hook, after running the hooks of its ancestor modes, with
-@code{run-mode-hooks} (@pxref{Mode Hooks}).
+@code{run-mode-hooks}, as the last thing it does. @xref{Mode Hooks}.
 @end itemize
 
 In addition, you can specify how to override other aspects of
 @var{parent} with @var{body}.  The command @var{variant}
 evaluates the forms in @var{body} after setting up all its usual
-overrides, just before running @code{@var{variant}-hook}.
+overrides, just before running the mode hooks.
 
 You can also specify @code{nil} for @var{parent}.  This gives the new
 mode no parent.  Then @code{define-derived-mode} behaves as described
@@ -1039,7 +1038,7 @@ If this is specified, it is the customization group for this mode.
 @item :syntax-table
 You can use this to explicitly specify a syntax table for the new
 mode.  If you specify a @code{nil} value, the new mode uses the same
-syntax table as @var{parent}, or @code{standard-syntax-table} if
+syntax table as @var{parent}, or the standard syntax table if
 @var{parent} is @code{nil}.  (Note that this does @emph{not} follow
 the convention used for non-keyword arguments that a @code{nil} value
 is equivalent with not specifying the argument.)
@@ -1262,8 +1261,9 @@ enable or disable the minor mode based on the raw prefix argument value.
 
 @item
 Add an element to @code{minor-mode-alist} for each minor mode
-(@pxref{Mode Line Variables}), if you want to indicate the minor mode in
-the mode line.  This element should be a list of the following form:
+(@pxref{Definition of minor-mode-alist}), if you want to indicate the
+minor mode in the mode line.  This element should be a list of the
+following form:
 
 @smallexample
 (@var{mode-variable} @var{string})
@@ -1305,7 +1305,7 @@ should also specify a @code{:set} method which enables the mode by
 invoking the mode command.  Note in the variable's documentation string that
 setting the variable other than via Custom may not take effect.
 
-  Also mark the definition with an autoload cookie (@pxref{Autoload}),
+  Also mark the definition with an autoload cookie (@pxref{autoload cookie}),
 and specify a @code{:require} so that customizing the variable will load
 the library that defines the mode.  This will copy suitable definitions
 into @file{loaddefs.el} so that users can use @code{customize-option} to
@@ -1334,7 +1334,7 @@ use either \\[customize] or the function `msb-mode'."
 
   Each minor mode can have its own keymap, which is active when the mode
 is enabled.  To set up a keymap for a minor mode, add an element to the
-alist @code{minor-mode-map-alist}.  @xref{Active Keymaps}.
+alist @code{minor-mode-map-alist}.  @xref{Definition of minor-mode-map-alist}.
 
 @cindex @code{self-insert-command}, minor modes
   One use of minor mode keymaps is to modify the behavior of certain
@@ -1408,9 +1408,10 @@ This is equivalent to specifying @var{keymap} positionally.
 Any other keyword arguments are passed passed directly to the
 @code{defcustom} generated for the variable @var{mode}.
 
-The command named @var{mode} finishes by executing the @var{body} forms,
-if any, after it has performed the standard actions such as setting
-the variable named @var{mode}.
+The command named @var{mode} first performs the standard actions such
+as setting the variable named @var{mode} and then executes the
+@var{body} forms, if any.  It finishes by running the mode hook
+variable @code{@var{mode}-hook}.
 @end defmac
 
 @findex easy-mmode-define-minor-mode
@@ -1627,7 +1628,9 @@ common form of mode-line construct.
 
 @item (:eval @var{form})
 A list whose first element is the symbol @code{:eval} says to evaluate
-@var{form}, and use the result as a string to display.
+@var{form}, and use the result as a string to display.  Make sure this
+evaluation cannot load any files, as doing so could cause infinite
+recursion.
 
 @item (:propertize @var{elt} @var{props}@dots{})
 A list whose first element is the symbol @code{:propertize} says to
@@ -1649,9 +1652,10 @@ the value of @var{symbol} is @code{nil}.
 A list whose first element is an integer specifies truncation or
 padding of the results of @var{rest}.  The remaining elements
 @var{rest} are processed recursively as mode-line constructs and
-concatenated together.  Then the result is space filled (if
-@var{width} is positive) or truncated (to @minus{}@var{width} columns,
-if @var{width} is negative) on the right.
+concatenated together.  When @var{width} is positive, the result is
+space filled on the right if its width is less than @var{width}.  When
+@var{width} is negative, the result is truncated on the right to
+@minus{}@var{width} columns if its width exceeds @minus{}@var{width}.
 
 For example, the usual way to show what percentage of a buffer is above
 the top of the window is to use a list like this: @code{(-3 "%p")}.
@@ -1817,6 +1821,7 @@ is @code{nil}.
 @end defvar
 
 @defvar minor-mode-alist
+@anchor{Definition of minor-mode-alist}
 This variable holds an association list whose elements specify how the
 mode line should indicate that a minor mode is active.  Each element of
 the @code{minor-mode-alist} should be a two-element list:
@@ -1888,7 +1893,8 @@ specifies addition of text properties.
 
   The following table lists the recognized @code{%}-constructs and what
 they mean.  In any construct except @samp{%%}, you can add a decimal
-integer after the @samp{%} to specify how many characters to display.
+integer after the @samp{%} to specify a minimum field width.  If the
+width is less, the field is padded with spaces to the right.
 
 @table @code
 @item %b
@@ -1993,7 +1999,7 @@ The value of @code{global-mode-string}.  Currently, only
 
   Certain text properties are meaningful in the
 mode line.  The @code{face} property affects the appearance of text; the
-@code{help-echo} property associate help strings with the text, and
+@code{help-echo} property associates help strings with the text, and
 @code{local-map} can make the text mouse-sensitive.
 
   There are four ways to specify text properties for text in the mode
@@ -2061,7 +2067,7 @@ It is normally @code{nil}, so that ordinary buffers have no header line.
 
   You can use the function @code{format-mode-line} to compute
 the text that would appear in a mode line or header line
-based on certain mode-line specification.
+based on a certain mode-line specification.
 
 @defun format-mode-line format &optional face window buffer
 This function formats a line of text according to @var{format} as if
@@ -2077,7 +2083,8 @@ faces, keymaps, etc., that the mode line would have.  And any character
 for which no @code{face} property is specified gets a default
 value which is usually @var{face}.  (If @var{face} is @code{t},
 that stands for either @code{mode-line} if @var{window} is selected,
-otherwise @code{mode-line-inactive}.)
+otherwise @code{mode-line-inactive}.  If @var{face} is @code{nil} or
+omitted, that stands for no face property.)
 
 However, if @var{face} is an integer, the value has no text properties.
 

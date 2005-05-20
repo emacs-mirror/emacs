@@ -1835,7 +1835,7 @@ the counts."
 	      (setq blobbet (file-name-nondirectory blobby))
 	      (if (string-match "^[0-9][0-9][0-9]-" blobbet)
 		  (let ((water-mark))
-		    (setq water-mark (string-to-int (substring blobbet 0 3)))
+		    (setq water-mark (string-to-number (substring blobbet 0 3)))
 		    (if (> water-mark high-water) (setq high-water water-mark))))
 	      (setq q-cnt (1+ q-cnt)))
 	     (t (setq q-oth (1+ q-oth)))

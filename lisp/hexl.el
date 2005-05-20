@@ -874,7 +874,7 @@ Embedded whitespace, dashes, and periods in the string are ignored."
 (defun hexl-insert-decimal-char (arg)
   "Insert a character given by its decimal code ARG times at point."
   (interactive "p")
-  (let ((num (string-to-int (read-string "Decimal Number: "))))
+  (let ((num (string-to-number (read-string "Decimal Number: "))))
     (if (< num 0)
 	(error "Decimal number out of range")
       (hexl-insert-multibyte-char num arg))))

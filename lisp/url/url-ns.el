@@ -51,9 +51,9 @@
     (if (or (/= (length netc) (length ipc))
 	    (/= (length ipc) (length maskc)))
 	nil
-      (setq netc (mapcar 'string-to-int netc)
-	    ipc (mapcar 'string-to-int ipc)
-	    maskc (mapcar 'string-to-int maskc))
+      (setq netc (mapcar 'string-to-number netc)
+	    ipc (mapcar 'string-to-number ipc)
+	    maskc (mapcar 'string-to-number maskc))
       (and
        (= (logand (nth 0 netc) (nth 0 maskc))
 	  (logand (nth 0 ipc)  (nth 0 maskc)))

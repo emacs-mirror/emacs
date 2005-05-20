@@ -1235,9 +1235,10 @@ mode constantly displays in the echo area the argument list for the
 function being called at point.  (In other words, it finds the
 function call that point is contained in, and displays the argument
 list of that function.)  If point is over a documented variable, it
-shows the variable's docstring.  Eldoc mode applies in Emacs Lisp and
-Lisp Interaction modes only.  Use the command @kbd{M-x eldoc-mode} to
-enable or disable this feature.
+shows the first line of the variable's docstring.  Eldoc mode applies
+in Emacs Lisp and Lisp Interaction modes, and perhaps a few others
+that provide special support for looking up doc strings.  Use the
+command @kbd{M-x eldoc-mode} to enable or disable this feature.
 
 @node Hideshow
 @section Hideshow minor mode
@@ -2022,7 +2023,7 @@ value 5, line numbers are right-justified to end in column 4.
   Simply inserting a line number is enough to indent it according to
 these rules.  As each digit is inserted, the indentation is recomputed.
 To turn off this feature, set the variable
-@code{fortran-electric-line-number} to @code{nil}.  
+@code{fortran-electric-line-number} to @code{nil}.
 
 
 @node ForIndent Conv

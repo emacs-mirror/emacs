@@ -800,7 +800,7 @@ Keywords supported:  :test :test-not :key"
 		  (apply 'nset-difference cl-list2 cl-list1 cl-keys)))))
 
 (defun subsetp (cl-list1 cl-list2 &rest cl-keys)
-  "True if LIST1 is a subset of LIST2.
+  "Return true if LIST1 is a subset of LIST2.
 I.e., if every element of LIST1 also appears in LIST2.
 Keywords supported:  :test :test-not :key"
   (cond ((null cl-list1) t) ((null cl-list2) nil)
@@ -888,7 +888,7 @@ Keywords supported:  :test :test-not :key"
 	(setq cl-tree (cdr cl-tree))))))
 
 (defun tree-equal (cl-x cl-y &rest cl-keys)
-  "T if trees X and Y have `eql' leaves.
+  "Return t if trees X and Y have `eql' leaves.
 Atoms are compared by `eql'; cons cells are compared recursively.
 Keywords supported:  :test :test-not :key"
   (cl-parsing-keywords (:test :test-not :key) ()

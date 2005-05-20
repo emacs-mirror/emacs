@@ -1,6 +1,6 @@
 ;;; calc-poly.el --- polynomial functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -692,12 +692,13 @@
 
 	  ;; Check if linear in math-fet-x.
 	  ((not (cdr (cdr p)))
-	   (math-add (math-factor-protect
-		      (math-sort-terms
-		       (math-factor-expr (car p))))
-		     (math-mul math-fet-x (math-factor-protect
-				  (math-sort-terms
-				   (math-factor-expr (nth 1 p)))))))
+           (math-sort-terms
+            (math-add (math-factor-protect
+                       (math-sort-terms
+                        (math-factor-expr (car p))))
+                      (math-mul math-fet-x (math-factor-protect
+                                            (math-sort-terms
+                                             (math-factor-expr (nth 1 p))))))))
 
 	  ;; If symbolic coefficients, use FactorRules.
 	  ((let ((pp p))

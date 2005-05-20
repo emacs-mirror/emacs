@@ -428,7 +428,7 @@ with a prefix argument."
 	 (setq base-version-list	; there was a base version to which
 	       (assoc (substring fn 0 start-vn)	; this looks like a
 		      dired-file-version-alist))	; subversion
-	 (not (memq (string-to-int (substring fn (+ 2 start-vn)))
+	 (not (memq (string-to-number (substring fn (+ 2 start-vn)))
 		    base-version-list))	; this one doesn't make the cut
 	 (progn (beginning-of-line)
 		(delete-char 1)
@@ -1135,23 +1135,29 @@ Special value `always' suppresses confirmation."
 
 (defun dired-copy-file-recursive (from to ok-flag &optional
 				       preserve-time top recursive)
-  (if (and recursive
-	   (eq t (car (file-attributes from))) ; A directory, no symbolic link.
-	   (or (eq recursive 'always)
-	       (yes-or-no-p (format "Recursive copies of %s " from))))
-      (let ((files (directory-files from nil dired-re-no-dot)))
-	(if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
-	(if (file-exists-p to)
-	    (or top (dired-handle-overwrite to))
-	  (make-directory to))
-	(while files
-	  (dired-copy-file-recursive
-	   (expand-file-name (car files) from)
-	   (expand-file-name (car files) to)
-	   ok-flag preserve-time nil recursive)
-	  (setq files (cdr files))))
-    (or top (dired-handle-overwrite to)) ; Just a file.
-    (copy-file from to ok-flag dired-copy-preserve-time)))
+  (let ((attrs (file-attributes from)))
+    (if (and recursive
+	     (eq t (car attrs))
+	     (or (eq recursive 'always)
+		 (yes-or-no-p (format "Recursive copies of %s " from))))
+	;; This is a directory.
+	(let ((files (directory-files from nil dired-re-no-dot)))
+	  (if (eq recursive 'top) (setq recursive 'always)) ; Don't ask any more.
+	  (if (file-exists-p to)
+	      (or top (dired-handle-overwrite to))
+	    (make-directory to))
+	  (while files
+	    (dired-copy-file-recursive
+	     (expand-file-name (car files) from)
+	     (expand-file-name (car files) to)
+	     ok-flag preserve-time nil recursive)
+	    (setq files (cdr files))))
+      ;; Not a directory.
+      (or top (dired-handle-overwrite to))
+      (if (stringp (car attrs))
+	  ;; It is a symlink
+	  (make-symbolic-link (car attrs) to ok-flag)
+	(copy-file from to ok-flag dired-copy-preserve-time)))))
 
 ;;;###autoload
 (defun dired-rename-file (file newname ok-if-already-exists)

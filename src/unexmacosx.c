@@ -1,5 +1,5 @@
 /* Dump Emacs in Mach-O format for use on Mac OS X.
-   Copyright (C) 2001, 2002 Free Software Foundation, Inc.
+   Copyright (C) 2001, 2002, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -1069,10 +1069,10 @@ unexec_realloc (void *old_ptr, size_t new_size)
 
       if (ptr_in_unexec_regions (old_ptr))
 	{
-	  p = (size_t *) malloc (new_size);
 	  size_t old_size = ((unexec_malloc_header_t *) old_ptr)[-1].u.size;
 	  size_t size = new_size > old_size ? old_size : new_size;
 
+	  p = (size_t *) malloc (new_size);
 	  if (size)
 	    memcpy (p, old_ptr, size);
 	}

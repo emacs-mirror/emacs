@@ -822,7 +822,7 @@ This is relative to `smtpmail-queue-dir'.")
 		  nil
 		(setq response-continue nil)
 		(setq return-value
-		      (cons (string-to-int
+		      (cons (string-to-number
 			     (buffer-substring begin end))
 			    (nreverse response-strings)))))
 

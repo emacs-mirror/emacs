@@ -257,26 +257,27 @@ not be enclosed in { } or ( )."
 ;; Note that the first big subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu
 ;; index in makefile-imenu-generic-expression.
-(defconst makefile-dependency-regex
-  ;; Allow for one nested level $($(var:a=b):c=d)
-  ;; Scan non-$ constructs char by char, so we don't miss a $ while allowing $$.
-  ;; Since we must allow space between targets, I then don't know how to evite a command starting with :.
-  "^ *\\(\\(?:\\$[({]\\(?:\\$[({][^ \t\n#})]+?[})]\\|[^\n#]\\)+?[})]\\|[^\n#:=]\\)+?\\)[ \t]*:\\(?:[ \t]*$\\|[^=\n].*$\\)"
+(defvar makefile-dependency-regex
+  ;; Allow for two nested levels $(v1:$(v2:$(v3:a=b)=c)=d)
+  "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
   "Regex used to find dependency lines in a makefile.")
 
-(defconst makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(.+\\)"
+(defvar makefile-dependency-skip "^:"
+  "Characters to skip to find a line that might be a dependency.")
+
+(defvar makefile-rule-action-regex
+  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)"
   "Regex used to highlight rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(.*\\)\\|[*:+]?[:?]?=\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
-  "[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)[}):]"
+  "[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\|[@%<?^+*][FD]?\\)"
   "Regex used to find $(macro) uses in a makefile.")
 
 (defconst makefile-ignored-files-in-pickup-regex
@@ -323,20 +324,19 @@ not be enclosed in { } or ( )."
     ".endif" ".for" ".if" ".ifdef" ".ifmake" ".ifndef" ".ifnmake" ".undef")
   "List of keywords understood by BSD make.")
 
-(defun makefile-make-font-lock-keywords (dependency action var keywords space
-						    &optional negation
-						    &rest font-lock-keywords)
+(defun makefile-make-font-lock-keywords (var keywords space
+					     &optional negation
+					     &rest font-lock-keywords)
   `(;; Do macro assignments.  These get the "variable-name" face.
     (,makefile-macroassign-regex
      (1 font-lock-variable-name-face)
      ;; This is for after !=
-     (2 'makefile-shell-face prepend t))
-
-    ;; Do dependencies.
-    (,dependency 1 'makefile-targets-face prepend)
+     (2 'makefile-shell-face prepend t)
+     ;; This is for after normal assignment
+     (3 'font-lock-string-face prepend t))
 
     ;; Rule actions.
-    (,action
+    (makefile-match-action
      (1 font-lock-type-face)
      (2 'makefile-shell-face prepend)
      ;; Only makepp has builtin commands.
@@ -353,15 +353,14 @@ not be enclosed in { } or ( )."
      1 'makefile-targets-face prepend)
 
     ;; Fontify conditionals and includes.
-    ;; Note that plain `if' is an automake conditional, and not a bug.
     (,(concat "^\\(?: [ \t]*\\)?"
 	      (regexp-opt keywords t)
 	      "\\>[ \t]*\\([^: \t\n#]*\\)")
      (1 font-lock-keyword-face) (2 font-lock-variable-name-face))
 
-    ,(if negation
-	 `(,negation (1 font-lock-negation-char-face prepend)
-		     (2 font-lock-negation-char-face prepend t)))
+    ,@(if negation
+	  `((,negation (1 font-lock-negation-char-face prepend)
+		       (2 font-lock-negation-char-face prepend t))))
 
     ,@(if space
 	  '(;; Highlight lines that contain just whitespace.
@@ -376,28 +375,27 @@ not be enclosed in { } or ( )."
 	    ;; They can make a tab fail to be effective.
 	    ("^\\( +\\)\t" 1 makefile-space-face)))
 
-    ,@font-lock-keywords))
+    ,@font-lock-keywords
+
+    ;; Do dependencies.
+    (makefile-match-dependency
+     (1 'makefile-targets-face prepend)
+     (3 'makefile-shell-face prepend t))))
 
 (defconst makefile-font-lock-keywords
   (makefile-make-font-lock-keywords
-   makefile-dependency-regex
-   makefile-rule-action-regex
    makefile-var-use-regex
    makefile-statements
    t))
 
 (defconst makefile-automake-font-lock-keywords
   (makefile-make-font-lock-keywords
-   makefile-dependency-regex
-   makefile-rule-action-regex
    makefile-var-use-regex
    makefile-automake-statements
    t))
 
 (defconst makefile-gmake-font-lock-keywords
   (makefile-make-font-lock-keywords
-   makefile-dependency-regex
-   makefile-rule-action-regex
    makefile-var-use-regex
    makefile-gmake-statements
    t
@@ -407,8 +405,8 @@ not be enclosed in { } or ( )."
      1 'makefile-targets-face prepend)
 
    ;; $(function ...) ${function ...}
-   '("[^$]\\$[({]\\(\\S +\\s \\)"
-     1 font-lock-function-name-face)
+   '("[^$]\\$[({]\\([-a-zA-Z0-9_.]+\\s \\)"
+     1 font-lock-function-name-face prepend)
 
    ;; $(shell ...) ${shell ...}
    '("[^$]\\$\\([({]\\)shell[ \t]+"
@@ -417,24 +415,23 @@ not be enclosed in { } or ( )."
 
 (defconst makefile-makepp-font-lock-keywords
   (makefile-make-font-lock-keywords
-   makefile-dependency-regex
-   ;; Don't care about initial tab, but I don't know how to font-lock correctly without.
-   "^\t[ \t]*\\(\\(?:[ \t]*noecho\\>\\|[ \t]*ignore[-_]error\\>\\|[ \t]*[-@]+\\)*\\)[ \t]*\\(\\(&\\S +\\)?.+\\)"
    makefile-var-use-regex
    makefile-makepp-statements
    nil
    "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
 
-   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?[})]\\)"
+   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?\\_>.*?[})]\\)"
      1 'makefile-targets-face prepend)
 
    ;; Colon modifier keywords.
-   '(":\\s *\\(build_c\\(?:ache\\|heck\\)\\|env\\(?:ironment\\)?\\|foreach\\|signature\\|scanner\\|quickscan\\|smartscan\\)\\>"
-     1 font-lock-keyword-face t)
+   '("\\(:\\s *\\)\\(build_c\\(?:ache\\|heck\\)\\|env\\(?:ironment\\)?\\|foreach\\|signature\\|scanner\\|quickscan\\|smartscan\\)\\>\\([^:\n]*\\)"
+     (1 font-lock-type-face t)
+     (2 font-lock-keyword-face t)
+     (3 font-lock-variable-name-face t))
 
    ;; $(function ...) $((function ...)) ${function ...} ${{function ...}}
-   '("[^$]\\$\\(((?\\|{{?\\)\\(\\S +\\s \\)"
-     2 font-lock-function-name-face)
+   '("[^$]\\$\\(?:((?\\|{{?\\)\\([-a-zA-Z0-9_.]+\\s \\)"
+     1 font-lock-function-name-face prepend)
 
    ;; $(shell ...) $((shell ...)) ${shell ...} ${{shell ...}}
    '("[^$]\\$\\(((?\\|{{?\\)shell\\(?:[-_]\\(?:global[-_]\\)?once\\)?[ \t]+"
@@ -466,11 +463,9 @@ not be enclosed in { } or ( )."
    '("perl[-_]begin\\s *\\(?:\\s #.*\\)?\n\\(\\(?:.*\n\\)+?\\)\\s *perl[-_]end\\>"
      1 'makefile-makepp-perl-face t)))
 
-;; A lot more could be done for variables here:
 (defconst makefile-bsdmake-font-lock-keywords
   (makefile-make-font-lock-keywords
-   "^ *\\(\\(?:\\$[({]\\(?:\\$[({][^\n#})]+?[})]\\|[^\n#]\\)+?[})]\\|[^\n#:=]\\)+?\\)[ \t]*[:!]\\(?:[ \t]*$\\|[^=\n].*$\\)"
-   "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(.+\\)"
+   ;; A lot more could be done for variables here:
    makefile-var-use-regex
    makefile-bsdmake-statements
    t
@@ -489,9 +484,8 @@ not be enclosed in { } or ( )."
     ("\\\\\n" 0 ".")))
 
 (defvar makefile-imenu-generic-expression
-  (list
-   (list "Dependencies" makefile-dependency-regex  1)
-   (list "Macro Assignment" makefile-macroassign-regex 1))
+  `(("Dependencies" ,makefile-dependency-regex 1)
+    ("Macro Assignment" ,makefile-macroassign-regex 1))
   "Imenu generic expression for Makefile mode.  See `imenu-generic-expression'.")
 
 ;;; ------------------------------------------------------------
@@ -695,6 +689,11 @@ last should be correctly chosen based on the file name, except if
 it is *.mk.  This function ends by invoking the function(s)
 `makefile-mode-hook'.
 
+It is strongly recommended to use `font-lock-mode', because that
+provides additional parsing information.  This is used for
+example to see that a rule action `echo foo: bar' is a not rule
+dependency, despite the colon.
+
 \\{makefile-mode-map}
 
 In the browser, use the following keys:
@@ -789,7 +788,8 @@ Makefile mode can be configured by modifying the following variables:
  	  nil nil
  	  ((?$ . "."))
  	  backward-paragraph
-	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)))
+	  (font-lock-syntactic-keywords . makefile-font-lock-syntactic-keywords)
+	  (font-lock-support-mode)))	; JIT breaks on long series of continuation lines.
 
   ;; Add-log.
   (make-local-variable 'add-log-current-defun-function)
@@ -831,7 +831,7 @@ Makefile mode can be configured by modifying the following variables:
 
   ;; Real TABs are important in makefiles
   (setq indent-tabs-mode t)
-  (run-hooks 'makefile-mode-hook))
+  (run-mode-hooks 'makefile-mode-hook))
 
 ;; These should do more than just differentiate font-lock.
 ;;;###autoload
@@ -849,14 +849,27 @@ Makefile mode can be configured by modifying the following variables:
 ;;;###autoload
 (define-derived-mode makefile-makepp-mode makefile-mode "Makeppfile"
   "An adapted `makefile-mode' that knows about makepp."
+   (set (make-local-variable 'makefile-rule-action-regex)
+	;; Don't care about initial tab, but I don't know how to font-lock correctly without.
+	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.+\\\\\n\\)*.+\\)")
+
   (setq font-lock-defaults
 	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))))
 
 ;;;###autoload
 (define-derived-mode makefile-bsdmake-mode makefile-mode "BSDmakefile"
   "An adapted `makefile-mode' that knows about BSD make."
+  (set (make-local-variable 'makefile-dependency-regex)
+       ;; Identical to default, except allows `!' instead of `:'.
+       "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\([:!]\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)")
+  (set (make-local-variable 'makefile-dependency-skip) "^:!")
+  (set (make-local-variable 'makefile-rule-action-regex)
+       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
   (setq font-lock-defaults
-	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
+	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))
+	imenu-generic-expression
+	`(("Dependencies" ,makefile-dependency-regex 1)
+	  ,@(cdr imenu-generic-expression))))
 
 
 
@@ -867,18 +880,27 @@ Makefile mode can be configured by modifying the following variables:
   (interactive)
   (let ((here (point)))
     (end-of-line)
-    (if (re-search-forward makefile-dependency-regex (point-max) t)
+    (if (makefile-match-dependency nil)
 	(progn (beginning-of-line) t)	; indicate success
       (goto-char here) nil)))
 
 (defun makefile-previous-dependency ()
   "Move point to the beginning of the previous dependency line."
   (interactive)
-  (let ((here (point)))
+  (let ((pt (point)))
     (beginning-of-line)
-    (if (re-search-backward makefile-dependency-regex (point-min) t)
-	(progn (beginning-of-line) t)	; indicate success
-      (goto-char here) nil)))
+    ;; makefile-match-dependency done backwards:
+    (catch 'found
+      (while (progn (skip-chars-backward makefile-dependency-skip)
+		    (not (bobp)))
+	(or (prog1 (eq (char-after) ?=)
+	      (backward-char))
+	    (get-text-property (point) 'face)
+	    (beginning-of-line)
+	    (if (looking-at makefile-dependency-regex)
+		(throw 'found t))))
+      (goto-char pt)
+      nil)))
 
 
 
@@ -976,74 +998,56 @@ Anywhere else just self-inserts."
 (defun makefile-pickup-targets ()
   "Notice names of all target definitions in Makefile."
   (interactive)
-  (if (not makefile-need-target-pickup)
-      nil
-    (setq makefile-need-target-pickup nil)
-    (setq makefile-target-table nil)
-    (setq makefile-has-prereqs nil)
+  (when makefile-need-target-pickup
+    (setq makefile-need-target-pickup nil
+	  makefile-target-table nil
+	  makefile-has-prereqs nil)
     (save-excursion
       (goto-char (point-min))
-      (while (re-search-forward makefile-dependency-regex nil t)
-	(makefile-add-this-line-targets)))
-    (message "Read targets OK.")))
-
-(defun makefile-add-this-line-targets ()
-  (save-excursion
-    (beginning-of-line)
-    (let ((done-with-line nil)
-	  (line-number (1+ (count-lines (point-min) (point)))))
-      (while (not done-with-line)
-	(skip-chars-forward " \t")
-	(if (not (setq done-with-line (or (eolp)
-					  (char-equal (char-after (point)) ?:))))
-	    (progn
-	      (let* ((start-of-target-name (point))
-		     (target-name
-		      (progn
-			(skip-chars-forward "^ \t:#")
-			(buffer-substring start-of-target-name (point))))
+      (while (makefile-match-dependency nil)
+	(goto-char (match-beginning 1))
+	(while (let ((target-name
+		      (buffer-substring-no-properties (point)
+						      (progn
+							(skip-chars-forward "^ \t:#")
+							(point))))
 		     (has-prereqs
 		      (not (looking-at ":[ \t]*$"))))
-		(if (makefile-remember-target target-name has-prereqs)
-		    (message "Picked up target \"%s\" from line %d"
-			     target-name line-number)))))))))
+		 (if (makefile-remember-target target-name has-prereqs)
+		     (message "Picked up target \"%s\" from line %d"
+			      target-name (line-number-at-pos)))
+		 (skip-chars-forward " \t")
+		 (not (or (eolp) (eq (char-after) ?:)))))
+	(forward-line)))
+    (message "Read targets OK.")))
 
 (defun makefile-pickup-macros ()
   "Notice names of all macro definitions in Makefile."
   (interactive)
-  (if (not makefile-need-macro-pickup)
-      nil
-    (setq makefile-need-macro-pickup nil)
-    (setq makefile-macro-table nil)
+  (when makefile-need-macro-pickup
+    (setq makefile-need-macro-pickup nil
+	  makefile-macro-table nil)
     (save-excursion
       (goto-char (point-min))
       (while (re-search-forward makefile-macroassign-regex nil t)
-	(makefile-add-this-line-macro)
-	(forward-line 1)))
+	(goto-char (match-beginning 1))
+	(let ((macro-name (buffer-substring-no-properties (point)
+							  (progn
+							    (skip-chars-forward "^ \t:#=*")
+							    (point)))))
+	  (if (makefile-remember-macro macro-name)
+	      (message "Picked up macro \"%s\" from line %d"
+		       macro-name (line-number-at-pos))))
+	(forward-line)))
     (message "Read macros OK.")))
-
-(defun makefile-add-this-line-macro ()
-  (save-excursion
-    (beginning-of-line)
-    (skip-chars-forward " \t")
-    (unless (eolp)
-      (let* ((start-of-macro-name (point))
-	     (line-number (1+ (count-lines (point-min) (point))))
-	     (macro-name (progn
-			   (skip-chars-forward "^ \t:#=*")
-			   (buffer-substring start-of-macro-name (point)))))
-	(if (makefile-remember-macro macro-name)
-	    (message "Picked up macro \"%s\" from line %d"
-		     macro-name line-number))))))
 
 (defun makefile-pickup-everything (arg)
   "Notice names of all macros and targets in Makefile.
 Prefix arg means force pickups to be redone."
   (interactive "P")
   (if arg
-      (progn
-	(setq makefile-need-target-pickup t)
-	(setq makefile-need-macro-pickup t)))
+      (setq makefile-need-target-pickup t
+	    makefile-need-macro-pickup t))
   (makefile-pickup-macros)
   (makefile-pickup-targets)
   (if makefile-pickup-everything-picks-up-filenames-p
@@ -1054,17 +1058,12 @@ Prefix arg means force pickups to be redone."
 Checks each filename against `makefile-ignored-files-in-pickup-regex'
 and adds all qualifying names to the list of known targets."
   (interactive)
-  (let* ((dir (file-name-directory (buffer-file-name)))
-	 (raw-filename-list (if dir
-				(file-name-all-completions "" dir)
-			      (file-name-all-completions "" ""))))
-    (mapcar (lambda (name)
-	       (if (and (not (file-directory-p name))
-			(not (string-match makefile-ignored-files-in-pickup-regex
-					   name)))
-		   (if (makefile-remember-target name)
-		       (message "Picked up file \"%s\" as target" name))))
-	    raw-filename-list)))
+  (mapc (lambda (name)
+	  (or (file-directory-p name)
+	      (string-match makefile-ignored-files-in-pickup-regex name)
+	      (if (makefile-remember-target name)
+		  (message "Picked up file \"%s\" as target" name))))
+	(file-name-all-completions "" (or (file-name-directory (buffer-file-name)) ""))))
 
 
 
@@ -1675,6 +1674,31 @@ The anchor must have matched the opening parens in the first group."
 		  ((string= s "((") "\\(.*?\\)[ \t]*))")
 		  ((string= s "{{") "\\(.*?\\)[ \t]*}}")))
     (if s (looking-at s))))
+
+(defun makefile-match-dependency (bound)
+  "Search for `makefile-dependency-regex' up to BOUND.
+Checks that the colon has not already been fontified, else we
+matched in a rule action."
+  (catch 'found
+    (let ((pt (point)))
+      (while (progn (skip-chars-forward makefile-dependency-skip bound)
+		    (not (eobp)))
+	(forward-char)
+	(or (eq (char-after) ?=)
+	    (get-text-property (1- (point)) 'face)
+	    (when (save-excursion
+		    (beginning-of-line)
+		    (looking-at makefile-dependency-regex))
+	      (end-of-line)
+	      (throw 'found (point)))))
+      (goto-char pt))
+    nil))
+
+(defun makefile-match-action (bound)
+  (catch 'found
+    (while (re-search-forward makefile-rule-action-regex bound t)
+      (or (eq ?\\ (char-after (- (match-beginning 0) 2)))
+	  (throw 'found t)))))
 
 (defun makefile-do-macro-insertion (macro-name)
   "Insert a macro reference."

@@ -196,7 +196,7 @@ Will not do anything if `url-show-status' is nil."
 	 (year nil)
 	 (month (car
 		 (rassoc
-		  (string-to-int (aref parsed 1)) url-monthabbrev-alist)))
+		  (string-to-number (aref parsed 1)) url-monthabbrev-alist)))
 	 )
     (setq day (or (car-safe (rassoc day url-weekday-alist))
 		  (substring raw 0 3))

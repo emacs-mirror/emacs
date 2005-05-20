@@ -1278,7 +1278,7 @@ left untouched.  FRAME nil or omitted means use the selected frame."
 This is done in the face `trailing-whitespace'."
   :tag "Highlight trailing whitespace."
   :type 'boolean
-  :group 'font-lock)
+  :group 'whitespace-faces)
 
 
 

@@ -1530,7 +1530,7 @@ before the indent, the point is moved to the indent."
     (save-selected-window
       (switch-to-buffer-other-window to-buffer)
       (goto-char (point-max))
-      (set-window-dot (get-buffer-window to-buffer) (point))
+      (set-window-point (get-buffer-window to-buffer) (point))
       (insert the-msg))))
 
 ;; Debugging helpers:

@@ -963,10 +963,9 @@ variant B, and the common ancestor.
 
   After the comparison is done and the buffers are prepared, the
 interactive merging starts.  You control the merging by typing special
-@dfn{merge commands} in the merge buffer.  The merge buffer shows you a
-full merged text, not just differences.  For each run of differences
-between the input texts, you can choose which one of them to keep, or
-edit them both together.
+@dfn{merge commands} in the merge buffer (@pxref{Merge Commands}).
+For each run of differences between the input texts, you can choose
+which one of them to keep, or edit them both together.
 
   The merge buffer uses a special major mode, Emerge mode, with commands
 for making these choices.  But you can also edit the buffer with

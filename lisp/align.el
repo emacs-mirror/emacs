@@ -938,10 +938,10 @@ region, call `align-regexp' and type in that regular expression."
     (if current-prefix-arg
 	(list (read-string "Complex align using regexp: "
 			   "\\(\\s-*\\)")
-	      (string-to-int
+	      (string-to-number
 	       (read-string
 		"Parenthesis group to modify (justify if negative): " "1"))
-	      (string-to-int
+	      (string-to-number
 	       (read-string "Amount of spacing (or column if negative): "
 			    (number-to-string align-default-spacing)))
 	      (y-or-n-p "Repeat throughout line? "))

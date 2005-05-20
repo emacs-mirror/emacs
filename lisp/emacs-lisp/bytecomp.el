@@ -2170,6 +2170,8 @@ list that represents a doc string reference.
 (put 'custom-declare-variable 'byte-hunk-handler
      'byte-compile-file-form-custom-declare-variable)
 (defun byte-compile-file-form-custom-declare-variable (form)
+  (when (memq 'callargs byte-compile-warnings)
+    (byte-compile-nogroup-warn form))
   (when (memq 'free-vars byte-compile-warnings)
     (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
   (let ((tail (nthcdr 4 form)))

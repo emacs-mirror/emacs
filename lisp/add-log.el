@@ -492,13 +492,13 @@ non-nil, otherwise in local time."
 
     (if whoami
 	(progn
-	  (setq full-name (read-input "Full name: " full-name))
+	  (setq full-name (read-string "Full name: " full-name))
 	  ;; Note that some sites have room and phone number fields in
 	  ;; full name which look silly when inserted.  Rather than do
 	  ;; anything about that here, let user give prefix argument so that
 	  ;; s/he can edit the full name field in prompter if s/he wants.
 	  (setq mailing-address
-		(read-input "Mailing address: " mailing-address))))
+		(read-string "Mailing address: " mailing-address))))
 
     (unless (equal file-name buffer-file-name)
       (if (or other-window (window-dedicated-p (selected-window)))

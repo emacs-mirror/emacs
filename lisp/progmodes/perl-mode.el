@@ -376,33 +376,41 @@ The expansion is entirely correct because it uses the C preprocessor."
 
 (defcustom perl-indent-level 4
   "*Indentation of Perl statements with respect to containing block."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-continued-statement-offset 4
   "*Extra indent for lines not starting new statements."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-continued-brace-offset -4
   "*Extra indent for substatements that start with open-braces.
 This is in addition to `perl-continued-statement-offset'."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-brace-offset 0
   "*Extra indentation for braces, compared with other text in same context."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-brace-imaginary-offset 0
   "*Imagined indentation of an open brace that actually follows a statement."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-label-offset -2
   "*Offset of Perl label lines relative to usual indentation."
-  :type 'integer)
+  :type 'integer
+  :group 'perl)
 (defcustom perl-indent-continued-arguments nil
   "*If non-nil offset of argument lines relative to usual indentation.
 If nil, continued arguments are aligned with the first argument."
-  :type '(choice integer (const nil)))
+  :type '(choice integer (const nil))
+  :group 'perl)
 
 (defcustom perl-tab-always-indent tab-always-indent
   "Non-nil means TAB in Perl mode always indents the current line.
 Otherwise it inserts a tab character if you type it past the first
 nonwhite character on the line."
-  :type 'boolean)
+  :type 'boolean
+  :group 'perl)
 
 ;; I changed the default to nil for consistency with general Emacs
 ;; conventions -- rms.
@@ -411,11 +419,13 @@ nonwhite character on the line."
 For lines which don't need indenting, TAB either indents an
 existing comment, moves to end-of-line, or if at end-of-line already,
 create a new comment."
-  :type 'boolean)
+  :type 'boolean
+  :group 'perl)
 
 (defcustom perl-nochange ";?#\\|\f\\|\\s(\\|\\(\\w\\|\\s_\\)+:[^:]"
   "*Lines starting with this regular expression are not auto-indented."
-  :type 'regexp)
+  :type 'regexp
+  :group 'perl)
 
 ;; Outline support
 

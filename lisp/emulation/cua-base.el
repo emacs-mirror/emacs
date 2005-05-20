@@ -1,6 +1,6 @@
 ;;; cua-base.el --- emulate CUA key bindings
 
-;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Kim F. Storm <storm@cua.dk>
@@ -159,13 +159,13 @@
 ;; left edge of a rectangle start in the middle of a TAB character.
 ;; Sounds strange? Try it!
 ;;
-;; To start a rectangle, use [S-return] and extend it using the normal
+;; To start a rectangle, use [C-return] and extend it using the normal
 ;; movement keys (up, down, left, right, home, end, C-home,
 ;; C-end). Once the rectangle has the desired size, you can cut or
 ;; copy it using C-x and C-c (or C-w and M-w), and you can
 ;; subsequently insert it - as a rectangle - using C-v (or C-y).  So
 ;; the only new command you need to know to work with cua-mode
-;; rectangles is S-return!
+;; rectangles is C-return!
 ;;
 ;; Normally, when you paste a rectangle using C-v (C-y), each line of
 ;; the rectangle is inserted into the existing lines in the buffer.
@@ -183,7 +183,7 @@
 ;; entire rectangle overlay (but not the contents) in the given
 ;; direction.
 ;;
-;; [S-return] cancels the rectangle
+;; [C-return] cancels the rectangle
 ;; [C-space] activates the region bounded by the rectangle
 
 ;; If you type a normal (self-inserting) character when the rectangle is
@@ -194,7 +194,7 @@
 ;; bottom of the rectangle.  So, for example, to comment out an entire
 ;; paragraph like this one, just place the cursor on the first character
 ;; of the first line, and enter the following:
-;;     S-return M-} ; ; <space>  S-return
+;;     C-return M-} ; ; <space>  C-return
 
 ;; cua-mode's rectangle support also includes all the normal rectangle
 ;; functions with easy access:
@@ -330,12 +330,12 @@ interpreted as a register number."
   :group 'cua)
 
 (defcustom cua-use-hyper-key nil
-  "*If non-nil, bind rectangle commands to H-? instead of M-?.
-If set to 'also, toggle region command is also on S-return.
+  "*If non-nil, bind rectangle commands to H-... instead of M-....
+If set to 'also, toggle region command is also on C-return.
 Must be set prior to enabling CUA."
-  :type '(choice (const :tag "Meta key and S-return" nil)
+  :type '(choice (const :tag "Meta key and C-return" nil)
 		 (const :tag "Hyper key only" only)
-		 (const :tag "Hyper key and S-return" also))
+		 (const :tag "Hyper key and C-return" also))
   :group 'cua)
 
 (defcustom cua-enable-region-auto-help nil
@@ -1235,7 +1235,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defun cua--init-keymaps ()
   (unless (eq cua-use-hyper-key 'only)
-    (define-key cua-global-keymap [(shift return)]	'cua-set-rectangle-mark))
+    (define-key cua-global-keymap [(control return)]	'cua-set-rectangle-mark))
   (when cua-use-hyper-key
     (cua--M/H-key cua-global-keymap 'space	'cua-set-rectangle-mark)
     (define-key cua-global-keymap [(hyper mouse-1)] 'cua-mouse-set-rectangle-mark))

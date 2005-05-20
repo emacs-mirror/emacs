@@ -819,7 +819,7 @@ trouble with fontification and/or indentation.
 
 *** New standard font-lock face `font-lock-comment-delimiter-face'.
 
-*** Easy to overlook single character negation is now font-locked.
+*** Easy to overlook single character negation can now be font-locked.
 You can use the new variable `font-lock-negation-char-face' and the face of
 the same name to customize this.  Currently the cc-modes, sh-script-mode,
 cperl-mode and make-mode support this.
@@ -1482,7 +1482,7 @@ region (like delete-selection-mode).  Do not enable these modes with
 cua-mode.  Customize the variable `cua-mode' to enable cua.
 
 In addition, cua provides unified rectangle support with visible
-rectangle highlighting: Use S-return to start a rectangle, extend it
+rectangle highlighting: Use C-return to start a rectangle, extend it
 using the movement commands (or mouse-3), and cut or copy it using C-x
 or C-c (using C-w and M-w also works).
 
@@ -2278,8 +2278,9 @@ breakpoints.
 
 Use M-x gdb to start GDB-UI.
 
-*** GUD tooltips can be toggled independently of normal tooltips
-with the minor mode `gud-tooltip-mode'.
+*** The variable tooltip-gud-tips-p has been removed.  GUD tooltips can now be
+toggled independently of normal tooltips with the minor mode
+`gud-tooltip-mode'.
 
 +++
 *** In graphical mode, with a C program, GUD Tooltips have been extended to
@@ -3010,6 +3011,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 * Lisp Changes in Emacs 22.1
 
 ** General Lisp changes:
+
+---
+*** The variables post-command-idle-hook and post-command-idle-delay have
+    been removed.  Use run-with-idle-timer instead.
 
 +++
 *** The function `eql' is now available without requiring the CL package.
@@ -3952,21 +3957,6 @@ To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
 
 *** The old `open-network-stream' now uses `make-network-process'.
-
-*** New function `open-network-stream-nowait'.
-
-This function initiates a non-blocking connect and returns immediately
-without waiting for the connection to be established.  It takes the
-filter and sentinel functions as arguments; when the non-blocking
-connect completes, the sentinel is called with a status string
-matching "open" or "failed".
-
-*** New function `open-network-stream-server'.
-
-This function creates a network server process for a TCP service.
-When a client connects to the specified service, a new subprocess
-is created to handle the new connection, and the sentinel function
-is called for the new process.
 
 *** New functions `process-datagram-address', `set-process-datagram-address'.
 

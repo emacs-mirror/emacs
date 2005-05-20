@@ -1,8 +1,9 @@
 ;;; reftex-global.el --- operations on entire documents with RefTeX
-;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (c) 1997, 1998, 1999, 2000, 2003, 2004, 2005
+;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 
 ;; This file is part of GNU Emacs.
 
@@ -414,10 +415,6 @@ Also checks if buffers visiting the files are in read-only mode."
 	(setq flist (cdr flist)))
       (when flist
 	(find-file  (car flist))))))
-
-;;;###autoload
-(defvar reftex-isearch-minor-mode nil)
-(make-variable-buffer-local 'reftex-isearch-minor-mode)
 
 ;;;###autoload
 (defun reftex-isearch-minor-mode (&optional arg)

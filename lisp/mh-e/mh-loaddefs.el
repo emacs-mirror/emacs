@@ -1,6 +1,6 @@
 ;;; mh-loaddefs.el --- automatically extracted autoloads
 ;;
-;;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
+;;; Copyright (C) 2005 Free Software Foundation, Inc.
 ;;; Author: Bill Wohler <wohler@newt.com>
 ;;; Keywords: mail
 ;;; Commentary:

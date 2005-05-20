@@ -61,7 +61,8 @@ If the function returns nil, then `fill-paragraph' does its normal work.")
 Kinsoku processing is designed to prevent certain characters from being
 placed at the beginning or end of a line by filling.
 See the documentation of `kinsoku' for more information."
-  :type 'boolean)
+  :type 'boolean
+  :group 'fill)
 
 (defun set-fill-prefix ()
   "Set the fill prefix to the current line up to point.

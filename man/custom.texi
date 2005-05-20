@@ -27,19 +27,17 @@ replay sequences of keys.
 @menu
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
-* Easy Customization::
-                        Convenient way to browse and change user options.
+* Easy Customization::  Convenient way to browse and change user options.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
-* Keyboard Translations::
-                        If your keyboard passes an undesired code
-			   for a key, you can tell Emacs to
-			   substitute another code.
+* Keyboard Translations:: If your keyboard passes an undesired code
+			  for a key, you can tell Emacs to
+			  substitute another code.
 * Syntax::		The syntax table controls how words and
-			   expressions are parsed.
+			  expressions are parsed.
 * Init File::		How to write common customizations in the
 			  @file{.emacs} file.
 @end menu

@@ -1014,7 +1014,7 @@ name of the attribute for prompting.  Value is the new attribute value."
 	  ((member new-value '("unspecified-fg" "unspecified-bg"))
 	   new-value)
 	  (t
-	   (string-to-int new-value)))))
+	   (string-to-number new-value)))))
 
 
 (defun read-face-attribute (face attribute &optional frame)
@@ -1184,6 +1184,7 @@ arg, prompt for a regular expression."
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
+	      (setq help-xref-stack-item `(list-faces-display ,regexp))
 	      (help-xref-button 0 'help-customize-face face)))
 	  (let ((beg (point))
 		(line-beg (line-beginning-position)))

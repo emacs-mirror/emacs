@@ -446,11 +446,6 @@ Lisp_Object Qecho_area_clear_hook;
 Lisp_Object Qpre_command_hook, Vpre_command_hook;
 Lisp_Object Qpost_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
-/* Hook run after a command if there's no more input soon.  */
-Lisp_Object Qpost_command_idle_hook, Vpost_command_idle_hook;
-
-/* Delay time in microseconds before running post-command-idle-hook.  */
-EMACS_INT post_command_idle_delay;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
@@ -1432,16 +1427,6 @@ command_loop_1 ()
 
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
-
-      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
-	{
-	  if (NILP (Vunread_command_events)
-	      && NILP (Vunread_input_method_events)
-	      && NILP (Vunread_post_input_method_events)
-	      && NILP (Vexecuting_kbd_macro)
-	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
-	    safe_run_hooks (Qpost_command_idle_hook);
-	}
     }
 
   Vmemory_full = Qnil;
@@ -1807,16 +1792,6 @@ command_loop_1 ()
       if (!NILP (Vdeferred_action_list))
 	safe_run_hooks (Qdeferred_action_function);
 
-      if (!NILP (Vpost_command_idle_hook) && !NILP (Vrun_hooks))
-	{
-	  if (NILP (Vunread_command_events)
-	      && NILP (Vunread_input_method_events)
-	      && NILP (Vunread_post_input_method_events)
-	      && NILP (Vexecuting_kbd_macro)
-	      && !NILP (sit_for (0, post_command_idle_delay, 0, 1, 1)))
-	    safe_run_hooks (Qpost_command_idle_hook);
-	}
-
       /* If there is a prefix argument,
 	 1) We don't want Vlast_command to be ``universal-argument''
 	 (that would be dumb), so don't set Vlast_command,
@@ -1932,10 +1907,13 @@ adjust_point_for_property (last_pt, modified)
 	      ? get_property_and_range (PT, Qdisplay, &val, &beg, &end, Qnil)
 	      : (beg = OVERLAY_POSITION (OVERLAY_START (overlay)),
 		 end = OVERLAY_POSITION (OVERLAY_END (overlay))))
-	  && beg < PT) /* && end > PT   <- It's always the case.  */
+	  && (beg < PT /* && end > PT   <- It's always the case.  */
+	      || (beg <= PT && STRINGP (val) && SCHARS (val) == 0)))
 	{
 	  xassert (end > PT);
-	  SET_PT (PT < last_pt ? beg : end);
+	  SET_PT (PT < last_pt
+		  ? (STRINGP (val) && SCHARS (val) == 0 ? beg - 1 : beg)
+		  : end);
 	  check_composition = check_invisible = 1;
 	}
       check_display = 0;
@@ -10987,9 +10965,6 @@ syms_of_keyboard ()
   Qpost_command_hook = intern ("post-command-hook");
   staticpro (&Qpost_command_hook);
 
-  Qpost_command_idle_hook = intern ("post-command-idle-hook");
-  staticpro (&Qpost_command_idle_hook);
-
   Qdeferred_action_function = intern ("deferred-action-function");
   staticpro (&Qdeferred_action_function);
 
@@ -11434,16 +11409,6 @@ If an unhandled error happens in running this hook,
 the hook value is set to nil, since otherwise the error
 might happen repeatedly and make Emacs nonfunctional.  */);
   Vpost_command_hook = Qnil;
-
-  DEFVAR_LISP ("post-command-idle-hook", &Vpost_command_idle_hook,
-	       doc: /* Normal hook run after each command is executed, if idle.
-Errors running the hook are caught and ignored.  */);
-  Vpost_command_idle_hook = Qnil;
-
-  DEFVAR_INT ("post-command-idle-delay", &post_command_idle_delay,
-	      doc: /* Delay time before running `post-command-idle-hook'.
-This is measured in microseconds.  */);
-  post_command_idle_delay = 100000;
 
 #if 0
   DEFVAR_LISP ("echo-area-clear-hook", ...,

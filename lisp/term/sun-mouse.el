@@ -615,7 +615,7 @@ CODE values: 13 = Tool-Position, 14 = Size-in-Pixels, 18 = Size-in-Chars."
     (setq str (substring str (match-end 0)))
     (string-match ";[0-9]*" str)
     (setq x (substring str (1+ (match-beginning 0)) (match-end 0)))
-    (cons (string-to-int y) (string-to-int x))))
+    (cons (string-to-number y) (string-to-number x))))
 
 (defun sm::font-size ()
   "Returns font size in pixels: (cons Ysize Xsize)"

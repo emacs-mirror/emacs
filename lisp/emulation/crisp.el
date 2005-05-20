@@ -1,6 +1,6 @@
 ;;; crisp.el --- CRiSP/Brief Emacs emulator
 
-;; Copyright (C) 1997, 1998, 1999 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2005 Free Software Foundation, Inc.
 
 ;; Author: Gary D. Foster <Gary.Foster@Corp.Sun.COM>
 ;; Keywords: emulations brief crisp
@@ -386,10 +386,8 @@ With ARG, turn CRiSP mode on if ARG is positive, off otherwise."
 				       minor-mode-map-alist))))
 
 ;; Interaction with other packages.
-(eval-after-load 'cua
-  '(progn
-     (add-to-list 'cua--standard-movement-commands 'crisp-home)
-     (add-to-list 'cua--standard-movement-commands 'crisp-end)))
+(put 'crisp-home 'CUA 'move)
+(put 'crisp-end  'CUA 'move)
 
 (run-hooks 'crisp-load-hook)
 (provide 'crisp)

@@ -481,9 +481,6 @@ be fed to `format-time-string'."
   :link '(custom-manual "(gnus)Article Date")
   :group 'gnus-article-washing)
 
-(eval-and-compile
-  (autoload 'mail-extract-address-components "mail-extr"))
-
 (defcustom gnus-save-all-headers t
   "*If non-nil, don't remove any headers before saving."
   :group 'gnus-article-saving

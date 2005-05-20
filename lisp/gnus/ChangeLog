@@ -1,3 +1,17 @@
+2005-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el: Don't autoload mail-extract-address-components.
+
+	* gnus.el: Use eval-and-compile to autoload message-y-or-n-p.
+
+	* nndb.el: Don't declare the nndb back end two or more times; don't
+	autoload news-reply-mode, news-setup, cancel-timer and telnet.
+
+	* nntp.el: Autoload format-spec instead of format; use
+	eval-and-compile to evaluate autoload forms.
+
+	* spam-report.el (spam-report-process-queue): Use gnus-point-at-eol.
+
 2005-04-28  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-date-ut): Support converting date in
@@ -344,9 +358,6 @@
 	XEmacs for `run-with-idle-timer'.
 
 	* gnus-async.el: Ditto.
-
-	* dgnushack.el: No need to ignore `run-with-idle-timer', XEmacs
-	has this function now.
 
 2005-03-16  Lute Kamstra  <lute@gnu.org>
 

@@ -2807,7 +2807,7 @@ Default is to leave the number of spaces as is."
   (let ((arg  (texinfo-parse-arg-discard)))
     (if (string= "asis" arg)
         (setq texinfo-paragraph-indent "asis")
-      (setq texinfo-paragraph-indent (string-to-int arg)))))
+      (setq texinfo-paragraph-indent (string-to-number arg)))))
 
 (put 'refill 'texinfo-format 'texinfo-format-refill)
 (defun texinfo-format-refill ()

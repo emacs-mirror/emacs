@@ -77,6 +77,7 @@
 (defface Buffer-menu-buffer-face
   '((t (:weight bold)))
   "Face used to highlight buffer name."
+  :group 'Buffer-menu
   :group 'font-lock-highlighting-faces)
 
 (defcustom Buffer-menu-buffer+size-width 26
@@ -754,7 +755,7 @@ For more information, see the function `buffer-menu'."
 					 (int-to-string (nth 3 buffer))
 					 `(buffer-name ,(nth 2 buffer)
 					   buffer ,(car buffer)
-					   face Buffer-menu-buffer-face
+					   font-lock-face Buffer-menu-buffer-face
 					   mouse-face highlight
 					   help-echo "mouse-2: select this buffer"))
 		"  "

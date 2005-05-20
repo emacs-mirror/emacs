@@ -1283,16 +1283,16 @@ where they were found."
 
 
       (if (looking-at "[0-9]")
-	  (setq line (string-to-int (buffer-substring
-				     (point)
-				     (progn (skip-chars-forward "0-9")
-					    (point))))))
+	  (setq line (string-to-number (buffer-substring
+                                        (point)
+                                        (progn (skip-chars-forward "0-9")
+                                               (point))))))
       (search-forward ",")
       (if (looking-at "[0-9]")
-	  (setq startpos (string-to-int (buffer-substring
-					 (point)
-					 (progn (skip-chars-forward "0-9")
-						(point)))))))
+	  (setq startpos (string-to-number (buffer-substring
+                                            (point)
+                                            (progn (skip-chars-forward "0-9")
+                                                   (point)))))))
     ;; Leave point on the next line of the tags file.
     (forward-line 1)
     (cons tag-text (cons line startpos))))

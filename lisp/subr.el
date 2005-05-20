@@ -603,8 +603,13 @@ in the current Emacs session, then this function may return nil."
       (setq event (car event)))
   (if (symbolp event)
       (car (get event 'event-symbol-elements))
-    (let ((base (logand event (1- ?\A-\^@))))
-      (downcase (if (< base 32) (logior base 64) base)))))
+    (let* ((base (logand event (1- ?\A-\^@)))
+	   (uncontrolled (if (< base 32) (logior base 64) base)))
+      ;; There are some numbers that are invalid characters and
+      ;; cause `downcase' to get an error.
+      (condition-case ()
+	  (downcase uncontrolled)
+	(error uncontrolled)))))
 
 (defsubst mouse-movement-p (object)
   "Return non-nil if OBJECT is a mouse movement event."
@@ -753,16 +758,14 @@ and `event-end' functions."
 
 ;;;; Obsolescent names for functions.
 
-(defalias 'window-dot 'window-point)
-(defalias 'set-window-dot 'set-window-point)
-(defalias 'read-input 'read-string)
-(defalias 'send-string 'process-send-string)
-(defalias 'send-region 'process-send-region)
-(defalias 'show-buffer 'set-window-buffer)
-(defalias 'eval-current-buffer 'eval-buffer)
+(define-obsolete-function-alias 'window-dot 'window-point "22.1")
+(define-obsolete-function-alias 'set-window-dot 'set-window-point "22.1")
+(define-obsolete-function-alias 'read-input 'read-string "22.1")
+(define-obsolete-function-alias 'show-buffer 'set-window-buffer "22.1")
+(define-obsolete-function-alias 'eval-current-buffer 'eval-buffer "22.1")
+(define-obsolete-function-alias 'string-to-int 'string-to-number "22.1")
 
 (make-obsolete 'char-bytes "now always returns 1." "20.4")
-(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
 (defun insert-string (&rest args)
   "Mocklisp-compatibility insert function.
@@ -771,6 +774,7 @@ is converted into a string by expressing it in decimal."
   (dolist (el args)
     (insert (if (integerp el) (number-to-string el) el))))
 (make-obsolete 'insert-string 'insert "22.1")
+
 (defun makehash (&optional test) (make-hash-table :test (or test 'eql)))
 (make-obsolete 'makehash 'make-hash-table "22.1")
 
@@ -778,6 +782,7 @@ is converted into a string by expressing it in decimal."
 (defun baud-rate ()
   "Return the value of the `baud-rate' variable."
   baud-rate)
+(make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
 
 ;;;; Obsolescence declarations for variables, and aliases.
@@ -787,10 +792,6 @@ is converted into a string by expressing it in decimal."
 (make-obsolete-variable 'unread-command-char
   "use `unread-command-events' instead.  That variable is a list of events to reread, so it now uses nil to mean `no event', instead of -1."
   "before 19.15")
-(make-obsolete-variable 'post-command-idle-hook
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
-(make-obsolete-variable 'post-command-idle-delay
-  "use timers instead, with `run-with-idle-timer'." "before 19.34")
 
 ;; Lisp manual only updated in 22.1.
 (define-obsolete-variable-alias 'executing-macro 'executing-kbd-macro
@@ -805,6 +806,8 @@ is converted into a string by expressing it in decimal."
 
 ;;;; Alternate names for functions - these are not being phased out.
 
+(defalias 'send-string 'process-send-string)
+(defalias 'send-region 'process-send-region)
 (defalias 'string= 'string-equal)
 (defalias 'string< 'string-lessp)
 (defalias 'move-marker 'set-marker)
@@ -822,9 +825,6 @@ is converted into a string by expressing it in decimal."
 (defalias 'point-at-eol 'line-end-position)
 (defalias 'point-at-bol 'line-beginning-position)
 
-;;; Should this be an obsolete name?  If you decide it should, you get
-;;; to go through all the sources and change them.
-(define-obsolete-function-alias 'string-to-int 'string-to-number)
 
 ;;;; Hook manipulation functions.
 
@@ -2305,9 +2305,6 @@ Any list whose car is `frame-configuration' is assumed to be a frame
 configuration."
   (and (consp object)
        (eq (car object) 'frame-configuration)))
-
-(defsubst left-fringe-p ()
-  (equal (car (window-fringes)) 0))
 
 (defun functionp (object)
   "Non-nil if OBJECT is any kind of function or a special form.

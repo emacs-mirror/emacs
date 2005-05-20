@@ -3458,7 +3458,10 @@ handle_display_prop (it)
     }
   else
     {
-      if (handle_single_display_spec (it, prop, object, position, 0))
+      int ret = handle_single_display_spec (it, prop, object, position, 0);
+      if (ret < 0)  /* Replaced by "", i.e. nothing. */
+	return HANDLED_RECOMPUTE_PROPS;
+      if (ret)
 	display_replaced_p = 1;
     }
 
@@ -3502,7 +3505,8 @@ display_prop_end (it, object, start_pos)
    property ends.
 
    Value is non-zero if something was found which replaces the display
-   of buffer or string text.  */
+   of buffer or string text.  Specifically, the value is -1 if that
+   "something" is "nothing". */
 
 static int
 handle_single_display_spec (it, spec, object, position,
@@ -3816,6 +3820,11 @@ handle_single_display_spec (it, spec, object, position,
 
       if (STRINGP (value))
 	{
+	  if (SCHARS (value) == 0)
+	    {
+	      pop_it (it);
+	      return -1;  /* Replaced by "", i.e. nothing.  */
+	    }
 	  it->string = value;
 	  it->multibyte_p = STRING_MULTIBYTE (it->string);
 	  it->current.overlay_string_index = -1;

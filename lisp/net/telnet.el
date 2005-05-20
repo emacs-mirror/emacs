@@ -1,6 +1,6 @@
 ;;; telnet.el --- run a telnet session from within an Emacs buffer
 
-;; Copyright (C) 1985, 88, 1992, 94, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 88, 1992, 94, 2005  Free Software Foundation, Inc.
 
 ;; Author: William F. Schelter
 ;; Maintainer: FSF
@@ -91,19 +91,19 @@ rejecting one login and prompting again for a username and password.")
 (defun telnet-interrupt-subjob ()
   "Interrupt the program running through telnet on the remote host."
   (interactive)
-  (send-string nil telnet-interrupt-string))
+  (process-send-string nil telnet-interrupt-string))
 
 (defun telnet-c-z ()
   (interactive)
-  (send-string nil "\C-z"))
+  (process-send-string nil "\C-z"))
 
 (defun send-process-next-char ()
   (interactive)
-  (send-string nil
-	       (char-to-string
-		(let ((inhibit-quit t))
-		  (prog1 (read-char)
-		    (setq quit-flag nil))))))
+  (process-send-string nil
+                       (char-to-string
+                        (let ((inhibit-quit t))
+                          (prog1 (read-char)
+                            (setq quit-flag nil))))))
 
 ; initialization on first load.
 (if telnet-mode-map
@@ -141,8 +141,8 @@ rejecting one login and prompting again for a username and password.")
 	    ((string-match "passw" string)
 	     (telnet-filter proc string)
 	     (setq telnet-count 0)
-	     (send-string proc (concat (comint-read-noecho "Password: " t)
-				       telnet-new-line))
+	     (process-send-string proc (concat (comint-read-noecho "Password: " t)
+                                               telnet-new-line))
 	     (clear-this-command-keys))
 	    (t (telnet-check-software-type-initialize string)
 	       (telnet-filter proc string)
@@ -231,9 +231,9 @@ Normally input is edited in Emacs and sent a line at a time."
       ;; Don't send the `open' cmd till telnet is ready for it.
       (accept-process-output process)
       (erase-buffer)
-      (send-string process (concat "open " host
-				   (if port " " "") (or port "")
-				   "\n"))
+      (process-send-string process (concat "open " host
+                                           (if port " " "") (or port "")
+                                           "\n"))
       (telnet-mode)
       (setq comint-input-sender 'telnet-simple-send)
       (setq telnet-count telnet-initial-count))))

@@ -842,7 +842,8 @@ simply by any key input."
   :group 'table-hooks)
 
 (defcustom table-yank-handler '(nil nil t nil)
-  "*yank-handler for table.")
+  "*yank-handler for table."
+  :group 'table)
 
 (setplist 'table-disable-incompatibility-warning nil)
 

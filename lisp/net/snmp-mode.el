@@ -1,6 +1,6 @@
 ;;; snmp-mode.el --- SNMP & SNMPv2 MIB major mode
 
-;; Copyright (C) 1995, 1998, 2002  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1998, 2002, 2005  Free Software Foundation, Inc.
 
 ;; Author: Paul D. Smith <psmith@BayNetworks.com>
 ;; Keywords: data

@@ -9,9 +9,6 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
-** Convert everything that uses post-command-idle-hook
-  to use idle timers instead.
-
 ** Fix the kill/yank treatment of invisible text.  At the moment,
   invisible text is placed in the kill-ring, so that the contents of
   the ring may not correspond to the text as displayed to the user. It

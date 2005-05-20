@@ -607,7 +607,7 @@ If optional ARG is given, copy through ARG rows up."
   (let ((check t)
 	(len))
     (while check
-      (setq array-init-field (read-input "Initial field value: "))
+      (setq array-init-field (read-string "Initial field value: "))
       (setq len (length array-init-field))
       (if (/= len array-field-width)
 	  (if (y-or-n-p (format "Change field width to %d? " len))
@@ -647,8 +647,8 @@ of array-rows-numbered."
 	       (<= new-columns-per-line array-max-column))
 	  (setq check nil)
 	(setq new-columns-per-line
-	      (string-to-int
-	       (read-input
+	      (string-to-number
+	       (read-string
 		(format "Columns per line (1 - %d): " array-max-column)))))))
   ;; Check on new-rows-numbered.  It has to be done this way
   ;;  because interactive does not have y-or-n-p.
@@ -927,22 +927,22 @@ Entering array mode calls the function `array-mode-hook'."
 (defun array-init-max-row (&optional arg)
   "Initialize the value of `array-max-row'."
   (setq array-max-row
-	(or arg (string-to-int (read-input "Number of array rows: ")))))
+	(or arg (string-to-number (read-string "Number of array rows: ")))))
 
 (defun array-init-max-column (&optional arg)
   "Initialize the value of `array-max-column'."
   (setq array-max-column
-	(or arg (string-to-int (read-input "Number of array columns: ")))))
+	(or arg (string-to-number (read-string "Number of array columns: ")))))
 
 (defun array-init-columns-per-line (&optional arg)
   "Initialize the value of `array-columns-per-line'."
   (setq array-columns-per-line
-	(or arg (string-to-int (read-input "Array columns per line: ")))))
+	(or arg (string-to-number (read-string "Array columns per line: ")))))
 
 (defun array-init-field-width (&optional arg)
   "Initialize the value of `array-field-width'."
   (setq array-field-width
-	(or arg (string-to-int (read-input "Field width: ")))))
+	(or arg (string-to-number (read-string "Field width: ")))))
 
 (defun array-init-rows-numbered (&optional arg)
   "Initialize the value of `array-rows-numbered'."

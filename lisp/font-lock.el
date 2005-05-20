@@ -1967,109 +1967,112 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
 
 (defconst lisp-font-lock-keywords-1
   (eval-when-compile
-    (list
-     ;;
-     ;; Definitions.
-     (list (concat "(\\(def\\("
-		   ;; Function declarations.
-		   "\\(advice\\|varalias\\|alias\\|generic\\|macro\\*?\\|method\\|"
-                   "setf\\|subst\\*?\\|un\\*?\\|"
-                   "ine-\\(condition\\|\\(?:derived\\|minor\\|generic\\)-mode\\|"
-                   "method-combination\\|setf-expander\\|skeleton\\|widget\\|"
-                   "function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
-		   ;; Variable declarations.
-		   "\\(const\\(ant\\)?\\|custom\\|face\\|parameter\\|var\\)\\|"
-		   ;; Structure declarations.
-		   "\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
-		   "\\)\\)\\>"
-		   ;; Any whitespace and defined object.
-		   "[ \t'\(]*"
-		   "\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
-	   '(1 font-lock-keyword-face)
-	   '(9 (cond ((match-beginning 3) font-lock-function-name-face)
-		     ((match-beginning 6) font-lock-variable-name-face)
-		     (t font-lock-type-face))
-	       nil t))
-     ;;
-     ;; Emacs Lisp autoload cookies.
-     '("^;;;###\\(autoload\\)" 1 font-lock-warning-face prepend)
-     ))
+    `(;; Definitions.
+      (,(concat "(\\(def\\("
+		;; Function declarations.
+		"\\(advice\\|varalias\\|alias\\|generic\\|macro\\*?\\|method\\|"
+		"setf\\|subst\\*?\\|un\\*?\\|"
+		"ine-\\(condition\\|\\(?:derived\\|minor\\|generic\\)-mode\\|"
+		"method-combination\\|setf-expander\\|skeleton\\|widget\\|"
+		"function\\|\\(compiler\\|modify\\|symbol\\)-macro\\)\\)\\|"
+		;; Variable declarations.
+		"\\(const\\(ant\\)?\\|custom\\|face\\|parameter\\|var\\)\\|"
+		;; Structure declarations.
+		"\\(class\\|group\\|theme\\|package\\|struct\\|type\\)"
+		"\\)\\)\\>"
+		;; Any whitespace and defined object.
+		"[ \t'\(]*"
+		"\\(setf[ \t]+\\sw+)\\|\\sw+\\)?")
+       (1 font-lock-keyword-face)
+       (9 (cond ((match-beginning 3) font-lock-function-name-face)
+		((match-beginning 6) font-lock-variable-name-face)
+		(t font-lock-type-face))
+	  nil t))
+      ;; Emacs Lisp autoload cookies.
+      ("^;;;###\\(autoload\\)" 1 font-lock-warning-face prepend)
+      ;; Regexp negated char group.
+      ("\\[\\(\\^\\)" 1 font-lock-negation-char-face prepend)))
   "Subdued level highlighting for Lisp modes.")
 
 (defconst lisp-font-lock-keywords-2
   (append lisp-font-lock-keywords-1
    (eval-when-compile
-     (list
-      ;;
-      ;; Control structures.  Emacs Lisp forms.
-      (cons (concat
-	     "(" (regexp-opt
-		  '("cond" "if" "while" "let" "let*"
-		    "prog" "progn" "progv" "prog1" "prog2" "prog*"
-		    "inline" "lambda" "save-restriction" "save-excursion"
-		    "save-window-excursion" "save-selected-window"
-		    "save-match-data" "save-current-buffer" "unwind-protect"
-		    "condition-case" "track-mouse"
-		    "eval-after-load" "eval-and-compile" "eval-when-compile"
-		    "eval-when"
-		    "with-category-table"
-		    "with-current-buffer" "with-electric-help"
-		    "with-local-quit" "with-no-warnings"
-		    "with-output-to-string" "with-output-to-temp-buffer"
-		    "with-selected-window" "with-selected-frame" "with-syntax-table"
-		    "with-temp-buffer" "with-temp-file" "with-temp-message"
-		    "with-timeout" "with-timeout-handler") t)
-	     "\\>")
-	    1)
-      ;;
-      ;; Control structures.  Common Lisp forms.
-      (cons (concat
-	     "(" (regexp-opt
-		  '("when" "unless" "case" "ecase" "typecase" "etypecase"
-		    "ccase" "ctypecase" "handler-case" "handler-bind"
-		    "restart-bind" "restart-case" "in-package"
-		    "break" "ignore-errors"
-		    "loop" "do" "do*" "dotimes" "dolist" "the" "locally"
-		    "proclaim" "declaim" "declare" "symbol-macrolet"
-		    "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
-		    "destructuring-bind" "macrolet" "tagbody" "block" "go"
-		    "multiple-value-bind" "multiple-value-prog1"
-		    "return" "return-from"
-		    "with-accessors" "with-compilation-unit"
-		    "with-condition-restarts" "with-hash-table-iterator"
-		    "with-input-from-string" "with-open-file"
-		    "with-open-stream" "with-output-to-string"
-		    "with-package-iterator" "with-simple-restart"
-		    "with-slots" "with-standard-io-syntax") t)
-	     "\\>")
-	    1)
-      ;;
-      ;; Exit/Feature symbols as constants.
-      (list (concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
-		    "[ \t']*\\(\\sw+\\)?")
-	    '(1 font-lock-keyword-face)
-	    '(2 font-lock-constant-face nil t))
-      ;;
-      ;; Erroneous structures.
-      '("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
-      ;;
-      ;; Words inside \\[] tend to be for `substitute-command-keys'.
-      '("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-constant-face prepend)
-      ;;
-      ;; Words inside `' tend to be symbol names.
-      '("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
-      ;;
-      ;; Constant values.
-      '("\\<:\\sw+\\>" 0 font-lock-builtin-face)
-      ;;
-      ;; ELisp and CLisp `&' keywords as types.
-      '("\\&\\sw+\\>" . font-lock-type-face)
-      ;;
+     `(;; Control structures.  Emacs Lisp forms.
+       (,(concat
+	  "(" (regexp-opt
+	       '("cond" "if" "while" "let" "let*"
+		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
+		 "inline" "lambda" "save-restriction" "save-excursion"
+		 "save-window-excursion" "save-selected-window"
+		 "save-match-data" "save-current-buffer" "unwind-protect"
+		 "condition-case" "track-mouse"
+		 "eval-after-load" "eval-and-compile" "eval-when-compile"
+		 "eval-when"
+		 "with-category-table"
+		 "with-current-buffer" "with-electric-help"
+		 "with-local-quit" "with-no-warnings"
+		 "with-output-to-string" "with-output-to-temp-buffer"
+		 "with-selected-window" "with-selected-frame" "with-syntax-table"
+		 "with-temp-buffer" "with-temp-file" "with-temp-message"
+		 "with-timeout" "with-timeout-handler") t)
+	  "\\>")
+	  .  1)
+       ;; Control structures.  Common Lisp forms.
+       (,(concat
+	  "(" (regexp-opt
+	       '("when" "unless" "case" "ecase" "typecase" "etypecase"
+		 "ccase" "ctypecase" "handler-case" "handler-bind"
+		 "restart-bind" "restart-case" "in-package"
+		 "break" "ignore-errors"
+		 "loop" "do" "do*" "dotimes" "dolist" "the" "locally"
+		 "proclaim" "declaim" "declare" "symbol-macrolet"
+		 "lexical-let" "lexical-let*" "flet" "labels" "compiler-let"
+		 "destructuring-bind" "macrolet" "tagbody" "block" "go"
+		 "multiple-value-bind" "multiple-value-prog1"
+		 "return" "return-from"
+		 "with-accessors" "with-compilation-unit"
+		 "with-condition-restarts" "with-hash-table-iterator"
+		 "with-input-from-string" "with-open-file"
+		 "with-open-stream" "with-output-to-string"
+		 "with-package-iterator" "with-simple-restart"
+		 "with-slots" "with-standard-io-syntax") t)
+	  "\\>")
+	  . 1)
+       ;; Exit/Feature symbols as constants.
+       (,(concat "(\\(catch\\|throw\\|featurep\\|provide\\|require\\)\\>"
+		 "[ \t']*\\(\\sw+\\)?")
+	(1 font-lock-keyword-face)
+	(2 font-lock-constant-face nil t))
+       ;; Erroneous structures.
+       ("(\\(abort\\|assert\\|warn\\|check-type\\|cerror\\|error\\|signal\\)\\>" 1 font-lock-warning-face)
+       ;; Words inside \\[] tend to be for `substitute-command-keys'.
+       ("\\\\\\\\\\[\\(\\sw+\\)]" 1 font-lock-constant-face prepend)
+       ;; Words inside `' tend to be symbol names.
+       ("`\\(\\sw\\sw+\\)'" 1 font-lock-constant-face prepend)
+       ;; Constant values.
+       ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
+       ;; ELisp and CLisp `&' keywords as types.
+       ("\\&\\sw+\\>" . font-lock-type-face)
+       ;; Make regexp grouping constructs bold, so they stand out, but only in strings.
+       ((lambda (bound)
+	  (if (re-search-forward "\\([\\][\\]\\)\\([(|)]\\)\\(\\?:\\)?" bound)
+	       (let ((face (get-text-property (1- (point)) 'face)))
+		 (if (listp face)
+		     (memq 'font-lock-string-face face)
+		   (eq 'font-lock-string-face face)))))
+	(1 font-lock-comment-face prepend) ; Should we introduce a lowlight face for this?
+					; Ideally that would retain the color, dimmed 50%.
+	(2 'bold prepend)
+	(3 font-lock-type-face prepend t))
+       ;; Underline innermost grouping, so that you can more easily see what belongs together.
+       ;; 2005-05-12: Font-lock can go into an unbreakable endless loop on this -- something's broken.
+       ;;("[\\][\\][(]\\(?:\\?:\\)?\\(\\(?:[^\\\"]+\\|[\\]\\(?:[^\\]\\|[\\][^(]\\)\\)+?\\)[\\][\\][)]"
+	 ;;1 'underline prepend)
 ;;;  This is too general -- rms.
 ;;;  A user complained that he has functions whose names start with `do'
 ;;;  and that they get the wrong color.
 ;;;      ;; CL `with-' and `do-' constructs
-;;;      '("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
+;;;      ("(\\(\\(do-\\|with-\\)\\(\\s_\\|\\w\\)*\\)" 1 font-lock-keyword-face)
       )))
   "Gaudy level highlighting for Lisp modes.")
 
