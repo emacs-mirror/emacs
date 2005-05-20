@@ -11,7 +11,7 @@
 
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* keyboard.c (syms_of_keyboard): Remove lisp variables
+	* keyboard.c (syms_of_keyboard): Remove Lisp variables
 	post-command-idle-hook and post-command-idle-delay.
 	(command_loop_1): Don't try to execute post-command-idle-hook.
 
