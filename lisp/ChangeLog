@@ -1,3 +1,11 @@
+2005-05-20  Lute Kamstra  <lute@gnu.org>
+
+	* diff-mode.el (diff-header-face, diff-file-header-face)
+	(diff-index-face, diff-hunk-header-face, diff-removed-face)
+	(diff-added-face, diff-changed-face, diff-function-face)
+	(diff-context-face, diff-nonexistent-face): Put them in the
+	diff-mode customization group.
+
 2005-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/vhdl-mode.el (vhdl-font-lock-match-item): Simplify regexp.
