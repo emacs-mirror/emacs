@@ -1,3 +1,9 @@
+2005-05-20  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (calc-invalidate-units-table):
+	Use inhibit-read-only.
+	(math-build-units-table-buffer): Use view-mode.
+
 2005-05-20  David Kastrup  <dak@gnu.org>
 
 	* emacs-lisp/easymenu.el (easy-menu-add): Correct docstring since
