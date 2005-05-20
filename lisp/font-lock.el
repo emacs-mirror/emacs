@@ -2053,19 +2053,22 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
        ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
        ("\\&\\sw+\\>" . font-lock-type-face)
-       ;; Make regexp grouping constructs bold, so they stand out, but only in strings.
+       ;; Make regexp grouping constructs bold, so they stand out, but only
+       ;; in strings.
        ((lambda (bound)
-	  (if (re-search-forward "\\([\\][\\]\\)\\([(|)]\\)\\(\\?:\\)?" bound)
+	  (if (re-search-forward "\\(\\\\\\\\\\)\\([(|)]\\)\\(\\?:\\)?" bound t)
 	       (let ((face (get-text-property (1- (point)) 'face)))
 		 (if (listp face)
 		     (memq 'font-lock-string-face face)
 		   (eq 'font-lock-string-face face)))))
-	(1 font-lock-comment-face prepend) ; Should we introduce a lowlight face for this?
-					; Ideally that would retain the color, dimmed 50%.
+        ;; Should we introduce a lowlight face for this?
+        ;; Ideally that would retain the color, dimmed.
+	(1 font-lock-comment-face prepend)
 	(2 'bold prepend)
 	(3 font-lock-type-face prepend t))
-       ;; Underline innermost grouping, so that you can more easily see what belongs together.
-       ;; 2005-05-12: Font-lock can go into an unbreakable endless loop on this -- something's broken.
+       ;; Underline innermost grouping, so that you can more easily see what
+       ;; belongs together.  2005-05-12: Font-lock can go into an
+       ;; unbreakable endless loop on this -- something's broken.
        ;;("[\\][\\][(]\\(?:\\?:\\)?\\(\\(?:[^\\\"]+\\|[\\]\\(?:[^\\]\\|[\\][^(]\\)\\)+?\\)[\\][\\][)]"
 	 ;;1 'underline prepend)
 ;;;  This is too general -- rms.
