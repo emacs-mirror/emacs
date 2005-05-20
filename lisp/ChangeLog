@@ -1,3 +1,12 @@
+2005-05-20  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/vhdl-mode.el (vhdl-font-lock-match-item): Simplify regexp.
+
+	* progmodes/sh-script.el (sh-mode, sh-get-word): Minor regexp fixes.
+
+	* font-lock.el (lisp-font-lock-keywords-2): Don't error.
+	Minor regexp-optimization.
+
 2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el (org-agenda-toggle-time-grid): New command.
@@ -5,7 +14,7 @@
 	(org-agenda-add-time-grid-maybe): New function.
 	(org-agenda): Call `org-agenda-add-time-grid-maybe'.
 	(org-table-create): `dotimes' instead of `mapcar'.
-	(org-xor): Simplified implementation.
+	(org-xor): Simplify implementation.
 	(org-agenda): `inhibit-redisplay' turned on.
 	(org-agenda-change-all-lines): Use `org-format-agenda-item' to get
 	a consistent line after a state change.
@@ -19,8 +28,7 @@
 
 2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
-	* subr.el (send-string, send-region):
-	Remove obsolescence declaration.
+	* subr.el (send-string, send-region): Remove obsolescence declaration.
 	(window-dot, set-window-dot, read-input, show-buffer)
 	(eval-current-buffer, string-to-int):
 	Add release number to obsolescence declarations.
@@ -157,8 +165,8 @@
 
 2005-05-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-help.el (calc-s-prefix-help): Add
-	`calc-copy-special-constant' to help string.
+	* calc/calc-help.el (calc-s-prefix-help):
+	Add `calc-copy-special-constant' to help string.
 
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -171,8 +179,8 @@
 
 2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/reftex-vars.el (reftex-cite-format-builtin): Support
-	for jurabib.
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin):
+	Support for jurabib.
 
 	* textmodes/reftex.el (featurep): Define aliases for overlay
 	commands, for XEmacs compatibility, and use these aliases in
@@ -183,8 +191,8 @@
 	(reftex-access-search-path): Use `reftex-uniquify' instead of
 	`reftex-uniq'
 
-	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
-	`before-string' property modification enables for Emacs as well.
+	* textmodes/reftex-sel.el (reftex-select-unmark):
+	Overlay `before-string' property modification enables for Emacs as well.
 	(reftex-select-item): Use `reftex-delete-overlay'.
 	(reftex-select-mark): Use `reftex-make-overlay' and
 	`reftex-overlay-put'.
@@ -219,8 +227,7 @@
 
 	* progmodes/prolog.el (inferior-prolog-mode): Doc fix.
 	(prolog-consult-region): Replace `send-string' by
-	`process-send-string'; replace `send-region' by
-	`process-send-region'.
+	`process-send-string'; replace `send-region' by `process-send-region'.
 
 	* progmodes/delphi.el (delphi-log-msg):
 	Replace `set-window-dot' by `set-window-point'.
@@ -251,8 +258,8 @@
 	loop.  It should also be more efficient, because first it only
 	searches for `:', instead of applying the very complex regexp.
 	(makefile-mode): Cancel `font-lock-support-mode', because blocks
-	to be fontified in one piece can be too long for JIT.  Makefiles
-	are never *that* big.
+	to be fontified in one piece can be too long for JIT.
+	Makefiles are never *that* big.
 
 2005-05-17  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -278,8 +285,8 @@
 
 2005-05-16  Daniel Pfeiffer  <occitan@esperanto.org>
 
-	* font-lock.el (lisp-font-lock-keywords-1): Set
-	`font-lock-negation-char-face' for [^...] char group.
+	* font-lock.el (lisp-font-lock-keywords-1):
+	Set `font-lock-negation-char-face' for [^...] char group.
 	(lisp-font-lock-keywords-2): Highlight regexp's \\( \\| \\).
 
 	* progmodes/make-mode.el (makefile-dependency-regex): Turn it into
@@ -293,11 +300,10 @@
 	might be the same one to be skipped by the initial [^$], leading
 	to an overlooked variable use.
 	(makefile-make-font-lock-keywords): Remove two parameters, which
-	are now variables that some of the modes set locally.  Handle
-	dependency and rule action matching through functions, because
+	are now variables that some of the modes set locally.
+	Handle dependency and rule action matching through functions, because
 	regexps alone match too often.  Dependency matching now comes
-	last, so it can check, whether a colon already matched something
-	else.
+	last, so it can check, whether a colon already matched something else.
 	(makefile-mode): Inform that font-lock improves makefile parsing
 	capabilities.
 	(makefile-match-dependency, makefile-match-action): New functions.
@@ -382,8 +388,8 @@
 	(reftex-bib-sort-year-reverse, reftex-format-citation):
 	* textmodes/reftex-parse.el (reftex-init-section-numbers)
 	(reftex-section-number):
-	* textmodes/texinfmt.el (texinfo-paragraphindent): Replace
-	`string-to-int' by `string-to-number'.
+	* textmodes/texinfmt.el (texinfo-paragraphindent):
+	Replace `string-to-int' by `string-to-number'.
 
 	* international/latexenc.el: Add page marker to force the "Local
 	Variables:" string out of the last page.
@@ -491,23 +497,22 @@
 	(tramp-pre-connection): Add parameter CHUNKSIZE.  Make local
 	variable `tramp-chunksize'.  Change callees.
 	(tramp-open-connection-setup-interactive-shell): Check remote host
-	for buggy `send-process-string' implementation.  Set
-	`tramp-chunksize' if found.  Reported by Michael Kifer
+	for buggy `send-process-string' implementation.
+	Set `tramp-chunksize' if found.  Reported by Michael Kifer
 	<kifer@cs.sunysb.edu> (and a lot of other people all the years).
 	(tramp-handle-shell-command): `insert-buffer' cannot be used
 	because the contents of the Tramp buffer is changed before
 	insertion (`expand-file' and alike).  Reported by Fr,Ai(Bd,Ai(Bric Bothamy
 	<frederic.bothamy@free.fr>.
 	(tramp-set-auto-save): Actions should be done for Tramp file name
-	handler only.  Ange-FTP has its own auto-save mechanism.  Reported
-	by Richard G. Bielawski <Richard.G.Bielawski@wellsfargo.com>.
+	handler only.  Ange-FTP has its own auto-save mechanism.
+	Reported by Richard G. Bielawski <Richard.G.Bielawski@wellsfargo.com>.
 	(tramp-set-auto-save-file-modes): Set file modes of
 	`buffer-auto-save-file-name' to ?\600 as fallback solution.
 	Reported by Ferenc Wagner <wferi@tba.elte.hu>.
 	(tramp-bug): Remove obsolete variable.
 	(tramp-append-tramp-buffers): Rewrite partly.  More suitable check
-	for presence of `mml-mode'.  Make it running for older Emacsen as
-	well.
+	for presence of `mml-mode'.  Make it running for older Emacsen as well.
 
 2005-05-14  John Paul Wallington  <jpw@pobox.com>
 
@@ -559,15 +564,14 @@
 
 2005-05-13  Matt Hodges  <MPHodges@member.fsf.org>
 
-	* tmm.el (tmm-get-keymap): Include only active menus and menu
-	items.
+	* tmm.el (tmm-get-keymap): Include only active menus and menu items.
 
 	* emacs-lisp/easymenu.el (easy-menu-define): Doc fixes.
 
 2005-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* dired.el (dired-mode): make-variable-buffer-local =>
-	make-local-variable
+	make-local-variable.
 
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
