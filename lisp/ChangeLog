@@ -1,3 +1,22 @@
+2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-agenda-toggle-time-grid): New command.
+	(org-agenda-use-time-grid, org-agenda-time-grid): New options.
+	(org-agenda-add-time-grid-maybe): New function.
+	(org-agenda): Call `org-agenda-add-time-grid-maybe'.
+	(org-table-create): `dotimes' instead of `mapcar'.
+	(org-xor): Simplified implementation.
+	(org-agenda): `inhibit-redisplay' turned on.
+	(org-agenda-change-all-lines): Use `org-format-agenda-item' to get
+	a consistent line after a state change.
+	(org-agenda-remove-times-when-in-prefix): New option.
+	(org-prefix-has-time): New variable.
+	(org-parse-time-string): Optional argument NODEFAULT.
+	(org-format-agenda-item): Parse items for time-of-day
+	specifications and move these into the prefix if possible.
+	(org-agenda-priority): Get current heading, not previous heading
+	during agenda remote editing.
+
 2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (send-string, send-region):

@@ -1,3 +1,13 @@
+2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.09
+
+<<<<<<< ChangeLog
+2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version 4.28
+
+=======
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Select Buffer): Document `C-u M-g M-g'.
@@ -114,6 +124,7 @@
 
 	* building.texi (Debugger Operation): Clarify previous change.
 
+>>>>>>> 1.574
 2005-04-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version 3.08, structure reorganized.
