@@ -1004,7 +1004,7 @@ Return its components if so, nil if no."
 	       (line-idx (nth 2 (car patterns))))
 
 	  (setq raw-file-name (if file-idx (match-string file-idx line) nil))
-	  (setq line-no       (if line-idx (string-to-int (match-string line-idx line)) 0))
+	  (setq line-no       (if line-idx (string-to-number (match-string line-idx line)) 0))
 	  (setq err-text      (if (> (length (car patterns)) 4)
 				  (match-string (nth 4 (car patterns)) line)
 				(flymake-patch-err-text (substring line (match-end 0)))))

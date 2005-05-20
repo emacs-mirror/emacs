@@ -1,6 +1,6 @@
 ;;; tramp-smb.el --- Tramp access functions for SMB servers -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <michael.albinus@gmx.de>
 ;; Keywords: comm, processes
@@ -954,7 +954,7 @@ Domain names in USER and port numbers in HOST are acknowledged."
       (when port   (setq args (append args (list "-p" port))))
 
       ; OK, let's go
-      (tramp-pre-connection nil tramp-smb-method user host)
+      (tramp-pre-connection nil tramp-smb-method user host tramp-chunksize)
       (tramp-message 7 "Opening connection for //%s@%s/%s..."
 		     user host (or share ""))
 

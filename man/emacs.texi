@@ -12,7 +12,7 @@ This is the @value{EDITION} edition of the @cite{GNU Emacs Manual},
 updated for Emacs version @value{EMACSVER}.
 
 Copyright (C) 1985, 1986, 1987, 1993, 1994, 1995, 1996, 1997, 1998,
-1999, 2000, 2001, 2002, 2004 Free Software Foundation, Inc.
+1999, 2000, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
 
 @quotation
 Permission is granted to copy, distribute and/or modify this document
@@ -129,13 +129,10 @@ and Sending Mail and Registers and Minibuffer.
 
 Indexes (nodes containing large menus)
 * Key Index::	        An item for each standard Emacs key sequence.
+* Option Index::        An item for every command-line option.
 * Command Index::       An item for each command name.
 * Variable Index::      An item for each documented variable.
 * Concept Index::       An item for each concept.
-@c This is last because @ifnottex leaves an empty line.
-@ifnottex
-* Option Index::        An item for every command-line option.
-@end ifnottex
 
 Important General Concepts
 * Screen::	        How to interpret what you see on the screen.
@@ -196,17 +193,14 @@ Advanced Features
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
 * Hardcopy::	        Printing buffers or regions.
 * PostScript::	        Printing buffers or regions as PostScript.
-* PostScript Variables::
-                        Customizing the PostScript printing commands.
+* PostScript Variables::Customizing the PostScript printing commands.
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.
 * Two-Column::	        Splitting apart columns to edit them
 		          in side-by-side windows.
-* Editing Binary Files::
-                        Using Hexl mode to edit binary files.
-* Saving Emacs Sessions::
-                        Saving Emacs state from one session to the next.
+* Editing Binary Files::Using Hexl mode to edit binary files.
+* Saving Emacs Sessions:: Saving Emacs state from one session to the next.
 * Recursive Edit::      A command can allow you to do editing
 			  "within the command".  This is called a
 			  "recursive editing level".
@@ -223,7 +217,6 @@ Recovery from Problems
 * Bugs::	        How and when to report a bug.
 * Contributing::        How to contribute improvements to Emacs.
 * Service::	        How to get help for your own Emacs needs.
-
 
 Detailed Node Listing
 ---------------------
@@ -245,12 +238,13 @@ Basic Editing Commands
 			  change something.
 * Erasing::	        Deleting and killing text.
 * Undo::	        Undoing recent changes in the text.
-* Files: Basic Files.   Visiting, creating, and saving files.
-* Help: Basic Help.     Asking what a character does.
+* Basic Files::         Visiting, creating, and saving files.
+* Basic Help::          Asking what a character does.
 * Blank Lines::	        Commands to make or delete blank lines.
 * Continuation Lines::  Lines too wide for the screen.
 * Position Info::       What page, line, row, or column is point on?
 * Arguments::	        Numeric arguments for repeating a command.
+* Repeating::           A short-cut for repeating the previous command.
 
 The Minibuffer
 
@@ -268,19 +262,23 @@ Help
 * Apropos::		Asking what pertains to a given topic.
 * Library Keywords::	Finding Lisp libraries by keywords (topics).
 * Language Help::       Help relating to international language support.
+* Help Mode::           Special features of Help mode and Help buffers.
 * Misc Help::		Other help commands.
+* Help Files::          Commands to display pre-written help files.
+* Help Echo::           Help on active text and tooltips (`balloon help')
 
 The Mark and the Region
 
 * Setting Mark::	Commands to set the mark.
 * Transient Mark::	How to make Emacs highlight the region--
 			  when there is one.
+* Momentary Mark::      Enabling Transient Mark mode momentarily.
 * Using Region::	Summary of ways to operate on contents of the region.
 * Marking Objects::	Commands to put region around textual units.
 * Mark Ring::		Previous mark positions saved so you can go back there.
 * Global Mark Ring::	Previous mark positions in various buffers.
 
-Killing
+Killing and Moving Text
 
 * Deletion::		Commands for deleting small amounts of text and
 			  blank areas.
@@ -302,6 +300,7 @@ Registers
 * RegText::     	Saving text in registers.
 * RegRect::     	Saving rectangles in registers.
 * RegConfig::           Saving window configurations in registers.
+* RegNumbers::          Numbers in registers.
 * RegFiles::    	File names in registers.
 * Bookmarks::           Bookmarks are like registers, but persistent.
 
@@ -355,7 +354,8 @@ Keyboard Macros
 * Keyboard Macro Query::     Making keyboard macros do different things each time.
 * Save Keyboard Macro::      Giving keyboard macros names; saving them in files.
 * Edit Keyboard Macro::      Editing keyboard macros.
-* Keyboard Macro Step-Edit::   Interactively executing and editing a keyboard macro.
+* Keyboard Macro Step-Edit:: Interactively executing and editing a keyboard
+                                macro.
 
 File Handling
 
@@ -382,8 +382,7 @@ Saving Files
 * Backup::              How Emacs saves the old version of your file.
 * Interlocking::        How Emacs protects against simultaneous editing
                           of one file by two users.
-* Shadowing: File Shadowing.
-                        Copying files to "shadows" automatically.
+* File Shadowing::      Copying files to "shadows" automatically.
 * Time Stamps::         Emacs can update time stamps on saved files.
 
 Version Control
@@ -392,7 +391,7 @@ Version Control
 * VC Mode Line::        How the mode line shows version control status.
 * Basic VC Editing::    How to edit a file under version control.
 * Old Versions::        Examining and comparing old versions.
-* Secondary VC Commands::    The commands used a little less frequently.
+* Secondary VC Commands:: The commands used a little less frequently.
 * Branches::            Multiple lines of development.
 * Remote Repositories:: Efficient access to remote CVS servers.
 * Snapshots::           Sets of file versions treated as a unit.
@@ -408,6 +407,8 @@ Using Multiple Buffers
 * Several Buffers::     How to go through the list of all buffers
 			  and operate variously on several of them.
 * Indirect Buffers::    An indirect buffer shares the text of another buffer.
+* Buffer Convenience::  Convenience and customization features for
+                          buffer handling.
 
 Multiple Windows
 
@@ -418,6 +419,7 @@ Multiple Windows
 * Force Same Window::   Forcing certain buffers to appear in the selected
                           window rather than in another window.
 * Change Window::       Deleting windows and changing their sizes.
+* Window Convenience::  Convenience functions for window handling.
 
 Frames and X Windows
 
@@ -451,6 +453,7 @@ International Character Set Support
 * Language Environments::   Setting things up for the language you use.
 * Input Methods::           Entering text characters not on your keyboard.
 * Select Input Method::     Specifying your choice of input methods.
+* Multibyte Conversion::    How single-byte characters convert to multibyte.
 * Coding Systems::          Character set conversion when you read and
                               write files, and so on.
 * Recognize Coding::        How Emacs figures out which conversion to use.
@@ -458,9 +461,10 @@ International Character Set Support
 * Fontsets::                Fontsets are collections of fonts
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
-* Single-Byte Character Support::
-                            You can pick one European character set
-                            to use without multibyte characters.
+* Undisplayable Characters::When characters don't display.
+* Single-Byte Character Support:: You can pick one European character set
+                              to use without multibyte characters.
+* Charsets::                How Emacs groups its internal character codes.
 
 Major Modes
 
@@ -484,16 +488,20 @@ Commands for Human Languages
 * Text Mode::	        The major modes for editing text files.
 * Outline Mode::        Editing outlines.
 * TeX Mode::	        Editing input to the formatter TeX.
+* HTML Mode::           Editing HTML, SGML, and XML files.
 * Nroff Mode::	        Editing input to the formatter nroff.
 * Formatted Text::      Editing formatted text directly in WYSIWYG fashion.
+* Text Based Tables::   Editing text-based tables in WYSIWYG fashion.
 
 Filling Text
 
 * Auto Fill::	        Auto Fill mode breaks long lines automatically.
+* Refill::              Keeping paragraphs filled.
 * Fill Commands::       Commands to refill paragraphs and center lines.
 * Fill Prefix::	        Filling paragraphs that are indented
                           or in a comment, etc.
 * Adaptive Fill::       How Emacs can determine the fill prefix automatically.
+* Longlines::           Editing text with very long lines.
 
 Editing Programs
 
@@ -501,8 +509,8 @@ Editing Programs
 * Defuns::              Commands to operate on major top-level parts
                           of a program.
 * Program Indent::      Adjusting indentation to show the nesting.
-* Comments::	        Inserting, killing, and aligning comments.
 * Parentheses::         Commands that operate on parentheses.
+* Comments::	        Inserting, killing, and aligning comments.
 * Documentation::       Getting documentation of functions you plan to call.
 * Hideshow::            Displaying blocks selectively.
 * Symbol Completion::   Completion on symbol names of your program or language.
@@ -559,12 +567,12 @@ C and Related Modes
 
 Fortran Mode
 
-* Motion: Fortran Motion.	 Moving point by statements or subprograms.
-* Indent: Fortran Indent.	 Indentation commands for Fortran.
-* Comments: Fortran Comments.	 Inserting and aligning comments.
-* Autofill: Fortran Autofill.	 Auto fill minor mode for Fortran.
-* Columns: Fortran Columns.	 Measuring columns for valid Fortran.
-* Abbrev: Fortran Abbrev.	 Built-in abbrevs for Fortran keywords.
+* Fortran Motion::	Moving point by statements or subprograms.
+* Fortran Indent::	Indentation commands for Fortran.
+* Fortran Comments::	Inserting and aligning comments.
+* Fortran Autofill::	Auto fill minor mode for Fortran.
+* Fortran Columns::	Measuring columns for valid Fortran.
+* Fortran Abbrev::	Built-in abbrevs for Fortran keywords.
 
 Compiling and Testing Programs
 
@@ -580,8 +588,8 @@ Compiling and Testing Programs
 			  with different facilities for running
 			  the Lisp programs.
 * Lisp Libraries::      Creating Lisp programs to run in Emacs.
-* Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * Lisp Eval::		Executing a single Lisp expression in Emacs.
+* Lisp Interaction::    Executing Lisp in an Emacs buffer.
 * External Lisp::	Communicating through Emacs with a separate Lisp.
 
 Running Debuggers Under Emacs
@@ -590,6 +598,9 @@ Running Debuggers Under Emacs
 * Debugger Operation::	Connection between the debugger and source buffers.
 * Commands of GUD::	Key bindings for common commands.
 * GUD Customization::	Defining your own commands for GUD.
+* GDB Graphical Interface::  An enhanced mode that uses GDB features to
+                          implement a graphical debugging environment through
+                          Emacs.
 
 Maintaining Programs
 
@@ -605,6 +616,7 @@ Tags Tables
 
 * Tag Syntax::		Tag syntax for various types of code and text files.
 * Create Tags Table::	Creating a tags table with @code{etags}.
+* Etags Regexps::       Create arbitrary tags using regular expressions.
 * Select Tags Table::	How to visit a tags table.
 * Find Tag::		Commands to find the definition of a specific tag.
 * Tags Search::		Using a tags table for searching and replacing.
@@ -631,6 +643,7 @@ Abbrevs
 * Editing Abbrevs::     Viewing or editing the entire list of defined abbrevs.
 * Saving Abbrevs::      Saving the entire list of abbrevs for another session.
 * Dynamic Abbrevs::     Abbreviations for words already in the buffer.
+* Dabbrev Customization:: What is a word, for dynamic abbrevs.  Case handling.
 
 Editing Pictures
 
@@ -664,11 +677,15 @@ Reading Mail with Rmail
 * Rmail Summary::       Summaries show brief info on many messages.
 * Rmail Sorting::       Sorting messages in Rmail.
 * Rmail Display::       How Rmail displays a message; customization.
+* Rmail Coding::        How Rmail handles decoding character sets.
 * Rmail Editing::       Editing message text and headers in Rmail.
 * Rmail Digest::        Extracting the messages from a digest message.
 * Out of Rmail::	Converting an Rmail file to mailbox format.
 * Rmail Rot13::         Reading messages encoded in the rot13 code.
 * Movemail::            More details of fetching new mail.
+* Remote Mailboxes::    Retrieving Mail from Remote Mailboxes.
+* Other Mailbox Formats:: Retrieving Mail from Local Mailboxes in
+                          Various Formats
 
 Dired, the Directory Editor
 
@@ -688,7 +705,6 @@ Dired, the Directory Editor
 * Hiding Subdirectories::    Making subdirectories visible or invisible.
 * Dired Updating::           Discarding lines for files of no interest.
 * Dired and Find::	     Using `find' to choose the files for Dired.
-* Dired and Find::           Using `find' to choose the files for Dired.
 * Wdired::                   Operating on files by editing the Dired buffer.
 * Misc Dired Features::      Various other features.
 
@@ -698,14 +714,16 @@ The Calendar and the Diary
 * Scroll Calendar::     Bringing earlier or later months onto the screen.
 * Counting Days::       How many days are there between two dates?
 * General Calendar::    Exiting or recomputing the calendar.
-* LaTeX Calendar::        Print a calendar using LaTeX.
+* LaTeX Calendar::      Print a calendar using LaTeX.
 * Holidays::            Displaying dates of holidays.
 * Sunrise/Sunset::      Displaying local times of sunrise and sunset.
 * Lunar Phases::        Displaying phases of the moon.
 * Other Calendars::     Converting dates to other calendar systems.
 * Diary::               Displaying events from your diary.
 * Appointments::	Reminders when it's time to do something.
+* Importing Diary::     Converting diary events to/from other formats.
 * Daylight Savings::    How to specify when daylight savings time is active.
+* Time Intervals::      Keeping track of time intervals.
 
 Movement in the Calendar
 
@@ -741,27 +759,40 @@ Running Shell Commands from Emacs
 * Single Shell::	How to run one shell command and return.
 * Interactive Shell::	Permanent shell taking input via Emacs.
 * Shell Mode::		Special Emacs commands used with permanent shell.
+* Shell Prompts::       Two ways to recognize shell prompts.
 * Shell History::       Repeating previous commands in a shell buffer.
+* Directory Tracking::  Keeping track when the subshell changes directory.
 * Shell Options::       Options for customizing Shell mode.
+* Terminal emulator::   An Emacs window as a terminal emulator.
+* Term Mode::           Special Emacs commands used in Term mode.
+* Paging in Term::      Paging in the terminal emulator.
 * Remote Host::		Connecting to another computer.
+
+Using Emacs as a Server
+
+* Invoking emacsclient:: Emacs client startup options.
+
+Hyperlinking and Navigation Features
+
+* Browse-URL::          Following URLs.
+* Goto-address::        Activating URLs.
+* FFAP::                Finding files etc. at point.
 
 Customization
 
 * Minor Modes::		Each minor mode is one feature you can turn on
 			  independently of any others.
-* Easy Customization::
-                        Convenient way to browse and change user options.
+* Easy Customization::  Convenient way to browse and change user options.
 * Variables::		Many Emacs commands examine Emacs variables
 			  to decide what to do; by setting variables,
 			  you can control their functioning.
 * Key Bindings::	The keymaps say what command each key runs.
 			  By changing them, you can "redefine keys".
-* Keyboard Translations::
-                        If your keyboard passes an undesired code
-			   for a key, you can tell Emacs to
-			   substitute another code.
+* Keyboard Translations:: If your keyboard passes an undesired code
+			  for a key, you can tell Emacs to
+			  substitute another code.
 * Syntax::		The syntax table controls how words and
-			   expressions are parsed.
+			  expressions are parsed.
 * Init File::		How to write common customizations in the
 			  @file{.emacs} file.
 
@@ -783,6 +814,7 @@ Customizing Key Bindings
 * Init Rebinding::      Rebinding keys with your init file, @file{.emacs}.
 * Function Keys::       Rebinding terminal function keys.
 * Named ASCII Chars::   Distinguishing @key{TAB} from @kbd{C-i}, and so on.
+* Non-ASCII Rebinding:: Rebinding non-@acronym{ASCII} characters such as Latin-1.
 * Mouse Buttons::       Rebinding mouse buttons in Emacs.
 * Disabling::           Disabling a command means confirmation is required
                           before it can be executed.  This is done to protect
@@ -803,18 +835,19 @@ Dealing with Emacs Trouble
 * Text Garbled::        Garbage in the text.
 * Unasked-for Search::  Spontaneous entry to incremental search.
 * Memory Full::         How to cope when you run out of memory.
+* After a Crash::       Recovering editing in an Emacs session that crashed.
 * Emergency Escape::    Emergency escape---
                           What to do if Emacs stops responding.
 * Total Frustration::   When you are at your wits' end.
 
 Reporting Bugs
 
-* Criteria:  Bug Criteria.	 Have you really found a bug?
-* Understanding Bug Reporting::	 How to report a bug effectively.
-* Checklist::			 Steps to follow for a good bug report.
-* Sending Patches::		 How to send a patch for GNU Emacs.
+* Bug Criteria::        Have you really found a bug?
+* Understanding Bug Reporting::	How to report a bug effectively.
+* Checklist::		Steps to follow for a good bug report.
+* Sending Patches::	How to send a patch for GNU Emacs.
 
-Command Line Options and Arguments
+Command Line Arguments for Emacs Invocation
 
 * Action Arguments::	Arguments to visit files, load libraries,
 			  and call functions.
@@ -831,18 +864,29 @@ Command Line Options and Arguments
 * Icons X::             Choosing what sort of icon to use, under X.
 * Misc X::              Other display options.
 
-X Resources
+Environment Variables
+
+* General Variables::	Environment variables that all versions of Emacs use.
+* Misc Variables::	Certain system specific variables.
+* MS-Windows Registry:: An alternative to the environment on MS-Windows.
+
+X Options and Resources
 
 * Resources::           Using X resources with Emacs (in general).
 * Table of Resources::  Table of specific X resources that affect Emacs.
 * Face Resources::      X resources for customizing faces.
 * Lucid Resources::     X resources for Lucid menus.
 * LessTif Resources::   X resources for LessTif and Motif menus.
+* GTK resources::       Resources for GTK widgets.
 
-Environment Variables
+Emacs and the Mac OS
 
-* General Variables::	Environment variables that all versions of Emacs use.
-* Misc Variables::	Certain system specific variables.
+* Mac Input::           Keyboard input on the Mac.
+* Mac International::   International character sets on the Mac.
+* Mac Environment Variables::  Setting environment variables for Emacs.
+* Mac Directories::     Volumes and directories on the Mac.
+* Mac Font Specs::      Specifying fonts on the Mac.
+* Mac Functions::       Mac-specific Lisp functions.
 
 MS-DOS and Windows 95/98/NT
 
@@ -852,6 +896,7 @@ MS-DOS and Windows 95/98/NT
 * MS-DOS File Names::   File-name conventions on MS-DOS.
 * Text and Binary::     Text files on MS-DOS use CRLF to separate lines.
 * MS-DOS Printing::     How to specify the printer on MS-DOS.
+* MS-DOS and MULE::     Support for internationalization on MS-DOS.
 * MS-DOS Processes::    Running subprocesses on MS-DOS.
 * Windows Processes::   Running subprocesses on Windows.
 * Windows System Menu:: Controlling what the ALT key does.

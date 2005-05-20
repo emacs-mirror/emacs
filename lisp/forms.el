@@ -63,7 +63,7 @@
 ;; Automatic mode switching is supported if you specify
 ;; "-*- forms -*-" in the first line of the control file.
 ;;
-;; The control file is visited, evaluated using `eval-current-buffer',
+;; The control file is visited, evaluated using `eval-buffer',
 ;; and should set at least the following variables:
 ;;
 ;;	forms-file				[string]
@@ -519,7 +519,7 @@ Commands:                        Equivalent keys in read-only mode:
 		(yes-or-no-p
 		 (concat "Evaluate lisp code in buffer "
 			 (buffer-name) " to display forms ")))
-	    (eval-current-buffer)
+	    (eval-buffer)
 	  (error "`enable-local-eval' inhibits buffer evaluation"))
 
 	;; Check if the mandatory variables make sense.

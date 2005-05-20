@@ -54,7 +54,8 @@
 
 (defcustom reveal-around-mark t
   "Reveal text around the mark, if active."
-  :type 'boolean)
+  :type 'boolean
+  :group 'reveal)
 
 (defvar reveal-open-spots nil)
 (make-variable-buffer-local 'reveal-open-spots)

@@ -90,7 +90,8 @@ Major modes should set this variable.")
 
 (defcustom comment-fill-column nil
   "Column to use for `comment-indent'.  If nil, use `fill-column' instead."
-  :type '(choice (const nil) integer))
+  :type '(choice (const nil) integer)
+  :group 'comment)
 
 ;;;###autoload
 (defcustom comment-column 32
@@ -99,7 +100,8 @@ Each mode establishes a different default value for this variable; you
 can set the value for a particular mode using that mode's hook.
 Comments might be indented to a value smaller than this in order
 not to go beyond `comment-fill-column'."
-  :type 'integer)
+  :type 'integer
+  :group 'comment)
 (make-variable-buffer-local 'comment-column)
 
 ;;;###autoload
@@ -201,7 +203,8 @@ INDENT specifies that the `comment-start' markers should not be put at the
 See `comment-styles' for a list of available styles."
   :type (if (boundp 'comment-styles)
 	    `(choice ,@(mapcar (lambda (s) `(const ,(car s))) comment-styles))
-	  'symbol))
+	  'symbol)
+  :group 'comment)
 
 ;;;###autoload
 (defcustom comment-padding " "
@@ -211,7 +214,8 @@ of the corresponding number of spaces.
 
 Extra spacing between the comment characters and the comment text
 makes the comment easier to read.  Default is 1.  nil means 0."
-  :type '(choice string integer (const nil)))
+  :type '(choice string integer (const nil))
+  :group 'comment)
 
 ;;;###autoload
 (defcustom comment-multi-line nil
@@ -222,7 +226,8 @@ customize this variable.
 
 It also affects \\[indent-new-comment-line].  However, if you want this
 behavior for explicit filling, you might as well use \\[newline-and-indent]."
-  :type 'boolean)
+  :type 'boolean
+  :group 'comment)
 
 (defcustom comment-empty-lines nil
   "If nil, `comment-region' does not comment out empty lines.
@@ -231,7 +236,8 @@ if `eol' it only comments out empty lines if comments are
 terminated by the end of line (i.e. `comment-end' is empty)."
   :type '(choice (const :tag "Never" nil)
 	  (const :tag "Always" t)
-	  (const :tag "EOl-terminated" 'eol)))
+	  (const :tag "EOl-terminated" 'eol))
+  :group 'comment)
 
 ;;;;
 ;;;; Helpers
@@ -1091,7 +1097,8 @@ Else, call `comment-indent'."
 (defcustom comment-auto-fill-only-comments nil
   "Non-nil means to only auto-fill inside comments.
 This has no effect in modes that do not define a comment syntax."
-  :type 'boolean)
+  :type 'boolean
+  :group 'comment)
 
 (defun comment-valid-prefix-p (prefix compos)
   (or

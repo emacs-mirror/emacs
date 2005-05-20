@@ -1,6 +1,6 @@
 ;;; calc-ext.el --- various extension functions for Calc
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
 ;; Maintainer: Jay Belanger <belanger@truman.edu>
@@ -416,6 +416,7 @@
   (define-key calc-mode-map "sd" 'calc-declare-variable)
   (define-key calc-mode-map "se" 'calc-edit-variable)
   (define-key calc-mode-map "si" 'calc-insert-variables)
+  (define-key calc-mode-map "sk" 'calc-copy-special-constant)
   (define-key calc-mode-map "sl" 'calc-let)
   (define-key calc-mode-map "sm" 'calc-store-map)
   (define-key calc-mode-map "sn" 'calc-store-neg)
@@ -1075,7 +1076,8 @@ calc-vector-pop-covariance calc-vector-pop-sdev
 calc-vector-pop-variance calc-vector-product calc-vector-sdev
 calc-vector-sum calc-vector-variance)
 
- ("calc-store" calc-assign calc-copy-variable calc-declare-variable
+ ("calc-store" calc-assign calc-copy-special-constant
+calc-copy-variable calc-declare-variable
 calc-edit-AlgSimpRules calc-edit-Decls calc-edit-EvalRules
 calc-edit-ExtSimpRules calc-edit-FitRules calc-edit-GenCount
 calc-edit-Holidays calc-edit-IntegLimit calc-edit-LineStyles

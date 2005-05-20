@@ -666,6 +666,7 @@ commands use this function.
 
 @c Emacs 19 feature
 @defvar minor-mode-map-alist
+@anchor{Definition of minor-mode-map-alist}
 This variable is an alist describing keymaps that may or may not be
 active according to the values of certain variables.  Its elements look
 like this:

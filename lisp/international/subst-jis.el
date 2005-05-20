@@ -1,5 +1,8 @@
 ;;; subst-jis.el --- Unicode/JISX translation    -*-coding: euc-jp;-*-
 ;; Copyright (C) 2002, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 2004
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Author: Dave Love <fx@gnu.org>
 ;; Keywords: i18n

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1997, 1999, 2000, 2001 Free Software Foundation, Inc.
+@c Copyright (C) 1997, 1999, 2000, 2001, 2005 Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node International, Major Modes, Frames, Top
 @chapter International Character Set Support
@@ -97,9 +97,8 @@ correctly; see @ref{Language Environments, locales}.
                               that cover the whole spectrum of characters.
 * Defining Fontsets::       Defining a new fontset.
 * Undisplayable Characters:: When characters don't display.
-* Single-Byte Character Support::
-                            You can pick one European character set
-                            to use without multibyte characters.
+* Single-Byte Character Support:: You can pick one European character set
+                              to use without multibyte characters.
 * Charsets::                How Emacs groups its internal character codes.
 @end menu
 

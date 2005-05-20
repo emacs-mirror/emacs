@@ -141,9 +141,9 @@ truncated to make more of the arglist or documentation string visible."
   "Toggle ElDoc mode on or off.
 In ElDoc mode, the echo area displays information about a
 function or variable in the text where point is.  If point is
-on a documented variable, it displays that variable's doc string.
-Otherwise it displays the argument list of the function called
-in the expression point is on.
+on a documented variable, it displays the first line of that
+variable's doc string.  Otherwise it displays the argument list
+of the function called in the expression point is on.
 
 With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
   :group 'eldoc :lighter eldoc-minor-mode-string
@@ -229,6 +229,7 @@ With prefix ARG, turn ElDoc mode on if and only if ARG is positive."
        (not (eq (selected-window) (minibuffer-window)))))
 
 
+;;;###autoload
 (defvar eldoc-documentation-function nil
   "If non-nil, function to call to return doc string.
 The function of no args should return a one-line string for displaying

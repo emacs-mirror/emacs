@@ -393,20 +393,20 @@ one optional arguments, diff-number to refine.")
     (ediff-with-current-buffer diff-buffer
       (goto-char (point-min))
       (while (re-search-forward ediff-match-diff-line nil t)
-       (let* ((a-begin (string-to-int (buffer-substring (match-beginning 1)
-							(match-end 1))))
+       (let* ((a-begin (string-to-number (buffer-substring (match-beginning 1)
+                                                           (match-end 1))))
 	      (a-end  (let ((b (match-beginning 3))
 			    (e (match-end 3)))
 			(if b
-			    (string-to-int (buffer-substring b e))
+			    (string-to-number (buffer-substring b e))
 			  a-begin)))
 	      (diff-type (buffer-substring (match-beginning 4) (match-end 4)))
-	      (b-begin (string-to-int (buffer-substring (match-beginning 5)
-							(match-end 5))))
+	      (b-begin (string-to-number (buffer-substring (match-beginning 5)
+                                                           (match-end 5))))
 	      (b-end (let ((b (match-beginning 7))
 			   (e (match-end 7)))
 		       (if b
-			   (string-to-int (buffer-substring b e))
+			   (string-to-number (buffer-substring b e))
 			 b-begin)))
 	      a-begin-pt a-end-pt b-begin-pt b-end-pt
 	      c-begin c-end c-begin-pt c-end-pt)
@@ -934,16 +934,16 @@ delimiter regions"))
 	;; it is a "c" group
 	(if (match-beginning 2)
 	    ;; it has two numbers
-	    (list (string-to-int
+	    (list (string-to-number
 		   (buffer-substring (match-beginning 1) (match-end 1)))
-		  (1+ (string-to-int
+		  (1+ (string-to-number
 		       (buffer-substring (match-beginning 3) (match-end 3)))))
 	  ;; it has one number
-	  (let ((x (string-to-int
+	  (let ((x (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1)))))
 	    (list x (1+ x))))
       ;; it is an "a" group
-      (let ((x (1+ (string-to-int
+      (let ((x (1+ (string-to-number
 		    (buffer-substring (match-beginning 1) (match-end 1))))))
 	(list x x)))))
 

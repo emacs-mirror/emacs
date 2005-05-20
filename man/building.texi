@@ -223,6 +223,14 @@ commands advance from there.  When @kbd{C-x `} gets to the end of the
 buffer and finds no more error messages to visit, it fails and signals
 an Emacs error.
 
+When the left fringe is displayed, an arrow points to the
+current message in the compilation buffer. The variable
+@code{compilation-context-lines} controls the number of lines of
+leading context in the window before the current message.  If it is
+@code{nil} and the left fringe is displayed, the window doesn't
+scroll.  If there is no left fringe, no arrow is displayed and a value
+of @code{nil} means display the message at the top of the window.
+
   You don't have to be in the compilation buffer in order to use
 @code{next-error}.  If one window on the selected frame can be the
 target of the @code{next-error} call, it is used.  Else, if a buffer
@@ -504,8 +512,13 @@ with a C program, you can also display the @code{#define} directive
 associated with an identifier when the program is not executing.  This
 operates in the GUD buffer and in source buffers with major modes in
 the list @code{gud-tooltip-modes}.  If the variable
-@code{gud-tooltip-echo-area} is non-@code{nil} then the help text is
-displayed in the echo area.
+@code{gud-tooltip-echo-area} is non-@code{nil} then the variable's
+value is displayed in the echo area.
+
+With GDB in text command mode (@pxref{GDB Graphical Interface}),
+it is possible that use of GUD tooltips can cause a function to be
+called with harmful side-effects.  In this case, Emacs disables
+gud-tooltip-mode.
 
 @node Commands of GUD
 @subsection Commands of GUD
@@ -515,7 +528,7 @@ commands of Shell mode are available (@pxref{Shell Mode}).  GUD mode
 also provides commands for setting and clearing breakpoints, for
 selecting stack frames, and for stepping through the program.  These
 commands are available both in the GUD buffer and globally, but with
-different key bindings.  It also has its own toolbar from which you
+different key bindings.  It also has its own tool bar from which you
 can invoke the more common commands by clicking on the appropriate
 icon.  This is particularly useful for repetitive commands like
 gud-next and gud-step and allows the user to hide the GUD buffer.
@@ -742,7 +755,7 @@ that line, this action will remove it
 (@code{gdb-mouse-set-clear-breakpoint}). Where Emacs uses the margin
 to display breakpoints, it is also possible to enable or disable them
 when you click @kbd{Mouse-3} there
-(@code{gdb-mouse-toggle--breakpoint}).
+(@code{gdb-mouse-toggle-breakpoint}).
 
 @vindex gud-gdb-command-name
 @findex gdba
@@ -869,7 +882,7 @@ the variables that are local to the new frame.
 
 If you want to see how a variable changes each time your program stops
 then place the cursor over the variable name and click on the watch
-icon in the toolbar (@code{gud-watch}).
+icon in the tool bar (@code{gud-watch}).
 
 Each watch expression is displayed in the speedbar.  Complex data
 types, such as arrays, structures and unions are represented in a tree

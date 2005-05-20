@@ -1,8 +1,9 @@
 ;;; fontset.el --- commands for handling fontset
 
-;; Copyright (C) 1995, 1997 Electrotechnical Laboratory, JAPAN.
-;; Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1995, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Keywords: mule, multilingual, fontset
 
@@ -491,7 +492,7 @@ with \"fontset\" in `<CHARSET_REGISTRY> field."
 	      name)
 	  (if (not (string= "fontset" charset))
 	      fontset
-	    (if (> (string-to-int size) 0)
+	    (if (> (string-to-number size) 0)
 		(setq name (format "%s: %s-dot" nickname size))
 	      (setq name nickname))
 	    (cond ((string-match "^medium$" weight)

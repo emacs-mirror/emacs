@@ -282,7 +282,8 @@ A mode setting this variable should make it buffer local."
   "If non-nil, a list of buffers which dabbrev should search.
 If this variable is non-nil, dabbrev will only look in these buffers.
 It will not even look in the current buffer if it is not a member of
-this list.")
+this list."
+  :group 'dabbrev)
 
 ;;----------------------------------------------------------------
 ;; Internal variables

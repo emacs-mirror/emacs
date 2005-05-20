@@ -5108,6 +5108,7 @@ send_process_trap ()
   sigrelse (SIGPIPE);
   sigrelse (SIGALRM);
 #endif /* BSD4_1 */
+  sigunblock (sigmask (SIGPIPE));
   longjmp (send_process_frame, 1);
 }
 
@@ -5299,7 +5300,11 @@ send_process (proc, buf, len, object)
 			       0, datagram_address[outfd].sa,
 			       datagram_address[outfd].len);
 		  if (rv < 0 && errno == EMSGSIZE)
-		    report_file_error ("sending datagram", Fcons (proc, Qnil));
+		    {
+		      signal (SIGPIPE, old_sigpipe);
+		      report_file_error ("sending datagram",
+					 Fcons (proc, Qnil));
+		    }
 		}
 	      else
 #endif

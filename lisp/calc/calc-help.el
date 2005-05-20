@@ -1,6 +1,6 @@
 ;;; calc-help.el --- help display functions for Calc,
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2004, 2005
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005
 ;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>
@@ -526,7 +526,7 @@ C-w  Describe how there is no warranty for Calc."
   (interactive)
   (calc-do-prefix-help
    '("Store, inTo, Xchg, Unstore; Recall, 0-9; : (:=); = (=>)"
-     "Let; Copy; Declare; Insert, Perm; Edit"
+     "Let; Copy, K=copy constant; Declare; Insert, Perm; Edit"
      "Negate, +, -, *, /, ^, &, |, [, ]; Map"
      "SHIFT + Decls, GenCount, TimeZone, Holidays; IntegLimit"
      "SHIFT + LineStyles, PointStyles, plotRejects; Units"

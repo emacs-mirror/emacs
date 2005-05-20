@@ -1,7 +1,6 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
-;; Copyright (C) 1993, 1995, 2001, 02, 03, 2004, 2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>

@@ -37,6 +37,16 @@ code intended for widespread use:
 
 @itemize @bullet
 @item
+Simply loading the package should not change Emacs's editing behavior.
+Include a command or commands to enable and disable the feature,
+or to invoke it.
+
+This convention is mandatory for any file that includes custom
+definitions.  If fixing such a file to follow this convention requires
+an incompatible change, go ahead and make the incompatible change;
+don't postpone it.
+
+@item
 Since all global variables share the same name space, and all
 functions share another name space, you should choose a short word to
 distinguish your program from other Lisp programs.@footnote{The
@@ -200,17 +210,6 @@ way.
 
 In addition, they should mark the text as a kind of ``link'' so that
 @kbd{mouse-1} will follow it also.  @xref{Links and Mouse-1}.
-
-@item
-When a package provides a modification of ordinary Emacs behavior, it is
-good to include a command to enable and disable the feature, provide a
-command named @code{@var{whatever}-mode} which turns the feature on or
-off, and make it autoload (@pxref{Autoload}).  Design the package so
-that simply loading it has no visible effect---that should not enable
-the feature.@footnote{Consider that the package may be loaded
-arbitrarily by Custom for instance.}  Users will request the feature by
-invoking the command.  It is a good idea to define this command
-as a minor mode.
 
 @cindex unloading packages
 If loading the file adds functions to hooks, define a function

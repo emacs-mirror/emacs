@@ -1,6 +1,7 @@
 ;;; lisp.el --- Lisp editing commands for Emacs
 
-;; Copyright (C) 1985, 86, 1994, 2000, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1994, 2000, 2004, 2005
+;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: lisp, languages
@@ -487,9 +488,9 @@ If region is active, insert enclosing characters at region boundaries."
 More accurately, check the narrowed part of the buffer for unbalanced
 expressions (\"sexps\") in general.  This is done according to the
 current syntax table and will find unbalanced brackets or quotes as
-appropriate.  (See Info node `(emacs)Lists and Sexps'.)  If imbalance
-is found, an error is signalled and point is left at the first
-unbalanced character."
+appropriate.  (See Info node `(emacs)Parentheses'.)  If imbalance is
+found, an error is signalled and point is left at the first unbalanced
+character."
   (interactive)
   (condition-case data
       ;; Buffer can't have more than (point-max) sexps.

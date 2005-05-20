@@ -1,6 +1,6 @@
 ;;; ange-ftp.el --- transparent FTP support for GNU Emacs
 
-;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001
+;; Copyright (C) 1989,90,91,92,93,94,95,96,98, 2000, 2001, 2005
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Andy Norman (ange@hplb.hpl.hp.com)
@@ -1646,7 +1646,7 @@ good, skip, fatal, or unknown."
 		    ;; if we gave an empty password to the USER command earlier
 		    ;; then we should send a null password now.
 		    (if (string-match "Password: *$" ange-ftp-process-string)
-			(send-string proc "\n"))))
+			(process-send-string proc "\n"))))
 	      (while (and ange-ftp-process-busy
 			  (string-match "\n" ange-ftp-process-string))
 		(let ((line (substring ange-ftp-process-string
@@ -1741,18 +1741,18 @@ good, skip, fatal, or unknown."
     ;; Replace STR by the result of the comint processing.
     (setq str (buffer-substring comint-last-output-start (process-mark proc))))
   (cond ((string-match "login: *$" str)
-	 (send-string proc
-		      (concat
-		       (let ((ange-ftp-default-user t))
-			 (ange-ftp-get-user ange-ftp-gateway-host))
-		       "\n")))
+	 (process-send-string proc
+                              (concat
+                               (let ((ange-ftp-default-user t))
+                                 (ange-ftp-get-user ange-ftp-gateway-host))
+                               "\n")))
 	((string-match "Password: *$" str)
-	 (send-string proc
-		      (concat
-		       (ange-ftp-get-passwd ange-ftp-gateway-host
-					    (ange-ftp-get-user
-					     ange-ftp-gateway-host))
-		       "\n")))
+	 (process-send-string proc
+                              (concat
+                               (ange-ftp-get-passwd ange-ftp-gateway-host
+                                                    (ange-ftp-get-user
+                                                     ange-ftp-gateway-host))
+                               "\n")))
 	((string-match ange-ftp-gateway-fatal-msgs str)
 	 (delete-process proc)
 	 (setq ange-ftp-gwp-running nil))
@@ -1835,7 +1835,7 @@ been queued with no result.  CONT will still be called, however."
 	      (insert (substring cmd 0 (match-end 0)) " Turtle Power!\n")
 	    (insert cmd)))
 	(move-marker comint-last-input-end (point))
-	(send-string proc cmd)
+	(process-send-string proc cmd)
 	(set-marker (process-mark proc) (point))
 	(if nowait
 	    nil
@@ -2109,7 +2109,7 @@ suffix of the form #PORT to specify a non-default port"
 	       (line (cdr status)))
 	  (save-match-data
 	    (if (string-match ange-ftp-hash-mark-msgs line)
-		(let ((size (string-to-int (match-string 1 line))))
+		(let ((size (string-to-number (match-string 1 line))))
 		  (setq ange-ftp-ascii-hash-mark-size size
 			ange-ftp-hash-mark-unit (ash size -4))
 
@@ -5082,7 +5082,7 @@ Other orders of $ and _ seem to all work just fine.")
 		     (and (string-match regexp name)
 			  (setq version
 				(max version
-				     (string-to-int (match-string 1 name))))))
+				     (string-to-number (match-string 1 name))))))
 		   files)
 		  (setq version (1+ version))
 		  (puthash

@@ -1,6 +1,6 @@
 ;;; calc.el --- the GNU Emacs calculator
 
-;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2002, 2003, 2004, 2005 
+;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 
 ;;           Free Software Foundation, Inc.
 
 ;; Author: David Gillespie <daveg@synaptics.com>

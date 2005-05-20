@@ -63,7 +63,8 @@
 
 ;;;###autoload
 (defcustom resize-minibuffer-frame-max-height nil
-  "*This variable is obsolete.")
+  "*This variable is obsolete."
+  :group 'resize-minibuffer)
 
 ;;;###autoload
 (defcustom resize-minibuffer-frame-exactly t

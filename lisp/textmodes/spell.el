@@ -128,9 +128,9 @@ for example, \"word\"."
 	 (forward-char 1)
 	 (delete-region (point-min) (point))
 	 (setq newword
-	       (read-input (concat "`" word
-				   "' not recognized; edit a replacement: ")
-			   word))
+	       (read-string (concat "`" word
+                                    "' not recognized; edit a replacement: ")
+                            word))
 	 (flush-lines (concat "^" (regexp-quote word) "$")))
 	(if (not (equal word newword))
 	    (progn

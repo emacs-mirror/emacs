@@ -672,7 +672,7 @@ file.  If none is set, return nil."
 		    (not (integerp choice))
 		    (< choice 1)
 		    (> choice (length prj-files)))
-	      (setq choice (string-to-int
+	      (setq choice (string-to-number
 			    (read-from-minibuffer "Enter No. of your choice: "))))
 	    (set 'selected (nth (1- choice) prj-files))))
 
@@ -1800,7 +1800,7 @@ This function is disabled for operators, and only works for identifiers."
 		      (< choice 1)
 		      (> choice len))
 		(setq choice
-		      (string-to-int
+		      (string-to-number
 		       (read-from-minibuffer "Enter No. of your choice: "))))
 	      )
 	    (set-buffer ali-buffer)
@@ -1988,7 +1988,7 @@ is using."
 		   (< choice 1)
 		   (> choice (length list)))
 	  (setq choice
-		(string-to-int
+		(string-to-number
 		 (read-from-minibuffer "Enter No. of your choice: "))))
 	)
       (set 'choice (1- choice))

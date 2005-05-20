@@ -227,7 +227,7 @@ Needed for polar areas, in order to know whether the day lasts 0 or 24 hours.")
 Returns nil if nothing was entered."
   (let ((x (read-string prompt "")))
     (if (not (string-equal x ""))
-        (string-to-int x))))
+        (string-to-number x))))
 
 ;; The condition-case stuff is needed to catch bogus arithmetic
 ;; exceptions that occur on some machines (like Sparcs)
@@ -643,48 +643,6 @@ since January 1st, 2000, at 12 ET."
                   ; equation of time, in hours
     (list app i time-eq nut)))
 
-(defun solar-longitude (d)
-  "Longitude of sun on astronomical (Julian) day number D.
-Accurary is about 0.0006 degree (about 365.25*24*60*0.0006/360 = 1 minutes).
-
-The values of calendar-daylight-savings-starts,
-calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
-calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
-calendar-time-zone are used to interpret local time."
-  (let* ((a-d (calendar-absolute-from-astro d))
-         ;; get Universal Time
-         (date (calendar-astro-from-absolute
-                (- a-d
-                   (if (dst-in-effect a-d)
-                       (/ calendar-daylight-time-offset 24.0 60.0) 0)
-                   (/ calendar-time-zone 60.0 24.0))))
-         ;; get Ephemeris Time
-         (date (+ date (solar-ephemeris-correction
-                        (extract-calendar-year
-                         (calendar-gregorian-from-absolute
-                          (floor
-                           (calendar-absolute-from-astro
-                            date)))))))
-         (U (/ (- date 2451545) 3652500))
-         (longitude
-          (+ 4.9353929
-             (* 62833.1961680 U)
-             (* 0.0000001
-                (apply '+
-                       (mapcar '(lambda (x)
-                                  (* (car x)
-                                     (sin (mod
-                                           (+ (car (cdr x))
-                                              (* (car (cdr (cdr x))) U))
-                                           (* 2 pi)))))
-                               solar-data-list)))))
-         (aberration
-          (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
-         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 pi)))
-         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 pi)))
-         (nutation (* -0.0000001 (+ (* 834 (sin A1)) (* 64 (sin A2))))))
-    (mod (radians-to-degrees (+ longitude aberration nutation)) 360.0)))
-
 (defconst solar-data-list
   '((403406 4.721964 1.621043)
     (195207 5.937458 62830.348067)
@@ -736,6 +694,48 @@ calendar-time-zone are used to interpret local time."
     (10 3.59 -68.29)
     (10 1.50 21463.25)
     (10 2.55 157208.40)))
+
+(defun solar-longitude (d)
+  "Longitude of sun on astronomical (Julian) day number D.
+Accurary is about 0.0006 degree (about 365.25*24*60*0.0006/360 = 1 minutes).
+
+The values of calendar-daylight-savings-starts,
+calendar-daylight-savings-starts-time, calendar-daylight-savings-ends,
+calendar-daylight-savings-ends-time, calendar-daylight-time-offset, and
+calendar-time-zone are used to interpret local time."
+  (let* ((a-d (calendar-absolute-from-astro d))
+         ;; get Universal Time
+         (date (calendar-astro-from-absolute
+                (- a-d
+                   (if (dst-in-effect a-d)
+                       (/ calendar-daylight-time-offset 24.0 60.0) 0)
+                   (/ calendar-time-zone 60.0 24.0))))
+         ;; get Ephemeris Time
+         (date (+ date (solar-ephemeris-correction
+                        (extract-calendar-year
+                         (calendar-gregorian-from-absolute
+                          (floor
+                           (calendar-absolute-from-astro
+                            date)))))))
+         (U (/ (- date 2451545) 3652500))
+         (longitude
+          (+ 4.9353929
+             (* 62833.1961680 U)
+             (* 0.0000001
+                (apply '+
+                       (mapcar '(lambda (x)
+                                  (* (car x)
+                                     (sin (mod
+                                           (+ (car (cdr x))
+                                              (* (car (cdr (cdr x))) U))
+                                           (* 2 pi)))))
+                               solar-data-list)))))
+         (aberration
+          (* 0.0000001 (- (* 17 (cos (+ 3.10 (* 62830.14 U)))) 973)))
+         (A1 (mod (+ 2.18 (* U (+ -3375.70 (* 0.36 U)))) (* 2 pi)))
+         (A2 (mod (+ 3.51 (* U (+ 125666.39 (* 0.10 U)))) (* 2 pi)))
+         (nutation (* -0.0000001 (+ (* 834 (sin A1)) (* 64 (sin A2))))))
+    (mod (radians-to-degrees (+ longitude aberration nutation)) 360.0)))
 
 (defun solar-ephemeris-correction (year)
   "Ephemeris time minus Universal Time during Gregorian year.

@@ -192,6 +192,9 @@
   ;; Look within the line for a ; following an even number of backslashes
   ;; after either a non-backslash or the line beginning.
   (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
+  (make-local-variable 'font-lock-comment-start-skip)
+  ;; Font lock mode uses this only when it KNOWS a comment is starting.
+  (setq font-lock-comment-start-skip ";+ *") 
   (make-local-variable 'comment-add)
   (setq comment-add 1)			;default to `;;' in comment-region
   (make-local-variable 'comment-column)

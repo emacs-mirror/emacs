@@ -1,3 +1,22 @@
+2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* TODO: post-command-idle-hook has gone.
+
+2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* NEWS: Remove references to open-network-stream-nowait and
+	open-network-stream-server.
+
+2005-05-15  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Correct/improve previous change.
+
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Update footnotes.
+
+	* NEWS: Lots of clarifications and cleanups.
+
 2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
         * TUTORIAL.pl: Updated header.
@@ -87,9 +106,9 @@
         * TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
         * TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title
         line.
-        
+
 2005-04-01  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
-        
+
         * TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
         2005-02-08T14:20:54Z!lute@gnu.org, "Emacs" is not transliterated to cyrillic anymore;
         Minor fixes.
@@ -1836,9 +1855,9 @@
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
 	* emacsstool.1: update to document environment variables.
-        
+
 1989-02-21  Mosur Mohan (email@notavailable)
-        
+
 	* etags.c (PAS_funcs): New function.
 
 1989-02-21  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
@@ -1863,7 +1882,7 @@
 
 1989-01-19  Sam Kendall  (email@notavailable)
 
-	* etags.c: Greatly rewritten for C++ support and for multiple tags        
+	* etags.c: Greatly rewritten for C++ support and for multiple tags
         per line.
 
 1989-01-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)

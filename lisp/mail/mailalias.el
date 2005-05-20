@@ -449,7 +449,7 @@ PATTERN is the string we want to complete."
 	      (add-to-list 'mail-local-names
 			   (cons (match-string 1)
 				 (user-full-name
-				  (string-to-int (match-string 2))))))
+				  (string-to-number (match-string 2))))))
 	  (beginning-of-line 2))
 	(kill-buffer (current-buffer))))
   (if (or (eq mail-names t)

@@ -1,3 +1,8 @@
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* make-docfile.c (DIRECTORY_SEP): New macro.
+	(IS_DIRECTORY_SEP): Use it.
+
 2005-03-18  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* emacsclient.c: Avoid expansion of getcwd when defined as a macro.

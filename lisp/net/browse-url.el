@@ -1,6 +1,6 @@
 ;;; browse-url.el --- pass a URL to a WWW browser
 
-;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2004, 2005
+;; Copyright (C) 1995, 96, 97, 98, 99, 2000, 2001, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Denis Howe <dbh@doc.ic.ac.uk>

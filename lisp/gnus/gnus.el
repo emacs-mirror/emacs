@@ -1,7 +1,7 @@
 ;;; gnus.el --- a newsreader for GNU Emacs
 
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996, 1997,
-;; 1998, 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; 1998, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
 ;;	Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -34,7 +34,6 @@
 (require 'wid-edit)
 (require 'mm-util)
 (require 'nnheader)
-(autoload 'message-y-or-n-p "message" nil nil 'macro)
 
 (defgroup gnus nil
   "The coffee-brewing, all singing, all dancing, kitchen sink newsreader."
@@ -3924,6 +3923,9 @@ If NEWSGROUP is nil, return the global kill file name instead."
 	(push (car valids) outs))
       (setq valids (cdr valids)))
     outs))
+
+(eval-and-compile
+  (autoload 'message-y-or-n-p "message" nil nil 'macro))
 
 (defun gnus-read-group (prompt &optional default)
   "Prompt the user for a group name.

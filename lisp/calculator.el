@@ -105,15 +105,21 @@ at runtime."
   "*Use digit grouping in radix output mode.
 If this is set, chunks of `calculator-radix-grouping-digits' characters
 will be separated by `calculator-radix-grouping-separator' when in radix
-output mode is active (determined by `calculator-output-radix').")
+output mode is active (determined by `calculator-output-radix')."
+  :type  'boolean
+  :group 'calculator)
 
 (defcustom calculator-radix-grouping-digits 4
   "*The number of digits used for grouping display in radix modes.
-See `calculator-radix-grouping-mode'.")
+See `calculator-radix-grouping-mode'."
+  :type  'integer
+  :group 'calculator)
 
 (defcustom calculator-radix-grouping-separator "'"
   "*The separator used in radix grouping display.
-See `calculator-radix-grouping-mode'.")
+See `calculator-radix-grouping-mode'."
+  :type  'string
+  :group 'calculator)
 
 (defcustom calculator-remove-zeros t
   "*Non-nil value means delete all redundant zero decimal digits.
@@ -140,7 +146,8 @@ of digits displayed).
 
 An exception to the above is the case of the list (std C) where C is a
 character, in this case the `calculator-standard-displayer' function
-will be used with this character for a format string.")
+will be used with this character for a format string."
+  :group 'calculator)
 
 (defcustom calculator-displayers
   '(((std ?n) "Standard display, decimal point or scientific")
@@ -169,7 +176,9 @@ floats, otherwise the Emacs reader will fail on them."
   "*If non-nil, this is any value that can be used for
 `calculator-displayer', to format a string before copying it with
 `calculator-copy'.  If nil, then `calculator-displayer's normal value is
-used.")
+used."
+  :type  'boolean
+  :group 'calculator)
 
 (defcustom calculator-2s-complement nil
   "*If non-nil, show negative numbers in 2s complement in radix modes.

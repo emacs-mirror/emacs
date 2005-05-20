@@ -175,8 +175,9 @@ If you think you need this, you're probably making a mistake somewhere."
 ;;; byte-compile-macro-environment.
 
 (defmacro eval-when-compile (&rest body)
-  "Like `progn', but evaluates the body at compile time.
-The result of the body appears to the compiler as a quoted constant."
+  "Like `progn', but evaluates the body at compile time if you're compiling.
+Thus, the result of the body appears to the compiler as a quoted constant.
+In interpreted code, this is entirely equivalent to `progn'."
   (declare (debug t) (indent 0))
   ;; Not necessary because we have it in b-c-initial-macro-environment
   ;; (list 'quote (eval (cons 'progn body)))

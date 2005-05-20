@@ -1559,9 +1559,7 @@ back to listening for more connection requests.
 keyword/argument pairs, for example @code{:server t} to create a
 server process, or @code{:type 'datagram} to create a datagram
 connection.  @xref{Low-Level Network}, for details.  You can also use
-one of the @code{open-network-...} functions descibed below;
-internally, they just call @code{make-network-process} with suitable
-arguments.
+the @code{open-network-stream} function descibed below.
 
   You can distinguish process objects representing network connections
 and servers from those representing subprocesses with the
@@ -1599,25 +1597,6 @@ associated with any buffer.
 The arguments @var{host} and @var{service} specify where to connect to;
 @var{host} is the host name (a string), and @var{service} is the name of
 a defined network service (a string) or a port number (an integer).
-@end defun
-
-@defun open-network-stream-nowait name buffer-or-name host service &optional sentinel filter
-This function opens a TCP connection, like @code{open-network-stream},
-but it returns immediately without waiting for the request to be
-accepted or rejected by the remote server.  When the request is
-subsequently accepted or rejected, the process's sentinel function
-will be called with a string that starts with @code{"open"} (on
-success) or @code{"failed"} (on error).
-
-Some systems do not support non-blocking connections; on those
-systems, @code{open-network-stream-nowait} returns @code{nil}
-and does nothing.
-
-The optional arguments @var{sentinel} and @var{filter} specify the
-sentinel and filter functions for this network connection.  It is
-useful to specify them when opening the connection, because they will
-be used later asynchronously.  The other arguments mean the same as in
-@code{open-network-stream}.
 @end defun
 
 @defun process-contact process &optional key
@@ -1703,24 +1682,6 @@ number used for the connection.
 @item
 The client process' plist is initialized from the server's plist.
 @end itemize
-
-@defun open-network-stream-server name buffer-or-name service &optional sentinel filter
-Create a network server process for a TCP service.
-It returns @code{nil} if server processes are not supported; otherwise,
-it returns a subprocess-object to represent the server.
-
-When a client connects to the specified service, Emacs creates a new
-subprocess to handle the new connection, and then calls its sentinel
-function (which it has inherited from the server).
-
-The optional arguments @var{sentinel} and @var{filter} specify the
-sentinel and filter functions for the server.  It is useful to specify
-them now, because they will be used later asynchronously when the
-server receives a connection request.  The three arguments @var{name},
-@var{buffer-or-name} and @var{service} mean the same thing as in
-@code{open-network-stream}, but @var{service} can be @code{t}
-meaning ask the system to allocate an unused port to listen on.
-@end defun
 
 @node Datagrams
 @section Datagrams

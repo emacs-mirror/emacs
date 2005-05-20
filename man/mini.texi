@@ -260,7 +260,14 @@ Complete the minibuffer text before point, but don't go beyond one word
 (@code{minibuffer-complete-word}).
 @item @key{RET}
 Submit the text in the minibuffer as the argument, possibly completing
-first as described below (@code{minibuffer-complete-and-exit}).
+first as described
+@iftex
+in the next subsection (@code{minibuffer-complete-and-exit}).
+@end iftex
+@ifnottex
+in the next node (@code{minibuffer-complete-and-exit}).  @xref{Strict
+Completion}.
+@end ifnottex
 @item ?
 Display a list of all possible completions of the text in the minibuffer
 (@code{minibuffer-list-completions}).
@@ -410,7 +417,7 @@ completion commands are available on @kbd{M-@key{TAB}} (or
 @vindex PC-include-file-path
 @vindex PC-disable-includes
   Another feature of Partial Completion mode is to extend
-@code{find-file} so that the @samp{<@var{include}>} stands for the
+@code{find-file} so that @samp{<@var{include}>} stands for the
 file named @var{include} in some directory in the path
 @code{PC-include-file-path}.  If you set @code{PC-disable-includes} to
 non-@code{nil}, this feature is disabled.

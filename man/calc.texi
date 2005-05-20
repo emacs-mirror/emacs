@@ -22660,11 +22660,10 @@ to @expr{a / (c - b)}, and @expr{(a - b) / (-c)} to @expr{(b - a) / c}.
 
 The formula @expr{x^0} is simplified to @expr{1}, or to @samp{idn(1)}
 in Matrix mode.  The formula @expr{0^x} is simplified to @expr{0}
-unless @expr{x} is a negative number or complex number, in which
-case the result is an infinity or an unsimplified formula according
-to the current infinite mode.  Note that @expr{0^0} is an
-indeterminate form, as evidenced by the fact that the simplifications
-for @expr{x^0} and @expr{0^x} conflict when @expr{x=0}.
+unless @expr{x} is a negative number, complex number or zero.
+If @expr{x} is negative, complex or @expr{0.0}, @expr{0^x} is an
+infinity or an unsimplified formula according to the current infinite
+mode.  The expression @expr{0^0} is simplified to @expr{1}.
 
 Powers of products or quotients @expr{(a b)^c}, @expr{(a/b)^c}
 are distributed to @expr{a^c b^c}, @expr{a^c / b^c} only if @expr{c}
@@ -22766,7 +22765,7 @@ simplified to @expr{x} for any @expr{x}.  This occurs even if you have
 stored a different value in the Calc variable @samp{e}; but this would
 be a bad idea in any case if you were also using natural logarithms!
 
-Among the logical functions, @tfn{(@var{a} <= @var{b})} changes to
+Among the logical functions, @tfn{!(@var{a} <= @var{b})} changes to
 @tfn{@var{a} > @var{b}} and so on.  Equations and inequalities where both sides
 are either negative-looking or zero are simplified by negating both sides
 and reversing the inequality.  While it might seem reasonable to simplify
@@ -28299,6 +28298,15 @@ will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
 The @kbd{s u} (@code{calc-unstore}) command returns a variable to the
 void state.
 
+@kindex s c
+@pindex calc-copy-variable
+The @kbd{s c} (@code{calc-copy-variable}) command copies the stored
+value of one variable to another.  One way it differs from a simple
+@kbd{s r} followed by an @kbd{s t} (aside from saving keystrokes) is
+that the value never goes on the stack and thus is never rounded,
+evaluated, or simplified in any way; it is not even rounded down to the
+current precision.
+
 The only variables with predefined values are the ``special constants''
 @code{pi}, @code{e}, @code{i}, @code{phi}, and @code{gamma}.  You are free
 to unstore these variables or to store new values into them if you like,
@@ -28308,25 +28316,26 @@ you change the value of one of these variables, or of one of the other
 special variables @code{inf}, @code{uinf}, and @code{nan} (which are
 normally void).
 
-Note that @code{pi} doesn't actually have 3.14159265359 stored
-in it, but rather a special magic value that evaluates to @cpi{}
-at the current precision.  Likewise @code{e}, @code{i}, and
-@code{phi} evaluate according to the current precision or polar mode.
-If you recall a value from @code{pi} and store it back, this magic
-property will be lost.
+Note that @code{pi} doesn't actually have 3.14159265359 stored in it,
+but rather a special magic value that evaluates to @cpi{} at the current
+precision.  Likewise @code{e}, @code{i}, and @code{phi} evaluate
+according to the current precision or polar mode.  If you recall a value
+from @code{pi} and store it back, this magic property will be lost.  The
+magic property is preserved, however, when a variable is copied with
+@kbd{s c}.
 
-@kindex s c
-@pindex calc-copy-variable
-The @kbd{s c} (@code{calc-copy-variable}) command copies the stored
-value of one variable to another.  It differs from a simple @kbd{s r}
-followed by an @kbd{s t} in two important ways.  First, the value never
-goes on the stack and thus is never rounded, evaluated, or simplified
-in any way; it is not even rounded down to the current precision.
-Second, the ``magic'' contents of a variable like @code{e} can
-be copied into another variable with this command, perhaps because
-you need to unstore @code{e} right now but you wish to put it
-back when you're done.  The @kbd{s c} command is the only way to
-manipulate these magic values intact.
+@kindex s k
+@pindex calc-copy-special-constant
+If one of the ``special constants'' is redefined (or undefined) so that
+it no longer has its magic property, the property can be restored with 
+@kbd{s k} (@code{calc-copy-special-constant}).  This command will prompt
+for a special constant and a variable to store it in, and so a special
+constant can be stored in any variable.  Here, the special constant that
+you enter doesn't depend on the value of the corresponding variable;
+@code{pi} will represent 3.14159@dots{} regardless of what is currently
+stored in the Calc variable @code{pi}.  If one of the other special
+variables, @code{inf}, @code{uinf} or @code{nan}, is given a value, its
+original behavior can be restored by voiding it with @kbd{s u}.
 
 @node Recalling Variables, Operations on Variables, Storing Variables, Store and Recall
 @section Recalling Variables
@@ -35616,6 +35625,7 @@ keystrokes are not listed in this summary.
 @r{       @:      s d   @:var, decl    @:        @:calc-declare-variable@:}
 @r{       @:      s e   @:var, editing @: 29,30  @:calc-edit-variable@:}
 @r{       @:      s i   @:buffer       @:        @:calc-insert-variables@:}
+@r{       @:      s k   @:const, var   @:    29  @:calc-copy-special-constant@:}
 @r{    a b@:      s l   @:var          @:    29  @:@:a  (letting var=b)}
 @r{  a ...@:      s m   @:op, var      @: 22,29  @:calc-store-map@:}
 @r{       @:      s n   @:var          @: 29,47  @:calc-store-neg@:  (v/-1)}

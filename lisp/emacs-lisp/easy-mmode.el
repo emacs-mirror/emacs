@@ -36,7 +36,6 @@
 ;; For each mode, easy-mmode defines the following:
 ;; <mode>      : The minor mode predicate. A buffer-local variable.
 ;; <mode>-map  : The keymap possibly associated to <mode>.
-;; <mode>-hook : The hook run at the end of the toggle function.
 ;;       see `define-minor-mode' documentation
 ;;
 ;; eval
@@ -90,7 +89,7 @@ replacing its case-insensitive matches with the literal string in LIGHTER."
 (defmacro define-minor-mode (mode doc &optional init-value lighter keymap &rest body)
   "Define a new minor mode MODE.
 This function defines the associated control variable MODE, keymap MODE-map,
-toggle command MODE, and hook MODE-hook.
+and toggle command MODE.
 
 DOC is the documentation for the mode toggle command.
 Optional INIT-VALUE is the initial value of the mode's variable.
@@ -103,11 +102,11 @@ The above three arguments can be skipped if keyword arguments are
 used (see below).
 
 BODY contains code that will be executed each time the mode is (dis)activated.
-  It will be executed after any toggling but before running the hooks.
-  Before the actual body code, you can write
-  keyword arguments (alternating keywords and values).
-  These following keyword arguments are supported (other keywords
-  will be passed to `defcustom' if the minor mode is global):
+  It will be executed after any toggling but before running the hook variable
+  `mode-HOOK'.
+  Before the actual body code, you can write keyword arguments (alternating
+  keywords and values).  These following keyword arguments are supported (other
+  keywords will be passed to `defcustom' if the minor mode is global):
 :group GROUP	Custom group name to use in all generated `defcustom' forms.
 		Defaults to MODE without the possible trailing \"-mode\".
 		Don't use this default group name unless you have written a
@@ -241,12 +240,6 @@ With zero or negative ARG turn mode off.
        ;; up-to-here.
        :autoload-end
 
-       ;; The toggle's hook.
-       (defcustom ,hook nil
-	 ,(format "Hook run at the end of function `%s'." mode-name)
-	 ,@group
-	 :type 'hook)
-
        ;; Define the minor-mode keymap.
        ,(unless (symbolp keymap)	;nil is also a symbol.
 	  `(defvar ,keymap-sym
@@ -323,8 +316,8 @@ in which `%s' turns it on."
 	   (with-current-buffer buf
 	     (if ,global-mode (,turn-on) (when ,mode (,mode -1))))))
 
-       ;; Autoloading easy-mmode-define-global-mode
-       ;; autoloads everything up-to-here.
+       ;; Autoloading define-global-minor-mode autoloads everything
+       ;; up-to-here.
        :autoload-end
 
        ;; List of buffers left to process.

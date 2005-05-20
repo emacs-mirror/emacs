@@ -440,16 +440,16 @@ version that respects the bottom scroll margin."
   ;; set top scroll margin
   (or (string= top "")
       (if (string= "%" (substring top -1))
-	  (setq tpu-top-scroll-margin (string-to-int top))
+	  (setq tpu-top-scroll-margin (string-to-number top))
 	(setq tpu-top-scroll-margin
-	      (/ (1- (+ (* (string-to-int top) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number top) 100) (window-height)))
 		 (window-height)))))
   ;; set bottom scroll margin
   (or (string= bottom "")
       (if (string= "%" (substring bottom -1))
-	  (setq tpu-bottom-scroll-margin (string-to-int bottom))
+	  (setq tpu-bottom-scroll-margin (string-to-number bottom))
 	(setq tpu-bottom-scroll-margin
-	      (/ (1- (+ (* (string-to-int bottom) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   ;; report scroll margin settings if running interactively
   (and (interactive-p)

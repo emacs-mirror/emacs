@@ -205,7 +205,7 @@ Understands the following styles:
       ;; Unix Epoch, so are 2000+.  Three-digit years are assumed to
       ;; be relative to 1900.
       (if (< (length year) 4)
-	  (let ((y (string-to-int year)))
+	  (let ((y (string-to-number year)))
 	    (if (< y 69)
 		(setq y (+ y 100)))
 	    (setq year (int-to-string (+ 1900 y)))))
@@ -271,7 +271,7 @@ or an integer of the form +-HHMM, or a time zone name."
 		  ;; +900
 		  timezone))
 	(if (stringp timezone)
-	    (setq timezone (string-to-int timezone)))
+	    (setq timezone (string-to-number timezone)))
 	;; Taking account of minute in timezone.
 	;; HHMM -> MM
 	(let* ((abszone (abs timezone))
@@ -314,7 +314,7 @@ Gregorian date Sunday, December 31, 1 BC."
 If LOCAL is nil, it is assumed to be GMT.
 If TIMEZONE is nil, use the local time zone."
   (let* ((date   (timezone-parse-date date))
-	 (year   (string-to-int (aref date 0)))
+	 (year   (string-to-number (aref date 0)))
 	 (year	 (cond ((< year 69)
 			(+ year 2000))
 		       ((< year 100)
@@ -322,12 +322,12 @@ If TIMEZONE is nil, use the local time zone."
 		       ((< year 1000)	; possible 3-digit years.
 			(+ year 1900))
 		       (t year)))
-	 (month  (string-to-int (aref date 1)))
-	 (day    (string-to-int (aref date 2)))
+	 (month  (string-to-number (aref date 1)))
+	 (day    (string-to-number (aref date 2)))
 	 (time   (timezone-parse-time (aref date 3)))
-	 (hour   (string-to-int (aref time 0)))
-	 (minute (string-to-int (aref time 1)))
-	 (second (string-to-int (aref time 2)))
+	 (hour   (string-to-number (aref time 0)))
+	 (minute (string-to-number (aref time 1)))
+	 (second (string-to-number (aref time 2)))
 	 (local  (or (aref date 4) local)) ;Use original if defined
 	 (timezone
 	  (or timezone

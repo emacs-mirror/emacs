@@ -1,6 +1,10 @@
 ;;; devan-util.el --- Support for composing Devanagari characters
 
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001, 2002, 2003
+;;   Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2000
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: multilingual, Devanagari
