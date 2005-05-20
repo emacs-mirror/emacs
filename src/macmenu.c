@@ -21,7 +21,6 @@ Boston, MA 02111-1307, USA.  */
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include <config.h>
-#include <signal.h>
 
 #include <stdio.h>
 #include "lisp.h"

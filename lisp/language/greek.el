@@ -1,8 +1,9 @@
 ;;; greek.el --- support for Greek -*- no-byte-compile: t -*-
 
-;; Copyright (C) 1995 Electrotechnical Laboratory, JAPAN.
-;;   Licensed to the Free Software Foundation.
 ;; Copyright (C) 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1995
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009

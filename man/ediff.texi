@@ -155,6 +155,12 @@ Compare, Merge, and Apply Patch.
 @findex ediff
 Compare two files.
 
+@item ediff-backup
+@findex ediff-backup
+Compare a file with its backup. If there are several numerical backups, use
+the latest. If the file is itself a backup, then compare it with its
+original.
+
 @item ediff-buffers
 @findex ediff-buffers
 Compare two buffers.

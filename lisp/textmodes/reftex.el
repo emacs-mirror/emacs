@@ -3,7 +3,7 @@
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 ;; Keywords: tex
 
 ;; This file is part of GNU Emacs.
@@ -301,7 +301,7 @@
 ;;; Define the formal stuff for a minor mode named RefTeX.
 ;;;
 
-(defconst reftex-version "RefTeX version 4.26"
+(defconst reftex-version "RefTeX version 4.28"
   "Version string for RefTeX.")
 
 (defvar reftex-mode nil
@@ -1501,7 +1501,7 @@ When DIE is non-nil, throw an error if file not found."
     (when (null (get pathvar 'status))
       ;; Get basic path
       (set pathvar
-           (reftex-uniq
+           (reftex-uniquify
             (reftex-parse-colon-path
              (mapconcat
               (lambda(x) 
@@ -1605,15 +1605,6 @@ When DIE is non-nil, throw an error if file not found."
               (push (file-name-as-directory file) path)))
         (push dir path1)))
     path1))
-
-(defun reftex-uniq (list)
-  (let (new)
-    (while list
-      (or (member (car list) new)
-          (push (car list) new))
-      (pop list))
-    (nreverse new)))
-
 
 ;;; =========================================================================
 ;;;
@@ -2145,7 +2136,7 @@ Works on both Emacs and XEmacs."
     (nreverse rtn)))
 
 (defun reftex-uniquify (list)
-  ;; Return a list of all elements in LIST, but each only once
+  ;; Return a list of all elements in LIST, but each only once, keeping order
   (let (new elm)
     (while list
       (setq elm (pop list))
@@ -2342,31 +2333,40 @@ IGNORE-WORDS List of words which should be removed from the string."
             (if (find-face face) (throw 'exit face))
           (if (facep face) (throw 'exit face)))))))
 
-;; Highlighting uses overlays.  For XEmacs, we need the emulation.
-(if (featurep 'xemacs) (require 'overlay))
+;; Highlighting uses overlays.  For XEmacs, we use extends.
+(if (featurep 'xemacs)
+    (progn
+      (defalias 'reftex-make-overlay 'make-extent)
+      (defalias 'reftex-overlay-put 'set-extent-property)
+      (defalias 'reftex-move-overlay 'set-extent-endpoints)
+      (defalias 'reftex-delete-overlay 'detach-extent))
+  (defalias 'reftex-make-overlay 'make-overlay)
+  (defalias 'reftex-overlay-put 'overlay-put)
+  (defalias 'reftex-move-overlay 'move-overlay)
+  (defalias 'reftex-delete-overlay 'delete-overlay))
 
 ;; We keep a vector with several different overlays to do our highlighting.
 (defvar reftex-highlight-overlays [nil nil nil])
 
 ;; Initialize the overlays
-(aset reftex-highlight-overlays 0 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 0) 
+(aset reftex-highlight-overlays 0 (reftex-make-overlay 1 1))
+(reftex-overlay-put (aref reftex-highlight-overlays 0) 
              'face 'highlight)
-(aset reftex-highlight-overlays 1 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 1)
+(aset reftex-highlight-overlays 1 (reftex-make-overlay 1 1))
+(reftex-overlay-put (aref reftex-highlight-overlays 1)
              'face reftex-cursor-selected-face)
-(aset reftex-highlight-overlays 2 (make-overlay 1 1))
-(overlay-put (aref reftex-highlight-overlays 2)
+(aset reftex-highlight-overlays 2 (reftex-make-overlay 1 1))
+(reftex-overlay-put (aref reftex-highlight-overlays 2)
              'face reftex-cursor-selected-face)
 
 ;; Two functions for activating and deactivation highlight overlays
 (defun reftex-highlight (index begin end &optional buffer)
   "Highlight a region with overlay INDEX."
-  (move-overlay (aref reftex-highlight-overlays index)
+  (reftex-move-overlay (aref reftex-highlight-overlays index)
                 begin end (or buffer (current-buffer))))
 (defun reftex-unhighlight (index)
   "Detach overlay INDEX."
-  (delete-overlay (aref reftex-highlight-overlays index)))
+  (reftex-delete-overlay (aref reftex-highlight-overlays index)))
 
 (defun reftex-highlight-shall-die ()
   ;; Function used in pre-command-hook to remove highlights.
@@ -2423,6 +2423,9 @@ IGNORE-WORDS List of words which should be removed from the string."
 ;;; Menu
 
 ;; Define a menu for the menu bar if Emacs is running under X
+
+(defvar reftex-isearch-minor-mode nil)
+(make-variable-buffer-local 'reftex-isearch-minor-mode)
 
 (require 'easymenu)
 

@@ -137,8 +137,9 @@ The value of this variable is used when JIT Lock mode is turned on."
 
 (defcustom jit-lock-context-time 0.5
   "Idle time after which text is contextually refontified, if applicable."
-  :type '(number :tag "seconds"))
-  
+  :type '(number :tag "seconds")
+  :group 'jit-lock)
+
 (defcustom jit-lock-defer-time nil ;; 0.25
   "Idle time after which deferred fontification should take place.
 If nil, fontification is not deferred."

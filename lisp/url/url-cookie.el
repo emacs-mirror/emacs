@@ -87,7 +87,9 @@
   "*If nil, HTTP requests put all cookies for the server on one line.
 Some web servers, such as http://www.hotmail.com/, only accept cookies
 when they are on one line.  This is broken behaviour, but just try
-telling Microsoft that.")
+telling Microsoft that."
+  :type 'boolean
+  :group 'url-cookie)
 
 (defvar url-cookies-changed-since-last-save nil
   "Whether the cookies list has changed since the last save operation.")
@@ -208,13 +210,13 @@ telling Microsoft that.")
 	 (cur-date (and exp (timezone-parse-date (current-time-string))))
 	 (exp-date (and exp (timezone-parse-date exp)))
 	 (cur-greg (and cur-date (timezone-absolute-from-gregorian
-				  (string-to-int (aref cur-date 1))
-				  (string-to-int (aref cur-date 2))
-				  (string-to-int (aref cur-date 0)))))
+				  (string-to-number (aref cur-date 1))
+				  (string-to-number (aref cur-date 2))
+				  (string-to-number (aref cur-date 0)))))
 	 (exp-greg (and exp (timezone-absolute-from-gregorian
-			     (string-to-int (aref exp-date 1))
-			     (string-to-int (aref exp-date 2))
-			     (string-to-int (aref exp-date 0)))))
+			     (string-to-number (aref exp-date 1))
+			     (string-to-number (aref exp-date 2))
+			     (string-to-number (aref exp-date 0)))))
 	 (diff-in-days (and exp (- cur-greg exp-greg)))
 	 )
     (cond
@@ -224,12 +226,12 @@ telling Microsoft that.")
      (t					; Expires sometime today, check times
       (let* ((cur-time (timezone-parse-time (aref cur-date 3)))
 	     (exp-time (timezone-parse-time (aref exp-date 3)))
-	     (cur-norm (+ (* 360 (string-to-int (aref cur-time 2)))
-			  (*  60 (string-to-int (aref cur-time 1)))
-			  (*   1 (string-to-int (aref cur-time 0)))))
-	     (exp-norm (+ (* 360 (string-to-int (aref exp-time 2)))
-			  (*  60 (string-to-int (aref exp-time 1)))
-			  (*   1 (string-to-int (aref exp-time 0))))))
+	     (cur-norm (+ (* 360 (string-to-number (aref cur-time 2)))
+			  (*  60 (string-to-number (aref cur-time 1)))
+			  (*   1 (string-to-number (aref cur-time 0)))))
+	     (exp-norm (+ (* 360 (string-to-number (aref exp-time 2)))
+			  (*  60 (string-to-number (aref exp-time 1)))
+			  (*   1 (string-to-number (aref exp-time 0))))))
 	(> (- cur-norm exp-norm) 1))))))
 
 ;;;###autoload

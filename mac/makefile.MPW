@@ -26,8 +26,6 @@
 #   Clean - remove all object and executable files to prepare for a fresh build.
 #   Doc - generate the "DOC" file in ~emacs/etc/.
 #   Make-DocFile - build the make-docfile tool, utility for generating "DOC".
-#   PrepSource - prepare the source files after unstuffing the distribution.
-#   PrepDist - prepare for distribution: generate diff files; move mac-win.el to {Patches}.
 
 Src = ::src:						# emacs's src directory
 Includes = :inc:					# mac includes directory (common for MPW and CW)
@@ -156,7 +154,7 @@ NonCarbonLibs = ¶
 
 # The next two are the dependency rules for building Emacs.
 
-Emacs ÄÄ {Makefile} {DocTarget}DOC {EmacsObjects} {MacObjects}
+Emacs ÄÄ {Makefile} buildobj.lst {DocTarget}DOC {EmacsObjects} {MacObjects}
 	PPCLink ¶
 		{LinkOptions} ¶
 		{EmacsObjects} {MacObjects} ¶
@@ -181,6 +179,9 @@ NonCarbon Ä
 
 "{Source}"EmacsMPW.maclf.r Ä "{Source}"EmacsMPW.r
 	translate ¶0x0a ¶n < "{Source}"EmacsMPW.r > "{Source}"EmacsMPW.maclf.r
+
+buildobj.lst Ä
+	Echo "{EmacsObjects} {MacObjects}" | StreamEdit -e '1,$ Replace -c ° /[Â ]*:([Â: ]*)¨1.c.x/ ¨1".o"' > buildobj.lst
 
 # Here comes a long boring list of rules saying which files depend on which
 # other ones.  I generated them by hand using the "-p" option of the MrC compiler.
@@ -984,6 +985,7 @@ Clean Ä
 	Delete -i {Make-DocFile-Objects} {Make-DocFileDir}make-docfile
 	Delete -i "{Source}"Emacs.maclf.r "{Source}"EmacsMPW.maclf.r
 	Delete -i "{NonCarbonMakeOut}"
+	Delete -i buildobj.lst
 
 DistClean Ä Clean
 	Delete -i "Emacs CW"Å
@@ -994,96 +996,21 @@ DistClean Ä Clean
 # Variables and rules for target "Doc" #
 #--------------------------------------#
 
-EmacsSource = ¶
-	"{Src}abbrev.c" ¶
-	"{Src}alloc.c" ¶
-	"{Src}atimer.c" ¶
-	"{Src}buffer.c" ¶
-	"{Src}bytecode.c" ¶
-	"{Src}callint.c" ¶
-	"{Src}callproc.c" ¶
-	"{Src}casefiddle.c" ¶
-	"{Src}casetab.c" ¶
-	"{Src}category.c" ¶
-	"{Src}ccl.c" ¶
-	"{Src}charset.c" ¶
-	"{Src}cm.c" ¶
-	"{Src}cmds.c" ¶
-	"{Src}coding.c" ¶
-	"{Src}composite.c" ¶
-	"{Src}data.c" ¶
-	"{Src}dired.c" ¶
-	"{Src}dispnew.c" ¶
-	"{Src}doc.c" ¶
-	"{Src}doprnt.c" ¶
-	"{Src}editfns.c" ¶
-	"{Src}emacs.c" ¶
-	"{Src}eval.c" ¶
-	"{Src}fileio.c" ¶
-	"{Src}filemode.c" ¶
-	"{Src}floatfns.c" ¶
-	"{Src}fns.c" ¶
-	"{Src}fontset.c" ¶
-	"{Src}frame.c" ¶
-	"{Src}fringe.c" ¶
-	"{Src}getloadavg.c" ¶
-	"{Src}image.c" ¶
-	"{Src}indent.c" ¶
-	"{Src}insdel.c" ¶
-	"{Src}intervals.c" ¶
-	"{Src}keyboard.c" ¶
-	"{Src}keymap.c" ¶
-	"{Src}lastfile.c" ¶
-	"{Src}lread.c" ¶
-	"{Src}macros.c" ¶
-	"{Src}marker.c" ¶
-	"{Src}minibuf.c" ¶
-	"{Src}mktime.c" ¶
-	"{Src}print.c" ¶
-	"{Src}process.c" ¶
-	"{Src}regex.c" ¶
-	"{Src}region-cache.c" ¶
-	"{Src}scroll.c" ¶
-	"{Src}search.c" ¶
-	"{Src}strftime.c" ¶
-	"{Src}syntax.c" ¶
-	"{Src}sysdep.c" ¶
-	"{Src}term.c" ¶
-	"{Src}termcap.c" ¶
-	"{Src}textprop.c" ¶
-	"{Src}tparam.c" ¶
-	"{Src}undo.c" ¶
-	"{Src}window.c" ¶
-	"{Src}xdisp.c" ¶
-	"{Src}xfaces.c" ¶
-	"{Src}xmenu.c"
+SOME_MACHINE_OBJECTS = sunfns.o dosfns.o msdos.o ¶
+  xterm.o xfns.o xmenu.o xselect.o xrdb.o xsmfns.o fringe.o image.o ¶
+  mac.o macterm.o macfns.o macmenu.o macselect.o fontset.o ¶
+  w32.o w32bdf.o w32console.o w32fns.o w32heap.o w32inevt.o ¶
+  w32menu.o w32proc.o w32reg.o w32select.o w32term.o w32xfns.o
 
-MacSource = ¶
-	"{Src}mac.c" ¶
-	"{Src}macfns.c" ¶
-	"{Src}macterm.c"
-
-
-LispSource = ¶
-	{Lisp}menu-bar.elc ¶
-	{Lisp}mouse.elc ¶
-	{Lisp}select.elc ¶
-	{Lisp}scroll-bar.elc ¶
-	{Lisp}vmsproc.elc ¶
-	{Lisp}vms-patch.elc ¶
-	{Lisp}ls-lisp.elc ¶
-	{Lisp}dos-fns.elc ¶
-	{Lisp}w32-fns.elc ¶
-	{Lisp}dos-w32.elc ¶
-	{Lisp}disp-table.elc ¶
-	{Lisp}dos-vars.elc ¶
-	{Lisp}international:ccl.elc ¶
-	{Lisp}international:codepage.elc ¶
+shortlisp = ¶
 	{Lisp}abbrev.elc ¶
 	{Lisp}buff-menu.elc ¶
+	{Lisp}button.elc ¶
 	{Lisp}emacs-lisp:byte-run.elc ¶
-	{Lisp}cus-start.el ¶
+	{Lisp}cus-face.elc ¶
+	{Lisp}cus-start.elc ¶
 	{Lisp}custom.elc ¶
+	{Lisp}emacs-lisp:backquote.elc ¶
 	{Lisp}emacs-lisp:lisp-mode.elc ¶
 	{Lisp}emacs-lisp:lisp.elc ¶
 	{Lisp}facemenu.elc ¶
@@ -1099,38 +1026,32 @@ LispSource = ¶
 	{Lisp}loaddefs.el ¶
 	{Lisp}bindings.elc ¶
 	{Lisp}emacs-lisp:map-ynp.elc ¶
+	{Lisp}env.elc ¶
 	{Lisp}international:mule.elc ¶
 	{Lisp}international:mule-conf.el ¶
 	{Lisp}international:mule-cmds.elc ¶
 	{Lisp}international:characters.elc ¶
+	{Lisp}international:ucs-tables.elc ¶
+	{Lisp}international:utf-8.elc ¶
+	{Lisp}international:utf-16.elc ¶
+	{Lisp}international:latin-1.el ¶
+	{Lisp}international:latin-2.el ¶
+	{Lisp}international:latin-3.el ¶
+	{Lisp}international:latin-4.el ¶
+	{Lisp}international:latin-5.el ¶
+	{Lisp}international:latin-8.el ¶
+	{Lisp}international:latin-9.el ¶
 	{Lisp}case-table.elc ¶
 	{Lisp}language:chinese.elc ¶
 	{Lisp}language:cyrillic.elc ¶
 	{Lisp}language:indian.elc ¶
+	{Lisp}language:devanagari.el ¶
+	{Lisp}language:kannada.el ¶
+	{Lisp}language:malayalam.el ¶
+	{Lisp}language:tamil.el ¶
+	{Lisp}language:english.el ¶
 	{Lisp}language:ethiopic.elc ¶
 	{Lisp}language:european.elc ¶
-	{Lisp}language:tibetan.elc ¶
-	{Lisp}language:vietnamese.elc ¶
-	{Lisp}paths.el ¶
-	{Lisp}register.elc ¶
-	{Lisp}replace.elc ¶
-	{Lisp}simple.elc ¶
-	{Lisp}startup.elc ¶
-	{Lisp}subr.elc ¶
-	{Lisp}term:tty-colors.elc ¶
-	{Lisp}textmodes:fill.elc ¶
-	{Lisp}textmodes:page.elc ¶
-	{Lisp}textmodes:paragraphs.elc ¶
-	{Lisp}textmodes:text-mode.elc ¶
-	{Lisp}vc-hooks.elc ¶
-	{Lisp}ediff-hook.elc ¶
-	{Lisp}widget.elc ¶
-	{Lisp}window.elc ¶
-	{Lisp}version.el
-
-LispSourceDontCompile = ¶
-	{Lisp}language:devanagari.el ¶
-	{Lisp}language:english.el ¶
 	{Lisp}language:czech.el ¶
 	{Lisp}language:slovak.el ¶
 	{Lisp}language:romanian.el ¶
@@ -1140,15 +1061,47 @@ LispSourceDontCompile = ¶
 	{Lisp}language:korean.el ¶
 	{Lisp}language:lao.el ¶
 	{Lisp}language:thai.el ¶
-	{Lisp}language:misc-lang.el
+	{Lisp}language:tibetan.elc ¶
+	{Lisp}language:vietnamese.elc ¶
+	{Lisp}language:misc-lang.el ¶
+	{Lisp}language:utf-8-lang.el ¶
+	{Lisp}language:georgian.el ¶
+	{Lisp}menu-bar.elc ¶
+	{Lisp}paths.el ¶
+	{Lisp}register.elc ¶
+	{Lisp}replace.elc ¶
+	{Lisp}simple.elc ¶
+	{Lisp}startup.elc ¶
+	{Lisp}subr.elc ¶
+	{Lisp}term:tty-colors.elc ¶
+	{Lisp}font-core.elc ¶
+	{Lisp}textmodes:fill.elc ¶
+	{Lisp}textmodes:page.elc ¶
+	{Lisp}textmodes:paragraphs.elc ¶
+	{Lisp}textmodes:text-mode.elc ¶
+	{Lisp}emacs-lisp:timer.elc ¶
+	{Lisp}vc-hooks.elc ¶
+	{Lisp}jka-cmpr-hook.elc ¶
+	{Lisp}ediff-hook.elc ¶
+	{Lisp}widget.elc ¶
+	{Lisp}window.elc ¶
+	{Lisp}version.el
+
+SOME_MACHINE_LISP = {Lisp}mouse.elc ¶
+  {Lisp}select.elc {Lisp}scroll-bar.elc ¶
+  {Lisp}vmsproc.elc {Lisp}vms-patch.elc ¶
+  {Lisp}ls-lisp.elc {Lisp}dos-fns.elc ¶
+  {Lisp}w32-fns.elc {Lisp}dos-w32.elc ¶
+  {Lisp}disp-table.elc {Lisp}dos-vars.elc ¶
+  {Lisp}tooltip.elc ¶
+  {Lisp}international:ccl.elc ¶
+  {Lisp}international:codepage.elc
 
 Doc Ä {DocTarget}DOC
 
-{DocTarget}DOC Ä {Makefile} {EmacsSource} {MacSource} {LispSource} {LispSourceDontCompile} {Make-DocFileDir}Make-DocFile
-	{Make-DocFileDir}make-docfile {EmacsSource} > {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {MacSource} >> {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {LispSource} >> {DocTarget}DOC
-	{Make-DocFileDir}make-docfile {LispSourceDontCompile} >> {DocTarget}DOC
+{DocTarget}DOC Ä {Makefile} {shortlisp} {SOME_MACHINE_LISP} {Make-DocFileDir}Make-DocFile buildobj.lst
+	{Make-DocFileDir}make-docfile -d {Src} {SOME_MACHINE_OBJECTS} `Catenate buildobj.lst` > {DocTarget}DOC
+	{Make-DocFileDir}make-docfile -a {DocTarget}DOC -d {Src} {SOME_MACHINE_LISP} {shortlisp}
 
 
 #-----------------------------------------------#
@@ -1159,7 +1112,8 @@ Make-DocFile-Includes		= -i :inc:
 Make-DocFile-Sym			=
 
 Make-DocFile-PPCCOptions	= -typecheck relaxed -w off -noMapCR ¶
-								{Make-DocFile-Includes} {Make-DocFile-Sym}
+				  -d MAC_OS -d MAC_OS8 ¶
+				  {Make-DocFile-Includes} {Make-DocFile-Sym}
 
 Make-DocFile-Objects = ¶
 		"{Lib-Src}make-docfile.c.x" ¶

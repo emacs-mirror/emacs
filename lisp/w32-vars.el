@@ -146,7 +146,8 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 		(const :tag "Seperator" (""))
 		(list :tag "Font Entry"
 		      (string :tag "Menu text")
-		      (string :tag "Font"))))))))
+		      (string :tag "Font")))))))
+    :group 'w32)
 
 (defcustom x-select-enable-clipboard t
   "*Non-nil means cutting and pasting uses the clipboard.

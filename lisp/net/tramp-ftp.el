@@ -1,6 +1,6 @@
 ;;; tramp-ftp.el --- Tramp convenience functions for Ange-FTP and EFS -*- coding: iso-8859-1; -*-
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Albinus <Michael.Albinus@alcatel.de>
 ;; Keywords: comm, processes

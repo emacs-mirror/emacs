@@ -22,7 +22,6 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
-#include <signal.h>
 #include <stdio.h>
 #include <math.h>
 #include <limits.h>

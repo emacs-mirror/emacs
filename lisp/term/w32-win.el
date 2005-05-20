@@ -146,7 +146,7 @@ the last file dropped is selected."
   "Handle SWITCH of the form \"-switch n\"."
   (let ((aelt (assoc switch command-line-x-option-alist)))
     (if aelt
-	(push (cons (nth 3 aelt) (string-to-int (pop x-invocation-args)))
+	(push (cons (nth 3 aelt) (string-to-number (pop x-invocation-args)))
 	      default-frame-alist))))
 
 ;; Handle options that apply to initial frame only

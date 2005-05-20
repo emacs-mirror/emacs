@@ -1,8 +1,9 @@
 ;;; lao.el --- support for Lao -*- coding: iso-2022-7bit; no-byte-compile: t -*-
 
-;; Copyright (C) 1997 Electrotechnical Laboratory, JAPAN.
-;;   Licensed to the Free Software Foundation.
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001  Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 1999, 2002
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 ;; Copyright (C) 2003
 ;;   National Institute of Advanced Industrial Science and Technology (AIST)
 ;;   Registration Number H13PRO009

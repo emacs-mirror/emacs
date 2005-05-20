@@ -1014,7 +1014,7 @@ name of the attribute for prompting.  Value is the new attribute value."
 	  ((member new-value '("unspecified-fg" "unspecified-bg"))
 	   new-value)
 	  (t
-	   (string-to-int new-value)))))
+	   (string-to-number new-value)))))
 
 
 (defun read-face-attribute (face attribute &optional frame)
@@ -1184,6 +1184,7 @@ arg, prompt for a regular expression."
 	  (save-excursion
 	    (save-match-data
 	      (search-backward face-name)
+	      (setq help-xref-stack-item `(list-faces-display ,regexp))
 	      (help-xref-button 0 'help-customize-face face)))
 	  (let ((beg (point))
 		(line-beg (line-beginning-position)))
@@ -1258,17 +1259,32 @@ If FRAME is omitted or nil, use the selected frame."
 	  (insert "Face: " (symbol-name f))
 	  (if (not (facep f))
 	      (insert "   undefined face.\n")
-	    (let ((customize-label "customize this face"))
+	    (let ((customize-label "customize this face")
+		  file-name)
 	      (princ (concat " (" customize-label ")\n"))
 	      (insert "Documentation: "
 		      (or (face-documentation f)
 			  "Not documented as a face.")
-		      "\n\n")
+		      "\n")
 	      (with-current-buffer standard-output
 		(save-excursion
 		  (re-search-backward
 		   (concat "\\(" customize-label "\\)") nil t)
 		  (help-xref-button 1 'help-customize-face f)))
+	      ;; The next 4 sexps are copied from describe-function-1
+	      ;; and simplified.
+	      (setq file-name (symbol-file f 'defface))
+	      (when file-name
+		(princ "Defined in `")
+		(princ file-name)
+		(princ "'")
+		;; Make a hyperlink to the library.
+		(save-excursion
+		  (re-search-backward "`\\([^`']+\\)'" nil t)
+		  (help-xref-button 1 'help-face-def f file-name))
+		(princ ".")
+		(terpri)
+		(terpri))
 	      (dolist (a attrs)
 		(let ((attr (face-attribute f (car a) frame)))
 		  (insert (make-string (- max-width (length (cdr a))) ?\ )
@@ -2048,7 +2064,7 @@ Note: Other faces cannot inherit from the cursor face."
     (t :inverse-video t))
   "Basic face for highlighting trailing whitespace."
   :version "21.1"
-  :group 'font-lock			; like `show-trailing-whitespace'
+  :group 'whitespace		; like `show-trailing-whitespace'
   :group 'basic-faces)
 
 (defface escape-glyph '((((background dark)) :foreground "cyan")

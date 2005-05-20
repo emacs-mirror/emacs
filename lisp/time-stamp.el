@@ -270,7 +270,7 @@ template."
 	  (string-match "\\`\\(\\(-?[0-9]+\\)/\\)?\\([^%]+\\)?\\(\\(%[-.,:@+_ #^()0-9]*[A-Za-z%][^%]*\\)*%[-.,:@+_ #^()0-9]*[A-Za-z%]\\)?\\([^%]+\\)?\\'" time-stamp-pattern)
 	  (and (match-beginning 2)
 	       (setq line-limit
-		     (string-to-int (match-string 2 time-stamp-pattern))))
+		     (string-to-number (match-string 2 time-stamp-pattern))))
 	  (and (match-beginning 3)
 	       (setq ts-start (match-string 3 time-stamp-pattern)))
 	  (and (match-beginning 4)
@@ -558,9 +558,9 @@ and all `time-stamp-format' compatibility."
 	 ((eq cur-char ?y)		;year
 	  (or alt-form (not (string-equal field-width ""))
 	      (time-stamp-conv-warn "%y" "%:y"))
-	  (string-to-int (format-time-string "%Y" time)))
+	  (string-to-number (format-time-string "%Y" time)))
 	 ((eq cur-char ?Y)		;4-digit year, new style
-	  (string-to-int (format-time-string "%Y" time)))
+	  (string-to-number (format-time-string "%Y" time)))
 	 ((eq cur-char ?z)		;time zone lower case
 	  (if change-case
 	      ""			;discourage %z variations
@@ -597,7 +597,7 @@ and all `time-stamp-format' compatibility."
 	  (let* ((initial-length (length padded-result))
 		 (desired-length (if (string-equal field-width "")
 				     initial-length
-				   (string-to-int field-width))))
+				   (string-to-number field-width))))
 	    (if (> initial-length desired-length)
 		;; truncate strings on right, years on left
 		(if (stringp field-result)
@@ -621,7 +621,7 @@ width specification or \"\".  TIME is the time to convert."
 			       (format "%%:%c" format-char)))
     (if (and alt-form (not (string-equal field-width "")))
 	""				;discourage "%:2d" and the like
-      (string-to-int (format-time-string format-string time)))))
+      (string-to-number (format-time-string format-string time)))))
 
 (defvar time-stamp-conversion-warn t
   "Warn about soon-to-be-unsupported forms in `time-stamp-format'.

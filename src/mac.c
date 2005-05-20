@@ -1672,37 +1672,7 @@ sys_fopen (const char *name, const char *mode)
 }
 
 
-long target_ticks = 0;
-
-#ifdef __MRC__
-__sigfun alarm_signal_func = (__sigfun) 0;
-#elif __MWERKS__
-__signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
-#else /* not __MRC__ and not __MWERKS__ */
-You lose!!!
-#endif /* not __MRC__ and not __MWERKS__ */
-
-
-/* These functions simulate SIG_ALRM.  The stub for function signal
-   stores the signal handler function in alarm_signal_func if a
-   SIG_ALRM is encountered.  check_alarm is called in XTread_socket,
-   which emacs calls periodically.  A pending alarm is represented by
-   a non-zero target_ticks value.  check_alarm calls the handler
-   function pointed to by alarm_signal_func if one has been set up and
-   an alarm is pending.  */
-
-void
-check_alarm ()
-{
-  if (target_ticks && TickCount () > target_ticks)
-    {
-      target_ticks = 0;
-      if (alarm_signal_func)
-	(*alarm_signal_func)(SIGALRM);
-    }
-}
-
-
+#include "keyboard.h"
 extern Boolean mac_wait_next_event (EventRecord *, UInt32, Boolean);
 
 int
@@ -1713,25 +1683,17 @@ select (n,  rfds, wfds, efds, timeout)
   SELECT_TYPE *efds;
   struct timeval *timeout;
 {
-#if TARGET_API_MAC_CARBON
   OSErr err;
+#if TARGET_API_MAC_CARBON
   EventTimeout timeout_sec =
     (timeout
      ? (EMACS_SECS (*timeout) * kEventDurationSecond
 	+ EMACS_USECS (*timeout) * kEventDurationMicrosecond)
      : kEventDurationForever);
 
-  if (FD_ISSET (0, rfds))
-    {
-      BLOCK_INPUT;
-      err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
-      UNBLOCK_INPUT;
-      if (err == noErr)
-	return 1;
-      else
-	FD_ZERO (rfds);
-    }
-  return 0;
+  BLOCK_INPUT;
+  err = ReceiveNextEvent (0, NULL, timeout_sec, kEventLeaveInQueue, NULL);
+  UNBLOCK_INPUT;
 #else /* not TARGET_API_MAC_CARBON */
   EventRecord e;
   UInt32 sleep_time = EMACS_SECS (*timeout) * 60 +
@@ -1746,47 +1708,62 @@ select (n,  rfds, wfds, efds, timeout)
      read_avail_input which in turn calls XTread_socket to poll for
      these events.  Otherwise these never get processed except but a
      very slow poll timer.  */
-  if (FD_ISSET (0, rfds) && mac_wait_next_event (&e, sleep_time, false))
-    return 1;
-
-  return 0;
+  if (mac_wait_next_event (&e, sleep_time, false))
+    err = noErr;
+  else
+    err = -9875;		/* eventLoopTimedOutErr */
 #endif /* not TARGET_API_MAC_CARBON */
+
+  if (FD_ISSET (0, rfds))
+    if (err == noErr)
+      return 1;
+    else
+      {
+	FD_ZERO (rfds);
+	return 0;
+      }
+  else
+    if (err == noErr)
+      {
+	if (input_polling_used ())
+	  {
+	    /* It could be confusing if a real alarm arrives while
+	       processing the fake one.  Turn it off and let the
+	       handler reset it.  */
+	    extern void poll_for_input_1 P_ ((void));
+	    int old_poll_suppress_count = poll_suppress_count;
+	    poll_suppress_count = 1;
+	    poll_for_input_1 ();
+	    poll_suppress_count = old_poll_suppress_count;
+	  }
+	errno = EINTR;
+	return -1;
+      }
+    else
+      return 0;
 }
 
 
-/* Called in sys_select to wait for an alarm signal to arrive.  */
+/* Simulation of SIGALRM.  The stub for function signal stores the
+   signal handler function in alarm_signal_func if a SIGALRM is
+   encountered.  */
 
-int
-pause ()
-{
-  EventRecord e;
-  unsigned long tick;
+#include <signal.h>
+#include "syssignal.h"
 
-  if (!target_ticks)  /* no alarm pending */
-    return -1;
+static TMTask mac_atimer_task;
 
-  if ((tick = TickCount ()) < target_ticks)
-    WaitNextEvent (0, &e, target_ticks - tick, NULL); /* Accept no event;
-							 just wait. by T.I. */
+static QElemPtr mac_atimer_qlink = (QElemPtr) &mac_atimer_task;
 
-  target_ticks = 0;
-  if (alarm_signal_func)
-    (*alarm_signal_func)(SIGALRM);
+static int signal_mask = 0;
 
-  return 0;
-}
-
-
-int
-alarm (int seconds)
-{
-  long remaining = target_ticks ? (TickCount () - target_ticks) / 60 : 0;
-
-  target_ticks = seconds ? TickCount () + 60 * seconds : 0;
-
-  return (remaining < 0) ? 0 : (unsigned int) remaining;
-}
-
+#ifdef __MRC__
+__sigfun alarm_signal_func = (__sigfun) 0;
+#elif __MWERKS__
+__signal_func_ptr alarm_signal_func = (__signal_func_ptr) 0;
+#else /* not __MRC__ and not __MWERKS__ */
+You lose!!!
+#endif /* not __MRC__ and not __MWERKS__ */
 
 #undef signal
 #ifdef __MRC__
@@ -1816,6 +1793,128 @@ sys_signal (int signal_num, __signal_func_ptr signal_func)
       alarm_signal_func = signal_func;
       return old_signal_func;
     }
+}
+
+
+static pascal void
+mac_atimer_handler (qlink)
+     TMTaskPtr qlink;
+{
+  if (alarm_signal_func)
+    (alarm_signal_func) (SIGALRM);
+}
+
+
+static void
+set_mac_atimer (count)
+     long count;
+{
+  static TimerUPP mac_atimer_handlerUPP = NULL;
+
+  if (mac_atimer_handlerUPP == NULL)
+    mac_atimer_handlerUPP = NewTimerUPP (mac_atimer_handler);
+  mac_atimer_task.tmCount = 0;
+  mac_atimer_task.tmAddr = mac_atimer_handlerUPP;
+  mac_atimer_qlink = (QElemPtr) &mac_atimer_task;
+  InsTime (mac_atimer_qlink);
+  if (count)
+    PrimeTime (mac_atimer_qlink, count);
+}
+
+
+int
+remove_mac_atimer (remaining_count)
+     long *remaining_count;
+{
+  if (mac_atimer_qlink)
+    {
+      RmvTime (mac_atimer_qlink);
+      if (remaining_count)
+	*remaining_count = mac_atimer_task.tmCount;
+      mac_atimer_qlink = NULL;
+
+      return 0;
+    }
+  else
+    return -1;
+}
+
+
+int
+sigblock (int mask)
+{
+  int old_mask = signal_mask;
+
+  signal_mask |= mask;
+
+  if ((old_mask ^ signal_mask) & sigmask (SIGALRM))
+    remove_mac_atimer (NULL);
+
+  return old_mask;
+}
+
+
+int
+sigsetmask (int mask)
+{
+  int old_mask = signal_mask;
+
+  signal_mask = mask;
+
+  if ((old_mask ^ signal_mask) & sigmask (SIGALRM))
+    if (signal_mask & sigmask (SIGALRM))
+      remove_mac_atimer (NULL);
+    else
+      set_mac_atimer (mac_atimer_task.tmCount);
+
+  return old_mask;
+}
+
+
+int
+alarm (int seconds)
+{
+  long remaining_count;
+
+  if (remove_mac_atimer (&remaining_count) == 0)
+    {
+      set_mac_atimer (seconds * 1000);
+
+      return remaining_count / 1000;
+    }
+  else
+    {
+      mac_atimer_task.tmCount = seconds * 1000;
+
+      return 0;
+    }
+}
+
+
+int
+setitimer (which, value, ovalue)
+     int which;
+     const struct itimerval *value;
+     struct itimerval *ovalue;
+{
+  long remaining_count;
+  long count = (EMACS_SECS (value->it_value) * 1000
+		+ (EMACS_USECS (value->it_value) + 999) / 1000);
+
+  if (remove_mac_atimer (&remaining_count) == 0)
+    {
+      if (ovalue)
+	{
+	  bzero (ovalue, sizeof (*ovalue));
+	  EMACS_SET_SECS_USECS (ovalue->it_value, remaining_count / 1000,
+				(remaining_count % 1000) * 1000);
+	}
+      set_mac_atimer (count);
+    }
+  else
+    mac_atimer_task.tmCount = count;
+
+  return 0;
 }
 
 
@@ -1946,35 +2045,6 @@ sys_time (time_t *timer)
 }
 
 
-/* MPW strftime broken for "%p" format */
-#ifdef __MRC__
-#undef strftime
-#include <time.h>
-size_t
-sys_strftime (char * s, size_t maxsize, const char * format,
-	      const struct tm * timeptr)
-{
-  if (strcmp (format, "%p") == 0)
-    {
-      if (maxsize < 3)
-        return 0;
-      if (timeptr->tm_hour < 12)
-        {
-          strcpy (s, "AM");
-          return 2;
-        }
-      else
-        {
-          strcpy (s, "PM");
-          return 2;
-        }
-    }
-  else
-    return strftime (s, maxsize, format, timeptr);
-}
-#endif  /* __MRC__ */
-
-
 /* no subprocesses, empty wait */
 
 int
@@ -1989,13 +2059,6 @@ croak (char *badfunc)
 {
   printf ("%s not yet implemented\r\n", badfunc);
   exit (1);
-}
-
-
-char *
-index (const char * str, int chr)
-{
-  return strchr (str, chr);
 }
 
 
@@ -2184,20 +2247,6 @@ void
 sys_subshell ()
 {
   error ("Can't spawn subshell");
-}
-
-
-int
-sigsetmask (int x)
-{
-  return 0;
-}
-
-
-int
-sigblock (int mask)
-{
-  return 0;
 }
 
 

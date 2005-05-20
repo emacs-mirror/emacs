@@ -375,17 +375,17 @@ Setting this variable has an effect only before reading a mail."
 	      (cond ((re-search-forward "\\([^0-9:]\\)\\([0-3]?[0-9]\\)\\([- \t_]+\\)\\([adfjmnos][aceopu][bcglnprtvy]\\)"
 		      (save-excursion (end-of-line) (point)) t)
 		     (format "%2d-%3s"
-			     (string-to-int (buffer-substring
-					     (match-beginning 2)
-					     (match-end 2)))
+			     (string-to-number (buffer-substring
+                                                (match-beginning 2)
+                                                (match-end 2)))
 			     (buffer-substring
 			      (match-beginning 4) (match-end 4))))
 		    ((re-search-forward "\\([^a-z]\\)\\([adfjmnos][acepou][bcglnprtvy]\\)\\([-a-z \t_]*\\)\\([0-9][0-9]?\\)"
 		      (save-excursion (end-of-line) (point)) t)
 		     (format "%2d-%3s"
-			     (string-to-int (buffer-substring
-					     (match-beginning 4)
-					     (match-end 4)))
+			     (string-to-number (buffer-substring
+                                                (match-beginning 4)
+                                                (match-end 4)))
 			     (buffer-substring
 			      (match-beginning 2) (match-end 2))))
 		    ((re-search-forward "\\(19\\|20\\)\\([0-9][0-9]\\)-\\([01][0-9]\\)-\\([0-3][0-9]\\)"
@@ -580,7 +580,7 @@ If N is negative, go backwards."
 	    ;; Advance thru summary.
 	    (forward-line (if forward 1 -1))
 	    ;; Get msg number of this line.
-	    (setq i (string-to-int
+	    (setq i (string-to-number
 		     (buffer-substring (point)
 				       (min (point-max) (+ 6 (point))))))
 	    ;; See if that msg has desired subject.
@@ -791,10 +791,10 @@ Search, the `unseen' attribute is restored.")
 	  (forward-line -1))
       (beginning-of-line)
       (skip-chars-forward " ")
-      (let ((msg-num (string-to-int (buffer-substring
-				     (point)
-				     (progn (skip-chars-forward "0-9")
-					    (point))))))
+      (let ((msg-num (string-to-number (buffer-substring
+                                        (point)
+                                        (progn (skip-chars-forward "0-9")
+                                               (point))))))
 	;; Always leave `unseen' removed
 	;; if we get out of isearch mode.
 	;; Don't let a subsequent isearch restore that `unseen'.
@@ -1061,7 +1061,7 @@ If SKIP-RMAIL, don't do anything to the Rmail buffer."
 	 (buf rmail-buffer)
 	 (cur (point))
 	 message-not-found
-	 (curmsg (string-to-int
+	 (curmsg (string-to-number
 		  (buffer-substring (point)
 				    (min (point-max) (+ 6 (point))))))
 	 (total (save-excursion (set-buffer buf) rmail-total-messages)))

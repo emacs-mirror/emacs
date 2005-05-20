@@ -377,7 +377,10 @@ use the standard functions without calling themselves recursively.  */)
 	  Lisp_Object string = XCAR (elt);
 	  int match_pos;
 	  Lisp_Object handler = XCDR (elt);
-	  Lisp_Object operations = Fget (handler, Qoperations);
+	  Lisp_Object operations = Qnil;
+
+	  if (SYMBOLP (handler))
+	    operations = Fget (handler, Qoperations);
 
 	  if (STRINGP (string)
 	      && (match_pos = fast_string_match (string, filename)) > pos
@@ -2867,7 +2870,8 @@ This is what happens in interactive use with M-x.  */)
 #ifdef S_IFLNK
 DEFUN ("make-symbolic-link", Fmake_symbolic_link, Smake_symbolic_link, 2, 3,
        "FMake symbolic link to file: \nGMake symbolic link to file %s: \np",
-       doc: /* Make a symbolic link to FILENAME, named LINKNAME.  Both args must be strings.
+       doc: /* Make a symbolic link to FILENAME, named LINKNAME.
+Both args must be strings.
 Signals a `file-already-exists' error if a file LINKNAME already exists
 unless optional third argument OK-IF-ALREADY-EXISTS is non-nil.
 A number as third arg means request confirmation if LINKNAME already exists.
@@ -3065,8 +3069,10 @@ check_writable (filename)
 }
 
 DEFUN ("file-exists-p", Ffile_exists_p, Sfile_exists_p, 1, 1, 0,
-       doc: /* Return t if file FILENAME exists.  (This does not mean you can read it.)
-See also `file-readable-p' and `file-attributes'.  */)
+       doc: /* Return t if file FILENAME exists (whether or not you can read it.)
+See also `file-readable-p' and `file-attributes'.
+This returns nil for a symlink to a nonexistent file.
+Use `file-symlink-p' to test for such links.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -3243,7 +3249,10 @@ If there is no error, returns nil.  */)
 DEFUN ("file-symlink-p", Ffile_symlink_p, Sfile_symlink_p, 1, 1, 0,
        doc: /* Return non-nil if file FILENAME is the name of a symbolic link.
 The value is the link target, as a string.
-Otherwise returns nil.  */)
+Otherwise it returns nil.
+
+This function returns t when given the name of a symlink that
+points to a nonexistent file.  */)
      (filename)
      Lisp_Object filename;
 {
@@ -3733,6 +3742,8 @@ actually used.  */)
   int set_coding_system = 0;
   Lisp_Object coding_system;
   int read_quit = 0;
+  int old_Vdeactivate_mark = Vdeactivate_mark;
+  int we_locked_file = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))
     error ("Cannot do file visiting in an indirect buffer");
@@ -4381,8 +4392,17 @@ actually used.  */)
     /* For a special file, all we can do is guess.  */
     total = READ_BUF_SIZE;
 
-  if (NILP (visit) && total > 0)
-    prepare_to_modify_buffer (PT, PT, NULL);
+  if (NILP (visit) && inserted > 0)
+    {
+#ifdef CLASH_DETECTION
+      if (!NILP (current_buffer->file_truename)
+	  /* Make binding buffer-file-name to nil effective.  */
+	  && !NILP (current_buffer->filename)
+	  && SAVE_MODIFF >= MODIFF)
+	we_locked_file = 1;
+#endif /* CLASH_DETECTION */
+      prepare_to_modify_buffer (GPT, GPT, NULL);
+    }
 
   move_gap (PT);
   if (GAP_SIZE < total)
@@ -4471,6 +4491,18 @@ actually used.  */)
 	inserted += this;
       }
   }
+
+  /* Now we have read all the file data into the gap.
+     If it was empty, undo marking the buffer modified.  */
+
+  if (inserted == 0)
+    {
+#ifdef CLASH_DETECTION
+      if (we_locked_file)
+	unlock_file (current_buffer->file_truename);
+#endif
+      Vdeactivate_mark = old_Vdeactivate_mark;
+    }
 
   /* Make the text read part of the buffer.  */
   GAP_SIZE -= inserted;
@@ -5952,7 +5984,10 @@ DEFUN ("clear-buffer-auto-save-failure", Fclear_buffer_auto_save_failure,
 
 DEFUN ("recent-auto-save-p", Frecent_auto_save_p, Srecent_auto_save_p,
        0, 0, 0,
-       doc: /* Return t if current buffer has been auto-saved since last read in or saved.  */)
+       doc: /* Return t if current buffer has been auto-saved recently.
+More precisely, if it has been auto-saved since last read from or saved
+in the visited file.  If the buffer has no visited file,
+then any auto-save counts as "recent".  */)
      ()
 {
   return (SAVE_MODIFF < current_buffer->auto_save_modified) ? Qt : Qnil;

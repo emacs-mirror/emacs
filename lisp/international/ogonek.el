@@ -1,6 +1,6 @@
 ;;; ogonek.el --- change the encoding of Polish diacritics
 
-;; Copyright (C) 1997 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1998, 2001  Free Software Foundation, Inc.
 
 ;; Author: W{\l}odek Bzyl, Ryszard Kubiak
 ;; Maintainer: rysiek@ipipan.gda.pl (Ryszard Kubiak)
@@ -166,7 +166,7 @@ znak/ow diakrytycznych. Funkcje te mo/zna pogrupowa/c nast/epuj/aco.
   (set-buffer  (get-buffer-create " *ogonek-jak*"))
   (insert ogonek-informacja)
   (switch-to-buffer " *ogonek-jak*")
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 ;; ------ A Little Info in English --------
 
@@ -264,7 +264,7 @@ The functions come in the following groups.
   (set-buffer  (get-buffer-create " *ogonek-how*"))
   (insert ogonek-information)
   (switch-to-buffer " *ogonek-how*")
-  (beginning-of-buffer))
+  (goto-char (point-min)))
 
 ;; ---- Variables keeping the suggested answers to dialogue questions -----
 (defvar ogonek-encoding-choices

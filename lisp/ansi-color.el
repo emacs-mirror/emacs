@@ -619,7 +619,7 @@ ESCAPE-SEQ is a SGR control sequences such as \\033[34m.  The parameter
     (while (string-match ansi-color-r escape-seq i)
       (setq i (match-end 0)
 	    val (ansi-color-get-face-1
-		 (string-to-int (match-string 0 escape-seq) 10)))
+		 (string-to-number (match-string 0 escape-seq) 10)))
       (cond ((not val))
 	    ((eq val 'default)
 	     (setq f (list val)))

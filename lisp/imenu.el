@@ -119,7 +119,8 @@ If t, always use a popup menu,
 If `on-mouse' use a popup menu when `imenu' was invoked with the mouse."
   :type '(choice (const :tag "On Mouse" on-mouse)
 		 (const :tag "Never" nil)
-		 (other :tag "Always" t)))
+		 (other :tag "Always" t))
+  :group 'imenu)
 
 (defcustom imenu-eager-completion-buffer
   (not (eq imenu-always-use-completion-buffer-p 'never))

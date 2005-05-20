@@ -112,21 +112,45 @@ define pitx
   if ($it->start.pos.charpos != $it->start.pos.bytepos)
     printf "[%d]", $it->start.pos.bytepos
   end
-  printf " stop=%d ", $it->stop_charpos
-  output $it->what
+  printf " end=%d", $it->end_charpos
+  printf " stop=%d", $it->stop_charpos
+  printf " face=%d", $it->face_id
+  if ($it->multibyte_p)
+    printf " MB"
+  end
+  if ($it->header_line_p)
+    printf " HL"
+  end
+  if ($it->n_overlay_strings > 0)
+    printf " nov=%d"
+  end
+  if ($it->sp != 0)
+    printf " sp=%d", $it->sp
+  end
   if ($it->what == IT_CHARACTER)
     if ($it->len == 1 && $it->c >= ' ' && it->c < 255)
-      printf "['%c']", $it->c
+      printf "ch='%c'", $it->c
     else
-      printf "[%d,%d]", $it->c, $it->len
+      printf "ch=[%d,%d]", $it->c, $it->len
+    end
+  else
+    if ($it->what == IT_IMAGE)
+      printf "IMAGE=%d", $it->image_id
+    else
+      output $it->what
     end
   end
-  printf " next="
-  output $it->method
+  if ($it->method != GET_FROM_BUFFER)
+    printf " next="
+    output $it->method
+  end
   printf "\n"
+  if ($it->region_beg_charpos >= 0)
+    printf "reg=%d-%d ", $it->region_beg_charpos, $it->region_end_charpos
+  end
   printf "vpos=%d hpos=%d", $it->vpos, $it->hpos,
   printf " y=%d lvy=%d", $it->current_y, $it->last_visible_y
-  printf " x=%d lvx=%d", $it->current_x, $it->last_visible_x
+  printf " x=%d vx=%d-%d", $it->current_x, $it->first_visible_x, $it->last_visible_x
   printf " a+d=%d+%d=%d", $it->ascent, $it->descent, $it->ascent+$it->descent
   printf " max=%d+%d=%d", $it->max_ascent, $it->max_descent, $it->max_ascent+$it->max_descent
   printf "\n"

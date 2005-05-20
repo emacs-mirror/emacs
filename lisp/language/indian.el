@@ -1,6 +1,9 @@
 ;;; indian.el --- Indian languages support -*- coding: iso-2022-7bit; -*-
 
-;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 1999, 2001  Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003
+;;   National Institute of Advanced Industrial Science and Technology (AIST)
+;;   Registration Number H14PRO021
 
 ;; Maintainer:  KAWABATA, Taichi <kawabata@m17n.org>
 ;; Keywords: 	multilingual, i18n, Indian

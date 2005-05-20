@@ -61,7 +61,7 @@ TYPE is a Common Lisp type specifier."
 ;;; Predicates.
 
 (defun equalp (x y)
-  "T if two Lisp objects have similar structures and contents.
+  "Return t if two Lisp objects have similar structures and contents.
 This is like `equal', except that it accepts numerically equal
 numbers of different types (float vs. integer), and also compares
 strings case-insensitively."

@@ -115,7 +115,7 @@ a future Emacs interpreter will be able to use it.")
 ;;; Predicates.
 
 (defun eql (a b)    ; See compiler macro in cl-macs.el
-  "T if the two args are the same Lisp object.
+  "Return t if the two args are the same Lisp object.
 Floating-point numbers of equal value are `eql', but they may not be `eq'."
   (if (numberp a)
       (equal a b)
@@ -301,25 +301,25 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 ;;; Numbers.
 
 (defun floatp-safe (x)
-  "T if OBJECT is a floating point number.
+  "Return t if OBJECT is a floating point number.
 On Emacs versions that lack floating-point support, this function
 always returns nil."
   (and (numberp x) (not (integerp x))))
 
 (defun plusp (x)
-  "T if NUMBER is positive."
+  "Return t if NUMBER is positive."
   (> x 0))
 
 (defun minusp (x)
-  "T if NUMBER is negative."
+  "Return t if NUMBER is negative."
   (< x 0))
 
 (defun oddp (x)
-  "T if INTEGER is odd."
+  "Return t if INTEGER is odd."
   (eq (logand x 1) 1))
 
 (defun evenp (x)
-  "T if INTEGER is even."
+  "Return t if INTEGER is even."
   (eq (logand x 1) 0))
 
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
@@ -503,7 +503,7 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;    x))
 
 (defun list* (arg &rest rest)   ; See compiler macro in cl-macs.el
-  "Return a new list with specified args as elements, cons'd to last arg.
+  "Return a new list with specified args as elements, consed to last arg.
 Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
 `(cons A (cons B (cons C D)))'."
   (cond ((not rest) arg)

@@ -394,7 +394,6 @@ Used by `follow-window-size-change'.")
 	"Anders Lindgren <andersl@andersl.com>"
 	"follow.el"
 	'(post-command-hook
-	  post-command-idle-hook
 	  pre-command-hook
 	  window-size-change-functions
 	  window-scroll-functions
@@ -683,9 +682,6 @@ Keys specific to Follow mode:
 	       (set 'scroll-on-clipped-lines nil))
 	   (force-mode-line-update)
 	   (add-hook 'post-command-hook 'follow-post-command-hook t)
-	   (if (boundp 'post-command-idle-hook)
-	       (add-hook 'post-command-idle-hook
-			 'follow-avoid-tail-recenter t))
 	   (run-hooks 'follow-mode-hook))
 
 	  ((and (not follow-mode) follow-mode-orig) ; Off

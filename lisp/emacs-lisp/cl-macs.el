@@ -1335,7 +1335,7 @@ Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 ;; The following ought to have a better definition for use with newer
 ;; byte compilers.
 (defmacro macrolet (bindings &rest body)
-  "Make temporary macro defns.
+  "Make temporary macro definitions.
 This is like `flet', but for macros instead of functions.
 
 \(fn ((NAME ARGLIST BODY...) ...) FORM...)"
@@ -1351,7 +1351,7 @@ This is like `flet', but for macros instead of functions.
 				  cl-macro-environment))))))
 
 (defmacro symbol-macrolet (bindings &rest body)
-  "Make symbol macro defns.
+  "Make symbol macro definitions.
 Within the body FORMs, references to the variable NAME will be replaced
 by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 

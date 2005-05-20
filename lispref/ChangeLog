@@ -1,4 +1,74 @@
+2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keymaps.texi (Active Keymaps): Add anchor.
+
+	* modes.texi (Hooks): Delete confusing and unnecessary sentence.
+	(Major Mode Conventions): Refer to `Auto Major Mode' in more
+	appropriate place.
+	(Derived Modes): Small clarifications.
+	(Minor Mode Conventions, Keymaps and Minor Modes): Replace
+	references to nodes with references to anchors.
+	(Mode Line Data): Warn that `(:eval FORM)' should not load any files.
+	Clarify description of lists whose first element is an integer.
+	(Mode Line Variables): Add anchor.
+	(%-Constructs): Clarify description of integer after %.
+	(Emulating Mode Line): Describe nil value for FACE.
+
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Derived Modes): Correct references to non-existing
+	variable standard-syntax-table.
+
+2005-05-17  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Defining Minor Modes): Mention the mode hook.
+
+2005-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* processes.texi (Network): Remove open-network-stream-nowait.
+	(Network Servers): Remove open-network-stream-server.
+
+2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* elisp.texi (Top): Update detailed menu.
+
+	* variables.texi: Reorder nodes.
+	(Variables): Update menu.
+	(File Local Variables): Do not refer to the `-*-' line as
+	a "local variables list".  Add pxref.
+
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* elisp.texi (Top): Update detailed menu for node changes.
+
+	* modes.texi (Modes): Update Menu.
+	(Hooks):  Move to beginning of chapter.
+	Most minor modes run mode hooks too.
+	`add-hook' can handle void hooks or hooks whose value is a single
+	function.
+	(Major Modes): Update Menu.
+	(Major Mode Basics): New node, split off from `Major Modes'.
+	(Major Mode Conventions): Correct xref.  Explain how to handle
+	auto-mode-alist if the major mode command has an autoload cookie.
+	(Auto Major Mode): Major update.  Add magic-mode-alist.
+	(Derived Modes): Major update.
+	(Mode Line Format): Update Menu.
+	(Mode Line Basics): New node, split off from `Mode Line Format'.
+
+	* loading.texi (Autoload): Mention `autoload cookie' as synonym
+	for `magic autoload comment'.  Add index entries and anchor.
+
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* tips.texi (Coding Conventions): Explain how important it is
+	that just loading certain files not change Emacs behavior.
+
+	* modes.texi (Defining Minor Modes): Define define-global-minor-mode.
+
 2005-05-12  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Generic Modes): Update.
+	(Major Modes): Refer to node "Generic Modes".
 
 	* elisp.texi (Top): Update to the current structure of the manual.
 	* processes.texi (Processes): Add menu description.

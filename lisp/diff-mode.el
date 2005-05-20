@@ -70,7 +70,8 @@
 (defcustom diff-jump-to-old-file nil
   "*Non-nil means `diff-goto-source' jumps to the old file.
 Else, it jumps to the new file."
-  :type '(boolean))
+  :type 'boolean
+  :group 'diff-mode)
 
 (defcustom diff-update-on-the-fly t
   "*Non-nil means hunk headers are kept up-to-date on-the-fly.
@@ -79,17 +80,20 @@ need to be kept consistent with the actual diff.  This can
 either be done on the fly (but this sometimes interacts poorly with the
 undo mechanism) or whenever the file is written (can be slow
 when editing big diffs)."
-  :type '(boolean))
+  :type 'boolean
+  :group 'diff-mode)
 
 (defcustom diff-advance-after-apply-hunk t
   "*Non-nil means `diff-apply-hunk' will move to the next hunk after applying."
-  :type 'boolean)
+  :type 'boolean
+  :group 'diff-mode)
 
 
 (defcustom diff-mode-hook nil
   "Run after setting up the `diff-mode' major mode."
   :type 'hook
-  :options '(diff-delete-empty-files diff-make-unified))
+  :options '(diff-delete-empty-files diff-make-unified)
+  :group 'diff-mode)
 
 (defvar diff-outline-regexp
   "\\([*+][*+][*+] [^0-9]\\|@@ ...\\|\\*\\*\\* [0-9].\\|--- [0-9]..\\)")
@@ -159,7 +163,8 @@ when editing big diffs)."
 
 (defcustom diff-minor-mode-prefix "\C-c="
   "Prefix key for `diff-minor-mode' commands."
-  :type '(choice (string "\e") (string "C-c=") string))
+  :type '(choice (string "\e") (string "C-c=") string)
+  :group 'diff-mode)
 
 (easy-mmode-defmap diff-minor-mode-map
   `((,diff-minor-mode-prefix . ,diff-mode-shared-map))

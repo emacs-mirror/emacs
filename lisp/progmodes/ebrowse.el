@@ -1448,10 +1448,10 @@ Pop to member buffer if no prefix ARG, to tree buffer otherwise."
 (defun ebrowse-set-tree-indentation ()
   "Set the indentation width of the tree display."
   (interactive)
-  (let ((width (string-to-int (read-from-minibuffer
-			       (concat "Indentation ("
-				       (int-to-string ebrowse--indentation)
-				       "): ")))))
+  (let ((width (string-to-number (read-from-minibuffer
+                                  (concat "Indentation ("
+                                          (int-to-string ebrowse--indentation)
+                                          "): ")))))
     (when (plusp width)
       (setf ebrowse--indentation width)
       (ebrowse-redraw-tree))))
@@ -2329,7 +2329,7 @@ With prefix ARG, switch to the tree buffer else pop to it."
   "Set the column width of the member display.
 The new width is read from the minibuffer."
   (interactive)
-  (let ((width (string-to-int
+  (let ((width (string-to-number
 		(read-from-minibuffer
 		 (concat "Column width ("
 			 (int-to-string (if ebrowse--long-display-flag
@@ -4313,7 +4313,7 @@ NUMBER-OF-STATIC-VARIABLES:"
   "Select the nth entry in the list by the keys 1..9."
   (interactive)
   (let* ((maxlin (count-lines (point-min) (point-max)))
-	 (n (min maxlin (+ 2 (string-to-int (this-command-keys))))))
+	 (n (min maxlin (+ 2 (string-to-number (this-command-keys))))))
     (goto-line n)
     (throw 'electric-buffer-menu-select (point))))
 

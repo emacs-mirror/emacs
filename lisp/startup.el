@@ -1634,11 +1634,11 @@ normal otherwise."
                  (kill-emacs t))
 
                 ((string-match "^\\+[0-9]+\\'" argi)
-                 (setq line (string-to-int argi)))
+                 (setq line (string-to-number argi)))
 
                 ((string-match "^\\+\\([0-9]+\\):\\([0-9]+\\)\\'" argi)
-                 (setq line (string-to-int (match-string 1 argi))
-                       column (string-to-int (match-string 2 argi))))
+                 (setq line (string-to-number (match-string 1 argi))
+                       column (string-to-number (match-string 2 argi))))
 
                 ((setq tem (assoc argi command-line-x-option-alist))
                  ;; Ignore X-windows options and their args if not using X.

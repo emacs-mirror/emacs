@@ -541,7 +541,7 @@ DIR should be an absolute directory name.  It defaults to
 the value of `default-directory'."
   (unless dir
     (setq dir default-directory))
-  (read-file-name prompt dir (or default-dirname 
+  (read-file-name prompt dir (or default-dirname
 				 (if initial (expand-file-name initial dir)
 				   dir))
 		  mustmatch initial
@@ -1728,10 +1728,10 @@ or from Lisp without specifying the optional argument FIND-FILE;
 in that case, this function acts as if `enable-local-variables' were t."
   (interactive)
   (or find-file (funcall (or default-major-mode 'fundamental-mode)))
-  (report-errors "File mode specification error: %s"
-    (set-auto-mode))
-  (report-errors "File local-variables error: %s"
-    (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+  (let ((enable-local-variables (or (not find-file) enable-local-variables)))
+    (report-errors "File mode specification error: %s"
+      (set-auto-mode))
+    (report-errors "File local-variables error: %s"
       (hack-local-variables)))
   (if (fboundp 'ucs-set-table-for-input) ; don't lose when building
       (ucs-set-table-for-input)))
@@ -1762,9 +1762,11 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("\\.mk\\'" . makefile-mode)
-     ("\\([Mm]\\|GNUm\\)akep*file\\'" . makefile-mode)
-     ("\\.am\\'" . makefile-mode)	;For Automake.
+     ("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+     ("[Mm]akefile\\'" . makefile-mode)
+     ("GNUmakefile\\'" . makefile-gmake-mode)
+     ("Makeppfile\\'" . makefile-makepp-mode)
+     ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
      ;; so more common ones above are found faster.
      ("\\.texinfo\\'" . texinfo-mode)
@@ -1936,13 +1938,13 @@ and `magic-mode-alist', which determines modes based on file contents.")
      ("more" . text-mode)
      ("less" . text-mode)
      ("pg" . text-mode)
-     ("make" . makefile-mode)		; Debian uses this
+     ("make" . makefile-gmake-mode)		; Debian uses this
      ("guile" . scheme-mode)
      ("clisp" . lisp-mode)))
   "Alist mapping interpreter names to major modes.
 This is used for files whose first lines match `auto-mode-interpreter-regexp'.
 Each element looks like (INTERPRETER . MODE).
-The car of each element is compared with
+The car of each element, a regular expression, is compared with
 the name of the interpreter specified in the first line.
 If it matches, mode MODE is selected.
 
@@ -1959,13 +1961,12 @@ from the end of the file name anything that matches one of these regexps.")
 (defvar auto-mode-interpreter-regexp
   "#![ \t]?\\([^ \t\n]*\
 /bin/env[ \t]\\)?\\([^ \t\n]+\\)"
-  "Regular expression matching interpreters, for file mode determination.
+  "Regexp matching interpreters, for file mode determination.
 This regular expression is matched against the first line of a file
-to determine the file's mode in `set-auto-mode' when Emacs can't deduce
-a mode from the file's name.  If it matches, the file is assumed to
-be interpreted by the interpreter matched by the second group of the
-regular expression.  The mode is then determined as the mode associated
-with that interpreter in `interpreter-mode-alist'.")
+to determine the file's mode in `set-auto-mode'.  If it matches, the file
+is assumed to be interpreted by the interpreter matched by the second group
+of the regular expression.  The mode is then determined as the mode
+associated with that interpreter in `interpreter-mode-alist'.")
 
 (defvar magic-mode-alist
   `(;; The < comes before the groups (but the first) to reduce backtracking.
@@ -1992,7 +1993,7 @@ if REGEXP matches the text at the beginning of the buffer,
 to decide the buffer's major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.")
+\"allow `auto-mode-alist' to decide for these files.)")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -2151,7 +2152,7 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-confirm ()
+(defun hack-local-variables-confirm (string)
   (or (eq enable-local-variables t)
       (and enable-local-variables
 	   (save-window-excursion
@@ -2168,8 +2169,10 @@ Otherwise, return nil; point may be changed."
 	     (save-excursion
 	       (beginning-of-line)
 	       (set-window-start (selected-window) (point)))
-	     (y-or-n-p (format "Set local variables as specified in -*- line of %s? "
-			       (file-name-nondirectory buffer-file-name)))))))
+	     (y-or-n-p (format string
+			       (if buffer-file-name
+				   (file-name-nondirectory buffer-file-name)
+				 (concat "buffer " (buffer-name)))))))))
 
 (defun hack-local-variables-prop-line (&optional mode-only)
   "Set local variables specified in the -*- line.
@@ -2225,7 +2228,8 @@ is specified, returning t if it is specified."
       (if mode-only mode-specified
 	(if (and result
 		 (or mode-only
-		     (hack-local-variables-confirm)))
+		     (hack-local-variables-confirm
+		      "Set local variables as specified in -*- line of %s? ")))
 	    (let ((enable-local-eval enable-local-eval))
 	      (while result
 		(hack-one-local-variable (car (car result)) (cdr (car result)))
@@ -2255,7 +2259,8 @@ is specified, returning t if it is specified."
       (when (let ((case-fold-search t))
 	      (and (search-forward "Local Variables:" nil t)
 		   (or mode-only
-		       (hack-local-variables-confirm))))
+		       (hack-local-variables-confirm
+			"Set local variables as specified at end of %s? "))))
 	(skip-chars-forward " \t")
 	(let ((enable-local-eval enable-local-eval)
 	      ;; suffix is what comes after "local variables:" in its line.
@@ -2476,7 +2481,8 @@ is considered risky."
 		      (hack-one-local-variable-eval-safep val))
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
-		      (hack-local-variables-confirm)))
+		      (hack-local-variables-confirm
+		       "Process `eval' or hook local variables in %s? ")))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
@@ -2982,7 +2988,7 @@ Uses the free variable `backup-extract-version-start', whose value should be
 the index in the name where the version number begins."
   (if (and (string-match "[0-9]+~$" fn backup-extract-version-start)
 	   (= (match-beginning 0) backup-extract-version-start))
-      (string-to-int (substring fn backup-extract-version-start -1))
+      (string-to-number (substring fn backup-extract-version-start -1))
       0))
 
 ;; I believe there is no need to alter this behavior for VMS;
@@ -4546,7 +4552,7 @@ normally equivalent short `-D' option is just passed on to
 	      (if (string-match "ls (.*utils) \\([0-9.]*\\)$" version-out)
 		  (let* ((version (match-string 1 version-out))
 			 (split (split-string version "[.]"))
-			 (numbers (mapcar 'string-to-int split))
+			 (numbers (mapcar 'string-to-number split))
 			 (min '(5 2 1))
 			 comparison)
 		    (while (and (not comparison) (or numbers min))

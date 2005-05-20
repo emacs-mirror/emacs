@@ -238,9 +238,12 @@ it is commonly used to do so.  If your keyboard has a @key{PAGEUP} or
 Read a number @var{n} and move point to buffer position @var{n}.
 Position 1 is the beginning of the buffer.
 @item M-g M-g
+@itemx M-g g
 @itemx M-x goto-line
-Read a number @var{n} and move point to line number @var{n}.  Line 1
-is the beginning of the buffer.
+Read a number @var{n} and move point to the beginning of line number
+@var{n}.  Line 1 is the beginning of the buffer.  If point is on or
+just after a number, then that is the default for @var{n}, if you just
+press @key{RET} with an empty minibuffer.
 @item C-x C-n
 @findex set-goal-column
 @kindex C-x C-n
@@ -595,19 +598,13 @@ Toggle automatic display of the size of the buffer.
 @cindex location of point
 @cindex cursor location
 @cindex point location
-  There are two commands for working with line numbers.  @kbd{M-x
-what-line} computes the current line number and displays it in the
-echo area.  To go to a given line by number, use @kbd{M-g M-g} or
-@kbd{M-g g} (@code{goto-line}).  This prompts you for a line number,
-then moves point to the beginning of that line.  To move to a given
-line in the most recently displayed other buffer, use @kbd{C-u M-g
-M-g}.  Line numbers in Emacs count from one at the beginning of the buffer.
-
-  You can also see the current line number in the mode line; see @ref{Mode
-Line}.  If you narrow the buffer, then the line number in the mode line
-is relative to the accessible portion (@pxref{Narrowing}).  By contrast,
-@code{what-line} shows both the line number relative to the narrowed
-region and the line number relative to the whole buffer.
+  @kbd{M-x what-line} computes the current line number and displays it
+in the echo area.  You can also see the current line number in the
+mode line; see @ref{Mode Line}.  If you narrow the buffer, then the
+line number in the mode line is relative to the accessible portion
+(@pxref{Narrowing}).  By contrast, @code{what-line} shows both the
+line number relative to the narrowed region and the line number
+relative to the whole buffer.
 
   @kbd{M-x what-page} counts pages from the beginning of the file, and
 counts lines within the page, showing both numbers in the echo area.

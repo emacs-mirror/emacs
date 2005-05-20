@@ -3474,7 +3474,10 @@ handle_display_prop (it)
     }
   else
     {
-      if (handle_single_display_spec (it, prop, object, position, 0))
+      int ret = handle_single_display_spec (it, prop, object, position, 0);
+      if (ret < 0)  /* Replaced by "", i.e. nothing. */
+	return HANDLED_RECOMPUTE_PROPS;
+      if (ret)
 	display_replaced_p = 1;
     }
 
@@ -3518,7 +3521,8 @@ display_prop_end (it, object, start_pos)
    property ends.
 
    Value is non-zero if something was found which replaces the display
-   of buffer or string text.  */
+   of buffer or string text.  Specifically, the value is -1 if that
+   "something" is "nothing". */
 
 static int
 handle_single_display_spec (it, spec, object, position,
@@ -3833,6 +3837,11 @@ handle_single_display_spec (it, spec, object, position,
 
       if (STRINGP (value))
 	{
+	  if (SCHARS (value) == 0)
+	    {
+	      pop_it (it);
+	      return -1;  /* Replaced by "", i.e. nothing.  */
+	    }
 	  it->string = value;
 	  it->multibyte_p = STRING_MULTIBYTE (it->string);
 	  it->current.overlay_string_index = -1;
@@ -7033,7 +7042,9 @@ message2_nolog (m, nbytes, multibyte)
 /* Display an echo area message M with a specified length of NBYTES
    bytes.  The string may include null characters.  If M is not a
    string, clear out any existing message, and let the mini-buffer
-   text show through.  */
+   text show through.
+
+   This function cancels echoing.  */
 
 void
 message3 (m, nbytes, multibyte)
@@ -7045,6 +7056,7 @@ message3 (m, nbytes, multibyte)
 
   GCPRO1 (m);
   clear_message (1,1);
+  cancel_echoing ();
 
   /* First flush out any partial line written with print.  */
   message_log_maybe_newline ();
@@ -7056,7 +7068,10 @@ message3 (m, nbytes, multibyte)
 }
 
 
-/* The non-logging version of message3.  */
+/* The non-logging version of message3.
+   This does not cancel echoing, because it is used for echoing.
+   Perhaps we need to make a separate function for echoing
+   and make this cancel echoing.  */
 
 void
 message3_nolog (m, nbytes, multibyte)

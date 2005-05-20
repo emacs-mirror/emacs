@@ -5082,7 +5082,7 @@ Return a valid value only."
 			 ((string-equal "++" input) '++)
 			 ((string-equal "--" input) '--)
 			 ((string-match "^-?[0-9]+$" input)
-			  (string-to-int input))
+			  (string-to-number input))
 			 ((fboundp (setq interned (intern input)))
 			  interned)
 			 ((boundp interned) interned)
@@ -13701,10 +13701,10 @@ entity ENT-KEY."
       (condition-case ()
 	  (progn (load-file file-dir-name)
 		 (string< (mapconcat
-			   (lambda (a) (format "%3d" (string-to-int a)))
+			   (lambda (a) (format "%3d" (string-to-number a)))
 			   (split-string "3.31.14" "\\.") "")
 			  (mapconcat
-			   (lambda (a) (format "%3d" (string-to-int a)))
+			   (lambda (a) (format "%3d" (string-to-number a)))
 			   (split-string vhdl-cache-version "\\.") "")))
 	(error (progn (vhdl-warning (format "ERROR:  Corrupted cache file: \"%s\"" file-dir-name))
 		      nil))))))
@@ -14075,7 +14075,7 @@ otherwise use cached data."
 		   (beginning-of-line) (looking-at "^\\([0-9]+\\):"))
 		 (re-search-backward
 		  (format "^[0-%d]:\\s-*[[{<]-"
-			  (max (1- (string-to-int (match-string 1))) 0)) nil t)))
+			  (max (1- (string-to-number (match-string 1))) 0)) nil t)))
     (goto-char (match-end 0))
     (speedbar-do-function-pointer)
     (speedbar-center-buffer-smartly)))

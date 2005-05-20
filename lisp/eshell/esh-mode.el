@@ -520,7 +520,8 @@ This is used by `eshell-watch-for-password-prompt'."
   (let ((inhibit-read-only t)
 	(no-default (eobp))
 	(find-tag-default-function 'ignore))
-    (setq tagname (car (find-tag-interactive "Find tag: ")))
+    (with-no-warnings
+      (setq tagname (car (find-tag-interactive "Find tag: "))))
     (find-tag tagname next-p regexp-p)))
 
 (defun eshell-move-argument (limit func property arg)
@@ -666,7 +667,7 @@ waiting for input."
   (eshell-match-result "alpha\n"))
 
 (defun eshell-send-input (&optional use-region queue-p no-newline)
-  "Send the input received to Eshell for parsing and processing..
+  "Send the input received to Eshell for parsing and processing.
 After `eshell-last-output-end', sends all text from that marker to
 point as input.  Before that marker, calls `eshell-get-old-input' to
 retrieve old input, copies it to the end of the buffer, and sends it.

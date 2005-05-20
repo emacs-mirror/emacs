@@ -1288,14 +1288,14 @@ passed in.  If LITERAL is set, no checking is done, anyway."
     (while (string-match "\\(\\`\\|[^\\]\\)\\(\\\\\\\\\\)*\\(\\\\\\?\\)"
 			 newtext)
       (setq newtext
-	    (read-input "Edit replacement string: "
-			(prog1
-			    (cons
-			     (replace-match "" t t newtext 3)
-			     (1+ (match-beginning 3)))
-			  (setq match-data
-				(replace-match-data
-				 nil match-data match-data))))
+	    (read-string "Edit replacement string: "
+                         (prog1
+                             (cons
+                              (replace-match "" t t newtext 3)
+                              (1+ (match-beginning 3)))
+                           (setq match-data
+                                 (replace-match-data
+                                  nil match-data match-data))))
 	    noedit nil)))
   (set-match-data match-data)
   (replace-match newtext fixedcase literal)
@@ -1571,8 +1571,8 @@ make, or the user didn't cancel the call."
 						nil real-match-data
 						real-match-data)
 			       next-replacement
-			       (read-input "Edit replacement string: "
-					   next-replacement)
+			       (read-string "Edit replacement string: "
+                                            next-replacement)
 			       noedit nil)
 			 (if replaced
 			     (set-match-data real-match-data)

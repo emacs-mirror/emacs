@@ -3,7 +3,7 @@
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 ;;
 
 ;; This file is part of GNU Emacs.
@@ -999,7 +999,7 @@ of master file."
         (if (string-match "\\`[A-Z]\\'" number-string)
             (aset reftex-section-numbers i
                   (- (string-to-char number-string) ?A -1))
-            (aset reftex-section-numbers i (string-to-int number-string)))
+            (aset reftex-section-numbers i (string-to-number number-string)))
         (pop numbers))
       (decf i)))
   (put 'reftex-section-numbers 'appendix appendix))
@@ -1045,7 +1045,7 @@ of master file."
             (setq string 
                   (concat
                    (char-to-string
-                    (1- (+ ?A (string-to-int (match-string 0 string)))))
+                    (1- (+ ?A (string-to-number (match-string 0 string)))))
                    (substring string (match-end 0))))))
       (if star
           (concat (make-string (1- (length string)) ?\ ) "*")

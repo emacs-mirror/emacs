@@ -123,15 +123,18 @@
 
 (defcustom tcl-indent-level 4
   "*Indentation of Tcl statements with respect to containing block."
-  :type 'integer)
+  :type 'integer
+  :group 'tcl)
 
 (defcustom tcl-continued-indent-level 4
   "*Indentation of continuation line relative to first line of command."
-  :type 'integer)
+  :type 'integer
+  :group 'tcl)
 
 (defcustom tcl-auto-newline nil
   "*Non-nil means automatically newline before and after braces you insert."
-  :type 'boolean)
+  :type 'boolean
+  :group 'tcl)
 
 (defcustom tcl-tab-always-indent tab-always-indent
   "*Control effect of TAB key.
@@ -149,7 +152,8 @@ to take place:
   6. Move backward to start of comment, indenting if necessary."
   :type '(choice (const :tag "Always" t)
 		 (const :tag "Beginning only" nil)
-		 (const :tag "Maybe move or make or delete comment" 'tcl)))
+		 (const :tag "Maybe move or make or delete comment" 'tcl))
+  :group 'tcl)
 
 
 (defcustom tcl-electric-hash-style nil ;; 'smart
@@ -160,23 +164,28 @@ meaning that the choice between `backslash' and `quote' should be
 made depending on the number of hashes inserted; or nil, meaning that
 no quoting should be done.  Any other value for this variable is
 taken to mean `smart'.  The default is nil."
-  :type '(choice (const backslash) (const quote) (const smart) (const nil)))
+  :type '(choice (const backslash) (const quote) (const smart) (const nil))
+  :group 'tcl)
 
 (defcustom tcl-help-directory-list nil
   "*List of topmost directories containing TclX help files."
-  :type '(repeat directory))
+  :type '(repeat directory)
+  :group 'tcl)
 
 (defcustom tcl-use-smart-word-finder t
   "*If not nil, use smart way to find current word, for Tcl help feature."
-  :type 'boolean)
+  :type 'boolean
+  :group 'tcl)
 
 (defcustom tcl-application "wish"
   "*Name of Tcl program to run in inferior Tcl mode."
-  :type 'string)
+  :type 'string
+  :group 'tcl)
 
 (defcustom tcl-command-switches nil
   "*List of switches to supply to the `tcl-application' program."
-  :type '(repeat string))
+  :type '(repeat string)
+  :group 'tcl)
 
 (defcustom tcl-prompt-regexp "^\\(% \\|\\)"
   "*If not nil, a regexp that will match the prompt in the inferior process.
@@ -184,7 +193,8 @@ If nil, the prompt is the name of the application with \">\" appended.
 
 The default is \"^\\(% \\|\\)\", which will match the default primary
 and secondary prompts for tclsh and wish."
-  :type 'regexp)
+  :type 'regexp
+  :group 'tcl)
 
 (defcustom inferior-tcl-source-command "source %s\n"
   "*Format-string for building a Tcl command to load a file.
@@ -192,7 +202,8 @@ This format string should use `%s' to substitute a file name
 and should result in a Tcl expression that will command the
 inferior Tcl to load that file.  The filename will be appropriately
 quoted for Tcl."
-  :type 'string)
+  :type 'string
+  :group 'tcl)
 
 (defface tcl-escaped-newline '((t :inherit font-lock-string-face))
   "Face used for (non-escaped) backslash at end of a line in Tcl mode."

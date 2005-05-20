@@ -205,7 +205,7 @@ Valid TYPEs are: string, symbol, int, stringtnil, tnil."
   (let (ret)
     (setq ret (cond ((eq type 'string) attrvalue)
 		    ((eq type 'symbol) (read attrvalue))
-		    ((eq type 'int) (string-to-int attrvalue))
+		    ((eq type 'int) (string-to-number attrvalue))
 		    ((eq type 'stringtnil)
 		     (cond ((string= "t" attrvalue) t)
 			   ((string= "nil" attrvalue) nil)
@@ -908,13 +908,13 @@ diary entries."
                           (buffer-substring-no-properties
                            (match-beginning m-name-pos)
                            (match-end m-name-pos))))
-                     (mm (string-to-int
+                     (mm (string-to-number
                           (if m-pos
                               (buffer-substring-no-properties
                                (match-beginning m-pos)
                                (match-end m-pos))
                             "")))
-                     (dd (string-to-int
+                     (dd (string-to-number
                           (if d-pos
                               (buffer-substring-no-properties
                                (match-beginning d-pos)
@@ -931,7 +931,7 @@ diary entries."
                                (let* ((current-y
                                        (extract-calendar-year
                                         (calendar-current-date)))
-                                      (y (+ (string-to-int y-str)
+                                      (y (+ (string-to-number y-str)
                                             (* 100
                                                (/ current-y 100)))))
                                  (if (> (- y current-y) 50)
@@ -939,7 +939,7 @@ diary entries."
                                    (if (> (- current-y y) 50)
                                        (+ y 100)
                                      y)))
-                             (string-to-int y-str))))
+                             (string-to-number y-str))))
                      (save-excursion
                        (setq entry (buffer-substring-no-properties
                                     (point) (line-end-position))
@@ -1149,22 +1149,22 @@ be used instead of a colon (:) to separate the hour and minute parts."
     (cond ((string-match        ; Military time
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]?\\([0-9][0-9]\\)\\(\\>\\|[^ap]\\)"
             s)
-	   (+ (* 100 (string-to-int
+	   (+ (* 100 (string-to-number
 		      (substring s (match-beginning 1) (match-end 1))))
-	      (string-to-int (substring s (match-beginning 2) (match-end 2)))))
+	      (string-to-number (substring s (match-beginning 2) (match-end 2)))))
 	  ((string-match        ; Hour only  XXam or XXpm
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)\\([ap]\\)m\\>" s)
-	   (+ (* 100 (% (string-to-int
+	   (+ (* 100 (% (string-to-number
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
 	      (if (equal ?a (downcase (aref s (match-beginning 2))))
 		  0 1200)))
 	  ((string-match        ; Hour and minute  XX:XXam or XX:XXpm
 	    "\\`[ \t\n\\^M]*\\([0-9]?[0-9]\\)[:.]\\([0-9][0-9]\\)\\([ap]\\)m\\>" s)
-	   (+ (* 100 (% (string-to-int
+	   (+ (* 100 (% (string-to-number
 			   (substring s (match-beginning 1) (match-end 1)))
 			  12))
-	      (string-to-int (substring s (match-beginning 2) (match-end 2)))
+	      (string-to-number (substring s (match-beginning 2) (match-end 2)))
 	      (if (equal ?a (downcase (aref s (match-beginning 3))))
 		  0 1200)))
 	  (t diary-unknown-time)))) ; Unrecognizable

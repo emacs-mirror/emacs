@@ -177,13 +177,9 @@ style of this face (@pxref{Face Customization}).  @xref{Transient Mark},
 for more information about Transient Mark mode and activation and
 deactivation of the mark.
 
-  One easy way to use faces is to turn on Font Lock mode.  This minor
-mode, which is always local to a particular buffer, arranges to
-choose faces according to the syntax of the text you are editing.  It
-can recognize comments and strings in most languages; in several
-languages, it can also recognize and properly highlight various other
-important constructs.  @xref{Font Lock}, for more information about
-Font Lock mode and syntactic highlighting.
+  One easy way to use faces is to turn on Font Lock mode.  @xref{Font
+Lock}, for more information about Font Lock mode and syntactic
+highlighting.
 
   You can print out the buffer with the highlighting that appears
 on your screen using the command @code{ps-print-buffer-with-faces}.
@@ -206,11 +202,12 @@ specialized ways of assigning fonts for Font Lock mode.
 
 @findex font-lock-mode
 @findex turn-on-font-lock
-  The command @kbd{M-x font-lock-mode} turns Font Lock mode on or off
-according to the argument, and toggles the mode when it has no argument.
-The function @code{turn-on-font-lock} unconditionally enables Font Lock
-mode.  This is useful in mode-hook functions.  For example, to enable
-Font Lock mode whenever you edit a C file, you can do this:
+  The command @kbd{M-x font-lock-mode} turns Font Lock mode on with
+positive argument, off with negative or zero argument, and toggles the
+mode when it has no argument.  The function @code{turn-on-font-lock}
+unconditionally enables Font Lock mode.  This is useful in mode-hook
+functions.  For example, to enable Font Lock mode whenever you edit a
+C file, you can do this:
 
 @example
 (add-hook 'c-mode-hook 'turn-on-font-lock)
@@ -219,9 +216,9 @@ Font Lock mode whenever you edit a C file, you can do this:
 @findex global-font-lock-mode
 @vindex global-font-lock-mode
   To turn on Font Lock mode automatically in all modes which support
-it, customize the variable @code{global-font-lock-mode} or use the
-function @code{global-font-lock-mode} in your @file{.emacs} file, like
-this:
+it, customize the variable @code{global-font-lock-mode} using the
+Customize interface (@pxref{Easy Customization}) or use the function
+@code{global-font-lock-mode} in your @file{.emacs} file, like this:
 
 @example
 (global-font-lock-mode 1)
@@ -641,7 +638,7 @@ last, indicating that ``this is not the real end.''
 meaning ``there's more text on this line which is scrolled
 horizontally out of view;'' clicking the mouse on one of the arrows
 scrolls the display horizontally in the direction of the arrow.   The
-fringes also indicate other things such as empty lines, or where a
+fringes can also indicate other things, such as empty lines, or where a
 program you are debugging is executing (@pxref{Debuggers}).
 
 @findex set-fringe-style
@@ -728,11 +725,12 @@ one large window.
 of columns (you specify how many columns).  You can use this to get an
 overview of a part of a program.
 
-  To hide lines, type @kbd{C-x $} (@code{set-selective-display}) with a
-numeric argument @var{n}.  Then lines with at least @var{n} columns of
-indentation disappear from the screen.  The only indication of their
-presence is that three dots (@samp{@dots{}}) appear at the end of each
-visible line that is followed by one or more hidden ones.
+  To hide lines in the current buffer, type @kbd{C-x $}
+(@code{set-selective-display}) with a numeric argument @var{n}.  Then
+lines with at least @var{n} columns of indentation disappear from the
+screen.  The only indication of their presence is that three dots
+(@samp{@dots{}}) appear at the end of each visible line that is
+followed by one or more hidden ones.
 
   The commands @kbd{C-n} and @kbd{C-p} move across the hidden lines as
 if they were not there.

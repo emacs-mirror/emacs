@@ -3,7 +3,7 @@
 ;;  Free Software Foundation, Inc.
 
 ;; Author: Carsten Dominik <dominik@science.uva.nl>
-;; Version: 4.26
+;; Version: 4.28
 
 ;; This file is part of GNU Emacs.
 
@@ -155,6 +155,21 @@ distribution.  Mixed-case symbols are convenience aliases.")
       (?f    . "\\fullcite{%l}")
       (?F    . "\\fullocite{%l}")
       (?n    . "\\nocite{%l}")))
+    (jurabib "The Jurabib package"
+     ((?\C-m . "\\cite{%l}")
+      (?c    . "\\cite[][]{%l}")
+      (?t    . "\\citet{%l}")
+      (?p    . "\\citep{%l}")
+      (?e    . "\\citep[e.g.][]{%l}")
+      (?s    . "\\citep[see][]{%l}")
+      (?u    . "\\fullcite{%l}")
+      (?i    . "\\citetitle{%l}")
+      (?a    . "\\citeauthor{%l}")
+      (?e    . "\\citefield{}{%l}")
+      (?y    . "\\citeyear{%l}")
+      (?f    . "\\footcite{%l}")
+      (?F    . "\\footcite[][]{%l}")
+      (?l    . "\\footfullcite{%l}")))
     (bibentry "The Bibentry package"
       "\\bibentry{%l}")
     (harvard "The Harvard package"
@@ -639,7 +654,7 @@ or macro."
   "Non-nil means, trust the label prefix when determining label type.
 It is customary to use special label prefixes to distinguish different label
 types.  The label prefixes have no syntactic meaning in LaTeX (unless
-special packages like fancyref) are being used.  RefTeX can and by
+special packages like fancyref are being used).  RefTeX can and by
 default does parse around each label to detect the correct label type,
 but this process can be slow when a document contains thousands of
 labels.  If you use label prefixes consistently, you may speed up
@@ -1373,7 +1388,9 @@ Inserting indexing commands in a line makes the line longer - often
 so long that it does not fit onto the screen.  When this variable is
 non-nil, newlines will be added as necessary before and/or after the
 indexing command to keep lines short.  However, the matched text
-phrase and its index command will always end up on a single line.")
+phrase and its index command will always end up on a single line."
+  :group 'reftex-index-support
+  :type 'boolean)
 
 (defcustom reftex-index-phrases-sort-prefers-entry nil
   "*Non-nil means when sorting phrase lines, the explicit index entry is used.
@@ -1529,7 +1546,7 @@ TYPE:       File type like \"bib\" or \"tex\".
 DEF-EXT:    The default extension for that file type, like \".tex\" or \".bib\".
 OTHER-EXT:  Any number of other valid extensions for this file type.
 
-When a files is searched and it does not have any of the valid extensions,
+When a files is searched and it does not have any of the legal extensions,
 we try the default extension first, and then the naked file name.
 
 If you are using AUCTeX, you also need to add new extensions to

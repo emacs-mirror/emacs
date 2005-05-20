@@ -338,8 +338,8 @@ Elements of the list may be be:
 
   free-vars   references to variables not in the current lexical scope.
   unresolved  calls to unknown functions.
-  callargs    lambda calls with args that don't match the definition.
-  redefine    function cell redefined from a macro to a lambda or vice
+  callargs    function calls with args that don't match the definition.
+  redefine    function name redefined from a macro to ordinary function or vice
               versa, or redefined to take a different number of arguments.
   obsolete    obsolete variables and functions.
   noruntime   functions that may not be defined at runtime (typically
@@ -1243,6 +1243,20 @@ extra args."
 
 (dolist (elt '(format message error))
   (put elt 'byte-compile-format-like t))
+
+;; Warn if a custom definition fails to specify :group.
+(defun byte-compile-nogroup-warn (form)
+  (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
+	(name (cadr form)))
+    (unless (plist-get keyword-args :group)
+      (byte-compile-warn
+       "%s for `%s' fails to specify containing group"
+       (cdr (assq (car form)
+		  '((custom-declare-group . defgroup)
+		    (custom-declare-face . defface)
+		    (custom-declare-variable . defcustom))))
+       (if (and (consp name) (eq (car name) 'quote))
+	   (cadr name) name)))))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.
@@ -2156,6 +2170,8 @@ list that represents a doc string reference.
 (put 'custom-declare-variable 'byte-hunk-handler
      'byte-compile-file-form-custom-declare-variable)
 (defun byte-compile-file-form-custom-declare-variable (form)
+  (when (memq 'callargs byte-compile-warnings)
+    (byte-compile-nogroup-warn form))
   (when (memq 'free-vars byte-compile-warnings)
     (push (nth 1 (nth 1 form)) byte-compile-bound-variables))
   (let ((tail (nthcdr 4 form)))
@@ -2729,7 +2745,7 @@ If FORM is a lambda or a macro, byte-compile it as a function."
 	   (when (byte-compile-const-symbol-p fn)
 	     (byte-compile-warn "`%s' called as a function" fn))
 	   (and (memq 'interactive-only byte-compile-warnings)
-		(memq (car form) byte-compile-interactive-only-functions)
+		(memq fn byte-compile-interactive-only-functions)
 		(byte-compile-warn "`%s' used from Lisp code\n\
 That command is designed for interactive use only" fn))
 	   (if (and handler
@@ -2739,8 +2755,10 @@ That command is designed for interactive use only" fn))
 	       (progn
 		 (byte-compile-set-symbol-position fn)
 		 (funcall handler form))
-	     (if (memq 'callargs byte-compile-warnings)
-		 (byte-compile-callargs-warn form))
+	     (when (memq 'callargs byte-compile-warnings)
+	       (if (memq fn '(custom-declare-group custom-declare-variable custom-declare-face))
+		   (byte-compile-nogroup-warn form))
+	       (byte-compile-callargs-warn form))
 	     (byte-compile-normal-call form))
 	   (if (memq 'cl-functions byte-compile-warnings)
 	       (byte-compile-cl-warn form))))

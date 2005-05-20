@@ -106,7 +106,7 @@ when you run configure.  This requires Gtk+ 2.0 or newer.  This port
 provides a way to display multilingual text in menus (with some caveats).
 
 ---
-** The `emacsserver' program has been removed, replaced with elisp code.
+** The `emacsserver' program has been removed, replaced with Lisp code.
 
 ---
 ** By default, Emacs now uses a setgid helper program to update game
@@ -752,14 +752,8 @@ elements are deleted.
 When the file is maintained under version control, that information
 appears between the position information and the major mode.
 
-*** Easy to overlook single character negation is now font-locked.
-You can use the new variable `font-lock-negation-char-face' and the face of
-the same name to customize this.  Currently the cc-modes, sh-script-mode,
-cperl-mode and make-mode support this.
-
 +++
-*** Control characters and escape glyphs are now shown in the new
-escape-glyph face.
+*** New face `escape-glyph' highlights control characters and escape glyphs.
 
 +++
 *** Non-breaking space and hyphens are now prefixed with an escape
@@ -895,6 +889,16 @@ font-lock now highlights any such open-paren-in-column-zero in bold-red
 if it is inside a string or a comment, to indicate that it can cause
 trouble with fontification and/or indentation.
 
++++
+*** New standard font-lock face `font-lock-preprocessor-face'.
+
+*** New standard font-lock face `font-lock-comment-delimiter-face'.
+
+*** Easy to overlook single character negation can now be font-locked.
+You can use the new variable `font-lock-negation-char-face' and the face of
+the same name to customize this.  Currently the cc-modes, sh-script-mode,
+cperl-mode and make-mode support this.
+
 ---
 *** The default settings for JIT stealth lock parameters are changed.
 The default value for the user option jit-lock-stealth-time is now 16
@@ -1027,9 +1031,11 @@ variable mouse-drag-copy-region to nil.
 (rather than a fixed number of lines) and the scrolling is `progressive'.
 
 ---
-*** Unexpected yanking of text due to accidental clicking on the mouse
-wheel button (typically mouse-2) during wheel scrolling is now avoided.
-This behavior can be customized via the mouse-wheel-click-event and
+*** Emacs ignores mouse-2 clicks while the mouse wheel is being moved.
+
+People tend to push the mouse wheel (which counts as a mouse-2 click)
+unintentionally while turning the wheel, so these clicks are now
+ignored.  You can customize this with the mouse-wheel-click-event and
 mouse-wheel-inhibit-click-time variables.
 
 +++
@@ -1352,6 +1358,15 @@ buffer causes automatic display in another window of the corresponding
 matches, compilation errors, etc.  This minor mode can be toggled with
 C-c C-f.
 
+*** When the left fringe is displayed, an arrow points to current message in
+the compilation buffer.
+
+*** The new variable `compilation-context-lines' controls lines of leading
+context before the current message.  If nil and the left fringe is displayed,
+it doesn't scroll the compilation output window.  If there is no left fringe,
+no arrow is displayed and a value of nil means display the message at the top
+of the window.
+
 ** Occur mode changes:
 
 +++
@@ -1499,10 +1514,6 @@ colors as on X.
 * New Modes and Packages in Emacs 22.1
 
 +++
-** New package benchmark.el contains simple support for convenient
-timing measurements of code (including the garbage collection component).
-
-+++
 ** Filesets are collections of files.  You can define a fileset in
 various ways, such as based on a directory tree or based on
 program files that include other program files.
@@ -1520,16 +1531,20 @@ type "C-h i m calc RET" to read that manual.  A reference card is
 available in `etc/calccard.tex' and `etc/calccard.ps'.
 
 ---
-** `cfengine-mode' is a major mode for editing GNU Cfengine
-configuration files.
+** The new package ibuffer provides a powerful, completely
+customizable replacement for buff-menu.el.
+
+---
+** Ido mode is now part of the Emacs distribution.
+
+The ido (interactively do) package is an extension of the iswitchb
+package to do interactive opening of files and directories in addition
+to interactive buffer switching.  Ido is a superset of iswitchb (with
+a few exceptions), so don't enable both packages.
 
 +++
-** The new package conf-mode.el handles thousands of configuration files, with
-varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
-var : value, var value or keyword var value) and sections ([section] or
-section { }).  Many files under /etc/, or with suffixes like .cf through
-.config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
-recognized.
+** Image files are normally visited in Image mode, which lets you toggle
+between viewing the image and viewing the text using C-c C-c.
 
 ---
 ** CUA mode is now part of the Emacs distribution.
@@ -1542,7 +1557,7 @@ region (like delete-selection-mode).  Do not enable these modes with
 cua-mode.  Customize the variable `cua-mode' to enable cua.
 
 In addition, cua provides unified rectangle support with visible
-rectangle highlighting: Use S-return to start a rectangle, extend it
+rectangle highlighting: Use C-return to start a rectangle, extend it
 using the movement commands (or mouse-3), and cut or copy it using C-x
 or C-c (using C-w and M-w also works).
 
@@ -1592,28 +1607,6 @@ be displayed by customizing the variable `file-name-shadow-properties'.
 +++
 ** The new package flymake.el does on-the-fly syntax checking of program
 source files.  See the Flymake's Info manual for more details.
-
----
-** The new Lisp library fringe.el controls the appearance of fringes.
-
----
-** GDB-Script-mode is used for files like .gdbinit.
-
----
-** The new package ibuffer provides a powerful, completely
-customizable replacement for buff-menu.el.
-
----
-** Ido mode is now part of the Emacs distribution.
-
-The ido (interactively do) package is an extension of the iswitchb
-package to do interactive opening of files and directories in addition
-to interactive buffer switching.  Ido is a superset of iswitchb (with
-a few exceptions), so don't enable both packages.
-
-+++
-** Image files are normally visited in Image mode, which lets you toggle
-between viewing the image and viewing the text using C-c C-c.
 
 +++
 ** The new keypad setup package provides several common bindings for
@@ -1674,6 +1667,15 @@ Keyboard macros can now be debugged and edited interactively.
 C-x C-k SPC steps through the last keyboard macro one key sequence
 at a time, prompting for the actions to take.
 
+---
+** New minor mode, Visible mode, toggles invisibility in the current buffer.
+When enabled, it makes all invisible text visible.  When disabled, it
+restores the previous value of `buffer-invisibility-spec'.
+
++++
+** The wdired.el package allows you to use normal editing commands on Dired
+buffers to change filenames, permissions, etc...
+
 +++
 ** The new package longlines.el provides a minor mode for editing text
 files composed of long lines, based on the `use-hard-newlines'
@@ -1693,9 +1695,6 @@ with a Print sub-menu which allows you to preview output through
 ghostview, use ghostscript to print (if you don't have a PostScript
 printer) or send directly to printer a PostScript code generated by
 `ps-print' package.  Use M-x pr-help for more information.
-
-+++
-** The new python.el package is used to edit Python and Jython programs.
 
 ---
 ** The minor mode Reveal mode makes text visible on the fly as you
@@ -1754,114 +1753,72 @@ If you want to disable Tramp you should set
   (setq tramp-default-method "ftp")
 
 ---
-** The library tree-widget.el provides a new widget to display a set
-of hierarchical data as an outline.  For example, the tree-widget is
-well suited to display a hierarchy of directories and files.
-
----
 ** The URL package (which had been part of W3) is now part of Emacs.
 
 ---
-** New minor mode, Visible mode, toggles invisibility in the current buffer.
-When enabled, it makes all invisible text visible.  When disabled, it
-restores the previous value of `buffer-invisibility-spec'.
+** `cfengine-mode' is a major mode for editing GNU Cfengine
+configuration files.
 
 +++
-** The wdired.el package allows you to use normal editing commands on Dired
-buffers to change filenames, permissions, etc...
+** The new package conf-mode.el handles thousands of configuration files, with
+varying syntaxes for comments (;, #, //, /* */ or !), assignment (var = value,
+var : value, var value or keyword var value) and sections ([section] or
+section { }).  Many files under /etc/, or with suffixes like .cf through
+.config, .properties (Java), .desktop (KDE/Gnome), .ini and many others are
+recognized.
+
+---
+** GDB-Script-mode is used for files like .gdbinit.
+
++++
+** The new python.el package is used to edit Python and Jython programs.
 
 ---
 ** The TCL package tcl-mode.el was replaced by tcl.el.
 This was actually done in Emacs-21.1, and was not documented.
-
-** The new package bindat.el provides functions to unpack and pack
-binary data structures, such as network packets, to and from Lisp
-data structures.
-
-+++
-** The new package button.el implements simple and fast `clickable buttons'
-in emacs buffers.  `buttons' are much lighter-weight than the `widgets'
-implemented by widget.el, and can be used by lisp code that doesn't
-require the full power of widgets.  Emacs uses buttons for such things
-as help and apropos buffers.
-
----
-** master-mode.el implements a minor mode for scrolling a slave
-buffer without leaving your current buffer, the master buffer.
-
-It can be used by sql.el, for example: the SQL buffer is the master
-and its SQLi buffer is the slave.  This allows you to scroll the SQLi
-buffer containing the output from the SQL buffer containing the
-commands.
-
-This is how to use sql.el and master.el together: the variable
-sql-buffer contains the slave buffer.  It is a local variable in the
-SQL buffer.
-
-(add-hook 'sql-mode-hook
-   (function (lambda ()
-	       (master-mode t)
-	       (master-set-slave sql-buffer))))
-(add-hook 'sql-set-sqli-hook
-   (function (lambda ()
-	       (master-set-slave sql-buffer))))
-
-+++
-** New Lisp library testcover.el works with edebug to help you determine
-whether you've tested all your Lisp code.  Function testcover-start
-instruments all functions in a given file.  Then test your code.  Function
-testcover-mark-all adds overlay "splotches" to the Lisp file's buffer to
-show where coverage is lacking.  Command testcover-next-mark (bind it to
-a key!) will move point forward to the next spot that has a splotch.
-
-Normally, a red splotch indicates the form was never completely
-evaluated; a brown splotch means it always evaluated to the same
-value.  The red splotches are skipped for forms that can't possibly
-complete their evaluation, such as `error'.  The brown splotches are
-skipped for forms that are expected to always evaluate to the same
-value, such as (setq x 14).
-
-For difficult cases, you can add do-nothing macros to your code to
-help out the test coverage tool.  The macro `noreturn' suppresses a
-red splotch.  It is an error if the argument to `noreturn' does
-return.  The macro 1value suppresses a brown splotch for its argument.
-This macro is a no-op except during test-coverage -- then it signals
-an error if the argument actually returns differing values.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+** Makefile mode has submodes for automake, gmake, makepp and BSD make.
+
+The former two couldn't be differentiated before, and the latter two
+are new.  Font-locking is robust now and offers new customizable
+faces.
+
 +++
-** In Outline mode, hide-body no longer hides lines at the top
+** In Outline mode, `hide-body' no longer hides lines at the top
 of the file that precede the first header line.
 
 +++
 ** Telnet now prompts you for a port number with C-u M-x telnet.
 
 ---
-** The terminal emulation code in term.el has been improved, it can
+** The terminal emulation code in term.el has been improved; it can
 run most curses applications now.
 
 +++
-** M-x diff uses diff-mode instead of compilation-mode.
+** M-x diff uses Diff mode instead of Compilation mode.
 
 +++
-** You can now customize fill-nobreak-predicate to control where
+** You can now customize `fill-nobreak-predicate' to control where
 filling can break lines.  The value is now normally a list of
 functions, but it can also be a single function, for compatibility.
 
-We provide two sample predicates, fill-single-word-nobreak-p and
-fill-french-nobreak-p, for use in the value of fill-nobreak-predicate.
+Emacs provide two predicates, `fill-single-word-nobreak-p' and
+`fill-french-nobreak-p', for use as the value of
+`fill-nobreak-predicate'.
 
 ---
 ** M-x view-file and commands that use it now avoid interfering
 with special modes such as Tar mode.
 
 ---
-** Commands winner-redo and winner-undo, from winner.el, are now bound to
-C-c <left> and C-c <right>, respectively.  This is an incompatible change.
+** Commands `winner-redo' and `winner-undo', from winner.el, are now
+bound to C-c <left> and C-c <right>, respectively.  This is an
+incompatible change.
 
 ---
-** global-whitespace-mode is a new alias for whitespace-global-mode.
+** `global-whitespace-mode' is a new alias for `whitespace-global-mode'.
 
 +++
 ** M-x compare-windows now can automatically skip non-matching text to
@@ -1869,6 +1826,7 @@ resync points in both windows.
 
 +++
 ** New user option `add-log-always-start-new-record'.
+
 When this option is enabled, M-x add-change-log-entry always
 starts a new record regardless of when the last record is.
 
@@ -1880,10 +1838,11 @@ when Emacs visits them.
 
 +++
 *** A numeric prefix argument of `info' selects an Info buffer
-with the number appended to the *info* buffer name (e.g. "*info*<2>").
+with the number appended to the `*info*' buffer name (e.g. "*info*<2>").
 
 ---
 *** isearch in Info uses Info-search and searches through multiple nodes.
+
 Before leaving the initial Info node isearch fails once with the error
 message [initial node], and with subsequent C-s/C-r continues through
 other nodes.  When isearch fails for the rest of the manual, it wraps
@@ -1922,11 +1881,13 @@ references and following them calls `browse-url'.
 
 +++
 *** Info now hides node names in menus and cross references by default.
+
 If you prefer the old behavior, you can set the new user option
 `Info-hide-note-references' to nil.
 
 ---
 *** Images in Info pages are supported.
+
 Info pages show embedded images, in Emacs frames with image support.
 Info documentation that includes images, processed with makeinfo
 version 4.7 or newer, compiles to Info pages with embedded images.
@@ -1935,25 +1896,24 @@ version 4.7 or newer, compiles to Info pages with embedded images.
 *** The default value for `Info-scroll-prefer-subnodes' is now nil.
 
 ---
-*** Info-index offers completion.
+*** `Info-index' offers completion.
 
 ** Lisp mode changes:
 
 ---
-*** Lisp mode now uses font-lock-doc-face for the docstrings.
+*** Lisp mode now uses `font-lock-doc-face' for doc strings.
 
 +++
-*** A prefix argument of C-M-q in Emacs Lisp mode pretty-printifies the
-list starting after point.
+*** C-u C-M-q in Emacs Lisp mode pretty-prints the list after point.
 
 *** New features in evaluation commands
 
 +++
-*** The function `eval-defun' (C-M-x) called on defface reinitializes
+**** The function `eval-defun' (C-M-x) called on defface reinitializes
 the face to the value specified in the defface expression.
 
 +++
-*** Typing C-x C-e twice prints the value of the integer result
+**** Typing C-x C-e twice prints the value of the integer result
 in additional formats (octal, hexadecimal, character) specified
 by the new function `eval-expression-print-format'.  The same
 function also defines the result format for `eval-expression' (M-:),
@@ -2079,23 +2039,23 @@ module-open, module-close, inmodule, composition-open,
 composition-close, and incomposition.
 
 *** New functions to do hungry delete without enabling hungry delete mode.
-The functions c-hungry-backspace and c-hungry-delete-forward can be
+The functions `c-hungry-backspace' and `c-hungry-delete-forward' can be
 bound to keys to get this feature without toggling a mode.
-Contributed by Kevin Ryde.
 
-*** Better control over require-final-newline.  The variable that
-controls how to handle a final newline when the buffer is saved,
-require-final-newline, is now customizable on a per-mode basis through
-c-require-final-newline.  That is a list of modes, and only those
-modes set require-final-newline.  By default that's C, C++ and
-Objective-C.
+*** Better control over `require-final-newline'.
 
-The specified modes set require-final-newline based on
-mode-require-final-newline, as usual.
+The variable `c-require-final-newline' specifies which of the modes
+implemented by CC mode should insert final newlines.  Its value is a
+list of modes, and only those modes should do it.  By default the list
+includes C, C++ and Objective-C modes.
+
+Whichever modes are in this list will set `require-final-newline'
+based on `mode-require-final-newline'.
 
 *** Format change for syntactic context elements.
-The elements in the syntactic context returned by c-guess-basic-syntax
-and stored in c-syntactic-context has been changed somewhat to allow
+
+The elements in the syntactic context returned by `c-guess-basic-syntax'
+and stored in `c-syntactic-context' has been changed somewhat to allow
 attaching more information.  They are now lists instead of single cons
 cells.  E.g. a line that previously had the syntactic analysis
 
@@ -2108,12 +2068,13 @@ is now analysed as
 In some cases there are more than one position given for a syntactic
 symbol.
 
-This change might affect code that call c-guess-basic-syntax directly,
-and custom lineup functions if they use c-syntactic-context.  However,
+This change might affect code that call `c-guess-basic-syntax' directly,
+and custom lineup functions if they use `c-syntactic-context'.  However,
 the argument given to lineup functions is still a single cons cell
 with nil or an integer in the cdr.
 
 *** API changes for derived modes.
+
 There have been extensive changes "under the hood" which can affect
 derived mode writers.  Some of these changes are likely to cause
 incompatibilities with existing derived modes, but on the other hand
@@ -2125,8 +2086,8 @@ See the comment blurb near the top of cc-langs.el.
 
 **** New initialization functions.
 The initialization procedure has been split up into more functions to
-give better control: c-basic-common-init, c-font-lock-init, and
-c-init-language-vars.
+give better control: `c-basic-common-init', `c-font-lock-init', and
+`c-init-language-vars'.
 
 *** Changes in analysis of nested syntactic constructs.
 The syntactic analysis engine has better handling of cases where
@@ -2152,33 +2113,34 @@ its substatement.  E.g:
 **** Syntactic indentation inside macros.
 The contents of multiline #define's are now analyzed and indented
 syntactically just like other code.  This can be disabled by the new
-variable c-syntactic-indentation-in-macros.  A new syntactic symbol
-cpp-define-intro has been added to control the initial indentation
-inside #define's.
+variable `c-syntactic-indentation-in-macros'.  A new syntactic symbol
+`cpp-define-intro' has been added to control the initial indentation
+inside `#define's.
 
-**** New lineup function c-lineup-cpp-define.
+**** New lineup function `c-lineup-cpp-define'.
+
 Now used by default to line up macro continuation lines.  The behavior
 of this function closely mimics the indentation one gets if the macro
 is indented while the line continuation backslashes are temporarily
 removed.  If syntactic indentation in macros is turned off, it works
-much line c-lineup-dont-change, which was used earlier, but handles
+much line `c-lineup-dont-change', which was used earlier, but handles
 empty lines within the macro better.
 
 **** Automatically inserted newlines continues the macro if used within one.
 This applies to the newlines inserted by the auto-newline mode, and to
-c-context-line-break and c-context-open-line.
+`c-context-line-break' and `c-context-open-line'.
 
 **** Better alignment of line continuation backslashes.
-c-backslash-region tries to adapt to surrounding backslashes.  New
-variable c-backslash-max-column which put a limit on how far out
+`c-backslash-region' tries to adapt to surrounding backslashes.  New
+variable `c-backslash-max-column' which put a limit on how far out
 backslashes can be moved.
 
 **** Automatic alignment of line continuation backslashes.
-This is controlled by the new variable c-auto-align-backslashes.  It
-affects c-context-line-break, c-context-open-line and newlines
-inserted in auto-newline mode.
-
+This is controlled by the new variable `c-auto-align-backslashes'.  It
+affects `c-context-line-break', `c-context-open-line' and newlines
+inserted in Auto-Newline mode.
 **** Line indentation works better inside macros.
+
 Regardless whether syntactic indentation and syntactic indentation
 inside macros are enabled or not, line indentation now ignores the
 line continuation backslashes.  This is most noticeable when syntactic
@@ -2187,37 +2149,35 @@ backslash) in the macro.
 
 *** indent-for-comment is more customizable.
 The behavior of M-; (indent-for-comment) is now configurable through
-the variable c-indent-comment-alist.  The indentation behavior based
+the variable `c-indent-comment-alist'.  The indentation behavior based
 on the preceding code on the line, e.g. to get two spaces after #else
-and #endif but indentation to comment-column in most other cases
+and #endif but indentation to `comment-column' in most other cases
 (something which was hardcoded earlier).
 
-*** New function c-context-open-line.
-It's the open-line equivalent of c-context-line-break.
+*** New function `c-context-open-line'.
+It's the open-line equivalent of `c-context-line-break'.
 
 *** New lineup functions
 
-**** c-lineup-string-cont
+**** `c-lineup-string-cont'
 This lineup function lines up a continued string under the one it
 continues.  E.g:
 
 result = prefix + "A message "
                   "string.";      <- c-lineup-string-cont
 
-**** c-lineup-cascaded-calls
+**** `c-lineup-cascaded-calls'
 Lines up series of calls separated by "->" or ".".
 
-**** c-lineup-knr-region-comment
+**** `c-lineup-knr-region-comment'
 Gives (what most people think is) better indentation of comments in
 the "K&R region" between the function header and its body.
 
-**** c-lineup-gcc-asm-reg
-Provides better indentation inside asm blocks.  Contributed by Kevin
-Ryde.
+**** `c-lineup-gcc-asm-reg'
+Provides better indentation inside asm blocks.
 
-**** c-lineup-argcont
+**** `c-lineup-argcont'
 Lines up continued function arguments after the preceding comma.
-Contributed by Kevin Ryde.
 
 *** Better caching of the syntactic context.
 CC Mode caches the positions of the opening parentheses (of any kind)
@@ -2237,7 +2197,7 @@ Statements are recognized most of the time even when they occur in an
 "invalid" context, e.g. in a function argument.  In practice that can
 happen when macros are involved.
 
-*** Improved the way c-indent-exp chooses the block to indent.
+*** Improved the way `c-indent-exp' chooses the block to indent.
 It now indents the block for the closest sexp following the point
 whose closing paren ends on a different line.  This means that the
 point doesn't have to be immediately before the block to indent.
@@ -2245,7 +2205,7 @@ Also, only the block and the closing line is indented; the current
 line is left untouched.
 
 *** Added toggle for syntactic indentation.
-The function c-toggle-syntactic-indentation can be used to toggle
+The function `c-toggle-syntactic-indentation' can be used to toggle
 syntactic indentation.
 
 ---
@@ -2275,7 +2235,7 @@ Lines that match are never indented, and are given distinctive font-locking.
 `fortran-beginning-of-block'.
 
 ---
-*** F90 mode and Fortran mode have support for hs-minor-mode (hideshow).
+*** F90 mode and Fortran mode have support for `hs-minor-mode' (hideshow).
 It cannot deal with every code format, but ought to handle a sizeable
 majority.
 
@@ -2320,50 +2280,51 @@ TeX commands to use at startup.
 and super/sub-scripts are made into super/sub-scripts.
 
 +++
-*** New major mode doctex-mode for *.dtx files.
+*** New major mode Doctex mode, for *.dtx files.
 
 ** BibTeX mode:
-*** The new command bibtex-url browses a URL for the BibTeX entry at
+
+*** The new command `bibtex-url' browses a URL for the BibTeX entry at
 point (bound to C-c C-l and mouse-2, RET on clickable fields).
 
-*** The new command bibtex-entry-update (bound to C-c C-u) updates
+*** The new command `bibtex-entry-update' (bound to C-c C-u) updates
 an existing BibTeX entry.
 
 *** New `bibtex-entry-format' option `required-fields', enabled by default.
 
-*** bibtex-maintain-sorted-entries can take values `plain',
+*** `bibtex-maintain-sorted-entries' can take values `plain',
 `crossref', and `entry-class' which control the sorting scheme used
 for BibTeX entries.  `bibtex-sort-entry-class' controls the sorting
 scheme `entry-class'.  TAB completion for reference keys and
 automatic detection of duplicates does not require anymore that
-bibtex-maintain-sorted-entries is non-nil.
+`bibtex-maintain-sorted-entries' is non-nil.
 
-*** If the new variable bibtex-parse-keys-fast is non-nil,
+*** If the new variable `bibtex-parse-keys-fast' is non-nil,
 use fast but simplified algorithm for parsing BibTeX keys.
 
-*** If the new variable bibtex-autoadd-commas is non-nil,
+*** If the new variable `bibtex-autoadd-commas' is non-nil,
 automatically add missing commas at end of BibTeX fields.
 
-*** The new variable bibtex-autofill-types contains a list of entry
+*** The new variable `bibtex-autofill-types' contains a list of entry
 types for which fields are filled automatically (if possible).
 
-*** The new command bibtex-complete completes word fragment before
+*** The new command `bibtex-complete' completes word fragment before
 point according to context (bound to M-tab).
 
-*** The new commands bibtex-find-entry and bibtex-find-crossref
+*** The new commands `bibtex-find-entry' and `bibtex-find-crossref'
 locate entries and crossref'd entries (bound to C-c C-s and C-c C-x).
 Crossref fields are clickable (bound to mouse-2, RET).
 
-*** In BibTeX mode the command fill-paragraph (bound to M-q) fills
+*** In BibTeX mode the command `fill-paragraph' (M-q) fills
 individual fields of a BibTeX entry.
 
-*** The new variables bibtex-files and bibtex-file-path define a set
+*** The new variables `bibtex-files' and `bibtex-file-path' define a set
 of BibTeX files that are searched for entry keys.
 
-*** The new command bibtex-validate-globally checks for duplicate keys
+*** The new command `bibtex-validate-globally' checks for duplicate keys
 in multiple BibTeX files.
 
-*** The new command bibtex-copy-summary-as-kill pushes summary
+*** The new command `bibtex-copy-summary-as-kill' pushes summary
 of BibTeX entry to kill ring (bound to C-c C-t).
 
 +++
@@ -2385,14 +2346,16 @@ and other common debugger commands.
 *** The new package gdb-ui.el provides an enhanced graphical interface to
 GDB. You can interact with GDB through the GUD buffer in the usual way, but
 there are also further buffers which control the execution and describe the
-state of your program.  It separates the input/output of your program from
+state of your program.  It can separate the input/output of your program from
 that of GDB and watches expressions in the speedbar.  It also uses features of
-Emacs 21 such as the display margin for breakpoints, and the toolbar.
+Emacs 21/22 such as the the toolbar, and bitmaps in the fringe to indicate
+breakpoints.
 
-Use M-x gdba to start GDB-UI.
+Use M-x gdb to start GDB-UI.
 
-*** GUD tooltips can be toggled independently of normal tooltips
-with the minor mode, gud-tooltip-mode.
+*** The variable tooltip-gud-tips-p has been removed.  GUD tooltips can now be
+toggled independently of normal tooltips with the minor mode
+`gud-tooltip-mode'.
 
 +++
 *** In graphical mode, with a C program, GUD Tooltips have been extended to
@@ -2418,27 +2381,27 @@ not executing.
 
 *** The previous method of searching for source files has been
     preserved in case someone still wants/needs to use it.
-    Set gud-jdb-use-classpath to nil.
+    Set `gud-jdb-use-classpath' to nil.
 
   Added Customization Variables
 
-*** gud-jdb-command-name.  What command line to use to invoke jdb.
+*** `gud-jdb-command-name'.  What command line to use to invoke jdb.
 
-*** gud-jdb-use-classpath. Allows selection of java source file searching
-    method: set to t for new method, nil to scan gud-jdb-directories for
+*** `gud-jdb-use-classpath'. Allows selection of java source file searching
+    method: set to t for new method, nil to scan `gud-jdb-directories' for
     java sources (previous method).
 
-*** gud-jdb-directories. List of directories to scan and search for java
-    classes using the original gud-jdb method (if gud-jdb-use-classpath
+*** `gud-jdb-directories'. List of directories to scan and search for java
+    classes using the original gud-jdb method (if `gud-jdb-use-classpath'
     is nil).
 
   Minor Improvements
 
-*** The STARTTLS elisp wrapper (starttls.el) can now use GNUTLS
-instead of the OpenSSL based "starttls" tool.  For backwards
-compatibility, it prefers "starttls", but you can toggle
+*** The STARTTLS wrapper (starttls.el) can now use GNUTLS
+instead of the OpenSSL based `starttls' tool.  For backwards
+compatibility, it prefers `starttls', but you can toggle
 `starttls-use-gnutls' to switch to GNUTLS (or simply remove the
-"starttls" tool).
+`starttls' tool).
 
 *** Do not allow debugger output history variable to grow without bounds.
 
@@ -2446,6 +2409,7 @@ compatibility, it prefers "starttls", but you can toggle
 
 +++
 *** You can now use Auto Revert mode to `tail' a file.
+
 If point is at the end of a file buffer before reverting, Auto Revert
 mode keeps it at the end after reverting.  Similarly if point is
 displayed at the end of a file buffer in any window, it stays at
@@ -2501,17 +2465,20 @@ old name remains available as alias, but has been marked obsolete.
 ** Desktop package
 
 +++
-*** Desktop saving is now a minor mode, desktop-save-mode. Variable
-desktop-enable is obsolete. Customize desktop-save-mode to enable desktop
-saving.
+*** Desktop saving is now a minor mode, `desktop-save-mode'.
+
+*** The variable `desktop-enable' is obsolete.
+
+Customize `desktop-save-mode' to enable desktop saving.
 
 ---
 *** Buffers are saved in the desktop file in the same order as that in the
 buffer list.
 
 +++
-*** The desktop package can be customized to restore only some buffers immediately,
-remaining buffers are restored lazily (when Emacs is idle).
+*** The desktop package can be customized to restore only some buffers
+immediately, remaining buffers are restored lazily (when Emacs is
+idle).
 
 +++
 *** New commands:
@@ -2547,6 +2514,7 @@ remaining buffers are restored lazily (when Emacs is idle).
 
 ---
 ** The saveplace.el package now filters out unreadable files.
+
 When you exit Emacs, the saved positions in visited files no longer
 include files that aren't readable, e.g. files that don't exist.
 Customize the new option `save-place-forget-unreadable-files' to nil
@@ -2579,6 +2547,7 @@ backup using `ediff'.  If you specify the name of a backup file,
 *** New regular expressions features
 
 **** New syntax for regular expressions, multi-line regular expressions.
+
 The syntax --ignore-case-regexp=/regex/ is now undocumented and retained
 only for backward compatibility.  The new equivalent syntax is
 --regex=/regex/i.  More generally, it is --regex=/TAGREGEX/TAGNAME/MODS,
@@ -2590,39 +2559,47 @@ expressions: `m' allows regexps to match more than one line, while `s'
 span newlines allows writing of much more powerful regular expressions
 and rapid prototyping for tagging new languages.
 
-**** Regular expressions can use char escape sequences as in Gcc.
+**** Regular expressions can use char escape sequences as in GCC.
+
 The escaped character sequence \a, \b, \d, \e, \f, \n, \r, \t, \v,
 respectively, stand for the ASCII characters BEL, BS, DEL, ESC, FF, NL,
 CR, TAB, VT,
 
 **** Regular expressions can be bound to a given language.
+
 The syntax --regex={LANGUAGE}REGEX means that REGEX is used to make tags
 only for files of language LANGUAGE, and ignored otherwise.  This is
 particularly useful when storing regexps in a file.
 
 **** Regular expressions can be read from a file.
+
 The --regex=@regexfile option means read the regexps from a file, one
 per line.  Lines beginning with space or tab are ignored.
 
 *** New language parsing features
 
 **** The `::' qualifier triggers C++ parsing in C file.
+
 Previously, only the `template' and `class' keywords had this effect.
 
-**** The gnucc __attribute__ keyword is now recognised and ignored.
+**** The GCC __attribute__ keyword is now recognised and ignored.
 
 **** New language HTML.
-Title and h1, h2, h3 are tagged.  Also, tags are generated when name= is
-used inside an anchor and whenever id= is used.
+
+Tags are generated for `title' as well as `h1', `h2', and `h3'.  Also,
+when `name=' is used inside an anchor and whenever `id=' is used.
 
 **** In Makefiles, constants are tagged.
+
 If you want the old behavior instead, thus avoiding to increase the
 size of the tags file, use the --no-globals option.
 
 **** New language Lua.
+
 All functions are tagged.
 
 **** In Perl, packages are tags.
+
 Subroutine tags are named from their package.  You can jump to sub tags
 as you did before, by the sub name, or additionally by looking for
 package::sub.
@@ -2630,14 +2607,17 @@ package::sub.
 **** In Prolog, etags creates tags for rules in addition to predicates.
 
 **** New language PHP.
-Tags are functions, classes and defines.
-If the --members option is specified to etags, tags are variables also.
+
+Functions, classes and defines are tags.  If the --members option is
+specified to etags, variables are tags also.
 
 **** New default keywords for TeX.
+
 The new keywords are def, newcommand, renewcommand, newenvironment and
 renewenvironment.
 
 *** Honour #line directives.
+
 When Etags parses an input file that contains C preprocessor's #line
 directives, it creates tags using the file name and line number
 specified in those directives.  This is useful when dealing with code
@@ -2645,6 +2625,7 @@ created from Cweb source files.  When Etags tags the generated file, it
 writes tags pointing to the source file.
 
 *** New option --parse-stdin=FILE.
+
 This option is mostly useful when calling etags from programs.  It can
 be used (only once) in place of a file name on the command line.  Etags
 reads from standard input and marks the produced tags as belonging to
@@ -2653,31 +2634,33 @@ the file FILE.
 ** VC Changes
 
 +++
-*** The key C-x C-q no longer checks files in or out, it only changes
-the read-only state of the buffer (toggle-read-only).  We made this
-change because we held a poll and found that many users were unhappy
-with the previous behavior.  If you do prefer this behavior, you
-can bind `vc-toggle-read-only' to C-x C-q in your .emacs:
+*** The key C-x C-q only changes the read-only state of the buffer
+(toggle-read-only).  It no longer checks files in or out.
+
+We made this change because we held a poll and found that many users
+were unhappy with the previous behavior.  If you do prefer this
+behavior, you can bind `vc-toggle-read-only' to C-x C-q in your
+`.emacs' file:
 
     (global-set-key "\C-x\C-q" 'vc-toggle-read-only)
 
 The function `vc-toggle-read-only' will continue to exist.
 
 +++
-*** There is a new user option `vc-cvs-global-switches' that allows
-you to specify switches that are passed to any CVS command invoked
-by VC.  These switches are used as "global options" for CVS, which
-means they are inserted before the command name.  For example, this
-allows you to specify a compression level using the "-z#" option for
-CVS.
+*** The new variable `vc-cvs-global-switches' specifies switches that
+are passed to any CVS command invoked by VC.
+
+These switches are used as "global options" for CVS, which means they
+are inserted before the command name.  For example, this allows you to
+specify a compression level using the `-z#' option for CVS.
 
 +++
 *** New backends for Subversion and Meta-CVS.
 
 +++
-*** vc-annotate-mode enhancements
+*** VC-Annotate mode enhancements
 
-In vc-annotate mode, you can now use the following key bindings for
+In VC-Annotate mode, you can now use the following key bindings for
 enhanced functionality to browse the annotations of past revisions, or
 to view diffs or log entries directly from vc-annotate-mode:
 
@@ -2699,18 +2682,18 @@ in the repository.
 +++
 *** In pcl-cvs mode, there is a new `d r' command to view the changes
 anyone has committed to the repository since you last executed
-"checkout", "update" or "commit".  That means using cvs diff options
+`checkout', `update' or `commit'.  That means using cvs diff options
 -rBASE -rHEAD.
 
 +++
-** There is a new user option `mail-default-directory' that allows you
-to specify the value of `default-directory' for mail buffers.  This
-directory is used for auto-save files of mail buffers.  It defaults to
-"~/".
+** The new variable `mail-default-directory' specifies
+`default-directory' for mail buffers.  This directory is used for
+auto-save files of mail buffers.  It defaults to "~/".
 
 +++
-** Emacs can now indicate in the mode-line the presence of new e-mail
-in a directory or in a file.  See the documentation of the user option
+** The mode line can indicate new mail in a directory or file.
+
+See the documentation of the user option
 `display-time-mail-directory'.
 
 ** Rmail changes:
@@ -2720,6 +2703,7 @@ in a directory or in a file.  See the documentation of the user option
 
 +++
 *** Support for `movemail' from GNU mailutils was added to Rmail.
+
 This version of `movemail' allows to read mail from a wide range of
 mailbox formats, including remote POP3 and IMAP4 mailboxes with or
 without TLS encryption.  If GNU mailutils is installed on the system
@@ -2730,11 +2714,13 @@ used instead of the native one.
 
 ---
 *** Gnus now includes Sieve and PGG
+
 Sieve is a library for managing Sieve scripts.  PGG is a library to handle
 PGP/MIME.
 
 ---
 *** There are many news features, bug fixes and improvements.
+
 See the file GNUS-NEWS or the node "Oort Gnus" in the Gnus manual for details.
 
 ---
@@ -2786,10 +2772,10 @@ This can be controlled through the variables `diary-header-line-flag'
 and `diary-header-line-format'.
 
 +++
-*** The procedure for activating appointment reminders has changed: use
-the new function `appt-activate'. The new variable
+*** The procedure for activating appointment reminders has changed:
+use the new function `appt-activate'.  The new variable
 `appt-display-format' controls how reminders are displayed, replacing
-appt-issue-message, appt-visible, and appt-msg-window.
+`appt-issue-message', `appt-visible', and `appt-msg-window'.
 
 +++
 *** The new functions `diary-from-outlook', `diary-from-outlook-gnus',
@@ -2827,24 +2813,26 @@ The current product name will be shown on the mode line following the
 SQL mode indicator.
 
 The technique of setting `sql-mode-font-lock-defaults' directly in
-your .emacs will no longer establish the default highlighting -- Use
+your `.emacs' will no longer establish the default highlighting -- Use
 `sql-product' to accomplish this.
 
 ANSI keywords are always highlighted.
 
 *** The function `sql-add-product-keywords' can be used to add
 font-lock rules to the product specific rules.  For example, to have
-all identifiers ending in "_t" under MS SQLServer treated as a type,
+all identifiers ending in `_t' under MS SQLServer treated as a type,
 you would use the following line in your .emacs file:
 
   (sql-add-product-keywords 'ms
              '(("\\<\\w+_t\\>" . font-lock-type-face)))
 
-*** Oracle support includes keyword highlighting for Oracle 9i.  Most
-SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
+*** Oracle support includes keyword highlighting for Oracle 9i.
+
+Most SQL and PL/SQL keywords are implemented.  SQL*Plus commands are
 highlighted in `font-lock-doc-face'.
 
 *** Microsoft SQLServer support has been significantly improved.
+
 Keyword highlighting for SqlServer 2000 is implemented.
 sql-interactive-mode defaults to use osql, rather than isql, because
 osql flushes its error stream more frequently.  Thus error messages
@@ -2852,7 +2840,7 @@ are displayed when they occur rather than when the session is
 terminated.
 
 If the username and password are not provided to `sql-ms', osql is
-called with the -E command line argument to use the operating system
+called with the `-E' command line argument to use the operating system
 credentials to authenticate the user.
 
 *** Postgres support is enhanced.
@@ -2867,33 +2855,36 @@ packages, procedures, functions, triggers, sequences, rules, and
 defaults.
 
 *** Added SQL->Start SQLi Session menu entry which calls the
-appropriate sql-interactive-mode wrapper for the current setting of
+appropriate `sql-interactive-mode' wrapper for the current setting of
 `sql-product'.
 
 ---
-*** Support for the SQLite interpreter has been added to sql.el by calling
-'sql-sqlite'.
+*** sql.el supports the SQLite interpreter--call 'sql-sqlite'.
 
 ** FFAP changes:
 
 +++
-*** New ffap commands and keybindings: C-x C-r (`ffap-read-only'),
+*** New ffap commands and keybindings:
+
+C-x C-r (`ffap-read-only'),
 C-x C-v (`ffap-alternate-file'), C-x C-d (`ffap-list-directory'),
 C-x 4 r (`ffap-read-only-other-window'), C-x 4 d (`ffap-dired-other-window'),
 C-x 5 r (`ffap-read-only-other-frame'), C-x 5 d (`ffap-dired-other-frame').
 
 ---
-*** FFAP accepts wildcards in a file name by default.  C-x C-f passes
-it to `find-file' with non-nil WILDCARDS argument, which visits
-multiple files, and C-x d passes it to `dired'.
+*** FFAP accepts wildcards in a file name by default.
+
+C-x C-f passes the file name to `find-file' with non-nil WILDCARDS
+argument, which visits multiple files, and C-x d passes it to `dired'.
 
 ---
-** skeleton.el now supports using - to mark the skeleton-point without
-   interregion interaction.  @ has reverted to only setting
-   skeleton-positions and no longer sets skeleton-point.  Skeletons
-   which used @ to mark skeleton-point independent of _ should now use -
-   instead.  The updated skeleton-insert docstring explains these new
-   features along with other details of skeleton construction.
+** In skeleton.el, `-' marks the `skeleton-point' without interregion interaction.
+
+`@' has reverted to only setting `skeleton-positions' and no longer
+sets `skeleton-point'.  Skeletons which used @ to mark
+`skeleton-point' independent of `_' should now use `-' instead.  The
+updated `skeleton-insert' docstring explains these new features along
+with other details of skeleton construction.
 
 ---
 ** New variable `hs-set-up-overlay' allows customization of the overlay
@@ -2902,25 +2893,25 @@ handles the overlay property `display' specially, preserving it during
 temporary overlay showing in the course of an isearch operation.
 
 +++
-** hide-ifdef-mode now uses overlays rather than selective-display
+** `hide-ifdef-mode' now uses overlays rather than selective-display
 to hide its text.  This should be mostly transparent but slightly
 changes the behavior of motion commands like C-e and C-p.
 
 ---
-** partial-completion-mode now does partial completion on directory names.
+** `partial-completion-mode' now handles partial completion on directory names.
 
 ---
 ** The type-break package now allows `type-break-file-name' to be nil
 and if so, doesn't store any data across sessions.  This is handy if
-you don't want the .type-break file in your home directory or are
+you don't want the `.type-break' file in your home directory or are
 annoyed by the need for interaction when you kill Emacs.
 
 ---
 ** `ps-print' can now print characters from the mule-unicode charsets.
 
 Printing text with characters from the mule-unicode-* sets works with
-ps-print, provided that you have installed the appropriate BDF fonts.
-See the file INSTALL for URLs where you can find these fonts.
+`ps-print', provided that you have installed the appropriate BDF
+fonts.  See the file INSTALL for URLs where you can find these fonts.
 
 ---
 ** New command `strokes-global-set-stroke-string'.
@@ -2940,7 +2931,7 @@ using strokes as an input method.
 
 +++
 *** The `emacsclient' command understands the options `--eval' and
-`--display' which tell Emacs respectively to evaluate the given elisp
+`--display' which tell Emacs respectively to evaluate the given Lisp
 expression and to use the given display when visiting files.
 
 +++
@@ -2951,11 +2942,10 @@ expression and to use the given display when visiting files.
 
 +++
 ** You can now disable pc-selection-mode after enabling it.
-M-x pc-selection-mode behaves like a proper minor mode, and with no
-argument it toggles the mode.
 
-Turning off PC-Selection mode restores the global key bindings
-that were replaced by turning on the mode.
+M-x pc-selection-mode behaves like a proper minor mode, and with no
+argument it toggles the mode.  Turning off PC-Selection mode restores
+the global key bindings that were replaced by turning on the mode.
 
 ---
 ** `uniquify-strip-common-suffix' tells uniquify to prefer
@@ -2963,9 +2953,10 @@ that were replaced by turning on the mode.
 
 ---
 ** Support for `magic cookie' standout modes has been removed.
-Emacs will still work on terminals that require magic cookies in order
-to use standout mode, however they will not be able to display
-mode-lines in inverse-video.
+
+Emacs still works on terminals that require magic cookies in order to
+use standout mode, but they can no longer display mode-lines in
+inverse-video.
 
 ---
 ** The game `mpuz' is enhanced.
@@ -2975,14 +2966,15 @@ default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
 ---
-** display-battery has been replaced by display-battery-mode.
+** display-battery-mode replaces display-battery.
 
 ---
-** calculator.el now has radix grouping mode, which is available when
-`calculator-output-radix' is non-nil.  In this mode a separator
-character is used every few digits, making it easier to see byte
-boundries etc.  For more info, see the documentation of the variable
-`calculator-radix-grouping-mode'.
+** calculator.el now has radix grouping mode.
+
+To enable this, set `calculator-output-radix' non-nil.  In this mode a
+separator character is used every few digits, making it easier to see
+byte boundries etc.  For more info, see the documentation of the
+variable `calculator-radix-grouping-mode'.
 
 ---
 ** fast-lock.el and lazy-lock.el are obsolete.  Use jit-lock.el instead.
@@ -2991,12 +2983,13 @@ boundries etc.  For more info, see the documentation of the variable
 ** iso-acc.el is now obsolete.  Use one of the latin input methods instead.
 
 ---
-** cplus-md.el has been removed to avoid problems with Custom.
+** cplus-md.el has been deleted.
 
 * Changes in Emacs 22.1 on non-free operating systems
 
 +++
 ** Passing resources on the command line now works on MS Windows.
+
 You can use --xrm to pass resource settings to Emacs, overriding any
 existing values.  For example:
 
@@ -3007,15 +3000,18 @@ irrespective of geometry or background setting on the Windows registry.
 
 ---
 ** On MS Windows, the "system caret" now follows the cursor.
+
 This enables Emacs to work better with programs that need to track
 the cursor, for example screen magnifiers and text to speech programs.
 
 ---
 ** Tooltips now work on MS Windows.
+
 See the Emacs 21.1 NEWS entry for tooltips for details.
 
 ---
 ** Images are now supported on MS Windows.
+
 PBM and XBM images are supported out of the box. Other image formats
 depend on external libraries.  All of these libraries have been ported
 to Windows, and can be found in both source and binary form at
@@ -3025,6 +3021,7 @@ against.  For additional information, see nt/INSTALL.
 
 ---
 ** Sound is now supported on MS Windows.
+
 WAV format is supported on all versions of Windows, other formats such
 as AU, AIFF and MP3 may be supported in the more recent versions of
 Windows, or when other software provides hooks into the system level
@@ -3032,16 +3029,19 @@ sound support for those formats.
 
 ---
 ** Different shaped mouse pointers are supported on MS Windows.
+
 The mouse pointer changes shape depending on what is under the pointer.
 
 ---
 ** Pointing devices with more than 3 buttons are now supported on MS Windows.
+
 The new variable `w32-pass-extra-mouse-buttons-to-system' controls
 whether Emacs should handle the extra buttons itself (the default), or
 pass them to Windows to be handled with system-wide functions.
 
 ---
 ** Emacs takes note of colors defined in Control Panel on MS-Windows.
+
 The Control Panel defines some default colors for applications in much
 the same way as wildcard X Resources do on X.  Emacs now adds these
 colors to the colormap prefixed by System (eg SystemMenu for the
@@ -3052,6 +3052,7 @@ you wish to use them in other faces.
 
 ---
 ** On MS Windows NT/W2K/XP, Emacs uses Unicode for clipboard operations.
+
 Those systems use Unicode internally, so this allows Emacs to share
 multilingual text with other applications. On other versions of
 MS Windows, Emacs now uses the appropriate locale coding-system, so
@@ -3059,9 +3060,10 @@ the clipboard should work correctly for your local language without
 any customizations.
 
 ---
-** On Mac OS, the value of the variable `keyboard-coding-system' is
-now dynamically changed according to the current keyboard script.  The
-variable `mac-keyboard-text-encoding' and the constants
+** On Mac OS, `keyboard-coding-system' changes based on the keyboard script.
+
+---
+** The variable `mac-keyboard-text-encoding' and the constants
 `kTextEncodingMacRoman', `kTextEncodingISOLatin1', and
 `kTextEncodingISOLatin2' are obsolete.
 
@@ -3085,6 +3087,10 @@ the command `undefined'.  (In earlier Emacs versions, it used
 
 ** General Lisp changes:
 
+---
+*** The variables post-command-idle-hook and post-command-idle-delay have
+    been removed.  Use run-with-idle-timer instead.
+
 +++
 *** The function `eql' is now available without requiring the CL package.
 
@@ -3092,57 +3098,67 @@ the command `undefined'.  (In earlier Emacs versions, it used
 *** `makehash' is now obsolete.  Use `make-hash-table' instead.
 
 +++
-*** If optional third argument APPEND to `add-to-list' is non-nil, a
-new element gets added at the end of the list instead of at the
-beginning.  This change actually occurred in Emacs-21.1, but was not
-documented.
+*** `add-to-list' takes an optional third argument, APPEND.
+
+If APPEND is non-nil, the new element gets added at the end of the
+list instead of at the beginning.  This change actually occurred in
+Emacs 21.1, but was not documented then.
 
 +++
-*** New function `copy-tree' makes a copy of a tree, recursively copying
-both cars and cdrs.
+*** New function `copy-tree' makes a copy of a tree.
+
+It recursively copyies through both CARs and CDRs.
 
 +++
-*** New function `delete-dups' destructively removes `equal'
-duplicates from a list.  Of several `equal' occurrences of an element
-in the list, the first one is kept.
+*** New function `delete-dups' deletes `equal' duplicate elements from a list.
+
+It modifies the list destructively, like `delete'.  Of several `equal'
+occurrences of an element in the list, the one that's kept is the
+first one.
 
 +++
-*** `declare' is now a macro.  This change was made mostly for
-documentation purposes and should have no real effect on Lisp code.
+*** New function `rassq-delete-all'.
+
+(rassq-delete-all VALUE ALIST) deletes, from ALIST, each element whose
+CDR is `eq' to the specified value.
 
 +++
-*** The new function `rassq-delete-all' deletes all elements from an
-alist whose cdr is `eq' to a specified value.
+*** The function `number-sequence' makes a list of equally-separated numbers.
+
+For instance, (number-sequence 4 9) returns (4 5 6 7 8 9).  By
+default, the separation is 1, but you can specify a different
+separation as the third argument.  (number-sequence 1.5 6 2) returns
+(1.5 3.5 5.5).
 
 +++
-*** The function `number-sequence' returns a list of equally-separated
-numbers.  For instance, (number-sequence 4 9) returns (4 5 6 7 8 9).
-By default, the separation is 1, but you can specify a different separation
-as the third argument.  (number-sequence 1.5 6 2) returns (1.5 3.5 5.5).
+*** New variables `most-positive-fixnum' and `most-negative-fixnum'.
+
+They hold the largest and smallest possible integer values.
 
 +++
-*** The variables `most-positive-fixnum' and `most-negative-fixnum'
-hold the largest and smallest possible integer values.
+*** Minor change in the function `format'.
+
+Some flags that were accepted but not implemented (such as "*") are no
+longer accepted.
 
 +++
-*** The flags, width, and precision options for %-specifications in function
-`format' are now documented.  Some flags that were accepted but not
-implemented (such as "*") are no longer accepted.
+*** Functions `get' and `plist-get' no longer give errors for bad plists.
+
+They return nil for a malformed property list or if the list is
+cyclic.
 
 +++
-*** Functions `get' and `plist-get' no longer signals an error for
-a malformed property list.  They also detect cyclic lists.
+*** New functions `lax-plist-get' and `lax-plist-put'.
+
+They are like `plist-get' and `plist-put', except that they compare
+the property name using `equal' rather than `eq'.
 
 +++
-*** The new functions `lax-plist-get' and `lax-plist-put' are like
-`plist-get' and `plist-put', except that they compare the property
-name using `equal' rather than `eq'.
+*** New variable `print-continuous-numbering'.
 
-+++
-*** The new variable `print-continuous-numbering', when non-nil, says
-that successive calls to print functions should use the same
-numberings for circular structure references.  This is only relevant
-when `print-circle' is non-nil.
+When this is non-nil, successive calls to print functions use a single
+numbering scheme for circular structure references.  This is only
+relevant when `print-circle' is non-nil.
 
 When you bind `print-continuous-numbering' to t, you should
 also bind `print-number-table' to nil.
@@ -3162,44 +3178,55 @@ angle in radians between the vector [X, Y] and the X axis.  (This is
 equivalent to the standard C library function `atan2'.)
 
 +++
-*** A function's doc string can now specify the calling pattern.
+*** A function or macro's doc string can now specify the calling pattern.
 
-You put this in the doc string's last line, which should match the
-regexp "\n\n(fn.*)\\'".
-
-+++
-*** New macro `with-local-quit' temporarily sets `inhibit-quit' to nil.
-
-This is for use around potentially blocking or long-running code in
-timers and `post-command-hook' functions.
-
-***  `define-obsolete-function-alias'
-combines `defalias' and `make-obsolete'.
+You put this info in the doc string's last line.  It should be
+formatted so as to match the regexp "\n\n(fn .*)\\'".  If you don't
+specify this explicitly, Emacs determines it from the actual argument
+names.  Usually that default is right, but not always.
 
 +++
-*** New function `unsafep' returns nil if the given Lisp form can't
-possibly do anything dangerous; otherwise it returns a reason why the
-form might be unsafe (calls unknown function, alters global variable,
-etc).
+*** New macro `with-local-quit' temporarily allows quitting.
+
+A quit inside the body of `with-local-quit' is caught by the
+`with-local-quit' form itself, but another quit will happen later once
+the code that has inhibitted quitting exits.
+
+This is for use around potentially blocking or long-running code
+inside timer functions and `post-command-hook' functions.
+
++++
+*** New macro `define-obsolete-function-alias'.
+
+This combines `defalias' and `make-obsolete'.
+
++++
+*** New function `unsafep' determines whether a Lisp form is safe.
+
+It returns nil if the given Lisp form can't possibly do anything
+dangerous; otherwise it returns a reason why the form might be unsafe
+(calls unknown function, alters global variable, etc).
 
 ** Lisp code indentation features:
 
 +++
-*** The `defmacro' form can contain declarations specifying how to
-indent the macro in Lisp mode and how to debug it with Edebug.  The
-syntax of defmacro has been extended to
+*** The `defmacro' form can contain indentation and edebug declarations.
+
+These declarations specify how to indent the macro calls in Lisp mode
+and how to debug them with Edebug.  You write them like this:
 
    (defmacro NAME LAMBDA-LIST [DOC-STRING] [DECLARATION ...] ...)
 
 DECLARATION is a list `(declare DECLARATION-SPECIFIER ...)'.  The
-declaration specifiers supported are:
+possible declaration specifiers are:
 
 (indent INDENT)
 	Set NAME's `lisp-indent-function' property to INDENT.
 
 (edebug DEBUG)
 	Set NAME's `edebug-form-spec' property to DEBUG.  (This is
-	equivalent to writing a `def-edebug-spec' for the macro.
+	equivalent to writing a `def-edebug-spec' for the macro,
+	but this is cleaner.)
 
 ---
 *** cl-indent now allows customization of Indentation of backquoted forms.
@@ -3217,7 +3244,7 @@ forms.
 +++
 ** Variable aliases:
 
-*** defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
+*** New function: defvaralias ALIAS-VAR BASE-VAR [DOCSTRING]
 
 This function defines the symbol ALIAS-VAR as a variable alias for
 symbol BASE-VAR.  This means that retrieving the value of ALIAS-VAR
@@ -3227,7 +3254,7 @@ changes the value of BASE-VAR.
 DOCSTRING, if present, is the documentation for ALIAS-VAR; else it has
 the same documentation as BASE-VAR.
 
-*** indirect-variable VARIABLE
+*** New function: indirect-variable VARIABLE
 
 This function returns the variable at the end of the chain of aliases
 of VARIABLE.  If VARIABLE is not a symbol, or if VARIABLE is not
@@ -3243,24 +3270,22 @@ variables, including buffer-local and frame-local variables.
 ** defcustom changes:
 
 +++
-*** defcustom and other custom declarations now use a default group
-(the last prior group defined in the same file) when no :group was given.
-
----
-*** The new customization type `float' specifies numbers with floating
-point (no integers are allowed).
+*** The new customization type `float' requires a floating point number.
 
 ** String changes:
 
 +++
-*** The escape sequence \s is now interpreted as a SPACE character,
-unless it is followed by a `-' in a character constant (e.g. ?\s-A),
-in which case it is still interpreted as the super modifier.
-In strings, \s is always interpreted as a space.
+*** The escape sequence \s is now interpreted as a SPACE character.
+
+Exception: In a character constant, if it is followed by a `-' in a
+character constant (e.g. ?\s-A), it is still interpreted as the super
+modifier.  In strings, \s is always interpreted as a space.
 
 +++
-*** A hex escape in a string forces the string to be multibyte.
-An octal escape makes it unibyte.
+*** A hex escape in a string constant forces the string to be multibyte.
+
++++
+*** An octal escape in a string constant forces the string to be unibyte.
 
 +++
 *** `split-string' now includes null substrings in the returned list if
@@ -3274,7 +3299,7 @@ empty matches are omitted from the returned list.
 multibyte string with the same individual character codes.
 
 +++
-*** New function `substring-no-properties returns a substring without
+*** New function `substring-no-properties' returns a substring without
 text properties.
 
 +++
@@ -3282,18 +3307,13 @@ text properties.
 `assoc-ignore-representation', which are still available, but have
 been declared obsolete.
 
-** Buffer/variable changes:
-
 +++
-*** The new function `buffer-local-value' returns the buffer-local
-binding of VARIABLE (a symbol) in buffer BUFFER.  If VARIABLE does not
-have a buffer-local binding in buffer BUFFER, it returns the default
-value of VARIABLE instead.
+** Displaying warnings to the user.
 
-+++
-** There is a new facility for displaying warnings to the user.
-
-See the functions `warn' and `display-warning' .
+See the functions `warn' and `display-warning', or the Lisp Manual.
+If you want to be sure the warning will not be overlooked, this
+facility is much better than using `message', since it displays
+warnings in a separate window.
 
 +++
 ** Progress reporters.
@@ -3315,28 +3335,36 @@ the usable window height and width is used.
 +++
 *** The `line-move', `scroll-up', and `scroll-down' functions will now
 modify the window vscroll to scroll through display rows that are
-taller that the height of the window, for example in the presense of
-large images.  To disable this feature, Lisp code can bind the new
-variable `auto-window-vscroll' to nil.
+taller that the height of the window, for example in the presence of
+large images.  To disable this feature, bind the new variable
+`auto-window-vscroll' to nil.
 
 +++
-*** The argument to `forward-word', `backward-word',
-`forward-to-indentation' and `backward-to-indentation' is now
-optional, and defaults to 1.
+*** The argument to `forward-word', `backward-word' is optional.
+
+It defaults to 1.
 
 +++
-*** Lisp code can now test if a given buffer position is inside a
-clickable link with the new function `mouse-on-link-p'.  This is the
-function used by the new `mouse-1-click-follows-link' functionality.
+*** Argument to `forward-to-indentation' and `backward-to-indentation' is optional.
+
+It defaults to 1.
 
 +++
-*** New function `line-number-at-pos' returns the line number of the
-current line in the current buffer, or if optional buffer position is
-given, line number of corresponding line in current buffer.
+*** New function `mouse-on-link-p' test if a position is in a clickable link.
+
+This is the function used by the new `mouse-1-click-follows-link'
+functionality.
 
 +++
-*** `field-beginning' and `field-end' now accept an additional optional
-argument, LIMIT.
+*** New function `line-number-at-pos' returns the line number of a position.
+
+It an optional buffer position argument that defaults to point.
+
++++
+*** `field-beginning' and `field-end' take new optional argument, LIMIT.
+
+This argument tells them not to search beyond LIMIT.  Instead they
+give up and return LIMIT.
 
 +++
 *** Function `pos-visible-in-window-p' now returns the pixel coordinates
@@ -3351,23 +3379,29 @@ position or for a given window pixel coordinate.
 ** Text modification:
 
 +++
-*** The new function `insert-buffer-substring-as-yank' works like
-`insert-buffer-substring', but removes the text properties in the
-`yank-excluded-properties' list.
+*** The new function `insert-for-yank' normally works like `insert', but
+removes the text properties in the `yank-excluded-properties' list
+and handles the `yank-handler' text property.
+
++++
+*** The new function `insert-buffer-substring-as-yank' is like
+`insert-for-yank' except that it gets the text from another buffer as
+in `insert-buffer-substring'.
 
 +++
 *** The new function `insert-buffer-substring-no-properties' is like
-insert-buffer-substring, but removes all text properties from the
+`insert-buffer-substring', but removes all text properties from the
 inserted substring.
 
 +++
 *** The new function `filter-buffer-substring' extracts a buffer
 substring, passes it through a set of filter functions, and returns
-the filtered substring.  It is used instead of `buffer-substring' or
+the filtered substring.  Use it instead of `buffer-substring' or
 `delete-and-extract-region' when copying text into a user-accessible
-data structure, like the kill-ring, X clipboard, or a register.  The
-list of filter function is specified by the new variable
-`buffer-substring-filters'.  For example, Longlines mode uses
+data structure, such as the kill-ring, X clipboard, or a register.
+
+The list of filter function is specified by the new variable
+`buffer-substring-filters'.  For example, Longlines mode adds to
 `buffer-substring-filters' to remove soft newlines from the copied
 text.
 
@@ -3389,437 +3423,6 @@ clone to the other.
 
 ---
 *** The function `insert-string' is now obsolete.
-
-** Syntax table changes:
-
-+++
-*** The macro `with-syntax-table' does not copy the table any more.
-
-+++
-*** The new function `syntax-after' returns the syntax code
-of the character after a specified buffer position, taking account
-of text properties as well as the character code.
-
-+++
-*** `syntax-class' extracts the class of a syntax code (as returned
-by syntax-after).
-
-*** The new package `syntax.el' provides an efficient way to find the
-current syntactic context (as returned by `parse-partial-sexp').
-
-** GC changes:
-
-+++
-*** New variables `gc-elapsed' and `gcs-done' provide extra information
-on garbage collection.
-
-+++
-*** Functions from `post-gc-hook' are run at the end of garbage
-collection.  The hook is run with GC inhibited, so use it with care.
-
-** Buffer-related changes:
-
----
-*** `list-buffers-noselect' now takes an additional argument, BUFFER-LIST.
-If it is non-nil, it specifies which buffers to list.
-
-+++
-*** `kill-buffer-hook' is now a permanent local.
-
-** Local variables lists:
-
-+++
-*** Text properties in local variables.
-
-A file local variables list cannot specify a string with text
-properties--any specified text properties are discarded.
-
-+++
-*** The variable `safe-local-eval-forms' specifies a list of forms that
-are ok to evaluate when they appear in an `eval' local variables
-specification.  Normally Emacs asks for confirmation before evaluating
-such a form, but if the form appears in this list, no confirmation is
-needed.
-
----
-*** If a function has a non-nil `safe-local-eval-function' property,
-that means it is ok to evaluate some calls to that function when it
-appears in an `eval' local variables specification.  If the property
-is t, then any form calling that function with constant arguments is
-ok.  If the property is a function or list of functions, they are called
-with the form as argument, and if any returns t, the form is ok to call.
-
-If the form is not "ok to call", that means Emacs asks for
-confirmation as before.
-
-** Abbrev changes:
-
-*** The new function copy-abbrev-table returns a new abbrev table that
-is a copy of a given abbrev table.
-
-+++
-*** define-abbrev now accepts an optional argument SYSTEM-FLAG.  If
-non-nil, this marks the abbrev as a "system" abbrev, which means that
-it won't be stored in the user's abbrevs file if he saves the abbrevs.
-Major modes that predefine some abbrevs should always specify this
-flag.
-
-** Undo changes:
-
-+++
-*** An element of buffer-undo-list can now have the form (apply FUNNAME
-. ARGS), where FUNNAME is a symbol other than t or nil.  That stands
-for a high-level change that should be undone by evaluating (apply
-FUNNAME ARGS).
-
-These entries can also have the form (apply DELTA BEG END FUNNAME . ARGS)
-which indicates that the change which took place was limited to the
-range BEG...END and increased the buffer size by DELTA.
-
-+++
-*** If the buffer's undo list for the current command gets longer than
-undo-outer-limit, garbage collection empties it.  This is to prevent
-it from using up the available memory and choking Emacs.
-
-+++
-** New `yank-handler' text property can be used to control how
-previously killed text on the kill-ring is reinserted.
-
-The value of the yank-handler property must be a list with one to four
-elements with the following format:
-  (FUNCTION PARAM NOEXCLUDE UNDO).
-
-The `insert-for-yank' function looks for a yank-handler property on
-the first character on its string argument (typically the first
-element on the kill-ring).  If a yank-handler property is found,
-the normal behavior of `insert-for-yank' is modified in various ways:
-
-  When FUNCTION is present and non-nil, it is called instead of `insert'
-to insert the string.  FUNCTION takes one argument--the object to insert.
-  If PARAM is present and non-nil, it replaces STRING as the object
-passed to FUNCTION (or `insert'); for example, if FUNCTION is
-`yank-rectangle', PARAM should be a list of strings to insert as a
-rectangle.
-  If NOEXCLUDE is present and non-nil, the normal removal of the
-yank-excluded-properties is not performed; instead FUNCTION is
-responsible for removing those properties.  This may be necessary
-if FUNCTION adjusts point before or after inserting the object.
-  If UNDO is present and non-nil, it is a function that will be called
-by `yank-pop' to undo the insertion of the current object.  It is
-called with two arguments, the start and end of the current region.
-FUNCTION can set `yank-undo-function' to override the UNDO value.
-
-*** The functions kill-new, kill-append, and kill-region now have an
-optional argument to specify the yank-handler text property to put on
-the killed text.
-
-*** The function yank-pop will now use a non-nil value of the variable
-`yank-undo-function' (instead of delete-region) to undo the previous
-yank or yank-pop command (or a call to insert-for-yank).  The function
-insert-for-yank automatically sets that variable according to the UNDO
-element of the string argument's yank-handler text property if present.
-
-*** The function `insert-for-yank' now supports strings where the
-`yank-handler' property does not span the first character of the
-string.  The old behavior is available if you call
-`insert-for-yank-1' instead.
-
-*** The new function insert-for-yank normally works like `insert', but
-removes the text properties in the `yank-excluded-properties' list.
-However, the insertion of the text can be modified by a `yank-handler'
-text property.
-
-** File operation changes:
-
-+++
-*** New vars `exec-suffixes' and `load-suffixes' used when
-searching for an executable resp. an elisp file.
-
-+++
-*** The new primitive `set-file-times' sets a file's access and
-modification times.  Magic file name handlers can handle this
-operation.
-
-+++
-*** The new function `file-remote-p' tests a file name and returns
-non-nil if it specifies a remote file (one that Emacs accesses using
-its own special methods and not directly through the file system).
-The value in that case is an identifier for the remote file system.
-
-+++
-*** `auto-save-file-format' has been renamed to
-`buffer-auto-save-file-format' and made into a permanent local.
-
-+++
-*** Functions `file-name-sans-extension' and `file-name-extension' now
-ignore the leading dots in file names, so that file names such as
-`.emacs' are treated as extensionless.
-
-+++
-*** copy-file now takes an additional option arg MUSTBENEW.
-
-This argument works like the MUSTBENEW argument of write-file.
-
-+++
-*** If the second argument to `copy-file' is the name of a directory,
-the file is copied to that directory instead of signaling an error.
-
-+++
-*** `visited-file-modtime' and `calendar-time-from-absolute' now return
-a list of two integers, instead of a cons.
-
-+++
-*** `file-chase-links' now takes an optional second argument LIMIT which
-specifies the maximum number of links to chase through.  If after that
-many iterations the file name obtained is still a symbolic link,
-`file-chase-links' returns it anyway.
-
-+++
-*** The new hook `before-save-hook' is invoked by `basic-save-buffer'
-before saving buffers.  This allows packages to perform various final
-tasks, for example; it can be used by the copyright package to make
-sure saved files have the current year in any copyright headers.
-
-+++
-*** If a buffer sets buffer-save-without-query to non-nil,
-save-some-buffers will always save that buffer without asking
-(if it's modified).
-
-*** New function `locate-file' searches for a file in a list of directories.
-`locate-file' accepts a name of a file to search (a string), and two
-lists: a list of directories to search in and a list of suffixes to
-try; typical usage might use `exec-path' and `load-path' for the list
-of directories, and `exec-suffixes' and `load-suffixes' for the list
-of suffixes.  The function also accepts a predicate argument to
-further filter candidate files.
-
-One advantage of using this function is that the list of suffixes in
-`exec-suffixes' is OS-dependant, so this function will find
-executables without polluting Lisp code with OS dependancies.
-
----
-*** The precedence of file-name-handlers has been changed.
-Instead of blindly choosing the first handler that matches,
-find-file-name-handler now gives precedence to a file-name handler
-that matches near the end of the file name.  More specifically, the
-handler whose (match-beginning 0) is the largest is chosen.
-In case of ties, the old "first matched" rule applies.
-
-+++
-*** A file name handler can declare which operations it handles.
-
-You do this by putting an `operation' property on the handler name
-symbol.  The property value should be a list of the operations that
-the handler really handles.  It won't be called for any other
-operations.
-
-This is useful for autoloaded handlers, to prevent them from being
-autoloaded when not really necessary.
-
-** Input changes:
-
-+++
-*** An interactive specification can now use the code letter 'U' to get
-the up-event that was discarded in case the last key sequence read for a
-previous 'k' or 'K' argument was a down-event; otherwise nil is used.
-
-+++
-*** The new interactive-specification `G' reads a file name
-much like `F', but if the input is a directory name (even defaulted),
-it returns just the directory name.
-
----
-*** Functions y-or-n-p, read-char, read-key-sequence and the like, that
-display a prompt but don't use the minibuffer, now display the prompt
-using the text properties (esp. the face) of the prompt string.
-
-+++
-*** (while-no-input BODY...) runs BODY, but only so long as no input
-arrives.  If the user types or clicks anything, BODY stops as if a
-quit had occurred.  while-no-input returns the value of BODY, if BODY
-finishes.  It returns nil if BODY was aborted.
-
-** Minibuffer changes:
-
-*** The new function `minibufferp' returns non-nil if its optional
-buffer argument is a minibuffer.  If the argument is omitted, it
-defaults to the current buffer.
-
-+++
-*** New function minibuffer-selected-window returns the window which
-was selected when entering the minibuffer.
-
-+++
-*** read-from-minibuffer now accepts an additional argument KEEP-ALL
-saying to put all inputs in the history list, even empty ones.
-
-+++
-*** The `read-file-name' function now takes an additional argument which
-specifies a predicate which the file name read must satify.  The
-new variable `read-file-name-predicate' contains the predicate argument
-while reading the file name from the minibuffer; the predicate in this
-variable is used by read-file-name-internal to filter the completion list.
-
----
-*** The new variable `read-file-name-function' can be used by lisp code
-to override the internal read-file-name function.
-
-+++
-*** The new variable `read-file-name-completion-ignore-case' specifies
-whether completion ignores case when reading a file name with the
-`read-file-name' function.
-
-+++
-*** The new function `read-directory-name' can be used instead of
-`read-file-name' to read a directory name; when used, completion
-will only show directories.
-
-** Searching and matching changes:
-
-+++
-*** New function `looking-back' checks whether a regular expression matches
-the text before point.  Specifying the LIMIT argument bounds how far
-back the match can start; this is a way to keep it from taking too long.
-
-+++
-*** The new variable search-spaces-regexp controls how to search
-for spaces in a regular expression.  If it is non-nil, it should be a
-regular expression, and any series of spaces stands for that regular
-expression.  If it is nil, spaces stand for themselves.
-
-Spaces inside of constructs such as [..] and *, +, ? are never
-replaced with search-spaces-regexp.
-
-+++
-*** There are now two new regular expression operators, \_< and \_>,
-for matching the beginning and end of a symbol.  A symbol is a
-non-empty sequence of either word or symbol constituent characters, as
-specified by the syntax table.
-
-+++
-*** skip-chars-forward and skip-chars-backward now handle
-character classes such as [:alpha:], along with individual characters
-and ranges.
-
----
-*** In `replace-match', the replacement text no longer inherits
-properties from surrounding text.
-
-+++
-*** The list returned by `(match-data t)' now has the buffer as a final
-element, if the last match was on a buffer.  `set-match-data'
-accepts such a list for restoring the match state.
-
----
-*** rx.el has new corresponding `symbol-end' and `symbol-start' elements.
-
-+++
-*** The default value of `sentence-end' is now defined using the new
-variable `sentence-end-without-space', which contains such characters
-that end a sentence without following spaces.
-
-The function `sentence-end' should be used to obtain the value of the
-variable `sentence-end'.  If the variable `sentence-end' is nil, then
-this function returns the regexp constructed from the variables
-`sentence-end-without-period', `sentence-end-double-space' and
-`sentence-end-without-space'.
-
-+++
-** Enhancements to keymaps.
-
-*** Cleaner way to enter key sequences.
-
-You can enter a constant key sequence in a more natural format, the
-same one used for saving keyboard macros, using the macro `kbd'.  For
-example,
-
-(kbd "C-x C-f") => "\^x\^f"
-
-*** Interactive commands can be remapped through keymaps.
-
-This is an alternative to using defadvice or substitute-key-definition
-to modify the behavior of a key binding using the normal keymap
-binding and lookup functionality.
-
-When a key sequence is bound to a command, and that command is
-remapped to another command, that command is run instead of the
-original command.
-
-Example:
-Suppose that minor mode my-mode has defined the commands
-my-kill-line and my-kill-word, and it wants C-k (and any other key
-bound to kill-line) to run the command my-kill-line instead of
-kill-line, and likewise it wants to run my-kill-word instead of
-kill-word.
-
-Instead of rebinding C-k and the other keys in the minor mode map,
-command remapping allows you to directly map kill-line into
-my-kill-line and kill-word into my-kill-word through the minor mode
-map using define-key:
-
-   (define-key my-mode-map [remap kill-line] 'my-kill-line)
-   (define-key my-mode-map [remap kill-word] 'my-kill-word)
-
-Now, when my-mode is enabled, and the user enters C-k or M-d,
-the commands my-kill-line and my-kill-word are run.
-
-Notice that only one level of remapping is supported.  In the above
-example, this means that if my-kill-line is remapped to other-kill,
-then C-k still runs my-kill-line.
-
-The following changes have been made to provide command remapping:
-
-- Command remappings are defined using `define-key' with a prefix-key
-  `remap', i.e. `(define-key MAP [remap CMD] DEF)' remaps command CMD
-  to definition DEF in keymap MAP.  The definition is not limited to
-  another command; it can be anything accepted for a normal binding.
-
-- The new function `command-remapping' returns the binding for a
-  remapped command in the current keymaps, or nil if not remapped.
-
-- key-binding now remaps interactive commands unless the optional
-  third argument NO-REMAP is non-nil.
-
-- where-is-internal now returns nil for a remapped command (e.g.
-  kill-line if my-mode is enabled), and the actual key binding for
-  the command it is remapped to (e.g. C-k for my-kill-line).
-  It also has a new optional fifth argument, NO-REMAP, which inhibits
-  remapping if non-nil (e.g. it returns C-k for kill-line and
-  <kill-line> for my-kill-line).
-
-- The new variable `this-original-command' contains the original
-  command before remapping.  It is equal to `this-command' when the
-  command was not remapped.
-
-*** If text has a `keymap' property, that keymap takes precedence
-over minor mode keymaps.
-
-*** The `keymap' property now also works at the ends of overlays and
-text-properties, according to their stickiness.  This also means that it
-works with empty overlays.  The same hold for the `local-map' property.
-
-*** Dense keymaps now handle inheritance correctly.
-Previously a dense keymap would hide all of the simple-char key
-bindings of the parent keymap.
-
-*** `define-key-after' now accepts keys longer than 1.
-
-*** New function `current-active-maps' returns a list of currently
-active keymaps.
-
-*** New function `describe-buffer-bindings' inserts the list of all
-defined keys and their definitions.
-
-*** New function `keymap-prompt' returns the prompt-string of a keymap
-
-*** (map-keymap FUNCTION KEYMAP) applies the function to each binding
-in the keymap.
-
-*** New variable emulation-mode-map-alists.
-
-Lisp packages using many minor mode keymaps can now maintain their own
-keymap alist separate from minor-mode-map-alist by adding their keymap
-alist to this list.
 
 +++
 ** Atomic change groups.
@@ -3879,30 +3482,493 @@ will lead to undesirable results, so don't let it happen; the first
 change group you start for any given buffer should be the last one
 finished.
 
+** Buffer-related changes:
+
+---
+*** `list-buffers-noselect' now takes an additional argument, BUFFER-LIST.
+
+If it is non-nil, it specifies which buffers to list.
+
++++
+*** `kill-buffer-hook' is now a permanent local.
+
++++
+*** The new function `buffer-local-value' returns the buffer-local
+binding of VARIABLE (a symbol) in buffer BUFFER.  If VARIABLE does not
+have a buffer-local binding in buffer BUFFER, it returns the default
+value of VARIABLE instead.
+
+** Local variables lists:
+
++++
+*** Text properties in local variables.
+
+A file local variables list cannot specify a string with text
+properties--any specified text properties are discarded.
+
++++
+*** The variable `safe-local-eval-forms' specifies a list of forms that
+are ok to evaluate when they appear in an `eval' local variables
+specification.  Normally Emacs asks for confirmation before evaluating
+such a form, but if the form appears in this list, no confirmation is
+needed.
+
+---
+*** If a function has a non-nil `safe-local-eval-function' property,
+that means it is ok to evaluate some calls to that function when it
+appears in an `eval' local variables specification.  If the property
+is t, then any form calling that function with constant arguments is
+ok.  If the property is a function or list of functions, they are called
+with the form as argument, and if any returns t, the form is ok to call.
+
+If the form is not "ok to call", that means Emacs asks for
+confirmation as before.
+
+** Searching and matching changes:
+
++++
+*** New function `looking-back' checks whether a regular expression matches
+the text before point.  Specifying the LIMIT argument bounds how far
+back the match can start; this is a way to keep it from taking too long.
+
++++
+*** The new variable `search-spaces-regexp' controls how to search
+for spaces in a regular expression.  If it is non-nil, it should be a
+regular expression, and any series of spaces stands for that regular
+expression.  If it is nil, spaces stand for themselves.
+
+Spaces inside of constructs such as `[..]' and inside loops such as
+`*', `+', and `?' are never replaced with `search-spaces-regexp'.
+
++++
+*** New regular expression operators, `\_<' and `\_>'.
+
+These match the beginning and end of a symbol.  A symbol is a
+non-empty sequence of either word or symbol constituent characters, as
+specified by the syntax table.
+
+---
+*** rx.el has new corresponding `symbol-end' and `symbol-start' elements.
+
++++
+*** `skip-chars-forward' and `skip-chars-backward' now handle
+character classes such as `[:alpha:]', along with individual
+characters and ranges.
+
+---
+*** In `replace-match', the replacement text no longer inherits
+properties from surrounding text.
+
++++
+*** The list returned by `(match-data t)' now has the buffer as a final
+element, if the last match was on a buffer.  `set-match-data'
+accepts such a list for restoring the match state.
+
++++
+*** The default value of `sentence-end' is now defined using the new
+variable `sentence-end-without-space', which contains such characters
+that end a sentence without following spaces.
+
+The function `sentence-end' should be used to obtain the value of the
+variable `sentence-end'.  If the variable `sentence-end' is nil, then
+this function returns the regexp constructed from the variables
+`sentence-end-without-period', `sentence-end-double-space' and
+`sentence-end-without-space'.
+
+** Undo changes:
+
++++
+*** `buffer-undo-list' can allows programmable elements.
+
+These elements have the form (apply FUNNAME . ARGS), where FUNNAME is
+a symbol other than t or nil.  That stands for a high-level change
+that should be undone by evaluating (apply FUNNAME ARGS).
+
+These entries can also have the form (apply DELTA BEG END FUNNAME . ARGS)
+which indicates that the change which took place was limited to the
+range BEG...END and increased the buffer size by DELTA.
+
++++
+*** If the buffer's undo list for the current command gets longer than
+`undo-outer-limit', garbage collection empties it.  This is to prevent
+it from using up the available memory and choking Emacs.
+
++++
+** New `yank-handler' text property can be used to control how
+previously killed text on the kill ring is reinserted.
+
+The value of the `yank-handler' property must be a list with one to four
+elements with the following format:
+  (FUNCTION PARAM NOEXCLUDE UNDO).
+
+The `insert-for-yank' function looks for a yank-handler property on
+the first character on its string argument (typically the first
+element on the kill-ring).  If a `yank-handler' property is found,
+the normal behavior of `insert-for-yank' is modified in various ways:
+
+  When FUNCTION is present and non-nil, it is called instead of `insert'
+to insert the string.  FUNCTION takes one argument--the object to insert.
+  If PARAM is present and non-nil, it replaces STRING as the object
+passed to FUNCTION (or `insert'); for example, if FUNCTION is
+`yank-rectangle', PARAM should be a list of strings to insert as a
+rectangle.
+  If NOEXCLUDE is present and non-nil, the normal removal of the
+`yank-excluded-properties' is not performed; instead FUNCTION is
+responsible for removing those properties.  This may be necessary
+if FUNCTION adjusts point before or after inserting the object.
+  If UNDO is present and non-nil, it is a function that will be called
+by `yank-pop' to undo the insertion of the current object.  It is
+called with two arguments, the start and end of the current region.
+FUNCTION can set `yank-undo-function' to override the UNDO value.
+
+*** The functions `kill-new', `kill-append', and `kill-region' now have an
+optional argument to specify the `yank-handler' text property to put on
+the killed text.
+
+*** The function `yank-pop' will now use a non-nil value of the variable
+`yank-undo-function' (instead of `delete-region') to undo the previous
+`yank' or `yank-pop' command (or a call to `insert-for-yank').  The function
+`insert-for-yank' automatically sets that variable according to the UNDO
+element of the string argument's `yank-handler' text property if present.
+
+*** The function `insert-for-yank' now supports strings where the
+`yank-handler' property does not span the first character of the
+string.  The old behavior is available if you call
+`insert-for-yank-1' instead.
+
+** Syntax table changes:
+
++++
+*** The macro `with-syntax-table' no longer copies the syntax table.
+
++++
+*** The new function `syntax-after' returns the syntax code
+of the character after a specified buffer position, taking account
+of text properties as well as the character code.
+
++++
+*** `syntax-class' extracts the class of a syntax code (as returned
+by `syntax-after').
+
+*** The new function `syntax-ppss' rovides an efficient way to find the
+current syntactic context at point.
+
+** File operation changes:
+
++++
+*** New vars `exec-suffixes' and `load-suffixes' used when
+searching for an executable or an Emacs Lisp file.
+
++++
+*** The new primitive `set-file-times' sets a file's access and
+modification times.  Magic file name handlers can handle this
+operation.
+
++++
+*** The new function `file-remote-p' tests a file name and returns
+non-nil if it specifies a remote file (one that Emacs accesses using
+its own special methods and not directly through the file system).
+The value in that case is an identifier for the remote file system.
+
++++
+*** `buffer-auto-save-file-format' is the new name for what was
+formerly called `auto-save-file-format'.  It is now a permanent local.
+
++++
+*** Functions `file-name-sans-extension' and `file-name-extension' now
+ignore the leading dots in file names, so that file names such as
+`.emacs' are treated as extensionless.
+
++++
+*** `copy-file' now takes an additional option arg MUSTBENEW.
+
+This argument works like the MUSTBENEW argument of write-file.
+
++++
+*** `visited-file-modtime' and `calendar-time-from-absolute' now return
+a list of two integers, instead of a cons.
+
++++
+*** `file-chase-links' now takes an optional second argument LIMIT which
+specifies the maximum number of links to chase through.  If after that
+many iterations the file name obtained is still a symbolic link,
+`file-chase-links' returns it anyway.
+
++++
+*** The new hook `before-save-hook' is invoked by `basic-save-buffer'
+before saving buffers.  This allows packages to perform various final
+tasks, for example; it can be used by the copyright package to make
+sure saved files have the current year in any copyright headers.
+
++++
+*** If `buffer-save-without-query' is non-nil in some buffer,
+`save-some-buffers' will always save that buffer without asking (if
+it's modified).
+
+*** New function `locate-file' searches for a file in a list of directories.
+`locate-file' accepts a name of a file to search (a string), and two
+lists: a list of directories to search in and a list of suffixes to
+try; typical usage might use `exec-path' and `load-path' for the list
+of directories, and `exec-suffixes' and `load-suffixes' for the list
+of suffixes.  The function also accepts a predicate argument to
+further filter candidate files.
+
+One advantage of using this function is that the list of suffixes in
+`exec-suffixes' is OS-dependant, so this function will find
+executables without polluting Lisp code with OS dependancies.
+
+---
+*** The precedence of file name handlers has been changed.
+
+Instead of choosing the first handler that matches,
+`find-file-name-handler' now gives precedence to a file name handler
+that matches nearest the end of the file name.  More precisely, the
+handler whose (match-beginning 0) is the largest is chosen.  In case
+of ties, the old "first matched" rule applies.
+
++++
+*** A file name handler can declare which operations it handles.
+
+You do this by putting an `operation' property on the handler name
+symbol.  The property value should be a list of the operations that
+the handler really handles.  It won't be called for any other
+operations.
+
+This is useful for autoloaded handlers, to prevent them from being
+autoloaded when not really necessary.
+
+** Input changes:
+
++++
+*** An interactive specification can now use the code letter 'U' to get
+the up-event that was discarded in case the last key sequence read for a
+previous `k' or `K' argument was a down-event; otherwise nil is used.
+
++++
+*** The new interactive-specification `G' reads a file name
+much like `F', but if the input is a directory name (even defaulted),
+it returns just the directory name.
+
+---
+*** Functions `y-or-n-p', `read-char', `read-key-sequence' and the like, that
+display a prompt but don't use the minibuffer, now display the prompt
+using the text properties (esp. the face) of the prompt string.
+
++++
+*** (while-no-input BODY...) runs BODY, but only so long as no input
+arrives.  If the user types or clicks anything, BODY stops as if a
+quit had occurred.  `while-no-input' returns the value of BODY, if BODY
+finishes.  It returns nil if BODY was aborted.
+
+** Minibuffer changes:
+
++++
+*** The new function `minibufferp' returns non-nil if its optional
+buffer argument is a minibuffer.  If the argument is omitted, it
+defaults to the current buffer.
+
++++
+*** New function `minibuffer-selected-window' returns the window which
+was selected when entering the minibuffer.
+
++++
+*** `read-from-minibuffer' now accepts an additional argument KEEP-ALL
+saying to put all inputs in the history list, even empty ones.
+
++++
+*** The `read-file-name' function now takes an additional argument which
+specifies a predicate which the file name read must satify.  The
+new variable `read-file-name-predicate' contains the predicate argument
+while reading the file name from the minibuffer; the predicate in this
+variable is used by read-file-name-internal to filter the completion list.
+
+---
+*** The new variable `read-file-name-function' can be used by Lisp code
+to override the built-in `read-file-name' function.
+
++++
+*** The new variable `read-file-name-completion-ignore-case' specifies
+whether completion ignores case when reading a file name with the
+`read-file-name' function.
+
++++
+*** The new function `read-directory-name' for reading a directory name.
+
+It is like `read-file-name' except that the defaulting works better
+for directories, and completion inside it shows only directories.
+
+** Completion changes:
+
++++
+*** The functions `all-completions' and `try-completion' now accept lists
+of strings as well as hash-tables additionally to alists, obarrays
+and functions.  Furthermore, the function `test-completion' is now
+exported to Lisp.  The keys in alists and hash tables can be either
+strings or symbols, which are automatically converted with to strings.
+
++++
+*** The new macro `dynamic-completion-table' supports using functions
+as a dynamic completion table.
+
+  (dynamic-completion-table FUN)
+
+FUN is called with one argument, the string for which completion is required,
+and it should return an alist containing all the intended possible
+completions.  This alist can be a full list of possible completions so that FUN
+can ignore the value of its argument.  If completion is performed in the
+minibuffer, FUN will be called in the buffer from which the minibuffer was
+entered.  `dynamic-completion-table' then computes the completion.
+
++++
+*** The new macro `lazy-completion-table' initializes a variable
+as a lazy completion table.
+
+  (lazy-completion-table VAR FUN &rest ARGS)
+
+If the completion table VAR is used for the first time (e.g., by passing VAR
+as an argument to `try-completion'), the function FUN is called with arguments
+ARGS. FUN must return the completion table that will be stored in VAR. If
+completion is requested in the minibuffer, FUN will be called in the buffer
+from which the minibuffer was entered. The return value of
+`lazy-completion-table' must be used to initialize the value of VAR.
+
++++
+** Enhancements to keymaps.
+
+*** Cleaner way to enter key sequences.
+
+You can enter a constant key sequence in a more natural format, the
+same one used for saving keyboard macros, using the macro `kbd'.  For
+example,
+
+(kbd "C-x C-f") => "\^x\^f"
+
+*** Interactive commands can be remapped through keymaps.
+
+This is an alternative to using `defadvice' or `substitute-key-definition'
+to modify the behavior of a key binding using the normal keymap
+binding and lookup functionality.
+
+When a key sequence is bound to a command, and that command is
+remapped to another command, that command is run instead of the
+original command.
+
+Example:
+Suppose that minor mode `my-mode' has defined the commands
+`my-kill-line' and `my-kill-word', and it wants C-k (and any other key
+bound to `kill-line') to run the command `my-kill-line' instead of
+`kill-line', and likewise it wants to run `my-kill-word' instead of
+`kill-word'.
+
+Instead of rebinding C-k and the other keys in the minor mode map,
+command remapping allows you to directly map `kill-line' into
+`my-kill-line' and `kill-word' into `my-kill-word' using `define-key':
+
+   (define-key my-mode-map [remap kill-line] 'my-kill-line)
+   (define-key my-mode-map [remap kill-word] 'my-kill-word)
+
+When `my-mode' is enabled, its minor mode keymap is enabled too.  So
+when the user types C-k, that runs the command `my-kill-line'.
+
+Only one level of remapping is supported.  In the above example, this
+means that if `my-kill-line' is remapped to `other-kill', then C-k still
+runs `my-kill-line'.
+
+The following changes have been made to provide command remapping:
+
+- Command remappings are defined using `define-key' with a prefix-key
+  `remap', i.e. `(define-key MAP [remap CMD] DEF)' remaps command CMD
+  to definition DEF in keymap MAP.  The definition is not limited to
+  another command; it can be anything accepted for a normal binding.
+
+- The new function `command-remapping' returns the binding for a
+  remapped command in the current keymaps, or nil if not remapped.
+
+- `key-binding' now remaps interactive commands unless the optional
+  third argument NO-REMAP is non-nil.
+
+- `where-is-internal' now returns nil for a remapped command (e.g.
+  `kill-line', when `my-mode' is enabled), and the actual key binding for
+  the command it is remapped to (e.g. C-k for my-kill-line).
+  It also has a new optional fifth argument, NO-REMAP, which inhibits
+  remapping if non-nil (e.g. it returns "C-k" for `kill-line', and
+  "<kill-line>" for `my-kill-line').
+
+- The new variable `this-original-command' contains the original
+  command before remapping.  It is equal to `this-command' when the
+  command was not remapped.
+
+*** If text has a `keymap' property, that keymap takes precedence
+over minor mode keymaps.
+
+*** The `keymap' property now also works at the ends of overlays and
+text properties, according to their stickiness.  This also means that it
+works with empty overlays.  The same hold for the `local-map' property.
+
+*** Dense keymaps now handle inheritance correctly.
+
+Previously a dense keymap would hide all of the simple-char key
+bindings of the parent keymap.
+
+*** `define-key-after' now accepts keys longer than 1.
+
+*** New function `current-active-maps' returns a list of currently
+active keymaps.
+
+*** New function `describe-buffer-bindings' inserts the list of all
+defined keys and their definitions.
+
+*** New function `keymap-prompt' returns the prompt string of a keymap.
+
+*** (map-keymap FUNCTION KEYMAP) applies the function to each binding
+in the keymap.
+
+*** New variable `emulation-mode-map-alists'.
+
+Lisp packages using many minor mode keymaps can now maintain their own
+keymap alist separate from `minor-mode-map-alist' by adding their
+keymap alist to this list.
+
+** Abbrev changes:
+
++++
+*** The new function `copy-abbrev-table' copies an abbrev table.
+
+It returns a new abbrev table that is a copy of a given abbrev table.
+
++++
+*** `define-abbrev' now accepts an optional argument SYSTEM-FLAG.
+
+If non-nil, this marks the abbrev as a "system" abbrev, which means
+that it won't be stored in the user's abbrevs file if he saves the
+abbrevs.  Major modes that predefine some abbrevs should always
+specify this flag.
+
 +++
 ** Enhancements to process support
 
-*** Function list-processes now has an optional argument; if non-nil,
-only the processes whose query-on-exit flag is set are listed.
+*** Function `list-processes' now has an optional argument; if non-nil,
+it lists only the processes whose query-on-exit flag is set.
 
-*** New set-process-query-on-exit-flag and process-query-on-exit-flag
-functions.  The existing process-kill-without-query function is still
-supported, but new code should use the new functions.
+*** New fns `set-process-query-on-exit-flag' and `process-query-on-exit-flag'.
 
-*** Function signal-process now accepts a process object or process
+These replace the old function `process-kill-without-query'.  That
+function is still supported, but new code should use the new
+functions.
+
+*** Function `signal-process' now accepts a process object or process
 name in addition to a process id to identify the signalled process.
 
 *** Processes now have an associated property list where programs can
 maintain process state and other per-process related information.
 
-The new functions process-get and process-put are used to access, add,
-and modify elements on this property list.
+Use the new functions `process-get' and `process-put' to access, add,
+and modify elements on this property list.  Use the new functions
+`process-plist' and `set-process-plist' to access and replace the
+entire property list of a process.
 
-The new low-level functions process-plist and set-process-plist are
-used to access and replace the entire property list of a process.
-
-*** Function accept-process-output now has an optional fourth arg
-`just-this-one'.  If non-nil, only output from the specified process
+*** Function `accept-process-output' has a new optional fourth arg
+JUST-THIS-ONE.  If non-nil, only output from the specified process
 is handled, suspending output from other processes.  If value is an
 integer, also inhibit running timers.  This feature is generally not
 recommended, but may be necessary for specific applications, such as
@@ -3913,7 +3979,7 @@ speech synthesis.
 On some systems, when emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
 very poor performance.  This behavior can be remedied to some extent
-by setting the new variable process-adaptive-read-buffering to a
+by setting the new variable `process-adaptive-read-buffering' to a
 non-nil value (the default), as it will automatically delay reading
 from such processes, to allowing them to produce more output before
 emacs tries to read it.
@@ -3927,10 +3993,12 @@ process.
 obeys file handlers.  The file handler is chosen based on
 `default-directory'.
 
-*** A filter function of a process is called with a multibyte string
-if the filter's multibyteness is t.  That multibyteness is decided by
-the value of `default-enable-multibyte-characters' when the process is
-created and can be changed later by `set-process-filter-multibyte'.
+*** A process filter function gets the output as multibyte string
+if the process specifies t for its filter's multibyteness.
+
+That multibyteness is decided by the value of
+`default-enable-multibyte-characters' when the process is created, and
+you can change it later with `set-process-filter-multibyte'.
 
 *** The new function `set-process-filter-multibyte' sets the
 multibyteness of the strings passed to the process's filter.
@@ -3947,8 +4015,8 @@ which was not compatible with the behavior of file reading.
 +++
 ** Enhanced networking support.
 
-*** There is a new `make-network-process' function which supports
-opening of stream and datagram connections to a server, as well as
+*** The new `make-network-process' function makes network connections.
+It allows opening of stream and datagram connections to a server, as well as
 create a stream or datagram server inside emacs.
 
 - A server is started using :server t arg.
@@ -3963,65 +4031,53 @@ create a stream or datagram server inside emacs.
 To test for the availability of a given feature, use featurep like this:
   (featurep 'make-network-process '(:type datagram))
 
-*** Original open-network-stream is now emulated using make-network-process.
+*** The old `open-network-stream' now uses `make-network-process'.
 
-*** New function open-network-stream-nowait.
-
-This function initiates a non-blocking connect and returns immediately
-without waiting for the connection to be established.  It takes the
-filter and sentinel functions as arguments; when the non-blocking
-connect completes, the sentinel is called with a status string
-matching "open" or "failed".
-
-*** New function open-network-stream-server.
-
-This function creates a network server process for a TCP service.
-When a client connects to the specified service, a new subprocess
-is created to handle the new connection, and the sentinel function
-is called for the new process.
-
-*** New functions process-datagram-address and set-process-datagram-address.
+*** New functions `process-datagram-address', `set-process-datagram-address'.
 
 These functions are used with datagram-based network processes to get
 and set the current address of the remote partner.
 
-*** New function format-network-address.
+*** New function `format-network-address'.
 
-This function reformats the lisp representation of a network address
+This function reformats the Lisp representation of a network address
 to a printable string.  For example, an IP address A.B.C.D and port
 number P is represented as a five element vector [A B C D P], and the
 printable string returned for this vector is "A.B.C.D:P".  See the doc
 string for other formatting options.
 
-*** By default, the function process-contact still returns (HOST SERVICE)
-for a network process.  Using the new optional KEY arg, the complete list
-of network process properties or a specific property can be selected.
+*** `process-contact' has an optional KEY argument.
 
-Using :local and :remote as the KEY, the address of the local or
-remote end-point is returned.  An Inet address is represented as a 5
-element vector, where the first 4 elements contain the IP address and
-the fifth is the port number.
+Depending on this argument, you can get the complete list of network
+process properties or a specific property.  Using :local or :remote as
+the KEY, you get the address of the local or remote end-point.
 
-*** Network processes can now be stopped and restarted with
-`stop-process' and `continue-process'.  For a server process, no
-connections are accepted in the stopped state.  For a client process,
-no input is received in the stopped state.
+An Inet address is represented as a 5 element vector, where the first
+4 elements contain the IP address and the fifth is the port number.
 
-*** New function network-interface-list.
+*** New functions `stop-process' and `continue-process'.
+
+These functions stop and restart communication through a network
+connection.  For a server process, no connections are accepted in the
+stopped state.  For a client process, no input is received in the
+stopped state.
+
+*** New function `network-interface-list'.
 
 This function returns a list of network interface names and their
 current network addresses.
 
-*** New function network-interface-info.
+*** New function `network-interface-info'.
 
 This function returns the network address, hardware address, current
 status, and other information about a specific network interface.
 
-*** The sentinel is now called when a network process is deleted with
-delete-process.  The status message passed to the sentinel for a
-deleted network process is "deleted".  The message passed to the
-sentinel when the connection is closed by the remote peer has been
-changed to "connection broken by remote peer".
+*** Deleting a network process with `delete-process' calls the sentinel.
+
+The status message passed to the sentinel for a deleted network
+process is "deleted".  The message passed to the sentinel when the
+connection is closed by the remote peer has been changed to
+"connection broken by remote peer".
 
 ** Using window objects:
 
@@ -4034,7 +4090,7 @@ header line.
 +++
 *** New function `window-body-height'.
 
-This is like window-height but does not count the mode line
+This is like `window-height' but does not count the mode line
 or the header line.
 
 +++
@@ -4061,7 +4117,7 @@ return window edges in units of pixels, rather than columns and lines.
 selected window without impacting the order of `buffer-list'.
 
 +++
-*** `select-window' takes an optional second argument `norecord'.
+*** `select-window' takes an optional second argument NORECORD.
 
 This is like `switch-to-buffer'.
 
@@ -4088,12 +4144,12 @@ identifing the bitmap such as `left-truncation or `continued-line'.
 *** New function `destroy-fringe-bitmap' deletes a fringe bitmap
 or restores a built-in one to its default value.
 
-*** New function `set-fringe-bitmap-face' can now be used to set a
-specific face to be used for a specific fringe bitmap.  The face is
-automatically merged with the `fringe' face, so normally, the face
-should only specify the foreground color of the bitmap.
+*** New function `set-fringe-bitmap-face' specifies the face to be
+used for a specific fringe bitmap.  The face is automatically merged
+with the `fringe' face, so normally, the face should only specify the
+foreground color of the bitmap.
 
-*** There are new display properties, `left-fringe; and `right-fringe',
+*** There are new display properties, `left-fringe' and `right-fringe',
 that can be used to show a specific bitmap in the left or right fringe
 bitmap of the display line.
 
@@ -4236,7 +4292,7 @@ If the `line-spacing' property is a float or cons, the line spacing
 is calculated as specified above for the `line-height' property.
 
 +++
-*** The buffer local line-spacing variable can now have a float value,
+*** The buffer local `line-spacing' variable can now have a float value,
 which is used as a height relative to the default frame line height.
 
 +++
@@ -4286,7 +4342,7 @@ For example, to align to the center of the left-margin, use
 
 If no specific base offset is set for alignment, it is always relative
 to the left edge of the text area.  For example, :align-to 0 in a
-header-line aligns with the first text column in the text area.
+header line aligns with the first text column in the text area.
 
 The value of the form `(NUM . EXPR)' is the value of NUM multiplied by
 the value of the expression EXPR.  For example, (2 . in) specifies a
@@ -4312,10 +4368,10 @@ supported on text terminals.
 **** New display property (slice X Y WIDTH HEIGHT) can be used with
 an image property to display only a specific slice of the image.
 
-**** Function insert-image has new optional fourth arg to
+**** Function `insert-image' has new optional fourth arg to
 specify image slice (X Y WIDTH HEIGHT).
 
-**** New function insert-sliced-image inserts a given image as a
+**** New function `insert-sliced-image' inserts a given image as a
 specified number of evenly sized slices (rows x columns).
 
 +++
@@ -4334,7 +4390,7 @@ When the mouse pointer is above a hot-spot area of an image, the
 PLIST of that hot-spot is consulted; if it contains a `help-echo'
 property it defines a tool-tip for the hot-spot, and if it contains
 a `pointer' property, it defines the shape of the mouse cursor when
-it is over the hot-spot.  See the variable 'void-area-text-pointer'
+it is over the hot-spot.  See the variable `void-area-text-pointer'
 for possible pointer shapes.
 
 When you click the mouse when the mouse pointer is over a hot-spot,
@@ -4362,38 +4418,37 @@ controlled/overriden via the `pointer' text property.
 ** Mouse event enhancements:
 
 +++
-*** Mouse clicks on fringes now generates left-fringe or right-fringes
-events, rather than a text area click event.
+*** Mouse events for clicks on window fringes now specify `left-fringe'
+or `right-fringe' as the area.
 
 +++
-*** Mouse clicks in the left and right marginal areas now includes a
-sensible buffer position corresponding to the first character in the
-corresponding text row.
-
-+++
-*** Function `mouse-set-point' now works for events outside text area.
-
-+++
-*** Mouse events now includes buffer position for all event types.
+*** All mouse events now include a buffer position regardless of where
+you clicked.  For mouse clicks in window margins and fringes, this is
+a sensible buffer position corresponding to the surrounding text.
 
 +++
 *** `posn-point' now returns buffer position for non-text area events.
+
++++
+*** Function `mouse-set-point' now works for events outside text area.
 
 +++
 *** New function `posn-area' returns window area clicked on (nil means
 text area).
 
 +++
-*** Mouse events include actual glyph column and row for all event types.
+*** Mouse events include actual glyph column and row for all event types
+and all areas.
 
 +++
-*** New function `posn-actual-col-row' returns actual glyph coordinates.
+*** New function `posn-actual-col-row' returns the actual glyph coordinates
+of the mouse event position.
 
 +++
-*** Mouse events can now include image object in addition to string object.
+*** Mouse events can now indicate an image object clicked on.
 
 +++
-*** Mouse events include relative x and y pixel coordinates relative to
+*** Mouse events include relative X and Y pixel coordinates relative to
 the top left corner of the object (image or character) clicked on.
 
 +++
@@ -4401,19 +4456,20 @@ the top left corner of the object (image or character) clicked on.
 (image or character) clicked on.
 
 +++
-*** New functions 'posn-object', 'posn-object-x-y', and
-'posn-object-width-height' return the image or string object of a mouse
-click, the x and y pixel coordinates relative to the top left corner
-of that object, and the total width and height of that object.
+*** New functions 'posn-object', 'posn-object-x-y', 'posn-object-width-height'.
+
+These return the image or string object of a mouse click, the X and Y
+pixel coordinates relative to the top left corner of that object, and
+the total width and height of that object.
 
 ** Text property and overlay changes:
 
 +++
-*** Arguments for remove-overlays are now optional, so that you can
-remove all overlays in the buffer by just calling (remove-overlays).
+*** Arguments for `remove-overlays' are now optional, so that you can
+remove all overlays in the buffer with just (remove-overlays).
 
 +++
-*** New variable char-property-alias-alist.
+*** New variable `char-property-alias-alist'.
 
 This variable allows you to create alternative names for text
 properties.  It works at the same level as `default-text-properties',
@@ -4428,9 +4484,10 @@ whose cdr is the overlay in which the property was found, or nil if
 it was found as a text property or not found at all.
 
 +++
-*** The new function remove-list-of-text-properties is almost the same
-as `remove-text-properties'.  The only difference is that it takes a
-list of property names as argument rather than a property list.
+*** The new function `remove-list-of-text-properties'.
+
+It is like `remove-text-properties' except that it takes a list of
+property names as argument rather than a property list.
 
 ** Face changes
 
@@ -4443,12 +4500,12 @@ is now the preferred method for defining default faces in a way that
 makes a good use of the capabilities of the display.
 
 +++
-*** New function display-supports-face-attributes-p can be used to test
+*** New function `display-supports-face-attributes-p' can be used to test
 whether a given set of face attributes is actually displayable.
 
 A new predicate `supports' has also been added to the `defface' face
 specification language, which can be used to do this test for faces
-defined with defface.
+defined with `defface'.
 
 ---
 *** The special treatment of faces whose names are of the form `fg:COLOR'
@@ -4476,10 +4533,11 @@ whether the given face displays differently from the default face or
 not (previously it did only a very cursory check).
 
 +++
-*** `face-attribute', `face-foreground', `face-background', and
-`face-stipple' now accept a new optional argument, INHERIT, which
-controls how face inheritance is used when determining the value of a
-face attribute.
+*** `face-attribute', `face-foreground', `face-background', `face-stipple'.
+
+These now accept a new optional argument, INHERIT, which controls how
+face inheritance is used when determining the value of a face
+attribute.
 
 +++
 *** New functions `face-attribute-relative-p' and `merge-face-attribute'
@@ -4493,9 +4551,6 @@ faces in the list override later faces in the list; in previous
 releases of Emacs, the order was the opposite.  This change was made
 so that :inherit face lists operate identically to face lists in text
 `face' properties.
-
-+++
-*** New standard font-lock face `font-lock-preprocessor-face'.
 
 ---
 *** `set-fontset-font', `fontset-info', `fontset-font' now operate on
@@ -4514,11 +4569,11 @@ new variable `char-property-alias-alist'.
 +++
 *** font-lock can manage arbitrary text-properties beside `face'.
 
-*** the FACENAME returned in `font-lock-keywords' can be a list of the
+**** the FACENAME returned in `font-lock-keywords' can be a list of the
 form (face FACE PROP1 VAL1 PROP2 VAL2 ...) so you can set other
 properties than `face'.
 
-*** `font-lock-extra-managed-props' can be set to make sure those
+**** `font-lock-extra-managed-props' can be set to make sure those
 extra properties are automatically cleaned up by font-lock.
 
 ---
@@ -4550,8 +4605,12 @@ declaration will give the buffer XML or SGML mode, based on the new
 var `magic-mode-alist'.
 
 +++
-*** Major mode functions now run the new normal hook
-`after-change-major-mode-hook', at their very end, after the mode hooks.
+*** Use the new function `run-mode-hooks' to run the major mode's mode hook.
+
++++
+*** All major mode functions should now run the new normal hook
+`after-change-major-mode-hook', at their very end, after the mode
+hooks.  `run-mode-hooks' does this automatically.
 
 ---
 *** If a major mode function has a non-nil `no-clone-indirect'
@@ -4581,7 +4640,7 @@ and simply passes them to `defcustom', if applicable.
 +++
 *** `minor-mode-list' now holds a list of minor mode commands.
 
----
++++
 *** `define-global-minor-mode'.
 
 This is a new name for what was formerly called
@@ -4591,9 +4650,10 @@ This is a new name for what was formerly called
 
 +++
 *** The new function `called-interactively-p' does what many people
-have mistakenly believed `interactive-p' did: it returns t if the
-calling function was called through `call-interactively'.  This should
-only be used when you cannot solve the problem by adding a new
+have mistakenly believed `interactive-p' to do: it returns t if the
+calling function was called through `call-interactively'.
+
+Only use this when you cannot solve the problem by adding a new
 INTERACTIVE argument to the command.
 
 +++
@@ -4630,41 +4690,6 @@ been renamed to `disabled-command-function'.  The variable
 *** `emacsserver' now runs `pre-command-hook' and `post-command-hook'
 when it receives a request from emacsclient.
 
-** Minibuffer changes:
-
-+++
-*** The functions all-completions and try-completion now accept lists
-of strings as well as hash-tables additionally to alists, obarrays
-and functions.  Furthermore, the function `test-completion' is now
-exported to Lisp.  The keys in alists and hash tables can be either
-strings or symbols, which are automatically converted with to strings.
-
-+++
-*** The new macro `dynamic-completion-table' supports using functions
-as a dynamic completion table.
-
-  (dynamic-completion-table FUN)
-
-FUN is called with one argument, the string for which completion is required,
-and it should return an alist containing all the intended possible
-completions.  This alist can be a full list of possible completions so that FUN
-can ignore the value of its argument.  If completion is performed in the
-minibuffer, FUN will be called in the buffer from which the minibuffer was
-entered.  `dynamic-completion-table' then computes the completion.
-
-+++
-*** The new macro `lazy-completion-table' initializes a variable
-as a lazy completion table.
-
-  (lazy-completion-table VAR FUN &rest ARGS)
-
-If the completion table VAR is used for the first time (e.g., by passing VAR
-as an argument to `try-completion'), the function FUN is called with arguments
-ARGS. FUN must return the completion table that will be stored in VAR. If
-completion is requested in the minibuffer, FUN will be called in the buffer
-from which the minibuffer was entered. The return value of
-`lazy-completion-table' must be used to initialize the value of VAR.
-
 ** Lisp file loading changes:
 
 +++
@@ -4677,8 +4702,8 @@ current file redefined it).
 defined.  For a variable, it records just the variable name.
 
 +++
-*** The function symbol-file can now search specifically for function or
-variable definitions.
+*** The function `symbol-file' can now search specifically for function,
+variable or face definitions.
 
 +++
 *** `provide' and `featurep' now accept an optional second argument
@@ -4693,10 +4718,11 @@ than 3 levels of nesting.
 +++
 ** Byte compiler changes:
 
-*** The byte-compiler now displays the actual line and character
+*** The byte compiler now displays the actual line and character
 position of errors, where possible.  Additionally, the form of its
-warning and error messages have been brought more in line with the
-output of other GNU tools.
+warning and error messages have been brought into line with GNU standards
+for these.  As a result, you can use next-error and friends on the
+compilation output buffer.
 
 *** The new macro `with-no-warnings' suppresses all compiler warnings
 inside its body.  In terms of execution, it is equivalent to `progn'.
@@ -4724,7 +4750,7 @@ efficient.  Since byte code from recent versions of XEmacs won't
 generally run in Emacs and vice versa, this optimization doesn't lose
 you anything.
 
-*** The local variable `no-byte-compile' in elisp files is now obeyed.
+*** The local variable `no-byte-compile' in Lisp files is now obeyed.
 
 ---
 *** When a Lisp file uses CL functions at run-time, compiling the file
@@ -4772,7 +4798,7 @@ the time it takes to convert the format.
 wasteful.
 
 ---
-*** set-buffer-file-coding-system now takes an additional argument,
+*** `set-buffer-file-coding-system' now takes an additional argument,
 NOMODIFY.  If it is non-nil, it means don't mark the buffer modified.
 
 +++
@@ -4799,7 +4825,7 @@ it is read from a file without decoding.
 hash tables defined by the Lisp function `define-translation-hash-table'.
 
 ---
-*** New function quail-find-key returns a list of keys to type in the
+*** New function `quail-find-key' returns a list of keys to type in the
 current input method to input a character.
 
 ** Mode line changes:
@@ -4807,7 +4833,7 @@ current input method to input a character.
 +++
 *** New function `format-mode-line'.
 
-This returns the mode-line or header-line of the selected (or a
+This returns the mode line or header line of the selected (or a
 specified) window as a string with or without text properties.
 
 +++
@@ -4869,13 +4895,13 @@ debugging output on the stderr file handle to a file.
 +++
 *** A number of hooks have been renamed to better follow the conventions:
 
-find-file-hooks to find-file-hook,
-find-file-not-found-hooks to find-file-not-found-functions,
-write-file-hooks to write-file-functions,
-write-contents-hooks to write-contents-functions,
-x-lost-selection-hooks to x-lost-selection-functions,
-x-sent-selection-hooks to x-sent-selection-functions,
-delete-frame-hook to delete-frame-functions.
+`find-file-hooks' to `find-file-hook',
+`find-file-not-found-hooks' to `find-file-not-found-functions',
+`write-file-hooks' to `write-file-functions',
+`write-contents-hooks' to `write-contents-functions',
+`x-lost-selection-hooks' to `x-lost-selection-functions',
+`x-sent-selection-hooks' to `x-sent-selection-functions',
+`delete-frame-hook' to `delete-frame-functions'.
 
 In each case the old name remains as an alias for the moment.
 
@@ -4887,6 +4913,87 @@ Use the LOCAL arg of `add-hook'.
 ---
 *** New function `x-send-client-message' sends a client message when
 running under X.
+
+** GC changes:
+
++++
+*** New variables `gc-elapsed' and `gcs-done' provide extra information
+on garbage collection.
+
++++
+*** The normal hook `post-gc-hook' is run at the end of garbage collection.
+
+The hook is run with GC inhibited, so use it with care.
+
+* New Packages for Lisp Programming in Emacs 22.1
+
++++
+** The new library button.el implements simple and fast `clickable
+buttons' in emacs buffers.  Buttons are much lighter-weight than the
+`widgets' implemented by widget.el, and can be used by lisp code that
+doesn't require the full power of widgets.  Emacs uses buttons for
+such things as help and apropos buffers.
+
+---
+** The new library tree-widget.el provides a widget to display a set
+of hierarchical data as an outline.  For example, the tree-widget is
+well suited to display a hierarchy of directories and files.
+
+** The new library bindat.el provides functions to unpack and pack
+binary data structures, such as network packets, to and from Lisp
+data structures.
+
+---
+** master-mode.el implements a minor mode for scrolling a slave
+buffer without leaving your current buffer, the master buffer.
+
+It can be used by sql.el, for example: the SQL buffer is the master
+and its SQLi buffer is the slave.  This allows you to scroll the SQLi
+buffer containing the output from the SQL buffer containing the
+commands.
+
+This is how to use sql.el and master.el together: the variable
+sql-buffer contains the slave buffer.  It is a local variable in the
+SQL buffer.
+
+(add-hook 'sql-mode-hook
+   (function (lambda ()
+	       (master-mode t)
+	       (master-set-slave sql-buffer))))
+(add-hook 'sql-set-sqli-hook
+   (function (lambda ()
+	       (master-set-slave sql-buffer))))
+
++++
+** The new library benchmark.el does timing measurements on Lisp code.
+
+This includes measuring garbage collection time.
+
++++
+** The new library testcover.el does test coverage checking.
+
+This is so you can tell whether you've tested all paths in your Lisp
+code.  It works with edebug.
+
+The function `testcover-start' instruments all functions in a given
+file.  Then test your code.  The function `testcover-mark-all' adds
+overlay "splotches" to the Lisp file's buffer to show where coverage
+is lacking.  The command `testcover-next-mark' (bind it to a key!)
+will move point forward to the next spot that has a splotch.
+
+Normally, a red splotch indicates the form was never completely
+evaluated; a brown splotch means it always evaluated to the same
+value.  The red splotches are skipped for forms that can't possibly
+complete their evaluation, such as `error'.  The brown splotches are
+skipped for forms that are expected to always evaluate to the same
+value, such as (setq x 14).
+
+For difficult cases, you can add do-nothing macros to your code to
+help out the test coverage tool.  The macro `noreturn' suppresses a
+red splotch.  It is an error if the argument to `noreturn' does
+return.  The macro `1value' suppresses a brown splotch for its argument.
+This macro is a no-op except during test-coverage -- then it signals
+an error if the argument actually returns differing values.
 
 * Installation changes in Emacs 21.3
 
@@ -10715,8 +10822,8 @@ can make FCC copies more closely resemble copies that recipients get
 
 **** you can specify an arbitrary function for actually transmitting
 the message; included in feedmail are interfaces for /bin/[r]mail,
-/usr/lib/sendmail, and elisp smtpmail; it's easy to write a new
-function for something else (10-20 lines of elisp)
+/usr/lib/sendmail, and Emacs Lisp smtpmail; it's easy to write a new
+function for something else (10-20 lines of Lisp code).
 
 ** Dired changes
 

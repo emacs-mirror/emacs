@@ -1,3 +1,78 @@
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buffers.texi (Select Buffer): Document `C-u M-g M-g'.
+
+	* basic.texi (Moving Point): Mention default for `goto-line'.
+
+	* programs.texi (Lisp Doc): Eldoc mode shows only the first line
+	of a variable's docstring.
+
+2005-05-18  Lute Kamstra  <lute@gnu.org>
+
+	* maintaining.texi (Overview of Emerge): Add cross reference.
+	Remove duplication.
+
+	* emacs.texi (Top): Update to the current structure of the manual.
+	* misc.texi (Emacs Server): Add menu description.
+	* files.texi (Saving): Fix menu.
+	* custom.texi (Customization): Fix menu.
+	* mule.texi (International): Fix menu.
+	* kmacro.texi (Keyboard Macros): Fix menu.
+
+2005-05-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi:  Various minor changes.
+	(Faces): Delete text that is repeated in the next section.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Mention GUD tooltips are
+	disabled with GDB in text command mode.
+
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing Variables): Mention `calc-copy-special-constant'.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi: Replace toolbar with "tool bar" for consistency.
+	(Compilation Mode): Describe compilation-context-lines
+	and use of arrow in compilation buffer.
+	(Debugger Operation): Replace help text with variable's value.
+
+	* frames.texi (Tooltips): Replace toolbar with "tool bar" for
+	consistency.
+
+2005-05-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* major.texi (Choosing Modes): normal-mode processes the -*- line.
+	Add xref.
+
+2005-05-14  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Default Simplifications): Insert missing ! (logical
+	not operator).
+
+2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.49.
+
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* basic.texi (Moving Point): Mention `M-g g' binding for `goto-line'.
+	(Position Info): Delete discussion of `goto-line'.  It is already
+	described in `Moving point'.
+
+	* mini.texi (Completion Commands): Correct reference.
+	(Completion Options): Fix typo.
+
+	* killing.texi (Deletion): Complete description of `C-x C-o'.
+
+2005-05-10  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Default Simplifications): Mention that 0^0 simplifies
+	to 1.
+
 2005-05-10  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Compilation): Clarify recompile's directory choice.

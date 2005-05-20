@@ -1990,7 +1990,7 @@ is non-nil if the user has supplied the password interactively.
 					      header-end t)
 			      (let ((beg (point))
 				    (eol (progn (end-of-line) (point))))
-				(string-to-int (buffer-substring beg eol)))))))
+				(string-to-number (buffer-substring beg eol)))))))
 		 (and size
 		      (if (and (natnump size)
 			       (<= (+ header-end size) (point-max))

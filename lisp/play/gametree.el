@@ -204,12 +204,12 @@ should be no leading white space."
                             gametree-half-ply-regexp "\\)"))
           (limit (save-excursion (beginning-of-line 1) (point))))
       (if (looking-at boundary)
-          (+ (* 2 (string-to-int (match-string 1)))
+          (+ (* 2 (string-to-number (match-string 1)))
              (if (string-match gametree-half-ply-regexp (match-string 2)) 1 0))
         (save-excursion
           (re-search-backward boundary limit)
           (skip-chars-backward "0123456789")
-          (1+ (* 2 (string-to-int
+          (1+ (* 2 (string-to-number
                     (buffer-substring (point) (match-end 1))))))))))
 
 (defun gametree-current-branch-ply ()
@@ -345,7 +345,7 @@ This value is simply the outline heading level of the current line."
   "Return score of current variation according to its score tag.
 When no score tag is present, use the value of `gametree-default-score'."
   (if (looking-at gametree-score-regexp)
-      (string-to-int (match-string 3))
+      (string-to-number (match-string 3))
     gametree-default-score))
 
 (defun gametree-compute-reduced-score ()

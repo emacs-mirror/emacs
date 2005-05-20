@@ -1256,16 +1256,16 @@ Argument BOTTOM is the bottom margin in number of lines or percent of window."
   ;; set top scroll margin
   (or (string= top "")
       (if (string= "%" (substring top -1))
-	  (setq edt-top-scroll-margin (string-to-int top))
+	  (setq edt-top-scroll-margin (string-to-number top))
 	(setq edt-top-scroll-margin
-	      (/ (1- (+ (* (string-to-int top) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number top) 100) (window-height)))
 		 (window-height)))))
   ;; set bottom scroll margin
   (or (string= bottom "")
       (if (string= "%" (substring bottom -1))
-	  (setq edt-bottom-scroll-margin (string-to-int bottom))
+	  (setq edt-bottom-scroll-margin (string-to-number bottom))
 	(setq edt-bottom-scroll-margin
-	      (/ (1- (+ (* (string-to-int bottom) 100) (window-height)))
+	      (/ (1- (+ (* (string-to-number bottom) 100) (window-height)))
 		 (window-height)))))
   ;; report scroll margin settings if running interactively
   (and (interactive-p)

@@ -169,6 +169,18 @@ The format is (FUNCTION ARGS...).")
 		     (goto-char (cdr location))))
   'help-echo (purecopy"mouse-2, RET: find variable's definition"))
 
+(define-button-type 'help-face-def
+  :supertype 'help-xref
+  'help-function (lambda (fun file)
+		   (require 'find-func)
+		   ;; Don't use find-function-noselect because it follows
+		   ;; aliases (which fails for built-in functions).
+		   (let ((location
+			  (find-function-search-for-symbol fun 'defface file)))
+		     (pop-to-buffer (car location))
+		     (goto-char (cdr location))))
+  'help-echo (purecopy "mouse-2, RET: find face's definition"))
+
 
 ;;;###autoload
 (defun help-mode ()

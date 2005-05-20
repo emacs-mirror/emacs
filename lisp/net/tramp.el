@@ -1,7 +1,7 @@
 ;;; -*- mode: Emacs-Lisp; coding: iso-2022-7bit; -*-
 ;;; tramp.el --- Transparent Remote Access, Multiple Protocol
 
-;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1998, 1999, 2000, 2001, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: kai.grossjohann@gmx.net
 ;; Keywords: comm, processes
@@ -1352,7 +1352,9 @@ autocorrect\" to the remote host."
 
 ;; Chunked sending kluge.  We set this to 500 for black-listed constellations
 ;; known to have a bug in `process-send-string'; some ssh connections appear
-;; to drop bytes when data is sent too quickly.
+;; to drop bytes when data is sent too quickly.  There is also a connection
+;; buffer local variable, which is computed depending on remote host properties
+;; when `tramp-chunksize' is zero or nil.
 (defcustom tramp-chunksize
   (when (and (not (featurep 'xemacs))
 	     (memq system-type '(hpux)))
@@ -3231,7 +3233,13 @@ This is like `dired-recursive-delete-directory' for tramp files."
        (mapconcat #'tramp-shell-quote-argument (cons program arguments) " "))
       (tramp-wait-for-output))
     (unless discard
-      (insert-buffer (tramp-get-buffer multi-method method user host)))
+      ;; We cannot use `insert-buffer' because the tramp buffer
+      ;; changes its contents before insertion due to calling
+      ;; `expand-file' and alike.
+      (insert
+       (with-current-buffer
+	   (tramp-get-buffer multi-method method user host)
+	 (buffer-string))))
     (save-excursion
       (prog1
 	  (tramp-send-command-and-check multi-method method user host nil)
@@ -3360,8 +3368,10 @@ This is like `dired-recursive-delete-directory' for tramp files."
                    switches
                    (if wildcard
                        localname
-                     (tramp-shell-quote-argument
-                      (file-name-nondirectory localname))))))
+		     (if (zerop (length (file-name-nondirectory localname)))
+			 ""
+		       (tramp-shell-quote-argument
+			(file-name-nondirectory localname)))))))
         (sit-for 1)			;needed for rsh but not ssh?
         (tramp-wait-for-output))
       ;; The following let-binding is used by code that's commented
@@ -3369,8 +3379,13 @@ This is like `dired-recursive-delete-directory' for tramp files."
       ;; that the commented-out code is really not needed.  Commenting-out
       ;; happened on 2003-03-13.
       (let ((old-pos (point)))
-        (insert-buffer-substring
-         (tramp-get-buffer multi-method method user host))
+	;; We cannot use `insert-buffer' because the tramp buffer
+	;; changes its contents before insertion due to calling
+	;; `expand-file' and alike.
+	(insert
+	 (with-current-buffer
+	     (tramp-get-buffer multi-method method user host)
+	   (buffer-string)))
         ;; On XEmacs, we want to call (exchange-point-and-mark t), but
         ;; that doesn't exist on Emacs, so we use this workaround instead.
         ;; Since zmacs-region-stays doesn't exist in Emacs, this ought to
@@ -3561,7 +3576,13 @@ This will break if COMMAND prints a newline, followed by the value of
 	    (unless asynchronous
 	      (tramp-wait-for-output)))
 	  (unless asynchronous
-	    (insert-buffer (tramp-get-buffer multi-method method user host)))
+	    ;; We cannot use `insert-buffer' because the tramp buffer
+	    ;; changes its contents before insertion due to calling
+	    ;; `expand-file' and alike.
+	    (insert
+	     (with-current-buffer
+		 (tramp-get-buffer multi-method method user host)
+	       (buffer-string))))
 	  (when error-buffer
 	    (save-excursion
 	      (unless (bufferp error-buffer)
@@ -3571,7 +3592,11 @@ This will break if COMMAND prints a newline, followed by the value of
 	       "cat /tmp/tramp.$$.err")
 	      (tramp-wait-for-output)
 	      (set-buffer error-buffer)
-	      (insert-buffer (tramp-get-buffer multi-method method user host))
+	      ;; Same comment as above
+	      (insert
+	       (with-current-buffer
+		   (tramp-get-buffer multi-method method user host)
+		 (buffer-string)))
 	      (tramp-send-command-and-check
 	       multi-method method user host "rm -f /tmp/tramp.$$.err")))
 	  (save-excursion
@@ -4834,6 +4859,9 @@ Function may have 0-3 parameters."
 (defun tramp-set-auto-save ()
   (when (and (buffer-file-name)
              (tramp-tramp-file-p (buffer-file-name))
+	     ;; ange-ftp has its own auto-save mechanism
+	     (eq (tramp-find-foreign-file-name-handler (buffer-file-name))
+		 'tramp-sh-file-name-handler)
              auto-save-default)
     (auto-save-mode 1)))
 (add-hook 'find-file-hooks 'tramp-set-auto-save t)
@@ -5417,7 +5445,7 @@ Maybe the different regular expressions need to be tuned.
              method))
     (when multi-method
       (error "Cannot multi-connect using telnet connection method"))
-    (tramp-pre-connection multi-method method user host)
+    (tramp-pre-connection multi-method method user host tramp-chunksize)
     (tramp-message 7 "Opening connection for %s@%s using %s..."
 		   (or user (user-login-name)) host method)
     (let ((process-environment (copy-sequence process-environment)))
@@ -5475,7 +5503,7 @@ arguments, and xx will be used as the host name to connect to.
   (save-match-data
     (when multi-method
       (error "Cannot multi-connect using rsh connection method"))
-    (tramp-pre-connection multi-method method user host)
+    (tramp-pre-connection multi-method method user host tramp-chunksize)
     (if (and user (not (string= user "")))
 	(tramp-message 7 "Opening connection for %s@%s using %s..."
 		       user host method)
@@ -5544,7 +5572,7 @@ prompt than you do, so it is not at all unlikely that the variable
       (error
        "Cannot connect to different host `%s' with `su' connection method"
        host))
-    (tramp-pre-connection multi-method method user host)
+    (tramp-pre-connection multi-method method user host tramp-chunksize)
     (tramp-message 7 "Opening connection for `%s' using `%s'..."
 		   (or user "<root>") method)
     (let ((process-environment (copy-sequence process-environment)))
@@ -5609,7 +5637,7 @@ log in as u2 to h2."
     (unless (and (= (length method) (length user))
                  (= (length method) (length host)))
       (error "Arrays METHOD, USER, HOST must have equal length"))
-    (tramp-pre-connection multi-method method user host)
+    (tramp-pre-connection multi-method method user host tramp-chunksize)
     (tramp-message 7 "Opening `%s' connection..." multi-method)
     (let ((process-environment (copy-sequence process-environment)))
       (setenv "TERM" tramp-terminal-type)
@@ -5810,7 +5838,7 @@ Uses PROMPT as a prompt and sends the password to process P."
 ;; HHH: Not Changed.  This might handle the case where USER is not
 ;;      given in the "File name" very poorly.  Then, the local
 ;;      variable tramp-current-user will be set to nil.
-(defun tramp-pre-connection (multi-method method user host)
+(defun tramp-pre-connection (multi-method method user host chunksize)
   "Do some setup before actually logging in.
 METHOD, USER and HOST specify the connection."
   (set-buffer (tramp-get-buffer multi-method method user host))
@@ -5818,6 +5846,7 @@ METHOD, USER and HOST specify the connection."
   (set (make-local-variable 'tramp-current-method) method)
   (set (make-local-variable 'tramp-current-user)   user)
   (set (make-local-variable 'tramp-current-host)   host)
+  (set (make-local-variable 'tramp-chunksize)      chunksize)
   (set (make-local-variable 'inhibit-eol-conversion) nil)
   (erase-buffer))
 
@@ -5869,6 +5898,20 @@ to set up.  METHOD, USER and HOST specify the connection."
   (erase-buffer)
   (tramp-send-command-internal multi-method method user host
 			       "TERM=dumb; export TERM")
+  (erase-buffer)
+  ;; Check whether the remote host suffers from buggy `send-process-string'.
+  ;; This is known for FreeBSD (see comment in `send_process', file process.c).
+  ;; I've tested sending 624 bytes successfully, sending 625 bytes failed.
+  ;; Emacs makes a hack when this host type is detected locally.  It cannot
+  ;; handle remote hosts, though.
+  (when (or (not tramp-chunksize) (zerop tramp-chunksize))
+    (tramp-message 9 "Checking remote host type for `send-process-string' bug")
+    (tramp-send-command-internal multi-method method user host
+				 "(uname -sr) 2>/dev/null")
+    (goto-char (point-min))
+    (when (looking-at "FreeBSD")
+      (setq tramp-chunksize 500)))
+
   ;; Try to set up the coding system correctly.
   ;; CCC this can't be the right way to do it.  Hm.
   (save-excursion
@@ -6948,7 +6991,8 @@ as default."
       ;; Permissions should be set always, because there might be an old
       ;; auto-saved file belonging to another original file.  This could
       ;; be a security threat.
-      (set-file-modes buffer-auto-save-file-name (file-modes bfn)))))
+      (set-file-modes buffer-auto-save-file-name
+		      (or (file-modes bfn) ?\600)))))
 
 (unless (or (> emacs-major-version 21)
 	    (and (featurep 'xemacs)
@@ -7226,7 +7270,6 @@ Only works for Bourne-like shells."
 	 tramp-yesno-prompt-regexp
 	 tramp-yn-prompt-regexp
 	 tramp-terminal-prompt-regexp
-	 tramp-out-of-band-prompt-regexp
 	 tramp-temp-name-prefix
 	 tramp-file-name-structure
 	 tramp-file-name-regexp
@@ -7286,31 +7329,44 @@ report.
 (defun tramp-append-tramp-buffers ()
   "Append Tramp buffers into the bug report."
 
-  ;; We load mml.el from Gnus.
+  ;; We load message.el and mml.el from Gnus.
   (if (featurep 'xemacs)
-      (load "mml" 'noerror)
+      (progn
+	(load "message" 'noerror)
+	(load "mml" 'noerror))
+    (require 'message nil 'noerror)
     (require 'mml nil 'noerror))
+  (when (functionp 'message-mode)
+    (funcall 'message-mode))
+  (when (functionp 'mml-mode)
+    (funcall 'mml-mode t))
 
   (when (and
-	 ;; We don't want to add another dependency.
-	 (functionp 'mml-insert-empty-tag)
-	 ;; 2nd parameter since Emacs 22.
-	 (condition-case nil
-	     (list-buffers-noselect nil nil)
-	   (t nil)))
-    (let ((buffer-list
-	   (delq nil
-	    (mapcar '(lambda (b)
-	     (when (string-match "^\\*\\(debug \\)?tramp/" (buffer-name b)) b))
-	     (buffer-list))))
-	  (curbuf (current-buffer)))
+	 (eq major-mode 'message-mode)
+	 (boundp 'mml-mode)
+	 (symbol-value 'mml-mode))
+
+    (let* ((tramp-buf-regexp "\\*\\(debug \\)?tramp/")
+	   (buffer-list
+	    (delq nil
+		  (mapcar '(lambda (b)
+		     (when (string-match tramp-buf-regexp (buffer-name b)) b))
+			  (buffer-list))))
+	   (curbuf (current-buffer)))
 
       ;; There is at least one Tramp buffer.
       (when buffer-list
-	(switch-to-buffer (list-buffers-noselect nil buffer-list))
+	(switch-to-buffer (list-buffers-noselect nil))
 	(delete-other-windows)
 	(setq buffer-read-only nil)
-	(goto-char (point-max))
+	(goto-char (point-min))
+	(while (not (eobp))
+	  (if (re-search-forward tramp-buf-regexp (tramp-point-at-eol) t)
+	      (forward-line 1)
+	    (forward-line 0)
+	    (let ((start (point)))
+	      (forward-line 1)
+	      (kill-region start (point)))))
 	(insert "
 The buffer(s) above will be appended to this message.  If you don't want
 to append a buffer because it contains sensible data, or because the buffer

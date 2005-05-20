@@ -785,6 +785,7 @@ bound to `antlr-language'.  For example, with value
   \((java-mode \. 2) (c++-mode \. 0))
 Java actions are fontified with level 2 and C++ actions are not
 fontified at all."
+  :group 'antlr
   :type '(choice (const :tag "None" none)
 		 (const :tag "Inherit" inherit)
 		 (const :tag "Default" nil)

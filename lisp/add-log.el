@@ -250,6 +250,9 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; Acknowledgements.
     ;; Don't include plain "From" because that is vague;
     ;; we want to encourage people to say something more specific.
+    ;; Note that the FSF does not use "Patches by"; our convention
+    ;; is to put the name of the author of the changes at the top
+    ;; of the change log entry.
     ("\\(^\\( +\\|\t\\)\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
      3 'change-log-acknowledgement-face))
   "Additional expressions to highlight in Change Log mode.")
@@ -375,10 +378,10 @@ nil, by matching `change-log-version-number-regexp-list'."
 
 Optional arg FILE-NAME specifies the file to use.
 If FILE-NAME is nil, use the value of `change-log-default-name'.
-If 'change-log-default-name' is nil, behave as though it were 'ChangeLog'
+If `change-log-default-name' is nil, behave as though it were 'ChangeLog'
 \(or whatever we use on this operating system).
 
-If 'change-log-default-name' contains a leading directory component, then
+If `change-log-default-name' contains a leading directory component, then
 simply find it in the current directory.  Otherwise, search in the current
 directory and its successive parents for a file so named.
 
@@ -489,13 +492,13 @@ non-nil, otherwise in local time."
 
     (if whoami
 	(progn
-	  (setq full-name (read-input "Full name: " full-name))
+	  (setq full-name (read-string "Full name: " full-name))
 	  ;; Note that some sites have room and phone number fields in
 	  ;; full name which look silly when inserted.  Rather than do
 	  ;; anything about that here, let user give prefix argument so that
 	  ;; s/he can edit the full name field in prompter if s/he wants.
 	  (setq mailing-address
-		(read-input "Mailing address: " mailing-address))))
+		(read-string "Mailing address: " mailing-address))))
 
     (unless (equal file-name buffer-file-name)
       (if (or other-window (window-dedicated-p (selected-window)))

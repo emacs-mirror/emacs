@@ -1,6 +1,6 @@
 ;;; rlogin.el --- remote login interface
 
-;; Copyright (C) 1992, 93, 94, 95, 97, 1998, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1992, 93, 94, 95, 97, 1998, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: Noah Friedman
 ;; Maintainer: Noah Friedman <friedman@splode.com>

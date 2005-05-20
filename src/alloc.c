@@ -534,6 +534,12 @@ memory_full ()
     Fsignal (Qnil, Vmemory_signal_data);
 }
 
+DEFUN ("memory-full-p", Fmemory_full_p, Smemory_full_p, 0, 0, 0,
+       doc: /* t if memory is nearly full, nil otherwise.  */)
+  ()
+{
+  return (spare_memory ? Qnil : Qt);
+}
 
 /* Called if we can't allocate relocatable space for a buffer.  */
 
@@ -6035,6 +6041,7 @@ The time is in seconds as a floating point value.  */);
   DEFVAR_INT ("gcs-done", &gcs_done,
 	      doc: /* Accumulated number of garbage collections done.  */);
 
+  defsubr (&Smemory_full_p);
   defsubr (&Scons);
   defsubr (&Slist);
   defsubr (&Svector);

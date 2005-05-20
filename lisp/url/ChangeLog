@@ -1,3 +1,21 @@
+2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-cookie.el (url-cookie-multiple-line):
+	Specify group and type in defcustom.
+
+2005-05-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-auth.el (url-register-auth-scheme):
+	* url-cookie.el (url-cookie-expired-p):
+	* url-dav.el (url-dav-process-date-property)
+	(url-dav-process-boolean-property, url-dav-process-DAV:status):
+	* url-http.el (url-http-chunked-encoding-after-change-function)
+	(url-http-wait-for-headers-change-function):
+	* url-ns.el (isInNet):
+	* url-parse.el (url-generic-parse-url):
+	* url-util.el (url-get-normalized-date): Replace `string-to-int'
+	by `string-to-number'.
+
 2005-04-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* url.el (url-retrieve-synchronously): Work around the fact that

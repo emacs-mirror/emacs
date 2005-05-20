@@ -3215,7 +3215,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 	(add-hook 'tooltip-hook 'gud-tooltip-tips)
 	(define-key global-map [mouse-movement] 'gud-tooltip-mouse-motion))
     (unless tooltip-mode (remove-hook 'pre-command-hook 'tooltip-hide)
-    (remove-hook 'change-major-mode-hook 'tooltip-change-major-mode)
+    (remove-hook 'change-major-mode-hook 'gud-tooltip-change-major-mode)
     (remove-hook 'tooltip-hook 'gud-tooltip-tips)
     (define-key global-map [mouse-movement] 'ignore)))
   (gud-tooltip-activate-mouse-motions-if-enabled)
@@ -3253,7 +3253,7 @@ If GUD-TOOLTIP-DEREFERENCE is t, also prepend a `*' to EXPR."
   (when gud-tooltip-dereference
     (setq expr (concat "*" expr)))
   (case gud-minor-mode
-    ((gdb gdba) (concat "server print " expr))
+    (gdba (concat "server print " expr))
     ((dbx gdbmi) (concat "print " expr))
     (xdb (concat "p " expr))
     (sdb (concat expr "/"))
@@ -3293,6 +3293,10 @@ This function must return nil if it doesn't handle EVENT."
 		      (tooltip-show (cdr define-elt))
 		      expr))))
 	    (let ((cmd (gud-tooltip-print-command expr)))
+	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))
+		(gud-tooltip-mode -1)
+		(message-box "Using GUD tooltips in this mode is unsafe\n\
+so they have been disabled."))
 	      (unless (null cmd) ; CMD can be nil if unknown debugger
 		(if (memq gud-minor-mode '(gdba gdbmi))
 		      (if gdb-macro-info

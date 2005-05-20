@@ -1,3 +1,632 @@
+2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (send-string, send-region):
+	Remove obsolescence declaration.
+	(window-dot, set-window-dot, read-input, show-buffer)
+	(eval-current-buffer, string-to-int):
+	Add release number to obsolescence declarations.
+
+2005-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-magic-forward-char): Enter ido-find-file at end of input.
+	(ido-magic-backward-char): Enter ido-switch-buffer at start of input.
+
+2005-05-20  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* faces.el (list-faces-display): Make back button respect optional
+	regexp arg.
+
+2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* calculator.el (calculator-radix-grouping-mode)
+	(calculator-radix-grouping-digits, calculator-displayer)
+	(calculator-radix-grouping-separator, calculator-copy-displayer):
+	* dabbrev.el (dabbrev-search-these-buffers-only):
+	* diff-mode.el (diff-jump-to-old-file, diff-update-on-the-fly)
+	(diff-advance-after-apply-hunk, diff-mode-hook)
+	(diff-minor-mode-prefix):
+	* imenu.el (imenu-use-popup-menu):
+	* jit-lock.el (jit-lock-context-time):
+	* newcomment.el (comment-fill-column, comment-column)
+	(comment-style, comment-padding, comment-multi-line)
+	(comment-empty-lines, comment-auto-fill-only-comments):
+	* reveal.el (reveal-around-mark):
+	* uniquify.el (uniquify-buffer-name-style)
+	(uniquify-after-kill-buffer-p)
+	(uniquify-ask-about-buffer-names-p, uniquify-ignore-buffers-re)
+	(uniquify-min-dir-content, uniquify-separator)
+	(uniquify-trailing-separator-p, uniquify-strip-common-suffix):
+	* w32-vars.el (w32-fixed-font-alist):
+	* emacs-lisp/testcover.el (testcover-potentially-1value-functions):
+	* obsolete/rsz-mini.el (resize-minibuffer-frame-max-height):
+	* progmodes/antlr-mode.el (antlr-font-lock-maximum-decoration):
+	* progmodes/perl-mode.el (perl-indent-level)
+	(perl-continued-statement-offset, perl-continued-brace-offset)
+	(perl-brace-offset, perl-brace-imaginary-offset)
+	(perl-label-offset, perl-indent-continued-arguments)
+	(perl-tab-always-indent, perl-tab-to-comment, perl-nochange):
+	* progmodes/tcl.el (tcl-indent-level)
+	(tcl-continued-indent-level, tcl-auto-newline)
+	(tcl-tab-always-indent, tcl-electric-hash-style)
+	(tcl-help-directory-list, tcl-use-smart-word-finder)
+	(tcl-application, tcl-command-switches, tcl-prompt-regexp)
+	(inferior-tcl-source-command):
+	* textmodes/fill.el (enable-kinsoku):
+	* textmodes/reftex-vars.el (reftex-index-phrases-wrap-long-lines):
+	* textmodes/table.el (table-yank-handler):
+	Specify missing group (and type, if simple) in defcustom.
+
+2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/compile.el (compilation-finish-function): Fix defvar.
+
+2005-05-19  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-mode): Use run-mode-hooks.
+
+	* subr.el (event-basic-type): Don't get an error.
+	(left-fringe-p): Function deleted.
+
+	* buff-menu.el (Buffer-menu-buffer-face): In group Buffer-menu.
+
+	* dired-aux.el (dired-copy-file-recursive): Handle symlinks
+	in recursive copy.
+
+	* frame.el (show-trailing-whitespace): In group `whitespace-faces'.
+
+	* emacs-lisp/byte-run.el (eval-when-compile): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-file-form-custom-declare-variable):
+	Call byte-compile-nogroup-warn if appropriate.
+
+	* progmodes/compile.el (compilation-finish-function): Mark obsolete.
+	(compilation-set-window): Don't call left-fringe-p; do it directly.
+
+2005-05-19  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-graph.el (calc-graph-format-data): Make sure
+	var-PlotRejects is bound before trying to check its value.
+
+2005-05-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex.el (reftex-isearch-minor-mode): Moved the
+	definition of this variable from reftex-global.el to reftex.el,
+	because it is needed in the menu.
+
+2005-05-19  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/copyright.el (copyright-fix-years): Make sure all
+	years are fixed.  Don't insert a space after a dash.
+
+2005-05-19  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/crisp.el (crisp-home, crisp-end): Put CUA property.
+
+2005-05-19  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* font-lock.el (lisp-font-lock-keywords-2): Do \\) only in
+	strings, because (eq ... ?\\) is fairly frequent.
+
+	* progmodes/make-mode.el (makefile-add-this-line-targets):
+	Simplify and integrate into `makefile-pickup-targets'.
+	(makefile-add-this-line-macro): Simplify and integrate into
+	`makefile-pickup-macros.
+	(makefile-pickup-filenames-as-targets): Simplify.
+	(makefile-previous-dependency, makefile-match-dependency): Don't
+	stumble over `::'.
+
+2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (post-command-idle-hook, post-command-idle-delay):
+	Remove obsoletion of post-command-idle-hook and
+	post-command-idle-delay.
+
+	* faces.el (list-faces-display): Provide button when describe-face
+	is called to take user back to  the list of faces.
+
+	* help-fns.el (describe-variable): Remove hyperlinks in a
+	variable's value as these are quite frequently inappropriate.
+
+	* follow.el (follow-submit-feedback, follow-mode): Remove
+	references to post-command-idle-hook.
+
+2005-05-18  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-previous-dependency)
+	(makefile-match-dependency): Check for := (and in bsd mode also
+	!=) to give a better result, even when font-lock is not on.
+
+2005-05-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-help.el (calc-s-prefix-help): Add
+	`calc-copy-special-constant' to help string.
+
+2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/eldoc.el (eldoc-mode): Doc fix.
+
+2005-05-18  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-poly.el (math-factor-poly-coefs): Make sure the terms
+	in linear factors are in proper order.
+
+2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/reftex-vars.el (reftex-cite-format-builtin): Support
+	for jurabib.
+
+	* textmodes/reftex.el (featurep): Define aliases for overlay
+	commands, for XEmacs compatibility, and use these aliases in
+	overlay initializations.
+	(reftex-highlight): Use `reftex-move-overlay'.
+	(reftex-unhighlight): Use `reftex-delete-overlay'.
+	(reftex-uniq): Funktion removed.  Use `reftex-uniquify' instead.
+	(reftex-access-search-path): Use `reftex-uniquify' instead of
+	`reftex-uniq'
+
+	* textmodes/reftex-sel.el (reftex-select-unmark): Overlay
+	`before-string' property modification enables for Emacs as well.
+	(reftex-select-item): Use `reftex-delete-overlay'.
+	(reftex-select-mark): Use `reftex-make-overlay' and
+	`reftex-overlay-put'.
+	(reftex-select-unmark): Use `reftex-delete-overlay' and
+	`reftex-overlay-put'.
+
+2005-05-18  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/lisp.el (check-parens): Fix docstring.
+
+2005-05-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (add-change-log-entry):
+	* array.el (array-make-template, array-reconfigure-rows)
+	(array-init-max-row, array-init-max-column)
+	(array-init-columns-per-line, array-init-field-width):
+	* replace.el (replace-match-maybe-edit, perform-replace):
+	* textmodes/spell.el (spell-region):
+	Replace `read-input' by `read-string'.
+
+	* forms.el (forms-mode):
+	* finder.el (finder-compile-keywords):
+	* shadowfile.el (shadow-read-files):
+	Replace `eval-current-buffer' by `eval-buffer'.
+
+	* terminal.el (te-pass-through):
+	* net/ange-ftp.el (ange-ftp-process-filter, ange-ftp-gwp-filter)
+	(ange-ftp-raw-send-cmd):
+	* net/telnet.el (telnet-interrupt-subjob, telnet-c-z)
+	(send-process-next-char, telnet-initial-filter, telnet):
+	Replace `send-string' by `process-send-string'.
+
+	* progmodes/prolog.el (inferior-prolog-mode): Doc fix.
+	(prolog-consult-region): Replace `send-string' by
+	`process-send-string'; replace `send-region' by
+	`process-send-region'.
+
+	* progmodes/delphi.el (delphi-log-msg):
+	Replace `set-window-dot' by `set-window-point'.
+
+	* subr.el (window-dot, set-window-dot, read-input, send-string)
+	(send-region, show-buffer, eval-current-buffer):
+	Make really obsolete, as the comment says.
+
+2005-05-17  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-use-hyper-key): Doc fix.
+	(cua--init-keymaps): Bind C-return instead of S-return to set
+	rectangle mark.
+
+	* emulation/cua-rect.el (cua--init-rectangles): Bind C-return
+	instead of S-return to toggle/clear rectangle mark.
+
+2005-05-17  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-dependency-skip): New variable.
+	(makefile-macroassign-regex, makefile-make-font-lock-keywords):
+	Also fontify plain strings assigned to variables, mostly so that a
+	colon has a face and is thus not taken as a dependency separator.
+	(makefile-previous-dependency): Inline the new matcher, because it
+	is too complex to work in both directions.
+	(makefile-match-dependency): Eliminate `backward' arg (see above).
+	Completely reimplemented so as to not sometimes go into an endless
+	loop.  It should also be more efficient, because first it only
+	searches for `:', instead of applying the very complex regexp.
+	(makefile-mode): Cancel `font-lock-support-mode', because blocks
+	to be fontified in one piece can be too long for JIT.  Makefiles
+	are never *that* big.
+
+2005-05-17  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* dired.el (dired-mode): Simplify.
+
+2005-05-17  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't generate a
+	defcustom for the mode hook variable.
+
+	* emacs-lisp/authors.el (authors): Do parse the ChangeLogs of the
+	Emacs Lisp Reference Manual.
+
+2005-05-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl.el (eql, floatp-safe, plusp, minusp, oddp)
+	(evenp, list*):
+	* emacs-lisp/cl-macs.el (macrolet, symbol-macrolet):
+	* emacs-lisp/cl-seq.el (subsetp, tree-equal): Doc fixes.
+
+	* net/tramp-smb.el (tramp-smb-open-connection):
+	Pass `tramp-chunksize' as fifth (required) argument.
+
+2005-05-16  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* font-lock.el (lisp-font-lock-keywords-1): Set
+	`font-lock-negation-char-face' for [^...] char group.
+	(lisp-font-lock-keywords-2): Highlight regexp's \\( \\| \\).
+
+	* progmodes/make-mode.el (makefile-dependency-regex): Turn it into
+	a var, and refine it to mask one more level of nested vars.
+	(makefile-rule-action-regex): Turn it into a var, and refine it so
+	it recognizes backslashed continuation lines as belonging to the
+	same command.
+	(makefile-macroassign-regex): Refine it so it recognizes
+	backslashed continuation lines as belonging to the same command.
+	(makefile-var-use-regex): Don't look at the next char, because it
+	might be the same one to be skipped by the initial [^$], leading
+	to an overlooked variable use.
+	(makefile-make-font-lock-keywords): Remove two parameters, which
+	are now variables that some of the modes set locally.  Handle
+	dependency and rule action matching through functions, because
+	regexps alone match too often.  Dependency matching now comes
+	last, so it can check, whether a colon already matched something
+	else.
+	(makefile-mode): Inform that font-lock improves makefile parsing
+	capabilities.
+	(makefile-match-dependency, makefile-match-action): New functions.
+
+2005-05-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-extra.el (equalp): Doc fix.
+
+	* align.el (align-regexp):
+	* ansi-color.el (ansi-color-get-face):
+	* array.el (array-reconfigure-rows, array-init-max-row)
+	(array-init-max-column, array-init-columns-per-line)
+	(array-init-field-width):
+	* dired-aux.el (dired-trample-file-versions):
+	* dired-x.el (dired-mark-sexp):
+	* ediff-diff.el (ediff-extract-diffs, ediff-get-diff3-group):
+	* edmacro.el (edmacro-finish-edit, edmacro-parse-keys):
+	* emerge.el (emerge-extract-diffs, emerge-get-diff3-group):
+	* faces.el (face-read-integer):
+	* files.el (backup-extract-version, insert-directory):
+	* hexl.el (hexl-insert-decimal-char):
+	* server.el (server-process-filter):
+	* shell.el (shell-extract-num):
+	* startup.el (command-line-1):
+	* term.el (term-command-hook):
+	* time-stamp.el (time-stamp, time-stamp-string-preprocess)
+	(time-stamp-do-number):
+	* time.el (display-time-update):
+	* timezone.el (timezone-parse-date, timezone-zone-to-minute)
+	(timezone-fix-time):
+	* vms-patch.el (vms-suspend-resume-hook):
+	* calendar/appt.el (appt-convert-time):
+	* calendar/cal-bahai.el (mark-bahai-diary-entries):
+	* calendar/cal-hebrew.el (mark-hebrew-diary-entries):
+	* calendar/cal-islam.el (mark-islamic-diary-entries):
+	* calendar/calendar.el (calendar-cursor-to-date)
+	(calendar-star-date):
+	* calendar/diary-lib.el (diary-attrtype-convert)
+	(mark-diary-entries, diary-entry-time):
+	* calendar/solar.el (solar-get-number):
+	* emacs-lisp/lisp-mnt.el (lm-last-modified-date):
+	* emacs-lisp/re-builder.el (reb-display-subexp):
+	* emulation/edt.el (edt-set-scroll-margins):
+	* emulation/tpu-extras.el (tpu-set-scroll-margins):
+	* emulation/vip.el (vip-get-ex-token, vip-get-ex-buffer)
+	(vip-get-ex-count):
+	* emulation/viper-ex.el (viper-get-ex-token)
+	(viper-get-ex-buffer, viper-get-ex-count, ex-next):
+	* international/fontset.el (fontset-plain-name):
+	* mail/feedmail.el (feedmail-look-at-queue-directory):
+	* mail/mailalias.el (mail-get-names):
+	* mail/rmail.el (rmail-convert-to-babyl-format):
+	* mail/rmailsum.el (rmail-make-basic-summary-line)
+	(rmail-summary-next-same-subject, rmail-summary-rmail-update)
+	(rmail-summary-goto-msg):
+	* mail/smtpmail.el (smtpmail-read-response):
+	* net/ange-ftp.el (ange-ftp-guess-hash-mark-size)
+	(ange-ftp-vms-add-file-entry):
+	* play/gametree.el (gametree-looking-at-ply)
+	(gametree-current-branch-score):
+	* progmodes/ada-xref.el (ada-prj-find-prj-file)
+	(ada-xref-find-in-modified-ali, ada-find-in-src-path):
+	* progmodes/cperl-mode.el (condition-case):
+	* progmodes/ebrowse.el (ebrowse-set-tree-indentation)
+	(ebrowse-set-member-buffer-column-width)
+	(ebrowse-select-1st-to-9nth):
+	* progmodes/etags.el (etags-snarf-tag):
+	* progmodes/flymake.el (flymake-parse-line):
+	* progmodes/idlw-shell.el (idlwave-shell-parse-line)
+	(idlwave-shell-filter-bp, idlwave-shell-goto-next-error)
+	(idlwave-shell-menu-def):
+	* progmodes/ps-mode.el (ps-run-goto-error):
+	* progmodes/vhdl-mode.el (vhdl-read-offset, vhdl-load-cache)
+	(vhdl-speedbar-contract-level):
+	* term/mac-win.el (x-handle-numeric-switch):
+	* term/sun-mouse.el (sun-get-frame-data):
+	* term/w32-win.el (x-handle-numeric-switch):
+	* term/x-win.el (x-handle-numeric-switch):
+	* textmodes/ispell.el (ispell-parse-output):
+	* textmodes/nroff-mode.el (nroff-outline-level):
+	* textmodes/reftex-cite.el (reftex-bib-sort-year)
+	(reftex-bib-sort-year-reverse, reftex-format-citation):
+	* textmodes/reftex-parse.el (reftex-init-section-numbers)
+	(reftex-section-number):
+	* textmodes/texinfmt.el (texinfo-paragraphindent): Replace
+	`string-to-int' by `string-to-number'.
+
+	* international/latexenc.el: Add page marker to force the "Local
+	Variables:" string out of the last page.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-mode): Add gud prefix to
+	tooltip-change-major-mode.
+	(gud-tooltip-print-command): Remove case where gud-minor-mode
+	is gdb ("--fullname").
+	(gud-tooltip-tips): Turn GUD tooltips off for this case and
+	explain to user.
+
+2005-05-16  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-copy-special-constant): New function.
+
+	* calc/calc-ext.el (calc-init-extensions): Add binding for
+	`calc-copy-special-constant'.
+
+	* calc/calc-prog.el (calc-edit-format-macro-buffer): Add a case
+	for the `calc-copy-special-constant' command.
+
+2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* subr.el (left-fringe-p): New function.
+
+	* progmodes/compile.el (compilation-setup): Set local value of
+	overlay-arrow-string to "" always.
+	(compilation-set-window): Left fringe then don't scroll. No left
+	fringe then no arrow and scroll message to top.
+	(compilation-context-lines): Adjust doc string accordingly.
+
+2005-05-16  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-magic-forward-char, ido-magic-backward-char)
+	(ido-magic-delete-char): New commands for C-f, C-b, C-d.
+	(ido-wide-find-dir-or-delete-dir): New command for M-d.
+	(ido-define-mode-map): Bind them.  Add C-x prefix to fallback commands.
+	(ido-read-file-name): Handle commands with ido property value
+	equal to find-file as reading a file name, to allow C-d to enter dired.
+	(ibuffer-find-file): Add ido property with value find-file.
+
+2005-05-15  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (open-network-stream-nowait): Remove.
+	(open-network-stream-server): Remove.
+
+2005-05-15  Richard M. Stallman  <rms@gnu.org>
+
+	* faces.el (describe-face): Output a definition link button.
+
+	* help-mode.el (help-face-def): New button type.
+
+	* emacs-lisp/copyright.el (copyright-fix-years):
+	Match properly if the first year is 2-digit.
+	Don't mess up the whitespace after the years by filling.
+
+	* dired-aux.el (dired-mark-confirm):
+	Pass t to dired-get-marked-files for DISTINGUISH-ONE-MARKED.
+
+	* dired.el (dired-map-over-marks): New arg DISTINGUISH-ONE-MARKED.
+	(dired-get-marked-files): New arg DISTINGUISH-ONE-MARKED.
+	(dired-mark-pop-up): Handle FILES = (t FILE) specially.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Set font-lock-comment-start-skip.
+
+	* font-lock.el (font-lock-comment-start-skip): New variable.
+	(font-lock-comment-end-skip): New variable.
+	(font-lock-fontify-syntactically-region): Use them if non-nil.
+
+2005-05-15  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-store.el (calc-store-value): Return a string rather
+	than display it as a message.
+	Use calc-var-name for variable name.
+	(calc-store-into): Add the result of calc-store-value to message.
+	(calc-copy-variable): Add a message.
+	(calc-store-exchange): Improve error messages.
+	(calc-store-binary, calc-store-map): Don't reset the values of
+	special constants.
+
+2005-05-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/derived.el (define-derived-mode): Add link to Elisp
+	manual to docstring.
+
+	* files.el (hack-local-variables-confirm): Add STRING argument.
+	Make the function handle non file visiting buffers correctly.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use STRING arg of
+	`hack-local-variables-confirm'.
+
+2005-05-14  Michael Albinus  <michael.albinus@gmx.de>
+
+	Sync with Tramp 2.0.49.
+
+	* tramp.el (tramp-handle-dired-call-process)
+	(tramp-handle-insert-directory):`insert-buffer' cannot be used
+	because the contents of the Tramp buffer is changed before
+	insertion (`expand-file' and alike).
+	(tramp-handle-insert-directory): If `localname' has an empty
+	nondirectory name, it must not be quoted.
+	(tramp-pre-connection): Add parameter CHUNKSIZE.  Make local
+	variable `tramp-chunksize'.  Change callees.
+	(tramp-open-connection-setup-interactive-shell): Check remote host
+	for buggy `send-process-string' implementation.  Set
+	`tramp-chunksize' if found.  Reported by Michael Kifer
+	<kifer@cs.sunysb.edu> (and a lot of other people all the years).
+	(tramp-handle-shell-command): `insert-buffer' cannot be used
+	because the contents of the Tramp buffer is changed before
+	insertion (`expand-file' and alike).  Reported by Fr,Ai(Bd,Ai(Bric Bothamy
+	<frederic.bothamy@free.fr>.
+	(tramp-set-auto-save): Actions should be done for Tramp file name
+	handler only.  Ange-FTP has its own auto-save mechanism.  Reported
+	by Richard G. Bielawski <Richard.G.Bielawski@wellsfargo.com>.
+	(tramp-set-auto-save-file-modes): Set file modes of
+	`buffer-auto-save-file-name' to ?\600 as fallback solution.
+	Reported by Ferenc Wagner <wferi@tba.elte.hu>.
+	(tramp-bug): Remove obsolete variable.
+	(tramp-append-tramp-buffers): Rewrite partly.  More suitable check
+	for presence of `mml-mode'.  Make it running for older Emacsen as
+	well.
+
+2005-05-14  John Paul Wallington  <jpw@pobox.com>
+
+	* ibuf-ext.el (define-ibuffer-filter filename):
+	If `dired-directory' is a list, use its car.
+
+2005-05-14  Daniel Brockman  <daniel@brockman.se>  (tiny change)
+
+	* ibuffer.el (define-ibuffer-column filename):
+	If `dired-directory' is a list, use its car.
+
+2005-05-14  Richard M. Stallman  <rms@gnu.org>
+
+	* subr.el (symbol-file): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn): New function.
+	(byte-compile-form): Call byte-compile-nogroup-warn.
+	(byte-compile-warning-types): Doc fix.
+
+	* eshell/esh-mode.el (eshell-find-tag): Use with-no-warnings.
+
+	* progmodes/cc-engine.el (c-literal-faces):
+	Add font-lock-comment-delimiter-face.
+
+	* net/net-utils.el (dig): Use with-no-warnings.
+
+	* mail/supercite.el (sc-cite-frame-alist, sc-uncite-frame-alist)
+	(sc-recite-frame-alist, sc-default-cite-frame)
+	(sc-default-uncite-frame, sc-default-recite-frame)
+	(sc-attrib-selection-list, sc-rewrite-header-list):
+	Mark as risky-local-variable.
+
+	* international/ogonek.el (ogonek-jak, ogonek-how):
+	Don't use beginning-of-buffer.
+
+	* emacs-lisp/eldoc.el (eldoc-documentation-function): Add autoload.
+
+	* calendar/solar.el (solar-data-list): Move definition up.
+
+	* dnd.el (dnd-protocol-alist): Add autoload.
+
+	* progmodes/sh-script.el: Many doc usage fixes.
+	(sh-indent-after-do): Change default to match common styles.
+
+2005-05-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.el (interpreter-mode-alist)
+	(auto-mode-interpreter-regexp): Doc fixes.
+
+2005-05-13  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* tmm.el (tmm-get-keymap): Include only active menus and menu
+	items.
+
+	* emacs-lisp/easymenu.el (easy-menu-define): Doc fixes.
+
+2005-05-13  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* dired.el (dired-mode): make-variable-buffer-local =>
+	make-local-variable
+
+2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (mac-select-convert-to-string): Try coding
+	systems in mac-script-code-coding-systems if specified one cannot
+	encode string for `com.apple.traditional-mac-plain-text'.
+
+2005-05-13  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-targets-face)
+	(makefile-shell-face, makefile-makepp-perl-face): New faces.
+	(makefile-dependency-regex): Fix it to not make the colon in
+	$(var:a=b) special.
+	(makefile-rule-action-regex): New regexp for highlighting embedded
+	Shell strings.
+	(makefile-macroassign-regex): Handle != for highlighting as
+	embedded Shell strings.
+	(makefile-var-use-regex): New const.
+	(makefile-statements, makefile-automake-statements)
+	(makefile-gmake-statements, makefile-makepp-statements)
+	(makefile-bsdmake-statements): New consts.
+	(makefile-make-font-lock-keywords): New function.
+	(makefile-automake-font-lock-keywords)
+	(makefile-gmake-font-lock-keywords)
+	(makefile-makepp-font-lock-keywords)
+	(makefile-bsdmake-font-lock-keywords): New consts.
+	(makefile-mode-map): Add switchers between the various submodes.
+	(makefile-mode): Document the availability of the variants.
+	(makefile-automake-mode, makefile-gmake-mode)
+	(makefile-makepp-mode, makefile-bsdmake-mode): New derived modes.
+
+	* files.el (auto-mode-alist, interpreter-mode-alist): Set up the
+	new variants of makefile-mode.
+
+2005-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-comment-delimiter-face): Fix up
+	the inheritance.
+
+2005-05-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode-hook)
+	(inferior-lisp-load-hook): Convert defcustoms back to defvars.
+
+	* files.el (normal-mode): Extend the scope of the
+	`enable-local-variables' binding to include the `set-auto-mode' call.
+	(magic-mode-alist): Doc fix.
+
+2005-05-12  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (font-lock-comment-delimiter-face): Inherit from
+	font-lock-comment-face rather than copying its setting.
+
+2005-05-12  Andreas Schwab  <schwab@suse.de>
+
+	* eshell/esh-mode.el (eshell-send-input): Doc fix.
+
+2005-05-12  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/generic.el (define-generic-mode): Don't generate a
+	defcustom for the mode hook variable.  Delete the last argument.
+	* generic-x.el: Fix callers of define-generic-mode.
+	(generic-x-modes): Delete group.
+	(show-tabs-tab-face, show-tabs-space-face): Put them in the
+	generic-x customization group.
+
+2005-05-12  Kim F. Storm  <storm@cua.dk>
+
+	* font-lock.el (font-lock-negation-char-face): Default to "off".
+
+	* progmodes/cc-fonts.el (c-basic-matchers-before): Don't apply
+	font-lock-negation-char-face to ! in !=.
+
+2005-05-12  Masatake YAMATO  <jet@gyve.org>
+
+	* add-log.el (find-change-log): Fix typos in the docstring
+	of function.
+
 2005-05-11  Arne J,Ax(Brgensen  <arne@arnested.dk>
 
 	* international/latexenc.el (latexenc-find-file-coding-system):
@@ -21,6 +650,12 @@
 
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (font-lock-fontify-syntactically-region): Don't use
+	comment-end if comment-start-skip is not set.
+	Obey the font-lock-comment-delimiter-face variables.
+
+2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
 	* files.el (executable-find): Move from executable.el. Use locate-file.
 	* progmodes/executable.el (executable-find): Move to files.el.
 
@@ -32,6 +667,11 @@
 	* mouse-sel.el (mouse-sel-follow-link-p): New function.
 	(mouse-select, mouse-select-internal, mouse-extend-internal):
 	Use it to implement mouse-1-click-follows-link functionality.
+
+2005-05-11  Richard M. Stallman  <rms@gnu.org>
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Use font-lock-comment-delimiter-face for comment delimiters.
 
 2005-05-10  Jay Belanger  <belanger@truman.edu>
 
@@ -53,6 +693,9 @@
 	* cus-edit.el (custom-file): Call file-chase-links.
 
 	* files.el (read-directory-name): Fix previous change.
+	(hack-local-variables-confirm): New function.
+	(hack-local-variables-prop-line, hack-local-variables)
+	(hack-one-local-variable): Use it.
 
 2005-05-10  Lute Kamstra  <lute@gnu.org>
 
@@ -1123,7 +1766,7 @@
 
 2005-04-15  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el:  (org-agenda-date-prompt): Rename from
+	* textmodes/org.el (org-agenda-date-prompt): Rename from
 	`org-agenda-date-today'.
 	(org-evaluate-time-range): Insert at point instead of directly
 	after time range.
@@ -1327,7 +1970,7 @@
 	to dnd-insert-text.
 	(x-dnd-protocol-alist, x-dnd-open-file-other-window)
 	(x-dnd-handle-one-url, x-dnd-get-local-file-uri)
-	(x-dnd-get-local-file-name,  x-dnd-open-local-file)
+	(x-dnd-get-local-file-name, x-dnd-open-local-file)
 	(x-dnd-open-file, x-dnd-insert-text): Move to dnd.el (without x-).
 
 	* dnd.el (dnd-protocol-alist): New file with generic DND functions.
@@ -2374,7 +3017,7 @@
 
 2005-03-24  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-embed.el (calc-embedded-mode-change):  Save all
+	* calc/calc-embed.el (calc-embedded-mode-change): Save all
 	relevant mode settings in calc-embedded-original-modes when modes
 	are permanently changed.
 
@@ -4074,7 +4717,7 @@
 	(calc-set-language): Set math-expr-special-function-mapping.
 
 	* calc/calc-prog.el (calc-edit-user-syntax, calc-fix-token-name)
-	(calc-write-parse-table-part):  Add LaTeX support.
+	(calc-write-parse-table-part): Add LaTeX support.
 
 	* calc/calc.el (calc-language): Adjust docstring.
 	(calc-set-mode-line): Add LaTeX support.
@@ -5049,7 +5692,7 @@
 
 2004-12-31  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-store.el (calcVar-digit, calcVar-oper):  Remove the need
+	* calc/calc-store.el (calcVar-digit, calcVar-oper): Remove the need
 	for "var-" at the beginning of the minibuffer.
 
 2004-12-31  Richard M. Stallman  <rms@gnu.org>
@@ -5899,7 +6542,7 @@
 	* calendar/holidays.el (holiday-easter-etc): Make arguments
 	optional for backwards compatibility.  Doc fix.
 	Remove un-necessary local vars mandatory, output-list.
-	(holiday-advent):  Make arguments optional for backwards
+	(holiday-advent): Make arguments optional for backwards
 	compatibility.  Doc fix.
 
 2004-12-06  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -7008,7 +7651,7 @@
 	disp-trail by declared variable.
 
 	* calc/calc-sel.el (calc-edit-disp-trail): Declare it.
-	(calc-finish-selection-edit):  Replace variable disp-trail by
+	(calc-finish-selection-edit): Replace variable disp-trail by
 	declared variable.
 	(calc-selection-cache-entry): Move declaration to earlier in the file.
 	(calc-selection-cache-num, calc-selection-cache-comp)
@@ -7024,14 +7667,14 @@
 	(calc-sel-reselect): New variable.
 	(calc-auto-selection, calc-enter-selection, calc-edit-selection)
 	(calc-sel-evaluate, calc-sel-expand-formula, calc-sel-expand-formula)
-	(calc-sel-mult-both-sides, calc-sel-add-both-sides):  Replace variable
+	(calc-sel-mult-both-sides, calc-sel-add-both-sides): Replace variable
 	reselect with declared variable.
 
 	* calc/calc-rewr.el (math-regs, math-num-regs, math-prog-last)
 	(math-bound-vars, math-conds, math-copy-neg, math-rhs)
 	(math-pattern, math-remembering, math-aliased-vars, math-mt-many)
 	(math-import-list, math-rewrite-phase): Declare them.
-	(math-rewrite):  Use let* to declare variables.
+	(math-rewrite): Use let* to declare variables.
 	(calc-rewrite-selection): Make rules a local variable.
 	(calc-rewr-sel): New variable.
 	(calc-rewrite-selection, calc-locate-selection-marker)
@@ -7264,15 +7907,15 @@
 
 2004-11-15  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calcalg2.el (math-integrate-by-parts):  Remove unused
+	* calc/calcalg2.el (math-integrate-by-parts): Remove unused
 	variable var-thing.
 	(math-integ-depth, math-integ-level, math-integral-limit)
 	(math-enable-subst, math-any-substs, math-integ-msg)
 	(math-prev-parts-v, math-good-parts, math-max-integral-limit)
 	(math-int-threshold, math-int-factors, math-double-roots)
 	(math-solve-simplifying, var-IntegLimit, math-solve-sign)
-	(var-GenCount):  Declare these variables.
-	(calcFunc-integ):  Don't check if var-IntegLimit is bound.
+	(var-GenCount): Declare these variables.
+	(calcFunc-integ): Don't check if var-IntegLimit is bound.
 	(math-integral-cache, math-integral-cache-state):
 	Move declarations to earlier in the file.
 	(math-deriv-var, math-deriv-total, math-deriv-symb)
@@ -7280,7 +7923,7 @@
 	(math-so-far, math-integ-expr, math-expr-parts, calc-low)
 	(calc-high, math-solve-var, math-solve-full, math-solve-vars)
 	(math-try-solve-sign, math-solve-b, math-solve-system-vv)
-	(math-solve-res):  New variables
+	(math-solve-res): New variables
 	(math-derivative, calcFunc-deriv, calcFunc-tderiv)
 	(math-integral, math-replace-integral-parts)
 	(math-integrate-by-parts, calc-dump-integral-cache)
@@ -7384,18 +8027,18 @@
 
 2004-11-12  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-graph.el (calc-dumb-map):  Declare it.
-	(calc-graph-show-dumb):  Check if calc-dumb-map is non-nil rather
+	* calc/calc-graph.el (calc-dumb-map): Declare it.
+	(calc-graph-show-dumb): Check if calc-dumb-map is non-nil rather
 	than unbound.
-	(calc-graph-name):  Made `end' a local variable.
-	(calc-graph-lookup):  Made `varname' a local variable.
+	(calc-graph-name): Made `end' a local variable.
+	(calc-graph-lookup): Made `varname' a local variable.
 	(var-DUMMY, var-DUMMY2, var-PlotRejects, calc-gnuplot-trail-mark):
 	Declare them.
-	(calc-graph-format-data):  Don't check if var-PlotRejects is bound.
-	(calc-graph-plot, calc-graph-compute-3d):  Remove references to
+	(calc-graph-format-data): Don't check if var-PlotRejects is bound.
+	(calc-graph-plot, calc-graph-compute-3d): Remove references to
 	the unused variable y3vec.
-	(calc-graph-show-dumb):  Remove reference to unused variable found-pt.
-	(calc-graph-kill-hook, calc-graph-plot):  Remove reference to
+	(calc-graph-show-dumb): Remove reference to unused variable found-pt.
+	(calc-graph-kill-hook, calc-graph-plot): Remove reference to
 	calc-graph-prev-kill-hook.
 	(calc-graph-yvalue, calc-graph-yvec, calc-graph-numsteps)
 	(calc-graph-numsteps3, calc-graph-xvalue, calc-graph-xvec)
@@ -7408,7 +8051,7 @@
 	(calc-graph-y3step, calc-graph-y3step, calc-graph-zval)
 	(calc-graph-stepcount, calc-graph-is-splot)
 	(calc-graph-surprise-splot, calc-graph-blank)
-	(calc-graph-non-blank, calc-graph-curve-num):  New variables.
+	(calc-graph-non-blank, calc-graph-curve-num): New variables.
 	(calc-graph-plot, calc-graph-compute-2d, calc-graph-refine-2d)
 	(calc-graph-recompute-2d, calc-graph-compute-3d)
 	(calc-graph-format-data): Replace undeclared variables with the
@@ -7482,28 +8125,28 @@
 
 2004-11-11  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-comb.el (math-prime-factors-finished):  Declare it as
+	* calc/calc-comb.el (math-prime-factors-finished): Declare it as
 	a variable.
-	(calcFunc-dfac):  Replace unbound max by n.
-	(math-stirling-local-cache):  New variable.
+	(calcFunc-dfac): Replace unbound max by n.
+	(math-stirling-local-cache): New variable.
 	(math-stirling-number, math-stirling-1, math-stirling-2):
 	Replace the variable `cache' by the declared variable
 	math-stirling-local-cache.
-	(var-RandSeed):  Declare it as a variable.
-	(math-init-random-base, math-random-digit):  Don't check to see if
+	(var-RandSeed): Declare it as a variable.
+	(math-init-random-base, math-random-digit): Don't check to see if
 	var-RandSeed is bound.
 	(math-random-cache, math-gaussian-cache, calc-verbose-nextprime):
 	Declare them instead of just setting them.
-	(math-init-random-base):  Made i a local variable.
-	(math-random-digit):  Made math-random-last a local variable.
-	(math-prime-test-cache):  Move declaration to before it is used.
+	(math-init-random-base): Made i a local variable.
+	(math-random-digit): Made math-random-last a local variable.
+	(math-prime-test-cache): Move declaration to before it is used.
 	(math-prime-test-cache-k, math-prime-test-cache-q)
 	(math-prime-test-cache-nm1, math-prime-factors-finished):
 	Declare them as variables.
 
 2004-11-11  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-ext.el (math-defcache):  Use defvar for the new
+	* calc/calc-ext.el (math-defcache): Use defvar for the new
 	variables it creates.
 
 2004-11-11  Lars Hansen  <larsh@math.ku.dk>
@@ -7519,45 +8162,45 @@
 
 2004-11-10  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-aent.el (calc-do-quick-calc):  Use kill-new to append
+	* calc/calc-aent.el (calc-do-quick-calc): Use kill-new to append
 	string to kill-ring.
 
 	* calc/calc-aent.el (calc-alg-exp, math-toks)
 	(math-exp-pos,math-exp-old-pos, math-exp-token)
-	(math-exp-keep-spaces, math-exp-str):  New variables.
+	(math-exp-keep-spaces, math-exp-str): New variables.
 	(calc-do-alg-entry, calcAlg-equals, calcAlg-edit)
-	(calcAlg-enter):  Use declared variable calc-alg-exp.
-	(math-build-parse-table, math-find-user-token):  Use declared
+	(calcAlg-enter): Use declared variable calc-alg-exp.
+	(math-build-parse-table, math-find-user-token): Use declared
 	variable math-toks.
 	(math-read-exprs, math-read-token, calc-check-user-syntax)
 	(calc-match-user-syntax, match-factor-after, math-read-factor):
 	Use declared variables math-exp-pos math-exp-old-pos.
 	(math-read-exprs, math-read-token, math-read-expr-level)
 	(calc-check-user-syntax, calc-match-user-syntax)
-	(match-factor-after, math-read-factor):  Use declared variable
+	(match-factor-after, math-read-factor): Use declared variable
 	math-exp-token.
 	(math-read-exprs, math-read-expr-list, math-read-token)
-	(math-read-factor):  Use declared variable math-exp-keep-spaces.
-	(math-read-exprs, math-read-token):  Use declared variable
+	(math-read-factor): Use declared variable math-exp-keep-spaces.
+	(math-read-exprs, math-read-token): Use declared variable
 	math-exp-str.
-	(calc-match-user-syntax):  Make m a local variable.
+	(calc-match-user-syntax): Make m a local variable.
 
-	* calc/calc-ext.el (math-read-expr):  Use declared variables
+	* calc/calc-ext.el (math-read-expr): Use declared variables
 	math-exp-pos, math-exp-old-pos, math-exp-str, math-exp-token,
 	math-exp-keep-spaces.
 
-	* calc/calc-forms.el (math-read-angle-bracket):  Use declared
+	* calc/calc-forms.el (math-read-angle-bracket): Use declared
 	variables math-exp-pos, math-exp-str.
 
-	* calc/calc-lang.el (math-parse-tex-sum):  Use declared variable
+	* calc/calc-lang.el (math-parse-tex-sum): Use declared variable
 	math-exp-old-pos.
 	(math-parse-fortran-vector, math-parse-fortran-vector-end)
-	(math-parse-eqn-prime):  Use declared variable math-exp-token.
+	(math-parse-eqn-prime): Use declared variable math-exp-token.
 
 	* calc/calc-vec.el (math-read-brackets, math-check-for-commas):
 	Use declared variable math-exp-pos.
-	(math-check-for-commas):  Use declared variable math-exp-str.
-	(math-read-brackets):  Use declared variables math-exp-old-pos,
+	(math-check-for-commas): Use declared variable math-exp-str.
+	(math-read-brackets): Use declared variables math-exp-old-pos,
 	math-exp-keep-spaces.
 	(math-read-brackets, math-read-vector, math-read-matrix):
 	Use declared variable math-exp-token.
@@ -7595,42 +8238,42 @@
 
 2004-11-09  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-ext.el (calc-init-extensions):  Remove old code.
+	* calc/calc-ext.el (calc-init-extensions): Remove old code.
 
 	* calc/calc-ext.el (math-expr-data, math-mt-many, math-mt-func)
-	(calc-z-prefix-buf, calc-z-prefix-msgs):  New variables.
-	(calc-z-prefix-help, calc-user-function-list):  Use declared
+	(calc-z-prefix-buf, calc-z-prefix-msgs): New variables.
+	(calc-z-prefix-help, calc-user-function-list): Use declared
 	variables calc-z-prefix-buf, calc-z-prefix-msgs.
-	(math-map-tree, math-map-tree-rec):  Use declared variables
+	(math-map-tree, math-map-tree-rec): Use declared variables
 	math-mt-many, math-mt-func.
-	(math-read-expression, math-read-string):  Use declared variable
+	(math-read-expression, math-read-string): Use declared variable
 	math-expr-data.
 
-	* calc/calc-ext.el (math-normalize-nonstandard):  Use declared
+	* calc/calc-ext.el (math-normalize-nonstandard): Use declared
 	variable math-normalize-a.
 
-	* calc/calc.el (math-normalize-a):  New variable.
-	(math-normalize):  Use declared variable math-normalize-a.
+	* calc/calc.el (math-normalize-a): New variable.
+	(math-normalize): Use declared variable math-normalize-a.
 
-	* calc/calc-poly.el (math-expand-form):  Use declared variable
+	* calc/calc-poly.el (math-expand-form): Use declared variable
 	math-mt-many.
 
 	* calc/calc-rewr.el (math-rewrite, math-rewrite-phase):
 	Use declared variable math-mt-many.
-	(math-rewrite):  Use declared variable math-mt-func.
+	(math-rewrite): Use declared variable math-mt-func.
 
 	* calc/calc-vec.el (math-read-brackets, math-read-vector)
-	(math-read-matrix):  Use declared variable math-expr-data.
+	(math-read-matrix): Use declared variable math-expr-data.
 
 	* calc/calc-lang.el (math-parse-fortran-vector)
 	(math-parse-fortran-vector-end, math-parse-tex-sum)
 	(math-parse-eqn-matrix, math-parse-eqn-prime)
-	(math-read-math-subscr):  Use declared variable math-expr-data.
+	(math-read-math-subscr): Use declared variable math-expr-data.
 
 	* calc/calc-aent.el (math-read-exprs, math-read-expr-list)
 	(math-read-expr-level, math-read-token, calc-check-user-syntax)
 	(calc-match-user-syntax, math-read-if, math-factor-after)
-	(math-read-factor):  Use declared variable math-expr-data.
+	(math-read-factor): Use declared variable math-expr-data.
 
 2004-11-09  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
@@ -7663,14 +8306,14 @@
 2004-11-09  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-mode-hook, calc-trail-mode-hook)
-	(calc-start-hook, calc-end-hook, calc-load-hook):  New variables.
+	(calc-start-hook, calc-end-hook, calc-load-hook): New variables.
 
 	* calc/calc.el (calc, calc-trail-display, calc-mode):
 	Remove obsolete sections.
 
-	* calc/calc.el (calc-x-paste-text):  Remove.
+	* calc/calc.el (calc-x-paste-text): Remove.
 
-	* calc/calc-ext.el (calc-init-extensions):  Bind calc-yank to
+	* calc/calc-ext.el (calc-init-extensions): Bind calc-yank to
 	mouse-2.
 
 2004-11-09  Nick Roberts  <nickrob@snap.net.nz>
@@ -7716,14 +8359,14 @@
 
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calcalg2.el (math-do-integral-methods):  Try linear then
+	* calc/calcalg2.el (math-do-integral-methods): Try linear then
 	non-linear substitutions.
 
 2004-11-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calcalg2.el (math-linear-subst-tried): New variable.
-	(math-do-integral):  Set `math-linear-subst-tried' to nil.
-	(math-do-integral-methods):  Use `math-linear-subst-tried' to
+	(math-do-integral): Set `math-linear-subst-tried' to nil.
+	(math-do-integral-methods): Use `math-linear-subst-tried' to
 	determine what type of substitution to try.
 	(math-integ-try-linear-substituion):
 	Set `math-linear-subst-tried' to t.
@@ -8327,7 +8970,7 @@
 2004-10-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc,full-calc, calc-quit, calc-keypad)
-	(full-calc-keypad, calc-trail-display):  Use an extra argument
+	(full-calc-keypad, calc-trail-display): Use an extra argument
 	instead of `interactive-p'.
 
 	* calc/calc-misc.el (calc-other-window): Use an extra argument
@@ -8372,7 +9015,7 @@
 
 2004-10-25  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-incom.el (calc-digit-dots):  Inhibit read-only before
+	* calc/calc-incom.el (calc-digit-dots): Inhibit read-only before
 	erasing minibuffer.
 
 2004-10-25  Simon Josefsson  <jas@extundo.com>
@@ -9358,7 +10001,7 @@
 	(calc-invocation-macro, calc-show-banner): Give these values as
 	part of `calc-mode-var-list's initialization after the variables
 	are declared with defvar.
-	(calc-bug-address):  Change email address to send bug reports to.
+	(calc-bug-address): Change email address to send bug reports to.
 	Change the maintainer address at the top.
 	(calc-mode): Compare `calc-settings-file' to `user-init-file' rather
 	than "\\.emacs" to determine if it is the user-init-file.
@@ -15654,7 +16297,7 @@
 
 2004-02-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT,  FILE_NAME
+	* x-dnd.el (x-dnd-types-alist): Add COMPOUND_TEXT, FILE_NAME
 	handled by x-dnd-handle-file-name.
 	(x-dnd-known-types): Add COMPOUND_TEXT.
 	(x-dnd-init-frame): Call x-dnd-init-motif-for-frame.

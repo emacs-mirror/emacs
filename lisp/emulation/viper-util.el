@@ -1,6 +1,6 @@
 ;;; viper-util.el --- Utilities used by viper.el
 
-;; Copyright (C) 1994, 95, 96, 97, 99, 2000, 01, 02 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 95, 96, 97, 99, 2000, 01, 02, 2005 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 

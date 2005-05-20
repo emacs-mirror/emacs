@@ -1326,6 +1326,7 @@ main (argc, argv
       syms_of_search ();
       syms_of_frame ();
 
+      init_atimer ();
       mac_term_init (build_string ("Mac"), NULL, NULL);
       init_keyboard ();
 #endif
@@ -1351,7 +1352,9 @@ main (argc, argv
 #ifdef CLASH_DETECTION
   init_filelock ();
 #endif
+#ifndef MAC_OS8
   init_atimer ();
+#endif
   running_asynch_code = 0;
 
   /* Handle --unibyte and the EMACS_UNIBYTE envvar,
@@ -2447,16 +2450,16 @@ syms_of_emacs ()
 Many arguments are deleted from the list as they are processed.  */);
 
   DEFVAR_LISP ("system-type", &Vsystem_type,
-+	       doc: /* Value is symbol indicating type of operating system you are using.
-+Special values:
-+  `gnu/linux'   compiled for a GNU/Linux system.
-+  `darwin'      compiled for Darwin (GNU-Darwin, Mac OS X, ...).
-+  `macos'       compiled for Mac OS 9.
-+  `ms-dos'      compiled as an MS-DOS application.
-+  `windows-nt'  compiled as a native W32 application.
-+  `cygwin'      compiled using the Cygwin library.
-+  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
-+Anything else indicates some sort of Unix system.  */);
+	       doc: /* Value is symbol indicating type of operating system you are using.
+Special values:
+  `gnu/linux'   compiled for a GNU/Linux system.
+  `darwin'      compiled for Darwin (GNU-Darwin, Mac OS X, ...).
+  `macos'       compiled for Mac OS 9.
+  `ms-dos'      compiled as an MS-DOS application.
+  `windows-nt'  compiled as a native W32 application.
+  `cygwin'      compiled using the Cygwin library.
+  `vax-vms' or `axp-vms': compiled for a (Open)VMS system.
+Anything else indicates some sort of Unix system.  */);
   Vsystem_type = intern (SYSTEM_TYPE);
 
   DEFVAR_LISP ("system-configuration", &Vsystem_configuration,

@@ -293,7 +293,7 @@ RATING   a rating between 1 and 10 of the strength of the authentication.
 	 (function (or function (intern (concat "url-" type "-auth"))))
 	 (rating (cond
 		  ((null rating) 2)
-		  ((stringp rating) (string-to-int rating))
+		  ((stringp rating) (string-to-number rating))
 		  (t rating)))
 	 (node (assoc type url-registered-auth-schemes)))
     (if (not (fboundp function))

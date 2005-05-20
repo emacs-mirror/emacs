@@ -157,7 +157,7 @@ leaves @var{n} spaces after point.
   @kbd{C-x C-o} (@code{delete-blank-lines}) deletes all blank lines
 after the current line.  If the current line is blank, it deletes all
 blank lines preceding the current line as well (leaving one blank line,
-the current line).
+the current line).  On a solitary blank line, it deletes that line.
 
   @kbd{M-^} (@code{delete-indentation}) joins the current line and the
 previous line, by deleting a newline and all surrounding spaces, usually

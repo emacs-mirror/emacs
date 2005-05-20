@@ -535,7 +535,9 @@ it is displayed along with the global value."
 		(terpri)
 		(let ((from (point)))
 		  (pp val)
-		  (help-xref-on-pp from (point))
+		  ;; Hyperlinks in variable's value are quite frequently
+		  ;; inappropriate e.g C-h v <RET> features <RET>
+		  ;; (help-xref-on-pp from (point))
 		  (if (< (point) (+ from 20))
 		      (delete-region (1- from) from)))))
 	    (terpri)
@@ -556,7 +558,8 @@ it is displayed along with the global value."
 		    ;; sensible size before prettyprinting.  -- fx
 		    (let ((from (point)))
 		      (pp val)
-		      (help-xref-on-pp from (point))
+		      ;; See previous comment for this function.
+		      ;; (help-xref-on-pp from (point))
 		      (if (< (point) (+ from 20))
 			(delete-region (1- from) from))))))
 	      (terpri))
