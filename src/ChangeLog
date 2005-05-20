@@ -1,3 +1,8 @@
+2005-05-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges):
+	Correct the right value.
+
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* keyboard.c (syms_of_keyboard): Remove lisp variables
