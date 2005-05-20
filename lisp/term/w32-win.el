@@ -1,6 +1,6 @@
 ;;; w32-win.el --- parse switches controlling interface with W32 window system
 
-;; Copyright (C) 1993, 1994, 2003, 2004, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1994, 2003, 2005  Free Software Foundation, Inc.
 
 ;; Author: Kevin Gallo
 ;; Keywords: terminals
@@ -1223,7 +1223,7 @@ font dialog to get the matching FONTS. Otherwise use a pop-up menu
 
 ;;; Set default known names for image libraries
 (setq image-library-alist
-      '((xpm "libXpm-nox4.dll" "libxpm.dll")
+      '((xpm "xpm4.dll" "libXpm-nox4.dll" "libxpm.dll")
         (png "libpng13d.dll" "libpng13.dll" "libpng12d.dll" "libpng12.dll" "libpng.dll")
         (jpeg "jpeg62.dll" "libjpeg.dll" "jpeg-62.dll" "jpeg.dll")
         (tiff "libtiff3.dll" "libtiff.dll")

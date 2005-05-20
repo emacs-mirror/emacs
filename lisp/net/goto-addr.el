@@ -1,6 +1,6 @@
 ;;; goto-addr.el --- click to browse URL or to send to e-mail address
 
-;; Copyright (C) 1995, 2000, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1995, 2000, 2001, 2005  Free Software Foundation, Inc.
 
 ;; Author: Eric Ding <ericding@alum.mit.edu>
 ;; Maintainer: FSF
@@ -46,7 +46,7 @@
 ;;
 ;; (setq goto-address-highlight-keymap
 ;;   (let ((m (make-sparse-keymap)))
-;;     (define-key m [S-mouse-2] 'goto-address-at-mouse)
+;;     (define-key m [S-mouse-2] 'goto-address-at-point)
 ;;     m))
 ;;
 
@@ -118,9 +118,8 @@ A value of t means there is no limit--fontify regardless of the size."
 
 (defvar goto-address-highlight-keymap
   (let ((m (make-sparse-keymap)))
-    (if (featurep 'xemacs)
-	(define-key m (kbd "<button2>") 'goto-address-at-mouse)
-      (define-key m (kbd "<mouse-2>") 'goto-address-at-mouse))
+    (define-key m (if (featurep 'xemacs) (kbd "<button2>") (kbd "<mouse-2>"))
+      'goto-address-at-point)
     (define-key m (kbd "C-c RET") 'goto-address-at-point)
     m)
   "keymap to hold goto-addr's mouse key defs under highlighted URLs.")
@@ -165,6 +164,7 @@ and `goto-address-fontify-p'."
                      (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
                      (overlay-put this-overlay 'face goto-address-url-face))
+                (overlay-put this-overlay 'evaporate t)
 		(overlay-put this-overlay
                              'mouse-face goto-address-url-mouse-face)
 		(overlay-put this-overlay
@@ -179,6 +179,7 @@ and `goto-address-fontify-p'."
                      (this-overlay (make-overlay s e)))
 		(and goto-address-fontify-p
                      (overlay-put this-overlay 'face goto-address-mail-face))
+                (overlay-put this-overlay 'evaporate t)
                 (overlay-put this-overlay 'mouse-face
                              goto-address-mail-mouse-face)
 		(overlay-put this-overlay
@@ -191,24 +192,18 @@ and `goto-address-fontify-p'."
 ;; snarfed from browse-url.el
 
 ;;;###autoload
-(defun goto-address-at-mouse (event)
-  "Send to the e-mail address or load the URL clicked with the mouse.
-Send mail to address at position of mouse click.  See documentation for
-`goto-address-find-address-at-point'.  If no address is found
-there, then load the URL at or before the position of the mouse click."
-  (interactive "e")
-  (save-excursion
-    (mouse-set-point event)
-    (goto-address-at-point)))
+(define-obsolete-function-alias
+  'goto-address-at-mouse 'goto-address-at-point "22.1")
 
 ;;;###autoload
-(defun goto-address-at-point ()
+(defun goto-address-at-point (&optional event)
   "Send to the e-mail address or load the URL at point.
 Send mail to address at point.  See documentation for
 `goto-address-find-address-at-point'.  If no address is found
 there, then load the URL at or before point."
-  (interactive)
+  (interactive (list last-input-event))
   (save-excursion
+    (if event (mouse-set-point event))
     (let ((address (save-excursion (goto-address-find-address-at-point))))
       (if (and address
 	       (save-excursion
@@ -248,5 +243,5 @@ Also fontifies the buffer appropriately (see `goto-address-fontify-p' and
 
 (provide 'goto-addr)
 
-;;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
+;; arch-tag: ca47c505-5661-425d-a471-62bc6e75cf0a
 ;;; goto-addr.el ends here

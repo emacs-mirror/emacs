@@ -423,7 +423,7 @@ are recognized."
 	     (setq power (+ power (- decimal-digits (length digit-string)))))
 
 	   ; round up and add minus sign, if necessary
-	   (f (* (+ (string-to-int digit-string)
+	   (f (* (+ (string-to-number digit-string)
 		    (if round-up 1 0))
 		 (if mant-sign -1 1))))
 
@@ -433,7 +433,7 @@ are recognized."
 		(expt 0) (chunks 0) (tens 0) (exponent _f1)
 		(func 'f*))
 
-	   (setq expt (+ (* (string-to-int
+	   (setq expt (+ (* (string-to-number
 			     (substring expt-subst 0
 					(min expt-digits (length expt-subst))))
 			    (if expt-sign -1 1))

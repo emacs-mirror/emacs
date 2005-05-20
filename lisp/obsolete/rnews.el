@@ -397,9 +397,9 @@ U       unsubscribe from specified newsgroup."
 to a list (a . b)"
   (let ((n (string-match "-" number-string)))
     (if n
-	(cons (string-to-int (substring number-string 0 n))
-	      (string-to-int (substring number-string (1+ n))))
-      (setq n (string-to-int number-string))
+	(cons (string-to-number (substring number-string 0 n))
+	      (string-to-number (substring number-string (1+ n))))
+      (setq n (string-to-number number-string))
       (cons n n))))
 
 ;(defun is-in (elt lis)
@@ -524,7 +524,7 @@ to a list (a . b)"
   (news-select-message arg))
 
 (defun news-select-message (arg)
-  (if (stringp arg) (setq arg (string-to-int arg)))
+  (if (stringp arg) (setq arg (string-to-number arg)))
   (let ((file (concat news-path
 		      (string-subst-char ?/ ?. news-current-news-group)
 		      "/" arg)))
@@ -803,7 +803,7 @@ Using ls was found to be too slow in a previous version."
 			 ;; don't get confused by directories that look like numbers
 			 (file-directory-p
 			  (concat file-directory "/" (car tem)))
-			 (<= (string-to-int (car tem)) end-file-no))
+			 (<= (string-to-number (car tem)) end-file-no))
 		     (setq news-list-of-files
 			   (delq (car tem) news-list-of-files)))
 		 (setq tem (cdr tem)))
@@ -811,7 +811,7 @@ Using ls was found to be too slow in a previous version."
 		   (progn (setq news-current-group-end 0)
 			  nil)
 		 (setq news-list-of-files
-		       (mapcar 'string-to-int news-list-of-files))
+		       (mapcar 'string-to-number news-list-of-files))
 		 (setq news-list-of-files (sort news-list-of-files '<))
 		 (setq news-current-group-end
 		       (elt news-list-of-files

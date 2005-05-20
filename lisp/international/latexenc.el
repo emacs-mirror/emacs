@@ -120,24 +120,32 @@ coding system names is determined from `latex-inputenc-coding-alist'."
       (save-excursion
         ;; try to find the coding system in this file
         (goto-char (point-min))
-        (if (or
-             (re-search-forward "^[^%\n]*\\\\inputencoding{\\(.*\\)}" nil t)
-             (re-search-forward "^[^%\n]*\\\\usepackage\\[\\(.*\\)\\]{inputenc}" nil t))
-            (let* ((match (match-string 1))
-                   (sym (intern match)))
-              (when (latexenc-inputenc-to-coding-system match)
-                (setq sym (latexenc-inputenc-to-coding-system match))
-                (when (coding-system-p sym)
-		  sym
-                  (if (and (require 'code-pages nil t) (coding-system-p sym))
-                      sym
-                    'undecided))))
+	(if (catch 'cs
+	      (let ((case-fold-search nil))
+		(while (search-forward "inputenc" nil t)
+		  (goto-char (match-beginning 0))
+		  (beginning-of-line)
+		  (if (or (looking-at "[^%\n]*\\\\usepackage\\[\\([^]]*\\)\\]{\\([^}]*,\\)?inputenc\\(,[^}]*\\)?}")
+			  (looking-at "[^%\n]*\\\\inputencoding{\\([^}]*\\)}"))
+		      (throw 'cs t)
+		    (goto-char (match-end 0))))))
+	    (let* ((match (match-string 1))
+		   (sym (intern match)))
+	      (when (latexenc-inputenc-to-coding-system match)
+		(setq sym (latexenc-inputenc-to-coding-system match)))
+	      (when (coding-system-p sym)
+		sym
+		(if (and (require 'code-pages nil t) (coding-system-p sym))
+		    sym
+		  'undecided)))
           ;; else try to find it in the master/main file
           (let (latexenc-main-file)
             ;; is there a TeX-master or tex-main-file in the local variable section
             (unless latexenc-dont-use-TeX-master-flag
               (goto-char (point-max))
-              (when (re-search-backward "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\"" nil t)
+	      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
+	      (search-forward "Local Variables:" nil t)
+              (when (re-search-forward "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\"" nil t)
                 (let ((file (concat (file-name-directory (nth 1 arg-list)) (match-string 2))))
                   (if (file-exists-p file)
                       (setq latexenc-main-file file)

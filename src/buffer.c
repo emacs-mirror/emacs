@@ -1,6 +1,6 @@
 /* Buffer manipulation primitives for GNU Emacs.
-   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99, 
-     2000, 01, 02, 03, 04, 2005 Free Software Foundation, Inc. 
+   Copyright (C) 1985, 86, 87, 88, 89, 93, 94, 95, 97, 98, 99,
+     2000, 01, 02, 03, 04, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -4972,6 +4972,7 @@ init_buffer_once ()
   buffer_defaults.direction_reversed = Qnil;
   buffer_defaults.cursor_type = Qt;
   buffer_defaults.extra_line_spacing = Qnil;
+  buffer_defaults.cursor_in_non_selected_windows = Qt;
 
 #ifdef DOS_NT
   buffer_defaults.buffer_file_type = Qnil; /* TEXT */
@@ -5259,6 +5260,11 @@ This is the same as (default-value 'cursor-type).  */);
 		     &buffer_defaults.extra_line_spacing,
 		     doc: /* Default value of `line-spacing' for buffers that don't override it.
 This is the same as (default-value 'line-spacing).  */);
+
+  DEFVAR_LISP_NOPRO ("default-cursor-in-non-selected-windows",
+		     &buffer_defaults.cursor_in_non_selected_windows,
+		     doc: /* Default value of `cursor-in-non-selected-windows'.
+This is the same as (default-value 'cursor-in-non-selected-windows).  */);
 
   DEFVAR_LISP_NOPRO ("default-abbrev-mode",
 		     &buffer_defaults.abbrev_mode,
@@ -5940,7 +5946,7 @@ If value is a floating point number, it specifies the spacing relative
 to the default frame line height.  */);
 
   DEFVAR_PER_BUFFER ("cursor-in-non-selected-windows",
-		     &current_buffer->cursor_in_non_selected_windows, Qt,
+		     &current_buffer->cursor_in_non_selected_windows, Qnil,
     doc: /* *Cursor type to display in non-selected windows.
 t means to use hollow box cursor.  See `cursor-type' for other values.  */);
 

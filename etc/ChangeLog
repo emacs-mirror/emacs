@@ -1,3 +1,7 @@
+2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
+
+        * TUTORIAL.pl: Updated header.
+
 2005-05-02  Richard M. Stallman  <rms@gnu.org>
 
 	* NEWS: More rearrangements.
@@ -55,7 +59,7 @@
 
 	* TUTORIAL.de: Updated header.
 
-2005-04-05  Marcelo Toledo  <marcelo@marcelotoledo.org>
+2005-04-05  Marcelo Toledo  <marcelo@gnu.org>
 
         * TUTORIAL.translators: Added the field Maintainer.
 
@@ -76,20 +80,24 @@
 
 	* TUTORIAL.es: Clean up line breaks.
 
-2005-04-01  Marcelo Toledo  <marcelo@marcelotoledo.org>
+2005-04-01  Marcelo Toledo  <marcelo@gnu.org>
 
         * TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
         * TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
         * TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
         * TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title
         line.
-
+        
+2005-04-01  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
+        
         * TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
         2005-02-08T14:20:54Z!lute@gnu.org, "Emacs" is not transliterated to cyrillic anymore;
-        Minor fixes; patch by Ognyan Kulev <ogi@fmi.uni-sofia.bg>.
+        Minor fixes.
+
+2005-04-01  Mats Lidell  <matsl@contactor.se>
 
         * TUTORIAL.sv: Sync some other changes with the TUTORIAL version
-        2005-04-01T00:31:25Z!rms@gnu.org patch by Mats Lidell <matsl@contactor.se>.
+        2005-04-01T00:31:25Z!rms@gnu.org.
 
 2005-04-01  Lute Kamstra  <lute@gnu.org>
 
@@ -354,7 +362,7 @@
 	* tree-widget: New directory containing tree-widget themes and
 	images.
 
-2004-04-13  Marcelo Toledo  <marcelo@marcelotoledo.org>
+2004-04-13  Marcelo Toledo  <marcelo@gnu.org>
 
 	* TUTORIAL.pt_BR: initial check-in.
 
@@ -373,9 +381,9 @@
 
 	* TUTORIAL.it, TUTORIAL.nl, TUTORIAL.sv: Add coding: latin-1.
 
-2004-04-16  David Kastrup  <dak@gnu.org>
+2004-04-16  Alex Ott  <ottalex@narod.ru>
 
-	* TUTORIAL.ru: Changes by Alex Ott checked in.
+	* TUTORIAL.ru: Various corrections.
 
 2004-04-14  Jan Nieuwenhuizen  <janneke@gnu.org>
 
@@ -570,10 +578,9 @@
 
 	* MH-E-NEWS: Upgraded to MH-E version 7.0.
 
-2002-11-22  Juanma Barranquero  <lektu@terra.es>
+2002-11-22  Rafael Sep,Az(Blveda  <drs@gnulinux.org.mx>
 
-	* TUTORIAL.es: Extensively changed and updated by Rafael Sep,Az(Blveda
-	<drs@gnulinux.org.mx>.
+	* TUTORIAL.es: Extensively changed and updated.
 
 2002-10-01  Bill Wohler  <wohler@newt.com>
 
@@ -1829,10 +1836,12 @@
 	* emacstool.c: setenv IN_EMACSTOOL=t, TERM=sun, TERMCAP=.
 
 	* emacsstool.1: update to document environment variables.
+        
+1989-02-21  Mosur Mohan (email@notavailable)
+        
+	* etags.c (PAS_funcs): New function.
 
 1989-02-21  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
-
-	* etags.c (PAS_funcs): New function by Mosur Mohan.
 
 	* movemail.c: On sysv, include unistd.h.
 
@@ -1852,10 +1861,10 @@
 
 	* fakemail.c (put_line): Break header lines at 79 cols.
 
-1989-01-19  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
+1989-01-19  Sam Kendall  (email@notavailable)
 
-	* etags.c: Greatly rewritten by Sam Kendall for C++ support and for
-	multiple tags per line.
+	* etags.c: Greatly rewritten for C++ support and for multiple tags        
+        per line.
 
 1989-01-03  Richard Stallman  (rms@sugar-bombs.ai.mit.edu)
 

@@ -33,8 +33,10 @@ Boston, MA 02111-1307, USA.  */
 
 #include <config.h>
 
+#if 0  /* Why was this included?  And without syssignal.h?  */
 /* On 4.3 this loses if it comes after xterm.h.  */
 #include <signal.h>
+#endif
 
 #include <stdio.h>
 
@@ -767,7 +769,14 @@ in the menu.
 With this form of menu, the return value is VALUE from the chosen item.
 
 If POSITION is nil, don't display the menu at all, just precalculate the
-cached information about equivalent key sequences.  */)
+cached information about equivalent key sequences.
+
+If the user gets rid of the menu without making a valid choice, for
+instance by clicking the mouse away from a valid choice or by typing
+keyboard input, then this normally results in a quit and
+`x-popup-menu' does not return.  But if POSITION is a mouse button
+event (indicating that the user invoked the menu with the mouse) then
+no quit occurs and `x-popup-menu' returns nil.  */)
      (position, menu)
      Lisp_Object position, menu;
 {
@@ -1005,7 +1014,11 @@ The return value is VALUE from the chosen item.
 An ITEM may also be just a string--that makes a nonselectable item.
 An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
-\(By default, approximately half appear on each side.)  */)
+\(By default, approximately half appear on each side.)
+
+If the user gets rid of the dialog box without making a valid choice,
+for instance using the window manager, then this produces a quit and
+`x-popup-dialog' does not return.  */)
      (position, contents)
      Lisp_Object position, contents;
 {

@@ -414,6 +414,10 @@ This is buffer-local in every such buffer.")
 	?\" "\"\""
 	?\' "\"'"
 	?\` "\"`"
+	;; ?$ might also have a ". p" syntax. Both "'" and ". p" seem
+	;; to work fine. This is needed so that dabbrev-expand
+	;; $VARNAME works.
+	?$ "'"
 	?! "_"
 	?% "_"
 	?: "_"
@@ -827,7 +831,9 @@ See `sh-feature'.")
 	;; Function names.
 	("^\\(\\sw+\\)[ \t]*(" 1 font-lock-function-name-face)
 	("\\<\\(function\\)\\>[ \t]*\\(\\sw+\\)?"
-	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t)))
+	  (1 font-lock-keyword-face) (2 font-lock-function-name-face nil t))
+	("\\(?:^\\s *\\|[[();&|]\\s *\\|\\(?:\\s +-[ao]\\|if\\|else\\|then\\|while\\|do\\)\\s +\\)\\(!\\)"
+	 1 font-lock-negation-char-face))
 
     ;; The next entry is only used for defining the others
     (shell sh-append executable-font-lock-keywords
@@ -1124,7 +1130,7 @@ does not affect then else elif or fi statements themselves."
   :type `(choice ,@ sh-number-or-symbol-list )
   :group 'sh-indentation)
 
-(defcustom sh-indent-for-do '*
+(defcustom sh-indent-for-do 0
   "*How much to indent a do statement.
 This is relative to the statement before the do, i.e. the
 while until or for statement."

@@ -200,6 +200,18 @@ with the buffer narrowed to the listing."
 ;; Note this can't simply be run inside function `dired-ls' as the hook
 ;; functions probably depend on the dired-subdir-alist to be OK.
 
+(defcustom dired-dnd-protocol-alist
+  '(("^file:///" . dired-dnd-handle-local-file)
+    ("^file://"  . dired-dnd-handle-file)
+    ("^file:"    . dired-dnd-handle-local-file))
+  "The functions to call when a drop in `dired-mode' is made.
+See `dnd-protocol-alist' for more information.  When nil, behave
+as in other buffers."
+  :type '(choice (repeat (cons (regexp) (function)))
+		 (const :tag "Behave as in other buffers" nil))
+  :version "22.1"
+  :group 'dired)
+
 ;; Internal variables
 
 (defvar dired-marker-char ?*		; the answer is 42
@@ -1522,14 +1534,11 @@ Keybindings:
        'dired-desktop-buffer-misc-data)
   (setq dired-switches-alist nil)
   (dired-sort-other dired-actual-switches t)
-  (run-mode-hooks 'dired-mode-hook)
   (when (featurep 'dnd)
     (make-variable-buffer-local 'dnd-protocol-alist)
     (setq dnd-protocol-alist
-	  (append '(("^file:///" . dired-dnd-handle-local-file)
-		    ("^file://"  . dired-dnd-handle-file)
-		    ("^file:"    . dired-dnd-handle-local-file))
-		  dnd-protocol-alist))))
+	  (append dired-dnd-protocol-alist dnd-protocol-alist)))
+  (run-mode-hooks 'dired-mode-hook))
 
 ;; Idiosyncratic dired commands that don't deal with marks.
 
