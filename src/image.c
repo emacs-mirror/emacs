@@ -1631,11 +1631,6 @@ lookup_image (f, spec)
      Lisp_Object spec;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
-#ifdef _MSC_VER
-  /* Work around a problem with MinGW builds of graphics libraries
-     not honoring calling conventions.  */
-  static
-#endif
   struct image *img;
   int i;
   unsigned hash;
@@ -1815,7 +1810,7 @@ forall_images_in_image_cache (f, fn)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(func) FARPROC fn_##func
+#define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -5744,12 +5739,6 @@ struct png_memory_storage
    PNG_PTR is a pointer to the PNG control structure.  Copy LENGTH
    bytes from the input to DATA.  */
 
-#ifdef _MSC_VER
-  /* Work around a problem with MinGW builds of graphics libraries
-     not honoring calling conventions.  */
-#pragma optimize("g", off)
-#endif
-
 static void
 png_read_from_memory (png_ptr, data, length)
      png_structp png_ptr;
@@ -5766,10 +5755,6 @@ png_read_from_memory (png_ptr, data, length)
   tbr->index = tbr->index + length;
 }
 
-#ifdef _MSC_VER
-/* Restore normal optimization, as specified on the command line.  */
-#pragma optimize("", on)
-#endif
 
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
