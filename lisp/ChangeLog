@@ -1,3 +1,10 @@
+2005-05-21  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* calendar/cal-menu.el (cal-menu-update): Add separator as a
+	string so that tmm doesn't create a completion entry for it.
+
+	* textmodes/table.el (table-disable-menu): Ditto.
+
 2005-05-21  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/idlwave.el (idlwave-doc-header): Use insert-file-contents.
