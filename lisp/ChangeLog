@@ -1,3 +1,13 @@
+2005-05-21  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/idlwave.el (idlwave-doc-header): Use insert-file-contents.
+
+	* progmodes/flymake.el (flymake-makehash): Use with-no-warnings.
+
+	* net/rcompile.el (remote-compile): Use compilation-start.
+
+	* tmm.el (tmm-shortcut): Avoid using beginning-of-buffer.
+
 2005-05-21  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* files.el (auto-mode-alist): Check GNUmakefile before makefile.
@@ -149,6 +159,7 @@
 	(left-fringe-p): Function deleted.
 
 	* buff-menu.el (Buffer-menu-buffer-face): In group Buffer-menu.
+	(list-buffers-noselect): Set `font-lock-face' property, not `face'.
 
 	* dired-aux.el (dired-copy-file-recursive): Handle symlinks
 	in recursive copy.
