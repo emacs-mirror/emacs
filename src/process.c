@@ -5134,6 +5134,7 @@ send_process (proc, buf, len, object)
   int rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
+  volatile SIGTYPE (*old_sigpipe)();
 
   GCPRO1 (object);
 
@@ -5258,7 +5259,6 @@ send_process (proc, buf, len, object)
       while (len > 0)
 	{
 	  int this = len;
-	  SIGTYPE (*old_sigpipe)();
 
 	  /* Decide how much data we can send in one batch.
 	     Long lines need to be split into multiple batches.  */
@@ -5401,6 +5401,7 @@ send_process (proc, buf, len, object)
 #endif /* not VMS */
   else
     {
+      signal (SIGPIPE, old_sigpipe);
 #ifndef VMS
       proc = process_sent_to;
       p = XPROCESS (proc);
