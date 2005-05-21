@@ -1032,9 +1032,6 @@ The @var{keyword-args} are pairs of keywords and values.  The values
 are evaluated.  The following keywords are currently supported:
 
 @table @code
-@item :group
-If this is specified, it is the customization group for this mode.
-
 @item :syntax-table
 You can use this to explicitly specify a syntax table for the new
 mode.  If you specify a @code{nil} value, the new mode uses the same
@@ -1049,6 +1046,13 @@ mode.  If you specify a @code{nil} value, the new mode uses the same
 abbrev table as @var{parent}, or @code{fundamental-mode-abbrev-table}
 if @var{parent} is @code{nil}.  (Again, a @code{nil} value is
 @emph{not} equivalent to not specifying this keyword.)
+
+@item :group
+If this is specified, the value should be the customization group for
+this mode.  (Not all major modes have one.)  Only the (still
+experimental and unadvertised) command @code{customize-mode} currently
+uses this.  @code{define-derived-mode} does @emph{not} automatically
+define the specified customization group.
 @end table
 
 Here is a hypothetical example:
