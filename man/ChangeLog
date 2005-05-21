@@ -1,3 +1,9 @@
+2005-05-21  Kevin Ryde  <user42@zip.com.au>
+
+	* widget.texi (Basic Types): Update cross ref from "Enabling
+	Mouse-1 to Follow Links" to "Links and Mouse-1" per recent
+	lispref/text.texi change.
+
 2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version 3.09

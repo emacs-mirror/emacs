@@ -1,3 +1,8 @@
+2005-05-21  Kevin Ryde  <user42@zip.com.au>
+
+	* frames.texi (Initial Parameters): Update cross reference to
+	"Emacs Invocation".
+
 2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymaps.texi (Active Keymaps): Add anchor.

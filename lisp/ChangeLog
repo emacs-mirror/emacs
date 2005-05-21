@@ -1,3 +1,8 @@
+2005-05-21  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* mail/sendmail.el (mail-send): Use [[:space:]] instead of a
+	literal blank when splitting new-header-values.
+
 2005-05-21  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* calendar/cal-menu.el (cal-menu-update): Add separator as a

@@ -1,3 +1,8 @@
+2005-05-21  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* process.c (send_process): Restore the SIGPIPE handler if we
+	catch a SIGPIPE.
+
 2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* image.c (lookup_image, png_read_from_memory): Remove hacks (and
