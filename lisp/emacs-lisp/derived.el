@@ -132,6 +132,7 @@ BODY can start with a bunch of keyword arguments.  The following keyword
   arguments are currently understood:
 :group GROUP
 	Declare the customization group that corresponds to this mode.
+	The command `customize-mode' uses this.
 :syntax-table TABLE
 	Use TABLE instead of the default.
 	A nil value means to simply use the same syntax-table as the parent.
