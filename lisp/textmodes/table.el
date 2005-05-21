@@ -1272,7 +1272,7 @@ This is always set to nil at the entry to `table-with-cache-buffer' before execu
   (if (featurep 'xemacs)
       (progn
 	(easy-menu-add-item nil '("Tools") table-global-menu-map))
-    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") '("--"))
+    (easy-menu-add-item (current-global-map) '("menu-bar" "tools") "--")
     (easy-menu-add-item (current-global-map) '("menu-bar" "tools") table-global-menu-map)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
