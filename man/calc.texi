@@ -28292,9 +28292,9 @@ pushes the old value of @samp{a} on the stack and stores @samp{a = 6}.
 @pindex calc-unstore
 @cindex Void variables
 @cindex Un-storing variables
-Until you store something in them, variables are ``void,'' that is, they
-contain no value at all.  If they appear in an algebraic formula they
-will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
+Until you store something in them, most variables are ``void,'' that is,
+they contain no value at all.  If they appear in an algebraic formula
+they will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
 The @kbd{s u} (@code{calc-unstore}) command returns a variable to the
 void state.
 
