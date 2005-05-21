@@ -1,5 +1,8 @@
 2005-05-21  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* minibuf.texi (Reading File Names): Update description of
+	`read-directory-name'.
+
 	* modes.texi (Derived Modes): Clarify :group keyword.
 
 2005-05-21  Eli Zaretskii  <eliz@gnu.org>

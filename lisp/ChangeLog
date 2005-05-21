@@ -1,3 +1,7 @@
+2005-05-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/derived.el (define-derived-mode): Doc fix.
+
 2005-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* mail/rmail.el (rmail-reply): Filter the list in reply-to through
