@@ -1,3 +1,8 @@
+2005-05-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing variables): Mention that only most variables
+	are void to begin with.
+
 2005-05-21  Kevin Ryde  <user42@zip.com.au>
 
 	* widget.texi (Basic Types): Update cross ref from "Enabling
