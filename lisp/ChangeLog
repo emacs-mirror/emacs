@@ -1,3 +1,8 @@
+2005-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* mail/rmail.el (rmail-reply): Filter the list in reply-to through
+	rmail-dont-reply-to.
+
 2005-05-21  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
 	* mail/sendmail.el (mail-send): Use [[:space:]] instead of a
