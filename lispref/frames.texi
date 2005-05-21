@@ -304,8 +304,8 @@ special-display-frame-alist}.
 If you use options that specify window appearance when you invoke Emacs,
 they take effect by adding elements to @code{default-frame-alist}.  One
 exception is @samp{-geometry}, which adds the specified position to
-@code{initial-frame-alist} instead.  @xref{Command Arguments,,, emacs,
-The GNU Emacs Manual}.
+@code{initial-frame-alist} instead.  @xref{Emacs Invocation,, Command
+Line Arguments for Emacs Invocation, emacs, The GNU Emacs Manual}.
 
 @node Window Frame Parameters
 @subsection Window Frame Parameters
