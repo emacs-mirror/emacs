@@ -3630,6 +3630,7 @@ sure saved files have the current year in any copyright headers.
 `save-some-buffers' will always save that buffer without asking (if
 it's modified).
 
++++
 *** New function `locate-file' searches for a file in a list of directories.
 `locate-file' accepts a name of a file to search (a string), and two
 lists: a list of directories to search in and a list of suffixes to
