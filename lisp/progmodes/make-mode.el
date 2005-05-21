@@ -484,7 +484,7 @@ not be enclosed in { } or ( )."
     ("\\\\\n" 0 ".")))
 
 (defvar makefile-imenu-generic-expression
-  `(("Dependencies" ,makefile-dependency-regex 1)
+  `(("Dependencies" makefile-previous-dependency 1)
     ("Macro Assignment" ,makefile-macroassign-regex 1))
   "Imenu generic expression for Makefile mode.  See `imenu-generic-expression'.")
 
@@ -854,7 +854,10 @@ Makefile mode can be configured by modifying the following variables:
 	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.+\\\\\n\\)*.+\\)")
 
   (setq font-lock-defaults
-	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))))
+	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))
+	imenu-generic-expression
+	`(("Functions" "^[ \t]*\\(?:make\\)?sub[ \t]+\\([A-Za-z0-9_]+\\)" 1)
+	  ,@imenu-generic-expression)))
 
 ;;;###autoload
 (define-derived-mode makefile-bsdmake-mode makefile-mode "BSDmakefile"
@@ -866,10 +869,7 @@ Makefile mode can be configured by modifying the following variables:
   (set (make-local-variable 'makefile-rule-action-regex)
        "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
   (setq font-lock-defaults
-	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))
-	imenu-generic-expression
-	`(("Dependencies" ,makefile-dependency-regex 1)
-	  ,@(cdr imenu-generic-expression))))
+	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
 
 
 
@@ -1682,7 +1682,7 @@ matched in a rule action."
   (catch 'found
     (let ((pt (point)))
       (while (progn (skip-chars-forward makefile-dependency-skip bound)
-		    (not (eobp)))
+		    (< (point) (or bound (point-max))))
 	(forward-char)
 	(or (eq (char-after) ?=)
 	    (get-text-property (1- (point)) 'face)
