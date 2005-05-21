@@ -1,3 +1,23 @@
+2005-05-21  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* files.el (auto-mode-alist): Check GNUmakefile before makefile.
+	Default to makefile-bsdmake-mode on BSD systems.
+
+	* imenu.el (imenu-generic-expression, imenu--generic-function'):
+	REGEXP may also be a search function now.  The part of doc-string
+	for describing the structure was 95% identical to that of
+	`imenu--generic-function'.  Unify it there.
+
+	* progmodes/make-mode.el (makefile-imenu-generic-expression): Use
+	function to find dependencies, because regexp alone is so complex,
+	it easily goes into an endless loop.
+	(makefile-makepp-mode): Also add submenu for Perl functions
+	defined in the makefile.
+	(makefile-bsdmake-mode): Special imenu-generic-expression no
+	longer needed, due to function call.
+	(makefile-match-dependency): Take BOUND into account when checking
+	if we're through.
+
 2005-05-20  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-units.el (calc-invalidate-units-table):
