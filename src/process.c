@@ -5134,7 +5134,7 @@ send_process (proc, buf, len, object)
   int rv;
   struct coding_system *coding;
   struct gcpro gcpro1;
-  volatile SIGTYPE (*old_sigpipe)();
+  SIGTYPE (*old_sigpipe) ();
 
   GCPRO1 (object);
 
