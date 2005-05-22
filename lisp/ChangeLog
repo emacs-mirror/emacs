@@ -1,3 +1,8 @@
+2005-05-22  Andre Spiegel  <spiegel@gnu.org>
+
+	* vc-cvs.el (vc-cvs-checkout-model): Handle the case where FILE
+	doesn't exist.
+
 2005-05-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs-lisp/bytecomp.el: Remove make-obsolete-variable for
