@@ -8,6 +8,10 @@
 	* vc-cvs.el (vc-cvs-checkout-model): Handle the case where FILE
 	doesn't exist.
 
+	* vc.el (vc-trunk-p): Add autoload cookie.  The function is used
+	in vc-rcs.el when vc-mistrust-permissions is t, which is not the
+	default.
+	
 2005-05-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs-lisp/bytecomp.el: Remove make-obsolete-variable for
