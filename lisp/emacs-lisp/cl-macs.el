@@ -207,8 +207,8 @@ and BODY is implicitly surrounded by (block NAME ...).
 
 (defmacro function* (func)
   "Introduce a function.
-Like normal `function', except that if argument is a lambda form, its
-ARGLIST allows full Common Lisp conventions."
+Like normal `function', except that if argument is a lambda form,
+its argument list allows full Common Lisp conventions."
   (if (eq (car-safe func) 'lambda)
       (let* ((res (cl-transform-lambda (cdr func) 'cl-none))
 	     (form (list 'function (cons 'lambda (cdr res)))))
@@ -488,13 +488,14 @@ The result of the body appears to the compiler as a quoted constant."
 ;;; Conditional control structures.
 
 (defmacro case (expr &rest clauses)
-  "Eval EXPR and choose from CLAUSES on that value.
+  "Eval EXPR and choose among clauses on that value.
 Each clause looks like (KEYLIST BODY...).  EXPR is evaluated and compared
 against each key in each KEYLIST; the corresponding BODY is evaluated.
 If no clause succeeds, case returns nil.  A single atom may be used in
 place of a KEYLIST of one atom.  A KEYLIST of t or `otherwise' is
 allowed only in the final clause, and matches if no other keys match.
-Key values are compared by `eql'."
+Key values are compared by `eql'.
+\n(fn EXPR (KEYLIST BODY...)...)"
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (make-symbol "--cl-var--")))
 	 (head-list nil)
 	 (body (cons
@@ -522,15 +523,17 @@ Key values are compared by `eql'."
 
 (defmacro ecase (expr &rest clauses)
   "Like `case', but error if no case fits.
-`otherwise'-clauses are not allowed."
+`otherwise'-clauses are not allowed.
+\n(fn EXPR (KEYLIST BODY...)...)"
   (list* 'case expr (append clauses '((ecase-error-flag)))))
 
 (defmacro typecase (expr &rest clauses)
-  "Evals EXPR, chooses from CLAUSES on that value.
+  "Evals EXPR, chooses among clauses on that value.
 Each clause looks like (TYPE BODY...).  EXPR is evaluated and, if it
 satisfies TYPE, the corresponding BODY is evaluated.  If no clause succeeds,
 typecase returns nil.  A TYPE of t or `otherwise' is allowed only in the
-final clause, and matches if no other keys match."
+final clause, and matches if no other keys match.
+\n(fn EXPR (TYPE BODY...)...)"
   (let* ((temp (if (cl-simple-expr-p expr 3) expr (make-symbol "--cl-var--")))
 	 (type-list nil)
 	 (body (cons
@@ -552,7 +555,8 @@ final clause, and matches if no other keys match."
 
 (defmacro etypecase (expr &rest clauses)
   "Like `typecase', but error if no case fits.
-`otherwise'-clauses are not allowed."
+`otherwise'-clauses are not allowed.
+\n(fn EXPR (TYPE BODY...)...)"
   (list* 'typecase expr (append clauses '((ecase-error-flag)))))
 
 
@@ -1273,7 +1277,7 @@ before assigning any symbols SYM to the corresponding values.
 (defmacro progv (symbols values &rest body)
   "Bind SYMBOLS to VALUES dynamically in BODY.
 The forms SYMBOLS and VALUES are evaluated, and must evaluate to lists.
-Each SYMBOL in the first list is bound to the corresponding VALUE in the
+Each symbol in the first list is bound to the corresponding value in the
 second list (or made unbound if VALUES is shorter than SYMBOLS); then the
 BODY forms are executed and their result is returned.  This is much like
 a `let' form, except that the list of symbols can be computed at run-time."
@@ -1284,7 +1288,7 @@ a `let' form, except that the list of symbols can be computed at run-time."
 
 ;;; This should really have some way to shadow 'byte-compile properties, etc.
 (defmacro flet (bindings &rest body)
-  "Make temporary function defns.
+  "Make temporary function definitions.
 This is an analogue of `let' that operates on the function cell of FUNC
 rather than its value cell.  The FORMs are evaluated with the specified
 function definitions in place, then the definitions are undone (the FUNCs
@@ -1311,7 +1315,7 @@ go back to their previous definitions, or lack thereof).
 	 body))
 
 (defmacro labels (bindings &rest body)
-  "Make temporary func bindings.
+  "Make temporary function bindings.
 This is like `flet', except the bindings are lexical instead of dynamic.
 Unlike `flet', this macro is fully compliant with the Common Lisp standard.
 
@@ -1369,7 +1373,8 @@ by EXPANSION, and (setq NAME ...) will act like (setf EXPANSION ...).
 (defmacro lexical-let (bindings &rest body)
   "Like `let', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp."
+lexical closures as in Common Lisp.
+\n(fn VARLIST BODY)"
   (let* ((cl-closure-vars cl-closure-vars)
 	 (vars (mapcar (function
 			(lambda (x)
@@ -1411,7 +1416,8 @@ lexical closures as in Common Lisp."
 (defmacro lexical-let* (bindings &rest body)
   "Like `let*', but lexically scoped.
 The main visible difference is that lambdas inside BODY will create
-lexical closures as in Common Lisp."
+lexical closures as in Common Lisp.
+\n(fn VARLIST BODY)"
   (if (null bindings) (cons 'progn body)
     (setq bindings (reverse bindings))
     (while bindings
@@ -1435,7 +1441,7 @@ is analogous to the Common Lisp `multiple-value-bind' macro, using lists to
 simulate true multiple return values.  For compatibility, (values A B C) is
 a synonym for (list A B C).
 
-\(fn (SYM SYM...) FORM BODY)"
+\(fn (SYM...) FORM BODY)"
   (let ((temp (make-symbol "--cl-var--")) (n -1))
     (list* 'let* (cons (list temp form)
 		       (mapcar (function
@@ -1451,7 +1457,7 @@ each of the symbols SYM in turn.  This is analogous to the Common Lisp
 `multiple-value-setq' macro, using lists to simulate true multiple return
 values.  For compatibility, (values A B C) is a synonym for (list A B C).
 
-\(fn (SYM SYM...) FORM)"
+\(fn (SYM...) FORM)"
   (cond ((null vars) (list 'progn form nil))
 	((null (cdr vars)) (list 'setq (car vars) (list 'car form)))
 	(t
@@ -1967,7 +1973,7 @@ The form returns true if TAG was found and removed, nil otherwise."
 Example: (shiftf A B C) sets A to B, B to C, and returns the old A.
 Each PLACE may be a symbol, or any generalized variable allowed by `setf'.
 
-\(fn PLACE PLACE... VAL)"
+\(fn PLACE... VAL)"
   (cond
    ((null args) place)
    ((symbolp place) `(prog1 ,place (setq ,place (shiftf ,@args))))
