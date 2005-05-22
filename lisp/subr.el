@@ -784,6 +784,12 @@ is converted into a string by expressing it in decimal."
   baud-rate)
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
+;; These are used by VM and some old programs
+(defalias 'focus-frame 'ignore "")
+(make-obsolete 'focus-frame "it does nothing." "22.1")
+(defalias 'unfocus-frame 'ignore "")
+(make-obsolete 'unfocus-frame "it does nothing." "22.1")
+
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
