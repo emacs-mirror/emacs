@@ -6329,15 +6329,23 @@ x_font_name_to_mac_font_name (xf, mf, mf_decoded, style, cs)
   else
     sprintf (mf_decoded, "%s-%s-%s", foundry, family, cs);
 
+  for (p = mf_decoded; *p; p++)
+    if (!isascii (*p) || iscntrl (*p))
+      break;
+
+  if (*p == '\0'
+      || NILP (coding_system) || NILP (Fcoding_system_p (coding_system)))
+    strcpy (mf, mf_decoded);
 #if 0
   /* MAC_TODO: Fix coding system to use objects */
-  if (!NILP (coding_system))
+  else
     {
       setup_coding_system (coding_system, &coding);
       coding.src_multibyte = 1;
       coding.dst_multibyte = 1;
       coding.mode |= CODING_MODE_LAST_BLOCK;
-      encode_coding (&coding, family, mf, strlen (family), sizeof (Str32) - 1);
+      encode_coding (&coding, mf_decoded, mf,
+		     strlen (mf_decoded), sizeof (Str32) - 1);
       mf[coding.produced] = '\0';
     }
 #endif
