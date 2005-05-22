@@ -1858,7 +1858,8 @@ directory specification."
 	    (error "File %s not in current tags tables" file)))))
   (with-current-buffer "*Tags List*"
     (require 'apropos)
-    (apropos-mode)
+    (with-no-warnings
+      (apropos-mode))
     (setq buffer-read-only t)))
 
 ;;;###autoload
