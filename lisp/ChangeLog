@@ -1,3 +1,8 @@
+2005-05-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (focus-frame, unfocus-frame):
+	Revert deletion on 2005-05-01.
+
 2005-05-22  Andre Spiegel  <spiegel@gnu.org>
 
 	* vc-cvs.el (vc-cvs-checkout-model): Handle the case where FILE
