@@ -1,3 +1,12 @@
+2005-05-22  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-core.el: Update comment.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Use
+	`after-change-major-mode-hook' instead of `find-file-hook'.
+
+	* buff-menu.el (Buffer-menu-mode): Use `run-mode-hooks'.
+
 2005-05-22  Eli Zaretskii  <eliz@gnu.org>
 
 	* simple.el (yank, yank-pop): Mention `yank-excluded-properties'
