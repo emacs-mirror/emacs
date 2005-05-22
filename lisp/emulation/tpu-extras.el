@@ -144,9 +144,9 @@ the previous line when starting from a line beginning."
   "Eliminate whitespace at ends of lines, if the cursor is free."
   (if (and (buffer-modified-p) tpu-cursor-free) (tpu-trim-line-ends)))
 
-(or (memq 'tpu-write-file-hook write-file-hooks)
-    (setq write-file-hooks
-	  (cons 'tpu-write-file-hook write-file-hooks)))
+(or (memq 'tpu-write-file-hook write-file-functions)
+    (setq write-file-functions
+	  (cons 'tpu-write-file-hook write-file-functions)))
 
 
 ;;;  Utility routines for implementing scroll margins
