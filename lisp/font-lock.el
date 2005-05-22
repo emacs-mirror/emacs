@@ -563,11 +563,11 @@ is not in a string or comment and not within any bracket-pairs (or else,
 a place such that any bracket-pairs outside it can be ignored for Emacs
 syntax analysis and fontification).
 
-If this is nil, the beginning of the buffer is used, which is
-always correct but tends to be slow.
-This is normally set via `font-lock-defaults'.
-This variable is semi-obsolete; we recommend setting
-`syntax-begin-function' instead.")
+If this is nil, Font Lock uses `syntax-begin-function' to move back
+outside of any comment, string, or sexp.  This variable is semi-obsolete;
+we recommend setting `syntax-begin-function' instead.
+
+This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
