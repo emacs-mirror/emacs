@@ -33,6 +33,16 @@
 
 2005-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/cl.el (pushnew, cl-macroexpand, floatp-safe, plusp)
+	(minusp, oddp, evenp, mapcar*, list*, copy-list, adjoin, subst):
+	* emacs-lisp/cl-extra.el (coerce, map, maplist, cl-mapc, mapl)
+	(mapcan, mapcon, some, every, notany, notevery, signum, isqrt)
+	(concatenate, list-length, get*, getf, cl-remprop):
+	* emacs-lisp/cl-macs.el (function*, case, ecase, typecase)
+	(etypecase, progv, lexical-let, lexical-let*)
+	(multiple-value-bind, multiple-value-setq, shiftf):
+	Improve argument/docstring consistency.
+
 	* subr.el (focus-frame, unfocus-frame):
 	Revert deletion on 2005-05-01.
 
@@ -44,7 +54,7 @@
 	* vc.el (vc-trunk-p): Add autoload cookie.  The function is used
 	in vc-rcs.el when vc-mistrust-permissions is t, which is not the
 	default.
-	
+
 2005-05-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* emacs-lisp/bytecomp.el: Remove make-obsolete-variable for
