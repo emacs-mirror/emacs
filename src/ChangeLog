@@ -1,6 +1,6 @@
 2005-05-22  Andreas Schwab  <schwab@suse.de>
 
-	* process.c (send_process): Remove misplaced volatile.
+	* process.c (send_process): Move misplaced volatile.
 
 2005-05-21  Richard M. Stallman  <rms@gnu.org>
 
