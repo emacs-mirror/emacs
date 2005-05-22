@@ -1,3 +1,11 @@
+2005-05-23  Lute Kamstra  <lute@gnu.org>
+
+	* subr.el (font-lock-defaults): Remove defvar as it's already
+	defined in font-core.el.
+
+	* font-lock.el (font-lock-beginning-of-syntax-function): Fix
+	docstring.
+
 2005-05-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-core.el: Update comment.
