@@ -1,3 +1,8 @@
+2005-05-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (x_font_name_to_mac_font_name): Sync with trunk
+	for the case that does not require code conversion.
+
 2005-05-11  Kenichi Handa  <handa@m17n.org>
 
 	* Makefile.in (shortlisp): Cancel previous change.
