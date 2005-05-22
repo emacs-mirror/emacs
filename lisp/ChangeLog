@@ -1,3 +1,8 @@
+2005-05-22  Eli Zaretskii  <eliz@gnu.org>
+
+	* simple.el (yank, yank-pop): Mention `yank-excluded-properties'
+	and `yank-handler' in the doc strings.
+
 2005-05-22  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/cl.el (eql): Remove.  It's a builtin already.
