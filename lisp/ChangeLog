@@ -1,3 +1,12 @@
+2005-05-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* emacs-lisp/bytecomp.el: Remove make-obsolete-variable for
+	already deleted variables: auto-fill-hook, blink-paren-hook,
+	lisp-indent-hook, inhibit-local-variables, unread-command-event
+	suspend-hooks, comment-indent-hook, meta-flag,
+	before-change-function, after-change-function,
+	font-lock-doc-string-face.
+
 2005-05-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/derived.el (define-derived-mode): Doc fix.
