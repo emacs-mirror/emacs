@@ -1,5 +1,8 @@
 2005-05-22  Richard M. Stallman  <rms@gnu.org>
 
+	* help.el (describe-key): Move print-help-return-message call
+	out of conditional.
+
 	* progmodes/etags.el (list-tags): Use with-no-warnings.
 
 	* mail/smtpmail.el (smtpmail-open-stream): Use with-no-warnings.
