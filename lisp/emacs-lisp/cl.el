@@ -112,16 +112,6 @@ a future Emacs interpreter will be able to use it.")
 (defun cl-cannot-unload ()
   (error "Cannot unload the feature `cl'"))
 
-;;; Predicates.
-
-(defun eql (a b)    ; See compiler macro in cl-macs.el
-  "Return t if the two args are the same Lisp object.
-Floating-point numbers of equal value are `eql', but they may not be `eq'."
-  (if (numberp a)
-      (equal a b)
-    (eq a b)))
-
-
 ;;; Generalized variables.  These macros are defined here so that they
 ;;; can safely be used in .emacs files.
 
@@ -705,5 +695,5 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 
 (run-hooks 'cl-load-hook)
 
-;;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
+;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here
