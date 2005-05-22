@@ -1,3 +1,9 @@
+2005-05-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-locals-handler): Make regexps
+	more general and work when GDB variable "print pretty" is on,
+	as with Emacs, for example.
+
 2005-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (focus-frame, unfocus-frame):
