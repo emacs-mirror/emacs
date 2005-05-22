@@ -1458,10 +1458,6 @@ BEG and END default respectively to the beginning and end of buffer."
 
 ;;;; Miscellanea.
 
-;; A number of major modes set this locally.
-;; Give it a global value to avoid compiler warnings.
-(defvar font-lock-defaults nil)
-
 (defvar suspend-hook nil
   "Normal hook run by `suspend-emacs', before suspending.")
 
