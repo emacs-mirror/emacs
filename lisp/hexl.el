@@ -926,10 +926,11 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   "Activate `hl-line-mode'"
   (require 'frame)
   (require 'hl-line)
-  (set (make-local-variable 'hl-line-range-function)
-       'hexl-highlight-line-range)
-  (set (make-local-variable 'hl-line-face) 
-       'highlight)
+  (with-no-warnings
+    (set (make-local-variable 'hl-line-range-function)
+	 'hexl-highlight-line-range)
+    (set (make-local-variable 'hl-line-face) 
+	 'highlight))
   (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()
