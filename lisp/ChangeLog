@@ -1,3 +1,27 @@
+2005-05-22  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/etags.el (list-tags): Use with-no-warnings.
+
+	* mail/smtpmail.el (smtpmail-open-stream): Use with-no-warnings.
+	(smtpmail-send-queued-mail): Avoid beginning-of-buffer.
+	(starttls-extra-args, starttls-extra-arguments): Add defvars.
+
+	* mail/mailalias.el (mail-get-names): Avoid beginning-of-buffer.
+
+	* language/viet-util.el (viet-viscii-nonascii-translation-table):
+	Add defvar.
+
+	* emulation/viper-ex.el (viper-ex-work-buf, viper-ex-print-buf):
+	Use defvar, not defconst.
+
+	* hexl.el (hexl-follow-line): Use with-no-warnings.
+
+	* emulation/tpu-extras.el: Use write-file-functions instead of
+	write-file-hooks.
+
+	* dired.el (dired-font-lock-keywords): Fontify files with junk
+	extensions even if marked by -F.
+
 2005-05-23  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-locals-handler): Make regexps
