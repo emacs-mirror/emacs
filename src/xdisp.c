@@ -16033,7 +16033,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		   && --limit > 0
 		   && (precision <= 0 || n < precision))
 	      {
-		n += display_mode_element (it, depth, field_width - n,
+		n += display_mode_element (it, depth,
+					   /* Do padding only after the last
+					      element in the list.  */
+					   (! CONSP (XCDR (elt))
+					    ? field_width - n
+					    : 0),
 					   precision - n, XCAR (elt),
 					   props, risky);
 		elt = XCDR (elt);
