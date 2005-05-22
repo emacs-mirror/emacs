@@ -1,3 +1,8 @@
+2005-05-21  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_mode_element): If we're processing a list and
+	padding is specified, put it after the last element.
+
 2005-05-21  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fexpand_file_name) [DOS_NT]: Don't try to support
