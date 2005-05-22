@@ -418,7 +418,24 @@ Subexpression 2 must end right before the \\n or \\r.")
      ;; It is quicker to first find just an extension, then go back to the
      ;; start of that file name.  So we do this complex MATCH-ANCHORED form.
      (list (concat "\\(" (regexp-opt completion-ignored-extensions) "\\|#\\)$")
-	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face)))))
+	   '(".+" (dired-move-to-filename) nil (0 dired-ignored-face))))
+   ;;
+   ;; Files suffixed with `completion-ignored-extensions'
+   ;; plus a character put in by -F.
+   '(eval .
+     (list (concat "\\(" (regexp-opt completion-ignored-extensions)
+		   "\\|#\\)[*=|]$")
+	   '(".+" (progn
+		    (end-of-line)
+		    ;; If the last character is not part of the filename,
+		    ;; move back to the start of the filename
+		    ;; so it can be fontified.
+		    ;; Otherwise, leave point at the end of the line;
+		    ;; that way, nothing is fontified.
+		    (unless (get-text-property (1- (point)) 'mouse-face)
+		      (dired-move-to-filename)))
+	     nil (0 dired-ignored-face))))
+)
   "Additional expressions to highlight in Dired mode.")
 
 ;;; Macros must be defined before they are used, for the byte compiler.
