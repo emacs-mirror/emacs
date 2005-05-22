@@ -67,10 +67,10 @@
 ;;; Variables
 
 (defconst viper-ex-work-buf-name " *ex-working-space*")
-(defconst viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
+(defvar viper-ex-work-buf (get-buffer-create viper-ex-work-buf-name))
 (defconst viper-ex-tmp-buf-name " *ex-tmp*")
 (defconst viper-ex-print-buf-name " *ex-print*")
-(defconst viper-ex-print-buf (get-buffer-create viper-ex-print-buf-name))
+(defvar viper-ex-print-buf (get-buffer-create viper-ex-print-buf-name))
 
 
 ;;; ex-commands...
