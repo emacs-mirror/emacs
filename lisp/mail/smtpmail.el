@@ -396,7 +396,7 @@ This is relative to `smtpmail-queue-dir'.")
     ;;; mail, send it, etc...
     (let ((file-msg ""))
       (insert-file-contents smtpmail-queue-index)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (while (not (eobp))
 	(setq file-msg (buffer-substring (point) (line-end-position)))
 	(load file-msg)
@@ -465,11 +465,14 @@ This is relative to `smtpmail-queue-dir'.")
 	(push el2 result)))
     (nreverse result)))
 
+(defvar starttls-extra-args)
+(defvar starttls-extra-arguments)
+
 (defun smtpmail-open-stream (process-buffer host port)
   (let ((cred (smtpmail-find-credentials
 	       smtpmail-starttls-credentials host port)))
     (if (null (and cred (condition-case ()
-			    (progn
+			    (with-no-warnings
 			      (require 'starttls)
 			      (call-process (if starttls-use-gnutls
 						starttls-gnutls-program
