@@ -58,6 +58,12 @@
 	* font-lock.el (font-lock-beginning-of-syntax-function): Fix
 	docstring.
 
+2005-05-23  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-locals-handler): Make regexps
+	more general and work when GDB variable "print pretty" is on,
+	as with Emacs, for example.
+
 2005-05-22  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-core.el: Update comment.
@@ -102,12 +108,6 @@
 
 	* dired.el (dired-font-lock-keywords): Fontify files with junk
 	extensions even if marked by -F.
-
-2005-05-23  Nick Roberts  <nickrob@snap.net.nz>
-
-	* progmodes/gdb-ui.el (gdb-info-locals-handler): Make regexps
-	more general and work when GDB variable "print pretty" is on,
-	as with Emacs, for example.
 
 2005-05-22  Juanma Barranquero  <lekktu@gmail.com>
 
