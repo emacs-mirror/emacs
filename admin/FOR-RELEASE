@@ -132,7 +132,7 @@ man/commands.texi   "Luc Teirlinck"  Chong Yidong
 man/custom.texi     Chong Yidong
 man/dired.texi      Chong Yidong     joakim@verona.se
 man/display.texi    "Luc Teirlinck"  Chong Yidong
-man/emacs.texi      "Luc Teirlinck"
+man/emacs.texi      "Luc Teirlinck"  Lute Kamstra
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"  Chong Yidong

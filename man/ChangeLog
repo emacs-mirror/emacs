@@ -1,3 +1,12 @@
+2005-05-23  Lute Kamstra  <lute@gnu.org>
+
+	* emacs.texi: Update FSF's address throughout.
+	(Preface): Use @cite.
+	(Distrib): Add cross reference to the node "Copying".  Mention the
+	FDL.  Don't refer to etc/{FTP,ORDERS}.  Mention the sale of
+	printed manuals.
+	(Intro): Use @xref for the Emacs Lisp Intro.
+
 2005-05-21  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Storing variables): Mention that only most variables
