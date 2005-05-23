@@ -1,5 +1,8 @@
 2005-05-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/cc-engine.el (c-guess-basic-syntax):
+	Remove spurious call to `zerop'.
+
 	* emacs-lisp/cl.el (acons, pairlis): Add docstring.
 
 2005-05-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
