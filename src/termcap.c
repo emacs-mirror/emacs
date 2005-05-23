@@ -436,6 +436,7 @@ static int name_match ();
 #include <rmsdef.h>
 #include <fab.h>
 #include <nam.h>
+#include <starlet.h>
 
 static int
 valid_filename_p (fn)

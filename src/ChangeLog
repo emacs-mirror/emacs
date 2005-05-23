@@ -1,3 +1,7 @@
+2005-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c [VMS]: Include <starlet.h>.
+
 2005-05-07  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* xfns.c (start_hourglass): Do nothing when running on a tty.
