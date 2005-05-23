@@ -1,3 +1,7 @@
+2005-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c [VMS]: Include <starlet.h>.
+
 2005-05-23  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Added code
