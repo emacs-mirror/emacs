@@ -1,3 +1,7 @@
+2005-05-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl.el (acons, pairlis): Add docstring.
+
 2005-05-23  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
 	CC Mode update to 5.30.10:
@@ -15,14 +19,14 @@
 	* cc-styles.el, cc-mode.el (c-run-mode-hooks): New helper macro to
 	make use of `run-mode-hooks' which has been added in Emacs 21.1.
 
-	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode,
-	awk-mode): Use it.
+	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
+	(awk-mode): Use it.
 
 	(make-local-hook): Suppress warning about obsoleteness.
 
 	* cc-engine.el, cc-align.el, cc-cmds.el
-	(c-append-backslashes-forward, c-delete-backslashes-forward,
-	c-find-decl-spots, c-semi&comma-no-newlines-before-nonblanks):
+	(c-append-backslashes-forward, c-delete-backslashes-forward)
+	(c-find-decl-spots, c-semi&comma-no-newlines-before-nonblanks):
 	Compensate for return value from `forward-line' when it has moved
 	but not to a different line due to eob.
 
@@ -45,7 +49,7 @@
 	* cc-awk.el: Add character classes (e.g. "[:alpha:]") into AWK
 	Mode's regexps.
 
-2005-05-23  Kevin Ryde  <user42@zip.com.au>:
+2005-05-23  Kevin Ryde  <user42@zip.com.au>
 
 	* cc-align.el (c-lineup-argcont): Ignore conses for {} pairs from
 	c-parse-state, to avoid a lisp error (on bad code).
@@ -9850,7 +9854,7 @@
 	(Info-build-toc): Don't check for special Info file names.
 	Set main-file to nil if Info-find-file returns a symbol.
 
-2004-10-05  Emilio C. Lopes  <eclig@gmx.net>:
+2004-10-05  Emilio C. Lopes  <eclig@gmx.net>
 
 	* calendar/calendar.el (calendar-goto-iso-week): Add autoload.
 	(calendar-mode-map): Add binding for `calendar-goto-iso-week'.
