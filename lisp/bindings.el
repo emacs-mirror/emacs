@@ -165,7 +165,8 @@ corresponding to the mode line clicked."
 	     (eval-when-compile
 	       (let ((map (make-sparse-keymap)))
 		 (define-key map [mode-line mouse-3] 'mode-line-change-eol)
-		 map))))
+		 map))
+	     'mouse-face 'mode-line-highlight))
       (push (cons eol (cons mnemonic desc)) mode-line-eol-desc-cache)
       desc)))
 
@@ -177,7 +178,8 @@ corresponding to the mode line clicked."
 			     "Input method: "
 			     current-input-method
 			     ".  mouse-2: disable, mouse-3: describe")
-		  local-map ,mode-line-input-method-map))
+		  local-map ,mode-line-input-method-map
+		  mouse-face mode-line-highlight))
     ,(propertize
       "%z"
       'help-echo
@@ -191,6 +193,7 @@ corresponding to the mode line clicked."
 			  " buffer; mouse-3: describe coding system")
 		(concat "Unibyte " (symbol-name buffer-file-coding-system)
 			" buffer")))))
+      'mouse-face 'mode-line-highlight
       'local-map mode-line-coding-system-map)
     (:eval (mode-line-eol-desc)))
   "Mode-line control for displaying information of multilingual environment.
@@ -235,7 +238,8 @@ Normally nil in most modes, since there is no process to display.")
 					    "Not r")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
 			       'mouse-3
-			       #'mode-line-toggle-read-only)))
+			       #'mode-line-toggle-read-only))
+	 'mouse-face 'mode-line-highlight)
 	(propertize
 	 "%1+"
 	 'help-echo  (purecopy (lambda (window object point)
@@ -246,7 +250,8 @@ Normally nil in most modes, since there is no process to display.")
 					     "M"
 					   "Not m")))))
 	 'local-map (purecopy (make-mode-line-mouse-map
-			       'mouse-3 #'mode-line-toggle-modified))))
+			       'mouse-3 #'mode-line-toggle-modified))
+	 'mouse-face 'mode-line-highlight))
   "Mode-line control for displaying whether current buffer is modified.")
 
 (make-variable-buffer-local 'mode-line-modified)
@@ -262,6 +267,7 @@ buffer size, the line number and the column number.")
 
 (defvar mode-line-major-mode-keymap
   (let ((map (make-sparse-keymap)))
+    (define-key map [mode-line down-mouse-1] 'mouse-major-mode-menu)
     (define-key map [mode-line mouse-2] 'describe-mode)
     (define-key map [mode-line down-mouse-3] 'mode-line-mode-menu-1)
     map) "\
@@ -303,13 +309,16 @@ Keymap to display on minor modes.")
     (list
      (propertize "%[(" 'help-echo help-echo)
      `(:propertize ("" mode-name)
-		   help-echo "mouse-2: help for current major mode"
+		   help-echo "mouse-1: major-mode-menu mouse-2: help for current major mode"
+		   mouse-face mode-line-highlight
 		   local-map ,mode-line-major-mode-keymap)
      '("" mode-line-process)
      `(:propertize ("" minor-mode-alist)
+		   mouse-face mode-line-highlight
 		   help-echo "mouse-2: help for minor modes, mouse-3: minor mode menu"
 		   local-map ,mode-line-minor-mode-keymap)
      (propertize "%n" 'help-echo "mouse-2: widen"
+		 'mouse-face 'mode-line-highlight
 		 'local-map (make-mode-line-mouse-map
 			     'mouse-2 #'mode-line-widen))
      (propertize ")%]--" 'help-echo help-echo)))
@@ -465,6 +474,7 @@ text properties for face, help-echo, and local-map to it."
 		    'face 'Buffer-menu-buffer-face
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
+		    'mouse-face 'mode-line-highlight
 		    'local-map mode-line-buffer-identification-keymap)))
 
 (setq-default mode-line-buffer-identification

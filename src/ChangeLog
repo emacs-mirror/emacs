@@ -1,3 +1,11 @@
+2005-05-23  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Added code
+	for mouse-face. Change the type of the first argument from `window'
+	to `List_Object'.
+	(note_mouse_highlight): Call note_mode_line_or_margin_highlight with
+	window instead of w.
+
 2005-05-22  Andreas Schwab  <schwab@suse.de>
 
 	* process.c (send_process): Move misplaced volatile.
