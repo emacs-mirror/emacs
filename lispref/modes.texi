@@ -2368,7 +2368,9 @@ syntactic fontification (@pxref{Syntax Table Functions}).  The
 resulting syntax table is stored in @code{font-lock-syntax-table}.
 
 The fifth element, @var{syntax-begin}, specifies the value of
-@code{font-lock-beginning-of-syntax-function}.
+@code{font-lock-beginning-of-syntax-function}.  We recommend setting
+this variable to @code{nil} and using @code{syntax-begin-function}
+instead.
 
 All the remaining elements (if any) are collectively called
 @var{other-vars}.  Each of these elements should have the form
@@ -2880,10 +2882,6 @@ comments and strings.  Specify it using @var{syntax-alist} in
 @code{font-lock-defaults}.
 @end defvar
 
-@c ???
-@c The docstring says that font-lock-syntax-table is semi-obsolete.
-@c How the alternative should be used is not clear.  --lute
-
 @defvar font-lock-beginning-of-syntax-function
 If this variable is non-@code{nil}, it should be a function to move
 point back to a position that is syntactically at ``top level'' and
@@ -2896,9 +2894,10 @@ the beginning of any enclosing syntactic block.  Typical values are
 be outside a syntactic block), or @code{beginning-of-defun} for
 programming modes, or @code{backward-paragraph} for textual modes.
 
-If the value is @code{nil}, the beginning of the buffer is used as a
-position outside of a syntactic block.  This cannot be wrong, but it
-can be slow.
+If the value is @code{nil}, Font Lock uses
+@code{syntax-begin-function} to move back outside of any comment,
+string, or sexp.  This variable is semi-obsolete; we recommend setting
+@code{syntax-begin-function} instead.
 
 Specify this variable using @var{syntax-begin} in
 @code{font-lock-defaults}.
