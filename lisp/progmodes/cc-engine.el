@@ -6109,7 +6109,7 @@ This function does not do any hidden buffer changes."
 				(and c-overloadable-operators-regexp
 				     (looking-at c-overloadable-operators-regexp)
 				     (save-excursion
-				       (zerop (c-backward-token-2 1 nil lim))
+				       (c-backward-token-2 1 nil lim)
 				       (looking-at "operator\\>[^_]"))))))
 		(or (memq (char-after) '(?, ?=))
 		    (and (c-major-mode-is 'c++-mode)
