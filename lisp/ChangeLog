@@ -18,10 +18,8 @@
 
 	* cc-styles.el, cc-mode.el (c-run-mode-hooks): New helper macro to
 	make use of `run-mode-hooks' which has been added in Emacs 21.1.
-
 	(c-mode, c++-mode, objc-mode, java-mode, idl-mode, pike-mode)
 	(awk-mode): Use it.
-
 	(make-local-hook): Suppress warning about obsoleteness.
 
 	* cc-engine.el, cc-align.el, cc-cmds.el
