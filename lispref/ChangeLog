@@ -1,3 +1,8 @@
+2005-05-23  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Font Lock Basics, Syntactic Font Lock): Recommend
+	syntax-begin-function over font-lock-beginning-of-syntax-function.
+
 2005-05-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* minibuf.texi (Reading File Names): Update description of
