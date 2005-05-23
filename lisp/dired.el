@@ -3180,10 +3180,8 @@ Anything else means ask for each directory."
   :group 'dired)
 
 (defun dired-dnd-popup-notice ()
-  (x-popup-dialog
-   t
-   '("Recursive copies not enabled.\nSee variable dired-recursive-copies."
-     ("Ok" . nil))))
+  (message-box
+   "Recursive copies not enabled.\nSee variable dired-recursive-copies."))
 
 
 (defun dired-dnd-do-ask-action (uri)
