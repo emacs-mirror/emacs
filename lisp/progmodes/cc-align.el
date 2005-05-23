@@ -24,9 +24,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -175,7 +175,8 @@ Works with: arglist-cont, arglist-cont-nonempty."
       (let ((open-paren (elt c-syntactic-element 2))
 	    (paren-state (c-parse-state)))
 	(while (not (eq (car paren-state) open-paren))
-	  (goto-char (car paren-state))
+	  (unless (consp (car paren-state)) ;; ignore matched braces
+	    (goto-char (car paren-state)))
 	  (setq paren-state (cdr paren-state)))))
 
     (let ((start (point)) c)
@@ -1171,6 +1172,7 @@ Otherwise, no determination is made."
 	     ;;(/= (point-max)
 	     ;;    (save-excursion (skip-syntax-forward " ") (point))
 	     (zerop (forward-line 1))
+	     (bolp)			; forward-line has funny behavior at eob.
 	     (not (looking-at "^[ \t]*$")))
 	'stop
       nil)))
