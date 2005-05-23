@@ -1,3 +1,7 @@
+2005-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c [VMS]: Include <starlet.h>.
+
 2005-05-08  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* config.in (HAVE_PWD_H): Add undef.
