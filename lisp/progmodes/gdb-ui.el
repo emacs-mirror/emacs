@@ -698,6 +698,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
     (define-key map "\C-c\C-z" 'gdb-inferior-io-stop)
     (define-key map "\C-c\C-\\" 'gdb-inferior-io-quit)
     (define-key map "\C-c\C-d" 'gdb-inferior-io-eof)
+    (define-key map "\C-d" 'gdb-inferior-io-eof)
     map))
 
 (define-derived-mode gdb-inferior-io-mode comint-mode "Inferior I/O"
@@ -953,7 +954,7 @@ function is used to change the focus of GUD tooltips to #define
 directives."
   (setq gdb-active-process nil)
   (gdb-stopping ignored))
- 
+
 (defun gdb-frame-begin (ignored)
   (let ((sink gdb-output-sink))
     (cond
