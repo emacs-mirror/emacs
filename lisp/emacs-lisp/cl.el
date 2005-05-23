@@ -565,8 +565,17 @@ Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
 	       cl-tree (cons a d))))
 	(t cl-tree)))
 
-(defun acons (a b c) (cons (cons a b) c))
-(defun pairlis (a b &optional c) (nconc (mapcar* 'cons a b) c))
+(defun acons (key value alist)
+  "Add KEY and VALUE to ALIST.
+Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
+  (cons (cons key value) alist))
+
+(defun pairlis (keys values &optional alist)
+  "Make an alist from KEYS and VALUES.
+Return a new alist composed by associating KEYS to corresponding VALUES;
+the process stops as soon as KEYS or VALUES run out.
+If ALIST is non-nil, the new pairs are prepended to it."
+  (nconc (mapcar* 'cons keys values) alist))
 
 
 ;;; Miscellaneous.
