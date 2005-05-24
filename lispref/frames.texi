@@ -1438,13 +1438,14 @@ the menu keymap as necessary.
 
   A dialog box is a variant of a pop-up menu---it looks a little
 different, it always appears in the center of a frame, and it has just
-one level and one pane.  The main use of dialog boxes is for asking
-questions that the user can answer with ``yes'', ``no'', and a few other
-alternatives.  The functions @code{y-or-n-p} and @code{yes-or-no-p} use
-dialog boxes instead of the keyboard, when called from commands invoked
-by mouse clicks.
+one level and one or more buttons.  The main use of dialog boxes is
+for asking questions that the user can answer with ``yes'', ``no'',
+and a few other alternatives.  With a single button, they can also
+force the user to acknowledge important information.  The functions
+@code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
+keyboard, when called from commands invoked by mouse clicks.
 
-@defun x-popup-dialog position contents
+@defun x-popup-dialog position contents header
 This function displays a pop-up dialog box and returns an indication of
 what selection the user makes.  The argument @var{contents} specifies
 the alternatives to offer; it has this format:
@@ -1473,6 +1474,10 @@ Dialog boxes always appear in the center of a frame; the argument
 @var{position} specifies which frame.  The possible values are as in
 @code{x-popup-menu}, but the precise coordinates or the individual
 window don't matter; only the frame matters.
+
+If @var{header} is non-nil, the frame title for the box is
+``Information'', otherwise it is ``Question''. The former is used
+for @code{message-box} (@pxref{The Echo Area}).
 
 In some configurations, Emacs cannot display a real dialog box; so
 instead it displays the same items in a pop-up menu in the center of the
