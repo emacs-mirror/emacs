@@ -1475,8 +1475,8 @@ Dialog boxes always appear in the center of a frame; the argument
 @code{x-popup-menu}, but the precise coordinates or the individual
 window don't matter; only the frame matters.
 
-If @var{header} is non-nil, the frame title for the box is
-``Information'', otherwise it is ``Question''.  The former is used
+If @var{header} is non-@code{nil}, the frame title for the box is
+@samp{Information}, otherwise it is @samp{Question}.  The former is used
 for @code{message-box} (@pxref{The Echo Area}).
 
 In some configurations, Emacs cannot display a real dialog box; so
