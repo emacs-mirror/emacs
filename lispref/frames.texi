@@ -1445,7 +1445,7 @@ force the user to acknowledge important information.  The functions
 @code{y-or-n-p} and @code{yes-or-no-p} use dialog boxes instead of the
 keyboard, when called from commands invoked by mouse clicks.
 
-@defun x-popup-dialog position contents header
+@defun x-popup-dialog position contents &optional header
 This function displays a pop-up dialog box and returns an indication of
 what selection the user makes.  The argument @var{contents} specifies
 the alternatives to offer; it has this format:
