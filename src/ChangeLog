@@ -1,3 +1,13 @@
+2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xmenu.c (Fx_popup_dialog): Add a third boolean argument to
+	select frame title ("Question"/"Information").
+	(xdialog_show): Use it.
+
+	* lisp.h: Fx_popup_dialog can have three arguments.
+
+	* editfns.c (Fmessage_box): Use "Information" for frame title.
+
 2005-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* termcap.c [VMS]: Include <starlet.h>.

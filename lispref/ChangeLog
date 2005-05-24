@@ -1,3 +1,7 @@
+2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* frames.texi (Dialog Boxes): Descibe new optional argument.
+
 2005-05-23  Lute Kamstra  <lute@gnu.org>
 
 	* modes.texi (Font Lock Basics, Syntactic Font Lock): Recommend
