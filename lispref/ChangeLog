@@ -1,3 +1,8 @@
+2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Dialog Boxes): HEADER argument to `x-popup-dialog'
+	is optional.
+
 2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* frames.texi (Dialog Boxes): Descibe new optional argument.
