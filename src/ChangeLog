@@ -4,6 +4,10 @@
 	select frame title ("Question"/"Information").
 	(xdialog_show): Use it.
 
+	* macmenu.c (Fx_popup_dialog, mac_dialog_show): As for xmenu.c.
+
+	* w32menu.c (Fx_popup_dialog, w32_dialog_show): As for xmenu.c.
+
 	* lisp.h: Fx_popup_dialog can have three arguments.
 
 	* editfns.c (Fmessage_box): Use "Information" for frame title.
