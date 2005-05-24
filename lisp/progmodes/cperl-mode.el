@@ -342,10 +342,19 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
   :type 'integer
   :group 'cperl-indentation-details)
 
-(defcustom cperl-vc-header-alist '((SCCS "($sccs) = ('%W\%' =~ /(\\d+(\\.\\d+)+)/) ;")
-				   (RCS "($rcs) = (' $Id\$ ' =~ /(\\d+(\\.\\d+)+)/) ;"))
-  "*What to use as `vc-header-alist' in CPerl."
-  :type '(repeat (list symbol string))
+(defvar cperl-vc-header-alist nil)
+(make-obsolete-variable 
+ 'cperl-vc-header-alist
+ "use cperl-vc-rcs-header or cperl-vc-sccs-header instead.")
+
+(defcustom cperl-vc-sccs-header '("($sccs) = ('%W\%' =~ /(\\d+(\\.\\d+)+)/) ;")
+  "*Special version of `vc-sccs-header' that is used in CPerl mode buffers."
+  :type '(repeat string)
+  :group 'cperl)
+
+(defcustom cperl-vc-rcs-header '("($rcs) = (' $Id\$ ' =~ /(\\d+(\\.\\d+)+)/) ;")
+  "*Special version of `vc-rcs-header' that is used in CPerl mode buffers."
+  :type '(repeat string)
   :group 'cperl)
 
 (defcustom cperl-clobber-mode-lists
@@ -1485,8 +1494,10 @@ or as help on variables `cperl-tips', `cperl-problems',
 	(function cperl-imenu--create-perl-index))
   (make-local-variable 'imenu-sort-function)
   (setq imenu-sort-function nil)
-  (make-local-variable 'vc-header-alist)
-  (set 'vc-header-alist cperl-vc-header-alist) ; Avoid warning
+  (make-local-variable 'vc-rcs-header)
+  (set 'vc-rcs-header cperl-vc-rcs-header)
+  (make-local-variable 'vc-sccs-header)
+  (set 'vc-sccs-header cperl-vc-sccs-header)
   (make-local-variable 'font-lock-defaults)
   (setq	font-lock-defaults
 	(cond
