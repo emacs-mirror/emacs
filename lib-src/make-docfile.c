@@ -348,27 +348,21 @@ scan_c_file (filename, mode)
   register int defvarperbufferflag;
   register int defvarflag;
   int minargs, maxargs;
-  char *extpos;
-  char extension;
+  char *extension;
+  char saved_extension;
 
-#ifdef VMS /* It could be that make-docfile is invoked with comma-separated
-              args (that include the comma for crying out loud!), so we
-              munge object file names a bit to accomodate.  Insert rant on
-              DCL lossage here.  NOTE: This cruft should be strictly
-              confined to the ttn-vms-21-2-stash branch; build methodology
-              for other branches should be improved so that this is not
-              required.  --ttn  */
+#ifdef VMS /* It could be that make-docfile is invoked by MMS from a
+	      DESCRIP.MMS file, with comma-separated args.  To accomodate, we
+	      also munge object file names a bit here.  Insert rant about
+	      gratuitous MMS incompatibity here.  Actually, MMS use of commas
+	      is probably directly attributable to DCL limitations.  If
+	      anything deserves a rant, that would be DCL.  --ttn  */
 
   /* Ignore trailing comma.  */
   if (',' == filename[strlen (filename) - 1])
     filename[strlen (filename) - 1] = '\0';
 
-  /* Ignore trailing "bj" so that ".obj" is considered as ".o" below.  To
-     avoid this kludge we would have to convince MMS (make(1)-like tool
-     under VMS) to support VPATH so that a user-specified .c.o rule would
-     work correctly.  But MMS is proprietary software so any such convincing
-     involves uncountable layers of bureacracy and suit-swimming, just to
-     talk to programmers who may or may not DTRT in the end.  Blech.  */
+  /* Ignore trailing "bj" so that ".obj" is considered as ".o" below.  */
   if ('b' == filename[strlen (filename) - 2] &&
       'j' == filename[strlen (filename) - 1])
     filename[strlen (filename) - 2] = '\0';
@@ -379,11 +373,11 @@ scan_c_file (filename, mode)
 
 #endif /* VMS */
 
-  extpos = filename + strlen (filename) - 1;
-  extension = *extpos;
+  extension = filename + strlen (filename) - 1;
+  saved_extension = *extension;
 
-  if (extension == 'o')
-    *extpos = 'c';
+  if (*extension == 'o')
+    *extension = 'c';
 
   infile = fopen (filename, mode);
 
@@ -395,7 +389,7 @@ scan_c_file (filename, mode)
     }
 
   /* Reset extension to be able to detect duplicate files. */
-  *extpos = extension;
+  filename[strlen (filename) - 1] = saved_extension;
 
   c = '\n';
   while (!feof (infile))
