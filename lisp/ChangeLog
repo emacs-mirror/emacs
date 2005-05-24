@@ -1,3 +1,9 @@
+2005-05-24  Andre Spiegel  <spiegel@gnu.org>
+
+	* progmodes/cperl-mode.el (cperl-vc-header-alist): Obsoleted.
+	(cperl-vc-rcs-header, cperl-vc-sccs-header): New user options.
+	(cperl-mode): Use them.
+
 2005-05-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* window.el (quit-window, shrink-window-if-larger-than-buffer):
