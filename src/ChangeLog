@@ -8,7 +8,10 @@
 
 	* w32menu.c (Fx_popup_dialog, w32_dialog_show): As for xmenu.c.
 
-	* lisp.h: Fx_popup_dialog can have three arguments.
+	* fns.c (Fyes_or_no_p, Fy_or_n_p): Call Fx_popup_dialog with
+	a third argument (Qnil).
+
+	* lisp.h: x-popup-dialog can have three arguments.
 
 	* editfns.c (Fmessage_box): Use "Information" for frame title.
 
