@@ -732,7 +732,7 @@ this variable is found in `default-indicate-buffer-boundaries'.
 If value is `left' or `right', both angle and arrow bitmaps are
 displayed in the left or right fringe, resp.
 
-The value can also be an alist which specifies the presense and
+The value can also be an alist which specifies the presence and
 position of each bitmap individually.
 
 For example, ((top . left) (t .  right)) places the top angle bitmap
