@@ -1,3 +1,7 @@
+2005-05-25  Masatake YAMATO  <jet@gyve.org>
+
+	* display.texi (Standard Faces): Write about `mode-line-highlight'.
+
 2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* frames.texi (Dialog Boxes): HEADER argument to `x-popup-dialog'
