@@ -1,3 +1,8 @@
+2005-05-24  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Use b and e
+	as loop sentinels.
+
 2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* xmenu.c (Fx_popup_dialog): Add a third boolean argument to
