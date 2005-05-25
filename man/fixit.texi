@@ -203,13 +203,11 @@ is useful for editing programs.  Type @kbd{M-x flyspell-prog-mode} to
 enable or disable this mode in the current buffer.
 
   The other Emacs spell-checking features check or look up words when
-you give an explicit command to do so.  Checking all or part of the
-buffer is useful when you have text that was written outside of this
-Emacs session and might contain any number of misspellings.
+you give an explicit command to do so.
 
 @kindex M-$
 @findex ispell-word
-  To check the spelling of the word around or next to point, and
+  To check the spelling of the word around or before point, and
 optionally correct it as well, use the command @kbd{M-$}
 (@code{ispell-word}).  If the word is not correct, the command offers
 you various alternatives for what to do about it.
