@@ -21263,9 +21263,9 @@ note_mode_line_or_margin_highlight (window, x, y, area)
       string = mode_line_string (w, area, &x, &y, &charpos,
 				 &object, &dx, &dy, &width, &height);
 
-      row = (area == ON_MODE_LINE)?
-	MATRIX_MODE_LINE_ROW (w->current_matrix):
-	MATRIX_HEADER_LINE_ROW(w->current_matrix);
+      row = (area == ON_MODE_LINE
+	     ? MATRIX_MODE_LINE_ROW (w->current_matrix)
+	     : MATRIX_HEADER_LINE_ROW (w->current_matrix));
 
       /* Find glyph */
       if (row->mode_line_p && row->enabled_p)
@@ -21379,8 +21379,8 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
 
-	  b = Fprevious_single_property_change(make_number (charpos + 1),
-					       Qmouse_face, string, Qnil);
+	  b = Fprevious_single_property_change (make_number (charpos + 1),
+						Qmouse_face, string, Qnil);
 	  if (NILP (b))
 	    b = make_number (0);
 
@@ -21397,7 +21397,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	     The internal string is an element of the structures.
 	     The displayed string is the flatten string. */
 	  for (tmp_glyph = glyph - 1, gpos = 0;
-	       tmp_glyph->charpos >= XINT(b);
+	       tmp_glyph->charpos >= XINT (b);
 	       tmp_glyph--, gpos++)
 	    {
 	      if (tmp_glyph->object != glyph->object)
@@ -21410,7 +21410,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	     GSEQ_LENGTH is different from SCHARS (STRING).
 	     SCHARS (STRING) returns the length of the internal string. */
 	  for (tmp_glyph = glyph, gseq_length = gpos;
-	       tmp_glyph->charpos < XINT(e);
+	       tmp_glyph->charpos < XINT (e);
 	       tmp_glyph++, gseq_length++)
 	      {
 		if (tmp_glyph->object != glyph->object)
@@ -21422,9 +21422,9 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	    total_pixel_width += tmp_glyph->pixel_width;
 
 	  dpyinfo->mouse_face_beg_col = (x - gpos);
-	  dpyinfo->mouse_face_beg_row = (area == ON_MODE_LINE)?
-	    (w->current_matrix)->nrows - 1:
-	    0;
+	  dpyinfo->mouse_face_beg_row = (area == ON_MODE_LINE
+					 ? (w->current_matrix)->nrows - 1
+					 : 0);
 
 	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
 	  dpyinfo->mouse_face_beg_y   = 0;
@@ -21438,10 +21438,10 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  dpyinfo->mouse_face_past_end = 0;
 	  dpyinfo->mouse_face_window  = window;
 
-	  dpyinfo->mouse_face_face_id = face_at_string_position(w, string,
-								charpos,
-								0, 0, 0, &ignore,
-								glyph->face_id, 1);
+	  dpyinfo->mouse_face_face_id = face_at_string_position (w, string,
+								 charpos,
+								 0, 0, 0, &ignore,
+								 glyph->face_id, 1);
 	  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	}
     }
