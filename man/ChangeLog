@@ -1,3 +1,9 @@
+2005-05-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number throughout.
+	(Keypad Mode): Change location in info output.
+	(Keypad mode overview): Move picture of keypad.
+
 2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* fixit.texi (Spelling): Delete confusing sentence; flyspell is
