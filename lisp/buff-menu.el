@@ -203,17 +203,21 @@ Letters do not insert themselves; instead, they are commands.
   (or (eq buffer-undo-list t)
       (setq buffer-undo-list nil))
   ;; We can not use save-excursion here.  The buffer gets erased.
-  (let ((ocol (current-column))
+  (let ((opoint (point))
+	(eobp (eobp))
+	(ocol (current-column))
 	(oline (progn (move-to-column 4)
 		      (get-text-property (point) 'buffer)))
 	(prop (point-min))
 	;; do not make undo records for the reversion.
 	(buffer-undo-list t))
     (list-buffers-noselect Buffer-menu-files-only)
-    (while (setq prop (next-single-property-change prop 'buffer))
-      (when (eq (get-text-property prop 'buffer) oline)
-	(goto-char prop)
-	(move-to-column ocol)))))
+    (if oline
+	(while (setq prop (next-single-property-change prop 'buffer))
+	  (when (eq (get-text-property prop 'buffer) oline)
+	    (goto-char prop)
+	    (move-to-column ocol)))
+      (goto-char (if eobp (point-max) opoint)))))
 
 (defun Buffer-menu-toggle-files-only (arg)
   "Toggle whether the current buffer-menu displays only file buffers.
@@ -633,15 +637,29 @@ For more information, see the function `buffer-menu'."
   (if (equal column Buffer-menu-sort-column) (setq column nil))
   (propertize name
 	      'help-echo (if column
-			     (concat "mouse-2: sort by " (downcase name))
-			   "mouse-2: sort by visited order")
+			     (if Buffer-menu-use-header-line
+				 (concat "mouse-2: sort by " (downcase name))
+			       (concat "mouse-2, RET: sort by "
+				       (downcase name)))
+			   (if Buffer-menu-use-header-line
+			       "mouse-2: sort by visited order"
+			     "mouse-2, RET: sort by visited order"))
 	      'mouse-face 'highlight
 	      'keymap (let ((map (make-sparse-keymap)))
-			(define-key map [header-line mouse-2]
-			  `(lambda (e)
-			     (interactive "e")
-			     (save-window-excursion
+			(if Buffer-menu-use-header-line
+			    (define-key map [header-line mouse-2]
+			      `(lambda (e)
+				 (interactive "e")
+				 (save-window-excursion
+				   (if e (mouse-select-window e))
+				   (Buffer-menu-sort ,column))))
+			  (define-key map [mouse-2]
+			    `(lambda (e)
+			       (interactive "e")
 			       (if e (mouse-select-window e))
+			       (Buffer-menu-sort ,column)))
+			  (define-key map "\C-m"
+			    `(lambda () (interactive)
 			       (Buffer-menu-sort ,column))))
 			map)))
 
