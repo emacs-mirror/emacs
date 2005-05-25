@@ -1,3 +1,8 @@
+2005-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* yow.c (setup_yow): Use EXIT_FAILURE in case no separators found.
+	(yow): Use EXIT_FAILURE in case of memory error.
+
 2005-03-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacsclient.c (main): Use EXIT_SUCCESS.
