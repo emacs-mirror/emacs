@@ -1,3 +1,14 @@
+2005-05-25  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-thumbsdir-max-size, thumbs-temp-file)
+	(thumbs-cleanup-thumbsdir, thumbs-call-convert)
+	(thumbs-resize-interactive, thumbs-insert-image)
+	(thumbs-insert-thumb, thumbs-dired-show-marked)
+	(thumbs-find-image-at-point, thumbs-delete-images)
+	(thumbs-rename-images, thumbs-next-image, thumbs-dired-setroot)
+	(thumbs-increment-image-size, thumbs-decrement-image-size):
+	Fix typos in docstrings.
+
 2005-05-24  Andre Spiegel  <spiegel@gnu.org>
 
 	* progmodes/cperl-mode.el (cperl-vc-header-alist): Obsoleted.
