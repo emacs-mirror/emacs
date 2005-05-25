@@ -1,3 +1,9 @@
+2005-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* vms-patch.el (vms-magic-right-square-brace, vms-magic-colon):
+	New funcs.  In minibuffer-local-completion-map bind `]', `/'
+	and `:' to them.
+
 2005-05-25  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* startup.el (normal-top-level): Allow modification of load-path while
