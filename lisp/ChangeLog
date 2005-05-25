@@ -1,3 +1,10 @@
+2005-05-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* buff-menu.el (Buffer-menu-revert-function): Improve handling of
+	point after reverting.
+	(Buffer-menu-make-sort-button): Handle the case where
+	`Buffer-menu-use-header-line' is nil.
+
 2005-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* vms-patch.el (vms-magic-right-square-brace, vms-magic-colon):
