@@ -1,6 +1,13 @@
+2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fixit.texi (Spelling): Delete confusing sentence; flyspell is
+	not enabled by default.
+	When not on a word, `ispell-word' by default checks the word
+	before point.
+
 2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
 
-	* building.texi (Debugger Operation): Simplify last sentence. 
+	* building.texi (Debugger Operation): Simplify last sentence.
 
 2005-05-23  Lute Kamstra  <lute@gnu.org>
 
