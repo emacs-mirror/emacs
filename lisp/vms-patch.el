@@ -193,5 +193,72 @@ following bindings are established.
 All other Emacs commands are still available."
   t)
 
+;;;
+;;; Filename handling in the minibuffer
+;;;
+(defun vms-magic-right-square-brace ()
+  "\
+Insert a right square brace, but do other things first depending on context.
+During filename completion, when point is at the end of the line and the
+character before is not a right square brace, do one of three things before
+inserting the brace:
+ - If there are already two left square braces preceding, do nothing special.
+ - If there is a previous right-square-brace, convert it to dot.
+ - If the character before is dot, delete it.
+Additionally, if the preceding chars are right-square-brace followed by
+either \"-\" or \"..\", strip one level of directory hierarchy."
+  (interactive)
+  (when (and minibuffer-completing-file-name
+	     (= (point) (point-max))
+	     (not (= 93 (char-before))))
+    (cond
+     ;; Avoid clobbering: user:[one.path][another.path
+     ((search-backward "[" (field-beginning) t 2))
+     ((search-backward "]" (field-beginning) t)
+      (delete-char 1)
+      (insert ".")
+      (goto-char (point-max)))
+     ((= ?. (char-before))
+      (delete-char -1)))
+    (goto-char (point-max))
+    (let ((specs '(".." "-"))
+	  (pmax (point-max)))
+      (while specs
+	(let* ((up (car specs))
+	       (len (length up))
+	       (cut (- (point) len)))
+	  (when (and (< (1+ len) pmax)
+		     (= ?. (char-before cut))
+		     (string= up (buffer-substring cut (point))))
+	    (delete-char (- (1+ len)))
+	    (while (not (let ((c (char-before)))
+			  (or (= ?. c) (= 91 c))))
+	      (delete-char -1))
+	    (when (= ?. (char-before)) (delete-char -1))
+	    (setq specs nil)))
+	(setq specs (cdr specs)))))
+  (insert "]"))
+
+(defun vms-magic-colon ()
+  "\
+Insert a colon, but do other things first depending on context.
+During filename completion, when point is at the end of the line
+and the line contains a right square brace, remove all characters
+from the beginning of the line up to and including such brace.
+This enables one to type a new filespec without having to delete
+the old one."
+  (interactive)
+  (when (and minibuffer-completing-file-name
+	     (= (point) (point-max))
+             (search-backward "]" (field-beginning) t))
+    (delete-region (field-beginning) (1+ (point)))
+    (goto-char (point-max)))
+  (insert ":"))
+
+(let ((m minibuffer-local-completion-map))
+  (define-key m "]" 'vms-magic-right-square-brace)
+  (define-key m "/" 'vms-magic-right-square-brace)
+  (define-key m ":" 'vms-magic-colon))
+
 ;;; arch-tag: c178494e-2c37-4d02-99b7-e47e615656cf
 ;;; vms-patch.el ends here
