@@ -2292,13 +2292,16 @@ static Lisp_Object run_hook_with_args P_ ((int, Lisp_Object *,
 					   enum run_hooks_condition));
 
 DEFUN ("run-hooks", Frun_hooks, Srun_hooks, 0, MANY, 0,
-       doc: /* Run each hook in HOOKS.  Major mode functions use this.
+       doc: /* Run each hook in HOOKS.
 Each argument should be a symbol, a hook variable.
 These symbols are processed in the order specified.
 If a hook symbol has a non-nil value, that value may be a function
 or a list of functions to be called to run the hook.
 If the value is a function, it is called with no arguments.
 If it is a list, the elements are called, in order, with no arguments.
+
+Major modes should not use this function directly to run their mode
+hook; they should use `run-mode-hooks' instead.
 
 Do not use `make-local-variable' to make a hook variable buffer-local.
 Instead, use `add-hook' and specify t for the LOCAL argument.
