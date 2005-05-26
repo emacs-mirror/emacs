@@ -196,7 +196,7 @@ Commands:
   (view-mode)
   (make-local-variable 'view-no-disable-on-exit)
   (setq view-no-disable-on-exit t)
-  (run-hooks 'help-mode-hook))
+  (run-mode-hooks 'help-mode-hook))
 
 ;;;###autoload
 (defun help-mode-setup ()
