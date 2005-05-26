@@ -557,7 +557,7 @@ symmetrical ones, and the same character twice for the others."
 ;;      (aset map i nil)
 ;;      (aset map (+ i 128) nil)
 ;;      (setq i (1+ i))))
-;;  (run-hooks 'mirror-mode-hook))
+;;  (run-mode-hooks 'mirror-mode-hook))
 
 (provide 'skeleton)
 
