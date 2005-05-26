@@ -145,7 +145,7 @@ Keybindings:
   (setq major-mode 'command-history-mode)
   (setq mode-name "Command History")
   (use-local-map command-history-map)
-  (run-hooks 'command-history-mode-hook))
+  (run-mode-hooks 'command-history-mode-hook))
 
 (defun Command-history-setup ()
   (kill-all-local-variables)
