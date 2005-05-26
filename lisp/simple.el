@@ -4762,7 +4762,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq major-mode 'completion-list-mode)
   (make-local-variable 'completion-base-size)
   (setq completion-base-size nil)
-  (run-hooks 'completion-list-mode-hook))
+  (run-mode-hooks 'completion-list-mode-hook))
 
 (defun completion-list-mode-finish ()
   "Finish setup of the completions buffer.
