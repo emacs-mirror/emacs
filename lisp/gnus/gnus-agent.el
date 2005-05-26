@@ -561,7 +561,8 @@ manipulated as follows:
   (if (and (fboundp 'propertize)
 	   (fboundp 'make-mode-line-mouse-map))
       (propertize string 'local-map
-		  (make-mode-line-mouse-map mouse-button mouse-func))
+		  (make-mode-line-mouse-map mouse-button mouse-func)
+		  'mouse-face 'mode-line-highlight)
     string))
 
 (defun gnus-agent-toggle-plugged (set-to)
