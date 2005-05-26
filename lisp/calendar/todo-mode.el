@@ -904,11 +904,12 @@ Number of entries for each category is given by `todo-print-priorities'."
 
 \\{todo-mode-map}"
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'todo-mode)
   (setq mode-name "TODO")
   (use-local-map todo-mode-map)
   (easy-menu-add todo-menu)
-  (run-hooks 'todo-mode-hook))
+  (run-mode-hooks 'todo-mode-hook))
 
 (eval-when-compile
   (defvar date)
