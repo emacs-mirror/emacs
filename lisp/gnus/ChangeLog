@@ -1,3 +1,8 @@
+2005-05-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* gnus-agent.el (gnus-agent-make-mode-line-string):
+	Use mode-line-highlight as mouse-face.
+
 2005-05-17  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* canlock.el (canlock): Change the parent group to news.
