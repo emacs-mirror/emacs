@@ -1853,7 +1853,7 @@ Major mode functions should use this."
 These hooks will be executed by the first following call to
 `run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
 Only affects hooks run in the current buffer."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   `(progn
      (make-local-variable 'delay-mode-hooks)
      (let ((delay-mode-hooks t))
