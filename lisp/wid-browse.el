@@ -82,7 +82,7 @@ if that value is non-nil."
   (use-local-map widget-browse-mode-map)
   (easy-menu-add widget-browse-mode-customize-menu)
   (easy-menu-add widget-browse-mode-menu)
-  (run-hooks 'widget-browse-mode-hook))
+  (run-mode-hooks 'widget-browse-mode-hook))
 
 (put 'widget-browse-mode 'mode-class 'special)
 
