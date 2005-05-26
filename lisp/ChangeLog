@@ -1,8 +1,3 @@
-2005-05-26  Mark A. Hershberger  <mah@everybody.org>
-
-	* xml.el (xml-substitute-special): Don't die for undefined xml
-	entities.
-
 2005-05-26  Lute Kamstra  <lute@gnu.org>
 
 	* arc-mode.el (archive-mode):
@@ -18,14 +13,36 @@
 	* descr-text.el (describe-text-mode):
 	* ebuff-menu.el (Electric-buffer-menu-mode):
 	* ediff-util.el (ediff-mode):
+	* emacs-lisp/re-builder.el (reb-mode):
+	* emulation/vi.el (vi-mode-setup):
+	* emulation/ws-mode.el (wordstar-mode):
+	* eshell/esh-mode.el (eshell-mode):
 	* forms.el (forms-mode):
 	* help-mode.el (help-mode):
 	* hexl.el (hexl-mode):
 	* ibuffer.el (ibuffer-mode):
 	* ielm.el (inferior-emacs-lisp-mode):
 	* info.el (Info-mode, Info-edit-mode):
+	* international/swedish.el:
 	* ledit.el (ledit-from-lisp-mode):
 	* locate.el (locate-mode):
+	* mail/rmail.el (rmail-mode):
+	* mail/rmailedit.el (rmail-edit-mode):
+	* mail/rmailsum.el (rmail-summary-mode):
+	* mail/supercite.el (sc-electric-mode):
+	* net/eudc.el (eudc-mode):
+	* net/quickurl.el (quickurl-list-mode):
+	* net/snmp-mode.el (snmp-mode, snmpv2-mode):
+	* obsolete/ooutline.el (outline-mode):
+	* obsolete/options.el (Edit-options-mode):
+	* obsolete/rnews.el (news-mode):
+	* obsolete/rnewspost.el (news-reply-mode):
+	* play/5x5.el (5x5-mode):
+	* play/decipher.el (decipher-mode, decipher-stats-mode):
+	* play/gomoku.el (gomoku-mode):
+	* play/snake.el (snake-mode):
+	* play/solitaire.el (solitaire-mode):
+	* play/tetris.el (tetris-mode):
 	* replace.el (occur-mode):
 	* ses.el (ses-mode):
 	* simple.el (completion-list-mode):
@@ -38,10 +55,18 @@
 	* wid-browse.el (widget-browse-mode): Use run-mode-hooks.
 
 	* array.el (array-mode):
-	* man.el (Man-mode): Use kill-all-local-variables and
+	* calendar/todo-mode.el (todo-mode):
+	* man.el (Man-mode):
+	* play/landmark.el (lm-mode):
+	* play/mpuz.el (mpuz-mode): Use kill-all-local-variables and
 	run-mode-hooks.
 
 	* subr.el (delay-mode-hooks): Specify indentation.
+
+2005-05-26  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Don't die for undefined xml
+	entities.
 
 2005-05-26  Jay Belanger  <belanger@truman.edu>
 
