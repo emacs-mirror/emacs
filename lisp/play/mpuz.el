@@ -129,11 +129,12 @@ To leave the game to do other editing work, just switch buffers.
 Then you may resume the game with M-x mpuz.
 You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'mpuz-mode
 	mode-name  "Mult Puzzle"
 	tab-width 30)
   (use-local-map mpuz-mode-map)
-  (run-hooks 'mpuz-mode-hook))
+  (run-mode-hooks 'mpuz-mode-hook))
 
 
 ;; Some variables for statistics

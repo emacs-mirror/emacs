@@ -206,7 +206,7 @@ is non-nil."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(gomoku-font-lock-keywords t))
   (toggle-read-only t)
-  (run-hooks 'gomoku-mode-hook))
+  (run-mode-hooks 'gomoku-mode-hook))
 
 ;;;
 ;;; THE BOARD.
