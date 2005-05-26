@@ -66,12 +66,12 @@
 
 (require 'gud)
 
-(defvar gdb-current-address "main" "Initialisation for Assembler buffer.")
-(defvar gdb-previous-address nil)
+(defvar gdb-frame-address "main" "Initialisation for Assembler buffer.")
+(defvar gdb-previous-frame-address nil)
 (defvar gdb-memory-address "main")
 (defvar gdb-previous-frame nil)
-(defvar gdb-current-frame nil)
-(defvar gdb-current-stack-level nil)
+(defvar gdb-selected-frame nil)
+(defvar gdb-frame-number nil)
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
@@ -295,7 +295,7 @@ predefined macros."
   (set (make-local-variable 'gud-minor-mode) 'gdba)
   (set (make-local-variable 'gud-marker-filter) 'gud-gdba-marker-filter)
   ;;
-  (gud-def gud-break (if (not (string-equal mode-name "Machine"))
+  (gud-def gud-break (if (not (string-match "Machine" mode-name))
 			 (gud-call "break %f:%l" arg)
 		       (save-excursion
 			 (beginning-of-line)
@@ -303,7 +303,7 @@ predefined macros."
 			 (gud-call "break *%a" arg)))
 	   "\C-b" "Set breakpoint at current line or address.")
   ;;
-  (gud-def gud-remove (if (not (string-equal mode-name "Machine"))
+  (gud-def gud-remove (if (not (string-match "Machine" mode-name))
 			  (gud-call "clear %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
@@ -311,7 +311,7 @@ predefined macros."
 			  (gud-call "clear *%a" arg)))
 	   "\C-d" "Remove breakpoint at current line or address.")
   ;;
-  (gud-def gud-until  (if (not (string-equal mode-name "Machine"))
+  (gud-def gud-until  (if (not (string-match "Machine" mode-name))
 			  (gud-call "until %f:%l" arg)
 			(save-excursion
 			  (beginning-of-line)
@@ -332,25 +332,26 @@ predefined macros."
   (setq comint-input-sender 'gdb-send)
   ;;
   ;; (re-)initialize
-  (setq gdb-current-address "main")
-  (setq gdb-previous-address nil)
-  (setq gdb-memory-address "main")
-  (setq gdb-previous-frame nil)
-  (setq gdb-current-frame nil)
-  (setq gdb-current-stack-level nil)
-  (setq gdb-var-list nil)
-  (setq gdb-var-changed nil)
-  (setq gdb-first-prompt nil)
-  (setq gdb-prompting nil)
-  (setq gdb-input-queue nil)
-  (setq gdb-current-item nil)
-  (setq gdb-pending-triggers nil)
-  (setq gdb-output-sink 'user)
-  (setq gdb-server-prefix "server ")
-  (setq gdb-flush-pending-output nil)
-  (setq gdb-location-alist nil)
-  (setq gdb-find-file-unhook nil)
-  (setq gdb-macro-info nil)
+  (setq gdb-frame-address (if gdb-show-main "main" nil))
+  (setq gdb-previous-frame-address nil
+	gdb-memory-address "main"
+	gdb-previous-frame nil
+	gdb-selected-frame nil
+	gdb-current-language nil
+	gdb-frame-number nil
+	gdb-var-list nil
+	gdb-var-changed nil
+	gdb-first-prompt nil
+	gdb-prompting nil
+	gdb-input-queue nil
+	gdb-current-item nil
+	gdb-pending-triggers nil
+	gdb-output-sink 'user
+	gdb-server-prefix "server "
+	gdb-flush-pending-output nil
+	gdb-location-alist nil
+	gdb-find-file-unhook nil
+	gdb-macro-info nil)
   ;;
   (setq gdb-buffer-type 'gdba)
   ;;
@@ -380,8 +381,8 @@ predefined macros."
   (require 'tooltip)
   (let ((expr (tooltip-identifier-from-point (point))))
     (if (and (string-equal gdb-current-language "c")
-	     gdb-use-colon-colon-notation gdb-current-frame)
-	(setq expr (concat gdb-current-frame "::" expr)))
+	     gdb-use-colon-colon-notation gdb-selected-frame)
+	(setq expr (concat gdb-selected-frame "::" expr)))
     (catch 'already-watched
       (dolist (var gdb-var-list)
 	(if (string-equal expr (car var)) (throw 'already-watched nil)))
@@ -862,7 +863,7 @@ This filter may simply queue input for a later time."
   (setq gdb-prompting t))
 
 (defconst gdb-source-spec-regexp
-  "\\(.*\\):\\([0-9]*\\):[0-9]*:[a-z]*:\\(0x[a-f0-9]*\\)")
+  "\\(.*\\):\\([0-9]*\\):[0-9]*:[a-z]*:0x0*\\([a-f0-9]*\\)")
 
 ;; Do not use this except as an annotation handler.
 (defun gdb-source (args)
@@ -872,7 +873,7 @@ This filter may simply queue input for a later time."
 	(cons
 	 (match-string 1 args)
 	 (string-to-number (match-string 2 args))))
-  (setq gdb-current-address (match-string 3 args))
+  (setq gdb-frame-address (match-string 3 args))
   ;; cover for auto-display output which comes *before*
   ;; stopped annotation
   (if (eq gdb-output-sink 'inferior) (setq gdb-output-sink 'user)))
@@ -985,10 +986,12 @@ sink to `user' in `gdb-stopping', that is fine."
 This begins the collection of output from the current command if that
 happens to be appropriate."
   (unless gdb-pending-triggers
-	(gdb-get-current-frame)
+	(gdb-get-selected-frame)
 	(gdb-invalidate-frames)
 	(gdb-invalidate-breakpoints)
-	(gdb-invalidate-assembler)
+	;; Do this through gdb-get-selected-frame -> gdb-frame-handler
+	;; so gdb-frame-address is updated.
+	;; (gdb-invalidate-assembler)
 	(gdb-invalidate-registers)
 	(gdb-invalidate-memory)
 	(gdb-invalidate-locals)
@@ -1511,7 +1514,7 @@ static char *magick[] = {
 			       help-echo "mouse-2, RET: Select frame"))
 	  (beginning-of-line)
 	  (when (and (looking-at "^#\\([0-9]+\\)")
-		     (equal (match-string 1) gdb-current-stack-level))
+		     (equal (match-string 1) gdb-frame-number))
 	    (put-text-property (line-beginning-position) (line-end-position)
 			       'face '(:inverse-video t)))
 	  (forward-line 1))))))
@@ -1915,6 +1918,7 @@ corresponding to the mode line clicked."
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
 		       'help-echo "mouse-1: Set memory address"
+		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
 				   #'gdb-memory-set-address))
@@ -1922,6 +1926,7 @@ corresponding to the mode line clicked."
 	   (propertize (number-to-string gdb-memory-repeat-count)
 		       'face font-lock-warning-face
 		       'help-echo "mouse-1: Set repeat count"
+		       'mouse-face 'mode-line-highlight
 		       'local-map (gdb-make-header-line-mouse-map
 				   'mouse-1
 				   #'gdb-memory-set-repeat-count))
@@ -1929,11 +1934,13 @@ corresponding to the mode line clicked."
 	   (propertize gdb-memory-format
 		       'face font-lock-warning-face
 		       'help-echo "mouse-3: Select display format"
+		       'mouse-face 'mode-line-highlight
 		       'local-map gdb-memory-format-keymap)
 	   "  Unit Size: "
 	   (propertize gdb-memory-unit
 		       'face font-lock-warning-face
 		       'help-echo "mouse-3: Select unit size"
+		       'mouse-face 'mode-line-highlight
 		       'local-map gdb-memory-unit-keymap))))
   (run-mode-hooks 'gdb-memory-mode-hook)
   'gdb-invalidate-memory)
@@ -2009,7 +2016,7 @@ corresponding to the mode line clicked."
 \\{gdb-locals-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'gdb-locals-mode)
-  (setq mode-name (concat "Locals:" gdb-current-frame))
+  (setq mode-name (concat "Locals:" gdb-selected-frame))
   (setq buffer-read-only t)
   (use-local-map gdb-locals-mode-map)
   (run-mode-hooks 'gdb-locals-mode-hook)
@@ -2069,7 +2076,8 @@ corresponding to the mode line clicked."
   (define-key menu [gdb] '("Gdb" . gdb-display-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-display-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-display-memory-buffer))
-  (define-key menu [assembler] '("Machine" . gdb-display-assembler-buffer))
+  (define-key menu [disassembly]
+    '("Disassembly" . gdb-display-assembler-buffer))
   (define-key menu [registers] '("Registers" . gdb-display-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-display-inferior-io-buffer
@@ -2086,7 +2094,7 @@ corresponding to the mode line clicked."
   (define-key menu [gdb] '("Gdb" . gdb-frame-gdb-buffer))
   (define-key menu [threads] '("Threads" . gdb-frame-threads-buffer))
   (define-key menu [memory] '("Memory" . gdb-frame-memory-buffer))
-  (define-key menu [assembler] '("Machine" . gdb-frame-assembler-buffer))
+  (define-key menu [disassembly] '("Disassembiy" . gdb-frame-assembler-buffer))
   (define-key menu [registers] '("Registers" . gdb-frame-registers-buffer))
   (define-key menu [inferior]
     '(menu-item "Inferior IO" gdb-frame-inferior-io-buffer
@@ -2132,7 +2140,8 @@ corresponding to the mode line clicked."
 (defvar gdb-main-file nil "Source file from which program execution begins.")
 
 (defcustom gdb-show-main nil
-  "Nil means don't display source file containing the main routine."
+  "Non-nil means display source file containing the main routine at startup."
+"Also display the main routine in the disassembly buffer if present."
   :type 'boolean
   :group 'gud
   :version "22.1")
@@ -2399,7 +2408,9 @@ BUFFER nil or omitted means use the current buffer."
 
 (def-gdb-auto-updated-buffer gdb-assembler-buffer
   gdb-invalidate-assembler
-  (concat gdb-server-prefix "disassemble " gdb-current-address "\n")
+  (concat gdb-server-prefix "disassemble " 
+	  (if (member gdb-frame-address '(nil "main")) nil "0x")
+	  gdb-frame-address "\n")
   gdb-assembler-handler
   gdb-assembler-custom)
 
@@ -2407,10 +2418,11 @@ BUFFER nil or omitted means use the current buffer."
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
 	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
-      (if (not (equal gdb-current-address "main"))
+      (if (not (equal gdb-frame-address "main"))
 	  (progn
 	    (goto-char (point-min))
-	    (if (re-search-forward gdb-current-address nil t)
+	    (if (and gdb-frame-address
+		     (re-search-forward gdb-frame-address nil t))
 		(progn
 		  (setq pos (point))
 		  (beginning-of-line)
@@ -2427,18 +2439,15 @@ BUFFER nil or omitted means use the current buffer."
 	(if (looking-at "[^\t].*breakpoint")
 	    (progn
 	      (looking-at
-	       "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x\\(\\S-+\\)")
+	    "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x0*\\(\\S-+\\)")
 	      (setq bptno (match-string 1))
 	      (setq flag (char-after (match-beginning 2)))
 	      (setq address (match-string 3))
-	      ;; remove leading 0s from output of info break.
-	      (if (string-match "^0+\\(.*\\)" address)
-		  (setq address (match-string 1 address)))
 	      (with-current-buffer buffer
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
 		      (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
-    (if (not (equal gdb-current-address "main"))
+    (if (not (equal gdb-frame-address "main"))
 	(set-window-point (get-buffer-window buffer 0) pos))))
 
 (defvar gdb-assembler-mode-map
@@ -2468,7 +2477,7 @@ BUFFER nil or omitted means use the current buffer."
 \\{gdb-assembler-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'gdb-assembler-mode)
-  (setq mode-name "Machine")
+  (setq mode-name (concat "Machine:" gdb-selected-frame))
   (setq gdb-overlay-arrow-position nil)
   (add-to-list 'overlay-arrow-variable-list 'gdb-overlay-arrow-position)
   (setq fringes-outside-margins t)
@@ -2482,7 +2491,7 @@ BUFFER nil or omitted means use the current buffer."
 
 (defun gdb-assembler-buffer-name ()
   (with-current-buffer gud-comint-buffer
-    (concat "*Machine Code " (gdb-get-target-string) "*")))
+    (concat "*Disassembly of " (gdb-get-target-string) "*")))
 
 (defun gdb-display-assembler-buffer ()
   "Display disassembly view."
@@ -2497,18 +2506,19 @@ BUFFER nil or omitted means use the current buffer."
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))
 
-;; modified because if gdb-current-address has changed value a new command
+;; modified because if gdb-frame-address has changed value a new command
 ;; must be enqueued to update the buffer with the new output
 (defun gdb-invalidate-assembler (&optional ignored)
   (if (gdb-get-buffer 'gdb-assembler-buffer)
       (progn
-	(unless (string-equal gdb-current-frame gdb-previous-frame)
+	(unless (and gdb-selected-frame
+		     (string-equal gdb-selected-frame gdb-previous-frame))
 	  (if (or (not (member 'gdb-invalidate-assembler
 			       gdb-pending-triggers))
-		  (not (string-equal gdb-current-address
-				     gdb-previous-address)))
+		  (not (string-equal gdb-frame-address
+				     gdb-previous-frame-address)))
 	  (progn
-	    ;; take previous disassemble command off the queue
+	    ;; take previous disassemble command, if any, off the queue
 	    (with-current-buffer gud-comint-buffer
 	      (let ((queue gdb-input-queue))
 		(dolist (item queue)
@@ -2516,46 +2526,46 @@ BUFFER nil or omitted means use the current buffer."
 		      (setq gdb-input-queue
 			    (delete item gdb-input-queue))))))
 	    (gdb-enqueue-input
-	     (list (concat gdb-server-prefix "disassemble "
-			   gdb-current-address "\n")
+	     (list
+	      (concat gdb-server-prefix "disassemble "
+		      (if (member gdb-frame-address '(nil "main")) nil "0x")
+			   gdb-frame-address "\n")
 		   'gdb-assembler-handler))
 	    (push 'gdb-invalidate-assembler gdb-pending-triggers)
-	    (setq gdb-previous-address gdb-current-address)
-	    (setq gdb-previous-frame gdb-current-frame)))))))
+	    (setq gdb-previous-frame-address gdb-frame-address)
+	    (setq gdb-previous-frame gdb-selected-frame)))))))
 
-(defun gdb-get-current-frame ()
-  (if (not (member 'gdb-get-current-frame gdb-pending-triggers))
+(defun gdb-get-selected-frame ()
+  (if (not (member 'gdb-get-selected-frame gdb-pending-triggers))
       (progn
 	(gdb-enqueue-input
 	 (list (concat gdb-server-prefix "info frame\n") 'gdb-frame-handler))
-	(push 'gdb-get-current-frame
+	(push 'gdb-get-selected-frame
 	       gdb-pending-triggers))))
 
 (defun gdb-frame-handler ()
   (setq gdb-pending-triggers
-   (delq 'gdb-get-current-frame gdb-pending-triggers))
+	(delq 'gdb-get-selected-frame gdb-pending-triggers))
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
     (goto-char (point-min))
-    (if (looking-at "Stack level \\([0-9]+\\)")
-	(setq gdb-current-stack-level (match-string 1)))
-    (forward-line)
-    (if (looking-at ".*=\\s-+0x\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? ")
+    (if (re-search-forward  "Stack level \\([0-9]+\\)" nil t)
+	(setq gdb-frame-number (match-string 1)))
+    (goto-char (point-min))
+    (if (re-search-forward
+	 ".*=\\s-+0x0*\\(\\S-*\\)\\s-+in\\s-+\\(\\S-*?\\);? " nil t)
 	(progn
-	  (setq gdb-current-frame (match-string 2))
+	  (setq gdb-selected-frame (match-string 2))
 	  (if (gdb-get-buffer 'gdb-locals-buffer)
 	      (with-current-buffer (gdb-get-buffer 'gdb-locals-buffer)
-		(setq mode-name (concat "Locals:" gdb-current-frame))))
-	  (let ((address (match-string 1)))
-	    ;; remove leading 0s from output of info frame command.
-	    (if (string-match "^0+\\(.*\\)" address)
-		(setq gdb-current-address
-		      (concat "0x" (match-string 1 address)))
-	      (setq gdb-current-address (concat "0x" address))))
-	  (if (not (re-search-forward "(\\S-*:[0-9]*);" nil t))
-		;;update with new frame for machine code if necessary
-		(gdb-invalidate-assembler)))))
+		(setq mode-name (concat "Locals:" gdb-selected-frame))))
+	  (if (gdb-get-buffer 'gdb-assembler-buffer)
+	      (with-current-buffer (gdb-get-buffer 'gdb-assembler-buffer)
+		(setq mode-name (concat "Machine:" gdb-selected-frame))))
+	  (setq gdb-frame-address (match-string 1))))
+    (goto-char (point-min))
     (if (re-search-forward " source language \\(\\S-*\\)\." nil t)
 	(setq gdb-current-language (match-string 1))))
+    (gdb-invalidate-assembler))
 
 (provide 'gdb-ui)
 
