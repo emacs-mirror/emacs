@@ -1,5 +1,5 @@
 ;;; sieve-mode.el --- Sieve code editing commands for Emacs
-;; Copyright (C) 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 
@@ -75,7 +75,8 @@
     (((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:bold t)))
-  "Face used for Sieve Control Commands.")
+  "Face used for Sieve Control Commands."
+  :group 'sieve)
 
 (defvar sieve-action-commands-face 'sieve-action-commands-face
   "Face name used for Sieve Action Commands.")
@@ -85,7 +86,8 @@
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
-  "Face used for Sieve Action Commands.")
+  "Face used for Sieve Action Commands."
+  :group 'sieve)
 
 (defvar sieve-test-commands-face 'sieve-test-commands-face
   "Face name used for Sieve Test Commands.")
@@ -99,7 +101,8 @@
     (((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:bold t :underline t)))
-  "Face used for Sieve Test Commands.")
+  "Face used for Sieve Test Commands."
+  :group 'sieve)
 
 (defvar sieve-tagged-arguments-face 'sieve-tagged-arguments-face
   "Face name used for Sieve Tagged Arguments.")
@@ -111,7 +114,8 @@
     (((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
-  "Face used for Sieve Tagged Arguments.")
+  "Face used for Sieve Tagged Arguments."
+  :group 'sieve)
 
 
 (defconst sieve-font-lock-keywords

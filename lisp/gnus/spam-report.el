@@ -1,5 +1,5 @@
 ;;; spam-report.el --- Reporting spam
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Teodor Zlatanov <tzz@lifelogs.com>
 ;; Keywords: network
@@ -35,7 +35,9 @@
   (autoload 'mm-url-insert "mm-url"))
 
 (defgroup spam-report nil
-  "Spam reporting configuration.")
+  "Spam reporting configuration."
+  :group 'mail
+  :group 'news)
 
 (defcustom spam-report-gmane-regex nil
   "Regexp matching Gmane newsgroups, e.g. \"^nntp\\+.*:gmane\\.\"
