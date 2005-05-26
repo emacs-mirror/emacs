@@ -1,3 +1,7 @@
+2005-05-26  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Lisp Eval): C-M-x with arg runs Edebug.
+
 2005-05-25  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Change Calc version number throughout.
