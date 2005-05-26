@@ -1,3 +1,8 @@
+2005-05-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* keyboard.c (Frecursive_edit): Fix typo in docstring.
+	(Fposn_at_x_y): Make argument name match its use in docstring.
+
 2005-05-26  Lute Kamstra  <lute@gnu.org>
 
 	* eval.c (Frun_hooks): Mention run-mode-hooks in docstring.
@@ -30,9 +35,9 @@
 
 2005-05-23  Masatake YAMATO  <jet@gyve.org>
 
-	* xdisp.c (note_mode_line_or_margin_highlight): Added code
-	for mouse-face. Change the type of the first argument from `window'
-	to `List_Object'.
+	* xdisp.c (note_mode_line_or_margin_highlight): Add code
+	for mouse-face.  Change the type of the first argument from `window'
+	to `Lisp_Object'.
 	(note_mouse_highlight): Call note_mode_line_or_margin_highlight with
 	window instead of w.
 
