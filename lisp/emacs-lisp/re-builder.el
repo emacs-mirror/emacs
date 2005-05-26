@@ -254,7 +254,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
         mode-name "RE Builder")
   (use-local-map reb-mode-map)
   (reb-mode-common)
-  (run-hooks 'reb-mode-hook))
+  (run-mode-hooks 'reb-mode-hook))
 
 (define-derived-mode reb-lisp-mode
   emacs-lisp-mode "RE Builder Lisp"
