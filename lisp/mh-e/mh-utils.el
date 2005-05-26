@@ -1129,8 +1129,7 @@ See also `mh-folder-mode'.
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)
   (setq buffer-read-only t)
-  (use-local-map mh-show-mode-map)
-  (run-hooks 'mh-show-mode-hook))
+  (use-local-map mh-show-mode-map))
 
 (defun mh-show-addr ()
   "Use `goto-address'."
