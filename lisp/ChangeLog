@@ -43,6 +43,31 @@
 	* play/snake.el (snake-mode):
 	* play/solitaire.el (solitaire-mode):
 	* play/tetris.el (tetris-mode):
+	* progmodes/ada-mode.el (ada-mode): 
+	* progmodes/antlr-mode.el (antlr-mode): 
+	* progmodes/autoconf.el (autoconf-mode): 
+	* progmodes/dcl-mode.el (dcl-mode): 
+	* progmodes/delphi.el (delphi-mode): 
+	* progmodes/ebrowse.el (ebrowse-tree-mode)
+	(ebrowse-electric-list-mode, ebrowse-member-mode)
+	(ebrowse-electric-position-mode): 
+	* progmodes/f90.el (f90-mode): 
+	* progmodes/fortran.el (fortran-mode): 
+	* progmodes/icon.el (icon-mode): 
+	* progmodes/idlw-help.el (idlwave-help-mode): 
+	* progmodes/idlw-shell.el (idlwave-shell-mode): 
+	* progmodes/idlwave.el (idlwave-mode): 
+	* progmodes/inf-lisp.el (inferior-lisp-mode): 
+	* progmodes/m4-mode.el (m4-mode): 
+	* progmodes/meta-mode.el (metafont-mode, metapost-mode): 
+	* progmodes/modula2.el (modula-2-mode): 
+	* progmodes/octave-inf.el (inferior-octave-mode): 
+	* progmodes/octave-mod.el (octave-mode): 
+	* progmodes/pascal.el (pascal-mode): 
+	* progmodes/sh-script.el (sh-mode): 
+	* progmodes/sql.el (sql-mode, sql-interactive-mode): 
+	* progmodes/vhdl-mode.el (vhdl-mode): 
+	* progmodes/xscheme.el (scheme-interaction-mode): 
 	* replace.el (occur-mode):
 	* ses.el (ses-mode):
 	* simple.el (completion-list-mode):
