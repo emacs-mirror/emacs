@@ -130,7 +130,7 @@ C-c C-r  caesar rotate all letters by 13 places in the article's body (rot13)."
   (setq mode-name "News Reply")
   (make-local-variable 'paragraph-separate)
   (make-local-variable 'paragraph-start)
-  (run-hooks 'text-mode-hook 'news-reply-mode-hook))
+  (run-mode-hooks 'text-mode-hook 'news-reply-mode-hook))
 
 (defvar news-reply-yank-from ""
   "Save `From:' field for `news-reply-yank-original'.")

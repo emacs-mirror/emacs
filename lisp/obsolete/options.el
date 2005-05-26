@@ -109,7 +109,7 @@ For convenience, the characters \\[backward-paragraph] and \\[forward-paragraph]
   (setq truncate-lines t)
   (setq major-mode 'Edit-options-mode)
   (setq mode-name "Options")
-  (run-hooks 'Edit-options-mode-hook))
+  (run-mode-hooks 'Edit-options-mode-hook))
 
 (defun Edit-options-set () (interactive)
   (Edit-options-modify

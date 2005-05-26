@@ -375,7 +375,7 @@ U       unsubscribe from specified newsgroup."
   (set-syntax-table text-mode-syntax-table)
   (use-local-map news-mode-map)
   (setq local-abbrev-table text-mode-abbrev-table)
-  (run-hooks 'news-mode-hook))
+  (run-mode-hooks 'news-mode-hook))
 
 (defun string-subst-char (new old string)
   (let (index)
