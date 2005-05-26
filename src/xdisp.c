@@ -16134,7 +16134,12 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		   && --limit > 0
 		   && (precision <= 0 || n < precision))
 	      {
-		n += display_mode_element (it, depth, field_width - n,
+		n += display_mode_element (it, depth,
+					   /* Do padding only after the last
+					      element in the list.  */
+					   (! CONSP (XCDR (elt))
+					    ? field_width - n
+					    : 0),
 					   precision - n, XCAR (elt),
 					   props, risky);
 		elt = XCDR (elt);
@@ -21378,11 +21383,12 @@ define_frame_cursor1 (f, cursor, pointer)
    position relative to the start of the mode line.  */
 
 static void
-note_mode_line_or_margin_highlight (w, x, y, area)
-     struct window *w;
+note_mode_line_or_margin_highlight (window, x, y, area)
+     Lisp_Object window;
      int x, y;
      enum window_part area;
 {
+  struct window *w = XWINDOW (window);
   struct frame *f = XFRAME (w->frame);
   Display_Info *dpyinfo = FRAME_X_DISPLAY_INFO (f);
   Cursor cursor = FRAME_X_OUTPUT (f)->nontext_cursor;
@@ -21391,9 +21397,38 @@ note_mode_line_or_margin_highlight (w, x, y, area)
   Lisp_Object string, object = Qnil;
   Lisp_Object pos, help;
 
+  Lisp_Object mouse_face;
+  int original_x_pixel = x;
+  struct glyph * glyph = NULL;
+  struct glyph_row *row;
+
   if (area == ON_MODE_LINE || area == ON_HEADER_LINE)
-    string = mode_line_string (w, area, &x, &y, &charpos,
-			       &object, &dx, &dy, &width, &height);
+    {
+      int x0;
+      struct glyph *end;
+
+      string = mode_line_string (w, area, &x, &y, &charpos,
+				 &object, &dx, &dy, &width, &height);
+
+      row = (area == ON_MODE_LINE
+	     ? MATRIX_MODE_LINE_ROW (w->current_matrix)
+	     : MATRIX_HEADER_LINE_ROW (w->current_matrix));
+
+      /* Find glyph */
+      if (row->mode_line_p && row->enabled_p)
+	{
+	  glyph = row->glyphs[TEXT_AREA];
+	  end = glyph + row->used[TEXT_AREA];
+
+	  for (x0 = original_x_pixel;
+	       glyph < end && x0 >= glyph->pixel_width;
+	       ++glyph)
+	    x0 -= glyph->pixel_width;
+
+	  if (glyph >= end)
+	    glyph = NULL;
+	}
+    }
   else
     {
       x -= WINDOW_LEFT_SCROLL_BAR_AREA_WIDTH (w);
@@ -21470,6 +21505,91 @@ note_mode_line_or_margin_highlight (w, x, y, area)
 	    map = Fget_text_property (pos, Qkeymap, string);
 	  if (!KEYMAPP (map))
 	    cursor = dpyinfo->vertical_scroll_bar_cursor;
+	}
+
+     /* Change the mouse face according to what is under X/Y.  */
+      mouse_face = Fget_text_property (pos, Qmouse_face, string);
+      if (!NILP (mouse_face)
+	  && ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
+	  && glyph)
+	{
+	  Lisp_Object b, e;
+
+	  struct glyph * tmp_glyph;
+
+	  int gpos;
+	  int gseq_length;
+	  int total_pixel_width;
+	  int ignore;
+
+
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = No_Cursor;
+
+	  b = Fprevious_single_property_change (make_number (charpos + 1),
+						Qmouse_face, string, Qnil);
+	  if (NILP (b))
+	    b = make_number (0);
+
+	  e = Fnext_single_property_change (pos, Qmouse_face, string, Qnil);
+	  if (NILP (e))
+	    e = make_number (SCHARS (string));
+
+	  /* Calculate the position(glyph position: GPOS) of GLYPH in
+	     displayed string. GPOS is different from CHARPOS.
+
+	     CHARPOS is the position of glyph in internal string
+	     object. A mode line string format has structures which
+	     is converted to a flatten by emacs lisp interpreter.
+	     The internal string is an element of the structures.
+	     The displayed string is the flatten string. */
+	  for (tmp_glyph = glyph - 1, gpos = 0;
+	       tmp_glyph->charpos >= XINT (b);
+	       tmp_glyph--, gpos++)
+	    {
+	      if (tmp_glyph->object != glyph->object)
+		break;
+	    }
+
+	  /* Calculate the lenght(glyph sequence length: GSEQ_LENGTH) of
+	     displayed string holding GLYPH.
+
+	     GSEQ_LENGTH is different from SCHARS (STRING).
+	     SCHARS (STRING) returns the length of the internal string. */
+	  for (tmp_glyph = glyph, gseq_length = gpos;
+	       tmp_glyph->charpos < XINT (e);
+	       tmp_glyph++, gseq_length++)
+	      {
+		if (tmp_glyph->object != glyph->object)
+		  break;
+	      }
+
+	  total_pixel_width = 0;
+	  for (tmp_glyph = glyph - gpos; tmp_glyph != glyph; tmp_glyph++)
+	    total_pixel_width += tmp_glyph->pixel_width;
+
+	  dpyinfo->mouse_face_beg_col = (x - gpos);
+	  dpyinfo->mouse_face_beg_row = (area == ON_MODE_LINE
+					 ? (w->current_matrix)->nrows - 1
+					 : 0);
+
+	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
+	  dpyinfo->mouse_face_beg_y   = 0;
+
+	  dpyinfo->mouse_face_end_col = (x - gpos) + gseq_length;
+	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_beg_row;
+
+	  dpyinfo->mouse_face_end_x   = 0;
+	  dpyinfo->mouse_face_end_y   = 0;
+
+	  dpyinfo->mouse_face_past_end = 0;
+	  dpyinfo->mouse_face_window  = window;
+
+	  dpyinfo->mouse_face_face_id = face_at_string_position (w, string,
+								 charpos,
+								 0, 0, 0, &ignore,
+								 glyph->face_id, 1);
+	  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
 	}
     }
 
@@ -21551,7 +21671,7 @@ note_mouse_highlight (f, x, y)
   if (part == ON_MODE_LINE || part == ON_HEADER_LINE
       || part == ON_LEFT_MARGIN || part == ON_RIGHT_MARGIN)
     {
-      note_mode_line_or_margin_highlight (w, x, y, part);
+      note_mode_line_or_margin_highlight (window, x, y, part);
       return;
     }
 
@@ -21811,6 +21931,7 @@ note_mouse_highlight (f, x, y)
 		b = make_number (0);
 	      if (NILP (e))
 		e = make_number (SCHARS (object) - 1);
+
 	      fast_find_string_pos (w, XINT (b), object,
 				    &dpyinfo->mouse_face_beg_col,
 				    &dpyinfo->mouse_face_beg_row,

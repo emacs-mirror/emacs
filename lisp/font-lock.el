@@ -563,11 +563,11 @@ is not in a string or comment and not within any bracket-pairs (or else,
 a place such that any bracket-pairs outside it can be ignored for Emacs
 syntax analysis and fontification).
 
-If this is nil, the beginning of the buffer is used, which is
-always correct but tends to be slow.
-This is normally set via `font-lock-defaults'.
-This variable is semi-obsolete; we recommend setting
-`syntax-begin-function' instead.")
+If this is nil, Font Lock uses `syntax-begin-function' to move back
+outside of any comment, string, or sexp.  This variable is semi-obsolete;
+we recommend setting `syntax-begin-function' instead.
+
+This is normally set via `font-lock-defaults'.")
 
 (defvar font-lock-mark-block-function nil
   "*Non-nil means use this function to mark a block of text.
@@ -2054,19 +2054,22 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
        ("\\<:\\sw+\\>" 0 font-lock-builtin-face)
        ;; ELisp and CLisp `&' keywords as types.
        ("\\&\\sw+\\>" . font-lock-type-face)
-       ;; Make regexp grouping constructs bold, so they stand out, but only in strings.
+       ;; Make regexp grouping constructs bold, so they stand out, but only
+       ;; in strings.
        ((lambda (bound)
-	  (if (re-search-forward "\\([\\][\\]\\)\\([(|)]\\)\\(\\?:\\)?" bound)
+	  (if (re-search-forward "\\(\\\\\\\\\\)\\([(|)]\\)\\(\\?:\\)?" bound t)
 	       (let ((face (get-text-property (1- (point)) 'face)))
 		 (if (listp face)
 		     (memq 'font-lock-string-face face)
 		   (eq 'font-lock-string-face face)))))
-	(1 font-lock-comment-face prepend) ; Should we introduce a lowlight face for this?
-					; Ideally that would retain the color, dimmed 50%.
+        ;; Should we introduce a lowlight face for this?
+        ;; Ideally that would retain the color, dimmed.
+	(1 font-lock-comment-face prepend)
 	(2 'bold prepend)
 	(3 font-lock-type-face prepend t))
-       ;; Underline innermost grouping, so that you can more easily see what belongs together.
-       ;; 2005-05-12: Font-lock can go into an unbreakable endless loop on this -- something's broken.
+       ;; Underline innermost grouping, so that you can more easily see what
+       ;; belongs together.  2005-05-12: Font-lock can go into an
+       ;; unbreakable endless loop on this -- something's broken.
        ;;("[\\][\\][(]\\(?:\\?:\\)?\\(\\(?:[^\\\"]+\\|[\\]\\(?:[^\\]\\|[\\][^(]\\)\\)+?\\)[\\][\\][)]"
 	 ;;1 'underline prepend)
 ;;;  This is too general -- rms.

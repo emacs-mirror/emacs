@@ -24,9 +24,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -3198,6 +3198,7 @@ This function does not do any hidden buffer changes."
       ;; when font-lock refontifies the current line only.
       (when (save-excursion
 	      (and (= (forward-line 1) 0)
+		   (bolp)		; forward-line has funny behavior at eob.
 		   (or (< (c-point 'eol) cfd-limit)
 		       (progn (backward-char)
 			      (not (eq (char-before) ?\\))))))
@@ -4551,7 +4552,7 @@ brace."
 		 ;; operator token preceded by "operator".
 		 (save-excursion
 		   (and (c-safe (c-backward-sexp) t)
-			(looking-at "operator\\([^_]\\|$\\)")))
+			(looking-at "operator\\>\\([^_]\\|$\\)")))
 		 (and (eq (char-before) ?<)
 		      (c-with-syntax-table c++-template-syntax-table
 			(if (c-safe (goto-char (c-up-list-forward (point))))
@@ -6104,7 +6105,12 @@ This function does not do any hidden buffer changes."
 		;; Note: We use the fact that lim is always after any
 		;; preceding brace sexp.
 		(while (and (zerop (c-backward-token-2 1 t lim))
-			    (not (looking-at "[;<,=]"))))
+			    (or (not (looking-at "[;<,=]"))
+				(and c-overloadable-operators-regexp
+				     (looking-at c-overloadable-operators-regexp)
+				     (save-excursion
+				       (c-backward-token-2 1 nil lim)
+				       (looking-at "operator\\>[^_]"))))))
 		(or (memq (char-after) '(?, ?=))
 		    (and (c-major-mode-is 'c++-mode)
 			 (zerop (c-backward-token-2 1 nil lim))
@@ -6237,7 +6243,15 @@ This function does not do any hidden buffer changes."
 	   ;; CASE 5I: ObjC method definition.
 	   ((and c-opt-method-key
 		 (looking-at c-opt-method-key))
-	    (c-beginning-of-statement-1 lim)
+	    (c-beginning-of-statement-1 nil t)
+	    (if (= (point) indent-point)
+		;; Handle the case when it's the first (non-comment)
+		;; thing in the buffer.  Can't look for a 'same return
+		;; value from cbos1 since ObjC directives currently
+		;; aren't recognized fully, so that we get 'same
+		;; instead of 'previous if it moved over a preceding
+		;; directive.
+		(goto-char (point-min)))
 	    (c-add-syntax 'objc-method-intro (c-point 'boi)))
            ;; CASE 5P: AWK pattern or function or continuation
            ;; thereof.
@@ -6316,11 +6330,13 @@ This function does not do any hidden buffer changes."
 	   ;; CASE 5K: we are at an ObjC method definition
 	   ;; continuation line.
 	   ((and c-opt-method-key
-		 (progn
+		 (save-excursion
+		   (goto-char indent-point)
 		   (c-beginning-of-statement-1 lim)
 		   (beginning-of-line)
-		   (looking-at c-opt-method-key)))
-	    (c-add-syntax 'objc-method-args-cont (point)))
+		   (when (looking-at c-opt-method-key)
+		     (setq placeholder (point)))))
+	    (c-add-syntax 'objc-method-args-cont placeholder))
 	   ;; CASE 5L: we are at the first argument of a template
 	   ;; arglist that begins on the previous line.
 	   ((eq (char-before) ?<)

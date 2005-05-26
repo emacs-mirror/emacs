@@ -362,7 +362,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
     (if (memq c tmm-short-cuts)
 	(if (equal (buffer-name) "*Completions*")
 	    (progn
-	      (beginning-of-buffer)
+	      (goto-char (point-min))
 	      (re-search-forward
 	       (concat "\\(^\\|[ \t]\\)" (char-to-string c) tmm-mid-prompt))
 	      (choose-completion))

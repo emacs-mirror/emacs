@@ -2,7 +2,7 @@
 
 ;; Copyright (C) 1988,94,96,2000,01,02,03  Free Software Foundation, Inc.
 
-;; Author: Alan Mackenzie (originally based on awk-mode.el)
+;; Author: Alan Mackenzie <acm@muc.de> (originally based on awk-mode.el)
 ;; Maintainer: FSF
 ;; Keywords: AWK, cc-mode, unix, languages
 
@@ -526,13 +526,22 @@
 ;;   Matches any AWK regexp character which doesn't require special analysis.
 (defconst c-awk-escaped-newlines*-re "\\(\\\\[\n\r]\\)*")
 ;;   Matches a (possibly empty) sequence of escaped newlines.
+
+;; NOTE: In what follows, "[asdf]" in a regexp will be called a "character
+;; list", and "[:alpha:]" inside a character list will be known as a
+;; "character class".  These terms for these things vary between regexp
+;; descriptions .
 (defconst c-awk-regexp-char-class-re
+  "\\[:[a-z]+:\\]")
+  ;; Matches a character class spec (e.g. [:alpha:]).
+(defconst c-awk-regexp-char-list-re
   (concat "\\[" c-awk-escaped-newlines*-re "^?" c-awk-escaped-newlines*-re "]?"
-          "\\(" c-awk-esc-pair-re "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
-;;   Matches a regexp char class, up to (but not including) EOL if the ] is
+          "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
+	  "\\|" "[^]\n\r]" "\\)*" "\\(]\\|$\\)"))
+;;   Matches a regexp char list, up to (but not including) EOL if the ] is
 ;;   missing.
 (defconst c-awk-regexp-innards-re
-  (concat "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-class-re
+  (concat "\\(" c-awk-esc-pair-re "\\|" c-awk-regexp-char-list-re
           "\\|" c-awk-regexp-normal-re "\\)*"))
 ;;   Matches the inside of an AWK regexp (i.e. without the enclosing /s)
 (defconst c-awk-regexp-without-end-re
@@ -549,7 +558,7 @@
 ;;   A "neutral" char(pair).  Doesn't change the "state" of a subsequent /.
 ;; This is space/tab, braces, an auto-increment/decrement operator or an
 ;; escaped character.  Or one of the (illegal) characters @ or `.  But NOT an
-;; end of line (even if escpaed).
+;; end of line (even if escaped).
 (defconst c-awk-neutrals*-re
   (concat "\\(" c-awk-neutral-re "\\)*"))
 ;;   A (possibly empty) string of neutral characters (or character pairs).

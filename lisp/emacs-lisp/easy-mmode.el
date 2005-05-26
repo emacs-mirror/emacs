@@ -172,7 +172,7 @@ For example, you could write
       (setq group
 	    `(:group ',(intern (replace-regexp-in-string
 				"-mode\\'" "" mode-name)))))
-    
+
     `(progn
        ;; Define the variable to enable or disable the mode.
        ,(if (not globalp)
@@ -306,9 +306,9 @@ in which `%s' turns it on."
 	 ;; Setup hook to handle future mode changes and new buffers.
 	 (if ,global-mode
 	     (progn
-	       (add-hook 'find-file-hook ',buffers)
+	       (add-hook 'after-change-major-mode-hook ',buffers)
 	       (add-hook 'change-major-mode-hook ',cmmh))
-	   (remove-hook 'find-file-hook ',buffers)
+	   (remove-hook 'after-change-major-mode-hook ',buffers)
 	   (remove-hook 'change-major-mode-hook ',cmmh))
 
 	 ;; Go through existing buffers.

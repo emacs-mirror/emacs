@@ -471,11 +471,15 @@ Contrary to XEmacs, this is a nop on Emacs since menus are automatically
 
 (defun easy-menu-add (menu &optional map)
   "Add the menu to the menubar.
-This is a nop on Emacs since menus are automatically activated when the
-corresponding keymap is activated.  On XEmacs this is needed to actually
-add the menu to the current menubar.
-Maybe precalculate equivalent key bindings.
-Do it only if `easy-menu-precalculate-equivalent-keybindings' is on."
+On Emacs, menus are already automatically activated when the
+corresponding keymap is activated.  On XEmacs this is needed to
+actually add the menu to the current menubar.
+
+This also precalculates equivalent key bindings when
+`easy-menu-precalculate-equivalent-keybindings' is on.
+
+You should call this once the menu and keybindings are set up
+completely and menu filter functions can be expected to work."
   (when easy-menu-precalculate-equivalent-keybindings
     (if (and (symbolp menu) (not (keymapp menu)) (boundp menu))
 	(setq menu (symbol-value menu)))

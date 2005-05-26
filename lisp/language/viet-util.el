@@ -41,6 +41,8 @@
 
 ;;; Code:
 
+(defvar viet-viscii-nonascii-translation-table)
+
 ;;;###autoload
 (defun viet-encode-viscii-char (char)
   "Return VISCII character code of CHAR if appropriate."

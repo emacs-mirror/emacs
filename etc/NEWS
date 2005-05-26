@@ -807,7 +807,7 @@ this variable is found in `default-indicate-buffer-boundaries'.
 If value is `left' or `right', both angle and arrow bitmaps are
 displayed in the left or right fringe, resp.
 
-The value can also be an alist which specifies the presense and
+The value can also be an alist which specifies the presence and
 position of each bitmap individually.
 
 For example, ((top . left) (t .  right)) places the top angle bitmap
@@ -3069,6 +3069,10 @@ any customizations.
 
 * Incompatible Lisp Changes in Emacs 22.1
 
+---
+** The variables post-command-idle-hook and post-command-idle-delay have
+    been removed.  Use run-with-idle-timer instead.
+
 +++
 ** `suppress-keymap' now works by remapping `self-insert-command' to
 the command `undefined'.  (In earlier Emacs versions, it used
@@ -3086,10 +3090,6 @@ the command `undefined'.  (In earlier Emacs versions, it used
 * Lisp Changes in Emacs 22.1
 
 ** General Lisp changes:
-
----
-*** The variables post-command-idle-hook and post-command-idle-delay have
-    been removed.  Use run-with-idle-timer instead.
 
 +++
 *** The function `eql' is now available without requiring the CL package.
@@ -3705,6 +3705,7 @@ sure saved files have the current year in any copyright headers.
 `save-some-buffers' will always save that buffer without asking (if
 it's modified).
 
++++
 *** New function `locate-file' searches for a file in a list of directories.
 `locate-file' accepts a name of a file to search (a string), and two
 lists: a list of directories to search in and a list of suffixes to
@@ -4844,6 +4845,11 @@ used to add text properties to mode-line elements.
 *** The new `%i' and `%I' constructs for `mode-line-format' can be used
 to display the size of the accessible part of the buffer on the mode
 line.
+
+*** Mouse-face on mode-line (and header-line) is now supported.
+`mode-line-highlight' is the standard face indicating mouse sensitive
+elements on mode-line (and header-line) like `highlight' face on text
+areas.
 
 ** Menu manipulation changes:
 
@@ -14322,7 +14328,7 @@ select one of those items.
 ----------------------------------------------------------------------
 Copyright information:
 
-Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 
    Permission is granted to anyone to make or distribute verbatim copies
    of this document as received, in any medium, provided that the

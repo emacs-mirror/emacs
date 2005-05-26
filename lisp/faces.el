@@ -1844,9 +1844,22 @@ created."
   :group 'modeline
   :group 'basic-faces)
 
+(defface mode-line-highlight
+  '((((class color) (min-colors 88) (background light))
+      :background "RoyalBlue4" :foreground "white")
+     (((class color) (min-colors 88) (background dark))
+      :background "light sky blue" :foreground "black")
+     (t
+     :inverse-video t))
+  "Basic mode line face for highlighting."
+  :version "22.1"
+  :group 'modeline
+  :group 'basic-faces)
+
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
+(put 'modeline-higilight 'face-alias 'mode-line-highlight)
 
 (defface header-line
   '((default

@@ -4057,27 +4057,6 @@ For example, invoke `emacs -batch -f batch-byte-recompile-directory .'."
     (setq command-line-args-left (cdr command-line-args-left)))
   (kill-emacs 0))
 
-
-(make-obsolete-variable 'auto-fill-hook 'auto-fill-function "before 19.15")
-(make-obsolete-variable 'blink-paren-hook 'blink-paren-function "before 19.15")
-(make-obsolete-variable 'lisp-indent-hook 'lisp-indent-function "before 19.15")
-(make-obsolete-variable 'inhibit-local-variables
-		"use enable-local-variables (with the reversed sense)."
-		"before 19.15")
-(make-obsolete-variable 'unread-command-event
-  "use unread-command-events; which is a list of events rather than a single event."
-  "before 19.15")
-(make-obsolete-variable 'suspend-hooks 'suspend-hook "before 19.15")
-(make-obsolete-variable 'comment-indent-hook 'comment-indent-function "before 19.15")
-(make-obsolete-variable 'meta-flag "use the set-input-mode function instead." "before 19.34")
-(make-obsolete-variable 'before-change-function
-  "use before-change-functions; which is a list of functions rather than a single function."
-  "before 19.34")
-(make-obsolete-variable 'after-change-function
-  "use after-change-functions; which is a list of functions rather than a single function."
-  "before 19.34")
-(make-obsolete-variable 'font-lock-doc-string-face 'font-lock-string-face "before 19.34")
-
 (provide 'byte-compile)
 (provide 'bytecomp)
 

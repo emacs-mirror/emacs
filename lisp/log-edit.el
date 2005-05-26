@@ -607,8 +607,12 @@ where LOGBUFFER is the name of the ChangeLog buffer, and each
 			   (search-forward pattern nil t))))
 		(setq pattern (file-name-nondirectory file)))
 
+            (setq pattern (concat "\\(^\\|[^[:alnum:]]\\)"
+                                  pattern
+                                  "\\($\\|[^[:alnum:]]\\)"))
+
 	    (let (texts)
-	      (while (search-forward pattern nil t)
+	      (while (re-search-forward pattern nil t)
 		(let ((entry (log-edit-changelog-entry)))
 		  (push entry texts)
 		  (goto-char (elt entry 1))))
@@ -646,5 +650,5 @@ Sort REGIONS front-to-back first."
 
 (provide 'log-edit)
 
-;;; arch-tag: 8089b39c-983b-4e83-93cd-ed0a64c7fdcc
+;; arch-tag: 8089b39c-983b-4e83-93cd-ed0a64c7fdcc
 ;;; log-edit.el ends here

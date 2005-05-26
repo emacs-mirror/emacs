@@ -2629,7 +2629,7 @@ is nil and `use-dialog-box' is non-nil.  */)
 			Fcons (Fcons (build_string ("No"), Qnil),
 			       Qnil));
 	  menu = Fcons (prompt, pane);
-	  obj = Fx_popup_dialog (Qt, menu);
+	  obj = Fx_popup_dialog (Qt, menu, Qnil);
 	  answer = !NILP (obj);
 	  break;
 	}
@@ -2761,7 +2761,7 @@ is nil, and `use-dialog-box' is non-nil.  */)
 			   Qnil));
       GCPRO1 (pane);
       menu = Fcons (prompt, pane);
-      obj = Fx_popup_dialog (Qt, menu);
+      obj = Fx_popup_dialog (Qt, menu, Qnil);
       UNGCPRO;
       return obj;
     }

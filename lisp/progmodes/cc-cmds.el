@@ -2441,7 +2441,8 @@ command to conveniently insert and align the necessary backslashes."
 		      (delete-region (point) end)
 		      (indent-to column 1)))
 
-	       (= (forward-line 1) 0))))
+	       (zerop (forward-line 1)))
+	     (bolp)))			; forward-line has funny behavior at eob.
 
       ;; Make sure there are backslashes with at least one space in
       ;; front of them.
@@ -2466,7 +2467,8 @@ command to conveniently insert and align the necessary backslashes."
 		   (insert ?\\)
 		 (insert ?\  ?\\)))
 
-	     (= (forward-line 1) 0)))))))
+	     (zerop (forward-line 1)))
+	   (bolp))))))			; forward-line has funny behavior at eob.
 
 (defun c-delete-backslashes-forward (to-mark point-pos)
   ;; This function does not do any hidden buffer changes.
@@ -2481,7 +2483,8 @@ command to conveniently insert and align the necessary backslashes."
 			 (skip-chars-backward " \t" (if (>= (point) point-pos)
 							point-pos))
 			 (point))))
-	     (= (forward-line 1) 0)))))
+	     (zerop (forward-line 1)))
+	   (bolp))))			; forward-line has funny behavior at eob.
 
 
 

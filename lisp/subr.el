@@ -784,6 +784,12 @@ is converted into a string by expressing it in decimal."
   baud-rate)
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
+;; These are used by VM and some old programs
+(defalias 'focus-frame 'ignore "")
+(make-obsolete 'focus-frame "it does nothing." "22.1")
+(defalias 'unfocus-frame 'ignore "")
+(make-obsolete 'unfocus-frame "it does nothing." "22.1")
+
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -1451,10 +1457,6 @@ BEG and END default respectively to the beginning and end of buffer."
 	    (delete-overlay o)))))))
 
 ;;;; Miscellanea.
-
-;; A number of major modes set this locally.
-;; Give it a global value to avoid compiler warnings.
-(defvar font-lock-defaults nil)
 
 (defvar suspend-hook nil
   "Normal hook run by `suspend-emacs', before suspending.")

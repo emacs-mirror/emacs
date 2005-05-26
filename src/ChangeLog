@@ -1,6 +1,70 @@
+2005-05-24  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Use b and e
+	as loop sentinels.
+
+2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* xmenu.c (Fx_popup_dialog): Add a third boolean argument to
+	select frame title ("Question"/"Information").
+	(xdialog_show): Use it.
+
+	* macmenu.c (Fx_popup_dialog, mac_dialog_show): As for xmenu.c.
+
+	* w32menu.c (Fx_popup_dialog, w32_dialog_show): As for xmenu.c.
+
+	* fns.c (Fyes_or_no_p, Fy_or_n_p): Call Fx_popup_dialog with
+	a third argument (Qnil).
+
+	* lisp.h: x-popup-dialog can have three arguments.
+
+	* editfns.c (Fmessage_box): Use "Information" for frame title.
+
+2005-05-23  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* termcap.c [VMS]: Include <starlet.h>.
+
+2005-05-23  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Added code
+	for mouse-face. Change the type of the first argument from `window'
+	to `List_Object'.
+	(note_mouse_highlight): Call note_mode_line_or_margin_highlight with
+	window instead of w.
+
+2005-05-22  Andreas Schwab  <schwab@suse.de>
+
+	* process.c (send_process): Move misplaced volatile.
+
+2005-05-21  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (display_mode_element): If we're processing a list and
+	padding is specified, put it after the last element.
+
+2005-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fexpand_file_name) [DOS_NT]: Don't try to support
+	"superroot" on DOS_NT systems.
+
+2005-05-21  David Hunter  <hunterd42@comcast.net>  (tiny change)
+
+	* process.c (send_process): Restore the SIGPIPE handler if we
+	catch a SIGPIPE.
+
+2005-05-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* image.c (lookup_image, png_read_from_memory): Remove hacks (and
+	misleading comments).
+	(DEF_IMGLIB_FN): Use C calling convention for image libraries.
+
+2005-05-20  KOBAYASHI Yasuhiro  <kobayays@otsukakj.co.jp>
+
+	* window.c (Fwindow_inside_edges, Fwindow_inside_pixel_edges):
+	Correct the right value.
+
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* keyboard.c (syms_of_keyboard): Remove lisp variables
+	* keyboard.c (syms_of_keyboard): Remove Lisp variables
 	post-command-idle-hook and post-command-idle-delay.
 	(command_loop_1): Don't try to execute post-command-idle-hook.
 

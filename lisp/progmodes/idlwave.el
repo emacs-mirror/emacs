@@ -3548,7 +3548,7 @@ is non-nil."
   (let ((pos (point)))
     (if idlwave-file-header
 	(cond ((car idlwave-file-header)
-	       (insert-file (car idlwave-file-header)))
+	       (insert-file-contents (car idlwave-file-header)))
 	      ((stringp (car (cdr idlwave-file-header)))
 	       (insert (car (cdr idlwave-file-header))))))
     (goto-char pos)))
