@@ -1,3 +1,8 @@
+2005-05-26  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (xml-substitute-special): Don't die for undefined xml
+	entities.
+
 2005-05-26  Lute Kamstra  <lute@gnu.org>
 
 	* arc-mode.el (archive-mode):
