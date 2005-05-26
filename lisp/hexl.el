@@ -291,7 +291,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 			  "hexl-current-address")
 
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
-  (run-hooks 'hexl-mode-hook))
+  (run-mode-hooks 'hexl-mode-hook))
 
 
 (defun hexl-isearch-search-function ()
