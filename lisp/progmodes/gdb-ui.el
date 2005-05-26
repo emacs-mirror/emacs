@@ -75,6 +75,7 @@
 (defvar gdb-current-language nil)
 (defvar gdb-var-list nil "List of variables in watch window.")
 (defvar gdb-var-changed nil "Non-nil means that gdb-var-list has changed.")
+(defvar gdb-main-file nil "Source file from which program execution begins.")
 (defvar gdb-buffer-type nil)
 (defvar gdb-overlay-arrow-position nil)
 (defvar gdb-server-prefix nil)
@@ -211,8 +212,15 @@ predefined macros."
   :version "22.1")
 
 (defcustom gdb-cpp-define-alist-flags ""
-  "*Preprocessor flags for `gdb-cpp-define-alist-program'."
+  "Preprocessor flags for `gdb-cpp-define-alist-program'."
   :type 'string
+  :group 'gud
+  :version "22.1")
+
+(defcustom gdb-show-main nil
+  "Non-nil means display source file containing the main routine at startup.
+Also display the main routine in the disassembly buffer if present."
+  :type 'boolean
   :group 'gud
   :version "22.1")
 
@@ -2136,15 +2144,6 @@ corresponding to the mode line clicked."
   (interactive)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdba)))
-
-(defvar gdb-main-file nil "Source file from which program execution begins.")
-
-(defcustom gdb-show-main nil
-  "Non-nil means display source file containing the main routine at startup."
-"Also display the main routine in the disassembly buffer if present."
-  :type 'boolean
-  :group 'gud
-  :version "22.1")
 
 (defun gdb-set-window-buffer (name)
   (set-window-buffer (selected-window) (get-buffer name))

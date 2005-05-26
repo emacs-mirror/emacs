@@ -1,3 +1,21 @@
+2005-05-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-frame-address):
+	Rename from gdb-current-address.
+	(gdb-previous-frame-address): Rename from gdb-previous-address.
+	(gdb-selected-frame): Rename from gdb-current-frame.
+	(gdb-get-selected-frame): Rename from gdb-get-current-frame.
+	(gdb-frame-number): Rename from gdb-current-stack-level.
+	(gdb-ann3): Match new mode-name for disassembly buffer.
+	Extend initialisation of variables.
+	(gdb-post-prompt): Update disassembly from gdb-frame-handler.
+	(gdb-memory-mode): Use mouse-face in header line.
+	(gdb-assembler-buffer-name): Call it disassembly and give frame
+	in mode line.
+	(gdb-source-spec-regexp, gdb-assembler-custom)
+	(gdb-invalidate-assembler, gdb-frame-handler):
+	Make robust to leading zeroes in address format.
+
 2005-05-26  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (org-mode): Use `define-derived-mode' to
