@@ -1131,7 +1131,7 @@ Notations:  3.14e6     3.14 * 10^6
 	   (string-match "full" (nth 1 p))
 	   (setq calc-standalone-flag t))
       (setq p (cdr p))))
-  (run-hooks 'calc-mode-hook)
+  (run-mode-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
   (calc-check-defines))
@@ -1181,7 +1181,7 @@ commands given here will actually operate on the *Calculator* stack."
       (insert (propertize (concat "Emacs Calculator v" calc-version
 				  " by Dave Gillespie\n")
 			  'font-lock-face 'italic))))
-  (run-hooks 'calc-trail-mode-hook))
+  (run-mode-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
   (set-buffer (get-buffer-create "*Calculator*"))
