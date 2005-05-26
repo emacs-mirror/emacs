@@ -1,3 +1,7 @@
+2005-05-26  Lute Kamstra  <lute@gnu.org>
+
+	* eval.c (Frun_hooks): Mention run-mode-hooks in docstring.
+
 2005-05-24  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Use b and e

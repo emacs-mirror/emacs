@@ -1,3 +1,7 @@
+2005-05-25  Lute Kamstra  <lute@gnu.org>
+
+	* subr.el (delay-mode-hooks): Specify indentation.
+
 2005-05-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* log-edit.el (log-edit-changelog-entries): Distinguish between
