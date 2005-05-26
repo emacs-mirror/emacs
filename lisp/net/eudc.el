@@ -670,8 +670,7 @@ These are the special commands of EUDC mode:
   (if eudc-emacs-p
       (easy-menu-define eudc-emacs-menu eudc-mode-map "" (eudc-menu))
     (setq mode-popup-menu (eudc-menu)))
-  (run-hooks 'eudc-mode-hook)
-  )
+  (run-mode-hooks 'eudc-mode-hook))
 
 ;;}}}
 

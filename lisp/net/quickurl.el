@@ -458,7 +458,7 @@ The key bindings for `quickurl-list-mode' are:
   (use-local-map quickurl-list-mode-map)
   (setq major-mode 'quickurl-list-mode
         mode-name  "quickurl list")
-  (run-hooks 'quickurl-list-mode-hook)
+  (run-mode-hooks 'quickurl-list-mode-hook)
   (setq buffer-read-only t
         truncate-lines   t))
 
