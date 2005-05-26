@@ -1667,7 +1667,7 @@ header style to use, unless not supplied or invalid, in which case
 	      (major-mode 'sc-electric-mode))
 	  (use-local-map sc-electric-mode-map)
 	  (sc-eref-show sc-eref-style)
-	  (run-hooks 'sc-electric-mode-hook)
+	  (run-mode-hooks 'sc-electric-mode-hook)
 	  (recursive-edit)
 	  )))
 
