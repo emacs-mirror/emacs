@@ -71,7 +71,7 @@ This mode is an extended emacs-lisp mode.
   (setq mode-name "Score")
   (lisp-mode-variables nil)
   (make-local-variable 'gnus-score-edit-exit-function)
-  (run-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
+  (run-mode-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
 
 (defun gnus-score-make-menu-bar ()
   (unless (boundp 'gnus-score-menu)
