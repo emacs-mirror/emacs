@@ -3259,7 +3259,7 @@ Advanced commands:
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (Info-set-mode-line)
-  (run-hooks 'Info-mode-hook))
+  (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
@@ -3301,7 +3301,7 @@ which returns to Info mode for browsing.
   (setq buffer-read-only nil)
   (force-mode-line-update)
   (buffer-enable-undo (current-buffer))
-  (run-hooks 'Info-edit-mode-hook))
+  (run-mode-hooks 'Info-edit-mode-hook))
 
 (defun Info-edit ()
   "Edit the contents of this Info node.
