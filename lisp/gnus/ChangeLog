@@ -1,3 +1,7 @@
+2005-05-26  Lute Kamstra  <lute@gnu.org>
+
+	* score-mode.el (gnus-score-mode): Use run-mode-hooks.
+
 2005-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el: Don't autoload mail-extract-address-components.

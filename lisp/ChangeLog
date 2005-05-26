@@ -1,3 +1,43 @@
+2005-05-26  Lute Kamstra  <lute@gnu.org>
+
+	* arc-mode.el (archive-mode):
+	* bookmark.el (bookmark-read-annotation-mode)
+	(bookmark-edit-annotation-mode, bookmark-bmenu-mode):
+	* bs.el (bs-mode):
+	* calc/calc-yank.el (calc-edit-mode):
+	* calc/calc.el (calc-mode, calc-trail-mode):
+	* calculator.el (calculator-mode):
+	* chistory.el (command-history-mode):
+	* comint.el:
+	* cus-edit.el (custom-mode):
+	* descr-text.el (describe-text-mode):
+	* ebuff-menu.el (Electric-buffer-menu-mode):
+	* ediff-util.el (ediff-mode):
+	* forms.el (forms-mode):
+	* help-mode.el (help-mode):
+	* hexl.el (hexl-mode):
+	* ibuffer.el (ibuffer-mode):
+	* ielm.el (inferior-emacs-lisp-mode):
+	* info.el (Info-mode, Info-edit-mode):
+	* ledit.el (ledit-from-lisp-mode):
+	* locate.el (locate-mode):
+	* replace.el (occur-mode):
+	* ses.el (ses-mode):
+	* simple.el (completion-list-mode):
+	* skeleton.el:
+	* speedbar.el (speedbar-mode):
+	* term.el:
+	(term-mode):
+	* terminal.el (terminal-edit-mode):
+	* wdired.el (wdired-change-to-wdired-mode):
+	* wid-browse.el (widget-browse-mode): Use run-mode-hooks.
+
+	* array.el (array-mode):
+	* man.el (Man-mode): Use kill-all-local-variables and
+	run-mode-hooks.
+
+	* subr.el (delay-mode-hooks): Specify indentation.
+
 2005-05-26  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-prog.el (calc-user-define-edit): Don't find substring
@@ -26,10 +66,6 @@
 	* textmodes/org.el: (org-mode): Use `define-derived-mode' to
 	define `org-mode'.
 	(org-agenda-mode): Use `run-mode-hooks' instead of `run-hooks'.
-
-2005-05-25  Lute Kamstra  <lute@gnu.org>
-
-	* subr.el (delay-mode-hooks): Specify indentation.
 
 2005-05-26  Nick Roberts  <nickrob@snap.net.nz>
 
