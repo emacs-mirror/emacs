@@ -641,7 +641,7 @@ There is some minimal font-lock support (see vars
   (setq mode-name "DCL")
   (use-local-map dcl-mode-map)
   (tempo-use-tag-list 'dcl-tempo-tags)
-  (run-hooks 'dcl-mode-hook))
+  (run-mode-hooks 'dcl-mode-hook))
 
 
 ;;; *** Movement commands ***************************************************

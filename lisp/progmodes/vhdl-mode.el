@@ -4622,7 +4622,7 @@ Key bindings:
 	   (if noninteractive "" "  See menu for documentation and release notes."))
 
   ;; run hooks
-  (run-hooks 'vhdl-mode-hook))
+  (run-mode-hooks 'vhdl-mode-hook))
 
 (defun vhdl-activate-customizations ()
   "Activate all customizations on local variables."

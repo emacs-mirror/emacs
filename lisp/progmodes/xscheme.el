@@ -338,7 +338,7 @@ with no args, if that value is non-nil.
                 (setq xscheme-previous-process-state (cons nil nil)))))))
   (scheme-interaction-mode-initialize)
   (scheme-mode-variables)
-  (run-hooks 'scheme-mode-hook 'scheme-interaction-mode-hook))
+  (run-mode-hooks 'scheme-mode-hook 'scheme-interaction-mode-hook))
 
 (defun exit-scheme-interaction-mode ()
   "Take buffer out of scheme interaction mode"

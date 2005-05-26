@@ -278,7 +278,7 @@ Here are all keybindings.
   (set (make-local-variable 'idlwave-help-def-pos) nil)
   (set (make-local-variable 'idlwave-help-args) nil)
   (set (make-local-variable 'idlwave-help-in-header) nil)
-  (run-hooks 'idlwave-help-mode-hook))
+  (run-mode-hooks 'idlwave-help-mode-hook))
 
 (defun idlwave-html-help-location ()
   "Return the help directory where HTML files are, or nil if that is unknown."

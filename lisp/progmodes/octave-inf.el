@@ -158,7 +158,7 @@ Entry to this mode successively runs the hooks `comint-mode-hook' and
 	inferior-octave-dynamic-complete-functions)
   (comint-read-input-ring t)
 
-  (run-hooks 'inferior-octave-mode-hook))
+  (run-mode-hooks 'inferior-octave-mode-hook))
 
 ;;;###autoload
 (defun inferior-octave (&optional arg)

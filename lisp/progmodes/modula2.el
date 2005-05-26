@@ -172,7 +172,7 @@ followed by the first character of the construct.
 	  ;; Obsoleted by Emacs 19.35 parse-partial-sexp's COMMENTSTOP.
 	  ;(font-lock-comment-start-regexp . "(\\*")
 	  ))
-  (run-hooks 'm2-mode-hook))
+  (run-mode-hooks 'm2-mode-hook))
 
 ;; Regexps written with help from Ron Forrester <ron@orcad.com>
 ;; and Spencer Allain <sallain@teknowledge.com>.
