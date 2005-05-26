@@ -702,7 +702,7 @@
 			       (get func 'calc-user-defn)))
                     (kys (concat "z" (char-to-string (car def))))
                     (intcmd (symbol-name (cdr def)))
-                    (algcmd (substring (symbol-name func) 9)))
+                    (algcmd (if func (substring (symbol-name func) 9) "")))
 	       (if (and defn (calc-valid-formula-func func))
 		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
