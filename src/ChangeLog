@@ -1,3 +1,20 @@
+2005-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* xterm.c (x_encode_char): Call check_ccl_update in advance.
+
+	* ccl.c: Now an element of Vccl_program_table is a vector of
+	length 4, not 3.
+	(ccl_get_compiled_code): New arg idx.  Caller changed.  Adjusted
+	for the change of Vccl_program_table.
+	(setup_ccl_program): Adjusted for the change of
+	Vccl_program_table.
+	(check_ccl_update): New function.
+	(Fregister_ccl_program): Use ASET to set an element of a vector.
+	Adjusted for the change of Vccl_program_table.
+
+	* ccl.h (struct ccl_program): New member idx.
+	(check_ccl_update): Extern it.
+
 2005-05-27  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (Fbuffer_local_value): Make argument name match its use

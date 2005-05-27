@@ -1,3 +1,16 @@
+2005-05-27  Kenichi Handa  <handa@m17n.org>
+
+	* language/cyrillic.el: Add cyrillic-iso8859-5 characters in the
+	encoding table of windows-1251.
+
+	* international/ucs-tables.el (ucs-set-table-for-input): If
+	translation-table-for-input of a coding system is a symbol, get
+	its translation-table property.
+
+	* international/code-pages.el: Don't register a coding system into
+	non-iso-charset-alist more than once.
+	(cp-make-coding-system): Likewise.
+	
 2005-05-26  John Wiegley  <johnw@newartisans.com>
 
 	* eshell/esh-cmd.el (eshell-eval-command): If the return value of

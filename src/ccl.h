@@ -33,6 +33,10 @@ Boston, MA 02111-1307, USA.  */
 /* Structure to hold information about running CCL code.  Read
    comments in the file ccl.c for the detail of each field.  */
 struct ccl_program {
+  int idx;			/* Index number of the CCL program.
+				   -1 means that the program was given
+				   by a vector, not by a program
+				   name.  */
   int size;			/* Size of the compiled code.  */
   Lisp_Object *prog;		/* Pointer into the compiled code.  */
   int ic;			/* Instruction Counter (index for PROG).  */
@@ -89,6 +93,9 @@ extern Lisp_Object Vfont_ccl_encoder_alist;
 /* Setup fields of the structure pointed by CCL appropriately for the
    execution of ccl program CCL_PROG (symbol or vector).  */
 extern int setup_ccl_program P_ ((struct ccl_program *, Lisp_Object));
+
+/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
+extern int check_ccl_update P_ ((struct ccl_program *));
 
 extern int ccl_driver P_ ((struct ccl_program *, unsigned char *,
 			   unsigned char *, int, int, int *));
