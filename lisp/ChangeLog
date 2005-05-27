@@ -1,5 +1,8 @@
 2005-05-27  Lute Kamstra  <lute@gnu.org>
 
+	* textmodes/sgml-mode.el (sgml-namespace-face): Specify
+	customization group.
+
 	* textmodes/dns-mode.el (dns-mode): Specify customization group.
 
 	* calc/calc.el (calc): Specify customization group.
