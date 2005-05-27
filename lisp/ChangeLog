@@ -1,3 +1,14 @@
+2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-all-registers): New variable.
+	(gdb-registers-buffer, toggle-gdb-all-registers):
+	Toggle display of floating point registers.
+	(gdb-registers-mode-map): Bind SPC to toggle-gdb-all-registers.
+
+	* progmodes/gud.el (gud-goto-info): Use info. Don't use require.
+	(toggle-gud-tooltip-dereference):
+	Rename from gud-toggle-tooltip-dereference.
+
 2005-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* info.el (Info-goto-node): Revert autoload addition (2004-06-12).
