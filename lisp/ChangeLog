@@ -1,3 +1,17 @@
+2005-05-26  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-cmpl.el (eshell-complete-parse-arguments): If the
+	character before a space at the end of a line is \, assume the
+	space is part of the last argument rather than a final argument
+	separator.
+
+2005-05-25  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/esh-io.el (eshell-get-target): If
+	`eshell-buffer-shorthand' is in use, and the target is `t' or
+	`nil' (which are the most common values), don't assume that the
+	symbol target is a buffer.
+
 2005-05-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* calendar/calendar.el (calendar-mode-line-format):
