@@ -48,7 +48,8 @@
 ;;; Code:
 
 (defgroup dns-mode nil
-  "DNS master file mode configuration.")
+  "DNS master file mode configuration."
+  :group 'data)
 
 (defconst dns-mode-classes '("IN" "CS" "CH" "HS")
   "List of strings with known DNS classes.")
