@@ -1,3 +1,8 @@
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Queries in Keyboard Macros): Rewrite to reflect
+	current behavior.
+
 2005-05-27  Nick Roberts  <nickrob@snap.net.nz>
 
 	* files.texi (Log Buffer): Merge in description of Log Edit
