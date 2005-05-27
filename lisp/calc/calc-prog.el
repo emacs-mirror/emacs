@@ -1446,15 +1446,22 @@ Redefine the corresponding command."
     (error "Unbalanced Z' in keyboard macro")))
 
 
-(defun calc-kbd-report (msg)
-  (interactive "sMessage: ")
-  (calc-wrapper
-   (math-working msg (calc-top-n 1))))
+;; (defun calc-kbd-report (msg)
+;;   (interactive "sMessage: ")
+;;   (calc-wrapper
+;;    (math-working msg (calc-top-n 1))))
 
-(defun calc-kbd-query (msg)
-  (interactive "sPrompt: ")
-  (calc-wrapper
-   (calc-alg-entry nil (and (not (equal msg "")) msg))))
+(defun calc-kbd-query ()
+  (interactive)
+  (let ((defining-kbd-macro nil)
+        (executing-kbd-macro nil)
+        (msg (calc-top 1)))
+    (if (not (eq (car-safe msg) 'vec))
+        (error "No prompt string provided on stack")
+      (setq msg (math-vector-to-string msg))
+      (calc-wrapper
+       (calc-pop-stack 1)
+       (calc-alg-entry nil (and (not (equal msg "")) msg))))))
 
 ;;;; Logical operations.
 
