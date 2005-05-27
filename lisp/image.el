@@ -48,20 +48,6 @@ IMAGE-TYPE must be a pair (PREDICATE . TYPE).  PREDICATE is called
 with one argument, a string containing the image data.  If PREDICATE returns
 a non-nil value, TYPE is the image's type.")
 
-;;;###autoload
-(defvar image-library-alist nil
-  "Alist of image types vs external libraries needed to display them.
-
-Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
-representing a supported image type, and the rest are strings giving
-alternate filenames for the corresponding external libraries.
-
-Emacs tries to load the libraries in the order they appear on the
-list; if none is loaded, the running session of Emacs won't
-support the image type.  Types 'pbm and 'xbm don't need to be
-listed; they're always supported.")
-;;;###autoload (put 'image-library-alist 'risky-local-variable t)
-
 (defun image-jpeg-p (data)
   "Value is non-nil if DATA, a string, consists of JFIF image data.
 We accept the tag Exif because that is the same format."
@@ -122,7 +108,7 @@ be determined."
 
 ;;;###autoload
 (defun image-type-available-p (type)
-  "Value is non-nil if image type TYPE is available.
+  "Return non-nil if image type TYPE is available.
 Image types are symbols like `xbm' or `jpeg'."
   (and (fboundp 'init-image-library)
        (init-image-library type image-library-alist)))
