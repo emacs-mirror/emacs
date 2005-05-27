@@ -102,8 +102,7 @@
 	* simple.el (completion-list-mode):
 	* skeleton.el:
 	* speedbar.el (speedbar-mode):
-	* term.el:
-	(term-mode):
+	* term.el (term-mode):
 	* terminal.el (terminal-edit-mode):
 	* textmodes/reftex-index.el (reftex-index-mode)
 	(reftex-index-phrases-mode):
@@ -111,14 +110,15 @@
 	(reftex-select-bib-mode):
 	* textmodes/reftex-toc.el (reftex-toc-mode):
 	* wdired.el (wdired-change-to-wdired-mode):
-	* wid-browse.el (widget-browse-mode): Use run-mode-hooks.
+	* wid-browse.el (widget-browse-mode):
+	Use run-mode-hooks.
 
 	* array.el (array-mode):
 	* calendar/todo-mode.el (todo-mode):
 	* man.el (Man-mode):
 	* play/landmark.el (lm-mode):
-	* play/mpuz.el (mpuz-mode): Use kill-all-local-variables and
-	run-mode-hooks.
+	* play/mpuz.el (mpuz-mode):
+	Use kill-all-local-variables and run-mode-hooks.
 
 	* subr.el (delay-mode-hooks): Specify indentation.
 
