@@ -1,5 +1,7 @@
 2005-05-27  Lute Kamstra  <lute@gnu.org>
 
+	* textmodes/dns-mode.el (dns-mode): Specify customization group.
+
 	* calc/calc.el (calc): Specify customization group.
 
 	* outline.el (outline-1, outline-2, outline-3, outline-4)
