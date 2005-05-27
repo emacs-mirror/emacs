@@ -21443,6 +21443,9 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 								 0, 0, 0, &ignore,
 								 glyph->face_id, 1);
 	  show_mouse_face (dpyinfo, DRAW_MOUSE_FACE);
+
+	  if (NILP (pointer))
+	    pointer = Qhand;
 	}
     }
 
