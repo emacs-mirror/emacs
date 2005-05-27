@@ -1,3 +1,9 @@
+2005-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-run-mode-hooks): New function.
+
+	* score-mode.el (gnus-score-mode): Use gnus-run-mode-hooks.
+
 2005-05-26  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* gnus-agent.el (gnus-agent-make-mode-line-string):

@@ -1,6 +1,6 @@
 ;;; score-mode.el --- mode for editing Gnus score files
 
-;; Copyright (C) 1996, 2001, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 1996, 2001, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: news, mail
@@ -28,7 +28,7 @@
 
 (eval-when-compile (require 'cl))
 (require 'mm-util)			; for mm-universal-coding-system
-(require 'gnus-util)			; for gnus-pp
+(require 'gnus-util)			; for gnus-pp, gnus-run-mode-hooks
 
 (defvar gnus-score-mode-hook nil
   "*Hook run in score mode buffers.")
@@ -71,7 +71,7 @@ This mode is an extended emacs-lisp mode.
   (setq mode-name "Score")
   (lisp-mode-variables nil)
   (make-local-variable 'gnus-score-edit-exit-function)
-  (run-mode-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
+  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-score-mode-hook))
 
 (defun gnus-score-make-menu-bar ()
   (unless (boundp 'gnus-score-menu)
