@@ -1659,13 +1659,20 @@ static char *magick[] = {
 
 ;; Registers buffer.
 ;;
+(defcustom gdb-all-registers nil
+  "Non-nil means include floating-point registers."
+  :type 'boolean
+  :group 'gud
+  :version "22.1")
+
 (gdb-set-buffer-rules 'gdb-registers-buffer
 		      'gdb-registers-buffer-name
 		      'gdb-registers-mode)
 
 (def-gdb-auto-updated-buffer gdb-registers-buffer
   gdb-invalidate-registers
-  (concat gdb-server-prefix "info registers\n")
+  (concat
+   gdb-server-prefix "info " (if gdb-all-registers "all-") "registers\n")
   gdb-info-registers-handler
   gdb-info-registers-custom)
 
@@ -1674,6 +1681,7 @@ static char *magick[] = {
 (defvar gdb-registers-mode-map
   (let ((map (make-sparse-keymap)))
     (suppress-keymap map)
+    (define-key map " " 'toggle-gdb-all-registers)
     (define-key map "q" 'kill-this-buffer)
      map))
 
@@ -1683,7 +1691,7 @@ static char *magick[] = {
 \\{gdb-registers-mode-map}"
   (kill-all-local-variables)
   (setq major-mode 'gdb-registers-mode)
-  (setq mode-name "Registers")
+  (setq mode-name "Registers:")
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
@@ -1705,6 +1713,20 @@ static char *magick[] = {
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-create-buffer 'gdb-registers-buffer))))
+
+(defun toggle-gdb-all-registers ()
+  "Toggle the display of floating-point registers."
+  (interactive)
+  (if gdb-all-registers
+      (progn
+	(setq gdb-all-registers nil)
+	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+	  (setq mode-name "Registers:")))
+	(setq gdb-all-registers t)
+	(with-current-buffer (gdb-get-buffer 'gdb-registers-buffer)
+	  (setq mode-name "Registers:All")))
+  (gdb-invalidate-registers))
+
 
 ;; Memory buffer.
 ;;
