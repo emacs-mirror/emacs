@@ -1,3 +1,7 @@
+2005-05-27  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* info.el (Info-goto-node): Revert autoload addition (2004-06-12).
+
 2005-05-27  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-prog.el (calc-kbd-report): Remove.
@@ -5,7 +9,7 @@
 
 2005-05-27  Juanma Barranquero  <lekktu@gmail.com>
 
-	* image.el (image-library-alist): Moved to image.c.
+	* image.el (image-library-alist): Move to image.c.
 	(image-type-available-p): Doc fix.
 
 2005-05-27  Lute Kamstra  <lute@gnu.org>
@@ -17,8 +21,8 @@
 	* textmodes/sgml-mode.el (sgml-namespace-face):
 	* textmodes/tex-mode.el (superscript, subscript, tex-math-face)
 	(tex-verbatim-face, tex-use-reftex):
-	* textmodes/texinfo.el (texinfo-heading-face): Specify
-	customization group.
+	* textmodes/texinfo.el (texinfo-heading-face):
+	Specify customization group.
 
 	* longlines.el: Don't require easy-mmode.
 	(longlines-visible-face): Specify customization group.
@@ -28,8 +32,8 @@
 	* language/cyrillic.el: Add cyrillic-iso8859-5 characters in the
 	encoding table of windows-1251.
 
-	* international/ucs-tables.el (ucs-set-table-for-input): If
-	translation-table-for-input of a coding system is a symbol, get
+	* international/ucs-tables.el (ucs-set-table-for-input):
+	If translation-table-for-input of a coding system is a symbol, get
 	its translation-table property.
 
 	* international/code-pages.el: Don't register a coding system into
@@ -44,14 +48,12 @@
 	before checking the delimiter value.
 
 	* eshell/em-cmpl.el (eshell-complete-parse-arguments): If the
-	character before a space at the end of a line is \, assume the
-	space is part of the last argument rather than a final argument
-	separator.
+	character before a space at the end of a line is \, assume the space
+	is part of the last argument rather than a final argument separator.
 
-	* eshell/esh-io.el (eshell-get-target): If
-	`eshell-buffer-shorthand' is in use, and the target is `t' or
-	`nil' (which are the most common values), don't assume that the
-	symbol target is a buffer.
+	* eshell/esh-io.el (eshell-get-target): If `eshell-buffer-shorthand'
+	is in use, and the target is `t' or `nil' (which are the most common
+	values), don't assume that the symbol target is a buffer.
 
 2005-05-26  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -162,8 +164,7 @@
 
 2005-05-26  Mark A. Hershberger  <mah@everybody.org>
 
-	* xml.el (xml-substitute-special): Don't die for undefined xml
-	entities.
+	* xml.el (xml-substitute-special): Don't die for undefined xml entities.
 
 2005-05-26  Jay Belanger  <belanger@truman.edu>
 
@@ -194,11 +195,10 @@
 	define `org-mode'.
 	(org-agenda-mode): Use `run-mode-hooks' instead of `run-hooks'.
 
-2005-05-26  Nick Roberts  <nickrob@snap.net.nz>
+2005-05-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* log-edit.el (log-edit-changelog-entries): Distinguish between
 	filenames like xfns.c and fns.c.
-	Coded by Stefan Monnier  <monnier@iro.umontreal.ca>.
 
 2005-05-25  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -231,7 +231,7 @@
 
 2005-05-24  Andre Spiegel  <spiegel@gnu.org>
 
-	* progmodes/cperl-mode.el (cperl-vc-header-alist): Obsoleted.
+	* progmodes/cperl-mode.el (cperl-vc-header-alist): Obsolete.
 	(cperl-vc-rcs-header, cperl-vc-sccs-header): New user options.
 	(cperl-mode): Use them.
 
@@ -272,11 +272,11 @@
 
 	CC Mode update to 5.30.10:
 
-	* cc-fonts.el (c-font-lock-declarators): Fixed bug where the point
+	* cc-fonts.el (c-font-lock-declarators): Fix bug where the point
 	could go past the limit in decoration level 2, thereby causing
 	errors during interactive fontification.
 
-	* cc-mode.el (c-make-inherited-keymap): Fixed cc-bytecomp bug when
+	* cc-mode.el (c-make-inherited-keymap): Fix cc-bytecomp bug when
 	the file is evaluated interactively.
 
 	* cc-engine.el (c-guess-basic-syntax): Handle operator
@@ -294,7 +294,7 @@
 	Compensate for return value from `forward-line' when it has moved
 	but not to a different line due to eob.
 
-	* cc-engine.el (c-guess-basic-syntax): Fixed anchoring in
+	* cc-engine.el (c-guess-basic-syntax): Fix anchoring in
 	`objc-method-intro' and `objc-method-args-cont'.
 
 2005-05-23  Alan Mackenzie  <bug-cc-mode@gnu.org>
@@ -323,8 +323,7 @@
 	* subr.el (font-lock-defaults): Remove defvar as it's already
 	defined in font-core.el.
 
-	* font-lock.el (font-lock-beginning-of-syntax-function): Fix
-	docstring.
+	* font-lock.el (font-lock-beginning-of-syntax-function): Fix docstring.
 
 2005-05-23  Nick Roberts  <nickrob@snap.net.nz>
 
@@ -336,8 +335,8 @@
 
 	* font-core.el: Update comment.
 
-	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Use
-	`after-change-major-mode-hook' instead of `find-file-hook'.
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode):
+	Use `after-change-major-mode-hook' instead of `find-file-hook'.
 
 	* buff-menu.el (Buffer-menu-mode): Use `run-mode-hooks'.
 
@@ -397,9 +396,8 @@
 	* vc-cvs.el (vc-cvs-checkout-model): Handle the case where FILE
 	doesn't exist.
 
-	* vc.el (vc-trunk-p): Add autoload cookie.  The function is used
-	in vc-rcs.el when vc-mistrust-permissions is t, which is not the
-	default.
+	* vc.el (vc-trunk-p): Add autoload cookie.  The function is used in
+	vc-rcs.el when vc-mistrust-permissions is t, which is not the default.
 
 2005-05-22  Nick Roberts  <nickrob@snap.net.nz>
 
