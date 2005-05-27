@@ -31420,7 +31420,7 @@ subsequent calculations.)  This command allows your keyboard macros to
 accept numbers or formulas as interactive input.
 
 As an example, 
-@kbd{2 @key{RET} "Power: " @key{RET} Z # 3 @key{RET}} will prompt for
+@kbd{2 @key{RET} "Power: " @key{RET} Z # 3 @key{RET} ^} will prompt for
 input with ``Power: '' in the minibuffer, then return 2 to the provided
 power.  (The response to the prompt that's given, 3 in this example,
 will not be part of the macro.)
