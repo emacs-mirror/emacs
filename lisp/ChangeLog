@@ -6,7 +6,9 @@
 	* textmodes/dns-mode.el (dns-mode):
 	* textmodes/sgml-mode.el (sgml-namespace-face):
 	* textmodes/tex-mode.el (superscript, subscript, tex-math-face)
-	(tex-verbatim-face, tex-use-reftex): Specify customization group.
+	(tex-verbatim-face, tex-use-reftex):
+	* textmodes/texinfo.el (texinfo-heading-face): Specify
+	customization group.
 
 	* longlines.el: Don't require easy-mmode.
 	(longlines-visible-face): Specify customization group.
