@@ -5,8 +5,6 @@
 	space is part of the last argument rather than a final argument
 	separator.
 
-2005-05-25  John Wiegley  <johnw@newartisans.com>
-
 	* eshell/esh-io.el (eshell-get-target): If
 	`eshell-buffer-shorthand' is in use, and the target is `t' or
 	`nil' (which are the most common values), don't assume that the
