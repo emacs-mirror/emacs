@@ -1,15 +1,12 @@
 2005-05-27  Lute Kamstra  <lute@gnu.org>
 
-	* textmodes/sgml-mode.el (sgml-namespace-face): Specify
-	customization group.
-
-	* textmodes/dns-mode.el (dns-mode): Specify customization group.
-
-	* calc/calc.el (calc): Specify customization group.
-
+	* calc/calc.el (calc):
 	* outline.el (outline-1, outline-2, outline-3, outline-4)
-	(outline-5, outline-6, outline-7, outline-8): Specify
-	customization group.
+	(outline-5, outline-6, outline-7, outline-8):
+	* textmodes/dns-mode.el (dns-mode):
+	* textmodes/sgml-mode.el (sgml-namespace-face):
+	* textmodes/tex-mode.el (superscript, subscript, tex-math-face)
+	(tex-verbatim-face, tex-use-reftex): Specify customization group.
 
 	* longlines.el: Don't require easy-mmode.
 	(longlines-visible-face): Specify customization group.
