@@ -250,7 +250,8 @@ Any terminating `>' or `/' is not matched.")
 
 (defface sgml-namespace-face
   '((t (:inherit font-lock-builtin-face)))
-  "`sgml-mode' face used to highlight the namespace part of identifiers.")
+  "`sgml-mode' face used to highlight the namespace part of identifiers."
+  :group 'sgml)
 (defvar sgml-namespace-face 'sgml-namespace-face)
 
 ;; internal
