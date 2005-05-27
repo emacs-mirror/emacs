@@ -1,5 +1,10 @@
 2005-05-26  John Wiegley  <johnw@newartisans.com>
 
+	* eshell/esh-cmd.el (eshell-eval-command): If the return value of
+	`eshell-resume-eval' is wrapped in a list, it indicates that the
+	command was run asynchronously.  In that case, unwrap the value
+	before checking the delimiter value.
+
 	* eshell/em-cmpl.el (eshell-complete-parse-arguments): If the
 	character before a space at the end of a line is \, assume the
 	space is part of the last argument rather than a final argument
