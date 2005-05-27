@@ -757,7 +757,7 @@ nil)' if none)."
 
 (defmacro eshell-do-subjob (object)
   "Evaluate a command OBJECT as a subjob.
-We indicate thet the process was run in the background by returned it
+We indicate that the process was run in the background by returning it
 ensconced in a list."
   `(let ((eshell-current-subjob-p t))
      ,object))
@@ -1006,11 +1006,10 @@ at the moment are:
 		   (eshell-resume-eval))))
       ;; On systems that don't support async subprocesses, eshell-resume
       ;; can return t.  Don't treat that as an error.
+      (if (listp delim)
+	  (setq delim (car delim)))
       (if (and delim (not (eq delim t)))
-	  (error "Unmatched delimiter: %c"
-		 (if (listp delim)
-		     (car delim)
-		   delim))))))
+	  (error "Unmatched delimiter: %c" delim)))))
 
 (defun eshell-resume-command (proc status)
   "Resume the current command when a process ends."
