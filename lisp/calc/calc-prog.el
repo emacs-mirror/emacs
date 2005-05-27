@@ -1457,7 +1457,7 @@ Redefine the corresponding command."
         (executing-kbd-macro nil)
         (msg (calc-top 1)))
     (if (not (eq (car-safe msg) 'vec))
-        (error "No prompt string provided on stack")
+        (error "No prompt string provided")
       (setq msg (math-vector-to-string msg))
       (calc-wrapper
        (calc-pop-stack 1)
