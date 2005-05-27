@@ -370,7 +370,8 @@ to writing a completion function."
 	   (setq args (nthcdr (1+ l) args)
 		 posns (nthcdr (1+ l) posns))))
     (assert (= (length args) (length posns)))
-    (when (and args (eq (char-syntax (char-before end)) ? ))
+    (when (and args (eq (char-syntax (char-before end)) ? )
+	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))
     (cons (mapcar
