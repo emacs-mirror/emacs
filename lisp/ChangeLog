@@ -1,3 +1,8 @@
+2005-05-27  Lute Kamstra  <lute@gnu.org>
+
+	* longlines.el: Don't require easy-mmode.
+	(longlines-visible-face): Specify customization group.
+
 2005-05-27  Kenichi Handa  <handa@m17n.org>
 
 	* language/cyrillic.el: Add cyrillic-iso8859-5 characters in the
