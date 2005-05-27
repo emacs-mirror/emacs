@@ -904,6 +904,7 @@ x_encode_char (c, char2b, font_info, two_byte_p)
       /* It's a program.  */
       struct ccl_program *ccl = font_info->font_encoder;
 
+      check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
 	  ccl->reg[0] = charset;
