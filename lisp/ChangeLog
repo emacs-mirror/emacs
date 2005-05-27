@@ -1,3 +1,8 @@
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-misc.el (calc-info-goto-node): Use info instead of
+	Info-goto-node.
+
 2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-all-registers): New variable.
