@@ -209,7 +209,8 @@
 (defgroup calc nil
   "GNU Calc"
   :prefix "calc-"
-  :tag    "Calc")
+  :tag    "Calc"
+  :group  'applications)
 
 ;;;###autoload
 (defcustom calc-settings-file 
