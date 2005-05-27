@@ -1,3 +1,8 @@
+2005-05-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* files.texi (Log Buffer): Merge in description of Log Edit
+	mode from pcl.texi.
+
 2005-05-26  Richard M. Stallman  <rms@gnu.org>
 
 	* building.texi (Lisp Eval): C-M-x with arg runs Edebug.
