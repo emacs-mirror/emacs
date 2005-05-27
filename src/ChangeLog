@@ -1,3 +1,8 @@
+2005-05-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (Fbuffer_local_value): Make argument name match its use
+	in docstring.
+
 2005-05-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* keyboard.c (Frecursive_edit): Fix typo in docstring.
