@@ -17,6 +17,10 @@
 
 2005-05-27  Juanma Barranquero  <lekktu@gmail.com>
 
+	* image.c (Vimage_library_alist): Moved from image.el.
+	(syms_of_image): Defvar it.
+	(lookup_image_type): Use it.
+
 	* buffer.c (Fbuffer_local_value): Make argument name match its use
 	in docstring.
 
