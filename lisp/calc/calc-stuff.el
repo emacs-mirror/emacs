@@ -171,6 +171,7 @@ With a prefix, push that prefix as a number onto the stack."
 (defvar math-max-digits-cache) ; calc-bin.el
 (defvar math-integral-cache) ; calcalg2.el
 (defvar math-units-table) ; calc-units.el
+(defvar math-decls-cache-tag) ; calc-arith.el
 (defvar math-format-date-cache) ; calc-forms.el
 (defvar math-holidays-cache-tag) ; calc-forms.el
 
