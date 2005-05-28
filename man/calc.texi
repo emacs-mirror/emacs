@@ -30495,7 +30495,7 @@ mode.
 
 @kindex M-# u
 @kindex M-# =
-@pindex calc-embedded-update
+@pindex calc-embedded-update-formula
 Another way to change the assignment to @code{foo} would simply be
 to edit the number using regular Emacs editing rather than Embedded
 mode.  Then, we have to find a way to get Embedded mode to notice
@@ -35101,11 +35101,12 @@ keystrokes are not listed in this summary.
 @r{       @:     M-# r  @:             @:    36  @:calc-grab-rectangle@:}
 @r{       @:     M-# s  @:             @:        @:calc-info-summary@:}
 @r{       @:     M-# t  @:             @:        @:calc-tutorial@:}
-@r{       @:     M-# u  @:             @:        @:calc-embedded-update@:}
+@r{       @:     M-# u  @:             @:        @:calc-embedded-update-formula@:}
 @r{       @:     M-# w  @:             @:        @:calc-embedded-word@:}
 @r{       @:     M-# x  @:             @:        @:calc-quit@:}
 @r{       @:     M-# y  @:            @:1,28,49  @:calc-copy-to-buffer@:}
 @r{       @:     M-# z  @:             @:        @:calc-user-invocation@:}
+@r{       @:     M-# =  @:             @:        @:calc-embedded-update-formula@:}
 @r{       @:     M-# :  @:             @:    36  @:calc-grab-sum-down@:}
 @r{       @:     M-# _  @:             @:    36  @:calc-grab-sum-across@:}
 @r{       @:     M-# `  @:editing      @:    30  @:calc-embedded-edit@:}
