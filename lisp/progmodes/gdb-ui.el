@@ -2439,20 +2439,21 @@ BUFFER nil or omitted means use the current buffer."
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
 	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
-      (if (not (equal gdb-frame-address "main"))
-	  (progn
-	    (goto-char (point-min))
-	    (if (and gdb-frame-address
-		     (re-search-forward gdb-frame-address nil t))
-		(progn
-		  (setq pos (point))
-		  (beginning-of-line)
-		  (or gdb-overlay-arrow-position
-		      (setq gdb-overlay-arrow-position (make-marker)))
-		  (set-marker gdb-overlay-arrow-position
-			      (point) (current-buffer))))))
-      ;; remove all breakpoint-icons in assembler buffer before updating.
-      (gdb-remove-breakpoint-icons (point-min) (point-max)))
+      (save-excursion
+	(if (not (equal gdb-frame-address "main"))
+	    (progn
+	      (goto-char (point-min))
+	      (if (and gdb-frame-address
+		       (re-search-forward gdb-frame-address nil t))
+		  (progn
+		    (setq pos (point))
+		    (beginning-of-line)
+		    (or gdb-overlay-arrow-position
+			(setq gdb-overlay-arrow-position (make-marker)))
+		    (set-marker gdb-overlay-arrow-position
+				(point) (current-buffer))))))
+	;; remove all breakpoint-icons in assembler buffer before updating.
+	(gdb-remove-breakpoint-icons (point-min) (point-max))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
@@ -2465,9 +2466,10 @@ BUFFER nil or omitted means use the current buffer."
 	      (setq flag (char-after (match-beginning 2)))
 	      (setq address (match-string 3))
 	      (with-current-buffer buffer
+		(save-excursion
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
-		      (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
+		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
     (if (not (equal gdb-frame-address "main"))
 	(set-window-point (get-buffer-window buffer 0) pos))))
 
