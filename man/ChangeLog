@@ -1,3 +1,7 @@
+2005-05-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Assignments in Embedded Mode): Fix variable name.
+
 2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* building.texi (Other Buffers): SPC toggles display of
