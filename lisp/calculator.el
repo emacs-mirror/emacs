@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <2002-07-13 01:14:35 eli>
+;; Time-stamp: <26 May 2005, 14:32:34, Lute Kamstra, pijl>
 
 ;; This file is part of GNU Emacs.
 
@@ -680,7 +680,7 @@ more information.
   (setq major-mode 'calculator-mode)
   (setq mode-name "Calculator")
   (use-local-map calculator-mode-map)
-  (run-hooks 'calculator-mode-hook))
+  (run-mode-hooks 'calculator-mode-hook))
 
 (eval-when-compile (require 'electric) (require 'ehelp))
 

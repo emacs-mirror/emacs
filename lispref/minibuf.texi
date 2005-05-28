@@ -1309,9 +1309,9 @@ If @var{default} is @code{nil} and @var{initial} is non-@code{nil},
 @code{read-directory-name} constructs a substitute default by
 combining @var{directory} (or the current buffer's default directory
 if @var{directory} is @code{nil}) and @var{initial}.  If both
-@var{default} and @var{initial} are @code{nil}, this function uses the
-current buffer's default directory as substitute default, ignoring
-@var{directory}.
+@var{default} and @var{initial} are @code{nil}, this function uses
+@var{directory} as substitute default, or the current buffer's default
+directory if @var{directory} is @code{nil}.
 @end defun
 
 @defopt insert-default-directory

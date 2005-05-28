@@ -1,5 +1,5 @@
 ;;; spam.el --- Identifying spam
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
 ;; Keywords: network
@@ -77,7 +77,9 @@
 
 (defgroup spam nil
   "Spam configuration."
-  :version "22.1")
+  :version "22.1"
+  :group 'mail
+  :group 'news)
 
 (defcustom spam-directory (nnheader-concat gnus-directory "spam/")
   "Directory for spam whitelists and blacklists."
@@ -308,7 +310,8 @@ All unmarked article in such group receive the spam mark on group entry."
     (((class color) (background light))
      (:foreground "ivory4"))
     (t :inverse-video t))
-  "Face for spam-marked articles.")
+  "Face for spam-marked articles."
+  :group 'spam)
 
 (defcustom spam-face 'spam-face
   "Face for spam-marked articles."

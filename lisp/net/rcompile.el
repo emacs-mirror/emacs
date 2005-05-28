@@ -168,7 +168,7 @@ See \\[compile]."
                   compile-command)))
     (setq remote-compile-host host)
     (save-some-buffers nil nil)
-    (compile-internal compile-command "No more errors")
+    (compilation-start compile-command)
     ;; Set comint-file-name-prefix in the compilation buffer so
     ;; compilation-parse-errors will find referenced files by ange-ftp.
     (with-current-buffer compilation-last-buffer

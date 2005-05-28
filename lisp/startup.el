@@ -375,11 +375,17 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; of that dir into load-path,
     ;; Look for a leim-list.el file too.  Loading it will register
     ;; available input methods.
-    (dolist (dir load-path)
-      (let ((default-directory dir))
-	(load (expand-file-name "subdirs.el") t t t))
-      (let ((default-directory dir))
-	(load (expand-file-name "leim-list.el") t t t)))
+    (let ((tail load-path) dir)
+      (while tail
+        (setq dir (car tail))
+        (let ((default-directory dir))
+          (load (expand-file-name "subdirs.el") t t t))
+        (let ((default-directory dir))
+          (load (expand-file-name "leim-list.el") t t t))
+        ;; We don't use a dolist loop and we put this "setq-cdr" command at
+        ;; the end, because the subdirs.el files may add elements to the end
+        ;; of load-path and we want to take it into account.
+        (setq tail (cdr tail))))
     (unless (eq system-type 'vax-vms)
       ;; If the PWD environment variable isn't accurate, delete it.
       (let ((pwd (getenv "PWD")))

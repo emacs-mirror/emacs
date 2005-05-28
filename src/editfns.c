@@ -3175,7 +3175,7 @@ usage: (message-box STRING &rest ARGS)  */)
 	pane = Fcons (Fcons (build_string ("OK"), Qt), Qnil);
 	GCPRO1 (pane);
 	menu = Fcons (val, pane);
-	obj = Fx_popup_dialog (Qt, menu);
+	obj = Fx_popup_dialog (Qt, menu, Qt);
 	UNGCPRO;
 	return val;
       }

@@ -209,7 +209,8 @@
 (defgroup calc nil
   "GNU Calc"
   :prefix "calc-"
-  :tag    "Calc")
+  :tag    "Calc"
+  :group  'applications)
 
 ;;;###autoload
 (defcustom calc-settings-file 
@@ -830,20 +831,6 @@ If nil, selections displayed but ignored.")
 (defvar var-gamma '(special-const (math-gamma-const)))
 (defvar var-Modes '(special-const (math-get-modes-vec)))
 
-(defvar calc-language-alist
-  '((latex-mode . latex)
-    (tex-mode   . tex)
-    (plain-tex-mode . tex)
-    (context-mode . tex)
-    (nroff-mode . eqn)
-    (pascal-mode . pascal)
-    (c-mode . c)
-    (c++-mode . c)
-    (fortran-mode . fortran)
-    (f90-mode . fortran))
-  "Alist of major modes with appropriate Calc languages.")
-
-
 (mapcar (lambda (v) (or (boundp v) (set v nil)))
 	  calc-local-var-list)
 
@@ -1131,7 +1118,7 @@ Notations:  3.14e6     3.14 * 10^6
 	   (string-match "full" (nth 1 p))
 	   (setq calc-standalone-flag t))
       (setq p (cdr p))))
-  (run-hooks 'calc-mode-hook)
+  (run-mode-hooks 'calc-mode-hook)
   (calc-refresh t)
   (calc-set-mode-line)
   (calc-check-defines))
@@ -1181,7 +1168,7 @@ commands given here will actually operate on the *Calculator* stack."
       (insert (propertize (concat "Emacs Calculator v" calc-version
 				  " by Dave Gillespie\n")
 			  'font-lock-face 'italic))))
-  (run-hooks 'calc-trail-mode-hook))
+  (run-mode-hooks 'calc-trail-mode-hook))
 
 (defun calc-create-buffer ()
   (set-buffer (get-buffer-create "*Calculator*"))

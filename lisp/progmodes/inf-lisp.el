@@ -269,7 +269,7 @@ to continue it."
   (use-local-map inferior-lisp-mode-map)    ;c-c c-k for "kompile" file
   (setq comint-get-old-input (function lisp-get-old-input))
   (setq comint-input-filter (function lisp-input-filter))
-  (run-hooks 'inferior-lisp-mode-hook))
+  (run-mode-hooks 'inferior-lisp-mode-hook))
 
 (defun lisp-get-old-input ()
   "Return a string containing the sexp ending at point."

@@ -1,3 +1,85 @@
+2005-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-util.el (gnus-run-mode-hooks): New function.
+
+	* score-mode.el (gnus-score-mode): Use gnus-run-mode-hooks.
+
+2005-05-26  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* gnus-agent.el (gnus-agent-make-mode-line-string):
+	Use mode-line-highlight as mouse-face.
+
+2005-05-17  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* canlock.el (canlock): Change the parent group to news.
+
+	* deuglify.el (gnus-outlook-deuglify): Add :group.
+
+	* dig.el (dig): Add :group.
+
+	* gnus-art.el (gnus-inhibit-mime-unbuttonizing): Add :group.
+
+	* gnus-cite.el (gnus-cite-attribution-face): Add :group.
+	(gnus-cite-face-1, gnus-cite-face-2, gnus-cite-face-3): Ditto.
+	(gnus-cite-face-4, gnus-cite-face-5, gnus-cite-face-6): Ditto.
+	(gnus-cite-face-7, gnus-cite-face-8, gnus-cite-face-9): Ditto.
+	(gnus-cite-face-10, gnus-cite-face-11): Ditto.
+
+	* gnus-diary.el (gnus-diary): Add :group.
+
+	* gnus.el (gnus-group-news-1-face): Add :group.
+	(gnus-group-news-1-empty-face): Ditto.
+	(gnus-group-news-2-face, gnus-group-news-2-empty-face): Ditto.
+	(gnus-group-news-3-face, gnus-group-news-3-empty-face): Ditto.
+	(gnus-group-news-4-face, gnus-group-news-4-empty-face): Ditto.
+	(gnus-group-news-5-face, gnus-group-news-5-empty-face): Ditto.
+	(gnus-group-news-6-face, gnus-group-news-6-empty-face): Ditto.
+	(gnus-group-news-low-face, gnus-group-news-low-empty-face): Ditto.
+	(gnus-group-mail-1-face, gnus-group-mail-1-empty-face): Ditto.
+	(gnus-group-mail-2-face, gnus-group-mail-2-empty-face): Ditto.
+	(gnus-group-mail-3-face, gnus-group-mail-3-empty-face): Ditto.
+	(gnus-group-mail-low-face, gnus-group-mail-low-empty-face): Ditto.
+	(gnus-summary-selected-face, gnus-summary-cancelled-face): Ditto.
+	(gnus-summary-high-ticked-face): Ditto.
+	(gnus-summary-low-ticked-face): Ditto.
+	(gnus-summary-normal-ticked-face): Ditto.
+	(gnus-summary-high-ancient-face): Ditto.
+	(gnus-summary-low-ancient-face): Ditto.
+	(gnus-summary-normal-ancient-face): Ditto.
+	(gnus-summary-high-undownloaded-face): Ditto.
+	(gnus-summary-low-undownloaded-face): Ditto.
+	(gnus-summary-normal-undownloaded-face): Ditto.
+	(gnus-summary-high-unread-face): Ditto.
+	(gnus-summary-low-unread-face): Ditto.
+	(gnus-summary-normal-unread-face): Ditto.
+	(gnus-summary-high-read-face, gnus-summary-low-read-face): Diito
+	(gnus-summary-normal-read-face, gnus-splash-face): Ditto.
+
+	* message.el (message-minibuffer-local-map): Add :group.
+
+	* sieve-manage.el (sieve-manage-log): Add :group.
+	(sieve-manage-default-user): Diito.
+	(sieve-manage-server-eol, sieve-manage-client-eol): Ditto.
+	(sieve-manage-streams, sieve-manage-stream-alist): Ditto.
+	(sieve-manage-authenticators): Ditto.
+	(sieve-manage-authenticator-alist): Ditto
+	(sieve-manage-default-port): Ditto.
+
+	* sieve-mode.el (sieve-control-commands-face): Add :group.
+	(sieve-action-commands-face): Ditto.
+	(sieve-test-commands-face): Ditto.
+	(sieve-tagged-arguments-face): Ditto.
+
+	* smime.el (smime): Add :group.
+
+	* spam-report.el (spam-report): Add :group.
+
+	* spam.el (spam, spam-face): Add :group.
+
+2005-05-26  Lute Kamstra  <lute@gnu.org>
+
+	* score-mode.el (gnus-score-mode): Use run-mode-hooks.
+
 2005-05-16  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el: Don't autoload mail-extract-address-components.

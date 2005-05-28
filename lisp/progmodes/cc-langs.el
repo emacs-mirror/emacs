@@ -1186,7 +1186,7 @@ will be handled."
 (c-lang-defvar c-brace-list-key (c-lang-const c-brace-list-key))
 
 (c-lang-defconst c-other-block-decl-kwds
-  "Keywords where the following block (if any) contain another
+  "Keywords where the following block (if any) contains another
 declaration level that should not be considered a class.
 
 If any of these also are on `c-type-list-kwds', `c-ref-list-kwds',

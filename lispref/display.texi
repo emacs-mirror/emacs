@@ -1727,6 +1727,11 @@ This face is used to show any secondary selection you have made.
 @kindex highlight @r{(face name)}
 This face is meant to be used for highlighting for various purposes.
 
+@item mode-line-highlight
+@kindex mode-line-highlight @r{(face name)}
+This face is used for highlighting something on @code{mode-line} or
+@code{header-line} for various purposes.
+
 @item trailing-whitespace
 @kindex trailing-whitespace @r{(face name)}
 This face is used to display excess whitespace at the end of a line,

@@ -162,7 +162,7 @@ Entry to this mode via command `electric-buffer-list' calls the value of
   (setq major-mode 'Electric-buffer-menu-mode)
   (goto-char (point-min))
   (if (search-forward "\n." nil t) (forward-char -1))
-  (run-hooks 'electric-buffer-menu-mode-hook))
+  (run-mode-hooks 'electric-buffer-menu-mode-hook))
 
 ;; generally the same as Buffer-menu-mode-map
 ;;  (except we don't indirect to global-map)

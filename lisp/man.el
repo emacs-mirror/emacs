@@ -1061,6 +1061,7 @@ The following variables may be of some use.  Try
 The following key bindings are currently in effect in the buffer:
 \\{Man-mode-map}"
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'Man-mode
 	mode-name "Man"
 	buffer-auto-save-file-name nil
@@ -1069,7 +1070,7 @@ The following key bindings are currently in effect in the buffer:
 	      " {" 'Man-page-mode-string "}")
 	truncate-lines t
 	buffer-read-only t)
-  (buffer-disable-undo (current-buffer))
+  (buffer-disable-undo)
   (auto-fill-mode -1)
   (use-local-map Man-mode-map)
   (set-syntax-table man-mode-syntax-table)
@@ -1080,7 +1081,7 @@ The following key bindings are currently in effect in the buffer:
   (Man-strip-page-headers)
   (Man-unindent)
   (Man-goto-page 1)
-  (run-hooks 'Man-mode-hook))
+  (run-mode-hooks 'Man-mode-hook))
 
 (defsubst Man-build-section-alist ()
   "Build the association list of manpage sections."

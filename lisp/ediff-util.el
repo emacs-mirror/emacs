@@ -1,6 +1,7 @@
 ;;; ediff-util.el --- the core commands and utilities of ediff
 
-;; Copyright (C) 1994, 95, 96, 97, 98, 99, 2000, 01, 02, 04 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002,
+;;   2004 Free Software Foundation, Inc.
 
 ;; Author: Michael Kifer <kifer@cs.stonybrook.edu>
 
@@ -116,7 +117,7 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
-  (run-hooks 'ediff-mode-hook))
+  (run-mode-hooks 'ediff-mode-hook))
 
 
 

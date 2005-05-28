@@ -1653,8 +1653,16 @@ See also the function `substitute-in-file-name'.  */)
 	  p += 2;
 	}
       else if (IS_DIRECTORY_SEP (p[0]) && p[1] == '.' && p[2] == '.'
-	       /* `/../' is the "superroot" on certain file systems.  */
+	       /* `/../' is the "superroot" on certain file systems.
+		  Turned off on DOS_NT systems because they have no
+		  "superroot" and because this causes us to produce
+		  file names like "d:/../foo" which fail file-related
+		  functions of the underlying OS.  (To reproduce, try a
+		  long series of "../../" in default_directory, longer
+		  than the number of levels from the root.)  */
+#ifndef DOS_NT
 	       && o != target
+#endif
 	       && (IS_DIRECTORY_SEP (p[3]) || p[3] == 0))
 	{
 	  while (o != target && (--o) && !IS_DIRECTORY_SEP (*o))

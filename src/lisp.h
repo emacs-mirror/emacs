@@ -3099,7 +3099,7 @@ extern Lisp_Object next_single_char_property_change P_ ((Lisp_Object,
 
 /* defined in xmenu.c */
 EXFUN (Fx_popup_menu, 2);
-EXFUN (Fx_popup_dialog, 2);
+EXFUN (Fx_popup_dialog, 3);
 extern void syms_of_xmenu P_ ((void));
 
 /* defined in termchar.h */

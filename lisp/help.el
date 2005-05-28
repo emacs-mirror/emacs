@@ -698,8 +698,8 @@ the last key hit are used."
 		    (princ " runs the command ")
 		    (prin1 defn)
 		    (princ "\n   which is ")
-		    (describe-function-1 defn))))
-	    (print-help-return-message))))))))
+		    (describe-function-1 defn)))))
+	    (print-help-return-message)))))))
 
 
 (defun describe-mode (&optional buffer)

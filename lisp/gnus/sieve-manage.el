@@ -86,22 +86,27 @@
 
 (defcustom sieve-manage-log "*sieve-manage-log*"
   "Name of buffer for managesieve session trace."
-  :type 'string)
+  :type 'string
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-default-user (user-login-name)
   "Default username to use."
-  :type 'string)
+  :type 'string
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-server-eol "\r\n"
   "The EOL string sent from the server."
-  :type 'string)
+  :type 'string
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-client-eol "\r\n"
   "The EOL string we send to the server."
-  :type 'string)
+  :type 'string
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-streams '(network starttls shell)
-  "Priority of streams to consider when opening connection to server.")
+  "Priority of streams to consider when opening connection to server."
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-stream-alist
   '((network   sieve-manage-network-p          sieve-manage-network-open)
@@ -113,10 +118,12 @@
 
 NAME names the stream, CHECK is a function returning non-nil if the
 server support the stream and OPEN is a function for opening the
-stream.")
+stream."
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-authenticators '(cram-md5 plain)
-  "Priority of authenticators to consider when authenticating to server.")
+  "Priority of authenticators to consider when authenticating to server."
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-authenticator-alist
   '((cram-md5   sieve-manage-cram-md5-p       sieve-manage-cram-md5-auth)
@@ -127,11 +134,13 @@ stream.")
 
 NAME names the authenticator.  CHECK is a function returning non-nil if
 the server support the authenticator and AUTHENTICATE is a function
-for doing the actual authentication.")
+for doing the actual authentication."
+  :group 'sieve-manage)
 
 (defcustom sieve-manage-default-port 2000
   "Default port number for managesieve protocol."
-  :type 'integer)
+  :type 'integer
+  :group 'sieve-manage)
 
 ;; Internal variables:
 

@@ -25,17 +25,17 @@
 
 ;;; Commentary:
 
-;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu>
-;; It was later rewritten by rms.  Some ideas were due to Masanobu.
-;; Grand Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com>
-;; The overloading code was then rewritten by Barry Warsaw <bwarsaw@cen.com>,
-;; who also hacked the mode to use comint.el.  Shane Hartman <shane@spr.com>
-;; added support for xdb (HPUX debugger).  Rick Sladkey <jrs@world.std.com>
-;; wrote the GDB command completion code.  Dave Love <d.love@dl.ac.uk>
-;; added the IRIX kluge, re-implemented the Mips-ish variant and added
-;; a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX kluge with
-;; the gud-xdb-directories hack producing gud-dbx-directories.  Derek L. Davies
-;; <ddavies@world.std.com> added support for jdb (Java debugger.)
+;; The ancestral gdb.el was by W. Schelter <wfs@rascal.ics.utexas.edu> It was
+;; later rewritten by rms.  Some ideas were due to Masanobu.  Grand
+;; Unification (sdb/dbx support) by Eric S. Raymond <esr@thyrsus.com> Barry
+;; Warsaw <bwarsaw@cen.com> hacked the mode to use comint.el.  Shane Hartman
+;; <shane@spr.com> added support for xdb (HPUX debugger).  Rick Sladkey
+;; <jrs@world.std.com> wrote the GDB command completion code.  Dave Love
+;; <d.love@dl.ac.uk> added the IRIX kluge, re-implemented the Mips-ish variant
+;; and added a menu. Brian D. Carlstrom <bdc@ai.mit.edu> combined the IRIX
+;; kluge with the gud-xdb-directories hack producing gud-dbx-directories.
+;; Derek L. Davies <ddavies@world.std.com> added support for jdb (Java
+;; debugger.)
 
 ;;; Code:
 
@@ -107,11 +107,10 @@ Used to grey out relevant togolbar icons.")
 		(setq same-window-regexps nil)
 		(throw 'info-found nil))))
        nil 0)
-      (require 'info)
       (select-frame (make-frame)))
     (if (memq gud-minor-mode '(gdbmi gdba))
-	(Info-goto-node "(emacs)GDB Graphical Interface")
-      (Info-goto-node "(emacs)Debuggers"))))
+	(info "(emacs)GDB Graphical Interface")
+      (info "(emacs)Debuggers"))))
 
 (easy-mmode-defmap gud-menu-map
   '(([help]     "Info" . gud-goto-info)
@@ -343,13 +342,13 @@ t means that there is no stack, and we are in display-file mode.")
 
 (defvar gud-speedbar-menu-items
   ;; Note to self.  Add expand, and turn off items when not available.
-  '(["Jump to stack frame" speedbar-edit-line 
+  '(["Jump to stack frame" speedbar-edit-line
      (with-current-buffer gud-comint-buffer
        (not (memq gud-minor-mode '(gdbmi gdba))))]
-    ["Edit value" speedbar-edit-line 
+    ["Edit value" speedbar-edit-line
      (with-current-buffer gud-comint-buffer
        (not (memq gud-minor-mode '(gdbmi gdba))))]
-    ["Delete expression" gdb-var-delete 
+    ["Delete expression" gdb-var-delete
      (with-current-buffer gud-comint-buffer
        (not (memq gud-minor-mode '(gdbmi gdba))))])
   "Additional menu items to add to the speedbar frame.")
@@ -3192,7 +3191,7 @@ For C this would dereference a pointer expression.")
   "The mouse movement event that led to a tooltip display.
 This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
-(defun gud-tooltip-toggle-dereference ()
+(defun toggle-gud-tooltip-dereference ()
   "Toggle whether tooltips should show `* expr' or `expr'."
   (interactive)
   (setq gud-tooltip-dereference (not gud-tooltip-dereference))
@@ -3201,7 +3200,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 	     (if gud-tooltip-dereference "on" "off"))))
 
 (define-obsolete-function-alias 'tooltip-gud-toggle-dereference
-                                'gud-tooltip-toggle-dereference "22.1")
+                                'toggle-gud-tooltip-dereference "22.1")
 
 (define-minor-mode gud-tooltip-mode
   "Toggle the display of GUD tooltips."

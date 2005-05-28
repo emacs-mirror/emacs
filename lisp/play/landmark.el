@@ -248,6 +248,7 @@ Other useful commands:
 Entry to this mode calls the value of `lm-mode-hook' if that value
 is non-nil.  One interesting value is `turn-on-font-lock'."
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'lm-mode
 	mode-name "Lm")
   (lm-display-statistics)
@@ -255,7 +256,7 @@ is non-nil.  One interesting value is `turn-on-font-lock'."
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(lm-font-lock-keywords t))
   (toggle-read-only t)
-  (run-hooks 'lm-mode-hook))
+  (run-mode-hooks 'lm-mode-hook))
 
 
 ;;;_ +  THE SCORE TABLE.

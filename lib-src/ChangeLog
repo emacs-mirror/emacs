@@ -1,3 +1,8 @@
+2005-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* yow.c (setup_yow): Use EXIT_FAILURE in case no separators found.
+	(yow): Use EXIT_FAILURE in case of memory error.
+
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* make-docfile.c (DIRECTORY_SEP): New macro.

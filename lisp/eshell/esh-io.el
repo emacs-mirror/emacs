@@ -353,7 +353,8 @@ it defaults to `insert'."
    ((or (bufferp target)
 	(and (boundp 'eshell-buffer-shorthand)
 	     (symbol-value 'eshell-buffer-shorthand)
-	     (symbolp target)))
+	     (symbolp target)
+	     (not (memq target '(t nil)))))
     (let ((buf (if (bufferp target)
 		   target
 		 (get-buffer-create

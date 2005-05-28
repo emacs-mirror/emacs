@@ -291,7 +291,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
 			  "hexl-current-address")
 
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
-  (run-hooks 'hexl-mode-hook))
+  (run-mode-hooks 'hexl-mode-hook))
 
 
 (defun hexl-isearch-search-function ()
@@ -926,10 +926,11 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   "Activate `hl-line-mode'"
   (require 'frame)
   (require 'hl-line)
-  (set (make-local-variable 'hl-line-range-function)
-       'hexl-highlight-line-range)
-  (set (make-local-variable 'hl-line-face) 
-       'highlight)
+  (with-no-warnings
+    (set (make-local-variable 'hl-line-range-function)
+	 'hexl-highlight-line-range)
+    (set (make-local-variable 'hl-line-face) 
+	 'highlight))
   (hl-line-mode 1))
 
 (defun hexl-highlight-line-range ()

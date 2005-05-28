@@ -447,7 +447,7 @@ To cancel the edit, simply kill the *Calc Edit* buffer."
     (setq truncate-lines nil)
     (setq major-mode 'calc-edit-mode)
     (setq mode-name "Calc Edit")
-    (run-hooks 'calc-edit-mode-hook)
+    (run-mode-hooks 'calc-edit-mode-hook)
     (make-local-variable 'calc-original-buffer)
     (setq calc-original-buffer oldbuf)
     (make-local-variable 'calc-return-buffer)

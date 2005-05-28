@@ -1,3 +1,42 @@
+2005-05-24  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Dialog Boxes): Minor fixes.
+
+2005-05-25  Masatake YAMATO  <jet@gyve.org>
+
+	* display.texi (Standard Faces): Write about `mode-line-highlight'.
+
+2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* frames.texi (Dialog Boxes): HEADER argument to `x-popup-dialog'
+	is optional.
+
+2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* frames.texi (Dialog Boxes): Descibe new optional argument.
+
+2005-05-23  Lute Kamstra  <lute@gnu.org>
+
+	* modes.texi (Font Lock Basics, Syntactic Font Lock): Recommend
+	syntax-begin-function over font-lock-beginning-of-syntax-function.
+
+2005-05-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* minibuf.texi (Reading File Names): Update description of
+	`read-directory-name'.
+
+	* modes.texi (Derived Modes): Clarify :group keyword.
+
+2005-05-21  Eli Zaretskii  <eliz@gnu.org>
+
+	* files.texi (Locating Files): New subsection.  Describe
+	locate-file and executable-find.
+
+2005-05-21  Kevin Ryde  <user42@zip.com.au>
+
+	* frames.texi (Initial Parameters): Update cross reference to
+	"Emacs Invocation".
+
 2005-05-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keymaps.texi (Active Keymaps): Add anchor.

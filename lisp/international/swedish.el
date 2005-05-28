@@ -131,7 +131,7 @@ Leaves point just after the word that looks Swedish."
 ;   (setq major-mode 'swedish-mode)
 ;   (setq local-abbrev-table swedish-mode-abbrev-table)
 ;   (set-syntax-table text-mode-syntax-table)
-;   (run-hooks 'text-mode-hook))
+;   (run-mode-hooks 'text-mode-hook))
 
 ;(defun indented-swedish-mode ()
 ;   "Major mode for editing indented Swedish text intended for
@@ -149,7 +149,7 @@ Leaves point just after the word that looks Swedish."
 ;   (use-local-map indented-text-mode-map)
 ;   (setq mode-name "Indented Swedish")
 ;   (setq major-mode 'indented-swedish-mode)
-;   (run-hooks 'text-mode-hook))
+;   (run-mode-hooks 'text-mode-hook))
 
 (provide 'swedish)
 

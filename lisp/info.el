@@ -1,7 +1,7 @@
 ;;; info.el --- info package for Emacs
 
-;; Copyright (C) 1985,86,92,93,94,95,96,97,98,99,2000,01,02,03,04,2005
-;;  Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+;;   2000, 2001, 2002, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: help
@@ -515,9 +515,10 @@ in all the directories in that path."
       ;; since the argument will then be parsed improperly.  This also
       ;; has the added benefit of allowing node names to be included
       ;; following the parenthesized filename.
-      (if (and (stringp file) (string-match "(.*)" file))
-	  (Info-goto-node file)
-	(Info-goto-node (concat "(" file ")")))
+      (Info-goto-node
+       (if (and (stringp file) (string-match "(.*)" file))
+           file
+         (concat "(" file ")")))
     (if (zerop (buffer-size))
         (Info-directory))))
 
@@ -1344,7 +1345,9 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 ;; Go to an info node specified with a filename-and-nodename string
 ;; of the sort that is found in pointers in nodes.
 
-;;;###autoload
+;; Don't autoload this function: the correct entry point for other packages
+;; to use is `info'.  --Stef
+;; ;;;###autoload
 (defun Info-goto-node (nodename &optional fork)
   "Go to info node named NODENAME.  Give just NODENAME or (FILENAME)NODENAME.
 If NODENAME is of the form (FILENAME)NODENAME, the node is in the Info file
@@ -3259,7 +3262,7 @@ Advanced commands:
   (set (make-local-variable 'search-whitespace-regexp)
        Info-search-whitespace-regexp)
   (Info-set-mode-line)
-  (run-hooks 'Info-mode-hook))
+  (run-mode-hooks 'Info-mode-hook))
 
 ;; When an Info buffer is killed, make sure the associated tags buffer
 ;; is killed too.
@@ -3301,7 +3304,7 @@ which returns to Info mode for browsing.
   (setq buffer-read-only nil)
   (force-mode-line-update)
   (buffer-enable-undo (current-buffer))
-  (run-hooks 'Info-edit-mode-hook))
+  (run-mode-hooks 'Info-edit-mode-hook))
 
 (defun Info-edit ()
   "Edit the contents of this Info node.
@@ -4127,5 +4130,5 @@ BUFFER is the buffer speedbar is requesting buttons for."
 
 (provide 'info)
 
-;;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
+;; arch-tag: f2480fe2-2139-40c1-a49b-6314991164ac
 ;;; info.el ends here

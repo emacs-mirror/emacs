@@ -546,7 +546,7 @@ display margins, fringes, header line, and/or mode line.  */)
 			     + WINDOW_LEFT_FRINGE_COLS (w)),
 		make_number (WINDOW_TOP_EDGE_LINE (w)
 			     + WINDOW_HEADER_LINE_LINES (w)),
-		make_number (WINDOW_RIGHT_EDGE_COL (w)
+		make_number (WINDOW_BOX_RIGHT_EDGE_COL (w)
 			     - WINDOW_RIGHT_MARGIN_COLS (w)
 			     - WINDOW_RIGHT_FRINGE_COLS (w)),
 		make_number (WINDOW_BOTTOM_EDGE_LINE (w)
@@ -570,7 +570,7 @@ display margins, fringes, header line, and/or mode line.  */)
 			     + WINDOW_LEFT_FRINGE_WIDTH (w)),
 		make_number (WINDOW_TOP_EDGE_Y (w)
 			     + WINDOW_HEADER_LINE_HEIGHT (w)),
-		make_number (WINDOW_RIGHT_EDGE_X (w)
+		make_number (WINDOW_BOX_RIGHT_EDGE_X (w)
 			     - WINDOW_RIGHT_MARGIN_WIDTH (w)
 			     - WINDOW_RIGHT_FRINGE_WIDTH (w)),
 		make_number (WINDOW_BOTTOM_EDGE_Y (w)

@@ -1552,7 +1552,7 @@ These are active only in the minibuffer, when entering or editing a formula:
     (setq ses--deferred-narrow 'ses-mode)
     (1value (add-hook 'post-command-hook 'ses-command-hook nil t))
     (run-with-idle-timer 0.01 nil 'ses-command-hook)
-    (run-hooks 'ses-mode-hook)))
+    (run-mode-hooks 'ses-mode-hook)))
 
 (put 'ses-mode 'mode-class 'special)
 

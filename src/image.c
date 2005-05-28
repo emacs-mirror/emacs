@@ -616,6 +616,10 @@ static struct image_type *image_types;
 
 Lisp_Object Vimage_types;
 
+/* An alist of image types and libraries that implement the type.  */
+
+Lisp_Object Vimage_library_alist;
+
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -696,7 +700,7 @@ lookup_image_type (symbol)
   struct image_type *type;
 
   /* We must initialize the image-type if it hasn't been already.  */
-  if (NILP (Finit_image_library (symbol, Qnil)))
+  if (NILP (Finit_image_library (symbol, Vimage_library_alist)))
     return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
@@ -1631,11 +1635,6 @@ lookup_image (f, spec)
      Lisp_Object spec;
 {
   struct image_cache *c = FRAME_X_IMAGE_CACHE (f);
-#ifdef _MSC_VER
-  /* Work around a problem with MinGW builds of graphics libraries
-     not honoring calling conventions.  */
-  static
-#endif
   struct image *img;
   int i;
   unsigned hash;
@@ -1815,7 +1814,7 @@ forall_images_in_image_cache (f, fn)
 #ifdef HAVE_NTGUI
 
 /* Macro for defining functions that will be loaded from image DLLs.  */
-#define DEF_IMGLIB_FN(func) FARPROC fn_##func
+#define DEF_IMGLIB_FN(func) int (FAR CDECL *fn_##func)()
 
 /* Macro for loading those image functions from the library.  */
 #define LOAD_IMGLIB_FN(lib,func) {					\
@@ -5744,12 +5743,6 @@ struct png_memory_storage
    PNG_PTR is a pointer to the PNG control structure.  Copy LENGTH
    bytes from the input to DATA.  */
 
-#ifdef _MSC_VER
-  /* Work around a problem with MinGW builds of graphics libraries
-     not honoring calling conventions.  */
-#pragma optimize("g", off)
-#endif
-
 static void
 png_read_from_memory (png_ptr, data, length)
      png_structp png_ptr;
@@ -5766,10 +5759,6 @@ png_read_from_memory (png_ptr, data, length)
   tbr->index = tbr->index + length;
 }
 
-#ifdef _MSC_VER
-/* Restore normal optimization, as specified on the command line.  */
-#pragma optimize("", on)
-#endif
 
 /* Load PNG image IMG for use on frame F.  Value is non-zero if
    successful.  */
@@ -8000,6 +7989,8 @@ of `image-library-alist', which see).  */)
 void
 syms_of_image ()
 {
+  extern Lisp_Object Qrisky_local_variable;   /* Syms_of_xdisp has already run.  */
+
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
@@ -8007,6 +7998,20 @@ syms_of_image ()
 Each element of the list is a symbol for a image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
+
+  DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
+    doc: /* Alist of image types vs external libraries needed to display them.
+
+Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
+representing a supported image type, and the rest are strings giving
+alternate filenames for the corresponding external libraries.
+
+Emacs tries to load the libraries in the order they appear on the
+list; if none is loaded, the running session of Emacs won't
+support the image type.  Types 'pbm and 'xbm don't need to be
+listed; they're always supported.  */);
+  Vimage_library_alist = Qnil;
+  Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
   Vimage_type_cache = Qnil;
   staticpro (&Vimage_type_cache);

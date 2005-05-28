@@ -1015,6 +1015,12 @@ ARG is passed to the first function."
   (save-current-buffer
     (apply 'run-hooks funcs)))
 
+(defun gnus-run-mode-hooks (&rest funcs)
+  "Run `run-mode-hooks' if it is available.  Otherwise run `run-hooks'."
+  (if (fboundp 'run-mode-hooks)
+      (apply 'run-mode-hooks funcs)
+    (apply 'run-hooks funcs)))
+
 ;;; Various
 
 (defvar gnus-group-buffer)		; Compiler directive

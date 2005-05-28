@@ -1,6 +1,6 @@
 ;;; canlock.el --- functions for Cancel-Lock feature
 
-;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004
+;; Copyright (C) 1998, 1999, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Katsumi Yamaoka <yamaoka@jpl.org>
@@ -50,7 +50,7 @@
 
 (defgroup canlock nil
   "The Cancel-Lock feature."
-  :group 'applications)
+  :group 'news)
 
 (defcustom canlock-password nil
   "Password to use when signing a Cancel-Lock or a Cancel-Key header."

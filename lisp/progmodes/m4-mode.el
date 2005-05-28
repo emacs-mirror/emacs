@@ -147,7 +147,7 @@
 	font-lock-defaults '(m4-font-lock-keywords nil)
 	)
   (set-syntax-table m4-mode-syntax-table)
-  (run-hooks 'm4-mode-hook))
+  (run-mode-hooks 'm4-mode-hook))
 
 (provide 'm4-mode)
 ;;stuff to play with for debugging

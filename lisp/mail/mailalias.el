@@ -435,7 +435,7 @@ PATTERN is the string we want to complete."
 	(if mail-passwd-command
 	    (call-process shell-file-name nil t nil
 			  shell-command-switch mail-passwd-command))
-	(beginning-of-buffer)
+	(goto-char (point-min))
 	(setq mail-local-names nil)
 	(while (not (eobp))
 	  ;;Recognize lines like

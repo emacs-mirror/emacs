@@ -1009,7 +1009,7 @@ DEFUN ("recursive-edit", Frecursive_edit, Srecursive_edit, 0, 0, "",
        doc: /* Invoke the editor command loop recursively.
 To get out of the recursive edit, a command can do `(throw 'exit nil)';
 that tells this function to return.
-Alternately, `(throw 'exit t)' makes this function signal an error.
+Alternatively, `(throw 'exit t)' makes this function signal an error.
 This function is called by the editor initialization to begin editing.  */)
      ()
 {
@@ -10677,7 +10677,7 @@ The elements of this list correspond to the arguments of
 DEFUN ("posn-at-x-y", Fposn_at_x_y, Sposn_at_x_y, 2, 4, 0,
        doc: /* Return position information for pixel coordinates X and Y.
 By default, X and Y are relative to text area of the selected window.
-Optional third arg FRAME_OR_WINDOW non-nil specifies frame or window.
+Optional third arg FRAME-OR-WINDOW non-nil specifies frame or window.
 If optional fourth arg WHOLE is non-nil, X is relative to the left
 edge of the window.
 
@@ -10983,7 +10983,7 @@ syms_of_keyboard ()
   staticpro (&Qdrag_n_drop);
 
   Qsave_session = intern ("save-session");
-  staticpro(&Qsave_session);
+  staticpro (&Qsave_session);
 
   Qusr1_signal = intern ("usr1-signal");
   staticpro (&Qusr1_signal);

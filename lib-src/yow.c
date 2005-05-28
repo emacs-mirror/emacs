@@ -104,7 +104,7 @@ setup_yow(fp)
   while ((c = getc(fp)) != SEP) {
     if (c == EOF) {
       fprintf(stderr, "yow: file contains no separators\n");
-      exit(2);
+      exit(EXIT_FAILURE);
     }
   }
   header_len = ftell(fp);
@@ -157,7 +157,7 @@ yow (fp)
   buf = (char *) malloc(bufsize);
   if (buf == (char *)0) {
     fprintf(stderr, "yow: virtual memory exhausted\n");
-    exit (3);
+    exit (EXIT_FAILURE);
   }
 
   buf[i++] = c;
@@ -170,7 +170,7 @@ yow (fp)
       buf = (char *) realloc(buf, bufsize);
       if (buf == (char *)0) {
 	fprintf(stderr, "yow: virtual memory exhausted\n");
-	exit (3);
+	exit (EXIT_FAILURE);
       }
     }
   }

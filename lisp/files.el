@@ -1744,7 +1744,7 @@ in that case, this function acts as if `enable-local-variables' were t."
   (mapc
    (lambda (elt)
      (cons (purecopy (car elt)) (cdr elt)))
-   '(;; do this first, so that .html.pl is Polish html, not Perl
+   `(;; do this first, so that .html.pl is Polish html, not Perl
      ("\\.s?html?\\(\\.[a-zA-Z_]+\\)?\\'" . html-mode)
      ("\\.te?xt\\'" . text-mode)
      ("\\.[tT]e[xX]\\'" . tex-mode)
@@ -1762,9 +1762,12 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
-     ("[Mm]akefile\\'" . makefile-mode)
      ("GNUmakefile\\'" . makefile-gmake-mode)
+     ,@(if (memq system-type '(berkeley-unix next-mach darwin))
+	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
+	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
+	   ("[Mm]akefile\\'" . makefile-mode)))
      ("Makeppfile\\'" . makefile-makepp-mode)
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here

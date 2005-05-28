@@ -760,7 +760,7 @@ Commands for sorting the summary:
   (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults '(rmail-summary-font-lock-keywords t))
   (rmail-summary-enable)
-  (run-hooks 'rmail-summary-mode-hook))
+  (run-mode-hooks 'rmail-summary-mode-hook))
 
 ;; Summary features need to be disabled during edit mode.
 (defun rmail-summary-disable ()

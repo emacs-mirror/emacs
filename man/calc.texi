@@ -162,6 +162,7 @@ longer Info tutorial.)
 * Store and Recall::      Storing and recalling variables.
 * Graphics::              Commands for making graphs of data.
 * Kill and Yank::         Moving data into and out of Calc.
+* Keypad Mode::           Operating Calc from a keypad.
 * Embedded Mode::         Working with formulas embedded in a file.
 * Programming::           Calc as a programmable calculator.
 
@@ -1028,7 +1029,7 @@ with the file you were editing on top and Calc on the bottom.
 
 ...
 --**-Emacs: myfile             (Fundamental)----All----------------------
---- Emacs Calculator Mode ---                   |Emacs Calc Mode v2.00...
+--- Emacs Calculator Mode ---                   |Emacs Calc Mode v2.1 ...
 2:  17.3                                        |    17.3
 1:  -5                                          |    3
     .                                           |    2
@@ -1149,28 +1150,30 @@ Stack; the lower window is a picture of a typical calculator keypad.
 \medskip
 @end tex
 @smallexample
-                                        |--- Emacs Calculator Mode ---
-                                        |2:  17.3
-                                        |1:  -5
-                                        |    .
-                                        |--%%-Calc: 12 Deg       (Calcul
-                                        |----+-----Calc 2.00-----+----1
-                                        |FLR |CEIL|RND |TRNC|CLN2|FLT |
-                                        |----+----+----+----+----+----|
-                                        | LN |EXP |    |ABS |IDIV|MOD |
-                                        |----+----+----+----+----+----|
-                                        |SIN |COS |TAN |SQRT|y^x |1/x |
-                                        |----+----+----+----+----+----|
-                                        |  ENTER  |+/- |EEX |UNDO| <- |
-                                        |-----+---+-+--+--+-+---++----|
-                                        | INV |  7  |  8  |  9  |  /  |
-                                        |-----+-----+-----+-----+-----|
-                                        | HYP |  4  |  5  |  6  |  *  |
-                                        |-----+-----+-----+-----+-----|
-                                        |EXEC |  1  |  2  |  3  |  -  |
-                                        |-----+-----+-----+-----+-----|
-                                        | OFF |  0  |  .  | PI  |  +  |
-                                        |-----+-----+-----+-----+-----+
+@group
+|--- Emacs Calculator Mode ---
+|2:  17.3
+|1:  -5
+|    .
+|--%%-Calc: 12 Deg       (Calcul
+|----+-----Calc 2.1------+----1
+|FLR |CEIL|RND |TRNC|CLN2|FLT |
+|----+----+----+----+----+----|
+| LN |EXP |    |ABS |IDIV|MOD |
+|----+----+----+----+----+----|
+|SIN |COS |TAN |SQRT|y^x |1/x |
+|----+----+----+----+----+----|
+|  ENTER  |+/- |EEX |UNDO| <- |
+|-----+---+-+--+--+-+---++----|
+| INV |  7  |  8  |  9  |  /  |
+|-----+-----+-----+-----+-----|
+| HYP |  4  |  5  |  6  |  *  |
+|-----+-----+-----+-----+-----|
+|EXEC |  1  |  2  |  3  |  -  |
+|-----+-----+-----+-----+-----|
+| OFF |  0  |  .  | PI  |  +  |
+|-----+-----+-----+-----+-----+
+@end group
 @end smallexample
 
 Keypad mode is much easier for beginners to learn, because there
@@ -10010,7 +10013,6 @@ numeric entry, undo, numeric prefix arguments, etc.
 * Numeric Entry::
 * Algebraic Entry::
 * Quick Calculator::
-* Keypad Mode::
 * Prefix Arguments::
 * Undo::
 * Error Messages::
@@ -28292,9 +28294,9 @@ pushes the old value of @samp{a} on the stack and stores @samp{a = 6}.
 @pindex calc-unstore
 @cindex Void variables
 @cindex Un-storing variables
-Until you store something in them, variables are ``void,'' that is, they
-contain no value at all.  If they appear in an algebraic formula they
-will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
+Until you store something in them, most variables are ``void,'' that is,
+they contain no value at all.  If they appear in an algebraic formula
+they will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
 The @kbd{s u} (@code{calc-unstore}) command returns a variable to the
 void state.
 
@@ -29649,7 +29651,7 @@ whole line.  So you can usually transfer a single number into Calc
 just by double-clicking on it in the shell, then middle-clicking
 in the Calc window.
 
-@node Keypad Mode, Embedded Mode, Kill and Yank, Introduction
+@node Keypad Mode, Embedded Mode, Kill and Yank, Top
 @chapter Keypad Mode
 
 @noindent
@@ -29706,7 +29708,7 @@ original buffer.
 
 @smallexample
 @group
-|----+-----Calc 2.00-----+----1
+|----+-----Calc 2.1------+----1
 |FLR |CEIL|RND |TRNC|CLN2|FLT |
 |----+----+----+----+----+----|
 | LN |EXP |    |ABS |IDIV|MOD |
@@ -31393,23 +31395,35 @@ are @emph{not} affected by @kbd{Z `} and @kbd{Z '}.
 @node Queries in Macros, , Local Values in Macros, Keyboard Macros
 @subsection Queries in Keyboard Macros
 
-@noindent
-@kindex Z =
-@pindex calc-kbd-report
-The @kbd{Z =} (@code{calc-kbd-report}) command displays an informative
-message including the value on the top of the stack.  You are prompted
-to enter a string.  That string, along with the top-of-stack value,
-is displayed unless @kbd{m w} (@code{calc-working}) has been used
-to turn such messages off.
+@c @noindent
+@c @kindex Z =
+@c @pindex calc-kbd-report
+@c The @kbd{Z =} (@code{calc-kbd-report}) command displays an informative
+@c message including the value on the top of the stack.  You are prompted
+@c to enter a string.  That string, along with the top-of-stack value,
+@c is displayed unless @kbd{m w} (@code{calc-working}) has been used
+@c to turn such messages off.
 
+@noindent
 @kindex Z #
 @pindex calc-kbd-query
-The @kbd{Z #} (@code{calc-kbd-query}) command displays a prompt message
-(which you enter during macro definition), then does an algebraic entry
-which takes its input from the keyboard, even during macro execution.
-This command allows your keyboard macros to accept numbers or formulas
-as interactive input.  All the normal conventions of algebraic input,
-including the use of @kbd{$} characters, are supported.
+The @kbd{Z #} (@code{calc-kbd-query}) command prompts for an algebraic
+entry which takes its input from the keyboard, even during macro
+execution.  All the normal conventions of algebraic input, including the
+use of @kbd{$} characters, are supported.  The prompt message itself is
+taken from the top of the stack, and so must be entered (as a string)
+before the @kbd{Z #} command.  (Recall, as a string it can be entered by
+pressing the @kbd{"} key and will appear as a vector when it is put on
+the stack.  The prompt message is only put on the stack to provide a
+prompt for the @kbd{Z #} command; it will not play any role in any
+subsequent calculations.)  This command allows your keyboard macros to
+accept numbers or formulas as interactive input.
+
+As an example, 
+@kbd{2 @key{RET} "Power: " @key{RET} Z # 3 @key{RET} ^} will prompt for
+input with ``Power: '' in the minibuffer, then return 2 to the provided
+power.  (The response to the prompt that's given, 3 in this example,
+will not be part of the macro.)
 
 @xref{Keyboard Macro Query, , , emacs, the Emacs Manual}, for a description of
 @kbd{C-x q} (@code{kbd-macro-query}), the standard Emacs way to accept
@@ -35020,7 +35034,7 @@ CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
 @appendix Calc Summary
 
 @noindent
-This section includes a complete list of Calc 2.02 keystroke commands.
+This section includes a complete list of Calc 2.1 keystroke commands.
 Each line lists the stack entries used by the command (top-of-stack
 last), the keystrokes themselves, the prompts asked by the command,
 and the result of the command (also with top-of-stack last).
@@ -35867,8 +35881,7 @@ keystrokes are not listed in this summary.
 @c
 @r{       @:      Z `   @:             @:        @:calc-kbd-push@:}
 @r{       @:      Z '   @:             @:        @:calc-kbd-pop@:}
-@r{      a@:      Z =   @:message      @:    28  @:calc-kbd-report@:}
-@r{       @:      Z #   @:prompt       @:        @:calc-kbd-query@:}
+@r{       @:      Z #   @:             @:        @:calc-kbd-query@:}
 
 @c
 @r{   comp@:      Z C   @:func, args   @:    50  @:calc-user-define-composition@:}

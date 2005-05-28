@@ -555,7 +555,7 @@ including a reproducible test case and send the message."
 
   (octave-add-octave-menu)
   (octave-initialize-completions)
-  (run-hooks 'octave-mode-hook))
+  (run-mode-hooks 'octave-mode-hook))
 
 ;;; Miscellaneous useful functions
 (defun octave-describe-major-mode ()

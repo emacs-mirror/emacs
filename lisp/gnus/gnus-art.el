@@ -814,6 +814,7 @@ When nil (the default value), then some MIME parts do not get buttons,
 as described by the variables `gnus-buttonized-mime-types' and
 `gnus-unbuttonized-mime-types'."
   :version "22.1"
+  :group 'gnus-article-mime
   :type 'boolean)
 
 (defcustom gnus-body-boundary-delimiter "_"

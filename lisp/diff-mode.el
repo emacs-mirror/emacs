@@ -185,7 +185,8 @@ when editing big diffs)."
     (((class color) (background dark))
      :foreground "green" :weight bold)
     (t :weight bold))
-  "`diff-mode' face inherited by hunk and index header faces.")
+  "`diff-mode' face inherited by hunk and index header faces."
+  :group 'diff-mode)
 (defvar diff-header-face 'diff-header-face)
 
 (defface diff-file-header-face
@@ -198,27 +199,32 @@ when editing big diffs)."
     (((class color) (background dark))
      :foreground "cyan" :weight bold)
     (t :weight bold))			; :height 1.3
-  "`diff-mode' face used to highlight file header lines.")
+  "`diff-mode' face used to highlight file header lines."
+  :group 'diff-mode)
 (defvar diff-file-header-face 'diff-file-header-face)
 
 (defface diff-index-face
   '((t :inherit diff-file-header-face))
-  "`diff-mode' face used to highlight index header lines.")
+  "`diff-mode' face used to highlight index header lines."
+  :group 'diff-mode)
 (defvar diff-index-face 'diff-index-face)
 
 (defface diff-hunk-header-face
   '((t :inherit diff-header-face))
-  "`diff-mode' face used to highlight hunk header lines.")
+  "`diff-mode' face used to highlight hunk header lines."
+  :group 'diff-mode)
 (defvar diff-hunk-header-face 'diff-hunk-header-face)
 
 (defface diff-removed-face
   '((t :inherit diff-changed-face))
-  "`diff-mode' face used to highlight removed lines.")
+  "`diff-mode' face used to highlight removed lines."
+  :group 'diff-mode)
 (defvar diff-removed-face 'diff-removed-face)
 
 (defface diff-added-face
   '((t :inherit diff-changed-face))
-  "`diff-mode' face used to highlight added lines.")
+  "`diff-mode' face used to highlight added lines."
+  :group 'diff-mode)
 (defvar diff-added-face 'diff-added-face)
 
 (defface diff-changed-face
@@ -226,12 +232,14 @@ when editing big diffs)."
      :foreground "magenta" :weight bold :slant italic)
     (((type tty pc) (class color) (background dark))
      :foreground "yellow" :weight bold :slant italic))
-  "`diff-mode' face used to highlight changed lines.")
+  "`diff-mode' face used to highlight changed lines."
+  :group 'diff-mode)
 (defvar diff-changed-face 'diff-changed-face)
 
 (defface diff-function-face
   '((t :inherit diff-context-face))
-  "`diff-mode' face used to highlight function names produced by \"diff -p\".")
+  "`diff-mode' face used to highlight function names produced by \"diff -p\"."
+  :group 'diff-mode)
 (defvar diff-function-face 'diff-function-face)
 
 (defface diff-context-face
@@ -239,12 +247,14 @@ when editing big diffs)."
      :foreground "grey50")
     (((class color) (background dark))
      :foreground "grey70"))
-  "`diff-mode' face used to highlight context and other side-information.")
+  "`diff-mode' face used to highlight context and other side-information."
+  :group 'diff-mode)
 (defvar diff-context-face 'diff-context-face)
 
 (defface diff-nonexistent-face
   '((t :inherit diff-file-header-face))
-  "`diff-mode' face used to highlight nonexistent files in recursive diffs.")
+  "`diff-mode' face used to highlight nonexistent files in recursive diffs."
+  :group 'diff-mode)
 (defvar diff-nonexistent-face 'diff-nonexistent-face)
 
 (defconst diff-yank-handler '(diff-yank-function))

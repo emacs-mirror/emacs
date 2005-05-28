@@ -88,23 +88,26 @@ is encountered.
 
 ** Add missing years in copyright notices of all files.
 
+Policy document admin/notes/years must be updated before
+making further progress on this task!!!
+
 Please record your name here and say which part of the distribution
 you're going to handle.
 
 DIRECTORY		STATUS		IN CHARGE
 ---------		------		---------
 leim			working		Kenichi Handa
-lisp/calc		done		Thien-Thi Nguyen
+lisp/calc		working		Thien-Thi Nguyen
 lisp/calendar		working		Glenn Morris
-lisp/emulation		done		Thien-Thi Nguyen
+lisp/emulation		working		Thien-Thi Nguyen
 lisp/eshell		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
-lisp/mh-e		done		Thien-Thi Nguyen
-lisp/net		done		Thien-Thi Nguyen
-lisp/play		done		Thien-Thi Nguyen
-lisp/term		done		Thien-Thi Nguyen
-lisp/toolbar		done		Thien-Thi Nguyen
+lisp/mh-e		working		Thien-Thi Nguyen
+lisp/net		working		Thien-Thi Nguyen
+lisp/play		working		Thien-Thi Nguyen
+lisp/term		working		Thien-Thi Nguyen
+lisp/toolbar		working		Thien-Thi Nguyen
 lisp/url		working		Thien-Thi Nguyen
 
 ** Update AUTHORS.
@@ -132,7 +135,7 @@ man/commands.texi   "Luc Teirlinck"  Chong Yidong
 man/custom.texi     Chong Yidong
 man/dired.texi      Chong Yidong     joakim@verona.se
 man/display.texi    "Luc Teirlinck"  Chong Yidong
-man/emacs.texi      "Luc Teirlinck"
+man/emacs.texi      "Luc Teirlinck"  Lute Kamstra
 man/entering.texi   "Luc Teirlinck"  Chong Yidong
 man/files.texi      "Luc Teirlinck"  Chong Yidong
 man/fixit.texi      "Luc Teirlinck"  Chong Yidong

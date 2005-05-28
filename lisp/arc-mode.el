@@ -672,7 +672,7 @@ archive.
 	(setq major-mode 'archive-mode)
 	(setq mode-name (concat typename "-Archive"))
 	;; Run archive-foo-mode-hook and archive-mode-hook
-	(run-hooks (archive-name "mode-hook") 'archive-mode-hook)
+	(run-mode-hooks (archive-name "mode-hook") 'archive-mode-hook)
 	(use-local-map archive-mode-map))
 
       (make-local-variable 'archive-proper-file-start)

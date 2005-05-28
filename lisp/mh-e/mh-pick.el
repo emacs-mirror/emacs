@@ -140,8 +140,7 @@ with no arguments, upon entry to this mode.
   (make-local-variable 'mh-searching-function)
   (make-local-variable 'mh-help-messages)
   (easy-menu-add mh-pick-menu)
-  (setq mh-help-messages mh-pick-mode-help-messages)
-  (run-hooks 'mh-pick-mode-hook))
+  (setq mh-help-messages mh-pick-mode-help-messages))
 
 ;;;###mh-autoload
 (defun mh-pick-do-search ()

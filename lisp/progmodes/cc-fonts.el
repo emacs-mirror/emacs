@@ -875,7 +875,7 @@ casts and declarations are fontified.  Used on level 2 and higher."
 	       ;; with array initializers.  Otherwise stop at braces
 	       ;; to avoid going past full function and class blocks.
 	       (and (if (and (eq got-init ?=)
-			     (= (c-forward-token-2) 0)
+			     (= (c-forward-token-2 1 nil limit) 0)
 			     (looking-at "{"))
 			(c-safe (c-forward-sexp) t)
 		      t)

@@ -596,7 +596,7 @@ such a string.
 @vindex follow-link@r{ keyword}
 @item :follow-link
 Specifies how to interpret a @key{mouse-1} click on the widget.
-@xref{Enabling Mouse-1 to Follow Links,,, elisp, the Emacs Lisp Reference Manual}.
+@xref{Links and Mouse-1,,, elisp, the Emacs Lisp Reference Manual}.
 
 @vindex indent@r{ keyword}
 @item :indent

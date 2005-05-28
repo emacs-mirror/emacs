@@ -1954,7 +1954,7 @@ The main features of this mode are
   (idlwave-new-buffer-update)
 
   ;; Run the mode hook
-  (run-hooks 'idlwave-mode-hook))
+  (run-mode-hooks 'idlwave-mode-hook))
 
 (defvar idlwave-setup-done nil)
 (defun idlwave-setup ()
@@ -3548,7 +3548,7 @@ is non-nil."
   (let ((pos (point)))
     (if idlwave-file-header
 	(cond ((car idlwave-file-header)
-	       (insert-file (car idlwave-file-header)))
+	       (insert-file-contents (car idlwave-file-header)))
 	      ((stringp (car (cdr idlwave-file-header)))
 	       (insert (car (cdr idlwave-file-header))))))
     (goto-char pos)))

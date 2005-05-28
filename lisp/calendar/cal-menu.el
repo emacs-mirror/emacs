@@ -221,7 +221,7 @@ not available."
                            l)))
             (setq l (cons ["Mark Holidays" mark-calendar-holidays t]
                           (cons ["Unmark Calendar" calendar-unmark t]
-                                (cons ["--" '("--") t] l))))
+                                (cons "--" l))))
             (define-key calendar-mode-map [menu-bar Holidays]
 	      (cons "Holidays" (easy-menu-create-menu "Holidays" (nreverse l))))
             (define-key calendar-mode-map [menu-bar Holidays separator]

@@ -112,16 +112,6 @@ a future Emacs interpreter will be able to use it.")
 (defun cl-cannot-unload ()
   (error "Cannot unload the feature `cl'"))
 
-;;; Predicates.
-
-(defun eql (a b)    ; See compiler macro in cl-macs.el
-  "Return t if the two args are the same Lisp object.
-Floating-point numbers of equal value are `eql', but they may not be `eq'."
-  (if (numberp a)
-      (equal a b)
-    (eq a b)))
-
-
 ;;; Generalized variables.  These macros are defined here so that they
 ;;; can safely be used in .emacs files.
 
@@ -162,7 +152,8 @@ be a symbol, or any generalized variable allowed by `setf'."
   "(pushnew X PLACE): insert X at the head of the list if not already there.
 Like (push X PLACE), except that the list is unmodified if X is `eql' to
 an element already on the list.
-Keywords supported:  :test :test-not :key"
+\nKeywords supported:  :test :test-not :key
+\n(fn X PLACE [KEYWORD VALUE]...)"
   (if (symbolp place) (list 'setq place (list* 'adjoin x place keys))
     (list* 'callf2 'adjoin x place keys)))
 
@@ -256,7 +247,8 @@ Otherwise, the macro is expanded and the expansion is considered
 in place of FORM.  When a non-macro-call results, it is returned.
 
 The second optional arg ENVIRONMENT specifies an environment of macro
-definitions to shadow the loaded ones for use in file byte-compilation."
+definitions to shadow the loaded ones for use in file byte-compilation.
+\n(fn FORM &optional ENVIRONMENT)"
   (let ((cl-macro-environment cl-env))
     (while (progn (setq cl-macro (funcall cl-old-macroexpand cl-macro cl-env))
 		  (and (symbolp cl-macro)
@@ -300,27 +292,27 @@ definitions to shadow the loaded ones for use in file byte-compilation."
 
 ;;; Numbers.
 
-(defun floatp-safe (x)
+(defun floatp-safe (object)
   "Return t if OBJECT is a floating point number.
 On Emacs versions that lack floating-point support, this function
 always returns nil."
-  (and (numberp x) (not (integerp x))))
+  (and (numberp object) (not (integerp object))))
 
-(defun plusp (x)
+(defun plusp (number)
   "Return t if NUMBER is positive."
-  (> x 0))
+  (> number 0))
 
-(defun minusp (x)
+(defun minusp (number)
   "Return t if NUMBER is negative."
-  (< x 0))
+  (< number 0))
 
-(defun oddp (x)
+(defun oddp (integer)
   "Return t if INTEGER is odd."
-  (eq (logand x 1) 1))
+  (eq (logand integer 1) 1))
 
-(defun evenp (x)
+(defun evenp (integer)
   "Return t if INTEGER is even."
-  (eq (logand x 1) 0))
+  (eq (logand integer 1) 0))
 
 (defvar *random-state* (vector 'cl-random-state-tag -1 30 (cl-random-time)))
 
@@ -344,7 +336,8 @@ always returns nil."
 If there are several SEQs, FUNCTION is called with that many arguments,
 and mapping stops as soon as the shortest list runs out.  With just one
 SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
-`mapcar' function extended to arbitrary sequence types."
+`mapcar' function extended to arbitrary sequence types.
+\n(fn FUNCTION SEQ...)"
   (if cl-rest
       (if (or (cdr cl-rest) (nlistp cl-x) (nlistp (car cl-rest)))
 	  (cl-mapcar-many cl-func (cons cl-x cl-rest))
@@ -503,9 +496,10 @@ SEQ, this is like `mapcar'.  With several, it is like the Common Lisp
 ;;    x))
 
 (defun list* (arg &rest rest)   ; See compiler macro in cl-macs.el
-  "Return a new list with specified args as elements, consed to last arg.
+  "Return a new list with specified ARGs as elements, consed to last ARG.
 Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
-`(cons A (cons B (cons C D)))'."
+`(cons A (cons B (cons C D)))'.
+\n(fn ARG...)"
   (cond ((not rest) arg)
 	((not (cdr rest)) (cons arg (car rest)))
 	(t (let* ((n (length rest))
@@ -522,8 +516,8 @@ Thus, `(list* A B C D)' is equivalent to `(nconc (list A B C) D)', or to
     (nreverse res)))
 
 (defun copy-list (list)
-  "Return a copy of a list, which may be a dotted list.
-The elements of the list are not copied, just the list structure itself."
+  "Return a copy of LIST, which may be a dotted list.
+The elements of LIST are not copied, just the list structure itself."
   (if (consp list)
       (let ((res nil))
 	(while (consp list) (push (pop list) res))
@@ -544,7 +538,8 @@ The elements of the list are not copied, just the list structure itself."
 (defun adjoin (cl-item cl-list &rest cl-keys)  ; See compiler macro in cl-macs
   "Return ITEM consed onto the front of LIST only if it's not already there.
 Otherwise, return LIST unmodified.
-Keywords supported:  :test :test-not :key"
+\nKeywords supported:  :test :test-not :key
+\n(fn ITEM LIST [KEYWORD VALUE]...)"
   (cond ((or (equal cl-keys '(:test eq))
 	     (and (null cl-keys) (not (numberp cl-item))))
 	 (if (memq cl-item cl-list) cl-list (cons cl-item cl-list)))
@@ -555,7 +550,8 @@ Keywords supported:  :test :test-not :key"
 (defun subst (cl-new cl-old cl-tree &rest cl-keys)
   "Substitute NEW for OLD everywhere in TREE (non-destructively).
 Return a copy of TREE with all elements `eql' to OLD replaced by NEW.
-Keywords supported:  :test :test-not :key"
+\nKeywords supported:  :test :test-not :key
+\n(fn NEW OLD TREE [KEYWORD VALUE]...)"
   (if (or cl-keys (and (numberp cl-old) (not (integerp cl-old))))
       (apply 'sublis (list (cons cl-old cl-new)) cl-tree cl-keys)
     (cl-do-subst cl-new cl-old cl-tree)))
@@ -569,8 +565,17 @@ Keywords supported:  :test :test-not :key"
 	       cl-tree (cons a d))))
 	(t cl-tree)))
 
-(defun acons (a b c) (cons (cons a b) c))
-(defun pairlis (a b &optional c) (nconc (mapcar* 'cons a b) c))
+(defun acons (key value alist)
+  "Add KEY and VALUE to ALIST.
+Return a new list with (cons KEY VALUE) as car and ALIST as cdr."
+  (cons (cons key value) alist))
+
+(defun pairlis (keys values &optional alist)
+  "Make an alist from KEYS and VALUES.
+Return a new alist composed by associating KEYS to corresponding VALUES;
+the process stops as soon as KEYS or VALUES run out.
+If ALIST is non-nil, the new pairs are prepended to it."
+  (nconc (mapcar* 'cons keys values) alist))
 
 
 ;;; Miscellaneous.
@@ -699,5 +704,5 @@ Keywords supported:  :test :test-not :key"
 
 (run-hooks 'cl-load-hook)
 
-;;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
+;; arch-tag: 5f07fa74-f153-4524-9303-21f5be125851
 ;;; cl.el ends here

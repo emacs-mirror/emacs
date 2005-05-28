@@ -735,16 +735,18 @@ for its usual definition is in @file{userlock.el}.
 @section Information about Files
 
   The functions described in this section all operate on strings that
-designate file names.  All the functions have names that begin with the
-word @samp{file}.  These functions all return information about actual
-files or directories, so their arguments must all exist as actual files
-or directories unless otherwise noted.
+designate file names.  With a few exceptions, all the functions have
+names that begin with the word @samp{file}.  These functions all
+return information about actual files or directories, so their
+arguments must all exist as actual files or directories unless
+otherwise noted.
 
 @menu
 * Testing Accessibility::   Is a given file readable?  Writable?
 * Kinds of Files::          Is it a directory?  A symbolic link?
 * Truenames::		    Eliminating symbolic links from a file name.
 * File Attributes::         How large is it?  Any other names?  Etc.
+* Locating Files::          How to find a file in standard places.
 @end menu
 
 @node Testing Accessibility
@@ -1253,6 +1255,67 @@ has an inode number of 129500.
 is on file system number -32252.
 @end table
 @end defun
+
+@node Locating Files
+@subsection How to Locate Files in Standard Places
+@cindex locate files
+@cindex find files
+
+  Sometimes, you need to find a file that could reside in one of the
+standard directories.  One example is when you need to look for a
+program's executable file, e.g., to find out whether a given program
+is installed on the user's system.  Another example is the search for
+Lisp libraries (@pxref{Library Search}).  Such searches generally need
+to try several alternative file name extensions, in addition to
+looking in every standard directory where the file could be found.
+Emacs provides a function for such a generalized search for a file.
+
+@defun locate-file filename path &optional suffixes predicate
+This function searches for the file whose name is @var{filename} in
+a list of directories given by @var{path}.  If it finds the file, it
+returns its full @dfn{absolute file name} (@pxref{Relative File
+Names}); if the file is not found, the function returns @code{nil}.
+
+The optional argument @var{suffixes} gives the list of file-name
+suffixes to append to @var{filename} when searching.  If
+@var{suffixes} is @code{nil}, it's equivalent to passing a list with a
+single element that is an empty string @code{""}.
+
+Typical values of @var{path} are @code{exec-path} (@pxref{Subprocess
+Creation, exec-path}) when looking for executable programs or
+@code{load-path} (@pxref{Library Search, load-path}) when looking for
+Lisp files.  Use @code{("/")} to disable the path search (e.g., if
+@var{filename} already includes the leading directories), but still
+try the extensions in @var{suffixes}.
+
+Typical values of @var{suffixes} are @code{exec-suffixes}
+(@pxref{Subprocess Creation, exec-suffixes}) and @code{load-suffixes}
+(@pxref{Library Search, load-suffixes}).
+
+The optional argument @var{predicate}, if non-@code{nil}, specifies
+the predicate function to use for testing whether a candidate file is
+suitable.  The predicate function is passed the candidate file name as
+its single argument.  If @var{predicate} is @code{nil} or unspecified,
+@code{locate-file} uses @code{file-readable-p} as the default
+predicate.  Useful non-default predicates include
+@code{file-executable-p}, @code{file-directory-p}, and other
+predicates described in @ref{Kinds of Files}.
+
+For compatibility, @var{predicate} can also be one of the symbols
+@code{executable}, @code{readable}, @code{writable}, @code{exists}, or
+a list of one or more of these symbols.
+@end defun
+
+@cindex find executable program
+@defun executable-find program
+This function searches for the executable file of the named
+@var{program} and returns the full absolute name of the executable,
+including its file-name extensions, if any.  It returns @code{nil} if
+the file is not found.  The functions searches in all the directories
+in @code{exec-path} and tries all the file-name extensions in
+@code{exec-suffixes}.
+@end defun
+
 
 @node Changing Files
 @section Changing File Names and Attributes

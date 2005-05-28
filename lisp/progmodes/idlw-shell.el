@@ -1055,7 +1055,7 @@ IDL has currently stepped.")
   (set (make-local-variable 'tool-bar-map) nil)
 
   ;; Run the hooks.
-  (run-hooks 'idlwave-shell-mode-hook)
+  (run-mode-hooks 'idlwave-shell-mode-hook)
   (idlwave-shell-send-command idlwave-shell-initial-commands nil 'hide)
   ;; Turn off IDL's ^d interpreting, and define a system
   ;; variable which knows the version of IDLWAVE

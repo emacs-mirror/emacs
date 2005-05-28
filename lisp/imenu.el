@@ -192,32 +192,9 @@ with name concatenation."
 (defvar imenu-generic-expression nil
   "The regex pattern to use for creating a buffer index.
 
-If non-nil this pattern is passed to `imenu--generic-function'
-to create a buffer index.
-
-The value should be an alist with elements that look like this:
- (MENU-TITLE REGEXP INDEX)
-or like this:
- (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
-with zero or more ARGUMENTS.  The former format creates a simple element in
-the index alist when it matches; the latter creates a special element
-of the form  (NAME POSITION-MARKER FUNCTION ARGUMENTS...)
-with FUNCTION and ARGUMENTS copied from `imenu-generic-expression'.
-
-MENU-TITLE is a string used as the title for the submenu or nil if the
-entries are not nested.
-
-REGEXP is a regexp that should match a construct in the buffer that is
-to be displayed in the menu; i.e., function or variable definitions,
-etc.  It contains a substring which is the name to appear in the
-menu.  See the info section on Regexps for more information.
-
-INDEX points to the substring in REGEXP that contains the name (of the
-function, variable or type) that is to appear in the menu.
-
-The variable `imenu-case-fold-search' determines whether or not the
-regexp matches are case sensitive, and `imenu-syntax-alist' can be
-used to alter the syntax table for the search.
+If non-nil this pattern is passed to `imenu--generic-function' to
+create a buffer index.  Look there for the documentation of this
+pattern's structure.
 
 For example, see the value of `fortran-imenu-generic-expression' used by
 `fortran-mode' with `imenu-syntax-alist' set locally to give the
@@ -750,21 +727,33 @@ for modes which use `imenu--generic-function'.  If it is not set, but
   "Return an index of the current buffer as an alist.
 
 PATTERNS is an alist with elements that look like this:
- (MENU-TITLE REGEXP INDEX).
+ (MENU-TITLE REGEXP INDEX)
 or like this:
  (MENU-TITLE REGEXP INDEX FUNCTION ARGUMENTS...)
-with zero or more ARGUMENTS.
+with zero or more ARGUMENTS.  The former format creates a simple
+element in the index alist when it matches; the latter creates a
+special element of the form (NAME POSITION-MARKER FUNCTION
+ARGUMENTS...)  with FUNCTION and ARGUMENTS copied from
+`imenu-generic-expression'.
 
-MENU-TITLE is a string used as the title for the submenu or nil if the
-entries are not nested.
+MENU-TITLE is a string used as the title for the submenu or nil
+if the entries are not nested.
 
-REGEXP is a regexp that should match a construct in the buffer that is
-to be displayed in the menu; i.e., function or variable definitions,
-etc.  It contains a substring which is the name to appear in the
-menu.  See the info section on Regexps for more information.
+REGEXP is a regexp that should match a construct in the buffer
+that is to be displayed in the menu; i.e., function or variable
+definitions, etc.  It contains a substring which is the name to
+appear in the menu.  See the info section on Regexps for more
+information.  REGEXP may also be a function, called without
+arguments.  It is expected to search backwards.  It shall return
+true and set `match-data' iff it finds another element.
 
-INDEX points to the substring in REGEXP that contains the name (of the
-function, variable or type) that is to appear in the menu.
+INDEX points to the substring in REGEXP that contains the
+name (of the function, variable or type) that is to appear in the
+menu.
+
+The variable `imenu-case-fold-search' determines whether or not the
+regexp matches are case sensitive, and `imenu-syntax-alist' can be
+used to alter the syntax table for the search.
 
 See `lisp-imenu-generic-expression' for an example of PATTERNS.
 
@@ -811,7 +800,9 @@ depending on PATTERNS."
 		  start beg)
 	      ;; Go backwards for convenience of adding items in order.
 	      (goto-char (point-max))
-	      (while (and (re-search-backward regexp nil t)
+	      (while (and (if (functionp regexp)
+			      (funcall regexp)
+			    (re-search-backward regexp nil t))
 			  ;; Exit the loop if we get an empty match,
 			  ;; because it means a bad regexp was specified.
 			  (not (= (match-beginning 0) (match-end 0))))

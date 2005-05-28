@@ -2572,7 +2572,11 @@ With argument N, insert the Nth previous kill.
 If N is negative, this is a more recent kill.
 
 The sequence of kills wraps around, so that after the oldest one
-comes the newest one."
+comes the newest one.
+
+When this command inserts killed text into the buffer, it honors
+`yank-excluded-properties' and `yank-handler' as described in the
+doc string for `insert-for-yank-1', which see."
   (interactive "*p")
   (if (not (eq last-command 'yank))
       (error "Previous command was not a yank"))
@@ -2604,6 +2608,11 @@ killed OR yanked.  Put point at end, and set mark at beginning.
 With just \\[universal-argument] as argument, same but put point at beginning (and mark at end).
 With argument N, reinsert the Nth most recently killed stretch of killed
 text.
+
+When this command inserts killed text into the buffer, it honors
+`yank-excluded-properties' and `yank-handler' as described in the
+doc string for `insert-for-yank-1', which see.
+
 See also the command \\[yank-pop]."
   (interactive "*P")
   (setq yank-window-start (window-start))
@@ -4757,7 +4766,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq major-mode 'completion-list-mode)
   (make-local-variable 'completion-base-size)
   (setq completion-base-size nil)
-  (run-hooks 'completion-list-mode-hook))
+  (run-mode-hooks 'completion-list-mode-hook))
 
 (defun completion-list-mode-finish ()
   "Finish setup of the completions buffer.

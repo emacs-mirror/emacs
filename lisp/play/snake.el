@@ -385,7 +385,7 @@ Snake mode keybindings:
 
   (gamegrid-init (snake-display-options))
 
-  (run-hooks 'snake-mode-hook))
+  (run-mode-hooks 'snake-mode-hook))
 
 ;;;###autoload
 (defun snake ()

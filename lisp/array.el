@@ -872,6 +872,7 @@ take a numeric prefix argument):
 Entering array mode calls the function `array-mode-hook'."
 
   (interactive)
+  (kill-all-local-variables)
   ;; Number of rows in the array.
   (make-local-variable 'array-max-row)
   ;; Number of columns in the array.
@@ -907,7 +908,7 @@ Entering array mode calls the function `array-mode-hook'."
   (setq truncate-lines t)
   (setq overwrite-mode 'overwrite-mode-textual)
   (use-local-map array-mode-map)
-  (run-hooks 'array-mode-hook))
+  (run-mode-hooks 'array-mode-hook))
 
 
 

@@ -784,6 +784,12 @@ is converted into a string by expressing it in decimal."
   baud-rate)
 (make-obsolete 'baud-rate "use the `baud-rate' variable instead." "before 19.15")
 
+;; These are used by VM and some old programs
+(defalias 'focus-frame 'ignore "")
+(make-obsolete 'focus-frame "it does nothing." "22.1")
+(defalias 'unfocus-frame 'ignore "")
+(make-obsolete 'unfocus-frame "it does nothing." "22.1")
+
 
 ;;;; Obsolescence declarations for variables, and aliases.
 
@@ -1452,10 +1458,6 @@ BEG and END default respectively to the beginning and end of buffer."
 
 ;;;; Miscellanea.
 
-;; A number of major modes set this locally.
-;; Give it a global value to avoid compiler warnings.
-(defvar font-lock-defaults nil)
-
 (defvar suspend-hook nil
   "Normal hook run by `suspend-emacs', before suspending.")
 
@@ -1863,7 +1865,7 @@ Major mode functions should use this."
 These hooks will be executed by the first following call to
 `run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
 Only affects hooks run in the current buffer."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   `(progn
      (make-local-variable 'delay-mode-hooks)
      (let ((delay-mode-hooks t))

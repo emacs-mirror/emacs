@@ -310,7 +310,7 @@ Here are all local bindings.
   (easy-menu-add reftex-index-menu reftex-index-map)
   (add-hook 'post-command-hook 'reftex-index-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-index-pre-command-hook nil t)
-  (run-hooks 'reftex-index-mode-hook))
+  (run-mode-hooks 'reftex-index-mode-hook))
 
 (defconst reftex-index-help
 "                      AVAILABLE KEYS IN INDEX BUFFER
@@ -1308,7 +1308,7 @@ Here are all local bindings.
        reftex-index-phrases-font-lock-defaults)
   (easy-menu-add reftex-index-phrases-menu reftex-index-phrases-map)
   (set (make-local-variable 'reftex-index-phrases-marker) (make-marker))
-  (run-hooks 'reftex-index-phrases-mode-hook))
+  (run-mode-hooks 'reftex-index-phrases-mode-hook))
 (add-hook 'reftex-index-phrases-mode-hook 'turn-on-font-lock)
 
 ;; Font Locking stuff

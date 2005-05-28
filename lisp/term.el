@@ -1102,7 +1102,7 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-face)
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
-  (run-hooks 'term-mode-hook)
+  (run-mode-hooks 'term-mode-hook)
   (term-if-xemacs
    (set-buffer-menubar
     (append current-menubar (list term-terminal-menu))))
@@ -4179,7 +4179,7 @@ the process.  Any more args are arguments to PROGRAM."
 ;;;   (make-local-variable 'shell-directory-stack)
 ;;;   (setq shell-directory-stack nil)
 ;;;   (add-hook 'term-input-filter-functions 'shell-directory-tracker)
-;;;   (run-hooks 'shell-mode-hook))
+;;;   (run-mode-hooks 'shell-mode-hook))
 ;;;
 ;;;
 ;;; Completion for term-mode users

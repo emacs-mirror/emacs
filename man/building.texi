@@ -518,7 +518,7 @@ value is displayed in the echo area.
 With GDB in text command mode (@pxref{GDB Graphical Interface}),
 it is possible that use of GUD tooltips can cause a function to be
 called with harmful side-effects.  In this case, Emacs disables
-gud-tooltip-mode.
+them.
 
 @node Commands of GUD
 @subsection Commands of GUD
@@ -1149,10 +1149,11 @@ mode.  It does not treat @code{defvar} specially.
 @kbd{C-x C-e} a second time to display the value of the integer result
 in additional formats (octal, hexadecimal, and character).
 
-  If @kbd{C-M-x}, @kbd{C-x C-e}, or @kbd{M-:} is given a numeric
-argument, it inserts the value into the current buffer at point, rather
-than displaying it in the echo area.  The argument's value does not
-matter.
+  If @kbd{C-x C-e}, or @kbd{M-:} is given a numeric argument, it
+inserts the value into the current buffer at point, rather than
+displaying it in the echo area.  The argument's value does not matter.
+@kbd{C-M-x} with a numeric argument instruments the function
+definition for Edebug (@pxref{Instrumenting, Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}).
 
 @findex eval-region
 @findex eval-current-buffer

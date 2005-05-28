@@ -105,7 +105,7 @@ The usual mnemonic keys move the cursor around the board; in addition,
   (setq truncate-lines t)
   (setq major-mode 'solitaire-mode)
   (setq mode-name "Solitaire")
-  (run-hooks 'solitaire-mode-hook))
+  (run-mode-hooks 'solitaire-mode-hook))
 
 (defvar solitaire-stones 0
   "Counter for the stones that are still there.")

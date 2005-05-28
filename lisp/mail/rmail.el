@@ -1156,7 +1156,7 @@ Instead, these commands are available:
       (when rmail-display-summary
 	(rmail-summary))
       (rmail-construct-io-menu))
-    (run-hooks 'rmail-mode-hook)))
+    (run-mode-hooks 'rmail-mode-hook)))
 
 (defun rmail-mode-2 ()
   (kill-all-local-variables)
@@ -3444,7 +3444,11 @@ use \\[mail-yank-original] to yank the original message into it."
      ;; I don't know whether there are other mailers that still
      ;; need the names to be stripped.
 ;;;     (mail-strip-quoted-names reply-to)
-     reply-to
+     ;; Remove unwanted names from reply-to, since Mail-Followup-To
+     ;; header causes all the names in it to wind up in reply-to, not
+     ;; in cc.  But if what's left is an empty list, use the original.
+     (let* ((reply-to-list (rmail-dont-reply-to reply-to)))
+       (if (string= reply-to-list "") reply-to reply-to-list))
      subject
      (rmail-make-in-reply-to-field from date message-id)
      (if just-sender

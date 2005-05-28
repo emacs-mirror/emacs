@@ -2517,7 +2517,9 @@ This function is automatically called directly at the end of `get-buffer-create'
 	(if (and table (symbolp table))
 	    (setq table (get table 'translation-table)))
 	(unless (char-table-p table)
-	  (setq table (coding-system-get cs 'translation-table-for-input)))
+	  (setq table (coding-system-get cs 'translation-table-for-input))
+	  (if (and table (symbolp table))
+	      (setq table (get table 'translation-table))))
 	(when (char-table-p table)
 	  (if buffer
 	      (with-current-buffer buffer

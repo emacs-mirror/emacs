@@ -403,7 +403,7 @@ form that is ready to be `apply'ed.")
   (make-local-variable 'vi-mode-old-mode-name)
   (make-local-variable 'vi-mode-old-major-mode)
   (make-local-variable 'vi-mode-old-case-fold)
-  (run-hooks 'vi-mode-hook))
+  (run-mode-hooks 'vi-mode-hook))
 
 ;;;###autoload
 (defun vi-mode ()

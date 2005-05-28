@@ -1,3 +1,8 @@
+2005-05-26  Lute Kamstra  <lute@gnu.org>
+
+	* mh-utils.el (mh-show-mode): 
+	* mh-pick.el (mh-pick-mode): Remove spurious run-hooks.
+
 2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* mh-customize.el (mh-speedbar-selected-folder-face): Special case

@@ -998,7 +998,7 @@ Turning on Metafont mode calls the value of the variables
   (setq meta-complete-list
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
               (list "" 'ispell-complete-word)))
-  (run-hooks 'meta-common-mode-hook 'metafont-mode-hook))
+  (run-mode-hooks 'meta-common-mode-hook 'metafont-mode-hook))
 
 ;;;###autoload
 (defun metapost-mode ()
@@ -1023,7 +1023,7 @@ Turning on MetaPost mode calls the value of the variable
   (setq meta-complete-list
         (list (list "\\<\\(\\sw+\\)" 1 'meta-symbol-list)
               (list "" 'ispell-complete-word)))
-  (run-hooks 'meta-common-mode-hook 'metapost-mode-hook))
+  (run-mode-hooks 'meta-common-mode-hook 'metapost-mode-hook))
 
 
 ;;; Just in case ...

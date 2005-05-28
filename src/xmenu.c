@@ -116,7 +116,8 @@ extern Lisp_Object Qmenu_bar_update_hook;
 extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
 extern XtAppContext Xt_app_con;
 
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
+static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
+				     char **));
 static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
                                      LWLIB_ID, int));
 
@@ -129,7 +130,8 @@ static void popup_get_selection P_ ((XEvent *, struct x_display_info *,
 #include "gtkutil.h"
 #define HAVE_BOXES 1
 extern void set_frame_menubar P_ ((FRAME_PTR, int, int));
-static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, char **));
+static Lisp_Object xdialog_show P_ ((FRAME_PTR, int, Lisp_Object, Lisp_Object,
+				     char **));
 #endif
 
 /* This is how to deal with multibyte text if HAVE_MULTILINGUAL_MENU
@@ -999,7 +1001,7 @@ no quit occurs and `x-popup-menu' returns nil.  */)
 
 #ifdef HAVE_MENUS
 
-DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 2, 0,
+DEFUN ("x-popup-dialog", Fx_popup_dialog, Sx_popup_dialog, 2, 3, 0,
        doc: /* Pop up a dialog box and return user's selection.
 POSITION specifies which frame to use.
 This is normally a mouse button event or a window or frame.
@@ -1007,7 +1009,7 @@ If POSITION is t, it means to use the frame the mouse is on.
 The dialog box appears in the middle of the specified frame.
 
 CONTENTS specifies the alternatives to display in the dialog box.
-It is a list of the form (TITLE ITEM1 ITEM2...).
+It is a list of the form (DIALOG ITEM1 ITEM2...).
 Each ITEM is a cons cell (STRING . VALUE).
 The return value is VALUE from the chosen item.
 
@@ -1016,11 +1018,14 @@ An ITEM may also be nil--that means to put all preceding items
 on the left of the dialog box and all following items on the right.
 \(By default, approximately half appear on each side.)
 
+If HEADER is non-nil, the frame title for the box is "Information",
+otherwise it is "Question".
+
 If the user gets rid of the dialog box without making a valid choice,
 for instance using the window manager, then this produces a quit and
 `x-popup-dialog' does not return.  */)
-     (position, contents)
-     Lisp_Object position, contents;
+     (position, contents, header)
+     Lisp_Object position, contents, header;
 {
   FRAME_PTR f = NULL;
   Lisp_Object window;
@@ -1115,7 +1120,7 @@ for instance using the window manager, then this produces a quit and
 
     /* Display them in a dialog box.  */
     BLOCK_INPUT;
-    selection = xdialog_show (f, 0, title, &error_name);
+    selection = xdialog_show (f, 0, title, header, &error_name);
     UNBLOCK_INPUT;
 
     unbind_to (specpdl_count, Qnil);
@@ -3020,11 +3025,11 @@ static char * button_names [] = {
   "button6", "button7", "button8", "button9", "button10" };
 
 static Lisp_Object
-xdialog_show (f, keymaps, title, error)
+xdialog_show (f, keymaps, title, header, error_name)
      FRAME_PTR f;
      int keymaps;
-     Lisp_Object title;
-     char **error;
+     Lisp_Object title, header;
+     char **error_name;
 {
   int i, nb_buttons=0;
   char dialog_name[6];
@@ -3036,11 +3041,11 @@ xdialog_show (f, keymaps, title, error)
   /* 1 means we've seen the boundary between left-hand elts and right-hand.  */
   int boundary_seen = 0;
 
-  *error = NULL;
+  *error_name = NULL;
 
   if (menu_items_n_panes > 1)
     {
-      *error = "Multiple panes in dialog box";
+      *error_name = "Multiple panes in dialog box";
       return Qnil;
     }
 
@@ -3077,7 +3082,7 @@ xdialog_show (f, keymaps, title, error)
 	if (NILP (item_name))
 	  {
 	    free_menubar_widget_value_tree (first_wv);
-	    *error = "Submenu in dialog items";
+	    *error_name = "Submenu in dialog items";
 	    return Qnil;
 	  }
 	if (EQ (item_name, Qquote))
@@ -3091,7 +3096,7 @@ xdialog_show (f, keymaps, title, error)
 	if (nb_buttons >= 9)
 	  {
 	    free_menubar_widget_value_tree (first_wv);
-	    *error = "Too many dialog items";
+	    *error_name = "Too many dialog items";
 	    return Qnil;
 	  }
 
@@ -3121,11 +3126,18 @@ xdialog_show (f, keymaps, title, error)
     wv = xmalloc_widget_value ();
     wv->name = dialog_name;
     wv->help = Qnil;
+
+    /*  Frame title: 'Q' = Question, 'I' = Information.
+        Can also have 'E' = Error if, one day, we want
+        a popup for errors. */
+    if (NILP(header))
+      dialog_name[0] = 'Q';
+    else
+      dialog_name[0] = 'I';
+
     /* Dialog boxes use a really stupid name encoding
        which specifies how many buttons to use
-       and how many buttons are on the right.
-       The Q means something also.  */
-    dialog_name[0] = 'Q';
+       and how many buttons are on the right. */
     dialog_name[1] = '0' + nb_buttons;
     dialog_name[2] = 'B';
     dialog_name[3] = 'R';

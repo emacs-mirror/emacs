@@ -231,24 +231,20 @@ this function onto `change-major-mode-hook'."
 ;; hook is run, the major mode is in the process of being changed and we do not
 ;; know what the final major mode will be.  So, `font-lock-change-major-mode'
 ;; only (a) notes the name of the current buffer, and (b) adds our function
-;; `turn-on-font-lock-if-enabled' to the hook variables `find-file-hook' and
-;; `post-command-hook' (for buffers that are not visiting files).  By the time
+;; `turn-on-font-lock-if-enabled' to the hook variables
+;; `after-change-major-mode-hook' and `post-command-hook' (for modes
+;; that do not yet run `after-change-major-mode-hook').  By the time
 ;; the functions on the first of these hooks to be run are run, the new major
 ;; mode is assumed to be in place.  This way we get a Font Lock function run
 ;; when a major mode is turned on, without knowing major modes or their hooks.
 ;;
-;; Naturally this requires that (a) major modes run `kill-all-local-variables',
-;; as they are supposed to do, and (b) the major mode is in place after the
-;; file is visited or the command that ran `kill-all-local-variables' has
-;; finished, whichever the sooner.  Arguably, any major mode that does not
-;; follow the convension (a) is broken, and I can't think of any reason why (b)
-;; would not be met (except `gnudoit' on non-files).  However, it is not clean.
-;;
-;; Probably the cleanest solution is to have each major mode function run some
-;; hook, e.g., `major-mode-hook', but maybe implementing that change is
-;; impractical.  I am personally against making `setq' a macro or be advised,
-;; or have a special function such as `set-major-mode', but maybe someone can
-;; come up with another solution?
+;; Naturally this requires that major modes run `kill-all-local-variables'
+;; and `after-change-major-mode-hook', as they are supposed to.  For modes
+;; that do not run `after-change-major-mode-hook' yet, `post-command-hook'
+;; takes care of things if the mode is set directly or indirectly by
+;; an interactive command; however, problems can occur if the mode is
+;; set by a timer or process: in that case, proper handling of Font Lock mode
+;; may be delayed until the next interactive command.
 
 ;; User interface.
 ;;

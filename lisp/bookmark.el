@@ -866,7 +866,7 @@ the annotation.
   (use-local-map bookmark-read-annotation-mode-map)
   (setq major-mode 'bookmark-read-annotation-mode)
   (insert (funcall bookmark-read-annotation-text-func bookmark))
-  (run-hooks 'text-mode-hook))
+  (run-mode-hooks 'text-mode-hook))
 
 
 (defun bookmark-read-annotation (parg bookmark)
@@ -903,7 +903,7 @@ When you have finished composing, type \\[bookmark-send-annotation].
   (let ((annotation (bookmark-get-annotation bookmark)))
     (if (and annotation (not (string-equal annotation "")))
 	(insert annotation)))
-  (run-hooks 'text-mode-hook))
+  (run-mode-hooks 'text-mode-hook))
 
 
 (defun bookmark-send-edited-annotation ()
@@ -1618,7 +1618,7 @@ Bookmark names preceded by a \"*\" have annotations.
   (setq buffer-read-only t)
   (setq major-mode 'bookmark-bmenu-mode)
   (setq mode-name "Bookmark Menu")
-  (run-hooks 'bookmark-bmenu-mode-hook))
+  (run-mode-hooks 'bookmark-bmenu-mode-hook))
 
 
 (defun bookmark-bmenu-toggle-filenames (&optional show)

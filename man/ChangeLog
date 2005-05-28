@@ -1,3 +1,62 @@
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Queries in Keyboard Macros): Rewrite to reflect
+	current behavior.
+
+2005-05-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* files.texi (Log Buffer): Merge in description of Log Edit
+	mode from pcl-cvs.texi.
+
+2005-05-26  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Lisp Eval): C-M-x with arg runs Edebug.
+
+2005-05-25  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi: Change Calc version number throughout.
+	(Keypad Mode): Change location in info output.
+	(Keypad mode overview): Move picture of keypad.
+
+2005-05-24  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* fixit.texi (Spelling): Delete confusing sentence; flyspell is
+	not enabled by default.
+	When not on a word, `ispell-word' by default checks the word
+	before point.
+
+2005-05-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Debugger Operation): Simplify last sentence.
+
+2005-05-23  Lute Kamstra  <lute@gnu.org>
+
+	* emacs.texi: Update FSF's address throughout.
+	(Preface): Use @cite.
+	(Distrib): Add cross reference to the node "Copying".  Mention the
+	FDL.  Don't refer to etc/{FTP,ORDERS}.  Mention the sale of
+	printed manuals.
+	(Intro): Use @xref for the Emacs Lisp Intro.
+
+2005-05-21  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Storing variables): Mention that only most variables
+	are void to begin with.
+
+2005-05-21  Kevin Ryde  <user42@zip.com.au>
+
+	* widget.texi (Basic Types): Update cross ref from "Enabling
+	Mouse-1 to Follow Links" to "Links and Mouse-1" per recent
+	lispref/text.texi change.
+
+2005-05-20  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.09
+
+2005-05-18  Carsten Dominik  <dominik@science.uva.nl>
+
+	* reftex.texi: Version 4.28
+
 2005-05-18  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* buffers.texi (Select Buffer): Document `C-u M-g M-g'.
