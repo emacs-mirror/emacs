@@ -1,6 +1,7 @@
 ;;; mh-seq.el --- MH-E sequences support
 
-;; Copyright (C) 1993, 1995, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995,
+;; 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -195,7 +196,7 @@ redone to get the new thread tree. This makes incremental threading easier.")
             (insert "\n"))
           (setq seq-list (cdr seq-list)))
         (goto-char (point-min))
-        (view-mode 1)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing sequences...done")))))
 
@@ -788,9 +789,32 @@ This function can only be used the folder is threaded."
 If no prefix arg is given, then return DEFAULT."
   (let ((default-string (loop for x in default concat (format " %s" x))))
     (if (or current-prefix-arg (equal default-string ""))
-        (delete "" (split-string (read-string "Pick expression: "
-                                              default-string)))
+        (mh-pick-args-list (read-string "Pick expression: "
+                                        default-string))
       default)))
+
+(defun mh-pick-args-list (s)
+  "Form list by grouping elements in string S suitable for pick arguments.
+For example, the string \"-subject a b c -from Joe User <user@domain.com>\"
+is converted to (\"-subject\" \"a b c\" \"-from\"
+\"Joe User <user@domain.com>\""
+  (let ((full-list (split-string s))
+        current-arg collection arg-list)
+    (while full-list
+      (setq current-arg (car full-list))
+      (if (null (string-match "^-" current-arg))
+          (setq collection
+                (if (null collection)
+                    current-arg
+                  (format "%s %s" collection current-arg)))
+        (when collection
+          (setq arg-list (append arg-list (list collection)))
+          (setq collection nil))
+        (setq arg-list (append arg-list (list current-arg))))
+      (setq full-list (cdr full-list)))
+    (when collection
+      (setq arg-list (append arg-list (list collection))))
+    arg-list))
 
 ;;;###mh-autoload
 (defun mh-narrow-to-subject (&optional pick-expr)
@@ -1315,6 +1339,7 @@ All messages after START-POINT are added to the thread tree."
           (old-buffer-modified-flag (buffer-modified-p)))
       (delete-region (point-min) (point-max))
       (mh-thread-print-scan-lines thread-tree)
+      (mh-notate-user-sequences)
       (mh-notate-deleted-and-refiled)
       (mh-notate-cur)
       (set-buffer-modified-p old-buffer-modified-flag))))

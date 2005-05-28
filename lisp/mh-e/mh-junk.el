@@ -1,6 +1,6 @@
 ;;; mh-junk.el --- Interface to anti-spam measures
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>,
 ;;         Bill Wohler <wohler@newt.com>
@@ -191,8 +191,8 @@ done by adding the following to your crontab:
       (message (format "Blacklisting message %d..." msg))
       (set-buffer (get-buffer-create mh-temp-buffer))
       (erase-buffer)
-      (call-process (expand-file-name mh-scan-prog mh-progs) mh-junk-background
-                    t nil
+      (call-process (expand-file-name mh-scan-prog mh-progs)
+                    nil mh-junk-background nil
                     (format "%s" msg) current-folder
                     "-format" "%<(mymbox{from})%|%(addr{from})%>")
       (goto-char (point-min))

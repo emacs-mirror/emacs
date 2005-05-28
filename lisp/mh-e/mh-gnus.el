@@ -1,6 +1,6 @@
 ;;; mh-gnus.el --- Make MH-E compatible with installed version of Gnus.
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
