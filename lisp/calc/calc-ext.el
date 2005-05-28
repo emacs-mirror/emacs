@@ -43,6 +43,9 @@
 (defvar math-comp-sel-cpos nil)
 (defvar math-compose-hash-args nil)
 
+(defvar calc-alg-map)
+(defvar calc-alg-esc-map)
+
 ;;; The following was made a function so that it could be byte-compiled.
 (defun calc-init-extensions ()
 
@@ -1192,8 +1195,9 @@ calc-kill calc-kill-region calc-yank))))
 	   (math-normalize val)))))
 
 
+(defvar calc-help-map nil)
 
-(if (boundp 'calc-help-map)
+(if calc-help-map
     nil
   (setq calc-help-map (make-keymap))
   (define-key calc-help-map "b" 'calc-describe-bindings)
