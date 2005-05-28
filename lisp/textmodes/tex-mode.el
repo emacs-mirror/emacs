@@ -1633,11 +1633,11 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 (defvar tex-compile-commands
   '(((concat "pdf" tex-command
 	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
+		     tex-start-commands) " %f")
      t "%r.pdf")
     ((concat tex-command
 	     " " (if (< 0 (length tex-start-commands))
-		     (shell-quote-argument tex-start-commands)) " %f")
+		     tex-start-commands) " %f")
      t "%r.dvi")
     ("yap %r &" "%r.dvi")
     ("xdvi %r &" "%r.dvi")
@@ -1900,8 +1900,8 @@ FILE is typically the output DVI or PDF file."
 	    (prog1 (file-name-directory (expand-file-name file))
 	      (setq file (file-name-nondirectory file))))
 	  (root (file-name-sans-extension file))
-	  (fspec (list (cons ?r (shell-quote-argument root))
-		       (cons ?f (shell-quote-argument file))))
+	  (fspec (list (cons ?r root)
+		       (cons ?f file)))
 	  (default (tex-compile-default fspec)))
      (list default-directory
 	   (completing-read
@@ -1922,14 +1922,13 @@ FILE is typically the output DVI or PDF file."
          (compile-command
           (if star
 	      (concat (substring command 0 star)
-		      (shell-quote-argument file)
+		      file
 		      (substring command (1+ star)))
             (concat command " "
 		    tex-start-options
 		    (if (< 0 (length tex-start-commands))
-			(concat
-			 (shell-quote-argument tex-start-commands) " "))
-		    (shell-quote-argument file)))))
+			(concat tex-start-commands " "))
+		    file))))
     (tex-send-tex-command compile-command dir)))
 
 (defun tex-send-tex-command (cmd &optional dir)
@@ -2232,8 +2231,7 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
         (tex-start-shell))
       (tex-send-command
        (if alt tex-alt-dvi-print-command tex-dvi-print-command)
-       (shell-quote-argument
-	print-file-name-dvi)
+       print-file-name-dvi
        t))))
 
 (defun tex-alt-print ()

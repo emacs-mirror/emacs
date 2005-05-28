@@ -1,3 +1,11 @@
+2005-05-28  Karl Berry  <karl@gnu.org>
+
+	* textmodes/tex-mode.el: now that tex-send-command calls
+	shell-quote-argument (2005-03-31 change), remove all calls to
+	shell-quote-argument; they all end up invoking tex-send-command.
+	The double quoting loses on filenames with non-safe characters,
+	such as "@".  Reported by Frederik Fouvry.
+
 2005-05-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-assembler-custom): Be more careful
@@ -3105,11 +3113,6 @@
 	* textmodes/fill.el (fill-text-properties-at): New function.
 	(fill-newline): Use fill-text-properties-at instead of
 	text-properties-at.
-
-2005-03-31  Karl Berry  <karl@freefriends.org>
-
-	* textmodes/tex-mode.el (tex-compile): Use shell-quote-argument,
-	not comint-quote-filename.
 
 2005-03-31  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
 
