@@ -1053,7 +1053,7 @@ If nil, selections displayed but ignored.")
 	(use-global-map glob)
 	(use-local-map loc)))))
 
-
+(defvar calc-alg-map) ; Defined in calc-ext.el
 
 (defun calc-mode ()
   "Calculator major mode.
