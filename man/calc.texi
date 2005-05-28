@@ -30113,9 +30113,9 @@ your own favorite delimiters.  Delimiters like @samp{$ $} can appear
 on their own separate lines or in-line with the formula.
 
 If you give a positive or negative numeric prefix argument, Calc
-instead uses the current point as one end of the formula, and moves
-forward or backward (respectively) by that many lines to find the
-other end.  Explicit delimiters are not necessary in this case.
+instead uses the current point as one end of the formula, and includes
+that many lines forward or backward (respectively, including the current
+line). Explicit delimiters are not necessary in this case.
 
 With a prefix argument of zero, Calc uses the current region
 (delimited by point and mark) instead of formula delimiters.
