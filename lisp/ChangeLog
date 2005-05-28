@@ -3,6 +3,25 @@
 	* calc/calc-misc.el (calc-info-goto-node): Use info instead of
 	Info-goto-node.
 
+	* calc/calc-embed.el (calc-embed-arg): New variable.
+	(calc-do-embedded-activate, calc-embedded-activate-formula)
+	(calc-embedded-edit, calc-do-embedded-activate): Replace undeclared
+	variable by new variable.
+	(calc-embedded-make-info): Replace undeclared variable by new
+	variable.  When selecting region with positive prefix
+	argument, use end of previous line instead of beginning of line.
+
+	* calc/calc-aent.el (calc-arg-values): Declare it.
+
+	* calc/calc-ext.el (calc-help-map, calc-alg-map, calc-alg-esc-map):
+	Declare them.
+
+	* calc/calc-stuff.el (math-decls-cache-tag): Declare it.
+
+	* calc/calc.el (calc-alg-map): Declare it.
+
+	* calc/calcalg2.el (math-decls-cache, math-decls-all): Declare them.
+
 2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-all-registers): New variable.

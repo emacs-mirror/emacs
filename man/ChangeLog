@@ -1,6 +1,8 @@
 2005-05-28  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Assignments in Embedded Mode): Fix variable name.
+	(Basic Embedded Mode): Explain behavior of arguments to
+	calc-embedded-mode.
 
 2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
 
