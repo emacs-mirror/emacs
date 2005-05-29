@@ -1,3 +1,13 @@
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Window Frame Parameters): Document user-size.
+	Shorten entry for top by referring to left.
+
+2005-05-26  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Hooks): Explain that after-change-major-mode-hook
+	is new, and what the implications are.  Other clarifications.
+
 2005-05-24  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Dialog Boxes): Minor fixes.
