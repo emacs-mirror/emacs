@@ -196,7 +196,7 @@ It creates the Imenu index for the buffer, if necessary."
 	      (puthash window current which-func-table)
 	      (force-mode-line-update)))
 	(error
-	 (which-func-mode -1)
+	 (setq which-func-mode nil)
 	 (error "Error in which-func-update: %s" info))))))
 
 ;;;###autoload
