@@ -437,10 +437,8 @@ The major mode command may start by calling some other major mode
 command (called the @dfn{parent mode}) and then alter some of its
 settings.  A mode that does this is called a @dfn{derived mode}.  The
 recommended way to define one is to use @code{define-derived-mode},
-but this is not required.  Such a mode should use
-@code{delay-mode-hooks} around its entire body (including the call to
-the parent mode command) @emph{except} for the final call to
-@code{run-mode-hooks}, which runs the derived mode's hook.  (Using
+but this is not required.  Such a mode should call the parent mode
+command inside a @code{delay-mode-hooks} form.  (Using
 @code{define-derived-mode} does this automatically.)  @xref{Derived
 Modes}, and @ref{Mode Hooks}.
 
