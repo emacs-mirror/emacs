@@ -260,7 +260,8 @@ Paragraphs are separated only by blank lines.  Semicolons start comments.
 If you accidentally suspend your process, use \\[comint-continue-subjob]
 to continue it."
   (interactive)
-  (comint-mode)
+  (delay-mode-hooks
+    (comint-mode))
   (setq comint-prompt-regexp inferior-lisp-prompt)
   (setq major-mode 'inferior-lisp-mode)
   (setq mode-name "Inferior Lisp")
