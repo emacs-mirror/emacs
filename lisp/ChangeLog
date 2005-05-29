@@ -8,6 +8,9 @@
 
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
+	* flyspell.el (flyspell-version): Function deleted.
+	(flyspell-auto-correct-previous-hook): Doc fix.
+	
 	* jit-lock.el (jit-lock-function, jit-lock-after-change):
 	Do nothing if memory is full.
 
@@ -24,6 +27,53 @@
 
 	* progmodes/which-func.el (which-func-update-1): Turn the mode
 	off in case of error by setting which-func-mode.
+
+2005-05-29   Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
+	
+	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
+	(flyspell-default-delayed-commands): add backward-delete-char-untabify.
+	(flyspell-abbrev-p): Default to nil.
+	(flyspell-use-global-abbrev-table-p): Doc fix.
+	(flyspell-large-region): Allow nil as value.
+	(flyspell-use-meta-tab, flyspell-auto-correct-binding): New variables.
+
+	(mail-mode-flyspell-verify): More robust handling
+	of `mail-header-separator'.  More efficient signature detection.
+	Allow for regexp metacharacters in message-header-separator.
+        Adding `To' not to be checked in mail-mode-flyspell-verify.
+
+	(flyspell-prog-mode): Run flyspell-prog-mode-hook.
+	(flyspell-mouse-map): Bind M-TAB only if flyspell-use-meta-tab.
+	Bind flyspell-auto-correct-binding.
+	Bind C-. and C-, .
+	(flyspell-mode-map): Likewise.
+	(flyspell-mode): Doc fix.
+	(flyspell-accept-buffer-local-defs): Preserve current buffer.
+	(flyspell-mode-on): Bind flyspell-mouse-map and flyspell-mode-map.
+	(flyspell-word-cache-result): New var, always local.
+	(flyspell-check-pre-word-p): Doc fix.
+	(flyspell-check-changed-word-p): Handle spc like newline.
+	(flyspell-post-command-hook): Set flyspell-word-cache-result.
+	(flyspell-word-search-backward, flyspell-word-search-forward):
+	New functions.
+	(flyspell-word): Return t if nothing to check.
+	When parsing TeX code, check for after } or \.
+	Use flyspell-word-search-backward to find previous word.
+	Return nil if duplicated word.
+	For word already checked, return same value as last time.
+	Set flyspell-word-cache-result after checking.
+	Don't clobber the return value.
+	(flyspell-get-word): Major rewrite.
+	(flyspell-external-point-words): New locals pword, pcount.
+	Fix size used in progress message.
+	Find the proper corresponding word in flyspell-large-region-buffer.
+	(flyspell-region): Check for flyspell-large-region = nil.
+	(flyspell-highlight-incorrect-region): Clean up overlays in region.
+	(flyspell-auto-correct-word): Check that WORD is a cons.
+	(flyspell-correct-word): Likewise.
+	(flyspell-auto-correct-previous-word):
+	Narrow down to what's on the screen, and recenter overlays	
+	at the end of the next word.
 
 2005-05-29  Daniel Pfeiffer  <occitan@esperanto.org>
 
