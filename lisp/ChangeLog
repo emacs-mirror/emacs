@@ -1,3 +1,10 @@
+2005-05-29  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-rule-action-regex)
+	(makefile-macroassign-regex): Continuation lines may be empty.
+	Reported by Joshua Varner.
+	(makefile-makepp-font-lock-keywords): Add $(stem).
+
 2005-05-28  Karl Berry  <karl@gnu.org>
 
 	* textmodes/tex-mode.el: now that tex-send-command calls
