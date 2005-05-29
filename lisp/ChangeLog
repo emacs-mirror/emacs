@@ -1,3 +1,10 @@
+2005-05-29  Juri Linkov  <juri@jurta.org>
+
+	* add-log.el (change-log-font-lock-keywords):
+	Add `+' to e-mail regexp to accept mail address with keywords.
+
+	* man.el (Man-name-regexp): Add `:' to accept qualified names.
+
 2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* progmodes/inf-lisp.el (inferior-lisp-mode): Use delay-mode-hooks.
