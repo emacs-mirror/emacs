@@ -266,14 +266,14 @@ not be enclosed in { } or ( )."
   "Characters to skip to find a line that might be a dependency.")
 
 (defvar makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)"
+  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)"
   "Regex used to highlight rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -420,7 +420,7 @@ not be enclosed in { } or ( )."
    nil
    "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
 
-   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?\\_>.*?[})]\\)"
+   '("[^$]\\(\\$[({]\\(?:output\\|stem\\|target\\)s?\\_>.*?[})]\\)"
      1 'makefile-targets-face prepend)
 
    ;; Colon modifier keywords.
