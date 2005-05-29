@@ -1,3 +1,8 @@
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
+	Undo the change that moves to end of the current word.
+
 2005-05-29  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-memory-set-repeat-count):
@@ -27,7 +32,13 @@
 
 	* progmodes/which-func.el (which-func-update-1): Turn the mode
 	off in case of error by setting which-func-mode.
+	
+2005-05-29   Peter Heslin  <p.j.heslin@durham.ac.uk>  (tiny change)
 
+	* flyspell.el (flyspell-auto-correct-previous-word):
+	Narrow down to what's on the screen, and recenter overlays	
+	at the end of the next word.
+	
 2005-05-29   Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
 	
 	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
@@ -71,9 +82,6 @@
 	(flyspell-highlight-incorrect-region): Clean up overlays in region.
 	(flyspell-auto-correct-word): Check that WORD is a cons.
 	(flyspell-correct-word): Likewise.
-	(flyspell-auto-correct-previous-word):
-	Narrow down to what's on the screen, and recenter overlays	
-	at the end of the next word.
 
 2005-05-29  Daniel Pfeiffer  <occitan@esperanto.org>
 
