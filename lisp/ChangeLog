@@ -1,3 +1,11 @@
+2005-05-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-memory-set-repeat-count):
+	Throw error when count <= 0 to ensure input is a number.
+	(gdb-read-memory-custom): Pick up address from buffer.
+	(gdb-memory-mode): Allow user to increment and decrement
+	memory address from header line.
+
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* jit-lock.el (jit-lock-function, jit-lock-after-change):
