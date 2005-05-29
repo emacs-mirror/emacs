@@ -1,3 +1,9 @@
+2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode): Use delay-mode-hooks.
+
+	* ielm.el (inferior-emacs-lisp-mode): Ditto.
+
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
@@ -15,7 +21,7 @@
 
 	* flyspell.el (flyspell-version): Function deleted.
 	(flyspell-auto-correct-previous-hook): Doc fix.
-	
+
 	* jit-lock.el (jit-lock-function, jit-lock-after-change):
 	Do nothing if memory is full.
 
@@ -32,15 +38,15 @@
 
 	* progmodes/which-func.el (which-func-update-1): Turn the mode
 	off in case of error by setting which-func-mode.
-	
+
 2005-05-29   Peter Heslin  <p.j.heslin@durham.ac.uk>  (tiny change)
 
 	* flyspell.el (flyspell-auto-correct-previous-word):
-	Narrow down to what's on the screen, and recenter overlays	
+	Narrow down to what's on the screen, and recenter overlays
 	at the end of the next word.
-	
+
 2005-05-29   Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
-	
+
 	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
 	(flyspell-default-delayed-commands): add backward-delete-char-untabify.
 	(flyspell-abbrev-p): Default to nil.
