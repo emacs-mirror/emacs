@@ -1131,7 +1131,7 @@ in sequence at the end, just before
   These conventions are new in Emacs 22, and some major modes
 implemented by users do not follow them yet.  So if you put a function
 onto @code{after-change-major-mode-hook}, keep in mind that some modes
-will fail to run it.  If user complains about that, you can respond,
+will fail to run it.  If a user complains about that, you can respond,
 ``That major mode fails to follow Emacs conventions, and that's why it
 fails to work.  Please fix the major mode.''  In most cases, that is
 good enough, so go ahead and use @code{after-change-major-mode-hook}.
