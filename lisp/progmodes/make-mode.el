@@ -851,7 +851,7 @@ Makefile mode can be configured by modifying the following variables:
   "An adapted `makefile-mode' that knows about makepp."
    (set (make-local-variable 'makefile-rule-action-regex)
 	;; Don't care about initial tab, but I don't know how to font-lock correctly without.
-	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.+\\\\\n\\)*.+\\)")
+	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.*\\\\\n\\)*.*\\)")
 
   (setq font-lock-defaults
 	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))
@@ -867,7 +867,7 @@ Makefile mode can be configured by modifying the following variables:
        "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\([:!]\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)")
   (set (make-local-variable 'makefile-dependency-skip) "^:!")
   (set (make-local-variable 'makefile-rule-action-regex)
-       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
+       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)")
   (setq font-lock-defaults
 	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
 
