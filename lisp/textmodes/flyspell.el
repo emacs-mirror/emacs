@@ -1901,7 +1901,6 @@ But don't look beyond what's visible on the screen."
     (save-excursion
       (save-restriction
 	(narrow-to-region top bot)
-	(re-search-forward "\\s \\|\\'" nil t)
 	(overlay-recenter (point))
 
 	(add-hook 'pre-command-hook 
