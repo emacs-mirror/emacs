@@ -1766,7 +1766,11 @@ static char *magick[] = {
   gdb-read-memory-handler
   gdb-read-memory-custom)
 
-(defun gdb-read-memory-custom ())
+(defun gdb-read-memory-custom ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (looking-at "0x[[:xdigit:]]+")
+	(setq gdb-memory-address (match-string 0)))))
 
 (defvar gdb-memory-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1790,8 +1794,8 @@ static char *magick[] = {
     (select-window (posn-window (event-start event)))
     (let* ((arg (read-from-minibuffer "Repeat count: "))
 	  (count (string-to-number arg)))
-      (if (< count 0)
-	  (error "Non-negative numbers only")
+      (if (<= count 0)
+	  (error "Positive numbers only")
 	(customize-set-variable 'gdb-memory-repeat-count count)
 	(gdb-invalidate-memory)))))
 
@@ -1944,7 +1948,38 @@ corresponding to the mode line clicked."
   (setq header-line-format
 	'(:eval
 	  (concat
-	   "Read address: "
+	   "Read address["
+	   (propertize
+	    "-"
+	    'face font-lock-warning-face
+	    'help-echo "mouse-1: Decrement address"
+	    'mouse-face 'mode-line-highlight
+	    'local-map
+	    (gdb-make-header-line-mouse-map
+	     'mouse-1
+	     #'(lambda () (interactive)
+		 (let ((gdb-memory-address
+			;; let GDB do the arithmetic
+			(concat
+			 gdb-memory-address " - "
+			 (number-to-string
+			  (* gdb-memory-repeat-count
+			     (cond ((string= gdb-memory-unit "b") 1)
+				   ((string= gdb-memory-unit "h") 2)
+				   ((string= gdb-memory-unit "w") 4)
+				   ((string= gdb-memory-unit "g") 8)))))))
+		       (gdb-invalidate-memory)))))
+	   "|"
+	   (propertize "+"
+		       'face font-lock-warning-face
+		       'help-echo "mouse-1: Increment address"
+		       'mouse-face 'mode-line-highlight
+		       'local-map (gdb-make-header-line-mouse-map
+				   'mouse-1
+				   #'(lambda () (interactive)
+				       (let ((gdb-memory-address nil))
+					 (gdb-invalidate-memory)))))
+	   "]: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
 		       'help-echo "mouse-1: Set memory address"
