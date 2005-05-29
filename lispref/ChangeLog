@@ -1,5 +1,10 @@
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
+	* modes.texi (Mode Hooks): Explain that after-change-major-mode-hook is
+	new, and what that implies.  Clarify.
+
+	* files.texi (Locating Files): Clean up the text.
+
 	* frames.texi (Window Frame Parameters): Document user-size.
 	Shorten entry for top by referring to left.
 

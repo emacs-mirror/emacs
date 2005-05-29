@@ -1,3 +1,22 @@
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* jit-lock.el (jit-lock-function, jit-lock-after-change):
+	Do nothing if memory is full.
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Pass t for GREEDY to looking-back.
+
+	* saveplace.el (save-place-alist-to-file): Write the file
+	using write-region.
+
+	* subr.el (looking-back): New argument GREEDY.
+
+	* progmodes/compile.el (compilation-start): Set the mode
+	before inserting the initial text.
+
+	* progmodes/which-func.el (which-func-update-1): Turn the mode
+	off in case of error by setting which-func-mode.
+
 2005-05-29  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-rule-action-regex)

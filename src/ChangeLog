@@ -1,3 +1,7 @@
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fbuffer_local_value): Call indirect_variable.
+
 2005-05-28  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Change the
