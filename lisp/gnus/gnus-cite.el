@@ -1017,6 +1017,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(when (< from to)
 	  (push (setq overlay (gnus-make-overlay from to))
 		gnus-cite-overlay-list)
+	  (gnus-overlay-put overlay 'evaporate t)
 	  (gnus-overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)
