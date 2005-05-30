@@ -96,7 +96,7 @@
 	(mail-mode-flyspell-verify): More robust handling
 	of `mail-header-separator'.  More efficient signature detection.
 	Allow for regexp metacharacters in message-header-separator.
-        Adding `To' not to be checked in mail-mode-flyspell-verify.
+	Adding `To' not to be checked in mail-mode-flyspell-verify.
 
 	(flyspell-prog-mode): Run flyspell-prog-mode-hook.
 	(flyspell-mouse-map): Bind M-TAB only if flyspell-use-meta-tab.
@@ -831,7 +831,7 @@
 	post-command-idle-delay.
 
 	* faces.el (list-faces-display): Provide button when describe-face
-	is called to take user back to  the list of faces.
+	is called to take user back to the list of faces.
 
 	* help-fns.el (describe-variable): Remove hyperlinks in a
 	variable's value as these are quite frequently inappropriate.
