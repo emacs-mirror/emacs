@@ -1,3 +1,8 @@
+2005-05-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-user-invocation): Check if
+	calc-invocation-macro is non-nil.
+
 2005-05-29  Juri Linkov  <juri@jurta.org>
 
 	* add-log.el (change-log-font-lock-keywords):
