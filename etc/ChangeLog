@@ -1,3 +1,7 @@
+2005-05-30  Miles Bader  <miles@gnu.org>
+
+	* emacs-buffer.gdb: Remove RCS keywords.
+
 2005-05-30  Noah Friedman  <friedman@splode.com>
 
 	* emacs-buffer.gdb: New file.

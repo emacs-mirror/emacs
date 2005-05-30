@@ -6,8 +6,6 @@
 # Status: tested with Emacs 22
 # Created: 2005-04-28
 
-# $Id: emacs-buffer.gdb,v 1.1 2005/05/30 10:30:34 friedman Exp $
-
 # This file is part of GNU Emacs.
 #
 # GNU Emacs is free software; you can redistribute it and/or modify
