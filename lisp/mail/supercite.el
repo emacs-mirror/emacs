@@ -1182,8 +1182,11 @@ to the auto-selected attribution string."
 	      (setq attribution attrib
 		    attriblist nil))
 	     ((listp attrib)
-	      (setq attribution (eval attrib)
-		    attriblist nil))
+	      (setq attribution (eval attrib))
+              (if (stringp attribution)
+                  (setq attriblist nil)
+                (setq attribution nil
+                      attriblist (cdr attriblist))))
 	     (t (error "%s did not evaluate to a string or list!"
 		       "sc-attrib-selection-list"))
 	     )))
