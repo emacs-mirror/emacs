@@ -1,3 +1,10 @@
+2005-05-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-bug-address): Fix docstring.
+	(calc-window-hook, calc-trail-window-hook): New variables.
+	(calc-trail-display): Restore use of calc-trail-window-hook.
+	(calc): Restore use of calc-window-hook.
+
 2005-05-31  Masatake YAMATO  <jet@gyve.org>
 
 	* emacs-lisp/find-func.el (find-function-noselect): Handle subroutines.

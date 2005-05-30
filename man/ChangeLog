@@ -1,3 +1,10 @@
+2005-05-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Hooks): Change description of calc-window-hook and
+	calc-trail-window-hook to match usage.
+	(Computational Functions): Add more constant-generating functions.
+	(Customizable Variables): Use defvar.
+
 2005-05-30  Noah Friedman  <friedman@splode.com>
 
 	* trouble.texi (After a Crash): Mention emacs-buffer.gdb as a
