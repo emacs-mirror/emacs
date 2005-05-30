@@ -1446,9 +1446,9 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	    (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)\\s-+")
 	  (looking-at
-     "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+     "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
 	(gdb-enqueue-input
 	 (list
 	  (concat gdb-server-prefix
@@ -2554,12 +2554,14 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-display-assembler-buffer ()
   "Display disassembly view."
   (interactive)
+  (setq gdb-previous-frame nil)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-assembler-buffer)))
 
 (defun gdb-frame-assembler-buffer ()
   "Display disassembly view in a new frame."
   (interactive)
+  (setq gdb-previous-frame nil)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))
