@@ -14,7 +14,7 @@
 
 	* progmodes/gdb-ui.el (gdb-toggle-breakpoint):
 	Make regexp more robust.
-	(gdb-display-assembler-buffer, gdb-frame-assembler-buffer): 
+	(gdb-display-assembler-buffer, gdb-frame-assembler-buffer):
 	Force regeneration of disassembly.
 
 2005-05-29  Jay Belanger  <belanger@truman.edu>
@@ -79,7 +79,7 @@
 2005-05-29   Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
 
 	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
-	(flyspell-default-delayed-commands): add backward-delete-char-untabify.
+	(flyspell-default-delayed-commands): Add backward-delete-char-untabify.
 	(flyspell-abbrev-p): Default to nil.
 	(flyspell-use-global-abbrev-table-p): Doc fix.
 	(flyspell-large-region): Allow nil as value.
@@ -130,7 +130,7 @@
 
 2005-05-28  Karl Berry  <karl@gnu.org>
 
-	* textmodes/tex-mode.el: now that tex-send-command calls
+	* textmodes/tex-mode.el: Now that tex-send-command calls
 	shell-quote-argument (2005-03-31 change), remove all calls to
 	shell-quote-argument; they all end up invoking tex-send-command.
 	The double quoting loses on filenames with non-safe characters,
@@ -172,7 +172,7 @@
 	Toggle display of floating point registers.
 	(gdb-registers-mode-map): Bind SPC to toggle-gdb-all-registers.
 
-	* progmodes/gud.el (gud-goto-info): Use info. Don't use require.
+	* progmodes/gud.el (gud-goto-info): Use info.  Don't use require.
 	(toggle-gud-tooltip-dereference):
 	Rename from gud-toggle-tooltip-dereference.
 
