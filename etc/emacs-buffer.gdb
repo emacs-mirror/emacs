@@ -6,7 +6,7 @@
 # Status: tested with Emacs 22
 # Created: 2005-04-28
 
-# $Id$
+# $Id: emacs-buffer.gdb,v 1.1 2005/05/30 10:30:34 friedman Exp $
 
 # This file is part of GNU Emacs.
 #
@@ -268,3 +268,5 @@ end
 # local variables:
 # mode: gdb-script
 # end:
+
+# arch-tag: 02087f62-2663-4868-977a-1fbb2fc2e7ef
