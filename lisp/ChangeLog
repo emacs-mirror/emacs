@@ -1,3 +1,11 @@
+2005-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-thumbname): The resulting thubname now
+	includes a hash value to improve its uniqueness, and has a ".jpg"
+	extension.  Also, it is now a valid filename on all systems.
+	(thumbs-make-thumb): Use `let', not `let*'.
+	(thumbs-show-thumbs-list): Check for JPEG availability.
+
 2005-05-30  Richard M. Stallman  <rms@gnu.org>
 
 	* filesets.el (filesets-menu-ensure-use-cached):
