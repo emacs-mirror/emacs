@@ -1,10 +1,14 @@
 2005-05-31  Masatake YAMATO  <jet@gyve.org>
 
-	* emacs-lisp/find-func.el (find-function-noselect): Handle
-	subroutines.
+	* emacs-lisp/find-func.el (find-function-noselect): Handle subroutines.
 
-	* help-fns.el (help-C-file-name): Added autoload mark for 
+	* help-fns.el (help-C-file-name): Add autoload mark for
 	`find-function-noselect'.
+
+2005-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compile-commands, tex-compile)
+	(tex-start-tex): Undo all but the last part of the 2005-05-28 change.
 
 2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
