@@ -1,3 +1,15 @@
+2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (mark-included-diary-files): Only kill
+	included diary buffer if it was not already being visited.
+	Reported by Stephen Berman <Stephen.Berman@gmx.net>.
+
+	* calendar/icalendar.el (top-level): Do not require 'appt.
+
+	* mail/supercite.el (sc-select-attribution): Only use a list
+	element from sc-attrib-selection-list if it returns a string.
+	Reported by Davide G. M. Salvetti <salve@debian.org>.
+
 2005-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
 	* thumbs.el (thumbs-thumbname): The resulting thubname now
