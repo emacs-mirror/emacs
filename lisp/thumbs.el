@@ -302,18 +302,21 @@ Or, alternatively, a SIZE may be specified."
 
 (defun thumbs-thumbname (img)
   "Return a thumbnail name for the image IMG."
-  (concat thumbs-thumbsdir "/"
-	  (subst-char-in-string
-	   ?\  ?\_
-	   (apply
-	    'concat
-	    (split-string
-	     (expand-file-name img) "/")))))
+  (convert-standard-filename
+   (let ((filename (expand-file-name img)))
+     (format "%s/%08x-%s.jpg"
+             thumbs-thumbsdir
+             (sxhash filename)
+             (subst-char-in-string
+              ?\s ?\_
+              (apply
+               'concat
+               (split-string filename "/")))))))
 
 (defun thumbs-make-thumb (img)
   "Create the thumbnail for IMG."
-  (let* ((fn (expand-file-name img))
-	 (tn (thumbs-thumbname img)))
+  (let ((fn (expand-file-name img))
+        (tn (thumbs-thumbname img)))
     (if (or (not (file-exists-p tn))
 	    ;;  This is not the right fix, but I don't understand
 	    ;;  the external program or why it produces a geometry
@@ -378,8 +381,9 @@ If MARKED is non-nil, the image is marked."
     (unless (bobp) (newline))))
 
 (defun thumbs-show-thumbs-list (L &optional buffer-name same-window)
-  (when (not (display-images-p))
-    (error "Images are not supported in this Emacs session"))
+  (unless (and (display-images-p)
+               (image-type-available-p 'jpeg))
+    (error "Required image type is not supported in this Emacs session"))
   (funcall (if same-window 'switch-to-buffer 'pop-to-buffer)
 	   (or buffer-name "*THUMB-View*"))
   (let ((inhibit-read-only t))
