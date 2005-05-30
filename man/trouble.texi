@@ -351,6 +351,13 @@ visits the file but gets the text from the auto-save file.
 recover are present in Emacs buffers.  You should then save them.  Only
 this---saving them---updates the files themselves.
 
+  As a last resort, if you had buffers with content which were not
+associated with any files, or if the autosave was not recent enough to
+have recorded important changes, you can use the
+@file{etc/emacs-buffer.gdb} script with @code{gdb} to retrieve them
+from a core dump--provided that a core dump was saved, and that the
+emacs executable was not stripped of its debugging symbols.
+
 @node Emergency Escape
 @subsection Emergency Escape
 
