@@ -1,3 +1,11 @@
+2005-05-31  Masatake YAMATO  <jet@gyve.org>
+
+	* emacs-lisp/find-func.el (find-function-noselect): Handle
+	subroutines.
+
+	* help-fns.el (help-C-file-name): Added autoload mark for 
+	`find-function-noselect'.
+
 2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (mark-included-diary-files): Only kill

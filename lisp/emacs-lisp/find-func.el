@@ -246,8 +246,6 @@ searched for in `find-function-source-path' if non nil, otherwise
 in `load-path'."
   (if (not function)
       (error "You didn't specify a function"))
-  (and (subrp (symbol-function function))
-       (error "%s is a primitive function" function))
   (let ((def (symbol-function function))
 	aliases)
     (while (symbolp def)
@@ -265,6 +263,8 @@ in `load-path'."
     (let ((library
 	   (cond ((eq (car-safe def) 'autoload)
 		  (nth 1 def))
+		 ((subrp def)
+		  (help-C-file-name def 'subr))
 		 ((symbol-file function 'defun)))))
       (find-function-search-for-symbol function nil library))))
 
