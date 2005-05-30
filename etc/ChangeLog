@@ -1,6 +1,7 @@
 2005-05-30  Noah Friedman  <friedman@splode.com>
 
 	* emacs-buffer.gdb: New file.
+	* NEWS: Mention it.
 
 2005-05-28  Richard M. Stallman  <rms@gnu.org>
 

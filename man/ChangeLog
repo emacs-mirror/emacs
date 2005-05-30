@@ -1,3 +1,8 @@
+2005-05-30  Noah Friedman  <friedman@splode.com>
+
+	* trouble.texi (After a Crash): Mention emacs-buffer.gdb as a
+	recovery mechanism.
+
 2005-05-28  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Assignments in Embedded Mode): Fix variable name.
