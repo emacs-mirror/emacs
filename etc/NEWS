@@ -108,6 +108,11 @@ types any more.  Add -DUSE_LISP_UNION_TYPE if you want union types.
 ---
 ** When pure storage overflows while dumping, Emacs now prints how
 much pure storage it will approximately need.
+
+** The script etc/emacs-buffer.gdb can be used with gdb to retrieve the
+contents of buffers from a core dump and save them to files easily, should
+emacs crash.
+
 
 * Startup Changes in Emacs 22.1
 
