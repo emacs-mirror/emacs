@@ -1,3 +1,15 @@
+2005-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* filesets.el (filesets-menu-ensure-use-cached):
+	Prevent warning when emacs-version>= is undefined.
+
+	* printing.el (pr-interactive-n-up): Use string-to-number.
+
+	* emulation/tpu-mapper.el: Use eval-buffer, not eval-current-buffer.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn):
+	Warn only when name to be defined is quoted.
+
 2005-05-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-toggle-breakpoint):
