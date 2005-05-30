@@ -185,7 +185,7 @@
 	   (file-name-coding-system nnmail-pathname-coding-system)
 	   dir file)
       (nnheader-re-read-dir pathname)
-      (setq dir (mapcar (lambda (name) (string-to-int (substring name 1)))
+      (setq dir (mapcar (lambda (name) (string-to-number (substring name 1)))
 			(ignore-errors (directory-files
 					pathname nil "^#[0-9]+#$" t))))
       (dolist (n dir)
@@ -293,7 +293,7 @@
   "Return the list of messages in the group."
   (gnus-make-directory nndraft-current-directory)
   (sort
-   (mapcar 'string-to-int
+   (mapcar 'string-to-number
 	   (directory-files nndraft-current-directory nil "\\`[0-9]+\\'" t))
    '<))
 

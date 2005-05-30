@@ -150,7 +150,7 @@ as unread by Gnus.")
 	 (file-exists-p file)
 	 (not (file-directory-p file))
 	 (save-excursion (nnmail-find-file file))
-	 (string-to-int (file-name-nondirectory file)))))
+	 (string-to-number (file-name-nondirectory file)))))
 
 (deffoo nnmh-request-group (group &optional server dont-check)
   (nnheader-init-server-buffer)
@@ -176,7 +176,7 @@ as unread by Gnus.")
 	(nnheader-re-read-dir pathname)
 	(setq dir
 	      (sort
-	       (mapcar (lambda (name) (string-to-int name))
+	       (mapcar (lambda (name) (string-to-number name))
 		       (directory-files pathname nil "^[0-9]+$" t))
 	       '<))
 	(cond
@@ -224,7 +224,7 @@ as unread by Gnus.")
   ;; For each directory, generate an active file line.
   (unless (string= (expand-file-name nnmh-toplev) dir)
     (let ((files (mapcar
-		  (lambda (name) (string-to-int name))
+		  (lambda (name) (string-to-number name))
 		  (directory-files dir nil "^[0-9]+$" t))))
       (when files
 	(save-excursion
@@ -358,7 +358,7 @@ as unread by Gnus.")
       (nnmh-possibly-change-directory group server)
       (let ((articles (mapcar
 		       (lambda (file)
-			 (string-to-int file))
+			 (string-to-number file))
 		       (directory-files
 			nnmh-current-directory nil "^[0-9]+$"))))
 	(when articles
@@ -486,7 +486,7 @@ as unread by Gnus.")
       (let ((files (sort
 		    (mapcar
 		     (lambda (f)
-		       (string-to-int f))
+		       (string-to-number f))
 		     (directory-files dir nil "^[0-9]+$"))
 		    '>)))
 	(when files
@@ -509,7 +509,7 @@ as unread by Gnus.")
   ;; articles in this folder.  The articles that are "new" will be
   ;; marked as unread by Gnus.
   (let* ((dir nnmh-current-directory)
-	 (files (sort (mapcar (function (lambda (name) (string-to-int name)))
+	 (files (sort (mapcar (function (lambda (name) (string-to-number name)))
 			      (directory-files nnmh-current-directory
 					       nil "^[0-9]+$" t))
 		      '<))

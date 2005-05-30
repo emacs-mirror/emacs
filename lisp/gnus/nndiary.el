@@ -601,7 +601,7 @@ all.  This may very well take some time.")
       (nnheader-report 'nndiary "Article %s retrieved" id)
       ;; We return the article number.
       (cons (if group-num (car group-num) group)
-	    (string-to-int (file-name-nondirectory path)))))))
+	    (string-to-number (file-name-nondirectory path)))))))
 
 (deffoo nndiary-request-group (group &optional server dont-check)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
@@ -820,7 +820,7 @@ all.  This may very well take some time.")
 	    ;; we should insert it.  (This situation should never
 	    ;; occur, but one likes to make sure...)
 	    (while (and (looking-at "[0-9]+\t")
-			(< (string-to-int
+			(< (string-to-number
 			    (buffer-substring
 			     (match-beginning 0) (match-end 0)))
 			   article)
@@ -1281,14 +1281,14 @@ all.  This may very well take some time.")
 	  (nnheader-article-to-file-alist nndiary-current-directory))))
 
 
-(defun nndiary-string-to-int (str min &optional max)
-  ;; Like `string-to-int' but barf if STR is not exactly an integer, and not
+(defun nndiary-string-to-number (str min &optional max)
+  ;; Like `string-to-number' but barf if STR is not exactly an integer, and not
   ;; within the specified bounds.
   ;; Signals are caught by `nndiary-schedule'.
   (if (not (string-match "^[ \t]*[0-9]+[ \t]*$" str))
       (nndiary-error "not an integer value")
     ;; else
-    (let ((val (string-to-int str)))
+    (let ((val (string-to-number str)))
       (and (or (< val min)
 	       (and max (> val max)))
 	   (nndiary-error "value out of range"))
@@ -1315,12 +1315,12 @@ all.  This may very well take some time.")
 	 (let ((res (split-string val "-")))
 	   (cond
 	    ((= (length res) 1)
-	     (nndiary-string-to-int (car res) min-or-values max))
+	     (nndiary-string-to-number (car res) min-or-values max))
 	    ((= (length res) 2)
 	     ;; don't know if crontab accepts this, but ensure
 	     ;; that BEG is <= END
-	     (let ((beg (nndiary-string-to-int (car res) min-or-values max))
-		   (end (nndiary-string-to-int (cadr res) min-or-values max)))
+	     (let ((beg (nndiary-string-to-number (car res) min-or-values max))
+		   (end (nndiary-string-to-number (cadr res) min-or-values max)))
 	       (cond ((< beg end)
 		      (cons beg end))
 		     ((= beg end)

@@ -1,3 +1,55 @@
+2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* gnus-agent.el (gnus-agent-regenerate-group)
+	(gnus-agent-fetch-articles): Replace `string-to-int' by
+	`string-to-number'.
+	* gnus-art.el (gnus-button-fetch-group): Ditto.
+	* gnus-cache.el (gnus-cache-generate-active)
+	(gnus-cache-articles-in-group): Ditto.
+	* gnus-group.el (gnus-group-set-current-level)
+	(gnus-group-insert-group-line): Ditto.
+	* gnus-score.el (gnus-score-set-expunge-below)
+	(gnus-score-set-mark-below, gnus-summary-score-effect)
+	(gnus-summary-score-entry): Ditto.
+	* gnus-soup.el (gnus-soup-send-packet, gnus-soup-parse-areas)
+	(gnus-soup-pack): Ditto.
+	* gnus-spec.el (gnus-xmas-format): Ditto.
+	* gnus-start.el (gnus-newsrc-to-gnus-format): Ditto.
+	* gnus-sum.el (gnus-create-xref-hashtb): Ditto.
+	* gnus-uu.el (gnus-uu-expand-numbers): Ditto.
+	* nnbabyl.el (nnbabyl-article-group-number): Ditto.
+	* nndb.el (nndb-get-remote-expire-response): Ditto.
+	* nndiary.el (nndiary-parse-schedule-value)
+	(nndiary-string-to-number, nndiary-request-replace-article)
+	(nndiary-request-article): Ditto.
+	* nndoc.el (nndoc-rnews-body-end, nndoc-mbox-body-end): Ditto.
+	* nndraft.el (nndraft-articles, nndraft-request-group): Ditto.
+	* nneething.el (nneething-make-head): Ditto.
+	* nnfolder.el (nnfolder-request-article)
+	(nnfolder-retrieve-headers): Ditto.
+	* nnheader.el (nnheader-file-to-number): Ditto.
+	* nnkiboze.el (nnkiboze-request-article): Ditto.
+	* nnmail.el (nnmail-process-unix-mail-format)
+	(nnmail-process-babyl-mail-format): Ditto.
+	* nnmbox.el (nnmbox-read-mbox, nnmbox-article-group-number): Ditto.
+	* nnmh.el (nnmh-update-gnus-unreads, nnmh-active-number)
+	(nnmh-request-create-group, nnmh-request-list-1)
+	(nnmh-request-group, nnmh-request-article): Ditto.
+	* nnml.el (nnml-request-replace-article, nnml-request-article): Ditto.
+	* nnrss.el (nnrss-find-rss-via-syndic8): Ditto.
+	* nnsoup.el (nnsoup-make-active): Ditto.
+	* nnspool.el (nnspool-find-id, nnspool-request-group): Ditto.
+	* nntp.el (nntp-find-group-and-number)
+	(nntp-retrieve-headers-with-xover): Ditto.
+	* pgg-gpg.el (pgg-gpg-snarf-keys-region): Ditto.
+	* pgg-parse.el (pgg-read-body, pgg-read-bytes)
+	(pgg-format-key-identifier): Ditto.
+	* pop3.el (pop3-last, pop3-stat): Ditto.
+	* qp.el (quoted-printable-decode-region): Ditto.
+
+	* spam-report.el (spam-report-url-ping-mm-url): Use format instead
+	of concat.
+
 2005-05-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-agent.el (gnus-category-mode): Use gnus-run-mode-hooks.

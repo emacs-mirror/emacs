@@ -1452,7 +1452,7 @@ if it is a string, only list groups matching REGEXP."
 	 (eval gnus-group-line-format-spec)))
      `(gnus-group ,(gnus-intern-safe gnus-tmp-group gnus-active-hashtb)
 		  gnus-unread ,(if (numberp number)
-				   (string-to-int gnus-tmp-number-of-unread)
+				   (string-to-number gnus-tmp-number-of-unread)
 				 t)
 		  gnus-marked ,gnus-tmp-marked-mark
 		  gnus-indentation ,gnus-group-indentation
@@ -3246,7 +3246,7 @@ Uses the process/prefix convention."
     (progn
       (unless (gnus-group-process-prefix current-prefix-arg)
 	(error "No group on the current line"))
-      (string-to-int
+      (string-to-number
        (let ((s (read-string
 		 (format "Level (default %s): "
 			 (or (gnus-group-group-level)

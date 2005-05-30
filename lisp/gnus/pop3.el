@@ -398,8 +398,8 @@ If NOW, use that time instead."
   "Return the number of messages in the maildrop and the maildrop's size."
   (pop3-send-command process "STAT")
   (let ((response (pop3-read-response process t)))
-    (list (string-to-int (nth 1 (split-string response " ")))
-	  (string-to-int (nth 2 (split-string response " "))))
+    (list (string-to-number (nth 1 (split-string response " ")))
+	  (string-to-number (nth 2 (split-string response " "))))
     ))
 
 (defun pop3-list (process &optional msg)
@@ -449,7 +449,7 @@ This function currently does nothing.")
   "Return highest accessed message-id number for the session."
   (pop3-send-command process "LAST")
   (let ((response (pop3-read-response process t)))
-    (string-to-int (nth 1 (split-string response " ")))
+    (string-to-number (nth 1 (split-string response " ")))
     ))
 
 (defun pop3-rset (process)

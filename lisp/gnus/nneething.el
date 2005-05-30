@@ -329,7 +329,7 @@ included.")
 	     (when (re-search-forward "<[a-zA-Z0-9_]@[-a-zA-Z0-9_]>" 1000 t)
 	       (concat "From: " (match-string 0) "\n"))))
 	 (nneething-from-line (nth 2 atts) file))
-     (if (> (string-to-int (int-to-string (nth 7 atts))) 0)
+     (if (> (string-to-number (int-to-string (nth 7 atts))) 0)
 	 (concat "Chars: " (int-to-string (nth 7 atts)) "\n")
        "")
      (if buffer

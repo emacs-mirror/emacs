@@ -5660,7 +5660,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 						    (match-end 1)))
 			(substring xrefs (match-beginning 1) (match-end 1))))
 	  (setq number
-		(string-to-int (substring xrefs (match-beginning 2)
+		(string-to-number (substring xrefs (match-beginning 2)
 					  (match-end 2))))
 	  (if (setq entry (gnus-gethash group xref-hashtb))
 	      (setcdr entry (cons number (cdr entry)))

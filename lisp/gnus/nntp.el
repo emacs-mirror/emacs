@@ -1499,7 +1499,7 @@ password contained in '~/.nntp-authinfo'."
         (when (<= count 1)
           (goto-char (point-min))
           (when (re-search-forward "^[0-9][0-9][0-9] .*\n\\([0-9]+\\)" nil t)
-            (let ((low-limit (string-to-int
+            (let ((low-limit (string-to-number
 			      (buffer-substring (match-beginning 1) 
 						(match-end 1)))))
               (while (and articles (<= (car articles) low-limit))
@@ -1571,7 +1571,7 @@ password contained in '~/.nntp-authinfo'."
       (goto-char (point-min))
       ;; We first find the number by looking at the status line.
       (let ((number (and (looking-at "2[0-9][0-9] +\\([0-9]+\\) ")
-			 (string-to-int
+			 (string-to-number
 			  (buffer-substring (match-beginning 1)
 					    (match-end 1)))))
 	    newsgroups xref)
@@ -1609,7 +1609,7 @@ password contained in '~/.nntp-authinfo'."
 		    "\\([^ :]+\\):\\([0-9]+\\)")
 		  xref))
 	    (setq group (match-string 1 xref)
-		  number (string-to-int (match-string 2 xref))))
+		  number (string-to-number (match-string 2 xref))))
 	   ((and (setq newsgroups
 		       (mail-fetch-field "newsgroups"))
 		 (not (string-match "," newsgroups)))

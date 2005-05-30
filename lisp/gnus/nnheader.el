@@ -683,9 +683,9 @@ the line could be found."
 (defsubst nnheader-file-to-number (file)
   "Take a FILE name and return the article number."
   (if (string= nnheader-numerical-short-files "^[0-9]+$")
-      (string-to-int file)
+      (string-to-number file)
     (string-match nnheader-numerical-short-files file)
-    (string-to-int (match-string 0 file))))
+    (string-to-number (match-string 0 file))))
 
 (defvar nnheader-directory-files-is-safe
   (or (eq system-type 'windows-nt)

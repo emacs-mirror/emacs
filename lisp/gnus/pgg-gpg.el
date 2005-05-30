@@ -252,7 +252,7 @@ If optional argument SIGN is non-nil, do a combined sign and encrypt."
     (when (re-search-forward "^\\[GNUPG:] IMPORT_RES\\>" nil t)
       (setq status (buffer-substring (match-end 0)
 				     (progn (end-of-line)(point)))
-	    status (vconcat (mapcar #'string-to-int (split-string status))))
+	    status (vconcat (mapcar #'string-to-number (split-string status))))
       (erase-buffer)
       (insert (format "Imported %d key(s).
 \tArmor contains %d key(s) [%d bad, %d old].\n"

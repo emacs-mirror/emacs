@@ -6787,7 +6787,7 @@ specified by `gnus-button-alist'."
 				     (match-string 3 address)
 				   "nntp")))
        nil nil nil
-       (and (match-end 6) (list (string-to-int (match-string 6 address))))))))
+       (and (match-end 6) (list (string-to-number (match-string 6 address))))))))
 
 (defun gnus-url-parse-query-string (query &optional downcase)
   (let (retval pairs cur key val)

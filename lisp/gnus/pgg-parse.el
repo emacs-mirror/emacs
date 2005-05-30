@@ -113,7 +113,7 @@
   `(mapconcat (lambda (c) (format "%02X" (pgg-char-int c)))
 	      ,string "")
   ;; `(upcase (apply #'format "%02x%02x%02x%02x%02x%02x%02x%02x"
-  ;;                 (string-to-int-list ,string)))
+  ;;                 (string-to-number-list ,string)))
   )
 
 (defmacro pgg-parse-time-field (bytes)
@@ -136,7 +136,7 @@
 
 (defmacro pgg-read-bytes (nbytes)
   `(mapcar #'pgg-char-int (pgg-read-bytes-string ,nbytes))
-  ;; `(string-to-int-list (pgg-read-bytes-string ,nbytes))
+  ;; `(string-to-number-list (pgg-read-bytes-string ,nbytes))
   )
 
 (defmacro pgg-read-body-string (ptag)
@@ -146,7 +146,7 @@
 
 (defmacro pgg-read-body (ptag)
   `(mapcar #'pgg-char-int (pgg-read-body-string ,ptag))
-  ;; `(string-to-int-list (pgg-read-body-string ,ptag))
+  ;; `(string-to-number-list (pgg-read-body-string ,ptag))
   )
 
 (defalias 'pgg-skip-bytes 'forward-char)
