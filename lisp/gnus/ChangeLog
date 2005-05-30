@@ -1,3 +1,7 @@
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* gnus-cite.el (gnus-cite-add-face): Set overlay's evaporate property.
+
 2005-05-27  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-util.el (gnus-run-mode-hooks): New function.
