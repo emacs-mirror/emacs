@@ -1,5 +1,5 @@
 ;;; gnus-group.el --- group mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -1042,7 +1042,7 @@ The following commands are available:
     (gnus-undo-mode 1))
   (when gnus-slave
     (gnus-slave-mode))
-  (gnus-run-hooks 'gnus-group-mode-hook))
+  (gnus-run-mode-hooks 'gnus-group-mode-hook))
 
 (defun gnus-update-group-mark-positions ()
   (save-excursion

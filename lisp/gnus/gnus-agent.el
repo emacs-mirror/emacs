@@ -2552,7 +2552,7 @@ The following commands are available:
   (buffer-disable-undo)
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (gnus-run-hooks 'gnus-category-mode-hook))
+  (gnus-run-mode-hooks 'gnus-category-mode-hook))
 
 (defalias 'gnus-category-position-point 'gnus-goto-colon)
 

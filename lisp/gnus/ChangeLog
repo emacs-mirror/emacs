@@ -1,3 +1,27 @@
+2005-05-30  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-agent.el (gnus-category-mode): Use gnus-run-mode-hooks.
+
+	* gnus-art.el (gnus-article-mode): Use gnus-run-mode-hooks.
+
+	* gnus-cus.el (gnus-custom-mode): Use gnus-run-mode-hooks.
+
+	* gnus-eform.el (gnus-edit-form-mode): Use gnus-run-mode-hooks.
+
+	* gnus-group.el (gnus-group-mode): Use gnus-run-mode-hooks.
+
+	* gnus-kill.el (gnus-kill-file-mode): Use gnus-run-mode-hooks.
+
+	* gnus-salt.el (gnus-tree-mode): Use gnus-run-mode-hooks.
+	(gnus-carpal-mode): Ditto.
+
+	* gnus-srvr.el (gnus-server-mode): Use gnus-run-mode-hooks.
+	(gnus-browse-mode): Ditto.
+
+	* gnus-sum.el (gnus-summary-mode): Use gnus-run-mode-hooks.
+
+	* gnus-util.el (gnus-run-mode-hooks): Save current buffer.
+
 2005-05-29  Richard M. Stallman  <rms@gnu.org>
 
 	* gnus-cite.el (gnus-cite-add-face): Set overlay's evaporate property.

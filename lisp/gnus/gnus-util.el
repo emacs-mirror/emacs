@@ -1016,10 +1016,11 @@ ARG is passed to the first function."
     (apply 'run-hooks funcs)))
 
 (defun gnus-run-mode-hooks (&rest funcs)
-  "Run `run-mode-hooks' if it is available.  Otherwise run `run-hooks'."
+  "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
+This function saves the current buffer."
   (if (fboundp 'run-mode-hooks)
-      (apply 'run-mode-hooks funcs)
-    (apply 'run-hooks funcs)))
+      (save-current-buffer (apply 'run-mode-hooks funcs))
+    (save-current-buffer (apply 'run-hooks funcs))))
 
 ;;; Various
 
