@@ -3431,7 +3431,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (defun calc-user-invocation ()
   (interactive)
-  (unless (stringp calc-invocation-macro)
+  (unless calc-invocation-macro
     (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
   (execute-kbd-macro calc-invocation-macro nil))
 
