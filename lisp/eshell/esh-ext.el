@@ -103,7 +103,7 @@ wholly ignored."
   "Invoke a .BAT or .CMD file on DOS/Windows systems."
   ;; since CMD.EXE can't handle forward slashes in the initial
   ;; argument...
-  (setcar args (subst-char-in-string directory-sep-char ?\\ (car args)))
+  (setcar args (subst-char-in-string ?/ ?\\ (car args)))
   (throw 'eshell-replace-command
 	 (eshell-parse-command eshell-windows-shell-file (cons "/c" args))))
 

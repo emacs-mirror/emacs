@@ -192,7 +192,7 @@ not be added to this variable."
 	  (eshell-finish-arg
 	   (prog1
 	       (list 'eshell-set-output-handle
-		     (or (and sh (string-to-int sh)) 1)
+		     (or (and sh (string-to-number sh)) 1)
 		     (list 'quote
 			   (aref [overwrite append insert]
 				 (1- (length oper)))))
