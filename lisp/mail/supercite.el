@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1997, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
-;; Maintainer:    FSF
+;; Maintainer:    Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Created:       February 1993
 ;; Last Modified: 1993/09/22 18:58:46
 ;; Keywords: mail, news
