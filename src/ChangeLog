@@ -1,17 +1,22 @@
+2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* fileio.c (Finsert_file_contents):
+	* xdisp.c (note_mode_line_or_margin_highlight): Lisp_Object/int mixup.
+
 2005-05-31  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (mode_line_noprop_buf, mode_line_noprop_buf_end)
 	(mode_line_noprop_ptr): Rename from frame_title_*.
 	(store_mode_line_noprop_char): Rename from store_frame_title_char.
 	(store_mode_line_noprop): Rename from store_frame_title.
-	(mode_line_target): New enum to specify current  output target
+	(mode_line_target): New enum to specify current output target
 	for mode line formatting.
 	(display_mode_element): Test it rather than frame_title_ptr and
 	mode_line_string_list to determine where output should go.
 	(mode_line_proptrans_alist, mode_line_string_alist): Make static.
 	(Vmode_line_unwind_vector): New variable.
-	(format_mode_line_unwind_data, unwind_format_mode_line): New
-	functions for unwind protection in mode line formatting.
+	(format_mode_line_unwind_data, unwind_format_mode_line):
+	New functions for unwind protection in mode line formatting.
 	(x_consider_frame_title): Use them and new local var 'title_start'
 	to support nested calls to format-mode-line.  Set mode_line_target
 	to MODE_LINE_TITLE.
@@ -40,10 +45,9 @@
 
 	* ccl.c: Now an element of Vccl_program_table is a vector of
 	length 4, not 3.
-	(ccl_get_compiled_code): New arg idx.  Caller changed.  Adjusted
-	for the change of Vccl_program_table.
-	(setup_ccl_program): Adjusted for the change of
-	Vccl_program_table.
+	(ccl_get_compiled_code): New arg idx.  Caller changed.
+	Adjust for the change of Vccl_program_table.
+	(setup_ccl_program): Adjust for the change of Vccl_program_table.
 	(check_ccl_update): New function.
 	(Fregister_ccl_program): Use ASET to set an element of a vector.
 	Adjusted for the change of Vccl_program_table.
@@ -53,7 +57,7 @@
 
 2005-05-27  Juanma Barranquero  <lekktu@gmail.com>
 
-	* image.c (Vimage_library_alist): Moved from image.el.
+	* image.c (Vimage_library_alist): Move from image.el.
 	(syms_of_image): Defvar it.
 	(lookup_image_type): Use it.
 
@@ -150,8 +154,7 @@
 
 2005-05-16  Andreas Schwab  <schwab@suse.de>
 
-	* unexmacosx.c (unexec_realloc): Move declarations before
-	statements.
+	* unexmacosx.c (unexec_realloc): Move declarations before statements.
 
 2005-05-14  Richard M. Stallman  <rms@gnu.org>
 
@@ -179,8 +182,8 @@
 
 	* emacs.c (main) [MAC_OS8]: Call init_atimer before mac_term_init.
 
-	* keyboard.c (readable_events) [USE_TOOLKIT_SCROLL_BARS]: Regard
-	toolkit scroll bar thumb drag events as squeezable and prevent
+	* keyboard.c (readable_events) [USE_TOOLKIT_SCROLL_BARS]:
+	Regard toolkit scroll bar thumb drag events as squeezable and prevent
 	redisplay from being paused by them.
 
 	* mac.c [!MAC_OSX]: Include keyboard.h and syssignal.h.
@@ -188,12 +191,11 @@
 	[!MAC_OSX] (check_alarm, pause, index): Remove functions.
 	[!MAC_OSX && __MRC__] (sys_strftime): Likewise.
 	[!MAC_OSX] (select): If fd 0 is not set in rfds and some input
-	event occurs before timeout, behave as if the function were
-	interrupted.
+	event occurs before timeout, behave as if the function were interrupted.
 	[!MAC_OSX] (sigblock, sigsetmask, alarm): Simulate SIGALRM
 	handling using Time Manager routines.
-	[!MAC_OSX] (mac_atimer_task, mac_atimer_qlink, signal_mask): New
-	variables.
+	[!MAC_OSX] (mac_atimer_task, mac_atimer_qlink, signal_mask):
+	New variables.
 	[!MAC_OSX] (mac_atimer_handler, set_mac_atimer, remove_mac_atimer)
 	(setitimer): New functions.
 
