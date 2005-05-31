@@ -1,3 +1,8 @@
+2005-06-01  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (display_mode_line): Support nested calls to redisplay
+	and format-mode-line.  Set mode_line_target to MODE_LINE_DISPLAY.
+
 2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* fileio.c (Finsert_file_contents):
@@ -18,11 +23,12 @@
 	(format_mode_line_unwind_data, unwind_format_mode_line):
 	New functions for unwind protection in mode line formatting.
 	(x_consider_frame_title): Use them and new local var 'title_start'
-	to support nested calls to format-mode-line.  Set mode_line_target
-	to MODE_LINE_TITLE.
+	to support nested calls to format-mode-line and redisplay.  Set
+	mode_line_target to MODE_LINE_TITLE.
 	(Fformat_mode_line): Use them and new local var 'string_start' to
-	support nested calls to format-mode-line.  Set mode_line_target to
-	MODE_LINE_NOPROP or MODE_LINE_STRING.  Don't trim trailing dashes.
+	support nested calls to format-mode-line and redisplay.  Set
+	mode_line_target to MODE_LINE_NOPROP or MODE_LINE_STRING.
+	Don't trim trailing dashes.
 	(decode_mode_spec): Don't make infinite number of trailing dashes
 	for MODE_LINE_NOPROP and MODE_LINE_STRING targets.
 	(syms_of_xdisp): Initialize and staticpro mode_line_string_face,
