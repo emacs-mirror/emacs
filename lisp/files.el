@@ -514,6 +514,10 @@ Runs the usual ange-ftp hook, but only for completion operations."
 This means to guarantee valid names and perhaps to canonicalize
 certain patterns.
 
+FILENAME should be an absolute file name since the conversion rules
+sometimes vary depending on the position in the file name.  E.g. c:/foo
+is a valid DOS file name, but c:/bar/c:/foo is not.
+
 This function's standard definition is trivial; it just returns
 the argument.  However, on Windows and DOS, replace invalid
 characters.  On DOS, make sure to obey the 8.3 limitations.  On
