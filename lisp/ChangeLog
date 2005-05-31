@@ -7,6 +7,10 @@
 	(def-gdb-auto-update-handler): Use window point to ensure it
 	is preserved.
 
+2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* thumbs.el (thumbs-mode): Fix misuse of make-variable-buffer-local.
+
 2005-05-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-word): Change argument passed
@@ -23,8 +27,7 @@
 
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
 
-	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not
-	INTERACTIVE.
+	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not INTERACTIVE.
 	(vhdl-emacs-21): Doc fix.
 	(vhdl-mode): Unconditionally set comment-padding.
 	(vhdl-fixup-whitespace-region): Insert spaces only where
