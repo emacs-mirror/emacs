@@ -30120,16 +30120,17 @@ instead uses the current point as one end of the formula, and includes
 that many lines forward or backward (respectively, including the current
 line). Explicit delimiters are not necessary in this case.
 
-With a prefix argument of zero, Calc uses the current region
-(delimited by point and mark) instead of formula delimiters.
+With a prefix argument of zero, Calc uses the current region (delimited
+by point and mark) instead of formula delimiters.  With a prefix
+argument of @kbd{C-u} only, Calc uses the current line as the formula.
 
 @kindex M-# w
 @pindex calc-embedded-word
-With a prefix argument of @kbd{C-u} only, Calc scans for the first
-non-numeric character (i.e., the first character that is not a
-digit, sign, decimal point, or upper- or lower-case @samp{e})
-forward and backward to delimit the formula.  @kbd{M-# w}
-(@code{calc-embedded-word}) is equivalent to @kbd{C-u M-# e}.
+The @kbd{M-# w} (@code{calc-embedded-word}) command will start Embedded
+mode on the current ``word''; in this case Calc will scan for the first
+non-numeric character (i.e., the first character that is not a digit,
+sign, decimal point, or upper- or lower-case @samp{e}) forward and
+backward to delimit the formula.
 
 When you enable Embedded mode for a formula, Calc reads the text
 between the delimiters and tries to interpret it as a Calc formula.
