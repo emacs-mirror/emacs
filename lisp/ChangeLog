@@ -1,3 +1,10 @@
+2005-05-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-word): Change argument passed
+	to calc-embedded.
+	(calc-embedded-make-info): Have plain prefix argument select
+	entire line.
+
 2005-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (list-faces-display): Signal error if passed a regexp

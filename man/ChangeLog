@@ -6,6 +6,8 @@
 	(Starting Calc): Mention long name of M-#.
 	(Embedded Mode Overview): Remove unnecessary instruction.
 	(Other M-# commands): Rephrase `M-# 0' explanation.
+	(Basic Embedded Mode): Rewrite discussion of prefix arguments to
+	reflect current behavior.
 
 2005-05-30  Jay Belanger  <belanger@truman.edu>
 
