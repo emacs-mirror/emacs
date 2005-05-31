@@ -1,3 +1,12 @@
+2005-05-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Notations Used in This Manual): Use @kbd for key
+	sequence.
+	(Demonstration of Calc): Mention another way of starting Calc.
+	(Starting Calc): Mention long name of M-#.
+	(Embedded Mode Overview): Remove unnecessary instruction.
+	(Other M-# commands): Rephrase `M-# 0' explanation.
+
 2005-05-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Hooks): Change description of calc-window-hook and
