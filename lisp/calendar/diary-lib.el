@@ -1054,8 +1054,6 @@ changing the variable `diary-include-string'."
                         (match-string-no-properties 2)))
            (mark-diary-entries-hook 'mark-included-diary-files)
            (dbuff (find-buffer-visiting diary-file)))
-      ;; TODO if dbuff is non-nil, should we check for modifications
-      ;; and offer to save it first?
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (progn
