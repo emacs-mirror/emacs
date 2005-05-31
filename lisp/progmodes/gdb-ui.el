@@ -277,7 +277,7 @@ Also display the main routine in the disassembly buffer if present."
 (defun gdb-set-gud-minor-mode-1 (buffer)
   (goto-char (point-min))
   (when (and (search-forward "Located in " nil t)
-	     (looking-at "\\S-*")
+	     (looking-at "\\S-+")
 	     (string-equal (buffer-file-name buffer)
 			   (match-string 0)))
     (with-current-buffer buffer
@@ -1161,12 +1161,12 @@ happens to be appropriate."
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
 	    (with-current-buffer buf
-	      (let ((p (point))
+	      (let ((p (window-point (get-buffer-window buf 0)))
 		    (buffer-read-only nil))
 		(erase-buffer)
 		(insert-buffer-substring (gdb-get-create-buffer
 					  'gdb-partial-output-buffer))
-		(goto-char p)))))
+		(set-window-point (get-buffer-window buf 0) p)))))
      ;; put customisation here
      (,custom-defun)))
 
@@ -1304,7 +1304,7 @@ static char *magick[] = {
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
 	  (forward-line 1)
-	  (if (looking-at "[^\t].*breakpoint")
+	  (if (looking-at "[^\t].*?breakpoint")
 	      (progn
 		(looking-at "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)")
 		(setq bptno (match-string 1))
@@ -1463,9 +1463,9 @@ static char *magick[] = {
   (interactive)
   (beginning-of-line 1)
   (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	  (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	  (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)")
 	(looking-at
-	 "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+	 "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
       (gdb-enqueue-input
        (list
 	(concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))
@@ -1478,10 +1478,10 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at "\\([0-9]+\\) .* in .* at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
+	    (looking-at "\\([0-9]+\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
 	  (looking-at
-	   "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\
-\\(\\S-*\\):\\([0-9]+\\)"))
+	   "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+.\\s-+\\S-+\\s-+\
+\\(\\S-+\\):\\([0-9]+\\)"))
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
@@ -2301,7 +2301,7 @@ Kills the gdb buffers and resets the source buffers."
 buffers."
   (goto-char (point-min))
   (if (and (search-forward "Located in " nil t)
-	   (looking-at "\\S-*"))
+	   (looking-at "\\S-+"))
       (setq gdb-main-file (match-string 0)))
   (goto-char (point-min))
   (if (search-forward "Includes preprocessor macro info." nil t)
@@ -2319,7 +2319,7 @@ Put in buffer and place breakpoint icon."
   (goto-char (point-min))
   (catch 'file-not-found
     (if (search-forward "Located in " nil t)
-	(when (looking-at "\\S-*")
+	(when (looking-at "\\S-+")
 	  (delete (cons bptno "File not found") gdb-location-alist)
 	  (push (cons bptno (match-string 0)) gdb-location-alist))
       (gdb-resync)
@@ -2493,7 +2493,7 @@ BUFFER nil or omitted means use the current buffer."
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
-	(if (looking-at "[^\t].*breakpoint")
+	(if (looking-at "[^\t].*?breakpoint")
 	    (progn
 	      (looking-at
 	    "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x0*\\(\\S-+\\)")
