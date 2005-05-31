@@ -1,3 +1,12 @@
+2005-06-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-1)
+	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
+	(gdb-assembler-custom): Improve regexps.
+	(def-gdb-auto-update-handler): Use window point to ensure it
+	is preserved.
+
 2005-05-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-word): Change argument passed
