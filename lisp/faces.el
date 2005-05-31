@@ -1163,7 +1163,9 @@ arg, prompt for a regular expression."
                   (mapcar (lambda (f)
                             (when (string-match regexp (symbol-name f))
                               f))
-                          faces))))
+                          faces)))
+      (unless faces
+        (error "No faces matching \"%s\"" regexp)))
     (with-output-to-temp-buffer "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
