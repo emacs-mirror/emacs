@@ -1,3 +1,11 @@
+2005-05-30  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el,
+	eshell/em-unix.el, eshell/esh-ext.el, eshell/esh-io.el,
+	eshell/esh-util.el, eshell/esh-var.el: Changed all uses of
+	`directory-sep-char' to ?/, and all uses of `string-to-int' to
+	`string-to-number'.
+
 2005-05-30  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-bug-address): Fix docstring.
