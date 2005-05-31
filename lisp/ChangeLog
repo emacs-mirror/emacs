@@ -1,3 +1,7 @@
+2005-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (filter-buffer-substring): Fix typo in docstring.
+
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not
