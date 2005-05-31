@@ -583,6 +583,7 @@ and what are the various ways that it can be used.
 * What is Calc::
 * About This Manual::
 * Notations Used in This Manual::
+* Demonstration of Calc::
 * Using Calc::
 * Demonstration of Calc::
 * History and Acknowledgements::
@@ -764,7 +765,7 @@ regularly using Emacs.
 (If you don't have the @key{LFD} or @key{TAB} keys on your keyboard,
 the @kbd{C-j} and @kbd{C-i} keys are equivalent to them, respectively.
 If you don't have a Meta key, look for Alt or Extend Char.  You can
-also press @key{ESC} or @key{C-[} first to get the same effect, so
+also press @key{ESC} or @kbd{C-[} first to get the same effect, so
 that @kbd{M-x}, @kbd{@key{ESC} x}, and @kbd{C-[ x} are all equivalent.)
 
 Sometimes the @key{RET} key is not shown when it is ``obvious''
@@ -797,7 +798,8 @@ Tutorial.
 
 To begin, start Emacs if necessary (usually the command @code{emacs}
 does this), and type @kbd{M-# c} (or @kbd{@key{ESC} # c}) to start the
-Calculator.  (@xref{Starting Calc}, if this doesn't work for you.)
+Calculator.  (You can also use @kbd{M-x calc} if this doesn't work.
+@xref{Starting Calc}, for various ways of starting the Calculator.)
 
 Be sure to type all the sample input exactly, especially noting the
 difference between lower-case and upper-case letters.  Remember,
@@ -987,11 +989,15 @@ don't even have an @key{ESC} key, you can fake it by holding down
 Control or @key{CTRL} while typing a left square bracket
 (that's @kbd{C-[} in Emacs notation).
 
-@kbd{M-#} is a @dfn{prefix key}; when you press it, Emacs waits for
-you to press a second key to complete the command.  In this case,
-you will follow @kbd{M-#} with a letter (upper- or lower-case, it
-doesn't matter for @kbd{M-#}) that says which Calc interface you
-want to use.
+The key @kbd{M-#} is bound to the command @code{calc-dispatch}, 
+which can be rebound if convenient.  
+(@xref{Key Bindings,,Customizing Key Bindings,emacs,
+The GNU Emacs Manual}.)
+
+When you press @kbd{M-#}, Emacs waits for you to press a second key to
+complete the command.  In this case, you will follow @kbd{M-#} with a
+letter (upper- or lower-case, it doesn't matter for @kbd{M-#}) that says
+which Calc interface you want to use.
 
 To get Calc's standard interface, type @kbd{M-# c}.  To get
 Keypad mode, type @kbd{M-# k}.  Type @kbd{M-# ?} to get a brief
@@ -1335,9 +1341,7 @@ righthand label:  Type @kbd{d @} (1) @key{RET}}.
 @end smallexample
 
 To leave Embedded mode, type @kbd{M-# e} again.  The mode line
-and keyboard will revert to the way they were before.  (If you have
-actually been trying this as you read along, you'll want to press
-@kbd{M-# 0} [with the digit zero] now to reset the modes you changed.)
+and keyboard will revert to the way they were before.
 
 The related command @kbd{M-# w} operates on a single word, which
 generally means a single number, inside text.  It uses any
@@ -1520,8 +1524,7 @@ and record them as the current keyboard macro.
 
 @item 0
 (This is the ``zero'' digit key.)  Reset the Calculator to
-its default state:  Empty stack, and default mode settings.
-With any prefix argument, reset everything but the stack.
+its initial state:  Empty stack, and initial mode settings.
 @end table
 
 @node History and Acknowledgements, , Using Calc, Getting Started
@@ -1589,7 +1592,7 @@ Many people have contributed to Calc by reporting bugs and suggesting
 features, large and small.  A few deserve special mention:  Tim Peters,
 who helped develop the ideas that led to the selection commands, rewrite
 rules, and many other algebra features; 
-@texline Fran\c cois
+@texline Fran\c{c}ois
 @infoline Francois
 Pinard, who contributed an early prototype of the Calc Summary appendix
 as well as providing valuable suggestions in many other areas of Calc;
