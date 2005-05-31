@@ -14,9 +14,9 @@
 
 2005-05-30  John Wiegley  <johnw@newartisans.com>
 
-	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el,
-	eshell/em-unix.el, eshell/esh-ext.el, eshell/esh-io.el,
-	eshell/esh-util.el, eshell/esh-var.el: Changed all uses of
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el
+	* eshell/em-unix.el, eshell/esh-ext.el, eshell/esh-io.el
+	* eshell/esh-util.el, eshell/esh-var.el: Change all uses of
 	`directory-sep-char' to ?/, and all uses of `string-to-int' to
 	`string-to-number'.
 
@@ -3697,11 +3697,11 @@
 	* calendar/calendar.el: Replace `legal' with `valid'.
 	* emacs-lisp/advice.el: Replace `legal' with `valid'.
 	* mail/supercite.el: Replace `legal' with `valid'.
-	* progmodes/cperl-mode.el, progmodes/idlw-shell.el,
-	progmodes/idlwave.el, progmodes/vhdl-mode.el: Replace `legal' with
-	`valid'.
-	* textmodes/reftex-vars.el, textmodes/reftex.el: Replace `legal'
-	with `valid'.
+	* progmodes/cperl-mode.el, progmodes/idlw-shell.el
+	* progmodes/idlwave.el, progmodes/vhdl-mode.el:
+	Replace `legal' with `valid'.
+	* textmodes/reftex-vars.el, textmodes/reftex.el:
+	Replace `legal' with `valid'.
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
@@ -3711,15 +3711,15 @@
 	* emulation/vip.el: Replace `illegal' with `invalid'.
 	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with `invalid'.
 	* mail/supercite.el: Replace `illegal' with `invalid'.
-	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el,
-	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el,
-	progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el,
-	progmodes/sh-script.el, progmodes/xscheme.el: Replace `illegal' with
-	`invalid'.
-	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el,
-	textmodes/reftex-index.el, textmodes/reftex-parse.el,
-	textmodes/reftex-ref.el, textmodes/reftex-vars.el,
-	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
+	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el
+	* progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el
+	* progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el
+	* progmodes/sh-script.el, progmodes/xscheme.el:
+	Replace `illegal' with `invalid'.
+	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
+	* textmodes/reftex-index.el, textmodes/reftex-parse.el
+	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
+	* textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6095,8 +6095,8 @@
 
 2005-01-11  Juri Linkov  <juri@jurta.org>
 
-	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm,
-	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm,
+	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm
+	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm
 	* toolbar/fwd_arrow.xpm, toolbar/fwd_arrow.pbm: New icons.
 
 	* info.el (Info-history-forward): New variable.
@@ -13764,9 +13764,9 @@
 	of 19 months of 19 days, with 4 intercalary days.  Each year
 	begins on March 21, with the calendar starting in 1844.
 
-	* calendar/cal-menu.el, calendar/calendar.el,
-	calendar/diary-lib.el, calendar/holidays.el: Added support for
-	using cal-bahai.el.
+	* calendar/cal-menu.el, calendar/calendar.el
+	* calendar/diary-lib.el, calendar/holidays.el:
+	Added support for using cal-bahai.el.
 
 	* eshell/em-glob.el (eshell-glob-initialize): Move initialization
 	of `eshell-glob-chars-regexp' into `eshell-glob-regexp', so that
@@ -20052,10 +20052,10 @@
 	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
 	(cal-tex-LaTeX-hourbox): Move definition before use.
 
-	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el,
-	cal-julian.el, cal-menu.el, cal-move.el, holidays.el,
-	lunar.el, solar.el
-	(displayed-month, displayed-year): Define for compiler.
+	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el
+	* cal-julian.el, cal-menu.el, cal-move.el, holidays.el
+	* lunar.el, solar.el (displayed-month, displayed-year):
+	Define for compiler.
 
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 
