@@ -8352,8 +8352,8 @@ x_consider_frame_title (frame)
       multiple_frames = CONSP (tail);
 
       /* Switch to the buffer of selected window of the frame.  Set up
-	 mode_line_noprop_ptr so that display_mode_element will output into it;
-	 then display the title.  */
+	 mode_line_target so that display_mode_element will output into
+	 mode_line_noprop_buf; then display the title.  */
       record_unwind_protect (unwind_format_mode_line,
 			     format_mode_line_unwind_data (current_buffer));
 
@@ -15672,6 +15672,7 @@ display_mode_line (w, face_id, format)
 {
   struct it it;
   struct face *face;
+  int count = SPECPDL_INDEX ();
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
   prepare_desired_row (it.glyph_row);
@@ -15682,12 +15683,19 @@ display_mode_line (w, face_id, format)
     /* Force the mode-line to be displayed in the default face.  */
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
+  record_unwind_protect (unwind_format_mode_line,
+			 format_mode_line_unwind_data (NULL));
+
+  mode_line_target = MODE_LINE_DISPLAY;
+
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_frame_kboard ();
+
+  unbind_to (count, Qnil);
 
   /* Fill up with spaces.  */
   display_string (" ", Qnil, Qnil, 0, 0, &it, 10000, -1, -1, 0);
