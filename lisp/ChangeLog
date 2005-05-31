@@ -1,5 +1,8 @@
 2005-05-31  Juanma Barranquero  <lekktu@gmail.com>
 
+	* faces.el (list-faces-display): Signal error if passed a regexp
+	that matches no face name.
+
 	* simple.el (filter-buffer-substring): Fix typo in docstring.
 
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
