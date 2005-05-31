@@ -21488,7 +21488,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	       tmp_glyph->charpos >= XINT (b);
 	       tmp_glyph--, gpos++)
 	    {
-	      if (tmp_glyph->object != glyph->object)
+	      if (!EQ (tmp_glyph->object, glyph->object))
 		break;
 	    }
 
@@ -21501,7 +21501,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	       tmp_glyph->charpos < XINT (e);
 	       tmp_glyph++, gseq_length++)
 	      {
-		if (tmp_glyph->object != glyph->object)
+		if (!EQ (tmp_glyph->object, glyph->object))
 		  break;
 	      }
 
