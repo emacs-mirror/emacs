@@ -758,9 +758,8 @@ ACTION and ARG should be a valid convert command."
 (define-derived-mode thumbs-mode
   fundamental-mode "thumbs"
   "Preview images in a thumbnails buffer"
-  (make-variable-buffer-local 'thumbs-markedL)
   (setq buffer-read-only t)
-  (setq thumbs-markedL nil))
+  (set (make-local-variable 'thumbs-markedL) nil))
 
 (defvar thumbs-view-image-mode-map
   (let ((map (make-sparse-keymap)))
@@ -797,7 +796,5 @@ ACTION and ARG should be a valid convert command."
 
 (provide 'thumbs)
 
+;; arch-tag: f9ac1ef8-83fc-42c0-8069-1fae43fd2e5c
 ;;; thumbs.el ends here
-
-
-;;; arch-tag: f9ac1ef8-83fc-42c0-8069-1fae43fd2e5c
