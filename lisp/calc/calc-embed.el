@@ -440,7 +440,7 @@
 
 (defun calc-embedded-word ()
   (interactive)
-  (calc-embedded '(4)))
+  (calc-embedded '(t)))
 
 (defun calc-embedded-mark-formula (&optional body-only)
   "Put point at the beginning of this Calc formula, mark at the end.
@@ -807,20 +807,26 @@ The command \\[yank] can retrieve it from there."
       (aset info 1 (or cbuf (save-excursion
 			      (calc-create-buffer)
 			      (current-buffer)))))
-    (if (and (integerp calc-embed-top) (not calc-embed-bot))  
+    (if (and 
+         (or (integerp calc-embed-top) (equal calc-embed-top '(4)))
+         (not calc-embed-bot))  
                                         ; started with a user-supplied argument
 	(progn
-	  (if (= (setq calc-embed-arg (prefix-numeric-value calc-embed-arg)) 0)
-	      (progn
-		(aset info 2 (copy-marker (region-beginning)))
-		(aset info 3 (copy-marker (region-end))))
-	    (aset info (if (> calc-embed-arg 0) 2 3) (point-marker))
-            (if (> calc-embed-arg 0)
+          (if (equal calc-embed-top '(4))
+              (progn
+                (aset info 2 (copy-marker (line-beginning-position)))
+                (aset info 3 (copy-marker (line-end-position))))
+            (if (= (setq calc-embed-arg (prefix-numeric-value calc-embed-arg)) 0)
                 (progn
-                  (forward-line (1- calc-embed-arg))
-                  (end-of-line))
-              (forward-line (1+ calc-embed-arg)))
-	    (aset info (if (> calc-embed-arg 0) 3 2) (point-marker)))
+                  (aset info 2 (copy-marker (region-beginning)))
+                  (aset info 3 (copy-marker (region-end))))
+              (aset info (if (> calc-embed-arg 0) 2 3) (point-marker))
+              (if (> calc-embed-arg 0)
+                  (progn
+                    (forward-line (1- calc-embed-arg))
+                    (end-of-line))
+                (forward-line (1+ calc-embed-arg)))
+              (aset info (if (> calc-embed-arg 0) 3 2) (point-marker))))
 	  (aset info 4 (copy-marker (aref info 2)))
 	  (aset info 5 (copy-marker (aref info 3))))
       (if (aref info 4)
