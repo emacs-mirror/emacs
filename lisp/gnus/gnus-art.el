@@ -2181,10 +2181,11 @@ unfolded."
 		   ;; The command is a string, so we interpret the command
 		   ;; as a, well, command, and fork it off.
 		   (let ((process-connection-type nil))
-		     (process-kill-without-query
+		     (gnus-set-process-query-on-exit-flag
 		      (start-process
 		       "article-x-face" nil shell-file-name
-		       shell-command-switch gnus-article-x-face-command))
+		       shell-command-switch gnus-article-x-face-command)
+		      nil)
 		     (with-temp-buffer
 		       (insert face)
 		       (process-send-region "article-x-face"

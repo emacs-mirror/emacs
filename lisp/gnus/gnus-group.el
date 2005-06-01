@@ -41,7 +41,11 @@
 (require 'time-date)
 (require 'gnus-ems)
 
-(eval-when-compile (require 'mm-url))
+(eval-when-compile
+  (require 'mm-url)
+  (let ((features (cons 'gnus-group features)))
+    (require 'gnus-sum))
+  (defvar gnus-cache-active-hashtb))
 
 (defcustom gnus-group-archive-directory
   "/ftp@ftp.hpc.uh.edu:/pub/emacs/ding-list/"

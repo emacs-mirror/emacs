@@ -1,3 +1,58 @@
+2005-05-31  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-display-x-face): Replace
+	process-kill-without-query by gnus-set-process-query-on-exit-flag.
+
+	* gnus-group.el: Bind gnus-cache-active-hashtb when compiling.
+
+	* gnus-util.el (gnus-set-process-query-on-exit-flag): Alias to
+	set-process-query-on-exit-flag or process-kill-without-query.
+
+	* html2text.el (html2text-fix-paragraphs): Use `while - re-search'
+	loop instead of replace-regexp.
+
+	* imap.el (imap-ssl-open): Use set-process-query-on-exit-flag
+	instead of process-kill-without-query if it is available.
+
+	* mm-util.el (mm-insert-file-contents): Bind find-file-hook
+	instead of find-file-hooks if it is available.
+
+	* mml1991.el: Bind pgg-default-user-id when compiling.
+
+	* mml2015.el: Bind pgg-default-user-id when compiling.
+
+	* nndraft.el (nndraft-request-associate-buffer): Use
+	write-contents-functions instead of write-contents-hooks if it is
+	available.
+
+	* nnheader.el (nnheader-find-file-noselect): Bind find-file-hook
+	instead of find-file-hooks if it is available.
+
+	* nntp.el (nntp-open-connection): Replace
+	process-kill-without-query by gnus-set-process-query-on-exit-flag.
+	(nntp-open-ssl-stream): Ditto.
+	(nntp-open-tls-stream): Ditto.
+
+	* pgg.el: Don't bind itimer vars; don't autoload itimer functions.
+	(pgg-run-at-time-1): New macro.
+	(pgg-run-at-time): Use it.
+
+	* starttls.el (starttls-set-process-query-on-exit-flag): Alias to
+	set-process-query-on-exit-flag or process-kill-without-query.
+	(starttls-open-stream-gnutls): Use it instead of
+	process-kill-without-query.
+	(starttls-open-stream): Ditto.
+
+2005-05-31  Simon Josefsson  <jas@extundo.com>
+
+	* imap.el (imap-ssl-open): Use imap-process-connection-type,
+	instead of hard coding to nil.
+
+2005-05-31  Kevin Greiner  <kgreiner@xpediantsolutions.com>
+
+	* gnus-group.el (): Require gnus-sum and autoload functions to
+	resolve warnings when gnus-group.el compiled alone.
+
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* gnus-agent.el (gnus-agent-regenerate-group)

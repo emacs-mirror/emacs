@@ -1571,6 +1571,11 @@ empty directories from OLD-PATH."
 			 (file-truename
 			  (concat old-dir "..")))))))))
 
+(if (fboundp 'set-process-query-on-exit-flag)
+    (defalias 'gnus-set-process-query-on-exit-flag
+      'set-process-query-on-exit-flag)
+  (defalias 'gnus-set-process-query-on-exit-flag
+    'process-kill-without-query))
 
 (provide 'gnus-util)
 

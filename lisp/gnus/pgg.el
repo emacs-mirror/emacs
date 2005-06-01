@@ -1,6 +1,6 @@
 ;;; pgg.el --- glue for the various PGP implementations.
 
-;; Copyright (C) 1999, 2000, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Daiki Ueno <ueno@unixuser.org>
 ;; Created: 1999/10/28
@@ -97,82 +97,76 @@
       (read-passwd prompt)))
 
 (eval-when-compile
-  (defvar itimer-process)
-  (defvar itimer-timer)
-  (autoload 'delete-itimer "itimer")
-  (autoload 'itimer-driver-start "itimer")
-  (autoload 'itimer-value "itimer")
-  (autoload 'set-itimer-function "itimer")
-  (autoload 'set-itimer-function-arguments "itimer")
-  (autoload 'set-itimer-restart "itimer")
-  (autoload 'start-itimer "itimer"))
+  (defmacro pgg-run-at-time-1 (time repeat function args)
+    (when (featurep 'xemacs)
+      (if (condition-case nil
+	      (let ((delete-itimer 'delete-itimer)
+		    (itimer-driver-start 'itimer-driver-start)
+		    (itimer-value 'itimer-value)
+		    (start-itimer 'start-itimer))
+		(unless (or (symbol-value 'itimer-process)
+			    (symbol-value 'itimer-timer))
+		  (funcall itimer-driver-start))
+		;; Check whether there is a bug to which the difference of
+		;; the present time and the time when the itimer driver was
+		;; woken up is subtracted from the initial itimer value.
+		(let* ((inhibit-quit t)
+		       (ctime (current-time))
+		       (itimer-timer-last-wakeup
+			(prog1
+			    ctime
+			  (setcar ctime (1- (car ctime)))))
+		       (itimer-list nil)
+		       (itimer (funcall start-itimer "pgg-run-at-time"
+					'ignore 5)))
+		  (sleep-for 0.1) ;; Accept the timeout interrupt.
+		  (prog1
+		      (> (funcall itimer-value itimer) 0)
+		    (funcall delete-itimer itimer))))
+	    (error nil))
+	  `(let ((time ,time))
+	     (apply #'start-itimer "pgg-run-at-time"
+		    ,function (if time (max time 1e-9) 1e-9)
+		    ,repeat nil t ,args)))
+      `(let ((time ,time)
+	     (itimers (list nil)))
+	 (setcar
+	  itimers
+	  (apply #'start-itimer "pgg-run-at-time"
+		 (lambda (itimers repeat function &rest args)
+		   (let ((itimer (car itimers)))
+		     (if repeat
+			 (progn
+			   (set-itimer-function
+			    itimer
+			    (lambda (itimer repeat function &rest args)
+			      (set-itimer-restart itimer repeat)
+			      (set-itimer-function itimer function)
+			      (set-itimer-function-arguments itimer args)
+			      (apply function args)))
+			   (set-itimer-function-arguments
+			    itimer
+			    (append (list itimer repeat function) args)))
+		       (set-itimer-function
+			itimer
+			(lambda (itimer function &rest args)
+			  (delete-itimer itimer)
+			  (apply function args)))
+		       (set-itimer-function-arguments
+			itimer
+			(append (list itimer function) args)))))
+		 1e-9 (if time (max time 1e-9) 1e-9)
+		 nil t itimers ,repeat ,function ,args))))))
 
 (eval-and-compile
-  (defalias
-    'pgg-run-at-time
-    (if (featurep 'xemacs)
-	(if (condition-case nil
-		(progn
-		  (unless (or itimer-process itimer-timer)
-		    (itimer-driver-start))
-		  ;; Check whether there is a bug to which the difference of
-		  ;; the present time and the time when the itimer driver was
-		  ;; woken up is subtracted from the initial itimer value.
-		  (let* ((inhibit-quit t)
-			 (ctime (current-time))
-			 (itimer-timer-last-wakeup
-			  (prog1
-			      ctime
-			    (setcar ctime (1- (car ctime)))))
-			 (itimer-list nil)
-			 (itimer (start-itimer "pgg-run-at-time" 'ignore 5)))
-		    (sleep-for 0.1) ;; Accept the timeout interrupt.
-		    (prog1
-			(> (itimer-value itimer) 0)
-		      (delete-itimer itimer))))
-	      (error nil))
-	    (lambda (time repeat function &rest args)
-	      "Emulating function run as `run-at-time'.
+  (if (featurep 'xemacs)
+      (defun pgg-run-at-time (time repeat function &rest args)
+	"Emulating function run as `run-at-time'.
 TIME should be nil meaning now, or a number of seconds from now.
 Return an itimer object which can be used in either `delete-itimer'
 or `cancel-timer'."
-	      (apply #'start-itimer "pgg-run-at-time"
-		     function (if time (max time 1e-9) 1e-9)
-		     repeat nil t args))
-	  (lambda (time repeat function &rest args)
-	    "Emulating function run as `run-at-time' in the right way.
-TIME should be nil meaning now, or a number of seconds from now.
-Return an itimer object which can be used in either `delete-itimer'
-or `cancel-timer'."
-	    (let ((itimers (list nil)))
-	      (setcar
-	       itimers
-	       (apply #'start-itimer "pgg-run-at-time"
-		      (lambda (itimers repeat function &rest args)
-			(let ((itimer (car itimers)))
-			  (if repeat
-			      (progn
-				(set-itimer-function
-				 itimer
-				 (lambda (itimer repeat function &rest args)
-				   (set-itimer-restart itimer repeat)
-				   (set-itimer-function itimer function)
-				   (set-itimer-function-arguments itimer args)
-				   (apply function args)))
-				(set-itimer-function-arguments
-				 itimer
-				 (append (list itimer repeat function) args)))
-			    (set-itimer-function
-			     itimer
-			     (lambda (itimer function &rest args)
-			       (delete-itimer itimer)
-			       (apply function args)))
-			    (set-itimer-function-arguments
-			     itimer
-			     (append (list itimer function) args)))))
-		      1e-9 (if time (max time 1e-9) 1e-9)
-		      nil t itimers repeat function args)))))
-      'run-at-time)))
+	(pgg-run-at-time-1 time repeat function args))
+    (defalias 'pgg-run-at-time 'run-at-time)))
 
 (defun pgg-add-passphrase-cache (key passphrase)
   (setq key (pgg-truncate-key-identifier key))

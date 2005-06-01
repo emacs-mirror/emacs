@@ -1,5 +1,6 @@
 ;;; mml2015.el --- MIME Security with Pretty Good Privacy (PGP)
-;; Copyright (C) 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
+;;        Free Software Foundation, Inc.
 
 ;; Author: Shenghuo Zhu <zsh@cs.rochester.edu>
 ;; Keywords: PGP MIME MML
@@ -632,6 +633,7 @@
 ;;; pgg wrapper
 
 (eval-when-compile
+  (defvar pgg-default-user-id)
   (defvar pgg-errors-buffer)
   (defvar pgg-output-buffer))
 
