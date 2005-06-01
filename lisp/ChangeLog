@@ -1,3 +1,8 @@
+2005-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-return-item): Quick fix to find
+	menu items with a nil command binding.
+
 2005-06-01  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/cl-macs.el (defsetf):
