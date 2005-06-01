@@ -2032,7 +2032,7 @@
 2005-01-13  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (Fformat_mode_line): Fix last change.  Remove NO_PROPS arg
-	(specify 0 for FACE instead). Reorder arg list.  Doc fix.
+	(specify 0 for FACE instead).  Reorder arg list.  Doc fix.
 
 2005-01-12  Richard M. Stallman  <rms@gnu.org>
 
@@ -2183,7 +2183,7 @@
 	fontp->space_width to FONT_WIDTH so they are valid.
 
 	* w32fns.c (w32_load_system_font): Set FONT_WIDTH to maximum, not
-	average width. Set fontp->average_width and fontp->space_width to
+	average width.  Set fontp->average_width and fontp->space_width to
 	their appropriate values.
 
 	* w32term.c (x_new_font): Set FRAME_COLUMN_WIDTH to
@@ -2210,7 +2210,7 @@
 	* xdisp.c (setup_for_ellipsis, get_next_display_element):
 	Set it->ellipsis_p to 1 or 0.
 	(display_line): Record whether row ends in mid-ellipsis.
-	(set_cursor_from_row): If ends in ellipsis. find start of it.
+	(set_cursor_from_row): If ends in ellipsis, find start of it.
 	(cursor_row_p): If PT's at the end of the ellipsis the row
 	ends within, don't display cursor on this row.
 
@@ -2913,7 +2913,7 @@
 	* fringe.c (update_window_fringes): Prefer truncation bitmaps over
 	angle bitmaps at top/bottom line.
 
-	* xdisp.c: Undo recent changes for restoring saved_face_id. Instead,
+	* xdisp.c: Undo recent changes for restoring saved_face_id.  Instead,
 	set it when it->method is set to next_element_from_display_vector.
 	(setup_for_ellipsis): Add LEN argument.  Callers changed.
 	Set it->saved_face_id.
@@ -3109,7 +3109,7 @@
 	* xfns.c (Fx_file_dialog): Call popup_activated instead of
 	x_menu_in_use.  Call x_menu_set_in_use in Motif version also.
 
-	* xterm.h: (x_menu_in_use): Remove.
+	* xterm.h (x_menu_in_use): Remove.
 
 2004-11-16  Richard M. Stallman  <rms@gnu.org>
 
@@ -3243,7 +3243,7 @@
 	(MR_PARTIALLY_VISIBLE_AT_BOTTOM): New helper macros.
 	(MATRIX_ROW_PARTIALLY_VISIBLE_P): Fix to return false if invisible
 	part of last line is only extra line spacing (so the text on the
-	line is fully visible). Use helper macros.
+	line is fully visible).  Use helper macros.
 	Add W arg (to use them).  All callers changed.
 	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_TOP_P)
 	(MATRIX_ROW_PARTIALLY_VISIBLE_AT_BOTTOM_P): Use helper macros.
@@ -3929,7 +3929,7 @@
 
 	* keyboard.c (timer_resume_idle): New function to resume idle
 	timer without resetting timers on the idle list.
-	(read_char): Use timer_resume_idle. Remove local var last_idle_start.
+	(read_char): Use timer_resume_idle.  Remove local var last_idle_start.
 	(timer_start_idle, timer_stop_idle): Declare static.
 	(read_key_sequence): Use timer_resume_idle instead of timer_start_idle.
 
@@ -6003,7 +6003,7 @@
 	elt_prefix combined with Fsingle_key_description.
 	(describe_vector): Declare static.  Replace arg `elt_prefix' with
 	`prefix'.  Add KEYMAP_P arg.  Add local var `elt_prefix'; use it
-	if !KEYMAP_P. Use Fkey_description with prefix instead of
+	if !KEYMAP_P.  Use Fkey_description with prefix instead of
 	Fsingle_key_description.
 
 	* keymap.h (Fkey_description): Fix prototype.
@@ -6218,7 +6218,7 @@
 	(display_mode_line): Set mode_line_p before displaying line.
 	(calc_pixel_width_or_height): Declare extern.  Add separate :align-to
 	handling.  Remove complex cases for fringes and scroll-bars.
-	Add left, right, and center alignment positions. Add text (area)
+	Add left, right, and center alignment positions.  Add text (area)
 	width/height.  Return width or height for image specs.
 	(produce_stretch_glyph): Improve handling of :align-to.  Is now
 	relative to left of text area by default, but other base offsets
@@ -10526,7 +10526,7 @@
 	* intervals.h (CHECK_TOTAL_LENGTH): New macro.
 	* intervals.c: Add many calls to CHECK_TOTAL_LENGTH.
 
-	* alloc.c: (VALIDATE_LISP_STORAGE): Macro deleted.
+	* alloc.c (VALIDATE_LISP_STORAGE): Macro deleted.
 	All calls deleted.
 	(lisp_malloc): Do the work here directly.
 
@@ -10685,7 +10685,7 @@
 	(syms_of_w32fns): Don't intern/staticpro removed vars.
 
 	* w32term.c: Remove unnecessary extern declarations.
-	(x_fullscreen_adjust): Remove. Use generic instead.
+	(x_fullscreen_adjust): Remove.  Use generic instead.
 	(x_redisplay_interface): Add w32_frame_parm_handlers member.
 
 	* w32reg.c (x_get_string_resource): Use XrmDatabase.
@@ -11911,9 +11911,9 @@
 2003-01-21  David Ponce  <david@dponce.com>
 
 	* w32term.c (w32_encode_char): For DIM=1 charset, set
-	ccl->reg[2] to -1 before calling ccl_driver.  (Sync. with xterm.c
-	x_encode_char change by Kenichi Handa <handa@m17n.org> on
-	2002-09-30.)
+	ccl->reg[2] to -1 before calling ccl_driver.
+	(Sync. with xterm.c x_encode_char change by Kenichi Handa
+	<handa@m17n.org> on 2002-09-30.)
 	(w32_draw_relief_rect): Declare all args.
 	(w32_define_cursor): New.
 
@@ -14596,7 +14596,7 @@
 
 2002-06-27  Kim F. Storm  <storm@cua.dk>
 
-	* xdisp.c: (mode_line_string_list, mode_line_string_face)
+	* xdisp.c (mode_line_string_list, mode_line_string_face)
 	(mode_line_string_face_prop): New variables.
 	(store_mode_line_string): New function.
 	(display_mode_element): Use store_mode_line_string to
@@ -14639,7 +14639,7 @@
 
 2002-06-24  Juanma Barranquero  <lektu@terra.es>
 
-	* w32select.c: Include composite.h
+	* w32select.c: Include composite.h.
 
 	* w16select.c: Likewise.
 
@@ -15630,7 +15630,7 @@
 
 	* config.in: Add HAVE_SHARED_GAME_DIR.
 
-	* callproc.c: (Vgame_score_directory): New variable.
+	* callproc.c (Vgame_score_directory): New variable.
 	(syms_of_callproc) <Vgame_score_directory>: DEFVAR_LISP.
 
 2002-04-10  Richard M. Stallman  <rms@gnu.org>
@@ -16178,7 +16178,7 @@
 
 	* xterm.h (x_session_check_input, x_session_initialize): Declare.
 
-	* xterm.c: (XTread_socket): Add call to x_session_check_input and
+	* xterm.c (XTread_socket): Add call to x_session_check_input and
 	x_session_have_connection.
 	(x_initialize): Add call to x_session_initialize.
 
@@ -16595,10 +16595,10 @@
 
 2002-02-17  Kim F. Storm  <storm@cua.dk>
 
-	* frame.c: (Vmouse_highlight): New variable.
+	* frame.c (Vmouse_highlight): New variable.
 	(syms_of_frame): DEFVAR_LISP it.
 
-	* frame.h: (Vmouse_highlight): Declare extern.
+	* frame.h (Vmouse_highlight): Declare extern.
 
 	* xterm.h (struct x_display_info): Add mouse_face_hidden.
 
@@ -18123,7 +18123,7 @@
 
 2001-11-16  Eli Zaretskii  <eliz@is.elta.co.il>
 
-	* syswait.h: (HAVE_SYS_WAIT_H): Undef for ISC 4.1.  Reported by
+	* syswait.h (HAVE_SYS_WAIT_H): Undef for ISC 4.1.  Reported by
 	Andrew Wiseman <a.wiseman@btclick.com>.
 
 2001-11-16  Kim F. Storm  <storm@cua.dk>
@@ -18811,7 +18811,7 @@
 
 	* xterm.c: Fix typo in a comment.
 
-	* lisp.h: (gdb_lisp_params): Remove code in #if 0 which is now in
+	* lisp.h (gdb_lisp_params): Remove code in #if 0 which is now in
 	emacs.c.
 
 2001-10-27  Gerd Moellmann  <gerd@gnu.org>
@@ -18935,7 +18935,7 @@
 
 2001-10-24  Pavel Jan,Am(Bk  <Pavel@Janik.cz>
 
-	* xterm.c: (x_insert_glyphs): Remove unused variables `real_end'
+	* xterm.c (x_insert_glyphs): Remove unused variables `real_end'
 	and `real_start'.
 	(x_draw_image_foreground): Remove unused variables `mask' and `xgcv'.
 	(glyph_rect): Remove unused variable `area'.
@@ -18967,7 +18967,7 @@
 	(HAVE_BOXES): Fix typo in comment.
 	(push_menu_pane): Fix typo in comment.
 
-	* xdisp.c: (display_prop_string_p): Remove unused local declaration
+	* xdisp.c (display_prop_string_p): Remove unused local declaration
 	of `Qwhen'.
 	(single_display_prop_string_p): Remove unused local declarations
 	of `Qwhen' and `Qmargin'.
