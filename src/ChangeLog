@@ -1,3 +1,11 @@
+2005-06-01  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_to_x_fontname, mac_do_list_fonts): Set XLFD
+	resolution fields for scalable fonts to 0.
+
+	* xfaces.c (build_scalable_font_name): Round pixel size to the
+	nearest integer.
+
 2005-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (display_mode_line): Support nested calls to redisplay
@@ -215,8 +223,8 @@
 	(x_scroll_bar_handle_click): Change type of second argument from
 	int to ControlPartCode.
 	(check_alarm): Remove declaration.
-	(XTread_Socket) [!TARGET_API_MAC_CARBON]: Don't call it.
-	(XTread_Socket): Use ControlPartCode instead of SInt16.
+	(XTread_socket) [!TARGET_API_MAC_CARBON]: Don't call it.
+	(XTread_socket): Use ControlPartCode instead of SInt16.
 
 2005-05-13  Nozomu Ando  <nand@mac.com>
 
