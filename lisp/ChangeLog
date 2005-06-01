@@ -1,3 +1,10 @@
+2005-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (list-faces-display): Improve the formatting by
+	computing the maximum length required for any face-name (reworked
+	patch of 1999-01-11, accidentally deleted on 1999-07-21).
+	(internal-find-face): Remove redundant info in docstring.
+
 2005-06-01  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-1)
