@@ -183,10 +183,7 @@ Return nil if there is no such face.
 If the optional argument FRAME is given, this gets the face NAME for
 that frame; otherwise, it uses the selected frame.
 If FRAME is the symbol t, then the global, non-frame face is returned.
-If NAME is already a face, it is simply returned.
-
-This function is defined for compatibility with Emacs 20.2.  It
-should not be used anymore."
+If NAME is already a face, it is simply returned."
   (facep name))
 (make-obsolete 'internal-find-face 'facep "21.1")
 
@@ -1154,18 +1151,24 @@ this regular expression.  When called interactively with a prefix
 arg, prompt for a regular expression."
   (interactive (list (and current-prefix-arg
                           (read-string "List faces matching regexp: "))))
-  (let ((faces (sort (face-list) #'string-lessp))
+  (let ((all-faces (zerop (length regexp)))
 	(frame (selected-frame))
+	(max-length 0)
+	faces line-format
 	disp-frame window face-name)
-    (when (> (length regexp) 0)
-      (setq faces
-            (delq nil
-                  (mapcar (lambda (f)
-                            (when (string-match regexp (symbol-name f))
-                              f))
-                          faces)))
-      (unless faces
-        (error "No faces matching \"%s\"" regexp)))
+    ;; We filter and take the max length in one pass
+    (setq faces
+	  (delq nil
+		(mapcar (lambda (f)
+			  (let ((s (symbol-name f)))
+			    (when (or all-faces (string-match regexp s))
+			      (setq max-length (max (length s) max-length))
+			      f)))
+			(sort (face-list) #'string-lessp))))
+    (unless faces
+      (error "No faces matching \"%s\"" regexp))
+    (setq max-length (1+ max-length)
+	  line-format (format "%%-%ds" max-length))
     (with-output-to-temp-buffer "*Faces*"
       (save-excursion
 	(set-buffer standard-output)
@@ -1180,7 +1183,7 @@ arg, prompt for a regular expression."
 	(setq help-xref-stack nil)
 	(dolist (face faces)
 	  (setq face-name (symbol-name face))
-	  (insert (format "%25s " face-name))
+	  (insert (format line-format face-name))
 	  ;; Hyperlink to a customization buffer for the face.  Using
 	  ;; the help xref mechanism may not be the best way.
 	  (save-excursion
@@ -1205,7 +1208,7 @@ arg, prompt for a regular expression."
 	    (goto-char beg)
 	    (forward-line 1)
 	    (while (not (eobp))
-	      (insert "                          ")
+	      (insert-char ?\s max-length)
 	      (forward-line 1))))
 	(goto-char (point-min)))
       (print-help-return-message))
