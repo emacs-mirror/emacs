@@ -6435,12 +6435,12 @@ build_scalable_font_name (f, font, specified_pt)
   if (font->numeric[XLFD_RESY] != 0)
     {
       pt = resy / font->numeric[XLFD_RESY] * specified_pt + 0.5;
-      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt;
+      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt + 0.5;
     }
   else
     {
       pt = specified_pt;
-      pixel_value = resy / (PT_PER_INCH * 10.0) * pt;
+      pixel_value = resy / (PT_PER_INCH * 10.0) * pt + 0.5;
     }
   /* We may need a font of the different size.  */
   pixel_value *= font->rescale_ratio;
