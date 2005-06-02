@@ -1,3 +1,9 @@
+2005-06-02  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (MODE_LINE_NOPROP_LEN): New macro.
+	(x_consider_frame_title, Fformat_mode_line): Save offset into
+	mode_line_noprop_buf rather than pointer, in case buffer is relocated.
+
 2005-06-01  Kim F. Storm  <storm@cua.dk>
 
 	* fns.c (mapcar1): Maybe exit loop if original sequence was modified.
