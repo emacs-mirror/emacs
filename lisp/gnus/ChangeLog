@@ -1,3 +1,11 @@
+2005-06-02  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* pop3.el (pop3-md5): Run md5 in the binary mode.
+	(pop3-md5-program-args): New variable.
+
+	* starttls.el (starttls-set-process-query-on-exit-flag): Use
+	eval-and-compile.
+
 2005-05-31  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-display-x-face): Replace

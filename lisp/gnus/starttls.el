@@ -236,11 +236,12 @@ handshake, or NIL on failure."
       (starttls-negotiate-gnutls process)
     (signal-process (process-id process) 'SIGALRM)))
 
-(if (fboundp 'set-process-query-on-exit-flag)
+(eval-and-compile
+  (if (fboundp 'set-process-query-on-exit-flag)
+      (defalias 'starttls-set-process-query-on-exit-flag
+	'set-process-query-on-exit-flag)
     (defalias 'starttls-set-process-query-on-exit-flag
-      'set-process-query-on-exit-flag)
-  (defalias 'starttls-set-process-query-on-exit-flag
-    'process-kill-without-query))
+      'process-kill-without-query)))
 
 (defun starttls-open-stream-gnutls (name buffer host service)
   (message "Opening STARTTLS connection to `%s'..." host)
