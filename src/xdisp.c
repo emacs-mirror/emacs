@@ -8173,6 +8173,9 @@ static char *mode_line_noprop_buf;
 static char *mode_line_noprop_buf_end;
 static char *mode_line_noprop_ptr;
 
+#define MODE_LINE_NOPROP_LEN(start) \
+  ((mode_line_noprop_ptr - mode_line_noprop_buf) - start)
+
 static enum {
   MODE_LINE_DISPLAY = 0,
   MODE_LINE_TITLE,
@@ -8212,7 +8215,7 @@ format_mode_line_unwind_data (obuf)
     vector = Fmake_vector (make_number (7), Qnil);
 
   AREF (vector, 0) = make_number (mode_line_target);
-  AREF (vector, 1) = make_number (mode_line_noprop_ptr - mode_line_noprop_buf);
+  AREF (vector, 1) = make_number (MODE_LINE_NOPROP_LEN (0));
   AREF (vector, 2) = mode_line_string_list;
   AREF (vector, 3) = mode_line_proptrans_alist;
   AREF (vector, 4) = mode_line_string_face;
@@ -8263,7 +8266,7 @@ store_mode_line_noprop_char (c)
      double the buffer's size.  */
   if (mode_line_noprop_ptr == mode_line_noprop_buf_end)
     {
-      int len = mode_line_noprop_ptr - mode_line_noprop_buf;
+      int len = MODE_LINE_NOPROP_LEN (0);
       int new_size = 2 * len * sizeof *mode_line_noprop_buf;
       mode_line_noprop_buf = (char *) xrealloc (mode_line_noprop_buf, new_size);
       mode_line_noprop_buf_end = mode_line_noprop_buf + new_size;
@@ -8330,7 +8333,8 @@ x_consider_frame_title (frame)
       /* Do we have more than one visible frame on this X display?  */
       Lisp_Object tail;
       Lisp_Object fmt;
-      char *title_start;
+      int title_start;
+      char *title;
       int len;
       struct it it;
       int count = SPECPDL_INDEX ();
@@ -8361,12 +8365,12 @@ x_consider_frame_title (frame)
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
 
       mode_line_target = MODE_LINE_TITLE;
-      title_start = mode_line_noprop_ptr;
+      title_start = MODE_LINE_NOPROP_LEN (0);
       init_iterator (&it, XWINDOW (f->selected_window), -1, -1,
 		     NULL, DEFAULT_FACE_ID);
       display_mode_element (&it, 0, -1, -1, fmt, Qnil, 0);
-      len = mode_line_noprop_ptr - title_start;
-
+      len = MODE_LINE_NOPROP_LEN (title_start);
+      title = mode_line_noprop_buf + title_start;
       unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
@@ -8376,8 +8380,8 @@ x_consider_frame_title (frame)
 	 higher level than this.)  */
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
-	  || bcmp (title_start, SDATA (f->name), len) != 0)
-	x_implicitly_set_name (f, make_string (title_start, len), Qnil);
+	  || bcmp (title, SDATA (f->name), len) != 0)
+	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
 
@@ -16300,7 +16304,7 @@ are the selected window and the window's buffer).  */)
   int no_props = INTEGERP (face);
   int count = SPECPDL_INDEX ();
   Lisp_Object str;
-  char *string_start = NULL;
+  int string_start = 0;
 
   if (NILP (window))
     window = selected_window;
@@ -16343,7 +16347,7 @@ are the selected window and the window's buffer).  */)
       mode_line_target = MODE_LINE_NOPROP;
       mode_line_string_face_prop = Qnil;
       mode_line_string_list = Qnil;
-      string_start = mode_line_noprop_ptr;
+      string_start = MODE_LINE_NOPROP_LEN (0);
     }
   else
     {
@@ -16352,8 +16356,6 @@ are the selected window and the window's buffer).  */)
       mode_line_string_face = face;
       mode_line_string_face_prop
 	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
-
-      string_start = NULL;
     }
 
   push_frame_kboard (it.f);
@@ -16362,8 +16364,8 @@ are the selected window and the window's buffer).  */)
 
   if (no_props)
     {
-      len = mode_line_noprop_ptr - string_start;
-      str = make_string (string_start, len);
+      len = MODE_LINE_NOPROP_LEN (string_start);
+      str = make_string (mode_line_noprop_buf + string_start, len);
     }
   else
     {
