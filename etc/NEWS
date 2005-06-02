@@ -349,6 +349,10 @@ understand two new boolean pseudo-frame-parameters `same-frame' and
 ** The default for the paper size (variable ps-paper-type) is taken
 from the locale.
 
+** The command `list-faces-display' now accepts a prefix arg.
+When passed, the function prompts for a regular expression and lists
+only faces matching this regexp.
+
 ** Mark command changes:
 
 +++
@@ -3136,6 +3140,10 @@ This combines `defalias' and `make-obsolete'.
 It returns nil if the given Lisp form can't possibly do anything
 dangerous; otherwise it returns a reason why the form might be unsafe
 (calls unknown function, alters global variable, etc).
+
+*** `list-faces-display' takes an optional argument, REGEXP.
+
+If it is non-nil, the function lists only faces matching this regexp.
 
 ** Lisp code indentation features:
 
