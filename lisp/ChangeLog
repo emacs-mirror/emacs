@@ -1,16 +1,28 @@
+2005-06-03  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-targets-face)
+	(makefile-shell-face, makefile-makepp-perl-face): Add :version.
+	(makefile-bsdmake-dependency-regex)
+	(makefile-makepp-rule-action-regex)
+	(makefile-bsdmake-rule-action-regex): New constants.
+	(makefile-makepp-mode, makefile-bsdmake-mode): Use them.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Allow (...) within `...' for makepp messages.
+
 2005-06-03  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
+
 	* ediff-diff.el (ediff-same-contents) Eliminate CL-type functions.
-	
+
 	* ediff-mult.el (ediff-intersect-directories) Make sure that ".." and
 	"." files are deleted from all file lists before comparison
-	
+
 	* viper-keym.el
 	(viper-toggle-key,viper-quoted-insert-key,viper-ESC-key):
 	Made them customizable.
-	
+
 	* viper.el (viper-non-hook-settings): fixed the names of defadvices.
-	
+
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-buffers): Use save-match-data.
