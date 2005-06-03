@@ -277,7 +277,7 @@ Also display the main routine in the disassembly buffer if present."
 (defun gdb-set-gud-minor-mode-1 (buffer)
   (goto-char (point-min))
   (when (and (search-forward "Located in " nil t)
-	     (looking-at "\\S-*")
+	     (looking-at "\\S-+")
 	     (string-equal (buffer-file-name buffer)
 			   (match-string 0)))
     (with-current-buffer buffer
@@ -1161,12 +1161,12 @@ happens to be appropriate."
      (let ((buf (gdb-get-buffer ',buf-key)))
        (and buf
 	    (with-current-buffer buf
-	      (let ((p (point))
+	      (let ((p (window-point (get-buffer-window buf 0)))
 		    (buffer-read-only nil))
 		(erase-buffer)
 		(insert-buffer-substring (gdb-get-create-buffer
 					  'gdb-partial-output-buffer))
-		(goto-char p)))))
+		(set-window-point (get-buffer-window buf 0) p)))))
      ;; put customisation here
      (,custom-defun)))
 
@@ -1304,7 +1304,7 @@ static char *magick[] = {
 	(goto-char (point-min))
 	(while (< (point) (- (point-max) 1))
 	  (forward-line 1)
-	  (if (looking-at "[^\t].*breakpoint")
+	  (if (looking-at "[^\t].*?breakpoint")
 	      (progn
 		(looking-at "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)")
 		(setq bptno (match-string 1))
@@ -1446,9 +1446,9 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	    (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)\\s-+")
 	  (looking-at
-     "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*\\(.\\)\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+     "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
 	(gdb-enqueue-input
 	 (list
 	  (concat gdb-server-prefix
@@ -1463,9 +1463,9 @@ static char *magick[] = {
   (interactive)
   (beginning-of-line 1)
   (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	  (looking-at "\\([0-9]+\\).*point\\s-*\\S-*\\s-*\\(.\\)")
+	  (looking-at "\\([0-9]+\\).*?point\\s-+\\S-+\\s-+\\(.\\)")
 	(looking-at
-	 "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\\S-*:[0-9]+"))
+	 "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\s-+\\S-+\\s-+\\S-+:[0-9]+"))
       (gdb-enqueue-input
        (list
 	(concat gdb-server-prefix "delete " (match-string 1) "\n") 'ignore))
@@ -1478,10 +1478,10 @@ static char *magick[] = {
   (save-excursion
     (beginning-of-line 1)
     (if (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
-	    (looking-at "\\([0-9]+\\) .* in .* at\\s-+\\(\\S-*\\):\\([0-9]+\\)")
+	    (looking-at "\\([0-9]+\\) .+ in .+ at\\s-+\\(\\S-+\\):\\([0-9]+\\)")
 	  (looking-at
-	   "\\([0-9]+\\)\\s-*\\S-*\\s-*\\S-*\\s-*.\\s-*\\S-*\\s-*\
-\\(\\S-*\\):\\([0-9]+\\)"))
+	   "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+.\\s-+\\S-+\\s-+\
+\\(\\S-+\\):\\([0-9]+\\)"))
 	(let ((bptno (match-string 1))
 	      (file  (match-string 2))
 	      (line  (match-string 3)))
@@ -1766,7 +1766,11 @@ static char *magick[] = {
   gdb-read-memory-handler
   gdb-read-memory-custom)
 
-(defun gdb-read-memory-custom ())
+(defun gdb-read-memory-custom ()
+  (save-excursion
+    (goto-char (point-min))
+    (if (looking-at "0x[[:xdigit:]]+")
+	(setq gdb-memory-address (match-string 0)))))
 
 (defvar gdb-memory-mode-map
   (let ((map (make-sparse-keymap)))
@@ -1790,8 +1794,8 @@ static char *magick[] = {
     (select-window (posn-window (event-start event)))
     (let* ((arg (read-from-minibuffer "Repeat count: "))
 	  (count (string-to-number arg)))
-      (if (< count 0)
-	  (error "Non-negative numbers only")
+      (if (<= count 0)
+	  (error "Positive numbers only")
 	(customize-set-variable 'gdb-memory-repeat-count count)
 	(gdb-invalidate-memory)))))
 
@@ -1944,7 +1948,38 @@ corresponding to the mode line clicked."
   (setq header-line-format
 	'(:eval
 	  (concat
-	   "Read address: "
+	   "Read address["
+	   (propertize
+	    "-"
+	    'face font-lock-warning-face
+	    'help-echo "mouse-1: Decrement address"
+	    'mouse-face 'mode-line-highlight
+	    'local-map
+	    (gdb-make-header-line-mouse-map
+	     'mouse-1
+	     #'(lambda () (interactive)
+		 (let ((gdb-memory-address
+			;; let GDB do the arithmetic
+			(concat
+			 gdb-memory-address " - "
+			 (number-to-string
+			  (* gdb-memory-repeat-count
+			     (cond ((string= gdb-memory-unit "b") 1)
+				   ((string= gdb-memory-unit "h") 2)
+				   ((string= gdb-memory-unit "w") 4)
+				   ((string= gdb-memory-unit "g") 8)))))))
+		       (gdb-invalidate-memory)))))
+	   "|"
+	   (propertize "+"
+		       'face font-lock-warning-face
+		       'help-echo "mouse-1: Increment address"
+		       'mouse-face 'mode-line-highlight
+		       'local-map (gdb-make-header-line-mouse-map
+				   'mouse-1
+				   #'(lambda () (interactive)
+				       (let ((gdb-memory-address nil))
+					 (gdb-invalidate-memory)))))
+	   "]: "
 	   (propertize gdb-memory-address
 		       'face font-lock-warning-face
 		       'help-echo "mouse-1: Set memory address"
@@ -2266,7 +2301,7 @@ Kills the gdb buffers and resets the source buffers."
 buffers."
   (goto-char (point-min))
   (if (and (search-forward "Located in " nil t)
-	   (looking-at "\\S-*"))
+	   (looking-at "\\S-+"))
       (setq gdb-main-file (match-string 0)))
   (goto-char (point-min))
   (if (search-forward "Includes preprocessor macro info." nil t)
@@ -2284,7 +2319,7 @@ Put in buffer and place breakpoint icon."
   (goto-char (point-min))
   (catch 'file-not-found
     (if (search-forward "Located in " nil t)
-	(when (looking-at "\\S-*")
+	(when (looking-at "\\S-+")
 	  (delete (cons bptno "File not found") gdb-location-alist)
 	  (push (cons bptno (match-string 0)) gdb-location-alist))
       (gdb-resync)
@@ -2439,25 +2474,26 @@ BUFFER nil or omitted means use the current buffer."
   (let ((buffer (gdb-get-buffer 'gdb-assembler-buffer))
 	(pos 1) (address) (flag) (bptno))
     (with-current-buffer buffer
-      (if (not (equal gdb-frame-address "main"))
-	  (progn
-	    (goto-char (point-min))
-	    (if (and gdb-frame-address
-		     (re-search-forward gdb-frame-address nil t))
-		(progn
-		  (setq pos (point))
-		  (beginning-of-line)
-		  (or gdb-overlay-arrow-position
-		      (setq gdb-overlay-arrow-position (make-marker)))
-		  (set-marker gdb-overlay-arrow-position
-			      (point) (current-buffer))))))
-      ;; remove all breakpoint-icons in assembler buffer before updating.
-      (gdb-remove-breakpoint-icons (point-min) (point-max)))
+      (save-excursion
+	(if (not (equal gdb-frame-address "main"))
+	    (progn
+	      (goto-char (point-min))
+	      (if (and gdb-frame-address
+		       (re-search-forward gdb-frame-address nil t))
+		  (progn
+		    (setq pos (point))
+		    (beginning-of-line)
+		    (or gdb-overlay-arrow-position
+			(setq gdb-overlay-arrow-position (make-marker)))
+		    (set-marker gdb-overlay-arrow-position
+				(point) (current-buffer))))))
+	;; remove all breakpoint-icons in assembler buffer before updating.
+	(gdb-remove-breakpoint-icons (point-min) (point-max))))
     (with-current-buffer (gdb-get-buffer 'gdb-breakpoints-buffer)
       (goto-char (point-min))
       (while (< (point) (- (point-max) 1))
 	(forward-line 1)
-	(if (looking-at "[^\t].*breakpoint")
+	(if (looking-at "[^\t].*?breakpoint")
 	    (progn
 	      (looking-at
 	    "\\([0-9]+\\)\\s-+\\S-+\\s-+\\S-+\\s-+\\(.\\)\\s-+0x0*\\(\\S-+\\)")
@@ -2465,9 +2501,10 @@ BUFFER nil or omitted means use the current buffer."
 	      (setq flag (char-after (match-beginning 2)))
 	      (setq address (match-string 3))
 	      (with-current-buffer buffer
+		(save-excursion
 		  (goto-char (point-min))
 		  (if (re-search-forward address nil t)
-		      (gdb-put-breakpoint-icon (eq flag ?y) bptno)))))))
+		      (gdb-put-breakpoint-icon (eq flag ?y) bptno))))))))
     (if (not (equal gdb-frame-address "main"))
 	(set-window-point (get-buffer-window buffer 0) pos))))
 
@@ -2517,12 +2554,14 @@ BUFFER nil or omitted means use the current buffer."
 (defun gdb-display-assembler-buffer ()
   "Display disassembly view."
   (interactive)
+  (setq gdb-previous-frame nil)
   (gdb-display-buffer
    (gdb-get-create-buffer 'gdb-assembler-buffer)))
 
 (defun gdb-frame-assembler-buffer ()
   "Display disassembly view in a new frame."
   (interactive)
+  (setq gdb-previous-frame nil)
   (let ((special-display-regexps (append special-display-regexps '(".*")))
 	(special-display-frame-alist gdb-frame-parameters))
     (display-buffer (gdb-get-create-buffer 'gdb-assembler-buffer))))

@@ -877,7 +877,7 @@ Summarize disk usage of each FILE, recursively for directories.")
        (unless by-bytes
 	 (setq block-size (or block-size 1024)))
        (if (and max-depth (stringp max-depth))
-	   (setq max-depth (string-to-int max-depth)))
+	   (setq max-depth (string-to-number max-depth)))
        ;; filesystem support means nothing under Windows
        (if (eshell-under-windows-p)
 	   (setq only-one-filesystem nil))

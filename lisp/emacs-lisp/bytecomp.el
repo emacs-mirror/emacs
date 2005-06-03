@@ -1248,15 +1248,15 @@ extra args."
 (defun byte-compile-nogroup-warn (form)
   (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
 	(name (cadr form)))
-    (unless (plist-get keyword-args :group)
-      (byte-compile-warn
-       "%s for `%s' fails to specify containing group"
-       (cdr (assq (car form)
-		  '((custom-declare-group . defgroup)
-		    (custom-declare-face . defface)
-		    (custom-declare-variable . defcustom))))
-       (if (and (consp name) (eq (car name) 'quote))
-	   (cadr name) name)))))
+    (or (plist-get keyword-args :group)
+	(not (and (consp name) (eq (car name) 'quote)))
+	(byte-compile-warn
+	 "%s for `%s' fails to specify containing group"
+	 (cdr (assq (car form)
+		    '((custom-declare-group . defgroup)
+		      (custom-declare-face . defface)
+		      (custom-declare-variable . defcustom))))
+	 (cadr name)))))
 
 ;; Warn if the function or macro is being redefined with a different
 ;; number of arguments.

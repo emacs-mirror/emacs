@@ -1,11 +1,12 @@
 ;;; mh-e.el --- GNU Emacs interface to the MH mail system
 
-;; Copyright (C) 1985, 86, 87, 88, 90, 92, 93, 94, 95, 97, 1999,
-;;  2000, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1987, 1988,
+;;  1990, 1992, 1993, 1994, 1995, 1997, 1999,
+;;  2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
-;; Version: 7.82
+;; Version: 7.84
 ;; Keywords: mail
 
 ;; This file is part of GNU Emacs.
@@ -97,10 +98,7 @@
 (defvar font-lock-auto-fontify)
 (defvar font-lock-defaults)
 
-(defconst mh-version "7.82" "Version number of MH-E.")
-
-;;; Autoloads
-(autoload 'Info-goto-node "info")
+(defconst mh-version "7.84" "Version number of MH-E.")
 
 (defvar mh-partial-folder-mode-line-annotation "select"
   "Annotation when displaying part of a folder.
@@ -578,7 +576,8 @@ Do not call this function from outside MH-E; use \\[mh-rmail] instead."
       (setq folder mh-inbox))
   (let ((threading-needed-flag nil))
     (let ((config (current-window-configuration)))
-      (delete-other-windows)
+      (when (and mh-show-buffer (get-buffer mh-show-buffer))
+        (delete-windows-on mh-show-buffer))
       (cond ((not (get-buffer folder))
              (mh-make-folder folder)
              (setq threading-needed-flag mh-show-threads-flag)
@@ -717,22 +716,24 @@ updated."
     (mh-refile-a-msg nil folder))
   (when (looking-at mh-scan-refiled-msg-regexp) (mh-next-msg)))
 
-(defun mh-refile-or-write-again (message)
-  "Re-execute the last refile or write command on the given MESSAGE.
+(defun mh-refile-or-write-again (range &optional interactive-flag)
+  "Re-execute the last refile or write command on the given RANGE.
 Default is the displayed message. Use the same folder or file as the previous
-refile or write command."
-  (interactive (list (mh-get-msg-num t)))
+refile or write command.
+If INTERACTIVE-FLAG is non-nil then the function was called interactively."
+  (interactive (list (mh-interactive-range "Redo") t))
   (if (null mh-last-destination)
       (error "No previous refile or write"))
   (let (output)
     (setq output
           (cond ((eq (car mh-last-destination) 'refile)
-                 (mh-refile-a-msg message (cdr mh-last-destination))
+                 (mh-refile-msg range (cdr mh-last-destination))
                  (format "Destination folder: %s" (cdr mh-last-destination)))
                 (t
-                 (apply 'mh-write-msg-to-file message (cdr mh-last-destination))
+                 (mh-iterate-on-range msg range
+                   (apply 'mh-write-msg-to-file msg (cdr mh-last-destination)))
+                 (mh-next-msg interactive-flag)
                  (format "Destination: %s" (cdr mh-last-destination)))))
-    (mh-next-msg (interactive-p))
     (message output)))
 
 (defun mh-quit ()
@@ -1801,7 +1802,7 @@ Return in the current buffer."
         (message "inc %s..." folder))
       (setq mh-next-direction 'forward)
       (goto-char (point-max))
-      (mh-remove-all-notation)
+      (mh-remove-cur-notation)
       (let ((start-of-inc (point)))
         (if maildrop-name
             ;; I think MH 5 used "-ms-file" instead of "-file",
@@ -1827,7 +1828,7 @@ Return in the current buffer."
                                          start-of-inc (point-max))))
                         (delete-region start-of-inc (point-max))
                         (unwind-protect (mh-widen t)
-                          (mh-remove-all-notation)
+                          (mh-remove-cur-notation)
                           (goto-char (point-max))
                           (setq start-of-inc (point))
                           (insert saved-text)
@@ -1846,7 +1847,15 @@ Return in the current buffer."
               (t
                (setq new-mail-flag t)))
         (keep-lines mh-scan-valid-regexp) ; Flush random scan lines
-        (setq mh-seq-list (mh-read-folder-sequences folder t))
+        (let* ((sequences (mh-read-folder-sequences folder t))
+               (new-cur (assoc 'cur sequences))
+               (new-unseen (assoc mh-unseen-seq sequences)))
+          (unless (assoc 'cur mh-seq-list)
+            (push (list 'cur) mh-seq-list))
+          (unless (assoc mh-unseen-seq mh-seq-list)
+            (push (list mh-unseen-seq) mh-seq-list))
+          (setcdr (assoc 'cur mh-seq-list) (cdr new-cur))
+          (setcdr (assoc mh-unseen-seq mh-seq-list) (cdr new-unseen)))
         (when (equal (point-max) start-of-inc)
           (mh-notate-cur))
         (if new-mail-flag
@@ -1858,8 +1867,7 @@ Return in the current buffer."
                 (mh-thread-inc folder start-of-inc))
               (mh-goto-cur-msg))
           (goto-char point-before-inc))
-        (mh-notate-user-sequences)
-        (mh-notate-deleted-and-refiled)))))
+        (mh-notate-user-sequences (cons start-of-inc (point-max)))))))
 
 (defun mh-make-folder-mode-line (&optional ignored)
   "Set the fields of the mode line for a folder buffer.
@@ -2033,18 +2041,18 @@ with no arguments, before the commands are processed."
                             (mh-coalesce-msg-list msgs))
                      (mh-delete-scan-msgs msgs)
                      ;; Preserve sequences in destination folder...
-                     (when (and mh-refile-preserves-sequences-flag
-                                (numberp last))
+                     (when mh-refile-preserves-sequences-flag
                        (clrhash dest-map)
-                       (loop for i from (1+ last)
+                       (loop for i from (1+ (or last 0))
                              for msg in (sort (copy-sequence msgs) #'<)
                              do (loop for seq-name in (gethash msg seq-map)
                                       do (push i (gethash seq-name dest-map))))
                        (maphash
                         #'(lambda (seq msgs)
-                            ;; Run it in the background, since we don't care
-                            ;; about the results.
-                            (apply #'mh-exec-cmd-daemon "mark" #'ignore
+                            ;; Can't be run in the background, since the
+                            ;; current folder is changed by mark this could
+                            ;; lead to a race condition with the next refile.
+                            (apply #'mh-exec-cmd "mark"
                                    "-sequence" (symbol-name seq) dest-folder
                                    "-add" (mapcar #'(lambda (x) (format "%s" x))
                                                   (mh-coalesce-msg-list msgs))))
@@ -2201,13 +2209,14 @@ Expands ranges into set of individual numbers."
         (end-of-line (save-excursion (end-of-line) (point)))
         num)
     (while (re-search-forward "[0-9]+" end-of-line t)
-      (setq num (string-to-int (buffer-substring (match-beginning 0)
-                                                 (match-end 0))))
+      (setq num (string-to-number (buffer-substring (match-beginning 0)
+                                                    (match-end 0))))
       (cond ((looking-at "-")           ; Message range
              (forward-char 1)
              (re-search-forward "[0-9]+" end-of-line t)
-             (let ((num2 (string-to-int (buffer-substring (match-beginning 0)
-                                                          (match-end 0)))))
+             (let ((num2 (string-to-number
+                          (buffer-substring (match-beginning 0)
+                                            (match-end 0)))))
                (if (< num2 num)
                    (error "Bad message range: %d-%d" num num2))
                (while (<= num num2)

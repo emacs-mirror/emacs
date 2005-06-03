@@ -889,6 +889,9 @@ is the default binding of the variable. */)
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
+  if (SYMBOLP (variable))
+    variable = indirect_variable (variable);
+
   /* Look in local_var_list */
   result = Fassoc (variable, buf->local_var_alist);
   if (NILP (result))

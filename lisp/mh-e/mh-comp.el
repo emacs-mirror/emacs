@@ -1,6 +1,7 @@
 ;;; mh-comp.el --- MH-E functions for composing messages
 
-;; Copyright (C) 1993, 95, 1997, 2000, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997,
+;;  2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -52,7 +53,6 @@
 (defvar mh-identity-menu)
 
 ;;; Autoloads
-(autoload 'Info-goto-node "info")
 (autoload 'mail-mode-fill-paragraph "sendmail")
 (autoload 'mm-handle-displayed-p "mm-decode")
 
@@ -490,8 +490,10 @@ to reply to:
    cc/all  sender and all recipients.
 If optional prefix argument INCLUDEP provided, then include the message
 in the reply using filter `mhl.reply' in your MH directory.
-If the file named by `mh-repl-formfile' exists, it is used as a skeleton
-for the reply.
+If the file named by `mh-repl-formfile' exists, it is used as a skeleton for
+the reply. If REPLY-TO is cc or all and you're using either the nmh or GNU
+mailutils variants and the file names by `mh-repl-group-formfile' exists, it
+is used instead.
 
 See also `mh-send'."
   (interactive (list
@@ -1629,15 +1631,22 @@ This is useful in breaking up paragraphs in replies."
 (defun mh-complete-word (word choices begin end)
   "Complete WORD at from CHOICES.
 Any match found replaces the text from BEGIN to END."
-  (let ((completion (try-completion word choices)))
+  (let ((completion (try-completion word choices))
+        (completions-buffer "*Completions*"))
     (cond ((eq completion t)
+           (ignore-errors
+             (kill-buffer completions-buffer))
            (message "Completed: %s" word))
           ((null completion)
+           (ignore-errors
+             (kill-buffer completions-buffer))
            (message "No completion for `%s'" word))
           ((stringp completion)
            (if (equal word completion)
-               (with-output-to-temp-buffer "*Completions*"
+               (with-output-to-temp-buffer completions-buffer
                  (display-completion-list (all-completions word choices)))
+             (ignore-errors
+               (kill-buffer completions-buffer))
              (delete-region begin end)
              (insert completion))))))
 
@@ -1964,8 +1973,6 @@ Otherwise return the empty string."
   [backtab]             mh-letter-previous-header-field)
 
 ;; "C-c /" prefix is used in mh-letter-mode by pgp.el and mailcrypt.el.
-
-;;;###autoload(add-to-list 'auto-mode-alist '("/drafts/[0-9]+\\'" . mh-letter-mode))
 
 (provide 'mh-comp)
 

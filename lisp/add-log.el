@@ -220,7 +220,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ("^\\sw.........[0-9:+ ]*"
      (0 'change-log-date-face)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
-     ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
+     ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
       (1 'change-log-name-face)
       (2 'change-log-email-face)))
     ;;

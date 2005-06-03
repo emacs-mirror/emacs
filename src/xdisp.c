@@ -830,8 +830,8 @@ static struct text_pos run_window_scroll_functions P_ ((Lisp_Object,
 							struct text_pos));
 static void reconsider_clip_changes P_ ((struct window *, struct buffer *));
 static int text_outside_line_unchanged_p P_ ((struct window *, int, int));
-static void store_frame_title_char P_ ((char));
-static int store_frame_title P_ ((const unsigned char *, int, int));
+static void store_mode_line_noprop_char P_ ((char));
+static int store_mode_line_noprop P_ ((const unsigned char *, int, int));
 static void x_consider_frame_title P_ ((Lisp_Object));
 static void handle_stop P_ ((struct it *));
 static int tool_bar_lines_needed P_ ((struct frame *));
@@ -8161,52 +8161,126 @@ echo_area_display (update_frame_p)
 
 
 /***********************************************************************
-			     Frame Titles
+		     Mode Lines and Frame Titles
  ***********************************************************************/
 
+/* A buffer for constructing non-propertized mode-line strings and
+   frame titles in it; allocated from the heap in init_xdisp and
+   resized as needed in store_mode_line_noprop_char.  */
 
-/* The frame title buffering code is also used by Fformat_mode_line.
-   So it is not conditioned by HAVE_WINDOW_SYSTEM.  */
-
-/* A buffer for constructing frame titles in it; allocated from the
-   heap in init_xdisp and resized as needed in store_frame_title_char.  */
-
-static char *frame_title_buf;
+static char *mode_line_noprop_buf;
 
 /* The buffer's end, and a current output position in it.  */
 
-static char *frame_title_buf_end;
-static char *frame_title_ptr;
+static char *mode_line_noprop_buf_end;
+static char *mode_line_noprop_ptr;
+
+#define MODE_LINE_NOPROP_LEN(start) \
+  ((mode_line_noprop_ptr - mode_line_noprop_buf) - start)
+
+static enum {
+  MODE_LINE_DISPLAY = 0,
+  MODE_LINE_TITLE,
+  MODE_LINE_NOPROP,
+  MODE_LINE_STRING
+} mode_line_target;
+
+/* Alist that caches the results of :propertize.
+   Each element is (PROPERTIZED-STRING . PROPERTY-LIST).  */
+static Lisp_Object mode_line_proptrans_alist;
+
+/* List of strings making up the mode-line.  */
+static Lisp_Object mode_line_string_list;
+
+/* Base face property when building propertized mode line string.  */
+static Lisp_Object mode_line_string_face;
+static Lisp_Object mode_line_string_face_prop;
 
 
-/* Store a single character C for the frame title in frame_title_buf.
-   Re-allocate frame_title_buf if necessary.  */
+/* Unwind data for mode line strings */
+
+static Lisp_Object Vmode_line_unwind_vector;
+
+static Lisp_Object
+format_mode_line_unwind_data (obuf)
+     struct buffer *obuf;
+{
+  int i = 0;
+  Lisp_Object vector;
+
+  /* Reduce consing by keeping one vector in
+     Vwith_echo_area_save_vector.  */
+  vector = Vmode_line_unwind_vector;
+  Vmode_line_unwind_vector = Qnil;
+
+  if (NILP (vector))
+    vector = Fmake_vector (make_number (7), Qnil);
+
+  AREF (vector, 0) = make_number (mode_line_target);
+  AREF (vector, 1) = make_number (MODE_LINE_NOPROP_LEN (0));
+  AREF (vector, 2) = mode_line_string_list;
+  AREF (vector, 3) = mode_line_proptrans_alist;
+  AREF (vector, 4) = mode_line_string_face;
+  AREF (vector, 5) = mode_line_string_face_prop;
+
+  if (obuf)
+    XSETBUFFER (AREF (vector, 6), obuf);
+  else
+    AREF (vector, 6) = Qnil;
+
+  return vector;
+}
+
+static Lisp_Object
+unwind_format_mode_line (vector)
+     Lisp_Object vector;
+{
+  mode_line_target = XINT (AREF (vector, 0));
+  mode_line_noprop_ptr = mode_line_noprop_buf + XINT (AREF (vector, 1));
+  mode_line_string_list = AREF (vector, 2);
+  mode_line_proptrans_alist = AREF (vector, 3);
+  mode_line_string_face = AREF (vector, 4);
+  mode_line_string_face_prop = AREF (vector, 5);
+
+  if (!NILP (AREF (vector, 6)))
+    {
+      set_buffer_internal_1 (XBUFFER (AREF (vector, 6)));
+      AREF (vector, 6) = Qnil;
+    }
+
+  Vmode_line_unwind_vector = vector;
+  return Qnil;
+}
+
+
+/* Store a single character C for the frame title in mode_line_noprop_buf.
+   Re-allocate mode_line_noprop_buf if necessary.  */
 
 static void
 #ifdef PROTOTYPES
-store_frame_title_char (char c)
+store_mode_line_noprop_char (char c)
 #else
-store_frame_title_char (c)
+store_mode_line_noprop_char (c)
     char c;
 #endif
 {
   /* If output position has reached the end of the allocated buffer,
      double the buffer's size.  */
-  if (frame_title_ptr == frame_title_buf_end)
+  if (mode_line_noprop_ptr == mode_line_noprop_buf_end)
     {
-      int len = frame_title_ptr - frame_title_buf;
-      int new_size = 2 * len * sizeof *frame_title_buf;
-      frame_title_buf = (char *) xrealloc (frame_title_buf, new_size);
-      frame_title_buf_end = frame_title_buf + new_size;
-      frame_title_ptr = frame_title_buf + len;
+      int len = MODE_LINE_NOPROP_LEN (0);
+      int new_size = 2 * len * sizeof *mode_line_noprop_buf;
+      mode_line_noprop_buf = (char *) xrealloc (mode_line_noprop_buf, new_size);
+      mode_line_noprop_buf_end = mode_line_noprop_buf + new_size;
+      mode_line_noprop_ptr = mode_line_noprop_buf + len;
     }
 
-  *frame_title_ptr++ = c;
+  *mode_line_noprop_ptr++ = c;
 }
 
 
-/* Store part of a frame title in frame_title_buf, beginning at
-   frame_title_ptr.  STR is the string to store.  Do not copy
+/* Store part of a frame title in mode_line_noprop_buf, beginning at
+   mode_line_noprop_ptr.  STR is the string to store.  Do not copy
    characters that yield more columns than PRECISION; PRECISION <= 0
    means copy the whole string.  Pad with spaces until FIELD_WIDTH
    number of characters have been copied; FIELD_WIDTH <= 0 means don't
@@ -8214,7 +8288,7 @@ store_frame_title_char (c)
    frame title.  */
 
 static int
-store_frame_title (str, field_width, precision)
+store_mode_line_noprop (str, field_width, precision)
      const unsigned char *str;
      int field_width, precision;
 {
@@ -8225,18 +8299,22 @@ store_frame_title (str, field_width, precision)
   nbytes = strlen (str);
   n += c_string_width (str, nbytes, precision, &dummy, &nbytes);
   while (nbytes--)
-    store_frame_title_char (*str++);
+    store_mode_line_noprop_char (*str++);
 
   /* Fill up with spaces until FIELD_WIDTH reached.  */
   while (field_width > 0
 	 && n < field_width)
     {
-      store_frame_title_char (' ');
+      store_mode_line_noprop_char (' ');
       ++n;
     }
 
   return n;
 }
+
+/***********************************************************************
+			     Frame Titles
+ ***********************************************************************/
 
 #ifdef HAVE_WINDOW_SYSTEM
 
@@ -8257,9 +8335,11 @@ x_consider_frame_title (frame)
       /* Do we have more than one visible frame on this X display?  */
       Lisp_Object tail;
       Lisp_Object fmt;
-      struct buffer *obuf;
+      int title_start;
+      char *title;
       int len;
       struct it it;
+      int count = SPECPDL_INDEX ();
 
       for (tail = Vframe_list; CONSP (tail); tail = XCDR (tail))
 	{
@@ -8278,18 +8358,22 @@ x_consider_frame_title (frame)
       multiple_frames = CONSP (tail);
 
       /* Switch to the buffer of selected window of the frame.  Set up
-	 frame_title_ptr so that display_mode_element will output into it;
-	 then display the title.  */
-      obuf = current_buffer;
+	 mode_line_target so that display_mode_element will output into
+	 mode_line_noprop_buf; then display the title.  */
+      record_unwind_protect (unwind_format_mode_line,
+			     format_mode_line_unwind_data (current_buffer));
+
       set_buffer_internal_1 (XBUFFER (XWINDOW (f->selected_window)->buffer));
       fmt = FRAME_ICONIFIED_P (f) ? Vicon_title_format : Vframe_title_format;
-      frame_title_ptr = frame_title_buf;
+
+      mode_line_target = MODE_LINE_TITLE;
+      title_start = MODE_LINE_NOPROP_LEN (0);
       init_iterator (&it, XWINDOW (f->selected_window), -1, -1,
 		     NULL, DEFAULT_FACE_ID);
       display_mode_element (&it, 0, -1, -1, fmt, Qnil, 0);
-      len = frame_title_ptr - frame_title_buf;
-      frame_title_ptr = NULL;
-      set_buffer_internal_1 (obuf);
+      len = MODE_LINE_NOPROP_LEN (title_start);
+      title = mode_line_noprop_buf + title_start;
+      unbind_to (count, Qnil);
 
       /* Set the title only if it's changed.  This avoids consing in
 	 the common case where it hasn't.  (If it turns out that we've
@@ -8298,8 +8382,8 @@ x_consider_frame_title (frame)
 	 higher level than this.)  */
       if (! STRINGP (f->name)
 	  || SBYTES (f->name) != len
-	  || bcmp (frame_title_buf, SDATA (f->name), len) != 0)
-	x_implicitly_set_name (f, make_string (frame_title_buf, len), Qnil);
+	  || bcmp (title, SDATA (f->name), len) != 0)
+	x_implicitly_set_name (f, make_string (title, len), Qnil);
     }
 }
 
@@ -15600,6 +15684,7 @@ display_mode_line (w, face_id, format)
 {
   struct it it;
   struct face *face;
+  int count = SPECPDL_INDEX ();
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
   prepare_desired_row (it.glyph_row);
@@ -15610,12 +15695,19 @@ display_mode_line (w, face_id, format)
     /* Force the mode-line to be displayed in the default face.  */
     it.base_face_id = it.face_id = DEFAULT_FACE_ID;
 
+  record_unwind_protect (unwind_format_mode_line,
+			 format_mode_line_unwind_data (NULL));
+
+  mode_line_target = MODE_LINE_DISPLAY;
+
   /* Temporarily make frame's keyboard the current kboard so that
      kboard-local variables in the mode_line_format will get the right
      values.  */
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_frame_kboard ();
+
+  unbind_to (count, Qnil);
 
   /* Fill up with spaces.  */
   display_string (" ", Qnil, Qnil, 0, 0, &it, 10000, -1, -1, 0);
@@ -15639,18 +15731,6 @@ display_mode_line (w, face_id, format)
   return it.glyph_row->height;
 }
 
-/* Alist that caches the results of :propertize.
-   Each element is (PROPERTIZED-STRING . PROPERTY-LIST).  */
-Lisp_Object mode_line_proptrans_alist;
-
-/* List of strings making up the mode-line.  */
-Lisp_Object mode_line_string_list;
-
-/* Base face property when building propertized mode line string.  */
-static Lisp_Object mode_line_string_face;
-static Lisp_Object mode_line_string_face_prop;
-
-
 /* Contribute ELT to the mode line for window IT->w.  How it
    translates into text depends on its data type.
 
@@ -15671,8 +15751,9 @@ static Lisp_Object mode_line_string_face_prop;
    If RISKY is nonzero, remove (disregard) any properties in any string
    we encounter, and ignore :eval and :propertize.
 
-   If the global variable `frame_title_ptr' is non-NULL, then the output
-   is passed to `store_frame_title' instead of `display_string'.  */
+   The global variable `mode_line_target' determines whether the
+   output is passed to `store_mode_line_noprop',
+   `store_mode_line_string', or `display_string'.  */
 
 static int
 display_mode_element (it, depth, field_width, precision, elt, props, risky)
@@ -15761,21 +15842,27 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 	if (literal)
 	  {
 	    prec = precision - n;
-	    if (frame_title_ptr)
-	      n += store_frame_title (SDATA (elt), -1, prec);
-	    else if (!NILP (mode_line_string_list))
-	      n += store_mode_line_string (NULL, elt, 1, 0, prec, Qnil);
-	    else
-	      n += display_string (NULL, elt, Qnil, 0, 0, it,
-				   0, prec, 0, STRING_MULTIBYTE (elt));
+	    switch (mode_line_target)
+	      {
+	      case MODE_LINE_NOPROP:
+	      case MODE_LINE_TITLE:
+		n += store_mode_line_noprop (SDATA (elt), -1, prec);
+		break;
+	      case MODE_LINE_STRING:
+		n += store_mode_line_string (NULL, elt, 1, 0, prec, Qnil);
+		break;
+	      case MODE_LINE_DISPLAY:
+		n += display_string (NULL, elt, Qnil, 0, 0, it,
+				     0, prec, 0, STRING_MULTIBYTE (elt));
+		break;
+	      }
 
 	    break;
 	  }
 
 	while ((precision <= 0 || n < precision)
 	       && *this
-	       && (frame_title_ptr
-		   || !NILP (mode_line_string_list)
+	       && (mode_line_target != MODE_LINE_DISPLAY
 		   || it->current_x < it->last_visible_x))
 	  {
 	    const unsigned char *last = this;
@@ -15796,29 +15883,36 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		prec = c_string_width (last, this - last, precision - n,
 				       &nchars, &nbytes);
 
-		if (frame_title_ptr)
-		  n += store_frame_title (last, 0, prec);
-		else if (!NILP (mode_line_string_list))
+		switch (mode_line_target)
 		  {
-		    int bytepos = last - lisp_string;
-		    int charpos = string_byte_to_char (elt, bytepos);
-		    int endpos = (precision <= 0
-				  ? string_byte_to_char (elt,
-							 this - lisp_string)
-				  : charpos + nchars);
+		  case MODE_LINE_NOPROP:
+		  case MODE_LINE_TITLE:
+		    n += store_mode_line_noprop (last, 0, prec);
+		    break;
+		  case MODE_LINE_STRING:
+		    {
+		      int bytepos = last - lisp_string;
+		      int charpos = string_byte_to_char (elt, bytepos);
+		      int endpos = (precision <= 0
+				    ? string_byte_to_char (elt,
+							   this - lisp_string)
+				    : charpos + nchars);
 
-		    n += store_mode_line_string (NULL,
-						 Fsubstring (elt, make_number (charpos),
-							     make_number (endpos)),
-						 0, 0, 0, Qnil);
-		  }
-		else
-		  {
-		    int bytepos = last - lisp_string;
-		    int charpos = string_byte_to_char (elt, bytepos);
-		    n += display_string (NULL, elt, Qnil, 0, charpos,
-					 it, 0, prec, 0,
-					 STRING_MULTIBYTE (elt));
+		      n += store_mode_line_string (NULL,
+						   Fsubstring (elt, make_number (charpos),
+							       make_number (endpos)),
+						   0, 0, 0, Qnil);
+		    }
+		    break;
+		  case MODE_LINE_DISPLAY:
+		    {
+		      int bytepos = last - lisp_string;
+		      int charpos = string_byte_to_char (elt, bytepos);
+		      n += display_string (NULL, elt, Qnil, 0, charpos,
+					   it, 0, prec, 0,
+					   STRING_MULTIBYTE (elt));
+		    }
+		    break;
 		  }
 	      }
 	    else /* c == '%' */
@@ -15856,44 +15950,51 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
 		    spec
 		      = decode_mode_spec (it->w, c, field, prec, &multibyte);
 
-		    if (frame_title_ptr)
-		      n += store_frame_title (spec, field, prec);
-		    else if (!NILP (mode_line_string_list))
+		    switch (mode_line_target)
 		      {
-			int len = strlen (spec);
-			Lisp_Object tem = make_string (spec, len);
-			props = Ftext_properties_at (make_number (charpos), elt);
-			/* Should only keep face property in props */
-			n += store_mode_line_string (NULL, tem, 0, field, prec, props);
-		      }
-		    else
-		      {
-			int nglyphs_before, nwritten;
+		      case MODE_LINE_NOPROP:
+		      case MODE_LINE_TITLE:
+			n += store_mode_line_noprop (spec, field, prec);
+			break;
+		      case MODE_LINE_STRING:
+			{
+			  int len = strlen (spec);
+			  Lisp_Object tem = make_string (spec, len);
+			  props = Ftext_properties_at (make_number (charpos), elt);
+			  /* Should only keep face property in props */
+			  n += store_mode_line_string (NULL, tem, 0, field, prec, props);
+			}
+			break;
+		      case MODE_LINE_DISPLAY:
+			{
+			  int nglyphs_before, nwritten;
 
-			nglyphs_before = it->glyph_row->used[TEXT_AREA];
-			nwritten = display_string (spec, Qnil, elt,
-						   charpos, 0, it,
-						   field, prec, 0,
-						   multibyte);
+			  nglyphs_before = it->glyph_row->used[TEXT_AREA];
+			  nwritten = display_string (spec, Qnil, elt,
+						     charpos, 0, it,
+						     field, prec, 0,
+						     multibyte);
 
-			/* Assign to the glyphs written above the
-			   string where the `%x' came from, position
-			   of the `%'.  */
-			if (nwritten > 0)
-			  {
-			    struct glyph *glyph
-			      = (it->glyph_row->glyphs[TEXT_AREA]
-				 + nglyphs_before);
-			    int i;
+			  /* Assign to the glyphs written above the
+			     string where the `%x' came from, position
+			     of the `%'.  */
+			  if (nwritten > 0)
+			    {
+			      struct glyph *glyph
+				= (it->glyph_row->glyphs[TEXT_AREA]
+				   + nglyphs_before);
+			      int i;
 
-			    for (i = 0; i < nwritten; ++i)
-			      {
-				glyph[i].object = elt;
-				glyph[i].charpos = charpos;
-			      }
+			      for (i = 0; i < nwritten; ++i)
+				{
+				  glyph[i].object = elt;
+				  glyph[i].charpos = charpos;
+				}
 
-			    n += nwritten;
-			  }
+			      n += nwritten;
+			    }
+			}
+			break;
 		      }
 		  }
 		else /* c == 0 */
@@ -16064,13 +16165,20 @@ display_mode_element (it, depth, field_width, precision, elt, props, risky)
   /* Pad to FIELD_WIDTH.  */
   if (field_width > 0 && n < field_width)
     {
-      if (frame_title_ptr)
-	n += store_frame_title ("", field_width - n, 0);
-      else if (!NILP (mode_line_string_list))
-	n += store_mode_line_string ("", Qnil, 0, field_width - n, 0, Qnil);
-      else
-	n += display_string ("", Qnil, Qnil, 0, 0, it, field_width - n,
-			     0, 0, 0);
+      switch (mode_line_target)
+	{
+	case MODE_LINE_NOPROP:
+	case MODE_LINE_TITLE:
+	  n += store_mode_line_noprop ("", field_width - n, 0);
+	  break;
+	case MODE_LINE_STRING:
+	  n += store_mode_line_string ("", Qnil, 0, field_width - n, 0, Qnil);
+	  break;
+	case MODE_LINE_DISPLAY:
+	  n += display_string ("", Qnil, Qnil, 0, 0, it, field_width - n,
+			       0, 0, 0);
+	  break;
+	}
     }
 
   return n;
@@ -16202,6 +16310,9 @@ are the selected window and the window's buffer).  */)
   struct buffer *old_buffer = NULL;
   int face_id = -1;
   int no_props = INTEGERP (face);
+  int count = SPECPDL_INDEX ();
+  Lisp_Object str;
+  int string_start = 0;
 
   if (NILP (window))
     window = selected_window;
@@ -16229,64 +16340,50 @@ are the selected window and the window's buffer).  */)
     face_id = DEFAULT_FACE_ID;
 
   if (XBUFFER (buffer) != current_buffer)
-    {
-      old_buffer = current_buffer;
-      set_buffer_internal_1 (XBUFFER (buffer));
-    }
+    old_buffer = current_buffer;
+
+  record_unwind_protect (unwind_format_mode_line,
+			 format_mode_line_unwind_data (old_buffer));
+
+  if (old_buffer)
+    set_buffer_internal_1 (XBUFFER (buffer));
 
   init_iterator (&it, w, -1, -1, NULL, face_id);
 
-  if (!no_props)
+  if (no_props)
     {
-      mode_line_string_face = face;
-      mode_line_string_face_prop
-	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
-
-      /* We need a dummy last element in mode_line_string_list to
-	 indicate we are building the propertized mode-line string.
-	 Using mode_line_string_face_prop here GC protects it.  */
-      mode_line_string_list
-	= Fcons (mode_line_string_face_prop, Qnil);
-      frame_title_ptr = NULL;
+      mode_line_target = MODE_LINE_NOPROP;
+      mode_line_string_face_prop = Qnil;
+      mode_line_string_list = Qnil;
+      string_start = MODE_LINE_NOPROP_LEN (0);
     }
   else
     {
-      mode_line_string_face_prop = Qnil;
+      mode_line_target = MODE_LINE_STRING;
       mode_line_string_list = Qnil;
-      frame_title_ptr = frame_title_buf;
+      mode_line_string_face = face;
+      mode_line_string_face_prop
+	= (NILP (face) ? Qnil : Fcons (Qface, Fcons (face, Qnil)));
     }
 
   push_frame_kboard (it.f);
   display_mode_element (&it, 0, 0, 0, format, Qnil, 0);
   pop_frame_kboard ();
 
-  if (old_buffer)
-    set_buffer_internal_1 (old_buffer);
-
-  if (!no_props)
+  if (no_props)
     {
-      Lisp_Object str;
+      len = MODE_LINE_NOPROP_LEN (string_start);
+      str = make_string (mode_line_noprop_buf + string_start, len);
+    }
+  else
+    {
       mode_line_string_list = Fnreverse (mode_line_string_list);
-      str = Fmapconcat (intern ("identity"), XCDR (mode_line_string_list),
+      str = Fmapconcat (intern ("identity"), mode_line_string_list,
 			make_string ("", 0));
-      mode_line_string_face_prop = Qnil;
-      mode_line_string_list = Qnil;
-      return str;
     }
 
-  len = frame_title_ptr - frame_title_buf;
-  if (len > 0 && frame_title_ptr[-1] == '-')
-    {
-      /* Mode lines typically ends with numerous dashes; reduce to two dashes.  */
-      while (frame_title_ptr > frame_title_buf && *--frame_title_ptr == '-')
-	;
-      frame_title_ptr += 3;  /* restore last non-dash + two dashes */
-      if (len > frame_title_ptr - frame_title_buf)
-	len = frame_title_ptr - frame_title_buf;
-    }
-
-  frame_title_ptr = NULL;
-  return make_string (frame_title_buf, len);
+  unbind_to (count, Qnil);
+  return str;
 }
 
 /* Write a null-terminated, right justified decimal representation of
@@ -16604,7 +16701,8 @@ decode_mode_spec (w, c, field_width, precision, multibyte)
 	register int i;
 
 	/* Let lots_of_dashes be a string of infinite length.  */
-	if (!NILP (mode_line_string_list))
+	if (mode_line_target == MODE_LINE_NOPROP ||
+	    mode_line_target == MODE_LINE_STRING)
 	  return "--";
 	if (field_width <= 0
 	    || field_width > sizeof (lots_of_dashes))
@@ -21407,7 +21505,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	       tmp_glyph->charpos >= XINT (b);
 	       tmp_glyph--, gpos++)
 	    {
-	      if (tmp_glyph->object != glyph->object)
+	      if (!EQ (tmp_glyph->object, glyph->object))
 		break;
 	    }
 
@@ -21420,7 +21518,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	       tmp_glyph->charpos < XINT (e);
 	       tmp_glyph++, gseq_length++)
 	      {
-		if (tmp_glyph->object != glyph->object)
+		if (!EQ (tmp_glyph->object, glyph->object))
 		  break;
 	      }
 
@@ -22698,9 +22796,14 @@ syms_of_xdisp ()
 
   mode_line_proptrans_alist = Qnil;
   staticpro (&mode_line_proptrans_alist);
-
   mode_line_string_list = Qnil;
   staticpro (&mode_line_string_list);
+  mode_line_string_face = Qnil;
+  staticpro (&mode_line_string_face);
+  mode_line_string_face_prop = Qnil;
+  staticpro (&mode_line_string_face_prop);
+  Vmode_line_unwind_vector = Qnil;
+  staticpro (&Vmode_line_unwind_vector);
 
   help_echo_string = Qnil;
   staticpro (&help_echo_string);
@@ -23050,9 +23153,10 @@ init_xdisp ()
     /* Allocate the buffer for frame titles.
        Also used for `format-mode-line'.  */
     int size = 100;
-    frame_title_buf = (char *) xmalloc (size);
-    frame_title_buf_end = frame_title_buf + size;
-    frame_title_ptr = NULL;
+    mode_line_noprop_buf = (char *) xmalloc (size);
+    mode_line_noprop_buf_end = mode_line_noprop_buf + size;
+    mode_line_noprop_ptr = mode_line_noprop_buf;
+    mode_line_target = MODE_LINE_DISPLAY;
   }
 
   help_echo_showing_p = 0;

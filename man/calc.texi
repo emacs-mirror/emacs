@@ -583,6 +583,7 @@ and what are the various ways that it can be used.
 * What is Calc::
 * About This Manual::
 * Notations Used in This Manual::
+* Demonstration of Calc::
 * Using Calc::
 * Demonstration of Calc::
 * History and Acknowledgements::
@@ -764,7 +765,7 @@ regularly using Emacs.
 (If you don't have the @key{LFD} or @key{TAB} keys on your keyboard,
 the @kbd{C-j} and @kbd{C-i} keys are equivalent to them, respectively.
 If you don't have a Meta key, look for Alt or Extend Char.  You can
-also press @key{ESC} or @key{C-[} first to get the same effect, so
+also press @key{ESC} or @kbd{C-[} first to get the same effect, so
 that @kbd{M-x}, @kbd{@key{ESC} x}, and @kbd{C-[ x} are all equivalent.)
 
 Sometimes the @key{RET} key is not shown when it is ``obvious''
@@ -797,7 +798,8 @@ Tutorial.
 
 To begin, start Emacs if necessary (usually the command @code{emacs}
 does this), and type @kbd{M-# c} (or @kbd{@key{ESC} # c}) to start the
-Calculator.  (@xref{Starting Calc}, if this doesn't work for you.)
+Calculator.  (You can also use @kbd{M-x calc} if this doesn't work.
+@xref{Starting Calc}, for various ways of starting the Calculator.)
 
 Be sure to type all the sample input exactly, especially noting the
 difference between lower-case and upper-case letters.  Remember,
@@ -987,11 +989,15 @@ don't even have an @key{ESC} key, you can fake it by holding down
 Control or @key{CTRL} while typing a left square bracket
 (that's @kbd{C-[} in Emacs notation).
 
-@kbd{M-#} is a @dfn{prefix key}; when you press it, Emacs waits for
-you to press a second key to complete the command.  In this case,
-you will follow @kbd{M-#} with a letter (upper- or lower-case, it
-doesn't matter for @kbd{M-#}) that says which Calc interface you
-want to use.
+The key @kbd{M-#} is bound to the command @code{calc-dispatch}, 
+which can be rebound if convenient.  
+(@xref{Key Bindings,,Customizing Key Bindings,emacs,
+The GNU Emacs Manual}.)
+
+When you press @kbd{M-#}, Emacs waits for you to press a second key to
+complete the command.  In this case, you will follow @kbd{M-#} with a
+letter (upper- or lower-case, it doesn't matter for @kbd{M-#}) that says
+which Calc interface you want to use.
 
 To get Calc's standard interface, type @kbd{M-# c}.  To get
 Keypad mode, type @kbd{M-# k}.  Type @kbd{M-# ?} to get a brief
@@ -1335,9 +1341,7 @@ righthand label:  Type @kbd{d @} (1) @key{RET}}.
 @end smallexample
 
 To leave Embedded mode, type @kbd{M-# e} again.  The mode line
-and keyboard will revert to the way they were before.  (If you have
-actually been trying this as you read along, you'll want to press
-@kbd{M-# 0} [with the digit zero] now to reset the modes you changed.)
+and keyboard will revert to the way they were before.
 
 The related command @kbd{M-# w} operates on a single word, which
 generally means a single number, inside text.  It uses any
@@ -1520,8 +1524,7 @@ and record them as the current keyboard macro.
 
 @item 0
 (This is the ``zero'' digit key.)  Reset the Calculator to
-its default state:  Empty stack, and default mode settings.
-With any prefix argument, reset everything but the stack.
+its initial state:  Empty stack, and initial mode settings.
 @end table
 
 @node History and Acknowledgements, , Using Calc, Getting Started
@@ -1589,7 +1592,7 @@ Many people have contributed to Calc by reporting bugs and suggesting
 features, large and small.  A few deserve special mention:  Tim Peters,
 who helped develop the ideas that led to the selection commands, rewrite
 rules, and many other algebra features; 
-@texline Fran\c cois
+@texline Fran\c{c}ois
 @infoline Francois
 Pinard, who contributed an early prototype of the Calc Summary appendix
 as well as providing valuable suggestions in many other areas of Calc;
@@ -30113,20 +30116,21 @@ your own favorite delimiters.  Delimiters like @samp{$ $} can appear
 on their own separate lines or in-line with the formula.
 
 If you give a positive or negative numeric prefix argument, Calc
-instead uses the current point as one end of the formula, and moves
-forward or backward (respectively) by that many lines to find the
-other end.  Explicit delimiters are not necessary in this case.
+instead uses the current point as one end of the formula, and includes
+that many lines forward or backward (respectively, including the current
+line). Explicit delimiters are not necessary in this case.
 
-With a prefix argument of zero, Calc uses the current region
-(delimited by point and mark) instead of formula delimiters.
+With a prefix argument of zero, Calc uses the current region (delimited
+by point and mark) instead of formula delimiters.  With a prefix
+argument of @kbd{C-u} only, Calc uses the current line as the formula.
 
 @kindex M-# w
 @pindex calc-embedded-word
-With a prefix argument of @kbd{C-u} only, Calc scans for the first
-non-numeric character (i.e., the first character that is not a
-digit, sign, decimal point, or upper- or lower-case @samp{e})
-forward and backward to delimit the formula.  @kbd{M-# w}
-(@code{calc-embedded-word}) is equivalent to @kbd{C-u M-# e}.
+The @kbd{M-# w} (@code{calc-embedded-word}) command will start Embedded
+mode on the current ``word''; in this case Calc will scan for the first
+non-numeric character (i.e., the first character that is not a digit,
+sign, decimal point, or upper- or lower-case @samp{e}) forward and
+backward to delimit the formula.
 
 When you enable Embedded mode for a formula, Calc reads the text
 between the delimiters and tries to interpret it as a Calc formula.
@@ -30495,7 +30499,7 @@ mode.
 
 @kindex M-# u
 @kindex M-# =
-@pindex calc-embedded-update
+@pindex calc-embedded-update-formula
 Another way to change the assignment to @code{foo} would simply be
 to edit the number using regular Emacs editing rather than Embedded
 mode.  Then, we have to find a way to get Embedded mode to notice
@@ -33640,22 +33644,25 @@ example, for a rectangular complex number the result is the sum of
 the absolute values of the components.
 @end defun
 
-@findex two-pi
+@findex e
+@findex gamma-const
+@findex ln-2
+@findex ln-10
+@findex phi
 @findex pi-over-2
 @findex pi-over-4
 @findex pi-over-180
 @findex sqrt-two-pi
 @findex sqrt-e
-@findex e
-@findex ln-2
-@findex ln-10
+@findex two-pi
 @defun pi
 The function @samp{(pi)} computes @samp{pi} to the current precision.
 Other related constant-generating functions are @code{two-pi},
 @code{pi-over-2}, @code{pi-over-4}, @code{pi-over-180}, @code{sqrt-two-pi},
-@code{e}, @code{sqrt-e}, @code{ln-2}, and @code{ln-10}.  Each function
-returns a floating-point value in the current precision, and each uses
-caching so that all calls after the first are essentially free.
+@code{e}, @code{sqrt-e}, @code{ln-2}, @code{ln-10}, @code{phi} and
+@code{gamma-const}.  Each function returns a floating-point value in the
+current precision, and each uses caching so that all calls after the
+first are essentially free.
 @end defun
 
 @defmac math-defcache @var{func} @var{initial} @var{form}
@@ -34704,7 +34711,7 @@ step, before the Calc window is destroyed.
 @end defvar
 
 @defvar calc-window-hook
-If this hook exists, it is called to create the Calc window.
+If this hook is non-@code{nil}, it is called to create the Calc window.
 Upon return, this new Calc window should be the current window.
 (The Calc buffer will already be the current buffer when the
 hook is called.)  If the hook is not defined, Calc will
@@ -34713,10 +34720,10 @@ and @code{select-window} to create the Calc window.
 @end defvar
 
 @defvar calc-trail-window-hook
-If this hook exists, it is called to create the Calc Trail window.
-The variable @code{calc-trail-buffer} will contain the buffer
-which the window should use.  Unlike @code{calc-window-hook},
-this hook must @emph{not} switch into the new window.
+If this hook is non-@code{nil}, it is called to create the Calc Trail
+window.  The variable @code{calc-trail-buffer} will contain the buffer
+which the window should use.  Unlike @code{calc-window-hook}, this hook
+must @emph{not} switch into the new window.
 @end defvar
 
 @defvar calc-edit-mode-hook
@@ -34820,11 +34827,7 @@ expression is basically a pattern that Calc can search for.
 See @ref{Regexp Search,, Regular Expression Search, emacs, The GNU Emacs Manual}
 to see how regular expressions work.
 
-@table @code
-
-@item calc-settings-file
-
-@vindex calc-settings-file
+@defvar calc-settings-file
 The variable @code{calc-settings-file} holds the file name in
 which commands like @kbd{m m} and @kbd{Z P} store ``permanent''
 definitions.  
@@ -34834,9 +34837,9 @@ If @code{calc-settings-file} is not your user init file (typically
 exists) the first time Calc is invoked.
 
 The default value for this variable is @code{"~/.calc.el"}.
+@end defvar
 
-@item calc-gnuplot-name
-
+@defvar calc-gnuplot-name
 See @ref{Graphics}.@*
 The variable @code{calc-gnuplot-name} should be the name of the
 GNUPLOT program (a string).  If you have GNUPLOT installed on your
@@ -34845,10 +34848,10 @@ variable.  (@pxref{Customizable Variables})
 You may also need to set some Lisp variables to show Calc how to run
 GNUPLOT on your system, see @ref{Devices, ,Graphical Devices} .  The default value
 of @code{calc-gnuplot-name} is @code{"gnuplot"}.
+@end defvar
 
-@item  calc-gnuplot-plot-command
-@itemx calc-gnuplot-print-command
-
+@defvar  calc-gnuplot-plot-command
+@defvarx calc-gnuplot-print-command
 See @ref{Devices, ,Graphical Devices}.@*
 The variables @code{calc-gnuplot-plot-command} and
 @code{calc-gnuplot-print-command} represent system commands to
@@ -34861,9 +34864,9 @@ to display or print the output.
 The default value of @code{calc-gnuplot-plot-command} is @code{nil},
 and the default value of @code{calc-gnuplot-print-command} is
 @code{"lp %s"}.
+@end defvar
 
-@item calc-language-alist
-
+@defvar calc-language-alist
 See @ref{Basic Embedded Mode}.@*
 The variable @code{calc-language-alist} controls the languages that
 Calc will associate with major modes.  When Calc embedded mode is
@@ -34889,9 +34892,9 @@ The default value of @code{calc-language-alist} is
     (fortran-mode . fortran)
     (f90-mode . fortran))
 @end example
+@end defvar
 
-@item calc-embedded-announce-formula
-
+@defvar calc-embedded-announce-formula
 See @ref{Customizing Embedded Mode}.@*
 The variable @code{calc-embedded-announce-formula} helps determine
 what formulas @kbd{M-# a} will activate in a buffer.  It is a
@@ -34903,10 +34906,10 @@ activated.  (Calc also uses other patterns to find formulas, such as
 The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, which checks
 for @samp{%Embed} followed by any number of lines beginning with
 @samp{%} and a space.
+@end defvar
 
-@item  calc-embedded-open-formula
-@itemx calc-embedded-close-formula
-
+@defvar  calc-embedded-open-formula
+@defvarx calc-embedded-close-formula
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
 @code{calc-embedded-open-formula} control the region that Calc will
@@ -34931,10 +34934,10 @@ Lines beginning with @samp{.EQ} and @samp{.EN} (@dfn{eqn} delimiters);
 @item
 Lines containing a single @samp{%} or @samp{.\"} symbol and nothing else.
 @end enumerate
+@end defvar
 
-@item  calc-embedded-open-word
-@itemx calc-embedded-close-word
-
+@defvar  calc-embedded-open-word
+@defvarx calc-embedded-close-word
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-word} and
 @code{calc-embedded-close-word} control the region that Calc will
@@ -34944,10 +34947,10 @@ regular expressions.
 The default values of @code{calc-embedded-open-word} and
 @code{calc-embedded-close-word} are @code{"^\\|[^-+0-9.eE]"} and 
 @code{"$\\|[^-+0-9.eE]"} respectively.
+@end defvar
 
-@item  calc-embedded-open-plain
-@itemx calc-embedded-close-plain
-
+@defvar  calc-embedded-open-plain
+@defvarx calc-embedded-close-plain
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-plain} and
 @code{calc-embedded-open-plain} are used to delimit ``plain''
@@ -34960,10 +34963,10 @@ The default string for @code{calc-embedded-open-plain} is
 @code{calc-embedded-close-plain} is @code{" %%%\n"}, without
 the trailing newline here, the first line of a Big mode formula
 that followed might be shifted over with respect to the other lines.
+@end defvar
 
-@item  calc-embedded-open-new-formula
-@itemx calc-embedded-close-new-formula
-
+@defvar  calc-embedded-open-new-formula
+@defvarx calc-embedded-close-new-formula
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-new-formula} and
 @code{calc-embedded-close-new-formula} are strings which are
@@ -34978,10 +34981,10 @@ also @code{"\n\n"}.  The final newline is omitted by @w{@kbd{M-# f}}
 if typed at the end of a line.  (It follows that if @kbd{M-# f} is
 typed on a blank line, both a leading opening newline and a trailing
 closing newline are omitted.)
+@end defvar
 
-@item  calc-embedded-open-mode
-@itemx calc-embedded-close-mode
-
+@defvar  calc-embedded-open-mode
+@defvarx calc-embedded-close-mode
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-mode} and
 @code{calc-embedded-close-mode} are strings which Calc will place before
@@ -34995,8 +34998,7 @@ and the default value of @code{calc-embedded-close-mode} is
 If you change the value of @code{calc-embedded-close-mode}, it is a good
 idea still to end with a newline so that mode annotations will appear on
 lines by themselves.
-
-@end table
+@end defvar
 
 @node Reporting Bugs, Summary, Customizable Variables, Top
 @appendix Reporting Bugs
@@ -35101,11 +35103,12 @@ keystrokes are not listed in this summary.
 @r{       @:     M-# r  @:             @:    36  @:calc-grab-rectangle@:}
 @r{       @:     M-# s  @:             @:        @:calc-info-summary@:}
 @r{       @:     M-# t  @:             @:        @:calc-tutorial@:}
-@r{       @:     M-# u  @:             @:        @:calc-embedded-update@:}
+@r{       @:     M-# u  @:             @:        @:calc-embedded-update-formula@:}
 @r{       @:     M-# w  @:             @:        @:calc-embedded-word@:}
 @r{       @:     M-# x  @:             @:        @:calc-quit@:}
 @r{       @:     M-# y  @:            @:1,28,49  @:calc-copy-to-buffer@:}
 @r{       @:     M-# z  @:             @:        @:calc-user-invocation@:}
+@r{       @:     M-# =  @:             @:        @:calc-embedded-update-formula@:}
 @r{       @:     M-# :  @:             @:    36  @:calc-grab-sum-down@:}
 @r{       @:     M-# _  @:             @:    36  @:calc-grab-sum-across@:}
 @r{       @:     M-# `  @:editing      @:    30  @:calc-embedded-edit@:}

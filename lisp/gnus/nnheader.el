@@ -1,7 +1,7 @@
 ;;; nnheader.el --- header access macros for Gnus and its backends
 
 ;; Copyright (C) 1987, 1988, 1989, 1990, 1993, 1994, 1995, 1996,
-;;        1997, 1998, 2000, 2001, 2002, 2003, 2004
+;;        1997, 1998, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -683,9 +683,9 @@ the line could be found."
 (defsubst nnheader-file-to-number (file)
   "Take a FILE name and return the article number."
   (if (string= nnheader-numerical-short-files "^[0-9]+$")
-      (string-to-int file)
+      (string-to-number file)
     (string-match nnheader-numerical-short-files file)
-    (string-to-int (match-string 0 file))))
+    (string-to-number (match-string 0 file))))
 
 (defvar nnheader-directory-files-is-safe
   (or (eq system-type 'windows-nt)
@@ -953,15 +953,21 @@ find-file-hooks, etc.
 (defun nnheader-find-file-noselect (&rest args)
   "Open a file with some variables bound.
 See `find-file-noselect' for the arguments."
-  (let ((format-alist nil)
-	(auto-mode-alist (mm-auto-mode-alist))
-	(default-major-mode 'fundamental-mode)
-	(enable-local-variables nil)
-	(after-insert-file-functions nil)
-	(enable-local-eval nil)
-	(find-file-hooks nil)
-	(coding-system-for-read nnheader-file-coding-system))
-    (apply 'find-file-noselect args)))
+  (let* ((format-alist nil)
+	 (auto-mode-alist (mm-auto-mode-alist))
+	 (default-major-mode 'fundamental-mode)
+	 (enable-local-variables nil)
+	 (after-insert-file-functions nil)
+	 (enable-local-eval nil)
+	 (coding-system-for-read nnheader-file-coding-system)
+	 (ffh (if (boundp 'find-file-hook)
+		  'find-file-hook
+		'find-file-hooks))
+	 (val (symbol-value ffh)))
+    (set ffh nil)
+    (unwind-protect
+	(apply 'find-file-noselect args)
+      (set ffh val))))
 
 (defun nnheader-directory-regular-files (dir)
   "Return a list of all regular files in DIR."

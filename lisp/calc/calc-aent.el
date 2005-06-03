@@ -947,6 +947,9 @@ in Calc algebraic input.")
 	    first nil))
     x))
 
+;; calc-arg-values is defined in calc-ext.el, but is used here.
+(defvar calc-arg-values)
+
 (defun calc-check-user-syntax (&optional x prec)
   (let ((p calc-user-parse-table)
 	(matches nil)

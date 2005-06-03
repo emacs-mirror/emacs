@@ -1,3 +1,272 @@
+2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* autorevert.el (auto-revert-buffers): Use save-match-data.
+
+2005-06-01  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easymenu.el (easy-menu-return-item): Quick fix to find
+	menu items with a nil command binding.
+
+2005-06-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-macs.el (defsetf):
+	Improve argument/docstring consistency.
+
+	* faces.el (list-faces-display): Improve the formatting by
+	computing the maximum length required for any face-name (reworked
+	patch of 1999-01-11, accidentally deleted on 1999-07-21).
+	(internal-find-face): Remove redundant info in docstring.
+
+2005-06-01  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-set-gud-minor-mode-1)
+	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
+	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
+	(gdb-assembler-custom): Improve regexps.
+	(def-gdb-auto-update-handler): Use window point to ensure it
+	is preserved.
+
+2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* thumbs.el (thumbs-mode): Fix misuse of make-variable-buffer-local.
+
+2005-05-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-embed.el (calc-embedded-word): Change argument passed
+	to calc-embedded.
+	(calc-embedded-make-info): Have plain prefix argument select
+	entire line.
+
+2005-05-31  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (list-faces-display): Signal error if passed a regexp
+	that matches no face name.
+
+	* simple.el (filter-buffer-substring): Fix typo in docstring.
+
+2005-05-31  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not INTERACTIVE.
+	(vhdl-emacs-21): Doc fix.
+	(vhdl-mode): Unconditionally set comment-padding.
+	(vhdl-fixup-whitespace-region): Insert spaces only where
+	there are none.
+	(vhdl-statistics-buffer): Make the Emacs 21 behavior universal.
+
+2005-05-30  John Wiegley  <johnw@newartisans.com>
+
+	* eshell/em-cmpl.el, eshell/em-dirs.el, eshell/em-glob.el
+	* eshell/em-unix.el, eshell/esh-ext.el, eshell/esh-io.el
+	* eshell/esh-util.el, eshell/esh-var.el: Change all uses of
+	`directory-sep-char' to ?/, and all uses of `string-to-int' to
+	`string-to-number'.
+
+2005-05-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-bug-address): Fix docstring.
+	(calc-window-hook, calc-trail-window-hook): New variables.
+	(calc-trail-display): Restore use of calc-trail-window-hook.
+	(calc): Restore use of calc-window-hook.
+
+2005-05-31  Masatake YAMATO  <jet@gyve.org>
+
+	* emacs-lisp/find-func.el (find-function-noselect): Handle subroutines.
+
+	* help-fns.el (help-C-file-name): Add autoload mark for
+	`find-function-noselect'.
+
+2005-05-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-compile-commands, tex-compile)
+	(tex-start-tex): Undo all but the last part of the 2005-05-28 change.
+
+2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/diary-lib.el (mark-included-diary-files): Only kill
+	included diary buffer if it was not already being visited.
+	Reported by Stephen Berman <Stephen.Berman@gmx.net>.
+
+	* calendar/icalendar.el (top-level): Do not require 'appt.
+
+	* mail/supercite.el (sc-select-attribution): Only use a list
+	element from sc-attrib-selection-list if it returns a string.
+	Reported by Davide G. M. Salvetti <salve@debian.org>.
+
+2005-05-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-thumbname): The resulting thubname now
+	includes a hash value to improve its uniqueness, and has a ".jpg"
+	extension.  Also, it is now a valid filename on all systems.
+	(thumbs-make-thumb): Use `let', not `let*'.
+	(thumbs-show-thumbs-list): Check for JPEG availability.
+
+2005-05-30  Richard M. Stallman  <rms@gnu.org>
+
+	* filesets.el (filesets-menu-ensure-use-cached):
+	Prevent warning when emacs-version>= is undefined.
+
+	* printing.el (pr-interactive-n-up): Use string-to-number.
+
+	* emulation/tpu-mapper.el: Use eval-buffer, not eval-current-buffer.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn):
+	Warn only when name to be defined is quoted.
+
+2005-05-30  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-toggle-breakpoint):
+	Make regexp more robust.
+	(gdb-display-assembler-buffer, gdb-frame-assembler-buffer):
+	Force regeneration of disassembly.
+
+2005-05-29  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-user-invocation): Check if
+	calc-invocation-macro is non-nil.
+
+2005-05-29  Juri Linkov  <juri@jurta.org>
+
+	* add-log.el (change-log-font-lock-keywords):
+	Add `+' to e-mail regexp to accept mail address with keywords.
+
+	* man.el (Man-name-regexp): Add `:' to accept qualified names.
+
+2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* progmodes/inf-lisp.el (inferior-lisp-mode): Use delay-mode-hooks.
+
+	* ielm.el (inferior-emacs-lisp-mode): Ditto.
+
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-auto-correct-previous-word):
+	Undo the change that moves to end of the current word.
+
+2005-05-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-memory-set-repeat-count):
+	Throw error when count <= 0 to ensure input is a number.
+	(gdb-read-memory-custom): Pick up address from buffer.
+	(gdb-memory-mode): Allow user to increment and decrement
+	memory address from header line.
+
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* flyspell.el (flyspell-version): Function deleted.
+	(flyspell-auto-correct-previous-hook): Doc fix.
+
+	* jit-lock.el (jit-lock-function, jit-lock-after-change):
+	Do nothing if memory is full.
+
+	* font-lock.el (font-lock-fontify-syntactically-region):
+	Pass t for GREEDY to looking-back.
+
+	* saveplace.el (save-place-alist-to-file): Write the file
+	using write-region.
+
+	* subr.el (looking-back): New argument GREEDY.
+
+	* progmodes/compile.el (compilation-start): Set the mode
+	before inserting the initial text.
+
+	* progmodes/which-func.el (which-func-update-1): Turn the mode
+	off in case of error by setting which-func-mode.
+
+2005-05-29  Peter Heslin  <p.j.heslin@durham.ac.uk>  (tiny change)
+
+	* flyspell.el (flyspell-auto-correct-previous-word):
+	Narrow down to what's on the screen, and recenter overlays
+	at the end of the next word.
+
+2005-05-29  Manuel Serrano  <Manuel.Serrano@sophia.inria.fr>
+
+	* flyspell.el (flyspell-emacs, flyspell-use-local-map): Vars moved up.
+	(flyspell-default-delayed-commands): Add backward-delete-char-untabify.
+	(flyspell-abbrev-p): Default to nil.
+	(flyspell-use-global-abbrev-table-p): Doc fix.
+	(flyspell-large-region): Allow nil as value.
+	(flyspell-use-meta-tab, flyspell-auto-correct-binding): New variables.
+
+	(mail-mode-flyspell-verify): More robust handling
+	of `mail-header-separator'.  More efficient signature detection.
+	Allow for regexp metacharacters in message-header-separator.
+	Adding `To' not to be checked in mail-mode-flyspell-verify.
+
+	(flyspell-prog-mode): Run flyspell-prog-mode-hook.
+	(flyspell-mouse-map): Bind M-TAB only if flyspell-use-meta-tab.
+	Bind flyspell-auto-correct-binding.
+	Bind C-. and C-, .
+	(flyspell-mode-map): Likewise.
+	(flyspell-mode): Doc fix.
+	(flyspell-accept-buffer-local-defs): Preserve current buffer.
+	(flyspell-mode-on): Bind flyspell-mouse-map and flyspell-mode-map.
+	(flyspell-word-cache-result): New var, always local.
+	(flyspell-check-pre-word-p): Doc fix.
+	(flyspell-check-changed-word-p): Handle spc like newline.
+	(flyspell-post-command-hook): Set flyspell-word-cache-result.
+	(flyspell-word-search-backward, flyspell-word-search-forward):
+	New functions.
+	(flyspell-word): Return t if nothing to check.
+	When parsing TeX code, check for after } or \.
+	Use flyspell-word-search-backward to find previous word.
+	Return nil if duplicated word.
+	For word already checked, return same value as last time.
+	Set flyspell-word-cache-result after checking.
+	Don't clobber the return value.
+	(flyspell-get-word): Major rewrite.
+	(flyspell-external-point-words): New locals pword, pcount.
+	Fix size used in progress message.
+	Find the proper corresponding word in flyspell-large-region-buffer.
+	(flyspell-region): Check for flyspell-large-region = nil.
+	(flyspell-highlight-incorrect-region): Clean up overlays in region.
+	(flyspell-auto-correct-word): Check that WORD is a cons.
+	(flyspell-correct-word): Likewise.
+
+2005-05-29  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-rule-action-regex)
+	(makefile-macroassign-regex, makefile-makepp-mode)
+	(makefile-bsdmake-mode): Continuation lines may be empty.
+	Reported by Joshua Varner.
+	(makefile-makepp-font-lock-keywords): Add $(stem).
+
+2005-05-28  Karl Berry  <karl@gnu.org>
+
+	* textmodes/tex-mode.el: Now that tex-send-command calls
+	shell-quote-argument (2005-03-31 change), remove all calls to
+	shell-quote-argument; they all end up invoking tex-send-command.
+	The double quoting loses on filenames with non-safe characters,
+	such as "@".  Reported by Frederik Fouvry.
+
+2005-05-29  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-assembler-custom): Be more careful
+	about preserving point.
+
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-misc.el (calc-info-goto-node): Use info instead of
+	Info-goto-node.
+
+	* calc/calc-embed.el (calc-embed-arg): New variable.
+	(calc-do-embedded-activate, calc-embedded-activate-formula)
+	(calc-embedded-edit, calc-do-embedded-activate): Replace undeclared
+	variable by new variable.
+	(calc-embedded-make-info): Replace undeclared variable by new
+	variable.  When selecting region with positive prefix
+	argument, use end of previous line instead of beginning of line.
+
+	* calc/calc-aent.el (calc-arg-values): Declare it.
+
+	* calc/calc-ext.el (calc-help-map, calc-alg-map, calc-alg-esc-map):
+	Declare them.
+
+	* calc/calc-stuff.el (math-decls-cache-tag): Declare it.
+
+	* calc/calc.el (calc-alg-map): Declare it.
+
+	* calc/calcalg2.el (math-decls-cache, math-decls-all): Declare them.
+
 2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-all-registers): New variable.
@@ -5,7 +274,7 @@
 	Toggle display of floating point registers.
 	(gdb-registers-mode-map): Bind SPC to toggle-gdb-all-registers.
 
-	* progmodes/gud.el (gud-goto-info): Use info. Don't use require.
+	* progmodes/gud.el (gud-goto-info): Use info.  Don't use require.
 	(toggle-gud-tooltip-dereference):
 	Rename from gud-toggle-tooltip-dereference.
 
@@ -414,7 +683,7 @@
 
 	* emacs-lisp/bytecomp.el: Remove make-obsolete-variable for
 	already deleted variables: auto-fill-hook, blink-paren-hook,
-	lisp-indent-hook, inhibit-local-variables, unread-command-event
+	lisp-indent-hook, inhibit-local-variables, unread-command-event,
 	suspend-hooks, comment-indent-hook, meta-flag,
 	before-change-function, after-change-function,
 	font-lock-doc-string-face.
@@ -656,7 +925,7 @@
 	post-command-idle-delay.
 
 	* faces.el (list-faces-display): Provide button when describe-face
-	is called to take user back to  the list of faces.
+	is called to take user back to the list of faces.
 
 	* help-fns.el (describe-variable): Remove hyperlinks in a
 	variable's value as these are quite frequently inappropriate.
@@ -926,8 +1195,8 @@
 
 	* progmodes/compile.el (compilation-setup): Set local value of
 	overlay-arrow-string to "" always.
-	(compilation-set-window): Left fringe then don't scroll. No left
-	fringe then no arrow and scroll message to top.
+	(compilation-set-window): Left fringe then don't scroll.
+	No left fringe then no arrow and scroll message to top.
 	(compilation-context-lines): Adjust doc string accordingly.
 
 2005-05-16  Kim F. Storm  <storm@cua.dk>
@@ -1186,7 +1455,7 @@
 
 2005-05-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
-	* files.el (executable-find): Move from executable.el. Use locate-file.
+	* files.el (executable-find): Move from executable.el.  Use locate-file.
 	* progmodes/executable.el (executable-find): Move to files.el.
 
 	* font-lock.el (font-lock-fontify-keywords-region): Use a marker
@@ -1236,10 +1505,10 @@
 
 	* progmodes/gdb-ui.el (gdb-macro-info): New variable.
 	(gdb-source-info): Check for preprocessor info.
-	(gdb-tooltip-print-1): New function. Don't print tooltip if it is
+	(gdb-tooltip-print-1): New function.  Don't print tooltip if it is
 	a macro for a function.
-	found (user might have used GDB dir command).
 	(gdb-info-breakpoints-custom): Try to find file again if not already
+	found (user might have used GDB dir command).
 	(gdb-get-location): Update gdb-location-alist correctly for change
 	to gdb-info-breakpoints-custom.
 
@@ -1335,7 +1604,7 @@
 	* tooltip.el: Move code for GUD tooltips into gud.el.
 	(require): CL no longer needed to compile case.
 	(tooltip-mode): Do not toggle functions for GUD tooltips.
-	(tooltip-gud-tips-p): Remove. Replace with minor mode
+	(tooltip-gud-tips-p): Remove.  Replace with minor mode
 	gud-tooltip-mode in gud.el.
 	(tooltip-gud-modes, tooltip-gud-display, tooltip-gud-echo-area)
 	(tooltip-gud-toggle-dereference): Rename in gud.el by replacing
@@ -1347,14 +1616,14 @@
 	(tooltip-gud-original-filter, tooltip-gud-dereference)
 	(tooltip-gud-event, tooltip-toggle-gud-tips)
 	(tooltip-gud-process-output, tooltip-gud-print-command)
-	(tooltip-gud-tips): GUD tooltip functions/variables. Rename in
+	(tooltip-gud-tips): GUD tooltip functions/variables.  Rename in
 	gud.el by replacing tooltip-gud prefix with gud-tooltip.
 	(gdb-tooltip-print): Move to gdb-ui.el.
 
 	* progmodes/gud.el: Move code for GUD tooltips from tooltip.el.
 	(require): CL needed to compile case.
 	(gud-tooltip-mode): Use to toggle GUD tooltips unstead of
-	tooltip-gud-tips-p. Make it a minor-mode.
+	tooltip-gud-tips-p.  Make it a minor-mode.
 	(gud-find-file): Only prepare GUD tooltips if gud-tooltip-mode is t.
 	(gud-menu-map): GUD tooltips use gud-tooltip-mode now.
 	(gud-tooltip-modes, gud-tooltip-display, gud-tooltip-echo-area)
@@ -1450,7 +1719,7 @@
 	* ido.el (ido-setup-hook): New hook.
 	(ido-define-mode-map-hook): Remove hook; use ido-setup-hook instead.
 	(ido-input-stack): New var.
-	(ido-define-mode-map): Bind M-b to ido-push-dir. Move old
+	(ido-define-mode-map): Bind M-b to ido-push-dir.  Move old
 	ido-next-work-file binding to M-O.
 	Bind M-f to ido-wide-find-file-or-pop-dir.
 	(ido-define-mode-map): Don't run ido-define-mode-map-hook.
@@ -1543,7 +1812,7 @@
 	(gdb-set-gud-minor-mode-1): Handle gdb-define-alist.
 	(gdb-source, gdb-memory-set-repeat-count): Replace string-to-int
 	with string-to-number.
-	(gdb-reset): Kill gdb-define-alist. Move assignments outside loop.
+	(gdb-reset): Kill gdb-define-alist.  Move assignments outside loop.
 
 	* progmodes/gud.el: Replace string-to-int with string-to-number.
 	(gud-find-file): Handle gdb-define-alist.
@@ -1589,7 +1858,7 @@
 	move to cc-vars.el.
 
 	* progmodes/cc-vars.el (cc-define-list-program):
-	Change to "gcc -E -dM -". Make customizable.
+	Change to "gcc -E -dM -".  Make customizable.
 
 2005-05-02  Kim F. Storm  <storm@cua.dk>
 
@@ -1640,7 +1909,7 @@
 	* subr.el (dot, dot-marker, dot-min, dot-max, buffer-flush-undo)
 	(compiled-function-p, focus-frame, unfocus-frame):
 	Remove aliases and obsolete declarations.
-	Back out inadvertant changes from previous commit.
+	Back out inadvertent changes from previous commit.
 
 2005-05-01  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -1695,7 +1964,7 @@
 2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
-	exists. Initialise cc-define-alist.
+	exists.  Initialise cc-define-alist.
 	(c-mode): Add cc-create-define-alist locally to after-save-hook.
 	If there is no file (Macroexpansion) don't create an alist.
 
@@ -1785,7 +2054,7 @@
 
 2005-04-28  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/cc-mode.el: (cc-create-define-alist): New function.
+	* progmodes/cc-mode.el (cc-create-define-alist): New function.
 	(cc-define-alist): New variable.
 	(c-mode): Make it local and initialise it.
 
@@ -1914,7 +2183,7 @@
 2005-04-25  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (ansi-term-color-vector): Use the xterm colors.
-	(term-raw-map): Don't add mappings for \eO and \e[. Map deletechar.
+	(term-raw-map): Don't add mappings for \eO and \e[.  Map deletechar.
 
 2005-04-25  Lute Kamstra  <lute@gnu.org>
 
@@ -2936,13 +3205,13 @@
 	* add-log.el (change-log-font-lock-keywords): The manual
 	describing a Change Log entry, says: (...) "Aside from these
 	header lines, every line in the change log starts with a space or
-	a tab.". The font-lock was not highlighting lines started with
+	a tab.".  The font-lock was not highlighting lines started with
 	spaces, added support for it.
 
 2005-04-03  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-url): Use format to generate the url.
-	(bibtex-generate-url-list): Update docstring accordingly. Put the
+	(bibtex-generate-url-list): Update docstring accordingly.  Put the
 	complex example in the docstring.
 	(bibtex-font-lock-url): Use pop.
 
@@ -2975,7 +3244,7 @@
 
 2005-04-02  Sergey Poznyakoff  <gray@Mirddin.farlep.net>  (tiny change)
 
-	* mail/rmail.el (rmail-parse-url): Bugfix. Parse traditional
+	* mail/rmail.el (rmail-parse-url): Bugfix.  Parse traditional
 	mailbox specifications as well as URLs.
 	(rmail-insert-inbox-text): Remove unused conditional branches.
 
@@ -3077,12 +3346,7 @@
 	(fill-newline): Use fill-text-properties-at instead of
 	text-properties-at.
 
-2005-03-31  Karl Berry  <karl@freefriends.org>
-
-	* textmodes/tex-mode.el (tex-compile): Use shell-quote-argument,
-	not comint-quote-filename.
-
-2005-03-31  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
+2005-03-31  Olive Lin  <olive.lin@versateladsl.be>  (tiny change)
 
 	* textmodes/tex-mode.el (tex-start-tex) Use shell-quote-argument,
 	not comint-quote-filename.
@@ -3221,12 +3485,12 @@
 	(hs-special-modes-alist): Add a Fortran entry.
 	(fortran-mode-map): Bind fortran-end-of-block,
 	fortran-beginning-of-block to \M-\C-n, \M-\C-p.
-	(fortran-mode): Doc fix. Add fortran-font-lock-keywords-4.
+	(fortran-mode): Doc fix.  Add fortran-font-lock-keywords-4.
 	(fortran-looking-at-if-then, fortran-end-of-block)
 	(fortran-beginning-of-block): New functions, for hideshow.
 
-	* progmodes/f90.el (f90-end-block-re, f90-start-block-re): Doc
-	fix. Tweak regexp.
+	* progmodes/f90.el (f90-end-block-re, f90-start-block-re):
+	Doc fix.  Tweak regexp.
 	(f90-beginning-of-block): Push mark first.
 
 2005-03-29  Jay Belanger  <belanger@truman.edu>
@@ -3244,7 +3508,7 @@
 	* vc.el (vc-do-command): Use a pipe for async processes, so password
 	prompts don't show up at places where the user can't reply.
 
-2005-03-29  Olive Lin  <olive.lin@versateladsl.be> (tiny change)
+2005-03-29  Olive Lin  <olive.lin@versateladsl.be>  (tiny change)
 
 	* textmodes/tex-mode.el (tex-send-command): shell-quote-argument
 	on the file name we pass to the inferior shell.
@@ -3474,11 +3738,11 @@
 	* calendar/calendar.el: Replace `legal' with `valid'.
 	* emacs-lisp/advice.el: Replace `legal' with `valid'.
 	* mail/supercite.el: Replace `legal' with `valid'.
-	* progmodes/cperl-mode.el, progmodes/idlw-shell.el,
-	progmodes/idlwave.el, progmodes/vhdl-mode.el: Replace `legal' with
-	`valid'.
-	* textmodes/reftex-vars.el, textmodes/reftex.el: Replace `legal'
-	with `valid'.
+	* progmodes/cperl-mode.el, progmodes/idlw-shell.el
+	* progmodes/idlwave.el, progmodes/vhdl-mode.el:
+	Replace `legal' with `valid'.
+	* textmodes/reftex-vars.el, textmodes/reftex.el:
+	Replace `legal' with `valid'.
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
@@ -3488,15 +3752,15 @@
 	* emulation/vip.el: Replace `illegal' with `invalid'.
 	* eshell/esh-io.el, eshell/esh-var.el: Replace `illegal' with `invalid'.
 	* mail/supercite.el: Replace `illegal' with `invalid'.
-	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el,
-	progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el,
-	progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el,
-	progmodes/sh-script.el, progmodes/xscheme.el: Replace `illegal' with
-	`invalid'.
-	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el,
-	textmodes/reftex-index.el, textmodes/reftex-parse.el,
-	textmodes/reftex-ref.el, textmodes/reftex-vars.el,
-	textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
+	* progmodes/ebnf-abn.el, progmodes/ebnf-bnf.el
+	* progmodes/ebnf-ebx.el, progmodes/ebnf-dtd.el, progmodes/ebnf-iso.el
+	* progmodes/ebnf-yac.el, progmodes/ebnf2ps.el, progmodes/idlwave.el
+	* progmodes/sh-script.el, progmodes/xscheme.el:
+	Replace `illegal' with `invalid'.
+	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
+	* textmodes/reftex-index.el, textmodes/reftex-parse.el
+	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
+	* textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -3617,11 +3881,11 @@
 	(recentf-include-p): More robust.
 	(recentf-keep-p): New function.
 	(recentf-remove-if-non-kept): Rename from
-	`recentf-remove-if-non-readable'. Use `recentf-keep-p'.
+	`recentf-remove-if-non-readable'.  Use `recentf-keep-p'.
 	All callers updated.
 	(recentf-menu-items-for-commands): Fix help string.
-	(recentf-track-closed-file): Update. Doc fix.
-	(recentf-cleanup): Update. Count removed files. Doc fix.
+	(recentf-track-closed-file): Update.  Doc fix.
+	(recentf-cleanup): Update.  Count removed files.  Doc fix.
 
 2005-03-23  Kim F. Storm  <storm@cua.dk>
 
@@ -4337,7 +4601,7 @@
 
 	* files.el (mode-require-final-newline): Doc fix.
 
-2005-03-03  Stephan Stahl  <stahl@eos.franken.de> (tiny change)
+2005-03-03  Stephan Stahl  <stahl@eos.franken.de>  (tiny change)
 
 	* progmodes/which-func.el (which-function):
 	Specify NOERROR when calling imenu--make-index-alist.
@@ -4932,7 +5196,7 @@
 	* progmodes/gdb-ui.el (gdb-find-file-unhook): New variable.
 	(gdb-set-gud-minor-mode, gdb-set-gud-minor-mode-1)
 	(gdb-set-gud-minor-mode-existing-buffers): New functions.
-	(gdb-find-file-hook): New hook. Add it to find-file-hook.
+	(gdb-find-file-hook): New hook.  Add it to find-file-hook.
 	(gdb-info-breakpoints-custom, gdb-source-info): Simplify.
 
 2005-02-14  Luc Teirlinck  <teirllm@auburn.edu>
@@ -5096,13 +5360,13 @@
 
 2005-02-05  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el: Update copyright. Put GDB-Frames before
+	* progmodes/gdb-ui.el: Update copyright.  Put GDB-Frames before
 	GDB-Windows on the menu-bar as this works better.
 
 2005-02-04  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-embed.el (calc-embedded-update): Don't put in
-	unnecessary newlines. Adjust the end of formula marker.
+	unnecessary newlines.  Adjust the end of formula marker.
 
 	* calc/calc-lang.el (math-latex-parse-frac): Don't use arguments.
 	(math-latex-parse-two-args): New function.
@@ -5164,7 +5428,7 @@
 
 2005-02-02  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el: (gdb-goto-info): Delete.
+	* progmodes/gdb-ui.el (gdb-goto-info): Delete.
 
 	* progmodes/gud.el (gud-goto-info): New function.
 	(gud-tool-bar-map): Use correct icon.
@@ -5872,8 +6136,8 @@
 
 2005-01-11  Juri Linkov  <juri@jurta.org>
 
-	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm,
-	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm,
+	* toolbar/back_arrow.xpm, toolbar/back_arrow.pbm
+	* toolbar/lc-back_arrow.xpm, toolbar/lc-fwd_arrow.xpm
 	* toolbar/fwd_arrow.xpm, toolbar/fwd_arrow.pbm: New icons.
 
 	* info.el (Info-history-forward): New variable.
@@ -6597,7 +6861,7 @@
 
 2004-12-21  Eli Barzilay  <eli@barzilay.org>
 
-	* calculator.el: (calculator-radix-grouping-mode)
+	* calculator.el (calculator-radix-grouping-mode)
 	(calculator-radix-grouping-digits)
 	(calculator-radix-grouping-separator):
 	New defcustoms for the new radix grouping mode functionality.
@@ -6798,11 +7062,11 @@
 	(zone-replace-char): New defsubst.
 	(zone-park/sit-for): Likewise.
 	(zone-fret): Take window-start arg.
-	Update callers. Use `zone-park/sit-for'.
+	Update callers.  Use `zone-park/sit-for'.
 	(zone-fill-out-screen): Rewrite.
-	(zone-fall-through-ws): Likewise. Update callers.
+	(zone-fall-through-ws): Likewise.  Update callers.
 	(zone-pgm-drip): Use `zone-replace-char'.
-	Move var inits before while-loop. Use `zone-park/sit-for'.
+	Move var inits before while-loop.  Use `zone-park/sit-for'.
 	(zone-pgm-random-life): Handle empty initial field.
 	Use `zone-replace-char' and `zone-park/sit-for'.
 
@@ -7643,16 +7907,16 @@
 	(tramp-file-name-handler-alist): Delete file-directory-files, add
 	directory-files-and-attributes.
 	(tramp-perl-file-attributes): Surround uid and gid by double
-	quotes. Change parameter id-format from nonnumeric.
+	quotes.  Change parameter id-format from nonnumeric.
 	(tramp-convert-file-attributes): New function.
 	(tramp-handle-file-attributes): Use it.
 	(tramp-maybe-send-perl-script): New function.
-	(tramp-handle-file-attributes-with-perl): Use it. Don't convert
-	file mode. Change parameter id-format from nonnumeric.
+	(tramp-handle-file-attributes-with-perl): Use it.  Don't convert
+	file mode.  Change parameter id-format from nonnumeric.
 	(tramp-handle-file-attributes-with-ls): Change parameter id-format
 	from nonnumeric.
 	(tramp-post-connection): Don't send tramp-perl-file-attributes
-	script. Reset connection property "perl-scripts".
+	script.  Reset connection property "perl-scripts".
 	(tramp-handle-insert-directory): Run real handler when ls-lisp is
 	in use.
 
@@ -7675,7 +7939,7 @@
 	(gdb-view-source-function, gdb-view-assembler): Delete functions.
 	(menu): Delete menu bindings for viewing source/assembler.
 	(gdb-setup-windows, gdb-restore-windows):
-	Don't dedicate GUD. No assembler now.
+	Don't dedicate GUD.  No assembler now.
 	(gdb-reset): No need to undedicate source buffers now.
 	(gdb-source-info): No assembler now.
 
@@ -7802,7 +8066,7 @@
 	(gdb-var-evaluate-expression-handler, gdb-put-string):
 	Remove unused variable bindings.
 	(gdb-setup-windows, gdb-display-buffer):
-	Simplify. Use pop-to-buffer.
+	Simplify.  Use pop-to-buffer.
 	(gdb-view-source-function): Simplify.
 	(gdb-frame-breakpoints-buffer):
 	Use pop-to-buffer, special-display-regexps.
@@ -7886,8 +8150,8 @@
 	* progmodes/gdb-ui.el (dedicated-switch-to-buffer): New function.
 	(gdb-ann3, gdb-setup-windows, gdb-restore-windows):
 	Dedicate gdb-related windows.
-	(gdb-display-buffer): Dedicate gdb-related windows. Don't grab
-	other frames.
+	(gdb-display-buffer): Dedicate gdb-related windows.
+	Don't grab other frames.
 	(gdb-reset): Remove dedicated property after debugging.
 
 2004-11-24  Jay Belanger  <belanger@truman.edu>
@@ -8753,8 +9017,8 @@
 
 2004-11-10  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tooltip.el: Don't require cl, comint, gud, gdb-ui for
-	compilation. The resulting compiler warnings appear to be harmless.
+	* tooltip.el: Don't require cl, comint, gud, gdb-ui for compilation.
+	The resulting compiler warnings appear to be harmless.
 
 2004-11-10  Daniel Pfeiffer  <occitan@esperanto.org>
 
@@ -9982,7 +10246,7 @@
 	* kmacro.el (kmacro-insert-counter, kmacro-add-counter): Use and
 	reset kmacro-initial-counter-value if set.
 	(kmacro-set-counter): Only set kmacro-counter if defining or executing
-	macro.  Set kmacro-initial-counter-value otherwise. Never set both.
+	macro.  Set kmacro-initial-counter-value otherwise.  Never set both.
 	(kmacro-display): Show macro counter if non-zero.
 
 	* subr.el (substitute-key-definition): Mention command remapping
@@ -10169,8 +10433,8 @@
 
 	* term.el (term-adjust-current-row-cache): Don't allow the current
 	row to become negative.
-	(term-emulate-terminal): Fix insert mode. Handle tab insertion at
-	the end of the line. Fix scroll down. Add comments.
+	(term-emulate-terminal): Fix insert mode.  Handle tab insertion at
+	the end of the line.  Fix scroll down.  Add comments.
 	(term-handle-ansi-escape): Don't exceed terminal width when moving
 	right.
 	(term-scroll-region): Move the cursor after setting the scroll region.
@@ -10325,7 +10589,7 @@
 	* calendar/holidays.el (holiday-advent): Report on a specified day
 	offset from advent, not just advent.
 	(holiday-easter-etc): Report on one specified day offset from
-	easter, not all easter holidays. Various Easter holidays moved to
+	easter, not all easter holidays.  Various Easter holidays moved to
 	`christian-holidays' variable in calendar.el.
 	* calendar/calendar.el (christian-holidays): Adapt for new
 	behaviour of `holiday-advent' and `holiday-easter-etc' functions.
@@ -10340,7 +10604,7 @@
 	(ido-read-internal): Handle new `list' context.
 	Handle insert-buffer and insert-file ido-exit values.
 	(ido-buffer-internal): New arg switch-cmd.  Use it to setup
-	ido-context-switch-command. Handle insert-file ido-exit value.
+	ido-context-switch-command.  Handle insert-file ido-exit value.
 	(ido-read-buffer): Set ido-context-switch-command to 'ignore
 	unless it is already bound by caller.
 	(ido-file-internal): New arg switch-cmd.  Use it to setup
@@ -10670,7 +10934,7 @@
 	Do not call obsolete function compilation-parse-errors.
 	(bibtex-remove-delimiters): Only remove delimiters if present.
 	(bibtex-copy-entry-as-kill): Add docstring.
-	(bibtex-clean-entry): Use bibtex-string=. Handle empty keys.
+	(bibtex-clean-entry): Use bibtex-string=.  Handle empty keys.
 	Detect duplicate keys if bibtex-maintain-sorted-entries is nil.
 	(bibtex-complete): Use bibtex-predefined-month-strings,
 	bibtex-string=, and new function bibtex-complete-key-cleanup.
@@ -11356,8 +11620,8 @@
 	when `c-opt-type-concat-key' is used (i.e. in Pike).
 
 	* progmodes/cc-engine.el (c-looking-at-special-brace-list):
-	Fix bug when the inner char pair doesn't have paren syntax, i.e. "(<
-	>)".
+	Fix bug when the inner char pair doesn't have paren syntax,
+	i.e. "(<>)".
 
 	* progmodes/cc-align.el (c-lineup-multi-inher): Made it syntactic
 	whitespace safe.
@@ -11437,7 +11701,7 @@
 	string.  (2) Check that settings to `c-offsets-alist' are not
 	spuriously quoted.
 
-	* progmodes/cc-cmds.el: (c-electric-brace): Don't delete a comment
+	* progmodes/cc-cmds.el (c-electric-brace): Don't delete a comment
 	which precedes the newly inserted `{'.
 
 2004-08-10  Michael Albinus  <michael.albinus@gmx.de>
@@ -12090,7 +12354,7 @@
 
 2004-06-23  Nick Roberts  <nickrob@gnu.org>
 
-	* comint.el: (comint-insert-clicked-input, comint-copy-old-input):
+	* comint.el (comint-insert-clicked-input, comint-copy-old-input):
 	Remove.
 	(comint-insert-input, comint-mouse-insert-input): New functions
 	based on comint-insert-clicked-input for two bindings but just
@@ -12601,7 +12865,7 @@
 
 2004-06-04  Karl Fogel  <kfogel@red-bean.com>
 
-	* vc-svn.el (vc-svn-checkin): Use 'nconc' instead of 'list*',
+	* vc-svn.el (vc-svn-checkin): Use `nconc' instead of `list*',
 	because the latter is a CL-ism.  This fixes the bug reported by
 	Shawn Boyette <mdxi@collapsar.net> in
 	http://lists.gnu.org/archive/html/emacs-devel/2004-05/msg00442.html.
@@ -13541,9 +13805,9 @@
 	of 19 months of 19 days, with 4 intercalary days.  Each year
 	begins on March 21, with the calendar starting in 1844.
 
-	* calendar/cal-menu.el, calendar/calendar.el,
-	calendar/diary-lib.el, calendar/holidays.el: Added support for
-	using cal-bahai.el.
+	* calendar/cal-menu.el, calendar/calendar.el
+	* calendar/diary-lib.el, calendar/holidays.el:
+	Added support for using cal-bahai.el.
 
 	* eshell/em-glob.el (eshell-glob-initialize): Move initialization
 	of `eshell-glob-chars-regexp' into `eshell-glob-regexp', so that
@@ -14367,7 +14631,7 @@
 	* emacs-lisp/rx.el (rx-syntax): Move sregex style syntax to code.
 	(rx-bracket, rx-check-any, rx-any): Clean up name space.
 
-	* wdired.el: (wdired-mode-map): Move init into declaration.
+	* wdired.el (wdired-mode-map): Move init into declaration.
 	Fix `return' binding.
 	(wdired-change-to-wdired-mode, wdired-change-to-dired-mode):
 	Use force-mode-line-update.
@@ -15910,7 +16174,7 @@
 
 2004-03-15  David Ponce  <david@dponce.com>
 
-	* ruler-mode.el: (ruler-mode-left-fringe-cols)
+	* ruler-mode.el (ruler-mode-left-fringe-cols)
 	(ruler-mode-right-fringe-cols, ruler-mode-left-scroll-bar-cols)
 	(ruler-mode-right-scroll-bar-cols): Remove.
 	(ruler-mode-window-col, ruler-mode-mouse-set-left-margin)
@@ -16657,7 +16921,7 @@
 
 2004-02-16  Eli Tziperman  <eli@deas.harvard.edu>
 
-	* rmail-spam-filter.el: (vm-use-spam-filter)
+	* rmail-spam-filter.el (vm-use-spam-filter)
 	(rsf-min-region-length-added-to-spam-list): New	variables.
 	(rsf-bbdb-auto-delete-spam-bbdb-entries): Rename from
 	rmail-bbdb-auto-delete-spam-entries.  Add cc: to recipients for
@@ -17315,7 +17579,7 @@
 
 	* mail/smtpmail.el (smtpmail-send-data): Don't append spurious newline.
 
-2004-01-18   David Ponce  <david@dponce.com>  (tiny change)
+2004-01-18  David Ponce  <david@dponce.com>  (tiny change)
 
 	* progmodes/which-func.el (which-function-mode): Don't cancel
 	which-func-update-timer if not set.
@@ -19829,10 +20093,10 @@
 	* calendar/cal-tex.el (cal-tex-day-name-format): Doc fix.
 	(cal-tex-LaTeX-hourbox): Move definition before use.
 
-	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el,
-	cal-julian.el, cal-menu.el, cal-move.el, holidays.el,
-	lunar.el, solar.el
-	(displayed-month, displayed-year): Define for compiler.
+	* calendar/cal-china.el, cal-hebrew.el, cal-islam.el
+	* cal-julian.el, cal-menu.el, cal-move.el, holidays.el
+	* lunar.el, solar.el (displayed-month, displayed-year):
+	Define for compiler.
 
 2003-08-03  Martin Stjernholm  <bug-cc-mode@gnu.org>
 

@@ -899,7 +899,7 @@ whether they are `offsite' or `onsite'."
 		  (selection
 		   (mapcar (lambda (listinfo)
 			     (cons (cdr (assoc "sitename" listinfo))
-				   (string-to-int
+				   (string-to-number
 				    (cdr (assoc "feedid" listinfo)))))
 			   feedinfo)))
 	      (cdr (assoc

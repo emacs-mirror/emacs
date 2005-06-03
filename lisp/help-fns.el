@@ -224,7 +224,7 @@ ARGLIST can also be t or a string of the form \"(FUN ARG1 ARG2 ...)\"."
 ;;;   (symbol-file (if (symbolp subr-or-var) subr-or-var
 ;;; 		 (subr-name subr-or-var))
 ;;; 	       (if (eq kind 'var) 'defvar 'defun)))
-
+;;;###autoload
 (defun help-C-file-name (subr-or-var kind)
   "Return the name of the C file where SUBR-OR-VAR is defined.
 KIND should be `var' for a variable or `subr' for a subroutine."

@@ -183,14 +183,14 @@ symbol `ask', query before flushing the queue file."
 the external program specified in `mm-url-program' to connect to
 server."
   (with-temp-buffer
-    (let ((url (concat "http://" host report)))
+    (let ((url (format "http://%s%s" host report)))
       (mm-url-insert url t))))
 
 ;;;###autoload
 (defun spam-report-url-to-file (host report)
   "Collect spam report requests in `spam-report-requests-file'.
 Customize `spam-report-url-ping-function' to use this function."
-  (let ((url (concat "http://" host report))
+  (let ((url (format "http://%s%s" host report))
 	(file spam-report-requests-file))
     (gnus-make-directory (file-name-directory file))
     (gnus-message 9 "Writing URL `%s' to file `%s'" url file)

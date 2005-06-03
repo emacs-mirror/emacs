@@ -1,3 +1,20 @@
+2005-05-30  Miles Bader  <miles@gnu.org>
+
+	* emacs-buffer.gdb: Remove RCS keywords.
+
+2005-05-30  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb: New file.
+	* NEWS: Mention it.
+
+2005-05-28  Richard M. Stallman  <rms@gnu.org>
+
+	* TUTORIAL.fr: Change NBSP to space.
+
+2005-05-28  Bill Wohler  <wohler@newt.com>
+
+	* NEWS, MH-E-NEWS: Upgraded to MH-E version 7.84.
+
 2005-05-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* TODO: post-command-idle-hook has gone.

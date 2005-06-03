@@ -1,6 +1,7 @@
 ;;; mh-alias.el --- MH-E mail alias completion and expansion
 ;;
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1994, 1995, 1996, 1997,
+;;  2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -162,16 +163,16 @@ Exclude all aliases already in `mh-alias-alist' from `ali'"
       (while  (< (point) (point-max))
         (cond
          ((looking-at "\\([^:]*\\):[^:]*:\\([^:]*\\):[^:]*:\\([^:]*\\):")
-          (when (> (string-to-int (match-string 2)) 200)
+          (when (> (string-to-number (match-string 2)) 200)
             (let* ((username (match-string 1))
                    (gecos-name (match-string 3))
                    (realname (mh-alias-gecos-name
                               gecos-name username
                               mh-alias-passwd-gecos-comma-separator-flag))
                    (alias-name (if mh-alias-local-users-prefix
-                                  (concat mh-alias-local-users-prefix
-                                          (mh-alias-suggest-alias realname t))
-                                username))
+                                   (concat mh-alias-local-users-prefix
+                                           (mh-alias-suggest-alias realname t))
+                                 username))
                    (alias-translation
                     (if (string-equal username realname)
                         (concat "<" username ">")

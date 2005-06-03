@@ -1351,7 +1351,7 @@ START should be at the beginning of a line."
 				    comment-start-skip))
 		    (put-text-property beg (match-end 0) 'face
 				       font-lock-comment-delimiter-face)))
-	      (if (looking-back comment-end-regexp (point-at-bol))
+	      (if (looking-back comment-end-regexp (point-at-bol) t)
 		  (put-text-property (match-beginning 0) (point) 'face
 				     font-lock-comment-delimiter-face))))
 	  (< (point) end))

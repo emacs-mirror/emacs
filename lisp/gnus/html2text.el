@@ -1,5 +1,5 @@
 ;;; html2text.el --- a simple html to plain text converter
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Joakim Hove <hove@phys.ntnu.no>
 
@@ -374,7 +374,8 @@ formatting, and then moved afterward.")
 fashion, quite close to pure guess-work. It does work in some cases though."
   (interactive)
   (goto-char (point-min))
-  (replace-regexp "^<br>$" "")
+  (while (re-search-forward "^<br>$" nil t)
+    (delete-region (match-beginning 0) (match-end 0)))
   ;; Removing lonely <br> on a single line, if they are left intact we
   ;; dont have any paragraphs at all.
   (goto-char (point-min))

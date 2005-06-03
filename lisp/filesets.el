@@ -132,7 +132,8 @@ Is buffer local variable.")
 
 (defvar filesets-menu-ensure-use-cached
   (and filesets-running-xemacs
-       (not (emacs-version>= 21 5)))
+       (if (fboundp 'emacs-version>=)
+	   (not (emacs-version>= 21 5))))
   "Make sure (X)Emacs uses filesets' cache.
 
 Well, if you use XEmacs (prior to 21.5?) custom.el is loaded after

@@ -1050,15 +1050,16 @@ changing the variable `diary-include-string'."
            (regexp-quote diary-include-string)
            " \"\\([^\"]*\\)\"")
           nil t)
-    (let ((diary-file (substitute-in-file-name
-                       (buffer-substring-no-properties
-                        (match-beginning 2) (match-end 2))))
-          (mark-diary-entries-hook 'mark-included-diary-files))
+    (let* ((diary-file (substitute-in-file-name
+                        (match-string-no-properties 2)))
+           (mark-diary-entries-hook 'mark-included-diary-files)
+           (dbuff (find-buffer-visiting diary-file)))
       (if (file-exists-p diary-file)
           (if (file-readable-p diary-file)
               (progn
                 (mark-diary-entries)
-                (kill-buffer (find-buffer-visiting diary-file)))
+                (unless dbuff
+                  (kill-buffer (find-buffer-visiting diary-file))))
             (beep)
             (message "Can't read included diary file %s" diary-file)
             (sleep-for 2))

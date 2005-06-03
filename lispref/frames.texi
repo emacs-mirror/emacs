@@ -362,20 +362,8 @@ non-@code{nil} value for the @code{user-position} parameter as well.
 
 @item top
 The screen position of the top edge, in pixels, with respect to the
-top edge of the screen.  The value may be a positive number @var{pos},
-or a list of the form @code{(+ @var{pos})} which permits specifying a
-negative @var{pos} value.
-
-A negative number @minus{}@var{pos}, or a list of the form @code{(-
-@var{pos})}, actually specifies the position of the bottom edge of the
-window with respect to the bottom edge of the screen.  A positive value
-of @var{pos} counts toward the top.  @strong{Reminder:} if the
-parameter is a negative integer @minus{}@var{pos}, then @var{pos} is
-positive.
-
-Some window managers ignore program-specified positions.  If you want to
-be sure the position you specify is not ignored, specify a
-non-@code{nil} value for the @code{user-position} parameter as well.
+top edge of the screen.  It works just like @code{left}, except vertically
+instead of horizontally.
 
 @item icon-left
 The screen position of the left edge @emph{of the frame's icon}, in
@@ -417,6 +405,11 @@ pixels, call @code{frame-pixel-height}; see @ref{Size and Position}.)
 @item width
 The width of the frame contents, in characters.  (To get the height in
 pixels, call @code{frame-pixel-width}; see @ref{Size and Position}.)
+
+@item user-size
+This does for the size parameters @code{height} and @code{width} what
+the @code{user-position} parameter (see above) does for the position
+parameters @code{top} and @code{left}.
 
 @item fullscreen
 Specify that width, height or both shall be set to the size of the screen.

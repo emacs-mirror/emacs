@@ -1540,7 +1540,7 @@ downloaded into the agent."
                           (while (looking-at "\\([^: \n]+\\):\\([0-9]+\\) *")
                             (push (cons (buffer-substring (match-beginning 1)
                                                           (match-end 1))
-                                        (string-to-int
+                                        (string-to-number
 					 (buffer-substring (match-beginning 2)
 							   (match-end 2))))
                                   crosses)
@@ -2552,7 +2552,7 @@ The following commands are available:
   (buffer-disable-undo)
   (setq truncate-lines t)
   (setq buffer-read-only t)
-  (gnus-run-hooks 'gnus-category-mode-hook))
+  (gnus-run-mode-hooks 'gnus-category-mode-hook))
 
 (defalias 'gnus-category-position-point 'gnus-goto-colon)
 
@@ -3703,7 +3703,7 @@ If REREAD is not nil, downloaded articles are marked as unread."
              (dir (file-name-directory file))
              point
              (downloaded (if (file-exists-p dir)
-                             (sort (mapcar (lambda (name) (string-to-int name))
+                             (sort (mapcar (lambda (name) (string-to-number name))
                                            (directory-files dir nil "^[0-9]+$" t))
                                    '>)
                            (progn (gnus-make-directory dir) nil)))

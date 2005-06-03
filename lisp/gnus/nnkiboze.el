@@ -106,7 +106,7 @@
 	(error "nnkiboze: No xref"))
       (unless (string-match " \\([^ ]+\\):\\([0-9]+\\)" xref)
 	(error "nnkiboze: Malformed xref"))
-      (setq num (string-to-int (match-string 2 xref))
+      (setq num (string-to-number (match-string 2 xref))
 	    group (match-string 1 xref))
       (or (with-current-buffer buffer
 	    (or (and gnus-use-cache (gnus-cache-request-article num group))

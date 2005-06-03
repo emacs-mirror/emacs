@@ -2247,7 +2247,7 @@ is nil, the buffer substring is returned unaltered.
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
 
-Point is temporarily set to BEG before caling
+Point is temporarily set to BEG before calling
 `buffer-substring-filters', in case the functions need to know
 where the text came from.
 

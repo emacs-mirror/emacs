@@ -1,5 +1,5 @@
 ;;; gnus-kill.el --- kill commands for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Masanobu UMEDA <umerin@flab.flab.fujitsu.junet>
@@ -161,7 +161,7 @@ gnus-kill-file-mode-hook with no arguments, if that value is non-nil."
   (setq major-mode 'gnus-kill-file-mode)
   (setq mode-name "Kill")
   (lisp-mode-variables nil)
-  (gnus-run-hooks 'emacs-lisp-mode-hook 'gnus-kill-file-mode-hook))
+  (gnus-run-mode-hooks 'emacs-lisp-mode-hook 'gnus-kill-file-mode-hook))
 
 (defun gnus-kill-file-edit-file (newsgroup)
   "Begin editing a kill file for NEWSGROUP.

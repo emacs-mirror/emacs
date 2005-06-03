@@ -1565,14 +1565,21 @@ form.  See `defsetf' for a simpler way to define most setf-methods.
 This macro is an easy-to-use substitute for `define-setf-method' that works
 well for simple place forms.  In the simple `defsetf' form, `setf's of
 the form (setf (NAME ARGS...) VAL) are transformed to function or macro
-calls of the form (FUNC ARGS... VAL).  Example: (defsetf aref aset).
+calls of the form (FUNC ARGS... VAL).  Example:
+
+  (defsetf aref aset)
+
 Alternate form: (defsetf NAME ARGLIST (STORE) BODY...).
 Here, the above `setf' call is expanded by binding the argument forms ARGS
 according to ARGLIST, binding the value form VAL to STORE, then executing
 BODY, which must return a Lisp form that does the necessary `setf' operation.
 Actually, ARGLIST and STORE may be bound to temporary variables which are
 introduced automatically to preserve proper execution order of the arguments.
-Example: (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))."
+Example:
+
+  (defsetf nth (n x) (v) (list 'setcar (list 'nthcdr n x) v))
+
+\(fn NAME [FUNC | ARGLIST (STORE) BODY...])"
   (if (listp arg1)
       (let* ((largs nil) (largsr nil)
 	     (temps nil) (tempsr nil)

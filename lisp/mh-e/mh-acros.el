@@ -1,6 +1,6 @@
 ;;; mh-acros.el --- Macros used in MH-E
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2004 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -40,6 +40,7 @@
 ;;; Code:
 
 (require 'cl)
+(require 'advice)
 
 ;; The Emacs coding conventions require that the cl package not be required at
 ;; runtime. However, the cl package in versions of Emacs prior to 21.4 left cl
@@ -68,8 +69,9 @@ recognizes that and loads `cl' where appropriate."
 
 (defmacro mh-funcall-if-exists (function &rest args)
   "Call FUNCTION with ARGS as parameters if it exists."
-  (if (fboundp function)
-      `(funcall ',function ,@args)))
+  (when (fboundp function)
+    `(when (fboundp ',function)
+       (funcall ',function ,@args))))
 
 (defmacro mh-make-local-hook (hook)
   "Make HOOK local if needed.

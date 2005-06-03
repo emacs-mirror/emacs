@@ -1,6 +1,7 @@
 ;;; mh-funcs.el --- MH-E functions not everyone will use right away
 
-;; Copyright (C) 1993, 1995, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995,
+;; 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -127,7 +128,7 @@ Display the results only if something went wrong."
   (set-buffer (get-buffer-create mh-temp-buffer))
   (insert-before-markers output)
   (when (save-excursion
-          (beginning-of-buffer)
+          (goto-char (point-min))
           (re-search-forward "^rmf: " (point-max) t))
     (display-buffer mh-temp-buffer)))
 
@@ -148,7 +149,7 @@ Display the results only if something went wrong."
                                             "-recurse"
                                           "-norecurse"))
         (goto-char (point-min))
-        (view-mode 1)
+        (view-mode-enter)
         (setq view-exit-action 'kill-buffer)
         (message "Listing folders...done")))))
 

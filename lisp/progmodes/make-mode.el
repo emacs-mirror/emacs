@@ -266,14 +266,14 @@ not be enclosed in { } or ( )."
   "Characters to skip to find a line that might be a dependency.")
 
 (defvar makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)"
+  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)"
   "Regex used to highlight rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -420,7 +420,7 @@ not be enclosed in { } or ( )."
    nil
    "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
 
-   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?\\_>.*?[})]\\)"
+   '("[^$]\\(\\$[({]\\(?:output\\|stem\\|target\\)s?\\_>.*?[})]\\)"
      1 'makefile-targets-face prepend)
 
    ;; Colon modifier keywords.
@@ -851,7 +851,7 @@ Makefile mode can be configured by modifying the following variables:
   "An adapted `makefile-mode' that knows about makepp."
    (set (make-local-variable 'makefile-rule-action-regex)
 	;; Don't care about initial tab, but I don't know how to font-lock correctly without.
-	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.+\\\\\n\\)*.+\\)")
+	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.*\\\\\n\\)*.*\\)")
 
   (setq font-lock-defaults
 	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))
@@ -867,7 +867,7 @@ Makefile mode can be configured by modifying the following variables:
        "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\([:!]\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)")
   (set (make-local-variable 'makefile-dependency-skip) "^:!")
   (set (make-local-variable 'makefile-rule-action-regex)
-       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
+       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)")
   (setq font-lock-defaults
 	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
 

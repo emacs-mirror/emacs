@@ -1,32 +1,305 @@
-2005-05-26  Lute Kamstra  <lute@gnu.org>
+2005-05-28  Bill Wohler  <wohler@newt.com>
 
-	* mh-utils.el (mh-show-mode): 
-	* mh-pick.el (mh-pick-mode): Remove spurious run-hooks.
+	 Released MH-E version 7.84.
 
-2005-04-08  Dan Nicolaescu  <dann@ics.uci.edu>
+         * MH-E-NEWS, README: Updated for release 7.84.
+
+         * mh-e.el (Version, mh-version): Updated for release 7.84.
+
+2005-05-28  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el, mh-comp.el: Don't autoload Info-goto-node. It's not
+	used, and if it were, the code should use the info function
+	instead.
+
+	Use full year in copyright notices (for example, 2005, not 05).
+
+	* Makefile (mh-loaddefs.el, mh-e-autoloads.el): Added 2005 to
+	copyright notice.
+
+	* mh-inc.el: Use three ;;; to precede Local Variables to be
+	consistent with other files. Will have to ask Stefan Monnier why
+	he changed it.
+
+	* README: This version of MH-E to appear in GNU Emacs 22.1, not
+	21.5.
+
+	* ChangeLog: The * in a ChangeLog entry must only be used before a
+	filename.
+
+	Fixed compilation warnings in CVS Emacs. This included using
+	"public" functions instead of "private" ones (info instead of
+	Info-goto-node, view-mode-enter instead of view-mode), and
+	removing a customization group that didn't have a parent group. In
+	addition, string-to-int was recently deprecated; use
+	string-to-number instead.
+
+	* mh-customize.el (Info-goto-node): Deleted autoload.
+	(mh-e): Deleted mh group. Use single mh-e group instead.
+	(mh-tool-bar-folder-help, mh-tool-bar-letter-help): Use info
+	instead of Info-goto-node.
+
+	* mh-e.el (mh-read-msg-list): string-to-int deprecated; use
+	string-to-number.
+
+	* mh-funcs.el (mh-list-folders): Use view-mode-enter instead of
+	view-mode.
+
+	* mh-seq.el (mh-list-sequences): Use view-mode-enter instead of
+	view-mode.
+
+	* mh-utils.el (mh-get-msg-num): string-to-int deprecated; use
+	string-to-number.
+
+	Merged in changes from CVS Emacs including:
+
+	* mh-utils.el (mh-show-mode):
+	* mh-pick.el (mh-pick-mode): Remove spurious run-hooks. Lute
+	Kamstra  <lute@gnu.org> 2005-05-26.
+
+2005-05-25  Bill Wohler  <wohler@newt.com>
+
+	Merged in changes from CVS Emacs including:
 
 	* mh-customize.el (mh-speedbar-selected-folder-face): Special case
-	high number of colors displays.
+	high number of colors displays. Dan Nicolaescu <dann@ics.uci.edu>
+	2005-04-08.
 
-2005-03-25  Werner Lemberg  <wl@gnu.org>
+	* mh-e.el, mh-identity.el, mh-mime.el: Replace `legal' with
+	`valid'. Replace `illegal' with `invalid'. Werner Lemberg
+	<wl@gnu.org> 2005-03-25.
 
-	* mh-e.el, mh-identity.el, mh-mime.el: Replace `legal' with `valid'.
+	* mh-inc.el (mh-inc-spool-list): Correctly declare the external
+	var. Stefan <monnier@iro.umontreal.ca> 2004-09-07.
 
-2005-03-25  Werner Lemberg  <wl@gnu.org>
+2005-05-18  Bill Wohler  <wohler@newt.com>
 
-	* mh-e.el: Replace `illegal' with `invalid'.
+	* mh-comp.el (mh-reply): Mention use of mh-repl-group-formfile in
+	docstring.
 
-2004-09-07  Stefan  <monnier@iro.umontreal.ca>
+2005-05-05  Bill Wohler  <wohler@newt.com>
 
-	* mh-inc.el (mh-inc-spool-list): Correctly declare the external var.
+	* mh-e.el (Version, mh-version): Added +cvs to release number.
 
-2004-08-21  Bill Wohler  <wohler@newt.com>
+2005-05-05  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.82.
+	Released MH-E version 7.83.
+
+	* MH-E-NEWS, README: Updated for release 7.83.
+
+	* mh-e.el (Version, mh-version): Updated for release 7.83.
+
+2005-05-05  Bill Wohler  <wohler@newt.com>
+
+	* README: To appear in Emacs 21.5, since 21.4 was released (but
+	without the latest MH-E).
+
+	* release-utils (usage): Added --variable-changes.
+
+2005-05-04  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (*-face): Made docstrings consistent.
+
+	* mh-seq.el (mh-pick-args-list): Extracted function for turning
+	string of pick arguments to list. Fixed list so that multi-word
+	arguments were put in a single string (closes SF #1122655).
+	(mh-edit-pick-expr): Use it.
+
+	* mh-unit.el (mh-unit): Since 21.4 snuck out but didn't contain
+	updated lm-verify, don't run lm-verify on versions before 21.5.
+	(mh-unit-test-pick-args-list): Added.
+
+	* mh-customize.el (mh-yank-from-start-of-msg): Use headline
+	capitalization. Changed wording of some choices to be more consistent.
+	(mh-invisible-header-fields-internal): Added fields from usa.net.
+
+2005-04-24  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-mime.el (mh-mime-security-button-face): New function which
+	determines the face to use to colorize encrypted or signed emails.
+	(mh-insert-mime-security-button): Modified to colorize the button
+	differently based on whether the signature was valid or not,
+	whether the decryption was successful or not, etc.
+
+	* mh-customize.el (mh-show-pgg-good-face)
+	(mh-show-pgg-unknown-face, mh-show-pgg-bad-face): Faces added to
+	highlight buttons introduced for encrpted or signed MIME parts.
+
+2005-03-19  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-mml-method-default): Sorted alphabetically.
+	(mh-insert-x-mailer-flag, mh-reply-show-message-flag): Moved from
+	mh-letter group to mh-sending-mail group. The writing of the
+	documentation revealed that these options were misplaced.
+
+2005-03-17  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-junk-background): Put in alphabetical order.
+	Synced with manual.
+	(mh-junk-program): Use double-quotes on non-symbols.
+
+	* mh-pick.el: (mh-search-folder): Synced docstrings with manual.
+
+	* mh-index.el: (mh-index-search, mh-pick-execute-search)
+	(mh-grep-execute-search, mh-mairix-execute-search)
+	(mh-swish-execute-search, mh-swish++-execute-search)
+	(mh-namazu-execute-search): Synced docstrings with manual. Note
+	that I'm now grabbing the output of an Info buffer which is why
+	the indents on the examples has changed a bit. If we all use that
+	methodology in the future, we shouldn't produce as many gratuitous
+	diffs. I also noticed that `grep' and `search' became links to
+	unrelated things, so let's use double-quotes for quoting
+	non-symbols in the docstrings.
+
+	* mh-customize.el (mh-index-new-messages-folders)
+	(mh-index-ticked-messages-folders): Synced docstrings with manual.
+
+2005-02-16  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-index.el (mh-swish-execute-search): Simplify the indexing
+	recipe for swish. Thanks to Eric Jensen for the suggestion.
+
+2005-02-11  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-index.el (mh-swish-execute-search)
+	(mh-swish++-execute-search): Make the indexing recipes better.
+	(mh-swish-next-result): The indexer might find matches in files
+	that aren't messages. Make the function handle that case
+	gracefully.
+
+2005-02-07  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-inc-prog, mh-inc-spool-list): Synced
+	docstrings with manual.
+
+2005-02-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-junk.el (mh-spamassassin-blacklist): Removed trailing
+	whitespace.
+
+	* mh-e.el (mh-refile-or-write-again): Checkdoc fix.
+
+	* mh-identity.el (mh-identity-list-set)
+	(mh-identity-field-handler, mh-identity-handler-gpg-identity)
+	(mh-identity-handler-signature)
+	(mh-identity-handler-attribution-verb)
+	(mh-identity-handler-default, mh-identity-handler-top): Docstring
+	editing.
+
+	* mh-customize.el (mh-identity-list, mh-auto-fields-list)
+	(mh-identity-default, mh-identity-handlers): Synced docstrings
+	with manual.
+
+2005-02-03  Bill Wohler  <wohler@newt.com>
+
+	* mh-xemacs.el (define-behavior 'mh): Moved Ben's code here from
+	mh-e.el and added standard documentation.
+
+	* mh-e.el: Received patch from Ben Wing <ben@666.com> to add
+	define-behavior on XEmacs.
+
+2005-01-28  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-customize.el (mh-invisible-header-fields-internal): Added
+	X-Evolution header added by Evolution mai client.
+
+2005-01-18  Bill Wohler  <wohler@newt.com>
+
+	* mh-customize.el (mh-invisible-header-fields-internal): Added
+	DomainKey-Signature (http://antispam.yahoo.com/domainkeys/).
+	There's a Comment field that goes with it, but I thought it was
+	too general to add.
+
+2005-01-06  Bill Wohler  <wohler@newt.com>
+
+	* mh-junk.el (mh-spamassassin-blacklist): Fixed typo to fix an
+	error when junking spamassassin mail when mh-junk-background is
+	turned on.
+
+2004-12-25  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-utils.el (mh-show-unquote-From): Make the buffer writable
+	before trying to change it (closes SF #1089870).
+
+	* mh-comp.el (mh-complete-word): Fix a typo in a variable
+	name (closes SF #1089870)
+
+2004-11-28  Jeffrey C Honig  <jch@honig.net>
+
+	* mh-comp.el (mh-complete-word): Kill the *Completions* buffer in
+	any cases where we belive we are done with it.  Not perfect, but
+	better than just leaving it around.
+
+2004-11-08  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-acros.el (mh-funcall-if-exists): In XEmacs, presence of a
+	function at compile time doesn't guarantee it's existence at run
+	time. So make the macro handle that situation better.
+
+2004-11-05  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-acros.el (advice): Load advice, since it isn't loaded in
+	XEmacs causing compilation problems.
+
+2004-10-24  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-index.el (mh-mairix-execute-search)
+	(mh-mairix-regexp-builder): Update the interface to mairix so that
+	it will work with versions of mairix 0.12 and later.
+
+	* mh-funcs.el (mh-rmf-daemon): Avoid using
+	beginning-of-buffer since it clobbers the mark and it was pointed
+	out on the Emacs developers list to be the wrong thing to do.
+
+	* mh-e.el (mh-inc-folder): Only remove the window on the show
+	buffer. This means if the user has BBDB enabled then the window
+	displaying BBDB information isn't clobbered.
+	(mh-refile-or-write-again): Don't use the function
+	interactive-p. There was a long thread on the Emacs developers
+	list where it was pointed out that it is incorrect to use this
+	function most of the time.
+
+	* mh-comp.el (autoload): Don't set auto-mode-alist. This could
+	screw things up for users that don't use MH-E (closes SF #1032353).
+
+2004-10-13  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-e.el (mh-refile-or-write-again): Generalize the function to
+	work on a range of messages (closes SF #1046330).
+
+2004-09-02  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-e.el (mh-process-commands): The concurrent execution of mark
+	and refile can cause problems since both the commands change the
+	current folder. This change avoids that by getting rid of the
+	concurrency. Another change covers the corner case where we refile
+	messages to a previously empty folder. Before the modification
+	sequences weren't preserved even if the appropriate flag was
+	set. That is no longer the case.
+
+2004-08-26  Satyaki Das  <satyaki@theforce.stanford.edu>
+
+	* mh-e.el (mh-get-new-mail): Also, update the unseen sequence from
+	disk. Otherwise, the new messages aren't highlighted.
+
+	* mh-seq.el (mh-thread-inc): Fix a bug which appears when inc is
+	run in a narrowed folder. The user sequence notation was getting
+	lost. The change fixes that.
+
+	* mh-e.el (mh-get-new-mail): Make inc more efficient by reusing
+	the existing user sequence notation and deleted/refiled notation.
+
+2004-08-24  Bill Wohler  <wohler@newt.com>
+
+	* mh-e.el (Version, mh-version): Added +cvs to release number.
+
+2004-08-24  Bill Wohler  <wohler@newt.com>
+
+	Released MH-E version 7.82.
 
 	* MH-E-NEWS, README: Updated for release 7.82.
 
-	* mh-e.el (Version, mh-version): Update for release 7.82.
+	* mh-e.el (Version, mh-version): Updated for release 7.82.
 
 2004-08-24  Bill Wohler  <wohler@newt.com>
 
@@ -57,11 +330,11 @@
 
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.81.
+	Released MH-E version 7.81.
 
 	* MH-E-NEWS, README: Updated for release 7.81.
 
-	* mh-e.el (Version, mh-version): Update for release 7.81.
+	* mh-e.el (Version, mh-version): Updated for release 7.81.
 
 2004-08-21  Bill Wohler  <wohler@newt.com>
 
@@ -94,7 +367,7 @@
 
 2004-08-15  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.80.
+	Released MH-E version 7.4.80.
 
 	* MH-E-NEWS, README: Updated for release 7.4.80.
 
@@ -324,13 +597,13 @@
 	are more useful than a key sequence in these cases. Use "See also"
 	instead of "See also documentation for".
 
-	* Merged in 7.4.4 changes, described below.
+	Merged in 7.4.4 changes, described below.
 
 	* mh-e.el (Version, mh-version):  Set to 7.4.4+cvs.
 
 2004-07-10  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.4.
+	Released MH-E version 7.4.4.
 
 	* MH-E-NEWS, README: Updated for release 7.4.4.
 
@@ -399,9 +672,9 @@
 	routines in the best way possible (closes SF #930012).
 	(require 'mouse): To shush compiler.
 
-	* Use new function mh-require-cl throughout.
+	Use new function mh-require-cl throughout.
 
-	* Add arch taglines (courtesy Miles Bader).
+	Add arch taglines (courtesy Miles Bader).
 
 	* mh-unit.el (mh-unit-files): Replaced mh-xemacs-compat.el and
 	mh-xemacs-icons.el with mh-xemacs.el.
@@ -541,7 +814,7 @@
 
 2003-11-18  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.3.
+	Released MH-E version 7.4.3.
 
 	* MH-E-NEWS, README: Updated for release 7.4.3.
 
@@ -684,8 +957,8 @@
 
 2003-11-04  Steve Youngs  <sryoungs@bigpond.net.au>
 
-	* Makefile (XEMACS_LOADDEFS_FILE): New.  Used to generate mh-loaddefs.el
-	in XEmacs.
+	* Makefile (XEMACS_LOADDEFS_FILE): New. Used to generate
+	mh-loaddefs.el in XEmacs.
 	(XEMACS_LOADDEFS_COOKIE): Ditto.
 	(XEMACS_LOADDEFS_PKG_NAME): Ditto.
 	(xemacs): Add target to build mh-loaddefs.el in XEmacs
@@ -1363,7 +1636,7 @@
 
 2003-08-19  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.2.
+	Released MH-E version 7.4.2.
 
 	* MH-E-NEWS, README: Updated for release 7.4.2.
 
@@ -2233,7 +2506,7 @@
 
 2003-06-25  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.1.
+	Released MH-E version 7.4.1.
 
 	* MH-E-NEWS, README: Updated for release 7.4.1.
 
@@ -2255,7 +2528,7 @@
 
 2003-06-24  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.4.
+	Released MH-E version 7.4.
 
 	* MH-E-NEWS, README: Updated for release 7.4.
 
@@ -3362,7 +3635,7 @@
 
 2003-04-24  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.3.
+	Released MH-E version 7.3.
 
 	* MH-E-NEWS, README: Updated for release 7.3.
 
@@ -4920,7 +5193,7 @@
 
 2003-02-03  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.2.
+	Released MH-E version 7.2.
 
 	* MH-E-NEWS, README: Updated for release 7.2.
 
@@ -5584,7 +5857,7 @@
 
 2003-01-07  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.1.
+	Released MH-E version 7.1.
 
 	* MH-E-NEWS, README: Updated for release 7.1.
 
@@ -6678,7 +6951,7 @@
 
 2002-11-29  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 7.0.
+	Released MH-E version 7.0.
 
 	* mh-e.el (Version, mh-version): Updated for release 7.0.
 
@@ -6703,7 +6976,7 @@
 
 2002-11-21  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 6.1.91.
+	Released MH-E version 6.1.91.
 
 	* mh-e.el (Version, mh-version): Updated for release 6.1.91.
 
@@ -6727,7 +7000,7 @@
 
 2002-11-15  Bill Wohler  <wohler@newt.com>
 
-	* Released MH-E version 6.1.90.
+	Released MH-E version 6.1.90.
 
 	* README (Compile): New section. Users must now compile MH-E due
 	to the vagaries of the various versions of gnus.
@@ -9688,7 +9961,7 @@
 
 2002-04-08  Bill Wohler  <wohler@newt.com>
 
-	* Released mh-e version 6.1.
+	Released mh-e version 6.1.
 
 	* mh-e.el (mh-folder-unseen-seq-name): Use "mhparam -component
 	Unseen-Sequence" command and "Unseen-Sequence: \\(.*\\)$" regexp
@@ -9792,7 +10065,7 @@
 
 2001-12-16  Bill Wohler  <wohler@newt.com>
 
-	* Released mh-e version 6.0.
+	Released mh-e version 6.0.
 
 	* MH-E-NEWS: Be a little more specific about incompatible changes.
 	Added info about outdated manual.
@@ -9815,7 +10088,7 @@
 
 2001-12-14  Bill Wohler  <wohler@newt.com>
 
-	* Released mh-e version 5.0.93.
+	Released mh-e version 5.0.93.
 
 	* Makefile (MH-E-SRC): Added mh-xemacs-compat.el.
 	(MH-E-IMG): Added .pbm images for all. Removed mail_ prefix from
@@ -10000,7 +10273,7 @@
 
 2001-12-04  Bill Wohler  <wohler@newt.com>
 
-	* Released mh-e version 5.0.92.
+	Released mh-e version 5.0.92.
 
 	* mh-utils.el (gnus-cite-face-list)
 	(mh-gnus-article-highlight-citation): Don't autoload. Revert to
@@ -10010,7 +10283,7 @@
 
 2001-12-03  Bill Wohler  <wohler@newt.com>
 
-	* Released mh-e version 5.0.91.
+	Released mh-e version 5.0.91.
 
 	* MH-E-NEWS: Removed info about bumping up `max-specpdl-size' now
 	that workaround has been implemented.
@@ -10916,17 +11189,17 @@
 
 2001-04-14  chad brown  <y@mit.edu>
 
-	* rearrange the font-lock keywords a bit
+	Rearrange the font-lock keywords a bit.
 
 2001-04-12  chad brown  <y@mit.edu>
 
-	* preliminary (somewhat boring) font-lock support for mh-e.  More
+	Preliminary (somewhat boring) font-lock support for mh-e.  More
 	interesting font-lock support probably wants to have better
 	support for multiple format files
 
 2001-02-24  chad brown  <y@mit.edu>
 
-	* add default nmh paths to mh-find-prog in mh-utils.el.
+	Add default nmh paths to mh-find-prog in mh-utils.el.
 	change to mh-kill-folder in mh-funcs.el to make it more general.
 
 2001-02-19  Bill Wohler  <wohler@newt.com>
@@ -10939,10 +11212,10 @@
 	(dist): Leave release in current directory.
 
 
-Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+  Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 
-Copying and distribution of this file, with or without modification,
-are permitted in any medium without royalty provided the copyright
-notice and this notice are preserved.
+  Copying and distribution of this file, with or without modification,
+  are permitted in any medium without royalty provided the copyright
+  notice and this notice are preserved.
 
 ;;; arch-tag: 87324964-69b6-4925-a3c2-9c1df53d7d51

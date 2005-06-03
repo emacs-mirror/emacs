@@ -325,7 +325,7 @@ This is not required to be present for user-written mode annotations."
   :type '(choice (string) (sexp)))
 
 (defvar calc-bug-address "belanger@truman.edu"
-  "Address of the author of Calc, for use by `report-calc-bug'.")
+  "Address of the maintainer of Calc, for use by `report-calc-bug'.")
 
 (defvar calc-scan-for-dels t
   "If t, scan keymaps to find all DEL-like keys.
@@ -720,6 +720,12 @@ If nil, selections displayed but ignored.")
 (defvar calc-load-hook nil
   "Hook run when calc.el is loaded.")
 
+(defvar calc-window-hook nil
+  "Hook called to create the Calc window.")
+
+(defvar calc-trail-window-hook nil
+  "Hook called to create the Calc trail window.")
+
 ;; Verify that Calc is running on the right kind of system.
 (defvar calc-emacs-type-lucid (not (not (string-match "Lucid" emacs-version))))
 
@@ -1053,7 +1059,7 @@ If nil, selections displayed but ignored.")
 	(use-global-map glob)
 	(use-local-map loc)))))
 
-
+(defvar calc-alg-map) ; Defined in calc-ext.el
 
 (defun calc-mode ()
   "Calculator major mode.
@@ -1205,18 +1211,20 @@ commands given here will actually operate on the *Calculator* stack."
 	    (switch-to-buffer (current-buffer) t)
 	  (if (get-buffer-window (current-buffer))
 	      (select-window (get-buffer-window (current-buffer)))
-            (let ((w (get-largest-window)))
-              (if (and pop-up-windows
-                       (> (window-height w)
-                          (+ window-min-height calc-window-height 2)))
-                  (progn
-                    (setq w (split-window w
-                                          (- (window-height w)
-                                             calc-window-height 2)
-                                          nil))
-                    (set-window-buffer w (current-buffer))
-                    (select-window w))
-                (pop-to-buffer (current-buffer))))))
+            (if calc-window-hook
+                (run-hooks 'calc-window-hook)
+              (let ((w (get-largest-window)))
+                (if (and pop-up-windows
+                         (> (window-height w)
+                            (+ window-min-height calc-window-height 2)))
+                    (progn
+                      (setq w (split-window w
+                                            (- (window-height w)
+                                               calc-window-height 2)
+                                            nil))
+                      (set-window-buffer w (current-buffer))
+                      (select-window w))
+                  (pop-to-buffer (current-buffer)))))))
 	(save-excursion
 	  (set-buffer (calc-trail-buffer))
 	  (and calc-display-trail
@@ -1823,15 +1831,17 @@ See calc-keypad for details."
 	      (not (if flag (memq flag '(nil 0)) win)))
 	(if (null win)
 	    (progn
-              (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
-                (set-window-buffer w calc-trail-buffer))
-	      (calc-wrapper
-	       (setq overlay-arrow-string calc-trail-overlay
-		     overlay-arrow-position calc-trail-pointer)
-	       (or no-refresh
-		   (if interactive
-		       (calc-do-refresh)
-		     (calc-refresh))))))
+              (if calc-trail-window-hook
+                  (run-hooks 'calc-trail-window-hook)
+                (let ((w (split-window nil (/ (* (window-width) 2) 3) t)))
+                  (set-window-buffer w calc-trail-buffer)))
+              (calc-wrapper
+               (setq overlay-arrow-string calc-trail-overlay
+                     overlay-arrow-position calc-trail-pointer)
+               (or no-refresh
+                   (if interactive
+                       (calc-do-refresh)
+                     (calc-refresh))))))
       (if win
 	  (progn
 	    (delete-window win)
@@ -3431,7 +3441,7 @@ Also looks for the equivalent TeX words, \\gets and \\evalto."
 
 (defun calc-user-invocation ()
   (interactive)
-  (unless (stringp calc-invocation-macro)
+  (unless calc-invocation-macro
     (error "Use `Z I' inside Calc to define a `M-# Z' keyboard macro"))
   (execute-kbd-macro calc-invocation-macro nil))
 

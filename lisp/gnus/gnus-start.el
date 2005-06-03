@@ -2517,7 +2517,7 @@ If FORCE is non-nil, the .newsrc file is read."
 	    (cond
 	     ((looking-at "[0-9]+")
 	      ;; We narrow and read a number instead of buffer-substring/
-	      ;; string-to-int because it's faster.  narrow/widen is
+	      ;; string-to-number because it's faster.  narrow/widen is
 	      ;; faster than save-restriction/narrow, and save-restriction
 	      ;; produces a garbage object.
 	      (setq num1 (progn

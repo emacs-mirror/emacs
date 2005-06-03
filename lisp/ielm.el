@@ -480,7 +480,8 @@ The behaviour of IELM may be customized with the following variables:
 Customized bindings may be defined in `ielm-map', which currently contains:
 \\{ielm-map}"
   (interactive)
-  (comint-mode)
+  (delay-mode-hooks
+   (comint-mode))
   (setq comint-prompt-regexp (concat "^" (regexp-quote ielm-prompt)))
   (set (make-local-variable 'paragraph-separate) "\\'")
   (make-local-variable 'paragraph-start)

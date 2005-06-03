@@ -2181,10 +2181,11 @@ unfolded."
 		   ;; The command is a string, so we interpret the command
 		   ;; as a, well, command, and fork it off.
 		   (let ((process-connection-type nil))
-		     (process-kill-without-query
+		     (gnus-set-process-query-on-exit-flag
 		      (start-process
 		       "article-x-face" nil shell-file-name
-		       shell-command-switch gnus-article-x-face-command))
+		       shell-command-switch gnus-article-x-face-command)
+		      nil)
 		     (with-temp-buffer
 		       (insert face)
 		       (process-send-region "article-x-face"
@@ -3742,7 +3743,7 @@ commands:
   (setq buffer-read-only t)
   (set-syntax-table gnus-article-mode-syntax-table)
   (mm-enable-multibyte)
-  (gnus-run-hooks 'gnus-article-mode-hook))
+  (gnus-run-mode-hooks 'gnus-article-mode-hook))
 
 (defun gnus-article-setup-buffer ()
   "Initialize the article buffer."
@@ -6787,7 +6788,7 @@ specified by `gnus-button-alist'."
 				     (match-string 3 address)
 				   "nntp")))
        nil nil nil
-       (and (match-end 6) (list (string-to-int (match-string 6 address))))))))
+       (and (match-end 6) (list (string-to-number (match-string 6 address))))))))
 
 (defun gnus-url-parse-query-string (query &optional downcase)
   (let (retval pairs cur key val)
