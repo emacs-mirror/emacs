@@ -218,9 +218,10 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
   int fd[2];
   int filefd;
   register int pid;
-  char buf[16384];
-  char *bufptr = buf;
-  int bufsize = sizeof buf;
+#define CALLPROC_BUFFER_SIZE_MIN (16 * 1024)
+#define CALLPROC_BUFFER_SIZE_MAX (4 * CALLPROC_BUFFER_SIZE_MIN)
+  char buf[CALLPROC_BUFFER_SIZE_MAX];
+  int bufsize = CALLPROC_BUFFER_SIZE_MIN;
   int count = SPECPDL_INDEX ();
 
   register const unsigned char **new_argv
@@ -765,7 +766,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	nread = carryover;
 	while (nread < bufsize - 1024)
 	  {
-	    int this_read = emacs_read (fd[0], bufptr + nread,
+	    int this_read = emacs_read (fd[0], buf + nread,
 					bufsize - nread);
 
 	    if (this_read < 0)
@@ -790,7 +791,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (!NILP (buffer))
 	  {
 	    if (! CODING_MAY_REQUIRE_DECODING (&process_coding))
-	      insert_1_both (bufptr, nread, nread, 0, 1, 0);
+	      insert_1_both (buf, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
 		int size;
@@ -807,7 +808,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		   requires text-encoding detection.  */
 		if (process_coding.type == coding_type_undecided)
 		  {
-		    detect_coding (&process_coding, bufptr, nread);
+		    detect_coding (&process_coding, buf, nread);
 		    if (process_coding.composing != COMPOSITION_DISABLED)
 		      /* We have not yet allocated the composition
 			 data because the coding type was undecided.  */
@@ -816,7 +817,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		if (process_coding.cmp_data)
 		  process_coding.cmp_data->char_offset = PT;
 
-		decode_coding (&process_coding, bufptr, decoding_buf,
+		decode_coding (&process_coding, buf, decoding_buf,
 			       nread, size);
 
 		if (display_on_the_fly
@@ -905,7 +906,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		if (carryover > 0)
 		  /* As CARRYOVER should not be that large, we had
 		     better avoid overhead of bcopy.  */
-		  BCOPY_SHORT (bufptr + process_coding.consumed, bufptr,
+		  BCOPY_SHORT (buf + process_coding.consumed, buf,
 			       carryover);
 		if (process_coding.result == CODING_FINISH_INSUFFICIENT_CMP)
 		  {
@@ -922,17 +923,13 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	if (process_coding.mode & CODING_MODE_LAST_BLOCK)
 	  break;
 
+#if (CALLPROC_BUFFER_SIZE_MIN != CALLPROC_BUFFER_SIZE_MAX)
 	/* Make the buffer bigger as we continue to read more data,
-	   but not past 64k.  */
-	if (bufsize < 64 * 1024 && total_read > 32 * bufsize)
-	  {
-	    char *tempptr;
-	    bufsize *= 2;
-
-	    tempptr = (char *) alloca (bufsize);
-	    bcopy (bufptr, tempptr, bufsize / 2);
-	    bufptr = tempptr;
-	  }
+	   but not past CALLPROC_BUFFER_SIZE_MAX.  */
+	if (bufsize < CALLPROC_BUFFER_SIZE_MAX && total_read > 32 * bufsize)
+	  if ((bufsize *= 2) > CALLPROC_BUFFER_SIZE_MAX)
+	    bufsize = CALLPROC_BUFFER_SIZE_MAX;
+#endif
 
 	if (display_p)
 	  {
