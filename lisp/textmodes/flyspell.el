@@ -830,9 +830,7 @@ Mostly we check word delimiters."
      ((get this-command 'flyspell-delayed)
       ;; the current command is not delayed, that
       ;; is that we must check the word now
-      (if (fboundp 'about-xemacs)
-	  (sit-for flyspell-delay nil)
-	(sit-for flyspell-delay 0 nil)))
+      (sit-for flyspell-delay))
      (t t)))
    (t t)))
 
