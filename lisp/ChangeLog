@@ -34,7 +34,6 @@
 
 	* viper.el (viper-non-hook-settings): Fixed the names of defadvices.
 
->>>>>>> 1.7661
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-buffers): Use save-match-data.
