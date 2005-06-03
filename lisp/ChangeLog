@@ -1,3 +1,7 @@
+2005-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-equal): Improve argument/docstring consistency.
+
 2005-06-03  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-targets-face)

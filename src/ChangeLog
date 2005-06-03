@@ -1,3 +1,9 @@
+2005-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Finternal_lisp_face_equal_p): Really report
+	on faces in a frame, if the argument FRAME is non-nil.
+	Improve argument/docstring consistency.
+
 2005-06-02  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (MODE_LINE_NOPROP_LEN): New macro.
