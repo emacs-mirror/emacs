@@ -5022,8 +5022,8 @@ lface_equal_p (v1, v2)
 DEFUN ("internal-lisp-face-equal-p", Finternal_lisp_face_equal_p,
        Sinternal_lisp_face_equal_p, 2, 3, 0,
        doc: /* True if FACE1 and FACE2 are equal.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
+If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
+If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
      (face1, face2, frame)
      Lisp_Object face1, face2, frame;
@@ -5041,8 +5041,8 @@ If FRAME is omitted or nil, use the selected frame.  */)
        Emacs.  That frame is not an X frame.  */
     f = frame_or_selected_frame (frame, 2);
 
-  lface1 = lface_from_face_name (NULL, face1, 1);
-  lface2 = lface_from_face_name (NULL, face2, 1);
+  lface1 = lface_from_face_name (f, face1, 1);
+  lface2 = lface_from_face_name (f, face2, 1);
   equal_p = lface_equal_p (XVECTOR (lface1)->contents,
 			   XVECTOR (lface2)->contents);
   return equal_p ? Qt : Qnil;
