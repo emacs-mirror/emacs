@@ -130,46 +130,49 @@ coding system names is determined from `latex-inputenc-coding-alist'."
 		      (throw 'cs t)
 		    (goto-char (match-end 0))))))
 	    (let* ((match (match-string 1))
-		   (sym (intern match)))
-	      (when (latexenc-inputenc-to-coding-system match)
-		(setq sym (latexenc-inputenc-to-coding-system match)))
-	      (when (coding-system-p sym)
-		sym
-		(if (and (require 'code-pages nil t) (coding-system-p sym))
-		    sym
-		  'undecided)))
+		   (sym (or (latexenc-inputenc-to-coding-system match)
+                            (intern match))))
+	      (cond
+               ((coding-system-p sym) sym)
+               ((and (require 'code-pages nil t) (coding-system-p sym)) sym)
+               (t 'undecided)))
           ;; else try to find it in the master/main file
-          (let (latexenc-main-file)
-            ;; is there a TeX-master or tex-main-file in the local variable section
+          (let ((default-directory (file-name-directory (nth 1 arg-list)))
+                latexenc-main-file)
+            ;; Is there a TeX-master or tex-main-file in the local variables
+            ;; section?
             (unless latexenc-dont-use-TeX-master-flag
               (goto-char (point-max))
-	      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min)) 'move)
+	      (search-backward "\n\^L" (max (- (point-max) 3000) (point-min))
+                               'move)
 	      (search-forward "Local Variables:" nil t)
-              (when (re-search-forward "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\"" nil t)
-                (let ((file (concat (file-name-directory (nth 1 arg-list)) (match-string 2))))
-                  (if (file-exists-p file)
-                      (setq latexenc-main-file file)
-                    (if (boundp 'TeX-default-extension)
-                        (when (file-exists-p (concat file "." TeX-default-extension))
-                          (setq latexenc-main-file (concat file "." TeX-default-extension)))
-                      (dolist (ext '("drv" "dtx" "ltx" "tex"))
-                        (if (file-exists-p (concat file "." ext))
-                            (setq latexenc-main-file (concat file "." ext)))))))))
+              (when (re-search-forward
+                     "^%+ *\\(TeX-master\\|tex-main-file\\): *\"\\(.+\\)\""
+                     nil t)
+                (let ((file (match-string 2)))
+                  (dolist (ext `("" ,(if (boundp 'TeX-default-extension)
+                                         (concat "." TeX-default-extension)
+                                       "")
+                                 ".tex" ".ltx" ".dtx" ".drv"))
+                    (if (and (null latexenc-main-file) ;Stop at first.
+                             (file-exists-p (concat file ext)))
+                        (setq latexenc-main-file (concat file ext)))))))
             ;; try tex-modes tex-guess-main-file
             (when (and (not latexenc-dont-use-tex-guess-main-file-flag)
-                       (not latexenc-main-file))
-              (when (fboundp 'tex-guess-main-file)
-                (let ((tex-start-of-header "\\\\document\\(style\\|class\\)")
-                      (default-directory (file-name-directory (nth 1 arg-list))))
-                  (setq latexenc-main-file (tex-guess-main-file)))))
+                       (not latexenc-main-file)
+                       (fboundp 'tex-guess-main-file))
+              (let ((tex-start-of-header "\\\\document\\(style\\|class\\)"))
+                (setq latexenc-main-file (tex-guess-main-file))))
             ;; if we found a master/main file get the coding system from it
             (if (and latexenc-main-file
                      (file-readable-p latexenc-main-file))
                 (let* ((latexenc-dont-use-tex-guess-main-file-flag t)
                        (latexenc-dont-use-TeX-master-flag t)
-                       (latexenc-main-buffer (find-file-noselect latexenc-main-file t)))
-                  (or (buffer-local-value 'coding-system-for-write latexenc-main-buffer)
-                      (buffer-local-value 'buffer-file-coding-system latexenc-main-buffer)))
+                       (latexenc-main-buffer
+                        (find-file-noselect latexenc-main-file t)))
+                  (coding-system-base   ;Disregard the EOL part of the CS.
+                   (with-current-buffer latexenc-main-buffer
+                     (or coding-system-for-write buffer-file-coding-system))))
               'undecided))))
     'undecided))
 
