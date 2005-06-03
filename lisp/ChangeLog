@@ -12,16 +12,15 @@
 
 2005-06-03  Michael Kifer  <kifer@cs.stonybrook.edu>
 
-	* ediff-diff.el (ediff-same-contents) Eliminate CL-type functions.
+	* ediff-diff.el (ediff-same-contents): Eliminate CL-type functions.
 
-	* ediff-mult.el (ediff-intersect-directories) Make sure that ".." and
-	"." files are deleted from all file lists before comparison
+	* ediff-mult.el (ediff-intersect-directories): Make sure that ".." and
+	"." files are deleted from all file lists before comparison.
 
-	* viper-keym.el
-	(viper-toggle-key,viper-quoted-insert-key,viper-ESC-key):
-	Made them customizable.
+	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	(viper-ESC-key): Made them customizable.
 
-	* viper.el (viper-non-hook-settings): fixed the names of defadvices.
+	* viper.el (viper-non-hook-settings): Fixed the names of defadvices.
 
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
