@@ -1646,6 +1646,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 		(l (ido-make-merged-file-list ido-text-init
 					      (eq ido-use-merged-list 'auto)
 					      (eq ido-try-merged-list 'wide))))
+	    (ido-trace "merged" l)
 	    (cond
 	     ((not l)
 	      (if (eq ido-try-merged-list 'wide)
@@ -1665,6 +1666,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 		      ido-use-merged-list nil)))
 	     ((eq l t)
 	      (setq ido-use-merged-list nil))
+	     ((eq l 'input-pending-p)
+	      (setq ido-try-merged-list t
+		    ido-use-merged-list nil))
 	     (t
 	      (setq ido-pre-merge-state
 		    (list ido-text-init ido-current-directory olist oign omat))
@@ -2493,10 +2497,10 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
 	       (file-directory-p dir)
 	       (or (not must-match)
 		   ;; TODO. check for nonreadable and too-big.
-		   (ido-set-matches1
+		   (ido-set-matches-1
 		    (if (eq ido-cur-item 'file)
-			(ido-make-file-list1 dir)
-		      (ido-make-dir-list1 dir)))))
+			(ido-make-file-list-1 dir)
+		      (ido-make-dir-list-1 dir)))))
 	  (setq j n)
 	(setq dir nil)))
     (if dir
@@ -2786,11 +2790,11 @@ for first matching file."
 	(ido-directory-too-big nil))
     (cond
      ((eq ido-cur-item 'file)
-      (ido-make-file-list1 ido-current-directory))
+      (ido-make-file-list-1 ido-current-directory))
      ((eq ido-cur-item 'dir)
-      (ido-make-dir-list1 ido-current-directory))
+      (ido-make-dir-list-1 ido-current-directory))
      ((eq ido-cur-item 'buffer)
-      (ido-make-buffer-list1))
+      (ido-make-buffer-list-1))
      ((eq ido-cur-item 'list)
       ido-choice-list)
      (t nil))))
@@ -2908,74 +2912,87 @@ for first matching file."
       (setq items (cdr items)))
     res))
 
+
+(defun ido-make-merged-file-list-1 (text auto wide)
+  (let (res)
+    (if (and (ido-final-slash text) ido-dir-file-cache)
+	(if wide
+	    (setq res (ido-wide-find-dirs-or-files
+		       ido-current-directory (substring text 0 -1) ido-enable-prefix t))
+	  ;; Use list of cached directories
+	  (let ((re (concat (regexp-quote (substring text 0 -1)) "[^/:]*/\\'"))
+		(dirs ido-dir-file-cache)
+		dir b d f)
+	    (if nil ;; simple
+		(while dirs
+		  (setq dir (car (car dirs))
+			dirs (cdr dirs))
+		  (when (and (string-match re dir)
+			     (not (ido-ignore-item-p dir ido-ignore-directories-merge))
+			     (file-directory-p dir))
+		    (setq b (substring dir 0 -1)
+			  f (concat (file-name-nondirectory b) "/")
+			  d (file-name-directory b)
+			  res (cons (cons f d) res))))
+	      (while dirs
+		(setq dir (car dirs)
+		      d (car dir)
+		      dirs (cdr dirs))
+		(when (not (ido-ignore-item-p d ido-ignore-directories-merge))
+		  (setq dir (cdr (cdr dir)))
+		  (while dir
+		    (setq f (car dir)
+			  dir (cdr dir))
+		    (if (and (string-match re f)
+			     (not (ido-ignore-item-p f ido-ignore-directories)))
+			(setq res (cons (cons f d) res)))))
+		(if (and auto (input-pending-p))
+		    (setq dirs nil
+			  res t))))))
+      (if wide
+	  (setq res (ido-wide-find-dirs-or-files
+		     ido-current-directory text ido-enable-prefix nil))
+	(let ((ido-text text)
+	      (dirs ido-work-directory-list)
+	      (must-match (and text (> (length text) 0)))
+	      dir fl)
+	  (if (and auto (not (member ido-current-directory dirs)))
+	      (setq dirs (cons ido-current-directory dirs)))
+	  (while dirs
+	    (setq dir (car dirs)
+		  dirs (cdr dirs))
+	    (when (and dir (stringp dir)
+		       (or ido-merge-ftp-work-directories
+			   (not (ido-is-ftp-directory dir)))
+		       (file-directory-p dir)
+		       ;; TODO. check for nonreadable and too-big.
+		       (setq fl (if (eq ido-cur-item 'file)
+				    (ido-make-file-list-1 dir t)
+				  (ido-make-dir-list-1 dir t))))
+	      (if must-match
+		  (setq fl (ido-set-matches-1 fl)))
+	      (if fl
+		  (setq res (nconc fl res))))
+	    (if (and auto (input-pending-p))
+		(setq dirs nil
+		      res t))))))
+    res))
+
 (defun ido-make-merged-file-list (text auto wide)
   (let (res)
     (message "Searching for `%s'...." text)
     (condition-case nil
-	(if (and (ido-final-slash text) ido-dir-file-cache)
-	    (if wide
-		(setq res (ido-wide-find-dirs-or-files
-			   ido-current-directory (substring text 0 -1) ido-enable-prefix t))
-	      ;; Use list of cached directories
-	      (let ((re (concat (regexp-quote (substring text 0 -1)) "[^/:]*/\\'"))
-		    (dirs ido-dir-file-cache)
-		    dir b d f)
-		(if nil ;; simple
-		    (while dirs
-		      (setq dir (car (car dirs))
-			    dirs (cdr dirs))
-		      (when (and (string-match re dir)
-				 (not (ido-ignore-item-p dir ido-ignore-directories-merge))
-				 (file-directory-p dir))
-			(setq b (substring dir 0 -1)
-			      f (concat (file-name-nondirectory b) "/")
-			      d (file-name-directory b)
-			      res (cons (cons f d) res))))
-		  (while dirs
-		    (setq dir (car dirs)
-			  d (car dir)
-			  dirs (cdr dirs))
-		    (when (not (ido-ignore-item-p d ido-ignore-directories-merge))
-		      (setq dir (cdr (cdr dir)))
-		      (while dir
-			(setq f (car dir)
-			      dir (cdr dir))
-			(if (and (string-match re f)
-				 (not (ido-ignore-item-p f ido-ignore-directories)))
-			    (setq res (cons (cons f d) res)))))
-		    (if (and auto (input-pending-p))
-			(setq dirs nil
-			      res t))))))
-	  (if wide
-	      (setq res (ido-wide-find-dirs-or-files
-			 ido-current-directory text ido-enable-prefix nil))
-	    (let ((ido-text text)
-		  (dirs ido-work-directory-list)
-		  (must-match (and text (> (length text) 0)))
-		  dir fl)
-	      (if (and auto (not (member ido-current-directory dirs)))
-		  (setq dirs (cons ido-current-directory dirs)))
-	      (while dirs
-		(setq dir (car dirs)
-		      dirs (cdr dirs))
-		(when (and dir (stringp dir)
-			   (or ido-merge-ftp-work-directories
-			       (not (ido-is-ftp-directory dir)))
-			   (file-directory-p dir)
-			   ;; TODO. check for nonreadable and too-big.
-			   (setq fl (if (eq ido-cur-item 'file)
-					(ido-make-file-list1 dir t)
-				      (ido-make-dir-list1 dir t))))
-		  (if must-match
-		      (setq fl (ido-set-matches1 fl)))
-		  (if fl
-		      (setq res (nconc fl res))))
-		(if (and auto (input-pending-p))
-		    (setq dirs nil
-			  res t))))))
-      (quit (setq res t)))
-    (if (and res (not (eq res t)))
-	(setq res (ido-sort-merged-list res auto)))
+	(unless (catch 'input-pending-p
+		  (let ((throw-on-input 'input-pending-p))
+		    (setq res (ido-make-merged-file-list-1 text auto wide))
+		    t))
+	  (setq res 'input-pending-p))
+      (quit
+       (setq res t
+	     ido-try-merged-list nil
+	     ido-use-merged-list nil)))
+    (when (and res (listp res))
+      (setq res (ido-sort-merged-list res auto)))
     (when (and (or ido-rotate-temp ido-rotate-file-list-default)
 	       (listp res)
 	       (> (length text) 0))
@@ -2986,7 +3003,7 @@ for first matching file."
     (message nil)
     res))
 
-(defun ido-make-buffer-list1 (&optional frame visible)
+(defun ido-make-buffer-list-1 (&optional frame visible)
   ;; Return list of non-ignored buffer names
   (delq nil
 	(mapcar
@@ -3004,7 +3021,7 @@ for first matching file."
   ;; in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
   ;; it is put to the start of the list.
   (let* ((ido-current-buffers (ido-get-buffers-in-frames 'current))
-	 (ido-temp-list (ido-make-buffer-list1 (selected-frame) ido-current-buffers)))
+	 (ido-temp-list (ido-make-buffer-list-1 (selected-frame) ido-current-buffers)))
     (if ido-temp-list
 	(nconc ido-temp-list ido-current-buffers)
       (setq ido-temp-list ido-current-buffers))
@@ -3041,7 +3058,7 @@ for first matching file."
       (nconc ido-temp-list items)
     (setq ido-temp-list items)))
 
-(defun ido-file-name-all-completions1 (dir)
+(defun ido-file-name-all-completions-1 (dir)
   (cond
    ((ido-nonreadable-directory-p dir) '())
    ;; do not check (ido-directory-too-big-p dir) here.
@@ -3098,13 +3115,13 @@ for first matching file."
 	  (if (and ftp (file-readable-p dir))
 	      (setq mtime (cons 'ftp (ido-time-stamp))))
 	  (if mtime
-	      (setq cached (cons dir (cons mtime (ido-file-name-all-completions1 dir)))
+	      (setq cached (cons dir (cons mtime (ido-file-name-all-completions-1 dir)))
 		    ido-dir-file-cache (cons cached ido-dir-file-cache)))
 	  (if (> (length ido-dir-file-cache) ido-max-dir-file-cache)
 	      (setcdr (nthcdr (1- ido-max-dir-file-cache) ido-dir-file-cache) nil)))
 	(and cached
 	     (cdr (cdr cached))))
-    (ido-file-name-all-completions1 dir)))
+    (ido-file-name-all-completions-1 dir)))
 
 (defun ido-remove-cached-dir (dir)
   ;; Remove dir from ido-dir-file-cache
@@ -3115,7 +3132,7 @@ for first matching file."
 	    (setq ido-dir-file-cache (delq cached ido-dir-file-cache))))))
 
 
-(defun ido-make-file-list1 (dir &optional merged)
+(defun ido-make-file-list-1 (dir &optional merged)
   ;; Return list of non-ignored files in DIR
   ;; If MERGED is non-nil, each file is cons'ed with DIR
   (and (or (ido-is-tramp-root dir) (file-directory-p dir))
@@ -3132,7 +3149,7 @@ for first matching file."
   ;; The hook `ido-make-file-list-hook' is run after the list has been
   ;; created to allow the user to further modify the order of the file names
   ;; in this list.
-  (let ((ido-temp-list (ido-make-file-list1 ido-current-directory)))
+  (let ((ido-temp-list (ido-make-file-list-1 ido-current-directory)))
     (setq ido-temp-list (sort ido-temp-list
 			      (if ido-file-extensions-order
 				  #'ido-file-extension-lessp
@@ -3168,7 +3185,7 @@ for first matching file."
     (run-hooks 'ido-make-file-list-hook)
     ido-temp-list))
 
-(defun ido-make-dir-list1 (dir &optional merged)
+(defun ido-make-dir-list-1 (dir &optional merged)
   ;; Return list of non-ignored subdirs in DIR
   ;; If MERGED is non-nil, each subdir is cons'ed with DIR
   (and (or (ido-is-tramp-root dir) (file-directory-p dir))
@@ -3184,7 +3201,7 @@ for first matching file."
   ;; The hook `ido-make-dir-list-hook' is run after the list has been
   ;; created to allow the user to further modify the order of the
   ;; directory names in this list.
-  (let ((ido-temp-list (ido-make-dir-list1 ido-current-directory)))
+  (let ((ido-temp-list (ido-make-dir-list-1 ido-current-directory)))
     (setq ido-temp-list (sort ido-temp-list #'ido-file-lessp))
     (ido-to-end  ;; move . files to end
      (delq nil (mapcar
@@ -3238,7 +3255,7 @@ for first matching file."
 
 ;;; FIND MATCHING ITEMS
 
-(defun ido-set-matches1 (items &optional do-full)
+(defun ido-set-matches-1 (items &optional do-full)
   ;; Return list of matches in items
   (let* ((case-fold-search  ido-case-fold)
 	 (slash (and (not ido-enable-prefix) (ido-final-slash ido-text)))
@@ -3296,7 +3313,7 @@ for first matching file."
 (defun ido-set-matches ()
   ;; Set `ido-matches' to the list of items matching prompt
   (when ido-rescan
-    (setq ido-matches (ido-set-matches1 (reverse ido-cur-list) (not ido-rotate))
+    (setq ido-matches (ido-set-matches-1 (reverse ido-cur-list) (not ido-rotate))
 	  ido-rotate nil)))
 
 (defun ido-ignore-item-p (name re-list &optional ignore-ext)
