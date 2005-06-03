@@ -50,16 +50,25 @@
 
 ;;; Variables
 
-(defvar viper-toggle-key "\C-z"
+(defcustom viper-toggle-key "\C-z"
   "The key used to change states from emacs to Vi and back.
 In insert mode, this key also functions as Meta.
 Must be set in .viper file or prior to loading Viper.
-This setting cannot be changed interactively.")
+This setting cannot be changed interactively."
+  :type 'string
+  :group 'viper)
 
-(defvar viper-ESC-key "\e"
+(defcustom viper-quoted-insert-key "\C-v"
+  "The key used to quote special characters when inserting them in Insert state."
+  :type 'string
+  :group 'viper)
+
+(defcustom viper-ESC-key "\e"
   "Key used to ESC.
 Must be set in .viper file or prior to loading Viper.
-This setting cannot be changed interactively.")
+This setting cannot be changed interactively."
+  :type 'string
+  :group 'viper)
 
 ;;; Emacs keys in other states.
 
@@ -242,7 +251,7 @@ viper-insert-basic-map.  Not recommended, except for novice users.")
 (define-key viper-insert-basic-map "\C-t" 'viper-forward-indent)
 (define-key viper-insert-basic-map
   (if viper-xemacs-p [(shift tab)] [S-tab]) 'viper-insert-tab)
-(define-key viper-insert-basic-map "\C-v" 'quoted-insert)
+(define-key viper-insert-basic-map viper-quoted-insert-key 'quoted-insert)
 (define-key viper-insert-basic-map "\C-?" 'viper-del-backward-char-in-insert)
 (define-key viper-insert-basic-map [backspace] 'viper-del-backward-char-in-insert)
 (define-key viper-insert-basic-map "\C-\\" 'viper-alternate-Meta-key)

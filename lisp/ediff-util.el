@@ -117,7 +117,7 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-mode)
   (setq mode-name "Ediff")
-  (run-mode-hooks 'ediff-mode-hook))
+  (run-hooks 'ediff-mode-hook))
 
 
 
