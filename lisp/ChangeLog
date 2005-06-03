@@ -1,3 +1,11 @@
+2005-06-03  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* tmm.el (tmm-inactive-face): New face.
+	(tmm-remove-inactive-mouse-face): New function.
+	(tmm-prompt, tmm-add-one-shortcut)
+	(tmm-add-prompt, tmm-get-keymap): Make active menu items visible
+	but not selectable.
+
 2005-06-03  Juanma Barranquero  <lekktu@gmail.com>
 
 	* faces.el (face-equal): Improve argument/docstring consistency.
@@ -26,6 +34,7 @@
 
 	* viper.el (viper-non-hook-settings): Fixed the names of defadvices.
 
+>>>>>>> 1.7661
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-buffers): Use save-match-data.
