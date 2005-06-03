@@ -3351,25 +3351,25 @@ Outline mode sets this."
       (let ((forward (> arg 0))
 	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
 	(if (and (consp part)
-		 (> (setq part (if forward (cdr part) (car part))) 0))
+		 (> (if forward (cdr part) (car part)) 0))
 	    (set-window-vscroll nil
 				(if forward
 				    (+ (window-vscroll nil t)
-				       (min part
+				       (min (cdr part)
 					    (* (frame-char-height) arg)))
 				  (max 0
 				       (- (window-vscroll nil t)
-					  (min part
+					  (min (car part)
 					       (* (frame-char-height) (- arg))))))
 				t)
 	  (set-window-vscroll nil 0)
 	  (when (line-move-1 arg noerror to-end)
-	    (sit-for 0)
-	    (if (and (not forward)
-		     (setq part (nth 2 (pos-visible-in-window-p
-					(line-beginning-position) nil t)))
-		     (> (cdr part) 0))
-		(set-window-vscroll nil (cdr part) t))
+	    (when (not forward)
+	      (sit-for 0)
+	      (if (and (setq part (nth 2 (pos-visible-in-window-p
+					  (line-beginning-position) nil t)))
+		       (> (cdr part) 0))
+		  (set-window-vscroll nil (cdr part) t)))
 	    t)))
     (line-move-1 arg noerror to-end)))
 
