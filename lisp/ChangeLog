@@ -1,5 +1,7 @@
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
+	* simple.el (line-move): Only call sit-for when moving backwards.
+
 	* ido.el (ido-make-merged-file-list-1): New defun split from
 	ido-make-merged-file-list.
 	(ido-make-merged-file-list): Bind throw-on-input around call to
