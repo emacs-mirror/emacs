@@ -1,5 +1,8 @@
 2005-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-check-word-p): Simplify silly
+	compatibility code.
+
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Don't inherit the EOL part of the coding-system from the
 	tex-main buffer.  Fit within 80 columns.
