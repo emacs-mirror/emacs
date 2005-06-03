@@ -1,3 +1,9 @@
+2005-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Don't inherit the EOL part of the coding-system from the
+	tex-main buffer.  Fit within 80 columns.
+
 2005-06-03  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* tmm.el (tmm-inactive-face): New face.
@@ -32,7 +38,7 @@
 	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
 	(viper-ESC-key): Made them customizable.
 
-	* viper.el (viper-non-hook-settings): Fixed the names of defadvices.
+	* viper.el (viper-non-hook-settings): Fix the names of defadvices.
 
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
