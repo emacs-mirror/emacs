@@ -1,7 +1,0 @@
-# Generated files
-precious ^(config\.status|config\.cache)$
-
-# Install-in-place makes these directories, so just ignore them
-backup ^(bin|data|lock|site-lisp)$
-
-# arch-tag: 6eeeaa4e-cc7e-4b22-b3d7-1089e155da14
