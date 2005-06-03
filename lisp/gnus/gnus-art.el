@@ -367,8 +367,12 @@ advertisements.  For example:
 		      (or (nth 4 spec) 3)
 		      (intern (format "gnus-emphasis-%s" (nth 2 spec)))))
 	      types))
-     '(("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
-	2 3 gnus-emphasis-strikethru)
+     '(;; I've never seen anyone use this strikethru convention whereas I've
+       ;; several times seen it triggered by normal text.  --Stef
+       ;; Miles suggests that this form is sometimes used but for italics,
+       ;; so maybe we should map it to `italic'.
+       ;; ("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
+       ;; 2 3 gnus-emphasis-strikethru)
        ("\\(\\s-\\|^\\)\\(_\\(\\(\\w\\|_[^_]\\)+\\)_\\)\\(\\s-\\|[?!.,;]\\)"
 	2 3 gnus-emphasis-underline))))
   "*Alist that says how to fontify certain phrases.
