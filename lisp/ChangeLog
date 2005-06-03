@@ -1,3 +1,13 @@
+2005-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-make-merged-file-list-1): New defun split from
+	ido-make-merged-file-list.
+	(ido-make-merged-file-list): Bind throw-on-input around call to
+	ido-make-merged-file-list-1.  Return input-pending-p if
+	interrupted by more input available.
+	(ido-read-internal): Handle input-pending-p return value from
+	ido-make-merged-file-list.
+
 2005-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* textmodes/flyspell.el (flyspell-check-word-p): Simplify silly
