@@ -3130,10 +3130,10 @@ unbind_to (count, value)
      int count;
      Lisp_Object value;
 {
-  int quitf = !NILP (Vquit_flag);
-  struct gcpro gcpro1;
+  Lisp_Object quitf = Vquit_flag;
+  struct gcpro gcpro1, gcpro2;
 
-  GCPRO1 (value);
+  GCPRO2 (value, quitf);
   Vquit_flag = Qnil;
 
   while (specpdl_ptr != specpdl + count)
@@ -3182,8 +3182,8 @@ unbind_to (count, value)
 	}
     }
 
-  if (NILP (Vquit_flag) && quitf)
-    Vquit_flag = Qt;
+  if (NILP (Vquit_flag) && !NILP (quitf))
+    Vquit_flag = quitf;
 
   UNGCPRO;
   return value;
