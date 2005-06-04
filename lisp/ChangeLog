@@ -1,3 +1,8 @@
+2005-06-04  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* iswitchb.el (iswitchb-get-matched-buffers): Handle
+	invalid-regexp errors in post-command-hook.
+
 2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
 
 	* url-http.el (url-http-chunked-encoding-after-change-function):
