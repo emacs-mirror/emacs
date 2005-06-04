@@ -850,7 +850,7 @@ the end of the document."
 		  (url-display-percentage nil nil)
 		  (goto-char (match-end 1))
 		  (if (re-search-forward "^\r*$" nil t)
-		      (message "Saw end of trailers..."))
+		      (url-http-debug "Saw end of trailers..."))
 		  (if (url-http-parse-headers)
 		      (url-http-activate-callback))))))))))
 
