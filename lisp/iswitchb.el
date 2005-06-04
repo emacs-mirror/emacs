@@ -1,6 +1,6 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000, 2001, 2003  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2001, 2003, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -165,11 +165,10 @@
 
 ;; Font-Lock
 
-;; If you have font-lock loaded, the first matching buffer is
-;; highlighted.  To switch this off, set (setq iswitchb-use-fonts nil)
-;; I don't use font-lock that much, so I've hardcoded the faces.  If
-;; this is too harsh, let me know.  Colouring of the matching buffer
-;; name was suggested by Carsten Dominik (dominik@strw.leidenuniv.nl)
+;; font-lock is used to highlight the first matching buffer.  To
+;; switch this off, set (setq iswitchb-use-faces nil).  Colouring of
+;; the matching buffer name was suggested by Carsten Dominik
+;; (dominik@strw.leidenuniv.nl)
 
 ;; Replacement for read-buffer
 
@@ -230,16 +229,10 @@
 
 ;; Regexp matching
 
-;; There is limited provision for regexp matching within iswitchb,
-;; enabled through `iswitchb-regexp'.  This allows you to type `c$'
-;; for example and see all buffer names ending in `c'.  This facility
-;; is quite limited though in two respects.  First, you can't
-;; currently type in expressions like `[0-9]' directly -- you have to
-;; type them in when iswitchb-regexp is nil and then toggle on the
-;; regexp functionality.  Likewise, don't enter an expression
-;; containing `\' in regexp mode.  If you try, iswitchb gets confused,
-;; so just hit C-g and try again.  Secondly, no completion mechanism
-;; is currently offered when regexp searching.
+;; There is provision for regexp matching within iswitchb, enabled
+;; through `iswitchb-regexp'.  This allows you to type `c$' for
+;; example and see all buffer names ending in `c'.  No completion
+;; mechanism is currently offered when regexp searching.
 
 ;;; TODO
 
@@ -255,6 +248,8 @@
 (if (not (and (fboundp 'cadr)
 	      (fboundp 'last)))
     (require 'cl))
+
+(require 'font-lock)
 
 ;; Set up the custom library.
 ;; taken from http://www.dina.kvl.dk/~abraham/custom/
@@ -377,10 +372,11 @@ See also `iswitchb-newbuffer'."
   :type 'boolean
   :group 'iswitchb)
 
-(defcustom iswitchb-use-fonts t
+(defcustom iswitchb-use-faces t
   "*Non-nil means use font-lock fonts for showing first match."
   :type 'boolean
   :group 'iswitchb)
+(define-obsolete-variable-alias 'iswitchb-use-fonts 'iswitchb-use-faces "22.1")
 
 (defcustom iswitchb-use-frame-buffer-list nil
   "*Non-nil means use the currently selected frame's buffer list."
@@ -406,6 +402,35 @@ For instance:
 will constrain the minibuffer to a maximum height of 3 lines when
 iswitchb is running."
   :type 'hook
+  :group 'iswitchb)
+
+(defface iswitchb-single-match-face
+  '((t
+     (:inherit font-lock-comment-face)))
+  "Iswitchb face for single matching buffer name."
+  :version "22.1"
+  :group 'iswitchb)
+
+(defface iswitchb-current-match-face
+  '((t
+     (:inherit font-lock-function-name-face)))
+  "Iswitchb face for current matching buffer name."
+  :version "22.1"
+  :group 'iswitchb)
+
+(defface iswitchb-virtual-matches-face
+  '((t
+     (:inherit font-lock-builtin-face)))
+  "Iswitchb face for matching virtual buffer names.
+See also `iswitchb-use-virtual-buffers'."
+  :version "22.1"
+  :group 'iswitchb)
+
+(defface iswitchb-invalid-regexp-face
+  '((t
+     (:inherit font-lock-warning-face)))
+  "Iswitchb face for indicating invalid regexp. "
+  :version "22.1"
   :group 'iswitchb)
 
 ;; Do we need the variable iswitchb-use-mycompletion?
@@ -507,6 +532,11 @@ selected.")
 (defvar iswitchb-minibuf-depth nil
   "Value we expect to be returned by `minibuffer-depth' in the minibuffer.")
 
+(defvar iswitchb-common-match-inserted nil
+  "Non-nil if we have just inserted a common match in the minibuffer.")
+
+(defvar iswitchb-invalid-regexp)
+
 ;;; FUNCTIONS
 
 ;;; ISWITCHB KEYMAP
@@ -564,6 +594,7 @@ in a separate window.
   ;;`iswitchb-buffer-ignore')
 
   (let* ((prompt "iswitch ")
+         iswitchb-invalid-regexp
 	 (buf (iswitchb-read-buffer prompt)))
 
     ;;(message "chosen text %s" iswitchb-final-text)
@@ -572,7 +603,8 @@ in a separate window.
 
     (cond ( (eq iswitchb-exit 'findfile)
 	    (call-interactively 'find-file))
-
+          (iswitchb-invalid-regexp
+           (message "Won't make invalid regexp named buffer"))
 	  (t
 	   ;; View the buffer
 	   ;;(message "go to buf %s" buf)
@@ -602,10 +634,7 @@ the selection process begins.  Used by isearchb.el."
        buf-sel
        iswitchb-final-text
        (icomplete-mode nil) ;; prevent icomplete starting up
-       ;; can only use fonts if they have been bound.
-       (iswitchb-use-fonts (and iswitchb-use-fonts
-				(boundp 'font-lock-comment-face)
-				(boundp 'font-lock-function-name-face))))
+       )
 
     (iswitchb-define-mode-map)
     (setq iswitchb-exit nil)
@@ -691,7 +720,9 @@ The result is stored in `iswitchb-common-match-string'."
   (let (res)
     (cond ((not  iswitchb-matches)
 	   (run-hooks 'iswitchb-cannot-complete-hook))
-
+          (iswitchb-invalid-regexp
+           ;; Do nothing
+           )
 	  ((= 1 (length iswitchb-matches))
 	   ;; only one choice, so select it.
 	   (exit-minibuffer))
@@ -703,7 +734,8 @@ The result is stored in `iswitchb-common-match-string'."
 		    (not (equal res iswitchb-text)))
 	       ;; found something to complete, so put it in the minibuffer.
 	       (progn
-		 (setq iswitchb-rescan nil)
+		 (setq iswitchb-rescan nil
+                       iswitchb-common-match-inserted t)
 		 (delete-region (minibuffer-prompt-end) (point))
 		 (insert  res))
 	     ;; else nothing to complete
@@ -889,6 +921,7 @@ BUFFER-LIST can be list of buffers or list of strings."
          (do-string         (stringp (car list)))
          name
          ret)
+    (setq iswitchb-invalid-regexp nil)
     (catch 'invalid-regexp
       (mapcar
        (lambda (x)
@@ -898,17 +931,15 @@ BUFFER-LIST can be list of buffers or list of strings."
 	   (setq name (buffer-name x)))
 
 	 (cond
-	  ((and (or (and string-format
-			 (condition-case error
-			     (string-match regexp name)
-			   (invalid-regexp
-                            (throw 'invalid-regexp (setq ret (cdr error))))))
-		    (and (null string-format)
-			 (string-match (regexp-quote regexp) name)))
-
+	  ((and (if (not string-format)
+                    (string-match (regexp-quote regexp) name)
+                  (condition-case error
+                      (string-match regexp name)
+                    (invalid-regexp
+                     (setq iswitchb-invalid-regexp t)
+                     (throw 'invalid-regexp (setq ret (cdr error))))))
 		(not (iswitchb-ignore-buffername-p name)))
-	   (setq ret (cons name ret))
-	   )))
+	   (setq ret (cons name ret)))))
        list))
     ret))
 
@@ -994,7 +1025,8 @@ Return the modified list with the last element prepended to it."
 	(temp-buf "*Completions*")
 	(win))
 
-    (if (eq last-command this-command)
+    (if (and (eq last-command this-command)
+             (not iswitchb-common-match-inserted))
 	;; scroll buffer
 	(progn
 	  (set-buffer temp-buf)
@@ -1021,8 +1053,8 @@ Return the modified list with the last element prepended to it."
 	    (fundamental-mode))
 	  (display-completion-list (if iswitchb-matches
 				       iswitchb-matches
-				     iswitchb-buflist))
-	  )))))
+				     iswitchb-buflist))))
+      (setq iswitchb-common-match-inserted nil))))
 
 ;;; KILL CURRENT BUFFER
 
@@ -1232,8 +1264,7 @@ Copied from `icomplete-exhibit' with two changes:
 
 	  ;; Insert the match-status information:
 	  (insert (iswitchb-completions
-		   contents
-		   (not minibuffer-completion-confirm)))))))
+		   contents))))))
 
 (eval-when-compile
   (defvar most-len)
@@ -1248,27 +1279,29 @@ Copied from `icomplete-exhibit' with two changes:
        (setq most-is-exact t))
     (substring com most-len)))
 
-(defun iswitchb-completions (name require-match)
+(defun iswitchb-completions (name)
   "Return the string that is displayed after the user's text.
 Modified from `icomplete-completions'."
 
   (let ((comps iswitchb-matches)
                                         ; "-determined" - only one candidate
-        (open-bracket-determined (if require-match "(" "["))
-        (close-bracket-determined (if require-match ")" "]"))
+        (open-bracket-determined "[")
+        (close-bracket-determined "]")
                                         ;"-prospects" - more than one candidate
         (open-bracket-prospects "{")
         (close-bracket-prospects "}")
 	first)
 
-    (if (and iswitchb-use-fonts  comps)
+    (if (and iswitchb-use-faces comps)
 	(progn
 	  (setq first (car comps))
 	  (setq first (format "%s" first))
 	  (put-text-property 0 (length first) 'face
 			     (if (= (length comps) 1)
-				 'font-lock-comment-face
-			       'font-lock-function-name-face)
+                                 (if iswitchb-invalid-regexp
+                                     'iswitchb-invalid-regexp-face
+                                   'iswitchb-single-match-face)
+			       'iswitchb-current-match-face)
 			     first)
 	  (setq comps  (cons first (cdr comps)))))
 
@@ -1297,7 +1330,7 @@ Modified from `icomplete-completions'."
 	(let ((comp comps))
 	  (while comp
 	    (put-text-property 0 (length (car comp))
-			       'face 'font-lock-builtin-face
+			       'face 'iswitchb-virtual-matches-face
 			       (car comp))
 	    (setq comp (cdr comp))))))
 
@@ -1305,16 +1338,23 @@ Modified from `icomplete-completions'."
 				open-bracket-determined
 				close-bracket-determined))
 
-	  ((null (cdr comps))		;one match
-	   (concat (if (and (> (length (car comps))
-			       (length name)))
-		       (concat open-bracket-determined
+	  (iswitchb-invalid-regexp
+           (concat " " (car comps)))
+          ((null (cdr comps))		;one match
+	   (concat
+            (if (if (not iswitchb-regexp)
+                    (= (length name)
+                       (length (car comps)))
+                  (string-match name (car comps))
+                  (string-equal (match-string 0 (car comps))
+                                (car comps)))
+                ""
+              (concat open-bracket-determined
 			       ;; when there is one match, show the
 			       ;; matching buffer name in full
 			       (car comps)
-			       close-bracket-determined)
-		     "")
-		   (if (not iswitchb-use-fonts) " [Matched]")))
+			       close-bracket-determined))
+		   (if (not iswitchb-use-faces) " [Matched]")))
 	  (t				;multiple matches
 	   (if (and iswitchb-max-to-show
 		    (> (length comps) iswitchb-max-to-show))
