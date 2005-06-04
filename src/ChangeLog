@@ -1,3 +1,11 @@
+2005-06-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (cleanup_popup_menu): New function.
+	(Fx_popup_menu): unwind protect cleanup_popup_menu in case
+	mac_menu_show Quit:s.
+	(mac_menu_show): Quit on cancel if not popped up on click (i.e.
+	a dialog).
+
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
 	* coding.c (decode_coding_string): Handle CODING_FINISH_INTERRUPT.
