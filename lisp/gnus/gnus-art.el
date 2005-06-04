@@ -3038,20 +3038,21 @@ function and want to see what the date was before converting."
 
 (defun article-update-date-lapsed ()
   "Function to be run from a timer to update the lapsed time line."
-  (let (deactivate-mark)
-    (save-excursion
-      (ignore-errors
-	(walk-windows
-	 (lambda (w)
-	   (set-buffer (window-buffer w))
-	   (when (eq major-mode 'gnus-article-mode)
-	     (let ((mark (point-marker)))
-	       (goto-char (point-min))
-	       (when (re-search-forward "^X-Sent:" nil t)
-		 (article-date-lapsed t))
-	       (goto-char (marker-position mark))
-	       (move-marker mark nil))))
-	 nil 'visible)))))
+  (save-match-data
+    (let (deactivate-mark)
+      (save-excursion
+	(ignore-errors
+	 (walk-windows
+	  (lambda (w)
+	    (set-buffer (window-buffer w))
+	    (when (eq major-mode 'gnus-article-mode)
+	      (let ((mark (point-marker)))
+		(goto-char (point-min))
+		(when (re-search-forward "^X-Sent:" nil t)
+		  (article-date-lapsed t))
+		(goto-char (marker-position mark))
+		(move-marker mark nil))))
+	  nil 'visible))))))
 
 (defun gnus-start-date-timer (&optional n)
   "Start a timer to update the X-Sent header in the article buffers.
