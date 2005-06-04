@@ -1,5 +1,7 @@
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* s/ms-w32.h (fileno): Don't define if already defined.
+
 	* emacs.c: Include w32heap.h, to avoid compiler warning about
 	sbrk.
 
