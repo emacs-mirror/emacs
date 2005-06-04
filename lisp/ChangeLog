@@ -1,3 +1,8 @@
+2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
+
+	* url-http.el (url-http-parse-headers): Pass redirected URL as a
+	callback argument.
+
 2005-06-04  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move): Only call sit-for when moving backwards.
