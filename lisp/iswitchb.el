@@ -889,22 +889,27 @@ BUFFER-LIST can be list of buffers or list of strings."
          (do-string         (stringp (car list)))
          name
          ret)
-    (mapcar
-     (lambda (x)
+    (catch 'invalid-regexp
+      (mapcar
+       (lambda (x)
 
-       (if do-string
-	   (setq name x)               ;We already have the name
-	 (setq name (buffer-name x)))
+	 (if do-string
+	     (setq name x)		;We already have the name
+	   (setq name (buffer-name x)))
 
-       (cond
-	((and (or (and string-format (string-match regexp name))
-		  (and (null string-format)
-		       (string-match (regexp-quote regexp) name)))
+	 (cond
+	  ((and (or (and string-format
+			 (condition-case error
+			     (string-match regexp name)
+			   (invalid-regexp
+                            (throw 'invalid-regexp (setq ret (cdr error))))))
+		    (and (null string-format)
+			 (string-match (regexp-quote regexp) name)))
 
-	      (not (iswitchb-ignore-buffername-p name)))
-	 (setq ret (cons name ret))
-          )))
-     list)
+		(not (iswitchb-ignore-buffername-p name)))
+	   (setq ret (cons name ret))
+	   )))
+       list))
     ret))
 
 (defun iswitchb-ignore-buffername-p (bufname)
