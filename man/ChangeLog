@@ -1,3 +1,26 @@
+2005-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi: Rename Hardcopy to Printing.
+	Make PostScript and PostScript Variables subnodes of it.
+
+	* misc.texi (Printing): Rename node from Hardcopy.
+	Mention menu bar options.
+	Move PostScript and PostScript Variables to submenu.
+	(Printing package): New node.
+
+	* mark.texi (Using Region): Change Hardcopy xref to Printing.
+
+	* dired.texi (Operating on Files): Likewise.
+
+	* calendar.texi (Displaying the Diary): Likewise.
+
+	* msdog.texi (MS-DOS Printing, MS-DOS Processes): Likewise.
+
+	* glossary.texi (Glossary): Likewise.
+
+	* frames.texi (Mode Line Mouse): Mention mode-line-highlight
+	effect.
+
 2005-06-04  Richard M. Stallman  <rms@gnu.org>
 
 	* trouble.texi (After a Crash): Polish previous change.
