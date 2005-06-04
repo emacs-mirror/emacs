@@ -920,21 +920,21 @@ in *Help* buffer.  See also the command `describe-char'."
 (defvar read-expression-history nil)
 
 (defcustom eval-expression-print-level 4
-  "*Value to use for `print-level' when printing value in `eval-expression'.
+  "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
-  "*Value to use for `print-length' when printing value in `eval-expression'.
+  "Value for `print-length' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
-  "*Non-nil means set `debug-on-error' when evaluating in `eval-expression'.
+  "If non-nil set `debug-on-error' to t in `eval-expression'.
 If nil, don't change the value of `debug-on-error'."
   :group 'lisp
   :type 'boolean
