@@ -42,6 +42,8 @@ TOBJ            = $(BLD)/firstfile.$(O)
 TRES		= $(BLD)/emacs.res
 TLASTLIB	= $(BLD)/lastfile.$(A)
 
+DOC		= $(OBJDIR)/etc/DOC-X
+
 FULL_LINK_FLAGS      = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
 
 #
