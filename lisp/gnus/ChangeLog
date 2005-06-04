@@ -1,3 +1,7 @@
+2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* gnus-art.el (article-update-date-lapsed): Use `save-match-data'.
+
 2005-06-04  Lute Kamstra  <lute@gnu.org>
 
 	* nnfolder.el (nnfolder-read-folder): Make sure that undo

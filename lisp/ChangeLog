@@ -1,3 +1,24 @@
+2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el (font-lock-add-keywords): Doc fix.  Comment change.
+	(font-lock-remove-keywords): Doc fix.
+	(font-lock-mode-major-mode): Compiler defvar.
+	(font-lock-set-defaults): Use `font-lock-mode-major-mode'.
+
+	* font-core.el (font-lock-mode-major-mode): Compiler defvar.
+	(font-lock-mode): Update `font-lock-mode-major-mode'.
+	(font-lock-set-defaults): Compiler defvar.
+	(font-lock-default-function): Take `font-lock-mode-major-mode'
+	into account.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Make it
+	keep track of which major mode it enabled the minor mode for.
+	Use find-file-hook again.  Update docstring.
+
+	* simple.el (eval-expression-print-level)
+	(eval-expression-print-length, eval-expression-debug-on-error):
+	Doc fixes.
+
 2005-06-04  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* iswitchb.el (iswitchb-single-match-face)
@@ -15,7 +36,7 @@
 	(iswitchb-completions): Add check for complete match when entering
 	a regexp.
 	(iswitchb-completions): Remove require-match argument.
-	(iswitchb-exhibit): Fix caller. 
+	(iswitchb-exhibit): Fix caller.
 	(iswitchb-common-match-inserted): New variable.
 	(iswitchb-complete, iswitchb-completion-help): Use it.
 
