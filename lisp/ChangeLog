@@ -1,3 +1,8 @@
+2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Use `url-http-debug' instead of `message'.
+
 2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
 
 	* url-http.el (url-http-parse-headers): Pass redirected URL as a
