@@ -1,5 +1,9 @@
 2005-06-04  Eli Zaretskii  <eliz@gnu.org>
 
+	* w32.c (gettimeofday): Use struct _timeb, not struct timeb.
+	(open_unc_volume): Cast return value of map_w32_filename, to avoid
+	compiler warnings.
+
 	* s/ms-w32.h (fileno): Don't define if already defined.
 
 	* emacs.c: Include w32heap.h, to avoid compiler warning about
