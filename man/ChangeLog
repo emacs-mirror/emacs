@@ -1,3 +1,7 @@
+2005-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* trouble.texi (After a Crash): Polish previous change.
+
 2005-05-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Notations Used in This Manual): Use @kbd for key
