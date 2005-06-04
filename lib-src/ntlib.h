@@ -90,7 +90,9 @@ int fchown (int fd, int uid, int gid);
 #define fcloseall _fcloseall
 #define fdopen	  _fdopen
 #define fgetchar  _fgetchar
+#ifndef fileno
 #define fileno	  _fileno
+#endif
 #define flushall  _flushall
 #define fputchar  _fputchar
 #define getcwd	  _getcwd
