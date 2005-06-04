@@ -1273,7 +1273,7 @@ get_emacs_configuration_options (void)
 void
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  struct timeb tb;
+  struct _timeb tb;
   _ftime (&tb);
 
   tv->tv_sec = tb.time;
@@ -1777,7 +1777,7 @@ open_unc_volume (const char *path)
   nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
   nr.dwUsage = RESOURCEUSAGE_CONTAINER;
   nr.lpLocalName = NULL;
-  nr.lpRemoteName = map_w32_filename (path, NULL);
+  nr.lpRemoteName = (LPSTR)map_w32_filename (path, NULL);
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
