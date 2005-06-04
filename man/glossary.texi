@@ -573,7 +573,7 @@ Search}).  See also `font lock'.
 
 @item Hardcopy
 Hardcopy means printed output.  Emacs has commands for making printed
-listings of text in Emacs buffers.  @xref{Hardcopy}.
+listings of text in Emacs buffers.  @xref{Printing}.
 
 @item @key{HELP}
 @key{HELP} is the Emacs name for @kbd{C-h} or @key{F1}.  You can type
