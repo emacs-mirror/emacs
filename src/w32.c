@@ -3207,7 +3207,7 @@ sys_shutdown (int s, int how)
 }
 
 int
-sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
+sys_setsockopt (int s, int level, int optname, const void * optval, int optlen)
 {
   if (winsock_lib == NULL)
     {
@@ -3219,7 +3219,7 @@ sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
   if (fd_info[s].flags & FILE_SOCKET)
     {
       int rc = pfn_setsockopt (SOCK_HANDLE (s), level, optname,
-			       optval, optlen);
+			       (const char *)optval, optlen);
       if (rc == SOCKET_ERROR)
 	set_errno ();
       return rc;
