@@ -6,8 +6,7 @@
 
 	* s/ms-w32.h (fileno): Don't define if already defined.
 
-	* emacs.c: Include w32heap.h, to avoid compiler warning about
-	sbrk.
+	* emacs.c: Include w32heap.h, to avoid compiler warning about sbrk.
 
 	* makefile.w32-in (DOC): Define to point to the generated DOC-X.
 
