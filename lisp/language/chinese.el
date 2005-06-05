@@ -77,12 +77,12 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (define-coding-system 'chinese-iso-8bit
-  "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:CN-GB)."
+  "ISO 2022 based EUC encoding for Chinese GB2312 (MIME:GB2312)."
   :coding-type 'iso-2022
   :mnemonic ?c
   :charset-list '(ascii chinese-gb2312)
   :designation [ascii chinese-gb2312 nil nil]
-  :mime-charset 'cn-gb)
+  :mime-charset 'gb2312)
 
 (define-coding-system-alias 'cn-gb-2312 'chinese-iso-8bit)
 (define-coding-system-alias 'euc-china 'chinese-iso-8bit)
