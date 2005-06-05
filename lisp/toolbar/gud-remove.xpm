@@ -1,7 +1,7 @@
 /* XPM */
 static char * go_xpm[] = {
 "24 24 4 1",
-" 	c #C0C0C0C0C0C0",
+" 	c None",
 ".	c #000080800000",
 "X	c #FFFFFFFFFFFF",
 "o	c #F8F8FCFCF8F8",
