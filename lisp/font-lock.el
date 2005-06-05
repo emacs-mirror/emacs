@@ -1595,6 +1595,7 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   ;; Set fontification defaults iff not previously set for correct major mode.
   (unless (and font-lock-set-defaults
 	       (eq font-lock-mode-major-mode major-mode))
+    (setq font-lock-mode-major-mode major-mode)
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
