@@ -2058,12 +2058,12 @@ corresponding to the mode line clicked."
 	(replace-match " (array);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf (with-current-buffer buf
-	       (let ((p (point))
+	       (let ((p (window-point (get-buffer-window buf 0)))
 		     (buffer-read-only nil))
-		 (delete-region (point-min) (point-max))
+		 (erase-buffer)
 		 (insert-buffer-substring (gdb-get-create-buffer
 					   'gdb-partial-output-buffer))
-		 (goto-char p)))))
+		(set-window-point (get-buffer-window buf 0) p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defun gdb-info-locals-custom ()
@@ -2341,6 +2341,8 @@ Add directory to search path for source files using the GDB command, dir."))
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 
 (defun gdb-find-file-hook ()
+"Set up buffer for debugging if file is part of the source code
+of the current session."
   (if (and (not gdb-find-file-unhook)
 	   ;; in case gud or gdb-ui is just loaded
 	   gud-comint-buffer
