@@ -140,6 +140,9 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+    ([print*]	menu-item "Print Dereference" gud-pstar
+                     :enable (and (not gud-running)
+				  (memq gud-minor-mode '(gdbmi gdba gdb))))
     ([print]	menu-item "Print Expression" gud-print
                      :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
@@ -183,18 +186,19 @@ Used to grey out relevant togolbar icons.")
 	(dolist (x '((gud-break . "gud-break")
 		     (gud-remove . "gud-remove")
 		     (gud-print . "gud-print")
+		     (gud-pstar . "gud-pstar")
 		     (gud-watch . "gud-watch")
-		     (gud-run . "gud-run")
-		     (gud-until . "gud-until")
 		     (gud-cont . "gud-cont")
+		     (gud-until . "gud-until")
+		     (gud-finish . "gud-finish")
+		     (gud-run . "gud-run")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
-		     (gud-step . "gud-s")
 		     (gud-next . "gud-n")
-		     (gud-finish . "gud-finish")
-		     (gud-stepi . "gud-si")
+		     (gud-step . "gud-s")
 		     (gud-nexti . "gud-ni")
+		     (gud-stepi . "gud-si")
 		     (gud-up . "gud-up")
 		     (gud-down . "gud-down")
 		     (gud-goto-info . "info"))
@@ -580,6 +584,8 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e"    nil
+	   "Evaluate C dereferenced pointer expression at point.")
   (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
