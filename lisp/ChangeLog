@@ -1,3 +1,22 @@
+2005-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-locals-handler): Use window point
+	to preserve point.
+	(gdb-find-file-hook): Add doc string.
+
+	* progmodes/gud.el (gdb, gud-menu-map): Add command to evaluate
+	 C dereferenced pointer expression.
+	(gud-tool-bar-map): Put it on the tool bar.
+
+	* toolbar/gud-pstar.xpm, toolbar/gud-pstar.pbm: New files.
+
+	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm,
+	toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm,
+	toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm,
+	toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm,
+	toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
+	Make background transparent.
+
 2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-lock.el (font-lock-add-keywords): Doc fix.  Comment change.
@@ -132,8 +151,8 @@
 	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
 	(gdb-assembler-custom): Improve regexps.
-	(def-gdb-auto-update-handler): Use window point to ensure it
-	is preserved.
+	(def-gdb-auto-update-handler): Use window point to preserve
+	point.
 
 2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
