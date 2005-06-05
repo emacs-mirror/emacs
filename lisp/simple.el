@@ -3365,6 +3365,8 @@ Outline mode sets this."
 	  (set-window-vscroll nil 0)
 	  (when (line-move-1 arg noerror to-end)
 	    (when (not forward)
+	      ;; Update display before calling pos-visible-in-window-p,
+	      ;; because it depends on window-start being up-to-date.
 	      (sit-for 0)
 	      (if (and (setq part (nth 2 (pos-visible-in-window-p
 					  (line-beginning-position) nil t)))
