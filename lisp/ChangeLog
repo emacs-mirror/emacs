@@ -6,7 +6,7 @@
 
 	* progmodes/gud.el (gdb, gud-menu-map): Add command to evaluate
 	 C dereferenced pointer expression.
-	(gud-tool-bar-map): Put it on the tool bar.
+	(gud-tool-bar-map): Put it on the tool bar.  Re-order icons.
 
 	* toolbar/gud-pstar.xpm, toolbar/gud-pstar.pbm: New files.
 
