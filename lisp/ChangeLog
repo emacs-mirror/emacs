@@ -1,3 +1,8 @@
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* tmm.el (tmm-inactive, tmm-remove-inactive-mouse-face):
+	Rename `tmm-inactive-face' to `tmm-inactive'.
+
 2005-06-06  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* iswitchb.el: Rename faces.
