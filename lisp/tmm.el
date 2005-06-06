@@ -133,7 +133,7 @@ specify nil for this variable."
   :type '(choice integer (const nil))
   :group 'tmm)
 
-(defface tmm-inactive-face
+(defface tmm-inactive
   '((t :inherit shadow))
   "Face used for inactive menu items."
   :group 'tmm)
@@ -349,7 +349,7 @@ Stores a list of all the shortcuts in the free variable `tmm-short-cuts'."
         (setq next (next-single-char-property-change (point) 'mouse-face))
         (when (looking-at inactive-string)
           (remove-text-properties (point) next '(mouse-face))
-          (add-text-properties (point) next '(face tmm-inactive-face)))
+          (add-text-properties (point) next '(face tmm-inactive)))
         (goto-char next)))
     (set-buffer-modified-p nil)))
 
