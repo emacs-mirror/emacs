@@ -299,8 +299,8 @@
 ;; ------------
 
 ;; The highlighting of matching items is controlled via ido-use-faces.
-;; The faces used are ido-first-match-face, ido-only-match-face and
-;; ido-subdir-face.
+;; The faces used are ido-first-match, ido-only-match and
+;; ido-subdir.
 ;; Colouring of the matching item was suggested by
 ;; Carsten Dominik (dominik@strw.leidenuniv.nl).
 
@@ -740,17 +740,17 @@ subdirs in the alternatives."
   :type 'boolean
   :group 'ido)
 
-(defface ido-first-match-face  '((t (:bold t)))
+(defface ido-first-match  '((t (:bold t)))
   "*Font used by ido for highlighting first match."
   :group 'ido)
 
-(defface ido-only-match-face  '((((class color))
+(defface ido-only-match  '((((class color))
                                  (:foreground "ForestGreen"))
                                 (t (:italic t)))
   "*Font used by ido for highlighting only match."
   :group 'ido)
 
-(defface ido-subdir-face  '((((min-colors 88) (class color))
+(defface ido-subdir  '((((min-colors 88) (class color))
                              (:foreground "red1"))
 			    (((class color))
                              (:foreground "red"))
@@ -758,7 +758,7 @@ subdirs in the alternatives."
   "*Font used by ido for highlighting subdirs in the alternatives."
   :group 'ido)
 
-(defface ido-indicator-face  '((((min-colors 88) (class color))
+(defface ido-indicator  '((((min-colors 88) (class color))
 				(:foreground "yellow1"
 				 :background "red1"
 				 :width condensed))
@@ -4039,7 +4039,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	 first)
 
     (if (and ind ido-use-faces)
-	(put-text-property 0 1 'face 'ido-indicator-face ind))
+	(put-text-property 0 1 'face 'ido-indicator ind))
 
     (if (and ido-use-faces comps)
 	(let* ((fn (ido-name (car comps)))
@@ -4047,8 +4047,8 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  (setq first (format "%s" fn))
 	  (put-text-property 0 ln 'face
 			     (if (= (length comps) 1)
-				 'ido-only-match-face
-			       'ido-first-match-face)
+				 'ido-only-match
+			       'ido-first-match)
 			     first)
 	  (if ind (setq first (concat first ind)))
 	  (setq comps (cons first (cdr comps)))))
@@ -4091,7 +4091,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 				       (if (and ido-use-faces
 						(not (string= str first))
 						(ido-final-slash str))
-					   (put-text-property 0 (length str) 'face 'ido-subdir-face str))
+					   (put-text-property 0 (length str) 'face 'ido-subdir str))
 				       str)))))
 			   comps))))))
 
