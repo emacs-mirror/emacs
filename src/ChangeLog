@@ -1,3 +1,8 @@
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (delete_window): Handle the case where a h/vchild has
+	a h/vchild.
+
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_setsockopt): Change arg 4 to `const void *'.  In the
