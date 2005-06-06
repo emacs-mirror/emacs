@@ -2084,13 +2084,29 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'whitespace		; like `show-trailing-whitespace'
   :group 'basic-faces)
 
-(defface escape-glyph '((((background dark)) :foreground "cyan")
-			;; See the comment in minibuffer-prompt for
-			;; the reason not to use blue on MS-DOS.
-			(((type pc)) :foreground "magenta")
-			(t :foreground "blue"))
+(defface escape-glyph
+  '((((background dark)) :foreground "pink2")
+    ;; See the comment in minibuffer-prompt for
+    ;; the reason not to use blue on MS-DOS.
+    (((type pc)) :foreground "magenta")
+    (t :foreground "red4"))
   "Face for characters displayed as ^-sequences or \-sequences."
-  :group 'basic-faces)
+  :group 'basic-faces
+  :version "22.1")
+
+(defface no-break-space
+  '((t :inherit escape-glyph :underline t))
+  "Face for non-breaking space."
+  :group 'basic-faces
+  :version "22.1")
+
+(defface shadow
+  '((((background dark))  :foreground "grey70")
+    (((background light)) :foreground "grey50"))
+  "Basic face for shadowed text."
+  :group 'basic-faces
+  :version "22.1")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.
