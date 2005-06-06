@@ -83,7 +83,7 @@
 
 (defcustom thumbs-thumbsdir-max-size 50000000
   "Max size for thumbnails directory.
-When it reachs that size (in bytes), a warning is sent."
+When it reaches that size (in bytes), a warning is sent."
   :type 'string
   :group 'thumbs)
 
@@ -117,12 +117,12 @@ This is where you see the cursor."
 (defcustom thumbs-thumbsdir-auto-clean t
   "If set, delete older file in the thumbnails directory.
 Deletion is done at load time when the directory size is bigger
-than 'thumbs-thumbsdir-max-size'."
+than `thumbs-thumbsdir-max-size'."
   :type 'boolean
   :group 'thumbs)
 
 (defcustom thumbs-image-resizing-step 10
-  "Step by wich to resize image."
+  "Step by which to resize image."
   :type 'string
   :group 'thumbs)
 
