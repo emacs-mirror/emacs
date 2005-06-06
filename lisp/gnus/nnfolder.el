@@ -200,7 +200,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 		       ((search-backward (concat "\n" nnfolder-article-marker)
 					 nil t)
 			(goto-char (match-end 0))
-			(setq num (string-to-int
+			(setq num (string-to-number
 				   (buffer-substring
 				    (point) (gnus-point-at-eol))))
 			(goto-char start)
@@ -210,7 +210,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 		      (search-forward (concat "\n" nnfolder-article-marker)
 				      nil t)
 		      (progn
-			(setq num (string-to-int
+			(setq num (string-to-number
 				   (buffer-substring
 				    (point) (gnus-point-at-eol))))
 			(> num article))
@@ -285,7 +285,7 @@ the group.  Then the marks file will be regenerated properly by Gnus.")
 	    (cons nnfolder-current-group
 		  (if (search-forward (concat "\n" nnfolder-article-marker)
 				      nil t)
-		      (string-to-int (buffer-substring
+		      (string-to-number (buffer-substring
 				      (point) (gnus-point-at-eol)))
 		    -1))))))))
 
@@ -875,6 +875,7 @@ deleted.  Point is left where the deleted region was."
 			 nnfolder-file-coding-system))
 		    (nnheader-find-file-noselect file t)))))
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
+    (buffer-disable-undo)
     (if (equal (cadr (assoc group nnfolder-scantime-alist))
 	       (nth 5 (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
@@ -901,7 +902,6 @@ deleted.  Point is left where the deleted region was."
 	      maxid start end newscantime
 	      novbuf articles newnum
 	      buffer-read-only)
-	  (buffer-disable-undo)
 	  (setq maxid (cdr active))
 
 	  (unless (or gnus-nov-is-evil nnfolder-nov-is-evil

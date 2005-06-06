@@ -2479,9 +2479,9 @@ mapcar1 (leni, vals, fn, seq)
   else   /* Must be a list, since Flength did not get an error */
     {
       tail = seq;
-      for (i = 0; i < leni; i++)
+      for (i = 0; i < leni && CONSP (tail); i++)
 	{
-	  dummy = call1 (fn, Fcar (tail));
+	  dummy = call1 (fn, XCAR (tail));
 	  if (vals)
 	    vals[i] = dummy;
 	  tail = XCDR (tail);
@@ -2521,7 +2521,7 @@ SEQUENCE may be a list, a vector, a bool-vector, or a string.  */)
   mapcar1 (leni, args, function, sequence);
   UNGCPRO;
 
-  for (i = leni - 1; i >= 0; i--)
+  for (i = leni - 1; i > 0; i--)
     args[i + i] = args[i];
 
   for (i = 1; i < nargs; i += 2)

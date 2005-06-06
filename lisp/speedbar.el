@@ -1306,7 +1306,7 @@ in the selected file.
       (if speedbar-track-mouse-flag
 	  (set (make-local-variable 'track-mouse) t))	;this could be messy.
       (setq auto-show-mode nil))	;no auto-show for Emacs
-    (run-hooks 'speedbar-mode-hook))
+    (run-mode-hooks 'speedbar-mode-hook))
   (speedbar-update-contents)
   speedbar-buffer)
 

@@ -1,6 +1,7 @@
 ;;; gnus-cite.el --- parse citations in articles for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;; 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Per Abhiddenware
@@ -138,7 +139,8 @@ the envelope From line."
 
 (defface gnus-cite-attribution-face '((t
 				       (:italic t)))
-  "Face used for attribution lines.")
+  "Face used for attribution lines."
+  :group 'gnus-cite)
 
 (defcustom gnus-cite-attribution-face 'gnus-cite-attribution-face
   "Face used for attribution lines.
@@ -155,7 +157,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "MidnightBlue"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-2 '((((class color)
 			      (background dark))
@@ -165,7 +168,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "firebrick"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-3 '((((class color)
 			      (background dark))
@@ -175,7 +179,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "dark green"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-4 '((((class color)
 			      (background dark))
@@ -185,7 +190,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "OrangeRed"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-5 '((((class color)
 			      (background dark))
@@ -195,7 +201,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "dark khaki"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-6 '((((class color)
 			      (background dark))
@@ -205,7 +212,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "dark violet"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-7 '((((class color)
 			      (background dark))
@@ -215,7 +223,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "SteelBlue4"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-8 '((((class color)
 			      (background dark))
@@ -225,7 +234,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "magenta"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-9 '((((class color)
 			      (background dark))
@@ -235,7 +245,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			     (:foreground "violet"))
 			    (t
 			     (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-10 '((((class color)
 			       (background dark))
@@ -245,7 +256,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			      (:foreground "medium purple"))
 			     (t
 			      (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defface gnus-cite-face-11 '((((class color)
 			       (background dark))
@@ -255,7 +267,8 @@ It is merged with the face for the cited text belonging to the attribution."
 			      (:foreground "turquoise"))
 			     (t
 			      (:italic t)))
-  "Citation face.")
+  "Citation face."
+  :group 'gnus-cite)
 
 (defcustom gnus-cite-face-list
   '(gnus-cite-face-1 gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4
@@ -1004,6 +1017,7 @@ See also the documentation for `gnus-article-highlight-citation'."
 	(when (< from to)
 	  (push (setq overlay (gnus-make-overlay from to))
 		gnus-cite-overlay-list)
+	  (gnus-overlay-put overlay 'evaporate t)
 	  (gnus-overlay-put overlay 'face face))))))
 
 (defun gnus-cite-toggle (prefix)

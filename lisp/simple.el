@@ -920,21 +920,21 @@ in *Help* buffer.  See also the command `describe-char'."
 (defvar read-expression-history nil)
 
 (defcustom eval-expression-print-level 4
-  "*Value to use for `print-level' when printing value in `eval-expression'.
+  "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
-  "*Value to use for `print-length' when printing value in `eval-expression'.
+  "Value for `print-length' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
-  "*Non-nil means set `debug-on-error' when evaluating in `eval-expression'.
+  "If non-nil set `debug-on-error' to t in `eval-expression'.
 If nil, don't change the value of `debug-on-error'."
   :group 'lisp
   :type 'boolean
@@ -2247,7 +2247,7 @@ is nil, the buffer substring is returned unaltered.
 If DELETE is non-nil, the text between BEG and END is deleted
 from the buffer.
 
-Point is temporarily set to BEG before caling
+Point is temporarily set to BEG before calling
 `buffer-substring-filters', in case the functions need to know
 where the text came from.
 
@@ -3351,25 +3351,27 @@ Outline mode sets this."
       (let ((forward (> arg 0))
 	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
 	(if (and (consp part)
-		 (> (setq part (if forward (cdr part) (car part))) 0))
+		 (> (if forward (cdr part) (car part)) 0))
 	    (set-window-vscroll nil
 				(if forward
 				    (+ (window-vscroll nil t)
-				       (min part
+				       (min (cdr part)
 					    (* (frame-char-height) arg)))
 				  (max 0
 				       (- (window-vscroll nil t)
-					  (min part
+					  (min (car part)
 					       (* (frame-char-height) (- arg))))))
 				t)
 	  (set-window-vscroll nil 0)
 	  (when (line-move-1 arg noerror to-end)
-	    (sit-for 0)
-	    (if (and (not forward)
-		     (setq part (nth 2 (pos-visible-in-window-p
-					(line-beginning-position) nil t)))
-		     (> (cdr part) 0))
-		(set-window-vscroll nil (cdr part) t))
+	    (when (not forward)
+	      ;; Update display before calling pos-visible-in-window-p,
+	      ;; because it depends on window-start being up-to-date.
+	      (sit-for 0)
+	      (if (and (setq part (nth 2 (pos-visible-in-window-p
+					  (line-beginning-position) nil t)))
+		       (> (cdr part) 0))
+		  (set-window-vscroll nil (cdr part) t)))
 	    t)))
     (line-move-1 arg noerror to-end)))
 
@@ -4762,7 +4764,7 @@ Use \\<completion-list-mode-map>\\[mouse-choose-completion] to select one\
   (setq major-mode 'completion-list-mode)
   (make-local-variable 'completion-base-size)
   (setq completion-base-size nil)
-  (run-hooks 'completion-list-mode-hook))
+  (run-mode-hooks 'completion-list-mode-hook))
 
 (defun completion-list-mode-finish ()
   "Finish setup of the completions buffer.

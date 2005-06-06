@@ -1162,7 +1162,7 @@ Tree mode key bindings:
     (when tree
       (ebrowse-redraw-tree)
       (set-buffer-modified-p nil))
-    (run-hooks 'ebrowse-tree-mode-hook)))
+    (run-mode-hooks 'ebrowse-tree-mode-hook)))
 
 
 
@@ -2026,7 +2026,7 @@ COLLAPSE non-nil means collapse the branch."
 	truncate-lines t
 	buffer-read-only t
 	major-mode 'ebrowse-electric-list-mode)
-  (run-hooks 'ebrowse-electric-list-mode-hook))
+  (run-mode-hooks 'ebrowse-electric-list-mode-hook))
 
 
 (defun ebrowse-list-tree-buffers ()
@@ -2277,7 +2277,7 @@ See 'Electric-command-loop' for a description of STATE and CONDITION."
 	ebrowse--const-display-flag nil
 	ebrowse--pure-display-flag nil)
   (modify-syntax-entry ?_ (char-to-string (char-syntax ?a)))
-  (run-hooks 'ebrowse-member-mode-hook))
+  (run-mode-hooks 'ebrowse-member-mode-hook))
 
 
 
@@ -3987,7 +3987,7 @@ Runs the hook `ebrowse-electric-position-mode-hook'."
 	truncate-lines t
 	buffer-read-only t
 	major-mode 'ebrowse-electric-position-mode)
-  (run-hooks 'ebrowse-electric-position-mode-hook))
+  (run-mode-hooks 'ebrowse-electric-position-mode-hook))
 
 
 (defun ebrowse-draw-position-buffer ()

@@ -84,6 +84,9 @@
 ;;**
 ;;*******************************************************************
 
+(defconst xml-undefined-entity "?"
+  "What to substitute for undefined entities")
+
 (defvar xml-entity-alist
   '(("lt"   . "<")
     ("gt"   . ">")
@@ -745,9 +748,10 @@ This follows the rule [28] in the XML specifications."
 		    ((eq (length this-part) 0)
 		     (error "XML: (Not Well-Formed) No entity given"))
 		    (t
-		     (when xml-validating-parser
+		     (if xml-validating-parser
 			 (error "XML: (Validity) Undefined entity `%s'"
-				this-part))))))
+				this-part)
+		       xml-undefined-entity)))))
 
 	(cond ((null children)
 	       ;; FIXME: If we have an entity that expands into XML, this won't work.

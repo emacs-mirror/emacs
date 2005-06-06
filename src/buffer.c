@@ -878,20 +878,23 @@ DEFUN ("buffer-local-value", Fbuffer_local_value,
        Sbuffer_local_value, 2, 2, 0,
        doc: /* Return the value of VARIABLE in BUFFER.
 If VARIABLE does not have a buffer-local binding in BUFFER, the value
-is the default binding of variable. */)
-     (symbol, buffer)
-     register Lisp_Object symbol;
+is the default binding of the variable. */)
+     (variable, buffer)
+     register Lisp_Object variable;
      register Lisp_Object buffer;
 {
   register struct buffer *buf;
   register Lisp_Object result;
 
-  CHECK_SYMBOL (symbol);
+  CHECK_SYMBOL (variable);
   CHECK_BUFFER (buffer);
   buf = XBUFFER (buffer);
 
+  if (SYMBOLP (variable))
+    variable = indirect_variable (variable);
+
   /* Look in local_var_list */
-  result = Fassoc (symbol, buf->local_var_alist);
+  result = Fassoc (variable, buf->local_var_alist);
   if (NILP (result))
     {
       int offset, idx;
@@ -906,7 +909,7 @@ is the default binding of variable. */)
 	  idx = PER_BUFFER_IDX (offset);
 	  if ((idx == -1 || PER_BUFFER_VALUE_P (buf, idx))
 	      && SYMBOLP (PER_BUFFER_SYMBOL (offset))
-	      && EQ (PER_BUFFER_SYMBOL (offset), symbol))
+	      && EQ (PER_BUFFER_SYMBOL (offset), variable))
 	    {
 	      result = PER_BUFFER_VALUE (buf, offset);
 	      found = 1;
@@ -915,7 +918,7 @@ is the default binding of variable. */)
 	}
 
       if (!found)
-	result = Fdefault_value (symbol);
+	result = Fdefault_value (variable);
     }
   else
     {
@@ -923,7 +926,7 @@ is the default binding of variable. */)
       Lisp_Object current_alist_element;
 
       /* What binding is loaded right now?  */
-      valcontents = SYMBOL_VALUE (symbol);
+      valcontents = SYMBOL_VALUE (variable);
       current_alist_element
 	= XCAR (XBUFFER_LOCAL_VALUE (valcontents)->cdr);
 
@@ -940,7 +943,7 @@ is the default binding of variable. */)
     }
 
   if (EQ (result, Qunbound))
-    return Fsignal (Qvoid_variable, Fcons (symbol, Qnil));
+    return Fsignal (Qvoid_variable, Fcons (variable, Qnil));
 
   return result;
 }
@@ -5292,19 +5295,19 @@ This is the same as (default-value 'abbrev-mode).  */);
 		     doc: /* Default value of `ctl-arrow' for buffers that do not override it.
 This is the same as (default-value 'ctl-arrow).  */);
 
-   DEFVAR_LISP_NOPRO ("default-direction-reversed",
-		      &buffer_defaults.direction_reversed,
-		      doc: /* Default value of `direction-reversed' for buffers that do not override it.
+  DEFVAR_LISP_NOPRO ("default-direction-reversed",
+                     &buffer_defaults.direction_reversed,
+                     doc: /* Default value of `direction-reversed' for buffers that do not override it.
 This is the same as (default-value 'direction-reversed).  */);
 
-   DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
-		      &buffer_defaults.enable_multibyte_characters,
-		      doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
+  DEFVAR_LISP_NOPRO ("default-enable-multibyte-characters",
+                     &buffer_defaults.enable_multibyte_characters,
+                     doc: /* *Default value of `enable-multibyte-characters' for buffers not overriding it.
 This is the same as (default-value 'enable-multibyte-characters).  */);
 
-   DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
-		      &buffer_defaults.buffer_file_coding_system,
-		      doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
+  DEFVAR_LISP_NOPRO ("default-buffer-file-coding-system",
+                     &buffer_defaults.buffer_file_coding_system,
+                     doc: /* Default value of `buffer-file-coding-system' for buffers not overriding it.
 This is the same as (default-value 'buffer-file-coding-system).  */);
 
   DEFVAR_LISP_NOPRO ("default-truncate-lines",

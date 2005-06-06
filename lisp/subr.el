@@ -1853,7 +1853,7 @@ Major mode functions should use this."
 These hooks will be executed by the first following call to
 `run-mode-hooks' that occurs outside any `delayed-mode-hooks' form.
 Only affects hooks run in the current buffer."
-  (declare (debug t))
+  (declare (debug t) (indent 0))
   `(progn
      (make-local-variable 'delay-mode-hooks)
      (let ((delay-mode-hooks t))
@@ -1996,14 +1996,34 @@ STRING should be given if the last search was by `string-match' on STRING."
 	(buffer-substring-no-properties (match-beginning num)
 					(match-end num)))))
 
-(defun looking-back (regexp &optional limit)
+(defun looking-back (regexp &optional limit greedy)
   "Return non-nil if text before point matches regular expression REGEXP.
 Like `looking-at' except matches before point, and is slower.
 LIMIT if non-nil speeds up the search by specifying how far back the
-match can start."
-  (not (null
-	(save-excursion
-	  (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)))))
+match can start.
+
+If GREEDY is non-nil, extend the match backwards as far as possible,
+stopping when a single additional previous character cannot be part
+of a match for REGEXP."
+  (let ((start (point))
+	(pos
+	 (save-excursion
+	   (and (re-search-backward (concat "\\(?:" regexp "\\)\\=") limit t)
+		(point)))))
+    (if (and greedy pos)
+	(save-restriction
+	  (narrow-to-region (point-min) start)
+	  (while (and (> pos (point-min))
+		      (save-excursion
+			(goto-char pos)
+			(backward-char 1)
+			(looking-at (concat "\\(?:"  regexp "\\)\\'"))))
+	    (setq pos (1- pos)))
+	  (save-excursion
+	    (goto-char pos)
+	    (looking-at (concat "\\(?:"  regexp "\\)\\'")))))
+    (not (null pos))))
+
 
 (defconst split-string-default-separators "[ \f\t\n\r\v]+"
   "The default value of separators for `split-string'.

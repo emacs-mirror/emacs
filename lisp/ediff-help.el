@@ -132,7 +132,7 @@ Normally, not a user option.  See `ediff-help-message' for details.")
   "Normally, not a user option.  See `ediff-help-message' for details.")
 
 (defconst ediff-brief-message-string
-  " ? -quick help "
+  " Type ? for help"
   "Contents of the brief help message.")
 ;; The actual brief help message
 (ediff-defvar-local ediff-brief-help-message ""

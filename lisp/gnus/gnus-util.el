@@ -1015,6 +1015,13 @@ ARG is passed to the first function."
   (save-current-buffer
     (apply 'run-hooks funcs)))
 
+(defun gnus-run-mode-hooks (&rest funcs)
+  "Run `run-mode-hooks' if it is available, otherwise `run-hooks'.
+This function saves the current buffer."
+  (if (fboundp 'run-mode-hooks)
+      (save-current-buffer (apply 'run-mode-hooks funcs))
+    (save-current-buffer (apply 'run-hooks funcs))))
+
 ;;; Various
 
 (defvar gnus-group-buffer)		; Compiler directive
@@ -1564,6 +1571,11 @@ empty directories from OLD-PATH."
 			 (file-truename
 			  (concat old-dir "..")))))))))
 
+(if (fboundp 'set-process-query-on-exit-flag)
+    (defalias 'gnus-set-process-query-on-exit-flag
+      'set-process-query-on-exit-flag)
+  (defalias 'gnus-set-process-query-on-exit-flag
+    'process-kill-without-query))
 
 (provide 'gnus-util)
 

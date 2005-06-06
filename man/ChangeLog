@@ -1,3 +1,78 @@
+2005-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi: Rename Hardcopy to Printing.
+	Make PostScript and PostScript Variables subnodes of it.
+
+	* misc.texi (Printing): Rename node from Hardcopy.
+	Mention menu bar options.
+	Move PostScript and PostScript Variables to submenu.
+	(Printing package): New node.
+
+	* mark.texi (Using Region): Change Hardcopy xref to Printing.
+
+	* dired.texi (Operating on Files): Likewise.
+
+	* calendar.texi (Displaying the Diary): Likewise.
+
+	* msdog.texi (MS-DOS Printing, MS-DOS Processes): Likewise.
+
+	* glossary.texi (Glossary): Likewise.
+
+	* frames.texi (Mode Line Mouse): Mention mode-line-highlight
+	effect.
+
+2005-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* trouble.texi (After a Crash): Polish previous change.
+
+2005-05-31  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Notations Used in This Manual): Use @kbd for key
+	sequence.
+	(Demonstration of Calc): Mention another way of starting Calc.
+	(Starting Calc): Mention long name of M-#.
+	(Embedded Mode Overview): Remove unnecessary instruction.
+	(Other M-# commands): Rephrase `M-# 0' explanation.
+	(Basic Embedded Mode): Rewrite discussion of prefix arguments to
+	reflect current behavior.
+
+2005-05-30  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Hooks): Change description of calc-window-hook and
+	calc-trail-window-hook to match usage.
+	(Computational Functions): Add more constant-generating functions.
+	(Customizable Variables): Use defvar.
+
+2005-05-30  Noah Friedman  <friedman@splode.com>
+
+	* trouble.texi (After a Crash): Mention emacs-buffer.gdb as a
+	recovery mechanism.
+
+2005-05-28  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Assignments in Embedded Mode): Fix variable name.
+	(Basic Embedded Mode): Explain behavior of arguments to
+	calc-embedded-mode.
+
+2005-05-28  Nick Roberts  <nickrob@snap.net.nz>
+
+	* building.texi (Other Buffers): SPC toggles display of
+	floating point registers.
+
+2005-05-27  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Queries in Keyboard Macros): Rewrite to reflect
+	current behavior.
+
+2005-05-27  Nick Roberts  <nickrob@snap.net.nz>
+
+	* files.texi (Log Buffer): Merge in description of Log Edit
+	mode from pcl-cvs.texi.
+
+2005-05-26  Richard M. Stallman  <rms@gnu.org>
+
+	* building.texi (Lisp Eval): C-M-x with arg runs Edebug.
+
 2005-05-25  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi: Change Calc version number throughout.

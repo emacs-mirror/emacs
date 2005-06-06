@@ -196,7 +196,7 @@ article was posted to nndb")
       ;; otherwise, pull all of the following numbers into the list
       (re-search-forward "follows\r?\n?" nil t)
       (while (re-search-forward "^[0-9]+$" nil t)
-      (push (string-to-int (match-string 0)) list)))
+      (push (string-to-number (match-string 0)) list)))
     list))
 
 (defun nndb-request-expire-articles-remote

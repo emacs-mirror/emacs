@@ -1,5 +1,6 @@
 ;;; gnus-srvr.el --- virtual server support for Gnus
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003,
+;; 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -269,7 +270,7 @@ The following commands are available:
       (put 'gnus-server-mode 'font-lock-defaults '(gnus-server-font-lock-keywords t))
     (set (make-local-variable 'font-lock-defaults)
 	 '(gnus-server-font-lock-keywords t)))
-  (gnus-run-hooks 'gnus-server-mode-hook))
+  (gnus-run-mode-hooks 'gnus-server-mode-hook))
 
 (defun gnus-server-insert-server-line (gnus-tmp-name method)
   (let* ((gnus-tmp-how (car method))
@@ -849,7 +850,7 @@ buffer.
   (setq truncate-lines t)
   (gnus-set-default-directory)
   (setq buffer-read-only t)
-  (gnus-run-hooks 'gnus-browse-mode-hook))
+  (gnus-run-mode-hooks 'gnus-browse-mode-hook))
 
 (defun gnus-browse-read-group (&optional no-article number)
   "Enter the group at the current line.

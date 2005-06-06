@@ -248,7 +248,7 @@ there.")
 	;; Fix by Sudish Joseph <joseph@cis.ohio-state.edu>
 	(when (setq dir (directory-files pathname nil "^[0-9]+$" t))
 	  (setq dir
-		(sort (mapcar (lambda (name) (string-to-int name)) dir) '<)))
+		(sort (mapcar (lambda (name) (string-to-number name)) dir) '<)))
 	(if dir
 	    (nnheader-insert
 	     "211 %d %d %d %s\n" (length dir) (car dir)
@@ -440,7 +440,7 @@ there.")
     (goto-char (point-min))
     (prog1
 	(when (looking-at "<[^>]+>[ \t]+[-0-9~]+[ \t]+\\([^ /\t\n]+\\)/\\([0-9]+\\)[ \t\n]")
-	  (cons (match-string 1) (string-to-int (match-string 2))))
+	  (cons (match-string 1) (string-to-number (match-string 2))))
       (kill-buffer (current-buffer)))))
 
 (defun nnspool-find-file (file)

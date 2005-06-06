@@ -1,6 +1,7 @@
 ;;; pop3.el --- Post Office Protocol (RFC 1460) interface
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004,
+;; 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Richard L. Pieri <ratinox@peorth.gweep.net>
@@ -348,21 +349,36 @@ If NOW, use that time instead."
 
 ;; AUTHORIZATION STATE
 
-(eval-and-compile
-  (if (fboundp 'md5)
-      (defalias 'pop3-md5 'md5)
-    (defvar pop3-md5-program "md5"
-      "*Program to encode its input in MD5.")
+(eval-when-compile
+  (if (not (fboundp 'md5)) ;; Emacs 20
+      (defalias 'md5 'ignore)))
 
+(eval-and-compile
+  (if (and (fboundp 'md5)
+	   ;; There might be an incompatible implementation.
+	   (condition-case nil
+	       (md5 "Check whether the 4th argument is allowed"
+		    nil nil 'binary)
+	     (error nil)))
+      (defun pop3-md5 (string)
+	(md5 string nil nil 'binary))
+    (defvar pop3-md5-program "md5"
+      "*Program to encode its input in MD5.
+\"openssl\" is a popular alternative; set `pop3-md5-program-args' to
+'(\"md5\") if you use it.")
+    (defvar pop3-md5-program-args nil
+      "*List of arguments passed to `pop3-md5-program'.")
     (defun pop3-md5 (string)
-      (with-temp-buffer
-	(insert string)
-	(call-process-region (point-min) (point-max)
-			     pop3-md5-program
-			     t (current-buffer) nil)
-	;; The meaningful output is the first 32 characters.
-	;; Don't return the newline that follows them!
-	(buffer-substring (point-min) (+ 32 (point-min)))))))
+      (let ((default-enable-multibyte-characters t)
+	    (coding-system-for-write 'binary))
+	(with-temp-buffer
+	  (insert string)
+	  (apply 'call-process-region (point-min) (point-max)
+		 pop3-md5-program t (current-buffer) nil
+		 pop3-md5-program-args)
+	  ;; The meaningful output is the first 32 characters.
+	  ;; Don't return the newline that follows them!
+	  (buffer-substring (point-min) (+ 32 (point-min))))))))
 
 (defun pop3-user (process user)
   "Send USER information to POP3 server."
@@ -398,8 +414,8 @@ If NOW, use that time instead."
   "Return the number of messages in the maildrop and the maildrop's size."
   (pop3-send-command process "STAT")
   (let ((response (pop3-read-response process t)))
-    (list (string-to-int (nth 1 (split-string response " ")))
-	  (string-to-int (nth 2 (split-string response " "))))
+    (list (string-to-number (nth 1 (split-string response " ")))
+	  (string-to-number (nth 2 (split-string response " "))))
     ))
 
 (defun pop3-list (process &optional msg)
@@ -449,7 +465,7 @@ This function currently does nothing.")
   "Return highest accessed message-id number for the session."
   (pop3-send-command process "LAST")
   (let ((response (pop3-read-response process t)))
-    (string-to-int (nth 1 (split-string response " ")))
+    (string-to-number (nth 1 (split-string response " ")))
     ))
 
 (defun pop3-rset (process)

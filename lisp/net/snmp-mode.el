@@ -393,8 +393,7 @@ Turning on snmp-mode runs the hooks in `snmp-common-mode-hook', then
   (setq snmp-mode-status-list snmp-rfc1212-status)
 
   ;; Run hooks
-  (run-hooks 'snmp-common-mode-hook)
-  (run-hooks 'snmp-mode-hook))
+  (run-mode-hooks 'snmp-common-mode-hook 'snmp-mode-hook))
 
 
 ;;;###autoload
@@ -429,8 +428,7 @@ then `snmpv2-mode-hook'."
   (setq snmp-mode-status-list snmp-rfc1902-status)
 
   ;; Run hooks
-  (run-hooks 'snmp-common-mode-hook)
-  (run-hooks 'snmpv2-mode-hook))
+  (run-mode-hooks 'snmp-common-mode-hook 'snmpv2-mode-hook))
 
 
 ;;;----------------------------------------------------------------------------

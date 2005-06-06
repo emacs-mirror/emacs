@@ -769,7 +769,7 @@ If SOURCE is a directory spec, try to return the group name component."
       (if (not (save-excursion
 		 (and (re-search-backward
 		       "^Content-Length:[ \t]*\\([0-9]+\\)" start t)
-		      (setq content-length (string-to-int
+		      (setq content-length (string-to-number
 					    (buffer-substring
 					     (match-beginning 1)
 					     (match-end 1))))
@@ -906,7 +906,7 @@ If SOURCE is a directory spec, try to return the group name component."
 	(if (not (re-search-forward
 		  "^Content-Length:[ \t]*\\([0-9]+\\)" nil t))
 	    (setq content-length nil)
-	  (setq content-length (string-to-int (match-string 1)))
+	  (setq content-length (string-to-number (match-string 1)))
 	  ;; We destroy the header, since none of the backends ever
 	  ;; use it, and we do not want to confuse other mailers by
 	  ;; having a (possibly) faulty header.

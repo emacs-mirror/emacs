@@ -1,6 +1,6 @@
 ;;; mh-customize.el --- MH-E customization
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -69,8 +69,6 @@
 (mh-require-cl)
 (require 'mh-loaddefs)
 
-(autoload 'Info-goto-node "info")
-
 (eval-and-compile
   (defvar mh-xemacs-flag (featurep 'xemacs)
     "Non-nil means the current Emacs is XEmacs."))
@@ -102,121 +100,115 @@ the frame are removed."
 
 ;;; MH-E Customization Groups
 
-(defgroup mh nil
+(defgroup mh-e nil
   "Emacs interface to the MH mail system.
 MH is the Rand Mail Handler. Other implementations include nmh and GNU
 mailutils."
   :link '(custom-manual "(mh-e)Top")
   :group 'mail)
 
-(defgroup mh-e '((mh custom-group))     ; Sort of an alias for 'mh group
-  "Emacs interface to the MH mail system.
-MH is the Rand Mail Handler. Other implementations include nmh and GNU
-mailutils."
-  :link '(custom-manual "(mh-e)Top"))
-
 (defgroup mh-alias nil
   "Aliases."
   :link '(custom-manual "(mh-e)Aliases")
   :prefix "mh-alias-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-folder nil
   "Organizing your mail with folders."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Organizing")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-folder-selection nil
   "Folder selection."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Folder Selection")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-identity nil
   "Identities."
   :link '(custom-manual "(mh-e)Identities")
   :prefix "mh-identity-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-inc nil
   "Incorporating your mail."
   :prefix "mh-inc-"
   :link '(custom-manual "(mh-e)Incorporating Mail")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-index nil
   "Searching."
   :link '(custom-manual "(mh-e)Searching")
   :prefix "mh-index-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-junk nil
   "Dealing with junk mail."
   :link '(custom-manual "(mh-e)Junk")
   :prefix "mh-junk-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-letter nil
   "Editing a draft."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Editing Drafts")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-ranges nil
   "Ranges."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Ranges")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-scan-line-formats nil
   "Scan line formats."
   :link '(custom-manual "(mh-e)Scan Line Formats")
   :prefix "mh-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-sending-mail nil
   "Sending mail."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Sending Mail")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-sequences nil
   "Sequences."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Sequences")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-show nil
   "Reading your mail."
   :prefix "mh-"
   :link '(custom-manual "(mh-e)Reading Mail")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-speed nil
   "The speedbar."
   :prefix "mh-speed-"
   :link '(custom-manual "(mh-e)Speedbar")
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-toolbar nil
   "The toolbar"
   :link '(custom-manual "(mh-e)Toolbar")
   :prefix "mh-"
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-faces nil
   "Faces used in MH-E."
   :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
   :group 'faces
-  :group 'mh)
+  :group 'mh-e)
 
 (defgroup mh-hooks nil
   "MH-E hooks."
   :link '(custom-manual "(mh-e)Top")
   :prefix "mh-"
-  :group 'mh)
+  :group 'mh-e)
 
 ;;; Faces
 
@@ -280,7 +272,7 @@ accordingly."
   :set (lambda (symbol value)
          (set-default symbol value)     ;Done in mh-variant-set-variant!
          (mh-variant-set value))
-  :group 'mh)
+  :group 'mh-e)
 
 
 
@@ -448,14 +440,34 @@ information."
 (defcustom mh-identity-list nil
   "*List of identities.
 
-Each element consists of an identity label, and a collection of header fields
-and a signature to insert if the identity is selected (see
-`mh-identity-default', `mh-insert-identity' and the `Identity' menu in a
-MH-Letter buffer). The `Value Menu' contains the common header fields `From'
-and `Organization'. Other header fields may be added using the `Other Field'
-menu item. The `Signature' menu item is used to insert a signature with
-`mh-insert-signature'. The `GPG Key ID' menu item is used to specify a
-different key to sign or encrypt messages."
+To customize this option, click on the `INS' button and enter a label such as
+`Home' or `Work'. Then click on the `INS' button with the label `Add at least
+one item below'. Then choose one of the items in the `Value Menu'.
+
+You can specify an alternate `From:' header field using the `From Field' menu
+item. You must include a valid email address. A standard format is `First Last
+<login@@host.domain>'. If you use an initial with a period, then you must
+quote your name as in `\"First I. Last\" <login@@host.domain>'. People usually
+list the name of the company where they work using the `Organization Field'
+menu item. Set any arbitrary header field and value in the `Other Field' menu
+item. Unless the header field is a standard one, precede the name of your
+field's label with `X-', as in `X-Fruit-of-the-Day:'. The value of
+`Attribution Verb' overrides the setting of
+`mh-extract-from-attribution-verb'. Set your signature with the `Signature'
+menu item. You can specify the contents of `mh-signature-file-name', a file,
+or a function. Specify a different key to sign or encrypt messages with the
+`GPG Key ID' menu item.
+
+You can select the identities you have added via the menu called `Identity' in
+the MH-Letter buffer. You can also use \\[mh-insert-identity]. To clear the
+fields and signature added by the identity, select the `None' identity.
+
+The `Identity' menu contains two other items to save you from having to set
+the identity on every message. The menu item `Set Default for Session' can be
+used to set the default identity to the current identity until you exit Emacs.
+The menu item `Save as Default' sets the option `mh-identity-default' to the
+current identity setting. You can also customize the `mh-identity-default'
+option in the usual fashion."
   :type '(repeat (list :tag ""
                        (string :tag "Label")
                        (repeat :tag "Add at least one item below"
@@ -489,12 +501,38 @@ different key to sign or encrypt messages."
 
 (defcustom mh-auto-fields-list nil
   "List of recipients for which header lines are automatically inserted.
-Each element consists of the recipient, which is a regular expression, and a
-collection of header fields and identities to insert if the message is sent to
-this recipient. The `Value Menu' contains the common header fields `Fcc' and
-`Mail-Followup-To'. Other header fields may be added using the `Other Field'
-menu item. The `Identity' menu item is used to insert entire identities with
-`mh-insert-identity'."
+
+This option can be used to set the identity depending on the recipient. To
+customize this option, click on the `INS' button and enter a regular
+expression for the recipient's address. Click on the `INS' button with the
+`Add at least one item below' label. Then choose one of the items in the
+`Value Menu'.
+
+The `Identity' menu item is used to select an identity from those configured
+in `mh-identity-list'. All of the information for that identity will be added
+if the recipient matches. The `Fcc Field' menu item is used to select a folder
+that is used in the `Fcc:' header. When you send the message, MH will put a
+copy of your message in this folder. The `Mail-Followup-To Field' menu item is
+used to insert an `Mail-Followup-To:' header field with the recipients you
+provide. If the recipient's mail user agent supports this header field (as nmh
+does), then their replies will go to the addresses listed. This is useful if
+their replies go both to the list and to you and you don't have a mechanism to
+suppress duplicates. If you reply to someone not on the list, you must either
+remove the `Mail-Followup-To:' field, or ensure the recipient is also listed
+there so that he receives replies to your reply. Other header fields may be
+added using the `Other Field' menu item.
+
+These fields can only be added after the recipient is known. Once the header
+contains one or more recipients, run the \\[mh-insert-auto-fields] command or
+choose the `Identity -> Insert Auto Fields' menu item to insert these fields
+manually. However, you can just send the message and the fields will be added
+automatically. You are given a chance to see these fields and to confirm them
+before the message is actually sent. You can do away with this confirmation by
+turning off the option `mh-auto-fields-prompt-flag'.
+
+You should avoid using the same header field in `mh-auto-fields-list' and
+`mh-identity-list' definitions that may apply to the same message as the
+result is undefined."
   :type `(repeat
           (list :tag ""
                 (string :tag "Recipient")
@@ -525,7 +563,8 @@ See `mh-auto-fields-list'."
   :group 'mh-identity)
 
 (defcustom mh-identity-default nil
-  "Default identity to use when `mh-letter-mode' is called."
+  "Default identity to use when `mh-letter-mode' is called.
+See `mh-identity-list'."
   :type (append
          '(radio)
          (cons '(const :tag "None" nil)
@@ -534,16 +573,32 @@ See `mh-auto-fields-list'."
   :group 'mh-identity)
 
 (defcustom mh-identity-handlers
-  '((":default" . mh-identity-handler-bottom)
-    ("from" . mh-identity-handler-top)
+  '(("From" . mh-identity-handler-top)
+    (":default" . mh-identity-handler-bottom)
     (":attribution-verb" . mh-identity-handler-attribution-verb)
     (":signature" . mh-identity-handler-signature)
     (":pgg-default-user-id" . mh-identity-handler-gpg-identity))
   "Handler functions for fields in `mh-identity-list'.
-This is an alist of fields (strings) and handlers (functions). Strings are
-lowercase. Use \":signature\" for Signature and \":pgg-default-user-id\" for
-GPG Key ID. The function associated with the string \":default\" is used if no
-other functions are appropriate."
+
+This option is used to change the way that fields, signatures, and
+attributions in `mh-identity-list' are added. To customize
+`mh-identity-handlers', replace the name of an existing handler function
+associated with the field you want to change with the name of a function you
+have written. You can also click on an `INS' button and insert a field of your
+choice and the name of the function you have written to handle it.
+
+The `Field' field can be any field that you've used in your
+`mh-identity-list'. The special fields `:attribution-verb', `:signature', or
+`:pgg-default-user-id' are used for the `mh-identity-list' choices
+`Attribution Verb', `Signature', and `GPG Key ID' respectively.
+
+The handler associated with the `:default' field is used when no other field
+matches.
+
+The handler functions are passed two or three arguments: the FIELD itself (for
+example, `From'), or one of the special fields (for example, `:signature'),
+and the ACTION `'remove' or `'add'. If the action is `'add', an additional
+argument containing the VALUE for the field is given."
   :type '(repeat (cons (string :tag "Field") function))
   :group 'mh-identity)
 
@@ -552,45 +607,45 @@ other functions are appropriate."
 ;;; Incorporating Your Mail (:group 'mh-inc)
 
 (defcustom mh-inc-prog "inc"
-  "*Program to run to incorporate new mail into a folder.
-Normally \"inc\". This program is relative to the `mh-progs' directory unless
-it is an absolute pathname."
+  "*Program to incorporate new mail into a folder.
+
+This program generates a one-line summary for each of the new messages. Unless
+it is an absolute pathname, the file is assumed to be in the `mh-progs'
+directory. You may also link a file to `inc' that uses a different format.
+You'll then need to modify several scan line format variables appropriately."
   :type 'string
   :group 'mh-inc)
 
 (defcustom mh-inc-spool-list nil
-  "*Alist of alternate spool files, corresponding folders and keybindings.
-This option will be described by example.
+  "*Alternate spool files.
 
-Suppose you have subscribed to the mh-e-devel mailing list and you use
-procmail to filter its mail into `~/mail/mh-e' with the following
-`.procmailrc' recipe:
+You can use the `mh-inc-spool-list' variable to direct MH-E to retrieve mail
+from arbitrary spool files other than your system mailbox, file it in folders
+other than your `+inbox', and assign key bindings to incorporate this mail.
+
+Suppose you are subscribed to the `mh-e-devel' mailing list and you use
+`procmail' to filter this mail into `~/mail/mh-e' with the following recipe in
+`.procmailrc':
 
     MAILDIR=$HOME/mail
     :0:
-    * ^From mh-e-devel-admin@lists.sourceforge.net
+    * ^From mh-e-devel-admin@stop.mail-abuse.org
     mh-e
 
-If you wanted to incorporate that spool file into an MH folder called mh-e
-with the \"I m\" or \\[mh-inc-spool-mh-e] commands, you would use the
-following:
+In order to incorporate `~/mail/mh-e' into `+mh-e' with an `I m'
+\(`mh-inc-spool-mh-e'\) command, customize this option, and click on the `INS'
+button. Enter a `Spool File' of `~/mail/mh-e', a `Folder' of `mh-e', and a
+`Key Binding' of `m'.
 
-    Spool File:  ~/mail/mh-e
-    Folder:      mh-e
-    Key Binding: m
-
-Then, you could also install `xbuffy' and configure an extra mailbox using the
-gnuserv package to run the `mh-inc-spool-mh-e' command in Emacs:
+You can use `xbuffy' to automate the incorporation of this mail using the
+`gnudoit' command in the `gnuserv' package as follows:
 
     box ~/mail/mh-e
         title mh-e
         origMode
         polltime 10
         headertime 0
-        command gnudoit -q '(mh-inc-spool-mh-e)'
-
-To incorporate the spool file, click the xbuffy box with the middle mouse
-button."
+        command gnudoit -q '(mh-inc-spool-mh-e)'"
   :type '(repeat (list (file :tag "Spool File")
                        (string :tag "Folder")
                        (character :tag "Key Binding")))
@@ -602,10 +657,10 @@ button."
 ;;; Searching (:group 'mh-index)
 
 (defcustom mh-index-new-messages-folders t
-  "Folders searched for the `unseen' sequence.
-This option can be set to `Inbox' to search the `+inbox' folder or `All' to
+  "Folders searched for the \"unseen\" sequence.
+Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
 search all of the top level folders. Otherwise, list the folders that should
-be searched with the `Choose Folders' menu item.
+be searched with the \"Choose Folders\" menu item.
 
 See also `mh-recursive-folders-flag'."
   :group 'mh-index
@@ -633,9 +688,9 @@ found in the documentation of `mh-index-search'."
 
 (defcustom mh-index-ticked-messages-folders t
   "Folders searched for `mh-tick-seq'.
-This option can be set to `Inbox' to search the `+inbox' folder or `All' to
+Set this option to \"Inbox\" to search the \"+inbox\" folder or \"All\" to
 search all of the top level folders. Otherwise, list the folders that should
-be searched with the `Choose Folders' menu item.
+be searched with the \"Choose Folders\" menu item.
 
 See also `mh-recursive-folders-flag'."
   :group 'mh-index
@@ -672,25 +727,6 @@ bound to the new value of `mh-junk-program'. The function sets the variable
                   finally return (car element)))))
 
 ;; User customizable variables
-(defcustom mh-junk-disposition nil
-  "Disposition of junk mail."
-  :type '(choice (const :tag "Delete Spam" nil)
-                 (string :tag "Spam Folder"))
-  :group 'mh-junk)
-
-(defcustom mh-junk-program nil
-  "Spam program that MH-E should use.
-The default setting of this option is `Auto-detect' which means that MH-E will
-automatically choose one of SpamAssassin, Bogofilter, or SpamProbe in that
-order. If, for example, you have both SpamAssassin and Bogofilter installed
-and you want to use BogoFilter, then you can set this option to `Bogofilter'."
-  :type '(choice (const :tag "Auto-detect" nil)
-                 (const :tag "SpamAssassin" spamassassin)
-                 (const :tag "Bogofilter" bogofilter)
-                 (const :tag "SpamProbe" spamprobe))
-  :set 'mh-junk-choose
-  :group 'mh-junk)
-
 (defcustom mh-junk-background nil
   "If on, spam programs are run in background.
 By default, the programs are run in the foreground, but this can be slow when
@@ -700,22 +736,30 @@ that many messages at the same time, you might try turning on this option."
                  (const :tag "On" 0))
   :group 'mh-junk)
 
+(defcustom mh-junk-disposition nil
+  "Disposition of junk mail."
+  :type '(choice (const :tag "Delete Spam" nil)
+                 (string :tag "Spam Folder"))
+  :group 'mh-junk)
+
+(defcustom mh-junk-program nil
+  "Spam program that MH-E should use.
+
+The default setting of this option is \"Auto-detect\" which means that MH-E
+will automatically choose one of SpamAssassin, Bogofilter, or SpamProbe in
+that order. If, for example, you have both SpamAssassin and Bogofilter
+installed and you want to use BogoFilter, then you can set this option to
+\"Bogofilter\"."
+  :type '(choice (const :tag "Auto-detect" nil)
+                 (const :tag "SpamAssassin" spamassassin)
+                 (const :tag "Bogofilter" bogofilter)
+                 (const :tag "SpamProbe" spamprobe))
+  :set 'mh-junk-choose
+  :group 'mh-junk)
+
 
 
 ;;; Editing a Draft (:group 'mh-letter)
-
-(defcustom mh-mml-method-default (if mh-gnus-pgp-support-flag "pgpmime" "none")
-  "Default method to use in security directives."
-  :type '(choice (const :tag "PGP (MIME)" "pgpmime")
-                 (const :tag "PGP" "pgp")
-                 (const :tag "S/MIME" "smime")
-                 (const :tag "None" "none"))
-  :group 'mh-letter)
-
-(defcustom mh-compose-forward-as-mime-flag t
-  "Non-nil means that messages are forwarded as a MIME part."
-  :type 'boolean
-  :group 'mh-letter)
 
 (defcustom mh-compose-insertion (if (locate-library "mml") 'gnus 'mhn)
   "Type of MIME message directives in messages.
@@ -761,11 +805,6 @@ by \\<mh-letter-mode-map>\\[mh-insert-letter] or \\[mh-yank-cur-msg]."
   :type 'string
   :group 'mh-letter)
 
-(defcustom mh-insert-x-mailer-flag t
-  "*Non-nil means append an X-Mailer field to the header."
-  :type 'boolean
-  :group 'mh-letter)
-
 (defcustom mh-letter-complete-function 'ispell-complete-word
   "*Function to call when completing outside of address or folder fields.
 By default, this is set to `ispell-complete-word'."
@@ -780,16 +819,12 @@ and it's best to avoid quoted lines that span more than 80 columns."
   :type 'integer
   :group 'mh-letter)
 
-(defcustom mh-reply-show-message-flag t
-  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
-
-The setting of this variable determines whether the MH `show-buffer' is
-displayed with the current message when using `mh-reply' without a prefix
-argument.  Set it to nil if you already include the message automatically
-in your draft using
- repl: -filter repl.filter
-in your ~/.mh_profile file."
-  :type 'boolean
+(defcustom mh-mml-method-default (if mh-gnus-pgp-support-flag "pgpmime" "none")
+  "Default method to use in security directives."
+  :type '(choice (const :tag "PGP (MIME)" "pgpmime")
+                 (const :tag "PGP" "pgp")
+                 (const :tag "S/MIME" "smime")
+                 (const :tag "None" "none"))
   :group 'mh-letter)
 
 (defcustom mh-signature-file-name "~/.signature"
@@ -881,14 +916,14 @@ If nil, yank only the portion of the message following the point.
 If the show buffer has a region, this variable is ignored unless its value is
 one of `attribution' or `autoattrib' in which case the attribution is added
 to the yanked region."
-  :type '(choice (const :tag "Below point" nil)
-                 (const :tag "Without header" body)
+  :type '(choice (const :tag "Body and Header" t)
+                 (const :tag "Body" body)
+                 (const :tag "Below Point" nil)
                  (const :tag "Invoke supercite" supercite)
-                 (const :tag "Invoke supercite, automatically" autosupercite)
-                 (const :tag "Without header, with attribution" attribution)
-                 (const :tag "Without header, with attribution, automatically"
-                        autoattrib)
-                 (const :tag "Entire message with headers" t))
+                 (const :tag "Invoke supercite, Automatically" autosupercite)
+                 (const :tag "Body With Attribution" attribution)
+                 (const :tag "Body With Attribution, Automatically"
+                        autoattrib))
   :group 'mh-letter)
 
 
@@ -947,6 +982,11 @@ for relative to the `mh-progs' directory unless it is an absolute pathname."
 
 ;;; Sending Mail (:group 'mh-sending-mail)
 
+(defcustom mh-compose-forward-as-mime-flag t
+  "Non-nil means that messages are forwarded as a MIME part."
+  :type 'boolean
+  :group 'mh-sending-mail)
+
 (defcustom mh-compose-letter-function nil
   "Invoked when setting up a letter draft.
 It is passed three arguments: TO recipients, SUBJECT, and CC recipients."
@@ -965,6 +1005,11 @@ message and the original subject line."
   :type 'string
   :group 'mh-sending-mail)
 
+(defcustom mh-insert-x-mailer-flag t
+  "*Non-nil means append an X-Mailer field to the header."
+  :type 'boolean
+  :group 'mh-sending-mail)
+
 (defcustom mh-reply-default-reply-to nil
   "*Sets the person or persons to whom a reply will be sent.
 If nil, prompt for recipient.  If non-nil, then \\<mh-folder-mode-map>`\\[mh-reply]' will use this
@@ -973,6 +1018,18 @@ The values \"cc\" and \"all\" do the same thing."
   :type '(choice (const :tag "Prompt" nil)
                  (const "from") (const "to")
                  (const "cc") (const "all"))
+  :group 'mh-sending-mail)
+
+(defcustom mh-reply-show-message-flag t
+  "*Non-nil means the show buffer is displayed using \\<mh-letter-mode-map>\\[mh-reply].
+
+The setting of this variable determines whether the MH `show-buffer' is
+displayed with the current message when using `mh-reply' without a prefix
+argument.  Set it to nil if you already include the message automatically
+in your draft using
+ repl: -filter repl.filter
+in your ~/.mh_profile file."
+  :type 'boolean
   :group 'mh-sending-mail)
 
 
@@ -1120,6 +1177,7 @@ The gnus method uses a different color for each indentation."
     "Delivered-To:"              ; Egroups/yahoogroups mailing list manager
     "Delivery-Date:"                    ; MH
     "Delivery:"
+    "DomainKey-Signature:"              ;http://antispam.yahoo.com/domainkeys
     "Encoding:"
     "Envelope-to:"
     "Errors-To:"
@@ -1188,6 +1246,7 @@ The gnus method uses a different color for each indentation."
     "X-Envelope-From:"
     "X-Envelope-Sender:"
     "X-Envelope-To:"
+    "X-Evolution:"			; Evolution mail client
     "X-Face:"
     "X-Folder:"                         ; Spam
     "X-From-Line"
@@ -1264,6 +1323,7 @@ The gnus method uses a different color for each indentation."
     "X-Trace:"
     "X-UID"
     "X-UIDL:"
+    "X-USANET-"                         ; usa.net
     "X-UserInfo1:"
     "X-VSMLoop:"                        ; NTMail
     "X-Vms-To:"
@@ -1527,13 +1587,13 @@ Optional argument ARG is not used."
 (defun mh-tool-bar-folder-help ()
   "Visit \"(mh-e)Top\"."
   (interactive)
-  (Info-goto-node "(mh-e)Top")
+  (info "(mh-e)Top")
   (delete-other-windows))
 
 (defun mh-tool-bar-letter-help ()
   "Visit \"(mh-e)Draft Editing\"."
   (interactive)
-  (Info-goto-node "(mh-e)Draft Editing")
+  (info "(mh-e)Draft Editing")
   (delete-other-windows))
 
 (defmacro mh-tool-bar-reply-generator (function recipient folder-buffer-flag)
@@ -1907,9 +1967,9 @@ This button runs `mh-previous-undeleted-msg'")
   ;; Common buttons
   (mh-tool-bar-customize (folder letter) "preferences" "MH-E Preferences")
   (mh-tool-bar-folder-help (folder) "help"
-    "Help! (general help)\nThis button runs `Info-goto-node'")
+    "Help! (general help)\nThis button runs `info'")
   (mh-tool-bar-letter-help (letter) "help"
-    "Help! (general help)\nThis button runs `Info-goto-node'")
+    "Help! (general help)\nThis button runs `info'")
   ;; Folder narrowed to sequence buttons
   (mh-widen (sequence) "widen"
     "Widen from the sequence\nThis button runs `mh-widen'"))
@@ -2085,7 +2145,7 @@ will be removed from the unseen sequence."
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
 (defvar mh-folder-body-face 'mh-folder-body-face
-  "Face for highlighting body text in MH-Folder buffers.")
+  "Face used to highlight body text in MH-Folder buffers.")
 (defface mh-folder-body-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
@@ -2093,11 +2153,11 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
-  "Face for highlighting body text in MH-Folder buffers."
+  "Face used to highlight body text in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-face 'mh-folder-cur-msg-face
-  "Face for the current message line in MH-Folder buffers.")
+  "Face used for the current message line in MH-Folder buffers.")
 (defface mh-folder-cur-msg-face
   '((((type tty pc) (class color))
      (:background "LightGreen"))
@@ -2108,11 +2168,11 @@ will be removed from the unseen sequence."
     (((class color) (background dark))
      (:background "DarkOliveGreen4"))
     (t (:underline t)))
-  "Face for the current message line in MH-Folder buffers."
+  "Face used for the current message line in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number-face
-  "Face for highlighting the current message in MH-Folder buffers.")
+  "Face used to highlight the current message in MH-Folder buffers.")
 (defface mh-folder-cur-msg-number-face
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
@@ -2120,11 +2180,11 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
-  "Face for highlighting the current message in MH-Folder buffers."
+  "Face used to highlight the current message in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-date-face 'mh-folder-date-face
-  "Face for highlighting the date in MH-Folder buffers.")
+  "Face used to highlight the date in MH-Folder buffers.")
 (defface mh-folder-date-face
   '((((class color) (background light))
      (:foreground "snow4"))
@@ -2132,11 +2192,11 @@ will be removed from the unseen sequence."
      (:foreground "snow3"))
     (t
      (:bold t)))
-  "Face for highlighting the date in MH-Folder buffers."
+  "Face used to highlight the date in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-followup-face 'mh-folder-followup-face
-  "Face for highlighting Re: (followup) subject text in MH-Folder buffers.")
+  "Face used to highlight Re: subject text in MH-Folder buffers.")
 (defface mh-folder-followup-face
   '((((class color) (background light))
      (:foreground "blue3"))
@@ -2144,11 +2204,11 @@ will be removed from the unseen sequence."
      (:foreground "LightGoldenRod"))
     (t
      (:bold t)))
-  "Face for highlighting Re: (followup) subject text in MH-Folder buffers."
+  "Face used to highlight Re: subject text in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-msg-number-face 'mh-folder-msg-number-face
-  "Face for highlighting the message number in MH-Folder buffers.")
+  "Face used to highlight the message number in MH-Folder buffers.")
 (defface mh-folder-msg-number-face
   '((((class color) (background light))
      (:foreground "snow4"))
@@ -2156,15 +2216,15 @@ will be removed from the unseen sequence."
      (:foreground "snow3"))
     (t
      (:bold t)))
-  "Face for highlighting the message number in MH-Folder buffers."
+  "Face used to highlight the message number in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-deleted-face 'mh-folder-deleted-face
-  "Face for highlighting deleted messages in MH-Folder buffers.")
+  "Face used to highlight deleted messages in MH-Folder buffers.")
 (copy-face 'mh-folder-msg-number-face 'mh-folder-deleted-face)
 
 (defvar mh-folder-refiled-face 'mh-folder-refiled-face
-  "Face for highlighting refiled messages in MH-Folder buffers.")
+  "Face used to highlight refiled messages in MH-Folder buffers.")
 (defface mh-folder-refiled-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class grayscale) (background light))
@@ -2174,11 +2234,11 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
-  "Face for highlighting refiled messages in MH-Folder buffers."
+  "Face used to highlight refiled messages in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-subject-face 'mh-folder-subject-face
-  "Face for highlighting subject text in MH-Folder buffers.")
+  "Face used to highlight subject text in MH-Folder buffers.")
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-folder"))
 (defface mh-folder-subject-face
@@ -2188,7 +2248,7 @@ will be removed from the unseen sequence."
      (:foreground "yellow"))
     (t
      (:bold t)))
-  "Face for highlighting subject text in MH-Folder buffers."
+  "Face used to highlight subject text in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 (defface mh-folder-tick-face
@@ -2199,15 +2259,15 @@ will be removed from the unseen sequence."
   :group 'mh-folder-faces)
 
 (defvar mh-folder-address-face 'mh-folder-address-face
-  "Face for highlighting the address in MH-Folder buffers.")
+  "Face used to highlight the address in MH-Folder buffers.")
 (copy-face 'mh-folder-subject-face 'mh-folder-address-face)
 
 (defvar mh-folder-scan-format-face 'mh-folder-scan-format-face
-  "Face for highlighting `mh-scan-format-regexp' matches in MH-Folder buffers.")
+  "Face used to highlight `mh-scan-format-regexp' matches in MH-Folder buffers.")
 (copy-face 'mh-folder-followup-face 'mh-folder-scan-format-face)
 
 (defvar mh-folder-to-face 'mh-folder-to-face
-  "Face for highlighting the To: string in MH-Folder buffers.")
+  "Face used to highlight the To: string in MH-Folder buffers.")
 (defface mh-folder-to-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
@@ -2215,7 +2275,7 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
-  "Face for highlighting the To: string in MH-Folder buffers."
+  "Face used to highlight the To: string in MH-Folder buffers."
   :group 'mh-folder-faces)
 
 
@@ -2223,7 +2283,7 @@ will be removed from the unseen sequence."
 ;;; Faces Used in Searching (:group 'mh-index-faces)
 
 (defvar mh-index-folder-face 'mh-index-folder-face
-  "Face for highlighting folders in MH-Index buffers.")
+  "Face used to highlight folders in MH-Index buffers.")
 (defface mh-index-folder-face
   '((((class color) (background light))
      (:foreground "dark green" :bold t))
@@ -2231,7 +2291,7 @@ will be removed from the unseen sequence."
      (:foreground "indian red" :bold t))
     (t
      (:bold t)))
-  "Face for highlighting folders in MH-Index buffers."
+  "Face used to highlight folders in MH-Index buffers."
   :group 'mh-index-faces)
 
 
@@ -2244,7 +2304,7 @@ will be removed from the unseen sequence."
     (((class color) (background dark))
      (:background "gray10"))
     (t (:bold t)))
-  "Face for displaying header fields in draft buffers."
+  "Face used to display header fields in draft buffers."
   :group 'mh-letter-faces)
 
 
@@ -2252,7 +2312,7 @@ will be removed from the unseen sequence."
 ;;; Faces Used in Message Display (:group 'mh-show-faces)
 
 (defvar mh-show-cc-face 'mh-show-cc-face
-  "Face for highlighting cc header fields.")
+  "Face used to highlight cc: header fields.")
 (defface mh-show-cc-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class grayscale) (background light))
@@ -2262,11 +2322,11 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
-  "Face for highlighting cc header fields."
+  "Face used to highlight cc: header fields."
   :group 'mh-show-faces)
 
 (defvar mh-show-date-face 'mh-show-date-face
-  "Face for highlighting the Date header field.")
+  "Face used to highlight the Date: header field.")
 (defface mh-show-date-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "Gray90" :bold t))
@@ -2274,7 +2334,7 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
-  "Face for highlighting the Date header field."
+  "Face used to highlight the Date: header field."
   :group 'mh-show-faces)
 
 (defvar mh-show-header-face 'mh-show-header-face
@@ -2289,13 +2349,36 @@ will be removed from the unseen sequence."
   "Face used to deemphasize unspecified header fields."
   :group 'mh-show-faces)
 
+(defvar mh-show-pgg-good-face 'mh-show-pgg-good-face
+  "Face used to highlight a good PGG signature.")
+(defface mh-show-pgg-good-face
+  '((t (:bold t :foreground "LimeGreen")))
+  "Face used to highlight a good PGG signature."
+  :group 'mh-show-faces)
+
+(defvar mh-show-pgg-unknown-face 'mh-show-pgg-unknown-face
+  "Face used to highlight a PGG signature whose status is unknown.
+This face is also used for a signature when the signer is untrusted.")
+(defface mh-show-pgg-unknown-face
+  '((t (:bold t :foreground "DarkGoldenrod2")))
+  "Face used to highlight a PGG signature whose status is unknown.
+This face is also used for a signature when the signer is untrusted."
+  :group 'mh-show-faces)
+
+(defvar mh-show-pgg-bad-face 'mh-show-pgg-bad-face
+  "Face used to highlight a bad PGG signature.")
+(defface mh-show-pgg-bad-face
+  '((t (:bold t :foreground "DeepPink1")))
+  "Face used to highlight a bad PGG signature."
+  :group 'mh-show-faces)
+
 (defface mh-show-signature-face
   '((t (:italic t)))
-  "Face for highlighting message signature."
+  "Face used to highlight the message signature."
   :group 'mh-show-faces)
 
 (defvar mh-show-to-face 'mh-show-to-face
-  "Face for highlighting the To: header field.")
+  "Face used to highlight the To: header field.")
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-show"))
 (defface mh-show-to-face
@@ -2306,11 +2389,11 @@ will be removed from the unseen sequence."
     (((class color) (background light)) (:foreground "SaddleBrown"))
     (((class color) (background dark))  (:foreground "burlywood"))
     (t (:underline t)))
-  "Face for highlighting the To: header field."
+  "Face used to highlight the To: header field."
   :group 'mh-show-faces)
 
 (defvar mh-show-from-face 'mh-show-from-face
-  "Face for highlighting the From: header field.")
+  "Face used to highlight the From: header field.")
 (defface mh-show-from-face
   '((((class color) (background light))
      (:foreground "red3"))
@@ -2318,17 +2401,17 @@ will be removed from the unseen sequence."
      (:foreground "cyan"))
     (t
      (:bold t)))
-  "Face for highlighting the From: header field."
+  "Face used to highlight the From: header field."
   :group 'mh-show-faces)
 
 (defface mh-show-xface-face
   '((t (:foreground "black" :background "white")))
-  "Face for displaying the X-Face image.
+  "Face used to display the X-Face image.
 The background and foreground is used in the image."
   :group 'mh-show-faces)
 
 (defvar mh-show-subject-face 'mh-show-subject-face
-  "Face for highlighting the Subject header field.")
+  "Face used to highlight the Subject: header field.")
 (copy-face 'mh-folder-subject-face 'mh-show-subject-face)
 
 

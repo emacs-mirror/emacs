@@ -5128,8 +5128,8 @@ lface_equal_p (v1, v2)
 DEFUN ("internal-lisp-face-equal-p", Finternal_lisp_face_equal_p,
        Sinternal_lisp_face_equal_p, 2, 3, 0,
        doc: /* True if FACE1 and FACE2 are equal.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
+If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
+If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
      (face1, face2, frame)
      Lisp_Object face1, face2, frame;
@@ -5137,8 +5137,8 @@ If FRAME is omitted or nil, use the selected frame.  */)
   int equal_p;
   Lisp_Object lface1, lface2;
 
-  lface1 = lface_from_face_name (NULL, face1, 1);
-  lface2 = lface_from_face_name (NULL, face2, 1);
+  lface1 = lface_from_face_name (f, face1, 1);
+  lface2 = lface_from_face_name (f, face2, 1);
   equal_p = lface_equal_p (XVECTOR (lface1)->contents,
 			   XVECTOR (lface2)->contents);
   return equal_p ? Qt : Qnil;
@@ -6580,12 +6580,12 @@ build_scalable_font_name (f, font, specified_pt)
   if (font->numeric[XLFD_RESY] != 0)
     {
       pt = resy / font->numeric[XLFD_RESY] * specified_pt + 0.5;
-      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt;
+      pixel_value = font->numeric[XLFD_RESY] / (PT_PER_INCH * 10.0) * pt + 0.5;
     }
   else
     {
       pt = specified_pt;
-      pixel_value = resy / (PT_PER_INCH * 10.0) * pt;
+      pixel_value = resy / (PT_PER_INCH * 10.0) * pt + 0.5;
     }
   /* We may need a font of the different size.  */
   pixel_value *= font->rescale_ratio;

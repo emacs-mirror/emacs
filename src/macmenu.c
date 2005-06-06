@@ -602,6 +602,13 @@ list_of_items (pane)
     }
 }
 
+static Lisp_Object
+cleanup_popup_menu (arg)
+     Lisp_Object arg;
+{
+  discard_menu_items ();
+}
+
 DEFUN ("x-popup-menu", Fx_popup_menu, Sx_popup_menu, 2, 2, 0,
        doc: /* Pop up a deck-of-cards menu and return user's selection.
 POSITION is a position specification.  This is either a mouse button
@@ -647,6 +654,8 @@ cached information about equivalent key sequences.  */)
   int keymaps = 0;
   int for_click = 0;
   struct gcpro gcpro1;
+  int specpdl_count = SPECPDL_INDEX ();
+
 
 #ifdef HAVE_MENUS
   if (! NILP (position))
@@ -806,13 +815,13 @@ cached information about equivalent key sequences.  */)
 
 #ifdef HAVE_MENUS
   /* Display them in a menu.  */
+  record_unwind_protect (cleanup_popup_menu, Qnil);
   BLOCK_INPUT;
 
   selection = mac_menu_show (f, xpos, ypos, for_click,
 			     keymaps, title, &error_name);
   UNBLOCK_INPUT;
-
-  discard_menu_items ();
+  unbind_to (specpdl_count, Qnil);
 
   UNGCPRO;
 #endif /* HAVE_MENUS */
@@ -1931,6 +1940,9 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	    }
 	}
     }
+  else if (!for_click)
+    /* Make "Cancel" equivalent to C-g.  */
+    Fsignal (Qquit, Qnil);
 
   return Qnil;
 }

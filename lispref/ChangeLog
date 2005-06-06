@@ -1,3 +1,23 @@
+2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* modes.texi (Major Mode Conventions): A derived mode only needs
+	to put the call to the parent mode inside `delay-mode-hooks'.
+
+2005-05-29  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Hooks): Explain that after-change-major-mode-hook is
+	new, and what that implies.  Clarify.
+
+	* files.texi (Locating Files): Clean up the text.
+
+	* frames.texi (Window Frame Parameters): Document user-size.
+	Shorten entry for top by referring to left.
+
+2005-05-26  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Hooks): Explain that after-change-major-mode-hook
+	is new, and what the implications are.  Other clarifications.
+
 2005-05-24  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Dialog Boxes): Minor fixes.

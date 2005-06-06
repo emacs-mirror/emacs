@@ -842,7 +842,8 @@ the signature is inserted."
     (set-keymap-parent map minibuffer-local-map)
     map)
   "Keymap for `message-read-from-minibuffer'."
-  :version "22.1")
+  :version "22.1"
+  :group 'message-various)
 
 ;;;###autoload
 (defcustom message-citation-line-function 'message-insert-citation-line

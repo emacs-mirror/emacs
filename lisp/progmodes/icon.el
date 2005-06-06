@@ -205,7 +205,7 @@ with no args, if that value is non-nil."
 	  (cons '(icon-mode  "\\<procedure\\>" "\\<end\\>" nil
 			     icon-forward-sexp-function)
 		hs-special-modes-alist)))
-  (run-hooks 'icon-mode-hook))
+  (run-mode-hooks 'icon-mode-hook))
 
 ;; This is used by indent-for-comment to decide how much to
 ;; indent a comment in Icon code based on its context.

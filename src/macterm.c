@@ -6277,9 +6277,10 @@ mac_to_x_fontname (name, size, style, charset)
       strcpy(family, name);
     }
 
-  sprintf(xf, "-%s-%s-%s-%c-normal--%d-%d-75-75-m-%d-%s",
+  sprintf(xf, "-%s-%s-%s-%c-normal--%d-%d-%d-%d-m-%d-%s",
           foundry, family, style & bold ? "bold" : "medium",
-	  style & italic ? 'i' : 'r', size, size * 10, size * 10, charset);
+	  style & italic ? 'i' : 'r', size, size * 10,
+	  size ? 75 : 0, size ? 75 : 0, size * 10, charset);
 
   result = (char *) xmalloc (strlen (xf) + 1);
   strcpy (result, xf);
@@ -6738,7 +6739,7 @@ mac_do_list_fonts (pattern, maxnames)
 	    break;
 	}
       else if (scl_val[XLFD_SCL_PIXEL_SIZE] > 0
-	       && (ptr = strstr (font_name_table[i], "-0-0-75-75-m-0-")))
+	       && (ptr = strstr (font_name_table[i], "-0-0-0-0-m-0-")))
 	{
 	  int former_len = ptr - font_name_table[i];
 
@@ -6748,7 +6749,7 @@ mac_do_list_fonts (pattern, maxnames)
 		   scl_val[XLFD_SCL_PIXEL_SIZE],
 		   scl_val[XLFD_SCL_POINT_SIZE],
 		   scl_val[XLFD_SCL_AVGWIDTH],
-		   ptr + sizeof ("-0-0-75-75-m-0-") - 1);
+		   ptr + sizeof ("-0-0-0-0-m-0-") - 1);
 	  fontname = mac_c_string_match (pattern_regex, scaled,
 					 nonspecial, exact);
 	  if (!NILP (fontname))

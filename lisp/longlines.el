@@ -39,8 +39,6 @@
 
 ;;; Code:
 
-(require 'easy-mmode)
-
 (defgroup longlines nil
   "Automatic wrapping of long lines when loading files."
   :group 'fill)
@@ -157,7 +155,8 @@ major mode changes."
 
 (defface longlines-visible-face
   '((t (:background "red")))
-  "Face used to make hard newlines visible in `longlines-mode'.")
+  "Face used to make hard newlines visible in `longlines-mode'."
+  :group 'longlines)
 
 (defun longlines-show-hard-newlines (&optional arg)
   "Make hard newlines visible by adding a face.

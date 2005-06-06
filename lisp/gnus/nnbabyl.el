@@ -493,7 +493,7 @@
     (when (re-search-forward "^X-Gnus-Newsgroup: +\\([^:]+\\):\\([0-9]+\\) "
 			     nil t)
       (cons (buffer-substring (match-beginning 1) (match-end 1))
-	    (string-to-int
+	    (string-to-number
 	     (buffer-substring (match-beginning 2) (match-end 2)))))))
 
 (defun nnbabyl-insert-lines ()

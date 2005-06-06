@@ -746,14 +746,14 @@ système se plantait. Pour vous protéger de ce problème, Emacs écrit
 périodiquement un fichier de « sauvegarde automatique » pour chaque
 fichier en cours d'édition. Le nom de ce fichier commence et se
 termine par un # : si, par exemple, votre fichier s'appelle
-« hello.c », son fichier de sauvegarde automatique s'appellera
-« #hello.c# ». Lorsque vous sauvegardez le fichier de la façon
+« hello.c », son fichier de sauvegarde automatique s'appellera
+« #hello.c# ». Lorsque vous sauvegardez le fichier de la façon
 habituelle, Emacs détruit son fichier de sauvegarde automatique.
 
 Si l'ordinateur se plante, vous pouvez récupérer ce qui a été
 sauvegardé automatiquement en ouvrant normalement le fichier (celui
 que vous éditiez, pas la sauvegarde automatique), puis en faisant
-M-x recover file<Entrée>. Lorsqu'Emacs vous demande de confirmer,
+M-x recover file<Entrée>. Lorsqu'Emacs vous demande de confirmer,
 tapez yes<Entrée> pour continuer et récupérer ainsi les données
 sauvées par la sauvegarde automatique.
 
@@ -847,7 +847,7 @@ et que la ligne est trop longue.
 
 Vous pouvez activer le mode Auto Fill en faisant M-x auto fill
 mode<Entrée>.  Lorsqu'il est activé, vous pouvez le désactiver en
-faisant à nouveau M-x auto fill mode<Entrée>.  Si le mode est
+faisant à nouveau M-x auto fill mode<Entrée>.  Si le mode est
 désactivé, cette commande l'active et, s'il est activé, elle le
 désactive : on dit que la commande « fait basculer le mode ».
 
@@ -913,10 +913,10 @@ de mettre fin à la recherche.
 
 REMARQUE : Sur certains systèmes, C-s gèlera l'écran et vous ne verrez
 plus rien se produire dans Emacs.  Cela indique qu'une
-« fonctionnalité » du système d'exploitation, appelée « contrôle de
+« fonctionnalité » du système d'exploitation, appelée « contrôle de
 flux », a intercepté le C-s et ne lui permet pas de parvenir à
 Emacs. Pour décoincer l'écran, faites C-q puis consultez la section
-« Spontaneous Entry to Incremental Search » dans le manuel d'Emacs
+« Spontaneous Entry to Incremental Search » dans le manuel d'Emacs
 pour avoir des avis sur la gestion de cette « fonctionnalité ».
 
 Si vous vous trouvez au milieu d'une recherche incrémentale et que
@@ -924,7 +924,7 @@ vous tapez <Delback>, vous remarquerez que cela supprime le dernier
 caractère de la chaîne recherchée et que la recherche reprend à
 l'endroit où elle se trouvait précédemment. Supposons, par exemple,
 que vous ayiez tapé « c » pour trouver la première occurrence de
-« c ». Si vous tapez maintenant « u », le curseur ira sur la première
+« c ». Si vous tapez maintenant « u », le curseur ira sur la première
 occurrence de « cu ». Faites <Delback> : cela supprime le « u » de la
 chaîne de recherche et le curseur revient à la première occurrence de
 « c ».
@@ -1038,7 +1038,7 @@ de possibilités avec Emacs qu'il serait impossible de tout expliquer
 ici. Cependant, vous pouvez vouloir en apprendre plus, car il a bien
 d'autres fonctionnalités utiles. Emacs dispose de commandes pour lire
 la documentation sur ses commandes. Ces commandes d'« aide »
-commencent toutes par le caractère C-h, le « caractère d'aide ».
+commencent toutes par le caractère C-h, le « caractère d'aide ».
 
 Pour utiliser l'aide, tapez C-h suivi d'un caractère indiquant le type
 d'aide que vous souhaitez. Si vous êtes VRAIMENT perdu, faites C-h ?
@@ -1113,7 +1113,7 @@ leur correspondent, comme find-file.
    C-h i 	Manuels en ligne (alias Info). Cette commande vous place dans
          	un tampon spéciale, appelé « *info* », où vous pouvez
 		lire les manuels en ligne des paquetages installés sur
-		votre système. Faites m emacs <Entrée> pour lire le
+		votre système. Faites m emacs <Entrée> pour lire le
 		manuel d'Emacs. Si vous n'avez jamais utilisé Info
 		auparavant, tapez ? et Emacs vous fera faire une visite
 		guidée des fonctionnalités du mode Info. Lorsque vous
@@ -1133,7 +1133,7 @@ frappe, et dired, qui simplifie la manipulation des fichiers.
 
 La complétion permet d'éviter les frappes inutiles. Si, par exemple,
 vous voulez basculer vers le tampon *Messages*, tapez simplement
-C-x b *M<Tab> et Emacs complètera le nom du tampon s'il peut le
+C-x b *M<Tab> et Emacs complètera le nom du tampon s'il peut le
 déterminer à partir de ce que vous avez saisi avant la tabulation. La
 complétion est décrite dans la version Info du manuel Emacs, à la
 rubrique "Completion".

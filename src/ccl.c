@@ -55,10 +55,12 @@ Lisp_Object Qcode_conversion_map_id;
 Lisp_Object Qccl_program_idx;
 
 /* Table of registered CCL programs.  Each element is a vector of
-   NAME, CCL_PROG, and RESOLVEDP where NAME (symbol) is the name of
-   the program, CCL_PROG (vector) is the compiled code of the program,
-   RESOLVEDP (t or nil) is the flag to tell if symbols in CCL_PROG is
-   already resolved to index numbers or not.  */
+   NAME, CCL_PROG, RESOLVEDP, and UPDATEDP, where NAME (symbol) is the
+   name of the program, CCL_PROG (vector) is the compiled code of the
+   program, RESOLVEDP (t or nil) is the flag to tell if symbols in
+   CCL_PROG is already resolved to index numbers or not, UPDATEDP (t
+   or nil) is the flat to tell if the CCL program is updated after it
+   was once used.  */
 Lisp_Object Vccl_program_table;
 
 /* Vector of registered hash tables for translation.  */
@@ -1850,14 +1852,16 @@ resolve_symbol_ccl_program (ccl)
    symbols, return Qnil.  */
 
 static Lisp_Object
-ccl_get_compiled_code (ccl_prog)
+ccl_get_compiled_code (ccl_prog, idx)
      Lisp_Object ccl_prog;
+     int *idx;
 {
   Lisp_Object val, slot;
 
   if (VECTORP (ccl_prog))
     {
       val = resolve_symbol_ccl_program (ccl_prog);
+      *idx = -1;
       return (VECTORP (val) ? val : Qnil);
     }
   if (!SYMBOLP (ccl_prog))
@@ -1869,9 +1873,10 @@ ccl_get_compiled_code (ccl_prog)
     return Qnil;
   slot = AREF (Vccl_program_table, XINT (val));
   if (! VECTORP (slot)
-      || ASIZE (slot) != 3
+      || ASIZE (slot) != 4
       || ! VECTORP (AREF (slot, 1)))
     return Qnil;
+  *idx = XINT (val);
   if (NILP (AREF (slot, 2)))
     {
       val = resolve_symbol_ccl_program (AREF (slot, 1));
@@ -1900,7 +1905,7 @@ setup_ccl_program (ccl, ccl_prog)
     {
       struct Lisp_Vector *vp;
 
-      ccl_prog = ccl_get_compiled_code (ccl_prog);
+      ccl_prog = ccl_get_compiled_code (ccl_prog, &ccl->idx);
       if (! VECTORP (ccl_prog))
 	return -1;
       vp = XVECTOR (ccl_prog);
@@ -1908,6 +1913,13 @@ setup_ccl_program (ccl, ccl_prog)
       ccl->prog = vp->contents;
       ccl->eof_ic = XINT (vp->contents[CCL_HEADER_EOF]);
       ccl->buf_magnification = XINT (vp->contents[CCL_HEADER_BUF_MAG]);
+      if (ccl->idx >= 0)
+	{
+	  Lisp_Object slot;
+
+	  slot = AREF (Vccl_program_table, ccl->idx);
+	  ASET (slot, 3, Qnil);
+	}
     }
   ccl->ic = CCL_HEADER_MAIN;
   for (i = 0; i < 8; i++)
@@ -1920,6 +1932,33 @@ setup_ccl_program (ccl, ccl_prog)
   ccl->eight_bit_control = 0;
   return 0;
 }
+
+
+/* Check if CCL is updated or not.  If not, re-setup members of CCL.  */
+
+int
+check_ccl_update (ccl)
+     struct ccl_program *ccl;
+{
+  struct Lisp_Vector *vp;
+  Lisp_Object slot, ccl_prog;
+
+  if (ccl->idx < 0)
+    return 0;
+  slot = AREF (Vccl_program_table, ccl->idx);
+  if (NILP (AREF (slot, 3)))
+    return 0;
+  ccl_prog = ccl_get_compiled_code (AREF (slot, 0), &ccl->idx);
+  if (! VECTORP (ccl_prog))
+    return -1;
+  ccl->size = ASIZE (ccl_prog);
+  ccl->prog = XVECTOR (ccl_prog)->contents;
+  ccl->eof_ic = XINT (AREF (ccl_prog, CCL_HEADER_EOF));
+  ccl->buf_magnification = XINT (AREF (ccl_prog, CCL_HEADER_BUF_MAG));
+  ASET (slot, 3, Qnil);
+  return 0;
+}
+
 
 DEFUN ("ccl-program-p", Fccl_program_p, Sccl_program_p, 1, 1, 0,
        doc: /* Return t if OBJECT is a CCL program name or a compiled CCL program code.
@@ -2178,8 +2217,9 @@ Return index number of the registered CCL program.  */)
       if (EQ (name, AREF (slot, 0)))
 	{
 	  /* Update this slot.  */
-	  AREF (slot, 1) = ccl_prog;
-	  AREF (slot, 2) = resolved;
+	  ASET (slot, 1, ccl_prog);
+	  ASET (slot, 2, resolved);
+	  ASET (slot, 3, Qt);
 	  return make_number (idx);
 	}
     }
@@ -2192,19 +2232,19 @@ Return index number of the registered CCL program.  */)
 
       new_table = Fmake_vector (make_number (len * 2), Qnil);
       for (j = 0; j < len; j++)
-	AREF (new_table, j)
-	  = AREF (Vccl_program_table, j);
+	ASET (new_table, j, AREF (Vccl_program_table, j));
       Vccl_program_table = new_table;
     }
 
   {
     Lisp_Object elt;
 
-    elt = Fmake_vector (make_number (3), Qnil);
-    AREF (elt, 0) = name;
-    AREF (elt, 1) = ccl_prog;
-    AREF (elt, 2) = resolved;
-    AREF (Vccl_program_table, idx) = elt;
+    elt = Fmake_vector (make_number (4), Qnil);
+    ASET (elt, 0, name);
+    ASET (elt, 1, ccl_prog);
+    ASET (elt, 2, resolved);
+    ASET (elt, 3, Qt);
+    ASET (Vccl_program_table, idx, elt);
   }
 
   Fput (name, Qccl_program_idx, make_number (idx));

@@ -3750,7 +3750,7 @@ actually used.  */)
   int set_coding_system = 0;
   Lisp_Object coding_system;
   int read_quit = 0;
-  int old_Vdeactivate_mark = Vdeactivate_mark;
+  Lisp_Object old_Vdeactivate_mark = Vdeactivate_mark;
   int we_locked_file = 0;
 
   if (current_buffer->base_buffer && ! NILP (visit))

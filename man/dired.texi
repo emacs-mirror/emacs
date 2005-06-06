@@ -616,7 +616,7 @@ Print the specified files (@code{dired-do-print}).  You must specify the
 command to print them with, but the minibuffer starts out with a
 suitable guess made using the variables @code{lpr-command} and
 @code{lpr-switches} (the same variables that @code{lpr-buffer} uses;
-@pxref{Hardcopy}).
+@pxref{Printing}).
 
 @findex dired-do-compress
 @kindex Z @r{(Dired)}

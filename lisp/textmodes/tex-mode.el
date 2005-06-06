@@ -643,19 +643,23 @@ An alternative value is \" . \", if you use a font with a narrow period."
 
 (defface superscript
   '((t :height 0.8)) ;; :raise 0.3
-  "Face used for superscripts.")
+  "Face used for superscripts."
+  :group 'tex)
 (defface subscript
   '((t :height 0.8)) ;; :raise -0.3
-  "Face used for subscripts.")
+  "Face used for subscripts."
+  :group 'tex)
 
 (defface tex-math-face
   '((t :inherit font-lock-string-face))
-  "Face used to highlight TeX math expressions.")
+  "Face used to highlight TeX math expressions."
+  :group 'tex)
 (defvar tex-math-face 'tex-math-face)
 (defface tex-verbatim-face
   ;; '((t :inherit font-lock-string-face))
   '((t :family "courier"))
-  "Face used to highlight TeX verbatim environments.")
+  "Face used to highlight TeX verbatim environments."
+  :group 'tex)
 (defvar tex-verbatim-face 'tex-verbatim-face)
 
 ;; Use string syntax but math face for $...$.
@@ -1623,7 +1627,8 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 
 (defcustom tex-use-reftex t
   "If non-nil, use RefTeX's list of files to determine what command to use."
-  :type 'boolean)
+  :type 'boolean
+  :group 'tex)
 
 (defvar tex-compile-commands
   '(((concat "pdf" tex-command
@@ -2227,8 +2232,7 @@ is provided, use the alternative command, `tex-alt-dvi-print-command'."
         (tex-start-shell))
       (tex-send-command
        (if alt tex-alt-dvi-print-command tex-dvi-print-command)
-       (shell-quote-argument
-	print-file-name-dvi)
+       print-file-name-dvi
        t))))
 
 (defun tex-alt-print ()

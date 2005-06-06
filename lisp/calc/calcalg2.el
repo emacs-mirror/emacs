@@ -202,6 +202,8 @@
 (defvar math-deriv-var)
 (defvar math-deriv-total)
 (defvar math-deriv-symb)
+(defvar math-decls-cache)
+(defvar math-decls-all)
 
 (defun math-derivative (expr)
   (cond ((equal expr math-deriv-var)

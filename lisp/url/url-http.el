@@ -500,7 +500,8 @@ should be shown to the user."
 		 (url-request-data url-http-data)
 		 (url-request-extra-headers url-http-extra-headers))
 	     (url-retrieve redirect-uri url-callback-function
-			   url-callback-arguments)
+			   (cons redirect-uri
+				 (cdr url-callback-arguments)))
 	     (url-mark-buffer-as-dead (current-buffer))))))
       (4				; Client error
        ;; 400 Bad Request
@@ -849,7 +850,7 @@ the end of the document."
 		  (url-display-percentage nil nil)
 		  (goto-char (match-end 1))
 		  (if (re-search-forward "^\r*$" nil t)
-		      (message "Saw end of trailers..."))
+		      (url-http-debug "Saw end of trailers..."))
 		  (if (url-http-parse-headers)
 		      (url-http-activate-callback))))))))))
 

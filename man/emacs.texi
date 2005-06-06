@@ -191,9 +191,7 @@ Advanced Features
 * Gnus::	        How to read netnews with Emacs.
 * Shell::	        Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
-* Hardcopy::	        Printing buffers or regions.
-* PostScript::	        Printing buffers or regions as PostScript.
-* PostScript Variables::Customizing the PostScript printing commands.
+* Printing::	        Printing hardcopies of buffers or regions.
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.

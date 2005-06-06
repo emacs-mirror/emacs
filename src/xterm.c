@@ -906,6 +906,7 @@ x_encode_char (c, char2b, font_info, charset, two_byte_p)
       /* It's a program.  */
       struct ccl_program *ccl = font_info->font_encoder;
 
+      check_ccl_update (ccl);
       if (CHARSET_DIMENSION (charset) == 1)
 	{
 	  ccl->reg[0] = CHARSET_ID (charset);
@@ -6782,18 +6783,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           {
             dpyinfo->grabbed |= (1 << event.xbutton.button);
             last_mouse_frame = f;
-            /* Ignore any mouse motion that happened
-               before this event; any subsequent mouse-movement
-               Emacs events should reflect only motion after
-               the ButtonPress.  */
-            if (f != 0)
-              f->mouse_moved = 0;
 
             if (!tool_bar_p)
               last_tool_bar_item = -1;
           }
         else
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+
+	/* Ignore any mouse motion that happened before this event;
+	   any subsequent mouse-movement Emacs events should reflect
+	   only motion after the ButtonPress/Release.  */
+	if (f != 0)
+	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
         f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);

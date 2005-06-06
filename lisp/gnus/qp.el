@@ -69,9 +69,9 @@ them into characters should be done separately."
 	  (cond ((eq (char-after (1+ (point))) ?\n)
 		 (delete-char 2))
 		((looking-at "=[0-9A-F][0-9A-F]")
-		 (let ((byte (string-to-int (buffer-substring (1+ (point))
-							      (+ 3 (point)))
-					    16)))
+		 (let ((byte (string-to-number (buffer-substring (1+ (point))
+								 (+ 3 (point)))
+					       16)))
 		   (mm-insert-byte byte 1)
 		   (delete-char 3)))
 		(t

@@ -1,6 +1,6 @@
 ;;; gnus-salt.el --- alternate summary mode interfaces for Gnus
 
-;; Copyright (C) 1996, 1997, 1998, 1999, 2001
+;; Copyright (C) 1996, 1997, 1998, 1999, 2001, 2002, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -496,7 +496,7 @@ Two predefined functions are available:
     (gnus-set-work-buffer)
     (gnus-tree-node-insert (make-mail-header "") nil)
     (setq gnus-tree-node-length (1- (point))))
-  (gnus-run-hooks 'gnus-tree-mode-hook))
+  (gnus-run-mode-hooks 'gnus-tree-mode-hook))
 
 (defun gnus-tree-read-summary-keys (&optional arg)
   "Read a summary buffer key sequence and execute it."
@@ -1009,7 +1009,7 @@ The following commands are available:
   (buffer-disable-undo)
   (setq buffer-read-only t)
   (make-local-variable 'gnus-carpal-attached-buffer)
-  (gnus-run-hooks 'gnus-carpal-mode-hook))
+  (gnus-run-mode-hooks 'gnus-carpal-mode-hook))
 
 (defun gnus-carpal-setup-buffer (type)
   (let ((buffer (symbol-value (intern (format "gnus-carpal-%s-buffer" type)))))

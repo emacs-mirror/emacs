@@ -509,7 +509,7 @@ are supported for %s."
 	 (t
 	  (if (null args)
 	      (error 'wrong-number-of-arguments #'my-format n fstring))
-	  (let* ((minlen (string-to-int (or (match-string 2) "")))
+	  (let* ((minlen (string-to-number (or (match-string 2) "")))
 		 (arg (car args))
 		 (str (if (stringp arg) arg (format "%s" arg)))
 		 (lpad (null (match-string 1)))

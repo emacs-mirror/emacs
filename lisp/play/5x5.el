@@ -178,10 +178,10 @@ The key bindings for 5x5-mode are:
   (use-local-map 5x5-mode-map)
   (setq major-mode '5x5-mode
         mode-name  "5x5")
-  (run-hooks '5x5-mode-hook)
+  (run-mode-hooks '5x5-mode-hook)
   (setq buffer-read-only t
         truncate-lines   t)
-  (buffer-disable-undo (current-buffer)))
+  (buffer-disable-undo))
 
 ;;;###autoload
 (defun 5x5 (&optional size)

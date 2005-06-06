@@ -830,7 +830,7 @@ with no args, if that value is non-nil."
   (set (make-local-variable 'end-of-defun-function) 'f90-end-of-subprogram)
   (set (make-local-variable 'add-log-current-defun-function)
        #'f90-current-defun)
-  (run-hooks 'f90-mode-hook))
+  (run-mode-hooks 'f90-mode-hook))
 
 
 ;; Inline-functions.

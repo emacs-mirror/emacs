@@ -61,7 +61,7 @@ if that value is non-nil."
   (use-local-map describe-text-mode-map)
   (widget-setup)
   (add-hook 'change-major-mode-hook 'font-lock-defontify nil t)
-  (run-hooks 'describe-text-mode-hook))
+  (run-mode-hooks 'describe-text-mode-hook))
 
 ;;; Describe-Text Utilities.
 

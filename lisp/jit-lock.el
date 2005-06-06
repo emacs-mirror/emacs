@@ -298,7 +298,7 @@ Only applies to the current buffer."
   "Fontify current buffer starting at position START.
 This function is added to `fontification-functions' when `jit-lock-mode'
 is active."
-  (when jit-lock-mode
+  (when (and jit-lock-mode (not (memory-full-p)))
     (if (null jit-lock-defer-time)
 	;; No deferral.
 	(jit-lock-fontify-now start (+ start jit-lock-chunk-size))
@@ -540,7 +540,7 @@ is the pre-change length.
 This function ensures that lines following the change will be refontified
 in case the syntax of those lines has changed.  Refontification
 will take place when text is fontified stealthily."
-  (when jit-lock-mode
+  (when (and jit-lock-mode (not (memory-full-p)))
     (save-excursion
       (with-buffer-prepared-for-jit-lock
        ;; It's important that the `fontified' property be set from the

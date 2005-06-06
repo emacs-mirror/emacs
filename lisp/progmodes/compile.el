@@ -231,9 +231,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (makepp
      "^makepp: \\(?:\\(?:warning\\(:\\).*?\\|\\(Scanning\\|[LR]e?l?oading makefile\\) \\|.*?\\)\
-`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)'\\)"
+`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]\\)"
      4 5 nil (1 . 2) 3
-     ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)'" nil nil
+     ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]" nil nil
       (2 compilation-info-face)
       (3 compilation-line-face nil t)
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
@@ -935,12 +935,20 @@ Returns the compilation buffer created."
 		    (substitute-env-vars (match-string 1 command))
 		  "~")
 	      default-directory))
+	;; Select the desired mode.
+	(if (not (eq mode t))
+	    (funcall mode)
+	  (setq buffer-read-only nil)
+	  (with-no-warnings (comint-mode))
+	  (compilation-shell-minor-mode))
+	(if highlight-regexp
+	    (set (make-local-variable 'compilation-highlight-regexp)
+		 highlight-regexp))
 	(erase-buffer)
-	;; output a mode setter, for saving and later reloading this buffer
+	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n")
-	(setq thisdir default-directory))
+		" -*-\n" command "\n")	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.
@@ -963,14 +971,6 @@ Returns the compilation buffer created."
 	      ;; don't override users' setting of $EMACS.
 	      (unless (getenv "EMACS") '("EMACS=t"))
 	      (copy-sequence process-environment))))
-	(if (not (eq mode t))
-	    (funcall mode)
-	  (setq buffer-read-only nil)
-	  (with-no-warnings (comint-mode))
-	  (compilation-shell-minor-mode))
-	(if highlight-regexp
-	    (set (make-local-variable 'compilation-highlight-regexp)
-		 highlight-regexp))
 	(set (make-local-variable 'compilation-arguments)
 	     (list command mode name-function highlight-regexp))
 	(set (make-local-variable 'revert-buffer-function)

@@ -76,7 +76,7 @@ See the command `recentf-save-list'."
   :type 'file)
 
 (defcustom recentf-exclude nil
-"*List of regexps and predicates for filenames excluded from the recent list.
+  "*List of regexps and predicates for filenames excluded from the recent list.
 When a filename matches any of the regexps or satisfies any of the
 predicates it is excluded from the recent list.
 A predicate is a function that is passed a filename to check and that

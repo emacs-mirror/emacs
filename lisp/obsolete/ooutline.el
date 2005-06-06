@@ -224,7 +224,7 @@ Turning on outline mode calls the value of `text-mode-hook' and then of
   (setq font-lock-defaults '(outline-font-lock-keywords t))
   (make-local-variable 'change-major-mode-hook)
   (add-hook 'change-major-mode-hook 'show-all)
-  (run-hooks 'text-mode-hook 'outline-mode-hook))
+  (run-mode-hooks 'text-mode-hook 'outline-mode-hook))
 
 (defcustom outline-minor-mode-prefix "\C-c@"
   "*Prefix key to use for Outline commands in Outline minor mode.

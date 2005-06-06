@@ -2335,6 +2335,7 @@ movement commands will not work correctly."
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-left]")
 	       'help-echo "mouse-2: scroll left"
+	       'mouse-face 'mode-line-highlight
 	       'keymap (make-mode-line-mouse-map 'mouse-2
 						 'mouse-scroll-calendar-left))
    "Calendar"
@@ -2343,12 +2344,14 @@ movement commands will not work correctly."
      (substitute-command-keys
       "\\<calendar-mode-map>\\[calendar-goto-info-node] info")
      'help-echo "mouse-2: read Info on Calendar"
+     'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map 'mouse-2 'calendar-goto-info-node))
     "/"
     (propertize
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-other-month] other")
      'help-echo "mouse-2: choose another month"
+     'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map
 	      'mouse-2 'mouse-calendar-other-month))
     "/"
@@ -2356,11 +2359,13 @@ movement commands will not work correctly."
      (substitute-command-keys
      "\\<calendar-mode-map>\\[calendar-goto-today] today")
      'help-echo "mouse-2: go to today's date"
+     'mouse-face 'mode-line-highlight
      'keymap (make-mode-line-mouse-map 'mouse-2 #'calendar-goto-today)))
    '(calendar-date-string (calendar-current-date) t)
    (propertize (substitute-command-keys
 		"\\<calendar-mode-map>\\[scroll-calendar-right]")
 	       'help-echo "mouse-2: scroll right"
+	       'mouse-face 'mode-line-highlight
 	       'keymap (make-mode-line-mouse-map
 			'mouse-2 'mouse-scroll-calendar-right)))
   "The mode line of the calendar buffer.

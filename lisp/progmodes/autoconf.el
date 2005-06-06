@@ -103,7 +103,7 @@ searching backwards at another AC_... command."
   (set (make-local-variable 'indent-line-function) #'indent-relative)
   (set (make-local-variable 'add-log-current-defun-function)
 	#'autoconf-current-defun-function)
-  (run-hooks 'autoconf-mode-hook))
+  (run-mode-hooks 'autoconf-mode-hook))
 
 (provide 'autoconf-mode)
 

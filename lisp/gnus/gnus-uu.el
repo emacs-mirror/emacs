@@ -1185,7 +1185,7 @@ When called interactively, prompt for REGEXP."
 	  (ignore-errors
 	    (replace-match
 	     (format "%06d"
-		     (string-to-int (buffer-substring
+		     (string-to-number (buffer-substring
 				     (match-beginning 0) (match-end 0)))))))
 	(setq string (buffer-substring 1 (point-max)))
 	(setcar (car string-list) string)

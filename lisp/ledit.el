@@ -152,7 +152,7 @@ do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (use-local-map ledit-mode-map)
   (setq mode-name "Ledit")
   (setq major-mode 'ledit-mode)
-  (run-hooks 'ledit-mode-hook))
+  (run-mode-hooks 'ledit-mode-hook))
 
 (provide 'ledit)
 

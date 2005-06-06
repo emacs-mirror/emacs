@@ -656,7 +656,7 @@ to show always.
 	truncate-lines t
 	font-lock-defaults '(bs-mode-font-lock-keywords t)
 	font-lock-verbose nil)
-  (run-hooks 'bs-mode-hook))
+  (run-mode-hooks 'bs-mode-hook))
 
 (defun bs-kill ()
   "Let buffer disappear and reset window-configuration."

@@ -68,7 +68,7 @@ This functions runs the normal hook `rmail-edit-mode-hook'.
       (save-excursion
 	(set-buffer rmail-summary-buffer)
 	(rmail-summary-disable)))
-  (run-hooks 'rmail-edit-mode-hook))
+  (run-mode-hooks 'rmail-edit-mode-hook))
 
 (defvar rmail-old-pruned nil)
 (put 'rmail-old-pruned 'permanent-local t)

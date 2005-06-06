@@ -3,7 +3,7 @@
 ;; Copyright (C) 1993, 1997, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: 1993 Barry A. Warsaw <bwarsaw@python.org>
-;; Maintainer:    FSF
+;; Maintainer:    Glenn Morris <gmorris@ast.cam.ac.uk>
 ;; Created:       February 1993
 ;; Last Modified: 1993/09/22 18:58:46
 ;; Keywords: mail, news
@@ -1182,8 +1182,11 @@ to the auto-selected attribution string."
 	      (setq attribution attrib
 		    attriblist nil))
 	     ((listp attrib)
-	      (setq attribution (eval attrib)
-		    attriblist nil))
+	      (setq attribution (eval attrib))
+              (if (stringp attribution)
+                  (setq attriblist nil)
+                (setq attribution nil
+                      attriblist (cdr attriblist))))
 	     (t (error "%s did not evaluate to a string or list!"
 		       "sc-attrib-selection-list"))
 	     )))
@@ -1667,7 +1670,7 @@ header style to use, unless not supplied or invalid, in which case
 	      (major-mode 'sc-electric-mode))
 	  (use-local-map sc-electric-mode-map)
 	  (sc-eref-show sc-eref-style)
-	  (run-hooks 'sc-electric-mode-hook)
+	  (run-mode-hooks 'sc-electric-mode-hook)
 	  (recursive-edit)
 	  )))
 

@@ -375,7 +375,7 @@
 ;;;
 ;;;  Load the newly defined keys and clean up
 ;;;
-(eval-current-buffer)
+(eval-buffer)
 (kill-buffer (current-buffer))
 (kill-buffer "*scratch*")
 (kill-buffer "Gold-Keys")

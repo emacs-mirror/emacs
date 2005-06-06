@@ -438,7 +438,7 @@ This is used by `eshell-watch-for-password-prompt'."
 
   (if eshell-first-time-p
       (run-hooks 'eshell-first-time-mode-hook))
-  (run-hooks 'eshell-mode-hook)
+  (run-mode-hooks 'eshell-mode-hook)
   (run-hooks 'eshell-post-command-hook))
 
 (put 'eshell-mode 'mode-class 'special)

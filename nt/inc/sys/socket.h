@@ -102,7 +102,7 @@ struct hostent * sys_gethostbyname (const char * name);
 struct servent * sys_getservbyname (const char * name, const char * proto);
 int sys_getpeername (int s, struct sockaddr *addr, int * namelen);
 int sys_shutdown (int socket, int how);
-int sys_setsockopt (int s, int level, int oname, const char * oval, int olen);
+int sys_setsockopt (int s, int level, int oname, const void * oval, int olen);
 int sys_listen (int s, int backlog);
 int sys_getsockname (int s, struct sockaddr * name, int * namelen);
 int sys_accept (int s, struct sockaddr *addr, int *addrlen);

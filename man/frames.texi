@@ -393,6 +393,14 @@ This menu is for specifying the frame's principal font.
   You can use mouse clicks on window mode lines to select and manipulate
 windows.
 
+  Some areas of the mode line, such as the buffer name and the major
+mode name, have their own special mouse bindings.  These areas are
+highlighted when you hold the mouse over them, and information about
+the special bindings will be displayed (@pxref{Tooltips}).
+
+  You can also click on areas of the mode line that do not have
+special mouse bindings of their own.  This has the following effects:
+
 @table @kbd
 @item Mouse-1
 @kindex Mouse-1 @r{(mode line)}
@@ -419,12 +427,6 @@ horizontally, above the place in the mode line where you click.
 @kindex C-Mouse-2 @r{(scroll bar)}
   @kbd{C-Mouse-2} on a scroll bar splits the corresponding window
 vertically.  @xref{Split Window}.
-
-  The commands above apply to areas of the mode line which do not have
-special mouse bindings of their own.  Some areas, such as the buffer
-name and the major mode name, have their own special mouse bindings.
-Emacs displays information about these bindings when you hold the
-mouse over such a place (@pxref{Tooltips}).
 
 @node Creating Frames
 @section Creating Frames

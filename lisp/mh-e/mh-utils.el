@@ -1,6 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
-;; Copyright (C) 1993, 95, 1997, 2000, 01, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 1993, 1995, 1997,
+;; 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -703,8 +704,8 @@ not pointing to a message."
   (save-excursion
     (beginning-of-line)
     (cond ((looking-at mh-scan-msg-number-regexp)
-           (string-to-int (buffer-substring (match-beginning 1)
-                                            (match-end 1))))
+           (string-to-number (buffer-substring (match-beginning 1)
+                                               (match-end 1))))
           (error-if-no-message
            (error "Cursor not pointing to message"))
           (t nil))))
@@ -1129,8 +1130,7 @@ See also `mh-folder-mode'.
   (make-local-variable 'mh-show-folder-buffer)
   (buffer-disable-undo)
   (setq buffer-read-only t)
-  (use-local-map mh-show-mode-map)
-  (run-hooks 'mh-show-mode-hook))
+  (use-local-map mh-show-mode-map))
 
 (defun mh-show-addr ()
   "Use `goto-address'."
@@ -1673,7 +1673,8 @@ The message is displayed in raw form."
   "Decode >From at beginning of lines for `mh-show-mode'."
   (save-excursion
     (let ((modified (buffer-modified-p))
-          (case-fold-search nil))
+          (case-fold-search nil)
+          (buffer-read-only nil))
       (goto-char (mh-mail-header-end))
       (while (re-search-forward "^>From" nil t)
         (replace-match "From"))

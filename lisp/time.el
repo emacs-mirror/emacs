@@ -200,6 +200,7 @@ depend on `display-time-day-and-date' and `display-time-24hr-format'."
 				  (list :background bg)))))
 	  'face display-time-mail-face
 	  'help-echo "You have new mail; mouse-2: Read mail"
+	  'mouse-face 'mode-line-highlight
 	  'local-map (make-mode-line-mouse-map 'mouse-2
 					       read-mail-command)))
       ""))
@@ -293,6 +294,7 @@ update which can wait for the next redisplay."
 			  (concat (substring str 0 -2) "." (substring str -2))
 			  'local-map (make-mode-line-mouse-map
 				      'mouse-2 'display-time-next-load-average)
+			  'mouse-face 'mode-line-highlight
 			  'help-echo (concat
 				      "System load average for past "
 				      (if (= 0 display-time-load-average)

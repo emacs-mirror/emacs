@@ -631,7 +631,7 @@ For example, to retrieve the second element of a user's record in
 	    (if (and value
 		     (stringp value)
 		     (file-directory-p value))
-		(concat varname (char-to-string directory-sep-char))
+		(concat varname "/")
 	      varname))))
        (eshell-envvar-names (eshell-environment-variables)))
       (all-completions argname obarray 'boundp)

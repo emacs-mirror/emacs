@@ -1,6 +1,6 @@
 ;;; mh-loaddefs.el --- automatically extracted autoloads
 ;;
-;;; Copyright (C) 2005 Free Software Foundation, Inc.
+;;; Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
 ;;; Author: Bill Wohler <wohler@newt.com>
 ;;; Keywords: mail
 ;;; Commentary:
@@ -13,7 +13,7 @@
 ;;;;;;  mh-check-whom mh-insert-signature mh-to-fcc mh-to-field mh-fill-paragraph-function
 ;;;;;;  mh-get-header-field mh-send-other-window mh-send mh-reply
 ;;;;;;  mh-redistribute mh-forward mh-extract-rejected-mail mh-edit-again)
-;;;;;;  "mh-comp" "mh-comp.el" (16665 53716))
+;;;;;;  "mh-comp" "mh-comp.el" (17048 51103))
 ;;; Generated autoloads from mh-comp.el
 
 (autoload (quote mh-edit-again) "mh-comp" "\
@@ -56,8 +56,10 @@ to reply to:
    cc/all  sender and all recipients.
 If optional prefix argument INCLUDEP provided, then include the message
 in the reply using filter `mhl.reply' in your MH directory.
-If the file named by `mh-repl-formfile' exists, it is used as a skeleton
-for the reply.
+If the file named by `mh-repl-formfile' exists, it is used as a skeleton for
+the reply. If REPLY-TO is cc or all and you're using either the nmh or GNU
+mailutils variants and the file names by `mh-repl-group-formfile' exists, it
+is used instead.
 
 See also `mh-send'." t nil)
 
@@ -183,7 +185,7 @@ If we are at the first header field go to the start of the message body." t nil)
 ;;;;;;  mh-store-msg mh-undo-folder mh-sort-folder mh-page-digest-backwards
 ;;;;;;  mh-page-digest mh-pipe-msg mh-pack-folder mh-list-folders
 ;;;;;;  mh-kill-folder mh-copy-msg mh-burst-digest) "mh-funcs" "mh-funcs.el"
-;;;;;;  (16671 48788))
+;;;;;;  (17048 47864))
 ;;; Generated autoloads from mh-funcs.el
 
 (autoload (quote mh-burst-digest) "mh-funcs" "\
@@ -261,7 +263,7 @@ Display cheat sheet for the commands of the current prefix in minibuffer." t nil
 ;;;;;;  mh-identity-insert-attribution-verb mh-identity-handler-attribution-verb
 ;;;;;;  mh-identity-handler-signature mh-identity-handler-gpg-identity
 ;;;;;;  mh-insert-identity mh-identity-list-set mh-identity-make-menu)
-;;;;;;  "mh-identity" "mh-identity.el" (16671 57010))
+;;;;;;  "mh-identity" "mh-identity.el" (17044 63778))
 ;;; Generated autoloads from mh-identity.el
 
 (autoload (quote mh-identity-make-menu) "mh-identity" "\
@@ -271,43 +273,46 @@ change." nil nil)
 
 (autoload (quote mh-identity-list-set) "mh-identity" "\
 Update the `mh-identity-list' variable, and rebuild the menu.
-Sets the default for SYMBOL (e.g. `mh-identity-list') to VALUE (as set in
-customization).  This is called after 'customize is used to alter
+Sets the default for SYMBOL (for example, `mh-identity-list') to VALUE (as set
+in customization). This is called after 'customize is used to alter
 `mh-identity-list'." nil nil)
 
 (autoload (quote mh-insert-identity) "mh-identity" "\
-Insert proper fields for given IDENTITY.
-Edit the `mh-identity-list' variable to define identity." t nil)
+Insert fields specified by given IDENTITY.
+See `mh-identity-list'." t nil)
 
 (autoload (quote mh-identity-handler-gpg-identity) "mh-identity" "\
-For FIELD \"pgg-default-user-id\", process for ACTION 'remove or 'add.
+Process header FIELD \":pgg-default-user-id\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
 The buffer-local variable `mh-identity-pgg-default-user-id' is set to VALUE
 when action 'add is selected." nil nil)
 
 (autoload (quote mh-identity-handler-signature) "mh-identity" "\
-For FIELD \"signature\", process headers for ACTION 'remove or 'add.
-The VALUE is added." nil nil)
+Process header FIELD \":signature\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added." nil nil)
 
 (autoload (quote mh-identity-handler-attribution-verb) "mh-identity" "\
-For FIELD \"attribution_verb\", process headers for ACTION 'remove or 'add.
-The VALUE is added." nil nil)
+Process header FIELD \":attribution-verb\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added." nil nil)
 
 (autoload (quote mh-identity-insert-attribution-verb) "mh-identity" "\
 Insert VALUE as attribution verb, setting up delimiting markers.
 If VALUE is nil, use `mh-extract-from-attribution-verb'." nil nil)
 
 (autoload (quote mh-identity-handler-top) "mh-identity" "\
-For FIELD, process mh-identity headers for ACTION 'remove or 'add.
-If the field wasn't present, the VALUE is added at the top of the header." nil nil)
+Process header FIELD.
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
+If the field wasn't present, it is added to the top of the header." nil nil)
 
 (autoload (quote mh-identity-handler-bottom) "mh-identity" "\
-For FIELD, process mh-identity headers for ACTION 'remove or 'add.
-If the field wasn't present, the VALUE is added at the bottom of the header." nil nil)
+Process header FIELD.
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
+If the field wasn't present, it is added to the bottom of the header." nil nil)
 
 ;;;***
 
-;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (16671
-;;;;;;  48848))
+;;;### (autoloads (mh-inc-spool-list-set) "mh-inc" "mh-inc.el" (17048
+;;;;;;  44143))
 ;;; Generated autoloads from mh-inc.el
 
 (autoload (quote mh-inc-spool-list-set) "mh-inc" "\
@@ -326,7 +331,7 @@ This is called after 'customize is used to alter `mh-inc-spool-list'." nil nil)
 ;;;;;;  mh-index-parse-search-regexp mh-index-do-search mh-index-p
 ;;;;;;  mh-index-read-data mh-index-search mh-index-create-sequences
 ;;;;;;  mh-create-sequence-map mh-index-update-maps) "mh-index" "mh-index.el"
-;;;;;;  (16665 53754))
+;;;;;;  (17044 64025))
 ;;; Generated autoloads from mh-index.el
 
 (autoload (quote mh-index-update-maps) "mh-index" "\
@@ -346,43 +351,74 @@ Mirror sequences present in source folders in index folder." nil nil)
 
 (autoload (quote mh-index-search) "mh-index" "\
 Perform an indexed search in an MH mail folder.
-Use a prefix argument to repeat the search, as in REDO-SEARCH-FLAG below.
+Use a prefix argument to repeat the search.
 
-If REDO-SEARCH-FLAG is non-nil and the current folder buffer was generated by a
-index search, then the search is repeated. Otherwise, FOLDER is searched with
-SEARCH-REGEXP and the results are presented in an MH-E folder. If FOLDER is
-\"+\" then mail in all folders are searched. Optional argument WINDOW-CONFIG
-stores the window configuration that will be restored after the user quits the
-folder containing the index search results.
+Unlike regular searches, the prompt for the folder to search can be `all' to
+search all folders; in addition, the search works recursively on the listed
+folder. The search criteria are entered in an MH-Pick buffer as described in
+`mh-search-folder'.
 
-Four indexing programs are supported; if none of these are present, then grep
-is used. This function picks the first program that is available on your
-system. If you would prefer to use a different program, set the customization
-variable `mh-index-program' accordingly.
+To perform the search, type \\<mh-pick-mode-map>\\[mh-do-search]. Another
+difference from the regular searches is that because the search operates on
+more than one folder, the messages that are found are put in a temporary
+sub-folder of `+mhe-index' and are displayed in an MH-Folder buffer. This
+buffer is special because it displays messages from multiple folders; each set
+of messages from a given folder has a heading with the folder name.
 
-The documentation for the following functions describes how to generate the
-index for each program:
+In addition, the \\<mh-folder-mode-map>\\[mh-index-visit-folder] command can
+be used to visit the folder of the message at point. Initially, only the
+messages that matched the search criteria are displayed in the folder. While
+the temporary buffer has its own set of message numbers, the actual messages
+numbers are shown in the visited folder. Thus, the \\[mh-index-visit-folder]
+command is useful to find the actual message number of an interesting message,
+or to view surrounding messages with the \\[mh-rescan-folder] command.
+
+Because this folder is temporary, you'll probably get in the habit of killing
+it when you're done with \\[mh-kill-folder].
+
+If you have run the \\[mh-search-folder] command, but change your mind while
+entering the search criteria and actually want to run an indexed search, then
+you can use the \\<mh-pick-mode-map>\\[mh-index-do-search] command in the
+MH-Pick buffer.
+
+The \\<mh-folder-mode-map>\\[mh-index-search] command runs the command defined
+by the `mh-index-program' option. The default value is \"Auto-detect\" which
+means that MH-E will automatically choose one of \"swish++\", \"swish-e\",
+\"mairix\", \"namazu\", \"pick\" and \"grep\" in that order. If, for example,
+you have both \"swish++\" and \"mairix\" installed and you want to use
+\"mairix\", then you can set this option to \"mairix\".
+
+                                *NOTE*
+
+     The \"pick\" and \"grep\" commands do not perform a recursive search on
+     the given folder.
+
+This command uses an \"X-MHE-Checksum:\" header field to cache the MD5
+checksum of a message. This means that if an incoming message already contains
+an \"X-MHE-Checksum:\" field, that message might not be found by this command.
+The following \"procmail\" recipe avoids this problem by renaming the existing
+header field:
+
+     :0 wf
+     | formail -R \"X-MHE-Checksum\" \"X-Old-MHE-Checksum\"
+
+The documentation for the following commands describe how to set up the
+various indexing programs to use with MH-E. The \"pick\" and \"grep\" commands
+do not require additional configuration.
 
     - `mh-swish++-execute-search'
     - `mh-swish-execute-search'
     - `mh-mairix-execute-search'
     - `mh-namazu-execute-search'
-
-If none of these programs are present then we use pick. If desired grep can be
-used instead. Details about these methods can be found in:
-
     - `mh-pick-execute-search'
     - `mh-grep-execute-search'
 
-This and related functions use an X-MHE-Checksum header to cache the MD5
-checksum of a message. This means that already present X-MHE-Checksum headers
-in the incoming email could result in messages not being found. The following
-procmail recipe should avoid this:
-
-  :0 wf
-  | formail -R \"X-MHE-Checksum\" \"Old-X-MHE-Checksum\"
-
-This has the effect of renaming already present X-MHE-Checksum headers." t nil)
+In a program, if REDO-SEARCH-FLAG is non-nil and the current folder buffer was
+generated by a index search, then the search is repeated. Otherwise, FOLDER is
+searched with SEARCH-REGEXP and the results are presented in an MH-E folder.
+If FOLDER is \"+\" then mail in all folders are searched. Optional argument
+WINDOW-CONFIG stores the window configuration that will be restored after the
+user quits the folder containing the index search results." t nil)
 
 (autoload (quote mh-index-read-data) "mh-index" "\
 Read index data from file." nil nil)
@@ -463,114 +499,109 @@ space-separated list of FOLDERS, or nothing to search all folders." t nil)
 (autoload (quote mh-swish-execute-search) "mh-index" "\
 Execute swish-e and read the results.
 
-In the examples below, replace /home/user/Mail with the path to your MH
-directory.
+In the examples below, replace \"/home/user/Mail\" with the path to your
+MH directory.
 
-First create the directory /home/user/Mail/.swish. Then create the file
-/home/user/Mail/.swish/config with the following contents:
+First create the directory \"/home/user/Mail/.swish\". Then create the file
+\"/home/user/Mail/.swish/config\" with the following contents:
 
-    IndexDir /home/user/Mail
-    IndexFile /home/user/Mail/.swish/index
-    IndexName \"Mail Index\"
-    IndexDescription \"Mail Index\"
-    IndexPointer \"http://nowhere\"
-    IndexAdmin \"nobody\"
-    #MetaNames automatic
-    IndexReport 3
-    FollowSymLinks no
-    UseStemming no
-    IgnoreTotalWordCountWhenRanking yes
-    WordCharacters abcdefghijklmnopqrstuvwxyz0123456789-
-    BeginCharacters abcdefghijklmnopqrstuvwxyz
-    EndCharacters abcdefghijklmnopqrstuvwxyz0123456789
-    IgnoreLimit 50 1000
-    IndexComments 0
-    FileRules pathname contains /home/user/Mail/.swish
-    FileRules pathname contains /home/user/Mail/mhe-index
-    FileRules filename is index
-    FileRules filename is \\..*
-    FileRules filename is #.*
-    FileRules filename is ,.*
-    FileRules filename is .*~
+     DefaultContents TXT*
+     IndexDir /home/user/Mail
+     IndexFile /home/user/Mail/.swish/index
+     IndexName \"Mail Index\"
+     IndexDescription \"Mail Index\"
+     IndexPointer \"http://nowhere\"
+     IndexAdmin \"nobody\"
+     #MetaNames automatic
+     IndexReport 3
+     FollowSymLinks no
+     UseStemming no
+     IgnoreTotalWordCountWhenRanking yes
+     WordCharacters abcdefghijklmnopqrstuvwxyz0123456789-
+     BeginCharacters abcdefghijklmnopqrstuvwxyz
+     EndCharacters abcdefghijklmnopqrstuvwxyz0123456789
+     IgnoreLimit 50 1000
+     IndexComments 0
+     FileRules filename contains \\D
+     FileRules pathname contains /home/user/Mail/.swish
+     FileRules pathname contains /home/user/Mail/mhe-index
+
+This configuration does not index the folders that hold the results of your
+searches in \"+mhe-index\" since they tend to be ephemeral and the original
+messages are indexed anyway.
 
 If there are any directories you would like to ignore, append lines like the
-following to config:
+following to \"config\":
 
-    FileRules pathname contains /home/user/Mail/scripts
+     FileRules pathname contains /home/user/Mail/scripts
 
-You do not want to index the folders that hold the results of your searches
-since they tend to be ephemeral and the original messages are indexed anyway.
-The configuration file above assumes that the results are found in sub-folders
-of `mh-index-folder' which is +mhe-index by default.
+Use the following command line to generate the swish index. Run this daily
+from cron:
 
-Use the following command line to generate the swish index. Run this
-daily from cron:
+         swish-e -c /home/user/Mail/.swish/config
 
-    swish-e -c /home/user/Mail/.swish/config
-
-FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search." nil nil)
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
+search." nil nil)
 
 (autoload (quote mh-swish++-execute-search) "mh-index" "\
 Execute swish++ and read the results.
 
-In the examples below, replace /home/user/Mail with the path to your MH
+In the examples below, replace \"/home/user/Mail\" with the path to your MH
 directory.
 
-First create the directory /home/user/Mail/.swish++. Then create the file
-/home/user/Mail/.swish++/swish++.conf with the following contents:
+First create the directory \"/home/user/Mail/.swish++\". Then create the file
+\"/home/user/Mail/.swish++/swish++.conf\" with the following contents:
 
-    IncludeMeta         Bcc Cc Comments Content-Description From Keywords
-    IncludeMeta         Newsgroups Resent-To Subject To
-    IncludeMeta         Message-Id References In-Reply-To
-    IncludeFile         Mail    *
-    IndexFile           /home/user/Mail/.swish++/swish++.index
+     IncludeMeta         Bcc Cc Comments Content-Description From Keywords
+     IncludeMeta         Newsgroups Resent-To Subject To
+     IncludeMeta         Message-Id References In-Reply-To
+     IncludeFile         Mail    *
+     IndexFile           /home/user/Mail/.swish++/swish++.index
 
-Use the following command line to generate the swish index. Run this
-daily from cron:
+Use the following command line to generate the swish index. Run this daily
+from cron:
 
- find /home/user/Mail -path /home/user/Mail/mhe-index -prune \\
-                   -o -path /home/user/Mail/.swish++ -prune \\
-                   -o -name \"[0-9]*\" -print \\
-    | index -c /home/user/Mail/.swish++/swish++.conf /home/user/Mail
+     find /home/user/Mail -path /home/user/Mail/mhe-index -prune \\
+                          -o -path /home/user/Mail/.swish++ -prune \\
+                          -o -name \"[0-9]*\" -print \\
+         | index -c /home/user/Mail/.swish++/swish++.conf -
 
-You do not want to index the folders that hold the results of your searches
-since they tend to be ephemeral and the original messages are indexed anyway.
-The command above assumes that the results are found in sub-folders of
-`mh-index-folder' which is +mhe-index by default.
+This command does not index the folders that hold the results of your searches
+in \"+mhe-index\" since they tend to be ephemeral and the original messages
+are indexed anyway.
 
-On some systems (Debian GNU/Linux, for example), use index++ instead of index.
+On some systems (Debian GNU/Linux, for example), use \"index++\" instead of
+\"index\".
 
-FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search." nil nil)
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
+search." nil nil)
 
 (autoload (quote mh-namazu-execute-search) "mh-index" "\
 Execute namazu and read the results.
 
-In the examples below, replace /home/user/Mail with the path to your MH
+In the examples below, replace \"/home/user/Mail\" with the path to your MH
 directory.
 
-First create the directory /home/user/Mail/.namazu. Then create the file
-/home/user/Mail/.namazu/mknmzrc with the following contents:
+First create the directory \"/home/user/Mail/.namazu\". Then create the file
+\"/home/user/Mail/.namazu/mknmzrc\" with the following contents:
 
-    package conf;  # Don't remove this line!
-    $ADDRESS = 'user@localhost';
-    $ALLOW_FILE = \"[0-9]*\";
-    $EXCLUDE_PATH = \"^/home/user/Mail/(mhe-index|spam)\";
+     package conf;  # Don't remove this line!
+     $ADDRESS = 'user@localhost';
+     $ALLOW_FILE = \"[0-9]*\";
+     $EXCLUDE_PATH = \"^/home/user/Mail/(mhe-index|spam)\";
 
-In the above example configuration, none of the mail files contained in the
-directories /home/user/Mail/mhe-index and /home/user/Mail/spam are indexed.
+This configuration does not index the folders that hold the results of your
+searches in \"+mhe-index\" since they tend to be ephemeral and the original
+messages are indexed anyway.
 
-You do not want to index the folders that hold the results of your searches
-since they tend to be ephemeral and the original messages are indexed anyway.
-The configuration file above assumes that the results are found in sub-folders
-of `mh-index-folder' which is +mhe-index by default.
+Use the following command line to generate the namazu index. Run this daily
+from cron:
 
-Use the following command line to generate the namazu index. Run this
-daily from cron:
+     mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \\
+              /home/user/Mail
 
-   mknmz -f /home/user/Mail/.namazu/mknmzrc -O /home/user/Mail/.namazu \\
-         /home/user/Mail
-
-FOLDER-PATH is the directory in which SEARCH-REGEXP is used to search." nil nil)
+In a program, FOLDER-PATH is the directory in which SEARCH-REGEXP is used to
+search." nil nil)
 
 (autoload (quote mh-index-choose) "mh-index" "\
 Choose an indexing function.
@@ -582,7 +613,7 @@ system." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-variants mh-variant-p mh-variant-set) "mh-init"
-;;;;;;  "mh-init.el" (16684 6777))
+;;;;;;  "mh-init.el" (17044 64253))
 ;;; Generated autoloads from mh-init.el
 
 (autoload (quote mh-variant-set) "mh-init" "\
@@ -604,7 +635,7 @@ by the variable `mh-variants'." nil nil)
 ;;;***
 
 ;;;### (autoloads (mh-junk-whitelist mh-junk-blacklist) "mh-junk"
-;;;;;;  "mh-junk.el" (16671 48929))
+;;;;;;  "mh-junk.el" (17044 64253))
 ;;; Generated autoloads from mh-junk.el
 
 (autoload (quote mh-junk-blacklist) "mh-junk" "\
@@ -644,7 +675,7 @@ The `mh-junk-program' option specifies the spam program in use." t nil)
 ;;;;;;  mh-mhn-compose-external-compressed-tar mh-mhn-compose-anon-ftp
 ;;;;;;  mh-mhn-compose-insertion mh-file-mime-type mh-have-file-command
 ;;;;;;  mh-compose-forward mh-compose-insertion) "mh-mime" "mh-mime.el"
-;;;;;;  (16684 7323))
+;;;;;;  (17048 47895))
 ;;; Generated autoloads from mh-mime.el
 
 (autoload (quote mh-compose-insertion) "mh-mime" "\
@@ -857,15 +888,79 @@ View MIME PART-INDEX externally." t nil)
 ;;;***
 
 ;;;### (autoloads (mh-do-search mh-pick-do-search mh-search-folder)
-;;;;;;  "mh-pick" "mh-pick.el" (16671 49140))
+;;;;;;  "mh-pick" "mh-pick.el" (17048 47905))
 ;;; Generated autoloads from mh-pick.el
 
 (autoload (quote mh-search-folder) "mh-pick" "\
 Search FOLDER for messages matching a pattern.
-This function uses the MH command `pick' to do the work.
-Add the messages found to the sequence named `search'.
-Argument WINDOW-CONFIG is the current window configuration and is used when
-the search folder is dismissed." t nil)
+
+With this command, you can search a folder for messages to or from a
+particular person or about a particular subject. In fact, you can also search
+for messages containing selected strings in any arbitrary header field or any
+string found within the messages.
+
+You are first prompted for the name of the folder to search and then placed in
+the following buffer in MH-Pick mode:
+
+     From:
+     To:
+     Cc:
+     Date:
+     Subject:
+     --------
+
+Edit this template by entering your search criteria in an appropriate header
+field that is already there, or create a new field yourself. If the string
+you're looking for could be anywhere in a message, then place the string
+underneath the row of dashes. The \\[mh-search-folder] command uses the MH
+command \"pick\" to do the real work.
+
+There are no semantics associated with the search criteria--they are simply
+treated as strings. Case is ignored when all lowercase is used, and regular
+expressions (a la \"ed\") are available. It is all right to specify several
+search criteria. What happens then is that a logical _and_ of the various
+fields is performed. If you prefer a logical _or_ operation, run
+\\[mh-search-folder] multiple times.
+
+As an example, let's say that we want to find messages from Ginnean about
+horseback riding in the Kosciusko National Park (Australia) during January,
+1994. Normally we would start with a broad search and narrow it down if
+necessary to produce a manageable amount of data, but we'll cut to the chase
+and create a fairly restrictive set of criteria as follows:
+
+     From: ginnean
+     To:
+     Cc:
+     Date: Jan 1994
+     Subject: horse.*kosciusko
+     --------
+
+As with MH-Letter mode, MH-Pick provides commands like
+\\<mh-pick-mode-map>\\[mh-to-field] to help you fill in the blanks.
+
+To perform the search, type \\[mh-do-search]. The selected messages are placed
+in the \"search\" sequence, which you can use later in forwarding, printing,
+or narrowing your field of view. Subsequent searches are appended to the
+\"search\" sequence. If, however, you wish to start with a clean slate, first
+delete the \"search\" sequence.
+
+If you're searching in a folder that is already displayed in an MH-Folder
+buffer, only those messages contained in the buffer are used for the search.
+Therefore, if you want to search in all messages, first kill the folder's
+buffer with \\<mh-folder-mode-map>\\[kill-buffer] or scan the entire folder
+with \\[mh-rescan-folder].
+
+If you find that you do the same thing over and over when editing the search
+template, you may wish to bind some shortcuts to keys. This can be done with
+the variable `mh-pick-mode-hook', which is called when \\[mh-search-folder] is
+run on a new pattern.
+
+If you have run the \\[mh-index-search] command, but change your mind while
+entering the search criteria and actually want to run a regular search, then
+you can use the \\<mh-pick-mode-map>\\[mh-pick-do-search] command.
+
+In a program, argument WINDOW-CONFIG is the current window configuration and
+is used when the search folder is dismissed." t nil)
 
 (autoload (quote mh-pick-do-search) "mh-pick" "\
 Find messages that match the qualifications in the current pattern buffer.
@@ -882,7 +977,7 @@ indexing program specified in `mh-index-program' is used." t nil)
 
 ;;;### (autoloads (mh-print-msg mh-ps-print-toggle-mime mh-ps-print-toggle-color
 ;;;;;;  mh-ps-print-toggle-faces mh-ps-print-msg-show mh-ps-print-msg-file
-;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (16680 11171))
+;;;;;;  mh-ps-print-msg) "mh-print" "mh-print.el" (17044 64253))
 ;;; Generated autoloads from mh-print.el
 
 (autoload (quote mh-ps-print-msg) "mh-print" "\
@@ -935,7 +1030,7 @@ The messages are formatted by mhl. See the variable `mhl-formfile'." t nil)
 ;;;;;;  mh-rename-seq mh-translate-range mh-read-range mh-read-seq-default
 ;;;;;;  mh-notate-deleted-and-refiled mh-widen mh-put-msg-in-seq
 ;;;;;;  mh-narrow-to-seq mh-msg-is-in-seq mh-list-sequences mh-delete-seq)
-;;;;;;  "mh-seq" "mh-seq.el" (16671 65286))
+;;;;;;  "mh-seq" "mh-seq.el" (17048 47921))
 ;;; Generated autoloads from mh-seq.el
 
 (autoload (quote mh-delete-seq) "mh-seq" "\
@@ -1157,7 +1252,7 @@ Use \\<mh-folder-mode-map>\\[mh-widen] to undo this command." t nil)
 
 ;;;### (autoloads (mh-speed-add-folder mh-speed-invalidate-map mh-speed-flists
 ;;;;;;  mh-speed-view mh-speed-toggle mh-folder-speedbar-buttons)
-;;;;;;  "mh-speed" "mh-speed.el" (16665 53793))
+;;;;;;  "mh-speed" "mh-speed.el" (17044 64253))
 ;;; Generated autoloads from mh-speed.el
 
 (autoload (quote mh-folder-speedbar-buttons) "mh-speed" "\
@@ -1196,7 +1291,7 @@ The function invalidates the latest ancestor that is present." nil nil)
 ;;;;;;  mh-alias-grab-from-field mh-alias-add-alias mh-alias-for-from-p
 ;;;;;;  mh-alias-address-to-alias mh-alias-letter-expand-alias mh-alias-minibuffer-confirm-address
 ;;;;;;  mh-read-address mh-alias-reload-maybe mh-alias-reload) "mh-alias"
-;;;;;;  "mh-alias.el" (16671 49382))
+;;;;;;  "mh-alias.el" (17048 47789))
 ;;; Generated autoloads from mh-alias.el
 
 (autoload (quote mh-alias-reload) "mh-alias" "\

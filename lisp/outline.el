@@ -1,6 +1,6 @@
 ;;; outline.el --- outline mode commands for Emacs
 
-;; Copyright (C) 1986, 93, 94, 95, 97, 2000, 01, 2004
+;; Copyright (C) 1986, 1993, 1994, 1995, 1997, 2000, 2001, 2004
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -167,14 +167,45 @@ in the file it applies to."
 		  0 '(outline-font-lock-face) nil t)))
   "Additional expressions to highlight in Outline mode.")
 
-(defface outline-1 '((t :inherit font-lock-function-name-face)) "Level 1.")
-(defface outline-2 '((t :inherit font-lock-variable-name-face)) "Level 2.")
-(defface outline-3 '((t :inherit font-lock-keyword-face)) "Level 3.")
-(defface outline-4 '((t :inherit font-lock-builtin-face)) "Level 4.")
-(defface outline-5 '((t :inherit font-lock-comment-face)) "Level 5.")
-(defface outline-6 '((t :inherit font-lock-constant-face)) "Level 6.")
-(defface outline-7 '((t :inherit font-lock-type-face)) "Level 7.")
-(defface outline-8 '((t :inherit font-lock-string-face)) "Level 8.")
+(defface outline-1
+  '((t :inherit font-lock-function-name-face))
+  "Level 1."
+  :group 'outlines)
+
+(defface outline-2
+  '((t :inherit font-lock-variable-name-face))
+  "Level 2."
+  :group 'outlines)
+
+(defface outline-3
+  '((t :inherit font-lock-keyword-face))
+  "Level 3."
+  :group 'outlines)
+
+(defface outline-4
+  '((t :inherit font-lock-builtin-face))
+  "Level 4."
+  :group 'outlines)
+
+(defface outline-5
+  '((t :inherit font-lock-comment-face))
+  "Level 5."
+  :group 'outlines)
+
+(defface outline-6
+  '((t :inherit font-lock-constant-face))
+  "Level 6."
+  :group 'outlines)
+
+(defface outline-7
+  '((t :inherit font-lock-type-face))
+  "Level 7."
+  :group 'outlines)
+
+(defface outline-8
+  '((t :inherit font-lock-string-face))
+  "Level 8."
+  :group 'outlines)
 
 (defvar outline-font-lock-faces
   [outline-1 outline-2 outline-3 outline-4

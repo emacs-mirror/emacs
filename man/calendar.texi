@@ -1046,7 +1046,7 @@ an illusion, so simply printing the buffer does not print what you see
 on your screen.  There is a special command to print hard copy of the
 diary buffer @emph{as it appears}; this command is @kbd{M-x
 print-diary-entries}.  It sends the data directly to the printer.  You
-can customize it like @code{lpr-region} (@pxref{Hardcopy}).
+can customize it like @code{lpr-region} (@pxref{Printing}).
 
 @findex diary
   The command @kbd{M-x diary} displays the diary entries for the current
