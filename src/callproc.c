@@ -783,11 +783,11 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 	      insert_1_both (buf, nread, nread, 0, 1, 0);
 	    else
 	      {			/* We have to decode the input.  */
-		Lisp_Object buf;
+		Lisp_Object curbuf;
 
-		XSETBUFFER (buf, current_buffer);
-		decode_coding_c_string (&process_coding, bufptr, nread,
-					buf);
+		XSETBUFFER (curbuf, current_buffer);
+		decode_coding_c_string (&process_coding, buf, nread,
+					curbuf);
 		if (display_on_the_fly
 		    && CODING_REQUIRE_DETECTION (&saved_coding)
 		    && ! CODING_REQUIRE_DETECTION (&process_coding))
@@ -819,7 +819,7 @@ usage: (call-process PROGRAM &optional INFILE BUFFER DISPLAY &rest ARGS)  */)
 		if (carryover > 0)
 		  /* As CARRYOVER should not be that large, we had
 		     better avoid overhead of bcopy.  */
-		  BCOPY_SHORT (process_coding.carryover, bufptr,
+		  BCOPY_SHORT (process_coding.carryover, buf,
 			       process_coding.carryover_bytes);
 	      }
 	  }
