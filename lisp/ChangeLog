@@ -1,5 +1,18 @@
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/flyspell.el (flyspell-auto-correct-binding)
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	Use (X)Emacs-agnostic code.
+	(flyspell-mode-map): Don't overwrite at each load.  Remove code
+	redundant with the subsequent add-minor-mode.  Merge Emacs and
+	XEmacs code.
+	(flyspell-word): Minor simplification.
+	(flyspell-math-tex-command-p): Quieten the byte-compiler.
+	(flyspell-external-point-words): Remove unused vars `size' and `start'.
+	(flyspell-do-correct): Rename from flyspell-xemacs-correct.
+	Merge the corresponding Emacs code.
+	(flyspell-correct-word, flyspell-xemacs-popup): Use flyspell-do-correct.
+
 	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
 	a dedicated window.
 

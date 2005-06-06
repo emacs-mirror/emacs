@@ -268,11 +268,7 @@ If `flyspell-large-region' is nil, all regions are treated as small."
   :type 'boolean)
 
 (defcustom flyspell-auto-correct-binding
-  (cond
-   ((eq flyspell-emacs 'xemacs)
-    [(control \;)])
-   (t
-    [?\C-\;]))
+  [(control ?\;)]
   "The key binding for flyspell auto correction."
   :group 'flyspell)
 
@@ -425,26 +421,18 @@ property of the major mode name.")
     (define-key map [(control \.)] 'flyspell-auto-correct-word)
     map))
 
-;;;###autoload
-(defvar flyspell-mode-map (make-sparse-keymap))
-
-;; mouse, keyboard bindings and misc definition
-(when (or (assoc 'flyspell-mode minor-mode-map-alist)
-	  (setq minor-mode-map-alist
-		(cons (cons 'flyspell-mode flyspell-mode-map)
-		      minor-mode-map-alist)))
-  (if flyspell-use-meta-tab
-      (define-key flyspell-mode-map "\M-\t" 'flyspell-auto-correct-word))
-  (cond
-   ((eq flyspell-emacs 'xemacs)
-    (define-key flyspell-mode-map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
-    (define-key flyspell-mode-map [(control \,)] 'flyspell-goto-next-error)
-    (define-key flyspell-mode-map [(control \.)] 'flyspell-auto-correct-word))
-   (flyspell-use-local-map
-    (define-key flyspell-mode-map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
-    (define-key flyspell-mode-map [?\C-\,] 'flyspell-goto-next-error)
-    (define-key flyspell-mode-map [?\C-\.] 'flyspell-auto-correct-word))))
-
+(defvar flyspell-mode-map
+  (let ((map (make-sparse-keymap)))
+    ;; mouse, keyboard bindings and misc definition
+    (if flyspell-use-meta-tab
+      (define-key map "\M-\t" 'flyspell-auto-correct-word))
+    (cond
+     ;; I don't understand this test, so I left it as is.  --Stef
+     ((or (featurep 'xemacs) flyspell-use-local-map)
+      (define-key map flyspell-auto-correct-binding 'flyspell-auto-correct-previous-word)
+      (define-key map [(control ?\,)] 'flyspell-goto-next-error)
+      (define-key map [(control ?\.)] 'flyspell-auto-correct-word)))
+    map))
 
 ;; the name of the overlay property that defines the keymap
 (defvar flyspell-overlay-keymap-property-name 'keymap)
@@ -462,20 +450,14 @@ property of the major mode name.")
 ;*    Highlighting                                                     */
 ;*---------------------------------------------------------------------*/
 (defface flyspell-incorrect-face
-  (if (eq flyspell-emacs 'xemacs)
-      '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
-	(t (:bold t)))
-    '((((class color)) (:foreground "OrangeRed" :weight bold :underline t))
-      (t (:weight bold))))
+  '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
+    (t (:bold t)))
   "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
 
 (defface flyspell-duplicate-face
-  (if (eq flyspell-emacs 'xemacs)
-      '((((class color)) (:foreground "Gold3" :bold t :underline t))
-	(t (:bold t)))
-    '((((class color)) (:foreground "Gold3" :weight bold :underline t))
-      (t (:weight bold))))
+  '((((class color)) (:foreground "Gold3" :bold t :underline t))
+    (t (:bold t)))
   "Face used for marking a misspelled word that appears twice in the buffer.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
@@ -1057,8 +1039,7 @@ Mostly we check word delimiters."
 	  (cond
 	   ((and (or (not (eq ispell-parser 'tex))
 		     (and (> start (point-min))
-			  (not (eq (char-after (1- start)) ?}))
-			  (not (eq (char-after (1- start)) ?\\))))
+			  (not (memq (char-after (1- start)) '(?\} ?\\)))))
 		 flyspell-mark-duplications-flag
 		 (save-excursion
 		   (goto-char (1- start))
@@ -1181,20 +1162,21 @@ Mostly we check word delimiters."
 ;*    time that function is called.                                    */
 ;*---------------------------------------------------------------------*/
 (defun flyspell-math-tex-command-p ()
-  (cond
-   (flyspell-check-tex-math-command
-    nil)
-   ((eq flyspell-tex-math-initialized t)
-    (texmathp))
-   ((eq flyspell-tex-math-initialized 'error)
-    nil)
-   (t
-    (setq flyspell-tex-math-initialized t)
-    (condition-case nil
-	(texmathp)
-      (error (progn
-	       (setq flyspell-tex-math-initialized 'error)
-	       nil))))))
+  (when (fboundp 'texmathp)
+    (cond
+     (flyspell-check-tex-math-command
+      nil)
+     ((eq flyspell-tex-math-initialized t)
+      (texmathp))
+     ((eq flyspell-tex-math-initialized 'error)
+      nil)
+     (t
+      (setq flyspell-tex-math-initialized t)
+      (condition-case nil
+          (texmathp)
+        (error (progn
+                 (setq flyspell-tex-math-initialized 'error)
+                 nil)))))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-tex-command-p ...                                       */
@@ -1381,9 +1363,7 @@ Word syntax described by `flyspell-dictionary-alist' (which see)."
   (let ((buffer flyspell-external-ispell-buffer))
     (set-buffer buffer)
     (goto-char (point-min))
-    (let ((size (- flyspell-large-region-end flyspell-large-region-beg))
-	  (start flyspell-large-region-beg)
-	  (pword "")
+    (let ((pword "")
 	  (pcount 1))
       ;; now we are done with ispell, we have to find the word in
       ;; the initial buffer
@@ -1954,7 +1934,7 @@ The word checked is the word at the mouse position."
 	  (let ((start (car (cdr word)))
 		(end (car (cdr (cdr word))))
 		(word (car word))
-		poss replace)
+		poss)
 	    ;; now check spelling of word.
 	    (process-send-string ispell-process "%\n") ;put in verbose mode
 	    (process-send-string ispell-process (concat "^" word "\n"))
@@ -1972,89 +1952,65 @@ The word checked is the word at the mouse position."
 	     ((null poss)
 	      ;; ispell error
 	      (error "Ispell: error in Ispell process"))
-	     ((string-match "GNU" (emacs-version))
-	      ;; the word is incorrect, we have to propose a replacement
-	      (setq replace (flyspell-emacs-popup event poss word))
-	      (cond ((eq replace 'ignore)
-		     (goto-char save)
-		     nil)
-		    ((eq replace 'save)
-		     (goto-char save)
-		     (process-send-string ispell-process
-					  (concat "*" word "\n"))
-		     (flyspell-unhighlight-at cursor-location)
-		     (setq ispell-pdict-modified-p '(t)))
-		    ((or (eq replace 'buffer) (eq replace 'session))
-		     (process-send-string ispell-process
-					  (concat "@" word "\n"))
-		     (if (null ispell-pdict-modified-p)
-			 (setq ispell-pdict-modified-p
-			       (list ispell-pdict-modified-p)))
-		     (flyspell-unhighlight-at cursor-location)
-		     (goto-char save)
-		     (if (eq replace 'buffer)
-			 (ispell-add-per-file-word-list word)))
-		    (replace
-		     (flyspell-unhighlight-at cursor-location)
-		     (let ((new-word (if (atom replace)
-					 replace
-				       (car replace)))
-			   (cursor-location
-			    (+ (- (length word) (- end start))
-			       cursor-location)))
-		       (if (not (equal new-word (car poss)))
-			   (let ((old-max (point-max)))
-			     (delete-region start end)
-			     (funcall flyspell-insert-function new-word)
-			     (if flyspell-abbrev-p
-				 (flyspell-define-abbrev word new-word))
-			     (flyspell-ajust-cursor-point save
-							  cursor-location
-							  old-max)))))
-		    (t
-		     (goto-char save)
-		     nil)))
-	     ((eq flyspell-emacs 'xemacs)
+	     ((featurep 'xemacs)
 	      (flyspell-xemacs-popup
-	       event poss word cursor-location start end save)
-	      (goto-char save)))
+	       event poss word cursor-location start end save))
+	     (t
+	      ;; The word is incorrect, we have to propose a replacement.
+              (flyspell-do-correct (flyspell-emacs-popup event poss word)
+                                   poss word cursor-location start end save)))
 	    (ispell-pdict-save t))))))
 
 ;*---------------------------------------------------------------------*/
-;*    flyspell-xemacs-correct ...                                      */
+;*    flyspell-do-correct ...                                      */
 ;*---------------------------------------------------------------------*/
-(defun flyspell-xemacs-correct (replace poss word cursor-location start end save)
-  "The xemacs popup menu callback."
+(defun flyspell-do-correct (replace poss word cursor-location start end save)
+  "The popup menu callback."
+  ;; Originally, the XEmacs code didn't do the (goto-char save) here and did
+  ;; it instead right after calling the function.
   (cond ((eq replace 'ignore)
+         (goto-char save)
 	 nil)
 	((eq replace 'save)
-	 (process-send-string ispell-process (concat "*" word "\n"))
-	 (process-send-string ispell-process "#\n")
+         (goto-char save)
+	 (ispell-send-string (concat "*" word "\n"))
+         ;; This was added only to the XEmacs side in revision 1.18 of
+         ;; flyspell.  I assume its absence on the Emacs side was an
+         ;; oversight.  --Stef
+	 (ispell-send-string "#\n")
 	 (flyspell-unhighlight-at cursor-location)
 	 (setq ispell-pdict-modified-p '(t)))
 	((or (eq replace 'buffer) (eq replace 'session))
-	 (process-send-string ispell-process (concat "@" word "\n"))
+	 (ispell-send-string (concat "@" word "\n"))
 	 (flyspell-unhighlight-at cursor-location)
 	 (if (null ispell-pdict-modified-p)
 	     (setq ispell-pdict-modified-p
 		   (list ispell-pdict-modified-p)))
+         (goto-char save)
 	 (if (eq replace 'buffer)
 	     (ispell-add-per-file-word-list word)))
 	(replace
+         ;; This was added only to the Emacs side.  I assume its absence on
+         ;; the XEmacs side was an oversight.  --Stef
+         (flyspell-unhighlight-at cursor-location)
 	 (let ((old-max (point-max))
 	       (new-word (if (atom replace)
 			     replace
 			   (car replace)))
 	       (cursor-location (+ (- (length word) (- end start))
 				   cursor-location)))
-	   (if (not (equal new-word (car poss)))
-	       (progn
-		 (delete-region start end)
-		 (goto-char start)
-		 (funcall flyspell-insert-function new-word)
-		 (if flyspell-abbrev-p
-		     (flyspell-define-abbrev word new-word))))
-	   (flyspell-ajust-cursor-point save cursor-location old-max)))))
+	   (unless (equal new-word (car poss))
+             (delete-region start end)
+             (goto-char start)
+             (funcall flyspell-insert-function new-word)
+             (if flyspell-abbrev-p
+                 (flyspell-define-abbrev word new-word)))
+           ;; In the original Emacs code, this was only called in the body
+           ;; of the if.  I arbitrarily kept the XEmacs behavior instead.
+           (flyspell-ajust-cursor-point save cursor-location old-max)))
+        (t
+         (goto-char save)
+         nil)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-ajust-cursor-point ...                                  */
@@ -2123,7 +2079,7 @@ The word checked is the word at the mouse position."
 	 (cor-menu   (if (consp corrects)
 			 (mapcar (lambda (correct)
 				   (vector correct
-					   (list 'flyspell-xemacs-correct
+					   (list 'flyspell-do-correct
 						 correct
 						 (list 'quote poss)
 						 word
@@ -2138,7 +2094,7 @@ The word checked is the word at the mouse position."
 	 (menu       (let ((save (if (consp affix)
 				     (vector
 				      (concat "Save affix: " (car affix))
-				      (list 'flyspell-xemacs-correct
+				      (list 'flyspell-do-correct
 					    ''save
 					    (list 'quote poss)
 					    word
@@ -2149,7 +2105,7 @@ The word checked is the word at the mouse position."
 				      t)
 				   (vector
 				    "Save word"
-				    (list 'flyspell-xemacs-correct
+				    (list 'flyspell-do-correct
 					  ''save
 					  (list 'quote poss)
 					  word
@@ -2159,7 +2115,7 @@ The word checked is the word at the mouse position."
 					  save)
 				    t)))
 			   (session (vector "Accept (session)"
-					    (list 'flyspell-xemacs-correct
+					    (list 'flyspell-do-correct
 						  ''session
 						  (list 'quote poss)
 						  word
@@ -2169,7 +2125,7 @@ The word checked is the word at the mouse position."
 						  save)
 					    t))
 			   (buffer  (vector "Accept (buffer)"
-					    (list 'flyspell-xemacs-correct
+					    (list 'flyspell-do-correct
 						  ''buffer
 						  (list 'quote poss)
 						  word
