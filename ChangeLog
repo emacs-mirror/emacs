@@ -1,3 +1,8 @@
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* configure.in (HAVE_CANCELMENUTRACKING): New test.
+	* configure: Regenerate.
+
 2005-05-11  J,Ai(Br,At(Bme Marant  <jmarant@marant.org>
 
 	* configure.in: Add --enable-locallisppath.
