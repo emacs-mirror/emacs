@@ -72,6 +72,9 @@
 
 2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* ps-print.el (ps-default-fg, ps-default-bg):
+	Fix typos in docstrings.
+
 	* isearchb.el (isearchb): Don't pass a spurious second argument to
 	`iswitchb-completions'.
 
