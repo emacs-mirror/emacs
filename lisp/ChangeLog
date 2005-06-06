@@ -1,3 +1,8 @@
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Undo part of last patch, to turn off a compiler warning.
+
 2005-06-06  Juri Linkov  <juri@jurta.org>
 
 	* tmm.el (tmm-inactive, tmm-remove-inactive-mouse-face):
@@ -12,8 +17,8 @@
 	* emulation/cua-base.el (cua-rectangle, cua-rectangle-noselect)
 	(cua-global-mark): Remove -face suffix from face names.
 
-	* emulation/cua-gmrk.el (cua--init-global-mark): Remove
-	cua-global-mark face setup.
+	* emulation/cua-gmrk.el (cua--init-global-mark):
+	Remove cua-global-mark face setup.
 
 2005-06-06  Richard M. Stallman  <rms@gnu.org>
 
@@ -132,7 +137,7 @@
 	(iswitchb-current-match-face, iswitchb-virtual-matches-face)
 	(iswitchb-invalid-regexp-face): New faces.
 	(iswitchb-completions): Use them.
-	(iswitchb-use-faces): Renamed from iswitchb-use-fonts, which is
+	(iswitchb-use-faces): Rename from iswitchb-use-fonts, which is
 	now marked as an obsolete alias.
 	(iswitchb-read-buffer): Remove check for bound font variables.
 	(iswitchb-invalid-regexp): New free variable.
@@ -239,8 +244,7 @@
 	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
 	(gdb-assembler-custom): Improve regexps.
-	(def-gdb-auto-update-handler): Use window point to preserve
-	point.
+	(def-gdb-auto-update-handler): Use window point to preserve point.
 
 2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
