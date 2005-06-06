@@ -97,6 +97,11 @@ This is to optimize `debugger-make-xrefs'.")
 This variable is used by `debugger-jump', `debugger-step-through',
 and `debugger-reenable' to temporarily disable debug-on-entry.")
 
+(defvar debugger-window nil
+  "If non-nil,  the last window used by the debugger for its buffer.
+The next call to the debugger reuses the same window, if it is still live.
+That case would normally occur when the window is in a separate frame.")
+
 ;;;###autoload
 (setq debugger 'debug)
 ;;;###autoload
@@ -178,7 +183,13 @@ first will be printed into the backtrace buffer."
 		  ;; Place an extra debug-on-exit for macro's.
 		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		    (backtrace-debug 5 t)))
-		(pop-to-buffer debugger-buffer)
+		(if (and debugger-window
+			 (window-live-p debugger-window))
+		    (progn
+		      (set-window-buffer debugger-window debugger-buffer)
+		      (select-window debugger-window))
+		  (pop-to-buffer debugger-buffer))
+		(setq debugger-window (selected-window))
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
 		(when noninteractive
