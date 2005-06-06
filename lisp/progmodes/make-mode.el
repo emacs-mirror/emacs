@@ -262,7 +262,7 @@ not be enclosed in { } or ( )."
 ;; index in makefile-imenu-generic-expression.
 (defvar makefile-dependency-regex
   ;; Allow for two nested levels $(v1:$(v2:$(v3:a=b)=c)=d)
-  "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
+  "^\\(\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#:=]\\)+?\\)\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(bb.+\\)\\)?\\)"
   "Regex used to find dependency lines in a makefile.")
 
 (defconst makefile-bsdmake-dependency-regex
@@ -291,7 +291,7 @@ not be enclosed in { } or ( )."
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=\\|[*:+]?[:?]?=\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -1704,6 +1704,19 @@ matched in a rule action."
 	    (when (save-excursion
 		    (beginning-of-line)
 		    (looking-at makefile-dependency-regex))
+	      (save-excursion
+		(let ((deps-end (match-end 1))
+		      (match-data (match-data)))
+		  (goto-char deps-end)
+		  (skip-chars-backward " \t")
+		  (setq deps-end (point))
+		  (beginning-of-line)
+		  (skip-chars-forward " \t")
+		  ;; Alter the bounds recorded for subexp 1,
+		  ;; which is what is supposed to match the targets.
+		  (setcar (nthcdr 2 match-data) (point))
+		  (setcar (nthcdr 3 match-data) deps-end)
+		  (store-match-data match-data)))
 	      (end-of-line)
 	      (throw 'found (point)))))
       (goto-char pt))
