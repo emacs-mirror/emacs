@@ -1,3 +1,17 @@
+2005-06-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove
+	macros.
+
+	* unexw32.c (RVA_TO_PTR): Moved here from w32heap.h.
+
+	* w32proc.c (RVA_TO_PTR): New macro.
+
+	* w32heap.c (RVA_TO_PTR): No need to #undef now.
+
+	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/w32select.$(O)):
+	Depend on w32heap.h.
+
 2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* keyboard.c (command_loop_1): Update Vthis_original_command.
