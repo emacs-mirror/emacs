@@ -72,6 +72,9 @@
 
 2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
+	* thumbs.el (thumbs-thumbsdir-max-size, thumbs-image-resizing-step)
+	(thumbs-thumbsdir-auto-clean): Fix typos in docstrings.
+
 	* ps-print.el (ps-default-fg, ps-default-bg):
 	Fix typos in docstrings.
 
