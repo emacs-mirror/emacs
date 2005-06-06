@@ -1,3 +1,8 @@
+2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* isearchb.el (isearchb): Don't pass a spurious second argument to
+	`iswitchb-completions'.
+
 2005-06-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-locals-handler): Use window point
