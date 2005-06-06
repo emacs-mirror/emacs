@@ -1,3 +1,11 @@
+2005-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle, cua-rectangle-noselect)
+	(cua-global-mark): Remove -face suffix from face names.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark): Remove
+	cua-global-mark face setup.
+
 2005-06-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/make-mode.el (makefile-dependency-regex): Handle whitespace
@@ -22,10 +30,10 @@
 	* emacs-lisp/debug.el (debugger-window): New variable.
 	(debug): Use debugger-window if it is set and still alive.
 	Record debugger-window for next entry.
-	
+
 	* mail/supercite.el (sc-mail-glom-frame): Mark as risky.
 
-2005-06-05  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
+2005-06-06  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
 
 	* files.el (hack-local-variables-confirm): New arg FLAG-TO-CHECK.
 	(hack-one-local-variable, hack-local-variables)
@@ -58,7 +66,6 @@
 	before selecting the desired mode to not spend time fontifying
 	old contents.
 
->>>>>>> 1.7678
 2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearchb.el (isearchb): Don't pass a spurious second argument to
