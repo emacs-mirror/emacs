@@ -905,7 +905,7 @@ The value of this variable is used when Font Lock mode is turned on."
 			'font-lock-after-change-function t)
 	   (set (make-local-variable 'font-lock-fontify-buffer-function)
 		'jit-lock-refontify)
-	   ;; Don't fontify eagerly (and don't abort is the buffer is large).
+	   ;; Don't fontify eagerly (and don't abort if the buffer is large).
 	   (set (make-local-variable 'font-lock-fontified) t)
 	   ;; Use jit-lock.
 	   (jit-lock-register 'font-lock-fontify-region
@@ -1826,6 +1826,17 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-highlighting-faces)
 
+(defface font-lock-regexp-backslash
+  '((((class color) (min-colors 16)) :inherit escape-glyph)
+    (t :inherit bold))
+  "Font Lock mode face used to highlight a backslash in Lisp regexps."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-regexp-backslash-construct
+  '((t :inherit bold))
+  "Font Lock mode face used to highlight `\' constructs in Lisp regexps."
+  :group 'font-lock-highlighting-faces)
+
 ;;; End of Colour etc. support.
 
 ;;; Menu support.
@@ -2019,7 +2030,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-window-excursion" "save-selected-window"
@@ -2075,16 +2086,14 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
        ;; Make regexp grouping constructs bold, so they stand out, but only
        ;; in strings.
        ((lambda (bound)
-	  (if (re-search-forward "\\(\\\\\\\\\\)\\([(|)]\\)\\(\\?:\\)?" bound t)
+	  (if (re-search-forward "\\(\\\\\\\\\\)\\((\\(?:?:\\)?\\|[|)]\\)" bound t)
 	       (let ((face (get-text-property (1- (point)) 'face)))
 		 (if (listp face)
 		     (memq 'font-lock-string-face face)
 		   (eq 'font-lock-string-face face)))))
-        ;; Should we introduce a lowlight face for this?
-        ;; Ideally that would retain the color, dimmed.
-	(1 font-lock-comment-face prepend)
-	(2 'bold prepend)
-	(3 font-lock-type-face prepend t))
+	(1 'font-lock-regexp-backslash prepend)
+	(2 'font-lock-regexp-backslash-construct prepend))
+
        ;; Underline innermost grouping, so that you can more easily see what
        ;; belongs together.  2005-05-12: Font-lock can go into an
        ;; unbreakable endless loop on this -- something's broken.
