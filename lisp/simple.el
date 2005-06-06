@@ -4833,7 +4833,11 @@ of the differing parts is, by contrast, slightly highlighted."
 		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(if (minibufferp mainbuf)
-	    (setq completion-base-size 0)))
+	    (if (and (symbolp minibuffer-completion-table)
+		     (get minibuffer-completion-table 'completion-base-size-function))
+		(setq completion-base-size 
+		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
+	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
 	(let* ((common-string-length
