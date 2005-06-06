@@ -221,12 +221,18 @@ first will be printed into the backtrace buffer."
 	      ;; Still visible despite the save-window-excursion?  Maybe it
 	      ;; it's in a pop-up frame.  It would be annoying to delete and
 	      ;; recreate it every time the debugger stops, so instead we'll
-	      ;; erase it and hide it but keep it alive.
+	      ;; erase it (and maybe hide it) but keep it alive.
 	      (with-current-buffer debugger-buffer
 		(erase-buffer)
 		(fundamental-mode)
 		(with-selected-window (get-buffer-window debugger-buffer 0)
-		  (bury-buffer)))
+                  (when (window-dedicated-p (selected-window))
+                    ;; If the window is not dedicated, burying the buffer
+                    ;; will mean that the frame created for it is left
+                    ;; around showing smoe random buffer, and next time we
+                    ;; pop to the debugger buffer we'll create yet
+                    ;; another frame.
+                    (bury-buffer))))
 	    (kill-buffer debugger-buffer))
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables

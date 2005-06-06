@@ -1,5 +1,8 @@
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
+	a dedicated window.
+
 	* international/latexenc.el (latexenc-find-file-coding-system):
 	Undo part of last patch, to turn off a compiler warning.
 
