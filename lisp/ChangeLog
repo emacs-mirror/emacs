@@ -1,3 +1,36 @@
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-dependency-regex): Handle whitespace
+	just like other allowed characters.
+	(makefile-match-dependency): Exclude leading and training whitespace
+	from the range of regexp subexp 1.
+	(makefile-macroassign-regex): Don't try to match the body,
+	just the name of the macro being defined.
+
+	* info.el (Info-read-node-name-2): New function.
+	(Info-read-node-name-1): Use that.
+	Add a completion-base-size-function property.
+
+	* simple.el (completion-setup-function): Look for
+	completion-base-size-function property of
+	minibuffer-completion-table.
+
+	* files.el (locate-file-completion): Doc fix.
+
+	* printing.el: Don't call pr-update-menus; user must do that.
+
+	* emacs-lisp/debug.el (debugger-window): New variable.
+	(debug): Use debugger-window if it is set and still alive.
+	Record debugger-window for next entry.
+	
+	* mail/supercite.el (sc-mail-glom-frame): Mark as risky.
+
+2005-06-05  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
+
+	* files.el (hack-local-variables-confirm): New arg FLAG-TO-CHECK.
+	(hack-one-local-variable, hack-local-variables)
+	(hack-local-variables-prop-line): Pass that arg.
+
 2005-06-06  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-first-match, ido-only-match, ido-subdir)
@@ -25,6 +58,7 @@
 	before selecting the desired mode to not spend time fontifying
 	old contents.
 
+>>>>>>> 1.7678
 2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearchb.el (isearchb): Don't pass a spurious second argument to

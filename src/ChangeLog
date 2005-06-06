@@ -1,3 +1,7 @@
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (popup_get_selection): Undo previous change.
+
 2005-06-06  Juri Linkov  <juri@jurta.org>
 
 	* xdisp.c (Qno_break_space): New variable.
