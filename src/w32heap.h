@@ -82,15 +82,6 @@ typedef struct file_data {
     unsigned char *file_base;
 } file_data;
 
-#define OFFSET_TO_RVA(var,section) \
-	  (section->VirtualAddress + ((DWORD)(var) - section->PointerToRawData))
-
-#define RVA_TO_OFFSET(var,section) \
-	  (section->PointerToRawData + ((DWORD)(var) - section->VirtualAddress))
-
-#define RVA_TO_PTR(var,section,filedata) \
-	  ((void *)(RVA_TO_OFFSET(var,section) + (filedata).file_base))
-
 int open_input_file (file_data *p_file, char *name);
 int open_output_file (file_data *p_file, char *name, unsigned long size);
 void close_file_data (file_data *p_file);
