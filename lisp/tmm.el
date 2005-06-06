@@ -133,9 +133,8 @@ specify nil for this variable."
   :type '(choice integer (const nil))
   :group 'tmm)
 
-(require 'font-lock)
 (defface tmm-inactive-face
-  '((t :inherit font-lock-comment-face))
+  '((t :inherit shadow))
   "Face used for inactive menu items."
   :group 'tmm)
 
