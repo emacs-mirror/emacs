@@ -350,6 +350,10 @@ Lisp_Object Qtrailing_whitespace;
 
 Lisp_Object Qescape_glyph;
 
+/* Name and number of the face used to highlight non-breaking spaces.  */
+
+Lisp_Object Qno_break_space;
+
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
 
@@ -5094,8 +5098,10 @@ get_next_display_element (it)
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c)
 			  || (!NILP (Vshow_nonbreak_escape)
-			      && (it->c == 0x8ad || it->c == 0x8a0
-				  || it->c == 0xf2d || it->c == 0xf20)))
+			      && (it->c == 0x8a0 || it->c == 0x8ad
+				  || it->c == 0x920 || it->c == 0x92d
+				  || it->c == 0xe20 || it->c == 0xe2d
+				  || it->c == 0xf20 || it->c == 0xf2d)))
 		       : (it->c >= 127
 			  && (!unibyte_display_via_language_environment
 			      || it->c == unibyte_char_to_multibyte (it->c)))))
@@ -5162,13 +5168,25 @@ get_next_display_element (it)
 					 it->face_id);
 		}
 
-	      if (it->c == 0x8a0 || it->c == 0x8ad
-		  || it->c == 0xf20 || it->c == 0xf2d)
+	      if (it->c == 0x8a0 || it->c == 0x920
+		  || it->c == 0xe20 || it->c == 0xf20)
 		{
-		  XSETINT (it->ctl_chars[0], escape_glyph);
+		  /* Merge the no-break-space face into the current face.  */
+		  face_id = merge_faces (it->f, Qno_break_space, 0,
+					 it->face_id);
+
 		  g = it->c;
-		  XSETINT (it->ctl_chars[1], g);
-		  ctl_len = 2;
+		  XSETINT (it->ctl_chars[0], g);
+		  ctl_len = 1;
+		  goto display_control;
+		}
+
+	      if (it->c == 0x8ad || it->c == 0x92d
+		  || it->c == 0xe2d || it->c == 0xf2d)
+		{
+		  g = it->c;
+		  XSETINT (it->ctl_chars[0], g);
+		  ctl_len = 1;
 		  goto display_control;
 		}
 
@@ -22714,6 +22732,8 @@ syms_of_xdisp ()
   staticpro (&Qtrailing_whitespace);
   Qescape_glyph = intern ("escape-glyph");
   staticpro (&Qescape_glyph);
+  Qno_break_space = intern ("no-break-space");
+  staticpro (&Qno_break_space);
   Qimage = intern ("image");
   staticpro (&Qimage);
   QCmap = intern (":map");
