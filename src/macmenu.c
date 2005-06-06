@@ -1356,6 +1356,68 @@ update_submenu_strings (first_wv)
 }
 
 
+/* Event handler function that pops down a menu on C-g.  We can only pop
+   down menus if CancelMenuTracking is present (OSX 10.3 or later).  */
+
+#ifdef HAVE_CANCELMENUTRACKING
+static pascal OSStatus
+menu_quit_handler (nextHandler, theEvent, userData)
+     EventHandlerCallRef nextHandler;
+     EventRef theEvent;
+     void* userData;
+{
+  UInt32 keyCode;
+  UInt32 keyModifiers;
+  extern int mac_quit_char_modifiers;
+  extern int mac_quit_char_keycode;
+
+  GetEventParameter (theEvent, kEventParamKeyCode,
+                     typeUInt32, NULL, sizeof(UInt32), NULL, &keyCode);
+
+  GetEventParameter (theEvent, kEventParamKeyModifiers,
+                     typeUInt32, NULL, sizeof(UInt32),
+                     NULL, &keyModifiers);
+
+  if (keyCode == mac_quit_char_keycode
+      && keyModifiers == mac_quit_char_modifiers)
+    {
+      MenuRef menu = userData != 0
+        ? (MenuRef)userData : AcquireRootMenu ();
+
+      CancelMenuTracking (menu, true, 0);
+      if (!userData) ReleaseMenu (menu);
+      return noErr;
+    }
+
+  return CallNextEventHandler (nextHandler, theEvent);
+}
+#endif /* HAVE_CANCELMENUTRACKING */
+
+/* Add event handler for MENU_HANDLE so we can detect C-g.
+   If MENU_HANDLE is NULL, install handler for all menus in the menu bar.
+   If CancelMenuTracking isn't available, do nothing.  */
+
+static void
+install_menu_quit_handler (MenuHandle menu_handle)
+{
+#ifdef HAVE_CANCELMENUTRACKING
+  EventHandlerUPP handler = NewEventHandlerUPP(menu_quit_handler);
+  UInt32 numTypes = 1;
+  EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
+  int i = MIN_MENU_ID;
+  MenuHandle menu = menu_handle ? menu_handle : GetMenuHandle (i);
+    
+  while (menu != NULL)
+    {
+      InstallMenuEventHandler (menu, handler, GetEventTypeCount (typesList),
+                               typesList, menu_handle, NULL);
+      if (menu_handle) break;
+      menu = GetMenuHandle (++i);
+    }
+  DisposeEventHandlerUPP (handler);
+#endif /* HAVE_CANCELMENUTRACKING */
+}
+
 /* Set the contents of the menubar widgets of frame F.
    The argument FIRST_TIME is currently ignored;
    it is set the first time this is called, from initialize_frame_menubar.  */
@@ -1575,6 +1637,8 @@ set_frame_menubar (f, first_time, deep_p)
 
   DrawMenuBar ();
 
+  /* Add event handler so we can detect C-g. */
+  install_menu_quit_handler (NULL);
   free_menubar_widget_value_tree (first_wv);
 
   UNBLOCK_INPUT;
@@ -1606,7 +1670,43 @@ free_frame_menubar (f)
 }
 
 
-/* mac_menu_show actually displays a menu using the panes and items in
+static Lisp_Object
+pop_down_menu (arg)
+     Lisp_Object arg;
+{
+  struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
+  struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
+  
+  FRAME_PTR f = p1->pointer;
+  MenuHandle *menu = p2->pointer;
+
+  BLOCK_INPUT;
+
+  /* Must reset this manually because the button release event is not
+     passed to Emacs event loop. */
+  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
+
+  /* delete all menus */
+  {
+    int i = MIN_POPUP_SUBMENU_ID;
+    MenuHandle submenu = GetMenuHandle (i);
+    while (submenu != NULL)
+      {
+	DeleteMenu (i);
+	DisposeMenu (submenu);
+	submenu = GetMenuHandle (++i);
+      }
+  }
+
+  DeleteMenu (POPUP_SUBMENU_ID);
+  DisposeMenu (*menu);
+
+  UNBLOCK_INPUT;
+
+  return Qnil;
+}
+
+/* Mac_menu_show actually displays a menu using the panes and items in
    menu_items and returns the value selected from it; we assume input
    is blocked by the caller.  */
 
@@ -1644,6 +1744,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
     = (Lisp_Object *) alloca (menu_items_used * sizeof (Lisp_Object));
   int submenu_depth = 0;
   int first_pane;
+  int specpdl_count = SPECPDL_INDEX ();
 
   *error = NULL;
 
@@ -1817,7 +1918,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	title = ENCODE_MENU_STRING (title);
 #endif
       wv_title->name = (char *) SDATA (title);
-      wv_title->enabled = TRUE;
+      wv_title->enabled = FALSE;
       wv_title->title = TRUE;
       wv_title->button_type = BUTTON_TYPE_NONE;
       wv_title->help = Qnil;
@@ -1829,6 +1930,10 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   menu = NewMenu (POPUP_SUBMENU_ID, "\p");
   submenu_id = MIN_POPUP_SUBMENU_ID;
   fill_submenu (menu, first_wv->contents);
+
+  /* Free the widget_value objects we used to specify the
+     contents.  */
+  free_menubar_widget_value_tree (first_wv);
 
   /* Adjust coordinates to be root-window-relative.  */
   pos.h = x;
@@ -1844,11 +1949,18 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   InsertMenu (menu, -1);
 
+  record_unwind_protect (pop_down_menu,
+                         Fcons (make_save_value (f, 0),
+                                make_save_value (&menu, 0)));
+
+  /* Add event handler so we can detect C-g. */
+  install_menu_quit_handler (menu);
+  
   /* Display the menu.  */
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
   menu_item_selection = LoWord (menu_item_choice);
 
-  /* Get the refcon to find the correct item*/
+  /* Get the refcon to find the correct item */
   if (menu_item_selection)
     {
       MenuHandle sel_menu = GetMenuHandle (HiWord (menu_item_choice));
@@ -1856,35 +1968,10 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 	GetMenuItemRefCon (sel_menu, menu_item_selection, &refcon);
       }
     }
-
-#if 0
-  /* Clean up extraneous mouse events which might have been generated
-     during the call.  */
-  discard_mouse_events ();
-#endif
-
-  /* Must reset this manually because the button release event is not
-     passed to Emacs event loop. */
-  FRAME_MAC_DISPLAY_INFO (f)->grabbed = 0;
-
-  /* Free the widget_value objects we used to specify the
-     contents.  */
-  free_menubar_widget_value_tree (first_wv);
-
-  /* delete all menus */
-  {
-    int i = MIN_POPUP_SUBMENU_ID;
-    MenuHandle submenu = GetMenuHandle (i);
-    while (submenu != NULL)
-      {
-	DeleteMenu (i);
-	DisposeMenu (submenu);
-	submenu = GetMenuHandle (++i);
-      }
-  }
-
-  DeleteMenu (POPUP_SUBMENU_ID);
-  DisposeMenu (menu);
+  else if (! for_click)
+    /* Make "Cancel" equivalent to C-g unless this menu was popped up by
+       a mouse press.  */
+    Fsignal (Qquit, Qnil);
 
   /* Find the selected item, and its pane, to return
      the proper value.  */
@@ -1943,6 +2030,8 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
   else if (!for_click)
     /* Make "Cancel" equivalent to C-g.  */
     Fsignal (Qquit, Qnil);
+
+  unbind_to (specpdl_count, Qnil);
 
   return Qnil;
 }
