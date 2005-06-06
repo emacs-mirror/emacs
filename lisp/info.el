@@ -3483,7 +3483,7 @@ the variable `Info-file-list-for-emacs'."
 	   (Info-goto-emacs-command-node command)))))
 
 (defface Info-title-1-face
-  '((((type tty pc) (class color)) :foreground "yellow" :weight bold)
+  '((((type tty pc) (class color)) :foreground "green" :weight bold)
     (t :height 1.2 :inherit Info-title-2-face))
   "Face for Info titles at level 1."
   :group 'info)
