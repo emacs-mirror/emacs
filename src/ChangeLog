@@ -5129,7 +5129,7 @@
 
 2004-06-11  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_string): Check CODING_FINISH_INTERRUPT.
+	* coding.c (encode_coding_string): Check CODING_FINISH_INTERRUPT.
 
 2004-06-11  Kim F. Storm  <storm@cua.dk>
 
