@@ -10,16 +10,16 @@
 	(gdb-find-file-hook): Add doc string.
 
 	* progmodes/gud.el (gdb, gud-menu-map): Add command to evaluate
-	 C dereferenced pointer expression.
+	C dereferenced pointer expression.
 	(gud-tool-bar-map): Put it on the tool bar.  Re-order icons.
 
 	* toolbar/gud-pstar.xpm, toolbar/gud-pstar.pbm: New files.
 
-	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm,
-	toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm,
-	toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm,
-	toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm,
-	toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
+	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm
+	* toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm
+	* toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm
+	* toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm
+	* toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
 	Make background transparent.
 
 2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
