@@ -1,3 +1,8 @@
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_create_toolkit_scroll_bar): Use XtNarrowScrollbars
+	if available.
+
 2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* macmenu.c (menu_quit_handler, install_menu_quit_handler): New

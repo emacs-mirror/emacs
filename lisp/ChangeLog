@@ -1,3 +1,7 @@
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-cvt.el (iso-sgml2iso-trans-tab): Add NBSP.
+
 2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* font-lock.el (font-lock-add-keywords): Doc fix.
