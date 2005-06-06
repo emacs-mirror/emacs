@@ -1,3 +1,11 @@
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* xdisp.c (Qno_break_space): New variable.
+	(syms_of_xdisp): Initialize it.
+	(get_next_display_element): Add no-break space and soft hypen
+	codes for iso8859-2 and iso8859-5.  Don't add `\' for them.
+	Use `no-break-space' face for no-break spaces.
+
 2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* window.c (delete_window): Handle the case where a h/vchild has

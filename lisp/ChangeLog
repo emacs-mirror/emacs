@@ -1,3 +1,25 @@
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* font-lock.el (font-lock-regexp-backslash)
+	(font-lock-regexp-backslash-construct): New faces.
+	(lisp-font-lock-keywords-2): Use new faces.  Match `?:' only
+	after `('.  Add `while-no-input' to control structures.
+
+	* faces.el (no-break-space, shadow): New faces.
+	(escape-glyph): Use less loud colors pink2 and red4.
+
+	* diff-mode.el (diff-context-face)
+	* dired.el (dired-ignored)
+	* rfn-eshadow.el (file-name-shadow)
+	* tmm.el (tmm-inactive-face): Inherit from `shadow' face.
+
+	* info.el (Info-title-1-face): Use green instead of yellow because
+	bold yellow is not readable on light backgrounds.
+
+	* progmodes/compile.el (compilation-start): Move `erase-buffer' up
+	before selecting the desired mode to not spend time fontifying
+	old contents.
+
 2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* isearchb.el (isearchb): Don't pass a spurious second argument to

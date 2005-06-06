@@ -1,3 +1,10 @@
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* TUTORIAL.cs, TUTORIAL.sk: Change NBSP to space.
+
+	* TUTORIAL.ro: Change NBSP to space.  Move coding cookie from the
+	second line to Local Variables.  Fix title line.
+
 2005-05-30  Miles Bader  <miles@gnu.org>
 
 	* emacs-buffer.gdb: Remove RCS keywords.
