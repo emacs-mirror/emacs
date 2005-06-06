@@ -1235,10 +1235,6 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
       if (event.type == ButtonRelease
           && dpyinfo->display == event.xbutton.display)
         {
-	  /* If the click is not on the menu, deactivate the menu.  */
-	  if (x_any_window_to_frame (dpyinfo, event.xexpose.window))
-	    popup_activated_flag = 0;
-	    
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
 #ifdef USE_MOTIF /* Pretending that the event came from a
                     Btn1Down seems the only way to convince Motif to
