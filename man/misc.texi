@@ -1609,15 +1609,16 @@ used.
 
 @findex pr-interface
   To use the Printing package, add @code{(require 'printing)} to your
-init file (@pxref{Init File}).  The usual printing options in the menu
-bar will be replaced with a @samp{Printing} submenu, containing
-various printing options.  You can also type @kbd{M-x pr-interface
-RET}; this creates a @samp{*Printing Interface*} buffer, similar to a
-customization buffer , where you can set the printing options.  After
-selecting what and how to print, start the print job using the
-@samp{Print} button (click @kbd{mouse-2} on it, or move point over it
-and type @kbd{RET}).  For further information on the various options,
-use the @samp{Interface Help} button.
+init file (@pxref{Init File}), followed by @code{(pr-update-menus)}.
+This function replaces the usual printing commands in the menu bar
+with a @samp{Printing} submenu that contains various printing options.
+You can also type @kbd{M-x pr-interface RET}; this creates a
+@samp{*Printing Interface*} buffer, similar to a customization buffer,
+where you can set the printing options.  After selecting what and how
+to print, you start the print job using the @samp{Print} button (click
+@kbd{mouse-2} on it, or move point over it and type @kbd{RET}).  For
+further information on the various options, use the @samp{Interface
+Help} button.
 
 @node Sorting, Narrowing, Printing, Top
 @section Sorting Text
