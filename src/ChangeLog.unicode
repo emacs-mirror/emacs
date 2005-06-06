@@ -1,3 +1,8 @@
+2005-06-05  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Finternal_lisp_face_equal_p): Restore previously
+	removed calculation of frame `f', as it's now used.
+
 2005-05-22  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (x_font_name_to_mac_font_name): Sync with trunk
