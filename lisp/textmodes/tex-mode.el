@@ -795,7 +795,7 @@ Inherits `shell-mode-map' with a few additions.")
 		      (regexp-opt '("documentstyle" "documentclass"
 				    "begin" "subsection" "section"
 				    "part" "chapter" "newcommand"
-				    "renewcommand") 'words)
+				    "renewcommand" "RequirePackage") 'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
 		  (if (and (looking-at
 			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
@@ -1639,9 +1639,12 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
-    ("yap %r &" "%r.dvi")
     ("xdvi %r &" "%r.dvi")
+    ("xpdf %r.pdf &" "%r.pdf")
+    ("gv %r.ps &" "%r.ps")
+    ("yap %r &" "%r.dvi")
     ("advi %r &" "%r.dvi")
+    ("gv %r.pdf &" "%r.pdf")
     ("bibtex %r" "%r.aux" "%r.bbl")
     ("makeindex %r" "%r.idx" "%r.ind")
     ("texindex %r.??")
@@ -1649,9 +1652,6 @@ If NOT-ALL is non-nil, save the `.dvi' file."
     ("dvipdf %r" "%r.dvi" "%r.pdf")
     ("dvips -o %r.ps %r" "%r.dvi" "%r.ps")
     ("ps2pdf %r.ps" "%r.ps" "%r.pdf")
-    ("gv %r.ps &" "%r.ps")
-    ("gv %r.pdf &" "%r.pdf")
-    ("xpdf %r.pdf &" "%r.pdf")
     ("lpr %r.ps" "%r.ps"))
   "List of commands for `tex-compile'.
 Each element should be of the form (FORMAT IN OUT) where
@@ -1830,8 +1830,7 @@ FILE is typically the output DVI or PDF file."
 	    (push cmd cmds)
 	  (push (nth 1 cmd) unchanged-in))))
     ;; If no command seems to be applicable, arbitrarily pick the first one.
-    (unless cmds
-      (setq cmds (list (car tex-compile-commands))))
+    (setq cmds (if cmds (nreverse cmds) (list (car tex-compile-commands))))
     ;; Remove those commands whose input was considered stable for
     ;; some other command (typically if (t . "%.pdf") is inactive
     ;; then we're using pdflatex and the fact that the dvi file
@@ -1841,7 +1840,7 @@ FILE is typically the output DVI or PDF file."
 	(unless (member (nth 1 cmd) unchanged-in)
 	  (push cmd tmp)))
       ;; Only remove if there's something left.
-      (if tmp (setq cmds tmp)))
+      (if tmp (setq cmds (nreverse tmp))))
     ;; Remove commands whose input is not uptodate either.
     (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds)))
 	  (tmp nil))
@@ -1849,7 +1848,7 @@ FILE is typically the output DVI or PDF file."
 	(unless (member (nth 1 cmd) outs)
 	  (push cmd tmp)))
       ;; Only remove if there's something left.
-      (if tmp (setq cmds tmp)))
+      (if tmp (setq cmds (nreverse tmp))))
     ;; Select which file we're going to operate on (the latest).
     (let ((latest (nth 1 (car cmds))))
       (dolist (cmd (prog1 (cdr cmds) (setq cmds (list (car cmds)))))

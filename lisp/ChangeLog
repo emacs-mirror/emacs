@@ -1,5 +1,10 @@
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* textmodes/tex-mode.el (tex-guess-mode): Add RequirePackage.
+	(tex-compile-default): In the absence of any history, use the order in
+	tex-compile-alist to choose the preferred command.
+	(tex-compile-commands): Reorder a bit.
+
 	* textmodes/flyspell.el (flyspell-auto-correct-binding)
 	(flyspell-incorrect-face, flyspell-duplicate-face):
 	Use (X)Emacs-agnostic code.
