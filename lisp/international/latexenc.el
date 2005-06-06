@@ -47,7 +47,7 @@
 ;; like this
 
 ;; (add-to-list 'file-coding-system-alist
-;; 	     '("\\.tex\\|\\.ltx\\|\\.dtx\\|\\.drv\\'" . latexenc-find-file-coding-system))
+;; 	     '("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system))
 
 ;;; Code:
 
