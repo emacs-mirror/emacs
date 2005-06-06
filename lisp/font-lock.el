@@ -691,7 +691,7 @@ For example:
 
  (add-hook 'c-mode-hook
   (lambda ()
-   (font-lock-add-keywords 'c-mode
+   (font-lock-add-keywords nil
     '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
       (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" .
        font-lock-keyword-face)))))
