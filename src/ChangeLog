@@ -1,3 +1,14 @@
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler): New
+	functions for popping down menus on C-g.
+	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler.
+
+	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
+	non-static.
+
+	* config.in: Added HAVE_CANCELMENUTRACKING
+
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove
