@@ -129,6 +129,7 @@
 (put 'defmacro 'doc-string-elt 3)
 (put 'defmacro* 'doc-string-elt 3)
 (put 'defsubst 'doc-string-elt 3)
+(put 'defstruct 'doc-string-elt 2)
 (put 'define-skeleton 'doc-string-elt 2)
 (put 'define-derived-mode 'doc-string-elt 4)
 (put 'define-compilation-mode 'doc-string-elt 3)
@@ -194,7 +195,7 @@
   (setq comment-start-skip "\\(\\(^\\|[^\\\\\n]\\)\\(\\\\\\\\\\)*\\);+ *")
   (make-local-variable 'font-lock-comment-start-skip)
   ;; Font lock mode uses this only when it KNOWS a comment is starting.
-  (setq font-lock-comment-start-skip ";+ *") 
+  (setq font-lock-comment-start-skip ";+ *")
   (make-local-variable 'comment-add)
   (setq comment-add 1)			;default to `;;' in comment-region
   (make-local-variable 'comment-column)
