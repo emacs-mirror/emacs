@@ -272,17 +272,19 @@ int update_tick;
 #define READ_OUTPUT_DELAY_MAX       (READ_OUTPUT_DELAY_INCREMENT * 5)
 #define READ_OUTPUT_DELAY_MAX_MAX   (READ_OUTPUT_DELAY_INCREMENT * 7)
 
-/* Number of processes which might be delayed.  */
+/* Number of processes which have a non-zero read_output_delay,
+   and therefore might be delayed for adaptive read buffering.  */
 
 static int process_output_delay_count;
 
-/* Non-zero if any process has non-nil process_output_skip.  */
+/* Non-zero if any process has non-nil read_output_skip.  */
 
 static int process_output_skip;
 
 /* Non-nil means to delay reading process output to improve buffering.
    A value of t means that delay is reset after each send, any other
-   non-nil value does not reset the delay.  */
+   non-nil value does not reset the delay.  A value of nil disables
+   adaptive read buffering completely.  */
 static Lisp_Object Vprocess_adaptive_read_buffering;
 #else
 #define process_output_delay_count 0
@@ -4319,6 +4321,11 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 #endif
 
 #ifdef ADAPTIVE_READ_BUFFERING
+	  /* Set the timeout for adaptive read buffering if any
+	     process has non-nil read_output_skip and non-zero
+	     read_output_delay, and we are not reading output for a
+	     specific wait_channel.  It is not executed if
+	     Vprocess_adaptive_read_buffering is nil.  */
 	  if (process_output_skip && check_delay > 0)
 	    {
 	      int usecs = EMACS_USECS (timeout);
@@ -4329,6 +4336,8 @@ wait_reading_process_output (time_limit, microsecs, read_kbd, do_display,
 		  proc = chan_process[channel];
 		  if (NILP (proc))
 		    continue;
+		  /* Find minimum non-zero read_output_delay among the
+		     processes with non-nil read_output_skip.  */
 		  if (XINT (XPROCESS (proc)->read_output_delay) > 0)
 		    {
 		      check_delay--;
@@ -6711,7 +6720,7 @@ init_process ()
 #endif /* HAVE_SOCKETS */
 
 #if defined (DARWIN) || defined (MAC_OSX)
-  /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive 
+  /* PTYs are broken on Darwin < 6, but are sometimes useful for interactive
      processes.  As such, we only change the default value.  */
  if (initialized)
   {
