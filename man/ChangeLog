@@ -1,3 +1,7 @@
+2005-06-07  Masatake YAMATO  <jet@gyve.org>
+
+	* display.texi (Faces): Write about mode-line-highlight.
+
 2005-06-06  Richard M. Stallman  <rms@gnu.org>
 
 	* misc.texi (Printing Package): Explain how to initialize

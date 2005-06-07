@@ -118,6 +118,8 @@ This face is used for the prompt strings displayed in the minibuffer.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
+@item mode-line-highlight
+Like @code{highlight}, but used for portions of text on mode lines.
 @item isearch
 This face is used for highlighting Isearch matches.
 @item lazy-highlight
