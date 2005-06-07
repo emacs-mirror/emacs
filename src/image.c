@@ -6265,8 +6265,8 @@ jpeg_image_p (object)
 #endif /* HAVE_STLIB_H */
 
 #if defined (HAVE_NTGUI) && !defined (__WIN32__)
-/* jpeglib.h will define boolean differently depending on __WIN32__,
-   so make sure it is defined.  */
+/* In older releases of the jpeg library, jpeglib.h will define boolean
+   differently depending on __WIN32__, so make sure it is defined.  */
 #define __WIN32__ 1
 #endif
 
