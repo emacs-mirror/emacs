@@ -1,3 +1,7 @@
+2005-06-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c: Improve commentary for adaptive read buffering.
+
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xterm.c (x_create_toolkit_scroll_bar): Use XtNarrowScrollbars
