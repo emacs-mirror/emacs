@@ -1,3 +1,8 @@
+2005-06-07  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/org.el (org-run-mode-hooks): New function.
+	(org-agenda-mode): Use it.
+
 2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
 
 	* emacs-lisp/lisp-mode.el (defstruct): Set 'doc-string-elt property.
