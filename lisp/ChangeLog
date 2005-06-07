@@ -1,3 +1,7 @@
+2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (defstruct): Set 'doc-string-elt property.
+
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* international/iso-cvt.el (iso-sgml2iso-trans-tab): Add NBSP.
