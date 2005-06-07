@@ -1,3 +1,10 @@
+2005-06-07  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Check
+	the overlapping of re-rendering area to avoid flickering.
+	(note_mouse_highlight): Call clear_mouse_face if PART 
+	is not ON_MODE_LINE nor ON_HEADER_LINE.
+
 2005-06-07  Kim F. Storm  <storm@cua.dk>
 
 	* process.c: Improve commentary for adaptive read buffering.

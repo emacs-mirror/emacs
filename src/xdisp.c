@@ -21491,10 +21491,8 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int total_pixel_width;
 	  int ignore;
 
-
-	  if (clear_mouse_face (dpyinfo))
-	    cursor = No_Cursor;
-
+	  int vpos, hpos;
+	  
 	  b = Fprevious_single_property_change (make_number (charpos + 1),
 						Qmouse_face, string, Qnil);
 	  if (NILP (b))
@@ -21537,15 +21535,30 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  for (tmp_glyph = glyph - gpos; tmp_glyph != glyph; tmp_glyph++)
 	    total_pixel_width += tmp_glyph->pixel_width;
 
-	  dpyinfo->mouse_face_beg_col = (x - gpos);
-	  dpyinfo->mouse_face_beg_row = (area == ON_MODE_LINE
-					 ? (w->current_matrix)->nrows - 1
-					 : 0);
+	  /* Pre calculation of re-rendering position */
+	  vpos = (x - gpos);
+	  hpos = (area == ON_MODE_LINE
+		  ? (w->current_matrix)->nrows - 1
+		  : 0);
+	  
+	  /* If the re-rendering position is included in the last
+	     re-rendering area, we should do nothing. */
+	  if ( window == dpyinfo->mouse_face_window
+	       && dpyinfo->mouse_face_beg_col <= vpos
+	       && vpos < dpyinfo->mouse_face_end_col
+	       && dpyinfo->mouse_face_beg_row == hpos )
+	    return;
+	  
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = No_Cursor;
+	  
+	  dpyinfo->mouse_face_beg_col = vpos;
+	  dpyinfo->mouse_face_beg_row = hpos;
 
 	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
 	  dpyinfo->mouse_face_beg_y   = 0;
 
-	  dpyinfo->mouse_face_end_col = (x - gpos) + gseq_length;
+	  dpyinfo->mouse_face_end_col = vpos + gseq_length;
 	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_beg_row;
 
 	  dpyinfo->mouse_face_end_x   = 0;
@@ -21617,7 +21630,8 @@ note_mouse_highlight (f, x, y)
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
   if (! EQ (window, dpyinfo->mouse_face_window)
-      || (part != ON_TEXT && !NILP (dpyinfo->mouse_face_window)))
+      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE 
+	  && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */
