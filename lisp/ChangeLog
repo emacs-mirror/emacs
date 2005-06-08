@@ -1,6 +1,8 @@
 2005-06-08  Lute Kamstra  <lute@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode): Use define-minor-mode.
+	(flyspell-mode-line-string): Remove autoload cookie.
+	(flyspell-mode): Remove defvar.
 
 2005-06-07  Lute Kamstra  <lute@gnu.org>
 
