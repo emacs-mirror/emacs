@@ -97,10 +97,7 @@ This is to optimize `debugger-make-xrefs'.")
 This variable is used by `debugger-jump', `debugger-step-through',
 and `debugger-reenable' to temporarily disable debug-on-entry.")
 
-(defvar debugger-window nil
-  "If non-nil,  the last window used by the debugger for its buffer.
-The next call to the debugger reuses the same window, if it is still live.
-That case would normally occur when the window is in a separate frame.")
+(defvar inhibit-trace)                  ;Not yet implemented.
 
 ;;;###autoload
 (setq debugger 'debug)
@@ -183,13 +180,7 @@ first will be printed into the backtrace buffer."
 		  ;; Place an extra debug-on-exit for macro's.
 		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		    (backtrace-debug 5 t)))
-		(if (and debugger-window
-			 (window-live-p debugger-window))
-		    (progn
-		      (set-window-buffer debugger-window debugger-buffer)
-		      (select-window debugger-window))
-		  (pop-to-buffer debugger-buffer))
-		(setq debugger-window (selected-window))
+                (pop-to-buffer debugger-buffer)
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
 		(when noninteractive
@@ -226,12 +217,17 @@ first will be printed into the backtrace buffer."
 		(erase-buffer)
 		(fundamental-mode)
 		(with-selected-window (get-buffer-window debugger-buffer 0)
-                  (when (window-dedicated-p (selected-window))
+                  (when (and (window-dedicated-p (selected-window))
+                             (not debugger-step-after-exit))
                     ;; If the window is not dedicated, burying the buffer
                     ;; will mean that the frame created for it is left
-                    ;; around showing smoe random buffer, and next time we
+                    ;; around showing some random buffer, and next time we
                     ;; pop to the debugger buffer we'll create yet
                     ;; another frame.
+                    ;; If debugger-step-after-exit is non-nil, the frame
+                    ;; would need to be de-iconified anyway immediately
+                    ;; after when we re-enter the debugger, so iconifying it
+                    ;; here would cause flashing.
                     (bury-buffer))))
 	    (kill-buffer debugger-buffer))
 	  (set-match-data debugger-outer-match-data)))
