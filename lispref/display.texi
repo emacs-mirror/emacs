@@ -1795,14 +1795,15 @@ end of a line.
   The way to define a new face is with @code{defface}.  This creates a
 kind of customization item (@pxref{Customization}) which the user can
 customize using the Customization buffer (@pxref{Easy Customization,,,
-emacs, The GNU Emacs Manual}).
+emacs, The GNU Emacs Manual}).  
 
 @defmac defface face spec doc [keyword value]...
-This declares @var{face} as a customizable face that defaults according
-to @var{spec}.  You should not quote the symbol @var{face}.  The
+This declares @var{face} as a customizable face that defaults
+according to @var{spec}.  You should not quote the symbol @var{face},
+and it should not end in @samp{-face} (that would be redundant).  The
 argument @var{doc} specifies the face documentation.  The keywords you
-can use in @code{defface} are the same ones that are meaningful in both
-@code{defgroup} and @code{defcustom} (@pxref{Common Keywords}).
+can use in @code{defface} are the same as in @code{defgroup} and
+@code{defcustom} (@pxref{Common Keywords}).
 
 When @code{defface} executes, it defines the face according to
 @var{spec}, then uses any customizations that were read from the
