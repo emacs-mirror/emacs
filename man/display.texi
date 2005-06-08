@@ -169,6 +169,10 @@ The face for highlighting trailing whitespace when
 Whitespace}.
 @item variable-pitch
 The basic variable-pitch face.
+@item shadow
+The basic face for making the text less noticeable than the surrounding
+ordinary text.  Usually this is achieved by using shades of grey in
+contrast with either black or white default foreground color.
 @end table
 
 @cindex @code{region} face
