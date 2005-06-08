@@ -1406,7 +1406,7 @@ install_menu_quit_handler (MenuHandle menu_handle)
   EventTypeSpec typesList[] = { { kEventClassKeyboard, kEventRawKeyDown } };
   int i = MIN_MENU_ID;
   MenuHandle menu = menu_handle ? menu_handle : GetMenuHandle (i);
-    
+
   while (menu != NULL)
     {
       InstallMenuEventHandler (menu, handler, GetEventTypeCount (typesList),
@@ -1475,7 +1475,7 @@ set_frame_menubar (f, first_time, deep_p)
 	 because it is not reentrant.  */
       specbind (Qdebug_on_next_call, Qnil);
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
       if (NILP (Voverriding_local_map_menu_flag))
 	{
 	  specbind (Qoverriding_terminal_local_map, Qnil);
@@ -1676,7 +1676,7 @@ pop_down_menu (arg)
 {
   struct Lisp_Save_Value *p1 = XSAVE_VALUE (Fcar (arg));
   struct Lisp_Save_Value *p2 = XSAVE_VALUE (Fcdr (arg));
-  
+
   FRAME_PTR f = p1->pointer;
   MenuHandle *menu = p2->pointer;
 
@@ -1955,7 +1955,7 @@ mac_menu_show (f, x, y, for_click, keymaps, title, error)
 
   /* Add event handler so we can detect C-g. */
   install_menu_quit_handler (menu);
-  
+
   /* Display the menu.  */
   menu_item_choice = PopUpMenuSelect (menu, pos.v, pos.h, 0);
   menu_item_selection = LoWord (menu_item_choice);

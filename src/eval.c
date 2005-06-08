@@ -1971,7 +1971,7 @@ do_autoload (fundef, funname)
   GCPRO3 (fun, funname, fundef);
 
   /* Preserve the match data.  */
-  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+  record_unwind_save_match_data ();
 
   /* Value saved here is to be restored into Vautoload_queue.  */
   record_unwind_protect (un_autoload, Vautoload_queue);

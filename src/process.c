@@ -4887,10 +4887,10 @@ read_process_output (proc, channel)
 	{
 	  Lisp_Object tem;
 	  /* Don't clobber the CURRENT match data, either!  */
-	  tem = Fmatch_data (Qnil, Qnil);
-	  restore_match_data ();
-	  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
-	  Fset_match_data (tem);
+	  tem = Fmatch_data (Qnil, Qnil, Qnil);
+	  restore_search_regs ();
+	  record_unwind_save_match_data ();
+	  Fset_match_data (tem, Qt);
 	}
 
       /* For speed, if a search happens within this code,
@@ -4944,7 +4944,7 @@ read_process_output (proc, channel)
 				   read_process_output_error_handler);
 
       /* If we saved the match data nonrecursively, restore it now.  */
-      restore_match_data ();
+      restore_search_regs ();
       running_asynch_code = outer_running_asynch_code;
 
       /* Handling the process output should not deactivate the mark.  */
@@ -6348,10 +6348,10 @@ exec_sentinel (proc, reason)
   if (outer_running_asynch_code)
     {
       Lisp_Object tem;
-      tem = Fmatch_data (Qnil, Qnil);
-      restore_match_data ();
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
-      Fset_match_data (tem);
+      tem = Fmatch_data (Qnil, Qnil, Qnil);
+      restore_search_regs ();
+      record_unwind_save_match_data ();
+      Fset_match_data (tem, Qt);
     }
 
   /* For speed, if a search happens within this code,
@@ -6365,7 +6365,7 @@ exec_sentinel (proc, reason)
 			     exec_sentinel_error_handler);
 
   /* If we saved the match data nonrecursively, restore it now.  */
-  restore_match_data ();
+  restore_search_regs ();
   running_asynch_code = outer_running_asynch_code;
 
   Vdeactivate_mark = odeactivate;

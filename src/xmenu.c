@@ -2030,7 +2030,7 @@ set_frame_menubar (f, first_time, deep_p)
 	 because it is not reentrant.  */
       specbind (Qdebug_on_next_call, Qnil);
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
       record_unwind_protect (unuse_menu_items, Qnil);
       if (NILP (Voverriding_local_map_menu_flag))
 	{

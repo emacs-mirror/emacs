@@ -8489,7 +8489,7 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
       int count = SPECPDL_INDEX ();
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -8612,7 +8612,7 @@ update_menu_bar (f, save_match_data)
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
-	    record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+	    record_unwind_save_match_data ();
 	  if (NILP (Voverriding_local_map_menu_flag))
 	    {
 	      specbind (Qoverriding_terminal_local_map, Qnil);
@@ -8803,7 +8803,7 @@ update_tool_bar (f, save_match_data)
 
 	  /* Save match data, if we must.  */
 	  if (save_match_data)
-	    record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+	    record_unwind_save_match_data ();
 
 	  /* Make sure that we don't accidentally use bogus keymaps.  */
 	  if (NILP (Voverriding_local_map_menu_flag))
