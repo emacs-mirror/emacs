@@ -1775,6 +1775,11 @@ This face forces use of a particular fixed-width font.
 This face forces use of a particular variable-width font.  It's
 reasonable to customize this to use a different variable-width font, if
 you like, but you should not make it a fixed-width font.
+
+@item shadow
+@kindex shadow @r{(face name)}
+This face is used for making the text less noticeable than the
+surrounding ordinary text.
 @end table
 
 @defvar show-trailing-whitespace
