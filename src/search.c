@@ -2942,6 +2942,7 @@ Note: No other references to the markers must exist if you use this.  */)
 		  free_marker (m);
 		else
 		  unchain_marker (XMARKER (m));
+		XSETCAR (list, Qnil);
 	      }
 
 	    if ((list = XCDR (list), !CONSP (list)))
@@ -2962,6 +2963,7 @@ Note: No other references to the markers must exist if you use this.  */)
 		  free_marker (m);
 		else
 		  unchain_marker (XMARKER (m));
+		XSETCAR (list, Qnil);
 	      }
 	  }
 	list = XCDR (list);
