@@ -115,9 +115,8 @@
   :version "22.1")
 
 (defface makefile-shell-face
-  '((((class color) (background light)) (:background  "seashell1"))
-    (((class color) (background dark)) (:background  "seashell4"))
-    (t (:reverse-video t)))
+  '((((class color) (min-colors 88) (background light)) (:background  "seashell1"))
+    (((class color) (min-colors 88) (background dark)) (:background  "seashell4")))
   "Face to use for additionally highlighting Shell commands in Font-Lock mode."
   :group 'faces
   :group 'makefile
@@ -262,7 +261,7 @@ not be enclosed in { } or ( )."
 ;; index in makefile-imenu-generic-expression.
 (defvar makefile-dependency-regex
   ;; Allow for two nested levels $(v1:$(v2:$(v3:a=b)=c)=d)
-  "^\\(\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#:=]\\)+?\\)\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(bb.+\\)\\)?\\)"
+  "^\\(\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#:=]\\)+?\\)\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
   "Regex used to find dependency lines in a makefile.")
 
 (defconst makefile-bsdmake-dependency-regex
