@@ -1,3 +1,8 @@
+2005-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-file-name): Fallback to read-file-name on C-f
+	also when reading directory name.
+
 2005-06-08  Lute Kamstra  <lute@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-mode): Use define-minor-mode.
@@ -11,7 +16,7 @@
 
 2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (defstruct): Set 'doc-string-elt property.
+	* emacs-lisp/lisp-mode.el (defstruct): Set doc-string-elt property.
 
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
