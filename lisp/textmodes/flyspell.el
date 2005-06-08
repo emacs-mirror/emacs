@@ -468,7 +468,7 @@ See also `flyspell-duplicate-distance'."
 ;*    flyspell-mode ...                                                */
 ;*---------------------------------------------------------------------*/
 ;;;###autoload
-(defun flyspell-mode (&optional arg)
+(define-minor-mode flyspell-mode
   "Minor mode performing on-the-fly spelling checking.
 This spawns a single Ispell process and checks each word.
 The default flyspell behavior is to highlight incorrect words.
@@ -496,28 +496,12 @@ in your .emacs file.
 
 \\[flyspell-region] checks all words inside a region.
 \\[flyspell-buffer] checks the whole buffer."
-  (interactive "P")
-  (let ((old-flyspell-mode flyspell-mode))
-    ;; Mark the mode as on or off.
-    (setq flyspell-mode (not (or (and (null arg) flyspell-mode)
-				 (<= (prefix-numeric-value arg) 0))))
-    ;; Do the real work.
-    (unless (eq flyspell-mode old-flyspell-mode)
-      (if flyspell-mode
-	  (flyspell-mode-on)
-	(flyspell-mode-off))
-      ;; Force modeline redisplay.
-      (set-buffer-modified-p (buffer-modified-p)))))
-
-;*---------------------------------------------------------------------*/
-;*    Autoloading                                                      */
-;*---------------------------------------------------------------------*/
-;;;###autoload
-(add-minor-mode 'flyspell-mode
-		'flyspell-mode-line-string
-		flyspell-mode-map
-		nil
-		'flyspell-mode)
+  :lighter flyspell-mode-line-string
+  :keymap flyspell-mode-map
+  :group 'flyspell
+  (if flyspell-mode
+      (flyspell-mode-on)
+    (flyspell-mode-off)))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-buffers ...                                             */
