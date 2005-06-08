@@ -217,7 +217,7 @@ Fourth and fifth arg START and END specify the region to operate on.
 
 To customize possible responses, change the \"bindings\" in `query-replace-map'."
   (interactive (let ((common
-		      (query-replace-read-args 
+		      (query-replace-read-args
 		       (if (and transient-mark-mode mark-active)
 			 "Query replace in region"
 			 "Query replace")
@@ -281,7 +281,7 @@ text, TO-STRING is actually made a list instead of a string.
 Use \\[repeat-complex-command] after this command for details."
   (interactive
    (let ((common
-	  (query-replace-read-args 
+	  (query-replace-read-args
 	   (if (and transient-mark-mode mark-active)
 	       "Query replace regexp in region"
 	     "Query replace regexp")
@@ -431,7 +431,7 @@ which will run faster and will not set the mark or print anything.
 and TO-STRING is also null.)"
   (interactive
    (let ((common
-	  (query-replace-read-args 
+	  (query-replace-read-args
 	   (if (and transient-mark-mode mark-active)
 	       "Replace string in region"
 	     "Replace string")
@@ -489,10 +489,10 @@ What you probably want is a loop like this:
 which will run faster and will not set the mark or print anything."
   (interactive
    (let ((common
-	  (query-replace-read-args 
+	  (query-replace-read-args
 	   (if (and transient-mark-mode mark-active)
-	       "Replace regexp in region" 
-	     "Replace regexp") 
+	       "Replace regexp in region"
+	     "Replace regexp")
 	   t)))
      (list (nth 0 common) (nth 1 common) (nth 2 common)
 	   (if (and transient-mark-mode mark-active)
@@ -1268,12 +1268,7 @@ but coerced to the correct value of INTEGERS."
 	     (and (eq new reuse)
 		  (eq (null integers) (markerp (car reuse)))
 		  new)))
-      (match-data integers
-		  (prog1 reuse
-		    (while reuse
-		      (if (markerp (car reuse))
-			  (set-marker (car reuse) nil))
-		      (setq reuse (cdr reuse)))))))
+      (match-data integers reuse t)))
 
 (defun replace-match-maybe-edit (newtext fixedcase literal noedit match-data)
   "Make a replacement with `replace-match', editing `\\?'.
