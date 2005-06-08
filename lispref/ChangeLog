@@ -1,3 +1,7 @@
+2005-06-08  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Standard Faces): Add `shadow' face.
+
 2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* modes.texi (Major Mode Conventions): A derived mode only needs
