@@ -5116,6 +5116,8 @@ get_next_display_element (it)
 	      int face_id, lface_id = 0 ;
 	      GLYPH escape_glyph;
 
+	      /* Handle control characters with ^.  */
+
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
 		  g = '^';	     /* default glyph for Control */
@@ -5147,7 +5149,28 @@ get_next_display_element (it)
 		  goto display_control;
 		}
 
-	      escape_glyph = '\\';    /* default for Octal display */
+	      /* Handle non-break space in the mode where it only gets
+		 highlighting.  */
+
+	      if (! EQ (Vshow_nonbreak_escape, Qt)
+		  && (it->c == 0x8a0 || it->c == 0x920
+		      || it->c == 0xe20 || it->c == 0xf20))
+		{
+		  /* Merge the no-break-space face into the current face.  */
+		  face_id = merge_faces (it->f, Qno_break_space, 0,
+					 it->face_id);
+
+		  g = it->c = ' ';
+		  XSETINT (it->ctl_chars[0], g);
+		  ctl_len = 1;
+		  goto display_control;
+		}
+
+	      /* Handle sequences that start with the "escape glyph".  */
+
+	      /* the default escape glyph is \.  */
+	      escape_glyph = '\\';
+
 	      if (it->dp
 		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
 		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
@@ -5157,6 +5180,8 @@ get_next_display_element (it)
 		}
 	      if (lface_id)
 		{
+		  /* The display table specified a face.
+		     Merge it into face_id and also into escape_glyph.  */
 		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
 		  face_id = merge_faces (it->f, Qt, lface_id,
 					 it->face_id);
@@ -5168,25 +5193,31 @@ get_next_display_element (it)
 					 it->face_id);
 		}
 
-	      if (it->c == 0x8a0 || it->c == 0x920
-		  || it->c == 0xe20 || it->c == 0xf20)
-		{
-		  /* Merge the no-break-space face into the current face.  */
-		  face_id = merge_faces (it->f, Qno_break_space, 0,
-					 it->face_id);
+	      /* Handle soft hyphens in the mode where they only get
+		 highlighting.  */
 
-		  g = it->c;
+	      if (! EQ (Vshow_nonbreak_escape, Qt)
+		  && (it->c == 0x8ad || it->c == 0x92d
+		      || it->c == 0xe2d || it->c == 0xf2d))
+		{
+		  g = it->c = '-';
 		  XSETINT (it->ctl_chars[0], g);
 		  ctl_len = 1;
 		  goto display_control;
 		}
 
-	      if (it->c == 0x8ad || it->c == 0x92d
-		  || it->c == 0xe2d || it->c == 0xf2d)
+	      /* Handle non-break space and soft hyphen
+		 with the escape glyph.  */
+
+	      if (it->c == 0x8a0 || it->c == 0x8ad
+		  || it->c == 0x920 || it->c == 0x92d
+		  || it->c == 0xe20 || it->c == 0xe2d
+		  || it->c == 0xf20 || it->c == 0xf2d)
 		{
-		  g = it->c;
-		  XSETINT (it->ctl_chars[0], g);
-		  ctl_len = 1;
+		  XSETINT (it->ctl_chars[0], escape_glyph);
+		  g = it->c = ((it->c & 0xf) == 0 ? ' ' : '-');
+		  XSETINT (it->ctl_chars[1], g);
+		  ctl_len = 2;
 		  goto display_control;
 		}
 
@@ -22854,7 +22885,11 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
   DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
-    doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
+    doc: /* *Control highlighting of non-break space and soft hyphen.
+t means highlight the character itself (for non-break space,
+use face `non-break-space'.
+nil means no highlighting.
+other values mean display the escape glyph before the character.  */);
   Vshow_nonbreak_escape = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
