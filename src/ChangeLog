@@ -1,3 +1,18 @@
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Alter previous change:
+	Distinguish Vshow_nonbreak_escape = t or not t.
+	For t, use escape_glyph once again, as before previous change.
+	Use space or hyphen for display, instead of the non-ASCII char.
+	(syms_of_xdisp) <show-nonbreak-escape>: Doc fix.
+
+	* process.c (Fstart_process): Don't touch command_channel_p slot.
+
+	* process.h (struct process): Conditionalize slots
+	adaptive_read_buffering, read_output_delay and read_output_skip
+	on ADAPTIVE_READ_BUFFERING.
+	Delete command_channel_p.
+
 2005-06-07  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Check
