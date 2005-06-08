@@ -1,3 +1,8 @@
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Explain new `reseat' argument to
+	match-data and set-match-data.
+
 2005-06-08  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Entire Match Data): Clarify when match-data

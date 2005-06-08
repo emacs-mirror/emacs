@@ -1,3 +1,11 @@
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (save-match-data): Add RESEAT arg `evaporate' to
+	set-match-data to free markers in match-data.
+
+	* replace.el (replace-match-data): Pass RESEAT arg `t' to
+	match-data to unchain markers in match-data.
+
 2005-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/debug.el (debug): Don't iconify if we know we'll re-enter

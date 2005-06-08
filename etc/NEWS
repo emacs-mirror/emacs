@@ -3529,6 +3529,14 @@ element, if the last match was on a buffer.  `set-match-data'
 accepts such a list for restoring the match state.
 
 +++
+*** Functions `match-data' and `set-match-data' now have an optional
+argument `reseat'.  When non-nil, all markers in the match data list
+passed to these function will be reseated to point to nowhere, and if
+the value of `reseat' is `evaporate', the markers are put onto the
+free list.  Note that no other references to those markers must exist
+if `evaporate' is specified for the `reseat' argument.
+
++++
 *** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space', which contains such characters
 that end a sentence without following spaces.
