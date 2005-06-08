@@ -1,3 +1,7 @@
+2005-06-08  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Use define-minor-mode.
+
 2005-06-07  Lute Kamstra  <lute@gnu.org>
 
 	* textmodes/org.el (org-run-mode-hooks): New function.
