@@ -4193,7 +4193,9 @@ See `read-file-name' for additional parameters."
 	  (eq (get this-command 'ido) 'dir)
 	  (memq this-command ido-read-file-name-as-directory-commands))
       (setq filename
-	    (ido-read-directory-name prompt dir default-filename mustmatch initial)))
+	    (ido-read-directory-name prompt dir default-filename mustmatch initial))
+      (if (eq ido-exit 'fallback)
+	  (setq filename 'fallback)))
      ((and (not (eq (get this-command 'ido) 'ignore))
 	   (not (memq this-command ido-read-file-name-non-ido))
 	   (or (null predicate) (eq predicate 'file-exists-p)))
