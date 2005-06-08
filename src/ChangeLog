@@ -8,10 +8,7 @@
 
 	* process.c (Fstart_process): Don't touch command_channel_p slot.
 
-	* process.h (struct process): Conditionalize slots
-	adaptive_read_buffering, read_output_delay and read_output_skip
-	on ADAPTIVE_READ_BUFFERING.
-	Delete command_channel_p.
+	* process.h (struct process): Delete command_channel_p.
 
 2005-06-07  Masatake YAMATO  <jet@gyve.org>
 

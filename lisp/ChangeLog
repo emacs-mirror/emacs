@@ -1,3 +1,25 @@
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): If BODY is empty,
+	give the variable a doc string that doesn't say don't set it directly.
+
+	* textmodes/ispell.el (ispell-check-version):
+	Use match-string-no-properties.
+	(ispell-region,	ispell-buffer-local-parsing, ispell-buffer-local-dict)
+	(ispell-buffer-local-words): Likewise.
+
+	* progmodes/make-mode.el (makefile-shell-face): Make this a no-op
+	except on terminals with enough colors to really display it.
+	(makefile-dependency-regex): Delete spurious `bb'.
+
+	* faces.el (escape-glyph): Use blue once again in last case.
+	(no-break-space): Redefined so that it isn't invisible on a tty.
+
+2005-06-07  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-dependency-regex):
+	Remove `bb' inserted by mistake.
+
 2005-06-08  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-read-file-name): Fallback to read-file-name on C-f
@@ -16,7 +38,7 @@
 
 2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
 
-	* emacs-lisp/lisp-mode.el (defstruct): Set doc-string-elt property.
+	* emacs-lisp/lisp-mode.el (defstruct): Set `doc-string-elt' property.
 
 2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
 
