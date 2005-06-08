@@ -1537,7 +1537,6 @@ usage: (start-process NAME BUFFER PROGRAM &rest PROGRAM-ARGS)  */)
 
   XPROCESS (proc)->childp = Qt;
   XPROCESS (proc)->plist = Qnil;
-  XPROCESS (proc)->command_channel_p = Qnil;
   XPROCESS (proc)->buffer = buffer;
   XPROCESS (proc)->sentinel = Qnil;
   XPROCESS (proc)->filter = Qnil;
