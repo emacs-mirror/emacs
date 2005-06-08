@@ -99,7 +99,6 @@ struct Lisp_Process
        generated, and can be changed by the function
        `set-process-fileter-multibyte'. */
     Lisp_Object filter_multibyte;
-#ifdef ADAPTIVE_READ_BUFFERING
     /* Should we delay reading output from this process.
        Initialized from `Vprocess_adaptive_read_buffering'.  */
     Lisp_Object adaptive_read_buffering;
@@ -112,7 +111,6 @@ struct Lisp_Process
     Lisp_Object read_output_delay;
     /* Skip reading this process on next read.  */
     Lisp_Object read_output_skip;
-#endif
 };
 
 /* Every field in the preceding structure except for the first two
