@@ -228,7 +228,6 @@ http://strw.leidenuniv.nl/~dominik/Tools"
   :version "21.1"
   :type 'boolean)
 
-;;;###autoload
 (defcustom flyspell-mode-line-string " Fly"
   "*String displayed on the modeline when flyspell is active.
 Set this to nil if you don't want a modeline indicator."
@@ -405,10 +404,6 @@ property of the major mode name.")
 ;*    The minor mode declaration.                                      */
 ;*---------------------------------------------------------------------*/
 (eval-when-compile (defvar flyspell-local-mouse-map))
-
-;;;###autoload
-(defvar flyspell-mode nil)
-(make-variable-buffer-local 'flyspell-mode)
 
 (defvar flyspell-mouse-map
   (let ((map (make-sparse-keymap)))
