@@ -1522,7 +1522,7 @@ command_loop_1 ()
 
       Vthis_command = Qnil;
       real_this_command = Qnil;
-      Vthis_original_command=Qnil;
+      Vthis_original_command = Qnil;
 
       /* Read next key sequence; i gets its length.  */
       i = read_key_sequence (keybuf, sizeof keybuf / sizeof keybuf[0],
