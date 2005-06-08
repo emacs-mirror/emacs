@@ -2096,8 +2096,8 @@ Note: Other faces cannot inherit from the cursor face."
   :version "22.1")
 
 (defface no-break-space
-  '((((min-colors 88)) :inherit escape-glyph :underline t)
-    (((min-colors 8)) :background "magenta" :foreground )
+  '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
+    (((class color) (min-colors 8)) :background "magenta" :foreground )
     (t :inverse-video t))
   "Face for non-breaking space."
   :group 'basic-faces
