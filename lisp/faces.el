@@ -2089,13 +2089,16 @@ Note: Other faces cannot inherit from the cursor face."
     ;; See the comment in minibuffer-prompt for
     ;; the reason not to use blue on MS-DOS.
     (((type pc)) :foreground "magenta")
-    (t :foreground "red4"))
+    ;; red4 is too light -- rms.
+    (t :foreground "blue"))
   "Face for characters displayed as ^-sequences or \-sequences."
   :group 'basic-faces
   :version "22.1")
 
 (defface no-break-space
-  '((t :inherit escape-glyph :underline t))
+  '((((min-colors 88)) :inherit escape-glyph :underline t)
+    (((min-colors 8)) :background "magenta" :foreground )
+    (t :inverse-video t))
   "Face for non-breaking space."
   :group 'basic-faces
   :version "22.1")
