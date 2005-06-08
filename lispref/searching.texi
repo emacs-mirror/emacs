@@ -1485,7 +1485,7 @@ character of the buffer counts as 1.)
   The functions @code{match-data} and @code{set-match-data} read or
 write the entire match data, all at once.
 
-@defun match-data &optional integers reuse
+@defun match-data &optional integers reuse reseat
 This function returns a list of positions (markers or integers) that
 record all the information on what text the last search matched.
 Element zero is the position of the beginning of the match for the
@@ -1526,6 +1526,14 @@ stays the same, but the elements that were not used are set to
 @code{nil}.  The purpose of this feature is to reduce the need for
 garbage collection.
 
+If @var{reseat} is non-@code{nil}, all markers on the @var{reuse} list
+are reseated to point to nowhere, and if the value is @code{evaporate},
+the markers are put back on the free list.
+
+@strong{Warning:} When @code{evaporate} is specified for @var{reseat},
+no other references to the markers on the @var{reuse} list; otherwise,
+Emacs may crash during the next garbage collection.
+
 As always, there must be no possibility of intervening searches between
 the call to a search function and the call to @code{match-data} that is
 intended to access the match data for that search.
@@ -1541,7 +1549,7 @@ intended to access the match data for that search.
 @end example
 @end defun
 
-@defun set-match-data match-list
+@defun set-match-data match-list &optional reseat
 This function sets the match data from the elements of @var{match-list},
 which should be a list that was the value of a previous call to
 @code{match-data}.  (More precisely, anything that has the same format
@@ -1549,6 +1557,14 @@ will work.)
 
 If @var{match-list} refers to a buffer that doesn't exist, you don't get
 an error; that sets the match data in a meaningless but harmless way.
+
+If @var{reseat} is non-@code{nil}, all markers on the @var{match-list} list
+are reseated to point to nowhere, and if the value is @code{evaporate},
+the markers are put back on the free list.
+
+@strong{Warning:} When @code{evaporate} is specified for @var{reseat},
+no other references to the markers on the @var{match-list} list; otherwise,
+Emacs may crash during the next garbage collection.
 
 @findex store-match-data
 @code{store-match-data} is a semi-obsolete alias for @code{set-match-data}.
