@@ -1547,8 +1547,12 @@ Similarly for Soar, Scheme, etc."
 		     nil comint-last-input-start comint-last-input-end
 		     nil comint-last-input-end
 		     (+ comint-last-input-end echo-len))))
-		  (delete-region comint-last-input-end
-				 (+ comint-last-input-end echo-len)))))
+		  ;; Certain parts of the text to be deleted may have
+		  ;; been mistaken for prompts.  We have to prevent
+		  ;; problems when `comint-prompt-read-only' is non-nil.
+		  (let ((inhibit-read-only t))
+		    (delete-region comint-last-input-end
+				   (+ comint-last-input-end echo-len))))))
 
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.
