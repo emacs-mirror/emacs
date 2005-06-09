@@ -1,3 +1,21 @@
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
+	thumbnails directory on loading.
+	(thumbs-conversion-program): Use `eq' to check the system type,
+	not `equal'.
+	(thumbs-temp-dir): Initialize to `temporary-file-directory',
+	not "/tmp".  Fix docstring.
+	(thumbs-thumbsdir): New function to return the thumbnails
+	directory, creating it if needed.
+	(thumbs-cleanup-thumbsdir, thumbs-thumbname): Use it.
+	(thumbs-temp-file): Delete variable and make it into a function.
+	(thumbs-resize-image, thumbs-modify-image): Use it.
+	(thumbs-kill-buffer): Simplify.
+	(thumbs-gensym): Defalias or duplicate CL `gensym'.
+	(thumbs-resize-image, thumbs-resize-interactive): Fix typos in
+	docstrings.
+
 2005-06-09  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (save-match-data): Add RESEAT arg `evaporate' to
