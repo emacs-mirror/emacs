@@ -14,7 +14,8 @@
 
 2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
-	* window.el (window-size-fixed): Fix typo in docstring.
+	* window.el (shrink-window-if-larger-than-buffer)
+	(window-size-fixed): Fix typo in docstring.
 
 	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
 	thumbnails directory on loading.
