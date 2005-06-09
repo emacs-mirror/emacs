@@ -1,3 +1,7 @@
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fmemq, Fmaphash): Doc fixes.
+
 2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xfaces.c (Fdisplay_supports_face_attributes_p):
