@@ -9,6 +9,8 @@
 
 2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
+	* window.el (window-size-fixed): Fix typo in docstring.
+
 	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
 	thumbnails directory on loading.
 	(thumbs-conversion-program): Use `eq' to check the system type,
