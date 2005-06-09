@@ -65,8 +65,7 @@
   :version "22.1"
   :group 'multimedia)
 
-(defcustom thumbs-thumbsdir
-  (expand-file-name "~/.emacs-thumbs")
+(defcustom thumbs-thumbsdir "~/.emacs-thumbs"
   "*Directory to store thumbnails."
   :type 'directory
   :group 'thumbs)
@@ -88,7 +87,7 @@ When it reaches that size (in bytes), a warning is sent."
   :group 'thumbs)
 
 (defcustom thumbs-conversion-program
-  (if (equal 'windows-nt system-type)
+  (if (eq system-type 'windows-nt)
       "convert.exe"
     (or (executable-find "convert")
 	"/usr/X11R6/bin/convert"))
@@ -126,11 +125,10 @@ than `thumbs-thumbsdir-max-size'."
   :type 'string
   :group 'thumbs)
 
-(defcustom thumbs-temp-dir
-  "/tmp/"
+(defcustom thumbs-temp-dir temporary-file-directory
   "Temporary directory to use.
-Leaving it to default '/tmp/' can let another user
-see some of your images."
+Defaults to `temporary-file-directory'.  Leaving it to
+this value can let another user see some of your images."
   :type 'directory
   :group 'thumbs)
 
@@ -140,10 +138,6 @@ see some of your images."
   :group 'thumbs)
 
 ;; Initialize some variable, for later use.
-(defvar thumbs-temp-file
-  (concat thumbs-temp-dir thumbs-temp-prefix)
-  "Temporary filename for images.")
-
 (defvar thumbs-current-tmp-filename
   nil
   "Temporary filename of current image.")
@@ -163,28 +157,36 @@ see some of your images."
   nil
   "List of marked files.")
 
-;; Make sure auto-image-file-mode is ON.
-(auto-image-file-mode t)
+(defalias 'thumbs-gensym
+    (if (fboundp 'gensym)
+        'gensym
+      ;; Copied from cl-macs.el
+      (defvar thumbs-gensym-counter 0)
+      (lambda (&optional prefix)
+	"Generate a new uninterned symbol.
+The name is made by appending a number to PREFIX, default \"G\"."
+	(let ((pfix (if (stringp prefix) prefix "G"))
+	      (num (if (integerp prefix) prefix
+		     (prog1 thumbs-gensym-counter
+		       (setq thumbs-gensym-counter
+			     (1+ thumbs-gensym-counter))))))
+	  (make-symbol (format "%s%d" pfix num))))))
 
-;; Create the thumbs directory if it does not exists.
-(setq thumbs-thumbsdir (expand-file-name thumbs-thumbsdir))
+(defun thumbs-temp-file ()
+  "Return a unique temporary filename for an image."
+  (format "%s%s-%s.jpg"
+          (expand-file-name thumbs-temp-dir)
+          thumbs-temp-prefix
+          (thumbs-gensym "T")))
 
-(when (not (file-directory-p thumbs-thumbsdir))
-  (progn
-    (make-directory thumbs-thumbsdir)
-    (message "Creating thumbnails directory")))
-
-(defvar thumbs-gensym-counter 0)
-
-(defun thumbs-gensym (&optional arg)
-  "Generate a new uninterned symbol.
-The name is made by appending a number to PREFIX, default \"Thumbs\"."
-  (let ((prefix (if (stringp arg) arg "Thumbs"))
-	(num (if (integerp arg) arg
-	       (prog1
-		   thumbs-gensym-counter
-		 (setq thumbs-gensym-counter (1+ thumbs-gensym-counter))))))
-    (make-symbol (format "%s%d" prefix num))))
+(defun thumbs-thumbsdir ()
+  "Return the current thumbnails directory (from `thumbs-thumbsdir').
+Create the thumbnails directory if it does not exist."
+  (let ((thumbs-thumbsdir (expand-file-name thumbs-thumbsdir)))
+    (unless (file-directory-p thumbs-thumbsdir)
+      (make-directory thumbs-thumbsdir)
+      (message "Creating thumbnails directory"))
+    thumbs-thumbsdir))
 
 (defun thumbs-cleanup-thumbsdir ()
   "Clean the thumbnails directory.
@@ -197,8 +199,8 @@ reached."
 	    (lambda (f)
 	      (let ((fattribsL (file-attributes f)))
 		`(,(nth 4 fattribsL) ,(nth 7 fattribsL) ,f)))
-	    (directory-files thumbs-thumbsdir t (image-file-name-regexp)))
-	   '(lambda (l1 l2) (time-less-p (car l1)(car l2)))))
+	    (directory-files (thumbs-thumbsdir) t (image-file-name-regexp)))
+	   '(lambda (l1 l2) (time-less-p (car l1) (car l2)))))
 	 (dirsize (apply '+ (mapcar (lambda (x) (cadr x)) filesL))))
     (while (> dirsize thumbs-thumbsdir-max-size)
       (progn
@@ -258,7 +260,7 @@ ACTION-PREFIX is the symbol to place before the ACTION command
 
 (defun thumbs-resize-image (&optional increment size)
   "Resize image in current buffer.
-if INCREMENT is set, make the image bigger, else smaller.
+If INCREMENT is set, make the image bigger, else smaller.
 Or, alternatively, a SIZE may be specified."
   (interactive)
   ;; cleaning of old temp file
@@ -276,7 +278,7 @@ Or, alternatively, a SIZE may be specified."
 		  thumbs-current-image-size)
 	       (thumbs-decrement-image-size
 		thumbs-current-image-size))))
-	(tmp (format "%s%s.jpg" thumbs-temp-file (thumbs-gensym))))
+	(tmp (thumbs-temp-file)))
     (erase-buffer)
     (thumbs-call-convert thumbs-current-image-filename
 			 tmp "sample"
@@ -286,7 +288,7 @@ Or, alternatively, a SIZE may be specified."
     (setq thumbs-current-tmp-filename tmp)))
 
 (defun thumbs-resize-interactive (width height)
-  "Resize Image interactively to specified WIDTH and HEIGHT."
+  "Resize image interactively to specified WIDTH and HEIGHT."
   (interactive "nWidth: \nnHeight: ")
   (thumbs-resize-image nil (cons width height)))
 
@@ -305,7 +307,7 @@ Or, alternatively, a SIZE may be specified."
   (convert-standard-filename
    (let ((filename (expand-file-name img)))
      (format "%s/%08x-%s.jpg"
-             thumbs-thumbsdir
+             (thumbs-thumbsdir)
              (sxhash filename)
              (subst-char-in-string
               ?\s ?\_
@@ -562,11 +564,7 @@ Open another window."
 (defun thumbs-kill-buffer ()
   "Kill the current buffer."
   (interactive)
-  (let ((buffer (current-buffer)))
-    (condition-case nil
-	(delete-window (selected-window))
-      (error nil))
-    (kill-buffer buffer)))
+  (quit-window t (selected-window)))
 
 (defun thumbs-show-image-num (num)
   "Show the image with number NUM."
@@ -643,7 +641,7 @@ ACTION and ARG should be a valid convert command."
 	 t
 	 thumbs-temp-prefix))
   (let ((buffer-read-only nil)
-	(tmp (format "%s%s.jpg" thumbs-temp-file (thumbs-gensym))))
+	(tmp (thumbs-temp-file)))
     (erase-buffer)
     (thumbs-call-convert thumbs-current-image-filename
 			 tmp
