@@ -423,7 +423,7 @@ field boundaries in a natural way)."
 (make-obsolete-variable 'comint-use-prompt-regexp-instead-of-fields
 			'comint-use-prompt-regexp "22.1")
 
-(defcustom comint-mode-hook '(turn-on-font-lock)
+(defcustom comint-mode-hook nil
   "Hook run upon entry to `comint-mode'.
 This is run before the process is cranked up."
   :type 'hook
