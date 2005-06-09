@@ -1,3 +1,9 @@
+2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-send-input): Bind `inhibit-read-only' around
+	call to `delete-region'.
+	(comint-mode-hook): Do not enable Font Lock by default.
+
 2005-06-09  Lute Kamstra  <lute@gnu.org>
 
 	* textmodes/ispell.el (ispell-menu-map-needed): flyspell-mode
