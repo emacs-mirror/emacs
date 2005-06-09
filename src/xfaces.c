@@ -6109,7 +6109,7 @@ DEFUN ("display-supports-face-attributes-p",
        1, 2, 0,
        doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
 The optional argument DISPLAY can be a display name, a frame, or
-nil (meaning the selected frame's display)
+nil (meaning the selected frame's display).
 
 The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
@@ -6122,7 +6122,7 @@ Point (2) implies that a `:weight black' attribute will be satisfied by
 any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
 satisfied by the tty display code's automatic substitution of a `dim'
-face for italic. */)
+face for italic.  */)
   (attributes, display)
      Lisp_Object attributes, display;
 {
