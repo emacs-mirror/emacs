@@ -2529,6 +2529,9 @@ _ACEOF
     machine=intel386
     case "${canonical}" in
       *-cygwin )                opsys=cygwin ;;
+      *-darwin )                opsys=darwin
+                                CPP="${CC-cc} -E -no-cpp-precomp"
+ 				;;
       *-lynxos* )               opsys=lynxos ;;
       *-isc1.* | *-isc2.[01]* )	opsys=386-ix ;;
       *-isc2.2* )		opsys=isc2-2 ;;

@@ -1,3 +1,8 @@
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* configure.in: Support Darwin/MacOSX on Intel
+	* configure: Regenerate.
+
 2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* configure.in (HAVE_CANCELMENUTRACKING): New test.
