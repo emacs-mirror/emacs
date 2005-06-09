@@ -5244,8 +5244,7 @@ get_next_display_element (it)
 		 highlighting.  */
 
 	      if (! EQ (Vshow_nonbreak_escape, Qt)
-		  && (it->c == 0x8a0 || it->c == 0x920
-		      || it->c == 0xe20 || it->c == 0xf20))
+		  && it->c == 0xA0)
 		{
 		  /* Merge the no-break-space face into the current face.  */
 		  face_id = merge_faces (it->f, Qno_break_space, 0,
@@ -5284,10 +5283,25 @@ get_next_display_element (it)
 					 it->face_id);
 		}
 
+	      /* Handle soft hyphens in the mode where they only get
+		 highlighting.  */
+
+	      if (! EQ (Vshow_nonbreak_escape, Qt)
+		  && it->c == 0xAD)
+		{
+		  g = it->c = '-';
+		  XSETINT (it->ctl_chars[0], g);
+		  ctl_len = 1;
+		  goto display_control;
+		}
+
+	      /* Handle non-break space and soft hyphen
+		 with the escape glyph.  */
+
 	      if (it->c == 0xA0 || it->c == 0xAD)
 		{
 		  XSETINT (it->ctl_chars[0], escape_glyph);
-		  g = it->c;
+		  g = it->c = (it->c == 0xA0 ? ' ' : '-');
 		  XSETINT (it->ctl_chars[1], g);
 		  ctl_len = 2;
 		  goto display_control;
