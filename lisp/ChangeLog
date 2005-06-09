@@ -1,3 +1,12 @@
+2005-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-will-be-back): New var.
+	(debug): Use it.
+	(debugger-step-through, debugger-continue, debugger-jump)
+	(debugger-return-value): Set it when needed.
+	(debugger-make-xrefs, debugger-frame, debugger-frame-clear):
+	Use inhibit-read-only.
+
 2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
 
 	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
