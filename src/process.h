@@ -52,8 +52,6 @@ struct Lisp_Process
     Lisp_Object buffer;
     /* Number of this process */
     Lisp_Object pid;
-    /* Non-nil if this is really a command channel */
-    Lisp_Object command_channel_p;
     /* t if this is a real child process.
        For a net connection, it is a plist based on the arguments to make-network-process.  */
     Lisp_Object childp;
@@ -105,7 +103,7 @@ struct Lisp_Process
        Initialized from `Vprocess_adaptive_read_buffering'.  */
     Lisp_Object adaptive_read_buffering;
     /* Hysteresis to try to read process output in larger blocks.
-       On some systems, e.g. the Linux kernel, emacs is seen as 
+       On some systems, e.g. GNU/Linux, Emacs is seen as 
        an interactive app also when reading process output, meaning
        that process output can be read in as little as 1 byte at a
        time.  Value is micro-seconds to delay reading output from

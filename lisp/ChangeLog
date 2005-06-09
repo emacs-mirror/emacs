@@ -1,3 +1,203 @@
+2005-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-will-be-back): New var.
+	(debug): Use it.
+	(debugger-step-through, debugger-continue, debugger-jump)
+	(debugger-return-value): Set it when needed.
+	(debugger-make-xrefs, debugger-frame, debugger-frame-clear):
+	Use inhibit-read-only.
+
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
+	thumbnails directory on loading.
+	(thumbs-conversion-program): Use `eq' to check the system type,
+	not `equal'.
+	(thumbs-temp-dir): Initialize to `temporary-file-directory',
+	not "/tmp".  Fix docstring.
+	(thumbs-thumbsdir): New function to return the thumbnails
+	directory, creating it if needed.
+	(thumbs-cleanup-thumbsdir, thumbs-thumbname): Use it.
+	(thumbs-temp-file): Delete variable and make it into a function.
+	(thumbs-resize-image, thumbs-modify-image): Use it.
+	(thumbs-kill-buffer): Simplify.
+	(thumbs-gensym): Defalias or duplicate CL `gensym'.
+	(thumbs-resize-image, thumbs-resize-interactive): Fix typos in
+	docstrings.
+
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (save-match-data): Add RESEAT arg `evaporate' to
+	set-match-data to free markers in match-data.
+
+	* replace.el (replace-match-data): Pass RESEAT arg `t' to
+	match-data to unchain markers in match-data.
+
+2005-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Don't iconify if we know we'll re-enter
+	the debugger immediately anyway.  Undo the 2005-06-06 change, rendered
+	unnecessary now.
+
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): If BODY is empty,
+	give the variable a doc string that doesn't say don't set it directly.
+
+	* textmodes/ispell.el (ispell-check-version):
+	Use match-string-no-properties.
+	(ispell-region,	ispell-buffer-local-parsing, ispell-buffer-local-dict)
+	(ispell-buffer-local-words): Likewise.
+
+	* progmodes/make-mode.el (makefile-shell-face): Make this a no-op
+	except on terminals with enough colors to really display it.
+	(makefile-dependency-regex): Delete spurious `bb'.
+
+	* faces.el (escape-glyph): Use blue once again in last case.
+	(no-break-space): Redefine so that it isn't invisible on a tty.
+
+2005-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-file-name): Fallback to read-file-name on C-f
+	also when reading directory name.
+
+2005-06-08  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Use define-minor-mode.
+	(flyspell-mode-line-string): Remove autoload cookie.
+	(flyspell-mode): Remove defvar.
+
+2005-06-07  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/org.el (org-run-mode-hooks): New function.
+	(org-agenda-mode): Use it.
+
+2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (defstruct): Set `doc-string-elt' property.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-cvt.el (iso-sgml2iso-trans-tab): Add NBSP.
+
+2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el (font-lock-add-keywords): Doc fix.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-guess-mode): Add RequirePackage.
+	(tex-compile-default): In the absence of any history, use the order in
+	tex-compile-alist to choose the preferred command.
+	(tex-compile-commands): Reorder a bit.
+
+	* textmodes/flyspell.el (flyspell-auto-correct-binding)
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	Use (X)Emacs-agnostic code.
+	(flyspell-mode-map): Don't overwrite at each load.  Remove code
+	redundant with the subsequent add-minor-mode.  Merge Emacs and
+	XEmacs code.
+	(flyspell-word): Minor simplification.
+	(flyspell-math-tex-command-p): Quieten the byte-compiler.
+	(flyspell-external-point-words): Remove unused vars `size' and `start'.
+	(flyspell-do-correct): Rename from flyspell-xemacs-correct.
+	Merge the corresponding Emacs code.
+	(flyspell-correct-word, flyspell-xemacs-popup): Use flyspell-do-correct.
+
+	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
+	a dedicated window.
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Undo part of last patch, to turn off a compiler warning.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* tmm.el (tmm-inactive, tmm-remove-inactive-mouse-face):
+	Rename `tmm-inactive-face' to `tmm-inactive'.
+
+2005-06-06  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* iswitchb.el: Rename faces.
+
+2005-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle, cua-rectangle-noselect)
+	(cua-global-mark): Remove -face suffix from face names.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark):
+	Remove cua-global-mark face setup.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-dependency-regex): Handle whitespace
+	just like other allowed characters.
+	(makefile-match-dependency): Exclude leading and training whitespace
+	from the range of regexp subexp 1.
+	(makefile-macroassign-regex): Don't try to match the body,
+	just the name of the macro being defined.
+
+	* info.el (Info-read-node-name-2): New function.
+	(Info-read-node-name-1): Use that.
+	Add a completion-base-size-function property.
+
+	* simple.el (completion-setup-function): Look for
+	completion-base-size-function property of
+	minibuffer-completion-table.
+
+	* files.el (locate-file-completion): Doc fix.
+
+	* printing.el: Don't call pr-update-menus; user must do that.
+
+	* emacs-lisp/debug.el (debugger-window): New variable.
+	(debug): Use debugger-window if it is set and still alive.
+	Record debugger-window for next entry.
+
+	* mail/supercite.el (sc-mail-glom-frame): Mark as risky.
+
+2005-06-06  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
+
+	* files.el (hack-local-variables-confirm): New arg FLAG-TO-CHECK.
+	(hack-one-local-variable, hack-local-variables)
+	(hack-local-variables-prop-line): Pass that arg.
+
+2005-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-first-match, ido-only-match, ido-subdir)
+	(ido-indicator): Remove -face suffix from face names.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* font-lock.el (font-lock-regexp-backslash)
+	(font-lock-regexp-backslash-construct): New faces.
+	(lisp-font-lock-keywords-2): Use new faces.  Match `?:' only
+	after `('.  Add `while-no-input' to control structures.
+
+	* faces.el (no-break-space, shadow): New faces.
+	(escape-glyph): Use less loud colors pink2 and red4.
+
+	* diff-mode.el (diff-context-face)
+	* dired.el (dired-ignored)
+	* rfn-eshadow.el (file-name-shadow)
+	* tmm.el (tmm-inactive-face): Inherit from `shadow' face.
+
+	* info.el (Info-title-1-face): Use green instead of yellow because
+	bold yellow is not readable on light backgrounds.
+
+	* progmodes/compile.el (compilation-start): Move `erase-buffer' up
+	before selecting the desired mode to not spend time fontifying
+	old contents.
+
+2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-thumbsdir-max-size, thumbs-image-resizing-step)
+	(thumbs-thumbsdir-auto-clean): Fix typos in docstrings.
+
+	* ps-print.el (ps-default-fg, ps-default-bg):
+	Fix typos in docstrings.
+
+	* isearchb.el (isearchb): Don't pass a spurious second argument to
+	`iswitchb-completions'.
+
 2005-06-05  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-info-locals-handler): Use window point
@@ -5,16 +205,16 @@
 	(gdb-find-file-hook): Add doc string.
 
 	* progmodes/gud.el (gdb, gud-menu-map): Add command to evaluate
-	 C dereferenced pointer expression.
+	C dereferenced pointer expression.
 	(gud-tool-bar-map): Put it on the tool bar.  Re-order icons.
 
 	* toolbar/gud-pstar.xpm, toolbar/gud-pstar.pbm: New files.
 
-	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm,
-	toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm,
-	toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm,
-	toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm,
-	toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
+	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm
+	* toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm
+	* toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm
+	* toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm
+	* toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
 	Make background transparent.
 
 2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
@@ -44,7 +244,7 @@
 	(iswitchb-current-match-face, iswitchb-virtual-matches-face)
 	(iswitchb-invalid-regexp-face): New faces.
 	(iswitchb-completions): Use them.
-	(iswitchb-use-faces): Renamed from iswitchb-use-fonts, which is
+	(iswitchb-use-faces): Rename from iswitchb-use-fonts, which is
 	now marked as an obsolete alias.
 	(iswitchb-read-buffer): Remove check for bound font variables.
 	(iswitchb-invalid-regexp): New free variable.
@@ -151,8 +351,7 @@
 	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
 	(gdb-assembler-custom): Improve regexps.
-	(def-gdb-auto-update-handler): Use window point to preserve
-	point.
+	(def-gdb-auto-update-handler): Use window point to preserve point.
 
 2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 

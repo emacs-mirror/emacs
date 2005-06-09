@@ -1,3 +1,32 @@
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Explain new `reseat' argument to
+	match-data and set-match-data.
+
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Entire Match Data): Clarify when match-data
+	returns markers and when integers.
+
+	* display.texi (Defining Faces): Explain that face name should not
+	end in `-face'.
+
+	* modes.texi (Mode Line Data): Minor cleanup.
+	(Customizing Keywords): Node split out of Search-based Fontification.
+	Add example of using font-lock-add-keywords from a hook.
+	Clarify when MODE should be non-nil, and when nil.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* modes.texi (Mode Line Data): Explain what happens when the car
+	of a list is a void symbol.
+	(Search-based Fontification): Explain MODE arg to
+	font-lock-add-keywords and warn about calls from major modes.
+
+2005-06-08  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Standard Faces): Add `shadow' face.
+
 2005-05-29  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* modes.texi (Major Mode Conventions): A derived mode only needs

@@ -9890,8 +9890,8 @@ MakeMeTheFrontProcess ()
 /***** Code to handle C-g testing  *****/
 
 /* Contains the Mac modifier formed from quit_char */
-static mac_quit_char_modifiers = 0;
-static mac_quit_char_keycode;
+int mac_quit_char_modifiers = 0;
+int mac_quit_char_keycode;
 extern int quit_char;
 
 static void

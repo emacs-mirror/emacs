@@ -595,6 +595,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32heap.h \
 	$(SRC)/window.h
 
 $(BLD)/eval.$(O) : \
@@ -1430,6 +1431,7 @@ $(BLD)/w32select.$(O): \
 	$(SRC)/systime.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
 
 $(BLD)/w32reg.$(O): \

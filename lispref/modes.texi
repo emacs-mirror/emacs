@@ -1650,13 +1650,13 @@ properties specified by @var{props} to the result.  The argument
 @var{value}.  (This feature is new as of Emacs 22.1.)
 
 @item (@var{symbol} @var{then} @var{else})
-A list whose first element is a symbol that is not a keyword specifies a
-conditional.  Its meaning depends on the value of @var{symbol}.  If the
-value is non-@code{nil}, the second element, @var{then}, is processed
-recursively as a mode-line element.  But if the value of @var{symbol} is
-@code{nil}, the third element, @var{else}, is processed recursively.
-You may omit @var{else}; then the mode-line element displays nothing if
-the value of @var{symbol} is @code{nil}.
+A list whose first element is a symbol that is not a keyword specifies
+a conditional.  Its meaning depends on the value of @var{symbol}.  If
+@var{symbol} has a non-@code{nil} value, the second element,
+@var{then}, is processed recursively as a mode-line element.
+Otherwise, the third element, @var{else}, is processed recursively.
+You may omit @var{else}; then the mode-line element displays nothing
+if the value of @var{symbol} is @code{nil} or void.
 
 @item (@var{width} @var{rest}@dots{})
 A list whose first element is an integer specifies truncation or
@@ -2319,6 +2319,7 @@ Search-based fontification happens second.
 @menu
 * Font Lock Basics::            Overview of customizing Font Lock.
 * Search-based Fontification::  Fontification based on regexps.
+* Customizing Keywords::        Customizing search-based fontification.
 * Other Font Lock Variables::   Additional customization facilities.
 * Levels of Font Lock::         Each mode can define alternative levels
                                   so that the user can select more or less.
@@ -2624,19 +2625,27 @@ Non-@code{nil} means that regular expression matching for the sake of
 @code{font-lock-keywords} should be case-insensitive.
 @end defvar
 
-You can use @code{font-lock-add-keywords} to add additional
+@node Customizing Keywords
+@subsection Customizing Search-Based Fontification
+
+  You can use @code{font-lock-add-keywords} to add additional
 search-based fontification rules to a major mode, and
 @code{font-lock-remove-keywords} to removes rules.
 
 @defun font-lock-add-keywords mode keywords &optional append
-This function adds highlighting @var{keywords} for @var{mode}.  The
-argument @var{keywords} should be a list with the same format as the
-variable @code{font-lock-keywords}.  @var{mode} should be a symbol,
-the major mode command name, such as @code{c-mode}.  When Font Lock
-mode is turned on in @var{mode}, it adds @var{keywords} to
-@code{font-lock-keywords}.  @var{mode} can also be @code{nil}; the
-highlighting @var{keywords} are immediately added to
-@code{font-lock-keywords} in the current buffer in that case.
+This function adds highlighting @var{keywords}, for the current buffer
+or for major mode @var{mode}.  The argument @var{keywords} should be a
+list with the same format as the variable @code{font-lock-keywords}.
+
+If @var{mode} is a symbol which is a major mode command name, such as
+@code{c-mode}, the effect is that enabling Font Lock mode in
+@var{mode} will add @var{keywords} to @code{font-lock-keywords}.
+Calling with a non-@code{nil} value of @var{mode} is correct only in
+your @file{~/.emacs} file.
+
+If @var{mode} is @code{nil}, this function adds @var{keywords} to
+@code{font-lock-keywords} in the current buffer.  This way of calling
+@code{font-lock-add-keywords} is usually used in mode hook functions.
 
 By default, @var{keywords} are added at the beginning of
 @code{font-lock-keywords}.  If the optional argument @var{append} is
@@ -2645,7 +2654,29 @@ By default, @var{keywords} are added at the beginning of
 non-@code{nil} value, they are added at the end of
 @code{font-lock-keywords}.
 
-For example:
+Some modes provide specialized support you can use in additional
+highlighting patterns.  See the variables
+@code{c-font-lock-extra-types}, @code{c++-font-lock-extra-types},
+@code{objc-font-lock-extra-types} and
+@code{java-font-lock-extra-types}, for example.
+
+@strong{Warning:} major mode functions must not call
+@code{font-lock-add-keywords} under any circumstances, either directly
+or indirectly, except through their mode hooks.  (Doing so would lead
+to incorrect behavior for some minor modes.)  They should set up their
+rules for search-based fontification by setting
+@code{font-lock-keywords}.
+@end defun
+
+@defun font-lock-remove-keywords mode keywords
+This function removes @var{keywords} from @code{font-lock-keywords}
+for the current buffer or for major mode @var{mode}.  As in
+@code{font-lock-add-keywords}, @var{mode} should be a major mode
+command name or @code{nil}.  All the caveats and requirments for
+@code{font-lock-add-keywords} apply here too.
+@end defun
+
+  For example, this code
 
 @smallexample
 (font-lock-add-keywords 'c-mode
@@ -2653,30 +2684,23 @@ For example:
    ("\\<\\(and\\|or\\|not\\)\\>" . font-lock-keyword-face)))
 @end smallexample
 
+@noindent
 adds two fontification patterns for C mode: one to fontify the word
 @samp{FIXME}, even in comments, and another to fontify the words
 @samp{and}, @samp{or} and @samp{not} as keywords.
 
-Some modes have specialized support for additional patterns.  See the
-variables @code{c-font-lock-extra-types},
-@code{c++-font-lock-extra-types}, @code{objc-font-lock-extra-types}
-and @code{java-font-lock-extra-types}, for example.
-@end defun
+@noindent
+That example affects only C mode proper.  To add the same patterns to
+C mode @emph{and} all modes derived from it, do this instead:
 
-@defun font-lock-remove-keywords mode keywords
-This function removes highlighting @var{keywords} for @var{mode}.  As
-in @code{font-lock-add-keywords}, @var{mode} should be a major mode
-command name or @code{nil}.  If @code{nil}, the highlighting
-@var{keywords} are immediately removed in the current buffer.
-@end defun
-
-@strong{Warning:} Only use a non-@code{nil} @var{mode} argument when
-you use @code{font-lock-add-keywords} or
-@code{font-lock-remove-keywords} in your @file{.emacs} file.  When you
-use these functions from a Lisp program (such as a minor mode), we
-recommend that you use @code{nil} for @var{mode} (and place the call
-on a hook) to avoid subtle problems due to the details of the
-implementation.
+@smallexample
+(add-hook 'c-mode-hook
+ (lambda ()
+  (font-lock-add-keywords nil
+   '(("\\<\\(FIXME\\):" 1 font-lock-warning-face prepend)
+     ("\\<\\(and\\|or\\|not\\)\\>" .
+      font-lock-keyword-face)))))
+@end smallexample
 
 @node Other Font Lock Variables
 @subsection Other Font Lock Variables

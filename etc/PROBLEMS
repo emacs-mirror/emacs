@@ -1579,6 +1579,24 @@ global-font-lock-mode RET" or by customizing the variable
 
 ** GNU/Linux
 
+*** GNU/Linux: Process output is corrupted.
+
+There is a bug in Linux kernel 2.6.10 PTYs that can cause emacs to
+read corrupted process output.
+
+*** GNU/Linux: Remote access to CVS with SSH causes file corruption.
+
+If you access a remote CVS repository via SSH, files may be corrupted
+due to bad interaction between CVS, SSH, and libc.
+
+To fix the problem, save the following script into a file, make it
+executable, and set CVS_RSH environment variable to the file name of
+the script:
+
+#!/bin/bash
+exec 2> >(exec cat >&2 2>/dev/null)
+exec ssh "$@"
+
 *** GNU/Linux: On Linux-based GNU systems using libc versions 5.4.19 through
 5.4.22, Emacs crashes at startup with a segmentation fault.
 

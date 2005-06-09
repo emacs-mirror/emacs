@@ -628,7 +628,7 @@ compose_chars_in_text (start, end, string)
     }
 
   /* Preserve the match data.  */
-  record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+  record_unwind_save_match_data ();
 
   /* If none of ASCII characters have composition functions, we can
      skip them quickly.  */

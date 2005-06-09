@@ -356,7 +356,7 @@ Subexpression 2 must end right before the \\n or \\r.")
   "Face name used for symbolic links.")
 
 (defface dired-ignored
-  '((t (:inherit font-lock-string-face)))
+  '((t (:inherit shadow)))
   "Face used for files suffixed with `completion-ignored-extensions'."
   :group 'dired-faces
   :version "22.1")

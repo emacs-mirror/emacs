@@ -791,6 +791,7 @@ Optional arg BUFFER is ignored (for use in `format-alist')."
     ("&iuml;" "ï")
     ("&eth;" "ð")
     ("&ntilde;" "ñ")
+    ("&nbsp;" " ")
     ("&ograve;" "ò")
     ("&oacute;" "ó")
     ("&ocirc;" "ô")

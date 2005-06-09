@@ -935,6 +935,7 @@ Returns the compilation buffer created."
 		    (substitute-env-vars (match-string 1 command))
 		  "~")
 	      default-directory))
+	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))
 	    (funcall mode)
@@ -944,11 +945,11 @@ Returns the compilation buffer created."
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
-	(erase-buffer)
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n")	(setq thisdir default-directory))
+		" -*-\n" command "\n")
+	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.

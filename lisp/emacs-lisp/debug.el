@@ -88,6 +88,8 @@ This is to optimize `debugger-make-xrefs'.")
 (defvar debugger-outer-standard-output)
 (defvar debugger-outer-inhibit-redisplay)
 (defvar debugger-outer-cursor-in-echo-area)
+(defvar debugger-will-be-back nil
+  "Non-nil if we expect to get back in the debugger soon.")
 
 (defvar inhibit-debug-on-entry nil
   "Non-nil means that debug-on-entry is disabled.")
@@ -96,6 +98,8 @@ This is to optimize `debugger-make-xrefs'.")
   "Non-nil means that debug-on-entry is disabled.
 This variable is used by `debugger-jump', `debugger-step-through',
 and `debugger-reenable' to temporarily disable debug-on-entry.")
+
+(defvar inhibit-trace)                  ;Not yet implemented.
 
 ;;;###autoload
 (setq debugger 'debug)
@@ -121,6 +125,7 @@ first will be printed into the backtrace buffer."
 			     (get-buffer-create "*Backtrace*")))
 	  (debugger-old-buffer (current-buffer))
 	  (debugger-step-after-exit nil)
+          (debugger-will-be-back nil)
 	  ;; Don't keep reading from an executing kbd macro!
 	  (executing-kbd-macro nil)
 	  ;; Save the outer values of these vars for the `e' command
@@ -178,7 +183,7 @@ first will be printed into the backtrace buffer."
 		  ;; Place an extra debug-on-exit for macro's.
 		  (when (eq 'lambda (car-safe (cadr (backtrace-frame 4))))
 		    (backtrace-debug 5 t)))
-		(pop-to-buffer debugger-buffer)
+                (pop-to-buffer debugger-buffer)
 		(debugger-mode)
 		(debugger-setup-buffer debugger-args)
 		(when noninteractive
@@ -210,12 +215,23 @@ first will be printed into the backtrace buffer."
 	      ;; Still visible despite the save-window-excursion?  Maybe it
 	      ;; it's in a pop-up frame.  It would be annoying to delete and
 	      ;; recreate it every time the debugger stops, so instead we'll
-	      ;; erase it and hide it but keep it alive.
+	      ;; erase it (and maybe hide it) but keep it alive.
 	      (with-current-buffer debugger-buffer
 		(erase-buffer)
 		(fundamental-mode)
 		(with-selected-window (get-buffer-window debugger-buffer 0)
-		  (bury-buffer)))
+                  (when (and (window-dedicated-p (selected-window))
+                             (not debugger-will-be-back))
+                    ;; If the window is not dedicated, burying the buffer
+                    ;; will mean that the frame created for it is left
+                    ;; around showing some random buffer, and next time we
+                    ;; pop to the debugger buffer we'll create yet
+                    ;; another frame.
+                    ;; If debugger-will-be-back is non-nil, the frame
+                    ;; would need to be de-iconified anyway immediately
+                    ;; after when we re-enter the debugger, so iconifying it
+                    ;; here would cause flashing.
+                    (bury-buffer))))
 	    (kill-buffer debugger-buffer))
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables
@@ -307,7 +323,7 @@ That buffer should be current already."
   (save-excursion
     (set-buffer (or buffer (current-buffer)))
     (setq buffer (current-buffer))
-    (let ((buffer-read-only nil)
+    (let ((inhibit-read-only t)
 	  (old-end (point-min)) (new-end (point-min)))
       ;; If we saved an old backtrace, find the common part
       ;; between the new and the old.
@@ -377,6 +393,7 @@ Enter another debugger on next entry to eval, apply or funcall."
   (interactive)
   (setq debugger-step-after-exit t)
   (setq debugger-jumping-flag t)
+  (setq debugger-will-be-back t)
   (add-hook 'post-command-hook 'debugger-reenable)
   (message "Proceeding, will debug on next eval or call.")
   (exit-recursive-edit))
@@ -387,6 +404,12 @@ Enter another debugger on next entry to eval, apply or funcall."
   (unless debugger-may-continue
     (error "Cannot continue"))
   (message "Continuing.")
+  (save-excursion
+    ;; Check to see if we've flagged some frame for debug-on-exit, in which
+    ;; case we'll probably come back to the debugger soon.
+    (goto-char (point-min))
+    (if (re-search-forward "^\\* " nil t)
+        (setq debugger-will-be-back t)))
   (exit-recursive-edit))
 
 (defun debugger-return-value (val)
@@ -397,6 +420,12 @@ will be used, such as in a debug on exit from a frame."
   (setq debugger-value val)
   (princ "Returning " t)
   (prin1 debugger-value)
+  (save-excursion
+    ;; Check to see if we've flagged some frame for debug-on-exit, in which
+    ;; case we'll probably come back to the debugger soon.
+    (goto-char (point-min))
+    (if (re-search-forward "^\\* " nil t)
+        (setq debugger-will-be-back t)))
   (exit-recursive-edit))
 
 (defun debugger-jump ()
@@ -406,6 +435,7 @@ will be used, such as in a debug on exit from a frame."
   (setq debugger-jumping-flag t)
   (add-hook 'post-command-hook 'debugger-reenable)
   (message "Continuing through this frame")
+  (setq debugger-will-be-back t)
   (exit-recursive-edit))
 
 (defun debugger-reenable ()
@@ -454,7 +484,7 @@ Applies to the frame whose line point is on in the backtrace."
   (beginning-of-line)
   (backtrace-debug (debugger-frame-number) t)
   (if (= (following-char) ? )
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(delete-char 1)
 	(insert ?*)))
   (beginning-of-line))
@@ -470,7 +500,7 @@ Applies to the frame whose line point is on in the backtrace."
   (beginning-of-line)
   (backtrace-debug (debugger-frame-number) nil)
   (if (= (following-char) ?*)
-      (let ((buffer-read-only nil))
+      (let ((inhibit-read-only t))
 	(delete-char 1)
 	(insert ? )))
   (beginning-of-line))
