@@ -1,3 +1,8 @@
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p):
+	Fix typo in docstring.
+
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (copy_data_segment): Copy __la_sym_ptr2 section
@@ -63,7 +68,7 @@
 	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
 	non-static.
 
-	* config.in: Added HAVE_CANCELMENUTRACKING
+	* config.in: Add HAVE_CANCELMENUTRACKING.
 
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -12994,9 +12999,9 @@
 	* sound.c: Added a partial implementation of play-sound-internal
 	for Microsoft Windows.  Added various #ifdef / #else / #endif
 	code blocks to separate the code that will compile under
-	Microsoft Windows from the code that is specific to Gnu/Linux.
+	Microsoft Windows from the code that is specific to GNU/Linux.
 	Moved several blocks of code around to make this separation of code
-	into Windows compatible and Gnu/Linux compatible code blocks easier.
+	into Windows compatible and GNU/Linux compatible code blocks easier.
 
 	* makefile.w32-in: Include sound.c and link with WinMM.lib.
 
