@@ -1684,7 +1684,7 @@ static int total_string_size;
 
 /* We check for overrun in string data blocks by appending a small
    "cookie" after each allocated string data block, and check for the
-   presense of this cookie during GC.  */
+   presence of this cookie during GC.  */
 
 #define GC_STRING_OVERRUN_COOKIE_SIZE	4
 static char string_overrun_cookie[GC_STRING_OVERRUN_COOKIE_SIZE] =

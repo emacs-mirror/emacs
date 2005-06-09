@@ -65,8 +65,8 @@ Software Foundation raise funds for GNU development.''
 @sp 2
 ISBN 1-882114-06-X @*
 Published by the Free Software Foundation @*
-59 Temple Place, Suite 330 @*
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor @*
+Boston, MA 02110-1301 USA
 
 @sp 2
 Cover art by Etienne Suvasa.
@@ -951,11 +951,11 @@ files, which are also distributed along with GNU Emacs.
   GNU Emacs is a member of the Emacs editor family.  There are many Emacs
 editors, all sharing common principles of organization.  For information on
 the underlying philosophy of Emacs and the lessons learned from its
-development, write for a copy of AI memo 519a, ``Emacs, the Extensible,
-Customizable Self-Documenting Display Editor,'' to Publications Department,
+development, write for a copy of AI memo 519a, @cite{Emacs, the Extensible,
+Customizable Self-Documenting Display Editor}, to Publications Department,
 Artificial Intelligence Lab, 545 Tech Square, Cambridge, MA 02139, USA@.  At
 last report they charge $2.25 per copy.  Another useful publication is LCS
-TM-165, ``A Cookbook for an Emacs,'' by Craig Finseth, available from
+TM-165, @cite{A Cookbook for an Emacs}, by Craig Finseth, available from
 Publications Department, Laboratory for Computer Science, 545 Tech Square,
 Cambridge, MA 02139, USA@.  The price today is $3.
 
@@ -971,20 +971,25 @@ manual.  @xref{MS-DOS}, for information about using Emacs on MS-DOS.
 @unnumbered Distribution
 
 GNU Emacs is @dfn{free software}; this means that everyone is free to
-use it and free to redistribute it on certain conditions.  GNU Emacs is
-not in the public domain; it is copyrighted and there are restrictions
-on its distribution, but these restrictions are designed to permit
-everything that a good cooperating citizen would want to do.  What is
-not allowed is to try to prevent others from further sharing any version
-of GNU Emacs that they might get from you.  The precise conditions are
-found in the GNU General Public License that comes with Emacs and also
-appears following this section.
+use it and free to redistribute it on certain conditions.  GNU Emacs
+is not in the public domain; it is copyrighted and there are
+restrictions on its distribution, but these restrictions are designed
+to permit everything that a good cooperating citizen would want to do.
+What is not allowed is to try to prevent others from further sharing
+any version of GNU Emacs that they might get from you.  The precise
+conditions are found in the GNU General Public License that comes with
+Emacs and also appears in this manual@footnote{This manual is itself
+covered by the GNU Free Documentation License.  This license is
+similar in spirit to the General Public License, but is more suitable
+for documentation.  @xref{GNU Free Documentation License}.}.
+@xref{Copying}.
 
-One way to get a copy of GNU Emacs is from someone else who has it.  You
-need not ask for our permission to do so, or tell any one else; just
-copy it.  If you have access to the Internet, you can get the latest
-distribution version of GNU Emacs by anonymous FTP; see the file
-@file{etc/FTP} in the Emacs distribution for more information.
+One way to get a copy of GNU Emacs is from someone else who has it.
+You need not ask for our permission to do so, or tell any one else;
+just copy it.  If you have access to the Internet, you can get the
+latest distribution version of GNU Emacs by anonymous FTP; see
+@url{http://www.gnu.org/software/emacs} on our website for more
+information.
 
 You may also receive GNU Emacs when you buy a computer.  Computer
 manufacturers are free to distribute copies on the same terms that apply to
@@ -995,17 +1000,17 @@ General Public License.  In other words, the program must be free for you
 when you get it, not just free for the manufacturer.
 
 You can also order copies of GNU Emacs from the Free Software
-Foundation.  This is a convenient and reliable way to get a copy; it
-is also a good way to help fund our work.  (The Foundation has always
-received most of its funds in this way.)  An order form is included in
-the file @file{etc/ORDERS} in the Emacs distribution, and on our web
-site in @url{http://www.gnu.org/order/order.html}.  For further
-information, write to
+Foundation.  This is a convenient and reliable way to get a copy; it is
+also a good way to help fund our work.  We also sell hardcopy versions
+of this manual and @cite{An Introduction to Programming in Emacs Lisp},
+by Robert J. Chassell.  You can find an order form on our web site at
+@url{http://www.gnu.org/order/order.html}.  For further information,
+write to
 
 @display
 Free Software Foundation
-59 Temple Place, Suite 330
-Boston, MA  02111-1307 USA
+51 Franklin Street, Fifth Floor
+Boston, MA 02110-1301
 USA
 @end display
 
@@ -1137,10 +1142,9 @@ session.  Almost any part of Emacs can be replaced without making a
 separate copy of all of Emacs.  Most of the editing commands of Emacs
 are written in Lisp; the few exceptions could have been written
 in Lisp but are written in C for efficiency.  Although only a programmer
-can write an extension, anybody can use it afterward.  If you want to
-learn Emacs Lisp programming, we recommend the @cite{Introduction to
-Emacs Lisp} by Robert J. Chassell, also published by the Free Software
-Foundation.
+can write an extension, anybody can use it afterward.  @xref{Top,
+Emacs Lisp Intro, Preface, eintr, An Introduction to Programming in
+Emacs Lisp}, if you want to learn Emacs Lisp programming.
 
    When run under the X Window System, Emacs provides its own menus and
 convenient bindings to mouse buttons.  But Emacs can provide many of the
@@ -1189,7 +1193,7 @@ edit files while running shell commands.
 
 @display
 Copyright @copyright{} 1989, 1991 Free Software Foundation, Inc.
-59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA
 
 Everyone is permitted to copy and distribute verbatim copies
 of this license document, but changing it is not allowed.
@@ -1535,7 +1539,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License along
 with this program; if not, write to the Free Software Foundation, Inc.,
-59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 @end smallexample
 
 Also add information on how to contact you by electronic and paper mail.

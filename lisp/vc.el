@@ -46,7 +46,8 @@
 
 ;; This mode is fully documented in the Emacs user's manual.
 ;;
-;; Supported version-control systems presently include SCCS, RCS, and CVS.
+;; Supported version-control systems presently include CVS, RCS, GNU Arch,
+;; Subversion, Meta-CVS, and SCCS (or its free replacement, CSSC).
 ;;
 ;; Some features will not work with old RCS versions.  Where
 ;; appropriate, VC finds out which version you have, and allows or
@@ -68,7 +69,7 @@
 ;;
 ;; The vc code maintains some internal state in order to reduce expensive
 ;; version-control operations to a minimum.  Some names are only computed
-;; once.  If you perform version control operations with RCS/SCCS/CVS while
+;; once.  If you perform version control operations with the backend while
 ;; vc's back is turned, or move/rename master files while vc is running,
 ;; vc may get seriously confused.  Don't do these things!
 ;;
@@ -737,6 +738,7 @@ in their implementation of vc-BACKEND-diff.")
 ;; functions that operate on RCS revision numbers.  This code should
 ;; also be moved into the backends.  It stays for now, however, since
 ;; it is used in code below.
+;;;###autoload
 (defun vc-trunk-p (rev)
   "Return t if REV is a revision on the trunk."
   (not (eq nil (string-match "\\`[0-9]+\\.[0-9]+\\'" rev))))

@@ -1084,7 +1084,7 @@ bitmaps are displayed in the left or right fringe, respectively.
 The @var{indicator} must be one of @code{top}, @code{bottom},
 @code{up}, @code{down}, or @code{t} which specifies the default
 position for the indicators not present in the alist.
-The @var{position} is one of @code{left}, @code{right}, or @code{ni}
+The @var{position} is one of @code{left}, @code{right}, or @code{nil}
 which specifies not to show this indicator.
 
   For example, @code{((top . left) (t . right))} places the top angle

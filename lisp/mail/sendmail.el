@@ -810,7 +810,8 @@ the user from the mailer."
 			     '(lambda (e)
 				(unless (member e l)
 				  (push e l)))
-			     (split-string new-header-values ", +" t))
+			     (split-string new-header-values
+					   ",[[:space:]]+" t))
 			    (mapconcat 'identity l ", "))
 			  "\n"))
 		;; Add Mail-Reply-To if none yet

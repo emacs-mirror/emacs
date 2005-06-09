@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.08
-@set DATE April 2005
+@set VERSION 3.09
+@set DATE May 2005
 
 @dircategory Emacs
 @direntry
@@ -156,7 +156,7 @@ Miscellaneous
 
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Tips and Tricks::             An author-imposed FAQ, sort of
+* FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
 * Acknowledgments::             These people provided feedback and more
 * Bugs::                        Things which do not work perfectly
@@ -224,19 +224,23 @@ and example files.  This page is located at
 @cindex global keybindings
 @cindex keybindings, global
 
-The instructions below assume that you have downloaded Org-mode from
-the web.  If Org-mode is part of the Emacs distribution or an XEmacs
-package, you only need to add to @file{.emacs} the last three Lisp
-lines below - all the rest will be taken care of automatically.
+If Org-mode is part of the Emacs distribution or an XEmacs package,
+you only need to copy the following lines to your @file{.emacs} file.
+The last two lines define @emph{global} keys for the commands
+@command{org-store-link} and @command{org-agenda} - please choose
+suitable keys yourself.
 
-Byte-compile @file{org.el} and put it on your load path.  If you'd
-like to use the Info documentation, copy the file @file{org} into the
-directory containing info files and run the command @code{install-info
-org}.
+@lisp
+;; The following lines are always needed.  Choose your own keys.
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+@end lisp
 
-Then copy the following lines into @file{.emacs}.  The last two lines
-define @emph{global} keys for the commands @command{org-store-link}
-and @command{org-agenda} - please choose suitable keys yourself.
+If you have downloaded Org-mode from the Web, you must byte-compile
+@file{org.el} and put it on your load path.  In addition to the Emacs
+Lisp lines above, you also need to add the following lines to
+@file{.emacs}:
 
 @lisp
 ;; These lines only if org-mode is not part of the X/Emacs distribution.
@@ -246,17 +250,12 @@ and @command{org-agenda} - please choose suitable keys yourself.
 (autoload 'org-store-link "org" "Store a link to the current location" t)
 (autoload 'orgtbl-mode "org" "Org tables as a minor mode" t)
 (autoload 'turn-on-orgtbl "org" "Org tables as a minor mode")
-
-;; The following lines are always needed.  Choose your own keys.
-(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-(define-key global-map "\C-cl" 'org-store-link)
-(define-key global-map "\C-ca" 'org-agenda)
 @end lisp
 
 @cindex org-mode, turning on
-@noindent
-This will put all files with extension @samp{.org} into Org-mode.  As
-an alternative, make the first line of a file look like this:
+With this setup, all files with extension @samp{.org} will be put into
+Org-mode.  As an alternative, make the first line of a file look like
+this:
 
 @example
 MY PROJECTS    -*- mode: org; -*-
@@ -289,7 +288,6 @@ with clear information about:
 @item What happened instead?
 @end enumerate
 @noindent Thanks for helping to improve this mode.
-
 
 @node Document Structure, Tables, Introduction, Top
 @chapter Document Structure
@@ -500,7 +498,8 @@ An important feature of Org-mode is the ability to construct
 @emph{sparse trees} for selected information in an outline tree.  A
 sparse tree means that the entire document is folded as much as
 possible, but the selected information is made visible along with the
-headline structure above it.  Just try it out and you will see
+headline structure above it@footnote{See also the variable
+@code{org-show-following-heading}}.  Just try it out and you will see
 immediately how it works.
 
 Org-mode contains several commands creating such trees.  The most
@@ -1394,8 +1393,8 @@ commands}.
 @cindex agenda
 
 An agenda can be compiled from one or more org files.  The main
-purpose of this command is to act like a planner, in order to show you
-what tasks are up for the current week, similar to a paper agenda.
+purpose of this command is to act like a paper agenda, showing you all
+the tasks for the current day or week.
 
 The Org-mode files to be processed in order to generate the agenda are
 listed in the variable @code{org-agenda-files}.  You can customize
@@ -1441,7 +1440,7 @@ In the agenda buffer, each entry is preceded by a @emph{category},
 which is derived from the file name.  The category can also be set
 with a special line anywhere in the buffer, looking like this:
 @example
-#+CATEGORY: Cheops
+#+CATEGORY: Thesis
 @end example
 @noindent
 After changing this line, press @kbd{C-c C-c} with the cursor still in
@@ -1452,6 +1451,53 @@ Emacs.
 The display in the agenda buffer looks best if the category is not
 longer than 10 characters.
 
+@subsection Time Specifications
+
+Org-mode checks each agenda item for a time specification.  The time
+can be part of the time stamp that triggered inclusion into the agenda,
+for example as in @w{@samp{<2005-05-10 Tue 19:00>}}.  Time ranges can
+be specified with two time stamps, like
+@c
+@w{@samp{<2005-05-10 Tue 20:30>--<2005-05-10 Tue 22:15>}}.
+
+In the headline of the entry itself, a time(range) may also appear as
+plain text (like @samp{12:45} or a @samp{8:30-1pm}.  If the agenda
+integrates the Emacs diary (@pxref{Calendar/Diary integration}), time
+specifications in diary entries are recognized as well.
+
+For agenda display, Org-mode extracts the time and displays it in a
+standard 24 hour format as part of the prefix.  The example times in
+the previous paragraphs would end up in the agenda like this:
+
+@example
+    8:30-13:00 Arthur Dent lies in front of the bulldozer
+   12:45...... Ford Prefect arrives and takes Arthur to the pub
+   19:00...... The Vogon reads his poem
+   20:30-22:15 Marwin escorts the Hitchhikers to the bridge
+@end example
+
+If the agenda is in single-day mode, or for the display of today, the
+timed entries are embedded in a time grid, like
+
+@example
+    8:00...... ------------------
+    8:30-13:00 Arthur Dent lies in front of the bulldozer
+   10:00...... ------------------
+   12:00...... ------------------
+   12:45...... Ford Prefect arrives and takes Arthur to the pub
+   14:00...... ------------------
+   16:00...... ------------------
+   18:00...... ------------------
+   19:00...... The Vogon reads his poem
+   20:00...... ------------------
+   20:30-22:15 Marwin escorts the Hitchhikers to the bridge
+@end example
+
+The time grid can be turned on and off with the variable
+@code{org-agenda-use-time-grid}, and can be configured with
+@code{org-agenda-time-grid}.
+
+
 @subsection Sorting of agenda items
 @cindex sorting, of agenda items
 @cindex priorities, of agenda items
@@ -1461,13 +1507,6 @@ These entries will be shown at the beginning of the list, as a
 @emph{schedule} for the day.  After that, items remain grouped in
 categories, in the sequence given by @code{org-agenda-files}.  Within
 each category, items are sorted by priority (@pxref{Priorities}).
-
-A time-of-day specification looks like @samp{12:45} or @samp{3pm} and
-must appear in the headline.  For example, a timestamp in a headline
-that contains not only a date but also a time will trigger this
-mechanism.  Specifications of a time in diary entries are recognized
-as well, so the schedule will be mixed from diary entries and Org-mode
-files.
 
 The priority is a numerical quantity composed of the base priority
 (2000 for priority @samp{A}, 1000 for @samp{B}, and 0 for @samp{C}),
@@ -1538,6 +1577,11 @@ Toggle between weekly and daily view.
 @kindex d
 @item d
 Toggle the inclusion of diary entries.  See @ref{Calendar/Diary integration}.
+
+@kindex g
+@item g
+Toggle the time grid on and off.  See also the variables
+@code{org-agenda-use-time-grid} and @code{org-agenda-time-grid}.
 
 @kindex r
 @item r
@@ -1914,7 +1958,7 @@ Toggle the COMMENT keyword at the beginning of an entry.
 @menu
 * Completion::                  M-TAB knows what you need
 * Customization::               Adapting Org-mode to your taste
-* Tips and Tricks::             An author-imposed FAQ, sort of
+* FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
 * Acknowledgments::             These people provided feedback and more
 * Bugs::                        Things which do not work perfectly
@@ -1950,7 +1994,7 @@ Elsewhere, complete dictionary words using ispell.
 @end itemize
 @end table
 
-@node Customization, Tips and Tricks, Completion, Miscellaneous
+@node Customization, FAQ, Completion, Miscellaneous
 @section Customization
 @cindex customization
 @cindex options, for customization
@@ -1962,64 +2006,36 @@ describing the variables here.  For an overview of customization
 variables, use @kbd{M-x org-customize}.  Or select @code{Browse Org
 Group} from the @code{Org->Customization} menu.
 
-@node Tips and Tricks, Interaction, Customization, Miscellaneous
-@section Tips and Tricks
+@node FAQ, Interaction, Customization, Miscellaneous
+@section Frequently asked questions
 
-@itemize @bullet
-@cindex README files
-@item
-I find Org-mode very useful for the many @file{README} files I have
-scattered through my directories.  So I turn on @file{org-mode} for
-all @file{README} files with
-
+@enumerate
+@item @b{Org-mode seems to be useful default mode for the various
+@file{README} files I have scattered through my directories.  How do I
+turn it on for all @file{README} files?}
 @example
 (add-to-list 'auto-mode-alist '("README$" . org-mode))
 @end example
 
-@ignore
-@cindex files, adding automatically
-@item
-If you would like to add all org files you ever create to the list of
-agenda files@footnote{Think twice.  Do you @emph{really} want this?},
-you could do so with
-
-@lisp
-(add-hook 'org-mode-hook 'org-add-file)
-@end lisp
-
-If you would like to add only a selection, for example everything
-except the @file{README} files, this could be achieved in the
-following way:
-
-@lisp
-(add-hook 'org-mode-hook
-          (lambda ()
-             (or (string-match "README\\'" (buffer-file-name))
-                 (org-add-file))))
-@end lisp
-@end ignore
-
+@item @b{I would like to have two windows on the same Org-mode
+file, but with different outline visibility.  Is that possible?}@*
 @cindex @code{make-indirect-buffer}
 @cindex indirect buffers
-@item
-It can be useful to have two different windows showing the same
-Org-mode file.  However, a problem here is that changes to the
-visibility in one window immediately affect the other window.  On
-Emacs (not on XEmacs because it uses the old outline-mode) a way out
-is the use of @emph{indirect buffers}, which visit the same file, but
-have separate settings, also for outline visibility.  See the
-documentation on the command @code{make-indirect-buffer}.
+In GNU Emacs, you may use @emph{indirect buffers} which do exactly
+this.  See the documentation on the command
+@code{make-indirect-buffer}.  In XEmacs, this is currently not
+possible because of the different outline implementation., which visit
+the same file, but have separate settings, also for outline
+visibility.
 
+@item @b{Is there an easy way to insert links to web locations?}@*
 @cindex URL, paste into buffer
-@item
-Paste URLs into Org-mode whenever this seems useful.  For example, if
-you are writing notes about a paper which is available on the web, put
-the corresponding URL there and a direct look at the paper is only a
-mouse click away.  If you have a local copy of the paper, use a
-file:path link.
+Sure, just paste them into the buffer.  A plain-text URL-like string
+is directly interpreted as a link.
 
-@cindex headline levels, for export
-@item
+@item @b{When I export my TODO list, every TODO item becomes a
+separate section.  How do I enforce these items to be exported as an
+itemized list?}@*
 If you plan to use ASCII or HTML export, make sure things you want to
 be exported as item lists are level 4 at least, even if that does mean
 there is a level jump.  For example
@@ -2039,44 +2055,34 @@ configure the @samp{H} switch.
 +OPTIONS:   H:2; ...
 @end example
 
+@item @b{I would like to export only a subtree of my file to HTML.  How?}@*
 @cindex exporting a subtree
-@item
 If you want to export a subtree, mark the subtree as region and then
 export.  Marking can be done with @kbd{C-c @@ C-x C-x}, for example.
 
+@item @b{Is there an easy way to insert an empty table template with a
+default number of rows and columns?}@*
 @cindex table, empty template
-@item
 To insert an empty table template, just type @samp{|-} and use
-@key{TAB}.
+@key{TAB}.  The default size can be changed with the variable
+@code{org-table-default-size}. 
 
-@item
-In a table, to add a new column at the end, just type some text
-anywhere after the final @samp{|}.  Upon the next re-align, a new
-column will be created.
+@item @b{When I am in the last column of a table and just above a
+horizontal line in the table, pressing TAB creates a new table line
+@i{before} the horizontal line.  How can I quickly move to the line
+@i{below} the horizontal line instead?}@*
+Press @key{down} (to get on the separator line) and then @key{TAB}.
 
-@item
-In tables, @key{TAB} creates new rows before horizontal separator lines.  If
-the cursor is at @samp{Age} in the following table,
-
-@example
-| Name  | Phone | Age |
-|-------+-------+-----|
-|       |       |     |
-@end example
-
-the next @key{TAB} would create a second header line.  If you want
-instead to go to the first empty field below the horizontal line,
-press @key{down} (to get on the separator line) and then @key{TAB}.
-
+@item @b{How can I change the indentation of an entire table without
+fixing every line by hand?}@*
 @cindex indentation, of tables
-@item
-To change the indentation of a table, just change the first line and
-realign with @key{TAB}.
+The indentation of a table is set by the first line.  So just fix the
+indentation of the first line and realign with @key{TAB}.
 
-@end itemize
+@end enumerate
 
 
-@node Interaction, Acknowledgments, Tips and Tricks, Miscellaneous
+@node Interaction, Acknowledgments, FAQ, Miscellaneous
 @section Interaction with other packages
 @cindex packages, interaction with other
 @cindex @file{planner.el}
@@ -2142,6 +2148,9 @@ Oliver Oppitz sent several useful suggestions.
 @item
 Carsten Wimmer suggested some changes and helped fix a bug in linking
 to GNUS.
+@item
+Pavel Chalmoviansky reported bugs and suggested improvements related
+to the agenda treatment of items with specifed time.
 @item
 Stefan Monnier provided a patch with lots of little fixes to keep the
 Emacs-Lisp compiler happy.

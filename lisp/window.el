@@ -543,8 +543,7 @@ Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
 or if shrinking this window would also shrink another window.
-or if the window is the only window of its frame.
-Return non-nil if the window was shrunk."
+or if the window is the only window of its frame."
   (interactive)
   (when (null window)
     (setq window (selected-window)))
@@ -583,7 +582,7 @@ Return non-nil if the window was shrunk."
 
 (defun quit-window (&optional kill window)
   "Quit the current buffer.  Bury it, and maybe delete the selected frame.
-\(The frame is deleted if it is contains a dedicated window for the buffer.)
+\(The frame is deleted if it contains a dedicated window for the buffer.)
 With a prefix argument, kill the buffer instead.
 
 Noninteractively, if KILL is non-nil, then kill the current buffer,

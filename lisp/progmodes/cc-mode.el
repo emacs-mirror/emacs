@@ -24,9 +24,9 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; along with this program; see the file COPYING.  If not, write to
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -91,10 +91,12 @@
 (cc-require 'cc-align)
 (cc-require 'cc-menus)
 
-;; SILENCE the compiler.
+;; Silence the compiler.
 (cc-bytecomp-defvar comment-line-break-function) ; (X)Emacs 20+
 (cc-bytecomp-defvar adaptive-fill-first-line-regexp) ; Emacs 20+
 (cc-bytecomp-defun set-keymap-parents)	; XEmacs
+(cc-bytecomp-defun run-mode-hooks)	; Emacs 21.1+
+(cc-bytecomp-obsolete-fun make-local-hook) ; Marked obsolete in Emacs 21.1.
 
 ;; We set these variables during mode init, yet we don't require
 ;; font-lock.
@@ -201,12 +203,15 @@ control).  See \"cc-mode.el\" for more info."
 
 (defun c-make-inherited-keymap ()
   (let ((map (make-sparse-keymap)))
+    ;; Necessary to use `cc-bytecomp-fboundp' below since this
+    ;; function is called from top-level forms that are evaluated
+    ;; while cc-bytecomp is active when one does M-x eval-buffer.
     (cond
      ;; XEmacs
-     ((fboundp 'set-keymap-parents)
+     ((cc-bytecomp-fboundp 'set-keymap-parents)
       (set-keymap-parents map c-mode-base-map))
      ;; Emacs
-     ((fboundp 'set-keymap-parent)
+     ((cc-bytecomp-fboundp 'set-keymap-parent)
       (set-keymap-parent map c-mode-base-map))
      ;; incompatible
      (t (error "CC Mode is incompatible with this version of Emacs")))
@@ -587,6 +592,13 @@ Note that the style variables are always made local to the buffer."
 
 (add-hook 'hack-local-variables-hook 'c-postprocess-file-styles)
 
+(defmacro c-run-mode-hooks (&rest hooks)
+  ;; Emacs 21.1 has introduced a system with delayed mode hooks that
+  ;; require the use of the new function `run-mode-hooks'.
+  (if (cc-bytecomp-fboundp 'run-mode-hooks)
+      `(run-mode-hooks ,@hooks)
+    `(progn ,@(mapcar (lambda (hook) `(run-hooks ,hook)) hooks))))
+
 
 ;; Support for C
 
@@ -667,7 +679,7 @@ Key bindings:
   (c-common-init 'c-mode)
   (easy-menu-add c-c-menu)
   (cc-imenu-init cc-imenu-c-generic-expression)
-  (run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'c-mode-hook)
   (c-update-modeline))
 
 
@@ -730,7 +742,7 @@ Key bindings:
   (c-common-init 'c++-mode)
   (easy-menu-add c-c++-menu)
   (cc-imenu-init cc-imenu-c++-generic-expression)
-  (run-mode-hooks 'c-mode-common-hook 'c++-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'c++-mode-hook)
   (c-update-modeline))
 
 
@@ -794,7 +806,7 @@ Key bindings:
   (c-common-init 'objc-mode)
   (easy-menu-add c-objc-menu)
   (cc-imenu-init nil 'cc-imenu-objc-function)
-  (run-mode-hooks 'c-mode-common-hook 'objc-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'objc-mode-hook)
   (c-update-modeline))
 
 
@@ -864,7 +876,7 @@ Key bindings:
   (c-common-init 'java-mode)
   (easy-menu-add c-java-menu)
   (cc-imenu-init cc-imenu-java-generic-expression)
-  (run-mode-hooks 'c-mode-common-hook 'java-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'java-mode-hook)
   (c-update-modeline))
 
 
@@ -922,7 +934,7 @@ Key bindings:
   (c-common-init 'idl-mode)
   (easy-menu-add c-idl-menu)
   ;;(cc-imenu-init cc-imenu-idl-generic-expression) ;TODO
-  (run-mode-hooks 'c-mode-common-hook 'idl-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'idl-mode-hook)
   (c-update-modeline))
 
 
@@ -984,7 +996,7 @@ Key bindings:
   (c-common-init 'pike-mode)
   (easy-menu-add c-pike-menu)
   ;;(cc-imenu-init cc-imenu-pike-generic-expression) ;TODO
-  (run-mode-hooks 'c-mode-common-hook 'pike-mode-hook)
+  (c-run-mode-hooks 'c-mode-common-hook 'pike-mode-hook)
   (c-update-modeline))
 
 
@@ -1076,7 +1088,7 @@ Key bindings:
     ;; in cc-engine.el, just before (defun c-fast-in-literal ...
     (defalias 'c-in-literal 'c-slow-in-literal)
 
-    (run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
+    (c-run-mode-hooks 'c-mode-common-hook 'awk-mode-hook)
     (c-update-modeline))
 ) ;; closes the (if (not (memq 'syntax-properties c-emacs-features))
 

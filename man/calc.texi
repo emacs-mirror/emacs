@@ -162,6 +162,7 @@ longer Info tutorial.)
 * Store and Recall::      Storing and recalling variables.
 * Graphics::              Commands for making graphs of data.
 * Kill and Yank::         Moving data into and out of Calc.
+* Keypad Mode::           Operating Calc from a keypad.
 * Embedded Mode::         Working with formulas embedded in a file.
 * Programming::           Calc as a programmable calculator.
 
@@ -1028,7 +1029,7 @@ with the file you were editing on top and Calc on the bottom.
 
 ...
 --**-Emacs: myfile             (Fundamental)----All----------------------
---- Emacs Calculator Mode ---                   |Emacs Calc Mode v2.00...
+--- Emacs Calculator Mode ---                   |Emacs Calc Mode v2.1 ...
 2:  17.3                                        |    17.3
 1:  -5                                          |    3
     .                                           |    2
@@ -1149,28 +1150,30 @@ Stack; the lower window is a picture of a typical calculator keypad.
 \medskip
 @end tex
 @smallexample
-                                        |--- Emacs Calculator Mode ---
-                                        |2:  17.3
-                                        |1:  -5
-                                        |    .
-                                        |--%%-Calc: 12 Deg       (Calcul
-                                        |----+-----Calc 2.00-----+----1
-                                        |FLR |CEIL|RND |TRNC|CLN2|FLT |
-                                        |----+----+----+----+----+----|
-                                        | LN |EXP |    |ABS |IDIV|MOD |
-                                        |----+----+----+----+----+----|
-                                        |SIN |COS |TAN |SQRT|y^x |1/x |
-                                        |----+----+----+----+----+----|
-                                        |  ENTER  |+/- |EEX |UNDO| <- |
-                                        |-----+---+-+--+--+-+---++----|
-                                        | INV |  7  |  8  |  9  |  /  |
-                                        |-----+-----+-----+-----+-----|
-                                        | HYP |  4  |  5  |  6  |  *  |
-                                        |-----+-----+-----+-----+-----|
-                                        |EXEC |  1  |  2  |  3  |  -  |
-                                        |-----+-----+-----+-----+-----|
-                                        | OFF |  0  |  .  | PI  |  +  |
-                                        |-----+-----+-----+-----+-----+
+@group
+|--- Emacs Calculator Mode ---
+|2:  17.3
+|1:  -5
+|    .
+|--%%-Calc: 12 Deg       (Calcul
+|----+-----Calc 2.1------+----1
+|FLR |CEIL|RND |TRNC|CLN2|FLT |
+|----+----+----+----+----+----|
+| LN |EXP |    |ABS |IDIV|MOD |
+|----+----+----+----+----+----|
+|SIN |COS |TAN |SQRT|y^x |1/x |
+|----+----+----+----+----+----|
+|  ENTER  |+/- |EEX |UNDO| <- |
+|-----+---+-+--+--+-+---++----|
+| INV |  7  |  8  |  9  |  /  |
+|-----+-----+-----+-----+-----|
+| HYP |  4  |  5  |  6  |  *  |
+|-----+-----+-----+-----+-----|
+|EXEC |  1  |  2  |  3  |  -  |
+|-----+-----+-----+-----+-----|
+| OFF |  0  |  .  | PI  |  +  |
+|-----+-----+-----+-----+-----+
+@end group
 @end smallexample
 
 Keypad mode is much easier for beginners to learn, because there
@@ -10010,7 +10013,6 @@ numeric entry, undo, numeric prefix arguments, etc.
 * Numeric Entry::
 * Algebraic Entry::
 * Quick Calculator::
-* Keypad Mode::
 * Prefix Arguments::
 * Undo::
 * Error Messages::
@@ -28292,9 +28294,9 @@ pushes the old value of @samp{a} on the stack and stores @samp{a = 6}.
 @pindex calc-unstore
 @cindex Void variables
 @cindex Un-storing variables
-Until you store something in them, variables are ``void,'' that is, they
-contain no value at all.  If they appear in an algebraic formula they
-will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
+Until you store something in them, most variables are ``void,'' that is,
+they contain no value at all.  If they appear in an algebraic formula
+they will be left alone even if you press @kbd{=} (@code{calc-evaluate}).
 The @kbd{s u} (@code{calc-unstore}) command returns a variable to the
 void state.
 
@@ -29649,7 +29651,7 @@ whole line.  So you can usually transfer a single number into Calc
 just by double-clicking on it in the shell, then middle-clicking
 in the Calc window.
 
-@node Keypad Mode, Embedded Mode, Kill and Yank, Introduction
+@node Keypad Mode, Embedded Mode, Kill and Yank, Top
 @chapter Keypad Mode
 
 @noindent
@@ -29706,7 +29708,7 @@ original buffer.
 
 @smallexample
 @group
-|----+-----Calc 2.00-----+----1
+|----+-----Calc 2.1------+----1
 |FLR |CEIL|RND |TRNC|CLN2|FLT |
 |----+----+----+----+----+----|
 | LN |EXP |    |ABS |IDIV|MOD |
@@ -35020,7 +35022,7 @@ CVS tree.  See @uref{http://savannah.gnu.org/projects/emacs}.
 @appendix Calc Summary
 
 @noindent
-This section includes a complete list of Calc 2.02 keystroke commands.
+This section includes a complete list of Calc 2.1 keystroke commands.
 Each line lists the stack entries used by the command (top-of-stack
 last), the keystrokes themselves, the prompts asked by the command,
 and the result of the command (also with top-of-stack last).

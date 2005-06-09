@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.08
+;; Version: 3.09
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -31,27 +31,30 @@
 ;; project planning with a fast and effective plain-text system.
 ;;
 ;; Org-mode develops organizational tasks around a NOTES file that contains
-;; information about projects as plain text.  Org-mode is implemented on
-;; top of outline-mode - ideal to keep the content of large files well
-;; structured.  It supports ToDo items, deadlines and time stamps, which
-;; magically appear in the diary listing of the Emacs calendar.  Tables are
-;; easily created with a built-in table editor.  Plain text URL-like links
-;; connect to websites, emails (VM,RMAIL,WANDERLUST), Usenet messages (Gnus),
-;; BBDB entries, and any files related to the projects.  For printing and
-;; sharing of notes, an Org-mode file (or a part of it) can be exported as
-;; a structured ASCII file, or as HTML.
+;; information about projects as plain text.  Org-mode is implemented on top
+;; of outline-mode - ideal to keep the content of large files well structured.
+;; It supports ToDo items, deadlines and time stamps, which can be extracted
+;; to create a daily/weekly agenda that also integrates the diary of the Emacs
+;; calendar.  Tables are easily created with a built-in table editor.  Plain
+;; text URL-like links connect to websites, emails (VM, RMAIL, WANDERLUST),
+;; Usenet messages (Gnus), BBDB entries, and any files related to the
+;; projects.  For printing and sharing of notes, an Org-mode file (or a part
+;; of it) can be exported as a structured ASCII file, or as HTML.
 ;;
 ;; Installation
 ;; ------------
-;; The instruction below assume that you have downloaded Org-mode from the
-;; web.  If Org-mode is part of the Emacs distribution or an XEmacs package,
-;; you only need to add to .emacs the last three lines of Lisp code listed
-;; below, i.e. the `auto-mode-alist' modification and the global key bindings.
+;; If Org-mode is part of the Emacs distribution or an XEmacs package, you
+;; only need to copy the following lines to your .emacs file.  The last two
+;; lines define *global* keys for the commands `org-store-link' and
+;; `org-agenda' - please choose suitable keys yourself.
 ;;
-;; Byte-compile org.el and put it on your load path.  Then copy the
-;; following lines into .emacs.  The last two lines define *global*
-;; keys for the commands `org-store-link' and `org-agenda' - please
-;; choose suitable keys yourself.
+;;    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+;;    (define-key global-map "\C-cl" 'org-store-link)
+;;    (define-key global-map "\C-ca" 'org-agenda)
+;;
+;; If you have downloaded Org-mode from the Web, you must byte-compile
+;; org.el and put it on your load path.  In addition to the Emacs Lisp
+;; lines above, you also need to add the following lines to .emacs:
 ;;
 ;;    (autoload 'org-mode "org" "Org mode" t)
 ;;    (autoload 'org-diary "org" "Diary entries from Org mode")
@@ -59,12 +62,9 @@
 ;;    (autoload 'org-store-link "org" "Store a link to the current location" t)
 ;;    (autoload 'orgtbl-mode "org" "Org tables as a minor mode" t)
 ;;    (autoload 'turn-on-orgtbl "org" "Org tables as a minor mode")
-;;    (add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
-;;    (define-key global-map "\C-cl" 'org-store-link)
-;;    (define-key global-map "\C-ca" 'org-agenda)
 ;;
-;; This will put all files with extension ".org" into Org-mode.  As an
-;; alternative, make the first line of a file look like this:
+;; This setup will put all files with extension ".org" into Org-mode.  As
+;; an alternative, make the first line of a file look like this:
 ;;
 ;;     MY PROJECTS    -*- mode: org; -*-
 ;;
@@ -73,12 +73,18 @@
 ;;
 ;; Documentation
 ;; -------------
-;; The documentation of Org-mode can be found in the TeXInfo file.
-;; The distribution also contains a PDF version of it.  At the homepage
-;; of Org-mode, you can read the same text online as HTML.
+;; The documentation of Org-mode can be found in the TeXInfo file.  The
+;; distribution also contains a PDF version of it.  At the homepage of
+;; Org-mode, you can read the same text online as HTML.  There is also an
+;; excellent reference card made by Philip Rooke.
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.09
+;;    - Time-of-day specifications in agenda are extracted and placed
+;;      into the prefix.  Timed entries can be placed into a time grid for
+;;      day.
+;;
 ;; Version 3.08
 ;;    - "|" no longer allowed as part of a link, to allow links in tables.
 ;;    - The prefix of items in the agenda buffer can be configured.
@@ -136,7 +142,7 @@
 ;;      warnings about upcoming deadlines/overdue scheduled items.
 ;;      That functionality is now limited to the (multifile) agenda.
 ;;    - When reading a date, the calendar can be manipulated with keys.
-;;    - Link support for RMAIL and Wanderlust (from planner.el, untested)
+;;    - Link support for RMAIL and Wanderlust (from planner.el, untested).
 ;;    - Minor bug fixes and documentation improvements.
 
 ;;; Code:
@@ -148,16 +154,15 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.08"
+(defvar org-version "3.09"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
   (message "Org-mode version %s" org-version))
 
-;; The following two constants are for compatibility with different 
-;; Emacs versions (Emacs versus XEmacs) and with different versions of
-;; outline.el.  All the compatibility code in org.el is based on these two
-;; constants.
+;; The following two constants are for compatibility with different Emacs
+;; versions (Emacs versus XEmacs) and with different versions of outline.el.
+;; The compatibility code in org.el is based on these two constants.
 (defconst org-xemacs-p (featurep 'xemacs)
   "Are we running xemacs?")
 (defconst org-noutline-p (featurep 'noutline)
@@ -570,7 +575,7 @@ the grouped in categories, don't sort the categories, but keep them in
 the sequence given in `org-agenda-files'.  Within each category sort by
 priority.
 
-Leaving out the `category-keep' would mean that items will be sorted across
+Leaving out `category-keep' would mean that items will be sorted across
 categories by priority."
   :group 'org-agenda
   :type '(repeat 
@@ -583,7 +588,7 @@ categories by priority."
            (const priority-up)
            (const priority-down))))
 
-(defcustom org-agenda-prefix-format "  %-12:c% s"
+(defcustom org-agenda-prefix-format "  %-12:c%?-12t% s"
   "Format specification for the prefix of items in the agenda buffer.
 This format works similar to a printf format, with the following meaning:
 
@@ -593,22 +598,39 @@ This format works similar to a printf format, with the following meaning:
        format HH:MM
   %s   Scheduling/Deadline information, a short string
 
-In addition to the normal printf field modifiers like field width and
-padding instructions, in this format you can also add an additional
-punctuation or whitespace character just before the final format letter.
-This character will be appended to the field value if the value is not
-empty.  For example, the format \"%-12:c\" leads to \"Diary:    \" if
-the category is \"Diary\".  If the category were be empty, no additional
-colon would be interted.
+All specifiers work basically like the standard `%s' of printf, but may
+contain two additional characters:  A question mark just after the `%' and
+a whitespace/punctuation character just before the final letter.
 
-Including `%t' in the format string leads to a double time specification
-because the headline/diary item will contain the time specification as
-well.  However, using `%t' in the format will result in a canonical 24
-hour time specification at a consistent position in the prefix, while the
-time specification in the headline/diary item may be at any position and in
-various formats.
-Example:
-  (setq org-agenda-prefix-format \"  %-12:c% t% s\")"
+If the first character after `%' is a question mark, the entire field
+will only be included if the corresponding value applies to the
+current entry.  This is useful for fields which should have fixed
+width when present, but zero width when absent.  For example,
+\"%?-12t\" will result in a 12 character time field if a time of the
+day is specified, but will completely disappear in entries which do
+not contain a time.
+
+If there is punctuation or whitespace character just before the final
+format letter, this character will be appended to the field value if
+the value is not empty.  For example, the format \"%-12:c\" leads to
+\"Diary: \" if the category is \"Diary\".  If the category were be
+empty, no additional colon would be interted.
+
+The default value of this option is \"  %-12:c%?-12t% s\", meaning:
+- Indent the line with two space characters
+- Give the category in a 12 chars wide field, padded with whitespace on
+  the right (because of `-').  Append a colon if there is a category
+  (because of `:').
+- If there is a time-of-day, put it into a 12 chars wide field.  If no
+  time, don't put in an empty field, just skip it (because of '?').
+- Finally, put the scheduling information and append a whitespace.
+
+As another example, if you don't want the time-of-day of entries in
+the prefix, you could use:
+
+  (setq org-agenda-prefix-format \"  %-11:c% s\")
+
+See also the variable `org-agenda-remove-times-when-in-prefix'."
   :type 'string
   :group 'org-agenda)
 
@@ -618,13 +640,64 @@ Example:
   :group 'org-agenda)
 
 (defvar org-prefix-format-compiled nil
-  "The compiled version of `org-???-prefix-format'.")
+  "The compiled version of the most recently used prefix format.
+Depending on which command was used last, this may be the compiled version
+of `org-agenda-prefix-format' or `org-timeline-prefix-format'.")
+
+(defcustom org-agenda-use-time-grid t
+  "Non-nil means, show a time grid in the agenda schedule.
+A time grid is a set of lines for specific times (like every two hours between
+8:00 and 20:00.  The items scheduled for a day at specific times are
+sorted in between these lines.
+For deails about when the grid will be shown, and what it will look like, see
+the variable `org-agenda-time-grid'."
+  :group 'org-agenda
+  :type 'boolean)
+
+(defcustom org-agenda-time-grid 
+  '((daily today require-timed)
+    "----------------"
+    (800 1000 1200 1400 1600 1800 2000))
+
+  "FIXME: document"
+  :group 'org-agenda
+  :type 
+  '(list
+    (set :greedy t :tag "Grid Display Options"
+         (const :tag "Show grid in single day agenda display" daily)
+         (const :tag "Show grid in weekly agenda display" weekly)
+         (const :tag "Always show grid for today" today)
+         (const :tag "Show grid only if any timed entries are present"
+                require-timed)
+         (const :tag "Skip grid times already present in an entry"
+                remove-match))
+    (string :tag "Grid String")
+    (repeat :tag "Grid Times" (integer :tag "Time"))))
+
+(defcustom org-agenda-remove-times-when-in-prefix t
+  "Non-nil means, remove duplicate time specifications in agenda items.
+When the format `org-agenda-prefix-format' contains a `%t' specifier, a
+time-of-day specification in a headline or diary entry is extracted and
+placed into the prefix.  If this option is non-nil, the original specification
+\(a timestamp or -range, or just a plain time(range) specification like
+11:30-4pm) will be removed for agenda display.  This makes the agenda less
+cluttered.
+The option can be t or nil.  It may also be the symbol `beg', indicating
+that the time should only be removed what it is located at the beginning of
+the headline/diary entry."
+  :group 'org-agenda
+  :type '(choice
+          (const :tag "Always" t)
+          (const :tag "Never" nil)
+          (const :tag "When at beginning of entry" beg)))
 
 (defcustom org-sort-agenda-notime-is-late t
   "Non-nil means, items without time are considered late.
 This is only relevant for sorting.  When t, items which have no explicit
 time like 15:30 will be considered as 24:01, i.e. later than any items which
-do have a time.  When nil, the default time is before 0:00."
+do have a time.  When nil, the default time is before 0:00.  You can use this
+option to decide if the schedule for today should come before or after timeless
+agenda entries."
   :group 'org-agenda
   :type 'boolean)
 
@@ -1370,6 +1443,14 @@ When this is non-nil, the headline after the keyword is set to the
   "Face used for tables."
   :group 'org-faces)
 
+(defface org-time-grid-face ;; font-lock-variable-name-face
+  '((((type tty) (class color)) (:foreground "yellow" :weight light))
+    (((class color) (background light)) (:foreground "DarkGoldenrod"))
+    (((class color) (background dark)) (:foreground "LightGoldenrod"))
+    (t (:bold t :italic t)))
+  "Face used for level 2 headlines."
+  :group 'org-faces)
+
 (defvar org-level-faces
   '(
     org-level-1-face
@@ -1496,7 +1577,7 @@ The following commands are available:
       (save-excursion
         (goto-char (point-min))
         (insert "    -*- mode: org -*-\n\n")))
-  (run-hooks 'org-mode-hook)       ;FIXME: Should be run-mode-hooks.
+  (run-hooks 'org-mode-hook)
   (unless org-inhibit-startup
     (if org-startup-with-deadline-check
         (call-interactively 'org-check-deadlines)
@@ -1565,7 +1646,7 @@ The following commands are available:
   (save-excursion
     (org-back-to-heading t)
     (- (match-end 0) (match-beginning 0))))
-    
+
 (defvar org-font-lock-keywords nil)
 
 (defun org-set-font-lock-defaults ()
@@ -2844,13 +2925,17 @@ days in order to avoid rounding problems."
 (defun org-time-string-to-time (s)
   (apply 'encode-time (org-parse-time-string s)))
 
-(defun org-parse-time-string (s)
+(defun org-parse-time-string (s &optional nodefault)
   "Parse the standard Org-mode time string.
-This should be a lot faster than the normal `parse-time-string'."
+This should be a lot faster than the normal `parse-time-string'.
+If time is not given, defaults to 0:00.  However, with optional NODEFAULT,
+hour and minute fields will be nil if not given."
   (if (string-match org-ts-regexp1 s)
       (list 0
-            (string-to-number (or (match-string 8 s) "0"))
-            (string-to-number (or (match-string 7 s) "0"))
+            (if (or (match-beginning 8) (not nodefault))
+                (string-to-number (or (match-string 8 s) "0")))
+            (if (or (match-beginning 7) (not nodefault))
+                (string-to-number (or (match-string 7 s) "0")))
             (string-to-number (match-string 4 s))
             (string-to-number (match-string 3 s))
             (string-to-number (match-string 2 s))
@@ -3056,6 +3141,7 @@ The following commands are available:
 
 (define-key org-agenda-mode-map "f" 'org-agenda-follow-mode)
 (define-key org-agenda-mode-map "d" 'org-agenda-toggle-diary)
+(define-key org-agenda-mode-map "g" 'org-agenda-toggle-time-grid)
 (define-key org-agenda-mode-map "r" 'org-agenda-redo)
 (define-key org-agenda-mode-map "q" 'org-agenda-quit)
 (define-key org-agenda-mode-map "x" 'org-agenda-exit)
@@ -3115,7 +3201,7 @@ The following commands are available:
      ["Decrease Priority" org-agenda-priority-down t]
      ["Show Priority" org-agenda-show-priority t])
     "--"
-    ["Rebuild" org-agenda-redo t]
+    ["Rebuild buffer" org-agenda-redo t]
     ["Goto Today" org-agenda-goto-today t]
     ["Next Dates" org-agenda-later (local-variable-p 'starting-day)]
     ["Previous Dates" org-agenda-earlier (local-variable-p 'starting-day)]
@@ -3124,6 +3210,8 @@ The following commands are available:
      (local-variable-p 'starting-day)]
     ["Include Diary" org-agenda-toggle-diary
      :style toggle :selected org-agenda-include-diary :active t]
+    ["Use Time Grid" org-agenda-toggle-time-grid
+     :style toggle :selected org-agenda-use-time-grid :active t]
     "--"
     ["New Diary Entry" org-agenda-diary-entry t]
     ("Calendar Commands"
@@ -3294,11 +3382,13 @@ NDAYS defaults to `org-agenda-ndays'."
                          (d (- nt n1)))
                     (- sd (+ (if (< d 0) 7 0) d)))))
          (day-numbers (list start))
-         s e rtn rtnall file date d start-pos end-pos)
+         (inhibit-redisplay t)
+         s e rtn rtnall file date d start-pos end-pos todayp nd)
     (setq org-agenda-redo-command 
           (list 'org-agenda include-all start-day ndays))
     ;; Make the list of days
-    (setq ndays (or ndays org-agenda-ndays))
+    (setq ndays (or ndays org-agenda-ndays)
+          nd ndays)
     (while (> ndays 1)
       (push (1+ (car day-numbers)) day-numbers)
       (setq ndays (1- ndays)))
@@ -3324,11 +3414,15 @@ NDAYS defaults to `org-agenda-ndays'."
                 rtn (org-agenda-get-day-entries
                      file date :todo))
           (setq rtnall (append rtnall rtn))))
-      (if rtnall (insert (org-finalize-agenda-entries rtnall) "\n")))
+      (when rtnall 
+        (insert "ALL CURRENTLY OPEN TODO ITEMS:\n")
+        (add-text-properties (point-min) (1- (point))
+                             (list 'face 'org-link-face))
+        (insert (org-finalize-agenda-entries rtnall) "\n")))
     (while (setq d (pop day-numbers))
       (setq date (calendar-gregorian-from-absolute d)
             s (point))
-      (if (or (= d today)
+      (if (or (setq todayp (= d today))
               (and (not start-pos) (= d sd)))
           (setq start-pos (point))
         (if (and start-pos (not end-pos))
@@ -3347,14 +3441,18 @@ NDAYS defaults to `org-agenda-ndays'."
             (setq rtnall (append rtnall rtn))))
       (if (or rtnall org-agenda-show-all-dates)
           (progn
-            (insert (format "%-9s %2d %-9s %4d\n"
+            (insert (format "%-9s %2d %s %4d\n"
                             (calendar-day-name date)
                             (extract-calendar-day date)
                             (calendar-month-name (extract-calendar-month date))
                             (extract-calendar-year date)))
             (put-text-property s (1- (point)) 'face
                                'org-link-face)
-            (if rtnall (insert (org-finalize-agenda-entries rtnall) "\n"))
+            (if rtnall (insert 
+                        (org-finalize-agenda-entries ;; FIXME: condition needed
+                         (org-agenda-add-time-grid-maybe
+                          rtnall nd todayp))
+                        "\n"))
             (put-text-property s (1- (point)) 'day d))))            
     (goto-char (point-min))
     (setq buffer-read-only t)
@@ -3502,6 +3600,15 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
   (message "Diary inclusion turned %s"
            (if org-agenda-include-diary "on" "off")))
 
+(defun org-agenda-toggle-time-grid ()
+  "Toggle follow mode in an agenda buffer."
+  (interactive)
+  (setq org-agenda-use-time-grid (not org-agenda-use-time-grid))
+  (org-agenda-redo)
+  (org-agenda-set-mode-name)
+  (message "Time-grid turned %s"
+           (if org-agenda-use-time-grid "on" "off")))
+
 (defun org-agenda-set-mode-name ()
   "Set the mode name to indicate all the small mode settings."
   (setq mode-name
@@ -3509,7 +3616,8 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
                 (if (equal org-agenda-ndays 1) " Day"    "")
                 (if (equal org-agenda-ndays 7) " Week"   "")
                 (if org-agenda-follow-mode     " Follow" "")
-                (if org-agenda-include-diary   " Diary"  "")))
+                (if org-agenda-include-diary   " Diary"  "")
+                (if org-agenda-use-time-grid   " Grid"   "")))
   (force-mode-line-update))
 
 (defun org-agenda-post-command-hook ()
@@ -3524,7 +3632,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
   "Get the (Emacs Calendar) diary entries for DATE."
   (let* ((fancy-diary-buffer "*temporary-fancy-diary-buffer*")
          (diary-display-hook '(fancy-diary-display))
-         (list-diary-entries-hook
+         (list-diary-entries-hook 
           (cons 'org-diary-default-entry list-diary-entries-hook))
          entries
          (org-disable-diary t))
@@ -3551,7 +3659,7 @@ With prefix ARG, go back that many times `org-agenda-ndays'."
       (setq entries 
             (mapcar 
              (lambda (x)
-               (setq x (org-format-agenda-item "" x "Diary"))
+               (setq x (org-format-agenda-item "" x "Diary" 'time))
                ;; Extend the text properties to the beginning of the line
                (add-text-properties 
                 0 (length x)
@@ -3764,7 +3872,7 @@ the documentation of `org-diary'."
          arg results rtn)
     (if (not buffer)
         ;; If file does not exist, make sure an error message ends up in diary
-        (format "ORG-AGENDA-ERROR: No such org-file %s" file)
+        (list (format "ORG-AGENDA-ERROR: No such org-file %s" file))
       (with-current-buffer buffer
         (unless (eq major-mode 'org-mode)
           (error "Agenda file %s is not in `org-mode'" file))
@@ -3796,8 +3904,8 @@ the documentation of `org-diary'."
                  ((and (eq arg :deadline)
                        (equal date (calendar-current-date)))
                   (setq rtn (org-agenda-get-deadlines))
-                  (setq results (append results rtn))))))))))
-    results))
+                  (setq results (append results rtn))))))))
+        results))))
 
 (defun org-entry-is-done-p ()
   "Is the current entry marked DONE?"
@@ -3876,7 +3984,7 @@ the documentation of `org-diary'."
                            (list 0 0 0 (nth 1 date) (car date) (nth 2 date))))
                    0 11)))
          marker hdmarker deadlinep scheduledp donep tmp priority
-         ee txt)
+         ee txt timestr)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
       (if (not (save-match-data (org-at-date-range-p)))
@@ -3886,9 +3994,13 @@ the documentation of `org-diary'."
                                              (- (match-beginning 0)
                                                 org-ds-keyword-length))
                                         (match-beginning 0))
+                  timestr (buffer-substring (match-beginning 0) (point-at-eol))
                   deadlinep (string-match org-deadline-regexp tmp)
                   scheduledp (string-match org-scheduled-regexp tmp)
                   donep (org-entry-is-done-p))
+            (if (string-match ">" timestr)
+                ;; substring should only run to end of time stamp
+                (setq timestr (substring timestr 0 (match-end 0))))
             (save-excursion
               (if (re-search-backward "\\(^\\|\r\\)\\*+" nil t)
                   (progn
@@ -3899,7 +4011,7 @@ the documentation of `org-diary'."
                                (format "%s%s"
                                        (if deadlinep  "Deadline:  " "")
                                        (if scheduledp "Scheduled: " ""))
-                               (match-string 1))))
+                               (match-string 1) nil timestr)))
                 (setq txt org-agenda-no-heading-message))
               (setq priority (org-get-priority txt))
               (add-text-properties
@@ -4044,10 +4156,11 @@ the documentation of `org-diary'."
                               (abbreviate-file-name (buffer-file-name)))))
          (regexp org-tr-regexp)
          (d0 (calendar-absolute-from-gregorian date))
-         marker hdmarker ee txt d1 d2 s1 s2)
+         marker hdmarker ee txt d1 d2 s1 s2 timestr)
     (goto-char (point-min))
     (while (re-search-forward regexp nil t)
-      (setq s1 (match-string 1)
+      (setq timestr (match-string 0)
+            s1 (match-string 1)
             s2 (match-string 2)
             d1 (time-to-days (org-time-string-to-time s1))
             d2 (time-to-days (org-time-string-to-time s2)))
@@ -4062,9 +4175,9 @@ the documentation of `org-diary'."
                   (goto-char (match-end 1))
                   (looking-at "\\*+[ \t]*\\([^\r\n]+\\)")
                   (setq txt (org-format-agenda-item 
-                             (format "(%d/%d): "
+                             (format (if (= d1 d2) "" "(%d/%d): ")
                                      (1+ (- d0 d1)) (1+ (- d2 d1)))
-                             (match-string 1))))
+                             (match-string 1) nil (if (= d0 d1) timestr))))
               (setq txt org-agenda-no-heading-message))
             (add-text-properties
              0 (length txt) (append (list 'org-marker marker
@@ -4077,66 +4190,187 @@ the documentation of `org-diary'."
     ;; Sort the entries by expiration date.
     (nreverse ee)))
 
-(defun org-format-agenda-item (prefix txt &optional category)
+
+
+(defconst org-plain-time-of-day-regexp
+  (concat
+   "\\(\\<[012]?[0-9]"
+   "\\(\\(:\\([0-5][0-9]\\([AaPp][Mm]\\)?\\)\\)\\|\\([AaPp][Mm]\\)\\)\\>\\)"
+   "\\(--?"
+   "\\(\\<[012]?[0-9]"
+   "\\(\\(:\\([0-5][0-9]\\([AaPp][Mm]\\)?\\)\\)\\|\\([AaPp][Mm]\\)\\)\\>\\)"
+   "\\)?")
+  "Regular expression to match a plain time or time range.
+Examples:  11:45 or 8am-13:15 or 2:45-2:45pm.  After a match, the following
+groups carry important information:
+0  the full match
+1  the first time, range or not
+8  the second time, if it is a range.")
+
+(defconst org-stamp-time-of-day-regexp
+  (concat
+   "<\\([0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\} +[a-zA-Z]+ +\\)"
+   "\\([012][0-9]:[0-5][0-9]\\)>"
+   "\\(--?"
+   "<\\1\\([012][0-9]:[0-5][0-9]\\)>\\)?")
+  "Regular expression to match a timestamp time or time range.
+After a match, the following groups carry important information:
+0  the full match
+1  date plus weekday, for backreferencing to make sure both times on same day
+2  the first time, range or not
+4  the second time, if it is a range.")
+
+(defvar org-prefix-has-time nil
+  "A flag, set by `org-compile-prefix-format'.
+The flag is set if the currently compiled format contains a `%t'.")
+
+(defun org-format-agenda-item (extra txt &optional category dotime noprefix)
   "Format TXT to be inserted into the agenda buffer.
-In particular, this indents the line and adds a category."
-  (let* ((category (or category
-                       org-category
-                       (file-name-sans-extension
-                        (file-name-nondirectory (buffer-file-name)))))
-         (extra prefix)
-         (time-of-day (org-get-time-of-day txt))
-         (t1 (if time-of-day (concat "0" (int-to-string time-of-day)) "0000"))
-         (time (if time-of-day
-                   (concat (substring t1 -4 -2)
-                           ":" (substring t1 -2))
-                 ""))
-         rtn)
-    (if (symbolp category) (setq category (symbol-name category)))
-    (setq rtn (concat (eval org-prefix-format-compiled) txt))
-    (add-text-properties
-     0 (length rtn) (list 'category (downcase category)
-                          'prefix-length (- (length rtn) (length txt))
-                          'time-of-day time-of-day)
-     rtn)
-    rtn))
-  
+In particular, it adds the prefix and corresponding text properties.  EXTRA
+must be a string and replaces the `%s' specifier in the prefix format.
+CATEGORY (string, symbol or nil) may be used to overule the default
+category taken from local variable or file name. It will replace the `%c'
+specifier in the format.  DOTIME, when non-nil, indicates that a
+time-of-day should be extracted from TXT for sorting of this entry, and for
+the `%t' specifier in the format.  When DOTIME is a string, this string is
+searched for a time before TXT is.  NOPREFIX is a flag and indicates that
+only the correctly processes TXT should be returned - this is used by
+`org-agenda-change-all-lines'."
+  (save-match-data
+    ;; Diary entries sometimes have extra whitespace at the beginning
+    (if (string-match "^ +" txt) (setq txt (replace-match "" nil nil txt)))
+    (let* ((category (or category
+                         org-category
+                         (if (buffer-file-name)
+                             (file-name-sans-extension
+                              (file-name-nondirectory (buffer-file-name)))
+                           "")))
+           time              ;; needed for the eval of the prefix format
+           (ts (if dotime (concat (if (stringp dotime) dotime "") txt)))
+           (time-of-day (and dotime (org-get-time-of-day ts)))
+           stamp plain s0 s1 s2 rtn)
+      (when (and dotime time-of-day org-prefix-has-time)
+        ;; Extract starting and ending time and move them to prefix
+        (when (or (setq stamp (string-match org-stamp-time-of-day-regexp ts))
+                  (setq plain (string-match org-plain-time-of-day-regexp ts)))
+          (setq s0 (match-string 0 ts)
+                s1 (match-string (if plain 1 2) ts)
+                s2 (match-string (if plain 8 4) ts))
+          
+          ;; If the times are in TXT (not in DOTIMES), and the prefix will list
+          ;; them, we might want to remove them there to avoid duplication.
+          ;; The user can turn this off with a variable.
+          (if (and org-agenda-remove-times-when-in-prefix (or stamp plain)
+                   (string-match (concat (regexp-quote s0) " *") txt)
+                   (if (eq org-agenda-remove-times-when-in-prefix 'beg)
+                       (= (match-beginning 0) 0)
+                     t))
+              (setq txt (replace-match "" nil nil txt))))
+        ;; Normalize the time(s) to 24 hour
+        (if s1 (setq s1 (org-get-time-of-day s1 'string)))
+        (if s2 (setq s2 (org-get-time-of-day s2 'string))))
+      
+      ;; Create the final string
+      (if noprefix
+          (setq rtn txt)
+        ;; Prepare the variables needed in the eval of the compiled format
+        (setq time (cond (s2 (concat s1 "-" s2))
+                         (s1 (concat s1 "......"))
+                         (t ""))
+              extra (or extra "")
+              category (if (symbolp category) (symbol-name category) category))
+        ;; Evaluate the compiled format
+        (setq rtn (concat (eval org-prefix-format-compiled) txt)))
+      
+      ;; And finally add the text properties
+      (add-text-properties
+       0 (length rtn) (list 'category (downcase category)
+                            'prefix-length (- (length rtn) (length txt))
+                            'time-of-day time-of-day
+                            'dotime dotime)
+       rtn)
+      rtn)))
+
+(defun org-agenda-add-time-grid-maybe (list ndays todayp)
+  (catch 'exit
+    (cond ((not org-agenda-use-time-grid) (throw 'exit list))
+          ((and todayp (member 'today (car org-agenda-time-grid))))
+          ((and (= ndays 1) (member 'daily (car org-agenda-time-grid))))
+          ((member 'weekly (car org-agenda-time-grid)))
+          (t (throw 'exit list)))
+    (let* ((have (delq nil (mapcar
+                            (lambda (x) (get-text-property 1 'time-of-day x))
+                            list)))
+           (string (nth 1 org-agenda-time-grid))
+           (gridtimes (nth 2 org-agenda-time-grid))
+           (req (car org-agenda-time-grid))
+           (remove (member 'remove-match req))
+           new time)
+      (if (and (member 'require-timed req) (not have))
+          ;; don't show empty grid
+          (throw 'exit list))
+      (while (setq time (pop gridtimes))
+        (unless (and remove (member time have))
+          (setq time (int-to-string time))
+          (push (org-format-agenda-item 
+                 nil string "" ;; FIXME: put a category?
+                 (concat (substring time 0 -2) ":" (substring time -2)))
+                new)
+          (put-text-property 
+           1 (length (car new)) 'face 'org-time-grid-face (car new))))
+      (if (member 'time-up org-agenda-sorting-strategy)
+          (append new list)
+        (append list new)))))
+
 (defun org-compile-prefix-format (format)
   "Compile the prefix format into a Lisp form that can be evaluated.
 The resulting form is returned and stored in the variable
 `org-prefix-format-compiled'."
-  (let ((start 0) varform vars (s format) c)
-    (while (string-match "%\\([-+]?[0-9.]*\\)\\([ .;,:!?=|/<>]?\\)\\([cts]\\)"
+  (setq org-prefix-has-time nil)
+  (let ((start 0) varform vars var (s format) c f opt)
+    (while (string-match "%\\(\\?\\)?\\([-+]?[0-9.]*\\)\\([ .;,:!?=|/<>]?\\)\\([cts]\\)"
                          s start)
-      (setq var (cdr (assoc (match-string 3 s)
+      (setq var (cdr (assoc (match-string 4 s)
                             '(("c" . category) ("t" . time) ("s" . extra))))
-            c (match-string 2 s)
+            c (or (match-string 3 s) "")
+            opt (match-beginning 1)
             start (1+ (match-beginning 0)))
-      (if (= (length c) 1)
-          (setq varform `(if (equal "" ,var) "" (concat ,var ,c)))
-        (setq varform var))
-      (setq s (replace-match "%\\1s" t nil s))
+      (if (equal var 'time) (setq org-prefix-has-time t))
+      (setq f (concat "%" (match-string 2 s) "s"))
+      (if opt
+          (setq varform
+                `(if (equal "" ,var)
+                     ""
+                   (format ,f (if (equal "" ,var) "" (concat ,var ,c)))))
+        (setq varform `(format ,f (if (equal ,var "") "" (concat ,var ,c)))))
+      (setq s (replace-match "%s" t nil s))
       (push varform vars))
     (setq vars (nreverse vars))
     (setq org-prefix-format-compiled `(format ,s ,@vars))))
 
-(defun org-get-time-of-day (s)
+(defun org-get-time-of-day (s &optional string)
   "Check string S for a time of day.
 If found, return it as a military time number between 0 and 2400.
-If not found, return nil."
+If not found, return nil.
+The optional STRING argument forces conversion into a 5 character wide string
+HH:MM."
   (save-match-data
-    (when (or
-           (string-match
-            "\\<\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)\\([AaPp][Mm]\\)?\\>" s)
-           (string-match
-            "\\<\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)?\\([AaPp][Mm]\\)\\>" s))
-      (+ (* 100 (+ (string-to-number (match-string 1 s))
-                   (if (and (match-beginning 4)
-                            (equal (downcase (match-string 4 s)) "pm"))
-                       12 0)))
-         (if (match-beginning 3)
-             (string-to-number (match-string 3 s))
-           0)))))
+    (when 
+     (or
+      (string-match
+       "\\<\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)\\([AaPp][Mm]\\)?\\> *" s)
+      (string-match
+       "\\<\\([012]?[0-9]\\)\\(:\\([0-5][0-9]\\)\\)?\\([AaPp][Mm]\\)\\> *" s))
+     (let* ((t0 (+ (* 100
+                      (+ (string-to-number (match-string 1 s))
+                         (if (and (match-beginning 4)
+                                  (equal (downcase (match-string 4 s)) "pm"))
+                             12 0)))
+                   (if (match-beginning 3)
+                       (string-to-number (match-string 3 s))
+                     0)))
+            (t1 (concat " " (int-to-string t0))))
+       (if string (concat (substring t1 -4 -2) ":" (substring t1 -2)) t0)))))
 
 (defun org-finalize-agenda-entries (list)
   "Sort and concatenate the agenda items."
@@ -4295,23 +4529,30 @@ the same tree node, and the headline of the tree node in the Org-mode file."
 
 (defun org-agenda-change-all-lines (newhead hdmarker &optional fixface)
   "Change all lines in the agenda buffer which match hdmarker.
-The new content of the line will be NEWHEAD.  HDMARKER is checked with
-`equal' against all `org-hd-marker' text properties in the file."
-  (let* (props m pl undone-face done-face)
+The new content of the line will be NEWHEAD (as modified by
+`org-format-agenda-item').  HDMARKER is checked with
+`equal' against all `org-hd-marker' text properties in the file.
+If FIXFACE is non-nil, the face of each item is modified acording to
+the new TODO state."
+  (let* (props m pl undone-face done-face finish new dotime)
+;    (setq newhead (org-format-agenda-item "x" newhead "x" nil 'noprefix))
     (save-excursion
       (goto-char (point-max))
       (beginning-of-line 1)
-      (while (not (bobp))
+      (while (not finish)
+        (setq finish (bobp))
         (when (and (setq m (get-text-property (point) 'org-hd-marker))
                    (equal m hdmarker))
           (setq props (text-properties-at (point))
+                dotime (get-text-property (point) 'dotime)
+                new (org-format-agenda-item "x" newhead "x" dotime 'noprefix)
                 pl (get-text-property (point) 'prefix-length)
                 undone-face (get-text-property (point) 'undone-face)
                 done-face (get-text-property (point) 'done-face))
           (move-to-column pl)
           (if (looking-at ".*")
               (progn
-                (replace-match newhead t t)
+                (replace-match new t t)
                 (beginning-of-line 1)
                 (add-text-properties (point-at-bol) (point-at-eol) props)
                 (if fixface
@@ -4355,6 +4596,7 @@ the same tree node, and the headline of the tree node in the Org-mode file."
         (and (outline-next-heading)
              (org-flag-heading nil)))   ; show the next heading
       (funcall 'org-priority force-direction)
+      (end-of-line 1)
       (setq newhead (org-get-heading)))
     (org-agenda-change-all-lines newhead hdmarker)
     (beginning-of-line 1)))
@@ -4519,7 +4761,7 @@ This is a command that has to be installed in `calendar-mode-map'."
              "ISO:        " (calendar-iso-date-string date) "\n"
              "Day of Yr:  " (calendar-day-of-year-string date) "\n"
              "Julian:     " (calendar-julian-date-string date) "\n"
-             "Astronomic: " (calendar-astro-date-string date)
+             "Astron. JD: " (calendar-astro-date-string date)
              " (Julian date number at noon UTC)\n"
              "Hebrew:     " (calendar-hebrew-date-string date) " (until sunset)\n"
              "Islamic:    " (calendar-islamic-date-string date) " (until sunset)\n"
@@ -4865,10 +5107,11 @@ For file links, arg negates `org-line-numbers-in-file-links'."
                          ((fboundp 'gnus-group-name)
                           (gnus-group-name))
                          (t "???"))))
-        (setq link (concat (if (org-xor arg org-usenet-links-prefer-google)
-                               "http://groups.google.com/groups?group="
-                             "gnus:")
-                           group))))
+        (setq link (concat
+                    (if (org-xor arg org-usenet-links-prefer-google)
+                        "http://groups.google.com/groups?group="
+                      "gnus:")
+                    group))))
 
      ((memq major-mode '(gnus-summary-mode gnus-article-mode))
       (and (eq major-mode 'gnus-article-mode) (gnus-article-show-summary))
@@ -4919,9 +5162,7 @@ For file links, arg negates `org-line-numbers-in-file-links'."
 
 (defun org-xor (a b)
   "Exclusive or."
-  ;; (if a (not b) b)
-  (or (and a (not b))
-      (and b (not a))))
+  (if a (not b) b))
 
 (defun org-get-header (header)
   "Find a header field in the current buffer."
@@ -5217,7 +5458,8 @@ SIZE is a string Columns x Rows like for example \"3x2\"."
                                   (point-at-bol) (point)))
         (beginning-of-line 1)
       (newline))
-    (mapcar (lambda (x) (insert line)) (make-list rows t))
+    ;; (mapcar (lambda (x) (insert line)) (make-list rows t))
+    (dotimes (i rows) (insert line))
     (goto-char pos)
     (if (> rows 1)
         ;; Insert a hline after the first row.
@@ -5285,8 +5527,7 @@ Such a file can be imported into a spreadsheet program like Excel."
     (unless (or (not (file-exists-p file))
                 (y-or-n-p (format "Overwrite file %s? " file)))
       (error "Abort"))
-    (save-excursion
-      (find-file file)
+    (with-current-buffer (find-file-noselect file)
       (setq buf (current-buffer))
       (erase-buffer)
       (fundamental-mode)
@@ -5406,12 +5647,18 @@ This is being used to correctly align a single field after TAB or RET.")
     (setq rfmt (concat rfmt "\n")
           hfmt (concat (substring hfmt 0 -1) "|\n"))
     ;; Produce the new table
-    (while lines
-      (setq l (pop lines))
-      (if l
-          (setq new (concat new (apply 'format rfmt
-                                       (append (pop fields) emptystrings))))
-        (setq new (concat new hfmt))))
+    ;;(while lines
+    ;;  (setq l (pop lines))
+    ;;  (if l
+    ;;      (setq new (concat new (apply 'format rfmt
+    ;;                                   (append (pop fields) emptystrings))))
+    ;;    (setq new (concat new hfmt))))
+    (setq new (mapconcat
+               (lambda (l)
+                 (if l (apply 'format rfmt
+                              (append (pop fields) emptystrings))
+                   hfmt))
+               lines ""))
     ;; Replace the old one
     (delete-region beg end)
     (move-marker end nil)
@@ -8480,9 +8727,7 @@ to a visible line beginning.  This makes the function of C-a more intuitive."
         (get-char-property (point) 'invisible))
     (save-excursion
       (skip-chars-backward "^\r\n")
-      (if (bobp)
-          nil
-        (equal (char-before) ?\r)))))
+      (equal (char-before) ?\r))))
 
 (defun org-back-to-heading (&optional invisible-ok)
   "Move to previous heading line, or beg of this line if it's a heading.

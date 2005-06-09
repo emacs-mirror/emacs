@@ -47,7 +47,8 @@
 (defsubst flymake-makehash (&optional test)
   (if (fboundp 'make-hash-table)
       (if test (make-hash-table :test test) (make-hash-table))
-    (makehash test)))
+    (with-no-warnings
+      (makehash test))))
 
 (defalias 'flymake-float-time
   (if (fboundp 'float-time)

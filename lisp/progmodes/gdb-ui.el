@@ -698,6 +698,7 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
     (define-key map "\C-c\C-z" 'gdb-inferior-io-stop)
     (define-key map "\C-c\C-\\" 'gdb-inferior-io-quit)
     (define-key map "\C-c\C-d" 'gdb-inferior-io-eof)
+    (define-key map "\C-d" 'gdb-inferior-io-eof)
     map))
 
 (define-derived-mode gdb-inferior-io-mode comint-mode "Inferior I/O"
@@ -953,7 +954,7 @@ function is used to change the focus of GUD tooltips to #define
 directives."
   (setq gdb-active-process nil)
   (gdb-stopping ignored))
- 
+
 (defun gdb-frame-begin (ignored)
   (let ((sink gdb-output-sink))
     (cond
@@ -1303,7 +1304,8 @@ static char *magick[] = {
 		      (looking-at "\\(\\S-+\\):\\([0-9]+\\)")
 		      (let ((line (match-string 2)) (buffer-read-only nil)
 			    (file (match-string 1)))
-			(add-text-properties (point-at-bol) (point-at-eol)
+			(add-text-properties (line-beginning-position)
+					     (line-end-position)
 			 '(mouse-face highlight
 			   help-echo "mouse-2, RET: visit breakpoint"))
 			(unless (file-exists-p file)
@@ -1504,13 +1506,13 @@ static char *magick[] = {
       (let ((buffer-read-only nil))
 	(goto-char (point-min))
 	(while (< (point) (point-max))
-	  (add-text-properties (point-at-bol) (point-at-eol)
+	  (add-text-properties (line-beginning-position) (line-end-position)
 			     '(mouse-face highlight
 			       help-echo "mouse-2, RET: Select frame"))
 	  (beginning-of-line)
 	  (when (and (looking-at "^#\\([0-9]+\\)")
 		     (equal (match-string 1) gdb-current-stack-level))
-	    (put-text-property (point-at-bol) (point-at-eol)
+	    (put-text-property (line-beginning-position) (line-end-position)
 			       'face '(:inverse-video t)))
 	  (forward-line 1))))))
 
@@ -1588,7 +1590,7 @@ static char *magick[] = {
     (let ((buffer-read-only nil))
       (goto-char (point-min))
       (while (< (point) (point-max))
-	(add-text-properties (point-at-bol) (point-at-eol)
+	(add-text-properties (line-beginning-position) (line-end-position)
 			     '(mouse-face highlight
 			       help-echo "mouse-2, RET: select thread"))
 	(forward-line 1)))))
@@ -1974,14 +1976,14 @@ corresponding to the mode line clicked."
   (let ((buf (gdb-get-buffer 'gdb-partial-output-buffer)))
     (with-current-buffer buf
       (goto-char (point-min))
-      (while (re-search-forward "^ .*\n" nil t)
+      (while (re-search-forward "^[ }].*\n" nil t)
 	(replace-match "" nil nil))
       (goto-char (point-min))
-      (while (re-search-forward "{[-0-9, {}\]*\n" nil t)
-	(replace-match "(array);\n" nil nil))
+      (while (re-search-forward "{\\(.*=.*\n\\|\n\\)" nil t)
+	(replace-match "(structure);\n" nil nil))
       (goto-char (point-min))
-      (while (re-search-forward "{.*=.*\n" nil t)
-	(replace-match "(structure);\n" nil nil))))
+      (while (re-search-forward "\\s-*{.*\n" nil t)
+	(replace-match " (array);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf (with-current-buffer buf
 	       (let ((p (point))
@@ -2316,8 +2318,8 @@ BUFFER nil or omitted means use the current buffer."
 	  (delete-overlay overlay))))
 
 (defun gdb-put-breakpoint-icon (enabled bptno)
-  (let ((start (progn (beginning-of-line) (- (point) 1)))
-	(end (progn (end-of-line) (+ (point) 1)))
+  (let ((start (- (line-beginning-position) 1))
+	(end (+ (line-end-position) 1))
 	(putstring (if enabled "B" "b")))
     (add-text-properties
      0 1 '(help-echo "mouse-1: set/clear bkpt, mouse-3: enable/disable bkpt")
