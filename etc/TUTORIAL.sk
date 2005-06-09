@@ -501,7 +501,7 @@ vyvoláte príkaz
 	C-x C-f   Vyhµadanie súboru
 
 Emacs sa Vás opýta na meno súboru.  Meno súboru, ktoré pí¹ete, sa
-objavuje v spodnom riadku obrazovky, ktorý sa v tejto situácii nazýva
+objavuje v spodnom riadku obrazovky, ktorý sa v tejto situácii nazýva
 minibuffer.  Pre editáciu mena súboru mô¾ete pou¾íva» obvyklé editaèné
 príkazy Emacsu.
 

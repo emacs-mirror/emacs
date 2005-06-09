@@ -489,7 +489,7 @@ vyvoláte pøíkaz
 	C-x C-f   Vyhledání souboru
 
 Emacs se vás zeptá na jméno souboru.  Jméno souboru, které pí¹ete, se
-objevuje ve spodním øádku obrazovky, který se v této situaci nazývá
+objevuje ve spodním øádku obrazovky, který se v této situaci nazývá
 minibuffer.  Pro editaci jména souboru mù¾ete pou¾ívat obvyklé editaèní
 pøíkazy Emacsu.
 

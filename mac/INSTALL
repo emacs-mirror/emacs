@@ -230,7 +230,11 @@ system sofware updates possibly overwriting the distribution.  If this
 is a concern, as it should be in normal binary distributions, please
 use /usr/local as the prefix for installation.
 
-Enjoy!
+Emacs supports both PowerPC and Intel-based Macintoshes.  However,
+due to the unexec process that Emacs uses to dump core, it is not
+possible at this time to generate a universal binary that supports both
+architectures.  In addition, Rosetta doesn't appear to work correctly
+with PowerPC builds of Emacs; you will have to recompile for Intel.
+Therefore, builds of Emacs are architecture specific.
 
-Andrew.
-<akochoi@mac.com>
+Enjoy!

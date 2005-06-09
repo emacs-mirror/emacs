@@ -404,21 +404,21 @@ iswitchb is running."
   :type 'hook
   :group 'iswitchb)
 
-(defface iswitchb-single-match-face
+(defface iswitchb-single-match
   '((t
      (:inherit font-lock-comment-face)))
   "Iswitchb face for single matching buffer name."
   :version "22.1"
   :group 'iswitchb)
 
-(defface iswitchb-current-match-face
+(defface iswitchb-current-match
   '((t
      (:inherit font-lock-function-name-face)))
   "Iswitchb face for current matching buffer name."
   :version "22.1"
   :group 'iswitchb)
 
-(defface iswitchb-virtual-matches-face
+(defface iswitchb-virtual-matches
   '((t
      (:inherit font-lock-builtin-face)))
   "Iswitchb face for matching virtual buffer names.
@@ -426,7 +426,7 @@ See also `iswitchb-use-virtual-buffers'."
   :version "22.1"
   :group 'iswitchb)
 
-(defface iswitchb-invalid-regexp-face
+(defface iswitchb-invalid-regexp
   '((t
      (:inherit font-lock-warning-face)))
   "Iswitchb face for indicating invalid regexp. "
@@ -1299,9 +1299,9 @@ Modified from `icomplete-completions'."
 	  (put-text-property 0 (length first) 'face
 			     (if (= (length comps) 1)
                                  (if iswitchb-invalid-regexp
-                                     'iswitchb-invalid-regexp-face
-                                   'iswitchb-single-match-face)
-			       'iswitchb-current-match-face)
+                                     'iswitchb-invalid-regexp
+                                   'iswitchb-single-match)
+			       'iswitchb-current-match)
 			     first)
 	  (setq comps  (cons first (cdr comps)))))
 
@@ -1330,7 +1330,7 @@ Modified from `icomplete-completions'."
 	(let ((comp comps))
 	  (while comp
 	    (put-text-property 0 (length (car comp))
-			       'face 'iswitchb-virtual-matches-face
+			       'face 'iswitchb-virtual-matches
 			       (car comp))
 	    (setq comp (cdr comp))))))
 

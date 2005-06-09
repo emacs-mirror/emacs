@@ -183,13 +183,18 @@ Use the command `%s' to change this variable." pretty-name mode))
 
 	  (let ((curfile (or (and (boundp 'byte-compile-current-file)
 				  byte-compile-current-file)
-			     load-file-name)))
-	    `(defcustom ,mode ,init-value
-	       ,(format "Non-nil if %s is enabled.
+			     load-file-name))
+		base-doc-string)
+	    (setq base-doc-string "Non-nil if %s is enabled.
 See the command `%s' for a description of this minor-mode.
 Setting this variable directly does not take effect;
-use either \\[customize] or the function `%s'."
-			pretty-name mode mode)
+use either \\[customize] or the function `%s'.")
+	    (if (null body)
+		(setq base-doc-string "Non-nil if %s is enabled.
+See the command `%s' for a description of this minor-mode."))
+
+	    `(defcustom ,mode ,init-value
+	       ,(format base-doc-string pretty-name mode mode)
 	       :set 'custom-set-minor-mode
 	       :initialize 'custom-initialize-default
 	       ,@group

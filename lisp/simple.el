@@ -3342,10 +3342,15 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
-;; Perform vertical scrolling of tall images if necessary.
-;; Don't vscroll in a keyboard macro.
+;; This is like line-move-1 except that it also performs
+;; vertical scrolling of tall images if appropriate.
+;; That is not really a clean thing to do, since it mixes
+;; scrolling with cursor motion.  But so far we don't have
+;; a cleaner solution to the problem of making C-n do something
+;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
   (if (and auto-window-vscroll try-vscroll
+	   ;; But don't vscroll in a keyboard macro.
 	   (not defining-kbd-macro)
 	   (not executing-kbd-macro))
       (let ((forward (> arg 0))
@@ -3368,6 +3373,8 @@ Outline mode sets this."
 	      ;; Update display before calling pos-visible-in-window-p,
 	      ;; because it depends on window-start being up-to-date.
 	      (sit-for 0)
+	      ;; If the current line is partly hidden at the bottom,
+	      ;; scroll it partially up so as to unhide the bottom.
 	      (if (and (setq part (nth 2 (pos-visible-in-window-p
 					  (line-beginning-position) nil t)))
 		       (> (cdr part) 0))
@@ -4833,7 +4840,11 @@ of the differing parts is, by contrast, slightly highlighted."
 		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(if (minibufferp mainbuf)
-	    (setq completion-base-size 0)))
+	    (if (and (symbolp minibuffer-completion-table)
+		     (get minibuffer-completion-table 'completion-base-size-function))
+		(setq completion-base-size 
+		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
+	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
 	(let* ((common-string-length

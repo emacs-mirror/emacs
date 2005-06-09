@@ -243,10 +243,7 @@ when editing big diffs)."
 (defvar diff-function-face 'diff-function-face)
 
 (defface diff-context-face
-  '((((class color) (background light))
-     :foreground "grey50")
-    (((class color) (background dark))
-     :foreground "grey70"))
+  '((t :inherit shadow))
   "`diff-mode' face used to highlight context and other side-information."
   :group 'diff-mode)
 (defvar diff-context-face 'diff-context-face)

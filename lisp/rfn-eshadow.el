@@ -113,10 +113,7 @@ system, `file-name-shadow-properties' is used instead."
   :group 'minibuffer)
 
 (defface file-name-shadow
-  '((((background dark))
-     :foreground "grey50")
-    (t
-     :foreground "grey70"))
+  '((t :inherit shadow))
   "Face used by `file-name-shadow-mode' for the shadow."
   :group 'minibuffer)
 

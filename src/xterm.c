@@ -4595,11 +4595,14 @@ x_create_toolkit_scroll_bar (f, bar)
     char *initial = "";
     char *val = initial;
     XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
+#ifdef XtNarrowScrollbars
+		   XtNarrowScrollbars, (XtPointer) &xaw3d_arrow_scroll,
+#endif
 		   XtNpickTop, (XtPointer) &xaw3d_pick_top, NULL);
-    if (val == initial)
+    if (xaw3d_arrow_scroll || val == initial)
       {	/* ARROW_SCROLL */
 	xaw3d_arrow_scroll = True;
-	/* Isn't that just a personal preference ?   -sm */
+	/* Isn't that just a personal preference ?   --Stef */
 	XtVaSetValues (widget, XtNcursorName, "top_left_arrow", NULL);
       }
   }

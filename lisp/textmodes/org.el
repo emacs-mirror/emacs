@@ -154,8 +154,6 @@
 (require 'outline)
 (require 'time-date)
 (require 'easymenu)
-(or (fboundp 'run-mode-hooks)
-    (defalias 'run-mode-hooks 'run-hooks))
 
 ;;; Customization variables
 
@@ -383,6 +381,12 @@ or contain a special line
 
 If the file does not specify a category, then file's base name
 is used instead.")
+
+(defun org-run-mode-hooks (&rest hooks)
+  "Call `run-mode-hooks' if it is available; otherwise call `run-hooks'."
+  (if (fboundp 'run-mode-hooks)
+      (apply 'run-mode-hooks hooks)
+    (apply 'run-hooks hooks)))
 
 (defun org-set-regexps-and-options ()
   "Precompute regular expressions for current buffer."
@@ -3118,7 +3122,7 @@ The following commands are available:
      "--")
    (mapcar 'org-file-menu-entry org-agenda-files)))
   (org-agenda-set-mode-name)
-  (run-mode-hooks 'org-agenda-mode-hook))
+  (org-run-mode-hooks 'org-agenda-mode-hook))
 
 (define-key org-agenda-mode-map [(tab)] 'org-agenda-goto)
 (define-key org-agenda-mode-map [(return)] 'org-agenda-switch-to)

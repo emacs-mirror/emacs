@@ -351,6 +351,10 @@ Lisp_Object Qtrailing_whitespace;
 
 Lisp_Object Qescape_glyph;
 
+/* Name and number of the face used to highlight non-breaking spaces.  */
+
+Lisp_Object Qno_break_space;
+
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
 
@@ -5203,6 +5207,8 @@ get_next_display_element (it)
 	      int face_id, lface_id = 0 ;
 	      GLYPH escape_glyph;
 
+	      /* Handle control characters with ^.  */
+
 	      if (it->c < 128 && it->ctl_arrow_p)
 		{
 		  g = '^';	     /* default glyph for Control */
@@ -5234,7 +5240,28 @@ get_next_display_element (it)
 		  goto display_control;
 		}
 
-	      escape_glyph = '\\';    /* default for Octal display */
+	      /* Handle non-break space in the mode where it only gets
+		 highlighting.  */
+
+	      if (! EQ (Vshow_nonbreak_escape, Qt)
+		  && (it->c == 0x8a0 || it->c == 0x920
+		      || it->c == 0xe20 || it->c == 0xf20))
+		{
+		  /* Merge the no-break-space face into the current face.  */
+		  face_id = merge_faces (it->f, Qno_break_space, 0,
+					 it->face_id);
+
+		  g = it->c = ' ';
+		  XSETINT (it->ctl_chars[0], g);
+		  ctl_len = 1;
+		  goto display_control;
+		}
+
+	      /* Handle sequences that start with the "escape glyph".  */
+
+	      /* the default escape glyph is \.  */
+	      escape_glyph = '\\';
+
 	      if (it->dp
 		  && INTEGERP (DISP_ESCAPE_GLYPH (it->dp))
 		  && GLYPH_CHAR_VALID_P (XFASTINT (DISP_ESCAPE_GLYPH (it->dp))))
@@ -5244,6 +5271,8 @@ get_next_display_element (it)
 		}
 	      if (lface_id)
 		{
+		  /* The display table specified a face.
+		     Merge it into face_id and also into escape_glyph.  */
 		  escape_glyph = FAST_GLYPH_CHAR (escape_glyph);
 		  face_id = merge_faces (it->f, Qt, lface_id,
 					 it->face_id);
@@ -8552,7 +8581,7 @@ prepare_menu_bars ()
       Lisp_Object tail, frame;
       int count = SPECPDL_INDEX ();
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
 
       FOR_EACH_FRAME (tail, frame)
 	{
@@ -8675,7 +8704,7 @@ update_menu_bar (f, save_match_data)
 
 	  set_buffer_internal_1 (XBUFFER (w->buffer));
 	  if (save_match_data)
-	    record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+	    record_unwind_save_match_data ();
 	  if (NILP (Voverriding_local_map_menu_flag))
 	    {
 	      specbind (Qoverriding_terminal_local_map, Qnil);
@@ -8866,7 +8895,7 @@ update_tool_bar (f, save_match_data)
 
 	  /* Save match data, if we must.  */
 	  if (save_match_data)
-	    record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+	    record_unwind_save_match_data ();
 
 	  /* Make sure that we don't accidentally use bogus keymaps.  */
 	  if (NILP (Voverriding_local_map_menu_flag))
@@ -21620,10 +21649,8 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int total_pixel_width;
 	  int ignore;
 
-
-	  if (clear_mouse_face (dpyinfo))
-	    cursor = No_Cursor;
-
+	  int vpos, hpos;
+	  
 	  b = Fprevious_single_property_change (make_number (charpos + 1),
 						Qmouse_face, string, Qnil);
 	  if (NILP (b))
@@ -21666,15 +21693,30 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  for (tmp_glyph = glyph - gpos; tmp_glyph != glyph; tmp_glyph++)
 	    total_pixel_width += tmp_glyph->pixel_width;
 
-	  dpyinfo->mouse_face_beg_col = (x - gpos);
-	  dpyinfo->mouse_face_beg_row = (area == ON_MODE_LINE
-					 ? (w->current_matrix)->nrows - 1
-					 : 0);
+	  /* Pre calculation of re-rendering position */
+	  vpos = (x - gpos);
+	  hpos = (area == ON_MODE_LINE
+		  ? (w->current_matrix)->nrows - 1
+		  : 0);
+	  
+	  /* If the re-rendering position is included in the last
+	     re-rendering area, we should do nothing. */
+	  if ( window == dpyinfo->mouse_face_window
+	       && dpyinfo->mouse_face_beg_col <= vpos
+	       && vpos < dpyinfo->mouse_face_end_col
+	       && dpyinfo->mouse_face_beg_row == hpos )
+	    return;
+	  
+	  if (clear_mouse_face (dpyinfo))
+	    cursor = No_Cursor;
+	  
+	  dpyinfo->mouse_face_beg_col = vpos;
+	  dpyinfo->mouse_face_beg_row = hpos;
 
 	  dpyinfo->mouse_face_beg_x   = original_x_pixel - (total_pixel_width + dx);
 	  dpyinfo->mouse_face_beg_y   = 0;
 
-	  dpyinfo->mouse_face_end_col = (x - gpos) + gseq_length;
+	  dpyinfo->mouse_face_end_col = vpos + gseq_length;
 	  dpyinfo->mouse_face_end_row = dpyinfo->mouse_face_beg_row;
 
 	  dpyinfo->mouse_face_end_x   = 0;
@@ -21746,7 +21788,8 @@ note_mouse_highlight (f, x, y)
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
   if (! EQ (window, dpyinfo->mouse_face_window)
-      || (part != ON_TEXT && !NILP (dpyinfo->mouse_face_window)))
+      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE 
+	  && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
   /* Not on a window -> return.  */
@@ -22861,6 +22904,8 @@ syms_of_xdisp ()
   staticpro (&Qtrailing_whitespace);
   Qescape_glyph = intern ("escape-glyph");
   staticpro (&Qescape_glyph);
+  Qno_break_space = intern ("no-break-space");
+  staticpro (&Qno_break_space);
   Qimage = intern ("image");
   staticpro (&Qimage);
   QCmap = intern (":map");
@@ -22967,7 +23012,11 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
   DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
-    doc: /* *Non-nil means display escape character before non-break space and hyphen.  */);
+    doc: /* *Control highlighting of non-break space and soft hyphen.
+t means highlight the character itself (for non-break space,
+use face `non-break-space'.
+nil means no highlighting.
+other values mean display the escape glyph before the character.  */);
   Vshow_nonbreak_escape = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,

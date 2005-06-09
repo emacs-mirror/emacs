@@ -3019,7 +3019,7 @@ Valid values are:
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
 
-   COLOR-NAME	It's a string wich contains the color name.  For example:
+   COLOR-NAME	It's a string which contains the color name.  For example:
 		\"yellow\".
 
    LIST		It's a list of RGB values, that is a list of three real values
@@ -3059,7 +3059,7 @@ Valid values are:
    NUMBER	It's a real value between 0.0 (black) and 1.0 (white) that
 		indicate the gray color.
 
-   COLOR-NAME	It's a string wich contains the color name.  For example:
+   COLOR-NAME	It's a string which contains the color name.  For example:
 		\"yellow\".
 
    LIST		It's a list of RGB values, that is a list of three real values
@@ -6119,7 +6119,7 @@ XSTART YSTART are the relative position for the first page in a sheet.")
     (if (and (boundp 'ucs-mule-8859-to-mule-unicode)
 	   (char-table-p ucs-mule-8859-to-mule-unicode))
 	(map-char-table
-	 #'(lambda (k v) 
+	 #'(lambda (k v)
 	     (if (and v (eq (char-charset v) 'latin-iso8859-1) (/= k v))
 		 (aset tbl k v)))
 	 ucs-mule-8859-to-mule-unicode))

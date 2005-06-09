@@ -1235,10 +1235,6 @@ popup_get_selection (initial_event, dpyinfo, id, do_timers)
       if (event.type == ButtonRelease
           && dpyinfo->display == event.xbutton.display)
         {
-	  /* If the click is not on the menu, deactivate the menu.  */
-	  if (x_any_window_to_frame (dpyinfo, event.xexpose.window))
-	    popup_activated_flag = 0;
-	    
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
 #ifdef USE_MOTIF /* Pretending that the event came from a
                     Btn1Down seems the only way to convince Motif to
@@ -2034,7 +2030,7 @@ set_frame_menubar (f, first_time, deep_p)
 	 because it is not reentrant.  */
       specbind (Qdebug_on_next_call, Qnil);
 
-      record_unwind_protect (Fset_match_data, Fmatch_data (Qnil, Qnil));
+      record_unwind_save_match_data ();
       record_unwind_protect (unuse_menu_items, Qnil);
       if (NILP (Voverriding_local_map_menu_flag))
 	{

@@ -47,7 +47,7 @@
 ;; like this
 
 ;; (add-to-list 'file-coding-system-alist
-;; 	     '("\\.tex\\|\\.ltx\\|\\.dtx\\|\\.drv\\'" . latexenc-find-file-coding-system))
+;; 	     '("\\.\\(tex\\|ltx\\|dtx\\|drv\\)\\'" . latexenc-find-file-coding-system))
 
 ;;; Code:
 
@@ -159,10 +159,11 @@ coding system names is determined from `latex-inputenc-coding-alist'."
                         (setq latexenc-main-file (concat file ext)))))))
             ;; try tex-modes tex-guess-main-file
             (when (and (not latexenc-dont-use-tex-guess-main-file-flag)
-                       (not latexenc-main-file)
-                       (fboundp 'tex-guess-main-file))
-              (let ((tex-start-of-header "\\\\document\\(style\\|class\\)"))
-                (setq latexenc-main-file (tex-guess-main-file))))
+                       (not latexenc-main-file))
+              ;; Use a separate `when' so the byte-compiler sees the fboundp.
+              (when (fboundp 'tex-guess-main-file)
+                (let ((tex-start-of-header "\\\\document\\(style\\|class\\)"))
+                  (setq latexenc-main-file (tex-guess-main-file)))))
             ;; if we found a master/main file get the coding system from it
             (if (and latexenc-main-file
                      (file-readable-p latexenc-main-file))

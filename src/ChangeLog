@@ -1,3 +1,105 @@
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* unexmacosx.c (copy_data_segment): Copy __la_sym_ptr2 section
+	used by gcc4 on intel mac.
+
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* search.c (Fmatch_data): Add optional RESEAT arg.  Unchain markers
+	in REUSE list if non-nil; free them if equal to evaporate.
+	(Fset_match_data): Add optional RESEAT arg.  Unchain markers in	LIST
+	if non-nil; free them if equal to evaporate.  Use XCAR/XCDR.
+	(restore_search_regs): Rename from restore_match_data.  Uses changed.
+	(unwind_set_match_data): New function.
+	(record_unwind_save_match_data): New function like save-match-data.
+
+	* lisp.h (Fmatch_data, Fset_match_data): Fix EXFUN.
+	(record_unwind_save_match_data): Add prototype.
+	(restore_search_regs): Rename from restore_match_data.
+
+	* composite.c (compose_chars_in_text):
+	* eval.c (do_autoload):
+	* macmenu.c (set_frame_menubar):
+	* process.c (read_process_output, exec_sentinel):
+	* xmenu.c (set_frame_menubar):
+	* xdisp.c (prepare_menu_bars, update_menu_bar, update_tool_bar):
+	* w32menu.c (set_frame_menubar):
+	Use record_unwind_save_match_data.
+
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Alter previous change:
+	Distinguish Vshow_nonbreak_escape = t or not t.
+	For t, use escape_glyph once again, as before previous change.
+	Use space or hyphen for display, instead of the non-ASCII char.
+	(syms_of_xdisp) <show-nonbreak-escape>: Doc fix.
+
+	* process.c (Fstart_process): Don't touch command_channel_p slot.
+
+	* process.h (struct process): Delete command_channel_p.
+
+2005-06-07  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Check
+	the overlapping of re-rendering area to avoid flickering.
+	(note_mouse_highlight): Call clear_mouse_face if PART
+	is not ON_MODE_LINE nor ON_HEADER_LINE.
+
+2005-06-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c: Improve commentary for adaptive read buffering.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_create_toolkit_scroll_bar): Use XtNarrowScrollbars
+	if available.
+
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler): New
+	functions for popping down menus on C-g.
+	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler.
+
+	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
+	non-static.
+
+	* config.in: Added HAVE_CANCELMENUTRACKING
+
+2005-06-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove
+	macros.
+
+	* unexw32.c (RVA_TO_PTR): Moved here from w32heap.h.
+
+	* w32proc.c (RVA_TO_PTR): New macro.
+
+	* w32heap.c (RVA_TO_PTR): No need to #undef now.
+
+	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/w32select.$(O)):
+	Depend on w32heap.h.
+
+2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (command_loop_1): Update Vthis_original_command.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (popup_get_selection): Undo previous change.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* xdisp.c (Qno_break_space): New variable.
+	(syms_of_xdisp): Initialize it.
+	(get_next_display_element): Add no-break space and soft hypen
+	codes for iso8859-2 and iso8859-5.  Don't add `\' for them.
+	Use `no-break-space' face for no-break spaces.
+
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (delete_window): Handle the case where a h/vchild has
+	a h/vchild.
+
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32.c (sys_setsockopt): Change arg 4 to `const void *'.  In the

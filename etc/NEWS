@@ -873,6 +873,21 @@ appears in.
 *** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
 
+** New faces:
+
++++
+*** `mode-line-highlight' is the standard face indicating mouse sensitive
+elements on mode-line (and header-line) like `highlight' face on text
+areas.
+
++++
+*** `shadow' face defines the appearance of the "shadowed" text, i.e.
+the text which should be less noticeable than the surrounding text.
+This can be achieved by using shades of grey in contrast with either
+black or white default foreground color.  This generic shadow face
+allows customization of the appearance of shadowed text in one place,
+so package-specific faces can inherit from it.
+
 ** Font-Lock changes:
 
 +++
@@ -3589,6 +3604,14 @@ element, if the last match was on a buffer.  `set-match-data'
 accepts such a list for restoring the match state.
 
 +++
+*** Functions `match-data' and `set-match-data' now have an optional
+argument `reseat'.  When non-nil, all markers in the match data list
+passed to these function will be reseated to point to nowhere, and if
+the value of `reseat' is `evaporate', the markers are put onto the
+free list.  Note that no other references to those markers must exist
+if `evaporate' is specified for the `reseat' argument.
+
++++
 *** The default value of `sentence-end' is now defined using the new
 variable `sentence-end-without-space', which contains such characters
 that end a sentence without following spaces.
@@ -4872,9 +4895,6 @@ line.
 
 +++
 *** Mouse-face on mode-line (and header-line) is now supported.
-`mode-line-highlight' is the standard face indicating mouse sensitive
-elements on mode-line (and header-line) like `highlight' face on text
-areas.
 
 ** Menu manipulation changes:
 

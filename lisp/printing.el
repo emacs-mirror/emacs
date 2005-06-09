@@ -6434,7 +6434,8 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
-(pr-update-menus t)
+;;; Files are not supposed to change Emacs behavior when you merely load them.
+;;; (pr-update-menus t)
 
 
 (provide 'printing)

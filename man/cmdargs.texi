@@ -119,6 +119,10 @@ the library can be found either in the current directory, or in the
 Emacs library search path as specified with @env{EMACSLOADPATH}
 (@pxref{General Variables}).
 
+@strong{Warning:} If previous command-line arguments have visited
+files, the current directory is the directory of the last file
+visited.
+
 @item -L @var{dir}
 @opindex -L
 @itemx --directory=@var{dir}
