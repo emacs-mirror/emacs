@@ -542,7 +542,7 @@ If WINDOW is omitted or nil, it defaults to the selected window.
 Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
-or if shrinking this window would also shrink another window.
+or if shrinking this window would also shrink another window,
 or if the window is the only window of its frame."
   (interactive)
   (when (null window)
