@@ -1,3 +1,8 @@
+2005-06-09  Kenichi Handa  <handa@m17n.org>
+
+	* xdisp.c (get_next_display_element): Sync with the change in
+	HEAD (2005-06-08).
+
 2005-06-06  Kenichi Handa  <handa@m17n.org>
 
 	* callproc.c (Fcall_process): Sync with the change in
