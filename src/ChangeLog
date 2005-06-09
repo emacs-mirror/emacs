@@ -1,3 +1,8 @@
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* unexmacosx.c (copy_data_segment): Copy __la_sym_ptr2 section
+	used by gcc4 on intel mac.
+
 2005-06-09  Kim F. Storm  <storm@cua.dk>
 
 	* search.c (Fmatch_data): Add optional RESEAT arg.  Unchain markers
