@@ -1,6 +1,6 @@
 ;;; mh-identity.el --- Multiple identify support for MH-E.
 
-;; Copyright (C) 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
 
 ;; Author: Peter S. Galbraith <psg@debian.org>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -87,18 +87,18 @@ change."
 ;;;###mh-autoload
 (defun mh-identity-list-set (symbol value)
   "Update the `mh-identity-list' variable, and rebuild the menu.
-Sets the default for SYMBOL (e.g. `mh-identity-list') to VALUE (as set in
-customization).  This is called after 'customize is used to alter
+Sets the default for SYMBOL (for example, `mh-identity-list') to VALUE (as set
+in customization). This is called after 'customize is used to alter
 `mh-identity-list'."
   (set-default symbol value)
   (mh-identity-make-menu))
 
 (defvar mh-identity-local nil
-  "Buffer-local variable holding the identity currently in use.")
+  "Buffer-local variable that holds the identity currently in use.")
 (make-variable-buffer-local 'mh-identity-local)
 
 (defun mh-header-field-delete (field value-only)
-  "Delete FIELD in the mail header, or only its value if VALUE-ONLY is t.
+  "Delete header FIELD, or only its value if VALUE-ONLY is t.
 Return t if anything is deleted."
   (let ((field-colon (if (string-match "^.*:$" field)
                          field
@@ -119,11 +119,11 @@ Return t if anything is deleted."
   "Marker for the end of a signature inserted by `mh-insert-identity'.")
 
 (defun mh-identity-field-handler (field)
-  "Return the handler for a FIELD or nil if none set.
+  "Return the handler for header FIELD or nil if none set.
 The field name is downcased. If the FIELD begins with the character
 `:', then it must have a special handler defined in
 `mh-identity-handlers', else return an error since it is not a valid
-message header."
+header field."
   (or (cdr (assoc (downcase field) mh-identity-handlers))
       (and (eq (aref field 0) ?:)
            (error (format "Field %s - unknown mh-identity-handler" field)))
@@ -132,8 +132,8 @@ message header."
 
 ;;;###mh-autoload
 (defun mh-insert-identity (identity)
-  "Insert proper fields for given IDENTITY.
-Edit the `mh-identity-list' variable to define identity."
+  "Insert fields specified by given IDENTITY.
+See `mh-identity-list'."
   (interactive
    (list (completing-read
           "Identity: "
@@ -167,7 +167,8 @@ Edit the `mh-identity-list' variable to define identity."
 
 ;;;###mh-autoload
 (defun mh-identity-handler-gpg-identity (field action &optional value)
-  "For FIELD \"pgg-default-user-id\", process for ACTION 'remove or 'add.
+  "Process header FIELD \":pgg-default-user-id\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
 The buffer-local variable `mh-identity-pgg-default-user-id' is set to VALUE
 when action 'add is selected."
   (cond
@@ -180,8 +181,8 @@ when action 'add is selected."
 
 ;;;###mh-autoload
 (defun mh-identity-handler-signature (field action &optional value)
-  "For FIELD \"signature\", process headers for ACTION 'remove or 'add.
-The VALUE is added."
+  "Process header FIELD \":signature\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added."
   (cond
    ((equal action 'remove)
     (when (and (markerp mh-identity-signature-start)
@@ -210,8 +211,8 @@ The VALUE is added."
 
 ;;;###mh-autoload
 (defun mh-identity-handler-attribution-verb (field action &optional value)
-  "For FIELD \"attribution_verb\", process headers for ACTION 'remove or 'add.
-The VALUE is added."
+  "Process header FIELD \":attribution-verb\".
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added."
   (when (and (markerp mh-identity-attribution-verb-start)
              (markerp mh-identity-attribution-verb-end))
     (delete-region mh-identity-attribution-verb-start
@@ -239,9 +240,10 @@ If VALUE is nil, use `mh-extract-from-attribution-verb'."
          (point-max-marker))))
 
 (defun mh-identity-handler-default (field action top &optional value)
-  "For FIELD, process mh-identity headers for ACTION 'remove or 'add.
-if TOP is non-nil, add the field and it's VALUE at the top of the header, else
-add it at the bottom of the header."
+  "Process header FIELD.
+The ACTION is one of 'remove or 'add. If TOP is non-nil, add the field and its
+VALUE at the top of the header, else add it at the bottom of the header. If
+action is 'add, the VALUE is added."
   (let ((field-colon (if (string-match "^.*:$" field)
                          field
                        (concat field ":"))))
@@ -266,14 +268,16 @@ add it at the bottom of the header."
 
 ;;;###mh-autoload
 (defun mh-identity-handler-top (field action &optional value)
-  "For FIELD, process mh-identity headers for ACTION 'remove or 'add.
-If the field wasn't present, the VALUE is added at the top of the header."
+  "Process header FIELD.
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
+If the field wasn't present, it is added to the top of the header."
   (mh-identity-handler-default field action t value))
 
 ;;;###mh-autoload
 (defun mh-identity-handler-bottom (field action &optional value)
-  "For FIELD, process mh-identity headers for ACTION 'remove or 'add.
-If the field wasn't present, the VALUE is added at the bottom of the header."
+  "Process header FIELD.
+The ACTION is one of 'remove or 'add. If 'add, the VALUE is added.
+If the field wasn't present, it is added to the bottom of the header."
   (mh-identity-handler-default field action nil value))
 
 (provide 'mh-identity)

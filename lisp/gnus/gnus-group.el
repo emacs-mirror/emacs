@@ -1,5 +1,5 @@
 ;;; gnus-group.el --- group mode commands for Gnus
-;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -41,7 +41,11 @@
 (require 'time-date)
 (require 'gnus-ems)
 
-(eval-when-compile (require 'mm-url))
+(eval-when-compile
+  (require 'mm-url)
+  (let ((features (cons 'gnus-group features)))
+    (require 'gnus-sum))
+  (defvar gnus-cache-active-hashtb))
 
 (defcustom gnus-group-archive-directory
   "/ftp@ftp.hpc.uh.edu:/pub/emacs/ding-list/"
@@ -1042,7 +1046,7 @@ The following commands are available:
     (gnus-undo-mode 1))
   (when gnus-slave
     (gnus-slave-mode))
-  (gnus-run-hooks 'gnus-group-mode-hook))
+  (gnus-run-mode-hooks 'gnus-group-mode-hook))
 
 (defun gnus-update-group-mark-positions ()
   (save-excursion
@@ -1452,7 +1456,7 @@ if it is a string, only list groups matching REGEXP."
 	 (eval gnus-group-line-format-spec)))
      `(gnus-group ,(gnus-intern-safe gnus-tmp-group gnus-active-hashtb)
 		  gnus-unread ,(if (numberp number)
-				   (string-to-int gnus-tmp-number-of-unread)
+				   (string-to-number gnus-tmp-number-of-unread)
 				 t)
 		  gnus-marked ,gnus-tmp-marked-mark
 		  gnus-indentation ,gnus-group-indentation
@@ -3246,7 +3250,7 @@ Uses the process/prefix convention."
     (progn
       (unless (gnus-group-process-prefix current-prefix-arg)
 	(error "No group on the current line"))
-      (string-to-int
+      (string-to-number
        (let ((s (read-string
 		 (format "Level (default %s): "
 			 (or (gnus-group-group-level)

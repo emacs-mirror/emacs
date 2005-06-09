@@ -932,7 +932,8 @@ separately to examine their values.  @xref{Watch Expressions}.
 
 @item Registers Buffer
 The registers buffer displays the values held by the registers
-(@pxref{Registers,,, gdb, The GNU debugger}).
+(@pxref{Registers,,, gdb, The GNU debugger}).  Press @key{SPC} to
+toggle the display of floating point registers.
 
 @item Assembler Buffer
 The assembler buffer displays the current frame as machine code.  An
@@ -944,7 +945,7 @@ appear in the fringe or margin.
 
 The threads buffer displays a summary of all threads currently in your
 program (@pxref{Threads,,, gdb, The GNU debugger}).  Move point to
-any thread in the list and type @key{RET} to make it become the
+any thread in the list and press @key{RET} to make it become the
 current thread (@code{gdb-threads-select}) and display the associated
 source in the source buffer.  Alternatively, click @kbd{Mouse-2} to
 make the selected thread become the current one.
@@ -1149,10 +1150,11 @@ mode.  It does not treat @code{defvar} specially.
 @kbd{C-x C-e} a second time to display the value of the integer result
 in additional formats (octal, hexadecimal, and character).
 
-  If @kbd{C-M-x}, @kbd{C-x C-e}, or @kbd{M-:} is given a numeric
-argument, it inserts the value into the current buffer at point, rather
-than displaying it in the echo area.  The argument's value does not
-matter.
+  If @kbd{C-x C-e}, or @kbd{M-:} is given a numeric argument, it
+inserts the value into the current buffer at point, rather than
+displaying it in the echo area.  The argument's value does not matter.
+@kbd{C-M-x} with a numeric argument instruments the function
+definition for Edebug (@pxref{Instrumenting, Instrumenting for Edebug,, elisp, the Emacs Lisp Reference Manual}).
 
 @findex eval-region
 @findex eval-current-buffer

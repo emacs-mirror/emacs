@@ -349,9 +349,9 @@ If NOT-ALL, don't pack ticked articles."
 	 (packer (if (< (string-match "%s" packer)
 			(string-match "%d" packer))
 		     (format packer files
-			     (string-to-int (gnus-soup-unique-prefix dir)))
+			     (string-to-number (gnus-soup-unique-prefix dir)))
 		   (format packer
-			   (string-to-int (gnus-soup-unique-prefix dir))
+			   (string-to-number (gnus-soup-unique-prefix dir))
 			   files)))
 	 (dir (expand-file-name dir)))
     (gnus-make-directory dir)
@@ -385,7 +385,7 @@ though the two last may be nil if they are missing."
 			(and (eq (preceding-char) ?\t)
 			     (gnus-soup-field))
 			(and (eq (preceding-char) ?\t)
-			     (string-to-int (gnus-soup-field))))
+			     (string-to-number (gnus-soup-field))))
 		areas)
 	  (when (eq (preceding-char) ?\t)
 	    (beginning-of-line 2)))
@@ -535,7 +535,7 @@ Return whether the unpacking was successful."
 		(error "Bad header"))
 	      (forward-line 1)
 	      (setq beg (point)
-		    end (+ (point) (string-to-int
+		    end (+ (point) (string-to-number
 				    (buffer-substring
 				     (match-beginning 1) (match-end 1)))))
 	      (switch-to-buffer tmp-buf)

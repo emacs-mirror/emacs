@@ -616,7 +616,7 @@ tetris-mode keybindings:
 
   (gamegrid-init (tetris-display-options))
 
-  (run-hooks 'tetris-mode-hook))
+  (run-mode-hooks 'tetris-mode-hook))
 
 ;;;###autoload
 (defun tetris ()

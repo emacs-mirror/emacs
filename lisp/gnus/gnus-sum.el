@@ -2722,7 +2722,7 @@ The following commands are available:
   (make-local-variable 'gnus-summary-mark-positions)
   (gnus-make-local-hook 'pre-command-hook)
   (add-hook 'pre-command-hook 'gnus-set-global-variables nil t)
-  (gnus-run-hooks 'gnus-summary-mode-hook)
+  (gnus-run-mode-hooks 'gnus-summary-mode-hook)
   (turn-on-gnus-mailing-list-mode)
   (mm-enable-multibyte)
   (gnus-update-format-specifications nil 'summary 'summary-mode 'summary-dummy)
@@ -5660,7 +5660,7 @@ The resulting hash table is returned, or nil if no Xrefs were found."
 						    (match-end 1)))
 			(substring xrefs (match-beginning 1) (match-end 1))))
 	  (setq number
-		(string-to-int (substring xrefs (match-beginning 2)
+		(string-to-number (substring xrefs (match-beginning 2)
 					  (match-end 2))))
 	  (if (setq entry (gnus-gethash group xref-hashtb))
 	      (setcdr entry (cons number (cdr entry)))

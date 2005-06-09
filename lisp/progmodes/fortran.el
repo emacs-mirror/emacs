@@ -799,7 +799,7 @@ with no args, if that value is non-nil."
        #'fortran-current-defun)
   (set (make-local-variable 'dabbrev-case-fold-search) 'case-fold-search)
   (set (make-local-variable 'gud-find-expr-function) 'fortran-gud-find-expr)
-  (run-hooks 'fortran-mode-hook))
+  (run-mode-hooks 'fortran-mode-hook))
 
 
 (defun fortran-gud-find-expr ()

@@ -826,7 +826,7 @@ If optional argument `EXTRA' is non-nil, it's a non-standard overview header."
     ;; If this is an integer comparison, we transform from string to int.
     (if (eq (nth 2 (assoc header gnus-header-index)) 'gnus-score-integer)
 	(if (stringp match)
-	    (setq match (string-to-int match)))
+	    (setq match (string-to-number match)))
       (set-text-properties 0 (length match) nil match))
 
     (unless (eq date 'now)
@@ -891,7 +891,7 @@ EXTRA is the possible non-standard header."
 				      t)
 		     (read-string "Match: ")
 		     (if (y-or-n-p "Use regexp match? ") 'r 's)
-		     (string-to-int (read-string "Score: "))))
+		     (string-to-number (read-string "Score: "))))
   (save-excursion
     (unless (and (stringp match) (> (length match) 0))
       (error "No match"))
@@ -945,7 +945,7 @@ EXTRA is the possible non-standard header."
   "Automatically mark articles with score below SCORE as read."
   (interactive
    (list (or (and current-prefix-arg (prefix-numeric-value current-prefix-arg))
-	     (string-to-int (read-string "Mark below: ")))))
+	     (string-to-number (read-string "Mark below: ")))))
   (setq score (or score gnus-summary-default-score 0))
   (gnus-score-set 'mark (list score))
   (gnus-score-set 'touched '(t))
@@ -979,7 +979,7 @@ EXTRA is the possible non-standard header."
   "Automatically expunge articles with score below SCORE."
   (interactive
    (list (or (and current-prefix-arg (prefix-numeric-value current-prefix-arg))
-	     (string-to-int (read-string "Set expunge below: ")))))
+	     (string-to-number (read-string "Set expunge below: ")))))
   (setq score (or score gnus-summary-default-score 0))
   (gnus-score-set 'expunge (list score))
   (gnus-score-set 'touched '(t)))

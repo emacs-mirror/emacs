@@ -111,7 +111,8 @@
   '((t (:underline t)))
   "Face to use for additionally highlighting rule targets in Font-Lock mode."
   :group 'faces
-  :group 'makefile)
+  :group 'makefile
+  :version "22.1")
 
 (defface makefile-shell-face
   '((((class color) (background light)) (:background  "seashell1"))
@@ -119,7 +120,8 @@
     (t (:reverse-video t)))
   "Face to use for additionally highlighting Shell commands in Font-Lock mode."
   :group 'faces
-  :group 'makefile)
+  :group 'makefile
+  :version "22.1")
 
 (defface makefile-makepp-perl-face
   '((((class color) (background light)) (:background  "LightBlue1")) ; Camel Book
@@ -127,7 +129,8 @@
     (t (:reverse-video t)))
   "Face to use for additionally highlighting Perl code in Font-Lock mode."
   :group 'faces
-  :group 'makefile)
+  :group 'makefile
+  :version "22.1")
 
 (defcustom makefile-browser-buffer-name "*Macros and Targets*"
   "*Name of the macro- and target browser buffer."
@@ -262,18 +265,33 @@ not be enclosed in { } or ( )."
   "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\(:\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)"
   "Regex used to find dependency lines in a makefile.")
 
+(defconst makefile-bsdmake-dependency-regex
+  (progn (string-match (regexp-quote "\\(:\\)") makefile-dependency-regex)
+	 (replace-match "\\([:!]\\)" t t makefile-dependency-regex))
+  "Regex used to find dependency lines in a BSD makefile.")
+
 (defvar makefile-dependency-skip "^:"
   "Characters to skip to find a line that might be a dependency.")
 
 (defvar makefile-rule-action-regex
-  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)"
+  "^\t[ \t]*\\([-@]*\\)[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)"
   "Regex used to highlight rule action lines in font lock mode.")
+
+(defconst makefile-makepp-rule-action-regex
+  ;; Don't care about initial tab, but I don't know how to font-lock correctly without.
+  "^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.*\\\\\n\\)*.*\\)"
+  "Regex used to highlight makepp rule action lines in font lock mode.")
+
+(defconst makefile-bsdmake-rule-action-regex
+  (progn (string-match "-@" makefile-rule-action-regex)
+	 (replace-match "-+@" t t makefile-rule-action-regex))
+  "Regex used to highlight BSD rule action lines in font lock mode.")
 
 ;; Note that the first and second subexpression is used by font lock.  Note
 ;; that if you change this regexp you might have to fix the imenu index in
 ;; makefile-imenu-generic-expression.
 (defconst makefile-macroassign-regex
-  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\)"
+  "^ *\\([^ \n\t][^:#= \t\n]*\\)[ \t]*\\(?:!=[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)\\|[*:+]?[:?]?=[ \t]*\\(\\(?:.*\\\\\n\\)*.*\\)\\)"
   "Regex used to find macro assignment lines in a makefile.")
 
 (defconst makefile-var-use-regex
@@ -420,7 +438,7 @@ not be enclosed in { } or ( )."
    nil
    "^\\(?: [ \t]*\\)?\\(?:and[ \t]+\\|else[ \t]+\\|or[ \t]+\\)?if\\(n\\)\\(?:def\\|eq\\|sys\\)\\>"
 
-   '("[^$]\\(\\$[({]\\(?:target\\|output\\)s?\\_>.*?[})]\\)"
+   '("[^$]\\(\\$[({]\\(?:output\\|stem\\|target\\)s?\\_>.*?[})]\\)"
      1 'makefile-targets-face prepend)
 
    ;; Colon modifier keywords.
@@ -849,10 +867,8 @@ Makefile mode can be configured by modifying the following variables:
 ;;;###autoload
 (define-derived-mode makefile-makepp-mode makefile-mode "Makeppfile"
   "An adapted `makefile-mode' that knows about makepp."
-   (set (make-local-variable 'makefile-rule-action-regex)
-	;; Don't care about initial tab, but I don't know how to font-lock correctly without.
-	"^\t[ \t]*\\(\\(?:\\(?:noecho\\|ignore[-_]error\\|[-@]+\\)[ \t]*\\)*\\)\\(\\(&\\S +\\)?\\(?:.+\\\\\n\\)*.+\\)")
-
+  (set (make-local-variable 'makefile-rule-action-regex)
+       makefile-makepp-rule-action-regex)
   (setq font-lock-defaults
 	`(makefile-makepp-font-lock-keywords ,@(cdr font-lock-defaults))
 	imenu-generic-expression
@@ -863,11 +879,10 @@ Makefile mode can be configured by modifying the following variables:
 (define-derived-mode makefile-bsdmake-mode makefile-mode "BSDmakefile"
   "An adapted `makefile-mode' that knows about BSD make."
   (set (make-local-variable 'makefile-dependency-regex)
-       ;; Identical to default, except allows `!' instead of `:'.
-       "^ *\\(\\(?: *\\$\\(?:[({]\\(?:\\$\\(?:[({]\\(?:\\$\\(?:[^({]\\|.[^\n$#})]+?[})]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\|[^\n$#)}]\\)+?[})]\\|[^({]\\)\\| *[^ \n$#:=]+\\)+?\\)[ \t]*\\([:!]\\)\\(?:[ \t]*$\\|[^=\n]\\(?:[^#\n]*?;[ \t]*\\(.+\\)\\)?\\)")
+       makefile-bsdmake-dependency-regex)
   (set (make-local-variable 'makefile-dependency-skip) "^:!")
   (set (make-local-variable 'makefile-rule-action-regex)
-       "^\t[ \t]*\\([-+@]*\\)[ \t]*\\(\\(?:.+\\\\\n\\)*.+\\)")
+       makefile-bsdmake-rule-action-regex)
   (setq font-lock-defaults
 	`(makefile-bsdmake-font-lock-keywords ,@(cdr font-lock-defaults))))
 

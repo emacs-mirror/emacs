@@ -713,7 +713,7 @@ Commands:                        Equivalent keys in read-only mode:
 
   ;; user customising
   ;;(message "forms: proceeding setup (user hooks)...")
-  (run-hooks 'forms-mode-hook 'forms-mode-hooks)
+  (run-mode-hooks 'forms-mode-hook 'forms-mode-hooks)
   ;;(message "forms: setting up... done.")
 
   ;; be helpful

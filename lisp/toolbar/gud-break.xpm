@@ -1,7 +1,7 @@
 /* XPM */
 static char * stop_xpm[] = {
 "24 24 3 1",
-" 	c #C0C0C0C0C0C0",
+" 	c None",
 ".	c #F8F810104040",
 "X	c #F8F8FCFCF8F8",
 "                        ",

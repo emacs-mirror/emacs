@@ -294,7 +294,7 @@ The key bindings are:
   (use-local-map wordstar-mode-map)
   (setq mode-name "WordStar")
   (setq major-mode 'wordstar-mode)
-  (run-hooks 'wordstar-mode-hook))
+  (run-mode-hooks 'wordstar-mode-hook))
 
 
 (defun wordstar-center-paragraph ()

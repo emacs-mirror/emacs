@@ -3437,7 +3437,7 @@ REGEXP-GROUP is the regular expression group in REGEXP to use."
 ;;   (make-local-variable 'shell-directory-stack)
 ;;   (setq shell-directory-stack nil)
 ;;   (add-hook 'comint-input-filter-functions 'shell-directory-tracker)
-;;   (run-hooks 'shell-mode-hook))
+;;   (run-mode-hooks 'shell-mode-hook))
 ;;
 ;;
 ;; Completion for comint-mode users

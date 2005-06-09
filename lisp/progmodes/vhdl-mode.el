@@ -127,7 +127,7 @@
   "Non-nil if XEmacs is used.")
 ;; Emacs 21 handling
 (defconst vhdl-emacs-21 (and (= emacs-major-version 21) (not vhdl-xemacs))
-  "Non-nil if GNU Emacs 21 is used.")
+  "Non-nil if Emacs 21 is used.")
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -4568,8 +4568,7 @@ Key bindings:
   (set (make-local-variable 'indent-line-function) 'vhdl-indent-line)
   (set (make-local-variable 'comment-start) "--")
   (set (make-local-variable 'comment-end) "")
-  (when vhdl-emacs-21
-    (set (make-local-variable 'comment-padding) ""))
+  (set (make-local-variable 'comment-padding) "")
   (set (make-local-variable 'comment-column) vhdl-inline-comment-column)
   (set (make-local-variable 'end-comment-column) vhdl-end-comment-column)
   (set (make-local-variable 'comment-start-skip) "--+\\s-*")
@@ -4622,7 +4621,7 @@ Key bindings:
 	   (if noninteractive "" "  See menu for documentation and release notes."))
 
   ;; run hooks
-  (run-hooks 'vhdl-mode-hook))
+  (run-mode-hooks 'vhdl-mode-hook))
 
 (defun vhdl-activate-customizations ()
   "Activate all customizations on local variables."
@@ -7484,7 +7483,13 @@ end of line, do nothing in comments and strings."
     (while (re-search-forward "\\(--.*\n\\|\"[^\"\n]*[\"\n]\\)\\|\\(\\([^/:<>=]\\)\\(:\\|=\\|<\\|>\\|:=\\|<=\\|>=\\|=>\\|/=\\)\\([^=>]\\|$\\)\\)" end t)
       (if (match-string 1)
 	  (goto-char (match-end 1))
-	(replace-match "\\3 \\4 \\5")
+	(save-excursion
+	  (goto-char (match-beginning 4))
+	  (unless (eq (preceding-char) ?\ )
+	    (insert " "))
+	  (goto-char (match-end 4))
+	  (unless (eq (following-char) ?\ )
+	    (insert " ")))
 	(goto-char (match-end 4))))
     ;; eliminate multiple spaces and spaces at end of line
     (goto-char beg)
@@ -7540,7 +7545,7 @@ buffer."
   (interactive "r\np")
   (save-excursion
     (goto-char beg)
-    (let ((margin (if interactive (current-indentation) (current-column))))
+    (let ((margin (if arg (current-indentation) (current-column))))
       (goto-char end)
       (setq end (point-marker))
       ;; remove inline comments, newlines and whitespace
@@ -12055,8 +12060,7 @@ File statistics: \"%s\"\n\
 # statements  : %5d\n\
 # code lines  : %5d\n\
 # total lines : %5d\n\ "
-	     (buffer-file-name) no-stats no-code-lines no-lines)
-    (unless vhdl-emacs-21 (vhdl-show-messages))))
+	     (buffer-file-name) no-stats no-code-lines no-lines)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Help functions

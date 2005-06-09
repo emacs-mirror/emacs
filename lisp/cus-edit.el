@@ -4276,7 +4276,7 @@ if that value is non-nil."
     (set (make-local-variable 'widget-link-prefix) "")
     (set (make-local-variable 'widget-link-suffix) ""))
   (add-hook 'widget-edit-functions 'custom-state-buffer-message nil t)
-  (run-hooks 'custom-mode-hook))
+  (run-mode-hooks 'custom-mode-hook))
 
 (put 'custom-mode 'mode-class 'special)
 

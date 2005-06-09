@@ -1,6 +1,6 @@
 ;;; gnus-diary.el --- Wrapper around the NNDiary Gnus backend
 
-;; Copyright (c) 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 ;; Copyright (C) 1999, 2000, 2001 Didier Verna.
 
 ;; Author:        Didier Verna <didier@xemacs.org>
@@ -103,7 +103,8 @@
 
 (defgroup gnus-diary nil
   "Utilities on top of the nndiary backend for Gnus."
-  :version "22.1")
+  :version "22.1"
+  :group 'gnus)
 
 (defcustom gnus-diary-summary-line-format "%U%R%z %uD: %(%s%) (%ud)\n"
   "*Summary line format for nndiary groups."

@@ -192,7 +192,7 @@ not be added to this variable."
 	  (eshell-finish-arg
 	   (prog1
 	       (list 'eshell-set-output-handle
-		     (or (and sh (string-to-int sh)) 1)
+		     (or (and sh (string-to-number sh)) 1)
 		     (list 'quote
 			   (aref [overwrite append insert]
 				 (1- (length oper)))))
@@ -353,7 +353,8 @@ it defaults to `insert'."
    ((or (bufferp target)
 	(and (boundp 'eshell-buffer-shorthand)
 	     (symbol-value 'eshell-buffer-shorthand)
-	     (symbolp target)))
+	     (symbolp target)
+	     (not (memq target '(t nil)))))
     (let ((buf (if (bufferp target)
 		   target
 		 (get-buffer-create

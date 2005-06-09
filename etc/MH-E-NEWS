@@ -1,16 +1,94 @@
 * COPYRIGHT
 
-Copyright (C) 2003, 2004 Free Software Foundation, Inc.
-
+Copyright (C) 2003, 2004, 2005 Free Software Foundation, Inc.
+	
 Copying and distribution of this file, with or without modification,
 are permitted in any medium without royalty provided the copyright
 notice and this notice are preserved.
 
+* Changes in MH-E 7.84
+
+Version 7.84 contains no user-visible changes. This version
+incorporates changes made in CVS Emacs such as the removal of some
+deprecated software.
+
+* Changes in MH-E 7.83
+
+Version 7.83 fixes a handful of bugs, adds colors to buttons for
+signed or encrypted messages, and contains some documentation changes
+related to the upcoming release of the manual. Some options were moved
+to other customization groups as a result.
+
+While not related to this release, the MH-E mailing lists are now
+gatewayed at gmane.org (closes SF #979308).
+
+** New Variables in MH-E 7.83
+
+*** mh-show-pgg-bad-face
+
+Face used to highlight a bad PGG signature.
+
+*** mh-show-pgg-good-face
+
+Face used to highlight a good PGG signature.
+
+*** mh-show-pgg-unknown-face
+
+Face used to highlight a PGG signature whose status is unknown. This
+face is also used for a signature when the signer is untrusted.
+
+** Bug Fixes in MH-E 7.83
+
+*** Whitespace in pick Expressions
+
+The "C-u / s RET" command now works. In addition, you can now add
+whitespace to any of the limiting (/) commands (closes SF #1122655).
+
+*** auto-mode-alist Updated
+
+MH-E originally updated auto-mode-alist to set the major mode of
+drafts. Now that we explicitly set the mode, there is no reason to do
+this, and this behavior caused problems for people who didn't use MH-E
+who were editing files that looked like MH message files (closes SF
+#1032353).
+
+*** mh-show-unquote-From Fails (read-only buffer)
+
+MH-E quotes the "From " header field that is inserted by MTAs.
+However, it was trying to do this in a read-only buffer. This has been
+fixed (closes SF #1089870).
+
+*** rmmproc Refile Complains No Such Message
+
+MH-E would get confused about which folder to delete messages from if
+you were refiling and deleting messages at the same time. This has
+been fixed (closes SF #1023959).
+
+*** ! Doesn't Do Regions
+
+Now it does (closes SF #1046330).
+
+*** Swish Fixes
+
+Items in swish indexes that aren't mail messages are now handled more
+gracefully.
+
+*** Spamassassin Fixes
+
+If you use spamassassin, there was an error when you tried to junk
+mail if the option mh-junk-background was set. This has been fixed.
+
+*** Mairix Support
+
+Indexing now compatible with Mairix version 0.12 and later.
+
+
+
 * Changes in MH-E 7.82
 
 Version 7.82 continues to address the saga surrounding the use of CL
-macros in CVS Emacs and fixes the auto-detection of vanilla MH (SF
-#1014781).
+macros in CVS Emacs and fixes the auto-detection of vanilla MH (closes
+SF #1014781).
 
 * Changes in MH-E 7.81
 
@@ -22,6 +100,8 @@ of "default" in `mh-identity-handlers' to avoid problems with
 `mh-identity-handlers' in your .emacs, you'll need to rename "default"
 to ":default". This release also corrects the release numbering; the
 previous version number was intended to be 7.80.
+
+
 
 * Changes in MH-E 7.4.80
 

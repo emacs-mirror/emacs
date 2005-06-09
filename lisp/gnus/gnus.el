@@ -366,7 +366,8 @@ be set in `.emacs' instead."
      (:foreground "ForestGreen" :bold t))
     (t
      ()))
-  "Level 1 newsgroup face.")
+  "Level 1 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-1-empty-face
   '((((class color)
@@ -377,7 +378,8 @@ be set in `.emacs' instead."
      (:foreground "ForestGreen"))
     (t
      ()))
-  "Level 1 empty newsgroup face.")
+  "Level 1 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-2-face
   '((((class color)
@@ -388,7 +390,8 @@ be set in `.emacs' instead."
      (:foreground "CadetBlue4" :bold t))
     (t
      ()))
-  "Level 2 newsgroup face.")
+  "Level 2 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-2-empty-face
   '((((class color)
@@ -399,7 +402,8 @@ be set in `.emacs' instead."
      (:foreground "CadetBlue4"))
     (t
      ()))
-  "Level 2 empty newsgroup face.")
+  "Level 2 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-3-face
   '((((class color)
@@ -410,7 +414,8 @@ be set in `.emacs' instead."
      (:bold t))
     (t
      ()))
-  "Level 3 newsgroup face.")
+  "Level 3 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-3-empty-face
   '((((class color)
@@ -421,7 +426,8 @@ be set in `.emacs' instead."
      ())
     (t
      ()))
-  "Level 3 empty newsgroup face.")
+  "Level 3 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-4-face
   '((((class color)
@@ -432,7 +438,8 @@ be set in `.emacs' instead."
      (:bold t))
     (t
      ()))
-  "Level 4 newsgroup face.")
+  "Level 4 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-4-empty-face
   '((((class color)
@@ -443,7 +450,8 @@ be set in `.emacs' instead."
      ())
     (t
      ()))
-  "Level 4 empty newsgroup face.")
+  "Level 4 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-5-face
   '((((class color)
@@ -454,7 +462,8 @@ be set in `.emacs' instead."
      (:bold t))
     (t
      ()))
-  "Level 5 newsgroup face.")
+  "Level 5 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-5-empty-face
   '((((class color)
@@ -465,7 +474,8 @@ be set in `.emacs' instead."
      ())
     (t
      ()))
-  "Level 5 empty newsgroup face.")
+  "Level 5 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-6-face
   '((((class color)
@@ -476,7 +486,8 @@ be set in `.emacs' instead."
      (:bold t))
     (t
      ()))
-  "Level 6 newsgroup face.")
+  "Level 6 newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-6-empty-face
   '((((class color)
@@ -487,7 +498,8 @@ be set in `.emacs' instead."
      ())
     (t
      ()))
-  "Level 6 empty newsgroup face.")
+  "Level 6 empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-low-face
   '((((class color)
@@ -498,7 +510,8 @@ be set in `.emacs' instead."
      (:foreground "DarkGreen" :bold t))
     (t
      ()))
-  "Low level newsgroup face.")
+  "Low level newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-news-low-empty-face
   '((((class color)
@@ -509,7 +522,8 @@ be set in `.emacs' instead."
      (:foreground "DarkGreen"))
     (t
      ()))
-  "Low level empty newsgroup face.")
+  "Low level empty newsgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-1-face
   '((((class color)
@@ -520,7 +534,8 @@ be set in `.emacs' instead."
      (:foreground "DeepPink3" :bold t))
     (t
      (:bold t)))
-  "Level 1 mailgroup face.")
+  "Level 1 mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-1-empty-face
   '((((class color)
@@ -531,7 +546,8 @@ be set in `.emacs' instead."
      (:foreground "DeepPink3"))
     (t
      (:italic t :bold t)))
-  "Level 1 empty mailgroup face.")
+  "Level 1 empty mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-2-face
   '((((class color)
@@ -542,7 +558,8 @@ be set in `.emacs' instead."
      (:foreground "HotPink3" :bold t))
     (t
      (:bold t)))
-  "Level 2 mailgroup face.")
+  "Level 2 mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-2-empty-face
   '((((class color)
@@ -553,7 +570,8 @@ be set in `.emacs' instead."
      (:foreground "HotPink3"))
     (t
      (:bold t)))
-  "Level 2 empty mailgroup face.")
+  "Level 2 empty mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-3-face
   '((((class color)
@@ -564,7 +582,8 @@ be set in `.emacs' instead."
      (:foreground "magenta4" :bold t))
     (t
      (:bold t)))
-  "Level 3 mailgroup face.")
+  "Level 3 mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-3-empty-face
   '((((class color)
@@ -575,7 +594,8 @@ be set in `.emacs' instead."
      (:foreground "magenta4"))
     (t
      ()))
-  "Level 3 empty mailgroup face.")
+  "Level 3 empty mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-low-face
   '((((class color)
@@ -586,7 +606,8 @@ be set in `.emacs' instead."
      (:foreground "DeepPink4" :bold t))
     (t
      (:bold t)))
-  "Low level mailgroup face.")
+  "Low level mailgroup face."
+  :group 'gnus-group)
 
 (defface gnus-group-mail-low-empty-face
   '((((class color)
@@ -597,18 +618,21 @@ be set in `.emacs' instead."
      (:foreground "DeepPink4"))
     (t
      (:bold t)))
-  "Low level empty mailgroup face.")
+  "Low level empty mailgroup face."
+  :group 'gnus-group)
 
 ;; Summary mode faces.
 
 (defface gnus-summary-selected-face '((t
 				       (:underline t)))
-  "Face used for selected articles.")
+  "Face used for selected articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-cancelled-face
   '((((class color))
      (:foreground "yellow" :background "black")))
-  "Face used for cancelled articles.")
+  "Face used for cancelled articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-high-ticked-face
   '((((class color)
@@ -619,7 +643,8 @@ be set in `.emacs' instead."
      (:foreground "firebrick" :bold t))
     (t
      (:bold t)))
-  "Face used for high interest ticked articles.")
+  "Face used for high interest ticked articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-low-ticked-face
   '((((class color)
@@ -630,7 +655,8 @@ be set in `.emacs' instead."
      (:foreground "firebrick" :italic t))
     (t
      (:italic t)))
-  "Face used for low interest ticked articles.")
+  "Face used for low interest ticked articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-normal-ticked-face
   '((((class color)
@@ -641,7 +667,8 @@ be set in `.emacs' instead."
      (:foreground "firebrick"))
     (t
      ()))
-  "Face used for normal interest ticked articles.")
+  "Face used for normal interest ticked articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-high-ancient-face
   '((((class color)
@@ -652,7 +679,8 @@ be set in `.emacs' instead."
      (:foreground "RoyalBlue" :bold t))
     (t
      (:bold t)))
-  "Face used for high interest ancient articles.")
+  "Face used for high interest ancient articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-low-ancient-face
   '((((class color)
@@ -663,7 +691,8 @@ be set in `.emacs' instead."
      (:foreground "RoyalBlue" :italic t))
     (t
      (:italic t)))
-  "Face used for low interest ancient articles.")
+  "Face used for low interest ancient articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-normal-ancient-face
   '((((class color)
@@ -674,7 +703,8 @@ be set in `.emacs' instead."
      (:foreground "RoyalBlue"))
     (t
      ()))
-  "Face used for normal interest ancient articles.")
+  "Face used for normal interest ancient articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-high-undownloaded-face
    '((((class color)
@@ -683,7 +713,8 @@ be set in `.emacs' instead."
      (((class color) (background dark))
       (:bold t :foreground "LightGray"))
      (t (:inverse-video t :bold t)))
-  "Face used for high interest uncached articles.")
+  "Face used for high interest uncached articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-low-undownloaded-face
    '((((class color)
@@ -692,7 +723,8 @@ be set in `.emacs' instead."
      (((class color) (background dark))
       (:italic t :foreground "LightGray" :bold nil))
      (t (:inverse-video t :italic t)))
-  "Face used for low interest uncached articles.")
+  "Face used for low interest uncached articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-normal-undownloaded-face
    '((((class color)
@@ -701,22 +733,26 @@ be set in `.emacs' instead."
      (((class color) (background dark))
       (:foreground "LightGray" :bold nil))
      (t (:inverse-video t)))
-  "Face used for normal interest uncached articles.")
+  "Face used for normal interest uncached articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-high-unread-face
   '((t
      (:bold t)))
-  "Face used for high interest unread articles.")
+  "Face used for high interest unread articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-low-unread-face
   '((t
      (:italic t)))
-  "Face used for low interest unread articles.")
+  "Face used for low interest unread articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-normal-unread-face
   '((t
      ()))
-  "Face used for normal interest unread articles.")
+  "Face used for normal interest unread articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-high-read-face
   '((((class color)
@@ -729,7 +765,8 @@ be set in `.emacs' instead."
 		  :bold t))
     (t
      (:bold t)))
-  "Face used for high interest read articles.")
+  "Face used for high interest read articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-low-read-face
   '((((class color)
@@ -742,7 +779,8 @@ be set in `.emacs' instead."
 		  :italic t))
     (t
      (:italic t)))
-  "Face used for low interest read articles.")
+  "Face used for low interest read articles."
+  :group 'gnus-summary)
 
 (defface gnus-summary-normal-read-face
   '((((class color)
@@ -753,7 +791,8 @@ be set in `.emacs' instead."
      (:foreground "DarkGreen"))
     (t
      ()))
-  "Face used for normal interest read articles.")
+  "Face used for normal interest read articles."
+  :group 'gnus-summary)
 
 
 ;;;
@@ -806,7 +845,8 @@ be set in `.emacs' instead."
      (:foreground "#888888"))
     (t
      ()))
-  "Face for the splash screen.")
+  "Face for the splash screen."
+  :group 'gnus)
 
 (defun gnus-splash ()
   (save-excursion

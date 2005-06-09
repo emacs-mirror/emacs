@@ -18,6 +18,10 @@ struct passwd {
 typedef int uid_t;
 typedef uid_t gid_t;
 
+struct passwd * getpwnam (char *);
+struct passwd * getpwuid (int);
+
+
 #endif /* _PWD_H_ */
 
 /* arch-tag: 68308424-cb2b-49ed-bb52-b347fee416bf

@@ -5466,7 +5466,7 @@ non-nil."
 	   (str (pr-f-read-string (format fmt-prompt prompt mess) "1" nil "1"))
 	   int)
       (while (if (string-match "^\\s *[0-9]+$" str)
-		 (setq int (string-to-int str)
+		 (setq int (string-to-number str)
 		       prompt (cond ((< int 1)   "Integer below 1; ")
 				    ((> int 100) "Integer above 100; ")
 				    (t           nil)))

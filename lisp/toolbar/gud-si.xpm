@@ -1,7 +1,7 @@
 /* XPM */
 static char * gud_stepi_xpm[] = {
 "24 24 5 1",
-" 	c #C0C0C0C0C0C0",
+" 	c None",
 ".	c #D4D400000000",
 "X	c #616161616161",
 "o	c #2A2A1F1F5555",

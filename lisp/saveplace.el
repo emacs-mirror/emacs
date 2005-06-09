@@ -222,7 +222,8 @@ may have changed\) back to `save-place-alist'."
               (t
                t))))
 	(condition-case nil
-	    (write-file file)
+	    ;; Don't use write-file; we don't want this buffer to visit it.
+	    (write-region (point-min) (point-max) file)
 	  (file-error (message "Can't write %s" file)))
         (kill-buffer (current-buffer))
         (message "Saving places to %s...done" file)))))

@@ -73,7 +73,7 @@ Here are all local bindings.
   (add-hook 'post-command-hook 'reftex-toc-post-command-hook nil t)
   (add-hook 'pre-command-hook  'reftex-toc-pre-command-hook nil t)
   (easy-menu-add reftex-toc-menu reftex-toc-map)
-  (run-hooks 'reftex-toc-mode-hook))
+  (run-mode-hooks 'reftex-toc-mode-hook))
 
 (defvar reftex-last-toc-file nil
   "Stores the file name from which `reftex-toc' was called.  For redo command.")

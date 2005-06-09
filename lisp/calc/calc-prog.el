@@ -702,7 +702,7 @@
 			       (get func 'calc-user-defn)))
                     (kys (concat "z" (char-to-string (car def))))
                     (intcmd (symbol-name (cdr def)))
-                    (algcmd (substring (symbol-name func) 9)))
+                    (algcmd (if func (substring (symbol-name func) 9) "")))
 	       (if (and defn (calc-valid-formula-func func))
 		   (let ((niceexpr (math-format-nice-expr defn (frame-width))))
 		     (calc-wrapper
@@ -1446,15 +1446,22 @@ Redefine the corresponding command."
     (error "Unbalanced Z' in keyboard macro")))
 
 
-(defun calc-kbd-report (msg)
-  (interactive "sMessage: ")
-  (calc-wrapper
-   (math-working msg (calc-top-n 1))))
+;; (defun calc-kbd-report (msg)
+;;   (interactive "sMessage: ")
+;;   (calc-wrapper
+;;    (math-working msg (calc-top-n 1))))
 
-(defun calc-kbd-query (msg)
-  (interactive "sPrompt: ")
-  (calc-wrapper
-   (calc-alg-entry nil (and (not (equal msg "")) msg))))
+(defun calc-kbd-query ()
+  (interactive)
+  (let ((defining-kbd-macro nil)
+        (executing-kbd-macro nil)
+        (msg (calc-top 1)))
+    (if (not (eq (car-safe msg) 'vec))
+        (error "No prompt string provided")
+      (setq msg (math-vector-to-string msg))
+      (calc-wrapper
+       (calc-pop-stack 1)
+       (calc-alg-entry nil (and (not (equal msg "")) msg))))))
 
 ;;;; Logical operations.
 

@@ -475,7 +475,7 @@
     (when (re-search-forward "^X-Gnus-Newsgroup: +\\([^:]+\\):\\([0-9]+\\) "
 			     nil t)
       (cons (buffer-substring (match-beginning 1) (match-end 1))
-	    (string-to-int
+	    (string-to-number
 	     (buffer-substring (match-beginning 2) (match-end 2)))))))
 
 (defun nnmbox-in-header-p (pos)
@@ -681,7 +681,7 @@
 		    (let (alist)
 		      (while (re-search-forward " \\([^:]+\\):\\([0-9]+\\)" end-header t)
 			(push (cons (match-string 1)
-				    (string-to-int (match-string 2))) alist))
+				    (string-to-number (match-string 2))) alist))
 		      (nnmbox-insert-newsgroup-line alist))
 		  ;; this is really a new article
 		  (nnmbox-save-mail

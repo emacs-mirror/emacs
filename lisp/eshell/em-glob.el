@@ -265,9 +265,6 @@ the form:
   (defvar matches)
   (defvar message-shown))
 
-;; jww (1999-11-18): this function assumes that directory-sep-char is
-;; a forward slash (/)
-
 (defun eshell-glob-entries (path globs &optional recurse-p)
   "Glob the entries in PATHS, possibly recursing if RECURSE-P is non-nil."
   (let* ((entries (ignore-errors
@@ -303,11 +300,11 @@ the form:
     ;; can't use `directory-file-name' because it strips away text
     ;; properties in the string
     (let ((len (1- (length incl))))
-      (if (eq (aref incl len) directory-sep-char)
+      (if (eq (aref incl len) ?/)
 	  (setq incl (substring incl 0 len)))
       (when excl
 	(setq len (1- (length excl)))
-	(if (eq (aref excl len) directory-sep-char)
+	(if (eq (aref excl len) ?/)
 	    (setq excl (substring excl 0 len)))))
     (setq incl (eshell-glob-regexp incl)
 	  excl (and excl (eshell-glob-regexp excl)))
@@ -329,7 +326,7 @@ the form:
     (while entries
       (setq name (car entries)
 	    len (length name)
-	    isdir (eq (aref name (1- len)) directory-sep-char))
+	    isdir (eq (aref name (1- len)) ?/))
       (if (let ((fname (directory-file-name name)))
 	    (and (not (and excl (string-match excl fname)))
 		 (string-match incl fname)))

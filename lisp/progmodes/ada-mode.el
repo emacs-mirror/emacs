@@ -1369,7 +1369,7 @@ If you use ada-xref.el:
 	      (min ada-indent (current-column))))))
   (add-hook 'skeleton-end-hook  'ada-adjust-case-skeleton nil t)
 
-  (run-hooks 'ada-mode-hook)
+  (run-mode-hooks 'ada-mode-hook)
 
   ;;  To be run after the hook, in case the user modified
   ;;  ada-fill-comment-prefix

@@ -1,5 +1,5 @@
 ;;; dig.el --- Domain Name System dig interface
-;; Copyright (c) 2000, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (c) 2000, 2001, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Simon Josefsson <simon@josefsson.org>
 ;; Keywords: DNS BIND dig
@@ -40,7 +40,8 @@
 (eval-when-compile (require 'cl))
 
 (defgroup dig nil
-  "Dig configuration.")
+  "Dig configuration."
+  :group 'comm)
 
 (defcustom dig-program "dig"
   "Name of dig (domain information groper) binary."

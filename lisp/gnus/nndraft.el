@@ -1,6 +1,6 @@
 ;;; nndraft.el --- draft article access for Gnus
 
-;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003
+;; Copyright (C) 1995, 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2005
 ;;        Free Software Foundation, Inc.
 
 ;; Author: Lars Magne Ingebrigtsen <larsi@gnus.org>
@@ -174,8 +174,11 @@
     (setq buffer-file-name (expand-file-name file)
 	  buffer-auto-save-file-name (make-auto-save-file-name))
     (clear-visited-file-modtime)
-    (make-local-variable 'write-contents-hooks)
-    (push 'nndraft-generate-headers write-contents-hooks)
+    (let ((hook (if (boundp 'write-contents-functions)
+		    'write-contents-functions
+		  'write-contents-hooks)))
+      (gnus-make-local-hook hook)
+      (add-hook hook 'nndraft-generate-headers nil t))
     article))
 
 (deffoo nndraft-request-group (group &optional server dont-check)
@@ -185,7 +188,7 @@
 	   (file-name-coding-system nnmail-pathname-coding-system)
 	   dir file)
       (nnheader-re-read-dir pathname)
-      (setq dir (mapcar (lambda (name) (string-to-int (substring name 1)))
+      (setq dir (mapcar (lambda (name) (string-to-number (substring name 1)))
 			(ignore-errors (directory-files
 					pathname nil "^#[0-9]+#$" t))))
       (dolist (n dir)
@@ -293,7 +296,7 @@
   "Return the list of messages in the group."
   (gnus-make-directory nndraft-current-directory)
   (sort
-   (mapcar 'string-to-int
+   (mapcar 'string-to-number
 	   (directory-files nndraft-current-directory nil "\\`[0-9]+\\'" t))
    '<))
 

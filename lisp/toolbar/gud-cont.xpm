@@ -1,7 +1,7 @@
 /* XPM */
 static char * continue_xpm[] = {
 "24 24 6 1",
-" 	c #c0c0c0",
+" 	c None",
 ".	c #cc0033",
 "X	c #d99faa",
 "o	c #616161",

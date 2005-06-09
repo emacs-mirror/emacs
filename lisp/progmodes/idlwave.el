@@ -1954,7 +1954,7 @@ The main features of this mode are
   (idlwave-new-buffer-update)
 
   ;; Run the mode hook
-  (run-hooks 'idlwave-mode-hook))
+  (run-mode-hooks 'idlwave-mode-hook))
 
 (defvar idlwave-setup-done nil)
 (defun idlwave-setup ()

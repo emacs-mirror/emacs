@@ -354,7 +354,9 @@ Boston, MA 02111-1307, USA.  */
 #define fcloseall _fcloseall
 #define fdopen	  _fdopen
 #define fgetchar  _fgetchar
+#ifndef fileno
 #define fileno	  _fileno
+#endif
 #define flushall  _flushall
 #define fputchar  _fputchar
 #define fsync	  _commit

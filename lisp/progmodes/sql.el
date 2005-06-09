@@ -2249,7 +2249,7 @@ you must tell Emacs.  Here's how to do that in your `~/.emacs' file:
   (setq local-abbrev-table sql-mode-abbrev-table)
   (setq abbrev-all-caps 1)
   ;; Run hook
-  (run-hooks 'sql-mode-hook)
+  (run-mode-hooks 'sql-mode-hook)
   ;; Catch changes to sql-product and highlight accordingly
   (sql-highlight-product)
   (add-hook 'hack-local-variables-hook 'sql-highlight-product t t))
@@ -2367,7 +2367,7 @@ you entered, right above the output it created.
   (make-local-variable 'sql-input-ring-separator)
   (make-local-variable 'sql-input-ring-file-name)
   ;; Run hook.
-  (run-hooks 'sql-interactive-mode-hook)
+  (run-mode-hooks 'sql-interactive-mode-hook)
   ;; Set comint based on user overrides.
   (setq comint-prompt-regexp sql-prompt-regexp)
   (setq left-margin sql-prompt-length)

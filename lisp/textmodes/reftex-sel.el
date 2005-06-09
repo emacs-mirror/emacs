@@ -60,7 +60,7 @@ During a selection process, these are the local bindings.
   (when (syntax-table-p reftex-latex-syntax-table)
     (set-syntax-table reftex-latex-syntax-table))
   ;; We do not set a local map - reftex-select-item does this.
-  (run-hooks 'reftex-select-label-mode-hook))
+  (run-mode-hooks 'reftex-select-label-mode-hook))
 
 (defvar reftex-select-bib-map nil
   "Keymap used for *RefTeX Select* buffer, when selecting a BibTeX entry.
@@ -88,7 +88,7 @@ During a selection process, these are the local bindings.
         mode-name "BSelect")
   (set (make-local-variable 'reftex-select-marked) nil)
   ;; We do not set a local map - reftex-select-item does this.
-  (run-hooks 'reftex-select-bib-mode-hook))
+  (run-mode-hooks 'reftex-select-bib-mode-hook))
 
 ;;; (defun reftex-get-offset (buf here-am-I &optional typekey toc index file)
 ;;;   ;; Find the correct offset data, like insert-docstruct would, but faster.

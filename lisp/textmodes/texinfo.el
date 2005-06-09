@@ -345,7 +345,8 @@ Subexpression 1 is what goes into the corresponding `@end' statement.")
 
 (defface texinfo-heading-face
   '((t (:inherit font-lock-function-name-face)))
-  "Face used for section headings in `texinfo-mode'.")
+  "Face used for section headings in `texinfo-mode'."
+  :group 'texinfo)
 (defvar texinfo-heading-face 'texinfo-heading-face)
 
 (defvar texinfo-font-lock-keywords

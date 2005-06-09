@@ -192,8 +192,15 @@
 (defvar calc-embed-top)
 (defvar calc-embed-bot)
 
+;; The variable calc-embed-arg is local to calc-do-embedded,
+;; calc-embedded-update-formula, calc-embedded-edit and
+;; calc-do-embedded-activate, but is used by 
+;; calc-embedded-make-info, which is called by the above
+;; functions.
+(defvar calc-embed-arg)
+
 (defvar calc-embedded-quiet nil)
-(defun calc-do-embedded (arg end obeg oend)
+(defun calc-do-embedded (calc-embed-arg end obeg oend)
   (if calc-embedded-info
 
       ;; Turn embedded mode off or switch to a new buffer.
@@ -237,7 +244,7 @@
 					 (buffer-name)))
 		       (keyboard-quit))
 		   (calc-embedded nil)))
-	     (calc-embedded arg end obeg oend)))
+	     (calc-embedded calc-embed-arg end obeg oend)))
 
     ;; Turn embedded mode on.
     (calc-plain-buffer-only)
@@ -250,7 +257,8 @@
       (calc-embedded-save-original-modes)
       (or calc-embedded-globals
 	  (calc-find-globals))
-      (setq info (calc-embedded-make-info (point) nil t arg end obeg oend))
+      (setq info 
+            (calc-embedded-make-info (point) nil t calc-embed-arg end obeg oend))
       (if (eq (car-safe (aref info 8)) 'error)
 	  (progn
             (setq calc-embedded-original-modes nil)
@@ -311,13 +319,13 @@
        (calc-select-part 2)))
 
 
-(defun calc-embedded-update-formula (arg)
+(defun calc-embedded-update-formula (calc-embed-arg)
   (interactive "P")
-  (if arg
+  (if calc-embed-arg
       (let ((entry (assq (current-buffer) calc-embedded-active)))
 	(while (setq entry (cdr entry))
 	  (and (eq (car-safe (aref (car entry) 8)) 'calcFunc-evalto)
-	       (or (not (consp arg))
+	       (or (not (consp calc-embed-arg))
 		   (and (<= (aref (car entry) 2) (region-beginning))
 			(>= (aref (car entry) 3) (region-end))))
 	       (save-excursion
@@ -337,9 +345,9 @@
 	      (goto-char (+ (aref info 4) pt))))))))
 
 
-(defun calc-embedded-edit (arg)
+(defun calc-embedded-edit (calc-embed-arg)
   (interactive "P")
-  (let ((info (calc-embedded-make-info (point) nil t arg))
+  (let ((info (calc-embedded-make-info (point) nil t calc-embed-arg))
 	str)
     (if (eq (car-safe (aref info 8)) 'error)
 	(progn
@@ -374,12 +382,12 @@
       (aset info 8 val)
       (calc-embedded-update info 14 t t))))
 
-(defun calc-do-embedded-activate (arg cbuf)
+(defun calc-do-embedded-activate (calc-embed-arg cbuf)
   (calc-plain-buffer-only)
-  (if arg
+  (if calc-embed-arg
       (calc-embedded-forget))
   (calc-find-globals)
-  (if (< (prefix-numeric-value arg) 0)
+  (if (< (prefix-numeric-value calc-embed-arg) 0)
       (message "Deactivating %s for Calc Embedded mode" (buffer-name))
     (message "Activating %s for Calc Embedded mode..." (buffer-name))
     (save-excursion
@@ -432,7 +440,7 @@
 
 (defun calc-embedded-word ()
   (interactive)
-  (calc-embedded '(4)))
+  (calc-embedded '(t)))
 
 (defun calc-embedded-mark-formula (&optional body-only)
   "Put point at the beginning of this Calc formula, mark at the end.
@@ -799,16 +807,26 @@ The command \\[yank] can retrieve it from there."
       (aset info 1 (or cbuf (save-excursion
 			      (calc-create-buffer)
 			      (current-buffer)))))
-    (if (and (integerp calc-embed-top) (not calc-embed-bot))  
+    (if (and 
+         (or (integerp calc-embed-top) (equal calc-embed-top '(4)))
+         (not calc-embed-bot))  
                                         ; started with a user-supplied argument
 	(progn
-	  (if (= (setq arg (prefix-numeric-value arg)) 0)
-	      (progn
-		(aset info 2 (copy-marker (region-beginning)))
-		(aset info 3 (copy-marker (region-end))))
-	    (aset info (if (> arg 0) 2 3) (point-marker))
-	    (forward-line arg)
-	    (aset info (if (> arg 0) 3 2) (point-marker)))
+          (if (equal calc-embed-top '(4))
+              (progn
+                (aset info 2 (copy-marker (line-beginning-position)))
+                (aset info 3 (copy-marker (line-end-position))))
+            (if (= (setq calc-embed-arg (prefix-numeric-value calc-embed-arg)) 0)
+                (progn
+                  (aset info 2 (copy-marker (region-beginning)))
+                  (aset info 3 (copy-marker (region-end))))
+              (aset info (if (> calc-embed-arg 0) 2 3) (point-marker))
+              (if (> calc-embed-arg 0)
+                  (progn
+                    (forward-line (1- calc-embed-arg))
+                    (end-of-line))
+                (forward-line (1+ calc-embed-arg)))
+              (aset info (if (> calc-embed-arg 0) 3 2) (point-marker))))
 	  (aset info 4 (copy-marker (aref info 2)))
 	  (aset info 5 (copy-marker (aref info 3))))
       (if (aref info 4)

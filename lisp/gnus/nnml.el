@@ -212,7 +212,7 @@ marks file will be regenerated properly by Gnus.")
       (nnheader-report 'nnml "Article %s retrieved" id)
       ;; We return the article number.
       (cons (if group-num (car group-num) group)
-	    (string-to-int (file-name-nondirectory path)))))))
+	    (string-to-number (file-name-nondirectory path)))))))
 
 (deffoo nnml-request-group (group &optional server dont-check)
   (let ((file-name-coding-system nnmail-pathname-coding-system))
@@ -426,7 +426,7 @@ marks file will be regenerated properly by Gnus.")
 	    ;; we should insert it.  (This situation should never
 	    ;; occur, but one likes to make sure...)
 	    (while (and (looking-at "[0-9]+\t")
-			(< (string-to-int
+			(< (string-to-number
 			    (buffer-substring
 			     (match-beginning 0) (match-end 0)))
 			   article)

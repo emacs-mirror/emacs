@@ -616,6 +616,10 @@ static struct image_type *image_types;
 
 Lisp_Object Vimage_types;
 
+/* An alist of image types and libraries that implement the type.  */
+
+Lisp_Object Vimage_library_alist;
+
 /* Cache for delayed-loading image types.  */
 
 static Lisp_Object Vimage_type_cache;
@@ -696,7 +700,7 @@ lookup_image_type (symbol)
   struct image_type *type;
 
   /* We must initialize the image-type if it hasn't been already.  */
-  if (NILP (Finit_image_library (symbol, Qnil)))
+  if (NILP (Finit_image_library (symbol, Vimage_library_alist)))
     return 0;			/* unimplemented */
 
   for (type = image_types; type; type = type->next)
@@ -7985,6 +7989,8 @@ of `image-library-alist', which see).  */)
 void
 syms_of_image ()
 {
+  extern Lisp_Object Qrisky_local_variable;   /* Syms_of_xdisp has already run.  */
+
   /* Must be defined now becase we're going to update it below, while
      defining the supported image types.  */
   DEFVAR_LISP ("image-types", &Vimage_types,
@@ -7992,6 +7998,20 @@ syms_of_image ()
 Each element of the list is a symbol for a image type, like 'jpeg or 'png.
 To check whether it is really supported, use `image-type-available-p'.  */);
   Vimage_types = Qnil;
+
+  DEFVAR_LISP ("image-library-alist", &Vimage_library_alist,
+    doc: /* Alist of image types vs external libraries needed to display them.
+
+Each element is a list (IMAGE-TYPE LIBRARY...), where the car is a symbol
+representing a supported image type, and the rest are strings giving
+alternate filenames for the corresponding external libraries.
+
+Emacs tries to load the libraries in the order they appear on the
+list; if none is loaded, the running session of Emacs won't
+support the image type.  Types 'pbm and 'xbm don't need to be
+listed; they're always supported.  */);
+  Vimage_library_alist = Qnil;
+  Fput (intern ("image-library-alist"), Qrisky_local_variable, Qt);
 
   Vimage_type_cache = Qnil;
   staticpro (&Vimage_type_cache);

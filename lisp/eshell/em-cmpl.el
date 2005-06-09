@@ -136,8 +136,7 @@ to writing a completion function."
   :type (get 'pcomplete-file-ignore 'custom-type)
   :group 'eshell-cmpl)
 
-(defcustom eshell-cmpl-dir-ignore
-  (format "\\`\\(\\.\\.?\\|CVS\\)%c\\'" directory-sep-char)
+(defcustom eshell-cmpl-dir-ignore "\\`\\(\\.\\.?\\|CVS\\)/\\'"
   (documentation-property 'pcomplete-dir-ignore
 			  'variable-documentation)
   :type (get 'pcomplete-dir-ignore 'custom-type)
@@ -155,7 +154,7 @@ to writing a completion function."
   :type (get 'pcomplete-autolist 'custom-type)
   :group 'eshell-cmpl)
 
-(defcustom eshell-cmpl-suffix-list (list directory-sep-char ?:)
+(defcustom eshell-cmpl-suffix-list (list ?/ ?:)
   (documentation-property 'pcomplete-suffix-list
 			  'variable-documentation)
   :type (get 'pcomplete-suffix-list 'custom-type)
@@ -370,7 +369,8 @@ to writing a completion function."
 	   (setq args (nthcdr (1+ l) args)
 		 posns (nthcdr (1+ l) posns))))
     (assert (= (length args) (length posns)))
-    (when (and args (eq (char-syntax (char-before end)) ? ))
+    (when (and args (eq (char-syntax (char-before end)) ? )
+	       (not (eq (char-before (1- end)) ?\\)))
       (nconc args (list ""))
       (nconc posns (list (point))))
     (cons (mapcar

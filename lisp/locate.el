@@ -393,7 +393,7 @@ do not work in subdirectories.
   (make-local-variable 'revert-buffer-function)
   (setq revert-buffer-function 'locate-update)
   (set (make-local-variable 'page-delimiter) "\n\n")
-  (run-hooks 'locate-mode-hook))
+  (run-mode-hooks 'locate-mode-hook))
 
 (defun locate-do-setup (search-string)
   (goto-char (point-min))

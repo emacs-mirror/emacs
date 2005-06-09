@@ -1128,7 +1128,7 @@ password contained in '~/.nntp-authinfo'."
       (nntp-kill-buffer pbuffer))
     (when (and (buffer-name pbuffer)
 	       process)
-      (process-kill-without-query process)
+      (gnus-set-process-query-on-exit-flag process nil)
       (if (and (nntp-wait-for process "^2.*\n" buffer nil t)
 	       (memq (process-status process) '(open run)))
 	  (prog1
@@ -1162,7 +1162,7 @@ password contained in '~/.nntp-authinfo'."
 					   (format-spec-make
 					    ?s nntp-address
 					    ?p nntp-port-number)))))
-    (process-kill-without-query proc)
+    (gnus-set-process-query-on-exit-flag proc nil)
     (save-excursion
       (set-buffer buffer)
       (let ((nntp-connection-alist (list proc buffer nil)))
@@ -1173,7 +1173,7 @@ password contained in '~/.nntp-authinfo'."
 
 (defun nntp-open-tls-stream (buffer)
   (let ((proc (open-tls-stream "nntpd" buffer nntp-address nntp-port-number)))
-    (process-kill-without-query proc)
+    (gnus-set-process-query-on-exit-flag proc nil)
     (save-excursion
       (set-buffer buffer)
       (let ((nntp-connection-alist (list proc buffer nil)))
@@ -1499,7 +1499,7 @@ password contained in '~/.nntp-authinfo'."
         (when (<= count 1)
           (goto-char (point-min))
           (when (re-search-forward "^[0-9][0-9][0-9] .*\n\\([0-9]+\\)" nil t)
-            (let ((low-limit (string-to-int
+            (let ((low-limit (string-to-number
 			      (buffer-substring (match-beginning 1) 
 						(match-end 1)))))
               (while (and articles (<= (car articles) low-limit))
@@ -1571,7 +1571,7 @@ password contained in '~/.nntp-authinfo'."
       (goto-char (point-min))
       ;; We first find the number by looking at the status line.
       (let ((number (and (looking-at "2[0-9][0-9] +\\([0-9]+\\) ")
-			 (string-to-int
+			 (string-to-number
 			  (buffer-substring (match-beginning 1)
 					    (match-end 1)))))
 	    newsgroups xref)
@@ -1609,7 +1609,7 @@ password contained in '~/.nntp-authinfo'."
 		    "\\([^ :]+\\):\\([0-9]+\\)")
 		  xref))
 	    (setq group (match-string 1 xref)
-		  number (string-to-int (match-string 2 xref))))
+		  number (string-to-number (match-string 2 xref))))
 	   ((and (setq newsgroups
 		       (mail-fetch-field "newsgroups"))
 		 (not (string-match "," newsgroups)))

@@ -2624,7 +2624,7 @@ the default language."
        (imenu-add-to-menubar
 	(if (stringp antlr-imenu-name) antlr-imenu-name "Index")))
   (antlr-set-tabs)
-  (run-hooks 'antlr-mode-hook))
+  (run-mode-hooks 'antlr-mode-hook))
 
 ;; A smarter version of `group-buffers-menu-by-mode-then-alphabetically' (in
 ;; XEmacs) could use the following property.  The header of the submenu would

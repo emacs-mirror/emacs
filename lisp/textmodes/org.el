@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.09
+;; Version: 3.10
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -80,6 +80,9 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.10
+;;    - Using `define-derived-mode' to derive `org-mode' from `outline-mode'.
+;;
 ;; Version 3.09
 ;;    - Time-of-day specifications in agenda are extracted and placed
 ;;      into the prefix.  Timed entries can be placed into a time grid for
@@ -151,10 +154,12 @@
 (require 'outline)
 (require 'time-date)
 (require 'easymenu)
+(or (fboundp 'run-mode-hooks)
+    (defalias 'run-mode-hooks 'run-hooks))
 
 ;;; Customization variables
 
-(defvar org-version "3.09"
+(defvar org-version "3.10"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -372,7 +377,11 @@ Such files should use a file variable to set it, for example
 
    -*- mode: org; org-category: \"ELisp\"
 
-If the file does not specify a category, the file's base name
+or contain a special line
+
+#+CATEGORY: ELisp
+
+If the file does not specify a category, then file's base name
 is used instead.")
 
 (defun org-set-regexps-and-options ()
@@ -1525,7 +1534,7 @@ sets it back to nil.")
 
 
 ;;;###autoload
-(defun org-mode (&optional arg)
+(define-derived-mode org-mode outline-mode "Org"
   "Outline-based notes management and organizer, alias 
 \"Carstens outline-mode for keeping track of everything.\"
 
@@ -1538,16 +1547,11 @@ calendar.  Tables are easily created with a built-in table editor.
 Plain text URL-like links connect to websites, emails (VM), Usenet
 messages (Gnus), BBDB entries, and any files related to the project.
 For printing and sharing of notes, an Org-mode file (or a part of it)
-can be exported as a well-structured ASCII or HTML file.
+can be exported as a structured ASCII or HTML file.
 
 The following commands are available:
 
 \\{org-mode-map}"
-  (interactive "P")
-  (outline-mode)
-  (setq major-mode 'org-mode)
-  (setq mode-name "Org")
-  (use-local-map org-mode-map)
   (easy-menu-add org-org-menu)
   (org-install-agenda-files-menu)
   (setq outline-regexp "\\*+")
@@ -1569,15 +1573,10 @@ The following commands are available:
                     (if org-enable-table-editor "|" "")
                    (if org-enable-fixed-width-editor ":"  "")
                    "]"))))
-  ;; Hook, and startup actions
-  (if (or arg
-          (and org-insert-mode-line-in-empty-file
-               (interactive-p)
-               (= (point-min) (point-max))))
-      (save-excursion
-        (goto-char (point-min))
-        (insert "    -*- mode: org -*-\n\n")))
-  (run-hooks 'org-mode-hook)
+  (if (and org-insert-mode-line-in-empty-file
+           (interactive-p)
+           (= (point-min) (point-max)))
+      (insert "    -*- mode: org -*-\n\n"))
   (unless org-inhibit-startup
     (if org-startup-with-deadline-check
         (call-interactively 'org-check-deadlines)
@@ -1640,7 +1639,6 @@ The following commands are available:
                              (list 'mouse-face 'highlight
                                    'keymap org-mouse-map))
         t)))
-
 
 (defun org-font-lock-level ()
   (save-excursion
@@ -3120,7 +3118,7 @@ The following commands are available:
      "--")
    (mapcar 'org-file-menu-entry org-agenda-files)))
   (org-agenda-set-mode-name)
-  (run-hooks 'org-agenda-mode-hook))
+  (run-mode-hooks 'org-agenda-mode-hook))
 
 (define-key org-agenda-mode-map [(tab)] 'org-agenda-goto)
 (define-key org-agenda-mode-map [(return)] 'org-agenda-switch-to)
@@ -6700,7 +6698,7 @@ table editor in arbitrary modes.")
                  (concat "\\([ \t]*|\\|" auto-fill-inhibit-regexp)
                "[ \t]*|"))
         (easy-menu-add orgtbl-mode-menu)
-        (run-hooks (quote orgtbl-mode-hook)))
+        (run-hooks 'orgtbl-mode-hook))
     (setq auto-fill-inhibit-regexp org-old-auto-fill-inhibit-regexp)
     (remove-hook 'before-change-functions 'org-before-change-function t)
     (easy-menu-remove orgtbl-mode-menu)
@@ -8433,7 +8431,7 @@ the automatic table editor has been turned off."
 
 ;;; Menu entries
 
-;; First, remove the outline menus.
+;; First, remove the outline menus.  Org-mode does not neede these commands.
 (if org-xemacs-p
     (add-hook 'org-mode-hook
               (lambda ()
@@ -8442,7 +8440,7 @@ the automatic table editor has been turned off."
                 (delete-menu-item '("Hide"))
                 (set-menubar-dirty-flag)))
   (setq org-mode-map (delq (assoc 'menu-bar (cdr org-mode-map))
-                             org-mode-map)))
+                           org-mode-map)))
 
 ;; Define the Org-mode menus
 (easy-menu-define org-org-menu org-mode-map "Org menu"
