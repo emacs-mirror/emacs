@@ -6,8 +6,9 @@
 
 	* keyboard.c (command_loop_1): Adapt call to Fselect_frame.
 
-	* frame.c (do_switch_frame, Fselect_frame): Delete unused arg no_enter.
-	(set-mouse-position, set-mouse-pixel-position, iconify-frame):
+	* frame.c (Fhandle_switch_frame, Fselect_frame): Delete unused arg
+	no_enter.
+	(Fset_mouse_position, Fset_mouse_pixel_position, Ficonify_frame):
 	Adapt to above change.
 
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
