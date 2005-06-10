@@ -2183,6 +2183,11 @@ order until succeed.")
 	    ctext
 	  utf8)))))
 
+;; Get a selection value of type TYPE by calling x-get-selection with
+;; an appropiate DATA-TYPE argument decidd by `x-select-request-type'.
+;; The return value is already decoded.  If x-get-selection causes an
+;; error, this function return nil.
+
 (defun x-selection-value (type)
   (let (text)
     (cond ((null x-select-request-type)
@@ -2465,10 +2470,7 @@ order until succeed.")
 (defun x-clipboard-yank ()
   "Insert the clipboard contents, or the last stretch of killed text."
   (interactive)
-  (let ((clipboard-text 
-	 (condition-case nil
-	     (x-selection-value 'CLIPBOARD)
-	   (error nil)))
+  (let ((clipboard-text (x-selection-value 'CLIPBOARD))
 	(x-select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
 	(kill-new clipboard-text))
