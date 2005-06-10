@@ -4,8 +4,10 @@
 @settitle GNU Emacs Lisp Reference Manual
 @c %**end of header
 
-@c Versino of the manual.
-@set VERSION 2.9
+@c Version of the manual and of Emacs.
+@c Please remember to update the edition number in README as well.
+@set VERSION  2.9
+@set EMACSVER 22.0.50
 
 @dircategory Emacs
 @direntry
@@ -26,9 +28,7 @@
 
 @ifnottex
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to Emacs version 22.1.
-@c Please REMEMBER to update edition number in *four* places in this file
-@c                 and also in *one* place in intro.texi and *one* in README.
+Reference Manual, corresponding to Emacs version @value{EMACSVER}.
 
 Published by the Free Software Foundation
 59 Temple Place, Suite 330
@@ -52,9 +52,7 @@ Software Foundation raise funds for GNU development.''
 
 @titlepage
 @title GNU Emacs Lisp Reference Manual
-@subtitle For Emacs Version 22
-@c The edition number appears in several places in this file
-@c and also in the file intro.texi.
+@subtitle For Emacs Version @value{EMACSVER}
 @subtitle Revision @value{VERSION}, January 2002
 
 @author by Bil Lewis, Dan LaLiberte, Richard Stallman
@@ -66,7 +64,7 @@ Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,@*
 
 @sp 2
 Edition @value{VERSION} @*
-Revised for Emacs Version 22.1,@*
+Revised for Emacs Version @value{EMACSVER},@*
 January 2002.@*
 @sp 2
 ISBN 1-882114-73-6
@@ -92,11 +90,12 @@ Cover art by Etienne Suvasa.
 @end titlepage
 @page
 
-@node Top, Introduction, (dir), (dir)
-
 @ifnottex
+@node Top, Introduction, (dir), (dir)
+@top Emacs Lisp 
+
 This Info file contains edition @value{VERSION} of the GNU Emacs Lisp
-Reference Manual, corresponding to GNU Emacs version 22.1.
+Reference Manual, corresponding to GNU Emacs version @value{EMACSVER}.
 @end ifnottex
 
 @menu
@@ -156,7 +155,7 @@ Reference Manual, corresponding to GNU Emacs version 22.1.
 
 Appendices
 
-* Antinews::                Info for users downgrading to Emacs 20.
+* Antinews::                Info for users downgrading to Emacs 21.
 * GNU Free Documentation License:: The license for this documentation
 * GPL::                     Conditions for copying and changing GNU Emacs.
 * Tips::                    Advice and coding conventions for Emacs Lisp.
@@ -171,9 +170,10 @@ Appendices
 * Index::                   Index including concepts, functions, variables,
                               and other terms.
 
-* New Symbols::             New functions and variables in Emacs 22.
+* New Symbols::             New functions and variables in Emacs @value{EMACSVER}.
 
-      --- The Detailed Node Listing ---
+Detailed Node Listing
+---------------------
 
 Here are other nodes that are inferiors of those already listed,
 mentioned here so you can get to them in one step:
