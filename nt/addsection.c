@@ -1,5 +1,5 @@
 /* Add an uninitialized data section to an executable.
-   Copyright (C) 1999 Free Software Foundation, Inc.
+   Copyright (C) 1999, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
