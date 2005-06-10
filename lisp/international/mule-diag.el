@@ -64,7 +64,7 @@
   'help-echo "mouse-2, RET: show table of characters for this character set")
 
 ;;;###autoload
-(defvar non-iso-charset-alist 
+(defvar non-iso-charset-alist
   `((mac-roman
      (ascii latin-iso8859-1 mule-unicode-2500-33ff
 	    mule-unicode-0100-24ff mule-unicode-e000-ffff)
@@ -609,7 +609,7 @@ PC `codepages' and other coded character sets.  See `non-iso-charset-alist'."
       (let ((vars (coding-system-get coding-system 'dependency)))
 	(when vars
 	  (princ "See also the documentation of these customizable variables
-which alter the behaviour of this coding system.\n")
+which alter the behavior of this coding system.\n")
 	  (dolist (v vars)
 	    (princ "  `")
 	    (princ v)
