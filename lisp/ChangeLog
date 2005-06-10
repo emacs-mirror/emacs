@@ -1,3 +1,23 @@
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* comint.el (comint-mode, comint-snapshot-last-prompt):
+	* frame.el (frame-current-scroll-bars):
+	* term.el (term-mode, term-check-proc, term-input-sender)
+	(term-simple-send, term-extract-string, term-word)
+	(term-match-partial-filename):
+	* window.el (window-current-scroll-bars):
+	* emulation/cua-base.el (cua-normal-cursor-color)
+	(cua-read-only-cursor-color, cua-overwrite-cursor-color)
+	(cua-global-mark-cursor-color):
+	* mail/undigest.el (rmail-forward-separator-regex):
+	Fix typos in docstrings.
+
+	* comint.el (comint-check-proc, make-comint-in-buffer)
+	(comint-source-default): Doc fixes.
+
+	* term.el (term-send-string): Improve argument/docstring
+	consistency.
+
 2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* comint.el (comint-send-input): Bind `inhibit-read-only' around
@@ -9733,7 +9753,7 @@
 	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
 	icon diropen.  New tool bar item find-file-existing uses icon open.
 
-	* dired.el (dired-read-dir-and-switches): Call read-driectory-name
+	* dired.el (dired-read-dir-and-switches): Call read-directory-name
 	instead of read-file-name.
 
 2004-11-02  Ulf Jasper  <ulf.jasper@web.de>
