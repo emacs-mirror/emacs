@@ -1,6 +1,6 @@
 ;;; ruler-mode.el --- display a ruler in the header line
 
-;; Copyright (C) 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Ponce <david@dponce.com>
 ;; Maintainer: David Ponce <david@dponce.com>
@@ -70,26 +70,26 @@
 ;;
 ;; The following faces are customizable:
 ;;
-;; - `ruler-mode-default-face' the ruler default face.
-;; - `ruler-mode-fill-column-face' the face used to highlight the
+;; - `ruler-mode-default' the ruler default face.
+;; - `ruler-mode-fill-column' the face used to highlight the
 ;;   `fill-column' character.
-;; - `ruler-mode-comment-column-face' the face used to highlight the
+;; - `ruler-mode-comment-column' the face used to highlight the
 ;;   `comment-column' character.
-;; - `ruler-mode-goal-column-face' the face used to highlight the
+;; - `ruler-mode-goal-column' the face used to highlight the
 ;;   `goal-column' character.
-;; - `ruler-mode-current-column-face' the face used to highlight the
+;; - `ruler-mode-current-column' the face used to highlight the
 ;;   `current-column' character.
-;; - `ruler-mode-tab-stop-face' the face used to highlight tab stop
+;; - `ruler-mode-tab-stop' the face used to highlight tab stop
 ;;   characters.
-;; - `ruler-mode-margins-face' the face used to highlight graduations
+;; - `ruler-mode-margins' the face used to highlight graduations
 ;;   in the `window-margins' areas.
-;; - `ruler-mode-fringes-face' the face used to highlight graduations
+;; - `ruler-mode-fringes' the face used to highlight graduations
 ;;   in the `window-fringes' areas.
-;; - `ruler-mode-column-number-face' the face used to highlight the
+;; - `ruler-mode-column-number' the face used to highlight the
 ;;   numbered graduations.
 ;;
-;; `ruler-mode-default-face' inherits from the built-in `default' face.
-;; All `ruler-mode' faces inherit from `ruler-mode-default-face'.
+;; `ruler-mode-default' inherits from the built-in `default' face.
+;; All `ruler-mode' faces inherit from `ruler-mode-default'.
 ;;
 ;; WARNING: To keep ruler graduations aligned on text columns it is
 ;; important to use the same font family and size for ruler and text
@@ -205,7 +205,7 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
   :group 'ruler-mode
   :type 'boolean)
 
-(defface ruler-mode-default-face
+(defface ruler-mode-default
   '((((type tty))
      (:inherit default
                :background "grey64"
@@ -221,83 +221,103 @@ or remove a tab stop.  \\[ruler-mode-toggle-show-tab-stops] or
                )))
   "Default face used by the ruler."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-default-face 'face-alias 'ruler-mode-default)
 
-(defface ruler-mode-pad-face
+(defface ruler-mode-pad
   '((((type tty))
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :background "grey50"
                ))
     (t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :background "grey64"
                )))
   "Face used to pad inactive ruler areas."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-pad-face 'face-alias 'ruler-mode-pad)
 
-(defface ruler-mode-margins-face
+(defface ruler-mode-margins
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "white"
                )))
   "Face used to highlight margin areas."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-margins-face 'face-alias 'ruler-mode-margins)
 
-(defface ruler-mode-fringes-face
+(defface ruler-mode-fringes
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "green"
                )))
   "Face used to highlight fringes areas."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-fringes-face 'face-alias 'ruler-mode-fringes)
 
-(defface ruler-mode-column-number-face
+(defface ruler-mode-column-number
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "black"
                )))
   "Face used to highlight number graduations."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-column-number-face 'face-alias 'ruler-mode-column-number)
 
-(defface ruler-mode-fill-column-face
+(defface ruler-mode-fill-column
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "red"
                )))
   "Face used to highlight the fill column character."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-fill-column-face 'face-alias 'ruler-mode-fill-column)
 
-(defface ruler-mode-comment-column-face
+(defface ruler-mode-comment-column
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "red"
                )))
   "Face used to highlight the comment column character."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-comment-column-face 'face-alias 'ruler-mode-comment-column)
 
-(defface ruler-mode-goal-column-face
+(defface ruler-mode-goal-column
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "red"
                )))
   "Face used to highlight the goal column character."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-goal-column-face 'face-alias 'ruler-mode-goal-column)
 
-(defface ruler-mode-tab-stop-face
+(defface ruler-mode-tab-stop
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :foreground "steelblue"
                )))
   "Face used to highlight tab stop characters."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-tab-stop-face 'face-alias 'ruler-mode-tab-stop)
 
-(defface ruler-mode-current-column-face
+(defface ruler-mode-current-column
   '((t
-     (:inherit ruler-mode-default-face
+     (:inherit ruler-mode-default
                :weight bold
                :foreground "yellow"
                )))
   "Face used to highlight the `current-column' character."
   :group 'ruler-mode)
+;; backward-compatibility alias
+(put 'ruler-mode-current-column-face 'face-alias 'ruler-mode-current-column)
 
 
 (defsubst ruler-mode-full-window-width ()
@@ -419,7 +439,7 @@ dragging.  See also the variable `ruler-mode-dragged-symbol'."
          (message "Goal column set to %d (click on %s again to unset it)"
                   newc
                   (propertize (char-to-string ruler-mode-goal-column-char)
-                              'face 'ruler-mode-goal-column-face))
+                              'face 'ruler-mode-goal-column))
          nil) ;; Don't start dragging.
         )
        (if (eq 'click (ruler-mode-mouse-drag-any-column-iteration
@@ -629,34 +649,34 @@ Optional argument PROPS specifies other text properties to apply."
          ;; Setup the scrollbar, fringes, and margins areas.
          (lf (ruler-mode-space
               'left-fringe
-              'face 'ruler-mode-fringes-face
+              'face 'ruler-mode-fringes
               'help-echo (format ruler-mode-fringe-help-echo
                                  "Left" (or (car f) 0))))
          (rf (ruler-mode-space
               'right-fringe
-              'face 'ruler-mode-fringes-face
+              'face 'ruler-mode-fringes
               'help-echo (format ruler-mode-fringe-help-echo
                                  "Right" (or (cadr f) 0))))
          (lm (ruler-mode-space
               'left-margin
-              'face 'ruler-mode-margins-face
+              'face 'ruler-mode-margins
               'help-echo (format ruler-mode-margin-help-echo
                                  "Left" (or (car m) 0))))
          (rm (ruler-mode-space
               'right-margin
-              'face 'ruler-mode-margins-face
+              'face 'ruler-mode-margins
               'help-echo (format ruler-mode-margin-help-echo
                                  "Right" (or (cdr m) 0))))
          (sb (ruler-mode-space
               'scroll-bar
-              'face 'ruler-mode-pad-face))
+              'face 'ruler-mode-pad))
          ;; Remember the scrollbar vertical type.
          (sbvt (car (window-current-scroll-bars)))
          ;; Create an "clean" ruler.
          (ruler
           (propertize
            (make-string w ruler-mode-basic-graduation-char)
-           'face 'ruler-mode-default-face
+           'face 'ruler-mode-default
            'local-map ruler-mode-map
            'help-echo (cond
                        (ruler-mode-show-tab-stops
@@ -675,7 +695,7 @@ Optional argument PROPS specifies other text properties to apply."
               m (length c)
               k i)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-column-number-face
+         i (1+ i) 'face 'ruler-mode-column-number
          ruler)
         (while (and (> m 0) (>= k 0))
           (aset ruler k (aref c (setq m (1- m))))
@@ -689,13 +709,13 @@ Optional argument PROPS specifies other text properties to apply."
        ((= j (current-column))
         (aset ruler i ruler-mode-current-column-char)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-current-column-face
+         i (1+ i) 'face 'ruler-mode-current-column
          ruler))
        ;; Show the `goal-column' marker.
        ((and goal-column (= j goal-column))
         (aset ruler i ruler-mode-goal-column-char)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-goal-column-face
+         i (1+ i) 'face 'ruler-mode-goal-column
          ruler)
 	(put-text-property
          i (1+ i) 'mouse-face 'mode-line-highlight
@@ -707,7 +727,7 @@ Optional argument PROPS specifies other text properties to apply."
        ((= j comment-column)
         (aset ruler i ruler-mode-comment-column-char)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-comment-column-face
+         i (1+ i) 'face 'ruler-mode-comment-column
          ruler)
 	(put-text-property
          i (1+ i) 'mouse-face 'mode-line-highlight
@@ -719,7 +739,7 @@ Optional argument PROPS specifies other text properties to apply."
        ((= j fill-column)
         (aset ruler i ruler-mode-fill-column-char)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-fill-column-face
+         i (1+ i) 'face 'ruler-mode-fill-column
          ruler)
 	(put-text-property
          i (1+ i) 'mouse-face 'mode-line-highlight
@@ -731,7 +751,7 @@ Optional argument PROPS specifies other text properties to apply."
        ((and ruler-mode-show-tab-stops (member j tab-stop-list))
         (aset ruler i ruler-mode-tab-stop-char)
         (put-text-property
-         i (1+ i) 'face 'ruler-mode-tab-stop-face
+         i (1+ i) 'face 'ruler-mode-tab-stop
          ruler)))
       (setq i (1+ i)
             j (1+ j)))

@@ -1,5 +1,23 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* ruler-mode.el (ruler-mode-default, ruler-mode-pad)
+	(ruler-mode-margins, ruler-mode-fringes)
+	(ruler-mode-column-number, ruler-mode-fill-column)
+	(ruler-mode-comment-column, ruler-mode-goal-column)
+	(ruler-mode-tab-stop, ruler-mode-current-column): 
+	Remove "-face" suffix from face names.
+	(ruler-mode-default-face, ruler-mode-pad-face)
+	(ruler-mode-margins-face, ruler-mode-fringes-face)
+	(ruler-mode-column-number-face, ruler-mode-fill-column-face)
+	(ruler-mode-comment-column-face, ruler-mode-goal-column-face)
+	(ruler-mode-tab-stop-face, ruler-mode-current-column-face): 
+	New backward-compatibility aliases for renamed faces.
+	(ruler-mode-pad, ruler-mode-margins, ruler-mode-fringes)
+	(ruler-mode-column-number, ruler-mode-fill-column)
+	(ruler-mode-comment-column, ruler-mode-goal-column)
+	(ruler-mode-tab-stop, ruler-mode-current-column)
+	(ruler-mode-mouse-grab-any-column, ruler-mode-ruler): Use renamed faces.
+
 	* whitespace.el (whitespace-highlight): Remove "-face" suffix from
 	face name.
 	(whitespace-highlight-the-space): Use renamed face.
