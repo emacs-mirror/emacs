@@ -1,5 +1,17 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* woman.el (woman-italic, woman-bold, woman-unknown)
+	(woman-addition, woman-symbol-face):
+	Remove "-face" suffix from face names.
+	(woman-italic-face, woman-bold-face, woman-unknown-face)
+	(woman-addition-face):
+	New backward-compatibility aliases for renamed faces.
+	(woman-default-faces, woman-monochrome-faces, woman-man-buffer)
+	(woman-decode-region, woman-replace-match)
+	(woman-display-extended-fonts, woman-special-characters)
+	(woman-font-alist, woman-change-fonts, woman2-TH, woman2-SH):
+	Use renamed woman faces.
+
 	* longlines.el (longlines-visible-face): Face removed.
 
 	* diff-mode.el (diff-header, diff-file-header, diff-index)

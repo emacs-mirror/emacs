@@ -875,49 +875,56 @@ or different fonts."
 ;; This is overkill!  Troff uses just italic; Nroff uses just underline.
 ;; You should probably select either italic or underline as you prefer, but
 ;; not both, although italic and underline work together perfectly well!
-(defface woman-italic-face
+(defface woman-italic
   `((((min-colors 88) (background light)) 
      (:slant italic :underline t :foreground "red1"))
     (((background light)) (:slant italic :underline t :foreground "red"))
     (((background dark)) (:slant italic :underline t)))
   "Face for italic font in man pages."
   :group 'woman-faces)
+;; backward-compatibility alias
+(put 'woman-italic-face 'face-alias 'woman-italic)
 
-(defface woman-bold-face
+(defface woman-bold
   '((((min-colors 88) (background light)) (:weight bold :foreground "blue1"))
     (((background light)) (:weight bold :foreground "blue"))
     (((background dark)) (:weight bold :foreground "green2")))
   "Face for bold font in man pages."
   :group 'woman-faces)
+;; backward-compatibility alias
+(put 'woman-bold-face 'face-alias 'woman-bold)
 
 ;; Brown is a good compromise: it is distinguishable from the default
 ;; but not enough so to make font errors look terrible.  (Files that use
 ;; non-standard fonts seem to do so badly or in idiosyncratic ways!)
-(defface woman-unknown-face
+(defface woman-unknown
   '((((background light)) (:foreground "brown"))
     (((min-colors 88) (background dark)) (:foreground "cyan1"))
     (((background dark)) (:foreground "cyan")))
   "Face for all unknown fonts in man pages."
   :group 'woman-faces)
+;; backward-compatibility alias
+(put 'woman-unknown-face 'face-alias 'woman-unknown)
 
-(defface woman-addition-face
+(defface woman-addition
   '((t (:foreground "orange")))
   "Face for all WoMan additions to man pages."
   :group 'woman-faces)
+;; backward-compatibility alias
+(put 'woman-addition-face 'face-alias 'woman-addition)
 
 (defun woman-default-faces ()
   "Set foreground colours of italic and bold faces to their default values."
   (interactive)
-  (face-spec-set 'woman-italic-face
-		 (face-user-default-spec 'woman-italic-face))
-  (face-spec-set 'woman-bold-face (face-user-default-spec 'woman-bold-face)))
+  (face-spec-set 'woman-italic (face-user-default-spec 'woman-italic))
+  (face-spec-set 'woman-bold (face-user-default-spec 'woman-bold)))
 
 (defun woman-monochrome-faces ()
   "Set foreground colours of italic and bold faces to that of the default face.
 This is usually either black or white."
   (interactive)
-  (set-face-foreground 'woman-italic-face 'unspecified)
-  (set-face-foreground 'woman-bold-face 'unspecified))
+  (set-face-foreground 'woman-italic 'unspecified)
+  (set-face-foreground 'woman-bold 'unspecified))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Experimental font support, initially only for MS-Windows.
@@ -938,7 +945,7 @@ This is usually either black or white."
     symbol-fonts))
 
 (when woman-font-support
-  (make-face 'woman-symbol-face)
+  (make-face 'woman-symbol)
 
   ;; Set the symbol font only if `woman-use-symbol-font' is true, to
   ;; avoid unnecessarily upsetting the line spacing in NTEmacs 20.5!
@@ -1673,24 +1680,24 @@ Do not call directly!"
 	(goto-char (point-min))
 	(while (search-forward "__\b\b" nil t)
 	  (backward-delete-char 4)
-	  (woman-set-face (point) (1+ (point)) 'woman-italic-face))
+	  (woman-set-face (point) (1+ (point)) 'woman-italic))
 	(goto-char (point-min))
 	(while (search-forward "\b\b__" nil t)
 	  (backward-delete-char 4)
-	  (woman-set-face (1- (point)) (point) 'woman-italic-face))))
+	  (woman-set-face (1- (point)) (point) 'woman-italic))))
 
   ;; Interpret overprinting to indicate bold face:
   (goto-char (point-min))
   (while (re-search-forward "\\(.\\)\\(\\(+\\1\\)+\\)" nil t)
     (woman-delete-match 2)
-    (woman-set-face (1- (point)) (point) 'woman-bold-face))
+    (woman-set-face (1- (point)) (point) 'woman-bold))
 
   ;; Interpret underlining to indicate italic face:
   ;; (Must be AFTER emboldening to interpret bold _ correctly!)
   (goto-char (point-min))
   (while (search-forward "_" nil t)
     (delete-char -2)
-    (woman-set-face (point) (1+ (point)) 'woman-italic-face))
+    (woman-set-face (point) (1+ (point)) 'woman-italic))
 
   ;; Leave any other uninterpreted ^H's in the buffer for now!  (They
   ;; might indicate composite special characters, which could be
@@ -1703,7 +1710,7 @@ Do not call directly!"
     (goto-char (point-min))
     (forward-line)
     (while (re-search-forward "^\\(   \\)?\\([A-Z].*\\)" nil t)
-      (woman-set-face (match-beginning 2) (match-end 2) 'woman-bold-face))))
+      (woman-set-face (match-beginning 2) (match-end 2) 'woman-bold))))
   )
 
 (defun woman-insert-file-contents (filename compressed)
@@ -2204,11 +2211,11 @@ Currently set only from '\" t in the first line of the source file.")
 
     ;; Prepare non-underlined versions of underlined faces:
     (woman-non-underline-faces)
-    ;; Set font of `woman-symbol-face' to `woman-symbol-font' if
+    ;; Set font of `woman-symbol' face to `woman-symbol-font' if
     ;; `woman-symbol-font' is well defined.
     (and woman-use-symbol-font
 	 (stringp woman-symbol-font)
-	 (set-face-font 'woman-symbol-face woman-symbol-font
+	 (set-face-font 'woman-symbol woman-symbol-font
 			(and (frame-live-p woman-frame) woman-frame)))
 
     ;; Set syntax and display tables:
@@ -2293,8 +2300,7 @@ Currently set only from '\" t in the first line of the source file.")
 			 "^" "_")))
 	  (cond (first
 		 (replace-match repl nil t)
-		 (put-text-property (1- (point)) (point)
-				    'face 'woman-addition-face)
+		 (put-text-property (1- (point)) (point) 'face 'woman-addition)
 		 (WoMan-warn
 		  "Initial vertical motion escape \\%s simulated" esc)
 		 (WoMan-log
@@ -2919,8 +2925,7 @@ map accessory to help construct this alist.")
 Set NEWTEXT in face FACE if specified."
   (woman-delete-match 0)
   (insert-before-markers newtext)
-  (if face (put-text-property (1- (point)) (point)
-			      'face 'woman-symbol-face))
+  (if face (put-text-property (1- (point)) (point) 'face 'woman-symbol))
   t)
 
 (defun woman-special-characters (to)
@@ -2938,7 +2943,7 @@ Set NEWTEXT in face FACE if specified."
 			   ;; Need symbol font:
 			   (if woman-use-symbol-font
 			       (woman-replace-match (nth 2 replacement)
-						    'woman-symbol-face))
+						    'woman-symbol))
 			 ;; Need extended font:
 			 (if woman-use-extended-font
 			     (woman-replace-match (nth 2 replacement))))))
@@ -2963,7 +2968,7 @@ Useful for constructing the alist variable `woman-special-characters'."
 	(while (< i 256)
 	  (insert (format "\\%03o " i) (string i) " " (string i))
 	  (put-text-property (1- (point)) (point)
-			     'face 'woman-symbol-face)
+			     'face 'woman-symbol)
 	  (insert "   ")
 	  (setq i (1+ i))
 	  (when (= i 128) (setq i 160) (insert "\n"))
@@ -3231,12 +3236,12 @@ If optional arg CONCAT is non-nil then join arguments."
 
 (defconst woman-font-alist
   '(("R" . default)
-    ("I" . woman-italic-face)
-    ("B" . woman-bold-face)
+    ("I" . woman-italic)
+    ("B" . woman-bold)
     ("P" . previous)
     ("1" . default)
-    ("2" . woman-italic-face)
-    ("3" . woman-bold-face)		; used in bash.1
+    ("2" . woman-italic)
+    ("3" . woman-bold)			; used in bash.1
     )
   "Alist of ?roff font indicators and woman font variables and names.")
 
@@ -3284,9 +3289,9 @@ If optional arg CONCAT is non-nil then join arguments."
 			     (WoMan-warn "Unknown font %s." fontstring)
 			     ;; Output this message once only per call ...
 			     (setq font-alist
-				   (cons (cons fontstring 'woman-unknown-face)
+				   (cons (cons fontstring 'woman-unknown)
 					 font-alist))
-			     'woman-unknown-face)
+			     'woman-unknown)
 		      )))
 	  ;; Delete font control line or escape sequence:
 	  (cond (beg (delete-region beg (point))
@@ -3747,7 +3752,7 @@ v alters page foot left; m alters page head center.
       ))
   ;; Embolden heading (point is at end of heading):
   (woman-set-face
-   (save-excursion (beginning-of-line) (point)) (point) 'woman-bold-face)
+   (save-excursion (beginning-of-line) (point)) (point) 'woman-bold)
   (forward-line)
   (delete-blank-lines)
   (setq woman-left-margin woman-default-indent)
@@ -3767,7 +3772,7 @@ Format paragraphs upto TO.  Set prevailing indent to 5."
   ;; Optionally embolden heading (point is at beginning of heading):
   (if woman-bold-headings
       (woman-set-face
-       (point) (save-excursion (end-of-line) (point)) 'woman-bold-face))
+       (point) (save-excursion (end-of-line) (point)) 'woman-bold))
   (forward-line)
   (setq woman-left-margin woman-default-indent
 	woman-nofill nil)		; fill output lines
