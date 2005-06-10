@@ -1,5 +1,13 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* smerge-mode.el (smerge-mine, smerge-other, smerge-base)
+	(smerge-markers): Remove "-face" suffix from face names.
+	(smerge-mine-face, smerge-other-face, smerge-base-face)
+	(smerge-markers-face): 
+	New backward-compatibility aliases for renamed faces.
+	(smerge-mine-face, smerge-other-face, smerge-base-face)
+	(smerge-markers-face): Use renamed smerge faces.
+
 	* log-view.el (log-view-file, log-view-message): 
 	Remove "-face" suffix from face names.
 	(log-view-file-face, log-view-message-face): 
