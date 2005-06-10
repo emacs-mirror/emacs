@@ -144,7 +144,7 @@ or a cons cell (background-color . COLOR)."
   '("light gray" "light blue" "light cyan" "light yellow" "light pink"
     "pale green" "beige" "orange" "magenta" "violet" "medium purple"
     "turquoise")
-  "Background colours useful with dark foreground colors."
+  "Background colors useful with dark foreground colors."
   :type '(repeat string)
   :group 'cpp)
 
@@ -152,7 +152,7 @@ or a cons cell (background-color . COLOR)."
   '("dim gray" "blue" "cyan" "yellow" "red"
     "dark green" "brown" "dark orange" "dark khaki" "dark violet" "purple"
     "dark turquoise")
-  "Background colours useful with light foreground colors."
+  "Background colors useful with light foreground colors."
   :type '(repeat string)
   :group 'cpp)
 
