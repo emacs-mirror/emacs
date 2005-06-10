@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* whitespace.el (whitespace-highlight): Remove "-face" suffix from
+	face name.
+	(whitespace-highlight-the-space): Use renamed face.
+	(whitespace-highlight-face): New backward-compatibility aliases
+	for renamed face.
+
 	* woman.el (woman-italic, woman-bold, woman-unknown)
 	(woman-addition, woman-symbol-face):
 	Remove "-face" suffix from face names.
