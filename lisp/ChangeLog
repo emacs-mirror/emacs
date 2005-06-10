@@ -1,3 +1,9 @@
+2005-06-10  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (start-chars, xml-parse-dtd): Add the ability to skip
+	ATTLIST portions of included DTDs.
+	(xml-parse-dtd): Eliminate use of inefficient match-data.
+
 2005-06-10  Miles Bader  <miles@gnu.org>
 
 	* play/mpuz.el (mpuz-unsolved, mpuz-solved, mpuz-trivial)
