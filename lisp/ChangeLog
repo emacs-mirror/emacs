@@ -1,5 +1,10 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* compare-w.el (compare-windows): Remove "-face" suffix from face name.
+	(compare-windows-face): New backward-compatibility alias for
+	renamed face.
+	(compare-windows-highlight): Use renamed compare-windows face.
+
 	* strokes.el (strokes-char): Remove "-face" suffix from face name.
 	(strokes-char-face): New backward-compatibility alias for renamed face.
 	(strokes-encode-buffer): Use renamed strokes-char face.
