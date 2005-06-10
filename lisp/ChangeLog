@@ -1,3 +1,16 @@
+2005-06-10  Miles Bader  <miles@gnu.org>
+
+	* wid-edit.el (widget-documentation, widget-button)
+	(widget-field, widget-single-line-field, widget-inactive)
+	(widget-button-pressed): "-face" suffix removed from face names.
+	(widget-documentation-face, widget-button-face)
+	(widget-field-face, widget-single-line-field-face)
+	(widget-inactive-face, widget-button-pressed-face):
+	New backward-compatibility aliases for renamed faces.
+	(widget-documentation-face, widget-button-face)
+	(widget-button-pressed-face, widget-specify-field)
+	(widget-specify-inactive): Use renamed widget faces.
+
 2005-06-10  Kenichi Handa  <handa@m17n.org>
 
 	* term/x-win.el (x-clipboard-yank): Remove condition-case
