@@ -1,5 +1,12 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* info.el (info-title-1, info-title-2, info-title-3)
+	(info-title-4): Remove "-face" suffix from and downcase face names.
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face)
+	(Info-title-4-face):
+	New backward-compatibility aliases for renamed faces.
+	(Info-fontify-node): Use renamed info faces.
+
 	* hilit-chg.el (highlight-changes, highlight-changes-delete):
 	Remove "-face" suffix from face names.
 	(highlight-changes-face, highlight-changes-delete-face):

@@ -3524,29 +3524,37 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defface Info-title-1-face
+(defface info-title-1
   '((((type tty pc) (class color)) :foreground "green" :weight bold)
-    (t :height 1.2 :inherit Info-title-2-face))
-  "Face for Info titles at level 1."
+    (t :height 1.2 :inherit info-title-2))
+  "Face for info titles at level 1."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-1-face 'face-alias 'info-title-1)
 
-(defface Info-title-2-face
+(defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
-    (t :height 1.2 :inherit Info-title-3-face))
-  "Face for Info titles at level 2."
+    (t :height 1.2 :inherit info-title-3))
+  "Face for info titles at level 2."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-2-face 'face-alias 'info-title-2)
 
-(defface Info-title-3-face
+(defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
-    (t :height 1.2 :inherit Info-title-4-face))
-  "Face for Info titles at level 3."
+    (t :height 1.2 :inherit info-title-4))
+  "Face for info titles at level 3."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-3-face 'face-alias 'info-title-3)
 
-(defface Info-title-4-face
+(defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
-  "Face for Info titles at level 4."
+  "Face for info titles at level 4."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-4-face 'face-alias 'info-title-4)
 
 (defface info-menu-header
   '((((type tty pc))
@@ -3686,10 +3694,10 @@ Preserve text properties."
                                   nil t)
           (let* ((c (preceding-char))
                  (face
-                  (cond ((= c ?*) 'Info-title-1-face)
-                        ((= c ?=) 'Info-title-2-face)
-                        ((= c ?-) 'Info-title-3-face)
-                        (t        'Info-title-4-face))))
+                  (cond ((= c ?*) 'info-title-1)
+                        ((= c ?=) 'info-title-2)
+                        ((= c ?-) 'info-title-3)
+                        (t        'info-title-4))))
             (put-text-property (match-beginning 1) (match-end 1)
                                'font-lock-face face))
           ;; This is a serious problem for trying to handle multiple
