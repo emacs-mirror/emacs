@@ -59,29 +59,20 @@
     (set what ww)
     first))
 
-(defvar doctor-mode-map nil)
-(if doctor-mode-map
-    nil
-  (setq doctor-mode-map (make-sparse-keymap))
-  (define-key doctor-mode-map "\n" 'doctor-read-print)
-  (define-key doctor-mode-map "\r" 'doctor-ret-or-read))
-
-(defun doctor-mode ()
+(define-derived-mode doctor-mode text-mode "Doctor"
   "Major mode for running the Doctor (Eliza) program.
 Like Text mode with Auto Fill mode
 except that RET when point is after a newline, or LFD at any time,
 reads the sentence before point, and prints the Doctor's answer."
-  (interactive)
-  (text-mode)
   (make-doctor-variables)
-  (use-local-map doctor-mode-map)
-  (setq major-mode 'doctor-mode)
-  (setq mode-name "Doctor")
   (turn-on-auto-fill)
   (doctor-type '(i am the psychotherapist \.
 		 (doc$ please) (doc$ describe) your (doc$ problems) \.
 		 each time you are finished talking, type \R\E\T twice \.))
   (insert "\n"))
+
+(define-key doctor-mode-map "\n" 'doctor-read-print)
+(define-key doctor-mode-map "\r" 'doctor-ret-or-read)
 
 (defun make-doctor-variables ()
   (make-local-variable 'typos)
