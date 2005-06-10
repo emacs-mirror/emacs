@@ -33,6 +33,8 @@
 	* play/doctor.el (doctor-mode-map): Remove defvar.
 	(doctor-mode): Use define-derived-mode.
 
+	* mail/mspools.el (mspools-mode):
+	* net/eudc-hotlist.el (eudc-hotlist-mode):
 	* play/blackbox.el (blackbox-mode): Use run-mode-hooks.
 
 2005-06-10  Miles Bader  <miles@gnu.org>
