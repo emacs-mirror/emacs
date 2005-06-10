@@ -311,7 +311,7 @@ which it will stop.  If you set the threshhold to zero, the upper and
 lower bound will coincide at the end of the loop and you will insert
 your item just before that point.  If you set the threshhold to,
 e.g. 8, it will stop as soon as the window size drops below that
-amount and will insert the item in the approximate centre of that
+amount and will insert the item in the approximate center of that
 window."
   :type 'integer
   :group 'todo)
