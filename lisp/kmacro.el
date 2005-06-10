@@ -631,7 +631,7 @@ A prefix argument serves as a repeat count.  Zero means repeat until error.
 When you call the macro, you can call the macro again by repeating
 just the last key in the key sequence that you used to call this
 command.  See `kmacro-call-repeat-key' and `kmacro-call-repeat-with-arg'
-for details on how to adjust or disable this behaviour.
+for details on how to adjust or disable this behavior.
 
 To make a macro permanent so you can call it even after defining
 others, use \\[kmacro-name-last-macro]."
