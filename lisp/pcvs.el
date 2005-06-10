@@ -1980,7 +1980,7 @@ With a prefix, opens the buffer in an OTHER window."
   (when (and (/= (point) (progn (posn-set-point (event-end e)) (point)))
 	     (not (memq (get-text-property (1- (line-end-position))
                                            'font-lock-face)
-                        '(cvs-header-face cvs-filename-face))))
+                        '(cvs-header cvs-filename))))
     (error "Not a file name"))
   (cvs-mode!
    (lambda (&optional rev)

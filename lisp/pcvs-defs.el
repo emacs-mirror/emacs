@@ -1,7 +1,7 @@
 ;;; pcvs-defs.el --- variable definitions for PCL-CVS
 
 ;; Copyright (C) 1991, 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
-;;   2000, 2003, 2004  Free Software Foundation, Inc.
+;;   2000, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs
@@ -381,7 +381,7 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ;; mouse bindings
     ([mouse-2] . cvs-mode-find-file)
     ([follow-link] . (lambda (pos)
-		       (if (eq (get-char-property pos 'face) 'cvs-filename-face) t)))
+		       (if (eq (get-char-property pos 'face) 'cvs-filename) t)))
     ([(down-mouse-3)] . cvs-menu)
     ;; dired-like bindings
     ("\C-o" .   cvs-mode-display-file)
