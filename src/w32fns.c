@@ -8698,7 +8698,7 @@ fontsets are automatically created.  */);
   DEFVAR_BOOL ("w32-strict-painting",
                &w32_strict_painting,
 	       doc: /* Non-nil means use strict rules for repainting frames.
-Set this to nil to get the old behaviour for repainting; this should
+Set this to nil to get the old behavior for repainting; this should
 only be necessary if the default setting causes problems.  */);
   w32_strict_painting = 1;
 
