@@ -1,3 +1,11 @@
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexw32.c (COPY_CHUNK, COPY_PROC_CHUNK): Add a new argument
+	`verbose'; print diagnostic messages only if it is non-zero.  All
+	callers changed to pass a zero value unless DEBUG_DUMP is defined
+	in the environment.
+	(copy_executable_and_dump_data): Print section names with %.8s.
+
 2005-06-10  Masatake YAMATO  <jet@gyve.org>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Call clear_mouse_face
