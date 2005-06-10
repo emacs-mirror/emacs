@@ -1,5 +1,13 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* generic-x.el (show-tabs-tab, show-tabs-space):
+	Remove "-face" suffix from face names.
+	(show-tabs-tab-face, show-tabs-space-face):
+	New backward-compatibility aliases for renamed faces.
+	(show-tabs-generic-mode-font-lock-defaults-1)
+	(show-tabs-generic-mode-font-lock-defaults-2):
+	Use renamed show-tabs faces.
+
 	* smerge-mode.el (smerge-mine, smerge-other, smerge-base)
 	(smerge-markers): Remove "-face" suffix from face names.
 	(smerge-mine-face, smerge-other-face, smerge-base-face)
