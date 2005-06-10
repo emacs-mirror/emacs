@@ -1,3 +1,9 @@
+2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* debugging.texi (Error Debugging): Minor rewording.
+	(Function Debugging): FUNCTION-NAME arg to `cancel-debug-on-entry'
+	is optional.
+
 2005-06-10  Lute Kamstra  <lute@gnu.org>
 
 	* elisp.texi: Use EMACSVER to refer to the current version of
