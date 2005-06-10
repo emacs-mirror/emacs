@@ -172,17 +172,21 @@ The name is made by appending a number to PREFIX, default \"G\"."
 			     (1+ thumbs-gensym-counter))))))
 	  (make-symbol (format "%s%d" pfix num))))))
 
+(defsubst thumbs-temp-dir ()
+  (file-name-as-directory (expand-file-name thumbs-temp-dir)))
+
 (defun thumbs-temp-file ()
   "Return a unique temporary filename for an image."
   (format "%s%s-%s.jpg"
-          (expand-file-name thumbs-temp-dir)
+          (thumbs-temp-dir)
           thumbs-temp-prefix
           (thumbs-gensym "T")))
 
 (defun thumbs-thumbsdir ()
   "Return the current thumbnails directory (from `thumbs-thumbsdir').
 Create the thumbnails directory if it does not exist."
-  (let ((thumbs-thumbsdir (expand-file-name thumbs-thumbsdir)))
+  (let ((thumbs-thumbsdir (file-name-as-directory
+                           (expand-file-name thumbs-thumbsdir))))
     (unless (file-directory-p thumbs-thumbsdir)
       (make-directory thumbs-thumbsdir)
       (message "Creating thumbnails directory"))
@@ -267,7 +271,7 @@ Or, alternatively, a SIZE may be specified."
   (condition-case nil
     (apply 'delete-file
 	   (directory-files
-	    thumbs-temp-dir t
+	    (thumbs-temp-dir) t
 	    thumbs-temp-prefix))
     (error nil))
   (let ((buffer-read-only nil)
@@ -306,7 +310,7 @@ Or, alternatively, a SIZE may be specified."
   "Return a thumbnail name for the image IMG."
   (convert-standard-filename
    (let ((filename (expand-file-name img)))
-     (format "%s/%08x-%s.jpg"
+     (format "%s%08x-%s.jpg"
              (thumbs-thumbsdir)
              (sxhash filename)
              (subst-char-in-string
@@ -637,7 +641,7 @@ ACTION and ARG should be a valid convert command."
   ;; cleaning of old temp file
   (mapc 'delete-file
 	(directory-files
-	 thumbs-temp-dir
+	 (thumbs-temp-dir)
 	 t
 	 thumbs-temp-prefix))
   (let ((buffer-read-only nil)
