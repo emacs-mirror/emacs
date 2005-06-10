@@ -597,7 +597,7 @@ This variable is buffer-local.")
   "Function to actually send to PROCESS the STRING submitted by user.
 Usually this is just 'term-simple-send, but if your mode needs to
 massage the input string, this is your hook.  This is called from
-the user command term-send-input.  term-simple-send just sends
+the user command term-send-input.  `term-simple-send' just sends
 the string plus a newline.")
 
 (defcustom term-eol-on-send t
@@ -888,7 +888,7 @@ is buffer-local.")
   (while (< i 128)
     (define-key map (make-string 1 i) 'term-send-raw)
     ;; Avoid O and [. They are used in escape sequences for various keys.
-    (unless (or (eq i ?O) (eq i 91)) 
+    (unless (or (eq i ?O) (eq i 91))
 		(define-key esc-map (make-string 1 i) 'term-send-raw-meta))
     (setq i (1+ i)))
   (dolist (elm (generic-character-list))
@@ -941,11 +941,11 @@ is buffer-local.")
 		(make-display-table)))
         i)
     ;; avoid changing the display table for ^J
-    (setq i 0) 
+    (setq i 0)
     (while (< i 10)
       (aset dt i (vector i))
       (setq i (1+ i)))
-    (setq i 11) 
+    (setq i 11)
     (while (< i 32)
       (aset dt i (vector i))
       (setq i (1+ i)))
@@ -983,7 +983,7 @@ and `term-scroll-to-bottom-on-output'.
 If you accidentally suspend your process, use \\[term-continue-subjob]
 to continue it.
 
-This mode can be customised to create specific modes for running
+This mode can be customized to create specific modes for running
 particular subprocesses.  This can be done by setting the hooks
 `term-input-filter-functions', `term-input-filter',
 `term-input-sender' and `term-get-old-input' to appropriate functions,
@@ -1273,7 +1273,7 @@ you type \\[term-send-input] which sends the current line to the inferior."
 (defun term-check-proc (buffer)
   "True if there is a process associated w/buffer BUFFER, and
 it is alive (status RUN or STOP).  BUFFER can be either a buffer or the
-name of one"
+name of one."
   (let ((proc (get-buffer-process buffer)))
     (and proc (memq (process-status proc) '(run stop)))))
 
@@ -2088,7 +2088,7 @@ If this takes us past the end of the current line, don't skip at all."
 (defun term-simple-send (proc string)
   "Default function for sending to PROC input STRING.
 This just sends STRING plus a newline.  To override this,
-set the hook TERM-INPUT-SENDER."
+set the hook `term-input-sender'."
   (term-send-string proc string)
   (term-send-string proc "\n"))
 
@@ -2180,7 +2180,7 @@ Security bug: your string can still be temporarily recovered with
 If your process is choking on big inputs, try lowering the value.")
 
 (defun term-send-string (proc str)
-  "Send PROCESS the contents of STRING as input.
+  "Send to PROC the contents of STR as input.
 This is equivalent to process-send-string, except that long input strings
 are broken up into chunks of size term-input-chunk-size.  Processes
 are given a chance to output between chunks.  This can help prevent processes
@@ -2195,9 +2195,9 @@ from hanging when you send them long inputs on some OS's."
 	(setq i next-i)))))
 
 (defun term-send-region (proc start end)
-  "Sends to PROC the region delimited by START and END.
+  "Send to PROC the region delimited by START and END.
 This is a replacement for process-send-region that tries to keep
-your process from hanging on long inputs.  See term-send-string."
+your process from hanging on long inputs.  See `term-send-string'."
   (term-send-string proc (buffer-substring start end)))
 
 
@@ -2427,7 +2427,7 @@ See `term-prompt-regexp'."
 ;;; This is pretty stupid about strings.  It decides we're in a string
 ;;; if there's a quote on both sides of point on the current line.
 (defun term-extract-string ()
-  "Returns string around POINT that starts the current line or nil."
+  "Return string around `point' that starts the current line or nil."
   (save-excursion
     (let* ((point (point))
 	   (bol (progn (beginning-of-line) (point)))
@@ -2601,7 +2601,7 @@ See `term-prompt-regexp'."
 
 (defun term-adjust-current-row-cache (delta)
   (when term-current-row
-    (setq term-current-row 
+    (setq term-current-row
 	  (max 0 (+ term-current-row delta)))))
 
 (defun term-terminal-pos ()
@@ -2781,11 +2781,11 @@ See `term-prompt-regexp'."
 			    ;; In insert if the if the current line
 			    ;; has become too long it needs to be
 			    ;; chopped off.
-			    (when term-insert-mode 
+			    (when term-insert-mode
 			      (setq pos (point))
 			      (end-of-line)
 			      (when (> (current-column) term-width)
-				(delete-region (- (point) (- (current-column) term-width)) 
+				(delete-region (- (point) (- (current-column) term-width))
 					       (point)))
 			      (goto-char pos)))
 			  (setq term-current-column nil)
@@ -2804,15 +2804,15 @@ See `term-prompt-regexp'."
 			  (setq count (term-current-column))
 			  ;; The line cannot exceed term-width. TAB at
 			  ;; the end of a line should not cause wrapping.
-			  (setq count (min term-width 
+			  (setq count (min term-width
 					   (+ count 8 (- (mod count 8)))))
 			  (if (> term-width count)
 			    (progn
-			      (term-move-columns 
+			      (term-move-columns
 			       (- count (term-current-column)))
 			      (setq term-current-column count))
 			    (when (> term-width (term-current-column))
-			      (term-move-columns 
+			      (term-move-columns
 			       (1- (- term-width (term-current-column)))))
 			    (when (= term-width (term-current-column))
 			      (term-move-columns -1))))
@@ -2903,7 +2903,7 @@ See `term-prompt-regexp'."
 			      (term-goto (car term-saved-cursor)
 					 (cdr term-saved-cursor)))
 			  (setq term-terminal-state 0))
-			 ((eq char ?c) ;; \Ec - Reset (terminfo: rs1) 
+			 ((eq char ?c) ;; \Ec - Reset (terminfo: rs1)
 			  ;; This is used by the "clear" program.
 			  (setq term-terminal-state 0)
 			  (term-reset-terminal))
@@ -3035,7 +3035,7 @@ See `term-prompt-regexp'."
 	  (setq term-current-row (1- term-height))))))
 
 ;;; Reset the terminal, delete all the content and set the face to the
-;;; default one. 
+;;; default one.
 (defun term-reset-terminal ()
   (erase-buffer)
   (setq term-current-row 0)
@@ -3189,7 +3189,7 @@ See `term-prompt-regexp'."
    ((or (eq char ?H)  ; cursor motion (terminfo: cup)
 	;; (eq char ?f) ; xterm seems to handle this sequence too, not
 	;; needed for now
-	) 
+	)
     (if (<= term-terminal-parameter 0)
 	(setq term-terminal-parameter 1))
     (if (<= term-terminal-previous-parameter 0)
@@ -3210,8 +3210,8 @@ See `term-prompt-regexp'."
     (term-down (max 1 term-terminal-parameter) t))
    ;; \E[C - cursor right (terminfo: cuf)
    ((eq char ?C)
-    (term-move-columns 
-     (max 1 
+    (term-move-columns
+     (max 1
 	  (if (>= (+ term-terminal-parameter (term-current-column)) term-width)
 	      (- term-width (term-current-column)  1)
 	    term-terminal-parameter))))
@@ -3252,7 +3252,7 @@ See `term-prompt-regexp'."
 	  ))
 
 ;;; Modified to allow ansi coloring -mm
-   ;; \E[m - Set/reset modes, set bg/fg 
+   ;; \E[m - Set/reset modes, set bg/fg
    ;;(terminfo: smso,rmso,smul,rmul,rev,bold,sgr0,invis,op,setab,setaf)
    ((eq char ?m)
     (when (= term-terminal-more-parameters 1)
@@ -3297,7 +3297,7 @@ The top-most line is line 0."
 	    (not (and (= term-scroll-start 0)
 		      (= term-scroll-end term-height)))))
   (term-move-columns (- (term-current-column)))
-  (term-goto 
+  (term-goto
    term-scroll-start (term-current-column)))
 
 ;; (defun term-switch-to-alternate-sub-buffer (set)
@@ -3846,7 +3846,7 @@ directory tracking functions.")
 
 
 (defun term-word (word-chars)
-  "Return the word of WORD-CHARS at point, or nil if non is found.
+  "Return the word of WORD-CHARS at point, or nil if none is found.
 Word constituents are considered to be those in WORD-CHARS, which is like the
 inside of a \"[...]\" (see `skip-chars-forward')."
   (save-excursion
@@ -3863,7 +3863,7 @@ inside of a \"[...]\" (see `skip-chars-forward')."
 
 
 (defun term-match-partial-filename ()
-  "Return the filename at point, or nil if non is found.
+  "Return the filename at point, or nil if none is found.
 Environment variables are substituted.  See `term-word'."
   (let ((filename (term-word "~/A-Za-z0-9+@:_.$#,={}-")))
     (and filename (substitute-in-file-name filename))))
