@@ -1,3 +1,7 @@
+2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* syntax.texi (Parsing Exprssions): Fix Texinfo error.
+
 2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.texi (Parsing Expressions): Document syntax-ppss.
