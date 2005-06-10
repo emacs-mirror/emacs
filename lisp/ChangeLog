@@ -1,5 +1,22 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	
+	* diff-mode.el (diff-header, diff-file-header, diff-index)
+	(diff-hunk-header, diff-removed, diff-added, diff-changed)
+	(diff-function, diff-context, diff-nonexistent):  Remove "-face"
+	suffix from face names.
+	(diff-header-face, diff-file-header-face, diff-index-face)
+	(diff-hunk-header-face, diff-removed-face, diff-added-face)
+	(diff-changed-face, diff-function-face, diff-context-face)
+	(diff-nonexistent-face):  New backward-compatibility aliases for
+	renamed faces.
+	(diff-header-face, diff-file-header-face)
+	(diff-index, diff-index-face, diff-hunk-header)
+	(diff-hunk-header-face, diff-removed, diff-removed-face)
+	(diff-added, diff-added-face, diff-changed-face, diff-function)
+	(diff-function-face, diff-context-face, diff-nonexistent)
+	(diff-nonexistent-face): Use renamed diff-mode faces.
+
 	* progmodes/compile.el (compilation-warning-face)
 	(compilation-info-face): Remove "-face" suffix from face names.
 	(compilation-warning-face, compilation-info-face): 
