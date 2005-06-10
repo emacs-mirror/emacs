@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* paren.el (show-paren-match, show-paren-mismatch): 
+	Remove "-face" suffix from face names.
+	(show-paren-match-face, show-paren-mismatch-face): 
+	New backward-compatibility aliases for renamed faces.
+	(show-paren-function): Use renamed show-paren faces.
+
 	* ruler-mode.el (ruler-mode-default, ruler-mode-pad)
 	(ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
