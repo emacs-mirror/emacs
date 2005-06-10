@@ -14,6 +14,42 @@
 
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
+	* cus-edit.el (minibuffer):
+	* files.el (make-backup-file-name-function):
+	* filesets.el (filesets-external-viewers):
+	* hilit-chg.el (highlight-changes-colours)
+	(highlight-changes-face-list, highlight-changes-rotate-faces):
+	* ielm.el (ielm-dynamic-return, inferior-emacs-lisp-mode):
+	* kmacro.el (kmacro-call-macro):
+	* log-edit.el (log-edit-changelog-full-paragraphs):
+	* mouse.el (mouse-1-click-follows-link):
+	* skeleton.el (skeleton-autowrap):
+	* subr.el (insert-for-yank-1):
+	* tempo.el (tempo-insert-region):
+	* terminal.el (terminal-emulator):
+	* time.el (display-time-mail-face):
+	* vc.el (vc-annotate):
+	* vcursor.el (vcursor-copy-line):
+	* woman.el (woman-bold-headings, woman-ignore)
+	(woman-default-faces, woman-monochrome-faces):
+	* calendar/todo-mode.el (todo-insert-threshold):
+	* emulation/pc-select.el (pc-select-selection-keys-only)
+	(pc-selection-mode):
+	* emulation/vip.el (vip-find-char-forward):
+	* emulation/viper-cmd.el (viper-find-char-forward):
+	* international/mule-cmds.el (select-safe-coding-system-accept-default-p)
+	(input-method-exit-on-invalid-key):
+	* international/mule-diag.el (describe-coding-system):
+	* international/ucs-tables.el (unify-8859-on-encoding-mode):
+	* net/browse-url.el (browse-url-xterm-program):
+	* obsolete/lazy-lock.el (lazy-lock-mode):
+	* progmodes/cperl-mode.el (cperl-info-on-command-no-prompt)
+	(cperl-mode):
+	* progmodes/cpp.el (cpp-face-light-name-list)
+	(cpp-face-dark-name-list):
+	* progmodes/delphi.el (delphi-newline-always-indents):
+	Fix spellings in docstrings.
+
 	* ido.el (ido-mode, ido-file-extensions-order)
 	(ido-default-file-method, ido-default-buffer-method)
 	(ido-max-prospects, ido-slow-ftp-hosts, ido-setup-hook)

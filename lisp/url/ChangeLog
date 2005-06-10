@@ -1,3 +1,8 @@
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* url-cookie.el (url-cookie-multiple-line): Fix spelling in
+	docstring.
+
 2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-cookie.el (url-cookie-multiple-line):
