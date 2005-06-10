@@ -1,3 +1,15 @@
+2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fselect_window): Adapt call to Fselect_frame.
+
+	* lisp.h: Update EXFUN of Fselect_frame.
+
+	* keyboard.c (command_loop_1): Adapt call to Fselect_frame.
+
+	* frame.c (do_switch_frame, Fselect_frame): Delete unused arg no_enter.
+	(set-mouse-position, set-mouse-pixel-position, iconify-frame):
+	Adapt to above change.
+
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fns.c (Fmemq, Fmaphash): Doc fixes.
