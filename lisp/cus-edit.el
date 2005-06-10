@@ -417,7 +417,7 @@
   :group 'development)
 
 (defgroup minibuffer nil
-  "Controling the behaviour of the minibuffer."
+  "Controling the behavior of the minibuffer."
   :link '(custom-manual "(emacs)Minibuffer")
   :group 'environment)
 
@@ -2187,7 +2187,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
      (:foreground "blue1" :weight bold :height 1.2 :inherit variable-pitch))
     (((class color)
       (background light))
-     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))    
+     (:foreground "blue" :weight bold :height 1.2 :inherit variable-pitch))
     (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
