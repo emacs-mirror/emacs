@@ -1,5 +1,13 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/tex-mode.el (tex-math, tex-verbatim): Remove "-face"
+	suffix from face names.
+	(tex-math-face, tex-verbatim-face): 
+	New backward-compatibility aliases for renamed faces.
+	(tex-math-face, tex-verbatim-face): Use renamed tex-mode faces.
+	(tex-insert-quote): Use `tex-verbatim-face' variable instead of
+	literal face name.
+
 	* textmodes/table.el (table-cell): Remove "-face" suffix from face
 	name.
 	(table-cell-face): New backward-compatibility alias for renamed face.
