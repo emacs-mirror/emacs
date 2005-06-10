@@ -1,3 +1,15 @@
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* ido.el (ido-mode, ido-file-extensions-order)
+	(ido-default-file-method, ido-default-buffer-method)
+	(ido-max-prospects, ido-slow-ftp-hosts, ido-setup-hook)
+	(ido-decorations, ido-read-file-name-as-directory-commands)
+	(ido-read-file-name-non-ido, ido-work-directory-list)
+	(ido-ignore-item-temp-list, ido-current-directory)
+	(ido-magic-forward-char, ido-enter-find-file)
+	(ido-enter-switch-buffer, ido-visit-buffer, ido-switch-buffer)
+	(ido-find-file, ido-read-buffer): Fix typos in docstrings.
+
 2005-06-10  Lute Kamstra  <lute@gnu.org>
 
 	* play/dunnet.el (dun-mode): Use define-derived-mode.
@@ -24,7 +36,7 @@
 
 	* textmodes/tex-mode.el (tex-math, tex-verbatim): Remove "-face"
 	suffix from face names.
-	(tex-math-face, tex-verbatim-face): 
+	(tex-math-face, tex-verbatim-face):
 	New backward-compatibility aliases for renamed faces.
 	(tex-math-face, tex-verbatim-face): Use renamed tex-mode faces.
 	(tex-insert-quote): Use `tex-verbatim-face' variable instead of
@@ -106,7 +118,7 @@
 	(cvs-header-face, cvs-filename-face, cvs-unknown-face)
 	(cvs-handled-face, cvs-need-action-face, cvs-marked-face)
 	(cvs-msg-face): New backward-compatibility aliases for renamed faces.
-	(cvs-fi-up-to-date-face, cvs-fi-unknown-face, cvs-fileinfo-pp): 
+	(cvs-fi-up-to-date-face, cvs-fi-unknown-face, cvs-fileinfo-pp):
 	Use renamed pcvs faces.
 	* pcvs.el (cvs-mode-find-file): Use renamed pcvs faces.
 	* pcvs-defs.el (cvs-mode-map): Likewise.
@@ -137,20 +149,20 @@
 	* smerge-mode.el (smerge-mine, smerge-other, smerge-base)
 	(smerge-markers): Remove "-face" suffix from face names.
 	(smerge-mine-face, smerge-other-face, smerge-base-face)
-	(smerge-markers-face): 
+	(smerge-markers-face):
 	New backward-compatibility aliases for renamed faces.
 	(smerge-mine-face, smerge-other-face, smerge-base-face)
 	(smerge-markers-face): Use renamed smerge faces.
 
-	* log-view.el (log-view-file, log-view-message): 
+	* log-view.el (log-view-file, log-view-message):
 	Remove "-face" suffix from face names.
-	(log-view-file-face, log-view-message-face): 
+	(log-view-file-face, log-view-message-face):
 	New backward-compatibility aliases for renamed faces.
 	(log-view-file-face, log-view-message-face): Use renamed log-view faces.
 
-	* paren.el (show-paren-match, show-paren-mismatch): 
+	* paren.el (show-paren-match, show-paren-mismatch):
 	Remove "-face" suffix from face names.
-	(show-paren-match-face, show-paren-mismatch-face): 
+	(show-paren-match-face, show-paren-mismatch-face):
 	New backward-compatibility aliases for renamed faces.
 	(show-paren-function): Use renamed show-paren faces.
 
@@ -158,13 +170,13 @@
 	(ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
 	(ruler-mode-comment-column, ruler-mode-goal-column)
-	(ruler-mode-tab-stop, ruler-mode-current-column): 
+	(ruler-mode-tab-stop, ruler-mode-current-column):
 	Remove "-face" suffix from face names.
 	(ruler-mode-default-face, ruler-mode-pad-face)
 	(ruler-mode-margins-face, ruler-mode-fringes-face)
 	(ruler-mode-column-number-face, ruler-mode-fill-column-face)
 	(ruler-mode-comment-column-face, ruler-mode-goal-column-face)
-	(ruler-mode-tab-stop-face, ruler-mode-current-column-face): 
+	(ruler-mode-tab-stop-face, ruler-mode-current-column-face):
 	New backward-compatibility aliases for renamed faces.
 	(ruler-mode-pad, ruler-mode-margins, ruler-mode-fringes)
 	(ruler-mode-column-number, ruler-mode-fill-column)
@@ -210,7 +222,7 @@
 
 	* progmodes/compile.el (compilation-warning-face)
 	(compilation-info-face): Remove "-face" suffix from face names.
-	(compilation-warning-face, compilation-info-face): 
+	(compilation-warning-face, compilation-info-face):
 	New backward-compatibility aliases for renamed faces.
 	(compilation-warning-face, compilation-info-face):
 	Use renamed compilation faces.
@@ -222,7 +234,7 @@
 	(change-log-date-face, change-log-name-face)
 	(change-log-email-face, change-log-file-face)
 	(change-log-list-face, change-log-conditionals-face)
-	(change-log-function-face, change-log-acknowledgement-face): 
+	(change-log-function-face, change-log-acknowledgement-face):
 	New backward-compatibility aliases for renamed faces.
 	(change-log-font-lock-keywords): Use renamed change-log faces.
 
@@ -241,7 +253,7 @@
 	(custom-comment-face, custom-comment-tag-face)
 	(custom-variable-tag-face, custom-variable-button-face)
 	(custom-face-tag-face, custom-group-tag-face-1)
-	(custom-group-tag-face): 
+	(custom-group-tag-face):
 	New backward-compatibility aliases for renamed faces.
 
 	* wid-edit.el (widget-documentation, widget-button)
