@@ -1,14 +1,15 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
-	
+	* longlines.el (longlines-visible-face): Face removed.
+
 	* diff-mode.el (diff-header, diff-file-header, diff-index)
 	(diff-hunk-header, diff-removed, diff-added, diff-changed)
-	(diff-function, diff-context, diff-nonexistent):  Remove "-face"
+	(diff-function, diff-context, diff-nonexistent): Remove "-face"
 	suffix from face names.
 	(diff-header-face, diff-file-header-face, diff-index-face)
 	(diff-hunk-header-face, diff-removed-face, diff-added-face)
 	(diff-changed-face, diff-function-face, diff-context-face)
-	(diff-nonexistent-face):  New backward-compatibility aliases for
+	(diff-nonexistent-face): New backward-compatibility aliases for
 	renamed faces.
 	(diff-header-face, diff-file-header-face)
 	(diff-index, diff-index-face, diff-hunk-header)
