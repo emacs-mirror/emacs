@@ -1,3 +1,11 @@
+2005-06-10  Miles Bader  <miles@gnu.org>
+
+	* play/gomoku.el (gomoku-O, gomoku-X):
+	Remove "-face" suffix from face names.
+	(gomoku-font-lock-O-face, gomoku-font-lock-X-face):
+	New backward-compatibility aliases for renamed faces.
+	(gomoku-font-lock-keywords): Use renamed gomoku faces.
+
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* ido.el (ido-mode, ido-file-extensions-order)

@@ -1,6 +1,6 @@
 ;;; gomoku.el --- Gomoku game between you and Emacs
 
-;; Copyright (C) 1988, 1994, 1996, 2001, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1988, 1994, 1996, 2001, 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Philippe Schnoebelen <phs@lsv.ens-cachan.fr>
 ;; Maintainer: FSF
@@ -160,22 +160,24 @@ One useful value to include is `turn-on-font-lock' to highlight the pieces."
 (defvar gomoku-emacs-won ()
   "For making font-lock use the winner's face for the line.")
 
-(defface gomoku-font-lock-O-face
+(defface gomoku-O
     '((((class color)) (:foreground "red" :weight bold)))
   "Face to use for Emacs' O."
   :group 'gomoku)
+;; backward-compatibility alias
+(put 'gomoku-font-lock-O-face 'face-alias 'gomoku-O)
 
-(defface gomoku-font-lock-X-face
+(defface gomoku-X
     '((((class color)) (:foreground "green" :weight bold)))
   "Face to use for your X."
   :group 'gomoku)
+;; backward-compatibility alias
+(put 'gomoku-font-lock-X-face 'face-alias 'gomoku-X)
 
 (defvar gomoku-font-lock-keywords
-  '(("O" . 'gomoku-font-lock-O-face)
-    ("X" . 'gomoku-font-lock-X-face)
-    ("[-|/\\]" 0 (if gomoku-emacs-won
-		     'gomoku-font-lock-O-face
-		   'gomoku-font-lock-X-face)))
+  '(("O" . 'gomoku-O)
+    ("X" . 'gomoku-X)
+    ("[-|/\\]" 0 (if gomoku-emacs-won 'gomoku-O 'gomoku-X)))
   "*Font lock rules for Gomoku.")
 
 (put 'gomoku-mode 'front-sticky
