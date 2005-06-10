@@ -357,7 +357,7 @@ nil."
   (use-local-map mspools-mode-map)
   (setq major-mode 'mspools-mode)
   (setq mode-name "MSpools")
-  )
+  (run-mode-hooks 'mspools-mode-hook))
 
 (defun mspools-get-spool-files ()
   "Find the list of spool files and display them in *spools* buffer."
