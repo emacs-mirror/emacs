@@ -1,5 +1,9 @@
 2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* url-dav.el: Remove most autoload cookies.
+	Don't hook into the url-file-handler since it currently breaks all
+	non-HTTP URLs.
+
 	* url-handlers.el (vc-registered): Explicitly disable VC for URL files.
 
 	* url.el (url-retrieve-synchronously): Don't exit precipitously when
