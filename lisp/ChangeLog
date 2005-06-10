@@ -1,5 +1,15 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Remove "-face" suffix from face names.
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	New backward-compatibility aliases for renamed faces.
+	(flyspell-mode-on, make-flyspell-overlay)
+	(flyspell-highlight-incorrect-region)
+	(flyspell-highlight-duplicate-region)
+	(flyspell-display-next-corrections)
+	(flyspell-auto-correct-previous-word): Use renamed flyspell faces.
+
 	* textmodes/texinfo.el (texinfo-heading): Remove "-face" suffix
 	from face name.
 	(texinfo-heading-face): New backward-compatibility alias for

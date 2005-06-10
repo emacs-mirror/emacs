@@ -94,7 +94,7 @@ Non-nil means use highlight, nil means use minibuffer messages."
   "*The maximum distance for finding duplicates of unrecognized words.
 This applies to the feature that when a word is not found in the dictionary,
 if the same spelling occurs elsewhere in the buffer,
-Flyspell uses a different face (`flyspell-duplicate-face') to highlight it.
+Flyspell uses a different face (`flyspell-duplicate') to highlight it.
 This variable specifies how far to search to find such a duplicate.
 -1 means no limit (search the whole buffer).
 0 means do not search for duplicate unrecognized spellings."
@@ -444,18 +444,22 @@ property of the major mode name.")
 ;*---------------------------------------------------------------------*/
 ;*    Highlighting                                                     */
 ;*---------------------------------------------------------------------*/
-(defface flyspell-incorrect-face
+(defface flyspell-incorrect
   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
     (t (:bold t)))
   "Face used for marking a misspelled word in Flyspell."
   :group 'flyspell)
+;; backward-compatibility alias
+(put 'flyspell-incorrect-face 'face-alias 'flyspell-incorrect)
 
-(defface flyspell-duplicate-face
+(defface flyspell-duplicate
   '((((class color)) (:foreground "Gold3" :bold t :underline t))
     (t (:bold t)))
   "Face used for marking a misspelled word that appears twice in the buffer.
 See also `flyspell-duplicate-distance'."
   :group 'flyspell)
+;; backward-compatibility alias
+(put 'flyspell-duplicate-face 'face-alias 'flyspell-duplicate)
 
 (defvar flyspell-overlay nil)
 
@@ -540,7 +544,7 @@ in your .emacs file.
 ;*---------------------------------------------------------------------*/
 (defun flyspell-mode-on ()
   "Turn Flyspell mode on.  Do not use this; use `flyspell-mode' instead."
-  (setq ispell-highlight-face 'flyspell-incorrect-face)
+  (setq ispell-highlight-face 'flyspell-incorrect)
   ;; local dictionaries setup
   (or ispell-local-dictionary ispell-dictionary
       (if flyspell-default-dictionary
@@ -1570,7 +1574,7 @@ for the overlay."
         (overlay-put flyspell-overlay
                      flyspell-overlay-keymap-property-name
                      flyspell-mouse-map))
-    (when (eq face 'flyspell-incorrect-face)
+    (when (eq face 'flyspell-incorrect)
       (and (stringp flyspell-before-incorrect-word-string)
            (overlay-put flyspell-overlay 'before-string
                         flyspell-before-incorrect-word-string))
@@ -1610,7 +1614,7 @@ for the overlay."
 	    ;; now we can use a new overlay
 	    (setq flyspell-overlay
 		  (make-flyspell-overlay
-		   beg end 'flyspell-incorrect-face 'highlight)))))))
+		   beg end 'flyspell-incorrect 'highlight)))))))
 
 ;*---------------------------------------------------------------------*/
 ;*    flyspell-highlight-duplicate-region ...                          */
@@ -1636,7 +1640,7 @@ for the overlay."
 	    ;; now we can use a new overlay
 	    (setq flyspell-overlay
 		  (make-flyspell-overlay beg end
-					 'flyspell-duplicate-face
+					 'flyspell-duplicate
 					 'highlight)))))))
 
 ;*---------------------------------------------------------------------*/
@@ -1698,8 +1702,7 @@ misspelled words backwards."
       (let ((num (car pos)))
 	(put-text-property num
 			   (+ num (length flyspell-auto-correct-word))
-			   'face
-			   'flyspell-incorrect-face
+			   'face 'flyspell-incorrect
 			   string))
       (setq pos (cdr pos)))
     (if (fboundp 'display-message)
@@ -1876,7 +1879,7 @@ But don't look beyond what's visible on the screen."
 			    ;; check if its face has changed
 			    (not (eq (get-char-property 
 				      (overlay-start new-overlay) 'face) 
-				     'flyspell-incorrect-face))))
+				     'flyspell-incorrect))))
 	      (setq new-overlay (car-safe overlay-list))
 	      (setq overlay-list (cdr-safe overlay-list)))
 	
