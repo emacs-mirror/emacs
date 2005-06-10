@@ -118,8 +118,8 @@ the error.  The easiest way is usually to set
 @end defopt
 
 @defopt eval-expression-debug-on-error
-If you set this variable to a non-@code{nil} value, then
-@code{debug-on-error} will be set to @code{t} when evaluating with the
+If this variable has a non-@code{nil} value, then
+@code{debug-on-error} is set to @code{t} when evaluating with the
 command @code{eval-expression}.  If
 @code{eval-expression-debug-on-error} is @code{nil}, then the value of
 @code{debug-on-error} is not changed.  @xref{Lisp Eval,, Evaluating
@@ -267,11 +267,11 @@ Debugger entered--entering a function:
 @end example
 @end deffn
 
-@deffn Command cancel-debug-on-entry function-name
+@deffn Command cancel-debug-on-entry &optional function-name
 This function undoes the effect of @code{debug-on-entry} on
 @var{function-name}.  When called interactively, it prompts for
 @var{function-name} in the minibuffer.  If @var{function-name} is
-@code{nil} or the empty string, it cancels break-on-entry for all
+omitted, @code{nil}, or the empty string, it cancels break-on-entry for all
 functions.
 
 Calling @code{cancel-debug-on-entry} does nothing to a function which is
