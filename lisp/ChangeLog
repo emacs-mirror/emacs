@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* emacs-lisp/testcover.el (testcover-nohits, testcover-1value):
+	Remove "-face" suffix from face names.
+	(testcover-nohits-face, testcover-1value-face):
+	New backward-compatibility aliases for renamed faces.
+	(testcover-mark): Use renamed testcover faces.
+
 	* calendar/diary-lib.el (diary-button): Remove "-face" suffix from
 	face name.
 	(diary-button-face): New backward-compatibility alias for renamed face.
