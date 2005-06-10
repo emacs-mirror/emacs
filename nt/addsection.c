@@ -283,15 +283,19 @@ copy_executable_and_add_section (file_data *p_infile,
   PIMAGE_SECTION_HEADER dst_section;
   DWORD offset;
   int i;
+  int be_verbose = GetEnvironmentVariable ("DEBUG_DUMP", NULL, 0) > 0;
 
-#define COPY_CHUNK(message, src, size)						\
+#define COPY_CHUNK(message, src, size, verbose)					\
   do {										\
     unsigned char *s = (void *)(src);						\
     unsigned long count = (size);						\
-    printf ("%s\n", (message));							\
-    printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base);	\
-    printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base);	\
-    printf ("\t0x%08x Size in bytes.\n", count);				\
+    if (verbose)								\
+      {										\
+	printf ("%s\n", (message));						\
+	printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base); 	\
+	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%08x Size in bytes.\n", count);				\
+      }										\
     memcpy (dst, s, count);							\
     dst += count;								\
   } while (0)
@@ -321,13 +325,14 @@ copy_executable_and_add_section (file_data *p_infile,
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
-	      (DWORD) nt_header - (DWORD) dos_header);
+	      (DWORD) nt_header - (DWORD) dos_header, be_verbose);
   dst_nt_header = (PIMAGE_NT_HEADERS) dst;
   COPY_CHUNK ("Copying NT header...", nt_header,
-	      (DWORD) section - (DWORD) nt_header);
+	      (DWORD) section - (DWORD) nt_header, be_verbose);
   dst_section = (PIMAGE_SECTION_HEADER) dst;
   COPY_CHUNK ("Copying section table...", section,
-	      nt_header->FileHeader.NumberOfSections * sizeof (*section));
+	      nt_header->FileHeader.NumberOfSections * sizeof (*section),
+	      be_verbose);
 
   /* To improve the efficiency of demand loading, make the file
      alignment match the section alignment (VC++ 6.0 does this by
@@ -351,7 +356,9 @@ copy_executable_and_add_section (file_data *p_infile,
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       char msg[100];
-      sprintf (msg, "Copying raw data for %s...", section->Name);
+      /* Windows section names are fixed 8-char strings, only
+	 zero-terminated if the name is shorter than 8 characters.  */
+      sprintf (msg, "Copying raw data for %.8s...", section->Name);
 
       /* Update the file-relative offset for this section's raw data (if
          it has any) in case things have been relocated; we will update
@@ -362,7 +369,7 @@ copy_executable_and_add_section (file_data *p_infile,
       /* Can always copy the original raw data.  */
       COPY_CHUNK
 	(msg, OFFSET_TO_PTR (section->PointerToRawData, p_infile),
-	 section->SizeOfRawData);
+	 section->SizeOfRawData, be_verbose);
 
       /* Round up the raw data size to the new alignment.  */
       dst_section->SizeOfRawData =
@@ -402,7 +409,7 @@ copy_executable_and_add_section (file_data *p_infile,
   COPY_CHUNK
     ("Copying remainder of executable...",
      OFFSET_TO_PTR (offset, p_infile),
-     p_infile->size - offset);
+     p_infile->size - offset, be_verbose);
 
   /* Final size for new image.  */
   p_outfile->size = DST_TO_OFFSET ();
