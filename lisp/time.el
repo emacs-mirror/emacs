@@ -127,8 +127,8 @@ This runs the normal hook `display-time-hook' after each update."
 (defcustom display-time-mail-face nil
   "Face to use for `display-time-mail-string'.
 If `display-time-use-mail-icon' is non-nil, the image's
-background colour is the background of this face.  Set this to
-make the mail indicator stand out on a colour display."
+background color is the background of this face.  Set this to
+make the mail indicator stand out on a color display."
   :group 'faces
   :group 'display-time
   :version "22.1"
