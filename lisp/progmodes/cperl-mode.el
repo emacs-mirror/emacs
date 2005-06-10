@@ -343,7 +343,7 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
   :group 'cperl-indentation-details)
 
 (defvar cperl-vc-header-alist nil)
-(make-obsolete-variable 
+(make-obsolete-variable
  'cperl-vc-header-alist
  "use cperl-vc-rcs-header or cperl-vc-sccs-header instead.")
 
@@ -369,7 +369,7 @@ Affects: `cperl-font-lock', `cperl-electric-lbrace-space',
 
 (defcustom cperl-info-on-command-no-prompt nil
   "*Not-nil (and non-null) means not to prompt on C-h f.
-The opposite behaviour is always available if prefixed with C-c.
+The opposite behavior is always available if prefixed with C-c.
 Can be overwritten by `cperl-hairy' if nil."
   :type '(choice (const null) boolean)
   :group 'cperl-affected-by-hairy)
@@ -1303,7 +1303,7 @@ you type it inside the inline block of control construct, like
 and you are on a boundary of a statement inside braces, it will
 transform the construct into a multiline and will place you into an
 appropriately indented blank line.  If you need a usual
-`newline-and-indent' behaviour, it is on \\[newline-and-indent],
+`newline-and-indent' behavior, it is on \\[newline-and-indent],
 see documentation on `cperl-electric-linefeed'.
 
 Use \\[cperl-invert-if-unless] to change a construction of the form
