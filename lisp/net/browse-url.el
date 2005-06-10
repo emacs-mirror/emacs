@@ -487,7 +487,7 @@ enabled.  The port number should be set in `browse-url-CCI-port'."
 
 (defcustom browse-url-xterm-program "xterm"
   "*The name of the terminal emulator used by `browse-url-lynx-xterm'.
-This might, for instance, be a separate colour version of xterm."
+This might, for instance, be a separate color version of xterm."
   :type 'string
   :group 'browse-url)
 
