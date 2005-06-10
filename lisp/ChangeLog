@@ -1,9 +1,5 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
-	* pcvs.el (cvs-mode-find-file): Use renamed pcvs faces.
-	* pcvs-defs.el (cvs-mode-map): Likewise.
-	* cvs-status.el (cvs-status-font-lock-keywords): Likewise.
-
 	* pcvs-info.el (cvs-header, cvs-filename, cvs-unknown)
 	(cvs-handled, cvs-need-action, cvs-marked, cvs-msg):
 	Remove "-face" suffix from face names.
@@ -12,6 +8,9 @@
 	(cvs-msg-face): New backward-compatibility aliases for renamed faces.
 	(cvs-fi-up-to-date-face, cvs-fi-unknown-face, cvs-fileinfo-pp): 
 	Use renamed pcvs faces.
+	* pcvs.el (cvs-mode-find-file): Use renamed pcvs faces.
+	* pcvs-defs.el (cvs-mode-map): Likewise.
+	* cvs-status.el (cvs-status-font-lock-keywords): Likewise.
 
 	* info.el (info-title-1, info-title-2, info-title-3)
 	(info-title-4): Remove "-face" suffix from and downcase face names.
