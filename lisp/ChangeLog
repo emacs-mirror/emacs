@@ -1,3 +1,9 @@
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* play/dunnet.el (dun-mode): Use define-derived-mode.
+	(dungeon-mode-map): Rename to dun-mode-map.  Keep old name as an
+	obsolete alias.
+
 2005-06-10  Miles Bader  <miles@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):

@@ -1,3 +1,14 @@
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* elisp.texi: Use EMACSVER to refer to the current version of
+	Emacs.
+	(Top): Give it a title.  Correct version number.  Give the
+	detailed node listing a more prominent header.
+	* intro.texi: Don't set VERSION here a second time.  Mention
+	Emacs' version too.
+	* anti.texi (Antinews): Use EMACSVER to refer to the current
+	version of Emacs.
+
 2005-06-09  Kim F. Storm  <storm@cua.dk>
 
 	* searching.texi (Entire Match Data): Explain new `reseat' argument to

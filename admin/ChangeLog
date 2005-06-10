@@ -1,3 +1,8 @@
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* admin.el (set-version): Set version in lisp manual too.
+	* make-tarball.txt: Commit lispref/elisp.texi too.
+
 2005-06-04  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-pretesters: Refer to etc/DEBUG instead of duplicating it.
