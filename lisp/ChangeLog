@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* play/mpuz.el (mpuz-unsolved, mpuz-solved, mpuz-trivial)
+	(mpuz-text): Remove "-face" suffix from face names.
+	(mpuz-unsolved-face, mpuz-solved-face, mpuz-trivial-face)
+	(mpuz-text-face): New backward-compatibility aliases for renamed faces.
+	(mpuz-create-buffer, mpuz-paint-digit): Use renamed mpuz faces.
+
 	* play/gomoku.el (gomoku-O, gomoku-X):
 	Remove "-face" suffix from face names.
 	(gomoku-font-lock-O-face, gomoku-font-lock-X-face):
