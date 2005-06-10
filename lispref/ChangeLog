@@ -1,3 +1,7 @@
+2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Parsing Expressions): Document syntax-ppss.
+
 2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* debugging.texi (Error Debugging): Minor rewording.
@@ -6,12 +10,11 @@
 
 2005-06-10  Lute Kamstra  <lute@gnu.org>
 
-	* elisp.texi: Use EMACSVER to refer to the current version of
-	Emacs.
+	* elisp.texi: Use EMACSVER to refer to the current version of Emacs.
 	(Top): Give it a title.  Correct version number.  Give the
 	detailed node listing a more prominent header.
-	* intro.texi: Don't set VERSION here a second time.  Mention
-	Emacs' version too.
+	* intro.texi: Don't set VERSION here a second time.
+	Mention Emacs's version too.
 	* anti.texi (Antinews): Use EMACSVER to refer to the current
 	version of Emacs.
 
@@ -95,8 +98,8 @@
 
 2005-05-21  Eli Zaretskii  <eliz@gnu.org>
 
-	* files.texi (Locating Files): New subsection.  Describe
-	locate-file and executable-find.
+	* files.texi (Locating Files): New subsection.
+	Describe locate-file and executable-find.
 
 2005-05-21  Kevin Ryde  <user42@zip.com.au>
 
@@ -111,8 +114,8 @@
 	(Major Mode Conventions): Refer to `Auto Major Mode' in more
 	appropriate place.
 	(Derived Modes): Small clarifications.
-	(Minor Mode Conventions, Keymaps and Minor Modes): Replace
-	references to nodes with references to anchors.
+	(Minor Mode Conventions, Keymaps and Minor Modes):
+	Replace references to nodes with references to anchors.
 	(Mode Line Data): Warn that `(:eval FORM)' should not load any files.
 	Clarify description of lists whose first element is an integer.
 	(Mode Line Variables): Add anchor.
@@ -264,10 +267,10 @@
 	(Font Lock Basics): Say that font-lock-defaults is buffer-local
 	when set and that some parts are optional.  Add cross references.
 	(Search-based Fontification): Say how to specify font-lock-keywords.
-	Add cross references.  Add font-lock-multiline to index.  Move
-	font-lock-keywords-case-fold-search here from node "Other Font
+	Add cross references.  Add font-lock-multiline to index.
+	Move font-lock-keywords-case-fold-search here from node "Other Font
 	Lock Variables".  Document font-lock-add-keywords and
-	font-lock-remove-keywords
+	font-lock-remove-keywords.
 	(Other Font Lock Variables): Move font-lock-keywords-only,
 	font-lock-syntax-table, font-lock-beginning-of-syntax-function,
 	and font-lock-syntactic-face-function to node "Syntactic Font
@@ -282,8 +285,8 @@
 	and font-lock-syntactic-face-function here from node "Other Font
 	Lock Variables".  Move font-lock-syntactic-keywords to "Setting
 	Syntax Properties".  Add cross references.
-	(Setting Syntax Properties): New node.  Move
-	font-lock-syntactic-keywords here from "Syntactic Font Lock".
+	(Setting Syntax Properties): New node.
+	Move font-lock-syntactic-keywords here from "Syntactic Font Lock".
 	* syntax.texi (Syntax Properties): Add cross reference.
 	* hooks.texi (Standard Hooks): Add Font-Lock hooks.
 
@@ -342,7 +345,7 @@
 
 2005-04-19  Kevin Ryde  <user42@zip.com.au>
 
-        * streams.texi (Output Functions): Fix xref.
+	* streams.texi (Output Functions): Fix xref.
 	* strings.texi (String Conversion): Fix xref.
 
 2005-04-19  Kim F. Storm  <storm@cua.dk>
@@ -436,8 +439,8 @@
 
 	* markers.texi (The Mark): Document temporary Transient Mark mode.
 
-	* minibuf.texi (Reading File Names): Document
-	read-file-name-completion-ignore-case.
+	* minibuf.texi (Reading File Names):
+	Document read-file-name-completion-ignore-case.
 
 	* positions.texi (Screen Lines): Document nil for width argument
 	to compute-motion.
@@ -457,11 +460,10 @@
 	(Managing Overlays): Document remove-overlays.
 	(Standard Faces): Document escape-glyph face.
 
-	* minibuf.texi (Reading File Names): Document
-	read-file-name-function.
+	* minibuf.texi (Reading File Names): Document read-file-name-function.
 
-	* modes.texi (Other Font Lock Variables): Document
-	font-lock-lines-before.
+	* modes.texi (Other Font Lock Variables):
+	Document font-lock-lines-before.
 
 	* positions.texi (Skipping Characters): skip-chars-forward allows
 	character classes.
@@ -515,18 +517,18 @@
 	(Progress): Clarify.
 	(Invisible Text): Explain that main loop moves point out.
 	(Selective Display): Say "hidden", not "invisible".
-	(Managing Overlays): Moved up.  Describe relation to Undo here.
+	(Managing Overlays): Move up.  Describe relation to Undo here.
 	(Overlay Properties): Clarify intro.
 	(Finding Overlays): Explain return values when nothing found.
 	(Width): truncate-string-to-width has added arg.
 	(Displaying Faces): Clarify and update mode line face handling.
 	(Face Functions): Minor cleanup.
-	(Conditional Display): Merged into Other Display Specs.
+	(Conditional Display): Merge into Other Display Specs.
 	(Pixel Specification, Other Display Specs): Minor cleanups.
 	(Images, Image Descriptors): Minor cleanups.
 	(GIF Images): Patents have expired.
 	(Showing Images): Explain default text for insert-image.
-	(Manipulating Button Types): Merged into Manipulating Buttons.
+	(Manipulating Button Types): Merge into Manipulating Buttons.
 	(Making Buttons): Explain return values.
 	(Button Buffer Commands): Add xref.
 	(Inverse Video): Update mode-line-inverse-video.
@@ -886,8 +888,8 @@
 	* commands.texi (Misc Events): Describe the help-echo event.
 
 	* text.texi (Special Properties) <help-echo>: Use `pos'
-	consistently in description of the help-echo property.  Use
-	@code{nil} instead of @var{nil}.
+	consistently in description of the help-echo property.
+	Use @code{nil} instead of @var{nil}.
 
 	* display.texi (Overlay Properties): Fix the index entry for
 	help-echo overlay property.

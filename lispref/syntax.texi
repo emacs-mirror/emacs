@@ -256,7 +256,7 @@ English text has no comment characters.  In Lisp, the semicolon
 @deffn {Syntax class} @w{inherit}
 This syntax class does not specify a particular syntax.  It says to look
 in the standard syntax table to find the syntax of this character.  The
-designator for this syntax code is @samp{@@}.
+designator for this syntax class is @samp{@@}.
 @end deffn
 
 @deffn {Syntax class} @w{generic comment delimiter}
@@ -385,7 +385,7 @@ nestable.
 @samp{p} identifies an additional ``prefix character'' for Lisp syntax.
 These characters are treated as whitespace when they appear between
 expressions.  When they appear within an expression, they are handled
-according to their usual syntax codes.
+according to their usual syntax classes.
 
 The function @code{backward-prefix-chars} moves back over these
 characters, as well as over characters whose primary syntax class is
@@ -566,7 +566,7 @@ have certain syntax classes.
 
 @defun skip-syntax-forward syntaxes &optional limit
 This function moves point forward across characters having syntax
-classes mentioned in @var{syntaxes} (a string of syntax code
+classes mentioned in @var{syntaxes} (a string of syntax class
 characters).  It stops when it encounters the end of the buffer, or
 position @var{limit} (if specified), or a character it is not supposed
 to skip.
@@ -728,6 +728,16 @@ Elements 0, 3, 4, 5, 7 and 9 are significant in the argument
 @cindex indenting with parentheses
 This function is most often used to compute indentation for languages
 that have nested parentheses.
+@end defun
+
+@defun syntax-ppss &optional pos
+This function returns the state that the parser would have at position
+@var{pos}, if it were started with a default start state at the
+beginning of the buffer.  Thus, it is equivalent to
+@code(parse-partial-sexp (point-min) @var{pos}), except that
+@code{syntax-ppss} uses a cache to speed up the computation.  Also,
+the 2nd value (previous complete subexpression) and 6th value (minimum
+parenthesis depth) of the returned state are not meaningful.
 @end defun
 
 @defun scan-lists from count depth
