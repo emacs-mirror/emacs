@@ -1,3 +1,8 @@
+2005-06-10  Michael Hotchin  <michael@hotchin.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist)
+	[msft]: update regexp for newer msft compilers.
+
 2005-06-10  Mark A. Hershberger  <mah@everybody.org>
 
 	* xml.el (start-chars, xml-parse-dtd): Add the ability to skip

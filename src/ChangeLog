@@ -1,3 +1,9 @@
+2005-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Unblock input before falling back to
+	minibuffer.
+	* macfns.c (Fx_file_dialog): Likewise.
+
 2005-06-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in ($(TEMACS)): Depend on addsection.exe.
