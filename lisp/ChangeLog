@@ -14,6 +14,15 @@
 
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
+	* thumbs.el: Fixes for changes of 2005-06-09.
+	(thumbs-thumbsdir): Force `thumbs-thumbsdir' to be interpretable
+	as a directory.
+	(thumbs-thumbname): Remove directory separator from format string;
+	`thumbs-thumbsdir' now returns a valid directory name.
+	(thumbs-temp-dir): New defsubst.
+	(thumbs-temp-file, thumbs-resize-image, thumbs-modify-image):
+	Use it.
+
 	* cus-edit.el (minibuffer):
 	* files.el (make-backup-file-name-function):
 	* filesets.el (filesets-external-viewers):
