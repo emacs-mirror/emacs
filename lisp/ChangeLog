@@ -1,5 +1,12 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face): Remove "-face" suffix from face names.
+	(compilation-warning-face, compilation-info-face): 
+	New backward-compatibility aliases for renamed faces.
+	(compilation-warning-face, compilation-info-face):
+	Use renamed compilation faces.
+
 	* add-log.el (change-log-date, change-log-name)
 	(change-log-email, change-log-file, change-log-list)
 	(change-log-conditionals, change-log-function)
