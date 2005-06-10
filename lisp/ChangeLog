@@ -1,5 +1,16 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* emulation/viper-init.el (viper-search, viper-replace-overlay)
+	(viper-minibuffer-emacs, viper-minibuffer-insert)
+	(viper-minibuffer-vi): Remove "-face" suffix from face names.
+	(viper-search-face, viper-replace-overlay-face)
+	(viper-minibuffer-emacs-face, viper-minibuffer-insert-face)
+	(viper-minibuffer-vi-face):
+	New backward-compatibility aliases for renamed faces.
+	(viper-search-face, viper-replace-overlay-face)
+	(viper-minibuffer-emacs-face, viper-minibuffer-insert-face)
+	(viper-minibuffer-vi-face): Use renamed viper faces.
+
 	* emacs-lisp/testcover.el (testcover-nohits, testcover-1value):
 	Remove "-face" suffix from face names.
 	(testcover-nohits-face, testcover-1value-face):
