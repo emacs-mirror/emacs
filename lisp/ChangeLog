@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* log-view.el (log-view-file, log-view-message): 
+	Remove "-face" suffix from face names.
+	(log-view-file-face, log-view-message-face): 
+	New backward-compatibility aliases for renamed faces.
+	(log-view-file-face, log-view-message-face): Use renamed log-view faces.
+
 	* paren.el (show-paren-match, show-paren-mismatch): 
 	Remove "-face" suffix from face names.
 	(show-paren-match-face, show-paren-mismatch-face): 
