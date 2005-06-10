@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/texinfo.el (texinfo-heading): Remove "-face" suffix
+	from face name.
+	(texinfo-heading-face): New backward-compatibility alias for
+	renamed face.
+	(texinfo-heading-face): Use renamed texinfo-heading face.
+
 	* textmodes/tex-mode.el (tex-math, tex-verbatim): Remove "-face"
 	suffix from face names.
 	(tex-math-face, tex-verbatim-face): 
