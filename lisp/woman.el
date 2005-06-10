@@ -823,13 +823,13 @@ Set this variable to 7 to emulate GNU man formatting."
 
 (defcustom woman-bold-headings t
   "*If non-nil then embolden section and subsection headings.  Default is t.
-Heading emboldening is NOT standard `man' behaviour."
+Heading emboldening is NOT standard `man' behavior."
   :type 'boolean
   :group 'woman-formatting)
 
 (defcustom woman-ignore t
   "*If non-nil then unrecognised requests etc. are ignored.  Default is t.
-This gives the standard ?roff behaviour.  If nil then they are left in
+This gives the standard ?roff behavior.  If nil then they are left in
 the buffer, which may aid debugging."
   :type 'boolean
   :group 'woman-formatting)
@@ -876,7 +876,7 @@ or different fonts."
 ;; You should probably select either italic or underline as you prefer, but
 ;; not both, although italic and underline work together perfectly well!
 (defface woman-italic
-  `((((min-colors 88) (background light)) 
+  `((((min-colors 88) (background light))
      (:slant italic :underline t :foreground "red1"))
     (((background light)) (:slant italic :underline t :foreground "red"))
     (((background dark)) (:slant italic :underline t)))
@@ -914,13 +914,13 @@ or different fonts."
 (put 'woman-addition-face 'face-alias 'woman-addition)
 
 (defun woman-default-faces ()
-  "Set foreground colours of italic and bold faces to their default values."
+  "Set foreground colors of italic and bold faces to their default values."
   (interactive)
   (face-spec-set 'woman-italic (face-user-default-spec 'woman-italic))
   (face-spec-set 'woman-bold (face-user-default-spec 'woman-bold)))
 
 (defun woman-monochrome-faces ()
-  "Set foreground colours of italic and bold faces to that of the default face.
+  "Set foreground colors of italic and bold faces to that of the default face.
 This is usually either black or white."
   (interactive)
   (set-face-foreground 'woman-italic 'unspecified)
