@@ -1,7 +1,13 @@
+2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* url-handlers.el (vc-registered): Explicitly disable VC for URL files.
+
+	* url.el (url-retrieve-synchronously): Don't exit precipitously when
+	fetching a file via ange-ftp.
+
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
-	* url-cookie.el (url-cookie-multiple-line): Fix spelling in
-	docstring.
+	* url-cookie.el (url-cookie-multiple-line): Fix spelling in docstring.
 
 2005-05-19  Juanma Barranquero  <lekktu@gmail.com>
 
