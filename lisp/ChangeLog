@@ -1,5 +1,13 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* calendar/calendar.el (diary, calendar-today, holiday)
+	(mark-visible-calendar-date): Remove "-face" suffix from face names.
+	(diary-face, calendar-today-face, holiday-face):
+	New backward-compatibility aliases for renamed faces.
+	(eval-after-load "facemenu", diary-entry-marker)
+	(calendar-today-marker, calendar-holiday-marker, diary-face):
+	Use renamed calendar faces.
+
 	* compare-w.el (compare-windows): Remove "-face" suffix from face name.
 	(compare-windows-face): New backward-compatibility alias for
 	renamed face.
