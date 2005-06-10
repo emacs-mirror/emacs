@@ -241,13 +241,13 @@
       '( "magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
       ;; defaults for dark background:
     '("yellow" "magenta" "blue" "maroon" "firebrick" "green4" "DarkOrchid"))
-  "*Colours used by `highlight-changes-rotate-faces'.
+  "*Colors used by `highlight-changes-rotate-faces'.
 The newest rotated change will be displayed in the first element of this list,
 the next older will be in the second element etc.
 
 This list is used if `highlight-changes-face-list' is nil, otherwise that
 variable overrides this list.  If you only care about foreground
-colours then use this, if you want fancier faces then set
+colors then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
   :type '(repeat color)
   :group 'highlight-changes)
@@ -383,7 +383,7 @@ remove it from existing buffers."
 Normally the variable is initialized to nil and the list is created from
 `highlight-changes-colours' when needed.  However, you can set this variable
 to any list of faces.  You will have to do this if you want faces which
-don't just differ from the `highlight-changes' face by the foreground colour.
+don't just differ from the `highlight-changes' face by the foreground color.
 Otherwise, this list will be constructed when needed from
 `highlight-changes-colours'."
   :type '(choice
@@ -778,7 +778,7 @@ of `highlight-changes-face-list', one level older changes are shown in
 face described by the second element, and so on.  Very old changes remain
 shown in the last face in the list.
 
-You can automatically rotate colours when the buffer is saved
+You can automatically rotate colors when the buffer is saved
 by adding the following to `local-write-file-hooks', by evaling it in the
 buffer to be saved):
 
@@ -846,7 +846,7 @@ is non-nil."
 
       (setq change-a (car change-info))
       (setq change-b (car (cdr change-info)))
-      
+
       (hilit-chg-make-list)
       (while change-a
 	(setq a-start (nth 0 (car change-a)))
@@ -890,11 +890,11 @@ If a buffer is read-only, differences will be highlighted but no property
 changes are made, so \\[highlight-changes-next-change] and
 \\[highlight-changes-previous-change] will not work."
   (interactive
-   (list 
+   (list
     (get-buffer (read-buffer "buffer-a " (current-buffer) t))
     (get-buffer
      (read-buffer "buffer-b "
-		  (window-buffer (next-window (selected-window))) t)))) 
+		  (window-buffer (next-window (selected-window))) t))))
   (let ((file-a (buffer-file-name buf-a))
 	(file-b (buffer-file-name buf-b)))
     (highlight-markup-buffers buf-a file-a buf-b file-b)
@@ -921,10 +921,10 @@ changes are made, so \\[highlight-changes-next-change] and
 	       nil			;; default
 	       'yes			;; must exist
 	       (let ((f (buffer-file-name (current-buffer))))
-		 (if f 
+		 (if f
 		     (progn
 		       (setq f (make-backup-file-name f))
-		       (or (file-exists-p f) 
+		       (or (file-exists-p f)
 			   (setq f nil)))
 		   )
 		 f))))
