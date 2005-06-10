@@ -1314,31 +1314,37 @@ Otherwise, the buffer will just be saved to a file and stay hidden."
   :tag "Org Faces"
   :group 'org)
 
-(defface org-level-1-face ;; font-lock-function-name-face
+(defface org-level-1 ;; font-lock-function-name-face
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face used for level 1 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-1-face 'face-alias 'org-level-1)
 
-(defface org-level-2-face ;; font-lock-variable-name-face
+(defface org-level-2 ;; font-lock-variable-name-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
   "Face used for level 2 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-2-face 'face-alias 'org-level-2)
 
-(defface org-level-3-face ;; font-lock-keyword-face
+(defface org-level-3 ;; font-lock-keyword-face
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
   "Face used for level 3 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-3-face 'face-alias 'org-level-3)
 
-(defface org-level-4-face   ;; font-lock-comment-face
+(defface org-level-4 ;; font-lock-comment-face
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
     (((type tty pc) (class color) (background dark)) (:foreground "red1"))
     (((class color) (background light)) (:foreground "Firebrick"))
@@ -1346,40 +1352,50 @@ Otherwise, the buffer will just be saved to a file and stay hidden."
     (t (:bold t :italic t)))
   "Face used for level 4 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-4-face 'face-alias 'org-level-4)
 
-(defface org-level-5-face ;; font-lock-type-face
+(defface org-level-5 ;; font-lock-type-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Face used for level 5 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-5-face 'face-alias 'org-level-5)
 
-(defface org-level-6-face ;; font-lock-constant-face
+(defface org-level-6 ;; font-lock-constant-face
   '((((type tty) (class color)) (:foreground "magenta"))
     (((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:bold t :underline t)))
   "Face used for level 6 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-6-face 'face-alias 'org-level-6)
 
-(defface org-level-7-face ;; font-lock-builtin-face
+(defface org-level-7 ;; font-lock-builtin-face
   '((((type tty) (class color)) (:foreground "blue" :weight light))
     (((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:bold t)))
   "Face used for level 7 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-7-face 'face-alias 'org-level-7)
 
-(defface org-level-8-face ;; font-lock-string-face
+(defface org-level-8 ;; font-lock-string-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
     (t (:italic t)))
   "Face used for level 8 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-level-8-face 'face-alias 'org-level-8)
 
-(defface org-warning-face ;; font-lock-warning-face
+(defface org-warning ;; font-lock-warning-face
   '((((type tty) (class color)) (:foreground "red"))
     (((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Red1" :bold t))
@@ -1387,6 +1403,8 @@ Otherwise, the buffer will just be saved to a file and stay hidden."
     (t (:inverse-video t :bold t)))
   "Face for deadlines and TODO keywords."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-warning-face 'face-alias 'org-warning)
 
 (defcustom org-fontify-done-headline nil
   "Non-nil means, change the face of a headline if it is marked DONE.
@@ -1396,7 +1414,7 @@ When this is non-nil, the headline after the keyword is set to the
   :group 'org-faces
   :type 'boolean)
 
-(defface org-headline-done-face ;; font-lock-string-face
+(defface org-headline-done ;; font-lock-string-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "RosyBrown"))
     (((class color) (background dark)) (:foreground "LightSalmon"))
@@ -1404,26 +1422,32 @@ When this is non-nil, the headline after the keyword is set to the
   "Face used to indicate that a headline is DONE.  See also the variable
 `org-fontify-done-headline'."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-headline-done-face 'face-alias 'org-headline-done)
 
 ;; Inheritance does not yet work for xemacs. So we just copy...
 
-(defface org-deadline-announce-face
+(defface org-deadline-announce
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face for upcoming deadlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-deadline-announce-face 'face-alias 'org-deadline-announce)
 
-(defface org-scheduled-today-face
+(defface org-scheduled-today
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "DarkGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen"))
     (t (:bold t :underline t)))
   "Face for items scheduled for a certain day."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-scheduled-today-face 'face-alias 'org-scheduled-today)
 
-(defface org-scheduled-previously-face
+(defface org-scheduled-previously
   '((((type tty pc) (class color) (background light)) (:foreground "red"))
     (((type tty pc) (class color) (background dark)) (:foreground "red1"))
     (((class color) (background light)) (:foreground "Firebrick"))
@@ -1431,49 +1455,59 @@ When this is non-nil, the headline after the keyword is set to the
     (t (:bold t :italic t)))
   "Face for items scheduled previously, and not yet done."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-scheduled-previously-face 'face-alias 'org-scheduled-previously)
 
-(defface org-link-face 
+(defface org-link 
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Cyan"))
     (t (:bold t)))
   "Face for links."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-link-face 'face-alias 'org-link)
 
-(defface org-done-face ;; font-lock-type-face
+(defface org-done ;; font-lock-type-face
   '((((type tty) (class color)) (:foreground "green"))
     (((class color) (background light)) (:foreground "ForestGreen" :bold t))
     (((class color) (background dark)) (:foreground "PaleGreen" :bold t))
     (t (:bold t :underline t)))
   "Face used for DONE."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-done-face 'face-alias 'org-done)
 
-(defface org-table-face ;; font-lock-function-name-face
+(defface org-table ;; font-lock-function-name-face
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face used for tables."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-table-face 'face-alias 'org-table)
 
-(defface org-time-grid-face ;; font-lock-variable-name-face
+(defface org-time-grid ;; font-lock-variable-name-face
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "LightGoldenrod"))
     (t (:bold t :italic t)))
   "Face used for level 2 headlines."
   :group 'org-faces)
+;; backward-compatibility alias
+(put 'org-time-grid-face 'face-alias 'org-time-grid)
 
 (defvar org-level-faces
   '(
-    org-level-1-face
-    org-level-2-face
-    org-level-3-face
-    org-level-4-face
-    org-level-5-face
-    org-level-6-face
-    org-level-7-face
-    org-level-8-face
+    org-level-1
+    org-level-2
+    org-level-3
+    org-level-4
+    org-level-5
+    org-level-6
+    org-level-7
+    org-level-8
     ))
 (defvar org-n-levels (length org-level-faces))
 
@@ -1654,31 +1688,31 @@ The following commands are available:
 (defun org-set-font-lock-defaults ()
   (let ((org-font-lock-extra-keywords
          (list
-          '(org-activate-links (0 'org-link-face))
-          '(org-activate-dates (0 'org-link-face))
+          '(org-activate-links (0 'org-link))
+          '(org-activate-dates (0 'org-link))
           (list (concat "^\\*+[ \t]*" org-not-done-regexp)
-                '(1 'org-warning-face t))
-          (list (concat "\\[#[A-Z]\\]") '(0 'org-warning-face t))
-          (list (concat "\\<" org-deadline-string) '(0 'org-warning-face t))
-          (list (concat "\\<" org-scheduled-string) '(0 'org-warning-face t))
+                '(1 'org-warning t))
+          (list (concat "\\[#[A-Z]\\]") '(0 'org-warning t))
+          (list (concat "\\<" org-deadline-string) '(0 'org-warning t))
+          (list (concat "\\<" org-scheduled-string) '(0 'org-warning t))
           ;; '("\\(\\s-\\|^\\)\\(\\*\\([a-zA-Z]+\\)\\*\\)\\([^a-zA-Z*]\\|$\\)"
           ;; (3 'bold))
           ;; '("\\(\\s-\\|^\\)\\(/\\([a-zA-Z]+\\)/\\)\\([^a-zA-Z*]\\|$\\)" 
           ;; (3 'italic))
           ;; '("\\(\\s-\\|^\\)\\(_\\([a-zA-Z]+\\)_\\)\\([^a-zA-Z*]\\|$\\)" 
           ;; (3 'underline))
-          '("\\<FIXME\\>" (0 'org-warning-face t))
+          '("\\<FIXME\\>" (0 'org-warning t))
           (list (concat "^\\*+[ \t]*\\<\\(" org-comment-string "\\)\\>")
-                '(1 'org-warning-face t))
-          '("^#.*" (0 'font-lock-comment-face t))
+                '(1 'org-warning t))
+          '("^#.*" (0 font-lock-comment-face t))
           (if org-fontify-done-headline
               (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\(.*\\)\\>")
-                    '(1 'org-done-face t) '(2 'org-headline-done-face t))
+                    '(1 'org-done t) '(2 'org-headline-done t))
             (list (concat "^[*]+ +\\<\\(" org-done-string "\\)\\>")
-                  '(1 'org-done-face t)))
+                  '(1 'org-done t)))
           '("^[ \t]*\\(\\(|\\|\\+-[-+]\\).*\\S-\\)"
-            (1 'org-table-face t))
-          '("^[ \t]*\\(:.*\\)" (1 'org-table-face t)))))
+            (1 'org-table t))
+          '("^[ \t]*\\(:.*\\)" (1 'org-table t)))))
     (set (make-local-variable 'org-font-lock-keywords)
          (append
           (if org-noutline-p     ; FIXME:  I am not sure if eval will work
@@ -3339,8 +3373,7 @@ dates."
                     (number-to-string (extract-calendar-day date)) " "
                     (calendar-month-name (extract-calendar-month date)) " "
                     (number-to-string (extract-calendar-year date)) "\n")
-            (put-text-property s (1- (point)) 'face
-                               'org-link-face)
+            (put-text-property s (1- (point)) 'face 'org-link)
             (if (equal d today)
                 (put-text-property s (1- (point)) 'org-today t))
             (insert (org-finalize-agenda-entries rtn) "\n")
@@ -3419,7 +3452,7 @@ NDAYS defaults to `org-agenda-ndays'."
       (when rtnall 
         (insert "ALL CURRENTLY OPEN TODO ITEMS:\n")
         (add-text-properties (point-min) (1- (point))
-                             (list 'face 'org-link-face))
+			     (list 'face 'org-link))
         (insert (org-finalize-agenda-entries rtnall) "\n")))
     (while (setq d (pop day-numbers))
       (setq date (calendar-gregorian-from-absolute d)
@@ -3448,8 +3481,7 @@ NDAYS defaults to `org-agenda-ndays'."
                             (extract-calendar-day date)
                             (calendar-month-name (extract-calendar-month date))
                             (extract-calendar-year date)))
-            (put-text-property s (1- (point)) 'face
-                               'org-link-face)
+            (put-text-property s (1- (point)) 'face 'org-link)
             (if rtnall (insert 
                         (org-finalize-agenda-entries ;; FIXME: condition needed
                          (org-agenda-add-time-grid-maybe
@@ -3936,7 +3968,7 @@ the documentation of `org-diary'."
 (defun org-agenda-get-todos ()
   "Return the TODO information for agenda display."
   (let* ((props (list 'face nil
-                      'done-face 'org-done-face
+                      'done-face 'org-done
                       'mouse-face 'highlight
                       'keymap org-agenda-keymap
                       'help-echo
@@ -4023,18 +4055,17 @@ the documentation of `org-diary'."
               (if deadlinep
                   (add-text-properties
                    0 (length txt)
-                   (list 'face 
-                         (if donep 'org-done-face 'org-warning-face)
-                         'undone-face 'org-warning-face
-                         'done-face 'org-done-face
+                   (list 'face (if donep 'org-done 'org-warning)
+                         'undone-face 'org-warning
+                         'done-face 'org-done
                          'priority (+ 100 priority))
                    txt)
                 (if scheduledp
                     (add-text-properties
                      0 (length txt)
-                     (list 'face 'org-scheduled-today-face
-                           'undone-face 'org-scheduled-today-face
-                           'done-face 'org-done-face
+                     (list 'face 'org-scheduled-today
+                           'undone-face 'org-scheduled-today
+                           'done-face 'org-done
                            priority (+ 99 priority))
                      txt)
                   (add-text-properties
@@ -4088,14 +4119,14 @@ the documentation of `org-diary'."
                 (list 'org-marker (org-agenda-new-marker pos)
                       'org-hd-marker (org-agenda-new-marker pos1)
                       'priority (+ (- 10 diff) (org-get-priority txt))
-                      'face (cond ((<= diff 0) 'org-warning-face)
-                                  ((<= diff 5) 'org-scheduled-previously-face)
+                      'face (cond ((<= diff 0) 'org-warning)
+                                  ((<= diff 5) 'org-scheduled-previously)
                                   (t nil))
                       'undone-face (cond
-                                    ((<= diff 0) 'org-warning-face)
-                                    ((<= diff 5) 'org-scheduled-previously-face)
+                                    ((<= diff 0) 'org-warning)
+                                    ((<= diff 5) 'org-scheduled-previously)
                                     (t nil))
-                      'done-face 'org-done-face)
+                      'done-face 'org-done)
                 props)
                txt)
               (push txt ee)))))
@@ -4103,9 +4134,9 @@ the documentation of `org-diary'."
 
 (defun org-agenda-get-scheduled ()
   "Return the scheduled information for agenda display."
-  (let* ((props (list 'face 'org-scheduled-previously-face
-                      'undone-face 'org-scheduled-previously-face
-                      'done-face 'org-done-face
+  (let* ((props (list 'face 'org-scheduled-previously
+                      'undone-face 'org-scheduled-previously
+                      'done-face 'org-done
                       'mouse-face 'highlight
                       'keymap org-agenda-keymap
                       'help-echo
@@ -4319,7 +4350,7 @@ only the correctly processes TXT should be returned - this is used by
                  (concat (substring time 0 -2) ":" (substring time -2)))
                 new)
           (put-text-property 
-           1 (length (car new)) 'face 'org-time-grid-face (car new))))
+           1 (length (car new)) 'face 'org-time-grid (car new))))
       (if (member 'time-up org-agenda-sorting-strategy)
           (append new list)
         (append list new)))))
@@ -8210,7 +8241,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 
 (defsubst org-table-p ()
   (if (and (eq major-mode 'org-mode) font-lock-mode)
-      (eq (get-text-property (point) 'face) 'org-table-face)
+      (eq (get-text-property (point) 'face) 'org-table)
     (save-match-data (org-at-table-p))))
 
 (defun org-self-insert-command (N)

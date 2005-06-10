@@ -1,5 +1,24 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/org.el (org-level-1, org-level-2, org-level-3)
+	(org-level-4, org-level-5, org-level-6, org-level-7)
+	(org-level-8, org-warning, org-headline-done)
+	(org-deadline-announce, org-scheduled-today)
+	(org-scheduled-previously, org-link, org-done, org-table)
+	(org-time-grid): Remove "-face" suffix from face names.
+	(org-level-1-face, org-level-2-face, org-level-3-face)
+	(org-level-4-face, org-level-5-face, org-level-6-face)
+	(org-level-7-face, org-level-8-face, org-warning-face)
+	(org-headline-done-face, org-deadline-announce-face)
+	(org-scheduled-today-face, org-scheduled-previously-face)
+	(org-link-face, org-done-face, org-table-face)
+	(org-time-grid-face):
+	New backward-compatibility aliases for renamed faces.
+	(org-level-faces, org-set-font-lock-defaults, org-timeline)
+	(org-agenda, org-agenda-get-todos, org-agenda-get-deadlines)
+	(org-agenda-get-timestamps, org-agenda-get-scheduled)
+	(org-agenda-add-time-grid-maybe, org-table-p): Use renamed org faces.
+
 	* emulation/viper-init.el (viper-search, viper-replace-overlay)
 	(viper-minibuffer-emacs, viper-minibuffer-insert)
 	(viper-minibuffer-vi): Remove "-face" suffix from face names.
