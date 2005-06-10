@@ -2467,7 +2467,7 @@ order until succeed.")
   (interactive)
   (let ((clipboard-text 
 	 (condition-case nil
-	     (x-get-selection 'CLIPBOARD)
+	     (x-selection-value 'CLIPBOARD)
 	   (error nil)))
 	(x-select-enable-clipboard t))
     (if (and clipboard-text (> (length clipboard-text) 0))
