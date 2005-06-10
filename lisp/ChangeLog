@@ -1,5 +1,16 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* add-log.el (change-log-date, change-log-name)
+	(change-log-email, change-log-file, change-log-list)
+	(change-log-conditionals, change-log-function)
+	(change-log-acknowledgement): Remove "-face" suffix from face names.
+	(change-log-date-face, change-log-name-face)
+	(change-log-email-face, change-log-file-face)
+	(change-log-list-face, change-log-conditionals-face)
+	(change-log-function-face, change-log-acknowledgement-face): 
+	New backward-compatibility aliases for renamed faces.
+	(change-log-font-lock-keywords): Use renamed change-log faces.
+
 	* cus-edit.el (custom-invalid, custom-rogue, custom-modified)
 	(custom-set, custom-changed, custom-saved, custom-button)
 	(custom-button-pressed, custom-documentation, custom-state)
