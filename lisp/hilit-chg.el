@@ -37,9 +37,9 @@
 ;; it on to active mode to see them, then toggle it back off to avoid
 ;; distraction.
 ;;
-;; When active, changes are displayed in `highlight-changes-face'.  When
-;; text is deleted, the following character is displayed in
-;; `highlight-changes-delete-face' face.
+;; When active, changes are displayed in the `highlight-changes' face.
+;; When text is deleted, the following character is displayed in the
+;; `highlight-changes-delete' face.
 ;;
 ;;
 ;; You can "age" different sets of changes by using
@@ -48,7 +48,7 @@
 ;; changes.  You can customize these "rotated" faces in two ways.  You can
 ;; either explicitly define each face by customizing
 ;; `highlight-changes-face-list'.  If, however, the faces differ from
-;; `highlight-changes-face' only in the foreground color, you can simply set
+;; the `highlight-changes' face only in the foreground color, you can simply set
 ;; `highlight-changes-colours'.  If `highlight-changes-face-list' is nil when
 ;; the faces are required they will be constructed from
 ;; `highlight-changes-colours'.
@@ -212,20 +212,24 @@
 ;; However, having it set for non-delete changes can be annoying because all
 ;; indentation on inserts gets underlined (which can look pretty ugly!).
 
-(defface highlight-changes-face
+(defface highlight-changes
   '((((min-colors 88) (class color)) (:foreground "red1" ))
     (((class color)) (:foreground "red" ))
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
+;; backward-compatibility alias
+(put 'highlight-changes-face 'face-alias 'highlight-changes)
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
-(defface highlight-changes-delete-face
+(defface highlight-changes-delete
   '((((min-colors 88) (class color)) (:foreground "red1" :underline t))
     (((class color)) (:foreground "red" :underline t))
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)
+;; backward-compatibility alias
+(put 'highlight-changes-delete-face 'face-alias 'highlight-changes-delete)
 
 
 
@@ -347,15 +351,15 @@ remove it from existing buffers."
 	     )
 	  (while p
 	    (setq old-name (car p))
-	    (setq new-name (intern (format "highlight-changes-face-%d" n)))
+	    (setq new-name (intern (format "highlight-changes-%d" n)))
 	    (if (eq old-name new-name)
 		nil
 	      ;; A new face has been inserted: we don't want to modify the
 	      ;; default face so copy it.  Better, though, (I think) is to
 	      ;; make a new face have the same attributes as
-	      ;; highlight-changes-face .
+	      ;; the `highlight-changes' face.
 	      (if (eq old-name 'default)
-		  (copy-face 'highlight-changes-face  new-name)
+		  (copy-face 'highlight-changes new-name)
 		(copy-face old-name new-name)
 		))
 	    (setq new-list (append  (list new-name) new-list))
@@ -379,7 +383,7 @@ remove it from existing buffers."
 Normally the variable is initialized to nil and the list is created from
 `highlight-changes-colours' when needed.  However, you can set this variable
 to any list of faces.  You will have to do this if you want faces which
-don't just differ from `highlight-changes-face' by the foreground colour.
+don't just differ from the `highlight-changes' face by the foreground colour.
 Otherwise, this list will be constructed when needed from
 `highlight-changes-colours'."
   :type '(choice
@@ -445,7 +449,7 @@ This is the opposite of `hilit-chg-hide-changes'."
   (let ((ov (make-overlay start end))
 	face)
     (if (eq prop 'hilit-chg-delete)
-	(setq face 'highlight-changes-delete-face)
+	(setq face 'highlight-changes-delete)
       (setq face (nth 1 (member prop hilit-chg-list))))
     (if face
 	(progn
@@ -731,20 +735,20 @@ Hook variables:
 	    (n 1) name)
 	(setq highlight-changes-face-list nil)
 	(while p
-	  (setq name (intern (format "highlight-changes-face-%d" n)))
-	  (copy-face 'highlight-changes-face name)
+	  (setq name (intern (format "highlight-changes-%d" n)))
+	  (copy-face 'highlight-changes name)
 	  (set-face-foreground name (car p))
 	  (setq highlight-changes-face-list
 		(append highlight-changes-face-list (list name)))
 	  (setq p (cdr p))
 	  (setq n (1+ n)))))
-  (setq hilit-chg-list (list 'hilit-chg 'highlight-changes-face))
+  (setq hilit-chg-list (list 'hilit-chg 'highlight-changes))
   (let ((p highlight-changes-face-list)
 	(n 1)
 	last-category last-face)
     (while p
       (setq last-category (intern (format "change-%d" n)))
-      ;; (setq last-face (intern (format "highlight-changes-face-%d" n)))
+      ;; (setq last-face (intern (format "highlight-changes-%d" n)))
       (setq last-face (car p))
       (setq hilit-chg-list
 	    (append hilit-chg-list

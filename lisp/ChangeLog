@@ -1,5 +1,12 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* hilit-chg.el (highlight-changes, highlight-changes-delete):
+	Remove "-face" suffix from face names.
+	(highlight-changes-face, highlight-changes-delete-face):
+	New backward-compatibility aliases for renamed faces.
+	(hilit-chg-cust-fix-changes-face-list, hilit-chg-make-ov)
+	(hilit-chg-make-list): Use renamed highlight-changes faces.
+
 	* generic-x.el (show-tabs-tab, show-tabs-space):
 	Remove "-face" suffix from face names.
 	(show-tabs-tab-face, show-tabs-space-face):
