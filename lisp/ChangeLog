@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/sgml-mode.el (sgml-namespace): Remove "-face" suffix
+	from face name.
+	(sgml-namespace-face): New backward-compatibility alias for
+	renamed face.
+	(sgml-namespace-face): Use renamed sgml-namespace face.
+
 	* textmodes/org.el (org-level-1, org-level-2, org-level-3)
 	(org-level-4, org-level-5, org-level-6, org-level-7)
 	(org-level-8, org-warning, org-headline-done)
