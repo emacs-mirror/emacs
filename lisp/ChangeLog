@@ -1,5 +1,23 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* cus-edit.el (custom-invalid, custom-rogue, custom-modified)
+	(custom-set, custom-changed, custom-saved, custom-button)
+	(custom-button-pressed, custom-documentation, custom-state)
+	(custom-comment, custom-comment-tag, custom-variable-tag)
+	(custom-variable-button, custom-face-tag, custom-group-tag-1)
+	(custom-group-tag): Remove "-face" suffix from face names.
+	(custom-magic-alist, custom-magic-value-create)
+	(custom-group-sample-face-get, custom-mode): Use renamed custom faces.
+	(custom-invalid-face, custom-rogue-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-saved-face)
+	(custom-button-face, custom-button-pressed-face)
+	(custom-documentation-face, custom-state-face)
+	(custom-comment-face, custom-comment-tag-face)
+	(custom-variable-tag-face, custom-variable-button-face)
+	(custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face): 
+	New backward-compatibility aliases for renamed faces.
+
 	* wid-edit.el (widget-documentation, widget-button)
 	(widget-field, widget-single-line-field, widget-inactive)
 	(widget-button-pressed): "-face" suffix removed from face names.

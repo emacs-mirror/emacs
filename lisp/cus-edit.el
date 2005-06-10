@@ -1636,50 +1636,62 @@ item in another window.\n\n"))
   :group 'custom-faces
   :group 'custom-buffer)
 
-(defface custom-invalid-face '((((class color))
-				(:foreground "yellow1" :background "red1"))
-			       (t
-				(:weight bold :slant italic :underline t)))
+(defface custom-invalid '((((class color))
+			   (:foreground "yellow1" :background "red1"))
+			  (t
+			   (:weight bold :slant italic :underline t)))
   "Face used when the customize item is invalid."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-invalid-face 'face-alias 'custom-invalid)
 
-(defface custom-rogue-face '((((class color))
-			      (:foreground "pink" :background "black"))
-			     (t
-			      (:underline t)))
+(defface custom-rogue '((((class color))
+			 (:foreground "pink" :background "black"))
+			(t
+			 (:underline t)))
   "Face used when the customize item is not defined for customization."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-rogue-face 'face-alias 'custom-rogue)
 
-(defface custom-modified-face '((((min-colors 88) (class color))
-				 (:foreground "white" :background "blue1"))
-				(((class color))
-				 (:foreground "white" :background "blue"))
-				(t
-				 (:slant italic :bold)))
+(defface custom-modified '((((min-colors 88) (class color))
+			    (:foreground "white" :background "blue1"))
+			   (((class color))
+			    (:foreground "white" :background "blue"))
+			   (t
+			    (:slant italic :bold)))
   "Face used when the customize item has been modified."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-modified-face 'face-alias 'custom-modified)
 
-(defface custom-set-face '((((min-colors 88) (class color))
-			    (:foreground "blue1" :background "white"))
-			   (((class color))
-			    (:foreground "blue" :background "white"))
-			   (t
-			    (:slant italic)))
+(defface custom-set '((((min-colors 88) (class color))
+		       (:foreground "blue1" :background "white"))
+		      (((class color))
+		       (:foreground "blue" :background "white"))
+		      (t
+		       (:slant italic)))
   "Face used when the customize item has been set."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-set-face 'face-alias 'custom-set)
 
-(defface custom-changed-face '((((min-colors 88) (class color))
-				(:foreground "white" :background "blue1"))
-			       (((class color))
-				(:foreground "white" :background "blue"))
-			       (t
-				(:slant italic)))
+(defface custom-changed '((((min-colors 88) (class color))
+			   (:foreground "white" :background "blue1"))
+			  (((class color))
+			   (:foreground "white" :background "blue"))
+			  (t
+			   (:slant italic)))
   "Face used when the customize item has been changed."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-changed-face 'face-alias 'custom-changed)
 
-(defface custom-saved-face '((t (:underline t)))
+(defface custom-saved '((t (:underline t)))
   "Face used when the customize item has been saved."
   :group 'custom-magic-faces)
+;; backward-compatibility alias
+(put 'custom-saved-face 'face-alias 'custom-saved)
 
 (defconst custom-magic-alist
   '((nil "#" underline "\
@@ -1689,21 +1701,21 @@ UNKNOWN, you should not see this.")
     (hidden "-" default "\
 HIDDEN, invoke \"Show\" in the previous line to show." "\
 group now hidden, invoke \"Show\", above, to show contents.")
-    (invalid "x" custom-invalid-face "\
+    (invalid "x" custom-invalid "\
 INVALID, the displayed value cannot be set.")
-    (modified "*" custom-modified-face "\
+    (modified "*" custom-modified "\
 EDITED, shown value does not take effect until you set or save it." "\
 something in this group has been edited but not set.")
-    (set "+" custom-set-face "\
+    (set "+" custom-set "\
 SET for current session only." "\
 something in this group has been set but not saved.")
-    (changed ":" custom-changed-face "\
+    (changed ":" custom-changed "\
 CHANGED outside Customize; operating on it here may be unreliable." "\
 something in this group has been changed outside customize.")
-    (saved "!" custom-saved-face "\
+    (saved "!" custom-saved "\
 SAVED and set." "\
 something in this group has been set and saved.")
-    (rogue "@" custom-rogue-face "\
+    (rogue "@" custom-rogue "\
 NO CUSTOMIZATION DATA; you should not see this." "\
 something in this group is not prepared for customization.")
     (standard " " nil "\
@@ -1830,7 +1842,7 @@ and `face'."
 	       (insert " (lisp)"))
 	      ((eq form 'mismatch)
 	       (insert " (mismatch)")))
-	(put-text-property start (point) 'face 'custom-state-face))
+	(put-text-property start (point) 'face 'custom-state))
       (insert "\n"))
     (when (and (eq category 'group)
 	       (not (and (eq custom-buffer-style 'links)
@@ -1864,7 +1876,7 @@ and `face'."
 
 ;;; The `custom' Widget.
 
-(defface custom-button-face
+(defface custom-button
   '((((type x w32 mac) (class color))		; Like default modeline
      (:box (:line-width 2 :style released-button)
 	   :background "lightgrey" :foreground "black"))
@@ -1873,8 +1885,10 @@ and `face'."
   "Face used for buttons in customization buffers."
   :version "21.1"
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-button-face 'face-alias 'custom-button)
 
-(defface custom-button-pressed-face
+(defface custom-button-pressed
   '((((type x w32 mac) (class color))
      (:box (:line-width 2 :style pressed-button)
 	   :background "lightgrey" :foreground "black"))
@@ -1883,20 +1897,26 @@ and `face'."
   "Face used for buttons in customization buffers."
   :version "21.1"
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-button-pressed-face 'face-alias 'custom-button-pressed)
 
-(defface custom-documentation-face nil
+(defface custom-documentation nil
   "Face used for documentation strings in customization buffers."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-documentation-face 'face-alias 'custom-documentation)
 
-(defface custom-state-face '((((class color)
-			       (background dark))
-			      (:foreground "lime green"))
-			     (((class color)
-			       (background light))
-			      (:foreground "dark green"))
-			     (t nil))
+(defface custom-state '((((class color)
+			  (background dark))
+			 (:foreground "lime green"))
+			(((class color)
+			  (background light))
+			 (:foreground "dark green"))
+			(t nil))
   "Face used for State descriptions in the customize buffer."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-state-face 'face-alias 'custom-state)
 
 (define-widget 'custom 'default
   "Customize a user option."
@@ -2092,20 +2112,22 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 ;;; The `custom-comment' Widget.
 
 ;; like the editable field
-(defface custom-comment-face '((((class grayscale color)
-				 (background light))
-				(:background "gray85"))
-			       (((class grayscale color)
-				 (background dark))
-				(:background "dim gray"))
-			       (t
-				(:slant italic)))
+(defface custom-comment '((((class grayscale color)
+			    (background light))
+			   (:background "gray85"))
+			  (((class grayscale color)
+			    (background dark))
+			   (:background "dim gray"))
+			  (t
+			   (:slant italic)))
   "Face used for comments on variables or faces"
   :version "21.1"
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-comment-face 'face-alias 'custom-comment)
 
 ;; like font-lock-comment-face
-(defface custom-comment-tag-face
+(defface custom-comment-tag
   '((((class color) (background dark)) (:foreground "gray80"))
     (((class color) (background light)) (:foreground "blue4"))
     (((class grayscale) (background light))
@@ -2115,6 +2137,8 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (t (:weight bold)))
   "Face used for variables or faces comment tags"
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-comment-tag-face 'face-alias 'custom-comment-tag)
 
 (define-widget 'custom-comment 'string
   "User comment."
@@ -2154,7 +2178,7 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
 
 ;; When this was underlined blue, users confused it with a
 ;; Mosaic-style hyperlink...
-(defface custom-variable-tag-face
+(defface custom-variable-tag
   `((((class color)
       (background dark))
      (:foreground "light blue" :weight bold :height 1.2 :inherit variable-pitch))
@@ -2167,10 +2191,14 @@ If INITIAL-STRING is non-nil, use that rather than \"Parent groups:\"."
     (t (:weight bold)))
   "Face used for unpushable variable tags."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-variable-tag-face 'face-alias 'custom-variable-tag)
 
-(defface custom-variable-button-face '((t (:underline t :weight bold)))
+(defface custom-variable-button '((t (:underline t :weight bold)))
   "Face used for pushable variable tags."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-variable-button-face 'face-alias 'custom-variable-button)
 
 (defcustom custom-variable-default-form 'edit
   "Default form of displaying variable values."
@@ -2874,10 +2902,12 @@ Only match frames that support the specified face attributes.")
 
 ;;; The `custom-face' Widget.
 
-(defface custom-face-tag-face
+(defface custom-face-tag
   `((t (:weight bold :height 1.2 :inherit variable-pitch)))
   "Face used for face tags."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-face-tag-face 'face-alias 'custom-face-tag)
 
 (defcustom custom-face-default-form 'selected
   "Default form of displaying face definition."
@@ -3396,12 +3426,11 @@ restoring it to the state of a face that has never been customized."
   ;; Fixme: make it do so in Emacs.
   "Face used for group tags.
 The first member is used for level 1 groups, the second for level 2,
-and so forth.  The remaining group tags are shown with
-`custom-group-tag-face'."
+and so forth.  The remaining group tags are shown with `custom-group-tag'."
   :type '(repeat face)
   :group 'custom-faces)
 
-(defface custom-group-tag-face-1
+(defface custom-group-tag-1
   `((((class color)
       (background dark))
      (:foreground "pink" :weight bold :height 1.2 :inherit variable-pitch))
@@ -3414,8 +3443,10 @@ and so forth.  The remaining group tags are shown with
     (t (:weight bold)))
   "Face used for group tags."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-group-tag-face-1 'face-alias 'custom-group-tag-1)
 
-(defface custom-group-tag-face
+(defface custom-group-tag
   `((((class color)
       (background dark))
      (:foreground "light blue" :weight bold :height 1.2))
@@ -3428,6 +3459,8 @@ and so forth.  The remaining group tags are shown with
     (t (:weight bold)))
   "Face used for low level group tags."
   :group 'custom-faces)
+;; backward-compatibility alias
+(put 'custom-group-tag-face 'face-alias 'custom-group-tag)
 
 (define-widget 'custom-group 'custom
   "Customize group."
@@ -3448,7 +3481,7 @@ and so forth.  The remaining group tags are shown with
 (defun custom-group-sample-face-get (widget)
   ;; Use :sample-face.
   (or (nth (1- (widget-get widget :custom-level)) custom-group-tag-faces)
-      'custom-group-tag-face))
+      'custom-group-tag))
 
 (define-widget 'custom-group-visibility 'visibility
   "An indicator and manipulator for hidden group contents."
@@ -4261,13 +4294,12 @@ if that value is non-nil."
   (make-local-variable 'custom-options)
   (make-local-variable 'custom-local-buffer)
   (make-local-variable 'widget-documentation-face)
-  (setq widget-documentation-face 'custom-documentation-face)
+  (setq widget-documentation-face 'custom-documentation)
   (make-local-variable 'widget-button-face)
-  (setq widget-button-face 'custom-button-face)
-  (set (make-local-variable 'widget-button-pressed-face)
-       'custom-button-pressed-face)
+  (setq widget-button-face 'custom-button)
+  (set (make-local-variable 'widget-button-pressed-face) 'custom-button-pressed)
   (set (make-local-variable 'widget-mouse-face)
-       'custom-button-pressed-face)	; buttons `depress' when moused
+       'custom-button-pressed)		; buttons `depress' when moused
   ;; When possible, use relief for buttons, not bracketing.  This test
   ;; may not be optimal.
   (when custom-raised-buttons
