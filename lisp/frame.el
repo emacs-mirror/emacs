@@ -969,9 +969,9 @@ one frame, otherwise the name is displayed on the frame's caption bar."
 
 (defun frame-current-scroll-bars (&optional frame)
   "Return the current scroll-bar settings in frame FRAME.
-Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+Value is a cons (VERTICAL . HORIZ0NTAL) where VERTICAL specifies the
 current location of the vertical scroll-bars (left, right, or nil),
-and HORISONTAL specifies the current location of the horisontal scroll
+and HORIZONTAL specifies the current location of the horizontal scroll
 bars (top, bottom, or nil)."
   (let ((vert (frame-parameter frame 'vertical-scroll-bars))
 	(hor nil))
