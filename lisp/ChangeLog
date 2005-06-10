@@ -1,5 +1,11 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* textmodes/table.el (table-cell): Remove "-face" suffix from face
+	name.
+	(table-cell-face): New backward-compatibility alias for renamed face.
+	(table--put-cell-face-property, table--update-cell-face):
+	Use renamed table-cell face.
+
 	* textmodes/sgml-mode.el (sgml-namespace): Remove "-face" suffix
 	from face name.
 	(sgml-namespace-face): New backward-compatibility alias for
