@@ -170,17 +170,26 @@ no further processing).  URL is either a string or a parsed URL."
 			      (url-debug 'retrieval "Synchronous fetching done (%S)" (current-buffer))
 			      (setq retrieval-done t
 				    asynch-buffer (current-buffer)))))
-    (let ((proc (and asynch-buffer (get-buffer-process asynch-buffer))))
-      (if (null proc)
-	  ;; We do not need to do anything, it was a mailto or something
-	  ;; similar that takes processing completely outside of the URL
-	  ;; package.
-	  nil
+    (if (null asynch-buffer)
+        ;; We do not need to do anything, it was a mailto or something
+        ;; similar that takes processing completely outside of the URL
+        ;; package.
+        nil
+      (let ((proc (get-buffer-process asynch-buffer)))
+	;; If the access method was synchronous, `retrieval-done' should
+	;; hopefully already be set to t.  If it is nil, and `proc' is also
+	;; nil, it implies that the async process is not running in
+	;; asynch-buffer.  This happens e.g. for FTP files.  In such a case
+	;; url-file.el should probably set something like a `url-process'
+	;; buffer-local variable so we can find the exact process that we
+	;; should be waiting for.  In the mean time, we'll just wait for any
+	;; process output.
 	(while (not retrieval-done)
 	  (url-debug 'retrieval
 		     "Spinning in url-retrieve-synchronously: %S (%S)"
 		     retrieval-done asynch-buffer)
-	  (if (memq (process-status proc) '(closed exit signal failed))
+	  (if (and proc (memq (process-status proc)
+                              '(closed exit signal failed)))
 	      ;; FIXME: It's not clear whether url-retrieve's callback is
 	      ;; guaranteed to be called or not.  It seems that url-http
 	      ;; decides sometimes consciously not to call it, so it's not
@@ -193,7 +202,7 @@ no further processing).  URL is either a string or a parsed URL."
             ;; interrupt it before it got a chance to handle process input.
             ;; `sleep-for' was tried but it lead to other forms of
             ;; hanging.  --Stef
-            (unless (accept-process-output proc)
+            (unless (or (accept-process-output proc) (null proc))
               ;; accept-process-output returned nil, maybe because the process
               ;; exited (and may have been replaced with another).
               (setq proc (get-buffer-process asynch-buffer))))))
@@ -201,9 +210,9 @@ no further processing).  URL is either a string or a parsed URL."
 
 (defun url-mm-callback (&rest ignored)
   (let ((handle (mm-dissect-buffer t)))
-    (save-excursion
-      (url-mark-buffer-as-dead (current-buffer))
-      (set-buffer (generate-new-buffer (url-recreate-url url-current-object)))
+    (url-mark-buffer-as-dead (current-buffer))
+    (with-current-buffer
+        (generate-new-buffer (url-recreate-url url-current-object))
       (if (eq (mm-display-part handle) 'external)
 	  (progn
 	    (set-process-sentinel
