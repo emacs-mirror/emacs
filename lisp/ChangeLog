@@ -1,3 +1,13 @@
+2005-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-clipboard-yank): Remove condition-case
+	wrapping.
+
+2005-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* add-log.el (change-log-font-lock-keywords): Make the regexp for
+	date lines stricter.
+
 2005-06-10  Zhang Wei  <id.brep@gmail.com>  (tiny change)
 
 	* term/x-win.el (x-clipboard-yank): Use x-selection-value instead
