@@ -30,6 +30,11 @@
 	(dungeon-mode-map): Rename to dun-mode-map.  Keep old name as an
 	obsolete alias.
 
+	* play/doctor.el (doctor-mode-map): Remove defvar.
+	(doctor-mode): Use define-derived-mode.
+
+	* play/blackbox.el (blackbox-mode): Use run-mode-hooks.
+
 2005-06-10  Miles Bader  <miles@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
