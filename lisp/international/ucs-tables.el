@@ -2439,7 +2439,7 @@ Interactively, prompts for a hex string giving the code."
 The ISO 8859 characters sets overlap, e.g. 8859-1 (Latin-1) and
 8859-15 (Latin-9) differ only in a few characters.  Emacs normally
 distinguishes equivalent characters from those ISO-8859 character sets
-which are built in to Emacs.  This behaviour is essentially inherited
+which are built in to Emacs.  This behavior is essentially inherited
 from the European-originated international standards.  Treating them
 equivalently, by translating to and from a single representation is
 called `unification'.  (The `utf-8' coding system treats the
