@@ -1,5 +1,10 @@
 2005-06-10  Miles Bader  <miles@gnu.org>
 
+	* calendar/diary-lib.el (diary-button): Remove "-face" suffix from
+	face name.
+	(diary-button-face): New backward-compatibility alias for renamed face.
+	(diary-entry): Use renamed diary-button face.
+
 	* calendar/calendar.el (diary, calendar-today, holiday)
 	(mark-visible-calendar-date): Remove "-face" suffix from face names.
 	(diary-face, calendar-today-face, holiday-face):
