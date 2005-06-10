@@ -1,3 +1,7 @@
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TEMACS)): Depend on addsection.exe.
+
 2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
 
 	* process.c (syms_of_process) [ADAPTIVE_READ_BUFFERING]:
