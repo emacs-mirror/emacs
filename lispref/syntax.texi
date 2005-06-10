@@ -734,7 +734,7 @@ that have nested parentheses.
 This function returns the state that the parser would have at position
 @var{pos}, if it were started with a default start state at the
 beginning of the buffer.  Thus, it is equivalent to
-@code(parse-partial-sexp (point-min) @var{pos}), except that
+@code{(parse-partial-sexp (point-min) @var{pos})}, except that
 @code{syntax-ppss} uses a cache to speed up the computation.  Also,
 the 2nd value (previous complete subexpression) and 6th value (minimum
 parenthesis depth) of the returned state are not meaningful.
@@ -789,7 +789,7 @@ whitespace by the functions in this section and by @code{forward-sexp}.
 @end defopt
 
 @vindex parse-sexp-lookup-properties
-The behaviour of @code{parse-partial-sexp} is also affected by
+The behavior of @code{parse-partial-sexp} is also affected by
 @code{parse-sexp-lookup-properties} (@pxref{Syntax Properties}).
 
 You can use @code{forward-comment} to move forward or backward over
