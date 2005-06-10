@@ -1342,7 +1342,7 @@ after search."
 (defun vip-find-char-forward (arg)
   "Find char on the line.  If called interactively read the char to find
 from the terminal, and if called from vip-repeat, the char last used is
-used.  This behaviour is controlled by the sign of prefix numeric value."
+used.  This behavior is controlled by the sign of prefix numeric value."
   (interactive "P")
   (let ((val (vip-p-val arg)) (com (vip-getcom arg)))
     (if (> val 0)
