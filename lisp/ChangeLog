@@ -1,5 +1,9 @@
 2005-06-11  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
+	* thumbs.el (thumbs-per-line, thumbs-thumbsdir-max-size)
+	(thumbs-relief, thumbs-margin, thumbs-image-resizing-step): Fix
+	:type--it is `integer', not `string'.
+
 	* faces.el (modeline-highlight): Rename from (the erroneous)
 	`modeline-higilight'.
 
