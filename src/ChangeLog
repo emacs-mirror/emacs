@@ -1,5 +1,25 @@
 2005-06-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* image.c (x_create_x_image_and_pixmap) [HAVE_NTGUI]: Cast 4th arg
+	to CreateDIBSection to avoid a compiler warning.
+	(pbm_load): Cast 3rd arg to IMAGE_BACKGROUND to avoid a compiler
+	warning.
+	(png_load): Cast return values of fn_png_create_read_struct and
+	fn_png_create_info_struct, to avoid compiler warnings on W32.
+	Cast 3rd arg to IMAGE_BACKGROUND and image_background_transparent
+	to avoid compiler warnings.
+	(jpeg_load): Cast return value of fn_jpeg_std_error to avoid a
+	compiler warning on W32.  Cast 3rd arg to IMAGE_BACKGROUND to
+	avoid a compiler warning.
+	(tiff_load): Cast return values of fn_TIFFOpen and
+	fn_TIFFClientOpen to avoid compiler warning on W32.  Cast 3rd arg
+	to IMAGE_BACKGROUND to avoid a compiler warning.
+	(gif_load): Cast return values of fn_DGifOpenFileName and
+	fn_DGifOpen to avoid compiler warnings on W32.  Cast 3rd arg to
+	IMAGE_BACKGROUND to avoid a compiler warning.
+	(DrawText) [HAVE_NTGUI || MAC_OS]: If already defined, undef
+	before redefining.
+
 	* w32bdf.c (create_offscreen_bitmap): Cast `bitsp' to `void **' in
 	the call to CreateDIBSection, to avoid a compiler warning.
 
