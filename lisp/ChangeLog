@@ -1,3 +1,16 @@
+2005-06-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  The menubar is no more changed when printing
+	is loaded, it only changes when pr-menu-bind or pr-update-menus is
+	called.
+	(pr-version): New version number (6.8.4).
+	(pr-menu-bind): New command.
+	(pr-update-menus): Docstring and code fix.
+	(pr-menu-print-item): Now is a global var in Emacs and XEmacs.
+	Docstring fix.
+	(pr-txt-printer-alist, pr-ps-printer-alist, pr-gv-command)
+	(pr-gs-command, pr-gs-switches, pr-ps-utility-alist): Docstring fix.
+
 2005-06-11  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* emacs-lisp/ewoc.el: Doc fixes for public funcs:
