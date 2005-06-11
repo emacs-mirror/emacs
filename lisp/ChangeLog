@@ -1,3 +1,9 @@
+2005-06-11  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-eval-mode-map): Don't copy
+	lisp-interaction-mode-map but make it the parent.
+	(edebug-eval-mode): Use define-derived-mode.
+
 2005-06-11  Andreas Schwab  <schwab@suse.de>
 
 	* bindings.el: Add binding of `ESC functionkey' for every
