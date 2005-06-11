@@ -115,7 +115,7 @@ if it would act as a paragraph-starter on the second line."
 
 (defcustom adaptive-fill-function nil
   "*Function to call to choose a fill prefix for a paragraph, or nil.
-This function is used when `adaptive-fill-regexp' does not match."
+nil means the function has not determined the fill prefix."
   :type '(choice (const nil) function)
   :group 'fill)
 
@@ -230,9 +230,9 @@ act as a paragraph-separator."
 	    ;; Also setting first-line-prefix to nil prevents
 	    ;; second-line-prefix from being used.
 	    (cond ;; ((looking-at paragraph-start) nil)
+		  ((and adaptive-fill-function (funcall adaptive-fill-function)))
 		  ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
-		   (match-string-no-properties 0))
-		  (adaptive-fill-function (funcall adaptive-fill-function))))
+		   (match-string-no-properties 0))))
       (forward-line 1)
       (if (< (point) to)
 	(progn
@@ -240,11 +240,11 @@ act as a paragraph-separator."
 	  (setq start (point))
 	  (setq second-line-prefix
 		(cond ((looking-at paragraph-start) nil) ;Can it happen ? -stef
+		      ((and adaptive-fill-function
+			    (funcall adaptive-fill-function)))
 		      ((and adaptive-fill-regexp
 			    (looking-at adaptive-fill-regexp))
-		       (buffer-substring-no-properties start (match-end 0)))
-		      (adaptive-fill-function
-		       (funcall adaptive-fill-function))))
+		       (buffer-substring-no-properties start (match-end 0)))))
 	  ;; If we get a fill prefix from the second line,
 	  ;; make sure it or something compatible is on the first line too.
 	  (when second-line-prefix
