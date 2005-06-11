@@ -253,7 +253,7 @@ ifeq "$(ARCH)" "i386"
 ifdef NOOPT
 ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN)
 else
-ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN) -mcpu=i686 -O2 \
+ARCH_CFLAGS     = -D_X86_=1 -c $(DEBUG_FLAG) $(NOCYGWIN) $(MCPU_FLAG) -O2 \
 		  # -fbuiltin \
 		  # -finline-functions \
 		  # -fomit-frame-pointer
