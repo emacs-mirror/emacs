@@ -1,3 +1,8 @@
+2005-06-11  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* faces.el (modeline-highlight): Rename from (the erroneous)
+	`modeline-higilight'.
+
 2005-06-11  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-eval-mode-map): Don't copy
