@@ -465,20 +465,34 @@ if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.setting
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
-copy config.nt ..\src\config.h
-echo. >>..\src\config.h
-echo /* Start of settings from configure.bat.  */ >>..\src\config.h
-if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
-if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
-if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
-if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
-if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
-if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>..\src\config.h
-if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>..\src\config.h
-echo /* End of settings from configure.bat.  */ >>..\src\config.h
+copy config.nt config.tmp
+echo. >>config.tmp
+echo /* Start of settings from configure.bat.  */ >>config.tmp
+if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>config.tmp
+if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
+if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
+if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
+if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
+if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>config.tmp
+echo /* End of settings from configure.bat.  */ >>config.tmp
 
+Rem See if fc.exe returns a meaningful exit status.  If it does, we
+Rem might as well avoid unnecessary overwriting of config.h and epaths.h,
+Rem since this forces recompilation of every source file.
+if exist foo.bar del foo.bar
+fc /b foo.bar foo.bar >nul 2>&1
+if not errorlevel 2 goto doCopy
+fc /b config.tmp ..\src\config.h >nul 2>&1
+if errorlevel 1 goto doCopy
+fc /b paths.h ..\src\epaths.h >nul 2>&1
+if errorlevel 0 goto dontCopy
+:doCopy
+copy config.tmp ..\src\config.h
 copy paths.h ..\src\epaths.h
 
+:dontCopy
+if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
