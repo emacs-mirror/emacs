@@ -1,3 +1,9 @@
+2005-06-11  Alan Mackenzie  <acm@muc.de>
+
+	* fill.el (fill-context-prefix): Try `adaptive-fill-function'
+	BEFORE `adaptive-fill-regexp' when determining a fill prefix.
+	(adaptive-file-function): Minor amendment to doc-string.
+
 2005-06-11  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
 	* thumbs.el (thumbs-per-line, thumbs-thumbsdir-max-size)

@@ -1,3 +1,8 @@
+2005-06-11  Alan Mackenzie  <acm@muc.de>
+
+	* text.texi (Adaptive Fill): Amplify the description of
+	fill-context-prefix.
+
 2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* syntax.texi (Parsing Exprssions): Fix Texinfo error.
