@@ -4014,20 +4014,19 @@ May only be called from within edebug-recursive-edit."
 (defvar edebug-eval-mode-map nil
   "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
 
-(if edebug-eval-mode-map
-    nil
-  (setq edebug-eval-mode-map (copy-keymap lisp-interaction-mode-map))
+(unless edebug-eval-mode-map
+  (setq edebug-eval-mode-map (make-sparse-keymap))
+  (set-keymap-parent edebug-eval-mode-map lisp-interaction-mode-map)
 
   (define-key edebug-eval-mode-map "\C-c\C-w" 'edebug-where)
   (define-key edebug-eval-mode-map "\C-c\C-d" 'edebug-delete-eval-item)
   (define-key edebug-eval-mode-map "\C-c\C-u" 'edebug-update-eval-list)
   (define-key edebug-eval-mode-map "\C-x\C-e" 'edebug-eval-last-sexp)
-  (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp)
-  )
+  (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp))
 
 (put 'edebug-eval-mode 'mode-class 'special)
 
-(defun edebug-eval-mode ()
+(define-derived-mode edebug-eval-mode lisp-interaction-mode "Edebug Eval"
   "Mode for evaluation list buffer while in Edebug.
 
 In addition to all Interactive Emacs Lisp commands there are local and
@@ -4039,12 +4038,7 @@ Eval list buffer commands:
 \\{edebug-eval-mode-map}
 
 Global commands prefixed by global-edebug-prefix:
-\\{global-edebug-map}
-"
-  (lisp-interaction-mode)
-  (setq major-mode 'edebug-eval-mode)
-  (setq mode-name "Edebug Eval")
-  (use-local-map edebug-eval-mode-map))
+\\{global-edebug-map}")
 
 ;;; Interface with standard debugger.
 
