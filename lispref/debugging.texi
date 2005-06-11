@@ -271,12 +271,9 @@ Debugger entered--entering a function:
 This function undoes the effect of @code{debug-on-entry} on
 @var{function-name}.  When called interactively, it prompts for
 @var{function-name} in the minibuffer.  If @var{function-name} is
-omitted, @code{nil}, or the empty string, it cancels break-on-entry for all
-functions.
-
+omitted or @code{nil}, it cancels break-on-entry for all functions.
 Calling @code{cancel-debug-on-entry} does nothing to a function which is
-not currently set up to break on entry.  It always returns
-@var{function-name}.
+not currently set up to break on entry.
 @end deffn
 
 @node Explicit Debug
