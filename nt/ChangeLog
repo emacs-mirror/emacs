@@ -1,5 +1,9 @@
 2005-06-11  Eli Zaretskii  <eliz@gnu.org>
 
+	* configure.bat: If their fc.exe returns a meaningful exit status,
+	don't overwrite src/config.h and src/epaths.h with identical
+	copies.
+
 	* INSTALL: Warn about using "cvs up -kb" if one intends to commit
 	changes.  Add a pointer to another site with detailed configure
 	and build instructions.  Suggest to look at config.log when
@@ -9,7 +13,7 @@
 	* gmake.defs (ARCH_CFLAGS): Use $(MCPU_FLAG) instead of a literal
 	"-mcpu=i686".
 
-	* configure1.bat: Update copyright years.
+	* configure.bat: Update copyright years.
 	Delete config.log before doing anything else.
 	Write additional diagnostics to config.log in case of failures to
 	compile test programs, including the failed test program itself.

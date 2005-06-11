@@ -1,3 +1,8 @@
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32bdf.c (create_offscreen_bitmap): Cast `bitsp' to `void **' in
+	the call to CreateDIBSection, to avoid a compiler warning.
+
 2005-06-11  Jason Rumney  <jasonr@gnu.org>
 
 	* w32fns.c (Fx_file_dialog): Unblock input before falling back to
