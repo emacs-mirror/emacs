@@ -3388,6 +3388,13 @@ clone to the other.
 ---
 *** The function `insert-string' is now obsolete.
 
+** Filling changes.
+
++++
+*** In determining an adaptive fill prefix, Emacs now tries the function in
+`adaptive-fill-function' _before_ matching the buffer line against
+`adaptive-fill-regexp' rather than _after_ it.
+
 +++
 ** Atomic change groups.
 
