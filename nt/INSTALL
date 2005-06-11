@@ -15,10 +15,20 @@
   (.bat files, nmake.defs and makefile.w32-in) may need the line-ends
   fixing first. The easiest way to do this and avoid future conflicts
   is to run the following command in this (emacs/nt) directory:
+
      cvs update -kb
+
+  (WARNING: Do NOT use this suggestion if you have write access to the
+  Emacs CVS tree and intend to commit changes to CVS.  This is because -kb
+  is sticky: it will be used in all future CVS operations on the files you
+  check out like this.)  Alternatively, use programs that convert
+  end-of-line format, such as dos2unix and unix2dos available from
+  GnuWin32 or dtou and utod from the DJGPP project.
+
   In addition to this file, you should also read INSTALL.CVS in the
-  parent directory, and make sure that you have a version of "touch.exe"
-  in your path, and that it will create files that do not yet exist.
+  parent directory, and make sure that you have a version of
+  "touch.exe" in your path, and that it will create files that do not
+  yet exist.
 
   To compile Emacs, you will need either Microsoft Visual C++ 2.0 or
   later and nmake, or a Windows port of GCC 2.95 or later with MinGW
@@ -51,6 +61,10 @@
 
   http://www.emacswiki.org/cgi-bin/wiki/WThirtyTwoInstallationKit
 
+  and at this URL:
+
+  http://ourcomments.org/Emacs/w32-build-emacs.html
+
   For reference, here is a list of which builds of GNU make are known
   to work or not, and whether they work in the presence and/or absence
   of sh.exe, the Cygwin port of Bash. Note that any version of make
@@ -77,6 +91,7 @@
     cygwin compiled make 3.78.1:         fails[5]      fails[2, 5]
     cygwin compiled make 3.79.1:         fails[3, 5]   fails[2?, 5]
     mingw32 compiled make 3.79.1:        okay          okay
+    mingw32 compiled make 3.80:          okay          unknown[6]
 
   Notes:
 
@@ -88,6 +103,7 @@
     [4] may fail on Windows 9X and Windows ME; if so, install Bash.
     [5] fails when building leim due to the use of cygwin style paths.
         May work if building emacs without leim.
+    [6] please report if you try this combination.
 
 * Configuring
 
@@ -105,6 +121,12 @@
   is running, when gcc support is being tested.  These cannot be
   surpressed because of limitations in the Windows 9x command.com shell.
 
+  You are encouraged to look at the file config.log which shows details
+  for failed tests, after configure.bat finishes.  Any unexplained failure
+  should be investigated and perhaps reported as a bug (see the section
+  about reporting bugs in the file README in this directory and in the
+  Emacs manual).
+
 * Optional image library support
 
   In addition to its "native" image formats (pbm and xbm), Emacs can
@@ -114,7 +136,11 @@
   configure script is run.  This can be setup using environment
   variables, or by specifying --cflags -I... options on the command-line
   to configure.bat.  The configure script will report whether it was
-  able to detect the headers.
+  able to detect the headers.  If the results of this testing appear to be
+  incorrect, please look for details in the file config.log: it will show
+  the failed test programs and compiler error messages that should explain
+  what is wrong.  (Usually, any such failures happen because some headers
+  are missing due to bad packaging of the image support libraries.)
 
   To use the external image support, the DLLs implementing the
   functionality must be found when Emacs first needs them, either on the
@@ -133,7 +159,9 @@
 
   Binaries for the image libraries (among many others) can be found at
   the GnuWin32 project.  These are built with MinGW, but they can be
-  used with both GCC/MinGW and MSVC builds of Emacs.
+  used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
+  http://ourcomments.org/Emacs/w32-build-emacs.html for more details about
+  installing image support libraries.
 
 * Building
 
@@ -186,6 +214,12 @@
   in the definition of IMAGE_FIRST_SECTION in winnt.h, which
   addsection.c relies on.  Versions of w32api-xxx.zip from at least
   1999-11-18 onwards are okay.
+
+  When in doubt about correctness of what configure did, look at the file
+  config.log, which shows all the failed test programs and compiler
+  messages associated with the failures.  If that doesn't give a clue,
+  please report the problems, together with the relevant fragments from
+  config.log, as bugs.
 
   If configure succeeds, but make fails, install the Cygwin port of
   Bash, even if the table above indicates that Emacs should be able to
