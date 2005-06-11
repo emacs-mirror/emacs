@@ -1667,8 +1667,12 @@ line won't be broken there.
 @section Adaptive Fill Mode
 @cindex Adaptive Fill mode
 
-  Adaptive Fill mode chooses a fill prefix automatically from the text
-in each paragraph being filled.
+  When @dfn{Adaptive Fill Mode} is enabled, Emacs determines the fill
+prefix automatically from the text in each paragraph being filled
+rather than using a predetermined value.  During filling, this fill
+prefix gets inserted at the start of the second and subsequent lines
+of the paragraph as described in @ref{Filling}, and in @ref{Auto
+Filling}.
 
 @defopt adaptive-fill-mode
 Adaptive Fill mode is enabled when this variable is non-@code{nil}.
@@ -1677,38 +1681,80 @@ It is @code{t} by default.
 
 @defun fill-context-prefix from to
 This function implements the heart of Adaptive Fill mode; it chooses a
-fill prefix based on the text between @var{from} and @var{to}.  It does
-this by looking at the first two lines of the paragraph, based on the
-variables described below.
+fill prefix based on the text between @var{from} and @var{to},
+typically the start and end of a paragraph.  It does this by looking
+at the first two lines of the paragraph, based on the variables
+described below.
 @c The optional argument first-line-regexp is not documented
 @c because it exists for internal purposes and might be eliminated
 @c in the future.
+
+Usually, this function returns the fill prefix, a string.  However,
+before doing this, the function makes a final check (not specially
+mentioned in the following) that a line starting with this prefix
+wouldn't look like the start of a paragraph.  Should this happen, the
+function signals the anomaly by returning @code{nil} instead.
+
+In detail, @code{fill-context-prefix} does this:
+
+@enumerate
+@item
+It takes a candidate for the fill prefix from the first line---it
+tries first the function in @code{adaptive-fill-function} (if any),
+then the regular expression @code{adaptive-fill-regexp} (see below).
+The first non-@code{nil} result of these, or the empty string if
+they're both @code{nil}, becomes the first line's candidate.
+@item
+If the paragraph has as yet only one line, the function tests the
+validity of the prefix candidate just found.  The function then
+returns the candidate if it's valid, or a string of spaces otherwise.
+(see the description of @code{adaptive-fill-first-line-regexp} below).
+@item
+When the paragraph already has two lines, the function next looks for
+a prefix candidate on the second line, in just the same way it did for
+the first line.  If it doesn't find one, it returns @code{nil}.
+@item
+The function now compares the two candidate prefixes heuristically: if
+the non-whitespace characters in the line 2 candidate occur in the
+same order in the line 1 candidate, the function returns the line 2
+candidate.  Otherwise, it returns the largest initial substring which
+is common to both candidates (which might be the empty string).
+@end enumerate
 @end defun
 
 @defopt adaptive-fill-regexp
-This variable holds a regular expression to control Adaptive Fill mode.
 Adaptive Fill mode matches this regular expression against the text
 starting after the left margin whitespace (if any) on a line; the
 characters it matches are that line's candidate for the fill prefix.
+
+The default value of this variable is
+@w{@samp{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}}.  This
+matches a number enclosed in parentheses or followed by a period,
+or certain punctuation characters, or any sequence of these
+intermingled with whitespace.  In particular, it matches a sequence of
+whitespace, possibly empty.
 @end defopt
 
 @defopt adaptive-fill-first-line-regexp
-In a one-line paragraph, if the candidate fill prefix matches this
-regular expression, or if it matches @code{comment-start-skip}, then it
-is used---otherwise, spaces amounting to the same width are used
-instead.
+Used only in one-line paragraphs, this regular expression acts as an
+additional check of the validity of the one available candidate fill
+prefix: the candidate must match this regular expression, or match
+@code{comment-start-skip}.  If it doesn't, @code{fill-context-prefix}
+replaces the candidate with a string of spaces ``of the same width''
+as it.
 
-However, the fill prefix is never taken from a one-line paragraph
-if it would act as a paragraph starter on subsequent lines.
+The default value of this variable is @w{@samp{"\\`[ \t]*\\'"}}, which
+matches only a string of whitespace.  The effect of this default is to
+force the fill prefixes found in one-line paragraphs always to be pure
+whitespace.
 @end defopt
 
 @defopt adaptive-fill-function
 You can specify more complex ways of choosing a fill prefix
 automatically by setting this variable to a function.  The function is
-called when @code{adaptive-fill-regexp} does not match, with point after
-the left margin of a line, and it should return the appropriate fill
-prefix based on that line.  If it returns @code{nil}, that means it sees
-no fill prefix in that line.
+called with point after the left margin (if any) of a line, and it
+must preserve point.  It should return either ``that line's'' fill
+prefix or @code{nil}, meaning it has failed to determine a prefix.
 @end defopt
 
 @node Auto Filling
