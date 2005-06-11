@@ -2,7 +2,7 @@
 
 	* printing.el: Doc fix.  The menubar is no more changed when printing
 	is loaded, it only changes when pr-menu-bind or pr-update-menus is
-	called.
+	called.  Now, the menubar changing will work in Emacs 20, 21 and 22.
 	(pr-version): New version number (6.8.4).
 	(pr-menu-bind): New command.
 	(pr-update-menus): Docstring and code fix.
