@@ -1863,7 +1863,7 @@ created."
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
-(put 'modeline-higilight 'face-alias 'mode-line-highlight)
+(put 'modeline-highlight 'face-alias 'mode-line-highlight)
 
 (defface header-line
   '((default
