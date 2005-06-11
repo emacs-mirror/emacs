@@ -576,6 +576,13 @@ these data structures on the respective headers to remove the `:N'
 bitfield definitions (which will cause each such field to use a full
 int).
 
+** How to recover buffer contents from an Emacs core dump file
+
+The file etc/emacs-buffer.gdb defines a set of GDB commands for
+recovering the contents of Emacs buffers from a core dump file.  You
+might also find those commands useful for displaying the list of
+buffers in human-readable format from within the debugger.
+
 ** Some suggestions for debugging on MS Windows:
 
    (written by Marc Fleischeuers, Geoff Voelker and Andrew Innes)
