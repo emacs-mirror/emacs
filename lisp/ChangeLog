@@ -1,3 +1,8 @@
+2005-06-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el: Doc fixes for public funcs:
+	"Returns" to "return", document useful return values, etc.
+
 2005-06-11  Alan Mackenzie  <acm@muc.de>
 
 	* fill.el (fill-context-prefix): Try `adaptive-fill-function'
