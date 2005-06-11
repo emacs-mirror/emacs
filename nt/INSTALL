@@ -63,7 +63,7 @@
 
   and at this URL:
 
-  http://ourcomments.org/Emacs/w32-build-emacs.html
+  http://ourcomments.org/Emacs/EmacsW32.html
 
   For reference, here is a list of which builds of GNU make are known
   to work or not, and whether they work in the presence and/or absence
@@ -160,7 +160,7 @@
   Binaries for the image libraries (among many others) can be found at
   the GnuWin32 project.  These are built with MinGW, but they can be
   used with both GCC/MinGW and MSVC builds of Emacs.  See the info on
-  http://ourcomments.org/Emacs/w32-build-emacs.html for more details about
+  http://ourcomments.org/Emacs/EmacsW32.html for more details about
   installing image support libraries.
 
 * Building
