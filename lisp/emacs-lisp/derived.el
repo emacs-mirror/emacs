@@ -1,5 +1,5 @@
 ;;; derived.el --- allow inheritance of major modes
-;;; (formerly mode-clone.el)
+;; (formerly mode-clone.el)
 
 ;; Copyright (C) 1993, 1994, 1999, 2003 Free Software Foundation, Inc.
 
@@ -221,6 +221,12 @@ See Info node `(elisp)Derived Modes' for more details."
 			 (get (quote ,parent) 'mode-class)))
 					; Set up maps and tables.
 		(unless (keymap-parent ,map)
+                  ;; It would probably be better to set the keymap's parent
+                  ;; at the toplevel rather than inside the mode function,
+                  ;; but this is not easy for at least the following reasons:
+                  ;; - the parent (and its keymap) may not yet be loaded.
+                  ;; - the parent's keymap name may be called something else
+                  ;;   than <parent>-mode-map.
 		  (set-keymap-parent ,map (current-local-map)))
 		,(when declare-syntax
 		   `(let ((parent (char-table-parent ,syntax)))
@@ -440,5 +446,5 @@ Where the new table already has an entry, nothing is copied from the old one."
 
 (provide 'derived)
 
-;;; arch-tag: 630be248-47d1-4f02-afa0-8207de0ebea0
+;; arch-tag: 630be248-47d1-4f02-afa0-8207de0ebea0
 ;;; derived.el ends here
