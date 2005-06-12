@@ -8894,24 +8894,25 @@ void globals_of_w32fns ()
 
 #undef abort
 
+void w32_abort (void) NO_RETURN;
+
 void
 w32_abort()
 {
   int button;
   button = MessageBox (NULL,
 		       "A fatal error has occurred!\n\n"
-		       "Select Abort to exit, Retry to debug, Ignore to continue",
+		       "Would you like to attach a debugger?\n\n"
+		       "Select YES to debug, NO to abort Emacs",
 		       "Emacs Abort Dialog",
 		       MB_ICONEXCLAMATION | MB_TASKMODAL
-		       | MB_SETFOREGROUND | MB_ABORTRETRYIGNORE);
+		       | MB_SETFOREGROUND | MB_YESNO);
   switch (button)
     {
-    case IDRETRY:
+    case IDYES:
       DebugBreak ();
-      break;
-    case IDIGNORE:
-      break;
-    case IDABORT:
+      exit (2);	/* tell the compiler we will never return */
+    case IDNO:
     default:
       abort ();
       break;
