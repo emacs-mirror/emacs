@@ -7759,6 +7759,19 @@ file_dialog_callback (hwnd, msg, wParam, lParam)
   return 0;
 }
 
+/* Since we compile with _WIN32_WINNT set to 0x0400 (for NT4 compatibility)
+   we end up with the old file dialogs. Define a big enough struct for the
+   new dialog to trick GetOpenFileName into giving us the new dialogs on
+   Windows 2000 and XP.  */
+typedef struct
+{
+  OPENFILENAME real_details;
+  void * pReserved;
+  DWORD dwReserved;
+  DWORD FlagsEx;
+} NEWOPENFILENAME;
+
+    
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
@@ -7807,44 +7820,58 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     filename[0] = '\0';
 
   {
-    OPENFILENAME file_details;
+    NEWOPENFILENAME new_file_details;
     BOOL file_opened = FALSE;
-
+    OPENFILENAME * file_details = &new_file_details.real_details;
+  
     /* Prevent redisplay.  */
     specbind (Qinhibit_redisplay, Qt);
     BLOCK_INPUT;
 
-    bzero (&file_details, sizeof (file_details));
-    file_details.lStructSize = sizeof (file_details);
-    file_details.hwndOwner = FRAME_W32_WINDOW (f);
+    bzero (&new_file_details, sizeof (new_file_details));
+    /* Apparently NT4 crashes if you give it an unexpected size.
+       I'm not sure about Windows 9x, so play it safe.  */
+    if (w32_major_version > 4 && w32_major_version < 95)
+      file_details->lStructSize = sizeof (new_file_details);
+    else
+      file_details->lStructSize = sizeof (file_details);
+
+    file_details->hwndOwner = FRAME_W32_WINDOW (f);
     /* Undocumented Bug in Common File Dialog:
        If a filter is not specified, shell links are not resolved.  */
-    file_details.lpstrFilter = "All Files (*.*)\0*.*\0Directories\0*|*\0\0";
-    file_details.lpstrFile = filename;
-    file_details.nMaxFile = sizeof (filename);
-    file_details.lpstrInitialDir = init_dir;
-    file_details.lpstrTitle = SDATA (prompt);
+    file_details->lpstrFilter = "All Files (*.*)\0*.*\0Directories\0*|*\0\0";
+    file_details->lpstrFile = filename;
+    file_details->nMaxFile = sizeof (filename);
+    file_details->lpstrInitialDir = init_dir;
+    file_details->lpstrTitle = SDATA (prompt);
 
     if (! NILP (only_dir_p))
       default_filter_index = 2;
 
-    file_details.nFilterIndex = default_filter_index;
+    file_details->nFilterIndex = default_filter_index;
 
-    file_details.Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
+    file_details->Flags = (OFN_HIDEREADONLY | OFN_NOCHANGEDIR
 			  | OFN_EXPLORER | OFN_ENABLEHOOK);
     if (!NILP (mustmatch))
-      file_details.Flags |= OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST;
+      {
+	/* Require that the path to the parent directory exists.  */
+	file_details->Flags |= OFN_PATHMUSTEXIST;
+	/* If we are looking for a file, require that it exists.  */
+	if (NILP (only_dir_p))
+	  file_details->Flags |= OFN_FILEMUSTEXIST;
+      }
 
-    file_details.lpfnHook = (LPOFNHOOKPROC) file_dialog_callback;
+    file_details->lpfnHook = (LPOFNHOOKPROC) file_dialog_callback;
 
-    file_opened = GetOpenFileName (&file_details);
+    file_opened = GetOpenFileName (file_details);
 
     UNBLOCK_INPUT;
 
     if (file_opened)
       {
 	dostounix_filename (filename);
-	if (file_details.nFilterIndex == 2)
+
+	if (file_details->nFilterIndex == 2)
 	  {
 	    /* "Directories" selected - strip dummy file name.  */
 	    char * last = strrchr (filename, '/');
