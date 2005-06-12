@@ -1,5 +1,8 @@
 2005-06-12  Lute Kamstra  <lute@gnu.org>
 
+	* man.el (Man-mode-map): Initialize it properly.
+	(Man-mode): Set mode-class property to special.
+
 	* calendar/calendar.el (calendar-mode): Use run-mode-hooks.
 
 2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
