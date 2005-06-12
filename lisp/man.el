@@ -391,10 +391,11 @@ Otherwise, the value is whatever the function
     table)
   "Syntax table used in Man mode buffers.")
 
-(if Man-mode-map
-    nil
-  (setq Man-mode-map (copy-keymap button-buffer-map))
+(unless Man-mode-map
+  (setq Man-mode-map (make-sparse-keymap))
   (suppress-keymap Man-mode-map)
+  (set-keymap-parent Man-mode-map button-buffer-map)
+
   (define-key Man-mode-map " "    'scroll-up)
   (define-key Man-mode-map "\177" 'scroll-down)
   (define-key Man-mode-map "n"    'Man-next-section)
@@ -410,8 +411,7 @@ Otherwise, the value is whatever the function
   (define-key Man-mode-map "k"    'Man-kill)
   (define-key Man-mode-map "q"    'Man-quit)
   (define-key Man-mode-map "m"    'man)
-  (define-key Man-mode-map "?"    'describe-mode)
-  )
+  (define-key Man-mode-map "?"    'describe-mode))
 
 ;; buttons
 (define-button-type 'Man-xref-man-page
@@ -1022,6 +1022,8 @@ manpage command."
 
 ;; ======================================================================
 ;; set up manual mode in buffer and build alists
+
+(put 'Man-mode 'mode-class 'special)
 
 (defun Man-mode ()
   "A mode for browsing Un*x manual pages.
