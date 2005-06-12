@@ -606,7 +606,7 @@ PROPS are additional properties."
   `(progn
      (defun ,name (&optional interactively)
        ,(concat "Toggle whether to " (downcase (substring help 0 1))
-		(substring help 1) ".\
+		(substring help 1) ".
 In an interactive call, record this option as a candidate for saving
 by \"Save Options\" in Custom buffers.")
        (interactive "p")
