@@ -3124,8 +3124,8 @@ that character a non-@code{nil} @var{cursor} text property.
 @item pointer
 @kindex pointer @r{(text property)}
 This specifies a specific pointer shape when the mouse pointer is over
-this text or image.  See the variable @var{void-area-text-pointer}
-for possible pointer shapes.
+this text or image.  @xref{Pointer Shape}, for possible pointer
+shapes.
 
 @item line-spacing
 @kindex line-spacing @r{(text property)}
