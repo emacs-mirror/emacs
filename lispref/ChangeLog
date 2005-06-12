@@ -1,3 +1,9 @@
+2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* debugging.texi (Function Debugging): Delete mention of empty
+	string argument to `cancel-debug-on-entry'.  Delete inaccurate
+	description of the return value of that command.
+
 2005-06-11  Alan Mackenzie  <acm@muc.de>
 
 	* text.texi (Adaptive Fill): Amplify the description of

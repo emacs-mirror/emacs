@@ -1,3 +1,11 @@
+2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-make-toggle): Remove stray backslash.
+	A newline is needed in the docstring there.
+
+	* emacs-lisp/debug.el (debug-on-entry, cancel-debug-on-entry):
+	Doc fixes.
+
 2005-06-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* printing.el: Doc fix.  The menubar is no more changed when printing
