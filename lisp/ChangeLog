@@ -1,3 +1,7 @@
+2005-06-12  Lute Kamstra  <lute@gnu.org>
+
+	* calendar/calendar.el (calendar-mode): Use run-mode-hooks.
+
 2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* menu-bar.el (menu-bar-make-toggle): Remove stray backslash.
