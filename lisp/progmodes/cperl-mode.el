@@ -1481,7 +1481,7 @@ or as help on variables `cperl-tips', `cperl-problems',
   (make-local-variable 'comment-start-skip)
   (setq comment-start-skip "#+ *")
   (make-local-variable 'defun-prompt-regexp)
-  (setq defun-prompt-regexp "^[ \t]*sub[ \t\n]+\\([^ \t\n{(;]+\\)\\([ \t\n]*([^()]*)[ \t\n]*\\)?[ \t\n]*)")
+  (setq defun-prompt-regexp "^[ \t]*sub[ \t\n]+\\([^ \t\n{(;]+\\)\\([ \t\n]*([^()]*)[ \t\n]*\\)?[ \t\n]*")
   (make-local-variable 'comment-indent-function)
   (setq comment-indent-function 'cperl-comment-indent)
   (make-local-variable 'parse-sexp-ignore-comments)
