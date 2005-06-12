@@ -1,3 +1,7 @@
+2005-06-13  Lute Kamstra  <lute@gnu.org>
+
+	* text.texi (Special Properties): Fix cross reference.
+
 2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* debugging.texi (Function Debugging): Delete mention of empty
