@@ -1,3 +1,10 @@
+2005-06-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (NEWOPENFILENAME): New struct.
+	(Fx_file_dialog): Use it to trick the system into giving us up to
+	date dialogs on systems that are documented to support it.
+	Do not set OFN_FILEMUSTEXIST flag if looking for a directory.
+
 2005-06-12  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32fns.c (w32_abort): Use the MB_YESNO dialog instead of
