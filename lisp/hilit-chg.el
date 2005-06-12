@@ -49,9 +49,9 @@
 ;; either explicitly define each face by customizing
 ;; `highlight-changes-face-list'.  If, however, the faces differ from
 ;; the `highlight-changes' face only in the foreground color, you can simply set
-;; `highlight-changes-colours'.  If `highlight-changes-face-list' is nil when
+;; `highlight-changes-colors'.  If `highlight-changes-face-list' is nil when
 ;; the faces are required they will be constructed from
-;; `highlight-changes-colours'.
+;; `highlight-changes-colors'.
 ;;
 ;;
 ;; When a Highlight Changes mode is on (either active or passive) you can go
@@ -233,9 +233,9 @@
 
 
 
-;; A (not very good) default list of colours to rotate through.
+;; A (not very good) default list of colors to rotate through.
 ;;
-(defcustom highlight-changes-colours
+(defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:
       '( "magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
@@ -251,6 +251,9 @@ colors then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
   :type '(repeat color)
   :group 'highlight-changes)
+
+(define-obsolete-variable-alias 'highlight-changes-colours
+                                'highlight-changes-colors "22.1")
 
 
 ;; If you invoke highlight-changes-mode with no argument, should it start in
@@ -381,16 +384,16 @@ remove it from existing buffers."
 (defcustom highlight-changes-face-list nil
   "*A list of faces used when rotating changes.
 Normally the variable is initialized to nil and the list is created from
-`highlight-changes-colours' when needed.  However, you can set this variable
+`highlight-changes-colors' when needed.  However, you can set this variable
 to any list of faces.  You will have to do this if you want faces which
 don't just differ from the `highlight-changes' face by the foreground color.
 Otherwise, this list will be constructed when needed from
-`highlight-changes-colours'."
+`highlight-changes-colors'."
   :type '(choice
 	  (repeat
 	    :notify hilit-chg-cust-fix-changes-face-list
 	    face  )
-	  (const :tag "Derive from highlight-changes-colours"  nil)
+	  (const :tag "Derive from highlight-changes-colors"  nil)
 	  )
   :group 'highlight-changes)
 
@@ -731,7 +734,7 @@ Hook variables:
   ;; so we pick up any changes?
   (if (or (null highlight-changes-face-list)  ; Don't do it if it
 	  force) ; already exists unless FORCE non-nil.
-      (let ((p highlight-changes-colours)
+      (let ((p highlight-changes-colors)
 	    (n 1) name)
 	(setq highlight-changes-face-list nil)
 	(while p
