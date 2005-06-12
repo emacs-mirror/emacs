@@ -1,3 +1,8 @@
+2005-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
+	use an old loaddefs.el, as in Makefile.in.
+
 2005-06-12  Lute Kamstra  <lute@gnu.org>
 
 	* Makefile.in (bootstrap-prepare): Don't use an old loaddefs.el.

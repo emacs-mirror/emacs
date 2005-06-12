@@ -1,3 +1,8 @@
+2005-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_abort): Use the MB_YESNO dialog instead of
+	MB_ABORTRETRYIGNORE.  Never return, even if DebugBreak does.
+
 2005-06-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* image.c (x_create_x_image_and_pixmap) [HAVE_NTGUI]: Cast 4th arg
