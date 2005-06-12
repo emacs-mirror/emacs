@@ -1,5 +1,8 @@
 2005-06-12  Eli Zaretskii  <eliz@gnu.org>
 
+	* loadup.el: Don't say we are dumping under 2 names on windows-nt
+	and cygwin.
+
 	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
 	use an old loaddefs.el, as in Makefile.in.
 
