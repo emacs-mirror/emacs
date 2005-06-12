@@ -1,3 +1,11 @@
+2005-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-colors): Rename from
+	`highlight-changes-colours'.
+	(highlight-changes-colours): Keep as obsolete alias.
+	(highlight-changes-face-list): Doc fix.
+	(hilit-chg-make-list): Use `highlight-changes-colors'.
+
 2005-06-12  Mark A. Hershberger  <mah@everybody.org>
 
 	* progmodes/cperl-mode.el (cperl-mode): Remove stray paren in
