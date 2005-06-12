@@ -1,5 +1,7 @@
 2005-06-12  Lute Kamstra  <lute@gnu.org>
 
+	* Makefile.in (bootstrap-prepare): Don't use an old loaddefs.el.
+
 	* man.el (Man-mode-map): Initialize it properly.
 	(Man-mode): Set mode-class property to special.
 
