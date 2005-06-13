@@ -1,3 +1,7 @@
+2005-06-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Getting Started): Remove extra menu item.
+
 2005-06-10  Lute Kamstra  <lute@gnu.org>
 
 	* emacs.texi (Top): Correct version number.
