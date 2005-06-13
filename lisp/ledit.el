@@ -144,7 +144,7 @@ Like Lisp mode, plus these special commands:
 To make Lisp mode automatically change to Ledit mode,
 do (setq lisp-mode-hook 'ledit-from-lisp-mode)"
   (interactive)
-  (lisp-mode)
+  (delay-mode-hooks (lisp-mode))
   (ledit-from-lisp-mode))
 
 ;;;###autoload
