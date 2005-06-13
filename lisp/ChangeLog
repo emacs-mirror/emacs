@@ -1,3 +1,10 @@
+2005-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-ordered-list): New defun.
+
+	* emulation/cua-base.el (cua-mode): Use add-to-ordered-list to
+	add cua--keymap-alist to emulation-mode-map-alists.
+
 2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (complete-in-turn): New macro.
