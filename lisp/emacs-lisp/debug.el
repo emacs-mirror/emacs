@@ -698,9 +698,9 @@ When called interactively, prompt for FUNCTION in the minibuffer.
 To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
    (list (let ((name
-		(completing-read "Cancel debug on entry (to function): "
-				 (mapcar 'symbol-name debug-function-list)
-				 nil t)))
+		(completing-read
+		 "Cancel debug on entry to function (default: all functions): "
+		 (mapcar 'symbol-name debug-function-list) nil t)))
 	   (when name
 	     (unless (string= name "")
 	       (intern name))))))
