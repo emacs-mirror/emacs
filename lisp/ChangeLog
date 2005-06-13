@@ -1,5 +1,13 @@
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
+	* woman.el (woman-mode-line-format): Delete constant.
+	(woman-mode-map): Initialize it properly.
+	(woman-mode): Set mode-class property to special.  Use
+	delay-mode-hooks and run-mode-hooks.  Use the right keymap.  Set
+	major-mode and mode-name.  Don't set mode-line-format directly.
+	(Man-getpage-in-background): Don't reference
+	woman-mode-line-format.
+
 	* emacs-lisp/debug.el (cancel-debug-on-entry): Make the empty
 	string argument obsolete.
 
