@@ -410,7 +410,8 @@ Commands:
 \\{ediff-meta-buffer-map}"
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
-  (setq mode-name "MetaEdiff"))
+  (setq mode-name "MetaEdiff")
+  (run-mode-hooks 'ediff-meta-mode-hook))
 
 
 ;; the keymap for the buffer showing directory differences
