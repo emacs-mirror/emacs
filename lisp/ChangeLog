@@ -1,3 +1,33 @@
+2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el:  (org-CUA-compatible): New option.
+	(org-disputed-keys): New variable.
+	(org-key): New function.
+	(orgtbl-make-binding): Add docstring to the created function.
+	(org-mode): Set paragraph start/separate regexps.
+	(orgtbl-mode): Don't start `orgtbl-mode' in `org-mode' buffers.
+	(org-archive-location, org-archive-mark-done)
+	(org-archive-stamp-time): New options.
+	(org-archive-subtree): New command.
+	(org-fill-paragraph): New function.
+	(org-mode): Set `fill-paragraph-function' to `org-fill-paragraph'.
+	(org-fake-empty-table-line): Function removed.
+	(org-format-org-table-html): Do not create empty table lines at
+	separator lines.  Improved table header treatment.
+	(org-link-format): New option.
+	(org-make-link): New function.
+	(org-insert-link, org-store-link): Use org-make-link.
+	(org-open-file): Quote file name for shell command, to allow
+	spaces in file names.
+	(org-link-regexp): Fixed bug with mailto link.
+	(org-link-maybe-angles-regexp, org-protected-link-regexp): New
+	constant.
+	(org-export-as-html): Deal with the optional angles around a link.
+	Better treatment of file: links.
+	(org-open-at-point): Replace @{ and @} with < and >.
+	(org-run-mode-hooks): Function removed.
+	(org-agenda-mode): No longer use `org-run-mode-hooks'.
+
 2005-06-13  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-registers-mode): Let gdbmi use
