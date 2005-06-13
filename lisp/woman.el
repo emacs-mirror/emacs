@@ -1035,18 +1035,6 @@ Set by `.ns' request; reset by any output or `.rs' request")
   "Set `woman-nospace' to nil."
   (setq woman-nospace nil))
 
-(defconst woman-mode-line-format
-  ;; This is essentially the Man-mode format with page numbers removed
-  ;; and line numbers added.  (Online documents do not have pages, but
-  ;; they do have lines!)
-  '("-" mode-line-mule-info mode-line-modified
-    mode-line-frame-identification mode-line-buffer-identification
-    "  " global-mode-string
-    "  %[(WoMan" mode-line-process minor-mode-alist ")%]--"
-    (line-number-mode "L%l--")
-    (-3 . "%p") "-%-")
-  "Mode line format for WoMan buffer.")
-
 (defconst woman-request-regexp "^[.'][ \t]*\\(\\S +\\) *"
   ;; Was "^\\.[ \t]*\\([a-z0-9]+\\) *" but cvs.1 uses a macro named
   ;; "`" and CGI.man uses a macro named "''"!
@@ -1745,15 +1733,10 @@ Leave point at end of new text.  Return length of inserted text."
 
 (defvar woman-mode-map nil "Keymap for woman mode.")
 
-(if woman-mode-map
-    ()
-  ;; Set up the keymap, mostly inherited from Man-mode-map.  Normally
-  ;; button-buffer-map is used as a parent keymap, but we can't have two
-  ;; parents, so we just copy it.
-  (setq woman-mode-map (copy-keymap button-buffer-map))
+(unless woman-mode-map
+  (setq woman-mode-map (make-sparse-keymap))
   (set-keymap-parent woman-mode-map Man-mode-map)
-  ;; Above two lines were
-  ;; (setq woman-mode-map (cons 'keymap Man-mode-map))
+
   (define-key woman-mode-map "R" 'woman-reformat-last-file)
   (define-key woman-mode-map "w" 'woman)
   (define-key woman-mode-map "\en" 'WoMan-next-manpage)
@@ -1841,6 +1824,8 @@ Argument EVENT is the invoking mouse event."
   (setq woman-emulation value)
   (woman-reformat-last-file))
 
+(put 'woman-mode 'mode-class 'special)
+
 (defun woman-mode ()
   "Turn on (most of) Man mode to browse a buffer formatted by WoMan.
 WoMan is an ELisp emulation of much of the functionality of the Emacs
@@ -1858,34 +1843,33 @@ See `Man-mode' for additional details."
     (fset 'Man-unindent 'ignore)
     (fset 'Man-goto-page 'ignore)
     (unwind-protect
-	(progn
-	  (set (make-local-variable 'Man-mode-map) woman-mode-map)
-	  ;; Install Man mode:
-	  (Man-mode)
-	  ;; Reset inappropriate definitions:
-	  (setq mode-line-format woman-mode-line-format)
-          (put 'Man-mode 'mode-class 'special))
+	(delay-mode-hooks (Man-mode))
       ;; Restore the status quo:
       (fset 'Man-build-page-list Man-build-page-list)
       (fset 'Man-strip-page-headers Man-strip-page-headers)
       (fset 'Man-unindent Man-unindent)
-      (fset 'Man-goto-page Man-goto-page)
-      )
-    ;; Imenu support:
-    (set (make-local-variable 'imenu-generic-expression)
-	 ;; `make-local-variable' in case imenu not yet loaded!
-	 woman-imenu-generic-expression)
-    (set (make-local-variable 'imenu-space-replacement) " ")
-    ;; For reformat ...
-    ;; necessary when reformatting a file in its old buffer:
-    (setq imenu--last-menubar-index-alist nil)
-    ;; necessary to avoid re-installing the same imenu:
-    (setq woman-imenu-done nil)
-    (if woman-imenu (woman-imenu))
-    (setq buffer-read-only nil)
-    (Man-highlight-references)
-    (setq buffer-read-only t)
-    (set-buffer-modified-p nil)))
+      (fset 'Man-goto-page Man-goto-page)))
+  (setq major-mode 'woman-mode
+	mode-name "WoMan")
+  ;; Don't show page numbers like Man-mode does.  (Online documents do
+  ;; not have pages)
+  (kill-local-variable 'mode-line-buffer-identification)
+  (use-local-map woman-mode-map)
+  ;; Imenu support:
+  (set (make-local-variable 'imenu-generic-expression)
+       ;; `make-local-variable' in case imenu not yet loaded!
+       woman-imenu-generic-expression)
+  (set (make-local-variable 'imenu-space-replacement) " ")
+  ;; For reformat ...
+  ;; necessary when reformatting a file in its old buffer:
+  (setq imenu--last-menubar-index-alist nil)
+  ;; necessary to avoid re-installing the same imenu:
+  (setq woman-imenu-done nil)
+  (if woman-imenu (woman-imenu))
+  (let (buffer-read-only)
+    (Man-highlight-references))
+  (set-buffer-modified-p nil)
+  (run-mode-hooks 'woman-mode-hook))
 
 (defun woman-imenu (&optional redraw)
   "Add a \"Contents\" menu to the menubar.
@@ -1962,7 +1946,7 @@ Optional argument REDRAW, if non-nil, forces mode line to be updated."
   (around Man-getpage-in-background-advice (topic) activate)
   "Use WoMan unless invoked outside a WoMan buffer or invoked explicitly.
 Otherwise use Man and record start of formatting time."
-  (if (and (eq mode-line-format woman-mode-line-format)
+  (if (and (eq major-mode 'woman-mode)
 	   (not (eq (caar command-history) 'man)))
       (WoMan-getpage-in-background topic)
     ;; Initiates man processing
