@@ -957,6 +957,32 @@ other hooks, such as major mode hooks, can do the job."
 	     (append (symbol-value list-var) (list element))
 	   (cons element (symbol-value list-var))))))
 
+
+(defun add-to-ordered-list (list-var element &optional order)
+  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+The test for presence of ELEMENT is done with `equal'.
+
+The resulting list is reordered so that the elements are in the
+order given by each element's `list-order' property (a number).
+Elements which are not symbols, and symbol elements without a
+numeric `lisp-order' property are placed at the end of the list.
+
+If the third optional argument ORDER is non-nil and ELEMENT is
+a symbol, set the symbol's `list-order' property to the given value.
+
+The return value is the new value of LIST-VAR."
+  (when (and order (symbolp element))
+    (put element 'list-order (and (numberp order) order)))
+  (add-to-list list-var element)
+  (set list-var (sort (symbol-value list-var)
+		      (lambda (a b)
+			(let ((oa (and (symbolp a) (get a 'list-order)))
+			      (ob (and (symbolp b) (get b 'list-order))))
+			  (cond
+			   ((not oa) nil)
+			   ((not ob) t)
+			   (t (< oa ob))))))))
+
 
 ;;; Load history
 
