@@ -1,3 +1,9 @@
+2005-06-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-registers-mode): Let gdbmi use
+	MI command -data-list-register-values.
+	(gdb-post-prompt): Indent properly.
+
 2005-06-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (highlight-changes-colors): Rename from
