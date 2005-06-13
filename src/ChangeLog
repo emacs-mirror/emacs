@@ -1,3 +1,11 @@
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Lisp_Object/int mixup.
+	(get_phys_cursor_geometry, format_mode_line_unwind_data)
+	(get_line_height_property, x_produce_glyphs): Remove unused vars.
+
+	* coding.c (run_pre_post_conversion_on_str): Remove unused var `buf'.
+
 2005-06-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32term.c (x_use_underline_position_properties): New variable.
@@ -62,8 +70,8 @@
 2005-06-10  Eli Zaretskii  <eliz@gnu.org>
 
 	* unexw32.c (COPY_CHUNK, COPY_PROC_CHUNK): Add a new argument
-	`verbose'; print diagnostic messages only if it is non-zero.  All
-	callers changed to pass a zero value unless DEBUG_DUMP is defined
+	`verbose'; print diagnostic messages only if it is non-zero.
+	All callers changed to pass a zero value unless DEBUG_DUMP is defined
 	in the environment.
 	(copy_executable_and_dump_data): Print section names with %.8s.
 
@@ -137,8 +145,8 @@
 
 2005-06-07  Masatake YAMATO  <jet@gyve.org>
 
-	* xdisp.c (note_mode_line_or_margin_highlight): Check
-	the overlapping of re-rendering area to avoid flickering.
+	* xdisp.c (note_mode_line_or_margin_highlight):
+	Check the overlapping of re-rendering area to avoid flickering.
 	(note_mouse_highlight): Call clear_mouse_face if PART
 	is not ON_MODE_LINE nor ON_HEADER_LINE.
 
@@ -153,8 +161,8 @@
 
 2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* macmenu.c (menu_quit_handler, install_menu_quit_handler): New
-	functions for popping down menus on C-g.
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
+	New functions for popping down menus on C-g.
 	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler.
 
 	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
@@ -164,10 +172,10 @@
 
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove
-	macros.
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR):
+	Remove macros.
 
-	* unexw32.c (RVA_TO_PTR): Moved here from w32heap.h.
+	* unexw32.c (RVA_TO_PTR): Move here from w32heap.h.
 
 	* w32proc.c (RVA_TO_PTR): New macro.
 
@@ -291,11 +299,11 @@
 	(format_mode_line_unwind_data, unwind_format_mode_line):
 	New functions for unwind protection in mode line formatting.
 	(x_consider_frame_title): Use them and new local var 'title_start'
-	to support nested calls to format-mode-line and redisplay.  Set
-	mode_line_target to MODE_LINE_TITLE.
+	to support nested calls to format-mode-line and redisplay.
+	Set mode_line_target to MODE_LINE_TITLE.
 	(Fformat_mode_line): Use them and new local var 'string_start' to
-	support nested calls to format-mode-line and redisplay.  Set
-	mode_line_target to MODE_LINE_NOPROP or MODE_LINE_STRING.
+	support nested calls to format-mode-line and redisplay.
+	Set mode_line_target to MODE_LINE_NOPROP or MODE_LINE_STRING.
 	Don't trim trailing dashes.
 	(decode_mode_spec): Don't make infinite number of trailing dashes
 	for MODE_LINE_NOPROP and MODE_LINE_STRING targets.

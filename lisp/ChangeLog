@@ -1,3 +1,17 @@
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (complete-in-turn): New macro.
+	(dynamic-completion-table, lazy-completion-table): Add debug info.
+
+	* faces.el (read-face-name): Use complete-in-turn complete non-aliases
+	in preference to face aliases.
+
+	* textmodes/fill.el (fill-match-adaptive-prefix): New function.
+	(fill-context-prefix): Use it to avoid guessing absurdly long prefixes.
+	Remove unused vars `start' and `firstline'.
+	(fill-nobreak-p): Fix line-move-invisible -> line-move-invisible-p.
+	(justify-current-line, fill-individual-paragraphs): Remove unused vars.
+
 2005-06-13  Eli Zaretskii  <eliz@gnu.org>
 
 	* cus-start.el (all): Don't complain about missing GTK-related
@@ -16,11 +30,10 @@
 
 	* woman.el (woman-mode-line-format): Delete constant.
 	(woman-mode-map): Initialize it properly.
-	(woman-mode): Set mode-class property to special.  Use
-	delay-mode-hooks and run-mode-hooks.  Use the right keymap.  Set
-	major-mode and mode-name.  Don't set mode-line-format directly.
-	(Man-getpage-in-background): Don't reference
-	woman-mode-line-format.
+	(woman-mode): Set mode-class property to special.
+	Use delay-mode-hooks and run-mode-hooks.  Use the right keymap.
+	Set major-mode and mode-name.  Don't set mode-line-format directly.
+	(Man-getpage-in-background): Don't reference woman-mode-line-format.
 
 	* emacs-lisp/debug.el (cancel-debug-on-entry): Make the empty
 	string argument obsolete.
@@ -46,9 +59,9 @@
 	(org-insert-link, org-store-link): Use org-make-link.
 	(org-open-file): Quote file name for shell command, to allow
 	spaces in file names.
-	(org-link-regexp): Fixed bug with mailto link.
-	(org-link-maybe-angles-regexp, org-protected-link-regexp): New
-	constant.
+	(org-link-regexp): Fix bug with mailto link.
+	(org-link-maybe-angles-regexp, org-protected-link-regexp):
+	New constants.
 	(org-export-as-html): Deal with the optional angles around a link.
 	Better treatment of file: links.
 	(org-open-at-point): Replace @{ and @} with < and >.
@@ -79,8 +92,8 @@
 	* loadup.el: Don't say we are dumping under 2 names on windows-nt
 	and cygwin.
 
-	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH): Don't
-	use an old loaddefs.el, as in Makefile.in.
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH):
+	Don't use an old loaddefs.el, as in Makefile.in.
 
 2005-06-12  Lute Kamstra  <lute@gnu.org>
 
@@ -126,8 +139,8 @@
 2005-06-11  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
 
 	* thumbs.el (thumbs-per-line, thumbs-thumbsdir-max-size)
-	(thumbs-relief, thumbs-margin, thumbs-image-resizing-step): Fix
-	:type--it is `integer', not `string'.
+	(thumbs-relief, thumbs-margin, thumbs-image-resizing-step):
+	Fix :type--it is `integer', not `string'.
 
 	* faces.el (modeline-highlight): Rename from (the erroneous)
 	`modeline-higilight'.
