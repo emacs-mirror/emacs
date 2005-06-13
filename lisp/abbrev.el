@@ -134,9 +134,11 @@ Otherwise display all abbrevs."
   "Major mode for editing the list of abbrev definitions.
 \\{edit-abbrevs-map}"
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'edit-abbrevs-mode)
   (setq mode-name "Edit-Abbrevs")
-  (use-local-map edit-abbrevs-map))
+  (use-local-map edit-abbrevs-map)
+  (run-mode-hooks 'edit-abbrevs-mode-hook))
 
 (defun edit-abbrevs ()
   "Alter abbrev definitions by editing a list of them.
