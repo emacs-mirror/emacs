@@ -6,6 +6,14 @@
 
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
+	* abbrev.el (edit-abbrevs-mode): Use kill-all-local-variables and
+	run-mode-hooks.
+
+	* ediff-mult.el (ediff-meta-mode):
+	* ediff-util.el (ediff-mode): Use run-mode-hooks.
+
+	* ledit.el (ledit-mode): Use delay-mode-hooks.
+
 	* woman.el (woman-mode-line-format): Delete constant.
 	(woman-mode-map): Initialize it properly.
 	(woman-mode): Set mode-class property to special.  Use
