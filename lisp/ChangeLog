@@ -1,3 +1,8 @@
+2005-06-13  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (cancel-debug-on-entry): Make the empty
+	string argument obsolete.
+
 2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el:  (org-CUA-compatible): New option.
