@@ -693,16 +693,19 @@ Redefining FUNCTION also cancels it."
 ;;;###autoload
 (defun cancel-debug-on-entry (&optional function)
   "Undo effect of \\[debug-on-entry] on FUNCTION.
-If argument is nil or an empty string, cancel for all functions.
+If FUNCTION is nil, cancel debug-on-entry for all functions.
 When called interactively, prompt for FUNCTION in the minibuffer.
 To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
    (list (let ((name
 		(completing-read "Cancel debug on entry (to function): "
 				 (mapcar 'symbol-name debug-function-list)
-				 nil t nil)))
-	   (if name (intern name)))))
-  (if (and function (not (string= function "")))
+				 nil t)))
+	   (when name
+	     (unless (string= name "")
+	       (intern name))))))
+  (if (and function
+	   (not (string= function ""))) ; Pre 22.1 compatibility test.
       (progn
 	(let ((defn (debug-on-entry-1 function nil)))
 	  (condition-case nil
