@@ -994,24 +994,24 @@ sink to `user' in `gdb-stopping', that is fine."
 This begins the collection of output from the current command if that
 happens to be appropriate."
   (unless gdb-pending-triggers
-	(gdb-get-selected-frame)
-	(gdb-invalidate-frames)
-	(gdb-invalidate-breakpoints)
-	;; Do this through gdb-get-selected-frame -> gdb-frame-handler
-	;; so gdb-frame-address is updated.
-	;; (gdb-invalidate-assembler)
-	(gdb-invalidate-registers)
-	(gdb-invalidate-memory)
-	(gdb-invalidate-locals)
-	(gdb-invalidate-threads)
-	(unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
-	  ;; FIXME: with GDB-6 on Darwin, this might very well work.
-	  ;; only needed/used with speedbar/watch expressions
-	  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	    (setq gdb-var-changed t)    ; force update
-	    (dolist (var gdb-var-list)
-	      (setcar (nthcdr 5 var) nil))
-	    (gdb-var-update))))
+    (gdb-get-selected-frame)
+    (gdb-invalidate-frames)
+    (gdb-invalidate-breakpoints)
+    ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
+    ;; so gdb-frame-address is updated.
+    ;; (gdb-invalidate-assembler)
+    (gdb-invalidate-registers)
+    (gdb-invalidate-memory)
+    (gdb-invalidate-locals)
+    (gdb-invalidate-threads)
+    (unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
+      ;; FIXME: with GDB-6 on Darwin, this might very well work.
+      ;; only needed/used with speedbar/watch expressions
+      (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+	(setq gdb-var-changed t)    ; force update
+	(dolist (var gdb-var-list)
+	  (setcar (nthcdr 5 var) nil))
+	(gdb-var-update))))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -1695,7 +1695,9 @@ static char *magick[] = {
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
-  'gdb-invalidate-registers)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+      'gdb-invalidate-registers
+    'gdbmi-invalidate-registers))
 
 (defun gdb-registers-buffer-name ()
   (with-current-buffer gud-comint-buffer
