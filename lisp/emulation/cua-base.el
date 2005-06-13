@@ -1360,7 +1360,7 @@ paste (in addition to the normal emacs bindings)."
 
   (if (not cua-mode)
       (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
-    (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
+    (add-to-ordered-list 'emulation-mode-map-alists 'cua--keymap-alist 400)
     (cua--select-keymaps))
 
   (cond
