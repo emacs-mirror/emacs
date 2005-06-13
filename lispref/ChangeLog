@@ -1,3 +1,8 @@
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Parsing Expressions): Document aux functions and vars of
+	syntax-ppss: syntax-ppss-flush-cache and syntax-begin-function.
+
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
 	* text.texi (Special Properties): Fix cross reference.
