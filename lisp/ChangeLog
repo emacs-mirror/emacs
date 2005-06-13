@@ -1,3 +1,9 @@
+2005-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Don't complain about missing GTK-related
+	variables, unless either `gtk' is boundp or this isn't a
+	`windows-nt' build.
+
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
 	* woman.el (woman-mode-line-format): Delete constant.
