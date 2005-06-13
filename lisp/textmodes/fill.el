@@ -1,7 +1,7 @@
 ;;; fill.el --- fill commands for Emacs		-*- coding: iso-2022-7bit -*-
 
-;; Copyright (C) 1985,86,92,94,95,96,97,1999,2001,02,03,2004
-;;               Free Software Foundation, Inc.
+;; Copyright (C) 1985, 1986, 1992, 1994, 1995, 1996, 1997, 1999, 2001, 2002,
+;;   2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
 ;; Keywords: wp
@@ -205,6 +205,16 @@ Remove indentation from each line."
       (unless (zerop cmp)
 	(substring s1 0 cmp)))))
 
+(defun fill-match-adaptive-prefix ()
+  (let ((str (or
+              (and adaptive-fill-function (funcall adaptive-fill-function))
+              (and adaptive-fill-regexp (looking-at adaptive-fill-regexp)
+                   (match-string-no-properties 0)))))
+    (if (>= (+ (current-left-margin) (length str)) (current-fill-column))
+        ;; Death to insanely long prefixes.
+        nil
+      str)))
+
 (defun fill-context-prefix (from to &optional first-line-regexp)
   "Compute a fill prefix from the text between FROM and TO.
 This uses the variables `adaptive-fill-regexp' and `adaptive-fill-function'
@@ -218,55 +228,45 @@ act as a paragraph-separator."
     (if (eolp) (forward-line 1))
     ;; Move to the second line unless there is just one.
     (move-to-left-margin)
-    (let ((firstline (point))
-	  first-line-prefix
+    (let (first-line-prefix
 	  ;; Non-nil if we are on the second line.
-	  second-line-prefix
-	  start)
-      (setq start (point))
+	  second-line-prefix)
       (setq first-line-prefix
 	    ;; We don't need to consider `paragraph-start' here since it
 	    ;; will be explicitly checked later on.
 	    ;; Also setting first-line-prefix to nil prevents
 	    ;; second-line-prefix from being used.
-	    (cond ;; ((looking-at paragraph-start) nil)
-		  ((and adaptive-fill-function (funcall adaptive-fill-function)))
-		  ((and adaptive-fill-regexp (looking-at adaptive-fill-regexp))
-		   (match-string-no-properties 0))))
+	    ;; ((looking-at paragraph-start) nil)
+	    (fill-match-adaptive-prefix))
       (forward-line 1)
       (if (< (point) to)
-	(progn
-	  (move-to-left-margin)
-	  (setq start (point))
-	  (setq second-line-prefix
-		(cond ((looking-at paragraph-start) nil) ;Can it happen ? -stef
-		      ((and adaptive-fill-function
-			    (funcall adaptive-fill-function)))
-		      ((and adaptive-fill-regexp
-			    (looking-at adaptive-fill-regexp))
-		       (buffer-substring-no-properties start (match-end 0)))))
-	  ;; If we get a fill prefix from the second line,
-	  ;; make sure it or something compatible is on the first line too.
-	  (when second-line-prefix
-	    (unless first-line-prefix (setq first-line-prefix ""))
-	    ;; If the non-whitespace chars match the first line,
-	    ;; just use it (this subsumes the 2 checks used previously).
-	    ;; Used when first line is `/* ...' and second-line is
-	    ;; ` * ...'.
-	    (let ((tmp second-line-prefix)
-		  (re "\\`"))
-	      (while (string-match "\\`[ \t]*\\([^ \t]+\\)" tmp)
-		(setq re (concat re ".*" (regexp-quote (match-string 1 tmp))))
-		(setq tmp (substring tmp (match-end 0))))
-	      ;; (assert (string-match "\\`[ \t]*\\'" tmp))
+          (progn
+            (move-to-left-margin)
+            (setq second-line-prefix
+                  (cond ((looking-at paragraph-start) nil) ;Can it happen? -Stef
+                        (t (fill-match-adaptive-prefix))))
+            ;; If we get a fill prefix from the second line,
+            ;; make sure it or something compatible is on the first line too.
+            (when second-line-prefix
+              (unless first-line-prefix (setq first-line-prefix ""))
+              ;; If the non-whitespace chars match the first line,
+              ;; just use it (this subsumes the 2 checks used previously).
+              ;; Used when first line is `/* ...' and second-line is
+              ;; ` * ...'.
+              (let ((tmp second-line-prefix)
+                    (re "\\`"))
+                (while (string-match "\\`[ \t]*\\([^ \t]+\\)" tmp)
+                  (setq re (concat re ".*" (regexp-quote (match-string 1 tmp))))
+                  (setq tmp (substring tmp (match-end 0))))
+                ;; (assert (string-match "\\`[ \t]*\\'" tmp))
 
-	      (if (string-match re first-line-prefix)
-		  second-line-prefix
+                (if (string-match re first-line-prefix)
+                    second-line-prefix
 
-		;; Use the longest common substring of both prefixes,
-		;; if there is one.
-		(fill-common-string-prefix first-line-prefix
-					   second-line-prefix)))))
+                  ;; Use the longest common substring of both prefixes,
+                  ;; if there is one.
+                  (fill-common-string-prefix first-line-prefix
+                                             second-line-prefix)))))
 	;; If we get a fill prefix from a one-line paragraph,
 	;; maybe change it to whitespace,
 	;; and check that it isn't a paragraph starter.
@@ -333,7 +333,7 @@ be tested.  If it returns t, fill commands do not break the line there."
 Can be customized with the variables `fill-nobreak-predicate'
 and `fill-nobreak-invisible'."
   (or
-   (and fill-nobreak-invisible (line-move-invisible (point)))
+   (and fill-nobreak-invisible (line-move-invisible-p (point)))
    (unless (bolp)
     (or
      ;; Don't break after a period followed by just one space.
@@ -1128,8 +1128,6 @@ otherwise it is made canonical."
 	    ncols			; new indent point or offset
 	    (nspaces 0)			; number of spaces between words
 					; in line (not space characters)
-	    fracspace			; fractional amount of space to be
-					; added between each words
 	    (curr-fracspace 0)		; current fractional space amount
 	    count)
 	(end-of-line)
@@ -1338,7 +1336,7 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	      (forward-line 1))))
       (narrow-to-region (point) max)
       ;; Loop over paragraphs.
-      (while (let ((here (point)))
+      (while (progn
 	       ;; Skip over all paragraph-separating lines
 	       ;; so as to not include them in any paragraph.
                (while (and (not (eobp))
@@ -1446,5 +1444,5 @@ Also, if CITATION-REGEXP is non-nil, don't fill header lines."
 	"")
     string))
 
-;;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
+;; arch-tag: 727ad455-1161-4fa9-8df5-0f74b179216d
 ;;; fill.el ends here
