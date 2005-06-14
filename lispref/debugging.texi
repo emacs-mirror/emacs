@@ -210,15 +210,19 @@ called shortly before the problem, step quickly over the call to that
 function, and then step through its caller.
 
 @deffn Command debug-on-entry function-name
-This function requests @var{function-name} to invoke the debugger each time
-it is called.  It works by inserting the form @code{(debug 'debug)} into
-the function definition as the first form.
+This function requests @var{function-name} to invoke the debugger each
+time it is called.  It works by inserting the form
+@code{(implement-debug-on-entry)} into the function definition as the
+first form.
 
-Any function defined as Lisp code may be set to break on entry,
-regardless of whether it is interpreted code or compiled code.  If the
-function is a command, it will enter the debugger when called from Lisp
-and when called interactively (after the reading of the arguments).  You
-can't debug primitive functions (i.e., those written in C) this way.
+Any function or macro defined as Lisp code may be set to break on
+entry, regardless of whether it is interpreted code or compiled code.
+If the function is a command, it will enter the debugger when called
+from Lisp and when called interactively (after the reading of the
+arguments).  You can also set debug-on-entry for primitive functions
+(i.e., those written in C) this way, but it only takes effect when the
+primitive is called from Lisp code.  Debug-on-entry is not allowed for
+special forms.
 
 When @code{debug-on-entry} is called interactively, it prompts for
 @var{function-name} in the minibuffer.  If the function is already set
