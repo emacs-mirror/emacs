@@ -520,7 +520,7 @@ set sw=n     M-x set-variable vi-shift-width n "
   "Go into insert state, the text entered will be repeated if REPETITION > 1.
 If PREFIX-CODE is given, do it before insertion begins if DO-IT-NOW-P is T.
 In any case, the prefix-code will be done before each 'redo-insert'.
-This function expects 'overwrite-mode' being set properly beforehand."
+This function expects `overwrite-mode' being set properly beforehand."
   (if do-it-now-p (apply (car prefix-code) (cdr prefix-code)))
   (setq vi-ins-point (point))
   (setq vi-ins-repetition repetition)
