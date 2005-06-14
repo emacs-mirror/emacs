@@ -1,3 +1,9 @@
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* message.el (message-is-yours-p): Fix quoting in docstring.
+
+	* gnus-sum.el (gnus-auto-select-subject): Likewise.
+
 2005-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* mm-view.el (mm-inline-text): Withdraw the last change.
@@ -80,7 +86,7 @@
 
 2005-05-31  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
-	* gnus-group.el (): Require gnus-sum and autoload functions to
+	* gnus-group.el: Require gnus-sum and autoload functions to
 	resolve warnings when gnus-group.el compiled alone.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>

@@ -1,3 +1,20 @@
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* forms.el (forms--intuit-from-file): Fix reference to
+	`forms-number-of-fields' in error message.
+	(forms-print): Fix quoting in error message.
+
+	* forms.el (forms-mode):
+	* emulation/vi.el (vi-goto-insert-state):
+	* progmodes/flymake.el (flymake-new-err-info)
+	(flymake-start-syntax-check-for-current-buffer)
+	(flymake-simple-cleanup):
+	* eshell/esh-var.el (eshell/export):
+	* progmodes/gud.el (xdb):
+	* textmodes/flyspell.el (flyspell-incorrect-hook)
+	(flyspell-maybe-correct-transposition)
+	(flyspell-maybe-correct-doubling): Fix quoting in docstring.
+
 2005-06-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/debug.el (cancel-debug-on-entry): Mention default in
