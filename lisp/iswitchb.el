@@ -1,6 +1,7 @@
 ;;; iswitchb.el --- switch between buffers using substrings
 
-;; Copyright (C) 1996, 1997, 2000, 2001, 2003, 2005  Free Software Foundation, Inc.
+;; Copyright (C) 1996, 1997, 2000, 2001, 2003, 2005
+;;           Free Software Foundation, Inc.
 
 ;; Author: Stephen Eglen <stephen@gnu.org>
 ;; Maintainer: Stephen Eglen <stephen@gnu.org>
@@ -871,10 +872,8 @@ it is put to the start of the list."
 
 (defun iswitchb-to-end (lst)
   "Move the elements from LST to the end of `iswitchb-temp-buflist'."
-  (mapcar
-   (lambda (elem)
-     (setq iswitchb-temp-buflist (delq elem iswitchb-temp-buflist)))
-   lst)
+  (dolist (elem lst)
+    (setq iswitchb-temp-buflist (delq elem iswitchb-temp-buflist)))
   (setq iswitchb-temp-buflist (nconc iswitchb-temp-buflist lst)))
 
 (defun iswitchb-get-buffers-in-frames (&optional current)
@@ -915,33 +914,19 @@ current frame, rather than all frames, regardless of value of
   "Return buffers matching REGEXP.
 If STRING-FORMAT is nil, consider REGEXP as just a string.
 BUFFER-LIST can be list of buffers or list of strings."
-  (let* ((case-fold-search  (iswitchb-case))
-	 ;; need reverse since we are building up list backwards
-	 (list              (reverse buffer-list))
-         (do-string         (stringp (car list)))
-         name
-         ret)
+  (let* ((case-fold-search (iswitchb-case))
+         name ret)
+    (if (null string-format) (setq regexp (regexp-quote regexp)))
     (setq iswitchb-invalid-regexp nil)
-    (catch 'invalid-regexp
-      (mapcar
-       (lambda (x)
-
-	 (if do-string
-	     (setq name x)		;We already have the name
-	   (setq name (buffer-name x)))
-
-	 (cond
-	  ((and (if (not string-format)
-                    (string-match (regexp-quote regexp) name)
-                  (condition-case error
-                      (string-match regexp name)
-                    (invalid-regexp
-                     (setq iswitchb-invalid-regexp t)
-                     (throw 'invalid-regexp (setq ret (cdr error))))))
-		(not (iswitchb-ignore-buffername-p name)))
-	   (setq ret (cons name ret)))))
-       list))
-    ret))
+    (condition-case error
+        (dolist (x buffer-list (nreverse ret))
+          (setq name (if (stringp x) x (buffer-name x)))
+          (when (and (string-match regexp name)
+                     (not (iswitchb-ignore-buffername-p name)))
+            (push name ret)))
+      (invalid-regexp
+       (setq iswitchb-invalid-regexp t)
+       (cdr error)))))
 
 (defun iswitchb-ignore-buffername-p (bufname)
   "Return t if the buffer BUFNAME should be ignored."
@@ -1476,5 +1461,5 @@ This mode enables switching between buffers using substrings.  See
 
 (provide 'iswitchb)
 
-;;; arch-tag: d74198ae-753f-44f2-b34f-0c515398d90a
+;; arch-tag: d74198ae-753f-44f2-b34f-0c515398d90a
 ;;; iswitchb.el ends here
