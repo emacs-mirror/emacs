@@ -250,7 +250,7 @@ Also display the main routine in the disassembly buffer if present."
      (let ((string (buffer-string)))
        ;; remove newline for gud-tooltip-echo-area
        (substring string 0 (- (length string) 1))))
-   gud-tooltip-echo-area))
+   (or gud-tooltip-echo-area tooltip-use-echo-area)))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
@@ -2174,18 +2174,18 @@ corresponding to the mode line clicked."
 (let ((menu (make-sparse-keymap "GDB-UI")))
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
-  (define-key menu [gdb-restore-windows]
-  '(menu-item "Restore Window Layout" gdb-restore-windows
-	      :help "Restore standard layout for debug session."))
-  (define-key menu [gdb-many-windows]
-  '(menu-item "Display Other Windows" gdb-many-windows
-	      :help "Toggle display of locals, stack and breakpoint information"
-	      :button (:toggle . gdb-many-windows)))
   (define-key menu [gdb-use-inferior-io]
     (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
 			  gdb-use-inferior-io-buffer
      "Separate inferior IO" "Use separate IO %s"
-     "Toggle separate IO for inferior.")))
+     "Toggle separate IO for inferior."))
+  (define-key menu [gdb-many-windows]
+  '(menu-item "Display Other Windows" gdb-many-windows
+	      :help "Toggle display of locals, stack and breakpoint information"
+	      :button (:toggle . gdb-many-windows)))
+  (define-key menu [gdb-restore-windows]
+  '(menu-item "Restore Window Layout" gdb-restore-windows
+	      :help "Restore standard layout for debug session.")))
 
 (defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
   (unless gdb-use-inferior-io-buffer
