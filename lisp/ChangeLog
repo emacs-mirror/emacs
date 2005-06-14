@@ -21,6 +21,35 @@
 
 2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/byte-run.el (make-obsolete)
+	(define-obsolete-function-alias): Rename arguments FUNCTION and
+	NEW to OBSOLETE-NAME and CURRENT-NAME respectively.
+	(make-obsolete-variable, define-obsolete-variable-alias): Rename
+	arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
+	respectively.
+
+	* isearchb.el (isearchb-activate):
+	* pcvs.el (cvs-mode):
+	* ses.el (ses-load):
+	* vc-arch.el (vc-arch-checkin, vc-arch-diff):
+	* net/tramp.el (tramp-find-file-exists-command)
+	(tramp-find-shell):
+	* progmodes/ada-mode.el (ada-create-case-exception)
+	(ada-create-case-exception-substring, ada-make-subprogram-body):
+	* progmodes/idlw-shell.el (idlwave-shell-move-to-bp):
+	* progmodes/idlwave.el (idlwave-complete-class-structure-tag-help):
+	* progmodes/vhdl-mode.el (vhdl-speedbar-place-component):
+	* textmodes/org.el (org-promote, org-evaluate-time-range)
+	(org-agenda-next-date-line, org-agenda-previous-date-line)
+	(org-agenda-error, org-open-at-point, org-table-move-row)
+	(org-format-table-table-html-using-table-generate-source)
+	(org-shiftcursor-error, org-ctrl-c-ctrl-c):
+	* textmodes/reftex.el (reftex-access-scan-info):
+	* textmodes/reftex-toc.el (reftex-toc-dframe-p)
+	(reftex-toc-promote-prepare): Follow error conventions.
+
+	* diff-mode.el (diff-mode): Fix typo in docstring.
+
 	* forms.el (forms--intuit-from-file): Fix reference to
 	`forms-number-of-fields' in error message.
 	(forms-print): Fix quoting in error message.
@@ -90,7 +119,7 @@
 
 2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el:  (org-CUA-compatible): New option.
+	* textmodes/org.el (org-CUA-compatible): New option.
 	(org-disputed-keys): New variable.
 	(org-key): New function.
 	(orgtbl-make-binding): Add docstring to the created function.

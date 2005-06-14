@@ -1,3 +1,7 @@
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* mh-mime.el (mh-secure-message): Follow error conventions.
+
 2005-05-28  Bill Wohler  <wohler@newt.com>
 
 	 Released MH-E version 7.84.

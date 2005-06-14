@@ -1,8 +1,12 @@
 2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
-	* message.el (message-is-yours-p): Fix quoting in docstring.
+	* gnus-sieve.el (gnus-sieve-article-add-rule):
+	* legacy-gnus-agent.el (gnus-agent-unlist-expire-days):
+	* spam-stat.el (spam-stat-buffer-change-to-spam)
+	(spam-stat-buffer-change-to-non-spam): Follow error conventions.
 
-	* gnus-sum.el (gnus-auto-select-subject): Likewise.
+	* message.el (message-is-yours-p):
+	* gnus-sum.el (gnus-auto-select-subject): Fix quoting in docstring.
 
 2005-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
 
