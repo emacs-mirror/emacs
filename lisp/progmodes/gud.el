@@ -3139,8 +3139,6 @@ only tooltips in the buffer containing the overlay arrow."
                                 'gud-tooltip-modes "22.1")
 (define-obsolete-variable-alias 'tooltip-gud-display
                                 'gud-tooltip-display "22.1")
-(define-obsolete-variable-alias 'tooltip-use-echo-area
-                                'gud-tooltip-echo-area "22.1")
 
 ;;; Reacting on mouse movements
 
@@ -3242,7 +3240,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
-; the tootip incompletely and spill over into the gud buffer.
+; the tooltip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
 ; it may be difficult to do better. Using annotations as in
 ; gdb-ui.el gets round this problem.
@@ -3250,7 +3248,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process gud-tooltip-original-filter)
   (tooltip-show (tooltip-strip-prompt process output)
-		gud-tooltip-echo-area))
+		(or gud-tooltip-echo-area tooltip-use-echo-area)))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -3295,7 +3293,9 @@ This function must return nil if it doesn't handle EVENT."
 						(cddr mouse))))
 		  (let ((define-elt (assoc expr gdb-define-alist)))
 		    (unless (null define-elt)
-		      (tooltip-show (cdr define-elt))
+		      (tooltip-show
+		       (cdr define-elt)
+		       (or gud-tooltip-echo-area tooltip-use-echo-area))
 		      expr))))
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))
