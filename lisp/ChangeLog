@@ -1,5 +1,11 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/flymake.el (flymake-errline, flymake-warnline): 
+	Remove "-face" suffix from face names.
+	(flymake-errline-face, flymake-warnline-face):
+	New backward-compatibility aliases for renamed faces.
+	(flymake-highlight-line): Use renamed flymake faces.
+
 	* progmodes/ebrowse.el (ebrowse-tree-mark, ebrowse-root-class)
 	(ebrowse-file-name, ebrowse-default, ebrowse-member-attribute)
 	(ebrowse-member-class, ebrowse-progress):

@@ -839,19 +839,23 @@ Return t if it has at least one flymake overlay, nil if no overlay."
       (setq ov (cdr ov)))
     has-flymake-overlays))
 
-(defface flymake-errline-face
+(defface flymake-errline
   ;;+   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
   ;;+   '((((class color)) (:underline "OrangeRed"))
   '((((class color)) (:background "LightPink"))
     (t (:bold t)))
   "Face used for marking error lines."
   :group 'flymake)
+;; backward-compatibility alias
+(put 'flymake-errline-face 'face-alias 'flymake-errline)
 
-(defface flymake-warnline-face
+(defface flymake-warnline
   '((((class color)) (:background "LightBlue2"))
     (t (:bold t)))
   "Face used for marking warning lines."
   :group 'flymake)
+;; backward-compatibility alias
+(put 'flymake-warnline-face 'face-alias 'flymake-warnline)
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.
@@ -886,8 +890,8 @@ Perhaps use text from LINE-ERR-INFO-ILST to enhance highlighting."
       (setq end (point)))
 
     (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline-face)
-      (setq face 'flymake-warnline-face))
+	(setq face 'flymake-errline)
+      (setq face 'flymake-warnline))
 
     (flymake-make-overlay beg end tooltip-text face nil)))
 
