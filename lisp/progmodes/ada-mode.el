@@ -1462,7 +1462,7 @@ The standard casing rules will no longer apply to this word."
            (setq file-name (car ada-case-exception-file)))
           (t
            (error (concat "No exception file specified. "
-			  "See variable ada-case-exception-file."))))
+			  "See variable ada-case-exception-file"))))
 
     (set-syntax-table ada-mode-symbol-syntax-table)
     (unless word
@@ -1501,7 +1501,7 @@ word itself has a special casing."
 		(car ada-case-exception-file))
 	       (t
 		(error (concat "No exception file specified. "
-			       "See variable ada-case-exception-file."))))))
+			       "See variable ada-case-exception-file"))))))
 
     ;;  Find the substring to define as an exception. Order is: the parameter,
     ;;  if any, or the selected region, or the word under the cursor
@@ -5398,7 +5398,7 @@ This function typically is to be hooked into `ff-file-created-hooks'."
           (setq body-file (ada-get-body-name))
           (if body-file
               (find-file body-file)
-            (error "No body found for the package. Create it first."))
+            (error "No body found for the package. Create it first"))
 
           (save-restriction
             (widen)
