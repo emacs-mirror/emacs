@@ -1,3 +1,11 @@
+2005-06-14  Miles Bader  <miles@gnu.org>
+
+	* buff-menu.el (Buffer-menu-buffer): Remove "-face" suffix from
+	face name.
+	(Buffer-menu-buffer-face): New backward-compatibility alias for
+	renamed face.
+	(list-buffers-noselect): Use renamed Buffer-menu-buffer face.
+
 2005-06-15  Daniel Pfeiffer  <occitan@esperanto.org>
 
 	* progmodes/make-mode.el (makefile-space, makefile-makepp-perl):
