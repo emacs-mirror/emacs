@@ -1,3 +1,12 @@
+2005-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text): Withdraw the last change.
+
+2005-06-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text): Turn off adaptive-fill-mode while
+	executing enriched-decode.
+
 2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* gnus-art.el (article-update-date-lapsed): Use `save-match-data'.
