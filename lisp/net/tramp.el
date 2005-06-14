@@ -5095,7 +5095,7 @@ file exists and nonzero exit status otherwise."
              (and (setq tramp-file-exists-command "ls -d %s")
                   (file-exists-p existing)
                   (not (file-exists-p nonexisting))))
-      (error "Couldn't find command to check if file exists."))))
+      (error "Couldn't find command to check if file exists"))))
 
 
 ;; CCC test ksh or bash found for tilde expansion?
@@ -5131,7 +5131,7 @@ file exists and nonzero exit status otherwise."
                60 (format "\\(\\(%s\\)\\|\\(%s\\)\\)\\'"
 			  tramp-shell-prompt-pattern shell-prompt-pattern))
         (pop-to-buffer (buffer-name))
-        (error "Couldn't find remote `%s' prompt." shell))
+        (error "Couldn't find remote `%s' prompt" shell))
       (tramp-message
        9 "Setting remote shell prompt...")
       ;; Douglas Gray Stephens <DGrayStephens@slb.com> says that we
