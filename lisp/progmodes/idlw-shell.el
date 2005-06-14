@@ -2734,7 +2734,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     (funcall orig-func cur-line orig-bp-line)
 	     (or (not bp-line) (funcall closer-func cur-line bp-line)))
 	    (setq bp-line cur-line))))
-    (unless bp-line (error "No further breakpoints."))
+    (unless bp-line (error "No further breakpoints"))
     (goto-line bp-line)))
 
 ;; Examine Commands ------------------------------------------------------
