@@ -1,3 +1,22 @@
+2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print): Respect
+	tooltip-use-echo-area.
+	(menu): Re-order menu items.
+
+	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
+	Define in tooltip.el.
+	(gud-tooltip-process-output): Respect tooltip-use-echo-area.
+	(gud-tooltip-tips): Respect tooltip-use-echo-area and
+	gud-tooltip-echo-area.
+
+	* tooltip.el (tooltip-use-echo-area): Restore from gud.el for
+	backward compatibility and make obsolete.
+	(tooltip-help-tips): Use tooltip-use-echo-area.
+	(tooltip-show-help-function): Rename to...
+	(tooltip-show-help): ...this, because it is a function.
+	(tooltip-mode, tooltip-help-message): Call tooltip-show-help.
+
 2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/edebug.el (edebug-all-defs, edebug-initial-mode)
