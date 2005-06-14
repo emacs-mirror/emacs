@@ -1,3 +1,22 @@
+2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Edebug): Update menu.
+	(Instrumenting): Update xrefs.
+	(Edebug Execution Modes): Correct xref.
+	(Jumping): Clarify description of `h' command.
+	Eliminate redundant @ref.
+	(Breaks): New node.
+	(Breakpoints): is now a subsubsection.
+	(Global Break Condition): Mention `C-x X X'.
+	(Edebug Views): Clarify `v' and `p'.  Mention `C-x X w'.
+	(Trace Buffer): Clarify STRING arg of `edebug-tracing'.
+	(Edebug Display Update): Correct pxref.
+	(Edebug and Macros): New node.
+	(Instrumenting Macro Calls): Is now a subsubsection.
+	Neither arg of `def-edebug-spec' is evaluated.
+	(Instrumenting Macro Calls): Mention `edebug-eval-macro-args'.
+	(Specification Examples): Fix typo.
+
 2005-06-14  Lute Kamstra  <lute@gnu.org>
 
 	* debugging.texi (Function Debugging): Primitives can break on
