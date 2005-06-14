@@ -3065,6 +3065,10 @@ list instead of at the beginning.  This change actually occurred in
 Emacs 21.1, but was not documented then.
 
 +++
+*** New function `add-to-ordered-list' is like `add-to-list' but
+associates a numeric ordering of each symbol element added to the list.
+
++++
 *** New function `copy-tree' makes a copy of a tree.
 
 It recursively copyies through both CARs and CDRs.

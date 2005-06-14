@@ -1,3 +1,7 @@
+2005-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* variables.texi (Setting Variables): Add add-to-ordered-list.
+
 2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* syntax.texi (Parsing Expressions): Document aux functions and vars of
