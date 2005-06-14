@@ -1766,12 +1766,12 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("GNUmakefile\\'" . makefile-gmake-mode)
      ,@(if (memq system-type '(berkeley-unix next-mach darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
-	   ("[Mm]akefile\\'" . makefile-mode)))
+	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
      ("Makeppfile\\'" . makefile-makepp-mode)
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
