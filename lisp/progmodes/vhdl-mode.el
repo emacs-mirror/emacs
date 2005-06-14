@@ -12600,7 +12600,7 @@ This does background highlighting of translate-off regions.")
  'vhdl-highlight-faces 'font-lock-variable-name-face 'custom-face)
 
 (defface vhdl-font-lock-prompt-face
-  '((((min-colors 88) (class color) (background light)) 
+  '((((min-colors 88) (class color) (background light))
      (:foreground "Red1" :bold t))
     (((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
@@ -12643,7 +12643,7 @@ This does background highlighting of translate-off regions.")
 
 (defface vhdl-font-lock-reserved-words-face
   '((((class color) (background light)) (:foreground "Orange" :bold t))
-    (((min-colors 88) (class color) (background dark)) 
+    (((min-colors 88) (class color) (background dark))
      (:foreground "Yellow1" :bold t))
     (((class color) (background dark)) (:foreground "Yellow" :bold t))
     (t ()))
@@ -14924,7 +14924,7 @@ is already shown in a buffer."
   "Place the entity/component under the cursor as component."
   (interactive)
   (if (not (vhdl-speedbar-check-unit 'entity))
-      (error "ERROR:  No entity/component under cursor.")
+      (error "ERROR:  No entity/component under cursor")
     (vhdl-speedbar-port-copy)
     (if (fboundp 'speedbar-select-attached-frame)
 	(speedbar-select-attached-frame)
