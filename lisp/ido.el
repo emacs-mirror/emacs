@@ -1320,7 +1320,8 @@ This function also adds a hook to the minibuffer."
 
     (add-hook 'kill-emacs-hook 'ido-kill-emacs-hook)
 
-    (unless ido-minor-mode-map-entry
+    (if ido-minor-mode-map-entry
+	(setcdr ido-minor-mode-map-entry (make-sparse-keymap))
       (setq ido-minor-mode-map-entry (cons 'ido-mode (make-sparse-keymap)))
       (add-to-list 'minor-mode-map-alist ido-minor-mode-map-entry))
 
