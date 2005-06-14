@@ -1220,7 +1220,7 @@ containing the executable being debugged."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
-You can set the variable 'gud-xdb-directories' to a list of program source
+You can set the variable `gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
   (interactive (list (gud-query-cmdline 'xdb)))
 
