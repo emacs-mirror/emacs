@@ -213,7 +213,7 @@ accessed via isearchb."
    ((eq last-command 'isearchb-activate)
     (if isearchb-last-buffer
 	(switch-to-buffer isearchb-last-buffer)
-      (error "isearchb: There is no previous buffer to toggle to."))
+      (error "isearchb: There is no previous buffer to toggle to"))
     (isearchb-stop nil t))
    (t
     (message "isearchb: ")
