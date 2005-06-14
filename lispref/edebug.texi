@@ -65,7 +65,7 @@ enable you to use it.
 * Modes: Edebug Execution Modes. Execution modes, stopping more or less often.
 * Jumping::			Commands to jump to a specified place.
 * Misc: Edebug Misc.		Miscellaneous commands.
-* Breakpoints::			Setting breakpoints to make the program stop.
+* Breaks::                      Setting breakpoints to make the program stop.
 * Trapping Errors::		Trapping errors with Edebug.
 * Views: Edebug Views.		Views inside and outside of Edebug.
 * Eval: Edebug Eval.		Evaluating expressions within Edebug.
@@ -75,7 +75,7 @@ enable you to use it.
 * Trace Buffer::		How to produce trace output in a buffer.
 * Coverage Testing::		How to test evaluation coverage.
 * The Outside Context::		Data that Edebug saves and restores.
-* Instrumenting Macro Calls::	Specifying how to handle macro calls.
+* Edebug and Macros::	        Specifying how to handle macro calls.
 * Options: Edebug Options.	Option variables for customizing Edebug.
 @end menu
 
@@ -203,13 +203,13 @@ function.
 @code{interactive} forms with an expression argument, anonymous lambda
 expressions, and other defining forms.  However, Edebug cannot determine
 on its own what a user-defined macro will do with the arguments of a
-macro call, so you must provide that information; see @ref{Instrumenting
-Macro Calls}, for details.
+macro call, so you must provide that information; see @ref{Edebug and
+Macros}, for details.
 
   When Edebug is about to instrument code for the first time in a
 session, it runs the hook @code{edebug-setup-hook}, then sets it to
 @code{nil}.  You can use this to load Edebug specifications
-(@pxref{Instrumenting Macro Calls}) associated with a package you are
+(@pxref{Edebug and Macros}) associated with a package you are
 using, but only when you use Edebug.
 
 @findex eval-expression @r{(Edebug)}
@@ -253,7 +253,7 @@ Step: stop at the next stop point encountered (@code{edebug-step-mode}).
 @item n
 Next: stop at the next stop point encountered after an expression
 (@code{edebug-next-mode}).  Also see @code{edebug-forward-sexp} in
-@ref{Edebug Misc}.
+@ref{Jumping}.
 
 @item t
 Trace: pause (normally one second) at each Edebug stop point
@@ -341,9 +341,8 @@ Run the program until the end of the containing sexp.
 Step into the function or macro called by the form after point.
 @end table
 
-The @kbd{h} command proceeds to the stop point near the current location
-of point, using a temporary breakpoint.  See @ref{Breakpoints}, for more
-information about breakpoints.
+The @kbd{h} command proceeds to the stop point at or after the current
+location of point, using a temporary breakpoint.
 
 The @kbd{f} command runs the program forward over one expression.  More
 precisely, it sets a temporary breakpoint at the position that
@@ -427,14 +426,23 @@ recursively.  Whenever Edebug is active, you can quit to the top level
 with @kbd{q} or abort one recursive edit level with @kbd{C-]}.  You can
 display a backtrace of all the pending evaluations with @kbd{d}.
 
-@node Breakpoints
-@subsection Breakpoints
+@node Breaks
+@subsection Breaks
 
-@cindex breakpoints
 Edebug's step mode stops execution when the next stop point is reached.
 There are three other ways to stop Edebug execution once it has started:
 breakpoints, the global break condition, and source breakpoints.
 
+@menu
+* Breakpoints::                 Breakpoints at stop points.
+* Global Break Condition::	Breaking on an event.
+* Source Breakpoints::  	Embedding breakpoints in source code.
+@end menu
+
+@node Breakpoints
+@subsubsection Breakpoints
+
+@cindex breakpoints
 While using Edebug, you can specify @dfn{breakpoints} in the program you
 are testing: these are places where execution should stop.  You can set a
 breakpoint at any stop point, as defined in @ref{Using Edebug}.  For
@@ -494,12 +502,6 @@ function, or to the first breakpoint if there are no following
 breakpoints.  This command does not continue execution---it just moves
 point in the buffer.
 
-@menu
-* Global Break Condition::	Breaking on an event.
-* Source Breakpoints::  	Embedding breakpoints in source code.
-@end menu
-
-
 @node Global Break Condition
 @subsubsection Global Break Condition
 
@@ -515,7 +517,9 @@ evaluating the condition gets an error, execution does not stop.
 @findex edebug-set-global-break-condition
   The condition expression is stored in
 @code{edebug-global-break-condition}.  You can specify a new expression
-using the @kbd{X} command (@code{edebug-set-global-break-condition}).
+using the @kbd{X} command from the source code buffer while Edebug is
+active, or using @kbd{C-x X X} from any buffer at any time, as long as
+Edebug is loaded (@code{edebug-set-global-break-condition}).
 
   The global break condition is the simplest way to find where in your
 code some event occurs, but it makes code run much more slowly.  So you
@@ -582,13 +586,14 @@ effect outside of Edebug.
 
 @table @kbd
 @item v
-Temporarily view the outside window configuration
-(@code{edebug-view-outside}).
+View the outside window configuration (@code{edebug-view-outside}).
+Type @kbd{C-x X w} to return to Edebug.
 
 @item p
-Temporarily display the outside current buffer with point at its outside
-position (@code{edebug-bounce-point}).  With a prefix argument @var{n},
-pause for @var{n} seconds instead.
+Temporarily display the outside current buffer with point at its
+outside position (@code{edebug-bounce-point}), pausing for one second
+before returning to Edebug.  With a prefix argument @var{n}, pause for
+@var{n} seconds instead.
 
 @item w
 Move point back to the current stop point in the source code buffer
@@ -610,8 +615,12 @@ source code buffer, you must use @kbd{C-x X W} from the global keymap.
 
   You can view the outside window configuration with @kbd{v} or just
 bounce to the point in the current buffer with @kbd{p}, even if
-it is not normally displayed.  After moving point, you may wish to jump
-back to the stop point with @kbd{w} from a source code buffer.
+it is not normally displayed.
+
+  After moving point, you may wish to jump back to the stop point.
+You can do that with @kbd{w} from a source code buffer.  You can jump
+back to the stop point in the source code buffer from any buffer using
+@kbd{C-x X w}.
 
   Each time you use @kbd{W} to turn saving @emph{off}, Edebug forgets the
 saved outside window configuration---so that even if you turn saving
@@ -838,8 +847,9 @@ redefining the functions @code{edebug-print-trace-before} and
 @defmac edebug-tracing string body@dots{}
 This macro requests additional trace information around the execution
 of the @var{body} forms.  The argument @var{string} specifies text
-to put in the trace buffer.  All the arguments are evaluated, and
-@code{edebug-tracing} returns the value of the last form in @var{body}.
+to put in the trace buffer, after the @samp{@{} or @samp{@}}.  All
+the arguments are evaluated, and @code{edebug-tracing} returns the
+value of the last form in @var{body}.
 @end defmac
 
 @defun edebug-trace format-string &rest format-args
@@ -990,7 +1000,7 @@ current buffer, are saved and restored.
 @item
 @cindex window configuration (Edebug)
 The outside window configuration is saved and restored if
-@code{edebug-save-windows} is non-@code{nil} (@pxref{Edebug Display Update}).
+@code{edebug-save-windows} is non-@code{nil} (@pxref{Edebug Options}).
 
 The window configuration is not restored on error or quit, but the
 outside selected window @emph{is} reselected even on error or quit in
@@ -1061,8 +1071,21 @@ Edebug is active, @code{defining-kbd-macro} is bound to
 @code{edebug-continue-kbd-macro}.
 @end itemize
 
+@node Edebug and Macros
+@subsection Edebug and Macros
+
+To make Edebug properly instrument expressions that call macros, some
+extra care is needed.  This subsection explains the details.
+
+@menu
+* Instrumenting Macro Calls::   The basic problem.
+* Specification List::		How to specify complex patterns of evaluation.
+* Backtracking::		What Edebug does when matching fails.
+* Specification Examples::	To help understand specifications.
+@end menu
+
 @node Instrumenting Macro Calls
-@subsection Instrumenting Macro Calls
+@subsubsection Instrumenting Macro Calls
 
   When Edebug instruments an expression that calls a Lisp macro, it needs
 additional information about the macro to do the job properly.  This is
@@ -1101,7 +1124,7 @@ define Edebug specifications for special forms implemented in C.
 @deffn Macro def-edebug-spec macro specification
 Specify which expressions of a call to macro @var{macro} are forms to be
 evaluated.  @var{specification} should be the edebug specification.
-It is not evaluated.
+Neither argument is evaluated.
 
 The @var{macro} argument can actually be any symbol, not just a macro
 name.
@@ -1128,12 +1151,12 @@ calling form.  The possible elements of a specification list are
 described in the following sections.
 @end table
 
-@menu
-* Specification List::		How to specify complex patterns of evaluation.
-* Backtracking::		What Edebug does when matching fails.
-* Specification Examples::	To help understand specifications.
-@end menu
-
+@vindex edebug-eval-macro-args
+If a macro has no Edebug specification, neither through a @code{debug}
+declaration nor through a @code{def-edebug-spec} call, the variable
+@code{edebug-eval-macro-args} comes into play.  If it is @code{nil},
+the default, none of the arguments is instrumented for evaluation.
+If it is non-@code{nil}, all arguments are instrumented.
 
 @node Specification List
 @subsubsection Specification List
@@ -1406,7 +1429,7 @@ inside of the sublist to prevent backtracking once a sublist is found.
 Edebug uses the following specifications for @code{defun} and
 @code{defmacro} and the associated argument list and @code{interactive}
 specifications.  It is necessary to handle interactive forms specially
-since an expression argument it is actually evaluated outside of the
+since an expression argument is actually evaluated outside of the
 function body.
 
 @smallexample
