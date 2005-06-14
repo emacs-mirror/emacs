@@ -1,3 +1,10 @@
+2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/edebug.el (edebug-all-defs, edebug-initial-mode)
+	(edebug-print-length, edebug-print-level, edebug-print-circle)
+	(edebug-modify-breakpoint, edebug-eval-last-sexp)
+	(edebug-eval-print-last-sexp): Doc fixes.
+
 2005-06-14  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-mode): Make a new keymap every time we enable ido,
