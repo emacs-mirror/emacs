@@ -1,3 +1,8 @@
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvaralias): Rename arguments SYMBOL and ALIASED to
+	NEW-ALIAS and BASE-VARIABLE, respectively.
+
 2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Lisp_Object/int mixup.
