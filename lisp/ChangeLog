@@ -1,5 +1,21 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
+	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
+	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
+	names.
+	(antlr-font-lock-default-face, antlr-font-lock-keyword-face)
+	(antlr-font-lock-syntax-face, antlr-font-lock-ruledef-face)
+	(antlr-font-lock-tokendef-face, antlr-font-lock-ruleref-face)
+	(antlr-font-lock-tokenref-face, antlr-font-lock-literal-face):
+	New backward-compatibility aliases for renamed faces.
+	(antlr-default-face, antlr-keyword-face, antlr-syntax-face)
+	(antlr-ruledef-face, antlr-tokendef-face, antlr-ruleref-face)
+	(antlr-tokenref-face, antlr-literal-face): Variables renamed to remove
+	"font-lock-".  Use renamed antlr-mode faces.
+	(antlr-font-lock-additional-keywords): Use renamed faces.
+	Replace literal face-names with face variable references.
+
 	* buff-menu.el (Buffer-menu-buffer): Remove "-face" suffix from
 	face name.
 	(Buffer-menu-buffer-face): New backward-compatibility alias for
