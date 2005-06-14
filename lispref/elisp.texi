@@ -514,7 +514,7 @@ Edebug
 * Edebug Execution Modes::  Execution modes, stopping more or less often.
 * Jumping::		    Commands to jump to a specified place.
 * Edebug Misc::		    Miscellaneous commands.
-* Breakpoints::		    Setting breakpoints to make the program stop.
+* Breaks::		    Setting breakpoints to make the program stop.
 * Trapping Errors::	    Trapping errors with Edebug.
 * Edebug Views::	    Views inside and outside of Edebug.
 * Edebug Eval::		    Evaluating expressions within Edebug.
@@ -524,7 +524,7 @@ Edebug
 * Trace Buffer::	    How to produce trace output in a buffer.
 * Coverage Testing::	    How to test evaluation coverage.
 * The Outside Context::	    Data that Edebug saves and restores.
-* Instrumenting Macro Calls:: Specifying how to handle macro calls.
+* Edebug and Macros::       Specifying how to handle macro calls.
 * Edebug Options::	    Option variables for customizing Edebug.
 
 Debugging Invalid Lisp Syntax
