@@ -1,3 +1,17 @@
+2005-06-15  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-space, makefile-makepp-perl):
+	Eliminate "-face" suffix.
+	(makefile-targets): Inherit font-lock-variable-name-face and
+	eliminate "-face" suffix.
+	(makefile-shell): Remove attributes and eliminate "-face" suffix.
+	(makefile-*-font-lock-keywords): Append makefile-targets in rule
+	actions, instead of prepending, to make it less visible.
+	(makefile-previous-dependency, makefile-match-dependency): Don't
+	match a target on a continuation line.
+
+	* files.el (auto-mode-alist): Put Makefile in gmake mode.
+
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-tooltip-print): Respect
