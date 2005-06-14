@@ -1,5 +1,19 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/ebrowse.el (ebrowse-tree-mark, ebrowse-root-class)
+	(ebrowse-file-name, ebrowse-default, ebrowse-member-attribute)
+	(ebrowse-member-class, ebrowse-progress):
+	Remove "-face" suffix from face names.
+	(ebrowse-tree-mark-face, ebrowse-root-class-face)
+	(ebrowse-file-name-face, ebrowse-default-face)
+	(ebrowse-member-attribute-face, ebrowse-member-class-face)
+	(ebrowse-progress-face): 
+	New backward-compatibility aliases for renamed faces.
+	(ebrowse-show-progress, ebrowse-show-file-name-at-point)
+	(ebrowse-set-mark-props, ebrowse-draw-tree-fn)
+	(ebrowse-draw-member-buffer-class-line, ebrowse-draw-member-long-fn)
+	(ebrowse-draw-member-short-fn): Use renamed ebrowse faces.
+
 	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
 	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
 	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
