@@ -1,5 +1,7 @@
 2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* elisp.texi (Top): Update detailed menu.
+
 	* edebug.texi (Edebug): Update menu.
 	(Instrumenting): Update xrefs.
 	(Edebug Execution Modes): Correct xref.
