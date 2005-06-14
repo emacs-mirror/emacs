@@ -1,5 +1,10 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/sh-script.el (sh-heredoc): Remove "-face" suffix from
+	face name.
+	(sh-heredoc-face): New backward-compatibility alias for renamed face.
+	(sh-heredoc-face): Use renamed sh-heredoc face.
+
 	* progmodes/idlw-help.el (idlwave-help-link):
 	Remove "-face" suffix from face name.
 	(idlwave-help-link-face):
