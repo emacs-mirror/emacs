@@ -1,5 +1,33 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/vhdl-mode.el (vhdl-prompt, vhdl-attribute, vhdl-enumvalue)
+	(vhdl-function, vhdl-directive, vhdl-reserved-word)
+	(vhdl-translate-off): Remove "-face" suffix and "font-lock-" from face
+	names.
+	(vhdl-speedbar-entity, vhdl-speedbar-architecture)
+	(vhdl-speedbar-configuration, vhdl-speedbar-package)
+	(vhdl-speedbar-library, vhdl-speedbar-instantiation)
+	(vhdl-speedbar-subprogram, vhdl-speedbar-entity-selected)
+	(vhdl-speedbar-architecture-selected)
+	(vhdl-speedbar-configuration-selected)
+	(vhdl-speedbar-package-selected)
+	(vhdl-speedbar-instantiation-selected): Remove "-face" suffix from face
+	names.
+	(vhdl-font-lock-keywords-2, vhdl-font-lock-keywords-5):
+	Use renamed faces.
+	(vhdl-prompt-face, vhdl-attribute-face, vhdl-enumvalue-face)
+	(vhdl-function-face, vhdl-directive-face, vhdl-reserved-words-face)
+	(vhdl-translate-off-face): Variables renamed to remove "font-lock-".
+	Use renamed faces.
+	(syntax-alist): Don't use "font-lock-" or "-face" in generated face
+	names.
+	(vhdl-font-lock-init, vhdl-ps-print-settings): Use renamed faces.
+	(vhdl-speedbar-insert-hierarchy, vhdl-speedbar-expand-entity)
+	(vhdl-speedbar-expand-package, vhdl-speedbar-update-current-unit)
+	(vhdl-speedbar-make-inst-line, vhdl-speedbar-make-pack-line)
+	(vhdl-speedbar-make-subpack-line, vhdl-speedbar-make-subprogram-line)
+	(vhdl-speedbar-item-info, vhdl-speedbar-check-unit): Use renamed faces.
+
 	* progmodes/sh-script.el (sh-heredoc): Remove "-face" suffix from
 	face name.
 	(sh-heredoc-face): New backward-compatibility alias for renamed face.

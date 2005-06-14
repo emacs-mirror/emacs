@@ -1379,11 +1379,11 @@ Option `vhdl-align-groups' still applies within these blocks."
 (defcustom vhdl-highlight-keywords t
   "*Non-nil means highlight VHDL keywords and other standardized words.
 The following faces are used:
-  `font-lock-keyword-face'       : keywords
-  `font-lock-type-face'          : standardized types
-  `vhdl-font-lock-attribute-face': standardized attributes
-  `vhdl-font-lock-enumvalue-face': standardized enumeration values
-  `vhdl-font-lock-function-face' : standardized function and package names
+  `font-lock-keyword-face'      : keywords
+  `font-lock-type'		: standardized types
+  `vhdl-attribute'		: standardized attributes
+  `vhdl-enumvalue'		: standardized enumeration values
+  `vhdl-function'		: standardized function and package names
 
 NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
       entry \"Fontify Buffer\")."
@@ -1398,7 +1398,7 @@ The following faces are used:
   `font-lock-function-name-face' : names in declarations of units,
      subprograms, components, as well as labels of VHDL constructs
   `font-lock-type-face'          : names in type/nature declarations
-  `vhdl-font-lock-attribute-face': names in attribute declarations
+  `vhdl-attribute'		 : names in attribute declarations
   `font-lock-variable-name-face' : names in declarations of signals,
      variables, constants, subprogram parameters, generics, and ports
 
@@ -1426,7 +1426,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   "*Non-nil means highlight forbidden words.
 The reserved words specified in option `vhdl-forbidden-words' or having the
 syntax specified in option `vhdl-forbidden-syntax' are highlighted in a
-warning color (face `vhdl-font-lock-reserved-words-face') to indicate not to
+warning color (face `vhdl-reserved-word') to indicate not to
 use them.
 
 NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
@@ -1440,7 +1440,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
 (defcustom vhdl-highlight-verilog-keywords nil
   "*Non-nil means highlight Verilog keywords as reserved words.
 Verilog keywords are highlighted in a warning color (face
-`vhdl-font-lock-reserved-words-face') to indicate not to use them.
+`vhdl-reserved-word') to indicate not to use them.
 
 NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
       entry \"Fontify Buffer\")."
@@ -1454,7 +1454,7 @@ NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
   "*Non-nil means background-highlight code excluded from translation.
 That is, all code between \"-- pragma translate_off\" and
 \"-- pragma translate_on\" is highlighted using a different background color
-\(face `vhdl-font-lock-translate-off-face').
+\(face `vhdl-translate-off').
 Note: this might slow down on-the-fly fontification (and thus editing).
 
 NOTE: Activate the new setting in a VHDL buffer by re-fontifying it (menu
@@ -1501,7 +1501,7 @@ different kinds of signals (e.g. \"Clk50\", \"Rst_n\") or objects (e.g.
 \"Signal_s\", \"Variable_v\", \"Constant_c\") by distinguishing them using
 common substrings or name suffices.
 For each entry, a new face is generated with the specified colors and name
-\"vhdl-font-lock-\" + name + \"-face\".
+\"vhdl-\" + name.
 
 NOTE: Activate a changed regexp in a VHDL buffer by re-fontifying it (menu
       entry \"Fontify Buffer\").  All other changes require restarting Emacs."
@@ -12484,7 +12484,7 @@ This does highlighting of keywords and standard identifiers.")
    (list
     (concat
      "^\\s-*attribute\\s-+\\(\\w+\\)")
-    1 'vhdl-font-lock-attribute-face)
+    1 'vhdl-attribute)
 
    ;; highlight type/nature name in (sub)type/(sub)nature declarations
    (list
@@ -12542,40 +12542,39 @@ This does highlighting of additional reserved words.")
 
 (defconst vhdl-font-lock-keywords-5
   ;; background highlight translate-off regions
-  '((vhdl-match-translate-off (0 vhdl-font-lock-translate-off-face append)))
+  '((vhdl-match-translate-off (0 vhdl-translate-off-face append)))
   "For consideration as a value of `vhdl-font-lock-keywords'.
 This does background highlighting of translate-off regions.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Font and color definitions
 
-(defvar vhdl-font-lock-prompt-face         'vhdl-font-lock-prompt-face
+(defvar vhdl-prompt-face         'vhdl-prompt
   "Face name to use for prompts.")
 
-(defvar vhdl-font-lock-attribute-face      'vhdl-font-lock-attribute-face
+(defvar vhdl-attribute-face      'vhdl-attribute
   "Face name to use for standardized attributes.")
 
-(defvar vhdl-font-lock-enumvalue-face      'vhdl-font-lock-enumvalue-face
+(defvar vhdl-enumvalue-face      'vhdl-enumvalue
   "Face name to use for standardized enumeration values.")
 
-(defvar vhdl-font-lock-function-face       'vhdl-font-lock-function-face
+(defvar vhdl-function-face       'vhdl-function
   "Face name to use for standardized functions and packages.")
 
-(defvar vhdl-font-lock-directive-face      'vhdl-font-lock-directive-face
+(defvar vhdl-directive-face      'vhdl-directive
   "Face name to use for directives.")
 
-(defvar vhdl-font-lock-reserved-words-face 'vhdl-font-lock-reserved-words-face
+(defvar vhdl-reserved-words-face 'vhdl-reserved-words
   "Face name to use for additional reserved words.")
 
-(defvar vhdl-font-lock-translate-off-face  'vhdl-font-lock-translate-off-face
+(defvar vhdl-translate-off-face  'vhdl-translate-off
   "Face name to use for translate-off regions.")
 
 ;; face names to use for words with special syntax.
 (let ((syntax-alist vhdl-special-syntax-alist)
       name)
   (while syntax-alist
-    (setq name (vhdl-function-name
-		"vhdl-font-lock" (nth 0 (car syntax-alist)) "face"))
+    (setq name (vhdl-function-name "vhdl" (nth 0 (car syntax-alist))))
     (eval `(defvar ,name ',name
 	     ,(concat "Face name to use for "
 		      (nth 0 (car syntax-alist)) ".")))
@@ -12599,7 +12598,7 @@ This does background highlighting of translate-off regions.")
 (custom-add-to-group
  'vhdl-highlight-faces 'font-lock-variable-name-face 'custom-face)
 
-(defface vhdl-font-lock-prompt-face
+(defface vhdl-prompt
   '((((min-colors 88) (class color) (background light))
      (:foreground "Red1" :bold t))
     (((class color) (background light)) (:foreground "Red" :bold t))
@@ -12608,40 +12607,50 @@ This does background highlighting of translate-off regions.")
   "Font lock mode face used to highlight prompts."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-prompt-face 'face-alias 'vhdl-prompt)
 
-(defface vhdl-font-lock-attribute-face
+(defface vhdl-attribute
   '((((class color) (background light)) (:foreground "Orchid"))
     (((class color) (background dark)) (:foreground "LightSteelBlue"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized attributes."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-attribute-face 'face-alias 'vhdl-attribute)
 
-(defface vhdl-font-lock-enumvalue-face
+(defface vhdl-enumvalue
   '((((class color) (background light)) (:foreground "SaddleBrown"))
     (((class color) (background dark)) (:foreground "BurlyWood"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized enumeration values."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-enumvalue-face 'face-alias 'vhdl-enumvalue)
 
-(defface vhdl-font-lock-function-face
+(defface vhdl-function
   '((((class color) (background light)) (:foreground "Cyan4"))
     (((class color) (background dark)) (:foreground "Orchid1"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight standardized functions and packages."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-function-face 'face-alias 'vhdl-function)
 
-(defface vhdl-font-lock-directive-face
+(defface vhdl-directive
   '((((class color) (background light)) (:foreground "CadetBlue"))
     (((class color) (background dark)) (:foreground "Aquamarine"))
     (t (:italic t :bold t)))
   "Font lock mode face used to highlight directives."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-directive-face 'face-alias 'vhdl-directive)
 
-(defface vhdl-font-lock-reserved-words-face
+(defface vhdl-reserved-word
   '((((class color) (background light)) (:foreground "Orange" :bold t))
     (((min-colors 88) (class color) (background dark))
      (:foreground "Yellow1" :bold t))
@@ -12650,20 +12659,23 @@ This does background highlighting of translate-off regions.")
   "Font lock mode face used to highlight additional reserved words."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-reserved-words-face 'face-alias 'vhdl-reserved-word)
 
-(defface vhdl-font-lock-translate-off-face
+(defface vhdl-translate-off
   '((((class color) (background light)) (:background "LightGray"))
     (((class color) (background dark)) (:background "DimGray"))
     (t ()))
   "Font lock mode face used to background highlight translate-off regions."
   :group 'vhdl-highlight-faces
   :group 'font-lock-highlighting-faces)
+;; backward-compatibility alias
+(put 'vhdl-font-lock-translate-off-face 'face-alias 'vhdl-translate-off)
 
 ;; font lock mode faces used to highlight words with special syntax.
 (let ((syntax-alist vhdl-special-syntax-alist))
   (while syntax-alist
-    (eval `(defface ,(vhdl-function-name
-		      "vhdl-font-lock" (caar syntax-alist) "face")
+    (eval `(defface ,(vhdl-function-name "vhdl" (caar syntax-alist))
 	     '((((class color) (background light))
 		(:foreground ,(nth 2 (car syntax-alist))))
 	       (((class color) (background dark))
@@ -12684,20 +12696,19 @@ This does background highlighting of translate-off regions.")
   (setq vhdl-font-lock-keywords-0
 	(list (list (concat "\\(^\\|[ \t(.']\\)\\(<"
 			    vhdl-template-prompt-syntax ">\\)")
-		    2 'vhdl-font-lock-prompt-face t)
+		    2 'vhdl-prompt t)
 	      (list (concat "--\\s-*"
 			    vhdl-directive-keywords-regexp "\\s-+\\(.*\\)$")
-		    2 'vhdl-font-lock-directive-face t)))
+		    2 'vhdl-directive t)))
   ;; highlight keywords and standardized types, attributes, enumeration
   ;; values, and subprograms
   (setq vhdl-font-lock-keywords-1
 	(list
-	 (list (concat "'" vhdl-attributes-regexp)
-	       1 'vhdl-font-lock-attribute-face)
+	 (list (concat "'" vhdl-attributes-regexp) 1 'vhdl-attribute)
 	 (list vhdl-types-regexp       1 'font-lock-type-face)
-	 (list vhdl-functions-regexp   1 'vhdl-font-lock-function-face)
-	 (list vhdl-packages-regexp    1 'vhdl-font-lock-function-face)
-	 (list vhdl-enum-values-regexp 1 'vhdl-font-lock-enumvalue-face)
+	 (list vhdl-functions-regexp   1 'vhdl-function)
+	 (list vhdl-packages-regexp    1 'vhdl-function)
+	 (list vhdl-enum-values-regexp 1 'vhdl-enumvalue)
 	 (list vhdl-keywords-regexp    1 'font-lock-keyword-face)))
   ;; highlight words with special syntax.
   (setq vhdl-font-lock-keywords-3
@@ -12708,14 +12719,13 @@ This does background highlighting of translate-off regions.")
 		  (cons
 		   (cons (concat "\\<\\(" (nth 1 (car syntax-alist)) "\\)\\>")
 			 (vhdl-function-name
-			  "vhdl-font-lock" (nth 0 (car syntax-alist)) "face"))
+			  "vhdl" (nth 0 (car syntax-alist))))
 		   keywords))
 	    (setq syntax-alist (cdr syntax-alist)))
 	  keywords))
   ;; highlight additional reserved words
   (setq vhdl-font-lock-keywords-4
-	(list (list vhdl-reserved-words-regexp 1
-		    'vhdl-font-lock-reserved-words-face)))
+	(list (list vhdl-reserved-words-regexp 1 'vhdl-reserved-word)))
   ;; highlight everything together
   (setq vhdl-font-lock-keywords
 	(append
@@ -12753,18 +12763,12 @@ This does background highlighting of translate-off regions.")
   (unless (or (not vhdl-print-customize-faces)
 	      ps-print-color-p)
     (set (make-local-variable 'ps-bold-faces)
-	 '(font-lock-keyword-face
-	   font-lock-type-face
-	   vhdl-font-lock-attribute-face
-	   vhdl-font-lock-enumvalue-face
-	   vhdl-font-lock-directive-face))
+	 '(font-lock-keyword-face font-lock-type-face
+	   vhdl-attribute vhdl-enumvalue vhdl-directive))
     (set (make-local-variable 'ps-italic-faces)
 	 '(font-lock-comment-face
-	   font-lock-function-name-face
-	   font-lock-type-face
-	   vhdl-font-lock-attribute-face
-	   vhdl-font-lock-enumvalue-face
-	   vhdl-font-lock-directive-face))
+	   font-lock-function-name-face font-lock-type-face
+	   vhdl-attribute vhdl-enumvalue vhdl-directive))
     (set (make-local-variable 'ps-underlined-faces)
 	 '(font-lock-string-face))
     (setq ps-always-build-face-reference t))
@@ -13973,7 +13977,7 @@ otherwise use cached data."
 	 'bracket ?+ 'vhdl-speedbar-expand-entity (nth 0 ent-entry)
 	 (nth 1 ent-entry) 'vhdl-speedbar-find-file
 	 (cons (nth 2 ent-entry) (nth 3 ent-entry))
-	 'vhdl-speedbar-entity-face depth)
+	 'vhdl-speedbar-entity depth)
 	(unless (nth 2 ent-entry)
 	  (end-of-line 0) (insert "!") (forward-char 1))
 	(unless (member (nth 0 ent-entry) ent-inst-list)
@@ -13987,7 +13991,7 @@ otherwise use cached data."
 	 'bracket ?+ 'vhdl-speedbar-expand-config (nth 0 conf-entry)
 	 (nth 1 conf-entry) 'vhdl-speedbar-find-file
 	 (cons (nth 2 conf-entry) (nth 3 conf-entry))
-	 'vhdl-speedbar-configuration-face depth)
+	 'vhdl-speedbar-configuration depth)
 	(setq conf-alist (cdr conf-alist)))
       ;; insert packages
       (when pack-alist (vhdl-speedbar-make-title-line "Packages:" depth))
@@ -14178,7 +14182,7 @@ otherwise use cached data."
 	      (cons token (nth 0 arch-entry))
 	      (nth 1 arch-entry) 'vhdl-speedbar-find-file
 	      (cons (nth 2 arch-entry) (nth 3 arch-entry))
-	      'vhdl-speedbar-architecture-face (1+ indent))
+	      'vhdl-speedbar-architecture (1+ indent))
 	     (setq arch-alist (cdr arch-alist)))
 	   ;; insert instantiations
 	   (when inst-alist
@@ -14361,7 +14365,7 @@ otherwise use cached data."
 	       (cons token (nth 0 comp-entry))
 	       (nth 1 comp-entry) 'vhdl-speedbar-find-file
 	       (cons (nth 2 comp-entry) (nth 3 comp-entry))
-	       'vhdl-speedbar-entity-face (1+ indent))
+	       'vhdl-speedbar-entity (1+ indent))
 	      (setq comp-alist (cdr comp-alist)))
 	    ;; insert subprograms
 	    (when func-alist
@@ -14477,43 +14481,43 @@ NO-POSITION non-nil means do not re-position cursor."
 	  (let* ((file-entry (aget file-alist speedbar-last-selected-file t)))
 	    (vhdl-speedbar-update-units
 	     "\\[.\\] " (nth 0 file-entry)
-	     speedbar-last-selected-file 'vhdl-speedbar-entity-face)
+	     speedbar-last-selected-file 'vhdl-speedbar-entity)
 	    (vhdl-speedbar-update-units
 	     "{.} " (nth 1 file-entry)
-	     speedbar-last-selected-file 'vhdl-speedbar-architecture-face)
+	     speedbar-last-selected-file 'vhdl-speedbar-architecture)
 	    (vhdl-speedbar-update-units
 	     "\\[.\\] " (nth 3 file-entry)
-	     speedbar-last-selected-file 'vhdl-speedbar-configuration-face)
+	     speedbar-last-selected-file 'vhdl-speedbar-configuration)
 	    (vhdl-speedbar-update-units
 	     "[]>] " (nth 4 file-entry)
-	     speedbar-last-selected-file 'vhdl-speedbar-package-face)
+	     speedbar-last-selected-file 'vhdl-speedbar-package)
 	    (vhdl-speedbar-update-units
 	     "\\[.\\].+(" '("body")
-	     speedbar-last-selected-file 'vhdl-speedbar-package-face)
+	     speedbar-last-selected-file 'vhdl-speedbar-package)
 	    (vhdl-speedbar-update-units
 	     "> " (nth 6 file-entry)
-	     speedbar-last-selected-file 'vhdl-speedbar-instantiation-face))
+	     speedbar-last-selected-file 'vhdl-speedbar-instantiation))
 	  ;; highlight current units
 	  (let* ((file-entry (aget file-alist file-name t)))
 	    (setq
 	     pos (vhdl-speedbar-update-units
 		  "\\[.\\] " (nth 0 file-entry)
-		  file-name 'vhdl-speedbar-entity-selected-face pos)
+		  file-name 'vhdl-speedbar-entity-selected pos)
 	     pos (vhdl-speedbar-update-units
 		  "{.} " (nth 1 file-entry)
-		  file-name 'vhdl-speedbar-architecture-selected-face pos)
+		  file-name 'vhdl-speedbar-architecture-selected pos)
 	     pos (vhdl-speedbar-update-units
 		  "\\[.\\] " (nth 3 file-entry)
-		  file-name 'vhdl-speedbar-configuration-selected-face pos)
+		  file-name 'vhdl-speedbar-configuration-selected pos)
 	     pos (vhdl-speedbar-update-units
 		  "[]>] " (nth 4 file-entry)
-		  file-name 'vhdl-speedbar-package-selected-face pos)
+		  file-name 'vhdl-speedbar-package-selected pos)
 	     pos (vhdl-speedbar-update-units
 		  "\\[.\\].+(" '("body")
-		  file-name 'vhdl-speedbar-package-selected-face pos)
+		  file-name 'vhdl-speedbar-package-selected pos)
 	     pos (vhdl-speedbar-update-units
 		  "> " (nth 6 file-entry)
-		  file-name 'vhdl-speedbar-instantiation-selected-face pos))))))
+		  file-name 'vhdl-speedbar-instantiation-selected pos))))))
       ;; move speedbar so the first highlighted unit is visible
       (when (and pos (not no-position))
 	(goto-char pos)
@@ -14564,21 +14568,21 @@ NO-POSITION non-nil means do not re-position cursor."
 	(insert "(top)")
       (insert inst-name)
       (speedbar-make-button
-       start (point) 'vhdl-speedbar-instantiation-face 'speedbar-highlight-face
+       start (point) 'vhdl-speedbar-instantiation 'speedbar-highlight-face
        'vhdl-speedbar-find-file inst-file-marker))
     (insert delimiter)
     (when ent-name
       (setq start (point))
       (insert ent-name)
       (speedbar-make-button
-       start (point) 'vhdl-speedbar-entity-face 'speedbar-highlight-face
+       start (point) 'vhdl-speedbar-entity 'speedbar-highlight-face
        'vhdl-speedbar-find-file ent-file-marker)
       (when arch-name
 	(insert " (")
 	(setq start (point))
 	(insert arch-name)
 	(speedbar-make-button
-	 start (point) 'vhdl-speedbar-architecture-face 'speedbar-highlight-face
+	 start (point) 'vhdl-speedbar-architecture 'speedbar-highlight-face
 	 'vhdl-speedbar-find-file arch-file-marker)
 	(insert ")"))
       (when conf-name
@@ -14586,14 +14590,14 @@ NO-POSITION non-nil means do not re-position cursor."
 	(setq start (point))
 	(insert conf-name)
 	(speedbar-make-button
-	 start (point) 'vhdl-speedbar-configuration-face 'speedbar-highlight-face
+	 start (point) 'vhdl-speedbar-configuration 'speedbar-highlight-face
 	 'vhdl-speedbar-find-file conf-file-marker)
 	(insert ")")))
     (when (and lib-name (not (equal lib-name (downcase (vhdl-work-library)))))
       (setq start (point))
       (insert " (" lib-name ")")
       (put-text-property (+ 2 start) (1- (point)) 'face
-			 'vhdl-speedbar-library-face))
+			 'vhdl-speedbar-library))
     (insert-char ?\n 1)
     (put-text-property visible-start (point) 'invisible nil)))
 
@@ -14617,7 +14621,7 @@ NO-POSITION non-nil means do not re-position cursor."
     (setq start (point))
     (insert pack-name)
     (speedbar-make-button
-     start (point) 'vhdl-speedbar-package-face 'speedbar-highlight-face
+     start (point) 'vhdl-speedbar-package 'speedbar-highlight-face
      'vhdl-speedbar-find-file pack-file-marker)
     (unless (car pack-file-marker)
       (insert "!"))
@@ -14626,7 +14630,7 @@ NO-POSITION non-nil means do not re-position cursor."
       (setq start (point))
       (insert "body")
       (speedbar-make-button
-       start (point) 'vhdl-speedbar-package-face 'speedbar-highlight-face
+       start (point) 'vhdl-speedbar-package 'speedbar-highlight-face
        'vhdl-speedbar-find-file body-file-marker)
       (insert ")"))
     (insert-char ?\n 1)
@@ -14650,12 +14654,12 @@ NO-POSITION non-nil means do not re-position cursor."
     (setq start (point))
     (insert pack-name)
     (speedbar-make-button
-     start (point) 'vhdl-speedbar-package-face 'speedbar-highlight-face
+     start (point) 'vhdl-speedbar-package 'speedbar-highlight-face
      'vhdl-speedbar-find-file pack-file-marker)
     (setq start (point))
     (insert " (" lib-name ")")
     (put-text-property (+ 2 start) (1- (point)) 'face
-		       'vhdl-speedbar-library-face)
+		       'vhdl-speedbar-library)
     (insert-char ?\n 1)
     (put-text-property visible-start (point) 'invisible nil)))
 
@@ -14678,14 +14682,14 @@ NO-POSITION non-nil means do not re-position cursor."
     (setq start (point))
     (insert func-name)
     (speedbar-make-button
-     start (point) 'vhdl-speedbar-subprogram-face 'speedbar-highlight-face
+     start (point) 'vhdl-speedbar-subprogram 'speedbar-highlight-face
      'vhdl-speedbar-find-file func-file-marker)
     (when (car func-body-file-marker)
       (insert " (")
       (setq start (point))
       (insert "body")
       (speedbar-make-button
-       start (point) 'vhdl-speedbar-subprogram-face 'speedbar-highlight-face
+       start (point) 'vhdl-speedbar-subprogram 'speedbar-highlight-face
        'vhdl-speedbar-find-file func-body-file-marker)
       (insert ")"))
     (insert-char ?\n 1)
@@ -14773,22 +14777,22 @@ NO-POSITION non-nil means do not re-position cursor."
 	(message
 	 "%s \"%s\" in \"%s\""
 	 ;; design unit kind
-	 (cond ((or (eq face 'vhdl-speedbar-entity-face)
-		    (eq face 'vhdl-speedbar-entity-selected-face))
+	 (cond ((or (eq face 'vhdl-speedbar-entity)
+		    (eq face 'vhdl-speedbar-entity-selected))
 		(if (equal (match-string 2) ">") "Component" "Entity"))
-	       ((or (eq face 'vhdl-speedbar-architecture-face)
-		    (eq face 'vhdl-speedbar-architecture-selected-face))
+	       ((or (eq face 'vhdl-speedbar-architecture)
+		    (eq face 'vhdl-speedbar-architecture-selected))
 		"Architecture")
-	       ((or (eq face 'vhdl-speedbar-configuration-face)
-		    (eq face 'vhdl-speedbar-configuration-selected-face))
+	       ((or (eq face 'vhdl-speedbar-configuration)
+		    (eq face 'vhdl-speedbar-configuration-selected))
 		"Configuration")
-	       ((or (eq face 'vhdl-speedbar-package-face)
-		    (eq face 'vhdl-speedbar-package-selected-face))
+	       ((or (eq face 'vhdl-speedbar-package)
+		    (eq face 'vhdl-speedbar-package-selected))
 		"Package")
-	       ((or (eq face 'vhdl-speedbar-instantiation-face)
-		    (eq face 'vhdl-speedbar-instantiation-selected-face))
+	       ((or (eq face 'vhdl-speedbar-instantiation)
+		    (eq face 'vhdl-speedbar-instantiation-selected))
 		"Instantiation")
-	       ((eq face 'vhdl-speedbar-subprogram-face)
+	       ((eq face 'vhdl-speedbar-subprogram)
 		"Subprogram")
 	       (t ""))
 	 ;; design unit name
@@ -14964,11 +14968,11 @@ expansion function)."
       (speedbar-position-cursor-on-line)
       (cond ((eq design-unit 'entity)
 	     (memq (get-text-property (match-end 0) 'face)
-		   '(vhdl-speedbar-entity-face
-		     vhdl-speedbar-entity-selected-face)))
+		   '(vhdl-speedbar-entity
+		     vhdl-speedbar-entity-selected)))
 	    ((eq design-unit 'subprogram)
 	     (eq (get-text-property (match-end 0) 'face)
-		 'vhdl-speedbar-subprogram-face))
+		 'vhdl-speedbar-subprogram))
 	    (t nil))))
 
 (defun vhdl-speedbar-set-depth (depth)
@@ -14979,82 +14983,106 @@ expansion function)."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Fontification
 
-(defface vhdl-speedbar-entity-face
+(defface vhdl-speedbar-entity
   '((((class color) (background light)) (:foreground "ForestGreen"))
     (((class color) (background dark)) (:foreground "PaleGreen")))
   "Face used for displaying entity names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-entity-face 'face-alias 'vhdl-speedbar-entity)
 
-(defface vhdl-speedbar-architecture-face
+(defface vhdl-speedbar-architecture
   '((((min-colors 88) (class color) (background light)) (:foreground "Blue1"))
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue")))
   "Face used for displaying architecture names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-architecture-face 'face-alias 'vhdl-speedbar-architecture)
 
-(defface vhdl-speedbar-configuration-face
+(defface vhdl-speedbar-configuration
   '((((class color) (background light)) (:foreground "DarkGoldenrod"))
     (((class color) (background dark)) (:foreground "Salmon")))
   "Face used for displaying configuration names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-configuration-face 'face-alias 'vhdl-speedbar-configuration)
 
-(defface vhdl-speedbar-package-face
+(defface vhdl-speedbar-package
   '((((class color) (background light)) (:foreground "Grey50"))
     (((class color) (background dark)) (:foreground "Grey80")))
   "Face used for displaying package names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-package-face 'face-alias 'vhdl-speedbar-package)
 
-(defface vhdl-speedbar-library-face
+(defface vhdl-speedbar-library
   '((((class color) (background light)) (:foreground "Purple"))
     (((class color) (background dark)) (:foreground "Orchid1")))
   "Face used for displaying library names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-library-face 'face-alias 'vhdl-speedbar-library)
 
-(defface vhdl-speedbar-instantiation-face
+(defface vhdl-speedbar-instantiation
   '((((class color) (background light)) (:foreground "Brown"))
     (((min-colors 88) (class color) (background dark)) (:foreground "Yellow1"))
     (((class color) (background dark)) (:foreground "Yellow")))
   "Face used for displaying instantiation names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-instantiation-face 'face-alias 'vhdl-speedbar-instantiation)
 
-(defface vhdl-speedbar-subprogram-face
+(defface vhdl-speedbar-subprogram
   '((((class color) (background light)) (:foreground "Orchid4"))
     (((class color) (background dark)) (:foreground "BurlyWood2")))
   "Face used for displaying subprogram names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-subprogram-face 'face-alias 'vhdl-speedbar-subprogram)
 
-(defface vhdl-speedbar-entity-selected-face
+(defface vhdl-speedbar-entity-selected
   '((((class color) (background light)) (:foreground "ForestGreen" :underline t))
     (((class color) (background dark)) (:foreground "PaleGreen" :underline t)))
   "Face used for displaying entity names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-entity-selected-face 'face-alias 'vhdl-speedbar-entity-selected)
 
-(defface vhdl-speedbar-architecture-selected-face
+(defface vhdl-speedbar-architecture-selected
   '((((min-colors 88) (class color) (background light)) (:foreground "Blue1" :underline t))
     (((min-colors 88) (class color) (background light)) (:foreground "Blue1" :underline t))
     (((class color) (background light)) (:foreground "Blue" :underline t))
     (((class color) (background dark)) (:foreground "LightSkyBlue" :underline t)))
   "Face used for displaying architecture names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-architecture-selected-face 'face-alias 'vhdl-speedbar-architecture-selected)
 
-(defface vhdl-speedbar-configuration-selected-face
+(defface vhdl-speedbar-configuration-selected
   '((((class color) (background light)) (:foreground "DarkGoldenrod" :underline t))
     (((class color) (background dark)) (:foreground "Salmon" :underline t)))
   "Face used for displaying configuration names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-configuration-selected-face 'face-alias 'vhdl-speedbar-configuration-selected)
 
-(defface vhdl-speedbar-package-selected-face
+(defface vhdl-speedbar-package-selected
   '((((class color) (background light)) (:foreground "Grey50" :underline t))
     (((class color) (background dark)) (:foreground "Grey80" :underline t)))
   "Face used for displaying package names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-package-selected-face 'face-alias 'vhdl-speedbar-package-selected)
 
-(defface vhdl-speedbar-instantiation-selected-face
+(defface vhdl-speedbar-instantiation-selected
   '((((class color) (background light)) (:foreground "Brown" :underline t))
     (((min-colors 88) (class color) (background dark)) (:foreground "Yellow1" :underline t))
     (((class color) (background dark)) (:foreground "Yellow" :underline t)))
   "Face used for displaying instantiation names."
   :group 'speedbar-faces)
+;; backward-compatibility alias
+(put 'vhdl-speedbar-instantiation-selected-face 'face-alias 'vhdl-speedbar-instantiation-selected)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Initialization
