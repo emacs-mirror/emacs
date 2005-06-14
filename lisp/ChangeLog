@@ -1,3 +1,19 @@
+2005-06-14  Lute Kamstra  <lute@gnu.org>
+
+	* net/ange-ftp.el (internal-ange-ftp-mode): Use delay-mode-hooks
+	and run-mode-hooks.  Simplify.
+
+	* mail/rmailedit.el (rmail-edit-mode):
+	* progmodes/octave-inf.el (inferior-octave-mode):
+	* progmodes/sql.el (sql-interactive-mode): Use delay-mode-hooks.
+
+	* recentf.el (recentf-dialog-mode): Use kill-all-local-variables
+	and run-mode-hooks.
+	(recentf-edit-list, recentf-open-files): Don't call
+	kill-all-local-variables directly.
+
+	* emacs-lisp/debug.el (debug-on-entry): Fix docstring.
+
 2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* forms.el (forms--intuit-from-file): Fix reference to
