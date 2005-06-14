@@ -704,7 +704,7 @@ It's flymake process filter."
   (nth 1 err-info))
 
 (defvar flymake-new-err-info nil
-  "Same as 'flymake-err-info', effective when a syntax check is in progress.")
+  "Same as `flymake-err-info', effective when a syntax check is in progress.")
 
 (make-variable-buffer-local 'flymake-new-err-info)
 
@@ -1312,7 +1312,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 	(flymake-start-syntax-check buffer)))))
 
 (defun flymake-start-syntax-check-for-current-buffer ()
-  "Run 'flymake-start-syntax-check' for current buffer if it isn't already running."
+  "Run `flymake-start-syntax-check' for current buffer if it isn't already running."
   (interactive)
   (flymake-start-syntax-check (current-buffer)))
 
@@ -1655,7 +1655,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     temp-source-file-name))
 
 (defun flymake-simple-cleanup (buffer)
-  "Do cleanup after 'flymake-init-create-temp-buffer-copy'.
+  "Do cleanup after `flymake-init-create-temp-buffer-copy'.
 Delete temp file."
   (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
     (flymake-safe-delete-file temp-source-file-name)
