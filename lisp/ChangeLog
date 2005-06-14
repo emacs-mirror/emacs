@@ -1,5 +1,18 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/idlw-help.el (idlwave-help-link):
+	Remove "-face" suffix from face name.
+	(idlwave-help-link-face):
+	New backward-compatibility alias for renamed face.
+	(idlwave-highlight-linked-completions): Use renamed idlwave-help faces.
+
+	* progmodes/idlw-shell.el (idlwave-shell-bp-face)
+	(idlwave-shell-disabled-bp): Remove "-face" suffix from face names.
+	(idlwave-shell-bp-face, idlwave-shell-disabled-bp):
+	New backward-compatibility aliases for renamed faces.
+	(idlwave-shell-disabled-breakpoint-face)
+	(idlwave-shell-breakpoint-face): Use renamed idlwave-shell faces.
+
 	* progmodes/flymake.el (flymake-errline, flymake-warnline): 
 	Remove "-face" suffix from face names.
 	(flymake-errline-face, flymake-warnline-face):
