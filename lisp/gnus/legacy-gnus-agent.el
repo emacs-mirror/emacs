@@ -25,7 +25,7 @@ converted to the compressed format."
 	      ((file-directory-p member)
 	       (push member search-in))
               ((equal (file-name-nondirectory member) ".agentview")
-               (setq converted-something 
+               (setq converted-something
                      (or (gnus-agent-convert-agentview member)
                          converted-something))))))
 
@@ -175,7 +175,7 @@ converted to the compressed format."
                                   (t
                                    t))))))
         (kill-buffer buffer))
-      (error "Change gnus-agent-expire-days to an integer for gnus to start."))))
+      (error "Change gnus-agent-expire-days to an integer for gnus to start"))))
 
 ;; The gnus-agent-unlist-expire-days has its own conversion prompt.
 ;; Therefore, hide the default prompt.
@@ -198,8 +198,8 @@ possible that the hook was persistently saved."
 
           (when (cond ((eq (type-of func) 'compiled-function)
                        ;; Search def. of compiled function for gnus-agent-do-once string
-                       (let* (definition 
-                               print-level 
+                       (let* (definition
+                               print-level
                                print-length
                                (standard-output
                                 (lambda (char)
