@@ -722,35 +722,36 @@ usage: (defmacro NAME ARGLIST [DOCSTRING] [DECL] BODY...)  */)
 
 
 DEFUN ("defvaralias", Fdefvaralias, Sdefvaralias, 2, 3, 0,
-       doc: /* Make SYMBOL a variable alias for symbol ALIASED.
-Setting the value of SYMBOL will subsequently set the value of ALIASED,
-and getting the value of SYMBOL will return the value ALIASED has.
-Third arg DOCSTRING, if non-nil, is documentation for SYMBOL.  If it is
-omitted or nil, SYMBOL gets the documentation string of ALIASED, or of the
-variable at the end of the chain of aliases, if ALIASED is itself an alias.
-The return value is ALIASED.  */)
-     (symbol, aliased, docstring)
-     Lisp_Object symbol, aliased, docstring;
+       doc: /* Make NEW-ALIAS a variable alias for symbol BASE-VARIABLE.
+Setting the value of NEW-ALIAS will subsequently set the value of BASE-VARIABLE,
+ and getting the value of NEW-ALIAS will return the value BASE-VARIABLE has.
+Third arg DOCSTRING, if non-nil, is documentation for NEW-ALIAS.  If it is
+ omitted or nil, NEW-ALIAS gets the documentation string of BASE-VARIABLE,
+ or of the variable at the end of the chain of aliases, if BASE-VARIABLE is
+ itself an alias.
+The return value is BASE-VARIABLE.  */)
+     (new_alias, base_variable, docstring)
+     Lisp_Object new_alias, base_variable, docstring;
 {
   struct Lisp_Symbol *sym;
 
-  CHECK_SYMBOL (symbol);
-  CHECK_SYMBOL (aliased);
+  CHECK_SYMBOL (new_alias);
+  CHECK_SYMBOL (base_variable);
 
-  if (SYMBOL_CONSTANT_P (symbol))
+  if (SYMBOL_CONSTANT_P (new_alias))
     error ("Cannot make a constant an alias");
 
-  sym = XSYMBOL (symbol);
+  sym = XSYMBOL (new_alias);
   sym->indirect_variable = 1;
-  sym->value = aliased;
-  sym->constant = SYMBOL_CONSTANT_P (aliased);
-  LOADHIST_ATTACH (symbol);
+  sym->value = base_variable;
+  sym->constant = SYMBOL_CONSTANT_P (base_variable);
+  LOADHIST_ATTACH (new_alias);
   if (!NILP (docstring))
-    Fput (symbol, Qvariable_documentation, docstring);
+    Fput (new_alias, Qvariable_documentation, docstring);
   else
-    Fput (symbol, Qvariable_documentation, Qnil);
+    Fput (new_alias, Qvariable_documentation, Qnil);
 
-  return aliased;
+  return base_variable;
 }
 
 
