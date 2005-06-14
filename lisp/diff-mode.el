@@ -935,7 +935,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 Supports unified and context diffs as well as (to a lesser extent)
 normal diffs.
 When the buffer is read-only, the ESC prefix is not necessary.
-IF you edit the buffer manually, diff-mode will try to update the hunk
+If you edit the buffer manually, diff-mode will try to update the hunk
 headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],
