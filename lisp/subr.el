@@ -963,25 +963,36 @@ other hooks, such as major mode hooks, can do the job."
 The test for presence of ELEMENT is done with `equal'.
 
 The resulting list is reordered so that the elements are in the
-order given by each element's `list-order' property (a number).
-Elements which are not symbols, and symbol elements without a
-numeric `lisp-order' property are placed at the end of the list.
+order given by each element's numeric list order.  Elements which
+are not symbols, and symbol elements without a numeric list order
+are placed at the end of the list.
 
 If the third optional argument ORDER is non-nil and ELEMENT is
-a symbol, set the symbol's `list-order' property to the given value.
+a symbol, set the symbol's list order to the given value.
+
+The list order for each symbol is stored in LIST-VAR's
+`list-order' property.
 
 The return value is the new value of LIST-VAR."
-  (when (and order (symbolp element))
-    (put element 'list-order (and (numberp order) order)))
-  (add-to-list list-var element)
-  (set list-var (sort (symbol-value list-var)
-		      (lambda (a b)
-			(let ((oa (and (symbolp a) (get a 'list-order)))
-			      (ob (and (symbolp b) (get b 'list-order))))
-			  (cond
-			   ((not oa) nil)
-			   ((not ob) t)
-			   (t (< oa ob))))))))
+  (let* ((ordering (get list-var 'list-order))
+	 (cur (and (symbolp element) (assq element ordering))))
+    (when order
+      (unless (symbolp element)
+	(error "cannot specify order for non-symbols"))
+      (if cur
+	  (setcdr cur order)
+	(setq cur (cons element order))
+	(setq ordering (cons cur ordering))
+	(put list-var 'list-order ordering)))
+    (add-to-list list-var element)
+    (set list-var (sort (symbol-value list-var)
+			(lambda (a b)
+			  (let ((oa (and (symbolp a) (assq a ordering)))
+				(ob (and (symbolp b) (assq b ordering))))
+			    (cond
+			     ((not oa) nil)
+			     ((not ob) t)
+			     (t (< (cdr oa) (cdr ob))))))))))
 
 
 ;;; Load history
