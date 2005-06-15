@@ -105,6 +105,7 @@
   "Face to use for highlighting leading spaces in Font-Lock mode."
   :group 'faces
   :group 'makefile)
+(put 'makefile-space-face 'face-alias 'makefile-space)
 
 (defface makefile-targets
   ;; This needs to go along both with foreground and background colors (i.e. shell)
