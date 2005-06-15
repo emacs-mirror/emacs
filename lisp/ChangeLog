@@ -1,3 +1,7 @@
+2005-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (add-to-ordered-list): Use a weak hash-table to avoid leaks.
+
 2005-06-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
 
 	* textmodes/bibtex.el (bibtex-Preamble): Enclose BibTeX preamble
@@ -86,7 +90,7 @@
 	(idlwave-shell-disabled-breakpoint-face)
 	(idlwave-shell-breakpoint-face): Use renamed idlwave-shell faces.
 
-	* progmodes/flymake.el (flymake-errline, flymake-warnline): 
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
 	Remove "-face" suffix from face names.
 	(flymake-errline-face, flymake-warnline-face):
 	New backward-compatibility aliases for renamed faces.
@@ -108,8 +112,7 @@
 
 	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
 	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
-	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
-	names.
+	(antlr-literal): Remove "-face" suffix and "font-lock-" from face names.
 	(antlr-font-lock-default-face, antlr-font-lock-keyword-face)
 	(antlr-font-lock-syntax-face, antlr-font-lock-ruledef-face)
 	(antlr-font-lock-tokendef-face, antlr-font-lock-ruleref-face)
@@ -132,20 +135,20 @@
 
 	* progmodes/make-mode.el (makefile-space, makefile-makepp-perl):
 	Eliminate "-face" suffix.
-	(makefile-targets): Inherit font-lock-variable-name-face and
+	(makefile-targets): Inherit from font-lock-function-name-face and
 	eliminate "-face" suffix.
 	(makefile-shell): Remove attributes and eliminate "-face" suffix.
 	(makefile-*-font-lock-keywords): Append makefile-targets in rule
 	actions, instead of prepending, to make it less visible.
-	(makefile-previous-dependency, makefile-match-dependency): Don't
-	match a target on a continuation line.
+	(makefile-previous-dependency, makefile-match-dependency):
+	Don't match a target on a continuation line.
 
 	* files.el (auto-mode-alist): Put Makefile in gmake mode.
 
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print): Respect
-	tooltip-use-echo-area.
+	* progmodes/gdb-ui.el (gdb-tooltip-print):
+	Respect tooltip-use-echo-area.
 	(menu): Re-order menu items.
 
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
@@ -194,8 +197,8 @@
 	* emacs-lisp/byte-run.el (make-obsolete)
 	(define-obsolete-function-alias): Rename arguments FUNCTION and
 	NEW to OBSOLETE-NAME and CURRENT-NAME respectively.
-	(make-obsolete-variable, define-obsolete-variable-alias): Rename
-	arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
+	(make-obsolete-variable, define-obsolete-variable-alias):
+	Rename arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
 	respectively.
 
 	* isearchb.el (isearchb-activate):
