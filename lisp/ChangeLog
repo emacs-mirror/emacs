@@ -1,9 +1,15 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/ld-script.el (ld-script-location-counter):
+	Remove "-face" suffix from face name.
+	(ld-script-location-counter-face): 
+	New backward-compatibility alias for renamed face.
+	(ld-script-location-counter-face): Use renamed face.
+
 	* progmodes/cperl-mode.el (cperl-nonoverridable, cperl-array)
 	(cperl-hash): Remove "-face" suffix from face names.
 	(cperl-nonoverridable-face, cperl-array-face, cperl-hash-face):
-	New backward-compatibility alias for renamed faces.
+	New backward-compatibility aliases for renamed faces.
 	(cperl-find-pods-heres, cperl-init-faces, cperl-ps-print-init)
 	(cperl-ps-print-face-properties): Use renamed cperl-mode faces.
 
