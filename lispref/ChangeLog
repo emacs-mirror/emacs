@@ -1,3 +1,8 @@
+2005-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Rephrase warnings about
+	evaporate arg to match-data and set-match-data.
+
 2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* elisp.texi (Top): Update detailed menu.
