@@ -113,17 +113,19 @@ Zero means compute the Imenu menu regardless of size."
     map)
   "Keymap to display on mode line which-func.")
 
-(defface which-func-face
+(defface which-func
   '((t (:inherit font-lock-function-name-face)))
   "Face used to highlight mode line function names.
 Defaults to `font-lock-function-name-face' if font-lock is loaded."
   :group 'which-func)
+;; backward-compatibility alias
+(put 'which-func-face 'face-alias 'which-func)
 
 (defcustom which-func-format
   `("["
     (:propertize which-func-current
 		 local-map ,which-func-keymap
-		 face which-func-face
+		 face which-func
 		 ;;mouse-face highlight	; currently not evaluated :-(
 		 help-echo "mouse-1: go to beginning, mouse-2: toggle rest visibility, mouse-3: go to end")
     "]")

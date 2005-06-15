@@ -1,5 +1,10 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/which-func.el (which-func): Remove "-face" suffix from face
+	name.
+	(which-func-face): New backward-compatibility alias for renamed face.
+	(which-func-format): Use renamed which-func face.
+
 	* progmodes/vhdl-mode.el (vhdl-prompt, vhdl-attribute, vhdl-enumvalue)
 	(vhdl-function, vhdl-directive, vhdl-reserved-word)
 	(vhdl-translate-off): Remove "-face" suffix and "font-lock-" from face
