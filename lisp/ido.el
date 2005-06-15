@@ -770,6 +770,12 @@ subdirs in the alternatives."
   "*Font used by ido for highlighting its indicators."
   :group 'ido)
 
+(defface ido-incomplete-regexp
+  '((t
+     (:inherit font-lock-warning-face)))
+  "Ido face for indicating incomplete regexps."
+  :group 'ido)
+
 (defcustom ido-make-file-list-hook  nil
   "*List of functions to run when the list of matching files is created.
 Each function on the list may modify the dynamically bound variable
@@ -959,6 +965,8 @@ selected.")
 Is set by ido functions to the current minibuffer-depth, so that
 it doesn't interfere with other minibuffer usage.")
 
+(defvar ido-incomplete-regexp nil
+  "Non-nil if an incomplete regexp is entered.")
 
 ;;; Variables with dynamic bindings.
 ;;; Declared here to keep the byte compiler quiet.
@@ -2170,6 +2178,9 @@ If INITIAL is non-nil, it specifies the initial input string."
   (interactive)
   (let (res)
     (cond
+     (ido-incomplete-regexp
+      ;; Do nothing
+      )
      ((and (memq ido-cur-item '(file dir))
 	   (string-match "[$]" ido-text))
       (let ((evar (substitute-in-file-name (concat ido-current-directory ido-text))))
@@ -2394,8 +2405,9 @@ timestamp has not changed (e.g. with ftp or on Windows)."
 (defun ido-exit-minibuffer ()
   "Exit minibuffer, but make sure we have a match if one is needed."
   (interactive)
-  (if (or (not ido-require-match)
-	   (ido-existing-item-p))
+  (if (and (or (not ido-require-match)
+               (ido-existing-item-p))
+           (not ido-incomplete-regexp))
       (exit-minibuffer)))
 
 (defun ido-select-text ()
@@ -3275,22 +3287,30 @@ for first matching file."
 	 full-matches
 	 prefix-matches
 	 matches)
-    (mapcar
-     (lambda (item)
-       (let ((name (ido-name item)))
-	 (if (and (or non-prefix-dot
-		      (if (= (aref ido-text 0) ?.)
-			  (= (aref name 0) ?.)
-			(/= (aref name 0) ?.)))
-		  (string-match re name))
-	     (cond
-	      ((and full-re (string-match full-re name))
-	       (setq full-matches (cons item full-matches)))
-	      ((and prefix-re (string-match prefix-re name))
-	       (setq prefix-matches (cons item prefix-matches)))
-	      (t (setq matches (cons item matches))))))
-       t)
-     items)
+    (setq ido-incomplete-regexp nil)
+    (condition-case error
+        (mapcar
+         (lambda (item)
+           (let ((name (ido-name item)))
+             (if (and (or non-prefix-dot
+                          (if (= (aref ido-text 0) ?.)
+                              (= (aref name 0) ?.)
+                            (/= (aref name 0) ?.)))
+                      (string-match re name))
+                 (cond
+                  ((and full-re (string-match full-re name))
+                   (setq full-matches (cons item full-matches)))
+                  ((and prefix-re (string-match prefix-re name))
+                   (setq prefix-matches (cons item prefix-matches)))
+                  (t (setq matches (cons item matches))))))
+           t)
+         items)
+      (invalid-regexp
+       (setq ido-incomplete-regexp t
+             ;; Consider the invalid regexp message internally as a
+             ;; special-case single match, and handle appropriately
+             ;; elsewhere.
+             matches (cdr error))))
     (if prefix-matches
 	(setq matches (nconc prefix-matches matches)))
     (if full-matches
@@ -4048,7 +4068,9 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	  (setq first (format "%s" fn))
 	  (put-text-property 0 ln 'face
 			     (if (= (length comps) 1)
-				 'ido-only-match
+                                 (if ido-incomplete-regexp
+                                     'ido-incomplete-regexp
+                                   'ido-only-match)
 			       'ido-first-match)
 			     first)
 	  (if ind (setq first (concat first ind)))
@@ -4063,14 +4085,22 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 	    (ido-report-no-match
 	     (nth 6 ido-decorations))  ;; [No match]
 	    (t "")))
-
+	  (ido-incomplete-regexp
+           (concat " " (car comps)))
 	  ((null (cdr comps))		;one match
-	   (concat (if (> (length (ido-name (car comps))) (length name))
-		       ;; when there is one match, show the matching file name in full
-		       (concat (nth 4 ido-decorations)  ;; [ ... ]
-			       (ido-name (car comps))
-			       (nth 5 ido-decorations))
-		     "")
+	   (concat (if (if (not ido-enable-regexp)
+                           (= (length (ido-name (car comps))) (length name))
+                         ;; We can't rely on the length of the input
+                         ;; for regexps, so explicitly check for a
+                         ;; complete match
+                         (string-match name (ido-name (car comps)))
+                         (string-equal (match-string 0 (ido-name (car comps)))
+                                       (ido-name (car comps))))
+                       ""
+                     ;; when there is one match, show the matching file name in full
+                     (concat (nth 4 ido-decorations)  ;; [ ... ]
+                             (ido-name (car comps))
+                             (nth 5 ido-decorations)))
 		   (if (not ido-use-faces) (nth 7 ido-decorations))))  ;; [Matched]
 	  (t				;multiple matches
 	   (let* ((items (if (> ido-max-prospects 0) (1+ ido-max-prospects) 999))

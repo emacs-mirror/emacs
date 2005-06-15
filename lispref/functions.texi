@@ -1157,13 +1157,14 @@ a function defined by another package, it is cleaner to use
 You can use @code{make-obsolete} to declare a function obsolete.  This
 indicates that the function may be removed at some stage in the future.
 
-@defun make-obsolete function new &optional when
+@defun make-obsolete obsolete-name current-name &optional when
 This function makes the byte compiler warn that the function
-@var{function} is obsolete.  If @var{new} is a symbol, the warning
-message says to use @var{new} instead of @var{function}.  @var{new}
-does not need to be an alias for @var{function}; it can be a different
-function with similar functionality.  If @var{new} is a string, it is
-the warning message.
+@var{obsolete-name} is obsolete.  If @var{current-name} is a symbol, the
+warning message says to use @var{current-name} instead of
+@var{obsolete-name}.  @var{current-name} does not need to be an alias for
+@var{obsolete-name}; it can be a different function with similar
+functionality.  If @var{current-name} is a string, it is the warning
+message.
 
 If provided, @var{when} should be a string indicating when the function
 was first made obsolete---for example, a date or a release number.
@@ -1172,9 +1173,10 @@ was first made obsolete---for example, a date or a release number.
 You can define a function as an alias and declare it obsolete at the
 same time using the macro @code{define-obsolete-function-alias}.
 
-@defmac define-obsolete-function-alias function new &optional when docstring
-This macro marks the function @var{function} obsolete and also defines
-it as an alias for the function @var{new}.  A typical call has the form:
+@defmac define-obsolete-function-alias obsolete-name current-name &optional when docstring
+This macro marks the function @var{obsolete-name} obsolete and also defines
+it as an alias for the function @var{current-name}.  A typical call has the
+form:
 
 @example
 (define-obsolete-function-alias 'old-fun 'new-fun "22.1" "Doc.")

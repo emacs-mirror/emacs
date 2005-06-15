@@ -1785,19 +1785,19 @@ chosen, or because its meaning has partly changed---it can be useful
 to keep the old name as an @emph{alias} of the new one for
 compatibility.  You can do this with @code{defvaralias}.
 
-@defun defvaralias alias-var base-var &optional docstring
-This function defines the symbol @var{alias-var} as a variable alias
-for symbol @var{base-var}. This means that retrieving the value of
-@var{alias-var} returns the value of @var{base-var}, and changing the
-value of @var{alias-var} changes the value of @var{base-var}.
+@defun defvaralias new-alias base-variable &optional docstring
+This function defines the symbol @var{new-alias} as a variable alias
+for symbol @var{base-variable}. This means that retrieving the value of
+@var{new-alias} returns the value of @var{base-variable}, and changing the
+value of @var{new-alias} changes the value of @var{base-variable}.
 
 If the @var{docstring} argument is non-@code{nil}, it specifies the
-documentation for @var{alias-var}; otherwise, the alias gets the same
-documentation as @var{base-var} has, if any, unless @var{base-var} is
-itself an alias, in which case @var{alias-var} gets the documentation
-of the variable at the end of the chain of aliases.
+documentation for @var{new-alias}; otherwise, the alias gets the same
+documentation as @var{base-variable} has, if any, unless
+@var{base-variable} is itself an alias, in which case @var{new-alias} gets
+the documentation of the variable at the end of the chain of aliases.
 
-This function returns @var{base-var}.
+This function returns @var{base-variable}.
 @end defun
 
   Variable aliases are convenient for replacing an old name for a
@@ -1805,12 +1805,12 @@ variable with a new name.  @code{make-obsolete-variable} declares that
 the old name is obsolete and therefore that it may be removed at some
 stage in the future.
 
-@defun make-obsolete-variable variable new &optional when
+@defun make-obsolete-variable obsolete-name current-name &optional when
 This function makes the byte-compiler warn that the variable
-@var{variable} is obsolete.  If @var{new} is a symbol, it is the
-variable's new name; then the warning message says to use @var{new}
-instead of @var{variable}.  If @var{new} is a string, this is the
-message and there is no replacement variable.
+@var{obsolete-name} is obsolete.  If @var{current-name} is a symbol, it is
+the variable's new name; then the warning message says to use
+@var{current-name} instead of @var{obsolete-name}.  If @var{current-name}
+is a string, this is the message and there is no replacement variable.
 
 If provided, @var{when} should be a string indicating when the
 variable was first made obsolete---for example, a date or a release
@@ -1820,9 +1820,10 @@ number.
   You can make two variables synonyms and declare one obsolete at the
 same time using the macro @code{define-obsolete-variable-alias}.
 
-@defmac define-obsolete-variable-alias variable new &optional when docstring
-This macro marks the variable @var{variable} as obsolete and also
-makes it an alias for the variable @var{new}.  A typical call has the form:
+@defmac define-obsolete-variable-alias obsolete-name current-name &optional when docstring
+This macro marks the variable @var{obsolete-name} as obsolete and also
+makes it an alias for the variable @var{current-name}.  A typical call has
+the form:
 
 @example
 (define-obsolete-variable-alias 'old-var 'new-var "22.1" "Doc.")
