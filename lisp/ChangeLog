@@ -1,5 +1,9 @@
 2005-06-15  Miles Bader  <miles@gnu.org>
 
+	* progmodes/which-func.el (which-func): Only inherit
+	`font-lock-function-name-face' when that makes sense against the
+	default mode-line face, otherwise set the face color explicitly.
+
 	* progmodes/cperl-mode.el (cperl-init-faces): Use literal cperl
 	faces instead of (non-existent) variables.
 

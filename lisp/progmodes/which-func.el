@@ -114,9 +114,30 @@ Zero means compute the Imenu menu regardless of size."
   "Keymap to display on mode line which-func.")
 
 (defface which-func
-  '((t (:inherit font-lock-function-name-face)))
-  "Face used to highlight mode line function names.
-Defaults to `font-lock-function-name-face' if font-lock is loaded."
+  ;; Whether `font-lock-function-name-face' is an appropriate face to
+  ;; inherit depends on the mode-line face; define several variants based
+  ;; on the default mode-line face.
+  '(;; The default mode-line face on a high-color display is a relatively
+    ;; light color ("grey75"), and only the light-background variant of
+    ;; `font-lock-function-name-face' is visible against it.
+    (((class color) (min-colors 88) (background light))
+     :inherit font-lock-function-name-face)
+    ;; The default mode-line face on other display types is inverse-video;
+    ;; it seems that only in the dark-background case is
+    ;; `font-lock-function-name-face' visible against it.
+    (((class grayscale mono) (background dark))
+     :inherit font-lock-function-name-face)
+    (((class color) (background light))
+     :inherit font-lock-function-name-face)
+    ;; If none of the above cases, use an explicit color chosen to contrast
+    ;; well with the default mode-line face.
+    (((class color) (min-colors 88) (background dark))
+     :foreground "Blue1")
+    (((background dark))
+     :foreground "Blue1")
+    (t
+     :foreground "LightSkyBlue"))
+  "Face used to highlight mode line function names."
   :group 'which-func)
 ;; backward-compatibility alias
 (put 'which-func-face 'face-alias 'which-func)
