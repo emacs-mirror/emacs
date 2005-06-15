@@ -4779,15 +4779,15 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		'(
 		  ("\\(\\([@%]\\|\$#\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)" 1
 		   (if (eq (char-after (match-beginning 2)) ?%)
-		       cperl-hash-face
-		     cperl-array-face)
+		       'cperl-hash
+		     'cperl-array)
 		   t)			; arrays and hashes
 		  ("\\(\\([$@]+\\)[a-zA-Z_:][a-zA-Z0-9_:]*\\)[ \t]*\\([[{]\\)"
 		   1
 		   (if (= (- (match-end 2) (match-beginning 2)) 1)
 		       (if (eq (char-after (match-beginning 3)) ?{)
-			   cperl-hash-face
-			 cperl-array-face) ; arrays and hashes
+			   'cperl-hash
+			 'cperl-array) ; arrays and hashes
 		     font-lock-variable-name-face) ; Just to put something
 		   t)
 		  ;;("\\([smy]\\|tr\\)\\([^a-z_A-Z0-9]\\)\\(\\([^\n\\]*||\\)\\)\\2")
