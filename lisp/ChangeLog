@@ -1,3 +1,8 @@
+2005-06-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-Preamble): Enclose BibTeX preamble
+	by field delimiters.
+
 2005-06-15  David Ponce  <david@dponce.com>
 
 	* tree-widget.el: eval-and-compile inlined functions so they will
