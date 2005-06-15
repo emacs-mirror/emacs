@@ -564,11 +564,11 @@ when syntaxifying a chunk of buffer."
     (font-lock-variable-name-face	nil nil		bold)
     (font-lock-function-name-face	nil nil		bold italic box)
     (font-lock-constant-face		nil "LightGray"	bold)
-    (cperl-array-face			nil "LightGray"	bold underline)
-    (cperl-hash-face			nil "LightGray"	bold italic underline)
+    (cperl-array			nil "LightGray"	bold underline)
+    (cperl-hash				nil "LightGray"	bold italic underline)
     (font-lock-comment-face		nil "LightGray"	italic)
     (font-lock-string-face		nil nil		italic underline)
-    (cperl-nonoverridable-face		nil nil		italic underline)
+    (cperl-nonoverridable		nil nil		italic underline)
     (font-lock-type-face		nil nil		underline)
     (underline				nil "LightGray"	strikeout))
   "List given as an argument to `ps-extend-face-list' in `cperl-ps-print'."
@@ -583,7 +583,7 @@ when syntaxifying a chunk of buffer."
 (defvar cperl-dark-foreground
   (cperl-choose-color "orchid1" "orange"))
 
-(defface cperl-nonoverridable-face
+(defface cperl-nonoverridable
   `((((class grayscale) (background light))
      (:background "Gray90" :slant italic :underline t))
     (((class grayscale) (background dark))
@@ -595,8 +595,10 @@ when syntaxifying a chunk of buffer."
     (t (:weight bold :underline t)))
   "Font Lock mode face used non-overridable keywords and modifiers of regexps."
   :group 'cperl-faces)
+;; backward-compatibility alias
+(put 'cperl-nonoverridable-face 'face-alias 'cperl-nonoverridable)
 
-(defface cperl-array-face
+(defface cperl-array
   `((((class grayscale) (background light))
      (:background "Gray90" :weight bold))
     (((class grayscale) (background dark))
@@ -608,8 +610,10 @@ when syntaxifying a chunk of buffer."
     (t (:weight bold)))
   "Font Lock mode face used to highlight array names."
   :group 'cperl-faces)
+;; backward-compatibility alias
+(put 'cperl-array-face 'face-alias 'cperl-array)
 
-(defface cperl-hash-face
+(defface cperl-hash
   `((((class grayscale) (background light))
      (:background "Gray90" :weight bold :slant italic))
     (((class grayscale) (background dark))
@@ -621,6 +625,8 @@ when syntaxifying a chunk of buffer."
     (t (:weight bold :slant italic)))
   "Font Lock mode face used to highlight hash names."
   :group 'cperl-faces)
+;; backward-compatibility alias
+(put 'cperl-hash-face 'face-alias 'cperl-hash)
 
 
 
@@ -867,8 +873,8 @@ B) Speed of editing operations.
 (defvar cperl-tips-faces 'please-ignore-this-line
   "CPerl mode uses following faces for highlighting:
 
-  `cperl-array-face'		Array names
-  `cperl-hash-face'		Hash names
+  `cperl-array'			Array names
+  `cperl-hash'			Hash names
   `font-lock-comment-face'	Comments, PODs and whatever is considered
 				syntaxically to be not code
   `font-lock-constant-face'	HERE-doc delimiters, labels, delimiters of
@@ -879,7 +885,7 @@ B) Speed of editing operations.
 				(except those conflicting with Perl operators),
 				package names (when recognized), format names
   `font-lock-keyword-face'	Control flow switch constructs, declarators
-  `cperl-nonoverridable-face'	Non-overridable keywords, modifiers of RExen
+  `cperl-nonoverridable'	Non-overridable keywords, modifiers of RExen
   `font-lock-string-face'	Strings, qw() constructs, RExen, POD sections,
 				literal parts and the terminator of formats
 				and whatever is syntaxically considered
@@ -887,7 +893,7 @@ B) Speed of editing operations.
   `font-lock-type-face'		Overridable keywords
   `font-lock-variable-name-face' Variable declarations, indirect array and
 				hash names, POD headers/item names
-  `cperl-invalid-face'		Trailing whitespace
+  `cperl-invalid'		Trailing whitespace
 
 Note that in several situations the highlighting tries to inform about
 possible confusion, such as different colors for function names in
@@ -3167,7 +3173,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 	 (cperl-nonoverridable-face
 	  (if (boundp 'cperl-nonoverridable-face)
 	      cperl-nonoverridable-face
-	    'cperl-nonoverridable-face))
+	    'cperl-nonoverridable))
 	 (stop-point (if ignore-max
 			 (point-max)
 		       max))
@@ -3661,7 +3667,7 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
 			(forward-word 1) ; skip modifiers s///s
 			(if tail (cperl-commentify tail (point) t))
 			(cperl-postpone-fontification
-			 e1 (point) 'face 'cperl-nonoverridable-face)))
+			 e1 (point) 'face 'cperl-nonoverridable)))
 		  ;; Check whether it is m// which means "previous match"
 		  ;; and highlight differently
 		  (setq is-REx
@@ -4710,7 +4716,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	      "u\\(se\\|n\\(shift\\|ti\\(l\\|e\\)\\|def\\|less\\)\\)\\|"
 	      "while\\|y\\|__\\(END\\|DATA\\)__" ;__DATA__ added manually
 	      "\\|[sm]"			; Added manually
-	      "\\)\\>") 2 'cperl-nonoverridable-face)
+	      "\\)\\>") 2 'cperl-nonoverridable)
 	    ;;		(mapconcat 'identity
 	    ;;			   '("#endif" "#else" "#ifdef" "#ifndef" "#if"
 	    ;;			     "#include" "#define" "#undef")
@@ -4854,21 +4860,21 @@ indentation and initial hashes.  Behaves usually outside of comment."
 		      [nil		nil		t		t	t]
 		      nil
 		      [nil		nil		t		t	t])
-		(list 'cperl-nonoverridable-face
+		(list 'cperl-nonoverridable
 		      ["chartreuse3"	("orchid1" "orange")
 		       nil		"Gray80"]
 		      [nil		nil		"gray90"]
 		      [nil		nil		nil		t	t]
 		      [nil		nil		t		t]
 		      [nil		nil		t		t	t])
-		(list 'cperl-array-face
+		(list 'cperl-array
 		      ["blue"		"yellow" 	nil		"Gray80"]
 		      ["lightyellow2"	("navy" "os2blue" "darkgreen")
 		       "gray90"]
 		      t
 		      nil
 		      nil)
-		(list 'cperl-hash-face
+		(list 'cperl-hash
 		      ["red"		"red"	 	nil		"Gray80"]
 		      ["lightyellow2"	("navy" "os2blue" "darkgreen")
 		       "gray90"]
@@ -4891,15 +4897,15 @@ indentation and initial hashes.  Behaves usually outside of comment."
 			    "Face for variable names")
 	  (cperl-force-face font-lock-type-face
 			    "Face for data types")
-	  (cperl-force-face cperl-nonoverridable-face
+	  (cperl-force-face cperl-nonoverridable
 			    "Face for data types from another group")
 	  (cperl-force-face font-lock-comment-face
 			    "Face for comments")
 	  (cperl-force-face font-lock-function-name-face
 			    "Face for function names")
-	  (cperl-force-face cperl-hash-face
+	  (cperl-force-face cperl-hash
 			    "Face for hashes")
-	  (cperl-force-face cperl-array-face
+	  (cperl-force-face cperl-array
 			    "Face for arrays")
 	  ;;(defvar font-lock-constant-face 'font-lock-constant-face)
 	  ;;(defvar font-lock-variable-name-face 'font-lock-variable-name-face)
@@ -4909,7 +4915,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;;	"Face to use for data types."))
 	  ;;(or (boundp 'cperl-nonoverridable-face)
 	  ;;    (defconst cperl-nonoverridable-face
-	  ;;	'cperl-nonoverridable-face
+	  ;;	'cperl-nonoverridable
 	  ;;	"Face to use for data types from another group."))
 	  ;;(if (not cperl-xemacs-p) nil
 	  ;;  (or (boundp 'font-lock-comment-face)
@@ -4925,26 +4931,24 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  ;;	  'font-lock-function-name-face
 	  ;;	  "Face to use for function names.")))
 	  (if (and
-	       (not (cperl-is-face 'cperl-array-face))
+	       (not (cperl-is-face 'cperl-array))
 	       (cperl-is-face 'font-lock-emphasized-face))
-	      (copy-face 'font-lock-emphasized-face 'cperl-array-face))
+	      (copy-face 'font-lock-emphasized-face 'cperl-array))
 	  (if (and
-	       (not (cperl-is-face 'cperl-hash-face))
+	       (not (cperl-is-face 'cperl-hash))
 	       (cperl-is-face 'font-lock-other-emphasized-face))
-	      (copy-face 'font-lock-other-emphasized-face
-			 'cperl-hash-face))
+	      (copy-face 'font-lock-other-emphasized-face 'cperl-hash))
 	  (if (and
-	       (not (cperl-is-face 'cperl-nonoverridable-face))
+	       (not (cperl-is-face 'cperl-nonoverridable))
 	       (cperl-is-face 'font-lock-other-type-face))
-	      (copy-face 'font-lock-other-type-face
-			 'cperl-nonoverridable-face))
+	      (copy-face 'font-lock-other-type-face 'cperl-nonoverridable))
 	  ;;(or (boundp 'cperl-hash-face)
 	  ;;    (defconst cperl-hash-face
-	  ;;	'cperl-hash-face
+	  ;;	'cperl-hash
 	  ;;	"Face to use for hashes."))
 	  ;;(or (boundp 'cperl-array-face)
 	  ;;    (defconst cperl-array-face
-	  ;;	'cperl-array-face
+	  ;;	'cperl-array
 	  ;;	"Face to use for arrays."))
 	  ;; Here we try to guess background
 	  (let ((background
@@ -4983,17 +4987,17 @@ indentation and initial hashes.  Behaves usually outside of comment."
 				       "pink")))
 	       (t
 		(set-face-background 'font-lock-type-face "gray90"))))
-	    (if (cperl-is-face 'cperl-nonoverridable-face)
+	    (if (cperl-is-face 'cperl-nonoverridable)
 		nil
-	      (copy-face 'font-lock-type-face 'cperl-nonoverridable-face)
+	      (copy-face 'font-lock-type-face 'cperl-nonoverridable)
 	      (cond
 	       ((eq background 'light)
-		(set-face-foreground 'cperl-nonoverridable-face
+		(set-face-foreground 'cperl-nonoverridable
 				     (if (x-color-defined-p "chartreuse3")
 					 "chartreuse3"
 				       "chartreuse")))
 	       ((eq background 'dark)
-		(set-face-foreground 'cperl-nonoverridable-face
+		(set-face-foreground 'cperl-nonoverridable
 				     (if (x-color-defined-p "orchid1")
 					 "orchid1"
 				       "orange")))))
@@ -5045,20 +5049,15 @@ indentation and initial hashes.  Behaves usually outside of comment."
     '(setq ps-bold-faces
 	   ;; 			font-lock-variable-name-face
 	   ;;			font-lock-constant-face
-	   (append '(cperl-array-face
-		     cperl-hash-face)
+	   (append '(cperl-array cperl-hash)
 		   ps-bold-faces)
 	   ps-italic-faces
 	   ;;			font-lock-constant-face
-	   (append '(cperl-nonoverridable-face
-		     cperl-hash-face)
+	   (append '(cperl-nonoverridable cperl-hash)
 		   ps-italic-faces)
 	   ps-underlined-faces
 	   ;;	     font-lock-type-face
-	   (append '(cperl-array-face
-		     cperl-hash-face
-		     underline
-		     cperl-nonoverridable-face)
+	   (append '(cperl-array cperl-hash underline cperl-nonoverridable)
 		   ps-underlined-faces))))
 
 (defvar ps-print-face-extension-alist)
@@ -5091,27 +5090,27 @@ Style of printout regulated by the variable `cperl-ps-print-face-properties'."
 ;;;   (defvar ps-italic-faces nil)
 ;;;   (setq ps-bold-faces
 ;;; 	(append '(font-lock-emphasized-face
-;;; 		  cperl-array-face
+;;; 		  cperl-array
 ;;; 		  font-lock-keyword-face
 ;;; 		  font-lock-variable-name-face
 ;;; 		  font-lock-constant-face
 ;;; 		  font-lock-reference-face
 ;;; 		  font-lock-other-emphasized-face
-;;; 		  cperl-hash-face)
+;;; 		  cperl-hash)
 ;;; 		ps-bold-faces))
 ;;;   (setq ps-italic-faces
-;;; 	(append '(cperl-nonoverridable-face
+;;; 	(append '(cperl-nonoverridable
 ;;; 		  font-lock-constant-face
 ;;; 		  font-lock-reference-face
 ;;; 		  font-lock-other-emphasized-face
-;;; 		  cperl-hash-face)
+;;; 		  cperl-hash)
 ;;; 		ps-italic-faces))
 ;;;   (setq ps-underlined-faces
 ;;; 	(append '(font-lock-emphasized-face
-;;; 		  cperl-array-face
+;;; 		  cperl-array
 ;;; 		  font-lock-other-emphasized-face
-;;; 		  cperl-hash-face
-;;; 		  cperl-nonoverridable-face font-lock-type-face)
+;;; 		  cperl-hash
+;;; 		  cperl-nonoverridable font-lock-type-face)
 ;;; 		ps-underlined-faces))
 ;;;   (cons 'font-lock-type-face ps-underlined-faces))
 

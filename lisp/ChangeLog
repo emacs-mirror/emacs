@@ -1,5 +1,12 @@
 2005-06-14  Miles Bader  <miles@gnu.org>
 
+	* progmodes/cperl-mode.el (cperl-nonoverridable, cperl-array)
+	(cperl-hash): Remove "-face" suffix from face names.
+	(cperl-nonoverridable-face, cperl-array-face, cperl-hash-face):
+	New backward-compatibility alias for renamed faces.
+	(cperl-find-pods-heres, cperl-init-faces, cperl-ps-print-init)
+	(cperl-ps-print-face-properties): Use renamed cperl-mode faces.
+
 	* progmodes/which-func.el (which-func): Remove "-face" suffix from face
 	name.
 	(which-func-face): New backward-compatibility alias for renamed face.
