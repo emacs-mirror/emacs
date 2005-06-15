@@ -963,36 +963,32 @@ other hooks, such as major mode hooks, can do the job."
 The test for presence of ELEMENT is done with `equal'.
 
 The resulting list is reordered so that the elements are in the
-order given by each element's numeric list order.  Elements which
-are not symbols, and symbol elements without a numeric list order
-are placed at the end of the list.
+order given by each element's numeric list order.
+Elements without a numeric list order are placed at the end of
+the list.
 
-If the third optional argument ORDER is non-nil and ELEMENT is
-a symbol, set the symbol's list order to the given value.
+If the third optional argument ORDER is non-nil, set the
+element's list order to the given value.
 
-The list order for each symbol is stored in LIST-VAR's
+The list order for each element is stored in LIST-VAR's
 `list-order' property.
 
 The return value is the new value of LIST-VAR."
-  (let* ((ordering (get list-var 'list-order))
-	 (cur (and (symbolp element) (assq element ordering))))
+  (let ((ordering (get list-var 'list-order)))
+    (unless ordering
+      (put list-var 'list-order
+           (setq ordering (make-hash-table :weakness 'key :test 'eq))))
     (when order
-      (unless (symbolp element)
-	(error "cannot specify order for non-symbols"))
-      (if cur
-	  (setcdr cur order)
-	(setq cur (cons element order))
-	(setq ordering (cons cur ordering))
-	(put list-var 'list-order ordering)))
+      (puthash element order ordering))
     (add-to-list list-var element)
     (set list-var (sort (symbol-value list-var)
 			(lambda (a b)
-			  (let ((oa (and (symbolp a) (assq a ordering)))
-				(ob (and (symbolp b) (assq b ordering))))
+			  (let ((oa (gethash a ordering))
+				(ob (gethash b ordering)))
 			    (cond
 			     ((not oa) nil)
 			     ((not ob) t)
-			     (t (< (cdr oa) (cdr ob))))))))))
+			     (t (< oa ob)))))))))
 
 
 ;;; Load history
