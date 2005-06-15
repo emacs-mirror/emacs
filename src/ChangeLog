@@ -1,3 +1,20 @@
+2005-06-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_compute_glyph_string_overhangs): Don't set
+	overhangs unless the given glyph type is noncomposite CHAR_GLYPH.
+	[USE_CARBON_EVENTS] (mac_convert_event_ref): Convert dead key down
+	events.
+	(XTread_socket): Don't pass keyboard events with the option
+	modifier to the system when Vmac_command_key_is_meta is nil or
+	Vmac_option_modifier is non-nil.
+	[USE_CARBON_EVENTS] (read_socket_inev): New variable.
+	[USE_CARBON_EVENTS] (init_command_handler): Fix argument.
+	[USE_CARBON_EVENTS] (mac_handle_mouse_event): New Carbon event
+	handler function.
+	(install_window_handler) [USE_CARBON_EVENTS]: Install it.
+	(XTread_socket) [USE_CARBON_EVENTS]: Move mouse wheel event
+	handler part to mac_handle_mouse_event.
+
 2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (Fdefvaralias): Rename arguments SYMBOL and ALIASED to
