@@ -1,3 +1,12 @@
+2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* functions.texi (Obsolete Functions): Update argument names of
+	`make-obsolete' and `define-obsolete-function-alias'.
+
+	* variables.texi (Variable Aliases): Update argument names of
+	`defvaralias', `make-obsolete-variable' and
+	`define-obsolete-variable-alias'.
+
 2005-06-15  Kim F. Storm  <storm@cua.dk>
 
 	* searching.texi (Entire Match Data): Rephrase warnings about
