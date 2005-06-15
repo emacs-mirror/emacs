@@ -3131,7 +3131,7 @@ On reaching beginning of line, stop and signal error."
 (defun viper-find-char-forward (arg)
   "Find char on the line.
 If called interactively read the char to find from the terminal, and if
-called from viper-repeat, the char last used is used.  This behaviour is
+called from viper-repeat, the char last used is used.  This behavior is
 controlled by the sign of prefix numeric value."
   (interactive "P")
   (let ((val (viper-p-val arg))
@@ -3672,8 +3672,8 @@ If MAJOR-MODE is set, set the macros only in that major mode."
 	  (sit-for 2)
 	  (viper-unrecord-kbd-macro "///" 'vi-state)))
     ))
-  
-  
+
+
 (defun viper-set-parsing-style-toggling-macro (unset)
   "Set `%%%' to be a macro that toggles whether comment fields should be parsed for matching parentheses.
 This is used in conjunction with the `%' command.

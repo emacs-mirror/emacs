@@ -211,6 +211,35 @@ If PARSE-NS is non-nil, then QNAMES are expanded."
   (defvar xml-pe-reference-re    (concat "%" xml-name-re ";"))
 ;;[67] Reference   ::= EntityRef | CharRef
   (defvar xml-reference-re       (concat "\\(?:" xml-entity-ref "\\|" xml-char-ref-re "\\)"))
+;;[10]   	AttValue	   ::=   	'"' ([^<&"] | Reference)* '"' |  "'" ([^<&'] | Reference)* "'"
+  (defvar xml-att-value-re    (concat "\\(?:\"\\(?:[^&\"]\\|" xml-reference-re "\\)*\"\\|"
+				      "'\\(?:[^&']\\|" xml-reference-re "\\)*'\\)"))
+;;[56]   	TokenizedType	   ::=   	'ID'	   [VC: ID] [VC: One ID per Element Type] [VC: ID Attribute Default]
+;;                                            | 'IDREF'    [VC: IDREF]
+;;                             	              | 'IDREFS'   [VC: IDREF]
+;;                                            | 'ENTITY'   [VC: Entity Name]
+;;                                            | 'ENTITIES' [VC: Entity Name]
+;;                                            | 'NMTOKEN'  [VC: Name Token]
+;;                                            | 'NMTOKENS' [VC: Name Token]
+  (defvar xml-tokenized-type-re "\\(?:ID\\|IDREF\\|IDREFS\\|ENTITY\\|ENTITIES\\|NMTOKEN\\|NMTOKENS\\)")
+;;[58]   	NotationType	   ::=   	'NOTATION' S '(' S? Name (S? '|' S? Name)* S? ')'
+  (defvar xml-notation-type-re (concat "\\(?:NOTATION" whitespace "(" whitespace "*" xml-name-re
+				       "\\(?:" whitespace "*|" whitespace "*" xml-name-re "\\)*" whitespace "*)\\)"))
+;;[59]   	Enumeration	   ::=   	'(' S? Nmtoken (S? '|' S? Nmtoken)* S? ')'	[VC: Enumeration] [VC: No Duplicate Tokens]
+  (defvar xml-enumeration-re (concat "\\(?:(" whitespace "*" xml-nmtoken-re 
+				     "\\(?:" whitespace "*|" whitespace "*" xml-nmtoken-re "\\)*"
+				     whitespace ")\\)"))
+;;[57]   	EnumeratedType	   ::=   	NotationType | Enumeration
+  (defvar xml-enumerated-type-re (concat "\\(?:" xml-notation-type-re "\\|" xml-enumeration-re "\\)"))
+;;[54]   	AttType	   ::=   	StringType | TokenizedType | EnumeratedType
+;;[55]   	StringType	   ::=   	'CDATA'
+  (defvar xml-att-type-re (concat "\\(?:CDATA\\|" xml-tokenized-type-re "\\|" xml-notation-type-re"\\|" xml-enumerated-type-re "\\)"))
+;;[60]   	DefaultDecl	   ::=   	'#REQUIRED' | '#IMPLIED' | (('#FIXED' S)? AttValue)
+  (defvar xml-default-decl-re (concat "\\(?:#REQUIRED\\|#IMPLIED\\|\\(?:#FIXED" whitespace "\\)*" xml-att-value-re "\\)"))
+;;[53]   	AttDef	   ::=   	S Name S AttType S DefaultDecl
+  (defvar xml-att-def-re         (concat "\\(?:" whitespace "*" xml-name-re
+					 whitespace "*" xml-att-type-re
+					 whitespace "*" xml-default-decl-re "\\)"))
 ;;[9] EntityValue ::= '"' ([^%&"] | PEReference | Reference)* '"'
 ;;		   |  "'" ([^%&'] | PEReference | Reference)* "'"
   (defvar xml-entity-value-re    (concat "\\(?:\"\\(?:[^%&\"]\\|" xml-pe-reference-re
@@ -580,7 +609,7 @@ This follows the rule [28] in the XML specifications."
 	  (error "XML: Bad DTD")
 	(forward-char)
 	;;  Parse the rest of the DTD
-	;;  Fixme: Deal with ATTLIST, NOTATION, PIs.
+	;;  Fixme: Deal with NOTATION, PIs.
 	(while (not (looking-at "\\s-*\\]"))
 	  (skip-syntax-forward " ")
 	  (cond
@@ -616,16 +645,24 @@ This follows the rule [28] in the XML specifications."
 	    ;;  Store the element in the DTD
 	    (push (list element type) dtd)
 	    (goto-char end-pos))
+
+	   ;; Translation of rule [52] of XML specifications
+	   ((looking-at (concat "<!ATTLIST[ \t\n\r]*\\(" xml-name-re
+				"\\)[ \t\n\r]*\\(" xml-att-def-re
+				"\\)*[ \t\n\r]*>"))
+
+	    ;; We don't do anything with ATTLIST currently
+	    (goto-char (match-end 0)))
+
 	   ((looking-at "<!--")
 	    (search-forward "-->"))
 	   ((looking-at (concat "<!ENTITY[ \t\n\r]*\\(" xml-name-re
 				"\\)[ \t\n\r]*\\(" xml-entity-value-re
 				"\\)[ \t\n\r]*>"))
-	    (let ((name  (buffer-substring (nth 2 (match-data))
-					   (nth 3 (match-data))))
-		  (value (buffer-substring (+ (nth 4 (match-data)) 1)
-					   (- (nth 5 (match-data)) 1))))
-	      (goto-char (nth 1 (match-data)))
+	    (let ((name  (match-string 1))
+		  (value (substring (match-string 2) 1
+				    (- (length (match-string 2)) 1))))
+	      (goto-char (match-end 0))
 	      (setq xml-entity-alist
 		    (append xml-entity-alist
 			    (list (cons name 
@@ -644,11 +681,10 @@ This follows the rule [28] in the XML specifications."
 				    "\\|'[- \r\na-zA-Z0-9()+,./:=?;!*#@$_%]*'"
 				    "[ \t\n\r]+\\(\"[^\"]*\"\\|'[^']*'\\)"
 				    "[ \t\n\r]*>")))
-	    (let ((name  (buffer-substring (nth 2 (match-data))
-					   (nth 3 (match-data))))
-		  (file  (buffer-substring (+ (nth 4 (match-data)) 1)
-					   (- (nth 5 (match-data)) 1))))
-	      (goto-char (nth 1 (match-data)))
+	    (let ((name  (match-string 1))
+		  (file  (substring (match-string 2) 1
+				    (- (length (match-string 2)) 1))))
+	      (goto-char (match-end 0))
 	      (setq xml-entity-alist
 		    (append xml-entity-alist
 			    (list (cons name (with-temp-buffer
@@ -677,7 +713,7 @@ This follows the rule [28] in the XML specifications."
 	    (when xml-validating-parser
 	      (error "XML: (Validity) Invalid DTD item"))))))
       (if (looking-at "\\s-*]>")
-	  (goto-char (nth 1 (match-data)))))
+	  (goto-char (match-end 0))))
     (nreverse dtd)))
 
 (defun xml-parse-elem-type (string)

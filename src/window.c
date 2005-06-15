@@ -3234,7 +3234,7 @@ selects the buffer of the selected window before each command.  */)
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
 	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w), Qnil);
+      Fselect_frame (WINDOW_FRAME (w));
     }
   else
     sf->selected_window = window;

@@ -217,21 +217,19 @@ $(lisp)/progmodes/cc-mode.elc: \
 
 # Prepare a bootstrap in the lisp subdirectory.
 #
-# Build loaddefs.el, because it's not sure it's up-to-date, and if it's not,
-# that might lead to errors during the bootstrap because something fails to
-# autoload as expected.  However, if there is no emacs binary, then we can't
-# build autoloads yet, so just make sure there's some loaddefs.el file, as
-# it's necessary for generating the binary (because loaddefs.el is an
-# automatically generated file, we don't want to store it in the source
-# repository).
+# Build loaddefs.el to make sure it's up-to-date.  If it's not, that
+# might lead to errors during the bootstrap because something fails to
+# autoload as expected.  If there is no emacs binary, then we can't
+# build autoloads yet.  In that case we have to use ldefs-boot.el;
+# bootstrap should always work with ldefs-boot.el.  (Because
+# loaddefs.el is an automatically generated file, we don't want to
+# store it in the source repository).
 
 bootstrap-prepare:
 	if test -x $(EMACS); then				\
 	  $(MAKE) $(MFLAGS) autoloads;				\
 	else							\
-	  if test ! -r $(lisp)/loaddefs.el; then		\
-	    cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;	\
-	  fi							\
+	  cp $(lisp)/ldefs-boot.el $(lisp)/loaddefs.el;		\
 	fi
 
 maintainer-clean: distclean

@@ -89,6 +89,10 @@ static int any_help_event_p;
 /* Last window where we saw the mouse.  Used by mouse-autoselect-window.  */
 static Lisp_Object last_window;
 
+/* Non-zero means make use of UNDERLINE_POSITION font properties.
+   (Not yet supported, see TODO in x_draw_glyph_string.)  */
+int x_use_underline_position_properties;
+
 extern unsigned int msh_mousewheel;
 
 extern void free_frame_menubar ();
@@ -2639,7 +2643,9 @@ x_draw_glyph_string (s)
           unsigned long dy = s->height - h;
 
 	  /* TODO: Use font information for positioning and thickness
-	     of underline.  See OUTLINETEXTMETRIC, and xterm.c.  */
+	     of underline.  See OUTLINETEXTMETRIC, and xterm.c.
+	     Note: If you make this work, don't forget to change the
+	     doc string of x-use-underline-position-properties below.  */
           if (s->face->underline_defaulted_p)
             {
               w32_fill_area (s->f, s->hdc, s->gc->foreground, s->x,
@@ -6706,6 +6712,18 @@ the cursor have no effect.  */);
   if (!SystemParametersInfo (SPI_GETSCREENREADER, 0,
 			     &w32_use_visible_system_caret, 0))
     w32_use_visible_system_caret = 0;
+
+  /* We don't yet support this, but defining this here avoids whining
+     from cus-start.el and other places, like "M-x set-variable".  */
+  DEFVAR_BOOL ("x-use-underline-position-properties",
+	       &x_use_underline_position_properties,
+     doc: /* *Non-nil means make use of UNDERLINE_POSITION font properties.
+nil means ignore them.  If you encounter fonts with bogus
+UNDERLINE_POSITION font properties, for example 7x13 on XFree prior
+to 4.1, set this to nil.
+
+NOTE: Not supported on MS-Windows yet.  */);
+  x_use_underline_position_properties = 0;
 
   DEFVAR_LISP ("x-toolkit-scroll-bars", &Vx_toolkit_scroll_bars,
 	       doc: /* If not nil, Emacs uses toolkit scroll bars.  */);

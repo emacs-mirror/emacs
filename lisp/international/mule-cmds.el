@@ -607,7 +607,7 @@ then call `write-region', then afterward this variable will be non-nil
 only if the user was explicitly asked and specified a coding system.")
 
 (defvar select-safe-coding-system-accept-default-p nil
-  "If non-nil, a function to control the behaviour of coding system selection.
+  "If non-nil, a function to control the behavior of coding system selection.
 The meaning is the same as the argument ACCEPT-DEFAULT-P of the
 function `select-safe-coding-system' (which see).  This variable
 overrides that argument.")
@@ -1552,7 +1552,7 @@ But, if this flag is non-nil, it displays them in echo area instead."
   :group 'mule)
 
 (defvar input-method-exit-on-invalid-key nil
-  "This flag controls the behaviour of an input method on invalid key input.
+  "This flag controls the behavior of an input method on invalid key input.
 Usually, when a user types a key which doesn't start any character
 handled by the input method, the key is handled by turning off the
 input method temporarily.  After that key, the input method is re-enabled.

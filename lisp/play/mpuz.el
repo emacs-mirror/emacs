@@ -57,28 +57,36 @@ t means never ding, and `error' means only ding on wrong input."
   :type 'boolean
   :group 'mpuz)
 
-(defface mpuz-unsolved-face
+(defface mpuz-unsolved
   '((((class color)) (:foreground "red1" :bold t))
     (t (:bold t)))
   "*Face to use for letters to be solved."
   :group 'mpuz)
+;; backward-compatibility alias
+(put 'mpuz-unsolved-face 'face-alias 'mpuz-unsolved)
 
-(defface mpuz-solved-face
+(defface mpuz-solved
   '((((class color)) (:foreground "green1" :bold t))
     (t (:bold t)))
   "*Face to use for solved digits."
   :group 'mpuz)
+;; backward-compatibility alias
+(put 'mpuz-solved-face 'face-alias 'mpuz-solved)
 
-(defface mpuz-trivial-face
+(defface mpuz-trivial
   '((((class color)) (:foreground "blue" :bold t))
     (t (:bold t)))
   "*Face to use for trivial digits solved for you."
   :group 'mpuz)
+;; backward-compatibility alias
+(put 'mpuz-trivial-face 'face-alias 'mpuz-trivial)
 
-(defface mpuz-text-face
+(defface mpuz-text
   '((t (:inherit variable-pitch)))
   "*Face to use for text on right."
   :group 'mpuz)
+;; backward-compatibility alias
+(put 'mpuz-text-face 'face-alias 'mpuz-text)
 
 
 ;; Mpuz mode and keymaps
@@ -296,7 +304,7 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 (defun mpuz-create-buffer ()
   "Create (or recreate) the puzzle buffer. Return it."
   (let ((buf (get-buffer-create "*Mult Puzzle*"))
-	(face '(face mpuz-text-face))
+	(face '(face mpuz-text))
 	buffer-read-only)
     (save-excursion
       (set-buffer buf)
@@ -347,9 +355,9 @@ You may abort a game by typing \\<mpuz-mode-map>\\[mpuz-offer-abort]."
 		  (+ digit ?0)
 		(+ (mpuz-to-letter digit) ?A)))
 	(face `(face
-		,(cond ((aref mpuz-trivial-digits digit) 'mpuz-trivial-face)
-		       ((aref mpuz-found-digits digit) 'mpuz-solved-face)
-		       ('mpuz-unsolved-face))))
+		,(cond ((aref mpuz-trivial-digits digit) 'mpuz-trivial)
+		       ((aref mpuz-found-digits digit) 'mpuz-solved)
+		       ('mpuz-unsolved))))
 	buffer-read-only)
     (mapc (lambda (square)
 	    (goto-line (car square))	; line before column!

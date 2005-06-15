@@ -3140,6 +3140,10 @@ list instead of at the beginning.  This change actually occurred in
 Emacs 21.1, but was not documented then.
 
 +++
+*** New function `add-to-ordered-list' is like `add-to-list' but
+associates a numeric ordering of each element added to the list.
+
++++
 *** New function `copy-tree' makes a copy of a tree.
 
 It recursively copyies through both CARs and CDRs.
@@ -3462,6 +3466,13 @@ clone to the other.
 
 ---
 *** The function `insert-string' is now obsolete.
+
+** Filling changes.
+
++++
+*** In determining an adaptive fill prefix, Emacs now tries the function in
+`adaptive-fill-function' _before_ matching the buffer line against
+`adaptive-fill-regexp' rather than _after_ it.
 
 +++
 ** Atomic change groups.

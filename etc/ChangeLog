@@ -1,3 +1,13 @@
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* DEBUG: Mention emacs-buffer.gdb.
+
+2005-06-10  Noah Friedman  <friedman@splode.com>
+
+	* emacs-buffer.gdb (ybuffer-list): Don't use $filename; can't use
+	char as placeholder when buffer has no file name and process is
+	still live.  Use different printf cases instead.
+
 2005-06-08  Kim F. Storm  <storm@cua.dk>
 
 	* PROBLEMS: Linux kernel 2.6.10 may corrupt process output.

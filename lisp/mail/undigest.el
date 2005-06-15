@@ -40,7 +40,7 @@
   "^----.*\\([Ff]orwarded\\|[Oo]riginal\\).*[Mm]essage"
   "*Regexp to match the string that introduces forwarded messages.
 This is not a header, but a string contained in the body of the message.
-You may need to customise it for local needs."
+You may need to customize it for local needs."
   :type 'regexp
   :group 'rmail-headers)
 

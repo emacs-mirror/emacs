@@ -5912,9 +5912,9 @@ want to get rid of this query permanently."))
 
 (defun message-is-yours-p ()
   "Non-nil means current article is yours.
-If you have added 'cancel-messages to 'message-shoot-gnksa-feet', all articles
+If you have added 'cancel-messages to `message-shoot-gnksa-feet', all articles
 are yours except those that have Cancel-Lock header not belonging to you.
-Instead of shooting GNKSA feet, you should modify 'message-alternative-emails'
+Instead of shooting GNKSA feet, you should modify `message-alternative-emails'
 regexp to match all of yours addresses."
   ;; Canlock-logic as suggested by Per Abrahamsen
   ;; <abraham@dina.kvl.dk>

@@ -1,6 +1,6 @@
 ;;; strokes.el --- control Emacs through mouse strokes
 
-;; Copyright (C) 1997, 2000, 2002 Free Software Foundation, Inc.
+;; Copyright (C) 1997, 2000, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: David Bakhash <cadet@alum.mit.edu>
 ;; Maintainer: FSF
@@ -1418,10 +1418,12 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 ;; This is the stuff that will eventually be used for composing letters in
 ;; any language, compression, decompression, graphics, editing, etc.
 
-(defface strokes-char-face '((t (:background "lightgray")))
+(defface strokes-char '((t (:background "lightgray")))
   "Face for strokes characters."
   :version "21.1"
   :group 'strokes)
+;; backward-compatibility alias
+(put 'strokes-char-face 'face-alias 'strokes-char)
 
 (put 'strokes 'char-table-extra-slots 0)
 (defconst strokes-char-table (make-char-table 'strokes) ;
@@ -1695,7 +1697,7 @@ Optional FORCE non-nil will ignore the buffer's read-only status."
 	    (delete-char 1)
 	    (add-text-properties start (point)
 				 (list 'type 'stroke-string
-				       'face 'strokes-char-face
+				       'face 'strokes-char
 				       'stroke-glyph glyph
 				       'display nil))))
 	(message "Encoding strokes in %s...done" buffer)))))

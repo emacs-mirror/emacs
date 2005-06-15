@@ -155,6 +155,9 @@ the arguments that would have been passed to OPERATION."
 ;; These are operations that we do not support yet (DAV!!!)
 (put 'file-writable-p 'url-file-handlers 'ignore)
 (put 'file-symlink-p 'url-file-handlers 'ignore)
+;; Just like for ange-ftp: let's not waste time trying to look for RCS/foo,v
+;; files and such since we can't do anything clever with them anyway.
+(put 'vc-registered 'url-file-handlers 'ignore)
 
 (defun url-handler-expand-file-name (file &optional base)
   (if (file-name-absolute-p file)

@@ -1116,7 +1116,7 @@ is called interactively, so prefix argument etc. are usable."
   "Copy up to ARGth line after virtual cursor position.
 With no argument, copy to the end of the current line.
 
-Behaviour with regard to newlines is similar (but not identical) to
+Behavior with regard to newlines is similar (but not identical) to
 `kill-line'; the main difference is that whitespace at the end of the
 line is treated like ordinary characters."
 

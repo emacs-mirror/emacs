@@ -1901,7 +1901,7 @@ get_phys_cursor_geometry (w, row, glyph, heightp)
      int *heightp;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
-  int x, y, wd, h, h0, y0;
+  int y, wd, h, h0, y0;
 
   /* Compute the width of the rectangle to draw.  If on a stretch
      glyph, and `x-stretch-block-cursor' is nil, don't draw a
@@ -8358,7 +8358,6 @@ static Lisp_Object
 format_mode_line_unwind_data (obuf)
      struct buffer *obuf;
 {
-  int i = 0;
   Lisp_Object vector;
 
   /* Reduce consing by keeping one vector in
@@ -19302,7 +19301,7 @@ get_line_height_property (it, prop)
      struct it *it;
      Lisp_Object prop;
 {
-  Lisp_Object position, val;
+  Lisp_Object position;
 
   if (STRINGP (it->object))
     position = make_number (IT_STRING_CHARPOS (*it));
@@ -19647,7 +19646,6 @@ x_produce_glyphs (it)
 	  else
 	    {
 	      Lisp_Object spacing;
-	      int total = 0;
 
 	      it->phys_ascent = it->ascent;
 	      it->phys_descent = it->descent;
@@ -21664,7 +21662,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int ignore;
 
 	  int vpos, hpos;
-	  
+
 	  b = Fprevious_single_property_change (make_number (charpos + 1),
 						Qmouse_face, string, Qnil);
 	  if (NILP (b))
@@ -21712,18 +21710,18 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  hpos = (area == ON_MODE_LINE
 		  ? (w->current_matrix)->nrows - 1
 		  : 0);
-	  
+
 	  /* If the re-rendering position is included in the last
 	     re-rendering area, we should do nothing. */
-	  if ( window == dpyinfo->mouse_face_window
+	  if ( EQ (window, dpyinfo->mouse_face_window)
 	       && dpyinfo->mouse_face_beg_col <= vpos
 	       && vpos < dpyinfo->mouse_face_end_col
 	       && dpyinfo->mouse_face_beg_row == hpos )
 	    return;
-	  
+
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
-	  
+
 	  dpyinfo->mouse_face_beg_col = vpos;
 	  dpyinfo->mouse_face_beg_row = hpos;
 
@@ -21748,8 +21746,9 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  if (NILP (pointer))
 	    pointer = Qhand;
 	}
+      else if ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
+	clear_mouse_face (dpyinfo);
     }
-
   define_frame_cursor1 (f, cursor, pointer);
 }
 

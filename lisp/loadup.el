@@ -313,7 +313,7 @@
 	  (setq name (concat (downcase (substring name 0 (match-beginning 0)))
 			     "-"
 			     (substring name (match-end 0)))))
-	(if (eq system-type 'ms-dos)
+	(if (memq system-type '(ms-dos windows-nt cygwin))
 	    (message "Dumping under the name emacs")
 	  (message "Dumping under names emacs and %s" name)))
       (condition-case ()

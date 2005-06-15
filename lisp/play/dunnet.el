@@ -53,15 +53,10 @@
 
 ;;;; Mode definitions for interactive mode
 
-(defun dun-mode ()
+(define-derived-mode dun-mode text-mode "Dungeon"
   "Major mode for running dunnet."
-  (interactive)
-  (text-mode)
   (make-local-variable 'scroll-step)
-  (setq scroll-step 2)
-  (use-local-map dungeon-mode-map)
-  (setq major-mode 'dun-mode)
-  (setq mode-name "Dungeon"))
+  (setq scroll-step 2))
 
 (defun dun-parse (arg)
   "Function called when return is pressed in interactive mode to parse line."
@@ -1366,9 +1361,8 @@ for a moment, then straighten yourself up.
 (setq dun-current-room 1)
 (setq dun-exitf nil)
 (setq dun-badcd nil)
-(defvar dungeon-mode-map nil)
-(setq dungeon-mode-map (make-sparse-keymap))
-(define-key dungeon-mode-map "\r" 'dun-parse)
+(define-obsolete-variable-alias 'dungeon-mode-map 'dun-mode-map "22.1")
+(define-key dun-mode-map "\r" 'dun-parse)
 (defvar dungeon-batch-map (make-keymap))
 (if (string= (substring emacs-version 0 2) "18")
     (let (n)
@@ -2594,7 +2588,7 @@ treasures for points?" "4" "four")
   (if dun-logged-in
       (progn
 	(setq dungeon-mode 'unix)
-	(define-key dungeon-mode-map "\r" 'dun-unix-parse)
+	(define-key dun-mode-map "\r" 'dun-unix-parse)
 	(dun-mprinc "$ "))))
 
 (defun dun-login ()
@@ -2860,7 +2854,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 (defun dun-uexit (args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou step back from the console.")
-  (define-key dungeon-mode-map "\r" 'dun-parse)
+  (define-key dun-mode-map "\r" 'dun-parse)
   (if (not dun-batch-mode)
       (dun-messages)))
 
@@ -3059,7 +3053,7 @@ drwxr-xr-x  3 root     staff          2048 Jan 1 1970 ..")
 (defun dun-dos-interface ()
   (dun-dos-boot-msg)
   (setq dungeon-mode 'dos)
-  (define-key dungeon-mode-map "\r" 'dun-dos-parse)
+  (define-key dun-mode-map "\r" 'dun-dos-parse)
   (dun-dos-prompt))
 
 (defun dun-dos-type (args)
@@ -3117,7 +3111,7 @@ File not found")))
 (defun dun-dos-exit (args)
   (setq dungeon-mode 'dungeon)
   (dun-mprincl "\nYou power down the machine and step back.")
-  (define-key dungeon-mode-map "\r" 'dun-parse)
+  (define-key dun-mode-map "\r" 'dun-parse)
   (if (not dun-batch-mode)
       (dun-messages)))
 

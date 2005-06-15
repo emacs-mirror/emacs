@@ -18,7 +18,6 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
-** Adapt mouse-sel-mode to mouse-1-click-follows-link.
 
 
 * FATAL ERRORS
@@ -81,6 +80,8 @@ is encountered.
 ** Document Custom Themes.
 
 ** Finish updating the Emacs Lisp manual.
+
+*** Update lispref/README.
 
 ** Update the Emacs manual.
 
@@ -187,7 +188,7 @@ lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi   Chong Yidong
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
-lispref/edebug.texi      Chong Yidong
+lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong

@@ -297,7 +297,7 @@ This function is explicit for adding to `eshell-parse-argument-hook'."
   nil)
 
 (defun eshell/export (&rest sets)
-  "This alias allows the 'export' command to act as bash users expect."
+  "This alias allows the `export' command to act as bash users expect."
   (while sets
     (if (and (stringp (car sets))
 	     (string-match "^\\([^=]+\\)=\\(.*\\)" (car sets)))

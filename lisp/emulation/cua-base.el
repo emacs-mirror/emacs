@@ -447,13 +447,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -471,13 +471,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -495,13 +495,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -520,13 +520,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -1360,7 +1360,7 @@ paste (in addition to the normal emacs bindings)."
 
   (if (not cua-mode)
       (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
-    (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
+    (add-to-ordered-list 'emulation-mode-map-alists 'cua--keymap-alist 400)
     (cua--select-keymaps))
 
   (cond

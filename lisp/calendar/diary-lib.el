@@ -543,15 +543,17 @@ changing the variable `diary-include-string'."
           (set-window-start window (point-min))))
       (message "Preparing diary...done"))))
 
-(defface diary-button-face '((((type pc) (class color))
-		   (:foreground "lightblue")))
+(defface diary-button '((((type pc) (class color))
+			 (:foreground "lightblue")))
   "Default face used for buttons."
   :version "22.1"
   :group 'diary)
+;; backward-compatibility alias
+(put 'diary-button-face 'face-alias 'diary-button)
 
 (define-button-type 'diary-entry
   'action #'diary-goto-entry
-  'face #'diary-button-face)
+  'face 'diary-button)
 
 (defun diary-goto-entry (button)
   (let ((marker (button-get button 'marker)))

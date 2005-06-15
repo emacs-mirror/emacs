@@ -1390,7 +1390,7 @@ The value is actually the tail of LIST whose car is ELT.  */)
 
 DEFUN ("memq", Fmemq, Smemq, 2, 2, 0,
        doc: /* Return non-nil if ELT is an element of LIST.
-Comparison done with EQ.  The value is actually the tail of LIST
+Comparison done with `eq'.  The value is actually the tail of LIST
 whose car is ELT.  */)
      (elt, list)
      Lisp_Object elt, list;
@@ -4845,7 +4845,7 @@ DEFUN ("remhash", Fremhash, Sremhash, 2, 2, 0,
 
 DEFUN ("maphash", Fmaphash, Smaphash, 2, 2, 0,
        doc: /* Call FUNCTION for all entries in hash table TABLE.
-FUNCTION is called with 2 arguments KEY and VALUE.  */)
+FUNCTION is called with two arguments, KEY and VALUE.  */)
      (function, table)
      Lisp_Object function, table;
 {

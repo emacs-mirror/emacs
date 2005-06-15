@@ -650,17 +650,22 @@ An alternative value is \" . \", if you use a font with a narrow period."
   "Face used for subscripts."
   :group 'tex)
 
-(defface tex-math-face
+(defface tex-math
   '((t :inherit font-lock-string-face))
   "Face used to highlight TeX math expressions."
   :group 'tex)
-(defvar tex-math-face 'tex-math-face)
-(defface tex-verbatim-face
+;; backward-compatibility alias
+(put 'tex-math-face 'face-alias 'tex-math)
+(defvar tex-math-face 'tex-math)
+
+(defface tex-verbatim
   ;; '((t :inherit font-lock-string-face))
   '((t :family "courier"))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
-(defvar tex-verbatim-face 'tex-verbatim-face)
+;; backward-compatibility alias
+(put 'tex-verbatim-face 'face-alias 'tex-verbatim)
+(defvar tex-verbatim-face 'tex-verbatim)
 
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)
@@ -1101,7 +1106,7 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 inserts \" characters."
   (interactive "*P")
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
-	  (eq (get-text-property (point) 'face) 'tex-verbatim-face)
+	  (eq (get-text-property (point) 'face) tex-verbatim-face)
 	  (save-excursion
 	    (backward-char (length tex-open-quote))
 	    (when (or (looking-at (regexp-quote tex-open-quote))

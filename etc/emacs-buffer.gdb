@@ -116,13 +116,13 @@ define ybuffer-list
 
       if $buf->filename != Qnil
         ygetptr $buf->filename
-        set $filename = ((struct Lisp_String *) $ptr)->data
+        printf "%2d %c  %9d %-20s %-10s %s\n", \
+               $i, $modp, ($buf->text->z_byte - 1), $name, $mode, \
+               ((struct Lisp_String *) $ptr)->data
       else
-        set $filename = ' '
+        printf "%2d %c  %9d %-20s %-10s\n", \
+               $i, $modp, ($buf->text->z_byte - 1), $name, $mode
       end
-
-      printf "%2d %c  %9d %-20s %-10s %s\n", \
-             $i, $modp, ($buf->text->z_byte - 1), $name, $mode, $filename
     end
 
     set $i++

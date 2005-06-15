@@ -246,8 +246,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in \\([^()\n ]+\\)(\\([0-9]+\\))$" 1 2)
 
     (msft
-     "^\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
-: \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 1 2 nil (3))
+     "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
+: \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 2 3 nil (4))
 
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
@@ -468,15 +468,17 @@ starting the compilation process.")
 ;; History of compile commands.
 (defvar compile-history nil)
 
-(defface compilation-warning-face
+(defface compilation-warning
   '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
     (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
+;; backward-compatibility alias
+(put 'compilation-warning-face 'face-alias 'compilation-warning)
 
-(defface compilation-info-face
+(defface compilation-info
   '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
     (((class color) (min-colors 88) (background dark))
@@ -488,6 +490,8 @@ starting the compilation process.")
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
+;; backward-compatibility alias
+(put 'compilation-info-face 'face-alias 'compilation-info)
 
 (defvar compilation-message-face nil
   "Face name to use for whole messages.
@@ -498,10 +502,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-error-face 'font-lock-warning-face
   "Face name to use for file name in error messages.")
 
-(defvar compilation-warning-face 'compilation-warning-face
+(defvar compilation-warning-face 'compilation-warning
   "Face name to use for file name in warning messages.")
 
-(defvar compilation-info-face 'compilation-info-face
+(defvar compilation-info-face 'compilation-info
   "Face name to use for file name in informational messages.")
 
 (defvar compilation-line-face 'font-lock-variable-name-face

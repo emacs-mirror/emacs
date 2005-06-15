@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004
+;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004,2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -854,6 +854,8 @@ If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
 		      (get-char-property (point) 'face)))
+        (aliasfaces nil)
+        (nonaliasfaces nil)
 	faces)
     ;; Make a list of the named faces that the `face' property uses.
     (if (and (listp faceprop)
@@ -870,6 +872,13 @@ Otherwise, return a single face."
 	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))
 	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
 
+    ;; Build up the completion tables.
+    (mapatoms (lambda (s)
+                (if (custom-facep s)
+                    (if (get s 'face-alias)
+                        (push (symbol-name s) aliasfaces)
+                      (push (symbol-name s) nonaliasfaces)))))
+
     ;; If we only want one, and the default is more than one,
     ;; discard the unwanted ones now.
     (unless multiple
@@ -883,7 +892,7 @@ Otherwise, return a single face."
 			 (if faces (mapconcat 'symbol-name faces ", ")
 			   string-describing-default))
 	       (format "%s: " prompt))
-	     obarray 'custom-facep t))
+	     (complete-in-turn nonaliasfaces aliasfaces) nil t))
 	   ;; Canonicalize the output.
 	   (output
 	    (if (equal input "")
@@ -1864,7 +1873,7 @@ created."
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
-(put 'modeline-higilight 'face-alias 'mode-line-highlight)
+(put 'modeline-highlight 'face-alias 'mode-line-highlight)
 
 (defface header-line
   '((default
@@ -2290,5 +2299,5 @@ If that can't be done, return nil."
 
 (provide 'faces)
 
-;;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
+;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

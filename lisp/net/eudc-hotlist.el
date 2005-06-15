@@ -56,7 +56,8 @@ These are the special commands of this mode:
 	     (featurep 'menubar))
     (set-buffer-menubar current-menubar)
     (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu)))))
-  (setq buffer-read-only t))
+  (setq buffer-read-only t)
+  (run-mode-hooks 'eudc-hotlist-mode-hook))
 
 ;;;###autoload
 (defun eudc-edit-hotlist ()

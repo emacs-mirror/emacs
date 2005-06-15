@@ -2328,7 +2328,7 @@ you entered, right above the output it created.
 
 \(setq comint-output-filter-functions
        \(function (lambda (STR) (comint-show-output))))"
-  (comint-mode)
+  (delay-mode-hooks (comint-mode))
   ;; Get the `sql-product' for this interactive session.
   (set (make-local-variable 'sql-product)
        (or sql-interactive-product

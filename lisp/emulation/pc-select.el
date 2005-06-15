@@ -99,7 +99,7 @@ errors are suppressed."
 (defcustom pc-select-selection-keys-only nil
   "*Non-nil means only bind the basic selection keys when started.
 Other keys that emulate pc-behavior will be untouched.
-This gives mostly Emacs-like behaviour with only the selection keys enabled."
+This gives mostly Emacs-like behavior with only the selection keys enabled."
   :type 'boolean
   :group 'pc-select)
 
@@ -825,7 +825,7 @@ If the value is non-nil, call the function MODE with an argument of
 
 ;;;###autoload
 (define-minor-mode pc-selection-mode
-  "Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style.
+  "Change mark behavior to emulate Motif, MAC or MS-Windows cut and paste style.
 
 This mode enables Delete Selection mode and Transient Mark mode.
 
@@ -971,7 +971,7 @@ but before calling PC Selection mode):
 ;;;###autoload
 (defcustom pc-selection-mode nil
   "Toggle PC Selection mode.
-Change mark behaviour to emulate Motif, MAC or MS-Windows cut and paste style,
+Change mark behavior to emulate Motif, MAC or MS-Windows cut and paste style,
 and cursor movement commands.
 This mode enables Delete Selection mode and Transient Mark mode.
 Setting this variable directly does not take effect;

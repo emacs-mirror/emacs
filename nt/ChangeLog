@@ -1,3 +1,35 @@
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: If their fc.exe returns a meaningful exit status,
+	don't overwrite src/config.h and src/epaths.h with identical
+	copies.
+
+	* INSTALL: Warn about using "cvs up -kb" if one intends to commit
+	changes.  Add a pointer to another site with detailed configure
+	and build instructions.  Suggest to look at config.log when
+	configure fails.  Add MinGW Make 3.80 to the list of successful
+	combinations.
+
+	* gmake.defs (ARCH_CFLAGS): Use $(MCPU_FLAG) instead of a literal
+	"-mcpu=i686".
+
+	* configure.bat: Update copyright years.
+	Delete config.log before doing anything else.
+	Write additional diagnostics to config.log in case of failures to
+	compile test programs, including the failed test program itself.
+	Add a test for support of -mtune=pentium4 switch to GCC; if it is
+	supported, set up MCPU_FLAG variable on the various Makefiles to
+	use that switch during compilations.  (This avoids GCC warning
+	about -mcpu being deprecated.)
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* addsection.c (copy_executable_and_add_section): Pass non-zero
+	`verbose' arg to COPY_CHUNK only if DEBUG_DUMP is defined in the
+	environment.  Print section names with %.8s.
+	(COPY_CHUNK): New 4th arg `verbose'; print diagnostic messages
+	only if non-zero.  All callers changed.
+
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to

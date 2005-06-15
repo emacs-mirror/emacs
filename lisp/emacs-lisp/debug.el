@@ -614,7 +614,7 @@ Applies to the frame whose line point is on in the backtrace."
     (terpri))
 
   (with-current-buffer (get-buffer debugger-record-buffer)
-    (message "%s" 
+    (message "%s"
 	     (buffer-substring (line-beginning-position 0)
 			       (line-end-position 0)))))
 
@@ -656,22 +656,29 @@ functions to break on entry."
 ;;;###autoload
 (defun debug-on-entry (function)
   "Request FUNCTION to invoke debugger each time it is called.
-If you tell the debugger to continue, FUNCTION's execution proceeds.
-This works by modifying the definition of FUNCTION,
-which must be written in Lisp, not predefined.
+
+When called interactively, prompt for FUNCTION in the minibuffer.
+
+This works by modifying the definition of FUNCTION.  If you tell the
+debugger to continue, FUNCTION's execution proceeds.  If FUNCTION is a
+normal function or a macro written in Lisp, you can also step through
+its execution.  FUNCTION can also be a primitive that is not a special
+form, in which case stepping is not possible.  Break-on-entry for
+primitive functions only works when that function is called from Lisp.
+
 Use \\[cancel-debug-on-entry] to cancel the effect of this command.
 Redefining FUNCTION also cancels it."
   (interactive "aDebug on entry (to function): ")
-  (when (and (subrp (symbol-function function)) 
+  (when (and (subrp (symbol-function function))
 	     (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
     (error "Function %s is a special form" function))
-  (if (or (symbolp (symbol-function function)) 
+  (if (or (symbolp (symbol-function function))
 	  (subrp (symbol-function function)))
       ;; The function is built-in or aliased to another function.
       ;; Create a wrapper in which we can add the debug call.
       (fset function `(lambda (&rest debug-on-entry-args)
 			,(interactive-form (symbol-function function))
-			(apply ',(symbol-function function) 
+			(apply ',(symbol-function function)
 			       debug-on-entry-args)))
     (when (eq (car-safe (symbol-function function)) 'autoload)
       ;; The function is autoloaded.  Load its real definition.
@@ -692,14 +699,19 @@ Redefining FUNCTION also cancels it."
 ;;;###autoload
 (defun cancel-debug-on-entry (&optional function)
   "Undo effect of \\[debug-on-entry] on FUNCTION.
-If argument is nil or an empty string, cancel for all functions."
+If FUNCTION is nil, cancel debug-on-entry for all functions.
+When called interactively, prompt for FUNCTION in the minibuffer.
+To specify a nil argument interactively, exit with an empty minibuffer."
   (interactive
    (list (let ((name
-		(completing-read "Cancel debug on entry (to function): "
-				 (mapcar 'symbol-name debug-function-list)
-				 nil t nil)))
-	   (if name (intern name)))))
-  (if (and function (not (string= function "")))
+		(completing-read
+		 "Cancel debug on entry to function (default: all functions): "
+		 (mapcar 'symbol-name debug-function-list) nil t)))
+	   (when name
+	     (unless (string= name "")
+	       (intern name))))))
+  (if (and function
+	   (not (string= function ""))) ; Pre 22.1 compatibility test.
       (progn
 	(let ((defn (debug-on-entry-1 function nil)))
 	  (condition-case nil
@@ -739,7 +751,7 @@ If argument is nil or an empty string, cancel for all functions."
 (defun debug-on-entry-1 (function flag)
   (let* ((defn (symbol-function function))
 	 (tail defn))
-    (when (eq (car-safe tail) 'macro) 
+    (when (eq (car-safe tail) 'macro)
       (setq tail (cdr tail)))
     (if (not (eq (car-safe tail) 'lambda))
 	;; Only signal an error when we try to set debug-on-entry.

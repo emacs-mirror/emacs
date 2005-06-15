@@ -1089,7 +1089,7 @@ This escape character may be changed using the variable `terminal-escape-char'.
 
 `Meta' characters may not currently be sent through the terminal emulator.
 
-Here is a list of some of the variables which control the behaviour
+Here is a list of some of the variables which control the behavior
 of the emulator -- see their documentation for more information:
 terminal-escape-char, terminal-scrolling, terminal-more-processing,
 terminal-redisplay-interval.

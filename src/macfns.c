@@ -4375,14 +4375,15 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	  break;
 	}
       NavDialogDispose(dialogRef);
+      UNBLOCK_INPUT;
     }
     else {
+      UNBLOCK_INPUT;
       /* Fall back on minibuffer if there was a problem */
       file = Fcompleting_read (prompt, intern ("read-file-name-internal"),
 			       dir, mustmatch, dir, Qfile_name_history,
 			       default_filename, Qnil);
     }
-    UNBLOCK_INPUT;
   }
 
   UNGCPRO;

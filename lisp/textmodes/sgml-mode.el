@@ -246,11 +246,13 @@ separated by a space."
   "Regular expression that matches a non-empty start tag.
 Any terminating `>' or `/' is not matched.")
 
-(defface sgml-namespace-face
+(defface sgml-namespace
   '((t (:inherit font-lock-builtin-face)))
   "`sgml-mode' face used to highlight the namespace part of identifiers."
   :group 'sgml)
-(defvar sgml-namespace-face 'sgml-namespace-face)
+;; backward-compatibility alias
+(put 'sgml-namespace-face 'face-alias 'sgml-namespace)
+(defvar sgml-namespace-face 'sgml-namespace)
 
 ;; internal
 (defconst sgml-font-lock-keywords-1

@@ -604,7 +604,7 @@ create_offscreen_bitmap(HDC hdc, int width, int height, unsigned char **bitsp)
   info.c[1].rgbRed = info.c[1].rgbGreen = info.c[1].rgbBlue = 255;
 
   return CreateDIBSection(hdc, (LPBITMAPINFO)&info,
-			  DIB_RGB_COLORS, bitsp, NULL, 0);
+			  DIB_RGB_COLORS, (void **)bitsp, NULL, 0);
 }
 
 glyph_metric *

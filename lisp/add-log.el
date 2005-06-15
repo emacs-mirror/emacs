@@ -166,86 +166,102 @@ Note: The search is conducted only within 10%, at the beginning of the file."
   :type '(repeat regexp)
   :group 'change-log)
 
-(defface change-log-date-face
+(defface change-log-date
   '((t (:inherit font-lock-string-face)))
   "Face used to highlight dates in date lines."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-date-face 'face-alias 'change-log-date)
 
-(defface change-log-name-face
+(defface change-log-name
   '((t (:inherit font-lock-constant-face)))
   "Face for highlighting author names."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-name-face 'face-alias 'change-log-name)
 
-(defface change-log-email-face
+(defface change-log-email
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting author email addresses."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-email-face 'face-alias 'change-log-email)
 
-(defface change-log-file-face
+(defface change-log-file
   '((t (:inherit font-lock-function-name-face)))
   "Face for highlighting file names."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-file-face 'face-alias 'change-log-file)
 
-(defface change-log-list-face
+(defface change-log-list
   '((t (:inherit font-lock-keyword-face)))
   "Face for highlighting parenthesized lists of functions or variables."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-list-face 'face-alias 'change-log-list)
 
-(defface change-log-conditionals-face
+(defface change-log-conditionals
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting conditionals of the form `[...]'."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-conditionals-face 'face-alias 'change-log-conditionals)
 
-(defface change-log-function-face
+(defface change-log-function
   '((t (:inherit font-lock-variable-name-face)))
   "Face for highlighting items of the form `<....>'."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-function-face 'face-alias 'change-log-function)
 
-(defface change-log-acknowledgement-face
+(defface change-log-acknowledgement
   '((t (:inherit font-lock-comment-face)))
   "Face for highlighting acknowledgments."
   :version "21.1"
   :group 'change-log)
+;; backward-compatibility alias
+(put 'change-log-acknowledgement-face 'face-alias 'change-log-acknowledgement)
 
 (defvar change-log-font-lock-keywords
   '(;;
     ;; Date lines, new and old styles.
     ("^\\sw.........[0-9:+ ]*"
-     (0 'change-log-date-face)
+     (0 'change-log-date)
      ;; Name and e-mail; some people put e-mail in parens, not angles.
      ("\\([^<(]+?\\)[ \t]*[(<]\\([A-Za-z0-9_.+-]+@[A-Za-z0-9_.-]+\\)[>)]" nil nil
-      (1 'change-log-name-face)
-      (2 'change-log-email-face)))
+      (1 'change-log-name)
+      (2 'change-log-email)))
     ;;
     ;; File names.
     ("^\\( +\\|\t\\)\\* \\([^ ,:([\n]+\\)"
-     (2 'change-log-file-face)
+     (2 'change-log-file)
      ;; Possibly further names in a list:
-     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file-face))
+     ("\\=, \\([^ ,:([\n]+\\)" nil nil (1 'change-log-file))
      ;; Possibly a parenthesized list of names:
      ("\\= (\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
-      nil nil (1 'change-log-list-face))
+      nil nil (1 'change-log-list))
      ("\\=, *\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
-      nil nil (1 'change-log-list-face)))
+      nil nil (1 'change-log-list)))
     ;;
     ;; Function or variable names.
     ("^\\( +\\|\t\\)(\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)"
-     (2 'change-log-list-face)
+     (2 'change-log-list)
      ("\\=, *\\([^(),\n]+\\|(\\(setf\\|SETF\\) [^() ,\n]+)\\)" nil nil
-      (1 'change-log-list-face)))
+      (1 'change-log-list)))
     ;;
     ;; Conditionals.
-    ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 'change-log-conditionals-face))
+    ("\\[!?\\([^]\n]+\\)\\]\\(:\\| (\\)" (1 'change-log-conditionals))
     ;;
     ;; Function of change.
-    ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function-face))
+    ("<\\([^>\n]+\\)>\\(:\\| (\\)" (1 'change-log-function))
     ;;
     ;; Acknowledgements.
     ;; Don't include plain "From" because that is vague;
@@ -254,7 +270,7 @@ Note: The search is conducted only within 10%, at the beginning of the file."
     ;; is to put the name of the author of the changes at the top
     ;; of the change log entry.
     ("\\(^\\( +\\|\t\\)\\|  \\)\\(Patch\\(es\\)? by\\|Report\\(ed by\\| from\\)\\|Suggest\\(ed by\\|ion from\\)\\)"
-     3 'change-log-acknowledgement-face))
+     3 'change-log-acknowledgement))
   "Additional expressions to highlight in Change Log mode.")
 
 (defvar change-log-mode-map

@@ -73,8 +73,7 @@ to them."
 	    func args
 	    args efs))
   (let ((size (nth 7 (file-attributes name))))
-    (save-excursion
-      (set-buffer buff)
+    (with-current-buffer buff
       (goto-char (point-max))
       (if (/= -1 size)
 	  (insert (format "Content-length: %d\n" size)))
@@ -177,9 +176,8 @@ to them."
     (if (file-directory-p filename)
 	;; A directory is done the same whether we are local or remote
 	(url-find-file-dired filename)
-      (save-excursion
-	(setq buffer (generate-new-buffer " *url-file*"))
-	(set-buffer buffer)
+      (with-current-buffer
+	  (setq buffer (generate-new-buffer " *url-file*"))
 	(mm-disable-multibyte)
 	(setq url-current-object url)
 	(insert "Content-type: " (or content-type "application/octet-stream") "\n")

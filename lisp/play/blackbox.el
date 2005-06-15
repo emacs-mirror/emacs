@@ -117,14 +117,14 @@ The usual mnemonic keys move the cursor around the box.
 \\<blackbox-mode-map>\\[bb-bol] and \\[bb-eol] move to the beginning and end of line, respectively.
 
 \\[bb-romp] -- send in a ray from point, or toggle a ball at point
-\\[bb-done] -- end game and get score
-"
+\\[bb-done] -- end game and get score"
   (interactive)
   (kill-all-local-variables)
   (use-local-map blackbox-mode-map)
   (setq truncate-lines t)
   (setq major-mode 'blackbox-mode)
-  (setq mode-name "Blackbox"))
+  (setq mode-name "Blackbox")
+  (run-mode-hooks 'blackbox-mode-hook))
 
 ;;;###autoload
 (defun blackbox (num)

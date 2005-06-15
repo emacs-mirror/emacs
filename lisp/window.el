@@ -31,7 +31,7 @@
 
 (defvar window-size-fixed nil
  "*Non-nil in a buffer means windows displaying the buffer are fixed-size.
-If the value is`height', then only the window's height is fixed.
+If the value is `height', then only the window's height is fixed.
 If the value is `width', then only the window's width is fixed.
 Any other non-nil value fixes both the width and the height.
 Emacs won't change the size of any window displaying that buffer,
@@ -92,9 +92,9 @@ If ALL-FRAMES is anything else, count only the selected frame."
 
 (defun window-current-scroll-bars (&optional window)
   "Return the current scroll-bar settings in window WINDOW.
-Value is a cons (VERTICAL . HORISONTAL) where VERTICAL specifies the
+Value is a cons (VERTICAL . HORIZONTAL) where VERTICAL specifies the
 current location of the vertical scroll-bars (left, right, or nil),
-and HORISONTAL specifies the current location of the horisontal scroll
+and HORIZONTAL specifies the current location of the horizontal scroll
 bars (top, bottom, or nil)."
   (let ((vert (nth 2 (window-scroll-bars window)))
 	(hor nil))
@@ -542,7 +542,7 @@ If WINDOW is omitted or nil, it defaults to the selected window.
 Do not shrink to less than `window-min-height' lines.
 Do nothing if the buffer contains more lines than the present window height,
 or if some of the window's contents are scrolled out of view,
-or if shrinking this window would also shrink another window.
+or if shrinking this window would also shrink another window,
 or if the window is the only window of its frame."
   (interactive)
   (when (null window)

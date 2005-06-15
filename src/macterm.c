@@ -2002,33 +2002,37 @@ static void
 mac_compute_glyph_string_overhangs (s)
      struct glyph_string *s;
 {
-  Rect r;
-  MacFontStruct *font = s->font;
-
-  TextFont (font->mac_fontnum);
-  TextSize (font->mac_fontsize);
-  TextFace (font->mac_fontface);
-
-  if (s->two_byte_p)
-    QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
-  else
+  if (s->cmp == NULL
+      && s->first_glyph->type == CHAR_GLYPH)
     {
-      int i;
-      char *buf = xmalloc (s->nchars);
+      Rect r;
+      MacFontStruct *font = s->font;
 
-      if (buf == NULL)
-	SetRect (&r, 0, 0, 0, 0);
+      TextFont (font->mac_fontnum);
+      TextSize (font->mac_fontsize);
+      TextFace (font->mac_fontface);
+
+      if (s->two_byte_p)
+	QDTextBounds (s->nchars * 2, (char *)s->char2b, &r);
       else
 	{
-	  for (i = 0; i < s->nchars; ++i)
-	    buf[i] = s->char2b[i].byte2;
-	  QDTextBounds (s->nchars, buf, &r);
-	  xfree (buf);
-	}
-    }
+	  int i;
+	  char *buf = xmalloc (s->nchars);
 
-  s->right_overhang = r.right > s->width ? r.right - s->width : 0;
-  s->left_overhang = r.left < 0 ? -r.left : 0;
+	  if (buf == NULL)
+	    SetRect (&r, 0, 0, 0, 0);
+	  else
+	    {
+	      for (i = 0; i < s->nchars; ++i)
+		buf[i] = s->char2b[i].byte2;
+	      QDTextBounds (s->nchars, buf, &r);
+	      xfree (buf);
+	    }
+	}
+
+      s->right_overhang = r.right > s->width ? r.right - s->width : 0;
+      s->left_overhang = r.left < 0 ? -r.left : 0;
+    }
 }
 
 
@@ -7495,6 +7499,11 @@ Lisp_Object Vmac_pass_command_to_system;
 /* If Non-nil, the Mac "Control" key is passed on to the Mac Toolbox
    for processing before Emacs sees it.  */
 Lisp_Object Vmac_pass_control_to_system;
+
+/* Points to the variable `inev' in the function XTread_socket.  It is
+   used for passing an input event to the function back from a Carbon
+   event handler.  */
+static struct input_event *read_socket_inev = NULL;
 #endif
 
 /* Set in term/mac-win.el to indicate that event loop can now generate
@@ -7627,45 +7636,79 @@ mac_get_mouse_btn (EventRef ref)
 
 /* Normally, ConvertEventRefToEventRecord will correctly handle all
    events.  However the click of the mouse wheel is not converted to a
-   mouseDown or mouseUp event.  This calls ConvertEventRef, but then
-   checks to see if it is a mouse up or down carbon event that has not
-   been converted, and if so, converts it by hand (to be picked up in
-   the XTread_socket loop).  */
+   mouseDown or mouseUp event.  Likewise for dead key down events.
+   This calls ConvertEventRef, but then checks to see if it is a mouse
+   up/down, or a dead key down carbon event that has not been
+   converted, and if so, converts it by hand (to be picked up in the
+   XTread_socket loop).  */
 static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 {
   Boolean result = ConvertEventRefToEventRecord (eventRef, eventRec);
-  /* Do special case for mouse wheel button.  */
-  if (!result && GetEventClass (eventRef) == kEventClassMouse)
-    {
-      UInt32 kind = GetEventKind (eventRef);
-      if (kind == kEventMouseDown && !(eventRec->what == mouseDown))
-	{
-	  eventRec->what = mouseDown;
-	  result=1;
-	}
-      if (kind == kEventMouseUp && !(eventRec->what == mouseUp))
-	{
-	  eventRec->what = mouseUp;
-	  result=1;
-	}
-      if (result)
-	{
-	  /* Need where and when.  */
-	  UInt32 mods;
-	  GetEventParameter (eventRef, kEventParamMouseLocation,
-			     typeQDPoint, NULL, sizeof (Point),
-			     NULL, &eventRec->where);
-	  /* Use two step process because new event modifiers are
-	     32-bit and old are 16-bit.  Currently, only loss is
-	     NumLock & Fn. */
-	  GetEventParameter (eventRef, kEventParamKeyModifiers,
-			     typeUInt32, NULL, sizeof (UInt32),
-			     NULL, &mods);
-	  eventRec->modifiers = mods;
 
-	  eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
+  if (result)
+    return result;
+
+  switch (GetEventClass (eventRef))
+    {
+    case kEventClassMouse:
+      switch (GetEventKind (eventRef))
+	{
+	case kEventMouseDown:
+	  eventRec->what = mouseDown;
+	  result = 1;
+	  break;
+
+	case kEventMouseUp:
+	  eventRec->what = mouseUp;
+	  result = 1;
+	  break;
+
+	default:
+	  break;
 	}
+
+    case kEventClassKeyboard:
+      switch (GetEventKind (eventRef))
+	{
+	case kEventRawKeyDown:
+	  {
+	    unsigned char char_codes;
+	    UInt32 key_code;
+
+	    eventRec->what = keyDown;
+	    GetEventParameter (eventRef, kEventParamKeyMacCharCodes, typeChar,
+			       NULL, sizeof (char), NULL, &char_codes);
+	    GetEventParameter (eventRef, kEventParamKeyCode, typeUInt32,
+			       NULL, sizeof (UInt32), NULL, &key_code);
+	    eventRec->message = char_codes | ((key_code & 0xff) << 8);
+	    result = 1;
+	  }
+	  break;
+
+	default:
+	  break;
+	}
+
+    default:
+      break;
     }
+
+  if (result)
+    {
+      /* Need where and when.  */
+      UInt32 mods;
+
+      GetEventParameter (eventRef, kEventParamMouseLocation, typeQDPoint,
+			 NULL, sizeof (Point), NULL, &eventRec->where);
+      /* Use two step process because new event modifiers are 32-bit
+	 and old are 16-bit.  Currently, only loss is NumLock & Fn. */
+      GetEventParameter (eventRef, kEventParamKeyModifiers, typeUInt32,
+			 NULL, sizeof (UInt32), NULL, &mods);
+      eventRec->modifiers = mods;
+
+      eventRec->when = EventTimeToTicks (GetEventTime (eventRef));
+    }
+
   return result;
 }
 
@@ -8235,8 +8278,7 @@ mac_handle_command_event (next_handler, event, data)
 }
 
 static OSErr
-init_command_handler (window)
-     WindowPtr window;
+init_command_handler ()
 {
   OSErr err = noErr;
   EventTypeSpec specs[] = {{kEventClassCommand, kEventCommandProcess}};
@@ -8321,6 +8363,68 @@ mac_handle_window_event (next_handler, event, data)
 
   return eventNotHandledErr;
 }
+
+static pascal OSStatus
+mac_handle_mouse_event (next_handler, event, data)
+     EventHandlerCallRef next_handler;
+     EventRef event;
+     void *data;
+{
+  OSStatus result;
+
+  switch (GetEventKind (event))
+    {
+    case kEventMouseWheelMoved:
+      {
+	WindowPtr wp;
+	struct frame *f;
+	EventMouseWheelAxis axis;
+	SInt32 delta;
+	Point point;
+
+	result = CallNextEventHandler (next_handler, event);
+	if (result != eventNotHandledErr || read_socket_inev == NULL)
+	  return result;
+
+	GetEventParameter (event, kEventParamWindowRef, typeWindowRef,
+			   NULL, sizeof (WindowRef), NULL, &wp);
+	f = mac_window_to_frame (wp);
+	if (f != mac_focus_frame (&one_mac_display_info))
+	  break;
+
+	GetEventParameter (event, kEventParamMouseWheelAxis,
+			   typeMouseWheelAxis, NULL,
+			   sizeof (EventMouseWheelAxis), NULL, &axis);
+	if (axis != kEventMouseWheelAxisY)
+	  break;
+
+	GetEventParameter (event, kEventParamMouseWheelDelta, typeSInt32,
+			   NULL, sizeof (SInt32), NULL, &delta);
+	GetEventParameter (event, kEventParamMouseLocation, typeQDPoint,
+			   NULL, sizeof (Point), NULL, &point);
+	read_socket_inev->kind = WHEEL_EVENT;
+	read_socket_inev->code = 0;
+	read_socket_inev->modifiers =
+	  (mac_event_to_emacs_modifiers (event)
+	   | ((delta < 0) ? down_modifier : up_modifier));
+	SetPortWindowPort (wp);
+	GlobalToLocal (&point);
+	XSETINT (read_socket_inev->x, point.h);
+	XSETINT (read_socket_inev->y, point.v);
+	XSETFRAME (read_socket_inev->frame_or_window, f);
+	read_socket_inev->timestamp =
+	  EventTimeToTicks (GetEventTime (event)) * (1000/60);
+
+	return noErr;
+      }
+      break;
+
+    default:
+      break;
+    }
+
+  return eventNotHandledErr;
+}
 #endif	/* USE_CARBON_EVENTS */
 
 
@@ -8330,16 +8434,24 @@ install_window_handler (window)
 {
   OSErr err = noErr;
 #if USE_CARBON_EVENTS
-  EventTypeSpec specs[] = {{kEventClassWindow, kEventWindowUpdate},
-			   {kEventClassWindow, kEventWindowBoundsChanging}};
-  static EventHandlerUPP handle_window_event_UPP = NULL;
+  EventTypeSpec specs_window[] =
+    {{kEventClassWindow, kEventWindowUpdate},
+     {kEventClassWindow, kEventWindowBoundsChanging}};
+  EventTypeSpec specs_mouse[] = {{kEventClassMouse, kEventMouseWheelMoved}};
+  static EventHandlerUPP handle_window_eventUPP = NULL;
+  static EventHandlerUPP handle_mouse_eventUPP = NULL;
 
-  if (handle_window_event_UPP == NULL)
-    handle_window_event_UPP = NewEventHandlerUPP (mac_handle_window_event);
-
-  err = InstallWindowEventHandler (window, handle_window_event_UPP,
-				   GetEventTypeCount (specs), specs,
-				   NULL, NULL);
+  if (handle_window_eventUPP == NULL)
+    handle_window_eventUPP = NewEventHandlerUPP (mac_handle_window_event);
+  if (handle_mouse_eventUPP == NULL)
+    handle_mouse_eventUPP = NewEventHandlerUPP (mac_handle_mouse_event);
+  err = InstallWindowEventHandler (window, handle_window_eventUPP,
+				   GetEventTypeCount (specs_window),
+				   specs_window, NULL, NULL);
+  if (err == noErr)
+    err = InstallWindowEventHandler (window, handle_mouse_eventUPP,
+				     GetEventTypeCount (specs_mouse),
+				     specs_mouse, NULL, NULL);
 #endif
 #if TARGET_API_MAC_CARBON
   if (mac_do_track_dragUPP == NULL)
@@ -8891,68 +9003,19 @@ XTread_socket (sd, expected, hold_quit)
 #if USE_CARBON_EVENTS
       /* Handle new events */
       if (!mac_convert_event_ref (eventRef, &er))
-	switch (GetEventClass (eventRef))
-	  {
-	  case kEventClassWindow:
-	    if (GetEventKind (eventRef) == kEventWindowBoundsChanged)
-	      {
-		WindowPtr window_ptr;
-		GetEventParameter(eventRef, kEventParamDirectObject,
-				  typeWindowRef, NULL, sizeof(WindowPtr),
-				  NULL, &window_ptr);
-		f = mac_window_to_frame (window_ptr);
-		if (f && !f->async_iconified)
-		  x_real_positions (f, &f->left_pos, &f->top_pos);
-		SendEventToEventTarget (eventRef, toolbox_dispatcher);
-	      }
-	    break;
-	  case kEventClassMouse:
-	    if (GetEventKind (eventRef) == kEventMouseWheelMoved)
-	      {
-		SInt32 delta;
-		Point point;
-		struct frame *f = mac_focus_frame (dpyinfo);
-		WindowPtr window_ptr;
-
-#if 0
-		if (dpyinfo->x_focus_frame == NULL)
-		  {
-		    /* Beep if wheel move occurs when all the frames
-		       are invisible.  */
-		    SysBeep(1);
-		    break;
-		  }
-#endif
-
-		GetEventParameter(eventRef, kEventParamMouseWheelDelta,
-				  typeSInt32, NULL, sizeof (SInt32),
-				  NULL, &delta);
-		GetEventParameter(eventRef, kEventParamMouseLocation,
-				  typeQDPoint, NULL, sizeof (Point),
-				  NULL, &point);
-		inev.kind = WHEEL_EVENT;
-		inev.code = 0;
-		inev.modifiers = (mac_event_to_emacs_modifiers (eventRef)
-				  | ((delta < 0) ? down_modifier
-				     : up_modifier));
-		window_ptr = FRAME_MAC_WINDOW (f);
-		SetPortWindowPort (window_ptr);
-		GlobalToLocal (&point);
-		XSETINT (inev.x, point.h);
-		XSETINT (inev.y, point.v);
-		XSETFRAME (inev.frame_or_window,
-			   mac_window_to_frame (window_ptr));
-		inev.timestamp = EventTimeToTicks (GetEventTime (eventRef))*(1000/60);
-	      }
-	    else
-	      SendEventToEventTarget (eventRef, toolbox_dispatcher);
-
-	    break;
-
-	  default:
-	    /* Send the event to the appropriate receiver.  */
-	    SendEventToEventTarget (eventRef, toolbox_dispatcher);
-	  }
+	{
+	  /* There used to be a handler for the kEventMouseWheelMoved
+	     event here.  But as of Mac OS X 10.4, this kind of event
+	     is not directly posted to the main event queue by
+	     two-finger scrolling on the trackpad.  Instead, some
+	     private event is posted and it is converted to a wheel
+	     event by the default handler for the application target.
+	     The converted one can be received by a Carbon event
+	     handler installed on a window target.  */
+	  read_socket_inev = &inev;
+	  SendEventToEventTarget (eventRef, toolbox_dispatcher);
+	  read_socket_inev = NULL;
+	}
       else
 #endif /* USE_CARBON_EVENTS */
       switch (er.what)
@@ -9388,7 +9451,10 @@ XTread_socket (sd, expected, hold_quit)
 	    if ((!NILP (Vmac_pass_command_to_system)
 		 || !(er.modifiers & cmdKey))
 		&& (!NILP (Vmac_pass_control_to_system)
-		    || !(er.modifiers & controlKey)))
+		    || !(er.modifiers & controlKey))
+		&& (!NILP (Vmac_command_key_is_meta)
+		    && NILP (Vmac_option_modifier)
+		    || !(er.modifiers & optionKey)))
 	      if (SendEventToEventTarget (eventRef, toolbox_dispatcher)
 		  != eventNotHandledErr)
 		break;

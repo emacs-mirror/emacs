@@ -3043,12 +3043,12 @@ use; you may override this using the second optional arg MODE."
 
 ;;;###autoload
 (defun vc-annotate (prefix &optional revision display-mode)
-  "Display the edit history of the current file using colours.
+  "Display the edit history of the current file using colors.
 
 This command creates a buffer that shows, for each line of the current
-file, when it was last edited and by whom.  Additionally, colours are
+file, when it was last edited and by whom.  Additionally, colors are
 used to show the age of each line--blue means oldest, red means
-youngest, and intermediate colours indicate intermediate ages.  By
+youngest, and intermediate colors indicate intermediate ages.  By
 default, the time scale stretches back one year into the past;
 everything that is older than that is shown in blue.
 

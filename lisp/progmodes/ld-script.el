@@ -1,6 +1,6 @@
 ;;; ld-script.el --- GNU linker script editing mode for Emacs
 
-;; Copyright (C) 2003 Free Software Foundation, Inc.
+;; Copyright (C) 2003, 2005 Free Software Foundation, Inc.
 
 ;; Author: Masatake YAMATO<jet@gyve.org>
 ;; Keywords: languages, faces
@@ -34,11 +34,13 @@
   :prefix "ld-script-"
   :group 'languages)
 
-(defvar ld-script-location-counter-face 'ld-script-location-counter-face)
-(defface ld-script-location-counter-face
+(defvar ld-script-location-counter-face 'ld-script-location-counter)
+(defface ld-script-location-counter
   '((t (:weight bold :inherit font-lock-builtin-face)))
   "Face for location counter in GNU ld script."
   :group 'ld-script)
+;; backward-compatibility alias
+(put 'ld-script-location-counter-face 'face-alias 'ld-script-location-counter)
 
 ;; Syntax rules
 (defvar ld-script-mode-syntax-table
