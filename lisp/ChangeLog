@@ -1,3 +1,9 @@
+2005-06-15  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-super-format-handler)
+	(tree-widget-format-handler): Remove.
+	(tree-widget-value-create): Handle the :indent property.
+
 2005-06-15  Miles Bader  <miles@gnu.org>
 
 	* progmodes/which-func.el (which-func): Only inherit
