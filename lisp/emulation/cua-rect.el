@@ -755,7 +755,7 @@ If command is repeated at same position, delete the rectangle."
       (sit-for 0)  ; make window top/bottom reliable
       (cua--rectangle-operation nil t nil nil nil ; do not tabify
         '(lambda (s e l r v)
-           (let ((rface (if v 'cua-rectangle-face 'cua-rectangle-noselect-face))
+           (let ((rface (if v 'cua-rectangle 'cua-rectangle-noselect))
                  overlay bs ms as)
 	     (when (cua--rectangle-virtual-edges)
 	       (let ((lb (line-beginning-position))

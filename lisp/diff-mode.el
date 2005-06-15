@@ -175,7 +175,7 @@ when editing big diffs)."
 ;;;; font-lock support
 ;;;;
 
-(defface diff-header-face
+(defface diff-header
   '((((class color) (min-colors 88) (background light))
      :background "grey85")
     (((class color) (min-colors 88) (background dark))
@@ -187,9 +187,11 @@ when editing big diffs)."
     (t :weight bold))
   "`diff-mode' face inherited by hunk and index header faces."
   :group 'diff-mode)
-(defvar diff-header-face 'diff-header-face)
+;; backward-compatibility alias
+(put 'diff-header-face 'face-alias 'diff-header)
+(defvar diff-header-face 'diff-header)
 
-(defface diff-file-header-face
+(defface diff-file-header
   '((((class color) (min-colors 88) (background light))
      :background "grey70" :weight bold)
     (((class color) (min-colors 88) (background dark))
@@ -201,61 +203,76 @@ when editing big diffs)."
     (t :weight bold))			; :height 1.3
   "`diff-mode' face used to highlight file header lines."
   :group 'diff-mode)
-(defvar diff-file-header-face 'diff-file-header-face)
+;; backward-compatibility alias
+(put 'diff-file-header-face 'face-alias 'diff-file-header)
+(defvar diff-file-header-face 'diff-file-header)
 
-(defface diff-index-face
-  '((t :inherit diff-file-header-face))
+(defface diff-index
+  '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight index header lines."
   :group 'diff-mode)
-(defvar diff-index-face 'diff-index-face)
+;; backward-compatibility alias
+(put 'diff-index-face 'face-alias 'diff-index)
+(defvar diff-index-face 'diff-index)
 
-(defface diff-hunk-header-face
-  '((t :inherit diff-header-face))
+(defface diff-hunk-header
+  '((t :inherit diff-header))
   "`diff-mode' face used to highlight hunk header lines."
   :group 'diff-mode)
-(defvar diff-hunk-header-face 'diff-hunk-header-face)
+;; backward-compatibility alias
+(put 'diff-hunk-header-face 'face-alias 'diff-hunk-header)
+(defvar diff-hunk-header-face 'diff-hunk-header)
 
-(defface diff-removed-face
-  '((t :inherit diff-changed-face))
+(defface diff-removed
+  '((t :inherit diff-changed))
   "`diff-mode' face used to highlight removed lines."
   :group 'diff-mode)
-(defvar diff-removed-face 'diff-removed-face)
+;; backward-compatibility alias
+(put 'diff-removed-face 'face-alias 'diff-removed)
+(defvar diff-removed-face 'diff-removed)
 
-(defface diff-added-face
-  '((t :inherit diff-changed-face))
+(defface diff-added
+  '((t :inherit diff-changed))
   "`diff-mode' face used to highlight added lines."
   :group 'diff-mode)
-(defvar diff-added-face 'diff-added-face)
+;; backward-compatibility alias
+(put 'diff-added-face 'face-alias 'diff-added)
+(defvar diff-added-face 'diff-added)
 
-(defface diff-changed-face
+(defface diff-changed
   '((((type tty pc) (class color) (background light))
      :foreground "magenta" :weight bold :slant italic)
     (((type tty pc) (class color) (background dark))
      :foreground "yellow" :weight bold :slant italic))
   "`diff-mode' face used to highlight changed lines."
   :group 'diff-mode)
-(defvar diff-changed-face 'diff-changed-face)
+;; backward-compatibility alias
+(put 'diff-changed-face 'face-alias 'diff-changed)
+(defvar diff-changed-face 'diff-changed)
 
-(defface diff-function-face
-  '((t :inherit diff-context-face))
+(defface diff-function
+  '((t :inherit diff-context))
   "`diff-mode' face used to highlight function names produced by \"diff -p\"."
   :group 'diff-mode)
-(defvar diff-function-face 'diff-function-face)
+;; backward-compatibility alias
+(put 'diff-function-face 'face-alias 'diff-function)
+(defvar diff-function-face 'diff-function)
 
-(defface diff-context-face
-  '((((class color) (background light))
-     :foreground "grey50")
-    (((class color) (background dark))
-     :foreground "grey70"))
+(defface diff-context
+  '((t :inherit shadow))
   "`diff-mode' face used to highlight context and other side-information."
   :group 'diff-mode)
-(defvar diff-context-face 'diff-context-face)
+;; backward-compatibility alias
+(put 'diff-context-face 'face-alias 'diff-context)
+(defvar diff-context-face 'diff-context)
 
-(defface diff-nonexistent-face
-  '((t :inherit diff-file-header-face))
+(defface diff-nonexistent
+  '((t :inherit diff-file-header))
   "`diff-mode' face used to highlight nonexistent files in recursive diffs."
   :group 'diff-mode)
-(defvar diff-nonexistent-face 'diff-nonexistent-face)
+;; backward-compatibility alias
+(put 'diff-nonexistent-face 'face-alias 'diff-nonexistent)
+(defvar diff-nonexistent-face 'diff-nonexistent)
 
 (defconst diff-yank-handler '(diff-yank-function))
 (defun diff-yank-function (text)
@@ -918,7 +935,7 @@ See `after-change-functions' for the meaning of BEG, END and LEN."
 Supports unified and context diffs as well as (to a lesser extent)
 normal diffs.
 When the buffer is read-only, the ESC prefix is not necessary.
-IF you edit the buffer manually, diff-mode will try to update the hunk
+If you edit the buffer manually, diff-mode will try to update the hunk
 headers for you on-the-fly.
 
 You can also switch between context diff and unified diff with \\[diff-context->unified],

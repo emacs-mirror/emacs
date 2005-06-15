@@ -1,3 +1,9 @@
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* INSTALL: Explain that a universal binary cannot be created and
+	builds for on emachine cannot be targeted to the other.
+	* README: Add Universal Binary to the Todo List.
+
 2005-05-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* makefile.MPW (buildobj.lst): New target.

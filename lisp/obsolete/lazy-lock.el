@@ -506,7 +506,7 @@ When Lazy Lock mode is enabled, fontification can be lazy in a number of ways:
   been idle for `lazy-lock-stealth-time' seconds, while Emacs remains idle.
   This is useful if any buffer has any deferred fontification.
 
-Basic Font Lock mode on-the-fly fontification behaviour fontifies modified
+Basic Font Lock mode on-the-fly fontification behavior fontifies modified
 lines only.  Thus, if `lazy-lock-defer-contextually' is non-nil, Lazy Lock mode
 on-the-fly fontification may fontify differently, albeit correctly.  In any
 event, to refontify some lines you can use \\[font-lock-fontify-block].

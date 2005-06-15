@@ -1454,8 +1454,10 @@ delete_window (window)
   tem = par->hchild;
   if (NILP (tem))
     tem = par->vchild;
-  if (NILP (XWINDOW (tem)->next))
+  if (NILP (XWINDOW (tem)->next)) {
     replace_window (parent, tem);
+    par = XWINDOW (tem);
+  }
 
   /* Since we may be deleting combination windows, we must make sure that
      not only p but all its children have been marked as deleted.  */
@@ -1466,6 +1468,51 @@ delete_window (window)
 
   /* Mark this window as deleted.  */
   p->buffer = p->hchild = p->vchild = Qnil;
+
+  if (! NILP (par->parent))
+    par = XWINDOW (par->parent);
+
+  /* Check if we have a v/hchild with a v/hchild.  In that case remove
+     one of them.  */
+  
+  if (! NILP (par->vchild) && ! NILP (XWINDOW (par->vchild)->vchild))
+    {
+      p = XWINDOW (par->vchild);
+      par->vchild = p->vchild;
+      tem = p->vchild;
+    }
+  else if (! NILP (par->hchild) && ! NILP (XWINDOW (par->hchild)->hchild))
+    {
+      p = XWINDOW (par->hchild);
+      par->hchild = p->hchild;
+      tem = p->hchild;
+    }
+  else
+    p = 0;
+
+  if (p)
+    {
+      while (! NILP (tem)) {
+        XWINDOW (tem)->parent = p->parent;
+        if (NILP (XWINDOW (tem)->next))
+          break;
+        tem = XWINDOW (tem)->next;
+      }
+      if (! NILP (tem)) {
+        /* The next of the v/hchild we are removing is now the next of the
+           last child for the v/hchild:
+           Before v/hchild -> v/hchild -> next1 -> next2
+                    |
+                     -> next3
+           After:  v/hchild -> next1 -> next2 -> next3
+        */
+        XWINDOW (tem)->next = p->next;
+        if (! NILP (p->next))
+          XWINDOW (p->next)->prev = tem;
+      }
+      p->next = p->prev = p->vchild = p->hchild = p->buffer = Qnil;
+    }
+
 
   /* Adjust glyph matrices. */
   adjust_glyphs (f);
@@ -3189,7 +3236,7 @@ selects the buffer of the selected window before each command.  */)
 	 so that FRAME_FOCUS_FRAME is moved appropriately as we
 	 move around in the state where a minibuffer in a separate
 	 frame is active.  */
-      Fselect_frame (WINDOW_FRAME (w), Qnil);
+      Fselect_frame (WINDOW_FRAME (w));
     }
   else
     sf->selected_window = window;

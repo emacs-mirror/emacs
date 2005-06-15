@@ -121,7 +121,7 @@ and Sending Mail and Registers and Minibuffer.
 * GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        The glossary.
-* Antinews::	        Information about Emacs version 20.
+* Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
@@ -191,9 +191,7 @@ Advanced Features
 * Gnus::	        How to read netnews with Emacs.
 * Shell::	        Executing shell commands from Emacs.
 * Emacs Server::        Using Emacs as an editing server for @code{mail}, etc.
-* Hardcopy::	        Printing buffers or regions.
-* PostScript::	        Printing buffers or regions as PostScript.
-* PostScript Variables::Customizing the PostScript printing commands.
+* Printing::	        Printing hardcopies of buffers or regions.
 * Sorting::	        Sorting lines, paragraphs or pages within Emacs.
 * Narrowing::	        Restricting display and editing to a portion
 		          of the buffer.

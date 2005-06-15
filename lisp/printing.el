@@ -1,17 +1,17 @@
 ;;; printing.el --- printing utilities
 
-;; Copyright (C) 2000, 2001, 2002, 2003, 2004
+;; Copyright (C) 2000, 2001, 2002, 2003, 2004, 2005
 ;; Free Software Foundation, Inc.
 
 ;; Author: Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Maintainer: Vinicius Jose Latorre <viniciusjl@ig.com.br>
-;; Time-stamp: <2004/11/21 20:56:53 vinicius>
+;; Time-stamp: <2005/06/11 19:51:32 vinicius>
 ;; Keywords: wp, print, PostScript
-;; Version: 6.8.3
+;; Version: 6.8.4
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst pr-version "6.8.3"
-  "printing.el, v 6.8.3 <2004/11/17 vinicius>
+(defconst pr-version "6.8.4"
+  "printing.el, v 6.8.4 <2005/06/11 vinicius>
 
 Please send all bug fixes and enhancements to
 	Vinicius Jose Latorre <viniciusjl@ig.com.br>
@@ -143,7 +143,7 @@ Please send all bug fixes and enhancements to
 ;; One way to set variables is by calling `pr-customize', customize all
 ;; variables and save the customization by future sessions (see Options
 ;; section).  Other way is by coding your settings on Emacs init file (that is,
-;; .emacs file), see below for a first setting template that it should be
+;; ~/.emacs file), see below for a first setting template that it should be
 ;; inserted on your ~/.emacs file (or c:/_emacs, if you're using Windows 9x/NT
 ;; or MS-DOS):
 ;;
@@ -259,9 +259,9 @@ Please send all bug fixes and enhancements to
 ;;    PostScript printer.  So, please, don't include this printer in
 ;;    `pr-txt-printer-alist' (which see).
 ;;
-;; 5. Use gsprint instead of ghostscript to print monochrome PostScript files
-;;    in Windows.  The gsprint utility is faster than ghostscript to print
-;;    monochrome PostScript.
+;; 5. You can use gsprint instead of ghostscript to print monochrome PostScript
+;;    files in Windows.  The gsprint utility documentation says that it is more
+;;    efficient than ghostscript to print monochrome PostScript.
 ;;
 ;;    To print non-monochrome PostScript file, the efficiency of ghostscript
 ;;    is similar to gsprint.
@@ -271,6 +271,31 @@ Please send all bug fixes and enhancements to
 ;;    For more information about gsprint see
 ;;    `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;
+;;    As an example of gsprint declaration:
+;;
+;;    (setq pr-ps-printer-alist
+;;          '((A "gsprint" ("-all" "-twoup") "-printer " "my-b/w-printer-name")
+;;            (B "gsprint" ("-all" "-twoup") nil "-printer my-b/w-printer-name")
+;;            ;; some other printer declaration
+;;            ))
+;;
+;;    The example above declares that printer A prints all pages (-all) and two
+;;    pages per sheet (-twoup).  The printer B declaration does the same as the
+;;    printer A declaration, the only difference is the printer name selection.
+;;
+;;    There are other command line options like:
+;;
+;;    -mono	Render in monochrome as 1bit/pixel (only black and white).
+;;    -grey	Render in greyscale as 8bits/pixel.
+;;    -color	Render in color as 24bits/pixel.
+;;
+;;    The default is `-mono'.  So, printer A and B in the example above are
+;;    using implicitly the `-mono' option.  Note that in `-mono' no gray tone
+;;    or color is printed, this includes the zebra stripes, that is, in `-mono'
+;;    the zebra stripes are not printed.
+;;
+;;    See also documentation for `pr-ps-printer-alist'.
+;;
 ;;
 ;; Using `printing'
 ;; ----------------
@@ -279,8 +304,10 @@ Please send all bug fixes and enhancements to
 ;; using Windows 9x/NT or MS-DOS):
 ;;
 ;;    (require 'printing)
+;;    ;; ...some user settings...
+;;    (pr-update-menus t)
 ;;
-;; When `printing' is loaded:
+;; During `pr-update-menus' evaluation:
 ;;   * On Emacs 20:
 ;;      it replaces the Tools/Print menu by Tools/Printing menu.
 ;;   * On Emacs 21:
@@ -885,6 +912,7 @@ Please send all bug fixes and enhancements to
 ;;            (lps_06b  "print"     nil nil   "\\\\printers\\lps_06b")
 ;;            (lps_07c  "print"     nil ""    "/D:\\\\printers\\lps_07c")
 ;;            (lps_08c  nil         nil nil   "\\\\printers\\lps_08c")
+;;            (b/w      "gsprint" ("-all" "-twoup") "-printer " "b/w-pr-name")
 ;;            (LPT1     ""          nil ""    "LPT1:")
 ;;            (PRN      ""          nil ""    "PRN")
 ;;            (standard "redpr.exe" nil ""    "")
@@ -923,6 +951,9 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    `pr-update-menus'	Update utility, PostScript and text printer menus.
 ;;
+;;    `pr-menu-bind'	Install `printing' menu in the menubar.
+;;
+;;
 ;; Below are some URL where you can find good utilities.
 ;;
 ;; * For `printing' package:
@@ -934,7 +965,7 @@ Please send all bug fixes and enhancements to
 ;;
 ;;    gs, gv         `http://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    enscript       `http://people.ssh.fi/mtr/genscript/'
-;;    psnup          `http://www.dcs.ed.ac.uk/home/ajcd/psutils/index.html'
+;;    psnup          `http://www.knackered.org/angus/psutils/'
 ;;    mpage          `http://www.mesa.nl/pub/mpage/'
 ;;
 ;; * For Windows system:
@@ -943,7 +974,7 @@ Please send all bug fixes and enhancements to
 ;;                   `http://www.gnu.org/software/ghostscript/ghostscript.html'
 ;;    gsprint        `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'.
 ;;    enscript       `http://people.ssh.fi/mtr/genscript/'
-;;    psnup          `http://www.dcs.ed.ac.uk/home/ajcd/psutils/index.html'
+;;    psnup          `http://gnuwin32.sourceforge.net/packages/psutils.htm'
 ;;    redmon         `http://www.cs.wisc.edu/~ghost/redmon/'
 ;;
 ;;
@@ -1400,7 +1431,27 @@ Examples:
      (prt_07c  nil         nil \"/D:\\\\\\\\printers\\\\prt_07c\")
      (PRN      \"\"          nil \"PRN\")
      (standard \"redpr.exe\" nil \"\")
-     )"
+     )
+
+Useful links:
+
+* Information about the print command (print.exe)
+  `http://www.computerhope.com/printhlp.htm'
+
+* RedMon - Redirection Port Monitor (redpr.exe)
+  `http://www.cs.wisc.edu/~ghost/redmon/index.htm'
+
+* Redirection Port Monitor (redpr.exe on-line help)
+  `http://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
+
+* UNIX man pages: lpr (or type `man lpr')
+  `http://bama.ua.edu/cgi-bin/man-cgi?lpr'
+  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lpr'
+
+* UNIX man pages: lp (or type `man lp')
+  `http://bama.ua.edu/cgi-bin/man-cgi?lp'
+  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lp'
+"
   :type '(repeat
 	  (list :tag "Text Printer"
 		(symbol :tag "Printer Symbol Name")
@@ -1448,6 +1499,7 @@ function (see it for documentation) to update PostScript printer menu."
   ;;      (lps_06b  "print"     nil nil   "\\\\printers\\lps_06b")
   ;;      (lps_07c  "print"     nil ""    "/D:\\\\printers\\lps_07c")
   ;;      (lps_08c  nil         nil nil   "\\\\printers\\lps_08c")
+  ;;      (b/w      "gsprint" ("-all" "-twoup") "-printer " "b/w-pr-name")
   ;;      (LPT1     ""          nil ""    "LPT1:")
   ;;      (PRN      ""          nil ""    "PRN")
   ;;      (standard "redpr.exe" nil ""    "")
@@ -1486,6 +1538,7 @@ COMMAND		Name of the program for printing a PostScript file.  On MS-DOS
 			\"lpr\"
 			\"lp\"
 			\"cp\"
+			\"gsprint\"
 
 SWITCHES	List of sexp's to pass as extra options for PostScript printer
 		program.  It is recommended to set NAME (see text below)
@@ -1494,6 +1547,9 @@ SWITCHES	List of sexp's to pass as extra options for PostScript printer
 		   . for lpr
 			'(\"-#3\" \"-l\")
 			nil
+
+		   . for gsprint.exe
+			'(\"-all\" \"-twoup\")
 
 PRINTER-SWITCH	A string that specifies PostScript printer name switch.  If
 		it's necessary to have a space between PRINTER-SWITCH and NAME,
@@ -1511,6 +1567,9 @@ PRINTER-SWITCH	A string that specifies PostScript printer name switch.  If
 		   . for print.exe
 			\"/D:\"
 
+		   . for gsprint.exe
+			\"-printer \"
+
 NAME		A string that specifies a PostScript printer name.
 		On Unix-like systems, a string value should be a name
 		understood by lpr's -P option (or lp's -d option).
@@ -1526,7 +1585,7 @@ NAME		A string that specifies a PostScript printer name.
 		   . for cp.exe
 			\"\\\\\\\\host\\\\share-name\"
 
-		   . for print.exe
+		   . for print.exe or gsprint.exe
 			\"/D:\\\\\\\\host\\\\share-name\"
 			\"\\\\\\\\host\\\\share-name\"
 			\"LPT1:\"
@@ -1575,10 +1634,80 @@ Examples:
      (lps_06b  \"print\"     nil nil   \"\\\\\\\\printers\\\\lps_06b\")
      (lps_07c  \"print\"     nil \"\"    \"/D:\\\\\\\\printers\\\\lps_07c\")
      (lps_08c  nil         nil nil   \"\\\\\\\\printers\\\\lps_08c\")
+     (b/w1 \"gsprint\" (\"-all\" \"-twoup\") \"-printer \" \"b/w-pr-name\")
+     (b/w2 \"gsprint\" (\"-all\" \"-twoup\") nil \"-printer \\\\\\\\printers\\\\lps_06a\")
      (LPT1     \"\"          nil \"\"    \"LPT1:\")
      (PRN      \"\"          nil \"\"    \"PRN\")
      (standard \"redpr.exe\" nil \"\"    \"\")
-     )"
+     )
+
+
+gsprint:
+
+You can use gsprint instead of ghostscript to print monochrome PostScript files
+in Windows.  The gsprint utility documentation says that it is more efficient
+than ghostscript to print monochrome PostScript.
+
+To print non-monochrome PostScript file, the efficiency of ghostscript is
+similar to gsprint.
+
+Also the gsprint utility comes together with gsview distribution.
+
+As an example of gsprint declaration:
+
+   (setq pr-ps-printer-alist
+	 '((A \"gsprint\" (\"-all\" \"-twoup\") \"-printer \" \"lps_015\")
+	   (B \"gsprint\" (\"-all\" \"-twoup\") nil \"-printer lps_015\")
+	   ;; some other printer declaration
+	   ))
+
+The example above declares that printer A prints all pages (-all) and two pages
+per sheet (-twoup).  The printer B declaration does the same as the printer A
+declaration, the only difference is the printer name selection.
+
+There are other command line options like:
+
+   -mono	Render in monochrome as 1bit/pixel (only black and white).
+   -grey	Render in greyscale as 8bits/pixel.
+   -color	Render in color as 24bits/pixel.
+
+The default is `-mono'.  So, printer A and B in the example above are using
+implicitly the `-mono' option.  Note that in `-mono' no gray tone or color is
+printed, this includes the zebra stripes, that is, in `-mono' the zebra stripes
+are not printed.
+
+
+Useful links:
+
+* GSPRINT - Ghostscript print to Windows printer
+  `http://www.cs.wisc.edu/~ghost/gsview/gsprint.htm'
+
+* Introduction to Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+
+* How to use Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+
+* Information about the print command (print.exe)
+  `http://www.computerhope.com/printhlp.htm'
+
+* RedMon - Redirection Port Monitor (redpr.exe)
+  `http://www.cs.wisc.edu/~ghost/redmon/index.htm'
+
+* Redirection Port Monitor (redpr.exe on-line help)
+  `http://www.cs.wisc.edu/~ghost/redmon/en/redmon.htm'
+
+* UNIX man pages: lpr (or type `man lpr')
+  `http://bama.ua.edu/cgi-bin/man-cgi?lpr'
+  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lpr'
+
+* UNIX man pages: lp (or type `man lp')
+  `http://bama.ua.edu/cgi-bin/man-cgi?lp'
+  `http://www.mediacollege.com/cgi-bin/man/page.cgi?section=all&topic=lp'
+
+* GNU utilities for Win32 (cp.exe)
+  `http://unxutils.sourceforge.net/'
+"
   :type '(repeat
 	  (list
 	   :tag "PostScript Printer"
@@ -1674,7 +1803,37 @@ See also `pr-temp-dir' and `pr-ps-temp-file'."
     "gv")
   "*Specify path and name of the gsview/gv utility.
 
-See also `pr-path-alist'."
+See also `pr-path-alist'.
+
+Useful links:
+
+* GNU gv manual
+  `http://www.gnu.org/software/gv/manual/gv.html'
+
+* GSview Help
+  `http://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm'
+
+* GSview Help - Common Problems
+  `http://www.cs.wisc.edu/~ghost/gsview/gsviewen.htm#Common_Problems'
+
+* GSview Readme (compilation & installation)
+  `http://www.cs.wisc.edu/~ghost/gsview/Readme.htm'
+
+* GSview (main site)
+  `http://www.cs.wisc.edu/~ghost/gsview/index.htm'
+
+* Ghostscript, Ghostview and GSview
+  `http://www.cs.wisc.edu/~ghost/'
+
+* Ghostview
+  `http://www.cs.wisc.edu/~ghost/gv/index.htm'
+
+* gv 3.5, June 1997
+  `http://www.cs.wisc.edu/~ghost/gv/gv_doc/gv.html'
+
+* MacGSView (MacOS)
+  `http://www.cs.wisc.edu/~ghost/macos/index.htm'
+"
   :type '(string :tag "Ghostview Utility")
   :version "20"
   :group 'printing)
@@ -1686,7 +1845,22 @@ See also `pr-path-alist'."
     "gs")
   "*Specify path and name of the ghostscript utility.
 
-See also `pr-path-alist'."
+See also `pr-path-alist'.
+
+Useful links:
+
+* Ghostscript, Ghostview and GSview
+  `http://www.cs.wisc.edu/~ghost/'
+
+* Introduction to Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+
+* How to use Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+
+* Printer compatibility
+  `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
+"
   :type '(string :tag "Ghostscript Utility")
   :version "20"
   :group 'printing)
@@ -1717,7 +1891,19 @@ To see ghostscript documentation for more information:
    - for full documentation, see in a browser the file
      c:/gstools/gs5.50/index.html, that is, the file index.html which is
      located in the same directory as gswin32.exe.
-   - for brief documentation, type: gswin32.exe -h"
+   - for brief documentation, type: gswin32.exe -h
+
+Useful links:
+
+* Introduction to Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/intro.htm'
+
+* How to use Ghostscript
+  `http://www.cs.wisc.edu/~ghost/doc/cvs/Use.htm'
+
+* Printer compatibility
+  `http://www.cs.wisc.edu/~ghost/doc/printer.htm'
+"
   :type '(repeat (string :tag "Ghostscript Switch"))
   :version "20"
   :group 'printing)
@@ -2184,7 +2370,35 @@ Examples:
 
    '((psnup \"c:/psutils/psnup\" (\"-q\") \"-P%s\" \"-%d\" \"-l\" nil nil \" \"
 	    nil (pr-file-duplex . nil) (pr-file-tumble . nil))
-     )"
+     )
+
+Useful links:
+
+* mpage download (GNU or Unix)
+  `http://www.mesa.nl/pub/mpage/'
+
+* mpage documentation (GNU or Unix - or type `man mpage')
+  `http://www.cs.umd.edu/faq/guides/manual_unix/node48.html'
+  `http://www.rt.com/man/mpage.1.html'
+
+* psnup (Windows, GNU or Unix)
+  `http://www.knackered.org/angus/psutils/'
+  `http://gershwin.ens.fr/vdaniel/Doc-Locale/Outils-Gnu-Linux/PsUtils/'
+
+* psnup (PsUtils for Windows)
+  `http://gnuwin32.sourceforge.net/packages/psutils.htm'
+
+* psnup documentation (GNU or Unix - or type `man psnup')
+  `http://linux.about.com/library/cmd/blcmdl1_psnup.htm'
+  `http://amath.colorado.edu/computing/software/man/psnup.html'
+
+* GNU Enscript (Windows, GNU or Unix)
+  `http://people.ssh.com/mtr/genscript/'
+
+* GNU Enscript documentation (Windows, GNU or Unix)
+  `http://people.ssh.com/mtr/genscript/enscript.man.html'
+  (on GNU or Unix, type `man enscript')
+"
   :type '(repeat
 	  (list :tag "PS File Utility"
 		(symbol :tag "Utility Symbol")
@@ -2845,43 +3059,65 @@ See `pr-ps-printer-alist'.")
       )))
 
 
-(cond
- ((featurep 'xemacs)			; XEmacs
-  ;; Menu binding
-  (pr-xemacs-global-menubar
-   (pr-x-add-submenu nil (cons "Printing" pr-menu-spec) "Apps")))
+(defvar pr-menu-print-item "print"
+  "Non-nil means that menu binding was not done.
+
+Used by `pr-menu-bind' and `pr-update-menus'.")
 
 
- (t					; GNU Emacs
-  ;; Menu binding
-  (require 'easymenu)
-  ;; Replace existing "print" item by "Printing" item.
-  ;; If you're changing this file, you'll load it a second,
-  ;; third... time, but "print" item exists only in the first load.
-  (defvar pr-menu-print-item "print")
+(defun pr-menu-bind ()
+  "Install `printing' menu in the menubar.
+
+On Emacs 20, it replaces the Tools/Print menu by Tools/Printing menu.
+
+On Emacs 21 and 22, it replaces the File/Print* menu entries by File/Print
+menu.
+
+Calls `pr-update-menus' to adjust menus."
+  (interactive)
   (cond
-   ;; Emacs 20
-   ((string< emacs-version "21.")
-    (easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
-    (when pr-menu-print-item
-      (easy-menu-remove-item nil '("tools") pr-menu-print-item)
-      (setq pr-menu-print-item nil
-	    pr-menu-bar (vector 'menu-bar 'tools
-				(pr-get-symbol "Printing")))))
-   ;; Emacs 21
-   (pr-menu-print-item
-    (easy-menu-change '("file") "Print" pr-menu-spec "print-buffer")
-    (let ((items '("print-buffer"          "print-region"
-		   "ps-print-buffer-faces" "ps-print-region-faces"
-		   "ps-print-buffer"       "ps-print-region")))
-      (while items
-	(easy-menu-remove-item nil '("file") (car items))
-	(setq items (cdr items)))
-      (setq pr-menu-print-item nil
-	    pr-menu-bar (vector 'menu-bar 'file
-				(pr-get-symbol "Print")))))
-   (t
-    (easy-menu-change '("file") "Print" pr-menu-spec)))))
+   ((featurep 'xemacs)			; XEmacs
+    ;; Menu binding
+    (pr-xemacs-global-menubar
+     (pr-x-add-submenu nil (cons "Printing" pr-menu-spec) "Apps"))
+    (setq pr-menu-print-item nil))
+
+
+   (t					; GNU Emacs
+    ;; Menu binding
+    (require 'easymenu)
+    ;; Replace existing "print" item by "Printing" item.
+    ;; If you're changing this file, you'll load it a second,
+    ;; third... time, but "print" item exists only in the first load.
+    (cond
+     ;; Emacs 20
+     ((string< emacs-version "21.")
+      (easy-menu-change '("tools") "Printing" pr-menu-spec pr-menu-print-item)
+      (when pr-menu-print-item
+	(easy-menu-remove-item nil '("tools") pr-menu-print-item)
+	(setq pr-menu-print-item nil
+	      pr-menu-bar (vector 'menu-bar 'tools
+				  (pr-get-symbol "Printing")))))
+     ;; Emacs 21 & 22
+     (t
+      (let* ((has-file  (lookup-key global-map (vector 'menu-bar 'file)))
+	     (item-file (if has-file '("file") '("files"))))
+	(cond
+	 (pr-menu-print-item
+	  (easy-menu-change item-file "Print" pr-menu-spec "print-buffer")
+	  (let ((items '("print-buffer"          "print-region"
+			 "ps-print-buffer-faces" "ps-print-region-faces"
+			 "ps-print-buffer"       "ps-print-region")))
+	    (while items
+	      (easy-menu-remove-item nil item-file (car items))
+	      (setq items (cdr items)))
+	    (setq pr-menu-print-item nil
+		  pr-menu-bar (vector 'menu-bar
+				      (if has-file 'file 'files)
+				      (pr-get-symbol "Print")))))
+	 (t
+	  (easy-menu-change item-file "Print" pr-menu-spec))))))))
+  (pr-update-menus t))
 
 
 ;; Key binding
@@ -4712,12 +4948,20 @@ If FORCE is non-nil, update menus doesn't matter if `pr-ps-printer-alist',
 otherwise, update PostScript printer menu iff `pr-ps-printer-menu-modified' is
 non-nil, update text printer menu iff `pr-txt-printer-menu-modified' is
 non-nil, and update PostScript File menus iff `pr-ps-utility-menu-modified' is
-non-nil."
+non-nil.
+
+If menu binding was not done, calls `pr-menu-bind'."
   (interactive "P")
-  (pr-update-var 'pr-ps-name pr-ps-printer-alist)
-  (pr-update-var 'pr-txt-name pr-txt-printer-alist)
-  (pr-update-var 'pr-ps-utility pr-ps-utility-alist)
-  (pr-do-update-menus force))
+  (if pr-menu-print-item		; since v6.8.4
+      ;; There was no menu binding yet, so do it now!
+      ;; This is a hack to be compatible with old versions of printing.
+      ;; So, user does not need to change printing calling in init files.
+      (pr-menu-bind)
+    ;; Here menu binding is ok.
+    (pr-update-var 'pr-ps-name pr-ps-printer-alist)
+    (pr-update-var 'pr-txt-name pr-txt-printer-alist)
+    (pr-update-var 'pr-ps-utility pr-ps-utility-alist)
+    (pr-do-update-menus force)))
 
 
 (defvar pr-ps-printer-menu-modified  t
@@ -6432,9 +6676,6 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-
-(pr-update-menus t)
 
 
 (provide 'printing)

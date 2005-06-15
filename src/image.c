@@ -1972,7 +1972,8 @@ x_create_x_image_and_pixmap (f, width, height, depth, ximg, pixmap)
      and store its handle in *pixmap.  */
   *pixmap = CreateDIBSection (hdc, &((*ximg)->info),
 			      (depth < 16) ? DIB_PAL_COLORS : DIB_RGB_COLORS,
-			      &((*ximg)->data), NULL, 0);
+			      /* casting avoids a GCC warning */
+			      (void **)&((*ximg)->data), NULL, 0);
 
   /* Realize display palette and garbage all frames. */
   release_frame_dc (f, hdc);
@@ -5517,7 +5518,8 @@ pbm_load (f, img)
   /* Maybe fill in the background field while we have ximg handy.  */
 
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    /* Casting avoids a GCC warning.  */
+    IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
   /* Put the image into a pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -5843,9 +5845,11 @@ png_load (f, img)
       tbr.bytes += sizeof (sig);
     }
 
-  /* Initialize read and info structs for PNG lib.  */
-  png_ptr = fn_png_create_read_struct (PNG_LIBPNG_VER_STRING, NULL,
-				       my_png_error, my_png_warning);
+  /* Initialize read and info structs for PNG lib.  Casting return
+     value avoids a GCC warning on W32.  */
+  png_ptr = (png_structp)fn_png_create_read_struct (PNG_LIBPNG_VER_STRING,
+						    NULL, my_png_error,
+						    my_png_warning);
   if (!png_ptr)
     {
       if (fp) fclose (fp);
@@ -5853,7 +5857,8 @@ png_load (f, img)
       return 0;
     }
 
-  info_ptr = fn_png_create_info_struct (png_ptr);
+  /* Casting return value avoids a GCC warning on W32.  */
+  info_ptr = (png_infop)fn_png_create_info_struct (png_ptr);
   if (!info_ptr)
     {
       fn_png_destroy_read_struct (&png_ptr, NULL, NULL);
@@ -5862,7 +5867,8 @@ png_load (f, img)
       return 0;
     }
 
-  end_info = fn_png_create_info_struct (png_ptr);
+  /* Casting return value avoids a GCC warning on W32.  */
+  end_info = (png_infop)fn_png_create_info_struct (png_ptr);
   if (!end_info)
     {
       fn_png_destroy_read_struct (&png_ptr, &info_ptr, NULL);
@@ -6135,8 +6141,9 @@ png_load (f, img)
   img->width = width;
   img->height = height;
 
-  /* Maybe fill in the background field while we have ximg handy. */
-  IMAGE_BACKGROUND (img, f, ximg);
+  /* Maybe fill in the background field while we have ximg handy.
+     Casting avoids a GCC warning.  */
+  IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -6145,9 +6152,9 @@ png_load (f, img)
   /* Same for the mask.  */
   if (mask_img)
     {
-      /* Fill in the background_transparent field while we have the mask
-	 handy. */
-      image_background_transparent (img, f, mask_img);
+      /* Fill in the background_transparent field while we have the
+	 mask handy.  Casting avoids a GCC warning.  */
+      image_background_transparent (img, f, (XImagePtr_or_DC)mask_img);
 
       x_put_x_image (f, mask_img, img->mask, img->width, img->height);
       x_destroy_x_image (mask_img);
@@ -6265,8 +6272,8 @@ jpeg_image_p (object)
 #endif /* HAVE_STLIB_H */
 
 #if defined (HAVE_NTGUI) && !defined (__WIN32__)
-/* jpeglib.h will define boolean differently depending on __WIN32__,
-   so make sure it is defined.  */
+/* In older releases of the jpeg library, jpeglib.h will define boolean
+   differently depending on __WIN32__, so make sure it is defined.  */
 #define __WIN32__ 1
 #endif
 
@@ -6494,8 +6501,9 @@ jpeg_load (f, img)
     }
 
   /* Customize libjpeg's error handling to call my_error_exit when an
-     error is detected.  This function will perform a longjmp.  */
-  cinfo.err = fn_jpeg_std_error (&mgr.pub);
+     error is detected.  This function will perform a longjmp.
+     Casting return value avoids a GCC warning on W32.  */
+  cinfo.err = (struct jpeg_error_mgr *)fn_jpeg_std_error (&mgr.pub);
   mgr.pub.error_exit = my_error_exit;
 
   if ((rc = setjmp (mgr.setjmp_buffer)) != 0)
@@ -6606,7 +6614,8 @@ jpeg_load (f, img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    /* Casting avoids a GCC warning.  */
+    IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
   /* Put the image into the pixmap.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -6932,8 +6941,9 @@ tiff_load (f, img)
 	  return 0;
 	}
 
-      /* Try to open the image file.  */
-      tiff = fn_TIFFOpen (SDATA (file), "r");
+      /* Try to open the image file.  Casting return value avoids a
+	 GCC warning on W32.  */
+      tiff = (TIFF *)fn_TIFFOpen (SDATA (file), "r");
       if (tiff == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -6948,14 +6958,15 @@ tiff_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      tiff = fn_TIFFClientOpen ("memory_source", "r", &memsrc,
-                                (TIFFReadWriteProc) tiff_read_from_memory,
-                                (TIFFReadWriteProc) tiff_write_from_memory,
-                                tiff_seek_in_memory,
-                                tiff_close_memory,
-                                tiff_size_of_memory,
-                                tiff_mmap_memory,
-                                tiff_unmap_memory);
+      /* Casting return value avoids a GCC warning on W32.  */
+      tiff = (TIFF *)fn_TIFFClientOpen ("memory_source", "r", &memsrc,
+					(TIFFReadWriteProc) tiff_read_from_memory,
+					(TIFFReadWriteProc) tiff_write_from_memory,
+					tiff_seek_in_memory,
+					tiff_close_memory,
+					tiff_size_of_memory,
+					tiff_mmap_memory,
+					tiff_unmap_memory);
 
       if (!tiff)
 	{
@@ -7018,7 +7029,8 @@ tiff_load (f, img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    /* Casting avoids a GCC warning on W32.  */
+    IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -7126,6 +7138,11 @@ gif_image_p (object)
 #ifdef HAVE_GIF
 
 #if defined (HAVE_NTGUI) || defined (MAC_OS)
+/* winuser.h might define DrawText to DrawTextA or DrawTextW.
+   Undefine before redefining to avoid a preprocessor warning.  */
+#ifdef DrawText
+#undef DrawText
+#endif
 /* avoid conflict with QuickdrawText.h */
 #define DrawText gif_DrawText
 #include <gif_lib.h>
@@ -7239,8 +7256,9 @@ gif_load (f, img)
 	  return 0;
 	}
 
-      /* Open the GIF file.  */
-      gif = fn_DGifOpenFileName (SDATA (file));
+      /* Open the GIF file.  Casting return value avoids a GCC warning
+	 on W32.  */
+      gif = (GifFileType *)fn_DGifOpenFileName (SDATA (file));
       if (gif == NULL)
 	{
 	  image_error ("Cannot open `%s'", file, Qnil);
@@ -7256,7 +7274,8 @@ gif_load (f, img)
       memsrc.len = SBYTES (specified_data);
       memsrc.index = 0;
 
-      gif = fn_DGifOpen(&memsrc, gif_read_from_memory);
+      /* Casting return value avoids a GCC warning on W32.  */
+      gif = (GifFileType *)fn_DGifOpen(&memsrc, gif_read_from_memory);
       if (!gif)
 	{
 	  image_error ("Cannot open memory source `%s'", img->spec, Qnil);
@@ -7390,7 +7409,8 @@ gif_load (f, img)
 
   /* Maybe fill in the background field while we have ximg handy. */
   if (NILP (image_spec_value (img->spec, QCbackground, NULL)))
-    IMAGE_BACKGROUND (img, f, ximg);
+    /* Casting avoids a GCC warning.  */
+    IMAGE_BACKGROUND (img, f, (XImagePtr_or_DC)ximg);
 
   /* Put the image into the pixmap, then free the X image and its buffer.  */
   x_put_x_image (f, ximg, img->pixmap, width, height);
@@ -7400,7 +7420,7 @@ gif_load (f, img)
   return 1;
 }
 
-#else
+#else  /* !HAVE_GIF */
 
 #ifdef MAC_OS
 static int

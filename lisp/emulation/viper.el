@@ -990,12 +990,13 @@ remains buffer-local."
       (setq global-mode-string
 	    (append '("" viper-mode-string) (cdr global-mode-string))))
 
-  (defadvice describe-key (before viper-read-keyseq-ad protect activate)
+  (defadvice describe-key (before viper-describe-key-ad protect activate)
     "Force to read key via `viper-read-key-sequence'."
-    (interactive (list (viper-read-key-sequence "Describe key: "))))
+    (interactive (list (viper-read-key-sequence "Describe key: "))
+		 ))
 
   (defadvice describe-key-briefly
-    (before viper-read-keyseq-ad protect activate)
+    (before viper-describe-key-briefly-ad protect activate)
     "Force to read key via `viper-read-key-sequence'."
     (interactive (list (viper-read-key-sequence "Describe key briefly: "))))
 

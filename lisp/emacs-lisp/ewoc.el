@@ -264,7 +264,7 @@ start position and the element DATA."
 
 (defun ewoc--delete-node-internal (ewoc node)
   "Delete a data string from EWOC.
-Can not be used on the footer.  Returns the wrapper that is deleted.
+Can not be used on the footer.  Return the wrapper that is deleted.
 The start-marker in the wrapper is set to nil, so that it doesn't
 consume any more resources."
   (let ((dll (ewoc--dll ewoc))
@@ -334,25 +334,27 @@ be inserted at the bottom of the ewoc."
 (defalias 'ewoc-data 'ewoc--node-data)
 
 (defun ewoc-enter-first (ewoc data)
-  "Enter DATA first in EWOC."
+  "Enter DATA first in EWOC.
+Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc-enter-after ewoc (ewoc--node-nth dll 0) data)))
 
 (defun ewoc-enter-last (ewoc data)
-  "Enter DATA last in EWOC."
+  "Enter DATA last in EWOC.
+Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc-enter-before ewoc (ewoc--node-nth dll -1) data)))
 
 
 (defun ewoc-enter-after (ewoc node data)
   "Enter a new element DATA after NODE in EWOC.
-Returns the new NODE."
+Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc-enter-before ewoc (ewoc--node-next dll node) data)))
 
 (defun ewoc-enter-before (ewoc node data)
   "Enter a new element DATA before NODE in EWOC.
-Returns the new NODE."
+Return the new node."
   (ewoc--set-buffer-bind-dll ewoc
     (ewoc--node-enter-before
      node
@@ -362,15 +364,15 @@ Returns the new NODE."
       (ewoc--node-start-marker node)))))
 
 (defun ewoc-next (ewoc node)
-  "Get the next node.
-Returns nil if NODE is nil or the last element."
+  "Return the node in EWOC that follows NODE.
+Return nil if NODE is nil or the last element."
   (when node
     (ewoc--filter-hf-nodes
      ewoc (ewoc--node-next (ewoc--dll ewoc) node))))
 
 (defun ewoc-prev (ewoc node)
-  "Get the previous node.
-Returns nil if NODE is nil or the first element."
+  "Return the node in EWOC that precedes NODE.
+Return nil if NODE is nil or the first element."
   (when node
     (ewoc--filter-hf-nodes
      ewoc
@@ -497,16 +499,16 @@ If the EWOC is empty, nil is returned."
 	  best-guess)))))))
 
 (defun ewoc-invalidate (ewoc &rest nodes)
-  "Refresh some elements.
-The pretty-printer set for EWOC will be called for all NODES."
+  "Call EWOC's pretty-printer for each element in NODES.
+Delete current text first, thus effecting a \"refresh\"."
   (ewoc--set-buffer-bind-dll ewoc
     (dolist (node nodes)
       (ewoc--refresh-node (ewoc--pretty-printer ewoc) node))))
 
 (defun ewoc-goto-prev (ewoc arg)
-  "Move point to the ARGth previous element.
+  "Move point to the ARGth previous element in EWOC.
 Don't move if we are at the first element, or if EWOC is empty.
-Returns the node we moved to."
+Return the node we moved to."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((node (ewoc-locate ewoc (point))))
     (when node
@@ -522,8 +524,8 @@ Returns the node we moved to."
       (ewoc-goto-node ewoc node))))
 
 (defun ewoc-goto-next (ewoc arg)
-  "Move point to the ARGth next element.
-Returns the node (or nil if we just passed the last node)."
+  "Move point to the ARGth next element in EWOC.
+Return the node (or nil if we just passed the last node)."
   (ewoc--set-buffer-bind-dll-let* ewoc
       ((node (ewoc-locate ewoc (point))))
     (while (and node (> arg 0))
@@ -535,7 +537,7 @@ Returns the node (or nil if we just passed the last node)."
     (ewoc-goto-node ewoc node)))
 
 (defun ewoc-goto-node (ewoc node)
-  "Move point to NODE."
+  "Move point to NODE in EWOC."
   (ewoc--set-buffer-bind-dll ewoc
     (goto-char (ewoc--node-start-marker node))
     (if goal-column (move-to-column goal-column))
@@ -586,7 +588,7 @@ remaining arguments will be passed to PREDICATE."
 
 (defun ewoc-buffer (ewoc)
   "Return the buffer that is associated with EWOC.
-Returns nil if the buffer has been deleted."
+Return nil if the buffer has been deleted."
   (let ((buf (ewoc--buffer ewoc)))
     (when (buffer-name buf) buf)))
 

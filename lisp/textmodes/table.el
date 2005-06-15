@@ -682,7 +682,7 @@ height."
   :tag "Table Command Prefix"
   :group 'table)
 
-(defface table-cell-face
+(defface table-cell
   '((((min-colors 88) (class color))
      (:foreground "gray90" :background "blue1"))
     (((class color))
@@ -691,6 +691,8 @@ height."
   "*Face used for table cell contents."
   :tag "Cell Face"
   :group 'table)
+;; backward-compatibility alias
+(put 'table-cell-face 'face-alias 'table-cell)
 
 (defcustom table-cell-horizontal-chars "-="
   "*Characters that may be used for table cell's horizontal border line."
@@ -5264,7 +5266,7 @@ and the right cell border character."
 
 (defun table--put-cell-face-property (beg end &optional object)
   "Put cell face property."
-  (put-text-property beg end 'face 'table-cell-face object))
+  (put-text-property beg end 'face 'table-cell object))
 
 (defun table--put-cell-keymap-property (beg end &optional object)
   "Put cell keymap property."
@@ -5303,8 +5305,8 @@ instead of the current buffer and returns the OBJECT."
 (defun table--update-cell-face ()
   "Update cell face according to the current mode."
   (if (featurep 'xemacs)
-      (set-face-property 'table-cell-face 'underline table-fixed-width-mode)
-    (set-face-inverse-video-p 'table-cell-face table-fixed-width-mode)))
+      (set-face-property 'table-cell 'underline table-fixed-width-mode)
+    (set-face-inverse-video-p 'table-cell table-fixed-width-mode)))
 
 (table--update-cell-face)
 

@@ -64,7 +64,7 @@ or perform the normal Mouse-1 action (typically set point).
 The absolute numeric value specifices the maximum duration of a
 \"short click\" in milliseconds.  A positive value means that a
 short click follows the link, and a longer click performs the
-normal action.  A negative value gives the opposite behaviour.
+normal action.  A negative value gives the opposite behavior.
 
 If value is `double', a double click follows the link.
 

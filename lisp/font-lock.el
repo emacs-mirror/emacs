@@ -683,9 +683,22 @@ For example:
 adds two fontification patterns for C mode, to fontify `FIXME:' words, even in
 comments, and to fontify `and', `or' and `not' words as keywords.
 
-When used from a Lisp program (such as a minor mode), it is recommended to
-use nil for MODE (and place the call on a hook) to avoid subtle problems
-due to details of the implementation.
+The above procedure will only add the keywords for C mode, not
+for modes derived from C mode.  To add them for derived modes too,
+pass nil for MODE and add the call to c-mode-hook.
+
+For example:
+
+ (add-hook 'c-mode-hook
+  (lambda ()
+   (font-lock-add-keywords nil
+    '((\"\\\\\\=<\\\\(FIXME\\\\):\" 1 font-lock-warning-face prepend)
+      (\"\\\\\\=<\\\\(and\\\\|or\\\\|not\\\\)\\\\\\=>\" .
+       font-lock-keyword-face)))))
+
+The above procedure may fail to add keywords to derived modes if
+some involved major mode does not follow the standard conventions.
+File a bug report if this happens, so the major mode can be corrected.
 
 Note that some modes have specialized support for additional patterns, e.g.,
 see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
@@ -704,7 +717,8 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 	 (font-lock-update-removed-keyword-alist mode keywords append))
 	(t
 	 ;; Otherwise set or add the keywords now.
-	 ;; This is a no-op if it has been done already in this buffer.
+	 ;; This is a no-op if it has been done already in this buffer
+	 ;; for the correct major mode.
 	 (font-lock-set-defaults)
 	 (let ((was-compiled (eq (car font-lock-keywords) t)))
 	   ;; Bring back the user-level (uncompiled) keywords.
@@ -774,9 +788,11 @@ see the variables `c-font-lock-extra-types', `c++-font-lock-extra-types',
 MODE should be a symbol, the major mode command name, such as `c-mode'
 or nil.  If nil, highlighting keywords are removed for the current buffer.
 
-When used from a Lisp program (such as a minor mode), it is recommended to
-use nil for MODE (and place the call on a hook) to avoid subtle problems
-due to details of the implementation."
+To make the removal apply to modes derived from MODE as well,
+pass nil for MODE and add the call to MODE-hook.  This may fail
+for some derived modes if some involved major mode does not
+follow the standard conventions.  File a bug report if this
+happens, so the major mode can be corrected."
   (cond (mode
 	 ;; Remove one keyword at the time.
 	 (dolist (keyword keywords)
@@ -889,7 +905,7 @@ The value of this variable is used when Font Lock mode is turned on."
 			'font-lock-after-change-function t)
 	   (set (make-local-variable 'font-lock-fontify-buffer-function)
 		'jit-lock-refontify)
-	   ;; Don't fontify eagerly (and don't abort is the buffer is large).
+	   ;; Don't fontify eagerly (and don't abort if the buffer is large).
 	   (set (make-local-variable 'font-lock-fontified) t)
 	   ;; Use jit-lock.
 	   (jit-lock-register 'font-lock-fontify-region
@@ -1571,12 +1587,15 @@ A LEVEL of nil is equal to a LEVEL of 0, a LEVEL of t is equal to
 
 (defvar font-lock-set-defaults nil)	; Whether we have set up defaults.
 
+(defvar font-lock-mode-major-mode)
 (defun font-lock-set-defaults ()
   "Set fontification defaults appropriately for this mode.
 Sets various variables using `font-lock-defaults' (or, if nil, using
 `font-lock-defaults-alist') and `font-lock-maximum-decoration'."
-  ;; Set fontification defaults iff not previously set.
-  (unless font-lock-set-defaults
+  ;; Set fontification defaults iff not previously set for correct major mode.
+  (unless (and font-lock-set-defaults
+	       (eq font-lock-mode-major-mode major-mode))
+    (setq font-lock-mode-major-mode major-mode)
     (set (make-local-variable 'font-lock-set-defaults) t)
     (make-local-variable 'font-lock-fontified)
     (make-local-variable 'font-lock-multiline)
@@ -1807,6 +1826,17 @@ Sets various variables using `font-lock-defaults' (or, if nil, using
   "Font Lock mode face used to highlight preprocessor directives."
   :group 'font-lock-highlighting-faces)
 
+(defface font-lock-regexp-backslash
+  '((((class color) (min-colors 16)) :inherit escape-glyph)
+    (t :inherit bold))
+  "Font Lock mode face used to highlight a backslash in Lisp regexps."
+  :group 'font-lock-highlighting-faces)
+
+(defface font-lock-regexp-backslash-construct
+  '((t :inherit bold))
+  "Font Lock mode face used to highlight `\' constructs in Lisp regexps."
+  :group 'font-lock-highlighting-faces)
+
 ;;; End of Colour etc. support.
 
 ;;; Menu support.
@@ -2000,7 +2030,7 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
      `(;; Control structures.  Emacs Lisp forms.
        (,(concat
 	  "(" (regexp-opt
-	       '("cond" "if" "while" "let" "let*"
+	       '("cond" "if" "while" "while-no-input" "let" "let*"
 		 "prog" "progn" "progv" "prog1" "prog2" "prog*"
 		 "inline" "lambda" "save-restriction" "save-excursion"
 		 "save-window-excursion" "save-selected-window"
@@ -2056,16 +2086,14 @@ This function could be MATCHER in a MATCH-ANCHORED `font-lock-keywords' item."
        ;; Make regexp grouping constructs bold, so they stand out, but only
        ;; in strings.
        ((lambda (bound)
-	  (if (re-search-forward "\\(\\\\\\\\\\)\\([(|)]\\)\\(\\?:\\)?" bound t)
+	  (if (re-search-forward "\\(\\\\\\\\\\)\\((\\(?:?:\\)?\\|[|)]\\)" bound t)
 	       (let ((face (get-text-property (1- (point)) 'face)))
 		 (if (listp face)
 		     (memq 'font-lock-string-face face)
 		   (eq 'font-lock-string-face face)))))
-        ;; Should we introduce a lowlight face for this?
-        ;; Ideally that would retain the color, dimmed.
-	(1 font-lock-comment-face prepend)
-	(2 'bold prepend)
-	(3 font-lock-type-face prepend t))
+	(1 'font-lock-regexp-backslash prepend)
+	(2 'font-lock-regexp-backslash-construct prepend))
+
        ;; Underline innermost grouping, so that you can more easily see what
        ;; belongs together.  2005-05-12: Font-lock can go into an
        ;; unbreakable endless loop on this -- something's broken.

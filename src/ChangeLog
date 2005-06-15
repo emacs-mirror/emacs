@@ -1,3 +1,283 @@
+2005-06-15  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_compute_glyph_string_overhangs): Don't set
+	overhangs unless the given glyph type is noncomposite CHAR_GLYPH.
+	[USE_CARBON_EVENTS] (mac_convert_event_ref): Convert dead key down
+	events.
+	(XTread_socket): Don't pass keyboard events with the option
+	modifier to the system when Vmac_command_key_is_meta is nil or
+	Vmac_option_modifier is non-nil.
+	[USE_CARBON_EVENTS] (read_socket_inev): New variable.
+	[USE_CARBON_EVENTS] (init_command_handler): Fix argument.
+	[USE_CARBON_EVENTS] (mac_handle_mouse_event): New Carbon event
+	handler function.
+	(install_window_handler) [USE_CARBON_EVENTS]: Install it.
+	(XTread_socket) [USE_CARBON_EVENTS]: Move mouse wheel event
+	handler part to mac_handle_mouse_event.
+
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvaralias): Rename arguments SYMBOL and ALIASED to
+	NEW-ALIAS and BASE-VARIABLE, respectively.
+
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Lisp_Object/int mixup.
+	(get_phys_cursor_geometry, format_mode_line_unwind_data)
+	(get_line_height_property, x_produce_glyphs): Remove unused vars.
+
+	* coding.c (run_pre_post_conversion_on_str): Remove unused var `buf'.
+
+2005-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32term.c (x_use_underline_position_properties): New variable.
+	(x_draw_glyph_string): Remind in a comment to change doc string of
+	x-use-underline-position-properties if/when underline positioning
+	is implemented.
+	(syms_of_w32term): DEFVAR_BOOL x-use-underline-position-properties,
+	and initialize it to nil.
+
+2005-06-12  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (NEWOPENFILENAME): New struct.
+	(Fx_file_dialog): Use it to trick the system into giving us up to
+	date dialogs on systems that are documented to support it.
+	Do not set OFN_FILEMUSTEXIST flag if looking for a directory.
+
+2005-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32fns.c (w32_abort): Use the MB_YESNO dialog instead of
+	MB_ABORTRETRYIGNORE.  Never return, even if DebugBreak does.
+
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* image.c (x_create_x_image_and_pixmap) [HAVE_NTGUI]: Cast 4th arg
+	to CreateDIBSection to avoid a compiler warning.
+	(pbm_load): Cast 3rd arg to IMAGE_BACKGROUND to avoid a compiler
+	warning.
+	(png_load): Cast return values of fn_png_create_read_struct and
+	fn_png_create_info_struct, to avoid compiler warnings on W32.
+	Cast 3rd arg to IMAGE_BACKGROUND and image_background_transparent
+	to avoid compiler warnings.
+	(jpeg_load): Cast return value of fn_jpeg_std_error to avoid a
+	compiler warning on W32.  Cast 3rd arg to IMAGE_BACKGROUND to
+	avoid a compiler warning.
+	(tiff_load): Cast return values of fn_TIFFOpen and
+	fn_TIFFClientOpen to avoid compiler warning on W32.  Cast 3rd arg
+	to IMAGE_BACKGROUND to avoid a compiler warning.
+	(gif_load): Cast return values of fn_DGifOpenFileName and
+	fn_DGifOpen to avoid compiler warnings on W32.  Cast 3rd arg to
+	IMAGE_BACKGROUND to avoid a compiler warning.
+	(DrawText) [HAVE_NTGUI || MAC_OS]: If already defined, undef
+	before redefining.
+
+	* w32bdf.c (create_offscreen_bitmap): Cast `bitsp' to `void **' in
+	the call to CreateDIBSection, to avoid a compiler warning.
+
+2005-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Unblock input before falling back to
+	minibuffer.
+	* macfns.c (Fx_file_dialog): Likewise.
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TEMACS)): Depend on addsection.exe.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (syms_of_process) [ADAPTIVE_READ_BUFFERING]:
+	* w32fns.c (syms_of_w32fns): Fix spellings.
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexw32.c (COPY_CHUNK, COPY_PROC_CHUNK): Add a new argument
+	`verbose'; print diagnostic messages only if it is non-zero.
+	All callers changed to pass a zero value unless DEBUG_DUMP is defined
+	in the environment.
+	(copy_executable_and_dump_data): Print section names with %.8s.
+
+2005-06-10  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Call clear_mouse_face
+	when mouse_face is not given.
+	Remove unnecessary tabs.
+
+2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fselect_window): Adapt call to Fselect_frame.
+
+	* lisp.h: Update EXFUN of Fselect_frame.
+
+	* keyboard.c (command_loop_1): Adapt call to Fselect_frame.
+
+	* frame.c (Fhandle_switch_frame, Fselect_frame): Delete unused arg
+	no_enter.
+	(Fset_mouse_position, Fset_mouse_pixel_position, Ficonify_frame):
+	Adapt to above change.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fmemq, Fmaphash): Doc fixes.
+
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p):
+	Fix typo in docstring.
+
+2005-06-08  Steven Tamm  <steventamm@mac.com>
+
+	* unexmacosx.c (copy_data_segment): Copy __la_sym_ptr2 section
+	used by gcc4 on intel mac.
+
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* search.c (Fmatch_data): Add optional RESEAT arg.  Unchain markers
+	in REUSE list if non-nil; free them if equal to evaporate.
+	(Fset_match_data): Add optional RESEAT arg.  Unchain markers in	LIST
+	if non-nil; free them if equal to evaporate.  Use XCAR/XCDR.
+	(restore_search_regs): Rename from restore_match_data.  Uses changed.
+	(unwind_set_match_data): New function.
+	(record_unwind_save_match_data): New function like save-match-data.
+
+	* lisp.h (Fmatch_data, Fset_match_data): Fix EXFUN.
+	(record_unwind_save_match_data): Add prototype.
+	(restore_search_regs): Rename from restore_match_data.
+
+	* composite.c (compose_chars_in_text):
+	* eval.c (do_autoload):
+	* macmenu.c (set_frame_menubar):
+	* process.c (read_process_output, exec_sentinel):
+	* xmenu.c (set_frame_menubar):
+	* xdisp.c (prepare_menu_bars, update_menu_bar, update_tool_bar):
+	* w32menu.c (set_frame_menubar):
+	Use record_unwind_save_match_data.
+
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Alter previous change:
+	Distinguish Vshow_nonbreak_escape = t or not t.
+	For t, use escape_glyph once again, as before previous change.
+	Use space or hyphen for display, instead of the non-ASCII char.
+	(syms_of_xdisp) <show-nonbreak-escape>: Doc fix.
+
+	* process.c (Fstart_process): Don't touch command_channel_p slot.
+
+	* process.h (struct process): Delete command_channel_p.
+
+2005-06-07  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight):
+	Check the overlapping of re-rendering area to avoid flickering.
+	(note_mouse_highlight): Call clear_mouse_face if PART
+	is not ON_MODE_LINE nor ON_HEADER_LINE.
+
+2005-06-07  Kim F. Storm  <storm@cua.dk>
+
+	* process.c: Improve commentary for adaptive read buffering.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* xterm.c (x_create_toolkit_scroll_bar): Use XtNarrowScrollbars
+	if available.
+
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (menu_quit_handler, install_menu_quit_handler):
+	New functions for popping down menus on C-g.
+	(set_frame_menubar, mac_menu_show): Call install_menu_quit_handler.
+
+	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
+	non-static.
+
+	* config.in: Add HAVE_CANCELMENUTRACKING.
+
+2005-06-06  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR):
+	Remove macros.
+
+	* unexw32.c (RVA_TO_PTR): Move here from w32heap.h.
+
+	* w32proc.c (RVA_TO_PTR): New macro.
+
+	* w32heap.c (RVA_TO_PTR): No need to #undef now.
+
+	* makefile.w32-in ($(BLD)/emacs.$(O), $(BLD)/w32select.$(O)):
+	Depend on w32heap.h.
+
+2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* keyboard.c (command_loop_1): Update Vthis_original_command.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (popup_get_selection): Undo previous change.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* xdisp.c (Qno_break_space): New variable.
+	(syms_of_xdisp): Initialize it.
+	(get_next_display_element): Add no-break space and soft hypen
+	codes for iso8859-2 and iso8859-5.  Don't add `\' for them.
+	Use `no-break-space' face for no-break spaces.
+
+2005-06-06  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* window.c (delete_window): Handle the case where a h/vchild has
+	a h/vchild.
+
+2005-06-05  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (sys_setsockopt): Change arg 4 to `const void *'.  In the
+	call to pfn_setsockopt, cast optval to `const char *'.
+
+2005-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32.c (gettimeofday): Use struct _timeb, not struct timeb.
+	(open_unc_volume): Cast return value of map_w32_filename, to avoid
+	compiler warnings.
+
+	* s/ms-w32.h (fileno): Don't define if already defined.
+
+	* emacs.c: Include w32heap.h, to avoid compiler warning about sbrk.
+
+	* makefile.w32-in (DOC): Define to point to the generated DOC-X.
+
+2005-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* xmenu.c (popup_get_selection): Click not in menu deactivates menu.
+
+2005-06-04  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* macmenu.c (cleanup_popup_menu): New function.
+	(Fx_popup_menu): unwind protect cleanup_popup_menu in case
+	mac_menu_show Quit:s.
+	(mac_menu_show): Quit on cancel if not popped up on click (i.e.
+	a dialog).
+
+2005-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* coding.c (decode_coding_string): Handle CODING_FINISH_INTERRUPT.
+
+	* callproc.c (Fcall_process): Don't use alloca to gradually
+	increase size of buf, as it effectively uses twice the necessary
+	space on the stack.  Instead, pre-allocate buf of full size, and
+	gradually increase the read size.
+
+	* bytecode.c (BYTE_CODE_QUIT): Check Vthrow_on_input.
+
+	* eval.c (unbind_to): Preserve value of Vquit_flag.
+
+	* xterm.c (handle_one_xevent): Also ignore mouse motion just
+	before a button release event.
+
+2005-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Finternal_lisp_face_equal_p): Really report
+	on faces in a frame, if the argument FRAME is non-nil.
+	Improve argument/docstring consistency.
+
 2005-06-02  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (MODE_LINE_NOPROP_LEN): New macro.
@@ -41,11 +321,11 @@
 	(format_mode_line_unwind_data, unwind_format_mode_line):
 	New functions for unwind protection in mode line formatting.
 	(x_consider_frame_title): Use them and new local var 'title_start'
-	to support nested calls to format-mode-line and redisplay.  Set
-	mode_line_target to MODE_LINE_TITLE.
+	to support nested calls to format-mode-line and redisplay.
+	Set mode_line_target to MODE_LINE_TITLE.
 	(Fformat_mode_line): Use them and new local var 'string_start' to
-	support nested calls to format-mode-line and redisplay.  Set
-	mode_line_target to MODE_LINE_NOPROP or MODE_LINE_STRING.
+	support nested calls to format-mode-line and redisplay.
+	Set mode_line_target to MODE_LINE_NOPROP or MODE_LINE_STRING.
 	Don't trim trailing dashes.
 	(decode_mode_spec): Don't make infinite number of trailing dashes
 	for MODE_LINE_NOPROP and MODE_LINE_STRING targets.
@@ -5078,7 +5358,7 @@
 
 2004-06-11  Kenichi Handa  <handa@m17n.org>
 
-	* coding.c (decode_coding_string): Check CODING_FINISH_INTERRUPT.
+	* coding.c (encode_coding_string): Check CODING_FINISH_INTERRUPT.
 
 2004-06-11  Kim F. Storm  <storm@cua.dk>
 
@@ -12841,9 +13121,9 @@
 	* sound.c: Added a partial implementation of play-sound-internal
 	for Microsoft Windows.  Added various #ifdef / #else / #endif
 	code blocks to separate the code that will compile under
-	Microsoft Windows from the code that is specific to Gnu/Linux.
+	Microsoft Windows from the code that is specific to GNU/Linux.
 	Moved several blocks of code around to make this separation of code
-	into Windows compatible and Gnu/Linux compatible code blocks easier.
+	into Windows compatible and GNU/Linux compatible code blocks easier.
 
 	* makefile.w32-in: Include sound.c and link with WinMM.lib.
 

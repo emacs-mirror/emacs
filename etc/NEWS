@@ -116,6 +116,7 @@ emacs crash.
 
 * Startup Changes in Emacs 22.1
 
++++
 ** New command line option -Q or --quick.
 This is like using -q --no-site-file, but in addition it also disables
 the fancy startup screen.
@@ -710,6 +711,7 @@ gives the fraction of the window's width to scroll the window.
 The variable `automatic-hscrolling' was renamed to
 `auto-hscroll-mode'.  The old name is still available as an alias.
 
+---
 *** Moving or scrolling through images (and other lines) taller that
 the window now works sensibly, by automatically adjusting the window's
 vscroll property.
@@ -796,6 +798,21 @@ appears in.
 *** The variable `cursor-in-non-selected-windows' can now be set to any
 of the recognized cursor types.
 
+** New faces:
+
++++
+*** `mode-line-highlight' is the standard face indicating mouse sensitive
+elements on mode-line (and header-line) like `highlight' face on text
+areas.
+
++++
+*** `shadow' face defines the appearance of the "shadowed" text, i.e.
+the text which should be less noticeable than the surrounding text.
+This can be achieved by using shades of grey in contrast with either
+black or white default foreground color.  This generic shadow face
+allows customization of the appearance of shadowed text in one place,
+so package-specific faces can inherit from it.
+
 ** Font-Lock changes:
 
 +++
@@ -826,8 +843,10 @@ trouble with fontification and/or indentation.
 +++
 *** New standard font-lock face `font-lock-preprocessor-face'.
 
++++
 *** New standard font-lock face `font-lock-comment-delimiter-face'.
 
++++
 *** Easy to overlook single character negation can now be font-locked.
 You can use the new variable `font-lock-negation-char-face' and the face of
 the same name to customize this.  Currently the cc-modes, sh-script-mode,
@@ -1247,6 +1266,7 @@ modes (shell-mode etc) inserts arguments from previous command lines,
 like bash's `ESC .' binding.  It is bound by default to `C-c .', but
 otherwise behaves quite similarly to the bash version.
 
++++
 *** `comint-use-prompt-regexp-instead-of-fields' has been renamed
 `comint-use-prompt-regexp'.  The old name has been kept as an alias,
 but declared obsolete.
@@ -1292,9 +1312,11 @@ buffer causes automatic display in another window of the corresponding
 matches, compilation errors, etc.  This minor mode can be toggled with
 C-c C-f.
 
++++
 *** When the left fringe is displayed, an arrow points to current message in
 the compilation buffer.
 
++++
 *** The new variable `compilation-context-lines' controls lines of leading
 context before the current message.  If nil and the left fringe is displayed,
 it doesn't scroll the compilation output window.  If there is no left fringe,
@@ -1621,6 +1643,7 @@ referred to as "soft word wrap" in other text editors.  This is
 similar to Refill mode, but more reliable.  To turn the word wrap
 feature off, set `longlines-auto-wrap' to nil.
 
++++
 ** The printing package is now part of the Emacs distribution.
 
 If you enable the printing package by including (require 'printing) in
@@ -1713,6 +1736,7 @@ This was actually done in Emacs-21.1, and was not documented.
 
 * Changes in Specialized Modes and Packages in Emacs 22.1:
 
+---
 ** Makefile mode has submodes for automake, gmake, makepp and BSD make.
 
 The former two couldn't be differentiated before, and the latter two
@@ -2401,6 +2425,7 @@ old name remains available as alias, but has been marked obsolete.
 +++
 *** Desktop saving is now a minor mode, `desktop-save-mode'.
 
++++
 *** The variable `desktop-enable' is obsolete.
 
 Customize `desktop-save-mode' to enable desktop saving.
@@ -2471,6 +2496,7 @@ currently highlighted regions in an inferior Ediff session. If you answer 'n'
 then it reverts to the old behavior and asks the user to select regions for
 comparison.
 
++++
 *** The new command `ediff-backup' compares a file with its most recent
 backup using `ediff'.  If you specify the name of a backup file,
 `ediff-backup' compares it with the file of which it is a backup.
@@ -3039,6 +3065,10 @@ list instead of at the beginning.  This change actually occurred in
 Emacs 21.1, but was not documented then.
 
 +++
+*** New function `add-to-ordered-list' is like `add-to-list' but
+associates a numeric ordering of each symbol element added to the list.
+
++++
 *** New function `copy-tree' makes a copy of a tree.
 
 It recursively copyies through both CARs and CDRs.
@@ -3362,6 +3392,13 @@ clone to the other.
 ---
 *** The function `insert-string' is now obsolete.
 
+** Filling changes.
+
++++
+*** In determining an adaptive fill prefix, Emacs now tries the function in
+`adaptive-fill-function' _before_ matching the buffer line against
+`adaptive-fill-regexp' rather than _after_ it.
+
 +++
 ** Atomic change groups.
 
@@ -3501,6 +3538,14 @@ properties from surrounding text.
 *** The list returned by `(match-data t)' now has the buffer as a final
 element, if the last match was on a buffer.  `set-match-data'
 accepts such a list for restoring the match state.
+
++++
+*** Functions `match-data' and `set-match-data' now have an optional
+argument `reseat'.  When non-nil, all markers in the match data list
+passed to these function will be reseated to point to nowhere, and if
+the value of `reseat' is `evaporate', the markers are put onto the
+free list.  Note that no other references to those markers must exist
+if `evaporate' is specified for the `reseat' argument.
 
 +++
 *** The default value of `sentence-end' is now defined using the new
@@ -4784,10 +4829,8 @@ used to add text properties to mode-line elements.
 to display the size of the accessible part of the buffer on the mode
 line.
 
++++
 *** Mouse-face on mode-line (and header-line) is now supported.
-`mode-line-highlight' is the standard face indicating mouse sensitive
-elements on mode-line (and header-line) like `highlight' face on text
-areas.
 
 ** Menu manipulation changes:
 

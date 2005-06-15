@@ -695,6 +695,7 @@ copy_data_segment (struct load_command *lc)
 	}
       else if (strncmp (sectp->sectname, "__la_symbol_ptr", 16) == 0
 	       || strncmp (sectp->sectname, "__nl_symbol_ptr", 16) == 0
+	       || strncmp (sectp->sectname, "__la_sym_ptr2", 16) == 0
 	       || strncmp (sectp->sectname, "__dyld", 16) == 0
 	       || strncmp (sectp->sectname, "__const", 16) == 0
 	       || strncmp (sectp->sectname, "__cfstring", 16) == 0)

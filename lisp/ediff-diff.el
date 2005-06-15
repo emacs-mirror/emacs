@@ -1353,7 +1353,7 @@ Symlinks and the likes are not handled.
 If FILTER-RE is non-nil, recursive checking in directories
 affects only files whose names match the expression."
   ;; Normalize empty filter RE to nil.
-  (unless (length filter-re) (setq filter-re nil))
+  (unless (> (length filter-re) 0) (setq filter-re nil))
   ;; Indicate progress
   (message "Comparing '%s' and '%s' modulo '%s'" d1 d2 filter-re)
   (cond
@@ -1367,27 +1367,11 @@ affects only files whose names match the expression."
     (if (eq ediff-recurse-to-subdirectories 'yes)
 	(let* ((all-entries-1 (directory-files d1 t filter-re))
 	       (all-entries-2 (directory-files d2 t filter-re))
-	       (entries-1 (remove-if (lambda (s)
-				       (string-match "^\\.\\.?$"
-						     (file-name-nondirectory s))) 
-				     all-entries-1))
-	       (entries-2 (remove-if (lambda (s)
-				       (string-match "^\\.\\.?$"
-						     (file-name-nondirectory s)))
-				     all-entries-2))
+	       (entries-1 (ediff-delete-all-matches "^\\.\\.?$" all-entries-1))
+	       (entries-2 (ediff-delete-all-matches "^\\.\\.?$" all-entries-2))
 	       )
-	  ;; First, check only the names (works quickly and ensures a
-	  ;; precondition for subsequent code)
-	  (if (and (= (length entries-1) (length entries-2))
-		   (every (lambda (a b) (equal (file-name-nondirectory a)
-					       (file-name-nondirectory b)))
-			  entries-1 entries-2))
-	      ;; With name equality established, compare the entries
-	      ;; through recursion.
-	      (every (lambda (a b)
-		       (ediff-same-contents a b filter-re))
-		     entries-1 entries-2)
-	    )
+
+	  (ediff-same-file-contents-lists entries-1 entries-2 filter-re)
 	  ))
     ) ; end of the directories case
    ;; D1 & D2 are both files => compare directly
@@ -1397,6 +1381,42 @@ affects only files whose names match the expression."
    ;; Otherwise => false: unequal contents
    )
   )
+
+;; If lists have the same length and names of files are pairwise equal
+;; (removing the directories) then compare contents pairwise.
+;; True if all contents are the same; false otherwise
+(defun ediff-same-file-contents-lists (entries-1 entries-2 filter-re)
+  ;; First, check only the names (works quickly and ensures a
+  ;; precondition for subsequent code)
+  (if (and (= (length entries-1) (length entries-2))
+	   (equal (mapcar 'file-name-nondirectory entries-1)
+		  (mapcar 'file-name-nondirectory entries-2)))
+      ;; With name equality established, compare the entries
+      ;; through recursion.
+      (let ((continue t))
+	(while (and entries-1 continue)
+	  (if (ediff-same-contents
+	       (car entries-1) (car entries-2) filter-re)
+	      (setq entries-1 (cdr entries-1)
+		    entries-2 (cdr entries-2))
+	    (setq continue nil))
+	  )
+	;; if reached the end then lists are equal
+	(null entries-1))
+    )
+  )
+
+
+;; ARG1 is a regexp, ARG2 is a list of full-filenames
+;; Delete all entries that match the regexp
+(defun ediff-delete-all-matches (regex file-list-list)
+  (let (result elt)
+    (while file-list-list
+      (setq elt (car file-list-list))
+      (or (string-match regex (file-name-nondirectory elt))
+	  (setq result (cons elt result)))
+      (setq file-list-list (cdr file-list-list)))
+    (reverse result)))
 
 
 ;;; Local Variables:

@@ -944,9 +944,9 @@ With a prefix argument, prompt for cvs FLAGS to use."
 (defun-cvs-mode (cvs-mode-checkout . NOARGS) (dir)
   "Run cvs checkout against the current branch.
 The files are stored to DIR."
-  (interactive 
+  (interactive
    (let* ((branch (cvs-prefix-get 'cvs-branch-prefix))
-	  (prompt (format "CVS Checkout Directory for `%s%s': " 
+	  (prompt (format "CVS Checkout Directory for `%s%s': "
 			 (cvs-get-module)
 			 (if branch (format " (branch: %s)" branch)
 			   ""))))
@@ -1123,7 +1123,7 @@ Full documentation is in the Texinfo file."
 				      ("->" cvs-secondary-branch-prefix))))
 	  " " cvs-mode-line-process))
   (if buffer-file-name
-      (error "Use M-x cvs-quickdir to get a *cvs* buffer."))
+      (error "Use M-x cvs-quickdir to get a *cvs* buffer"))
   (buffer-disable-undo)
   ;;(set (make-local-variable 'goal-column) cvs-cursor-column)
   (set (make-local-variable 'revert-buffer-function) 'cvs-mode-revert-buffer)
@@ -1980,7 +1980,7 @@ With a prefix, opens the buffer in an OTHER window."
   (when (and (/= (point) (progn (posn-set-point (event-end e)) (point)))
 	     (not (memq (get-text-property (1- (line-end-position))
                                            'font-lock-face)
-                        '(cvs-header-face cvs-filename-face))))
+                        '(cvs-header cvs-filename))))
     (error "Not a file name"))
   (cvs-mode!
    (lambda (&optional rev)

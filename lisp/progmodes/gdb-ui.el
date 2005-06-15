@@ -250,7 +250,7 @@ Also display the main routine in the disassembly buffer if present."
      (let ((string (buffer-string)))
        ;; remove newline for gud-tooltip-echo-area
        (substring string 0 (- (length string) 1))))
-   gud-tooltip-echo-area))
+   (or gud-tooltip-echo-area tooltip-use-echo-area)))
 
 ;; If expr is a macro for a function don't print because of possible dangerous
 ;; side-effects. Also printing a function within a tooltip generates an
@@ -994,24 +994,24 @@ sink to `user' in `gdb-stopping', that is fine."
 This begins the collection of output from the current command if that
 happens to be appropriate."
   (unless gdb-pending-triggers
-	(gdb-get-selected-frame)
-	(gdb-invalidate-frames)
-	(gdb-invalidate-breakpoints)
-	;; Do this through gdb-get-selected-frame -> gdb-frame-handler
-	;; so gdb-frame-address is updated.
-	;; (gdb-invalidate-assembler)
-	(gdb-invalidate-registers)
-	(gdb-invalidate-memory)
-	(gdb-invalidate-locals)
-	(gdb-invalidate-threads)
-	(unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
-	  ;; FIXME: with GDB-6 on Darwin, this might very well work.
-	  ;; only needed/used with speedbar/watch expressions
-	  (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
-	    (setq gdb-var-changed t)    ; force update
-	    (dolist (var gdb-var-list)
-	      (setcar (nthcdr 5 var) nil))
-	    (gdb-var-update))))
+    (gdb-get-selected-frame)
+    (gdb-invalidate-frames)
+    (gdb-invalidate-breakpoints)
+    ;; Do this through gdb-get-selected-frame -> gdb-frame-handler
+    ;; so gdb-frame-address is updated.
+    ;; (gdb-invalidate-assembler)
+    (gdb-invalidate-registers)
+    (gdb-invalidate-memory)
+    (gdb-invalidate-locals)
+    (gdb-invalidate-threads)
+    (unless (eq system-type 'darwin) ;Breaks on Darwin's GDB-5.3.
+      ;; FIXME: with GDB-6 on Darwin, this might very well work.
+      ;; only needed/used with speedbar/watch expressions
+      (when (and (boundp 'speedbar-frame) (frame-live-p speedbar-frame))
+	(setq gdb-var-changed t)    ; force update
+	(dolist (var gdb-var-list)
+	  (setcar (nthcdr 5 var) nil))
+	(gdb-var-update))))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) t)
@@ -1695,7 +1695,9 @@ static char *magick[] = {
   (setq buffer-read-only t)
   (use-local-map gdb-registers-mode-map)
   (run-mode-hooks 'gdb-registers-mode-hook)
-  'gdb-invalidate-registers)
+  (if (with-current-buffer gud-comint-buffer (eq gud-minor-mode 'gdba))
+      'gdb-invalidate-registers
+    'gdbmi-invalidate-registers))
 
 (defun gdb-registers-buffer-name ()
   (with-current-buffer gud-comint-buffer
@@ -2058,12 +2060,12 @@ corresponding to the mode line clicked."
 	(replace-match " (array);\n" nil nil))))
   (let ((buf (gdb-get-buffer 'gdb-locals-buffer)))
     (and buf (with-current-buffer buf
-	       (let ((p (point))
+	       (let ((p (window-point (get-buffer-window buf 0)))
 		     (buffer-read-only nil))
-		 (delete-region (point-min) (point-max))
+		 (erase-buffer)
 		 (insert-buffer-substring (gdb-get-create-buffer
 					   'gdb-partial-output-buffer))
-		 (goto-char p)))))
+		(set-window-point (get-buffer-window buf 0) p)))))
   (run-hooks 'gdb-info-locals-hook))
 
 (defun gdb-info-locals-custom ()
@@ -2172,18 +2174,18 @@ corresponding to the mode line clicked."
 (let ((menu (make-sparse-keymap "GDB-UI")))
   (define-key gud-menu-map [ui]
     `(menu-item "GDB-UI" ,menu :visible (eq gud-minor-mode 'gdba)))
-  (define-key menu [gdb-restore-windows]
-  '(menu-item "Restore Window Layout" gdb-restore-windows
-	      :help "Restore standard layout for debug session."))
-  (define-key menu [gdb-many-windows]
-  '(menu-item "Display Other Windows" gdb-many-windows
-	      :help "Toggle display of locals, stack and breakpoint information"
-	      :button (:toggle . gdb-many-windows)))
   (define-key menu [gdb-use-inferior-io]
     (menu-bar-make-toggle toggle-gdb-use-inferior-io-buffer
 			  gdb-use-inferior-io-buffer
      "Separate inferior IO" "Use separate IO %s"
-     "Toggle separate IO for inferior.")))
+     "Toggle separate IO for inferior."))
+  (define-key menu [gdb-many-windows]
+  '(menu-item "Display Other Windows" gdb-many-windows
+	      :help "Toggle display of locals, stack and breakpoint information"
+	      :button (:toggle . gdb-many-windows)))
+  (define-key menu [gdb-restore-windows]
+  '(menu-item "Restore Window Layout" gdb-restore-windows
+	      :help "Restore standard layout for debug session.")))
 
 (defadvice toggle-gdb-use-inferior-io-buffer (after gdb-kill-io-buffer activate)
   (unless gdb-use-inferior-io-buffer
@@ -2341,6 +2343,8 @@ Add directory to search path for source files using the GDB command, dir."))
 (add-hook 'find-file-hook 'gdb-find-file-hook)
 
 (defun gdb-find-file-hook ()
+"Set up buffer for debugging if file is part of the source code
+of the current session."
   (if (and (not gdb-find-file-unhook)
 	   ;; in case gud or gdb-ui is just loaded
 	   gud-comint-buffer

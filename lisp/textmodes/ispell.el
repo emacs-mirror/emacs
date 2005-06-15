@@ -796,19 +796,16 @@ Otherwise returns the library directory name, if that is defined."
 		    nil t)
 	    case-fold-search case-fold-search-val)
       (if (or (not status)	; major version mismatch
-	      (< (car (read-from-string (buffer-substring-no-properties
-					 (match-beginning 2) (match-end 2))))
+	      (< (car (read-from-string (match-string-no-properties 2)))
 		 (car (cdr ispell-required-version)))) ; minor version mismatch
 	  (error "%s version 3 release %d.%d.%d or greater is required"
 		 ispell-program-name (car ispell-required-version)
 		 (car (cdr ispell-required-version))
 		 (car (cdr (cdr ispell-required-version))))
 	;; check that it is the correct version.
-	(if (and (= (car (read-from-string (buffer-substring-no-properties
-					    (match-beginning 2)(match-end 2))))
+	(if (and (= (car (read-from-string (match-string-no-properties 2)))
 		    (car (cdr ispell-required-version)))
-		 (< (car (read-from-string (buffer-substring-no-properties
-					    (match-beginning 3)(match-end 3))))
+		 (< (car (read-from-string (match-string-no-properties 3)))
 		    (car (cdr (cdr ispell-required-version)))))
           (setq ispell-offset 0))
         ;; Check to see if it's really aspell.
@@ -945,7 +942,7 @@ The variable `ispell-library-directory' defines the library location."
 	'(menu-item "Automatic spell checking (Flyspell)"
 		    flyspell-mode
 		    :help "Check spelling while you edit the text"
-		    :button (:toggle . flyspell-mode)))
+		    :button (:toggle . (bound-and-true-p flyspell-mode))))
       (define-key ispell-menu-map [ispell-complete-word]
 	'(menu-item "Complete Word" ispell-complete-word
 		    :help "Complete word at cursor using dictionary"))
@@ -2567,9 +2564,7 @@ Return nil if spell session is quit,
 			      (ispell-begin-skip-region-regexp)
 			      ispell-region-end t))
 			(progn
-			  (setq key (buffer-substring-no-properties
-				     (car (match-data))
-				     (car (cdr (match-data)))))
+			  (setq key (match-string-no-properties 0))
 			  (set-marker skip-region-start
 				      (- (point) (length key)))
 			  (goto-char rstart))
@@ -3510,8 +3505,7 @@ Includes Latex/Nroff modes and extended character mode."
 	  (search-forward ispell-parsing-keyword)
 	  (while (re-search-forward " *\\([^ \"]+\\)" end t)
 	    ;; space separated definitions.
-	    (setq string (downcase (buffer-substring-no-properties
-				    (match-beginning 1) (match-end 1))))
+	    (setq string (downcase (match-string-no-properties 1)))
 	    (cond ((and (string-match "latex-mode" string)
 			(not (eq 'exclusive ispell-check-comments)))
 		   (ispell-send-string "+\n~tex\n"))
@@ -3544,8 +3538,7 @@ Both should not be used to define a buffer-local dictionary."
 	      (setq end (save-excursion (end-of-line) (point)))
 	      (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		  (setq ispell-local-dictionary
-			(buffer-substring-no-properties (match-beginning 1)
-							(match-end 1)))))))
+			(match-string-no-properties 1))))))
       (goto-char (point-max))
       (if (search-backward ispell-pdict-keyword nil t)
 	  (progn
@@ -3553,8 +3546,7 @@ Both should not be used to define a buffer-local dictionary."
 	    (setq end (save-excursion (end-of-line) (point)))
 	    (if (re-search-forward " *\\([^ \"]+\\)" end t)
 		(setq ispell-local-pdict
-		      (buffer-substring-no-properties (match-beginning 1)
-						      (match-end 1))))))))
+		      (match-string-no-properties 1)))))))
   ;; Reload if new personal dictionary defined.
   (if (and ispell-local-pdict
 	   (not (equal ispell-local-pdict ispell-personal-dictionary)))
@@ -3584,8 +3576,7 @@ Both should not be used to define a buffer-local dictionary."
 	;; buffer-local words separated by a space, and can contain
 	;; any character other than a space.  Not rigorous enough.
 	(while (re-search-forward " *\\([^ ]+\\)" end t)
-	  (setq string (buffer-substring-no-properties (match-beginning 1)
-						       (match-end 1)))
+	  (setq string (match-string-no-properties 1))
 	  ;; This can fail when string contains a word with illegal chars.
 	  ;; Error handling needs to be added between ispell and emacs.
 	  (if (and (< 1 (length string))

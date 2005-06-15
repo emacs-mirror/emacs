@@ -44,6 +44,7 @@ Boston, MA 02111-1307, USA.  */
 #include <fcntl.h>
 #include <windows.h> /* just for w32.h */
 #include "w32.h"
+#include "w32heap.h" /* for prototype of sbrk */
 #endif
 
 #include "lisp.h"

@@ -63,21 +63,25 @@
 (defvar log-view-mode-hook nil
   "Hook run at the end of `log-view-mode'.")
 
-(defface log-view-file-face
+(defface log-view-file
   '((((class color) (background light))
      (:background "grey70" :weight bold))
     (t (:weight bold)))
   "Face for the file header line in `log-view-mode'."
   :group 'log-view)
-(defvar log-view-file-face 'log-view-file-face)
+;; backward-compatibility alias
+(put 'log-view-file-face 'face-alias 'log-view-file)
+(defvar log-view-file-face 'log-view-file)
 
-(defface log-view-message-face
+(defface log-view-message
   '((((class color) (background light))
      (:background "grey85"))
     (t (:weight bold)))
   "Face for the message header line in `log-view-mode'."
   :group 'log-view)
-(defvar log-view-message-face 'log-view-message-face)
+;; backward-compatibility alias
+(put 'log-view-message-face 'face-alias 'log-view-message)
+(defvar log-view-message-face 'log-view-message)
 
 (defconst log-view-file-re
   (concat "^\\("

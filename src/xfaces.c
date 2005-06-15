@@ -5039,8 +5039,8 @@ lface_equal_p (v1, v2)
 DEFUN ("internal-lisp-face-equal-p", Finternal_lisp_face_equal_p,
        Sinternal_lisp_face_equal_p, 2, 3, 0,
        doc: /* True if FACE1 and FACE2 are equal.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
+If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
+If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame.  */)
      (face1, face2, frame)
      Lisp_Object face1, face2, frame;
@@ -5058,8 +5058,8 @@ If FRAME is omitted or nil, use the selected frame.  */)
        Emacs.  That frame is not an X frame.  */
     f = frame_or_selected_frame (frame, 2);
 
-  lface1 = lface_from_face_name (NULL, face1, 1);
-  lface2 = lface_from_face_name (NULL, face2, 1);
+  lface1 = lface_from_face_name (f, face1, 1);
+  lface2 = lface_from_face_name (f, face2, 1);
   equal_p = lface_equal_p (XVECTOR (lface1)->contents,
 			   XVECTOR (lface2)->contents);
   return equal_p ? Qt : Qnil;
@@ -6126,7 +6126,7 @@ DEFUN ("display-supports-face-attributes-p",
        1, 2, 0,
        doc: /* Return non-nil if all the face attributes in ATTRIBUTES are supported.
 The optional argument DISPLAY can be a display name, a frame, or
-nil (meaning the selected frame's display)
+nil (meaning the selected frame's display).
 
 The definition of `supported' is somewhat heuristic, but basically means
 that a face containing all the attributes in ATTRIBUTES, when merged
@@ -6139,7 +6139,7 @@ Point (2) implies that a `:weight black' attribute will be satisfied by
 any display that can display bold, and a `:foreground \"yellow\"' as long
 as it can display a yellowish color, but `:slant italic' will _not_ be
 satisfied by the tty display code's automatic substitution of a `dim'
-face for italic. */)
+face for italic.  */)
   (attributes, display)
      Lisp_Object attributes, display;
 {

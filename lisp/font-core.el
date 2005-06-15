@@ -88,6 +88,8 @@ settings.  See the variable `font-lock-defaults', which takes precedence.")
 It will be passed one argument, which is the current value of
 `font-lock-mode'.")
 
+;; The mode for which font-lock was initialized, or nil if none.
+(defvar font-lock-mode-major-mode)
 (define-minor-mode font-lock-mode
   "Toggle Font Lock mode.
 With arg, turn Font Lock mode off if and only if arg is a non-positive
@@ -156,7 +158,9 @@ your own function which is called when `font-lock-mode' is toggled via
   ;; Arrange to unfontify this buffer if we change major mode later.
   (if font-lock-mode
       (add-hook 'change-major-mode-hook 'font-lock-change-mode nil t)
-    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t)))
+    (remove-hook 'change-major-mode-hook 'font-lock-change-mode t))
+  (when font-lock-mode
+    (setq font-lock-mode-major-mode major-mode)))
 
 ;; Get rid of fontification for the old major mode.
 ;; We do this when changing major modes.
@@ -175,6 +179,7 @@ this function onto `change-major-mode-hook'."
 				      '(font-lock-face)))
     (restore-buffer-modified-p modp)))
 
+(defvar font-lock-set-defaults)
 (defun font-lock-default-function (mode)
   ;; Turn on Font Lock mode.
   (when mode
@@ -201,9 +206,14 @@ this function onto `change-major-mode-hook'."
   ;; Only do hard work if the mode has specified stuff in
   ;; `font-lock-defaults'.
   (when (or font-lock-defaults
-	    (and (boundp 'font-lock-keywords) font-lock-keywords)
+	    (if (boundp 'font-lock-keywords) font-lock-keywords)
 	    (with-no-warnings
-	     (cdr (assq major-mode font-lock-defaults-alist))))
+	      (cdr (assq major-mode font-lock-defaults-alist)))
+	    (and mode
+		 (boundp 'font-lock-set-defaults)
+		 font-lock-set-defaults
+		 font-lock-mode-major-mode
+		 (not (eq font-lock-mode-major-mode major-mode))))
     (font-lock-mode-internal mode)))
 
 (defun turn-on-font-lock ()

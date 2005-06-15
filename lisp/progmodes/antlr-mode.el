@@ -1,6 +1,6 @@
 ;;; antlr-mode.el --- major mode for ANTLR grammar files
 
-;; Copyright (C) 1999, 2000, 2001, 2002, 2003 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2001, 2002, 2003, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Christoph.Wedler@sap.com
 ;; Keywords: languages, ANTLR, code generator
@@ -827,58 +827,72 @@ font-lock keywords according to `font-lock-defaults' used for the code
 in the grammar's actions and semantic predicates, see
 `antlr-font-lock-maximum-decoration'.")
 
-(defvar antlr-font-lock-default-face 'antlr-font-lock-default-face)
-(defface antlr-font-lock-default-face nil
+(defvar antlr-default-face 'antlr-default)
+(defface antlr-default
   "Face to prevent strings from language dependent highlighting.
 Do not change."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-default-face 'face-alias 'antlr-default)
 
-(defvar antlr-font-lock-keyword-face 'antlr-font-lock-keyword-face)
-(defface antlr-font-lock-keyword-face
+(defvar antlr-keyword-face 'antlr-keyword)
+(defface antlr-keyword
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR keywords."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-keyword-face 'face-alias 'antlr-keyword)
 
-(defvar antlr-font-lock-syntax-face 'antlr-font-lock-keyword-face)
-(defface antlr-font-lock-syntax-face
+(defvar antlr-syntax-face 'antlr-keyword)
+(defface antlr-syntax
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "black" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR syntax symbols like :, |, (, ), ...."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-syntax-face 'face-alias 'antlr-syntax)
 
-(defvar antlr-font-lock-ruledef-face 'antlr-font-lock-ruledef-face)
-(defface antlr-font-lock-ruledef-face
+(defvar antlr-ruledef-face 'antlr-ruledef)
+(defface antlr-ruledef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR rule references (definition)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-ruledef-face 'face-alias 'antlr-ruledef)
 
-(defvar antlr-font-lock-tokendef-face 'antlr-font-lock-tokendef-face)
-(defface antlr-font-lock-tokendef-face
+(defvar antlr-tokendef-face 'antlr-tokendef)
+(defface antlr-tokendef
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "blue" :EMACS :weight bold :XEMACS :bold t))))
   "ANTLR token references (definition)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-tokendef-face 'face-alias 'antlr-tokendef)
 
-(defvar antlr-font-lock-ruleref-face 'antlr-font-lock-ruleref-face)
-(defface antlr-font-lock-ruleref-face
+(defvar antlr-ruleref-face 'antlr-ruleref)
+(defface antlr-ruleref
   '((((class color) (background light)) (:foreground "blue4")))
   "ANTLR rule references (usage)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-ruleref-face 'face-alias 'antlr-ruleref)
 
-(defvar antlr-font-lock-tokenref-face 'antlr-font-lock-tokenref-face)
-(defface antlr-font-lock-tokenref-face
+(defvar antlr-tokenref-face 'antlr-tokenref)
+(defface antlr-tokenref
   '((((class color) (background light)) (:foreground "orange4")))
   "ANTLR token references (usage)."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-tokenref-face 'face-alias 'antlr-tokenref)
 
-(defvar antlr-font-lock-literal-face 'antlr-font-lock-literal-face)
-(defface antlr-font-lock-literal-face
+(defvar antlr-literal-face 'antlr-literal)
+(defface antlr-literal
   (cond-emacs-xemacs
    '((((class color) (background light))
       (:foreground "brown4" :EMACS :weight bold :XEMACS :bold t))))
@@ -886,6 +900,8 @@ Do not change."
 It is used to highlight strings matched by the first regexp group of
 `antlr-font-lock-literal-regexp'."
   :group 'antlr)
+;; backward-compatibility alias
+(put 'antlr-font-lock-literal-face 'face-alias 'antlr-literal)
 
 (defcustom antlr-font-lock-literal-regexp "\"\\(\\sw\\(\\sw\\|-\\)*\\)\""
   "Regexp matching literals with special syntax highlighting, or nil.
@@ -904,56 +920,56 @@ group.  The string matched by the first group is highlighted with
   (cond-emacs-xemacs
    `((antlr-invalidate-context-cache)
      ("\\$setType[ \t]*(\\([A-Za-z\300-\326\330-\337]\\sw*\\))"
-      (1 antlr-font-lock-tokendef-face))
-     ("\\$\\sw+" (0 font-lock-keyword-face))
+      (1 antlr-tokendef-face))
+     ("\\$\\sw+" (0 keyword-face))
      ;; the tokens are already fontified as string/docstrings:
      (,(lambda (limit)
-	 (if antlr-font-lock-literal-regexp
+	 (if antlr-literal-regexp
 	     (antlr-re-search-forward antlr-font-lock-literal-regexp limit)))
-      (1 antlr-font-lock-literal-face t)
+      (1 antlr-literal-face t)
       :XEMACS (0 nil))			; XEmacs bug workaround
      (,(lambda (limit)
 	 (antlr-re-search-forward antlr-class-header-regexp limit))
-      (1 antlr-font-lock-keyword-face)
-      (2 antlr-font-lock-ruledef-face)
-      (3 antlr-font-lock-keyword-face)
+      (1 antlr-keyword-face)
+      (2 antlr-ruledef-face)
+      (3 antlr-keyword-face)
       (4 (if (member (match-string 4) '("Lexer" "Parser" "TreeParser"))
-	     'antlr-font-lock-keyword-face
-	   'font-lock-type-face)))
+	     antlr-keyword-face
+	   type-face)))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "\\<\\(header\\|options\\|tokens\\|exception\\|catch\\|returns\\)\\>"
 	  limit))
-     (1 antlr-font-lock-keyword-face))
+     (1 antlr-keyword-face))
      (,(lambda (limit)
 	 (antlr-re-search-forward
 	  "^\\(private\\|public\\|protected\\)\\>[ \t]*\\(\\(\\sw+[ \t]*\\(:\\)?\\)\\)?"
 	  limit))
      (1 font-lock-type-face)		; not XEmacs' java level-3 fruit salad
      (3 (if (antlr-upcase-p (char-after (match-beginning 3)))
-	    'antlr-font-lock-tokendef-face
-	  'antlr-font-lock-ruledef-face) nil t)
-     (4 antlr-font-lock-syntax-face nil t))
+	    antlr-tokendef-face
+	  antlr-ruledef-face) nil t)
+     (4 antlr-syntax-face nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "^\\(\\sw+\\)[ \t]*\\(:\\)?" limit))
      (1 (if (antlr-upcase-p (char-after (match-beginning 0)))
-	    'antlr-font-lock-tokendef-face
-	  'antlr-font-lock-ruledef-face) nil t)
-     (2 antlr-font-lock-syntax-face nil t))
+	    antlr-tokendef-face
+	  antlr-ruledef-face) nil t)
+     (2 antlr-syntax-face nil t))
      (,(lambda (limit)
 	 ;; v:ruleref and v:"literal" is allowed...
 	 (antlr-re-search-forward "\\(\\sw+\\)[ \t]*\\([=:]\\)?" limit))
      (1 (if (match-beginning 2)
 	    (if (eq (char-after (match-beginning 2)) ?=)
-		'antlr-font-lock-default-face
-	      'font-lock-variable-name-face)
+		antlr-default-face
+	      font-lock-variable-name-face)
 	  (if (antlr-upcase-p (char-after (match-beginning 1)))
-	      'antlr-font-lock-tokenref-face
-	    'antlr-font-lock-ruleref-face)))
-     (2 antlr-font-lock-default-face nil t))
+	      antlr-tokenref-face
+	    antlr-ruleref-face)))
+     (2 antlr-default-face nil t))
      (,(lambda (limit)
 	 (antlr-re-search-forward "[|&:;(~]\\|)\\([*+?]\\|=>\\)?" limit))
-     (0 'antlr-font-lock-syntax-face))))
+     (0 antlr-syntax-face))))
   "Font-lock keywords for ANTLR's normal grammar code.
 See `antlr-font-lock-keywords-alist' for the keywords of actions.")
 

@@ -1,7 +1,7 @@
 /* XPM */
 static char * watch_xpm[] = {
 "24 24 11 1",
-" 	c #C0C0C0C0C0C0",
+" 	c None",
 ".	c #808080808080",
 "X	c #000000000000",
 "o	c #A5A59F9FA3A3",

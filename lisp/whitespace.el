@@ -307,8 +307,8 @@ To disable timer scans, set this to zero."
   :group 'whitespace)
 
 (defcustom whitespace-display-spaces-in-color t
-  "Display the bogus whitespaces by coloring them with
-`whitespace-highlight-face'."
+  "Display the bogus whitespaces by coloring them with the face
+`whitespace-highlight'."
   :type 'boolean
   :group 'whitespace)
 
@@ -318,18 +318,20 @@ To disable timer scans, set this to zero."
   :group 'whitespace
   :group 'faces)
 
-(defface whitespace-highlight-face '((((class color) (background light))
-				      (:background "green1"))
-				     (((class color) (background dark))
-				      (:background "sea green"))
-				     (((class grayscale mono)
-				       (background light))
-				      (:background "black"))
-				     (((class grayscale mono)
-				       (background dark))
-				      (:background "white")))
+(defface whitespace-highlight '((((class color) (background light))
+				 (:background "green1"))
+				(((class color) (background dark))
+				 (:background "sea green"))
+				(((class grayscale mono)
+				  (background light))
+				 (:background "black"))
+				(((class grayscale mono)
+				  (background dark))
+				 (:background "white")))
   "Face used for highlighting the bogus whitespaces that exist in the buffer."
   :group 'whitespace-faces)
+;; backward-compatibility alias
+(put 'whitespace-highlight-face 'face-alias 'whitespace-highlight)
 
 (if (not (assoc 'whitespace-mode minor-mode-alist))
     (setq minor-mode-alist (cons '(whitespace-mode whitespace-mode-line)
@@ -734,7 +736,7 @@ Also with whitespaces whose testing has been turned off."
   (if whitespace-display-spaces-in-color
       (let ((ol (whitespace-make-overlay b e)))
 	(push ol whitespace-highlighted-space)
-	(whitespace-overlay-put ol 'face 'whitespace-highlight-face))))
+	(whitespace-overlay-put ol 'face 'whitespace-highlight))))
 ;;  (add-hook 'pre-command-hook 'whitespace-unhighlight-the-space))
 
 (defun whitespace-unhighlight-the-space()

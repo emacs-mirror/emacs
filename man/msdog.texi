@@ -419,13 +419,12 @@ EOL conversion is determined by @code{file-name-buffer-file-type-alist}.
 @node MS-DOS Printing
 @section Printing and MS-DOS
 
-  Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
+  Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}) can work in MS-DOS and
 MS-Windows by sending the output to one of the printer ports, if a
 Posix-style @code{lpr} program is unavailable.  The same Emacs
-variables control printing on all systems (@pxref{Hardcopy}), but in
-some cases they have different default values on MS-DOS and
-MS-Windows.
+variables control printing on all systems, but in some cases they have
+different default values on MS-DOS and MS-Windows.
 
 @vindex printer-name @r{(MS-DOS)}
   If you want to use your local printer, printing on it in the usual DOS
@@ -758,7 +757,7 @@ implements a Posix-like shell entirely in Emacs Lisp.
 Processes}.
 
 @cindex printing under MS-DOS
-  Printing commands, such as @code{lpr-buffer} (@pxref{Hardcopy}) and
+  Printing commands, such as @code{lpr-buffer} (@pxref{Printing}) and
 @code{ps-print-buffer} (@pxref{PostScript}), work in MS-DOS by sending
 the output to one of the printer ports.  @xref{MS-DOS Printing}.
 

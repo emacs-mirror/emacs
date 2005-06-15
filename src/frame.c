@@ -905,7 +905,7 @@ do_switch_frame (frame, track, for_deletion)
   return frame;
 }
 
-DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 2, "e",
+DEFUN ("select-frame", Fselect_frame, Sselect_frame, 1, 1, "e",
        doc: /* Select the frame FRAME.
 Subsequent editing commands apply to its selected window.
 The selection of FRAME lasts until the next time the user does
@@ -916,14 +916,14 @@ the command loop, because it still may have the window system's input
 focus.  On a text-only terminal, the next redisplay will display FRAME.
 
 This function returns FRAME, or nil if FRAME has been deleted.  */)
-  (frame, no_enter)
-    Lisp_Object frame, no_enter;
+  (frame)
+    Lisp_Object frame;
 {
   return do_switch_frame (frame, 1, 0);
 }
 
 
-DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 2, "e",
+DEFUN ("handle-switch-frame", Fhandle_switch_frame, Shandle_switch_frame, 1, 1, "e",
        doc: /* Handle a switch-frame event EVENT.
 Switch-frame events are usually bound to this function.
 A switch-frame event tells Emacs that the window manager has requested
@@ -932,8 +932,8 @@ This function selects the selected window of the frame of EVENT.
 
 If EVENT is frame object, handle it as if it were a switch-frame event
 to that frame.  */)
-     (event, no_enter)
-     Lisp_Object event, no_enter;
+     (event)
+     Lisp_Object event;
 {
   /* Preserve prefix arg that the command loop just cleared.  */
   current_kboard->Vprefix_arg = Vcurrent_prefix_arg;
@@ -1754,7 +1754,7 @@ before calling this function on it, like this.
 #if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
-      Fselect_frame (frame, Qnil);
+      Fselect_frame (frame);
       mouse_moveto (XINT (x), XINT (y));
     }
 #endif
@@ -1786,7 +1786,7 @@ before calling this function on it, like this.
 #if defined (MSDOS) && defined (HAVE_MOUSE)
   if (FRAME_MSDOS_P (XFRAME (frame)))
     {
-      Fselect_frame (frame, Qnil);
+      Fselect_frame (frame);
       mouse_moveto (XINT (x), XINT (y));
     }
 #endif
@@ -1908,7 +1908,7 @@ If omitted, FRAME defaults to the currently selected frame.  */)
 #if 0 /* This isn't logically necessary, and it can do GC.  */
   /* Don't let the frame remain selected.  */
   if (EQ (frame, selected_frame))
-    Fhandle_switch_frame (next_frame (frame, Qt), Qnil);
+    Fhandle_switch_frame (next_frame (frame, Qt));
 #endif
 
   /* Don't allow minibuf_window to remain on a deleted frame.  */

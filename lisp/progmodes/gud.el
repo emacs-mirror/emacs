@@ -140,6 +140,9 @@ Used to grey out relevant togolbar icons.")
 		  :enable (and (not gud-running)
 			       (memq gud-minor-mode
 				     '(gdbmi gdba gdb dbx xdb jdb pdb bashdb))))
+    ([print*]	menu-item "Print Dereference" gud-pstar
+                     :enable (and (not gud-running)
+				  (memq gud-minor-mode '(gdbmi gdba gdb))))
     ([print]	menu-item "Print Expression" gud-print
                      :enable (not gud-running))
     ([watch]	menu-item "Watch Expression" gud-watch
@@ -183,18 +186,19 @@ Used to grey out relevant togolbar icons.")
 	(dolist (x '((gud-break . "gud-break")
 		     (gud-remove . "gud-remove")
 		     (gud-print . "gud-print")
+		     (gud-pstar . "gud-pstar")
 		     (gud-watch . "gud-watch")
-		     (gud-run . "gud-run")
-		     (gud-until . "gud-until")
 		     (gud-cont . "gud-cont")
+		     (gud-until . "gud-until")
+		     (gud-finish . "gud-finish")
+		     (gud-run . "gud-run")
 		     ;; gud-s, gud-si etc. instead of gud-step,
 		     ;; gud-stepi, to avoid file-name clashes on DOS
 		     ;; 8+3 filesystems.
-		     (gud-step . "gud-s")
 		     (gud-next . "gud-n")
-		     (gud-finish . "gud-finish")
-		     (gud-stepi . "gud-si")
+		     (gud-step . "gud-s")
 		     (gud-nexti . "gud-ni")
+		     (gud-stepi . "gud-si")
 		     (gud-up . "gud-up")
 		     (gud-down . "gud-down")
 		     (gud-goto-info . "info"))
@@ -580,6 +584,8 @@ and source-file directory for your debugger."
   (gud-def gud-up     "up %p"        "<" "Up N stack frames (numeric arg).")
   (gud-def gud-down   "down %p"      ">" "Down N stack frames (numeric arg).")
   (gud-def gud-print  "print %e"     "\C-p" "Evaluate C expression at point.")
+  (gud-def gud-pstar  "print* %e"    nil
+	   "Evaluate C dereferenced pointer expression at point.")
   (gud-def gud-until  "until %l"     "\C-u" "Continue to current line.")
   (gud-def gud-run    "run"	     nil    "Run the program.")
 
@@ -1214,7 +1220,7 @@ containing the executable being debugged."
 The directory containing FILE becomes the initial working directory
 and source-file directory for your debugger.
 
-You can set the variable 'gud-xdb-directories' to a list of program source
+You can set the variable `gud-xdb-directories' to a list of program source
 directories if your program contains sources from more than one directory."
   (interactive (list (gud-query-cmdline 'xdb)))
 
@@ -3133,8 +3139,6 @@ only tooltips in the buffer containing the overlay arrow."
                                 'gud-tooltip-modes "22.1")
 (define-obsolete-variable-alias 'tooltip-gud-display
                                 'gud-tooltip-display "22.1")
-(define-obsolete-variable-alias 'tooltip-use-echo-area
-                                'gud-tooltip-echo-area "22.1")
 
 ;;; Reacting on mouse movements
 
@@ -3236,7 +3240,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
 
 ; This will only display data that comes in one chunk.
 ; Larger arrays (say 400 elements) are displayed in
-; the tootip incompletely and spill over into the gud buffer.
+; the tooltip incompletely and spill over into the gud buffer.
 ; Switching the process-filter creates timing problems and
 ; it may be difficult to do better. Using annotations as in
 ; gdb-ui.el gets round this problem.
@@ -3244,7 +3248,7 @@ This event can be examined by forms in GUD-TOOLTIP-DISPLAY.")
   "Process debugger output and show it in a tooltip window."
   (set-process-filter process gud-tooltip-original-filter)
   (tooltip-show (tooltip-strip-prompt process output)
-		gud-tooltip-echo-area))
+		(or gud-tooltip-echo-area tooltip-use-echo-area)))
 
 (defun gud-tooltip-print-command (expr)
   "Return a suitable command to print the expression EXPR.
@@ -3289,7 +3293,9 @@ This function must return nil if it doesn't handle EVENT."
 						(cddr mouse))))
 		  (let ((define-elt (assoc expr gdb-define-alist)))
 		    (unless (null define-elt)
-		      (tooltip-show (cdr define-elt))
+		      (tooltip-show
+		       (cdr define-elt)
+		       (or gud-tooltip-echo-area tooltip-use-echo-area))
 		      expr))))
 	    (let ((cmd (gud-tooltip-print-command expr)))
 	      (when (and gud-tooltip-mode (eq gud-minor-mode 'gdb))

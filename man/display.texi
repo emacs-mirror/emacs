@@ -118,6 +118,8 @@ This face is used for the prompt strings displayed in the minibuffer.
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
+@item mode-line-highlight
+Like @code{highlight}, but used for portions of text on mode lines.
 @item isearch
 This face is used for highlighting Isearch matches.
 @item lazy-highlight
@@ -167,6 +169,10 @@ The face for highlighting trailing whitespace when
 Whitespace}.
 @item variable-pitch
 The basic variable-pitch face.
+@item shadow
+The basic face for making the text less noticeable than the surrounding
+ordinary text.  Usually this is achieved by using shades of grey in
+contrast with either black or white default foreground color.
 @end table
 
 @cindex @code{region} face

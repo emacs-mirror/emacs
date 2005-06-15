@@ -293,7 +293,7 @@ Indent it with @kbd{C-x @key{TAB}} or @kbd{C-M-\} (@pxref{Indentation}).
 @item
 Fill it as text with @kbd{M-x fill-region} (@pxref{Filling}).
 @item
-Print hardcopy with @kbd{M-x print-region} (@pxref{Hardcopy}).
+Print hardcopy with @kbd{M-x print-region} (@pxref{Printing}).
 @item
 Evaluate it as Lisp code with @kbd{M-x eval-region} (@pxref{Lisp Eval}).
 @end itemize

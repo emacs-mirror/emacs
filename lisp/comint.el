@@ -423,7 +423,7 @@ field boundaries in a natural way)."
 (make-obsolete-variable 'comint-use-prompt-regexp-instead-of-fields
 			'comint-use-prompt-regexp "22.1")
 
-(defcustom comint-mode-hook '(turn-on-font-lock)
+(defcustom comint-mode-hook nil
   "Hook run upon entry to `comint-mode'.
 This is run before the process is cranked up."
   :type 'hook
@@ -583,7 +583,7 @@ Return not at end copies rest of line to end and sends it.
 Setting variable `comint-eol-on-send' means jump to the end of the line
 before submitting new input.
 
-This mode is customised to create major modes such as Inferior Lisp
+This mode is customized to create major modes such as Inferior Lisp
 mode, Shell mode, etc.  This can be done by setting the hooks
 `comint-input-filter-functions', `comint-input-filter', `comint-input-sender'
 and `comint-get-old-input' to appropriate functions, and the variable
@@ -654,7 +654,7 @@ Entry to this mode runs the hooks on `comint-mode-hook'."
   (set (make-local-variable 'next-line-add-newlines) nil))
 
 (defun comint-check-proc (buffer)
-  "Return t if there is a living process associated w/buffer BUFFER.
+  "Return non-nil if there is a living process associated w/buffer BUFFER.
 Living means the status is `open', `run', or `stop'.
 BUFFER can be either a buffer or the name of one."
   (let ((proc (get-buffer-process buffer)))
@@ -667,7 +667,7 @@ If BUFFER is nil, it defaults to NAME surrounded by `*'s.
 PROGRAM should be either a string denoting an executable program to create
 via `start-process', or a cons pair of the form (HOST . SERVICE) denoting a TCP
 connection to be opened via `open-network-stream'.  If there is already a
-running process in that buffer, it is not restarted.  Optional third arg
+running process in that buffer, it is not restarted.  Optional fourth arg
 STARTFILE is the name of a file to send the contents of to the process.
 
 If PROGRAM is a string, any more args are arguments to PROGRAM."
@@ -1547,8 +1547,12 @@ Similarly for Soar, Scheme, etc."
 		     nil comint-last-input-start comint-last-input-end
 		     nil comint-last-input-end
 		     (+ comint-last-input-end echo-len))))
-		  (delete-region comint-last-input-end
-				 (+ comint-last-input-end echo-len)))))
+		  ;; Certain parts of the text to be deleted may have
+		  ;; been mistaken for prompts.  We have to prevent
+		  ;; problems when `comint-prompt-read-only' is non-nil.
+		  (let ((inhibit-read-only t))
+		    (delete-region comint-last-input-end
+				   (+ comint-last-input-end echo-len))))))
 
 	  ;; This used to call comint-output-filter-functions,
 	  ;; but that scrolled the buffer in undesirable ways.
@@ -1579,7 +1583,7 @@ See `comint-carriage-motion' for details.")
 
 (defun comint-snapshot-last-prompt ()
   "`snapshot' any current `comint-last-prompt-overlay'.
-freeze its attributes in place, even when more input comes a long
+Freeze its attributes in place, even when more input comes along
 and moves the prompt overlay."
   (when comint-last-prompt-overlay
     (let ((inhibit-read-only t)
@@ -2385,7 +2389,7 @@ updated using `comint-update-fence', if necessary."
   "Compute the defaults for `load-file' and `compile-file' commands.
 
 PREVIOUS-DIR/FILE is a pair (directory . filename) from the last
-source-file processing command.  nil if there hasn't been one yet.
+source-file processing command, or nil if there hasn't been one yet.
 SOURCE-MODES is a list used to determine what buffers contain source
 files: if the major mode of the buffer is in SOURCE-MODES, it's source.
 Typically, (lisp-mode) or (scheme-mode).

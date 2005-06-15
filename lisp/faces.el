@@ -1,6 +1,6 @@
 ;;; faces.el --- Lisp faces
 
-;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004
+;; Copyright (C) 1992,1993,1994,1995,1996,1998,1999,2000,2001,2002,2004,2005
 ;;   Free Software Foundation, Inc.
 
 ;; Maintainer: FSF
@@ -231,8 +231,8 @@ of a face name is the same for all frames."
 (defun face-equal (face1 face2 &optional frame)
   "Non-nil if faces FACE1 and FACE2 are equal.
 Faces are considered equal if all their attributes are equal.
-If the optional argument FRAME is given, report on face FACE in that frame.
-If FRAME is t, report on the defaults for face FACE (for new frames).
+If the optional argument FRAME is given, report on FACE1 and FACE2 in that frame.
+If FRAME is t, report on the defaults for FACE1 and FACE2 (for new frames).
 If FRAME is omitted or nil, use the selected frame."
   (internal-lisp-face-equal-p face1 face2 frame))
 
@@ -854,6 +854,8 @@ If MULTIPLE is non-nil, return a list of faces (possibly only one).
 Otherwise, return a single face."
   (let ((faceprop (or (get-char-property (point) 'read-face-name)
 		      (get-char-property (point) 'face)))
+        (aliasfaces nil)
+        (nonaliasfaces nil)
 	faces)
     ;; Make a list of the named faces that the `face' property uses.
     (if (and (listp faceprop)
@@ -870,6 +872,13 @@ Otherwise, return a single face."
 	     (memq (intern-soft (thing-at-point 'symbol)) (face-list)))
 	(setq faces (list (intern-soft (thing-at-point 'symbol)))))
 
+    ;; Build up the completion tables.
+    (mapatoms (lambda (s)
+                (if (custom-facep s)
+                    (if (get s 'face-alias)
+                        (push (symbol-name s) aliasfaces)
+                      (push (symbol-name s) nonaliasfaces)))))
+
     ;; If we only want one, and the default is more than one,
     ;; discard the unwanted ones now.
     (unless multiple
@@ -883,7 +892,7 @@ Otherwise, return a single face."
 			 (if faces (mapconcat 'symbol-name faces ", ")
 			   string-describing-default))
 	       (format "%s: " prompt))
-	     obarray 'custom-facep t))
+	     (complete-in-turn nonaliasfaces aliasfaces) nil t))
 	   ;; Canonicalize the output.
 	   (output
 	    (if (equal input "")
@@ -1894,7 +1903,7 @@ created."
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
-(put 'modeline-higilight 'face-alias 'mode-line-highlight)
+(put 'modeline-highlight 'face-alias 'mode-line-highlight)
 
 (defface header-line
   '((default
@@ -2115,13 +2124,32 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'whitespace		; like `show-trailing-whitespace'
   :group 'basic-faces)
 
-(defface escape-glyph '((((background dark)) :foreground "cyan")
-			;; See the comment in minibuffer-prompt for
-			;; the reason not to use blue on MS-DOS.
-			(((type pc)) :foreground "magenta")
-			(t :foreground "blue"))
+(defface escape-glyph
+  '((((background dark)) :foreground "pink2")
+    ;; See the comment in minibuffer-prompt for
+    ;; the reason not to use blue on MS-DOS.
+    (((type pc)) :foreground "magenta")
+    ;; red4 is too light -- rms.
+    (t :foreground "blue"))
   "Face for characters displayed as ^-sequences or \-sequences."
-  :group 'basic-faces)
+  :group 'basic-faces
+  :version "22.1")
+
+(defface no-break-space
+  '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
+    (((class color) (min-colors 8)) :background "magenta" :foreground )
+    (t :inverse-video t))
+  "Face for non-breaking space."
+  :group 'basic-faces
+  :version "22.1")
+
+(defface shadow
+  '((((background dark))  :foreground "grey70")
+    (((background light)) :foreground "grey50"))
+  "Basic face for shadowed text."
+  :group 'basic-faces
+  :version "22.1")
+
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; Manipulating font names.
@@ -2301,5 +2329,5 @@ If that can't be done, return nil."
 
 (provide 'faces)
 
-;;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
+;; arch-tag: 19a4759f-2963-445f-b004-425b9aadd7d6
 ;;; faces.el ends here

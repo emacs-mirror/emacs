@@ -384,13 +384,13 @@ and after the region marked by the rectangle to search."
   :type 'boolean
   :group 'cua)
 
-(defface cua-rectangle-face
+(defface cua-rectangle
   '((default :inherit region)
     (((class color)) :foreground "white" :background "maroon"))
   "*Font used by CUA for highlighting the rectangle."
   :group 'cua)
 
-(defface cua-rectangle-noselect-face
+(defface cua-rectangle-noselect
   '((default :inherit region)
     (((class color)) :foreground "white" :background "dimgray"))
   "*Font used by CUA for highlighting the non-selected rectangle lines."
@@ -404,7 +404,7 @@ and after the region marked by the rectangle to search."
   :type 'boolean
   :group 'cua)
 
-(defface cua-global-mark-face
+(defface cua-global-mark
   '((((min-colors 88)(class color)) :foreground "black" :background "yellow1")
     (((class color)) :foreground "black" :background "yellow")
     (t :bold t))
@@ -447,13 +447,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -471,13 +471,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -495,13 +495,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -520,13 +520,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -1360,7 +1360,7 @@ paste (in addition to the normal emacs bindings)."
 
   (if (not cua-mode)
       (setq emulation-mode-map-alists (delq 'cua--keymap-alist emulation-mode-map-alists))
-    (add-to-list 'emulation-mode-map-alists 'cua--keymap-alist)
+    (add-to-ordered-list 'emulation-mode-map-alists 'cua--keymap-alist 400)
     (cua--select-keymaps))
 
   (cond

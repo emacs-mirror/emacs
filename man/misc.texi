@@ -1214,7 +1214,7 @@ off directory tracking.
 
 @end ignore
 
-@node Emacs Server, Hardcopy, Shell, Top
+@node Emacs Server, Printing, Shell, Top
 @section Using Emacs as a Server
 @pindex emacsclient
 @cindex Emacs as a server
@@ -1374,14 +1374,17 @@ code, using the option @samp{--eval}.  When this option is given, the
 rest of the arguments is not taken as a list of files to visit but as
 a list of expressions to evaluate.
 
-@node Hardcopy, PostScript, Emacs Server, Top
-@section Hardcopy Output
+@node Printing, Sorting, Emacs Server, Top
+@section Printing Hard Copies
 @cindex hardcopy
+@cindex printing
 
-  The Emacs commands for making hardcopy let you print either an entire
-buffer or just part of one, either with or without page headers.
-See also the hardcopy commands of Dired (@pxref{Misc File Ops})
-and the diary (@pxref{Displaying the Diary}).
+  Emacs provides commands for printing hard copies of either an entire
+buffer or just part of one, with or without page headers.  You can
+invoke the printing commands directly, as detailed in the following
+section, or using the @samp{File} menu on the menu bar.  See also the
+hardcopy commands of Dired (@pxref{Misc File Ops}) and the diary
+(@pxref{Displaying the Diary}).
 
 @table @kbd
 @item M-x print-buffer
@@ -1428,7 +1431,13 @@ whether to supply @samp{-T} and @samp{-J} options (suitable for
 @code{lpr-add-switches} should be @code{nil} if your printer program is
 not compatible with @code{lpr}.
 
-@node PostScript, PostScript Variables, Hardcopy, Top
+@menu
+* PostScript::	         Printing buffers or regions as PostScript.
+* PostScript Variables:: Customizing the PostScript printing commands.
+* Printing Package::     An optional advanced printing interface.
+@end menu
+
+@node PostScript, PostScript Variables,, Printing
 @section PostScript Hardcopy
 
   These commands convert buffer contents to PostScript,
@@ -1492,7 +1501,7 @@ supports ISO 8859-1 characters.
   The following section describes variables for customizing these commands.
 @end ifinfo
 
-@node PostScript Variables, Sorting, PostScript, Top
+@node PostScript Variables, Printing Package, PostScript, Printing
 @section Variables for PostScript Hardcopy
 
 @vindex ps-lpr-command
@@ -1584,7 +1593,34 @@ includes a single directory @file{/usr/local/share/emacs/fonts/bdf}.
   Many other customization variables for these commands are defined and
 described in the Lisp files @file{ps-print.el} and @file{ps-mule.el}.
 
-@node Sorting, Narrowing, PostScript Variables, Top
+@node Printing Package,, PostScript Variables, Printing
+@section Printing Package
+@cindex Printing package
+
+  The basic Emacs facilities for printing hardcopy can be extended
+using the Printing package.  This provides an easy-to-use interface
+for choosing what to print, previewing PostScript files before
+printing, and setting various printing options such as print headers,
+landscape or portrait modes, duplex modes, and so forth.  On GNU/Linux
+or Unix systems, the Printing package relies on the @file{gs} and
+@file{gv} utilities, which are distributed as part of the GhostScript
+program.  On MS-Windows, the @file{gstools} port of Ghostscript can be
+used.
+
+@findex pr-interface
+  To use the Printing package, add @code{(require 'printing)} to your
+init file (@pxref{Init File}), followed by @code{(pr-update-menus)}.
+This function replaces the usual printing commands in the menu bar
+with a @samp{Printing} submenu that contains various printing options.
+You can also type @kbd{M-x pr-interface RET}; this creates a
+@samp{*Printing Interface*} buffer, similar to a customization buffer,
+where you can set the printing options.  After selecting what and how
+to print, you start the print job using the @samp{Print} button (click
+@kbd{mouse-2} on it, or move point over it and type @kbd{RET}).  For
+further information on the various options, use the @samp{Interface
+Help} button.
+
+@node Sorting, Narrowing, Printing, Top
 @section Sorting Text
 @cindex sorting
 

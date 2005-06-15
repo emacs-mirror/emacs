@@ -367,8 +367,12 @@ advertisements.  For example:
 		      (or (nth 4 spec) 3)
 		      (intern (format "gnus-emphasis-%s" (nth 2 spec)))))
 	      types))
-     '(("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
-	2 3 gnus-emphasis-strikethru)
+     '(;; I've never seen anyone use this strikethru convention whereas I've
+       ;; several times seen it triggered by normal text.  --Stef
+       ;; Miles suggests that this form is sometimes used but for italics,
+       ;; so maybe we should map it to `italic'.
+       ;; ("\\(\\s-\\|^\\)\\(-\\(\\(\\w\\|-[^-]\\)+\\)-\\)\\(\\s-\\|[?!.,;]\\)"
+       ;; 2 3 gnus-emphasis-strikethru)
        ("\\(\\s-\\|^\\)\\(_\\(\\(\\w\\|_[^_]\\)+\\)_\\)\\(\\s-\\|[?!.,;]\\)"
 	2 3 gnus-emphasis-underline))))
   "*Alist that says how to fontify certain phrases.
@@ -3034,20 +3038,21 @@ function and want to see what the date was before converting."
 
 (defun article-update-date-lapsed ()
   "Function to be run from a timer to update the lapsed time line."
-  (let (deactivate-mark)
-    (save-excursion
-      (ignore-errors
-	(walk-windows
-	 (lambda (w)
-	   (set-buffer (window-buffer w))
-	   (when (eq major-mode 'gnus-article-mode)
-	     (let ((mark (point-marker)))
-	       (goto-char (point-min))
-	       (when (re-search-forward "^X-Sent:" nil t)
-		 (article-date-lapsed t))
-	       (goto-char (marker-position mark))
-	       (move-marker mark nil))))
-	 nil 'visible)))))
+  (save-match-data
+    (let (deactivate-mark)
+      (save-excursion
+	(ignore-errors
+	 (walk-windows
+	  (lambda (w)
+	    (set-buffer (window-buffer w))
+	    (when (eq major-mode 'gnus-article-mode)
+	      (let ((mark (point-marker)))
+		(goto-char (point-min))
+		(when (re-search-forward "^X-Sent:" nil t)
+		  (article-date-lapsed t))
+		(goto-char (marker-position mark))
+		(move-marker mark nil))))
+	  nil 'visible))))))
 
 (defun gnus-start-date-timer (&optional n)
   "Start a timer to update the X-Sent header in the article buffers.

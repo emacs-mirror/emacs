@@ -1,7 +1,8 @@
 @echo off
 rem   ----------------------------------------------------------------------
 rem   Configuration script for MS Windows 95/98/Me and NT/2000/XP
-rem   Copyright (C) 1999-2003 Free Software Foundation, Inc.
+rem   Copyright (C) 1999, 2000, 2001, 2002, 2003, 2004, 2005 
+rem      Free Software Foundation, Inc.
 
 rem   This file is part of GNU Emacs.
 
@@ -46,6 +47,8 @@ rem [2] fails when needs to invoke shell commands; okay invoking gcc etc.
 rem [3] requires LC_MESSAGES support to build; maybe 2.95.x update to
 rem     cygwin provides this?
 rem
+
+if exist config.log del config.log
 
 rem ----------------------------------------------------------------------
 rem   See if the environment is large enough.  We need 43 (?) bytes.
@@ -236,13 +239,17 @@ if (%nocygwin%) == (Y) goto chkapi
 echo Checking whether gcc requires '-mno-cygwin'...
 echo #include "cygwin/version.h" >junk.c
 echo main(){} >>junk.c
-gcc -c junk.c
+echo gcc -c junk.c >>config.log
+gcc -c junk.c >>config.log 2>&1
 if not exist junk.o goto chkapi
-gcc -mno-cygwin -c junk.c
+echo gcc -mno-cygwin -c junk.c >>config.log
+gcc -mno-cygwin -c junk.c >>config.log 2>&1
 if exist junk.o set nocygwin=Y
 rm -f junk.c junk.o
 
 :chkapi
+echo The failed program was: >>config.log
+type junk.c >>config.log
 rem ----------------------------------------------------------------------
 rem   Older versions of the Windows API headers either don't have any of
 rem   the IMAGE_xxx definitions (the headers that come with Cygwin b20.1
@@ -263,9 +270,13 @@ set cf=%usercflags% -mno-cygwin
 :chkapi2
 echo on
 gcc %cf% -c junk.c
-echo off
+@echo off
+@echo gcc %cf% -c junk.c >>config.log
+gcc %cf% -c junk.c >>config.log 2>&1
 set cf=
 if exist junk.o goto gccOk
+echo The failed program was: >>config.log
+type junk.c >>config.log
 
 :nocompiler
 echo.
@@ -278,8 +289,23 @@ goto end
 
 :gccOk
 set COMPILER=gcc
-rm -f junk.c junk.o
 echo Using 'gcc'
+rm -f junk.c junk.o
+Rem It is not clear what GCC version began supporting -mtune
+Rem and pentium4 on x86, so check this explicitly.
+echo main(){} >junk.c
+echo gcc -c -O2 -mtune=pentium4 junk.c >>config.log
+gcc -c -O2 -mtune=pentium4 junk.c >>config.log 2>&1
+if not errorlevel 1 goto gccMtuneOk
+echo The failed program was: >>config.log
+type junk.c >>config.log
+set mf=-mcpu=i686
+rm -f junk.c junk.o
+goto compilercheckdone
+:gccMtuneOk
+echo GCC supports -mtune=pentium4 >>config.log
+set mf=-mtune=pentium4
+rm -f junk.c junk.o
 goto compilercheckdone
 
 :clOk
@@ -307,10 +333,13 @@ echo Checking for libpng...
 echo #include "png.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
 if exist junk.obj goto havePng
 
 echo ...png.h not found, building without PNG support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
 set HAVE_PNG=
 goto :pngDone
 
@@ -327,10 +356,13 @@ echo Checking for jpeg-6b...
 echo #include "jconfig.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
 if exist junk.obj goto haveJpeg
 
 echo ...jconfig.h not found, building without JPEG support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
 set HAVE_JPEG=
 goto :jpegDone
 
@@ -347,10 +379,13 @@ echo Checking for libgif...
 echo #include "gif_lib.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
 if exist junk.obj goto haveGif
 
 echo ...gif_lib.h not found, building without GIF support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
 set HAVE_GIF=
 goto :gifDone
 
@@ -367,10 +402,13 @@ echo Checking for tiff...
 echo #include "tiffio.h" >junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
 if exist junk.obj goto haveTiff
 
 echo ...tiffio.h not found, building without TIFF support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
 set HAVE_TIFF=
 goto :tiffDone
 
@@ -388,10 +426,13 @@ echo #define FOR_MSW 1 >junk.c
 echo #include "X11/xpm.h" >>junk.c
 echo main (){} >>junk.c
 rem   -o option is ignored with cl, but allows result to be consistent.
-%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>junk.err
+echo %COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >>config.log
+%COMPILER% %usercflags% %mingwflag% -c junk.c -o junk.obj >junk.out 2>>config.log
 if exist junk.obj goto haveXpm
 
 echo ...X11/xpm.h not found, building without XPM support.
+echo The failed program was: >>config.log
+type junk.c >>config.log
 set HAVE_XPM=
 goto :xpmDone
 
@@ -414,6 +455,7 @@ rem   except when there is a preceding digit, when a space is required.
 rem
 echo # Start of settings from configure.bat >config.settings
 echo COMPILER=%COMPILER%>>config.settings
+if not "(%mf%)" == "()" echo MCPU_FLAG=%mf%>>config.settings
 if (%nodebug%) == (Y) echo NODEBUG=1 >>config.settings
 if (%noopt%) == (Y) echo NOOPT=1 >>config.settings
 if (%nocygwin%) == (Y) echo NOCYGWIN=1 >>config.settings
@@ -423,20 +465,34 @@ if not "(%userldflags%)" == "()" echo USER_LDFLAGS=%userldflags%>>config.setting
 echo # End of settings from configure.bat>>config.settings
 echo. >>config.settings
 
-copy config.nt ..\src\config.h
-echo. >>..\src\config.h
-echo /* Start of settings from configure.bat.  */ >>..\src\config.h
-if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>..\src\config.h
-if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>..\src\config.h
-if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>..\src\config.h
-if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>..\src\config.h
-if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>..\src\config.h
-if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>..\src\config.h
-if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>..\src\config.h
-echo /* End of settings from configure.bat.  */ >>..\src\config.h
+copy config.nt config.tmp
+echo. >>config.tmp
+echo /* Start of settings from configure.bat.  */ >>config.tmp
+if not "(%usercflags%)" == "()" echo #define USER_CFLAGS " %usercflags%">>config.tmp
+if not "(%userldflags%)" == "()" echo #define USER_LDFLAGS " %userldflags%">>config.tmp
+if not "(%HAVE_PNG%)" == "()" echo #define HAVE_PNG 1 >>config.tmp
+if not "(%HAVE_JPEG%)" == "()" echo #define HAVE_JPEG 1 >>config.tmp
+if not "(%HAVE_GIF%)" == "()" echo #define HAVE_GIF 1 >>config.tmp
+if not "(%HAVE_TIFF%)" == "()" echo #define HAVE_TIFF 1 >>config.tmp
+if not "(%HAVE_XPM%)" == "()" echo #define HAVE_XPM 1 >>config.tmp
+echo /* End of settings from configure.bat.  */ >>config.tmp
 
+Rem See if fc.exe returns a meaningful exit status.  If it does, we
+Rem might as well avoid unnecessary overwriting of config.h and epaths.h,
+Rem since this forces recompilation of every source file.
+if exist foo.bar del foo.bar
+fc /b foo.bar foo.bar >nul 2>&1
+if not errorlevel 2 goto doCopy
+fc /b config.tmp ..\src\config.h >nul 2>&1
+if errorlevel 1 goto doCopy
+fc /b paths.h ..\src\epaths.h >nul 2>&1
+if errorlevel 0 goto dontCopy
+:doCopy
+copy config.tmp ..\src\config.h
 copy paths.h ..\src\epaths.h
 
+:dontCopy
+if exist config.tmp del config.tmp
 copy /b config.settings+%MAKECMD%.defs+..\nt\makefile.w32-in ..\nt\makefile
 copy /b config.settings+%MAKECMD%.defs+..\lib-src\makefile.w32-in ..\lib-src\makefile
 copy /b config.settings+%MAKECMD%.defs+..\src\makefile.w32-in ..\src\makefile
@@ -474,6 +530,7 @@ set MAKECMD=
 set usercflags=
 set userldflags=
 set mingwflag=
+set mf=
 
 goto skipArchTag
    arch-tag: 300d20a4-1675-4e75-b615-7ce1a8c5376c

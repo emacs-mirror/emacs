@@ -80,7 +80,7 @@ using but only when you also use Edebug."
 
 ;;;###autoload
 (defcustom edebug-all-defs nil
-  "*If non-nil, evaluation of any defining forms will instrument for Edebug.
+  "*If non-nil, evaluating defining forms instruments for Edebug.
 This applies to `eval-defun', `eval-region', `eval-buffer', and
 `eval-current-buffer'.  `eval-region' is also called by
 `eval-last-sexp', and `eval-print-last-sexp'.
@@ -141,10 +141,10 @@ it."
   :group 'edebug)
 
 (defcustom edebug-initial-mode 'step
-  "*Initial execution mode for Edebug, if non-nil.  If this variable
-is non-@code{nil}, it specifies the initial execution mode for Edebug
-when it is first activated.  Possible values are step, next, go,
-Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
+  "*Initial execution mode for Edebug, if non-nil.
+If this variable is non-nil, it specifies the initial execution mode
+for Edebug when it is first activated.  Possible values are step, next,
+go, Go-nonstop, trace, Trace-fast, continue, and Continue-fast."
   :type '(choice (const step) (const next) (const go)
 		 (const Go-nonstop) (const trace)
 		 (const Trace-fast) (const continue)
@@ -180,15 +180,15 @@ Use this with caution since it is not debugged."
 
 
 (defcustom edebug-print-length 50
-  "*Default value of `print-length' to use while printing results in Edebug."
+  "*Default value of `print-length' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-level 50
-  "*Default value of `print-level' to use while printing results in Edebug."
+  "*Default value of `print-level' for printing results in Edebug."
   :type 'integer
   :group 'edebug)
 (defcustom edebug-print-circle t
-  "*Default value of `print-circle' to use while printing results in Edebug."
+  "*Default value of `print-circle' for printing results in Edebug."
   :type 'boolean
   :group 'edebug)
 
@@ -3189,8 +3189,8 @@ The default is one second."
 
 
 (defun edebug-modify-breakpoint (flag &optional condition temporary)
-  "Modify the breakpoint for the form at point or after it according
-to FLAG: set if t, clear if nil.  Then move to that point.
+  "Modify the breakpoint for the form at point or after it.
+Set it if FLAG is non-nil, clear it otherwise.  Then move to that point.
 If CONDITION or TEMPORARY are non-nil, add those attributes to
 the breakpoint.  "
   (let ((edebug-stop-point (edebug-find-stop-point)))
@@ -3729,12 +3729,13 @@ Print result in minibuffer."
             (eval-expression-print-format (car values))))))
 
 (defun edebug-eval-last-sexp ()
-  "Evaluate sexp before point in the outside environment; value in minibuffer."
+  "Evaluate sexp before point in the outside environment.
+Print value in minibuffer."
   (interactive)
   (edebug-eval-expression (edebug-last-sexp)))
 
 (defun edebug-eval-print-last-sexp ()
-  "Evaluate sexp before point in the outside environment; insert the value.
+  "Evaluate sexp before point in outside environment; insert value.
 This prints the value into current buffer."
   (interactive)
   (let* ((edebug-form (edebug-last-sexp))
@@ -4014,20 +4015,19 @@ May only be called from within edebug-recursive-edit."
 (defvar edebug-eval-mode-map nil
   "Keymap for Edebug Eval mode.  Superset of Lisp Interaction mode.")
 
-(if edebug-eval-mode-map
-    nil
-  (setq edebug-eval-mode-map (copy-keymap lisp-interaction-mode-map))
+(unless edebug-eval-mode-map
+  (setq edebug-eval-mode-map (make-sparse-keymap))
+  (set-keymap-parent edebug-eval-mode-map lisp-interaction-mode-map)
 
   (define-key edebug-eval-mode-map "\C-c\C-w" 'edebug-where)
   (define-key edebug-eval-mode-map "\C-c\C-d" 'edebug-delete-eval-item)
   (define-key edebug-eval-mode-map "\C-c\C-u" 'edebug-update-eval-list)
   (define-key edebug-eval-mode-map "\C-x\C-e" 'edebug-eval-last-sexp)
-  (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp)
-  )
+  (define-key edebug-eval-mode-map "\C-j" 'edebug-eval-print-last-sexp))
 
 (put 'edebug-eval-mode 'mode-class 'special)
 
-(defun edebug-eval-mode ()
+(define-derived-mode edebug-eval-mode lisp-interaction-mode "Edebug Eval"
   "Mode for evaluation list buffer while in Edebug.
 
 In addition to all Interactive Emacs Lisp commands there are local and
@@ -4039,12 +4039,7 @@ Eval list buffer commands:
 \\{edebug-eval-mode-map}
 
 Global commands prefixed by global-edebug-prefix:
-\\{global-edebug-map}
-"
-  (lisp-interaction-mode)
-  (setq major-mode 'edebug-eval-mode)
-  (setq mode-name "Edebug Eval")
-  (use-local-map edebug-eval-mode-map))
+\\{global-edebug-map}")
 
 ;;; Interface with standard debugger.
 

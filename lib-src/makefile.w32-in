@@ -248,7 +248,7 @@ lisp2 = \
 
 
 DOC	      = DOC
-$(DOC):		make-docfile
+$(DOC):		$(BLD) $(BLD)/make-docfile.exe ../src/$(BLD)/temacs.exe $(lisp1) $(lisp2)
 		- $(DEL) $(DOC)
 		"$(THISDIR)/$(BLD)/make-docfile" -o $(DOC) -d ../src $(obj)
 		"$(THISDIR)/$(BLD)/make-docfile" -a $(DOC) -d ../src $(lisp1)

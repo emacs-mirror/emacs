@@ -6056,7 +6056,6 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2;
   int multibyte = STRING_MULTIBYTE (str);
-  struct buffer *buf;
   Lisp_Object old_deactivate_mark;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());
@@ -6256,6 +6255,7 @@ decode_coding_string (str, coding, nocopy)
       produced += coding->produced;
       produced_char += coding->produced_char;
       if (result == CODING_FINISH_NORMAL
+	  || result == CODING_FINISH_INTERRUPT
 	  || (result == CODING_FINISH_INSUFFICIENT_SRC
 	      && coding->consumed == 0))
 	break;

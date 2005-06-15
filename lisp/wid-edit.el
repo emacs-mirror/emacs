@@ -89,28 +89,32 @@
   :group 'widgets
   :group 'faces)
 
-(defvar widget-documentation-face 'widget-documentation-face
+(defvar widget-documentation-face 'widget-documentation
   "Face used for documentation strings in widgets.
 This exists as a variable so it can be set locally in certain buffers.")
 
-(defface widget-documentation-face '((((class color)
-				       (background dark))
-				      (:foreground "lime green"))
-				     (((class color)
-				       (background light))
-				      (:foreground "dark green"))
-				     (t nil))
+(defface widget-documentation '((((class color)
+				  (background dark))
+				 (:foreground "lime green"))
+				(((class color)
+				  (background light))
+				 (:foreground "dark green"))
+				(t nil))
   "Face used for documentation text."
   :group 'widget-documentation
   :group 'widget-faces)
+;; backward compatibility alias
+(put 'widget-documentation-face 'face-alias 'widget-documentation)
 
-(defvar widget-button-face 'widget-button-face
+(defvar widget-button-face 'widget-button
   "Face used for buttons in widgets.
 This exists as a variable so it can be set locally in certain buffers.")
 
-(defface widget-button-face '((t (:weight bold)))
+(defface widget-button '((t (:weight bold)))
   "Face used for widget buttons."
   :group 'widget-faces)
+;; backward compatibility alias
+(put 'widget-button-face 'face-alias 'widget-button)
 
 (defcustom widget-mouse-face 'highlight
   "Face used for widget buttons when the mouse is above them."
@@ -120,33 +124,37 @@ This exists as a variable so it can be set locally in certain buffers.")
 ;; TTY gets special definitions here and in the next defface, because
 ;; the gray colors defined for other displays cause black text on a black
 ;; background, at least on light-background TTYs.
-(defface widget-field-face '((((type tty))
-			      :background "yellow3"
-			      :foreground "black")
-			     (((class grayscale color)
-			       (background light))
-			      :background "gray85")
-			     (((class grayscale color)
-			       (background dark))
-			      :background "dim gray")
-			     (t
-			      :slant italic))
+(defface widget-field '((((type tty))
+			 :background "yellow3"
+			 :foreground "black")
+			(((class grayscale color)
+			  (background light))
+			 :background "gray85")
+			(((class grayscale color)
+			  (background dark))
+			 :background "dim gray")
+			(t
+			 :slant italic))
   "Face used for editable fields."
   :group 'widget-faces)
+;; backward-compatibility alias
+(put 'widget-field-face 'face-alias 'widget-field)
 
-(defface widget-single-line-field-face '((((type tty))
-					  :background "green3"
-					  :foreground "black")
-					 (((class grayscale color)
-					   (background light))
-					  :background "gray85")
-					 (((class grayscale color)
-					   (background dark))
-					  :background "dim gray")
-					 (t
-					  :slant italic))
+(defface widget-single-line-field '((((type tty))
+				     :background "green3"
+				     :foreground "black")
+				    (((class grayscale color)
+				      (background light))
+				     :background "gray85")
+				    (((class grayscale color)
+				      (background dark))
+				     :background "dim gray")
+				    (t
+				     :slant italic))
   "Face used for editable fields spanning only a single line."
   :group 'widget-faces)
+;; backward-compatibility alias
+(put 'widget-single-line-field-face 'face-alias 'widget-single-line-field)
 
 ;;; This causes display-table to be loaded, and not usefully.
 ;;;(defvar widget-single-line-display-table
@@ -325,7 +333,7 @@ new value.")
 	   (insert-and-inherit " ")))
     (setq to (point)))
   (let ((keymap (widget-get widget :keymap))
-	(face (or (widget-get widget :value-face) 'widget-field-face))
+	(face (or (widget-get widget :value-face) 'widget-field))
 	(help-echo (widget-get widget :help-echo))
 	(follow-link (widget-get widget :follow-link))
 	(rear-sticky
@@ -433,24 +441,26 @@ new value.")
       (prog1 (progn ,@form)
 	(goto-char (point-max))))))
 
-(defface widget-inactive-face '((((class grayscale color)
-				  (background dark))
-				 (:foreground "light gray"))
-				(((class grayscale color)
-				  (background light))
-				 (:foreground "dim gray"))
-				(t
-				 (:slant italic)))
+(defface widget-inactive '((((class grayscale color)
+			     (background dark))
+			    (:foreground "light gray"))
+			   (((class grayscale color)
+			     (background light))
+			    (:foreground "dim gray"))
+			   (t
+			    (:slant italic)))
   "Face used for inactive widgets."
   :group 'widget-faces)
+;; backward-compatibility alias
+(put 'widget-inactive-face 'face-alias 'widget-inactive)
 
 (defun widget-specify-inactive (widget from to)
   "Make WIDGET inactive for user modifications."
   (unless (widget-get widget :inactive)
     (let ((overlay (make-overlay from to nil t nil)))
-      (overlay-put overlay 'face 'widget-inactive-face)
+      (overlay-put overlay 'face 'widget-inactive)
       ;; This is disabled, as it makes the mouse cursor change shape.
-      ;; (overlay-put overlay 'mouse-face 'widget-inactive-face)
+      ;; (overlay-put overlay 'mouse-face 'widget-inactive)
       (overlay-put overlay 'evaporate t)
       (overlay-put overlay 'priority 100)
       (overlay-put overlay 'modification-hooks '(widget-overlay-inactive))
@@ -633,7 +643,7 @@ extension (xpm, xbm, gif, jpg, or png) located in
 	 ;; Oh well.
 	 nil)))
 
-(defvar widget-button-pressed-face 'widget-button-pressed-face
+(defvar widget-button-pressed-face 'widget-button-pressed
   "Face used for pressed buttons in widgets.
 This exists as a variable so it can be set locally in certain
 buffers.")
@@ -882,7 +892,7 @@ Recommended as a parent keymap for modes using widgets.")
       (call-interactively
        (lookup-key widget-global-map (this-command-keys))))))
 
-(defface widget-button-pressed-face
+(defface widget-button-pressed
   '((((min-colors 88) (class color))
      (:foreground "red1"))
     (((class color))
@@ -891,6 +901,8 @@ Recommended as a parent keymap for modes using widgets.")
      (:weight bold :underline t)))
   "Face used for pressed buttons."
   :group 'widget-faces)
+;; backward-compatibility alias
+(put 'widget-button-pressed-face 'face-alias 'widget-button-pressed)
 
 (defun widget-button-click (event)
   "Invoke the button that the mouse is pointing at."
@@ -2953,7 +2965,7 @@ as the value."
   :match 'widget-regexp-match
   :validate 'widget-regexp-validate
   ;; Doesn't work well with terminating newline.
-  ;; :value-face 'widget-single-line-field-face
+  ;; :value-face 'widget-single-line-field
   :tag "Regexp")
 
 (defun widget-regexp-match (widget value)
@@ -2979,7 +2991,7 @@ It will read a file name from the minibuffer when invoked."
   :prompt-value 'widget-file-prompt-value
   :format "%{%t%}: %v"
   ;; Doesn't work well with terminating newline.
-  ;; :value-face 'widget-single-line-field-face
+  ;; :value-face 'widget-single-line-field
   :tag "File")
 
 (defun widget-file-complete ()

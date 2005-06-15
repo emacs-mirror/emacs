@@ -4602,11 +4602,14 @@ x_create_toolkit_scroll_bar (f, bar)
     char *initial = "";
     char *val = initial;
     XtVaGetValues (widget, XtNscrollVCursor, (XtPointer) &val,
+#ifdef XtNarrowScrollbars
+		   XtNarrowScrollbars, (XtPointer) &xaw3d_arrow_scroll,
+#endif
 		   XtNpickTop, (XtPointer) &xaw3d_pick_top, NULL);
-    if (val == initial)
+    if (xaw3d_arrow_scroll || val == initial)
       {	/* ARROW_SCROLL */
 	xaw3d_arrow_scroll = True;
-	/* Isn't that just a personal preference ?   -sm */
+	/* Isn't that just a personal preference ?   --Stef */
 	XtVaSetValues (widget, XtNcursorName, "top_left_arrow", NULL);
       }
   }
@@ -6789,18 +6792,18 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           {
             dpyinfo->grabbed |= (1 << event.xbutton.button);
             last_mouse_frame = f;
-            /* Ignore any mouse motion that happened
-               before this event; any subsequent mouse-movement
-               Emacs events should reflect only motion after
-               the ButtonPress.  */
-            if (f != 0)
-              f->mouse_moved = 0;
 
             if (!tool_bar_p)
               last_tool_bar_item = -1;
           }
         else
           dpyinfo->grabbed &= ~(1 << event.xbutton.button);
+
+	/* Ignore any mouse motion that happened before this event;
+	   any subsequent mouse-movement Emacs events should reflect
+	   only motion after the ButtonPress/Release.  */
+	if (f != 0)
+	  f->mouse_moved = 0;
 
 #if defined (USE_X_TOOLKIT) || defined (USE_GTK)
         f = x_menubar_window_to_frame (dpyinfo, event.xbutton.window);

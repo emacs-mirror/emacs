@@ -1,3 +1,17 @@
+2005-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(DOC)): Fix last change.
+
+2005-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(DOC)): Depend on make-docfile.exe,
+	temacs.exe, and the preloaded *.elc files.  This avoids
+	unnecessary dumping and DOC rebuilding.
+
+2005-06-04  Eli Zaretskii  <eliz@gnu.org>
+
+	* ntlib.h (fileno): Don't define if already defined.
+
 2005-05-25  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* yow.c (setup_yow): Use EXIT_FAILURE in case no separators found.

@@ -57,6 +57,11 @@ extern BOOL WINAPI IsValidLocale(LCID, DWORD);
 #include "syssignal.h"
 #include "w32term.h"
 
+#define RVA_TO_PTR(var,section,filedata) \
+  ((void *)((section)->PointerToRawData					\
+	    + ((DWORD)(var) - (section)->VirtualAddress)		\
+	    + (filedata).file_base))
+
 /* Control whether spawnve quotes arguments as necessary to ensure
    correct parsing by child process.  Because not all uses of spawnve
    are careful about constructing argv arrays, we make this behaviour

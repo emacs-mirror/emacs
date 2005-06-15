@@ -1273,7 +1273,7 @@ get_emacs_configuration_options (void)
 void
 gettimeofday (struct timeval *tv, struct timezone *tz)
 {
-  struct timeb tb;
+  struct _timeb tb;
   _ftime (&tb);
 
   tv->tv_sec = tb.time;
@@ -1777,7 +1777,7 @@ open_unc_volume (const char *path)
   nr.dwDisplayType = RESOURCEDISPLAYTYPE_SERVER;
   nr.dwUsage = RESOURCEUSAGE_CONTAINER;
   nr.lpLocalName = NULL;
-  nr.lpRemoteName = map_w32_filename (path, NULL);
+  nr.lpRemoteName = (LPSTR)map_w32_filename (path, NULL);
   nr.lpComment = NULL;
   nr.lpProvider = NULL;
 
@@ -3207,7 +3207,7 @@ sys_shutdown (int s, int how)
 }
 
 int
-sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
+sys_setsockopt (int s, int level, int optname, const void * optval, int optlen)
 {
   if (winsock_lib == NULL)
     {
@@ -3219,7 +3219,7 @@ sys_setsockopt (int s, int level, int optname, const char * optval, int optlen)
   if (fd_info[s].flags & FILE_SOCKET)
     {
       int rc = pfn_setsockopt (SOCK_HANDLE (s), level, optname,
-			       optval, optlen);
+			       (const char *)optval, optlen);
       if (rc == SOCKET_ERROR)
 	set_errno ();
       return rc;

@@ -129,7 +129,7 @@ buffer.
 Entry to this mode successively runs the hooks `comint-mode-hook' and
 `inferior-octave-mode-hook'."
   (interactive)
-  (comint-mode)
+  (delay-mode-hooks (comint-mode))
   (setq comint-prompt-regexp inferior-octave-prompt
 	major-mode 'inferior-octave-mode
 	mode-name "Inferior Octave"

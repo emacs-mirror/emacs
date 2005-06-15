@@ -585,7 +585,6 @@ and what are the various ways that it can be used.
 * Notations Used in This Manual::
 * Demonstration of Calc::
 * Using Calc::
-* Demonstration of Calc::
 * History and Acknowledgements::
 @end menu
 

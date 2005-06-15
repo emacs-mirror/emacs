@@ -206,9 +206,9 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
   :type 'boolean
   :group 'view)
 
-(defvar diary-face 'diary-face
+(defvar diary-face 'diary
   "Face name to use for diary entries.")
-(defface diary-face
+(defface diary
   '((((min-colors 88) (class color) (background light))
      :foreground "red1")
     (((class color) (background light))
@@ -221,13 +221,17 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
      :weight bold))
   "Face for highlighting diary entries."
   :group 'diary)
+;; backward-compatibility alias
+(put 'diary-face 'face-alias 'diary)
 
-(defface calendar-today-face
+(defface calendar-today
   '((t (:underline t)))
   "Face for indicating today's date."
   :group 'diary)
+;; backward-compatibility alias
+(put 'calendar-today-face 'face-alias 'calendar-today)
 
-(defface holiday-face
+(defface holiday
   '((((class color) (background light))
      :background "pink")
     (((class color) (background dark))
@@ -236,17 +240,19 @@ If nil, make an icon of the frame.  If non-nil, delete the frame."
      :inverse-video t))
   "Face for indicating dates that have holidays."
   :group 'diary)
+;; backward-compatibility alias
+(put 'holiday-face 'face-alias 'holiday)
 
 (eval-after-load "facemenu"
   '(progn
-     (add-to-list 'facemenu-unlisted-faces 'diary-face)
-     (add-to-list 'facemenu-unlisted-faces 'calendar-today-face)
-     (add-to-list 'facemenu-unlisted-faces 'holiday-face)))
+     (add-to-list 'facemenu-unlisted-faces 'diary)
+     (add-to-list 'facemenu-unlisted-faces 'calendar-today)
+     (add-to-list 'facemenu-unlisted-faces 'holiday)))
 
 (defcustom diary-entry-marker
   (if (not (display-color-p))
       "+"
-    'diary-face)
+    'diary)
   "*How to mark dates that have diary entries.
 The value can be either a single-character string or a face."
   :type '(choice string face)
@@ -255,7 +261,7 @@ The value can be either a single-character string or a face."
 (defcustom calendar-today-marker
   (if (not (display-color-p))
       "="
-    'calendar-today-face)
+    'calendar-today)
   "*How to mark today's date in the calendar.
 The value can be either a single-character string or a face.
 Marking today's date is done only if you set up `today-visible-calendar-hook'
@@ -266,7 +272,7 @@ to request that."
 (defcustom calendar-holiday-marker
   (if (not (display-color-p))
       "*"
-    'holiday-face)
+    'holiday)
   "*How to mark notable dates in the calendar.
 The value can be either a single-character string or a face."
   :type '(choice string face)
@@ -2441,7 +2447,6 @@ For a complete description, type \
 \\<calendar-mode-map>\\[calendar-goto-info-node] from within the calendar.
 
 \\<calendar-mode-map>\\{calendar-mode-map}"
-
   (kill-all-local-variables)
   (setq major-mode 'calendar-mode)
   (setq mode-name "Calendar")
@@ -2454,7 +2459,8 @@ For a complete description, type \
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year)	;;  Year in middle of window.
   (set (make-local-variable 'font-lock-defaults)
-       '(calendar-font-lock-keywords t)))
+       '(calendar-font-lock-keywords t))
+  (run-mode-hooks 'calendar-mode-hook))
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.
@@ -2943,7 +2949,7 @@ MARK defaults to `diary-entry-marker'."
                   (forward-char -2))
               (let                      ; attr list
                   ((temp-face
-                    (make-symbol (apply 'concat "temp-face-"
+                    (make-symbol (apply 'concat "temp-"
                                         (mapcar '(lambda (sym)
                                                    (cond ((symbolp sym) (symbol-name sym))
                                                          ((numberp sym) (int-to-string sym))

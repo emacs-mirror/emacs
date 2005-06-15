@@ -37,9 +37,9 @@
 ;; it on to active mode to see them, then toggle it back off to avoid
 ;; distraction.
 ;;
-;; When active, changes are displayed in `highlight-changes-face'.  When
-;; text is deleted, the following character is displayed in
-;; `highlight-changes-delete-face' face.
+;; When active, changes are displayed in the `highlight-changes' face.
+;; When text is deleted, the following character is displayed in the
+;; `highlight-changes-delete' face.
 ;;
 ;;
 ;; You can "age" different sets of changes by using
@@ -48,10 +48,10 @@
 ;; changes.  You can customize these "rotated" faces in two ways.  You can
 ;; either explicitly define each face by customizing
 ;; `highlight-changes-face-list'.  If, however, the faces differ from
-;; `highlight-changes-face' only in the foreground color, you can simply set
-;; `highlight-changes-colours'.  If `highlight-changes-face-list' is nil when
+;; the `highlight-changes' face only in the foreground color, you can simply set
+;; `highlight-changes-colors'.  If `highlight-changes-face-list' is nil when
 ;; the faces are required they will be constructed from
-;; `highlight-changes-colours'.
+;; `highlight-changes-colors'.
 ;;
 ;;
 ;; When a Highlight Changes mode is on (either active or passive) you can go
@@ -212,41 +212,48 @@
 ;; However, having it set for non-delete changes can be annoying because all
 ;; indentation on inserts gets underlined (which can look pretty ugly!).
 
-(defface highlight-changes-face
+(defface highlight-changes
   '((((min-colors 88) (class color)) (:foreground "red1" ))
     (((class color)) (:foreground "red" ))
     (t (:inverse-video t)))
   "Face used for highlighting changes."
   :group 'highlight-changes)
+;; backward-compatibility alias
+(put 'highlight-changes-face 'face-alias 'highlight-changes)
 
 ;; This looks pretty ugly, actually.  Maybe the underline should be removed.
-(defface highlight-changes-delete-face
+(defface highlight-changes-delete
   '((((min-colors 88) (class color)) (:foreground "red1" :underline t))
     (((class color)) (:foreground "red" :underline t))
     (t (:inverse-video t)))
   "Face used for highlighting deletions."
   :group 'highlight-changes)
+;; backward-compatibility alias
+(put 'highlight-changes-delete-face 'face-alias 'highlight-changes-delete)
 
 
 
-;; A (not very good) default list of colours to rotate through.
+;; A (not very good) default list of colors to rotate through.
 ;;
-(defcustom highlight-changes-colours
+(defcustom highlight-changes-colors
   (if (eq (frame-parameter nil 'background-mode) 'light)
       ;; defaults for light background:
       '( "magenta" "blue" "darkgreen" "chocolate" "sienna4" "NavyBlue")
       ;; defaults for dark background:
     '("yellow" "magenta" "blue" "maroon" "firebrick" "green4" "DarkOrchid"))
-  "*Colours used by `highlight-changes-rotate-faces'.
+  "*Colors used by `highlight-changes-rotate-faces'.
 The newest rotated change will be displayed in the first element of this list,
 the next older will be in the second element etc.
 
 This list is used if `highlight-changes-face-list' is nil, otherwise that
 variable overrides this list.  If you only care about foreground
-colours then use this, if you want fancier faces then set
+colors then use this, if you want fancier faces then set
 `highlight-changes-face-list'."
   :type '(repeat color)
   :group 'highlight-changes)
+
+(define-obsolete-variable-alias 'highlight-changes-colours
+                                'highlight-changes-colors "22.1")
 
 
 ;; If you invoke highlight-changes-mode with no argument, should it start in
@@ -347,15 +354,15 @@ remove it from existing buffers."
 	     )
 	  (while p
 	    (setq old-name (car p))
-	    (setq new-name (intern (format "highlight-changes-face-%d" n)))
+	    (setq new-name (intern (format "highlight-changes-%d" n)))
 	    (if (eq old-name new-name)
 		nil
 	      ;; A new face has been inserted: we don't want to modify the
 	      ;; default face so copy it.  Better, though, (I think) is to
 	      ;; make a new face have the same attributes as
-	      ;; highlight-changes-face .
+	      ;; the `highlight-changes' face.
 	      (if (eq old-name 'default)
-		  (copy-face 'highlight-changes-face  new-name)
+		  (copy-face 'highlight-changes new-name)
 		(copy-face old-name new-name)
 		))
 	    (setq new-list (append  (list new-name) new-list))
@@ -377,16 +384,16 @@ remove it from existing buffers."
 (defcustom highlight-changes-face-list nil
   "*A list of faces used when rotating changes.
 Normally the variable is initialized to nil and the list is created from
-`highlight-changes-colours' when needed.  However, you can set this variable
+`highlight-changes-colors' when needed.  However, you can set this variable
 to any list of faces.  You will have to do this if you want faces which
-don't just differ from `highlight-changes-face' by the foreground colour.
+don't just differ from the `highlight-changes' face by the foreground color.
 Otherwise, this list will be constructed when needed from
-`highlight-changes-colours'."
+`highlight-changes-colors'."
   :type '(choice
 	  (repeat
 	    :notify hilit-chg-cust-fix-changes-face-list
 	    face  )
-	  (const :tag "Derive from highlight-changes-colours"  nil)
+	  (const :tag "Derive from highlight-changes-colors"  nil)
 	  )
   :group 'highlight-changes)
 
@@ -445,7 +452,7 @@ This is the opposite of `hilit-chg-hide-changes'."
   (let ((ov (make-overlay start end))
 	face)
     (if (eq prop 'hilit-chg-delete)
-	(setq face 'highlight-changes-delete-face)
+	(setq face 'highlight-changes-delete)
       (setq face (nth 1 (member prop hilit-chg-list))))
     (if face
 	(progn
@@ -727,24 +734,24 @@ Hook variables:
   ;; so we pick up any changes?
   (if (or (null highlight-changes-face-list)  ; Don't do it if it
 	  force) ; already exists unless FORCE non-nil.
-      (let ((p highlight-changes-colours)
+      (let ((p highlight-changes-colors)
 	    (n 1) name)
 	(setq highlight-changes-face-list nil)
 	(while p
-	  (setq name (intern (format "highlight-changes-face-%d" n)))
-	  (copy-face 'highlight-changes-face name)
+	  (setq name (intern (format "highlight-changes-%d" n)))
+	  (copy-face 'highlight-changes name)
 	  (set-face-foreground name (car p))
 	  (setq highlight-changes-face-list
 		(append highlight-changes-face-list (list name)))
 	  (setq p (cdr p))
 	  (setq n (1+ n)))))
-  (setq hilit-chg-list (list 'hilit-chg 'highlight-changes-face))
+  (setq hilit-chg-list (list 'hilit-chg 'highlight-changes))
   (let ((p highlight-changes-face-list)
 	(n 1)
 	last-category last-face)
     (while p
       (setq last-category (intern (format "change-%d" n)))
-      ;; (setq last-face (intern (format "highlight-changes-face-%d" n)))
+      ;; (setq last-face (intern (format "highlight-changes-%d" n)))
       (setq last-face (car p))
       (setq hilit-chg-list
 	    (append hilit-chg-list
@@ -774,7 +781,7 @@ of `highlight-changes-face-list', one level older changes are shown in
 face described by the second element, and so on.  Very old changes remain
 shown in the last face in the list.
 
-You can automatically rotate colours when the buffer is saved
+You can automatically rotate colors when the buffer is saved
 by adding the following to `local-write-file-hooks', by evaling it in the
 buffer to be saved):
 
@@ -842,7 +849,7 @@ is non-nil."
 
       (setq change-a (car change-info))
       (setq change-b (car (cdr change-info)))
-      
+
       (hilit-chg-make-list)
       (while change-a
 	(setq a-start (nth 0 (car change-a)))
@@ -886,11 +893,11 @@ If a buffer is read-only, differences will be highlighted but no property
 changes are made, so \\[highlight-changes-next-change] and
 \\[highlight-changes-previous-change] will not work."
   (interactive
-   (list 
+   (list
     (get-buffer (read-buffer "buffer-a " (current-buffer) t))
     (get-buffer
      (read-buffer "buffer-b "
-		  (window-buffer (next-window (selected-window))) t)))) 
+		  (window-buffer (next-window (selected-window))) t))))
   (let ((file-a (buffer-file-name buf-a))
 	(file-b (buffer-file-name buf-b)))
     (highlight-markup-buffers buf-a file-a buf-b file-b)
@@ -917,10 +924,10 @@ changes are made, so \\[highlight-changes-next-change] and
 	       nil			;; default
 	       'yes			;; must exist
 	       (let ((f (buffer-file-name (current-buffer))))
-		 (if f 
+		 (if f
 		     (progn
 		       (setq f (make-backup-file-name f))
-		       (or (file-exists-p f) 
+		       (or (file-exists-p f)
 			   (setq f nil)))
 		   )
 		 f))))

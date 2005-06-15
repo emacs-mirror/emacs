@@ -74,7 +74,7 @@
       (move-overlay cua--global-mark-overlay (point) (1+ (point)))
     (setq cua--global-mark-overlay
 	  (make-overlay (point) (1+ (point))))
-    (overlay-put cua--global-mark-overlay 'face 'cua-global-mark-face))
+    (overlay-put cua--global-mark-overlay 'face 'cua-global-mark))
   (if (and cua-global-mark-blink-cursor-interval
 	   (not cua--orig-blink-cursor-interval))
       (setq cua--orig-blink-cursor-interval blink-cursor-interval
@@ -218,7 +218,7 @@ With prefix argument, don't jump to global mark when cancelling it."
 	      (let ((olist (overlays-at (marker-position cua--global-mark-marker)))
 		    in-rect)
 		(while olist
-		  (if (eq (overlay-get (car olist) 'face) 'cua-rectangle-face)
+		  (if (eq (overlay-get (car olist) 'face) 'cua-rectangle)
 		      (setq in-rect t olist nil)
 		    (setq olist (cdr olist))))
 		(if in-rect
@@ -358,11 +358,6 @@ With prefix argument, don't jump to global mark when cancelling it."
 ;;; Initialization
 
 (defun cua--init-global-mark ()
-  (unless (face-background 'cua-global-mark-face)
-    (copy-face 'region 'cua-global-mark-face)
-    (set-face-foreground 'cua-global-mark-face "black")
-    (set-face-background 'cua-global-mark-face "cyan"))
-
   (define-key cua--global-mark-keymap [remap copy-region-as-kill]	'cua-copy-to-global-mark)
   (define-key cua--global-mark-keymap [remap kill-ring-save]		'cua-copy-to-global-mark)
   (define-key cua--global-mark-keymap [remap kill-region]		'cua-cut-to-global-mark)

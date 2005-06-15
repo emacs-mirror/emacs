@@ -650,17 +650,22 @@ An alternative value is \" . \", if you use a font with a narrow period."
   "Face used for subscripts."
   :group 'tex)
 
-(defface tex-math-face
+(defface tex-math
   '((t :inherit font-lock-string-face))
   "Face used to highlight TeX math expressions."
   :group 'tex)
-(defvar tex-math-face 'tex-math-face)
-(defface tex-verbatim-face
+;; backward-compatibility alias
+(put 'tex-math-face 'face-alias 'tex-math)
+(defvar tex-math-face 'tex-math)
+
+(defface tex-verbatim
   ;; '((t :inherit font-lock-string-face))
   '((t :family "courier"))
   "Face used to highlight TeX verbatim environments."
   :group 'tex)
-(defvar tex-verbatim-face 'tex-verbatim-face)
+;; backward-compatibility alias
+(put 'tex-verbatim-face 'face-alias 'tex-verbatim)
+(defvar tex-verbatim-face 'tex-verbatim)
 
 ;; Use string syntax but math face for $...$.
 (defun tex-font-lock-syntactic-face-function (state)
@@ -795,7 +800,7 @@ Inherits `shell-mode-map' with a few additions.")
 		      (regexp-opt '("documentstyle" "documentclass"
 				    "begin" "subsection" "section"
 				    "part" "chapter" "newcommand"
-				    "renewcommand") 'words)
+				    "renewcommand" "RequirePackage") 'words)
 		      "\\|NeedsTeXFormat{LaTeX")))
 		  (if (and (looking-at
 			    "document\\(style\\|class\\)\\(\\[.*\\]\\)?{slides}")
@@ -1101,7 +1106,7 @@ Inserts the value of `tex-open-quote' (normally ``) or `tex-close-quote'
 inserts \" characters."
   (interactive "*P")
   (if (or arg (memq (char-syntax (preceding-char)) '(?/ ?\\))
-	  (eq (get-text-property (point) 'face) 'tex-verbatim-face)
+	  (eq (get-text-property (point) 'face) tex-verbatim-face)
 	  (save-excursion
 	    (backward-char (length tex-open-quote))
 	    (when (or (looking-at (regexp-quote tex-open-quote))
@@ -1639,9 +1644,12 @@ If NOT-ALL is non-nil, save the `.dvi' file."
 	     " " (if (< 0 (length tex-start-commands))
 		     (shell-quote-argument tex-start-commands)) " %f")
      t "%r.dvi")
-    ("yap %r &" "%r.dvi")
     ("xdvi %r &" "%r.dvi")
+    ("xpdf %r.pdf &" "%r.pdf")
+    ("gv %r.ps &" "%r.ps")
+    ("yap %r &" "%r.dvi")
     ("advi %r &" "%r.dvi")
+    ("gv %r.pdf &" "%r.pdf")
     ("bibtex %r" "%r.aux" "%r.bbl")
     ("makeindex %r" "%r.idx" "%r.ind")
     ("texindex %r.??")
@@ -1649,9 +1657,6 @@ If NOT-ALL is non-nil, save the `.dvi' file."
     ("dvipdf %r" "%r.dvi" "%r.pdf")
     ("dvips -o %r.ps %r" "%r.dvi" "%r.ps")
     ("ps2pdf %r.ps" "%r.ps" "%r.pdf")
-    ("gv %r.ps &" "%r.ps")
-    ("gv %r.pdf &" "%r.pdf")
-    ("xpdf %r.pdf &" "%r.pdf")
     ("lpr %r.ps" "%r.ps"))
   "List of commands for `tex-compile'.
 Each element should be of the form (FORMAT IN OUT) where
@@ -1830,8 +1835,7 @@ FILE is typically the output DVI or PDF file."
 	    (push cmd cmds)
 	  (push (nth 1 cmd) unchanged-in))))
     ;; If no command seems to be applicable, arbitrarily pick the first one.
-    (unless cmds
-      (setq cmds (list (car tex-compile-commands))))
+    (setq cmds (if cmds (nreverse cmds) (list (car tex-compile-commands))))
     ;; Remove those commands whose input was considered stable for
     ;; some other command (typically if (t . "%.pdf") is inactive
     ;; then we're using pdflatex and the fact that the dvi file
@@ -1841,7 +1845,7 @@ FILE is typically the output DVI or PDF file."
 	(unless (member (nth 1 cmd) unchanged-in)
 	  (push cmd tmp)))
       ;; Only remove if there's something left.
-      (if tmp (setq cmds tmp)))
+      (if tmp (setq cmds (nreverse tmp))))
     ;; Remove commands whose input is not uptodate either.
     (let ((outs (delq nil (mapcar (lambda (x) (nth 2 x)) cmds)))
 	  (tmp nil))
@@ -1849,7 +1853,7 @@ FILE is typically the output DVI or PDF file."
 	(unless (member (nth 1 cmd) outs)
 	  (push cmd tmp)))
       ;; Only remove if there's something left.
-      (if tmp (setq cmds tmp)))
+      (if tmp (setq cmds (nreverse tmp))))
     ;; Select which file we're going to operate on (the latest).
     (let ((latest (nth 1 (car cmds))))
       (dolist (cmd (prog1 (cdr cmds) (setq cmds (list (car cmds)))))

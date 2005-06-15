@@ -1,3 +1,64 @@
+2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.11
+
+2005-06-12  Jay Belanger  <belanger@truman.edu>
+
+	* calc.texi (Getting Started): Remove extra menu item.
+
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* emacs.texi (Top): Correct version number.
+	* anti.texi (Antinews): Correct version number.  Use EMACSVER to
+	refer to the current version of Emacs.
+
+2005-06-08  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* files.texi (Log Buffer): Document when there can be more than
+	one file to be committed.
+
+2005-06-08  Juri Linkov  <juri@jurta.org>
+
+	* display.texi (Faces): Add `shadow' face.
+
+2005-06-07  Masatake YAMATO  <jet@gyve.org>
+
+	* display.texi (Faces): Write about mode-line-highlight.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* misc.texi (Printing Package): Explain how to initialize
+	printing package.
+
+	* cmdargs.texi (Action Arguments): Clarify directory default for -l.
+
+2005-06-05  Chong Yidong  <cyd@stupidchicken.com>
+
+	* emacs.texi: Rename Hardcopy to Printing.
+	Make PostScript and PostScript Variables subnodes of it.
+
+	* misc.texi (Printing): Rename node from Hardcopy.
+	Mention menu bar options.
+	Move PostScript and PostScript Variables to submenu.
+	(Printing package): New node.
+
+	* mark.texi (Using Region): Change Hardcopy xref to Printing.
+
+	* dired.texi (Operating on Files): Likewise.
+
+	* calendar.texi (Displaying the Diary): Likewise.
+
+	* msdog.texi (MS-DOS Printing, MS-DOS Processes): Likewise.
+
+	* glossary.texi (Glossary): Likewise.
+
+	* frames.texi (Mode Line Mouse): Mention mode-line-highlight
+	effect.
+
+2005-06-04  Richard M. Stallman  <rms@gnu.org>
+
+	* trouble.texi (After a Crash): Polish previous change.
+
 2005-05-31  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (Notations Used in This Manual): Use @kbd for key

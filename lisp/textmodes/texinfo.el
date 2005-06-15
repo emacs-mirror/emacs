@@ -1,7 +1,7 @@
 ;;; texinfo.el --- major mode for editing Texinfo files
 
 ;; Copyright (C) 1985, 1988, 1989, 1990, 1991, 1992, 1993, 1996, 1997,
-;;           2000, 2001, 2003, 2004 Free Software Foundation, Inc.
+;;           2000, 2001, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Robert J. Chassell
 ;; Date:   [See date below for texinfo-version]
@@ -343,11 +343,13 @@ chapter."
   "Regexp for environment-like Texinfo list commands.
 Subexpression 1 is what goes into the corresponding `@end' statement.")
 
-(defface texinfo-heading-face
+(defface texinfo-heading
   '((t (:inherit font-lock-function-name-face)))
   "Face used for section headings in `texinfo-mode'."
   :group 'texinfo)
-(defvar texinfo-heading-face 'texinfo-heading-face)
+;; backward-compatibility alias
+(put 'texinfo-heading-face 'face-alias 'texinfo-heading)
+(defvar texinfo-heading-face 'texinfo-heading)
 
 (defvar texinfo-font-lock-keywords
   `(;; All but the first had an OVERRIDE of t.

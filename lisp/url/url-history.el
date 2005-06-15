@@ -84,7 +84,7 @@ to run the `url-history-setup-save-timer' function manually."
 (defun url-history-setup-save-timer ()
   "Reset the history list timer."
   (interactive)
-  (ignore-errors 
+  (ignore-errors
     (cond ((fboundp 'cancel-timer) (cancel-timer url-history-timer))
 	  ((fboundp 'delete-itimer) (delete-itimer url-history-timer))))
   (setq url-history-timer nil)
@@ -192,7 +192,7 @@ user for what type to save as."
 	 (gethash string url-history-hash-table)
 	 t))
    (t
-    (error "url-completion-function very confused."))))
+    (error "url-completion-function very confused"))))
 
 (provide 'url-history)
 

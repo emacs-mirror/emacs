@@ -1,7 +1,7 @@
 /* XPM */
 static char * step_xpm[] = {
 "24 24 6 1",
-" 	c #c0c0c0",
+" 	c None",
 ".	c #d40000",
 "X	c #616161",
 "o	c #2a1f55",

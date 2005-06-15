@@ -85,7 +85,7 @@
 ;;	(items     u8)
 ;;	(fill      3)
 ;;	(item	   repeat (items)
-;;		   ((struct data-spec)))))
+;;		   (struct data-spec))))
 ;;
 ;;
 ;;  A binary data representation may look like
@@ -131,7 +131,7 @@
 ;;          |  ( [FIELD] align LEN )    -- skip to next multiple of LEN bytes
 ;;          |  ( [FIELD] struct SPEC_NAME )
 ;;          |  ( [FIELD] union TAG_VAL (TAG SPEC)... [(t SPEC)] )
-;;          |  ( [FIELD] repeat COUNT SPEC )
+;;          |  ( [FIELD] repeat COUNT ITEM... )
 
 ;;          -- In (eval EXPR), the value of the last field is available in
 ;;             the dynamically bound variable `last'.
@@ -151,7 +151,8 @@
 ;;          -- Note: 32 bit values may be limited by emacs' INTEGER
 ;;             implementation limits.
 ;;
-;;          -- Example: bits 2 will map bytes 0x1c 0x28 to list (2 3 7 11 13)
+;;          -- Example: `bits 2' will unpack 0x28 0x1c to (2 3 4 11 13)
+;;                                       and 0x1c 0x28 to (3 5 10 11 12).
 
 ;; FIELD   ::= ( eval EXPR )		-- use result as NAME
 ;;          |  NAME

@@ -1733,17 +1733,17 @@ like an INI file.  You can add this hook to `find-file-hook'."
 
 (defconst show-tabs-generic-mode-font-lock-defaults-1
   '(;; trailing spaces must come before...
-    ("[ \t]+$" . 'show-tabs-space-face)
+    ("[ \t]+$" . 'show-tabs-space)
     ;; ...embedded tabs
-    ("[^\n\t]\\(\t+\\)" (1 'show-tabs-tab-face))))
+    ("[^\n\t]\\(\t+\\)" (1 'show-tabs-tab))))
 
 (defconst show-tabs-generic-mode-font-lock-defaults-2
   '(;; trailing spaces must come before...
-    ("[ \t]+$" . 'show-tabs-space-face)
+    ("[ \t]+$" . 'show-tabs-space)
     ;; ...tabs
-    ("\t+" . 'show-tabs-tab-face))))
+    ("\t+" . 'show-tabs-tab))))
 
-(defface show-tabs-tab-face
+(defface show-tabs-tab
   '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
     (((class grayscale) (background dark))  (:background "LightGray" :weight bold))
     (((class color)     (min-colors 88))    (:background "red1"))
@@ -1751,8 +1751,10 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (t (:weight bold)))
   "Font Lock mode face used to highlight TABs."
   :group 'generic-x)
+;; backward-compatibility alias
+(put 'show-tabs-tab-face 'face-alias 'show-tabs-tab)
 
-(defface show-tabs-space-face
+(defface show-tabs-space
   '((((class grayscale) (background light)) (:background "DimGray"   :weight bold))
     (((class grayscale) (background dark))  (:background "LightGray" :weight bold))
     (((class color)     (min-colors 88))    (:background "yellow1"))
@@ -1760,6 +1762,8 @@ like an INI file.  You can add this hook to `find-file-hook'."
     (t (:weight bold)))
   "Font Lock mode face used to highlight spaces."
   :group 'generic-x)
+;; backward-compatibility alias
+(put 'show-tabs-space-face 'face-alias 'show-tabs-space)
 
 (define-generic-mode show-tabs-generic-mode
   nil ;; no comment char

@@ -151,7 +151,7 @@ It's purpose is to pass different call arguments to
       (switch-to-buffer buf)
       (if isearchb-show-completions
 	  (message "isearchb: %s%s" iswitchb-text
-		   (iswitchb-completions iswitchb-text nil))
+		   (iswitchb-completions iswitchb-text))
 	(if (= 1 (length iswitchb-matches))
 	    (message "isearchb: %s (only match)" iswitchb-text)
 	  (message "isearchb: %s" iswitchb-text))))))
@@ -213,7 +213,7 @@ accessed via isearchb."
    ((eq last-command 'isearchb-activate)
     (if isearchb-last-buffer
 	(switch-to-buffer isearchb-last-buffer)
-      (error "isearchb: There is no previous buffer to toggle to."))
+      (error "isearchb: There is no previous buffer to toggle to"))
     (isearchb-stop nil t))
    (t
     (message "isearchb: ")

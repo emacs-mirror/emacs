@@ -720,6 +720,7 @@ the list should be unique."
     (sc-mail-warn-if-non-rfc822-p (sc-mail-error-in-mail-field))
     (end                          (setq sc-mail-headers-end (point))))
   "Regi frame for glomming mail header information.")
+(put 'sc-mail-glom-frame 'risky-local-variable t)
 
 (defvar curline)			; dynamic bondage
 

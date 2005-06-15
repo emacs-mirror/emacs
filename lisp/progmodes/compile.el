@@ -231,9 +231,9 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
 
     (makepp
      "^makepp: \\(?:\\(?:warning\\(:\\).*?\\|\\(Scanning\\|[LR]e?l?oading makefile\\) \\|.*?\\)\
-`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)'\\)"
+`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]\\)"
      4 5 nil (1 . 2) 3
-     ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)'" nil nil
+     ("`\\(\\(\\S +?\\)\\(?::\\([0-9]+\\)\\)?\\)['(]" nil nil
       (2 compilation-info-face)
       (3 compilation-line-face nil t)
       (1 (compilation-error-properties 2 3 nil nil nil 0 nil)
@@ -246,8 +246,8 @@ of[ \t]+\"?\\([a-zA-Z]?:?[^\":\n]+\\)\"?:" 3 2 nil (1))
      " in \\([^()\n ]+\\)(\\([0-9]+\\))$" 1 2)
 
     (msft
-     "^\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
-: \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 1 2 nil (3))
+     "^\\([0-9]+>\\)?\\(\\(?:[a-zA-Z]:\\)?[^:(\t\n]+\\)(\\([0-9]+\\)) \
+: \\(?:error\\|warnin\\(g\\)\\) C[0-9]+:" 2 3 nil (4))
 
     (oracle
      "^\\(?:Semantic error\\|Error\\|PCC-[0-9]+:\\).* line \\([0-9]+\\)\
@@ -468,15 +468,17 @@ starting the compilation process.")
 ;; History of compile commands.
 (defvar compile-history nil)
 
-(defface compilation-warning-face
+(defface compilation-warning
   '((((class color) (min-colors 16)) (:foreground "Orange" :weight bold))
     (((class color)) (:foreground "cyan" :weight bold))
     (t (:weight bold)))
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
+;; backward-compatibility alias
+(put 'compilation-warning-face 'face-alias 'compilation-warning)
 
-(defface compilation-info-face
+(defface compilation-info
   '((((class color) (min-colors 16) (background light))
      (:foreground "Green3" :weight bold))
     (((class color) (min-colors 88) (background dark))
@@ -488,6 +490,8 @@ starting the compilation process.")
   "Face used to highlight compiler warnings."
   :group 'font-lock-highlighting-faces
   :version "22.1")
+;; backward-compatibility alias
+(put 'compilation-info-face 'face-alias 'compilation-info)
 
 (defvar compilation-message-face nil
   "Face name to use for whole messages.
@@ -498,10 +502,10 @@ Faces `compilation-error-face', `compilation-warning-face',
 (defvar compilation-error-face 'font-lock-warning-face
   "Face name to use for file name in error messages.")
 
-(defvar compilation-warning-face 'compilation-warning-face
+(defvar compilation-warning-face 'compilation-warning
   "Face name to use for file name in warning messages.")
 
-(defvar compilation-info-face 'compilation-info-face
+(defvar compilation-info-face 'compilation-info
   "Face name to use for file name in informational messages.")
 
 (defvar compilation-line-face 'font-lock-variable-name-face
@@ -935,6 +939,7 @@ Returns the compilation buffer created."
 		    (substitute-env-vars (match-string 1 command))
 		  "~")
 	      default-directory))
+	(erase-buffer)
 	;; Select the desired mode.
 	(if (not (eq mode t))
 	    (funcall mode)
@@ -944,11 +949,11 @@ Returns the compilation buffer created."
 	(if highlight-regexp
 	    (set (make-local-variable 'compilation-highlight-regexp)
 		 highlight-regexp))
-	(erase-buffer)
 	;; Output a mode setter, for saving and later reloading this buffer.
 	(insert "-*- mode: " name-of-mode
 		"; default-directory: " (prin1-to-string default-directory)
-		" -*-\n" command "\n")	(setq thisdir default-directory))
+		" -*-\n" command "\n")
+	(setq thisdir default-directory))
       (set-buffer-modified-p nil))
     ;; If we're already in the compilation buffer, go to the end
     ;; of the buffer, so point will track the compilation output.

@@ -71,7 +71,7 @@ otherwise)."
   :group 'paren-showing
   :version "20.3")
 
-(defface show-paren-match-face
+(defface show-paren-match
   '((((class color) (background light))
      :background "turquoise")		; looks OK on tty (becomes cyan)
     (((class color) (background dark))
@@ -83,13 +83,17 @@ otherwise)."
   "Show Paren mode face used for a matching paren."
   :group 'faces
   :group 'paren-showing)
+;; backward-compatibility alias
+(put 'show-paren-match-face 'face-alias 'show-paren-match)
 
-(defface show-paren-mismatch-face
+(defface show-paren-mismatch
   '((((class color)) (:foreground "white" :background "purple"))
     (t (:inverse-video t)))
   "Show Paren mode face used for a mismatching paren."
   :group 'faces
   :group 'paren-showing)
+;; backward-compatibility alias
+(put 'show-paren-mismatch-face 'face-alias 'show-paren-mismatch)
 
 (defvar show-paren-highlight-openparen t
   "*Non-nil turns on openparen highlighting when matching forward.")
@@ -193,8 +197,8 @@ in `show-paren-style' after `show-paren-delay' seconds of Emacs idle time."
 	      (progn
 		(if show-paren-ring-bell-on-mismatch
 		    (beep))
-		(setq face 'show-paren-mismatch-face))
-	    (setq face 'show-paren-match-face))
+		(setq face 'show-paren-mismatch))
+	    (setq face 'show-paren-match))
 	  ;;
 	  ;; If matching backwards, highlight the closeparen
 	  ;; before point as well as its matching open.

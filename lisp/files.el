@@ -658,7 +658,7 @@ one or more of those symbols."
 
 (defun locate-file-completion (string path-and-suffixes action)
   "Do completion for file names passed to `locate-file'.
-PATH-AND-SUFFIXES is a pair of lists (DIRECTORIES . SUFFIXES)."
+PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
   (if (file-name-absolute-p string)
       (read-file-name-internal string nil action)
     (let ((names nil)
@@ -1766,12 +1766,12 @@ in that case, this function acts as if `enable-local-variables' were t."
      ("\\.ad[abs]\\'" . ada-mode)
      ("\\.ad[bs].dg\\'" . ada-mode)
      ("\\.\\([pP]\\([Llm]\\|erl\\|od\\)\\|al\\)\\'" . perl-mode)
-     ("GNUmakefile\\'" . makefile-gmake-mode)
      ,@(if (memq system-type '(berkeley-unix next-mach darwin))
 	   '(("\\.mk\\'" . makefile-bsdmake-mode)
+	     ("GNUmakefile\\'" . makefile-gmake-mode)
 	     ("[Mm]akefile\\'" . makefile-bsdmake-mode))
 	 '(("\\.mk\\'" . makefile-gmake-mode)	; Might be any make, give Gnu the host advantage
-	   ("[Mm]akefile\\'" . makefile-mode)))
+	   ("[Mm]akefile\\'" . makefile-gmake-mode)))
      ("Makeppfile\\'" . makefile-makepp-mode)
      ("\\.am\\'" . makefile-automake-mode)
      ;; Less common extensions come here
@@ -2159,9 +2159,9 @@ Otherwise, return nil; point may be changed."
        (goto-char beg)
        end))))
 
-(defun hack-local-variables-confirm (string)
-  (or (eq enable-local-variables t)
-      (and enable-local-variables
+(defun hack-local-variables-confirm (string flag-to-check)
+  (or (eq flag-to-check t)
+      (and flag-to-check
 	   (save-window-excursion
 	     (condition-case nil
 		 (switch-to-buffer (current-buffer))
@@ -2236,7 +2236,8 @@ is specified, returning t if it is specified."
 	(if (and result
 		 (or mode-only
 		     (hack-local-variables-confirm
-		      "Set local variables as specified in -*- line of %s? ")))
+		      "Set local variables as specified in -*- line of %s? "
+		      enable-local-variables)))
 	    (let ((enable-local-eval enable-local-eval))
 	      (while result
 		(hack-one-local-variable (car (car result)) (cdr (car result)))
@@ -2267,7 +2268,8 @@ is specified, returning t if it is specified."
 	      (and (search-forward "Local Variables:" nil t)
 		   (or mode-only
 		       (hack-local-variables-confirm
-			"Set local variables as specified at end of %s? "))))
+			"Set local variables as specified at end of %s? "
+			enable-local-variables))))
 	(skip-chars-forward " \t")
 	(let ((enable-local-eval enable-local-eval)
 	      ;; suffix is what comes after "local variables:" in its line.
@@ -2489,7 +2491,8 @@ is considered risky."
 		 ;; Permit eval if not root and user says ok.
 		 (and (not (zerop (user-uid)))
 		      (hack-local-variables-confirm
-		       "Process `eval' or hook local variables in %s? ")))
+		       "Process `eval' or hook local variables in %s? "
+		       enable-local-eval)))
 	     (if (eq var 'eval)
 		 (save-excursion (eval val))
 	       (make-local-variable var)
@@ -2851,7 +2854,7 @@ the value is \"\"."
 
 (defcustom make-backup-file-name-function nil
   "A function to use instead of the default `make-backup-file-name'.
-A value of nil gives the default `make-backup-file-name' behaviour.
+A value of nil gives the default `make-backup-file-name' behavior.
 
 This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change `backup-file-name-p'

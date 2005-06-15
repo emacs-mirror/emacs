@@ -2739,7 +2739,7 @@ Zero means the entire text matched by the whole regexp or whole string.  */)
   return match_limit (subexp, 0);
 }
 
-DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 2, 0,
+DEFUN ("match-data", Fmatch_data, Smatch_data, 0, 3, 0,
        doc: /* Return a list containing all info on what the last search matched.
 Element 2N is `(match-beginning N)'; element 2N + 1 is `(match-end N)'.
 All the elements are markers or nil (nil if the Nth pair didn't match)
@@ -2751,16 +2751,34 @@ integers \(rather than markers) to represent buffer positions.  In
 this case, and if the last match was in a buffer, the buffer will get
 stored as one additional element at the end of the list.
 
-If REUSE is a list, reuse it as part of the value.  If REUSE is long enough
-to hold all the values, and if INTEGERS is non-nil, no consing is done.
+If REUSE is a list, reuse it as part of the value.  If REUSE is long
+enough to hold all the values, and if INTEGERS is non-nil, no consing
+is done.
+
+If optional third arg RESEAT is non-nil, any previous markers on the
+REUSE list will be modified to point to nowhere.
+
+If RESEAT is `evaporate', put markers back on the free list.
+Note: No other references to the markers must exist if you use this.
 
 Return value is undefined if the last search failed.  */)
-     (integers, reuse)
-     Lisp_Object integers, reuse;
+  (integers, reuse, reseat)
+     Lisp_Object integers, reuse, reseat;
 {
   Lisp_Object tail, prev;
   Lisp_Object *data;
   int i, len;
+
+  if (!NILP (reseat))
+    for (tail = reuse; CONSP (tail); tail = XCDR (tail))
+      if (MARKERP (XCAR (tail)))
+	{
+	  if (EQ (reseat, Qevaporate))
+	    free_marker (XCAR (tail));
+	  else
+	    unchain_marker (XMARKER (XCAR (tail)));
+	  XSETCAR (tail, Qnil);
+	}
 
   if (NILP (last_thing_searched))
     return Qnil;
@@ -2797,10 +2815,10 @@ Return value is undefined if the last search failed.  */)
 	    /* last_thing_searched must always be Qt, a buffer, or Qnil.  */
 	    abort ();
 
-	  len = 2*(i+1);
+	  len = 2 * i + 2;
 	}
       else
-	data[2 * i] = data [2 * i + 1] = Qnil;
+	data[2 * i] = data[2 * i + 1] = Qnil;
     }
 
   if (BUFFERP (last_thing_searched) && !NILP (integers))
@@ -2834,11 +2852,15 @@ Return value is undefined if the last search failed.  */)
 }
 
 
-DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 1, 0,
+DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
        doc: /* Set internal data on last search match from elements of LIST.
-LIST should have been created by calling `match-data' previously.  */)
-     (list)
-     register Lisp_Object list;
+LIST should have been created by calling `match-data' previously.
+
+If optional arg RESEAT is non-nil, make markers on LIST point nowhere.
+If RESEAT is `evaporate', put the markers back on the free list.
+Note: No other references to the markers must exist if you use this.  */)
+    (list, reseat)
+     register Lisp_Object list, reseat;
 {
   register int i;
   register Lisp_Object marker;
@@ -2882,9 +2904,9 @@ LIST should have been created by calling `match-data' previously.  */)
 	search_regs.num_regs = length;
       }
 
-    for (i = 0;; i++)
+    for (i = 0; CONSP (list); i++)
       {
-	marker = Fcar (list);
+	marker = XCAR (list);
 	if (BUFFERP (marker))
 	  {
 	    last_thing_searched = marker;
@@ -2895,12 +2917,14 @@ LIST should have been created by calling `match-data' previously.  */)
 	if (NILP (marker))
 	  {
 	    search_regs.start[i] = -1;
-	    list = Fcdr (list);
+	    list = XCDR (list);
 	  }
 	else
 	  {
 	    int from;
+	    Lisp_Object m;
 
+	    m = marker;
 	    if (MARKERP (marker))
 	      {
 		if (XMARKER (marker)->buffer == 0)
@@ -2911,17 +2935,38 @@ LIST should have been created by calling `match-data' previously.  */)
 
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    from = XINT (marker);
-	    list = Fcdr (list);
 
-	    marker = Fcar (list);
+	    if (!NILP (reseat) && MARKERP (m))
+	      {
+		if (EQ (reseat, Qevaporate))
+		  free_marker (m);
+		else
+		  unchain_marker (XMARKER (m));
+		XSETCAR (list, Qnil);
+	      }
+
+	    if ((list = XCDR (list), !CONSP (list)))
+	      break;
+
+	    m = marker = XCAR (list);
+
 	    if (MARKERP (marker) && XMARKER (marker)->buffer == 0)
 	      XSETFASTINT (marker, 0);
 
 	    CHECK_NUMBER_COERCE_MARKER (marker);
 	    search_regs.start[i] = from;
 	    search_regs.end[i] = XINT (marker);
+
+	    if (!NILP (reseat) && MARKERP (m))
+	      {
+		if (EQ (reseat, Qevaporate))
+		  free_marker (m);
+		else
+		  unchain_marker (XMARKER (m));
+		XSETCAR (list, Qnil);
+	      }
 	  }
-	list = Fcdr (list);
+	list = XCDR (list);
       }
 
     for (; i < search_regs.num_regs; i++)
@@ -2959,7 +3004,7 @@ save_search_regs ()
 
 /* Called upon exit from filters and sentinels. */
 void
-restore_match_data ()
+restore_search_regs ()
 {
   if (search_regs_saved)
     {
@@ -2975,6 +3020,21 @@ restore_match_data ()
       saved_last_thing_searched = Qnil;
       search_regs_saved = 0;
     }
+}
+
+static Lisp_Object
+unwind_set_match_data (list)
+     Lisp_Object list;
+{
+  return Fset_match_data (list, Qevaporate);
+}
+
+/* Called to unwind protect the match data.  */
+void
+record_unwind_save_match_data ()
+{
+  record_unwind_protect (unwind_set_match_data,
+			 Fmatch_data (Qnil, Qnil, Qnil));
 }
 
 /* Quote a string to inactivate reg-expr chars */

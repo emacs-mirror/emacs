@@ -31,7 +31,6 @@ Boston, MA 02111-1307, USA.
 #include "w32heap.h"
 #include "lisp.h"  /* for VALMASK */
 
-#undef RVA_TO_PTR
 #define RVA_TO_PTR(rva) ((unsigned char *)((DWORD)(rva) + (DWORD)GetModuleHandle (NULL)))
 
 /* This gives us the page size and the size of the allocation unit on NT.  */

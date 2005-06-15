@@ -178,7 +178,7 @@ Only the value `maybe' can be trusted :-(."
 (defun vc-arch-root (file)
   "Return the root directory of a Arch project, if any."
   (or (vc-file-getprop file 'arch-root)
-      (vc-file-setprop 
+      (vc-file-setprop
        ;; Check the =tagging-method, in case someone naively manually
        ;; creates a {arch} directory somewhere.
        file 'arch-root (vc-find-root file "{arch}/=tagging-method"))))
@@ -357,7 +357,7 @@ Return non-nil if FILE is unchanged."
 (defun vc-arch-checkout-model (file) 'implicit)
 
 (defun vc-arch-checkin (file rev comment)
-  (if rev (error "Committing to a specific revision is unsupported."))
+  (if rev (error "Committing to a specific revision is unsupported"))
   (let ((summary (file-relative-name file (vc-arch-root file))))
     ;; Extract a summary from the comment.
     (when (or (string-match "\\`Summary:[ \t]*\\(.*[^ \t\n]\\)\\([ \t]*\n\\)*" comment)
@@ -376,7 +376,7 @@ Return non-nil if FILE is unchanged."
       ;; so we can diff with the current file.
       (setq newvers nil))
   (if newvers
-      (error "Diffing specific revisions not implemented.")
+      (error "Diffing specific revisions not implemented")
     (let* ((async (and (not vc-disable-async-diff) (fboundp 'start-process)))
 	   ;; Run the command from the root dir.
 	   (default-directory (vc-arch-root file))

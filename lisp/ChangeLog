@@ -1,3 +1,1121 @@
+2005-06-15  Miles Bader  <miles@gnu.org>
+
+	* progmodes/which-func.el (which-func): Only inherit
+	`font-lock-function-name-face' when that makes sense against the
+	default mode-line face, otherwise set the face color explicitly.
+
+	* progmodes/cperl-mode.el (cperl-init-faces): Use literal cperl
+	faces instead of (non-existent) variables.
+
+2005-06-14  Miles Bader  <miles@gnu.org>
+
+	* progmodes/ld-script.el (ld-script-location-counter):
+	Remove "-face" suffix from face name.
+	(ld-script-location-counter-face): 
+	New backward-compatibility alias for renamed face.
+	(ld-script-location-counter-face): Use renamed face.
+
+	* progmodes/cperl-mode.el (cperl-nonoverridable, cperl-array)
+	(cperl-hash): Remove "-face" suffix from face names.
+	(cperl-nonoverridable-face, cperl-array-face, cperl-hash-face):
+	New backward-compatibility aliases for renamed faces.
+	(cperl-find-pods-heres, cperl-init-faces, cperl-ps-print-init)
+	(cperl-ps-print-face-properties): Use renamed cperl-mode faces.
+
+	* progmodes/which-func.el (which-func): Remove "-face" suffix from face
+	name.
+	(which-func-face): New backward-compatibility alias for renamed face.
+	(which-func-format): Use renamed which-func face.
+
+	* progmodes/vhdl-mode.el (vhdl-prompt, vhdl-attribute, vhdl-enumvalue)
+	(vhdl-function, vhdl-directive, vhdl-reserved-word)
+	(vhdl-translate-off): Remove "-face" suffix and "font-lock-" from face
+	names.
+	(vhdl-speedbar-entity, vhdl-speedbar-architecture)
+	(vhdl-speedbar-configuration, vhdl-speedbar-package)
+	(vhdl-speedbar-library, vhdl-speedbar-instantiation)
+	(vhdl-speedbar-subprogram, vhdl-speedbar-entity-selected)
+	(vhdl-speedbar-architecture-selected)
+	(vhdl-speedbar-configuration-selected)
+	(vhdl-speedbar-package-selected)
+	(vhdl-speedbar-instantiation-selected): Remove "-face" suffix from face
+	names.
+	(vhdl-font-lock-keywords-2, vhdl-font-lock-keywords-5):
+	Use renamed faces.
+	(vhdl-prompt-face, vhdl-attribute-face, vhdl-enumvalue-face)
+	(vhdl-function-face, vhdl-directive-face, vhdl-reserved-words-face)
+	(vhdl-translate-off-face): Variables renamed to remove "font-lock-".
+	Use renamed faces.
+	(syntax-alist): Don't use "font-lock-" or "-face" in generated face
+	names.
+	(vhdl-font-lock-init, vhdl-ps-print-settings): Use renamed faces.
+	(vhdl-speedbar-insert-hierarchy, vhdl-speedbar-expand-entity)
+	(vhdl-speedbar-expand-package, vhdl-speedbar-update-current-unit)
+	(vhdl-speedbar-make-inst-line, vhdl-speedbar-make-pack-line)
+	(vhdl-speedbar-make-subpack-line, vhdl-speedbar-make-subprogram-line)
+	(vhdl-speedbar-item-info, vhdl-speedbar-check-unit): Use renamed faces.
+
+	* progmodes/sh-script.el (sh-heredoc): Remove "-face" suffix from
+	face name.
+	(sh-heredoc-face): New backward-compatibility alias for renamed face.
+	(sh-heredoc-face): Use renamed sh-heredoc face.
+
+	* progmodes/idlw-help.el (idlwave-help-link):
+	Remove "-face" suffix from face name.
+	(idlwave-help-link-face):
+	New backward-compatibility alias for renamed face.
+	(idlwave-highlight-linked-completions): Use renamed idlwave-help faces.
+
+	* progmodes/idlw-shell.el (idlwave-shell-bp-face)
+	(idlwave-shell-disabled-bp): Remove "-face" suffix from face names.
+	(idlwave-shell-bp-face, idlwave-shell-disabled-bp):
+	New backward-compatibility aliases for renamed faces.
+	(idlwave-shell-disabled-breakpoint-face)
+	(idlwave-shell-breakpoint-face): Use renamed idlwave-shell faces.
+
+	* progmodes/flymake.el (flymake-errline, flymake-warnline): 
+	Remove "-face" suffix from face names.
+	(flymake-errline-face, flymake-warnline-face):
+	New backward-compatibility aliases for renamed faces.
+	(flymake-highlight-line): Use renamed flymake faces.
+
+	* progmodes/ebrowse.el (ebrowse-tree-mark, ebrowse-root-class)
+	(ebrowse-file-name, ebrowse-default, ebrowse-member-attribute)
+	(ebrowse-member-class, ebrowse-progress):
+	Remove "-face" suffix from face names.
+	(ebrowse-tree-mark-face, ebrowse-root-class-face)
+	(ebrowse-file-name-face, ebrowse-default-face)
+	(ebrowse-member-attribute-face, ebrowse-member-class-face)
+	(ebrowse-progress-face): 
+	New backward-compatibility aliases for renamed faces.
+	(ebrowse-show-progress, ebrowse-show-file-name-at-point)
+	(ebrowse-set-mark-props, ebrowse-draw-tree-fn)
+	(ebrowse-draw-member-buffer-class-line, ebrowse-draw-member-long-fn)
+	(ebrowse-draw-member-short-fn): Use renamed ebrowse faces.
+
+	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
+	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
+	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
+	names.
+	(antlr-font-lock-default-face, antlr-font-lock-keyword-face)
+	(antlr-font-lock-syntax-face, antlr-font-lock-ruledef-face)
+	(antlr-font-lock-tokendef-face, antlr-font-lock-ruleref-face)
+	(antlr-font-lock-tokenref-face, antlr-font-lock-literal-face):
+	New backward-compatibility aliases for renamed faces.
+	(antlr-default-face, antlr-keyword-face, antlr-syntax-face)
+	(antlr-ruledef-face, antlr-tokendef-face, antlr-ruleref-face)
+	(antlr-tokenref-face, antlr-literal-face): Variables renamed to remove
+	"font-lock-".  Use renamed antlr-mode faces.
+	(antlr-font-lock-additional-keywords): Use renamed faces.
+	Replace literal face-names with face variable references.
+
+	* buff-menu.el (Buffer-menu-buffer): Remove "-face" suffix from
+	face name.
+	(Buffer-menu-buffer-face): New backward-compatibility alias for
+	renamed face.
+	(list-buffers-noselect): Use renamed Buffer-menu-buffer face.
+
+2005-06-15  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-space, makefile-makepp-perl):
+	Eliminate "-face" suffix.
+	(makefile-targets): Inherit font-lock-variable-name-face and
+	eliminate "-face" suffix.
+	(makefile-shell): Remove attributes and eliminate "-face" suffix.
+	(makefile-*-font-lock-keywords): Append makefile-targets in rule
+	actions, instead of prepending, to make it less visible.
+	(makefile-previous-dependency, makefile-match-dependency): Don't
+	match a target on a continuation line.
+
+	* files.el (auto-mode-alist): Put Makefile in gmake mode.
+
+2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-tooltip-print): Respect
+	tooltip-use-echo-area.
+	(menu): Re-order menu items.
+
+	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
+	Define in tooltip.el.
+	(gud-tooltip-process-output): Respect tooltip-use-echo-area.
+	(gud-tooltip-tips): Respect tooltip-use-echo-area and
+	gud-tooltip-echo-area.
+
+	* tooltip.el (tooltip-use-echo-area): Restore from gud.el for
+	backward compatibility and make obsolete.
+	(tooltip-help-tips): Use tooltip-use-echo-area.
+	(tooltip-show-help-function): Rename to...
+	(tooltip-show-help): ...this, because it is a function.
+	(tooltip-mode, tooltip-help-message): Call tooltip-show-help.
+
+2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/edebug.el (edebug-all-defs, edebug-initial-mode)
+	(edebug-print-length, edebug-print-level, edebug-print-circle)
+	(edebug-modify-breakpoint, edebug-eval-last-sexp)
+	(edebug-eval-print-last-sexp): Doc fixes.
+
+2005-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-mode): Make a new keymap every time we enable ido,
+	as the coverage buffer/file/both may change.
+
+2005-06-14  Lute Kamstra  <lute@gnu.org>
+
+	* net/ange-ftp.el (internal-ange-ftp-mode): Use delay-mode-hooks
+	and run-mode-hooks.  Simplify.
+
+	* mail/rmailedit.el (rmail-edit-mode):
+	* progmodes/octave-inf.el (inferior-octave-mode):
+	* progmodes/sql.el (sql-interactive-mode): Use delay-mode-hooks.
+
+	* recentf.el (recentf-dialog-mode): Use kill-all-local-variables
+	and run-mode-hooks.
+	(recentf-edit-list, recentf-open-files): Don't call
+	kill-all-local-variables directly.
+
+	* emacs-lisp/debug.el (debug-on-entry): Fix docstring.
+
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/byte-run.el (make-obsolete)
+	(define-obsolete-function-alias): Rename arguments FUNCTION and
+	NEW to OBSOLETE-NAME and CURRENT-NAME respectively.
+	(make-obsolete-variable, define-obsolete-variable-alias): Rename
+	arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
+	respectively.
+
+	* isearchb.el (isearchb-activate):
+	* pcvs.el (cvs-mode):
+	* ses.el (ses-load):
+	* vc-arch.el (vc-arch-checkin, vc-arch-diff):
+	* net/tramp.el (tramp-find-file-exists-command)
+	(tramp-find-shell):
+	* progmodes/ada-mode.el (ada-create-case-exception)
+	(ada-create-case-exception-substring, ada-make-subprogram-body):
+	* progmodes/idlw-shell.el (idlwave-shell-move-to-bp):
+	* progmodes/idlwave.el (idlwave-complete-class-structure-tag-help):
+	* progmodes/vhdl-mode.el (vhdl-speedbar-place-component):
+	* textmodes/org.el (org-promote, org-evaluate-time-range)
+	(org-agenda-next-date-line, org-agenda-previous-date-line)
+	(org-agenda-error, org-open-at-point, org-table-move-row)
+	(org-format-table-table-html-using-table-generate-source)
+	(org-shiftcursor-error, org-ctrl-c-ctrl-c):
+	* textmodes/reftex.el (reftex-access-scan-info):
+	* textmodes/reftex-toc.el (reftex-toc-dframe-p)
+	(reftex-toc-promote-prepare): Follow error conventions.
+
+	* diff-mode.el (diff-mode): Fix typo in docstring.
+
+	* forms.el (forms--intuit-from-file): Fix reference to
+	`forms-number-of-fields' in error message.
+	(forms-print): Fix quoting in error message.
+
+	* forms.el (forms-mode):
+	* emulation/vi.el (vi-goto-insert-state):
+	* progmodes/flymake.el (flymake-new-err-info)
+	(flymake-start-syntax-check-for-current-buffer)
+	(flymake-simple-cleanup):
+	* eshell/esh-var.el (eshell/export):
+	* progmodes/gud.el (xdb):
+	* textmodes/flyspell.el (flyspell-incorrect-hook)
+	(flyspell-maybe-correct-transposition)
+	(flyspell-maybe-correct-doubling): Fix quoting in docstring.
+
+2005-06-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/debug.el (cancel-debug-on-entry): Mention default in
+	minibuffer prompt.
+
+2005-06-13  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-ordered-list): New defun.
+
+	* emulation/cua-base.el (cua-mode): Use add-to-ordered-list to
+	add cua--keymap-alist to emulation-mode-map-alists.
+
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (complete-in-turn): New macro.
+	(dynamic-completion-table, lazy-completion-table): Add debug info.
+
+	* faces.el (read-face-name): Use complete-in-turn complete non-aliases
+	in preference to face aliases.
+
+	* textmodes/fill.el (fill-match-adaptive-prefix): New function.
+	(fill-context-prefix): Use it to avoid guessing absurdly long prefixes.
+	Remove unused vars `start' and `firstline'.
+	(fill-nobreak-p): Fix line-move-invisible -> line-move-invisible-p.
+	(justify-current-line, fill-individual-paragraphs): Remove unused vars.
+
+2005-06-13  Eli Zaretskii  <eliz@gnu.org>
+
+	* cus-start.el (all): Don't complain about missing GTK-related
+	variables, unless either `gtk' is boundp or this isn't a
+	`windows-nt' build.
+
+2005-06-13  Lute Kamstra  <lute@gnu.org>
+
+	* abbrev.el (edit-abbrevs-mode): Use kill-all-local-variables and
+	run-mode-hooks.
+
+	* ediff-mult.el (ediff-meta-mode):
+	* ediff-util.el (ediff-mode): Use run-mode-hooks.
+
+	* ledit.el (ledit-mode): Use delay-mode-hooks.
+
+	* woman.el (woman-mode-line-format): Delete constant.
+	(woman-mode-map): Initialize it properly.
+	(woman-mode): Set mode-class property to special.
+	Use delay-mode-hooks and run-mode-hooks.  Use the right keymap.
+	Set major-mode and mode-name.  Don't set mode-line-format directly.
+	(Man-getpage-in-background): Don't reference woman-mode-line-format.
+
+	* emacs-lisp/debug.el (cancel-debug-on-entry): Make the empty
+	string argument obsolete.
+
+2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (org-CUA-compatible): New option.
+	(org-disputed-keys): New variable.
+	(org-key): New function.
+	(orgtbl-make-binding): Add docstring to the created function.
+	(org-mode): Set paragraph start/separate regexps.
+	(orgtbl-mode): Don't start `orgtbl-mode' in `org-mode' buffers.
+	(org-archive-location, org-archive-mark-done)
+	(org-archive-stamp-time): New options.
+	(org-archive-subtree): New command.
+	(org-fill-paragraph): New function.
+	(org-mode): Set `fill-paragraph-function' to `org-fill-paragraph'.
+	(org-fake-empty-table-line): Function removed.
+	(org-format-org-table-html): Do not create empty table lines at
+	separator lines.  Improved table header treatment.
+	(org-link-format): New option.
+	(org-make-link): New function.
+	(org-insert-link, org-store-link): Use org-make-link.
+	(org-open-file): Quote file name for shell command, to allow
+	spaces in file names.
+	(org-link-regexp): Fix bug with mailto link.
+	(org-link-maybe-angles-regexp, org-protected-link-regexp):
+	New constants.
+	(org-export-as-html): Deal with the optional angles around a link.
+	Better treatment of file: links.
+	(org-open-at-point): Replace @{ and @} with < and >.
+	(org-run-mode-hooks): Function removed.
+	(org-agenda-mode): No longer use `org-run-mode-hooks'.
+
+2005-06-13  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-registers-mode): Let gdbmi use
+	MI command -data-list-register-values.
+	(gdb-post-prompt): Indent properly.
+
+2005-06-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-colors): Rename from
+	`highlight-changes-colours'.
+	(highlight-changes-colours): Keep as obsolete alias.
+	(highlight-changes-face-list): Doc fix.
+	(hilit-chg-make-list): Use `highlight-changes-colors'.
+
+2005-06-12  Mark A. Hershberger  <mah@everybody.org>
+
+	* progmodes/cperl-mode.el (cperl-mode): Remove stray paren in
+	defun-prompt-regexp.
+
+2005-06-12  Eli Zaretskii  <eliz@gnu.org>
+
+	* loadup.el: Don't say we are dumping under 2 names on windows-nt
+	and cygwin.
+
+	* makefile.w32-in (bootstrap-clean-CMD, bootstrap-clean-SH):
+	Don't use an old loaddefs.el, as in Makefile.in.
+
+2005-06-12  Lute Kamstra  <lute@gnu.org>
+
+	* Makefile.in (bootstrap-prepare): Don't use an old loaddefs.el.
+
+	* man.el (Man-mode-map): Initialize it properly.
+	(Man-mode): Set mode-class property to special.
+
+	* calendar/calendar.el (calendar-mode): Use run-mode-hooks.
+
+2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* menu-bar.el (menu-bar-make-toggle): Remove stray backslash.
+	A newline is needed in the docstring there.
+
+	* emacs-lisp/debug.el (debug-on-entry, cancel-debug-on-entry):
+	Doc fixes.
+
+2005-06-11  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* printing.el: Doc fix.  The menubar is no more changed when printing
+	is loaded, it only changes when pr-menu-bind or pr-update-menus is
+	called.  Now, the menubar changing will work in Emacs 20, 21 and 22.
+	(pr-version): New version number (6.8.4).
+	(pr-menu-bind): New command.
+	(pr-update-menus): Docstring and code fix.
+	(pr-menu-print-item): Now is a global var in Emacs and XEmacs.
+	Docstring fix.
+	(pr-txt-printer-alist, pr-ps-printer-alist, pr-gv-command)
+	(pr-gs-command, pr-gs-switches, pr-ps-utility-alist): Docstring fix.
+
+2005-06-11  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* emacs-lisp/ewoc.el: Doc fixes for public funcs:
+	"Returns" to "return", document useful return values, etc.
+
+2005-06-11  Alan Mackenzie  <acm@muc.de>
+
+	* fill.el (fill-context-prefix): Try `adaptive-fill-function'
+	BEFORE `adaptive-fill-regexp' when determining a fill prefix.
+	(adaptive-file-function): Minor amendment to doc-string.
+
+2005-06-11  Frederik Fouvry  <fouvry@CoLi.Uni-SB.DE>
+
+	* thumbs.el (thumbs-per-line, thumbs-thumbsdir-max-size)
+	(thumbs-relief, thumbs-margin, thumbs-image-resizing-step):
+	Fix :type--it is `integer', not `string'.
+
+	* faces.el (modeline-highlight): Rename from (the erroneous)
+	`modeline-higilight'.
+
+2005-06-11  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-eval-mode-map): Don't copy
+	lisp-interaction-mode-map but make it the parent.
+	(edebug-eval-mode): Use define-derived-mode.
+
+2005-06-11  Andreas Schwab  <schwab@suse.de>
+
+	* bindings.el: Add binding of `ESC functionkey' for every
+	`M-functionkey'.
+	* hexl.el (hexl-mode-map): Likewise.
+
+2005-06-10  Michael Hotchin  <michael@hotchin.net>  (tiny change)
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist)
+	[msft]: update regexp for newer msft compilers.
+
+2005-06-10  Mark A. Hershberger  <mah@everybody.org>
+
+	* xml.el (start-chars, xml-parse-dtd): Add the ability to skip
+	ATTLIST portions of included DTDs.
+	(xml-parse-dtd): Eliminate use of inefficient match-data.
+
+2005-06-10  Miles Bader  <miles@gnu.org>
+
+	* play/mpuz.el (mpuz-unsolved, mpuz-solved, mpuz-trivial)
+	(mpuz-text): Remove "-face" suffix from face names.
+	(mpuz-unsolved-face, mpuz-solved-face, mpuz-trivial-face)
+	(mpuz-text-face): New backward-compatibility aliases for renamed faces.
+	(mpuz-create-buffer, mpuz-paint-digit): Use renamed mpuz faces.
+
+	* play/gomoku.el (gomoku-O, gomoku-X):
+	Remove "-face" suffix from face names.
+	(gomoku-font-lock-O-face, gomoku-font-lock-X-face):
+	New backward-compatibility aliases for renamed faces.
+	(gomoku-font-lock-keywords): Use renamed gomoku faces.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el: Fixes for changes of 2005-06-09.
+	(thumbs-thumbsdir): Force `thumbs-thumbsdir' to be interpretable
+	as a directory.
+	(thumbs-thumbname): Remove directory separator from format string;
+	`thumbs-thumbsdir' now returns a valid directory name.
+	(thumbs-temp-dir): New defsubst.
+	(thumbs-temp-file, thumbs-resize-image, thumbs-modify-image):
+	Use it.
+
+	* cus-edit.el (minibuffer):
+	* files.el (make-backup-file-name-function):
+	* filesets.el (filesets-external-viewers):
+	* hilit-chg.el (highlight-changes-colours)
+	(highlight-changes-face-list, highlight-changes-rotate-faces):
+	* ielm.el (ielm-dynamic-return, inferior-emacs-lisp-mode):
+	* kmacro.el (kmacro-call-macro):
+	* log-edit.el (log-edit-changelog-full-paragraphs):
+	* mouse.el (mouse-1-click-follows-link):
+	* skeleton.el (skeleton-autowrap):
+	* subr.el (insert-for-yank-1):
+	* tempo.el (tempo-insert-region):
+	* terminal.el (terminal-emulator):
+	* time.el (display-time-mail-face):
+	* vc.el (vc-annotate):
+	* vcursor.el (vcursor-copy-line):
+	* woman.el (woman-bold-headings, woman-ignore)
+	(woman-default-faces, woman-monochrome-faces):
+	* calendar/todo-mode.el (todo-insert-threshold):
+	* emulation/pc-select.el (pc-select-selection-keys-only)
+	(pc-selection-mode):
+	* emulation/vip.el (vip-find-char-forward):
+	* emulation/viper-cmd.el (viper-find-char-forward):
+	* international/mule-cmds.el (select-safe-coding-system-accept-default-p)
+	(input-method-exit-on-invalid-key):
+	* international/mule-diag.el (describe-coding-system):
+	* international/ucs-tables.el (unify-8859-on-encoding-mode):
+	* net/browse-url.el (browse-url-xterm-program):
+	* obsolete/lazy-lock.el (lazy-lock-mode):
+	* progmodes/cperl-mode.el (cperl-info-on-command-no-prompt)
+	(cperl-mode):
+	* progmodes/cpp.el (cpp-face-light-name-list)
+	(cpp-face-dark-name-list):
+	* progmodes/delphi.el (delphi-newline-always-indents):
+	Fix spellings in docstrings.
+
+	* ido.el (ido-mode, ido-file-extensions-order)
+	(ido-default-file-method, ido-default-buffer-method)
+	(ido-max-prospects, ido-slow-ftp-hosts, ido-setup-hook)
+	(ido-decorations, ido-read-file-name-as-directory-commands)
+	(ido-read-file-name-non-ido, ido-work-directory-list)
+	(ido-ignore-item-temp-list, ido-current-directory)
+	(ido-magic-forward-char, ido-enter-find-file)
+	(ido-enter-switch-buffer, ido-visit-buffer, ido-switch-buffer)
+	(ido-find-file, ido-read-buffer): Fix typos in docstrings.
+
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* play/dunnet.el (dun-mode): Use define-derived-mode.
+	(dungeon-mode-map): Rename to dun-mode-map.  Keep old name as an
+	obsolete alias.
+
+	* play/doctor.el (doctor-mode-map): Remove defvar.
+	(doctor-mode): Use define-derived-mode.
+
+	* mail/mspools.el (mspools-mode):
+	* net/eudc-hotlist.el (eudc-hotlist-mode):
+	* play/blackbox.el (blackbox-mode): Use run-mode-hooks.
+
+2005-06-10  Miles Bader  <miles@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-incorrect, flyspell-duplicate):
+	Remove "-face" suffix from face names.
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	New backward-compatibility aliases for renamed faces.
+	(flyspell-mode-on, make-flyspell-overlay)
+	(flyspell-highlight-incorrect-region)
+	(flyspell-highlight-duplicate-region)
+	(flyspell-display-next-corrections)
+	(flyspell-auto-correct-previous-word): Use renamed flyspell faces.
+
+	* textmodes/texinfo.el (texinfo-heading): Remove "-face" suffix
+	from face name.
+	(texinfo-heading-face): New backward-compatibility alias for
+	renamed face.
+	(texinfo-heading-face): Use renamed texinfo-heading face.
+
+	* textmodes/tex-mode.el (tex-math, tex-verbatim): Remove "-face"
+	suffix from face names.
+	(tex-math-face, tex-verbatim-face):
+	New backward-compatibility aliases for renamed faces.
+	(tex-math-face, tex-verbatim-face): Use renamed tex-mode faces.
+	(tex-insert-quote): Use `tex-verbatim-face' variable instead of
+	literal face name.
+
+	* textmodes/table.el (table-cell): Remove "-face" suffix from face
+	name.
+	(table-cell-face): New backward-compatibility alias for renamed face.
+	(table--put-cell-face-property, table--update-cell-face):
+	Use renamed table-cell face.
+
+	* textmodes/sgml-mode.el (sgml-namespace): Remove "-face" suffix
+	from face name.
+	(sgml-namespace-face): New backward-compatibility alias for
+	renamed face.
+	(sgml-namespace-face): Use renamed sgml-namespace face.
+
+	* textmodes/org.el (org-level-1, org-level-2, org-level-3)
+	(org-level-4, org-level-5, org-level-6, org-level-7)
+	(org-level-8, org-warning, org-headline-done)
+	(org-deadline-announce, org-scheduled-today)
+	(org-scheduled-previously, org-link, org-done, org-table)
+	(org-time-grid): Remove "-face" suffix from face names.
+	(org-level-1-face, org-level-2-face, org-level-3-face)
+	(org-level-4-face, org-level-5-face, org-level-6-face)
+	(org-level-7-face, org-level-8-face, org-warning-face)
+	(org-headline-done-face, org-deadline-announce-face)
+	(org-scheduled-today-face, org-scheduled-previously-face)
+	(org-link-face, org-done-face, org-table-face)
+	(org-time-grid-face):
+	New backward-compatibility aliases for renamed faces.
+	(org-level-faces, org-set-font-lock-defaults, org-timeline)
+	(org-agenda, org-agenda-get-todos, org-agenda-get-deadlines)
+	(org-agenda-get-timestamps, org-agenda-get-scheduled)
+	(org-agenda-add-time-grid-maybe, org-table-p): Use renamed org faces.
+
+	* emulation/viper-init.el (viper-search, viper-replace-overlay)
+	(viper-minibuffer-emacs, viper-minibuffer-insert)
+	(viper-minibuffer-vi): Remove "-face" suffix from face names.
+	(viper-search-face, viper-replace-overlay-face)
+	(viper-minibuffer-emacs-face, viper-minibuffer-insert-face)
+	(viper-minibuffer-vi-face):
+	New backward-compatibility aliases for renamed faces.
+	(viper-search-face, viper-replace-overlay-face)
+	(viper-minibuffer-emacs-face, viper-minibuffer-insert-face)
+	(viper-minibuffer-vi-face): Use renamed viper faces.
+
+	* emacs-lisp/testcover.el (testcover-nohits, testcover-1value):
+	Remove "-face" suffix from face names.
+	(testcover-nohits-face, testcover-1value-face):
+	New backward-compatibility aliases for renamed faces.
+	(testcover-mark): Use renamed testcover faces.
+
+	* calendar/diary-lib.el (diary-button): Remove "-face" suffix from
+	face name.
+	(diary-button-face): New backward-compatibility alias for renamed face.
+	(diary-entry): Use renamed diary-button face.
+
+	* calendar/calendar.el (diary, calendar-today, holiday)
+	(mark-visible-calendar-date): Remove "-face" suffix from face names.
+	(diary-face, calendar-today-face, holiday-face):
+	New backward-compatibility aliases for renamed faces.
+	(eval-after-load "facemenu", diary-entry-marker)
+	(calendar-today-marker, calendar-holiday-marker, diary-face):
+	Use renamed calendar faces.
+
+	* compare-w.el (compare-windows): Remove "-face" suffix from face name.
+	(compare-windows-face): New backward-compatibility alias for
+	renamed face.
+	(compare-windows-highlight): Use renamed compare-windows face.
+
+	* strokes.el (strokes-char): Remove "-face" suffix from face name.
+	(strokes-char-face): New backward-compatibility alias for renamed face.
+	(strokes-encode-buffer): Use renamed strokes-char face.
+
+	* pcvs-info.el (cvs-header, cvs-filename, cvs-unknown)
+	(cvs-handled, cvs-need-action, cvs-marked, cvs-msg):
+	Remove "-face" suffix from face names.
+	(cvs-header-face, cvs-filename-face, cvs-unknown-face)
+	(cvs-handled-face, cvs-need-action-face, cvs-marked-face)
+	(cvs-msg-face): New backward-compatibility aliases for renamed faces.
+	(cvs-fi-up-to-date-face, cvs-fi-unknown-face, cvs-fileinfo-pp):
+	Use renamed pcvs faces.
+	* pcvs.el (cvs-mode-find-file): Use renamed pcvs faces.
+	* pcvs-defs.el (cvs-mode-map): Likewise.
+	* cvs-status.el (cvs-status-font-lock-keywords): Likewise.
+
+	* info.el (info-title-1, info-title-2, info-title-3)
+	(info-title-4): Remove "-face" suffix from and downcase face names.
+	(Info-title-1-face, Info-title-2-face, Info-title-3-face)
+	(Info-title-4-face):
+	New backward-compatibility aliases for renamed faces.
+	(Info-fontify-node): Use renamed info faces.
+
+	* hilit-chg.el (highlight-changes, highlight-changes-delete):
+	Remove "-face" suffix from face names.
+	(highlight-changes-face, highlight-changes-delete-face):
+	New backward-compatibility aliases for renamed faces.
+	(hilit-chg-cust-fix-changes-face-list, hilit-chg-make-ov)
+	(hilit-chg-make-list): Use renamed highlight-changes faces.
+
+	* generic-x.el (show-tabs-tab, show-tabs-space):
+	Remove "-face" suffix from face names.
+	(show-tabs-tab-face, show-tabs-space-face):
+	New backward-compatibility aliases for renamed faces.
+	(show-tabs-generic-mode-font-lock-defaults-1)
+	(show-tabs-generic-mode-font-lock-defaults-2):
+	Use renamed show-tabs faces.
+
+	* smerge-mode.el (smerge-mine, smerge-other, smerge-base)
+	(smerge-markers): Remove "-face" suffix from face names.
+	(smerge-mine-face, smerge-other-face, smerge-base-face)
+	(smerge-markers-face):
+	New backward-compatibility aliases for renamed faces.
+	(smerge-mine-face, smerge-other-face, smerge-base-face)
+	(smerge-markers-face): Use renamed smerge faces.
+
+	* log-view.el (log-view-file, log-view-message):
+	Remove "-face" suffix from face names.
+	(log-view-file-face, log-view-message-face):
+	New backward-compatibility aliases for renamed faces.
+	(log-view-file-face, log-view-message-face): Use renamed log-view faces.
+
+	* paren.el (show-paren-match, show-paren-mismatch):
+	Remove "-face" suffix from face names.
+	(show-paren-match-face, show-paren-mismatch-face):
+	New backward-compatibility aliases for renamed faces.
+	(show-paren-function): Use renamed show-paren faces.
+
+	* ruler-mode.el (ruler-mode-default, ruler-mode-pad)
+	(ruler-mode-margins, ruler-mode-fringes)
+	(ruler-mode-column-number, ruler-mode-fill-column)
+	(ruler-mode-comment-column, ruler-mode-goal-column)
+	(ruler-mode-tab-stop, ruler-mode-current-column):
+	Remove "-face" suffix from face names.
+	(ruler-mode-default-face, ruler-mode-pad-face)
+	(ruler-mode-margins-face, ruler-mode-fringes-face)
+	(ruler-mode-column-number-face, ruler-mode-fill-column-face)
+	(ruler-mode-comment-column-face, ruler-mode-goal-column-face)
+	(ruler-mode-tab-stop-face, ruler-mode-current-column-face):
+	New backward-compatibility aliases for renamed faces.
+	(ruler-mode-pad, ruler-mode-margins, ruler-mode-fringes)
+	(ruler-mode-column-number, ruler-mode-fill-column)
+	(ruler-mode-comment-column, ruler-mode-goal-column)
+	(ruler-mode-tab-stop, ruler-mode-current-column)
+	(ruler-mode-mouse-grab-any-column, ruler-mode-ruler): Use renamed faces.
+
+	* whitespace.el (whitespace-highlight): Remove "-face" suffix from
+	face name.
+	(whitespace-highlight-the-space): Use renamed face.
+	(whitespace-highlight-face): New backward-compatibility alias for
+	renamed face.
+
+	* woman.el (woman-italic, woman-bold, woman-unknown)
+	(woman-addition, woman-symbol-face):
+	Remove "-face" suffix from face names.
+	(woman-italic-face, woman-bold-face, woman-unknown-face)
+	(woman-addition-face):
+	New backward-compatibility aliases for renamed faces.
+	(woman-default-faces, woman-monochrome-faces, woman-man-buffer)
+	(woman-decode-region, woman-replace-match)
+	(woman-display-extended-fonts, woman-special-characters)
+	(woman-font-alist, woman-change-fonts, woman2-TH, woman2-SH):
+	Use renamed woman faces.
+
+	* longlines.el (longlines-visible-face): Face removed.
+
+	* diff-mode.el (diff-header, diff-file-header, diff-index)
+	(diff-hunk-header, diff-removed, diff-added, diff-changed)
+	(diff-function, diff-context, diff-nonexistent): Remove "-face"
+	suffix from face names.
+	(diff-header-face, diff-file-header-face, diff-index-face)
+	(diff-hunk-header-face, diff-removed-face, diff-added-face)
+	(diff-changed-face, diff-function-face, diff-context-face)
+	(diff-nonexistent-face): New backward-compatibility aliases for
+	renamed faces.
+	(diff-header-face, diff-file-header-face)
+	(diff-index, diff-index-face, diff-hunk-header)
+	(diff-hunk-header-face, diff-removed, diff-removed-face)
+	(diff-added, diff-added-face, diff-changed-face, diff-function)
+	(diff-function-face, diff-context-face, diff-nonexistent)
+	(diff-nonexistent-face): Use renamed diff-mode faces.
+
+	* progmodes/compile.el (compilation-warning-face)
+	(compilation-info-face): Remove "-face" suffix from face names.
+	(compilation-warning-face, compilation-info-face):
+	New backward-compatibility aliases for renamed faces.
+	(compilation-warning-face, compilation-info-face):
+	Use renamed compilation faces.
+
+	* add-log.el (change-log-date, change-log-name)
+	(change-log-email, change-log-file, change-log-list)
+	(change-log-conditionals, change-log-function)
+	(change-log-acknowledgement): Remove "-face" suffix from face names.
+	(change-log-date-face, change-log-name-face)
+	(change-log-email-face, change-log-file-face)
+	(change-log-list-face, change-log-conditionals-face)
+	(change-log-function-face, change-log-acknowledgement-face):
+	New backward-compatibility aliases for renamed faces.
+	(change-log-font-lock-keywords): Use renamed change-log faces.
+
+	* cus-edit.el (custom-invalid, custom-rogue, custom-modified)
+	(custom-set, custom-changed, custom-saved, custom-button)
+	(custom-button-pressed, custom-documentation, custom-state)
+	(custom-comment, custom-comment-tag, custom-variable-tag)
+	(custom-variable-button, custom-face-tag, custom-group-tag-1)
+	(custom-group-tag): Remove "-face" suffix from face names.
+	(custom-magic-alist, custom-magic-value-create)
+	(custom-group-sample-face-get, custom-mode): Use renamed custom faces.
+	(custom-invalid-face, custom-rogue-face, custom-modified-face)
+	(custom-set-face, custom-changed-face, custom-saved-face)
+	(custom-button-face, custom-button-pressed-face)
+	(custom-documentation-face, custom-state-face)
+	(custom-comment-face, custom-comment-tag-face)
+	(custom-variable-tag-face, custom-variable-button-face)
+	(custom-face-tag-face, custom-group-tag-face-1)
+	(custom-group-tag-face):
+	New backward-compatibility aliases for renamed faces.
+
+	* wid-edit.el (widget-documentation, widget-button)
+	(widget-field, widget-single-line-field, widget-inactive)
+	(widget-button-pressed): "-face" suffix removed from face names.
+	(widget-documentation-face, widget-button-face)
+	(widget-field-face, widget-single-line-field-face)
+	(widget-inactive-face, widget-button-pressed-face):
+	New backward-compatibility aliases for renamed faces.
+	(widget-documentation-face, widget-button-face)
+	(widget-button-pressed-face, widget-specify-field)
+	(widget-specify-inactive): Use renamed widget faces.
+
+2005-06-10  Kenichi Handa  <handa@m17n.org>
+
+	* term/x-win.el (x-clipboard-yank): Remove condition-case
+	wrapping.
+
+2005-06-11  Kenichi Handa  <handa@m17n.org>
+
+	* add-log.el (change-log-font-lock-keywords): Make the regexp for
+	date lines stricter.
+
+2005-06-10  Zhang Wei  <id.brep@gmail.com>  (tiny change)
+
+	* term/x-win.el (x-clipboard-yank): Use x-selection-value instead
+	of x-get-selection.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* comint.el (comint-mode, comint-snapshot-last-prompt):
+	* frame.el (frame-current-scroll-bars):
+	* term.el (term-mode, term-check-proc, term-input-sender)
+	(term-simple-send, term-extract-string, term-word)
+	(term-match-partial-filename):
+	* window.el (window-current-scroll-bars):
+	* emulation/cua-base.el (cua-normal-cursor-color)
+	(cua-read-only-cursor-color, cua-overwrite-cursor-color)
+	(cua-global-mark-cursor-color):
+	* mail/undigest.el (rmail-forward-separator-regex):
+	Fix typos in docstrings.
+
+	* comint.el (comint-check-proc, make-comint-in-buffer)
+	(comint-source-default): Doc fixes.
+
+	* term.el (term-send-string): Improve argument/docstring
+	consistency.
+
+2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* comint.el (comint-send-input): Bind `inhibit-read-only' around
+	call to `delete-region'.
+	(comint-mode-hook): Do not enable Font Lock by default.
+
+2005-06-09  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/ispell.el (ispell-menu-map-needed): flyspell-mode
+	could be void.
+
+2005-06-09  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debugger-will-be-back): New var.
+	(debug): Use it.
+	(debugger-step-through, debugger-continue, debugger-jump)
+	(debugger-return-value): Set it when needed.
+	(debugger-make-xrefs, debugger-frame, debugger-frame-clear):
+	Use inhibit-read-only.
+
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* window.el (shrink-window-if-larger-than-buffer)
+	(window-size-fixed): Fix typo in docstring.
+
+	* thumbs.el: Don't set `auto-image-file-mode'.  Do not create the
+	thumbnails directory on loading.
+	(thumbs-conversion-program): Use `eq' to check the system type,
+	not `equal'.
+	(thumbs-temp-dir): Initialize to `temporary-file-directory',
+	not "/tmp".  Fix docstring.
+	(thumbs-thumbsdir): New function to return the thumbnails
+	directory, creating it if needed.
+	(thumbs-cleanup-thumbsdir, thumbs-thumbname): Use it.
+	(thumbs-temp-file): Delete variable and make it into a function.
+	(thumbs-resize-image, thumbs-modify-image): Use it.
+	(thumbs-kill-buffer): Simplify.
+	(thumbs-gensym): Defalias or duplicate CL `gensym'.
+	(thumbs-resize-image, thumbs-resize-interactive): Fix typos in
+	docstrings.
+
+2005-06-09  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (save-match-data): Add RESEAT arg `evaporate' to
+	set-match-data to free markers in match-data.
+
+	* replace.el (replace-match-data): Pass RESEAT arg `t' to
+	match-data to unchain markers in match-data.
+
+2005-06-08  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/debug.el (debug): Don't iconify if we know we'll re-enter
+	the debugger immediately anyway.  Undo the 2005-06-06 change, rendered
+	unnecessary now.
+
+2005-06-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): If BODY is empty,
+	give the variable a doc string that doesn't say don't set it directly.
+
+	* textmodes/ispell.el (ispell-check-version):
+	Use match-string-no-properties.
+	(ispell-region,	ispell-buffer-local-parsing, ispell-buffer-local-dict)
+	(ispell-buffer-local-words): Likewise.
+
+	* progmodes/make-mode.el (makefile-shell-face): Make this a no-op
+	except on terminals with enough colors to really display it.
+	(makefile-dependency-regex): Delete spurious `bb'.
+
+	* faces.el (escape-glyph): Use blue once again in last case.
+	(no-break-space): Redefine so that it isn't invisible on a tty.
+
+2005-06-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-read-file-name): Fallback to read-file-name on C-f
+	also when reading directory name.
+
+2005-06-08  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-mode): Use define-minor-mode.
+	(flyspell-mode-line-string): Remove autoload cookie.
+	(flyspell-mode): Remove defvar.
+
+2005-06-07  Lute Kamstra  <lute@gnu.org>
+
+	* textmodes/org.el (org-run-mode-hooks): New function.
+	(org-agenda-mode): Use it.
+
+2005-06-07  David McCabe  <davemccabe@gmail.com>  (tiny change)
+
+	* emacs-lisp/lisp-mode.el (defstruct): Set `doc-string-elt' property.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* international/iso-cvt.el (iso-sgml2iso-trans-tab): Add NBSP.
+
+2005-06-06  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el (font-lock-add-keywords): Doc fix.
+
+2005-06-06  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/tex-mode.el (tex-guess-mode): Add RequirePackage.
+	(tex-compile-default): In the absence of any history, use the order in
+	tex-compile-alist to choose the preferred command.
+	(tex-compile-commands): Reorder a bit.
+
+	* textmodes/flyspell.el (flyspell-auto-correct-binding)
+	(flyspell-incorrect-face, flyspell-duplicate-face):
+	Use (X)Emacs-agnostic code.
+	(flyspell-mode-map): Don't overwrite at each load.  Remove code
+	redundant with the subsequent add-minor-mode.  Merge Emacs and
+	XEmacs code.
+	(flyspell-word): Minor simplification.
+	(flyspell-math-tex-command-p): Quieten the byte-compiler.
+	(flyspell-external-point-words): Remove unused vars `size' and `start'.
+	(flyspell-do-correct): Rename from flyspell-xemacs-correct.
+	Merge the corresponding Emacs code.
+	(flyspell-correct-word, flyspell-xemacs-popup): Use flyspell-do-correct.
+
+	* emacs-lisp/debug.el (debug): Don't bury the buffer unless it's in
+	a dedicated window.
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Undo part of last patch, to turn off a compiler warning.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* tmm.el (tmm-inactive, tmm-remove-inactive-mouse-face):
+	Rename `tmm-inactive-face' to `tmm-inactive'.
+
+2005-06-06  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* iswitchb.el: Rename faces.
+
+2005-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-rectangle, cua-rectangle-noselect)
+	(cua-global-mark): Remove -face suffix from face names.
+
+	* emulation/cua-gmrk.el (cua--init-global-mark):
+	Remove cua-global-mark face setup.
+
+2005-06-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/make-mode.el (makefile-dependency-regex): Handle whitespace
+	just like other allowed characters.
+	(makefile-match-dependency): Exclude leading and training whitespace
+	from the range of regexp subexp 1.
+	(makefile-macroassign-regex): Don't try to match the body,
+	just the name of the macro being defined.
+
+	* info.el (Info-read-node-name-2): New function.
+	(Info-read-node-name-1): Use that.
+	Add a completion-base-size-function property.
+
+	* simple.el (completion-setup-function): Look for
+	completion-base-size-function property of
+	minibuffer-completion-table.
+
+	* files.el (locate-file-completion): Doc fix.
+
+	* printing.el: Don't call pr-update-menus; user must do that.
+
+	* emacs-lisp/debug.el (debugger-window): New variable.
+	(debug): Use debugger-window if it is set and still alive.
+	Record debugger-window for next entry.
+
+	* mail/supercite.el (sc-mail-glom-frame): Mark as risky.
+
+2005-06-06  Matthias F,Av(Brste  <slashdevslashnull@gmx.net>
+
+	* files.el (hack-local-variables-confirm): New arg FLAG-TO-CHECK.
+	(hack-one-local-variable, hack-local-variables)
+	(hack-local-variables-prop-line): Pass that arg.
+
+2005-06-06  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-first-match, ido-only-match, ido-subdir)
+	(ido-indicator): Remove -face suffix from face names.
+
+2005-06-06  Juri Linkov  <juri@jurta.org>
+
+	* font-lock.el (font-lock-regexp-backslash)
+	(font-lock-regexp-backslash-construct): New faces.
+	(lisp-font-lock-keywords-2): Use new faces.  Match `?:' only
+	after `('.  Add `while-no-input' to control structures.
+
+	* faces.el (no-break-space, shadow): New faces.
+	(escape-glyph): Use less loud colors pink2 and red4.
+
+	* diff-mode.el (diff-context-face)
+	* dired.el (dired-ignored)
+	* rfn-eshadow.el (file-name-shadow)
+	* tmm.el (tmm-inactive-face): Inherit from `shadow' face.
+
+	* info.el (Info-title-1-face): Use green instead of yellow because
+	bold yellow is not readable on light backgrounds.
+
+	* progmodes/compile.el (compilation-start): Move `erase-buffer' up
+	before selecting the desired mode to not spend time fontifying
+	old contents.
+
+2005-06-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* thumbs.el (thumbs-thumbsdir-max-size, thumbs-image-resizing-step)
+	(thumbs-thumbsdir-auto-clean): Fix typos in docstrings.
+
+	* ps-print.el (ps-default-fg, ps-default-bg):
+	Fix typos in docstrings.
+
+	* isearchb.el (isearchb): Don't pass a spurious second argument to
+	`iswitchb-completions'.
+
+2005-06-05  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-info-locals-handler): Use window point
+	to preserve point.
+	(gdb-find-file-hook): Add doc string.
+
+	* progmodes/gud.el (gdb, gud-menu-map): Add command to evaluate
+	C dereferenced pointer expression.
+	(gud-tool-bar-map): Put it on the tool bar.  Re-order icons.
+
+	* toolbar/gud-pstar.xpm, toolbar/gud-pstar.pbm: New files.
+
+	* toolbar/gud-break.xpm, toolbar/gud-cont.xpm, toolbar/gud-down.xpm
+	* toolbar/gud-finish.xpm, toolbar/gud-ni.xpm, toolbar/gud-n.xpm
+	* toolbar/gud-print.xpm, toolbar/gud-remove.xpm, toolbar/gud-run.xpm
+	* toolbar/gud-si.xpm, toolbar/gud-s.xpm, toolbar/gud-until.xpm
+	* toolbar/gud-up.xpm, toolbar/gud-watch.xpm:
+	Make background transparent.
+
+2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* font-lock.el (font-lock-add-keywords): Doc fix.  Comment change.
+	(font-lock-remove-keywords): Doc fix.
+	(font-lock-mode-major-mode): Compiler defvar.
+	(font-lock-set-defaults): Use `font-lock-mode-major-mode'.
+
+	* font-core.el (font-lock-mode-major-mode): Compiler defvar.
+	(font-lock-mode): Update `font-lock-mode-major-mode'.
+	(font-lock-set-defaults): Compiler defvar.
+	(font-lock-default-function): Take `font-lock-mode-major-mode'
+	into account.
+
+	* emacs-lisp/easy-mmode.el (define-global-minor-mode): Make it
+	keep track of which major mode it enabled the minor mode for.
+	Use find-file-hook again.  Update docstring.
+
+	* simple.el (eval-expression-print-level)
+	(eval-expression-print-length, eval-expression-debug-on-error):
+	Doc fixes.
+
+2005-06-04  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* iswitchb.el (iswitchb-single-match-face)
+	(iswitchb-current-match-face, iswitchb-virtual-matches-face)
+	(iswitchb-invalid-regexp-face): New faces.
+	(iswitchb-completions): Use them.
+	(iswitchb-use-faces): Rename from iswitchb-use-fonts, which is
+	now marked as an obsolete alias.
+	(iswitchb-read-buffer): Remove check for bound font variables.
+	(iswitchb-invalid-regexp): New free variable.
+	(iswitchb-get-matched-buffers): Catch invalid-regexp errors and
+	set iswitchb-invalid-regexp.
+	(iswitchb, iswitchb-complete, iswitchb-completions): Deal with
+	invalid regexps.
+	(iswitchb-completions): Add check for complete match when entering
+	a regexp.
+	(iswitchb-completions): Remove require-match argument.
+	(iswitchb-exhibit): Fix caller.
+	(iswitchb-common-match-inserted): New variable.
+	(iswitchb-complete, iswitchb-completion-help): Use it.
+
+2005-06-04  David Reitter  <david.reitter@gmail.com>  (tiny change)
+
+	* url-http.el (url-http-chunked-encoding-after-change-function):
+	Use `url-http-debug' instead of `message'.
+
+2005-06-04  Thierry Emery  <thierry.emery@free.fr>  (tiny change)
+
+	* url-http.el (url-http-parse-headers): Pass redirected URL as a
+	callback argument.
+
+2005-06-04  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move): Only call sit-for when moving backwards.
+
+	* ido.el (ido-make-merged-file-list-1): New defun split from
+	ido-make-merged-file-list.
+	(ido-make-merged-file-list): Bind throw-on-input around call to
+	ido-make-merged-file-list-1.  Return input-pending-p if
+	interrupted by more input available.
+	(ido-read-internal): Handle input-pending-p return value from
+	ido-make-merged-file-list.
+
+2005-06-03  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* textmodes/flyspell.el (flyspell-check-word-p): Simplify silly
+	compatibility code.
+
+	* international/latexenc.el (latexenc-find-file-coding-system):
+	Don't inherit the EOL part of the coding-system from the
+	tex-main buffer.  Fit within 80 columns.
+
+2005-06-03  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* tmm.el (tmm-inactive-face): New face.
+	(tmm-remove-inactive-mouse-face): New function.
+	(tmm-prompt, tmm-add-one-shortcut)
+	(tmm-add-prompt, tmm-get-keymap): Make active menu items visible
+	but not selectable.
+
+2005-06-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* faces.el (face-equal): Improve argument/docstring consistency.
+
+2005-06-03  Daniel Pfeiffer  <occitan@esperanto.org>
+
+	* progmodes/make-mode.el (makefile-targets-face)
+	(makefile-shell-face, makefile-makepp-perl-face): Add :version.
+	(makefile-bsdmake-dependency-regex)
+	(makefile-makepp-rule-action-regex)
+	(makefile-bsdmake-rule-action-regex): New constants.
+	(makefile-makepp-mode, makefile-bsdmake-mode): Use them.
+
+	* progmodes/compile.el (compilation-error-regexp-alist-alist):
+	Allow (...) within `...' for makepp messages.
+
+2005-06-03  Michael Kifer  <kifer@cs.stonybrook.edu>
+
+	* ediff-diff.el (ediff-same-contents): Eliminate CL-type functions.
+
+	* ediff-mult.el (ediff-intersect-directories): Make sure that ".." and
+	"." files are deleted from all file lists before comparison.
+
+	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	(viper-ESC-key): Made them customizable.
+
+	* viper.el (viper-non-hook-settings): Fix the names of defadvices.
+
 2005-06-01  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* autorevert.el (auto-revert-buffers): Use save-match-data.
@@ -23,8 +1141,7 @@
 	(gdb-info-breakpoints-custom, gdb-delete-breakpoint)
 	(gdb-goto-breakpoint, gdb-source-info, gdb-get-location)
 	(gdb-assembler-custom): Improve regexps.
-	(def-gdb-auto-update-handler): Use window point to ensure it
-	is preserved.
+	(def-gdb-auto-update-handler): Use window point to preserve point.
 
 2005-05-31  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -9392,7 +10509,7 @@
 	* toolbar/tool-bar.el (tool-bar-setup): Tool bar item dired uses
 	icon diropen.  New tool bar item find-file-existing uses icon open.
 
-	* dired.el (dired-read-dir-and-switches): Call read-driectory-name
+	* dired.el (dired-read-dir-and-switches): Call read-directory-name
 	instead of read-file-name.
 
 2004-11-02  Ulf Jasper  <ulf.jasper@web.de>
@@ -17516,8 +18633,8 @@
 
 2004-01-21  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* term/x-win.el: Call menu-bar-enable-clipboard and make Paste
-	use clipboard first.
+	* term/x-win.el (x-clipboard-yank, menu-bar-edit-menu): Call
+	menu-bar-enable-clipboard and make Paste use clipboard first.
 
 2004-01-20  Stefan Monnier  <monnier@iro.umontreal.ca>
 

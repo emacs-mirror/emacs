@@ -154,12 +154,12 @@ different paragraphs are unrelated.
 You could argue that the log entry for a file should contain the
 full ChangeLog paragraph mentioning the change to the file, even though
 it may mention other files, because that gives you the full context you
-need to understand the change.  This is the behaviour you get when this
+need to understand the change.  This is the behavior you get when this
 variable is set to t.
 
 On the other hand, you could argue that the log entry for a change
 should contain only the text for the changes which occurred in that
-file, because the log is per-file.  This is the behaviour you get
+file, because the log is per-file.  This is the behavior you get
 when this variable is set to nil.")
 
 ;;;; Internal global or buffer-local vars

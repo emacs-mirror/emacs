@@ -42,6 +42,8 @@ TOBJ            = $(BLD)/firstfile.$(O)
 TRES		= $(BLD)/emacs.res
 TLASTLIB	= $(BLD)/lastfile.$(A)
 
+DOC		= $(OBJDIR)/etc/DOC-X
+
 FULL_LINK_FLAGS      = $(LINK_FLAGS) $(TEMACS_EXTRA_LINK)
 
 #
@@ -165,7 +167,8 @@ $(EMACS):       $(DOC) $(TEMACS)
 # (it is the preload heap size in MB).
 #
 temacs:         $(BLD) $(TEMACS)
-$(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES)
+$(TEMACS):      $(TLIB0) $(TLIB1) $(TLIBW32) $(TLASTLIB) $(TOBJ) $(TRES) \
+		  ../nt/$(BLD)/addsection.exe
 	$(LINK) $(LINK_OUT)$(TEMACS_TMP) $(FULL_LINK_FLAGS) $(TOBJ) $(TRES) $(LIBS)
 	"../nt/$(BLD)/addsection" "$(TEMACS_TMP)" "$(TEMACS)" EMHEAP 16
 	echo $(OBJ0) > $(BLD)/buildobj.lst
@@ -593,6 +596,7 @@ $(BLD)/emacs.$(O) : \
 	$(SRC)/termhooks.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32heap.h \
 	$(SRC)/window.h
 
 $(BLD)/eval.$(O) : \
@@ -1428,6 +1432,7 @@ $(BLD)/w32select.$(O): \
 	$(SRC)/systime.h \
 	$(SRC)/w32bdf.h \
 	$(SRC)/w32gui.h \
+	$(SRC)/w32heap.h \
 	$(SRC)/w32term.h
 
 $(BLD)/w32reg.$(O): \

@@ -875,6 +875,7 @@ deleted.  Point is left where the deleted region was."
 			 nnfolder-file-coding-system))
 		    (nnheader-find-file-noselect file t)))))
     (mm-enable-multibyte) ;; Use multibyte buffer for future copying.
+    (buffer-disable-undo)
     (if (equal (cadr (assoc group nnfolder-scantime-alist))
 	       (nth 5 (file-attributes file)))
 	;; This looks up-to-date, so we don't do any scanning.
@@ -901,7 +902,6 @@ deleted.  Point is left where the deleted region was."
 	      maxid start end newscantime
 	      novbuf articles newnum
 	      buffer-read-only)
-	  (buffer-disable-undo)
 	  (setq maxid (cdr active))
 
 	  (unless (or gnus-nov-is-evil nnfolder-nov-is-evil

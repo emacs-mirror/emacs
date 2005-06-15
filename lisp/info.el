@@ -1379,6 +1379,43 @@ If FORK is a string, it is the name to use for the new buffer."
 
 (defvar Info-read-node-completion-table)
 
+(defun Info-read-node-name-2 (string path-and-suffixes action)
+  "Virtual completion table for file names input in Info node names.
+PATH-AND-SUFFIXES is a pair of lists, (DIRECTORIES . SUFFIXES)."
+  (let* ((names nil)
+	 (suffixes (remove "" (cdr path-and-suffixes)))
+	 (suffix (concat (regexp-opt suffixes t) "\\'"))
+	 (string-dir (file-name-directory string))
+	 (dirs
+	  (if (file-name-absolute-p string)
+	      (list (file-name-directory string))
+	    (car path-and-suffixes))))
+    (dolist (dir dirs)
+      (unless dir
+	(setq dir default-directory))
+      (if string-dir (setq dir (expand-file-name string-dir dir)))
+      (when (file-directory-p dir)
+	(dolist (file (file-name-all-completions
+		       (file-name-nondirectory string) dir))
+	  ;; If the file name has no suffix or a standard suffix,
+	  ;; include it.
+	  (and (or (null (file-name-extension file))
+		   (string-match suffix file))
+	       ;; But exclude subfiles of split info files.
+	       (not (string-match "-[0-9]+\\'" file))
+	       ;; And exclude backup files.
+	       (not (string-match "~\\'" file))
+	       (push (if string-dir (concat string-dir file) file) names))
+	  ;; If the file name ends in a standard suffix,
+	  ;; add the unsuffixed name as a completion option.
+	  (when (string-match suffix file)
+	    (setq file (substring file 0 (match-beginning 0)))
+	    (push (if string-dir (concat string-dir file) file) names)))))
+    (cond
+     ((eq action t) (all-completions string names))
+     ((null action) (try-completion string names))
+     (t (test-completion string names)))))
+
 ;; This function is used as the "completion table" while reading a node name.
 ;; It does completion using the alist in Info-read-node-completion-table
 ;; unless STRING starts with an open-paren.
@@ -1389,15 +1426,16 @@ If FORK is a string, it is the name to use for the new buffer."
     (let ((file (substring string 1)))
       (cond
        ((eq code nil)
-	(let ((comp (try-completion file 'locate-file-completion
+	(let ((comp (try-completion file 'Info-read-node-name-2
 				    (cons Info-directory-list
 					  (mapcar 'car Info-suffix-list)))))
 	  (cond
 	   ((eq comp t) (concat string ")"))
 	   (comp (concat "(" comp)))))
-       ((eq code t) (all-completions file 'locate-file-completion
-				     (cons Info-directory-list
-					   (mapcar 'car Info-suffix-list))))
+       ((eq code t)
+	(all-completions file 'Info-read-node-name-2
+			 (cons Info-directory-list
+			       (mapcar 'car Info-suffix-list))))
        (t nil))))
    ;; If a file name was given, then any node is fair game.
    ((string-match "\\`(" string)
@@ -1412,6 +1450,10 @@ If FORK is a string, it is the name to use for the new buffer."
     (all-completions string Info-read-node-completion-table predicate))
    (t
     (test-completion string Info-read-node-completion-table predicate))))
+
+;; Arrange to highlight the proper letters in the completion list buffer.
+(put 'Info-read-node-name-1 'completion-base-size-function
+     (lambda () 1))
 
 (defun Info-read-node-name (prompt &optional default)
   (let* ((completion-ignore-case t)
@@ -3482,29 +3524,37 @@ the variable `Info-file-list-for-emacs'."
 	  (t
 	   (Info-goto-emacs-command-node command)))))
 
-(defface Info-title-1-face
-  '((((type tty pc) (class color)) :foreground "yellow" :weight bold)
-    (t :height 1.2 :inherit Info-title-2-face))
-  "Face for Info titles at level 1."
+(defface info-title-1
+  '((((type tty pc) (class color)) :foreground "green" :weight bold)
+    (t :height 1.2 :inherit info-title-2))
+  "Face for info titles at level 1."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-1-face 'face-alias 'info-title-1)
 
-(defface Info-title-2-face
+(defface info-title-2
   '((((type tty pc) (class color)) :foreground "lightblue" :weight bold)
-    (t :height 1.2 :inherit Info-title-3-face))
-  "Face for Info titles at level 2."
+    (t :height 1.2 :inherit info-title-3))
+  "Face for info titles at level 2."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-2-face 'face-alias 'info-title-2)
 
-(defface Info-title-3-face
+(defface info-title-3
   '((((type tty pc) (class color)) :weight bold)
-    (t :height 1.2 :inherit Info-title-4-face))
-  "Face for Info titles at level 3."
+    (t :height 1.2 :inherit info-title-4))
+  "Face for info titles at level 3."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-3-face 'face-alias 'info-title-3)
 
-(defface Info-title-4-face
+(defface info-title-4
   '((((type tty pc) (class color)) :weight bold)
     (t :weight bold :inherit variable-pitch))
-  "Face for Info titles at level 4."
+  "Face for info titles at level 4."
   :group 'info)
+;; backward-compatibility alias
+(put 'Info-title-4-face 'face-alias 'info-title-4)
 
 (defface info-menu-header
   '((((type tty pc))
@@ -3644,10 +3694,10 @@ Preserve text properties."
                                   nil t)
           (let* ((c (preceding-char))
                  (face
-                  (cond ((= c ?*) 'Info-title-1-face)
-                        ((= c ?=) 'Info-title-2-face)
-                        ((= c ?-) 'Info-title-3-face)
-                        (t        'Info-title-4-face))))
+                  (cond ((= c ?*) 'info-title-1)
+                        ((= c ?=) 'info-title-2)
+                        ((= c ?-) 'info-title-3)
+                        (t        'info-title-4))))
             (put-text-property (match-beginning 1) (match-end 1)
                                'font-lock-face face))
           ;; This is a serious problem for trying to handle multiple

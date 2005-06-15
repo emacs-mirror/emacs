@@ -125,7 +125,7 @@ user for text to insert in the templates"
   "*Automatically insert current region when there is a `r' in the template
 If this variable is nil, `r' elements will be treated just like `p'
 elements, unless the template function is given a prefix (or a non-nil
-argument).  If this variable is non-nil, the behaviour is reversed.
+argument).  If this variable is non-nil, the behavior is reversed.
 
 In Transient Mark mode, this option is unused."
   :type 'boolean

@@ -410,7 +410,8 @@ Commands:
 \\{ediff-meta-buffer-map}"
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
-  (setq mode-name "MetaEdiff"))
+  (setq mode-name "MetaEdiff")
+  (run-mode-hooks 'ediff-meta-mode-hook))
 
 
 ;; the keymap for the buffer showing directory differences
@@ -560,17 +561,23 @@ behavior."
 			   (ediff-add-slash-if-directory auxdir1 elt))
 			 lis1)
 	  auxdir2	(file-name-as-directory dir2)
+	  lis2		(directory-files auxdir2 nil regexp)
+	  lis2 		(delete "."  lis2)
+	  lis2 		(delete ".." lis2)
 	  lis2		(mapcar
 			 (lambda (elt)
 			   (ediff-add-slash-if-directory auxdir2 elt))
-			 (directory-files auxdir2 nil regexp)))
+			 lis2))
 
     (if (stringp dir3)
 	(setq auxdir3	(file-name-as-directory dir3)
+	      lis3	(directory-files auxdir3 nil regexp)
+	      lis3 	(delete "."  lis3)
+	      lis3 	(delete ".." lis3)
 	      lis3	(mapcar
 			 (lambda (elt)
 			   (ediff-add-slash-if-directory auxdir3 elt))
-			 (directory-files auxdir3 nil regexp))))
+			 lis3)))
 
     (if (ediff-nonempty-string-p merge-autostore-dir)
 	(setq merge-autostore-dir

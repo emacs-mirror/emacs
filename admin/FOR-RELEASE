@@ -82,6 +82,8 @@ is encountered.
 
 ** Finish updating the Emacs Lisp manual.
 
+*** Update lispref/README.
+
 ** Update the Emacs manual.
 
 *** Update man/info.texi.
@@ -187,7 +189,7 @@ lispref/control.texi     "Luc Teirlinck"   Chong Yidong
 lispref/customize.texi   Chong Yidong
 lispref/debugging.texi   Joakim Verona <joakim@verona.se>   Lute Kamstra
 lispref/display.texi     Chong Yidong
-lispref/edebug.texi      Chong Yidong
+lispref/edebug.texi      Chong Yidong      "Luc Teirlinck"
 lispref/elisp.texi       "Luc Teirlinck"   Lute Kamstra
 lispref/errors.texi      "Luc Teirlinck"
 lispref/eval.texi        "Luc Teirlinck"   Chong Yidong

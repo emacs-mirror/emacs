@@ -920,21 +920,21 @@ in *Help* buffer.  See also the command `describe-char'."
 (defvar read-expression-history nil)
 
 (defcustom eval-expression-print-level 4
-  "*Value to use for `print-level' when printing value in `eval-expression'.
+  "Value for `print-level' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-print-length 12
-  "*Value to use for `print-length' when printing value in `eval-expression'.
+  "Value for `print-length' while printing value in `eval-expression'.
 A value of nil means no limit."
   :group 'lisp
   :type '(choice (const :tag "No Limit" nil) integer)
   :version "21.1")
 
 (defcustom eval-expression-debug-on-error t
-  "*Non-nil means set `debug-on-error' when evaluating in `eval-expression'.
+  "If non-nil set `debug-on-error' to t in `eval-expression'.
 If nil, don't change the value of `debug-on-error'."
   :group 'lisp
   :type 'boolean
@@ -3346,34 +3346,43 @@ Outline mode sets this."
       (or (memq prop buffer-invisibility-spec)
 	  (assq prop buffer-invisibility-spec)))))
 
-;; Perform vertical scrolling of tall images if necessary.
-;; Don't vscroll in a keyboard macro.
+;; This is like line-move-1 except that it also performs
+;; vertical scrolling of tall images if appropriate.
+;; That is not really a clean thing to do, since it mixes
+;; scrolling with cursor motion.  But so far we don't have
+;; a cleaner solution to the problem of making C-n do something
+;; useful given a tall image.
 (defun line-move (arg &optional noerror to-end try-vscroll)
   (if (and auto-window-vscroll try-vscroll
+	   ;; But don't vscroll in a keyboard macro.
 	   (not defining-kbd-macro)
 	   (not executing-kbd-macro))
       (let ((forward (> arg 0))
 	    (part (nth 2 (pos-visible-in-window-p (point) nil t))))
 	(if (and (consp part)
-		 (> (setq part (if forward (cdr part) (car part))) 0))
+		 (> (if forward (cdr part) (car part)) 0))
 	    (set-window-vscroll nil
 				(if forward
 				    (+ (window-vscroll nil t)
-				       (min part
+				       (min (cdr part)
 					    (* (frame-char-height) arg)))
 				  (max 0
 				       (- (window-vscroll nil t)
-					  (min part
+					  (min (car part)
 					       (* (frame-char-height) (- arg))))))
 				t)
 	  (set-window-vscroll nil 0)
 	  (when (line-move-1 arg noerror to-end)
-	    (sit-for 0)
-	    (if (and (not forward)
-		     (setq part (nth 2 (pos-visible-in-window-p
-					(line-beginning-position) nil t)))
-		     (> (cdr part) 0))
-		(set-window-vscroll nil (cdr part) t))
+	    (when (not forward)
+	      ;; Update display before calling pos-visible-in-window-p,
+	      ;; because it depends on window-start being up-to-date.
+	      (sit-for 0)
+	      ;; If the current line is partly hidden at the bottom,
+	      ;; scroll it partially up so as to unhide the bottom.
+	      (if (and (setq part (nth 2 (pos-visible-in-window-p
+					  (line-beginning-position) nil t)))
+		       (> (cdr part) 0))
+		  (set-window-vscroll nil (cdr part) t)))
 	    t)))
     (line-move-1 arg noerror to-end)))
 
@@ -4835,7 +4844,11 @@ of the differing parts is, by contrast, slightly highlighted."
 		    (- (point) (minibuffer-prompt-end)))))
 	;; Otherwise, in minibuffer, the whole input is being completed.
 	(if (minibufferp mainbuf)
-	    (setq completion-base-size 0)))
+	    (if (and (symbolp minibuffer-completion-table)
+		     (get minibuffer-completion-table 'completion-base-size-function))
+		(setq completion-base-size 
+		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
+	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
       (when completion-base-size
 	(let* ((common-string-length

@@ -457,7 +457,6 @@ added to this list, so most requests can just pass in nil."
 	       "</" (symbol-name tag) ">\n"))))
     (url-dav-process-response (url-retrieve-synchronously url) url)))
 
-;;;###autoload
 (defun url-dav-get-properties (url &optional attributes depth namespaces)
   "Return properties for URL, up to DEPTH levels deep.
 
@@ -487,7 +486,6 @@ identify the owner of a LOCK when requesting it.  This will be shown
 to other users when the DAV:lockdiscovery property is requested, so
 make sure you are comfortable with it leaking to the outside world.")
 
-;;;###autoload
 (defun url-dav-lock-resource (url exclusive &optional depth)
   "Request a lock on URL.  If EXCLUSIVE is non-nil, get an exclusive lock.
 Optional 3rd argument DEPTH says how deep the lock should go, default is 0
@@ -528,7 +526,6 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 	(push (list url child-status) failures)))
     (cons successes failures)))
 
-;;;###autoload
 (defun url-dav-active-locks (url &optional depth)
   "Return an assoc list of all active locks on URL."
   (let ((response (url-dav-get-properties url '(DAV:lockdiscovery) depth))
@@ -563,7 +560,6 @@ FAILURE-RESULTS is a list of (URL STATUS)."
 		results)))
     results))
 
-;;;###autoload
 (defun url-dav-unlock-resource (url lock-token)
   "Release the lock on URL represented by LOCK-TOKEN.
 Returns t iff the lock was successfully released."
@@ -624,7 +620,6 @@ Returns t iff the lock was successfully released."
 
 (autoload 'url-http-head-file-attributes "url-http")
 
-;;;###autoload
 (defun url-dav-file-attributes (url &optional id-format)
   (let ((properties (cdar (url-dav-get-properties url)))
 	(attributes nil))
@@ -680,7 +675,6 @@ Returns t iff the lock was successfully released."
       (setq attributes (url-http-head-file-attributes url id-format)))
     attributes))
 
-;;;###autoload
 (defun url-dav-save-resource (url obj &optional content-type lock-token)
   "Save OBJ as URL using WebDAV.
 URL must be a fully qualified URL.
@@ -736,7 +730,6 @@ Use with care, and even then think three times.
 				   (concat "(<" ,lock-token ">)"))))))))
 
 
-;;;###autoload
 (defun url-dav-delete-directory (url &optional recursive lock-token)
   "Delete the WebDAV collection URL.
 If optional second argument RECURSIVE is non-nil, then delete all
@@ -761,7 +754,6 @@ files in the collection as well."
 	   props))
   nil)
 
-;;;###autoload
 (defun url-dav-delete-file (url &optional lock-token)
   "Delete file named URL."
   (let ((props nil)
@@ -781,7 +773,6 @@ files in the collection as well."
 	  props))
   nil)
 
-;;;###autoload
 (defun url-dav-directory-files (url &optional full match nosort files-only)
   "Return a list of names of files in DIRECTORY.
 There are three optional arguments:
@@ -828,13 +819,11 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	files
       (sort files 'string-lessp))))
 
-;;;###autoload
 (defun url-dav-file-directory-p (url)
   "Return t if URL names an existing DAV collection."
   (let ((properties (cdar (url-dav-get-properties url '(DAV:resourcetype)))))
     (eq (plist-get properties 'DAV:resourcetype) 'DAV:collection)))
 
-;;;###autoload
 (defun url-dav-make-directory (url &optional parents)
   "Create the directory DIR and any nonexistent parent dirs."
   (declare (special url-http-response-status))
@@ -864,7 +853,6 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	(kill-buffer buffer)))
     result))
 
-;;;###autoload
 (defun url-dav-rename-file (oldname newname &optional overwrite)
   (if (not (and (string-match url-handler-regexp oldname)
 		(string-match url-handler-regexp newname)))
@@ -905,13 +893,11 @@ If NOSORT is non-nil, the list is not sorted--its order is unpredictable.
 	  props)
     t))
 
-;;;###autoload
 (defun url-dav-file-name-all-completions (file url)
   "Return a list of all completions of file name FILE in directory DIRECTORY.
 These are all file names in directory DIRECTORY which begin with FILE."
   (url-dav-directory-files url nil (concat "^" file ".*")))
 
-;;;###autoload
 (defun url-dav-file-name-completion (file url)
   "Complete file name FILE in directory DIRECTORY.
 Returns the longest string
@@ -951,15 +937,18 @@ Returns nil if DIR contains no name starting with FILE."
   (put op 'url-file-handlers (intern-soft (format "url-dav-%s" op))))
 
 (mapcar 'url-dav-register-handler
-	'(file-name-all-completions
-	  file-name-completion
-	  rename-file
-	  make-directory
-	  file-directory-p
-	  directory-files
-	  delete-file
-	  delete-directory
-	  file-attributes))
+        ;; These handlers are disabled because they incorrectly presume that
+        ;; the URL specifies an HTTP location and thus break FTP URLs.
+	'(;; file-name-all-completions
+	  ;; file-name-completion
+	  ;; rename-file
+	  ;; make-directory
+	  ;; file-directory-p
+	  ;; directory-files
+	  ;; delete-file
+	  ;; delete-directory
+	  ;; file-attributes
+          ))
 
 
 ;;; Version Control backend cruft

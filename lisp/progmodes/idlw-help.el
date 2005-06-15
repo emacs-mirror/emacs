@@ -182,12 +182,14 @@ support."
   :group 'idlwave-online-help
   :type 'string)
 
-(defface idlwave-help-link-face
+(defface idlwave-help-link
   '((((min-colors 88) (class color)) (:foreground "Blue1"))
     (((class color)) (:foreground "Blue"))
     (t (:weight bold)))
   "Face for highlighting links into IDLWAVE online help."
   :group 'idlwave-online-help)
+;; backward-compatibility alias
+(put 'idlwave-help-link-face 'face-alias 'idlwave-help-link)
 
 (defvar idlwave-help-activate-links-aggressively nil
   "Obsolete variable.")
@@ -586,12 +588,12 @@ Needs additional info stored in global `idlwave-completion-help-info'."
 (defun idlwave-highlight-linked-completions ()
   "Highlight all completions for which help is available and attach link.
 Those words in `idlwave-completion-help-links' have links.  The
-`idlwave-help-link-face' face is used for this."
+`idlwave-help-link' face is used for this."
   (if idlwave-highlight-help-links-in-completion
       (with-current-buffer (get-buffer "*Completions*")
 	(save-excursion
 	  (let* ((case-fold-search t)
-		 (props (list 'face 'idlwave-help-link-face))
+		 (props (list 'face 'idlwave-help-link))
 		 (info idlwave-completion-help-info) ; global passed in
 		 (what (nth 0 info))  ; what was completed, or a func
 		 (class (nth 3 info)) ; any class
