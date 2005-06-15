@@ -174,7 +174,7 @@ no-handle    an invisible handle
 
 ;;; Image support
 ;;
-(eval-when-compile ;; GNU Emacs/XEmacs compatibility stuff
+(eval-and-compile ;; GNU Emacs/XEmacs compatibility stuff
   (cond
    ;; XEmacs
    ((featurep 'xemacs)
@@ -616,9 +616,17 @@ IGNORE other arguments."
          (widget-glyph-enable widget-image-enable)           ; XEmacs
          (node (tree-widget-node tree))
          (flags (widget-get tree :tree-widget--guide-flags))
-         (indent (and (bolp) (widget-get tree :indent)))
+         (indent (widget-get tree :indent))
          children buttons)
-    (and (null flags) indent (insert-char ?\  indent))
+    (and indent
+         (null flags)
+         (save-restriction
+           (widen)
+           (or (bolp)
+               (and (eq (char-before) ?<)
+                    (save-excursion
+                      (backward-char) (bolp)))))
+         (insert-char ?\  indent))
     (if (widget-get tree :open)
 ;;;; Unfolded node.
         (let ((args     (widget-get tree :args))
