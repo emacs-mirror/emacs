@@ -1,3 +1,14 @@
+2005-06-15  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* ido.el (ido-incomplete-regexp): New variable.
+	(ido-set-matches-1): Handle invalid-regexp error and set
+	ido-incomplete-regexp.
+	(ido-incomplete-regexp): New face.
+	(ido-completions): Use it.
+	(ido-complete, ido-exit-minibuffer, ido-completions): Handle
+	incomplete regexps.
+	(ido-completions): Add check for complete match when entering a regexp.
+
 2005-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* subr.el (add-to-ordered-list): Use a weak hash-table to avoid leaks.
@@ -28,7 +39,7 @@
 
 	* progmodes/ld-script.el (ld-script-location-counter):
 	Remove "-face" suffix from face name.
-	(ld-script-location-counter-face): 
+	(ld-script-location-counter-face):
 	New backward-compatibility alias for renamed face.
 	(ld-script-location-counter-face): Use renamed face.
 
@@ -103,7 +114,7 @@
 	(ebrowse-tree-mark-face, ebrowse-root-class-face)
 	(ebrowse-file-name-face, ebrowse-default-face)
 	(ebrowse-member-attribute-face, ebrowse-member-class-face)
-	(ebrowse-progress-face): 
+	(ebrowse-progress-face):
 	New backward-compatibility aliases for renamed faces.
 	(ebrowse-show-progress, ebrowse-show-file-name-at-point)
 	(ebrowse-set-mark-props, ebrowse-draw-tree-fn)
