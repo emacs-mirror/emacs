@@ -1,6 +1,8 @@
 2005-06-15  David Ponce  <david@dponce.com>
 
-	* tree-widget.el (tree-widget-super-format-handler)
+	* tree-widget.el: eval-and-compile inlined functions so they will
+	be available at run-time too.
+	(tree-widget-super-format-handler)
 	(tree-widget-format-handler): Remove.
 	(tree-widget-value-create): Handle the :indent property.
 
