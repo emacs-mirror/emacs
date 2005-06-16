@@ -597,9 +597,9 @@ IDENTITY is optionally the default-user-id to use."
     (let ((valid-methods (list "pgpmime" "pgp" "smime"))
           (valid-modes (list "sign" "encrypt" "signencrypt" "none")))
       (if (not (member method valid-methods))
-          (error (format "Sorry. METHOD \"%s\" is invalid" method)))
+          (error "Sorry. METHOD \"%s\" is invalid" method))
       (if (not (member mode valid-modes))
-          (error (format "Sorry. MODE \"%s\" is invalid" mode)))
+          (error "Sorry. MODE \"%s\" is invalid" mode))
       (mml-unsecure-message)
       (if (not (string= mode "none"))
         (save-excursion
