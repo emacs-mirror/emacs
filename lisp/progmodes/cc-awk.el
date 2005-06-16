@@ -69,7 +69,7 @@
     ;; / can delimit regexes or be a division operator.  By default we assume
     ;; that it is a division sign, and fix the regexp operator cases with
     ;; `font-lock-syntactic-keywords'.
-    (modify-syntax-entry ?/ "." st)     ; ACM 2002/4/27.  
+    (modify-syntax-entry ?/ "." st)     ; ACM 2002/4/27.
     (modify-syntax-entry ?* "." st)
     (modify-syntax-entry ?+ "." st)
     (modify-syntax-entry ?- "." st)
@@ -85,7 +85,7 @@
   "Syntax table in use in AWK Mode buffers.")
 
 ;; ACM, 2002/5/29:
-;; 
+;;
 ;; The next section of code is about determining whether or not an AWK
 ;; statement is complete or not.  We use this to indent the following line.
 ;; The determination is pretty straightforward in C, where a statement ends
@@ -199,7 +199,7 @@
   ;;  Kludge: If c-backward-syntactic-ws gets stuck at a BOL, it is likely
   ;;  that the previous line contains an unterminated string (without \).  In
   ;;  this case, assume that the previous line's c-awk-NL-prop is a ;.
-  ;; 
+  ;;
   ;;  POINT MUST BE AT THE START OF A LINE when calling this function.  This
   ;;  is to ensure that the various backward-comment functions will work
   ;;  properly.
@@ -237,13 +237,13 @@
   ;; Calculate and set the value of the c-awk-NL-prop on the immediately
   ;; preceding EOL.  This may also involve doing the same for several
   ;; preceding EOLs.
-  ;; 
+  ;;
   ;; NOTE that if the property was already set, we return it without
   ;; recalculation.  (This is by accident rather than design.)
-  ;; 
+  ;;
   ;; Return the property which got set (or was already set) on the previous
   ;; line.  Return nil if we hit BOB.
-  ;; 
+  ;;
   ;; See c-awk-after-if-for-while-condition-p for a description of DO-LIM.
   (save-excursion
     (save-match-data
@@ -298,7 +298,7 @@
   ;; if necessary. (As a special case, the property doesn't get set on an
   ;; empty line at EOB (there's no position to set the property on), but the
   ;; function returns the property value an EOL would have got.)
-  ;; 
+  ;;
   ;; See c-awk-after-if-for-while-condition-p for a description of DO-LIM.
   (save-excursion
     (let ((extra-nl nil))
@@ -339,7 +339,7 @@
   (and (bolp)
        (eq (c-awk-get-NL-prop-prev-line do-lim) ?\;)))
 
-(defun c-awk-backward-syntactic-ws (&optional lim) 
+(defun c-awk-backward-syntactic-ws (&optional lim)
 ;; Skip backwards over awk-syntactic whitespace.  This is whitespace
 ;; characters, comments, and NEWLINES WHICH AREN'T "VIRTUAL SEMICOLONS".  For
 ;; this function, a newline isn't a "virtual semicolon" if that line ends with
@@ -431,7 +431,7 @@
 ;; Go back to the start of the (apparent) current line (or the start of the
 ;; line containing POS), returning the buffer position of that point.  I.e.,
 ;; go back to the last line which doesn't have an escaped EOL before it.
-;; 
+;;
 ;; This is guaranteed to be "safe" for syntactic analysis, i.e. outwith any
 ;; comment, string or regexp.  IT MAY WELL BE that this function should not be
 ;; executed on a narrowed buffer.
@@ -470,7 +470,7 @@
 ;; Matches a newline, or the end of buffer.
 
 ;; "Space" regular expressions.
-(defconst c-awk-escaped-nl "\\\\[\n\r]") 
+(defconst c-awk-escaped-nl "\\\\[\n\r]")
 ;; Matches an escaped newline.
 (defconst c-awk-escaped-nls* (concat "\\(" c-awk-escaped-nl "\\)*"))
 ;; Matches a possibly empty sequence of escaped newlines.  Used in
@@ -546,7 +546,7 @@
 ;;   Matches the inside of an AWK regexp (i.e. without the enclosing /s)
 (defconst c-awk-regexp-without-end-re
   (concat "/" c-awk-regexp-innards-re))
-;; Matches an AWK regexp up to, but not including, any terminating /. 
+;; Matches an AWK regexp up to, but not including, any terminating /.
 
 ;; REGEXPS used for scanning an AWK buffer in order to decide IF A '/' IS A
 ;; REGEXP OPENER OR A DIVISION SIGN.  By "state" in the following is meant
@@ -714,7 +714,7 @@
                 (c-awk-syntax-tablify-string)
               (c-awk-syntax-tablify-/ anchor anchor-state-/div)))
 
-      ;; Skip any further "harmless" lines before the next tricky one. 
+      ;; Skip any further "harmless" lines before the next tricky one.
       (if (search-forward-regexp c-awk-harmless-lines+-here-re nil t)
           (setq anchor-state-/div nil)))
     nil))
@@ -803,7 +803,7 @@ many times.  Negative arg -N means move forward to Nth following beginning of
 defun.  Returns t unless search stops due to beginning or end of buffer.
 
 By a \"defun\" is meant either a pattern-action pair or a function.  The start
-of a defun is recognised as code starting at column zero which is neither a
+of a defun is recognized as code starting at column zero which is neither a
 closing brace nor a comment nor a continuation of the previous line.  Unlike
 in some other modes, having an opening brace at column 0 is neither necessary
 nor helpful."
