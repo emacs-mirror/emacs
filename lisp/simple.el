@@ -327,7 +327,8 @@ location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (run-hooks 'after-change-major-mode-hook))
+  (unless delay-mode-hooks
+    (run-hooks 'after-change-major-mode-hook)))
 
 ;; Making and deleting lines.
 
@@ -4842,7 +4843,7 @@ of the differing parts is, by contrast, slightly highlighted."
 	(if (minibufferp mainbuf)
 	    (if (and (symbolp minibuffer-completion-table)
 		     (get minibuffer-completion-table 'completion-base-size-function))
-		(setq completion-base-size 
+		(setq completion-base-size
 		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
 	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
