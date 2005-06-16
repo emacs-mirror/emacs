@@ -2,7 +2,8 @@
 
 	* gnus-art.el (gnus-article-encrypt-body):
 	* gnus-cus.el (gnus-score-customize):
-	Don't use `format' on `error' arguments.
+	* mm-extern.el (mm-extern-local-file, mm-inline-external-body):
+	* pop3.el (pop3-user): Don't use `format' on `error' arguments.
 
 2005-06-16  Miles Bader  <miles@gnu.org>
 
