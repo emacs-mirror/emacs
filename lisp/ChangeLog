@@ -1,3 +1,7 @@
+2005-06-16  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-value-create): Simplify last change.
+
 2005-06-15  Matt Hodges  <MPHodges@member.fsf.org>
 
 	* ido.el (ido-incomplete-regexp): New variable.
