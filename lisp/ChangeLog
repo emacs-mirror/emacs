@@ -1,3 +1,8 @@
+2005-06-16  Lute Kamstra  <lute@gnu.org>
+
+	* simple.el (fundamental-mode): Run after-change-major-mode-hook
+	conditionally.
+
 2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* tooltip.el (tooltip-start-delayed-tip, tooltip-timeout)
