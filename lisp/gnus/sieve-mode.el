@@ -65,10 +65,10 @@
 
 ;; Font-lock
 
-(defvar sieve-control-commands-face 'sieve-control-commands-face
+(defvar sieve-control-commands-face 'sieve-control-commands
   "Face name used for Sieve Control Commands.")
 
-(defface sieve-control-commands-face
+(defface sieve-control-commands
   '((((type tty) (class color)) (:foreground "blue" :weight light))
     (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
@@ -77,22 +77,26 @@
     (t (:bold t)))
   "Face used for Sieve Control Commands."
   :group 'sieve)
+;; backward-compatibility alias
+(put 'sieve-control-commands-face 'face-alias 'sieve-control-commands)
 
-(defvar sieve-action-commands-face 'sieve-action-commands-face
+(defvar sieve-action-commands-face 'sieve-action-commands
   "Face name used for Sieve Action Commands.")
 
-(defface sieve-action-commands-face
+(defface sieve-action-commands
   '((((type tty) (class color)) (:foreground "blue" :weight bold))
     (((class color) (background light)) (:foreground "Blue"))
     (((class color) (background dark)) (:foreground "LightSkyBlue"))
     (t (:inverse-video t :bold t)))
   "Face used for Sieve Action Commands."
   :group 'sieve)
+;; backward-compatibility alias
+(put 'sieve-action-commands-face 'face-alias 'sieve-action-commands)
 
-(defvar sieve-test-commands-face 'sieve-test-commands-face
+(defvar sieve-test-commands-face 'sieve-test-commands
   "Face name used for Sieve Test Commands.")
 
-(defface sieve-test-commands-face
+(defface sieve-test-commands
   '((((type tty) (class color)) (:foreground "magenta"))
     (((class grayscale) (background light))
      (:foreground "LightGray" :bold t :underline t))
@@ -103,11 +107,13 @@
     (t (:bold t :underline t)))
   "Face used for Sieve Test Commands."
   :group 'sieve)
+;; backward-compatibility alias
+(put 'sieve-test-commands-face 'face-alias 'sieve-test-commands)
 
-(defvar sieve-tagged-arguments-face 'sieve-tagged-arguments-face
+(defvar sieve-tagged-arguments-face 'sieve-tagged-arguments
   "Face name used for Sieve Tagged Arguments.")
 
-(defface sieve-tagged-arguments-face
+(defface sieve-tagged-arguments
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
@@ -116,6 +122,8 @@
     (t (:bold t)))
   "Face used for Sieve Tagged Arguments."
   :group 'sieve)
+;; backward-compatibility alias
+(put 'sieve-tagged-arguments-face 'face-alias 'sieve-tagged-arguments)
 
 
 (defconst sieve-font-lock-keywords

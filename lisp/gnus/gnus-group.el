@@ -309,50 +309,50 @@ variable."
 (defcustom gnus-group-highlight
   '(;; Mail.
     ((and mailp (= unread 0) (eq level 1)) .
-     gnus-group-mail-1-empty-face)
+     gnus-group-mail-1-empty)
     ((and mailp (eq level 1)) .
-     gnus-group-mail-1-face)
+     gnus-group-mail-1)
     ((and mailp (= unread 0) (eq level 2)) .
-     gnus-group-mail-2-empty-face)
+     gnus-group-mail-2-empty)
     ((and mailp (eq level 2)) .
-     gnus-group-mail-2-face)
+     gnus-group-mail-2)
     ((and mailp (= unread 0) (eq level 3)) .
-     gnus-group-mail-3-empty-face)
+     gnus-group-mail-3-empty)
     ((and mailp (eq level 3)) .
-     gnus-group-mail-3-face)
+     gnus-group-mail-3)
     ((and mailp (= unread 0)) .
-     gnus-group-mail-low-empty-face)
+     gnus-group-mail-low-empty)
     ((and mailp) .
-     gnus-group-mail-low-face)
+     gnus-group-mail-low)
     ;; News.
     ((and (= unread 0) (eq level 1)) .
-     gnus-group-news-1-empty-face)
+     gnus-group-news-1-empty)
     ((and (eq level 1)) .
-     gnus-group-news-1-face)
+     gnus-group-news-1)
     ((and (= unread 0) (eq level 2)) .
-     gnus-group-news-2-empty-face)
+     gnus-group-news-2-empty)
     ((and (eq level 2)) .
-     gnus-group-news-2-face)
+     gnus-group-news-2)
     ((and (= unread 0) (eq level 3)) .
-     gnus-group-news-3-empty-face)
+     gnus-group-news-3-empty)
     ((and (eq level 3)) .
-     gnus-group-news-3-face)
+     gnus-group-news-3)
     ((and (= unread 0) (eq level 4)) .
-     gnus-group-news-4-empty-face)
+     gnus-group-news-4-empty)
     ((and (eq level 4)) .
-     gnus-group-news-4-face)
+     gnus-group-news-4)
     ((and (= unread 0) (eq level 5)) .
-     gnus-group-news-5-empty-face)
+     gnus-group-news-5-empty)
     ((and (eq level 5)) .
-     gnus-group-news-5-face)
+     gnus-group-news-5)
     ((and (= unread 0) (eq level 6)) .
-     gnus-group-news-6-empty-face)
+     gnus-group-news-6-empty)
     ((and (eq level 6)) .
-     gnus-group-news-6-face)
+     gnus-group-news-6)
     ((and (= unread 0)) .
-     gnus-group-news-low-empty-face)
+     gnus-group-news-low-empty)
     (t .
-     gnus-group-news-low-face))
+     gnus-group-news-low))
   "*Controls the highlighting of group buffer lines.
 
 Below is a list of `Form'/`Face' pairs.  When deciding how a a
