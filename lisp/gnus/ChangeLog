@@ -1,3 +1,9 @@
+2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-encrypt-body):
+	* gnus-cus.el (gnus-score-customize):
+	Don't use `format' on `error' arguments.
+
 2005-06-16  Miles Bader  <miles@gnu.org>
 
 	* spam.el (spam): Remove "-face" suffix from face name.
@@ -79,7 +85,7 @@
 	(gnus-server-agent): Remove "-face" suffix from face names.
 	(gnus-server-agent-face, gnus-server-opened-face)
 	(gnus-server-closed-face, gnus-server-denied-face)
-	(gnus-server-offline-face): 
+	(gnus-server-offline-face):
 	New backward-compatibility aliases for renamed faces.
 	(gnus-server-agent-face, gnus-server-opened-face)
 	(gnus-server-closed-face, gnus-server-denied-face)
@@ -97,7 +103,7 @@
 	(gnus-cite-attribution-face, gnus-cite-face-1, gnus-cite-face-2)
 	(gnus-cite-face-3, gnus-cite-face-4, gnus-cite-face-5)
 	(gnus-cite-face-6, gnus-cite-face-7, gnus-cite-face-8)
-	(gnus-cite-face-9, gnus-cite-face-10, gnus-cite-face-11): 
+	(gnus-cite-face-9, gnus-cite-face-10, gnus-cite-face-11):
 	New backward-compatibility aliases for renamed faces.
 	(gnus-cite-attribution-face, gnus-cite-face-list)
 	(gnus-article-boring-faces): Use renamed gnus faces.
@@ -107,7 +113,7 @@
 	(gnus-header-content): Remove "-face" suffix from face names.
 	(gnus-signature-face, gnus-header-from-face)
 	(gnus-header-subject-face, gnus-header-newsgroups-face)
-	(gnus-header-name-face, gnus-header-content-face): 
+	(gnus-header-name-face, gnus-header-content-face):
 	New backward-compatibility aliases for renamed faces.
 	(gnus-signature-face, gnus-header-face-alist): Use renamed gnus faces.
 
