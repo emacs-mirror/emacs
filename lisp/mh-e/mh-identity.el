@@ -126,7 +126,7 @@ The field name is downcased. If the FIELD begins with the character
 header field."
   (or (cdr (assoc (downcase field) mh-identity-handlers))
       (and (eq (aref field 0) ?:)
-           (error (format "Field %s - unknown mh-identity-handler" field)))
+           (error "Field %s - unknown mh-identity-handler" field))
       (cdr (assoc ":default" mh-identity-handlers))
       'mh-identity-handler-default))
 
