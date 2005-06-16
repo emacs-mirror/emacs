@@ -1,3 +1,15 @@
+2005-06-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting): Eliminate duplicate link.
+	(Specification List): Replace references to "below", referring to
+	a later node, with one @ref to that node.
+
+	* os.texi (Timers): Timers should save and restore the match data
+	if they change it.
+
+	* debugging.texi (Debugger Commands): Mention that the Lisp
+	debugger can not step through primitive functions.
+
 2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* functions.texi (Obsolete Functions): Update argument names of
