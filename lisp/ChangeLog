@@ -5,6 +5,51 @@
 
 2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
+	* comint.el (comint-replace-by-expanded-filename)
+	(comint-prompt-regexp, comint-delimiter-argument-list)
+	(comint-preinput-scroll-to-bottom):
+	* info.el (Info-hide-cookies-node):
+	* ls-lisp.el (ls-lisp-classify):
+	* find-file.el (ff-search-directories, ff-special-constructs)
+	(ff-find-other-file):
+	* font-lock.el (font-lock-keywords):
+	* shell.el (shell-prompt-pattern)
+	(shell-dynamic-complete-functions, shell-mode)
+	(shell-delimiter-argument-list):
+	* term.el (term-replace-by-expanded-filename)
+	(term-prompt-regexp, term-delimiter-argument-list):
+	* woman.el (woman-ignore, woman0-if):
+	* emacs-lisp/derived.el (derived-mode-init-mode-variables):
+	* emacs-lisp/elint.el (elint-init-env):
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth):
+	* eshell/esh-mode.el (eshell-preinput-scroll-to-bottom):
+	* language/ethio-util.el (ethio-tilde-escape)
+	(ethio-use-three-dot-question):
+	* net/zone-mode.el (zone-mode-load-time-setup):
+	* progmodes/cc-align.el (c-lineup-argcont):
+	* progmodes/cc-awk.el (c-awk-beginning-of-defun):
+	* progmodes/cperl-mode.el (cperl-set-style-back):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/vhdl-mode.el (vhdl-beginning-of-libunit):
+	Fix spellings in docstrings.
+
+	* textmodes/sgml-mode.el (sgml-calculate-indent, html-tag-help):
+	* progmodes/modula2.el (m2-for): Fix spellings.
+
+	* menu-bar.el (menu-bar-games-menu): Fix typo in menu help string.
+
+	* simple.el (undo-more): Don't use `format' on `error' arguments.
+	Improve argument/docstring consistency.
+	(pending-undo-list): Doc fix.
+
+	* smerge-mode.el (smerge-ensure-match):
+	* emulation/vip.el (vip-ex):
+	* net/zone-mode.el (zone-mode-update-serial):
+	* progmodes/idlwave.el (idlwave-complete):
+	* progmodes/vhdl-mode.el (vhdl-visit-file)
+	(vhdl-compose-wire-components):
+	Don't use `format' on `error' arguments.
+
 	* tooltip.el (tooltip-start-delayed-tip, tooltip-timeout)
 	(tooltip-use-echo-area, tooltip-process-prompt-regexp)
 	(tooltip-help-tips): Fix typos in docstrings.
