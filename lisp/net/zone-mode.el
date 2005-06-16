@@ -76,7 +76,7 @@
   "Zone-mode's syntax table.")
 
 (defun zone-mode-load-time-setup ()
-  "Initialise `zone-mode' stuff."
+  "Initialize `zone-mode' stuff."
   (setq zone-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\; "<" zone-mode-syntax-table)
   (modify-syntax-entry ?\n ">" zone-mode-syntax-table))
