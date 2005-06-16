@@ -6027,8 +6027,8 @@ Returns the location of the corresponding begin keyword, unless search
 stops due to beginning or end of buffer.
 Note that if point is between the \"libunit\" keyword and the
 corresponding \"begin\" keyword, then that libunit will not be
-recognised, and the search will continue backwards.  If point is
-at the \"begin\" keyword, then the defun will be recognised.  The
+recognized, and the search will continue backwards.  If point is
+at the \"begin\" keyword, then the defun will be recognized.  The
 returned point is at the first character of the \"libunit\" keyword."
   (let ((last-forward (point))
 	(last-backward
