@@ -1375,6 +1375,9 @@ both before and after changing the buffer, to separate the timer's
 changes from user commands' changes and prevent a single undo entry
 from growing to be quite large.
 
+  If a timer function calls functions that can change the match data,
+it should save and restore the match data.  @xref{Saving Match Data}.
+
 @deffn Command run-at-time time repeat function &rest args
 This sets up a timer that calls the function @var{function} with
 arguments @var{args} at time @var{time}.  If @var{repeat} is a number
