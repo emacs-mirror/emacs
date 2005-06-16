@@ -1288,7 +1288,7 @@ A redo record for ordinary undo maps to the following (earlier) undo.")
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.
-t if we undid all the way to the end of it.")
+If t, we undid all the way to the end of it.")
 
 (defun undo (&optional arg)
   "Undo some previous changes.
@@ -1400,16 +1400,16 @@ Contrary to `undo', this will not redo a previous undo."
   "Non-nil while performing an undo.
 Some change-hooks test this variable to do something different.")
 
-(defun undo-more (count)
+(defun undo-more (n)
   "Undo back N undo-boundaries beyond what was already undone recently.
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
-      (error (format "No further undo information%s"
-		     (if (and transient-mark-mode mark-active)
-			 " for region" ""))))
+      (error (concat "No further undo information"
+                     (and transient-mark-mode mark-active
+                          " for region"))))
   (let ((undo-in-progress t))
-    (setq pending-undo-list (primitive-undo count pending-undo-list))
+    (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
 	(setq pending-undo-list t))))
 
