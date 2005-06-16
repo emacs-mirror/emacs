@@ -7069,7 +7069,7 @@ For example:
     current-prefix-arg))
   (let ((func (cdr (assoc protocol gnus-article-encrypt-protocol-alist))))
     (unless func
-      (error (format "Can't find the encrypt protocol %s" protocol)))
+      (error "Can't find the encrypt protocol %s" protocol))
     (if (member gnus-newsgroup-name '("nndraft:delayed"
 				      "nndraft:drafts"
 				      "nndraft:queue"))
