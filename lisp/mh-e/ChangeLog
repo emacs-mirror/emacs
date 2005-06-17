@@ -1,3 +1,9 @@
+2005-06-17  Lute Kamstra  <lute@gnu.org>
+
+	* mh-customize.el (mh-folder-body-face, mh-folder-cur-msg-face)
+	(mh-folder-cur-msg-number-face): New backward-compatibility
+	aliases for renamed faces.
+
 2005-06-17  Miles Bader  <miles@gnu.org>
 
 	* mh-customize.el (mh-folder-body, mh-folder-cur-msg)
