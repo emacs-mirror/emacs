@@ -47,13 +47,15 @@ of a function or variable.  In a function definition, the documentation
 string follows the argument list.  In a variable definition, the
 documentation string follows the initial value of the variable.
 
-  When you write a documentation string, make the first line a complete
-sentence (or two complete sentences) since some commands, such as
-@code{apropos}, show only the first line of a multi-line documentation
-string.  Also, you should not indent the second line of a documentation
-string, if it has one, because that looks odd when you use @kbd{C-h f}
-(@code{describe-function}) or @kbd{C-h v} (@code{describe-variable}) to
-view the documentation string.  @xref{Documentation Tips}.
+  When you write a documentation string, make the first line a
+complete sentence (or two complete sentences) since some commands,
+such as @code{apropos}, show only the first line of a multi-line
+documentation string.  Also, you should not indent the second line of
+a documentation string, if it has one, because that looks odd when you
+use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
+(@code{describe-variable}) to view the documentation string.  There
+are many other conventions for doc strings; see @ref{Documentation
+Tips}.
 
   Documentation strings can contain several special substrings, which
 stand for key bindings to be looked up in the current keymaps when the
