@@ -2156,9 +2156,7 @@ will be removed from the unseen sequence."
   "Face used to highlight body text in MH-Folder buffers."
   :group 'mh-folder-faces)
 ;; backward-compatibility alias
-(put 'mh-folder-body 'face-alias 'mh-folder-body)
-;; backward-compatibility alias
-(put ''mh-folder-body-face 'face-alias ''mh-folder-body)
+(put 'mh-folder-body-face 'face-alias 'mh-folder-body)
 
 (defvar mh-folder-cur-msg-face 'mh-folder-cur-msg
   "Face used for the current message line in MH-Folder buffers.")
@@ -2175,9 +2173,7 @@ will be removed from the unseen sequence."
   "Face used for the current message line in MH-Folder buffers."
   :group 'mh-folder-faces)
 ;; backward-compatibility alias
-(put 'mh-folder-cur-msg 'face-alias 'mh-folder-cur-msg)
-;; backward-compatibility alias
-(put ''mh-folder-cur-msg-face 'face-alias ''mh-folder-cur-msg)
+(put 'mh-folder-cur-msg-face 'face-alias 'mh-folder-cur-msg)
 
 (defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number
   "Face used to highlight the current message in MH-Folder buffers.")
@@ -2191,9 +2187,7 @@ will be removed from the unseen sequence."
   "Face used to highlight the current message in MH-Folder buffers."
   :group 'mh-folder-faces)
 ;; backward-compatibility alias
-(put 'mh-folder-cur-msg-number 'face-alias 'mh-folder-cur-msg-number)
-;; backward-compatibility alias
-(put ''mh-folder-cur-msg-number-face 'face-alias ''mh-folder-cur-msg-number)
+(put 'mh-folder-cur-msg-number-face 'face-alias 'mh-folder-cur-msg-number)
 
 (defvar mh-folder-date-face 'mh-folder-date
   "Face used to highlight the date in MH-Folder buffers.")
