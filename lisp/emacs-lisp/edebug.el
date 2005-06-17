@@ -3323,7 +3323,7 @@ With prefix ARG, set temporary break at current point and go."
 
 
 (defun edebug-goto-here ()
-  "Proceed to this stop point."
+  "Proceed to first stop-point at or after current position of point."
   (interactive)
   (edebug-go-mode t))
 
