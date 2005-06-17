@@ -2722,6 +2722,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 	  right_border_glyph = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
 				? XINT (DISP_BORDER_GLYPH (dp))
 				: '|');
+	  right_border_glyph = spec_glyph_lookup_face (w, right_border_glyph);
 	}
     }
   else
@@ -2802,6 +2803,27 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
     }
 }
 
+/* Given a user-specified glyph, possibly including a Lisp-level face
+   ID, return a glyph that has a realized face ID.
+   This is used for glyphs displayed specially and not part of the text;
+   for instance, vertical separators, truncation markers, etc.  */
+
+GLYPH
+spec_glyph_lookup_face (w, glyph)
+     struct window *w;
+     GLYPH glyph;
+{
+  int lface_id = FAST_GLYPH_FACE (glyph);
+  /* Convert the glyph's specified face to a realized (cache) face.  */
+  if (lface_id > 0)
+    {
+      int face_id = merge_faces (XFRAME (w->frame),
+				 Qt, lface_id, DEFAULT_FACE_ID);
+      glyph
+	= FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), face_id);
+    }
+  return glyph;
+}
 
 /* Add spaces to a glyph row ROW in a window matrix.
 
