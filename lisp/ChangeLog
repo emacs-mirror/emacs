@@ -1,5 +1,31 @@
 2005-06-17  Miles Bader  <miles@gnu.org>
 
+	* ediff-init.el (ediff-current-diff-A, ediff-current-diff-B)
+	(ediff-current-diff-C, ediff-current-diff-Ancestor)
+	(ediff-fine-diff-A, ediff-fine-diff-B, ediff-fine-diff-C)
+	(ediff-fine-diff-Ancestor, ediff-even-diff-A, ediff-even-diff-B)
+	(ediff-even-diff-C, ediff-even-diff-Ancestor, ediff-odd-diff-A)
+	(ediff-odd-diff-B, ediff-odd-diff-C, ediff-odd-diff-Ancestor):
+	Remove "-face" suffix from face names.
+	(ediff-current-diff-face-A, ediff-current-diff-face-B)
+	(ediff-current-diff-face-C, ediff-current-diff-face-Ancestor)
+	(ediff-fine-diff-face-A, ediff-fine-diff-face-B)
+	(ediff-fine-diff-face-C, ediff-fine-diff-face-Ancestor)
+	(ediff-even-diff-face-A, ediff-even-diff-face-B)
+	(ediff-even-diff-face-C, ediff-even-diff-face-Ancestor)
+	(ediff-odd-diff-face-A, ediff-odd-diff-face-B)
+	(ediff-odd-diff-face-C, ediff-odd-diff-face-Ancestor):
+	New backward-compatibility aliases for renamed faces.
+	(ediff-current-diff-face-A, ediff-current-diff-face-B)
+	(ediff-current-diff-face-C, ediff-current-diff-face-Ancestor)
+	(ediff-fine-diff-face-A, ediff-fine-diff-face-B)
+	(ediff-fine-diff-face-C, ediff-fine-diff-face-Ancestor)
+	(ediff-even-diff-face-A, ediff-even-diff-face-B)
+	(ediff-even-diff-face-C, ediff-even-diff-face-Ancestor)
+	(ediff-odd-diff-face-A, ediff-odd-diff-face-B)
+	(ediff-odd-diff-face-C, ediff-odd-diff-face-Ancestor):
+	Use renamed ediff faces.
+
 	* eshell/esh-test.el (eshell-test-ok, eshell-test-failed):
 	Remove "-face" suffix from face names.
 	(eshell-test-ok-face, eshell-test-failed-face): 
