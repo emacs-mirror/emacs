@@ -52,6 +52,7 @@ This function returns @code{t} if @var{object} is a process,
 * Datagrams::                UDP network connections.
 * Low-Level Network::        Lower-level but more general function
                                to create connections and servers.
+* Byte Packing::             Using bindat to pack and unpack binary data.
 @end menu
 
 @node Subprocess Creation
@@ -2014,6 +2015,407 @@ this way.
 That particular network option is supported by
 @code{make-network-process} and @code{set-network-process-option}.
 @end table
+
+@node Byte Packing
+@section Packing and Unpacking Byte Arrays
+
+  This section describes how to pack and unpack arrays of bytes,
+usually for binary network protocols.  These functoins byte arrays to
+alists, and vice versa.  The byte array can be represented as a
+unibyte string or as a vector of integers, while the alist associates
+symbols either with fixed-size objects or with recursive sub-alists.
+
+@cindex serializing
+@cindex deserializing
+@cindex packing
+@cindex unpacking
+  Conversion from byte arrays to nested alists is also known as
+@dfn{deserializing} or @dfn{unpacking}, while going in the opposite
+direction is also known as @dfn{serializing} or @dfn{packing}.
+
+@menu
+* Bindat Spec::         Describing data layout.
+* Bindat Functions::    Doing the unpacking and packing.
+* Bindat Examples::     Samples of what bindat.el can do for you!
+@end menu
+
+@node Bindat Spec
+@subsection Describing Data Layout
+
+  To control unpacking and packing, you write a @dfn{data layout
+specification}, a special nested list describing named and typed
+@dfn{fields}.  This specification conrtols length of each field to be
+processed, and how to pack or unpack it.
+
+@cindex endianness
+@cindex big endian
+@cindex little endian
+@cindex network byte ordering
+  A field's @dfn{type} describes the size (in bytes) of the object
+that the field represents and, in the case of multibyte fields, how
+the bytes are ordered within the firld.  The two possible orderings
+are ``big endian'' (also known as ``network byte ordering'') and
+``little endian''.  For instance, the number @code{#x23cd} (decimal
+9165) in big endian would be the two bytes @code{#x23} @code{#xcd};
+and in little endian, @code{#xcd} @code{#x23}.  Here are the possible
+type values:
+
+@table @code
+@item u8
+@itemx byte
+Unsigned byte, with length 1.
+
+@item u16
+@itemx word
+@itemx short
+Unsigned integer in network byte order, with length 2.
+
+@item u24
+Unsigned integer in network byte order, with length 3.
+
+@item u32
+@itemx dword
+@itemx long
+Unsigned integer in network byte order, with length 4.
+Note: These values may be limited by Emacs' integer implementation limits.
+
+@item u16r
+@itemx u24r
+@itemx u32r
+Unsigned integer in little endian order, with length 2, 3 and 4, respectively.
+
+@item str @var{len}
+String of length @var{len}.
+
+@item strz @var{len}
+Zero-terminated string of length @var{len}.
+
+@item vec @var{len}
+Vector of @var{len} bytes.
+
+@item ip
+Four-byte vector representing an Internet address.  For example:
+@code{[127 0 0 1]} for localhost.
+
+@item bits @var{len}
+List of set bits in @var{len} bytes.  The bytes are taken in big
+endian order and the bits are numbered starting with @code{8 *
+@var{len} @minus{} 1}} and ending with zero.  For example: @code{bits
+2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)} and
+@code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
+
+@item (eval @var{form})
+@var{form} is a Lisp expression evaluated at the moment the field is
+unpacked or packed.  The result of the evaluation should be one of the
+above-listed type specifications.
+@end table
+
+A field specification generally has the form @code{([@var{name}]
+@var{handler})}.  The square braces indicate that @var{name} is
+optional.  (Don't use names that are symbols meaningful as type
+specifications (above) or handler specifications (below), since that
+would be ambiguous.)  @var{name} can be a symbol or the expression
+@code{(eval @var{form})}, in which case @var{form} should evaluate to
+a symbol.
+
+@var{handler} describes how to unpack or pack the field and can be one
+of the following:
+
+@table @code
+@item @var{type}
+Unpack/pack this field according to the type specification @var{type}.
+
+@item eval @var{form}
+Evaluate @var{form}, a Lisp expression, for side-effect only.  If the
+field name is specified, the value is bound to that field name.
+@var{form} can access and update these dynamically bound variables:
+
+@table @code
+@item raw-data
+The data as a byte array.
+
+@item pos
+Current position of the unpacking or packing operation.
+
+@item struct
+Alist.
+
+@item last
+Value of the last field processed.
+@end table
+
+@item fill @var{len}
+Skip @var{len} bytes.  In packing, this leaves them unchanged,
+which normally means they remain zero.  In unpacking, this means
+they are ignored.
+
+@item align @var{len}
+Skip to the next multiple of @var{len} bytes.
+
+@item struct @var{spec-name}
+Process @var{spec-name} as a sub-specification.  This descrobes a
+structure nested within another structure.
+
+@item union @var{form} (@var{tag} @var{spec})@dots{}
+@c ??? I don't see how one would actually  use this.
+@c ??? what kind of expression would be useful for @var{form}?
+Evaluate @var{form}, a Lisp expression, find the first @var{tag}
+that matches it, and process its associated data layout specification
+@var{spec}.  Matching can occur in one of three ways:
+
+@itemize
+@item
+If a @var{tag} has the form @code{(eval @var{expr})}, evaluate
+@var{expr} with the variable @code{tag} dynamically bound to the value
+of @var{form}.  A non-@code{nil} result indicates a match.
+
+@item
+@var{tag} matches if it is @code{equal} to the value of @var{form}.
+
+@item
+@var{tag} matches unconditionally if it is @code{t}.
+@end itemize
+
+@item repeat @var{count} @var{field-spec}@dots{}
+@var{count} may be an integer, or a list of one element naming a
+previous field.  For correct operation, each @var{field-spec} must
+include a name.
+@c ??? What does it MEAN?
+@end table
+
+@node Bindat Functions
+@subsection Functions to Unpack and Pack Bytes
+
+  In the following documentation, @var{spec} refers to a data layout
+specification, @code{raw-data} to a byte array, and @var{struct} to an
+alist representing unpacked field data.
+
+@defun bindat-unpack spec raw-data &optional pos
+This function unpacks data from the byte array @code{raw-data}
+according to @var{spec}.  Normally this starts unpacking at the
+beginning of the byte array, but if @var{pos} is non-@code{nil}, it
+specifies a zero-based starting position to use instead.
+
+The value is an alist or nested alist in which each element describes
+one unpacked field.
+@end defun
+
+@defun bindat-get-field struct &rest name
+This function selects a field's data from the nested alist
+@var{struct}.  Usually @var{struct} was returned by
+@code{bindat-unpack}.  If @var{name} corresponds to just one argument,
+that means to extract a top-level field value.  Multiple @var{name}
+arguments specify repeated lookup of sub-structures.  An integer name
+acts as an array index.
+
+For example, if @var{name} is @code{(a b 2 c)}, that means to find
+field @code{c} in the second element of subfield @code{b} of field
+@code{a}.  (This corresponds to @code{struct.a.b[2].c} in C.)
+@end defun
+
+@defun bindat-length spec struct
+@c ??? I don't understand this at all -- rms
+This function returns the length in bytes of @var{struct}, according
+to @var{spec}.
+@end defun
+
+@defun bindat-pack spec struct &optional raw-data pos
+This function returns a byte array packed according to @var{spec} from
+the data in the alist @var{struct}.  Normally it creates and fills a
+new byte array starting at the beginning.  However, if @var{raw-data}
+is non-@code{nil}, it speciries a pre-allocated string or vector to
+pack into.  If @var{pos} is non-@code{nil}, it specifies the starting
+offset for packing into @code{raw-data}.
+
+@c ??? Isn't this a bug?  Shoudn't it always be unibyte?
+Note: The result is a multibyte string; use @code{string-make-unibyte}
+on it to make it unibyte if necessary.
+@end defun
+
+@defun bindat-ip-to-string ip
+Convert the Internet address vector @var{ip} to a string in the usual
+dotted notation.
+
+@example
+(bindat-ip-to-string [127 0 0 1])
+     @result{} "127.0.0.1"
+@end example
+@end defun
+
+@node Bindat Examples
+@subsection Examples of Byte Unpacking and Packing
+
+  Here is a complete example of byte unpacking and packing:
+
+  @lisp
+(defvar fcookie-index-spec
+  '((:version  u32)
+    (:count    u32)
+    (:longest  u32)
+    (:shortest u32)
+    (:flags    u32)
+    (:delim    u8)
+    (:ignored  fill 3)
+    (:offset   repeat (:count)
+               (:foo u32)))
+  "Description of a fortune cookie index file's contents.")
+
+(defun fcookie (cookies &optional index)
+  "Display a random fortune cookie from file COOKIES.
+Optional second arg INDEX specifies the associated index
+filename, which is by default constructed by appending
+\".dat\" to COOKIES.  Display cookie text in possibly
+new buffer \"*Fortune Cookie: BASENAME*\" where BASENAME
+is COOKIES without the directory part."
+  (interactive "fCookies file: ")
+  (let* ((info (with-temp-buffer
+                 (insert-file-contents-literally
+                  (or index (concat cookies ".dat")))
+                 (bindat-unpack fcookie-index-spec
+                                (buffer-string))))
+         (sel (random (bindat-get-field info :count)))
+         (beg (cdar (bindat-get-field info :offset sel)))
+         (end (or (cdar (bindat-get-field info :offset (1+ sel)))
+                  (nth 7 (file-attributes cookies)))))
+    (switch-to-buffer (get-buffer-create
+                       (format "*Fortune Cookie: %s*"
+                               (file-name-nondirectory cookies))))
+    (erase-buffer)
+    (insert-file-contents-literally cookies nil beg (- end 3))))
+
+(defun fcookie-create-index (cookies &optional index delim)
+  "Scan file COOKIES, and write out its index file.
+Optional second arg INDEX specifies the index filename,
+which is by default constructed by appending \".dat\" to
+COOKIES.  Optional third arg DELIM specifies the unibyte
+character which, when found on a line of its own in
+COOKIES, indicates the border between entries."
+  (interactive "fCookies file: ")
+  (setq delim (or delim ?%))
+  (let ((delim-line (format "\n%c\n" delim))
+        (count 0)
+        (max 0)
+        min p q len offsets)
+    (unless (= 3 (string-bytes delim-line))
+      (error "Delimiter cannot be represented in one byte"))
+    (with-temp-buffer
+      (insert-file-contents-literally cookies)
+      (while (and (setq p (point))
+                  (search-forward delim-line (point-max) t)
+                  (setq len (- (point) 3 p)))
+        (setq count (1+ count)
+              max (max max len)
+              min (min (or min max) len)
+              offsets (cons (1- p) offsets))))
+    (with-temp-buffer
+      (set-buffer-multibyte nil)
+      (insert (string-make-unibyte
+               (bindat-pack
+                fcookie-index-spec
+                `((:version . 2)
+                  (:count . ,count)
+                  (:longest . ,max)
+                  (:shortest . ,min)
+                  (:flags . 0)
+                  (:delim . ,delim)
+                  (:offset . ,(mapcar (lambda (o)
+                                        (list (cons :foo o)))
+                                      (nreverse offsets)))))))
+      (let ((coding-system-for-write 'raw-text-unix))
+        (write-file (or index (concat cookies ".dat")))))))
+@end lisp
+
+Following is an example of defining and unpacking a complex structure.
+Consider the following C structures:
+
+@example
+struct header @{
+    unsigned long    dest_ip;
+    unsigned long    src_ip;
+    unsigned short   dest_port;
+    unsigned short   src_port;
+@};
+
+struct data @{
+    unsigned char    type;
+    unsigned char    opcode;
+    unsigned long    length;  /* In little endian order */
+    unsigned char    id[8];   /* nul-terminated string  */
+    unsigned char    data[/* (length + 3) & ~3 */];
+@};
+
+struct packet @{
+    struct header    header;
+    unsigned char    items;
+    unsigned char    filler[3];
+    struct data      item[/* items */];
+
+@};
+@end example
+
+The corresponding data layout specification:
+
+@lisp
+(setq header-spec
+      '((dest-ip   ip)
+        (src-ip    ip)
+        (dest-port u16)
+        (src-port  u16)))
+
+(setq data-spec
+      '((type      u8)
+        (opcode    u8)
+        (length    u16r) ;; little endian order
+        (id        strz 8)
+        (data      vec (length))
+        (align     4)))
+
+(setq packet-spec
+      '((header    struct header-spec)
+        (items     u8)
+        (fill      3)
+        (item      repeat (items)
+                   (struct data-spec))))
+@end lisp
+
+A binary data representation:
+
+@lisp
+(setq binary-data
+      [ 192 168 1 100 192 168 1 101 01 28 21 32 2 0 0 0
+        2 3 5 0 ?A ?B ?C ?D ?E ?F 0 0 1 2 3 4 5 0 0 0
+        1 4 7 0 ?B ?C ?D ?E ?F ?G 0 0 6 7 8 9 10 11 12 0 ])
+@end lisp
+
+The corresponding decoded structure:
+
+@lisp
+(setq decoded-structure (bindat-unpack packet-spec binary-data))
+     @result{}
+((header
+  (dest-ip   . [192 168 1 100])
+  (src-ip    . [192 168 1 101])
+  (dest-port . 284)
+  (src-port  . 5408))
+ (items . 2)
+ (item ((data . [1 2 3 4 5])
+        (id . "ABCDEF")
+        (length . 5)
+        (opcode . 3)
+        (type . 2))
+       ((data . [6 7 8 9 10 11 12])
+        (id . "BCDEFG")
+        (length . 7)
+        (opcode . 4)
+        (type . 1))))
+@end lisp
+
+Fetching data from this structure:
+
+@lisp
+(bindat-get-field decoded-structure 'item 1 'id)
+     @result{} "BCDEFG"
+@end lisp
 
 @ignore
    arch-tag: ba9da253-e65f-4e7f-b727-08fba0a1df7a
