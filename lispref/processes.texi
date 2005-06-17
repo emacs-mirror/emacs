@@ -2249,7 +2249,7 @@ dotted notation.
 
   Here is a complete example of byte unpacking and packing:
 
-  @lisp
+@lisp
 (defvar fcookie-index-spec
   '((:version  u32)
     (:count    u32)
