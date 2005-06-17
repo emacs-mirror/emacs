@@ -4,7 +4,9 @@
 	test of Vshow_nonbreak_escape.
 
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
-
+	(Ftty_no_underline): New function.
+	(syms_of_term): defsubr it.
+	
 	* keyboard.c (read_char): Call restore_getcjmp after jump occurs.
 
 	* dispnew.c (spec_glyph_lookup_face): New function.

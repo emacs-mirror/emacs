@@ -1,3 +1,20 @@
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* term.el (term-get-old-input, term-input-filter, term-input-sender)
+	(term-mode-hook, term-exec-hook, term-escape-char): Doc fixes.
+
+	* longlines.el (longlines-mode, longlines-show-hard-newlines): 
+	Doc fixes.
+
+	* faces.el (underline): Try bold if terminal doesn't support underline.
+
+	* mail/sendmail.el (mail-setup-with-from): New variable.
+	(mail-insert-from-field): New function.
+	(sendmail-send-it): Call it.
+	(mail-setup): Optionally call it here.
+
+	* term/linux.el: Call tty-no-underline.
+
 2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/edebug.el (edebug-goto-here): Doc fix.

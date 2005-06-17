@@ -1,3 +1,20 @@
+2005-06-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* lists.texi (Rings): New node.
+	(Lists): Add it to menu.
+
+	* processes.texi (Low-Level Network): New node.
+	(Processes): Add it to menu.
+
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Fix texinfo usage.
+
+	* help.texi (Documentation Basics): Explain the xref to
+	Documentation Tips.
+
+	* debugging.texi (Debugger Commands): Minor fix.
+
 2005-06-16  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* edebug.texi (Instrumenting): Eliminate duplicate link.
