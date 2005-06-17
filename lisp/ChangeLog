@@ -1,3 +1,10 @@
+2005-06-17  Miles Bader  <miles@gnu.org>
+
+	* progmodes/cc-fonts.el (c-nonbreakable-space-face): Remove
+	"-face" suffix from face name.
+	(c-cpp-matchers): Use the variable `c-nonbreakable-space-face'
+	instead of literal face.
+
 2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* progmodes/ada-mode.el (ada-format-paramlist)
