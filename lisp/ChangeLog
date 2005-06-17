@@ -1,5 +1,8 @@
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
+	* startup.el (command-line): Warn if specified user name has
+	no home directory.
+
 	* term.el (term-get-old-input, term-input-filter, term-input-sender)
 	(term-mode-hook, term-exec-hook, term-escape-char): Doc fixes.
 

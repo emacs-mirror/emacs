@@ -5,6 +5,7 @@ Tasks needed before the next release.
 ** `undo-ask-before-discard', currently set to t for debugging purposes
 has to be set to nil: when t, it can leak memory and cause other problems.
 
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
@@ -19,10 +20,10 @@ See msg from rms to emacs-devel on 21 Dec.
 ** Enhance scroll-bar to handle tall line (similar to line-move).
 
 
-
 * FATAL ERRORS
 
 ** Make unexec handle memory mapping policy of the latest versions of Linux.
+This includes exec_shield and a memory-layout randomization feature.
 
 ** Investigate reported crashes in compact_small_strings.
 
@@ -79,13 +80,9 @@ is encountered.
 
 ** Document Custom Themes.
 
-** Finish updating the Emacs Lisp manual.
+** Update lispref/README.
 
-*** Update lispref/README.
-
-** Update the Emacs manual.
-
-*** Update man/info.texi.
+** Update man/info.texi.
 
 ** Add missing years in copyright notices of all files.
 
@@ -112,8 +109,6 @@ lisp/toolbar		working		Thien-Thi Nguyen
 lisp/url		working		Thien-Thi Nguyen
 
 ** Update AUTHORS.
-
-** Reorder NEWS entries.
 
 ** Check the Emacs manual.
 
