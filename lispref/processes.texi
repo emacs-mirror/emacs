@@ -2022,8 +2022,8 @@ That particular network option is supported by
 @section Packing and Unpacking Byte Arrays
 
   This section describes how to pack and unpack arrays of bytes,
-usually for binary network protocols.  These functions byte arrays to
-alists, and vice versa.  The byte array can be represented as a
+usually for binary network protocols.  These functions convert byte arrays
+to alists, and vice versa.  The byte array can be represented as a
 unibyte string or as a vector of integers, while the alist associates
 symbols either with fixed-size objects or with recursive sub-alists.
 
