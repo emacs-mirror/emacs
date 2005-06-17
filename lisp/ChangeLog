@@ -28,7 +28,7 @@
 
 	* eshell/esh-test.el (eshell-test-ok, eshell-test-failed):
 	Remove "-face" suffix from face names.
-	(eshell-test-ok-face, eshell-test-failed-face): 
+	(eshell-test-ok-face, eshell-test-failed-face):
 	New backward-compatibility aliases for renamed faces.
 	(eshell-run-test): Use renamed eshell-test faces.
 
@@ -47,7 +47,7 @@
 	(eshell-ls-unreadable-face, eshell-ls-special-face)
 	(eshell-ls-missing-face, eshell-ls-archive-face)
 	(eshell-ls-backup-face, eshell-ls-product-face)
-	(eshell-ls-clutter-face): 
+	(eshell-ls-clutter-face):
 	New backward-compatibility aliases for renamed faces.
 	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
 
@@ -57,6 +57,11 @@
 	instead of literal face.
 
 2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (display-warning, lwarn)
+	(warning-minimum-log-level): Doc fixes.
+	(warning-minimum-level, warning-minimum-log-level):
+	Add :debug to :type choices.
 
 	* progmodes/ada-mode.el (ada-format-paramlist)
 	(ada-get-indent-case, ada-check-matching-start)
