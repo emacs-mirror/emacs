@@ -1,3 +1,55 @@
+2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/ada-mode.el (ada-format-paramlist)
+	(ada-get-indent-case, ada-check-matching-start)
+	(ada-check-defun-name, ada-goto-matching-decl-start)
+	(ada-goto-matching-start, ada-goto-matching-end, ada-tab)
+	(ada-untab, ada-move-to-start, ada-fill-comment-paragraph)
+	(ada-make-subprogram-body): Follow error conventions.
+	(ada-case-exception-file, ada-indent-comment-as-code)
+	(ada-indent-handle-comment-special, ada-indent-renames)
+	(ada-indent-return, ada-search-directories-internal)
+	(ada-tab-policy, ada-case-exception-substring)
+	(ada-other-file-alist, ada-matching-start-re)
+	(ada-matching-decl-start-re, ada-contextual-menu-last-point)
+	(ada-imenu-generic-expression, ada-compile-goto-error)
+	(ada-in-comment-p, ada-in-string-p, ada-in-string-or-comment-p)
+	(ada-popup-menu, ada-add-extensions, ada-mode)
+	(ada-region-selected, ada-create-case-exception)
+	(ada-create-case-exception-substring, ada-after-keyword-p)
+	(ada-activate-keys-for-case, ada-adjust-case-region)
+	(ada-adjust-case-buffer, ada-format-paramlist)
+	(ada-scan-paramlist, ada-insert-paramlist)
+	(ada-indent-newline-indent)
+	(ada-indent-newline-indent-conditional)
+	(ada-justified-indent-current, ada-goto-previous-word)
+	(ada-indent-current, ada-get-indent-open-paren)
+	(ada-get-indent-paramlist, ada-get-indent-end)
+	(ada-get-indent-case, ada-get-indent-when, ada-get-indent-if)
+	(ada-get-indent-block-start, ada-get-indent-subprog)
+	(ada-get-indent-noindent, ada-get-indent-label)
+	(ada-get-indent-loop, ada-get-indent-type, ada-goto-stmt-start)
+	(ada-search-prev-end-stmt, ada-goto-next-non-ws)
+	(ada-goto-stmt-end, ada-goto-next-word)
+	(ada-check-matching-start, ada-check-defun-name)
+	(ada-goto-matching-decl-start, ada-goto-matching-start)
+	(ada-goto-matching-end, ada-search-ignore-string-comment)
+	(ada-in-decl-p, ada-looking-at-semi-or)
+	(ada-looking-at-semi-private, ada-in-paramlist-p)
+	(ada-in-open-paren-p, ada-tab, ada-indent-current-function)
+	(ada-untab-hard, ada-move-to-start, ada-move-to-end)
+	(ada-next-procedure, ada-previous-procedure, ada-next-package)
+	(ada-previous-package, ada-create-menu)
+	(ada-fill-comment-paragraph-justify)
+	(ada-fill-comment-paragraph-postfix, ada-fill-comment-paragraph)
+	(ada-other-file-name, ada-last-which-function-line)
+	(ada-last-which-function-subprog, ada-which-function)
+	(ada-get-body-name, ada-outline-level, ada-narrow-to-defun)
+	(ada-gen-treat-proc, ada-check-emacs-version)
+	(ada-continuation-indent, ada-align-region-separate):
+	Fix typos in docstrings.
+	(ada-adjust-case, ada-adjust-case-interactive): Doc fixes.
+
 2005-06-16  Lute Kamstra  <lute@gnu.org>
 
 	* simple.el (fundamental-mode): Run after-change-major-mode-hook
