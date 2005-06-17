@@ -5934,8 +5934,8 @@ Values are interpreted as follows:
   hollow	 display a hollow box cursor
   bar		 display a vertical bar cursor with default width
   (bar . WIDTH)	 display a vertical bar cursor with width WIDTH
-  hbar		 display a horizontal bar cursor with default width
-  (hbar . WIDTH) display a horizontal bar cursor with width WIDTH
+  hbar		 display a horizontal bar cursor with default height
+  (hbar . HEIGHT) display a horizontal bar cursor with width HEIGHT
   ANYTHING ELSE	 display a hollow box cursor.
 
 When the buffer is displayed in a nonselected window,
