@@ -2046,7 +2046,7 @@ direction is also known as @dfn{serializing} or @dfn{packing}.
 
   To control unpacking and packing, you write a @dfn{data layout
 specification}, a special nested list describing named and typed
-@dfn{fields}.  This specification conrtols length of each field to be
+@dfn{fields}.  This specification controls length of each field to be
 processed, and how to pack or unpack it.
 
 @cindex endianness
