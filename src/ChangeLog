@@ -1,3 +1,24 @@
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Reverse
+	test of Vshow_nonbreak_escape.
+
+	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
+
+	* keyboard.c (read_char): Call restore_getcjmp after jump occurs.
+
+	* dispnew.c (spec_glyph_lookup_face): New function.
+	(build_frame_matrix_from_leaf_window): Use it.
+
+	* dispextern.h (spec_glyph_lookup_face): Add declaration.
+
+	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
+
+2005-06-12  Richard M. Stallman  <rms@gnu.org>
+
+	* keyboard.c (read_char): After catching a longjmp,
+	call restore_getcjmp.
+
 2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
 
 	* xselect.c (lisp_data_to_selection_data): Fix spelling.
@@ -105,7 +126,6 @@
 
 	* xdisp.c (note_mode_line_or_margin_highlight): Call clear_mouse_face
 	when mouse_face is not given.
-	Remove unnecessary tabs.
 
 2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
 
