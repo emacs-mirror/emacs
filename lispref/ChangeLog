@@ -1,3 +1,8 @@
+2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* processes.texi: Fix typos.
+	(Bindat Spec): Correct Texinfo error.
+
 2005-06-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
 	* lists.texi (Rings): New node.
