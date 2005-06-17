@@ -1,5 +1,30 @@
 2005-06-17  Miles Bader  <miles@gnu.org>
 
+	* eshell/esh-test.el (eshell-test-ok, eshell-test-failed):
+	Remove "-face" suffix from face names.
+	(eshell-test-ok-face, eshell-test-failed-face): 
+	New backward-compatibility aliases for renamed faces.
+	(eshell-run-test): Use renamed eshell-test faces.
+
+	* eshell/em-prompt.el (eshell-prompt):
+	Remove "-face" suffix from face name.
+	(eshell-prompt-face): New backward-compatibility alias for renamed face.
+	(eshell-emit-prompt): Use renamed eshell-prompt face.
+
+	* eshell/em-ls.el (eshell-ls-directory, eshell-ls-symlink)
+	(eshell-ls-executable, eshell-ls-readonly, eshell-ls-unreadable)
+	(eshell-ls-special, eshell-ls-missing, eshell-ls-archive)
+	(eshell-ls-backup, eshell-ls-product, eshell-ls-clutter):
+	Remove "-face" suffix from face names.
+	(eshell-ls-directory-face, eshell-ls-symlink-face)
+	(eshell-ls-executable-face, eshell-ls-readonly-face)
+	(eshell-ls-unreadable-face, eshell-ls-special-face)
+	(eshell-ls-missing-face, eshell-ls-archive-face)
+	(eshell-ls-backup-face, eshell-ls-product-face)
+	(eshell-ls-clutter-face): 
+	New backward-compatibility aliases for renamed faces.
+	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
+
 	* progmodes/cc-fonts.el (c-nonbreakable-space-face): Remove
 	"-face" suffix from face name.
 	(c-cpp-matchers): Use the variable `c-nonbreakable-space-face'
