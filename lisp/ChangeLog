@@ -1,3 +1,7 @@
+2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/edebug.el (edebug-goto-here): Doc fix.
+
 2005-06-17  Miles Bader  <miles@gnu.org>
 
 	* ediff-init.el (ediff-current-diff-A, ediff-current-diff-B)
