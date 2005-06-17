@@ -2,6 +2,7 @@
 
 	* processes.texi: Fix typos.
 	(Bindat Spec): Correct Texinfo error.
+	(Byte Packing): Fix ungrammatical sentence.
 
 2005-06-17  Thien-Thi Nguyen  <ttn@gnu.org>
 
