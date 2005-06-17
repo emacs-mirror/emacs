@@ -1,3 +1,52 @@
+2005-06-17  Miles Bader  <miles@gnu.org>
+
+	* mh-customize.el (mh-folder-body, mh-folder-cur-msg)
+	(mh-folder-cur-msg-number, mh-folder-date, mh-folder-followup)
+	(mh-folder-msg-number, mh-folder-refiled, mh-folder-subject)
+	(mh-folder-tick, mh-folder-to, mh-index-folder)
+	(mh-letter-header-field, mh-show-cc, mh-show-date)
+	(mh-show-header, mh-show-pgg-good, mh-show-pgg-unknown)
+	(mh-show-pgg-bad, mh-show-signature, mh-show-to, mh-show-from)
+	(mh-show-xface, mh-speedbar-folder, mh-speedbar-selected-folder)
+	(mh-speedbar-folder-with-unseen-messages)
+	(mh-speedbar-selected-folder-with-unseen-messages)
+	(mh-folder-msg-number, mh-folder-subject, mh-folder-followup)
+	(mh-folder-subject): Remove "-face" suffix from face names.
+	(mh-folder-body, mh-folder-cur-msg, mh-folder-cur-msg-number)
+	(mh-folder-date-face, mh-folder-followup-face)
+	(mh-folder-msg-number-face, mh-folder-refiled-face)
+	(mh-folder-subject-face, mh-folder-tick-face, mh-folder-to-face)
+	(mh-index-folder-face, mh-letter-header-field-face)
+	(mh-show-cc-face, mh-show-date-face, mh-show-header-face)
+	(mh-show-pgg-good-face, mh-show-pgg-unknown-face)
+	(mh-show-pgg-bad-face, mh-show-signature-face, mh-show-to-face)
+	(mh-show-from-face, mh-show-xface-face, mh-speedbar-folder-face)
+	(mh-speedbar-selected-folder-face)
+	(mh-speedbar-folder-with-unseen-messages-face)
+	(mh-speedbar-selected-folder-with-unseen-messages-face): 
+	New backward-compatibility aliases for renamed faces.
+	(mh-folder-body-face, mh-folder-cur-msg-face)
+	(mh-folder-cur-msg-number-face, mh-folder-date-face)
+	(mh-folder-followup-face, mh-folder-msg-number-face)
+	(mh-folder-deleted-face, mh-folder-refiled-face)
+	(mh-folder-subject-face, mh-folder-address-face)
+	(mh-folder-scan-format-face, mh-folder-to-face)
+	(mh-index-folder-face, mh-show-cc-face, mh-show-date-face)
+	(mh-show-header-face, mh-show-pgg-good-face)
+	(mh-show-pgg-unknown-face, mh-show-pgg-bad-face)
+	(mh-show-to-face, mh-show-from-face, mh-show-subject-face)
+	(mh-speedbar-folder-with-unseen-messages)
+	(mh-speedbar-selected-folder-with-unseen-messages): 
+	Use renamed MH-E faces.
+
+	* mh-utils.el (mh-letter-font-lock-keywords)
+	(mh-face-display-function): Use renamed MH-E faces.
+	* mh-speed.el (mh-folder-speedbar-buttons)
+	(mh-speed-update-current-folder, mh-speed-normal-face)
+	(mh-speed-bold-face, mh-speed-add-buttons)
+	(mh-speed-invalidate-map): Likewise.
+	* mh-mime.el (mh-signature-highlight): Likewise.
+
 2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* mh-comp.el (mh-send-sub):

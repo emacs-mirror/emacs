@@ -1,7 +1,7 @@
 ;;; mh-utils.el --- MH-E code needed for both sending and reading
 
 ;; Copyright (C) 1993, 1995, 1997,
-;; 2000, 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; 2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -406,7 +406,7 @@ Argument LIMIT limits search."
 
 (defvar mh-letter-font-lock-keywords
   `(,@mh-show-font-lock-keywords-with-cite
-    (mh-font-lock-field-data (1 'mh-letter-header-field-face prepend t))))
+    (mh-font-lock-field-data (1 'mh-letter-header-field prepend t))))
 
 (defun mh-show-font-lock-fontify-region (beg end loudly)
   "Limit font-lock in `mh-show-mode' to the header.
@@ -1218,8 +1218,8 @@ is used."
               (mh-funcall-if-exists
                insert-image (create-image
                              raw type t
-                             :foreground (face-foreground 'mh-show-xface-face)
-                             :background (face-background 'mh-show-xface-face))
+                             :foreground (face-foreground 'mh-show-xface)
+                             :background (face-background 'mh-show-xface))
                             " ")))
           ;; XEmacs
           (mh-do-in-xemacs
@@ -1237,7 +1237,7 @@ is used."
                (set-extent-begin-glyph
                 (make-extent (point) (point))
                 (make-glyph (vector 'xface ':data (concat "X-Face: " x-face))))
-               'mh-show-xface-face))
+               'mh-show-xface))
              ;; Otherwise try external support with x-face...
              ((and (eq type 'pbm)
                    (fboundp 'x-face-xmas-wl-display-x-face)

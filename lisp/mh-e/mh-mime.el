@@ -1,7 +1,7 @@
 ;;; mh-mime.el --- MH-E support for composing MIME messages
 
 ;; Copyright (C) 1993, 1995,
-;; 2001, 2002, 2003, 2004 Free Software Foundation, Inc.
+;; 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Bill Wohler <wohler@newt.com>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -1059,11 +1059,11 @@ to highlight the signature in a MIME part."
       (when (re-search-backward regexp nil t)
         (mh-do-in-gnu-emacs
           (let ((ov (make-overlay (point) (point-max))))
-            (overlay-put ov 'face 'mh-show-signature-face)
+            (overlay-put ov 'face 'mh-show-signature)
             (overlay-put ov 'evaporate t)))
         (mh-do-in-xemacs
           (set-extent-property (make-extent (point) (point-max))
-                               'face 'mh-show-signature-face))))))
+                               'face 'mh-show-signature))))))
 
 (mh-do-in-xemacs
  (defvar dots)
