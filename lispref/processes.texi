@@ -767,9 +767,9 @@ specify the process to send input to, and the input data to send.  The
 data appears on the ``standard input'' of the subprocess.
 
   Some operating systems have limited space for buffered input in a
-@acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF} periodically amidst
-the other characters, to force them through.  For most programs,
-these @acronym{EOF}s do no harm.
+@acronym{PTY}.  On these systems, Emacs sends an @acronym{EOF}
+periodically amidst the other characters, to force them through.  For
+most programs, these @acronym{EOF}s do no harm.
 
   Subprocess input is normally encoded using a coding system before the
 subprocess receives it, much like text written into a file.  You can use
@@ -973,7 +973,7 @@ primitive that waits.
 @defvar process-adaptive-read-buffering
 On some systems, when Emacs reads the output from a subprocess, the
 output data is read in very small blocks, potentially resulting in
-very poor performance.  This behaviour can be remedied to some extent
+very poor performance.  This behavior can be remedied to some extent
 by setting the variable @var{process-adaptive-read-buffering} to a
 non-@code{nil} value (the default), as it will automatically delay reading
 from such processes, thus allowing them to produce more output before
@@ -1560,7 +1560,7 @@ back to listening for more connection requests.
 keyword/argument pairs, for example @code{:server t} to create a
 server process, or @code{:type 'datagram} to create a datagram
 connection.  @xref{Low-Level Network}, for details.  You can also use
-the @code{open-network-stream} function descibed below.
+the @code{open-network-stream} function described below.
 
   You can distinguish process objects representing network connections
 and servers from those representing subprocesses with the
@@ -1824,7 +1824,8 @@ If you don't specify this keyword at all, the default
 is to determine the coding systems from the data.
 
 @item :noquery @var{query-flag}
-Initialize the process query flag to @var{query-flag}.  @xref{Query Before Exit}.
+Initialize the process query flag to @var{query-flag}.
+@xref{Query Before Exit}.
 
 @item :filter @var{filter}
 Initialize the process filter to @var{filter}.
@@ -1939,7 +1940,8 @@ and @var{remote-address} arguments to @code{make-network-process}.
 
 @defun network-interface-info ifname
 This function returns information about the network interface named
-@var{ifname}.  The value is a list of the form @code{(@var{addr} @var{bcast} @var{netmask} @var{hwaddr} @var{flags})}.
+@var{ifname}.  The value is a list of the form
+@code{(@var{addr} @var{bcast} @var{netmask} @var{hwaddr} @var{flags})}.
 
 @table @var
 @item addr
@@ -2020,7 +2022,7 @@ That particular network option is supported by
 @section Packing and Unpacking Byte Arrays
 
   This section describes how to pack and unpack arrays of bytes,
-usually for binary network protocols.  These functoins byte arrays to
+usually for binary network protocols.  These functions byte arrays to
 alists, and vice versa.  The byte array can be represented as a
 unibyte string or as a vector of integers, while the alist associates
 symbols either with fixed-size objects or with recursive sub-alists.
@@ -2053,7 +2055,7 @@ processed, and how to pack or unpack it.
 @cindex network byte ordering
   A field's @dfn{type} describes the size (in bytes) of the object
 that the field represents and, in the case of multibyte fields, how
-the bytes are ordered within the firld.  The two possible orderings
+the bytes are ordered within the field.  The two possible orderings
 are ``big endian'' (also known as ``network byte ordering'') and
 ``little endian''.  For instance, the number @code{#x23cd} (decimal
 9165) in big endian would be the two bytes @code{#x23} @code{#xcd};
@@ -2100,7 +2102,7 @@ Four-byte vector representing an Internet address.  For example:
 @item bits @var{len}
 List of set bits in @var{len} bytes.  The bytes are taken in big
 endian order and the bits are numbered starting with @code{8 *
-@var{len} @minus{} 1}} and ending with zero.  For example: @code{bits
+@var{len} @minus{} 1} and ending with zero.  For example: @code{bits
 2} unpacks @code{#x28} @code{#x1c} to @code{(2 3 4 11 13)} and
 @code{#x1c} @code{#x28} to @code{(3 5 10 11 12)}.
 
@@ -2153,7 +2155,7 @@ they are ignored.
 Skip to the next multiple of @var{len} bytes.
 
 @item struct @var{spec-name}
-Process @var{spec-name} as a sub-specification.  This descrobes a
+Process @var{spec-name} as a sub-specification.  This describes a
 structure nested within another structure.
 
 @item union @var{form} (@var{tag} @var{spec})@dots{}
@@ -2223,11 +2225,11 @@ to @var{spec}.
 This function returns a byte array packed according to @var{spec} from
 the data in the alist @var{struct}.  Normally it creates and fills a
 new byte array starting at the beginning.  However, if @var{raw-data}
-is non-@code{nil}, it speciries a pre-allocated string or vector to
+is non-@code{nil}, it specifies a pre-allocated string or vector to
 pack into.  If @var{pos} is non-@code{nil}, it specifies the starting
 offset for packing into @code{raw-data}.
 
-@c ??? Isn't this a bug?  Shoudn't it always be unibyte?
+@c ??? Isn't this a bug?  Shouldn't it always be unibyte?
 Note: The result is a multibyte string; use @code{string-make-unibyte}
 on it to make it unibyte if necessary.
 @end defun
@@ -2340,7 +2342,7 @@ struct data @{
     unsigned char    type;
     unsigned char    opcode;
     unsigned long    length;  /* In little endian order */
-    unsigned char    id[8];   /* nul-terminated string  */
+    unsigned char    id[8];   /* null-terminated string  */
     unsigned char    data[/* (length + 3) & ~3 */];
 @};
 
