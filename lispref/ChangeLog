@@ -9,7 +9,7 @@
 	* lists.texi (Rings): New node.
 	(Lists): Add it to menu.
 
-	* processes.texi (Low-Level Network): New node.
+	* processes.texi (Byte Packing): New node.
 	(Processes): Add it to menu.
 
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
