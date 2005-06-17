@@ -350,7 +350,7 @@ structures of an interpreted function, but cannot do so in a
 byte-compiled function.  If you would like to step through a
 byte-compiled function, replace it with an interpreted definition of
 the same function.  (To do this, visit the source for the function and
-type @kbd{C-M-x} on its definition.)  You can not use the Lisp debugger
+type @kbd{C-M-x} on its definition.)  You cannot use the Lisp debugger
 to step through a primitive function.
 
   Here is a list of Debugger mode commands:
