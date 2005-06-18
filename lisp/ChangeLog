@@ -1,3 +1,15 @@
+2005-06-18  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Use backreference at the
+	end of first regexp to limit the match to the position between
+	line number and source line with same separator character as used
+	between file name and line number.  In the second regexp limit
+	mouse-face area to file name and line number by adding new group
+	for them and referring it in HYPERLINK arg.
+	(grep-regexp-alist, grep-mode-font-lock-keywords): Use shy group.
+	(grep-mode): Set font-lock-lines-before to 0 to not refontify the
+	previous line where grep markers may be already removed.
+
 2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
 
 	* progmodes/ps-mode.el: Update version and maintainer's email
