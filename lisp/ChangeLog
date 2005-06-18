@@ -15,7 +15,7 @@
 	* progmodes/ps-mode.el: Update version and maintainer's email
 	address.
 
-2005-03-18  Steve Youngs  <steve@xemacs.org>
+2005-06-18  Steve Youngs  <steve@xemacs.org>
 
 	* net/browse-url.el (browse-url-browser-function)
 	(browse-url-default-browser): Add firefox.
