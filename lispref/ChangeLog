@@ -1,3 +1,22 @@
+2005-06-18  Richard M. Stallman  <rms@gnu.org>
+
+	* functions.texi (Obsolete Functions): Simplify.
+
+	* variables.texi (Variable Aliases): Simplify.
+
+	* anti.texi, backups.texi, compile.texi, customization.texi:
+	* debugging.texi, display.texi, edebug.texi, errors.texi, frames.texi:
+	* functions.texi, help.texi, keymaps.texi, modes.texi, nonascii.texi:
+	* os.texi, processes.texi, searching.texi, strings.texi, text.texi:
+	* variables.texi: Fix formatting ugliness.
+
+	* elisp.texi: Add links to Rings and Byte Packing.
+	Update version and copyright years.
+
+	* minibuf.texi: Fix formatting ugliness.
+	(Completion Commands): Move keymap vars to the end
+	and vars completing-read binds to the top.
+
 2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* processes.texi: Fix typos.
