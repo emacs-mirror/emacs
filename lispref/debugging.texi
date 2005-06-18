@@ -471,15 +471,15 @@ entered--entering a function:} as a line of text at the top of the
 buffer.
 
 @item debug
-@code{debug} as first argument indicates a call to @code{debug}
-because of entry to a function that was set to debug on entry.  The
-debugger displays @samp{Debugger entered--entering a function:}, just
-as in the @code{lambda} case.  It also marks the stack frame for that
-function so that it will invoke the debugger when exited.
+@code{debug} as first argument means @code{debug} was called because
+of entry to a function that was set to debug on entry.  The debugger
+displays the string @samp{Debugger entered--entering a function:},
+just as in the @code{lambda} case.  It also marks the stack frame for
+that function so that it will invoke the debugger when exited.
 
 @item t
 When the first argument is @code{t}, this indicates a call to
-@code{debug} due to evaluation of a list form when
+@code{debug} due to evaluation of a function call form when
 @code{debug-on-next-call} is non-@code{nil}.  The debugger displays
 @samp{Debugger entered--beginning evaluation of function call form:}
 as the top line in the buffer.

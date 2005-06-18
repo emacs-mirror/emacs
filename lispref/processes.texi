@@ -169,7 +169,7 @@ function.
 (shell-quote-argument "foo > bar")
      @result{} "foo\\ \\>\\ bar"
 
-;; @r{This example shows the behavior on MS-DOS and MS-Windows systems.}
+;; @r{This example shows the behavior on MS-DOS and MS-Windows.}
 (shell-quote-argument "foo > bar")
      @result{} "\"foo > bar\""
 @end example
@@ -2277,13 +2277,16 @@ is COOKIES without the directory part."
                                 (buffer-string))))
          (sel (random (bindat-get-field info :count)))
          (beg (cdar (bindat-get-field info :offset sel)))
-         (end (or (cdar (bindat-get-field info :offset (1+ sel)))
+         (end (or (cdar (bindat-get-field info
+                                          :offset (1+ sel)))
                   (nth 7 (file-attributes cookies)))))
-    (switch-to-buffer (get-buffer-create
-                       (format "*Fortune Cookie: %s*"
-                               (file-name-nondirectory cookies))))
+    (switch-to-buffer
+     (get-buffer-create
+      (format "*Fortune Cookie: %s*"
+              (file-name-nondirectory cookies))))
     (erase-buffer)
-    (insert-file-contents-literally cookies nil beg (- end 3))))
+    (insert-file-contents-literally
+     cookies nil beg (- end 3))))
 
 (defun fcookie-create-index (cookies &optional index delim)
   "Scan file COOKIES, and write out its index file.
@@ -2311,18 +2314,19 @@ COOKIES, indicates the border between entries."
               offsets (cons (1- p) offsets))))
     (with-temp-buffer
       (set-buffer-multibyte nil)
-      (insert (string-make-unibyte
-               (bindat-pack
-                fcookie-index-spec
-                `((:version . 2)
-                  (:count . ,count)
-                  (:longest . ,max)
-                  (:shortest . ,min)
-                  (:flags . 0)
-                  (:delim . ,delim)
-                  (:offset . ,(mapcar (lambda (o)
-                                        (list (cons :foo o)))
-                                      (nreverse offsets)))))))
+      (insert
+       (string-make-unibyte
+        (bindat-pack
+         fcookie-index-spec
+         `((:version . 2)
+           (:count . ,count)
+           (:longest . ,max)
+           (:shortest . ,min)
+           (:flags . 0)
+           (:delim . ,delim)
+           (:offset . ,(mapcar (lambda (o)
+                                 (list (cons :foo o)))
+                               (nreverse offsets)))))))
       (let ((coding-system-for-write 'raw-text-unix))
         (write-file (or index (concat cookies ".dat")))))))
 @end lisp
@@ -2392,7 +2396,7 @@ A binary data representation:
 The corresponding decoded structure:
 
 @lisp
-(setq decoded-structure (bindat-unpack packet-spec binary-data))
+(setq decoded (bindat-unpack packet-spec binary-data))
      @result{}
 ((header
   (dest-ip   . [192 168 1 100])
@@ -2415,7 +2419,7 @@ The corresponding decoded structure:
 Fetching data from this structure:
 
 @lisp
-(bindat-get-field decoded-structure 'item 1 'id)
+(bindat-get-field decoded 'item 1 'id)
      @result{} "BCDEFG"
 @end lisp
 

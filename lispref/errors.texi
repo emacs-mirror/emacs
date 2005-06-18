@@ -63,7 +63,7 @@ See @code{/} and @code{%} in @ref{Numbers}.
 @xref{Function Indirection}.
 
 @item cyclic-variable-indirection
-@code{"Symbol's chain of variable indirections contains a loop"}@*
+@code{"Symbol's chain of variable indirections\@* contains a loop"}@*
 @xref{Variable Aliases}.
 
 @item end-of-buffer

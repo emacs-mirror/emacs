@@ -395,7 +395,7 @@ setting up a buffer-local value for the variable
 @item
 The mode should specify how Imenu should find the definitions or
 sections of a buffer, by setting up a buffer-local value for the
-variable @code{imenu-generic-expression}, for the pair of variables
+variable @code{imenu-generic-expression}, for the two variables
 @code{imenu-prev-index-position-function} and
 @code{imenu-extract-index-name-function}, or for the variable
 @code{imenu-create-index-function} (@pxref{Imenu}).
@@ -2290,8 +2290,8 @@ A nested sub-alist element looks like this:
 It creates the submenu @var{menu-title} specified by @var{sub-alist}.
 
 The default value of @code{imenu-create-index-function} is
-@code{imenu-default-create-index-function}.  This function uses
-@code{imenu-prev-index-position-function} and
+@code{imenu-default-create-index-function}.  This function calls the
+value of @code{imenu-prev-index-position-function} and the value of
 @code{imenu-extract-index-name-function} to produce the index alist.
 However, if either of these two variables is @code{nil}, the default
 function uses @code{imenu-generic-expression} instead.
@@ -2456,7 +2456,7 @@ highlighted (instead of the entire text that @var{matcher} matched).
 @end example
 
 If you use @code{regexp-opt} to produce the regular expression
-@var{matcher}, then you can use @code{regexp-opt-depth} (@pxref{Regexp
+@var{matcher}, you can use @code{regexp-opt-depth} (@pxref{Regexp
 Functions}) to calculate the value for @var{subexp}.
 
 @item (@var{matcher} . @var{facespec})
@@ -2657,8 +2657,7 @@ non-@code{nil} value, they are added at the end of
 Some modes provide specialized support you can use in additional
 highlighting patterns.  See the variables
 @code{c-font-lock-extra-types}, @code{c++-font-lock-extra-types},
-@code{objc-font-lock-extra-types} and
-@code{java-font-lock-extra-types}, for example.
+and @code{java-font-lock-extra-types}, for example.
 
 @strong{Warning:} major mode functions must not call
 @code{font-lock-add-keywords} under any circumstances, either directly

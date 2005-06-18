@@ -119,7 +119,7 @@ retrieves the text from a file if the value calls for that.  If the
 property value isn't @code{nil}, isn't a string, and doesn't refer to
 text in a file, then it is evaluated to obtain a string.
 
-Finally, @code{documentation-property} passes the string through
+The last thing this function does is pass the string through
 @code{substitute-command-keys} to substitute actual key bindings,
 unless @var{verbatim} is non-@code{nil}.
 

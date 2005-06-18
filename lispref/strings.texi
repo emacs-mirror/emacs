@@ -298,7 +298,8 @@ useful.  If you need such a result, use an explicit value for
 @var{separators}:
 
 @example
-(split-string "  two words " split-string-default-separators)
+(split-string "  two words "
+              split-string-default-separators)
      @result{} ("" "two" "words" "")
 @end example
 
@@ -353,8 +354,8 @@ practice:
 @end defun
 
 @defvar split-string-default-separators
-The default value of @var{separators} for @code{split-string}, initially
-@w{@samp{"[ \f\t\n\r\v]+"}}.
+The default value of @var{separators} for @code{split-string}.  Its
+usual value is @w{@samp{"[ \f\t\n\r\v]+"}}.
 @end defvar
 
 @node Modifying Strings
