@@ -1,3 +1,12 @@
+2005-03-18  Steve Youngs  <steve@xemacs.org>
+
+	* net/browse-url.el (browse-url-browser-function)
+	(browse-url-default-browser): Add firefox.
+	(browse-url-firefox-program, browse-url-firefox-arguments)
+	(browse-url-firefox-startup-arguments)
+	(browse-url-firefox-new-window-is-tab): New defcustoms.
+	(browse-url-firefox, browse-url-firefox-sentinel): New functions.
+
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
 	* startup.el (command-line): Warn if specified user name has
