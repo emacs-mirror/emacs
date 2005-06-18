@@ -1722,24 +1722,24 @@ be called later, or an expression that would be executed later, simply
 visiting a file could take over your Emacs.  To prevent this, Emacs
 takes care not to allow to set such file local variables.
 
-  For one thing, any variable whose name ends in @samp{-command},
-@samp{-frame-alist}, @samp{-function}, @samp{-functions},
-@samp{-hook}, @samp{-hooks}, @samp{-form}, @samp{-forms}, @samp{-map},
-@samp{-map-alist}, @samp{-mode-alist}, @samp{-program}, or
-@samp{-predicate} cannot be given a file local value.  In general,
-you should use such a name whenever it is appropriate for the
-variable's meaning.  The variables @samp{font-lock-keywords},
-@samp{font-lock-keywords-[0-9]}, and
-@samp{font-lock-syntactic-keywords} cannot be given file local values either.
-These rules can be overridden by giving the variable's
-name a non-@code{nil} @code{safe-local-variable} property.  If one
-gives it a @code{safe-local-variable} property of @code{t}, then one
-can give the variable any file local value.  One can also give any
-symbol, including the above, a @code{safe-local-variable} property
-that is a function taking exactly one argument.  In that case, giving
-a variable with that name a file local value is only allowed if the
-function returns non-@code{nil} when called with that value as
-argument.
+  For one thing, any variable whose name ends in any of
+@samp{-command}, @samp{-frame-alist}, @samp{-function},
+@samp{-functions}, @samp{-hook}, @samp{-hooks}, @samp{-form},
+@samp{-forms}, @samp{-map}, @samp{-map-alist}, @samp{-mode-alist},
+@samp{-program}, or @samp{-predicate} cannot be given a file local
+value.  In general, you should use such a name whenever it is
+appropriate for the variable's meaning.  The variables
+@samp{font-lock-keywords}, @samp{font-lock-keywords} followed by a
+digit, and @samp{font-lock-syntactic-keywords} cannot be given file
+local values either.  These rules can be overridden by giving the
+variable's name a non-@code{nil} @code{safe-local-variable} property.
+If one gives it a @code{safe-local-variable} property of @code{t},
+then one can give the variable any file local value.  One can also
+give any symbol, including the above, a @code{safe-local-variable}
+property that is a function taking exactly one argument.  In that
+case, giving a variable with that name a file local value is only
+allowed if the function returns non-@code{nil} when called with that
+value as argument.
 
   In addition, any variable whose name has a non-@code{nil}
 @code{risky-local-variable} property is also ignored.  So are all
@@ -1822,19 +1822,12 @@ same time using the macro @code{define-obsolete-variable-alias}.
 
 @defmac define-obsolete-variable-alias obsolete-name current-name &optional when docstring
 This macro marks the variable @var{obsolete-name} as obsolete and also
-makes it an alias for the variable @var{current-name}.  A typical call has
-the form:
+makes it an alias for the variable @var{current-name}.  It is
+equivalent to the following:
 
 @example
-(define-obsolete-variable-alias 'old-var 'new-var "22.1" "Doc.")
-@end example
-
-@noindent
-which is equivalent to the following two lines of code:
-
-@example
-(defvaralias 'oldvar 'newvar "Doc.")
-(make-obsolete-variable 'old-var 'new-var "22.1")
+(defvaralias @var{obsolete-name} @var{current-name} @var{docstring})
+(make-obsolete-variable @var{obsolete-name} @var{current-name} @var{when})
 @end example
 @end defmac
 
