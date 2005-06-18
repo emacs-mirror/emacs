@@ -1,3 +1,8 @@
+2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
+
+	* progmodes/ps-mode.el: Update version and maintainer's email
+	address.
+
 2005-03-18  Steve Youngs  <steve@xemacs.org>
 
 	* net/browse-url.el (browse-url-browser-function)
