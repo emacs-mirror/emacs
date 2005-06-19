@@ -715,7 +715,7 @@ Some examples:
 primitives @code{setcar} and @code{setcdr}.  We call these ``destructive''
 operations because they change existing list structure.
 
-@cindex CL note---@code{rplaca} vrs @code{setcar}
+@cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
 @findex rplaca
 @findex rplacd
@@ -1691,7 +1691,7 @@ This returns a new ring capable of holding @var{size} objects.
 @end defun
 
 @defun ring-p object
-This returns @code{t} if @var{object} is a ring.
+This returns @code{t} if @var{object} is a ring, @code{nil} otherwise.
 @end defun
 
 @defun ring-size ring
@@ -1710,16 +1710,17 @@ order.
 
 @defun ring-copy ring
 This returns a new ring which is a copy of @var{ring}.
-The new ring contains the same objects as @var{ring}.
+The new ring contains the same (@code{eq}) objects as @var{ring}.
 @end defun
 
 @defun ring-empty-p ring
-This returns @code{t} if @var{ring} is empty.
+This returns @code{t} if @var{ring} is empty, @code{nil} otherwise.
 @end defun
 
-  The newest element in the ring always has index 0.  Higher indexes
-correspond to older elements.  Index @minus{}1 corresponds to the
-oldest element, @minus{}2 to the next-oldest, and so forth.
+  The newest element in the ring always has index 0.  Higher indices
+correspond to older elements.  Indices are computed modulo the ring
+length.  Index @minus{}1 corresponds to the oldest element, @minus{}2
+to the next-oldest, and so forth.
 
 @defun ring-ref ring index
 This returns the object in @var{ring} found at index @var{index}.
@@ -1744,7 +1745,7 @@ empty, @code{ring-remove} signals an error.
 
 @defun ring-insert-at-beginning ring object
 This inserts @var{object} into @var{ring}, treating it as the oldest
-element, and returns @var{object}.
+element.  The return value is not significant.
 
 If the ring is full, this function removes the newest element to make
 room for the inserted element.
