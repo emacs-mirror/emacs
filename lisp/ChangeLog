@@ -1,3 +1,7 @@
+2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
+
 2005-06-18  Juri Linkov  <juri@jurta.org>
 
 	* progmodes/grep.el (grep-regexp-alist): Use backreference at the
