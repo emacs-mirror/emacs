@@ -1,3 +1,13 @@
+2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-ftp.el (top):
+	* net/tramp-smb.el (top):
+	* net/tramp-util.el (top):
+	* net/tramp-uu.el (top):
+	* net/tramp-vc.el (top):
+	* net/tramp.el (top): Revert copyright years back to original
+	ones.  Tramp has a life outside GNU Emacs.
+
 2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
 
 	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
@@ -36,7 +46,7 @@
 	* term.el (term-get-old-input, term-input-filter, term-input-sender)
 	(term-mode-hook, term-exec-hook, term-escape-char): Doc fixes.
 
-	* longlines.el (longlines-mode, longlines-show-hard-newlines): 
+	* longlines.el (longlines-mode, longlines-show-hard-newlines):
 	Doc fixes.
 
 	* faces.el (underline): Try bold if terminal doesn't support underline.

@@ -1,7 +1,7 @@
 ;;; -*- coding: iso-2022-7bit; -*-
 ;;; tramp-util.el --- Misc utility functions to use with Tramp
 
-;; Copyright (C) 2001, 2002, 2005 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: kai.grossjohann@gmx.net
 ;; Keywords: comm, extensions, processes
