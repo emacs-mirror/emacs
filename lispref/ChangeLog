@@ -1,3 +1,7 @@
+2005-06-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Rings): Various minor clarifications and corrections.
+
 2005-06-18  Richard M. Stallman  <rms@gnu.org>
 
 	* functions.texi (Obsolete Functions): Simplify.
@@ -118,7 +122,7 @@
 
 2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* syntax.texi (Parsing Exprssions): Fix Texinfo error.
+	* syntax.texi (Parsing Expressions): Fix Texinfo error.
 
 2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 
