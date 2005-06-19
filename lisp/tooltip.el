@@ -119,11 +119,6 @@ position to pop up the tooltip."
   :tag "Use echo area"
   :group 'tooltip)
 
-(make-obsolete-variable 'tooltip-use-echo-area
-"To display help tooltips in the echo area turn `tooltip-mode' off.
-To display GUD tooltips in the echo area turn `gud-tooltip-mode' on and set
-`gud-tooltip-echo-area' to t." "22.1")
-
 
 ;;; Variables that are not customizable.
 
