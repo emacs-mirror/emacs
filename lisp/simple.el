@@ -3925,9 +3925,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 
 This function is only called during auto-filling of a comment section.
 The function should take a single optional argument, which is a flag
-indicating whether it should use soft newlines.
-
-Setting this variable automatically makes it local to the current buffer.")
+indicating whether it should use soft newlines.")
 
 ;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
