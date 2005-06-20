@@ -7,6 +7,8 @@
 	* simple.el (kill-whole-line): Doc fix.
 	(next-error-buffer-p, next-error-find-buffer)
 	(clone-indirect-buffer): Fix typos in docstrings.
+	(comment-line-break-function): Doc fix: don't say variable
+	is automatically buffer-local (it isn't).
 
 2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
