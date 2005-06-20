@@ -1,3 +1,7 @@
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-ordered-list): Test membership with eq.  Simplify.
+
 2005-06-20  Miles Bader  <miles@gnu.org>
 
 	* faces.el (vertical-divider): New face.

@@ -1,5 +1,8 @@
 2005-06-20  Kim F. Storm  <storm@cua.dk>
 
+	* variables.texi (Setting Variables): Any type of element can be
+	given order in add-to-ordered-list.  Compare elements with eq.
+
 	* lists.texi (Rearrangement): Sort predicate may just return non-nil.
 
 2005-06-20  Karl Berry  <karl@gnu.org>

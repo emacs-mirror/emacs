@@ -1,3 +1,7 @@
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fsort): Doc fix.
+
 2005-06-20  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Qvertical_divider): New variable.
@@ -17,7 +21,7 @@
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
 	(Ftty_no_underline): New function.
 	(syms_of_term): defsubr it.
-	
+
 	* keyboard.c (read_char): Call restore_getcjmp after jump occurs.
 
 	* dispnew.c (spec_glyph_lookup_face): New function.
