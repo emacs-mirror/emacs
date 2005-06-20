@@ -2719,10 +2719,15 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       if (!WINDOW_RIGHTMOST_P (w))
 	{
 	  struct Lisp_Char_Table *dp = window_display_table (w);
-	  right_border_glyph = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
-				? XINT (DISP_BORDER_GLYPH (dp))
-				: '|');
-	  right_border_glyph = spec_glyph_lookup_face (w, right_border_glyph);
+
+	  right_border_glyph
+	    = ((dp && INTEGERP (DISP_BORDER_GLYPH (dp)))
+	       ? spec_glyph_lookup_face (w, XINT (DISP_BORDER_GLYPH (dp)))
+	       : '|');
+
+	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
+	    right_border_glyph
+	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_DIVIDER_FACE_ID);
 	}
     }
   else

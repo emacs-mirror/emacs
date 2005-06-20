@@ -1,3 +1,7 @@
+2005-06-20  Miles Bader  <miles@gnu.org>
+
+	* faces.el (vertical-divider): New face.
+
 2005-06-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (kill-whole-line): Doc fix.
