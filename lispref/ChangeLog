@@ -1,3 +1,7 @@
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* lists.texi (Rearrangement): Sort predicate may just return non-nil.
+
 2005-06-20  Karl Berry  <karl@gnu.org>
 
 	* syntax.texi (Syntax Flags): Make last column very slightly wider
