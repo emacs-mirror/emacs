@@ -1,3 +1,9 @@
+2005-06-20  Karl Berry  <karl@gnu.org>
+
+	* syntax.texi (Syntax Flags): Make last column very slightly wider
+	to avoid "generic comment" breaking on two lines and causing an
+	underfull box.
+
 2005-06-19  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Rings): Various minor clarifications and corrections.
