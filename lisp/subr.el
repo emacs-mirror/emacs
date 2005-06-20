@@ -960,12 +960,11 @@ other hooks, such as major mode hooks, can do the job."
 
 (defun add-to-ordered-list (list-var element &optional order)
   "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
-The test for presence of ELEMENT is done with `equal'.
+The test for presence of ELEMENT is done with `eq'.
 
 The resulting list is reordered so that the elements are in the
-order given by each element's numeric list order.
-Elements without a numeric list order are placed at the end of
-the list.
+order given by each element's numeric list order.  Elements
+without a numeric list order are placed at the end of the list.
 
 If the third optional argument ORDER is non-nil, set the
 element's list order to the given value.
@@ -979,16 +978,16 @@ The return value is the new value of LIST-VAR."
       (put list-var 'list-order
            (setq ordering (make-hash-table :weakness 'key :test 'eq))))
     (when order
-      (puthash element order ordering))
-    (add-to-list list-var element)
+      (puthash element (and (numberp order) order) ordering))
+    (unless (memq element (symbol-value list-var))
+      (set list-var (cons element (symbol-value list-var))))
     (set list-var (sort (symbol-value list-var)
 			(lambda (a b)
 			  (let ((oa (gethash a ordering))
 				(ob (gethash b ordering)))
-			    (cond
-			     ((not oa) nil)
-			     ((not ob) t)
-			     (t (< oa ob)))))))))
+			    (if (and oa ob)
+				(< oa ob)
+			      oa)))))))
 
 
 ;;; Load history
