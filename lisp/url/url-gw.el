@@ -212,7 +212,7 @@ linked Emacs under SunOS 4.x"
 (defun url-open-stream (name buffer host service)
   "Open a stream to HOST, possibly via a gateway.
 Args per `open-network-stream'.
-Will not make a connexion if `url-gateway-unplugged' is non-nil."
+Will not make a connection if `url-gateway-unplugged' is non-nil."
   (unless url-gateway-unplugged
     (let ((gw-method (if (and url-gateway-local-host-regexp
 			      (not (eq 'tls url-gateway-method))
