@@ -1,3 +1,19 @@
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-ordered-list): Test membership with eq.  Simplify.
+
+2005-06-20  Miles Bader  <miles@gnu.org>
+
+	* faces.el (vertical-divider): New face.
+
+2005-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (kill-whole-line): Doc fix.
+	(next-error-buffer-p, next-error-find-buffer)
+	(clone-indirect-buffer): Fix typos in docstrings.
+	(comment-line-break-function): Doc fix: don't say variable
+	is automatically buffer-local (it isn't).
+
 2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-ftp.el (top):
@@ -10,7 +26,7 @@
 
 2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
+	* tooltip.el (tooltip-use-echo-area): Don't make it obsolete.
 
 2005-06-18  Juri Linkov  <juri@jurta.org>
 

@@ -1,5 +1,5 @@
 @c This is part of the Emacs manual.
-@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001, 2002
+@c Copyright (C) 1985, 86, 87, 93, 94, 95, 1997, 2000, 2001, 2002, 2005
 @c   Free Software Foundation, Inc.
 @c See file emacs.texi for copying conditions.
 @node Display, Search, Registers, Top
@@ -113,6 +113,10 @@ in that face affect mode lines in all windows.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
+@item vertical-divider
+This face is used for the vertical divider between windows on
+character terminals.  By default this face inherits from the
+@code{mode-line-inactive} face.
 @item minibuffer-prompt
 This face is used for the prompt strings displayed in the minibuffer.
 @item highlight

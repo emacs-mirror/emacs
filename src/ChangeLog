@@ -1,3 +1,18 @@
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* fns.c (Fsort): Doc fix.
+
+2005-06-20  Miles Bader  <miles@gnu.org>
+
+	* xfaces.c (Qvertical_divider): New variable.
+	(realize_basic_faces): Realize its face.
+	(syms_of_xfaces): Initialize it.
+
+	* dispextern.h (enum face_id): Add `VERTICAL_DIVIDER_FACE_ID'.
+
+	* dispnew.c (build_frame_matrix_from_leaf_window): Display vertical
+	window-separator on ttys using `vertical-divider' face by default.
+
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Reverse
@@ -6,7 +21,7 @@
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
 	(Ftty_no_underline): New function.
 	(syms_of_term): defsubr it.
-	
+
 	* keyboard.c (read_char): Call restore_getcjmp after jump occurs.
 
 	* dispnew.c (spec_glyph_lookup_face): New function.

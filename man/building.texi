@@ -764,7 +764,7 @@ for input and output to GDB.  To do this, set
 @code{gud-gdb-command-name} to @code{"gdb --fullname"} or edit the
 startup command in the minibuffer to say that.  You need to do use
 text command mode to run multiple debugging sessions within one Emacs
-session.  If you have customised @code{gud-gdb-command-name} in that
+session.  If you have customized @code{gud-gdb-command-name} in that
 way, then you can use @kbd{M-x gdba} to invoke GDB in graphical mode.
 
 @menu

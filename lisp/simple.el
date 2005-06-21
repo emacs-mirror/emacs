@@ -148,7 +148,7 @@ that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
 The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
-that would normally be considered usable.  if it returns nil,
+that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (and (buffer-name buffer)		;First make sure it's live.
        (not (and avoid-current (eq buffer (current-buffer))))
@@ -169,7 +169,7 @@ that buffer is rejected."
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
 
-The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffers
+The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
@@ -2768,7 +2768,7 @@ even beep.)"
   "Kill current line.
 With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline.
-\(This is meant to make C-x z work well with negative arguments.\)
+\(This is meant to make \\[repeat] work well with negative arguments.\)
 If arg is zero, kill current line but exclude the trailing newline."
   (interactive "p")
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
@@ -3929,9 +3929,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 
 This function is only called during auto-filling of a comment section.
 The function should take a single optional argument, which is a flag
-indicating whether it should use soft newlines.
-
-Setting this variable automatically makes it local to the current buffer.")
+indicating whether it should use soft newlines.")
 
 ;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
@@ -5120,7 +5118,7 @@ after it has been set up properly in other respects."
 (defun clone-indirect-buffer (newname display-flag &optional norecord)
   "Create an indirect buffer that is a twin copy of the current buffer.
 
-Give the indirect buffer name NEWNAME.  Interactively, read NEW-NAME
+Give the indirect buffer name NEWNAME.  Interactively, read NEWNAME
 from the minibuffer when invoked with a prefix arg.  If NEWNAME is nil
 or if not called with a prefix arg, NEWNAME defaults to the current
 buffer's name.  The name is modified by adding a `<N>' suffix to it

@@ -739,7 +739,7 @@ Move to the signature of the message (@code{message-goto-signature}).
 @vindex message-beginning-of-line
 If at beginning of header value, go to beginning of line, else go to
 beginning of header value.  (The header value comes after the header
-name and the colon.)  This behaviour can be disabled by toggling
+name and the colon.)  This behavior can be disabled by toggling
 the variable @code{message-beginning-of-line}.
 
 @end table

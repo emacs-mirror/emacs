@@ -11,8 +11,8 @@ to the FSF.
 
 ** Fix the kill/yank treatment of invisible text.  At the moment,
   invisible text is placed in the kill-ring, so that the contents of
-  the ring may not correspond to the text as displayed to the user. It
-  ought to be possible to omit text which is invisible (due to a
+  the ring may not correspond to the text as displayed to the user.
+  It ought to be possible to omit text which is invisible (due to a
   text-property, overlay, or selective display) from the kill-ring.
 
 ** Change the way define-minor-mode handles autoloading.
@@ -367,6 +367,11 @@ to the FSF.
    comint-derived mode.  I.e. basically make cmuscheme.el/inf-lisp.el generic.
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
+
+* Other known bugs:
+
+** a two-char comment-starter whose two chars are symbol constituents will
+not be noticed if it appears within a word.
 
 ** Fix unexelf.c to handle the .data.rel and .data.rel.local
    sections made by GCC 3.4 on IRIX.

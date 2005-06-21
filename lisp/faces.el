@@ -1900,6 +1900,13 @@ created."
   :group 'modeline
   :group 'basic-faces)
 
+(defface vertical-divider
+  '((default :inherit mode-line-inactive))
+  "Face used for vertical window dividers on ttys."
+  :version "22.1"
+  :group 'modeline
+  :group 'basic-faces)
+
 ;; Make `modeline' an alias for `mode-line', for compatibility.
 (put 'modeline 'face-alias 'mode-line)
 (put 'modeline-inactive 'face-alias 'mode-line-inactive)
