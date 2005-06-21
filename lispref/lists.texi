@@ -24,6 +24,7 @@ the whole list.
 * Modifying Lists::     Storing new pieces into an existing list.
 * Sets And Lists::      A list can represent a finite mathematical set.
 * Association Lists::   A list can represent a finite relation or mapping.
+* Rings::               Managing a fixed-size ring of objects.
 @end menu
 
 @node Cons Cells
@@ -714,7 +715,7 @@ Some examples:
 primitives @code{setcar} and @code{setcdr}.  We call these ``destructive''
 operations because they change existing list structure.
 
-@cindex CL note---@code{rplaca} vrs @code{setcar}
+@cindex CL note---@code{rplaca} vs @code{setcar}
 @quotation
 @findex rplaca
 @findex rplacd
@@ -1675,6 +1676,94 @@ often modifies the original list structure of @var{alist}.
 compares the @sc{cdr} of each @var{alist} association instead of the
 @sc{car}.
 @end defun
+
+@node Rings
+@section Managing a Fixed-Size Ring of Objects
+
+@cindex ring data structure
+  This section describes functions for operating on rings.  A
+@dfn{ring} is a fixed-size data structure that supports insertion,
+deletion, rotation, and modulo-indexed reference and traversal.
+
+@defun make-ring size
+This returns a new ring capable of holding @var{size} objects.
+@var{size} should be an integer.
+@end defun
+
+@defun ring-p object
+This returns @code{t} if @var{object} is a ring, @code{nil} otherwise.
+@end defun
+
+@defun ring-size ring
+This returns the maximum capacity of the @var{ring}.
+@end defun
+
+@defun ring-length ring
+This returns the number of objects that @var{ring} currently contains.
+The value will never exceed that returned by @code{ring-size}.
+@end defun
+
+@defun ring-elements ring
+This returns a list of the objects in @var{ring}, in no particular
+order.
+@end defun
+
+@defun ring-copy ring
+This returns a new ring which is a copy of @var{ring}.
+The new ring contains the same (@code{eq}) objects as @var{ring}.
+@end defun
+
+@defun ring-empty-p ring
+This returns @code{t} if @var{ring} is empty, @code{nil} otherwise.
+@end defun
+
+  The newest element in the ring always has index 0.  Higher indices
+correspond to older elements.  Indices are computed modulo the ring
+length.  Index @minus{}1 corresponds to the oldest element, @minus{}2
+to the next-oldest, and so forth.
+
+@defun ring-ref ring index
+This returns the object in @var{ring} found at index @var{index}.
+@var{index} may be negative or greater than the ring length.  If
+@var{ring} is empty, @code{ring-ref} signals an error.
+@end defun
+
+@defun ring-insert ring object
+This inserts @var{object} into @var{ring}, making it the newest
+element, and returns @var{object}.
+
+If the ring is full, insertion removes the oldest element to
+make room for the new element.
+@end defun
+
+@defun ring-remove ring &optional index
+Remove an object from @var{ring}, and return that object.  The
+argument @var{index} specifies which item to remove; if it is
+@code{nil}, that means to remove the oldest item.  If @var{ring} is
+empty, @code{ring-remove} signals an error.
+@end defun
+
+@defun ring-insert-at-beginning ring object
+This inserts @var{object} into @var{ring}, treating it as the oldest
+element.  The return value is not significant.
+
+If the ring is full, this function removes the newest element to make
+room for the inserted element.
+@end defun
+
+@cindex fifo data structure
+  If you are careful not to exceed the ring size, you can
+use the ring as a first-in-first-out queue.  For example:
+
+@lisp
+(let ((fifo (make-ring 5)))
+  (mapc (lambda (obj) (ring-insert fifo obj))
+        '(0 one "two"))
+  (list (ring-remove fifo) t
+        (ring-remove fifo) t
+        (ring-remove fifo)))
+     @result{} (0 t one t "two")
+@end lisp
 
 @ignore
    arch-tag: 31fb8a4e-4aa8-4a74-a206-aa00451394d4

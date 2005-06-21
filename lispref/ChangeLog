@@ -1,3 +1,75 @@
+2005-06-19  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Rings): Various minor clarifications and corrections.
+
+2005-06-18  Richard M. Stallman  <rms@gnu.org>
+
+	* functions.texi (Obsolete Functions): Simplify.
+
+	* variables.texi (Variable Aliases): Simplify.
+
+	* anti.texi, backups.texi, compile.texi, customization.texi:
+	* debugging.texi, display.texi, edebug.texi, errors.texi, frames.texi:
+	* functions.texi, help.texi, keymaps.texi, modes.texi, nonascii.texi:
+	* os.texi, processes.texi, searching.texi, strings.texi, text.texi:
+	* variables.texi: Fix formatting ugliness.
+
+	* elisp.texi: Add links to Rings and Byte Packing.
+	Update version and copyright years.
+
+	* minibuf.texi: Fix formatting ugliness.
+	(Completion Commands): Move keymap vars to the end
+	and vars completing-read binds to the top.
+
+2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* processes.texi: Fix typos.
+	(Bindat Spec): Correct Texinfo error.
+	(Byte Packing): Fix ungrammatical sentence.
+
+2005-06-17  Thien-Thi Nguyen  <ttn@gnu.org>
+
+	* lists.texi (Rings): New node.
+	(Lists): Add it to menu.
+
+	* processes.texi (Byte Packing): New node.
+	(Processes): Add it to menu.
+
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* syntax.texi (Parsing Expressions): Fix texinfo usage.
+
+	* help.texi (Documentation Basics): Explain the xref to
+	Documentation Tips.
+
+	* debugging.texi (Debugger Commands): Minor fix.
+
+2005-06-16  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* edebug.texi (Instrumenting): Eliminate duplicate link.
+	(Specification List): Replace references to "below", referring to
+	a later node, with one @ref to that node.
+
+	* os.texi (Timers): Timers should save and restore the match data
+	if they change it.
+
+	* debugging.texi (Debugger Commands): Mention that the Lisp
+	debugger can not step through primitive functions.
+
+2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* functions.texi (Obsolete Functions): Update argument names of
+	`make-obsolete' and `define-obsolete-function-alias'.
+
+	* variables.texi (Variable Aliases): Update argument names of
+	`defvaralias', `make-obsolete-variable' and
+	`define-obsolete-variable-alias'.
+
+2005-06-15  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Rephrase warnings about
+	evaporate arg to match-data and set-match-data.
+
 2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* elisp.texi (Top): Update detailed menu.
@@ -50,7 +122,7 @@
 
 2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* syntax.texi (Parsing Exprssions): Fix Texinfo error.
+	* syntax.texi (Parsing Expressions): Fix Texinfo error.
 
 2005-06-10  Stefan Monnier  <monnier@iro.umontreal.ca>
 

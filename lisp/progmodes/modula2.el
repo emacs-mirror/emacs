@@ -309,7 +309,7 @@ followed by the first character of the construct.
   "Build skeleton FOR loop statement, prompting for the loop parameters."
   (interactive)
   (insert "FOR ")
-  (let ((name (read-string "Loop Initialiser: ")) limit by)
+  (let ((name (read-string "Loop Initializer: ")) limit by)
     (insert name " TO ")
     (setq limit (read-string "Limit: "))
     (insert limit)

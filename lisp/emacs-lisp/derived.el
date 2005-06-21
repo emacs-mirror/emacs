@@ -320,7 +320,7 @@ which more-or-less shadow %s's corresponding tables."
 
 ;;;###autoload
 (defun derived-mode-init-mode-variables (mode)
-  "Initialise variables for a new MODE.
+  "Initialize variables for a new MODE.
 Right now, if they don't already exist, set up a blank keymap, an
 empty syntax table, and an empty abbrev table -- these will be merged
 the first time the mode is used."

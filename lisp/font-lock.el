@@ -430,7 +430,7 @@ where MATCHER is a regexp to search for or the function name to call to make
 the search, as for MATCH-HIGHLIGHT above, but with one exception; see below.
 PRE-MATCH-FORM and POST-MATCH-FORM are evaluated before the first, and after
 the last, instance MATCH-ANCHORED's MATCHER is used.  Therefore they can be
-used to initialise before, and cleanup after, MATCHER is used.  Typically,
+used to initialize before, and cleanup after, MATCHER is used.  Typically,
 PRE-MATCH-FORM is used to move to some position relative to the original
 MATCHER, before starting with MATCH-ANCHORED's MATCHER.  POST-MATCH-FORM might
 be used to move back, before resuming with MATCH-ANCHORED's parent's MATCHER.

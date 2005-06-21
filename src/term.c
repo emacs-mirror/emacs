@@ -1695,6 +1695,7 @@ produce_special_glyphs (it, what)
      enum display_element_type what;
 {
   struct it temp_it;
+  GLYPH glyph;
 
   temp_it = *it;
   temp_it.dp = NULL;
@@ -1710,15 +1711,11 @@ produce_special_glyphs (it, what)
 	  && INTEGERP (DISP_CONTINUE_GLYPH (it->dp))
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (it->dp))))
 	{
-	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_CONTINUE_GLYPH (it->dp)));
-	  temp_it.len = CHAR_BYTES (temp_it.c);
+	  glyph = XINT (DISP_CONTINUE_GLYPH (it->dp));
+	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
 	}
       else
-	temp_it.c = '\\';
-
-      produce_glyphs (&temp_it);
-      it->pixel_width = temp_it.pixel_width;
-      it->nglyphs = temp_it.pixel_width;
+	glyph = '\\';
     }
   else if (what == IT_TRUNCATION)
     {
@@ -1727,18 +1724,22 @@ produce_special_glyphs (it, what)
 	  && INTEGERP (DISP_TRUNC_GLYPH (it->dp))
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (it->dp))))
 	{
-	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_TRUNC_GLYPH (it->dp)));
-	  temp_it.len = CHAR_BYTES (temp_it.c);
+	  glyph = XINT (DISP_TRUNC_GLYPH (it->dp));
+	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
 	}
       else
-	temp_it.c = '$';
-
-      produce_glyphs (&temp_it);
-      it->pixel_width = temp_it.pixel_width;
-      it->nglyphs = temp_it.pixel_width;
+	glyph = '$';
     }
   else
     abort ();
+
+  temp_it.c = FAST_GLYPH_CHAR (glyph);
+  temp_it.face_id = FAST_GLYPH_FACE (glyph);
+  temp_it.len = CHAR_BYTES (temp_it.c);
+
+  produce_glyphs (&temp_it);
+  it->pixel_width = temp_it.pixel_width;
+  it->nglyphs = temp_it.pixel_width;
 }
 
 
@@ -1757,7 +1758,8 @@ produce_special_glyphs (it, what)
    ? (tty->TN_no_color_video & (ATTR)) == 0             \
    : 1)
 
-/* Turn appearances of face FACE_ID on tty frame F on.  */
+/* Turn appearances of face FACE_ID on tty frame F on.
+   FACE_ID is a realized face ID number, in the face cache.  */
 
 static void
 turn_on_face (f, face_id)
@@ -2195,7 +2197,7 @@ DEFUN ("display-name", Fdisplay_name, Sdisplay_name, 0, 1, 0,
        doc: /* Return the name of the device that DISPLAY uses.
 It is not guaranteed that the returned value is unique among opened displays.
 
-DISPLAY can be a display, a frame, or nil (meaning the selected
+DISPLAY may be a display, a frame, or nil (meaning the selected
 frame's display). */)
   (display)
      Lisp_Object display;
@@ -2209,7 +2211,10 @@ frame's display). */)
 }
 
 DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
-       doc: /* Return the type of the TTY device that DISPLAY uses. */)
+       doc: /* Return the type of the TTY device that DISPLAY uses.
+
+DISPLAY may be a display, a frame, or nil (meaning the selected
+frame's display).  */)
   (display)
      Lisp_Object display;
 {
@@ -2225,7 +2230,10 @@ DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
 }
 
 DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_controlling_tty_p, 0, 1, 0,
-       doc: /* Return non-nil if DISPLAY is on the controlling tty of the Emacs process. */)
+       doc: /* Return non-nil if DISPLAY is on the controlling tty of the Emacs process.
+
+DISPLAY may be a display, a frame, or nil (meaning the selected
+frame's display).  */)
   (display)
      Lisp_Object display;
 {
@@ -2236,6 +2244,25 @@ DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_control
   else
     return Qt;
 }
+
+DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
+       doc: /* Declare that the tty used by DISPLAY does not handle underlining.
+This is used to override the terminfo data, for certain terminals that
+do not really do underlining, but say that they do.  This function has
+no effect if used on a non-tty display.
+
+DISPLAY may be a display, a frame, or nil (meaning the selected
+frame's display).  */)
+  (display)
+     Lisp_Object display;
+{
+  struct display *d = get_display (display, 1);
+
+  if (d->type == output_termcap)
+    d->display_info.tty->TS_enter_underline_mode = 0;
+  return Qnil;
+}
+
 
 
 /***********************************************************************
@@ -3384,6 +3411,7 @@ See `resume-tty'.  */);
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
+  defsubr (&Stty_no_underline);
   defsubr (&Sdisplay_name);
   defsubr (&Sdisplay_tty_type);
   defsubr (&Sdisplay_controlling_tty_p);

@@ -18,12 +18,9 @@
 
      cvs update -kb
 
-  (WARNING: Do NOT use this suggestion if you have write access to the
-  Emacs CVS tree and intend to commit changes to CVS.  This is because -kb
-  is sticky: it will be used in all future CVS operations on the files you
-  check out like this.)  Alternatively, use programs that convert
-  end-of-line format, such as dos2unix and unix2dos available from
-  GnuWin32 or dtou and utod from the DJGPP project.
+  Alternatively, use programs that convert end-of-line format, such as
+  dos2unix and unix2dos available from GnuWin32 or dtou and utod from
+  the DJGPP project.
 
   In addition to this file, you should also read INSTALL.CVS in the
   parent directory, and make sure that you have a version of
@@ -63,7 +60,7 @@
 
   and at this URL:
 
-  http://ourcomments.org/Emacs/EmacsW32.html
+  http://ourcomments.org/Emacs/w32-build-emacs.html
 
   For reference, here is a list of which builds of GNU make are known
   to work or not, and whether they work in the presence and/or absence

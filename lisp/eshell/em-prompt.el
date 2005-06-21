@@ -1,6 +1,6 @@
 ;;; em-prompt.el --- command prompts
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2005 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -68,7 +68,7 @@ re-entered for it to take effect."
   :type 'boolean
   :group 'eshell-prompt)
 
-(defface eshell-prompt-face
+(defface eshell-prompt
   '((((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:bold t)))
@@ -76,6 +76,8 @@ re-entered for it to take effect."
 For highlighting other kinds of strings -- similar to shell mode's
 behavior -- simply use an output filer which changes text properties."
   :group 'eshell-prompt)
+;; backward-compatibility alias
+(put 'eshell-prompt-face 'face-alias 'eshell-prompt)
 
 (defcustom eshell-before-prompt-hook nil
   "*A list of functions to call before outputting the prompt."
@@ -119,7 +121,7 @@ arriving, or after."
       (and eshell-highlight-prompt
 	   (add-text-properties 0 (length prompt)
 				'(read-only t
-				  face eshell-prompt-face
+				  face eshell-prompt
 				  rear-nonsticky (face read-only))
 				prompt))
       (eshell-interactive-print prompt)))

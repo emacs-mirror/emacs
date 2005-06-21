@@ -451,7 +451,7 @@ SWITCHES is a list of characters.  Default sorting is alphabetic."
 Also, for regular files that are executable, append `*'.
 The file type indicators are `/' for directories, `@' for symbolic
 links, `|' for FIFOs, `=' for sockets, and nothing for regular files.
-\[But FIFOs and sockets are not recognised.]
+\[But FIFOs and sockets are not recognized.]
 FILEDATA has the form (filename . `file-attributes').  Its `cadr' is t
 for directory, string (name linked to) for symbolic link, or nil."
   (let ((dir (cadr filedata)) (file-name (car filedata)))

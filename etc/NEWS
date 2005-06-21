@@ -3066,7 +3066,7 @@ Emacs 21.1, but was not documented then.
 
 +++
 *** New function `add-to-ordered-list' is like `add-to-list' but
-associates a numeric ordering of each symbol element added to the list.
+associates a numeric ordering of each element added to the list.
 
 +++
 *** New function `copy-tree' makes a copy of a tree.
@@ -3633,6 +3633,7 @@ of text properties as well as the character code.
 *** `syntax-class' extracts the class of a syntax code (as returned
 by `syntax-after').
 
++++
 *** The new function `syntax-ppss' rovides an efficient way to find the
 current syntactic context at point.
 
@@ -4926,6 +4927,7 @@ such things as help and apropos buffers.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
++++
 ** The new library bindat.el provides functions to unpack and pack
 binary data structures, such as network packets, to and from Lisp
 data structures.

@@ -801,6 +801,14 @@ opening the first frame (e.g. open a connection to the server).")
     ;; the startup message.
     (setq inhibit-startup-message nil)
 
+    ;; Warn for invalid user name.
+    (and init-file-user
+	 (not (file-directory-p (expand-file-name (concat "~" init-file-user))))
+	 (display-warning 'initialization
+			  (format "User %s has no home directory"
+				  init-file-user)
+			  :error))
+
     ;; Load that user's init file, or the default one, or none.
     (let (debug-on-error-from-init-file
 	  debug-on-error-should-be-set

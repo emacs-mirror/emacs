@@ -247,7 +247,7 @@ Can be nil if the style is undecided, or else:
 
 (defun smerge-ensure-match (n)
   (unless (match-end n)
-    (error (format "No `%s'" (aref smerge-match-names n)))))
+    (error "No `%s'" (aref smerge-match-names n))))
 
 (defun smerge-auto-leave ()
   (when (and smerge-auto-leave

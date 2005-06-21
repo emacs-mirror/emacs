@@ -60,7 +60,8 @@ with differing widths."
   :type 'boolean)
 
 (defcustom longlines-show-hard-newlines nil
-  "*Non-nil means each hard newline is marked with a symbol.
+  "*Non-nil means each hard newline is marked on the screen.
+\(The variable `longlines-show-effect' controls what they look like.)
 You can also enable the display temporarily, using the command
 `longlines-show-hard-newlines'"
   :group 'longlines
@@ -93,12 +94,12 @@ In Long Lines mode, long lines are wrapped if they extend beyond
 `fill-column'.  The soft newlines used for line wrapping will not
 show up when the text is yanked or saved to disk.
 
-If `longlines-auto-wrap' is non-nil, lines are automatically
+If the variable `longlines-auto-wrap' is non-nil, lines are automatically
 wrapped whenever the buffer is changed.  You can always call
 `fill-paragraph' to fill individual paragraphs.
 
-If `longlines-show-hard-newlines' is non-nil, hard newlines will
-be marked by a symbol."
+If the variable `longlines-show-hard-newlines' is non-nil, hard newlines
+are indicated with a symbol."
   :group 'longlines :lighter " ll"
   (if longlines-mode
       ;; Turn on longlines mode

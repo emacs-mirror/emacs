@@ -6,7 +6,7 @@
 
 @c Version of the manual and of Emacs.
 @c Please remember to update the edition number in README as well.
-@set VERSION  2.9
+@set VERSION  2.7
 @set EMACSVER 22.0.50
 
 @dircategory Emacs
@@ -34,8 +34,8 @@ Published by the Free Software Foundation
 59 Temple Place, Suite 330
 Boston, MA  02111-1307  USA
 
-Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, 2005,@*
-              2000, 2002 Free Software Foundation, Inc.
+Copyright (C) 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998, 1999, @*
+              2000, 2002, 2003, 2004, 2005, Free Software Foundation, Inc.
 
 Permission is granted to copy, distribute and/or modify this document
 under the terms of the GNU Free Documentation License, Version 1.1 or
@@ -60,7 +60,7 @@ Software Foundation raise funds for GNU development.''
 @page
 @vskip 0pt plus 1filll
 Copyright @copyright{} 1990, 1991, 1992, 1993, 1994, 1995, 1996, 1998,@*
-1999, 2000, 2002 Free Software Foundation, Inc.
+1999, 2000, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 @sp 2
 Edition @value{VERSION} @*
@@ -288,6 +288,7 @@ Lists
 * Modifying Lists::         Storing new pieces into an existing list.
 * Sets And Lists::          A list can represent a finite mathematical set.
 * Association Lists::       A list can represent a finite relation or mapping.
+* Rings::                   Managing a fixed-size ring of objects.
 
 Modifying Existing List Structure
 
@@ -983,6 +984,7 @@ Processes
 * Datagrams::               UDP network connections.
 * Low-Level Network::       Lower-level but more general function
                               to create connections and servers.
+* Byte Packing::             Using bindat to pack and unpack binary data.
 
 Receiving Output from Processes
 

@@ -1,11 +1,11 @@
 ;;; ps-mode.el --- PostScript mode for GNU Emacs
 
-;; Copyright (C) 1999, 2001 Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2001, 2005 Free Software Foundation, Inc.
 
-;; Author:     Peter Kleiweg <kleiweg@let.rug.nl>
-;; Maintainer: Peter Kleiweg <kleiweg@let.rug.nl>
+;; Author:     Peter Kleiweg <p.c.j.kleiweg@rug.nl>
+;; Maintainer: Peter Kleiweg <p.c.j.kleiweg@rug.nl>
 ;; Created:    20 Aug 1997
-;; Version:    1.1g, 9 Nov 2001
+;; Version:    1.1h, 16 Jun 2005
 ;; Keywords:   PostScript, languages
 
 ;; This file is part of GNU Emacs.
@@ -30,8 +30,8 @@
 
 ;;; Code:
 
-(defconst ps-mode-version "1.1g, 9 Nov 2001")
-(defconst ps-mode-maintainer-address "Peter Kleiweg <kleiweg@let.rug.nl>")
+(defconst ps-mode-version "1.1h, 16 Jun 2005")
+(defconst ps-mode-maintainer-address "Peter Kleiweg <p.c.j.kleiweg@rug.nl>")
 
 (require 'easymenu)
 

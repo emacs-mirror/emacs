@@ -658,7 +658,8 @@ means you should always list the most specific types first, and the
 most general last.  Here's an example of proper usage:
 
 @example
-(choice (const :tag "Off" nil) symbol (sexp :tag "Other"))
+(choice (const :tag "Off" nil)
+        symbol (sexp :tag "Other"))
 @end example
 
 @noindent

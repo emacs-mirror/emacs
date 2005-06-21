@@ -193,6 +193,10 @@
 
 (unless (c-face-name-p c-invalid-face-name)
   (defconst c-invalid-face 'c-invalid-face) ; Necessary in Emacs 19.
+  ;; This face should be called `c-invalid' for consistency with the
+  ;; rest of emacs, but as it's only used in very old versions of Emacs,
+  ;; we leave it unchanged (the face-alias mechanism doesn't exist in
+  ;; those old versions).
   (defface c-invalid-face
     '((((class color) (background light)) (:foreground "red1"))
       (((class color)) (:foreground "hotpink"))
@@ -203,8 +207,8 @@
 ;; To make hard spaces visible an inverted version of
 ;; `c-invalid-face-name' is used.  Since font-lock in Emacs expands
 ;; all face names in `font-lock-keywords' as variables we need to have
-;; a variable for it that resolves to its own name.
-(defconst c-nonbreakable-space-face 'c-nonbreakable-space-face)
+;; a variable for it.
+(defconst c-nonbreakable-space-face 'c-nonbreakable-space)
 
 (cc-bytecomp-defun face-inverse-video-p) ; Only in Emacs.
 (cc-bytecomp-defun face-property-instance) ; Only in XEmacs.
@@ -511,9 +515,9 @@ stuff.  Used on level 1 and higher."
       (eval . (list
 	       "\240"
 	       0 (progn
-		   (unless (c-face-name-p 'c-nonbreakable-space-face)
+		   (unless (c-face-name-p c-nonbreakable-space-face)
 		     (c-make-inverse-face c-invalid-face-name
-					  'c-nonbreakable-space-face))
+					  c-nonbreakable-space-face))
 		   'c-nonbreakable-space-face)))
       ))
 

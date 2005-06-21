@@ -66,7 +66,7 @@
      left-margin left-margin-width line-spacing local-abbrev-table local-write-file-hooks major-mode
      mark-active mark-ring mode-line-buffer-identification
      mode-line-format mode-line-modified mode-line-process mode-name
-     overwrite-mode 
+     overwrite-mode
      point-before-scroll right-fringe-width right-margin-width
      scroll-bar-width scroll-down-aggressively scroll-up-aggressively selective-display
      selective-display-ellipses tab-width truncate-lines vc-mode vertical-scroll-bar)
@@ -298,7 +298,7 @@ Return nil if there are no more forms, t otherwise."
   (not (eobp)))
 
 (defun elint-init-env (forms)
-  "Initialise the environment from FORMS."
+  "Initialize the environment from FORMS."
   (let ((env (elint-make-env))
 	form)
     (while forms

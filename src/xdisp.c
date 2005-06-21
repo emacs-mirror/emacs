@@ -5139,7 +5139,7 @@ get_next_display_element (it)
 	      /* Handle non-break space in the mode where it only gets
 		 highlighting.  */
 
-	      if (! EQ (Vshow_nonbreak_escape, Qt)
+	      if (EQ (Vshow_nonbreak_escape, Qt)
 		  && (it->c == 0x8a0 || it->c == 0x920
 		      || it->c == 0xe20 || it->c == 0xf20))
 		{

@@ -1,3 +1,270 @@
+2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-ftp.el (top):
+	* net/tramp-smb.el (top):
+	* net/tramp-util.el (top):
+	* net/tramp-uu.el (top):
+	* net/tramp-vc.el (top):
+	* net/tramp.el (top): Revert copyright years back to original
+	ones.  Tramp has a life outside GNU Emacs.
+
+2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
+
+2005-06-18  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Use backreference at the
+	end of first regexp to limit the match to the position between
+	line number and source line with same separator character as used
+	between file name and line number.  In the second regexp limit
+	mouse-face area to file name and line number by adding new group
+	for them and referring it in HYPERLINK arg.
+	(grep-regexp-alist, grep-mode-font-lock-keywords): Use shy group.
+	(grep-mode): Set font-lock-lines-before to 0 to not refontify the
+	previous line where grep markers may be already removed.
+
+2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
+
+	* progmodes/ps-mode.el: Update version and maintainer's email
+	address.
+
+2005-06-18  Steve Youngs  <steve@xemacs.org>
+
+	* net/browse-url.el (browse-url-browser-function)
+	(browse-url-default-browser): Add firefox.
+	(browse-url-firefox-program, browse-url-firefox-arguments)
+	(browse-url-firefox-startup-arguments)
+	(browse-url-firefox-new-window-is-tab): New defcustoms.
+	(browse-url-firefox, browse-url-firefox-sentinel): New functions.
+
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (command-line): Warn if specified user name has
+	no home directory.
+
+	* term.el (term-get-old-input, term-input-filter, term-input-sender)
+	(term-mode-hook, term-exec-hook, term-escape-char): Doc fixes.
+
+	* longlines.el (longlines-mode, longlines-show-hard-newlines):
+	Doc fixes.
+
+	* faces.el (underline): Try bold if terminal doesn't support underline.
+
+	* mail/sendmail.el (mail-setup-with-from): New variable.
+	(mail-insert-from-field): New function.
+	(sendmail-send-it): Call it.
+	(mail-setup): Optionally call it here.
+
+	* term/linux.el: Call tty-no-underline.
+
+2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/edebug.el (edebug-goto-here): Doc fix.
+
+2005-06-17  Miles Bader  <miles@gnu.org>
+
+	* ediff-init.el (ediff-current-diff-A, ediff-current-diff-B)
+	(ediff-current-diff-C, ediff-current-diff-Ancestor)
+	(ediff-fine-diff-A, ediff-fine-diff-B, ediff-fine-diff-C)
+	(ediff-fine-diff-Ancestor, ediff-even-diff-A, ediff-even-diff-B)
+	(ediff-even-diff-C, ediff-even-diff-Ancestor, ediff-odd-diff-A)
+	(ediff-odd-diff-B, ediff-odd-diff-C, ediff-odd-diff-Ancestor):
+	Remove "-face" suffix from face names.
+	(ediff-current-diff-face-A, ediff-current-diff-face-B)
+	(ediff-current-diff-face-C, ediff-current-diff-face-Ancestor)
+	(ediff-fine-diff-face-A, ediff-fine-diff-face-B)
+	(ediff-fine-diff-face-C, ediff-fine-diff-face-Ancestor)
+	(ediff-even-diff-face-A, ediff-even-diff-face-B)
+	(ediff-even-diff-face-C, ediff-even-diff-face-Ancestor)
+	(ediff-odd-diff-face-A, ediff-odd-diff-face-B)
+	(ediff-odd-diff-face-C, ediff-odd-diff-face-Ancestor):
+	New backward-compatibility aliases for renamed faces.
+	(ediff-current-diff-face-A, ediff-current-diff-face-B)
+	(ediff-current-diff-face-C, ediff-current-diff-face-Ancestor)
+	(ediff-fine-diff-face-A, ediff-fine-diff-face-B)
+	(ediff-fine-diff-face-C, ediff-fine-diff-face-Ancestor)
+	(ediff-even-diff-face-A, ediff-even-diff-face-B)
+	(ediff-even-diff-face-C, ediff-even-diff-face-Ancestor)
+	(ediff-odd-diff-face-A, ediff-odd-diff-face-B)
+	(ediff-odd-diff-face-C, ediff-odd-diff-face-Ancestor):
+	Use renamed ediff faces.
+
+	* eshell/esh-test.el (eshell-test-ok, eshell-test-failed):
+	Remove "-face" suffix from face names.
+	(eshell-test-ok-face, eshell-test-failed-face):
+	New backward-compatibility aliases for renamed faces.
+	(eshell-run-test): Use renamed eshell-test faces.
+
+	* eshell/em-prompt.el (eshell-prompt):
+	Remove "-face" suffix from face name.
+	(eshell-prompt-face): New backward-compatibility alias for renamed face.
+	(eshell-emit-prompt): Use renamed eshell-prompt face.
+
+	* eshell/em-ls.el (eshell-ls-directory, eshell-ls-symlink)
+	(eshell-ls-executable, eshell-ls-readonly, eshell-ls-unreadable)
+	(eshell-ls-special, eshell-ls-missing, eshell-ls-archive)
+	(eshell-ls-backup, eshell-ls-product, eshell-ls-clutter):
+	Remove "-face" suffix from face names.
+	(eshell-ls-directory-face, eshell-ls-symlink-face)
+	(eshell-ls-executable-face, eshell-ls-readonly-face)
+	(eshell-ls-unreadable-face, eshell-ls-special-face)
+	(eshell-ls-missing-face, eshell-ls-archive-face)
+	(eshell-ls-backup-face, eshell-ls-product-face)
+	(eshell-ls-clutter-face):
+	New backward-compatibility aliases for renamed faces.
+	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
+
+	* progmodes/cc-fonts.el (c-nonbreakable-space-face): Remove
+	"-face" suffix from face name.
+	(c-cpp-matchers): Use the variable `c-nonbreakable-space-face'
+	instead of literal face.
+
+2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (display-warning, lwarn)
+	(warning-minimum-log-level): Doc fixes.
+	(warning-minimum-level, warning-minimum-log-level):
+	Add :debug to :type choices.
+
+	* progmodes/ada-mode.el (ada-format-paramlist)
+	(ada-get-indent-case, ada-check-matching-start)
+	(ada-check-defun-name, ada-goto-matching-decl-start)
+	(ada-goto-matching-start, ada-goto-matching-end, ada-tab)
+	(ada-untab, ada-move-to-start, ada-fill-comment-paragraph)
+	(ada-make-subprogram-body): Follow error conventions.
+	(ada-case-exception-file, ada-indent-comment-as-code)
+	(ada-indent-handle-comment-special, ada-indent-renames)
+	(ada-indent-return, ada-search-directories-internal)
+	(ada-tab-policy, ada-case-exception-substring)
+	(ada-other-file-alist, ada-matching-start-re)
+	(ada-matching-decl-start-re, ada-contextual-menu-last-point)
+	(ada-imenu-generic-expression, ada-compile-goto-error)
+	(ada-in-comment-p, ada-in-string-p, ada-in-string-or-comment-p)
+	(ada-popup-menu, ada-add-extensions, ada-mode)
+	(ada-region-selected, ada-create-case-exception)
+	(ada-create-case-exception-substring, ada-after-keyword-p)
+	(ada-activate-keys-for-case, ada-adjust-case-region)
+	(ada-adjust-case-buffer, ada-format-paramlist)
+	(ada-scan-paramlist, ada-insert-paramlist)
+	(ada-indent-newline-indent)
+	(ada-indent-newline-indent-conditional)
+	(ada-justified-indent-current, ada-goto-previous-word)
+	(ada-indent-current, ada-get-indent-open-paren)
+	(ada-get-indent-paramlist, ada-get-indent-end)
+	(ada-get-indent-case, ada-get-indent-when, ada-get-indent-if)
+	(ada-get-indent-block-start, ada-get-indent-subprog)
+	(ada-get-indent-noindent, ada-get-indent-label)
+	(ada-get-indent-loop, ada-get-indent-type, ada-goto-stmt-start)
+	(ada-search-prev-end-stmt, ada-goto-next-non-ws)
+	(ada-goto-stmt-end, ada-goto-next-word)
+	(ada-check-matching-start, ada-check-defun-name)
+	(ada-goto-matching-decl-start, ada-goto-matching-start)
+	(ada-goto-matching-end, ada-search-ignore-string-comment)
+	(ada-in-decl-p, ada-looking-at-semi-or)
+	(ada-looking-at-semi-private, ada-in-paramlist-p)
+	(ada-in-open-paren-p, ada-tab, ada-indent-current-function)
+	(ada-untab-hard, ada-move-to-start, ada-move-to-end)
+	(ada-next-procedure, ada-previous-procedure, ada-next-package)
+	(ada-previous-package, ada-create-menu)
+	(ada-fill-comment-paragraph-justify)
+	(ada-fill-comment-paragraph-postfix, ada-fill-comment-paragraph)
+	(ada-other-file-name, ada-last-which-function-line)
+	(ada-last-which-function-subprog, ada-which-function)
+	(ada-get-body-name, ada-outline-level, ada-narrow-to-defun)
+	(ada-gen-treat-proc, ada-check-emacs-version)
+	(ada-continuation-indent, ada-align-region-separate):
+	Fix typos in docstrings.
+	(ada-adjust-case, ada-adjust-case-interactive): Doc fixes.
+
+2005-06-16  Lute Kamstra  <lute@gnu.org>
+
+	* simple.el (fundamental-mode): Run after-change-major-mode-hook
+	conditionally.
+
+2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* comint.el (comint-replace-by-expanded-filename)
+	(comint-prompt-regexp, comint-delimiter-argument-list)
+	(comint-preinput-scroll-to-bottom):
+	* info.el (Info-hide-cookies-node):
+	* ls-lisp.el (ls-lisp-classify):
+	* find-file.el (ff-search-directories, ff-special-constructs)
+	(ff-find-other-file):
+	* font-lock.el (font-lock-keywords):
+	* shell.el (shell-prompt-pattern)
+	(shell-dynamic-complete-functions, shell-mode)
+	(shell-delimiter-argument-list):
+	* term.el (term-replace-by-expanded-filename)
+	(term-prompt-regexp, term-delimiter-argument-list):
+	* woman.el (woman-ignore, woman0-if):
+	* emacs-lisp/derived.el (derived-mode-init-mode-variables):
+	* emacs-lisp/elint.el (elint-init-env):
+	* emacs-lisp/regexp-opt.el (regexp-opt-depth):
+	* eshell/esh-mode.el (eshell-preinput-scroll-to-bottom):
+	* language/ethio-util.el (ethio-tilde-escape)
+	(ethio-use-three-dot-question):
+	* net/zone-mode.el (zone-mode-load-time-setup):
+	* progmodes/cc-align.el (c-lineup-argcont):
+	* progmodes/cc-awk.el (c-awk-beginning-of-defun):
+	* progmodes/cperl-mode.el (cperl-set-style-back):
+	* progmodes/inf-lisp.el (inferior-lisp-prompt):
+	* progmodes/vhdl-mode.el (vhdl-beginning-of-libunit):
+	Fix spellings in docstrings.
+
+	* textmodes/sgml-mode.el (sgml-calculate-indent, html-tag-help):
+	* progmodes/modula2.el (m2-for): Fix spellings.
+
+	* menu-bar.el (menu-bar-games-menu): Fix typo in menu help string.
+
+	* simple.el (undo-more): Don't use `format' on `error' arguments.
+	Improve argument/docstring consistency.
+	(pending-undo-list): Doc fix.
+
+	* smerge-mode.el (smerge-ensure-match):
+	* emulation/vip.el (vip-ex):
+	* net/zone-mode.el (zone-mode-update-serial):
+	* progmodes/idlwave.el (idlwave-complete):
+	* progmodes/vhdl-mode.el (vhdl-visit-file)
+	(vhdl-compose-wire-components):
+	Don't use `format' on `error' arguments.
+
+	* tooltip.el (tooltip-start-delayed-tip, tooltip-timeout)
+	(tooltip-use-echo-area, tooltip-process-prompt-regexp)
+	(tooltip-help-tips): Fix typos in docstrings.
+
+2005-06-16  David Ponce  <david@dponce.com>
+
+	* tree-widget.el (tree-widget-value-create): Simplify last change.
+
+2005-06-15  Matt Hodges  <MPHodges@member.fsf.org>
+
+	* ido.el (ido-incomplete-regexp): New variable.
+	(ido-set-matches-1): Handle invalid-regexp error and set
+	ido-incomplete-regexp.
+	(ido-incomplete-regexp): New face.
+	(ido-completions): Use it.
+	(ido-complete, ido-exit-minibuffer, ido-completions): Handle
+	incomplete regexps.
+	(ido-completions): Add check for complete match when entering a regexp.
+
+2005-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* subr.el (add-to-ordered-list): Use a weak hash-table to avoid leaks.
+
+2005-06-15  Roland Winkler  <Roland.Winkler@physik.uni-erlangen.de>
+
+	* textmodes/bibtex.el (bibtex-Preamble): Enclose BibTeX preamble
+	by field delimiters.
+
+2005-06-15  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: eval-and-compile inlined functions so they will
+	be available at run-time too.
+	(tree-widget-super-format-handler)
+	(tree-widget-format-handler): Remove.
+	(tree-widget-value-create): Handle the :indent property.
+
 2005-06-15  Miles Bader  <miles@gnu.org>
 
 	* progmodes/which-func.el (which-func): Only inherit
@@ -11,7 +278,7 @@
 
 	* progmodes/ld-script.el (ld-script-location-counter):
 	Remove "-face" suffix from face name.
-	(ld-script-location-counter-face): 
+	(ld-script-location-counter-face):
 	New backward-compatibility alias for renamed face.
 	(ld-script-location-counter-face): Use renamed face.
 
@@ -73,7 +340,7 @@
 	(idlwave-shell-disabled-breakpoint-face)
 	(idlwave-shell-breakpoint-face): Use renamed idlwave-shell faces.
 
-	* progmodes/flymake.el (flymake-errline, flymake-warnline): 
+	* progmodes/flymake.el (flymake-errline, flymake-warnline):
 	Remove "-face" suffix from face names.
 	(flymake-errline-face, flymake-warnline-face):
 	New backward-compatibility aliases for renamed faces.
@@ -86,7 +353,7 @@
 	(ebrowse-tree-mark-face, ebrowse-root-class-face)
 	(ebrowse-file-name-face, ebrowse-default-face)
 	(ebrowse-member-attribute-face, ebrowse-member-class-face)
-	(ebrowse-progress-face): 
+	(ebrowse-progress-face):
 	New backward-compatibility aliases for renamed faces.
 	(ebrowse-show-progress, ebrowse-show-file-name-at-point)
 	(ebrowse-set-mark-props, ebrowse-draw-tree-fn)
@@ -95,8 +362,7 @@
 
 	* progmodes/antlr-mode.el (antlr-default, antlr-keyword, antlr-syntax)
 	(antlr-ruledef, antlr-tokendef, antlr-ruleref, antlr-tokenref)
-	(antlr-literal): Remove "-face" suffix and "font-lock-" from face
-	names.
+	(antlr-literal): Remove "-face" suffix and "font-lock-" from face names.
 	(antlr-font-lock-default-face, antlr-font-lock-keyword-face)
 	(antlr-font-lock-syntax-face, antlr-font-lock-ruledef-face)
 	(antlr-font-lock-tokendef-face, antlr-font-lock-ruleref-face)
@@ -119,20 +385,20 @@
 
 	* progmodes/make-mode.el (makefile-space, makefile-makepp-perl):
 	Eliminate "-face" suffix.
-	(makefile-targets): Inherit font-lock-variable-name-face and
+	(makefile-targets): Inherit from font-lock-function-name-face and
 	eliminate "-face" suffix.
 	(makefile-shell): Remove attributes and eliminate "-face" suffix.
 	(makefile-*-font-lock-keywords): Append makefile-targets in rule
 	actions, instead of prepending, to make it less visible.
-	(makefile-previous-dependency, makefile-match-dependency): Don't
-	match a target on a continuation line.
+	(makefile-previous-dependency, makefile-match-dependency):
+	Don't match a target on a continuation line.
 
 	* files.el (auto-mode-alist): Put Makefile in gmake mode.
 
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print): Respect
-	tooltip-use-echo-area.
+	* progmodes/gdb-ui.el (gdb-tooltip-print):
+	Respect tooltip-use-echo-area.
 	(menu): Re-order menu items.
 
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
@@ -181,8 +447,8 @@
 	* emacs-lisp/byte-run.el (make-obsolete)
 	(define-obsolete-function-alias): Rename arguments FUNCTION and
 	NEW to OBSOLETE-NAME and CURRENT-NAME respectively.
-	(make-obsolete-variable, define-obsolete-variable-alias): Rename
-	arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
+	(make-obsolete-variable, define-obsolete-variable-alias):
+	Rename arguments VARIABLE and NEW to OBSOLETE-NAME and CURRENT-NAME
 	respectively.
 
 	* isearchb.el (isearchb-activate):

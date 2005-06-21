@@ -1,6 +1,6 @@
 ;;; em-ls.el --- implementation of ls in Lisp
 
-;; Copyright (C) 1999, 2000 Free Software Foundation
+;; Copyright (C) 1999, 2000, 2005 Free Software Foundation
 
 ;; Author: John Wiegley <johnw@gnu.org>
 
@@ -106,48 +106,62 @@ faster and conserves more memory."
   :type 'boolean
   :group 'eshell-ls)
 
-(defface eshell-ls-directory-face
+(defface eshell-ls-directory
   '((((class color) (background light)) (:foreground "Blue" :weight bold))
     (((class color) (background dark)) (:foreground "SkyBlue" :weight bold))
     (t (:weight bold)))
   "*The face used for highlight directories."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-directory-face 'face-alias 'eshell-ls-directory)
 
-(defface eshell-ls-symlink-face
+(defface eshell-ls-symlink
   '((((class color) (background light)) (:foreground "Dark Cyan" :weight bold))
     (((class color) (background dark)) (:foreground "Cyan" :weight bold)))
   "*The face used for highlight symbolic links."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-symlink-face 'face-alias 'eshell-ls-symlink)
 
-(defface eshell-ls-executable-face
+(defface eshell-ls-executable
   '((((class color) (background light)) (:foreground "ForestGreen" :weight bold))
     (((class color) (background dark)) (:foreground "Green" :weight bold)))
   "*The face used for highlighting executables (not directories, though)."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-executable-face 'face-alias 'eshell-ls-executable)
 
-(defface eshell-ls-readonly-face
+(defface eshell-ls-readonly
   '((((class color) (background light)) (:foreground "Brown"))
     (((class color) (background dark)) (:foreground "Pink")))
   "*The face used for highlighting read-only files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-readonly-face 'face-alias 'eshell-ls-readonly)
 
-(defface eshell-ls-unreadable-face
+(defface eshell-ls-unreadable
   '((((class color) (background light)) (:foreground "Grey30"))
     (((class color) (background dark)) (:foreground "DarkGrey")))
   "*The face used for highlighting unreadable files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-unreadable-face 'face-alias 'eshell-ls-unreadable)
 
-(defface eshell-ls-special-face
+(defface eshell-ls-special
   '((((class color) (background light)) (:foreground "Magenta" :weight bold))
     (((class color) (background dark)) (:foreground "Magenta" :weight bold)))
   "*The face used for highlighting non-regular files."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-special-face 'face-alias 'eshell-ls-special)
 
-(defface eshell-ls-missing-face
+(defface eshell-ls-missing
   '((((class color) (background light)) (:foreground "Red" :weight bold))
     (((class color) (background dark)) (:foreground "Red" :weight bold)))
   "*The face used for highlighting non-existant file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-missing-face 'face-alias 'eshell-ls-missing)
 
 (defcustom eshell-ls-archive-regexp
   (concat "\\.\\(t\\(a[rz]\\|gz\\)\\|arj\\|lzh\\|"
@@ -158,11 +172,13 @@ files."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-archive-face
+(defface eshell-ls-archive
   '((((class color) (background light)) (:foreground "Orchid" :weight bold))
     (((class color) (background dark)) (:foreground "Orchid" :weight bold)))
   "*The face used for highlighting archived and compressed file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-archive-face 'face-alias 'eshell-ls-archive)
 
 (defcustom eshell-ls-backup-regexp
   "\\(\\`\\.?#\\|\\(\\.bak\\|~\\)\\'\\)"
@@ -170,11 +186,13 @@ files."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-backup-face
+(defface eshell-ls-backup
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "*The face used for highlighting backup file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-backup-face 'face-alias 'eshell-ls-backup)
 
 (defcustom eshell-ls-product-regexp
   "\\.\\(elc\\|o\\(bj\\)?\\|a\\|lib\\|res\\)\\'"
@@ -184,11 +202,13 @@ ought to be recreatable if they are deleted."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-product-face
+(defface eshell-ls-product
   '((((class color) (background light)) (:foreground "OrangeRed"))
     (((class color) (background dark)) (:foreground "LightSalmon")))
   "*The face used for highlighting files that are build products."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-product-face 'face-alias 'eshell-ls-product)
 
 (defcustom eshell-ls-clutter-regexp
   "\\(^texput\\.log\\|^core\\)\\'"
@@ -198,11 +218,13 @@ really need to stick around for very long."
   :type 'regexp
   :group 'eshell-ls)
 
-(defface eshell-ls-clutter-face
+(defface eshell-ls-clutter
   '((((class color) (background light)) (:foreground "OrangeRed" :weight bold))
     (((class color) (background dark)) (:foreground "OrangeRed" :weight bold)))
   "*The face used for highlighting junk file names."
   :group 'eshell-ls)
+;; backward-compatibility alias
+(put 'eshell-ls-clutter-face 'face-alias 'eshell-ls-clutter)
 
 (defsubst eshell-ls-filetype-p (attrs type)
   "Test whether ATTRS specifies a directory."
@@ -847,41 +869,41 @@ Use TRUENAME for predicate tests, if passed."
       (let ((face
 	     (cond
 	      ((not (cdr file))
-	       'eshell-ls-missing-face)
+	       'eshell-ls-missing)
 
 	      ((stringp (cadr file))
-	       'eshell-ls-symlink-face)
+	       'eshell-ls-symlink)
 
 	      ((eq (cadr file) t)
-	       'eshell-ls-directory-face)
+	       'eshell-ls-directory)
 
 	      ((not (eshell-ls-filetype-p (cdr file) ?-))
-	       'eshell-ls-special-face)
+	       'eshell-ls-special)
 
 	      ((and (/= (user-uid) 0) ; root can execute anything
 		    (eshell-ls-applicable (cdr file) 3
 					  'file-executable-p (car file)))
-	       'eshell-ls-executable-face)
+	       'eshell-ls-executable)
 
 	      ((not (eshell-ls-applicable (cdr file) 1
 					  'file-readable-p (car file)))
-	       'eshell-ls-unreadable-face)
+	       'eshell-ls-unreadable)
 
 	      ((string-match eshell-ls-archive-regexp (car file))
-	       'eshell-ls-archive-face)
+	       'eshell-ls-archive)
 
 	      ((string-match eshell-ls-backup-regexp (car file))
-	       'eshell-ls-backup-face)
+	       'eshell-ls-backup)
 
 	      ((string-match eshell-ls-product-regexp (car file))
-	       'eshell-ls-product-face)
+	       'eshell-ls-product)
 
 	      ((string-match eshell-ls-clutter-regexp (car file))
-	       'eshell-ls-clutter-face)
+	       'eshell-ls-clutter)
 
 	      ((not (eshell-ls-applicable (cdr file) 2
 					  'file-writable-p (car file)))
-	       'eshell-ls-readonly-face)
+	       'eshell-ls-readonly)
 	      (eshell-ls-highlight-alist
 	       (let ((tests eshell-ls-highlight-alist)
 		     value)

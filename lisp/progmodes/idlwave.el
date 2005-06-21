@@ -1369,7 +1369,7 @@ the leftover unidentified statements containing an equal sign."  )
 ;; Note that this is documented in the v18 manuals as being a string
 ;; of length one rather than a single character.
 ;; The code in this file accepts either format for compatibility.
-(defvar idlwave-comment-indent-char ?\ 
+(defvar idlwave-comment-indent-char ?\
   "Character to be inserted for IDL comment indentation.
 Normally a space.")
 
@@ -5493,8 +5493,8 @@ When we force a method or a method keyword, CLASS can specify the class."
 	  (error "Nothing known about procedure %s"
 		 (idlwave-make-full-name class name)))
 	(setq list (idlwave-fix-keywords name 'pro class list super-classes))
-	(unless list (error (format "No keywords available for procedure %s"
-				    (idlwave-make-full-name class name))))
+	(unless list (error "No keywords available for procedure %s"
+                            (idlwave-make-full-name class name)))
 	(setq idlwave-completion-help-info
 	      (list 'keyword name type-selector class-selector entry super-classes))
 	(idlwave-complete-in-buffer
@@ -5531,8 +5531,8 @@ When we force a method or a method keyword, CLASS can specify the class."
 			   (concat idlwave-current-obj_new-class
 				   "::Init (via OBJ_NEW)")
 			 (idlwave-make-full-name class name)))
-	(unless list (error (format "No keywords available for function %s"
-				    msg-name)))
+	(unless list (error "No keywords available for function %s"
+                            msg-name))
 	(setq idlwave-completion-help-info
 	      (list 'keyword name type-selector class-selector nil super-classes))
 	(idlwave-complete-in-buffer

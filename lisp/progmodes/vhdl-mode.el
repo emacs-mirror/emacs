@@ -2305,7 +2305,7 @@ old environment.  Used for consistent searching."
 			  (progn
 			    (when file-opened (kill-buffer (current-buffer)))
 			    (set-buffer source-buffer)
-			    (error (format "ERROR:  File cannot be opened: \"%s\"" ,file-name)))
+			    (error "ERROR:  File cannot be opened: \"%s\"" ,file-name))
 			(vhdl-warning (format "File cannot be opened: \"%s\"" ,file-name) t)
 			nil))))
 	   (condition-case info
@@ -6027,8 +6027,8 @@ Returns the location of the corresponding begin keyword, unless search
 stops due to beginning or end of buffer.
 Note that if point is between the \"libunit\" keyword and the
 corresponding \"begin\" keyword, then that libunit will not be
-recognised, and the search will continue backwards.  If point is
-at the \"begin\" keyword, then the defun will be recognised.  The
+recognized, and the search will continue backwards.  If point is
+at the \"begin\" keyword, then the defun will be recognized.  The
 returned point is at the first character of the \"libunit\" keyword."
   (let ((last-forward (point))
 	(last-backward
@@ -15358,7 +15358,7 @@ component instantiation."
 		   (cons constant-name
 			 (if (match-string 1)
 			     (or (aget generic-alist (match-string 2) t)
-				 (error (format "ERROR:  Formal generic \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name)))
+				 (error "ERROR:  Formal generic \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name))
 			   (cdar generic-alist))))
 	     (setq constant-alist (cons constant-entry constant-alist))
 	     (setq constant-name (downcase constant-name))
@@ -15378,7 +15378,7 @@ component instantiation."
 	   (setq signal-entry (cons signal-name
 				    (if (match-string 1)
 					(or (aget port-alist (match-string 2) t)
-					    (error (format "ERROR:  Formal port \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name)))
+					    (error "ERROR:  Formal port \"%s\" mismatch for instance \"%s\"" (match-string 2) inst-name))
 				      (cdar port-alist))))
 	   (setq signal-alist (cons signal-entry signal-alist))
 	   (setq signal-name (downcase signal-name))

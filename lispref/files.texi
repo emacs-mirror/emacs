@@ -98,9 +98,9 @@ new buffer and reading the file into it.  It also returns that buffer.
 Aside from some technical details, the body of the @code{find-file}
 function is basically equivalent to:
 
-@example
+@smallexample
 (switch-to-buffer (find-file-noselect filename nil nil wildcards))
-@end example
+@end smallexample
 
 @noindent
 (See @code{switch-to-buffer} in @ref{Displaying Buffers}.)
@@ -2731,9 +2731,9 @@ This function tests whether @var{filename} is a remote file.  If
 If @var{filename} is indeed remote, the return value is a string that
 identifies the remote system.
 
-This identifier string may include a host name, a user name, and
-characters designating the method used to access the remote system.
-For example, the remote identifier string for the filename
+This identifier string can include a host name and a user name, as
+well as characters designating the method used to access the remote
+system.  For example, the remote identifier string for the filename
 @code{/ssh:user@@host:/some/file} is @code{/ssh:user@@host:}.
 
 If @code{file-remote-p} returns the same identifier for two different

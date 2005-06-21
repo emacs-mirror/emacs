@@ -414,10 +414,9 @@ symbol, not a list; it is a variable whose value is a list of strings
 inputs.  It's the Lisp programmer's job to specify the right history
 list for each use of the minibuffer.
 
-  The basic minibuffer input functions @code{read-from-minibuffer} and
-@code{completing-read} both accept an optional argument named @var{hist}
-which is how you specify the history list.  Here are the possible
-values:
+  You specify the history list with the optional @var{hist} argument
+to either @code{read-from-minibuffer} or @code{completing-read}.  Here
+are the possible values for it:
 
 @table @asis
 @item @var{variable}
@@ -587,10 +586,11 @@ for reading certain kinds of names with completion.
 @node Basic Completion
 @subsection Basic Completion Functions
 
-  The functions @code{try-completion}, @code{all-completions} and
-@code{test-completion} have nothing in themselves to do with
-minibuffers.  We describe them in this chapter so as to keep them near
-the higher-level completion features that do use the minibuffer.
+  The completion functions @code{try-completion},
+@code{all-completions} and @code{test-completion} have nothing in
+themselves to do with minibuffers.  We describe them in this chapter
+so as to keep them near the higher-level completion features that do
+use the minibuffer.
 
 @defun try-completion string collection &optional predicate
 This function returns the longest common substring of all possible
@@ -788,12 +788,12 @@ value @var{fun} returns becomes the permanent value of @var{var}.
 
 Here are two examples of use:
 
-@example
+@smallexample
 (defvar foo (lazy-completion-table foo make-my-alist 'global))
 
 (make-local-variable 'bar)
 (setq bar (lazy-completion-table foo make-my-alist 'local)
-@end example
+@end smallexample
 @end defmac
 
 @node Minibuffer Completion
@@ -879,12 +879,9 @@ Complete a foo: fo@point{}
 If the user then types @kbd{@key{DEL} @key{DEL} b @key{RET}},
 @code{completing-read} returns @code{barfoo}.
 
-The @code{completing-read} function binds three variables to pass
-information to the commands that actually do completion.  These
-variables are @code{minibuffer-completion-table},
-@code{minibuffer-completion-predicate} and
-@code{minibuffer-completion-confirm}.  For more information about them,
-see @ref{Completion Commands}.
+The @code{completing-read} function binds variables to pass
+information to the commands that actually do completion.
+They are described in the following section.
 @end defun
 
 @node Completion Commands
@@ -897,6 +894,84 @@ default).  When enabled, this minor mode uses its own alternatives to
 some of the commands described below.  @xref{Completion Options,,,
 emacs, The GNU Emacs Manual}, for a short description of Partial
 Completion mode.
+
+@defvar minibuffer-completion-table
+The value of this variable is the collection used for completion in
+the minibuffer.  This is the global variable that contains what
+@code{completing-read} passes to @code{try-completion}.  It is used by
+minibuffer completion commands such as @code{minibuffer-complete-word}.
+@end defvar
+
+@defvar minibuffer-completion-predicate
+This variable's value is the predicate that @code{completing-read}
+passes to @code{try-completion}.  The variable is also used by the other
+minibuffer completion functions.
+@end defvar
+
+@defvar minibuffer-completion-confirm
+When the value of this variable is non-@code{nil}, Emacs asks for
+confirmation of a completion before exiting the minibuffer.
+@code{completing-read} binds this variable, and the function
+@code{minibuffer-complete-and-exit} checks the value before exiting.
+@end defvar
+
+@deffn Command minibuffer-complete-word
+This function completes the minibuffer contents by at most a single
+word.  Even if the minibuffer contents have only one completion,
+@code{minibuffer-complete-word} does not add any characters beyond the
+first character that is not a word constituent.  @xref{Syntax Tables}.
+@end deffn
+
+@deffn Command minibuffer-complete
+This function completes the minibuffer contents as far as possible.
+@end deffn
+
+@deffn Command minibuffer-complete-and-exit
+This function completes the minibuffer contents, and exits if
+confirmation is not required, i.e., if
+@code{minibuffer-completion-confirm} is @code{nil}.  If confirmation
+@emph{is} required, it is given by repeating this command
+immediately---the command is programmed to work without confirmation
+when run twice in succession.
+@end deffn
+
+@deffn Command minibuffer-completion-help
+This function creates a list of the possible completions of the
+current minibuffer contents.  It works by calling @code{all-completions}
+using the value of the variable @code{minibuffer-completion-table} as
+the @var{collection} argument, and the value of
+@code{minibuffer-completion-predicate} as the @var{predicate} argument.
+The list of completions is displayed as text in a buffer named
+@samp{*Completions*}.
+@end deffn
+
+@defun display-completion-list completions
+This function displays @var{completions} to the stream in
+@code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
+information about streams.)  The argument @var{completions} is normally
+a list of completions just returned by @code{all-completions}, but it
+does not have to be.  Each element may be a symbol or a string, either
+of which is simply printed.  It can also be a list of two strings,
+which is printed as if the strings were concatenated.  The first of
+the two strings is the actual completion, the second string serves as
+annotation.
+
+This function is called by @code{minibuffer-completion-help}.  The
+most common way to use it is together with
+@code{with-output-to-temp-buffer}, like this:
+
+@example
+(with-output-to-temp-buffer "*Completions*"
+  (display-completion-list
+    (all-completions (buffer-string) my-alist)))
+@end example
+@end defun
+
+@defopt completion-auto-help
+If this variable is non-@code{nil}, the completion commands
+automatically display a list of possible completions whenever nothing
+can be completed because the next character is not uniquely determined.
+@end defopt
 
 @defvar minibuffer-local-completion-map
 @code{completing-read} uses this value as the local keymap when an
@@ -946,84 +1021,6 @@ bindings:
 @noindent
 with other characters bound as in @code{minibuffer-local-map}.
 @end defvar
-
-@defvar minibuffer-completion-table
-The value of this variable is the collection used for completion in
-the minibuffer.  This is the global variable that contains what
-@code{completing-read} passes to @code{try-completion}.  It is used by
-minibuffer completion commands such as @code{minibuffer-complete-word}.
-@end defvar
-
-@defvar minibuffer-completion-predicate
-This variable's value is the predicate that @code{completing-read}
-passes to @code{try-completion}.  The variable is also used by the other
-minibuffer completion functions.
-@end defvar
-
-@deffn Command minibuffer-complete-word
-This function completes the minibuffer contents by at most a single
-word.  Even if the minibuffer contents have only one completion,
-@code{minibuffer-complete-word} does not add any characters beyond the
-first character that is not a word constituent.  @xref{Syntax Tables}.
-@end deffn
-
-@deffn Command minibuffer-complete
-This function completes the minibuffer contents as far as possible.
-@end deffn
-
-@deffn Command minibuffer-complete-and-exit
-This function completes the minibuffer contents, and exits if
-confirmation is not required, i.e., if
-@code{minibuffer-completion-confirm} is @code{nil}.  If confirmation
-@emph{is} required, it is given by repeating this command
-immediately---the command is programmed to work without confirmation
-when run twice in succession.
-@end deffn
-
-@defvar minibuffer-completion-confirm
-When the value of this variable is non-@code{nil}, Emacs asks for
-confirmation of a completion before exiting the minibuffer.  The
-function @code{minibuffer-complete-and-exit} checks the value of this
-variable before it exits.
-@end defvar
-
-@deffn Command minibuffer-completion-help
-This function creates a list of the possible completions of the
-current minibuffer contents.  It works by calling @code{all-completions}
-using the value of the variable @code{minibuffer-completion-table} as
-the @var{collection} argument, and the value of
-@code{minibuffer-completion-predicate} as the @var{predicate} argument.
-The list of completions is displayed as text in a buffer named
-@samp{*Completions*}.
-@end deffn
-
-@defun display-completion-list completions
-This function displays @var{completions} to the stream in
-@code{standard-output}, usually a buffer.  (@xref{Read and Print}, for more
-information about streams.)  The argument @var{completions} is normally
-a list of completions just returned by @code{all-completions}, but it
-does not have to be.  Each element may be a symbol or a string, either
-of which is simply printed.  It can also be a list of two strings,
-which is printed as if the strings were concatenated.  The first of
-the two strings is the actual completion, the second string serves as
-annotation.
-
-This function is called by @code{minibuffer-completion-help}.  The
-most common way to use it is together with
-@code{with-output-to-temp-buffer}, like this:
-
-@example
-(with-output-to-temp-buffer "*Completions*"
-  (display-completion-list
-    (all-completions (buffer-string) my-alist)))
-@end example
-@end defun
-
-@defopt completion-auto-help
-If this variable is non-@code{nil}, the completion commands
-automatically display a list of possible completions whenever nothing
-can be completed because the next character is not uniquely determined.
-@end defopt
 
 @node High-Level Completion
 @subsection High-Level Completion  Functions

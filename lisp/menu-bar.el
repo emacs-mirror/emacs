@@ -1099,7 +1099,7 @@ by \"Save Options\" in Custom buffers.")
 	      :help "Move snake around avoiding collisions"))
 (define-key menu-bar-games-menu [mult]
   '(menu-item "Multiplication Puzzle"  mpuz
-	      :help "Excercise brain with multiplication"))
+	      :help "Exercise brain with multiplication"))
 (define-key menu-bar-games-menu [life]
   '(menu-item "Life"  life
 	      :help "Watch how John Conway's cellular automaton evolves"))

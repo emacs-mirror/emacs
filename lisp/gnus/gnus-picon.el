@@ -74,13 +74,17 @@ Some people may want to add \"unknown\" to this list."
   :type '(repeat string)
   :group 'gnus-picon)
 
-(defface gnus-picon-xbm-face '((t (:foreground "black" :background "white")))
+(defface gnus-picon-xbm '((t (:foreground "black" :background "white")))
   "Face to show xbm picon in."
   :group 'gnus-picon)
+;; backward-compatibility alias
+(put 'gnus-picon-xbm-face 'face-alias 'gnus-picon-xbm)
 
-(defface gnus-picon-face '((t (:foreground "black" :background "white")))
+(defface gnus-picon '((t (:foreground "black" :background "white")))
   "Face to show picon in."
   :group 'gnus-picon)
+;; backward-compatibility alias
+(put 'gnus-picon-face 'face-alias 'gnus-picon)
 
 ;;; Internal variables:
 

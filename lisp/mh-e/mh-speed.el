@@ -1,6 +1,6 @@
 ;;; mh-speed.el --- Speedbar interface for MH-E.
 
-;; Copyright (C) 2002, 2003, 2004 Free Software Foundation, Inc.
+;; Copyright (C) 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
 
 ;; Author: Satyaki Das <satyaki@theforce.stanford.edu>
 ;; Maintainer: Bill Wohler <wohler@newt.com>
@@ -67,7 +67,7 @@ BUFFER is the MH-E buffer for which the speedbar buffer is to be created."
     (erase-buffer)
     (clrhash mh-speed-folder-map)
     (speedbar-make-tag-line 'bracket ?+ 'mh-speed-toggle nil " " 'ignore nil
-                            'mh-speedbar-folder-face 0)
+                            'mh-speedbar-folder 0)
     (forward-line -1)
     (setf (gethash nil mh-speed-folder-map)
           (set-marker (or (gethash nil mh-speed-folder-map) (make-marker))
@@ -149,12 +149,11 @@ The update is always carried out if FORCE is non-nil."
       (set-buffer speedbar-buffer)
 
       ;; Remove highlight from previous match...
-      (mh-speed-highlight mh-speed-last-selected-folder
-                          'mh-speedbar-folder-face)
+      (mh-speed-highlight mh-speed-last-selected-folder 'mh-speedbar-folder)
 
       ;; If we found a match highlight it...
       (when (mh-speed-goto-folder newcf)
-        (mh-speed-highlight newcf 'mh-speedbar-selected-folder-face))
+        (mh-speed-highlight newcf 'mh-speedbar-selected-folder))
 
       (setq mh-speed-last-selected-folder newcf)
       (speedbar-position-cursor-on-line)
@@ -166,18 +165,18 @@ The update is always carried out if FORCE is non-nil."
 
 (defun mh-speed-normal-face (face)
   "Return normal face for given FACE."
-  (cond ((eq face 'mh-speedbar-folder-with-unseen-messages-face)
-         'mh-speedbar-folder-face)
-        ((eq face 'mh-speedbar-selected-folder-with-unseen-messages-face)
-         'mh-speedbar-selected-folder-face)
+  (cond ((eq face 'mh-speedbar-folder-with-unseen-messages)
+         'mh-speedbar-folder)
+        ((eq face 'mh-speedbar-selected-folder-with-unseen-messages)
+         'mh-speedbar-selected-folder)
         (t face)))
 
 (defun mh-speed-bold-face (face)
   "Return bold face for given FACE."
-  (cond ((eq face 'mh-speedbar-folder-face)
-         'mh-speedbar-folder-with-unseen-messages-face)
-        ((eq face 'mh-speedbar-selected-folder-face)
-         'mh-speedbar-selected-folder-with-unseen-messages-face)
+  (cond ((eq face 'mh-speedbar-folder)
+         'mh-speedbar-folder-with-unseen-messages)
+        ((eq face 'mh-speedbar-selected-folder)
+         'mh-speedbar-selected-folder-with-unseen-messages)
         (t face)))
 
 (defun mh-speed-highlight (folder face)
@@ -272,8 +271,8 @@ Do the right thing for the different kinds of buffers that MH-E uses."
                       ""))
             'mh-speed-view nil
             (if (and counts (> (car counts) 0))
-                'mh-speedbar-folder-with-unseen-messages-face
-              'mh-speedbar-folder-face)
+                'mh-speedbar-folder-with-unseen-messages
+              'mh-speedbar-folder)
             level)
            (save-excursion
              (forward-line -1)
@@ -496,8 +495,7 @@ next."
               (add-text-properties
                (line-beginning-position) (1+ (line-beginning-position))
                `(mh-children-p ,(equal parent-change ?+)))))
-          (mh-speed-highlight mh-speed-last-selected-folder
-                              'mh-speedbar-folder-face)
+          (mh-speed-highlight mh-speed-last-selected-folder 'mh-speedbar-folder)
           (setq mh-speed-last-selected-folder nil)
           (setq mh-speed-refresh-flag t)))
       (when (equal folder "")

@@ -4277,9 +4277,11 @@ signaled if point is outside key or BibTeX field."
   (bibtex-move-outside-of-entry)
   (indent-to-column bibtex-entry-offset)
   (insert "@Preamble"
-          (bibtex-entry-left-delimiter))
+          (bibtex-entry-left-delimiter)
+          (bibtex-field-left-delimiter))
   (let ((endpos (point)))
     (insert (bibtex-entry-right-delimiter)
+            (bibtex-field-right-delimiter)
             "\n")
     (goto-char endpos)))
 

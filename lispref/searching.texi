@@ -244,16 +244,15 @@ first tries to match all three @samp{a}s; but the rest of the pattern is
 The next alternative is for @samp{a*} to match only two @samp{a}s.  With
 this choice, the rest of the regexp matches successfully.@refill
 
-Nested repetition operators can be extremely slow or loop infinitely
-if they use repetition operators inside repetition operators.  For
-example, it could take hours for the regular expression
-@samp{\(x+y*\)*a} to try to match the sequence
-@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz}, before it ultimately
-fails.  Emacs must try each way of grouping the 35 @samp{x}s before
-concluding that none of them can work.  Even worse, @samp{\(x*\)*} can
-match the null string in infinitely many ways, so it causes an
-infinite loop.  To avoid these problems, check nested repetitions
-carefully.
+Nested repetition operators take a long time, or even forever, if they
+lead to ambiguous matching.  For example, trying to match the regular
+expression @samp{\(x+y*\)*a} against the string
+@samp{xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxz} could take hours before it
+ultimately fails.  Emacs must try each way of grouping the 35
+@samp{x}s before concluding that none of them can work.  Even worse,
+@samp{\(x*\)*} can match the null string in infinitely many ways, so
+it causes an infinite loop.  To avoid these problems, check nested
+repetitions carefully.
 
 @item @samp{+}
 @cindex @samp{+} in regexp
@@ -347,9 +346,10 @@ different characters.
 
 @item @samp{[^ @dots{} ]}
 @cindex @samp{^} in regexp
-@samp{[^} begins a @dfn{complemented character alternative}, which matches any
-character except the ones specified.  Thus, @samp{[^a-z0-9A-Z]} matches
-all characters @emph{except} letters and digits.
+@samp{[^} begins a @dfn{complemented character alternative}.  This
+matches any character except the ones specified.  Thus,
+@samp{[^a-z0-9A-Z]} matches all characters @emph{except} letters and
+digits.
 
 @samp{^} is not special in a character alternative unless it is the first
 character.  The character following the @samp{^} is treated as if it
@@ -1531,8 +1531,9 @@ are reseated to point to nowhere, and if the value is @code{evaporate},
 the markers are put back on the free list.
 
 @strong{Warning:} When @code{evaporate} is specified for @var{reseat},
-no other references to the markers on the @var{reuse} list; otherwise,
-Emacs may crash during the next garbage collection.
+you must ensure that no other references to the markers on the
+@var{reuse} list exists; otherwise, Emacs may crash during the next
+garbage collection.
 
 As always, there must be no possibility of intervening searches between
 the call to a search function and the call to @code{match-data} that is
@@ -1563,8 +1564,9 @@ are reseated to point to nowhere, and if the value is @code{evaporate},
 the markers are put back on the free list.
 
 @strong{Warning:} When @code{evaporate} is specified for @var{reseat},
-no other references to the markers on the @var{match-list} list; otherwise,
-Emacs may crash during the next garbage collection.
+you must ensure that no other references to the markers on the
+@var{match-list} list exists; otherwise, Emacs may crash during the
+next garbage collection.
 
 @findex store-match-data
 @code{store-match-data} is a semi-obsolete alias for @code{set-match-data}.

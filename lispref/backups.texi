@@ -589,10 +589,10 @@ This function auto-saves all buffers that need to be auto-saved.  It
 saves all buffers for which auto-saving is enabled and that have been
 changed since the previous auto-save.
 
-Normally, if any buffers are auto-saved, a message that says
-@samp{Auto-saving...} is displayed in the echo area while auto-saving is
-going on.  However, if @var{no-message} is non-@code{nil}, the message
-is inhibited.
+If any buffers are auto-saved, @code{do-auto-save} normally displays a
+message saying @samp{Auto-saving...} in the echo area while
+auto-saving is going on.  However, if @var{no-message} is
+non-@code{nil}, the message is inhibited.
 
 If @var{current-only} is non-@code{nil}, only the current buffer
 is auto-saved.

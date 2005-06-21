@@ -141,7 +141,7 @@ variable.")
 
 (defvar ethio-use-three-dot-question nil
   "*Non-nil means associate ASCII question mark with Ethiopic old style question mark (three vertically stacked dots).
-If nil, associate ASCII question mark with Ethiopic stylised question
+If nil, associate ASCII question mark with Ethiopic stylized question
 mark.  All SERA <--> FIDEL converters refer this variable.")
 
 (defvar ethio-quote-vowel-always nil
@@ -726,7 +726,7 @@ changing anything."
 
 (defun ethio-tilde-escape nil
   "Handle a SERA tilde escape in Ethiopic section and delete it.
-Delete the escape even it is not recognised."
+Delete the escape even it is not recognized."
 
   (let ((p (point)) command)
     (skip-chars-forward "^ \t\n\\\\")
