@@ -534,88 +534,93 @@ NUMBER hold the arguments that `list-diary-entries' received.
 They specify the range of dates that the diary is being processed for.
 
 Any appointments made with `appt-add' are not affected by this
-function."
+function.
 
-  ;; We have something to do if the range of dates that the diary is
-  ;; considering includes the current date.
-  (if (and (not (calendar-date-compare
-		 (list (calendar-current-date))
-		 (list original-date)))
-	   (calendar-date-compare
-	    (list (calendar-current-date))
-            (list (calendar-gregorian-from-absolute
-		   (+ (calendar-absolute-from-gregorian original-date)
-		      number)))))
-      (save-excursion
-	;; Clear the appointments list, then fill it in from the diary.
-	(dolist (elt appt-time-msg-list)
-	  ;; Delete any entries that were not made with appt-add.
-	  (unless (nth 2 elt)
-	    (setq appt-time-msg-list
-		  (delq elt appt-time-msg-list))))
-	(if diary-entries-list
+For backwards compatibility, this function activates the
+appointment package (if it is not already active)."
+  ;; See comments above appt-activate defun.
+  (if (not appt-timer)
+      (appt-activate 1)
+    ;; We have something to do if the range of dates that the diary is
+    ;; considering includes the current date.
+    (if (and (not (calendar-date-compare
+                   (list (calendar-current-date))
+                   (list original-date)))
+             (calendar-date-compare
+              (list (calendar-current-date))
+              (list (calendar-gregorian-from-absolute
+                     (+ (calendar-absolute-from-gregorian original-date)
+                        number)))))
+        (save-excursion
+          ;; Clear the appointments list, then fill it in from the diary.
+          (dolist (elt appt-time-msg-list)
+            ;; Delete any entries that were not made with appt-add.
+            (unless (nth 2 elt)
+              (setq appt-time-msg-list
+                    (delq elt appt-time-msg-list))))
+          (if diary-entries-list
 
-	    ;; Cycle through the entry-list (diary-entries-list)
-	    ;; looking for entries beginning with a time. If
-	    ;; the entry begins with a time, add it to the
-	    ;; appt-time-msg-list. Then sort the list.
+              ;; Cycle through the entry-list (diary-entries-list)
+              ;; looking for entries beginning with a time. If
+              ;; the entry begins with a time, add it to the
+              ;; appt-time-msg-list. Then sort the list.
 
-	    (let ((entry-list diary-entries-list)
-		  (new-time-string ""))
-	      ;; Skip diary entries for dates before today.
-	      (while (and entry-list
-			  (calendar-date-compare
-			   (car entry-list) (list (calendar-current-date))))
-		(setq entry-list (cdr entry-list)))
-	      ;; Parse the entries for today.
-	      (while (and entry-list
-			  (calendar-date-equal
-			   (calendar-current-date) (car (car entry-list))))
-		(let ((time-string (cadr (car entry-list))))
-		  (while (string-match
-			  "\\([0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?\\).*"
-			  time-string)
-		    (let* ((beg (match-beginning 0))
-			   ;; Get just the time for this appointment.
-			   (only-time (match-string 1 time-string))
-			   ;; Find the end of this appointment
-			   ;; (the start of the next).
-			   (end (string-match
-				 "^[ \t]*[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
-				 time-string
-				 (match-end 0)))
-			   ;; Get the whole string for this appointment.
-			   (appt-time-string
-			    (substring time-string beg (if end (1- end)))))
+              (let ((entry-list diary-entries-list)
+                    (new-time-string ""))
+                ;; Skip diary entries for dates before today.
+                (while (and entry-list
+                            (calendar-date-compare
+                             (car entry-list) (list (calendar-current-date))))
+                  (setq entry-list (cdr entry-list)))
+                ;; Parse the entries for today.
+                (while (and entry-list
+                            (calendar-date-equal
+                             (calendar-current-date) (car (car entry-list))))
+                  (let ((time-string (cadr (car entry-list))))
+                    (while (string-match
+                            "\\([0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?\\).*"
+                            time-string)
+                      (let* ((beg (match-beginning 0))
+                             ;; Get just the time for this appointment.
+                             (only-time (match-string 1 time-string))
+                             ;; Find the end of this appointment
+                             ;; (the start of the next).
+                             (end (string-match
+                                   "^[ \t]*[0-9]?[0-9][:.][0-9][0-9]\\(am\\|pm\\)?"
+                                   time-string
+                                   (match-end 0)))
+                             ;; Get the whole string for this appointment.
+                             (appt-time-string
+                              (substring time-string beg (if end (1- end)))))
 
-		      ;; Add this appointment to appt-time-msg-list.
-		      (let* ((appt-time (list (appt-convert-time only-time)))
-			     (time-msg (list appt-time appt-time-string)))
-			(setq appt-time-msg-list
-			      (nconc appt-time-msg-list (list time-msg))))
+                        ;; Add this appointment to appt-time-msg-list.
+                        (let* ((appt-time (list (appt-convert-time only-time)))
+                               (time-msg (list appt-time appt-time-string)))
+                          (setq appt-time-msg-list
+                                (nconc appt-time-msg-list (list time-msg))))
 
-		      ;; Discard this appointment from the string.
-		      (setq time-string
-			    (if end (substring time-string end) "")))))
-		(setq entry-list (cdr entry-list)))))
-	(setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
+                        ;; Discard this appointment from the string.
+                        (setq time-string
+                              (if end (substring time-string end) "")))))
+                  (setq entry-list (cdr entry-list)))))
+          (setq appt-time-msg-list (appt-sort-list appt-time-msg-list))
 
-	;; Get the current time and convert it to minutes
-	;; from midnight. ie. 12:01am = 1, midnight = 0,
-	;; so that the elements in the list
-	;; that are earlier than the present time can
-	;; be removed.
+          ;; Get the current time and convert it to minutes
+          ;; from midnight. ie. 12:01am = 1, midnight = 0,
+          ;; so that the elements in the list
+          ;; that are earlier than the present time can
+          ;; be removed.
 
-	(let* ((now (decode-time))
-	       (cur-hour (nth 2 now))
-	       (cur-min (nth 1 now))
-	       (cur-comp-time (+ (* cur-hour 60) cur-min))
-	       (appt-comp-time (car (caar appt-time-msg-list))))
+          (let* ((now (decode-time))
+                 (cur-hour (nth 2 now))
+                 (cur-min (nth 1 now))
+                 (cur-comp-time (+ (* cur-hour 60) cur-min))
+                 (appt-comp-time (car (caar appt-time-msg-list))))
 
-	  (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
-	    (setq appt-time-msg-list (cdr appt-time-msg-list))
-	    (if appt-time-msg-list
-		(setq appt-comp-time (car (caar appt-time-msg-list)))))))))
+            (while (and appt-time-msg-list (< appt-comp-time cur-comp-time))
+              (setq appt-time-msg-list (cdr appt-time-msg-list))
+              (if appt-time-msg-list
+                  (setq appt-comp-time (car (caar appt-time-msg-list))))))))))
 
 
 (defun appt-sort-list (appt-list)
@@ -664,6 +669,30 @@ This function is intended for use with `write-file-functions'."
          (appt-check t)))
   nil)
 
+
+;; In Emacs-21.3, the manual documented the following procedure to
+;; activate this package:
+;;     (display-time)
+;;     (add-hook 'diary-hook 'appt-make-list)
+;;     (diary 0)
+;; The display-time call was not necessary, AFAICS.
+;; What was really needed was to add the hook and load this file.
+;; Calling (diary 0) once the hook had been added was in some sense a
+;; roundabout way of loading this file. This file used to have code at
+;; the top-level that set up the appt-timer and global-mode-string.
+;; One way to maintain backwards compatibility would be to call
+;; (appt-activate 1) at top-level. However, this goes against the
+;; convention that just loading an Emacs package should not activate
+;; it. Instead, we make appt-make-list activate the package (after a
+;; suggestion from rms). This means that one has to call diary in
+;; order to get it to work, but that is in line with the old (weird,
+;; IMO) documented behavior for activating the package.
+;; Actually, since (diary 0) does not run diary-hook, I don't think
+;; the documented behavior in Emacs-21.3 would ever have worked.
+;; Oh well, at least with the changes to appt-make-list it will now
+;; work as well as it ever did.
+;; The new method is just to use (appt-activate 1).
+;; -- gmorris
 
 ;;;###autoload
 (defun appt-activate (&optional arg)
