@@ -386,7 +386,7 @@ previously autoloaded.
 @item
 There is a new variable, @code{recursive-load-depth-limit}, which
 specifies how many times files can recursively load themselves; it is
-50 by default, and nil means infinity.  Previously, Emacs signalled an
+50 by default, and nil means infinity.  Previously, Emacs signaled an
 error after just 3 recursive loads, which was boring.
 
 @item

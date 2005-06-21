@@ -419,7 +419,7 @@ This is how you would do it.
 
 @vindex message-subscribed-address-file
 @item message-subscribed-address-file
-You might be one organised human freak and have a list of addresses of
+You might be one organized human freak and have a list of addresses of
 all subscribed mailing lists in a separate file!  Then you can just
 set this variable to the name of the file and life would be good.
 
