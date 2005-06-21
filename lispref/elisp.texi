@@ -88,7 +88,12 @@ Software Foundation raise funds for GNU development.''
 
 Cover art by Etienne Suvasa.
 @end titlepage
-@page
+
+
+@c Print the tables of contents
+@summarycontents
+@contents
+
 
 @ifnottex
 @node Top, Introduction, (dir), (dir)
@@ -1149,11 +1154,6 @@ Object Internals
 @unnumbered New Symbols Since the Previous Edition
 
 @printindex tp
-
-@c Print the tables of contents
-@summarycontents
-@contents
-@c That's all
 
 @bye
 
