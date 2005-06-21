@@ -1216,11 +1216,11 @@ used instead of `browse-url-new-window-flag'."
 	  (save-buffer)
 	  (kill-buffer nil)
 	  ;; Send signal SIGUSR to Mosaic
-	  (message "Signalling Mosaic...")
+	  (message "Signaling Mosaic...")
 	  (signal-process pid 'SIGUSR1)
 	  ;; Or you could try:
 	  ;; (call-process "kill" nil 0 nil "-USR1" (int-to-string pid))
-	  (message "Signalling Mosaic...done")
+	  (message "Signaling Mosaic...done")
 	  )
       ;; Mosaic not running - start it
       (message "Starting %s..." browse-url-mosaic-program)
