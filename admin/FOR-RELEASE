@@ -67,17 +67,6 @@ I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
 
-* REDISPLAY RELATED BUGS
-
-** Avoid unbreakable loops in redisplay.
-
-Redisplay may loop if there is an error in some display property, e.g.
-     (space 'left-margin)
-
-A fix would be to somehow disable handling of display properties if an error
-is encountered.
-
-
 * DOCUMENTATION
 
 ** Document Custom Themes.
