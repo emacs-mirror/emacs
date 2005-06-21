@@ -1,3 +1,22 @@
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (1value, lambda, key-substitution-in-progress):
+	Doc fixes.
+
+	* autoinsert.el (auto-insert-alist):
+	* ses.el (ses-call-printer):
+	* subr.el (noreturn):
+	* emacs-lisp/lisp.el (check-parens):
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func):
+	* net/browse-url.el (browse-url-mosaic):
+	* progmodes/cc-defs.el (c-safe-scan-lists):
+	* progmodes/ebnf-abn.el (ebnf-abn-lex):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-lex):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-lex):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-lex):
+	* progmodes/ebnf-iso.el (ebnf-iso-lex):
+	* progmodes/ebnf-yac.el (ebnf-yac-lex): Fix spellings.
+
 2005-06-21  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* pcvs-defs.el (cvs-menu): Add cvs-mode-mark and cvs-mode-unmark.

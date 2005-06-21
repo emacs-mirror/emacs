@@ -1,3 +1,8 @@
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fchar_table_range):
+	* process.c (Fmake_network_process): Fix spellings.
+
 2005-06-20  Kim F. Storm  <storm@cua.dk>
 
 	* fns.c (Fsort): Doc fix.
