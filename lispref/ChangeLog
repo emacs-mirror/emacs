@@ -1,5 +1,7 @@
 2005-06-21  Karl Berry  <karl@gnu.org>
 
+	* elisp.texi: Use @copying.
+
 	* elisp.texi: Put @summarycontents and @contents before the Top
 	node, instead of the end of the file, so that the contents appear
 	in the right place in the dvi/pdf output.
