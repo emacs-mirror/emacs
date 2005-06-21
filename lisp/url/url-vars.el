@@ -388,7 +388,7 @@ Currently supported methods:
 (defconst url-working-buffer " *url-work")
 
 (defvar url-gateway-unplugged nil
-  "Non-nil means don't open new network connexions.
+  "Non-nil means don't open new network connections.
 This should be set, e.g. by mail user agents rendering HTML to avoid
 `bugs' which call home.")
 
