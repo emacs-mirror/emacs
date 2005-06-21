@@ -1,3 +1,14 @@
+2005-06-21  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (face-user-default-spec): Try getting `customized-face'
+	prior to `saved-face'.
+	(frame-background-mode): Refill docstring.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1):
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	Set `saved-face' temporarily to nil before calling form.
+	Set `customized-face' to the new spec after that.
+
 2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* subr.el (1value, lambda, key-substitution-in-progress):

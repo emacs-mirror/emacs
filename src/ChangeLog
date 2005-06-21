@@ -1,3 +1,14 @@
+2005-06-21  Juri Linkov  <juri@jurta.org>
+
+	* dispextern.h: Add extern Qframe_set_background_mode.
+
+	* xfaces.c: Rename obsolete function Qframe_update_face_colors to
+	Qframe_set_background_mode.
+
+	* frame.c (Fmodify_frame_parameters):
+	Call frame-set-background-mode after changing the background color
+	on non-window non-dos branch.
+
 2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* fns.c (Fchar_table_range):
