@@ -485,7 +485,7 @@
 
 
 (defun ebnf-abn-lex ()
-  "Lexical analyser for ABNF.
+  "Lexical analyzer for ABNF.
 
 Return a lexical token.
 
