@@ -153,7 +153,7 @@ ignored.
 @tindex make-backup-file-name-function
 This variable's value is a function to use for making backups instead
 of the default @code{make-backup-file-name}.  A value of @code{nil}
-gives the default @code{make-backup-file-name} behaviour.
+gives the default @code{make-backup-file-name} behavior.
 @xref{Backup Names,, Naming Backup Files}.
 
 This could be buffer-local to do something special for specific
