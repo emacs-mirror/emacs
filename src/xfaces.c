@@ -316,9 +316,9 @@ Lisp_Object Qunspecified;
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
 /* The name of the function to call when the background of the frame
-   has changed, frame_update_face_colors.  */
+   has changed, frame_set_background_mode.  */
 
-Lisp_Object Qframe_update_face_colors;
+Lisp_Object Qframe_set_background_mode;
 
 /* Names of basic faces.  */
 
@@ -4509,10 +4509,10 @@ update_face_from_frame_parameter (f, param, new_value)
       Lisp_Object frame;
 
       /* Changing the background color might change the background
-	 mode, so that we have to load new defface specs.  Call
-	 frame-update-face-colors to do that.  */
+	 mode, so that we have to load new defface specs.
+	 Call frame-set-background-mode to do that.  */
       XSETFRAME (frame, f);
-      call1 (Qframe_update_face_colors, frame);
+      call1 (Qframe_set_background_mode, frame);
 
       face = Qdefault;
       lface = lface_from_face_name (f, face, 1);
@@ -7887,8 +7887,8 @@ syms_of_xfaces ()
   staticpro (&Qface_no_inherit);
   Qbitmap_spec_p = intern ("bitmap-spec-p");
   staticpro (&Qbitmap_spec_p);
-  Qframe_update_face_colors = intern ("frame-update-face-colors");
-  staticpro (&Qframe_update_face_colors);
+  Qframe_set_background_mode = intern ("frame-set-background-mode");
+  staticpro (&Qframe_set_background_mode);
 
   /* Lisp face attribute keywords.  */
   QCfamily = intern (":family");
