@@ -44,12 +44,12 @@ Each element of this list holds the arguments to one call to `defcustom'.")
 (defmacro noreturn (form)
   "Evaluates FORM, with the expectation that the evaluation will signal an error
 instead of returning to its caller.  If FORM does return, an error is
-signalled."
+signaled."
   `(prog1 ,form
      (error "Form marked with `noreturn' did return")))
 
 (defmacro 1value (form)
-  "Evaluates FORM, with the expectation that all the same value will be returned
+  "Evaluates FORM, with the expectation that the same value will be returned
 from all evaluations of FORM.  This is the global do-nothing
 version of `1value'.  There is also `testcover-1value' that
 complains if FORM ever does return differing values."
@@ -61,7 +61,7 @@ A call of the form (lambda ARGS DOCSTRING INTERACTIVE BODY) is
 self-quoting; the result of evaluating the lambda expression is the
 expression itself.  The lambda expression may then be treated as a
 function, i.e., stored as the function value of a symbol, passed to
-funcall or mapcar, etc.
+`funcall' or `mapcar', etc.
 
 ARGS should take the same form as an argument list for a `defun'.
 DOCSTRING is an optional documentation string.
@@ -347,7 +347,7 @@ but optional second arg NODIGITS non-nil treats them like other chars."
 	  (setq loop (1+ loop))))))
 
 (defvar key-substitution-in-progress nil
- "Used internally by substitute-key-definition.")
+ "Used internally by `substitute-key-definition'.")
 
 (defun substitute-key-definition (olddef newdef keymap &optional oldmap prefix)
   "Replace OLDDEF with NEWDEF for any keys in KEYMAP now defined as OLDDEF.
