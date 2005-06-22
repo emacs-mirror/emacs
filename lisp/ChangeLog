@@ -1,3 +1,11 @@
+2005-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* cus-edit.el (customize-face)
+	(customize-face-other-window): Handle face aliases.
+
+	* faces.el (face-documentation, set-face-attribute)
+	(face-spec-set): Handle face aliases.
+
 2005-06-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* help-mode.el (help-make-xrefs): If a symbol representing a face
