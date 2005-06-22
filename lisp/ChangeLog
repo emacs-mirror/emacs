@@ -580,7 +580,6 @@
 	variables, unless either `gtk' is boundp or this isn't a
 	`windows-nt' build.
 
->>>>>>> 1.7817
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
 	* abbrev.el (edit-abbrevs-mode): Use kill-all-local-variables and
@@ -1488,7 +1487,6 @@
 
 	* simple.el (filter-buffer-substring): Fix typo in docstring.
 
->>>>>>> 1.7768
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not INTERACTIVE.
@@ -1525,7 +1523,6 @@
 	* textmodes/tex-mode.el (tex-compile-commands, tex-compile)
 	(tex-start-tex): Undo all but the last part of the 2005-05-28 change.
 
->>>>>>> 1.7646
 2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (mark-included-diary-files): Only kill
