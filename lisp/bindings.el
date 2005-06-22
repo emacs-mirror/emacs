@@ -471,7 +471,7 @@ Menu of mode operations in the mode line.")
 FMT is a format specifier such as \"%12b\".  This function adds
 text properties for face, help-echo, and local-map to it."
   (list (propertize fmt
-		    'face 'Buffer-menu-buffer-face
+		    'face 'Buffer-menu-buffer
 		    'help-echo
 		    (purecopy "mouse-1: previous buffer, mouse-3: next buffer")
 		    'mouse-face 'mode-line-highlight

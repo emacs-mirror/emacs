@@ -7,6 +7,9 @@
 
 2005-06-22  Miles Bader  <miles@gnu.org>
 
+	* bindings.el (propertized-buffer-identification): Use renamed
+	`Buffer-menu-buffer' face.
+
 	* faces.el (vertical-border): Renamed from `vertical-divider'.
 	(escape-glyph): Change dark-background color back to `cyan'.
 
