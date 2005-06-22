@@ -1,3 +1,8 @@
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Remove evaporate option for
+	match-data.  Do not mention evaporate option for set-match-data.
+
 2005-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* display.texi (Face Functions): Mention face aliases.
