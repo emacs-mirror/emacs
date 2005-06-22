@@ -1549,9 +1549,10 @@ Please send all bug fixes and enhancements to
        (defvar mark-active nil)
        (defun ps-mark-active-p ()
 	 mark-active)
-       (defalias 'ps-face-foreground-name 'face-foreground)
-       (defalias 'ps-face-background-name 'face-background)
-       ))
+       (defun ps-face-foreground-name (face)
+	 (face-foreground face nil t))
+       (defun ps-face-background-name (face)
+	 (face-background face nil t))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
