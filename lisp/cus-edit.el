@@ -1116,7 +1116,8 @@ version."
 ;;;###autoload
 (defun customize-face (&optional face)
   "Customize FACE, which should be a face name or nil.
-If FACE is nil, customize all faces.
+If FACE is nil, customize all faces.  If FACE is actually a
+face-alias, customize the face it is aliased to.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
@@ -1133,6 +1134,9 @@ suggest to customize that face, if it's customizable."
 				     face)
 			     t nil)
 			    "*Customize Faces*")
+    ;; If FACE is actually an alias, customize the face it is aliased to.
+    (if (get face 'face-alias)
+        (setq face (get face 'face-alias)))
     (unless (facep face)
       (error "Invalid face %S" face))
     (custom-buffer-create (list (list face 'custom-face))
@@ -1142,6 +1146,7 @@ suggest to customize that face, if it's customizable."
 ;;;###autoload
 (defun customize-face-other-window (&optional face)
   "Show customization buffer for face FACE in other window.
+If FACE is actually a face-alias, customize the face it is aliased to.
 
 Interactively, when point is on text which has a face specified,
 suggest to customize that face, if it's customizable."
@@ -1159,6 +1164,8 @@ suggest to customize that face, if it's customizable."
 		face)
 	t nil)
        "*Customize Faces*")
+    (if (get face 'face-alias)
+        (setq face (get face 'face-alias)))
     (unless (facep face)
       (error "Invalid face %S" face))
     (custom-buffer-create-other-window
