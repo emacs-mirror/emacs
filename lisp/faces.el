@@ -2106,7 +2106,7 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 (defface escape-glyph
-  '((((background dark)) :foreground "pink2")
+  '((((background dark)) :foreground "cyan")
     ;; See the comment in minibuffer-prompt for
     ;; the reason not to use blue on MS-DOS.
     (((type pc)) :foreground "magenta")

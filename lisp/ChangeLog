@@ -1,6 +1,7 @@
 2005-06-22  Miles Bader  <miles@gnu.org>
 
 	* faces.el (vertical-border): Renamed from `vertical-divider'.
+	(escape-glyph): Change dark-background color back to `cyan'.
 
 2005-06-21  Juri Linkov  <juri@jurta.org>
 
