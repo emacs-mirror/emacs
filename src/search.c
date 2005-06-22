@@ -2758,9 +2758,6 @@ is done.
 If optional third arg RESEAT is non-nil, any previous markers on the
 REUSE list will be modified to point to nowhere.
 
-If RESEAT is `evaporate', put markers back on the free list.
-Note: No other references to the markers must exist if you use this.
-
 Return value is undefined if the last search failed.  */)
   (integers, reuse, reseat)
      Lisp_Object integers, reuse, reseat;
@@ -2773,10 +2770,7 @@ Return value is undefined if the last search failed.  */)
     for (tail = reuse; CONSP (tail); tail = XCDR (tail))
       if (MARKERP (XCAR (tail)))
 	{
-	  if (EQ (reseat, Qevaporate))
-	    free_marker (XCAR (tail));
-	  else
-	    unchain_marker (XMARKER (XCAR (tail)));
+	  unchain_marker (XMARKER (XCAR (tail)));
 	  XSETCAR (tail, Qnil);
 	}
 
@@ -2851,14 +2845,17 @@ Return value is undefined if the last search failed.  */)
   return reuse;
 }
 
+/* Internal usage only:
+   If RESEAT is `evaporate', put the markers back on the free list
+   immediately.  No other references to the markers must exist in this case,
+   so it is used only internally on the unwind stack and save-match-data from
+   Lisp.  */
 
 DEFUN ("set-match-data", Fset_match_data, Sset_match_data, 1, 2, 0,
        doc: /* Set internal data on last search match from elements of LIST.
 LIST should have been created by calling `match-data' previously.
 
-If optional arg RESEAT is non-nil, make markers on LIST point nowhere.
-If RESEAT is `evaporate', put the markers back on the free list.
-Note: No other references to the markers must exist if you use this.  */)
+If optional arg RESEAT is non-nil, make markers on LIST point nowhere.  */)
     (list, reseat)
      register Lisp_Object list, reseat;
 {
@@ -3026,6 +3023,7 @@ static Lisp_Object
 unwind_set_match_data (list)
      Lisp_Object list;
 {
+  /* It is safe to free (evaporate) the markers immediately.  */
   return Fset_match_data (list, Qevaporate);
 }
 
