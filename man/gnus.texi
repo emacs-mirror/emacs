@@ -16497,7 +16497,7 @@ Nnmail equivalent: @code{nnmail-split-fancy}.
 Set to non-@code{nil} to download entire articles during splitting.
 This is generally not required, and will slow things down
 considerably.  You may need it if you want to use an advanced
-splitting function that analyses the body to split the article.
+splitting function that analyzes the body to split the article.
 
 @end table
 

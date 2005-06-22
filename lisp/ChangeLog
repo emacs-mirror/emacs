@@ -1,3 +1,47 @@
+2005-06-22  Miles Bader  <miles@gnu.org>
+
+	* faces.el (vertical-border): Renamed from `vertical-divider'.
+	(escape-glyph): Change dark-background color back to `cyan'.
+
+2005-06-21  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (face-user-default-spec): Try getting `customized-face'
+	prior to `saved-face'.
+	(frame-background-mode): Refill docstring.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1):
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	Set `saved-face' temporarily to nil before calling form.
+	Set `customized-face' to the new spec after that.
+
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (1value, lambda, key-substitution-in-progress):
+	Doc fixes.
+
+	* autoinsert.el (auto-insert-alist):
+	* ses.el (ses-call-printer):
+	* subr.el (noreturn):
+	* emacs-lisp/lisp.el (check-parens):
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func):
+	* net/browse-url.el (browse-url-mosaic):
+	* progmodes/cc-defs.el (c-safe-scan-lists):
+	* progmodes/ebnf-abn.el (ebnf-abn-lex):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-lex):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-lex):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-lex):
+	* progmodes/ebnf-iso.el (ebnf-iso-lex):
+	* progmodes/ebnf-yac.el (ebnf-yac-lex): Fix spellings.
+
+2005-06-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pcvs-defs.el (cvs-menu): Add cvs-mode-mark and cvs-mode-unmark.
+
+2005-06-21  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-make-list): Activate the package, if
+	not already active (for backwards compatibility).
+
 2005-06-20  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (add-to-ordered-list): Test membership with eq.  Simplify.
@@ -536,6 +580,7 @@
 	variables, unless either `gtk' is boundp or this isn't a
 	`windows-nt' build.
 
+>>>>>>> 1.7817
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
 	* abbrev.el (edit-abbrevs-mode): Use kill-all-local-variables and
@@ -1443,6 +1488,7 @@
 
 	* simple.el (filter-buffer-substring): Fix typo in docstring.
 
+>>>>>>> 1.7768
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not INTERACTIVE.
@@ -1479,6 +1525,7 @@
 	* textmodes/tex-mode.el (tex-compile-commands, tex-compile)
 	(tex-start-tex): Undo all but the last part of the 2005-05-28 change.
 
+>>>>>>> 1.7646
 2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (mark-included-diary-files): Only kill

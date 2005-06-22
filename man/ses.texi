@@ -638,7 +638,7 @@ Special cell values:
 @item nil prints the same as "", but allows previous cell to spill over.
 @item '*skip* replaces nil when the previous cell actually does spill over;
 nothing is printed for it.
-@item '*error* indicates that the formula signalled an error instead of
+@item '*error* indicates that the formula signaled an error instead of
 producing a value: the print cell is filled with hash marks (#).
 @end itemize
 

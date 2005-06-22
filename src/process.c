@@ -2552,7 +2552,7 @@ DEFUN ("make-network-process", Fmake_network_process, Smake_network_process,
 In Emacs, network connections are represented by process objects, so
 input and output work as for subprocesses and `delete-process' closes
 a network connection.  However, a network process has no process id,
-it cannot be signalled, and the status codes are different from normal
+it cannot be signaled, and the status codes are different from normal
 processes.
 
 Arguments are specified as keyword/argument pairs.  The following

@@ -99,7 +99,7 @@ If you want to read the info pages for @value{emacsothername}, you
 should read in @ref{Installation} how to create them.
 @end ifinfo
 @ifhtml
-If you're using the other Emacs flavour, you should read the
+If you're using the other Emacs flavor, you should read the
 @uref{@value{emacsotherfilename}, @value{emacsothername}} pages.
 @end ifhtml
 @end ifset

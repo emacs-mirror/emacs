@@ -421,9 +421,11 @@ This variable is buffer local and only used in the *cvs* buffer.")
     ["Ignore"			cvs-mode-ignore		(cvs-enabledp 'ignore)]
     ["Add ChangeLog"		cvs-mode-add-change-log-entry-other-window t]
     "----"
+    ["Mark"                     cvs-mode-mark t]
     ["Mark all"			cvs-mode-mark-all-files	t]
     ["Mark by regexp..."        cvs-mode-mark-matching-files t]
     ["Mark by state..."         cvs-mode-mark-on-state t]
+    ["Unmark"                   cvs-mode-unmark	t]
     ["Unmark all"		cvs-mode-unmark-all-files t]
     ["Hide handled"		cvs-mode-remove-handled	t]
     "----"

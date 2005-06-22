@@ -2546,7 +2546,7 @@ RANGE should be nil (for the default value),
 a vector which identifies a character set or a row of a character set,
 a character set name, or a character code.
 If the characters in the specified range have different values,
-an error is signalled.
+an error is signaled.
 
 Note that this function doesn't check the parent of CHAR-TABLE.  */)
      (char_table, range)

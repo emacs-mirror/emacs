@@ -1907,8 +1907,9 @@ frame must match one of the @var{value}s specified for it in
   Internally, @code{defface} uses the symbol property
 @code{face-defface-spec} to record the face attributes specified in
 @code{defface}, @code{saved-face} for the attributes saved by the user
-with the customization buffer, and @code{face-documentation} for the
-documentation string.
+with the customization buffer, @code{customized-face} for the
+attributes customized by the user for the current session, but not
+saved, and @code{face-documentation} for the documentation string.
 
 @defopt frame-background-mode
 This option, if non-@code{nil}, specifies the background type to use for

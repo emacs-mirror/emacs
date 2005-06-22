@@ -9,6 +9,9 @@ to the FSF.
 
 * Small but important fixes needed in existing features:
 
+** Make occur correctly handle matches that span more than one line,
+   as well as overlapping matches.
+
 ** Fix the kill/yank treatment of invisible text.  At the moment,
   invisible text is placed in the kill-ring, so that the contents of
   the ring may not correspond to the text as displayed to the user.

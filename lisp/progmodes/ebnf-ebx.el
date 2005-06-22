@@ -295,7 +295,7 @@
 	  (cons (car except)
 		(ebnf-make-except (cdr term) (cdr except))))
       term)))
-	  
+
 
 
 ;;; term ::= factor ('*' | '+' | '?')?
@@ -416,7 +416,7 @@
 
 
 (defun ebnf-ebx-lex ()
-  "Lexical analyser for EBNFX.
+  "Lexical analyzer for EBNFX.
 
 Return a lexical token.
 
@@ -503,7 +503,7 @@ See documentation for variable `ebnf-ebx-lex'."
       (error "Missing end of constraint `]'"))
   (forward-char)
   t)
-  
+
 
 
 (defun ebnf-ebx-skip-end-of-rule ()

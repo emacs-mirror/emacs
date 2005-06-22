@@ -1,3 +1,7 @@
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nnimap.el (nnimap-split-download-body): Fix spellings.
+
 2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-art.el (gnus-article-encrypt-body):
