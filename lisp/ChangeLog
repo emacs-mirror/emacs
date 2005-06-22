@@ -1,3 +1,8 @@
+2005-06-22  Juri Linkov  <juri@jurta.org>
+
+	* ps-print.el (ps-face-foreground-name, ps-face-background-name):
+	Replace aliased functions with calls where second arg `inherit' is t.
+
 2005-06-22  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gdb-ui.el (gdb-error): New variable.
