@@ -113,7 +113,7 @@ in that face affect mode lines in all windows.
 @item header-line
 Similar to @code{mode-line} for a window's header line.  Most modes
 don't use the header line, but the Info mode does.
-@item vertical-divider
+@item vertical-border
 This face is used for the vertical divider between windows on
 character terminals.  By default this face inherits from the
 @code{mode-line-inactive} face.

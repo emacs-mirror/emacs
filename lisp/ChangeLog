@@ -1,3 +1,7 @@
+2005-06-22  Miles Bader  <miles@gnu.org>
+
+	* faces.el (vertical-border): Renamed from `vertical-divider'.
+
 2005-06-21  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (face-user-default-spec): Try getting `customized-face'

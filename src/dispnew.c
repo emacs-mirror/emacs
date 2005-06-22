@@ -2727,7 +2727,7 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
 
 	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
 	    right_border_glyph
-	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_DIVIDER_FACE_ID);
+	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_BORDER_FACE_ID);
 	}
     }
   else

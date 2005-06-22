@@ -1870,7 +1870,7 @@ created."
   :group 'modeline
   :group 'basic-faces)
 
-(defface vertical-divider
+(defface vertical-border
   '((default :inherit mode-line-inactive))
   "Face used for vertical window dividers on ttys."
   :version "22.1"
