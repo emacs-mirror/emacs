@@ -1,3 +1,10 @@
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* search.c (Fmatch_data): Remove evaporate option.
+	(Fmatch_data): Do not mention evaporate option in doc string.
+	Add commentary explaining evaporate arg (for internal use only).
+	(unwind_set_match_data): Add comment on evaporate use.
+
 2005-06-22  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Qvertical_border): Renamed from `Qvertical_divider'.
