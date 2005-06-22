@@ -1,3 +1,10 @@
+2005-06-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-error): New variable.
+	(gdb-error): New function.
+	(gdb-annotation-rules): Act on error-begin and error annotations.
+	(gdb-concat-output): Use font-lock-warning-face for errors.
+
 2005-06-22  Miles Bader  <miles@gnu.org>
 
 	* faces.el (vertical-border): Renamed from `vertical-divider'.
