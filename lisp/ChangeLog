@@ -1,3 +1,9 @@
+2005-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (help-make-xrefs): If a symbol representing a face
+	name is not followed by the word "face", it could still be a
+	function or variable name, so don't bypass other checks.
+
 2005-06-22  Juri Linkov  <juri@jurta.org>
 
 	* ps-print.el (ps-face-foreground-name, ps-face-background-name):
