@@ -1175,11 +1175,11 @@ the next line.
 Create a tag line with @var{exp-button-type} for the small expansion
 button.  This is the button that expands or contracts a node (if
 applicable), and @var{exp-button-char} the character in it (@samp{+},
-@samp{-}, @samp{?},
-etc).  @var{exp-button-function} is the function to call if it's clicked
-on.  Button types are @code{'bracket}, @code{'angle}, @code{'curly},
-@code{'expandtag}, @code{'statictag}, or nil.  @var{exp-button-data} is
-extra data attached to the text forming the expansion button.
+@samp{-}, @samp{?}, etc).  @var{exp-button-function} is the function
+to call if it's clicked on.  Button types are @code{'bracket},
+@code{'angle}, @code{'curly}, @code{'expandtag}, @code{'statictag}, or
+@code{nil}.  @var{exp-button-data} is extra data attached to the text
+forming the expansion button.
 
 Next, @var{tag-button} is the text of the tag.
 @var{tag-button-function} is the function to call if clicked on, and
