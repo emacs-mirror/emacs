@@ -67,7 +67,7 @@ those categories.  */)
   val = MAKE_CATEGORY_SET;
 
   if (STRING_MULTIBYTE (categories))
-    error ("Multibyte string in make-category-set");
+    error ("Multibyte string in `make-category-set'");
 
   len = SCHARS (categories);
   while (--len >= 0)
