@@ -1,3 +1,14 @@
+2005-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (International): List all supported scripts.  Adjust
+	text for that leim is now included in the normal Emacs
+	distribution.
+	(Language Environments): List all language environments.
+	Intlfonts contains fonts for most supported scripts, not all..
+	(Select Input Method): Refer to C-u C-x = to see how to type to
+	input a specifc character.
+	(Recognize Coding): Fix typo, china-iso-8bit -> chinese-iso-8bit.
+
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* building.texi (Grep Searching):
