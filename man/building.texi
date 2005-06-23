@@ -344,9 +344,9 @@ can find the corresponding lines in the original files using @kbd{C-x
 
   Some grep programs accept a @samp{--color} option to output special
 markers around matches for the purpose of highlighting.  You can make
-use of this feature by setting @code{grep-highlight-matches} to t.
-When displaying a match in the source buffer, the exact match will be
-highlighted, instead of the entire source line.
+use of this feature by setting @code{grep-highlight-matches} to
+@code{t}.  When displaying a match in the source buffer, the exact
+match will be highlighted, instead of the entire source line.
 
 @findex grep-find
 @findex find-grep
