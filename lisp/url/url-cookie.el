@@ -262,7 +262,7 @@ telling Microsoft that."
 		(setq retval (cons cur retval))))))
     retval))
 
-;;;###autolaod
+;;;###autoload
 (defun url-cookie-generate-header-lines (host path secure)
   (let* ((cookies (url-cookie-retrieve host path secure))
 	(retval nil)
