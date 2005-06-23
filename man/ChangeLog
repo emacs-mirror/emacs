@@ -1,5 +1,7 @@
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
+	* speedbar.texi (Creating a display): Texinfo usage fixes.	
+
 	* tramp.texi (Customizing Completion, Auto-save and Backup): 
 	Texinfo usage fixes.
 
