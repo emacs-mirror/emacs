@@ -1,5 +1,20 @@
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
+	* abbrev.c (Funexpand_abbrev):
+	* category.c (Fmake_category_set):
+	* dispnew.c (Fsleep_for, Fsit_for):
+	* editfns.c (Fsubst_char_in_region):
+	* eval.c (Fdefvar, Fdefconst, Feval, Ffuncall):
+	* frame.c (make_frame_without_minibuffer):
+	* lread.c (read_vector):
+	* macfns.c (check_x_frame):
+	* process.c (Fstop_process, Fcontinue_process):
+	* search.c (Freplace_match):
+	* syntax.c (Fstring_to_syntax):
+	* w32fns.c (check_x_frame, check_x_display_info):
+	* xfaces.c (x_supports_face_attributes_p):
+	* xselect.c (Fx_own_selection_internal): Follow error conventions.
+
 	* image.c (fn_png_init_io): Don't define it.
 	(init_png_functions) [HAVE_NTGUI]: Don't initialize fn_png_init_io.
 	(png_read_from_file): New function, based on png_read_from_memory.
