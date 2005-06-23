@@ -921,16 +921,17 @@ they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
 
-@vindex show-nonbreak-escape
-@cindex no-break space, display
-@cindex no-break hyphen, display
-  Some character sets define ``no-break'' versions of the space
-and hyphen characters, which are used where a line should not be
-broken.  Emacs displays these with an escape character in order to
-distinguish them from ordinary spaces and hyphens.  For example, a
-non-breaking space is displayed as @samp{\ }.  You can turn off this
-behavior by setting the variable @code{show-nonbreak-escape} to
-@code{nil}.
+@vindex nobreak-char-display
+@cindex nobreak space, display
+@cindex nobreak hyphen, display
+  Some character sets define ``no-break'' versions of the space and
+hyphen characters, which are used where a line should not be broken.
+Emacs normally displays these characters with special faces
+(respectively, @code{nobreak-space} and @code{escape-glyph}) to
+distinguish them from ordinary spaces and hyphens.  You can turn off
+this feature by setting the variable @code{nobreak-char-display} to
+@code{nil}.  If you set the variable to any other value, that means to
+prefix these characters with an escape character.
 
 @node Cursor Display
 @section Displaying the Cursor
