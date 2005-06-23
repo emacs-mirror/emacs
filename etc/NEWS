@@ -3542,10 +3542,7 @@ accepts such a list for restoring the match state.
 +++
 *** Functions `match-data' and `set-match-data' now have an optional
 argument `reseat'.  When non-nil, all markers in the match data list
-passed to these function will be reseated to point to nowhere, and if
-the value of `reseat' is `evaporate', the markers are put onto the
-free list.  Note that no other references to those markers must exist
-if `evaporate' is specified for the `reseat' argument.
+passed to these function will be reseated to point to nowhere.
 
 +++
 *** The default value of `sentence-end' is now defined using the new
