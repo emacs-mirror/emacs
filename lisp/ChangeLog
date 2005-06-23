@@ -1,3 +1,8 @@
+2005-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* mail/emacsbug.el (report-emacs-bug): Use "X server distributor"
+	rather than "Distributor".
+
 2005-06-23  Lute Kamstra  <lute@gnu.org>
 
 	* emacs-lisp/debug.el (debugger-special-form-p): New defun.
