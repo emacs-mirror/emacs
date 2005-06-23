@@ -3433,18 +3433,28 @@ Outline mode sets this."
 		;; Now move a line.
 		(end-of-line)
 		;; If there's no invisibility here, move over the newline.
-		(if (and (not (integerp selective-display))
-			 (not (line-move-invisible-p (point))))
+		(let ((pos-before (point))
+		      line-done)
+		  (if (eobp)
+		      (if (not noerror)
+			  (signal 'end-of-buffer nil)
+			(setq done t)))
+		  (when (and (not done)
+			     (not (integerp selective-display))
+			     (not (line-move-invisible-p (point))))
 		    ;; We avoid vertical-motion when possible
 		    ;; because that has to fontify.
-		    (if (eobp)
-			(if (not noerror)
-			    (signal 'end-of-buffer nil)
-			  (setq done t))
-		      (forward-line 1))
+		    (forward-line 1)
+		    ;; If there are overlays in and around
+		    ;; the text we moved over, we need to be
+		    ;; sophisticated.
+		    (unless (overlays-in (max (1- pos-before) (point-min))
+					 (min (1+ (point)) (point-max)))
+		      (setq line-done t)))
 		  ;; Otherwise move a more sophisticated way.
 		  ;; (What's the logic behind this code?)
-		  (and (zerop (vertical-motion 1))
+		  (and (not done) (not line-done)
+		       (zerop (vertical-motion 1))
 		       (if (not noerror)
 			   (signal 'end-of-buffer nil)
 			 (setq done t))))
@@ -3454,18 +3464,24 @@ Outline mode sets this."
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-		(if (or (bobp)
-			(and (not (integerp selective-display))
-			     (not (line-move-invisible-p (1- (point))))))
-		    (if (bobp)
-			(if (not noerror)
-			    (signal 'beginning-of-buffer nil)
-			  (setq done t))
-		      (forward-line -1))
-		  (if (zerop (vertical-motion -1))
+		(let ((pos-before (point))
+		      line-done)
+		  (if (bobp)
 		      (if (not noerror)
 			  (signal 'beginning-of-buffer nil)
-			(setq done t))))
+			(setq done t)))
+		  (when (and (not done)
+			     (not (integerp selective-display))
+			     (not (line-move-invisible-p (1- (point)))))
+		    (forward-line -1)
+		    (unless (overlays-in (max (1- (point)) (point-min))
+					 (min (1+ pos-before) (point-max)))
+		      (setq line-done t)))
+		  (and (not done) (not line-done)
+		       (zerop (vertical-motion -1))
+		       (if (not noerror)
+			   (signal 'beginning-of-buffer nil)
+			 (setq done t))))
 		(unless done
 		  (setq arg (1+ arg))
 		  (while (and ;; Don't move over previous invis lines
@@ -4504,10 +4520,11 @@ Each action has the form (FUNCTION . ARGS)."
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
-(defun set-variable (var val &optional make-local)
+(defun set-variable (variable value &optional make-local)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
-When using this interactively, enter a Lisp object for VALUE.
-If you want VALUE to be a string, you must surround it with doublequotes.
+VARIABLE should be a user option variable name, a Lisp variable
+meant to be customized by users.  You should enter VALUE in Lisp syntax,
+so if you want VALUE to be a string, you must surround it with doublequotes.
 VALUE is used literally, not evaluated.
 
 If VARIABLE has a `variable-interactive' property, that is used as if
@@ -4520,9 +4537,9 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
           (var (if (symbolp default-var)
-                   (read-variable (format "Set variable (default %s): " default-var)
-                                  default-var)
-                 (read-variable "Set variable: ")))
+			(read-variable (format "Set variable (default %s): " default-var)
+				       default-var)
+		      (read-variable "Set variable: ")))
 	  (minibuffer-help-form '(describe-variable var))
 	  (prop (get var 'variable-interactive))
 	  (prompt (format "Set %s%s to value: " var
@@ -4543,22 +4560,22 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 			       'set-variable-value-history)))))
      (list var val current-prefix-arg)))
 
-  (and (custom-variable-p var)
-       (not (get var 'custom-type))
-       (custom-load-symbol var))
-  (let ((type (get var 'custom-type)))
+  (and (custom-variable-p variable)
+       (not (get variable 'custom-type))
+       (custom-load-symbol variable))
+  (let ((type (get variable 'custom-type)))
     (when type
       ;; Match with custom type.
       (require 'cus-edit)
       (setq type (widget-convert type))
-      (unless (widget-apply type :match val)
+      (unless (widget-apply type :match value)
 	(error "Value `%S' does not match type %S of %S"
-	       val (car type) var))))
+	       value (car type) variable))))
 
   (if make-local
-      (make-local-variable var))
+      (make-local-variable variable))
 
-  (set var val)
+  (set variable value)
 
   ;; Force a thorough redisplay for the case that the variable
   ;; has an effect on the display, like `tab-width' has.
