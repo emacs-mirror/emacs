@@ -1176,8 +1176,8 @@ Create a tag line with @var{exp-button-type} for the small expansion
 button.  This is the button that expands or contracts a node (if
 applicable), and @var{exp-button-char} the character in it (@samp{+},
 @samp{-}, @samp{?}, etc).  @var{exp-button-function} is the function
-to call if it's clicked on.  Button types are @code{'bracket},
-@code{'angle}, @code{'curly}, @code{'expandtag}, @code{'statictag}, or
+to call if it's clicked on.  Button types are @code{bracket},
+@code{angle}, @code{curly}, @code{expandtag}, @code{statictag}, and
 @code{nil}.  @var{exp-button-data} is extra data attached to the text
 forming the expansion button.
 
@@ -1221,15 +1221,15 @@ obvious is @code{speedbar-tag-hierarchy-method}.
 @defvar speedbar-generic-list-group-expand-button-type
 This is the button type used for groups of tags, whether expanded
 or added in via a hierarchy method.  Two good values are
-@code{'curly} and @code{'expandtag}.  Curly is the default button, and
-@code{'expandtag} is useful if the groups also has a position.
+@code{curly} and @code{expandtag}.  Curly is the default button, and
+@code{expandtag} is useful if the groups also has a position.
 @end defvar
 
 @defvar speedbar-generic-list-tag-button-type
 This is the button type used for a single tag.
-Two good values are @code{nil} and @code{'statictag}.
-@code{nil} is the default, and @code{'statictag} has the same width as
-@code{'expandtag}.
+Two good values are @code{nil} and @code{statictag}.
+@code{nil} is the default, and @code{statictag} has the same width as
+@code{expandtag}.
 @end defvar
 
 @end defun
