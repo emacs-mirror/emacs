@@ -2296,7 +2296,7 @@ since only regular expressions have distinguished subexpressions.  */)
 				/* but some C compilers blew it */
 
   if (search_regs.num_regs <= 0)
-    error ("replace-match called before any match found");
+    error ("`replace-match' called before any match found");
 
   if (NILP (subexp))
     sub = 0;
