@@ -30,6 +30,10 @@ to the FSF.
   See also ESR's proposal for a BROWSER environment variable
   <URL:http://www.catb.org/~esr/BROWSER/browse-url.patch>.
 
+** Enhance scroll-bar to handle tall line (similar to line-move).
+
+** Make occur handle multi-line matches cleanly with context.
+
 * Important features:
 
 ** Provide user-friendly ways to list all available font families,

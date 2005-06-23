@@ -1,3 +1,7 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* url-cookie.el (url-cookie-generate-header-lines): Fix autoload cookie.
+
 2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* url-gw.el (url-open-stream):

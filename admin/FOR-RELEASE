@@ -26,6 +26,9 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Update Speedbar.
 
+** Update vhdl-mode.el based on changes in
+   http://opensource.ethz.ch/emacs/vhdl-mode.html.
+
 
 * FATAL ERRORS
 

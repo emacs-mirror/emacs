@@ -1,5 +1,16 @@
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
+	* anti.texi (Antinews): Renamed show-nonbreak-escape to
+	nobreak-char-display.
+
+	* emacs.texi (Top): Update detailed node listing.
+
+	* display.texi (Text Display): Renamed show-nonbreak-escape
+	to nobreak-char-display and no-break-space to nobreak-space.
+	(Standard Faces): Split up the list of standard faces
+	and put it in a separate node.  Add nobreak-space and
+	escape-glyph.
+
 	* speedbar.texi (Creating a display): Texinfo usage fixes.	
 
 	* tramp.texi (Customizing Completion, Auto-save and Backup): 

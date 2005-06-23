@@ -1,3 +1,16 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Finish reversing the tests of
+	Vnobreak_char_display.
+
+	* xdisp.c (Vnobreak_char_display): Renamed from Vshow_nonbreak_escape.
+	All uses changed.
+	(Qnobreak_space): Renamed from Qno_break_space.  All uses changed.
+	(syms_of_xdisp): Define nobreak-char-display and nobreak-space.
+
+	* fileio.c (Frename_file): Preserve owner and group, if possible,
+	when copying.
+
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* abbrev.c (Funexpand_abbrev):

@@ -1,3 +1,16 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (set-variable): Args renamed; doc fix.
+	(line-move-1): When there are overlays around, use vertical-motion.
+
+	* faces.el (escape-glyph): Use brown against light background.
+	(nobreak-space): Renamed from no-break-space.
+	Fix previous change.
+
+	* dired-aux.el (dired-do-copy): Fix arg prompt.
+
+	* mail/sendmail.el (mail-setup-with-from): Fix custom type.
+
 2005-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* mail/emacsbug.el (report-emacs-bug): Use "X server distributor"
