@@ -1,3 +1,9 @@
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-special-form-p): New defun.
+	(debug-on-entry): Use it.  New interactive declaration that uses
+	function-called-at-point.
+
 2005-06-23  Kim F. Storm  <storm@cua.dk>
 
 	* subr.el (save-match-data): Add comment about using evaporate arg

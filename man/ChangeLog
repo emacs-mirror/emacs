@@ -1,3 +1,7 @@
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* mule.texi (Select Input Method): Fix typo.
+
 2005-06-23  Kenichi Handa  <handa@m17n.org>
 
 	* mule.texi (International): List all supported scripts.  Adjust
