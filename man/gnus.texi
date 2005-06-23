@@ -9347,12 +9347,13 @@ If displaying "text/html" is discouraged, see
 @code{mm-discouraged-alternatives} in @ref{Display Customization,
 Display Customization, , emacs-mime, Emacs-Mime Manual}.  Images or
 other material inside a "multipart/related" part might be overlooked
-when this variable is nil.
+when this variable is @code{nil}.
 
 @vindex gnus-mime-display-multipart-as-mixed
 @item gnus-mime-display-multipart-as-mixed
-Display "multipart" parts as "multipart/mixed".  If t, it overrides nil
-values of @code{gnus-mime-display-multipart-alternative-as-mixed} and
+Display "multipart" parts as "multipart/mixed".  If @code{t}, it
+overrides @code{nil} values of
+@code{gnus-mime-display-multipart-alternative-as-mixed} and
 @code{gnus-mime-display-multipart-related-as-mixed}.
 
 @vindex mm-file-name-rewrite-functions
@@ -14142,9 +14143,9 @@ surrounded by anything.
 
 In this example, messages sent from @samp{joedavis@@foo.org} will
 normally not be filed in @samp{joemail}.  With
-@code{nnmail-split-fancy-match-partial-words} set to t, however, the
-match will happen.  In effect, the requirement of a word boundary is
-removed and instead the match becomes more like a grep.
+@code{nnmail-split-fancy-match-partial-words} set to @code{t},
+however, the match will happen.  In effect, the requirement of a word
+boundary is removed and instead the match becomes more like a grep.
 
 @findex nnmail-split-fancy-with-parent
 @code{nnmail-split-fancy-with-parent} is a function which allows you to
@@ -18372,11 +18373,11 @@ faces will be obscured by the undownloaded faces.  If this is your
 situation, you have two choices available.  First, you can completely
 disable the undownload faces by customizing
 @code{gnus-summary-highlight} to delete the three cons-cells that
-refer to the @code{gnus-summary-*-undownloaded-face} faces.  Second, if
-you prefer to take a more fine-grained approach, you may set the
-@code{agent-disable-undownloaded-faces} group parameter to t.  This
-parameter, like all other agent parameters, may be set on an Agent
-Category (@pxref{Agent Categories}), a Group Topic (@pxref{Topic
+refer to the @code{gnus-summary-*-undownloaded-face} faces.  Second,
+if you prefer to take a more fine-grained approach, you may set the
+@code{agent-disable-undownloaded-faces} group parameter to @code{t}.
+This parameter, like all other agent parameters, may be set on an
+Agent Category (@pxref{Agent Categories}), a Group Topic (@pxref{Topic
 Parameters}), or an individual group (@pxref{Group Parameters}).
 
 @node Agent as Cache
@@ -18588,7 +18589,7 @@ online status.
 If @code{gnus-agent-mark-unread-after-downloaded} is non-@code{nil},
 mark articles as unread after downloading.  This is usually a safe
 thing to do as the newly downloaded article has obviously not been
-read.  The default is t.
+read.  The default is @code{t}.
 
 @item gnus-agent-consider-all-articles
 @vindex gnus-agent-consider-all-articles
