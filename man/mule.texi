@@ -531,11 +531,11 @@ actual keyboard layout.  To specify which layout your keyboard has, use
 the command @kbd{M-x quail-set-keyboard-layout}.
 
 @findex quail-show-key
-  You can use the command @kbd{M-x quail-show-key} to show what key
-(or key sequence) to type in order to input the character following
-point, using the selected keyboard layout.  The
-command @kdb{C-u C-x =} also shows that information in addition to the
-other information about the character.
+  You can use the command @kbd{M-x quail-show-key} to show what key (or
+key sequence) to type in order to input the character following point,
+using the selected keyboard layout.  The command @kbd{C-u C-x =} also
+shows that information in addition to the other information about the
+character.
 
 @findex list-input-methods
   To display a list of all the supported input methods, type @kbd{M-x
