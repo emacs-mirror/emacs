@@ -442,7 +442,7 @@ is not undone.  */)
 
       val = SYMBOL_VALUE (Vlast_abbrev);
       if (!STRINGP (val))
-	error ("value of abbrev-symbol must be a string");
+	error ("Value of `abbrev-symbol' must be a string");
       zv_before = ZV;
       del_range_byte (PT_BYTE, PT_BYTE + SBYTES (val), 1);
       /* Don't inherit properties here; just copy from old contents.  */
