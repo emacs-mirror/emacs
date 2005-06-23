@@ -1,3 +1,8 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* tramp.texi (Customizing Completion, Auto-save and Backup): 
+	Texinfo usage fixes.
+
 2005-06-23  Lute Kamstra  <lute@gnu.org>
 
 	* mule.texi (Select Input Method): Fix typo.
