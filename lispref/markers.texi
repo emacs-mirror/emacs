@@ -557,9 +557,9 @@ make the mark inactive.
 
 Lisp programs can set @code{transient-mark-mode} to @code{only} to
 enable Transient Mark mode for the following command only.  During
-that following command, the value of transient-mark-mode is
+that following command, the value of @code{transient-mark-mode} is
 @code{identity}.  If it is still @code{identity} at the end of the
-command, it changes to nil.
+command, it changes to @code{nil}.
 @end defopt
 
 @defopt mark-even-if-inactive
