@@ -1,3 +1,8 @@
+2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on
+	MSDOS/Windows.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Finish reversing the tests of
