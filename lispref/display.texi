@@ -2527,7 +2527,7 @@ differently from the default face.
 A @dfn{face alias} provides an equivalent name for a face.  You can
 define a face alias by giving the alias symbol the @code{face-alias}
 property, with a value of the target face name.  The following example
-makes @var{modeline} an alias for the @var{mode-line} face.
+makes @code{modeline} an alias for the @code{mode-line} face.
 
 @example
 (put 'modeline 'face-alias 'mode-line)
@@ -2873,9 +2873,9 @@ default @code{fringe} face.  @var{face} is automatically merged with
 the @code{fringe} face, so normally @var{face} need only specify the
 foreground color for the bitmap.
 
-  These are the symbols identify the standard fringe bitmaps.
-Evaluate @code{(require 'fringe)} to define them.  Fringe bitmap
-symbols have their own name space.
+  These symbols identify the standard fringe bitmaps.  Evaluate
+@code{(require 'fringe)} to define them.  Fringe bitmap symbols have
+their own name space.
 
 @table @asis
 @item Truncation and continuation line bitmaps:

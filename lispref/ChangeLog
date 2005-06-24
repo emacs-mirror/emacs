@@ -1,3 +1,7 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Functions): Correct Texinfo usage.
+
 2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* lists.texi (Rings): `ring-elements' now returns the elements of
