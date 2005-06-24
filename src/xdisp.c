@@ -21660,7 +21660,7 @@ note_mouse_highlight (f, x, y)
   /* If we were displaying active text in another window, clear that.
      Also clear if we move out of text area in same window.  */
   if (! EQ (window, dpyinfo->mouse_face_window)
-      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE 
+      || (part != ON_TEXT && part != ON_MODE_LINE && part != ON_HEADER_LINE
 	  && !NILP (dpyinfo->mouse_face_window)))
     clear_mouse_face (dpyinfo);
 
@@ -22885,17 +22885,17 @@ The face used for trailing whitespace is `trailing-whitespace'.  */);
 
   DEFVAR_LISP ("nobreak-char-display", &Vnobreak_char_display,
     doc: /* *Control highlighting of nobreak space and soft hyphen.
-t means highlight the character itself (for nobreak space,
-use face `nobreak-space'.
-nil means no highlighting.
-other values mean display the escape glyph followed by an ordinary
+A value of t means highlight the character itself (for nobreak space,
+use face `nobreak-space').
+A value of nil means no highlighting.
+Other values mean display the escape glyph followed by an ordinary
 space or ordinary hyphen.  */);
   Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
-Nil means to show the text pointer.  Other options are `arrow', `text',
-`hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
+A value of nil means to show the text pointer.  Other options are `arrow',
+`text', `hand', `vdrag', `hdrag', `modeline', and `hourglass'.  */);
   Vvoid_text_area_pointer = Qarrow;
 
   DEFVAR_LISP ("inhibit-redisplay", &Vinhibit_redisplay,
