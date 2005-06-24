@@ -1,5 +1,8 @@
 2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* xdisp.c (syms_of_xdisp) <nobreak-char-display>: Doc fix.
+	(syms_of_xdisp) <void-text-area-pointer>: Doc fix.
+
 	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on
 	MSDOS/Windows.
 

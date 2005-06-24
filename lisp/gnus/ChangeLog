@@ -1,3 +1,8 @@
+2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-mode): Set `nobreak-char-display', not
+	`show-nonbreak-escape'.
+
 2005-06-23  Lute Kamstra  <lute@gnu.org>
 
 	* gnus-art.el (gnus-article-mode): Use kill-all-local-variables.
