@@ -1,3 +1,8 @@
+2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Rings): `ring-elements' now returns the elements of
+	RING in order.
+
 2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
 
 	* markers.texi (The Mark): Texinfo usage fix.

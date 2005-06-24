@@ -1,3 +1,8 @@
+2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/ring.el (ring-elements): Make it return a list of the
+	elements of RING in order, and without bogus nil elements.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (set-variable): Args renamed; doc fix.
