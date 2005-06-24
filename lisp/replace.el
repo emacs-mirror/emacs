@@ -1001,9 +1001,9 @@ See also `multi-occur'."
 		(display-buffer occur-buf)
 		(setq next-error-last-buffer occur-buf))
 	    (kill-buffer occur-buf)))
-	(run-hooks 'occur-hook))
-      (setq buffer-read-only t)
-      (set-buffer-modified-p nil))))
+        (setq buffer-read-only t)
+        (set-buffer-modified-p nil)
+	(run-hooks 'occur-hook)))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
