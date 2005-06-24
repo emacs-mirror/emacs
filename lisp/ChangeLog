@@ -1,3 +1,13 @@
+2005-06-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-print-command): Indent properly.
+	(gud-gdb-marker-filter): Use font-lock-warning-face for any
+	initial error.
+	
+	* progmodes/gdb-ui.el (gdb-send): Remove warning face from errors
+	after fresh input.
+	(gdb-var-create-handler): Put name of expression in quotes.
+	
 2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/ring.el (ring-elements): Make it return a list of the
@@ -520,10 +530,9 @@
 
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print):
-	Respect tooltip-use-echo-area.
-	(menu): Re-order menu items.
-
+	* progmodes/gdb-ui.el (menu): Re-order menu items.
+	(gdb-tooltip-print): Respect tooltip-use-echo-area.
+	
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
 	Define in tooltip.el.
 	(gud-tooltip-process-output): Respect tooltip-use-echo-area.
