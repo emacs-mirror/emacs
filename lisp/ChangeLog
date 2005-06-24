@@ -1,3 +1,7 @@
+2005-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-1): Fix previous change.
+
 2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* replace.el (occur-1): Set `buffer-read-only' and the
