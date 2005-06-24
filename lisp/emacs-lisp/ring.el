@@ -155,8 +155,13 @@ will be performed."
       (aref vec (ring-index index hd ln (length vec))))))
 
 (defun ring-elements (ring)
-  "Return a list of the elements of RING."
-  (mapcar #'identity (cddr ring)))
+  "Return a list of the elements of RING, in order, newest first."
+  (let ((start (car ring))
+	(size (ring-size ring))
+	(vect (cddr ring))
+	lst)
+    (dotimes (var (cadr ring) lst)
+      (push (aref vect (mod (+ start var) size)) lst))))
 
 ;;; provide ourself:
 
