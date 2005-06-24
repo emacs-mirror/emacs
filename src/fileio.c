@@ -2789,11 +2789,9 @@ This is what happens in interactive use with M-x.  */)
                         NILP (ok_if_already_exists) ? Qnil : Qt,
 			Qt, Qnil);
 
-#ifndef DOS_NT
 	  /* Preserve owner and group, if possible (if we are root).  */
 	  if (stat (SDATA (encoded_file), &data) >= 0)
 	    chown (SDATA (encoded_file), data.st_uid, data.st_gid);
-#endif
 
 	  Fdelete_file (file);
 	}
