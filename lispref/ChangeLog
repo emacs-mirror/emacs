@@ -1,3 +1,7 @@
+2005-06-24  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (MAKEINFO): Use --force.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Face Functions): Correct Texinfo usage.
