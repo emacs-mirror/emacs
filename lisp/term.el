@@ -485,7 +485,7 @@
   :group 'term)
 
 (defvar term-prompt-regexp "^"
-  "Regexp to recognise prompts in the inferior process.
+  "Regexp to recognize prompts in the inferior process.
 Defaults to \"^\", the null string at BOL.
 
 Good choices:
@@ -499,7 +499,7 @@ Good choices:
 This is a good thing to set in mode hooks.")
 
 (defvar term-delimiter-argument-list ()
-  "List of characters to recognise as separate arguments in input.
+  "List of characters to recognize as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
 surrounding them, and also be regarded as arguments in their own right (unlike
 whitespace).  See `term-arguments'.
@@ -570,8 +570,8 @@ This variable is buffer-local."
   "Function that submits old text in term mode.
 This function is called when return is typed while the point is in old text.
 It returns the text to be submitted as process input.  The default is
-term-get-old-input-default, which grabs the current line, and strips off
-leading text matching term-prompt-regexp")
+`term-get-old-input-default', which grabs the current line, and strips off
+leading text matching `term-prompt-regexp'.")
 
 (defvar term-dynamic-complete-functions
   '(term-replace-by-expanded-history term-dynamic-complete-filename)
@@ -585,7 +585,7 @@ This is a good thing to set in mode hooks.")
   (function (lambda (str) (not (string-match "\\`\\s *\\'" str))))
   "Predicate for filtering additions to input history.
 Only inputs answering true to this function are saved on the input
-history list.  Default is to save anything that isn't all whitespace")
+history list.  Default is to save anything that isn't all whitespace.")
 
 (defvar term-input-filter-functions '()
   "Functions to call before input is sent to the process.
@@ -595,9 +595,9 @@ This variable is buffer-local.")
 
 (defvar term-input-sender (function term-simple-send)
   "Function to actually send to PROCESS the STRING submitted by user.
-Usually this is just 'term-simple-send, but if your mode needs to
+Usually this is just `term-simple-send', but if your mode needs to
 massage the input string, this is your hook.  This is called from
-the user command term-send-input.  `term-simple-send' just sends
+the user command `term-send-input'.  `term-simple-send' just sends
 the string plus a newline.")
 
 (defcustom term-eol-on-send t
@@ -607,16 +607,16 @@ See `term-send-input'."
   :group 'term)
 
 (defcustom term-mode-hook '()
-  "Called upon entry into term-mode
+  "Called upon entry into term mode.
 This is run before the process is cranked up."
   :type 'hook
   :group 'term)
 
 (defcustom term-exec-hook '()
-  "Called each time a process is exec'd by term-exec.
+  "Called each time a process is exec'd by `term-exec'.
 This is called after the process is cranked up.  It is useful for things that
-must be done each time a process is executed in a term-mode buffer (e.g.,
-\(process-kill-without-query)).  In contrast, the term-mode-hook is only
+must be done each time a process is executed in a term mode buffer (e.g.,
+`process-kill-without-query').  In contrast, `term-mode-hook' is only
 executed once when the buffer is created."
   :type 'hook
   :group 'term)
@@ -625,7 +625,7 @@ executed once when the buffer is created."
 (defvar term-raw-map nil
   "Keyboard map for sending characters directly to the inferior process.")
 (defvar term-escape-char nil
-  "Escape character for char-sub-mode of term mode.
+  "Escape character for char sub-mode of term mode.
 Do not change it directly;  use `term-set-escape-char' instead.")
 (defvar term-raw-escape-map nil)
 
@@ -3949,9 +3949,9 @@ See `term-dynamic-complete-filename'.  Returns t if successful."
 
 (defun term-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
-Replace the filename with an expanded, canonicalised and completed replacement.
+Replace the filename with an expanded, canonicalized and completed replacement.
 \"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
-with the corresponding directories.  \"Canonicalised\" means `..'  and `.' are
+with the corresponding directories.  \"Canonicalized\" means `..'  and `.' are
 removed, and the filename is made absolute instead of relative.  For expansion
 see `expand-file-name' and `substitute-in-file-name'.  For completion see
 `term-dynamic-complete-filename'."

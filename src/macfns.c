@@ -208,7 +208,7 @@ check_x_frame (frame)
   CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
   if (! FRAME_MAC_P (f))
-    error ("non-mac frame used");
+    error ("Non-Mac frame used");
   return f;
 }
 
@@ -4241,7 +4241,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     NavTypeListHandle fileTypes = NULL;
     NavUserAction userAction;
     CFStringRef message=NULL, saveName = NULL;
-    
+
     BLOCK_INPUT;
     /* No need for a callback function because we are modal */
     NavGetDefaultDialogCreationOptions(&options);
@@ -4265,8 +4265,8 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     if (!NILP (only_dir_p))
       status = NavCreateChooseFolderDialog(&options, mac_nav_event_callbackUPP,
 					   NULL, NULL, &dialogRef);
-    else if (NILP (mustmatch)) 
-      { 
+    else if (NILP (mustmatch))
+      {
 	/* This is a save dialog */
 	options.optionFlags |= kNavDontConfirmReplacement;
 	options.actionButtonLabel = CFSTR ("Ok");
@@ -4283,7 +4283,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	    options.saveFileName = saveName;
 	    options.optionFlags |= kNavSelectDefaultLocation;
 	  }
-	  status = NavCreatePutFileDialog(&options, 
+	  status = NavCreatePutFileDialog(&options,
 					  'TEXT', kNavGenericSignature,
 					  mac_nav_event_callbackUPP, NULL,
 					  &dialogRef);
@@ -4295,7 +4295,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 					   mac_nav_event_callbackUPP, NULL,
 					   NULL, NULL, &dialogRef);
       }
-    
+
     /* Set the default location and continue*/
     if (status == noErr)
       {
@@ -4307,7 +4307,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 	FSSpec defLoc;
 	status = posix_pathname_to_fsspec (SDATA (ENCODE_FILE (dir)), &defLoc);
 #endif
-	if (status == noErr) 
+	if (status == noErr)
 	  {
 #ifdef MAC_OSX
 	    AECreateDesc(typeFSRef, &defLoc, sizeof(FSRef), &defLocAed);
@@ -4359,7 +4359,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 		int len = strlen(filename);
 		if (len && filename[len-1] != '/')
 		  filename[len++] = '/';
-		CFStringGetCString(reply.saveFileName, filename+len, 
+		CFStringGetCString(reply.saveFileName, filename+len,
 				   sizeof (filename) - len,
 #if MAC_OSX
 				   kCFStringEncodingUTF8
@@ -4387,11 +4387,11 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
   }
 
   UNGCPRO;
-  
+
   /* Make "Cancel" equivalent to C-g.  */
   if (NILP (file))
     Fsignal (Qquit, Qnil);
-  
+
   return unbind_to (count, file);
 }
 

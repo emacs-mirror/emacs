@@ -2705,9 +2705,15 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       if (!WINDOW_RIGHTMOST_P (w))
 	{
 	  struct Lisp_Char_Table *dp = window_display_table (w);
-	  right_border_glyph = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
-				? XINT (DISP_BORDER_GLYPH (dp))
-				: '|');
+
+	  right_border_glyph
+	    = ((dp && INTEGERP (DISP_BORDER_GLYPH (dp)))
+	       ? spec_glyph_lookup_face (w, XINT (DISP_BORDER_GLYPH (dp)))
+	       : '|');
+
+	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
+	    right_border_glyph
+	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_BORDER_FACE_ID);
 	}
     }
   else
@@ -2788,6 +2794,27 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
     }
 }
 
+/* Given a user-specified glyph, possibly including a Lisp-level face
+   ID, return a glyph that has a realized face ID.
+   This is used for glyphs displayed specially and not part of the text;
+   for instance, vertical separators, truncation markers, etc.  */
+
+GLYPH
+spec_glyph_lookup_face (w, glyph)
+     struct window *w;
+     GLYPH glyph;
+{
+  int lface_id = FAST_GLYPH_FACE (glyph);
+  /* Convert the glyph's specified face to a realized (cache) face.  */
+  if (lface_id > 0)
+    {
+      int face_id = merge_faces (XFRAME (w->frame),
+				 Qt, lface_id, DEFAULT_FACE_ID);
+      glyph
+	= FAST_MAKE_GLYPH (FAST_GLYPH_CHAR (glyph), face_id);
+    }
+  return glyph;
+}
 
 /* Add spaces to a glyph row ROW in a window matrix.
 
@@ -6307,7 +6334,7 @@ Emacs was built without floating point support.
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
-    error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   /* Assure that 0 <= usec < 1000000.  */
@@ -6407,7 +6434,7 @@ usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
 
 #ifndef EMACS_HAS_USECS
   if (usec != 0 && sec == 0)
-    error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   return sit_for (sec, usec, 0, NILP (nodisp), NILP (nodisp));

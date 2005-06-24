@@ -821,7 +821,7 @@ This is done after all necessary filtering has been done."
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the
 process mark, and `this-command' is an insertion command.  Insertion
-commands recognised are `self-insert-command', `yank', and
+commands recognized are `self-insert-command', `yank', and
 `hilit-yank'.  Depends on the value of
 `eshell-scroll-to-bottom-on-input'.
 

@@ -38,6 +38,7 @@
 
 ;; Function                           Browser     Earliest version
 ;; browse-url-mozilla                 Mozilla     Don't know
+;; browse-url-firefox                 Firefox     Don't know (tried with 1.0.1)
 ;; browse-url-galeon                  Galeon      Don't know
 ;; browse-url-epiphany                Epiphany    Don't know
 ;; browse-url-netscape                Netscape    1.1b1
@@ -248,6 +249,7 @@ regexp should probably be \".\" to specify a default browser."
 	  (function-item :tag "W3 in another Emacs via `gnudoit'"
 			 :value  browse-url-w3-gnudoit)
 	  (function-item :tag "Mozilla" :value  browse-url-mozilla)
+	  (function-item :tag "Firefox" :value browse-url-firefox)
 	  (function-item :tag "Galeon" :value  browse-url-galeon)
 	  (function-item :tag "Epiphany" :value  browse-url-epiphany)
 	  (function-item :tag "Netscape" :value  browse-url-netscape)
@@ -323,6 +325,25 @@ Defaults to the value of `browse-url-mozilla-arguments' at the time
   :type '(repeat (string :tag "Argument"))
   :group 'browse-url)
 
+;;;###autoload
+(defcustom browse-url-firefox-program "firefox"
+  "*The name by which to invoke Firefox."
+  :type 'string
+  :group 'browse-url)
+
+(defcustom browse-url-firefox-arguments nil
+  "*A list of strings to pass to Firefox as arguments."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+(defcustom browse-url-firefox-startup-arguments browse-url-firefox-arguments
+  "*A list of strings to pass to Firefox when it starts up.
+Defaults to the value of `browse-url-firefox-arguments' at the time
+`browse-url' is loaded."
+  :type '(repeat (string :tag "Argument"))
+  :group 'browse-url)
+
+;;;###autoload
 (defcustom browse-url-galeon-program "galeon"
   "*The name by which to invoke Galeon."
   :type 'string
@@ -370,6 +391,16 @@ Defaults to the value of `browse-url-epiphany-arguments' at the time
   "*Whether to open up new windows in a tab or a new window.
 If non-nil, then open the URL in a new tab rather than a new window if
 `browse-url-mozilla' is asked to open it in a new window."
+  :type 'boolean
+  :group 'browse-url)
+
+(defcustom browse-url-firefox-new-window-is-tab nil
+  "*Whether to open up new windows in a tab or a new window.
+If non-nil, then open the URL in a new tab rather than a new window if
+`browse-url-firefox' is asked to open it in a new window.
+
+This option is currently ignored on MS-Windows, since the necessary
+functionality is not available there."
   :type 'boolean
   :group 'browse-url)
 
@@ -815,13 +846,14 @@ the effect of `browse-url-new-window-flag'.
 When called non-interactively, optional second argument NEW-WINDOW is
 used instead of `browse-url-new-window-flag'.
 
-The order attempted is gnome-moz-remote, Mozilla, Galeon,
-Konqueror, Netscape, Mosaic, IXI Mosaic, Lynx in an xterm, MMM,
-and then W3."
+The order attempted is gnome-moz-remote, Mozilla, Firefox,
+Galeon, Konqueror, Netscape, Mosaic, IXI Mosaic, Lynx in an
+xterm, MMM, and then W3."
   (apply
     (cond
      ((executable-find browse-url-gnome-moz-program) 'browse-url-gnome-moz)
      ((executable-find browse-url-mozilla-program) 'browse-url-mozilla)
+     ((executable-find browse-url-firefox-program) 'browse-url-firefox)
      ((executable-find browse-url-galeon-program) 'browse-url-galeon)
      ((executable-find browse-url-kde-program) 'browse-url-kde)
      ((executable-find browse-url-netscape-program) 'browse-url-netscape)
@@ -958,6 +990,71 @@ used instead of `browse-url-new-window-flag'."
 	(apply 'start-process (concat "mozilla " url) nil
 	       browse-url-mozilla-program
 	       (append browse-url-mozilla-startup-arguments (list url))))))
+
+;;;###autoload
+(defun browse-url-firefox (url &optional new-window)
+  "Ask the Firefox WWW browser to load URL.
+Default to the URL around or before point.  The strings in
+variable `browse-url-firefox-arguments' are also passed to
+Firefox.
+
+When called interactively, if variable
+`browse-url-new-window-flag' is non-nil, load the document in a
+new Firefox window, otherwise use a random existing one.  A
+non-nil interactive prefix argument reverses the effect of
+`browse-url-new-window-flag'.
+
+If `browse-url-firefox-new-window-is-tab' is non-nil, then
+whenever a document would otherwise be loaded in a new window, it
+is loaded in a new tab in an existing window instead.
+
+When called non-interactively, optional second argument
+NEW-WINDOW is used instead of `browse-url-new-window-flag'.
+
+On MS-Windows systems the optional `new-window' parameter is
+ignored.  Firefox for Windows does not support the \"-remote\"
+command line parameter.  Therefore, the
+`browse-url-new-window-flag' and `browse-url-firefox-new-window-is-tab'
+are ignored as well.  Firefox on Windows will always open the requested
+URL in a new window."
+  (interactive (browse-url-interactive-arg "URL: "))
+  ;; URL encode any `confusing' characters in the URL.  This needs to
+  ;; include at least commas; presumably also close parens.
+  (while (string-match "[,)]" url)
+    (setq url (replace-match
+	       (format "%%%x" (string-to-char (match-string 0 url))) t t url)))
+  (let* ((process-environment (browse-url-process-environment))
+	 (process
+	  (apply 'start-process
+		 (concat "firefox " url) nil
+		 browse-url-firefox-program
+		 (append
+		  browse-url-firefox-arguments
+		  (if (or (featurep 'dos-w32)
+			  (string-match "win32" system-configuration))
+		      (list url)
+		    (list "-remote"
+			  (concat "openURL("
+				  url
+				  (if (browse-url-maybe-new-window
+				       new-window)
+				      (if browse-url-firefox-new-window-is-tab
+					  ",new-tab"
+					",new-window"))
+				  ")")))))))
+    (set-process-sentinel process
+			  `(lambda (process change)
+			     (browse-url-firefox-sentinel process ,url)))))
+
+(defun browse-url-firefox-sentinel (process url)
+  "Handle a change to the process communicating with Firefox."
+  (or (eq (process-exit-status process) 0)
+      (let* ((process-environment (browse-url-process-environment)))
+	;; Firefox is not running - start it
+	(message "Starting Firefox...")
+	(apply 'start-process (concat "firefox " url) nil
+	       browse-url-firefox-program
+	       (append browse-url-firefox-startup-arguments (list url))))))
 
 ;;;###autoload
 (defun browse-url-galeon (url &optional new-window)
@@ -1119,11 +1216,11 @@ used instead of `browse-url-new-window-flag'."
 	  (save-buffer)
 	  (kill-buffer nil)
 	  ;; Send signal SIGUSR to Mosaic
-	  (message "Signalling Mosaic...")
+	  (message "Signaling Mosaic...")
 	  (signal-process pid 'SIGUSR1)
 	  ;; Or you could try:
 	  ;; (call-process "kill" nil 0 nil "-USR1" (int-to-string pid))
-	  (message "Signalling Mosaic...done")
+	  (message "Signaling Mosaic...done")
 	  )
       ;; Mosaic not running - start it
       (message "Starting %s..." browse-url-mosaic-program)

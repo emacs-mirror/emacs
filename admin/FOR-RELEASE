@@ -5,6 +5,16 @@ Tasks needed before the next release.
 ** `undo-ask-before-discard', currently set to t for debugging purposes
 has to be set to nil: when t, it can leak memory and cause other problems.
 
+** Update release dates of manuals.
+
+** Spell check the manuals.
+
+** Get rid of overfull and underfull boxes in manuals.
+
+** Check for widow and orphan lines in manuals;
+make sure all the pages really look ok in the manual as formatted.
+
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
@@ -16,13 +26,14 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Update Speedbar.
 
-** Enhance scroll-bar to handle tall line (similar to line-move).
-
+** Update vhdl-mode.el based on changes in
+   http://opensource.ethz.ch/emacs/vhdl-mode.html.
 
 
 * FATAL ERRORS
 
 ** Make unexec handle memory mapping policy of the latest versions of Linux.
+This includes exec_shield and a memory-layout randomization feature.
 
 ** Investigate reported crashes in compact_small_strings.
 
@@ -59,33 +70,13 @@ I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
 
-* GTK RELATED BUGS
-
-** Make GTK scrollbars behave like others w.r.t. overscrolling.
-
-
-* REDISPLAY RELATED BUGS
-
-** Avoid unbreakable loops in redisplay.
-
-Redisplay may loop if there is an error in some display property, e.g.
-     (space 'left-margin)
-
-A fix would be to somehow disable handling of display properties if an error
-is encountered.
-
-
 * DOCUMENTATION
 
 ** Document Custom Themes.
 
-** Finish updating the Emacs Lisp manual.
+** Update lispref/README.
 
-*** Update lispref/README.
-
-** Update the Emacs manual.
-
-*** Update man/info.texi.
+** Update man/info.texi.
 
 ** Add missing years in copyright notices of all files.
 
@@ -112,8 +103,6 @@ lisp/toolbar		working		Thien-Thi Nguyen
 lisp/url		working		Thien-Thi Nguyen
 
 ** Update AUTHORS.
-
-** Reorder NEWS entries.
 
 ** Check the Emacs manual.
 
@@ -153,7 +142,7 @@ man/mark.texi       "Luc Teirlinck"  Chong Yidong
 man/mini.texi       "Luc Teirlinck"  Chong Yidong
 man/misc.texi       Chong Yidong
 man/msdog.texi      Chong Yidong
-man/mule.texi       "Luc Teirlinck"
+man/mule.texi       "Luc Teirlinck"  Kenichi Handa
 man/m-x.texi        "Luc Teirlinck"  Chong Yidong
 man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
 man/programs.texi   "Stephen Eglen"  Chong Yidong

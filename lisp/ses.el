@@ -878,7 +878,7 @@ preceding cell has spilled over."
 lambda of one argument) on VALUE.  Result is the the printed cell as a
 string.  The variable `ses-call-printer-return' is set to t if the printer
 used parenthesis to request left-justification, or the error-signal if the
-printer signalled one (and \"%s\" is used as the default printer), else nil."
+printer signaled one (and \"%s\" is used as the default printer), else nil."
   (setq ses-call-printer-return nil)
   (unless value
     (setq value ""))

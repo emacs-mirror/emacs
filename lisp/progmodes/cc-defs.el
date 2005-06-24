@@ -417,7 +417,7 @@ This function does not do any hidden buffer changes."
   `(c-forward-sexp ,(if (numberp count) (- count) `(- ,count))))
 
 (defmacro c-safe-scan-lists (from count depth)
-  "Like `scan-lists' but returns nil instead of signalling errors.
+  "Like `scan-lists' but returns nil instead of signaling errors.
 
 This function does not do any hidden buffer changes."
   (if (featurep 'xemacs)

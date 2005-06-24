@@ -489,7 +489,7 @@ More accurately, check the narrowed part of the buffer for unbalanced
 expressions (\"sexps\") in general.  This is done according to the
 current syntax table and will find unbalanced brackets or quotes as
 appropriate.  (See Info node `(emacs)Parentheses'.)  If imbalance is
-found, an error is signalled and point is left at the first unbalanced
+found, an error is signaled and point is left at the first unbalanced
 character."
   (interactive)
   (condition-case data

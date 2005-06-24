@@ -1875,6 +1875,7 @@ produce_special_glyphs (it, what)
      enum display_element_type what;
 {
   struct it temp_it;
+  GLYPH glyph;
 
   temp_it = *it;
   temp_it.dp = NULL;
@@ -1890,15 +1891,11 @@ produce_special_glyphs (it, what)
 	  && INTEGERP (DISP_CONTINUE_GLYPH (it->dp))
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_CONTINUE_GLYPH (it->dp))))
 	{
-	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_CONTINUE_GLYPH (it->dp)));
-	  temp_it.len = CHAR_BYTES (temp_it.c);
+	  glyph = XINT (DISP_CONTINUE_GLYPH (it->dp));
+	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
 	}
       else
-	temp_it.c = '\\';
-
-      produce_glyphs (&temp_it);
-      it->pixel_width = temp_it.pixel_width;
-      it->nglyphs = temp_it.pixel_width;
+	glyph = '\\';
     }
   else if (what == IT_TRUNCATION)
     {
@@ -1907,18 +1904,22 @@ produce_special_glyphs (it, what)
 	  && INTEGERP (DISP_TRUNC_GLYPH (it->dp))
 	  && GLYPH_CHAR_VALID_P (XINT (DISP_TRUNC_GLYPH (it->dp))))
 	{
-	  temp_it.c = FAST_GLYPH_CHAR (XINT (DISP_TRUNC_GLYPH (it->dp)));
-	  temp_it.len = CHAR_BYTES (temp_it.c);
+	  glyph = XINT (DISP_TRUNC_GLYPH (it->dp));
+	  glyph = spec_glyph_lookup_face (XWINDOW (it->window), glyph);
 	}
       else
-	temp_it.c = '$';
-
-      produce_glyphs (&temp_it);
-      it->pixel_width = temp_it.pixel_width;
-      it->nglyphs = temp_it.pixel_width;
+	glyph = '$';
     }
   else
     abort ();
+
+  temp_it.c = FAST_GLYPH_CHAR (glyph);
+  temp_it.face_id = FAST_GLYPH_FACE (glyph);
+  temp_it.len = CHAR_BYTES (temp_it.c);
+
+  produce_glyphs (&temp_it);
+  it->pixel_width = temp_it.pixel_width;
+  it->nglyphs = temp_it.pixel_width;
 }
 
 
@@ -1937,7 +1938,8 @@ produce_special_glyphs (it, what)
       ? (TN_no_color_video & (ATTR)) == 0	\
       : 1)
 
-/* Turn appearances of face FACE_ID on tty frame F on.  */
+/* Turn appearances of face FACE_ID on tty frame F on.
+   FACE_ID is a realized face ID number, in the face cache.  */
 
 static void
 turn_on_face (f, face_id)
@@ -2704,6 +2706,16 @@ fatal (str, arg1, arg2)
   exit (1);
 }
 
+DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 0, 0,
+       doc: /* Declare that this terminal does not handle underlining.
+This is used to override the terminfo data, for certain terminals that
+do not really do underlining, but say that they do.  */)
+  ()
+{
+  TS_enter_underline_mode = 0;
+  return Qnil;
+}
+
 void
 syms_of_term ()
 {
@@ -2723,6 +2735,7 @@ The function should accept no arguments.  */);
 
   defsubr (&Stty_display_color_p);
   defsubr (&Stty_display_color_cells);
+  defsubr (&Stty_no_underline);
 }
 
 /* arch-tag: 498e7449-6f2e-45e2-91dd-b7d4ca488193

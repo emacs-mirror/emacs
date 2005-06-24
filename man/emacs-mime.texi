@@ -56,7 +56,7 @@ license to the document, as described in section 6 of the license.
 This manual documents the libraries used to compose and display
 @acronym{MIME} messages.
 
-This manual is directed at users who want to modify the behaviour of
+This manual is directed at users who want to modify the behavior of
 the @acronym{MIME} encoding/decoding process or want a more detailed
 picture of how the Emacs @acronym{MIME} library works, and people who want
 to write functions and commands that manipulate @acronym{MIME} elements.
@@ -795,7 +795,7 @@ This plain text part is an attachment.
 Mapping from @acronym{MIME} charset to encoding to use.  This variable is
 usually used except, e.g., when other requirements force a specific
 encoding (digitally signed messages require 7bit encodings).  The
-default is 
+default is
 
 @lisp
 ((iso-2022-jp . 7bit)

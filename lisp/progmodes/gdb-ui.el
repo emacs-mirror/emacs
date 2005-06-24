@@ -85,6 +85,7 @@
 (defvar gdb-find-file-unhook nil)
 (defvar gdb-active-process nil "GUD tooltips display variable values when t, \
 and #define directives otherwise.")
+(defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
 
@@ -359,6 +360,7 @@ Also display the main routine in the disassembly buffer if present."
 	gdb-flush-pending-output nil
 	gdb-location-alist nil
 	gdb-find-file-unhook nil
+	gdb-error nil
 	gdb-macro-info nil)
   ;;
   (setq gdb-buffer-type 'gdba)
@@ -860,6 +862,8 @@ This filter may simply queue input for a later time."
     ("watchpoint" gdb-stopping)
     ("frame-begin" gdb-frame-begin)
     ("stopped" gdb-stopped)
+    ("error-begin" gdb-error)
+    ("error" gdb-error)
     ) "An assoc mapping annotation tags to functions which process them.")
 
 (defun gdb-resync()
@@ -989,6 +993,9 @@ sink to `user' in `gdb-stopping', that is fine."
       (gdb-resync)
       (error "Unexpected stopped annotation")))))
 
+(defun gdb-error (ignored)
+  (setq gdb-error (not gdb-error)))
+
 (defun gdb-post-prompt (ignored)
   "An annotation handler for `post-prompt'.
 This begins the collection of output from the current command if that
@@ -1083,6 +1090,8 @@ happens to be appropriate."
       output)))
 
 (defun gdb-concat-output (so-far new)
+  (if gdb-error
+      (put-text-property 0 (length new) 'face font-lock-warning-face new))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) (concat so-far new))

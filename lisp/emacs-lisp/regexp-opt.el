@@ -116,7 +116,7 @@ by \\=\\< and \\>."
 (defun regexp-opt-depth (regexp)
   "Return the depth of REGEXP.
 This means the number of non-shy regexp grouping constructs
-\(parenthesised expressions) in REGEXP."
+\(parenthesized expressions) in REGEXP."
   (save-match-data
     ;; Hack to signal an error if REGEXP does not have balanced parentheses.
     (string-match regexp "")

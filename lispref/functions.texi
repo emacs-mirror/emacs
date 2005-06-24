@@ -525,9 +525,9 @@ defines the symbol @var{name} as a function that looks like this:
 @var{name}.  It returns the value @var{name}, but usually we ignore this
 value.
 
-As described previously (@pxref{Lambda Expressions}),
-@var{argument-list} is a list of argument names and may include the
-keywords @code{&optional} and @code{&rest}.  Also, the first two of the
+As described previously, @var{argument-list} is a list of argument
+names and may include the keywords @code{&optional} and @code{&rest}
+(@pxref{Lambda Expressions}).  Also, the first two of the
 @var{body-forms} may be a documentation string and an interactive
 declaration.
 
@@ -1174,20 +1174,13 @@ You can define a function as an alias and declare it obsolete at the
 same time using the macro @code{define-obsolete-function-alias}.
 
 @defmac define-obsolete-function-alias obsolete-name current-name &optional when docstring
-This macro marks the function @var{obsolete-name} obsolete and also defines
-it as an alias for the function @var{current-name}.  A typical call has the
-form:
+This macro marks the function @var{obsolete-name} obsolete and also
+defines it as an alias for the function @var{current-name}.  It is
+equivalent to the following:
 
 @example
-(define-obsolete-function-alias 'old-fun 'new-fun "22.1" "Doc.")
-@end example
-
-@noindent
-which is equivalent to the following two lines of code:
-
-@example
-(defalias 'old-fun 'new-fun "Doc.")
-(make-obsolete 'old-fun 'new-fun "22.1")
+(defalias @var{obsolete-name} @var{current-name} @var{docstring})
+(make-obsolete @var{obsolete-name} @var{current-name} @var{when})
 @end example
 @end defmac
 

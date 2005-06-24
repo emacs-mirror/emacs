@@ -7319,7 +7319,7 @@ this:
 
 The part within quotation marks, @code{"*p\ncZap to char:@: "}, specifies
 three different things.  First, and most simply, the asterisk, @samp{*},
-causes an error to be signalled if the buffer is read-only.  This means that
+causes an error to be signaled if the buffer is read-only.  This means that
 if you try @code{zap-to-char} in a read-only buffer you will not be able to
 remove text, and you will receive a message that says ``Buffer is
 read-only''; your terminal may beep at you as well.

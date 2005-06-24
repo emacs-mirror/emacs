@@ -133,7 +133,7 @@ arguments."
 (defcustom shell-prompt-pattern "^[^#$%>\n]*[#$%>] *"
   "Regexp to match prompts in the inferior shell.
 Defaults to \"^[^#$%>\\n]*[#$%>] *\", which works pretty well.
-This variable is used to initialise `comint-prompt-regexp' in the
+This variable is used to initialize `comint-prompt-regexp' in the
 shell buffer.
 
 If `comint-use-prompt-regexp' is nil, then this variable is only used
@@ -159,7 +159,7 @@ This is a fine thing to set in your `.emacs' file."
   :group 'shell)
 
 (defvar shell-delimiter-argument-list '(?\| ?& ?< ?> ?\( ?\) ?\;)
-  "List of characters to recognise as separate arguments.
+  "List of characters to recognize as separate arguments.
 This variable is used to initialize `comint-delimiter-argument-list' in the
 shell buffer.  The value may depend on the operating system or shell.
 
@@ -192,7 +192,7 @@ This is a fine thing to set in your `.emacs' file.")
     shell-replace-by-expanded-directory
     comint-dynamic-complete-filename)
   "List of functions called to perform completion.
-This variable is used to initialise `comint-dynamic-complete-functions' in the
+This variable is used to initialize `comint-dynamic-complete-functions' in the
 shell buffer.
 
 This is a fine thing to set in your `.emacs' file.")
@@ -407,7 +407,7 @@ Variables `comint-completion-autolist', `comint-completion-addsuffix',
 `comint-completion-recexact' and `comint-completion-fignore' control the
 behavior of file name, command name and variable name completion.  Variable
 `shell-completion-execonly' controls the behavior of command name completion.
-Variable `shell-completion-fignore' is used to initialise the value of
+Variable `shell-completion-fignore' is used to initialize the value of
 `comint-completion-fignore'.
 
 Variables `comint-input-ring-file-name' and `comint-input-autoexpand' control
@@ -950,7 +950,7 @@ See `shell-dynamic-complete-filename'.  Returns t if successful."
 	  (and comint-completion-fignore
 	       (mapconcat (function (lambda (x) (concat (regexp-quote x) "$")))
 			  comint-completion-fignore "\\|")))
-	 (dir "") (comps-in-dir ()) 
+	 (dir "") (comps-in-dir ())
 	 (file "") (abs-file-name "") (completions ()))
     ;; Go thru each dir in the search path, finding completions.
     (while path-dirs

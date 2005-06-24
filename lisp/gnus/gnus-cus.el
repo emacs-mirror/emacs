@@ -772,8 +772,8 @@ When called interactively, FILE defaults to the current score file.
 This can be changed using the `\\[gnus-score-change-score-file]' command."
   (interactive (list gnus-current-score-file))
   (unless file
-    (error (format "No score file for %s"
-		   (gnus-group-decoded-name gnus-newsgroup-name))))
+    (error "No score file for %s"
+           (gnus-group-decoded-name gnus-newsgroup-name)))
   (let ((scores (gnus-score-load file))
 	(types (mapcar (lambda (entry)
 			 `(group :format "%v%h\n"
@@ -1014,9 +1014,9 @@ articles in the thread.
       ;; gnus-agent-cat-prepare-category-field as I don't want the
       ;; group list to appear when customizing a topic.
       (widget-insert "\n")
-      
-      (let ((symb 
-             (set 
+
+      (let ((symb
+             (set
               (make-local-variable 'gnus-agent-cat-groups)
               (widget-create
                `(choice

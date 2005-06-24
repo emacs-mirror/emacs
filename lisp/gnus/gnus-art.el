@@ -645,21 +645,23 @@ above them."
   :type 'face
   :group 'gnus-article-buttons)
 
-(defcustom gnus-signature-face 'gnus-signature-face
+(defcustom gnus-signature-face 'gnus-signature
   "Face used for highlighting a signature in the article buffer.
-Obsolete; use the face `gnus-signature-face' for customizations instead."
+Obsolete; use the face `gnus-signature' for customizations instead."
   :type 'face
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
 
-(defface gnus-signature-face
+(defface gnus-signature
   '((t
      (:italic t)))
   "Face used for highlighting a signature in the article buffer."
   :group 'gnus-article-highlight
   :group 'gnus-article-signature)
+;; backward-compatibility alias
+(put 'gnus-signature-face 'face-alias 'gnus-signature)
 
-(defface gnus-header-from-face
+(defface gnus-header-from
   '((((class color)
       (background dark))
      (:foreground "spring green"))
@@ -671,8 +673,10 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
   "Face used for displaying from headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
+;; backward-compatibility alias
+(put 'gnus-header-from-face 'face-alias 'gnus-header-from)
 
-(defface gnus-header-subject-face
+(defface gnus-header-subject
   '((((class color)
       (background dark))
      (:foreground "SeaGreen3"))
@@ -684,8 +688,10 @@ Obsolete; use the face `gnus-signature-face' for customizations instead."
   "Face used for displaying subject headers."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
+;; backward-compatibility alias
+(put 'gnus-header-subject-face 'face-alias 'gnus-header-subject)
 
-(defface gnus-header-newsgroups-face
+(defface gnus-header-newsgroups
   '((((class color)
       (background dark))
      (:foreground "yellow" :italic t))
@@ -699,8 +705,10 @@ In the default setup this face is only used for crossposted
 articles."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
+;; backward-compatibility alias
+(put 'gnus-header-newsgroups-face 'face-alias 'gnus-header-newsgroups)
 
-(defface gnus-header-name-face
+(defface gnus-header-name
   '((((class color)
       (background dark))
      (:foreground "SeaGreen"))
@@ -712,8 +720,10 @@ articles."
   "Face used for displaying header names."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
+;; backward-compatibility alias
+(put 'gnus-header-name-face 'face-alias 'gnus-header-name)
 
-(defface gnus-header-content-face
+(defface gnus-header-content
   '((((class color)
       (background dark))
      (:foreground "forest green" :italic t))
@@ -724,12 +734,14 @@ articles."
      (:italic t)))  "Face used for displaying header content."
   :group 'gnus-article-headers
   :group 'gnus-article-highlight)
+;; backward-compatibility alias
+(put 'gnus-header-content-face 'face-alias 'gnus-header-content)
 
 (defcustom gnus-header-face-alist
-  '(("From" nil gnus-header-from-face)
-    ("Subject" nil gnus-header-subject-face)
-    ("Newsgroups:.*," nil gnus-header-newsgroups-face)
-    ("" gnus-header-name-face gnus-header-content-face))
+  '(("From" nil gnus-header-from)
+    ("Subject" nil gnus-header-subject)
+    ("Newsgroups:.*," nil gnus-header-newsgroups)
+    ("" gnus-header-name gnus-header-content))
   "*Controls highlighting of article headers.
 
 An alist of the form (HEADER NAME CONTENT).
@@ -3720,6 +3732,7 @@ commands:
 \\[gnus-article-describe-briefly]\t Describe the current mode briefly
 \\[gnus-info-find-node]\t Go to the Gnus info node"
   (interactive)
+  (kill-all-local-variables)
   (gnus-simplify-mode-line)
   (setq mode-name "Article")
   (setq major-mode 'gnus-article-mode)
@@ -6490,7 +6503,7 @@ do the highlighting.  See the documentation for those functions."
 (defun gnus-article-highlight-signature ()
   "Highlight the signature in an article.
 It does this by highlighting everything after
-`gnus-signature-separator' using `gnus-signature-face'."
+`gnus-signature-separator' using the face `gnus-signature'."
   (interactive)
   (save-excursion
     (set-buffer gnus-article-buffer)
@@ -7057,7 +7070,7 @@ For example:
     current-prefix-arg))
   (let ((func (cdr (assoc protocol gnus-article-encrypt-protocol-alist))))
     (unless func
-      (error (format "Can't find the encrypt protocol %s" protocol)))
+      (error "Can't find the encrypt protocol %s" protocol))
     (if (member gnus-newsgroup-name '("nndraft:delayed"
 				      "nndraft:drafts"
 				      "nndraft:queue"))

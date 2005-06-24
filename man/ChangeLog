@@ -1,3 +1,67 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* anti.texi (Antinews): Renamed show-nonbreak-escape to
+	nobreak-char-display.
+
+	* emacs.texi (Top): Update detailed node listing.
+
+	* display.texi (Text Display): Renamed show-nonbreak-escape
+	to nobreak-char-display and no-break-space to nobreak-space.
+	(Standard Faces): Split up the list of standard faces
+	and put it in a separate node.  Add nobreak-space and
+	escape-glyph.
+
+	* speedbar.texi (Creating a display): Texinfo usage fixes.	
+
+	* tramp.texi (Customizing Completion, Auto-save and Backup): 
+	Texinfo usage fixes.
+
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* mule.texi (Select Input Method): Fix typo.
+
+2005-06-23  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (International): List all supported scripts.  Adjust
+	text for that leim is now included in the normal Emacs
+	distribution.
+	(Language Environments): List all language environments.
+	Intlfonts contains fonts for most supported scripts, not all..
+	(Select Input Method): Refer to C-u C-x = to see how to type to
+	input a specifc character.
+	(Recognize Coding): Fix typo, china-iso-8bit -> chinese-iso-8bit.
+
+2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* building.texi (Grep Searching):
+	* dired-x.texi (Miscellaneous Commands):
+	* ediff.texi (Miscellaneous):
+	* gnus.texi (MIME Commands, Fancy Mail Splitting, Agent Visuals)
+	(Agent Variables):
+	* info.texi (Help-Xref):
+	* message.texi (Message Headers):
+	* org.texi (Remember):
+	* reftex.texi (Options (Defining Label Environments)):
+	(Options (Index Support)):
+	(Options (Viewing Cross-References)):
+	(Options (Misc)):
+	(Changes):
+	* speedbar.texi (Creating a display):
+	* tramp.texi (Customizing Completion, Auto-save and Backup):
+	Texinfo usage fix.
+
+2005-06-22  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Faces): Change `vertical-divider' to `vertical-border'.
+
+2005-06-20  Miles Bader  <miles@gnu.org>
+
+	* display.texi (Faces): Add `vertical-divider'.
+
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* text.texi (Adaptive Fill): Minor clarification.
+
 2005-06-13  Carsten Dominik  <dominik@science.uva.nl>
 
 	* org.texi: Version 3.11
@@ -175,7 +239,7 @@
 
 2005-05-16  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* display.texi:  Various minor changes.
+	* display.texi: Various minor changes.
 	(Faces): Delete text that is repeated in the next section.
 
 2005-05-16  Nick Roberts  <nickrob@snap.net.nz>
@@ -929,8 +993,8 @@
 	* calendar.texi (General Calendar): Document binding of
 	scroll-other-window-down.
 	(Mayan Calendar): Fix earliest date.
-	(Time Intervals): Document timeclock-change.  Fix
-	timeclock-ask-before-exiting documentation.
+	(Time Intervals): Document timeclock-change.
+	Fix timeclock-ask-before-exiting documentation.
 
 2005-02-26  Kim F. Storm  <storm@cua.dk>
 
@@ -1051,14 +1115,14 @@
 
 2005-02-10  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi:  Change @LaTeX to La@TeX throughout.
+	* calc.texi: Change @LaTeX to La@TeX throughout.
 	Redefine @expr as @math for TeX output.
 	Redefine @texline as a no-op for TeX output.
 	Define @tfn, replace @t by @tfn throughout.
 
 2005-02-09  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi:  Add macro for LaTeX for info output.
+	* calc.texi: Add macro for LaTeX for info output.
 
 2005-02-08  Kim F. Storm  <storm@cua.dk>
 
@@ -1221,7 +1285,7 @@
 
 	* faq.texi: Update AUCTeX version info.
 
-2005-01-16  Xavier Maillard <zedek@gnu-rox.org> (tiny change)
+2005-01-16  Xavier Maillard  <zedek@gnu-rox.org>  (tiny change)
 
 	* gnus-faq.texi ([4.1]): Typo.
 
@@ -1632,7 +1696,7 @@
 
 2004-10-18  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Reporting Bugs):  Changed the address that bugs
+	* calc.texi (Reporting Bugs): Changed the address that bugs
 	should be sent to.
 
 2004-10-15  Reiner Steib  <Reiner.Steib@gmx.de>
@@ -1651,7 +1715,7 @@
 
 2004-10-12  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Help Commands):  Changed the descriptions of
+	* calc.texi (Help Commands): Changed the descriptions of
 	calc-describe-function and calc-describe-variable to match their
 	current behavior.
 
@@ -1692,7 +1756,7 @@
 
 2004-10-06  Karl Berry  <karl@gnu.org>
 
-	* info.texi (@kbd{1}--@kbd{9}): no space around --, for
+	* info.texi (@kbd{1}--@kbd{9}): No space around --, for
 	consistency with other uses of dashes.
 
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
@@ -1706,7 +1770,7 @@
 
 2004-10-05  Karl Berry  <karl@gnu.org>
 
-	* info.texi: consistently use --- throughout, periods at end of
+	* info.texi: Consistently use --- throughout, periods at end of
 	menu descriptions, and a couple typos.
 
 2004-10-05  Luc Teirlinck  <teirllm@auburn.edu>
@@ -1722,7 +1786,7 @@
 	`selective-display-ellipses' no longer has an effect on Outline mode.
 	(TeX Misc): Add missing @cindex.
 	Replace xref for RefTeX with inforef.
-	(Requesting Formatted Text): the variable
+	(Requesting Formatted Text): The variable
 	`enriched-fill-after-visiting' no longer exists.
 	(Editing Format Info): Update names of menu items and commands.
 	(Format Faces): Mention special effect of specifying the default face.
@@ -1737,7 +1801,6 @@
 	(Forcing Enriched Mode): `format-decode-buffer' automatically
 	turns on Enriched mode if the buffer is in text/enriched format.
 
-
 2004-10-05  Emilio C. Lopes  <eclig@gmx.net>
 
 	* calendar.texi (From Other Calendar): Add calendar-goto-iso-week.
@@ -1750,7 +1813,7 @@
 2004-09-26  Jesper Harder  <harder@ifa.au.dk>
 
 	* sieve.texi (Manage Sieve API): nil -> @code{nil}.
-	* pgg.texi (User Commands, Backend methods): do.
+	* pgg.texi (User Commands, Backend methods): Do.
 	* gnus.texi: Markup fixes.
 	(Setting Process Marks): Fix `M P a' entry.
 	* emacs-mime: Fixes.
@@ -1843,23 +1906,22 @@
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (IMAP): add comments about imaps synonym to imap in
-	netrc syntax
+	* gnus.texi (IMAP): Add comments about imaps synonym to imap in
+	netrc syntax.
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (Spam ELisp Package Sequence of Events): some clarifications
-	(Spam ELisp Package Global Variables)
-	(Spam ELisp Package Global Variables): more clarifications
+	* gnus.texi (Spam ELisp Package Sequence of Events): Some clarifications.
+	(Spam ELisp Package Global Variables): More clarifications.
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
 	* gnus.texi (Spam ELisp Package Filtering of Incoming Mail):
-	mention spam-split does not modify incoming mail
+	Mention spam-split does not modify incoming mail.
 
 2004-09-10  Teodor Zlatanov  <tzz@lifelogs.com>
 
-	* gnus.texi (Spam ELisp Package Sequence of Events): fix typo
+	* gnus.texi (Spam ELisp Package Sequence of Events): Fix typo.
 
 2004-09-10  Eli Zaretskii  <eliz@gnu.org>
 
@@ -2102,7 +2164,7 @@
 2004-08-30  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* emacs-mime.texi, gnus-faq.texi, gnus.texi, message.texi,
-	pgg.texi, sieve.texi: Use @copying and @insertcopying.
+	* pgg.texi, sieve.texi: Use @copying and @insertcopying.
 
 2004-08-22  Reiner Steib  <Reiner.Steib@gmx.de>
 
@@ -2172,15 +2234,15 @@
 
 2004-06-21  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Top): mention that only Emacs has mouse support.
-	(Getting Started): mention this in a few other places.
+	* info.texi (Top): Mention that only Emacs has mouse support.
+	(Getting Started): Mention this in a few other places.
 
 2004-06-20  Jesper Harder  <harder@ifa.au.dk>
 
 	* msdog.texi (Text and Binary, MS-DOS Printing): Use m-dash.
-	* custom.texi (Customization): do.
-	* anti.texi (Antinews): do.
-	* abbrevs.texi (Defining Abbrevs): do.
+	* custom.texi (Customization): Do.
+	* anti.texi (Antinews): Do.
+	* abbrevs.texi (Defining Abbrevs): Do.
 
 	* programs.texi (Info Lookup): Fix keybinding for
 	info-lookup-symbol.
@@ -2480,7 +2542,7 @@
 
 2004-02-17  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Help-Int): mention the new line number feature.
+	* info.texi (Help-Int): Mention the new line number feature.
 
 2004-02-15  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -2591,7 +2653,7 @@
 
 2003-10-26  Karl Berry  <karl@gnu.org>
 
-	* info.texi (Info Search): echo area, not echo are.  From Debian
+	* info.texi (Info Search): Echo area, not echo are.  From Debian
 	diff.
 
 2003-10-26  Per Abrahamsen  <abraham@dina.kvl.dk>
@@ -2628,7 +2690,7 @@
 
 2003-10-06  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* texinfo.tex:  Replace `%' in arch tagline by @ignore.
+	* texinfo.tex: Replace `%' in arch tagline by @ignore.
 
 2003-09-30  Richard M. Stallman  <rms@gnu.org>
 
@@ -3562,7 +3624,7 @@
 
 1990-06-26  David Lawrence  (tale@geech)
 
-	* emacs.tex:  Note that completion-ignored-extensions is not used
+	* emacs.tex: Note that completion-ignored-extensions is not used
 	to filter out names when all completions are displayed in
 	*Completions*.
 
@@ -3591,7 +3653,7 @@
 	Also add an @finalout command to remove overfull hboxes from the
 	printed output.
 
-	* cl.texinfo:  Add @bye, \input line and @settitle to file.
+	* cl.texinfo: Add @bye, \input line and @settitle to file.
 	This file is clearly intended to be a chapter of some other work,
 	but the other work does not yet exist.
 

@@ -617,10 +617,23 @@ Reinitialize the face according to the `defface' specification."
 	;; `defface' is macroexpanded to `custom-declare-face'.
 	((eq (car form) 'custom-declare-face)
 	 ;; Reset the face.
-	 (put (eval (nth 1 form)) 'face-defface-spec nil)
 	 (setq face-new-frame-defaults
 	       (assq-delete-all (eval (nth 1 form)) face-new-frame-defaults))
-	 form)
+	 (put (eval (nth 1 form)) 'face-defface-spec nil)
+	 ;; Setting `customized-face' to the new spec after calling
+	 ;; the form, but preserving the old saved spec in `saved-face',
+	 ;; imitates the situation when the new face spec is set
+	 ;; temporarily for the current session in the customize
+	 ;; buffer, thus allowing `face-user-default-spec' to use the
+	 ;; new customized spec instead of the saved spec.
+	 ;; Resetting `saved-face' temporarily to nil is needed to let
+	 ;; `defface' change the spec, regardless of a saved spec.
+	 (prog1 `(prog1 ,form
+		   (put ',(eval (nth 1 form)) 'saved-face
+			',(get (eval (nth 1 form)) 'saved-face))
+		   (put ',(eval (nth 1 form)) 'customized-face
+			',(eval (nth 2 form))))
+	   (put (eval (nth 1 form)) 'saved-face nil)))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
 	(t form)))

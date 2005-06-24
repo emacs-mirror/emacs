@@ -203,14 +203,13 @@ function.
 @code{interactive} forms with an expression argument, anonymous lambda
 expressions, and other defining forms.  However, Edebug cannot determine
 on its own what a user-defined macro will do with the arguments of a
-macro call, so you must provide that information; see @ref{Edebug and
-Macros}, for details.
+macro call, so you must provide that information using Edebug
+specifications; see @ref{Edebug and Macros}, for details.
 
   When Edebug is about to instrument code for the first time in a
 session, it runs the hook @code{edebug-setup-hook}, then sets it to
 @code{nil}.  You can use this to load Edebug specifications
-(@pxref{Edebug and Macros}) associated with a package you are
-using, but only when you use Edebug.
+associated with a package you are using, but only when you use Edebug.
 
 @findex eval-expression @r{(Edebug)}
   To remove instrumentation from a definition, simply re-evaluate its
@@ -331,7 +330,7 @@ program to stop.
 Proceed to the stop point near where point is (@code{edebug-goto-here}).
 
 @item f
-Run the program forward over one expression
+Run the program for one expression
 (@code{edebug-forward-sexp}).
 
 @item o
@@ -463,9 +462,9 @@ point (@code{edebug-unset-breakpoint}).
 
 @item x @var{condition} @key{RET}
 Set a conditional breakpoint which stops the program only if
-@var{condition} evaluates to a non-@code{nil} value
-(@code{edebug-set-conditional-breakpoint}).  With a prefix argument, the
-breakpoint is temporary.
+evaluating @var{condition} produces a non-@code{nil} value
+(@code{edebug-set-conditional-breakpoint}).  With a prefix argument,
+the breakpoint is temporary.
 
 @item B
 Move point to the next breakpoint in the current definition
@@ -586,8 +585,8 @@ effect outside of Edebug.
 
 @table @kbd
 @item v
-View the outside window configuration (@code{edebug-view-outside}).
-Type @kbd{C-x X w} to return to Edebug.
+Switch to viewing the outside window configuration
+(@code{edebug-view-outside}).  Type @kbd{C-x X w} to return to Edebug.
 
 @item p
 Temporarily display the outside current buffer with point at its
@@ -1036,11 +1035,12 @@ saves (and later restores) these additional data:
 The current match data.  @xref{Match Data}.
 
 @item
-@code{last-command}, @code{this-command}, @code{last-command-char},
-@code{last-input-char}, @code{last-input-event},
-@code{last-command-event}, @code{last-event-frame},
-@code{last-nonmenu-event}, and @code{track-mouse}.  Commands used within
-Edebug do not affect these variables outside of Edebug.
+The variables @code{last-command}, @code{this-command},
+@code{last-command-char}, @code{last-input-char},
+@code{last-input-event}, @code{last-command-event},
+@code{last-event-frame}, @code{last-nonmenu-event}, and
+@code{track-mouse}.  Commands used within Edebug do not affect these
+variables outside of Edebug.
 
 The key sequence returned by @code{this-command-keys} is changed by
 executing commands within Edebug and there is no way to reset
@@ -1100,13 +1100,13 @@ macro.  To do this, add a @code{debug} declaration to the macro
 definition.  Here is a simple example that shows the specification for
 the @code{for} example macro (@pxref{Argument Evaluation}).
 
-@example
+@smallexample
 (defmacro for (var from init to final do &rest body)
   "Execute a simple \"for\" loop.
 For example, (for i from 1 to 10 do (print i))."
   (declare (debug (symbolp "from" form "to" form "do" &rest form)))
   ...)
-@end example
+@end smallexample
 
   The Edebug specification says which parts of a call to the macro are
 forms to be evaluated.  For simple macros, the @var{specification}
@@ -1185,7 +1185,8 @@ balanced parentheses, recursive processing of forms, and recursion via
 indirect specifications.
 
 Here's a table of the possible elements of a specification list, with
-their meanings:
+their meanings (see @ref{Specification Examples}, for the referenced
+examples):
 
 @table @code
 @item sexp
@@ -1221,7 +1222,7 @@ as one does not match, Edebug stops matching at this level.
 To make just a few elements optional followed by non-optional elements,
 use @code{[&optional @var{specs}@dots{}]}.  To specify that several
 elements must all match or none, use @code{&optional
-[@var{specs}@dots{}]}.  See the @code{defun} example below.
+[@var{specs}@dots{}]}.  See the @code{defun} example.
 
 @item &rest
 @c @kindex &rest @r{(Edebug)}
@@ -1262,15 +1263,14 @@ a list specification.
 @item nil
 This is successful when there are no more arguments to match at the
 current argument list level; otherwise it fails.  See sublist
-specifications and the backquote example below.
+specifications and the backquote example.
 
 @item gate
 @cindex preventing backtracking
 No argument is matched but backtracking through the gate is disabled
 while matching the remainder of the specifications at this level.  This
 is primarily used to generate more specific syntax error messages.  See
-@ref{Backtracking}, for more details.  Also see the @code{let} example
-below.
+@ref{Backtracking}, for more details.  Also see the @code{let} example.
 
 @item @var{other-symbol}
 @cindex indirect specifications
@@ -1281,7 +1281,7 @@ If the symbol has an Edebug specification, this @dfn{indirect
 specification} should be either a list specification that is used in
 place of the symbol, or a function that is called to process the
 arguments.  The specification may be defined with @code{def-edebug-spec}
-just as for macros. See the @code{defun} example below.
+just as for macros. See the @code{defun} example.
 
 Otherwise, the symbol should be a predicate.  The predicate is called
 with the argument and the specification fails if the predicate returns
@@ -1302,7 +1302,7 @@ of @var{symbol} is the @var{string}, but the string form is preferred.
 
 @item (vector @var{elements}@dots{})
 The argument should be a vector whose elements must match the
-@var{elements} in the specification.  See the backquote example below.
+@var{elements} in the specification.  See the backquote example.
 
 @item (@var{elements}@dots{})
 Any other list is a @dfn{sublist specification} and the argument must be
@@ -1315,7 +1315,7 @@ dotted list specification may be another sublist specification (via a
 grouping or an indirect specification, e.g., @code{(spec .  [(more
 specs@dots{})])}) whose elements match the non-dotted list arguments.
 This is useful in recursive specifications such as in the backquote
-example below.  Also see the description of a @code{nil} specification
+example.  Also see the description of a @code{nil} specification
 above for terminating such recursion.
 
 Note that a sublist specification written as @code{(specs .  nil)}
@@ -1327,7 +1327,7 @@ sublist-elements@dots{})}.
 @c Need to document extensions with &symbol and :symbol
 
 Here is a list of additional specifications that may appear only after
-@code{&define}.  See the @code{defun} example below.
+@code{&define}.  See the @code{defun} example.
 
 @table @code
 @item name
@@ -1364,7 +1364,7 @@ The argument is a single, highest-level form in a definition.  This is
 like @code{def-body}, except use this to match a single form rather than
 a list of forms.  As a special case, @code{def-form} also means that
 tracing information is not output when the form is executed.  See the
-@code{interactive} example below.
+@code{interactive} example.
 @end table
 
 @node Backtracking

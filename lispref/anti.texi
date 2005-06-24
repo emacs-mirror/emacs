@@ -164,9 +164,10 @@ the sentinel.
 @item
 Many programming shortcuts have been deleted, to provide you with the
 enjoyment of ``rolling your own''.  The macros @code{while-no-input},
-@code{with-local-quit}, @code{with-selected-window},
-@code{dynamic-completion-table}, and @code{lazy-completion-table} no
-longer exist.  Also, there are no built-in progress reporters.
+@code{with-local-quit}, and @code{with-selected-window}, along with
+@code{dynamic-completion-table} and @code{lazy-completion-table} no
+longer exist.  Also, there are no built-in progress reporters;
+with Emacs, you can take progress for granted.
 
 @item
 Variable aliases are no longer supported.  Aliases are for functions,
@@ -385,7 +386,7 @@ previously autoloaded.
 @item
 There is a new variable, @code{recursive-load-depth-limit}, which
 specifies how many times files can recursively load themselves; it is
-50 by default, and nil means infinity.  Previously, Emacs signalled an
+50 by default, and @code{nil} means infinity.  Previously, Emacs signaled an
 error after just 3 recursive loads, which was boring.
 
 @item

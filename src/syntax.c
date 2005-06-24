@@ -901,7 +901,7 @@ text property.  */)
   p = SDATA (string);
   code = (enum syntaxcode) syntax_spec_code[*p++];
   if (((int) code & 0377) == 0377)
-    error ("invalid syntax description letter: %c", p[-1]);
+    error ("Invalid syntax description letter: %c", p[-1]);
 
   if (code == Sinherit)
     return Qnil;

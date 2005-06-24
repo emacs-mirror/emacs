@@ -330,7 +330,7 @@ check_x_frame (frame)
   CHECK_LIVE_FRAME (frame);
   f = XFRAME (frame);
   if (! FRAME_W32_P (f))
-    error ("non-w32 frame used");
+    error ("Non-W32 frame used");
   return f;
 }
 
@@ -360,7 +360,7 @@ check_x_display_info (frame)
       CHECK_LIVE_FRAME (frame);
       f = XFRAME (frame);
       if (! FRAME_W32_P (f))
-	error ("non-w32 frame used");
+	error ("Non-W32 frame used");
       return FRAME_W32_DISPLAY_INFO (f);
     }
 }
@@ -7833,7 +7833,7 @@ typedef struct
   DWORD FlagsEx;
 } NEWOPENFILENAME;
 
-    
+
 DEFUN ("x-file-dialog", Fx_file_dialog, Sx_file_dialog, 2, 5, 0,
        doc: /* Read file name, prompting with PROMPT in directory DIR.
 Use a file selection dialog.
@@ -7885,7 +7885,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
     NEWOPENFILENAME new_file_details;
     BOOL file_opened = FALSE;
     OPENFILENAME * file_details = &new_file_details.real_details;
-  
+
     /* Prevent redisplay.  */
     specbind (Qinhibit_redisplay, Qt);
     BLOCK_INPUT;

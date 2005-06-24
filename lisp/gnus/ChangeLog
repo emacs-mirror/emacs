@@ -1,3 +1,138 @@
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* gnus-art.el (gnus-article-mode): Use kill-all-local-variables.
+
+	* dig.el (dig-mode):
+	* smime.el (smime-mode): Use gnus-run-mode-hooks.
+
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* nnimap.el (nnimap-split-download-body): Fix spellings.
+
+2005-06-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-art.el (gnus-article-encrypt-body):
+	* gnus-cus.el (gnus-score-customize):
+	* mm-extern.el (mm-extern-local-file, mm-inline-external-body):
+	* pop3.el (pop3-user): Don't use `format' on `error' arguments.
+
+2005-06-16  Miles Bader  <miles@gnu.org>
+
+	* spam.el (spam): Remove "-face" suffix from face name.
+	(spam-face): New backward-compatibility alias for renamed face.
+	(spam-face, spam-initialize): Use renamed spam face.
+
+	* message.el (message-header-to, message-header-cc)
+	(message-header-subject, message-header-newsgroups)
+	(message-header-other, message-header-name)
+	(message-header-xheader, message-separator, message-cited-text)
+	(message-mml): Remove "-face" suffix from face names.
+	(message-header-to-face, message-header-cc-face)
+	(message-header-subject-face, message-header-newsgroups-face)
+	(message-header-other-face, message-header-name-face)
+	(message-header-xheader-face, message-separator-face)
+	(message-cited-text-face, message-mml-face):
+	New backward-compatibility aliases for renamed faces.
+	(message-font-lock-keywords): Use renamed message faces.
+
+	* sieve-mode.el (sieve-control-commands, sieve-action-commands)
+	(sieve-test-commands, sieve-tagged-arguments):
+	Remove "-face" suffix from face names.
+	(sieve-control-commands-face, sieve-action-commands-face)
+	(sieve-test-commands-face, sieve-tagged-arguments-face):
+	New backward-compatibility aliases for renamed faces.
+	(sieve-control-commands-face, sieve-action-commands-face)
+	(sieve-test-commands-face, sieve-tagged-arguments-face):
+	Use renamed sieve faces.
+
+	* gnus.el (gnus-group-news-1, gnus-group-news-1-empty)
+	(gnus-group-news-2, gnus-group-news-2-empty, gnus-group-news-3)
+	(gnus-group-news-3-empty, gnus-group-news-4)
+	(gnus-group-news-4-empty, gnus-group-news-5)
+	(gnus-group-news-5-empty, gnus-group-news-6)
+	(gnus-group-news-6-empty, gnus-group-news-low)
+	(gnus-group-news-low-empty, gnus-group-mail-1)
+	(gnus-group-mail-1-empty, gnus-group-mail-2)
+	(gnus-group-mail-2-empty, gnus-group-mail-3)
+	(gnus-group-mail-3-empty, gnus-group-mail-low)
+	(gnus-group-mail-low-empty, gnus-summary-selected)
+	(gnus-summary-cancelled, gnus-summary-high-ticked)
+	(gnus-summary-low-ticked, gnus-summary-normal-ticked)
+	(gnus-summary-high-ancient, gnus-summary-low-ancient)
+	(gnus-summary-normal-ancient, gnus-summary-high-undownloaded)
+	(gnus-summary-low-undownloaded)
+	(gnus-summary-normal-undownloaded, gnus-summary-high-unread)
+	(gnus-summary-low-unread, gnus-summary-normal-unread)
+	(gnus-summary-high-read, gnus-summary-low-read)
+	(gnus-summary-normal-read, gnus-splash):
+	Remove "-face" suffix from face names.
+	(gnus-group-news-1-face, gnus-group-news-1-empty-face)
+	(gnus-group-news-2-face, gnus-group-news-2-empty-face)
+	(gnus-group-news-3-face, gnus-group-news-3-empty-face)
+	(gnus-group-news-4-face, gnus-group-news-4-empty-face)
+	(gnus-group-news-5-face, gnus-group-news-5-empty-face)
+	(gnus-group-news-6-face, gnus-group-news-6-empty-face)
+	(gnus-group-news-low-face, gnus-group-news-low-empty-face)
+	(gnus-group-mail-1-face, gnus-group-mail-1-empty-face)
+	(gnus-group-mail-2-face, gnus-group-mail-2-empty-face)
+	(gnus-group-mail-3-face, gnus-group-mail-3-empty-face)
+	(gnus-group-mail-low-face, gnus-group-mail-low-empty-face)
+	(gnus-summary-selected-face, gnus-summary-cancelled-face)
+	(gnus-summary-high-ticked-face, gnus-summary-low-ticked-face)
+	(gnus-summary-normal-ticked-face)
+	(gnus-summary-high-ancient-face, gnus-summary-low-ancient-face)
+	(gnus-summary-normal-ancient-face)
+	(gnus-summary-high-undownloaded-face)
+	(gnus-summary-low-undownloaded-face)
+	(gnus-summary-normal-undownloaded-face)
+	(gnus-summary-high-unread-face, gnus-summary-low-unread-face)
+	(gnus-summary-normal-unread-face, gnus-summary-high-read-face)
+	(gnus-summary-low-read-face, gnus-summary-normal-read-face)
+	(gnus-splash-face):
+	New backward-compatibility aliases for renamed faces.
+	(gnus-group-startup-message): Use renamed gnus faces.
+
+	* gnus-srvr.el (gnus-server-agent, gnus-server-opened)
+	(gnus-server-closed, gnus-server-denied, gnus-server-offline)
+	(gnus-server-agent): Remove "-face" suffix from face names.
+	(gnus-server-agent-face, gnus-server-opened-face)
+	(gnus-server-closed-face, gnus-server-denied-face)
+	(gnus-server-offline-face):
+	New backward-compatibility aliases for renamed faces.
+	(gnus-server-agent-face, gnus-server-opened-face)
+	(gnus-server-closed-face, gnus-server-denied-face)
+	(gnus-server-offline-face): Use renamed gnus faces.
+
+	* gnus-picon.el (gnus-picon-xbm, gnus-picon):
+	Remove "-face" suffix from face names.
+	(gnus-picon-xbm-face, gnus-picon-face):
+	New backward-compatibility aliases for renamed faces.
+
+	* gnus-cite.el (gnus-cite-attribution, gnus-cite-1, gnus-cite-2)
+	(gnus-cite-3, gnus-cite-4, gnus-cite-5, gnus-cite-6)
+	(gnus-cite-7, gnus-cite-8, gnus-cite-9, gnus-cite-10)
+	(gnus-cite-11): Remove "-face" suffix from face names.
+	(gnus-cite-attribution-face, gnus-cite-face-1, gnus-cite-face-2)
+	(gnus-cite-face-3, gnus-cite-face-4, gnus-cite-face-5)
+	(gnus-cite-face-6, gnus-cite-face-7, gnus-cite-face-8)
+	(gnus-cite-face-9, gnus-cite-face-10, gnus-cite-face-11):
+	New backward-compatibility aliases for renamed faces.
+	(gnus-cite-attribution-face, gnus-cite-face-list)
+	(gnus-article-boring-faces): Use renamed gnus faces.
+
+	* gnus-art.el (gnus-signature, gnus-header-from)
+	(gnus-header-subject, gnus-header-newsgroups, gnus-header-name)
+	(gnus-header-content): Remove "-face" suffix from face names.
+	(gnus-signature-face, gnus-header-from-face)
+	(gnus-header-subject-face, gnus-header-newsgroups-face)
+	(gnus-header-name-face, gnus-header-content-face):
+	New backward-compatibility aliases for renamed faces.
+	(gnus-signature-face, gnus-header-face-alist): Use renamed gnus faces.
+
+	* gnus-sum.el (gnus-summary-selected-face)
+	(gnus-summary-highlight): Use renamed gnus faces.
+	* gnus-group.el (gnus-group-highlight): Likewise.
+
 2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* gnus-sieve.el (gnus-sieve-article-add-rule):

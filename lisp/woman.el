@@ -828,7 +828,7 @@ Heading emboldening is NOT standard `man' behavior."
   :group 'woman-formatting)
 
 (defcustom woman-ignore t
-  "*If non-nil then unrecognised requests etc. are ignored.  Default is t.
+  "*If non-nil then unrecognized requests etc. are ignored.  Default is t.
 This gives the standard ?roff behavior.  If nil then they are left in
 the buffer, which may aid debugging."
   :type 'boolean
@@ -2504,7 +2504,7 @@ REQUEST is the invoking directive without the leading dot."
       (setq c (memq (following-char) woman-if-conditions-true)))
      ;; Unrecognised letter so reject:
      ((looking-at "[A-Za-z]") (setq c nil)
-      (WoMan-warn "%s %s -- unrecognised condition name rejected!"
+      (WoMan-warn "%s %s -- unrecognized condition name rejected!"
 		  request (match-string 0)))
      ;; Accept strings if identical:
      ((save-restriction

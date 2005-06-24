@@ -850,22 +850,22 @@ initialized from the environment as above.
 The library provides a general gateway layer through which all
 networking passes.  It can both control access to the network and
 provide access through gateways in firewalls.  This may make direct
-connexions in some cases and pass through some sort of gateway in
+connections in some cases and pass through some sort of gateway in
 others.@footnote{Proxies (which only operate over HTTP) are
 implemented using this.}  The library's basic function responsible for
-making connexions is @code{url-open-stream}.
+making connections is @code{url-open-stream}.
 
 @defun url-open-stream name buffer host service
 @cindex opening a stream
 @cindex stream, opening
 Open a stream to @var{host}, possibly via a gateway.  The other
 arguments are as for @code{open-network-stream}.  This will not make a
-connexion if @code{url-gateway-unplugged} is non-@code{nil}.
+connection if @code{url-gateway-unplugged} is non-@code{nil}.
 @end defun
 
 @defvar url-gateway-local-host-regexp
 This is a regular expression that matches local hosts that do not
-require the use of a gateway.  If @code{nil}, all connexions are made
+require the use of a gateway.  If @code{nil}, all connections are made
 through the gateway.
 @end defvar
 
@@ -987,26 +987,26 @@ This the @samp{nslookup} program.  It is @code{"nslookup"} by default.
 @end defopt
 
 @menu
-* Suppressing network connexions::
+* Suppressing network connections::
 @end menu
 @c * Broken hostname resolution::
 
-@node Suppressing network connexions
-@subsection Suppressing Network Connexions
+@node Suppressing network connections
+@subsection Suppressing Network Connections
 
-@cindex network connexions, suppressing
-@cindex suppressing network connexions
+@cindex network connections, suppressing
+@cindex suppressing network connections
 @cindex bugs, HTML
 @cindex HTML `bugs'
 In some circumstances it is desirable to suppress making network
-connexions.  A typical case is when rendering HTML in a mail user
+connections.  A typical case is when rendering HTML in a mail user
 agent, when external URLs should not be activated, particularly to
 avoid `bugs' which `call home' by fetch single-pixel images and the
 like.  To arrange this, bind the following variable for the duration
 of such processing.
 
 @defvar url-gateway-unplugged
-If this variable is non-@code{nil} new network connexions are never
+If this variable is non-@code{nil} new network connections are never
 opened by the URL library.
 @end defvar
 
@@ -1152,7 +1152,7 @@ only if an affirmative answer is given.
 @end defopt
 @defopt url-gateway-method
 @c fixme: describe gatewaying
-A symbol specifying the type of gateway support to use fro connexions
+A symbol specifying the type of gateway support to use for connections
 from the local machine.  The supported methods are:
 
 @table @code

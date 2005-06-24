@@ -153,7 +153,7 @@ ignored.
 @tindex make-backup-file-name-function
 This variable's value is a function to use for making backups instead
 of the default @code{make-backup-file-name}.  A value of @code{nil}
-gives the default @code{make-backup-file-name} behaviour.
+gives the default @code{make-backup-file-name} behavior.
 @xref{Backup Names,, Naming Backup Files}.
 
 This could be buffer-local to do something special for specific
@@ -589,10 +589,10 @@ This function auto-saves all buffers that need to be auto-saved.  It
 saves all buffers for which auto-saving is enabled and that have been
 changed since the previous auto-save.
 
-Normally, if any buffers are auto-saved, a message that says
-@samp{Auto-saving...} is displayed in the echo area while auto-saving is
-going on.  However, if @var{no-message} is non-@code{nil}, the message
-is inhibited.
+If any buffers are auto-saved, @code{do-auto-save} normally displays a
+message saying @samp{Auto-saving...} in the echo area while
+auto-saving is going on.  However, if @var{no-message} is
+non-@code{nil}, the message is inhibited.
 
 If @var{current-only} is non-@code{nil}, only the current buffer
 is auto-saved.

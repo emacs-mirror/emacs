@@ -388,9 +388,10 @@ that."
 ;;; 				(pop-to-buffer (car location))
 ;;; 				(goto-char (cdr location))))
 			  (help-xref-button 8 'help-function-def sym))
-			 ((facep sym)
-			  (if (save-match-data (looking-at "[ \t\n]+face\\W"))
-			      (help-xref-button 8 'help-face sym)))
+			 ((and
+                           (facep sym)
+                           (save-match-data (looking-at "[ \t\n]+face\\W")))
+                          (help-xref-button 8 'help-face sym))
                          ((and (boundp sym) (fboundp sym))
                           ;; We can't intuit whether to use the
                           ;; variable or function doc -- supply both.

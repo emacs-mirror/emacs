@@ -366,7 +366,8 @@ struct glyph
 
 #define FACE_ID_BITS	21
 
-  /* Face of the glyph.  */
+  /* Face of the glyph.  This is a realized face ID,
+     an index in the face cache of the frame.  */
   unsigned face_id : FACE_ID_BITS;
 
   /* Type of font used to display the character glyph.  May be used to
@@ -1585,6 +1586,7 @@ enum face_id
   CURSOR_FACE_ID,
   MOUSE_FACE_ID,
   MENU_FACE_ID,
+  VERTICAL_BORDER_FACE_ID,
   BASIC_FACE_ID_SENTINEL
 };
 
@@ -2792,6 +2794,7 @@ int compute_char_face P_ ((struct frame *, int, Lisp_Object));
 void free_all_realized_faces P_ ((Lisp_Object));
 void free_realized_face P_ ((struct frame *, struct face *));
 extern Lisp_Object Qforeground_color, Qbackground_color;
+extern Lisp_Object Qframe_set_background_mode;
 extern char unspecified_fg[], unspecified_bg[];
 extern Lisp_Object split_font_name_into_vector P_ ((Lisp_Object));
 extern Lisp_Object build_font_name_from_vector P_ ((Lisp_Object));
@@ -2912,6 +2915,7 @@ Lisp_Object sit_for P_ ((int, int, int, int, int));
 void init_display P_ ((void));
 void syms_of_display P_ ((void));
 extern Lisp_Object Qredisplay_dont_pause;
+GLYPH spec_glyph_lookup_face P_ ((struct window *, GLYPH));
 
 /* Defined in term.c */
 

@@ -155,7 +155,7 @@
   :group 'comint)
 
 (defvar comint-prompt-regexp "^"
-  "Regexp to recognise prompts in the inferior process.
+  "Regexp to recognize prompts in the inferior process.
 Defaults to \"^\", the null string at BOL.
 
 This variable is only used if the variable
@@ -197,7 +197,7 @@ you might wish to use another binding for `comint-kill-whole-line'."
   :version "22.1")
 
 (defvar comint-delimiter-argument-list ()
-  "List of characters to recognise as separate arguments in input.
+  "List of characters to recognize as separate arguments in input.
 Strings comprising a character in this list will separate the arguments
 surrounding them, and also be regarded as arguments in their own right (unlike
 whitespace).  See `comint-arguments'.
@@ -1760,7 +1760,7 @@ Make backspaces delete the previous character."
 (defun comint-preinput-scroll-to-bottom ()
   "Go to the end of buffer in all windows showing it.
 Movement occurs if point in the selected window is not after the process mark,
-and `this-command' is an insertion command.  Insertion commands recognised
+and `this-command' is an insertion command.  Insertion commands recognized
 are `self-insert-command', `comint-magic-space', `yank', and `hilit-yank'.
 Depends on the value of `comint-scroll-to-bottom-on-input'.
 
@@ -2789,9 +2789,9 @@ See `comint-dynamic-complete-filename'.  Returns t if successful."
 
 (defun comint-replace-by-expanded-filename ()
   "Dynamically expand and complete the filename at point.
-Replace the filename with an expanded, canonicalised and completed replacement.
+Replace the filename with an expanded, canonicalized and completed replacement.
 \"Expanded\" means environment variables (e.g., $HOME) and `~'s are replaced
-with the corresponding directories.  \"Canonicalised\" means `..'  and `.' are
+with the corresponding directories.  \"Canonicalized\" means `..'  and `.' are
 removed, and the filename is made absolute instead of relative.  For expansion
 see `expand-file-name' and `substitute-in-file-name'.  For completion see
 `comint-dynamic-complete-filename'."

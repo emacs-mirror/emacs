@@ -151,9 +151,8 @@ The variable @code{fill-nobreak-predicate} is no longer customizable,
 and it can only hold a single function.
 
 @item
-Non-breaking spaces and hyphens are displayed just like normal
-characters.  The user option @code{show-nonbreak-escape} is therefore
-obsolete, and has been removed.
+Nobreak spaces and hyphens are displayed just like normal characters,
+and the user option @code{nobreak-char-display} has been removed.
 
 @item
 @kbd{C-w} in an incremental search always grabs an entire word

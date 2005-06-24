@@ -109,7 +109,7 @@
 ;;    ;; 8-bit accentuated characters) except `"', as `"' is used to delimit a
 ;;    ;; terminal.  Also, accepts escaped characters, that is, a character
 ;;    ;; pair starting with `\' followed by a printable character, for
-;;    ;; example: \", \\. 
+;;    ;; example: \", \\.
 ;;
 ;;    special = "[^?\\000-\\010\\012-\\037\\177-\\237]*".
 ;;    ;; that is, a valid special accepts any printable character (including
@@ -429,7 +429,7 @@
 
 
 (defun ebnf-bnf-lex ()
-  "Lexical analyser for EBNF.
+  "Lexical analyzer for EBNF.
 
 Return a lexical token.
 

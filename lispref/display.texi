@@ -547,15 +547,15 @@ remaining time and clearly see that Emacs is busy working, not hung.
 reporting operation progress.  Here is a working example that does
 nothing useful:
 
-@example
+@smallexample
 (let ((progress-reporter
-       (make-progress-reporter "Collecting some mana for Emacs..."
+       (make-progress-reporter "Collecting mana for Emacs..."
                                0  500)))
   (dotimes (k 500)
     (sit-for 0.01)
     (progress-reporter-update progress-reporter k))
   (progress-reporter-done progress-reporter))
-@end example
+@end smallexample
 
 @defun make-progress-reporter message min-value max-value &optional current-value min-change min-time
 This function creates and returns a @dfn{progress reporter}---an
@@ -1296,8 +1296,8 @@ A cons cell of the form @code{(foreground-color . @var{color-name})} or
 @code{(background-color . @var{color-name})}.  These elements specify
 just the foreground color or just the background color.
 
-@code{(foreground-color . @var{color-name})} is equivalent to
-@code{(:foreground @var{color-name})}, and likewise for the background.
+@code{(foreground-color . @var{color-name})} has the same effect as
+@code{(:foreground @var{color-name})}; likewise for the background.
 @end itemize
 
 @item mouse-face
@@ -1907,8 +1907,9 @@ frame must match one of the @var{value}s specified for it in
   Internally, @code{defface} uses the symbol property
 @code{face-defface-spec} to record the face attributes specified in
 @code{defface}, @code{saved-face} for the attributes saved by the user
-with the customization buffer, and @code{face-documentation} for the
-documentation string.
+with the customization buffer, @code{customized-face} for the
+attributes customized by the user for the current session, but not
+saved, and @code{face-documentation} for the documentation string.
 
 @defopt frame-background-mode
 This option, if non-@code{nil}, specifies the background type to use for
@@ -2522,6 +2523,17 @@ This returns non-@code{nil} if the face @var{face} displays
 differently from the default face.
 @end defun
 
+@cindex face alias
+A @dfn{face alias} provides an equivalent name for a face.  You can
+define a face alias by giving the alias symbol the @code{face-alias}
+property, with a value of the target face name.  The following example
+makes @var{modeline} an alias for the @var{mode-line} face.
+
+@example
+(put 'modeline 'face-alias 'mode-line)
+@end example
+
+
 @node Auto Faces
 @subsection Automatic Face Assignment
 @cindex automatic face assignment
@@ -2757,10 +2769,9 @@ For instance, this changes the default fontset to use a font of which
 registry name is @samp{JISX0208.1983} for all characters belonging to
 the charset @code{japanese-jisx0208}.
 
-@example
+@smallexample
 (set-fontset-font nil 'japanese-jisx0208 '(nil . "JISX0208.1983"))
-@end example
-
+@end smallexample
 @end defun
 
 @defun char-displayable-p char
@@ -3137,7 +3148,7 @@ single unit.  By contrast, characters that have similar but distinct
 Lisp objects as their @code{display} properties are handled
 separately.  Here's a function that illustrates this point:
 
-@example
+@smallexample
 (defun foo ()
   (goto-char (point-min))
   (dotimes (i 5)
@@ -3146,7 +3157,7 @@ separately.  Here's a function that illustrates this point:
       (forward-char 1)
       (put-text-property (point) (1+ (point)) 'display string)
       (forward-char 1))))
-@end example
+@end smallexample
 
 @noindent
 It gives each of the first ten characters in the buffer string
@@ -3158,7 +3169,7 @@ Likewise for each following pair of characters.  Thus, the ten
 characters appear as five A's.  This function would have the same
 results:
 
-@example
+@smallexample
 (defun foo ()
   (goto-char (point-min))
   (dotimes (i 5)
@@ -3166,7 +3177,7 @@ results:
       (put-text-property (point) (2+ (point)) 'display string)
       (put-text-property (point) (1+ (point)) 'display string)
       (forward-char 2))))
-@end example
+@end smallexample
 
 @noindent
 This illustrates that what matters is the property value for
@@ -3262,18 +3273,20 @@ as an absolute number of pixels.
 
   The following expressions are supported:
 
-@example
+@smallexample
 @group
   @var{expr} ::= @var{num} | (@var{num}) | @var{unit} | @var{elem} | @var{pos} | @var{image} | @var{form}
   @var{num}  ::= @var{integer} | @var{float} | @var{symbol}
   @var{unit} ::= in | mm | cm | width | height
+@end group
+@group
   @var{elem} ::= left-fringe | right-fringe | left-margin | right-margin
         |  scroll-bar | text
   @var{pos}  ::= left | center | right
   @var{form} ::= (@var{num} . @var{expr}) | (@var{op} @var{expr} ...)
   @var{op}   ::= + | -
 @end group
-@end example
+@end smallexample
 
   The form @var{num} specifies a fraction of the default frame font
 height or width.  The form @code{(@var{num})} specifies an absolute
@@ -3331,7 +3344,7 @@ in the @code{display} text property.
 Display @var{string} instead of the text that has this property.
 
 @item (image . @var{image-props})
-This display specification is an image descriptor (@pxref{Images}).
+This kind of display specification is an image descriptor (@pxref{Images}).
 When used as a display specification, it means to display the image
 instead of the text that has the display specification.
 

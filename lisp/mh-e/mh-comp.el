@@ -623,8 +623,8 @@ CONFIG is the window configuration before sending mail."
                                                )))
                       components)
                      (t
-                      (error (format "Can't find components file \"%s\""
-                                     components)))))
+                      (error "Can't find components file \"%s\""
+                             components))))
                   nil)))
       (mh-insert-fields "To:" to "Subject:" subject "Cc:" cc)
       (goto-char (point-max))

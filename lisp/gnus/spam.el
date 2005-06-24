@@ -300,7 +300,7 @@ All unmarked article in such group receive the spam mark on group entry."
   :type '(radio (const nil) regexp)
   :group 'spam)
 
-(defface spam-face
+(defface spam
   '((((class color) (type tty) (background dark))
      (:foreground "gray80" :background "gray50"))
     (((class color) (type tty) (background light))
@@ -312,8 +312,10 @@ All unmarked article in such group receive the spam mark on group entry."
     (t :inverse-video t))
   "Face for spam-marked articles."
   :group 'spam)
+;; backward-compatibility alias
+(put 'spam-face 'face-alias 'spam)
 
-(defcustom spam-face 'spam-face
+(defcustom spam-face 'spam
   "Face for spam-marked articles."
   :type 'face
   :group 'spam)
@@ -1805,8 +1807,8 @@ REMOVE not nil, remove the ADDRESSES."
   "Install the spam.el hooks and do other initialization"
   (interactive)
   (setq spam-install-hooks t)
-  ;; TODO: How do we redo this every time spam-face is customized?
-  (push '((eq mark gnus-spam-mark) . spam-face)
+  ;; TODO: How do we redo this every time the `spam' face is customized?
+  (push '((eq mark gnus-spam-mark) . spam)
 	gnus-summary-highlight)
   ;; Add hooks for loading and saving the spam stats
   (add-hook 'gnus-save-newsrc-hook 'spam-maybe-spam-stat-save)

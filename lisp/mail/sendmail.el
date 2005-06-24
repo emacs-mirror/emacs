@@ -42,6 +42,12 @@
   :prefix "mail-"
   :group 'mail)
 
+(defcustom mail-setup-with-from t
+  "Non-nil means insert `From:' field when setting up the message."
+  :type 'boolean
+  :group 'sendmail
+  :version "22.1")
+
 ;;;###autoload
 (defcustom mail-from-style 'angles "\
 *Specifies how \"From:\" fields look.
@@ -416,6 +422,8 @@ actually occur.")
   (setq mail-send-actions actions)
   (setq mail-reply-action replybuffer)
   (goto-char (point-min))
+  (if mail-setup-with-from
+      (mail-insert-from-field))
   (insert "To: ")
   (save-excursion
     (if to
@@ -884,6 +892,62 @@ instead use sendmail-coding-system to get a constant encoding
 of outgoing mails regardless of the current language environment.
 See also the function `select-message-coding-system'.")
 
+(defun mail-insert-from-field ()
+  (let* ((login user-mail-address)
+	 (fullname (user-full-name))
+	 (quote-fullname nil))
+    (if (string-match "[^\0-\177]" fullname)
+	(setq fullname (rfc2047-encode-string fullname)
+	      quote-fullname t))
+    (cond ((eq mail-from-style 'angles)
+	   (insert "From: " fullname)
+	   (let ((fullname-start (+ (point-min) 6))
+		 (fullname-end (point-marker)))
+	     (goto-char fullname-start)
+	     ;; Look for a character that cannot appear unquoted
+	     ;; according to RFC 822.
+	     (if (or (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
+					fullname-end 1)
+		     quote-fullname)
+		 (progn
+		   ;; Quote fullname, escaping specials.
+		   (goto-char fullname-start)
+		   (insert "\"")
+		   (while (re-search-forward "[\"\\]"
+					     fullname-end 1)
+		     (replace-match "\\\\\\&" t))
+		   (insert "\""))))
+	   (insert " <" login ">\n"))
+	  ((eq mail-from-style 'parens)
+	   (insert "From: " login " (")
+	   (let ((fullname-start (point)))
+	     (if quote-fullname
+		 (insert "\""))
+	     (insert fullname)
+	     (if quote-fullname
+		 (insert "\""))
+	     (let ((fullname-end (point-marker)))
+	       (goto-char fullname-start)
+	       ;; RFC 822 says \ and nonmatching parentheses
+	       ;; must be escaped in comments.
+	       ;; Escape every instance of ()\ ...
+	       (while (re-search-forward "[()\\]" fullname-end 1)
+		 (replace-match "\\\\\\&" t))
+	       ;; ... then undo escaping of matching parentheses,
+	       ;; including matching nested parentheses.
+	       (goto-char fullname-start)
+	       (while (re-search-forward
+		       "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
+		       fullname-end 1)
+		 (replace-match "\\1(\\3)" t)
+		 (goto-char fullname-start))))
+	   (insert ")\n"))
+	  ((null mail-from-style)
+	   (insert "From: " login "\n"))
+	  ((eq mail-from-style 'system-default)
+	   nil)
+	  (t (error "Invalid value for `mail-from-style'")))))
+
 (defun sendmail-send-it ()
   "Send the current mail buffer using the Sendmail package.
 This is a suitable value for `send-mail-function'.  It sends using the
@@ -980,60 +1044,7 @@ external program defined by `sendmail-program'."
 	    ;; they put one in themselves.
 	    (goto-char (point-min))
 	    (if (not (re-search-forward "^From:" delimline t))
-		(let* ((login user-mail-address)
-		       (fullname (user-full-name))
-		       (quote-fullname nil))
-		  (if (string-match "[^\0-\177]" fullname)
-		      (setq fullname (rfc2047-encode-string fullname)
-			    quote-fullname t))
-		  (cond ((eq mail-from-style 'angles)
-			 (insert "From: " fullname)
-			 (let ((fullname-start (+ (point-min) 6))
-			       (fullname-end (point-marker)))
-			   (goto-char fullname-start)
-			   ;; Look for a character that cannot appear unquoted
-			   ;; according to RFC 822.
-			   (if (or (re-search-forward "[^- !#-'*+/-9=?A-Z^-~]"
-						      fullname-end 1)
-				   quote-fullname)
-			       (progn
-				 ;; Quote fullname, escaping specials.
-				 (goto-char fullname-start)
-				 (insert "\"")
-				 (while (re-search-forward "[\"\\]"
-							   fullname-end 1)
-				   (replace-match "\\\\\\&" t))
-				 (insert "\""))))
-			 (insert " <" login ">\n"))
-			((eq mail-from-style 'parens)
-			 (insert "From: " login " (")
-			 (let ((fullname-start (point)))
-			   (if quote-fullname
-			       (insert "\""))
-			   (insert fullname)
-			   (if quote-fullname
-			       (insert "\""))
-			   (let ((fullname-end (point-marker)))
-			     (goto-char fullname-start)
-			     ;; RFC 822 says \ and nonmatching parentheses
-			     ;; must be escaped in comments.
-			     ;; Escape every instance of ()\ ...
-			     (while (re-search-forward "[()\\]" fullname-end 1)
-			       (replace-match "\\\\\\&" t))
-			     ;; ... then undo escaping of matching parentheses,
-			     ;; including matching nested parentheses.
-			     (goto-char fullname-start)
-			     (while (re-search-forward
-				     "\\(\\=\\|[^\\]\\(\\\\\\\\\\)*\\)\\\\(\\(\\([^\\]\\|\\\\\\\\\\)*\\)\\\\)"
-				     fullname-end 1)
-			       (replace-match "\\1(\\3)" t)
-			       (goto-char fullname-start))))
-			 (insert ")\n"))
-			((null mail-from-style)
-			 (insert "From: " login "\n"))
-			((eq mail-from-style 'system-default)
-			 nil)
-			(t (error "Invalid value for `mail-from-style'")))))
+		(mail-insert-from-field))
 	    ;; Possibly add a MIME header for the current coding system
 	    (let (charset)
 	      (goto-char (point-min))

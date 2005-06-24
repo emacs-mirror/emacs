@@ -4180,7 +4180,7 @@ enlarge_window (window, delta, widthflag, preserve_before)
 
 	     The number of children n equals the number of resizable
 	     children of this window + 1 because we know window itself
-	     is resizable (otherwise we would have signalled an error.  */
+	     is resizable (otherwise we would have signalled an error).  */
 
 	  struct window *w = XWINDOW (window);
 	  Lisp_Object s;

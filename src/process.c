@@ -2553,7 +2553,7 @@ DEFUN ("make-network-process", Fmake_network_process, Smake_network_process,
 In Emacs, network connections are represented by process objects, so
 input and output work as for subprocesses and `delete-process' closes
 a network connection.  However, a network process has no process id,
-it cannot be signalled, and the status codes are different from normal
+it cannot be signaled, and the status codes are different from normal
 processes.
 
 Arguments are specified as keyword/argument pairs.  The following
@@ -5833,7 +5833,7 @@ If PROCESS is a network process, inhibit handling of incoming traffic.  */)
     }
 #endif
 #ifndef SIGTSTP
-  error ("no SIGTSTP support");
+  error ("No SIGTSTP support");
 #else
   process_send_signal (process, SIGTSTP, current_group, 0);
 #endif
@@ -5867,7 +5867,7 @@ If PROCESS is a network process, resume handling of incoming traffic.  */)
 #ifdef SIGCONT
     process_send_signal (process, SIGCONT, current_group, 0);
 #else
-    error ("no SIGCONT support");
+    error ("No SIGCONT support");
 #endif
   return process;
 }

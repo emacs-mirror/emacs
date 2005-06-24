@@ -76,16 +76,20 @@ If a warning's severity level is lower than this,
 the warning is logged in the warnings buffer, but the buffer
 is not immediately displayed.  See also `warning-minimum-log-level'."
   :group 'warnings
-  :type '(choice (const :emergency) (const :error) (const :warning))
+  :type '(choice (const :emergency) (const :error)
+                 (const :warning) (const :debug))
   :version "22.1")
 (defvaralias 'display-warning-minimum-level 'warning-minimum-level)
 
 (defcustom warning-minimum-log-level :warning
   "Minimum severity level for logging a warning.
 If a warning severity level is lower than this,
-the warning is completely ignored."
+the warning is completely ignored.
+Value must be lower or equal than `warning-minimum-level',
+because warnings not logged aren't displayed either."
   :group 'warnings
-  :type '(choice (const :emergency) (const :error) (const :warning))
+  :type '(choice (const :emergency) (const :error)
+                 (const :warning) (const :debug))
   :version "22.1")
 (defvaralias 'log-warning-minimum-level 'warning-minimum-log-level)
 
@@ -203,7 +207,9 @@ or a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories, for warning purposes
 only, and you can use whatever symbols you like.)
 
-LEVEL should be either :warning, :error, or :emergency.
+LEVEL should be either :debug, :warning, :error, or :emergency
+\(but see `warning-minimum-level' and `warning-minimum-log-level').
+
 :emergency -- a problem that will seriously impair Emacs operation soon
 	      if you do not attend to it promptly.
 :error     -- data or circumstances that are inherently wrong.
@@ -223,7 +229,7 @@ See also `warning-series', `warning-prefix-function' and
   (if (assq level warning-level-aliases)
       (setq level (cdr (assq level warning-level-aliases))))
   (or (< (warning-numeric-level level)
-	 (warning-numeric-level warning-minimum-log-level))
+         (warning-numeric-level warning-minimum-log-level))
       (warning-suppress-p type warning-suppress-log-types)
       (let* ((typename (if (consp type) (car type) type))
 	     (buffer (get-buffer-create (or buffer-name "*Warnings*")))
@@ -291,11 +297,14 @@ or a list of symbols whose first element is a custom group name.
 \(The rest of the symbols represent subcategories and
 can be whatever you like.)
 
-LEVEL should be either :warning, :error, or :emergency.
+LEVEL should be either :debug, :warning, :error, or :emergency
+\(but see `warning-minimum-level' and `warning-minimum-log-level').
+
 :emergency -- a problem that will seriously impair Emacs operation soon
 	      if you do not attend to it promptly.
 :error     -- invalid data or circumstances.
-:warning   -- suspicious data or circumstances."
+:warning   -- suspicious data or circumstances.
+:debug     -- info for debugging only."
   (display-warning type (apply 'format message args) level))
 
 ;;;###autoload

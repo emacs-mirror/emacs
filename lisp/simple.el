@@ -148,7 +148,7 @@ that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
 The function EXTRA-TEST-EXCLUSIVE, if non-nil is called in each buffer
-that would normally be considered usable.  if it returns nil,
+that would normally be considered usable.  If it returns nil,
 that buffer is rejected."
   (and (buffer-name buffer)		;First make sure it's live.
        (not (and avoid-current (eq buffer (current-buffer))))
@@ -169,7 +169,7 @@ that buffer is rejected."
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
 
-The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffers
+The function EXTRA-TEST-INCLUSIVE, if non-nil, is called in each buffer
 that normally would not qualify.  If it returns t, the buffer
 in question is treated as usable.
 
@@ -327,7 +327,8 @@ location."
 Other major modes are defined by comparison with this one."
   (interactive)
   (kill-all-local-variables)
-  (run-hooks 'after-change-major-mode-hook))
+  (unless delay-mode-hooks
+    (run-hooks 'after-change-major-mode-hook)))
 
 ;; Making and deleting lines.
 
@@ -1287,7 +1288,7 @@ A redo record for ordinary undo maps to the following (earlier) undo.")
 
 (defvar pending-undo-list nil
   "Within a run of consecutive undo commands, list remaining to be undone.
-t if we undid all the way to the end of it.")
+If t, we undid all the way to the end of it.")
 
 (defun undo (&optional arg)
   "Undo some previous changes.
@@ -1399,16 +1400,16 @@ Contrary to `undo', this will not redo a previous undo."
   "Non-nil while performing an undo.
 Some change-hooks test this variable to do something different.")
 
-(defun undo-more (count)
+(defun undo-more (n)
   "Undo back N undo-boundaries beyond what was already undone recently.
 Call `undo-start' to get ready to undo recent changes,
 then call `undo-more' one or more times to undo them."
   (or (listp pending-undo-list)
-      (error (format "No further undo information%s"
-		     (if (and transient-mark-mode mark-active)
-			 " for region" ""))))
+      (error (concat "No further undo information"
+                     (and transient-mark-mode mark-active
+                          " for region"))))
   (let ((undo-in-progress t))
-    (setq pending-undo-list (primitive-undo count pending-undo-list))
+    (setq pending-undo-list (primitive-undo n pending-undo-list))
     (if (null pending-undo-list)
 	(setq pending-undo-list t))))
 
@@ -2763,7 +2764,7 @@ even beep.)"
   "Kill current line.
 With prefix arg, kill that many lines starting from the current line.
 If arg is negative, kill backward.  Also kill the preceding newline.
-\(This is meant to make C-x z work well with negative arguments.\)
+\(This is meant to make \\[repeat] work well with negative arguments.\)
 If arg is zero, kill current line but exclude the trailing newline."
   (interactive "p")
   (if (and (> arg 0) (eobp) (save-excursion (forward-visible-line 0) (eobp)))
@@ -3432,18 +3433,28 @@ Outline mode sets this."
 		;; Now move a line.
 		(end-of-line)
 		;; If there's no invisibility here, move over the newline.
-		(if (and (not (integerp selective-display))
-			 (not (line-move-invisible-p (point))))
+		(let ((pos-before (point))
+		      line-done)
+		  (if (eobp)
+		      (if (not noerror)
+			  (signal 'end-of-buffer nil)
+			(setq done t)))
+		  (when (and (not done)
+			     (not (integerp selective-display))
+			     (not (line-move-invisible-p (point))))
 		    ;; We avoid vertical-motion when possible
 		    ;; because that has to fontify.
-		    (if (eobp)
-			(if (not noerror)
-			    (signal 'end-of-buffer nil)
-			  (setq done t))
-		      (forward-line 1))
+		    (forward-line 1)
+		    ;; If there are overlays in and around
+		    ;; the text we moved over, we need to be
+		    ;; sophisticated.
+		    (unless (overlays-in (max (1- pos-before) (point-min))
+					 (min (1+ (point)) (point-max)))
+		      (setq line-done t)))
 		  ;; Otherwise move a more sophisticated way.
 		  ;; (What's the logic behind this code?)
-		  (and (zerop (vertical-motion 1))
+		  (and (not done) (not line-done)
+		       (zerop (vertical-motion 1))
 		       (if (not noerror)
 			   (signal 'end-of-buffer nil)
 			 (setq done t))))
@@ -3453,18 +3464,24 @@ Outline mode sets this."
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-		(if (or (bobp)
-			(and (not (integerp selective-display))
-			     (not (line-move-invisible-p (1- (point))))))
-		    (if (bobp)
-			(if (not noerror)
-			    (signal 'beginning-of-buffer nil)
-			  (setq done t))
-		      (forward-line -1))
-		  (if (zerop (vertical-motion -1))
+		(let ((pos-before (point))
+		      line-done)
+		  (if (bobp)
 		      (if (not noerror)
 			  (signal 'beginning-of-buffer nil)
-			(setq done t))))
+			(setq done t)))
+		  (when (and (not done)
+			     (not (integerp selective-display))
+			     (not (line-move-invisible-p (1- (point)))))
+		    (forward-line -1)
+		    (unless (overlays-in (max (1- (point)) (point-min))
+					 (min (1+ pos-before) (point-max)))
+		      (setq line-done t)))
+		  (and (not done) (not line-done)
+		       (zerop (vertical-motion -1))
+		       (if (not noerror)
+			   (signal 'beginning-of-buffer nil)
+			 (setq done t))))
 		(unless done
 		  (setq arg (1+ arg))
 		  (while (and ;; Don't move over previous invis lines
@@ -3924,9 +3941,7 @@ If optional arg REALLY-WORD is non-nil, it finds just a word."
 
 This function is only called during auto-filling of a comment section.
 The function should take a single optional argument, which is a flag
-indicating whether it should use soft newlines.
-
-Setting this variable automatically makes it local to the current buffer.")
+indicating whether it should use soft newlines.")
 
 ;; This function is used as the auto-fill-function of a buffer
 ;; when Auto-Fill mode is enabled.
@@ -4505,10 +4520,11 @@ Each action has the form (FUNCTION . ARGS)."
 (defvar set-variable-value-history nil
   "History of values entered with `set-variable'.")
 
-(defun set-variable (var val &optional make-local)
+(defun set-variable (variable value &optional make-local)
   "Set VARIABLE to VALUE.  VALUE is a Lisp object.
-When using this interactively, enter a Lisp object for VALUE.
-If you want VALUE to be a string, you must surround it with doublequotes.
+VARIABLE should be a user option variable name, a Lisp variable
+meant to be customized by users.  You should enter VALUE in Lisp syntax,
+so if you want VALUE to be a string, you must surround it with doublequotes.
 VALUE is used literally, not evaluated.
 
 If VARIABLE has a `variable-interactive' property, that is used as if
@@ -4521,9 +4537,9 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
   (interactive
    (let* ((default-var (variable-at-point))
           (var (if (symbolp default-var)
-                   (read-variable (format "Set variable (default %s): " default-var)
-                                  default-var)
-                 (read-variable "Set variable: ")))
+			(read-variable (format "Set variable (default %s): " default-var)
+				       default-var)
+		      (read-variable "Set variable: ")))
 	  (minibuffer-help-form '(describe-variable var))
 	  (prop (get var 'variable-interactive))
 	  (prompt (format "Set %s%s to value: " var
@@ -4544,22 +4560,22 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 			       'set-variable-value-history)))))
      (list var val current-prefix-arg)))
 
-  (and (custom-variable-p var)
-       (not (get var 'custom-type))
-       (custom-load-symbol var))
-  (let ((type (get var 'custom-type)))
+  (and (custom-variable-p variable)
+       (not (get variable 'custom-type))
+       (custom-load-symbol variable))
+  (let ((type (get variable 'custom-type)))
     (when type
       ;; Match with custom type.
       (require 'cus-edit)
       (setq type (widget-convert type))
-      (unless (widget-apply type :match val)
+      (unless (widget-apply type :match value)
 	(error "Value `%S' does not match type %S of %S"
-	       val (car type) var))))
+	       value (car type) variable))))
 
   (if make-local
-      (make-local-variable var))
+      (make-local-variable variable))
 
-  (set var val)
+  (set variable value)
 
   ;; Force a thorough redisplay for the case that the variable
   ;; has an effect on the display, like `tab-width' has.
@@ -4842,7 +4858,7 @@ of the differing parts is, by contrast, slightly highlighted."
 	(if (minibufferp mainbuf)
 	    (if (and (symbolp minibuffer-completion-table)
 		     (get minibuffer-completion-table 'completion-base-size-function))
-		(setq completion-base-size 
+		(setq completion-base-size
 		      (funcall (get minibuffer-completion-table 'completion-base-size-function)))
 	      (setq completion-base-size 0))))
       ;; Put faces on first uncommon characters and common parts.
@@ -5115,7 +5131,7 @@ after it has been set up properly in other respects."
 (defun clone-indirect-buffer (newname display-flag &optional norecord)
   "Create an indirect buffer that is a twin copy of the current buffer.
 
-Give the indirect buffer name NEWNAME.  Interactively, read NEW-NAME
+Give the indirect buffer name NEWNAME.  Interactively, read NEWNAME
 from the minibuffer when invoked with a prefix arg.  If NEWNAME is nil
 or if not called with a prefix arg, NEWNAME defaults to the current
 buffer's name.  The name is modified by adding a `<N>' suffix to it

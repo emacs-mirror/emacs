@@ -9,7 +9,7 @@
 
 @dircategory Emacs
 @direntry
-* Org Mode: (org).	Outline-based notes management and organizer 
+* Org Mode: (org).	Outline-based notes management and organizer
 @end direntry
 
 @c Version and Contact Info
@@ -264,7 +264,7 @@ MY PROJECTS    -*- mode: org; -*-
 
 @noindent which will select Org-mode for this buffer no matter what
 the file's name is.  See also the variable
-@code{org-insert-mode-line-in-empty-file'}. 
+@code{org-insert-mode-line-in-empty-file'}.
 
 @node Feedback,  , Installation and Activation, Introduction
 @section Feedback
@@ -710,7 +710,7 @@ above.
 @kindex C-c ?
 @item C-c ?
 Which table column is the cursor in?  Displays number >0 in echo
-area. 
+area.
 
 @cindex region, active
 @cindex active region
@@ -721,8 +721,8 @@ Sum the numbers in the current column, or in the rectangle defined by
 the active region.  The result is displayed in the echo area and can
 be inserted with @kbd{C-y}.
 
-@kindex S-@key{RET}         
-@item S-@key{RET}         
+@kindex S-@key{RET}
+@item S-@key{RET}
 When current field is empty, copy from first non-empty field above.
 When not empty, copy current field down to next row and move cursor
 along with it.  Depending on the variable
@@ -954,7 +954,7 @@ cycling (@key{TAB}) to find a better place.  Pressing @key{RET} or
 @item on headline @tab @key{RET} @tab as sublevel of the heading at cursor
 @item             @tab @key{left}  @tab as same level, before current heading
 @item             @tab @key{right} @tab as same level, after current heading
-@item not on headline @tab @key{RET} 
+@item not on headline @tab @key{RET}
       @tab at cursor position, level taken from context.
            Or use prefix arg to specify level manually.
 @end multitable
@@ -969,8 +969,8 @@ Before inserting the text into a tree, the function ensures that the
 text has a headline, i.e. a first line that starts with a @samp{*}.
 If not, a headline is constructed from the current date and some
 additional data.  If the variable @code{org-adapt-indentation} is
-non-nil, the entire text is also indented so that it starts in the
-same column as the headline (after the asterisks).
+non-@code{nil}, the entire text is also indented so that it starts in
+the same column as the headline (after the asterisks).
 
 @node TODO items, Timestamps, Hyperlinks, Top
 @chapter TODO items
@@ -1125,7 +1125,7 @@ in the line to make the changes known to Org-mode@footnote{Org-mode
 parses these lines only when Org-mode is activated after visiting a
 file.  @kbd{C-c C-c} with the cursor in a line starting with @samp{#-}
 is simply restarting Org-mode, making sure that these changes will be
-respected.}. 
+respected.}.
 
 If you want to use very many keywords, for example when working with a
 large group of people, you may split the names over several lines:
@@ -1578,7 +1578,7 @@ Previous line (same as @key{down}).
 @kindex mouse-3
 @kindex @key{SPC}
 @item mouse-3
-@itemx @key{SPC} 
+@itemx @key{SPC}
 Display the original location of the item in another window.
 
 @kindex l
@@ -1680,7 +1680,7 @@ Change the time stamp associated with the current line by one day into
 the future.  With prefix argument, change it by that many days.  For
 example, @kbd{3 6 5 S-@key{right}} will change it by a year.  The
 stamp is changed in the original org file, but the change is not
-directly reflected in the agenda buffer.  Use the 
+directly reflected in the agenda buffer.  Use the
 @kbd{r} key to update the buffer.
 
 @kindex S-@key{left}
@@ -1859,16 +1859,16 @@ creates only top level headlines and does the rest as items.
 @cindex active region
 @cindex transient-mark-mode
 @table @kbd
-@kindex C-c C-x a    
+@kindex C-c C-x a
 @item C-c C-x a
 Export as ASCII file.  If there is an active region, only the region
 will be exported.  For an org file @file{myfile.org}, the ASCII file
 will be @file{myfile.txt}.  The file will be overwritten without
 warning.
-@kindex C-c C-x h    
+@kindex C-c C-x h
 @item C-c C-x h
 Export as HTML file @file{myfile.html}.
-@kindex C-c C-x C-h  
+@kindex C-c C-x C-h
 @item C-c C-x C-h
 Export as HTML file and open it with a browser.
 @kindex C-c C-x t
@@ -1914,7 +1914,7 @@ horizontal separator line will be formatted as table header fields.
 @cindex fixed width
 @item
 Lines starting with @samp{:} are typeset in a fixed-width font, to
-allow quoting of computer code etc. 
+allow quoting of computer code etc.
 
 @cindex HTML tags
 @item
@@ -1936,7 +1936,7 @@ additional information.  These lines may be put anywhere in the file.
 The whole set of lines can be inserted into the buffer with @kbd{C-c
 C-x t}.  For individual lines, a good way to make sure the keyword is
 correct it to type @samp{#+} and then use @kbd{M-@key{TAB}} completion
-(@pxref{Completion}). 
+(@pxref{Completion}).
 
 @example
 #+TITLE:     the title to be shown (default is the buffer name)
@@ -2162,7 +2162,7 @@ S-RET   -> C-S-RET
 @end example
 Yes, these are unfortunately more difficult to remember.  If you want
 to have other replacement keys, look at the variable
-@code{org-disputed-keys}. 
+@code{org-disputed-keys}.
 
 @end table
 
@@ -2174,30 +2174,30 @@ Here is a list of things which should work differently, but which I
 have found too hard to fix.
 
 @itemize @bullet
-@item 
+@item
 If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
 filling is correctly disabled.  However, if some text directly
 (without an empty line in between) preceeds or follws a table, calling
 @code{fill-paragraph} in that text will also fill the table like
 normal text.  Also, @code{fill-region} does bypass the
 @code{fill-paragraph} code and will fill tables like normal text.
-@item 
+@item
 When the application called by @kbd{C-c C-o} to open a file link fails
 (for example because the application does not exits or refuses to open
 the file), it does so silently.  No error message is displayed.
-@item 
+@item
 Under XEmacs, if Org-mode entries are included into the diary, it is
 not possible to jump back from the diary to the org file.  Apparently,
 the text properties are lost when the fancy-diary-display is used.
 However, from Org-mode's timeline and agenda buffers (created with
 @kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
-@item 
+@item
 Linux should also have a default viewer application, using mailcap.
 Maybe we can use GNUS or VM mime code?  Or dired's guessing commands?
 Any hints (or even patches) are appreciated.
-@item 
+@item
 When you write @samp{x = a /b/ c}, b will be exported in italics.
-@item 
+@item
 The exporters work well, but could be made more efficient.
 @end itemize
 

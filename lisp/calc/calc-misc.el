@@ -1,4 +1,4 @@
-;;; calc-misc.el --- miscellaenous functions for Calc
+;;; calc-misc.el --- miscellaneous functions for Calc
 
 ;; Copyright (C) 1990, 1991, 1992, 1993, 2001, 2005 Free Software Foundation, Inc.
 

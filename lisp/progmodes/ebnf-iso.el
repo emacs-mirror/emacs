@@ -389,7 +389,7 @@
 
 
 (defun ebnf-iso-lex ()
-  "Lexical analyser for ISO EBNF.
+  "Lexical analyzer for ISO EBNF.
 
 Return a lexical token.
 

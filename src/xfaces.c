@@ -320,15 +320,15 @@ Lisp_Object Qunspecified;
 char unspecified_fg[] = "unspecified-fg", unspecified_bg[] = "unspecified-bg";
 
 /* The name of the function to call when the background of the frame
-   has changed, frame_update_face_colors.  */
+   has changed, frame_set_background_mode.  */
 
-Lisp_Object Qframe_update_face_colors;
+Lisp_Object Qframe_set_background_mode;
 
 /* Names of basic faces.  */
 
 Lisp_Object Qdefault, Qtool_bar, Qregion, Qfringe;
 Lisp_Object Qheader_line, Qscroll_bar, Qcursor, Qborder, Qmouse, Qmenu;
-Lisp_Object Qmode_line_inactive;
+Lisp_Object Qmode_line_inactive, Qvertical_border;
 extern Lisp_Object Qmode_line;
 
 /* The symbol `face-alias'.  A symbols having that property is an
@@ -4596,10 +4596,10 @@ update_face_from_frame_parameter (f, param, new_value)
       Lisp_Object frame;
 
       /* Changing the background color might change the background
-	 mode, so that we have to load new defface specs.  Call
-	 frame-update-face-colors to do that.  */
+	 mode, so that we have to load new defface specs.
+	 Call frame-set-background-mode to do that.  */
       XSETFRAME (frame, f);
-      call1 (Qframe_update_face_colors, frame);
+      call1 (Qframe_set_background_mode, frame);
 
       face = Qdefault;
       lface = lface_from_face_name (f, face, 1);
@@ -6061,7 +6061,7 @@ x_supports_face_attributes_p (f, attrs, def_face)
       face = FACE_FROM_ID (f, face_id);
 
       if (! face)
-	error ("cannot make face");
+	error ("Cannot make face");
 
       /* If the font is the same, then not supported.  */
       if (face->font == def_face->font)
@@ -7075,6 +7075,7 @@ realize_basic_faces (f)
       realize_named_face (f, Qcursor, CURSOR_FACE_ID);
       realize_named_face (f, Qmouse, MOUSE_FACE_ID);
       realize_named_face (f, Qmenu, MENU_FACE_ID);
+      realize_named_face (f, Qvertical_border, VERTICAL_BORDER_FACE_ID);
 
       /* Reflect changes in the `menu' face in menu bars.  */
       if (FRAME_FACE_CACHE (f)->menu_face_changed_p)
@@ -8090,8 +8091,8 @@ syms_of_xfaces ()
   staticpro (&Qface_no_inherit);
   Qbitmap_spec_p = intern ("bitmap-spec-p");
   staticpro (&Qbitmap_spec_p);
-  Qframe_update_face_colors = intern ("frame-update-face-colors");
-  staticpro (&Qframe_update_face_colors);
+  Qframe_set_background_mode = intern ("frame-set-background-mode");
+  staticpro (&Qframe_set_background_mode);
 
   /* Lisp face attribute keywords.  */
   QCfamily = intern (":family");
@@ -8217,6 +8218,8 @@ syms_of_xfaces ()
   staticpro (&Qmouse);
   Qmode_line_inactive = intern ("mode-line-inactive");
   staticpro (&Qmode_line_inactive);
+  Qvertical_border = intern ("vertical-border");
+  staticpro (&Qvertical_border);
   Qtty_color_desc = intern ("tty-color-desc");
   staticpro (&Qtty_color_desc);
   Qtty_color_standard_values = intern ("tty-color-standard-values");

@@ -745,8 +745,8 @@ never chosen automatically.
 automatically by setting the variable @code{adaptive-fill-function} to a
 function.  This function is called with point after the left margin of a
 line, and it should return the appropriate fill prefix based on that
-line.  If it returns @code{nil}, that means it sees no fill prefix in
-that line.
+line.  If it returns @code{nil}, @code{adaptive-fill-regexp} gets
+a chance to find a prefix.
 
 @node Longlines
 @subsection Long Lines Mode

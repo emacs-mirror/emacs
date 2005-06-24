@@ -298,7 +298,7 @@ respectively.
 If you connect to the internet via a dialup connection, or for some
 other reason don't have permanent internet connection, sending mail
 will fail when you are not connected.  The SMTP library implements
-queued delivery, and the following variable control its behaviour.
+queued delivery, and the following variable control its behavior.
 
 @table @code
 @item smtpmail-queue-mail
@@ -345,7 +345,7 @@ unless your server complains.
   The variable @code{smtpmail-sendto-domain} makes the SMTP library
 add @samp{@@} and the specified value to recipients specified in the
 message when they are sent using the @code{RCPT TO} command.  Some
-configurations of sendmail requires this behaviour.  Don't bother to
+configurations of sendmail requires this behavior.  Don't bother to
 set this unless you have get an error like:
 
 @example

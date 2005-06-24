@@ -1124,7 +1124,7 @@ starting with `not' and followed by regexps."
     table)
   "Syntax table used while in Message mode.")
 
-(defface message-header-to-face
+(defface message-header-to
   '((((class color)
       (background dark))
      (:foreground "green2" :bold t))
@@ -1135,8 +1135,10 @@ starting with `not' and followed by regexps."
      (:bold t :italic t)))
   "Face used for displaying From headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-to-face 'face-alias 'message-header-to)
 
-(defface message-header-cc-face
+(defface message-header-cc
   '((((class color)
       (background dark))
      (:foreground "green4" :bold t))
@@ -1147,8 +1149,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying Cc headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-cc-face 'face-alias 'message-header-cc)
 
-(defface message-header-subject-face
+(defface message-header-subject
   '((((class color)
       (background dark))
      (:foreground "green3"))
@@ -1159,8 +1163,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying subject headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-subject-face 'face-alias 'message-header-subject)
 
-(defface message-header-newsgroups-face
+(defface message-header-newsgroups
   '((((class color)
       (background dark))
      (:foreground "yellow" :bold t :italic t))
@@ -1171,8 +1177,10 @@ starting with `not' and followed by regexps."
      (:bold t :italic t)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-newsgroups-face 'face-alias 'message-header-newsgroups)
 
-(defface message-header-other-face
+(defface message-header-other
   '((((class color)
       (background dark))
      (:foreground "#b00000"))
@@ -1183,8 +1191,10 @@ starting with `not' and followed by regexps."
      (:bold t :italic t)))
   "Face used for displaying newsgroups headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-other-face 'face-alias 'message-header-other)
 
-(defface message-header-name-face
+(defface message-header-name
   '((((class color)
       (background dark))
      (:foreground "DarkGreen"))
@@ -1195,8 +1205,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying header names."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-name-face 'face-alias 'message-header-name)
 
-(defface message-header-xheader-face
+(defface message-header-xheader
   '((((class color)
       (background dark))
      (:foreground "blue"))
@@ -1207,8 +1219,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying X-Header headers."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-header-xheader-face 'face-alias 'message-header-xheader)
 
-(defface message-separator-face
+(defface message-separator
   '((((class color)
       (background dark))
      (:foreground "blue3"))
@@ -1219,8 +1233,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying the separator."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-separator-face 'face-alias 'message-separator)
 
-(defface message-cited-text-face
+(defface message-cited-text
   '((((class color)
       (background dark))
      (:foreground "red"))
@@ -1231,8 +1247,10 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying cited text names."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-cited-text-face 'face-alias 'message-cited-text)
 
-(defface message-mml-face
+(defface message-mml
   '((((class color)
       (background dark))
      (:foreground "ForestGreen"))
@@ -1243,6 +1261,8 @@ starting with `not' and followed by regexps."
      (:bold t)))
   "Face used for displaying MML."
   :group 'message-faces)
+;; backward-compatibility alias
+(put 'message-mml-face 'face-alias 'message-mml)
 
 (defun message-font-lock-make-header-matcher (regexp)
   (let ((form
@@ -1266,41 +1286,41 @@ starting with `not' and followed by regexps."
   (let ((content "[ \t]*\\(.+\\(\n[ \t].*\\)*\\)\n?"))
     `((,(message-font-lock-make-header-matcher
 	 (concat "^\\([Tt]o:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-to-face nil t))
+       (1 'message-header-name)
+       (2 'message-header-to nil t))
       (,(message-font-lock-make-header-matcher
 	 (concat "^\\(^[GBF]?[Cc][Cc]:\\|^[Rr]eply-[Tt]o:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-cc-face nil t))
+       (1 'message-header-name)
+       (2 'message-header-cc nil t))
       (,(message-font-lock-make-header-matcher
 	 (concat "^\\([Ss]ubject:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-subject-face nil t))
+       (1 'message-header-name)
+       (2 'message-header-subject nil t))
       (,(message-font-lock-make-header-matcher
 	 (concat "^\\([Nn]ewsgroups:\\|Followup-[Tt]o:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-newsgroups-face nil t))
+       (1 'message-header-name)
+       (2 'message-header-newsgroups nil t))
       (,(message-font-lock-make-header-matcher
 	 (concat "^\\([A-Z][^: \n\t]+:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-other-face nil t))
+       (1 'message-header-name)
+       (2 'message-header-other nil t))
       (,(message-font-lock-make-header-matcher
 	 (concat "^\\(X-[A-Za-z0-9-]+:\\|In-Reply-To:\\)" content))
-       (1 'message-header-name-face)
-       (2 'message-header-name-face))
+       (1 'message-header-name)
+       (2 'message-header-name))
       ,@(if (and mail-header-separator
 		 (not (equal mail-header-separator "")))
 	    `((,(concat "^\\(" (regexp-quote mail-header-separator) "\\)$")
-	       1 'message-separator-face))
+	       1 'message-separator))
 	  nil)
       ((lambda (limit)
 	 (re-search-forward (concat "^\\("
 				    message-cite-prefix-regexp
 				    "\\).*")
 			    limit t))
-       (0 'message-cited-text-face))
+       (0 'message-cited-text))
       ("<#/?\\(multipart\\|part\\|external\\|mml\\|secure\\)[^>]*>"
-       (0 'message-mml-face))))
+       (0 'message-mml))))
   "Additional expressions to highlight in Message mode.")
 
 

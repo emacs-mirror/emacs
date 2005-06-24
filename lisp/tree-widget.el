@@ -618,14 +618,7 @@ IGNORE other arguments."
          (flags (widget-get tree :tree-widget--guide-flags))
          (indent (widget-get tree :indent))
          children buttons)
-    (and indent
-         (null flags)
-         (save-restriction
-           (widen)
-           (or (bolp)
-               (and (eq (char-before) ?<)
-                    (save-excursion
-                      (backward-char) (bolp)))))
+    (and indent (not (widget-get tree :parent))
          (insert-char ?\  indent))
     (if (widget-get tree :open)
 ;;;; Unfolded node.

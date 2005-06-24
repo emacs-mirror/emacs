@@ -168,67 +168,77 @@ If nil, a faster, but more primitive, buffer is used instead."
     "\C-c\C-i" gnus-info-find-node
     "\C-c\C-b" gnus-bug))
 
-(defface gnus-server-agent-face
+(defface gnus-server-agent
   '((((class color) (background light)) (:foreground "PaleTurquoise" :bold t))
     (((class color) (background dark)) (:foreground "PaleTurquoise" :bold t))
     (t (:bold t)))
   "Face used for displaying AGENTIZED servers"
   :group 'gnus-server-visual)
+;; backward-compatibility alias
+(put 'gnus-server-agent-face 'face-alias 'gnus-server-agent)
 
-(defface gnus-server-opened-face
+(defface gnus-server-opened
   '((((class color) (background light)) (:foreground "Green3" :bold t))
     (((class color) (background dark)) (:foreground "Green1" :bold t))
     (t (:bold t)))
   "Face used for displaying OPENED servers"
   :group 'gnus-server-visual)
+;; backward-compatibility alias
+(put 'gnus-server-opened-face 'face-alias 'gnus-server-opened)
 
-(defface gnus-server-closed-face
+(defface gnus-server-closed
   '((((class color) (background light)) (:foreground "Steel Blue" :italic t))
     (((class color) (background dark))
      (:foreground "Light Steel Blue" :italic t))
     (t (:italic t)))
   "Face used for displaying CLOSED servers"
   :group 'gnus-server-visual)
+;; backward-compatibility alias
+(put 'gnus-server-closed-face 'face-alias 'gnus-server-closed)
 
-(defface gnus-server-denied-face
+(defface gnus-server-denied
   '((((class color) (background light)) (:foreground "Red" :bold t))
     (((class color) (background dark)) (:foreground "Pink" :bold t))
     (t (:inverse-video t :bold t)))
   "Face used for displaying DENIED servers"
   :group 'gnus-server-visual)
+;; backward-compatibility alias
+(put 'gnus-server-denied-face 'face-alias 'gnus-server-denied)
 
-(defface gnus-server-offline-face
+(defface gnus-server-offline
   '((((class color) (background light)) (:foreground "Orange" :bold t))
     (((class color) (background dark)) (:foreground "Yellow" :bold t))
     (t (:inverse-video t :bold t)))
   "Face used for displaying OFFLINE servers"
   :group 'gnus-server-visual)
+;; backward-compatibility alias
+(put 'gnus-server-offline-face 'face-alias 'gnus-server-offline)
 
-(defcustom gnus-server-agent-face 'gnus-server-agent-face
+(defcustom gnus-server-agent-face 'gnus-server-agent
   "Face name to use on AGENTIZED servers."
   :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
-(defcustom gnus-server-opened-face 'gnus-server-opened-face
+(defcustom gnus-server-opened-face 'gnus-server-opened
   "Face name to use on OPENED servers."
   :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
-(defcustom gnus-server-closed-face 'gnus-server-closed-face
+(defcustom gnus-server-closed-face 'gnus-server-closed
   "Face name to use on CLOSED servers."
   :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
-(defcustom gnus-server-denied-face 'gnus-server-denied-face
+(defcustom gnus-server-denied-face 'gnus-server-denied
   "Face name to use on DENIED servers."
   :version "22.1"
   :group 'gnus-server-visual
   :type 'face)
 
-(defcustom gnus-server-offline-face 'gnus-server-offline-face
+(defcustom gnus-server-offline-face 'gnus-server-offline
   "Face name to use on OFFLINE servers."
   :version "22.1"
   :group 'gnus-server-visual

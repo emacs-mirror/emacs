@@ -1497,10 +1497,10 @@ of justification.  It can be @code{left}, @code{right}, @code{full},
 follow specified justification style (see @code{current-justification},
 below).  @code{nil} means to do full justification.
 
-If @var{eop} is non-@code{nil}, that means do left-justification if
-@code{current-justification} specifies full justification.  This is used
-for the last line of a paragraph; even if the paragraph as a whole is
-fully justified, the last line should not be.
+If @var{eop} is non-@code{nil}, that means do only left-justification
+if @code{current-justification} specifies full justification.  This is
+used for the last line of a paragraph; even if the paragraph as a
+whole is fully justified, the last line should not be.
 
 If @var{nosqueeze} is non-@code{nil}, that means do not change interior
 whitespace.
@@ -1727,12 +1727,11 @@ Adaptive Fill mode matches this regular expression against the text
 starting after the left margin whitespace (if any) on a line; the
 characters it matches are that line's candidate for the fill prefix.
 
-The default value of this variable is
-@w{@samp{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}}.  This
-matches a number enclosed in parentheses or followed by a period,
-or certain punctuation characters, or any sequence of these
-intermingled with whitespace.  In particular, it matches a sequence of
-whitespace, possibly empty.
+@w{@samp{"[ \t]*\\([-|#;>*]+[ \t]*\\|(?[0-9]+[.)][ \t]*\\)*"}} is the
+default value.  This matches a number enclosed in parentheses or
+followed by a period, or certain punctuation characters, or any
+sequence of these intermingled with whitespace.  In particular, it
+matches a sequence of whitespace, possibly empty.
 @end defopt
 
 @defopt adaptive-fill-first-line-regexp
@@ -2969,7 +2968,8 @@ A cons cell of the form @code{(foreground-color . @var{color-name})} or
 just the foreground color or just the background color.
 
 @code{(foreground-color . @var{color-name})} is equivalent to
-@code{(:foreground @var{color-name})}, and likewise for the background.
+specifying @code{(:foreground @var{color-name})}, and likewise for the
+background.
 @end itemize
 
 You can use Font Lock Mode (@pxref{Font Lock Mode}), to dynamically
@@ -3529,7 +3529,7 @@ buffer.
 graphical applications use @key{Mouse-1} for following links.  For
 compatibility, @key{Mouse-1} follows links in Emacs too, when you
 click on a link quickly without moving the mouse.  The user can
-customize this behaviour through the variable
+customize this behavior through the variable
 @code{mouse-1-click-follows-link}.
 
   To define text as a link at the Lisp level, you should bind the
@@ -3561,9 +3561,9 @@ The action code is always @code{t}.
 
 For example, here is how Info mode handles @key{Mouse-1}:
 
-@example
+@smallexample
 (define-key Info-mode-map [follow-link] 'mouse-face)
-@end example
+@end smallexample
 
 @item a function
 If the condition is a valid function, @var{func}, then a position
@@ -3574,11 +3574,11 @@ action code.
 For example, here is how pcvs enables @key{Mouse-1} to follow links on
 file names only:
 
-@example
+@smallexample
 (define-key map [follow-link]
   (lambda (pos)
-    (if (eq (get-char-property pos 'face) 'cvs-filename-face) t)))
-@end example
+    (eq (get-char-property pos 'face) 'cvs-filename-face)))
+@end smallexample
 
 @item anything else
 If the condition value is anything else, then the position is inside a

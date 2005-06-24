@@ -766,9 +766,9 @@ appears between the position information and the major mode.
 *** New face `escape-glyph' highlights control characters and escape glyphs.
 
 +++
-*** Non-breaking space and hyphens are now prefixed with an escape
-character, unless the new user variable `show-nonbreak-escape' is set
-to nil.
+*** Non-breaking space and hyphens are now displayed with a special
+face, either nobreak-space or escape-glyph.  You can turn this off or
+specify a different mode by setting the variable `nobreak-char-display'.
 
 +++
 *** The parameters of automatic hscrolling can now be customized.
@@ -2057,7 +2057,7 @@ exceptions are M-a (c-beginning-of-statement) and M-e
 
 The notion of "defun" has been augmented to include AWK pattern-action
 pairs.  C-M-a (c-awk-beginning-of-defun) and C-M-e (c-awk-end-of-defun)
-recognise these pattern-action pairs, as well as user defined
+recognize these pattern-action pairs, as well as user defined
 functions.
 
 **** Auto-newline Insertion and Clean-ups
@@ -2094,7 +2094,7 @@ cells.  E.g. a line that previously had the syntactic analysis
 
 ((inclass . 11) (topmost-intro . 13))
 
-is now analysed as
+is now analyzed as
 
 ((inclass 11) (topmost-intro 13))
 
@@ -2617,7 +2617,7 @@ per line.  Lines beginning with space or tab are ignored.
 
 Previously, only the `template' and `class' keywords had this effect.
 
-**** The GCC __attribute__ keyword is now recognised and ignored.
+**** The GCC __attribute__ keyword is now recognized and ignored.
 
 **** New language HTML.
 
@@ -3617,10 +3617,7 @@ accepts such a list for restoring the match state.
 +++
 *** Functions `match-data' and `set-match-data' now have an optional
 argument `reseat'.  When non-nil, all markers in the match data list
-passed to these function will be reseated to point to nowhere, and if
-the value of `reseat' is `evaporate', the markers are put onto the
-free list.  Note that no other references to those markers must exist
-if `evaporate' is specified for the `reseat' argument.
+passed to these function will be reseated to point to nowhere.
 
 +++
 *** The default value of `sentence-end' is now defined using the new
@@ -3708,6 +3705,7 @@ of text properties as well as the character code.
 *** `syntax-class' extracts the class of a syntax code (as returned
 by `syntax-after').
 
++++
 *** The new function `syntax-ppss' rovides an efficient way to find the
 current syntactic context at point.
 
@@ -4016,7 +4014,7 @@ function is still supported, but new code should use the new
 functions.
 
 *** Function `signal-process' now accepts a process object or process
-name in addition to a process id to identify the signalled process.
+name in addition to a process id to identify the signaled process.
 
 *** Processes now have an associated property list where programs can
 maintain process state and other per-process related information.
@@ -5001,6 +4999,7 @@ such things as help and apropos buffers.
 of hierarchical data as an outline.  For example, the tree-widget is
 well suited to display a hierarchy of directories and files.
 
++++
 ** The new library bindat.el provides functions to unpack and pack
 binary data structures, such as network packets, to and from Lisp
 data structures.
@@ -13382,10 +13381,10 @@ not by default.  Use --members to turn this feature on.
 *** C++ member functions are now recognized as tags.
 
 *** Java is tagged like C++.  In addition, "extends" and "implements"
-constructs are tagged.  Files are recognised by the extension .java.
+constructs are tagged.  Files are recognized by the extension .java.
 
 *** Etags can now handle programs written in Postscript.  Files are
-recognised by the extensions .ps and .pdb (Postscript with C syntax).
+recognized by the extensions .ps and .pdb (Postscript with C syntax).
 In Postscript, tags are lines that start with a slash.
 
 *** Etags now handles Objective C and Objective C++ code.  The usual C and
@@ -13393,7 +13392,7 @@ C++ tags are recognized in these languages; in addition, etags
 recognizes special Objective C syntax for classes, class categories,
 methods and protocols.
 
-*** Etags also handles Cobol.  Files are recognised by the extension
+*** Etags also handles Cobol.  Files are recognized by the extension
 .cobol.  The tagged lines are those containing a word that begins in
 column 8 and ends in a full stop, i.e. anything that could be a
 paragraph name.

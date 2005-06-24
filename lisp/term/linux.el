@@ -4,6 +4,9 @@
 (unless (terminal-coding-system)
   (set-terminal-coding-system 'iso-latin-1))
 
+;; It can't really display underlines.
+(tty-no-underline)
+
 ;; Make Latin-1 input characters work, too.
 ;; Meta will continue to work, because the kernel
 ;; turns that into Escape.

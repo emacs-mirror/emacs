@@ -2616,6 +2616,9 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 
   if (_setjmp (local_getcjmp))
     {
+      /* We must have saved the outer value of getcjmp here,
+	 so restore it now.  */
+      restore_getcjmp (save_jump);
       XSETINT (c, quit_char);
       internal_last_event_frame = selected_frame;
       Vlast_event_frame = internal_last_event_frame;

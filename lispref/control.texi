@@ -733,7 +733,7 @@ instead.  @xref{Catch and Throw}.
 @subsubsection How to Signal an Error
 @cindex signaling errors
 
-   @dfn{Signalling} an error means beginning error processing.  Error
+   @dfn{Signaling} an error means beginning error processing.  Error
 processing normally aborts all or part of the running program and
 returns to a point that is set up to handle the error
 (@pxref{Processing of Errors}).  Here we describe how to signal an

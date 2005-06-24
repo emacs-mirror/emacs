@@ -91,10 +91,10 @@ name is usually @file{site-start.el}.
 @cindex @file{site-start.el}
 
 @item
-It loads your init file (usually @file{~/.emacs}), unless @samp{-q}
-(or @samp{--no-init-file}), @samp{-Q}, or @samp{--batch} was specified
-on the command line.  The @samp{-u} option can specify another user
-whose home directory should be used instead of @file{~}.
+It loads your init file (usually @file{~/.emacs}), unless the option
+@samp{-q} (or @samp{--no-init-file}), @samp{-Q}, or @samp{--batch} was
+specified on the command line.  The @samp{-u} option can specify
+another user whose home directory should be used instead of @file{~}.
 
 @item
 It loads the library @file{default} (if any), unless
@@ -606,9 +606,10 @@ through various functions.  These variables include the name of the
 system, the user's @acronym{UID}, and so on.
 
 @defvar system-configuration
-This variable holds the GNU configuration name for the hardware/software
-configuration of your system, as a string.  The convenient way to test
-parts of this string is with @code{string-match}.
+This variable holds the standard GNU configuration name for the
+hardware/software configuration of your system, as a string.  The
+convenient way to test parts of this string is with
+@code{string-match}.
 @end defvar
 
 @defvar system-type
@@ -1374,6 +1375,9 @@ contents.  When they do, they usually should call @code{undo-boundary}
 both before and after changing the buffer, to separate the timer's
 changes from user commands' changes and prevent a single undo entry
 from growing to be quite large.
+
+  If a timer function calls functions that can change the match data,
+it should save and restore the match data.  @xref{Saving Match Data}.
 
 @deffn Command run-at-time time repeat function &rest args
 This sets up a timer that calls the function @var{function} with
