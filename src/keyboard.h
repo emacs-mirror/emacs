@@ -120,6 +120,11 @@ struct kboard
     /* Cache for modify_event_symbol.  */
     Lisp_Object system_key_syms;
 
+    /* Keymap mapping ASCII function key sequences onto their
+       preferred forms.  Initialized by the terminal-specific lisp
+       files.  See the DEFVAR for more documentation.  */
+    Lisp_Object Vfunction_key_map;
+    
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object Vdefault_minibuffer_frame;
 
@@ -186,10 +191,6 @@ extern EMACS_INT num_nonmacro_input_events;
 
 /* Nonzero means polling for input is temporarily suppressed.  */
 extern int poll_suppress_count;
-
-/* Keymap mapping ASCII function key sequences onto their preferred forms.
-   Initialized by the terminal-specific lisp files.  */
-extern Lisp_Object Vfunction_key_map;
 
 /* Vector holding the key sequence that invoked the current command.
    It is reused for each command, and it may be longer than the current

@@ -417,9 +417,6 @@ Lisp_Object Vtop_level;
 /* User-supplied table to translate input characters.  */
 Lisp_Object Vkeyboard_translate_table;
 
-/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
-extern Lisp_Object Vfunction_key_map;
-
 /* Another keymap that maps key sequences into key sequences.
    This one takes precedence over ordinary definitions.  */
 extern Lisp_Object Vkey_translation_map;
@@ -8654,7 +8651,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey.map = fkey.parent = Vfunction_key_map;
+  fkey.map = fkey.parent = current_kboard->Vfunction_key_map;
   keytran.map = keytran.parent = Vkey_translation_map;
   /* If there is no translation-map, turn off scanning.  */
   fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
@@ -10766,6 +10763,7 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
+  kb->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -11465,6 +11463,29 @@ Each element should have the form (N . SYMBOL) where N is the
 numeric keysym code (sans the \"system-specific\" bit 1<<28)
 and SYMBOL is its name.  */);
 
+  DEFVAR_KBOARD ("function-key-map", Vfunction_key_map,
+                 doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
+This allows Emacs to recognize function keys sent from ASCII
+terminals at any point in a key sequence.
+
+The `read-key-sequence' function replaces any subsequence bound by
+`function-key-map' with its binding.  More precisely, when the active
+keymaps have no binding for the current key sequence but
+`function-key-map' binds a suffix of the sequence to a vector or string,
+`read-key-sequence' replaces the matching suffix with its binding, and
+continues with the new sequence.
+
+The events that come from bindings in `function-key-map' are not
+themselves looked up in `function-key-map'.
+
+For example, suppose `function-key-map' binds `ESC O P' to [f1].
+Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
+`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix
+key, typing `ESC O P x' would return [f1 x].
+
+`function-key-map' has a separate binding for each display device.
+See Info node `(elisp)Multiple displays'.  */);
+
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
 	       doc: /* List of deferred actions to be performed at a later time.
 The precise format isn't relevant here; we just check whether it is nil.  */);
@@ -11628,6 +11649,7 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
+      mark_object (kb->Vfunction_key_map);
       mark_object (kb->Vdefault_minibuffer_frame);
       mark_object (kb->echo_string);
     }

@@ -1344,13 +1344,13 @@ term_get_fkeys_1 ()
 
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!initialized)
-    Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+    current_kboard->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (Vfunction_key_map, build_string (sequence),
+	Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),
 		     Fmake_vector (make_number (1),
 				   intern (keys[i].name)));
     }
@@ -1370,13 +1370,13 @@ term_get_fkeys_1 ()
 	if (k0)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
-	  Fdefine_key (Vfunction_key_map, build_string (k0),
+	  Fdefine_key (current_kboard->Vfunction_key_map, build_string (k0),
 		       Fmake_vector (make_number (1), intern ("f0")));
-	Fdefine_key (Vfunction_key_map, build_string (k_semi),
+	Fdefine_key (current_kboard->Vfunction_key_map, build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
       }
     else if (k0)
-      Fdefine_key (Vfunction_key_map, build_string (k0),
+      Fdefine_key (current_kboard->Vfunction_key_map, build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
 
@@ -1399,7 +1399,7 @@ term_get_fkeys_1 ()
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (Vfunction_key_map, build_string (sequence),
+	      Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),
 			   Fmake_vector (make_number (1),
 					 intern (fkey)));
 	    }
@@ -1416,7 +1416,7 @@ term_get_fkeys_1 ()
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
 	  if (sequence)							\
-	    Fdefine_key (Vfunction_key_map, build_string (sequence),	\
+	    Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),	\
 			 Fmake_vector (make_number (1),	\
 				       intern (sym)));	\
 	}

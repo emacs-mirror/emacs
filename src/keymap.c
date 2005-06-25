@@ -79,11 +79,6 @@ Lisp_Object Vminor_mode_overriding_map_alist;
 /* List of emulation mode keymap alists.  */
 Lisp_Object Vemulation_mode_map_alists;
 
-/* Keymap mapping ASCII function key sequences onto their preferred forms.
-   Initialized by the terminal-specific lisp files.  See DEFVAR for more
-   documentation.  */
-Lisp_Object Vfunction_key_map;
-
 /* Keymap mapping ASCII function key sequences onto their preferred forms.  */
 Lisp_Object Vkey_translation_map;
 
@@ -2939,8 +2934,8 @@ You type        Translation\n\
 		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
-  if (!NILP (Vfunction_key_map))
-    describe_map_tree (Vfunction_key_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vfunction_key_map))
+    describe_map_tree (current_kboard->Vfunction_key_map, 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;
@@ -3801,28 +3796,6 @@ symbol with a variable binding which is a keymap alist, and it is used
 the same way.  The "active" keymaps in each alist are used before
 `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
-
-
-  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
-	       doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
-This allows Emacs to recognize function keys sent from ASCII
-terminals at any point in a key sequence.
-
-The `read-key-sequence' function replaces any subsequence bound by
-`function-key-map' with its binding.  More precisely, when the active
-keymaps have no binding for the current key sequence but
-`function-key-map' binds a suffix of the sequence to a vector or string,
-`read-key-sequence' replaces the matching suffix with its binding, and
-continues with the new sequence.
-
-The events that come from bindings in `function-key-map' are not
-themselves looked up in `function-key-map'.
-
-For example, suppose `function-key-map' binds `ESC O P' to [f1].
-Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
-`C-x ESC O P' would return [?\\C-x f1].  If [f1] were a prefix
-key, typing `ESC O P x' would return [f1 x].  */);
-  Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
 	       doc: /* Keymap of key translations that can override keymaps.
