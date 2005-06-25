@@ -1,3 +1,7 @@
+2005-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (read1): 0.0e+NaN should make a "positive" NaN.
+
 2005-06-24  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Frename_file): Undo last change: no need to ifdef away
