@@ -1717,8 +1717,12 @@ See also `with-temp-buffer'."
 (defmacro with-selected-window (window &rest body)
   "Execute the forms in BODY with WINDOW as the selected window.
 The value returned is the value of the last form in BODY.
-This does not alter the buffer list ordering.
-This function saves and restores the selected window, as well as
+
+This macro saves and restores the current buffer, since otherwise
+its normal operation could potentially make a different
+buffer current.  It does not alter the buffer list ordering.
+
+This macro saves and restores the selected window, as well as
 the selected window in each frame.  If the previously selected
 window of some frame is no longer live at the end of BODY, that
 frame's selected window is left alone.  If the selected window is
@@ -1734,15 +1738,16 @@ See also `with-temp-buffer'."
 	 (save-selected-window-alist
 	  (mapcar (lambda (frame) (list frame (frame-selected-window frame)))
 		  (frame-list))))
-     (unwind-protect
-	 (progn (select-window ,window 'norecord)
-		,@body)
-       (dolist (elt save-selected-window-alist)
-	 (and (frame-live-p (car elt))
-	      (window-live-p (cadr elt))
-	      (set-frame-selected-window (car elt) (cadr elt))))
-       (if (window-live-p save-selected-window-window)
-	   (select-window save-selected-window-window 'norecord)))))
+     (save-current-buffer
+       (unwind-protect
+	   (progn (select-window ,window 'norecord)
+		  ,@body)
+	 (dolist (elt save-selected-window-alist)
+	   (and (frame-live-p (car elt))
+		(window-live-p (cadr elt))
+		(set-frame-selected-window (car elt) (cadr elt))))
+	 (if (window-live-p save-selected-window-window)
+	     (select-window save-selected-window-window 'norecord))))))
 
 (defmacro with-temp-file (file &rest body)
   "Create a new buffer, evaluate BODY there, and write the buffer to FILE.
