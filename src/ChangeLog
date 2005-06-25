@@ -1,3 +1,45 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (get_next_display_element): Finish reversing the tests of
+	Vnobreak_char_display.
+
+	* xdisp.c (Vnobreak_char_display): Renamed from Vshow_nonbreak_escape.
+	All uses changed.
+	(Qnobreak_space): Renamed from Qno_break_space.  All uses changed.
+	(syms_of_xdisp): Define nobreak-char-display and nobreak-space.
+
+	* fileio.c (Frename_file): Preserve owner and group, if possible,
+	when copying.
+
+2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* abbrev.c (Funexpand_abbrev):
+	* category.c (Fmake_category_set):
+	* dispnew.c (Fsleep_for, Fsit_for):
+	* editfns.c (Fsubst_char_in_region):
+	* eval.c (Fdefvar, Fdefconst, Feval, Ffuncall):
+	* frame.c (make_frame_without_minibuffer):
+	* lread.c (read_vector):
+	* macfns.c (check_x_frame):
+	* process.c (Fstop_process, Fcontinue_process):
+	* search.c (Freplace_match):
+	* syntax.c (Fstring_to_syntax):
+	* w32fns.c (check_x_frame, check_x_display_info):
+	* xfaces.c (x_supports_face_attributes_p):
+	* xselect.c (Fx_own_selection_internal): Follow error conventions.
+
+	* image.c (fn_png_init_io): Don't define it.
+	(init_png_functions) [HAVE_NTGUI]: Don't initialize fn_png_init_io.
+	(png_read_from_file): New function, based on png_read_from_memory.
+	(png_load): Use it, instead of fn_png_init_io.
+
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* search.c (Fmatch_data): Remove evaporate option.
+	(Fset_match_data): Do not mention evaporate option in doc string.
+	Add commentary explaining evaporate arg (for internal use only).
+	(unwind_set_match_data): Add comment on evaporate use.
+
 2005-06-22  Miles Bader  <miles@gnu.org>
 
 	* xfaces.c (Qvertical_border): Renamed from `Qvertical_divider'.
@@ -2799,7 +2841,7 @@
 
 	* xdisp.c (expose_window, expose_frame): Remove kludges for Mac.
 
-	* xfaces.c (clear_font_table) [MAC_OS]: call mac_unload_font.
+	* xfaces.c (clear_font_table) [MAC_OS]: Call mac_unload_font.
 
 2004-12-27  Richard M. Stallman  <rms@gnu.org>
 
@@ -2838,7 +2880,7 @@
 	(xmenu_show): In no toolkit version, if menu returns NO_SELECT call
 	Fsignal to quit.
 
-	* xfns.c (Fx_file_dialog): Motif/Lesstif version:  Pop down on C-g.
+	* xfns.c (Fx_file_dialog): Motif/Lesstif version: Pop down on C-g.
 
 	* gtkutil.c (xg_initialize): Install bindings for C-g so that
 	dialogs and menus pop down.
@@ -3624,7 +3666,7 @@
 2004-11-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xmenu.c (x_menu_wait_for_event): New function.
-	(popup_get_selection, popup_widget_loop):  Call x_menu_wait_for_event
+	(popup_get_selection, popup_widget_loop): Call x_menu_wait_for_event
 	to handle timers.
 	(popup_widget_loop): Add argument do_timers.
 	(create_and_show_popup_menu, create_and_show_dialog): Pass 1 for
@@ -4002,7 +4044,7 @@
 
 2004-10-28  Will  <will@glozer.net>
 
-	* macterm.c: allow user to assign key modifiers to the Mac Option
+	* macterm.c: Allow user to assign key modifiers to the Mac Option
 	key via a 'mac-option-modifier' variable.
 
 2004-10-28  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -4864,7 +4906,7 @@
 
 	* keymap.c (Fset_keymap_parent, Fdefine_prefix_command): Doc fixes.
 
-	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>:  Doc fix.
+	* keyboard.c (syms_of_keyboard) <disable-point-adjustment>: Doc fix.
 
 	* callint.c (Fcall_interactively): Doc fix.
 
@@ -8191,7 +8233,7 @@
 	* fileio.c (Fread_file_name): Check use_file_dialog also before
 	calling Fx_file_dialog.
 
-	* fns.c: use_file_dialog: New variable.
+	* fns.c (use_file_dialog): New variable.
 	(syms_of_fns): DEFVAR_BOOL use-file-dialog.
 
 2003-11-29  Kim F. Storm  <storm@cua.dk>
@@ -11637,7 +11679,7 @@
 	for USE_GTK.
 	(x_scroll_bar_handle_click): Use this function for toolkit scrollbars
 	also.
-	(handle_one_xevent): ButtonPress/Release:  If event is for a toolkit
+	(handle_one_xevent): ButtonPress/Release: If event is for a toolkit
 	scrollbar and control is pressed, call x_scroll_bar_handle_click.
 
 	* gtkutil.h (xg_get_scroll_id_for_window): Declare.

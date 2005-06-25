@@ -1,3 +1,25 @@
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Face Functions): Correct Texinfo usage.
+
+2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* lists.texi (Rings): `ring-elements' now returns the elements of
+	RING in order.
+
+2005-06-23  Juanma Barranquero  <lekktu@gmail.com>
+
+	* markers.texi (The Mark): Texinfo usage fix.
+
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* searching.texi (Entire Match Data): Remove evaporate option for
+	match-data.  Do not mention evaporate option for set-match-data.
+
+2005-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* display.texi (Face Functions): Mention face aliases.
+
 2005-06-21  Richard M. Stallman  <rms@gnu.org>
 
 	* anti.texi (Antinews): Texinfo usage fix.

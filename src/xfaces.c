@@ -5929,7 +5929,7 @@ x_supports_face_attributes_p (f, attrs, def_face)
       face = FACE_FROM_ID (f, lookup_face (f, merged_attrs, 0, 0));
 
       if (! face)
-	error ("cannot make face");
+	error ("Cannot make face");
 
       /* If the font is the same, then not supported.  */
       if (face->font == def_face->font)

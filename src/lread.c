@@ -2846,7 +2846,7 @@ read_vector (readcharfun, bytecodeflag)
 	  if (i == COMPILED_BYTECODE)
 	    {
 	      if (!STRINGP (item))
-		error ("invalid byte code");
+		error ("Invalid byte code");
 
 	      /* Delay handling the bytecode slot until we know whether
 		 it is lazily-loaded (we can tell by whether the
@@ -2868,7 +2868,7 @@ read_vector (readcharfun, bytecodeflag)
 
 		  item = Fread (bytestr);
 		  if (!CONSP (item))
-		    error ("invalid byte code");
+		    error ("Invalid byte code");
 
 		  otem = XCONS (item);
 		  bytestr = XCAR (item);

@@ -513,8 +513,17 @@ Use `face-attribute' for finer control."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun face-documentation (face)
-  "Get the documentation string for FACE."
-  (get face 'face-documentation))
+  "Get the documentation string for FACE.
+If FACE is a face-alias, get the documentation for the target face."
+  (let ((alias (get face 'face-alias))
+        doc)
+    (if alias
+        (progn
+          (setq doc (get alias 'face-documentation))
+          (format "%s is an alias for the face `%s'.%s" face alias
+                  (if doc (format "\n%s" doc)
+                    "")))
+      (get face 'face-documentation))))
 
 
 (defun set-face-documentation (face string)
@@ -661,7 +670,7 @@ like an underlying face would be, with higher priority than underlying faces."
     (setq args (purecopy args))
     ;; If we set the new-frame defaults, this face is modified outside Custom.
     (if (memq where '(0 t))
-	(put face 'face-modified t))
+	(put (or (get face 'face-alias) face) 'face-modified t))
     (while args
       (internal-set-lisp-face-attribute face (car args)
 					(purecopy (cadr args))
@@ -1443,7 +1452,7 @@ If SPEC is nil, do nothing."
   ;; When we reset the face based on its spec, then it is unmodified
   ;; as far as Custom is concerned.
   (if (null frame)
-      (put face 'face-modified nil)))
+      (put (or (get face 'face-alias) face) 'face-modified nil)))
 
 
 (defun face-attr-match-p (face attrs &optional frame)
@@ -2141,17 +2150,18 @@ Note: Other faces cannot inherit from the cursor face."
     ;; See the comment in minibuffer-prompt for
     ;; the reason not to use blue on MS-DOS.
     (((type pc)) :foreground "magenta")
-    ;; red4 is too light -- rms.
-    (t :foreground "blue"))
+    ;; red4 is too dark, but some say blue is too loud.
+    ;; brown seems to work ok. -- rms.
+    (t :foreground "brown"))
   "Face for characters displayed as ^-sequences or \-sequences."
   :group 'basic-faces
   :version "22.1")
 
-(defface no-break-space
+(defface nobreak-space
   '((((class color) (min-colors 88)) :inherit escape-glyph :underline t)
-    (((class color) (min-colors 8)) :background "magenta" :foreground )
+    (((class color) (min-colors 8)) :background "magenta")
     (t :inverse-video t))
-  "Face for non-breaking space."
+  "Face for displaying nobreak space."
   :group 'basic-faces
   :version "22.1")
 

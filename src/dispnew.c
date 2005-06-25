@@ -6374,7 +6374,7 @@ Emacs was built without floating point support.
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
-    error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   /* Assure that 0 <= usec < 1000000.  */
@@ -6474,7 +6474,7 @@ usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
 
 #ifndef EMACS_HAS_USECS
   if (usec != 0 && sec == 0)
-    error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   return sit_for (sec, usec, 0, NILP (nodisp), NILP (nodisp));

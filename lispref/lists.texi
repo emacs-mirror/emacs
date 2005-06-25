@@ -1704,8 +1704,7 @@ The value will never exceed that returned by @code{ring-size}.
 @end defun
 
 @defun ring-elements ring
-This returns a list of the objects in @var{ring}, in no particular
-order.
+This returns a list of the objects in @var{ring}, in order, newest first.
 @end defun
 
 @defun ring-copy ring

@@ -8,7 +8,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 Free Software Foundation, Inc.
 
 @quotation
@@ -1372,7 +1372,7 @@ Controls what to do with trailing @samp{(was: <old subject>)} in subject
 lines.  If @code{nil}, leave the subject unchanged.  If it is the symbol
 @code{ask}, query the user what do do.  In this case, the subject is
 matched against @code{message-subject-trailing-was-ask-regexp}.  If
-@code{message-subject-trailing-was-query} is t, always strip the
+@code{message-subject-trailing-was-query} is @code{t}, always strip the
 trailing old subject.  In this case,
 @code{message-subject-trailing-was-regexp} is used.
 

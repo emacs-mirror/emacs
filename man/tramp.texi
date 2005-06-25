@@ -1211,7 +1211,8 @@ in @file{~/.ssh/config} style files.
 
 SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 @file{~/ssh2/hostkeys/*}.  Hosts are coded in file names
-@file{hostkey_PORTNUMBER_HOST-NAME.pub}.  User names are always nil.
+@file{hostkey_@var{portnumber}_@var{host-name}.pub}.  User names
+are always @code{nil}.
 
 @item @code{tramp-parse-sknownhosts}
 @findex tramp-parse-shostkeys
@@ -1219,7 +1220,7 @@ SSH2 parsing of directories @file{/etc/ssh2/hostkeys/*} and
 Another SSH2 style parsing of directories like
 @file{/etc/ssh2/knownhosts/*} and @file{~/ssh2/knownhosts/*}.  This
 case, hosts names are coded in file names
-@file{HOST-NAME.ALGORITHM.pub}.  User names are always nil.
+@file{@var{host-name}.@var{algorithm}.pub}.  User names are always @code{nil}.
 
 @item @code{tramp-parse-hosts}
 @findex tramp-parse-hosts
@@ -1522,7 +1523,7 @@ When
 @ifset xemacs
 @code{bkup-backup-directory-info}
 @end ifset
-is nil (the default), such problems do not occur.
+is @code{nil} (the default), such problems do not occur.
 
 Therefore, it is usefull to set special values for @value{tramp}
 files.  For example, the following statement effectively `turns off'
@@ -1610,7 +1611,7 @@ contains the directory where @value{emacsname} was built.  A
 workaround is to manually set the variable to a sane value.
 
 If auto-saved files should go into the same directory as the original
-files, @code{auto-save-file-name-transforms} should be set to nil.
+files, @code{auto-save-file-name-transforms} should be set to @code{nil}.
 
 Another possibility is to set the variable
 @code{tramp-auto-save-directory} to a proper value.
@@ -2125,7 +2126,8 @@ fi
 @end example
 
 
-@item @value{tramp} doesn't transfer strings with more than 500 characters
+@item
+@value{tramp} doesn't transfer strings with more than 500 characters
 correctly
 
 On some few systems, the implementation of @code{process-send-string}
@@ -2133,7 +2135,6 @@ seems to be broken for longer strings.  This case, you should
 customize the variable @code{tramp-chunksize} to 500.  For a
 description how to determine whether this is necessary see the
 documentation of @code{tramp-chunksize}.
-
 @end itemize
 
 

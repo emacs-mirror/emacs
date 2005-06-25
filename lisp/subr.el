@@ -2032,6 +2032,8 @@ The value returned is the value of the last form in BODY."
 	'((save-match-data-internal (match-data)))
 	(list 'unwind-protect
 	      (cons 'progn body)
+	      ;; It is safe to free (evaporate) markers immediately here,
+	      ;; as Lisp programs should not copy from save-match-data-internal.
 	      '(set-match-data save-match-data-internal 'evaporate))))
 
 (defun match-string (num &optional string)

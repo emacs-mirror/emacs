@@ -2266,7 +2266,7 @@ version control, Ediff first tries to check the file out.
 
 @item ediff-make-buffers-readonly-at-startup nil
 @vindex ediff-make-buffers-readonly-at-startup
-If t, all variant buffers are made read-only at Ediff startup.
+If @code{t}, all variant buffers are made read-only at Ediff startup.
 
 @item ediff-keep-variants
 @vindex @code{ediff-keep-variants}

@@ -26,6 +26,9 @@ See msg from rms to emacs-devel on 21 Dec.
 
 ** Update Speedbar.
 
+** Update vhdl-mode.el based on changes in
+   http://opensource.ethz.ch/emacs/vhdl-mode.html.
+
 
 * FATAL ERRORS
 
@@ -139,7 +142,7 @@ man/mark.texi       "Luc Teirlinck"  Chong Yidong
 man/mini.texi       "Luc Teirlinck"  Chong Yidong
 man/misc.texi       Chong Yidong
 man/msdog.texi      Chong Yidong
-man/mule.texi       "Luc Teirlinck"
+man/mule.texi       "Luc Teirlinck"  Kenichi Handa
 man/m-x.texi        "Luc Teirlinck"  Chong Yidong
 man/picture.texi    Joakim Verona <joakim@verona.se>   Chong Yidong
 man/programs.texi   "Stephen Eglen"  Chong Yidong

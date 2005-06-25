@@ -1,4 +1,77 @@
+2005-06-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-print-command): Indent properly.
+	(gud-gdb-marker-filter): Use font-lock-warning-face for any
+	initial error.
+	
+	* progmodes/gdb-ui.el (gdb-send): Remove warning face from errors
+	after fresh input.
+	(gdb-var-create-handler): Put name of expression in quotes.
+	
+2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/ring.el (ring-elements): Make it return a list of the
+	elements of RING in order, and without bogus nil elements.
+
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (set-variable): Args renamed; doc fix.
+	(line-move-1): When there are overlays around, use vertical-motion.
+
+	* faces.el (escape-glyph): Use brown against light background.
+	(nobreak-space): Renamed from no-break-space.
+	Fix previous change.
+
+	* dired-aux.el (dired-do-copy): Fix arg prompt.
+
+	* mail/sendmail.el (mail-setup-with-from): Fix custom type.
+
+2005-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* mail/emacsbug.el (report-emacs-bug): Use "X server distributor"
+	rather than "Distributor".
+
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-special-form-p): New defun.
+	(debug-on-entry): Use it.  New interactive declaration that uses
+	function-called-at-point.
+
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (save-match-data): Add comment about using evaporate arg
+	to set-match-data.
+
+2005-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* cus-edit.el (customize-face)
+	(customize-face-other-window): Handle face aliases.
+
+	* faces.el (face-documentation, set-face-attribute)
+	(face-spec-set): Handle face aliases.
+
+2005-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (help-make-xrefs): If a symbol representing a face
+	name is not followed by the word "face", it could still be a
+	function or variable name, so don't bypass other checks.
+
+2005-06-22  Juri Linkov  <juri@jurta.org>
+
+	* ps-print.el (ps-face-foreground-name, ps-face-background-name):
+	Replace aliased functions with calls where second arg `inherit' is t.
+
+2005-06-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-error): New variable.
+	(gdb-error): New function.
+	(gdb-annotation-rules): Act on error-begin and error annotations.
+	(gdb-concat-output): Use font-lock-warning-face for errors.
+
 2005-06-22  Miles Bader  <miles@gnu.org>
+
+	* bindings.el (propertized-buffer-identification): Use renamed
+	`Buffer-menu-buffer' face.
 
 	* faces.el (vertical-border): Renamed from `vertical-divider'.
 	(escape-glyph): Change dark-background color back to `cyan'.
@@ -457,10 +530,9 @@
 
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print):
-	Respect tooltip-use-echo-area.
-	(menu): Re-order menu items.
-
+	* progmodes/gdb-ui.el (menu): Re-order menu items.
+	(gdb-tooltip-print): Respect tooltip-use-echo-area.
+	
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
 	Define in tooltip.el.
 	(gud-tooltip-process-output): Respect tooltip-use-echo-area.
@@ -580,7 +652,6 @@
 	variables, unless either `gtk' is boundp or this isn't a
 	`windows-nt' build.
 
->>>>>>> 1.7817
 2005-06-13  Lute Kamstra  <lute@gnu.org>
 
 	* abbrev.el (edit-abbrevs-mode): Use kill-all-local-variables and
@@ -1488,7 +1559,6 @@
 
 	* simple.el (filter-buffer-substring): Fix typo in docstring.
 
->>>>>>> 1.7768
 2005-05-31  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/vhdl-mode.el (vhdl-fill-region): Test ARG, not INTERACTIVE.
@@ -1525,7 +1595,6 @@
 	* textmodes/tex-mode.el (tex-compile-commands, tex-compile)
 	(tex-start-tex): Undo all but the last part of the 2005-05-28 change.
 
->>>>>>> 1.7646
 2005-05-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* calendar/diary-lib.el (mark-included-diary-files): Only kill

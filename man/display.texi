@@ -12,6 +12,7 @@ display it.
 
 @menu
 * Faces::	           How to change the display style using faces.
+* Standard Faces::         Emacs' predefined faces.
 * Font Lock::              Minor mode for syntactic highlighting using faces.
 * Highlight Changes::      Using colors to show where you changed the buffer.
 * Highlight Interactively:: Tell Emacs what text to highlight.
@@ -43,6 +44,12 @@ On a character terminal, only some of them work.  Some character
 terminals support inverse video, bold, and underline attributes; some
 support colors.  Character terminals generally do not support changing
 the height and width or the font family.
+
+  The easiest way to use faces is to turn on Font Lock mode.
+@xref{Font Lock}, for more information about Font Lock mode and
+syntactic highlighting.  You can print out the buffer with the
+highlighting that appears on your screen using the command
+@code{ps-print-buffer-with-faces}.  @xref{PostScript}.
 
   Features which rely on text in multiple faces (such as Font Lock mode)
 will also work on non-windowed terminals that can display more than one
@@ -90,35 +97,38 @@ fonts for editing program source code.  Filling will sometimes make
 lines too long or too short.  We plan to address these issues in
 future Emacs versions.
 
+@node Standard Faces
+@section Standard Faces
+
 @findex list-faces-display
-  To see what faces are currently defined, and what they look like, type
-@kbd{M-x list-faces-display}.  It's possible for a given face to look
-different in different frames; this command shows the appearance in the
-frame in which you type it.  Here's a list of the standard defined
-faces:
+  To see what faces are currently defined, and what they look like,
+type @kbd{M-x list-faces-display}.  It's possible for a given face to
+look different in different frames; this command shows the appearance
+in the frame in which you type it.  Here are the standard faces
+for specifying text appearance:
 
 @table @code
 @item default
 This face is used for ordinary text that doesn't specify any other face.
-@item mode-line
-This face is used for the mode line of the currently selected window.
-By default, it's drawn with shadows for a ``raised'' effect on window
-systems, and drawn as the inverse of the default face on non-windowed
-terminals.  @xref{Display Custom}.
-@item mode-line-inactive
-Like @code{mode-line}, but used for mode lines of the windows other
-than the selected one (if @code{mode-line-in-non-selected-windows} is
-non-@code{nil}).  This face inherits from @code{mode-line}, so changes
-in that face affect mode lines in all windows.
-@item header-line
-Similar to @code{mode-line} for a window's header line.  Most modes
-don't use the header line, but the Info mode does.
-@item vertical-border
-This face is used for the vertical divider between windows on
-character terminals.  By default this face inherits from the
-@code{mode-line-inactive} face.
-@item minibuffer-prompt
-This face is used for the prompt strings displayed in the minibuffer.
+@item bold
+This face uses a bold variant of the default font, if it has one.
+@item italic
+This face uses an italic variant of the default font, if it has one.
+@item bold-italic
+This face uses a bold italic variant of the default font, if it has one.
+@item underline
+This face underlines text.
+@item fixed-pitch
+The basic fixed-pitch face.
+@item variable-pitch
+The basic variable-pitch face.
+@end table
+
+  Here's an incomplete list of faces used to highlight parts of the
+text temporarily for specific purposes.  (Many other modes define
+their own faces for this purpose.)
+
+@table @code
 @item highlight
 This face is used for highlighting portions of text, in various modes.
 For example, mouse-sensitive text is highlighted using this face.
@@ -135,44 +145,16 @@ mode is enabled---see below).
 @item secondary-selection
 This face is used for displaying a secondary X selection (@pxref{Secondary
 Selection}).
-@item bold
-This face uses a bold variant of the default font, if it has one.
-@item italic
-This face uses an italic variant of the default font, if it has one.
-@item bold-italic
-This face uses a bold italic variant of the default font, if it has one.
-@item underline
-This face underlines text.
-@item fixed-pitch
-The basic fixed-pitch face.
-@item fringe
-@cindex fringe
-The face for the fringes to the left and right of windows on graphic
-displays.  (The fringes are the narrow portions of the Emacs frame
-between the text area and the window's right and left borders.)
-@item scroll-bar
-This face determines the visual appearance of the scroll bar.
-@item border
-This face determines the color of the frame border.
-@item cursor
-This face determines the color of the cursor.
-@item mouse
-This face determines the color of the mouse pointer.
-@item tool-bar
-This is the basic tool-bar face.  No text appears in the tool bar, but the
-colors of this face affect the appearance of tool bar icons.
-@item tooltip
-This face is used for tooltips.
-@item menu
-This face determines the colors and font of Emacs's menus.  Setting the
-font of LessTif/Motif menus is currently not supported; attempts to set
-the font are ignored in this case.
 @item trailing-whitespace
 The face for highlighting trailing whitespace when
 @code{show-trailing-whitespace} is non-@code{nil}; see @ref{Useless
 Whitespace}.
-@item variable-pitch
-The basic variable-pitch face.
+@item nobreak-space
+The face for displaying the character ``nobreak space''.
+@item escape-glyph
+The face for highlighting the @samp{\} or @samp{^} that indicates
+a control character.  It's also used when @samp{\} indicates a
+nobreak space or nobreak (soft) hyphen.
 @item shadow
 The basic face for making the text less noticeable than the surrounding
 ordinary text.  Usually this is achieved by using shades of grey in
@@ -187,13 +169,55 @@ style of this face (@pxref{Face Customization}).  @xref{Transient Mark},
 for more information about Transient Mark mode and activation and
 deactivation of the mark.
 
-  One easy way to use faces is to turn on Font Lock mode.  @xref{Font
-Lock}, for more information about Font Lock mode and syntactic
-highlighting.
+  These faces control the appearance of parts of the Emacs frame.
+They exist as faces to provide a consistent way to customize the
+appearance of these parts of the frame.
 
-  You can print out the buffer with the highlighting that appears
-on your screen using the command @code{ps-print-buffer-with-faces}.
-@xref{PostScript}.
+@table @code
+@item mode-line
+This face is used for the mode line of the currently selected window.
+By default, it's drawn with shadows for a ``raised'' effect on window
+systems, and drawn as the inverse of the default face on non-windowed
+terminals.
+@item mode-line-inactive
+Like @code{mode-line}, but used for mode lines of the windows other
+than the selected one (if @code{mode-line-in-non-selected-windows} is
+non-@code{nil}).  This face inherits from @code{mode-line}, so changes
+in that face affect mode lines in all windows.
+@item header-line
+Similar to @code{mode-line} for a window's header line.  Most modes
+don't use the header line, but the Info mode does.
+@item vertical-border
+This face is used for the vertical divider between windows on
+character terminals.  By default this face inherits from the
+@code{mode-line-inactive} face.
+@item minibuffer-prompt
+This face is used for the prompt strings displayed in the minibuffer.
+@item fringe
+@cindex fringe
+The face for the fringes to the left and right of windows on graphic
+displays.  (The fringes are the narrow portions of the Emacs frame
+between the text area and the window's right and left borders.)
+@xref{Fringes}.
+@item scroll-bar
+This face determines the visual appearance of the scroll bar.
+@xref{Scroll Bars}.
+@item border
+This face determines the color of the frame border.
+@item cursor
+This face determines the color of the cursor.
+@item mouse
+This face determines the color of the mouse pointer.
+@item tool-bar
+This is the basic tool-bar face.  No text appears in the tool bar, but the
+colors of this face affect the appearance of tool bar icons.  @xref{Tool Bars}.
+@item tooltip
+This face is used for tooltips.  @xref{Tooltips}.
+@item menu
+This face determines the colors and font of Emacs's menus.  Setting the
+font of LessTif/Motif menus is currently not supported; attempts to set
+the font are ignored in this case.  @xref{Menu Bars}.
+@end table
 
 @node Font Lock
 @section Font Lock mode
@@ -921,16 +945,17 @@ they are displayed using their graphics (assuming your terminal supports
 them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
 
-@vindex show-nonbreak-escape
-@cindex no-break space, display
-@cindex no-break hyphen, display
-  Some character sets define ``no-break'' versions of the space
-and hyphen characters, which are used where a line should not be
-broken.  Emacs displays these with an escape character in order to
-distinguish them from ordinary spaces and hyphens.  For example, a
-non-breaking space is displayed as @samp{\ }.  You can turn off this
-behavior by setting the variable @code{show-nonbreak-escape} to
-@code{nil}.
+@vindex nobreak-char-display
+@cindex nobreak space, display
+@cindex nobreak hyphen, display
+  Some character sets define ``no-break'' versions of the space and
+hyphen characters, which are used where a line should not be broken.
+Emacs normally displays these characters with special faces
+(respectively, @code{nobreak-space} and @code{escape-glyph}) to
+distinguish them from ordinary spaces and hyphens.  You can turn off
+this feature by setting the variable @code{nobreak-char-display} to
+@code{nil}.  If you set the variable to any other value, that means to
+prefix these characters with an escape character.
 
 @node Cursor Display
 @section Displaying the Cursor

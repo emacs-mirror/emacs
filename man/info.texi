@@ -820,11 +820,11 @@ happens.
 
   If you always like to have that information available without having
 to move your mouse over the cross reference, set
-@code{Info-hide-note-references} to a value other than t (@pxref{Emacs
-Info Variables}).  You might also want to do that if you have a lot of
-cross references to files on remote machines and have non-permanent or
-slow access, since otherwise you might not be able to distinguish
-between local and remote links.
+@code{Info-hide-note-references} to a value other than @code{t}
+(@pxref{Emacs Info Variables}).  You might also want to do that if you
+have a lot of cross references to files on remote machines and have
+non-permanent or slow access, since otherwise you might not be able to
+distinguish between local and remote links.
 
 @format
 >> Now type @kbd{n} to learn more commands.

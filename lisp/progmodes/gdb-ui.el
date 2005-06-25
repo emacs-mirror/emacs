@@ -85,6 +85,7 @@
 (defvar gdb-find-file-unhook nil)
 (defvar gdb-active-process nil "GUD tooltips display variable values when t, \
 and #define directives otherwise.")
+(defvar gdb-error "Non-nil when GDB is reporting an error.")
 (defvar gdb-macro-info nil
   "Non-nil if GDB knows that the inferior includes preprocessor macro info.")
 
@@ -359,6 +360,7 @@ Also display the main routine in the disassembly buffer if present."
 	gdb-flush-pending-output nil
 	gdb-location-alist nil
 	gdb-find-file-unhook nil
+	gdb-error nil
 	gdb-macro-info nil)
   ;;
   (setq gdb-buffer-type 'gdba)
@@ -430,7 +432,7 @@ Also display the main routine in the disassembly buffer if present."
 	    (setq gdb-var-changed t)))
       (if (re-search-forward "Undefined command" nil t)
 	  (message-box "Watching expressions requires gdb 6.0 onwards")
-	(message "No symbol %s in current context." expr)))))
+	(message "No symbol \"%s\" in current context." expr)))))
 
 (defun gdb-var-evaluate-expression-handler (varnum changed)
   (with-current-buffer (gdb-get-create-buffer 'gdb-partial-output-buffer)
@@ -774,6 +776,8 @@ The key should be one of the cars in `gdb-buffer-rules-assoc'."
 (defun gdb-send (proc string)
   "A comint send filter for gdb.
 This filter may simply queue input for a later time."
+  (with-current-buffer gud-comint-buffer
+    (remove-text-properties (point-min) (point-max) '(face)))
   (let ((item (concat string "\n")))
     (if gud-running
       (progn
@@ -860,6 +864,8 @@ This filter may simply queue input for a later time."
     ("watchpoint" gdb-stopping)
     ("frame-begin" gdb-frame-begin)
     ("stopped" gdb-stopped)
+    ("error-begin" gdb-error)
+    ("error" gdb-error)
     ) "An assoc mapping annotation tags to functions which process them.")
 
 (defun gdb-resync()
@@ -989,6 +995,9 @@ sink to `user' in `gdb-stopping', that is fine."
       (gdb-resync)
       (error "Unexpected stopped annotation")))))
 
+(defun gdb-error (ignored)
+  (setq gdb-error (not gdb-error)))
+
 (defun gdb-post-prompt (ignored)
   "An annotation handler for `post-prompt'.
 This begins the collection of output from the current command if that
@@ -1083,6 +1092,8 @@ happens to be appropriate."
       output)))
 
 (defun gdb-concat-output (so-far new)
+  (if gdb-error
+      (put-text-property 0 (length new) 'face font-lock-warning-face new))
   (let ((sink gdb-output-sink))
     (cond
      ((eq sink 'user) (concat so-far new))

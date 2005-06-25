@@ -691,9 +691,9 @@ appears between the position information and the major mode.
 *** New face `escape-glyph' highlights control characters and escape glyphs.
 
 +++
-*** Non-breaking space and hyphens are now prefixed with an escape
-character, unless the new user variable `show-nonbreak-escape' is set
-to nil.
+*** Non-breaking space and hyphens are now displayed with a special
+face, either nobreak-space or escape-glyph.  You can turn this off or
+specify a different mode by setting the variable `nobreak-char-display'.
 
 +++
 *** The parameters of automatic hscrolling can now be customized.
@@ -3542,10 +3542,7 @@ accepts such a list for restoring the match state.
 +++
 *** Functions `match-data' and `set-match-data' now have an optional
 argument `reseat'.  When non-nil, all markers in the match data list
-passed to these function will be reseated to point to nowhere, and if
-the value of `reseat' is `evaporate', the markers are put onto the
-free list.  Note that no other references to those markers must exist
-if `evaporate' is specified for the `reseat' argument.
+passed to these function will be reseated to point to nowhere.
 
 +++
 *** The default value of `sentence-end' is now defined using the new

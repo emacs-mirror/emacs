@@ -426,7 +426,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
 #ifdef MULTI_KBOARD
   if (!NILP (mini_window)
       && XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
-    error ("frame and minibuffer must be on the same display");
+    error ("Frame and minibuffer must be on the same display");
 #endif
 
   /* Make a frame containing just a root window.  */
@@ -3609,7 +3609,7 @@ extern char *x_get_string_resource P_ ((XrmDatabase, char *, char *));
 extern Display_Info *check_x_display_info P_ ((Lisp_Object));
 
 
-/* Get specified attribute from resource database RDB.  
+/* Get specified attribute from resource database RDB.
    See Fx_get_resource below for other parameters.  */
 
 static Lisp_Object
@@ -3746,7 +3746,7 @@ x_get_resource_string (attribute, class)
 
 Lisp_Object
 x_get_arg (dpyinfo, alist, param, attribute, class, type)
-     Display_Info *dpyinfo; 
+     Display_Info *dpyinfo;
      Lisp_Object alist, param;
      char *attribute;
      char *class;

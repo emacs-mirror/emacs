@@ -320,7 +320,7 @@ Lisp_Object Vshow_trailing_whitespace;
 
 /* Non-nil means escape non-break space and hyphens.  */
 
-Lisp_Object Vshow_nonbreak_escape;
+Lisp_Object Vnobreak_char_display;
 
 #ifdef HAVE_WINDOW_SYSTEM
 extern Lisp_Object Voverflow_newline_into_fringe;
@@ -352,7 +352,7 @@ Lisp_Object Qescape_glyph;
 
 /* Name and number of the face used to highlight non-breaking spaces.  */
 
-Lisp_Object Qno_break_space;
+Lisp_Object Qnobreak_space;
 
 /* The symbol `image' which is the car of the lists used to represent
    images in Lisp.  */
@@ -5084,7 +5084,7 @@ get_next_display_element (it)
 		       ? ((it->c >= 127
 			   && it->len == 1)
 			  || !CHAR_PRINTABLE_P (it->c)
-			  || (!NILP (Vshow_nonbreak_escape)
+			  || (!NILP (Vnobreak_char_display)
 			      && (it->c == 0x8a0 || it->c == 0x8ad
 				  || it->c == 0x920 || it->c == 0x92d
 				  || it->c == 0xe20 || it->c == 0xe2d
@@ -5139,12 +5139,12 @@ get_next_display_element (it)
 	      /* Handle non-break space in the mode where it only gets
 		 highlighting.  */
 
-	      if (EQ (Vshow_nonbreak_escape, Qt)
+	      if (EQ (Vnobreak_char_display, Qt)
 		  && (it->c == 0x8a0 || it->c == 0x920
 		      || it->c == 0xe20 || it->c == 0xf20))
 		{
 		  /* Merge the no-break-space face into the current face.  */
-		  face_id = merge_faces (it->f, Qno_break_space, 0,
+		  face_id = merge_faces (it->f, Qnobreak_space, 0,
 					 it->face_id);
 
 		  g = it->c = ' ';
@@ -5183,7 +5183,7 @@ get_next_display_element (it)
 	      /* Handle soft hyphens in the mode where they only get
 		 highlighting.  */
 
-	      if (! EQ (Vshow_nonbreak_escape, Qt)
+	      if (EQ (Vnobreak_char_display, Qt)
 		  && (it->c == 0x8ad || it->c == 0x92d
 		      || it->c == 0xe2d || it->c == 0xf2d))
 		{
@@ -22785,8 +22785,8 @@ syms_of_xdisp ()
   staticpro (&Qtrailing_whitespace);
   Qescape_glyph = intern ("escape-glyph");
   staticpro (&Qescape_glyph);
-  Qno_break_space = intern ("no-break-space");
-  staticpro (&Qno_break_space);
+  Qnobreak_space = intern ("nobreak-space");
+  staticpro (&Qnobreak_space);
   Qimage = intern ("image");
   staticpro (&Qimage);
   QCmap = intern (":map");
@@ -22892,13 +22892,14 @@ wide as that tab on the display.  */);
 The face used for trailing whitespace is `trailing-whitespace'.  */);
   Vshow_trailing_whitespace = Qnil;
 
-  DEFVAR_LISP ("show-nonbreak-escape", &Vshow_nonbreak_escape,
-    doc: /* *Control highlighting of non-break space and soft hyphen.
-t means highlight the character itself (for non-break space,
-use face `non-break-space'.
+  DEFVAR_LISP ("nobreak-char-display", &Vnobreak_char_display,
+    doc: /* *Control highlighting of nobreak space and soft hyphen.
+t means highlight the character itself (for nobreak space,
+use face `nobreak-space'.
 nil means no highlighting.
-other values mean display the escape glyph before the character.  */);
-  Vshow_nonbreak_escape = Qt;
+other values mean display the escape glyph followed by an ordinary
+space or ordinary hyphen.  */);
+  Vnobreak_char_display = Qt;
 
   DEFVAR_LISP ("void-text-area-pointer", &Vvoid_text_area_pointer,
     doc: /* *The pointer shape to show in void text areas.
