@@ -1,5 +1,9 @@
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
+	* facemenu.el (facemenu-enable-faces-p): New function.
+	(facemenu-background-menu, facemenu-foreground-menu)
+	(facemenu-face-menu): Add menu-enable property.
+
 	* jka-compr.el (jka-compr-insert-file-contents):
 	Special handling if cannot find the uncompression program.
 

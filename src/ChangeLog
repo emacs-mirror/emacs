@@ -1,5 +1,21 @@
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
+	* macfns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* w32fns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* xfns.c (Fx_show_tip): Pass new arg to try_window.
+
+	* xdisp.c (try_window): New arg CHECK_MARGINS.  Calls changed.
+	(redisplay_window): Handle try_window reporting point in scroll margin.
+
+	* dispextern.h (try_window): Declare new arg.
+
+	* fileio.c (Fcopy_file): New arg PRESERVE_UID_GID.
+	Use fchmod to copy the file modes.
+	(Frename_file): Don't copy UID and GID here;
+	instead, specify t for PRESERVE_UID_GID when calling Fcopy_file.
+
 	* eval.c (call_debugger): Take full care of extending stack limits
 	to make space for the debugger, and restore the change afterward.
 	Bind debug-on-error to nil.
