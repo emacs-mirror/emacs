@@ -44,7 +44,7 @@ The value returned is the value of the last form in BODY.
 
 This macro saves and restores the current buffer, since otherwise
 its normal operation could potentially make a different
-buffer current.  It does not alter the buffer list ordering,
+buffer current.  It does not alter the buffer list ordering.
 
 This macro saves and restores the selected window, as well as
 the selected window in each frame.  If the previously selected
