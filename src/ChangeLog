@@ -1,5 +1,19 @@
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
+	* eval.c (call_debugger): Take full care of extending stack limits
+	to make space for the debugger, and restore the change afterward.
+	Bind debug-on-error to nil.
+	(restore_stack_limits): New subroutine.
+	(Fsignal): Extend specpdl bound along with eval depth bound,
+	for calling edebug.  Don't do either one, for calling debugger.
+	(find_handler_clause): Don't bind debug-on-error here.
+	Don't unbind anything either.
+	Temporarily advance max_specpdl_size for calling
+	internal_with_output_to_temp_buffer.
+	(grow_specpdl): Don't alter max_specpdl_size before signaling
+	an error.
+	(syms_of_eval) <max-specpdl-size>: Doc fix.
+
 	* lread.c (read1): 0.0e+NaN should make a "positive" NaN.
 
 2005-06-24  Eli Zaretskii  <eliz@gnu.org>

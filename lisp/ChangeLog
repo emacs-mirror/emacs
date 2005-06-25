@@ -1,3 +1,20 @@
+2005-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* jka-compr.el (jka-compr-insert-file-contents):
+	Special handling if cannot find the uncompression program.
+
+	* cus-face.el (custom-face-attributes): Add autoload.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Bind comment-indent-function locally.
+
+	* window.el (save-selected-window): Use save-current-buffer.
+
+	* subr.el (with-selected-window): Use save-current-buffer.
+
+	* progmodes/gud.el (gud-filter): Simplify using with-selected-window
+	and with-current-buffer.
+
 2005-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* simple.el (line-move-1): Fix previous change.
