@@ -41,8 +41,8 @@
 ;;; Code:
 
 ;;; Provide some binding for startup:
-;;;###autoload (or key-translation-map (setq key-translation-map (make-sparse-keymap)))
-;;;###autoload (define-key key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
+;;;###autoload (or global-key-translation-map (setq global-key-translation-map (make-sparse-keymap)))
+;;;###autoload (define-key global-key-translation-map "\C-x8" 'iso-transl-ctl-x-8-map)
 ;;;###autoload (autoload 'iso-transl-ctl-x-8-map "iso-transl" "Keymap for C-x 8 prefix." t 'keymap)
 
 (defvar iso-transl-dead-key-alist
@@ -245,9 +245,9 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 (or iso-transl-ctl-x-8-map
     (fset 'iso-transl-ctl-x-8-map
 	  (setq iso-transl-ctl-x-8-map (make-sparse-keymap))))
-(or key-translation-map
-    (setq key-translation-map (make-sparse-keymap)))
-(define-key key-translation-map "\C-x8" iso-transl-ctl-x-8-map)
+(or global-key-translation-map
+    (setq global-key-translation-map (make-sparse-keymap)))
+(define-key global-key-translation-map "\C-x8" iso-transl-ctl-x-8-map)
 
 ;; For each entry in the alist, we'll make up to three ways to generate
 ;; the character in question: the prefix `C-x 8'; the ALT modifier on
@@ -263,7 +263,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 	    (vec (vconcat (car (car alist))))
 	    (tail iso-transl-dead-key-alist))
 	(aset vec 0 (logior (aref vec 0) ?\A-\^@))
-	(define-key key-translation-map vec translated-vec)
+	(define-key global-key-translation-map vec translated-vec)
 	(define-key isearch-mode-map (vector (aref vec 0)) nil)
 	(while tail
 	  (if (eq (car (car tail)) inchar)
@@ -271,7 +271,7 @@ sequence VECTOR.  (VECTOR is normally one character long.)")
 		    (deadkey (cdr (car tail))))
 		(aset deadvec 0 deadkey)
 		(define-key isearch-mode-map (vector deadkey) nil)
-		(define-key key-translation-map deadvec translated-vec)))
+		(define-key global-key-translation-map deadvec translated-vec)))
 	  (setq tail (cdr tail)))))
     (setq alist (cdr alist))))
 

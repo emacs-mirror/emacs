@@ -1303,6 +1303,9 @@ main (argc, argv
 	 faces, and the face implementation uses some symbols as
 	 face names.  */
       syms_of_xfaces ();
+      /* XXX syms_of_keyboard uses some symbols in keymap.c.  It would
+         be better to arrange things not to have this dependency.  */
+      syms_of_keymap ();
       /* Call syms_of_keyboard before init_window_once because
 	 keyboard sets up symbols that include some face names that
 	 the X support will want to use.  This can happen when
@@ -1574,7 +1577,7 @@ main (argc, argv
 #endif /* CLASH_DETECTION */
       syms_of_indent ();
       syms_of_insdel ();
-      syms_of_keymap ();
+      /* syms_of_keymap (); */
       syms_of_macros ();
       syms_of_marker ();
       syms_of_minibuf ();

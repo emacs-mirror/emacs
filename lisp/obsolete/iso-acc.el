@@ -395,15 +395,15 @@ It selects the customization based on the specifications in the
 	  (setq table (cdr table)))
       (setq iso-language language
 	    iso-accents-list table)
-      (if key-translation-map
+      (if global-key-translation-map
 	  (substitute-key-definition
-	   'iso-accents-accent-key nil key-translation-map)
-	(setq key-translation-map (make-sparse-keymap)))
+	   'iso-accents-accent-key nil global-key-translation-map)
+	(setq global-key-translation-map (make-sparse-keymap)))
       ;; Set up translations for all the characters that are used as
       ;; accent prefixes in this language.
       (setq tail iso-accents-list)
       (while tail
-	(define-key key-translation-map (vector (car (car tail)))
+	(define-key global-key-translation-map (vector (car (car tail)))
 	  'iso-accents-accent-key)
 	(setq tail (cdr tail))))))
 

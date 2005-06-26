@@ -1139,7 +1139,7 @@ correspoinding TextEncodingBase value."
     (set-keyboard-coding-system (or coding-system 'mac-roman))
     ;; MacJapanese maps reverse solidus to ?\x80.
     (if (eq coding-system 'japanese-shift-jis)
-	(define-key key-translation-map [?\x80] "\\"))))
+	(define-key global-key-translation-map [?\x80] "\\"))))
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 

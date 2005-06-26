@@ -79,9 +79,6 @@ Lisp_Object Vminor_mode_overriding_map_alist;
 /* List of emulation mode keymap alists.  */
 Lisp_Object Vemulation_mode_map_alists;
 
-/* Keymap mapping ASCII function key sequences onto their preferred forms.  */
-Lisp_Object Vkey_translation_map;
-
 /* A list of all commands given new bindings since a certain time
    when nil was stored here.
    This is used to speed up recomputation of menu key equivalents
@@ -2844,8 +2841,8 @@ You type        Translation\n\
       insert ("\n", 1);
     }
 
-  if (!NILP (Vkey_translation_map))
-    describe_map_tree (Vkey_translation_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vkey_translation_map))
+    describe_map_tree (current_kboard->Vkey_translation_map, 0, Qnil, prefix,
 		       "Key translations", nomenu, 1, 0, 0);
 
 
@@ -3796,12 +3793,6 @@ symbol with a variable binding which is a keymap alist, and it is used
 the same way.  The "active" keymaps in each alist are used before
 `minor-mode-map-alist' and `minor-mode-overriding-map-alist'.  */);
   Vemulation_mode_map_alists = Qnil;
-
-  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
-	       doc: /* Keymap of key translations that can override keymaps.
-This keymap works like `function-key-map', but comes after that,
-and its non-prefix bindings override ordinary bindings.  */);
-  Vkey_translation_map = Qnil;
 
   staticpro (&Vmouse_events);
   Vmouse_events = Fcons (intern ("menu-bar"),

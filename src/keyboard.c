@@ -417,10 +417,6 @@ Lisp_Object Vtop_level;
 /* User-supplied table to translate input characters.  */
 Lisp_Object Vkeyboard_translate_table;
 
-/* Another keymap that maps key sequences into key sequences.
-   This one takes precedence over ordinary definitions.  */
-extern Lisp_Object Vkey_translation_map;
-
 /* If non-nil, this implements the current input method.  */
 Lisp_Object Vinput_method_function;
 Lisp_Object Qinput_method_function;
@@ -443,6 +439,9 @@ Lisp_Object Qecho_area_clear_hook;
 Lisp_Object Qpre_command_hook, Vpre_command_hook;
 Lisp_Object Qpost_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
+
+/* Parent keymap of terminal-local key-translation-map instances.  */
+Lisp_Object Vglobal_key_translation_map;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
@@ -8652,7 +8651,7 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
 
   delayed_switch_frame = Qnil;
   fkey.map = fkey.parent = current_kboard->Vfunction_key_map;
-  keytran.map = keytran.parent = Vkey_translation_map;
+  keytran.map = keytran.parent = current_kboard->Vkey_translation_map;
   /* If there is no translation-map, turn off scanning.  */
   fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
   keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
@@ -10766,6 +10765,8 @@ init_kboard (kb)
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
   kb->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+  kb->Vkey_translation_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (kb->Vkey_translation_map, Vglobal_key_translation_map);
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -11488,6 +11489,21 @@ key, typing `ESC O P x' would return [f1 x].
 `function-key-map' has a separate binding for each display device.
 See Info node `(elisp)Multiple displays'.  */);
 
+  DEFVAR_KBOARD ("key-translation-map", Vkey_translation_map,
+	       doc: /* Keymap of key translations that can override keymaps.
+This keymap works like `function-key-map', but comes after that,
+and its non-prefix bindings override ordinary bindings.
+
+`key-translation-map' has a separate binding for each display device.
+(See Info node `(elisp)Multiple displays'.)  If you need to set a key
+translation on all devices, change `global-key-translation-map' instead.  */);
+
+  DEFVAR_LISP ("global-key-translation-map", &Vglobal_key_translation_map,
+               doc: /* The parent keymap of all terminal-local `key-translation-map' instances.
+Key translations that are not specific to a display device flavour
+should go here.  */);
+  Vglobal_key_translation_map = Fmake_sparse_keymap (Qnil);
+
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
 	       doc: /* List of deferred actions to be performed at a later time.
 The precise format isn't relevant here; we just check whether it is nil.  */);
@@ -11652,6 +11668,7 @@ mark_kboards ()
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
       mark_object (kb->Vfunction_key_map);
+      mark_object (kb->Vkey_translation_map);
       mark_object (kb->Vdefault_minibuffer_frame);
       mark_object (kb->echo_string);
     }
