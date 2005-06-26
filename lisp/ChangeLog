@@ -1,3 +1,67 @@
+2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
+
+	* net/tramp-ftp.el (top):
+	* net/tramp-smb.el (top):
+	* net/tramp-util.el (top):
+	* net/tramp-uu.el (top):
+	* net/tramp-vc.el (top):
+	* net/tramp.el (top): Revert copyright years back to original
+	ones.  Tramp has a life outside GNU Emacs.
+
+2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
+
+	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
+
+2005-06-18  Juri Linkov  <juri@jurta.org>
+
+	* progmodes/grep.el (grep-regexp-alist): Use backreference at the
+	end of first regexp to limit the match to the position between
+	line number and source line with same separator character as used
+	between file name and line number.  In the second regexp limit
+	mouse-face area to file name and line number by adding new group
+	for them and referring it in HYPERLINK arg.
+	(grep-regexp-alist, grep-mode-font-lock-keywords): Use shy group.
+	(grep-mode): Set font-lock-lines-before to 0 to not refontify the
+	previous line where grep markers may be already removed.
+
+2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
+
+	* progmodes/ps-mode.el: Update version and maintainer's email
+	address.
+
+2005-06-18  Steve Youngs  <steve@xemacs.org>
+
+	* net/browse-url.el (browse-url-browser-function)
+	(browse-url-default-browser): Add firefox.
+	(browse-url-firefox-program, browse-url-firefox-arguments)
+	(browse-url-firefox-startup-arguments)
+	(browse-url-firefox-new-window-is-tab): New defcustoms.
+	(browse-url-firefox, browse-url-firefox-sentinel): New functions.
+
+2005-06-17  Richard M. Stallman  <rms@gnu.org>
+
+	* startup.el (command-line): Warn if specified user name has
+	no home directory.
+
+	* term.el (term-get-old-input, term-input-filter, term-input-sender)
+	(term-mode-hook, term-exec-hook, term-escape-char): Doc fixes.
+
+	* longlines.el (longlines-mode, longlines-show-hard-newlines):
+	Doc fixes.
+
+	* faces.el (underline): Try bold if terminal doesn't support underline.
+
+	* mail/sendmail.el (mail-setup-with-from): New variable.
+	(mail-insert-from-field): New function.
+	(sendmail-send-it): Call it.
+	(mail-setup): Optionally call it here.
+
+	* term/linux.el: Call tty-no-underline.
+
+2005-06-17  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/edebug.el (edebug-goto-here): Doc fix.
+
 2005-06-17  Miles Bader  <miles@gnu.org>
 
 	* ediff-init.el (ediff-current-diff-A, ediff-current-diff-B)
@@ -28,7 +92,7 @@
 
 	* eshell/esh-test.el (eshell-test-ok, eshell-test-failed):
 	Remove "-face" suffix from face names.
-	(eshell-test-ok-face, eshell-test-failed-face): 
+	(eshell-test-ok-face, eshell-test-failed-face):
 	New backward-compatibility aliases for renamed faces.
 	(eshell-run-test): Use renamed eshell-test faces.
 
@@ -47,7 +111,7 @@
 	(eshell-ls-unreadable-face, eshell-ls-special-face)
 	(eshell-ls-missing-face, eshell-ls-archive-face)
 	(eshell-ls-backup-face, eshell-ls-product-face)
-	(eshell-ls-clutter-face): 
+	(eshell-ls-clutter-face):
 	New backward-compatibility aliases for renamed faces.
 	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
 
@@ -57,6 +121,11 @@
 	instead of literal face.
 
 2005-06-17  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/warnings.el (display-warning, lwarn)
+	(warning-minimum-log-level): Doc fixes.
+	(warning-minimum-level, warning-minimum-log-level):
+	Add :debug to :type choices.
 
 	* progmodes/ada-mode.el (ada-format-paramlist)
 	(ada-get-indent-case, ada-check-matching-start)

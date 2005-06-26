@@ -250,17 +250,20 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
   ;; rms: I removed the code to match parens around the line number
   ;; because it causes confusion and so we will find out if anyone needs it.
   ;; It causes confusion with a file name that contains a number in parens.
-  '(("^\\(.+?\\)[: \t]+\
+  '(("^\\(.+?\\)\\([: \t]\\)+\
 \\([0-9]+\\)\\([.:]?\\)\\([0-9]+\\)?\
-\\(?:-\\(?:\\([0-9]+\\)\\3\\)?\\.?\\([0-9]+\\)?\\)?[: \t]" 1 (2 . 5) (4 . 6))
-    ("^\\(.+?\\)[:(]+\\([0-9]+\\)\\([:)]\\).*?\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
-     1 2
+\\(?:-\\(?:\\([0-9]+\\)\\4\\)?\\.?\\([0-9]+\\)?\\)?\\2"
+     1 (3 . 6) (5 . 7))
+    ("^\\(\\(.+?\\):\\([0-9]+\\):\\).*?\
+\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(?:\033\\[K\\)?\\)"
+     2 3
      ;; Calculate column positions (beg . end) of first grep match on a line
      ((lambda ()
         (setq compilation-error-screen-columns nil)
-        (- (match-beginning 5) (match-end 3) 8))
+        (- (match-beginning 5) (match-end 1) 8))
       .
-      (lambda () (- (match-end 5) (match-end 3) 8))))
+      (lambda () (- (match-end 5) (match-end 1) 8)))
+     nil 1)
     ("^Binary file \\(.+\\) matches$" 1 nil nil 1))
   "Regexp used to match grep hits.  See `compilation-error-regexp-alist'.")
 
@@ -293,7 +296,7 @@ Notice that using \\[next-error] or \\[compile-goto-error] modifies
       (1 compilation-warning-face)
       (2 compilation-line-face))
      ;; Highlight grep matches and delete markers
-     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(\033\\[K\\)?\\)"
+     ("\\(\033\\[01;41m\\)\\(.*?\\)\\(\033\\[00m\\(?:\033\\[K\\)?\\)"
       ;; Refontification does not work after the markers have been
       ;; deleted.  So we use the font-lock-face property here as Font
       ;; Lock does not clear that.
@@ -517,7 +520,10 @@ temporarily highlight in visited source lines."
   (set (make-local-variable 'compilation-error-face)
        grep-hit-face)
   (set (make-local-variable 'compilation-error-regexp-alist)
-       grep-regexp-alist))
+       grep-regexp-alist)
+  ;; Set `font-lock-lines-before' to 0 to not refontify the previous
+  ;; line where grep markers may be already removed.
+  (set (make-local-variable 'font-lock-lines-before) 0))
 
 ;;;###autoload
 (defun grep-find (command-args)

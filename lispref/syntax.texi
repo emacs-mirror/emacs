@@ -754,10 +754,11 @@ necessary to flush the cache manually.
 @end defun
 
 @defvar syntax-begin-function
-If this is non-nil, it should be a function that moves to an earlier
-buffer position where the parser state is equivalent to @code{nil},
-i.e., a position outside of any comment, string, or parenthesis.
-@code{syntax-ppss} uses it to supplement its cache.
+If this is non-@code{nil}, it should be a function that moves to an
+earlier buffer position where the parser state is equivalent to
+@code{nil}---in other words, a position outside of any comment,
+string, or parenthesis.  @code{syntax-ppss} uses it to supplement its
+cache.
 @end defvar
 
 @defun scan-lists from count depth

@@ -1550,13 +1550,13 @@ clients.  It takes two optional arguments, @var{type} and
 The @var{data-type} argument specifies the form of data conversion to
 use, to convert the raw data obtained from another X client into Lisp
 data.  Meaningful values include @code{TEXT}, @code{STRING},
-@code{UTF8_STRING},
-@code{TARGETS}, @code{LENGTH}, @code{DELETE}, @code{FILE_NAME},
-@code{CHARACTER_POSITION}, @code{LINE_NUMBER}, @code{COLUMN_NUMBER},
-@code{OWNER_OS}, @code{HOST_NAME}, @code{USER}, @code{CLASS},
-@code{NAME}, @code{ATOM}, and @code{INTEGER}.  (These are symbols with
-upper-case names in accord with X conventions.)  The default for
-@var{data-type} is @code{STRING}.
+@code{UTF8_STRING}, @code{TARGETS}, @code{LENGTH}, @code{DELETE},
+@code{FILE_NAME}, @code{CHARACTER_POSITION}, @code{NAME},
+@code{LINE_NUMBER}, @code{COLUMN_NUMBER}, @code{OWNER_OS},
+@code{HOST_NAME}, @code{USER}, @code{CLASS}, @code{ATOM}, and
+@code{INTEGER}.  (These are symbols with upper-case names in accord
+with X conventions.)  The default for @var{data-type} is
+@code{STRING}.
 @end defun
 
 @cindex cut buffer
@@ -1822,8 +1822,8 @@ xterm.vt100.background: yellow
 @end example
 
 @noindent
-in in your X resources file (usually named @file{~/.Xdefaults} or
-@file{~/.Xresources}).  Then:
+in in your X resources file (whose name is usually @file{~/.Xdefaults}
+or @file{~/.Xresources}).  Then:
 
 @example
 @group

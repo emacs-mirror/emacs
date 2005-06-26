@@ -47,13 +47,15 @@ of a function or variable.  In a function definition, the documentation
 string follows the argument list.  In a variable definition, the
 documentation string follows the initial value of the variable.
 
-  When you write a documentation string, make the first line a complete
-sentence (or two complete sentences) since some commands, such as
-@code{apropos}, show only the first line of a multi-line documentation
-string.  Also, you should not indent the second line of a documentation
-string, if it has one, because that looks odd when you use @kbd{C-h f}
-(@code{describe-function}) or @kbd{C-h v} (@code{describe-variable}) to
-view the documentation string.  @xref{Documentation Tips}.
+  When you write a documentation string, make the first line a
+complete sentence (or two complete sentences) since some commands,
+such as @code{apropos}, show only the first line of a multi-line
+documentation string.  Also, you should not indent the second line of
+a documentation string, if it has one, because that looks odd when you
+use @kbd{C-h f} (@code{describe-function}) or @kbd{C-h v}
+(@code{describe-variable}) to view the documentation string.  There
+are many other conventions for doc strings; see @ref{Documentation
+Tips}.
 
   Documentation strings can contain several special substrings, which
 stand for key bindings to be looked up in the current keymaps when the
@@ -117,7 +119,7 @@ retrieves the text from a file if the value calls for that.  If the
 property value isn't @code{nil}, isn't a string, and doesn't refer to
 text in a file, then it is evaluated to obtain a string.
 
-Finally, @code{documentation-property} passes the string through
+The last thing this function does is pass the string through
 @code{substitute-command-keys} to substitute actual key bindings,
 unless @var{verbatim} is non-@code{nil}.
 

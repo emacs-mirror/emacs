@@ -2035,7 +2035,11 @@ Note: Other faces cannot inherit from the cursor face."
   :group 'basic-faces)
 
 
-(defface underline '((t :underline t))
+(defface underline '((((supports :underline t))
+		      :underline t)
+		     (((supports :weight bold))
+		      :weight bold)
+		     (t :underline t))
   "Basic underlined face."
   :group 'basic-faces)
 

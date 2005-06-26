@@ -40,6 +40,9 @@ to the FSF.
 ** Implement something better than the current Refill mode.  This
   probably needs some primitive support.
 
+** Add a command to make a local variables list in the current buffer
+  and/or add a variable to the list.
+
 ** Implement primitive and higher-level functions to allow filling
   properly with variable-pitch faces.
 
@@ -60,6 +63,10 @@ to the FSF.
 ** Make movemail work with IMAP.
 
 ** Internationalize Emacs's messages.
+
+** Add a "current vertical pixel level" value that goes with point,
+  so that motion commands can also move through tall images.
+  This value would be to point as window-vscroll is to window-start.
 
 ** Address internationalization of symbols names essentially
   as documentation, e.g. in command names and Custom.
@@ -357,5 +364,8 @@ to the FSF.
    comint-derived mode.  I.e. basically make cmuscheme.el/inf-lisp.el generic.
    For use by sml-mode, python-mode, tex-mode, scheme-mode, lisp-mode,
    haskell-mode, tuareg-mode, ...
+
+** Fix unexelf.c to handle the .data.rel and .data.rel.local
+   sections made by GCC 3.4 on IRIX.
 
 ;;; arch-tag: b0a3e40b-726a-457d-9999-ba848321b036

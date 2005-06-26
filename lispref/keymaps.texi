@@ -1335,10 +1335,10 @@ a key binding.
 instead of @code{kill-line} and @code{kill-word}.  It can establish
 this by making these two command-remapping bindings in its keymap:
 
-@example
+@smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
 (define-key my-mode-map [remap kill-word] 'my-kill-word)
-@end example
+@end smallexample
 
 Whenever @code{my-mode-map} is an active keymap, if the user types
 @kbd{C-k}, Emacs will find the standard global binding of
@@ -1349,10 +1349,10 @@ so instead of running @code{kill-line}, Emacs runs
 
 Remapping only works through a single level.  In other words,
 
-@example
+@smallexample
 (define-key my-mode-map [remap kill-line] 'my-kill-line)
 (define-key my-mode-map [remap my-kill-line] 'my-other-kill-line)
-@end example
+@end smallexample
 
 @noindent
 does not have the effect of remapping @code{kill-line} into

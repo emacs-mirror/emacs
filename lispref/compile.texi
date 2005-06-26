@@ -426,7 +426,7 @@ to what @code{eval-when-compile} does.
 @section Compiler Errors
 @cindex compiler errors
 
-  Byte compilation writes errors and warnings into the buffer
+  Byte compilation outputs all errors and warnings into the buffer
 @samp{*Compile-Log*}.  The messages include file names and line
 numbers that identify the location of the problem.  The usual Emacs
 commands for operating on compiler diagnostics work properly on

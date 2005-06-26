@@ -1067,11 +1067,11 @@ for decoding (in case @var{operation} does decoding), and
 @var{encoding-system} is the coding system for encoding (in case
 @var{operation} does encoding).
 
-The argument @var{operation} should be a symbol, one of
-@code{insert-file-contents}, @code{write-region}, @code{call-process},
-@code{call-process-region}, @code{start-process}, or
-@code{open-network-stream}.  These are the names of the Emacs I/O primitives
-that can do coding system conversion.
+The argument @var{operation} should be a symbol, any one of
+@code{insert-file-contents}, @code{write-region},
+@code{start-process}, @code{call-process}, @code{call-process-region},
+or @code{open-network-stream}.  These are the names of the Emacs I/O
+primitives that can do coding system conversion.
 
 The remaining arguments should be the same arguments that might be given
 to that I/O primitive.  Depending on the primitive, one of those
@@ -1081,9 +1081,9 @@ name is the target.  For subprocess primitives, the process name is the
 target.  For @code{open-network-stream}, the target is the service name
 or port number.
 
-This function looks up the target in @code{file-coding-system-alist},
-@code{process-coding-system-alist}, or
-@code{network-coding-system-alist}, depending on @var{operation}.
+Depending on @var{operation}, this function looks up the target in
+@code{file-coding-system-alist}, @code{process-coding-system-alist},
+or @code{network-coding-system-alist}.
 @end defun
 
 @node Specifying Coding Systems
