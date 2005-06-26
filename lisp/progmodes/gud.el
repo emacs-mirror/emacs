@@ -2534,16 +2534,12 @@ It is saved for when this flag is not set.")
 	    ;; This must be outside of the save-excursion
 	    ;; in case the source file is our current buffer.
 	    (if process-window
-		(save-selected-window
-		  (select-window process-window)
+		(with-selected-window
 		  (gud-display-frame))
 	      ;; We have to be in the proper buffer, (process-buffer proc),
 	      ;; but not in a save-excursion, because that would restore point.
-	      (let ((old-buf (current-buffer)))
-		(set-buffer (process-buffer proc))
-		(unwind-protect
-		    (gud-display-frame)
-		  (set-buffer old-buf)))))
+	      (with-current-buffer (process-buffer proc)
+		(gud-display-frame))))
 
 	  ;; If we deferred text that arrived during this processing,
 	  ;; handle it now.

@@ -1,13 +1,48 @@
+2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* faces.el (facep): Doc fix.
+
+2005-06-25  Richard M. Stallman  <rms@gnu.org>
+
+	* facemenu.el (facemenu-enable-faces-p): New function.
+	(facemenu-background-menu, facemenu-foreground-menu)
+	(facemenu-face-menu): Add menu-enable property.
+
+	* jka-compr.el (jka-compr-insert-file-contents):
+	Special handling if cannot find the uncompression program.
+
+	* cus-face.el (custom-face-attributes): Add autoload.
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables):
+	Bind comment-indent-function locally.
+
+	* window.el (save-selected-window): Use save-current-buffer.
+
+	* subr.el (with-selected-window): Use save-current-buffer.
+
+	* progmodes/gud.el (gud-filter): Simplify using with-selected-window
+	and with-current-buffer.
+
+2005-06-24  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (line-move-1): Fix previous change.
+
+2005-06-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-1): Set `buffer-read-only' and the
+	buffer-modified flag before running `occur-hook' to protect
+	against unintentional buffer switches that can lead to data loss.
+
 2005-06-24  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-tooltip-print-command): Indent properly.
 	(gud-gdb-marker-filter): Use font-lock-warning-face for any
 	initial error.
-	
+
 	* progmodes/gdb-ui.el (gdb-send): Remove warning face from errors
 	after fresh input.
 	(gdb-var-create-handler): Put name of expression in quotes.
-	
+
 2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/ring.el (ring-elements): Make it return a list of the
@@ -532,7 +567,7 @@
 
 	* progmodes/gdb-ui.el (menu): Re-order menu items.
 	(gdb-tooltip-print): Respect tooltip-use-echo-area.
-	
+
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
 	Define in tooltip.el.
 	(gud-tooltip-process-output): Respect tooltip-use-echo-area.

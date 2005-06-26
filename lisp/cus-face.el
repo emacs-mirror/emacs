@@ -62,6 +62,7 @@
 
 ;;; Face attributes.
 
+;;;###autoload
 (defconst custom-face-attributes
   '((:family
      (string :tag "Font Family"

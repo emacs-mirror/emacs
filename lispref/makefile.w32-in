@@ -29,7 +29,7 @@ infodir = $(srcdir)/../info
 # TEX=platex
 TEX=tex
 INSTALL_INFO = install-info
-MAKEINFO = makeinfo
+MAKEINFO = makeinfo --force
 
 # The environment variable and its value to add $(srcdir) to the path
 # searched for TeX input files.

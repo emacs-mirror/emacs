@@ -4097,6 +4097,7 @@ return window edges in units of pixels, rather than columns and lines.
 +++
 *** The new macro `with-selected-window' temporarily switches the
 selected window without impacting the order of `buffer-list'.
+It saves and restores the current buffer, too.
 
 +++
 *** `select-window' takes an optional second argument NORECORD.
@@ -4106,7 +4107,8 @@ This is like `switch-to-buffer'.
 +++
 *** `save-selected-window' now saves and restores the selected window
 of every frame.  This way, it restores everything that can be changed
-by calling `select-window'.
+by calling `select-window'.  It also saves and restores the current
+buffer.
 
 +++
 *** `set-window-buffer' has an optional argument KEEP-MARGINS.

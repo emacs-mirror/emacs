@@ -967,28 +967,28 @@ Recommended as a parent keymap for modes using widgets.")
 		(recenter))
 	      )
 
-	    (let ((up t) command)
-	      ;; Mouse click not on a widget button.  Find the global
-	      ;; command to run, and check whether it is bound to an
-	      ;; up event.
-	      (mouse-set-point event)
-	      (if (memq (event-basic-type event) '(mouse-1 down-mouse-1))
-		  (cond ((setq command	;down event
-			       (lookup-key widget-global-map [down-mouse-1]))
-			 (setq up nil))
-			((setq command	;up event
-			       (lookup-key widget-global-map [mouse-1]))))
+	  (let ((up t) command)
+	    ;; Mouse click not on a widget button.  Find the global
+	    ;; command to run, and check whether it is bound to an
+	    ;; up event.
+	    (mouse-set-point event)
+	    (if (memq (event-basic-type event) '(mouse-1 down-mouse-1))
 		(cond ((setq command	;down event
-			     (lookup-key widget-global-map [down-mouse-2]))
+			     (lookup-key widget-global-map [down-mouse-1]))
 		       (setq up nil))
 		      ((setq command	;up event
-			     (lookup-key widget-global-map [mouse-2])))))
-	      (when up
-		;; Don't execute up events twice.
-		(while (not (widget-button-release-event-p event))
-		  (setq event (read-event))))
-	      (when command
-		(call-interactively command)))))
+			     (lookup-key widget-global-map [mouse-1]))))
+	      (cond ((setq command	;down event
+			   (lookup-key widget-global-map [down-mouse-2]))
+		     (setq up nil))
+		    ((setq command	;up event
+			   (lookup-key widget-global-map [mouse-2])))))
+	    (when up
+	      ;; Don't execute up events twice.
+	      (while (not (widget-button-release-event-p event))
+		(setq event (read-event))))
+	    (when command
+	      (call-interactively command)))))
     (message "You clicked somewhere weird.")))
 
 (defun widget-button-press (pos &optional event)

@@ -162,6 +162,7 @@ when they are created."
   "Menu keymap for faces.")
 ;;;###autoload
 (defalias 'facemenu-face-menu facemenu-face-menu)
+(put 'facemenu-face-menu 'menu-enable '(facemenu-enable-faces-p))
 
 ;;;###autoload
 (defvar facemenu-foreground-menu
@@ -171,6 +172,7 @@ when they are created."
   "Menu keymap for foreground colors.")
 ;;;###autoload
 (defalias 'facemenu-foreground-menu facemenu-foreground-menu)
+(put 'facemenu-foreground-menu 'menu-enable '(facemenu-enable-faces-p))
 
 ;;;###autoload
 (defvar facemenu-background-menu
@@ -180,6 +182,11 @@ when they are created."
   "Menu keymap for background colors.")
 ;;;###autoload
 (defalias 'facemenu-background-menu facemenu-background-menu)
+(put 'facemenu-background-menu 'menu-enable '(facemenu-enable-faces-p))
+
+;;; Condition for enabling menu items that set faces.
+(defun facemenu-enable-faces-p ()
+  (not (and font-lock-mode font-lock-defaults)))
 
 ;;;###autoload
 (defvar facemenu-special-menu

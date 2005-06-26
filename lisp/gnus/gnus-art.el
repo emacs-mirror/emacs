@@ -3755,7 +3755,7 @@ commands:
   (make-local-variable 'gnus-article-charset)
   (make-local-variable 'gnus-article-ignored-charsets)
   ;; Prevent recent Emacsen from displaying non-break space as "\ ".
-  (set (make-local-variable 'show-nonbreak-escape) nil)
+  (set (make-local-variable 'nobreak-char-display) nil)
   (gnus-set-default-directory)
   (buffer-disable-undo)
   (setq buffer-read-only t)

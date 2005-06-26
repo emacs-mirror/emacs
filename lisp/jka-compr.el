@@ -474,6 +474,9 @@ There should be no more than seven characters after the final `/'."
 			  (delete-region (point) (point-max)))
 		      (goto-char start))
 		  (error
+		   ;; If the file we wanted to uncompress does not exist,
+		   ;; handle that according to VISIT as `insert-file-contents'
+		   ;; would, maybe signaling the same error it normally would.
 		   (if (and (eq (car error-code) 'file-error)
 			    (eq (nth 3 error-code) local-file))
 		       (if visit
@@ -481,6 +484,13 @@ There should be no more than seven characters after the final `/'."
 			 (signal 'file-error
 				 (cons "Opening input file"
 				       (nthcdr 2 error-code))))
+		     ;; If the uncompression program can't be found,
+		     ;; signal that as a non-file error
+		     ;; so that find-file-noselect-1 won't handle it.
+		     (if (and (eq (car error-code) 'file-error)
+			      (equal (cadr error-code) "Searching for program"))
+			 (error "Uncompression program `%s' not found"
+				(nth 3 error-code)))
 		     (signal (car error-code) (cdr error-code))))))
 
 	    (and
