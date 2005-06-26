@@ -485,6 +485,11 @@
 	* progmodes/cperl-mode.el (cperl-init-faces): Use literal cperl
 	faces instead of (non-existent) variables.
 
+2005-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iswitchb.el (iswitchb-to-end): Replace mapcar with dolist.
+	(iswitchb-get-matched-buffers): Likewise.  Simplify.
+
 2005-06-14  Miles Bader  <miles@gnu.org>
 
 	* progmodes/ld-script.el (ld-script-location-counter):
