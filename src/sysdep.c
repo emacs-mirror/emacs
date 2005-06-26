@@ -1725,6 +1725,7 @@ nil means don't delete them until `list-processes' is run.  */);
 
   if (tty_out->term_initted && no_redraw_on_reenter)
     {
+      /* XXX This seems wrong on multi-tty. */
       if (display_completed)
 	direct_output_forward_char (0);
     }

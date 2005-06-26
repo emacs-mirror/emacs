@@ -10584,8 +10584,9 @@ See also `current-input-mode'.  */)
 #endif
 
 #ifndef DOS_NT
-  /* this causes startup screen to be restored and messes with the mouse */
-  reset_all_sys_modes ();
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    /* this causes startup screen to be restored and messes with the mouse */
+    reset_sys_modes (CURTTY ());
 #endif
 
 #ifdef SIGIO
@@ -10628,7 +10629,8 @@ See also `current-input-mode'.  */)
     quit_char = XINT (quit) & (NILP (meta) ? 0177 : 0377);
 
 #ifndef DOS_NT
-  init_all_sys_modes ();
+  if (FRAME_TERMCAP_P (XFRAME (selected_frame)))
+    init_sys_modes (CURTTY ());
 #endif
 
 #ifdef POLL_FOR_INPUT
