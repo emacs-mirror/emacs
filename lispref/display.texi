@@ -1628,7 +1628,7 @@ particular parts of the text or the frame.
 @cindex face id
 Each face has its own @dfn{face number}, which distinguishes faces at
 low levels within Emacs.  However, for most purposes, you refer to
-faces in Lisp programs by the symbol that names them.
+faces in Lisp programs by the symbols that name them.
 
 @defun facep object
 This function returns @code{t} if @var{object} is a face name string
