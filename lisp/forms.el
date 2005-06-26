@@ -550,7 +550,7 @@ Commands:                        Equivalent keys in read-only mode:
 		     (eq (length forms-multi-line) 1))
 		(if (string= forms-multi-line forms-field-sep)
 		    (error (concat "Forms control file error: "
-				   "`forms-multi-line' is equal to 'forms-field-sep'")))
+				   "`forms-multi-line' is equal to `forms-field-sep'")))
 	      (error (concat "Forms control file error: "
 			     "`forms-multi-line' must be nil or a one-character string"))))
 	(or (fboundp 'set-text-properties)
@@ -1207,7 +1207,7 @@ Commands:                        Equivalent keys in read-only mode:
 
       ;; Need a file to do this.
       (if (not (file-exists-p forms-file))
-	  (error "Need existing file or explicit 'forms-number-of-records'")
+	  (error "Need existing file or explicit `forms-number-of-fields'")
 
 	;; Visit the file and extract the first record.
 	(setq forms--file-buffer (find-file-noselect forms-file))
@@ -1983,7 +1983,7 @@ after writing out the data."
       (goto-char (aref forms--markers (1- (length forms--markers)))))))
 
 (defun forms-print ()
-  "Send the records to the printer with 'print-buffer', one record per page."
+  "Send the records to the printer with `print-buffer', one record per page."
   (interactive)
   (let ((inhibit-read-only t)
 	(save-record forms--current-record)

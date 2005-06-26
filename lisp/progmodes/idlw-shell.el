@@ -510,40 +510,44 @@ t          Glyph when possible, otherwise face (same effect as 'glyph)."
 (defvar idlwave-shell-use-breakpoint-glyph t
   "Obsolete variable.  See `idlwave-shell-mark-breakpoints.")
 
-(defcustom idlwave-shell-breakpoint-face 'idlwave-shell-bp-face
+(defcustom idlwave-shell-breakpoint-face 'idlwave-shell-bp
   "*The face for breakpoint lines in the source code.
 Allows you to choose the font, color and other properties for
 lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'symbol)
 
-(if idlwave-shell-have-new-custom
-    ;; We have the new customize - use it to define a customizable face
-    (defface idlwave-shell-bp-face
-      '((((class color)) (:foreground "Black" :background "Pink"))
-	(t (:underline t)))
-      "Face for highlighting lines with breakpoints."
-      :group 'idlwave-shell-highlighting-and-faces)
-  ;; Just copy the underline face to be on the safe side.
-  (copy-face 'underline 'idlwave-shell-bp-face))
+(if (not idlwave-shell-have-new-custom)
+    ;; Just copy the underline face to be on the safe side.
+    (copy-face 'underline 'idlwave-shell-bp)
+  ;; We have the new customize - use it to define a customizable face
+  (defface idlwave-shell-bp
+    '((((class color)) (:foreground "Black" :background "Pink"))
+      (t (:underline t)))
+    "Face for highlighting lines with breakpoints."
+    :group 'idlwave-shell-highlighting-and-faces)
+  ;; backward-compatibility alias
+  (put 'idlwave-shell-bp-face 'face-alias 'idlwave-shell-bp))
 
 (defcustom idlwave-shell-disabled-breakpoint-face
-  'idlwave-shell-disabled-bp-face
+  'idlwave-shell-disabled-bp
   "*The face for disabled breakpoint lines in the source code.
 Allows you to choose the font, color and other properties for
 lines which have a breakpoint.  See also `idlwave-shell-mark-breakpoints'."
   :group 'idlwave-shell-highlighting-and-faces
   :type 'symbol)
 
-(if idlwave-shell-have-new-custom
-    ;; We have the new customize - use it to define a customizable face
-    (defface idlwave-shell-disabled-bp-face
-      '((((class color)) (:foreground "Black" :background "gray"))
-	(t (:underline t)))
-      "Face for highlighting lines with breakpoints."
-      :group 'idlwave-shell-highlighting-and-faces)
-  ;; Just copy the underline face to be on the safe side.
-  (copy-face 'underline 'idlwave-shell-disabled-bp-face))
+(if (not idlwave-shell-have-new-custom)
+    ;; Just copy the underline face to be on the safe side.
+    (copy-face 'underline 'idlwave-shell-disabled-bp)
+  ;; We have the new customize - use it to define a customizable face
+  (defface idlwave-shell-disabled-bp
+    '((((class color)) (:foreground "Black" :background "gray"))
+      (t (:underline t)))
+    "Face for highlighting lines with breakpoints."
+    :group 'idlwave-shell-highlighting-and-faces)
+  ;; backward-compatibility alias
+  (put 'idlwave-shell-disabled-bp-face 'face-alias 'idlwave-shell-disabled-bp))
 
 
 (defcustom idlwave-shell-expression-face 'secondary-selection
@@ -2734,7 +2738,7 @@ Runs to the last statement and then steps 1 statement.  Use the .out command."
 	     (funcall orig-func cur-line orig-bp-line)
 	     (or (not bp-line) (funcall closer-func cur-line bp-line)))
 	    (setq bp-line cur-line))))
-    (unless bp-line (error "No further breakpoints."))
+    (unless bp-line (error "No further breakpoints"))
     (goto-line bp-line)))
 
 ;; Examine Commands ------------------------------------------------------

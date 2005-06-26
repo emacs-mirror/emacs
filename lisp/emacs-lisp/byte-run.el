@@ -100,23 +100,23 @@ The return value of this function is not used."
      (eval-and-compile
        (put ',name 'byte-optimizer 'byte-compile-inline-expand))))
 
-(defun make-obsolete (function new &optional when)
-  "Make the byte-compiler warn that FUNCTION is obsolete.
-The warning will say that NEW should be used instead.
-If NEW is a string, that is the `use instead' message.
+(defun make-obsolete (obsolete-name current-name &optional when)
+  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
+The warning will say that CURRENT-NAME should be used instead.
+If CURRENT-NAME is a string, that is the `use instead' message.
 If provided, WHEN should be a string indicating when the function
 was first made obsolete, for example a date or a release number."
   (interactive "aMake function obsolete: \nxObsoletion replacement: ")
-  (let ((handler (get function 'byte-compile)))
+  (let ((handler (get obsolete-name 'byte-compile)))
     (if (eq 'byte-compile-obsolete handler)
-	(setq handler (nth 1 (get function 'byte-obsolete-info)))
-      (put function 'byte-compile 'byte-compile-obsolete))
-    (put function 'byte-obsolete-info (list new handler when)))
-  function)
+	(setq handler (nth 1 (get obsolete-name 'byte-obsolete-info)))
+      (put obsolete-name 'byte-compile 'byte-compile-obsolete))
+    (put obsolete-name 'byte-obsolete-info (list current-name handler when)))
+  obsolete-name)
 
-(defmacro define-obsolete-function-alias (function new
+(defmacro define-obsolete-function-alias (obsolete-name current-name
 						   &optional when docstring)
-  "Set FUNCTION's function definition to NEW and mark it obsolete.
+  "Set OBSOLETE-NAME's function definition to CURRENT-NAME and mark it obsolete.
 
 \(define-obsolete-function-alias 'old-fun 'new-fun \"22.1\" \"old-fun's doc.\")
 
@@ -127,13 +127,13 @@ is equivalent to the following two lines of code:
 
 See the docstrings of `defalias' and `make-obsolete' for more details."
   `(progn
-     (defalias ,function ,new ,docstring)
-     (make-obsolete ,function ,new ,when)))
+     (defalias ,obsolete-name ,current-name ,docstring)
+     (make-obsolete ,obsolete-name ,current-name ,when)))
 
-(defun make-obsolete-variable (variable new &optional when)
-  "Make the byte-compiler warn that VARIABLE is obsolete.
-The warning will say that NEW should be used instead.
-If NEW is a string, that is the `use instead' message.
+(defun make-obsolete-variable (obsolete-name current-name &optional when)
+  "Make the byte-compiler warn that OBSOLETE-NAME is obsolete.
+The warning will say that CURRENT-NAME should be used instead.
+If CURRENT-NAME is a string, that is the `use instead' message.
 If provided, WHEN should be a string indicating when the variable
 was first made obsolete, for example a date or a release number."
   (interactive
@@ -142,12 +142,12 @@ was first made obsolete, for example a date or a release number."
       (if (equal str "") (error ""))
       (intern str))
     (car (read-from-string (read-string "Obsoletion replacement: ")))))
-  (put variable 'byte-obsolete-variable (cons new when))
-  variable)
+  (put obsolete-name 'byte-obsolete-variable (cons current-name when))
+  obsolete-name)
 
-(defmacro define-obsolete-variable-alias (variable new
+(defmacro define-obsolete-variable-alias (obsolete-name current-name
 						 &optional when docstring)
-  "Make VARIABLE a variable alias for NEW and mark it obsolete.
+  "Make OBSOLETE-NAME a variable alias for CURRENT-NAME and mark it obsolete.
 
 \(define-obsolete-variable-alias 'old-var 'new-var \"22.1\" \"old-var's doc.\")
 
@@ -159,8 +159,8 @@ is equivalent to the following two lines of code:
 See the docstrings of `defvaralias' and `make-obsolete-variable' or
 Info node `(elisp)Variable Aliases' for more details."
   `(progn
-     (defvaralias ,variable ,new ,docstring)
-      (make-obsolete-variable ,variable ,new ,when)))
+     (defvaralias ,obsolete-name ,current-name ,docstring)
+      (make-obsolete-variable ,obsolete-name ,current-name ,when)))
 
 (defmacro dont-compile (&rest body)
   "Like `progn', but the body always runs interpreted (not compiled).

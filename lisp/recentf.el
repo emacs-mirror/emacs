@@ -923,9 +923,11 @@ IGNORE arguments."
 
 \\{recentf-dialog-mode-map}"
   (interactive)
+  (kill-all-local-variables)
   (setq major-mode 'recentf-dialog-mode)
   (setq mode-name "recentf-dialog")
-  (use-local-map recentf-dialog-mode-map))
+  (use-local-map recentf-dialog-mode-map)
+  (run-mode-hooks 'recentf-dialog-mode-hook))
 
 ;;; Hooks
 ;;
@@ -1002,13 +1004,13 @@ That is to select files to be deleted from the recent list."
       (get-buffer-create (format "*%s - Edit list*" recentf-menu-title))
     (switch-to-buffer (current-buffer))
     ;; Cleanup buffer
-    (kill-all-local-variables)
     (let ((inhibit-read-only t)
           (ol (overlay-lists)))
       (erase-buffer)
       ;; Delete all the overlays.
       (mapc 'delete-overlay (car ol))
       (mapc 'delete-overlay (cdr ol)))
+    (recentf-dialog-mode)
     (setq recentf-edit-selected-items nil)
     ;; Insert the dialog header
     (widget-insert
@@ -1045,7 +1047,6 @@ Click on Cancel or type \"q\" to quit.\n")
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
-    (recentf-dialog-mode)
     (widget-setup)
     (goto-char (point-min))))
 
@@ -1101,13 +1102,13 @@ default."
   (with-current-buffer (get-buffer-create buffer-name)
     (switch-to-buffer (current-buffer))
     ;; Cleanup buffer
-    (kill-all-local-variables)
     (let ((inhibit-read-only t)
           (ol (overlay-lists)))
       (erase-buffer)
       ;; Delete all the overlays.
       (mapc 'delete-overlay (car ol))
       (mapc 'delete-overlay (cdr ol)))
+    (recentf-dialog-mode)
     ;; Insert the dialog header
     (widget-insert "Click on a file to open it. ")
     (widget-insert "Click on Cancel or type \"q\" to quit.\n\n" )
@@ -1123,7 +1124,6 @@ default."
      'push-button
      :notify 'recentf-cancel-dialog
      "Cancel")
-    (recentf-dialog-mode)
     (widget-setup)
     (goto-char (point-min))))
 

@@ -704,7 +704,7 @@ It's flymake process filter."
   (nth 1 err-info))
 
 (defvar flymake-new-err-info nil
-  "Same as 'flymake-err-info', effective when a syntax check is in progress.")
+  "Same as `flymake-err-info', effective when a syntax check is in progress.")
 
 (make-variable-buffer-local 'flymake-new-err-info)
 
@@ -839,19 +839,23 @@ Return t if it has at least one flymake overlay, nil if no overlay."
       (setq ov (cdr ov)))
     has-flymake-overlays))
 
-(defface flymake-errline-face
+(defface flymake-errline
   ;;+   '((((class color)) (:foreground "OrangeRed" :bold t :underline t))
   ;;+   '((((class color)) (:underline "OrangeRed"))
   '((((class color)) (:background "LightPink"))
     (t (:bold t)))
   "Face used for marking error lines."
   :group 'flymake)
+;; backward-compatibility alias
+(put 'flymake-errline-face 'face-alias 'flymake-errline)
 
-(defface flymake-warnline-face
+(defface flymake-warnline
   '((((class color)) (:background "LightBlue2"))
     (t (:bold t)))
   "Face used for marking warning lines."
   :group 'flymake)
+;; backward-compatibility alias
+(put 'flymake-warnline-face 'face-alias 'flymake-warnline)
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.
@@ -886,8 +890,8 @@ Perhaps use text from LINE-ERR-INFO-ILST to enhance highlighting."
       (setq end (point)))
 
     (if (> (flymake-get-line-err-count line-err-info-list "e") 0)
-	(setq face 'flymake-errline-face)
-      (setq face 'flymake-warnline-face))
+	(setq face 'flymake-errline)
+      (setq face 'flymake-warnline))
 
     (flymake-make-overlay beg end tooltip-text face nil)))
 
@@ -1312,7 +1316,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
 	(flymake-start-syntax-check buffer)))))
 
 (defun flymake-start-syntax-check-for-current-buffer ()
-  "Run 'flymake-start-syntax-check' for current buffer if it isn't already running."
+  "Run `flymake-start-syntax-check' for current buffer if it isn't already running."
   (interactive)
   (flymake-start-syntax-check (current-buffer)))
 
@@ -1655,7 +1659,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
     temp-source-file-name))
 
 (defun flymake-simple-cleanup (buffer)
-  "Do cleanup after 'flymake-init-create-temp-buffer-copy'.
+  "Do cleanup after `flymake-init-create-temp-buffer-copy'.
 Delete temp file."
   (let* ((temp-source-file-name (flymake-get-buffer-value buffer "temp-source-file-name")))
     (flymake-safe-delete-file temp-source-file-name)

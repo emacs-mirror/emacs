@@ -1,3 +1,7 @@
+2005-06-11  Eli Zaretskii  <eliz@gnu.org>
+
+	* DEBUG: Mention emacs-buffer.gdb.
+
 2005-06-10  Noah Friedman  <friedman@splode.com>
 
 	* emacs-buffer.gdb (ybuffer-list): Don't use $filename; can't use

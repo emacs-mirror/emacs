@@ -963,6 +963,43 @@ other hooks, such as major mode hooks, can do the job."
 	     (append (symbol-value list-var) (list element))
 	   (cons element (symbol-value list-var))))))
 
+
+(defun add-to-ordered-list (list-var element &optional order)
+  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+The test for presence of ELEMENT is done with `equal'.
+
+The resulting list is reordered so that the elements are in the
+order given by each element's numeric list order.  Elements which
+are not symbols, and symbol elements without a numeric list order
+are placed at the end of the list.
+
+If the third optional argument ORDER is non-nil and ELEMENT is
+a symbol, set the symbol's list order to the given value.
+
+The list order for each symbol is stored in LIST-VAR's
+`list-order' property.
+
+The return value is the new value of LIST-VAR."
+  (let* ((ordering (get list-var 'list-order))
+	 (cur (and (symbolp element) (assq element ordering))))
+    (when order
+      (unless (symbolp element)
+	(error "cannot specify order for non-symbols"))
+      (if cur
+	  (setcdr cur order)
+	(setq cur (cons element order))
+	(setq ordering (cons cur ordering))
+	(put list-var 'list-order ordering)))
+    (add-to-list list-var element)
+    (set list-var (sort (symbol-value list-var)
+			(lambda (a b)
+			  (let ((oa (and (symbolp a) (assq a ordering)))
+				(ob (and (symbolp b) (assq b ordering))))
+			    (cond
+			     ((not oa) nil)
+			     ((not ob) t)
+			     (t (< (cdr oa) (cdr ob))))))))))
+
 
 ;;; Load history
 
@@ -1929,6 +1966,7 @@ entered.
 The result of the `dynamic-completion-table' form is a function
 that can be used as the ALIST argument to `try-completion' and
 `all-completion'.  See Info node `(elisp)Programmed Completion'."
+  (declare (debug (lambda-expr)))
   (let ((win (make-symbol "window"))
         (string (make-symbol "string"))
         (predicate (make-symbol "predicate"))
@@ -1950,12 +1988,29 @@ ARGS.  FUN must return the completion table that will be stored in VAR.
 If completion is requested in the minibuffer, FUN will be called in the buffer
 from which the minibuffer was entered.  The return value of
 `lazy-completion-table' must be used to initialize the value of VAR."
+  (declare (debug (symbol lambda-expr def-body)))
   (let ((str (make-symbol "string")))
     `(dynamic-completion-table
       (lambda (,str)
         (unless (listp ,var)
-          (setq ,var (funcall ',fun ,@args)))
+          (setq ,var (,fun ,@args)))
         ,var))))
+
+(defmacro complete-in-turn (a b)
+  "Create a completion table that first tries completion in A and then in B.
+A and B should not be costly (or side-effecting) expressions."
+  (declare (debug (def-form def-form)))
+  `(lambda (string predicate mode)
+     (cond
+      ((eq mode t)
+       (or (all-completions string ,a predicate)
+	   (all-completions string ,b predicate)))
+      ((eq mode nil)
+       (or (try-completion string ,a predicate)
+	   (try-completion string ,b predicate)))
+      (t
+       (or (test-completion string ,a predicate)
+	   (test-completion string ,b predicate))))))
 
 ;;; Matching and substitution
 

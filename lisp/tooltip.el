@@ -113,6 +113,17 @@ position to pop up the tooltip."
   "Face for tooltips."
   :group 'tooltip)
 
+(defcustom tooltip-use-echo-area nil
+  "Use the echo area instead of tooltip frames for help and GUD tooltips."
+  :type 'boolean
+  :tag "Use echo area"
+  :group 'tooltip)
+
+(make-obsolete-variable 'tooltip-use-echo-area
+"To display help tooltips in the echo area turn tooltip-mode off.
+To display GUD tooltips in the echo area turn gud-tooltip-mode on and set
+gud-tooltip-echo-area to t." "22.1")
+
 
 ;;; Variables that are not customizable.
 
@@ -169,7 +180,7 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
       (remove-hook 'pre-command-hook 'tooltip-hide))
     (remove-hook 'tooltip-hook 'tooltip-help-tips))
   (setq show-help-function
-	(if tooltip-mode 'tooltip-show-help-function nil)))
+	(if tooltip-mode 'tooltip-show-help nil)))
 
 
 ;;; Timeout for tooltip display
@@ -314,9 +325,9 @@ of PROCESS."
 ;;; Tooltip help.
 
 (defvar tooltip-help-message nil
-  "The last help message received via `tooltip-show-help-function'.")
+  "The last help message received via `tooltip-show-help'.")
 
-(defun tooltip-show-help-function (msg)
+(defun tooltip-show-help (msg)
   "Function installed as `show-help-function'.
 MSG is either a help string to display, or nil to cancel the display."
   (let ((previous-help tooltip-help-message))
@@ -341,7 +352,7 @@ This is installed on the hook `tooltip-hook', which is run when
 the timer with ID `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
-    (tooltip-show tooltip-help-message)
+    (tooltip-show tooltip-help-message tooltip-use-echo-area)
     t))
 
 (provide 'tooltip)

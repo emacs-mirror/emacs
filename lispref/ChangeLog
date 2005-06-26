@@ -1,3 +1,53 @@
+2005-06-14  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* elisp.texi (Top): Update detailed menu.
+
+	* edebug.texi (Edebug): Update menu.
+	(Instrumenting): Update xrefs.
+	(Edebug Execution Modes): Correct xref.
+	(Jumping): Clarify description of `h' command.
+	Eliminate redundant @ref.
+	(Breaks): New node.
+	(Breakpoints): is now a subsubsection.
+	(Global Break Condition): Mention `C-x X X'.
+	(Edebug Views): Clarify `v' and `p'.  Mention `C-x X w'.
+	(Trace Buffer): Clarify STRING arg of `edebug-tracing'.
+	(Edebug Display Update): Correct pxref.
+	(Edebug and Macros): New node.
+	(Instrumenting Macro Calls): Is now a subsubsection.
+	Neither arg of `def-edebug-spec' is evaluated.
+	(Instrumenting Macro Calls): Mention `edebug-eval-macro-args'.
+	(Specification Examples): Fix typo.
+
+2005-06-14  Lute Kamstra  <lute@gnu.org>
+
+	* debugging.texi (Function Debugging): Primitives can break on
+	entry too.
+
+2005-06-14  Kim F. Storm  <storm@cua.dk>
+
+	* variables.texi (Setting Variables): Add add-to-ordered-list.
+
+2005-06-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* syntax.texi (Parsing Expressions): Document aux functions and vars of
+	syntax-ppss: syntax-ppss-flush-cache and syntax-begin-function.
+
+2005-06-13  Lute Kamstra  <lute@gnu.org>
+
+	* text.texi (Special Properties): Fix cross reference.
+
+2005-06-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* debugging.texi (Function Debugging): Delete mention of empty
+	string argument to `cancel-debug-on-entry'.  Delete inaccurate
+	description of the return value of that command.
+
+2005-06-11  Alan Mackenzie  <acm@muc.de>
+
+	* text.texi (Adaptive Fill): Amplify the description of
+	fill-context-prefix.
+
 2005-06-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* syntax.texi (Parsing Exprssions): Fix Texinfo error.

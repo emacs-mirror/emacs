@@ -4,8 +4,8 @@
 @setfilename ../info/org
 @settitle Org Mode Manual
 
-@set VERSION 3.10
-@set DATE May 2005
+@set VERSION 3.11
+@set DATE June 2005
 
 @dircategory Emacs
 @direntry
@@ -103,6 +103,7 @@ Document Structure
 * Visibility cycling::          Show ad hide, much simplified
 * Motion::                      Jumping to other headlines
 * Structure editing::           Changing sequence and level of headlines
+* Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 
 Tables
@@ -158,8 +159,8 @@ Miscellaneous
 * Customization::               Adapting Org-mode to your taste
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
-* Acknowledgments::             These people provided feedback and more
 * Bugs::                        Things which do not work perfectly
+* Acknowledgments::             These people provided feedback and more
 
 @end detailmenu
 @end menu
@@ -303,6 +304,7 @@ edit the structure of the document.
 * Visibility cycling::          Show ad hide, much simplified
 * Motion::                      Jumping to other headlines
 * Structure editing::           Changing sequence and level of headlines
+* Archiving::                   Move done task trees to a different place
 * Sparse trees::                Matches embedded in context
 @end menu
 
@@ -426,7 +428,7 @@ the original buffer, and the headings hierarchy above it is made
 visible.
 @end table
 
-@node Structure editing, Sparse trees, Motion, Document Structure
+@node Structure editing, Archiving, Motion, Document Structure
 @section Structure editing
 @cindex structure editing
 @cindex headline, promotion and demotion
@@ -487,7 +489,30 @@ just after the last headline to change.  Note that when the cursor is
 inside a table (@pxref{Tables}), the Meta-Cursor keys have different
 functionality.
 
-@node Sparse trees,  , Structure editing, Document Structure
+@node Archiving, Sparse trees, Structure editing, Document Structure
+@section Archiving
+@cindex archiving
+
+When an project represented by a (sub)tree is finished, you may want
+to move the tree to an Archive place, either in the same file under a
+special top-level heading, or even to a different file.
+@table @kbd
+@kindex @kbd{C-c $}
+@item @kbd{C-c $}
+Archive the subtree starting at the cursor position to the location
+given by @code{org-archive-location}.
+@end table
+
+@cindex archive locations
+The default archive is a file in the same directory as the current
+file, with the name derived by appending @file{_archive} to the
+current file name.  For information and examples on how to change
+this, see the documentation string of the variable
+@code{org-archive-location}.  If you are also using the Org-mode
+agenda, archiving to a different file is a good way to keep archived
+trees from contributing agenda items.
+
+@node Sparse trees,  , Archiving, Document Structure
 @section Sparse trees
 @cindex sparse trees
 @cindex trees, sparse
@@ -702,7 +727,8 @@ When current field is empty, copy from first non-empty field above.
 When not empty, copy current field down to next row and move cursor
 along with it.  Depending on the variable
 @code{org-table-copy-increment}, integer field values will be
-incremented during copy.
+incremented during copy.  This key is also used by CUA-mode
+(@pxref{Interaction}).
 
 @cindex formula, in tables
 @cindex calculations, in tables
@@ -807,33 +833,35 @@ articles, emails and much more.
 @cindex SHELL links
 
 Org-mode supports links to files, websites, usenet and email messages;
-and BBDB database entries.  Links are just plain-text URL-like locators.
-The following list shows examples for each link type.
+and BBDB database entries.  Links are just plain-text URL-like
+locators, optionally enclosed by angular brackets.  The following list
+shows examples for each link type.
 
 @example
-http://www.astro.uva.nl/~dominik         @r{on the web}
-file:/home/dominik/images/jupiter.jpg    @r{file, absolute path}
-file:papers/last.pdf                     @r{file, relative path}
-file:~/code/main.c:255                   @r{file, with line number}
-news:comp.emacs                          @r{Usenet link}
-mailto:adent@@galaxy.net                  @r{Mail link}
-vm:folder                                @r{VM folder link}
-vm:folder#id                             @r{VM message link}
-vm://myself@@some.where.org/folder#id     @r{VM on remote machine}
-wl:folder                                @r{WANDERLUST folder link}
-wl:folder#id                             @r{WANDERLUST message link}
-rmail:folder                             @r{RMAIL folder link}
-rmail:folder#id                          @r{RMAIL message link}
-gnus:group                               @r{GNUS group link}
-gnus:group#id                            @r{GNUS article link}
-bbdb:Richard Stallman                    @r{BBDB link}
-shell:ls *.org                           @r{A shell command}
+<http://www.astro.uva.nl/~dominik>         @r{on the web}
+<file:/home/dominik/images/jupiter.jpg>    @r{file, absolute path}
+<file:papers/last.pdf>                     @r{file, relative path}
+<file:~/code/main.c:255>                   @r{file, with line number}
+<news:comp.emacs>                          @r{Usenet link}
+<mailto:adent@@galaxy.net>                  @r{Mail link}
+<vm:folder>                                @r{VM folder link}
+<vm:folder#id>                             @r{VM message link}
+<vm://myself@@some.where.org/folder#id>     @r{VM on remote machine}
+<wl:folder>                                @r{WANDERLUST folder link}
+<wl:folder#id>                             @r{WANDERLUST message link}
+<rmail:folder>                             @r{RMAIL folder link}
+<rmail:folder#id>                          @r{RMAIL message link}
+<gnus:group>                               @r{GNUS group link}
+<gnus:group#id>                            @r{GNUS article link}
+<bbdb:Richard Stallman>                    @r{BBDB link}
+<shell:ls *.org>@footnote{Note that @samp{<} and @samp{>} cannot be part of a link, and therefore of a shell command.  If you need redirection, use @@@{ and @@@} instead.}                          @r{A shell command}
 @end example
 
-A link may contain space characters and is terminated by the end of
-the line or, in tables, by the end of the table field.  Therefore,
-outside of tables there can be only one link per line (but see the
-variable @code{org-allow-space-in-links}).
+A link may contain space characters and is terminated by @samp{>} or by
+the end of a line.  In tables, the end of a table field also terminates
+a link.  Angle brackets around a link are not required, but are
+recommended to avoid problems with punctuation and other text following
+the link.  See also the variable @code{org-allow-space-in-links}.
 
 @cindex storing links
 @table @kbd
@@ -854,10 +882,11 @@ Insert a link.  This prompts for a link to be inserted into the
 buffer.  You can just type a link, using one of the link type prefixes
 mentioned in the examples above.  Through completion, all links stored
 during the current session can be accessed.  When called with prefix
-arg, you can use file name completion to enter a file link.  Note that
-you don't have to use this command to insert a link.  Links in
-Org-mode are plain text, and you can type or paste them straight into
-the buffer.
+arg, you can use file name completion to enter a file link.  The link
+will be formatted as given in the variable @code{org-link-format} and
+inserted into the buffer.  Note that you don't have to use this
+command to insert a link.  Links in Org-mode are plain text, and you
+can type or paste them straight into the buffer.
 
 @cindex inserting links
 @kindex C-c C-o
@@ -930,9 +959,11 @@ cycling (@key{TAB}) to find a better place.  Pressing @key{RET} or
            Or use prefix arg to specify level manually.
 @end multitable
 
-So the fastest way to store the note is to press @kbd{C-c C-c @key{RET}
-@key{RET}} to append it to the default file.  But with little extra
-effort, you can push it directly to the correct location.
+So a fast way to store the note is to press @kbd{C-c C-c @key{RET}
+@key{RET}} to append it to the default file.  Even shorter would be
+@kbd{C-u C-c C-c}, which does the same without even showing the tree.
+But with little extra effort, you can push it directly to the correct
+location.
 
 Before inserting the text into a tree, the function ensures that the
 text has a headline, i.e. a first line that starts with a @samp{*}.
@@ -1140,6 +1171,8 @@ agenda buffer with the @kbd{,} command (@pxref{Agenda commands}).
 @itemx S-@key{down}
 Increase/decrease priority of current item.  Note that these keys are
 also used to modify time stamps (@pxref{Creating timestamps}).
+Furthermore, these keys is also used by CUA-mode
+(@pxref{Interaction}).
 @end table
 
 
@@ -1267,7 +1300,8 @@ Insert @samp{SCHEDULED} keyword along with a stamp.
 @kindex S-@key{right}
 @item S-@key{left}
 @itemx S-@key{right}
-Change date at cursor by one day.
+Change date at cursor by one day.  These key bindings conflict with
+CUA-mode (@pxref{Interaction}).
 
 @kindex S-@key{up}
 @kindex S-@key{down}
@@ -1275,8 +1309,10 @@ Change date at cursor by one day.
 @itemx S-@key{down}
 Change the item under the cursor in a timestamp.  The cursor can be on
 a year, month, day, hour or minute.  Note that if the cursor is not at
-a time stamp, these same keys modify the priority of an item
-(@pxref{Priorities}).
+a time stamp, these same keys modify the priority of an item.
+(@pxref{Priorities}). These key bindings conflict with CUA-mode
+(@pxref{Interaction}).
+
 
 @kindex C-c C-y
 @cindex evaluate time range
@@ -1872,7 +1908,8 @@ letters, and press @kbd{M-@key{TAB}} to see possible completions.
 
 @cindex tables, export to HTML
 @item
-Tables are transformed into HTML tables.
+Tables are transformed into HTML tables.  Data fields before the first
+horizontal separator line will be formatted as table header fields.
 
 @cindex fixed width
 @item
@@ -1960,8 +1997,8 @@ Toggle the COMMENT keyword at the beginning of an entry.
 * Customization::               Adapting Org-mode to your taste
 * FAQ::                         Frequently asked questions
 * Interaction::                 Other Emacs packages
-* Acknowledgments::             These people provided feedback and more
 * Bugs::                        Things which do not work perfectly
+* Acknowledgments::             These people provided feedback and more
 @end menu
 
 @node Completion, Customization, Miscellaneous, Miscellaneous
@@ -2024,9 +2061,7 @@ file, but with different outline visibility.  Is that possible?}@*
 In GNU Emacs, you may use @emph{indirect buffers} which do exactly
 this.  See the documentation on the command
 @code{make-indirect-buffer}.  In XEmacs, this is currently not
-possible because of the different outline implementation., which visit
-the same file, but have separate settings, also for outline
-visibility.
+possible because of the different outline implementation.
 
 @item @b{Is there an easy way to insert links to web locations?}@*
 @cindex URL, paste into buffer
@@ -2060,12 +2095,17 @@ configure the @samp{H} switch.
 If you want to export a subtree, mark the subtree as region and then
 export.  Marking can be done with @kbd{C-c @@ C-x C-x}, for example.
 
+@item @b{Org-mode takes over the S-cursor keys.  I also want to use
+CUA-mode, is there a way to fix this conflict?}@*
+Yes, see @ref{Interaction}
+
 @item @b{Is there an easy way to insert an empty table template with a
 default number of rows and columns?}@*
 @cindex table, empty template
 To insert an empty table template, just type @samp{|-} and use
 @key{TAB}.  The default size can be changed with the variable
-@code{org-table-default-size}. 
+@code{org-table-default-size}.  However, just starting to type the
+first line is usually much easier.
 
 @item @b{When I am in the last column of a table and just above a
 horizontal line in the table, pressing TAB creates a new table line
@@ -2082,7 +2122,7 @@ indentation of the first line and realign with @key{TAB}.
 @end enumerate
 
 
-@node Interaction, Acknowledgments, FAQ, Miscellaneous
+@node Interaction, Bugs, FAQ, Miscellaneous
 @section Interaction with other packages
 @cindex packages, interaction with other
 @cindex @file{planner.el}
@@ -2106,11 +2146,64 @@ planner.
 @cindex @file{table.el}
 @item @file{table.el} by Takaaki Ota
 Org mode cooperates with table.el, see @ref{table.el}.
+@cindex @file{CUA.el}
+@item @file{CUA.el} by Kim. F. Storm
+Keybindings in Org-mode conflict with the @kbd{S-<cursor>} keys
+used by CUA-mode (as well as pc-select-mode and s-region-mode) to
+select and extend the region.  If you want to use one of these
+packages along with Org-mode, configure the variable
+@code{org-CUA-compatible}.  When set, Org-mode will move the folowing
+keybindings in org-mode files, and in the agenda buffer (but not
+during date selection).
+@example
+S-UP    -> M-p             S-DOWN  -> M-n
+S-LEFT  -> M--             S-RIGHT -> M-+
+S-RET   -> C-S-RET
+@end example
+Yes, these are unfortunately more difficult to remember.  If you want
+to have other replacement keys, look at the variable
+@code{org-disputed-keys}. 
+
 @end table
 
-@page  @c FIXME
+@node Bugs, Acknowledgments, Interaction, Miscellaneous
+@section Bugs
+@cindex bugs
 
-@node Acknowledgments, Bugs, Interaction, Miscellaneous
+Here is a list of things which should work differently, but which I
+have found too hard to fix.
+
+@itemize @bullet
+@item 
+If you call @code{fill-paragraph} (bound to @kbd{M-q}) in a table, the
+filling is correctly disabled.  However, if some text directly
+(without an empty line in between) preceeds or follws a table, calling
+@code{fill-paragraph} in that text will also fill the table like
+normal text.  Also, @code{fill-region} does bypass the
+@code{fill-paragraph} code and will fill tables like normal text.
+@item 
+When the application called by @kbd{C-c C-o} to open a file link fails
+(for example because the application does not exits or refuses to open
+the file), it does so silently.  No error message is displayed.
+@item 
+Under XEmacs, if Org-mode entries are included into the diary, it is
+not possible to jump back from the diary to the org file.  Apparently,
+the text properties are lost when the fancy-diary-display is used.
+However, from Org-mode's timeline and agenda buffers (created with
+@kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
+@item 
+Linux should also have a default viewer application, using mailcap.
+Maybe we can use GNUS or VM mime code?  Or dired's guessing commands?
+Any hints (or even patches) are appreciated.
+@item 
+When you write @samp{x = a /b/ c}, b will be exported in italics.
+@item 
+The exporters work well, but could be made more efficient.
+@end itemize
+
+@page
+
+@node Acknowledgments,  , Bugs, Miscellaneous
 @section Acknowledgments
 @cindex acknowledgments
 
@@ -2136,13 +2229,18 @@ his ideas have found their way into the agenda.
 Philip Rooke created the Org-mode reference card.  He also helped with
 beta testing and contributed a number of very useful ideas.
 @item
+Christian Schlauer proposed angular brackets around links, and some
+other useful stuff.
+@item
+David Wainberg suggested to implement an archiving mechanism.
+@item
 Linking to VM/BBDB/GNUS was inspired by Tom Shannon's
 @file{organizer-mode.el}.
 @item
 Scheduling TODO items was inspired by John Wiegley's @file{planner.el}.
 @item
-Sacha Chua, the current maintainer of Planner suggested to take some
-linking code from Planner, which I did (for RMAIL and Wanderlust).
+Sacha Chua, the current maintainer of Planner, offered linking code
+from Planner. I made use of the offer for links to RMAIL and Wanderlust.
 @item
 Oliver Oppitz sent several useful suggestions.
 @item
@@ -2150,38 +2248,13 @@ Carsten Wimmer suggested some changes and helped fix a bug in linking
 to GNUS.
 @item
 Pavel Chalmoviansky reported bugs and suggested improvements related
-to the agenda treatment of items with specifed time.
+to the agenda treatment of items with specified time.
 @item
 Stefan Monnier provided a patch with lots of little fixes to keep the
 Emacs-Lisp compiler happy.
-@end itemize
-
-@node Bugs,  , Acknowledgments, Miscellaneous
-@section Bugs
-@cindex bugs
-
-Here is a list of things which should work differently, but which I
-have found too hard to fix.
-
-@itemize @bullet
-@item 
-When the application called by @kbd{C-c C-o} to open a file link fails
-(for example because the application does not exits or refuses to open
-the file), it does so silently.  No error message is displayed.
-@item 
-Under XEmacs, if Org-mode entries are included into the diary, it is
-not possible to jump back from the diary to the org file.  Apparently,
-the text properties are lost when the fancy-diary-display is used.
-However, from Org-mode's timeline and agenda buffers (created with
-@kbd{C-c C-r} and @kbd{C-c a}), things do work correctly.
-@item 
-Linux should also have a default viewer application, using mailcap.
-Maybe we can use GNUS or VM mime code?  Or dired's guessing commands?
-Any hints (or even patches) are appreciated.
-@item 
-When you write @samp{x = a /b/ c}, b will be exported in italics.
-@item 
-The exporters work well, but could be made more efficient.
+@item
+Kai Grossjohann pointed out that a number of key bindings in Org-mode
+conflict with other packages.
 @end itemize
 
 @node Index, Key Index, Miscellaneous, Top

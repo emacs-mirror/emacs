@@ -1361,7 +1361,7 @@ execute cell formulas or print functions."
 	(ses-set-parameter 'ses--file-format 2)
 	(message "Upgrading from SES-1 file format")))
     (or (= ses--file-format 2)
-	(error "This file needs a newer version of the SES library code."))
+	(error "This file needs a newer version of the SES library code"))
     (ses-create-cell-variable-range 0 (1- ses--numrows) 0 (1- ses--numcols))
     ;;Initialize cell array
     (setq ses--cells (make-vector ses--numrows nil))

@@ -1,3 +1,22 @@
+2005-06-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* gnus-sieve.el (gnus-sieve-article-add-rule):
+	* legacy-gnus-agent.el (gnus-agent-unlist-expire-days):
+	* spam-stat.el (spam-stat-buffer-change-to-spam)
+	(spam-stat-buffer-change-to-non-spam): Follow error conventions.
+
+	* message.el (message-is-yours-p):
+	* gnus-sum.el (gnus-auto-select-subject): Fix quoting in docstring.
+
+2005-06-14  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text): Withdraw the last change.
+
+2005-06-09  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* mm-view.el (mm-inline-text): Turn off adaptive-fill-mode while
+	executing enriched-decode.
+
 2005-06-04  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* gnus-art.el (article-update-date-lapsed): Use `save-match-data'.
@@ -71,7 +90,7 @@
 
 2005-05-31  Kevin Greiner  <kgreiner@xpediantsolutions.com>
 
-	* gnus-group.el (): Require gnus-sum and autoload functions to
+	* gnus-group.el: Require gnus-sum and autoload functions to
 	resolve warnings when gnus-group.el compiled alone.
 
 2005-05-30  Reiner Steib  <Reiner.Steib@gmx.de>

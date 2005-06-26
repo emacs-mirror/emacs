@@ -6060,7 +6060,6 @@ run_pre_post_conversion_on_str (str, coding, encodep)
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2;
   int multibyte = STRING_MULTIBYTE (str);
-  struct buffer *buf;
   Lisp_Object old_deactivate_mark;
 
   record_unwind_protect (Fset_buffer, Fcurrent_buffer ());

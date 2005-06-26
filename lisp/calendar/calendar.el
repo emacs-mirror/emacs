@@ -2447,7 +2447,6 @@ For a complete description, type \
 \\<calendar-mode-map>\\[calendar-goto-info-node] from within the calendar.
 
 \\<calendar-mode-map>\\{calendar-mode-map}"
-
   (kill-all-local-variables)
   (setq major-mode 'calendar-mode)
   (setq mode-name "Calendar")
@@ -2460,7 +2459,8 @@ For a complete description, type \
   (make-local-variable 'displayed-month);;  Month in middle of window.
   (make-local-variable 'displayed-year)	;;  Year in middle of window.
   (set (make-local-variable 'font-lock-defaults)
-       '(calendar-font-lock-keywords t)))
+       '(calendar-font-lock-keywords t))
+  (run-mode-hooks 'calendar-mode-hook))
 
 (defun calendar-string-spread (strings char length)
   "Concatenate list of STRINGS separated with copies of CHAR to fill LENGTH.

@@ -792,7 +792,7 @@ See `sh-feature'.")
 
 ;; Font-Lock support
 
-(defface sh-heredoc-face
+(defface sh-heredoc
   '((((min-colors 88) (class color)
       (background dark))
      (:foreground "yellow1" :weight bold))
@@ -806,7 +806,9 @@ See `sh-feature'.")
      (:weight bold)))
   "Face to show a here-document"
   :group 'sh-indentation)
-(defvar sh-heredoc-face 'sh-heredoc-face)
+;; backward-compatibility alias
+(put 'sh-heredoc-face 'face-alias 'sh-heredoc)
+(defvar sh-heredoc-face 'sh-heredoc)
 
 (defface sh-escaped-newline '((t :inherit font-lock-string-face))
   "Face used for (non-escaped) backslash at end of a line in Shell-script mode."

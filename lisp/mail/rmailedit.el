@@ -57,7 +57,7 @@ to return to regular RMAIL:
   *  \\[rmail-cease-edit] makes them permanent.
 This functions runs the normal hook `rmail-edit-mode-hook'.
 \\{rmail-edit-map}"
-  (text-mode)
+  (delay-mode-hooks (text-mode))
   (use-local-map rmail-edit-map)
   (setq major-mode 'rmail-edit-mode)
   (setq mode-name "RMAIL Edit")

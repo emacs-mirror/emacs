@@ -740,6 +740,26 @@ the 2nd value (previous complete subexpression) and 6th value (minimum
 parenthesis depth) of the returned state are not meaningful.
 @end defun
 
+@defun syntax-ppss-flush-cache beg
+This function flushes the cache used by @code{syntax-ppss}, starting at
+position @var{beg}.
+
+When @code{syntax-ppss} is called, it automatically hooks itself
+to @code{before-change-functions} to keep its cache consistent.
+But this can fail if @code{syntax-ppss} is called while
+@code{before-change-functions} is temporarily let-bound, or if the
+buffer is modified without obeying the hook, such as when using
+@code{inhibit-modification-hooks}.  For this reason, it is sometimes
+necessary to flush the cache manually.
+@end defun
+
+@defvar syntax-begin-function
+If this is non-nil, it should be a function that moves to an earlier
+buffer position where the parser state is equivalent to @code{nil},
+i.e., a position outside of any comment, string, or parenthesis.
+@code{syntax-ppss} uses it to supplement its cache.
+@end defvar
+
 @defun scan-lists from count depth
 This function scans forward @var{count} balanced parenthetical groupings
 from position @var{from}.  It returns the position where the scan stops.

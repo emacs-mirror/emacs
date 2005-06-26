@@ -77,13 +77,13 @@
 
 (defcustom thumbs-per-line 5
   "*Number of thumbnails per line to show in directory."
-  :type 'string
+  :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-thumbsdir-max-size 50000000
   "Max size for thumbnails directory.
 When it reaches that size (in bytes), a warning is sent."
-  :type 'string
+  :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-conversion-program
@@ -104,13 +104,13 @@ It must be 'convert'."
 
 (defcustom thumbs-relief 5
   "*Size of button-like border around thumbnails."
-  :type 'string
+  :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-margin 2
   "*Size of the margin around thumbnails.
 This is where you see the cursor."
-  :type 'string
+  :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-thumbsdir-auto-clean t
@@ -122,7 +122,7 @@ than `thumbs-thumbsdir-max-size'."
 
 (defcustom thumbs-image-resizing-step 10
   "Step by which to resize image."
-  :type 'string
+  :type 'integer
   :group 'thumbs)
 
 (defcustom thumbs-temp-dir temporary-file-directory
