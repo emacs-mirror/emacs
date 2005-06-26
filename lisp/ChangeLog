@@ -1,3 +1,7 @@
+2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* faces.el (facep): Doc fix.
+
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
 	* facemenu.el (facemenu-enable-faces-p): New function.

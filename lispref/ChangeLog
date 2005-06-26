@@ -1,3 +1,8 @@
+2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (Faces): `facep' returns t for strings that are
+	face names.
+
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
 	* objects.texi (Equality Predicates): Clarify meaning of equal.
