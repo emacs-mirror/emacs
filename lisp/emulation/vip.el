@@ -2292,7 +2292,7 @@ a token has type \(command, address, end-mark\) and value."
 			     (setq cont nil))
 			    (t (error "Extra character at end of a command")))))))
 	    ((string= ex-token-type "non-command")
-	     (error (format "%s: Not an editor command" ex-token)))
+	     (error "%s: Not an editor command" ex-token))
 	    ((string= ex-token-type "whole")
 	     (setq ex-addresses
 		   (cons (point-max) (cons (point-min) ex-addresses))))

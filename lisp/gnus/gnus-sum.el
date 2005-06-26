@@ -917,7 +917,7 @@ automatically when it is selected."
   :group 'gnus-summary
   :type 'boolean)
 
-(defcustom gnus-summary-selected-face 'gnus-summary-selected-face
+(defcustom gnus-summary-selected-face 'gnus-summary-selected
   "Face used for highlighting the current article in the summary buffer."
   :group 'gnus-summary-visual
   :type 'face)
@@ -926,42 +926,42 @@ automatically when it is selected."
 
 (defcustom gnus-summary-highlight
   '(((eq mark gnus-canceled-mark)
-     . gnus-summary-cancelled-face)
+     . gnus-summary-cancelled)
     ((and uncached (> score default-high))
-     . gnus-summary-high-undownloaded-face)
+     . gnus-summary-high-undownloaded)
     ((and uncached (< score default-low))
-     . gnus-summary-low-undownloaded-face)
+     . gnus-summary-low-undownloaded)
     (uncached
-     . gnus-summary-normal-undownloaded-face)
+     . gnus-summary-normal-undownloaded)
     ((and (> score default-high)
 	  (or (eq mark gnus-dormant-mark)
 	      (eq mark gnus-ticked-mark)))
-     . gnus-summary-high-ticked-face)
+     . gnus-summary-high-ticked)
     ((and (< score default-low)
 	  (or (eq mark gnus-dormant-mark)
 	      (eq mark gnus-ticked-mark)))
-     . gnus-summary-low-ticked-face)
+     . gnus-summary-low-ticked)
     ((or (eq mark gnus-dormant-mark)
 	 (eq mark gnus-ticked-mark))
-     . gnus-summary-normal-ticked-face)
+     . gnus-summary-normal-ticked)
     ((and (> score default-high) (eq mark gnus-ancient-mark))
-     . gnus-summary-high-ancient-face)
+     . gnus-summary-high-ancient)
     ((and (< score default-low) (eq mark gnus-ancient-mark))
-     . gnus-summary-low-ancient-face)
+     . gnus-summary-low-ancient)
     ((eq mark gnus-ancient-mark)
-     . gnus-summary-normal-ancient-face)
+     . gnus-summary-normal-ancient)
     ((and (> score default-high) (eq mark gnus-unread-mark))
-     . gnus-summary-high-unread-face)
+     . gnus-summary-high-unread)
     ((and (< score default-low) (eq mark gnus-unread-mark))
-     . gnus-summary-low-unread-face)
+     . gnus-summary-low-unread)
     ((eq mark gnus-unread-mark)
-     . gnus-summary-normal-unread-face)
+     . gnus-summary-normal-unread)
     ((> score default-high)
-     . gnus-summary-high-read-face)
+     . gnus-summary-high-read)
     ((< score default-low)
-     . gnus-summary-low-read-face)
+     . gnus-summary-low-read)
     (t
-     . gnus-summary-normal-read-face))
+     . gnus-summary-normal-read))
   "*Controls the highlighting of summary buffer lines.
 
 A list of (FORM . FACE) pairs.  When deciding how a a particular

@@ -60,7 +60,7 @@
 	     (old-serial (concat old-date old-seq))
 	     (new-serial (concat cur-date new-seq)))
 	(if (string-lessp new-serial old-serial)
-	    (error (format "Serial numbers want to move backwards from %s to %s" old-serial new-serial))
+	    (error "Serial numbers want to move backwards from %s to %s" old-serial new-serial)
 	  (replace-match (concat cur-date new-seq old-flag) t t))))))
 
 ;;;###autoload
@@ -76,7 +76,7 @@
   "Zone-mode's syntax table.")
 
 (defun zone-mode-load-time-setup ()
-  "Initialise `zone-mode' stuff."
+  "Initialize `zone-mode' stuff."
   (setq zone-mode-syntax-table (make-syntax-table))
   (modify-syntax-entry ?\; "<" zone-mode-syntax-table)
   (modify-syntax-entry ?\n ">" zone-mode-syntax-table))

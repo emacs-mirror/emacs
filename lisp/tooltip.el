@@ -120,9 +120,9 @@ position to pop up the tooltip."
   :group 'tooltip)
 
 (make-obsolete-variable 'tooltip-use-echo-area
-"To display help tooltips in the echo area turn tooltip-mode off.
-To display GUD tooltips in the echo area turn gud-tooltip-mode on and set
-gud-tooltip-echo-area to t." "22.1")
+"To display help tooltips in the echo area turn `tooltip-mode' off.
+To display GUD tooltips in the echo area turn `gud-tooltip-mode' on and set
+`gud-tooltip-echo-area' to t." "22.1")
 
 
 ;;; Variables that are not customizable.
@@ -201,12 +201,12 @@ With ARG, turn tooltip mode on if and only if ARG is positive."
     (setq tooltip-timeout-id nil)))
 
 (defun tooltip-start-delayed-tip ()
-  "Add a one-shot timeout to call function tooltip-timeout."
+  "Add a one-shot timeout to call function `tooltip-timeout'."
   (setq tooltip-timeout-id
 	(add-timeout (tooltip-delay) 'tooltip-timeout nil)))
 
 (defun tooltip-timeout (object)
-  "Function called when timer with id tooltip-timeout-id fires."
+  "Function called when timer with id `tooltip-timeout-id' fires."
   (run-hook-with-args-until-success 'tooltip-hook
 				    tooltip-last-mouse-motion-event))
 
@@ -301,8 +301,8 @@ where the mouse is."
 
 (defun tooltip-process-prompt-regexp (process)
   "Return regexp matching the prompt of PROCESS at the end of a string.
-The prompt is taken from the value of COMINT-PROMPT-REGEXP in the buffer
-of PROCESS."
+The prompt is taken from the value of `comint-prompt-regexp' in
+the buffer of PROCESS."
   (let ((prompt-regexp (save-excursion
 			 (set-buffer (process-buffer process))
 			 comint-prompt-regexp)))
@@ -349,7 +349,7 @@ MSG is either a help string to display, or nil to cancel the display."
 (defun tooltip-help-tips (event)
   "Hook function to display a help tooltip.
 This is installed on the hook `tooltip-hook', which is run when
-the timer with ID `tooltip-timeout-id' fires.
+the timer with id `tooltip-timeout-id' fires.
 Value is non-nil if this function handled the tip."
   (when (stringp tooltip-help-message)
     (tooltip-show tooltip-help-message tooltip-use-echo-area)

@@ -1386,7 +1386,7 @@ LCON is the lexical context, if any."
 	    (* sgml-basic-offset (length context)))))))
 
     (otherwise
-     (error "Unrecognised context %s" (car lcon)))
+     (error "Unrecognized context %s" (car lcon)))
 
     ))
 
@@ -1721,7 +1721,7 @@ This takes effect when first loading the library.")
     ("dir" . "Directory list (obsolete)")
     ("dl" . "Definition list")
     ("dt" . "Term to be definined")
-    ("em" . "Emphasised")
+    ("em" . "Emphasized")
     ("embed" . "Embedded data in foreign format")
     ("fig" . "Figure")
     ("figa" . "Figure anchor")

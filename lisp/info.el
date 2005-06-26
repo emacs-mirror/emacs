@@ -83,10 +83,10 @@ The Lisp code is executed when the node is selected.")
   :group 'info)
 
 (defface info-xref
-  '((((min-colors 88) 
+  '((((min-colors 88)
       (class color) (background light)) :foreground "blue1" :underline t)
     (((class color) (background light)) :foreground "blue" :underline t)
-    (((min-colors 88) 
+    (((min-colors 88)
       (class color) (background dark)) :foreground "cyan1" :underline t)
     (((class color) (background dark)) :foreground "cyan" :underline t)
     (t :underline t))
@@ -1272,7 +1272,7 @@ any double quotes or backslashes must be escaped (\\\",\\\\)."
 ;; Hide any construct of the general form ^@[^@-^_][ ...  ^@[^@-^_]],
 ;; including one optional trailing newline.
 (defun Info-hide-cookies-node ()
-  "Hide unrecognised cookies in current node."
+  "Hide unrecognized cookies in current node."
   (save-excursion
     (let ((inhibit-read-only t)
 	  (case-fold-search t))

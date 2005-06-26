@@ -52,7 +52,7 @@
     (mm-disable-multibyte)
     (if (file-exists-p name)
 	(mm-insert-file-contents name nil nil nil nil t)
-      (error (format "File %s is gone" name)))))
+      (error "File %s is gone" name))))
 
 (defun mm-extern-url (handle)
   (erase-buffer)
@@ -124,7 +124,7 @@ If NO-DISPLAY is nil, display it. Otherwise, do nothing after replacing."
 	 handles)
     (unless (mm-handle-cache handle)
       (unless func
-	(error (format "Access type (%s) is not supported" access-type)))
+	(error "Access type (%s) is not supported" access-type))
       (with-temp-buffer
 	(mm-insert-part handle)
 	(goto-char (point-max))

@@ -137,143 +137,165 @@ the envelope From line."
   :group 'gnus-cite
   :type 'boolean)
 
-(defface gnus-cite-attribution-face '((t
-				       (:italic t)))
+(defface gnus-cite-attribution '((t (:italic t)))
   "Face used for attribution lines."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-attribution-face 'face-alias 'gnus-cite-attribution)
 
-(defcustom gnus-cite-attribution-face 'gnus-cite-attribution-face
+(defcustom gnus-cite-attribution-face 'gnus-cite-attribution
   "Face used for attribution lines.
 It is merged with the face for the cited text belonging to the attribution."
   :version "22.1"
   :group 'gnus-cite
   :type 'face)
 
-(defface gnus-cite-face-1 '((((class color)
-			      (background dark))
-			     (:foreground "light blue"))
-			    (((class color)
-			      (background light))
-			     (:foreground "MidnightBlue"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-1 '((((class color)
+			 (background dark))
+			(:foreground "light blue"))
+		       (((class color)
+			 (background light))
+			(:foreground "MidnightBlue"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-1 'face-alias 'gnus-cite-1)
 
-(defface gnus-cite-face-2 '((((class color)
-			      (background dark))
-			     (:foreground "light cyan"))
-			    (((class color)
-			      (background light))
-			     (:foreground "firebrick"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-2 '((((class color)
+			 (background dark))
+			(:foreground "light cyan"))
+		       (((class color)
+			 (background light))
+			(:foreground "firebrick"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-2 'face-alias 'gnus-cite-2)
 
-(defface gnus-cite-face-3 '((((class color)
-			      (background dark))
-			     (:foreground "light yellow"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark green"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-3 '((((class color)
+			 (background dark))
+			(:foreground "light yellow"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark green"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-3 'face-alias 'gnus-cite-3)
 
-(defface gnus-cite-face-4 '((((class color)
-			      (background dark))
-			     (:foreground "light pink"))
-			    (((class color)
-			      (background light))
-			     (:foreground "OrangeRed"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-4 '((((class color)
+			 (background dark))
+			(:foreground "light pink"))
+		       (((class color)
+			 (background light))
+			(:foreground "OrangeRed"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-4 'face-alias 'gnus-cite-4)
 
-(defface gnus-cite-face-5 '((((class color)
-			      (background dark))
-			     (:foreground "pale green"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark khaki"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-5 '((((class color)
+			 (background dark))
+			(:foreground "pale green"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark khaki"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-5 'face-alias 'gnus-cite-5)
 
-(defface gnus-cite-face-6 '((((class color)
-			      (background dark))
-			     (:foreground "beige"))
-			    (((class color)
-			      (background light))
-			     (:foreground "dark violet"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-6 '((((class color)
+			 (background dark))
+			(:foreground "beige"))
+		       (((class color)
+			 (background light))
+			(:foreground "dark violet"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-6 'face-alias 'gnus-cite-6)
 
-(defface gnus-cite-face-7 '((((class color)
-			      (background dark))
-			     (:foreground "orange"))
-			    (((class color)
-			      (background light))
-			     (:foreground "SteelBlue4"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-7 '((((class color)
+			 (background dark))
+			(:foreground "orange"))
+		       (((class color)
+			 (background light))
+			(:foreground "SteelBlue4"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-7 'face-alias 'gnus-cite-7)
 
-(defface gnus-cite-face-8 '((((class color)
-			      (background dark))
-			     (:foreground "magenta"))
-			    (((class color)
-			      (background light))
-			     (:foreground "magenta"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-8 '((((class color)
+			 (background dark))
+			(:foreground "magenta"))
+		       (((class color)
+			 (background light))
+			(:foreground "magenta"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-8 'face-alias 'gnus-cite-8)
 
-(defface gnus-cite-face-9 '((((class color)
-			      (background dark))
-			     (:foreground "violet"))
-			    (((class color)
-			      (background light))
-			     (:foreground "violet"))
-			    (t
-			     (:italic t)))
+(defface gnus-cite-9 '((((class color)
+			 (background dark))
+			(:foreground "violet"))
+		       (((class color)
+			 (background light))
+			(:foreground "violet"))
+		       (t
+			(:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-9 'face-alias 'gnus-cite-9)
 
-(defface gnus-cite-face-10 '((((class color)
-			       (background dark))
-			      (:foreground "medium purple"))
-			     (((class color)
-			       (background light))
-			      (:foreground "medium purple"))
-			     (t
-			      (:italic t)))
+(defface gnus-cite-10 '((((class color)
+			  (background dark))
+			 (:foreground "medium purple"))
+			(((class color)
+			  (background light))
+			 (:foreground "medium purple"))
+			(t
+			 (:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-10 'face-alias 'gnus-cite-10)
 
-(defface gnus-cite-face-11 '((((class color)
-			       (background dark))
-			      (:foreground "turquoise"))
-			     (((class color)
-			       (background light))
-			      (:foreground "turquoise"))
-			     (t
-			      (:italic t)))
+(defface gnus-cite-11 '((((class color)
+			  (background dark))
+			 (:foreground "turquoise"))
+			(((class color)
+			  (background light))
+			 (:foreground "turquoise"))
+			(t
+			 (:italic t)))
   "Citation face."
   :group 'gnus-cite)
+;; backward-compatibility alias
+(put 'gnus-cite-face-11 'face-alias 'gnus-cite-11)
 
 (defcustom gnus-cite-face-list
-  '(gnus-cite-face-1 gnus-cite-face-2 gnus-cite-face-3 gnus-cite-face-4
-		     gnus-cite-face-5 gnus-cite-face-6 gnus-cite-face-7 gnus-cite-face-8
-		     gnus-cite-face-9 gnus-cite-face-10 gnus-cite-face-11)
+  '(gnus-cite-1 gnus-cite-2 gnus-cite-3 gnus-cite-4 gnus-cite-5 gnus-cite-6
+    gnus-cite-7 gnus-cite-8 gnus-cite-9 gnus-cite-10 gnus-cite-11)
   "*List of faces used for highlighting citations.
 
 When there are citations from multiple articles in the same message,
@@ -299,8 +321,7 @@ This should make it easier to see who wrote what."
 
 ;; This has to go here because its default value depends on
 ;; gnus-cite-face-list.
-(defcustom gnus-article-boring-faces (cons 'gnus-signature-face
-					   gnus-cite-face-list)
+(defcustom gnus-article-boring-faces (cons 'gnus-signature gnus-cite-face-list)
   "List of faces that are not worth reading.
 If an article has more pages below the one you are looking at, but
 nothing on those pages is a word of at least three letters that is not
@@ -352,7 +373,7 @@ in a boring face, then the pages will be skipped."
 Each citation in the article will be highlighted with a different face.
 The faces are taken from `gnus-cite-face-list'.
 Attribution lines are highlighted with the same face as the
-corresponding citation merged with `gnus-cite-attribution-face'.
+corresponding citation merged with the face `gnus-cite-attribution'.
 
 Text is considered cited if at least `gnus-cite-minimum-match-count'
 lines matches `message-cite-prefix-regexp' with the same prefix.

@@ -191,7 +191,7 @@ To override this, give an argument to `ff-find-other-file'."
        (setq fname (buffer-substring (match-beginning 2) (match-end 2)))))
     )
   "*A list of regular expressions for `ff-find-file'.
-Specifies how to recognise special constructs such as include files
+Specifies how to recognize special constructs such as include files
 etc. and an associated method for extracting the filename from that
 construct.")
 
@@ -215,7 +215,7 @@ Set by default to `cc-search-directories', expanded at run-time.
 
 This list is searched through with each extension specified in
 `ff-other-file-alist' that matches this file's extension.  So the
-longer the list, the longer it'll take to realise that a file
+longer the list, the longer it'll take to realize that a file
 may not exist.
 
 A typical format is
@@ -340,7 +340,7 @@ Variables of interest include:
    If non-nil, traces which directories are being searched.
 
  - `ff-special-constructs'
-   A list of regular expressions specifying how to recognise special
+   A list of regular expressions specifying how to recognize special
    constructs such as include files etc, and an associated method for
    extracting the filename from that construct.
 

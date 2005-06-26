@@ -385,7 +385,7 @@ If NOW, use that time instead."
   (pop3-send-command process (format "USER %s" user))
   (let ((response (pop3-read-response process t)))
     (if (not (and response (string-match "+OK" response)))
-	(error (format "USER %s not valid" user)))))
+	(error "USER %s not valid" user))))
 
 (defun pop3-pass (process)
   "Send authentication information to the server."

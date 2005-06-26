@@ -158,7 +158,7 @@ foo (xyz, aaa + bbb + ccc
 Only continuation lines like this are touched, nil is returned on lines
 which are the start of an argument.
 
-Within a gcc asm block, \":\" is recognised as an argument separator,
+Within a gcc asm block, \":\" is recognized as an argument separator,
 but of course only between operand specifications, not in the expressions
 for the operands.
 

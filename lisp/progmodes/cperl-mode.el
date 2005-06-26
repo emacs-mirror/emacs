@@ -5209,7 +5209,7 @@ side-effect of memorizing only."
       (set (car setting) (cdr setting)))))
 
 (defun cperl-set-style-back ()
-  "Restore a style memorised by `cperl-set-style'."
+  "Restore a style memorized by `cperl-set-style'."
   (interactive)
   (or cperl-old-style (error "The style was not changed"))
   (let (setting)

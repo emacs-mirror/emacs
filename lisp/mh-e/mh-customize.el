@@ -2144,9 +2144,9 @@ will be removed from the unseen sequence."
 
 ;;; Faces Used in Scan Listing (:group 'mh-folder-faces)
 
-(defvar mh-folder-body-face 'mh-folder-body-face
+(defvar mh-folder-body-face 'mh-folder-body
   "Face used to highlight body text in MH-Folder buffers.")
-(defface mh-folder-body-face
+(defface mh-folder-body
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
     (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
@@ -2155,10 +2155,12 @@ will be removed from the unseen sequence."
     (t (:italic t)))
   "Face used to highlight body text in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-body-face 'face-alias 'mh-folder-body)
 
-(defvar mh-folder-cur-msg-face 'mh-folder-cur-msg-face
+(defvar mh-folder-cur-msg-face 'mh-folder-cur-msg
   "Face used for the current message line in MH-Folder buffers.")
-(defface mh-folder-cur-msg-face
+(defface mh-folder-cur-msg
   '((((type tty pc) (class color))
      (:background "LightGreen"))
     (((class color) (background light))
@@ -2170,10 +2172,12 @@ will be removed from the unseen sequence."
     (t (:underline t)))
   "Face used for the current message line in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-cur-msg-face 'face-alias 'mh-folder-cur-msg)
 
-(defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number-face
+(defvar mh-folder-cur-msg-number-face 'mh-folder-cur-msg-number
   "Face used to highlight the current message in MH-Folder buffers.")
-(defface mh-folder-cur-msg-number-face
+(defface mh-folder-cur-msg-number
   '((((type tty) (class color)) (:foreground "cyan" :weight bold))
     (((class grayscale) (background light)) (:foreground "LightGray" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
@@ -2182,10 +2186,12 @@ will be removed from the unseen sequence."
     (t (:bold t)))
   "Face used to highlight the current message in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-cur-msg-number-face 'face-alias 'mh-folder-cur-msg-number)
 
-(defvar mh-folder-date-face 'mh-folder-date-face
+(defvar mh-folder-date-face 'mh-folder-date
   "Face used to highlight the date in MH-Folder buffers.")
-(defface mh-folder-date-face
+(defface mh-folder-date
   '((((class color) (background light))
      (:foreground "snow4"))
     (((class color) (background dark))
@@ -2194,10 +2200,12 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face used to highlight the date in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-date-face 'face-alias 'mh-folder-date)
 
-(defvar mh-folder-followup-face 'mh-folder-followup-face
+(defvar mh-folder-followup-face 'mh-folder-followup
   "Face used to highlight Re: subject text in MH-Folder buffers.")
-(defface mh-folder-followup-face
+(defface mh-folder-followup
   '((((class color) (background light))
      (:foreground "blue3"))
     (((class color) (background dark))
@@ -2206,10 +2214,12 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face used to highlight Re: subject text in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-followup-face 'face-alias 'mh-folder-followup)
 
-(defvar mh-folder-msg-number-face 'mh-folder-msg-number-face
+(defvar mh-folder-msg-number-face 'mh-folder-msg-number
   "Face used to highlight the message number in MH-Folder buffers.")
-(defface mh-folder-msg-number-face
+(defface mh-folder-msg-number
   '((((class color) (background light))
      (:foreground "snow4"))
     (((class color) (background dark))
@@ -2218,14 +2228,16 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face used to highlight the message number in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-msg-number-face 'face-alias 'mh-folder-msg-number)
 
-(defvar mh-folder-deleted-face 'mh-folder-deleted-face
+(defvar mh-folder-deleted-face 'mh-folder-deleted
   "Face used to highlight deleted messages in MH-Folder buffers.")
-(copy-face 'mh-folder-msg-number-face 'mh-folder-deleted-face)
+(copy-face 'mh-folder-msg-number 'mh-folder-deleted)
 
-(defvar mh-folder-refiled-face 'mh-folder-refiled-face
+(defvar mh-folder-refiled-face 'mh-folder-refiled
   "Face used to highlight refiled messages in MH-Folder buffers.")
-(defface mh-folder-refiled-face
+(defface mh-folder-refiled
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class grayscale) (background light))
      (:foreground "Gray90" :bold t :italic t))
@@ -2236,12 +2248,14 @@ will be removed from the unseen sequence."
     (t (:bold t :italic t)))
   "Face used to highlight refiled messages in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-refiled-face 'face-alias 'mh-folder-refiled)
 
-(defvar mh-folder-subject-face 'mh-folder-subject-face
+(defvar mh-folder-subject-face 'mh-folder-subject
   "Face used to highlight subject text in MH-Folder buffers.")
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-folder"))
-(defface mh-folder-subject-face
+(defface mh-folder-subject
   '((((class color) (background light))
      (:foreground "blue4"))
     (((class color) (background dark))
@@ -2250,25 +2264,29 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face used to highlight subject text in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-subject-face 'face-alias 'mh-folder-subject)
 
-(defface mh-folder-tick-face
+(defface mh-folder-tick
   '((((class color) (background dark)) (:background "#dddf7e"))
     (((class color) (background light)) (:background "#dddf7e"))
     (t (:underline t)))
   "Face used to show ticked messages."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-tick-face 'face-alias 'mh-folder-tick)
 
-(defvar mh-folder-address-face 'mh-folder-address-face
+(defvar mh-folder-address-face 'mh-folder-address
   "Face used to highlight the address in MH-Folder buffers.")
-(copy-face 'mh-folder-subject-face 'mh-folder-address-face)
+(copy-face 'mh-folder-subject 'mh-folder-address)
 
-(defvar mh-folder-scan-format-face 'mh-folder-scan-format-face
+(defvar mh-folder-scan-format-face 'mh-folder-scan-format
   "Face used to highlight `mh-scan-format-regexp' matches in MH-Folder buffers.")
-(copy-face 'mh-folder-followup-face 'mh-folder-scan-format-face)
+(copy-face 'mh-folder-followup 'mh-folder-scan-format)
 
-(defvar mh-folder-to-face 'mh-folder-to-face
+(defvar mh-folder-to-face 'mh-folder-to
   "Face used to highlight the To: string in MH-Folder buffers.")
-(defface mh-folder-to-face
+(defface mh-folder-to
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
     (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
@@ -2277,14 +2295,16 @@ will be removed from the unseen sequence."
     (t (:italic t)))
   "Face used to highlight the To: string in MH-Folder buffers."
   :group 'mh-folder-faces)
+;; backward-compatibility alias
+(put 'mh-folder-to-face 'face-alias 'mh-folder-to)
 
 
 
 ;;; Faces Used in Searching (:group 'mh-index-faces)
 
-(defvar mh-index-folder-face 'mh-index-folder-face
+(defvar mh-index-folder-face 'mh-index-folder
   "Face used to highlight folders in MH-Index buffers.")
-(defface mh-index-folder-face
+(defface mh-index-folder
   '((((class color) (background light))
      (:foreground "dark green" :bold t))
     (((class color) (background dark))
@@ -2293,12 +2313,14 @@ will be removed from the unseen sequence."
      (:bold t)))
   "Face used to highlight folders in MH-Index buffers."
   :group 'mh-index-faces)
+;; backward-compatibility alias
+(put 'mh-index-folder-face 'face-alias 'mh-index-folder)
 
 
 
 ;;; Faces Used in Message Drafts (:group 'mh-letter-faces)
 
-(defface mh-letter-header-field-face
+(defface mh-letter-header-field
   '((((class color) (background light))
      (:background "gray90"))
     (((class color) (background dark))
@@ -2306,14 +2328,16 @@ will be removed from the unseen sequence."
     (t (:bold t)))
   "Face used to display header fields in draft buffers."
   :group 'mh-letter-faces)
+;; backward-compatibility alias
+(put 'mh-letter-header-field-face 'face-alias 'mh-letter-header-field)
 
 
 
 ;;; Faces Used in Message Display (:group 'mh-show-faces)
 
-(defvar mh-show-cc-face 'mh-show-cc-face
+(defvar mh-show-cc-face 'mh-show-cc
   "Face used to highlight cc: header fields.")
-(defface mh-show-cc-face
+(defface mh-show-cc
   '((((type tty) (class color)) (:foreground "yellow" :weight light))
     (((class grayscale) (background light))
      (:foreground "Gray90" :bold t :italic t))
@@ -2324,10 +2348,12 @@ will be removed from the unseen sequence."
     (t (:bold t :italic t)))
   "Face used to highlight cc: header fields."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-cc-face 'face-alias 'mh-show-cc)
 
-(defvar mh-show-date-face 'mh-show-date-face
+(defvar mh-show-date-face 'mh-show-date
   "Face used to highlight the Date: header field.")
-(defface mh-show-date-face
+(defface mh-show-date
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "Gray90" :bold t))
     (((class grayscale) (background dark)) (:foreground "DimGray" :bold t))
@@ -2336,10 +2362,12 @@ will be removed from the unseen sequence."
     (t (:bold t :underline t)))
   "Face used to highlight the Date: header field."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-date-face 'face-alias 'mh-show-date)
 
-(defvar mh-show-header-face 'mh-show-header-face
+(defvar mh-show-header-face 'mh-show-header
   "Face used to deemphasize unspecified header fields.")
-(defface mh-show-header-face
+(defface mh-show-header
   '((((type tty) (class color)) (:foreground "green"))
     (((class grayscale) (background light)) (:foreground "DimGray" :italic t))
     (((class grayscale) (background dark)) (:foreground "LightGray" :italic t))
@@ -2348,40 +2376,50 @@ will be removed from the unseen sequence."
     (t (:italic t)))
   "Face used to deemphasize unspecified header fields."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-header-face 'face-alias 'mh-show-header)
 
-(defvar mh-show-pgg-good-face 'mh-show-pgg-good-face
+(defvar mh-show-pgg-good-face 'mh-show-pgg-good
   "Face used to highlight a good PGG signature.")
-(defface mh-show-pgg-good-face
+(defface mh-show-pgg-good
   '((t (:bold t :foreground "LimeGreen")))
   "Face used to highlight a good PGG signature."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-pgg-good-face 'face-alias 'mh-show-pgg-good)
 
-(defvar mh-show-pgg-unknown-face 'mh-show-pgg-unknown-face
+(defvar mh-show-pgg-unknown-face 'mh-show-pgg-unknown
   "Face used to highlight a PGG signature whose status is unknown.
 This face is also used for a signature when the signer is untrusted.")
-(defface mh-show-pgg-unknown-face
+(defface mh-show-pgg-unknown
   '((t (:bold t :foreground "DarkGoldenrod2")))
   "Face used to highlight a PGG signature whose status is unknown.
 This face is also used for a signature when the signer is untrusted."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-pgg-unknown-face 'face-alias 'mh-show-pgg-unknown)
 
-(defvar mh-show-pgg-bad-face 'mh-show-pgg-bad-face
+(defvar mh-show-pgg-bad-face 'mh-show-pgg-bad
   "Face used to highlight a bad PGG signature.")
-(defface mh-show-pgg-bad-face
+(defface mh-show-pgg-bad
   '((t (:bold t :foreground "DeepPink1")))
   "Face used to highlight a bad PGG signature."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-pgg-bad-face 'face-alias 'mh-show-pgg-bad)
 
-(defface mh-show-signature-face
+(defface mh-show-signature
   '((t (:italic t)))
   "Face used to highlight the message signature."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-signature-face 'face-alias 'mh-show-signature)
 
-(defvar mh-show-to-face 'mh-show-to-face
+(defvar mh-show-to-face 'mh-show-to
   "Face used to highlight the To: header field.")
 (if (boundp 'facemenu-unlisted-faces)
     (add-to-list 'facemenu-unlisted-faces "^mh-show"))
-(defface mh-show-to-face
+(defface mh-show-to
   '((((class grayscale) (background light))
      (:foreground "DimGray" :underline t))
     (((class grayscale) (background dark))
@@ -2391,10 +2429,12 @@ This face is also used for a signature when the signer is untrusted."
     (t (:underline t)))
   "Face used to highlight the To: header field."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-to-face 'face-alias 'mh-show-to)
 
-(defvar mh-show-from-face 'mh-show-from-face
+(defvar mh-show-from-face 'mh-show-from
   "Face used to highlight the From: header field.")
-(defface mh-show-from-face
+(defface mh-show-from
   '((((class color) (background light))
      (:foreground "red3"))
     (((class color) (background dark))
@@ -2403,30 +2443,36 @@ This face is also used for a signature when the signer is untrusted."
      (:bold t)))
   "Face used to highlight the From: header field."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-from-face 'face-alias 'mh-show-from)
 
-(defface mh-show-xface-face
+(defface mh-show-xface
   '((t (:foreground "black" :background "white")))
   "Face used to display the X-Face image.
 The background and foreground is used in the image."
   :group 'mh-show-faces)
+;; backward-compatibility alias
+(put 'mh-show-xface-face 'face-alias 'mh-show-xface)
 
-(defvar mh-show-subject-face 'mh-show-subject-face
+(defvar mh-show-subject-face 'mh-show-subject
   "Face used to highlight the Subject: header field.")
-(copy-face 'mh-folder-subject-face 'mh-show-subject-face)
+(copy-face 'mh-folder-subject 'mh-show-subject)
 
 
 
 ;;; Faces Used in Speedbar (:group 'mh-speed-faces)
 
-(defface mh-speedbar-folder-face
+(defface mh-speedbar-folder
   '((((class color) (background light))
      (:foreground "blue4"))
     (((class color) (background dark))
      (:foreground "light blue")))
   "Face used for folders in the speedbar buffer."
   :group 'mh-speed-faces)
+;; backward-compatibility alias
+(put 'mh-speedbar-folder-face 'face-alias 'mh-speedbar-folder)
 
-(defface mh-speedbar-selected-folder-face
+(defface mh-speedbar-selected-folder
   '((((class color) (background light))
      (:foreground "red1" :underline t))
     (((class color) (background dark))
@@ -2434,16 +2480,22 @@ The background and foreground is used in the image."
     (t (:underline t)))
   "Face used for the current folder."
   :group 'mh-speed-faces)
+;; backward-compatibility alias
+(put 'mh-speedbar-selected-folder-face 'face-alias 'mh-speedbar-selected-folder)
 
-(defface mh-speedbar-folder-with-unseen-messages-face
-  '((t (:inherit mh-speedbar-folder-face :bold t)))
+(defface mh-speedbar-folder-with-unseen-messages
+  '((t (:inherit mh-speedbar-folder :bold t)))
   "Face used for folders in the speedbar buffer which have unread messages."
   :group 'mh-speed-faces)
+;; backward-compatibility alias
+(put 'mh-speedbar-folder-with-unseen-messages-face 'face-alias 'mh-speedbar-folder-with-unseen-messages)
 
-(defface mh-speedbar-selected-folder-with-unseen-messages-face
-  '((t (:inherit mh-speedbar-selected-folder-face :bold t)))
+(defface mh-speedbar-selected-folder-with-unseen-messages
+  '((t (:inherit mh-speedbar-selected-folder :bold t)))
   "Face used for the current folder when it has unread messages."
   :group 'mh-speed-faces)
+;; backward-compatibility alias
+(put 'mh-speedbar-selected-folder-with-unseen-messages-face 'face-alias 'mh-speedbar-selected-folder-with-unseen-messages)
 
 ;;; Local Variables:
 ;;; indent-tabs-mode: nil

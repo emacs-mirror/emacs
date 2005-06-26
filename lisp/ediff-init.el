@@ -903,7 +903,7 @@ to temp files when Ediff needs to find fine differences."
 
 
 
-(defface ediff-current-diff-face-A
+(defface ediff-current-diff-A
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "firebrick" :background "pale green"))
@@ -915,24 +915,26 @@ to temp files when Ediff needs to find fine differences."
       (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer A."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-current-diff-face-A 'face-alias 'ediff-current-diff-A)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-A 'ediff-current-diff-face-A
+(defvar ediff-current-diff-face-A 'ediff-current-diff-A
   "Face for highlighting the selected difference in buffer A.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-current-diff-face-A'
+widget to customize the actual face object `ediff-current-diff-A'
 this variable represents.")
-(ediff-hide-face 'ediff-current-diff-face-A)
+(ediff-hide-face 'ediff-current-diff-A)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
 (if (and ediff-xemacs-p
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
-    (copy-face 'modeline 'ediff-current-diff-face-A))
+    (copy-face 'modeline 'ediff-current-diff-A))
 
 
 
-(defface ediff-current-diff-face-B
+(defface ediff-current-diff-B
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "DarkOrchid" :background "Yellow"))
@@ -946,23 +948,25 @@ this variable represents.")
       (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer B."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-current-diff-face-B 'face-alias 'ediff-current-diff-B)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-B 'ediff-current-diff-face-B
+(defvar ediff-current-diff-face-B 'ediff-current-diff-B
   "Face for highlighting the selected difference in buffer B.
  this variable.  Instead, use the customization
-widget to customize the actual face `ediff-current-diff-face-B'
+widget to customize the actual face `ediff-current-diff-B'
 this variable represents.")
-(ediff-hide-face 'ediff-current-diff-face-B)
+(ediff-hide-face 'ediff-current-diff-B)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
 (if (and ediff-xemacs-p
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
-    (copy-face 'modeline 'ediff-current-diff-face-B))
+    (copy-face 'modeline 'ediff-current-diff-B))
 
 
-(defface ediff-current-diff-face-C
+(defface ediff-current-diff-C
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "Navy" :background "Pink"))
@@ -974,23 +978,25 @@ this variable represents.")
       (t	     	     (:inverse-video t))))
   "Face for highlighting the selected difference in buffer C."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-current-diff-face-C 'face-alias 'ediff-current-diff-C)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-C 'ediff-current-diff-face-C
+(defvar ediff-current-diff-face-C 'ediff-current-diff-C
   "Face for highlighting the selected difference in buffer C.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-current-diff-face-C'
+widget to customize the actual face object `ediff-current-diff-C'
 this variable represents.")
-(ediff-hide-face 'ediff-current-diff-face-C)
+(ediff-hide-face 'ediff-current-diff-C)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
 (if (and ediff-xemacs-p
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
-    (copy-face 'modeline 'ediff-current-diff-face-C))
+    (copy-face 'modeline 'ediff-current-diff-C))
 
 
-(defface ediff-current-diff-face-Ancestor
+(defface ediff-current-diff-Ancestor
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "VioletRed"))
@@ -1002,23 +1008,25 @@ this variable represents.")
       (t (:inverse-video t))))
   "Face for highlighting the selected difference in buffer Ancestor."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-current-diff-face-Ancestor 'face-alias 'ediff-current-diff-Ancestor)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-current-diff-face-Ancestor 'ediff-current-diff-face-Ancestor
+(defvar ediff-current-diff-face-Ancestor 'ediff-current-diff-Ancestor
   "Face for highlighting the selected difference in buffer Ancestor.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-current-diff-face-Ancestor'
+widget to customize the actual face object `ediff-current-diff-Ancestor'
 this variable represents.")
-(ediff-hide-face 'ediff-current-diff-face-Ancestor)
+(ediff-hide-face 'ediff-current-diff-Ancestor)
 ;; Until custom.el for XEmacs starts supporting :inverse-video we do this.
 ;; This means that some user customization may be trashed.
 (if (and ediff-xemacs-p
 	 (ediff-has-face-support-p)
 	 (not (ediff-color-display-p)))
-    (copy-face 'modeline 'ediff-current-diff-face-Ancestor))
+    (copy-face 'modeline 'ediff-current-diff-Ancestor))
 
 
-(defface ediff-fine-diff-face-A
+(defface ediff-fine-diff-A
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "Navy" :background "sky blue"))
@@ -1030,16 +1038,18 @@ this variable represents.")
       (t (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer A."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-fine-diff-face-A 'face-alias 'ediff-fine-diff-A)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-A 'ediff-fine-diff-face-A
+(defvar ediff-fine-diff-face-A 'ediff-fine-diff-A
   "Face for highlighting the fine differences in buffer A.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-fine-diff-face-A'
+widget to customize the actual face object `ediff-fine-diff-A'
 this variable represents.")
-(ediff-hide-face 'ediff-fine-diff-face-A)
+(ediff-hide-face 'ediff-fine-diff-A)
 
-(defface ediff-fine-diff-face-B
+(defface ediff-fine-diff-B
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "cyan"))
@@ -1051,16 +1061,18 @@ this variable represents.")
       (t	     	     (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer B."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-fine-diff-face-B 'face-alias 'ediff-fine-diff-B)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-B 'ediff-fine-diff-face-B
+(defvar ediff-fine-diff-face-B 'ediff-fine-diff-B
   "Face for highlighting the fine differences in buffer B.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-fine-diff-face-B'
+widget to customize the actual face object `ediff-fine-diff-B'
 this variable represents.")
-(ediff-hide-face 'ediff-fine-diff-face-B)
+(ediff-hide-face 'ediff-fine-diff-B)
 
-(defface ediff-fine-diff-face-C
+(defface ediff-fine-diff-C
   (if ediff-emacs-p
       '((((type pc))
 	 (:foreground "white" :background "Turquoise"))
@@ -1077,16 +1089,18 @@ this variable represents.")
       (t (:underline t :stipple "gray3"))))
   "Face for highlighting the refinement of the selected diff in buffer C."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-fine-diff-face-C 'face-alias 'ediff-fine-diff-C)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-C 'ediff-fine-diff-face-C
+(defvar ediff-fine-diff-face-C 'ediff-fine-diff-C
   "Face for highlighting the fine differences in buffer C.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-fine-diff-face-C'
+widget to customize the actual face object `ediff-fine-diff-C'
 this variable represents.")
-(ediff-hide-face 'ediff-fine-diff-face-C)
+(ediff-hide-face 'ediff-fine-diff-C)
 
-(defface ediff-fine-diff-face-Ancestor
+(defface ediff-fine-diff-Ancestor
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "Black" :background "Green"))
@@ -1100,14 +1114,16 @@ this variable represents.")
 At present, this face is not used and no fine differences are computed for the
 ancestor buffer."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-fine-diff-face-Ancestor 'face-alias 'ediff-fine-diff-Ancestor)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-fine-diff-face-Ancestor 'ediff-fine-diff-face-Ancestor
+(defvar ediff-fine-diff-face-Ancestor 'ediff-fine-diff-Ancestor
   "Face for highlighting the fine differences in buffer Ancestor.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-fine-diff-face-Ancestor'
+widget to customize the actual face object `ediff-fine-diff-Ancestor'
 this variable represents.")
-(ediff-hide-face 'ediff-fine-diff-face-Ancestor)
+(ediff-hide-face 'ediff-fine-diff-Ancestor)
 
 ;; Some installs don't have stipple or Stipple. So, try them in turn.
 (defvar stipple-pixmap
@@ -1118,7 +1134,7 @@ this variable represents.")
 	      (locate-library "stipple" t mswindowsx-bitmap-file-path)) "stipple")
 	(t "Stipple")))
 
-(defface ediff-even-diff-face-A
+(defface ediff-even-diff-A
   (if ediff-emacs-p
       `((((type pc))
 	 (:foreground "green3" :background "light grey"))
@@ -1135,16 +1151,18 @@ this variable represents.")
       (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-even-diff-face-A 'face-alias 'ediff-even-diff-A)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-A 'ediff-even-diff-face-A
+(defvar ediff-even-diff-face-A 'ediff-even-diff-A
   "Face for highlighting even-numbered non-current differences in buffer A.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-even-diff-face-A'
+widget to customize the actual face object `ediff-even-diff-A'
 this variable represents.")
-(ediff-hide-face 'ediff-even-diff-face-A)
+(ediff-hide-face 'ediff-even-diff-A)
 
-(defface ediff-even-diff-face-B
+(defface ediff-even-diff-B
   (if ediff-emacs-p
       `((((class color) (min-colors 16))
 	 (:foreground "White" :background "Grey"))
@@ -1156,16 +1174,18 @@ this variable represents.")
       (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-even-diff-face-B 'face-alias 'ediff-even-diff-B)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-B 'ediff-even-diff-face-B
+(defvar ediff-even-diff-face-B 'ediff-even-diff-B
   "Face for highlighting even-numbered non-current differences in buffer B.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-even-diff-face-B'
+widget to customize the actual face object `ediff-even-diff-B'
 this variable represents.")
-(ediff-hide-face 'ediff-even-diff-face-B)
+(ediff-hide-face 'ediff-even-diff-B)
 
-(defface ediff-even-diff-face-C
+(defface ediff-even-diff-C
   (if ediff-emacs-p
       `((((type pc))
 	 (:foreground "yellow3" :background "light grey"))
@@ -1182,16 +1202,18 @@ this variable represents.")
       (t	     	     (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-even-diff-face-C 'face-alias 'ediff-even-diff-C)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-C 'ediff-even-diff-face-C
+(defvar ediff-even-diff-face-C 'ediff-even-diff-C
   "Face for highlighting even-numbered non-current differences in buffer C.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-even-diff-face-C'
+widget to customize the actual face object `ediff-even-diff-C'
 this variable represents.")
-(ediff-hide-face 'ediff-even-diff-face-C)
+(ediff-hide-face 'ediff-even-diff-C)
 
-(defface ediff-even-diff-face-Ancestor
+(defface ediff-even-diff-Ancestor
   (if ediff-emacs-p
       `((((type pc))
 	 (:foreground "cyan3" :background "light grey"))
@@ -1208,23 +1230,25 @@ this variable represents.")
       (t (:italic t :stipple ,stipple-pixmap))))
   "Face for highlighting even-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-even-diff-face-Ancestor 'face-alias 'ediff-even-diff-Ancestor)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-even-diff-face-Ancestor 'ediff-even-diff-face-Ancestor
+(defvar ediff-even-diff-face-Ancestor 'ediff-even-diff-Ancestor
   "Face for highlighting even-numbered non-current differences in buffer Ancestor.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-even-diff-face-Ancestor'
+widget to customize the actual face object `ediff-even-diff-Ancestor'
 this variable represents.")
-(ediff-hide-face 'ediff-even-diff-face-Ancestor)
+(ediff-hide-face 'ediff-even-diff-Ancestor)
 
 ;; Association between buffer types and even-diff-face symbols
 (defconst ediff-even-diff-face-alist
-  '((A . ediff-even-diff-face-A)
-    (B . ediff-even-diff-face-B)
-    (C . ediff-even-diff-face-C)
-    (Ancestor . ediff-even-diff-face-Ancestor)))
+  '((A . ediff-even-diff-A)
+    (B . ediff-even-diff-B)
+    (C . ediff-even-diff-C)
+    (Ancestor . ediff-even-diff-Ancestor)))
 
-(defface ediff-odd-diff-face-A
+(defface ediff-odd-diff-A
   (if ediff-emacs-p
       '((((type pc))
 	 (:foreground "green3" :background "gray40"))
@@ -1239,17 +1263,19 @@ this variable represents.")
       (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer A."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-odd-diff-face-A 'face-alias 'ediff-odd-diff-A)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-A 'ediff-odd-diff-face-A
+(defvar ediff-odd-diff-face-A 'ediff-odd-diff-A
   "Face for highlighting odd-numbered non-current differences in buffer A.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-odd-diff-face-A'
+widget to customize the actual face object `ediff-odd-diff-A'
 this variable represents.")
-(ediff-hide-face 'ediff-odd-diff-face-A)
+(ediff-hide-face 'ediff-odd-diff-A)
 
 
-(defface ediff-odd-diff-face-B
+(defface ediff-odd-diff-B
   (if ediff-emacs-p
       '((((type pc))
 	 (:foreground "White" :background "gray40"))
@@ -1264,16 +1290,18 @@ this variable represents.")
       (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer B."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-odd-diff-face-B 'face-alias 'ediff-odd-diff-B)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-B 'ediff-odd-diff-face-B
+(defvar ediff-odd-diff-face-B 'ediff-odd-diff-B
   "Face for highlighting odd-numbered non-current differences in buffer B.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-odd-diff-face-B'
+widget to customize the actual face object `ediff-odd-diff-B'
 this variable represents.")
-(ediff-hide-face 'ediff-odd-diff-face-B)
+(ediff-hide-face 'ediff-odd-diff-B)
 
-(defface ediff-odd-diff-face-C
+(defface ediff-odd-diff-C
   (if ediff-emacs-p
       '((((type pc))
 	 (:foreground "yellow3" :background "gray40"))
@@ -1288,16 +1316,18 @@ this variable represents.")
       (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in buffer C."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-odd-diff-face-C 'face-alias 'ediff-odd-diff-C)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-C 'ediff-odd-diff-face-C
+(defvar ediff-odd-diff-face-C 'ediff-odd-diff-C
   "Face for highlighting odd-numbered non-current differences in buffer C.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-odd-diff-face-C'
+widget to customize the actual face object `ediff-odd-diff-C'
 this variable represents.")
-(ediff-hide-face 'ediff-odd-diff-face-C)
+(ediff-hide-face 'ediff-odd-diff-C)
 
-(defface ediff-odd-diff-face-Ancestor
+(defface ediff-odd-diff-Ancestor
   (if ediff-emacs-p
       '((((class color) (min-colors 16))
 	 (:foreground "cyan3" :background "gray40"))
@@ -1309,14 +1339,16 @@ this variable represents.")
       (t	     	     (:italic t :stipple "gray1"))))
   "Face for highlighting odd-numbered non-current differences in the ancestor buffer."
   :group 'ediff-highlighting)
+;; backward-compatibility alias
+(put 'ediff-odd-diff-face-Ancestor 'face-alias 'ediff-odd-diff-Ancestor)
 ;; An internal variable.  Ediff takes the face from here.  When unhighlighting,
 ;; this variable is set to nil, then again to the appropriate face.
-(defvar ediff-odd-diff-face-Ancestor 'ediff-odd-diff-face-Ancestor
+(defvar ediff-odd-diff-face-Ancestor 'ediff-odd-diff-Ancestor
   "Face for highlighting odd-numbered non-current differences in buffer Ancestor.
 DO NOT CHANGE this variable.  Instead, use the customization
-widget to customize the actual face object `ediff-odd-diff-face-Ancestor'
+widget to customize the actual face object `ediff-odd-diff-Ancestor'
 this variable represents.")
-(ediff-hide-face 'ediff-odd-diff-face-Ancestor)
+(ediff-hide-face 'ediff-odd-diff-Ancestor)
 
 ;; Association between buffer types and odd-diff-face symbols
 (defconst ediff-odd-diff-face-alist
@@ -1333,13 +1365,13 @@ this variable represents.")
     (Ancestor . ediff-fine-diff-face-Ancestor)))
 
 ;; Help echo
-(put 'ediff-fine-diff-face-A 'ediff-help-echo
+(put 'ediff-fine-diff-A 'ediff-help-echo
      "A `refinement' of the current difference region")
-(put 'ediff-fine-diff-face-B 'ediff-help-echo
+(put 'ediff-fine-diff-B 'ediff-help-echo
      "A `refinement' of the current difference region")
-(put 'ediff-fine-diff-face-C 'ediff-help-echo
+(put 'ediff-fine-diff-C 'ediff-help-echo
      "A `refinement' of the current difference region")
-(put 'ediff-fine-diff-face-Ancestor 'ediff-help-echo
+(put 'ediff-fine-diff-Ancestor 'ediff-help-echo
      "A `refinement' of the current difference region")
 
 (add-hook 'ediff-quit-hook 'ediff-cleanup-mess)

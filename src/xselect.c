@@ -2031,7 +2031,7 @@ lisp_data_to_selection_data (display, obj,
 
           /* Use sizeof(long) even if it is more than 32 bits.  See comment
              in x_get_window_property and x_fill_property_data.  */
-          
+
           if (*format_ret == 32) data_size = sizeof(long);
 	  *data_ret = (unsigned char *) xmalloc (*size_ret * data_size);
 	  for (i = 0; i < *size_ret; i++)
@@ -2045,7 +2045,7 @@ lisp_data_to_selection_data (display, obj,
     }
   else
     Fsignal (Qerror, /* Qselection_error */
-	     Fcons (build_string ("unrecognised selection data"),
+	     Fcons (build_string ("unrecognized selection data"),
 		    Fcons (obj, Qnil)));
 
   *type_ret = symbol_to_x_atom (dpyinfo, display, type);
@@ -2832,7 +2832,7 @@ are ignored.  */)
      when sending to the root window.  */
   event.xclient.window = to_root ? FRAME_OUTER_WINDOW (f) : wdest;
 
-  
+
   memset (event.xclient.data.b, 0, sizeof (event.xclient.data.b));
   x_fill_property_data (dpyinfo->display, values, event.xclient.data.b,
                         event.xclient.format);
