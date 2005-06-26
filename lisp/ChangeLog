@@ -1,3 +1,11 @@
+2005-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't automatically add
+	a :require to the defcustom.
+
+	* emacs-lisp/autoload.el (make-autoload): Add the :setter for
+	defcustoms corresponding to minor modes.
+
 2005-06-26  David Ponce  <david@dponce.com>
 
 	* recentf.el: Require 'tree-widget instead of 'wid-edit.
@@ -6,8 +14,8 @@
 	(recentf-open-files-action): Doc fix.
 	(recentf-dialog-goto-first): New function.
 	(recentf-dialog-mode-map): Set parent keymap first.
-	(recentf-dialog-mode): Define with define-derived-mode.  Don't
-	display continuation lines in dialogs.
+	(recentf-dialog-mode): Define with define-derived-mode.
+	Don't display continuation lines in dialogs.
 	(recentf-edit-list): Rename from recentf-edit-selected-items.
 	(recentf-edit-list-select): Rename from recentf-edit-list-action.
 	Simplify.
@@ -97,7 +105,7 @@
 	(line-move-1): When there are overlays around, use vertical-motion.
 
 	* faces.el (escape-glyph): Use brown against light background.
-	(nobreak-space): Renamed from no-break-space.
+	(nobreak-space): Rename from no-break-space.
 	Fix previous change.
 
 	* dired-aux.el (dired-do-copy): Fix arg prompt.
@@ -151,7 +159,7 @@
 	* bindings.el (propertized-buffer-identification): Use renamed
 	`Buffer-menu-buffer' face.
 
-	* faces.el (vertical-border): Renamed from `vertical-divider'.
+	* faces.el (vertical-border): Rename from `vertical-divider'.
 	(escape-glyph): Change dark-background color back to `cyan'.
 
 2005-06-21  Juri Linkov  <juri@jurta.org>
@@ -237,8 +245,7 @@
 
 2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
 
-	* progmodes/ps-mode.el: Update version and maintainer's email
-	address.
+	* progmodes/ps-mode.el: Update version and maintainer's email address.
 
 2005-06-18  Steve Youngs  <steve@xemacs.org>
 
@@ -326,8 +333,8 @@
 	New backward-compatibility aliases for renamed faces.
 	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
 
-	* progmodes/cc-fonts.el (c-nonbreakable-space-face): Remove
-	"-face" suffix from face name.
+	* progmodes/cc-fonts.el (c-nonbreakable-space-face):
+	Remove "-face" suffix from face name.
 	(c-cpp-matchers): Use the variable `c-nonbreakable-space-face'
 	instead of literal face.
 
@@ -455,8 +462,8 @@
 	ido-incomplete-regexp.
 	(ido-incomplete-regexp): New face.
 	(ido-completions): Use it.
-	(ido-complete, ido-exit-minibuffer, ido-completions): Handle
-	incomplete regexps.
+	(ido-complete, ido-exit-minibuffer, ido-completions):
+	Handle incomplete regexps.
 	(ido-completions): Add check for complete match when entering a regexp.
 
 2005-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
