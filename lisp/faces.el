@@ -1713,6 +1713,7 @@ Value is the new frame created."
 	success)
     (unwind-protect
 	(progn
+	  (x-setup-function-keys frame)
 	  (x-handle-reverse-video frame parameters)
 	  (frame-set-background-mode frame)
 	  (face-set-after-frame-default frame)

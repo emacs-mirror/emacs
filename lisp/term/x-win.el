@@ -1167,24 +1167,26 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;;;; Function keys
 
-;; Map certain keypad keys into ASCII characters
-;; that people usually expect.
-(define-key function-key-map [backspace] [127])
-(define-key function-key-map [delete] [127])
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [?\C-l])
-(define-key function-key-map [return] [?\C-m])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-\d])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\C-l])
-(define-key function-key-map [M-return] [?\M-\C-m])
-(define-key function-key-map [M-escape] [?\M-\e])
-(define-key function-key-map [iso-lefttab] [backtab])
-(define-key function-key-map [S-iso-lefttab] [backtab])
+(defun x-setup-function-keys (frame)
+  "Set up `function-key-map' on FRAME for the X window system."
+  ;; Map certain keypad keys into ASCII characters that people usually expect.
+  (with-selected-frame (or frame (selected-frame))
+    (define-key function-key-map [backspace] [127])
+    (define-key function-key-map [delete] [127])
+    (define-key function-key-map [tab] [?\t])
+    (define-key function-key-map [linefeed] [?\n])
+    (define-key function-key-map [clear] [?\C-l])
+    (define-key function-key-map [return] [?\C-m])
+    (define-key function-key-map [escape] [?\e])
+    (define-key function-key-map [M-backspace] [?\M-\d])
+    (define-key function-key-map [M-delete] [?\M-\d])
+    (define-key function-key-map [M-tab] [?\M-\t])
+    (define-key function-key-map [M-linefeed] [?\M-\n])
+    (define-key function-key-map [M-clear] [?\M-\C-l])
+    (define-key function-key-map [M-return] [?\M-\C-m])
+    (define-key function-key-map [M-escape] [?\M-\e])
+    (define-key function-key-map [iso-lefttab] [backtab])
+    (define-key function-key-map [S-iso-lefttab] [backtab])))
 
 ;; These tell read-char how to convert
 ;; these special chars to ASCII.
@@ -2246,7 +2248,7 @@ order until succeed.")
     (if text
 	(remove-text-properties 0 (length text) '(foreign-selection nil) text))
     text))
-      
+
 ;;; Return the value of the current X selection.
 ;;; Consult the selection, and the cut buffer.  Treat empty strings
 ;;; as if they were unset.

@@ -36,7 +36,6 @@
   (setq rxvt-function-map (make-sparse-keymap))
 
   ;; Set up function-key-map entries that termcap and terminfo don't know.
-  ;; XXX We need to find a way to have these define-keys be display-local. -- Lorentey
   (define-key rxvt-function-map "\e[A" [up])
   (define-key rxvt-function-map "\e[B" [down])
   (define-key rxvt-function-map "\e[C" [right])
@@ -95,13 +94,14 @@
   (define-key rxvt-function-map "\e[d" [S-left])
   (define-key rxvt-function-map "\e[c" [S-right])
   (define-key rxvt-function-map "\e[a" [S-up])
-  (define-key rxvt-function-map "\e[b" [S-down])
+  (define-key rxvt-function-map "\e[b" [S-down]))
 
-  ;; Use inheritance to let the main keymap override those defaults.
-  ;; This way we don't override terminfo-derived settings or settings
-  ;; made in the .emacs file.
-  (set-keymap-parent rxvt-function-map (keymap-parent function-key-map))
-  (set-keymap-parent function-key-map rxvt-function-map))
+;; Use inheritance to let the main keymap override those defaults.
+;; This way we don't override terminfo-derived settings or settings
+;; made in the .emacs file.
+(let ((m (copy-keymap rxvt-function-map)))
+  (set-keymap-parent m (keymap-parent function-key-map))
+  (set-keymap-parent function-key-map m))
 
 
 ;; Set up colors, for those versions of rxvt that support it.

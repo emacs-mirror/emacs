@@ -504,7 +504,7 @@ from the returned command line.")
 Window-system startup files should add their own initialization
 function to this list.  The function should take no arguments,
 and initialize the window system environment to prepare for
-opening the first frame (e.g. open a connection to the server).")
+opening the first frame (e.g. open a connection to an X server).")
 
 ;; Handle the X-like command-line arguments "-fg", "-bg", "-name", etc.
 (defun tty-handle-args (args)
