@@ -1311,7 +1311,8 @@ static struct fkey_table keys[] =
   {"!3", "S-undo"}       /*shifted undo key*/
   };
 
-static char **term_get_fkeys_arg;
+static char **term_get_fkeys_address;
+static KBOARD *term_get_fkeys_kboard;
 static Lisp_Object term_get_fkeys_1 ();
 
 /* Find the escape codes sent by the function keys for Vfunction_key_map.
@@ -1319,8 +1320,9 @@ static Lisp_Object term_get_fkeys_1 ();
    adds entries to Vfunction_key_map for each function key it finds.  */
 
 void
-term_get_fkeys (address)
+term_get_fkeys (address, kboard)
      char **address;
+     KBOARD *kboard;
 {
   /* We run the body of the function (term_get_fkeys_1) and ignore all Lisp
      errors during the call.  The only errors should be from Fdefine_key
@@ -1331,7 +1333,8 @@ term_get_fkeys (address)
      refusing to run at all on such a terminal.  */
 
   extern Lisp_Object Fidentity ();
-  term_get_fkeys_arg = address;
+  term_get_fkeys_address = address;
+  term_get_fkeys_kboard = kboard;
   internal_condition_case (term_get_fkeys_1, Qerror, Fidentity);
 }
 
@@ -1340,17 +1343,18 @@ term_get_fkeys_1 ()
 {
   int i;
 
-  char **address = term_get_fkeys_arg;
-
+  char **address = term_get_fkeys_address;
+  KBOARD *kboard = term_get_fkeys_kboard;
+  
   /* This can happen if CANNOT_DUMP or with strange options.  */
   if (!initialized)
-    current_kboard->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+    kboard->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
 
   for (i = 0; i < (sizeof (keys)/sizeof (keys[0])); i++)
     {
       char *sequence = tgetstr (keys[i].cap, address);
       if (sequence)
-	Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),
+	Fdefine_key (kboard->Vfunction_key_map, build_string (sequence),
 		     Fmake_vector (make_number (1),
 				   intern (keys[i].name)));
     }
@@ -1370,13 +1374,13 @@ term_get_fkeys_1 ()
 	if (k0)
 	  /* Define f0 first, so that f10 takes precedence in case the
 	     key sequences happens to be the same.  */
-	  Fdefine_key (current_kboard->Vfunction_key_map, build_string (k0),
+	  Fdefine_key (kboard->Vfunction_key_map, build_string (k0),
 		       Fmake_vector (make_number (1), intern ("f0")));
-	Fdefine_key (current_kboard->Vfunction_key_map, build_string (k_semi),
+	Fdefine_key (kboard->Vfunction_key_map, build_string (k_semi),
 		     Fmake_vector (make_number (1), intern ("f10")));
       }
     else if (k0)
-      Fdefine_key (current_kboard->Vfunction_key_map, build_string (k0),
+      Fdefine_key (kboard->Vfunction_key_map, build_string (k0),
 		   Fmake_vector (make_number (1), intern (k0_name)));
   }
 
@@ -1399,7 +1403,7 @@ term_get_fkeys_1 ()
 	  if (sequence)
 	    {
 	      sprintf (fkey, "f%d", i);
-	      Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),
+	      Fdefine_key (kboard->Vfunction_key_map, build_string (sequence),
 			   Fmake_vector (make_number (1),
 					 intern (fkey)));
 	    }
@@ -1415,10 +1419,10 @@ term_get_fkeys_1 ()
       if (!tgetstr (cap1, address))					\
 	{								\
 	  char *sequence = tgetstr (cap2, address);			\
-	  if (sequence)							\
-	    Fdefine_key (current_kboard->Vfunction_key_map, build_string (sequence),	\
-			 Fmake_vector (make_number (1),	\
-				       intern (sym)));	\
+	  if (sequence)                                                 \
+	    Fdefine_key (kboard->Vfunction_key_map, build_string (sequence), \
+			 Fmake_vector (make_number (1),                 \
+				       intern (sym)));                  \
 	}
 
       /* if there's no key_next keycap, map key_npage to `next' keysym */
@@ -2446,7 +2450,7 @@ term_init (char *name, char *terminal_type, int must_succeed)
           delete_tty (display);
           error ("Could not open file: %s", name);
         }
-      if (! isatty (fd))
+      if (!isatty (fd))
         {
           close (fd);
           error ("Not a tty device: %s", name);
@@ -2677,7 +2681,20 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_underscore = tgetflag ("ul");
   tty->TF_teleray = tgetflag ("xt");
 
-  term_get_fkeys (address);
+#ifdef MULTI_KBOARD
+  tty->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (tty->kboard);
+  tty->kboard->next_kboard = all_kboards;
+  all_kboards = tty->kboard;
+  /* Don't let the initial kboard remain current longer than necessary.
+     That would cause problems if a file loaded on startup tries to
+     prompt in the mini-buffer.  */
+  if (current_kboard == initial_kboard)
+    current_kboard = tty->kboard;
+  tty->kboard->reference_count++;
+#endif
+
+  term_get_fkeys (address, tty->kboard);
 
   /* Get frame size from system, or else from termcap.  */
   {
@@ -2893,19 +2910,6 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
      really ugly at times.  */
   display->line_ins_del_ok = 0;
   display->char_ins_del_ok = 0;
-#endif
-
-#ifdef MULTI_KBOARD
-  tty->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-  init_kboard (tty->kboard);
-  tty->kboard->next_kboard = all_kboards;
-  all_kboards = tty->kboard;
-  /* Don't let the initial kboard remain current longer than necessary.
-     That would cause problems if a file loaded on startup tries to
-     prompt in the mini-buffer.  */
-  if (current_kboard == initial_kboard)
-    current_kboard = tty->kboard;
-  tty->kboard->reference_count++;
 #endif
 
   /* Don't do this.  I think termcap may still need the buffer. */
