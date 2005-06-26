@@ -1,5 +1,27 @@
 2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* replace.el (keep-lines-read-args): Add INTERACTIVE arg.
+	(keep-lines): Add INTERACTIVE arg.  Never delete lines only
+	partially contained in the active region.  Do not take active
+	region into account when called from Lisp, unless INTERACTIVE arg
+	is non-nil.  Use `forward-line' instead of `beginning-of-line' to
+	avoid trouble with fields.  Make marker point nowhere when no
+	longer used.  Always return nil.  Doc fix.
+	(flush-lines): Add INTERACTIVE arg.  Do not take active region
+	into account when called from Lisp, unless INTERACTIVE arg is
+	non-nil.  Use `forward-line' instead of `beginning-of-line' to
+	avoid trouble with fields.  Make marker point nowhere when no
+	longer used.  Always return nil.  Doc fix.
+	(how-many): Add INTERACTIVE arg.  Make RSTART and REND args
+	interchangeable.  Do not take active region into account when
+	called from Lisp, unless INTERACTIVE arg is non-nil.  Do not print
+	message in echo area when called from Lisp, unless INTERACTIVE arg
+	is non-nil.  Avoid saying "1 occurrences".  Do not use markers.
+	Return the number of matches.  Doc fix.
+	(occur): Doc fix.
+	(perform-replace): Make comment follow double space convention for
+	the sake of `outline-minor-mode'.
+
 	* faces.el (facep): Doc fix.
 
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
