@@ -2719,10 +2719,15 @@ build_frame_matrix_from_leaf_window (frame_matrix, w)
       if (!WINDOW_RIGHTMOST_P (w))
 	{
 	  struct Lisp_Char_Table *dp = window_display_table (w);
-	  right_border_glyph = (dp && INTEGERP (DISP_BORDER_GLYPH (dp))
-				? XINT (DISP_BORDER_GLYPH (dp))
-				: '|');
-	  right_border_glyph = spec_glyph_lookup_face (w, right_border_glyph);
+
+	  right_border_glyph
+	    = ((dp && INTEGERP (DISP_BORDER_GLYPH (dp)))
+	       ? spec_glyph_lookup_face (w, XINT (DISP_BORDER_GLYPH (dp)))
+	       : '|');
+
+	  if (FAST_GLYPH_FACE (right_border_glyph) <= 0)
+	    right_border_glyph
+	      = FAST_MAKE_GLYPH (right_border_glyph, VERTICAL_BORDER_FACE_ID);
 	}
     }
   else
@@ -6343,7 +6348,7 @@ Emacs was built without floating point support.
 
 #ifndef EMACS_HAS_USECS
   if (sec == 0 && usec != 0)
-    error ("millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sleep-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   /* Assure that 0 <= usec < 1000000.  */
@@ -6443,7 +6448,7 @@ usage: (sit-for SECONDS &optional NODISP OLD-NODISP) */)
 
 #ifndef EMACS_HAS_USECS
   if (usec != 0 && sec == 0)
-    error ("millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
+    error ("Millisecond `sit-for' not supported on %s", SYSTEM_TYPE);
 #endif
 
   return sit_for (sec, usec, 0, NILP (nodisp), NILP (nodisp));

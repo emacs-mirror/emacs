@@ -2119,7 +2119,7 @@ anything that the functions on `selection-converter-alist' know about.  */)
 {
   check_x ();
   CHECK_SYMBOL (selection_name);
-  if (NILP (selection_value)) error ("selection-value may not be nil");
+  if (NILP (selection_value)) error ("SELECTION-VALUE may not be nil");
   x_own_selection (selection_name, selection_value);
   return selection_value;
 }

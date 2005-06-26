@@ -653,6 +653,12 @@ functions to break on entry."
       nil
     (funcall debugger 'debug)))
 
+(defun debugger-special-form-p (symbol)
+  "Return whether SYMBOL is a special form."
+  (and (fboundp symbol)
+       (subrp (symbol-function symbol))
+       (eq (cdr (subr-arity (symbol-function symbol))) 'unevalled)))
+
 ;;;###autoload
 (defun debug-on-entry (function)
   "Request FUNCTION to invoke debugger each time it is called.
@@ -668,9 +674,21 @@ primitive functions only works when that function is called from Lisp.
 
 Use \\[cancel-debug-on-entry] to cancel the effect of this command.
 Redefining FUNCTION also cancels it."
-  (interactive "aDebug on entry (to function): ")
-  (when (and (subrp (symbol-function function))
-	     (eq (cdr (subr-arity (symbol-function function))) 'unevalled))
+  (interactive
+   (let ((fn (function-called-at-point)) val)
+     (when (debugger-special-form-p fn)
+       (setq fn nil))
+     (setq val (completing-read 
+		(if fn
+		    (format "Debug on entry to function (default %s): " fn)
+		  "Debug on entry to function: ")
+		obarray
+		#'(lambda (symbol)
+		    (and (fboundp symbol)
+			 (not (debugger-special-form-p symbol))))
+		t nil nil (symbol-name fn)))
+     (list (if (equal val "") fn (intern val)))))
+  (when (debugger-special-form-p function)
     (error "Function %s is a special form" function))
   (if (or (symbolp (symbol-function function))
 	  (subrp (symbol-function function)))

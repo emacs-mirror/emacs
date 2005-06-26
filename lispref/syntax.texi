@@ -883,7 +883,7 @@ a character to match was specified.
   This table gives the value of @var{syntax-code} which corresponds
 to each syntactic type.
 
-@multitable @columnfractions .05 .3 .3 .3
+@multitable @columnfractions .05 .3 .3 .31
 @item
 @tab
 @i{Integer} @i{Class}

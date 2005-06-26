@@ -2775,6 +2775,7 @@ This is what happens in interactive use with M-x.  */)
     {
       if (errno == EXDEV)
 	{
+	  struct stat data;
 #ifdef S_IFLNK
           symlink_target = Ffile_symlink_p (file);
           if (! NILP (symlink_target))
@@ -2787,6 +2788,11 @@ This is what happens in interactive use with M-x.  */)
                            so don't have copy-file prompt again.  */
                         NILP (ok_if_already_exists) ? Qnil : Qt,
 			Qt, Qnil);
+
+	  /* Preserve owner and group, if possible (if we are root).  */
+	  if (stat (SDATA (encoded_file), &data) >= 0)
+	    chown (SDATA (encoded_file), data.st_uid, data.st_gid);
+
 	  Fdelete_file (file);
 	}
       else

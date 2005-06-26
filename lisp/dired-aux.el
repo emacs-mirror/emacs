@@ -1509,7 +1509,7 @@ suggested for the target directory depends on the value of
   (interactive "P")
   (let ((dired-recursive-copies dired-recursive-copies))
     (dired-do-create-files 'copy (function dired-copy-file)
-			   (if dired-copy-preserve-time "Copy [-p]" "Copy")
+			   "Copy"
 			   arg dired-keep-marker-copy
 			   nil dired-copy-how-to-fn)))
 

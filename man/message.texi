@@ -8,7 +8,7 @@
 @copying
 This file documents Message, the Emacs message composition mode.
 
-Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005 
+Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005
 Free Software Foundation, Inc.
 
 @quotation
@@ -419,7 +419,7 @@ This is how you would do it.
 
 @vindex message-subscribed-address-file
 @item message-subscribed-address-file
-You might be one organised human freak and have a list of addresses of
+You might be one organized human freak and have a list of addresses of
 all subscribed mailing lists in a separate file!  Then you can just
 set this variable to the name of the file and life would be good.
 
@@ -739,7 +739,7 @@ Move to the signature of the message (@code{message-goto-signature}).
 @vindex message-beginning-of-line
 If at beginning of header value, go to beginning of line, else go to
 beginning of header value.  (The header value comes after the header
-name and the colon.)  This behaviour can be disabled by toggling
+name and the colon.)  This behavior can be disabled by toggling
 the variable @code{message-beginning-of-line}.
 
 @end table
@@ -1372,7 +1372,7 @@ Controls what to do with trailing @samp{(was: <old subject>)} in subject
 lines.  If @code{nil}, leave the subject unchanged.  If it is the symbol
 @code{ask}, query the user what do do.  In this case, the subject is
 matched against @code{message-subject-trailing-was-ask-regexp}.  If
-@code{message-subject-trailing-was-query} is t, always strip the
+@code{message-subject-trailing-was-query} is @code{t}, always strip the
 trailing old subject.  In this case,
 @code{message-subject-trailing-was-regexp} is used.
 

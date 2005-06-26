@@ -5631,7 +5631,6 @@ DEF_IMGLIB_FN (png_create_read_struct);
 DEF_IMGLIB_FN (png_create_info_struct);
 DEF_IMGLIB_FN (png_destroy_read_struct);
 DEF_IMGLIB_FN (png_set_read_fn);
-DEF_IMGLIB_FN (png_init_io);
 DEF_IMGLIB_FN (png_set_sig_bytes);
 DEF_IMGLIB_FN (png_read_info);
 DEF_IMGLIB_FN (png_get_IHDR);
@@ -5663,7 +5662,6 @@ init_png_functions (Lisp_Object libraries)
   LOAD_IMGLIB_FN (library, png_create_info_struct);
   LOAD_IMGLIB_FN (library, png_destroy_read_struct);
   LOAD_IMGLIB_FN (library, png_set_read_fn);
-  LOAD_IMGLIB_FN (library, png_init_io);
   LOAD_IMGLIB_FN (library, png_set_sig_bytes);
   LOAD_IMGLIB_FN (library, png_read_info);
   LOAD_IMGLIB_FN (library, png_get_IHDR);
@@ -5689,7 +5687,6 @@ init_png_functions (Lisp_Object libraries)
 #define fn_png_create_info_struct	png_create_info_struct
 #define fn_png_destroy_read_struct	png_destroy_read_struct
 #define fn_png_set_read_fn		png_set_read_fn
-#define fn_png_init_io			png_init_io
 #define fn_png_set_sig_bytes		png_set_sig_bytes
 #define fn_png_read_info		png_read_info
 #define fn_png_get_IHDR			png_get_IHDR
@@ -5759,6 +5756,23 @@ png_read_from_memory (png_ptr, data, length)
 
   bcopy (tbr->bytes + tbr->index, data, length);
   tbr->index = tbr->index + length;
+}
+
+
+/* Function set as reader function when reading PNG image from a file.
+   PNG_PTR is a pointer to the PNG control structure.  Copy LENGTH
+   bytes from the input to DATA.  */
+
+static void
+png_read_from_file (png_ptr, data, length)
+     png_structp png_ptr;
+     png_bytep data;
+     png_size_t length;
+{
+  FILE *fp = (FILE *) fn_png_get_io_ptr (png_ptr);
+
+  if (fread (data, 1, length, fp) < length)
+    fn_png_error (png_ptr, "Read error");
 }
 
 
@@ -5895,7 +5909,7 @@ png_load (f, img)
   if (!NILP (specified_data))
     fn_png_set_read_fn (png_ptr, (void *) &tbr, png_read_from_memory);
   else
-    fn_png_init_io (png_ptr, fp);
+    fn_png_set_read_fn (png_ptr, (void *) fp, png_read_from_file);
 
   fn_png_set_sig_bytes (png_ptr, sizeof sig);
   fn_png_read_info (png_ptr, info_ptr);

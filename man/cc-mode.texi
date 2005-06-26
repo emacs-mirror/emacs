@@ -2363,7 +2363,7 @@ returns a non-@code{nil} value succeeds and the evaluation stops.  If
 none of the list elements return a non-@code{nil} value, then an offset
 of 0 (zero) is used@footnote{There is however a variable
 @code{c-strict-syntax-p} that, when set to non-@code{nil}, will cause an
-error to be signalled in that case.  It's now considered obsolete since
+error to be signaled in that case.  It's now considered obsolete since
 it doesn't work well with some of the alignment functions that now
 returns @code{nil} instead of zero to be more usable in lists.  You
 should therefore leave @code{c-strict-syntax-p} set to @code{nil}.}.

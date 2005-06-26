@@ -1152,7 +1152,7 @@
 
 
 (defun ebnf-dtd-lex ()
-  "Lexical analyser for DTD.
+  "Lexical analyzer for DTD.
 
 Return a lexical token.
 

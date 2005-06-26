@@ -3529,7 +3529,7 @@ buffer.
 graphical applications use @key{Mouse-1} for following links.  For
 compatibility, @key{Mouse-1} follows links in Emacs too, when you
 click on a link quickly without moving the mouse.  The user can
-customize this behaviour through the variable
+customize this behavior through the variable
 @code{mouse-1-click-follows-link}.
 
   To define text as a link at the Lisp level, you should bind the

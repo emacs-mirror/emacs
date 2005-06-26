@@ -1892,7 +1892,7 @@ Lisp_Object merge ();
 DEFUN ("sort", Fsort, Ssort, 2, 2, 0,
        doc: /* Sort LIST, stably, comparing elements using PREDICATE.
 Returns the sorted list.  LIST is modified by side effects.
-PREDICATE is called with two elements of LIST, and should return t
+PREDICATE is called with two elements of LIST, and should return non-nil
 if the first element is "less" than the second.  */)
      (list, predicate)
      Lisp_Object list, predicate;
@@ -2546,7 +2546,7 @@ RANGE should be nil (for the default value),
 a vector which identifies a character set or a row of a character set,
 a character set name, or a character code.
 If the characters in the specified range have different values,
-an error is signalled.
+an error is signaled.
 
 Note that this function doesn't check the parent of CHAR-TABLE.  */)
      (char_table, range)

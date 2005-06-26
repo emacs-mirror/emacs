@@ -312,7 +312,7 @@
 
 
 (defun ebnf-yac-lex ()
-  "Lexical analyser for Yacc/Bison.
+  "Lexical analyzer for Yacc/Bison.
 
 Return a lexical token.
 

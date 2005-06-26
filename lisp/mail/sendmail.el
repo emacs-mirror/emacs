@@ -44,7 +44,7 @@
 
 (defcustom mail-setup-with-from t
   "Non-nil means insert `From:' field when setting up the message."
-  :type 'binary
+  :type 'boolean
   :group 'sendmail
   :version "22.1")
 

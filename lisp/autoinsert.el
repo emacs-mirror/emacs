@@ -140,7 +140,7 @@ If this contains a %s, that will be replaced by the matching rule."
      (getenv "ORGANIZATION") | (progn user-full-name)
      "
 .\\\" You may distribute this file under the terms of the GNU Free
-.\\\" Documentation Licence.
+.\\\" Documentation License.
 .TH " (file-name-sans-extension (file-name-nondirectory (buffer-file-name)))
      " " (file-name-extension (buffer-file-name))
      " " (format-time-string "%Y-%m-%d ")

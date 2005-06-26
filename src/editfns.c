@@ -2660,7 +2660,7 @@ Both characters must have the same length of multi-byte form.  */)
     {
       len = CHAR_STRING (XFASTINT (fromchar), fromstr);
       if (CHAR_STRING (XFASTINT (tochar), tostr) != len)
-	error ("Characters in subst-char-in-region have different byte-lengths");
+	error ("Characters in `subst-char-in-region' have different byte-lengths");
       if (!ASCII_BYTE_P (*tostr))
 	{
 	  /* If *TOSTR is in the range 0x80..0x9F and TOCHAR is not a

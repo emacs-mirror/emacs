@@ -1154,8 +1154,8 @@ bound to @kbd{C-x C-j} and @code{dired-jump-other-window} will not be bound to
 @cindex Reading mail.
 @kindex V
 @findex dired-vm
-Bound to @kbd{V} if @code{dired-bind-vm} is t.  Run VM on this file (assumed
-to be a UNIX mail folder).
+Bound to @kbd{V} if @code{dired-bind-vm} is @code{t}.  Run VM on this
+file (assumed to be a UNIX mail folder).
 
 @vindex dired-vm-read-only-folders
 If you give this command a prefix argument, it will visit the folder
@@ -1168,8 +1168,8 @@ the symbol @code{if-file-read-only}, only files not writable by you are
 visited read-only.  This is the recommended value if you run VM 5.
 
 @vindex dired-bind-vm
-If the variable @code{dired-bind-vm} is t, @code{dired-vm} will be bound to
-@kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
+If the variable @code{dired-bind-vm} is @code{t}, @code{dired-vm} will be bound
+to @kbd{V}.  Otherwise, @code{dired-bind-rmail} will be bound.
 
 @item dired-rmail
 @cindex Reading mail.

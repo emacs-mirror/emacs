@@ -35,11 +35,12 @@
 @cindex Dutch
 @cindex Spanish
   Emacs supports a wide variety of international character sets,
-including European variants of the Latin alphabet, as well as Chinese,
-Cyrillic, Devanagari (Hindi and Marathi), Ethiopic, Greek, Hebrew, IPA,
-Japanese, Korean, Lao, Thai, Tibetan, and Vietnamese scripts.  These features
-have been merged from the modified version of Emacs known as MULE (for
-``MULti-lingual Enhancement to GNU Emacs'')
+including European and Vietnamese variants of the Latin alphabet, as
+well as Cyrillic, Devanagari (for Hindi and Marathi), Ethiopic, Greek,
+Han (for Chinese and Japanese), Hangul (for Korean), Hebrew, IPA,
+Kannada, Lao, Malayalam, Tamil, Thai, Tibetan, and Vietnamese scripts.
+These features have been merged from the modified version of Emacs
+known as MULE (for ``MULti-lingual Enhancement to GNU Emacs'')
 
   Emacs also supports various encodings of these characters used by
 other internationalized software, such as word processors and mailers.
@@ -69,8 +70,7 @@ describes possible problems and explains how to solve them.
 You can insert non-@acronym{ASCII} characters or search for them.  To do that,
 you can specify an input method (@pxref{Select Input Method}) suitable
 for your language, or use the default input method set up when you set
-your language environment.  (Emacs input methods are part of the Leim
-package, which must be installed for you to be able to use them.)  If
+your language environment.  If
 your keyboard can produce non-@acronym{ASCII} characters, you can select an
 appropriate keyboard coding system (@pxref{Specify Coding}), and Emacs
 will accept those characters.  Latin-1 characters can also be input by
@@ -240,13 +240,19 @@ the Emacs session.  The supported language environments include:
 @cindex Euro sign
 @cindex UTF-8
 @quotation
-Chinese-BIG5, Chinese-CNS, Chinese-GB, Cyrillic-ALT, Cyrillic-ISO,
-Cyrillic-KOI8, Czech, Devanagari, Dutch, English, Ethiopic, German,
-Greek, Hebrew, IPA, Japanese, Korean, Lao, Latin-1, Latin-2, Latin-3,
-Latin-4, Latin-5, Latin-8 (Celtic), Latin-9 (updated Latin-1, with the
-Euro sign), Polish, Romanian, Slovak, Slovenian, Spanish, Thai, Tibetan,
-Turkish, UTF-8 (for a setup which prefers Unicode characters and files
-encoded in UTF-8), and Vietnamese.
+Belarusian, Brazilian Portuguese, Bulgarian, Chinese-BIG5,
+Chinese-CNS, Chinese-EUC-TW, Chinese-GB, Croatian, Cyrillic-ALT,
+Cyrillic-ISO, Cyrillic-KOI8, Czech, Devanagari, Dutch, English,
+Ethiopic, French, Georgian, German, Greek, Hebrew, IPA, Italian,
+Japanese, Kannada, Korean, Lao, Latin-1, Latin-2, Latin-3,
+Latin-4, Latin-5, Latin-6, Latin-7, Latin-8 (Celtic),
+Latin-9 (updated Latin-1 with the Euro sign), Latvian,
+Lithuanian, Malayalam, Polish, Romanian, Russian, Slovak,
+Slovenian, Spanish, Swedish, Tajik, Tamil, Thai, Tibetan,
+Turkish, UTF-8 (for a setup which prefers Unicode characters and
+files encoded in UTF-8), Ukrainian, Vietnamese, Welsh, and
+Windows-1255 (for a setup which prefers Cyrillic characters and
+files encoded in Windows-1255).
 @end quotation
 
 @cindex fonts for various scripts
@@ -254,7 +260,7 @@ encoded in UTF-8), and Vietnamese.
   To display the script(s) used by your language environment on a
 graphical display, you need to have a suitable font.  If some of the
 characters appear as empty boxes, you should install the GNU Intlfonts
-package, which includes fonts for all supported scripts.@footnote{If
+package, which includes fonts for most supported scripts.@footnote{If
 you run Emacs on X, you need to inform the X server about the location
 of the newly installed fonts with the following commands:
 
@@ -525,9 +531,11 @@ actual keyboard layout.  To specify which layout your keyboard has, use
 the command @kbd{M-x quail-set-keyboard-layout}.
 
 @findex quail-show-key
-  You can use the command @kbd{M-x quail-show-key} to show what key
-(or key sequence) to type in order to input the character following
-point, using the selected keyboard layout.
+  You can use the command @kbd{M-x quail-show-key} to show what key (or
+key sequence) to type in order to input the character following point,
+using the selected keyboard layout.  The command @kbd{C-u C-x =} also
+shows that information in addition to the other information about the
+character.
 
 @findex list-input-methods
   To display a list of all the supported input methods, type @kbd{M-x
@@ -736,7 +744,7 @@ example, to read and write all @samp{.txt} files using the coding system
 @code{china-iso-8bit}, you can execute this Lisp expression:
 
 @smallexample
-(modify-coding-system-alist 'file "\\.txt\\'" 'china-iso-8bit)
+(modify-coding-system-alist 'file "\\.txt\\'" 'chinese-iso-8bit)
 @end smallexample
 
 @noindent

@@ -822,7 +822,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   sym = Fcar (args);
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
-    error ("too many arguments");
+    error ("Too many arguments");
 
   tem = Fdefault_boundp (sym);
   if (!NILP (tail))
@@ -885,7 +885,7 @@ usage: (defconst SYMBOL INITVALUE [DOCSTRING])  */)
 
   sym = Fcar (args);
   if (!NILP (Fcdr (Fcdr (Fcdr (args)))))
-    error ("too many arguments");
+    error ("Too many arguments");
 
   tem = Feval (Fcar (Fcdr (args)));
   if (!NILP (Vpurify_flag))
@@ -2132,7 +2132,7 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	error ("Lisp nesting exceeds max-lisp-eval-depth");
+	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
     }
 
   original_fun = Fcar (form);
@@ -2871,7 +2871,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
       if (max_lisp_eval_depth < 100)
 	max_lisp_eval_depth = 100;
       if (lisp_eval_depth > max_lisp_eval_depth)
-	error ("Lisp nesting exceeds max-lisp-eval-depth");
+	error ("Lisp nesting exceeds `max-lisp-eval-depth'");
     }
 
   backtrace.next = backtrace_list;

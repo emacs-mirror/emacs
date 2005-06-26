@@ -832,21 +832,21 @@ Thwarting Email Spam
 
 Filtering Spam Using The Spam ELisp Package
 
-* Spam ELisp Package Sequence of Events::  
-* Spam ELisp Package Filtering of Incoming Mail::  
-* Spam ELisp Package Global Variables::  
-* Spam ELisp Package Configuration Examples::  
-* Blacklists and Whitelists::   
-* BBDB Whitelists::             
-* Gmane Spam Reporting::        
-* Anti-spam Hashcash Payments::  
-* Blackholes::                  
-* Regular Expressions Header Matching::  
-* Bogofilter::                  
-* ifile spam filtering::        
-* spam-stat spam filtering::    
-* SpamOracle::                  
-* Extending the Spam ELisp package::  
+* Spam ELisp Package Sequence of Events::
+* Spam ELisp Package Filtering of Incoming Mail::
+* Spam ELisp Package Global Variables::
+* Spam ELisp Package Configuration Examples::
+* Blacklists and Whitelists::
+* BBDB Whitelists::
+* Gmane Spam Reporting::
+* Anti-spam Hashcash Payments::
+* Blackholes::
+* Regular Expressions Header Matching::
+* Bogofilter::
+* ifile spam filtering::
+* spam-stat spam filtering::
+* SpamOracle::
+* Extending the Spam ELisp package::
 
 Filtering Spam Using Statistics with spam-stat
 
@@ -1393,7 +1393,7 @@ cache for all groups).
 Most common Unix news readers use a shared startup file called
 @file{.newsrc}.  This file contains all the information about what
 groups are subscribed, and which articles in these groups have been
-read. 
+read.
 
 Things got a bit more complicated with @sc{gnus}.  In addition to
 keeping the @file{.newsrc} file updated, it also used a file called
@@ -3008,7 +3008,7 @@ This can also be used as a group-specific hook function.  If you want to
 hear a beep when you enter a group, you could put something like
 @code{(dummy-variable (ding))} in the parameters of that group.
 @code{dummy-variable} will be set to the (meaningless) result of the
-@code{(ding)} form.  
+@code{(ding)} form.
 
 Alternatively, since the VARIABLE becomes local to the group, this
 pattern can be used to temporarily change a hook.  For example, if the
@@ -3984,7 +3984,7 @@ Gnus
      8: comp.binaries.fractals
     13: comp.sources.unix
    452: alt.sex.emacs
-@end group   
+@end group
 @end example
 
 The @samp{Emacs} topic has the topic parameter @code{(score-file
@@ -9347,12 +9347,13 @@ If displaying "text/html" is discouraged, see
 @code{mm-discouraged-alternatives} in @ref{Display Customization,
 Display Customization, , emacs-mime, Emacs-Mime Manual}.  Images or
 other material inside a "multipart/related" part might be overlooked
-when this variable is nil.
+when this variable is @code{nil}.
 
 @vindex gnus-mime-display-multipart-as-mixed
 @item gnus-mime-display-multipart-as-mixed
-Display "multipart" parts as "multipart/mixed".  If t, it overrides nil
-values of @code{gnus-mime-display-multipart-alternative-as-mixed} and
+Display "multipart" parts as "multipart/mixed".  If @code{t}, it
+overrides @code{nil} values of
+@code{gnus-mime-display-multipart-alternative-as-mixed} and
 @code{gnus-mime-display-multipart-related-as-mixed}.
 
 @vindex mm-file-name-rewrite-functions
@@ -13293,7 +13294,7 @@ function.
 By default the splitting codes @acronym{MIME} decodes headers so you
 can match on non-@acronym{ASCII} strings.  The
 @code{nnmail-mail-splitting-charset} variable specifies the default
-charset for decoding.  The behaviour can be turned off completely by
+charset for decoding.  The behavior can be turned off completely by
 binding @code{nnmail-mail-splitting-decodes} to @code{nil}, which is
 useful if you want to match articles based on the raw header data.
 
@@ -14011,7 +14012,7 @@ splits.  Here are the possible split syntaxes:
 
 @table @code
 
-@item group 
+@item group
 If the split is a string, that will be taken as a group name.  Normal
 regexp match expansion will be done.  See below for examples.
 
@@ -14142,9 +14143,9 @@ surrounded by anything.
 
 In this example, messages sent from @samp{joedavis@@foo.org} will
 normally not be filed in @samp{joemail}.  With
-@code{nnmail-split-fancy-match-partial-words} set to t, however, the
-match will happen.  In effect, the requirement of a word boundary is
-removed and instead the match becomes more like a grep.
+@code{nnmail-split-fancy-match-partial-words} set to @code{t},
+however, the match will happen.  In effect, the requirement of a word
+boundary is removed and instead the match becomes more like a grep.
 
 @findex nnmail-split-fancy-with-parent
 @code{nnmail-split-fancy-with-parent} is a function which allows you to
@@ -16297,7 +16298,7 @@ RFC 2060 for more information on valid strings.
 A file containing credentials used to log in on servers.  The format is
 (almost) the same as the @code{ftp} @file{~/.netrc} file.  See the
 variable @code{nntp-authinfo-file} for exact syntax; also see
-@ref{NNTP}.  An example of an .authinfo line for an IMAP server, is: 
+@ref{NNTP}.  An example of an .authinfo line for an IMAP server, is:
 
 @example
 machine students.uio.no login larsi password geheimnis port imap
@@ -16497,7 +16498,7 @@ Nnmail equivalent: @code{nnmail-split-fancy}.
 Set to non-@code{nil} to download entire articles during splitting.
 This is generally not required, and will slow things down
 considerably.  You may need it if you want to use an advanced
-splitting function that analyses the body to split the article.
+splitting function that analyzes the body to split the article.
 
 @end table
 
@@ -16635,7 +16636,7 @@ tool and should be used only if you are sure what the effects are.
 
 @acronym{IMAP} is a complex protocol, more so than @acronym{NNTP} or
 @acronym{POP3}.  Implementation bugs are not unlikely, and we do our
-best to fix them right away.  If you encounter odd behaviour, chances
+best to fix them right away.  If you encounter odd behavior, chances
 are that either the server or Gnus is buggy.
 
 If you are familiar with network protocols in general, you will
@@ -16650,7 +16651,7 @@ to include the protocol dump when reporting IMAP bugs in Gnus.
 @vindex imap-log
 Because the protocol dump, when enabled, generates lots of data, it is
 disabled by default.  You can enable it by setting @code{imap-log} as
-follows: 
+follows:
 
 @lisp
 (setq imap-log t)
@@ -18372,11 +18373,11 @@ faces will be obscured by the undownloaded faces.  If this is your
 situation, you have two choices available.  First, you can completely
 disable the undownload faces by customizing
 @code{gnus-summary-highlight} to delete the three cons-cells that
-refer to the @code{gnus-summary-*-undownloaded-face} faces.  Second, if
-you prefer to take a more fine-grained approach, you may set the
-@code{agent-disable-undownloaded-faces} group parameter to t.  This
-parameter, like all other agent parameters, may be set on an Agent
-Category (@pxref{Agent Categories}), a Group Topic (@pxref{Topic
+refer to the @code{gnus-summary-*-undownloaded-face} faces.  Second,
+if you prefer to take a more fine-grained approach, you may set the
+@code{agent-disable-undownloaded-faces} group parameter to @code{t}.
+This parameter, like all other agent parameters, may be set on an
+Agent Category (@pxref{Agent Categories}), a Group Topic (@pxref{Topic
 Parameters}), or an individual group (@pxref{Group Parameters}).
 
 @node Agent as Cache
@@ -18588,7 +18589,7 @@ online status.
 If @code{gnus-agent-mark-unread-after-downloaded} is non-@code{nil},
 mark articles as unread after downloading.  This is usually a safe
 thing to do as the newly downloaded article has obviously not been
-read.  The default is t.
+read.  The default is @code{t}.
 
 @item gnus-agent-consider-all-articles
 @vindex gnus-agent-consider-all-articles
@@ -18726,7 +18727,7 @@ may ask:
 @table @dfn
 @item If I read an article while plugged, do they get entered into the Agent?
 
-@strong{No}.  If you want this behaviour, add
+@strong{No}.  If you want this behavior, add
 @code{gnus-agent-fetch-selected-article} to
 @code{gnus-select-article-hook}.
 
@@ -21012,7 +21013,7 @@ mode-line variables.
 
 Gnus usually moves point to a pre-defined place on each line in most
 buffers.  By default, point move to the first colon character on the
-line.  You can customize this behaviour in three different ways.
+line.  You can customize this behavior in three different ways.
 
 You can move the colon character to somewhere else on the line.
 
@@ -22361,7 +22362,7 @@ messages per day from @samp{random-address@@vmadmin.com}, you block
 @samp{vmadmin.com}.  If you get 200 messages about @samp{VIAGRA}, you
 discard all messages with @samp{VIAGRA} in the message.  If you get
 lots of spam from Bulgaria, for example, you try to filter all mail
-from Bulgarian IPs.  
+from Bulgarian IPs.
 
 This, unfortunately, is a great way to discard legitimate e-mail.  The
 risks of blocking a whole country (Bulgaria, Norway, Nigeria, China,
@@ -22704,22 +22705,22 @@ variables.  Try @code{customize-group} on the @samp{spam} variable
 group.
 
 @menu
-* Spam ELisp Package Sequence of Events::  
-* Spam ELisp Package Filtering of Incoming Mail::  
-* Spam ELisp Package Global Variables::  
-* Spam ELisp Package Configuration Examples::  
-* Blacklists and Whitelists::   
-* BBDB Whitelists::             
-* Gmane Spam Reporting::        
-* Anti-spam Hashcash Payments::  
-* Blackholes::                  
-* Regular Expressions Header Matching::  
-* Bogofilter::                  
-* ifile spam filtering::        
-* spam-stat spam filtering::    
-* SpamOracle::                  
-* Extending the Spam ELisp package::  
-@end menu 
+* Spam ELisp Package Sequence of Events::
+* Spam ELisp Package Filtering of Incoming Mail::
+* Spam ELisp Package Global Variables::
+* Spam ELisp Package Configuration Examples::
+* Blacklists and Whitelists::
+* BBDB Whitelists::
+* Gmane Spam Reporting::
+* Anti-spam Hashcash Payments::
+* Blackholes::
+* Regular Expressions Header Matching::
+* Bogofilter::
+* ifile spam filtering::
+* spam-stat spam filtering::
+* SpamOracle::
+* Extending the Spam ELisp package::
+@end menu
 
 @node Spam ELisp Package Sequence of Events
 @subsubsection Spam ELisp Package Sequence of Events
@@ -23174,7 +23175,7 @@ From Ted Zlatanov <tzz@@lifelogs.com>.
  ;; @r{any ham goes to my @samp{nnimap+mail.lifelogs.com:mail} folder, but}
  ;; @r{also to my @samp{nnimap+mail.lifelogs.com:trainham} folder for training}
 
- (ham-process-destination "nnimap+mail.lifelogs.com:mail" 
+ (ham-process-destination "nnimap+mail.lifelogs.com:mail"
                           "nnimap+mail.lifelogs.com:trainham")
  ;; @r{in this group, only @samp{!} marks are ham}
  (ham-marks
@@ -23215,7 +23216,7 @@ does most of the job for me:
     (spam-contents gnus-group-spam-classification-ham))
 @end lisp
 
-@itemize 
+@itemize
 
 @item @b{The Spam folder:}
 
@@ -23308,7 +23309,7 @@ customizing the group parameters or the
 added to a group's @code{spam-process} parameter, the senders of
 spam-marked articles will be added to the blacklist.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-spam-exit-processor-blacklist}, it is recommended
@@ -23327,7 +23328,7 @@ ham-marked articles in @emph{ham} groups will be added to the
 whitelist.  Note that this ham processor has no effect in @emph{spam}
 or @emph{unclassified} groups.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-ham-exit-processor-whitelist}, it is recommended
@@ -23393,7 +23394,7 @@ ham-marked articles in @emph{ham} groups will be added to the
 BBDB.  Note that this ham processor has no effect in @emph{spam}
 or @emph{unclassified} groups.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-ham-exit-processor-BBDB}, it is recommended
@@ -23420,7 +23421,7 @@ HTTP request.
 
 Gmane can be found at @uref{http://gmane.org}.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-spam-exit-processor-report-gmane}, it is recommended
@@ -23589,7 +23590,7 @@ customizing the group parameters or the
 added to a group's @code{spam-process} parameter, spam-marked articles
 will be added to the Bogofilter spam database.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-spam-exit-processor-bogofilter}, it is recommended
@@ -23606,7 +23607,7 @@ articles in @emph{ham} groups will be added to the Bogofilter database
 of non-spam messages.  Note that this ham processor has no effect in
 @emph{spam} or @emph{unclassified} groups.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-ham-exit-processor-bogofilter}, it is recommended
@@ -23693,7 +23694,7 @@ customizing the group parameters or the
 added to a group's @code{spam-process} parameter, the spam-marked
 articles will be added to the spam-stat database of spam messages.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-spam-exit-processor-stat}, it is recommended
@@ -23710,7 +23711,7 @@ articles in @emph{ham} groups will be added to the spam-stat database
 of non-spam messages.  Note that this ham processor has no effect in
 @emph{spam} or @emph{unclassified} groups.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-ham-exit-processor-stat}, it is recommended
@@ -23802,7 +23803,7 @@ customizing the group parameter or the
 to a group's @code{spam-process} parameter, spam-marked articles will be
 sent to SpamOracle as spam samples.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-spam-exit-processor-spamoracle}, it is recommended
@@ -23819,7 +23820,7 @@ to a group's @code{spam-process} parameter, the ham-marked articles in
 messages.  Note that this ham processor has no effect in @emph{spam} or
 @emph{unclassified} groups.
 
-@emph{WARNING} 
+@emph{WARNING}
 
 Instead of the obsolete
 @code{gnus-group-ham-exit-processor-spamoracle}, it is recommended
@@ -23914,7 +23915,7 @@ Note you don't have to provide a spam or a ham processor.  Only
 provide them if Blackbox supports spam or ham processing.
 
 Also, ham and spam processors are being phased out as single
-variables.  Instead the form @code{'(spam spam-use-blackbox)} or 
+variables.  Instead the form @code{'(spam spam-use-blackbox)} or
 @code{'(ham spam-use-blackbox)} is favored.  For now, spam/ham
 processor variables are still around but they won't be for long.
 
@@ -26140,7 +26141,7 @@ unplugged state.  You can enroll or remove servers with @kbd{J a} and
 @kbd{J r} in the server buffer.  Gnus will not download articles into
 the Agent cache, unless you instruct it to do so, though, by using
 @kbd{J u} or @kbd{J s} from the Group buffer.  You revert to the old
-behaviour of having the Agent disabled with @code{(setq gnus-agent
+behavior of having the Agent disabled with @code{(setq gnus-agent
 nil)}.  Note that putting @code{(gnus-agentize)} in @file{~/.gnus.el}
 is not needed any more.
 
@@ -26280,7 +26281,7 @@ you post a message, and saves it in your @file{~/.emacs} using the Custom
 system.  While the variable is called @code{canlock-password}, it is not
 security sensitive data.  Publishing your canlock string on the web
 will not allow anyone to be able to anything she could not already do.
-The behaviour can be changed by customizing @code{message-insert-canlock}.
+The behavior can be changed by customizing @code{message-insert-canlock}.
 
 @item
 Gnus supports server-side mail filtering using Sieve.
@@ -26380,7 +26381,7 @@ This change was made to avoid conflict with the standard binding of
 @item
 The default for @code{message-forward-show-mml} changed to symbol @code{best}.
 
-The behaviour for the @code{best} value is to show @acronym{MML} (i.e.,
+The behavior for the @code{best} value is to show @acronym{MML} (i.e.,
 convert to @acronym{MIME}) when appropriate.  @acronym{MML} will not be
 used when forwarding signed or encrypted messages, as the conversion
 invalidate the digital signature.
@@ -26905,7 +26906,7 @@ in order to solve the problem yourself and send a patch, you can use
 edebug.  Debugging Lisp code is documented in the Elisp manual
 (@pxref{Debugging, , Debugging Lisp Programs, elisp, The GNU Emacs
 Lisp Reference Manual}).  To get you started with edebug, consider if
-you discover some weird behaviour when pressing @kbd{c}, the first
+you discover some weird behavior when pressing @kbd{c}, the first
 step is to do @kbd{C-h k c} and click on the hyperlink (Emacs only) in
 the documentation buffer that leads you to the function definition,
 then press @kbd{M-x edebug-defun RET} with point inside that function,

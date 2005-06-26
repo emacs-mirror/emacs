@@ -292,7 +292,7 @@ check tools and error message patterns.
 @section Customizable variables
 @cindex Customizable variables
 
-This section summarises variables used for Flymake
+This section summarizes variables used for Flymake
 configuration.
 
 @table @code
@@ -378,7 +378,7 @@ first item with @code{filename-regexp} matching buffer filename is
 selected. If no match is found, @code{flymake-mode} is switched off.
 
 @item init-function
-@code{init-function} is required to initialise the syntax check,
+@code{init-function} is required to initialize the syntax check,
 usually by creating a temporary copy of the buffer contents. The
 function must return @code{(list cmd-name arg-list)}. If
 @code{init-function} returns null, syntax check is aborted, by
@@ -639,7 +639,7 @@ and project include directories. The former is just the contents of the
 and the way it can be obtained can vary greatly for different projects.
 Therefore, a customizable variable
 @code{flymake-get-project-include-dirs-function} is used to provide the
-way to implement the desired behaviour.
+way to implement the desired behavior.
 
 The default implementation, @code{flymake-get-project-include-dirs-imp},
 uses a @code{make} call. This requires a correct base directory, that is, a
@@ -658,7 +658,7 @@ of every syntax check attempt.
 Flymake can be configured to use different tools for performing syntax
 checks. For example, it can use direct compiler call to syntax check a perl
 script or a call to @code{make} for a more complicated case of a
-@code{C/C++} source.  The general idea is that simple files, like perl
+@code{C/C++} source. The general idea is that simple files, like perl
 scripts and html pages, can be checked by directly invoking a
 corresponding tool. Files that are usually more complex and generally
 used as part of larger projects, might require non-trivial options to

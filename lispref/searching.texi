@@ -1527,13 +1527,7 @@ stays the same, but the elements that were not used are set to
 garbage collection.
 
 If @var{reseat} is non-@code{nil}, all markers on the @var{reuse} list
-are reseated to point to nowhere, and if the value is @code{evaporate},
-the markers are put back on the free list.
-
-@strong{Warning:} When @code{evaporate} is specified for @var{reseat},
-you must ensure that no other references to the markers on the
-@var{reuse} list exists; otherwise, Emacs may crash during the next
-garbage collection.
+are reseated to point to nowhere.
 
 As always, there must be no possibility of intervening searches between
 the call to a search function and the call to @code{match-data} that is
@@ -1560,13 +1554,7 @@ If @var{match-list} refers to a buffer that doesn't exist, you don't get
 an error; that sets the match data in a meaningless but harmless way.
 
 If @var{reseat} is non-@code{nil}, all markers on the @var{match-list} list
-are reseated to point to nowhere, and if the value is @code{evaporate},
-the markers are put back on the free list.
-
-@strong{Warning:} When @code{evaporate} is specified for @var{reseat},
-you must ensure that no other references to the markers on the
-@var{match-list} list exists; otherwise, Emacs may crash during the
-next garbage collection.
+are reseated to point to nowhere.
 
 @findex store-match-data
 @code{store-match-data} is a semi-obsolete alias for @code{set-match-data}.

@@ -1,3 +1,136 @@
+2005-06-24  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-tooltip-print-command): Indent properly.
+	(gud-gdb-marker-filter): Use font-lock-warning-face for any
+	initial error.
+	
+	* progmodes/gdb-ui.el (gdb-send): Remove warning face from errors
+	after fresh input.
+	(gdb-var-create-handler): Put name of expression in quotes.
+	
+2005-06-23  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/ring.el (ring-elements): Make it return a list of the
+	elements of RING in order, and without bogus nil elements.
+
+2005-06-23  Richard M. Stallman  <rms@gnu.org>
+
+	* simple.el (set-variable): Args renamed; doc fix.
+	(line-move-1): When there are overlays around, use vertical-motion.
+
+	* faces.el (escape-glyph): Use brown against light background.
+	(nobreak-space): Renamed from no-break-space.
+	Fix previous change.
+
+	* dired-aux.el (dired-do-copy): Fix arg prompt.
+
+	* mail/sendmail.el (mail-setup-with-from): Fix custom type.
+
+2005-06-23  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* mail/emacsbug.el (report-emacs-bug): Use "X server distributor"
+	rather than "Distributor".
+
+2005-06-23  Lute Kamstra  <lute@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-special-form-p): New defun.
+	(debug-on-entry): Use it.  New interactive declaration that uses
+	function-called-at-point.
+
+2005-06-23  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (save-match-data): Add comment about using evaporate arg
+	to set-match-data.
+
+2005-06-22  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* cus-edit.el (customize-face)
+	(customize-face-other-window): Handle face aliases.
+
+	* faces.el (face-documentation, set-face-attribute)
+	(face-spec-set): Handle face aliases.
+
+2005-06-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-mode.el (help-make-xrefs): If a symbol representing a face
+	name is not followed by the word "face", it could still be a
+	function or variable name, so don't bypass other checks.
+
+2005-06-22  Juri Linkov  <juri@jurta.org>
+
+	* ps-print.el (ps-face-foreground-name, ps-face-background-name):
+	Replace aliased functions with calls where second arg `inherit' is t.
+
+2005-06-22  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-error): New variable.
+	(gdb-error): New function.
+	(gdb-annotation-rules): Act on error-begin and error annotations.
+	(gdb-concat-output): Use font-lock-warning-face for errors.
+
+2005-06-22  Miles Bader  <miles@gnu.org>
+
+	* bindings.el (propertized-buffer-identification): Use renamed
+	`Buffer-menu-buffer' face.
+
+	* faces.el (vertical-border): Renamed from `vertical-divider'.
+	(escape-glyph): Change dark-background color back to `cyan'.
+
+2005-06-21  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (face-user-default-spec): Try getting `customized-face'
+	prior to `saved-face'.
+	(frame-background-mode): Refill docstring.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1):
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	Set `saved-face' temporarily to nil before calling form.
+	Set `customized-face' to the new spec after that.
+
+2005-06-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* subr.el (1value, lambda, key-substitution-in-progress):
+	Doc fixes.
+
+	* autoinsert.el (auto-insert-alist):
+	* ses.el (ses-call-printer):
+	* subr.el (noreturn):
+	* emacs-lisp/lisp.el (check-parens):
+	* emacs-lisp/byte-opt.el (byte-optimize-pure-func):
+	* net/browse-url.el (browse-url-mosaic):
+	* progmodes/cc-defs.el (c-safe-scan-lists):
+	* progmodes/ebnf-abn.el (ebnf-abn-lex):
+	* progmodes/ebnf-bnf.el (ebnf-bnf-lex):
+	* progmodes/ebnf-dtd.el (ebnf-dtd-lex):
+	* progmodes/ebnf-ebx.el (ebnf-ebx-lex):
+	* progmodes/ebnf-iso.el (ebnf-iso-lex):
+	* progmodes/ebnf-yac.el (ebnf-yac-lex): Fix spellings.
+
+2005-06-21  Reiner Steib  <Reiner.Steib@gmx.de>
+
+	* pcvs-defs.el (cvs-menu): Add cvs-mode-mark and cvs-mode-unmark.
+
+2005-06-21  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* calendar/appt.el (appt-make-list): Activate the package, if
+	not already active (for backwards compatibility).
+
+2005-06-20  Kim F. Storm  <storm@cua.dk>
+
+	* subr.el (add-to-ordered-list): Test membership with eq.  Simplify.
+
+2005-06-20  Miles Bader  <miles@gnu.org>
+
+	* faces.el (vertical-divider): New face.
+
+2005-06-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (kill-whole-line): Doc fix.
+	(next-error-buffer-p, next-error-find-buffer)
+	(clone-indirect-buffer): Fix typos in docstrings.
+	(comment-line-break-function): Doc fix: don't say variable
+	is automatically buffer-local (it isn't).
+
 2005-06-19  Michael Albinus  <michael.albinus@gmx.de>
 
 	* net/tramp-ftp.el (top):
@@ -10,7 +143,7 @@
 
 2005-06-19  Nick Roberts  <nickrob@snap.net.nz>
 
-	* tooltip.el: (tooltip-use-echo-area): Don't make it obsolete.
+	* tooltip.el (tooltip-use-echo-area): Don't make it obsolete.
 
 2005-06-18  Juri Linkov  <juri@jurta.org>
 
@@ -397,10 +530,9 @@
 
 2005-06-15  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-tooltip-print):
-	Respect tooltip-use-echo-area.
-	(menu): Re-order menu items.
-
+	* progmodes/gdb-ui.el (menu): Re-order menu items.
+	(gdb-tooltip-print): Respect tooltip-use-echo-area.
+	
 	* progmodes/gud.el (tooltip-use-echo-area): Remove alias.
 	Define in tooltip.el.
 	(gud-tooltip-process-output): Respect tooltip-use-echo-area.

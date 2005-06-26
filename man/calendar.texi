@@ -1590,7 +1590,7 @@ workday in the mode line, either customize the
 have stopped working on the project and, by default, Emacs queries this.
 You can, however, set the value of the variable
 @code{timeclock-ask-before-exiting} to @code{nil} (via @kbd{M-x
-customize}) to avoid this behaviour; then, only an explicit @kbd{M-x
+customize}) to avoid this behavior; then, only an explicit @kbd{M-x
 timeclock-out} or @kbd{M-x timeclock-change} will tell Emacs that the
 current interval is over.
 
