@@ -50,7 +50,7 @@ Typical examples might be `upcase' or `capitalize'.")
 
 
 (defvar skeleton-autowrap t
-  "Controls wrapping behaviour of functions created with `define-skeleton'.
+  "Controls wrapping behavior of functions created with `define-skeleton'.
 When the region is visible (due to `transient-mark-mode' or marking a region
 with the mouse) and this is non-nil and the function was called without an
 explicit ARG, then the ARG defaults to -1, i.e. wrapping around the visible

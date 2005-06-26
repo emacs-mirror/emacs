@@ -152,8 +152,8 @@ regardless of where in the line point is when the TAB command is used."
 (defcustom delphi-newline-always-indents t
   "*Non-nil means NEWLINE in Delphi mode should always reindent the current
 line, insert a blank line and move to the default indent column of the blank
-line. If nil, then no indentation occurs, and NEWLINE does the usual
-behaviour. This is useful when one needs to do customized indentation that
+line.  If nil, then no indentation occurs, and NEWLINE does the usual
+behavior.  This is useful when one needs to do customized indentation that
 differs from the default."
   :type 'boolean
   :group 'delphi)

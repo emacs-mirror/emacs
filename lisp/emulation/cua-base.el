@@ -447,13 +447,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -471,13 +471,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -495,13 +495,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)
@@ -520,13 +520,13 @@ a cons (TYPE . COLOR), then both properties are affected."
 	  (choice :tag "Type"
 		  (const :tag "Filled box" box)
 		  (const :tag "Vertical bar" bar)
-		  (const :tag "Horisontal bar" hbar)
+		  (const :tag "Horizontal bar" hbar)
 		  (const :tag "Hollow box" hollow))
 	  (cons :tag "Color and Type"
 		(choice :tag "Type"
 			(const :tag "Filled box" box)
 			(const :tag "Vertical bar" bar)
-			(const :tag "Horisontal bar" hbar)
+			(const :tag "Horizontal bar" hbar)
 			(const :tag "Hollow box" hollow))
 		(color :tag "Color")))
   :group 'cua)

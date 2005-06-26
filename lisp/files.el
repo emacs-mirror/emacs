@@ -2854,7 +2854,7 @@ the value is \"\"."
 
 (defcustom make-backup-file-name-function nil
   "A function to use instead of the default `make-backup-file-name'.
-A value of nil gives the default `make-backup-file-name' behaviour.
+A value of nil gives the default `make-backup-file-name' behavior.
 
 This could be buffer-local to do something special for specific
 files.  If you define it, you may need to change `backup-file-name-p'

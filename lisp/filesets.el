@@ -650,8 +650,8 @@ the filename."
 Has the form ((FILE-PATTERN VIEWER PROPERTIES) ...), VIEWER being either a
 function or a command name as string.
 
-Properties is an association list determining filesets' behaviour in
-several conditions. Choose one from this list:
+Properties is an association list determining filesets' behavior in
+several conditions.  Choose one from this list:
 
 :ignore-on-open-all ... Don't open files of this type automatically --
 i.e. on open-all-files-events or when running commands

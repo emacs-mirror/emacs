@@ -345,7 +345,7 @@
 ;;;###autoload
 (defcustom ido-mode nil
   "Determines for which functional group \(buffer and files) ido behavior
-should be enabled. The following values are possible:
+should be enabled.  The following values are possible:
 - `buffer': Turn only on ido buffer behavior \(switching, killing,
   displaying...)
 - `file': Turn only on ido file behavior \(finding, writing, inserting...)
@@ -414,7 +414,7 @@ This allows the current directory to be opened immediate with `dired'."
   "*List of file extensions specifying preferred order of file selections.
 Each element is either a string with `.' as the first char, an empty
 string matching files without extension, or t which is the default order
-of for files with an unlisted file extension."
+for files with an unlisted file extension."
   :type '(repeat (choice string
 			 (const :tag "Default order" t)))
   :group 'ido)
@@ -453,9 +453,9 @@ Possible values:
 `otherframe'	Show new file in another frame
 `maybe-frame'	If a file is visible in another frame, prompt to ask if you
 		you want to see the file in the same window of the current
-  		frame or in the other frame.
+  		frame or in the other frame
 `always-frame'  If a file is visible in another frame, raise that
-		frame.  Otherwise, visit the file in the same window."
+		frame; otherwise, visit the file in the same window"
     :type '(choice (const samewindow)
 		   (const otherwindow)
 		   (const display)
@@ -466,7 +466,7 @@ Possible values:
 
 (defcustom ido-default-buffer-method  'always-frame
     "*How to switch to new buffer when using `ido-switch-buffer'.
-See ido-default-file-method for details."
+See `ido-default-file-method' for details."
     :type '(choice (const samewindow)
 		   (const otherwindow)
 		   (const display)
@@ -530,7 +530,7 @@ Note that the non-ido equivalent command is recorded."
 (defcustom ido-max-prospects 12
   "*Non-zero means that the prospect list will be limited to than number of items.
 For a long list of prospects, building the full list for the minibuffer can take a
-non-negletable amount of time; setting this variable reduces that time."
+non-negligible amount of time; setting this variable reduces that time."
   :type 'integer
   :group 'ido)
 
@@ -615,7 +615,7 @@ If zero, ftp directories are not cached."
 (defcustom ido-slow-ftp-hosts nil
   "*List of slow ftp hosts where ido prompting should not be used.
 If an ftp host is on this list, ido automatically switches to the non-ido
-equivalent function, e.g. find-file rather than ido-find-file."
+equivalent function, e.g. `find-file' rather than `ido-find-file'."
   :type '(repeat string)
   :group 'ido)
 
@@ -706,7 +706,7 @@ ask user whether to create buffer, or 'never to never create new buffer."
   :group 'ido)
 
 (defcustom ido-setup-hook  nil
-  "*Hook run after the ido variables and keymap has been setup.
+  "*Hook run after the ido variables and keymap have been setup.
 The dynamic variable `ido-cur-item' contains the current type of item that
 is read by ido, possible values are file, dir, buffer, and list.
 Additional keys can be defined in `ido-mode-map'."
@@ -727,9 +727,9 @@ There are 10 elements in this list:
 4th element is the string inserted at the end of a truncated list of prospects,
 5th and 6th elements are used as brackets around the common match string which
 can be completed using TAB,
-7th element is the string displayed when there are a no matches, and
-8th element is displayed if there is a single match (and faces are not used).
-9th element is displayed when the current directory is non-readable.
+7th element is the string displayed when there are no matches, and
+8th element is displayed if there is a single match (and faces are not used),
+9th element is displayed when the current directory is non-readable,
 10th element is displayed when directory exceeds `ido-max-directory-size'."
   :type '(repeat string)
   :group 'ido)
@@ -864,14 +864,14 @@ Must be set before enabling ido mode."
 (defcustom ido-read-file-name-as-directory-commands '()
   "List of commands which uses read-file-name to read a directory name.
 When `ido-everywhere' is non-nil, the commands in this list will read
-the directory using ido-read-directory-name."
+the directory using `ido-read-directory-name'."
   :type '(repeat symbol)
   :group 'ido)
 
 (defcustom ido-read-file-name-non-ido '()
   "List of commands which shall not read file names the ido way.
 When `ido-everywhere' is non-nil, the commands in this list will read
-the file name using normal read-file-name style."
+the file name using normal `read-file-name' style."
   :type '(repeat symbol)
   :group 'ido)
 
@@ -895,7 +895,7 @@ See `ido-enable-last-directory-history' for details.")
 (defvar ido-work-directory-list nil
   "List of actual working directory names.
 The current directory is inserted at the front of this list whenever a
-file is opened with ido-find-file and family.")
+file is opened with `ido-find-file' and family.")
 
 (defvar ido-work-file-list nil
   "List of actual work file names.
@@ -909,7 +909,7 @@ Each element in the list is of the form (DIR (MTIME) FILE...).")
 
 (defvar ido-ignore-item-temp-list nil
   "List of items to ignore in current ido invocation.
-Intended to be let-bound by functions which calls ido repeatedly.
+Intended to be let-bound by functions which call ido repeatedly.
 Should never be set permanently.")
 
 ;; Temporary storage
@@ -949,7 +949,7 @@ If equal to `takeprompt', we use the prompt as the file name to be
 selected.")
 
 (defvar ido-current-directory nil
-  "Current directory for ido-find-file.")
+  "Current directory for `ido-find-file'.")
 
 (defvar ido-auto-merge-timer nil
   "Delay timer for auto merge.")
@@ -2271,7 +2271,7 @@ If no merge has yet taken place, toggle automatic merging option."
 
 (defun ido-magic-forward-char ()
   "Move forward in user input or perform magic action.
-If no user input is present or at end of input, perform magic actions:
+If no user input is present, or at end of input, perform magic actions:
 C-x C-b ... C-f  switch to ido-find-file.
 C-x C-f ... C-f  fallback to non-ido find-file.
 C-x C-d ... C-f  fallback to non-ido brief dired.
@@ -2414,13 +2414,13 @@ If no buffer or file exactly matching the prompt exists, maybe create a new one.
   (exit-minibuffer))
 
 (defun ido-enter-find-file ()
-  "Drop into find-file from buffer switching."
+  "Drop into `find-file' from buffer switching."
   (interactive)
   (setq ido-exit 'find-file)
   (exit-minibuffer))
 
 (defun ido-enter-switch-buffer ()
-  "Drop into ido-switch-buffer from file switching."
+  "Drop into `ido-switch-buffer' from file switching."
   (interactive)
   (setq ido-exit 'switch-to-buffer)
   (exit-minibuffer))
@@ -3016,7 +3016,7 @@ for first matching file."
 (defun ido-make-buffer-list (default)
   ;; Return the current list of buffers.
   ;; Currently visible buffers are put at the end of the list.
-  ;; The hook `ido-make-buflist-hook' is run after the list has been
+  ;; The hook `ido-make-buffer-list-hook' is run after the list has been
   ;; created to allow the user to further modify the order of the buffer names
   ;; in this list.  If DEFAULT is non-nil, and corresponds to an existing buffer,
   ;; it is put to the start of the list.
@@ -3496,7 +3496,7 @@ for first matching file."
 ;;; VISIT CHOSEN BUFFER
 (defun ido-visit-buffer (buffer method &optional record)
   "Visit file named FILE according to METHOD.
-Record command in command-history if optional RECORD is non-nil."
+Record command in `command-history' if optional RECORD is non-nil."
 
   (let (win newframe)
     (cond
@@ -3569,9 +3569,9 @@ in another frame.
 
 As you type in a string, all of the buffers matching the string are
 displayed if substring-matching is used \(default). Look at
-`ido-enable-prefix' and `ido-toggle-prefix'. When you have found the
-buffer you want, it can then be selected. As you type, most keys have their
-normal keybindings, except for the following: \\<ido-mode-map>
+`ido-enable-prefix' and `ido-toggle-prefix'.  When you have found the
+buffer you want, it can then be selected.  As you type, most keys have
+their normal keybindings, except for the following: \\<ido-mode-map>
 
 RET Select the buffer at the front of the list of matches.  If the
 list is empty, possibly prompt to create new buffer.
@@ -3654,11 +3654,11 @@ The file is displayed according to `ido-default-file-method' -- the
 default is to show it in the same window, unless it is already
 visible in another frame.
 
-The file name is selected interactively by typing a substring. As you type
-in a string, all of the filenames matching the string are displayed if
-substring-matching is used \(default). Look at `ido-enable-prefix' and
-`ido-toggle-prefix'. When you have found the filename you want, it can
-then be selected. As you type, most keys have their normal keybindings,
+The file name is selected interactively by typing a substring.  As you
+type in a string, all of the filenames matching the string are displayed
+if substring-matching is used \(default).  Look at `ido-enable-prefix' and
+`ido-toggle-prefix'.  When you have found the filename you want, it can
+then be selected.  As you type, most keys have their normal keybindings,
 except for the following: \\<ido-mode-map>
 
 RET Select the file at the front of the list of matches.  If the
@@ -4171,7 +4171,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 Return the name of a buffer selected.
 PROMPT is the prompt to give to the user.  DEFAULT if given is the default
 buffer to be selected, which will go to the front of the list.
-If REQUIRE-MATCH is non-nil, an existing-buffer must be selected."
+If REQUIRE-MATCH is non-nil, an existing buffer must be selected."
   (let* ((ido-current-directory nil)
 	 (ido-directory-nonreadable nil)
 	 (ido-directory-too-big nil)

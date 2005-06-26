@@ -1,3 +1,9 @@
+2005-06-10  Lute Kamstra  <lute@gnu.org>
+
+	* emacs.texi (Top): Correct version number.
+	* anti.texi (Antinews): Correct version number.  Use EMACSVER to
+	refer to the current version of Emacs.
+
 2005-06-08  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* files.texi (Log Buffer): Document when there can be more than

@@ -73,7 +73,7 @@
 
 (defvar url-cookie-storage nil         "Where cookies are stored.")
 (defvar url-cookie-secure-storage nil  "Where secure cookies are stored.")
-(defcustom url-cookie-file nil            "*Where cookies are stored on disk."
+(defcustom url-cookie-file nil         "*Where cookies are stored on disk."
   :type '(choice (const :tag "Default" :value nil) file)
   :group 'url-file
   :group 'url-cookie)
@@ -86,7 +86,7 @@
 (defcustom url-cookie-multiple-line nil
   "*If nil, HTTP requests put all cookies for the server on one line.
 Some web servers, such as http://www.hotmail.com/, only accept cookies
-when they are on one line.  This is broken behaviour, but just try
+when they are on one line.  This is broken behavior, but just try
 telling Microsoft that."
   :type 'boolean
   :group 'url-cookie)

@@ -6824,7 +6824,7 @@ The value takes effect when `start-process' is called.  */);
 	       doc: /* If non-nil, improve receive buffering by delaying after short reads.
 On some systems, when Emacs reads the output from a subprocess, the output data
 is read in very small blocks, potentially resulting in very poor performance.
-This behaviour can be remedied to some extent by setting this variable to a
+This behavior can be remedied to some extent by setting this variable to a
 non-nil value, as it will automatically delay reading from such processes, to
 allowing them to produce more output before Emacs tries to read it.
 If the value is t, the delay is reset after each write to the process; any other

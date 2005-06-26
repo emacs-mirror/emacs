@@ -153,11 +153,6 @@ major mode changes."
 
 ;; Showing the effect of hard newlines in the buffer
 
-(defface longlines-visible-face
-  '((t (:background "red")))
-  "Face used to make hard newlines visible in `longlines-mode'."
-  :group 'longlines)
-
 (defun longlines-show-hard-newlines (&optional arg)
   "Make hard newlines visible by adding a face.
 With optional argument ARG, make the hard newlines invisible again."

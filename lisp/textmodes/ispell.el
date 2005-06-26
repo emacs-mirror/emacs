@@ -942,7 +942,7 @@ The variable `ispell-library-directory' defines the library location."
 	'(menu-item "Automatic spell checking (Flyspell)"
 		    flyspell-mode
 		    :help "Check spelling while you edit the text"
-		    :button (:toggle . flyspell-mode)))
+		    :button (:toggle . (bound-and-true-p flyspell-mode))))
       (define-key ispell-menu-map [ispell-complete-word]
 	'(menu-item "Complete Word" ispell-complete-word
 		    :help "Complete word at cursor using dictionary"))

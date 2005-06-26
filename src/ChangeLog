@@ -1,3 +1,54 @@
+2005-06-11  Jason Rumney  <jasonr@gnu.org>
+
+	* w32fns.c (Fx_file_dialog): Unblock input before falling back to
+	minibuffer.
+	* macfns.c (Fx_file_dialog): Likewise.
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in ($(TEMACS)): Depend on addsection.exe.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* process.c (syms_of_process) [ADAPTIVE_READ_BUFFERING]:
+	* w32fns.c (syms_of_w32fns): Fix spellings.
+
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* unexw32.c (COPY_CHUNK, COPY_PROC_CHUNK): Add a new argument
+	`verbose'; print diagnostic messages only if it is non-zero.  All
+	callers changed to pass a zero value unless DEBUG_DUMP is defined
+	in the environment.
+	(copy_executable_and_dump_data): Print section names with %.8s.
+
+2005-06-10  Masatake YAMATO  <jet@gyve.org>
+
+	* xdisp.c (note_mode_line_or_margin_highlight): Call clear_mouse_face
+	when mouse_face is not given.
+	Remove unnecessary tabs.
+
+2005-06-09  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* window.c (Fselect_window): Adapt call to Fselect_frame.
+
+	* lisp.h: Update EXFUN of Fselect_frame.
+
+	* keyboard.c (command_loop_1): Adapt call to Fselect_frame.
+
+	* frame.c (Fhandle_switch_frame, Fselect_frame): Delete unused arg
+	no_enter.
+	(Fset_mouse_position, Fset_mouse_pixel_position, Ficonify_frame):
+	Adapt to above change.
+
+2005-06-10  Juanma Barranquero  <lekktu@gmail.com>
+
+	* fns.c (Fmemq, Fmaphash): Doc fixes.
+
+2005-06-09  Juanma Barranquero  <lekktu@gmail.com>
+
+	* xfaces.c (Fdisplay_supports_face_attributes_p):
+	Fix typo in docstring.
+
 2005-06-08  Steven Tamm  <steventamm@mac.com>
 
 	* unexmacosx.c (copy_data_segment): Copy __la_sym_ptr2 section
@@ -63,7 +114,7 @@
 	* macterm.c: Make mac_quit_char_modifiers and mac_quit_char_keycode
 	non-static.
 
-	* config.in: Added HAVE_CANCELMENUTRACKING
+	* config.in: Add HAVE_CANCELMENUTRACKING.
 
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
@@ -12994,9 +13045,9 @@
 	* sound.c: Added a partial implementation of play-sound-internal
 	for Microsoft Windows.  Added various #ifdef / #else / #endif
 	code blocks to separate the code that will compile under
-	Microsoft Windows from the code that is specific to Gnu/Linux.
+	Microsoft Windows from the code that is specific to GNU/Linux.
 	Moved several blocks of code around to make this separation of code
-	into Windows compatible and Gnu/Linux compatible code blocks easier.
+	into Windows compatible and GNU/Linux compatible code blocks easier.
 
 	* makefile.w32-in: Include sound.c and link with WinMM.lib.
 

@@ -1,6 +1,6 @@
 ;;; cvs-status.el --- major mode for browsing `cvs status' output -*- coding: utf-8 -*-
 
-;; Copyright (C) 1999, 2000, 2003, 2004  Free Software Foundation, Inc.
+;; Copyright (C) 1999, 2000, 2003, 2004, 2005  Free Software Foundation, Inc.
 
 ;; Author: Stefan Monnier <monnier@cs.yale.edu>
 ;; Keywords: pcl-cvs cvs status tree tools
@@ -73,8 +73,8 @@
 
 (defconst cvs-status-font-lock-keywords
   `((,cvs-status-entry-leader-re
-     (1 'cvs-filename-face)
-     (2 'cvs-need-action-face))
+     (1 'cvs-filename)
+     (2 'cvs-need-action))
     (,cvs-status-tags-leader-re
      (,cvs-status-rev-re
       (save-excursion (re-search-forward "^\n" nil 'move) (point))

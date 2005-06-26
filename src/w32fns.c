@@ -7808,6 +7808,7 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
   {
     OPENFILENAME file_details;
+    BOOL file_opened = FALSE;
 
     /* Prevent redisplay.  */
     specbind (Qinhibit_redisplay, Qt);
@@ -7836,7 +7837,11 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 
     file_details.lpfnHook = (LPOFNHOOKPROC) file_dialog_callback;
 
-    if (GetOpenFileName (&file_details))
+    file_opened = GetOpenFileName (&file_details);
+
+    UNBLOCK_INPUT;
+
+    if (file_opened)
       {
 	dostounix_filename (filename);
 	if (file_details.nFilterIndex == 2)
@@ -7857,7 +7862,6 @@ If ONLY-DIR-P is non-nil, the user can only select directories.  */)
 			       dir, mustmatch, dir, Qfile_name_history,
 			       default_filename, Qnil);
 
-    UNBLOCK_INPUT;
     file = unbind_to (count, file);
   }
 
@@ -8698,7 +8702,7 @@ fontsets are automatically created.  */);
   DEFVAR_BOOL ("w32-strict-painting",
                &w32_strict_painting,
 	       doc: /* Non-nil means use strict rules for repainting frames.
-Set this to nil to get the old behaviour for repainting; this should
+Set this to nil to get the old behavior for repainting; this should
 only be necessary if the default setting causes problems.  */);
   w32_strict_painting = 1;
 

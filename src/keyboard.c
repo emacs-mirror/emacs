@@ -1509,7 +1509,7 @@ command_loop_1 ()
 	 Is this a good idea?  */
       if (FRAMEP (internal_last_event_frame)
 	  && !EQ (internal_last_event_frame, selected_frame))
-	Fselect_frame (internal_last_event_frame, Qnil);
+	Fselect_frame (internal_last_event_frame);
 #endif
       /* If it has changed current-menubar from previous value,
 	 really recompute the menubar from the value.  */

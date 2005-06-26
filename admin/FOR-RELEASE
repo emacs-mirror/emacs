@@ -82,6 +82,8 @@ is encountered.
 
 ** Finish updating the Emacs Lisp manual.
 
+*** Update lispref/README.
+
 ** Update the Emacs manual.
 
 *** Update man/info.texi.

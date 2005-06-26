@@ -21523,7 +21523,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  int ignore;
 
 	  int vpos, hpos;
-	  
+
 	  b = Fprevious_single_property_change (make_number (charpos + 1),
 						Qmouse_face, string, Qnil);
 	  if (NILP (b))
@@ -21571,7 +21571,7 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  hpos = (area == ON_MODE_LINE
 		  ? (w->current_matrix)->nrows - 1
 		  : 0);
-	  
+
 	  /* If the re-rendering position is included in the last
 	     re-rendering area, we should do nothing. */
 	  if ( window == dpyinfo->mouse_face_window
@@ -21579,10 +21579,10 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	       && vpos < dpyinfo->mouse_face_end_col
 	       && dpyinfo->mouse_face_beg_row == hpos )
 	    return;
-	  
+
 	  if (clear_mouse_face (dpyinfo))
 	    cursor = No_Cursor;
-	  
+
 	  dpyinfo->mouse_face_beg_col = vpos;
 	  dpyinfo->mouse_face_beg_row = hpos;
 
@@ -21607,8 +21607,9 @@ note_mode_line_or_margin_highlight (window, x, y, area)
 	  if (NILP (pointer))
 	    pointer = Qhand;
 	}
+      else if ((area == ON_MODE_LINE) || (area == ON_HEADER_LINE))
+	clear_mouse_face (dpyinfo);
     }
-
   define_frame_cursor1 (f, cursor, pointer);
 }
 

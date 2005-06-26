@@ -22,10 +22,10 @@ For each step, check for possible errors.
 5.   rm configure; make bootstrap
 
 6.  Commit configure, README, AUTHORS, lisp/cus-load.el,
-    lisp/finder-inf.el, lisp/version.el, man/emacs.texi.
-    Copy lisp/loaddefs.el to lisp/ldefs-boot.el and commit
-    lisp/ldefs-boot.el.  For a release, also commit the ChangeLog
-    files in all directories.
+    lisp/finder-inf.el, lisp/version.el, man/emacs.texi,
+    lispref/elisp.texi.  Copy lisp/loaddefs.el to lisp/ldefs-boot.el
+    and commit lisp/ldefs-boot.el.  For a release, also commit the
+    ChangeLog files in all directories.
 
 7.   make-dist --snapshot.  Check the contents of the new tar with
      admin/diff-tar-files against an older tar file.  Some old pretest

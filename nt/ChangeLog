@@ -1,3 +1,11 @@
+2005-06-10  Eli Zaretskii  <eliz@gnu.org>
+
+	* addsection.c (copy_executable_and_add_section): Pass non-zero
+	`verbose' arg to COPY_CHUNK only if DEBUG_DUMP is defined in the
+	environment.  Print section names with %.8s.
+	(COPY_CHUNK): New 4th arg `verbose'; print diagnostic messages
+	only if non-zero.  All callers changed.
+
 2005-06-05  Eli Zaretskii  <eliz@gnu.org>
 
 	* inc/sys/socket.h: Change arg 4 of sys_setsockopt to

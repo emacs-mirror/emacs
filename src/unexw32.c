@@ -1,5 +1,5 @@
 /* unexec for GNU Emacs on Windows NT.
-   Copyright (C) 1994 Free Software Foundation, Inc.
+   Copyright (C) 1994, 2005 Free Software Foundation, Inc.
 
 This file is part of GNU Emacs.
 
@@ -491,27 +491,34 @@ copy_executable_and_dump_data (file_data *p_infile,
   PIMAGE_SECTION_HEADER dst_section;
   DWORD offset;
   int i;
+  int be_verbose = GetEnvironmentVariable ("DEBUG_DUMP", NULL, 0) > 0;
 
-#define COPY_CHUNK(message, src, size)						\
+#define COPY_CHUNK(message, src, size, verbose)					\
   do {										\
     unsigned char *s = (void *)(src);						\
     unsigned long count = (size);						\
-    printf ("%s\n", (message));							\
-    printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base);	\
-    printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base);	\
-    printf ("\t0x%08x Size in bytes.\n", count);				\
+    if (verbose)								\
+      {										\
+	printf ("%s\n", (message));						\
+	printf ("\t0x%08x Offset in input file.\n", s - p_infile->file_base); 	\
+	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%08x Size in bytes.\n", count);				\
+      }										\
     memcpy (dst, s, count);							\
     dst += count;								\
   } while (0)
 
-#define COPY_PROC_CHUNK(message, src, size)					\
+#define COPY_PROC_CHUNK(message, src, size, verbose)				\
   do {										\
     unsigned char *s = (void *)(src);						\
     unsigned long count = (size);						\
-    printf ("%s\n", (message));							\
-    printf ("\t0x%08x Address in process.\n", s);				\
-    printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base);	\
-    printf ("\t0x%08x Size in bytes.\n", count);				\
+    if (verbose)								\
+      {										\
+	printf ("%s\n", (message));						\
+	printf ("\t0x%08x Address in process.\n", s);				\
+	printf ("\t0x%08x Offset in output file.\n", dst - p_outfile->file_base); \
+	printf ("\t0x%08x Size in bytes.\n", count);				\
+      }										\
     memcpy (dst, s, count);							\
     dst += count;								\
   } while (0)
@@ -542,13 +549,14 @@ copy_executable_and_dump_data (file_data *p_infile,
   dst = (unsigned char *) p_outfile->file_base;
 
   COPY_CHUNK ("Copying DOS header...", dos_header,
-	      (DWORD) nt_header - (DWORD) dos_header);
+	      (DWORD) nt_header - (DWORD) dos_header, be_verbose);
   dst_nt_header = (PIMAGE_NT_HEADERS) dst;
   COPY_CHUNK ("Copying NT header...", nt_header,
-	      (DWORD) section - (DWORD) nt_header);
+	      (DWORD) section - (DWORD) nt_header, be_verbose);
   dst_section = (PIMAGE_SECTION_HEADER) dst;
   COPY_CHUNK ("Copying section table...", section,
-	      nt_header->FileHeader.NumberOfSections * sizeof (*section));
+	      nt_header->FileHeader.NumberOfSections * sizeof (*section),
+	      be_verbose);
 
   /* Align the first section's raw data area, and set the header size
      field accordingly.  */
@@ -558,7 +566,9 @@ copy_executable_and_dump_data (file_data *p_infile,
   for (i = 0; i < nt_header->FileHeader.NumberOfSections; i++)
     {
       char msg[100];
-      sprintf (msg, "Copying raw data for %s...", section->Name);
+      /* Windows section names are fixed 8-char strings, only
+	 zero-terminated if the name is shorter than 8 characters.  */
+      sprintf (msg, "Copying raw data for %.8s...", section->Name);
 
       dst_save = dst;
 
@@ -571,7 +581,7 @@ copy_executable_and_dump_data (file_data *p_infile,
       /* Can always copy the original raw data.  */
       COPY_CHUNK
 	(msg, OFFSET_TO_PTR (section->PointerToRawData, p_infile),
-	 section->SizeOfRawData);
+	 section->SizeOfRawData, be_verbose);
       /* Ensure alignment slop is zeroed.  */
       ROUND_UP_DST_AND_ZERO (dst_nt_header->OptionalHeader.FileAlignment);
 
@@ -580,7 +590,8 @@ copy_executable_and_dump_data (file_data *p_infile,
 	{
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (data_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping initialized data...", data_start, data_size);
+	  COPY_PROC_CHUNK ("Dumping initialized data...",
+			   data_start, data_size, be_verbose);
 	  dst = dst_save + dst_section->SizeOfRawData;
 	}
       if (section == bss_section)
@@ -589,7 +600,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              data size as necessary.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (bss_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping bss data...", bss_start, bss_size);
+	  COPY_PROC_CHUNK ("Dumping bss data...", bss_start,
+			   bss_size, be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -604,7 +616,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              section's raw data size as necessary.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (bss_start_static), dst_section);
-	  COPY_PROC_CHUNK ("Dumping static bss data...", bss_start_static, bss_size_static);
+	  COPY_PROC_CHUNK ("Dumping static bss data...", bss_start_static,
+			   bss_size_static, be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -622,7 +635,8 @@ copy_executable_and_dump_data (file_data *p_infile,
              section's size to the appropriate size.  */
 	  dst = dst_save
 	    + RVA_TO_SECTION_OFFSET (PTR_TO_RVA (heap_start), dst_section);
-	  COPY_PROC_CHUNK ("Dumping heap...", heap_start, heap_size);
+	  COPY_PROC_CHUNK ("Dumping heap...", heap_start, heap_size,
+			   be_verbose);
 	  ROUND_UP_DST (dst_nt_header->OptionalHeader.FileAlignment);
 	  dst_section->PointerToRawData = PTR_TO_OFFSET (dst_save, p_outfile);
 	  /* Determine new size of raw data area.  */
@@ -657,7 +671,7 @@ copy_executable_and_dump_data (file_data *p_infile,
   COPY_CHUNK
     ("Copying remainder of executable...",
      OFFSET_TO_PTR (offset, p_infile),
-     p_infile->size - offset);
+     p_infile->size - offset, be_verbose);
 
   /* Final size for new image.  */
   p_outfile->size = DST_TO_OFFSET ();

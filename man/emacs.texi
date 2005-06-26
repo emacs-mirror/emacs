@@ -121,7 +121,7 @@ and Sending Mail and Registers and Minibuffer.
 * GNU Free Documentation License:: The license for this documentation.
 * Intro::	        An introduction to Emacs concepts.
 * Glossary::	        The glossary.
-* Antinews::	        Information about Emacs version 20.
+* Antinews::	        Information about Emacs version 21.
 * Mac OS::              Using Emacs in the Mac.
 * MS-DOS::              Using Emacs on MS-DOS (otherwise known as "MS-DOG").
 * Manifesto::	        What's GNU?  Gnu's Not Unix!
