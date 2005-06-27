@@ -1,3 +1,8 @@
+2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Setting Variables): Correct and clarify
+	description of `add-to-ordered-list'.
+
 2005-06-26  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Faces): Minor cleanup.

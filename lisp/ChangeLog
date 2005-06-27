@@ -1,6 +1,6 @@
 2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* subr.el (add-to-ordered-list): Doc fix.
+	* subr.el (add-to-list, add-to-ordered-list): Doc fixes.
 
 2005-06-27  Lute Kamstra  <lute@gnu.org>
 
