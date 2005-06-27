@@ -1,3 +1,14 @@
+2005-06-27  Lute Kamstra  <lute@gnu.org>
+
+	* facemenu.el (facemenu-unlisted-faces): Add foreground and
+	background color faces.
+	(facemenu-get-face): Delete function.
+	(facemenu-set-face-from-menu): Don't call facemenu-get-face.
+	(facemenu-add-new-color): Make second argument mandatory.  Create
+	the approprate face and return it.  Simplify.
+	(facemenu-set-foreground, facemenu-set-background): Don't check if
+	color is defined.  Use return value of facemenu-add-new-color.
+
 2005-06-26  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/gud.el (gud-filter): Add missing argument to
