@@ -70,11 +70,6 @@ struct tty_display_info
   /* The previous terminal frame we displayed on this tty.  */
   struct frame *previous_terminal_frame;
 
-#ifdef MULTI_KBOARD
-  /* The terminal's keyboard object. */
-  struct kboard *kboard;
-#endif  
-
   /* Strings, numbers and flags taken from the termcap entry.  */
 
   char *TS_ins_line;		/* "al" */

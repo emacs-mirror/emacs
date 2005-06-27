@@ -10277,30 +10277,30 @@ x_term_init (display_name, xrm_option, resource_name)
 			 SDATA (display_name)))
 	break;
     if (share)
-      dpyinfo->kboard = share->kboard;
+      display->kboard = share->frame_display->kboard;
     else
       {
-	dpyinfo->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-	init_kboard (dpyinfo->kboard);
+	display->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	init_kboard (display->kboard);
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 	    UNBLOCK_INPUT;
-	    dpyinfo->kboard->Vsystem_key_alist
+	    display->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       build_string (vendor ? vendor : ""));
 	    BLOCK_INPUT;
 	  }
 
-	dpyinfo->kboard->next_kboard = all_kboards;
-	all_kboards = dpyinfo->kboard;
+	display->kboard->next_kboard = all_kboards;
+	all_kboards = display->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
 	   That would cause problems if a file loaded on startup tries to
 	   prompt in the mini-buffer.  */
 	if (current_kboard == initial_kboard)
-	  current_kboard = dpyinfo->kboard;
+	  current_kboard = display->kboard;
       }
-    dpyinfo->kboard->reference_count++;
+    display->kboard->reference_count++;
   }
 #endif
 
@@ -10677,10 +10677,6 @@ x_delete_display (dpyinfo)
   XrmDestroyDatabase (dpyinfo->xrdb);
 #endif
 #endif
-#ifdef MULTI_KBOARD
-  if (--dpyinfo->kboard->reference_count == 0)
-    delete_kboard (dpyinfo->kboard);
-#endif
 #ifdef HAVE_X_I18N
   if (dpyinfo->xim)
     xim_close_dpy (dpyinfo);
@@ -10811,6 +10807,8 @@ x_create_frame_display (struct x_display_info *dpyinfo)
   display->type = output_x_window;
   display->display_info.x = dpyinfo;
   dpyinfo->frame_display = display;
+
+  /* kboard is initialized in x_term_init. */
   
   display->clear_frame_hook = x_clear_frame;
   display->ins_del_lines_hook = x_ins_del_lines;

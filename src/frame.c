@@ -303,9 +303,6 @@ make_frame (mini_p)
   f->menu_bar_items_used = 0;
   f->buffer_predicate = Qnil;
   f->buffer_list = Qnil;
-#ifdef MULTI_KBOARD
-  f->kboard = initial_kboard;
-#endif
   f->namebuf = 0;
   f->title = Qnil;
   f->menu_bar_window = Qnil;
@@ -425,7 +422,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
 
 #ifdef MULTI_KBOARD
   if (!NILP (mini_window)
-      && XFRAME (XWINDOW (mini_window)->frame)->kboard != kb)
+      && XFRAME (XWINDOW (mini_window)->frame)->display->kboard != kb)
     error ("Frame and minibuffer must be on the same display");
 #endif
 
@@ -552,10 +549,6 @@ make_initial_frame (void)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
 
-#ifdef MULTI_KBOARD
-  f->kboard = initial_kboard;
-#endif
-
   return f;
 }
 
@@ -621,10 +614,6 @@ make_terminal_frame (struct display *display)
     
     FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
     FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none;
-
-#ifdef MULTI_KBOARD
-    f->kboard = FRAME_TTY (f)->kboard;
-#endif
 
     /* Set the top frame to the newly created frame. */
     if (FRAME_TTY (f)->top_frame
@@ -1358,6 +1347,8 @@ The functions are run with one arg, the frame to be deleted.  */)
 {
   struct frame *f;
   struct frame *sf = SELECTED_FRAME ();
+  struct kboard *kb;
+
   int minibuffer_selected;
 
   if (EQ (frame, Qnil))
@@ -1513,23 +1504,25 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   if (FRAME_DISPLAY (f)->delete_frame_hook)
     (*FRAME_DISPLAY (f)->delete_frame_hook) (f);
-  
+
   {
     struct display *display = FRAME_DISPLAY (f);
-
     f->output_data.nothing = 0; 
     f->display = 0;             /* Now the frame is dead. */
 
     /* If needed, delete the device that this frame was on.
-       (This must be done after the frame is killed.) */  
+       (This must be done after the frame is killed.) */
     display->reference_count--;
     if (display->reference_count == 0)
-    {
-      if (display->delete_display_hook)
-        (*display->delete_display_hook) (display);
-      else
-        delete_display (display);
-    }
+      {
+        kb = NULL;
+        if (display->delete_display_hook)
+          (*display->delete_display_hook) (display);
+        else
+          delete_display (display);
+      }
+    else
+      kb = display->kboard;
   }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
@@ -1555,38 +1548,39 @@ The functions are run with one arg, the frame to be deleted.  */)
 
   /* If there's no other frame on the same kboard, get out of
      single-kboard state if we're in it for this kboard.  */
-  {
-    Lisp_Object frames;
-    /* Some frame we found on the same kboard, or nil if there are none.  */
-    Lisp_Object frame_on_same_kboard;
+  if (kb != NULL)
+    {
+      Lisp_Object frames;
+      /* Some frame we found on the same kboard, or nil if there are none.  */
+      Lisp_Object frame_on_same_kboard;
 
-    frame_on_same_kboard = Qnil;
+      frame_on_same_kboard = Qnil;
 
-    for (frames = Vframe_list;
-	 CONSP (frames);
-	 frames = XCDR (frames))
-      {
-	Lisp_Object this;
-	struct frame *f1;
+      for (frames = Vframe_list;
+	   CONSP (frames);
+	   frames = XCDR (frames))
+	{
+	  Lisp_Object this;
+	  struct frame *f1;
 
-	this = XCAR (frames);
-	if (!FRAMEP (this))
-	  abort ();
-	f1 = XFRAME (this);
+	  this = XCAR (frames);
+	  if (!FRAMEP (this))
+	    abort ();
+	  f1 = XFRAME (this);
 
-	if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
-	  frame_on_same_kboard = this;
-      }
+	  if (kb == FRAME_KBOARD (f1))
+	    frame_on_same_kboard = this;
+	}
 
-    if (NILP (frame_on_same_kboard))
-      not_single_kboard_state (FRAME_KBOARD (f));
-  }
+      if (NILP (frame_on_same_kboard))
+	not_single_kboard_state (kb);
+    }
 
 
   /* If we've deleted this keyboard's default_minibuffer_frame, try to
      find another one.  Prefer minibuffer-only frames, but also notice
      frames with other windows.  */
-  if (EQ (frame, FRAME_KBOARD (f)->Vdefault_minibuffer_frame))
+  if (kb != NULL && EQ (frame, kb->Vdefault_minibuffer_frame))
     {
       Lisp_Object frames;
 
@@ -1612,7 +1606,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 
 	  /* Consider only frames on the same kboard
 	     and only those with minibuffers.  */
-	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1)
+	  if (kb == FRAME_KBOARD (f1)
 	      && FRAME_HAS_MINIBUF_P (f1))
 	    {
 	      frame_with_minibuf = this;
@@ -1620,7 +1614,7 @@ The functions are run with one arg, the frame to be deleted.  */)
 		break;
 	    }
 
-	  if (FRAME_KBOARD (f) == FRAME_KBOARD (f1))
+	  if (kb == FRAME_KBOARD (f1))
 	    frame_on_same_kboard = this;
 	}
 
@@ -1635,11 +1629,11 @@ The functions are run with one arg, the frame to be deleted.  */)
 	  if (NILP (frame_with_minibuf))
 	    abort ();
 
-	  FRAME_KBOARD (f)->Vdefault_minibuffer_frame = frame_with_minibuf;
+	  kb->Vdefault_minibuffer_frame = frame_with_minibuf;
 	}
       else
 	/* No frames left on this kboard--say no minibuffer either.  */
-	FRAME_KBOARD (f)->Vdefault_minibuffer_frame = Qnil;
+	kb->Vdefault_minibuffer_frame = Qnil;
     }
 
   /* Cause frame titles to update--necessary if we now have just one frame.  */

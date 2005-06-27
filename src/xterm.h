@@ -327,9 +327,6 @@ struct x_display_info
   /* Atom used in toolkit scroll bar client messages.  */
   Atom Xatom_Scrollbar;
 
-#ifdef MULTI_KBOARD
-  struct kboard *kboard;
-#endif
   int cut_buffers_initialized; /* Whether we're sure they all exist */
 
   /* The frame (if any) which has the X window that has keyboard focus.

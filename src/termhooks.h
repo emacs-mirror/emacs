@@ -295,6 +295,11 @@ struct display
   /* The name of the display device.  Do not use this to identify the display. */
   char *name;
 
+#ifdef MULTI_KBOARD
+  /* The device's keyboard object. */
+  struct kboard *kboard;
+#endif
+
   /* Display-type dependent data shared amongst all frames on this display. */
   union display_info
   {

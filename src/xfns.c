@@ -3014,7 +3014,7 @@ This function is an internal primitive--use `make-frame' instead.  */)
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
+  kb = dpyinfo->frame_display->kboard;
 #else
   kb = &the_only_kboard;
 #endif
@@ -3086,9 +3086,6 @@ This function is an internal primitive--use `make-frame' instead.  */)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
-  FRAME_KBOARD (f) = kb;
-#endif
 
   /* These colors will be set anyway later, but it's important
      to get the color reference counts right, so initialize them!  */
@@ -4598,19 +4595,11 @@ x_create_tip_frame (dpyinfo, parms, text)
   int width, height;
   int count = SPECPDL_INDEX ();
   struct gcpro gcpro1, gcpro2, gcpro3;
-  struct kboard *kb;
   int face_change_count_before = face_change_count;
   Lisp_Object buffer;
   struct buffer *old_buffer;
 
   check_x ();
-
-
-#ifdef MULTI_KBOARD
-  kb = dpyinfo->kboard;
-#else
-  kb = &the_only_kboard;
-#endif
 
   /* Get the name of the frame to use for resource lookup.  */
   name = x_get_arg (dpyinfo, parms, Qname, "name", "Name", RES_TYPE_STRING);
@@ -4662,9 +4651,6 @@ x_create_tip_frame (dpyinfo, parms, text)
   image_cache_refcount = FRAME_X_IMAGE_CACHE (f)->refcount;
   dpyinfo_refcount = dpyinfo->reference_count;
 #endif /* GLYPH_DEBUG */
-#ifdef MULTI_KBOARD
-  FRAME_KBOARD (f) = kb;
-#endif
   f->output_data.x->parent_desc = FRAME_X_DISPLAY_INFO (f)->root_window;
   f->output_data.x->explicit_parent = 0;
 

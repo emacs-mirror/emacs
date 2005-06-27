@@ -292,16 +292,6 @@ struct frame
   /* The extra width (in pixels) currently allotted for fringes.  */
   int left_fringe_width, right_fringe_width;
 
-#ifdef MULTI_KBOARD
-  /* XXX Maybe this should be moved to struct display, too. */
-  /* A pointer to the kboard structure associated with this frame.
-     For termcap frames, it will be the same as
-     display->display_info.tty->kboard.
-     For X frames, it will be the same as
-     display->display_info.x->kboard.  */
-  struct kboard *kboard;
-#endif
-
   /* See FULLSCREEN_ enum below */
   int want_fullscreen;
 
@@ -456,7 +446,7 @@ struct frame
 };
 
 #ifdef MULTI_KBOARD
-#define FRAME_KBOARD(f) ((f)->kboard)
+#define FRAME_KBOARD(f) ((f)->display->kboard)
 #else
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif

@@ -2285,10 +2285,11 @@ init_initial_display (void)
   initial_display = create_display ();
   initial_display->type = output_initial;
   initial_display->name = xstrdup ("initial_display");
+  initial_display->kboard = initial_kboard;
 
   initial_display->delete_display_hook = &delete_initial_display;
   /* All other hooks are NULL. */
-  
+
   return initial_display;
 }
 
@@ -2682,19 +2683,19 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_teleray = tgetflag ("xt");
 
 #ifdef MULTI_KBOARD
-  tty->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-  init_kboard (tty->kboard);
-  tty->kboard->next_kboard = all_kboards;
-  all_kboards = tty->kboard;
+  display->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (display->kboard);
+  display->kboard->next_kboard = all_kboards;
+  all_kboards = display->kboard;
+  display->kboard->reference_count++;
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
-    current_kboard = tty->kboard;
-  tty->kboard->reference_count++;
+    current_kboard = display->kboard;
 #endif
 
-  term_get_fkeys (address, tty->kboard);
+  term_get_fkeys (address, display->kboard);
 
   /* Get frame size from system, or else from termcap.  */
   {
@@ -3051,13 +3052,6 @@ delete_tty (struct display *display)
   if (tty->Wcm)
     xfree (tty->Wcm);
 
-#ifdef MULTI_KBOARD
-  if (tty->kboard && --tty->kboard->reference_count > 0)
-    abort ();
-  if (tty->kboard)
-    delete_kboard (tty->kboard);
-#endif
-  
   bzero (tty, sizeof (struct tty_display_info));
   xfree (tty);
   deleting_tty = 0;
@@ -3169,6 +3163,11 @@ delete_display (struct display *display)
     xfree (display->terminal_coding);
   if (display->name)
     xfree (display->name);
+  
+#ifdef MULTI_KBOARD
+  if (display->kboard && --display->kboard->reference_count == 0)
+    delete_kboard (display->kboard);
+#endif
   
   bzero (display, sizeof (struct display));
   xfree (display);
