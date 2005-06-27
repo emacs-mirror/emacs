@@ -7640,6 +7640,7 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 	default:
 	  break;
 	}
+      break;
 
     case kEventClassKeyboard:
       switch (GetEventKind (eventRef))
@@ -7662,6 +7663,7 @@ static Boolean mac_convert_event_ref (EventRef eventRef, EventRecord *eventRec)
 	default:
 	  break;
 	}
+      break;
 
     default:
       break;
