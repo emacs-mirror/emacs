@@ -1,3 +1,7 @@
+2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (add-to-ordered-list): Doc fix.
+
 2005-06-27  Lute Kamstra  <lute@gnu.org>
 
 	* facemenu.el (facemenu-unlisted-faces): Add foreground and
