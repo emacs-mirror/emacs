@@ -2875,7 +2875,7 @@ Returns a list of strings."
 
 (defun artist-figlet-get-extra-args ()
   "Read any extra arguments for figlet."
-  (let ((extra-args (read-input "Extra args to figlet: ")))
+  (let ((extra-args (read-string "Extra args to figlet: ")))
     (if (string= extra-args "")
 	nil
       extra-args)))
@@ -2916,7 +2916,7 @@ This is done by calling the function specified by `artist-text-renderer',
 which must return a list of strings, to be inserted in the buffer.
 
 Text already in the buffer ``shines thru'' blanks in the rendered text."
-  (let* ((input-text (read-input "Type text to render: "))
+  (let* ((input-text (read-string "Type text to render: "))
 	 (rendered-text (artist-funcall artist-text-renderer input-text)))
     (artist-text-insert-see-thru x y rendered-text)))
 
@@ -2927,7 +2927,7 @@ This is done by calling the function specified by `artist-text-renderer',
 which must return a list of strings, to be inserted in the buffer.
 
 Blanks in the rendered text overwrites any text in the buffer."
-  (let* ((input-text (read-input "Type text to render: "))
+  (let* ((input-text (read-string "Type text to render: "))
 	 (rendered-text (artist-funcall artist-text-renderer input-text)))
     (artist-text-insert-overwrite x y rendered-text)))
 
