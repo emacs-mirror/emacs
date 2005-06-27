@@ -1,3 +1,8 @@
+2005-06-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-filter): Add missing argument to
+	with-selected-window.
+
 2005-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't automatically add
