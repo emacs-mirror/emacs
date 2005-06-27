@@ -28,20 +28,21 @@
 ;; ---------------------------------------------------------------------------
 ;; keyboard setup -- that's simple!
 (set-input-mode nil nil 0)
-(define-key function-key-map [backspace] "\177") ; Normal behaviour for BS
-(define-key function-key-map [delete] "\C-d")    ; ... and Delete
-(define-key function-key-map [tab] [?\t])
-(define-key function-key-map [linefeed] [?\n])
-(define-key function-key-map [clear] [11])
-(define-key function-key-map [return] [13])
-(define-key function-key-map [escape] [?\e])
-(define-key function-key-map [M-backspace] [?\M-\d])
-(define-key function-key-map [M-delete] [?\M-d])
-(define-key function-key-map [M-tab] [?\M-\t])
-(define-key function-key-map [M-linefeed] [?\M-\n])
-(define-key function-key-map [M-clear] [?\M-\013])
-(define-key function-key-map [M-return] [?\M-\015])
-(define-key function-key-map [M-escape] [?\M-\e])
+(let (m (terminal-local-value 'function-key-map nil))
+  (define-key m [backspace] "\177") ; Normal behaviour for BS
+  (define-key m [delete] "\C-d")    ; ... and Delete
+  (define-key m [tab] [?\t])
+  (define-key m [linefeed] [?\n])
+  (define-key m [clear] [11])
+  (define-key m [return] [13])
+  (define-key m [escape] [?\e])
+  (define-key m [M-backspace] [?\M-\d])
+  (define-key m [M-delete] [?\M-d])
+  (define-key m [M-tab] [?\M-\t])
+  (define-key m [M-linefeed] [?\M-\n])
+  (define-key m [M-clear] [?\M-\013])
+  (define-key m [M-return] [?\M-\015])
+  (define-key m [M-escape] [?\M-\e]))
 (put 'backspace 'ascii-character 127)
 (put 'delete 'ascii-character 127)
 (put 'tab 'ascii-character ?\t)

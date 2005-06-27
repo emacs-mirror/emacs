@@ -31,7 +31,7 @@
 (if (boundp 'AT386-keypad-map)
     nil
   ;; The terminal initialization should already have set up some keys
-  (setq AT386-keypad-map (lookup-key function-key-map "\e["))
+  (setq AT386-keypad-map (lookup-key (terminal-local-value 'function-key-map nil) "\e["))
   (if (not (keymapp AT386-keypad-map))
       (error "What?  Your AT386 termcap/terminfo has no keycaps in it"))
 
@@ -54,7 +54,7 @@
   (define-key AT386-keypad-map "T" [kp-add])
 
   ;; Arrange for the ALT key to be equivalent to ESC
-  (define-key function-key-map "\eN" [27]) ; ALT map
+  (define-key (terminal-local-value 'function-key-map nil) "\eN" [27]) ; ALT map
   )
 
 ;;; arch-tag: abec1b03-582f-49f8-b8cb-e2fd52ea4bd7

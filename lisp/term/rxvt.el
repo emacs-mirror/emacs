@@ -100,8 +100,8 @@
 ;; This way we don't override terminfo-derived settings or settings
 ;; made in the .emacs file.
 (let ((m (copy-keymap rxvt-function-map)))
-  (set-keymap-parent m (keymap-parent function-key-map))
-  (set-keymap-parent function-key-map m))
+  (set-keymap-parent m (keymap-parent (terminal-local-value 'function-key-map nil)))
+  (set-keymap-parent (terminal-local-value 'function-key-map nil) m))
 
 
 ;; Set up colors, for those versions of rxvt that support it.

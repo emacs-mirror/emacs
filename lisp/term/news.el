@@ -31,7 +31,7 @@
 (if (boundp 'news-fkey-prefix)
     nil
   ;; The terminal initialization should already have set up some keys
-  (setq news-fkey-prefix (lookup-key function-key-map "\eO"))
+  (setq news-fkey-prefix (lookup-key (terminal-local-value 'function-key-map nil) "\eO"))
   (if (not (keymapp news-fkey-prefix))
       (error "What?  Your news termcap/terminfo has no keycaps in it"))
 
