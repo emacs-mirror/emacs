@@ -806,6 +806,10 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
   register Lisp_Object sym, tem, tail;
 
   sym = Fcar (args);
+  if (SYMBOL_CONSTANT_P (sym))
+    error ("Cannot defvar a constant symbol: %s",
+           SDATA (SYMBOL_NAME (sym)));
+
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
     error ("Too many arguments");
