@@ -2534,8 +2534,9 @@ It is saved for when this flag is not set.")
 	    ;; This must be outside of the save-excursion
 	    ;; in case the source file is our current buffer.
 	    (if process-window
-		(with-selected-window
-		  (gud-display-frame))
+		(progn
+		(with-selected-window process-window
+		  (gud-display-frame)))
 	      ;; We have to be in the proper buffer, (process-buffer proc),
 	      ;; but not in a save-excursion, because that would restore point.
 	      (with-current-buffer (process-buffer proc)
