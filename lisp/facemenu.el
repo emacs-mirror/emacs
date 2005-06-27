@@ -1,6 +1,6 @@
 ;;; facemenu.el --- create a face menu for interactively adding fonts to text
 
-;; Copyright (c) 1994, 1995, 1996, 2001, 2002 Free Software Foundation, Inc.
+;; Copyright (c) 1994, 1995, 1996, 2001, 2002, 2005 Free Software Foundation, Inc.
 
 ;; Author: Boris Goldowsky <boris@gnu.org>
 ;; Keywords: faces
@@ -135,7 +135,8 @@ just before \"Other\" at the end."
   `(modeline region secondary-selection highlight scratch-face
     ,(purecopy "^font-lock-") ,(purecopy "^gnus-") ,(purecopy "^message-")
     ,(purecopy "^ediff-") ,(purecopy "^term-") ,(purecopy "^vc-")
-    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-"))
+    ,(purecopy "^widget-") ,(purecopy "^custom-") ,(purecopy "^vm-")
+    ,(purecopy "^fg:") ,(purecopy "^bg:"))
   "*List of faces not to include in the Face menu.
 Each element may be either a symbol, which is the name of a face, or a string,
 which is a regular expression to be matched against face names.  Matching
@@ -365,10 +366,8 @@ typing a character to insert cancels the specification."
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-end))))
-  (unless (color-defined-p color)
-    (message "Color `%s' undefined" color))
-  (facemenu-add-new-color color 'facemenu-foreground-menu)
-  (facemenu-add-face (list (list :foreground color)) start end))
+  (facemenu-add-face (facemenu-add-new-color color 'facemenu-foreground-menu)
+		     start end))
 
 ;;;###autoload
 (defun facemenu-set-background (color &optional start end)
@@ -389,10 +388,8 @@ typing a character to insert cancels the specification."
 			 (region-beginning))
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-end))))
-  (unless (color-defined-p color)
-    (message "Color `%s' undefined" color))
-  (facemenu-add-new-color color 'facemenu-background-menu)
-  (facemenu-add-face (list (list :background color)) start end))
+  (facemenu-add-face (facemenu-add-new-color color 'facemenu-background-menu)
+		     start end))
 
 ;;;###autoload
 (defun facemenu-set-face-from-menu (face start end)
@@ -413,7 +410,6 @@ typing a character to insert cancels the specification."
 		     (if (and mark-active (not current-prefix-arg))
 			 (region-end))))
   (barf-if-buffer-read-only)
-  (facemenu-get-face face)
   (if start
       (facemenu-add-face face start end)
     (facemenu-add-face face)))
@@ -648,14 +644,6 @@ use the selected frame.  If t, then the global, non-frame faces are used."
       (setq face-list (cdr face-list)))
     (nreverse active-list)))
 
-(defun facemenu-get-face (symbol)
-  "Make sure FACE exists.
-If not, create it and add it to the appropriate menu.  Return the SYMBOL."
-  (let ((name (symbol-name symbol)))
-    (cond ((facep symbol))
-	  (t (make-face symbol))))
-  symbol)
-
 (defun facemenu-add-new-face (face)
   "Add FACE (a face) to the Face menu.
 
@@ -715,47 +703,44 @@ This is called whenever you create a new face."
 	     (define-key menu key (cons name function))))))
   nil) ; Return nil for facemenu-iterate
 
-(defun facemenu-add-new-color (color &optional menu)
+(defun facemenu-add-new-color (color menu)
   "Add COLOR (a color name string) to the appropriate Face menu.
-MENU should be `facemenu-foreground-menu' or
-`facemenu-background-menu'.
+MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'.
+Create the appropriate face and return it.
 
 This is called whenever you use a new color."
-  (let* (name
-	 symbol
-	 docstring
-	 function menu-val key
-	 (color-p (memq menu '(facemenu-foreground-menu
-			       facemenu-background-menu))))
-    (unless (stringp color)
-      (error "%s is not a color" color))
-    (setq name color
-	  symbol (intern name))
-
+  (let (symbol docstring)
+    (unless (color-defined-p color)
+      (error "Color `%s' undefined" color))
     (cond ((eq menu 'facemenu-foreground-menu)
 	   (setq docstring
 		 (format "Select foreground color %s for subsequent insertion."
-			 name)))
+			 color)
+		 symbol (intern (concat "fg:" color)))
+	   (set-face-foreground (make-face symbol) color))
 	  ((eq menu 'facemenu-background-menu)
 	   (setq docstring
 		 (format "Select background color %s for subsequent insertion."
-			 name))))
+			 color)
+		 symbol (intern (concat "bg:" color)))
+	   (set-face-background (make-face symbol) color))
+	  (t (error "MENU should be `facemenu-foreground-menu' or `facemenu-background-menu'")))
     (cond ((facemenu-iterate ; check if equivalent face is already in the menu
 	    (lambda (m) (and (listp m)
 			     (symbolp (car m))
 			     (stringp (cadr m))
 			     (string-equal (cadr m) color)))
 	    (cdr (symbol-function menu))))
-	  (t   ; No keyboard equivalent.  Figure out where to put it:
-	   (setq key (vector symbol)
-		 function 'facemenu-set-face-from-menu
-		 menu-val (symbol-function menu))
-	   (if (and facemenu-new-faces-at-end
-		   (> (length menu-val) 3))
-	       (define-key-after menu-val key (cons name function)
-		 (car (nth (- (length menu-val) 3) menu-val)))
-	     (define-key menu key (cons name function))))))
-  nil) ; Return nil for facemenu-iterate
+	  (t	; No keyboard equivalent.  Figure out where to put it:
+	   (let ((key (vector symbol))
+		 (function 'facemenu-set-face-from-menu)
+		 (menu-val (symbol-function menu)))
+	     (if (and facemenu-new-faces-at-end
+		      (> (length menu-val) 3))
+		 (define-key-after menu-val key (cons color function)
+		   (car (nth (- (length menu-val) 3) menu-val)))
+	       (define-key menu key (cons color function))))))
+    symbol))
 
 (defun facemenu-complete-face-list (&optional oldlist)
   "Return list of all faces that look different.
