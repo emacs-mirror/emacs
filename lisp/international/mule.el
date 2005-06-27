@@ -1272,8 +1272,8 @@ use either \\[customize] or \\[set-keyboard-coding-system]."
   :link '(info-link "(emacs)Specify Coding")
   :link '(info-link "(emacs)Single-Byte Character Support")
   :set (lambda (symbol value)
-	 ;; Don't load encoded-kbd-mode unnecessarily.
-	 (if (or value (boundp 'encoded-kbd-mode))
+	 ;; Don't load encoded-kb unnecessarily.
+	 (if (or value (boundp 'encoded-kbd-setup-display))
 	     (set-keyboard-coding-system value)
 	   (set-default 'keyboard-coding-system nil))) ; must initialize
   :version "22.1"

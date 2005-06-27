@@ -173,7 +173,7 @@ The following key sequence may cause multilingual text insertion."
       (setq str (format "%s%c" str (read-char-exclusive))))
     (vector (aref result 0))))
 
-(defun encoded-kbd-setup-keymap (coding)
+(defun encoded-kbd-setup-keymap (keymap coding)
   ;; At first, reset the keymap.
   (define-key encoded-kbd-mode-map "\e" nil)
   ;; Then setup the keymap according to the keyboard coding system.
@@ -181,7 +181,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 1)	; SJIS
     (let ((i 128))
       (while (< i 256)
-	(define-key key-translation-map
+	(define-key keymap
 	  (vector i) 'encoded-kbd-self-insert-sjis)
 	(setq i (1+ i))))
     8)
@@ -189,7 +189,7 @@ The following key sequence may cause multilingual text insertion."
    ((eq (coding-system-type coding) 3)	; Big5
     (let ((i 161))
       (while (< i 255)
-	(define-key key-translation-map
+	(define-key keymap
 	  (vector i) 'encoded-kbd-self-insert-big5)
 	(setq i (1+ i))))
     8)
@@ -215,20 +215,20 @@ The following key sequence may cause multilingual text insertion."
 	    (aset encoded-kbd-iso2022-invocations 1 1))
 	(when use-designation
 	  (define-key encoded-kbd-mode-map "\e" 'encoded-kbd-iso2022-esc-prefix)
-	  (define-key key-translation-map "\e" 'encoded-kbd-iso2022-esc-prefix))
+	  (define-key keymap "\e" 'encoded-kbd-iso2022-esc-prefix))
 	(when (or (aref flags 2) (aref flags 3))
-	  (define-key key-translation-map
+	  (define-key keymap
 	    [?\216] 'encoded-kbd-iso2022-single-shift)
-	  (define-key key-translation-map
+	  (define-key keymap
 	    [?\217] 'encoded-kbd-iso2022-single-shift))
 	(or (eq (aref flags 0) 'ascii)
 	    (dotimes (i 96)
-	      (define-key key-translation-map
+	      (define-key keymap
 		(vector (+ 32 i)) 'encoded-kbd-self-insert-iso2022-7bit)))
 	(if (aref flags 7)
 	    t
 	  (dotimes (i 96)
-	    (define-key key-translation-map
+	    (define-key keymap
 	      (vector (+ 160 i)) 'encoded-kbd-self-insert-iso2022-8bit))
 	  8))))
 
@@ -243,7 +243,7 @@ The following key sequence may cause multilingual text insertion."
 	  (setq from (setq to elt)))
 	(while (<= from to)
 	  (if (>= from 128)
-	      (define-key key-translation-map
+	      (define-key keymap
 		(vector from) 'encoded-kbd-self-insert-ccl))
 	  (setq from (1+ from))))
       8))
@@ -263,11 +263,10 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
   (let ((frame (if (framep display) display (car (frames-on-display-list display)))))
     (when frame
       (with-selected-frame frame
-	(message (format "encoded-kbd-setup-display %s %s %s" display frame key-translation-map))
 	;; Remove any previous encoded-kb keymap from key-translation-map.
-	(let ((m key-translation-map))
+	(let ((m (terminal-local-value 'key-translation-map frame)))
 	  (if (equal (keymap-prompt m) "encoded-kb")
-	      (setq key-translation-map (keymap-parent m))
+	      (set-terminal-local-value 'key-translation-map frame (keymap-parent m))
 	    (while (keymap-parent m)
 	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
 		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
@@ -278,11 +277,11 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 	    (let ((coding (keyboard-coding-system))
 		  (keymap (make-sparse-keymap "encoded-kb"))
 		  result)
-	      (set-keymap-parent keymap key-translation-map)
-	      (setq key-translation-map keymap)
+	      (set-keymap-parent keymap (terminal-local-value 'key-translation-map frame))
+	      (set-terminal-local-value 'key-translation-map frame keymap)
 	      (or saved-input-mode
 		  (setq saved-input-mode (current-input-mode)))
-	      (setq result (and coding (encoded-kbd-setup-keymap coding)))
+	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
 	      (if result
 		  (if (eq result 8)
 		      (set-input-mode
@@ -296,9 +295,7 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 	  ;; We are turning off Encoded-kbd mode.
 	  (and saved-input-mode
 	       (apply 'set-input-mode saved-input-mode))
-	  (setq saved-input-mode nil))
-	(when (not (eq (selected-frame) frame))
-	  (error "Anyátok picsája!"))))))
+	  (setq saved-input-mode nil))))))
 
 (provide 'encoded-kb)
 

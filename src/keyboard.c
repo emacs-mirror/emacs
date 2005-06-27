@@ -11247,7 +11247,10 @@ In other words, the present command is the event that made the previous
 command exit.
 
 The value `kill-region' is special; it means that the previous command
-was a kill command.  */);
+was a kill command.
+
+`last-command' has a separate binding for each display device.
+See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_KBOARD ("real-last-command", Vreal_last_command,
 		 doc: /* Same as `last-command', but never altered by Lisp code.  */);
@@ -11455,7 +11458,10 @@ buffer's local map, and the minor mode keymaps and text property keymaps.
 It also replaces `overriding-local-map'.
 
 This variable is intended to let commands such as `universal-argument'
-set up a different keymap for reading the next command.  */);
+set up a different keymap for reading the next command.
+
+`overriding-terminal-local-map' has a separate binding for each display device.
+See Info node `(elisp)Multiple displays'.  */);
 
   DEFVAR_LISP ("overriding-local-map", &Voverriding_local_map,
 	       doc: /* Keymap that overrides all other local keymaps.
@@ -11480,7 +11486,15 @@ and the minor mode maps regardless of `overriding-local-map'.  */);
 		 doc: /* Alist of system-specific X windows key symbols.
 Each element should have the form (N . SYMBOL) where N is the
 numeric keysym code (sans the \"system-specific\" bit 1<<28)
-and SYMBOL is its name.  */);
+and SYMBOL is its name.
+
+`system-key-alist' has a separate binding for each display device.
+See Info node `(elisp)Multiple displays'.
+
+Note that the currently selected frame has very little to do with
+which binding of this variable is active at any given moment.  If you
+need set or get the binding on a specific display, use
+`terminal-local-value' and `set-terminal-local-value'.  */);
 
   DEFVAR_KBOARD ("function-key-map", Vfunction_key_map,
                  doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
@@ -11503,7 +11517,12 @@ Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
 key, typing `ESC O P x' would return [f1 x].
 
 `function-key-map' has a separate binding for each display device.
-See Info node `(elisp)Multiple displays'.  */);
+See Info node `(elisp)Multiple displays'.
+
+Note that the currently selected frame has very little to do with
+which binding of this variable is active at any given moment.  If you
+need set or get the binding on a specific display, use
+`terminal-local-value' and `set-terminal-local-value'.  */);
 
   DEFVAR_KBOARD ("key-translation-map", Vkey_translation_map,
 	       doc: /* Keymap of key translations that can override keymaps.
@@ -11512,7 +11531,12 @@ and its non-prefix bindings override ordinary bindings.
 
 `key-translation-map' has a separate binding for each display device.
 (See Info node `(elisp)Multiple displays'.)  If you need to set a key
-translation on all devices, change `global-key-translation-map' instead.  */);
+translation on all devices, change `global-key-translation-map' instead.
+
+Note that the currently selected frame has very little to do with
+which binding of this variable is active at any given moment.  If you
+need set or get the binding on a specific display, use
+`terminal-local-value' and `set-terminal-local-value'.  */);
 
   DEFVAR_LISP ("global-key-translation-map", &Vglobal_key_translation_map,
                doc: /* The parent keymap of all terminal-local `key-translation-map' instances.

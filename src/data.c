@@ -1875,6 +1875,44 @@ If the current binding is global (the default), the value is nil.  */)
 
   return Qnil;
 }
+
+extern struct display *get_display P_ ((Lisp_Object display, int));
+
+DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 2, 0,
+       doc: /* Return the terminal-local value of SYMBOL on DISPLAY.
+If SYMBOL is not a terminal-local variable, then return its normal
+value, like `symbol-value'.
+
+DISPLAY may be a display, a frame, or nil (meaning the selected
+frame's display).  */)
+  (symbol, display)
+     Lisp_Object symbol;
+     Lisp_Object display;
+{
+  Lisp_Object result;
+  struct display *d = get_display (display, 1);
+  push_display_kboard (d);
+  result = Fsymbol_value (symbol);
+  pop_frame_kboard ();
+  return result;
+}
+
+DEFUN ("set-terminal-local-value", Fset_terminal_local_value, Sset_terminal_local_value, 3, 3, 0,
+       doc: /* Set the terminal-local binding of SYMBOL on DISPLAY to VALUE.
+If VARIABLE is not a terminal-local variable, then set its normal
+binding, like `set'.  */)
+  (symbol, display, value)
+     Lisp_Object symbol;
+     Lisp_Object display;
+     Lisp_Object value;
+{
+  Lisp_Object result;
+  struct display *d = get_display (display, 1);
+  push_display_kboard (d);
+  result = Fset (symbol, value);
+  pop_frame_kboard ();
+  return result;
+}
 
 /* Find the function at the end of a chain of symbol function indirections.  */
 
@@ -3326,6 +3364,8 @@ syms_of_data ()
   defsubr (&Slocal_variable_p);
   defsubr (&Slocal_variable_if_set_p);
   defsubr (&Svariable_binding_locus);
+  defsubr (&Sterminal_local_value);
+  defsubr (&Sset_terminal_local_value);
   defsubr (&Saref);
   defsubr (&Saset);
   defsubr (&Snumber_to_string);

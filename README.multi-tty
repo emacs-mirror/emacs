@@ -325,10 +325,16 @@ following:
 	alias gnus="connect-emacs gnus"
 
 
+CHANGELOG
+---------
+
+See arch logs.
+
+
 NEWS
 ----
 
-For the NEWS file:  (Needs work)
+For the NEWS file:  (Needs much, much work)
 
 ** Support for multiple terminal devices has been added.
 
@@ -346,12 +352,13 @@ For the NEWS file:  (Needs work)
 *** A make-frame-on-tty function has been added to make it easier to
     create frames on new terminals.
 
-*** New functions: frame-tty-name, frame-tty-type for accessing
-    terminal parameters, and delete-tty for closing the terminal
-    device.
+*** New functions: frame-tty-name, frame-tty-type, delete-tty,
+    terminal-local-value, set-terminal-local-value
 
-*** talk.el has been extended for multiple tty support.
+*** New variables: global-key-translation-map
 
+*** The keymaps key-translation-map and function-key-map are now
+    terminal-local.
 
 ** Support for simultaneous graphical and terminal frames has been
    added.
@@ -364,10 +371,8 @@ For the NEWS file:  (Needs work)
 *** The new `initial-window-system' variable contains the
     `window-system' value for the first frame.
 
-CHANGELOG
----------
+*** talk.el has been extended for multiple tty support.
 
-See arch logs.
 
 * * *
 
@@ -1073,4 +1078,17 @@ DIARY OF CHANGES
    (Done, by making `function-key-map' terminal-local (i.e., part of
    struct kboard).  This has probably covered all the remaining problems.)
 
+-- Make `function-key-map' and `key-translation-map' terminal-local.
+
+   (Done.)
+
+-- Implement `terminal-local-value' and `set-terminal-local-value' to
+   allow deterministic access to terminal local bindings.  The
+   encode-kb package can not set up `key-translation-map' without
+   these.  The terminal-local bindings seem to be independent of what
+   frame is selected.
+
+   (Done.)
+
 ;;; arch-tag: 8da1619e-2e79-41a8-9ac9-a0485daad17d
+
