@@ -1,3 +1,7 @@
+2005-06-27  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvar): Don't try to set constant symbols.
+
 2005-06-25  Richard M. Stallman  <rms@gnu.org>
 
 	* macfns.c (Fx_show_tip): Pass new arg to try_window.
