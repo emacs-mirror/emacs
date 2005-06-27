@@ -1232,9 +1232,8 @@ See also the command `set-keyboard-coding-system'.")
 
 (defun set-keyboard-coding-system (coding-system &optional display)
   "Set coding system for keyboard input on DISPLAY to CODING-SYSTEM.
-In addition, this command enables Encoded-kbd minor mode.
-\(If CODING-SYSTEM is nil, Encoded-kbd mode is turned off -- see
-`encoded-kbd-mode'.)
+In addition, this command calls `encoded-kbd-setup-display' to set up the
+translation of keyboard input events to the specified coding system.
 
 For a list of possible values of CODING-SYSTEM, use \\[list-coding-systems].
 The default is determined by the selected language environment
@@ -1257,7 +1256,7 @@ The setting has no effect on graphical displays."
       (setq default-keyboard-coding-system coding-system))
   (set-keyboard-coding-system-internal coding-system display)
   (setq keyboard-coding-system coding-system)
-  (encoded-kbd-mode (if coding-system 1 0)))
+  (encoded-kbd-setup-display display))
 
 (defcustom keyboard-coding-system nil
   "Specify coding system for keyboard input.
