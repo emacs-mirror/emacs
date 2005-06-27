@@ -315,6 +315,7 @@ extern void init_kboard P_ ((KBOARD *));
 extern void delete_kboard P_ ((KBOARD *));
 extern void single_kboard_state P_ ((void));
 extern void not_single_kboard_state P_ ((KBOARD *));
+extern void push_display_kboard P_ ((struct display *));
 extern void push_frame_kboard P_ ((struct frame *));
 extern void pop_frame_kboard P_ ((void));
 extern void record_asynch_buffer_change P_ ((void));

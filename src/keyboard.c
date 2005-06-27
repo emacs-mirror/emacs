@@ -1112,6 +1112,22 @@ struct kboard_stack
 static struct kboard_stack *kboard_stack;
 
 void
+push_display_kboard (d)
+     struct display *d;
+{
+#ifdef MULTI_KBOARD
+  struct kboard_stack *p
+    = (struct kboard_stack *) xmalloc (sizeof (struct kboard_stack));
+
+  p->next = kboard_stack;
+  p->kboard = current_kboard;
+  kboard_stack = p;
+
+  current_kboard = d->kboard;
+#endif
+}
+
+void
 push_frame_kboard (f)
      FRAME_PTR f;
 {
@@ -10803,7 +10819,7 @@ delete_kboard (kb)
       && FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = XFRAME (selected_frame)->kboard;
+      current_kboard = XFRAME (selected_frame)->display->kboard;
       if (current_kboard == kb)
 	abort ();
     }
