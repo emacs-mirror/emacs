@@ -338,8 +338,8 @@ This variable is buffer-local."
   "\\(\\([Oo]ld \\|[Nn]ew \\|'s \\|login \\|\
 Kerberos \\|CVS \\|UNIX \\| SMB \\|^\\)\
 \[Pp]assword\\( (again)\\)?\\|\
-pass phrase\\|\\(Enter\\|Repeat\\) passphrase\\)\
-\\( for [^:]+\\)?:\\s *\\'"
+pass phrase\\|\\(Enter\\|Repeat\\|Bad\\) passphrase\\)\
+\\(?:, try again\\)?\\(?: for [^:]+\\)?:\\s *\\'"
   "*Regexp matching prompts for passwords in the inferior process.
 This is used by `comint-watch-for-password-prompt'."
   :type 'regexp
