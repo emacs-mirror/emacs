@@ -23,9 +23,6 @@ face name prefixes should be in it for good results.
 gracefully if something isn't supported over Tramp.
 To be done by Andre Spiegel <spiegel@gnu.org>.
 
-** define-minor-mode should not put :require into defcustom.
-See msg from rms to emacs-devel on 21 Dec.
-
 ** Update Speedbar.
 
 ** Update vhdl-mode.el based on changes in
