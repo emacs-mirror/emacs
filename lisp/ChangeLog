@@ -1,3 +1,7 @@
+2005-06-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/ispell.el: Remove stray parenthesis.
+
 2005-06-28  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/flyspell.el (flyspell-use-local-map): Variable deleted.
