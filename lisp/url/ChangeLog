@@ -1,3 +1,8 @@
+2005-06-28  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-http.el (url-http-create-request): Call url-recreate-url
+	in proxy case.
+
 2005-06-27  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
 
 	* url-http.el (url-http-create-request): When computing real-fname,
