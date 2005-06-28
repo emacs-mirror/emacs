@@ -807,7 +807,7 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
   sym = Fcar (args);
   if (SYMBOL_CONSTANT_P (sym))
-    error ("Cannot defvar a constant symbol: %s",
+    error ("Constant symbol `%s' specified in defvar",
            SDATA (SYMBOL_NAME (sym)));
 
   tail = Fcdr (args);
