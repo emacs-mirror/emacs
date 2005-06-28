@@ -1,6 +1,6 @@
 2005-06-28  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* textmodes/ispell.el: Remove stray parenthesis.
+	* textmodes/ispell.el (ispell-word): Remove stray parenthesis.
 
 2005-06-28  Richard M. Stallman  <rms@gnu.org>
 
