@@ -1540,7 +1540,7 @@ quit          spell session exited."
 		 (kill-buffer ispell-choices-buffer))))
       (ispell-pdict-save ispell-silently-savep)
       ;; NB: Cancels ispell-quit incorrectly if called from ispell-region
-      (if ispell-quit (setq ispell-quit nil replace 'quit)))
+      (if ispell-quit (setq ispell-quit nil replace 'quit))
       (goto-char cursor-location)	; return to original location
       replace)))
 
