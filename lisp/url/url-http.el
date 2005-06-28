@@ -156,8 +156,7 @@ request.
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
 			 (url-get-authentication url nil 'any nil))))
-	 (real-fname (if proxy-obj (url-recreate-url proxy-obj)
-		       (url-filename url)))
+	 (real-fname (url-filename (or proxy-obj url)))
 	 (host (url-host (or proxy-obj url)))
 	 (auth (if (cdr-safe (assoc "Authorization" url-request-extra-headers))
 		   nil
