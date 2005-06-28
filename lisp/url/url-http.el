@@ -199,7 +199,9 @@ request.
     (setq request
 	  (concat
 	   ;; The request
-	   (or url-request-method "GET") " " real-fname " HTTP/" url-http-version "\r\n"
+	   (or url-request-method "GET") " "
+	   (if proxy-obj (url-recreate-url proxy-obj) real-fname)
+	   " HTTP/" url-http-version "\r\n"
 	   ;; Version of MIME we speak
 	   "MIME-Version: 1.0\r\n"
 	   ;; (maybe) Try to keep the connection open
