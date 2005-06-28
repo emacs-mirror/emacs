@@ -611,7 +611,9 @@ effect.  See `facemenu-remove-face-function'."
 						  self-insert-face
 						(list self-insert-face)))
 				 face)
-	      self-insert-face-command this-command)))))
+	      self-insert-face-command this-command))))
+  (unless (facemenu-enable-faces-p)
+    (message "Font-lock mode will override any faces you set in this buffer")))
 
 (defun facemenu-active-faces (face-list &optional frame)
   "Return from FACE-LIST those faces that would be used for display.
