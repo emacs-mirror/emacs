@@ -1,3 +1,30 @@
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-use-local-map): Variable deleted.
+	(flyspell-local-mouse-map): Declaration deleted.
+	(flyspell-mouse-map): Bind only mouse-2.
+	(flyspell-mode-map): Don't test flyspell-use-local-map.
+	(flyspell-overlay-keymap-property-name): Var deleted.
+	(flyspell-mode-on): Don't make local bindings for
+	flyspell-mouse-map and flyspell-mode-map.
+	(make-flyspell-overlay): Unconditionally put on `keymap' text prop.
+
+	* textmodes/ispell.el (ispell-word): Do not ignore short words.
+
+	* progmodes/compile.el (compilation-next-error-function):
+	Don't switch buffers; operate on the current buffer.
+
+	* facemenu.el (facemenu-add-face): Warn when font-lock is active.
+
+	* comint.el (comint-password-prompt-regexp): Accept ", try again".
+
+	* bindings.el (global-map): Bind insertchar and its variants.
+
+2005-06-27  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-text-overwrite)
+	(artist-figlet-get-extra-args, artist-text-see-thru): Use read-string.
+
 2005-06-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
 	* ps-print.el: It was not working the page selection for printing.
@@ -36,7 +63,7 @@
 
 2005-06-26  David Ponce  <david@dponce.com>
 
-	* recentf.el: Require 'tree-widget instead of 'wid-edit.
+	* recentf.el: Require tree-widget instead of wid-edit.
 	(recentf-filename-handler): Fix widget :type.
 	(recentf-cancel-dialog, recentf-open-more-files)
 	(recentf-open-files-action): Doc fix.

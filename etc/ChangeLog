@@ -1,3 +1,7 @@
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping): New.
+
 2005-06-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* DEBUG: Mention emacs-buffer.gdb.

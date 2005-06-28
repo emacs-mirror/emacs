@@ -1,3 +1,8 @@
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Put make-sparse-keymap before
+	make-keymap.
+
 2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* variables.texi (Setting Variables): Correct and clarify
