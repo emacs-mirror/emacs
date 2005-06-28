@@ -257,18 +257,16 @@ satisfies @code{keymapp}.
 
   Here we describe the functions for creating keymaps.
 
-@c ??? This should come after make-sparse-keymap
-@defun make-keymap &optional prompt
-This function creates and returns a new full keymap.  That keymap
-contains a char-table (@pxref{Char-Tables}) with slots for all
-characters without modifiers.  The new keymap initially binds all
-these characters to @code{nil}, and does not bind any other kind of
-event.
+@defun make-sparse-keymap &optional prompt
+This function creates and returns a new sparse keymap with no entries.
+(A sparse keymap is the kind of keymap you usually want.)  The new
+keymap does not contain a char-table, unlike @code{make-keymap}, and
+does not bind any events.
 
 @example
 @group
-(make-keymap)
-    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
+(make-sparse-keymap)
+    @result{} (keymap)
 @end group
 @end example
 
@@ -277,18 +275,23 @@ the keymap.  The prompt string should be provided for menu keymaps
 (@pxref{Defining Menus}).
 @end defun
 
-@defun make-sparse-keymap &optional prompt
-This function creates and returns a new sparse keymap with no entries.
-The new keymap does not contain a char-table, unlike @code{make-keymap},
-and does not bind any events.  The argument @var{prompt} specifies a
-prompt string, as in @code{make-keymap}.
+@defun make-keymap &optional prompt
+This function creates and returns a new full keymap.  That keymap
+contains a char-table (@pxref{Char-Tables}) with slots for all
+characters without modifiers.  The new keymap initially binds all
+these characters to @code{nil}, and does not bind any other kind of
+event.  The argument @var{prompt} specifies a
+prompt string, as in @code{make-sparse-keymap}.
 
 @example
 @group
-(make-sparse-keymap)
-    @result{} (keymap)
+(make-keymap)
+    @result{} (keymap #^[t nil nil nil @dots{} nil nil keymap])
 @end group
 @end example
+
+A full keymap is more efficient than a sparse keymap when it holds
+lots of bindings; for just a few, the sparse keymap is better.
 @end defun
 
 @defun copy-keymap keymap
