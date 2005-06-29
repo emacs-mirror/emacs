@@ -444,24 +444,23 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
 	      ;; frame-notice-user-settings didn't (such as on a tty).
 	      ;; frame-set-background-mode is idempotent, so it won't
 	      ;; cause any harm if it's already been done.
-	      (let ((frame-background-mode frame-background-mode)
-		    (frame (selected-frame))
+	      (let ((frame (selected-frame))
 		    term)
 		(when (and (null window-system)
-			   ;; Don't override a possibly customized value.
-			   (null frame-background-mode)
-			   ;; Don't override user specifications.
-			   (null (frame-parameter frame 'reverse))
+			   ;; Don't override default set by files in lisp/term.
+			   (null default-frame-background-mode)
 			   (let ((bg (frame-parameter frame 'background-color)))
 			     (or (null bg)
-				 (member bg '(unspecified "unspecified-bg")))))
+				 (member bg '(unspecified "unspecified-bg"
+							  "unspecified-fg")))))
+
 		  (setq term (getenv "TERM"))
 		  ;; Some files in lisp/term do a better job with the
 		  ;; background mode, but we leave this here anyway, in
 		  ;; case they remove those files.
 		  (if (string-match "^\\(xterm\\|rxvt\\|dtterm\\|eterm\\)"
 				    term)
-		      (setq frame-background-mode 'light)))
+		      (setq default-frame-background-mode 'light)))
 		(frame-set-background-mode (selected-frame)))))
 
 	;; Now we know the user's default font, so add it to the menu.
