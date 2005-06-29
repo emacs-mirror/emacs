@@ -1,3 +1,17 @@
+2005-06-29  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (default-frame-background-mode): New internal variable.
+	(frame-set-background-mode): Use it.
+
+	* startup.el (normal-top-level): Set default-frame-background-mode
+	instead of frame-background-mode.  Before setting it, test for its
+	nil value.  Remove tests for frame-background-mode and frame
+	parameter `reverse'.  Add test for "unspecified-fg".
+
+	* term/xterm.el (xterm-rxvt-set-background-mode):
+	* term/rxvt.el (rxvt-set-background-mode):
+	Set default-frame-background-mode instead of frame-background-mode.
+
 2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* imenu.el (imenu--completion-buffer):
