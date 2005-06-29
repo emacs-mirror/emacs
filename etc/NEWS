@@ -1548,7 +1548,7 @@ must remove older versions of cua.el or cua-mode.el as well as the
 loading and customization of those packages from the .emacs file.
 
 +++
-** Org-mode is not part of the Emacs distribution
+** Org-mode is now part of the Emacs distribution
 
 Org-mode is a mode for keeping notes, maintaining ToDo lists, and doing
 project planning with a fast and effective plain-text system.  It also
