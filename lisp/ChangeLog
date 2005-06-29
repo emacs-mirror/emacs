@@ -1,3 +1,18 @@
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* imenu.el (imenu--completion-buffer):
+	* mouse.el (mouse-buffer-menu-alist):
+	* msb.el (msb-invisible-buffer-p):
+	* calendar/diary-lib.el (diary-header-line-format):
+	* emacs-lisp/pp.el (pp-buffer):
+	* progmodes/cperl-mode.el (cperl-do-auto-fill):
+	* textmodes/picture.el (picture-replace-match):
+	Change space constants followed by a sexp to "?\s ".
+
+	* play/decipher.el (decipher-loop-with-breaks):
+	* textmodes/texinfo.el (texinfo-insert-@item): Change space
+	constants "protected" from end of line by a comment to "?\s".
+
 2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* font-lock.el (save-buffer-state): Use `declare'.
@@ -9,7 +24,7 @@
 
 2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (orgtbl-setup): New function, for delayed
+	* textmodes/org.el (orgtbl-setup): New function, for delayed
 	setup for the orgtbl commands.
 	(org-calc-default-modes): New option.
 	(orgtbl-make-binding): Use `defun' to get better help display.
