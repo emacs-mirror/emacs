@@ -1,3 +1,7 @@
+2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.12
+
 2005-06-24  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Text Display): Change index entries.
