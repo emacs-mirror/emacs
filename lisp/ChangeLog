@@ -1,6 +1,11 @@
+2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* newcomment.el (comment-indent-default): Don't get fooled by an early
+	end of buffer.
+
 2005-06-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
 
-	* ps-print.el (ps-print-version): Fixed version number.
+	* ps-print.el (ps-print-version): Fix version number.
 
 2005-06-28  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -51,8 +56,8 @@
 	background color faces.
 	(facemenu-get-face): Delete function.
 	(facemenu-set-face-from-menu): Don't call facemenu-get-face.
-	(facemenu-add-new-color): Make second argument mandatory.  Create
-	the approprate face and return it.  Simplify.
+	(facemenu-add-new-color): Make second argument mandatory.
+	Create the approprate face and return it.  Simplify.
 	(facemenu-set-foreground, facemenu-set-background): Don't check if
 	color is defined.  Use return value of facemenu-add-new-color.
 
