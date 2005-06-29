@@ -2239,11 +2239,8 @@ the syntax of backslashes in F90 buffers.
 
 ---
 ** Reftex mode changes
-
-*** Changes to the table-of-contents feature
-
-Labels can be renamed globally from the table of contents using the
-key `M-%'.
++++
+*** Changes to RefTeX's table of contents
 
 The new command keys "<" and ">" in the TOC buffer promote/demote the
 section at point or all sections in the current region, with full
@@ -2258,25 +2255,29 @@ frame can show the TOC with the current section always automatically
 highlighted.  The frame is created and deleted from the toc buffer
 with the `d' key.
 
-The new command `reftex-goto-label' jumps directly to a label
-location.
-
 The toc window can be split off horizontally instead of vertically.
 See new option `reftex-toc-split-windows-horizontally'.
 
-*** Changes related to citations
+Labels can be renamed globally from the table of contents using the
+key `M-%'.
 
-Inserting citation commands now prompts for optional arguments when
+The new command `reftex-goto-label' jumps directly to a label
+location.
+
++++
+*** Changes related to citations and BibTeX database files
+
+Commands that insert a citation now prompt for optional arguments when
 called with a prefix argument.  Related new options are
 `reftex-cite-prompt-optional-args' and `reftex-cite-cleanup-optional-args'.
 
 The new command `reftex-create-bibtex-file' creates a BibTeX database
 with all entries referenced in the current document.  The keys "e" and
 "E" allow to produce a BibTeX database file from entries marked in a
-Citation selection buffer.
+citation selection buffer.
 
-`reftex-citation' uses the word before the cursor as a default search
-string.
+The command `reftex-citation' uses the word in the buffer before the
+cursor as a default search string.
 
 The support for chapterbib has been improved.  Different chapters can
 now use BibTeX or an explicit `thebibliography' environment.
@@ -2286,24 +2287,29 @@ can be configured with the new option `reftex-bibliography-commands'.
 
 Support for jurabib has been added.
 
-*** Changes to the Index support
++++
+*** Global index matched may be verified with a user function
 
 During global indexing, a user function can verify an index match.
 See new option `reftex-index-verify-function'.
 
++++
+*** Parsing documents with many labels can be sped up.
+
+Operating in a document with thousands of labels can be sped up
+considerably by allowing RefTeX to derive the type of a label directly
+from the label prefix like `eq:' or `fig:'.  The option
+`reftex-trust-label-prefix' needs to be configured in order to enable
+this feature.  While the speed-up is significant, this may reduce the
+quality of the context offered by RefTeX to describe a label.
+
++++
 *** Miscellaneous changes
 
 The macros which input a file in LaTeX (like \input, \include) can be
 configured in the new option `reftex-include-file-commands'.
 
 RefTeX supports global incremental search.
-
-Operating in a document with thousands of labels can be sped up
-considerably by allowing RefTeX to derive the type of a lable directly
-from the label prefix like `eq:' or `fig:'.  The option
-`reftex-trust-label-prefix' needs to be configured in order to enable
-this feature.  While the speed-up is significant, this may reduce the
-quality of the context offered by RefTeX to describe a label.
 
 +++
 ** Prolog mode has a new variable `prolog-font-lock-keywords'
