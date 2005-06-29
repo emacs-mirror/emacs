@@ -4355,7 +4355,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 fill-column)
       (let ((c (save-excursion (beginning-of-line)
 			       (cperl-to-comment-or-eol) (point)))
-	    (s (memq (following-char) '(?\ ?\t))) marker)
+	    (s (memq (following-char) '(?\s ?\t))) marker)
 	(if (>= c (point))
 	    ;; Don't break line inside code: only inside comment.
 	    nil
@@ -4366,11 +4366,11 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (if (bolp) (progn (re-search-forward "#+[ \t]*")
 			    (goto-char (match-end 0))))
 	  ;; Following space could have gone:
-	  (if (or (not s) (memq (following-char) '(?\ ?\t))) nil
+	  (if (or (not s) (memq (following-char) '(?\s ?\t))) nil
 	    (insert " ")
 	    (backward-char 1))
 	  ;; Previous space could have gone:
-	  (or (memq (preceding-char) '(?\ ?\t)) (insert " "))))))
+	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
 (defun cperl-imenu-addback (lst &optional isback name)
   ;; We suppose that the lst is a DAG, unless the first element only
