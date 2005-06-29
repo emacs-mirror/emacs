@@ -1516,7 +1516,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 	 (t
 	  '((cperl-load-font-lock-keywords
 	     cperl-load-font-lock-keywords-1
-	     cperl-load-font-lock-keywords-2)))))
+	     cperl-load-font-lock-keywords-2)
+            nil nil ((?_ . "w"))))))
   (make-local-variable 'cperl-syntax-state)
   (if cperl-use-syntax-table-text-property
       (progn
@@ -3840,7 +3841,11 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
       (and (buffer-modified-p)
 	   (not modified)
 	   (set-buffer-modified-p nil))
-      (set-syntax-table cperl-mode-syntax-table))
+      ;; I do not understand what this is doing here.  It breaks font-locking
+      ;; because it resets the syntax-table from font-lock-syntax-table to
+      ;; cperl-mode-syntax-table.
+      ;; (set-syntax-table cperl-mode-syntax-table)
+      )
     (car err-l)))
 
 (defun cperl-backward-to-noncomment (lim)
