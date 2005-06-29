@@ -1,3 +1,10 @@
+2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/cperl-mode.el (cperl-find-pods-heres): Don't gratuitously
+	reset the syntax-table to cperl-mode-syntax-table.
+	(cperl-mode): Make _ into word-syntax during font-locking so "print" in
+	"foo_print_bar" is not matched as a reserved keyword.
+
 2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: (orgtbl-setup): New function, for delayed
@@ -9,7 +16,7 @@
 	(org-agenda-day-view, org-agenda-week-view): New commands.
 	(org-agenda-toggle-week-view): Command removed.
 	(org-tbl-menu): Split off from org-org-menu.
-	(org-mode): Moved removal of outline-mode menus to here.
+	(org-mode): Move removal of outline-mode menus to here.
 	(org-table-formula-debug): New option.
 	(org-table-insert-row): Keep first field if just "#" or "*".
 	(org-mode): Paragraph regexps fixed.
@@ -19,8 +26,8 @@
 	(org-table-copy-region): Take region from `interactive' call.
 	(org-trim): Return string even if no match.
 	(org-formula): New face.
-	(org-set-font-lock-defaults): No longer highlight "FIXME".  But
-	highlight formula-related fields in table.
+	(org-set-font-lock-defaults): No longer highlight "FIXME".
+	But highlight formula-related fields in table.
 	(org-table-p): Use regexp, not fontification.
 	(org-table-align): Handle white space at end of line.
 	(org-table-formula-evaluate-inline): New option.
@@ -31,7 +38,7 @@
 	(org-table-store-formulas, org-table-get-stored-formulas)
 	(org-table-modify-formulas, org-table-replace-in-formulas)
 	(org-table-maybe-eval-formula): New functions.
-	(org-table-get-formula): Modified to use stored formulas.
+	(org-table-get-formula): Modify to use stored formulas.
 	(org-table-insert-column, org-table-delete-column)
 	(org-table-move-column): Call `org-table-modify-formulas'.
 	(org-complete): Add completion for keyword formulas.
@@ -39,6 +46,9 @@
 	minor-mode-map-alist.
 
 2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-check): Require `compile' before
+	modifying its variables.
 
 	* newcomment.el (comment-indent-default): Don't get fooled by an early
 	end of buffer.
