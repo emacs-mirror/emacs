@@ -1,5 +1,7 @@
 2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
 
+	* font-lock.el (save-buffer-state): Use `declare'.
+
 	* progmodes/cperl-mode.el (cperl-find-pods-heres): Don't gratuitously
 	reset the syntax-table to cperl-mode-syntax-table.
 	(cperl-mode): Make _ into word-syntax during font-locking so "print" in

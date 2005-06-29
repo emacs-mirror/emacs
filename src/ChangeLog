@@ -65,17 +65,16 @@
 	* xdisp.c (syms_of_xdisp) <nobreak-char-display>: Doc fix.
 	(syms_of_xdisp) <void-text-area-pointer>: Doc fix.
 
-	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on
-	MSDOS/Windows.
+	* fileio.c (Frename_file)[!DOS_NT]: Don't call chown on MSDOS/Windows.
 
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (get_next_display_element): Finish reversing the tests of
 	Vnobreak_char_display.
 
-	* xdisp.c (Vnobreak_char_display): Renamed from Vshow_nonbreak_escape.
+	* xdisp.c (Vnobreak_char_display): Rename from Vshow_nonbreak_escape.
 	All uses changed.
-	(Qnobreak_space): Renamed from Qno_break_space.  All uses changed.
+	(Qnobreak_space): Rename from Qno_break_space.  All uses changed.
 	(syms_of_xdisp): Define nobreak-char-display and nobreak-space.
 
 	* fileio.c (Frename_file): Preserve owner and group, if possible,
@@ -371,8 +370,7 @@
 
 2005-06-06  Eli Zaretskii  <eliz@gnu.org>
 
-	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR):
-	Remove macros.
+	* w32heap.h (OFFSET_TO_RVA, RVA_TO_OFFSET, RVA_TO_PTR): Remove macros.
 
 	* unexw32.c (RVA_TO_PTR): Move here from w32heap.h.
 
