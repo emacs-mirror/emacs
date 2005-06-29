@@ -1550,35 +1550,10 @@ loading and customization of those packages from the .emacs file.
 +++
 ** Org-mode is now part of the Emacs distribution
 
-Org-mode is a mode for keeping notes, maintaining ToDo lists, and doing
-project planning with a fast and effective plain-text system.  It also
-contains an amazing plain-text table editor with spreadsheet-like
+Org-mode is a mode for keeping notes, maintaining ToDo lists, and
+doing project planning with a fast and effective plain-text system.
+It also contains a plain-text table editor with spreadsheet-like
 capabilities.
-
-Org-mode develops organizational tasks around NOTES files that contain
-information about projects as plain text.  Org-mode is implemented on
-top of outline-mode, which makes it possible to keep the content of
-large files well structured.  Visibility cycling and structure editing
-help to work with the tree.  Tables are easily created with a built-in
-table editor.  Org-mode supports ToDo items, deadlines, time stamps,
-and scheduling.  It dynamically compiles entries into an agenda that
-utilizes and smoothly integrates much of the Emacs calendar and diary.
-Plain text URL-like links connect to websites, emails, usenet
-messages, BBDB entries, and any files related to the projects.  For
-printing and sharing of notes, an Org-mode file can be exported as a
-structured ASCII file, or as HTML.
-
-Org-mode keeps simple things simple.  Not every outline branch needs
-to be an action item, not every action item needs to have priority or
-scheduling information associated with it.  Org-mode can be used on
-different levels and in different ways, for example as
-
-  * an outline extension with visibility cycling and structure editing
-  * an ASCII system and table editor to take structured notes
-  * an ASCII table editor with some spreadsheet-like capabilities
-  * a simple hypertext system, with HTML export
-  * a TODO list editor
-  * a full agenda and planner with deadlines and work scheduling
 
 The Org-mode table editor can be integrated into any major mode by
 activating the minor Orgtbl-mode.
