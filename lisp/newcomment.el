@@ -502,7 +502,7 @@ Point is assumed to be just at the end of a comment."
 	   (or (match-end 1) (/= (current-column) (current-indentation))))
       0
     (when (or (/= (current-column) (current-indentation))
-	      (and (> comment-add 0) (looking-at "\\s<\\S<")))
+	      (and (> comment-add 0) (looking-at "\\s<\\(\\S<\\|\\'\\)")))
       comment-column)))
 
 ;;;###autoload
