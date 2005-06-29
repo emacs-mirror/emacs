@@ -1,3 +1,9 @@
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (user_variable_p_eh): New function.
+	(Fuser_variable_p): Use it.  Clarify docstring.
+	Return t for aliases of user options, nil for alias loops.
+
 2005-06-27  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (Fdefvar): Improve error message.
