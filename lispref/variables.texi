@@ -569,7 +569,7 @@ though being declared using @code{defcustom}@footnote{They may also be
 declared equivalently in @file{cus-start.el}.} or by the first character
 of their @code{variable-documentation} property.  If the property exists
 and is a string, and its first character is @samp{*}, then the variable
-is a user option.
+is a user option.  Aliases of user options are also user options.
 @end defun
 
 @kindex variable-interactive
