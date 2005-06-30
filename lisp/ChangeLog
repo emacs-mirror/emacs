@@ -1,3 +1,27 @@
+2005-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-extract): Make it work as a mouse binding.
+	(archive-mouse-extract): Make it an obsolete alias.
+	(archive-mode-map): Don't use archive-mouse-extract any more.
+	(archive-mode, archive-extract): write-contents-hooks ->
+	write-contents-functions.
+	(archive-arc-rename-entry, archive-lzh-rename-entry): Remove unused
+	first arg.
+	(archive-rename-entry): Update the call.
+	(archive-zip-summarize): Remove unused var `method'.
+	(archive-lzh-summarize): Remove unused var `creator'.
+
+	* emacs-lisp/debug.el (debug): Quieten Drew Adams.
+
+	* arc-mode.el: Bind inhibit-read-only rather than buffer-read-only.
+	(archive-zip-extract, archive-zip-expunge)
+	(archive-zip-update, archive-zip-update-case): Use executable-find.
+	(archive-resummarize, archive-flag-deleted, archive-unmark-all-files):
+	Use restore-buffer-modified-p.
+	(archive-extract, archive-add-new-member, archive-write-file-member):
+	Use with-current-buffer.
+	(archive-lzh-ogm, archive-zip-chmod-entry): Use dolist.
+
 2005-06-30  Andreas Schwab  <schwab@suse.de>
 
 	* progmodes/gud.el (gud-filter): Remove unneeded progn.
