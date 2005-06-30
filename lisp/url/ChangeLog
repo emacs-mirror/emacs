@@ -1,3 +1,25 @@
+2005-06-28  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-http.el (url-http-create-request): Call url-recreate-url
+	in proxy case.
+
+2005-06-27  Klaus Straubinger  <KSNetz@Arcor.DE>  (tiny change)
+
+	* url-http.el (url-http-create-request): When computing real-fname,
+	call url-filename in both cases.
+
+2005-06-27  Richard M. Stallman  <rms@gnu.org>
+
+	* url-cookie.el (url-cookie-store): Rename arg PATH to LOCALPART.
+	(url-cookie-retrieve): Likewise.
+	(url-cookie-generate-header-lines): Likewise.
+	(url-cookie-handle-set-cookie): Likewise.
+	(url-cookie-create): Expect :localpart instead of :path.
+	(url-cookie-localpart): Renamed from url-cookie-path.
+	(url-cookie-set-localpart): Renamed from url-cookie-set-path.
+	(url-cookie-file): Doc fix.
+	(url-cookie-p): Add doc string.
+
 2005-06-23  Richard M. Stallman  <rms@gnu.org>
 
 	* url-cookie.el (url-cookie-generate-header-lines): Fix autoload cookie.

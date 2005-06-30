@@ -290,7 +290,7 @@ The format of the header is specified by `diary-header-line-format'."
                      "Selective display active - press \"s\" in calendar \
 before edit/copy"
                    "Diary"))
-           ?\ (frame-width)))
+           ?\s (frame-width)))
   "*Format of the header line displayed by `simple-diary-display'.
 Only used if `diary-header-line-flag' is non-nil."
   :group   'diary

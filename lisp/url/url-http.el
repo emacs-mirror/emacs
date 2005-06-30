@@ -156,8 +156,7 @@ request.
 		       (let ((url-basic-auth-storage
 			      'url-http-proxy-basic-auth-storage))
 			 (url-get-authentication url nil 'any nil))))
-	 (real-fname (if proxy-obj (url-recreate-url proxy-obj)
-		       (url-filename url)))
+	 (real-fname (url-filename (or proxy-obj url)))
 	 (host (url-host (or proxy-obj url)))
 	 (auth (if (cdr-safe (assoc "Authorization" url-request-extra-headers))
 		   nil
@@ -200,7 +199,9 @@ request.
     (setq request
 	  (concat
 	   ;; The request
-	   (or url-request-method "GET") " " real-fname " HTTP/" url-http-version "\r\n"
+	   (or url-request-method "GET") " "
+	   (if proxy-obj (url-recreate-url proxy-obj) real-fname)
+	   " HTTP/" url-http-version "\r\n"
 	   ;; Version of MIME we speak
 	   "MIME-Version: 1.0\r\n"
 	   ;; (maybe) Try to keep the connection open

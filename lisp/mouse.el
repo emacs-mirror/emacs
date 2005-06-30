@@ -1857,7 +1857,7 @@ and selects that window."
 			    (string< (buffer-name elt1) (buffer-name elt2))))))
     (setq tail buffers)
     (while tail
-      (or (eq ?\ (aref (buffer-name (car tail)) 0))
+      (or (eq ?\s (aref (buffer-name (car tail)) 0))
 	  (setq maxlen
 		(max maxlen
 		     (length (buffer-name (car tail))))))

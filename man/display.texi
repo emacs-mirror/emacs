@@ -946,8 +946,9 @@ them), otherwise as escape sequences.  @xref{Single-Byte Character
 Support}.
 
 @vindex nobreak-char-display
-@cindex nobreak space, display
-@cindex nobreak hyphen, display
+@cindex no-break space, display
+@cindex no-break hyphen, display
+@cindex soft hyphen, display
   Some character sets define ``no-break'' versions of the space and
 hyphen characters, which are used where a line should not be broken.
 Emacs normally displays these characters with special faces
