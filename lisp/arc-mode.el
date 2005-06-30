@@ -131,7 +131,7 @@
   (make-temp-name
    (expand-file-name (if (eq system-type 'ms-dos) "ar" "archive.tmp")
 		     temporary-file-directory))
-  "*Directory for temporary files made by arc-mode.el"
+  "Directory for temporary files made by arc-mode.el."
   :type 'directory
   :group 'archive)
 
@@ -367,7 +367,7 @@ Archive and member name will be added."
       (substitute-key-definition 'undo 'archive-undo map global-map))
 
     (define-key map
-      (if (featurep 'xemacs) 'button2 [mouse-2]) 'archive-mouse-extract)
+      (if (featurep 'xemacs) 'button2 [mouse-2]) 'archive-extract)
 
     (if (featurep 'xemacs)
         ()				; out of luck
@@ -633,8 +633,7 @@ archive.
 
 	;; Remote archives are not written by a hook.
 	(if archive-remote nil
-	  (make-local-variable 'write-contents-hooks)
-	  (add-hook 'write-contents-hooks 'archive-write-file))
+	  (add-hook 'write-contents-functions 'archive-write-file nil t))
 
 	(make-local-variable 'require-final-newline)
 	(setq require-final-newline nil)
@@ -747,19 +746,18 @@ when parsing the archive."
    (apply
     (function concat)
     (mapcar
-     (function
-      (lambda (fil)
-	;; Using `concat' here copies the text also, so we can add
-	;; properties without problems.
-	(let ((text (concat (aref fil 0) "\n")))
-	  (if (featurep 'xemacs)
-	      ()			; out of luck
-	    (add-text-properties
-	     (aref fil 1) (aref fil 2)
-	     '(mouse-face highlight
-	       help-echo "mouse-2: extract this file into a buffer")
-	     text))
-	  text)))
+     (lambda (fil)
+       ;; Using `concat' here copies the text also, so we can add
+       ;; properties without problems.
+       (let ((text (concat (aref fil 0) "\n")))
+         (if (featurep 'xemacs)
+             ()                         ; out of luck
+           (add-text-properties
+            (aref fil 1) (aref fil 2)
+            '(mouse-face highlight
+              help-echo "mouse-2: extract this file into a buffer")
+            text))
+         text))
      files)))
   (setq archive-file-list-end (point-marker)))
 
@@ -894,18 +892,12 @@ using `make-temp-file', and the generated name is returned."
       (kill-local-variable 'buffer-file-coding-system)
       (after-insert-file-set-coding (- (point-max) (point-min))))))
 
-(defun archive-mouse-extract (event)
-  "Extract a file whose name you click on."
-  (interactive "e")
-  (mouse-set-point event)
-  (switch-to-buffer
-   (save-excursion
-     (archive-extract)
-     (current-buffer))))
+(define-obsolete-function-alias 'archive-mouse-extract 'archive-extract "22.1")
 
-(defun archive-extract (&optional other-window-p)
+(defun archive-extract (&optional other-window-p event)
   "In archive mode, extract this entry of the archive into its own buffer."
-  (interactive)
+  (interactive (list nil last-input-event))
+  (if event (mouse-set-point event))
   (let* ((view-p (eq other-window-p 'view))
 	 (descr (archive-get-descr))
          (ename (aref descr 0))
@@ -937,8 +929,7 @@ using `make-temp-file', and the generated name is returned."
           (setq default-directory arcdir)
           (make-local-variable 'archive-superior-buffer)
           (setq archive-superior-buffer archive-buffer)
-          (make-local-variable 'local-write-file-hooks)
-          (add-hook 'local-write-file-hooks 'archive-write-file-member)
+          (add-hook 'write-file-functions 'archive-write-file-member nil t)
           (setq archive-subfile-mode descr)
 	  (if (and
 	       (null
@@ -972,26 +963,22 @@ using `make-temp-file', and the generated name is returned."
 	    (setq buffer-saved-size (buffer-size))
 	    (normal-mode)
 	    ;; Just in case an archive occurs inside another archive.
-	    (if (eq major-mode 'archive-mode)
-		(progn
-		  (setq archive-remote t)
-		  (if read-only-p (setq archive-read-only t))
-		  ;; We will write out the archive ourselves if it is
-		  ;; part of another archive.
-		  (remove-hook 'write-contents-hooks 'archive-write-file t)))
-	    (run-hooks 'archive-extract-hooks)
+	    (when (derived-mode-p 'archive-mode)
+              (setq archive-remote t)
+              (if read-only-p (setq archive-read-only t))
+              ;; We will write out the archive ourselves if it is
+              ;; part of another archive.
+              (remove-hook 'write-contents-functions 'archive-write-file t))
+            (run-hooks 'archive-extract-hooks)
 	    (if archive-read-only
 		(message "Note: altering this archive is not implemented."))))
 	(archive-maybe-update t))
       (or (not (buffer-name buffer))
-	  (progn
-	    (if view-p
-		(view-buffer buffer (and just-created 'kill-buffer))
-	      (if (eq other-window-p 'display)
-		  (display-buffer buffer)
-		(if other-window-p
-		    (switch-to-buffer-other-window buffer)
-		  (switch-to-buffer buffer))))))))
+          (cond
+           (view-p (view-buffer buffer (and just-created 'kill-buffer)))
+           ((eq other-window-p 'display) (display-buffer buffer))
+           (other-window-p (switch-to-buffer-other-window buffer))
+           (t (switch-to-buffer buffer))))))
 
 (defun archive-*-extract (archive name command)
   (let* ((default-directory (file-name-as-directory archive-tmpdir))
@@ -1298,7 +1285,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
 	 (append (cdr command) (cons archive files))))
 
 (defun archive-rename-entry (newname)
-  "Change the name associated with this entry in the tar file."
+  "Change the name associated with this entry in the archive file."
   (interactive "sNew name: ")
   (if archive-read-only (error "Archive is read-only"))
   (if (string= newname "")
@@ -1307,7 +1294,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
 	(descr (archive-get-descr)))
     (if (fboundp func)
         (progn
-	  (funcall func (buffer-file-name)
+	  (funcall func
 		   (if enable-multibyte-characters
 		       (encode-coding-string newname file-name-coding-system)
 		     newname)
@@ -1383,7 +1370,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	      "\n"))
     (apply 'vector (nreverse files))))
 
-(defun archive-arc-rename-entry (archive newname descr)
+(defun archive-arc-rename-entry (newname descr)
   (if (string-match "[:\\\\/]" newname)
       (error "File names in arc files must not contain a directory component"))
   (if (> (length newname) 12)
@@ -1417,7 +1404,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (time2   (archive-l-e (+ p 17) 2))	;and UNIX format in level 2 header.)
 	     (hdrlvl  (char-after (+ p 20))) ;header level
 	     thsize		;total header size (base + extensions)
-	     fnlen efnname fiddle ifnname width p2 creator
+	     fnlen efnname fiddle ifnname width p2
 	     neh	;beginning of next extension header (level 1 and 2)
 	     mode modestr uid gid text dir prname
 	     gname uname modtime moddate)
@@ -1430,13 +1417,9 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 			  (string-as-multibyte str))))
 	  (setq p2      (+ p 22 fnlen))) ;
 	(if (= hdrlvl 1)
-	    (progn		;specific to level 1 header
-	      (setq creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	      (setq neh (+ p2 3)))
+            (setq neh (+ p2 3))         ;specific to level 1 header
 	  (if (= hdrlvl 2)
-	      (progn		;specific to level 2 header
-		(setq creator (char-after (+ p 23)) )
-		(setq neh (+ p 24)))))
+              (setq neh (+ p 24))))     ;specific to level 2 header
 	(if neh		;if level 1 or 2 we expect extension headers to follow
 	    (let* ((ehsize (archive-l-e neh 2))	;size of the extension header
 		   (etype (char-after (+ neh 2)))) ;extension type
@@ -1552,7 +1535,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	    p (1+ p)))
     (logand sum 255)))
 
-(defun archive-lzh-rename-entry (archive newname descr)
+(defun archive-lzh-rename-entry (newname descr)
   (save-restriction
     (save-excursion
       (widen)
@@ -1606,7 +1589,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 (defun archive-lzh-chmod-entry (newmode files)
   (archive-lzh-ogm
    ;; This should work even though newmode will be dynamically accessed.
-   (function (lambda (old) (archive-calc-mode old newmode t)))
+   (lambda (old) (archive-calc-mode old newmode t))
    files "a unix-style mode" 8))
 ;; -------------------------------------------------------------------------
 ;; Section: Zip Archives
@@ -1621,7 +1604,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	visual)
     (while (string= "PK\001\002" (buffer-substring p (+ p 4)))
       (let* ((creator (char-after (+ p 5)))
-	     (method  (archive-l-e (+ p 10) 2))
+	     ;; (method  (archive-l-e (+ p 10) 2))
              (modtime (archive-l-e (+ p 12) 2))
              (moddate (archive-l-e (+ p 14) 2))
              (ucsize  (archive-l-e (+ p 24) 4))
