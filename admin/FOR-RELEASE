@@ -28,11 +28,9 @@ To be done by Andre Spiegel <spiegel@gnu.org>.
 ** Update vhdl-mode.el based on changes in
    http://opensource.ethz.ch/emacs/vhdl-mode.html.
 
+** Debug custom themes.
 
 * FATAL ERRORS
-
-** Make unexec handle memory mapping policy of the latest versions of Linux.
-This includes exec_shield and a memory-layout randomization feature.
 
 ** Investigate reported crashes in compact_small_strings.
 
