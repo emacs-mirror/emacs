@@ -1045,10 +1045,10 @@ See also `multi-occur'."
 	  (if (> count 0)
 	      (progn
 		(display-buffer occur-buf)
-		(setq next-error-last-buffer occur-buf))
+		(setq next-error-last-buffer occur-buf)
+                (setq buffer-read-only t)
+                (set-buffer-modified-p nil))
 	    (kill-buffer occur-buf)))
-        (setq buffer-read-only t)
-        (set-buffer-modified-p nil)
 	(run-hooks 'occur-hook)))))
 
 (defun occur-engine-add-prefix (lines)
