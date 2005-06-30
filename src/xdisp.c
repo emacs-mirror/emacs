@@ -22400,6 +22400,9 @@ x_draw_vertical_border (w)
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
 
+      if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	x1 -= 1;
+
       rif->draw_vertical_window_border (w, x1, y0, y1);
     }
   else if (!WINDOW_LEFTMOST_P (w)
@@ -22409,6 +22412,9 @@ x_draw_vertical_border (w)
 
       window_box_edges (w, -1, &x0, &y0, &x1, &y1);
       y1 -= 1;
+
+      if (WINDOW_LEFT_FRINGE_WIDTH (w) == 0)
+	x0 -= 1;
 
       rif->draw_vertical_window_border (w, x0, y0, y1);
     }
