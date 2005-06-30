@@ -1,3 +1,21 @@
+2005-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/cua-base.el (cua-check-pending-input)
+	(cua-repeat-replace-region, cua-mode, cua-debug)
+	(cua-auto-tabify-rectangles, cua-inhibit-cua-keys):
+	Fix typos in docstrings.
+
+	* emulation/cua-gmrk.el (cua-toggle-global-mark)
+	(cua-cut-region-to-global-mark)
+	(cua--cut-rectangle-to-global-mark):
+	Remove period from end of messages.
+
+	* emulation/cua-rect.el (cua-do-rectangle-padding):
+	Remove period from end of messages.
+	(cua--rectangle-seq-format): Fix typo in docstring.
+	(cua-sequence-rectangle, cua-fill-char-rectangle):
+	Improve argument/docstring consistency.
+
 2005-06-29  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (default-frame-background-mode): New internal variable.
