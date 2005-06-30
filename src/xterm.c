@@ -6287,6 +6287,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (compose_status.chars_matched > 0 && nbytes == 0)
             break;
 
+          bzero (&compose_status, sizeof (compose_status));
           orig_keysym = keysym;
 
 	  /* Common for all keysym input events.  */
