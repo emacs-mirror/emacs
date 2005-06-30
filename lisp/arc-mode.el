@@ -218,11 +218,10 @@ Archive and member name will be added."
 ;; Zip archive configuration
 
 (defcustom archive-zip-extract
-  (if (locate-file "unzip" nil 'file-executable-p)
-      '("unzip" "-qq" "-c")
-    (if (locate-file "pkunzip" nil 'file-executable-p)
-	'("pkunzip" "-e" "-o-")
-      '("unzip" "-qq" "-c")))
+  (if (and (not (executable-find "unzip"))
+           (executable-find "pkunzip"))
+      '("pkunzip" "-e" "-o-")
+    '("unzip" "-qq" "-c"))
   "*Program and its options to run in order to extract a zip file member.
 Extraction should happen to standard output.  Archive and member name will
 be added.  If `archive-zip-use-pkzip' is non-nil then this program is
@@ -239,11 +238,10 @@ expected to extract to a file junking the directory part of the name."
 ;; names.
 
 (defcustom archive-zip-expunge
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-d" "-q")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-d")
-      '("zip" "-d" "-q")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-d")
+    '("zip" "-d" "-q"))
   "*Program and its options to run in order to delete zip file members.
 Archive and member names will be added."
   :type '(list (string :tag "Program")
@@ -253,11 +251,10 @@ Archive and member names will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-q")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-u" "-P")
-      '("zip" "-q")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-u" "-P")
+    '("zip" "-q"))
   "*Program and its options to run in order to update a zip file member.
 Options should ensure that specified directory will be put into the zip
 file.  Archive and member name will be added."
@@ -268,11 +265,10 @@ file.  Archive and member name will be added."
   :group 'archive-zip)
 
 (defcustom archive-zip-update-case
-  (if (locate-file "zip" nil 'file-executable-p)
-      '("zip" "-q" "-k")
-    (if (locate-file "pkzip" nil 'file-executable-p)
-	 '("pkzip" "-u" "-P")
-      '("zip" "-q" "-k")))
+  (if (and (not (executable-find "zip"))
+           (executable-find "pkzip"))
+      '("pkzip" "-u" "-P")
+    '("zip" "-q" "-k"))
   "*Program and its options to run in order to update a case fiddled zip member.
 Options should ensure that specified directory will be put into the zip file.
 Archive and member name will be added."
@@ -715,7 +711,7 @@ Optional argument SHUT-UP, if non-nil, means don't print messages
 when parsing the archive."
   (widen)
   (set-buffer-multibyte nil)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (or shut-up
 	(message "Parsing archive file..."))
     (buffer-disable-undo (current-buffer))
@@ -733,11 +729,11 @@ when parsing the archive."
   "Recreate the contents listing of an archive."
   (let ((modified (buffer-modified-p))
 	(no (archive-get-lineno))
-	buffer-read-only)
+	(inhibit-read-only t))
     (widen)
     (delete-region (point-min) archive-proper-file-start)
     (archive-summarize t)
-    (set-buffer-modified-p modified)
+    (restore-buffer-modified-p modified)
     (goto-char archive-file-list-start)
     (archive-next-line no)))
 
@@ -832,7 +828,7 @@ using `make-temp-file', and the generated name is returned."
 	    (modified (buffer-modified-p))
 	    (coding-system-for-read 'no-conversion)
 	    (lno (archive-get-lineno))
-	    buffer-read-only)
+	    (inhibit-read-only t))
 	(if unchanged nil
 	  (setq archive-files nil)
 	  (erase-buffer)
@@ -932,8 +928,7 @@ using `make-temp-file', and the generated name is returned."
 	(setq archive (archive-maybe-copy archive))
         (setq buffer (get-buffer-create bufname))
         (setq just-created t)
-        (save-excursion
-          (set-buffer buffer)
+        (with-current-buffer buffer
           (setq buffer-file-name
                 (expand-file-name (concat arcname ":" iname)))
           (setq buffer-file-truename
@@ -1056,11 +1051,10 @@ using `make-temp-file', and the generated name is returned."
 	  (read-buffer "Buffer containing archive: "
 		       ;; Find first archive buffer and suggest that
 		       (let ((bufs (buffer-list)))
-			 (while (and bufs (not (eq (save-excursion
-						     (set-buffer (car bufs))
-						     major-mode)
-						   'archive-mode)))
-			   (setq bufs (cdr bufs)))
+			 (while (and bufs
+                                     (not (with-current-buffer (car bufs)
+                                            (derived-mode-p 'archive-mode))))
+                           (setq bufs (cdr bufs)))
 			 (if bufs
 			     (car bufs)
 			   (error "There are no archive buffers")))
@@ -1069,8 +1063,7 @@ using `make-temp-file', and the generated name is returned."
 		      (if buffer-file-name
 			  (file-name-nondirectory buffer-file-name)
 			""))))
-  (save-excursion
-    (set-buffer arcbuf)
+  (with-current-buffer arcbuf
     (or (eq major-mode 'archive-mode)
 	(error "Buffer is not an archive buffer"))
     (if archive-read-only
@@ -1079,12 +1072,11 @@ using `make-temp-file', and the generated name is returned."
       (error "An archive buffer cannot be added to itself"))
   (if (string= name "")
       (error "Archive members may not be given empty names"))
-  (let ((func (save-excursion (set-buffer arcbuf)
-			      (archive-name "add-new-member")))
+  (let ((func (with-current-buffer arcbuf
+                (archive-name "add-new-member")))
 	(membuf (current-buffer)))
     (if (fboundp func)
-	(save-excursion
-	  (set-buffer arcbuf)
+	(with-current-buffer arcbuf
 	  (funcall func buffer-file-name membuf name))
       (error "Adding a new member is not supported for this archive type"))))
 ;; -------------------------------------------------------------------------
@@ -1095,10 +1087,10 @@ using `make-temp-file', and the generated name is returned."
     (save-restriction
       (message "Updating archive...")
       (widen)
-      (let ((writer  (save-excursion (set-buffer archive-superior-buffer)
-				     (archive-name "write-file-member")))
-	    (archive (save-excursion (set-buffer archive-superior-buffer)
-				     (archive-maybe-copy (buffer-file-name)))))
+      (let ((writer  (with-current-buffer archive-superior-buffer
+                       (archive-name "write-file-member")))
+	    (archive (with-current-buffer archive-superior-buffer
+                       (archive-maybe-copy (buffer-file-name)))))
 	(if (fboundp writer)
 	    (funcall writer archive archive-subfile-mode)
 	  (archive-*-write-file-member archive
@@ -1167,7 +1159,7 @@ With a prefix argument, mark that many files."
   (beginning-of-line)
   (let ((sign (if (>= p 0) +1 -1))
 	(modified (buffer-modified-p))
-        buffer-read-only)
+        (inhibit-read-only t))
     (while (not (zerop p))
       (if (archive-get-descr t)
           (progn
@@ -1175,7 +1167,7 @@ With a prefix argument, mark that many files."
             (insert type)))
       (forward-line sign)
       (setq p (- p sign)))
-    (set-buffer-modified-p modified))
+    (restore-buffer-modified-p modified))
   (archive-next-line 0))
 
 (defun archive-unflag (p)
@@ -1194,14 +1186,14 @@ With a prefix argument, un-mark that many members backward."
   "Remove all marks."
   (interactive)
   (let ((modified (buffer-modified-p))
-	buffer-read-only)
+	(inhibit-read-only t))
     (save-excursion
       (goto-char archive-file-list-start)
       (while (< (point) archive-file-list-end)
         (or (= (following-char) ? )
             (progn (delete-char 1) (insert ? )))
         (forward-line 1)))
-    (set-buffer-modified-p modified)))
+    (restore-buffer-modified-p modified)))
 
 (defun archive-mark (p)
   "In archive mode, mark this member for group operations.
@@ -1339,7 +1331,7 @@ as a relative change like \"g+rw\" as for chmod(2)"
   "Undo in an archive buffer.
 This doesn't recover lost files, it just undoes changes in the buffer itself."
   (interactive)
-  (let (buffer-read-only)
+  (let ((inhibit-read-only t))
     (undo)))
 ;; -------------------------------------------------------------------------
 ;; Section: Arc Archives
@@ -1398,7 +1390,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
       (error "File names in arc files are limited to 12 characters"))
   (let ((name (concat newname (substring "\0\0\0\0\0\0\0\0\0\0\0\0\0"
 					 (length newname))))
-	buffer-read-only)
+	(inhibit-read-only t))
     (save-restriction
       (save-excursion
 	(widen)
@@ -1570,7 +1562,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	     (oldfnlen (char-after (+ p 21)))
 	     (newfnlen (length newname))
 	     (newhsize (+ oldhsize newfnlen (- oldfnlen)))
-	     buffer-read-only)
+	     (inhibit-read-only t))
 	(if (> newhsize 255)
 	    (error "The file name is too long"))
 	(goto-char (+ p 21))
@@ -1585,14 +1577,13 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-excursion
       (widen)
       (set-buffer-multibyte nil)
-      (while files
-	(let* ((fil (car files))
-	       (p (+ archive-proper-file-start (aref fil 4)))
+      (dolist (fil files)
+	(let* ((p (+ archive-proper-file-start (aref fil 4)))
 	       (hsize   (char-after p))
 	       (fnlen   (char-after (+ p 21)))
 	       (p2      (+ p 22 fnlen))
 	       (creator (if (>= (- hsize fnlen) 24) (char-after (+ p2 2)) 0))
-	       buffer-read-only)
+	       (inhibit-read-only t))
 	  (if (= creator ?U)
 	      (progn
 		(or (numberp newval)
@@ -1604,8 +1595,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 		(delete-char 1)
 		(insert (archive-lzh-resum (1+ p) hsize)))
 	    (message "Member %s does not have %s field"
-		     (aref fil 1) errtxt)))
-	(setq files (cdr files))))))
+		     (aref fil 1) errtxt)))))))
 
 (defun archive-lzh-chown-entry (newuid files)
   (archive-lzh-ogm newuid files "an uid" 10))
@@ -1709,13 +1699,12 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
     (save-excursion
       (widen)
       (set-buffer-multibyte nil)
-      (while files
-	(let* ((fil (car files))
-	       (p (+ archive-proper-file-start (car (aref fil 4))))
+      (dolist (fil files)
+	(let* ((p (+ archive-proper-file-start (car (aref fil 4))))
 	       (creator (char-after (+ p 5)))
 	       (oldmode (aref fil 3))
 	       (newval  (archive-calc-mode oldmode newmode t))
-	       buffer-read-only)
+	       (inhibit-read-only t))
 	  (cond ((memq creator '(2 3)) ; Unix + VMS
 		 (goto-char (+ p 40))
 		 (delete-char 2)
@@ -1726,7 +1715,7 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 				 (logand (logxor 1 (lsh newval -7)) 1)))
 		 (delete-char 1))
 		(t (message "Don't know how to change mode for this member"))))
-	(setq files (cdr files))))))
+        ))))
 ;; -------------------------------------------------------------------------
 ;; Section: Zoo Archives
 
