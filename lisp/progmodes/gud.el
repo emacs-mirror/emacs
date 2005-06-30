@@ -4,7 +4,7 @@
 ;; Maintainer: FSF
 ;; Keywords: unix, tools
 
-;; Copyright (C) 1992,93,94,95,96,1998,2000,02,03,04 Free Software Foundation, Inc.
+;; Copyright (C) 1992,93,94,95,96,1998,2000,02,03,04,05 Free Software Foundation, Inc.
 
 ;; This file is part of GNU Emacs.
 
@@ -2534,9 +2534,8 @@ It is saved for when this flag is not set.")
 	    ;; This must be outside of the save-excursion
 	    ;; in case the source file is our current buffer.
 	    (if process-window
-		(progn
 		(with-selected-window process-window
-		  (gud-display-frame)))
+		  (gud-display-frame))
 	      ;; We have to be in the proper buffer, (process-buffer proc),
 	      ;; but not in a save-excursion, because that would restore point.
 	      (with-current-buffer (process-buffer proc)
