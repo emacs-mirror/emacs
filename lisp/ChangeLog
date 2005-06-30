@@ -1,5 +1,8 @@
 2005-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* help-fns.el (help-do-arg-highlight): Highlight also -ARG (for
+	example, -NLINES in the `occur' docstring).
+
 	* replace.el (occur-1): When no matches are found, do not set the
 	`buffer-read-only' and modified flags for the occur buffer,
 	because it is deleted.
