@@ -2005,14 +2005,20 @@ turn_on_face (f, face_id)
 
       if (fg >= 0 && TS_set_foreground)
 	{
-	  p = tparam (TS_set_foreground, NULL, 0, (int) fg);
+	  if (standout_mode)
+	    p = tparam (TS_set_background, NULL, 0, (int) fg);
+	  else
+	    p = tparam (TS_set_foreground, NULL, 0, (int) fg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
 
       if (bg >= 0 && TS_set_background)
 	{
-	  p = tparam (TS_set_background, NULL, 0, (int) bg);
+	  if (standout_mode)
+	    p = tparam (TS_set_foreground, NULL, 0, (int) bg);
+	  else
+	    p = tparam (TS_set_background, NULL, 0, (int) bg);
 	  OUTPUT (p);
 	  xfree (p);
 	}
