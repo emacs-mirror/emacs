@@ -1,3 +1,7 @@
+2005-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/gud.el (gud-filter): Remove unneeded progn.
+
 2005-06-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
 
 	* progmodes/sh-script.el (sh-get-kw): `&' also separates words.
