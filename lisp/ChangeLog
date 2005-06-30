@@ -1,5 +1,9 @@
 2005-06-30  Juanma Barranquero  <lekktu@gmail.com>
 
+	* replace.el (occur-1): When no matches are found, do not set the
+	`buffer-read-only' and modified flags for the occur buffer,
+	because it is deleted.
+
 	* emulation/cua-base.el (cua-check-pending-input)
 	(cua-repeat-replace-region, cua-mode, cua-debug)
 	(cua-auto-tabify-rectangles, cua-inhibit-cua-keys):
