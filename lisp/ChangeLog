@@ -1,3 +1,7 @@
+2005-06-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-get-kw): `&' also separates words.
+
 2005-06-30  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (vertical-border): Inherit from mode-line-inactive
