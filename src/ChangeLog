@@ -1,3 +1,16 @@
+2005-06-30  Juri Linkov  <juri@jurta.org>
+
+	* xdisp.c (x_draw_vertical_border): If left fringe is not present
+	decrease x coord of vertical border by 1 pixel to not occupy text
+	area of the right window.
+
+	* xterm.c (x_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+
+	* term.c (turn_on_face): In standout mode apply specified
+	fg to bg, and specified bg to fg (this makes the logic of
+	inversion on terminal consistent with X).
+
 2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (user_variable_p_eh): New function.
