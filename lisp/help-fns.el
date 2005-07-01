@@ -277,7 +277,7 @@ face (according to `face-differs-from-default-p')."
                    (concat "\\<"                   ; beginning of word
                            "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
                            "\\("
-                           arg
+                           (regexp-quote arg)
                            "\\)"
                            "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
                            "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx
