@@ -390,7 +390,7 @@ Return t if so, nil if not."
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all possible master files.
-Master files are .cpp and .c for and .h. Files are searched for
+Master files are .cpp and .c for and .h.  Files are searched for
 starting from the .h directory and max max-level parent dirs.
 File contents are not checked."
   (let* ((dirs master-file-dirs)
@@ -423,9 +423,9 @@ File contents are not checked."
     files))
 
 (defun flymake-master-file-compare (file-one file-two)
-  "Compare two files speccified by FILE-ONE and FILE-TWO.
+  "Compare two files specified by FILE-ONE and FILE-TWO.
 This function is used in sort to move most possible file names
-to the beginning of the list (File.h -> File.cpp moved to top."
+to the beginning of the list (File.h -> File.cpp moved to top)."
   (and (equal (file-name-sans-extension flymake-included-file-name)
 	      (file-name-sans-extension (file-name-nondirectory file-one)))
        (not (equal file-one file-two))))
@@ -750,7 +750,7 @@ It's flymake process filter."
 
 (defun flymake-get-line-err-count (line-err-info-list type)
   "Return number of errors of specified TYPE.
-Value of TYPE is eigher e or w."
+Value of TYPE is either \"e\" or \"w\"."
   (let* ((idx        0)
 	 (count      (length line-err-info-list))
 	 (err-count  0))
@@ -859,7 +859,7 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.
-Perhaps use text from LINE-ERR-INFO-ILST to enhance highlighting."
+Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-line line-no)
   (let* ((line-beg (flymake-line-beginning-position))
 	 (line-end (flymake-line-end-position))
@@ -995,8 +995,8 @@ from compile.el")
 ;;)
 
 (defun flymake-parse-line (line)
-  "Parse LINE to see if it is an error of warning.
-Return its components if so, nil if no."
+  "Parse LINE to see if it is an error or warning.
+Return its components if so, nil otherwise."
   (let ((raw-file-name nil)
 	(line-no 0)
 	(err-type "e")
@@ -1110,7 +1110,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
       inc-dirs)))
 
 (defcustom flymake-get-project-include-dirs-function 'flymake-get-project-include-dirs-imp
-  "Function used to get project inc dirs, one paramater: basedir name."
+  "Function used to get project include dirs, one parameter: basedir name."
   :group 'flymake
   :type 'function)
 
@@ -1139,7 +1139,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
     include-dirs))
 
 (defun flymake-find-file (rel-file-name include-dirs)
-  "Iterate through include-dirs to find file REL-FILE-NAME.
+  "Iterate through INCLUDE-DIRS to find file REL-FILE-NAME.
 Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if not."
   (let* ((count          (length include-dirs))
 	 (idx            0)
@@ -1366,7 +1366,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
       (flymake-log 1 "no errors for line %d" line-no))))
 
 (defun flymake-make-err-menu-data (line-no line-err-info-list)
-  "Make a (menu-title (item-title item-action)*) list with errors/warnings from line-err-info."
+  "Make a (menu-title (item-title item-action)*) list with errors/warnings from LINE-ERR-INFO-LIST."
   (let* ((menu-items  nil))
     (when line-err-info-list
       (let* ((count           (length line-err-info-list))
@@ -1431,7 +1431,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (message-box warning))
 
 (defcustom flymake-gui-warnings-enabled t
-  "Enables/disables gui warnings."
+  "Enables/disables GUI warnings."
   :group 'flymake
   :type 'boolean)
 
@@ -1557,7 +1557,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
 	  (flymake-er-get-line (nth idx err-info-list))))))
 
 (defun flymake-get-prev-err-line-no (err-info-list line-no)
-  "Return prev line with error."
+  "Return previous line with error."
   (when err-info-list
     (let* ((count (length err-info-list)))
       (while (and (> count 0) (<= line-no (flymake-er-get-line (nth (1- count) err-info-list))))
@@ -1587,7 +1587,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
       (flymake-log 1 "no errors in current buffer"))))
 
 (defun flymake-goto-prev-error ()
-  "Go to prev error in err ring."
+  "Go to previous error in err ring."
   (interactive)
   (let ((line-no (flymake-get-prev-err-line-no flymake-err-info (flymake-current-line-no))))
     (when (not line-no)
