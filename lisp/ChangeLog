@@ -1,3 +1,13 @@
+2005-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/crm.el (crm-do-completion): Handle minibuffer prompt.
+	(crm-find-current-element): Likewise.
+
+2005-06-30  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
+
+	* help-fns.el (help-do-arg-highlight): Regexp-quote argument
+	names.
+
 2005-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* arc-mode.el (archive-extract): Make it work as a mouse binding.
