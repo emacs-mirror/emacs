@@ -197,9 +197,10 @@ If an element is found, bind:
    respectively,
 
 and return t."
-  (let* ((minibuffer-string (buffer-string))
-	 (end-index (or (string-match "," minibuffer-string (1- (point)))
-			(1- (point-max))))
+  (let* ((prompt-end (minibuffer-prompt-end))
+	 (minibuffer-string (buffer-substring prompt-end (point-max)))
+	 (end-index (or (string-match "," minibuffer-string (- (point) prompt-end))
+			(- (point-max) prompt-end)))
 	 (target-string (substring minibuffer-string 0 end-index))
 	 (index (or (string-match
 		     (concat crm-separator "\\([^" crm-separator "]*\\)$")
@@ -215,7 +216,8 @@ and return t."
 	(setq crm-beginning-of-element (match-beginning 1))
 	(setq crm-end-of-element end-index)
 	;; string to the left of the current element
-	(setq crm-left-of-element (substring target-string 0 (match-beginning 1)))
+	(setq crm-left-of-element
+	      (substring target-string 0 (match-beginning 1)))
 	;; the current element
 	(setq crm-current-element (match-string 1 target-string))
 	;; string to the right of the current element
@@ -287,7 +289,7 @@ The meanings of the return values are:
 
 	(if completedp
 	    (progn
-	      (erase-buffer)
+	      (delete-region (minibuffer-prompt-end) (point-max))
 	      (insert crm-left-of-element completion)
 	      ;;		(if crm-complete-up-to-point
 	      ;;		    (insert crm-separator))
