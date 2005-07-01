@@ -1,3 +1,14 @@
+2005-07-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (cleartype_active): New flag for enabling sub-pixel
+	workaround.
+	(w32_initialize): Initialize it.
+	(w32_native_per_char_metric): Allow a couple of extra pixels when
+	Cleartype is active.
+
+	* w32term.c (w32_initialize): Move check for screen reader here
+	from syms_of_w32term.
+
 2005-06-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xterm.c (handle_one_xevent): bzero compose_status when nbytes
