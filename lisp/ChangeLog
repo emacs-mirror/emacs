@@ -1,3 +1,43 @@
+2005-07-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-agenda-start-on-weekday)
+	(org-calendar-to-agenda-key, org-agenda-sorting-strategy)
+	(org-agenda-use-time-grid, org-archive-location)
+	(org-allow-space-in-links, org-usenet-links-prefer-google)
+	(org-enable-table-editor, org-export-default-language)
+	(org-export-html-show-new-buffer, org-fill-paragraph)
+	(org-cycle, org-goto-ret, org-goto-left, org-goto-right)
+	(org-goto-quit, org-occur, org-eval-in-calendar)
+	(org-agenda-cleanup-fancy-diary, org-agenda-no-heading-message)
+	(org-agenda-diary-entry, org-remember-help)
+	(org-table-convert-region, org-at-table-p)
+	(org-table-move-row-down, org-table-move-row-up)
+	(org-table-copy-region, org-table-toggle-vline-visibility)
+	(org-table-get-stored-formulas, org-table-get-specials)
+	(org-recalc-commands, org-table-eval-formula)
+	(org-table-formula-substitute-names, orgtbl-make-binding)
+	(org-format-org-table-html, org-format-table-table-html)
+	(org-format-table-table-html-using-table-generate-source)
+	(org-customize): Fix typos in docstrings.
+	(org-level-2, org-at-timestamp-p, org-agenda-day-view)
+	(org-agenda-toggle-diary, org-agenda-toggle-time-grid)
+	(org-back-to-heading): Doc fixes.
+	(org-agenda-toggle-time-grid, org-cmp-category, org-cmp-time)
+	(org-agenda-change-all-lines, org-get-header):
+	Improve argument/docstring consistency.
+	(orgtbl-error): Fix error message.
+
+	* progmodes/flymake.el (flymake-find-possible-master-files)
+	(flymake-master-file-compare, flymake-get-line-err-count)
+	(flymake-highlight-line, flymake-gui-warnings-enabled):
+	Fix typos in docstrings.
+	(flymake-parse-line, flymake-get-project-include-dirs-function)
+	(flymake-get-prev-err-line-no, flymake-goto-prev-error):
+	Doc fixes.
+	(flymake-get-project-include-dirs-function)
+	(flymake-make-err-menu-data):
+	Improve argument/docstring consistency.
+
 2005-07-01  Lute Kamstra  <lute@gnu.org>
 
 	* battery.el (battery-linux-proc-apm): Fix typo in docstring.
