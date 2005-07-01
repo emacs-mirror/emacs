@@ -138,6 +138,9 @@ int w32_use_visible_system_caret;
    for Far East languages.  */
 int w32_enable_unicode_output;
 
+/* Flag to enable Cleartype hack for font metrics.  */
+static int cleartype_active;
+
 DWORD dwWindowsThreadId = 0;
 HANDLE hWindowsThread = NULL;
 DWORD dwMainThreadId = 0;
@@ -907,6 +910,16 @@ w32_native_per_char_metric (font, char2b, font_type, pcm)
 	  int real_width;
 	  GetCharWidth (hdc, *char2b, *char2b, &real_width);
 #endif
+	  if (cleartype_active)
+	    {
+	      /* Cleartype antialiasing causes characters to overhang
+		 by a pixel on each side compared with what GetCharABCWidths
+		 reports.  */
+	      char_widths.abcA -= 1;
+	      char_widths.abcC -= 1;
+	      char_widths.abcB += 2;
+	    }
+
 	  pcm->width = char_widths.abcA + char_widths.abcB + char_widths.abcC;
 #if 0
 	  /* As far as I can tell, this is the best way to determine what
@@ -6403,6 +6416,12 @@ w32_initialize ()
   w32_system_caret_x = 0;
   w32_system_caret_y = 0;
 
+  /* Initialize w32_use_visible_system_caret based on whether a screen
+     reader is in use.  */
+  if (!SystemParametersInfo (SPI_GETSCREENREADER, 0,
+			     &w32_use_visible_system_caret, 0))
+    w32_use_visible_system_caret = 0;
+
   last_tool_bar_item = -1;
   any_help_event_p = 0;
 
@@ -6447,6 +6466,8 @@ w32_initialize ()
   /* Dynamically link to optional system components. */
   {
     HANDLE user_lib = LoadLibrary ("user32.dll");
+    UINT smoothing_type;
+    BOOL smoothing_enabled;
 
 #define LOAD_PROC(fn) pfn##fn = (void *) GetProcAddress (user_lib, #fn)
 
@@ -6467,6 +6488,28 @@ w32_initialize ()
        effectively form the border of the main scroll bar range.  */
     vertical_scroll_bar_top_border = vertical_scroll_bar_bottom_border
       = GetSystemMetrics (SM_CYVSCROLL);
+
+    /* Constants that are not always defined by the system headers
+       since they only exist on certain versions of Windows.  */
+#ifndef SPI_GETFONTSMOOTHING
+#define SPI_GETFONTSMOOTHING 0x4A
+#endif
+#ifndef SPI_GETFONTSMOOTHINGTYPE
+#define SPI_GETFONTSMOOTHINGTYPE 0x0200A
+#endif
+#ifndef FE_FONTSMOOTHINGCLEARTYPE
+#define FE_FONTSMOOTHINGCLEARTYPE 0x2
+#endif
+
+    /* Determine if Cleartype is in use.  Used to enable a hack in
+       the char metric calculations which adds extra pixels to
+       compensate for the "sub-pixels" that are not counted by the
+       system APIs. */
+    cleartype_active =
+      SystemParametersInfo (SPI_GETFONTSMOOTHING, 0, &smoothing_enabled, 0)
+      && smoothing_enabled
+      && SystemParametersInfo (SPI_GETFONTSMOOTHINGTYPE, 0, &smoothing_type, 0)
+      && smoothing_type == FE_FONTSMOOTHINGCLEARTYPE;
   }
 }
 
@@ -6536,11 +6579,7 @@ software is running as it starts up.
 When this variable is set, other variables affecting the appearance of
 the cursor have no effect.  */);
 
-  /* Initialize w32_use_visible_system_caret based on whether a screen
-     reader is in use.  */
-  if (!SystemParametersInfo (SPI_GETSCREENREADER, 0,
-			     &w32_use_visible_system_caret, 0))
-    w32_use_visible_system_caret = 0;
+  w32_use_visible_system_caret = 0;
 
   /* We don't yet support this, but defining this here avoids whining
      from cus-start.el and other places, like "M-x set-variable".  */
