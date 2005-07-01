@@ -1,5 +1,9 @@
 2005-07-01  Lute Kamstra  <lute@gnu.org>
 
+	* battery.el (battery-linux-proc-apm): Fix typo in docstring.
+	Catch errors with ignore-errors.  Use temporary buffer.
+	(battery-linux-proc-acpi): Fix typo in docstring.  Document `%r'.
+
 	* facemenu.el (facemenu-unlisted-faces): Delete foreground and
 	background color faces.
 	(facemenu-set-foreground, facemenu-set-background): Use
