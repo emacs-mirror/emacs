@@ -175,6 +175,20 @@
   :prefix "edt-"
   :group 'emulations)
 
+;; To silence the byte-compiler
+(eval-when-compile
+  (defvar *EDT-keys*)
+  (defvar edt-default-global-map)
+  (defvar edt-last-copied-word)
+  (defvar edt-learn-macro-count)
+  (defvar edt-orig-page-delimiter)
+  (defvar edt-orig-transient-mark-mode)
+  (defvar edt-rect-start-point)
+  (defvar edt-user-global-map)
+  (defvar rect-start-point)
+  (defvar time-string)
+  (defvar zmacs-region-stays))
+
 ;;;
 ;;;  Version Information
 ;;;
