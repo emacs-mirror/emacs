@@ -510,6 +510,7 @@ w32_draw_vertical_window_border (w, x, y0, y1)
   struct frame *f = XFRAME (WINDOW_FRAME (w));
   RECT r;
   HDC hdc;
+  struct face *face;
 
   r.left = x;
   r.right = x + 1;
@@ -517,7 +518,12 @@ w32_draw_vertical_window_border (w, x, y0, y1)
   r.bottom = y1;
 
   hdc = get_frame_dc (f);
-  w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), &r);
+  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+    w32_fill_rect (f, hdc, face->foreground, &r);
+  else
+    w32_fill_rect (f, hdc, FRAME_FOREGROUND_PIXEL (f), &r);
+
   release_frame_dc (f, hdc);
 }
 
