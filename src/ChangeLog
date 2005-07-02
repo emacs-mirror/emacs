@@ -1,3 +1,8 @@
+2005-07-02  Juri Linkov  <juri@jurta.org>
+
+	* w32term.c (w32_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+
 2005-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* fileio.c (Fcopy_file): Rearrange the code that calls fchown and

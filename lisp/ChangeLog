@@ -1,3 +1,12 @@
+2005-07-02  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* font-lock.el (font-lock-regexp-grouping-backslash): Rename from
+	font-lock-regexp-backslash.  Doc fix.
+	(font-lock-regexp-backslash-grouping-construct): Rename from
+	font-lock-regexp-backslash-construct.  Doc fix.
+	(lisp-font-lock-keywords-2): Fix highlighting of ELisp regexp
+	grouping constructs.
+
 2005-07-02  Eli Zaretskii  <eliz@gnu.org>
 
 	* makefile.w32-in (bootstrap): Remove the $(EMACS) binary after
