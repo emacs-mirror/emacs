@@ -1,3 +1,8 @@
+2005-07-01  Katsumi Yamaoka  <yamaoka@jpl.org>
+
+	* gnus-art.el (article-display-face): Improve the efficiency.
+	(article-display-x-face): Ditto; remove grey x-face stuff.
+
 2005-06-30  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-art.el (article-display-face): Correct the position in
