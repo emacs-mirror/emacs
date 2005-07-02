@@ -946,18 +946,11 @@ and the name of the file passed in."
 (defun ff-which-function-are-we-in ()
   "Return the name of the function whose definition/declaration point is in.
 Also remember that name in `ff-function-name'."
-
-  (setq ff-function-name nil)
-
-  (save-excursion
-    (if (re-search-backward ada-procedure-start-regexp nil t)
-        (setq ff-function-name (buffer-substring (match-beginning 0)
-                                                 (match-end 0)))
-      ; we didn't find a procedure start, perhaps there is a package
-      (if (re-search-backward ada-package-start-regexp nil t)
-          (setq ff-function-name (buffer-substring (match-beginning 0)
-                                                   (match-end 0)))
-        ))))
+  (setq ff-function-name
+        (save-excursion
+          (if (or (re-search-backward ada-procedure-start-regexp nil t)
+                  (re-search-backward ada-package-start-regexp nil t))
+              (match-string 0)))))
 
 ;; bind with (setq ff-post-load-hook 'ff-set-point-accordingly)
 ;;
@@ -971,5 +964,5 @@ That name was previously determined by `ff-which-function-are-we-in'."
 
 (provide 'find-file)
 
-;;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
+;; arch-tag: 5a2fc49e-3b0a-4708-9acf-fb14e471a97a
 ;;; find-file.el ends here
