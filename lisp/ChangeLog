@@ -1,3 +1,19 @@
+2005-07-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-declare-variable): Fix typos in comment.
+	(custom-known-themes): Doc fix.
+	(custom-theme-directory): New defcustom.
+	(require-theme): Make it check `custom-theme-directory'.
+
+	* cus-theme.el (custom-new-theme-mode): New function.
+	(custom-theme-name, custom-theme-variables, custom-theme-faces)
+	(custom-theme-description): Add compiler defvars.
+	(customize-create-theme): Add doc to the "*New Custom Theme*"
+	buffer.  Use `custom-new-theme-mode'.
+	(custom-theme-write): Put the created buffer in emacs-lisp-mode
+	and save it to the `custom-theme-directory'.  Make this the
+	default directory of the buffer.
+
 2005-07-02 David Hunter <hunterd_42@comcast.net> (tiny change)
 
 	* progmodes/flymake.el (flymake-mode, flymake-mode-off): Fix
