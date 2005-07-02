@@ -1488,7 +1488,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
 
-    (setq flymake-is-running nil)))
+    (setq flymake-is-running nil))))
 
 ;;;###autoload
 (defun flymake-mode-on ()
@@ -1500,7 +1500,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
 (defun flymake-mode-off ()
   "Turn flymake mode off."
   (flymake-mode 0)
-  (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name))
+  (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name)))
 
 (defcustom flymake-start-syntax-check-on-newline t
   "Start syntax check if newline char was added/removed from the buffer."
