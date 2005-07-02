@@ -926,7 +926,7 @@ If the value is nil, don't highlight the buffer names specially."
 Here `original-buffer-name' is the buffer name were occur was originally run.
 When given the prefix argument, the renaming will not clobber the existing
 buffer(s) of that name, but use `generate-new-buffer-name' instead.
-You can add this to `occur-hook' if you always want a separate *Occur*
+You can add this to `occur-mode-hook' if you always want a separate *Occur*
 buffer for each buffer where you invoke `occur'."
   (interactive "P")
   (with-current-buffer
