@@ -1445,50 +1445,41 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
 		 (buffer-name buffer) status warning)))
 
-;;;###autoload
-(define-minor-mode flymake-mode
-  "Minor mode to do on-the-fly syntax checking.
-When called interactively, toggles the minor mode.
-With arg, turn Flymake mode on if and only if arg is positive."
-  :group 'flymake :lighter flymake-mode-line
-  (if flymake-mode
-      (if (flymake-can-syntax-check-file (buffer-file-name))
-	  (flymake-mode-on)
-	(flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
-    (flymake-mode-off)))
-
 (defcustom flymake-start-syntax-check-on-find-file t
   "Start syntax check on find file."
   :group 'flymake
   :type 'boolean)
 
 ;;;###autoload
-(defun flymake-mode-on ()
-  "Turn flymake mode on."
-  (when (not flymake-mode)
-    (make-local-variable 'after-change-functions)
-    (setq after-change-functions (cons 'flymake-after-change-function after-change-functions))
-    (add-hook 'after-save-hook 'flymake-after-save-hook)
-    (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook)
-    ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
+(define-minor-mode flymake-mode
+  "Minor mode to do on-the-fly syntax checking.
+When called interactively, toggles the minor mode.
+With arg, turn Flymake mode on if and only if arg is positive."
+  :group 'flymake :lighter flymake-mode-line
+  (cond
 
-    (flymake-report-status (current-buffer) "" "")
+   ;; Turning the mode ON.
+   (flymake-mode
+    (if (not (flymake-can-syntax-check-file buffer-file-name))
+        (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name))
+      (add-hook 'after-change-functions 'flymake-after-change-function nil t)
+      (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
+      (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
+      ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
 
-    (setq flymake-timer
-	  (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
+      (flymake-report-status (current-buffer) "" "")
+        
+      (setq flymake-timer
+            (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
-    (setq flymake-mode t)
-    (flymake-log 1 "flymake mode turned ON for buffer %s" (buffer-name (current-buffer)))
-    (when flymake-start-syntax-check-on-find-file
-      (flymake-start-syntax-check-for-current-buffer)))) ; will be started by on-load hook
+      (when flymake-start-syntax-check-on-find-file
+        (flymake-start-syntax-check-for-current-buffer))))
 
-;;;###autoload
-(defun flymake-mode-off ()
-  "Turn flymake mode off."
-  (when flymake-mode
-    (setq after-change-functions (delq 'flymake-after-change-function  after-change-functions))
-    (remove-hook 'after-save-hook (function flymake-after-save-hook) t)
-    (remove-hook 'kill-buffer-hook (function flymake-kill-buffer-hook) t)
+   ;; Turning the mode OFF.
+   (t
+    (remove-hook 'after-change-functions 'flymake-after-change-function t)
+    (remove-hook 'after-save-hook 'flymake-after-save-hook t)
+    (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
 
     (flymake-delete-own-overlays (current-buffer))
@@ -1497,9 +1488,19 @@ With arg, turn Flymake mode on if and only if arg is positive."
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
 
-    (setq flymake-is-running nil)
-    (setq flymake-mode nil)
-    (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name (current-buffer)))))
+    (setq flymake-is-running nil)))
+
+;;;###autoload
+(defun flymake-mode-on ()
+  "Turn flymake mode on."
+  (flymake-mode 1)
+  (flymake-log 1 "flymake mode turned ON for buffer %s" (buffer-name)))
+
+;;;###autoload
+(defun flymake-mode-off ()
+  "Turn flymake mode off."
+  (flymake-mode 0)
+  (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name))
 
 (defcustom flymake-start-syntax-check-on-newline t
   "Start syntax check if newline char was added/removed from the buffer."
@@ -1532,7 +1533,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
   ;;+    (flymake-start-syntax-check-for-current-buffer)
   ;;+)
   (when (and (not (local-variable-p 'flymake-mode (current-buffer)))
-	     (flymake-can-syntax-check-file (buffer-file-name (current-buffer))))
+	     (flymake-can-syntax-check-file buffer-file-name))
     (flymake-mode)
     (flymake-log 3 "automatically turned ON flymake mode")))
 
