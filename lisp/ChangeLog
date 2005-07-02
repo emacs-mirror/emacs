@@ -1,3 +1,13 @@
+2005-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emulation/edt.el (*EDT-keys*, edt-default-global-map)
+	(edt-last-copied-word, edt-learn-macro-count)
+	(edt-orig-page-delimiter, edt-orig-transient-mark-mode)
+	(edt-rect-start-point, edt-user-global-map, rect-start-point)
+	(time-string, zmacs-region-stays):
+	* emulation/edt-mapper.el (edt-save-function-key-map)
+	(EDT-key-name): `defvar' to silence the byte-compiler.
+
 2005-07-02  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
 
 	* font-lock.el (font-lock-regexp-grouping-backslash): Rename from
