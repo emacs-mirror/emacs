@@ -1,5 +1,7 @@
 2005-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
+	* replace.el (occur-rename-buffer): Fix docstring.
+
 	* emulation/edt.el (*EDT-keys*, edt-default-global-map)
 	(edt-last-copied-word, edt-learn-macro-count)
 	(edt-orig-page-delimiter, edt-orig-transient-mark-mode)
