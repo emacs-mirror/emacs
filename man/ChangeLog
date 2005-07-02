@@ -430,8 +430,7 @@
 
 2005-04-12  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by
-	default.
+	* frames.texi (XTerm Mouse): Xterm Mouse mode is now enabled by default.
 
 2005-04-12  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -459,8 +458,7 @@
 2005-04-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* rmail.texi (Rmail Basics): Clarify description of `q' and `b'.
-	(Rmail Deletion): `C-d' in RMAIL buffer does not accept a numeric
-	argument.
+	(Rmail Deletion): `C-d' in RMAIL buffer does not accept a numeric arg.
 	(Rmail Inbox): Give full name of `rmail-primary-inbox-list'.
 	(Rmail Output): Clarify which statements apply to `o', `C-o' and
 	`w', respectively.
@@ -470,7 +468,7 @@
 
 2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresources.texi (Lucid Resources): Added fonSet resource.
+	* xresources.texi (Lucid Resources): Add fonSet resource.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
@@ -578,8 +576,7 @@
 
 	* programs.texi (ForIndent Vars): `fortran-if-indent' does other
 	constructs as well.
-	(Fortran Motion): Add fortran-end-of-block,
-	fortran-beginning-of-block.
+	(Fortran Motion): Add fortran-end-of-block, fortran-beginning-of-block.
 
 2005-03-29  Kenichi Handa  <handa@m17n.org>
 
@@ -644,8 +641,8 @@
 	(Special Diary Entries, Importing Diary): Change some xrefs to
 	point to emacs-xtra rather than elisp.
 
-	* emacs-xtra.texi (Calendar Customizing): Move
-	view-diary-entries-initially, view-calendar-holidays-initially,
+	* emacs-xtra.texi (Calendar Customizing):
+	Move view-diary-entries-initially, view-calendar-holidays-initially,
 	mark-diary-entries-in-calendar, mark-holidays-in-calendar to main
 	Emacs Manual.
 	(Appt Customizing): Merge entire section into main Emacs Manual.
@@ -691,8 +688,8 @@
 
 2005-03-26  Jay Belanger  <belanger@truman.edu>
 
-	* calc.texi (Simplifying Formulas, Rewrite Rules): Change
-	description of top and bottom of fraction.
+	* calc.texi (Simplifying Formulas, Rewrite Rules):
+	Change description of top and bottom of fraction.
 	(Modulo Forms): Move description of how to create modulo forms to
 	earlier in the section.
 	(Fraction Mode): Suggest using : to get a fraction by dividing.
@@ -738,8 +735,8 @@
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
-	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi: Replace
-	`legal' with `valid'.
+	* calc.texi, cl.texi, gnus.texi, idlwave.texi, reftex.texi:
+	Replace `legal' with `valid'.
 
 2005-03-25  Werner Lemberg  <wl@gnu.org>
 
@@ -748,7 +745,7 @@
 2005-03-24  Jay Belanger  <belanger@truman.edu>
 
 	* calc.texi (General Mode Commands)
-	(Mode Settings in Embedded Mode): Added some explanation of
+	(Mode Settings in Embedded Mode): Add some explanation of
 	recording mode settings.
 
 2005-03-24  Richard M. Stallman  <rms@gnu.org>

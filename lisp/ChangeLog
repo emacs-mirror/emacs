@@ -1,3 +1,10 @@
+2005-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode-on, flymake-mode-off): Move body
+	into flymake-mode and delegate to flymake-mode.
+
+	* find-file.el (ff-which-function-are-we-in): Clean up.
+
 2005-07-02  Juanma Barranquero  <lekktu@gmail.com>
 
 	* replace.el (occur-rename-buffer): Fix docstring.
@@ -72,8 +79,8 @@
 
 	* facemenu.el (facemenu-unlisted-faces): Delete foreground and
 	background color faces.
-	(facemenu-set-foreground, facemenu-set-background): Use
-	facemenu-set-face-from-menu.
+	(facemenu-set-foreground, facemenu-set-background):
+	Use facemenu-set-face-from-menu.
 	(facemenu-set-face-from-menu): Treat face names that start with
 	"fg:" or "bg:" as special.
 	(facemenu-add-new-color): Don't create faces.  Simplify.
@@ -85,8 +92,7 @@
 
 2005-06-30  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
 
-	* help-fns.el (help-do-arg-highlight): Regexp-quote argument
-	names.
+	* help-fns.el (help-do-arg-highlight): Regexp-quote argument names.
 
 2005-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -101,7 +107,8 @@
 	(archive-zip-summarize): Remove unused var `method'.
 	(archive-lzh-summarize): Remove unused var `creator'.
 
-	* emacs-lisp/debug.el (debug): Quieten Drew Adams.
+	* emacs-lisp/debug.el (debug): Quieten Drew Adams by killing the
+	dedicated frame upon exit.
 
 	* arc-mode.el: Bind inhibit-read-only rather than buffer-read-only.
 	(archive-zip-extract, archive-zip-expunge)
