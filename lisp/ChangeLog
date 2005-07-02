@@ -1,3 +1,8 @@
+2005-07-02 David Hunter <hunterd_42@comcast.net> (tiny change)
+
+	* progmodes/flymake.el (flymake-mode, flymake-mode-off): Fix
+	unbalanced parentheses.
+
 2005-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/flymake.el (flymake-mode-on, flymake-mode-off): Move body
