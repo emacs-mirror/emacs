@@ -249,6 +249,7 @@ tty_set_terminal_modes (struct display *display)
       OUTPUT_IF (tty, tty->TS_cursor_visible);
       OUTPUT_IF (tty, tty->TS_keypad_mode);
       losecursor (tty);
+      fflush (tty->output);
     }
 }
 
@@ -270,6 +271,7 @@ tty_reset_terminal_modes (struct display *display)
       /* Output raw CR so kernel can track the cursor hpos.  */
       current_tty = tty;
       cmputc ('\r');
+      fflush (tty->output);
     }
 }
 

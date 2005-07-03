@@ -1922,7 +1922,7 @@ reset_sys_modes (tty_out)
 #endif
 
   tty_reset_terminal_modes (tty_out->display);
-  fflush (tty_out->output);
+
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1
   /* Avoid possible loss of output when changing terminal modes.  */
