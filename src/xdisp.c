@@ -12740,11 +12740,11 @@ try_window (window, pos, check_margins)
 
       if ((w->cursor.y < this_scroll_margin
 	   && CHARPOS (pos) > BEGV)
-	  /* Old redisplay didn't take scroll margin into account at the bottom,
-	     but then global-hl-line-mode doesn't scroll.  KFS 2004-06-14 */
-	  || (w->cursor.y + (make_cursor_line_fully_visible_p
-			     ? cursor_height + this_scroll_margin
-			     : 1)) > it.last_visible_y)
+	  /* rms: considering make_cursor_line_fully_visible_p here
+	     seems to give wrong results.  We don't want to recenter
+	     when the last line is partly visible, we want to allow
+	     that case to be handled in the usual way.  */
+	  || (w->cursor.y + 1) > it.last_visible_y)
 	{
 	  w->cursor.vpos = -1;
 	  clear_glyph_matrix (w->desired_matrix);
