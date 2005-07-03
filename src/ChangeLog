@@ -1,3 +1,17 @@
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_window): Fix previous change in how it handles
+	a partially-visible line or one only partly past the margin.
+
+	* window.c (window_scroll_pixel_based): Take account
+	of this_scroll_margin when finding point when scrolling up.
+
+2005-06-29  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Handle `scroll-preserve-screen-position' non-nil, non-t specially.
+	(syms_of_window): <scroll-preserve-screen-position>: Doc fix.
+
 2005-07-02  Juri Linkov  <juri@jurta.org>
 
 	* w32term.c (w32_draw_vertical_window_border): Use foreground of

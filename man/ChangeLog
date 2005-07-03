@@ -1,3 +1,8 @@
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* flymake.texi (Example -- Configuring a tool called directly): 
+	Update name of flymake-build-relative-filename.
+
 2005-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus.texi (NoCeM): gnus-nocem-verifyer defaults to pgg-verify.

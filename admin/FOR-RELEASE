@@ -40,6 +40,8 @@ invalid pointer from string_free_list.
 
 * BUGS
 
+** Fix those modes that still use compile-internal, to not use it.
+
 ** Bug in ebrowse
 
 Date: Fri, 27 May 2005 17:35:48 +0200

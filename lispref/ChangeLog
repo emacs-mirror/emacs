@@ -1,3 +1,14 @@
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* windows.texi (Textual Scrolling): Doc 3 values for
+	scroll-preserve-screen-position.
+
+	* text.texi (Special Properties): Change hook functions
+	should bind inhibit-modification-hooks around altering buffer text.
+
+	* keymaps.texi (Key Binding Commands): Call binding BINDING
+	rather than DEFINITION.
+
 2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* variables.texi (Defining Variables): `user-variable-p' returns t

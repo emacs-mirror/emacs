@@ -1,3 +1,64 @@
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-key-is-drawing)
+	(artist-key-endpoint1, artist-key-poly-point-list)
+	(artist-key-shape, artist-key-draw-how, artist-popup-menu-table)
+	(artist-key-compl-table, artist-rb-save-data)
+	(artist-arrow-point-1, artist-arrow-point-2): Move defvars up.
+	Don't put them in eval-when-compile.
+	(artist-set-arrow-points-for-poly): Use `last', not `artist-last'.
+
+	* progmodes/ebrowse.el (ebrowse-revert-tree-buffer-from-file):
+	Use with-no-warnings.
+
+	* net/browse-url.el (dos-windows-version): Add defvar.
+
+	* mail/supercite.el (filladapt-prefix-table): Add defvar.
+
+	* mail/rmailsum.el (rmail-summary-redo): Add defvar.
+	(rmail-summary-mode-map, rmail-summary-overlay): Defvars moved up.
+	(rmail-new-summary-line-count): Renamed from new-summary-line-count.
+	Add defvar.
+	(rmail-summary-beginning-of-message): Use with-no-warnings.
+	(rmail-summary-first-message, rmail-summary-last-message): Likewise.
+
+	* emulation/vip.el (vip-replace-string, ex-map, ex-read):
+	Use with-no-warnings.
+
+	* emulation/vi.el (vi-mark-region): Use c-mark-function.
+	(c-mark-function): Add point-moving-unit property.
+	(vi-goto-line): Use with-no-warnings.
+
+	* emulation/edt.el (edt-last-copied-word): Add defvar.
+	(zmacs-region-stays): Likewise.
+	(edt-mark-section-wisely): Use c-mark-function for C.
+	Use makr-defun for Fortran.
+	(time-string): defvar deleted.
+	(edt-display-the-time): Don't set time-string.
+
+	* emacs-lisp/macroexp.el (macroexp-accumulate): Rename arg to var+list.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn):
+	Don't warn when name is not constant
+	or for defining the group `emacs'.
+
+	* tooltip.el (gud-tooltip-mode): Add defvar.
+
+	* startup.el (default-frame-background-mode): Add defvar.
+
+	* smerge-mode.el (smerge-mode): Add duplicate defvar near top.
+
+	* info.el (tool-bar-map): Add defvar.
+
+	* dired.el (dnd-protocol-alist): Add defvar.
+
+	* dired-aux.el (dired-query): Display question with answer, when
+	the user answers.
+
+	* custom.el (custom-add-option): Doc fix.
+
+	* bookmark.el (Info-current-node, Info-suffix-list): Add defvars.
+
 2005-07-03  Eli Zaretskii  <eliz@gnu.org>
 
 	* font-lock.el (font-lock-regexp-grouping-construct): Fix the
