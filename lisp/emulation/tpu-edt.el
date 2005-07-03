@@ -542,7 +542,7 @@ Otherwise sets the tpu-match markers to nil and returns nil."
 Return the appropriate value of the mark for the current
 version of Emacs."
   (cond (tpu-lucid-emacs-p (mark (not zmacs-regions)))
-	(and mark-active (mark (not transient-mark-mode)))))
+	(t (and mark-active (mark (not transient-mark-mode))))))
 
 (defun tpu-set-mark (pos)
   "TPU-edt version of the `set-mark' function.
@@ -2264,24 +2264,12 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 
 
 ;;;
-;;;  Repeat complex command map additions to make arrows work
-;;;
-(cond ((boundp 'repeat-complex-command-map)
-       (define-key repeat-complex-command-map "\e[A" 'previous-complex-command)
-       (define-key repeat-complex-command-map "\e[B" 'next-complex-command)
-       (define-key repeat-complex-command-map "\eOA" 'previous-complex-command)
-       (define-key repeat-complex-command-map "\eOB" 'next-complex-command)))
-
-
-;;;
 ;;;  Minibuffer map additions to make KP_enter = RET
 ;;;
 (define-key minibuffer-local-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-ns-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-completion-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-must-match-map "\eOM" 'minibuffer-complete-and-exit)
-(and (boundp 'repeat-complex-command-map)
-     (define-key repeat-complex-command-map "\eOM" 'exit-minibuffer))
 
 
 ;;;
