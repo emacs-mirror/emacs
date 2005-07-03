@@ -198,7 +198,7 @@ explicitly.
 
 @menu
 * Displaying Messages:: Explicitly displaying text in the echo area.
-* Progress Reports::    Informing user about progress of a long operation.
+* Progress::            Informing user about progress of a long operation.
 * Logging Messages::    Echo area messages are logged for the user.
 * Echo Area Customization:: Controlling the echo area.
 @end menu
