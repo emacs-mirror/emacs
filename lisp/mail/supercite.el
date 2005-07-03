@@ -1317,6 +1317,8 @@ use it instead of `sc-citation-root-regexp'."
 	  sc-citation-delimiter
 	  sc-citation-separator))
 
+(defvar filladapt-prefix-table)
+
 (defun sc-setup-filladapt ()
   "Setup `filladapt-prefix-table' to handle Supercited paragraphs."
   (let* ((fa-sc-elt 'filladapt-supercite-included-text)
