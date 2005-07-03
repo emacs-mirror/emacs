@@ -486,8 +486,10 @@ both appear in constructs like `custom-set-variables'."
 (defun custom-add-option (symbol option)
   "To the variable SYMBOL add OPTION.
 
-If SYMBOL is a hook variable, OPTION should be a hook member.
-For other types variables, the effect is undefined."
+If SYMBOL's custom type is a hook, OPTION should be a hook member.
+If SYMBOL's custom type is an alist, OPTION specifies a symbol
+to offer to the user as a possible key in the alist.
+For other custom types, this has no effect."
   (let ((options (get symbol 'custom-options)))
     (unless (member option options)
       (put symbol 'custom-options (cons option options)))))
