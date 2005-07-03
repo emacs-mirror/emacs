@@ -307,17 +307,11 @@
 ;;;  Emacs version identifiers - currently referenced by
 ;;;
 ;;;     o tpu-mark              o tpu-set-mark
-;;;     o tpu-string-prompt     o tpu-regexp-prompt
-;;;     o tpu-edt-on            o tpu-load-xkeys
-;;;     o tpu-update-mode-line  o mode line section
+;;;     o mode line section     o tpu-load-xkeys
 ;;;
-(defconst tpu-emacs19-p (not (string-lessp emacs-version "19"))
-  "Non-nil if we are running Lucid Emacs or version 19.")
-
 (defconst tpu-lucid-emacs19-p
-  (and tpu-emacs19-p (string-match "Lucid" emacs-version))
+  (string-match "Lucid" emacs-version)
   "Non-nil if we are running Lucid Emacs version 19.")
-
 
 ;;;
 ;;;  Global Keymaps
@@ -463,13 +457,12 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defun tpu-update-mode-line nil
   "Make sure mode-line in the current buffer reflects all changes."
   (setq tpu-mark-flag (if transient-mark-mode "" (if (tpu-mark) " @" "  ")))
-  (cond (tpu-emacs19-p (force-mode-line-update))
-	(t (set-buffer-modified-p (buffer-modified-p)) (sit-for 0))))
+  (force-mode-line-update))
 
 (cond (tpu-lucid-emacs19-p
        (add-hook 'zmacs-deactivate-region-hook 'tpu-update-mode-line)
        (add-hook 'zmacs-activate-region-hook 'tpu-update-mode-line))
-      (tpu-emacs19-p
+      (t
        (add-hook 'activate-mark-hook 'tpu-update-mode-line)
        (add-hook 'deactivate-mark-hook 'tpu-update-mode-line)))
 
@@ -542,13 +535,14 @@ Otherwise sets the tpu-match markers to nil and returns nil."
 (defun tpu-caar (thingy) (car (car thingy)))
 (defun tpu-cadr (thingy) (car (cdr thingy)))
 
+(defvar zmacs-regions)
+
 (defun tpu-mark nil
   "TPU-edt version of the mark function.
 Return the appropriate value of the mark for the current
 version of Emacs."
   (cond (tpu-lucid-emacs19-p (mark (not zmacs-regions)))
-	(tpu-emacs19-p (and mark-active (mark (not transient-mark-mode))))
-	(t (mark))))
+	(and mark-active (mark (not transient-mark-mode)))))
 
 (defun tpu-set-mark (pos)
   "TPU-edt version of the `set-mark' function.
@@ -559,9 +553,7 @@ current version of Emacs."
 
 (defun tpu-string-prompt (prompt history-symbol)
   "Read a string with PROMPT."
-  (if tpu-emacs19-p
-      (read-from-minibuffer prompt nil nil nil history-symbol)
-    (read-string prompt)))
+  (read-from-minibuffer prompt nil nil nil history-symbol))
 
 (defvar tpu-last-answer nil "Most recent response to tpu-y-or-n-p.")
 
@@ -1118,9 +1110,7 @@ kills modified buffers without asking."
 (defun tpu-regexp-prompt (prompt)
   "Read a string, adding 'RE' to the prompt if tpu-regexp-p is set."
   (let ((re-prompt (concat (if tpu-regexp-p "RE ") prompt)))
-    (if tpu-emacs19-p
-	(read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)
-      (read-string re-prompt))))
+    (read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)))
 
 (defun tpu-search-highlight nil
   (if (tpu-check-match)
@@ -2408,7 +2398,7 @@ If FILE is nil, try to load a default file.  The default file names are
 	(tpu-lucid-emacs19-p
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-lucid-keys"))))
-	(tpu-emacs19-p
+	(t
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-keys")))
 	 (and (not (file-exists-p file))
