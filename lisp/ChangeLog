@@ -9,6 +9,7 @@
 
 	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
 	All references simplified.
+	(tpu-lucid-emacs-p): Renamed from tpu-lucid-emacs19-p.  Uses changed.
 
 	* textmodes/artist.el (artist-key-is-drawing)
 	(artist-key-endpoint1, artist-key-poly-point-list)
