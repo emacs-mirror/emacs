@@ -1,5 +1,15 @@
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
+	* emulation/tpu-edt.el (tpu-original-global-map): Don't copy
+	global-map, save the same map.
+	(global-map): Don't alter it at top level.
+	(tpu-edt-on): Save global map in tpu-original-global-map, then copy.
+	Then alter it here instead.
+	(tpu-edt-off): Set global-map to the saved one.
+
+	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
+	All references simplified.
+
 	* textmodes/artist.el (artist-key-is-drawing)
 	(artist-key-endpoint1, artist-key-poly-point-list)
 	(artist-key-shape, artist-key-draw-how, artist-popup-menu-table)
