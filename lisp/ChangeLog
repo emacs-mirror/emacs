@@ -10,6 +10,8 @@
 	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
 	All references simplified.
 	(tpu-lucid-emacs-p): Renamed from tpu-lucid-emacs19-p.  Uses changed.
+	(zmacs-regions): Add defvar.
+	(repeat-complex-command-map): Everything about that deleted.
 
 	* textmodes/artist.el (artist-key-is-drawing)
 	(artist-key-endpoint1, artist-key-poly-point-list)
