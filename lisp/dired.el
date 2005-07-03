@@ -437,6 +437,8 @@ Subexpression 2 must end right before the \\n or \\r.")
 	     nil (0 dired-ignored-face))))
 )
   "Additional expressions to highlight in Dired mode.")
+
+(defvar dnd-protocol-alist)
 
 ;;; Macros must be defined before they are used, for the byte compiler.
 
