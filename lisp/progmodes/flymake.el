@@ -32,6 +32,18 @@
 
 ;;; Code:
 
+;;;; [[ Silence the byte-compiler
+
+(eval-when-compile
+  (defvar flymake-check-start-time)
+  (defvar flymake-check-was-interrupted)
+  (defvar flymake-err-info)
+  (defvar flymake-is-running)
+  (defvar flymake-last-change-time)
+  (defvar flymake-new-err-info))
+
+;;;; ]]
+
 ;;;; [[ Xemacs overlay compatibility
 (if (featurep 'xemacs) (progn
 (autoload 'make-overlay            "overlay" "Overlay compatibility kit." t)
@@ -53,9 +65,10 @@
 (defalias 'flymake-float-time
   (if (fboundp 'float-time)
       'float-time
-    (lambda ()
-      (multiple-value-bind (s0 s1 s2) (current-time)
-	(+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))))
+    (with-no-warnings
+      (lambda ()
+        (multiple-value-bind (s0 s1 s2) (current-time)
+          (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2)))))))
 
 (defsubst flymake-replace-regexp-in-string (regexp rep str)
   (if (fboundp 'replace-regexp-in-string)
@@ -1138,24 +1151,6 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   (let* ((include-dirs (append '(".") (flymake-get-project-include-dirs base-dir) (flymake-get-system-include-dirs))))
     include-dirs))
 
-(defun flymake-find-file (rel-file-name include-dirs)
-  "Iterate through INCLUDE-DIRS to find file REL-FILE-NAME.
-Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if not."
-  (let* ((count          (length include-dirs))
-	 (idx            0)
-	 (found          nil)
-	 (full-file-name rel-file-name))
-
-    (while (and (not found) (< idx count))
-      (let* ((dir (nth idx include-dirs)))
-	(setq full-file-name  (concat dir "/" rel-file-name))
-	(when (file-exists-p full-file-name)
-	  (setq found t)))
-      (setq idx (1+ idx)))
-    (if found
-	full-file-name
-      rel-file-name)))
-
 (defun flymake-restore-formatting (source-buffer)
   "Remove any formatting made by flymake."
   )
@@ -1468,7 +1463,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
       ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
 
       (flymake-report-status (current-buffer) "" "")
-        
+
       (setq flymake-timer
             (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
