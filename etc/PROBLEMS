@@ -2377,7 +2377,9 @@ The fix is to install a newer version of ncurses, such as version 4.2.
 
 With certain recent Linux kernels (like the one of Redhat Fedora Core
 1 and newer), the new "Exec-shield" functionality is enabled by default, which
-creates a different memory layout that breaks the emacs dumper. 
+creates a different memory layout that breaks the emacs dumper.  Emacs tries
+to handle this at build time, but if the workaround used fails, these
+instructions can be useful.
 The work-around explained here is not enough on Fedora Core 4 (and possible
 newer). Read the next item.
 
