@@ -341,7 +341,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "Maps the function keys on the VT100 keyboard preceded by GOLD-SS3.")
 
 (defvar tpu-global-map nil "TPU-edt global keymap.")
-(defvar tpu-original-global-map (copy-keymap global-map)
+(defvar tpu-original-global-map global-map
   "Original global keymap.")
 
 (and tpu-lucid-emacs19-p
@@ -2017,8 +2017,6 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 ;;;
 ;;;  Define keymaps
 ;;;
-(define-key global-map "\e[" CSI-map)                         ; CSI map
-(define-key global-map "\eO" SS3-map)                         ; SS3 map
 (define-key SS3-map "P" GOLD-map)                             ; GOLD map
 (define-key GOLD-map "\e[" GOLD-CSI-map)                      ; GOLD-CSI map
 (define-key GOLD-map "\eO" GOLD-SS3-map)                      ; GOLD-SS3 map
@@ -2503,6 +2501,10 @@ If FILE is nil, try to load a default file.  The default file names are
     (setq-default page-delimiter "\f")
     (setq-default truncate-lines t)
     (setq scroll-step 1)
+    (setq tpu-original-global-map global-map)
+    (setq global-map (copy-keymap global-map))
+    (define-key global-map "\e[" CSI-map)
+    (define-key global-map "\eO" SS3-map)
     (setq tpu-edt-mode t))))
 
 (defun tpu-edt-off nil
@@ -2516,7 +2518,7 @@ If FILE is nil, try to load a default file.  The default file names are
     (setq-default page-delimiter "^\f")
     (setq-default truncate-lines nil)
     (setq scroll-step 0)
-    (setq global-map (copy-keymap tpu-original-global-map))
+    (setq global-map tpu-original-global-map)
     (use-global-map global-map)
     (setq tpu-edt-mode nil))))
 
