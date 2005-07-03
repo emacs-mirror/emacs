@@ -799,6 +799,8 @@ to use."
 
 ;; --- Default MS-Windows browser ---
 
+(defvar dos-windows-version)
+
 (defun browse-url-default-windows-browser (url &optional new-window)
   (interactive (browse-url-interactive-arg "URL: "))
   (if (eq system-type 'ms-dos)
