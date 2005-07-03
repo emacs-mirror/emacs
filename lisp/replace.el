@@ -719,7 +719,7 @@ See `occur-revert-function'.")
   :group 'matching)
 
 (defcustom occur-hook nil
-  "Hook run when `occur' is called."
+  "Hook run by Occur when there are any matches."
   :type 'hook
   :group 'matching)
 
@@ -1042,14 +1042,13 @@ See also `multi-occur'."
 		     (if (= count 1) "" "es")
 		     regexp))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
-	  (if (> count 0)
-	      (progn
-		(display-buffer occur-buf)
-		(setq next-error-last-buffer occur-buf)
-                (setq buffer-read-only t)
-                (set-buffer-modified-p nil))
-	    (kill-buffer occur-buf)))
-	(run-hooks 'occur-hook)))))
+          (if (= count 0)
+              (kill-buffer occur-buf)
+            (display-buffer occur-buf)
+            (setq next-error-last-buffer occur-buf)
+            (setq buffer-read-only t)
+            (set-buffer-modified-p nil)
+            (run-hooks 'occur-hook)))))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar
