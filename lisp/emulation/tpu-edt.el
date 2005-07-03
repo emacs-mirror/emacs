@@ -309,9 +309,9 @@
 ;;;     o tpu-mark              o tpu-set-mark
 ;;;     o mode line section     o tpu-load-xkeys
 ;;;
-(defconst tpu-lucid-emacs19-p
+(defconst tpu-lucid-emacs-p
   (string-match "Lucid" emacs-version)
-  "Non-nil if we are running Lucid Emacs version 19.")
+  "Non-nil if we are running Lucid Emacs.")
 
 ;;;
 ;;;  Global Keymaps
@@ -338,7 +338,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defvar tpu-original-global-map global-map
   "Original global keymap.")
 
-(and tpu-lucid-emacs19-p
+(and tpu-lucid-emacs-p
      (defvar minibuffer-local-ns-map (make-sparse-keymap)
        "Hack to give Lucid Emacs the same maps as ordinary Emacs."))
 
@@ -459,7 +459,7 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   (setq tpu-mark-flag (if transient-mark-mode "" (if (tpu-mark) " @" "  ")))
   (force-mode-line-update))
 
-(cond (tpu-lucid-emacs19-p
+(cond (tpu-lucid-emacs-p
        (add-hook 'zmacs-deactivate-region-hook 'tpu-update-mode-line)
        (add-hook 'zmacs-activate-region-hook 'tpu-update-mode-line))
       (t
@@ -541,7 +541,7 @@ Otherwise sets the tpu-match markers to nil and returns nil."
   "TPU-edt version of the mark function.
 Return the appropriate value of the mark for the current
 version of Emacs."
-  (cond (tpu-lucid-emacs19-p (mark (not zmacs-regions)))
+  (cond (tpu-lucid-emacs-p (mark (not zmacs-regions)))
 	(and mark-active (mark (not transient-mark-mode)))))
 
 (defun tpu-set-mark (pos)
@@ -549,7 +549,7 @@ version of Emacs."
 Sets the mark at POS and activates the region according to the
 current version of Emacs."
   (set-mark pos)
-  (and tpu-lucid-emacs19-p pos (zmacs-activate-region)))
+  (and tpu-lucid-emacs-p pos (zmacs-activate-region)))
 
 (defun tpu-string-prompt (prompt history-symbol)
   "Read a string with PROMPT."
@@ -2395,7 +2395,7 @@ If FILE is nil, try to load a default file.  The default file names are
 	 (setq file (expand-file-name file)))
 	(tpu-xkeys-file
 	 (setq file (expand-file-name tpu-xkeys-file)))
-	(tpu-lucid-emacs19-p
+	(tpu-lucid-emacs-p
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-lucid-keys"))))
 	(t
