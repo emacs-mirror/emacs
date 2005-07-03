@@ -3196,6 +3196,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
 (put 'Info-mode 'mode-class 'special)
 (put 'Info-mode 'no-clone-indirect t)
 
+(defvar tool-bar-map)
+
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.
 Documentation in Info is divided into \"nodes\", each of which discusses
