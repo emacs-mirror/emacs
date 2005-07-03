@@ -136,6 +136,8 @@ the last mouse movement event that occurred.")
 (defvar tooltip-hide-time nil
   "Time when the last tooltip was hidden.")
 
+(defvar gud-tooltip-mode) ;; Prevent warning.
+
 ;;; Event accessors
 
 (defun tooltip-event-buffer (event)
