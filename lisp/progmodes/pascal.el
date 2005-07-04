@@ -61,7 +61,7 @@
 ;;; Code:
 
 (defgroup pascal nil
-  "Major mode for editing Pascal source in Emacs"
+  "Major mode for editing Pascal source in Emacs."
   :group 'languages)
 
 (defvar pascal-mode-abbrev-table nil
