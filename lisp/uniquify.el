@@ -90,7 +90,7 @@
 ;;; User-visible variables
 
 (defgroup uniquify nil
-  "Unique buffer names dependent on file name"
+  "Unique buffer names dependent on file name."
   :group 'applications)
 
 
