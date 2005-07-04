@@ -100,7 +100,7 @@
 ;;----------------------------------------------------------------
 
 (defgroup dabbrev nil
-  "Dynamic Abbreviations"
+  "Dynamic Abbreviations."
   :tag "Dynamic Abbreviations"
   :group 'abbrev
   :group 'convenience)
@@ -509,7 +509,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (setq direction dabbrev--last-direction))
 	;; If the user inserts a space after expanding
 	;; and then asks to expand again, always fetch the next word.
-	(if (and (eq (preceding-char) ?\ )
+	(if (and (eq (preceding-char) ?\s)
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
 		 (= (point) (1+ dabbrev--last-abbrev-location)))
