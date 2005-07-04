@@ -40,7 +40,7 @@
 (require 'custom)
 
 (defgroup pgg-parse ()
-  "OpenPGP packet parsing"
+  "OpenPGP packet parsing."
   :group 'pgg)
 
 (defcustom pgg-parse-public-key-algorithm-alist
