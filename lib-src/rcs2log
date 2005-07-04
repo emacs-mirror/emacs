@@ -52,7 +52,7 @@ Options:
 
 Report bugs to <bug-gnu-emacs@gnu.org>.'
 
-Id='$Id: rcs2log,v 1.53 2004/02/15 07:41:58 uid65632 Exp $'
+Id='$Id$'
 
 # Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 2001, 2002, 2003,
 # 2004 Free Software Foundation, Inc.
@@ -69,8 +69,8 @@ Id='$Id: rcs2log,v 1.53 2004/02/15 07:41:58 uid65632 Exp $'
 #
 # You should have received a copy of the GNU General Public License
 # along with this program; see the file COPYING.  If not, write to the
-# Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-# Boston, MA 02111-1307, USA.
+# Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+# Boston, MA 02110-1301, USA.
 
 Copyright='Copyright (C) 2004 Free Software Foundation, Inc.
 This program comes with NO WARRANTY, to the extent permitted by law.

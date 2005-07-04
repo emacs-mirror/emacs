@@ -43,8 +43,8 @@ heart's delight at <URL:http://www.ifi.uio.no/~larsi/larsi.html>.
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 From lars Thu Feb 23 23:20:38 1995
 From: larsi@ifi.uio.no (ding)
