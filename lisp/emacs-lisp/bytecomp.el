@@ -193,7 +193,7 @@
 
 
 (defgroup bytecomp nil
-  "Emacs Lisp byte-compiler"
+  "Emacs Lisp byte-compiler."
   :group 'lisp)
 
 (defcustom emacs-lisp-file-regexp (if (eq system-type 'vax-vms)
