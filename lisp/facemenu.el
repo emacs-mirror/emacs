@@ -99,7 +99,7 @@
 (define-key global-map "\M-o" 'facemenu-keymap)
 
 (defgroup facemenu nil
-  "Create a face menu for interactively adding fonts to text"
+  "Create a face menu for interactively adding fonts to text."
   :group 'faces
   :prefix "facemenu-")
 
