@@ -70,7 +70,7 @@
 (autoload 'compilation-start "compile")
 
 (defgroup python nil
-  "Silly walks in the Python language"
+  "Silly walks in the Python language."
   :group 'languages
   :version "22.1"
   :link '(emacs-commentary-link "python"))
@@ -1067,7 +1067,7 @@ For running multiple processes in multiple buffers, see `python-buffer'.
   ;; Still required by `comint-redirect-send-command', for instance
   ;; (and we need to match things like `>>> ... >>> '):
   (set (make-local-variable 'comint-prompt-regexp)
-       (rx (and line-start (1+ (and (repeat 3 (any ">.")) ?\ )))))
+       (rx (and line-start (1+ (and (repeat 3 (any ">.")) ?\s)))))
   (set (make-local-variable 'compilation-error-regexp-alist)
        python-compilation-regexp-alist)
   (compilation-shell-minor-mode 1))
