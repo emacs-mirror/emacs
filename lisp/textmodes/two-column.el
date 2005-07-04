@@ -200,7 +200,7 @@
 ;;;;; variable declarations ;;;;;
 
 (defgroup two-column nil
-  "Minor mode for editing of two-column text"
+  "Minor mode for editing of two-column text."
   :prefix "2C-"
   :group 'frames)
 
