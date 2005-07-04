@@ -28,7 +28,7 @@
 (provide 'ediff-ptch)
 
 (defgroup ediff-ptch nil
-  "Ediff patch support"
+  "Ediff patch support."
   :tag "Patch"
   :prefix "ediff-"
   :group 'ediff)
