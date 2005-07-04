@@ -1,7 +1,16 @@
+2005-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Prevent adaptive
+	filling from using prefix when filling a single-line docstring.
+
+	* progmodes/flymake.el: Remove useless eval-when-compile.
+
+	* arc-mode.el (archive-lzh-ogm): Reorder save excursion/restriction.
+
 2005-07-04  Richard M. Stallman  <rms@gnu.org>
 
 	* textmodes/org.el (org-file-apps-defaults-gnu):
-	Renamed from org-file-apps-defaults-linux.
+	Rename from org-file-apps-defaults-linux.
 	(org-default-apps): Don't test system-type for `linux'.
 	(org-file-apps): Doc fix.
 
@@ -45,14 +54,12 @@
 	(org-recalc-marks, org-table-rotate-recalc-marks)
 	(org-table-get-specials): Treat "^" and "_" marks.
 	(org-table-justify-field-maybe): Optional argument NEW.
-	(org-table-eval-formula): Parsing of the format simplified.  New
-	modes C,I.  Honor the %= parameter in the current table.  Avoid
-	unnecessary re-align by using the NEW argument to
+	(org-table-eval-formula): Parsing of the format simplified.
+	New modes C,I.  Honor the %= parameter in the current table.
+	Avoid unnecessary re-align by using the NEW argument to
 	`org-table-justify-field-maybe'.
-	(org-calc-default-modes): Default for date-format mimicks
-	org-mode.
-	(org-agenda, org-timeline): Quote argument in
-	`org-agenda-redo-command'.
+	(org-calc-default-modes): Default for date-format mimicks org-mode.
+	(org-agenda, org-timeline): Quote argument in org-agenda-redo-command.
 
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -231,7 +238,7 @@
 
 	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
 	All references simplified.
-	(tpu-lucid-emacs-p): Renamed from tpu-lucid-emacs19-p.  Uses changed.
+	(tpu-lucid-emacs-p): Rename from tpu-lucid-emacs19-p.  Uses changed.
 	(zmacs-regions): Add defvar.
 	(repeat-complex-command-map): Everything about that deleted.
 
@@ -252,7 +259,7 @@
 
 	* mail/rmailsum.el (rmail-summary-redo): Add defvar.
 	(rmail-summary-mode-map, rmail-summary-overlay): Defvars moved up.
-	(rmail-new-summary-line-count): Renamed from new-summary-line-count.
+	(rmail-new-summary-line-count): Rename from new-summary-line-count.
 	Add defvar.
 	(rmail-summary-beginning-of-message): Use with-no-warnings.
 	(rmail-summary-first-message, rmail-summary-last-message): Likewise.
