@@ -1,3 +1,37 @@
+2005-07-04  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Improve header Commentary section.
+	(tree-widget) [defgroup]
+	(tree-widget-image-enable, tree-widget-themes-directory)
+	(tree-widget-theme, tree-widget-image-properties-emacs)
+	(tree-widget-image-properties-xemacs, tree-widget-create-image)
+	(tree-widget-image-formats, tree-widget-control)
+	(tree-widget-empty-control, tree-widget-leaf-control
+	(tree-widget-guide, tree-widget-end-guide, tree-widget-no-guide)
+	(tree-widget-handle, tree-widget-no-handle, tree-widget-p)
+	(tree-widget-keep, tree-widget-after-toggle-functions)
+	(tree-widget-open-node, tree-widget-close-node): Doc fix.
+	(tree-widget-open-control, tree-widget-close-control): Fix doc and
+	:help-echo message.
+	(tree-widget-set-theme): Doc fix.  Use `string-equal'.
+	(tree-widget-image-properties): Doc fix.  Clearer implementation.
+	(tree-widget--cursors): New constant.
+	(tree-widget-lookup-image): New function split from
+	`tree-widget-find-image'.  Clearer implementation.
+	(tree-widget-find-image): Use it.
+	(tree-widget-button-keymap): Use `set-keymap-parent'.
+	(tree-widget) [define-widget]: Use `widget-children-value-delete'.
+	Define the sub-widgets here.
+	(tree-widget-node): Check that :node is not a tree-widget.
+	(tree-widget-get-super, tree-widget-open-control)
+	(tree-widget-close-control, tree-widget-empty-control)
+	(tree-widget-leaf-control, tree-widget-guide)
+	(tree-widget-end-guide, tree-widget-no-guide, tree-widget-handle)
+	(tree-widget-no-handle, tree-widget-value-delete)
+	(tree-widget-map): Remove.
+	(tree-widget-children-value-save): Doc fix.  Simplified.
+	(tree-widget-value-create): Update according to previous changes.
+
 2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Leading space replaced by TABS.
