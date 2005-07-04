@@ -146,11 +146,11 @@
   :group 'processes)
 
 (defgroup comint-completion nil
-  "Completion facilities in comint"
+  "Completion facilities in comint."
   :group 'comint)
 
 (defgroup comint-source nil
-  "Source finding facilities in comint"
+  "Source finding facilities in comint."
   :prefix "comint-"
   :group 'comint)
 
@@ -986,7 +986,7 @@ See also `comint-read-input-ring'."
       (message "Hit space to flush")
       (setq comint-dynamic-list-input-ring-window-conf conf)
       (let ((ch (read-event)))
-	(if (eq ch ?\ )
+	(if (eq ch ?\s)
 	    (set-window-configuration conf)
 	  (setq unread-command-events (list ch)))))))
 
@@ -2930,7 +2930,7 @@ Typing SPC flushes the help buffer."
 	  (progn
 	    (mouse-choose-completion first)
 	    (set-window-configuration comint-dynamic-list-completions-config))
-	(unless (eq first ?\ )
+	(unless (eq first ?\s)
 	  (setq unread-command-events (listify-key-sequence key)))
 	(unless (eq first ?\t)
 	  (set-window-configuration comint-dynamic-list-completions-config))))))
