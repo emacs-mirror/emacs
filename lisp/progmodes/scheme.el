@@ -82,7 +82,7 @@
     (modify-syntax-entry ?\n ">   " st)
     (modify-syntax-entry ?\f "    " st)
     (modify-syntax-entry ?\r "    " st)
-    (modify-syntax-entry ?  "    " st)
+    (modify-syntax-entry ?\s "    " st)
 
     ;; These characters are delimiters but otherwise undefined.
     ;; Brackets and braces balance for editing convenience.
@@ -228,7 +228,7 @@ if that value is non-nil."
   (run-mode-hooks 'scheme-mode-hook))
 
 (defgroup scheme nil
-  "Editing Scheme code"
+  "Editing Scheme code."
   :group 'lisp)
 
 (defcustom scheme-mit-dialect t
