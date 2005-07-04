@@ -221,7 +221,7 @@
 ;;; Allow customization
 
 (defgroup SQL nil
-  "Running a SQL interpreter from within Emacs buffers"
+  "Running a SQL interpreter from within Emacs buffers."
   :version "20.4"
   :group 'processes)
 
@@ -2077,7 +2077,7 @@ Inserts SELECT or commas if appropriate."
 	  (insert ", "))
 	 ;; else insert a space
 	 (t
-	  (if (eq (preceding-char) ? )
+	  (if (eq (preceding-char) ?\s)
 	      nil
 	    (insert " ")))))
       ;; in any case, insert the column
