@@ -30,7 +30,7 @@
   (require 'pgg))
 
 (defgroup pgg-pgp5 ()
-  "PGP 5.* interface"
+  "PGP 5.* interface."
   :group 'pgg)
 
 (defcustom pgg-pgp5-pgpe-program "pgpe"
