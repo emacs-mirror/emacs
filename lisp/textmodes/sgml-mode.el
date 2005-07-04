@@ -40,7 +40,7 @@
   (require 'cl))
 
 (defgroup sgml nil
-  "SGML editing mode"
+  "SGML editing mode."
   :group 'languages)
 
 (defcustom sgml-basic-offset 2
@@ -670,12 +670,12 @@ If QUIET, do not print a message when there are no attributes for TAG."
 	    (message "No attributes configured."))
 	(if (stringp (car alist))
 	    (progn
-	      (insert (if (eq (preceding-char) ? ) "" ? )
+	      (insert (if (eq (preceding-char) ?\s) "" ?\s)
 		      (funcall skeleton-transformation (car alist)))
 	      (sgml-value alist))
 	  (setq i (length alist))
 	  (while (> i 0)
-	    (insert ? )
+	    (insert ?\s)
 	    (insert (funcall skeleton-transformation
 			     (setq attribute
 				   (skeleton-read '(completing-read
@@ -685,7 +685,7 @@ If QUIET, do not print a message when there are no attributes for TAG."
 		(setq i 0)
 	      (sgml-value (assoc (downcase attribute) alist))
 	      (setq i (1- i))))
-	  (if (eq (preceding-char) ? )
+	  (if (eq (preceding-char) ?\s)
 	      (delete-backward-char 1)))
 	car)))
 
@@ -701,7 +701,7 @@ With prefix argument, only self insert."
 	    (eq (aref tag 0) ?/))
 	(self-insert-command (prefix-numeric-value arg))
       (sgml-attributes tag)
-      (setq last-command-char ? )
+      (setq last-command-char ?\s)
       (or (> (point) point)
 	  (self-insert-command 1)))))
 
@@ -1875,7 +1875,7 @@ The third `match-string' will be the used in the menu.")
 	(setq toc-index
 	      (cons (cons (concat (make-string
 				   (* 2 (1- (string-to-number (match-string 1))))
-				   ?\ )
+				   ?\s)
 				  (match-string 3))
 			  (line-beginning-position))
 		    toc-index))))
