@@ -33,7 +33,7 @@
 ;; Jan '86, Some new features added by Peter Desnoyers and rewritten by RMS.
 
 (defgroup outlines nil
-  "Support for hierarchical outlining"
+  "Support for hierarchical outlining."
   :prefix "outline-"
   :group 'editing)
 
