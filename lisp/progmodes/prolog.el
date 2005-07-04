@@ -31,7 +31,7 @@
 ;;; Code:
 
 (defgroup prolog nil
-  "Major mode for editing and running Prolog under Emacs"
+  "Major mode for editing and running Prolog under Emacs."
   :group 'languages)
 
 
