@@ -1133,7 +1133,7 @@ If TO STRING is empty, the instance name is queried."
 
 
 (defgroup vhdl-testbench nil
-  "Customizations for testbench generation ."
+  "Customizations for testbench generation."
   :group 'vhdl-port)
 
 (defcustom vhdl-testbench-entity-name '(".*" . "\\&_tb")
