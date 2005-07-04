@@ -40,17 +40,17 @@
 (require 'compile)
 
 (defgroup tex-file nil
-  "TeX files and directories"
+  "TeX files and directories."
   :prefix "tex-"
   :group 'tex)
 
 (defgroup tex-run nil
-  "Running external commands from TeX mode"
+  "Running external commands from TeX mode."
   :prefix "tex-"
   :group 'tex)
 
 (defgroup tex-view nil
-  "Viewing and printing TeX files"
+  "Viewing and printing TeX files."
   :prefix "tex-"
   :group 'tex)
 
@@ -1114,7 +1114,7 @@ inserts \" characters."
 	      (delete-char (length tex-open-quote))
 	      t)))
       (self-insert-command (prefix-numeric-value arg))
-    (insert (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
+    (insert (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
 		tex-open-quote tex-close-quote))))
 
 (defun tex-validate-buffer ()
@@ -2421,7 +2421,7 @@ There might be text before point."
 	 (+ indent (current-column) tex-indent-item))
 	(t
 	 (let ((col (current-column)))
-	   (if (or (not (eq (char-syntax (or (char-after pos) ?\ )) ?\())
+	   (if (or (not (eq (char-syntax (or (char-after pos) ?\s)) ?\())
 		   ;; Can't be an arg if there's an empty line inbetween.
 		   (save-excursion (re-search-forward "^[ \t]*$" pos t)))
 	       ;; If the first char was not an open-paren, there's
