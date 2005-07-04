@@ -41,7 +41,7 @@
 (require 'shell)
 
 (defgroup rlogin nil
-  "Remote login interface"
+  "Remote login interface."
   :group 'processes
   :group 'unix)
 
