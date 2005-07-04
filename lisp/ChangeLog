@@ -1,3 +1,8 @@
+2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-face.el (custom-theme-set-faces): Make it handle face
+	aliases whose alias declarations are pre- or autoloaded.
+
 2005-07-04  Juri Linkov  <juri@jurta.org>
 
 	* faces.el (read-face-name): Put the code for getting a face name
