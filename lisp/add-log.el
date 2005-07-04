@@ -33,7 +33,7 @@
   (require 'timezone))
 
 (defgroup change-log nil
-  "Change log maintenance"
+  "Change log maintenance."
   :group 'tools
   :link '(custom-manual "(emacs)Change Log")
   :prefix "change-log-"
@@ -607,13 +607,13 @@ non-nil, otherwise in local time."
 		  (beginning-of-line 1)
 		  (looking-at "\\s *\\(\\*\\s *\\)?$"))
 	  (insert ": ")
-	  (if version (insert version ?\ )))
+	  (if version (insert version ?\s)))
       ;; Make it easy to get rid of the function name.
       (undo-boundary)
       (unless (save-excursion
 		(beginning-of-line 1)
 		(looking-at "\\s *$"))
-	(insert ?\ ))
+	(insert ?\s))
       ;; See if the prev function name has a message yet or not.
       ;; If not, merge the two items.
       (let ((pos (point-marker)))
@@ -633,7 +633,7 @@ non-nil, otherwise in local time."
 	  (insert "("))
 	(set-marker pos nil))
       (insert defun "): ")
-      (if version (insert version ?\ )))))
+      (if version (insert version ?\s)))))
 
 ;;;###autoload
 (defun add-change-log-entry-other-window (&optional whoami file-name)
