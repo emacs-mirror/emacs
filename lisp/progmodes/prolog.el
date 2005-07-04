@@ -56,8 +56,8 @@
   :group 'prolog)
 
 (defcustom prolog-eof-string "end_of_file.\n"
-  "*String that represents end of file for prolog.
-nil means send actual operating system end of file."
+  "*String that represents end of file for Prolog.
+When nil, send actual operating system end of file."
   :type 'string
   :group 'prolog)
 
@@ -158,7 +158,7 @@ rigidly along with this one (not yet)."
     ))
 
 (defun prolog-indent-level ()
-  "Compute prolog indentation level."
+  "Compute Prolog indentation level."
   (save-excursion
     (beginning-of-line)
     (skip-chars-forward " \t")
