@@ -1,3 +1,6 @@
+2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-face.el (custom-theme-set-faces): Make it handle face
@@ -141,6 +144,7 @@
 
 	* emacs-lisp/cl-indent.el (lisp-indent-maximum-backtracking):
 	* eshell/esh-var.el (eshell-var):
+	* progmodes/vhdl-mode.el (vhdl-testbench):
 	* textmodes/org.el (org): Fix typos in docstrings.
 
 	* emacs-lisp/timer.el (with-timeout): Improve argument/docstring
