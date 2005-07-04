@@ -43,7 +43,7 @@
 (require 'ediff-init)
 
 (defgroup ediff-diff nil
-  "Diff related utilities"
+  "Diff related utilities."
   :prefix "ediff-"
   :group 'ediff)
 
