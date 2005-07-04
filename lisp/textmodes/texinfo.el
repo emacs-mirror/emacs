@@ -44,7 +44,7 @@
 (eval-when-compile (require 'tex-mode) (require 'cl))
 
 (defgroup texinfo nil
-  "Texinfo Mode"
+  "Texinfo Mode."
   :group 'docs)
 
 ;;;###autoload
@@ -701,7 +701,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 		    (setq in-env t)))))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
-       (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
+       (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
 	   texinfo-open-quote
 	 texinfo-close-quote)))))
 
