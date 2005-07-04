@@ -214,7 +214,7 @@ and return t."
       (progn
 	;;
 	(setq crm-beginning-of-element (match-beginning 1))
-	(setq crm-end-of-element end-index)
+	(setq crm-end-of-element (+ end-index prompt-end))
 	;; string to the left of the current element
 	(setq crm-left-of-element
 	      (substring target-string 0 (match-beginning 1)))
@@ -482,7 +482,7 @@ This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
       (setq result
 	    (catch 'crm-exit
 
-	      (if (eq (point-min) (point-max))
+	      (if (eq (minibuffer-prompt-end) (point-max))
 		  (throw 'crm-exit t))
 
 	      ;; TODO: this test is suspect?
@@ -508,7 +508,8 @@ This function is modeled after `minibuffer_complete_and_exit' in src/minibuf.c"
 	  nil
 	(if (equal result "check")
 	    (let ((check-strings
-		   (crm-strings-completed-p (buffer-string))))
+		   (crm-strings-completed-p
+		    (buffer-substring (minibuffer-prompt-end) (point-max)))))
 	      ;; check all of minibuffer
 	      (if (eq check-strings t)
 		  (throw 'exit nil)
