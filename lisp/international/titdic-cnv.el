@@ -696,7 +696,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
@@ -722,7 +722,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang
