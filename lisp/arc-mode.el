@@ -679,8 +679,6 @@ archive.
 
 ;; Archive mode is suitable only for specially formatted data.
 (put 'archive-mode 'mode-class 'special)
-;; -------------------------------------------------------------------------
-;; Section: Key maps
 
 (let ((item1 '(archive-subfile-mode " Archive")))
   (or (member item1 minor-mode-alist)
@@ -1556,8 +1554,8 @@ This doesn't recover lost files, it just undoes changes in the buffer itself."
 	(insert newhsize (archive-lzh-resum p newhsize))))))
 
 (defun archive-lzh-ogm (newval files errtxt ofs)
-  (save-restriction
-    (save-excursion
+  (save-excursion
+    (save-restriction
       (widen)
       (set-buffer-multibyte nil)
       (dolist (fil files)
