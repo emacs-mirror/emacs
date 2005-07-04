@@ -519,7 +519,7 @@ the minibuffer."
 				(put ',(nth 1 form) 'saved-face
 				     ',(get (nth 1 form) 'saved-face))
 				(put ',(nth 1 form) 'customized-face
-				     ',(nth 2 form)))
+				     ,(nth 2 form)))
 			(put (nth 1 form) 'saved-face nil)))))
     (setq edebug-result (eval form))
     (if (not edebugging)
