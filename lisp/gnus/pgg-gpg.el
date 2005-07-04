@@ -30,7 +30,7 @@
   (require 'pgg))
 
 (defgroup pgg-gpg ()
-  "GnuPG interface"
+  "GnuPG interface."
   :group 'pgg)
 
 (defcustom pgg-gpg-program "gpg"
