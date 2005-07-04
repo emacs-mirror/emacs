@@ -61,7 +61,7 @@
 ;;; Options
 
 (defgroup edebug nil
-  "A source-level debugger for Emacs Lisp"
+  "A source-level debugger for Emacs Lisp."
   :group 'lisp)
 
 
@@ -4224,7 +4224,7 @@ reinstrument it."
 		       (- (current-column)
 			  (if (= ?\( (following-char)) 0 1)))))
 	    (insert (make-string
-		     (max 0 (- col (- (point) start-of-count-line))) ?\ )
+		     (max 0 (- col (- (point) start-of-count-line))) ?\s)
 		    (if (and (< 0 count)
 			     (not (memq coverage
 					'(unknown ok-coverage))))
