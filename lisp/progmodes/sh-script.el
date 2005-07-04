@@ -202,12 +202,12 @@
 
 
 (defgroup sh nil
-  "Shell programming utilities"
+  "Shell programming utilities."
   :group 'unix
   :group 'languages)
 
 (defgroup sh-script nil
-  "Shell script mode"
+  "Shell script mode."
   :group 'sh
   :prefix "sh-")
 
@@ -3535,7 +3535,7 @@ The document is bounded by `sh-here-document-word'."
             (delim (replace-regexp-in-string "['\"]" ""
                                             sh-here-document-word)))
 	(insert sh-here-document-word)
-	(or (eolp) (looking-at "[ \t]") (insert ? ))
+	(or (eolp) (looking-at "[ \t]") (insert ?\s))
 	(end-of-line 1)
 	(while
 	    (sh-quoted-p)
