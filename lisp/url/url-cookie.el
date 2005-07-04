@@ -79,7 +79,7 @@ A cookie vector object is a vector of 7 slots:
   (and (vectorp obj) (= (length obj) 7) (eq (aref obj 0) 'cookie)))
 
 (defgroup url-cookie nil
-  "URL cookies"
+  "URL cookies."
   :prefix "url-"
   :prefix "url-cookie-"
   :group 'url)
