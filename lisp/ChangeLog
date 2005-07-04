@@ -1,3 +1,20 @@
+2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/cl-indent.el (lisp-indent-maximum-backtracking):
+	Fix typos in docstrings.
+	(lisp-indent): Finish `defgroup' description with period.
+
+	* progmodes/flymake.el (flymake-find-file): Remove.
+	(flymake-float-time): Use `with-no-warnings'.
+	(flymake-check-start-time, flymake-check-was-interrupted)
+	(flymake-err-info, flymake-is-running, flymake-last-change-time)
+	(flymake-new-err-info): `defvar' at compile time.
+
+2005-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-hook): Doc fix.
+	(occur-1): Don't call `occur-hook' if there are no matches.
+
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
 	* emulation/tpu-edt.el (tpu-original-global-map): Don't copy
@@ -93,10 +110,10 @@
 	and save it to the `custom-theme-directory'.  Make this the
 	default directory of the buffer.
 
-2005-07-02 David Hunter <hunterd_42@comcast.net> (tiny change)
+2005-07-02  David Hunter  <hunterd_42@comcast.net>  (tiny change)
 
-	* progmodes/flymake.el (flymake-mode, flymake-mode-off): Fix
-	unbalanced parentheses.
+	* progmodes/flymake.el (flymake-mode, flymake-mode-off):
+	Fix unbalanced parentheses.
 
 2005-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
 
