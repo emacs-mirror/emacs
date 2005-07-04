@@ -35,6 +35,12 @@
 
 2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* progmodes/prolog.el (prolog-eof-string): Doc fixes.
+	(prolog-indent-level): Fix typo in docstring.
+
+	* info.el (Info-history, Info-history-forward)
+	(Info-history-list, Info-speedbar-fetch-file-nodes): Doc fixes.
+
 	* add-log.el (add-change-log-entry):
 	* comint.el (comint-dynamic-list-input-ring)
 	(comint-dynamic-list-completions):
