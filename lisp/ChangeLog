@@ -1,3 +1,18 @@
+2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Leading space replaced by TABS.
+	(org-recalc-marks, org-table-rotate-recalc-marks)
+	(org-table-get-specials): Treat "^" and "_" marks.
+	(org-table-justify-field-maybe): Optional argument NEW.
+	(org-table-eval-formula): Parsing of the format simplified.  New
+	modes C,I.  Honor the %= parameter in the current table.  Avoid
+	unnecessary re-align by using the NEW argument to
+	`org-table-justify-field-maybe'.
+	(org-calc-default-modes): Default for date-format mimicks
+	org-mode.
+	(org-agenda, org-timeline): Quote argument in
+	`org-agenda-redo-command'.
+
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-face.el (custom-theme-set-faces): Make it handle face
