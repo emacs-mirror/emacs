@@ -193,7 +193,7 @@
   "Are we using the new outline mode?")
 
 (defgroup org nil
-  "Outline-based notes management and organizer "
+  "Outline-based notes management and organizer."
   :tag "Org"
   :group 'outlines
   :group 'hypermedia
