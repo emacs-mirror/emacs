@@ -37,7 +37,7 @@
 (require 'gnus-range)
 
 (defgroup gnus-nocem nil
-  "NoCeM pseudo-cancellation treatment"
+  "NoCeM pseudo-cancellation treatment."
   :group 'gnus-score)
 
 (defcustom gnus-nocem-groups
