@@ -1,6 +1,3 @@
-2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
-
-
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-face.el (custom-theme-set-faces): Make it handle face
