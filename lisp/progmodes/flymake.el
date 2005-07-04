@@ -34,13 +34,12 @@
 
 ;;;; [[ Silence the byte-compiler
 
-(eval-when-compile
-  (defvar flymake-check-start-time)
-  (defvar flymake-check-was-interrupted)
-  (defvar flymake-err-info)
-  (defvar flymake-is-running)
-  (defvar flymake-last-change-time)
-  (defvar flymake-new-err-info))
+(defvar flymake-check-start-time)
+(defvar flymake-check-was-interrupted)
+(defvar flymake-err-info)
+(defvar flymake-is-running)
+(defvar flymake-last-change-time)
+(defvar flymake-new-err-info)
 
 ;;;; ]]
 
