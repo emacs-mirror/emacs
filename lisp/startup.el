@@ -37,7 +37,7 @@
   "Non-nil once command line has been processed.")
 
 (defgroup initialization nil
-  "Emacs start-up procedure"
+  "Emacs start-up procedure."
   :group 'internal)
 
 (defcustom inhibit-startup-message nil
