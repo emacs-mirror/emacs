@@ -38,7 +38,7 @@
 (eval-when-compile (require 'jka-compr))
 
 (defgroup info nil
-  "Info subsystem"
+  "Info subsystem."
   :group 'help
   :group 'docs)
 
@@ -2868,7 +2868,7 @@ Build a menu of the possible matches."
       (while (progn (setq flag (not (pos-visible-in-window-p (point-max))))
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
-		    (if (not (eq ?\  (setq ch (read-event))))
+		    (if (not (eq ?\s (setq ch (read-event))))
 			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
 	(scroll-up)))
