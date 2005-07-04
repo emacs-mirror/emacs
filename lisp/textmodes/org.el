@@ -999,7 +999,7 @@ The default is true, to keep new users from shooting into their own foot."
   :group 'org-link
   :type 'boolean)
 
-(defconst org-file-apps-defaults-linux
+(defconst org-file-apps-defaults-gnu
   '((t        . emacs)
     ("jpg"    . "xv %s")
     ("gif"    . "xv %s")
@@ -1023,7 +1023,7 @@ The default is true, to keep new users from shooting into their own foot."
     ("html"   . "netscape -remote openURL(%s,new-window)")
     ("htm"    . "netscape -remote openURL(%s,new-window)")
     ("xs"     . "soffice %s"))
-  "Default file applications on a UNIX/LINUX system.
+  "Default file applications on a GNU-like system.
 See `org-file-apps'.")
 
 (defconst org-file-apps-defaults-macosx
@@ -1067,7 +1067,7 @@ and the corresponding command.  Possible values for the command are:
 For more examples, see the system specific constants
 `org-file-apps-defaults-macosx'
 `org-file-apps-defaults-windowsnt'
-`org-file-apps-defaults-linux'."
+`org-file-apps-defaults-gnu'."
   :group 'org-link
   :type '(repeat
           (cons (string :tag "Extension")
@@ -5388,9 +5388,7 @@ If the file does not exist, an error is thrown."
     org-file-apps-defaults-macosx)
    ((eq system-type 'windows-nt)
     org-file-apps-defaults-windowsnt)
-   ((eq system-type 'linux)
-    org-file-apps-defaults-linux)
-   (t org-file-apps-defaults-linux)))
+   (t org-file-apps-defaults-gnu)))
 
 (defun org-expand-file-name (path)
   "Replace special path abbreviations and expand the file name."
@@ -9048,7 +9046,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map (org-key 'S-left)  'org-timestamp-down-day)
 (define-key org-mode-map (org-key 'S-right) 'org-timestamp-up-day)
 (define-key org-mode-map "\C-c-"          'org-table-insert-hline)
-;; The following line is e.g. necessary for German keyboards under Suse Linux
+;; The following line is necessary for German keyboards under Suse GNU/Linux
 (unless org-xemacs-p
   (define-key org-mode-map [S-iso-lefttab]  'org-shifttab))
 (define-key org-mode-map [(shift tab)]    'org-shifttab)
