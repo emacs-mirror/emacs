@@ -28,7 +28,7 @@
 
 ;; Custom group for w32 specific settings
 (defgroup w32 nil
-  "MS-Windows specific features"
+  "MS-Windows specific features."
   :group 'environment
   :version "22.1"
   :prefix "w32")
