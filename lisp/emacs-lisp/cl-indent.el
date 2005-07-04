@@ -49,13 +49,13 @@
 ;;; Code:
 
 (defgroup lisp-indent nil
-  "Indentation in Lisp"
+  "Indentation in Lisp."
   :group 'lisp)
 
 
 (defcustom lisp-indent-maximum-backtracking 3
   "*Maximum depth to backtrack out from a sublist for structured indentation.
-If this variable is  0, no backtracking will occur and forms such as flet
+If this variable is 0, no backtracking will occur and forms such as `flet'
 may not be correctly indented."
   :type 'integer
   :group 'lisp-indent)
