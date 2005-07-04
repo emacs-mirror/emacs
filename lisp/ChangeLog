@@ -20,12 +20,131 @@
 
 2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
-	* emacs-lisp/timer.el (with-timeout): Improve argument/docstring
-	consistency.
+	* add-log.el (add-change-log-entry):
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-dynamic-list-completions):
+	* dabbrev.el (dabbrev-expand):
+	* delim-col.el (delimit-columns-rectangle-line):
+	* diff-mode.el (diff-context->unified, diff-reverse-direction)
+	(diff-unified->context):
+	* ediff-init.el (ediff-abbrev-jobname):
+	* ediff-mult.el (ediff-replace-session-status-in-meta-buffer)
+	(ediff-replace-session-activity-marker-in-meta-buffer):
+	* info.el (Info-summary):
+	* lpr.el (printify-region):
+	* printing.el (pr-create-interface):
+	* ps-print.el (ps-print-quote):
+	* ses.el (ses-column-widths, ses-print-cell)
+	(ses-adjust-print-width, ses-center):
+	* shell.el (shell-file-name-quote-list):
+	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke)
+	(strokes-fill-current-buffer-with-whitespace)
+	(strokes-xpm-for-stroke, strokes-list-strokes)
+	(strokes-xpm-char-bit-p, strokes-xpm-for-compressed-string):
+	* term.el (term-dynamic-list-input-ring)
+	(term-dynamic-list-completions):
+	* calc/calc.el (math-format-stack-value):
+	* emacs-lisp/edebug.el (edebug-display-freq-count):
+	* progmodes/delphi.el (delphi-indent-line, delphi-fill-comment)
+	(delphi-new-comment-line):
+	* progmodes/ebnf2ps.el (ebnf-eps-filename, ebnf-trim-right):
+	* progmodes/executable.el (executable-set-magic):
+	* progmodes/python.el (inferior-python-mode):
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	* progmodes/sh-script.el (sh-maybe-here-document):
+	* progmodes/sql.el (sql-copy-column):
+	* progmodes/tcl.el (tcl-comment-indent, tcl-quote):
+	* textmodes/bibtex.el (bibtex-mode):
+	* textmodes/sgml-mode.el (html-imenu-index, sgml-attributes)
+	(sgml-auto-attributes):
+	* textmodes/table.el (table-insert, table-shorten-cell)
+	(table--generate-source-scan-lines, table-delete-row)
+	(*table--cell-delete-char, table--spacify-frame)
+	(table--horizontally-shift-above-and-below)
+	(table--cell-insert-char, table--cell-blank-str)
+	(table--fill-region-strictly):
+	* textmodes/tex-mode.el (tex-insert-quote, latex-find-indent):
+	* textmodes/texinfo.el (texinfo-insert-quote): "?\ " -> "?\s".
+
+	* add-log.el (change-log):
+	* apropos.el (apropos):
+	* comint.el (comint-completion, comint-source):
+	* dabbrev.el (dabbrev):
+	* delim-col.el (columns):
+	* diff-mode.el (diff-mode):
+	* ediff.el (ediff):
+	* ediff-diff.el (ediff-diff):
+	* ediff-init.el (ediff-highlighting, ediff-merge, ediff-hook):
+	* ediff-mult.el (ediff-mult):
+	* ediff-ptch.el (ediff-ptch):
+	* ediff-wind.el (ediff-window):
+	* facemenu.el (facemenu):
+	* indent.el (indent):
+	* info.el (info):
+	* jka-cmpr-hook.el (compression, jka-compr):
+	* lpr.el (lpr):
+	* outline.el (outlines):
+	* pcmpl-cvs.el (pcmpl-cvs):
+	* pcmpl-rpm.el (pcmpl-rpm):
+	* printing.el (printing):
+	* ps-print.el (postscript, ps-print, ps-print-horizontal)
+	(ps-print-vertical, ps-print-headers, ps-print-font)
+	(ps-print-color, ps-print-face, ps-print-n-up, ps-print-zebra)
+	(ps-print-background, ps-print-printer, ps-print-page)
+	(ps-print-miscellany):
+	* ses.el (ses):
+	* shell.el (shell, shell-directories, shell-faces):
+	* startup.el (initialization):
+	* strokes.el (strokes):
+	* term.el (term):
+	* uniquify.el (uniquify):
+	* w32-vars.el (w32):
+	* calc/calc.el (calc):
+	* emacs-lisp/bytecomp.el (bytecomp):
+	* emacs-lisp/cl-indent.el (lisp-indent):
+	* emacs-lisp/edebug.el (edebug):
+	* emacs-lisp/elp.el (elp):
+	* emacs-lisp/testcover.el (testcover):
+	* emacs-lisp/trace.el (trace):
+	* emulation/viper-ex.el (viper-ex):
+	* emulation/viper-mous.el (viper-mouse):
+	* mail/mailalias.el (mailalias):
+	* mail/supercite.el (supercite, supercite-frames)
+	(supercite-attr, supercite-cite, supercite-hooks):
+	* net/rcompile.el (remote-compile):
+	* net/rlogin.el (rlogin):
+	* obsolete/ooutline.el (outlines):
+	* progmodes/delphi.el (delphi):
+	* progmodes/ebnf2ps.el (postscript, ebnf2ps, ebnf-special)
+	(ebnf-except, ebnf-repeat, ebnf-terminal, ebnf-non-terminal)
+	(ebnf-production, ebnf-shape, ebnf-displacement, ebnf-syntactic)
+	(ebnf-optimization):
+	* progmodes/etags.el (etags):
+	* progmodes/executable.el (executable):
+	* progmodes/idlwave.el (idlwave):
+	* progmodes/pascal.el (pascal):
+	* progmodes/prolog.el (prolog):
+	* progmodes/python.el (python):
+	* progmodes/scheme.el (scheme):
+	* progmodes/sh-script.el (sh, sh-script):
+	* progmodes/sql.el (SQL):
+	* progmodes/tcl.el (tcl):
+	* textmodes/bibtex.el (bibtex, bibtex-autokey):
+	* textmodes/enriched.el (enriched):
+	* textmodes/makeinfo.el (makeinfo):
+	* textmodes/sgml-mode.el (sgml):
+	* textmodes/table.el (table-hooks):
+	* textmodes/tex-mode.el (tex-file, tex-run, tex-view):
+	* textmodes/texinfo.el (texinfo):
+	* textmodes/two-column.el (two-column):
+	Finish `defgroup' description with period.
 
 	* emacs-lisp/cl-indent.el (lisp-indent-maximum-backtracking):
-	Fix typos in docstrings.
-	(lisp-indent): Finish `defgroup' description with period.
+	* eshell/esh-var.el (eshell-var):
+	* textmodes/org.el (org): Fix typos in docstrings.
+
+	* emacs-lisp/timer.el (with-timeout): Improve argument/docstring
+	consistency.
 
 	* progmodes/flymake.el (flymake-find-file): Remove.
 	(flymake-float-time): Use `with-no-warnings'.
