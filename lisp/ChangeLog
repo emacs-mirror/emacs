@@ -15,6 +15,9 @@
 
 2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/timer.el (with-timeout): Improve argument/docstring
+	consistency.
+
 	* emacs-lisp/cl-indent.el (lisp-indent-maximum-backtracking):
 	Fix typos in docstrings.
 	(lisp-indent): Finish `defgroup' description with period.
