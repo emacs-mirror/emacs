@@ -405,7 +405,7 @@
 (require 'ehelp)
 
 (defgroup term nil
-  "General command interpreter in a window"
+  "General command interpreter in a window."
   :group 'processes
   :group 'unix)
 
@@ -1574,7 +1574,7 @@ See also `term-read-input-ring'."
       (sit-for 0)
       (message "Hit space to flush")
       (let ((ch (read-event)))
-	(if (eq ch ?\ )
+	(if (eq ch ?\s)
 	    (set-window-configuration conf)
 	  (setq unread-command-events (list ch)))))))
 
@@ -4045,7 +4045,7 @@ Typing SPC flushes the help buffer."
 	  (progn
 	    (mouse-choose-completion first)
 	    (set-window-configuration conf))
-	(if (eq first ?\ )
+	(if (eq first ?\s)
 	    (set-window-configuration conf)
 	  (setq unread-command-events (listify-key-sequence key)))))))
 
