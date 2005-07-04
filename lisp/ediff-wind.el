@@ -66,7 +66,7 @@
   (defun ediff-compute-toolbar-width () 0))
 
 (defgroup ediff-window nil
-  "Ediff window manipulation"
+  "Ediff window manipulation."
   :prefix "ediff-"
   :group 'ediff
   :group 'frames)
