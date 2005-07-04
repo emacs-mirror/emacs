@@ -1,3 +1,10 @@
+2005-07-04  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/org.el (org-file-apps-defaults-gnu):
+	Renamed from org-file-apps-defaults-linux.
+	(org-default-apps): Don't test system-type for `linux'.
+	(org-file-apps): Doc fix.
+
 2005-07-04  David Ponce  <david@dponce.com>
 
 	* tree-widget.el: Improve header Commentary section.
