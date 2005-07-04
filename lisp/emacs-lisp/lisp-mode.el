@@ -631,10 +631,10 @@ Reinitialize the face according to the `defface' specification."
 	 ;; Resetting `saved-face' temporarily to nil is needed to let
 	 ;; `defface' change the spec, regardless of a saved spec.
 	 (prog1 `(prog1 ,form
-		   (put ',(eval (nth 1 form)) 'saved-face
+		   (put ,(nth 1 form) 'saved-face
 			',(get (eval (nth 1 form)) 'saved-face))
-		   (put ',(eval (nth 1 form)) 'customized-face
-			',(eval (nth 2 form))))
+		   (put ,(nth 1 form) 'customized-face
+			,(nth 2 form)))
 	   (put (eval (nth 1 form)) 'saved-face nil)))
 	((eq (car form) 'progn)
 	 (cons 'progn (mapcar 'eval-defun-1 (cdr form))))
