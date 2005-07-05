@@ -1,17 +1,65 @@
+2005-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Prevent adaptive
+	filling from using prefix when filling a single-line docstring.
+
+	* progmodes/flymake.el: Remove useless eval-when-compile.
+
+	* arc-mode.el (archive-lzh-ogm): Reorder save excursion/restriction.
+
+2005-07-04  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/org.el (org-file-apps-defaults-gnu):
+	Rename from org-file-apps-defaults-linux.
+	(org-default-apps): Don't test system-type for `linux'.
+	(org-file-apps): Doc fix.
+
+2005-07-04  David Ponce  <david@dponce.com>
+
+	* tree-widget.el: Improve header Commentary section.
+	(tree-widget) [defgroup]
+	(tree-widget-image-enable, tree-widget-themes-directory)
+	(tree-widget-theme, tree-widget-image-properties-emacs)
+	(tree-widget-image-properties-xemacs, tree-widget-create-image)
+	(tree-widget-image-formats, tree-widget-control)
+	(tree-widget-empty-control, tree-widget-leaf-control
+	(tree-widget-guide, tree-widget-end-guide, tree-widget-no-guide)
+	(tree-widget-handle, tree-widget-no-handle, tree-widget-p)
+	(tree-widget-keep, tree-widget-after-toggle-functions)
+	(tree-widget-open-node, tree-widget-close-node): Doc fix.
+	(tree-widget-open-control, tree-widget-close-control): Fix doc and
+	:help-echo message.
+	(tree-widget-set-theme): Doc fix.  Use `string-equal'.
+	(tree-widget-image-properties): Doc fix.  Clearer implementation.
+	(tree-widget--cursors): New constant.
+	(tree-widget-lookup-image): New function split from
+	`tree-widget-find-image'.  Clearer implementation.
+	(tree-widget-find-image): Use it.
+	(tree-widget-button-keymap): Use `set-keymap-parent'.
+	(tree-widget) [define-widget]: Use `widget-children-value-delete'.
+	Define the sub-widgets here.
+	(tree-widget-node): Check that :node is not a tree-widget.
+	(tree-widget-get-super, tree-widget-open-control)
+	(tree-widget-close-control, tree-widget-empty-control)
+	(tree-widget-leaf-control, tree-widget-guide)
+	(tree-widget-end-guide, tree-widget-no-guide, tree-widget-handle)
+	(tree-widget-no-handle, tree-widget-value-delete)
+	(tree-widget-map): Remove.
+	(tree-widget-children-value-save): Doc fix.  Simplified.
+	(tree-widget-value-create): Update according to previous changes.
+
 2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
 
 	* textmodes/org.el: Leading space replaced by TABS.
 	(org-recalc-marks, org-table-rotate-recalc-marks)
 	(org-table-get-specials): Treat "^" and "_" marks.
 	(org-table-justify-field-maybe): Optional argument NEW.
-	(org-table-eval-formula): Parsing of the format simplified.  New
-	modes C,I.  Honor the %= parameter in the current table.  Avoid
-	unnecessary re-align by using the NEW argument to
+	(org-table-eval-formula): Parsing of the format simplified.
+	New modes C,I.  Honor the %= parameter in the current table.
+	Avoid unnecessary re-align by using the NEW argument to
 	`org-table-justify-field-maybe'.
-	(org-calc-default-modes): Default for date-format mimicks
-	org-mode.
-	(org-agenda, org-timeline): Quote argument in
-	`org-agenda-redo-command'.
+	(org-calc-default-modes): Default for date-format mimicks org-mode.
+	(org-agenda, org-timeline): Quote argument in org-agenda-redo-command.
 
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -34,6 +82,12 @@
 	Remove unnecessary quotes.
 
 2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* progmodes/prolog.el (prolog-eof-string): Doc fixes.
+	(prolog-indent-level): Fix typo in docstring.
+
+	* info.el (Info-history, Info-history-forward)
+	(Info-history-list, Info-speedbar-fetch-file-nodes): Doc fixes.
 
 	* add-log.el (add-change-log-entry):
 	* comint.el (comint-dynamic-list-input-ring)
@@ -184,7 +238,7 @@
 
 	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
 	All references simplified.
-	(tpu-lucid-emacs-p): Renamed from tpu-lucid-emacs19-p.  Uses changed.
+	(tpu-lucid-emacs-p): Rename from tpu-lucid-emacs19-p.  Uses changed.
 	(zmacs-regions): Add defvar.
 	(repeat-complex-command-map): Everything about that deleted.
 
@@ -205,7 +259,7 @@
 
 	* mail/rmailsum.el (rmail-summary-redo): Add defvar.
 	(rmail-summary-mode-map, rmail-summary-overlay): Defvars moved up.
-	(rmail-new-summary-line-count): Renamed from new-summary-line-count.
+	(rmail-new-summary-line-count): Rename from new-summary-line-count.
 	Add defvar.
 	(rmail-summary-beginning-of-message): Use with-no-warnings.
 	(rmail-summary-first-message, rmail-summary-last-message): Likewise.

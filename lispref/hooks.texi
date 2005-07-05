@@ -217,6 +217,8 @@ Manual}.
 @item nongregorian-diary-marking-hook
 @inforef{Hebrew/Islamic Entries,, emacs-xtra}.
 
+@item occur-hook
+
 @item post-command-hook
 @xref{Command Overview}.
 

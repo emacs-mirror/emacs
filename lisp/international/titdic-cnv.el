@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -641,7 +641,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ziranma" "$AWTH;(B"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
@@ -670,7 +670,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlau" "$AAuTA(B"
      "CTLau.html" cn-gb-2312 "CTLau.el"
@@ -696,7 +696,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlaub" "$(0N,Gn(B"
      "CTLau-b5.html" big5 "CTLau-b5.el"
@@ -722,7 +722,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;; #
 ;; # You should have received a copy of the GNU General Public License
 ;; # along with this program; if not, write to the Free Software Foundation,
-;; # Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.")
+;; # Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
     ))
 
 ;; Generate a code of a Quail package in the current buffer from Tsang

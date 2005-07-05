@@ -19,8 +19,8 @@ rem  GNU General Public License for more details.
 rem
 rem  You should have received a copy of the GNU General Public License
 rem  along with GNU Emacs; see the file COPYING.  If not, write to
-rem  the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-rem  Boston, MA 02111-1307, USA.
+rem  the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+rem  Boston, MA 02110-1301, USA.
 rem
 rem
 rem  Usage:

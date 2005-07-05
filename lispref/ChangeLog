@@ -1,3 +1,7 @@
+2005-07-04  Richard M. Stallman  <rms@gnu.org>
+
+	* hooks.texi (Standard Hooks): Add occur-hook.
+
 2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi (The Echo Area): Correct menu.

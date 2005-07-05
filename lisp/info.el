@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -45,15 +45,15 @@
 
 (defvar Info-history nil
   "Stack of info nodes user has visited.
-Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
+Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-history-forward nil
   "Stack of info nodes user has visited with `Info-history-back' command.
-Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
+Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-history-list nil
   "List of all info nodes user has visited.
-Each element of list is a list (FILENAME NODENAME).")
+Each element of the list is a list (FILENAME NODENAME).")
 
 (defcustom Info-enable-edit nil
   "*Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
@@ -3609,7 +3609,6 @@ Preserve text properties."
     keymap)
   "Keymap to put on the Prev link in the text or the header line.")
 
-
 (defvar Info-up-link-keymap
   (let ((keymap (make-sparse-keymap)))
     (define-key keymap [header-line mouse-1] 'Info-up)
@@ -4094,8 +4093,7 @@ INDENT is the current indentation depth."
 
 (defun Info-speedbar-fetch-file-nodes (nodespec)
   "Fetch the subnodes from the info NODESPEC.
-NODESPEC is a string of the form: (file)node.
-Optional THISFILE represends the filename of"
+NODESPEC is a string of the form: (file)node."
   (save-excursion
     ;; Set up a buffer we can use to fake-out Info.
     (set-buffer (get-buffer-create "*info-browse-tmp*"))
