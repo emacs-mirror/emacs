@@ -25,9 +25,10 @@
 
 ;;; Commentary:
 
-;; There is at present support for interpreting the new `/proc/apm'
-;; file format of Linux version 1.3.58 or newer and for the `/proc/acpi/'
-;; directory structure of Linux 2.4.20 and 2.6.
+;; There is at present support for GNU/Linux and OS X.  This library
+;; supports both the `/proc/apm' file format of Linux version 1.3.58
+;; or newer and the `/proc/acpi/' directory structure of Linux 2.4.20
+;; and 2.6.  Darwin (OS X) is supported by using the `pmset' program.
 
 ;;; Code:
 
@@ -46,7 +47,13 @@
 	 'battery-linux-proc-apm)
 	((and (eq system-type 'gnu/linux)
 	      (file-directory-p "/proc/acpi/battery"))
-	 'battery-linux-proc-acpi))
+	 'battery-linux-proc-acpi)
+	((and (eq system-type 'darwin)
+	      (ignore-errors 
+		(with-temp-buffer 
+		  (and (eq (call-process "pmset" nil t nil "-g" "ps") 0)
+		       (> (buffer-size) 0)))))
+	 'battery-pmset))
   "*Function for getting battery status information.
 The function has to return an alist of conversion definitions.
 Its cons cells are of the form
@@ -62,7 +69,9 @@ introduced by a `%' character in a control string."
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
 	 "Power %L, battery %B (%p%% load, remaining time %t)")
 	((eq battery-status-function 'battery-linux-proc-acpi)
-	 "Power %L, battery %B at %r (%p%% load, remaining time %t)"))
+	 "Power %L, battery %B at %r (%p%% load, remaining time %t)")
+	((eq battery-status-function 'battery-pmset)
+	 "%L power, battery %B (%p%% load, remaining time %t)"))
   "*Control string formatting the string to display in the echo area.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -79,7 +88,9 @@ string are substituted as defined by the current value of the variable
   (cond ((eq battery-status-function 'battery-linux-proc-apm)
 	 "[%b%p%%]")
 	((eq battery-status-function 'battery-linux-proc-acpi)
-	 "[%b%p%%,%d°C]"))
+	 "[%b%p%%,%d°C]")
+	((eq battery-status-function 'battery-pmset)
+	 "[%b%p%%]"))
   "*Control string formatting the string to display in the mode line.
 Ordinary characters in the control string are printed as-is, while
 conversion specifications introduced by a `%' character in the control
@@ -90,6 +101,18 @@ string are substituted as defined by the current value of the variable
 
 (defcustom battery-update-interval 60
   "*Seconds after which the battery status will be updated."
+  :type 'integer
+  :group 'battery)
+
+(defcustom battery-load-low 25
+  "*Upper bound of low battery load percentage.
+A battery load percentage below this number is considered low."
+  :type 'integer
+  :group 'battery)
+
+(defcustom battery-load-critical 10
+  "*Upper bound of critical battery load percentage.
+A battery load percentage below this number is considered critical."
   :type 'integer
   :group 'battery)
 
@@ -341,6 +364,58 @@ The following %-sequences are provided:
 			     (floor (/ capacity
 				       (/ (float design-capacity) 100)))))
 		       "N/A")))))
+
+
+;;; `pmset' interface for Darwin (OS X).
+
+(defun battery-pmset ()
+  "Get battery status information using `pmset'.
+
+The following %-sequences are provided:
+%L Power source (verbose)
+%B Battery status (verbose)
+%b Battery status, empty means high, `-' means low,
+   `!' means critical, and `+' means charging
+%p Battery load percentage
+%h Remaining time in hours
+%m Remaining time in minutes
+%t Remaining time in the form `h:min'"
+  (let (power-source load-percentage battery-status battery-status-symbol
+	remaining-time hours minutes)
+    (with-temp-buffer
+      (ignore-errors (call-process "pmset" nil t nil "-g" "ps"))
+      (goto-char (point-min))
+      (when (re-search-forward "Currentl?y drawing from '\\(AC\\|Battery\\) Power'" nil t)
+	(setq power-source (match-string 1))
+	(when (re-search-forward "^ -InternalBattery-0[ \t]+" nil t)
+	  (when (looking-at "\\([0-9]\\{1,3\\}\\)%")
+	    (setq load-percentage (match-string 1))
+	    (goto-char (match-end 0))
+	    (cond ((looking-at "; charging")
+		   (setq battery-status "charging"
+			 battery-status-symbol "+"))
+		  ((< (string-to-number load-percentage) battery-load-low)
+		   (setq battery-status "low"
+			 battery-status-symbol "-"))
+		  ((< (string-to-number load-percentage) battery-load-critical)
+		   (setq battery-status "critical"
+			 battery-status-symbol "!"))
+		  (t
+		   (setq battery-status "high"
+			 battery-status-symbol "")))
+	    (when (re-search-forward "\\(\\([0-9]+\\):\\([0-9]+\\)\\) remaining"  nil t)
+	      (setq remaining-time (match-string 1))
+	      (let ((h (string-to-number (match-string 2)))
+		    (m (string-to-number (match-string 3))))
+		(setq hours (number-to-string (+ h (if (< m 30) 0 1)))
+		      minutes (number-to-string (+ (* h 60) m)))))))))
+    (list (cons ?L (or power-source "N/A"))
+	  (cons ?p (or load-percentage "N/A"))
+	  (cons ?B (or battery-status "N/A"))
+	  (cons ?b (or battery-status-symbol ""))
+	  (cons ?h (or hours "N/A"))
+	  (cons ?m (or minutes "N/A"))
+	  (cons ?t (or remaining-time "N/A")))))
 
 
 ;;; Private functions.
