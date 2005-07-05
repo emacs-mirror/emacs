@@ -19,8 +19,8 @@
 ;; GNU General Public License for more details.
 
 ;; A copy of the GNU General Public License can be obtained from this
-;; program's author or from the Free Software Foundation, Inc., 675 Mass
-;; Ave, Cambridge, MA 02139, USA.
+;; program's author or from the Free Software Foundation, Inc.,
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 (defvar filesets-version "1.8.4")
 (defvar filesets-homepage

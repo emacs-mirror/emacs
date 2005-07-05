@@ -641,7 +641,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ziranma" "自然"
      "ziranma.cin" cn-gb-2312 "ZIRANMA.el"
@@ -670,7 +670,7 @@ To get complete usage, invoke \"emacs -batch -f batch-titdic-convert -h\"."
 ;;
 ;; You should have received a copy of the GNU General Public License along with
 ;; CCE; see the file COPYING.  If not, write to the Free Software Foundation,
-;; 675 Mass Ave, Cambridge, MA 02139, USA.")
+;; 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.")
 
     ("chinese-ctlau" "刘粤"
      "CTLau.html" cn-gb-2312 "CTLau.el"
