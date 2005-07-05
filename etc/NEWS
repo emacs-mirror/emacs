@@ -3014,8 +3014,13 @@ inverse-video.
 default, all trivial operations involving whole lines are performed
 automatically.  The game uses faces for better visual feedback.
 
+** battery.el changes:
+
 ---
-** display-battery-mode replaces display-battery.
+*** display-battery-mode replaces display-battery.
+
+---
+*** battery.el now works on recent versions of OS X.
 
 ---
 ** calculator.el now has radix grouping mode.
