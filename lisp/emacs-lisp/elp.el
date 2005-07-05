@@ -130,7 +130,7 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defgroup elp nil
-  "Emacs Lisp Profiler"
+  "Emacs Lisp Profiler."
   :group 'lisp)
 
 (defcustom elp-function-list nil

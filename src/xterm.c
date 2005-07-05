@@ -546,6 +546,12 @@ x_draw_vertical_window_border (w, x, y0, y1)
      int x, y0, y1;
 {
   struct frame *f = XFRAME (WINDOW_FRAME (w));
+  struct face *face;
+
+  face = FACE_FROM_ID (f, VERTICAL_BORDER_FACE_ID);
+  if (face)
+    XSetForeground (FRAME_X_DISPLAY (f), f->output_data.x->normal_gc,
+		    face->foreground);
 
   XDrawLine (FRAME_X_DISPLAY (f), FRAME_X_WINDOW (f),
 	     f->output_data.x->normal_gc, x, y0, x, y1);
@@ -6294,6 +6300,7 @@ handle_one_xevent (dpyinfo, eventp, finish, hold_quit)
           if (compose_status.chars_matched > 0 && nbytes == 0)
             break;
 
+          bzero (&compose_status, sizeof (compose_status));
           orig_keysym = keysym;
 
  	  /* Common for all keysym input events.  */

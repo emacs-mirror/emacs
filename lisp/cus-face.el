@@ -323,6 +323,10 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 		  (spec (nth 1 entry))
 		  (now (nth 2 entry))
 		  (comment (nth 3 entry)))
+	      ;; If FACE is actually an alias, customize the face it
+	      ;; is aliased to.
+	      (if (get face 'face-alias)
+		  (setq face (get face 'face-alias)))
 	      (put face 'saved-face spec)
 	      (put face 'saved-face-comment comment)
 	      (custom-push-theme 'theme-face face theme 'set spec)
@@ -337,6 +341,8 @@ FACE's list property `theme-face' \(using `custom-push-theme')."
 	;; Old format, a plist of FACE SPEC pairs.
 	(let ((face (nth 0 args))
 	      (spec (nth 1 args)))
+	  (if (get face 'face-alias)
+		  (setq face (get face 'face-alias)))
 	  (put face 'saved-face spec)
 	  (custom-push-theme 'theme-face face theme 'set spec))
 	(setq args (cdr (cdr args))))))))

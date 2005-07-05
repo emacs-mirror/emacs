@@ -118,7 +118,7 @@
 ;;
 
 (defgroup tcl nil
-  "Major mode for editing Tcl source in Emacs"
+  "Major mode for editing Tcl source in Emacs."
   :group 'languages)
 
 (defcustom tcl-indent-level 4
@@ -1489,7 +1489,7 @@ styles."
     (unless (or (bolp) (tcl-real-command-p))
       (insert ";")
       ;; Try and erase a non-significant char to keep charpos identical.
-      (if (memq (char-after) '(?\t ?\ )) (delete-char 1))))
+      (if (memq (char-after) '(?\t ?\s)) (delete-char 1))))
   (funcall (default-value 'comment-indent-function)))
 
 ;; The following was inspired by the Tcl editing mode written by
@@ -1533,7 +1533,7 @@ The first line is assumed to look like \"#!.../program ...\"."
 (defun tcl-quote (string)
   "Quote STRING according to Tcl rules."
   (mapconcat (lambda (char)
-	       (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?  ?\;))
+	       (if (memq char '(?[ ?] ?{ ?} ?\\ ?\" ?$ ?\s ?\;))
 		   (concat "\\" (char-to-string char))
 		 (char-to-string char)))
 	     string ""))

@@ -23,19 +23,14 @@ face name prefixes should be in it for good results.
 gracefully if something isn't supported over Tramp.
 To be done by Andre Spiegel <spiegel@gnu.org>.
 
-** define-minor-mode should not put :require into defcustom.
-See msg from rms to emacs-devel on 21 Dec.
-
 ** Update Speedbar.
 
 ** Update vhdl-mode.el based on changes in
    http://opensource.ethz.ch/emacs/vhdl-mode.html.
 
+** Debug custom themes.
 
 * FATAL ERRORS
-
-** Make unexec handle memory mapping policy of the latest versions of Linux.
-This includes exec_shield and a memory-layout randomization feature.
 
 ** Investigate reported crashes in compact_small_strings.
 
@@ -44,6 +39,8 @@ invalid pointer from string_free_list.
 
 
 * BUGS
+
+** Fix those modes that still use compile-internal, to not use it.
 
 ** Bug in ebrowse
 
@@ -100,6 +97,12 @@ further.
 
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
+
+
+* FSF's ADDRESS
+
+** Update the FSF's address in all files.
+Lute Kamstra is working on this.
 
 
 * DOCUMENTATION

@@ -156,7 +156,7 @@
 (require 'advice)
 
 (defgroup trace nil
-  "Tracing facility for Emacs Lisp functions"
+  "Tracing facility for Emacs Lisp functions."
   :prefix "trace-"
   :group 'lisp)
 

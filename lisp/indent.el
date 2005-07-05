@@ -29,7 +29,7 @@
 ;;; Code:
 
 (defgroup indent nil
-  "Indentation commands"
+  "Indentation commands."
   :group 'editing)
 
 (defcustom standard-indent 4

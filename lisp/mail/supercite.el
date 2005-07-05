@@ -44,28 +44,28 @@
 ;; vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
 
 (defgroup supercite nil
-  "Supercite package"
+  "Supercite package."
   :prefix "sc-"
   :group 'mail
   :group 'news)
 
 (defgroup supercite-frames nil
-  "Supercite (regi) frames"
+  "Supercite (regi) frames."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-attr nil
-  "Supercite attributions"
+  "Supercite attributions."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-cite nil
-  "Supercite citings"
+  "Supercite citings."
   :prefix "sc-"
   :group 'supercite)
 
 (defgroup supercite-hooks nil
-  "Hooking into supercite"
+  "Hooking into supercite."
   :prefix "sc-"
   :group 'supercite)
 
@@ -1316,6 +1316,8 @@ use it instead of `sc-citation-root-regexp'."
 	  attribution
 	  sc-citation-delimiter
 	  sc-citation-separator))
+
+(defvar filladapt-prefix-table)
 
 (defun sc-setup-filladapt ()
   "Setup `filladapt-prefix-table' to handle Supercited paragraphs."

@@ -32,7 +32,7 @@
 (eval-when-compile (require 'cl))
 
 (defgroup url-news nil
-  "News related options"
+  "News related options."
   :group 'url)
 
 (defun url-news-open-host (host port user pass)
@@ -105,7 +105,7 @@
 					 nntp-open-connection-function)
 				   nil
 				   (cons (current-buffer) 'browse)))
-  
+
 ;;;###autoload
 (defun url-news (url)
   ;; Find a news reference

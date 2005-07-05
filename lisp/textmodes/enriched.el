@@ -47,7 +47,7 @@
 ;;;
 
 (defgroup enriched nil
-  "Read and save files in text/enriched format"
+  "Read and save files in text/enriched format."
   :group 'wp)
 
 (defcustom enriched-verbose t

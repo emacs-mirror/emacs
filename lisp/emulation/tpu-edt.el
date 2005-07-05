@@ -307,17 +307,11 @@
 ;;;  Emacs version identifiers - currently referenced by
 ;;;
 ;;;     o tpu-mark              o tpu-set-mark
-;;;     o tpu-string-prompt     o tpu-regexp-prompt
-;;;     o tpu-edt-on            o tpu-load-xkeys
-;;;     o tpu-update-mode-line  o mode line section
+;;;     o mode line section     o tpu-load-xkeys
 ;;;
-(defconst tpu-emacs19-p (not (string-lessp emacs-version "19"))
-  "Non-nil if we are running Lucid Emacs or version 19.")
-
-(defconst tpu-lucid-emacs19-p
-  (and tpu-emacs19-p (string-match "Lucid" emacs-version))
-  "Non-nil if we are running Lucid Emacs version 19.")
-
+(defconst tpu-lucid-emacs-p
+  (string-match "Lucid" emacs-version)
+  "Non-nil if we are running Lucid Emacs.")
 
 ;;;
 ;;;  Global Keymaps
@@ -341,10 +335,10 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
   "Maps the function keys on the VT100 keyboard preceded by GOLD-SS3.")
 
 (defvar tpu-global-map nil "TPU-edt global keymap.")
-(defvar tpu-original-global-map (copy-keymap global-map)
+(defvar tpu-original-global-map global-map
   "Original global keymap.")
 
-(and tpu-lucid-emacs19-p
+(and tpu-lucid-emacs-p
      (defvar minibuffer-local-ns-map (make-sparse-keymap)
        "Hack to give Lucid Emacs the same maps as ordinary Emacs."))
 
@@ -463,13 +457,12 @@ GOLD is the ASCII 7-bit escape sequence <ESC>OP.")
 (defun tpu-update-mode-line nil
   "Make sure mode-line in the current buffer reflects all changes."
   (setq tpu-mark-flag (if transient-mark-mode "" (if (tpu-mark) " @" "  ")))
-  (cond (tpu-emacs19-p (force-mode-line-update))
-	(t (set-buffer-modified-p (buffer-modified-p)) (sit-for 0))))
+  (force-mode-line-update))
 
-(cond (tpu-lucid-emacs19-p
+(cond (tpu-lucid-emacs-p
        (add-hook 'zmacs-deactivate-region-hook 'tpu-update-mode-line)
        (add-hook 'zmacs-activate-region-hook 'tpu-update-mode-line))
-      (tpu-emacs19-p
+      (t
        (add-hook 'activate-mark-hook 'tpu-update-mode-line)
        (add-hook 'deactivate-mark-hook 'tpu-update-mode-line)))
 
@@ -542,26 +535,25 @@ Otherwise sets the tpu-match markers to nil and returns nil."
 (defun tpu-caar (thingy) (car (car thingy)))
 (defun tpu-cadr (thingy) (car (cdr thingy)))
 
+(defvar zmacs-regions)
+
 (defun tpu-mark nil
   "TPU-edt version of the mark function.
 Return the appropriate value of the mark for the current
 version of Emacs."
-  (cond (tpu-lucid-emacs19-p (mark (not zmacs-regions)))
-	(tpu-emacs19-p (and mark-active (mark (not transient-mark-mode))))
-	(t (mark))))
+  (cond (tpu-lucid-emacs-p (mark (not zmacs-regions)))
+	(t (and mark-active (mark (not transient-mark-mode))))))
 
 (defun tpu-set-mark (pos)
   "TPU-edt version of the `set-mark' function.
 Sets the mark at POS and activates the region according to the
 current version of Emacs."
   (set-mark pos)
-  (and tpu-lucid-emacs19-p pos (zmacs-activate-region)))
+  (and tpu-lucid-emacs-p pos (zmacs-activate-region)))
 
 (defun tpu-string-prompt (prompt history-symbol)
   "Read a string with PROMPT."
-  (if tpu-emacs19-p
-      (read-from-minibuffer prompt nil nil nil history-symbol)
-    (read-string prompt)))
+  (read-from-minibuffer prompt nil nil nil history-symbol))
 
 (defvar tpu-last-answer nil "Most recent response to tpu-y-or-n-p.")
 
@@ -1118,9 +1110,7 @@ kills modified buffers without asking."
 (defun tpu-regexp-prompt (prompt)
   "Read a string, adding 'RE' to the prompt if tpu-regexp-p is set."
   (let ((re-prompt (concat (if tpu-regexp-p "RE ") prompt)))
-    (if tpu-emacs19-p
-	(read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)
-      (read-string re-prompt))))
+    (read-from-minibuffer re-prompt nil nil nil 'tpu-regexp-prompt-hist)))
 
 (defun tpu-search-highlight nil
   (if (tpu-check-match)
@@ -2017,8 +2007,6 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 ;;;
 ;;;  Define keymaps
 ;;;
-(define-key global-map "\e[" CSI-map)                         ; CSI map
-(define-key global-map "\eO" SS3-map)                         ; SS3 map
 (define-key SS3-map "P" GOLD-map)                             ; GOLD map
 (define-key GOLD-map "\e[" GOLD-CSI-map)                      ; GOLD-CSI map
 (define-key GOLD-map "\eO" GOLD-SS3-map)                      ; GOLD-SS3 map
@@ -2276,24 +2264,12 @@ Accepts a prefix argument for the number of tpu-pan-columns to scroll."
 
 
 ;;;
-;;;  Repeat complex command map additions to make arrows work
-;;;
-(cond ((boundp 'repeat-complex-command-map)
-       (define-key repeat-complex-command-map "\e[A" 'previous-complex-command)
-       (define-key repeat-complex-command-map "\e[B" 'next-complex-command)
-       (define-key repeat-complex-command-map "\eOA" 'previous-complex-command)
-       (define-key repeat-complex-command-map "\eOB" 'next-complex-command)))
-
-
-;;;
 ;;;  Minibuffer map additions to make KP_enter = RET
 ;;;
 (define-key minibuffer-local-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-ns-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-completion-map "\eOM" 'exit-minibuffer)
 (define-key minibuffer-local-must-match-map "\eOM" 'minibuffer-complete-and-exit)
-(and (boundp 'repeat-complex-command-map)
-     (define-key repeat-complex-command-map "\eOM" 'exit-minibuffer))
 
 
 ;;;
@@ -2407,10 +2383,10 @@ If FILE is nil, try to load a default file.  The default file names are
 	 (setq file (expand-file-name file)))
 	(tpu-xkeys-file
 	 (setq file (expand-file-name tpu-xkeys-file)))
-	(tpu-lucid-emacs19-p
+	(tpu-lucid-emacs-p
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-lucid-keys"))))
-	(tpu-emacs19-p
+	(t
 	 (setq file (convert-standard-filename
 		     (expand-file-name "~/.tpu-keys")))
 	 (and (not (file-exists-p file))
@@ -2503,6 +2479,10 @@ If FILE is nil, try to load a default file.  The default file names are
     (setq-default page-delimiter "\f")
     (setq-default truncate-lines t)
     (setq scroll-step 1)
+    (setq tpu-original-global-map global-map)
+    (setq global-map (copy-keymap global-map))
+    (define-key global-map "\e[" CSI-map)
+    (define-key global-map "\eO" SS3-map)
     (setq tpu-edt-mode t))))
 
 (defun tpu-edt-off nil
@@ -2516,7 +2496,7 @@ If FILE is nil, try to load a default file.  The default file names are
     (setq-default page-delimiter "^\f")
     (setq-default truncate-lines nil)
     (setq scroll-step 0)
-    (setq global-map (copy-keymap tpu-original-global-map))
+    (setq global-map tpu-original-global-map)
     (use-global-map global-map)
     (setq tpu-edt-mode nil))))
 

@@ -382,7 +382,7 @@ ticked: The number of ticked articles."
   :type 'character)
 
 (defgroup gnus-group-icons nil
-  "Add Icons to your group buffer.  "
+  "Add Icons to your group buffer."
   :group 'gnus-group-visual)
 
 (defcustom gnus-group-icon-list

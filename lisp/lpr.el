@@ -41,7 +41,7 @@
 
 
 (defgroup lpr nil
-  "Print Emacs buffer on line printer"
+  "Print Emacs buffer on line printer."
   :group 'wp)
 
 
@@ -291,7 +291,7 @@ The characters tab, linefeed, space, return and formfeed are not affected."
 	(while (re-search-forward "[\^@-\^h\^k\^n-\^_\177-\377]" nil t)
 	  (setq c (preceding-char))
 	  (delete-backward-char 1)
-	  (insert (if (< c ?\ )
+	  (insert (if (< c ?\s)
 		      (format "\\^%c" (+ c ?@))
 		    (format "\\%02x" c))))))))
 

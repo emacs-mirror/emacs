@@ -1,4 +1,640 @@
+2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el: Leading space replaced by TABS.
+	(org-recalc-marks, org-table-rotate-recalc-marks)
+	(org-table-get-specials): Treat "^" and "_" marks.
+	(org-table-justify-field-maybe): Optional argument NEW.
+	(org-table-eval-formula): Parsing of the format simplified.  New
+	modes C,I.  Honor the %= parameter in the current table.  Avoid
+	unnecessary re-align by using the NEW argument to
+	`org-table-justify-field-maybe'.
+	(org-calc-default-modes): Default for date-format mimicks
+	org-mode.
+	(org-agenda, org-timeline): Quote argument in
+	`org-agenda-redo-command'.
+
+2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-face.el (custom-theme-set-faces): Make it handle face
+	aliases whose alias declarations are pre- or autoloaded.
+
+2005-07-04  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (read-face-name): Put the code for getting a face name
+	from the buffer before adding the faces from the `face' property.
+	Use `completing-read-multiple' instead of `completing-read'.
+	Require `crm'.  Add default value and post-process the returned
+	list of faces.
+
+	* emacs-lisp/crm.el (crm-find-current-element)
+	(crm-minibuffer-complete-and-exit): Handle minibuffer prompt.
+
+	* emacs-lisp/lisp-mode.el (eval-defun-1):
+	* emacs-lisp/edebug.el (edebug-eval-defun):
+	Remove unnecessary quotes.
+
+2005-07-04  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (add-change-log-entry):
+	* comint.el (comint-dynamic-list-input-ring)
+	(comint-dynamic-list-completions):
+	* dabbrev.el (dabbrev-expand):
+	* delim-col.el (delimit-columns-rectangle-line):
+	* diff-mode.el (diff-context->unified, diff-reverse-direction)
+	(diff-unified->context):
+	* ediff-init.el (ediff-abbrev-jobname):
+	* ediff-mult.el (ediff-replace-session-status-in-meta-buffer)
+	(ediff-replace-session-activity-marker-in-meta-buffer):
+	* info.el (Info-summary):
+	* lpr.el (printify-region):
+	* printing.el (pr-create-interface):
+	* ps-print.el (ps-print-quote):
+	* ses.el (ses-column-widths, ses-print-cell)
+	(ses-adjust-print-width, ses-center):
+	* shell.el (shell-file-name-quote-list):
+	* strokes.el (strokes-read-stroke, strokes-read-complex-stroke)
+	(strokes-fill-current-buffer-with-whitespace)
+	(strokes-xpm-for-stroke, strokes-list-strokes)
+	(strokes-xpm-char-bit-p, strokes-xpm-for-compressed-string):
+	* term.el (term-dynamic-list-input-ring)
+	(term-dynamic-list-completions):
+	* calc/calc.el (math-format-stack-value):
+	* emacs-lisp/edebug.el (edebug-display-freq-count):
+	* progmodes/delphi.el (delphi-indent-line, delphi-fill-comment)
+	(delphi-new-comment-line):
+	* progmodes/ebnf2ps.el (ebnf-eps-filename, ebnf-trim-right):
+	* progmodes/executable.el (executable-set-magic):
+	* progmodes/python.el (inferior-python-mode):
+	* progmodes/scheme.el (scheme-mode-syntax-table):
+	* progmodes/sh-script.el (sh-maybe-here-document):
+	* progmodes/sql.el (sql-copy-column):
+	* progmodes/tcl.el (tcl-comment-indent, tcl-quote):
+	* textmodes/bibtex.el (bibtex-mode):
+	* textmodes/sgml-mode.el (html-imenu-index, sgml-attributes)
+	(sgml-auto-attributes):
+	* textmodes/table.el (table-insert, table-shorten-cell)
+	(table--generate-source-scan-lines, table-delete-row)
+	(*table--cell-delete-char, table--spacify-frame)
+	(table--horizontally-shift-above-and-below)
+	(table--cell-insert-char, table--cell-blank-str)
+	(table--fill-region-strictly):
+	* textmodes/tex-mode.el (tex-insert-quote, latex-find-indent):
+	* textmodes/texinfo.el (texinfo-insert-quote): "?\ " -> "?\s".
+
+	* add-log.el (change-log):
+	* apropos.el (apropos):
+	* comint.el (comint-completion, comint-source):
+	* dabbrev.el (dabbrev):
+	* delim-col.el (columns):
+	* diff-mode.el (diff-mode):
+	* ediff.el (ediff):
+	* ediff-diff.el (ediff-diff):
+	* ediff-init.el (ediff-highlighting, ediff-merge, ediff-hook):
+	* ediff-mult.el (ediff-mult):
+	* ediff-ptch.el (ediff-ptch):
+	* ediff-wind.el (ediff-window):
+	* facemenu.el (facemenu):
+	* indent.el (indent):
+	* info.el (info):
+	* jka-cmpr-hook.el (compression, jka-compr):
+	* lpr.el (lpr):
+	* outline.el (outlines):
+	* pcmpl-cvs.el (pcmpl-cvs):
+	* pcmpl-rpm.el (pcmpl-rpm):
+	* printing.el (printing):
+	* ps-print.el (postscript, ps-print, ps-print-horizontal)
+	(ps-print-vertical, ps-print-headers, ps-print-font)
+	(ps-print-color, ps-print-face, ps-print-n-up, ps-print-zebra)
+	(ps-print-background, ps-print-printer, ps-print-page)
+	(ps-print-miscellany):
+	* ses.el (ses):
+	* shell.el (shell, shell-directories, shell-faces):
+	* startup.el (initialization):
+	* strokes.el (strokes):
+	* term.el (term):
+	* uniquify.el (uniquify):
+	* w32-vars.el (w32):
+	* calc/calc.el (calc):
+	* emacs-lisp/bytecomp.el (bytecomp):
+	* emacs-lisp/cl-indent.el (lisp-indent):
+	* emacs-lisp/edebug.el (edebug):
+	* emacs-lisp/elp.el (elp):
+	* emacs-lisp/testcover.el (testcover):
+	* emacs-lisp/trace.el (trace):
+	* emulation/viper-ex.el (viper-ex):
+	* emulation/viper-mous.el (viper-mouse):
+	* mail/mailalias.el (mailalias):
+	* mail/supercite.el (supercite, supercite-frames)
+	(supercite-attr, supercite-cite, supercite-hooks):
+	* net/rcompile.el (remote-compile):
+	* net/rlogin.el (rlogin):
+	* obsolete/ooutline.el (outlines):
+	* progmodes/delphi.el (delphi):
+	* progmodes/ebnf2ps.el (postscript, ebnf2ps, ebnf-special)
+	(ebnf-except, ebnf-repeat, ebnf-terminal, ebnf-non-terminal)
+	(ebnf-production, ebnf-shape, ebnf-displacement, ebnf-syntactic)
+	(ebnf-optimization):
+	* progmodes/etags.el (etags):
+	* progmodes/executable.el (executable):
+	* progmodes/idlwave.el (idlwave):
+	* progmodes/pascal.el (pascal):
+	* progmodes/prolog.el (prolog):
+	* progmodes/python.el (python):
+	* progmodes/scheme.el (scheme):
+	* progmodes/sh-script.el (sh, sh-script):
+	* progmodes/sql.el (SQL):
+	* progmodes/tcl.el (tcl):
+	* textmodes/bibtex.el (bibtex, bibtex-autokey):
+	* textmodes/enriched.el (enriched):
+	* textmodes/makeinfo.el (makeinfo):
+	* textmodes/sgml-mode.el (sgml):
+	* textmodes/table.el (table-hooks):
+	* textmodes/tex-mode.el (tex-file, tex-run, tex-view):
+	* textmodes/texinfo.el (texinfo):
+	* textmodes/two-column.el (two-column):
+	Finish `defgroup' description with period.
+
+	* emacs-lisp/cl-indent.el (lisp-indent-maximum-backtracking):
+	* eshell/esh-var.el (eshell-var):
+	* progmodes/vhdl-mode.el (vhdl-testbench):
+	* textmodes/org.el (org): Fix typos in docstrings.
+
+	* emacs-lisp/timer.el (with-timeout): Improve argument/docstring
+	consistency.
+
+	* progmodes/flymake.el (flymake-find-file): Remove.
+	(flymake-float-time): Use `with-no-warnings'.
+	(flymake-check-start-time, flymake-check-was-interrupted)
+	(flymake-err-info, flymake-is-running, flymake-last-change-time)
+	(flymake-new-err-info): `defvar' at compile time.
+
+2005-07-03  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-hook): Doc fix.
+	(occur-1): Don't call `occur-hook' if there are no matches.
+
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* emulation/tpu-edt.el (tpu-original-global-map): Don't copy
+	global-map, save the same map.
+	(global-map): Don't alter it at top level.
+	(tpu-edt-on): Save global map in tpu-original-global-map, then copy.
+	Then alter it here instead.
+	(tpu-edt-off): Set global-map to the saved one.
+
+	* emulation/tpu-edt.el (tpu-emacs19-p): Var deleted.
+	All references simplified.
+	(tpu-lucid-emacs-p): Renamed from tpu-lucid-emacs19-p.  Uses changed.
+	(zmacs-regions): Add defvar.
+	(repeat-complex-command-map): Everything about that deleted.
+
+	* textmodes/artist.el (artist-key-is-drawing)
+	(artist-key-endpoint1, artist-key-poly-point-list)
+	(artist-key-shape, artist-key-draw-how, artist-popup-menu-table)
+	(artist-key-compl-table, artist-rb-save-data)
+	(artist-arrow-point-1, artist-arrow-point-2): Move defvars up.
+	Don't put them in eval-when-compile.
+	(artist-set-arrow-points-for-poly): Use `last', not `artist-last'.
+
+	* progmodes/ebrowse.el (ebrowse-revert-tree-buffer-from-file):
+	Use with-no-warnings.
+
+	* net/browse-url.el (dos-windows-version): Add defvar.
+
+	* mail/supercite.el (filladapt-prefix-table): Add defvar.
+
+	* mail/rmailsum.el (rmail-summary-redo): Add defvar.
+	(rmail-summary-mode-map, rmail-summary-overlay): Defvars moved up.
+	(rmail-new-summary-line-count): Renamed from new-summary-line-count.
+	Add defvar.
+	(rmail-summary-beginning-of-message): Use with-no-warnings.
+	(rmail-summary-first-message, rmail-summary-last-message): Likewise.
+
+	* emulation/vip.el (vip-replace-string, ex-map, ex-read):
+	Use with-no-warnings.
+
+	* emulation/vi.el (vi-mark-region): Use c-mark-function.
+	(c-mark-function): Add point-moving-unit property.
+	(vi-goto-line): Use with-no-warnings.
+
+	* emulation/edt.el (edt-last-copied-word): Add defvar.
+	(zmacs-region-stays): Likewise.
+	(edt-mark-section-wisely): Use c-mark-function for C.
+	Use makr-defun for Fortran.
+	(time-string): defvar deleted.
+	(edt-display-the-time): Don't set time-string.
+
+	* emacs-lisp/macroexp.el (macroexp-accumulate): Rename arg to var+list.
+
+	* emacs-lisp/bytecomp.el (byte-compile-nogroup-warn):
+	Don't warn when name is not constant
+	or for defining the group `emacs'.
+
+	* tooltip.el (gud-tooltip-mode): Add defvar.
+
+	* startup.el (default-frame-background-mode): Add defvar.
+
+	* smerge-mode.el (smerge-mode): Add duplicate defvar near top.
+
+	* info.el (tool-bar-map): Add defvar.
+
+	* dired.el (dnd-protocol-alist): Add defvar.
+
+	* dired-aux.el (dired-query): Display question with answer, when
+	the user answers.
+
+	* custom.el (custom-add-option): Doc fix.
+
+	* bookmark.el (Info-current-node, Info-suffix-list): Add defvars.
+
+2005-07-03  Eli Zaretskii  <eliz@gnu.org>
+
+	* font-lock.el (font-lock-regexp-grouping-construct): Fix the
+	bogus name from the last change.
+
+2005-07-02  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-declare-variable): Fix typos in comment.
+	(custom-known-themes): Doc fix.
+	(custom-theme-directory): New defcustom.
+	(require-theme): Make it check `custom-theme-directory'.
+
+	* cus-theme.el (custom-new-theme-mode): New function.
+	(custom-theme-name, custom-theme-variables, custom-theme-faces)
+	(custom-theme-description): Add compiler defvars.
+	(customize-create-theme): Add doc to the "*New Custom Theme*"
+	buffer.  Use `custom-new-theme-mode'.
+	(custom-theme-write): Put the created buffer in emacs-lisp-mode
+	and save it to the `custom-theme-directory'.  Make this the
+	default directory of the buffer.
+
+2005-07-02  David Hunter  <hunterd_42@comcast.net>  (tiny change)
+
+	* progmodes/flymake.el (flymake-mode, flymake-mode-off):
+	Fix unbalanced parentheses.
+
+2005-07-02  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/flymake.el (flymake-mode-on, flymake-mode-off): Move body
+	into flymake-mode and delegate to flymake-mode.
+
+	* find-file.el (ff-which-function-are-we-in): Clean up.
+
+2005-07-02  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-rename-buffer): Fix docstring.
+
+	* emulation/edt.el (*EDT-keys*, edt-default-global-map)
+	(edt-last-copied-word, edt-learn-macro-count)
+	(edt-orig-page-delimiter, edt-orig-transient-mark-mode)
+	(edt-rect-start-point, edt-user-global-map, rect-start-point)
+	(time-string, zmacs-region-stays):
+	* emulation/edt-mapper.el (edt-save-function-key-map)
+	(EDT-key-name): `defvar' to silence the byte-compiler.
+
+2005-07-02  Martin Rudalics  <rudalics@gmx.at>  (tiny change)
+
+	* font-lock.el (font-lock-regexp-grouping-backslash): Rename from
+	font-lock-regexp-backslash.  Doc fix.
+	(font-lock-regexp-backslash-grouping-construct): Rename from
+	font-lock-regexp-backslash-construct.  Doc fix.
+	(lisp-font-lock-keywords-2): Fix highlighting of ELisp regexp
+	grouping constructs.
+
+2005-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* makefile.w32-in (bootstrap): Remove the $(EMACS) binary after
+	updating all the prerequisites.
+
+2005-07-01  Juanma Barranquero  <lekktu@gmail.com>
+
+	* textmodes/org.el (org-agenda-start-on-weekday)
+	(org-calendar-to-agenda-key, org-agenda-sorting-strategy)
+	(org-agenda-use-time-grid, org-archive-location)
+	(org-allow-space-in-links, org-usenet-links-prefer-google)
+	(org-enable-table-editor, org-export-default-language)
+	(org-export-html-show-new-buffer, org-fill-paragraph)
+	(org-cycle, org-goto-ret, org-goto-left, org-goto-right)
+	(org-goto-quit, org-occur, org-eval-in-calendar)
+	(org-agenda-cleanup-fancy-diary, org-agenda-no-heading-message)
+	(org-agenda-diary-entry, org-remember-help)
+	(org-table-convert-region, org-at-table-p)
+	(org-table-move-row-down, org-table-move-row-up)
+	(org-table-copy-region, org-table-toggle-vline-visibility)
+	(org-table-get-stored-formulas, org-table-get-specials)
+	(org-recalc-commands, org-table-eval-formula)
+	(org-table-formula-substitute-names, orgtbl-make-binding)
+	(org-format-org-table-html, org-format-table-table-html)
+	(org-format-table-table-html-using-table-generate-source)
+	(org-customize): Fix typos in docstrings.
+	(org-level-2, org-at-timestamp-p, org-agenda-day-view)
+	(org-agenda-toggle-diary, org-agenda-toggle-time-grid)
+	(org-back-to-heading): Doc fixes.
+	(org-agenda-toggle-time-grid, org-cmp-category, org-cmp-time)
+	(org-agenda-change-all-lines, org-get-header):
+	Improve argument/docstring consistency.
+	(orgtbl-error): Fix error message.
+
+	* progmodes/flymake.el (flymake-find-possible-master-files)
+	(flymake-master-file-compare, flymake-get-line-err-count)
+	(flymake-highlight-line, flymake-gui-warnings-enabled):
+	Fix typos in docstrings.
+	(flymake-parse-line, flymake-get-project-include-dirs-function)
+	(flymake-get-prev-err-line-no, flymake-goto-prev-error):
+	Doc fixes.
+	(flymake-get-project-include-dirs-function)
+	(flymake-make-err-menu-data):
+	Improve argument/docstring consistency.
+
+2005-07-01  Lute Kamstra  <lute@gnu.org>
+
+	* battery.el (battery-linux-proc-apm): Fix typo in docstring.
+	Catch errors with ignore-errors.  Use temporary buffer.
+	(battery-linux-proc-acpi): Fix typo in docstring.  Document `%r'.
+
+	* facemenu.el (facemenu-unlisted-faces): Delete foreground and
+	background color faces.
+	(facemenu-set-foreground, facemenu-set-background):
+	Use facemenu-set-face-from-menu.
+	(facemenu-set-face-from-menu): Treat face names that start with
+	"fg:" or "bg:" as special.
+	(facemenu-add-new-color): Don't create faces.  Simplify.
+
+2005-06-30  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/crm.el (crm-do-completion): Handle minibuffer prompt.
+	(crm-find-current-element): Likewise.
+
+2005-06-30  Johan Bockg,Ae(Brd  <bojohan@users.sourceforge.net>
+
+	* help-fns.el (help-do-arg-highlight): Regexp-quote argument names.
+
+2005-06-30  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* arc-mode.el (archive-extract): Make it work as a mouse binding.
+	(archive-mouse-extract): Make it an obsolete alias.
+	(archive-mode-map): Don't use archive-mouse-extract any more.
+	(archive-mode, archive-extract): write-contents-hooks ->
+	write-contents-functions.
+	(archive-arc-rename-entry, archive-lzh-rename-entry): Remove unused
+	first arg.
+	(archive-rename-entry): Update the call.
+	(archive-zip-summarize): Remove unused var `method'.
+	(archive-lzh-summarize): Remove unused var `creator'.
+
+	* emacs-lisp/debug.el (debug): Quieten Drew Adams by killing the
+	dedicated frame upon exit.
+
+	* arc-mode.el: Bind inhibit-read-only rather than buffer-read-only.
+	(archive-zip-extract, archive-zip-expunge)
+	(archive-zip-update, archive-zip-update-case): Use executable-find.
+	(archive-resummarize, archive-flag-deleted, archive-unmark-all-files):
+	Use restore-buffer-modified-p.
+	(archive-extract, archive-add-new-member, archive-write-file-member):
+	Use with-current-buffer.
+	(archive-lzh-ogm, archive-zip-chmod-entry): Use dolist.
+
+2005-06-30  Andreas Schwab  <schwab@suse.de>
+
+	* progmodes/gud.el (gud-filter): Remove unneeded progn.
+
+2005-06-30  Glenn Morris  <gmorris@ast.cam.ac.uk>
+
+	* progmodes/sh-script.el (sh-get-kw): `&' also separates words.
+
+2005-06-30  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (vertical-border): Inherit from mode-line-inactive
+	only on tty.
+
+2005-06-30  Juanma Barranquero  <lekktu@gmail.com>
+
+	* help-fns.el (help-do-arg-highlight): Highlight also -ARG (for
+	example, -NLINES in the `occur' docstring).
+
+	* replace.el (occur-1): When no matches are found, do not set the
+	`buffer-read-only' and modified flags for the occur buffer,
+	because it is deleted.
+
+	* emulation/cua-base.el (cua-check-pending-input)
+	(cua-repeat-replace-region, cua-mode, cua-debug)
+	(cua-auto-tabify-rectangles, cua-inhibit-cua-keys):
+	Fix typos in docstrings.
+
+	* emulation/cua-gmrk.el (cua-toggle-global-mark)
+	(cua-cut-region-to-global-mark)
+	(cua--cut-rectangle-to-global-mark):
+	Remove period from end of messages.
+
+	* emulation/cua-rect.el (cua-do-rectangle-padding):
+	Remove period from end of messages.
+	(cua--rectangle-seq-format): Fix typo in docstring.
+	(cua-sequence-rectangle, cua-fill-char-rectangle):
+	Improve argument/docstring consistency.
+
+2005-06-29  Juri Linkov  <juri@jurta.org>
+
+	* faces.el (default-frame-background-mode): New internal variable.
+	(frame-set-background-mode): Use it.
+
+	* startup.el (normal-top-level): Set default-frame-background-mode
+	instead of frame-background-mode.  Before setting it, test for its
+	nil value.  Remove tests for frame-background-mode and frame
+	parameter `reverse'.  Add test for "unspecified-fg".
+
+	* term/xterm.el (xterm-rxvt-set-background-mode):
+	* term/rxvt.el (rxvt-set-background-mode):
+	Set default-frame-background-mode instead of frame-background-mode.
+
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (set-variable): Warn about obsolete user variables.
+
+	* imenu.el (imenu--completion-buffer):
+	* mouse.el (mouse-buffer-menu-alist):
+	* msb.el (msb-invisible-buffer-p):
+	* calendar/diary-lib.el (diary-header-line-format):
+	* emacs-lisp/pp.el (pp-buffer):
+	* progmodes/cperl-mode.el (cperl-do-auto-fill):
+	* textmodes/picture.el (picture-replace-match):
+	Change space constants followed by a sexp to "?\s ".
+
+	* play/decipher.el (decipher-loop-with-breaks):
+	* textmodes/texinfo.el (texinfo-insert-@item): Change space
+	constants "protected" from end of line by a comment to "?\s".
+
+2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* font-lock.el (save-buffer-state): Use `declare'.
+
+	* progmodes/cperl-mode.el (cperl-find-pods-heres): Don't gratuitously
+	reset the syntax-table to cperl-mode-syntax-table.
+	(cperl-mode): Make _ into word-syntax during font-locking so "print" in
+	"foo_print_bar" is not matched as a reserved keyword.
+
+2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* textmodes/org.el (orgtbl-setup): New function, for delayed
+	setup for the orgtbl commands.
+	(org-calc-default-modes): New option.
+	(orgtbl-make-binding): Use `defun' to get better help display.
+	(org-diary): Call `org-compile-prefix-format'.
+	(org-table-formula-substitute-names): New function.
+	(org-agenda-day-view, org-agenda-week-view): New commands.
+	(org-agenda-toggle-week-view): Command removed.
+	(org-tbl-menu): Split off from org-org-menu.
+	(org-mode): Move removal of outline-mode menus to here.
+	(org-table-formula-debug): New option.
+	(org-table-insert-row): Keep first field if just "#" or "*".
+	(org-mode): Paragraph regexps fixed.
+	(org-table-recalculate-regexp): New constant.
+	(org-table-justify-field-maybe): Avoid replace if not necessary.
+	(org-copy-special, org-cut-special): Use `call-interactively'.
+	(org-table-copy-region): Take region from `interactive' call.
+	(org-trim): Return string even if no match.
+	(org-formula): New face.
+	(org-set-font-lock-defaults): No longer highlight "FIXME".
+	But highlight formula-related fields in table.
+	(org-table-p): Use regexp, not fontification.
+	(org-table-align): Handle white space at end of line.
+	(org-table-formula-evaluate-inline): New option.
+	(org-mode): Auto-wrapping in comment lines turned off.
+	(org-table-copy-down): Evaluate only in copied field, not in
+	destination.
+	(org-table-current-formula): Variable removed.
+	(org-table-store-formulas, org-table-get-stored-formulas)
+	(org-table-modify-formulas, org-table-replace-in-formulas)
+	(org-table-maybe-eval-formula): New functions.
+	(org-table-get-formula): Modify to use stored formulas.
+	(org-table-insert-column, org-table-delete-column)
+	(org-table-move-column): Call `org-table-modify-formulas'.
+	(org-complete): Add completion for keyword formulas.
+	(orgtbl-mode): Pull orgtbl-mode-map to start of
+	minor-mode-map-alist.
+
+2005-06-29  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/python.el (python-check): Require `compile' before
+	modifying its variables.
+
+	* newcomment.el (comment-indent-default): Don't get fooled by an early
+	end of buffer.
+
+2005-06-28  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el (ps-print-version): Fix version number.
+
+2005-06-28  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* textmodes/ispell.el (ispell-word): Remove stray parenthesis.
+
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/flyspell.el (flyspell-use-local-map): Variable deleted.
+	(flyspell-local-mouse-map): Declaration deleted.
+	(flyspell-mouse-map): Bind only mouse-2.
+	(flyspell-mode-map): Don't test flyspell-use-local-map.
+	(flyspell-overlay-keymap-property-name): Var deleted.
+	(flyspell-mode-on): Don't make local bindings for
+	flyspell-mouse-map and flyspell-mode-map.
+	(make-flyspell-overlay): Unconditionally put on `keymap' text prop.
+
+	* textmodes/ispell.el (ispell-word): Do not ignore short words.
+
+	* progmodes/compile.el (compilation-next-error-function):
+	Don't switch buffers; operate on the current buffer.
+
+	* facemenu.el (facemenu-add-face): Warn when font-lock is active.
+
+	* comint.el (comint-password-prompt-regexp): Accept ", try again".
+
+	* bindings.el (global-map): Bind insertchar and its variants.
+
+2005-06-27  Richard M. Stallman  <rms@gnu.org>
+
+	* textmodes/artist.el (artist-text-overwrite)
+	(artist-figlet-get-extra-args, artist-text-see-thru): Use read-string.
+
+2005-06-27  Vinicius Jose Latorre  <viniciusjl@ig.com.br>
+
+	* ps-print.el: It was not working the page selection for printing.
+	Reported by Sebastian Tennant <sebyte@smolny.plus.com>.
+	(ps-print-version): New version 6.6.7.
+	(ps-end-sheet): New fun.
+	(ps-header-sheet, ps-end-job): Call it.
+
+2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* subr.el (add-to-list, add-to-ordered-list): Doc fixes.
+
+2005-06-27  Lute Kamstra  <lute@gnu.org>
+
+	* facemenu.el (facemenu-unlisted-faces): Add foreground and
+	background color faces.
+	(facemenu-get-face): Delete function.
+	(facemenu-set-face-from-menu): Don't call facemenu-get-face.
+	(facemenu-add-new-color): Make second argument mandatory.
+	Create the approprate face and return it.  Simplify.
+	(facemenu-set-foreground, facemenu-set-background): Don't check if
+	color is defined.  Use return value of facemenu-add-new-color.
+
+2005-06-26  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el (gud-filter): Add missing argument to
+	with-selected-window.
+
+2005-06-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Don't automatically add
+	a :require to the defcustom.
+
+	* emacs-lisp/autoload.el (make-autoload): Add the :setter for
+	defcustoms corresponding to minor modes.
+
+2005-06-26  David Ponce  <david@dponce.com>
+
+	* recentf.el: Require tree-widget instead of wid-edit.
+	(recentf-filename-handler): Fix widget :type.
+	(recentf-cancel-dialog, recentf-open-more-files)
+	(recentf-open-files-action): Doc fix.
+	(recentf-dialog-goto-first): New function.
+	(recentf-dialog-mode-map): Set parent keymap first.
+	(recentf-dialog-mode): Define with define-derived-mode.
+	Don't display continuation lines in dialogs.
+	(recentf-edit-list): Rename from recentf-edit-selected-items.
+	(recentf-edit-list-select): Rename from recentf-edit-list-action.
+	Simplify.
+	(recentf-edit-list-validate): New function.
+	(recentf-edit-list): Update accordingly.
+	(recentf-open-files-item-shift): Remove.
+	(recentf-open-files-item): Convert menu elements into tree and
+	link widgets.  Don't create the widgets.
+	(recentf-open-files): Update accordingly.
+	(recentf-save-list): Untabify.
+
 2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* replace.el (keep-lines-read-args): Add INTERACTIVE arg.
+	(keep-lines): Add INTERACTIVE arg.  Never delete lines only
+	partially contained in the active region.  Do not take active
+	region into account when called from Lisp, unless INTERACTIVE arg
+	is non-nil.  Use `forward-line' instead of `beginning-of-line' to
+	avoid trouble with fields.  Make marker point nowhere when no
+	longer used.  Always return nil.  Doc fix.
+	(flush-lines): Add INTERACTIVE arg.  Do not take active region
+	into account when called from Lisp, unless INTERACTIVE arg is
+	non-nil.  Use `forward-line' instead of `beginning-of-line' to
+	avoid trouble with fields.  Make marker point nowhere when no
+	longer used.  Always return nil.  Doc fix.
+	(how-many): Add INTERACTIVE arg.  Make RSTART and REND args
+	interchangeable.  Do not take active region into account when
+	called from Lisp, unless INTERACTIVE arg is non-nil.  Do not print
+	message in echo area when called from Lisp, unless INTERACTIVE arg
+	is non-nil.  Avoid saying "1 occurrences".  Do not use markers.
+	Return the number of matches.  Doc fix.
+	(occur): Doc fix.
+	(perform-replace): Make comment follow double space convention for
+	the sake of `outline-minor-mode'.
 
 	* faces.el (facep): Doc fix.
 
@@ -54,7 +690,7 @@
 	(line-move-1): When there are overlays around, use vertical-motion.
 
 	* faces.el (escape-glyph): Use brown against light background.
-	(nobreak-space): Renamed from no-break-space.
+	(nobreak-space): Rename from no-break-space.
 	Fix previous change.
 
 	* dired-aux.el (dired-do-copy): Fix arg prompt.
@@ -108,7 +744,7 @@
 	* bindings.el (propertized-buffer-identification): Use renamed
 	`Buffer-menu-buffer' face.
 
-	* faces.el (vertical-border): Renamed from `vertical-divider'.
+	* faces.el (vertical-border): Rename from `vertical-divider'.
 	(escape-glyph): Change dark-background color back to `cyan'.
 
 2005-06-21  Juri Linkov  <juri@jurta.org>
@@ -194,8 +830,7 @@
 
 2005-06-18  Peter Kleiweg  <p.c.j.kleiweg@rug.nl>
 
-	* progmodes/ps-mode.el: Update version and maintainer's email
-	address.
+	* progmodes/ps-mode.el: Update version and maintainer's email address.
 
 2005-06-18  Steve Youngs  <steve@xemacs.org>
 
@@ -283,8 +918,8 @@
 	New backward-compatibility aliases for renamed faces.
 	(eshell-ls-decorated-name): Use renamed eshell-ls faces.
 
-	* progmodes/cc-fonts.el (c-nonbreakable-space-face): Remove
-	"-face" suffix from face name.
+	* progmodes/cc-fonts.el (c-nonbreakable-space-face):
+	Remove "-face" suffix from face name.
 	(c-cpp-matchers): Use the variable `c-nonbreakable-space-face'
 	instead of literal face.
 
@@ -412,8 +1047,8 @@
 	ido-incomplete-regexp.
 	(ido-incomplete-regexp): New face.
 	(ido-completions): Use it.
-	(ido-complete, ido-exit-minibuffer, ido-completions): Handle
-	incomplete regexps.
+	(ido-complete, ido-exit-minibuffer, ido-completions):
+	Handle incomplete regexps.
 	(ido-completions): Add check for complete match when entering a regexp.
 
 2005-06-15  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -441,6 +1076,11 @@
 
 	* progmodes/cperl-mode.el (cperl-init-faces): Use literal cperl
 	faces instead of (non-existent) variables.
+
+2005-06-14  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* iswitchb.el (iswitchb-to-end): Replace mapcar with dolist.
+	(iswitchb-get-matched-buffers): Likewise.  Simplify.
 
 2005-06-14  Miles Bader  <miles@gnu.org>
 

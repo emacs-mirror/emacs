@@ -45,15 +45,17 @@
 ;; structure of the result with the input.  Doing so recursively using
 ;; `maybe-cons' results in excessively deep recursion for very long
 ;; input forms.
-(defmacro macroexp-accumulate (#1=#:\(var\ list\) &rest body)
+(defmacro macroexp-accumulate (var+list &rest body)
   "Return a list of the results of evaluating BODY for each element of LIST.
 Evaluate BODY with VAR bound to each `car' from LIST, in turn.
 Return a list of the values of the final form in BODY.
 The list structure of the result will share as much with LIST as
 possible (for instance, when BODY just returns VAR unchanged, the
-result will be eq to LIST)."
-  (let ((var (car #1#))
-	(list (cadr #1#))
+result will be eq to LIST).
+
+\(fn (VAR LIST) BODY...)"
+  (let ((var (car var+list))
+	(list (cadr var+list))
 	(shared (make-symbol "shared"))
 	(unshared (make-symbol "unshared"))
 	(tail (make-symbol "tail"))

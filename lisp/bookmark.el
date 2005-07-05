@@ -309,7 +309,8 @@ through a file easier.")
 (defvar bookmark-yank-point 0)
 (defvar bookmark-current-buffer nil)
 
-
+(defvar Info-current-node)
+(defvar Info-suffix-list)
 
 ;; Helper functions.
 

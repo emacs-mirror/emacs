@@ -29,28 +29,28 @@
   "Version number of URL package.")
 
 (defgroup url nil
-  "Uniform Resource Locator tool"
+  "Uniform Resource Locator tool."
   :version "22.1"
   :group 'hypermedia)
 
 (defgroup url-file nil
-  "URL storage"
+  "URL storage."
   :prefix "url-"
   :group 'url)
 
 (defgroup url-cache nil
-  "URL cache"
+  "URL cache."
   :prefix "url-"
   :prefix "url-cache-"
   :group 'url)
 
 (defgroup url-mime nil
-  "MIME options of URL"
+  "MIME options of URL."
   :prefix "url-"
   :group 'url)
 
 (defgroup url-hairy nil
-  "Hairy options of URL"
+  "Hairy options of URL."
   :prefix "url-"
   :group 'url)
 

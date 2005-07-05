@@ -7,7 +7,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.80" "The current version of Ediff")
-(defconst ediff-date "June 3, 2005" "Date of last update")  
+(defconst ediff-date "June 3, 2005" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -135,7 +135,7 @@
 (require 'ediff-mult)  ; required because of the registry stuff
 
 (defgroup ediff nil
-  "A comprehensive visual interface to diff & patch"
+  "A comprehensive visual interface to diff & patch."
   :tag "Ediff"
   :group 'tools)
 

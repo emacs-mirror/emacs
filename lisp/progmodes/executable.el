@@ -53,7 +53,7 @@
 ;;; Code:
 
 (defgroup executable nil
-  "Base functionality for executable interpreter scripts"
+  "Base functionality for executable interpreter scripts."
   :group 'processes)
 
 ;; This used to default to `other', but that doesn't seem to have any
@@ -230,7 +230,7 @@ executable."
 	    (and (goto-char (match-beginning 1))
 		 ;; If the line ends in a space,
 		 ;; don't offer to change it.
-		 (not (= (char-after (1- (match-end 1))) ?\ ))
+		 (not (= (char-after (1- (match-end 1))) ?\s))
 		 (not (string= argument
 			       (buffer-substring (point) (match-end 1))))
 		 (if (or (not executable-query) no-query-flag

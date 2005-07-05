@@ -1,3 +1,47 @@
+2005-07-03  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* display.texi (The Echo Area): Correct menu.
+
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* elisp.texi (Top): Update subnode menu for Display.
+
+	* display.texi (Displaying Messages): New node, with most
+	of what was in The Echo Area.
+	(Progress): Moved under The Echo Area.
+	(Logging Messages): New node with new text.
+	(Echo Area Customization): New node, the rest of what was
+	in The Echo Area.  Document message-truncate-lines with @defvar.
+	(Display): Update menu.
+
+	* windows.texi (Textual Scrolling): Doc 3 values for
+	scroll-preserve-screen-position.
+
+	* text.texi (Special Properties): Change hook functions
+	should bind inhibit-modification-hooks around altering buffer text.
+
+	* keymaps.texi (Key Binding Commands): Call binding BINDING
+	rather than DEFINITION.
+
+2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
+
+	* variables.texi (Defining Variables): `user-variable-p' returns t
+	for aliases of user options, nil for alias loops.
+
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* keymaps.texi (Creating Keymaps): Put make-sparse-keymap before
+	make-keymap.
+
+2005-06-27  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* variables.texi (Setting Variables): Correct and clarify
+	description of `add-to-ordered-list'.
+
+2005-06-26  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Faces): Minor cleanup.
+
 2005-06-25  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* display.texi (Faces): `facep' returns t for strings that are

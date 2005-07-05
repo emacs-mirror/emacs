@@ -38,7 +38,7 @@
 (eval-when-compile (require 'jka-compr))
 
 (defgroup info nil
-  "Info subsystem"
+  "Info subsystem."
   :group 'help
   :group 'docs)
 
@@ -2868,7 +2868,7 @@ Build a menu of the possible matches."
       (while (progn (setq flag (not (pos-visible-in-window-p (point-max))))
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
-		    (if (not (eq ?\  (setq ch (read-event))))
+		    (if (not (eq ?\s (setq ch (read-event))))
 			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
 	(scroll-up)))
@@ -3195,6 +3195,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
 ;; Info mode is suitable only for specially formatted data.
 (put 'Info-mode 'mode-class 'special)
 (put 'Info-mode 'no-clone-indirect t)
+
+(defvar tool-bar-map)
 
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.

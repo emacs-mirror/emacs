@@ -877,7 +877,7 @@ Return one of the entries in index-alist or nil."
 	 (if (not imenu-space-replacement) index-alist
 	   (mapcar
 	    (lambda (item)
-	      (cons (subst-char-in-string ?\ (aref imenu-space-replacement 0)
+	      (cons (subst-char-in-string ?\s (aref imenu-space-replacement 0)
 					  (car item))
 		    (cdr item)))
 	    index-alist))))

@@ -1516,7 +1516,8 @@ or as help on variables `cperl-tips', `cperl-problems',
 	 (t
 	  '((cperl-load-font-lock-keywords
 	     cperl-load-font-lock-keywords-1
-	     cperl-load-font-lock-keywords-2)))))
+	     cperl-load-font-lock-keywords-2)
+            nil nil ((?_ . "w"))))))
   (make-local-variable 'cperl-syntax-state)
   (if cperl-use-syntax-table-text-property
       (progn
@@ -3840,7 +3841,11 @@ the sections using `cperl-pod-head-face', `cperl-pod-face',
       (and (buffer-modified-p)
 	   (not modified)
 	   (set-buffer-modified-p nil))
-      (set-syntax-table cperl-mode-syntax-table))
+      ;; I do not understand what this is doing here.  It breaks font-locking
+      ;; because it resets the syntax-table from font-lock-syntax-table to
+      ;; cperl-mode-syntax-table.
+      ;; (set-syntax-table cperl-mode-syntax-table)
+      )
     (car err-l)))
 
 (defun cperl-backward-to-noncomment (lim)
@@ -4350,7 +4355,7 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	 fill-column)
       (let ((c (save-excursion (beginning-of-line)
 			       (cperl-to-comment-or-eol) (point)))
-	    (s (memq (following-char) '(?\ ?\t))) marker)
+	    (s (memq (following-char) '(?\s ?\t))) marker)
 	(if (>= c (point))
 	    ;; Don't break line inside code: only inside comment.
 	    nil
@@ -4361,11 +4366,11 @@ indentation and initial hashes.  Behaves usually outside of comment."
 	  (if (bolp) (progn (re-search-forward "#+[ \t]*")
 			    (goto-char (match-end 0))))
 	  ;; Following space could have gone:
-	  (if (or (not s) (memq (following-char) '(?\ ?\t))) nil
+	  (if (or (not s) (memq (following-char) '(?\s ?\t))) nil
 	    (insert " ")
 	    (backward-char 1))
 	  ;; Previous space could have gone:
-	  (or (memq (preceding-char) '(?\ ?\t)) (insert " "))))))
+	  (or (memq (preceding-char) '(?\s ?\t)) (insert " "))))))
 
 (defun cperl-imenu-addback (lst &optional isback name)
   ;; We suppose that the lst is a DAG, unless the first element only

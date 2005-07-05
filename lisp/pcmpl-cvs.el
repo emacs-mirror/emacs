@@ -33,7 +33,7 @@
 (require 'executable)
 
 (defgroup pcmpl-cvs nil
-  "Functions for dealing with CVS completions"
+  "Functions for dealing with CVS completions."
   :group 'pcomplete)
 
 ;; User Variables:

@@ -73,7 +73,7 @@
 ;;;==========================================================================
 
 (defgroup testcover nil
-  "Code-coverage tester"
+  "Code-coverage tester."
   :group 'lisp
   :prefix "testcover-"
   :version "21.1")

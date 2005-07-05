@@ -70,7 +70,7 @@
 ;;;; user defined variables
 
 (defgroup remote-compile nil
-  "Run a compilation on a remote machine"
+  "Run a compilation on a remote machine."
   :group 'processes
   :group 'tools)
 

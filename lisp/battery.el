@@ -171,53 +171,49 @@ The following %-sequences are provided:
 %B Battery status (verbose)
 %b Battery status, empty means high, `-' means low,
    `!' means critical, and `+' means charging
-%p battery load percentage
+%p Battery load percentage
 %s Remaining time in seconds
 %m Remaining time in minutes
 %h Remaining time in hours
 %t Remaining time in the form `h:min'"
   (let (driver-version bios-version bios-interface line-status
 	battery-status battery-status-symbol load-percentage
-	seconds minutes hours remaining-time buffer tem)
-    (unwind-protect
-	(save-excursion
-	  (setq buffer (get-buffer-create " *battery*"))
-	  (set-buffer buffer)
-	  (erase-buffer)
-	  (insert-file-contents "/proc/apm")
-	  (re-search-forward battery-linux-proc-apm-regexp)
-	  (setq driver-version (match-string 1))
-	  (setq bios-version (match-string 2))
-	  (setq tem (string-to-number (match-string 3) 16))
-	  (if (not (logand tem 2))
-	      (setq bios-interface "not supported")
-	    (setq bios-interface "enabled")
-	    (cond ((logand tem 16) (setq bios-interface "disabled"))
-		  ((logand tem 32) (setq bios-interface "disengaged")))
-	    (setq tem (string-to-number (match-string 4) 16))
-	    (cond ((= tem 0) (setq line-status "off-line"))
-		  ((= tem 1) (setq line-status "on-line"))
-		  ((= tem 2) (setq line-status "on backup")))
-	    (setq tem (string-to-number (match-string 6) 16))
-	    (if (= tem 255)
-		(setq battery-status "N/A")
-	      (setq tem (string-to-number (match-string 5) 16))
-	      (cond ((= tem 0) (setq battery-status "high"
-				     battery-status-symbol ""))
-		    ((= tem 1) (setq battery-status "low"
-				     battery-status-symbol "-"))
-		    ((= tem 2) (setq battery-status "critical"
-				     battery-status-symbol "!"))
-		    ((= tem 3) (setq battery-status "charging"
-				     battery-status-symbol "+")))
-	      (setq load-percentage (match-string 7))
-	      (setq seconds (string-to-number (match-string 8)))
-	      (and (string-equal (match-string 9) "min")
-		   (setq seconds (* 60 seconds)))
-	      (setq minutes (/ seconds 60)
-		    hours (/ seconds 3600))
-	      (setq remaining-time
-		    (format "%d:%02d" hours (- minutes (* 60 hours))))))))
+	seconds minutes hours remaining-time tem)
+    (with-temp-buffer
+      (ignore-errors (insert-file-contents "/proc/apm"))
+      (when (re-search-forward battery-linux-proc-apm-regexp)
+	(setq driver-version (match-string 1))
+	(setq bios-version (match-string 2))
+	(setq tem (string-to-number (match-string 3) 16))
+	(if (not (logand tem 2))
+	    (setq bios-interface "not supported")
+	  (setq bios-interface "enabled")
+	  (cond ((logand tem 16) (setq bios-interface "disabled"))
+		((logand tem 32) (setq bios-interface "disengaged")))
+	  (setq tem (string-to-number (match-string 4) 16))
+	  (cond ((= tem 0) (setq line-status "off-line"))
+		((= tem 1) (setq line-status "on-line"))
+		((= tem 2) (setq line-status "on backup")))
+	  (setq tem (string-to-number (match-string 6) 16))
+	  (if (= tem 255)
+	      (setq battery-status "N/A")
+	    (setq tem (string-to-number (match-string 5) 16))
+	    (cond ((= tem 0) (setq battery-status "high"
+				   battery-status-symbol ""))
+		  ((= tem 1) (setq battery-status "low"
+				   battery-status-symbol "-"))
+		  ((= tem 2) (setq battery-status "critical"
+				   battery-status-symbol "!"))
+		  ((= tem 3) (setq battery-status "charging"
+				   battery-status-symbol "+")))
+	    (setq load-percentage (match-string 7))
+	    (setq seconds (string-to-number (match-string 8)))
+	    (and (string-equal (match-string 9) "min")
+		 (setq seconds (* 60 seconds)))
+	    (setq minutes (/ seconds 60)
+		  hours (/ seconds 3600))
+	    (setq remaining-time
+		  (format "%d:%02d" hours (- minutes (* 60 hours))))))))
     (list (cons ?v (or driver-version "N/A"))
 	  (cons ?V (or bios-version "N/A"))
 	  (cons ?I (or bios-interface "N/A"))
@@ -240,12 +236,13 @@ in Linux version 2.4.20 and 2.6.0.
 
 The following %-sequences are provided:
 %c Current capacity (mAh)
+%r Current rate
 %B Battery status (verbose)
 %b Battery status, empty means high, `-' means low,
    `!' means critical, and `+' means charging
 %d Temperature (in degrees Celsius)
 %L AC line status (verbose)
-%p battery load percentage
+%p Battery load percentage
 %m Remaining time in minutes
 %h Remaining time in hours
 %t Remaining time in the form `h:min'"

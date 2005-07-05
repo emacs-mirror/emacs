@@ -33,7 +33,7 @@
 (require 'sendmail)
 
 (defgroup mailalias nil
-  "Expanding mail aliases"
+  "Expanding mail aliases."
   :group 'mail)
 
 (defcustom mail-passwd-files '("/etc/passwd")

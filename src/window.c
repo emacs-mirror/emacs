@@ -4785,7 +4785,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
       /* We moved the window start towards ZV, so PT may be now
 	 in the scroll margin at the top.  */
       move_it_to (&it, PT, -1, -1, -1, MOVE_TO_POS);
-      if (IT_CHARPOS (it) == PT && it.current_y >= this_scroll_margin)
+      if (IT_CHARPOS (it) == PT && it.current_y >= this_scroll_margin
+          && (NILP (Vscroll_preserve_screen_position)
+	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT at a legitimate height.  Leave it alone.  */
 	;
       else if (preserve_y >= 0)
@@ -4822,7 +4824,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
       /* We moved the window start towards BEGV, so PT may be now
 	 in the scroll margin at the bottom.  */
       move_it_to (&it, PT, -1,
-		  it.last_visible_y - this_scroll_margin - 1, -1,
+		  (it.last_visible_y - CURRENT_HEADER_LINE_HEIGHT (w)
+		   - this_scroll_margin - 1),
+		  -1,
 		  MOVE_TO_POS | MOVE_TO_Y);
 
       /* Save our position, in case it's correct.  */
@@ -4838,7 +4842,9 @@ window_scroll_pixel_based (window, n, whole, noerror)
 	  partial_p = it.current_y > it.last_visible_y;
 	}
 
-      if (charpos == PT && !partial_p)
+      if (charpos == PT && !partial_p
+          && (NILP (Vscroll_preserve_screen_position)
+	      || EQ (Vscroll_preserve_screen_position, Qt)))
 	/* We found PT before we found the display margin, so PT is ok.  */
 	;
       else if (preserve_y >= 0)
@@ -4953,7 +4959,8 @@ window_scroll_line_based (window, n, whole, noerror)
 	 the window-scroll-functions.  */
       w->force_start = Qt;
 
-      if (whole && !NILP (Vscroll_preserve_screen_position))
+      if (!NILP (Vscroll_preserve_screen_position)
+	  && (whole || !EQ (Vscroll_preserve_screen_position, Qt)))
 	{
 	  SET_PT_BOTH (pos, pos_byte);
 	  Fvertical_motion (make_number (original_vpos), window);
@@ -6916,9 +6923,13 @@ If there is only one window, it is split regardless of this value.  */);
 
   DEFVAR_LISP ("scroll-preserve-screen-position",
 	       &Vscroll_preserve_screen_position,
-	       doc: /* *Non-nil means scroll commands move point to keep its screen line unchanged.
-This is only when it is impossible to keep point fixed and still
-scroll as specified.  */);
+	       doc: /* *Controls if scroll commands move point to keep its screen line unchanged.
+A value of nil means point does not keep its screen position except
+at the scroll margin or window boundary respectively.
+A value of t means point keeps its screen position if the scroll
+command moved it vertically out of the window, e.g. when scrolling
+by full screens.
+Any other value means point always keeps its screen position.  */);
   Vscroll_preserve_screen_position = Qnil;
 
   DEFVAR_LISP ("window-configuration-change-hook",

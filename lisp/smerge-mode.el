@@ -48,6 +48,9 @@
 (eval-when-compile (require 'cl))
 
 
+;;; The real definition comes later.
+(defvar smerge-mode)
+
 (defgroup smerge ()
   "Minor mode to resolve diff3 conflicts."
   :group 'tools

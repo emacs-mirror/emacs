@@ -938,7 +938,8 @@ NOCONFIRM."
     (loop for member-buffer in (ebrowse-same-tree-member-buffer-list)
 	  do (kill-buffer member-buffer))
     (erase-buffer)
-    (insert-file (or buffer-file-name ebrowse--tags-file-name))
+    (with-no-warnings
+      (insert-file (or buffer-file-name ebrowse--tags-file-name)))
     (ebrowse-tree-mode)
     (current-buffer)))
 

@@ -113,7 +113,6 @@
   (sit-for 600)
   (kill-emacs t)))
 
-
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
@@ -145,6 +144,11 @@
 (defvar edt-enter-seq nil)
 (defvar edt-return-seq nil)
 (defvar edt-term nil)
+
+;; To silence the byte-compiler
+(eval-when-compile
+  (defvar EDT-key-name)
+  (defvar edt-save-function-key-map))
 
 ;;;
 ;;;  Determine Terminal Type (if appropriate).

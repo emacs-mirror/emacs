@@ -58,7 +58,7 @@
 (require 'viper-util)
 
 (defgroup viper-ex nil
-  "Viper support for Ex commands"
+  "Viper support for Ex commands."
   :prefix "ex-"
   :group 'viper)
 

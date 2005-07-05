@@ -937,7 +937,7 @@ the hook's buffer-local value rather than its default value."
 	  (set hook hook-value))))))
 
 (defun add-to-list (list-var element &optional append)
-  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+  "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `equal'.
 If ELEMENT is added, it is added at the beginning of the list,
 unless the optional argument APPEND is non-nil, in which case
@@ -959,15 +959,18 @@ other hooks, such as major mode hooks, can do the job."
 
 
 (defun add-to-ordered-list (list-var element &optional order)
-  "Add to the value of LIST-VAR the element ELEMENT if it isn't there yet.
+  "Add ELEMENT to the value of LIST-VAR if it isn't there yet.
 The test for presence of ELEMENT is done with `eq'.
 
 The resulting list is reordered so that the elements are in the
 order given by each element's numeric list order.  Elements
 without a numeric list order are placed at the end of the list.
 
-If the third optional argument ORDER is non-nil, set the
-element's list order to the given value.
+If the third optional argument ORDER is a number (integer or
+float), set the element's list order to the given value.  If
+ORDER is nil or omitted, do not change the numeric order of
+ELEMENT.  If ORDER has any other value, remove the numeric order
+of ELEMENT if it has one.
 
 The list order for each element is stored in LIST-VAR's
 `list-order' property.

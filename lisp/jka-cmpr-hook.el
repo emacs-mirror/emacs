@@ -32,11 +32,11 @@
 ;;; Code:
 
 (defgroup compression nil
-  "Data compression utilities"
+  "Data compression utilities."
   :group 'data)
 
 (defgroup jka-compr nil
-  "jka-compr customization"
+  "jka-compr customization."
   :group 'compression)
 
 ;;; I have this defined so that .Z files are assumed to be in unix

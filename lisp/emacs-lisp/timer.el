@@ -408,12 +408,11 @@ This function returns a timer object which you can use in `cancel-timer'."
 (defmacro with-timeout (list &rest body)
   "Run BODY, but if it doesn't finish in SECONDS seconds, give up.
 If we give up, we run the TIMEOUT-FORMS and return the value of the last one.
-The call should look like:
- (with-timeout (SECONDS TIMEOUT-FORMS...) BODY...)
 The timeout is checked whenever Emacs waits for some kind of external
-event \(such as keyboard input, input from subprocesses, or a certain time);
+event (such as keyboard input, input from subprocesses, or a certain time);
 if the program loops without waiting in any way, the timeout will not
-be detected."
+be detected.
+\n(fn (SECONDS TIMEOUT-FORMS...) BODY)"
   (let ((seconds (car list))
 	(timeout-forms (cdr list)))
     `(let ((with-timeout-tag (cons nil nil))

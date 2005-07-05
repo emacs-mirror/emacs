@@ -61,7 +61,7 @@
 (eval-when-compile (require 'cl))
 
 (defgroup apropos nil
-  "Apropos commands for users and programmers"
+  "Apropos commands for users and programmers."
   :group 'help
   :prefix "apropos")
 

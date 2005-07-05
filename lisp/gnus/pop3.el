@@ -39,7 +39,7 @@
 (require 'mail-utils)
 
 (defgroup pop3 nil
-  "Post Office Protocol"
+  "Post Office Protocol."
   :group 'mail
   :group 'mail-source)
 

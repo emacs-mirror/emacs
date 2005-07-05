@@ -1850,14 +1850,20 @@ turn_on_face (f, face_id)
 
       if (fg >= 0 && tty->TS_set_foreground)
 	{
-	  p = tparam (tty->TS_set_foreground, NULL, 0, (int) fg);
+          if (tty->standout_mode)
+            p = tparam (tty->TS_set_background, NULL, 0, (int) fg);
+          else
+            p = tparam (tty->TS_set_foreground, NULL, 0, (int) fg);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}
 
       if (bg >= 0 && tty->TS_set_background)
 	{
-	  p = tparam (tty->TS_set_background, NULL, 0, (int) bg);
+          if (tty->standout_mode)
+            p = tparam (tty->TS_set_foreground, NULL, 0, (int) bg);
+          else
+            p = tparam (tty->TS_set_background, NULL, 0, (int) bg);
 	  OUTPUT (tty, p);
 	  xfree (p);
 	}

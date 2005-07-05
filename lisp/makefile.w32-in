@@ -312,8 +312,11 @@ bootstrap-clean-SH:
 	-for dir in . $(WINS); do rm -f $$dir/*.elc; done
 
 # Generate/update files for the bootstrap process.
+# When done, remove bootstrap-emacs from ../bin, so that
+# it will not be mistaken for an installed binary.
 
 bootstrap: update-subdirs autoloads compile finder-data custom-deps
+	- $(DEL) $(EMACS)
 
 #
 # Assuming INSTALL_DIR is defined, copy the elisp files to it

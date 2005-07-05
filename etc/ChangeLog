@@ -1,3 +1,17 @@
+2005-07-03  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping): 
+	Added it again.
+
+2005-06-29  Carsten Dominik  <dominik@science.uva.nl>
+
+	* NEWS: Added an entry for Org-mode, and a change entry for
+	reftex-mode.
+
+2005-06-28  Richard M. Stallman  <rms@gnu.org>
+
+	* PROBLEMS (Fedora Core 4 GNU/Linux: Segfault during dumping): New.
+
 2005-06-11  Eli Zaretskii  <eliz@gnu.org>
 
 	* DEBUG: Mention emacs-buffer.gdb.
@@ -58,7 +72,7 @@
 
 2005-05-05  Slawomir Nowaczyk  <slawek@cs.lth.se>  (tiny change)
 
-        * TUTORIAL.pl: Updated header.
+	* TUTORIAL.pl: Updated header.
 
 2005-05-02  Richard M. Stallman  <rms@gnu.org>
 
@@ -101,8 +115,8 @@
 
 2005-04-10  Masatake YAMATO  <jet@gyve.org>
 
-	* compilation.txt (symbol): Added gcov-file
-	gcov-bb-file gcov-never-called-line gcov-called-line .
+	* compilation.txt (symbol): Add gcov-file
+	gcov-bb-file gcov-never-called-line gcov-called-line.
 
 2005-04-08  Kenichi Handa  <handa@m17n.org>
 
@@ -119,7 +133,7 @@
 
 2005-04-05  Marcelo Toledo  <marcelo@gnu.org>
 
-        * TUTORIAL.translators: Added the field Maintainer.
+	* TUTORIAL.translators: Added the field Maintainer.
 
 2005-04-04  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -140,22 +154,21 @@
 
 2005-04-01  Marcelo Toledo  <marcelo@gnu.org>
 
-        * TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
-        * TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
-        * TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
-        * TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title
-        line.
+	* TUTORIAL.pt_BR, TUTORIAL.cn, TUTORIAL.cs, TUTORIAL.de,
+	* TUTORIAL.es, TUTORIAL.fr, TUTORIAL.it, TUTORIAL.ja, TUTORIAL.ko,
+	* TUTORIAL.pl, TUTORIAL.pt_BR, TUTORIAL.ro, TUTORIAL.ru,
+	* TUTORIAL.sk, TUTORIAL.sl, TUTORIAL.th, TUTORIAL.zh: Fix title line.
 
 2005-04-01  Ognyan Kulev  <ogi@fmi.uni-sofia.bg>
 
-        * TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
-        revision 1.59, "Emacs" is not transliterated to cyrillic anymore;
-        Minor fixes.
+	* TUTORIAL.bg: Fix title line; Applied TUTORIAL changes in
+	revision 1.59, "Emacs" is not transliterated to cyrillic anymore;
+	Minor fixes.
 
 2005-04-01  Mats Lidell  <matsl@contactor.se>
 
-        * TUTORIAL.sv: Sync some other changes with the TUTORIAL version
-        1.61 in CVS.
+	* TUTORIAL.sv: Sync some other changes with the TUTORIAL version
+	1.61 in CVS.
 
 2005-04-01  Lute Kamstra  <lute@gnu.org>
 
@@ -289,7 +302,7 @@
 
 	* e/eterm.ti: Comment out smcup, rmcup. Add kbs, kdch1, rc, sc.
 	Reformat.
-        * e/eterm: Regenerate.
+	* e/eterm: Regenerate.
 
 2004-09-25  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
@@ -298,7 +311,7 @@
 2004-09-16  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Change the strings for smso and rmso.
-          e/eterm: Regenerate.
+	e/eterm: Regenerate.
 
 2004-09-09  Thien-Thi Nguyen  <ttn@gnu.org>
 
@@ -307,7 +320,7 @@
 2004-09-07  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* e/eterm.ti: Add `op' entry to enable colors in term.
-        * e/eterm: Regenerate.
+	* e/eterm: Regenerate.
 
 2004-09-04  Eric S. Raymond  <esr@thyrsus.com>
 
@@ -379,7 +392,7 @@
 
 2004-07-08  David Kastrup  <dak@gnu.org>
 
-	* NEWS (Lisp changes in 21.4): document (match-data t) change.
+	* NEWS (Lisp changes in 21.4): Document (match-data t) change.
 
 2002-06-26  Eli Zaretskii  <eliz@is.elta.co.il>
 
@@ -389,8 +402,8 @@
 
 	* NEWS: Move description from new paragraph-start and
 	indent-line-function defaults to general news instead of new
-	packages.  Same for query-replace-skip-read-only.  Add
-	description of new `\,' and `\?' replacement string features.
+	packages.  Same for query-replace-skip-read-only.
+	Add description of new `\,' and `\?' replacement string features.
 
 2004-06-23  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -417,8 +430,7 @@
 
 2004-05-14  David Ponce  <david@dponce.com>
 
-	* tree-widget: New directory containing tree-widget themes and
-	images.
+	* tree-widget: New directory containing tree-widget themes and images.
 
 2004-04-13  Marcelo Toledo  <marcelo@gnu.org>
 

@@ -52,7 +52,7 @@
 
 
 (defgroup viper-mouse nil
-  "Support for Viper special mouse-bound commands"
+  "Support for Viper special mouse-bound commands."
   :prefix "viper-"
   :group 'viper)
 

@@ -44,7 +44,7 @@ The value is nil if the selected frame is on a text-only-terminal.")
 (make-variable-frame-local 'window-system)
 
 (defgroup initialization nil
-  "Emacs start-up procedure"
+  "Emacs start-up procedure."
   :group 'internal)
 
 (defcustom inhibit-startup-message nil
@@ -293,6 +293,8 @@ from being initialized."
 (defvar normal-top-level-add-subdirs-inode-list nil)
 
 (defvar no-blinking-cursor nil)
+
+(defvar default-frame-background-mode)
 
 (defvar pure-space-overflow nil
   "Non-nil if building Emacs overflowed pure space.")

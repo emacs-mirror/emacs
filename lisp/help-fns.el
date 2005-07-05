@@ -275,9 +275,9 @@ face (according to `face-differs-from-default-p')."
                    ;; This is heuristic, but covers all common cases
                    ;; except ARG1-ARG2
                    (concat "\\<"                   ; beginning of word
-                           "\\(?:[a-z-]+-\\)?"     ; for xxx-ARG
+                           "\\(?:[a-z-]*-\\)?"     ; for xxx-ARG
                            "\\("
-                           arg
+                           (regexp-quote arg)
                            "\\)"
                            "\\(?:es\\|s\\|th\\)?"  ; for ARGth, ARGs
                            "\\(?:-[a-z-]+\\)?"     ; for ARG-xxx

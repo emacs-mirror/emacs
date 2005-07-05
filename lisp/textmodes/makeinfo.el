@@ -50,7 +50,7 @@
 (require 'info)
 
 (defgroup makeinfo nil
-  "Run makeinfo conveniently"
+  "Run makeinfo conveniently."
   :group 'docs)
 
 

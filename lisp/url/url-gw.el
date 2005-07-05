@@ -34,7 +34,7 @@
 (autoload 'open-tls-stream "tls")
 
 (defgroup url-gateway nil
-  "URL gateway variables"
+  "URL gateway variables."
   :group 'url)
 
 (defcustom url-gateway-local-host-regexp nil

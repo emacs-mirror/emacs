@@ -38,7 +38,7 @@
 ;;; Code:
 
 (defgroup outlines nil
-  "Support for hierarchical outlining"
+  "Support for hierarchical outlining."
   :prefix "outline-"
   :group 'editing)
 

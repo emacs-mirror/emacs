@@ -10,12 +10,12 @@
 ;; Maintainer: Kenichi Handa <handa@etl.go.jp> (multi-byte characters)
 ;;	Vinicius Jose Latorre <viniciusjl@ig.com.br>
 ;; Keywords: wp, print, PostScript
-;; Time-stamp: <2005/03/19 00:40:12 vinicius>
-;; Version: 6.6.6
+;; Time-stamp: <2005/06/27 00:57:22 vinicius>
+;; Version: 6.6.7
 ;; X-URL: http://www.cpqd.com.br/~vinicius/emacs/
 
-(defconst ps-print-version "6.6.6"
-  "ps-print.el, v 6.6.6 <2005/03/19 vinicius>
+(defconst ps-print-version "6.6.7"
+  "ps-print.el, v 6.6.7 <2005/06/27 vinicius>
 
 Vinicius's last change version -- this file may have been edited as part of
 Emacs without changes to the version number.  When reporting bugs, please also
@@ -1562,13 +1562,13 @@ Please send all bug fixes and enhancements to
 ;;; Interface to the command system
 
 (defgroup postscript nil
-  "PostScript Group"
+  "PostScript Group."
   :tag "PostScript"
   :version "20"
   :group 'emacs)
 
 (defgroup ps-print nil
-  "PostScript generator for Emacs"
+  "PostScript generator for Emacs."
   :link '(emacs-library-link :tag "Source Lisp File" "ps-print.el")
   :prefix "ps-"
   :version "20"
@@ -1576,42 +1576,42 @@ Please send all bug fixes and enhancements to
   :group 'postscript)
 
 (defgroup ps-print-horizontal nil
-  "Horizontal page layout"
+  "Horizontal page layout."
   :prefix "ps-"
   :tag "Horizontal"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-vertical nil
-  "Vertical page layout"
+  "Vertical page layout."
   :prefix "ps-"
   :tag "Vertical"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-headers nil
-  "Headers & footers layout"
+  "Headers & footers layout."
   :prefix "ps-"
   :tag "Header & Footer"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-font nil
-  "Fonts customization"
+  "Fonts customization."
   :prefix "ps-"
   :tag "Font"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-color nil
-  "Color customization"
+  "Color customization."
   :prefix "ps-"
   :tag "Color"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-face nil
-  "Faces customization"
+  "Faces customization."
   :prefix "ps-"
   :tag "PS Faces"
   :version "20"
@@ -1619,42 +1619,42 @@ Please send all bug fixes and enhancements to
   :group 'faces)
 
 (defgroup ps-print-n-up nil
-  "N-up customization"
+  "N-up customization."
   :prefix "ps-"
   :tag "N-Up"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-zebra nil
-  "Zebra customization"
+  "Zebra customization."
   :prefix "ps-"
   :tag "Zebra"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-background nil
-  "Background customization"
+  "Background customization."
   :prefix "ps-"
   :tag "Background"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-printer '((lpr custom-group))
-  "Printer customization"
+  "Printer customization."
   :prefix "ps-"
   :tag "Printer"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-page nil
-  "Page customization"
+  "Page customization."
   :prefix "ps-"
   :tag "Page"
   :version "20"
   :group 'ps-print)
 
 (defgroup ps-print-miscellany nil
-  "Miscellany customization"
+  "Miscellany customization."
   :prefix "ps-"
   :tag "Miscellany"
   :version "20"
@@ -3760,7 +3760,7 @@ If `ps-prefix-quote' is nil, it's set to t after generating string."
 		"(setq ")
 	      key
 	      (if (> col len)
-		  (make-string (- col len) ?\ )
+		  (make-string (- col len) ?\s)
 		" ")
 	      (ps-value-string val))))
    (t "")
@@ -5961,10 +5961,14 @@ XSTART YSTART are the relative position for the first page in a sheet.")
   (ps-begin-page))
 
 
+(defun ps-end-sheet ()
+  (and ps-print-page-p (> ps-page-sheet 0)
+       (ps-output "EndSheet\n")))
+
+
 (defun ps-header-sheet ()
   ;; Print only when a new sheet begins.
-  (and ps-print-page-p (> ps-page-sheet 0)
-       (ps-output "EndSheet\n"))
+  (ps-end-sheet)
   (setq ps-page-sheet (1+ ps-page-sheet))
   (when (ps-print-sheet-p)
     (setq ps-page-order (1+ ps-page-order))
@@ -6689,8 +6693,7 @@ If FACE is not a valid face name, it is used default face."
 
 
 (defun ps-end-job (needs-begin-file)
-  (let ((previous-print ps-print-page-p)
-	(ps-print-page-p t))
+  (let ((ps-print-page-p t))
     (ps-flush-output)
     (save-excursion
       (let ((pages-per-sheet (mod ps-page-printed ps-n-up-printing))
@@ -6717,8 +6720,7 @@ If FACE is not a valid face name, it is used default face."
 		      (number-to-string ps-lines-printed) " BeginPage\n")
 	   (ps-end-page)))
     ;; Set end of PostScript file
-    (and previous-print
-	 (ps-output "EndSheet\n"))
+    (ps-end-sheet)
     (ps-output "\n%%Trailer\n%%Pages: "
 	       (number-to-string
 		(if (and needs-begin-file

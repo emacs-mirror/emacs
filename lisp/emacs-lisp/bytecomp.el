@@ -193,7 +193,7 @@
 
 
 (defgroup bytecomp nil
-  "Emacs Lisp byte-compiler"
+  "Emacs Lisp byte-compiler."
   :group 'lisp)
 
 (defcustom emacs-lisp-file-regexp (if (eq system-type 'vax-vms)
@@ -1248,7 +1248,10 @@ extra args."
 (defun byte-compile-nogroup-warn (form)
   (let ((keyword-args (cdr (cdr (cdr (cdr form)))))
 	(name (cadr form)))
-    (or (plist-get keyword-args :group)
+    (or (not (eq (car-safe name) 'quote))
+	(and (eq (car form) 'custom-declare-group)
+	     (equal name ''emacs))
+	(plist-get keyword-args :group)
 	(not (and (consp name) (eq (car name) 'quote)))
 	(byte-compile-warn
 	 "%s for `%s' fails to specify containing group"

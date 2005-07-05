@@ -202,12 +202,12 @@
 
 
 (defgroup sh nil
-  "Shell programming utilities"
+  "Shell programming utilities."
   :group 'unix
   :group 'languages)
 
 (defgroup sh-script nil
-  "Shell script mode"
+  "Shell script mode."
   :group 'sh
   :prefix "sh-")
 
@@ -2370,7 +2370,7 @@ If AND-MOVE is non-nil then move to end of word."
 	(goto-char where))
     (prog1
 	(buffer-substring (point)
-			  (progn (skip-chars-forward "^ \t\n;")(point)))
+			  (progn (skip-chars-forward "^ \t\n;&")(point)))
       (unless and-move
 	(goto-char start)))))
 
@@ -3535,7 +3535,7 @@ The document is bounded by `sh-here-document-word'."
             (delim (replace-regexp-in-string "['\"]" ""
                                             sh-here-document-word)))
 	(insert sh-here-document-word)
-	(or (eolp) (looking-at "[ \t]") (insert ? ))
+	(or (eolp) (looking-at "[ \t]") (insert ?\s))
 	(end-of-line 1)
 	(while
 	    (sh-quoted-p)

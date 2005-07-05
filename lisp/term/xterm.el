@@ -376,7 +376,7 @@ versions of xterm."
   "Set background mode as appropriate for the default rxvt colors."
   (let ((fgbg (server-getenv "COLORFGBG"))
 	bg rgb)
-    (setq frame-background-mode 'light)	; default
+    (setq default-frame-background-mode 'light)
     (when (and fgbg
 	       (string-match ".*;\\([0-9][0-9]?\\)\\'" fgbg))
       (setq bg (string-to-number (substring fgbg (match-beginning 1))))
@@ -389,7 +389,7 @@ versions of xterm."
 	     ;; The following line assumes that white is the 15th
 	     ;; color in xterm-standard-colors.
 	     (* (apply '+ (car (cddr (nth 15 xterm-standard-colors)))) 0.6))
-	  (setq frame-background-mode 'dark)))
+	  (setq default-frame-background-mode 'dark)))
     (frame-set-background-mode (selected-frame))))
 
 ;; Do it!

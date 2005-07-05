@@ -919,7 +919,13 @@ main (argc, argv
         {
           /* Set this so we only do this once.  */
           putenv("EMACS_HEAP_EXEC=true");
-          personality (PER_LINUX32);
+
+	  /* A flag to turn off address randomization which is introduced
+	   in linux kernel shipped with fedora core 4 */
+#define ADD_NO_RANDOMIZE 0x0040000
+	  personality (PER_LINUX32 | ADD_NO_RANDOMIZE);
+#undef  ADD_NO_RANDOMIZE
+
           execvp (argv[0], argv);
 
           /* If the exec fails, try to dump anyway.  */

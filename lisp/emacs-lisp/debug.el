@@ -231,7 +231,9 @@ first will be printed into the backtrace buffer."
                     ;; would need to be de-iconified anyway immediately
                     ;; after when we re-enter the debugger, so iconifying it
                     ;; here would cause flashing.
-                    (bury-buffer))))
+                    ;; Use quit-window rather than bury-buffer to quieten
+                    ;; Drew Adams.  --Stef
+                    (quit-window))))
 	    (kill-buffer debugger-buffer))
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables
