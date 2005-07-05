@@ -1,6 +1,16 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+	* calc.texi (Copying):
+	* doclicense.texi (GNU Free Documentation License):
+	* faq.texi (Contacting the FSF):
+	* mh-e.texi (Copying):
+	* trouble.texi (Checklist): Update FSF's address.
+
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
-	* flymake.texi (Example -- Configuring a tool called directly): 
+	* flymake.texi (Example -- Configuring a tool called directly):
 	Update name of flymake-build-relative-filename.
 
 2005-06-29  Katsumi Yamaoka  <yamaoka@jpl.org>
@@ -36,9 +46,9 @@
 	and put it in a separate node.  Add nobreak-space and
 	escape-glyph.
 
-	* speedbar.texi (Creating a display): Texinfo usage fixes.	
+	* speedbar.texi (Creating a display): Texinfo usage fixes.
 
-	* tramp.texi (Customizing Completion, Auto-save and Backup): 
+	* tramp.texi (Customizing Completion, Auto-save and Backup):
 	Texinfo usage fixes.
 
 2005-06-23  Lute Kamstra  <lute@gnu.org>

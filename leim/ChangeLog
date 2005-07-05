@@ -1,3 +1,7 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-06-28  Kenichi Handa  <handa@m17n.org>
 
 	* leim-ext.el: Add rules for inserting full-width space for
