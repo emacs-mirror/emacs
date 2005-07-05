@@ -1,4 +1,4 @@
-2005-07-04  Lute Kamstra  <lute@gnu.org>
+2005-07-05  Lute Kamstra  <lute@gnu.org>
 
 	* battery.el: Add support for Darwin (with much debugging help
 	from Samuel Lauber <sam124@operamail.com>).
@@ -6,6 +6,12 @@
 	(battery-mode-line-format): Add support for pmset on Darwin.
 	(battery-load-low, battery-load-critical): New user options.
 	(battery-pmset): New function.
+
+2005-07-05  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+	* textmodes/page-ext.el: Update FSF's address.
 
 2005-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 

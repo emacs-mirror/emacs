@@ -101,8 +101,9 @@ time to make anfe-ftp more intelligent.
 
 * FSF's ADDRESS
 
-** Update the FSF's address in all files.
-Lute Kamstra is working on this.
+** Regenerate refcards in etc.
+
+** lisp/elide-head.el needs an update.
 
 
 * DOCUMENTATION
