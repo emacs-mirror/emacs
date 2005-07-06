@@ -326,6 +326,10 @@ message."
 				(frame-list))
 			  frame-num))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
+      ;; XXX Deleting the process causes emacsclient to exit
+      ;; immediately, which might happen before Emacs closes the
+      ;; display.  I think we need a `delete-frame-after-functions'
+      ;; hook here.
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
 (defun server-handle-suspend-tty (display)
