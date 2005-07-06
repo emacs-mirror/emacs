@@ -4326,7 +4326,14 @@ when the mouse is over clickable text.  */);
   DEFVAR_LISP ("delete-frame-functions", &Vdelete_frame_functions,
 	       doc: /* Functions to be run before deleting a frame.
 The functions are run with one arg, the frame to be deleted.
-See `delete-frame'.  */);
+See `delete-frame'.
+
+Note that functions in this list may be called twice on the same
+frame.  In the second invocation, the frame is already deleted, and
+the function should do nothing.  (You can use `frame-live-p' to check
+for this.)  This wrinkle happens when an earlier function in
+`delete-frame-functions' (indirectly) calls delete-frame
+recursively.  */);
   Vdelete_frame_functions = Qnil;
 
   DEFVAR_KBOARD ("default-minibuffer-frame", Vdefault_minibuffer_frame,

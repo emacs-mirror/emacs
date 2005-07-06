@@ -314,7 +314,8 @@ message."
 (defun server-handle-delete-frame (frame)
   "Delete the client connection when the emacsclient frame is deleted."
   (let ((proc (frame-parameter frame 'client)))
-    (when (and proc
+    (when (and (frame-live-p frame)
+	       proc
 	       (or (window-system frame)
 		   ;; A terminal display must not yet be deleted if
 		   ;; there are other frames on it.
@@ -326,10 +327,6 @@ message."
 				(frame-list))
 			  frame-num))))
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
-      ;; XXX Deleting the process causes emacsclient to exit
-      ;; immediately, which might happen before Emacs closes the
-      ;; display.  I think we need a `delete-frame-after-functions'
-      ;; hook here.
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
 (defun server-handle-suspend-tty (display)

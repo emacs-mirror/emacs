@@ -1484,7 +1484,8 @@ selected frame's terminal)."
   ;; XXX We assume that the display is closed immediately after the
   ;; last frame is deleted on it.  It would be better to create a hook
   ;; called `delete-display-functions', and use it instead.
-  (when (= 1 (length (frames-on-display-list (frame-display frame))))
+  (when (and (frame-live-p frame)
+	     (= 1 (length (frames-on-display-list (frame-display frame)))))
     (setq terminal-parameter-alist
 	  (assq-delete-all (frame-display frame) terminal-parameter-alist))))
 
