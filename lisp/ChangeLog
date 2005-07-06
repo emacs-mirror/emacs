@@ -1,3 +1,7 @@
+2005-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-vars.el (w32-fixed-font-alist): Fix typo in `defcustom' tag.
+
 2005-07-05  Lute Kamstra  <lute@gnu.org>
 
 	* battery.el: Add support for Darwin (with much debugging help
