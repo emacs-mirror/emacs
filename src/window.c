@@ -5333,6 +5333,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
   struct buffer *obuf = current_buffer;
   int center_p = 0;
   int charpos, bytepos;
+  int iarg;
+  int this_scroll_margin;
 
   /* If redisplay is suppressed due to an error, try again.  */
   obuf->display_error_modiff = 0;
@@ -5359,6 +5361,12 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
   set_buffer_internal (buf);
 
+  /* Do this after making BUF current
+     in case scroll_margin is buffer-local.  */
+  this_scroll_margin = max (0, scroll_margin);
+  this_scroll_margin = min (this_scroll_margin,
+			    XFASTINT (w->total_lines) / 4);
+
   /* Handle centering on a graphical frame specially.  Such frames can
      have variable-height lines and centering point on the basis of
      line counts would lead to strange effects.  */
@@ -5375,13 +5383,16 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  charpos = IT_CHARPOS (it);
 	  bytepos = IT_BYTEPOS (it);
 	}
-      else if (XINT (arg) < 0)
+      else if (iarg < 0)
 	{
 	  struct it it;
 	  struct text_pos pt;
-	  int nlines = - XINT (arg);
+	  int nlines = -iarg;
 	  int extra_line_spacing;
 	  int h = window_box_height (w);
+
+	  iarg = XINT (arg);
+	  iarg = - max (-iarg, this_scroll_margin);
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
 	  start_display (&it, w, pt);
@@ -5441,7 +5452,11 @@ and redisplay normally--don't erase and redraw the frame.  */)
       else
 	{
 	  struct position pos;
-	  pos = *vmotion (PT, - XINT (arg), w);
+
+	  iarg = XINT (arg);
+	  iarg = max (iarg, this_scroll_margin);
+
+	  pos = *vmotion (PT, -iarg, w);
 	  charpos = pos.bufpos;
 	  bytepos = pos.bytepos;
 	}
@@ -5452,11 +5467,17 @@ and redisplay normally--don't erase and redraw the frame.  */)
       int ht = window_internal_height (w);
 
       if (center_p)
-	arg = make_number (ht / 2);
+	iarg = make_number (ht / 2);
       else if (XINT (arg) < 0)
-	arg = make_number (XINT (arg) + ht);
+	iarg = XINT (arg) + ht;
+      else
+	iarg = XINT (arg);
 
-      pos = *vmotion (PT, - XINT (arg), w);
+      /* Don't let it get into the margin at either top or bottom.  */
+      iarg = max (iarg, this_scroll_margin);
+      iarg = min (iarg, ht - this_scroll_margin - 1);
+
+      pos = *vmotion (PT, - iarg, w);
       charpos = pos.bufpos;
       bytepos = pos.bytepos;
     }
@@ -5505,6 +5526,9 @@ zero means top of window, negative means relative to bottom of window.  */)
   struct window *w = XWINDOW (selected_window);
   int lines, start;
   Lisp_Object window;
+#if 0
+  int this_scroll_margin;
+#endif
 
   window = selected_window;
   start = marker_position (w->start);
@@ -5520,13 +5544,33 @@ zero means top of window, negative means relative to bottom of window.  */)
     Fgoto_char (w->start);
 
   lines = displayed_window_lines (w);
+
+#if 0
+  this_scroll_margin = max (0, scroll_margin);
+  this_scroll_margin = min (this_scroll_margin, lines / 4);
+#endif
+
   if (NILP (arg))
     XSETFASTINT (arg, lines / 2);
   else
     {
-      arg = Fprefix_numeric_value (arg);
-      if (XINT (arg) < 0)
-	XSETINT (arg, XINT (arg) + lines);
+      int iarg = XINT (Fprefix_numeric_value (arg));
+
+      if (iarg < 0)
+	iarg = iarg + lines;
+
+#if 0  /* This code would prevent move-to-window-line from moving point
+	  to a place inside the scroll margins (which would cause the
+	  next redisplay to scroll).  I wrote this code, but then concluded
+	  it is probably better not to install it.  However, it is here
+	  inside #if 0 so as not to lose it.  -- rms.  */
+
+      /* Don't let it get into the margin at either top or bottom.  */
+      iarg = max (iarg, this_scroll_margin);
+      iarg = min (iarg, lines - this_scroll_margin - 1);
+#endif
+
+      arg = make_number (iarg);
     }
 
   /* Skip past a partially visible first line.  */
