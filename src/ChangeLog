@@ -1,3 +1,9 @@
+2005-07-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c (initialize_w32_display): Detect when the console
+	dimensions are insane, and default to 80x25 instead.
+	(w32_use_full_screen_buffer): default to NIL.
+
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c (mac_draw_vertical_window_border): Use foreground of
