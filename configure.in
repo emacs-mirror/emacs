@@ -1290,7 +1290,7 @@ else
   LDFLAGS="$LDFLAGS -znocombreloc"
 fi
 
-AC_MSG_CHECKING([For -znocombreloc])
+AC_MSG_CHECKING([for -znocombreloc])
 AC_LINK_IFELSE([main(){return 0;}],
   [AC_MSG_RESULT(yes)],
   LDFLAGS=$late_LDFLAGS
