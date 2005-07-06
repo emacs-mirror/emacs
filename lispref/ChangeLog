@@ -1,6 +1,11 @@
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Search): Clarify what re-search-forward
+	does when the search fails.
+
 2005-07-05  Lute Kamstra  <lute@gnu.org>
 
-	Update FSF's address in GPL notices.
+	* Update FSF's address in GPL notices.
 
 	* doclicense.texi (GNU Free Documentation License):
 	* gpl.texi (GPL):
