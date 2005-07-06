@@ -1,3 +1,10 @@
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/flymake.el (flymake-float-time): Instead of
+	with-no-warnings, test for xemacs.
+	(flymake-replace-regexp-in-string): Test fboundp of replace-in-string
+	to avoid warning.
+
 2005-07-06  Juanma Barranquero  <lekktu@gmail.com>
 
 	* w32-vars.el (w32-fixed-font-alist): Fix typo in `defcustom' tag.
