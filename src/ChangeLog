@@ -1,3 +1,14 @@
+2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+	(mac_encode_char): Call check_ccl_update in advance.
+	(mac_to_x_fontname, x_font_name_to_mac_font_name)
+	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont): Don't
+	assume that font family length is less than 32.
+	(x_compute_min_glyph_bounds): Make static.
+	(x_load_font): Never set fonts_changed_p to zero.
+	
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
