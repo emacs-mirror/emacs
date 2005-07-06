@@ -251,10 +251,6 @@ The following key sequence may cause multilingual text insertion."
    (t
     nil)))
 
-;; Input mode at the time Encoded-kbd mode is turned on is saved here.
-;; XXX This should be made display-local somehow.
-(defvar saved-input-mode nil)
-
 ;;;###autoload
 (defun encoded-kbd-setup-display (display)
   "Set up a `key-translation-map' for `keyboard-coding-system' on DISPLAY.
@@ -276,26 +272,29 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 	    ;; We are turning on Encoded-kbd mode.
 	    (let ((coding (keyboard-coding-system))
 		  (keymap (make-sparse-keymap "encoded-kb"))
+		  (cim (current-input-mode))
 		  result)
 	      (set-keymap-parent keymap (terminal-local-value 'key-translation-map frame))
 	      (set-terminal-local-value 'key-translation-map frame keymap)
-	      (or saved-input-mode
-		  (setq saved-input-mode (current-input-mode)))
+	      (or (terminal-parameter nil 'encoded-kbd-saved-input-mode)
+		  (set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
 	      (if result
-		  (if (eq result 8)
-		      (set-input-mode
-		       (nth 0 saved-input-mode)
-		       (nth 1 saved-input-mode)
-		       'use-8th-bit
-		       (nth 3 saved-input-mode)))
-		(setq saved-input-mode nil)
+		  (when (and (eq result 8)
+			     (not (memq (nth 2 cim) '(t nil))))
+		    (set-input-mode
+		     (nth 0 cim)
+		     (nth 1 cim)
+		     'use-8th-bit
+		     (nth 3 cim)))
+		(set-terminal-local-value nil 'encoded-kbd-saved-input-mode nil)
 		(error "Unsupported coding system in Encoded-kbd mode: %S"
 		       coding)))
 	  ;; We are turning off Encoded-kbd mode.
-	  (and saved-input-mode
-	       (apply 'set-input-mode saved-input-mode))
-	  (setq saved-input-mode nil))))))
+	  (unless (equal (current-input-mode)
+			 (terminal-parameter nil 'encoded-kbd-saved-input-mode))
+	       (apply 'set-input-mode (terminal-parameter nil 'encoded-kbd-saved-input-mode)))
+	  (set-terminal-parameter nil 'saved-input-mode nil))))))
 
 (provide 'encoded-kb)
 

@@ -1427,6 +1427,69 @@ Use Custom to set this variable to get the display updated."
 
 (substitute-key-definition 'suspend-emacs 'suspend-frame global-map)
 
+
+(defun terminal-id (terminal)
+  "Return the numerical id of terminal TERMINAL.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (cond
+   ((integerp terminal)
+    terminal)
+   ((or (null terminal) (framep terminal))
+    (frame-display terminal))
+   (t
+    (error "Invalid argument %s in `terminal-id'" terminal))))
+
+(defvar terminal-parameter-alist nil
+  "An alist of terminal parameter alists.")
+
+(defun terminal-parameters (&optional terminal)
+  "Return the paramater-alist of terminal TERMINAL.
+It is a list of elements of the form (PARM . VALUE), where PARM is a symbol.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (cdr (assq (terminal-id terminal) terminal-parameter-alist)))
+
+(defun terminal-parameter (terminal parameter)
+  "Return TERMINAL's value for parameter PARAMETER.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (cdr (assq parameter (cdr (assq (terminal-id terminal) terminal-parameter-alist)))))
+
+(defun set-terminal-parameter (terminal parameter value)
+  "Set TERMINAL's value for parameter PARAMETER to VALUE.
+Returns the previous value of PARAMETER.
+
+TERMINAL can be a terminal id, a frame, or nil (meaning the
+selected frame's terminal)."
+  (setq terminal (terminal-id terminal))
+  (let* ((alist (assq terminal terminal-parameter-alist))
+	 (pair (assq parameter (cdr alist)))
+	 (result (cdr pair)))
+    (cond
+     (pair (setcdr pair value))
+     (alist (setcdr alist (cons (cons parameter value) (cdr alist))))
+     (t (setq terminal-parameter-alist
+	      (cons (cons terminal
+			  (cons (cons parameter value)
+				nil))
+		    terminal-parameter-alist))))
+    result))
+
+(defun terminal-handle-delete-frame (frame)
+  "Clean up terminal parameters of FRAME, if it's the last frame on its terminal."
+  ;; XXX We assume that the display is closed immediately after the
+  ;; last frame is deleted on it.  It would be better to create a hook
+  ;; called `delete-display-functions', and use it instead.
+  (when (= 1 (length (frames-on-display-list (frame-display frame))))
+    (setq terminal-parameter-alist
+	  (assq-delete-all (frame-display frame) terminal-parameter-alist))))
+
+(add-hook 'delete-frame-functions 'terminal-handle-delete-frame)
+
 (provide 'frame)
 
 ;; arch-tag: 82979c70-b8f2-4306-b2ad-ddbd6b328b56

@@ -355,6 +355,9 @@ For the NEWS file:  (Needs much, much work)
 *** New functions: frame-tty-name, frame-tty-type, delete-tty,
     terminal-local-value, set-terminal-local-value
 
+    terminal-id, terminal-parameters, terminal-parameter,
+    set-terminal-parameter
+
 *** New variables: global-key-translation-map
 
 *** The keymaps key-translation-map and function-key-map are now
@@ -381,6 +384,23 @@ is probably not very interesting for anyone else.)
 
 THINGS TO DO
 ------------
+
+** The handling of lisp/term/*.el, and frame creation in general, is a
+   big, big mess.  How come the terminal-specific file is loaded by
+   tty-create-frame-with-faces?  I don't think it is necessary to load
+   these files for each frame; once per terminal should be enough.
+
+** Fix frame-set-background-mode in this branch.  It was recently
+   changed in CVS, and frame.el in multi-tty has not yet been adapted
+   for the changes.  (It needs to look at
+   default-frame-background-mode.)
+
+** I think `(set-)terminal-local-value' and the terminal parameter
+   mechanism should be integrated into a single framework.
+
+** Add the following hooks: after-delete-frame-hook (for server.el,
+   instead of delete-frame-functions),
+   after-delete-terminal-functions, after-create-terminal-functions.
 
 ** Having {reset,init}_all_sys_modes in set-input-mode breaks arrow
    keys on non-selected terminals under screen, and sometimes on other
