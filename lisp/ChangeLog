@@ -1,3 +1,8 @@
+2005-07-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Require font-lock for displaying errors.
+	Used by gdb-ui.el.
+
 2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hi-lock.el (hi-lock-find-patterns): Protect also against invalid
