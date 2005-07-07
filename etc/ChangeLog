@@ -1,3 +1,13 @@
+2005-07-06  Lute Kamstra  <lute@gnu.org>
+
+	* refcard.tex: Update `versionnumber' and `year'.  Update Emacs's
+	version to 22.
+	(Starting Emacs): Delete sentence to fix formatting problems.
+	(Multiple Windows): Clarify first sentence.  Mention C-x 5 1.
+	(Formatting): Update the binding of set face.
+	(International Character Sets): set-language-environment is bound
+	to C-x RET l
+
 2005-07-05  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
