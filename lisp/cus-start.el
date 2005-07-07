@@ -77,7 +77,7 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute
-			(repeat (choice (const :tag "default" nil)
+			(repeat (choice (const :tag "default directory" nil)
 					(directory :format "%v"))))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
