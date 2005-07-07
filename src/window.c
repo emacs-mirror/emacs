@@ -5453,7 +5453,6 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	{
 	  struct position pos;
 
-	  iarg = XINT (arg);
 	  iarg = max (iarg, this_scroll_margin);
 
 	  pos = *vmotion (PT, -iarg, w);
@@ -5468,10 +5467,8 @@ and redisplay normally--don't erase and redraw the frame.  */)
 
       if (center_p)
 	iarg = make_number (ht / 2);
-      else if (XINT (arg) < 0)
-	iarg = XINT (arg) + ht;
-      else
-	iarg = XINT (arg);
+      else if (iarg < 0)
+	iarg += ht;
 
       /* Don't let it get into the margin at either top or bottom.  */
       iarg = max (iarg, this_scroll_margin);
