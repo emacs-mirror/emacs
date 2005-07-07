@@ -1,6 +1,7 @@
 2005-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-start.el (exec-path): Use `directory' instead of `file'.
+	Fix tag for nil.
 
 2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
 

@@ -21,6 +21,8 @@ face name prefixes should be in it for good results.
 
 ** Regenerate the postscript files of the reference cards in etc.
 
+** Ask maintainers of refcard translations to update them.
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
