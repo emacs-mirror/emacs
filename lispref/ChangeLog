@@ -1,17 +1,3 @@
-2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
-
-	* search.texi (Isearch Scroll): Add example of using the
-	`isearch-scroll' property.
-	(Slow Isearch): Reference anchor for `baud-rate' instead of entire
-	`Display Custom' node.
-	(Regexp Replace): Put text that requires Emacs Lisp knowledge last
-	and de-emphasize it.
-	(Other Repeating Search): `occur' currently can not correctly
-	handle multiline matches.  Correct, clarify and update description
-	of `flush-lines' and `keep-lines'.
-
-	* display.texi (Display Custom): Add anchor for `baud-rate'.
-
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Regexp Search): Clarify what re-search-forward
