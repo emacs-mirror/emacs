@@ -1,3 +1,7 @@
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* GNU: Update how to help.
+
 2005-07-07  Lute Kamstra  <lute@gnu.org>
 
 	* tasks.texi: Delete file.  The GNU Task List is obsolete and has
