@@ -1,3 +1,9 @@
+2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hi-lock.el (hi-lock-find-patterns): Protect also against invalid
+	values for the pattern lists which are `read'able but not
+	`append'able (like symbols).
+
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* progmodes/flymake.el (flymake-float-time): Instead of
