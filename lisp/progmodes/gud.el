@@ -43,6 +43,7 @@
 
 (require 'comint)
 (require 'etags)
+(require 'font-lock)
 
 ;; ======================================================================
 ;; GUD commands must be visible in C buffers visited by GUD
