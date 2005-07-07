@@ -518,7 +518,9 @@ LOAD should be either a library file name, or a feature name."
 
 ;; This test is also in the C code of `user-variable-p'.
 (defun custom-variable-p (variable)
-  "Return non-nil if VARIABLE is a custom variable."
+  "Return non-nil if VARIABLE is a custom variable.
+This recursively follows aliases."
+  (setq variable (indirect-variable variable))
   (or (get variable 'standard-value)
       (get variable 'custom-autoload)))
 
