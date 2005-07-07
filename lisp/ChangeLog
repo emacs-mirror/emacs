@@ -1,3 +1,11 @@
+2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* cus-edit.el (customize-option, customize-option-other-window):
+	Make them handle aliases.
+
+	* custom.el (custom-variable-p): Make it recursively follow
+	aliases.  Mention that in the docstring.
+
 2005-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* cus-start.el (exec-path): Use `directory' instead of `file'.
