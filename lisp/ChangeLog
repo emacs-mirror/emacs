@@ -1,3 +1,8 @@
+2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* replace.el (occur-rename-buffer): Use `generate-new-buffer' also
+	when called non-interactively.  Doc fix.
+
 2005-07-07  Lute Kamstra  <lute@gnu.org>
 
 	* elide-head.el (elide-head-headers-to-hide): Recognize the FSF's
@@ -11,13 +16,13 @@
 	ascii-incompatible.
 	(set-keyboard-coding-system): Likewise.
 
-	* international/mule-cmds.el (set-default-coding-systems): Don't
-	set default-file-name-coding-system and
+	* international/mule-cmds.el (set-default-coding-systems):
+	Don't set default-file-name-coding-system and
 	default-keyboard-coding-system if coding-system is
 	ASCII-incompatible.
 
 	* international/utf-16.el: Declare that all UTF-16-based coding
-	systems ASCII-incompatible.
+	systems are ASCII-incompatible.
 
 2005-07-07  Nick Roberts  <nickrob@snap.net.nz>
 
