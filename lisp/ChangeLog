@@ -1,3 +1,8 @@
+2005-07-07  Lute Kamstra  <lute@gnu.org>
+
+	* elide-head.el (elide-head-headers-to-hide): Recognize the FSF's
+	new address as well.
+
 2005-07-07  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule.el (make-coding-system): Describe

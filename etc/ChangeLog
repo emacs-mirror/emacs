@@ -1,4 +1,9 @@
-2005-07-06  Lute Kamstra  <lute@gnu.org>
+2005-07-07  Lute Kamstra  <lute@gnu.org>
+
+	* tasks.texi: Delete file.  The GNU Task List is obsolete and has
+	been replaced by http://savannah.gnu.org/projects/tasklist.
+
+2005-07-07  Lute Kamstra  <lute@gnu.org>
 
 	* refcard.tex: Update `versionnumber' and `year'.  Update Emacs's
 	version to 22.
@@ -6,7 +11,7 @@
 	(Multiple Windows): Clarify first sentence.  Mention C-x 5 1.
 	(Formatting): Update the binding of set face.
 	(International Character Sets): set-language-environment is bound
-	to C-x RET l
+	to C-x RET l.
 
 2005-07-05  Lute Kamstra  <lute@gnu.org>
 
