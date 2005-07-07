@@ -839,6 +839,12 @@ following properties are recognized:
   If the value is non-nil, the coding system preserves composition
   information.
 
+  o ascii-incompatible
+
+  If the value is non-nil, the coding system is not compatible
+  with ASCII, which means it encodes or decodes ASCII character
+  string to the different byte sequence.
+
 These properties are set in PLIST, a property list.  This function
 also sets properties `coding-category' and `alias-coding-systems'
 automatically.
@@ -1191,6 +1197,9 @@ It actually just set the variable `file-name-coding-system' (which
 see) to CODING-SYSTEM."
   (interactive "zCoding system for file names (default, nil): ")
   (check-coding-system coding-system)
+  (if (and coding-system
+	   (coding-system-get coding-system 'ascii-incompatible))
+      (error "%s is not ASCII-compatible" coding-system))
   (setq file-name-coding-system coding-system))
 
 (defvar default-terminal-coding-system nil
@@ -1247,6 +1256,9 @@ or by the previous use of this command."
       (setq coding-system default-keyboard-coding-system))
   (if coding-system
       (setq default-keyboard-coding-system coding-system))
+  (if (and coding-system
+	   (coding-system-get coding-system 'ascii-incompatible))
+      (error "%s is not ASCII-compatible" coding-system))
   (set-keyboard-coding-system-internal coding-system)
   (setq keyboard-coding-system coding-system)
   (encoded-kbd-mode (if coding-system 1 0)))
