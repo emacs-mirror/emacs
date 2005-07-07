@@ -78,7 +78,7 @@ since it could result in memory overflow and make Emacs crash."
 	     (shell-file-name execute file)
 	     (exec-path execute
 			(repeat (choice (const :tag "default" nil)
-					(file :format "%v"))))
+					(directory :format "%v"))))
 	     ;; coding.c
 	     (inhibit-eol-conversion mule boolean)
 	     (eol-mnemonic-undecided mule string)
