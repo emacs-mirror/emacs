@@ -1472,7 +1472,7 @@ delete_window (window)
 
   /* Check if we have a v/hchild with a v/hchild.  In that case remove
      one of them.  */
-  
+
   if (! NILP (par->vchild) && ! NILP (XWINDOW (par->vchild)->vchild))
     {
       p = XWINDOW (par->vchild);
@@ -5357,6 +5357,7 @@ and redisplay normally--don't erase and redraw the frame.  */)
     {
       arg = Fprefix_numeric_value (arg);
       CHECK_NUMBER (arg);
+      iarg = XINT (arg);
     }
 
   set_buffer_internal (buf);
@@ -5391,7 +5392,6 @@ and redisplay normally--don't erase and redraw the frame.  */)
 	  int extra_line_spacing;
 	  int h = window_box_height (w);
 
-	  iarg = XINT (arg);
 	  iarg = - max (-iarg, this_scroll_margin);
 
 	  SET_TEXT_POS (pt, PT, PT_BYTE);
