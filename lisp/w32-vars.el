@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -28,7 +28,7 @@
 
 ;; Custom group for w32 specific settings
 (defgroup w32 nil
-  "MS-Windows specific features"
+  "MS-Windows specific features."
   :group 'environment
   :version "22.1"
   :prefix "w32")
@@ -143,7 +143,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 	      (string :tag "Title")
 	      (repeat :inline t
 	       (choice :tag ""
-		(const :tag "Seperator" (""))
+		(const :tag "Separator" (""))
 		(list :tag "Font Entry"
 		      (string :tag "Menu text")
 		      (string :tag "Font")))))))

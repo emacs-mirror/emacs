@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -125,7 +125,7 @@
 ;; User Options:
 
 (defgroup columns nil
-  "Prettify columns"
+  "Prettify columns."
   :link '(emacs-library-link :tag "Source Lisp File" "delim-col.el")
   :prefix "delimit-columns-"
   :group 'internal)
@@ -424,13 +424,13 @@ START and END delimits the corners of text rectangle."
        (and delimit-columns-format
 	    (make-string (- (aref delimit-columns-max ncol)
 			    (- (current-column) origin))
-			 ?\ )))
+			 ?\s)))
       (setq ncol (1+ ncol)))
     ;; Prepare last column spaces
     (let ((spaces (and delimit-columns-format
 		       (make-string (- (aref delimit-columns-max ncol)
 				       (- (current-column) origin))
-				    ?\ ))))
+				    ?\s))))
       ;; Adjust extra columns, if needed
       (and delimit-columns-extra
 	   (while (and (< (setq ncol (1+ ncol)) len)
@@ -438,7 +438,7 @@ START and END delimits the corners of text rectangle."
 	     (delimit-columns-format spaces)
 	     (setq spaces (and delimit-columns-format
 			       (make-string (aref delimit-columns-max ncol)
-					    ?\ )))))
+					    ?\s)))))
       ;; insert last formating
       (cond ((null delimit-columns-format)
 	     (insert delimit-columns-after delimit-columns-str-after))

@@ -25,8 +25,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -324,9 +324,11 @@ This sets the following coding systems:
   o coding system of a newly created buffer
   o default coding system for subprocess I/O
 This also sets the following values:
-  o default value used as `file-name-coding-system' for converting file names.
+  o default value used as `file-name-coding-system' for converting file names
+      if CODING-SYSTEM is ASCII-compatible.
   o default value for the command `set-terminal-coding-system' (not on MSDOS)
-  o default value for the command `set-keyboard-coding-system'."
+  o default value for the command `set-keyboard-coding-system'
+      if CODING-SYSTEM is ASCII-compatible.."
   (check-coding-system coding-system)
   (setq-default buffer-file-coding-system coding-system)
   (if (fboundp 'ucs-set-table-for-input)

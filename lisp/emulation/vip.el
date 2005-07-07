@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -1112,9 +1112,10 @@ the query replace mode will toggle between string replace and regexp replace."
 	    (replace-match (vip-read-string
 			    (format "Replace regexp \"%s\" with: " str))
 			   nil nil))
-	(replace-string
-	 str
-	 (vip-read-string (format "Replace \"%s\" with: " str)))))))
+	(with-no-warnings
+	  (replace-string
+	   str
+	   (vip-read-string (format "Replace \"%s\" with: " str))))))))
 
 
 ;; basic cursor movement.  j, k, l, m commands.
@@ -2830,7 +2831,8 @@ a token has type \(command, address, end-mark\) and value."
       (skip-chars-forward " \t")
       (if (looking-at "[\n|]") (error "Missing rhs"))
       (set-mark (point))
-      (end-of-buffer)
+      (with-no-warnings
+	(end-of-buffer))
       (backward-char 1)
       (setq string (buffer-substring (mark) (point))))
     (if (not (lookup-key ex-map char))
@@ -2900,7 +2902,8 @@ a token has type \(command, address, end-mark\) and value."
 	(setq file (buffer-substring (point) (mark)))))
       (if variant
 	  (shell-command command t)
-	(insert-file file))))
+	(with-no-warnings
+	  (insert-file file)))))
 
 (defun ex-set ()
   (eval (list 'setq

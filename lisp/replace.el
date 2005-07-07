@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -719,7 +719,7 @@ See `occur-revert-function'.")
   :group 'matching)
 
 (defcustom occur-hook nil
-  "Hook run when `occur' is called."
+  "Hook run by Occur when there are any matches."
   :type 'hook
   :group 'matching)
 
@@ -926,7 +926,7 @@ If the value is nil, don't highlight the buffer names specially."
 Here `original-buffer-name' is the buffer name were occur was originally run.
 When given the prefix argument, the renaming will not clobber the existing
 buffer(s) of that name, but use `generate-new-buffer-name' instead.
-You can add this to `occur-hook' if you always want a separate *Occur*
+You can add this to `occur-mode-hook' if you always want a separate *Occur*
 buffer for each buffer where you invoke `occur'."
   (interactive "P")
   (with-current-buffer
@@ -1042,14 +1042,13 @@ See also `multi-occur'."
 		     (if (= count 1) "" "es")
 		     regexp))
 	  (setq occur-revert-arguments (list regexp nlines bufs))
-	  (if (> count 0)
-	      (progn
-		(display-buffer occur-buf)
-		(setq next-error-last-buffer occur-buf))
-	    (kill-buffer occur-buf)))
-        (setq buffer-read-only t)
-        (set-buffer-modified-p nil)
-	(run-hooks 'occur-hook)))))
+          (if (= count 0)
+              (kill-buffer occur-buf)
+            (display-buffer occur-buf)
+            (setq next-error-last-buffer occur-buf)
+            (setq buffer-read-only t)
+            (set-buffer-modified-p nil)
+            (run-hooks 'occur-hook)))))))
 
 (defun occur-engine-add-prefix (lines)
   (mapcar

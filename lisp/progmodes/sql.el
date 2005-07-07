@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -221,7 +221,7 @@
 ;;; Allow customization
 
 (defgroup SQL nil
-  "Running a SQL interpreter from within Emacs buffers"
+  "Running a SQL interpreter from within Emacs buffers."
   :version "20.4"
   :group 'processes)
 
@@ -2077,7 +2077,7 @@ Inserts SELECT or commas if appropriate."
 	  (insert ", "))
 	 ;; else insert a space
 	 (t
-	  (if (eq (preceding-char) ? )
+	  (if (eq (preceding-char) ?\s)
 	      nil
 	    (insert " ")))))
       ;; in any case, insert the column

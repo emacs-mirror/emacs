@@ -22,8 +22,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Todo:
 
@@ -44,7 +44,7 @@
 (eval-when-compile (require 'tex-mode) (require 'cl))
 
 (defgroup texinfo nil
-  "Texinfo Mode"
+  "Texinfo Mode."
   :group 'docs)
 
 ;;;###autoload
@@ -701,7 +701,7 @@ With prefix argument or inside @code or @example, inserts a plain \"."
 		    (setq in-env t)))))
 	(self-insert-command (prefix-numeric-value arg))
       (insert
-       (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\ ))
+       (if (memq (char-syntax (preceding-char)) '(?\( ?> ?\s))
 	   texinfo-open-quote
 	 texinfo-close-quote)))))
 

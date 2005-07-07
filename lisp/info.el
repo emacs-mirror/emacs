@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -38,22 +38,22 @@
 (eval-when-compile (require 'jka-compr))
 
 (defgroup info nil
-  "Info subsystem"
+  "Info subsystem."
   :group 'help
   :group 'docs)
 
 
 (defvar Info-history nil
   "Stack of info nodes user has visited.
-Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
+Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-history-forward nil
   "Stack of info nodes user has visited with `Info-history-back' command.
-Each element of list is a list (FILENAME NODENAME BUFFERPOS).")
+Each element of the stack is a list (FILENAME NODENAME BUFFERPOS).")
 
 (defvar Info-history-list nil
   "List of all info nodes user has visited.
-Each element of list is a list (FILENAME NODENAME).")
+Each element of the list is a list (FILENAME NODENAME).")
 
 (defcustom Info-enable-edit nil
   "*Non-nil means the \\<Info-mode-map>\\[Info-edit] command in Info can edit the current node.
@@ -2868,7 +2868,7 @@ Build a menu of the possible matches."
       (while (progn (setq flag (not (pos-visible-in-window-p (point-max))))
 		    (message (if flag "Type Space to see more"
 			       "Type Space to return to Info"))
-		    (if (not (eq ?\  (setq ch (read-event))))
+		    (if (not (eq ?\s (setq ch (read-event))))
 			(progn (setq unread-command-events (list ch)) nil)
 		      flag))
 	(scroll-up)))
@@ -3195,6 +3195,8 @@ With a zero prefix arg, put the name inside a function call to `info'."
 ;; Info mode is suitable only for specially formatted data.
 (put 'Info-mode 'mode-class 'special)
 (put 'Info-mode 'no-clone-indirect t)
+
+(defvar tool-bar-map)
 
 (defun Info-mode ()
   "Info mode provides commands for browsing through the Info documentation tree.
@@ -3606,7 +3608,6 @@ Preserve text properties."
     (define-key keymap [follow-link] 'mouse-face)
     keymap)
   "Keymap to put on the Prev link in the text or the header line.")
-
 
 (defvar Info-up-link-keymap
   (let ((keymap (make-sparse-keymap)))
@@ -4092,8 +4093,7 @@ INDENT is the current indentation depth."
 
 (defun Info-speedbar-fetch-file-nodes (nodespec)
   "Fetch the subnodes from the info NODESPEC.
-NODESPEC is a string of the form: (file)node.
-Optional THISFILE represends the filename of"
+NODESPEC is a string of the form: (file)node."
   (save-excursion
     ;; Set up a buffer we can use to fake-out Info.
     (set-buffer (get-buffer-create "*info-browse-tmp*"))

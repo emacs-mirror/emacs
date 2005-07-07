@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Acknowledgements
 
@@ -992,7 +992,7 @@ With prefix argument, the toggle restriction."
 (defun cua-do-rectangle-padding ()
   (interactive)
   (if buffer-read-only
-      (message "Cannot do padding in read-only buffer.")
+      (message "Cannot do padding in read-only buffer")
     (cua--rectangle-operation nil nil t t t)
     (cua--rectangle-set-corners))
   (cua--keep-active))
@@ -1098,14 +1098,14 @@ The length of STRING need not be the same as the rectangle width."
        '(lambda (l r)
           (cua--rectangle-right (max l (+ l (length string) -1)))))))
 
-(defun cua-fill-char-rectangle (ch)
+(defun cua-fill-char-rectangle (character)
   "Replace CUA rectangle contents with CHARACTER."
   (interactive "cFill rectangle with character: ")
   (cua--rectangle-operation 'clear nil t 1 nil
    '(lambda (s e l r)
       (delete-region s e)
       (move-to-column l t)
-      (insert-char ch (- r l)))))
+      (insert-char character (- r l)))))
 
 (defun cua-replace-in-rectangle (regexp newtext)
   "Replace REGEXP with NEWTEXT in each line of CUA rectangle."
@@ -1137,9 +1137,9 @@ The length of STRING need not be the same as the rectangle width."
          (t nil)))))
 
 (defvar cua--rectangle-seq-format "%d"
-  "Last format used by cua-sequence-rectangle.")
+  "Last format used by `cua-sequence-rectangle'.")
 
-(defun cua-sequence-rectangle (first incr fmt)
+(defun cua-sequence-rectangle (first incr format)
   "Resequence each line of CUA rectangle starting from FIRST.
 The numbers are formatted according to the FORMAT string."
   (interactive
@@ -1150,13 +1150,13 @@ The numbers are formatted according to the FORMAT string."
          (string-to-number
           (read-string "Increment: (1) " nil nil "1"))
          (read-string (concat "Format: (" cua--rectangle-seq-format ") "))))
-  (if (= (length fmt) 0)
-      (setq fmt cua--rectangle-seq-format)
-    (setq cua--rectangle-seq-format fmt))
+  (if (= (length format) 0)
+      (setq format cua--rectangle-seq-format)
+    (setq cua--rectangle-seq-format format))
   (cua--rectangle-operation 'clear nil t 1 nil
      '(lambda (s e l r)
          (delete-region s e)
-         (insert (format fmt first))
+         (insert (format format first))
          (setq first (+ first incr)))))
 
 (defmacro cua--convert-rectangle-as (command tabify)

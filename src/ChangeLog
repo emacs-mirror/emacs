@@ -1,3 +1,88 @@
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* window.c (Frecenter): When arg is inside the scroll margin,
+	move it out of the margin.
+
+2005-07-06  Jason Rumney  <jasonr@gnu.org>
+
+	* w32console.c (initialize_w32_display): Detect when the console
+	dimensions are insane, and default to 80x25 instead.
+	(w32_use_full_screen_buffer): default to NIL.
+
+2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c (mac_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+	(mac_encode_char): Call check_ccl_update in advance.
+	(mac_to_x_fontname, x_font_name_to_mac_font_name)
+	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont): Don't
+	assume that font family length is less than 32.
+	(x_compute_min_glyph_bounds): Make static.
+	(x_load_font): Never set fonts_changed_p to zero.
+	
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	* Update FSF's address in GPL notices.
+
+2005-07-03  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (try_window): Fix previous change in how it handles
+	a partially-visible line or one only partly past the margin.
+
+	* window.c (window_scroll_pixel_based): Take account
+	of this_scroll_margin when finding point when scrolling up.
+
+2005-06-29  Ralf Angeli  <angeli@iwi.uni-sb.de>
+
+	* window.c (window_scroll_pixel_based, window_scroll_line_based):
+	Handle `scroll-preserve-screen-position' non-nil, non-t specially.
+	(syms_of_window): <scroll-preserve-screen-position>: Doc fix.
+
+2005-07-02  Juri Linkov  <juri@jurta.org>
+
+	* w32term.c (w32_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+
+2005-07-02  Eli Zaretskii  <eliz@gnu.org>
+
+	* fileio.c (Fcopy_file): Rearrange the code that calls fchown and
+	fchmod so that chmod doesn't get called on MSDOS before the file
+	is closed.
+
+2005-07-01  Jason Rumney  <jasonr@gnu.org>
+
+	* w32term.c (cleartype_active): New flag for enabling sub-pixel
+	workaround.
+	(w32_initialize): Initialize it.
+	(w32_native_per_char_metric): Allow a couple of extra pixels when
+	Cleartype is active.
+
+	* w32term.c (w32_initialize): Move check for screen reader here
+	from syms_of_w32term.
+
+2005-06-30  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xterm.c (handle_one_xevent): bzero compose_status when nbytes
+	is not zero.
+
+2005-07-01  Masatake YAMATO  <jet@gyve.org>
+
+	* emacs.c (main): Passing ADD_NO_RANDOMIZE to
+	`personality'.
+
+2005-06-30  Juri Linkov  <juri@jurta.org>
+
+	* xdisp.c (x_draw_vertical_border): If left fringe is not present
+	decrease x coord of vertical border by 1 pixel to not occupy text
+	area of the right window.
+
+	* xterm.c (x_draw_vertical_window_border): Use foreground of
+	VERTICAL_BORDER_FACE_ID for vertical border line.
+
+	* term.c (turn_on_face): In standout mode apply specified
+	fg to bg, and specified bg to fg (this makes the logic of
+	inversion on terminal consistent with X).
+
 2005-06-29  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (user_variable_p_eh): New function.

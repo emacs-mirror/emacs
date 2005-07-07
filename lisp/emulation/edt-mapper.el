@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -113,7 +113,6 @@
   (sit-for 600)
   (kill-emacs t)))
 
-
 ;;;
 ;;;  Decide Emacs Variant, GNU Emacs or XEmacs (aka Lucid Emacs).
 ;;;  Determine Window System, and X Server Vendor (if appropriate).
@@ -145,6 +144,11 @@
 (defvar edt-enter-seq nil)
 (defvar edt-return-seq nil)
 (defvar edt-term nil)
+
+;; To silence the byte-compiler
+(eval-when-compile
+  (defvar EDT-key-name)
+  (defvar edt-save-function-key-map))
 
 ;;;
 ;;;  Determine Terminal Type (if appropriate).

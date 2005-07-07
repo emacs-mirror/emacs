@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -49,7 +49,7 @@
 ;;----------------------------------------------------------------------------
 
 (defgroup ses nil
-  "Simple Emacs Spreadsheet"
+  "Simple Emacs Spreadsheet."
   :group  'applications
   :prefix "ses-"
   :version "21.1")
@@ -376,7 +376,7 @@ macro to prevent propagate-on-load viruses."
   ;;print area (excluding the terminating newline)
   (setq ses--col-widths widths
 	ses--linewidth  (apply '+ -1 (mapcar '1+ widths))
-	ses--blank-line (concat (make-string ses--linewidth ? ) "\n"))
+	ses--blank-line (concat (make-string ses--linewidth ?\s) "\n"))
   t)
 
 (defmacro ses-column-printers (printers)
@@ -798,7 +798,7 @@ preceding cell has spilled over."
 	(cond
 	 ((< len width)
 	  ;;Fill field to length with spaces
-	  (setq len  (make-string (- width len) ? )
+	  (setq len  (make-string (- width len) ?\s)
 		text (if (eq ses-call-printer-return t)
 			 (concat text len)
 		       (concat len text))))
@@ -816,7 +816,7 @@ preceding cell has spilled over."
 		    maxcol   (1+ maxcol)))
 	    (if (<= len maxwidth)
 		;;Fill to complete width of all the fields spanned
-		(setq text (concat text (make-string (- maxwidth len) ? )))
+		(setq text (concat text (make-string (- maxwidth len) ?\s)))
 	      ;;Not enough room to end of line or next non-nil field.  Truncate
 	      ;;if string or decimal; otherwise fill with error indicator
 	      (setq sig `(error "Too wide" ,text))
@@ -906,12 +906,12 @@ printer signaled one (and \"%s\" is used as the default printer), else nil."
 COL=NUMCOLS.  Deletes characters if CHANGE < 0.  Caller should bind
 inhibit-quit to t."
   (let ((inhibit-read-only t)
-	(blank  (if (> change 0) (make-string change ? )))
+	(blank  (if (> change 0) (make-string change ?\s)))
 	(at-end (= col ses--numcols)))
     (ses-set-with-undo 'ses--linewidth (+ ses--linewidth change))
     ;;ses-set-with-undo always returns t for strings.
     (1value (ses-set-with-undo 'ses--blank-line
-			       (concat (make-string ses--linewidth ? ) "\n")))
+			       (concat (make-string ses--linewidth ?\s) "\n")))
     (dotimes (row ses--numrows)
       (ses-goto-print row col)
       (when at-end
@@ -2901,7 +2901,7 @@ columns to include in width (default = 0)."
   (let ((printer (or (ses-col-printer col) ses--default-printer))
 	(width   (ses-col-width col))
 	half)
-    (or fill (setq fill ? ))
+    (or fill (setq fill ?\s))
     (or span (setq span 0))
     (setq value (ses-call-printer printer value))
     (dotimes (x span)

@@ -21,7 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to
-;; the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
+;; the Free Software Foundation, 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -938,7 +939,8 @@ NOCONFIRM."
     (loop for member-buffer in (ebrowse-same-tree-member-buffer-list)
 	  do (kill-buffer member-buffer))
     (erase-buffer)
-    (insert-file (or buffer-file-name ebrowse--tags-file-name))
+    (with-no-warnings
+      (insert-file (or buffer-file-name ebrowse--tags-file-name)))
     (ebrowse-tree-mode)
     (current-buffer)))
 

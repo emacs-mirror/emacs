@@ -31,7 +31,7 @@ Please send all bug fixes and enhancements to
 
 ;; You should have received a copy of the GNU General Public License along with
 ;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -1179,7 +1179,7 @@ If SUFFIX is non-nil, add that at the end of the file name."
 
 
 (defgroup printing nil
-  "Printing Utilities group"
+  "Printing Utilities group."
   :tag "Printing Utilities"
   :link '(emacs-library-link :tag "Source Lisp File" "printing.el")
   :prefix "pr-"
@@ -6058,7 +6058,7 @@ COMMAND.exe, COMMAND.bat and COMMAND.com in this order."
   ;; header
   (let ((versions (concat "printing v" pr-version
 			  "    ps-print v" ps-print-version)))
-    (widget-insert (make-string (- 79 (length versions)) ?\ ) versions))
+    (widget-insert (make-string (- 79 (length versions)) ?\s) versions))
   (pr-insert-italic "\nCurrent Directory : " 1)
   (pr-insert-italic default-directory)
 

@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -208,7 +208,7 @@ static char * stroke_xpm[] = {
 ;;; user variables...
 
 (defgroup strokes nil
-  "Control Emacs through mouse strokes"
+  "Control Emacs through mouse strokes."
   :link '(emacs-commentary-link "strokes")
   :link '(url-link "http://www.mit.edu/people/cadet/strokes-help.html")
   :group 'mouse)
@@ -753,7 +753,7 @@ Optional EVENT is acceptable as the starting event of the stroke"
 			      (progn
 				(goto-char point)
 				(subst-char-in-region point (1+ point)
-						      ?\  strokes-character))
+						      ?\s strokes-character))
 			    ;; otherwise, we can start drawing the next time...
 			    (setq safe-to-draw-p t))
 			  (push (cdr (mouse-pixel-position))
@@ -763,7 +763,7 @@ Optional EVENT is acceptable as the starting event of the stroke"
 	    ;; clean up strokes buffer and then bury it.
 	    (when (equal (buffer-name) strokes-buffer-name)
 	      (subst-char-in-region (point-min) (point-max)
-				    strokes-character ?\ )
+				    strokes-character ?\s)
 	      (goto-char (point-min))
 	      (bury-buffer))))
       ;; Otherwise, don't use strokes buffer and read stroke silently
@@ -813,7 +813,7 @@ Optional EVENT is acceptable as the starting event of the stroke"
 			(when point
 			  (goto-char point)
 			  (subst-char-in-region point (1+ point)
-						?\  strokes-character))
+						?\s strokes-character))
 			(push (cdr (mouse-pixel-position))
 			      pix-locs)))
 		  (setq event (read-event)))
@@ -831,7 +831,7 @@ Optional EVENT is acceptable as the starting event of the stroke"
 	  ;; protected
 	  (when (equal (buffer-name) strokes-buffer-name)
 	    (subst-char-in-region (point-min) (point-max)
-				  strokes-character ?\ )
+				  strokes-character ?\s)
 	    (goto-char (point-min))
 	    (bury-buffer)))))))
 
@@ -1035,7 +1035,7 @@ o Strokes are a bit computer-dependent in that they depend somewhat on
   "Erase the contents of the current buffer and fill it with whitespace."
   (erase-buffer)
   (loop repeat (frame-height) do
-	(insert-char ?\  (1- (frame-width)))
+	(insert-char ?\s (1- (frame-width)))
 	(newline))
   (goto-char (point-min)))
 
@@ -1169,7 +1169,7 @@ the stroke as a character in some language."
       (insert strokes-xpm-header)
       (loop repeat 33 do
 	    (insert ?\")
-	    (insert-char ?\  33)
+	    (insert-char ?\s 33)
 	    (insert "\",")
 	    (newline)
 	    finally
@@ -1195,7 +1195,7 @@ the stroke as a character in some language."
 		     ;; Otherwise, just plot the point...
 		     (goto-line (+ 17 y))
 		     (forward-char (+ 2 x))
-		     (subst-char-in-region (point) (1+ (point)) ?\  ?\*)))
+		     (subst-char-in-region (point) (1+ (point)) ?\s ?\*)))
 		  ((strokes-lift-p point)
 		   ;; a lift--tell the loop to X out the next point...
 		   (setq lift-flag t))))
@@ -1286,7 +1286,7 @@ the stroke as a character in some language."
 ;;	      (command-name (symbol-name (cdr def))))
 ;;	  (strokes-xpm-for-stroke stroke " *strokes-xpm*")
 ;;	  (newline 2)
-;;	  (insert-char ?\  45)
+;;	  (insert-char ?\s 45)
 ;;	  (beginning-of-line)
 ;;	  (insert command-name)
 ;;	  (beginning-of-line)
@@ -1342,7 +1342,7 @@ If STROKES-MAP is not given, `strokes-global-map' will be used instead."
 				(prin1-to-string (cdr def)))))
 	    (strokes-xpm-for-stroke stroke " *strokes-xpm*")
 	    (newline 2)
-	    (insert-char ?\  45)
+	    (insert-char ?\s 45)
 	    (beginning-of-line)
 	    (insert command-name)
 	    (beginning-of-line)
@@ -1515,7 +1515,7 @@ Encode/decode your strokes with \\[strokes-encode-buffer],
 
 (defsubst strokes-xpm-char-bit-p (char)
   "Non-nil if CHAR represents an `on' or `off' bit in the XPM."
-  (or (eq char ?\ )
+  (or (eq char ?\s)
       (eq char ?*)))
 
 ;;(defsubst strokes-xor (a b)  ### Should I make this an inline function? ###
@@ -1716,7 +1716,7 @@ Store XPM in buffer BUFNAME if supplied \(default is ` *strokes-xpm*'\)"
 	(insert-char
 	 (if current-char-is-on-p
 	     ?*
-	   ?\ )
+	   ?\s)
 	 (strokes-xpm-decode-char (char-after)))
 	(delete-char 1)
 	(setq current-char-is-on-p (not current-char-is-on-p)))

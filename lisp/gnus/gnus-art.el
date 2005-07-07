@@ -19,8 +19,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -2123,31 +2123,31 @@ unfolded."
       ;; read-only.
       (if (and wash-face-p (memq 'face gnus-article-wash-types))
 	  (gnus-delete-images 'face)
-	(let (face faces)
-	  (save-excursion
+	(let (face faces from)
+	  (save-current-buffer
 	    (when (and wash-face-p
-		       (progn
-			 (goto-char (point-min))
-			 (not (re-search-forward "^Face:[\t ]*" nil t)))
-		       (gnus-buffer-live-p gnus-original-article-buffer))
+		       (gnus-buffer-live-p gnus-original-article-buffer)
+		       (not (re-search-forward "^Face:[\t ]*" nil t)))
 	      (set-buffer gnus-original-article-buffer))
 	    (save-restriction
 	      (mail-narrow-to-head)
 	      (while (gnus-article-goto-header "Face")
 		(push (mail-header-field-value) faces))))
-	  (while (setq face (pop faces))
-	    (let ((png (gnus-convert-face-to-png face))
-		  image)
-	      (when png
-		(setq image (gnus-create-image png 'png t))
-		(gnus-article-goto-header "from")
-		(when (bobp)
-		  (insert "From: [no `from' set]\n")
-		  (forward-char -17))
-		(gnus-add-wash-type 'face)
-		(gnus-add-image 'face image)
-		(gnus-put-image image nil 'face))))))
-      )))
+	  (when faces
+	    (goto-char (point-min))
+	    (let ((from (gnus-article-goto-header "from"))
+		  png image)
+	      (unless from
+		(insert "From:")
+		(setq from (point))
+		(insert "[no `from' set]\n"))
+	      (while faces
+		(when (setq png (gnus-convert-face-to-png (pop faces)))
+		  (setq image (gnus-create-image png 'png t))
+		  (goto-char from)
+		  (gnus-add-wash-type 'face)
+		  (gnus-add-image 'face image)
+		  (gnus-put-image image nil 'face))))))))))
 
 (defun article-display-x-face (&optional force)
   "Look for an X-Face header and display it if present."
@@ -2164,13 +2164,10 @@ unfolded."
 	  (gnus-delete-images 'xface)
 	;; Display X-Faces.
 	(let (x-faces from face)
-	  (save-excursion
+	  (save-current-buffer
 	    (when (and wash-face-p
-		       (progn
-			 (goto-char (point-min))
-			 (not (re-search-forward
-			       "^X-Face\\(-[0-9]+\\)?:[\t ]*" nil t)))
-		       (gnus-buffer-live-p gnus-original-article-buffer))
+		       (gnus-buffer-live-p gnus-original-article-buffer)
+		       (not (re-search-forward "^X-Face:[\t ]*" nil t)))
 	      ;; If type `W f', use gnus-original-article-buffer,
 	      ;; otherwise use the current buffer because displaying
 	      ;; RFC822 parts calls this function too.
@@ -2184,35 +2181,36 @@ unfolded."
 	  ;; single external face.
 	  (when (stringp gnus-article-x-face-command)
 	    (setq x-faces (list (car x-faces))))
-	  (while (and (setq face (pop x-faces))
-		      gnus-article-x-face-command
-		      (or force
-			  ;; Check whether this face is censored.
-			  (not gnus-article-x-face-too-ugly)
-			  (and gnus-article-x-face-too-ugly from
-			       (not (string-match gnus-article-x-face-too-ugly
-						  from)))))
-	    ;; We display the face.
-	    (cond ((stringp gnus-article-x-face-command)
-		   ;; The command is a string, so we interpret the command
-		   ;; as a, well, command, and fork it off.
-		   (let ((process-connection-type nil))
-		     (gnus-set-process-query-on-exit-flag
-		      (start-process
-		       "article-x-face" nil shell-file-name
-		       shell-command-switch gnus-article-x-face-command)
-		      nil)
-		     (with-temp-buffer
-		       (insert face)
-		       (process-send-region "article-x-face"
-					    (point-min) (point-max)))
-		     (process-send-eof "article-x-face")))
-		  ((functionp gnus-article-x-face-command)
-		   ;; The command is a lisp function, so we call it.
-		   (funcall gnus-article-x-face-command face))
-		  (t
-		   (error "%s is not a function"
-			  gnus-article-x-face-command)))))))))
+	  (when (and x-faces
+		     gnus-article-x-face-command
+		     (or force
+			 ;; Check whether this face is censored.
+			 (not gnus-article-x-face-too-ugly)
+			 (and from
+			      (not (string-match gnus-article-x-face-too-ugly
+						 from)))))
+	    (while (setq face (pop x-faces))
+	      ;; We display the face.
+	      (cond ((stringp gnus-article-x-face-command)
+		     ;; The command is a string, so we interpret the command
+		     ;; as a, well, command, and fork it off.
+		     (let ((process-connection-type nil))
+		       (gnus-set-process-query-on-exit-flag
+			(start-process
+			 "article-x-face" nil shell-file-name
+			 shell-command-switch gnus-article-x-face-command)
+			nil)
+		       (with-temp-buffer
+			 (insert face)
+			 (process-send-region "article-x-face"
+					      (point-min) (point-max)))
+		       (process-send-eof "article-x-face")))
+		    ((functionp gnus-article-x-face-command)
+		     ;; The command is a lisp function, so we call it.
+		     (funcall gnus-article-x-face-command face))
+		    (t
+		     (error "%s is not a function"
+			    gnus-article-x-face-command))))))))))
 
 (defun article-decode-mime-words ()
   "Decode all MIME-encoded words in the article."

@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 
 
@@ -174,6 +174,20 @@
   "Emacs emulating EDT."
   :prefix "edt-"
   :group 'emulations)
+
+;; To silence the byte-compiler
+(eval-when-compile
+  (defvar *EDT-keys*)
+  (defvar edt-default-global-map)
+  (defvar edt-last-copied-word)
+  (defvar edt-learn-macro-count)
+  (defvar edt-orig-page-delimiter)
+  (defvar edt-orig-transient-mark-mode)
+  (defvar edt-rect-start-point)
+  (defvar edt-user-global-map)
+  (defvar rect-start-point)
+  (defvar time-string)
+  (defvar zmacs-region-stays))
 
 ;;;
 ;;;  Version Information
@@ -332,6 +346,11 @@ This means that an edt-user.el file was found in the user's `load-path'.")
 
 (defvar edt-keys-file nil
   "User's custom keypad and function keys mappings to emulate LK-201 keyboard.")
+
+(defvar edt-last-copied-word nil
+  "Last word that the user copied.")
+
+(defvar zmacs-region-stays)
 
 ;;;;
 ;;;; EDT Emulation Commands
@@ -1621,9 +1640,8 @@ Argument NUM is the percentage into the buffer to move."
 
 (defun edt-mark-section-wisely ()
   "Mark the section in a manner consistent with the `major-mode'.
-Uses `mark-defun' for emacs-lisp and Lisp,
-mark-c-function for C,
-mark-fortran-subsystem for fortran,
+Uses `mark-defun' for Emacs-Lisp and Lisp, and for Fortran,
+`c-mark-function' for C,
 and `mark-paragraph' for other modes."
   (interactive)
   (if edt-select-mode
@@ -1631,15 +1649,13 @@ and `mark-paragraph' for other modes."
         (edt-reset))
     (progn
       (cond  ((or (eq major-mode 'emacs-lisp-mode)
+		  (eq major-mode 'fortran-mode)
 		  (eq major-mode 'lisp-mode))
 	      (mark-defun)
 	      (message "Lisp defun selected"))
 	     ((eq major-mode 'c-mode)
-	      (mark-c-function)
+	      (c-mark-function)
 	      (message "C function selected"))
-	     ((eq major-mode 'fortran-mode)
-	      (mark-fortran-subprogram)
-	      (message "Fortran subprogram selected"))
 	     (t (mark-paragraph)
 		(message "Paragraph selected"))))))
 
@@ -1766,8 +1782,7 @@ Argument NUM is the number of times to duplicate the line."
   "Display the current time."
   (interactive)
   (if edt-x-emacs19-p (setq zmacs-region-stays t))
-  (set 'time-string (current-time-string))
-  (message "%s" time-string))
+  (message "%s" (current-time-string)))
 
 ;;;
 ;;; LEARN

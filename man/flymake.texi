@@ -422,7 +422,7 @@ First, we write the @code{init-function}:
 (defun flymake-perl-init (buffer)
   (let* ((temp-file (flymake-init-create-temp-buffer-copy
                      buffer 'flymake-create-temp-inplace))
-         (local-file  (concat (flymake-build-relative-path
+         (local-file  (concat (flymake-build-relative-filename
                                (file-name-directory
                                 (buffer-file-name
                                  (current-buffer)))

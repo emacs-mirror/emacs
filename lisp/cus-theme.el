@@ -1,6 +1,6 @@
 ;;; cus-theme.el -- custom theme creation user interface
 ;;
-;; Copyright (C) 2001 Free Software Foundation, Inc.
+;; Copyright (C) 2001, 2005 Free Software Foundation, Inc.
 ;;
 ;; Author: Alex Schroeder <alex@gnu.org>
 ;; Maintainer: FSF
@@ -20,8 +20,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Code:
 
@@ -31,6 +31,18 @@
 (eval-when-compile
   (require 'wid-edit))
 
+(define-derived-mode custom-new-theme-mode nil "New-Theme"
+  "Major mode for the buffer created by `customize-create-theme'.
+Do not call this mode function yourself.  It is only meant for internal
+use by `customize-create-theme'."
+  (set-keymap-parent custom-new-theme-mode-map widget-keymap))
+(put 'custom-new-theme-mode 'mode-class 'special)
+
+(defvar custom-theme-name)
+(defvar custom-theme-variables)
+(defvar custom-theme-faces)
+(defvar custom-theme-description)
+
 ;;;###autoload
 (defun customize-create-theme ()
   "Create a custom theme."
@@ -38,15 +50,23 @@
   (if (get-buffer "*New Custom Theme*")
       (kill-buffer "*New Custom Theme*"))
   (switch-to-buffer "*New Custom Theme*")
-  (kill-all-local-variables)
+  (let ((inhibit-read-only t))
+    (erase-buffer))
+  (custom-new-theme-mode)
   (make-local-variable 'custom-theme-name)
   (make-local-variable 'custom-theme-variables)
   (make-local-variable 'custom-theme-faces)
   (make-local-variable 'custom-theme-description)
-  (let ((inhibit-read-only t))
-    (erase-buffer))
   (widget-insert "This buffer helps you write a custom theme elisp file.
-This will help you share your customizations with other people.\n\n")
+This will help you share your customizations with other people.
+
+Just insert the names of all variables and faces you want the theme
+to include.  Then clicking mouse-2 or pressing RET on the [Done] button
+will write a theme file that sets all these variables and faces to their
+current global values.  It will write that file into the directory given
+by the variable `custom-theme-directory', usually \"~/.emacs.d/\".
+
+To undo all your edits to the buffer, use the [Reset] button.\n\n")
   (widget-insert "Theme name: ")
   (setq custom-theme-name
 	(widget-create 'editable-field
@@ -81,7 +101,6 @@ This will help you share your customizations with other people.\n\n")
      			   (bury-buffer))
      		 "Bury Buffer")
   (widget-insert "\n")
-  (use-local-map widget-keymap)
   (widget-setup))
 
 (defun custom-theme-write (&rest ignore)
@@ -90,6 +109,10 @@ This will help you share your customizations with other people.\n\n")
 	(variables (widget-value custom-theme-variables))
 	(faces (widget-value custom-theme-faces)))
     (switch-to-buffer (concat name "-theme.el"))
+    (emacs-lisp-mode)
+    (unless (file-exists-p custom-theme-directory)
+      (make-directory (file-name-as-directory custom-theme-directory) t))
+    (setq default-directory custom-theme-directory)
     (setq buffer-file-name (expand-file-name (concat name "-theme.el")))
     (let ((inhibit-read-only t))
       (erase-buffer))
@@ -100,7 +123,8 @@ This will help you share your customizations with other people.\n\n")
     (insert  ")\n")
     (custom-theme-write-variables name variables)
     (custom-theme-write-faces name faces)
-    (insert "\n(provide-theme '" name ")\n")))
+    (insert "\n(provide-theme '" name ")\n")
+    (save-buffer)))
 
 (defun custom-theme-write-variables (theme vars)
   "Write a `custom-theme-set-variables' command for THEME.

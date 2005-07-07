@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -502,7 +502,18 @@ This variable is initialized by the artist-make-prev-next-op-alist function.")
 (if artist-picture-compatibility
     (require 'picture))
 
-
+;; Variables that are made local in artist-mode-init
+(defvar artist-key-is-drawing nil)
+(defvar artist-key-endpoint1 nil)
+(defvar artist-key-poly-point-list nil)
+(defvar artist-key-shape nil)
+(defvar artist-key-draw-how nil)
+(defvar artist-popup-menu-table nil)
+(defvar artist-key-compl-table nil)
+(defvar artist-rb-save-data nil)
+(defvar artist-arrow-point-1 nil)
+(defvar artist-arrow-point-2 nil)
+
 (defvar artist-mode-map
   (let ((map (make-sparse-keymap)))
     (setq artist-mode-map (make-sparse-keymap))
@@ -1368,21 +1379,6 @@ Keymap summary
     (setq minor-mode-map-alist
 	  (cons (cons 'artist-mode artist-mode-map)
 		minor-mode-map-alist)))
-
-
-
-(eval-when-compile
-  ;; Variables that are made local in artist-mode-init
-  (defvar artist-key-is-drawing nil)
-  (defvar artist-key-endpoint1 nil)
-  (defvar artist-key-poly-point-list nil)
-  (defvar artist-key-shape nil)
-  (defvar artist-key-draw-how nil)
-  (defvar artist-popup-menu-table nil)
-  (defvar artist-key-compl-table nil)
-  (defvar artist-rb-save-data nil)
-  (defvar artist-arrow-point-1 nil)
-  (defvar artist-arrow-point-2 nil))
 
 
 ;; Init and exit
@@ -3850,8 +3846,8 @@ Optional argument STATE can be used to set state (default is nil)."
 	 (x2    (artist-endpoint-get-x ep2))
 	 (y2    (artist-endpoint-get-y ep2))
 	 (dir1  (artist-find-direction x2 y2 x1 y1))
-	 (epn   (artist-last point-list))
-	 (epn-1 (artist-last point-list 2))
+	 (epn   (last point-list))
+	 (epn-1 (last point-list 2))
 	 (xn    (artist-endpoint-get-x epn))
 	 (yn    (artist-endpoint-get-y epn))
 	 (xn-1  (artist-endpoint-get-x epn-1))

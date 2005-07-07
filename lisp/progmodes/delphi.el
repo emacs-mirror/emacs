@@ -19,7 +19,7 @@
 
 ;; You should have received a copy of the GNU General Public License along with
 ;; GNU Emacs; see the file COPYING.  If not, write to the Free Software
-;; Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -88,7 +88,7 @@
   )
 
 (defgroup delphi nil
-  "Major mode for editing Delphi source in Emacs"
+  "Major mode for editing Delphi source in Emacs."
   :version "21.1"
   :group 'languages)
 
@@ -1510,7 +1510,7 @@ before the indent, the point is moved to the indent."
      (set-marker-insertion-type marked-point t)
      (when (/= old-indent new-indent)
            (delete-region line-start (point))
-           (insert (make-string new-indent ?\ )))
+           (insert (make-string new-indent ?\s)))
      (goto-char marked-point)
      (set-marker marked-point nil))))
 
@@ -1775,7 +1775,7 @@ An error is raised if not in a comment."
                (comment-end (delphi-token-end end-comment))
                (content-start (delphi-comment-content-start start-comment))
                (content-indent (delphi-column-of content-start))
-               (content-prefix (make-string content-indent ?\ ))
+               (content-prefix (make-string content-indent ?\s))
                (content-prefix-re delphi-leading-spaces-re)
                (p nil)
                (marked-point (point-marker))) ; Maintain our position reliably.
@@ -1783,9 +1783,9 @@ An error is raised if not in a comment."
             ;; // style comments need more work.
             (setq content-prefix
                   (let ((comment-indent (delphi-column-of comment-start)))
-                    (concat (make-string comment-indent ?\ ) "//"
+                    (concat (make-string comment-indent ?\s) "//"
                             (make-string (- content-indent comment-indent 2)
-                                         ?\ )))
+                                         ?\s)))
                   content-prefix-re (concat delphi-leading-spaces-re
                                             "//"
                                             delphi-spaces-re)
@@ -1857,8 +1857,8 @@ comment block. If not in a // comment, just does a normal newline."
              (comment-start (delphi-token-start start-comment))
              (content-start (delphi-comment-content-start start-comment))
              (prefix
-              (concat (make-string (delphi-column-of comment-start) ?\ ) "//"
-                      (make-string (- content-start comment-start 2) ?\ ))))
+              (concat (make-string (delphi-column-of comment-start) ?\s) "//"
+                      (make-string (- content-start comment-start 2) ?\s))))
         (delete-horizontal-space)
         (newline)
         (insert prefix)))))

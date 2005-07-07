@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 ;;
@@ -31,6 +31,17 @@
 ;; is usually the compiler)
 
 ;;; Code:
+
+;;;; [[ Silence the byte-compiler
+
+(defvar flymake-check-start-time)
+(defvar flymake-check-was-interrupted)
+(defvar flymake-err-info)
+(defvar flymake-is-running)
+(defvar flymake-last-change-time)
+(defvar flymake-new-err-info)
+
+;;;; ]]
 
 ;;;; [[ Xemacs overlay compatibility
 (if (featurep 'xemacs) (progn
@@ -53,14 +64,15 @@
 (defalias 'flymake-float-time
   (if (fboundp 'float-time)
       'float-time
-    (lambda ()
-      (multiple-value-bind (s0 s1 s2) (current-time)
-	(+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2))))))
+    (if (featurep 'xemacs)
+	(lambda ()
+	  (multiple-value-bind (s0 s1 s2) (current-time)
+	    (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2)))))))
 
 (defsubst flymake-replace-regexp-in-string (regexp rep str)
-  (if (fboundp 'replace-regexp-in-string)
-      (replace-regexp-in-string regexp rep str)
-    (replace-in-string str regexp rep)))
+  (if (fboundp 'replace-in-string)
+      (replace-in-string str regexp rep)
+    (replace-regexp-in-string regexp rep str)))
 
 (defun flymake-split-string (str pattern)
   "Split STR into a list of substrings bounded by PATTERN.
@@ -390,7 +402,7 @@ Return t if so, nil if not."
 
 (defun flymake-find-possible-master-files (file-name master-file-dirs masks)
   "Find (by name and location) all possible master files.
-Master files are .cpp and .c for and .h. Files are searched for
+Master files are .cpp and .c for and .h.  Files are searched for
 starting from the .h directory and max max-level parent dirs.
 File contents are not checked."
   (let* ((dirs master-file-dirs)
@@ -423,9 +435,9 @@ File contents are not checked."
     files))
 
 (defun flymake-master-file-compare (file-one file-two)
-  "Compare two files speccified by FILE-ONE and FILE-TWO.
+  "Compare two files specified by FILE-ONE and FILE-TWO.
 This function is used in sort to move most possible file names
-to the beginning of the list (File.h -> File.cpp moved to top."
+to the beginning of the list (File.h -> File.cpp moved to top)."
   (and (equal (file-name-sans-extension flymake-included-file-name)
 	      (file-name-sans-extension (file-name-nondirectory file-one)))
        (not (equal file-one file-two))))
@@ -750,7 +762,7 @@ It's flymake process filter."
 
 (defun flymake-get-line-err-count (line-err-info-list type)
   "Return number of errors of specified TYPE.
-Value of TYPE is eigher e or w."
+Value of TYPE is either \"e\" or \"w\"."
   (let* ((idx        0)
 	 (count      (length line-err-info-list))
 	 (err-count  0))
@@ -859,7 +871,7 @@ Return t if it has at least one flymake overlay, nil if no overlay."
 
 (defun flymake-highlight-line (line-no line-err-info-list)
   "Highlight line LINE-NO in current buffer.
-Perhaps use text from LINE-ERR-INFO-ILST to enhance highlighting."
+Perhaps use text from LINE-ERR-INFO-LIST to enhance highlighting."
   (goto-line line-no)
   (let* ((line-beg (flymake-line-beginning-position))
 	 (line-end (flymake-line-end-position))
@@ -995,8 +1007,8 @@ from compile.el")
 ;;)
 
 (defun flymake-parse-line (line)
-  "Parse LINE to see if it is an error of warning.
-Return its components if so, nil if no."
+  "Parse LINE to see if it is an error or warning.
+Return its components if so, nil otherwise."
   (let ((raw-file-name nil)
 	(line-no 0)
 	(err-type "e")
@@ -1110,7 +1122,7 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
       inc-dirs)))
 
 (defcustom flymake-get-project-include-dirs-function 'flymake-get-project-include-dirs-imp
-  "Function used to get project inc dirs, one paramater: basedir name."
+  "Function used to get project include dirs, one parameter: basedir name."
   :group 'flymake
   :type 'function)
 
@@ -1137,24 +1149,6 @@ For the format of LINE-ERR-INFO, see `flymake-ler-make-ler'."
   "Get dirs to use when resolving local file names."
   (let* ((include-dirs (append '(".") (flymake-get-project-include-dirs base-dir) (flymake-get-system-include-dirs))))
     include-dirs))
-
-(defun flymake-find-file (rel-file-name include-dirs)
-  "Iterate through include-dirs to find file REL-FILE-NAME.
-Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if not."
-  (let* ((count          (length include-dirs))
-	 (idx            0)
-	 (found          nil)
-	 (full-file-name rel-file-name))
-
-    (while (and (not found) (< idx count))
-      (let* ((dir (nth idx include-dirs)))
-	(setq full-file-name  (concat dir "/" rel-file-name))
-	(when (file-exists-p full-file-name)
-	  (setq found t)))
-      (setq idx (1+ idx)))
-    (if found
-	full-file-name
-      rel-file-name)))
 
 (defun flymake-restore-formatting (source-buffer)
   "Remove any formatting made by flymake."
@@ -1366,7 +1360,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
       (flymake-log 1 "no errors for line %d" line-no))))
 
 (defun flymake-make-err-menu-data (line-no line-err-info-list)
-  "Make a (menu-title (item-title item-action)*) list with errors/warnings from line-err-info."
+  "Make a (menu-title (item-title item-action)*) list with errors/warnings from LINE-ERR-INFO-LIST."
   (let* ((menu-items  nil))
     (when line-err-info-list
       (let* ((count           (length line-err-info-list))
@@ -1431,7 +1425,7 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
   (message-box warning))
 
 (defcustom flymake-gui-warnings-enabled t
-  "Enables/disables gui warnings."
+  "Enables/disables GUI warnings."
   :group 'flymake
   :type 'boolean)
 
@@ -1445,50 +1439,41 @@ Return first 'INCLUDE-DIRS/REL-FILE-NAME' that exists,  or just REL-FILE-NAME if
     (flymake-log 0 "switched OFF Flymake mode for buffer %s due to fatal status %s, warning %s"
 		 (buffer-name buffer) status warning)))
 
-;;;###autoload
-(define-minor-mode flymake-mode
-  "Minor mode to do on-the-fly syntax checking.
-When called interactively, toggles the minor mode.
-With arg, turn Flymake mode on if and only if arg is positive."
-  :group 'flymake :lighter flymake-mode-line
-  (if flymake-mode
-      (if (flymake-can-syntax-check-file (buffer-file-name))
-	  (flymake-mode-on)
-	(flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name)))
-    (flymake-mode-off)))
-
 (defcustom flymake-start-syntax-check-on-find-file t
   "Start syntax check on find file."
   :group 'flymake
   :type 'boolean)
 
 ;;;###autoload
-(defun flymake-mode-on ()
-  "Turn flymake mode on."
-  (when (not flymake-mode)
-    (make-local-variable 'after-change-functions)
-    (setq after-change-functions (cons 'flymake-after-change-function after-change-functions))
-    (add-hook 'after-save-hook 'flymake-after-save-hook)
-    (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook)
-    ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
+(define-minor-mode flymake-mode
+  "Minor mode to do on-the-fly syntax checking.
+When called interactively, toggles the minor mode.
+With arg, turn Flymake mode on if and only if arg is positive."
+  :group 'flymake :lighter flymake-mode-line
+  (cond
 
-    (flymake-report-status (current-buffer) "" "")
+   ;; Turning the mode ON.
+   (flymake-mode
+    (if (not (flymake-can-syntax-check-file buffer-file-name))
+        (flymake-log 2 "flymake cannot check syntax in buffer %s" (buffer-name))
+      (add-hook 'after-change-functions 'flymake-after-change-function nil t)
+      (add-hook 'after-save-hook 'flymake-after-save-hook nil t)
+      (add-hook 'kill-buffer-hook 'flymake-kill-buffer-hook nil t)
+      ;;+(add-hook 'find-file-hook 'flymake-find-file-hook)
 
-    (setq flymake-timer
-	  (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
+      (flymake-report-status (current-buffer) "" "")
 
-    (setq flymake-mode t)
-    (flymake-log 1 "flymake mode turned ON for buffer %s" (buffer-name (current-buffer)))
-    (when flymake-start-syntax-check-on-find-file
-      (flymake-start-syntax-check-for-current-buffer)))) ; will be started by on-load hook
+      (setq flymake-timer
+            (run-at-time nil 1 'flymake-on-timer-event (current-buffer)))
 
-;;;###autoload
-(defun flymake-mode-off ()
-  "Turn flymake mode off."
-  (when flymake-mode
-    (setq after-change-functions (delq 'flymake-after-change-function  after-change-functions))
-    (remove-hook 'after-save-hook (function flymake-after-save-hook) t)
-    (remove-hook 'kill-buffer-hook (function flymake-kill-buffer-hook) t)
+      (when flymake-start-syntax-check-on-find-file
+        (flymake-start-syntax-check-for-current-buffer))))
+
+   ;; Turning the mode OFF.
+   (t
+    (remove-hook 'after-change-functions 'flymake-after-change-function t)
+    (remove-hook 'after-save-hook 'flymake-after-save-hook t)
+    (remove-hook 'kill-buffer-hook 'flymake-kill-buffer-hook t)
     ;;+(remove-hook 'find-file-hook (function flymake-find-file-hook) t)
 
     (flymake-delete-own-overlays (current-buffer))
@@ -1497,9 +1482,19 @@ With arg, turn Flymake mode on if and only if arg is positive."
       (cancel-timer flymake-timer)
       (setq flymake-timer nil))
 
-    (setq flymake-is-running nil)
-    (setq flymake-mode nil)
-    (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name (current-buffer)))))
+    (setq flymake-is-running nil))))
+
+;;;###autoload
+(defun flymake-mode-on ()
+  "Turn flymake mode on."
+  (flymake-mode 1)
+  (flymake-log 1 "flymake mode turned ON for buffer %s" (buffer-name)))
+
+;;;###autoload
+(defun flymake-mode-off ()
+  "Turn flymake mode off."
+  (flymake-mode 0)
+  (flymake-log 1 "flymake mode turned OFF for buffer %s" (buffer-name)))
 
 (defcustom flymake-start-syntax-check-on-newline t
   "Start syntax check if newline char was added/removed from the buffer."
@@ -1532,7 +1527,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
   ;;+    (flymake-start-syntax-check-for-current-buffer)
   ;;+)
   (when (and (not (local-variable-p 'flymake-mode (current-buffer)))
-	     (flymake-can-syntax-check-file (buffer-file-name (current-buffer))))
+	     (flymake-can-syntax-check-file buffer-file-name))
     (flymake-mode)
     (flymake-log 3 "automatically turned ON flymake mode")))
 
@@ -1557,7 +1552,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
 	  (flymake-er-get-line (nth idx err-info-list))))))
 
 (defun flymake-get-prev-err-line-no (err-info-list line-no)
-  "Return prev line with error."
+  "Return previous line with error."
   (when err-info-list
     (let* ((count (length err-info-list)))
       (while (and (> count 0) (<= line-no (flymake-er-get-line (nth (1- count) err-info-list))))
@@ -1587,7 +1582,7 @@ With arg, turn Flymake mode on if and only if arg is positive."
       (flymake-log 1 "no errors in current buffer"))))
 
 (defun flymake-goto-prev-error ()
-  "Go to prev error in err ring."
+  "Go to previous error in err ring."
   (interactive)
   (let ((line-no (flymake-get-prev-err-line-no flymake-err-info (flymake-current-line-no))))
     (when (not line-no)

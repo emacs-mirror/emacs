@@ -23,8 +23,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -100,7 +100,7 @@
 ;;----------------------------------------------------------------
 
 (defgroup dabbrev nil
-  "Dynamic Abbreviations"
+  "Dynamic Abbreviations."
   :tag "Dynamic Abbreviations"
   :group 'abbrev
   :group 'convenience)
@@ -509,7 +509,7 @@ See also `dabbrev-abbrev-char-regexp' and \\[dabbrev-completion]."
 	    (setq direction dabbrev--last-direction))
 	;; If the user inserts a space after expanding
 	;; and then asks to expand again, always fetch the next word.
-	(if (and (eq (preceding-char) ?\ )
+	(if (and (eq (preceding-char) ?\s)
 		 (markerp dabbrev--last-abbrev-location)
 		 (marker-position dabbrev--last-abbrev-location)
 		 (= (point) (1+ dabbrev--last-abbrev-location)))

@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
-;; Boston, MA 02111-1307, USA.
+;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
+;; Boston, MA 02110-1301, USA.
 
 ;;; Commentary:
 
@@ -4538,22 +4538,29 @@ With a prefix argument, set VARIABLE to VALUE buffer-locally."
 		      (read-variable "Set variable: ")))
 	  (minibuffer-help-form '(describe-variable var))
 	  (prop (get var 'variable-interactive))
-	  (prompt (format "Set %s%s to value: " var
+          (obsolete (car (get var 'byte-obsolete-variable)))
+	  (prompt (format "Set %s %s to value: " var
 			  (cond ((local-variable-p var)
-				 " (buffer-local)")
+				 "(buffer-local)")
 				((or current-prefix-arg
 				     (local-variable-if-set-p var))
-				 " buffer-locally")
-				(t " globally"))))
-	  (val (if prop
-		   ;; Use VAR's `variable-interactive' property
-		   ;; as an interactive spec for prompting.
-		   (call-interactively `(lambda (arg)
-					  (interactive ,prop)
-					  arg))
-		 (read
-		  (read-string prompt nil
-			       'set-variable-value-history)))))
+				 "buffer-locally")
+				(t "globally"))))
+	  (val (progn
+                 (when obsolete
+                   (message (concat "`%S' is obsolete; "
+                                    (if (symbolp obsolete) "use `%S' instead" "%s"))
+                            var obsolete)
+                   (sit-for 3))
+                 (if prop
+                     ;; Use VAR's `variable-interactive' property
+                     ;; as an interactive spec for prompting.
+                     (call-interactively `(lambda (arg)
+                                            (interactive ,prop)
+                                            arg))
+                   (read
+                    (read-string prompt nil
+                                 'set-variable-value-history))))))
      (list var val current-prefix-arg)))
 
   (and (custom-variable-p variable)
