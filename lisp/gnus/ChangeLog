@@ -1,3 +1,8 @@
+2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
+
+	* gnus-art.el (gnus-article-next-page, gnus-article-next-page-1)
+	(gnus-article-prev-page): Take scroll-margin into consideration.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

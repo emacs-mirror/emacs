@@ -1,3 +1,9 @@
+2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
+
+	* comint.el (comint-postoutput-scroll-to-bottom)
+	(comint-show-maximum-output): Take scroll-margin into
+	consideration.
+
 2005-07-08  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (ido-use-filename-at-point): New choice `guess'.
