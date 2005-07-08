@@ -1,5 +1,7 @@
 2005-07-07  Richard M. Stallman  <rms@gnu.org>
 
+	* book-spine.texinfo: Update Emacs version.
+
 	* display.texi (Inverse Video): Delete mode-line-inverse-video.
 
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
