@@ -1,5 +1,7 @@
 2005-07-07  Richard M. Stallman  <rms@gnu.org>
 
+	* anti.texi (Antinews): Mention mode-line-inverse-video.
+
 	* files.texi (Saving): Minor correction about C-x C-w.
 
 	* display.texi (Display Custom): Don't mention mode-line-inverse-video.

@@ -1,3 +1,7 @@
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* display.texi (Inverse Video): Delete mode-line-inverse-video.
+
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Regexp Search): Clarify what re-search-forward
