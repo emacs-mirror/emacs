@@ -6917,8 +6917,6 @@ menu_bar_items (old)
 
   int i;
 
-  struct gcpro gcpro1;
-
   /* In order to build the menus, we need to call the keymap
      accessors.  They all call QUIT.  But this function is called
      during redisplay, during which a quit is fatal.  So inhibit
@@ -6933,8 +6931,6 @@ menu_bar_items (old)
   else
     menu_bar_items_vector = Fmake_vector (make_number (24), Qnil);
   menu_bar_items_index = 0;
-
-  GCPRO1 (menu_bar_items_vector);
 
   /* Build our list of keymaps.
      If we recognize a function key and replace its escape sequence in
@@ -7039,7 +7035,6 @@ menu_bar_items (old)
   menu_bar_items_index = i;
 
   Vinhibit_quit = oquit;
-  UNGCPRO;
   return menu_bar_items_vector;
 }
 
@@ -11010,6 +11005,9 @@ syms_of_keyboard ()
 
   menu_bar_one_keymap_changed_items = Qnil;
   staticpro (&menu_bar_one_keymap_changed_items);
+
+  menu_bar_items_vector = Qnil;
+  staticpro (&menu_bar_items_vector);
 
   defsubr (&Sevent_convert_list);
   defsubr (&Sread_key_sequence);
