@@ -881,6 +881,12 @@ the file name using normal `read-file-name' style."
   :type '(repeat symbol)
   :group 'ido)
 
+(defcustom ido-before-fallback-functions '()
+  "List of functions to call before calling a fallback command.
+The fallback command is passed as an argument to the functions."
+  :type 'hook
+  :group 'ido)
+
 ;;; Internal Variables
 
 ;; Persistent variables
@@ -1918,7 +1924,10 @@ If INITIAL is non-nil, it specifies the initial input string."
 (defun ido-buffer-internal (method &optional fallback prompt default initial switch-cmd)
   ;; Internal function for ido-switch-buffer and friends
   (if (not ido-mode)
-      (call-interactively (or fallback 'switch-to-buffer))
+      (progn
+	(run-hook-with-args 'ido-before-fallback-functions
+			    (or fallback 'switch-to-buffer))
+	(call-interactively (or fallback 'switch-to-buffer)))
     (let* ((ido-context-switch-command switch-cmd)
 	   (ido-current-directory nil)
 	   (ido-directory-nonreadable nil)
@@ -1937,6 +1946,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 
        ((eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions
+			      (or fallback 'switch-to-buffer))
 	  (call-interactively (or fallback 'switch-to-buffer))))
 
        ;; Check buf is non-nil.
@@ -2068,6 +2079,8 @@ If INITIAL is non-nil, it specifies the initial input string."
 	;; we don't want to change directory of current buffer.
 	(let ((default-directory ido-current-directory)
 	      (read-file-name-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions
+			      (or fallback 'find-file))
 	  (call-interactively (or fallback 'find-file))))
 
        ((eq ido-exit 'switch-to-buffer)
@@ -2134,6 +2147,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 	(setq filename (concat ido-current-directory filename))
 	(ido-record-command fallback filename)
 	(ido-record-work-directory)
+	(run-hook-with-args 'ido-before-fallback-functions fallback)
 	(funcall fallback filename))
 
        ((eq method 'insert)
@@ -4210,6 +4224,7 @@ If REQUIRE-MATCH is non-nil, an existing buffer must be selected."
 	 (buf (ido-read-internal 'buffer prompt 'ido-buffer-history default require-match)))
     (if (eq ido-exit 'fallback)
 	(let ((read-buffer-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions 'read-buffer)
 	  (read-buffer prompt default require-match))
       buf)))
 
@@ -4256,6 +4271,7 @@ See `read-file-name' for additional parameters."
       (setq filename 'fallback)))
     (if (eq filename 'fallback)
 	(let ((read-file-name-function nil))
+	  (run-hook-with-args 'ido-before-fallback-functions 'read-file-name)
 	  (read-file-name prompt dir default-filename mustmatch initial predicate))
       filename)))
 
