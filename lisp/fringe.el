@@ -150,7 +150,7 @@ To set this variable in a Lisp program, use `set-fringe-mode' to make
 it take real effect.
 Setting the variable with a customization buffer also takes effect.
 If you only want to modify the appearance of the fringe in one frame,
-you can use the interactive function `toggle-fringe'"
+you can use the interactive function `set-fringe-style'"
   :type '(choice (const :tag "Default width" nil)
 		 (const :tag "No fringes" 0)
 		 (const :tag "Only right" (0 . nil))
