@@ -608,17 +608,9 @@ whitespace problems."
 (defun whitespace-buffer-leading-cleanup ()
   "Remove any empty lines at the top of the file."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-min))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (kill-line)
-	    (whitespace-buffer-leading-cleanup))))))
+    (goto-char (point-min))
+    (skip-chars-forward "\n")
+    (delete-region (point-min) (point))))
 
 (defun whitespace-buffer-trailing ()
   "Check to see if are is more than one empty line at the bottom."
@@ -647,26 +639,11 @@ whitespace problems."
 (defun whitespace-buffer-trailing-cleanup ()
   "Delete all the empty lines at the bottom."
   (save-excursion
-    (let ((pmin nil)
-	  (pmax nil))
-      (goto-char (point-max))
-      (beginning-of-line)
-      (setq pmin (point))
-      (end-of-line)
-      (setq pmax (point))
-      (if (equal pmin pmax)
-	  (progn
-	    (goto-char (1- pmin))
-	    (beginning-of-line)
-	    (setq pmin (point))
-	    (end-of-line)
-	    (setq pmax (point))
-	    (if (equal pmin pmax)
-		(progn
-		  (goto-char (1- (point-max)))
-		  (beginning-of-line)
-		  (kill-line)
-		  (whitespace-buffer-trailing-cleanup))))))))
+    (goto-char (point-max))
+    (skip-chars-backward "\n")
+    (if (not (bolp))
+	(forward-char 1))
+    (delete-region (point) (point-max))))
 
 (defun whitespace-buffer-search (regexp)
   "Search for any given whitespace REGEXP."
