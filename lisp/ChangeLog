@@ -1,3 +1,27 @@
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-list):
+	Check for "emacs", etc., as entire symbol, not just as word.
+	(checkdoc-file-comments-engine): Use regexp-quote on FN.
+
+	* files.el (set-visited-file-name): Report the error
+	for "empty filename" earlier.
+	(kill-some-buffers): Ignore buffers already dead.
+
+	* fringe.el (fringe-mode): Doc fix.
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Check for (featurep 'xemacs) and turn off warnings in what it guards.
+	Use unwind-protect to ensure byte-compile-unresolved-functions
+	is updated.
+
+	* whitespace.el (whitespace-buffer-leading-cleanup):
+	Simplify w/ skip-chars-forward.
+	(whitespace-buffer-trailing-cleanup): Simplify w/ skip-chars-backward.
+
+	* mail/rmail.el (rmail-only-expunge): Fix paren error.
+	Unconditionally try to leave point at the same old place.
+
 2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
 
 	* comint.el (comint-postoutput-scroll-to-bottom)
