@@ -578,8 +578,12 @@ the `ido-work-directory-list' list."
 
 (defcustom ido-use-filename-at-point nil
   "*Non-nil means that ido shall look for a filename at point.
+May use `ffap-guesser' to guess whether text at point is a filename.
 If found, use that as the starting point for filename selection."
-  :type 'boolean
+  :type '(choice
+	  (const :tag "Disabled" nil)
+	  (const :tag "Guess filename" guess)
+	  (other :tag "Use literal filename" t))
   :group 'ido)
 
 
@@ -2051,7 +2055,9 @@ If INITIAL is non-nil, it specifies the initial input string."
 		filename t))
 
 	 ((and ido-use-filename-at-point
-	       (setq fn (ffap-string-at-point))
+	       (setq fn (if (eq ido-use-filename-at-point 'guess)
+			    (ffap-guesser)
+			  (ffap-string-at-point)))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
 	       (file-directory-p d))
