@@ -1,3 +1,8 @@
+2005-07-07  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc-units.el (math-apply-units):  Change the places in
+	which units are simplified.
+
 2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* cus-edit.el (customize-option, customize-option-other-window):
