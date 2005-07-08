@@ -317,12 +317,12 @@ This should be set in an Emacs Lisp file's local variables."
   "List of words (not capitalized) which should be capitalized.")
 
 (defvar checkdoc-proper-noun-regexp
-  (let ((expr "\\<\\(")
+  (let ((expr "\\_<\\(")
 	(l checkdoc-proper-noun-list))
     (while l
       (setq expr (concat expr (car l) (if (cdr l) "\\|" ""))
 	    l (cdr l)))
-    (concat expr "\\)\\>"))
+    (concat expr "\\)\\_>"))
   "Regular expression derived from `checkdoc-proper-noun-regexp'.")
 
 (defvar checkdoc-common-verbs-regexp nil
@@ -2326,10 +2326,10 @@ Code:, and others referenced in the style guide."
 	(save-excursion
 	  (goto-char (point-max))
 	  (if (not (re-search-backward
-		    (concat "^;;;[ \t]+" fn "\\(" (regexp-quote fe)
+		    (concat "^;;;[ \t]+" (regexp-quote fn) "\\(" (regexp-quote fe)
 			    "\\)?[ \t]+ends here[ \t]*$"
 			    "\\|^;;;[ \t]+ End of file[ \t]+"
-			    fn "\\(" (regexp-quote fe) "\\)?")
+			    (regexp-quote fn) "\\(" (regexp-quote fe) "\\)?")
 		    nil t))
 	      (if (checkdoc-y-or-n-p "No identifiable footer!  Add one? ")
 		  (progn
