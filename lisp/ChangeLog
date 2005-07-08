@@ -1,3 +1,9 @@
+2005-07-08  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-before-fallback-functions): New hook.
+	(ido-buffer-internal, ido-file-internal, ido-read-buffer)
+	(ido-read-file-name): Run it.
+
 2005-07-07  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc-units.el (math-apply-units):  Change the places in
