@@ -1,3 +1,9 @@
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* files.texi (Saving): Minor correction about C-x C-w.
+
+	* display.texi (Display Custom): Don't mention mode-line-inverse-video.
+
 2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* search.texi (Isearch Scroll): Add example of using the
