@@ -1,3 +1,8 @@
+2005-07-08  Kenichi Handa  <handa@m17n.org>
+
+	* mule.texi (Recognize Coding): Recommend
+	revert-buffer-with-coding-system instead of revert-buffer.
+
 2005-07-07  Richard M. Stallman  <rms@gnu.org>
 
 	* anti.texi (Antinews): Mention mode-line-inverse-video.
