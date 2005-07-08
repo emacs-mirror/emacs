@@ -1,5 +1,8 @@
 2005-07-08  Kim F. Storm  <storm@cua.dk>
 
+	* ido.el (ido-use-filename-at-point): New choice `guess'.
+	(ido-file-internal): Try ffap-guesser if selected.
+
 	* ido.el (ido-before-fallback-functions): New hook.
 	(ido-buffer-internal, ido-file-internal, ido-read-buffer)
 	(ido-read-file-name): Run it.
