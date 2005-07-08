@@ -818,7 +818,7 @@ pattern, are decoded correctly.  One of the builtin
 
   If Emacs recognizes the encoding of a file incorrectly, you can
 reread the file using the correct coding system by typing @kbd{C-x
-@key{RET} c @var{coding-system} @key{RET} M-x revert-buffer
+@key{RET} r @var{coding-system}
 @key{RET}}.  To see what coding system Emacs actually used to decode
 the file, look at the coding system mnemonic letter near the left edge
 of the mode line (@pxref{Mode Line}), or type @kbd{C-h C @key{RET}}.
