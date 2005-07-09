@@ -110,6 +110,11 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
+(defcustom next-error-hook nil
+  "*List of hook functions run by `next-error' after visiting source file."
+  :type 'hook
+  :group 'next-error)
+
 (defvar next-error-highlight-timer nil)
 
 (defvar next-error-overlay-arrow-position nil)
@@ -240,9 +245,10 @@ To specify use of a particular buffer for error messages, type
 \\[next-error] in that buffer when it is the only one displayed
 in the current frame.
 
-Once \\[next-error] has chosen the buffer for error messages,
-it stays with that buffer until you use it in some other buffer which
-uses Compilation mode or Compilation Minor mode.
+Once \\[next-error] has chosen the buffer for error messages, it
+runs `next-error-hook' with `run-hooks', and stays with that buffer
+until you use it in some other buffer which uses Compilation mode
+or Compilation Minor mode.
 
 See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
@@ -251,7 +257,8 @@ See variables `compilation-parse-errors-function' and
   (when (setq next-error-last-buffer (next-error-find-buffer))
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
-      (funcall next-error-function (prefix-numeric-value arg) reset))))
+      (funcall next-error-function (prefix-numeric-value arg) reset)
+      (run-hooks 'next-error-hook))))
 
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)
