@@ -314,8 +314,15 @@ That buffer should be current already."
   (save-excursion
     (while (re-search-forward "^  eval-buffer(" nil t)
       (end-of-line)
-      (insert (format "\n  ;;; Reading at buffer position %d"
-		      (with-current-buffer (nth 2 (backtrace-frame (debugger-frame-number)))
+      (insert (format "  ; Reading at buffer position %d"
+		      (with-current-buffer
+			  (or (nth 2 (backtrace-frame (debugger-frame-number)))
+			      debugger-old-buffer)
+			(point)))))
+    (while (re-search-forward "^  eval-region(" nil t)
+      (end-of-line)
+      (insert (format "  ; Reading at buffer position %d"
+		      (with-current-buffer debugger-old-buffer
 			(point))))))
   (debugger-make-xrefs))
 
