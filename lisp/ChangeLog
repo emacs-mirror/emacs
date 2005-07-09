@@ -1,3 +1,22 @@
+2005-07-09  Juri Linkov  <juri@jurta.org>
+
+	* fringe.el (fringe-mode): Add period in docstring.
+	(fringe-query-style): Build prompt depending on `all-frames' arg.
+
+	* dired.el (dired-marker-char): Avoid quotations for `do' and `mark'
+	to not create links to unrelated functions in the Help buffer.
+
+	* progmodes/compile.el (compilation-mode-hook, compilation-mode):
+	Doc fix.
+
+	* simple.el (next-error-hook): New variable.
+	(next-error): Use it.  Doc fix.
+
+	* textmodes/ispell.el (ispell-command-loop): Add current
+	dictionary name and program name to mode-line-format.
+	(ispell-region, ispell-process-line): Add current dictionary name
+	and program name to messages.
+
 2005-07-08  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-embedded-announce-formula-alist)
