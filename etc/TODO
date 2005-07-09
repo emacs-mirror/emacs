@@ -153,6 +153,8 @@ to the FSF.
   which gives the same information through a menu structure.  [Dave
   Love started on this.]
 
+** Add a cpio mode, more or less like tar mode.
+
 ** Implement a variant of uncompress.el or jka-compr.el that works with
   GNU Privacy Guard for encryption.  [Code exists but isn't assigned.
   See the Gnus development sources for assigned code concerning GPG
