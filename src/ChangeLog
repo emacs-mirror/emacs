@@ -1,3 +1,7 @@
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* eval.c (Fdefvar): Allow defvaring a constant to itself quoted.
+
 2005-07-08  Kim F. Storm  <storm@cua.dk>
 
 	* keyboard.c (menu_bar_items): Don't GCPRO menu_bar_items_vector here.
