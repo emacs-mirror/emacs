@@ -126,7 +126,7 @@ lisp/emulation		working		Thien-Thi Nguyen
 lisp/eshell		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
-lisp/mh-e		working		Thien-Thi Nguyen
+lisp/mh-e		working		Bill Wohler
 lisp/net		working		Thien-Thi Nguyen
 lisp/play		working		Thien-Thi Nguyen
 lisp/term		working		Thien-Thi Nguyen
