@@ -1,3 +1,24 @@
+2005-07-08  Jay Belanger  <belanger@truman.edu>
+
+	* calc/calc.el (calc-embedded-announce-formula-alist)
+	(calc-embedded-open-close-formula-alist)
+	(calc-embedded-open-close-word-alist)
+	(calc-embedded-open-close-plain-alist)
+	(calc-embedded-open-close-new-formula-alist)
+	(calc-embedded-open-close-mode-alist)
+	(calc-embedded-new-buffer-hook, calc-embedded-new-formula-hook)
+	(calc-embedded-mode-hook): New variables.
+
+	* calc/calc-embed.el (calc-embedded-firsttime)
+	(calc-embedded-firsttime-buf, calc-embedded-firsttime-formula):
+	New variables.
+	(calc-do-embedded): Use calc-embedded-firsttime,
+	calc-embedded-firsttime-buf and calc-embedded-firsttime-formula to
+	determine whether or not to run hooks.
+	(calc-embedded-make-info) Set calc-embedded-firsttime-buf and
+	calc-embedded-firsttime-formula appropriately.
+	Set calc-embedded delimiter variables according to mode.
+
 2005-07-08  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/checkdoc.el (checkdoc-proper-noun-list):
