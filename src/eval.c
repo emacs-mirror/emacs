@@ -807,8 +807,16 @@ usage: (defvar SYMBOL &optional INITVALUE DOCSTRING)  */)
 
   sym = Fcar (args);
   if (SYMBOL_CONSTANT_P (sym))
-    error ("Constant symbol `%s' specified in defvar",
-           SDATA (SYMBOL_NAME (sym)));
+    {
+      /* For updward compatibility, allow (defvar :foo (quote :foo)).  */
+      tem = Fcar (Fcdr (args));
+      if (! (CONSP (tem)
+	     && EQ (XCAR (tem), Qquote)
+	     && CONSP (XCDR (tem))
+	     && EQ (XCAR (XCDR (tem)), sym)))
+	error ("Constant symbol `%s' specified in defvar",
+	       SDATA (SYMBOL_NAME (sym)));
+    }
 
   tail = Fcdr (args);
   if (!NILP (Fcdr (Fcdr (tail))))
