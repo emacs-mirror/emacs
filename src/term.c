@@ -2344,6 +2344,8 @@ dissociate_if_controlling_tty (int fd)
     }
 }
 
+static void maybe_fatal();
+
 /* Create a termcap display on the tty device with the given name and
    type.
 
@@ -2366,8 +2368,6 @@ term_init (char *name, char *terminal_type, int must_succeed)
   int status;
   struct tty_display_info *tty;
   struct display *display;
-
-  static void maybe_fatal();
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0, 0,
