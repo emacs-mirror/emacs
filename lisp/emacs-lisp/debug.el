@@ -150,7 +150,8 @@ first will be printed into the backtrace buffer."
 	  (debugger-outer-standard-input standard-input)
 	  (debugger-outer-standard-output standard-output)
 	  (debugger-outer-inhibit-redisplay inhibit-redisplay)
-	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area))
+	  (debugger-outer-cursor-in-echo-area cursor-in-echo-area)
+	  (debugger-with-timeout-suspend (with-timeout-suspend)))
       ;; Set this instead of binding it, so that `q'
       ;; will not restore it.
       (setq overriding-terminal-local-map nil)
@@ -235,6 +236,7 @@ first will be printed into the backtrace buffer."
                     ;; Drew Adams.  --Stef
                     (quit-window))))
 	    (kill-buffer debugger-buffer))
+	  (with-timeout-unsuspend debugger-with-timeout-suspend)
 	  (set-match-data debugger-outer-match-data)))
       ;; Put into effect the modified values of these variables
       ;; in case the user set them with the `e' command.
