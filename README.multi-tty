@@ -426,6 +426,42 @@ THINGS TO DO
    conflicts with stuff like `display-time-mode'.  Use `device-'
    or `terminal-' instead.  I think I prefer `terminal-'.
 
+   It turns out that most of the offending Lisp functions were defined
+   in the trunk.  Therefore, compatibility aliases should be defined
+   for the following names:
+
+    display-color-cells			terminal-color-cells
+    display-color-p			terminal-color-p
+    display-graphic-p			terminal-graphic-p
+    display-grayscale-p			terminal-grayscale-p
+    display-images-p			terminal-images-p
+    display-mm-height			terminal-mm-height
+    display-mm-width			terminal-mm-width
+    display-mouse-p			terminal-mouse-p
+    display-multi-font-p		terminal-multi-font-p
+    display-multi-frame-p		terminal-multi-frame-p
+    display-pixel-height		terminal-pixel-height
+    display-pixel-width			terminal-pixel-width
+    display-pixels-per-inch		terminal-pixels-per-inch
+    display-planes			terminal-planes
+    display-popup-menus-p		terminal-popup-menus-p
+    display-save-under			terminal-save-under
+    display-screens			terminal-screens
+    display-supports-face-attributes-p	terminal-supports-face-attributes-p
+    display-visual-class		terminal-visual-class
+    framep-on-display			framep-on-terminal
+    frames-on-display-list		frames-on-terminal-list
+
+   The following functions were introduced in the multi-tty branch, and
+   can be renamed without aliases:
+
+    display-controlling-tty-p           terminal-controlling-tty-p
+    display-list                        terminal-list
+    display-live-p                      terminal-live-p
+    display-name                        terminal-name
+    display-tty-type                    terminal-tty-type
+    frame-display                       terminal-of-frame
+
 ** The semantics of terminal-local variables are confusing; it is not
    clear what binding is in effect in any given time.  See if
    current_kboard (or at least the terminal-local bindings exported to
