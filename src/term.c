@@ -2023,7 +2023,7 @@ tty_default_color_capabilities (struct tty_display_info *tty, int save)
 /* Setup one of the standard tty color schemes according to MODE.
    MODE's value is generally the number of colors which we want to
    support; zero means set up for the default capabilities, the ones
-   we saw at term_init time; -1 means turn off color support.  */
+   we saw at init_tty time; -1 means turn off color support.  */
 void
 tty_setup_colors (struct tty_display_info *tty, int mode)
 {
@@ -2358,7 +2358,7 @@ static void maybe_fatal();
    If MUST_SUCCEED is true, then all errors are fatal. */
 
 struct display *
-term_init (char *name, char *terminal_type, int must_succeed)
+init_tty (char *name, char *terminal_type, int must_succeed)
 {
   char *area;
   char **address = &area;
@@ -2376,7 +2376,7 @@ term_init (char *name, char *terminal_type, int must_succeed)
 
   /* If we already have an active display on the given device, use that.
      If all displays are suspended, create a new one instead.  */
-  /* XXX Perhaps this should be made explicit by having term_init
+  /* XXX Perhaps this should be made explicit by having init_tty
      always create a new display and separating display and frame
      creation on Lisp level.  */
   display = get_named_tty_display (name);
@@ -2931,7 +2931,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 #endif /* not WINDOWSNT */
 }
 
-/* Auxiliary error-handling function for term_init.
+/* Auxiliary error-handling function for init_tty.
    Free BUFFER and delete DISPLAY, then call error or fatal
    with str1 or str2, respectively, according to MUST_SUCCEED.  */
 

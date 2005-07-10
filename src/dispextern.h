@@ -2933,7 +2933,7 @@ extern struct display *get_display P_ ((Lisp_Object display, int));
 extern struct display *get_named_tty_display P_ ((char *));
 EXFUN (Fdisplay_tty_type, 1);
 extern struct display *init_initial_display P_ ((void));
-extern struct display *term_init P_ ((char *, char *, int));
+extern struct display *init_tty P_ ((char *, char *, int));
 extern void delete_tty P_ ((struct display *));
 extern void fatal P_ ((/* char *, ... */));
 extern void cursor_to P_ ((struct frame *, int, int));

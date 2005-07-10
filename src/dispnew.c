@@ -6727,7 +6727,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     struct frame *f = XFRAME (selected_frame);
 
     /* Open a display on the controlling tty. */
-    d = term_init (0, terminal_type, 1); /* Errors are fatal. */
+    d = init_tty (0, terminal_type, 1); /* Errors are fatal. */
 
     /* Convert the initial frame to use the new display. */
     if (f->output_method != output_initial)
