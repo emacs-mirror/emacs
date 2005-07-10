@@ -3394,6 +3394,211 @@ void terminate_applescript()
   CloseComponent (as_scripting_component);
 }
 
+/* Convert a lisp string or integer to the 4 byte character code
+ */
+ 
+OSType mac_get_code_from_arg(Lisp_Object arg, OSType defCode)
+{
+  OSType result;
+  if (NILP(arg))
+    {
+      result = defCode;
+    } 
+  else if (INTEGERP(arg))
+    {
+      result = XFASTINT(arg);
+    }
+  else
+    {
+      /* check type string */
+      CHECK_STRING(arg);
+      if (strlen(SDATA(arg)) != 4)
+	{
+	  error ("Wrong argument: need string of length 4 for code");
+	}
+      /* Should work cross-endian */
+      result = SDATA(arg)[3] + (SDATA(arg)[2] << 8) + 
+	(SDATA(arg)[1] << 16) + (SDATA(arg)[0] << 24);
+    }
+  return result;
+}
+
+/**
+   Convert the 4 byte character code into a 4 byte string
+ */
+Lisp_Object mac_get_object_from_code(OSType defCode)
+{
+  if (defCode == 0) {
+    return make_specified_string("", -1, 0, 0);
+  } else {
+    /* Should work cross-endian */
+    char code[4];
+    code[0] = defCode >> 24 & 0xff;
+    code[1] = defCode >> 16 & 0xff;
+    code[2] = defCode >> 8 & 0xff;
+    code[3] = defCode & 0xff;
+    return make_specified_string(code, -1, 4, 0);
+  }
+}
+
+
+DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 1, 0,
+       doc: /* Get the creator code of FILENAME as a four character string. */)
+  (Lisp_Object filename)
+{
+  OSErr	status;
+  FSRef defLoc;
+  OSType cCode;
+  Lisp_Object result = Qnil;
+  CHECK_STRING (filename);
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &defLoc, NULL);
+
+  if (status == noErr)
+    {
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&defLoc, kFSCatInfoNodeFlags + kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+      if (status == noErr) 
+	{
+	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileCreator);
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while getting file information.");
+  }
+  return result;
+}
+
+DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
+       doc: /* Get the type code of FILENAME as a four character string. */)
+  (Lisp_Object filename)
+{
+  OSErr	status;
+  FSRef defLoc;
+  OSType cCode;
+  Lisp_Object result = Qnil;
+  CHECK_STRING (filename);
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &defLoc, NULL);
+
+  if (status == noErr)
+    {
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&defLoc, kFSCatInfoNodeFlags + kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+      if (status == noErr) 
+	{
+	  result = mac_get_object_from_code(((FileInfo*)&catalogInfo.finderInfo)->fileType);
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while getting file information.");
+  }
+  return result;
+}
+
+DEFUN ("mac-set-file-creator", Fmac_set_file_creator, Smac_set_file_creator, 1, 2, 0,
+       doc: /* Set creator code of file FILENAME to CODE.
+If non-nil, CODE must be a 32-bit integer or a 4-character string. Otherwise,
+'EMAx' is assumed. Return non-nil if successful.
+   */)
+  (Lisp_Object filename, Lisp_Object code)
+{
+  OSErr	status;
+  FSRef defLoc;
+  OSType cCode;
+  CHECK_STRING (filename);
+
+  cCode = mac_get_code_from_arg(code, 'EMAx');
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &defLoc, NULL);
+
+  if (status == noErr)
+    {
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&defLoc, kFSCatInfoNodeFlags + kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+      if (status == noErr) 
+	{
+	((FileInfo*)&catalogInfo.finderInfo)->fileCreator = cCode;
+	status = FSSetCatalogInfo(&defLoc, kFSCatInfoFinderInfo, &catalogInfo);
+	/* TODO: on Mac OS 10.2, we need to touch the parent dir, FNNotify? */
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while setting creator information.");
+  }
+  return Qt;
+}
+
+DEFUN ("mac-set-file-type", Fmac_set_file_type, Smac_set_file_type, 2, 2, 0,
+       doc: /* Set file code of file FILENAME to CODE.
+CODE must be a 32-bit integer or a 4-character string. Return non-nil if successful.
+   */)
+  (filename, code)
+     Lisp_Object filename;
+     Lisp_Object code;
+{
+  OSErr	status;
+  FSRef defLoc;
+  OSType cCode;
+  CHECK_STRING (filename);
+
+  cCode = mac_get_code_from_arg(code, 0); /* Default to empty code*/
+
+  if (NILP(Ffile_exists_p(filename)) || !NILP(Ffile_directory_p(filename))) {
+    return Qnil;
+  }
+  filename = Fexpand_file_name (filename, Qnil);
+
+  BLOCK_INPUT;
+  status = FSPathMakeRef(SDATA(ENCODE_FILE(filename)), &defLoc, NULL);
+
+  if (status == noErr)
+    {
+      FSCatalogInfo catalogInfo;
+      FSRef parentDir;
+      status = FSGetCatalogInfo(&defLoc, kFSCatInfoNodeFlags + kFSCatInfoFinderInfo,
+				&catalogInfo, NULL, NULL, &parentDir);
+      if (status == noErr) 
+	{
+	((FileInfo*)&catalogInfo.finderInfo)->fileType = cCode;
+	status = FSSetCatalogInfo(&defLoc, kFSCatInfoFinderInfo, &catalogInfo);
+	/* TODO: on Mac OS 10.2, we need to touch the parent dir, FNNotify? */
+	}
+    }
+  UNBLOCK_INPUT;
+  if (status != noErr) {
+    error ("Error while setting creator information.");
+  }
+  return Qt;
+}
+
 
 /* Compile and execute the AppleScript SCRIPT and return the error
    status as function value.  A zero is returned if compilation and
@@ -4361,6 +4566,10 @@ syms_of_mac ()
 #endif
   defsubr (&Smac_clear_font_name_table);
 
+  defsubr (&Smac_set_file_creator);
+  defsubr (&Smac_set_file_type);
+  defsubr (&Smac_get_file_creator);
+  defsubr (&Smac_get_file_type);
   defsubr (&Sdo_applescript);
   defsubr (&Smac_file_name_to_posix);
   defsubr (&Sposix_file_name_to_mac);

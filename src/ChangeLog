@@ -1,3 +1,9 @@
+2005-07-10  Steven Tamm  <steventamm@mac.com>
+
+	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Added.
+	(Fmac_set_file_type, Fmac_set_file_creator): Added
+	(mac_get_object_from_code, mac_get_code_from_arg): Added
+
 2005-07-08  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (Fdefvar): Allow defvaring a constant to itself quoted.
