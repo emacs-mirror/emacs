@@ -2545,7 +2545,7 @@ the old visited file has been renamed to the new name FILENAME."
 	  (if find-file-visit-truename
 	      (setq filename truename))))
     (if filename
-	(let ((new-name (file-name-nondirectory buffer-file-name)))
+	(let ((new-name (file-name-nondirectory filename)))
 	  (if (string= new-name "")
 	      (error "Empty file name"))))
     (let ((buffer (and filename (find-buffer-visiting filename))))
