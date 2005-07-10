@@ -10037,6 +10037,8 @@ select_frame_for_redisplay (frame)
   Lisp_Object tail, sym, val;
   Lisp_Object old = selected_frame;
 
+  xassert (FRAME_LIVE_P (frame));
+
   selected_frame = frame;
 
   for (tail = XFRAME (frame)->param_alist; CONSP (tail); tail = XCDR (tail))
@@ -10815,7 +10817,8 @@ redisplay_preserve_echo_area (from_where)
    redisplay_internal.  Reset redisplaying_p to the value it had
    before redisplay_internal was called, and clear
    prevent_freeing_realized_faces_p.  It also selects the previously
-   selected frame.  */
+   selected frame, unless it has been deleted (by an X connection
+   failure during redisplay, for example).  */
 
 static Lisp_Object
 unwind_redisplay (val)
@@ -10826,7 +10829,8 @@ unwind_redisplay (val)
   old_redisplaying_p = XCAR (val);
   redisplaying_p = XFASTINT (old_redisplaying_p);
   old_frame = XCDR (val);
-  if (! EQ (old_frame, selected_frame))
+  if (! EQ (old_frame, selected_frame)
+      && FRAME_LIVE_P (XFRAME (old_frame)))
     select_frame_for_redisplay (old_frame);
   return Qnil;
 }
