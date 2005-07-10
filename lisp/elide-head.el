@@ -53,9 +53,9 @@
 
 (defcustom elide-head-headers-to-hide
   '(("is free software; you can redistribute it" . ; GNU boilerplate
-     "Boston, MA 02111-1307, USA\\.")
+     "Boston, MA 0211\\(1-1307\\|0-1301\\), USA\\.")
     ("The Regents of the University of California\\.  All rights reserved\\." .
-     "SUCH DAMAGE\\.")			; BSD
+     "SUCH DAMAGE\\.")				      ; BSD
     ("Permission is hereby granted, free of charge" . ; X11
      "authorization from the X Consortium\\."))
   "Alist of regexps defining start end end of text to elide.

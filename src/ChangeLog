@@ -1,3 +1,7 @@
+2005-07-07  Kim F. Storm  <storm@cua.dk>
+
+	* window.c (Frecenter): Fix last change (set iarg before use).
+
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* window.c (Frecenter): When arg is inside the scroll margin,
@@ -19,7 +23,7 @@
 	assume that font family length is less than 32.
 	(x_compute_min_glyph_bounds): Make static.
 	(x_load_font): Never set fonts_changed_p to zero.
-	
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	* Update FSF's address in GPL notices.
