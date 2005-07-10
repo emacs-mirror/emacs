@@ -1,35 +1,35 @@
 2005-07-10  Michael Kifer  <kifer@cs.stonybrook.edu>
-	
-	* viper-cmd.el (viper--key-maps): new variable.
-	(viper-normalize-minor-mode-map-alist): use viper--key-maps and
+
+	* viper-cmd.el (viper--key-maps): New variable.
+	(viper-normalize-minor-mode-map-alist): Use viper--key-maps and
 	emulation-mode-map-alists.
-	(viper-envelop-ESC-key): use viper-subseq.
-	(viper-search-forward/backward/next): disable debug-on-error.
-	
-	* viper-keym.el (viper-toggle-key,viper-quoted-insert-key,
-	viper-ESC-key): new defcustoms.
-	
-	* viper-macs.el (ex-map-read-args): use viper-subseq.
-	
-	* viper-util.el (viper-key-to-emacs-key): use viper-subseq.
-	(viper-subseq): copy of subseq from cl.el.
-	
-	* viper.el (viper-go-away,viper-set-hooks): use
+	(viper-envelop-ESC-key): Use viper-subseq.
+	(viper-search-forward/backward/next): Disable debug-on-error.
+
+	* viper-keym.el (viper-toggle-key, viper-quoted-insert-key)
+	(viper-ESC-key): New defcustoms.
+
+	* viper-macs.el (ex-map-read-args): Use viper-subseq.
+
+	* viper-util.el (viper-key-to-emacs-key): Use viper-subseq.
+	(viper-subseq): Copy of subseq from cl.el.
+
+	* viper.el (viper-go-away, viper-set-hooks): Use
 	emulation-mode-map-alists, advise self-insert-command, add-minor-mode.
-	
-	* viper-mous.el (viper-current-frame-saved): use defvar.
-	
-	* viper-init.el: got rid of -face in face names.
-	
-	* ediff-diff.el (ediff-extract-diffs,ediff-extract-diffs3):
+
+	* viper-mous.el (viper-current-frame-saved): Use defvar.
+
+	* viper-init.el: Get rid of -face in face names.
+
+	* ediff-diff.el (ediff-extract-diffs, ediff-extract-diffs3):
 	Make it work with longlines mode
-	
-	* ediff-mult.el (ediff-meta-mode-hook): new variable.
-	
-	* ediff-ptch.el (ediff-file-name-sans-prefix): quote regexp.
-	
-	* ediff-init: got rid of -face in face names.
-	
+
+	* ediff-mult.el (ediff-meta-mode-hook): New variable.
+
+	* ediff-ptch.el (ediff-file-name-sans-prefix): Quote regexp.
+
+	* ediff-init: Get rid of -face in face names.
+
 2005-07-10  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/edebug.el (edebug-enter): Call with-timeout-suspend
