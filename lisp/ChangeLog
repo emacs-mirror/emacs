@@ -1,5 +1,17 @@
 2005-07-10  Luc Teirlinck  <teirllm@auburn.edu>
 
+	* custom.el (custom-initialize-safe-set)
+	(custom-initialize-safe-default): New functions.
+
+	* frame.el (blink-cursor-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value.
+
+	* tooltip.el (tooltip-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value.  Delete obsolete comment.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' to
+	handle `tooltip-mode'.  Delete obsolete comment.
+
 	* files.el (set-visited-file-name): Avoid calling
 	`file-name-nondirectory' with a nil argument.
 
