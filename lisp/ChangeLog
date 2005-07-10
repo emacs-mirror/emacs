@@ -1,3 +1,29 @@
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-enter): Call with-timeout-suspend
+	and with-timeout-unsuspend.
+
+	* emacs-lisp/debug.el (debug): Call with-timeout-suspend
+	and with-timeout-unsuspend.
+
+	* emacs-lisp/timer.el (with-timeout-timers): New variable.
+	(with-timeout): Bind that variable to record timers.
+	(with-timeout-suspend, with-timeout-unsuspend): New functions.
+
+	* emacs-lisp/debug.el (debug-help-follow): New function.
+	(debugger-mode-map): Use that instead of help-follow.
+	(debugger-setup-buffer): Use eval-buffer-list
+	to handle eval-buffer frames.
+
+2005-07-10  N. Raghavendra  <raghu@mri.ernet.in>  (tiny change)
+
+        * timezone.el (timezone-parse-date): Changed first regexp
+	so it will not mistakenly match dates with no time zone.
+
+2005-07-10  Jeff Dwork  <jeff.dwork@amd.com>  (tiny change)
+
+	* facemenu.el (facemenu-read-color): Do case-insensitive matching.
+
 2005-07-10  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-initialize-safe-set)
@@ -14,6 +40,12 @@
 
 	* files.el (set-visited-file-name): Avoid calling
 	`file-name-nondirectory' with a nil argument.
+
+2005-07-09  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/debug.el (debugger-setup-buffer): When eval-buffer
+	was called with nil for the buffer, handle the read position right.
+	Handle read position for eval-region, too.
 
 2005-07-09  Juri Linkov  <juri@jurta.org>
 
