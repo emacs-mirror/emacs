@@ -85,6 +85,7 @@ Lisp_Object Qvariable_documentation, Vvalues, Vstandard_input, Vafter_load_alist
 Lisp_Object Qascii_character, Qload, Qload_file_name;
 Lisp_Object Qbackquote, Qcomma, Qcomma_at, Qcomma_dot, Qfunction;
 Lisp_Object Qinhibit_file_name_operation;
+Lisp_Object Qeval_buffer_list, Veval_buffer_list;
 
 extern Lisp_Object Qevent_symbol_element_mask;
 extern Lisp_Object Qfile_exists_p;
@@ -1452,6 +1453,7 @@ This function preserves the position of point.  */)
   if (NILP (filename))
     filename = XBUFFER (buf)->filename;
 
+  specbind (Qeval_buffer_list, Fcons (buf, Veval_buffer_list));
   specbind (Qstandard_output, tem);
   record_unwind_protect (save_excursion_restore, save_excursion_save ());
   BUF_SET_PT (XBUFFER (buf), BUF_BEGV (XBUFFER (buf)));
@@ -1487,6 +1489,7 @@ This function does not move point.  */)
   else
     tem = printflag;
   specbind (Qstandard_output, tem);
+  specbind (Qeval_buffer_list, Fcons (cbuf, Veval_buffer_list));
 
   /* readevalloop calls functions which check the type of start and end.  */
   readevalloop (cbuf, 0, XBUFFER (cbuf)->filename, Feval,
@@ -3961,6 +3964,10 @@ to load.  See also `load-dangerous-libraries'.  */);
   Vbytecomp_version_regexp
     = build_string ("^;;;.\\(in Emacs version\\|bytecomp version FSF\\)");
 
+  DEFVAR_LISP ("eval-buffer-list", &Veval_buffer_list,
+	       doc: /* List of buffers being read from by calls to `eval-buffer' and `eval-region'.  */);
+  Veval_buffer_list = Qnil;
+
   /* Vsource_directory was initialized in init_lread.  */
 
   load_descriptor_list = Qnil;
@@ -4001,6 +4008,9 @@ to load.  See also `load-dangerous-libraries'.  */);
 
   Qload_file_name = intern ("load-file-name");
   staticpro (&Qload_file_name);
+
+  Qeval_buffer_list = intern ("eval-buffer-list");
+  staticpro (&Qeval_buffer_list);
 
   staticpro (&dump_path);
 
