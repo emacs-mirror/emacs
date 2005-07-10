@@ -7,7 +7,7 @@
 ;; Keywords: comparing, merging, patching, tools, unix
 
 (defconst ediff-version "2.80" "The current version of Ediff")
-(defconst ediff-date "June 3, 2005" "Date of last update")
+(defconst ediff-date "July 8, 2005" "Date of last update")
 
 
 ;; This file is part of GNU Emacs.
@@ -1526,15 +1526,15 @@ With optional NODE, goes to that node."
   (add-to-list 'debug-ignored-errors mess))
 
 
+(require 'ediff-util)
+
+(run-hooks 'ediff-load-hook)
+
 ;;; Local Variables:
 ;;; eval: (put 'ediff-defvar-local 'lisp-indent-hook 'defun)
 ;;; eval: (put 'ediff-with-current-buffer 'lisp-indent-hook 1)
 ;;; eval: (put 'ediff-with-current-buffer 'edebug-form-spec '(form body))
 ;;; End:
-
-(require 'ediff-util)
-
-(run-hooks 'ediff-load-hook)
 
 ;;; arch-tag: 97c71396-db02-4f41-8b48-6a51c3348fcc
 ;;; ediff.el ends here

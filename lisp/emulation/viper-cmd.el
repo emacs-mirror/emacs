@@ -36,6 +36,8 @@
 (defvar viper-always)
 (defvar viper-mode-string)
 (defvar viper-custom-file-name)
+(defvar viper--key-maps)
+(defvar viper--intercept-key-maps)
 (defvar iso-accents-mode)
 (defvar quail-mode)
 (defvar quail-current-str)
@@ -92,7 +94,7 @@
 ;; Variables for defining VI commands
 
 ;; Modifying commands that can be prefixes to movement commands
-(defconst viper-prefix-commands '(?c ?d ?y ?! ?= ?# ?< ?> ?\"))
+(defvar viper-prefix-commands '(?c ?d ?y ?! ?= ?# ?< ?> ?\"))
 ;; define viper-prefix-command-p
 (viper-test-com-defun viper-prefix-command)
 
@@ -440,23 +442,24 @@
 ;; This ensures that Viper bindings are in effect, regardless of which minor
 ;; modes were turned on by the user or by other packages.
 (defun viper-normalize-minor-mode-map-alist ()
-  (setq minor-mode-map-alist
-	(viper-append-filter-alist
-	 (list (cons 'viper-vi-intercept-minor-mode viper-vi-intercept-map)
-	       (cons 'viper-vi-minibuffer-minor-mode viper-minibuffer-map)
-	       (cons 'viper-vi-local-user-minor-mode viper-vi-local-user-map)
-	       (cons 'viper-vi-kbd-minor-mode viper-vi-kbd-map)
-	       (cons 'viper-vi-global-user-minor-mode viper-vi-global-user-map)
-	       (cons 'viper-vi-state-modifier-minor-mode
-		     (if (keymapp
-			  (cdr (assoc major-mode
-				      viper-vi-state-modifier-alist)))
-			 (cdr (assoc major-mode viper-vi-state-modifier-alist))
-		       viper-empty-keymap))
-	       (cons 'viper-vi-diehard-minor-mode  viper-vi-diehard-map)
-	       (cons 'viper-vi-basic-minor-mode     viper-vi-basic-map)
-	       (cons 'viper-insert-intercept-minor-mode
-		     viper-insert-intercept-map)
+  (setq viper--intercept-key-maps
+	(list
+	 (cons 'viper-vi-intercept-minor-mode viper-vi-intercept-map)
+	 (cons 'viper-insert-intercept-minor-mode viper-insert-intercept-map)
+	 (cons 'viper-emacs-intercept-minor-mode viper-emacs-intercept-map)
+	 ))
+  (setq viper--key-maps
+	(list (cons 'viper-vi-minibuffer-minor-mode viper-minibuffer-map)
+	      (cons 'viper-vi-local-user-minor-mode viper-vi-local-user-map)
+	      (cons 'viper-vi-kbd-minor-mode viper-vi-kbd-map)
+	      (cons 'viper-vi-global-user-minor-mode viper-vi-global-user-map)
+	      (cons 'viper-vi-state-modifier-minor-mode
+		    (if (keymapp
+			 (cdr (assoc major-mode viper-vi-state-modifier-alist)))
+			(cdr (assoc major-mode viper-vi-state-modifier-alist))
+		      viper-empty-keymap))
+	      (cons 'viper-vi-diehard-minor-mode  viper-vi-diehard-map)
+	      (cons 'viper-vi-basic-minor-mode     viper-vi-basic-map)
 	       (cons 'viper-replace-minor-mode  viper-replace-map)
 	       ;; viper-insert-minibuffer-minor-mode must come after
 	       ;; viper-replace-minor-mode
@@ -476,8 +479,6 @@
 		       viper-empty-keymap))
 	       (cons 'viper-insert-diehard-minor-mode viper-insert-diehard-map)
 	       (cons 'viper-insert-basic-minor-mode viper-insert-basic-map)
-	       (cons 'viper-emacs-intercept-minor-mode
-		     viper-emacs-intercept-map)
 	       (cons 'viper-emacs-local-user-minor-mode
 		     viper-emacs-local-user-map)
 	       (cons 'viper-emacs-kbd-minor-mode viper-emacs-kbd-map)
@@ -490,8 +491,16 @@
 			 (cdr
 			  (assoc major-mode viper-emacs-state-modifier-alist))
 		       viper-empty-keymap))
-	       )
-	 minor-mode-map-alist)))
+	       ))
+	
+  ;; in emacs with emulation-mode-map-alists, nothing needs to be done
+  (unless
+      (and (fboundp 'add-to-ordered-list) (boundp 'emulation-mode-map-alists))
+    (setq minor-mode-map-alist
+	  (viper-append-filter-alist
+	   (append viper--intercept-key-maps viper--key-maps)
+	   minor-mode-map-alist)))
+  )
 
 
 
@@ -1021,7 +1030,7 @@ as a Meta key and any number of multiple escapes is allowed."
 			      (not viper-translate-all-ESC-keysequences))
 			 ;; put keys following ESC on the unread list
 			 ;; and return ESC as the key-sequence
-			 (viper-set-unread-command-events (subseq keyseq 1))
+			 (viper-set-unread-command-events (viper-subseq keyseq 1))
 			 (setq last-input-event event
 			       keyseq (if viper-emacs-p
 					  "\e"
@@ -1032,7 +1041,7 @@ as a Meta key and any number of multiple escapes is allowed."
 			 (viper-set-unread-command-events
 			  (vconcat (vector
 				    (character-to-event (event-key first-key)))
-				   (subseq keyseq 1)))
+				   (viper-subseq keyseq 1)))
 			 (setq last-input-event event
 			       keyseq (vector (character-to-event ?\e))))
 			((eventp first-key)
@@ -3732,7 +3741,8 @@ Null string will repeat previous search."
   (interactive "P")
   (let ((val (viper-P-val arg))
 	(com (viper-getcom arg))
-	(old-str viper-s-string))
+	(old-str viper-s-string)
+	debug-on-error)
     (setq viper-s-forward t)
     (viper-if-string "/")
     ;; this is not used at present, but may be used later
@@ -3744,7 +3754,8 @@ Null string will repeat previous search."
     (if com
 	(progn
 	  (viper-move-marker-locally 'viper-com-point (mark t))
-	  (viper-execute-com 'viper-search-next val com)))))
+	  (viper-execute-com 'viper-search-next val com)))
+    ))
 
 (defun viper-search-backward (arg)
   "Search a string backward.
@@ -3753,7 +3764,8 @@ Null string will repeat previous search."
   (interactive "P")
   (let ((val (viper-P-val arg))
 	(com (viper-getcom arg))
-	(old-str viper-s-string))
+	(old-str viper-s-string)
+	debug-on-error)
     (setq viper-s-forward nil)
     (viper-if-string "?")
     ;; this is not used at present, but may be used later
@@ -3858,7 +3870,8 @@ Null string will repeat previous search."
   "Repeat previous search."
   (interactive "P")
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	(com (viper-getcom arg))
+	debug-on-error)
     (if (null viper-s-string) (error viper-NoPrevSearch))
     (viper-search viper-s-string viper-s-forward arg)
     (if com
@@ -3870,7 +3883,8 @@ Null string will repeat previous search."
   "Repeat previous search in the reverse direction."
   (interactive "P")
   (let ((val (viper-p-val arg))
-	(com (viper-getcom arg)))
+	(com (viper-getcom arg))
+	debug-on-error)
     (if (null viper-s-string) (error viper-NoPrevSearch))
     (viper-search viper-s-string (not viper-s-forward) arg)
     (if com

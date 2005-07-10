@@ -205,6 +205,12 @@ Should be a sexp. For instance (car ediff-filtering-regexp-history) or nil."
 This can be toggled with `ediff-toggle-filename-truncation'."
   :type 'boolean
   :group 'ediff-mult)
+
+(defcustom ediff-meta-mode-hook nil
+  "*Hooks run just after setting up meta mode."
+  :type 'hook
+  :group 'ediff-mult)
+
 (defcustom ediff-registry-setup-hook nil
   "*Hooks run just after the registry control panel is set up."
   :type 'hook
@@ -411,7 +417,8 @@ Commands:
   (kill-all-local-variables)
   (setq major-mode 'ediff-meta-mode)
   (setq mode-name "MetaEdiff")
-  (run-mode-hooks 'ediff-meta-mode-hook))
+  ;; don't use run-mode-hooks here!
+  (run-hooks 'ediff-meta-mode-hook))
 
 
 ;; the keymap for the buffer showing directory differences
