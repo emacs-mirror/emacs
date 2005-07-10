@@ -600,6 +600,31 @@ Applies to the frame whose line point is on in the backtrace."
     (define-key map "\C-m" 'debug-help-follow)
     (define-key map [mouse-2] 'push-button)
     map))
+
+(put 'debugger-mode 'mode-class 'special)
+
+(defun debugger-mode ()
+  "Mode for backtrace buffers, selected in debugger.
+\\<debugger-mode-map>
+A line starts with `*' if exiting that frame will call the debugger.
+Type \\[debugger-frame] or \\[debugger-frame-clear] to set or remove the `*'.
+
+When in debugger due to frame being exited,
+use the \\[debugger-return-value] command to override the value
+being returned from that frame.
+
+Use \\[debug-on-entry] and \\[cancel-debug-on-entry] to control
+which functions will enter the debugger when called.
+
+Complete list of commands:
+\\{debugger-mode-map}"
+  (kill-all-local-variables)
+  (setq major-mode 'debugger-mode)
+  (setq mode-name "Debugger")
+  (setq truncate-lines t)
+  (set-syntax-table emacs-lisp-mode-syntax-table)
+  (use-local-map debugger-mode-map)
+  (run-mode-hooks 'debugger-mode-hook))
 
 (defcustom debugger-record-buffer "*Debugger-record*"
   "*Buffer name for expression values, for \\[debugger-record-expression]."
@@ -646,31 +671,6 @@ For the cross-reference format, see `help-make-xrefs'."
       (when (or (boundp sym) (fboundp sym) (facep sym))
 	(switch-to-buffer-other-window (generate-new-buffer "*Help*"))
 	(help-do-xref pos #'help-xref-interned (list sym))))))
-
-(put 'debugger-mode 'mode-class 'special)
-
-(defun debugger-mode ()
-  "Mode for backtrace buffers, selected in debugger.
-\\<debugger-mode-map>
-A line starts with `*' if exiting that frame will call the debugger.
-Type \\[debugger-frame] or \\[debugger-frame-clear] to set or remove the `*'.
-
-When in debugger due to frame being exited,
-use the \\[debugger-return-value] command to override the value
-being returned from that frame.
-
-Use \\[debug-on-entry] and \\[cancel-debug-on-entry] to control
-which functions will enter the debugger when called.
-
-Complete list of commands:
-\\{debugger-mode-map}"
-  (kill-all-local-variables)
-  (setq major-mode 'debugger-mode)
-  (setq mode-name "Debugger")
-  (setq truncate-lines t)
-  (set-syntax-table emacs-lisp-mode-syntax-table)
-  (use-local-map debugger-mode-map)
-  (run-mode-hooks 'debugger-mode-hook))
 
 ;; When you change this, you may also need to change the number of
 ;; frames that the debugger skips.
