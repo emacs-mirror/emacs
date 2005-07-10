@@ -64,15 +64,15 @@
 (defalias 'flymake-float-time
   (if (fboundp 'float-time)
       'float-time
-    (with-no-warnings
-      (lambda ()
-        (multiple-value-bind (s0 s1 s2) (current-time)
-          (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2)))))))
+    (if (featurep 'xemacs)
+	(lambda ()
+	  (multiple-value-bind (s0 s1 s2) (current-time)
+	    (+ (* (float (ash 1 16)) s0) (float s1) (* 0.0000001 s2)))))))
 
 (defsubst flymake-replace-regexp-in-string (regexp rep str)
-  (if (fboundp 'replace-regexp-in-string)
-      (replace-regexp-in-string regexp rep str)
-    (replace-in-string str regexp rep)))
+  (if (fboundp 'replace-in-string)
+      (replace-in-string str regexp rep)
+    (replace-regexp-in-string regexp rep str)))
 
 (defun flymake-split-string (str pattern)
   "Split STR into a list of substrings bounded by PATTERN.

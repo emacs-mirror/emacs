@@ -1,7 +1,11 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-04-01  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	Reenable support for I18N to Lucid menus.
-	
+
 	* xlwmenuP.h (_XlwMenu_part): Add fontSet resource.
 
 	* xlwmenu.c (string_width):

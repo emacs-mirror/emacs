@@ -1,3 +1,7 @@
+2005-07-04  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
 2005-06-10  Lute Kamstra  <lute@gnu.org>
 
 	* admin.el (set-version): Set version in lisp manual too.

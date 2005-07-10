@@ -1,3 +1,56 @@
+2005-07-07  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule.el (make-coding-system): Describe
+	`ascii-incompatible' property in the docstring.
+	(set-file-name-coding-system): Signal an error if coding-system is
+	ascii-incompatible.
+	(set-keyboard-coding-system): Likewise.
+
+	* international/mule-cmds.el (set-default-coding-systems): Don't
+	set default-file-name-coding-system and
+	default-keyboard-coding-system if coding-system is
+	ASCII-incompatible.
+
+	* international/utf-16.el: Declare that all UTF-16-based coding
+	systems ASCII-incompatible.
+
+2005-07-07  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gud.el: Require font-lock for displaying errors.
+	Used by gdb-ui.el.
+
+2005-07-07  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hi-lock.el (hi-lock-find-patterns): Protect also against invalid
+	values for the pattern lists which are `read'able but not
+	`append'able (like symbols).
+
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* progmodes/flymake.el (flymake-float-time): Instead of
+	with-no-warnings, test for xemacs.
+	(flymake-replace-regexp-in-string): Test fboundp of replace-in-string
+	to avoid warning.
+
+2005-07-06  Juanma Barranquero  <lekktu@gmail.com>
+
+	* w32-vars.el (w32-fixed-font-alist): Fix typo in `defcustom' tag.
+
+2005-07-05  Lute Kamstra  <lute@gnu.org>
+
+	* battery.el: Add support for Darwin (with much debugging help
+	from Samuel Lauber <sam124@operamail.com>).
+	(battery-status-function, battery-echo-area-format)
+	(battery-mode-line-format): Add support for pmset on Darwin.
+	(battery-load-low, battery-load-critical): New user options.
+	(battery-pmset): New function.
+
+2005-07-05  Lute Kamstra  <lute@gnu.org>
+
+	Update FSF's address in GPL notices.
+
+	* textmodes/page-ext.el: Update FSF's address.
+
 2005-07-04  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* emacs-lisp/lisp-mode.el (lisp-mode-variables): Prevent adaptive
@@ -352,7 +405,7 @@
 	font-lock-regexp-backslash.  Doc fix.
 	(font-lock-regexp-backslash-grouping-construct): Rename from
 	font-lock-regexp-backslash-construct.  Doc fix.
-	(lisp-font-lock-keywords-2): Fix highlighting of ELisp regexp
+	(lisp-font-lock-keywords-2): Fix highlighting of Elisp regexp
 	grouping constructs.
 
 2005-07-02  Eli Zaretskii  <eliz@gnu.org>
@@ -628,7 +681,7 @@
 	(facemenu-get-face): Delete function.
 	(facemenu-set-face-from-menu): Don't call facemenu-get-face.
 	(facemenu-add-new-color): Make second argument mandatory.
-	Create the approprate face and return it.  Simplify.
+	Create the appropriate face and return it.  Simplify.
 	(facemenu-set-foreground, facemenu-set-background): Don't check if
 	color is defined.  Use return value of facemenu-add-new-color.
 
@@ -2338,7 +2391,7 @@
 
 2005-05-30  Juanma Barranquero  <lekktu@gmail.com>
 
-	* thumbs.el (thumbs-thumbname): The resulting thubname now
+	* thumbs.el (thumbs-thumbname): The resulting thumbname now
 	includes a hash value to improve its uniqueness, and has a ".jpg"
 	extension.  Also, it is now a valid filename on all systems.
 	(thumbs-make-thumb): Use `let', not `let*'.
@@ -2704,7 +2757,7 @@
 	(gdb-get-selected-frame): Rename from gdb-get-current-frame.
 	(gdb-frame-number): Rename from gdb-current-stack-level.
 	(gdb-ann3): Match new mode-name for disassembly buffer.
-	Extend initialisation of variables.
+	Extend initialization of variables.
 	(gdb-post-prompt): Update disassembly from gdb-frame-handler.
 	(gdb-memory-mode): Use mouse-face in header line.
 	(gdb-assembler-buffer-name): Call it disassembly and give frame
@@ -3207,7 +3260,7 @@
 	overlay initializations.
 	(reftex-highlight): Use `reftex-move-overlay'.
 	(reftex-unhighlight): Use `reftex-delete-overlay'.
-	(reftex-uniq): Funktion removed.  Use `reftex-uniquify' instead.
+	(reftex-uniq): Function removed.  Use `reftex-uniquify' instead.
 	(reftex-access-search-path): Use `reftex-uniquify' instead of
 	`reftex-uniq'
 
@@ -3866,7 +3919,7 @@
 
 	* progmodes/gud.el: Move code for GUD tooltips from tooltip.el.
 	(require): CL needed to compile case.
-	(gud-tooltip-mode): Use to toggle GUD tooltips unstead of
+	(gud-tooltip-mode): Use to toggle GUD tooltips instead of
 	tooltip-gud-tips-p.  Make it a minor-mode.
 	(gud-find-file): Only prepare GUD tooltips if gud-tooltip-mode is t.
 	(gud-menu-map): GUD tooltips use gud-tooltip-mode now.
@@ -4011,7 +4064,7 @@
 
 2005-05-04  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OSX.
+	* progmodes/cmacexp.el (c-macro-preprocessor): Update for Mac OS X.
 
 2005-05-04  Richard M. Stallman  <rms@gnu.org>
 
@@ -4208,7 +4261,7 @@
 2005-04-30  Nick Roberts  <nickrob@snap.net.nz>
 
 	* progmodes/cc-mode.el (cc-create-define-alist): Check that file
-	exists.  Initialise cc-define-alist.
+	exists.  Initialize cc-define-alist.
 	(c-mode): Add cc-create-define-alist locally to after-save-hook.
 	If there is no file (Macroexpansion) don't create an alist.
 
@@ -4300,7 +4353,7 @@
 
 	* progmodes/cc-mode.el (cc-create-define-alist): New function.
 	(cc-define-alist): New variable.
-	(c-mode): Make it local and initialise it.
+	(c-mode): Make it local and initialize it.
 
 	* progmodes/gdb-ui.el (gdb-active-process): New variable.
 	(gdb-exited): New function.
@@ -4831,7 +4884,7 @@
 	(org-last-todo-state-is-todo): New variable.
 	(org-todo): Set `org-last-todo-state-is-todo'.
 	(org-agenda-todo): Change face according to
-	`org-last-todo-state-is-todo'.  And change other lines refering to
+	`org-last-todo-state-is-todo'.  And change other lines referring to
 	the same entry.
 	(org-calendar-goto-agenda): New command.
 	(org-calendar-to-agenda-key): New option.
@@ -5713,7 +5766,7 @@
 
 2005-03-30  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gud.el (gdb): (Re)-initialise gud-filter-pending-text.
+	* progmodes/gud.el (gdb): (Re)-initialize gud-filter-pending-text.
 	(gud-filter-pending-text): Move in front of gdb.
 	(gud-overlay-arrow-position): New variable.
 	(gud-sentinel, gud-display-line): Use it in place of
@@ -6318,7 +6371,7 @@
 2005-03-19  Michael R. Mauger  <mmaug@yahoo.com>
 
 	* recentf.el (recentf-cleanup-remote): New variable.
-	(recentf-cleanup): Use it to conditionally check availablity of
+	(recentf-cleanup): Use it to conditionally check availability of
 	remote files.
 
 2005-03-19  Joe Edmonds  <joe-bugs-debian-org@elem.com>  (tiny change)
@@ -6595,7 +6648,7 @@
 	* simple.el (next-line, previous-line): Add optional try-vscroll
 	arg to recognize interactive use.  Pass it on to line-move.
 	(line-move): Don't perform auto-window-vscroll when defining or
-	executing keyboard macro to ensure consistent behaviour.
+	executing keyboard macro to ensure consistent behavior.
 
 2005-03-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
@@ -6691,7 +6744,7 @@
 	* tooltip.el (tooltip-mode): Use define-minor-mode and simplify.
 	(tooltip-activate-mouse-motions-if-enabled): Use dolist.
 	(tooltip-gud-tips): Simplify.
-	(tooltip-gud-tips-p): Remove superflouous :set.
+	(tooltip-gud-tips-p): Remove superfluous :set.
 	(tooltip-gud-modes): Add fortran-mode.
 	(gdb-tooltip-print): Remove newline for tooltip-use-echo-area.
 
@@ -7844,7 +7897,7 @@
 	* progmodes/gdb-ui.el (gdb-info-breakpoints-custom)
 	(gdb-goto-breakpoint): Make breakpoint handling work on template
 	functions in C++.  Reported by Martin Reed <mjreed@essex.ac.uk>
-	(gdb-assembler-custom): Update to recognise breakpoint information
+	(gdb-assembler-custom): Update to recognize breakpoint information
 	added on 2005-01-19.
 
 2005-01-28  Stefan Monnier  <monnier@iro.umontreal.ca>
@@ -8013,7 +8066,7 @@
 2005-01-19  Steven Tamm  <steventamm@mac.com>
 
 	* term/mac-win.el (process-connection-type): Use new
-	operating-system-release variable to use ptys on Darwin 7 (OSX
+	operating-system-release variable to use ptys on Darwin 7 (OS X
 	10.3) when using carbon build.
 
 2005-01-19  Jay Belanger  <belanger@truman.edu>
@@ -9502,7 +9555,7 @@
 
 2004-12-11  Dan Nicolaescu  <dann@ics.uci.edu>
 
-	* term.el (term-termcap-format): Synchronyze with terminfo.
+	* term.el (term-termcap-format): Synchronize with terminfo.
 	(term-emulate-terminal): Handle reset.
 	(term-reset-terminal): New function.
 
@@ -12610,7 +12663,7 @@
 
 2004-10-06  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-ann3): (Re-)initialise gdb-input-queue.
+	* progmodes/gdb-ui.el (gdb-ann3): (Re-)initialize gdb-input-queue.
 
 2004-10-06  John Paul Wallington  <jpw@gnu.org>
 
@@ -12773,7 +12826,7 @@
 	(term-mode): Set `indent-tabs-mode' to nil.
 	(term-paste): New function to be bound to S-insert.
 	(term-send-del, term-send-backspace): Change the strings sent.
-	(term-termcap-format): Synchronyze with etc/e/eterm.ti.
+	(term-termcap-format): Synchronize with etc/e/eterm.ti.
 	(term-handle-colors-array): Fix handling of underline and reverse.
 	(term-handle-ansi-escape): Do not handle smcup/rmcup.  Add comments.
 	(term-erase-in-line): Fix comparison.
@@ -12836,7 +12889,7 @@
 	easter, not all easter holidays.  Various Easter holidays moved to
 	`christian-holidays' variable in calendar.el.
 	* calendar/calendar.el (christian-holidays): Adapt for new
-	behaviour of `holiday-advent' and `holiday-easter-etc' functions.
+	behavior of `holiday-advent' and `holiday-easter-etc' functions.
 
 2004-09-23  Kim F. Storm  <storm@cua.dk>
 
@@ -13003,14 +13056,14 @@
 
 	* term.el (term-down): Perform vertical motion if DOWN is negative.
 	(term-exec-1): Set both TERMCAP and TERMINFO unconditionally.
-	(term-termcap-format): Synchronyze with the eterm terminfo entry
+	(term-termcap-format): Synchronize with the eterm terminfo entry
 	in etc/e/eterm.ti.
 	(term-handle-colors-array): If the current foreground or
 	background are zero (i.e. unspecified), use the foreground and
 	background of the default face for reverse video.
 	(term-ansi-at-eval-string, term-ansi-default-fg)
 	(term-ansi-default-bg, term-ansi-current-temp): Delete unused variable.
-	(term-mem): Delete ununsed function.
+	(term-mem): Delete unused function.
 	(term-protocol-version): Increment.
 	(term-current-face): Set to default.
 
@@ -13282,7 +13335,7 @@
 	length, ps-mule-string-char -> aref, ps-mule-next-index -> 1+,
 	ps-mule-next-point -> 1+).
 
-	* composite.el (encode-composition-rule): Add autoload cooky.
+	* composite.el (encode-composition-rule): Add autoload cookie.
 
 2004-09-07  Luc Teirlinck  <teirllm@auburn.edu>
 
@@ -13669,7 +13722,7 @@
 	* simple.el (shell-command-on-region): New arg DISPLAY-ERROR-BUFFER
 	controls whether to display the error buffer.
 
-	* ps-mule.el: Delete compatibility code for old Emacses.
+	* ps-mule.el: Delete compatibility code for old Emacsen.
 	(ps-mule-find-wrappoint): Don't use chars-in-region.
 
 	* frame.el (display-mouse-p, display-selections-p):
@@ -13965,7 +14018,7 @@
 	the buffer has no recorded last modification time.  Return t in
 	case the visiting file doesn't exist.  Suggested by Luc Teirlinck
 	<teirllm@auburn.edu>.
-	(tramp-handle-write-region): Pass modtime explicitely to
+	(tramp-handle-write-region): Pass modtime explicitly to
 	`set-visited-file-modtime', because filename can be different
 	from (buffer-file-name) if `file-precious-flag' is set.
 	`set-visited-file-modtime' must be called always when `visit' is t
@@ -14221,7 +14274,7 @@
 	since Emacs 22.1 only (XEmacs has it).  Implementation rewritten
 	in order to avoid this function.
 	(tramp-handle-write-region): Set current buffer.  If connection
-	wasn't open, `file-modes' has changed it accidently.  Reported by
+	wasn't open, `file-modes' has changed it accidentally.  Reported by
 	David Kastrup <dak@gnu.org>.
 	(tramp-enter-password, tramp-read-passwd): New arguments USER and
 	HOST.
@@ -14381,11 +14434,11 @@
 	number of symbols used.
 	(xml-skip-dtd): Change to use xml-parse-dtd but set
 	xml-validating-parsing to nil.
-	(xml-parse-dtd): Parse entity deleclarations in DOCTYPEs.
+	(xml-parse-dtd): Parse entity declarations in DOCTYPEs.
 	(xml-substitute-entity): Remove in favor of new entity substitution.
 	(xml-substitute-special): Rewrite in to substitute complex
 	entities from DOCTYPE declarations.
-	(xml-parse-fragment): Parse fragments from entity deleclarations.
+	(xml-parse-fragment): Parse fragments from entity declarations.
 	(xml-parse-region, xml-parse-tag, xml-parse-attlist)
 	(xml-parse-dtd, xml-substitute-special): Make validity checks
 	conditioned on xml-validating-parser.  Add "Not Well Formed" to
@@ -14448,7 +14501,7 @@
 	* iimage.el (turn-on-iimage-mode, iimage-mode): Add autoload cookies.
 	(iimage-mode-image-search-path): New user option to search the
 	image file.
-	(iimage-locate-file): New funcion.  Emacs21.3 or earlier does not
+	(iimage-locate-file): New function.  Emacs21.3 or earlier does not
 	have locate-file.
 	(iimage-mode-buffer): Use it.
 
@@ -14828,7 +14881,7 @@
 	(utf-8-post-read-conversion): Narrow to region properly.
 	If utf-translate-cjk-mode is on, load tables if necessary.
 	Call utf-8-compose with hash-table arg if necessary.
-	Call XXX-compose-region instead of XXX-post-read-convesion.
+	Call XXX-compose-region instead of XXX-post-read-conversion.
 	(utf-8-pre-write-conversion): New function.
 	(mule-utf-8): Include CJK charsets in safe-charsets if
 	utf-translate-cjk-mode is on.  Add pre-write-conversion.
@@ -15102,7 +15155,7 @@
 
 2004-06-04  Mario Lang  <mlang@delysid.org>
 
-	* battery.el (battery-linux-proc-acpi): `mA' was hardcored, but some
+	* battery.el (battery-linux-proc-acpi): `mA' was hardcoded, but some
 	systems appear to use mW, make the code handle this.  Fix a
 	division-by-zero bug while at it, and handle kernels with
 	a slightly different layout in /proc/acpi.
@@ -15246,7 +15299,7 @@
 2004-05-30  Michael Albinus  <michael.albinus@gmx.de>
 
 	* files.el (file-remote-p): Apply file name handler for operation
-	`file-remote-p'.  It isn' a property any longer.
+	`file-remote-p'.  It isn't a property any longer.
 	(file-relative-name): `fh' and `fd' get the required value via
 	`find-file-name-handler' already.
 
@@ -15573,7 +15626,7 @@
 	(gdb-buffer-type, gdb-input-queue, gdb-prompting)
 	(gdb-output-sink, gdb-current-item, gdb-pending-triggers):
 	Change from local to global gdb variable set.
-	(gdb-ann3): Initialise above gdb variable set.
+	(gdb-ann3): Initialize above gdb variable set.
 	(gdb-var-update, gdb-var-update-handler, gdb-enqueue-input)
 	(gdb-dequeue-input, gdb-source, gdb-pre-prompt, gdb-prompt)
 	(gdb-subprompt, gdb-starting, gdb-stopping, gdb-frame-begin)
@@ -15861,7 +15914,7 @@
 
 2004-05-12  Kenichi Handa  <handa@m17n.org>
 
-	* descr-text.el: Require quail at comile time.
+	* descr-text.el: Require quail at compile time.
 	(describe-char): If an input method is on and it supports the
 	character, show how to input it.
 
@@ -16247,7 +16300,7 @@
 
 	* emacs/lisp/progmodes/sql.el (sql-xemacs-p, sql-emacs19-p)
 	(sql-emacs20-p): Remove.
-	(sql-mode-syntax-table): Use shared GNU EMacs/XEmacs syntax.
+	(sql-mode-syntax-table): Use shared GNU Emacs/XEmacs syntax.
 	(sql-builtin-face, sql-doc-face): Remove.
 	(sql-mode-ansi-font-lock-keywords)
 	(sql-mode-oracle-font-lock-keywords)
@@ -16685,7 +16738,7 @@
 	either a character representation of an event or an event
 	description list.
 
-	* type-break.el: Capitalise Emacs and Lisp.
+	* type-break.el: Capitalize Emacs and Lisp.
 	(type-break-good-break-interval, type-break-demo-boring-stats)
 	(type-break-terse-messages, type-break-file-name): New defcustoms.
 	(type-break-post-command-hook)
@@ -16693,7 +16746,7 @@
 	(type-break-interval-start, type-break-auto-save-file-name): New vars.
 	(type-break-mode): Document type-break-good-break-interval and the
 	"session" file.  Schedule break according to the session file.
-	Kill session file buffer on exit.  Organise for save-some-buffers
+	Kill session file buffer on exit.  Organize for save-some-buffers
 	to always save the session file.
 	(type-break-mode-line-message-mode, type-break-query-mode):
 	Uppercase arguments.
@@ -17155,7 +17208,7 @@
 	(gdb-frame-breakpoints-buffer, gdb-frame-stack-buffer)
 	(gdb-frame-threads-buffer, gdb-frame-registers-buffer)
 	(gdb-frame-locals-buffer, gdb-frame-gdb-buffer)
-	(gdb-frame-assembler-buffer): Improve behaviour with
+	(gdb-frame-assembler-buffer): Improve behavior with
 	multiple frames.
 	(gdb-display-buffer): Extend search to all visible frames.
 
@@ -17831,7 +17884,7 @@
 
 2004-03-31  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* autorevert.el: Delete obsolete autoload's and defvar's.
+	* autorevert.el: Delete obsolete autoloads and defvars.
 	(auto-revert-check-vc-info): New user option.
 	(auto-revert-vc-cvs-file-version, auto-revert-vc-buffer-p)
 	(auto-revert-handler-vc): Delete.
@@ -17960,7 +18013,7 @@
 
 	* strokes.el (strokes-global-set-stroke-string): New function.
 	(strokes-list-strokes): Cope with strings, not just commands.
-	Set foreground colour of image.
+	Set foreground color of image.
 	(strokes-global-set-stroke): Doc fix.
 
 2004-03-26  Luc Teirlinck  <teirllm@auburn.edu>
@@ -18061,7 +18114,7 @@
 
 	* descr-text.el (describe-property-list): Add a button
 	for `face' property that calls `describe-face'.
-	Suggested by luis fernandes <elf@ee.ryerson.ca>
+	Suggested by Luis Fernandes <elf@ee.ryerson.ca>
 
 	* international/mule.el (keyboard-coding-system):
 	* kmacro.el (kmacro-call-macro): Fix docstring.
@@ -18442,7 +18495,7 @@
 	(ruler-mode-left-scroll-bar-cols): Use `scroll-bar-columns'.
 	(ruler-mode-ruler-function): New variable.
 	(ruler-mode-header-line-format): Call `ruler-mode-ruler-function'
-	if the value for `ruler-mode-ruler-function'is given.
+	if the value for `ruler-mode-ruler-function' is given.
 
 	* hexl.el (hexl-mode-hook): Make the hook customizable.
 	(hexl-address-area, hexl-ascii-area): New customize variables.
@@ -18816,7 +18869,7 @@
 
 	* net/tramp.el (tramp-completion-mode) Don't check for 'xemacs' but
 	`tramp-unified-filenames'.
-	(tramp-completion-mode): Make test for XEmacs explicitely.
+	(tramp-completion-mode): Make test for XEmacs explicitly.
 	`event-to-character' can exists in Emacs packages too.
 	Reported by Matt Swift <swift@alum.mit.edu>.
 	(tramp-buffer-name): Buffer name must contain the user if exists.
@@ -19289,7 +19342,7 @@
 	* ses.el: Use "ses--" prefixes for buffer-local variables.
 	Use (point-min) instead of 1, even when we know the buffer
 	is unnarrowed.
-	(ses-build-load-map): Delete.  Distribute its content to defconst's for
+	(ses-build-load-map): Delete.  Distribute its content to defconsts for
 	the three maps.
 	(ses-menu, ses-header-line-menu): New menus.
 	(ses-mode-map): Use them.
@@ -19411,7 +19464,7 @@
 	minibuffer windows.
 
 	* progmodes/grep.el (grep-regexp-alist): Allow :, \t and (
-	in file names, as long as it is unabmiguous.
+	in file names, as long as it is unambiguous.
 
 2004-02-08  Andreas Schwab  <schwab@suse.de>
 
@@ -19884,7 +19937,7 @@
 
 	* calendar/appt.el: Update copyright and commentary.
 	(appt-issue-message): Make obsolete.
-	(appt-visible, appt-msg-window): Make obsolete, in favour of
+	(appt-visible, appt-msg-window): Make obsolete, in favor of
 	appt-display-format.
 	(appt-display-mode-line, appt-display-duration)
 	(appt-display-diary, appt-time-msg-list, appt-mode-string)
@@ -20275,7 +20328,7 @@
 
 	* gdb-ui.el (gdb-prompt): Change filter for level 3 annotations,
 	if necessary.
-	(gdb-ann3): New function.  Initialise M-x gdb as for M-x gdba if
+	(gdb-ann3): New function.  Initialize M-x gdb as for M-x gdba if
 	annotations are detected.
 	(gud-gdba-marker-filter): Use global variable gud-marker-acc
 	instead of a local one to allow transition from
@@ -22287,7 +22340,7 @@
 	* calendar/calendar.el (diary-file, diary-file-name-prefix)
 	(european-calendar-style, diary-date-forms)
 	(calendar-day-name-array, calendar-month-name-array): Doc change.
-	(generate-calendar-month): Adapt for new behaviour of
+	(generate-calendar-month): Adapt for new behavior of
 	`calendar-day-name' function.
 	(calendar-abbrev-length, calendar-day-abbrev-array)
 	(calendar-month-abbrev-array): New variables.
@@ -22295,39 +22348,39 @@
 	(calendar-day-name, calendar-month-name): Use new abbrev arrays,
 	rather than fixing abbrevs at some width.  Calling syntax change.
 	(calendar-make-alist): Use abbrev arrays.  Calling syntax change.
-	(calendar-date-string): Adapt for new behaviours of
+	(calendar-date-string): Adapt for new behaviors of
 	`calendar-day-name' and `calendar-month-name' functions.
 
 	* calendar/diary-lib.el (list-diary-entries): Adapt for new
-	behaviour of `calendar-day-name' and `calendar-month-name' functions.
+	behavior of `calendar-day-name' and `calendar-month-name' functions.
 	(diary-name-pattern): Use abbrev arrays, rather than fixing
 	abbrevs at three chars.  Calling syntax change.
-	(mark-diary-entries): Adapt for new behaviours of
+	(mark-diary-entries): Adapt for new behaviors of
 	`diary-name-pattern' and `calendar-make-alist' functions.
-	(fancy-diary-font-lock-keywords): Adapt for new behaviour of
+	(fancy-diary-font-lock-keywords): Adapt for new behavior of
 	`diary-name-pattern' function.
 	(font-lock-diary-date-forms): Use abbrev arrays, rather than
 	fixing abbrevs at three chars.  Calling syntax change.
 	(cal-hebrew, cal-islam): Require when compiling.
-	(diary-font-lock-keywords): Adapt for new behaviour of
+	(diary-font-lock-keywords): Adapt for new behavior of
 	`font-lock-diary-date-forms' function.
 
 	* calendar/cal-hebrew.el: Reposition some code so defined before used.
 	(calendar-hebrew-month-name-array-common-year)
 	(calendar-hebrew-month-name-array-leap-year): Add doc strings.
-	(list-hebrew-diary-entries): Adapt for new behaviours of
+	(list-hebrew-diary-entries): Adapt for new behaviors of
 	`calendar-day-name' and `add-to-diary-list' functions.
-	(mark-hebrew-diary-entries): Adapt for new behaviours of
+	(mark-hebrew-diary-entries): Adapt for new behaviors of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 
 	* calendar/cal-islam.el (calendar-islamic-month-name-array):
 	Add doc string.
-	(list-islamic-diary-entries): Adapt for new behaviours of
+	(list-islamic-diary-entries): Adapt for new behaviors of
 	`calendar-day-name' and `add-to-diary-list' functions.
-	(mark-islamic-diary-entries): Adapt for new behaviours of
+	(mark-islamic-diary-entries): Adapt for new behaviors of
 	`diary-name-pattern' and `calendar-make-alist' functions.
 
-	* calendar/cal-menu.el (cal-menu-update): Adapt for new behaviour of
+	* calendar/cal-menu.el (cal-menu-update): Adapt for new behavior of
 	`calendar-month-name' function.
 
 	* calendar/cal-coptic.el (coptic-name): defvar rather than defconst.

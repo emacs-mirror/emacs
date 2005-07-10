@@ -143,7 +143,7 @@ menu if the variable `w32-use-w32-font-dialog' is nil."
 	      (string :tag "Title")
 	      (repeat :inline t
 	       (choice :tag ""
-		(const :tag "Seperator" (""))
+		(const :tag "Separator" (""))
 		(list :tag "Font Entry"
 		      (string :tag "Menu text")
 		      (string :tag "Font")))))))

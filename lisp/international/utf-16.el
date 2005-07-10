@@ -504,6 +504,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    '(ccl-decode-mule-utf-16le . ccl-encode-mule-utf-16le)
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
+     (ascii-incompatible . t)
      (mime-charset . utf-16le)))
 
   (make-coding-system
@@ -515,6 +516,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    '(ccl-decode-mule-utf-16be . ccl-encode-mule-utf-16be)
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
+     (ascii-incompatible . t)
      (mime-charset . utf-16be)))
 
   (make-coding-system
@@ -528,6 +530,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
      (coding-category . coding-category-utf-16-le)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 
   (make-coding-system
@@ -541,6 +544,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . utf-8-post-read-conversion)
      (coding-category . coding-category-utf-16-be)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 
   (make-coding-system
@@ -553,6 +557,7 @@ sequence representing U+FFFD (REPLACEMENT CHARACTER).")
    `(,@props
      (post-read-conversion . mule-utf-16-post-read-conversion)
      (coding-category . coding-category-utf-16-be)
+     (ascii-incompatible . t)
      (mime-charset . utf-16)))
 )
 

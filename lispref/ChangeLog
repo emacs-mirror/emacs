@@ -1,3 +1,18 @@
+2005-07-06  Richard M. Stallman  <rms@gnu.org>
+
+	* searching.texi (Regexp Search): Clarify what re-search-forward
+	does when the search fails.
+
+2005-07-05  Lute Kamstra  <lute@gnu.org>
+
+	* Update FSF's address in GPL notices.
+
+	* doclicense.texi (GNU Free Documentation License):
+	* gpl.texi (GPL):
+	* tips.texi (Coding Conventions, Library Headers):
+	* vol1.texi:
+	* vol2.texi: Update FSF's address.
+
 2005-07-04  Richard M. Stallman  <rms@gnu.org>
 
 	* hooks.texi (Standard Hooks): Add occur-hook.
