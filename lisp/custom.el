@@ -76,6 +76,28 @@ if any, or VALUE."
 		 (eval (car (get symbol 'saved-value)))
 	       (eval value)))))
 
+(defun custom-initialize-safe-set (symbol value)
+  "Like `custom-initialize-set', but catches errors.
+If an error occurs during initialization, SYMBOL is set to nil
+and no error is thrown.  This is meant for use in pre-loaded files
+where some variables used to compute VALUE are not yet defined.
+You can then re-evaluate VALUE in startup.el, for instance using
+`custom-reevaluate-setting'."
+  (condition-case nil
+      (custom-initialize-set symbol value)
+    (error (set-default symbol nil))))
+
+(defun custom-initialize-safe-default (symbol value)
+  "Like `custom-initialize-default', but catches errors.
+If an error occurs during initialization, SYMBOL is set to nil
+and no error is thrown.  This is meant for use in pre-loaded files
+where some variables used to compute VALUE are not yet defined.
+You can then re-evaluate VALUE in startup.el, for instance using
+`custom-reevaluate-setting'."
+  (condition-case nil
+      (custom-initialize-default symbol value)
+    (error (set-default symbol nil))))
+
 (defun custom-initialize-reset (symbol value)
   "Initialize SYMBOL based on VALUE.
 Set the symbol, using its `:set' function (or `set-default' if it has none).
