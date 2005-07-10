@@ -2244,6 +2244,7 @@ error is signaled again."
 	    (max-specpdl-size (+ 200 max-specpdl-size))
 
 	    (debugger edebug-debugger)  ; only while edebug is active.
+	    (edebug-with-timeout-suspend (with-timeout-suspend))
 	    (edebug-outside-debug-on-error debug-on-error)
 	    (edebug-outside-debug-on-quit debug-on-quit)
 	    ;; Binding these may not be the right thing to do.
@@ -2289,6 +2290,7 @@ error is signaled again."
 	      (edebug-enter edebug-function edebug-args edebug-body))
 	  ;; Reset global variables in case outside value was changed.
 	  (setq executing-kbd-macro edebug-outside-executing-macro)
+	  (with-timeout-unsuspend edebug-with-timeout-suspend)
 	  (edebug-restore-status
 	   'post-command-hook edebug-outside-post-command-hook)
 	  (edebug-restore-status
