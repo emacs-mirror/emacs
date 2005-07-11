@@ -1,3 +1,9 @@
+2005-07-11  Juanma Barranquero  <lekktu@gmail.com>
+
+	* custom.el (custom-enable-theme): Don't add theme to
+	`custom-enabled-themes' with `push' because there is no
+	setf-method for `delq'.
+
 2005-07-11  Richard M. Stallman  <rms@gnu.org>
 
 	* custom.el (custom-declare-variable): Doc fix.
