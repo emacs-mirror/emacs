@@ -983,10 +983,16 @@ Every theme X has a property `provide-theme' whose value is \"X-theme\".
 ;; settings of enabled themes that apply to it.
 ;; The property value is a list of settings, each with the form
 ;; (THEME MODE VALUE).  THEME, MODE and VALUE are as above.
+;; Each of these lists is ordered by decreasing theme precedence.
+;; Thus, the first element is always the one that is in effect.
 
-;; When a theme is disabled, its settings are removed from the
-;; `theme-value' and `theme-face' properties, but the
-;; theme's own `theme-settings' property remains unchanged.
+;; Disabling a theme removes its settings from the `theme-value' and
+;; `theme-face' properties, but the theme's own `theme-settings'
+;; property remains unchanged.
+
+;; Loading a theme implicitly enables it.  Enabling a theme adds its
+;; settings to the symbols' `theme-value' and `theme-face' properties,
+;; or moves them to the front of those lists if they're already present.
 
 (defvar custom-loaded-themes nil
   "Custom themes that have been loaded.")
@@ -1101,7 +1107,7 @@ If it is already enabled, just give it highest precedence (after `user')."
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
 	  (custom-theme-recalc-face symbol)))))
-  (push theme custom-enabled-themes)
+  (push theme (delq theme custom-enabled-themes))
   ;; `user' must always be the highest-precedence enabled theme.
   (unless (eq theme 'user)
     (custom-enable-theme 'user)))
