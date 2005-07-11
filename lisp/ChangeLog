@@ -1,5 +1,8 @@
 2005-07-11  Richard M. Stallman  <rms@gnu.org>
 
+	* dired-aux.el (dired-compare-directories): Remove "." and ".."
+	from the alists.
+
 	* emacs-lisp/edebug.el (edebug-slow-after, edebug-slow-before):
 	Do nothing if edebug-active.
 
