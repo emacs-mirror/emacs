@@ -1,3 +1,9 @@
+2005-07-10  Chong Yidong  <cyd@stupidchicken.com>
+
+	* longlines.el (longlines-show-region)
+	(longlines-unshow-hard-newlines): Recognize hard newlines by
+	non-nil hard property, instead of t.
+
 2005-07-10  Michael Kifer  <kifer@cs.stonybrook.edu>
 
 	* viper-cmd.el (viper--key-maps): New variable.
