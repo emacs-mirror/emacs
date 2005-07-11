@@ -640,7 +640,7 @@ You cannot specify either `width' or `height', you must use neither or both.
  (window-system . nil)	The frame should be displayed on a terminal device.
  (window-system . x)	The frame should be displayed in an X window.
 
- (display-id . ID)      The frame should use the display identified by ID.
+ (device . ID)          The frame should use the display device identified by ID.
 
 Before the frame is created (via `frame-creation-function-alist'), functions on the
 hook `before-make-frame-hook' are run.  After the frame is created, functions
@@ -653,11 +653,11 @@ instance if the frame appears under the mouse pointer and your
 setup is for focus to follow the pointer."
   (interactive)
   (let* ((w (cond
-	     ((assq 'display-id parameters)
-	      (let ((type (display-live-p (cdr (assq 'display-id parameters)))))
+	     ((assq 'device parameters)
+	      (let ((type (display-live-p (cdr (assq 'device parameters)))))
 		(cond
 		 ((eq type t) nil)
-		 ((eq type nil) (error "Display %s does not exist" (cdr (assq 'display-id parameters))))
+		 ((eq type nil) (error "Display %s does not exist" (cdr (assq 'device parameters))))
 		 (t type))))
 	     ((assq 'window-system parameters)
 	      (cdr (assq 'window-system parameters)))

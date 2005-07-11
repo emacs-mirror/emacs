@@ -461,6 +461,7 @@ THINGS TO DO
     display-name                        terminal-name
     display-tty-type                    terminal-tty-type
     frame-display                       terminal-of-frame
+    delete-display			delete-terminal
 
 ** The semantics of terminal-local variables are confusing; it is not
    clear what binding is in effect in any given time.  See if

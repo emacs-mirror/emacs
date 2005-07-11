@@ -239,17 +239,18 @@ check_x_frame (frame)
   return f;
 }
 
-/* Let the user specify an X display with a frame.
+/* Let the user specify an X display with a Lisp object.
+   OBJECT may be nil, a frame or a device id.
    nil stands for the selected frame--or, if that is not an X frame,
    the first X display on the list.  */
 
 struct x_display_info *
-check_x_display_info (frame)
-     Lisp_Object frame;
+check_x_display_info (object)
+     Lisp_Object object;
 {
   struct x_display_info *dpyinfo = NULL;
 
-  if (NILP (frame))
+  if (NILP (object))
     {
       struct frame *sf = XFRAME (selected_frame);
 
@@ -260,20 +261,20 @@ check_x_display_info (frame)
       else
 	error ("X windows are not in use or not initialized");
     }
-  else if (INTEGERP (frame))
+  else if (INTEGERP (object))
     {
-      struct display *d = get_display (XINT (frame), 1);
+      struct device *d = get_device (XINT (object), 1);
 
       if (d->type != output_x_window)
-        error ("Display %d is not an X display", XINT (frame));
+        error ("Display %d is not an X display", XINT (object));
 
       dpyinfo = d->display_info.x;
     }
-  else if (STRINGP (frame))
-    dpyinfo = x_display_info_for_name (frame);
+  else if (STRINGP (object))
+    dpyinfo = x_display_info_for_name (object);
   else
     {
-      FRAME_PTR f = check_x_frame (frame);
+      FRAME_PTR f = check_x_frame (object);
       dpyinfo = FRAME_X_DISPLAY_INFO (f);
     }
 
@@ -1444,10 +1445,10 @@ x_set_scroll_bar_foreground (f, value, oldval)
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
     {
       /* Remove all scroll bars because they have wrong colors.  */
-      if (FRAME_DISPLAY (f)->condemn_scroll_bars_hook)
-	(*FRAME_DISPLAY (f)->condemn_scroll_bars_hook) (f);
-      if (FRAME_DISPLAY (f)->judge_scroll_bars_hook)
-	(*FRAME_DISPLAY (f)->judge_scroll_bars_hook) (f);
+      if (FRAME_DEVICE (f)->condemn_scroll_bars_hook)
+	(*FRAME_DEVICE (f)->condemn_scroll_bars_hook) (f);
+      if (FRAME_DEVICE (f)->judge_scroll_bars_hook)
+	(*FRAME_DEVICE (f)->judge_scroll_bars_hook) (f);
 
       update_face_from_frame_parameter (f, Qscroll_bar_foreground, value);
       redraw_frame (f);
@@ -1493,10 +1494,10 @@ x_set_scroll_bar_background (f, value, oldval)
   if (FRAME_X_WINDOW (f) && FRAME_VISIBLE_P (f))
     {
       /* Remove all scroll bars because they have wrong colors.  */
-      if (FRAME_DISPLAY (f)->condemn_scroll_bars_hook)
-	(*FRAME_DISPLAY (f)->condemn_scroll_bars_hook) (f);
-      if (FRAME_DISPLAY (f)->judge_scroll_bars_hook)
-	(*FRAME_DISPLAY (f)->judge_scroll_bars_hook) (f);
+      if (FRAME_DEVICE (f)->condemn_scroll_bars_hook)
+	(*FRAME_DEVICE (f)->condemn_scroll_bars_hook) (f);
+      if (FRAME_DEVICE (f)->judge_scroll_bars_hook)
+	(*FRAME_DEVICE (f)->judge_scroll_bars_hook) (f);
 
       update_face_from_frame_parameter (f, Qscroll_bar_background, value);
       redraw_frame (f);
@@ -3007,14 +3008,14 @@ This function is an internal primitive--use `make-frame' instead.  */)
      until we know if this frame has a specified name.  */
   Vx_resource_name = Vinvocation_name;
 
-  display = x_get_arg (dpyinfo, parms, Qdisplay_id, 0, 0, RES_TYPE_NUMBER);
+  display = x_get_arg (dpyinfo, parms, Qdevice, 0, 0, RES_TYPE_NUMBER);
   if (EQ (display, Qunbound))
     display = x_get_arg (dpyinfo, parms, Qdisplay, 0, 0, RES_TYPE_STRING);
   if (EQ (display, Qunbound))
     display = Qnil;
   dpyinfo = check_x_display_info (display);
 #ifdef MULTI_KBOARD
-  kb = dpyinfo->frame_display->kboard;
+  kb = dpyinfo->device->kboard;
 #else
   kb = &the_only_kboard;
 #endif
@@ -3059,8 +3060,8 @@ This function is an internal primitive--use `make-frame' instead.  */)
   /* Note that X Windows does support scroll bars.  */
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 1;
 
-  f->display = dpyinfo->frame_display;
-  f->display->reference_count++;
+  f->device = dpyinfo->device;
+  f->device->reference_count++;
 
   f->output_method = output_x_window;
   f->output_data.x = (struct x_output *) xmalloc (sizeof (struct x_output));
@@ -3475,10 +3476,10 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   if (dpyinfo->n_planes <= 2)
     return Qnil;
@@ -3500,13 +3501,13 @@ DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        0, 1, 0,
        doc: /* Return t if the X display supports shades of gray.
 Note that color displays do support shades of gray.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
-If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
+If omitted or nil, that stands for the selected frame's display device.  */)
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   if (dpyinfo->n_planes <= 1)
     return Qnil;
@@ -3528,56 +3529,56 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Returns the width in pixels of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns the width in pixels of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (dpyinfo->width);
 }
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns the height in pixels of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (dpyinfo->height);
 }
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns the number of bitplanes of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (dpyinfo->n_planes);
 }
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns the number of color cells of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   int nr_planes = DisplayPlanes (dpyinfo->display,
                                  XScreenNumberOfScreen (dpyinfo->screen));
@@ -3595,29 +3596,29 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the X server of display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns the maximum request size of the X server of display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (MAXREQUEST (dpyinfo->display));
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the "vendor ID" string of the X server of display DISPLAY.
+       doc: /* Returns the "vendor ID" string of the X server of display DEVICE.
 \(Labelling every distributor as a "vendor" embodies the false assumption
 that operating systems cannot be developed and distributed noncommercially.)
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
   char *vendor = ServerVendor (dpyinfo->display);
 
   if (! vendor) vendor = "";
@@ -3625,18 +3626,18 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the X server of display DISPLAY.
+       doc: /* Returns the version numbers of the X server of display DEVICE.
 The value is a list of three integers: the major and minor
 version numbers of the X Protocol in use, and the distributor-specific release
 number.  See also the function `x-server-vendor'.
 
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
   Display *dpy = dpyinfo->display;
 
   return Fcons (make_number (ProtocolVersion (dpy)),
@@ -3645,55 +3646,55 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-       doc: /* Return the number of screens on the X server of display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Return the number of screens on the X server of display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (ScreenCount (dpyinfo->display));
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-       doc: /* Return the height in millimeters of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Return the height in millimeters of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (HeightMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Return the width in millimeters of the X display DISPLAY.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Return the width in millimeters of the X display DEVICE.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   return make_number (WidthMMOfScreen (dpyinfo->screen));
 }
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether X display DISPLAY does backing store.
+       doc: /* Returns an indication of whether X display DEVICE does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
   Lisp_Object result;
 
   switch (DoesBackingStore (dpyinfo->screen))
@@ -3720,17 +3721,17 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Return the visual class of the X display DISPLAY.
+       doc: /* Return the visual class of the X display DEVICE.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
   Lisp_Object result;
 
   switch (dpyinfo->visual->class)
@@ -3763,14 +3764,14 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if the X display DISPLAY supports the save-under feature.
-The optional argument DISPLAY specifies which display to ask about.
-DISPLAY should be either a frame or a display name (a string).
+       doc: /* Returns t if the X display DEVICE supports the save-under feature.
+The optional argument DEVICE specifies which display to ask about.
+DEVICE should be a device id, a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-     (display)
-     Lisp_Object display;
+     (device)
+     Lisp_Object device;
 {
-  struct x_display_info *dpyinfo = check_x_display_info (display);
+  struct x_display_info *dpyinfo = check_x_display_info (device);
 
   if (DoesSaveUnders (dpyinfo->screen) == True)
     return Qt;
@@ -4050,7 +4051,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
   if (dpyinfo->reference_count > 0)
     error ("Display still has frames on it");
 
-  x_delete_frame_display (dpyinfo->frame_display);
+  x_delete_device (dpyinfo->device);
 
   return Qnil;
 }
@@ -4627,8 +4628,8 @@ x_create_tip_frame (dpyinfo, parms, text)
   FRAME_CAN_HAVE_SCROLL_BARS (f) = 0;
   record_unwind_protect (unwind_create_tip_frame, frame);
 
-  f->display = dpyinfo->frame_display;
-  f->display->reference_count++;
+  f->device = dpyinfo->device;
+  f->device->reference_count++;
 
   /* By setting the output method, we're essentially saying that
      the frame is live, as per FRAME_LIVE_P.  If we get a signal

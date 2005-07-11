@@ -315,7 +315,7 @@ extern void init_kboard P_ ((KBOARD *));
 extern void delete_kboard P_ ((KBOARD *));
 extern void single_kboard_state P_ ((void));
 extern void not_single_kboard_state P_ ((KBOARD *));
-extern void push_display_kboard P_ ((struct display *));
+extern void push_device_kboard P_ ((struct device *));
 extern void push_frame_kboard P_ ((struct frame *));
 extern void pop_frame_kboard P_ ((void));
 extern void record_asynch_buffer_change P_ ((void));
@@ -350,7 +350,7 @@ extern void kbd_buffer_store_help_event P_ ((Lisp_Object, Lisp_Object));
 extern Lisp_Object menu_item_eval_property P_ ((Lisp_Object));
 extern int  kbd_buffer_events_waiting P_ ((int));
 
-extern int tty_read_avail_input P_ ((struct display *, int,
+extern int tty_read_avail_input P_ ((struct device *, int,
                                      struct input_event *));
 
 /* arch-tag: 769cbade-1ba9-4950-b886-db265b061aa3

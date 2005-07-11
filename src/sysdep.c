@@ -1709,7 +1709,7 @@ nil means don't delete them until `list-processes' is run.  */);
   setbuf (tty_out->output, (char *) _sobuf);
 #endif
 
-  tty_set_terminal_modes (tty_out->display);
+  tty_set_terminal_modes (tty_out->device);
 
   if (!tty_out->term_initted)
     {
@@ -1921,7 +1921,7 @@ reset_sys_modes (tty_out)
   }
 #endif
 
-  tty_reset_terminal_modes (tty_out->display);
+  tty_reset_terminal_modes (tty_out->device);
 
 #ifdef BSD_SYSTEM
 #ifndef BSD4_1

@@ -1112,8 +1112,8 @@ struct kboard_stack
 static struct kboard_stack *kboard_stack;
 
 void
-push_display_kboard (d)
-     struct display *d;
+push_device_kboard (d)
+     struct device *d;
 {
 #ifdef MULTI_KBOARD
   struct kboard_stack *p
@@ -4169,9 +4169,9 @@ kbd_buffer_get_event (kbp, used_mouse_menu)
       x = Qnil;
 
       /* XXX Can f or mouse_position_hook be NULL here? */
-      if (f && FRAME_DISPLAY (f)->mouse_position_hook)
-        (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, 0, &bar_window,
-                                                   &part, &x, &y, &time);
+      if (f && FRAME_DEVICE (f)->mouse_position_hook)
+        (*FRAME_DEVICE (f)->mouse_position_hook) (&f, 0, &bar_window,
+                                                  &part, &x, &y, &time);
 
       obj = Qnil;
 
@@ -6670,13 +6670,13 @@ read_avail_input (expected)
 {
   int nread = 0;
   int err = 0;
-  struct display *d;
+  struct device *d;
 
-  /* Loop through the available displays, and call their input hooks. */
-  d = display_list;
+  /* Loop through the available devices, and call their input hooks. */
+  d = device_list;
   while (d)
     {
-      struct display *next = d->next_display;
+      struct device *next = d->next_device;
 
       if (d->read_socket_hook)
         {
@@ -6702,7 +6702,7 @@ read_avail_input (expected)
               /* The display device terminated; it should be closed. */
               
               /* Kill Emacs if this was our last display. */
-              if (! display_list->next_display)
+              if (! device_list->next_device)
                 /* Formerly simply reported no input, but that
                    sometimes led to a failure of Emacs to terminate.
                    SIGHUP seems appropriate if we can't reach the
@@ -6713,11 +6713,11 @@ read_avail_input (expected)
                    alone in its group.  */
                 kill (getpid (), SIGHUP);
               
-              /* XXX Is calling delete_display safe here?  It calls Fdelete_frame. */
-              if (d->delete_display_hook)
-                (*d->delete_display_hook) (d);
+              /* XXX Is calling delete_device safe here?  It calls Fdelete_frame. */
+              if (d->delete_device_hook)
+                (*d->delete_device_hook) (d);
               else
-                delete_display (d);
+                delete_device (d);
             }
 
           if (hold_quit.kind != NO_EVENT)
@@ -6735,12 +6735,12 @@ read_avail_input (expected)
 
 /* This is the tty way of reading available input.
 
-   Note that each terminal device has its own `struct display' object,
+   Note that each terminal device has its own `struct device' object,
    and so this function is called once for each individual termcap
    display.  The first parameter indicates which device to read from.  */
 
 int
-tty_read_avail_input (struct display *display,
+tty_read_avail_input (struct device *device,
                       int expected,
                       struct input_event *hold_quit)
 {
@@ -6749,10 +6749,10 @@ tty_read_avail_input (struct display *display,
      of characters on some systems when input is stuffed at us.  */
   unsigned char cbuf[KBD_BUFFER_SIZE - 1];
   int n_to_read, i;
-  struct tty_display_info *tty = display->display_info.tty;
+  struct tty_display_info *tty = device->display_info.tty;
   int nread = 0;
 
-  if (display->type != output_termcap)
+  if (device->type != output_termcap)
     abort ();
 
   /* XXX I think the following code should be moved to separate hook
@@ -6782,7 +6782,7 @@ tty_read_avail_input (struct display *display,
   if (ioctl (fileno (tty->input), FIONREAD, &n_to_read) < 0)
     {
       if (! noninteractive)
-        return -2;          /* Close this display. */
+        return -2;          /* Close this device. */
       else
         n_to_read = 0;
     }
@@ -6811,14 +6811,14 @@ tty_read_avail_input (struct display *display,
          when the control tty is taken away.
          Jeffrey Honig <jch@bsdi.com> says this is generally safe. */
       if (nread == -1 && errno == EIO)
-        return -2;          /* Close this display. */
+        return -2;          /* Close this device. */
 #if defined (AIX) && (! defined (aix386) && defined (_BSD))
       /* The kernel sometimes fails to deliver SIGHUP for ptys.
          This looks incorrect, but it isn't, because _BSD causes
          O_NDELAY to be defined in fcntl.h as O_NONBLOCK,
          and that causes a value other than 0 when there is no input.  */
       if (nread == 0)
-        return -2;          /* Close this display. */
+        return -2;          /* Close this device. */
 #endif
     }
   while (
@@ -10365,7 +10365,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
 {
   /* Must preserve main program's value of errno.  */
   int old_errno = errno;
-  struct display *display;
+  struct device *device;
 
 #if defined (USG) && !defined (POSIX_SIGNALS)
   /* USG systems forget handlers when they are used;
@@ -10377,8 +10377,8 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
   SIGNAL_THREAD_CHECK (signalnum);
 
   /* See if we have an active display on our controlling terminal. */
-  display = get_named_tty_display (NULL);
-  if (!display)
+  device = get_named_tty (NULL);
+  if (!device)
     {
       /* If there are no frames there, let's pretend that we are a
          well-behaving UN*X program and quit. */
@@ -10392,7 +10392,7 @@ interrupt_signal (signalnum)	/* If we don't have an argument, */
          controlling tty, if we have a frame there.  We disable the
          interrupt key on secondary ttys, so the SIGINT must have come
          from the controlling tty.  */
-      internal_last_event_frame = display->display_info.tty->top_frame;
+      internal_last_event_frame = device->display_info.tty->top_frame;
 
       handle_interrupt ();
     }
@@ -10421,7 +10421,7 @@ handle_interrupt ()
   /* XXX This code needs to be revised for multi-tty support. */
   if (!NILP (Vquit_flag)
 #ifndef MSDOS
-      && get_named_tty_display (NULL)
+      && get_named_tty (NULL)
 #endif
       )
     {
@@ -10606,7 +10606,7 @@ See also `current-input-mode'.  */)
 
 #ifdef SIGIO
 /* Note SIGIO has been undef'd if FIONREAD is missing.  */
-  if (FRAME_DISPLAY (SELECTED_FRAME ())->read_socket_hook)
+  if (FRAME_DEVICE (SELECTED_FRAME ())->read_socket_hook)
     {
       /* When using X, don't give the user a real choice,
 	 because we haven't implemented the mechanisms to support it.  */
@@ -10819,7 +10819,7 @@ delete_kboard (kb)
       && FRAMEP (selected_frame)
       && FRAME_LIVE_P (XFRAME (selected_frame)))
     {
-      current_kboard = XFRAME (selected_frame)->display->kboard;
+      current_kboard = XFRAME (selected_frame)->device->kboard;
       if (current_kboard == kb)
 	abort ();
     }

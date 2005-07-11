@@ -3108,7 +3108,7 @@ extern void syms_of_xmenu P_ ((void));
 struct tty_display_info;
 
 /* defined in termhooks.h */
-struct display;
+struct device;
 
 /* defined in sysdep.c */
 extern void stuff_char P_ ((char c));

@@ -44,6 +44,7 @@ Boston, MA 02110-1301, USA.  */
    I'm quitting and taking up gardening.  */
 
 #include <stdio.h>
+#include <stdlib.h>
 
 int
 main (argc, argv)

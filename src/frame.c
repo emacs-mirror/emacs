@@ -76,7 +76,7 @@ Lisp_Object Qinhibit_default_face_x_resources;
 
 Lisp_Object Qx_frame_parameter;
 Lisp_Object Qx_resource_name;
-Lisp_Object Qdisplay_id;
+Lisp_Object Qdevice;
 Lisp_Object Qdisplay_live_p;
 
 /* Frame parameters (set or reported).  */
@@ -422,7 +422,7 @@ make_frame_without_minibuffer (mini_window, kb, display)
 
 #ifdef MULTI_KBOARD
   if (!NILP (mini_window)
-      && XFRAME (XWINDOW (mini_window)->frame)->display->kboard != kb)
+      && XFRAME (XWINDOW (mini_window)->frame)->device->kboard != kb)
     error ("Frame and minibuffer must be on the same display");
 #endif
 
@@ -507,7 +507,7 @@ struct frame *
 make_initial_frame (void)
 {
   struct frame *f;
-  struct display *display;
+  struct device *device;
   Lisp_Object frame;
 
 #ifdef MULTI_KBOARD
@@ -525,7 +525,7 @@ make_initial_frame (void)
   if (! (NILP (Vframe_list) || CONSP (Vframe_list)))
     Vframe_list = Qnil;
 
-  display = init_initial_display ();
+  device = init_initial_device ();
 
   f = make_frame (1);
   XSETFRAME (frame, f);
@@ -538,9 +538,9 @@ make_initial_frame (void)
   f->visible = 1;
   f->async_visible = 1;
 
-  f->output_method = display->type;
-  f->display = display;
-  f->display->reference_count++;
+  f->output_method = device->type;
+  f->device = device;
+  f->device->reference_count++;
   f->output_data.nothing = 0;
   
   FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
@@ -554,7 +554,7 @@ make_initial_frame (void)
 
 
 struct frame *
-make_terminal_frame (struct display *display)
+make_terminal_frame (struct device *device)
 {
   register struct frame *f;
   Lisp_Object frame;
@@ -605,8 +605,8 @@ make_terminal_frame (struct display *display)
 #else
   {
     f->output_method = output_termcap;
-    f->display = display;
-    f->display->reference_count++;
+    f->device = device;
+    f->device->reference_count++;
     create_tty_output (f);
     
     FRAME_FOREGROUND_PIXEL (f) = FACE_TTY_DEFAULT_FG_COLOR;
@@ -658,7 +658,7 @@ affects all frames on the same terminal device.  */)
      Lisp_Object parms;
 {
   struct frame *f;
-  struct display *d = NULL;
+  struct device *d = NULL;
   Lisp_Object frame, tem;
   struct frame *sf = SELECTED_FRAME ();
 
@@ -682,12 +682,12 @@ affects all frames on the same terminal device.  */)
   {
     Lisp_Object display_device;
 
-    display_device = Fassq (Qdisplay_id, parms);
+    display_device = Fassq (Qdevice, parms);
     if (!NILP (display_device))
       {
         display_device = XCDR (display_device);
         CHECK_NUMBER (display_device);
-        d = get_display (XINT (display_device), 1);
+        d = get_device (XINT (display_device), 1);
       }
   }
   
@@ -1053,14 +1053,14 @@ The display device is represented by its integer identifier.  */)
   (frame)
      Lisp_Object frame;
 {
-  struct display *d;
+  struct device *d;
 
   if (NILP (frame))
     frame = selected_frame;
 
   CHECK_LIVE_FRAME (frame);
 
-  d = get_display (frame, 0);
+  d = get_device (frame, 0);
 
   if (!d)
     return Qnil;
@@ -1502,27 +1502,27 @@ The functions are run with one arg, the frame to be deleted.  */)
      promise that the display of the frame must be valid until we have
      called the window-system-dependent frame destruction routine.  */
 
-  if (FRAME_DISPLAY (f)->delete_frame_hook)
-    (*FRAME_DISPLAY (f)->delete_frame_hook) (f);
+  if (FRAME_DEVICE (f)->delete_frame_hook)
+    (*FRAME_DEVICE (f)->delete_frame_hook) (f);
 
   {
-    struct display *display = FRAME_DISPLAY (f);
+    struct device *device = FRAME_DEVICE (f);
     f->output_data.nothing = 0; 
-    f->display = 0;             /* Now the frame is dead. */
+    f->device = 0;             /* Now the frame is dead. */
 
     /* If needed, delete the device that this frame was on.
        (This must be done after the frame is killed.) */
-    display->reference_count--;
-    if (display->reference_count == 0)
+    device->reference_count--;
+    if (device->reference_count == 0)
       {
         kb = NULL;
-        if (display->delete_display_hook)
-          (*display->delete_display_hook) (display);
+        if (device->delete_device_hook)
+          (*device->delete_device_hook) (device);
         else
-          delete_display (display);
+          delete_device (device);
       }
     else
-      kb = display->kboard;
+      kb = device->kboard;
   }
 
   /* If we've deleted the last_nonminibuf_frame, then try to find
@@ -1669,8 +1669,8 @@ and returns whatever that function returns.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (FRAME_DISPLAY (f)->mouse_position_hook)
-    (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, -1,
+  if (FRAME_DEVICE (f)->mouse_position_hook)
+    (*FRAME_DEVICE (f)->mouse_position_hook) (&f, -1,
                                               &lispy_dummy, &party_dummy,
                                               &x, &y,
                                               &long_dummy);
@@ -1712,8 +1712,8 @@ and nil for X and Y.  */)
 
 #ifdef HAVE_MOUSE
   /* It's okay for the hook to refrain from storing anything.  */
-  if (FRAME_DISPLAY (f)->mouse_position_hook)
-    (*FRAME_DISPLAY (f)->mouse_position_hook) (&f, -1,
+  if (FRAME_DEVICE (f)->mouse_position_hook)
+    (*FRAME_DEVICE (f)->mouse_position_hook) (&f, -1,
                                               &lispy_dummy, &party_dummy,
                                               &x, &y,
                                               &long_dummy);
@@ -1993,8 +1993,8 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
   /* Do like the documentation says. */
   Fmake_frame_visible (frame);
 
-  if (FRAME_DISPLAY (f)->frame_raise_lower_hook)
-    (*FRAME_DISPLAY (f)->frame_raise_lower_hook) (f, 1);
+  if (FRAME_DEVICE (f)->frame_raise_lower_hook)
+    (*FRAME_DEVICE (f)->frame_raise_lower_hook) (f, 1);
 
   return Qnil;
 }
@@ -2017,8 +2017,8 @@ doesn't support multiple overlapping frames, this function does nothing.  */)
 
   f = XFRAME (frame);
   
-  if (FRAME_DISPLAY (f)->frame_raise_lower_hook)
-    (*FRAME_DISPLAY (f)->frame_raise_lower_hook) (f, 0);
+  if (FRAME_DEVICE (f)->frame_raise_lower_hook)
+    (*FRAME_DEVICE (f)->frame_raise_lower_hook) (f, 0);
 
   return Qnil;
 }
@@ -2066,8 +2066,8 @@ The redirection lasts until `redirect-frame-focus' is called to change it.  */)
   
   f->focus_frame = focus_frame;
 
-  if (FRAME_DISPLAY (f)->frame_rehighlight_hook)
-    (*FRAME_DISPLAY (f)->frame_rehighlight_hook) (f);
+  if (FRAME_DEVICE (f)->frame_rehighlight_hook)
+    (*FRAME_DEVICE (f)->frame_rehighlight_hook) (f);
 
   return Qnil;
 }
@@ -4223,8 +4223,8 @@ syms_of_frame ()
   Qx_frame_parameter = intern ("x-frame-parameter");
   staticpro (&Qx_frame_parameter);
 
-  Qdisplay_id = intern ("display-id");
-  staticpro (&Qdisplay_id);
+  Qdevice = intern ("device");
+  staticpro (&Qdevice);
   Qdisplay_live_p = intern ("display-live-p");
   staticpro (&Qdisplay_live_p);
   

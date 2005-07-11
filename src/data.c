@@ -1876,39 +1876,42 @@ If the current binding is global (the default), the value is nil.  */)
   return Qnil;
 }
 
-extern struct display *get_display P_ ((Lisp_Object display, int));
+extern struct device *get_device P_ ((Lisp_Object display, int));
 
 DEFUN ("terminal-local-value", Fterminal_local_value, Sterminal_local_value, 2, 2, 0,
-       doc: /* Return the terminal-local value of SYMBOL on DISPLAY.
+       doc: /* Return the terminal-local value of SYMBOL on DEVICE.
 If SYMBOL is not a terminal-local variable, then return its normal
 value, like `symbol-value'.
 
-DISPLAY may be a display, a frame, or nil (meaning the selected
-frame's display).  */)
-  (symbol, display)
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device).  */)
+  (symbol, device)
      Lisp_Object symbol;
-     Lisp_Object display;
+     Lisp_Object device;
 {
   Lisp_Object result;
-  struct display *d = get_display (display, 1);
-  push_display_kboard (d);
+  struct device *d = get_device (device, 1);
+  push_device_kboard (d);
   result = Fsymbol_value (symbol);
   pop_frame_kboard ();
   return result;
 }
 
 DEFUN ("set-terminal-local-value", Fset_terminal_local_value, Sset_terminal_local_value, 3, 3, 0,
-       doc: /* Set the terminal-local binding of SYMBOL on DISPLAY to VALUE.
+       doc: /* Set the terminal-local binding of SYMBOL on DEVICE to VALUE.
 If VARIABLE is not a terminal-local variable, then set its normal
-binding, like `set'.  */)
-  (symbol, display, value)
+binding, like `set'.
+
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device).  */)
+  (symbol, device, value)
      Lisp_Object symbol;
-     Lisp_Object display;
+     Lisp_Object device;
      Lisp_Object value;
 {
   Lisp_Object result;
-  struct display *d = get_display (display, 1);
-  push_display_kboard (d);
+  struct device *d = get_device (device, 1);
+  push_device_kboard (d);
   result = Fset (symbol, value);
   pop_frame_kboard ();
   return result;

@@ -277,22 +277,22 @@ enum {
 #endif /* CONSP */
 
 
-/* Display-local parameters. */
-struct display
+/* Device-local parameters. */
+struct device
 {
-  /* Chain of all displays. */
-  struct display *next_display;
+  /* Chain of all display devices. */
+  struct device *next_device;
 
-  /* Unique id for this display. */
+  /* Unique id for this display device. */
   int id;
 
-  /* The number of frames that are on this display. */
+  /* The number of frames that are on this device. */
   int reference_count;
   
-  /* The type of the display. */
+  /* The type of the display device. */
   enum output_method type;
 
-  /* The name of the display device.  Do not use this to identify the display. */
+  /* The name of the display device.  Do not use this to identify the device. */
   char *name;
 
 #ifdef MULTI_KBOARD
@@ -300,7 +300,7 @@ struct display
   struct kboard *kboard;
 #endif
 
-  /* Display-type dependent data shared amongst all frames on this display. */
+  /* Device-type dependent data shared amongst all frames on this display. */
   union display_info
   {
     struct tty_display_info *tty;     /* termchar.h */
@@ -367,8 +367,8 @@ struct display
   
   void (*ring_bell_hook) P_ ((struct frame *f));
   
-  void (*reset_terminal_modes_hook) P_ ((struct display *));
-  void (*set_terminal_modes_hook) P_ ((struct display *));
+  void (*reset_terminal_modes_hook) P_ ((struct device *));
+  void (*set_terminal_modes_hook) P_ ((struct device *));
 
   void (*update_begin_hook) P_ ((struct frame *));
   void (*update_end_hook) P_ ((struct frame *));
@@ -498,7 +498,7 @@ struct display
 
   /* Called to read input events.
 
-     DISPLAY indicates which display to read from.  Input events
+     DEVICE indicates which display device to read from.  Input events
      should be read into BUF, the size of which is given in SIZE.
      EXPECTED is non-zero if the caller suspects that new input is
      available.
@@ -507,7 +507,7 @@ struct display
      where read into BUF.
      Zero means no events were immediately available.
      A value of -1 means a transient read error, while -2 indicates
-     that the display was closed (hangup), and it should be deleted.
+     that the device was closed (hangup), and it should be deleted.
 
      XXX Please note that a non-zero value of EXPECTED only means that
      there is available input on at least one of the currently opened
@@ -515,7 +515,7 @@ struct display
      Therefore, in most cases EXPECTED should be simply ignored.
 
      XXX This documentation needs to be updated.  */
-  int (*read_socket_hook) P_ ((struct display *display,
+  int (*read_socket_hook) P_ ((struct device *device,
                                int expected,
                                struct input_event *hold_quit));
 
@@ -524,43 +524,43 @@ struct display
 
 
   /* Called to delete the device-specific portions of a frame that is
-     on this display. */
+     on this display device. */
   void (*delete_frame_hook) P_ ((struct frame *));
 
-  /* Called after the last frame on this display is deleted, or when
+  /* Called after the last frame on this device is deleted, or when
      the display device was closed (hangup).
      
-     If this is NULL, then the generic delete_display is called
-     instead.  Otherwise the hook must call delete_display itself.
+     If this is NULL, then the generic delete_device is called
+     instead.  Otherwise the hook must call delete_device itself.
 
      The hook must check for and close any live frames that are still
-     on the display.  Fdelete_frame ensures that there are no live
-     frames on the display when it calls this hook, so infinite
+     on the device.  Fdelete_frame ensures that there are no live
+     frames on the device when it calls this hook, so infinite
      recursion is prevented.  */
-  void (*delete_display_hook) P_ ((struct display *));
+  void (*delete_device_hook) P_ ((struct device *));
 };
 
 
-/* Chain of all displays currently in use. */
-extern struct display *display_list;
+/* Chain of all display devices currently in use. */
+extern struct device *device_list;
 
-#define FRAME_MUST_WRITE_SPACES(f) ((f)->display->must_write_spaces)
-#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->display->fast_clear_end_of_line)
-#define FRAME_LINE_INS_DEL_OK(f) ((f)->display->line_ins_del_ok)
-#define FRAME_CHAR_INS_DEL_OK(f) ((f)->display->char_ins_del_ok)
-#define FRAME_SCROLL_REGION_OK(f) ((f)->display->scroll_region_ok)
-#define FRAME_SCROLL_REGION_COST(f) ((f)->display->scroll_region_cost)
-#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->display->memory_below_frame)
+#define FRAME_MUST_WRITE_SPACES(f) ((f)->device->must_write_spaces)
+#define FRAME_FAST_CLEAR_END_OF_LINE(f) ((f)->device->fast_clear_end_of_line)
+#define FRAME_LINE_INS_DEL_OK(f) ((f)->device->line_ins_del_ok)
+#define FRAME_CHAR_INS_DEL_OK(f) ((f)->device->char_ins_del_ok)
+#define FRAME_SCROLL_REGION_OK(f) ((f)->device->scroll_region_ok)
+#define FRAME_SCROLL_REGION_COST(f) ((f)->device->scroll_region_cost)
+#define FRAME_MEMORY_BELOW_FRAME(f) ((f)->device->memory_below_frame)
 
-#define FRAME_TERMINAL_CODING(f) ((f)->display->terminal_coding)
-#define FRAME_KEYBOARD_CODING(f) ((f)->display->keyboard_coding)
+#define FRAME_TERMINAL_CODING(f) ((f)->device->terminal_coding)
+#define FRAME_KEYBOARD_CODING(f) ((f)->device->keyboard_coding)
 
-#define DISPLAY_TERMINAL_CODING(d) ((d)->terminal_coding)
-#define DISPLAY_KEYBOARD_CODING(d) ((d)->keyboard_coding)
+#define DEVICE_TERMINAL_CODING(d) ((d)->terminal_coding)
+#define DEVICE_KEYBOARD_CODING(d) ((d)->keyboard_coding)
 
-#define FRAME_RIF(f) ((f)->display->rif)
+#define FRAME_RIF(f) ((f)->device->rif)
 
-#define FRAME_DISPLAY(f) ((f)->display)
+#define FRAME_DEVICE(f) ((f)->device)
 
 /* FRAME_WINDOW_P tests whether the frame is a window, and is
    defined to be the predicate for the window system being used.  */
@@ -578,14 +578,14 @@ extern struct display *display_list;
 #define FRAME_WINDOW_P(f) (0)
 #endif
 
-/* Return true if the display is not suspended. */
-#define DISPLAY_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
+/* Return true if the display device is not suspended. */
+#define DEVICE_ACTIVE_P(d) ((d)->type != output_termcap || (d)->display_info.tty->input)
 
-extern struct display *create_display P_ ((void));
-extern void delete_display P_ ((struct display *));
+extern struct device *create_device P_ ((void));
+extern void delete_device P_ ((struct device *));
 
 /* The initial display device, created by initial_term_init. */
-extern struct display *initial_display;
+extern struct device *initial_device;
 
 /* arch-tag: 33a00ecc-52b5-4186-a410-8801ac9f087d
    (do not change this comment) */

@@ -337,15 +337,15 @@ void x_raise_frame P_ ((struct frame *));
 void x_set_window_size P_ ((struct frame *, int, int, int));
 void x_wm_set_window_state P_ ((struct frame *, int));
 void x_wm_set_icon_pixmap P_ ((struct frame *, int));
-struct display *x_create_frame_display P_ ((struct x_display_info *));
-void x_delete_frame_display P_ ((struct display *));
+struct device *x_create_device P_ ((struct x_display_info *));
+void x_delete_device P_ ((struct device *));
 void x_initialize P_ ((void));
 static void x_font_min_bounds P_ ((XFontStruct *, int *, int *));
 static int x_compute_min_glyph_bounds P_ ((struct frame *));
 static void x_update_end P_ ((struct frame *));
 static void XTframe_up_to_date P_ ((struct frame *));
-static void XTset_terminal_modes P_ ((struct display *));
-static void XTreset_terminal_modes P_ ((struct display *));
+static void XTset_terminal_modes P_ ((struct device *));
+static void XTreset_terminal_modes P_ ((struct device *));
 static void x_clear_frame P_ ((struct frame *));
 static void frame_highlight P_ ((struct frame *));
 static void frame_unhighlight P_ ((struct frame *));
@@ -805,7 +805,7 @@ x_draw_fringe_bitmap (w, row, p)
    rarely happens).  */
 
 static void
-XTset_terminal_modes (struct display *display)
+XTset_terminal_modes (struct device *device)
 {
 }
 
@@ -813,7 +813,7 @@ XTset_terminal_modes (struct display *display)
    the X-windows go away, and suspending requires no action.  */
 
 static void
-XTreset_terminal_modes (struct display *display)
+XTreset_terminal_modes (struct device *device)
 {
 }
 
@@ -6966,8 +6966,8 @@ x_dispatch_event (event, display)
    EXPECTED is nonzero if the caller knows input is available.  */
 
 static int
-XTread_socket (display, expected, hold_quit)
-     struct display *display;
+XTread_socket (device, expected, hold_quit)
+     struct device *device;
      int expected;
      struct input_event *hold_quit;
 {
@@ -7677,7 +7677,7 @@ x_connection_closed (dpy, error_message)
       /* Protect display from being closed when we delete the last
          frame on it. */
       dpyinfo->reference_count++;
-      dpyinfo->frame_display->reference_count++;
+      dpyinfo->device->reference_count++;
     }
   
   /* First delete frames whose mini-buffers are on frames
@@ -7745,7 +7745,7 @@ x_connection_closed (dpy, error_message)
       dpyinfo->display = 0;
 
       dpyinfo->reference_count--;
-      dpyinfo->frame_display->reference_count--;
+      dpyinfo->device->reference_count--;
       if (dpyinfo->reference_count != 0)
         /* We have just closed all frames on this display. */
         abort ();
@@ -7755,7 +7755,7 @@ x_connection_closed (dpy, error_message)
 
   x_uncatch_errors (dpy, count);
 
-  if (display_list == 0)
+  if (device_list == 0)
     {
       fprintf (stderr, "%s\n", error_msg);
       shut_down_emacs (0, 0, Qnil);
@@ -10136,7 +10136,7 @@ x_term_init (display_name, xrm_option, resource_name)
 {
   int connection;
   Display *dpy;
-  struct display *display;
+  struct device *device;
   struct x_display_info *dpyinfo;
   XrmDatabase xrdb;
 
@@ -10271,7 +10271,7 @@ x_term_init (display_name, xrm_option, resource_name)
   dpyinfo = (struct x_display_info *) xmalloc (sizeof (struct x_display_info));
   bzero (dpyinfo, sizeof *dpyinfo);
 
-  display = x_create_frame_display (dpyinfo);
+  device = x_create_device (dpyinfo);
 
 #ifdef MULTI_KBOARD
   {
@@ -10284,30 +10284,30 @@ x_term_init (display_name, xrm_option, resource_name)
 			 SDATA (display_name)))
 	break;
     if (share)
-      display->kboard = share->frame_display->kboard;
+      device->kboard = share->device->kboard;
     else
       {
-	display->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-	init_kboard (display->kboard);
+	device->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+	init_kboard (device->kboard);
 	if (!EQ (XSYMBOL (Qvendor_specific_keysyms)->function, Qunbound))
 	  {
 	    char *vendor = ServerVendor (dpy);
 	    UNBLOCK_INPUT;
-	    display->kboard->Vsystem_key_alist
+	    device->kboard->Vsystem_key_alist
 	      = call1 (Qvendor_specific_keysyms,
 		       build_string (vendor ? vendor : ""));
 	    BLOCK_INPUT;
 	  }
 
-	display->kboard->next_kboard = all_kboards;
-	all_kboards = display->kboard;
+	device->kboard->next_kboard = all_kboards;
+	all_kboards = device->kboard;
 	/* Don't let the initial kboard remain current longer than necessary.
 	   That would cause problems if a file loaded on startup tries to
 	   prompt in the mini-buffer.  */
 	if (current_kboard == initial_kboard)
-	  current_kboard = display->kboard;
+	  current_kboard = device->kboard;
       }
-    display->kboard->reference_count++;
+    device->kboard->reference_count++;
   }
 #endif
 
@@ -10322,10 +10322,10 @@ x_term_init (display_name, xrm_option, resource_name)
 
   dpyinfo->display = dpy;
 
-  /* Set the name of the display. */
-  display->name = (char *) xmalloc (SBYTES (display_name) + 1);
-  strncpy (display->name, SDATA (display_name), SBYTES (display_name));
-  display->name[SBYTES (display_name)] = 0;
+  /* Set the name of the device. */
+  device->name = (char *) xmalloc (SBYTES (display_name) + 1);
+  strncpy (device->name, SDATA (display_name), SBYTES (display_name));
+  device->name[SBYTES (display_name)] = 0;
   
 #if 0
   XSetAfterFunction (x_current_display, x_trace_wire);
@@ -10632,13 +10632,13 @@ x_delete_display (dpyinfo)
      struct x_display_info *dpyinfo;
 {
   int i;
-  struct display *d;
+  struct device *d;
 
-  /* Delete the generic struct display for this X display. */
-  for (d = display_list; d; d = d->next_display)
+  /* Delete the generic struct device for this X display. */
+  for (d = device_list; d; d = d->next_device)
     if (d->type == output_x_window && d->display_info.x == dpyinfo)
       {
-        delete_display (d);
+        delete_device (d);
         break;
       }
     
@@ -10773,9 +10773,9 @@ static struct redisplay_interface x_redisplay_interface =
 
 /* This function is called when the last frame on a display is deleted. */
 void
-x_delete_frame_display (struct display *display)
+x_delete_device (struct device *device)
 {
-  struct x_display_info *dpyinfo = display->display_info.x;
+  struct x_display_info *dpyinfo = device->display_info.x;
   int i;
 
   BLOCK_INPUT;
@@ -10804,50 +10804,50 @@ x_delete_frame_display (struct display *display)
 }
 
 
-struct display *
-x_create_frame_display (struct x_display_info *dpyinfo)
+struct device *
+x_create_device (struct x_display_info *dpyinfo)
 {
-  struct display *display;
+  struct device *device;
   
-  display = create_display ();
+  device = create_device ();
 
-  display->type = output_x_window;
-  display->display_info.x = dpyinfo;
-  dpyinfo->frame_display = display;
+  device->type = output_x_window;
+  device->display_info.x = dpyinfo;
+  dpyinfo->device = device;
 
   /* kboard is initialized in x_term_init. */
   
-  display->clear_frame_hook = x_clear_frame;
-  display->ins_del_lines_hook = x_ins_del_lines;
-  display->delete_glyphs_hook = x_delete_glyphs;
-  display->ring_bell_hook = XTring_bell;
-  display->reset_terminal_modes_hook = XTreset_terminal_modes;
-  display->set_terminal_modes_hook = XTset_terminal_modes;
-  display->update_begin_hook = x_update_begin;
-  display->update_end_hook = x_update_end;
-  display->set_terminal_window_hook = XTset_terminal_window;
-  display->read_socket_hook = XTread_socket;
-  display->frame_up_to_date_hook = XTframe_up_to_date;
-  display->mouse_position_hook = XTmouse_position;
-  display->frame_rehighlight_hook = XTframe_rehighlight;
-  display->frame_raise_lower_hook = XTframe_raise_lower;
-  display->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
-  display->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
-  display->redeem_scroll_bar_hook = XTredeem_scroll_bar;
-  display->judge_scroll_bars_hook = XTjudge_scroll_bars;
+  device->clear_frame_hook = x_clear_frame;
+  device->ins_del_lines_hook = x_ins_del_lines;
+  device->delete_glyphs_hook = x_delete_glyphs;
+  device->ring_bell_hook = XTring_bell;
+  device->reset_terminal_modes_hook = XTreset_terminal_modes;
+  device->set_terminal_modes_hook = XTset_terminal_modes;
+  device->update_begin_hook = x_update_begin;
+  device->update_end_hook = x_update_end;
+  device->set_terminal_window_hook = XTset_terminal_window;
+  device->read_socket_hook = XTread_socket;
+  device->frame_up_to_date_hook = XTframe_up_to_date;
+  device->mouse_position_hook = XTmouse_position;
+  device->frame_rehighlight_hook = XTframe_rehighlight;
+  device->frame_raise_lower_hook = XTframe_raise_lower;
+  device->set_vertical_scroll_bar_hook = XTset_vertical_scroll_bar;
+  device->condemn_scroll_bars_hook = XTcondemn_scroll_bars;
+  device->redeem_scroll_bar_hook = XTredeem_scroll_bar;
+  device->judge_scroll_bars_hook = XTjudge_scroll_bars;
 
-  display->delete_frame_hook = x_destroy_window;
-  display->delete_display_hook = x_delete_frame_display;
+  device->delete_frame_hook = x_destroy_window;
+  device->delete_device_hook = x_delete_device;
   
-  display->rif = &x_redisplay_interface;
-  display->scroll_region_ok = 1;    /* We'll scroll partial frames. */
-  display->char_ins_del_ok = 1;
-  display->line_ins_del_ok = 1;         /* We'll just blt 'em. */
-  display->fast_clear_end_of_line = 1;  /* X does this well. */
-  display->memory_below_frame = 0;   /* We don't remember what scrolls
+  device->rif = &x_redisplay_interface;
+  device->scroll_region_ok = 1;    /* We'll scroll partial frames. */
+  device->char_ins_del_ok = 1;
+  device->line_ins_del_ok = 1;         /* We'll just blt 'em. */
+  device->fast_clear_end_of_line = 1;  /* X does this well. */
+  device->memory_below_frame = 0;   /* We don't remember what scrolls
                                         off the bottom. */
 
-  return display;
+  return device;
 }
 
 void

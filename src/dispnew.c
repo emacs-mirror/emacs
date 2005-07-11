@@ -3343,7 +3343,7 @@ DEFUN ("redraw-frame", Fredraw_frame, Sredraw_frame, 1, 1, 0,
   update_begin (f);
 #ifdef MSDOS
   if (FRAME_MSDOS_P (f))
-    set_terminal_modes (FRAME_DISPLAY (f));
+    set_terminal_modes (FRAME_DEVICE (f));
 #endif
   clear_frame (f);
   clear_current_matrices (f);
@@ -6723,7 +6723,7 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
 #endif /* VMS */
 
   {
-    struct display *d;
+    struct device *d;
     struct frame *f = XFRAME (selected_frame);
 
     /* Open a display on the controlling tty. */
@@ -6733,16 +6733,16 @@ For types not defined in VMS, use  define emacs_term \"TYPE\".\n\
     if (f->output_method != output_initial)
       abort ();
     f->output_method = d->type;
-    f->display = d;
+    f->device = d;
 
     d->reference_count++;
     d->display_info.tty->top_frame = selected_frame;
     change_frame_size (XFRAME (selected_frame), FrameRows (d->display_info.tty), FrameCols (d->display_info.tty), 0, 0, 1);
 
     /* Delete the initial display. */
-    if (--initial_display->reference_count == 0
-        && initial_display->delete_display_hook)
-      (*initial_display->delete_display_hook) (initial_display);
+    if (--initial_device->reference_count == 0
+        && initial_device->delete_device_hook)
+      (*initial_device->delete_device_hook) (initial_device);
 
     /* Update frame parameters to reflect the new type. */
     Fmodify_frame_parameters

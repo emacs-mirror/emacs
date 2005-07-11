@@ -85,9 +85,9 @@ static void turn_off_face P_ ((struct frame *, int face_id));
 static void tty_show_cursor P_ ((struct tty_display_info *));
 static void tty_hide_cursor P_ ((struct tty_display_info *));
 
-static struct display *get_tty_display (Lisp_Object display);
+static struct device *get_tty_device (Lisp_Object device);
 
-void delete_initial_display P_ ((struct display *));
+void delete_initial_device P_ ((struct device *));
 void create_tty_output P_ ((struct frame *));
 void delete_tty_output P_ ((struct frame *));
 
@@ -126,10 +126,10 @@ Lisp_Object Vsuspend_tty_functions;
 Lisp_Object Vresume_tty_functions;
 
 /* Chain of all displays currently in use. */
-struct display *display_list;
+struct device *device_list;
 
 /* The initial display device, created by initial_term_init. */
-struct display *initial_display;
+struct device *initial_device;
 
 /* Chain of all tty device parameters. */
 struct tty_display_info *tty_list;
@@ -172,7 +172,7 @@ int max_frame_lines;
 static int no_controlling_tty;
 
 /* The first unallocated display id. */
-static int next_display_id;
+static int next_device_id;
 
 /* Provided for lisp packages.  */
 
@@ -216,8 +216,8 @@ ring_bell (struct frame *f)
 
       Vring_bell_function = function;
     }
-  else if (FRAME_DISPLAY (f)->ring_bell_hook)
-    (*FRAME_DISPLAY (f)->ring_bell_hook) (f);
+  else if (FRAME_DEVICE (f)->ring_bell_hook)
+    (*FRAME_DEVICE (f)->ring_bell_hook) (f);
 }
 
 /* Ring the bell on a tty. */
@@ -239,7 +239,7 @@ tty_ring_bell (struct frame *f)
 /* Set up termcap modes for Emacs. */
 
 void
-tty_set_terminal_modes (struct display *display)
+tty_set_terminal_modes (struct device *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
   
@@ -256,7 +256,7 @@ tty_set_terminal_modes (struct display *display)
 /* Reset termcap modes before exiting Emacs. */
 
 void
-tty_reset_terminal_modes (struct display *display)
+tty_reset_terminal_modes (struct device *display)
 {
   struct tty_display_info *tty = display->display_info.tty;
 
@@ -278,15 +278,15 @@ tty_reset_terminal_modes (struct display *display)
 void
 update_begin (struct frame *f)
 {
-  if (FRAME_DISPLAY (f)->update_begin_hook)
-    (*FRAME_DISPLAY (f)->update_begin_hook) (f);
+  if (FRAME_DEVICE (f)->update_begin_hook)
+    (*FRAME_DEVICE (f)->update_begin_hook) (f);
 }
 
 void
 update_end (struct frame *f)
 {
-  if (FRAME_DISPLAY (f)->update_end_hook)
-    (*FRAME_DISPLAY (f)->update_end_hook) (f);
+  if (FRAME_DEVICE (f)->update_end_hook)
+    (*FRAME_DEVICE (f)->update_end_hook) (f);
 }
 
 /* Flag the end of a display update on a termcap display. */
@@ -310,8 +310,8 @@ tty_update_end (struct frame *f)
 void
 set_terminal_window (struct frame *f, int size)
 {
-  if (FRAME_DISPLAY (f)->set_terminal_window_hook)
-    (*FRAME_DISPLAY (f)->set_terminal_window_hook) (f, size);
+  if (FRAME_DEVICE (f)->set_terminal_window_hook)
+    (*FRAME_DEVICE (f)->set_terminal_window_hook) (f, size);
 }
 
 /* The implementation of set_terminal_window for termcap frames. */
@@ -450,8 +450,8 @@ highlight_if_desired (struct tty_display_info *tty)
 void
 cursor_to (struct frame *f, int vpos, int hpos)
 {
-  if (FRAME_DISPLAY (f)->cursor_to_hook)
-    (*FRAME_DISPLAY (f)->cursor_to_hook) (f, vpos, hpos);
+  if (FRAME_DEVICE (f)->cursor_to_hook)
+    (*FRAME_DEVICE (f)->cursor_to_hook) (f, vpos, hpos);
 }
 
 void
@@ -479,8 +479,8 @@ tty_cursor_to (struct frame *f, int vpos, int hpos)
 void
 raw_cursor_to (struct frame *f, int row, int col)
 {
-  if (FRAME_DISPLAY (f)->raw_cursor_to_hook)
-    (*FRAME_DISPLAY (f)->raw_cursor_to_hook) (f, row, col);  
+  if (FRAME_DEVICE (f)->raw_cursor_to_hook)
+    (*FRAME_DEVICE (f)->raw_cursor_to_hook) (f, row, col);  
 }
 
 void
@@ -504,8 +504,8 @@ tty_raw_cursor_to (struct frame *f, int row, int col)
 void
 clear_to_end (struct frame *f)
 {
-  if (FRAME_DISPLAY (f)->clear_to_end_hook)
-    (*FRAME_DISPLAY (f)->clear_to_end_hook) (f);
+  if (FRAME_DEVICE (f)->clear_to_end_hook)
+    (*FRAME_DEVICE (f)->clear_to_end_hook) (f);
 }
 
 /* Clear from cursor to end of frame on a termcap device. */
@@ -536,8 +536,8 @@ tty_clear_to_end (struct frame *f)
 void
 clear_frame (struct frame *f)
 {
-  if (FRAME_DISPLAY (f)->clear_frame_hook)
-    (*FRAME_DISPLAY (f)->clear_frame_hook) (f);
+  if (FRAME_DEVICE (f)->clear_frame_hook)
+    (*FRAME_DEVICE (f)->clear_frame_hook) (f);
 }
 
 /* Clear an entire termcap frame. */
@@ -568,8 +568,8 @@ tty_clear_frame (struct frame *f)
 void
 clear_end_of_line (struct frame *f, int first_unused_hpos)
 {
-  if (FRAME_DISPLAY (f)->clear_end_of_line_hook)
-    (*FRAME_DISPLAY (f)->clear_end_of_line_hook) (f, first_unused_hpos);
+  if (FRAME_DEVICE (f)->clear_end_of_line_hook)
+    (*FRAME_DEVICE (f)->clear_end_of_line_hook) (f, first_unused_hpos);
 }
 
 /* An implementation of clear_end_of_line for termcap frames.
@@ -739,8 +739,8 @@ encode_terminal_code (src, src_len, coding)
 void
 write_glyphs (struct frame *f, struct glyph *string, int len)
 {
-  if (FRAME_DISPLAY (f)->write_glyphs_hook)
-    (*FRAME_DISPLAY (f)->write_glyphs_hook) (f, string, len);
+  if (FRAME_DEVICE (f)->write_glyphs_hook)
+    (*FRAME_DEVICE (f)->write_glyphs_hook) (f, string, len);
 }
 
 /* An implementation of write_glyphs for termcap frames. */
@@ -824,8 +824,8 @@ insert_glyphs (struct frame *f, struct glyph *start, int len)
   if (len <= 0)
     return;
 
-  if (FRAME_DISPLAY (f)->insert_glyphs_hook)
-    (*FRAME_DISPLAY (f)->insert_glyphs_hook) (f, start, len);
+  if (FRAME_DEVICE (f)->insert_glyphs_hook)
+    (*FRAME_DEVICE (f)->insert_glyphs_hook) (f, start, len);
 }
 
 /* An implementation of insert_glyphs for termcap frames. */
@@ -920,8 +920,8 @@ tty_insert_glyphs (struct frame *f, struct glyph *start, int len)
 void
 delete_glyphs (struct frame *f, int n)
 {
-  if (FRAME_DISPLAY (f)->delete_glyphs_hook)
-    (*FRAME_DISPLAY (f)->delete_glyphs_hook) (f, n);
+  if (FRAME_DEVICE (f)->delete_glyphs_hook)
+    (*FRAME_DEVICE (f)->delete_glyphs_hook) (f, n);
 }
 
 /* An implementation of delete_glyphs for termcap frames. */
@@ -962,8 +962,8 @@ tty_delete_glyphs (struct frame *f, int n)
 void
 ins_del_lines (struct frame *f, int vpos, int n)
 {
-  if (FRAME_DISPLAY (f)->ins_del_lines_hook)
-    (*FRAME_DISPLAY (f)->ins_del_lines_hook) (f, vpos, n);
+  if (FRAME_DEVICE (f)->ins_del_lines_hook)
+    (*FRAME_DEVICE (f)->ins_del_lines_hook) (f, vpos, n);
 }
 
 /* An implementation of ins_del_lines for termcap frames. */
@@ -1953,11 +1953,12 @@ tty_capable_p (tty, caps, fg, bg)
 
 DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
        0, 1, 0,
-       doc: /* Return non-nil if the tty device that DISPLAY uses can display colors. */)
-     (display)
-     Lisp_Object display;
+       doc: /* Return non-nil if the display device DEVICE can display colors.
+DEVICE must be a tty device.  */)
+     (device)
+     Lisp_Object device;
 {
-  struct display *d = get_tty_display (display);
+  struct device *d = get_tty_device (device);
   if (!d)
     return Qnil;
   else
@@ -1967,11 +1968,11 @@ DEFUN ("tty-display-color-p", Ftty_display_color_p, Stty_display_color_p,
 /* Return the number of supported colors.  */
 DEFUN ("tty-display-color-cells", Ftty_display_color_cells,
        Stty_display_color_cells, 0, 1, 0,
-       doc: /* Return the number of colors supported by the tty device that DISPLAY uses.  */)
-     (display)
-     Lisp_Object display;
+       doc: /* Return the number of colors supported by the tty device DEVICE.  */)
+     (device)
+     Lisp_Object device;
 {
-  struct display *d = get_tty_display (display);
+  struct device *d = get_tty_device (device);
   if (!d)
     return make_number (0);
   else
@@ -2117,86 +2118,79 @@ set_tty_color_mode (f, val)
 
 
 
-/* Return the display object specified by DISPLAY.  DISPLAY may be a
+/* Return the display object specified by DEVICE.  DEVICE may be a
    display id, a frame, or nil for the display device of the current
    frame.  If THROW is zero, return NULL for failure, otherwise throw
    an error.  */
 
-struct display *
-get_display (Lisp_Object display, int throw)
+struct device *
+get_device (Lisp_Object device, int throw)
 {
-  struct display *result = NULL;
+  struct device *result = NULL;
 
-  if (NILP (display))
-    display = selected_frame;
+  if (NILP (device))
+    device = selected_frame;
 
-  if (INTEGERP (display))
+  if (INTEGERP (device))
     {
-      struct display *d;
+      struct device *d;
 
-      for (d = display_list; d; d = d->next_display)
+      for (d = device_list; d; d = d->next_device)
         {
-          if (d->id == XINT (display))
+          if (d->id == XINT (device))
             {
               result = d;
               break;
             }
         }
     }
-  else if (FRAMEP (display))
+  else if (FRAMEP (device))
     {
-      result = FRAME_DISPLAY (XFRAME (display));
+      result = FRAME_DEVICE (XFRAME (device));
     }
 
   if (result == NULL && throw)
-    wrong_type_argument (Qdisplay_live_p, display);
+    wrong_type_argument (Qdisplay_live_p, device);
 
   return result;
 }
 
-/* Return the tty display object specified by DISPLAY. */
+/* Return the tty display object specified by DEVICE. */
 
-static struct display *
-get_tty_display (Lisp_Object display)
+static struct device *
+get_tty_device (Lisp_Object device)
 {
-  struct display *d = get_display (display, 0);
+  struct device *d = get_device (device, 0);
   
   if (d && d->type == output_initial)
     d = NULL;
 
   if (d && d->type != output_termcap)
-    {
-#if 0   /* XXX We need a predicate as the first argument; find one. */
-      wrong_type_argument ("Not a termcap display", display);
-#else /* Until we fix the wrong_type_argument call above, simply throw
-         a dumb error. */
-      error ("DISPLAY is not a termcap display");
-#endif
-    }
+    error ("Device %d is not a termcap display device", d->id);
 
   return d;
 }
 
-/* Return the active termcap display that uses the tty device with the
-   given name.  If NAME is NULL, return the display corresponding to
+/* Return the active termcap device that uses the tty device with the
+   given name.  If NAME is NULL, return the device corresponding to
    our controlling terminal.
 
-   This function ignores suspended displays.
+   This function ignores suspended devices.
 
    Returns NULL if the named terminal device is not opened.  */
  
-struct display *
-get_named_tty_display (name)
+struct device *
+get_named_tty (name)
      char *name;
 {
-  struct display *d;
+  struct device *d;
 
-  for (d = display_list; d; d = d->next_display) {
+  for (d = device_list; d; d = d->next_device) {
     if (d->type == output_termcap
         && ((d->display_info.tty->name == 0 && name == 0)
             || (name && d->display_info.tty->name
                 && !strcmp (d->display_info.tty->name, name)))
-        && DISPLAY_ACTIVE_P (d))
+        && DEVICE_ACTIVE_P (d))
       return d;
   };
 
@@ -2206,15 +2200,15 @@ get_named_tty_display (name)
 
 
 DEFUN ("display-name", Fdisplay_name, Sdisplay_name, 0, 1, 0,
-       doc: /* Return the name of the device that DISPLAY uses.
-It is not guaranteed that the returned value is unique among opened displays.
+       doc: /* Return the name of the display device DEVICE.
+It is not guaranteed that the returned value is unique among opened devices.
 
-DISPLAY may be a display, a frame, or nil (meaning the selected
-frame's display). */)
-  (display)
-     Lisp_Object display;
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device). */)
+  (device)
+     Lisp_Object device;
 {
-  struct display *d = get_display (display, 1);
+  struct device *d = get_device (device, 1);
 
   if (d->name)
     return build_string (d->name);
@@ -2223,14 +2217,14 @@ frame's display). */)
 }
 
 DEFUN ("display-tty-type", Fdisplay_tty_type, Sdisplay_tty_type, 0, 1, 0,
-       doc: /* Return the type of the TTY device that DISPLAY uses.
+       doc: /* Return the type of the tty device that DEVICE uses.
 
-DISPLAY may be a display, a frame, or nil (meaning the selected
-frame's display).  */)
-  (display)
-     Lisp_Object display;
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device). */)
+  (device)
+     Lisp_Object device;
 {
-  struct display *d = get_display (display, 1);
+  struct device *d = get_device (device, 1);
 
   if (d->type != output_termcap)
     error ("Display %d is not a termcap display", d->id);
@@ -2242,14 +2236,14 @@ frame's display).  */)
 }
 
 DEFUN ("display-controlling-tty-p", Fdisplay_controlling_tty_p, Sdisplay_controlling_tty_p, 0, 1, 0,
-       doc: /* Return non-nil if DISPLAY is on the controlling tty of the Emacs process.
+       doc: /* Return non-nil if DEVICE is on the controlling tty of the Emacs process.
 
-DISPLAY may be a display, a frame, or nil (meaning the selected
-frame's display).  */)
-  (display)
-     Lisp_Object display;
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device).  */)
+  (device)
+     Lisp_Object device;
 {
-  struct display *d = get_display (display, 1);
+  struct device *d = get_device (device, 1);
 
   if (d->type != output_termcap || d->display_info.tty->name)
     return Qnil;
@@ -2258,17 +2252,17 @@ frame's display).  */)
 }
 
 DEFUN ("tty-no-underline", Ftty_no_underline, Stty_no_underline, 0, 1, 0,
-       doc: /* Declare that the tty used by DISPLAY does not handle underlining.
+       doc: /* Declare that the tty used by DEVICE does not handle underlining.
 This is used to override the terminfo data, for certain terminals that
 do not really do underlining, but say that they do.  This function has
 no effect if used on a non-tty display.
 
-DISPLAY may be a display, a frame, or nil (meaning the selected
-frame's display).  */)
-  (display)
-     Lisp_Object display;
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device).  */)
+  (device)
+     Lisp_Object device;
 {
-  struct display *d = get_display (display, 1);
+  struct device *d = get_device (device, 1);
 
   if (d->type == output_termcap)
     d->display_info.tty->TS_enter_underline_mode = 0;
@@ -2282,36 +2276,36 @@ frame's display).  */)
  ***********************************************************************/
 
 /* Create the bootstrap display device for the initial frame.
-   Returns a display of type output_initial. */
+   Returns a device of type output_initial.  */
 
-struct display *
-init_initial_display (void)
+struct device *
+init_initial_device (void)
 {
-  if (initialized || display_list || tty_list)
+  if (initialized || device_list || tty_list)
     abort ();
 
-  initial_display = create_display ();
-  initial_display->type = output_initial;
-  initial_display->name = xstrdup ("initial_display");
-  initial_display->kboard = initial_kboard;
+  initial_device = create_device ();
+  initial_device->type = output_initial;
+  initial_device->name = xstrdup ("initial_device");
+  initial_device->kboard = initial_kboard;
 
-  initial_display->delete_display_hook = &delete_initial_display;
+  initial_device->delete_device_hook = &delete_initial_device;
   /* All other hooks are NULL. */
 
-  return initial_display;
+  return initial_device;
 }
 
 /* Deletes the bootstrap display device.
-   Called through delete_display_hook. */
+   Called through delete_device_hook. */
 
 void
-delete_initial_display (struct display *display)
+delete_initial_device (struct device *device)
 {
-  if (display != initial_display)
+  if (device != initial_device)
     abort ();
 
-  delete_display (display);
-  initial_display = NULL;
+  delete_device (device);
+  initial_device = NULL;
 }
 
 /* Drop the controlling terminal if fd is the same device. */
@@ -2357,7 +2351,7 @@ static void maybe_fatal();
 
    If MUST_SUCCEED is true, then all errors are fatal. */
 
-struct display *
+struct device *
 init_tty (char *name, char *terminal_type, int must_succeed)
 {
   char *area;
@@ -2367,72 +2361,72 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   register char *p;
   int status;
   struct tty_display_info *tty;
-  struct display *display;
+  struct device *device;
 
   if (!terminal_type)
     maybe_fatal (must_succeed, 0, 0,
                  "Unknown terminal type",
                  "Unknown terminal type");
 
-  /* If we already have an active display on the given device, use that.
-     If all displays are suspended, create a new one instead.  */
+  /* If we already have a display on the given device, use that.  If
+     all such displays are suspended, create a new one instead.  */
   /* XXX Perhaps this should be made explicit by having init_tty
-     always create a new display and separating display and frame
+     always create a new display and separating device and frame
      creation on Lisp level.  */
-  display = get_named_tty_display (name);
-  if (display)
-    return display;
+  device = get_named_tty (name);
+  if (device)
+    return device;
 
-  display = create_display ();
+  device = create_device ();
   tty = (struct tty_display_info *) xmalloc (sizeof (struct tty_display_info));
   bzero (tty, sizeof (struct tty_display_info));
   tty->next = tty_list;
   tty_list = tty;
 
-  display->type = output_termcap;
-  display->display_info.tty = tty;
-  tty->display = display;
+  device->type = output_termcap;
+  device->display_info.tty = tty;
+  tty->device = device;
 
   tty->Wcm = (struct cm *) xmalloc (sizeof (struct cm));
   Wcm_clear (tty);
 
-  display->rif = 0; /* ttys don't support window-based redisplay. */
+  device->rif = 0; /* ttys don't support window-based redisplay. */
 
-  display->cursor_to_hook = &tty_cursor_to;
-  display->raw_cursor_to_hook = &tty_raw_cursor_to;
+  device->cursor_to_hook = &tty_cursor_to;
+  device->raw_cursor_to_hook = &tty_raw_cursor_to;
 
-  display->clear_to_end_hook = &tty_clear_to_end;
-  display->clear_frame_hook = &tty_clear_frame;
-  display->clear_end_of_line_hook = &tty_clear_end_of_line;
+  device->clear_to_end_hook = &tty_clear_to_end;
+  device->clear_frame_hook = &tty_clear_frame;
+  device->clear_end_of_line_hook = &tty_clear_end_of_line;
 
-  display->ins_del_lines_hook = &tty_ins_del_lines;
+  device->ins_del_lines_hook = &tty_ins_del_lines;
 
-  display->insert_glyphs_hook = &tty_insert_glyphs;
-  display->write_glyphs_hook = &tty_write_glyphs;
-  display->delete_glyphs_hook = &tty_delete_glyphs;
+  device->insert_glyphs_hook = &tty_insert_glyphs;
+  device->write_glyphs_hook = &tty_write_glyphs;
+  device->delete_glyphs_hook = &tty_delete_glyphs;
 
-  display->ring_bell_hook = &tty_ring_bell;
+  device->ring_bell_hook = &tty_ring_bell;
   
-  display->reset_terminal_modes_hook = &tty_reset_terminal_modes;
-  display->set_terminal_modes_hook = &tty_set_terminal_modes;
-  display->update_begin_hook = 0; /* Not needed. */
-  display->update_end_hook = &tty_update_end;
-  display->set_terminal_window_hook = &tty_set_terminal_window;
+  device->reset_terminal_modes_hook = &tty_reset_terminal_modes;
+  device->set_terminal_modes_hook = &tty_set_terminal_modes;
+  device->update_begin_hook = 0; /* Not needed. */
+  device->update_end_hook = &tty_update_end;
+  device->set_terminal_window_hook = &tty_set_terminal_window;
 
-  display->mouse_position_hook = 0; /* Not needed. */
-  display->frame_rehighlight_hook = 0; /* Not needed. */
-  display->frame_raise_lower_hook = 0; /* Not needed. */
+  device->mouse_position_hook = 0; /* Not needed. */
+  device->frame_rehighlight_hook = 0; /* Not needed. */
+  device->frame_raise_lower_hook = 0; /* Not needed. */
 
-  display->set_vertical_scroll_bar_hook = 0; /* Not needed. */
-  display->condemn_scroll_bars_hook = 0; /* Not needed. */
-  display->redeem_scroll_bar_hook = 0; /* Not needed. */
-  display->judge_scroll_bars_hook = 0; /* Not needed. */
+  device->set_vertical_scroll_bar_hook = 0; /* Not needed. */
+  device->condemn_scroll_bars_hook = 0; /* Not needed. */
+  device->redeem_scroll_bar_hook = 0; /* Not needed. */
+  device->judge_scroll_bars_hook = 0; /* Not needed. */
 
-  display->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
-  display->frame_up_to_date_hook = 0; /* Not needed. */
+  device->read_socket_hook = &tty_read_avail_input; /* keyboard.c */
+  device->frame_up_to_date_hook = 0; /* Not needed. */
   
-  display->delete_frame_hook = &delete_tty_output;
-  display->delete_display_hook = &delete_tty;
+  device->delete_frame_hook = &delete_tty_output;
+  device->delete_device_hook = &delete_tty;
   
   if (name)
     {
@@ -2456,7 +2450,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
 
       if (fd < 0)
         {
-          delete_tty (display);
+          delete_tty (device);
           error ("Could not open file: %s", name);
         }
       if (!isatty (fd))
@@ -2469,7 +2463,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
       
       file = fdopen (fd, "w+");
       tty->name = xstrdup (name);
-      display->name = xstrdup (name);
+      device->name = xstrdup (name);
       tty->input = file;
       tty->output = file;
     }
@@ -2482,7 +2476,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
           error ("There is no controlling terminal any more");
         }
       tty->name = 0;
-      display->name = xstrdup (ttyname (0));
+      device->name = xstrdup (ttyname (0));
       tty->input = stdin;
       tty->output = stdout;
     }
@@ -2504,17 +2498,16 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   FrameCols (tty) = FRAME_COLS (f);  /* XXX */
   tty->specified_window = FRAME_LINES (f); /* XXX */
 
-  tty->display->delete_in_insert_mode = 1;
+  tty->device->delete_in_insert_mode = 1;
 
   UseTabs (tty) = 0;
-  display->scroll_region_ok = 0;
+  device->scroll_region_ok = 0;
 
-  /* Seems to insert lines when it's not supposed to, messing
-     up the display.  In doing a trace, it didn't seem to be
-     called much, so I don't think we're losing anything by
-     turning it off.  */
-  display->line_ins_del_ok = 0;
-  display->char_ins_del_ok = 1;
+  /* Seems to insert lines when it's not supposed to, messing up the
+     device.  In doing a trace, it didn't seem to be called much, so I
+     don't think we're losing anything by turning it off.  */
+  device->line_ins_del_ok = 0;
+  device->char_ins_del_ok = 1;
 
   baud_rate = 19200;
 
@@ -2522,7 +2515,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   FRAME_VERTICAL_SCROLL_BAR_TYPE (f) = vertical_scroll_bar_none; /* XXX */
   TN_max_colors = 16;  /* Required to be non-zero for tty-display-color-p */
 
-  return display;
+  return device;
 #else  /* not WINDOWSNT */
 
   Wcm_clear (tty);
@@ -2538,11 +2531,11 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   if (status < 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, display,
+      maybe_fatal (must_succeed, buffer, device,
                    "Cannot open terminfo database file",
                    "Cannot open terminfo database file");
 #else
-      maybe_fatal (must_succeed, buffer, display,
+      maybe_fatal (must_succeed, buffer, device,
                    "Cannot open termcap database file",
                    "Cannot open termcap database file");
 #endif
@@ -2550,7 +2543,7 @@ init_tty (char *name, char *terminal_type, int must_succeed)
   if (status == 0)
     {
 #ifdef TERMINFO
-      maybe_fatal (must_succeed, buffer, display,
+      maybe_fatal (must_succeed, buffer, device,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -2559,7 +2552,7 @@ use the Bourne shell command `TERM=... export TERM' (C-shell:\n\
 to do `unset TERMINFO' (C-shell: `unsetenv TERMINFO') as well.",
                    terminal_type);
 #else
-      maybe_fatal (must_succeed, buffer, display,
+      maybe_fatal (must_succeed, buffer, device,
                    "Terminal type %s is not defined",
                    "Terminal type %s is not defined.\n\
 If that is not the actual type of terminal you have,\n\
@@ -2681,9 +2674,9 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Since we make MagicWrap terminals look like AutoWrap, we need to have
      the former flag imply the latter.  */
   AutoWrap (tty) = MagicWrap (tty) || tgetflag ("am");
-  display->memory_below_frame = tgetflag ("db");
+  device->memory_below_frame = tgetflag ("db");
   tty->TF_hazeltine = tgetflag ("hz");
-  display->must_write_spaces = tgetflag ("in");
+  device->must_write_spaces = tgetflag ("in");
   tty->meta_key = tgetflag ("km") || tgetflag ("MT");
   tty->TF_insmode_motion = tgetflag ("mi");
   tty->TF_standout_motion = tgetflag ("ms");
@@ -2691,19 +2684,19 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   tty->TF_teleray = tgetflag ("xt");
 
 #ifdef MULTI_KBOARD
-  display->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
-  init_kboard (display->kboard);
-  display->kboard->next_kboard = all_kboards;
-  all_kboards = display->kboard;
-  display->kboard->reference_count++;
+  device->kboard = (KBOARD *) xmalloc (sizeof (KBOARD));
+  init_kboard (device->kboard);
+  device->kboard->next_kboard = all_kboards;
+  all_kboards = device->kboard;
+  device->kboard->reference_count++;
   /* Don't let the initial kboard remain current longer than necessary.
      That would cause problems if a file loaded on startup tries to
      prompt in the mini-buffer.  */
   if (current_kboard == initial_kboard)
-    current_kboard = display->kboard;
+    current_kboard = device->kboard;
 #endif
 
-  term_get_fkeys (address, display->kboard);
+  term_get_fkeys (address, device->kboard);
 
   /* Get frame size from system, or else from termcap.  */
   {
@@ -2719,13 +2712,13 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     FrameRows (tty) = tgetnum ("li");
 
   if (FrameRows (tty) < 3 || FrameCols (tty) < 3)
-    maybe_fatal (must_succeed, NULL, display,
+    maybe_fatal (must_succeed, NULL, device,
                  "Screen size %dx%d is too small"
                  "Screen size %dx%d is too small",
                  FrameCols (tty), FrameRows (tty));
 
 #if 0  /* This is not used anywhere. */
-  tty->display->min_padding_speed = tgetnum ("pb");
+  tty->device->min_padding_speed = tgetnum ("pb");
 #endif
 
   TabWidth (tty) = tgetnum ("tw");
@@ -2803,7 +2796,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (!strcmp (terminal_type, "supdup"))
     {
-      display->memory_below_frame = 1;
+      device->memory_below_frame = 1;
       tty->Wcm->cm_losewrap = 1;
     }
   if (!strncmp (terminal_type, "c10", 3)
@@ -2830,7 +2823,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 	    tty->TS_set_window = "\033v%C %C %C %C ";
 	}
       /* Termcap entry often fails to have :in: flag */
-      display->must_write_spaces = 1;
+      device->must_write_spaces = 1;
       /* :ti string typically fails to have \E^G! in it */
       /* This limits scope of insert-char to one line.  */
       strcpy (area, tty->TS_termcap_modes);
@@ -2852,7 +2845,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   if (Wcm_init (tty) == -1)	/* can't do cursor motion */
     {
-      maybe_fatal (must_succeed, NULL, display,
+      maybe_fatal (must_succeed, NULL, device,
                    "Terminal type \"%s\" is not powerful enough to run Emacs",
 #ifdef VMS
                    "Terminal type \"%s\" is not powerful enough to run Emacs.\n\
@@ -2881,7 +2874,7 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
     }
 
   if (FrameRows (tty) <= 0 || FrameCols (tty) <= 0)
-    maybe_fatal (must_succeed, NULL, display,
+    maybe_fatal (must_succeed, NULL, device,
                  "Could not determine the frame size",
                  "Could not determine the frame size");
 
@@ -2895,30 +2888,30 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
 
   UseTabs (tty) = tabs_safe_p (fileno (tty->input)) && TabWidth (tty) == 8;
 
-  display->scroll_region_ok
+  device->scroll_region_ok
     = (tty->Wcm->cm_abs
        && (tty->TS_set_window || tty->TS_set_scroll_region || tty->TS_set_scroll_region_1));
 
-  display->line_ins_del_ok
+  device->line_ins_del_ok
     = (((tty->TS_ins_line || tty->TS_ins_multi_lines)
         && (tty->TS_del_line || tty->TS_del_multi_lines))
-       || (display->scroll_region_ok
+       || (device->scroll_region_ok
            && tty->TS_fwd_scroll && tty->TS_rev_scroll));
 
-  display->char_ins_del_ok
+  device->char_ins_del_ok
     = ((tty->TS_ins_char || tty->TS_insert_mode
         || tty->TS_pad_inserted_char || tty->TS_ins_multi_chars)
        && (tty->TS_del_char || tty->TS_del_multi_chars));
 
-  display->fast_clear_end_of_line = tty->TS_clr_line != 0;
+  device->fast_clear_end_of_line = tty->TS_clr_line != 0;
 
   init_baud_rate (fileno (tty->input));
 
 #ifdef AIXHFT
   /* The HFT system on AIX doesn't optimize for scrolling, so it's
      really ugly at times.  */
-  display->line_ins_del_ok = 0;
-  display->char_ins_del_ok = 0;
+  device->line_ins_del_ok = 0;
+  device->char_ins_del_ok = 0;
 #endif
 
   /* Don't do this.  I think termcap may still need the buffer. */
@@ -2927,26 +2920,26 @@ to do `unset TERMCAP' (C-shell: `unsetenv TERMCAP') as well.",
   /* Init system terminal modes (RAW or CBREAK, etc.).  */
   init_sys_modes (tty);
 
-  return display;
+  return device;
 #endif /* not WINDOWSNT */
 }
 
 /* Auxiliary error-handling function for init_tty.
-   Free BUFFER and delete DISPLAY, then call error or fatal
+   Free BUFFER and delete DEVICE, then call error or fatal
    with str1 or str2, respectively, according to MUST_SUCCEED.  */
 
 static void
-maybe_fatal (must_succeed, buffer, display, str1, str2, arg1, arg2)
+maybe_fatal (must_succeed, buffer, device, str1, str2, arg1, arg2)
      int must_succeed;
      char *buffer;
-     struct display *display;
+     struct device *device;
      char *str1, *str2, *arg1, *arg2;
 {
   if (buffer)
     xfree (buffer);
 
-  if (display)
-    delete_tty (display);
+  if (device)
+    delete_tty (device);
   
   if (must_succeed)
     fatal (str2, arg1, arg2);
@@ -2976,35 +2969,35 @@ static int deleting_tty = 0;
 /* Delete the given terminal device, closing all frames on it. */
 
 void
-delete_tty (struct display *display)
+delete_tty (struct device *device)
 {
   struct tty_display_info *tty;
   Lisp_Object tail, frame;
   char *tty_name;
-  int last_display;
+  int last_device;
   
   if (deleting_tty)
     /* We get a recursive call when we delete the last frame on this
-       display. */
+       device. */
     return;
 
-  if (display->type != output_termcap)
+  if (device->type != output_termcap)
     abort ();
 
-  tty = display->display_info.tty;
+  tty = device->display_info.tty;
   
-  last_display = 1;
+  last_device = 1;
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
       if (FRAME_LIVE_P (f) && (!FRAME_TERMCAP_P (f) || FRAME_TTY (f) != tty))
         {
-          last_display = 0;
+          last_device = 0;
           break;
         }
     }
-  if (last_display)
-      error ("Attempt to delete the sole display with live frames");
+  if (last_device)
+      error ("Attempt to delete the sole display device with live frames");
   
   if (tty == tty_list)
     tty_list = tty->next;
@@ -3033,11 +3026,11 @@ delete_tty (struct display *display)
         }
     }
 
-  /* reset_sys_modes needs a valid display, so this call needs to be
-     before delete_display. */
+  /* reset_sys_modes needs a valid device, so this call needs to be
+     before delete_device. */
   reset_sys_modes (tty);
 
-  delete_display (display);
+  delete_device (device);
 
   tty_name = tty->name;
   if (tty->type)
@@ -3068,7 +3061,7 @@ delete_tty (struct display *display)
 
 
 /* Initialize the tty-dependent part of frame F.  The frame must
-   already have its display initialized. */
+   already have its device initialized. */
 
 void
 create_tty_output (struct frame *f)
@@ -3081,7 +3074,7 @@ create_tty_output (struct frame *f)
   t = xmalloc (sizeof (struct tty_output));
   bzero (t, sizeof (struct tty_output));
 
-  t->display_info = FRAME_DISPLAY (f)->display_info.tty;
+  t->display_info = FRAME_DEVICE (f)->display_info.tty;
 
   f->output_data.tty = t;
 }
@@ -3117,119 +3110,119 @@ mark_ttys ()
 
 
 
-/* Create a new display object and add it to the display list. */
+/* Create a new device object and add it to the device list. */
 
-struct display *
-create_display (void)
+struct device *
+create_device (void)
 {
-  struct display *display = (struct display *) xmalloc (sizeof (struct display));
+  struct device *device = (struct device *) xmalloc (sizeof (struct device));
   
-  bzero (display, sizeof (struct display));
-  display->next_display = display_list;
-  display_list = display;
+  bzero (device, sizeof (struct device));
+  device->next_device = device_list;
+  device_list = device;
 
-  display->id = next_display_id++;
+  device->id = next_device_id++;
 
-  display->keyboard_coding =
+  device->keyboard_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
-  display->terminal_coding =
+  device->terminal_coding =
     (struct coding_system *) xmalloc (sizeof (struct coding_system));
   
-  setup_coding_system (Qnil, display->keyboard_coding);
-  setup_coding_system (Qnil, display->terminal_coding);
+  setup_coding_system (Qnil, device->keyboard_coding);
+  setup_coding_system (Qnil, device->terminal_coding);
   
-  return display;
+  return device;
 }
 
-/* Remove a display from the display list and free its memory. */
+/* Remove a device from the device list and free its memory. */
 
 void
-delete_display (struct display *display)
+delete_device (struct device *device)
 {
-  struct display **dp;
+  struct device **dp;
   Lisp_Object tail, frame;
   
   /* Check for and close live frames that are still on this
-     display. */
+     device. */
   FOR_EACH_FRAME (tail, frame)
     {
       struct frame *f = XFRAME (frame);
-      if (FRAME_LIVE_P (f) && f->display == display)
+      if (FRAME_LIVE_P (f) && f->device == device)
         {
           Fdelete_frame (frame, Qt);
         }
     }
 
-  for (dp = &display_list; *dp != display; dp = &(*dp)->next_display)
+  for (dp = &device_list; *dp != device; dp = &(*dp)->next_device)
     if (! *dp)
       abort ();
-  *dp = display->next_display;
+  *dp = device->next_device;
 
-  if (display->keyboard_coding)
-    xfree (display->keyboard_coding);
-  if (display->terminal_coding)
-    xfree (display->terminal_coding);
-  if (display->name)
-    xfree (display->name);
+  if (device->keyboard_coding)
+    xfree (device->keyboard_coding);
+  if (device->terminal_coding)
+    xfree (device->terminal_coding);
+  if (device->name)
+    xfree (device->name);
   
 #ifdef MULTI_KBOARD
-  if (display->kboard && --display->kboard->reference_count == 0)
-    delete_kboard (display->kboard);
+  if (device->kboard && --device->kboard->reference_count == 0)
+    delete_kboard (device->kboard);
 #endif
   
-  bzero (display, sizeof (struct display));
-  xfree (display);
+  bzero (device, sizeof (struct device));
+  xfree (device);
 }
 
 DEFUN ("delete-display", Fdelete_display, Sdelete_display, 0, 2, 0,
-       doc: /* Delete DISPLAY by deleting all frames on it and closing the device.
-DISPLAY may be a display id, a frame, or nil for the display
-device of the current frame.
+       doc: /* Delete DEVICE by deleting all frames on it and closing the device.
+DEVICE may be a display device id, a frame, or nil (meaning the
+selected frame's display device).
 
 Normally, you may not delete a display if all other displays are suspended,
 but if the second argument FORCE is non-nil, you may do so. */)
-  (display, force)
-     Lisp_Object display, force;
+  (device, force)
+     Lisp_Object device, force;
 {
-  struct display *d, *p;
+  struct device *d, *p;
 
-  d = get_display (display, 0);
+  d = get_device (device, 0);
 
   if (!d)
     return Qnil;
 
-  p = display_list;
-  while (p && (p == d || !DISPLAY_ACTIVE_P (p)))
-    p = p->next_display;
+  p = device_list;
+  while (p && (p == d || !DEVICE_ACTIVE_P (p)))
+    p = p->next_device;
   
   if (NILP (force) && !p)
-    error ("Attempt to delete the sole active display");
+    error ("Attempt to delete the sole active display device");
 
-  if (d->delete_display_hook)
-    (*d->delete_display_hook) (d);
+  if (d->delete_device_hook)
+    (*d->delete_device_hook) (d);
   else
-    delete_display (d);
+    delete_device (d);
 
   return Qnil;
 }
 
 DEFUN ("display-live-p", Fdisplay_live_p, Sdisplay_live_p, 1, 1, 0,
-       doc: /* Return non-nil if OBJECT is a display which has not been deleted.
-Value is nil if OBJECT is not a live display.
-If object is a live display, the return value indicates what sort of
-output device it uses.  See the documentation of `framep' for possible
-return values.
+       doc: /* Return non-nil if OBJECT is a device which has not been deleted.
+Value is nil if OBJECT is not a live display device.
+If object is a live display device, the return value indicates what
+sort of output device it uses.  See the documentation of `framep' for
+possible return values.
 
-Displays are represented by their integer identifiers. */)
+Display devices are represented by their integer identifiers. */)
   (object)
      Lisp_Object object;
 {
-  struct display *d;
+  struct device *d;
   
   if (!INTEGERP (object))
     return Qnil;
 
-  d = get_display (object, 0);
+  d = get_device (object, 0);
 
   if (!d)
     return Qnil;
@@ -3253,17 +3246,17 @@ Displays are represented by their integer identifiers. */)
 }
 
 DEFUN ("display-list", Fdisplay_list, Sdisplay_list, 0, 0, 0,
-       doc: /* Return a list of all displays.
-Displays are represented by their integer identifiers. */)
+       doc: /* Return a list of all display devices.
+Display devices are represented by their integer identifiers. */)
   ()
 {
-  Lisp_Object displays = Qnil;
-  struct display *d;
+  Lisp_Object devices = Qnil;
+  struct device *d;
 
-  for (d = display_list; d; d = d->next_display)
-    displays = Fcons (make_number (d->id), displays);
+  for (d = device_list; d; d = d->next_device)
+    devices = Fcons (make_number (d->id), devices);
 
-  return displays;
+  return devices;
 }
 
             
@@ -3291,7 +3284,7 @@ it. */)
   (tty)
      Lisp_Object tty;
 {
-  struct display *d = get_tty_display (tty);
+  struct device *d = get_tty_device (tty);
   FILE *f;
   
   if (!d)
@@ -3349,7 +3342,7 @@ currently selected frame. */)
   (tty)
      Lisp_Object tty;
 {
-  struct display *d = get_tty_display (tty);
+  struct device *d = get_tty_device (tty);
   int fd;
 
   if (!d)
@@ -3357,7 +3350,7 @@ currently selected frame. */)
 
   if (!d->display_info.tty->input)
     {
-      if (get_named_tty_display (d->display_info.tty->name))
+      if (get_named_tty (d->display_info.tty->name))
         error ("Cannot resume display while another display is active on the same device");
 
       fd = emacs_open (d->display_info.tty->name, O_RDWR | O_NOCTTY, 0);

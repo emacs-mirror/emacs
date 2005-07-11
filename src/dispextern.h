@@ -2929,17 +2929,17 @@ extern int per_line_cost P_ ((char *));
 extern void calculate_costs P_ ((struct frame *));
 extern void set_tty_color_mode P_ ((struct frame *, Lisp_Object));
 extern void tty_setup_colors P_ ((struct tty_display_info *, int));
-extern struct display *get_display P_ ((Lisp_Object display, int));
-extern struct display *get_named_tty_display P_ ((char *));
+extern struct device *get_device P_ ((Lisp_Object display, int));
+extern struct device *get_named_tty P_ ((char *));
 EXFUN (Fdisplay_tty_type, 1);
-extern struct display *init_initial_display P_ ((void));
-extern struct display *init_tty P_ ((char *, char *, int));
-extern void delete_tty P_ ((struct display *));
+extern struct device *init_initial_device P_ ((void));
+extern struct device *init_tty P_ ((char *, char *, int));
+extern void delete_tty P_ ((struct device *));
 extern void fatal P_ ((/* char *, ... */));
 extern void cursor_to P_ ((struct frame *, int, int));
 extern int tty_capable_p P_ ((struct tty_display_info *, unsigned, unsigned long, unsigned long));
-extern void tty_set_terminal_modes P_ ((struct display *));
-extern void tty_reset_terminal_modes P_ ((struct display *));
+extern void tty_set_terminal_modes P_ ((struct device *));
+extern void tty_reset_terminal_modes P_ ((struct device *));
 extern void create_tty_output P_ ((struct frame *));
 
 

@@ -388,7 +388,7 @@ struct x_display_info
     } wm_type;
 
   /* The generic display parameters corresponding to this X display. */
-  struct display *frame_display;
+  struct device *device;
 };
 
 #ifdef HAVE_X_I18N

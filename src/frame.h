@@ -69,7 +69,7 @@ enum text_cursor_kinds
 #define FRAME_FOREGROUND_PIXEL(f) ((f)->foreground_pixel)
 #define FRAME_BACKGROUND_PIXEL(f) ((f)->background_pixel)
 
-struct display;
+struct device;
 
 struct frame
 {
@@ -131,7 +131,7 @@ struct frame
      Actually, we don't specify exactly what is stored here at all; the
      scroll bar implementation code can use it to store anything it likes.
      This field is marked by the garbage collector.  It is here
-     instead of in the `display' structure so that the garbage
+     instead of in the `device' structure so that the garbage
      collector doesn't need to look inside the window-system-dependent
      structure.  */
   Lisp_Object scroll_bars;
@@ -262,14 +262,14 @@ struct frame
 
   /* The output method says how the contents of this frame are
      displayed.  It could be using termcap, or using an X window.
-     This must be the same as the display->type. */
+     This must be the same as the device->type. */
   enum output_method output_method;
 
-  /* The display that this frame uses.  If this is NULL, then the
-     frame is deleted. */
-  struct display *display;
+  /* The display device that this frame uses.  If this is NULL, then
+     the frame has been deleted. */
+  struct device *device;
   
-  /* Display-dependent, frame-local auxiliary data used for displaying
+  /* Device-dependent, frame-local auxiliary data used for displaying
      the contents.  When the frame is deleted, this data is deleted as
      well. */
   union output_data
@@ -415,7 +415,7 @@ struct frame
   /* The baud rate that was used to calculate costs for this frame.  */
   int cost_calculation_baud_rate;
 
-  /* Nonzero if the mouse has moved on this display
+  /* Nonzero if the mouse has moved on this display device
      since the last time we checked.  */
   char mouse_moved;
 
@@ -446,7 +446,7 @@ struct frame
 };
 
 #ifdef MULTI_KBOARD
-#define FRAME_KBOARD(f) ((f)->display->kboard)
+#define FRAME_KBOARD(f) ((f)->device->kboard)
 #else
 #define FRAME_KBOARD(f) (&the_only_kboard)
 #endif
@@ -484,7 +484,7 @@ typedef struct frame *FRAME_PTR;
 #endif
 
 /* Nonzero if frame F is still alive (not deleted).  */
-#define FRAME_LIVE_P(f) ((f)->display != 0)
+#define FRAME_LIVE_P(f) ((f)->device != 0)
 
 /* Nonzero if frame F is a minibuffer-only frame.  */
 #define FRAME_MINIBUF_ONLY_P(f) \
@@ -768,12 +768,12 @@ typedef struct frame *FRAME_PTR;
 
 extern Lisp_Object Qframep, Qframe_live_p;
 extern Lisp_Object Qtty, Qtty_type;
-extern Lisp_Object Qdisplay_id, Qdisplay_live_p;
+extern Lisp_Object Qdevice, Qdisplay_live_p;
 
 extern struct frame *last_nonminibuf_frame;
 
 extern struct frame *make_initial_frame P_ ((void));
-extern struct frame *make_terminal_frame P_ ((struct display *));
+extern struct frame *make_terminal_frame P_ ((struct device *));
 extern struct frame *make_frame P_ ((int));
 #ifdef HAVE_WINDOW_SYSTEM
 extern struct frame *make_minibuffer_frame P_ ((void));
