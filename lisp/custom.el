@@ -1102,7 +1102,8 @@ If it is already enabled, just give it highest precedence (after `user')."
 	(if (eq prop 'theme-value)
 	    (custom-theme-recalc-variable symbol)
 	  (custom-theme-recalc-face symbol)))))
-  (push theme (delq theme custom-enabled-themes))
+  (setq custom-enabled-themes
+        (cons theme (delq theme custom-enabled-themes)))
   ;; `user' must always be the highest-precedence enabled theme.
   (unless (eq theme 'user)
     (custom-enable-theme 'user)))
