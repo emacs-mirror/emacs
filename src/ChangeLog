@@ -1,3 +1,8 @@
+2005-07-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* xfaces.c (x_update_menu_appearance): Use fontSet resource for
+	Lucid if X_I18N, font otherwise.
+
 2005-07-10  Steven Tamm  <steventamm@mac.com>
 
 	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Added.
