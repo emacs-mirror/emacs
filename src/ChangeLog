@@ -9,6 +9,12 @@
 	(Fmac_set_file_type, Fmac_set_file_creator): Added
 	(mac_get_object_from_code, mac_get_code_from_arg): Added
 
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* lread.c (Qeval_buffer_list, Veval_buffer_list): New vars.
+	(syms_of_lread): Set up eval-buffer-list.
+	(Feval_buffer, Feval_region): Bind eval-buffer-list.
+
 2005-07-08  Richard M. Stallman  <rms@gnu.org>
 
 	* eval.c (Fdefvar): Allow defvaring a constant to itself quoted.

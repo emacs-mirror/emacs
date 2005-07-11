@@ -96,6 +96,9 @@ to the FSF.
 ** Create a category of errors called `process-error'
   for some or all errors associated with using subprocesses.
 
+** Maybe reinterpret `parse-error' as a category of errors
+  and put some other errors under it.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
