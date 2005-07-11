@@ -1,3 +1,38 @@
+2005-07-11  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/edebug.el (edebug-slow-after, edebug-slow-before):
+	Do nothing if edebug-active.
+
+	* emacs-lisp/edebug.el (edebug-enter): Don't with-timeout-suspend here.
+	(edebug-display): Do it here instead.
+
+2005-07-10  Richard M. Stallman  <rms@gnu.org>
+
+	* cus-face.el (custom-theme-set-faces): Make it work.
+	(custom-reset-faces): Doc fix.
+	(custom-theme-reset-internal-face, custom-theme-face-value):
+	Functions deleted.
+
+	* custom.el (custom-push-theme): Maintain list of the settings
+	of a given theme in its theme-settings property.
+	Maintain position of old settings in the theme-value
+	or theme-face property.
+	(custom-enabled-themes): New variable.
+	(custom-theme-enabled-p): New function.
+	(provide-theme): Update custom-enabled-themes.
+	Disable and reenable the `user' theme.
+	(require-theme): Doc fix.
+	(custom-do-theme-reset, custom-remove-theme): Functions deleted.
+	(custom-theme-value, custom-theme-variable-value): Likewise.
+	(custom-theme-reset-internal): Likewise.
+	(custom-theme-load-themes): Fix bugs and use custom-disable-theme.
+	(custom-enable-theme, custom-disable-theme): New functions.
+	(custom-variable-theme-value, custom-face-theme-value): Likewise.
+	(custom-theme-recalc-variable, custom-theme-recalc-face): Likewise.
+	(custom-theme-reset-variables): Simplify.
+	(deftheme, custom-declare-theme, custom-make-theme-feature):
+	Definitions moved.
+
 2005-07-10  Chong Yidong  <cyd@stupidchicken.com>
 
 	* longlines.el (longlines-show-region)
