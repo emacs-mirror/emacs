@@ -1,3 +1,7 @@
+2005-07-11  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-reevaluate-setting): Doc fix.
+
 2005-07-11  Jay Belanger  <belanger@truman.edu>
 
 	* calc/calc.el (calc-embedded-announce-formula-alist)
