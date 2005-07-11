@@ -137,14 +137,9 @@ For the standard setting, use `set-default'."
 DEFAULT should be an expression to evaluate to compute the default value,
 not the default value itself.
 
-DEFAULT is stored as SYMBOL's value in the standard theme.  See
-`custom-known-themes' for a list of known themes.  For backwards
-compatibility, DEFAULT is also stored in SYMBOL's property
+DEFAULT is stored as SYMBOL's standard value, in SYMBOL's property
 `standard-value'.  At the same time, SYMBOL's property `force-value' is
 set to nil, as the value is no longer rogue."
-  ;; Remember the standard setting.  The value should be in the standard
-  ;; theme, not in this property.  However, this would require changing
-  ;; the C source of defvar and others as well...
   (put symbol 'standard-value (list default))
   ;; Maybe this option was rogue in an earlier version.  It no longer is.
   (when (get symbol 'force-value)
