@@ -1,3 +1,7 @@
+2005-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* window.c (Frecenter): Yet another int/Lisp_Object mixup (YAILOM).
+
 2005-07-11  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
 	* xfaces.c (x_update_menu_appearance): Use fontSet resource for
@@ -5,9 +9,9 @@
 
 2005-07-10  Steven Tamm  <steventamm@mac.com>
 
-	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Added.
-	(Fmac_set_file_type, Fmac_set_file_creator): Added
-	(mac_get_object_from_code, mac_get_code_from_arg): Added
+	* mac.c (Fmac_get_file_type, Fmac_get_file_creator): Add.
+	(Fmac_set_file_type, Fmac_set_file_creator): Add.
+	(mac_get_object_from_code, mac_get_code_from_arg): Add.
 
 2005-07-10  Richard M. Stallman  <rms@gnu.org>
 
@@ -37,7 +41,7 @@
 
 	* w32console.c (initialize_w32_display): Detect when the console
 	dimensions are insane, and default to 80x25 instead.
-	(w32_use_full_screen_buffer): default to NIL.
+	(w32_use_full_screen_buffer): Default to NIL.
 
 2005-07-06  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
@@ -45,8 +49,8 @@
 	VERTICAL_BORDER_FACE_ID for vertical border line.
 	(mac_encode_char): Call check_ccl_update in advance.
 	(mac_to_x_fontname, x_font_name_to_mac_font_name)
-	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont): Don't
-	assume that font family length is less than 32.
+	(init_font_name_table, mac_do_list_fonts, XLoadQueryFont):
+	Don't assume that font family length is less than 32.
 	(x_compute_min_glyph_bounds): Make static.
 	(x_load_font): Never set fonts_changed_p to zero.
 
@@ -97,8 +101,7 @@
 
 2005-07-01  Masatake YAMATO  <jet@gyve.org>
 
-	* emacs.c (main): Passing ADD_NO_RANDOMIZE to
-	`personality'.
+	* emacs.c (main): Passing ADD_NO_RANDOMIZE to `personality'.
 
 2005-06-30  Juri Linkov  <juri@jurta.org>
 
@@ -226,7 +229,7 @@
 
 2005-06-22  Miles Bader  <miles@gnu.org>
 
-	* xfaces.c (Qvertical_border): Renamed from `Qvertical_divider'.
+	* xfaces.c (Qvertical_border): Rename from `Qvertical_divider'.
 	(realize_basic_faces, syms_of_xfaces): Update references to it.
 	* dispextern.h (enum face_id): Rename `VERTICAL_DIVIDER_FACE_ID'
 	to `VERTICAL_BORDER_FACE_ID'.
@@ -265,8 +268,8 @@
 
 2005-06-17  Richard M. Stallman  <rms@gnu.org>
 
-	* xdisp.c (get_next_display_element): Reverse
-	test of Vshow_nonbreak_escape.
+	* xdisp.c (get_next_display_element):
+	Reverse test of Vshow_nonbreak_escape.
 
 	* term.c (produce_special_glyphs): Use spec_glyph_lookup_face.
 	(Ftty_no_underline): New function.
