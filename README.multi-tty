@@ -95,6 +95,7 @@ Known problems:
 
         * GTK support.  If you compile your Emacs with the GTK
           toolkit, some functionality of multi-tty will be lost.
+	  In particular, closing an X display causes a crash.
           Current releases of GTK have limitations and bugs that
           prevent full-blown multi-display support in Emacs.  Use the
           Lucid toolkit if you want to see a complete feature set.
