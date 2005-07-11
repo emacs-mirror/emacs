@@ -1,5 +1,7 @@
 2005-07-11  Richard M. Stallman  <rms@gnu.org>
 
+	* custom.el (custom-declare-variable): Doc fix.
+
 	* dired-aux.el (dired-compare-directories): Remove "." and ".."
 	from the alists.
 
