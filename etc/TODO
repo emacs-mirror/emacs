@@ -93,6 +93,9 @@ to the FSF.
 
 * Other features we would like:
 
+** Create a category of errors called `process-error'
+  for some or all errors associated with using subprocesses.
+
 ** A function to check for customizable options that have been
   set but not saved, and ask the user whether to save them.
   This could go in kill-emacs-query-functions, to remind people
