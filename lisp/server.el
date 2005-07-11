@@ -250,7 +250,7 @@ VARS should be a list of strings."
 	   (setenv (car ,pair) (cdr ,pair)))))))
 
 (defun server-delete-client (client &optional noframe)
-  "Delete CLIENT, including its buffers, displays and frames.
+  "Delete CLIENT, including its buffers, devices and frames.
 If NOFRAME is non-nil, let the frames live.  (To be used from
 `delete-frame-functions'."
   ;; Force a new lookup of client (prevents infinite recursion).
@@ -274,9 +274,9 @@ If NOFRAME is non-nil, let the frames live.  (To be used from
 	      (kill-buffer (current-buffer))))))
 
       ;; Delete the client's tty.
-      (let ((display-id (server-client-get client 'display)))
-	(when (eq (display-live-p display-id) t)
-	  (delete-display display-id)))
+      (let ((device (server-client-get client 'device)))
+	(when (eq (display-live-p device) t)
+	  (delete-display device)))
 
       ;; Delete the client's frames.
       (unless noframe
@@ -317,7 +317,7 @@ message."
     (when (and (frame-live-p frame)
 	       proc
 	       (or (window-system frame)
-		   ;; A terminal display must not yet be deleted if
+		   ;; A terminal device must not yet be deleted if
 		   ;; there are other frames on it.
 		   (< 0 (let ((frame-num 0))
 			  (mapc (lambda (f)
@@ -329,10 +329,10 @@ message."
       (server-log (format "server-handle-delete-frame, frame %s" frame) proc)
       (server-delete-client proc 'noframe)))) ; Let delete-frame delete the frame later.
 
-(defun server-handle-suspend-tty (display)
+(defun server-handle-suspend-tty (device)
   "Notify the emacsclient process to suspend itself when its tty device is suspended."
-  (dolist (proc (server-clients-with 'display display))
-    (server-log (format "server-handle-suspend-tty, display %s" display) proc)
+  (dolist (proc (server-clients-with 'device device))
+    (server-log (format "server-handle-suspend-tty, device %s" device) proc)
     (condition-case err
 	(server-send-string proc "-suspend \n")
       (file-error (condition-case nil (server-delete-client proc) (error nil))))))
@@ -606,7 +606,7 @@ The following commands are accepted by the client:
 		      (progn
 			(setq frame (make-frame-on-display
 				     (or display
-					 (frame-parameter nil 'display)
+					 (frame-parameter nil 'device)
 					 (getenv "DISPLAY")
 					 (error "Please specify display"))
 				     (list (cons 'client proc))))
@@ -616,7 +616,7 @@ The following commands are accepted by the client:
 			(modify-frame-parameters frame (list (cons 'client proc)))
 			(select-frame frame)
 			(server-client-set client 'frame frame)
-			(server-client-set client 'display (frame-display frame))
+			(server-client-set client 'device (frame-display frame))
 			(setq dontkill t))
 		    ;; This emacs does not support X.
 		    (server-log "Window system unsupported" proc)
@@ -625,19 +625,19 @@ The following commands are accepted by the client:
 
 		 ;; -resume:  Resume a suspended tty frame.
 		 ((equal "-resume" arg)
-		  (let ((display-id (server-client-get client 'display)))
+		  (let ((device (server-client-get client 'device)))
 		    (setq dontkill t)
-		    (when (eq (display-live-p display-id) t)
-		      (resume-tty display-id))))
+		    (when (eq (display-live-p device) t)
+		      (resume-tty device))))
 
 		 ;; -suspend:  Suspend the client's frame.  (In case we
 		 ;; get out of sync, and a C-z sends a SIGTSTP to
 		 ;; emacsclient.)
 		 ((equal "-suspend" arg)
-		  (let ((display-id (server-client-get client 'display)))
+		  (let ((device (server-client-get client 'device)))
 		    (setq dontkill t)
-		    (when (eq (display-live-p display-id) t)
-		      (suspend-tty display-id))))
+		    (when (eq (display-live-p device) t)
+		      (suspend-tty device))))
 
 		 ;; -ignore COMMENT:  Noop; useful for debugging emacsclient.
 		 ;; (The given comment appears in the server log.)
@@ -664,7 +664,7 @@ The following commands are accepted by the client:
 		    (select-frame frame)
 		    (server-client-set client 'frame frame)
 		    (server-client-set client 'tty (display-name frame))
-		    (server-client-set client 'display (frame-display frame))
+		    (server-client-set client 'device (frame-display frame))
 
 		    ;; Reply with our pid.
 		    (server-send-string proc (concat "-emacs-pid " (number-to-string (emacs-pid)) "\n"))
@@ -1018,8 +1018,8 @@ done that."
 	       (get-window-with-predicate
 		(lambda (w)
 		  (and (not (window-dedicated-p w))
-		       (equal (frame-parameter (window-frame w) 'display)
-			      (frame-parameter (selected-frame) 'display))))
+		       (equal (frame-parameter (window-frame w) 'device)
+			      (frame-parameter (selected-frame) 'device))))
 		'nomini 'visible (selected-window))))
 	    (condition-case nil
 		(switch-to-buffer next-buffer)

@@ -3337,8 +3337,8 @@ device.
 `resume-tty' does nothing if it is called on a device that is not
 suspended.
 
-TTY may be a display id, a frame, or nil for the display device of the
-currently selected frame. */)
+TTY may be a display device id, a frame, or nil for the display device
+of the currently selected frame. */)
   (tty)
      Lisp_Object tty;
 {
