@@ -10037,7 +10037,7 @@ select_frame_for_redisplay (frame)
   Lisp_Object tail, sym, val;
   Lisp_Object old = selected_frame;
 
-  xassert (FRAME_LIVE_P (frame));
+  xassert (FRAMEP (frame) && FRAME_LIVE_P (XFRAME (frame)));
 
   selected_frame = frame;
 
