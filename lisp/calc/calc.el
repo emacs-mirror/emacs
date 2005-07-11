@@ -242,13 +242,17 @@
   :type '(regexp))
 
 (defcustom calc-embedded-announce-formula-alist
-  '((texinfo-mode . "@c Embed\n\\(@c .*\n\\)*")
+  '((c++-mode     . "//Embed\n\\(// .*\n\\)*")
+    (c-mode       . "/\\*Embed\\*/\n\\(/\\* .*\\*/\n\\)*")
+    (f90-mode     . "!Embed\n\\(! .*\n\\)*")
+    (fortran-mode . "C Embed\n\\(C .*\n\\)*")
+    (html-helper-mode . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (html-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
     (nroff-mode   . "\\\\\"Embed\n\\(\\\\\" .*\n\\)*")
     (pascal-mode  . "{Embed}\n\\({.*}\n\\)*")
-    (c-mode       . "/\\*Embed\\*/\n\\(/\\* .*\\*/\n\\)*")
-    (c++-mode     . "//Embed\n\\(// .*\n\\)*")
-    (fortran-mode . "C Embed\n\\(C .*\n\\)*")
-    (f90-mode     . "!Embed\n\\(! .*\n\\)*"))
+    (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (texinfo-mode . "@c Embed\n\\(@c .*\n\\)*"))
   "*Alist of major modes with appropriate values for `calc-embedded-announce-formula'."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
@@ -310,13 +314,17 @@ See calc-embedded-open-plain."
   :type '(string))
 
 (defcustom calc-embedded-open-close-plain-alist
-  '((texinfo-mode "@c %% "   " %%\n")
+  '((c++-mode     "// %% "   " %%\n")
+    (c-mode       "/* %% "   " %% */\n")
+    (f90-mode     "! %% "    " %%\n")
+    (fortran-mode "C %% "    " %%\n")
+    (html-helper-mode "<!-- %% " " %% -->\n")
+    (html-mode "<!-- %% " " %% -->\n")
     (nroff-mode   "\\\" %% " " %%\n")
     (pascal-mode  "{%% "    " %%}\n")
-    (c-mode       "/* %% "   " %% */\n")
-    (c++-mode     "// %% "   " %%\n")
-    (fortran-mode "C %% "    " %%\n")
-    (f90-mode     "! %% "    " %%\n"))
+    (sgml-mode     "<!-- %% " " %% -->\n")
+    (xml-mode     "<!-- %% " " %% -->\n")
+    (texinfo-mode "@c %% "   " %%\n"))
   "*Alist of major modes with pairs of delimiters for \"plain\" formulas."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
@@ -358,13 +366,17 @@ This is not required to be present for user-written mode annotations."
   :type '(string))
 
 (defcustom calc-embedded-open-close-mode-alist
-  '((texinfo-mode "@c "   "\n")
+  '((c++-mode     "// "   "\n")
+    (c-mode       "/* "   " */\n")
+    (f90-mode     "! "    "\n")
+    (fortran-mode "C "    "\n")
+    (html-helper-mode "<!-- " " -->\n")
+    (html-mode    "<!-- " " -->\n")
     (nroff-mode   "\\\" " "\n")
     (pascal-mode  "{ "    " }\n")
-    (c-mode       "/* "   " */\n")
-    (c++-mode     "// "   "\n")
-    (fortran-mode "C "    "\n")
-    (f90-mode     "! "    "\n"))
+    (sgml-mode    "<!-- " " -->\n")
+    (xml-mode     "<!-- " " -->\n")
+    (texinfo-mode "@c "   "\n"))
   "*Alist of major modes with pairs of strings to delimit annotations."
   :group 'calc
   :type '(alist :key-type (symbol :tag "Major mode")
