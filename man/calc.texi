@@ -4314,8 +4314,8 @@ even @kbd{V R x max @key{RET}} if you had preferred.)
 
 If your system has the GNUPLOT program, you can see graphs of your
 data and your straight line to see how well they match.  (If you have
-GNUPLOT 3.0, the following instructions will work regardless of the
-kind of display you have.  Some GNUPLOT 2.0, non-X-windows systems
+GNUPLOT 3.0 or higher, the following instructions will work regardless
+of the kind of display you have.  Some GNUPLOT 2.0, non-X-windows systems
 may require additional steps to view the graphs.)
 
 Let's start by plotting the original data.  Recall the ``@var{x}'' and ``@var{y}''
@@ -28694,11 +28694,11 @@ treatment to @samp{=>}.
 
 @noindent
 The commands for graphing data begin with the @kbd{g} prefix key.  Calc
-uses GNUPLOT 2.0 or 3.0 to do graphics.  These commands will only work
+uses GNUPLOT 2.0 or later to do graphics.  These commands will only work
 if GNUPLOT is available on your system.  (While GNUPLOT sounds like
 a relative of GNU Emacs, it is actually completely unrelated.
-However, it is free software and can be obtained from the Free
-Software Foundation's machine @samp{prep.ai.mit.edu}.)
+However, it is free software.   It can be obtained from
+@samp{http://www.gnuplot.info}.)
 
 @vindex calc-gnuplot-name
 If you have GNUPLOT installed on your system but Calc is unable to
@@ -28707,7 +28707,7 @@ in your Calc init file or @file{.emacs}.  You may also need to set some Lisp
 variables to show Calc how to run GNUPLOT on your system; these
 are described under @kbd{g D} and @kbd{g O} below.  If you are
 using the X window system, Calc will configure GNUPLOT for you
-automatically.  If you have GNUPLOT 3.0 and you are not using X,
+automatically.  If you have GNUPLOT 3.0 or later and you are not using X,
 Calc will configure GNUPLOT to display graphs using simple character
 graphics that will work on any terminal.
 
@@ -28826,7 +28826,7 @@ is the height of the point
 at coordinate @expr{(x_i, y_j)} on the surface.  The 3D graph will
 be displayed from a certain default viewpoint; you can change this
 viewpoint by adding a @samp{set view} to the @samp{*Gnuplot Commands*}
-buffer as described later.  See the GNUPLOT 3.0 documentation for a
+buffer as described later.  See the GNUPLOT documentation for a
 description of the @samp{set view} command.
 
 Each point in the matrix will be displayed as a dot in the graph,
@@ -30268,10 +30268,11 @@ Plain formulas are preceded and followed by @samp{%%%} signs
 by default.  This notation has the advantage that the @samp{%}
 character begins a comment in @TeX{} and La@TeX{}, so if your formula is 
 embedded in a @TeX{} or La@TeX{} document its plain version will be
-invisible in the final printed copy.  @xref{Customizing
-Embedded Mode}, to see how to change the ``plain'' formula
-delimiters, say to something that @dfn{eqn} or some other
-formatter will treat as a comment.
+invisible in the final printed copy.  Certain major modes have different
+delimiters to ensure that the ``plain'' version will be 
+in a comment for those modes, also.  
+See @ref{Customizing Embedded Mode} to see how to change the ``plain''
+formula delimiters. 
 
 There are several notations which Calc's parser for ``big''
 formatted formulas can't yet recognize.  In particular, it can't
@@ -30696,8 +30697,9 @@ formula are never used (except for global annotations, described
 below).
 
 The scan does not look for the leading @samp{% }, only for the
-square brackets and the text they enclose.  You can edit the mode
-annotations to a style that works better in context if you wish.
+square brackets and the text they enclose.  In fact, the leading
+characters are different for different major modes.  You can edit the
+mode annotations to a style that works better in context if you wish.
 @xref{Customizing Embedded Mode}, to see how to change the style
 that Calc uses when it generates the annotations.  You can write
 mode annotations into the file yourself if you know the syntax;
@@ -30797,14 +30799,11 @@ You can modify Embedded mode's behavior by setting various Lisp
 variables described here.  These variables are customizable 
 (@pxref{Customizable Variables}), or you can use @kbd{M-x set-variable}
 or @kbd{M-x edit-options} to adjust a variable on the fly.
-(Another possibility would
-be to use a file-local variable annotation at the end of the
-file; @pxref{File Variables, , Local Variables in Files, emacs, the
-Emacs manual}.)
-
-While none of these variables will be buffer-local by default, you
-can make any of them local to any Embedded mode buffer.  (Their
-values in the @samp{*Calculator*} buffer are never used.)
+(Another possibility would be to use a file-local variable annotation at
+the end of the file; 
+@pxref{File Variables, , Local Variables in Files, emacs, the Emacs manual}.)
+Many of the variables given mentioned here can be set to depend on the
+major mode of the editing buffer (@pxref{Customizable Variables}).
 
 @vindex calc-embedded-open-formula
 The @code{calc-embedded-open-formula} variable holds a regular
@@ -30887,11 +30886,13 @@ begins a ``plain'' formula written in front of the formatted
 formula when @kbd{d p} mode is turned on.  Note that this is an
 actual string, not a regular expression, because Calc must be able
 to write this string into a buffer as well as to recognize it.
-The default string is @code{"%%% "} (note the trailing space).
+The default string is @code{"%%% "} (note the trailing space), but may
+be different for certain major modes.
 
 @vindex calc-embedded-close-plain
 The @code{calc-embedded-close-plain} variable is a string which
-ends a ``plain'' formula.  The default is @code{" %%%\n"}.  Without
+ends a ``plain'' formula.  The default is @code{" %%%\n"}, but may be
+different for different major modes.  Without
 the trailing newline here, the first line of a Big mode formula
 that followed might be shifted over with respect to the other lines.
 
@@ -30921,11 +30922,12 @@ not activate just anything surrounded by formula delimiters; after
 all, blank lines are considered formula delimiters by default!
 But if your language includes a delimiter which can only occur
 actually in front of a formula, you can take advantage of it here.
-The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, which
-checks for @samp{%Embed} followed by any number of lines beginning
-with @samp{%} and a space.  This last is important to make Calc
-consider mode annotations part of the pattern, so that the formula's
-opening delimiter really is sure to follow the pattern.
+The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, but may be
+different for different major modes.
+This pattern will check for @samp{%Embed} followed by any number of
+lines beginning with @samp{%} and a space.  This last is important to
+make Calc consider mode annotations part of the pattern, so that the
+formula's opening delimiter really is sure to follow the pattern.
 
 @vindex calc-embedded-open-mode
 The @code{calc-embedded-open-mode} variable is a string (not a
@@ -30933,14 +30935,15 @@ regular expression) which should precede a mode annotation.
 Calc never scans for this string; Calc always looks for the
 annotation itself.  But this is the string that is inserted before
 the opening bracket when Calc adds an annotation on its own.
-The default is @code{"% "}.
+The default is @code{"% "}, but may be different for different major
+modes. 
 
 @vindex calc-embedded-close-mode
 The @code{calc-embedded-close-mode} variable is a string which
 follows a mode annotation written by Calc.  Its default value
-is simply a newline, @code{"\n"}.  If you change this, it is a
-good idea still to end with a newline so that mode annotations
-will appear on lines by themselves.
+is simply a newline, @code{"\n"}, but may be different for different
+major modes.  If you change this, it is a good idea still to end with a
+newline so that mode annotations will appear on lines by themselves.
 
 @node Programming, Customizable Variables, Embedded Mode, Top
 @chapter Programming
@@ -34725,6 +34728,20 @@ which the window should use.  Unlike @code{calc-window-hook}, this hook
 must @emph{not} switch into the new window.
 @end defvar
 
+@defvar calc-embedded-mode-hook
+This hook is called the first time that Embedded mode is entered.
+@end defvar
+
+@defvar calc-embedded-new-buffer-hook
+This hook is called each time that Embedded mode is entered in a
+new buffer.
+@end defvar
+
+@defvar calc-embedded-new-formula-hook
+This hook is called each time that Embedded mode is enabled for a
+new formula.
+@end defvar
+
 @defvar calc-edit-mode-hook
 This hook is called by @code{calc-edit} (and the other ``edit''
 commands) when the temporary editing buffer is being created.
@@ -34894,6 +34911,7 @@ The default value of @code{calc-language-alist} is
 @end defvar
 
 @defvar calc-embedded-announce-formula
+@defvarx calc-embedded-announce-formula-alist
 See @ref{Customizing Embedded Mode}.@*
 The variable @code{calc-embedded-announce-formula} helps determine
 what formulas @kbd{M-# a} will activate in a buffer.  It is a
@@ -34905,10 +34923,33 @@ activated.  (Calc also uses other patterns to find formulas, such as
 The default pattern is @code{"%Embed\n\\(% .*\n\\)*"}, which checks
 for @samp{%Embed} followed by any number of lines beginning with
 @samp{%} and a space.
+
+The variable @code{calc-embedded-announce-formula-alist} is used to
+set @code{calc-embedded-announce-formula} to different regular
+expressions depending on the major mode of the editing buffer.
+It consists of a list of pairs of the form @code{(@var{MAJOR-MODE} .
+@var{REGEXP})}, and its default value is
+@example
+   ((c++-mode     . "//Embed\n\\(// .*\n\\)*")
+    (c-mode       . "/\\*Embed\\*/\n\\(/\\* .*\\*/\n\\)*")
+    (f90-mode     . "!Embed\n\\(! .*\n\\)*")
+    (fortran-mode . "C Embed\n\\(C .*\n\\)*")
+    (html-helper-mode . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (html-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (nroff-mode   . "\\\\\"Embed\n\\(\\\\\" .*\n\\)*")
+    (pascal-mode  . "@{Embed@}\n\\(@{.*@}\n\\)*")
+    (sgml-mode    . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (xml-mode     . "<!-- Embed -->\n\\(<!-- .* -->\n\\)*")
+    (texinfo-mode . "@@c Embed\n\\(@@c .*\n\\)*"))
+@end example
+Any major modes added to @code{calc-embedded-announce-formula-alist}
+should also be added to @code{calc-embedded-open-close-plain-alist} 
+and @code{calc-embedded-open-close-mode-alist}.
 @end defvar
 
 @defvar  calc-embedded-open-formula
 @defvarx calc-embedded-close-formula
+@defvarx calc-embedded-open-close-formula-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-formula} and
 @code{calc-embedded-open-formula} control the region that Calc will
@@ -34933,10 +34974,20 @@ Lines beginning with @samp{.EQ} and @samp{.EN} (@dfn{eqn} delimiters);
 @item
 Lines containing a single @samp{%} or @samp{.\"} symbol and nothing else.
 @end enumerate
+
+The variable @code{calc-embedded-open-close-formula-alist} is used to
+set @code{calc-embedded-open-formula} and
+@code{calc-embedded-close-formula} to different regular
+expressions depending on the major mode of the editing buffer.
+It consists of a list of lists of the form 
+@code{(@var{MAJOR-MODE}  @var{OPEN-FORMULA-REGEXP}
+@var{CLOSE-FORMULA-REGEXP})}, and its default value is
+@code{nil}.
 @end defvar
 
 @defvar  calc-embedded-open-word
 @defvarx calc-embedded-close-word
+@defvarx calc-embedded-open-close-word-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-word} and
 @code{calc-embedded-close-word} control the region that Calc will
@@ -34946,10 +34997,20 @@ regular expressions.
 The default values of @code{calc-embedded-open-word} and
 @code{calc-embedded-close-word} are @code{"^\\|[^-+0-9.eE]"} and 
 @code{"$\\|[^-+0-9.eE]"} respectively.
+
+The variable @code{calc-embedded-open-close-word-alist} is used to
+set @code{calc-embedded-open-word} and
+@code{calc-embedded-close-word} to different regular
+expressions depending on the major mode of the editing buffer.
+It consists of a list of lists of the form 
+@code{(@var{MAJOR-MODE}  @var{OPEN-WORD-REGEXP}
+@var{CLOSE-WORD-REGEXP})}, and its default value is
+@code{nil}.
 @end defvar
 
 @defvar  calc-embedded-open-plain
 @defvarx calc-embedded-close-plain
+@defvarx calc-embedded-open-close-plain-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-plain} and
 @code{calc-embedded-open-plain} are used to delimit ``plain''
@@ -34962,10 +35023,35 @@ The default string for @code{calc-embedded-open-plain} is
 @code{calc-embedded-close-plain} is @code{" %%%\n"}, without
 the trailing newline here, the first line of a Big mode formula
 that followed might be shifted over with respect to the other lines.
+
+The variable @code{calc-embedded-open-close-plain-alist} is used to
+set @code{calc-embedded-open-plain} and
+@code{calc-embedded-close-plain} to different strings
+depending on the major mode of the editing buffer.
+It consists of a list of lists of the form 
+@code{(@var{MAJOR-MODE}  @var{OPEN-PLAIN-STRING}
+@var{CLOSE-PLAIN-STRING})}, and its default value is
+@example
+   ((c++-mode     "// %% "   " %%\n")
+    (c-mode       "/* %% "   " %% */\n")
+    (f90-mode     "! %% "    " %%\n")
+    (fortran-mode "C %% "    " %%\n")
+    (html-helper-mode "<!-- %% " " %% -->\n")
+    (html-mode "<!-- %% " " %% -->\n")
+    (nroff-mode   "\\\" %% " " %%\n")
+    (pascal-mode  "@{%% "    " %%@}\n")
+    (sgml-mode     "<!-- %% " " %% -->\n")
+    (xml-mode     "<!-- %% " " %% -->\n")
+    (texinfo-mode "@@c %% "   " %%\n"))
+@end example
+Any major modes added to @code{calc-embedded-open-close-plain-alist}
+should also be added to @code{calc-embedded-announce-formula-alist}
+and @code{calc-embedded-open-close-mode-alist}.
 @end defvar
 
 @defvar  calc-embedded-open-new-formula
 @defvarx calc-embedded-close-new-formula
+@defvarx calc-embedded-open-close-new-formula-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-new-formula} and
 @code{calc-embedded-close-new-formula} are strings which are
@@ -34980,10 +35066,20 @@ also @code{"\n\n"}.  The final newline is omitted by @w{@kbd{M-# f}}
 if typed at the end of a line.  (It follows that if @kbd{M-# f} is
 typed on a blank line, both a leading opening newline and a trailing
 closing newline are omitted.)
+
+The variable @code{calc-embedded-open-close-new-formula-alist} is used to
+set @code{calc-embedded-open-new-formula} and
+@code{calc-embedded-close-new-formula} to different strings
+depending on the major mode of the editing buffer.
+It consists of a list of lists of the form 
+@code{(@var{MAJOR-MODE}  @var{OPEN-NEW-FORMULA-STRING}
+@var{CLOSE-NEW-FORMULA-STRING})}, and its default value is
+@code{nil}.
 @end defvar
 
 @defvar  calc-embedded-open-mode
 @defvarx calc-embedded-close-mode
+@defvarx calc-embedded-open-close-mode-alist
 See @ref{Customizing Embedded Mode}.@*
 The variables @code{calc-embedded-open-mode} and
 @code{calc-embedded-close-mode} are strings which Calc will place before
@@ -34997,6 +35093,30 @@ and the default value of @code{calc-embedded-close-mode} is
 If you change the value of @code{calc-embedded-close-mode}, it is a good
 idea still to end with a newline so that mode annotations will appear on
 lines by themselves.
+
+The variable @code{calc-embedded-open-close-mode-alist} is used to
+set @code{calc-embedded-open-mode} and
+@code{calc-embedded-close-mode} to different strings
+expressions depending on the major mode of the editing buffer.
+It consists of a list of lists of the form 
+@code{(@var{MAJOR-MODE}  @var{OPEN-MODE-STRING}
+@var{CLOSE-MODE-STRING})}, and its default value is
+@example
+   ((c++-mode     "// "   "\n")
+    (c-mode       "/* "   " */\n")
+    (f90-mode     "! "    "\n")
+    (fortran-mode "C "    "\n")
+    (html-helper-mode "<!-- " " -->\n")
+    (html-mode    "<!-- " " -->\n")
+    (nroff-mode   "\\\" " "\n")
+    (pascal-mode  "@{ "    " @}\n")
+    (sgml-mode    "<!-- " " -->\n")
+    (xml-mode     "<!-- " " -->\n")
+    (texinfo-mode "@@c "   "\n"))
+@end example
+Any major modes added to @code{calc-embedded-open-close-mode-alist}
+should also be added to @code{calc-embedded-announce-formula-alist}
+and @code{calc-embedded-open-close-plain-alist}.
 @end defvar
 
 @node Reporting Bugs, Summary, Customizable Variables, Top
