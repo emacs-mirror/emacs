@@ -680,10 +680,10 @@ COMMENT is a comment string about SYMBOL."
   (apply 'custom-theme-set-variables 'user args))
 
 (defun custom-reevaluate-setting (symbol)
-  "Reset the value of SYMBOL by re-evaluating its saved or default value.
-This is useful for variables that are defined before their default value
-can really be computed.  E.g. dumped variables whose default depends on
-run-time information."
+  "Reset the value of SYMBOL by re-evaluating its saved or standard value.
+Use the :set function to do so.  This is useful for customizable options
+that are defined before their standard value can really be computed.
+E.g. dumped variables whose default depends on run-time information."
   (funcall (or (get symbol 'custom-set) 'set-default)
 	   symbol
 	   (eval (car (or (get symbol 'saved-value) (get symbol 'standard-value))))))
