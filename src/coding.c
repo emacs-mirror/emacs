@@ -363,7 +363,7 @@ Lisp_Object Qsafe_chars;
 Lisp_Object Qvalid_codes;
 
 extern Lisp_Object Qinsert_file_contents, Qwrite_region;
-Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
+Lisp_Object Qcall_process, Qcall_process_region;
 Lisp_Object Qstart_process, Qopen_network_stream;
 Lisp_Object Qtarget_idx;
 

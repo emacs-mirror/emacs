@@ -628,7 +628,7 @@ extern int code_convert_region P_ ((int, int, int, int, struct coding_system *,
 extern Lisp_Object run_pre_post_conversion_on_str P_ ((Lisp_Object,
 						       struct coding_system *,
 						       int));
-extern void run_pre_write_conversin_on_c_str P_ ((unsigned char **, int *, 
+extern void run_pre_write_conversin_on_c_str P_ ((unsigned char **, int *,
 						  int, int,
 						  struct coding_system *));
 
@@ -666,7 +666,7 @@ extern Lisp_Object eol_mnemonic_undecided;
 
 #ifdef emacs
 extern Lisp_Object Qfile_coding_system;
-extern Lisp_Object Qcall_process, Qcall_process_region, Qprocess_argument;
+extern Lisp_Object Qcall_process, Qcall_process_region;
 extern Lisp_Object Qstart_process, Qopen_network_stream;
 extern Lisp_Object Qwrite_region;
 
