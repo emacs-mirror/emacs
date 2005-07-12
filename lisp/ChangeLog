@@ -1,3 +1,14 @@
+2005-07-12  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* startup.el (command-line): Revert to previous handling of
+	tooltip-mode.  Explain in comment why the complexity is needed.
+
+	* tooltip.el (tooltip-mode): Revert to previous implementation of
+	its defcustom.
+
+	* frame.el (blink-cursor-mode): Revert to previous implementation
+	of its defcustom.  Update.comment.
+
 2005-07-12  Lars Hansen  <larsh@soem.dk>
 
 	* desktop.el: Update e-mail address.
