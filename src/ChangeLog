@@ -1,7 +1,7 @@
 2005-07-12  Kim F. Storm  <storm@cua.dk>
 
-	* coding.c:
-	* coding.h: Remove unused var Qprocess_argument.
+	* coding.c (Qprocess_argument):
+	* coding.h (Qprocess_argument): Remove unused var.
 
 	* xselect.c (intern): Remove dup. intern and staticpro for QTIMESTAMP.
 
