@@ -276,12 +276,12 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		  result)
 	      (set-keymap-parent keymap (terminal-local-value 'local-key-translation-map frame))
 	      (set-terminal-local-value 'local-key-translation-map frame keymap)
-	      (or (terminal-parameter nil 'encoded-kbd-saved-input-mode)
-		  (set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
+	      (unless (terminal-parameter nil 'encoded-kbd-saved-input-mode)
+		(set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))
 	      (if result
 		  (when (and (eq result 8)
-			     (not (memq (nth 2 cim) '(t nil))))
+			     (memq (nth 2 cim) '(t nil)))
 		    (set-input-mode
 		     (nth 0 cim)
 		     (nth 1 cim)
