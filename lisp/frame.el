@@ -1256,6 +1256,11 @@ The function `blink-cursor-start' is called when the timer fires.")
 This timer calls `blink-cursor-timer-function' every
 `blink-cursor-interval' seconds.")
 
+;; At startup, some variables used to compute the standard value may
+;; not yet be defined or may not yet have their correct value.  Hence
+;; the value computed by the defcustom at startup may be incorrect.
+;; The correct value will be recomputed in startup.el using
+;; `custom-reevaluate-setting'
 (define-minor-mode blink-cursor-mode
   "Toggle blinking cursor mode.
 With a numeric argument, turn blinking cursor mode on iff ARG is positive.
@@ -1266,10 +1271,9 @@ Note that this command is effective only when Emacs
 displays through a window system, because then Emacs does its own
 cursor display.  On a text-only terminal, this is not implemented."
   :init-value (not (or noninteractive
-		       no-blinking-cursor
+		       (if (boundp 'no-blinking-cursor) no-blinking-cursor)
 		       (eq system-type 'ms-dos)
 		       (not (memq window-system '(x w32)))))
-  :initialize 'custom-initialize-safe-default
   :group 'cursor
   :global t
   (if blink-cursor-idle-timer (cancel-timer blink-cursor-idle-timer))
