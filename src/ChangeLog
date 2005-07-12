@@ -1,3 +1,16 @@
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [!TARGET_API_MAC_CARBON]: Include charset.h, coding.h, and
+	Endian.h.
+	[!MAC_OSX] (fchmod, fchown): New functions.
+	(mac_get_code_from_arg): Don't accept Lisp integer as argument.
+	Use SBYTES and EndianU32_BtoN.
+	(mac_get_object_from_code): Return 4 byte string even if argument
+	is 0.  Use make_unibyte_string and EndianU32_NtoB.
+	(Fmac_get_file_creator, Fmac_get_file_type, Fmac_set_file_creator)
+	(Fmac_set_file_type): Fix documents and argument declarations.
+	Don't specify kFSCatInfoNodeFlags.  Support Mac OS Classic.
+
 2005-07-11  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* window.c (Frecenter): Yet another int/Lisp_Object mixup (YAILOM).
