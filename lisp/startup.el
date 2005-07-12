@@ -758,12 +758,11 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
   ;; to be equivalent under all conditions, or Custom will get confused.
   ;; We can not use `custom-reevaluate-setting' here, because it would
   ;; load the tooltip library on systems for which that does not make sense.
-
-   (unless (or noninteractive
-               emacs-basic-display
-               (not (display-graphic-p))
-               (not (fboundp 'x-show-tip)))
-     (tooltip-mode 1))
+  (unless (or noninteractive
+	      emacs-basic-display
+	      (not (display-graphic-p))
+	      (not (fboundp 'x-show-tip)))
+    (tooltip-mode 1))
 
   ;; Register default TTY colors for the case the terminal hasn't a
   ;; terminal init file.
