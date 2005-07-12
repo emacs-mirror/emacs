@@ -1170,7 +1170,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 (defun x-setup-function-keys (frame)
   "Set up `function-key-map' on FRAME for the X window system."
   ;; Map certain keypad keys into ASCII characters that people usually expect.
-  (let ((m (terminal-local-value 'function-key-map frame)))
+  (let ((m (terminal-local-value 'local-function-key-map frame)))
     (define-key m [backspace] [127])
     (define-key m [delete] [127])
     (define-key m [tab] [?\t])

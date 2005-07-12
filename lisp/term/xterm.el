@@ -39,7 +39,7 @@
 ;; function-key-map. This substitution is needed because if a key
 ;; definition if found in function-key-map, there are no further
 ;; lookups in other keymaps.
-(let ((m (terminal-local-value 'function-key-map nil)))
+(let ((m (terminal-local-value 'local-function-key-map nil)))
   (substitute-key-definition [f13] [S-f1] m)
   (substitute-key-definition [f14] [S-f2] m)
   (substitute-key-definition [f15] [S-f3] m)
@@ -250,8 +250,8 @@
 ;; This way we don't override terminfo-derived settings or settings
 ;; made in the .emacs file.
 (let ((m (copy-keymap xterm-function-map)))
-  (set-keymap-parent m (keymap-parent (terminal-local-value 'function-key-map nil)))
-  (set-keymap-parent (terminal-local-value 'function-key-map nil) m))
+  (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
+  (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m))
 
 ;; Set up colors, for those versions of xterm that support it.
 (defvar xterm-standard-colors

@@ -440,8 +440,11 @@ Lisp_Object Qpre_command_hook, Vpre_command_hook;
 Lisp_Object Qpost_command_hook, Vpost_command_hook;
 Lisp_Object Qcommand_hook_internal, Vcommand_hook_internal;
 
+/* Parent keymap of terminal-local function-key-map instances.  */
+Lisp_Object Vfunction_key_map;
+
 /* Parent keymap of terminal-local key-translation-map instances.  */
-Lisp_Object Vglobal_key_translation_map;
+Lisp_Object Vkey_translation_map;
 
 /* List of deferred actions to be performed at a later time.
    The precise format isn't relevant here; we just check whether it is nil.  */
@@ -8666,8 +8669,8 @@ read_key_sequence (keybuf, bufsize, prompt, dont_downcase_last,
   last_nonmenu_event = Qnil;
 
   delayed_switch_frame = Qnil;
-  fkey.map = fkey.parent = current_kboard->Vfunction_key_map;
-  keytran.map = keytran.parent = current_kboard->Vkey_translation_map;
+  fkey.map = fkey.parent = current_kboard->Vlocal_function_key_map;
+  keytran.map = keytran.parent = current_kboard->Vlocal_key_translation_map;
   /* If there is no translation-map, turn off scanning.  */
   fkey.start = fkey.end = KEYMAPP (fkey.map) ? 0 : bufsize + 1;
   keytran.start = keytran.end = KEYMAPP (keytran.map) ? 0 : bufsize + 1;
@@ -10780,9 +10783,10 @@ init_kboard (kb)
   kb->reference_count = 0;
   kb->Vsystem_key_alist = Qnil;
   kb->system_key_syms = Qnil;
-  kb->Vfunction_key_map = Fmake_sparse_keymap (Qnil);
-  kb->Vkey_translation_map = Fmake_sparse_keymap (Qnil);
-  Fset_keymap_parent (kb->Vkey_translation_map, Vglobal_key_translation_map);
+  kb->Vlocal_function_key_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (kb->Vlocal_function_key_map, Vfunction_key_map);
+  kb->Vlocal_key_translation_map = Fmake_sparse_keymap (Qnil);
+  Fset_keymap_parent (kb->Vlocal_key_translation_map, Vkey_translation_map);
   kb->Vdefault_minibuffer_frame = Qnil;
 }
 
@@ -11496,7 +11500,7 @@ which binding of this variable is active at any given moment.  If you
 need set or get the binding on a specific display, use
 `terminal-local-value' and `set-terminal-local-value'.  */);
 
-  DEFVAR_KBOARD ("function-key-map", Vfunction_key_map,
+  DEFVAR_KBOARD ("local-function-key-map", Vlocal_function_key_map,
                  doc: /* Keymap mapping ASCII function key sequences onto their preferred forms.
 This allows Emacs to recognize function keys sent from ASCII
 terminals at any point in a key sequence.
@@ -11517,14 +11521,22 @@ Typing `ESC O P' to `read-key-sequence' would return [f1].  Typing
 key, typing `ESC O P x' would return [f1 x].
 
 `function-key-map' has a separate binding for each display device.
-See Info node `(elisp)Multiple displays'.
+See Info node `(elisp)Multiple displays'.  If you need to define a
+binding on all display devices, change `global-function-key-map'
+instead.
 
 Note that the currently selected frame has very little to do with
 which binding of this variable is active at any given moment.  If you
 need set or get the binding on a specific display, use
 `terminal-local-value' and `set-terminal-local-value'.  */);
 
-  DEFVAR_KBOARD ("key-translation-map", Vkey_translation_map,
+  DEFVAR_LISP ("function-key-map", &Vfunction_key_map,
+               doc: /* The parent keymap of all `local-function-key-map' instances.
+Function key definitions that apply to all display devices should go
+here.  */);
+  Vfunction_key_map = Fmake_sparse_keymap (Qnil);
+                    
+  DEFVAR_KBOARD ("local-key-translation-map", Vlocal_key_translation_map,
 	       doc: /* Keymap of key translations that can override keymaps.
 This keymap works like `function-key-map', but comes after that,
 and its non-prefix bindings override ordinary bindings.
@@ -11538,11 +11550,10 @@ which binding of this variable is active at any given moment.  If you
 need set or get the binding on a specific display, use
 `terminal-local-value' and `set-terminal-local-value'.  */);
 
-  DEFVAR_LISP ("global-key-translation-map", &Vglobal_key_translation_map,
-               doc: /* The parent keymap of all terminal-local `key-translation-map' instances.
-Key translations that are not specific to a display device flavour
-should go here.  */);
-  Vglobal_key_translation_map = Fmake_sparse_keymap (Qnil);
+  DEFVAR_LISP ("key-translation-map", &Vkey_translation_map,
+               doc: /* The parent keymap of all `local-key-translation-map' instances.
+Key translations that apply to all display devices should go here.  */);
+  Vkey_translation_map = Fmake_sparse_keymap (Qnil);
 
   DEFVAR_LISP ("deferred-action-list", &Vdeferred_action_list,
 	       doc: /* List of deferred actions to be performed at a later time.
@@ -11707,8 +11718,8 @@ mark_kboards ()
       mark_object (kb->Vlast_kbd_macro);
       mark_object (kb->Vsystem_key_alist);
       mark_object (kb->system_key_syms);
-      mark_object (kb->Vfunction_key_map);
-      mark_object (kb->Vkey_translation_map);
+      mark_object (kb->Vlocal_function_key_map);
+      mark_object (kb->Vlocal_key_translation_map);
       mark_object (kb->Vdefault_minibuffer_frame);
       mark_object (kb->echo_string);
     }

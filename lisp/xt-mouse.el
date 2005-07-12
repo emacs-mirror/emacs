@@ -45,6 +45,7 @@
 
 ;;; Code:
 
+;; XXX Perhaps this should be terminal-local instead. --lorentey
 (define-key function-key-map "\e[M" 'xterm-mouse-translate)
 
 (defvar xterm-mouse-last)

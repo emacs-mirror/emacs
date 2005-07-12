@@ -123,10 +123,10 @@ struct kboard
     /* Keymap mapping ASCII function key sequences onto their
        preferred forms.  Initialized by the terminal-specific lisp
        files.  See the DEFVAR for more documentation.  */
-    Lisp_Object Vfunction_key_map;
+    Lisp_Object Vlocal_function_key_map;
     
     /* Keymap of key translations that can override keymaps.  */
-    Lisp_Object Vkey_translation_map;
+    Lisp_Object Vlocal_key_translation_map;
 
     /* Minibufferless frames on this display use this frame's minibuffer.  */
     Lisp_Object Vdefault_minibuffer_frame;
@@ -304,8 +304,11 @@ extern Lisp_Object read_char P_ ((int, int, Lisp_Object *, Lisp_Object, int *));
 /* User-supplied string to translate input characters through.  */
 extern Lisp_Object Vkeyboard_translate_table;
 
+/* Parent keymap of terminal-local function-key-map instances.  */
+extern Lisp_Object Vfunction_key_map;
+
 /* Parent keymap of terminal-local key-translation-map instances.  */
-extern Lisp_Object Vglobal_key_translation_map;
+extern Lisp_Object Vkey_translation_map;
 
 
 extern int parse_menu_item P_ ((Lisp_Object, int, int));

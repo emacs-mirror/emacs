@@ -2841,8 +2841,8 @@ You type        Translation\n\
       insert ("\n", 1);
     }
 
-  if (!NILP (current_kboard->Vkey_translation_map))
-    describe_map_tree (current_kboard->Vkey_translation_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vlocal_key_translation_map))
+    describe_map_tree (current_kboard->Vlocal_key_translation_map, 0, Qnil, prefix,
 		       "Key translations", nomenu, 1, 0, 0);
 
 
@@ -2931,8 +2931,8 @@ You type        Translation\n\
 		     "\f\nGlobal Bindings", nomenu, 0, 1, 0);
 
   /* Print the function-key-map translations under this prefix.  */
-  if (!NILP (current_kboard->Vfunction_key_map))
-    describe_map_tree (current_kboard->Vfunction_key_map, 0, Qnil, prefix,
+  if (!NILP (current_kboard->Vlocal_function_key_map))
+    describe_map_tree (current_kboard->Vlocal_function_key_map, 0, Qnil, prefix,
 		       "\f\nFunction key map translations", nomenu, 1, 0, 0);
 
   UNGCPRO;

@@ -1648,9 +1648,10 @@ Isearch mode."
                 (this-command-keys)))
 	 (main-event (aref key 0))
 	 (keylist (listify-key-sequence key))
+	 (fkm (terminal-local-value 'local-function-key-map nil))
          scroll-command isearch-point)
     (cond ((and (= (length key) 1)
-		(let ((lookup (lookup-key function-key-map key)))
+		(let ((lookup (lookup-key fkm key)))
 		  (not (or (null lookup) (integerp lookup)
 			   (keymapp lookup)))))
 	   ;; Handle a function key that translates into something else.
@@ -1664,7 +1665,7 @@ Isearch mode."
 		 (isearch-done)
 		 (apply 'isearch-unread keylist))
 	     (setq keylist
-		   (listify-key-sequence (lookup-key function-key-map key)))
+		   (listify-key-sequence (lookup-key fkm key)))
 	     (while keylist
 	       (setq key (car keylist))
 	       ;; If KEY is a printing char, we handle it here

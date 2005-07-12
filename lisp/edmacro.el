@@ -443,7 +443,8 @@ doubt, use whitespace."
 	 (rest-mac (vconcat macro [end-macro]))
 	 (res "")
 	 (len 0)
-	 (one-line (eq verbose 1)))
+	 (one-line (eq verbose 1))
+	 (fkm (terminal-local-value 'local-function-key-map nil)))
     (if one-line (setq verbose nil))
     (when (stringp macro)
       (loop for i below (length macro) do
@@ -488,9 +489,9 @@ doubt, use whitespace."
 	     (fkey nil) tlen tkey
 	     (bind (or (loop for map in maps for b = (lookup-key map key)
 			     thereis (and (not (integerp b)) b))
-		       (and (setq fkey (lookup-key function-key-map rest-mac))
+		       (and (setq fkey (lookup-key fkm rest-mac))
 			    (setq tlen fkey tkey (edmacro-subseq rest-mac 0 tlen)
-				  fkey (lookup-key function-key-map tkey))
+				  fkey (lookup-key fkm tkey))
 			    (loop for map in maps
 				  for b = (lookup-key map fkey)
 				  when (and (not (integerp b)) b)

@@ -37,9 +37,9 @@
 
 ;;; Code:
 
-(define-key (terminal-local-value 'function-key-map nil) "\C-a" (make-keymap))
+(define-key (terminal-local-value 'local-function-key-map nil) "\C-a" (make-keymap))
 (mapcar (function (lambda (key-definition)
-		    (define-key (terminal-local-value 'function-key-map nil)
+		    (define-key (terminal-local-value 'local-function-key-map nil)
 		      (car key-definition) (nth 1 key-definition))))
 	'(
 	  ;; These might be set up by termcap and terminfo

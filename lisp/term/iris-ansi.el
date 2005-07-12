@@ -333,8 +333,8 @@
 ;; This way we don't override terminfo-derived settings or settings
 ;; made in the .emacs file.
 (let ((m (copy-keymap iris-function-map)))
-  (set-keymap-parent m (keymap-parent (terminal-local-value 'function-key-map nil)))
-  (set-keymap-parent (terminal-local-value 'function-key-map nil) m))
+  (set-keymap-parent m (keymap-parent (terminal-local-value 'local-function-key-map nil)))
+  (set-keymap-parent (terminal-local-value 'local-function-key-map nil) m))
 
 ;;; arch-tag: b1d0e73a-bb7d-47be-9fb2-6fb126469a1b
 ;;; iris-ansi.el ends here

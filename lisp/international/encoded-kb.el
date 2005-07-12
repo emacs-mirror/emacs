@@ -260,9 +260,9 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
     (when frame
       (with-selected-frame frame
 	;; Remove any previous encoded-kb keymap from key-translation-map.
-	(let ((m (terminal-local-value 'key-translation-map frame)))
+	(let ((m (terminal-local-value 'local-key-translation-map frame)))
 	  (if (equal (keymap-prompt m) "encoded-kb")
-	      (set-terminal-local-value 'key-translation-map frame (keymap-parent m))
+	      (set-terminal-local-value 'local-key-translation-map frame (keymap-parent m))
 	    (while (keymap-parent m)
 	      (if (equal (keymap-prompt (keymap-parent m)) "encoded-kb")
 		  (set-keymap-parent m (keymap-parent (keymap-parent m))))
@@ -274,8 +274,8 @@ DISPLAY may be a display id, a frame, or nil for the selected frame's display."
 		  (keymap (make-sparse-keymap "encoded-kb"))
 		  (cim (current-input-mode))
 		  result)
-	      (set-keymap-parent keymap (terminal-local-value 'key-translation-map frame))
-	      (set-terminal-local-value 'key-translation-map frame keymap)
+	      (set-keymap-parent keymap (terminal-local-value 'local-key-translation-map frame))
+	      (set-terminal-local-value 'local-key-translation-map frame keymap)
 	      (or (terminal-parameter nil 'encoded-kbd-saved-input-mode)
 		  (set-terminal-parameter nil 'encoded-kbd-saved-input-mode cim))
 	      (setq result (and coding (encoded-kbd-setup-keymap keymap coding)))

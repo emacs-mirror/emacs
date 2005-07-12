@@ -1059,7 +1059,7 @@ XConsortium: rgb.txt,v 10.41 94/02/20 18:39:36 rws Exp")
 
 ;; Map certain keypad keys into ASCII characters
 ;; that people usually expect.
-(let ((m (terminal-local-value 'function-key-map nil)))
+(let ((m (terminal-local-value 'local-function-key-map nil)))
   (define-key m [backspace] [?\d])
   (define-key m [delete] [?\d])
   (define-key m [tab] [?\t])
@@ -1140,7 +1140,7 @@ correspoinding TextEncodingBase value."
     (set-keyboard-coding-system (or coding-system 'mac-roman))
     ;; MacJapanese maps reverse solidus to ?\x80.
     (if (eq coding-system 'japanese-shift-jis)
-	(define-key global-key-translation-map [?\x80] "\\"))))
+	(define-key key-translation-map [?\x80] "\\"))))
 
 (define-key special-event-map [language-change] 'mac-handle-language-change)
 

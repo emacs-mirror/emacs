@@ -1172,7 +1172,8 @@ any other non-digit terminates the character code and is then used as input."))
       ;; or C-q C-x might not return immediately since ESC or C-x might be
       ;; bound to some prefix in function-key-map or key-translation-map.
       (setq translated char)
-      (let ((translation (lookup-key function-key-map (vector char))))
+      (let ((translation (lookup-key (terminal-local-value 'local-function-key-map nil)
+				     (vector char))))
 	(if (arrayp translation)
 	    (setq translated (aref translation 0))))
       (cond ((null translated))

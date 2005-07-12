@@ -93,7 +93,7 @@
 ;;
 
 (defvar sun-raw-prefix (make-sparse-keymap))
-(define-key (terminal-local-value 'function-key-map nil) "\e[" sun-raw-prefix)
+(define-key (terminal-local-value 'local-function-key-map nil) "\e[" sun-raw-prefix)
 
 (define-key sun-raw-prefix "210z" [r3])
 (define-key sun-raw-prefix "213z" [r6])

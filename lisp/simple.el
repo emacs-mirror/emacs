@@ -5269,6 +5269,7 @@ See also `normal-erase-is-backspace'."
 
 	   (if normal-erase-is-backspace
 	       (progn
+		 ;; XXX Perhaps this mode should be terminal-local, not global -- lorentey
 		 (define-key function-key-map [delete] [?\C-d])
 		 (define-key function-key-map [kp-delete] [?\C-d])
 		 (define-key function-key-map [backspace] [?\C-?]))

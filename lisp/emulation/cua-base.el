@@ -1083,9 +1083,9 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 		 (memq 'shift (event-modifiers
 			       (aref (this-single-command-keys) 0)))
 		 ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
-		 (and (boundp 'function-key-map)
-		      function-key-map
-		      (let ((ev (lookup-key function-key-map
+		 (and (boundp 'local-function-key-map)
+		      (terminal-local-value 'local-function-key-map nil)
+		      (let ((ev (lookup-key (terminal-local-value 'local-function-key-map nil)
 					   (this-single-command-raw-keys))))
 			(and (vector ev)
 			     (symbolp (setq ev (aref ev 0)))
