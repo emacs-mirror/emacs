@@ -1,3 +1,10 @@
+2005-07-12  Kim F. Storm  <storm@cua.dk>
+
+	* coding.c:
+	* coding.h: Remove unused var Qprocess_argument.
+
+	* xselect.c (intern): Remove dup. intern and staticpro for QTIMESTAMP.
+
 2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c [!TARGET_API_MAC_CARBON]: Include charset.h, coding.h, and
