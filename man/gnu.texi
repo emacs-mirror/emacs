@@ -382,13 +382,13 @@ other people's lives; and it is usually used to make their lives more
 difficult.
 
 People who have studied the issue of intellectual property
-rights@footnote{n the 80s I had not yet realized how confusing it was
+rights@footnote{In the 80s I had not yet realized how confusing it was
 to speak of ``the issue'' of ``intellectual property.''  That term is
 obviously biased; more subtle is the fact that it lumps together
 various disparate laws which raise very different issues.  Nowadays I
 urge people to reject the term ``intellectual property'' entirely,
 lest it lead others to suppose that those laws form one coherent
-issue.  The way to be clear is to to discuss patents, copyrights, and
+issue.  The way to be clear is to discuss patents, copyrights, and
 trademarks separately.  See
 @uref{http://www.gnu.org/philosophy/not-ipr.xhtml} for more
 explanation of how this term spreads confusion and bias.} carefully
