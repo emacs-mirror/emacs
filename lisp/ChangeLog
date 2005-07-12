@@ -1,3 +1,7 @@
+2005-07-12  Lars Hansen  <larsh@soem.dk>
+
+	* desktop.el: Update e-mail address.
+
 2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (mac-services-mail-selection)
