@@ -7,7 +7,7 @@
 	its defcustom.
 
 	* frame.el (blink-cursor-mode): Revert to previous implementation
-	of its defcustom.  Update.comment.
+	of its defcustom.  Update comment.
 
 2005-07-12  Lars Hansen  <larsh@soem.dk>
 
