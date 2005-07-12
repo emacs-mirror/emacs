@@ -23,6 +23,8 @@ face name prefixes should be in it for good results.
 
 ** Ask maintainers of refcard translations to update them.
 
+** Check what should be deleted or updated in MORE.STUFF.
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
