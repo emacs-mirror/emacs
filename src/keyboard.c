@@ -2778,7 +2778,7 @@ read_char (commandflag, nmaps, maps, prev_event, used_mouse_menu)
 		 available, garbage collect if there has been enough
 		 consing going on to make it worthwhile.  */
 	      if (!detect_input_pending_run_timers (0)
-		  && consing_since_gc > gc_cons_threshold / 2)
+		  && consing_since_gc > gc_cons_combined_threshold / 2)
 		Fgarbage_collect ();
 
 	      redisplay ();
