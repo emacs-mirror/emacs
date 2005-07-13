@@ -378,6 +378,8 @@ handle_sigcont (int signalnum)
       /* We are in the background; cancel the continue. */
       kill (getpid (), SIGSTOP);
     }
+
+  signal (signalnum, handle_sigcont);
   errno = old_errno;
 }
 
