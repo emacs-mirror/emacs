@@ -3440,49 +3440,41 @@ Outline mode sets this."
 		;; Now move a line.
 		(end-of-line)
 		;; If there's no invisibility here, move over the newline.
-		(let ((pos-before (point))
-		      line-done)
-		  (if (eobp)
-		      (if (not noerror)
-			  (signal 'end-of-buffer nil)
-			(setq done t)))
-		  (when (and (not done)
-			     (> arg 1)  ;; Use vertical-motion for last move
-			     (not (integerp selective-display))
-			     (not (line-move-invisible-p (point))))
-		    ;; We avoid vertical-motion when possible
-		    ;; because that has to fontify.
-		    (forward-line 1)
-		    (setq line-done t))
-		  (and (not done) (not line-done)
-		       ;; Otherwise move a more sophisticated way.
-		       (zerop (vertical-motion 1))
-		       (if (not noerror)
-			   (signal 'end-of-buffer nil)
-			 (setq done t))))
+		(cond
+		 ((eobp)
+		  (if (not noerror)
+		      (signal 'end-of-buffer nil)
+		    (setq done t)))
+		 ((and (> arg 1)  ;; Use vertical-motion for last move
+		       (not (integerp selective-display))
+		       (not (line-move-invisible-p (point))))
+		  ;; We avoid vertical-motion when possible
+		  ;; because that has to fontify.
+		  (forward-line 1))
+		 ;; Otherwise move a more sophisticated way.
+		 ((zerop (vertical-motion 1))
+		  (if (not noerror)
+		      (signal 'end-of-buffer nil)
+		    (setq done t))))
 		(unless done
 		  (setq arg (1- arg))))
 	      ;; The logic of this is the same as the loop above,
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-		(let ((pos-before (point))
-		      line-done)
-		  (if (bobp)
-		      (if (not noerror)
-			  (signal 'beginning-of-buffer nil)
-			(setq done t)))
-		  (when (and (not done)
-			     (< arg -1) ;; Use vertical-motion for last move
-			     (not (integerp selective-display))
-			     (not (line-move-invisible-p (1- (point)))))
-		    (forward-line -1)
-		    (setq line-done t))
-		  (and (not done) (not line-done)
-		       (zerop (vertical-motion -1))
-		       (if (not noerror)
-			   (signal 'beginning-of-buffer nil)
-			 (setq done t))))
+		(cond
+		 ((bobp)
+		  (if (not noerror)
+		      (signal 'beginning-of-buffer nil)
+		    (setq done t)))
+		 ((and (< arg -1) ;; Use vertical-motion for last move
+		       (not (integerp selective-display))
+		       (not (line-move-invisible-p (1- (point)))))
+		  (forward-line -1))
+		 ((zerop (vertical-motion -1))
+		  (if (not noerror)
+		      (signal 'beginning-of-buffer nil)
+		    (setq done t))))
 		(unless done
 		  (setq arg (1+ arg))
 		  (while (and ;; Don't move over previous invis lines
