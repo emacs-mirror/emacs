@@ -3447,14 +3447,13 @@ Outline mode sets this."
 			  (signal 'end-of-buffer nil)
 			(setq done t)))
 		  (when (and (not done)
+			     (> arg 1)  ;; Use vertical-motion for last move
 			     (not (integerp selective-display))
 			     (not (line-move-invisible-p (point))))
-		    (unless (overlays-in (max (1- pos-before) (point-min))
-					 (min (1+ (point)) (point-max)))
-		      ;; We avoid vertical-motion when possible
-		      ;; because that has to fontify.
-		      (forward-line 1)
-		      (setq line-done t)))
+		    ;; We avoid vertical-motion when possible
+		    ;; because that has to fontify.
+		    (forward-line 1)
+		    (setq line-done t))
 		  (and (not done) (not line-done)
 		       ;; Otherwise move a more sophisticated way.
 		       (zerop (vertical-motion 1))
@@ -3474,12 +3473,11 @@ Outline mode sets this."
 			  (signal 'beginning-of-buffer nil)
 			(setq done t)))
 		  (when (and (not done)
+			     (< arg -1) ;; Use vertical-motion for last move
 			     (not (integerp selective-display))
 			     (not (line-move-invisible-p (1- (point)))))
-		    (unless (overlays-in (max (1- (point)) (point-min))
-					 (min (1+ pos-before) (point-max)))
-		      (forward-line -1)
-		      (setq line-done t)))
+		    (forward-line -1)
+		    (setq line-done t))
 		  (and (not done) (not line-done)
 		       (zerop (vertical-motion -1))
 		       (if (not noerror)
