@@ -1,5 +1,23 @@
 2005-07-13  Kim F. Storm  <storm@cua.dk>
 
+	* xdisp.c (start_display): Don't reseat to next visible line start
+	if current start position is in a string or image.
+	(move_it_vertically_backward): Be sure to move out of strings and
+	images when moving it2 forward.
+	(move_it_by_lines): When moving forward, move to next buffer
+	position if we end up in a string or image.  When moving backward,
+	count rows moved over when moving to start of current row in case
+	row starts in middle of a string or image.  Also move further
+	backward if we end up in a string or image.
+	(try_cursor_movement): if overlay string spans multiple lines,
+	move backward to set cursor on start of an overlay string.
+	(cursor_row_p): Row is ok if cursor is at newline from string, but
+	string starts on this line (so we always position cursor at start
+	of string).
+
+	* indent.c (Fvertical_motion): If start position is on an image,
+	don't move back if we move too far (that's almost certain to happen).
+
 	* xdisp.c (cursor_row_fully_visible_p): Allow partially visible
 	row in minibuffer windows.
 	(try_window): Don't check margins in minibuffer windows.

@@ -1,3 +1,9 @@
+2005-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* simple.el (line-move-1): Always use vertical-motion to
+	do the last (or only) line move to ensure some movement.
+	Undo 2005-06-23 change--don't check for overlays.
+
 2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* term/mac-win.el (ccl-encode-mac-roman-font)
