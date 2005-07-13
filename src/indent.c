@@ -2074,6 +2074,7 @@ whether or not it is currently displayed in some window.  */)
     {
       int it_start;
       int oselective;
+      int start_on_image_p;
 
       SET_TEXT_POS (pt, PT, PT_BYTE);
       start_display (&it, w, pt);
@@ -2085,6 +2086,7 @@ whether or not it is currently displayed in some window.  */)
 	 while the end position is really at some X > 0, the same X that
 	 PT had.  */
       it_start = IT_CHARPOS (it);
+      start_on_image_p = (it.method == GET_FROM_IMAGE);
       reseat_at_previous_visible_line_start (&it);
       it.current_x = it.hpos = 0;
       /* Temporarily disable selective display so we don't move too far */
@@ -2094,8 +2096,10 @@ whether or not it is currently displayed in some window.  */)
       it.selective = oselective;
 
       /* Move back if we got too far.  This may happen if
-	 truncate-lines is on and PT is beyond right margin.  */
-      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0)
+	 truncate-lines is on and PT is beyond right margin.
+	 It may also happen if it_start is on an image --
+	 in that case, don't go back.  */
+      if (IT_CHARPOS (it) > it_start && XINT (lines) > 0 && !start_on_image_p)
 	move_it_by_lines (&it, -1, 0);
 
       it.vpos = 0;
