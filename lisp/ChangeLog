@@ -1,3 +1,38 @@
+2005-07-13  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (my-mark-marker, allout-isearch-prior-pos)
+	(allout-unprotected, allout-undo-aggregation, allout-snug-back)
+	(allout-post-command-business, allout-flag-region)
+	(isearch-reenable-font-lock, allout-yank)
+	(allout-insert-latex-header, allout-insert-latex-trailer)
+	(allout-latex-verbatim-quote-curr-line, allout-latexify-exposed)
+	(allout-latex-verb-quote): Fix typos in docstrings.
+	(allout-enwrap-isearch, regexp-sans-escapes): Doc fix.
+	(allout-unprotected, allout-prefix-data):
+	Improve argument/docstring consistency.
+	(allout-chart-subtree): Fix argument spec.
+	(allout-open-topic): Rename `use_sib_bullet' argument to
+	`use-sib-bullet'.  Doc fix.
+
+	* whitespace.el (whitespace-check-buffer-leading)
+	(whitespace-check-buffer-trailing)
+	(whitespace-check-buffer-indent)
+	(whitespace-check-buffer-spacetab)
+	(whitespace-check-buffer-ateol, whitespace-highlighted-space)
+	(whitespace-check-leading-whitespace)
+	(whitespace-check-trailing-whitespace)
+	(whitespace-check-spacetab-whitespace)
+	(whitespace-check-indent-whitespace)
+	(whitespace-check-ateol-whitespace, whitespace-abort-on-error)
+	(whitespace-modes): Fix typos in docstrings.
+	(defgroup, defcustom): Doc fix.
+
+	* winner.el (winner-mode, winner-boring-buffers)
+	(winner-pending-undo-ring): Doc fixes.
+	(winner-ring): Remove unneeded `progn'.
+	(winner-equal): `defsubst' it.
+	(winner-redo): Fix message.
+
 2005-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* simple.el (line-move-1): Always use vertical-motion to
@@ -63,7 +98,7 @@
 	* calc/calc.el (calc-embedded-announce-formula-alist)
 	(calc-embedded-open-close-plain-alist)
 	(calc-embedded-open-close-mode-alist): Add checks for additional
-	major modes (due to Robert J. Chassell  <bob@rattlesnake.com>).
+	major modes (due to Robert J. Chassell <bob@rattlesnake.com>).
 
 2005-07-11  Juanma Barranquero  <lekktu@gmail.com>
 
