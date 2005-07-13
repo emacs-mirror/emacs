@@ -1721,7 +1721,7 @@ Note however that actual key bindings can have an effect on
 @code{key-translation-map}, even though they are overridden by it.
 Indeed, actual key bindings override @code{function-key-map} and thus
 may alter the key sequence that @code{key-translation-map} receives.
-Clearly, it is better to avoid to avoid this type of situation.
+Clearly, it is better to avoid this type of situation.
 
 The intent of @code{key-translation-map} is for users to map one
 character set to another, including ordinary characters normally bound
