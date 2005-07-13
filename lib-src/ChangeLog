@@ -1,3 +1,10 @@
+2005-07-13  Ken Raeburn  <raeburn@gnu.org>
+
+	* pop.c: Don't include des.h (or variants thereof); krb.h will do
+	it.
+	(sendline): Add the \r\n to the line in a temporary buffer, and
+	write it all at once.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
