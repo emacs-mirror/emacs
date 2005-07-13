@@ -1,3 +1,40 @@
+2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macterm.c: Don't include stdlib.h or composite.h.
+	(x_use_underline_position_properties, last_mouse_press_frame)
+	(x_noop_count, Qvendor_specific_keysyms): Remove unused variables.
+	(syms_of_macterm, mac_initialize): Don't initialize them.
+	(waiting_for_input, initial_argv, initial_argc)
+	(Vcommand_line_args, Vx_no_window_manager, errno, window_scroll)
+	(set_frame_menubar, path_from_vol_dir_name): Remove externs.
+	(extra_keyboard_modifiers): Fix type in extern.
+	(x_window_to_frame, x_window_to_scroll_bar): Remove declarations.
+	(x_scroll_bar_report_motion): Add argument types to declaration.
+	(mac_compute_glyph_string_overhangs): Add declaration.
+	(disable_mouse_highlight): Remove unused variable.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click)
+	(x_scroll_bar_handle_press, x_scroll_bar_handle_release)
+	(x_scroll_bar_handle_drag): Remove argument `timestamp'.  All
+	callers changed.
+	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click): Don't set
+	timestamp.
+	[USE_CARBON_EVENTS] (mac_handle_mouse_event): Likewise.
+	(x_scroll_bar_create, XTset_vertical_scroll_bar): Show scroll bar
+	only when its width is less than the height.
+	(XTredeem_scroll_bar): Sync with xterm.c.
+	(font_name_table, font_name_table_size, font_name_count): Make
+	static.
+	(drag_and_drop_file_list): Remove variable.  Previous use is now
+	local to function.
+	(do_ae_open_documents): Move DRAG_N_DROP event construction part
+	from XTread_socket.
+	(XTread_socket): Consolidate setting of event timestamp.  Move
+	DRAG_N_DROP event construction part to do_ae_open_documents.
+	Support extra_keyboard_modifiers.
+
+	* xfaces.c (try_font_list) [MAC_OS]: Try font family name
+	beginning with that for ASCII.
+
 2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* alloc.c (gc_cons_combined_threshold, Vgc_cons_percentage): New vars.

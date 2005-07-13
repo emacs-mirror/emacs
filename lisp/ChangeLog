@@ -1,3 +1,17 @@
+2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* term/mac-win.el (ccl-encode-mac-roman-font)
+	(ccl-encode-mac-centraleurroman-font)
+	(ccl-encode-mac-cyrillic-font, ccl-encode-mac-symbol-font):
+	(ccl-encode-mac-dingbats-font): Remove check for ASCII.  Change
+	charset-id boundary of dimension to ?\xef.
+	(mac-char-fontspec-list): New constant.
+	(fontset-add-mac-fonts): Use it.  Accept non-string `base-family'
+	argument.  Nil uses itself as family in font-spec.  Previous
+	behavior for nil is now provided by non-nil non-string argument.
+	All callers changed.  Add font-specs for Mac fonts to
+	"fontset-default" unless iso8859-1 fonts are installed.
+
 2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* progmodes/sh-script.el (sh-get-indent-info): Only indent
