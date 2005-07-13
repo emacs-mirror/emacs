@@ -1,3 +1,9 @@
+2005-07-13  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c (cursor_row_fully_visible_p): Allow partially visible
+	row in minibuffer windows.
+	(try_window): Don't check margins in minibuffer windows.
+
 2005-07-13  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macterm.c: Don't include stdlib.h or composite.h.
