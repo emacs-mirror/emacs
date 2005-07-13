@@ -174,7 +174,7 @@ EMACS_INT strings_consed;
 
 /* Number of bytes of consing since GC before another GC should be done. */
 
-EMACS_INT gc_cons_threshold;
+static EMACS_INT gc_cons_threshold;
 EMACS_INT gc_cons_combined_threshold;
 static Lisp_Object Vgc_cons_percentage;
 
