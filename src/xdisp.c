@@ -11294,7 +11294,7 @@ cursor_row_fully_visible_p (w, force_p, current_matrix_p)
   window_height = window_box_height (w);
   if (row->height >= window_height)
     {
-      if (!force_p || w->vscroll)
+      if (!force_p || MINI_WINDOW_P (w) || w->vscroll)
 	return 1;
     }
   return 0;
@@ -12729,7 +12729,8 @@ try_window (window, pos, check_margins)
     }
 
   /* Don't let the cursor end in the scroll margins.  */
-  if (check_margins)
+  if (check_margins
+      && !MINI_WINDOW_P (w))
     {
       int this_scroll_margin, cursor_height;
 
