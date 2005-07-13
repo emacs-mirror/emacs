@@ -1,3 +1,15 @@
+2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* alloc.c (gc_cons_combined_threshold, Vgc_cons_percentage): New vars.
+	(Fgarbage_collect, init_alloc_once): Set gc_cons_combined_threshold.
+	(syms_of_alloc): Declare gc-cons-percentage.
+
+	* eval.c (Feval, Ffuncall):
+	* keyboard.c (read_char):
+	* bytecode.c (MAYBE_GC): Use gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_combined_threshold): Declare.
+
 2005-07-12  Kim F. Storm  <storm@cua.dk>
 
 	* coding.c (Qprocess_argument):

@@ -1,3 +1,14 @@
+2005-07-13  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/sh-script.el (sh-get-indent-info): Only indent
+	a continuation line if the \ is preceded by SPC or TAB.
+	(sh-get-indent-info): Simplify.
+	(sh-mark-init, sh-learn-buffer-indent, sh-add-completer):
+	Use with-current-buffer.
+
+	* font-lock.el (font-lock-fontify-keywords-region): Avoid inf-loops
+	when the matched text is empty.
+
 2005-07-12  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* startup.el (command-line): Revert to previous handling of
@@ -31,7 +42,7 @@
 
 	* calc/calc.el (calc-embedded-announce-formula-alist)
 	(calc-embedded-open-close-plain-alist)
-	(calc-embedded-open-close-mode-alist): Added checks for additional
+	(calc-embedded-open-close-mode-alist): Add checks for additional
 	major modes (due to Robert J. Chassell  <bob@rattlesnake.com>).
 
 2005-07-11  Juanma Barranquero  <lekktu@gmail.com>
@@ -137,7 +148,7 @@
 
 2005-07-10  N. Raghavendra  <raghu@mri.ernet.in>  (tiny change)
 
-        * timezone.el (timezone-parse-date): Changed first regexp
+	* timezone.el (timezone-parse-date): Change first regexp
 	so it will not mistakenly match dates with no time zone.
 
 2005-07-10  Jeff Dwork  <jeff.dwork@amd.com>  (tiny change)
@@ -234,8 +245,7 @@
 2005-07-08  Ralf Angeli  <angeli@iwi.uni-sb.de>  (tiny change)
 
 	* comint.el (comint-postoutput-scroll-to-bottom)
-	(comint-show-maximum-output): Take scroll-margin into
-	consideration.
+	(comint-show-maximum-output): Take scroll-margin into consideration.
 
 2005-07-08  Kim F. Storm  <storm@cua.dk>
 
@@ -276,16 +286,15 @@
 
 2005-07-07  Kenichi Handa  <handa@m17n.org>
 
-	* international/mule.el (make-coding-system): Describe
-	`ascii-incompatible' property in the docstring.
+	* international/mule.el (make-coding-system):
+	Describe `ascii-incompatible' property in the docstring.
 	(set-file-name-coding-system): Signal an error if coding-system is
 	ascii-incompatible.
 	(set-keyboard-coding-system): Likewise.
 
 	* international/mule-cmds.el (set-default-coding-systems):
 	Don't set default-file-name-coding-system and
-	default-keyboard-coding-system if coding-system is
-	ASCII-incompatible.
+	default-keyboard-coding-system if coding-system is ASCII-incompatible.
 
 	* international/utf-16.el: Declare that all UTF-16-based coding
 	systems are ASCII-incompatible.
