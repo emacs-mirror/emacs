@@ -44,8 +44,8 @@
 	* term/mac-win.el (ccl-encode-mac-roman-font)
 	(ccl-encode-mac-centraleurroman-font)
 	(ccl-encode-mac-cyrillic-font, ccl-encode-mac-symbol-font):
-	(ccl-encode-mac-dingbats-font): Remove check for ASCII.  Change
-	charset-id boundary of dimension to ?\xef.
+	(ccl-encode-mac-dingbats-font): Remove check for ASCII.
+	Change charset-id boundary of dimension to ?\xef.
 	(mac-char-fontspec-list): New constant.
 	(fontset-add-mac-fonts): Use it.  Accept non-string `base-family'
 	argument.  Nil uses itself as family in font-spec.  Previous
@@ -310,6 +310,11 @@
 	* ido.el (ido-before-fallback-functions): New hook.
 	(ido-buffer-internal, ido-file-internal, ido-read-buffer)
 	(ido-read-file-name): Run it.
+
+2005-07-07  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* progmodes/hideif.el (hide-ifdef-use-define-alist): Pass a list of
+	strings rather than a list of symbols to the completion function.
 
 2005-07-07  Jay Belanger  <belanger@truman.edu>
 
