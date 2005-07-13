@@ -1,3 +1,7 @@
+2005-07-13  Francis Litterio  <franl@world.std.com>  (tiny change)
+
+	* os.texi (Translating Input): Fix typo.
+
 2005-07-08  Richard M. Stallman  <rms@gnu.org>
 
 	* README: Update edition number and size estimate.
