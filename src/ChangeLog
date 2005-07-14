@@ -1,3 +1,10 @@
+2005-07-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (get_scrap_target_type_list): Avoid NULL pointer
+	dereference.
+
+	* macterm.c (mac_window_to_frame): Remove duplicate define.
+
 2005-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region_unwind): ARG is changed to a cons.
