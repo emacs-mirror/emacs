@@ -1,3 +1,11 @@
+2005-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el:
+	(cua--pre-command-handler-1, cua--pre-command-handler)
+	(cua--post-command-handler-1, cua--post-command-handler):
+	Split in two.  Check (buffer local) value of cua-mode.
+	(cua-selection-mode): New command.
+
 2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* custom.el (custom-initialize-safe-set)
