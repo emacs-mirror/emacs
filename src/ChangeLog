@@ -1,3 +1,12 @@
+2005-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* lread.c (syms_of_lread): Initialize seen_list.
+
+	* search.c (syms_of_search): Staticpro searchbuf.whitespace_regexp.
+
+	* syntax.c (syms_of_syntax): Staticpro lisp objects in gl_state.
+	Staticpro re_match_object.
+
 2005-07-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* macselect.c (get_scrap_target_type_list): Avoid NULL pointer
