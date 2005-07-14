@@ -80,8 +80,8 @@ if any, or VALUE."
   "Like `custom-initialize-set', but catches errors.
 If an error occurs during initialization, SYMBOL is set to nil
 and no error is thrown.  This is meant for use in pre-loaded files
-where some variables or functions used to compute VALUE are not yet
-defined. You can then re-evaluate VALUE in startup.el, for instance
+where some variables or functions used to compute VALUE may not yet
+be defined. You can then re-evaluate VALUE in startup.el, for instance
 using `custom-reevaluate-setting'."
   (condition-case nil
       (custom-initialize-set symbol value)
@@ -91,8 +91,8 @@ using `custom-reevaluate-setting'."
   "Like `custom-initialize-default', but catches errors.
 If an error occurs during initialization, SYMBOL is set to nil
 and no error is thrown.  This is meant for use in pre-loaded files
-where some variables or functions used to compute VALUE are not yet
-defined. You can then re-evaluate VALUE in startup.el, for instance
+where some variables or functions used to compute VALUE may not yet
+be defined. You can then re-evaluate VALUE in startup.el, for instance
 using `custom-reevaluate-setting'."
   (condition-case nil
       (custom-initialize-default symbol value)
