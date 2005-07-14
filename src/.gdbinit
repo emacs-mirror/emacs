@@ -129,20 +129,24 @@ define pitx
   end
   if ($it->what == IT_CHARACTER)
     if ($it->len == 1 && $it->c >= ' ' && it->c < 255)
-      printf "ch='%c'", $it->c
+      printf " ch='%c'", $it->c
     else
-      printf "ch=[%d,%d]", $it->c, $it->len
+      printf " ch=[%d,%d]", $it->c, $it->len
     end
   else
     if ($it->what == IT_IMAGE)
-      printf "IMAGE=%d", $it->image_id
+      printf " IMAGE=%d", $it->image_id
     else
+      printf " "
       output $it->what
     end
   end
   if ($it->method != GET_FROM_BUFFER)
     printf " next="
     output $it->method
+    if ($it->method == GET_FROM_STRING)
+      printf "[%d]", $it->current.string_pos.charpos
+    end
   end
   printf "\n"
   if ($it->region_beg_charpos >= 0)
