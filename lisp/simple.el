@@ -110,6 +110,11 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
   :group 'next-error
   :version "22.1")
 
+(defcustom next-error-hook nil
+  "*List of hook functions run by `next-error' after visiting source file."
+  :type 'hook
+  :group 'next-error)
+
 (defvar next-error-highlight-timer nil)
 
 (defvar next-error-overlay-arrow-position nil)
@@ -240,9 +245,10 @@ To specify use of a particular buffer for error messages, type
 \\[next-error] in that buffer when it is the only one displayed
 in the current frame.
 
-Once \\[next-error] has chosen the buffer for error messages,
-it stays with that buffer until you use it in some other buffer which
-uses Compilation mode or Compilation Minor mode.
+Once \\[next-error] has chosen the buffer for error messages, it
+runs `next-error-hook' with `run-hooks', and stays with that buffer
+until you use it in some other buffer which uses Compilation mode
+or Compilation Minor mode.
 
 See variables `compilation-parse-errors-function' and
 \`compilation-error-regexp-alist' for customization ideas."
@@ -251,7 +257,8 @@ See variables `compilation-parse-errors-function' and
   (when (setq next-error-last-buffer (next-error-find-buffer))
     ;; we know here that next-error-function is a valid symbol we can funcall
     (with-current-buffer next-error-last-buffer
-      (funcall next-error-function (prefix-numeric-value arg) reset))))
+      (funcall next-error-function (prefix-numeric-value arg) reset)
+      (run-hooks 'next-error-hook))))
 
 (defalias 'goto-next-locus 'next-error)
 (defalias 'next-match 'next-error)
@@ -3433,51 +3440,41 @@ Outline mode sets this."
 		;; Now move a line.
 		(end-of-line)
 		;; If there's no invisibility here, move over the newline.
-		(let ((pos-before (point))
-		      line-done)
-		  (if (eobp)
-		      (if (not noerror)
-			  (signal 'end-of-buffer nil)
-			(setq done t)))
-		  (when (and (not done)
-			     (not (integerp selective-display))
-			     (not (line-move-invisible-p (point))))
-		    (unless (overlays-in (max (1- pos-before) (point-min))
-					 (min (1+ (point)) (point-max)))
-		      ;; We avoid vertical-motion when possible
-		      ;; because that has to fontify.
-		      (forward-line 1)
-		      (setq line-done t)))
-		  (and (not done) (not line-done)
-		       ;; Otherwise move a more sophisticated way.
-		       (zerop (vertical-motion 1))
-		       (if (not noerror)
-			   (signal 'end-of-buffer nil)
-			 (setq done t))))
+		(cond
+		 ((eobp)
+		  (if (not noerror)
+		      (signal 'end-of-buffer nil)
+		    (setq done t)))
+		 ((and (> arg 1)  ;; Use vertical-motion for last move
+		       (not (integerp selective-display))
+		       (not (line-move-invisible-p (point))))
+		  ;; We avoid vertical-motion when possible
+		  ;; because that has to fontify.
+		  (forward-line 1))
+		 ;; Otherwise move a more sophisticated way.
+		 ((zerop (vertical-motion 1))
+		  (if (not noerror)
+		      (signal 'end-of-buffer nil)
+		    (setq done t))))
 		(unless done
 		  (setq arg (1- arg))))
 	      ;; The logic of this is the same as the loop above,
 	      ;; it just goes in the other direction.
 	      (while (and (< arg 0) (not done))
 		(beginning-of-line)
-		(let ((pos-before (point))
-		      line-done)
-		  (if (bobp)
-		      (if (not noerror)
-			  (signal 'beginning-of-buffer nil)
-			(setq done t)))
-		  (when (and (not done)
-			     (not (integerp selective-display))
-			     (not (line-move-invisible-p (1- (point)))))
-		    (unless (overlays-in (max (1- (point)) (point-min))
-					 (min (1+ pos-before) (point-max)))
-		      (forward-line -1)
-		      (setq line-done t)))
-		  (and (not done) (not line-done)
-		       (zerop (vertical-motion -1))
-		       (if (not noerror)
-			   (signal 'beginning-of-buffer nil)
-			 (setq done t))))
+		(cond
+		 ((bobp)
+		  (if (not noerror)
+		      (signal 'beginning-of-buffer nil)
+		    (setq done t)))
+		 ((and (< arg -1) ;; Use vertical-motion for last move
+		       (not (integerp selective-display))
+		       (not (line-move-invisible-p (1- (point)))))
+		  (forward-line -1))
+		 ((zerop (vertical-motion -1))
+		  (if (not noerror)
+		      (signal 'beginning-of-buffer nil)
+		    (setq done t))))
 		(unless done
 		  (setq arg (1+ arg))
 		  (while (and ;; Don't move over previous invis lines

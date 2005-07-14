@@ -21,6 +21,10 @@ face name prefixes should be in it for good results.
 
 ** Regenerate the postscript files of the reference cards in etc.
 
+** Ask maintainers of refcard translations to update them.
+
+** Check what should be deleted or updated in MORE.STUFF.
+
 * NEW FEATURES
 
 ** Make VC-over-Tramp work where possible, or at least fail
@@ -101,13 +105,9 @@ further.
 I think in the near future we will see more of this problem, so it might be
 time to make anfe-ftp more intelligent.
 
-** lisp/elide-head.el should recognize the FSF's new address as well.
-
 * DOCUMENTATION
 
 ** Document Custom Themes.
-
-** Update lispref/README.
 
 ** Update man/info.texi.
 
@@ -128,7 +128,7 @@ lisp/emulation		working		Thien-Thi Nguyen
 lisp/eshell		working		Thien-Thi Nguyen
 lisp/international	done		Kenichi Handa
 lisp/languages		done		Kenichi Handa
-lisp/mh-e		working		Thien-Thi Nguyen
+lisp/mh-e		working		Bill Wohler
 lisp/net		working		Thien-Thi Nguyen
 lisp/play		working		Thien-Thi Nguyen
 lisp/term		working		Thien-Thi Nguyen

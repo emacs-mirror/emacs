@@ -1021,9 +1021,12 @@ then prompt for the MODE to customize."
 (defun customize-option (symbol)
   "Customize SYMBOL, which must be a user option variable."
   (interactive (custom-variable-prompt))
-  (custom-buffer-create (list (list symbol 'custom-variable))
-			(format "*Customize Option: %s*"
-				(custom-unlispify-tag-name symbol))))
+  (let ((basevar (indirect-variable symbol)))
+    (custom-buffer-create (list (list basevar 'custom-variable))
+			  (format "*Customize Option: %s*"
+				  (custom-unlispify-tag-name basevar)))
+    (unless (eq symbol basevar)
+      (message "`%s' is an alias for `%s'" symbol basevar))))
 
 ;;;###autoload
 (defalias 'customize-variable-other-window 'customize-option-other-window)
@@ -1033,9 +1036,12 @@ then prompt for the MODE to customize."
   "Customize SYMBOL, which must be a user option variable.
 Show the buffer in another window, but don't select it."
   (interactive (custom-variable-prompt))
-  (custom-buffer-create-other-window
-   (list (list symbol 'custom-variable))
-   (format "*Customize Option: %s*" (custom-unlispify-tag-name symbol))))
+  (let ((basevar (indirect-variable symbol)))
+    (custom-buffer-create-other-window
+     (list (list basevar 'custom-variable))
+     (format "*Customize Option: %s*" (custom-unlispify-tag-name basevar)))
+    (unless (eq symbol basevar)
+      (message "`%s' is an alias for `%s'" symbol basevar))))
 
 (defvar customize-changed-options-previous-release "20.2"
   "Version for `customize-changed-options' to refer back to by default.")

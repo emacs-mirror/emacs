@@ -3316,10 +3316,10 @@ See also user-option `rmail-confirm-expunge'."
 	  (narrow-to-region (- (buffer-size) omin) (- (buffer-size) omax)))
       (if (not dont-show)
 	  (rmail-show-message
-	   (if (zerop rmail-current-message) 1 nil)
-	(if rmail-enable-mime
-	    (goto-char (+ (point-min) opoint))
-	  (goto-char (+ (point) opoint))))))))
+	   (if (zerop rmail-current-message) 1 nil)))
+      (if rmail-enable-mime
+	  (goto-char (+ (point-min) opoint))
+	(goto-char (+ (point) opoint))))))
 
 (defun rmail-expunge ()
   "Erase deleted messages from Rmail file and summary buffer."

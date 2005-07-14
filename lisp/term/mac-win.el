@@ -1377,6 +1377,17 @@ in `selection-converter-alist', which see."
   (save-buffer) ; It pops up the save dialog.
   )
 
+(defun mac-services-mail-selection ()
+  (interactive)
+  (compose-mail)
+  (rfc822-goto-eoh)
+  (forward-line 1)
+  (insert (x-selection-value mac-services-selection) "\n"))
+
+(defun mac-services-mail-to ()
+  (interactive)
+  (compose-mail (x-selection-value mac-services-selection)))
+
 (defun mac-services-insert-text ()
   (interactive)
   (let ((text (x-selection-value mac-services-selection)))
@@ -1393,6 +1404,10 @@ in `selection-converter-alist', which see."
   'mac-services-open-file)
 (define-key mac-application-menu-map [services perform open-selection]
   'mac-services-open-selection)
+(define-key mac-application-menu-map [services perform mail-selection]
+  'mac-services-mail-selection)
+(define-key mac-application-menu-map [services perform mail-to]
+  'mac-services-mail-to)
 (define-key mac-application-menu-map [services paste]
   'mac-services-insert-text)
 (define-key mac-application-menu-map [preferences] 'customize)

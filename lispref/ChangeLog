@@ -1,3 +1,26 @@
+2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* customize.texi (Variable Definitions): Add
+	`custom-initialize-safe-set' and `custom-initialize-safe-default'.
+	`standard-value' is a list too.
+	(Defining New Types): Use @key{RET} instead of @key{ret}.
+
+2005-07-13  Francis Litterio  <franl@world.std.com>  (tiny change)
+
+	* os.texi (Translating Input): Fix typo.
+
+2005-07-08  Richard M. Stallman  <rms@gnu.org>
+
+	* README: Update edition number and size estimate.
+
+	* elisp.texi (VERSION): Set to 2.9.
+
+2005-07-07  Richard M. Stallman  <rms@gnu.org>
+
+	* book-spine.texinfo: Update Emacs version.
+
+	* display.texi (Inverse Video): Delete mode-line-inverse-video.
+
 2005-07-06  Richard M. Stallman  <rms@gnu.org>
 
 	* searching.texi (Regexp Search): Clarify what re-search-forward

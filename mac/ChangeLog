@@ -1,3 +1,8 @@
+2005-07-12  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* Emacs.app/Contents/Info.plist (mail-to, mail-selection): New
+	NSServices.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

@@ -178,7 +178,7 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	(if (member
 	     key
 	     '(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
-	    (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
+	    (setq key-seq (viper-subseq key-seq 0 (- (length key-seq) 2))))
 	(setq message
 	      (format
 	       ":map%s %s"
@@ -242,9 +242,9 @@ a key is a symbol, e.g., `a', `\\1', `f2', etc., or a list, e.g.,
 	(cond ((member
 		key
 		'(?\b ?\d '^? '^H (control h) (control \?) backspace delete))
-	       (setq key-seq (subseq key-seq 0 (- (length key-seq) 2))))
+	       (setq key-seq (viper-subseq key-seq 0 (- (length key-seq) 2))))
 	      ((member key '(tab (control i) ?\t))
-	       (setq key-seq (subseq key-seq 0 (1- (length key-seq))))
+	       (setq key-seq (viper-subseq key-seq 0 (1- (length key-seq))))
 	       (setq message
 		     (format
 		      ":unmap%s %s"
@@ -618,7 +618,7 @@ name from there."
 
     (if (null macro-alist-elt)
 	(setq macro-alist-elt (car next-best-match)
-	      unmatched-suffix (subseq event-seq (cdr next-best-match))))
+	      unmatched-suffix (viper-subseq event-seq (cdr next-best-match))))
 
     (cond ((null macro-alist-elt))
 	  ((setq macro-body (viper-kbd-buf-definition macro-alist-elt)))
@@ -701,7 +701,7 @@ name from there."
   (let ((len1 (length seq1))
 	(len2 (length seq2)))
     (if (<= len1 len2)
-	(equal seq1 (subseq seq2 0 len1)))))
+	(equal seq1 (viper-subseq seq2 0 len1)))))
 
 ;; find the longest common prefix
 (defun viper-common-seq-prefix (&rest seqs)
@@ -766,7 +766,7 @@ name from there."
       (setq macro-def (car lis)
 	    def-len (length (car macro-def)))
       (if (and (>= str-len def-len)
-	       (equal (car macro-def) (subseq str 0 def-len)))
+	       (equal (car macro-def) (viper-subseq str 0 def-len)))
 	  (if (or (viper-kbd-buf-definition macro-def)
 		  (viper-kbd-mode-definition macro-def)
 		  (viper-kbd-global-definition macro-def))

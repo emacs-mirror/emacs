@@ -78,7 +78,7 @@
 
 ;;;###autoload
 (defcustom winner-mode nil
-  "Toggle winner-mode.
+  "Toggle Winner mode.
 Setting this variable directly does not take effect;
 use either \\[customize] or the function `winner-mode'."
   :set #'(lambda (symbol value) (funcall symbol (or value 0)))
@@ -98,8 +98,7 @@ use either \\[customize] or the function `winner-mode'."
   :group 'winner)
 
 (defcustom winner-boring-buffers '("*Completions*")
-  "`winner-undo' will not restore windows displaying any of these \
-buffers.
+  "`winner-undo' will not restore windows displaying any of these buffers.
 You may want to include buffer names such as *Help*, *Apropos*,
 *Buffer List*, *info* and *Compile-Log*."
   :type '(repeat string)
@@ -108,7 +107,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 
-;;;; Saving old configurations (internal variables and subroutines)
+
+;;;; Saving old configurations (internal variables and subroutines)
 
 
 ;;; Current configuration
@@ -162,13 +162,13 @@ You may want to include buffer names such as *Help*, *Apropos*,
 ;; Find the right ring.  If it does not exist, create one.
 (defsubst winner-ring (frame)
   (or (cdr (assq frame winner-ring-alist))
-      (progn
-	(let ((ring (make-ring winner-ring-size)))
-	  (ring-insert ring (winner-configuration frame))
-	  (push (cons frame ring) winner-ring-alist)
-	  ring))))
+      (let ((ring (make-ring winner-ring-size)))
+        (ring-insert ring (winner-configuration frame))
+        (push (cons frame ring) winner-ring-alist)
+        ring)))
 
-;; If the same command is called several times in a row,
+
+;; If the same command is called several times in a row,
 ;; we only save one window configuration.
 (defvar winner-last-command nil)
 
@@ -176,7 +176,7 @@ You may want to include buffer names such as *Help*, *Apropos*,
 (defvar winner-last-frames nil)
 
 
-(defun winner-equal (a b)
+(defsubst winner-equal (a b)
   "Check whether two Winner configurations (as produced by
 `winner-conf') are equal."
   (equal (cdr a) (cdr b)))
@@ -240,7 +240,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 
 
 
-;;;; Restoring configurations
+
+;;;; Restoring configurations
 
 ;; Works almost as `set-window-configuration',
 ;; but does not change the contents or the size of the minibuffer,
@@ -301,7 +302,8 @@ You may want to include buffer names such as *Help*, *Apropos*,
 		  winner-point-alist)
 	    (point)))))))
 
-;; Make sure point does not end up in the minibuffer and delete
+
+;; Make sure point does not end up in the minibuffer and delete
 ;; windows displaying dead or boring buffers
 ;; (c.f. `winner-boring-buffers').  Return nil iff all the windows
 ;; should be deleted.  Preserve correct points and marks.
@@ -410,7 +412,7 @@ With arg, turn Winner mode on if and only if arg is positive."
 (defvar winner-undo-frame nil)
 
 (defvar winner-pending-undo-ring nil
-  "The ring currently used by winner undo.")
+  "The ring currently used by `winner-undo'.")
 (defvar winner-undo-counter nil)
 (defvar winner-undone-data  nil) ; There confs have been passed.
 
@@ -437,7 +439,8 @@ In other words, \"undo\" changes in window configuration."
 
 
 
-(defun winner-undo-this ()		; The heart of winner undo.
+
+(defun winner-undo-this ()		; The heart of winner undo.
   (loop
    (cond
     ((>= winner-undo-counter (ring-length winner-pending-undo-ring))
@@ -467,7 +470,7 @@ In other words, \"undo\" changes in window configuration."
        (ring-ref winner-pending-undo-ring 0)))
     (unless (eq (selected-window) (minibuffer-window))
       (message "Winner undid undo")))
-   (t (error "Previous command was not a winner-undo"))))
+   (t (error "Previous command was not a `winner-undo'"))))
 
 ;;; To be evaluated when the package is loaded:
 

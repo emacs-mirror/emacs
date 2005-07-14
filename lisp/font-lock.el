@@ -1473,7 +1473,11 @@ LOUDLY, if non-nil, allows progress-meter bar."
       (while (and (< (point) end)
 		  (if (stringp matcher)
 		      (re-search-forward matcher end t)
-		    (funcall matcher end)))
+		    (funcall matcher end))
+                  ;; Beware empty string matches since they will
+                  ;; loop indefinitely.
+                  (or (> (point) (match-beginning 0))
+                      (progn (forward-char 1) t)))
 	(when (and font-lock-multiline
 		   (>= (point)
 		       (save-excursion (goto-char (match-beginning 0))

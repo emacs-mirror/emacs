@@ -921,21 +921,22 @@ If the value is nil, don't highlight the buffer names specially."
 	(when current-prefix-arg
 	  (prefix-numeric-value current-prefix-arg))))
 
-(defun occur-rename-buffer (&optional unique-p)
+(defun occur-rename-buffer (&optional unique-p interactive-p)
   "Rename the current *Occur* buffer to *Occur: original-buffer-name*.
-Here `original-buffer-name' is the buffer name were occur was originally run.
-When given the prefix argument, the renaming will not clobber the existing
-buffer(s) of that name, but use `generate-new-buffer-name' instead.
-You can add this to `occur-mode-hook' if you always want a separate *Occur*
-buffer for each buffer where you invoke `occur'."
-  (interactive "P")
+Here `original-buffer-name' is the buffer name were Occur was originally run.
+When given the prefix argument, or called non-interactively, the renaming
+will not clobber the existing buffer(s) of that name, but use
+`generate-new-buffer-name' instead.  You can add this to `occur-hook'
+if you always want a separate *Occur* buffer for each buffer where you
+invoke `occur'."
+  (interactive "P\np")
   (with-current-buffer
       (if (eq major-mode 'occur-mode) (current-buffer) (get-buffer "*Occur*"))
     (rename-buffer (concat "*Occur: "
                            (mapconcat #'buffer-name
                                       (car (cddr occur-revert-arguments)) "/")
                            "*")
-                   unique-p)))
+                   (or unique-p (not interactive-p)))))
 
 (defun occur (regexp &optional nlines)
   "Show all lines in the current buffer containing a match for REGEXP.

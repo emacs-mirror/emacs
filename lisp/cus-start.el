@@ -77,8 +77,8 @@ since it could result in memory overflow and make Emacs crash."
 	     ;; callproc.c
 	     (shell-file-name execute file)
 	     (exec-path execute
-			(repeat (choice (const :tag "default" nil)
-					(file :format "%v"))))
+			(repeat (choice (const :tag "default directory" nil)
+					(directory :format "%v"))))
 	     ;; charset.c
 	     (charset-map-path installation
 			       (repeat (directory :format "%v")))

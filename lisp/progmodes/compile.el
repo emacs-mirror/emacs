@@ -78,7 +78,7 @@
 
 ;;;###autoload
 (defcustom compilation-mode-hook nil
-  "*List of hook functions run by `compilation-mode' (see `run-hooks')."
+  "*List of hook functions run by `compilation-mode' (see `run-mode-hooks')."
   :type 'hook
   :group 'compilation)
 
@@ -1213,7 +1213,7 @@ from a different message."
 move point to the error message line and type \\[compile-goto-error].
 To kill the compilation, type \\[kill-compilation].
 
-Runs `compilation-mode-hook' with `run-hooks' (which see).
+Runs `compilation-mode-hook' with `run-mode-hooks' (which see).
 
 \\{compilation-mode-map}"
   (interactive)

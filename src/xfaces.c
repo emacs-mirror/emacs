@@ -4805,7 +4805,12 @@ x_update_menu_appearance (f)
 	  const char *suffix = "List";
 	  Bool motif = True;
 #else
+#if defined HAVE_X_I18N
+
+	  const char *suffix = "Set";
+#else
 	  const char *suffix = "";
+#endif
 	  Bool motif = False;
 #endif
 #if defined HAVE_X_I18N

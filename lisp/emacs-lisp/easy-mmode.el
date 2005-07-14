@@ -142,6 +142,7 @@ For example, you could write
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
+	 (initialize nil)
 	 (group nil)
 	 (extra-args nil)
 	 (extra-keywords nil)
@@ -159,6 +160,7 @@ For example, you could write
 	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
+	(:initialize (setq initialize (list :initialize (pop body))))
 	(:group (setq group (nconc group (list :group (pop body)))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
@@ -166,6 +168,10 @@ For example, you could write
 
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
+
+    (unless initialize
+      (setq initialize
+	    '(:initialize 'custom-initialize-default)))
 
     (unless group
       ;; We might as well provide a best-guess default group.
@@ -196,7 +202,7 @@ See the command `%s' for a description of this minor-mode."))
 	    `(defcustom ,mode ,init-value
 	       ,(format base-doc-string pretty-name mode mode)
 	       :set 'custom-set-minor-mode
-	       :initialize 'custom-initialize-default
+	       ,@initialize
 	       ,@group
 	       :type 'boolean
 	       ,@(cond

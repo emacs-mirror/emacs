@@ -5160,7 +5160,7 @@ If given a numerical ARG, move forward ARG pages."
 If end of article, return non-nil.  Otherwise return nil.
 Argument LINES specifies lines to be scrolled up."
   (interactive "p")
-  (move-to-window-line -1)
+  (move-to-window-line (max (- -1 scroll-margin) (- -1 (window-body-height))))
   (if (save-excursion
 	(end-of-line)
 	(and (pos-visible-in-window-p)	;Not continuation line.
@@ -5189,13 +5189,13 @@ Argument LINES specifies lines to be scrolled up."
       (end-of-buffer
        ;; Long lines may cause an end-of-buffer error.
        (goto-char (point-max)))))
-  (move-to-window-line 0))
+  (move-to-window-line (min scroll-margin (window-body-height))))
 
 (defun gnus-article-prev-page (&optional lines)
   "Show previous page of current article.
 Argument LINES specifies lines to be scrolled down."
   (interactive "p")
-  (move-to-window-line 0)
+  (move-to-window-line (min scroll-margin (window-body-height)))
   (if (and gnus-page-broken
 	   (bobp)
 	   (not (save-restriction (widen) (bobp)))) ;Real beginning-of-buffer?
@@ -5209,7 +5209,7 @@ Argument LINES specifies lines to be scrolled down."
 	      (scroll-down lines)
 	    (beginning-of-buffer
 	     (goto-char (point-min))))
-	(move-to-window-line 0)))))
+	(move-to-window-line (min scroll-margin (window-body-height)))))))
 
 (defun gnus-article-only-boring-p ()
   "Decide whether there is only boring text remaining in the article.

@@ -2544,6 +2544,10 @@ the old visited file has been renamed to the new name FILENAME."
 	  (setq truename (file-truename filename))
 	  (if find-file-visit-truename
 	      (setq filename truename))))
+    (if filename
+	(let ((new-name (file-name-nondirectory filename)))
+	  (if (string= new-name "")
+	      (error "Empty file name"))))
     (let ((buffer (and filename (find-buffer-visiting filename))))
       (and buffer (not (eq buffer (current-buffer)))
 	   (not no-query)
@@ -2557,8 +2561,6 @@ the old visited file has been renamed to the new name FILENAME."
     (setq buffer-file-name filename)
     (if filename			; make buffer name reflect filename.
 	(let ((new-name (file-name-nondirectory buffer-file-name)))
-	  (if (string= new-name "")
-	      (error "Empty file name"))
 	  (if (eq system-type 'vax-vms)
 	      (setq new-name (downcase new-name)))
 	  (setq default-directory (file-name-directory buffer-file-name))
@@ -4004,7 +4006,9 @@ specifies the list of buffers to kill, asking for approval for each one."
   (while list
     (let* ((buffer (car list))
 	   (name (buffer-name buffer)))
-      (and (not (string-equal name ""))
+      (and name				; Can be nil for an indirect buffer
+					; if we killed the base buffer.
+	   (not (string-equal name ""))
 	   (/= (aref name 0) ? )
 	   (yes-or-no-p
 	    (format "Buffer %s %s.  Kill? "

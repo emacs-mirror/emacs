@@ -62,11 +62,6 @@ You might find bug-fixes or enhancements in these places.
 
  * Expand: <URL:http://w3.teaser.fr/%7Eflepied/expand.el.gz>
 
- * Find Func:
-   <URL:http://www.kurims.kyoto-u.ac.jp/%7Epetersen/emacs/find-func.el>
-
- * Flyspell: <URL:http://kaolin.unice.fr/%7Eserrano/emacs/flyspell>
-
  * Fortune: <URL:http://www.coling.uni-freiburg.de/%7Eschauer/emacs.html>
 
  * Gnus: <URL:http://www.gnus.org/>
@@ -79,8 +74,6 @@ You might find bug-fixes or enhancements in these places.
  * Ispell: <URL:http://www.kdstevens.com/%7Estevens/ispell-page.html>
 
  * Iswitchb: <URL:http://www.anc.ed.ac.uk/%7Estephen/emacs/iswitchb.el>
-
- * MH-E: <URL:http://mh-e.sourceforge.net/>
 
  * PC Selection: <URL:ftp://ftp.thp.uni-duisburg.de/pub/source/elisp/>
 

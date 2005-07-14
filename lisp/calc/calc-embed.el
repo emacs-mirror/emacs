@@ -200,6 +200,11 @@
 (defvar calc-embed-arg)
 
 (defvar calc-embedded-quiet nil)
+
+(defvar calc-embedded-firsttime)
+(defvar calc-embedded-firsttime-buf)
+(defvar calc-embedded-firsttime-formula)
+
 (defun calc-do-embedded (calc-embed-arg end obeg oend)
   (if calc-embedded-info
 
@@ -251,6 +256,9 @@
     (let ((modes (list mode-line-buffer-identification
 		       (current-local-map)
 		       truncate-lines))
+          (calc-embedded-firsttime (not calc-embedded-active))
+          (calc-embedded-firsttime-buf nil)
+          (calc-embedded-firsttime-formula nil)
 	  calc-embed-top calc-embed-bot calc-embed-outer-top calc-embed-outer-bot
 	  info chg ident)
       (barf-if-buffer-read-only)
@@ -297,6 +305,12 @@
         (unless (equal str mode-line-buffer-identification)
           (setq mode-line-buffer-identification str)
           (set-buffer-modified-p (buffer-modified-p))))
+      (if calc-embedded-firsttime
+          (run-hooks 'calc-embedded-mode-hook))
+      (if calc-embedded-firsttime-buf
+          (run-hooks 'calc-embedded-new-buffer-hook))
+      (if calc-embedded-firsttime-formula
+          (run-hooks 'calc-embedded-new-formula-hook))
       (or (eq calc-embedded-quiet t)
 	  (message "Embedded Calc mode enabled; %s to return to normal"
 		   (if calc-embedded-quiet
@@ -792,14 +806,52 @@ The command \\[yank] can retrieve it from there."
 	 (new-info nil)
 	 info str)
     (or found
-	(setq found (list (current-buffer))
-	      calc-embedded-active (cons found calc-embedded-active)))
+        (and
+         (setq found (list (current-buffer))
+               calc-embedded-active (cons found calc-embedded-active)
+               calc-embedded-firsttime-buf t)
+         (let ((newann (assoc major-mode calc-embedded-announce-formula-alist))
+               (newform (assoc major-mode calc-embedded-open-close-formula-alist))
+               (newword (assoc major-mode calc-embedded-open-close-word-alist))
+               (newplain (assoc major-mode calc-embedded-open-close-plain-alist))
+               (newnewform 
+                (assoc major-mode calc-embedded-open-close-new-formula-alist))
+               (newmode (assoc major-mode calc-embedded-open-close-mode-alist)))
+           (when newann
+             (make-local-variable 'calc-embedded-announce-formula)
+             (setq calc-embedded-announce-formula (cdr newann)))
+           (when newform
+             (make-local-variable 'calc-embedded-open-formula)
+             (make-local-variable 'calc-embedded-close-formula)
+             (setq calc-embedded-open-formula (nth 0 (cdr newform)))
+             (setq calc-embedded-close-formula (nth 1 (cdr newform))))
+           (when newword
+             (make-local-variable 'calc-embedded-open-word)
+             (make-local-variable 'calc-embedded-close-word)
+             (setq calc-embedded-open-word (nth 0 (cdr newword)))
+             (setq calc-embedded-close-word (nth 1 (cdr newword))))
+           (when newplain
+             (make-local-variable 'calc-embedded-open-plain)
+             (make-local-variable 'calc-embedded-close-plain)
+             (setq calc-embedded-open-plain (nth 0 (cdr newplain)))
+             (setq calc-embedded-close-plain (nth 1 (cdr newplain))))
+           (when newnewform
+             (make-local-variable 'calc-embedded-open-new-formula)
+             (make-local-variable 'calc-embedded-close-new-formula)
+             (setq calc-embedded-open-new-formula (nth 0 (cdr newnewform)))
+             (setq calc-embedded-close-new-formula (nth 1 (cdr newnewform))))
+           (when newmode
+             (make-local-variable 'calc-embedded-open-mode)
+             (make-local-variable 'calc-embedded-close-mode)
+             (setq calc-embedded-open-mode (nth 0 (cdr newmode)))
+             (setq calc-embedded-close-mode (nth 1 (cdr newmode)))))))
     (while (and (cdr found)
 		(> point (aref (car (cdr found)) 3)))
       (setq found (cdr found)))
     (if (and (cdr found)
 	     (>= point (aref (nth 1 found) 2)))
-	(setq info (nth 1 found))
+        (setq info (nth 1 found))
+      (setq calc-embedded-firsttime-formula t)
       (setq info (make-vector 16 nil)
 	    new-info t
 	    fresh t)
