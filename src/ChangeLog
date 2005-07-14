@@ -1,5 +1,7 @@
 2005-07-14  Kim F. Storm  <storm@cua.dk>
 
+	* .gdbinit (pitx): Fix output format.  Print string charpos.
+
 	* lread.c (syms_of_lread): Initialize seen_list.
 
 	* search.c (syms_of_search): Staticpro searchbuf.whitespace_regexp.
