@@ -4017,6 +4017,7 @@ to load.  See also `load-dangerous-libraries'.  */);
   staticpro (&read_objects);
   read_objects = Qnil;
   staticpro (&seen_list);
+  seen_list = Qnil;
 
   Vloads_in_progress = Qnil;
   staticpro (&Vloads_in_progress);
