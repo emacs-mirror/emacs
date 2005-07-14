@@ -94,8 +94,6 @@ Boston, MA 02110-1301, USA.  */
 			(NILP (Vmac_command_key_is_meta) ? optionKey : cmdKey) \
 			: controlKey)
 #define macAltKey      (NILP (Vmac_command_key_is_meta) ? cmdKey : optionKey)
-
-#define mac_window_to_frame(wp) (((mac_output *) GetWRefCon (wp))->mFP)
 
 
 /* Non-nil means Emacs uses toolkit scroll bars.  */
