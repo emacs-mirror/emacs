@@ -1,3 +1,12 @@
+2005-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region_unwind): ARG is changed to a cons.
+	(code_convert_region): Adjusted for the above change.
+	(set_conversion_work_buffer): If the work buffer is already in
+	use, generate a new buffer and return it.  Otherwise return Qnil.
+	(run_pre_post_conversion_on_str): Adjusted for the above change.
+	(run_pre_write_conversin_on_c_str): Likewise.
+
 2005-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (start_display): Don't reseat to next visible line start
