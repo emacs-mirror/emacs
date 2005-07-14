@@ -1,3 +1,7 @@
+2005-07-14  Dan Nicolaescu  <dann@ics.uci.edu>
+
+	* term.el (term-mode): Disable cua-mode for term buffers.
+
 2005-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
 	* add-log.el (add-log-mailing-address, change-log-merge): Doc fix.

@@ -1102,6 +1102,8 @@ Entry to this mode runs the hooks on `term-mode-hook'."
   (make-local-variable 'term-current-face)
   (make-local-variable 'term-pending-frame)
   (setq term-pending-frame nil)
+  ;; Cua-mode's keybindings interfere with the term keybindings, disable it. 
+  (set (make-local-variable 'cua-mode) nil)
   (run-mode-hooks 'term-mode-hook)
   (term-if-xemacs
    (set-buffer-menubar
