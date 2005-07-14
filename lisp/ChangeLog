@@ -1,3 +1,8 @@
+2005-07-14  Juanma Barranquero  <lekktu@gmail.com>
+
+	* add-log.el (add-log-mailing-address, change-log-merge): Doc fix.
+	(change-log-get-method-definition): Fix typo in docstring.
+
 2005-07-14  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el:
