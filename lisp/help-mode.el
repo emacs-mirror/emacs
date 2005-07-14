@@ -519,7 +519,7 @@ Both variable, function and face documentation are extracted into a single
 help buffer."
   (with-current-buffer (help-buffer)
     ;; Push the previous item on the stack before clobbering the output buffer.
-    (help-setup-xref (list 'help-xref-interned symbol) nil)
+    (help-setup-xref nil nil)
     (let ((facedoc (when (facep symbol)
 		     ;; Don't record the current entry in the stack.
 		     (setq help-xref-stack-item nil)
