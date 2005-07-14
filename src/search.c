@@ -3085,6 +3085,7 @@ syms_of_search ()
       searchbufs[i].regexp = Qnil;
       searchbufs[i].whitespace_regexp = Qnil;
       staticpro (&searchbufs[i].regexp);
+      staticpro (&searchbufs[i].whitespace_regexp);
       searchbufs[i].next = (i == REGEXP_CACHE_SIZE-1 ? 0 : &searchbufs[i+1]);
     }
   searchbuf_head = &searchbufs[0];
