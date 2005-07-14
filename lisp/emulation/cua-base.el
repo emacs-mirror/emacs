@@ -1060,111 +1060,115 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 ;;; Pre-command hook
 
+(defun cua--pre-command-handler-1 ()
+  (let ((movement (eq (get this-command 'CUA) 'move)))
+
+    ;; Cancel prefix key timeout if user enters another key.
+    (when cua--prefix-override-timer
+      (if (timerp cua--prefix-override-timer)
+	  (cancel-timer cua--prefix-override-timer))
+      (setq cua--prefix-override-timer nil))
+
+    ;; Handle shifted cursor keys and other movement commands.
+    ;; If region is not active, region is activated if key is shifted.
+    ;; If region is active, region is cancelled if key is unshifted (and region not started with C-SPC).
+    ;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
+    (if movement
+	(cond
+	 ((if window-system
+	      (memq 'shift (event-modifiers
+			    (aref (this-single-command-raw-keys) 0)))
+	    (or
+	     (memq 'shift (event-modifiers
+			   (aref (this-single-command-keys) 0)))
+	     ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
+	     (and (boundp 'function-key-map)
+		  function-key-map
+		  (let ((ev (lookup-key function-key-map
+					(this-single-command-raw-keys))))
+		    (and (vector ev)
+			 (symbolp (setq ev (aref ev 0)))
+			 (string-match "S-" (symbol-name ev)))))))
+	  (unless mark-active
+	    (push-mark-command nil t))
+	  (setq cua--last-region-shifted t)
+	  (setq cua--explicit-region-start nil))
+	 ((or cua--explicit-region-start cua--rectangle)
+	  (unless mark-active
+	    (push-mark-command nil nil)))
+	 (t
+	  ;; If we set mark-active to nil here, the region highlight will not be
+	  ;; removed by the direct_output_ commands.
+	  (setq deactivate-mark t)))
+
+      ;; Handle delete-selection property on other commands
+      (if (and mark-active (not deactivate-mark))
+	  (let* ((ds (or (get this-command 'delete-selection)
+			 (get this-command 'pending-delete)))
+		 (nc (cond
+		      ((not ds) nil)
+		      ((eq ds 'yank)
+		       'cua-paste)
+		      ((eq ds 'kill)
+		       (if cua--rectangle
+			   'cua-copy-rectangle
+			 'cua-copy-region))
+		      ((eq ds 'supersede)
+		       (if cua--rectangle
+			   'cua-delete-rectangle
+			 'cua-delete-region))
+		      (t
+		       (if cua--rectangle
+			   'cua-delete-rectangle ;; replace?
+			 'cua-replace-region)))))
+	    (if nc
+		(setq this-original-command this-command
+		      this-command nc)))))
+
+    ;; Detect extension of rectangles by mouse or other movement
+    (setq cua--buffer-and-point-before-command
+	  (if cua--rectangle (cons (current-buffer) (point))))))
+
 (defun cua--pre-command-handler ()
-  (condition-case nil
-      (let ((movement (eq (get this-command 'CUA) 'move)))
-
-	;; Cancel prefix key timeout if user enters another key.
-	(when cua--prefix-override-timer
-	  (if (timerp cua--prefix-override-timer)
-	      (cancel-timer cua--prefix-override-timer))
-	  (setq cua--prefix-override-timer nil))
-
-	;; Handle shifted cursor keys and other movement commands.
-	;; If region is not active, region is activated if key is shifted.
-	;; If region is active, region is cancelled if key is unshifted (and region not started with C-SPC).
-	;; If rectangle is active, expand rectangle in specified direction and ignore the movement.
-	(if movement
-	    (cond
-	     ((if window-system
-		  (memq 'shift (event-modifiers
-				(aref (this-single-command-raw-keys) 0)))
-		(or
-		 (memq 'shift (event-modifiers
-			       (aref (this-single-command-keys) 0)))
-		 ;; See if raw escape sequence maps to a shifted event, e.g. S-up or C-S-home.
-		 (and (boundp 'function-key-map)
-		      function-key-map
-		      (let ((ev (lookup-key function-key-map
-					   (this-single-command-raw-keys))))
-			(and (vector ev)
-			     (symbolp (setq ev (aref ev 0)))
-			     (string-match "S-" (symbol-name ev)))))))
-	      (unless mark-active
-		(push-mark-command nil t))
-	      (setq cua--last-region-shifted t)
-	      (setq cua--explicit-region-start nil))
-	     ((or cua--explicit-region-start cua--rectangle)
-	      (unless mark-active
-		(push-mark-command nil nil)))
-	     (t
-	      ;; If we set mark-active to nil here, the region highlight will not be
-	      ;; removed by the direct_output_ commands.
-	      (setq deactivate-mark t)))
-
-	  ;; Handle delete-selection property on other commands
-	  (if (and mark-active (not deactivate-mark))
-	      (let* ((ds (or (get this-command 'delete-selection)
-			     (get this-command 'pending-delete)))
-		     (nc (cond
-			  ((not ds) nil)
-			  ((eq ds 'yank)
-			   'cua-paste)
-			  ((eq ds 'kill)
-			   (if cua--rectangle
-			       'cua-copy-rectangle
-			     'cua-copy-region))
-			  ((eq ds 'supersede)
-			   (if cua--rectangle
-			       'cua-delete-rectangle
-			     'cua-delete-region))
-			  (t
-			   (if cua--rectangle
-			       'cua-delete-rectangle ;; replace?
-			     'cua-replace-region)))))
-		(if nc
-		    (setq this-original-command this-command
-			  this-command nc)))))
-
-	;; Detect extension of rectangles by mouse or other movement
-	(setq cua--buffer-and-point-before-command
-	      (if cua--rectangle (cons (current-buffer) (point))))
-	)
-    (error nil)))
+  (when cua-mode
+    (condition-case nil
+	(cua--pre-command-handler-1)
+    (error nil))))
 
 ;;; Post-command hook
 
+(defun cua--post-command-handler-1 ()
+  (when cua--global-mark-active
+    (cua--global-mark-post-command))
+  (when (fboundp 'cua--rectangle-post-command)
+    (cua--rectangle-post-command))
+  (setq cua--buffer-and-point-before-command nil)
+  (if (or (not mark-active) deactivate-mark)
+      (setq cua--explicit-region-start nil))
+
+  ;; Debugging
+  (if cua--debug
+      (cond
+       (cua--rectangle (cua--rectangle-assert))
+       (mark-active (message "Mark=%d Point=%d Expl=%s"
+			     (mark t) (point) cua--explicit-region-start))))
+
+  ;; Disable transient-mark-mode if rectangle active in current buffer.
+  (if (not (window-minibuffer-p (selected-window)))
+      (setq transient-mark-mode (and (not cua--rectangle)
+				     (if cua-highlight-region-shift-only
+					 (not cua--explicit-region-start)
+				       t))))
+  (if cua-enable-cursor-indications
+      (cua--update-indications))
+
+  (cua--select-keymaps))
+
 (defun cua--post-command-handler ()
-  (condition-case nil
-      (progn
-	(when cua--global-mark-active
-	  (cua--global-mark-post-command))
-	(when (fboundp 'cua--rectangle-post-command)
-	  (cua--rectangle-post-command))
-	(setq cua--buffer-and-point-before-command nil)
-	(if (or (not mark-active) deactivate-mark)
-	    (setq cua--explicit-region-start nil))
-
-	;; Debugging
-	(if cua--debug
-	    (cond
-	     (cua--rectangle (cua--rectangle-assert))
-	     (mark-active (message "Mark=%d Point=%d Expl=%s"
-				   (mark t) (point) cua--explicit-region-start))))
-
-	;; Disable transient-mark-mode if rectangle active in current buffer.
-	(if (not (window-minibuffer-p (selected-window)))
-	    (setq transient-mark-mode (and (not cua--rectangle)
-					   (if cua-highlight-region-shift-only
-					       (not cua--explicit-region-start)
-					     t))))
-	(if cua-enable-cursor-indications
-	    (cua--update-indications))
-
-	(cua--select-keymaps)
-	)
-
-    (error nil)))
+  (when cua-mode
+    (condition-case nil
+	(cua--post-command-handler-1)
+      (error nil))))
 
 
 ;;; Keymaps
@@ -1392,6 +1396,15 @@ paste (in addition to the normal Emacs bindings)."
 		 (if (nth 2 cua--saved-state) " PC-Selection" "")
 		 (if (or (nth 1 cua--saved-state) (nth 2 cua--saved-state)) " enabled" "")))
     (setq cua--saved-state nil))))
+
+
+;;;###autoload
+(defun cua-selection-mode (arg)
+  "Enable CUA selection mode without the C-z/C-x/C-c/C-v bindings."
+  (interactive "P")
+  (setq-default cua-enable-cua-keys nil)
+  (cua-mode arg))
+
 
 (defun cua-debug ()
   "Toggle CUA debugging."
