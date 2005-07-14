@@ -1,3 +1,20 @@
+2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* custom.el (custom-initialize-safe-set)
+	(custom-initialize-safe-default): Doc fixes.
+
+	* frame.el (blink-cursor-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value again.
+
+	* tooltip.el (tooltip-mode): Use `custom-initialize-safe-default'
+	and simplify :init-value again.  Delete autoload.
+
+	* startup.el (command-line): Use `custom-reevaluate-setting' again
+	for tooltip-mode.
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Do not override
+	explicitly specified :initialize keyword.
+
 2005-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (my-mark-marker, allout-isearch-prior-pos)
