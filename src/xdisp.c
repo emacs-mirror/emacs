@@ -5873,6 +5873,15 @@ next_element_from_composition (it)
 	     Moving an iterator without producing glyphs
  ***********************************************************************/
 
+/* Check if iterator is at a position corresponding to a valid buffer
+   position after some move_it_ call.  */
+
+#define IT_POS_VALID_AFTER_MOVE_P(it)			\
+  ((it)->method == GET_FROM_STRING			\
+   ? IT_STRING_CHARPOS (*it) == 0			\
+   : 1)
+
+
 /* Move iterator IT to a specified buffer or X position within one
    line on the display without producing glyphs.
 
@@ -6386,7 +6395,7 @@ move_it_vertically_backward (it, dy)
       move_it_to (&it2, start_pos, -1, -1, it2.vpos + 1,
 		  MOVE_TO_POS | MOVE_TO_VPOS);
     }
-  while (it2.method != GET_FROM_BUFFER);
+  while (!IT_POS_VALID_AFTER_MOVE_P (&it2));
   xassert (IT_CHARPOS (*it) >= BEGV);
   it3 = it2;
 
@@ -6586,7 +6595,7 @@ move_it_by_lines (it, dvpos, need_y_p)
   else if (dvpos > 0)
     {
       move_it_to (it, -1, -1, -1, it->vpos + dvpos, MOVE_TO_VPOS);
-      if (it->method != GET_FROM_BUFFER)
+      if (!IT_POS_VALID_AFTER_MOVE_P (it))
 	move_it_to (it, IT_CHARPOS (*it) + 1, -1, -1, -1, MOVE_TO_POS);
     }
   else
@@ -6608,13 +6617,13 @@ move_it_by_lines (it, dvpos, need_y_p)
       reseat (it, it->current.pos, 1);
 
       /* Move further back if we end up in a string or an image.  */
-      while (it->method != GET_FROM_BUFFER)
+      while (!IT_POS_VALID_AFTER_MOVE_P (it))
 	{
 	  /* First try to move to start of display line.  */
 	  dvpos += it->vpos;
 	  move_it_vertically_backward (it, 0);
 	  dvpos -= it->vpos;
-	  if (it->method == GET_FROM_BUFFER)
+	  if (IT_POS_VALID_AFTER_MOVE_P (it))
 	    break;
 	  /* If start of line is still in string or image,
 	     move further back.  */
