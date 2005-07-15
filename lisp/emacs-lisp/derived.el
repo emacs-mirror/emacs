@@ -382,6 +382,12 @@ Always merge its parent into it, since the merge is non-destructive."
     (derived-mode-merge-abbrev-tables old-table new-table)
     (setq local-abbrev-table new-table)))
 
+(defun derived-mode-run-hooks (mode)
+   "Run the mode hook for MODE."
+   (let ((hooks-name (derived-mode-hook-name mode)))
+     (if (boundp hooks-name)
+         (run-hooks hooks-name))))
+
 ;; Functions to merge maps and tables.
 
 (defun derived-mode-merge-keymaps (old new)
