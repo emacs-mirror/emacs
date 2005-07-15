@@ -1,3 +1,9 @@
+2005-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Fix redisplay loop in last change.
+	(IT_POS_VALID_AFTER_MOVE_P): New macro.
+	(move_it_vertically_backward, move_it_by_lines): Use it.
+
 2005-07-14  Jason Rumney  <jasonr@gnu.org>
 
 	* w32.c (init_environment): Default HOME directory to user's
