@@ -1,3 +1,7 @@
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (select_frame_for_redisplay): Use find_symbol_value.
+
 2005-07-15  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c: Fix redisplay loop in last change.
