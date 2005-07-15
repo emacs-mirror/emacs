@@ -1,3 +1,8 @@
+2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/derived.el (derived-mode-run-hooks): Remove.
+	(derived-mode-hook-name): Doc fix.
+
 2005-07-14  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term.el (term-mode): Disable cua-mode for term buffers.
