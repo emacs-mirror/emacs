@@ -101,9 +101,9 @@
 ;; The list in {...} are the matching buffers, most recent first
 ;; (buffers visible in the current frame are put at the end of the
 ;; list by default).  At any time I can select the item at the head of
-;; the list by pressing RET.  I can also bring the put the first
-;; element at the end of the list by pressing C-s or [right], or put
-;; the last element at the head of the list by pressing C-r or [left].
+;; the list by pressing RET.  I can also put the first element at the
+;; end of the list by pressing C-s or [right], or bring the last
+;; element to the head of the list by pressing C-r or [left].
 ;;
 ;; The item in [...] indicates what can be added to my input by
 ;; pressing TAB.  In this case, I will get "3" added to my input.
@@ -210,8 +210,7 @@
 ;; Example:
 ;;
 ;; If you have again two Buffers "123456" and "123" then hitting "2" does
-;; not match because "2" is not a PREFIX in any of the buffer-names. This
-;; is the only difference between the substring and prefix matching.
+;; not match because "2" is not a PREFIX in any of the buffer-names.
 
 ;; Flexible matching
 ;; -----------------
@@ -236,14 +235,10 @@
 ;;
 ;; There is limited provision for regexp matching within ido,
 ;; enabled through `ido-enable-regexp' (toggle with C-t).
-;; This allows you to type `c$' for example and see all file names
-;; ending in `c'.  This facility is quite limited though in two
-;; respects.  First, you can't currently type in expressions like
-;; `[0-9]' directly -- you have to type them in when ido-enable-regexp
-;; is nil and then toggle on the regexp functionality.  Likewise,
-;; don't enter an expression containing `\' in regexp mode.  If you
-;; try, ido gets confused, so just hit C-g and try again.  Secondly,
-;; no completion mechanism is currently offered with regexp searching.
+;; This allows you to type `[ch]$' for example and see all file names
+;; ending in `c' or `h'.
+;;
+;; Note: ido-style completion is inhibited when you enable regexp matching.
 
 
 ;; Customization
