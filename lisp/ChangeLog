@@ -1,6 +1,6 @@
 2005-07-16  Nick Roberts  <nickrob@snap.net.nz>
 
-	* progmodes/gdb-ui.el (gdb-var-update, gdb-var-update-handler): 
+	* progmodes/gdb-ui.el (gdb-var-update, gdb-var-update-handler):
 	Don't consider gdbmi (gdb-mi.el has its own update functions).
 	(gdb-var-delete): Make it work for gdbmi as well.
 	(gdb-speedbar-expand-node): Move var-update here for gdbmi.
@@ -11,12 +11,19 @@
 2005-07-15  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: Fix commentary.
-	(ido-define-mode-map): Move ido-next-work-file	to C-M-o.
+	(ido-define-mode-map): Move ido-next-work-file to C-M-o.
 	Use with-no-warnings around ffap-guesser.
 	(ido-file-internal, ido-read-file-name, ido-read-directory-name):
 	Let bind minibuffer-completing-file-name to t.
 
 2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
+
+	* startup.el (site-run-file, keyboard-type): Doc fixes.
+	(command-line): Check for "--basic-display" argument; also for
+	"--quick", not "--bare-bones" (which was renamed).
+	(fancy-splash-text): Add missing item "Getting New Versions".
+	(normal-splash-screen): Fix typos and improve consistency with
+	`fancy-splash-text'.  Update copyright year.
 
 	* hexl.el (hexl-mode-map): Recognize also `ehelp-command' as a
 	valid binding for `help-char'.
@@ -378,7 +385,7 @@
 
 2005-07-07  Jay Belanger  <belanger@truman.edu>
 
-	* calc/calc-units.el (math-apply-units):  Change the places in
+	* calc/calc-units.el (math-apply-units): Change the places in
 	which units are simplified.
 
 2005-07-07  Luc Teirlinck  <teirllm@auburn.edu>
