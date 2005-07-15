@@ -5,6 +5,9 @@
 
 2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
 
+	* hexl.el (hexl-mode-map): Recognize also `ehelp-command' as a
+	valid binding for `help-char'.
+
 	* emacs-lisp/derived.el (derived-mode-hook-name): Doc fix.
 
 2005-07-14  Dan Nicolaescu  <dann@ics.uci.edu>
@@ -13,7 +16,8 @@
 
 2005-07-14  Juanma Barranquero  <lekktu@gmail.com>
 
-	* add-log.el (add-log-mailing-address, change-log-merge): Doc fix.
+	* add-log.el (add-log-mailing-address, change-log-merge):
+	Doc fixes.
 	(change-log-get-method-definition): Fix typo in docstring.
 
 2005-07-14  Kim F. Storm  <storm@cua.dk>
@@ -50,7 +54,7 @@
 	(allout-insert-latex-header, allout-insert-latex-trailer)
 	(allout-latex-verbatim-quote-curr-line, allout-latexify-exposed)
 	(allout-latex-verb-quote): Fix typos in docstrings.
-	(allout-enwrap-isearch, regexp-sans-escapes): Doc fix.
+	(allout-enwrap-isearch, regexp-sans-escapes): Doc fixes.
 	(allout-unprotected, allout-prefix-data):
 	Improve argument/docstring consistency.
 	(allout-chart-subtree): Fix argument spec.
@@ -68,7 +72,7 @@
 	(whitespace-check-indent-whitespace)
 	(whitespace-check-ateol-whitespace, whitespace-abort-on-error)
 	(whitespace-modes): Fix typos in docstrings.
-	(defgroup, defcustom): Doc fix.
+	(defgroup, defcustom): Doc fixes.
 
 	* winner.el (winner-mode, winner-boring-buffers)
 	(winner-pending-undo-ring): Doc fixes.
