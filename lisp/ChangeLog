@@ -1,3 +1,13 @@
+2005-07-16  Nick Roberts  <nickrob@snap.net.nz>
+
+	* progmodes/gdb-ui.el (gdb-var-update, gdb-var-update-handler): 
+	Don't consider gdbmi (gdb-mi.el has its own update functions).
+	(gdb-var-delete): Make it work for gdbmi as well.
+	(gdb-speedbar-expand-node): Move var-update here for gdbmi.
+
+	* progmodes/gud.el (etags, sdb): Only require etags when needed.
+	(gud-speedbar-menu-items): Correct logic for enabling items.
+
 2005-07-15  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el: Fix commentary.
