@@ -2023,7 +2023,8 @@ If INITIAL is non-nil, it specifies the initial input string."
     (setq item 'file))
   (let ((ido-current-directory (ido-expand-directory default))
 	(ido-context-switch-command switch-cmd)
-        ido-directory-nonreadable ido-directory-too-big
+	ido-directory-nonreadable ido-directory-too-big
+	(minibuffer-completing-file-name t)
 	filename)
 
     (if (or (not ido-mode) (ido-is-slow-ftp-host))
@@ -4250,6 +4251,7 @@ See `read-file-name' for additional parameters."
 	     (ido-context-switch-command
 	      (if (eq (get this-command 'ido) 'find-file) nil 'ignore))
 	     (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
+	     (minibuffer-completing-file-name t)
 	     (ido-current-directory (ido-expand-directory dir))
 	     (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
 	     (ido-directory-too-big (and (not ido-directory-nonreadable)
@@ -4282,6 +4284,7 @@ See `read-file-name' for additional parameters."
 Read directory name, prompting with PROMPT and completing in directory DIR.
 See `read-directory-name' for additional parameters."
   (let* (filename
+	 (minibuffer-completing-file-name t)
 	 (ido-context-switch-command 'ignore)
 	 ido-saved-vc-hb
 	 (ido-current-directory (ido-expand-directory dir))
