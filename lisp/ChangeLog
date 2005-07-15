@@ -1,7 +1,10 @@
 2005-07-15  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (ido-define-mode-map): Move ido-next-work-file	to C-M-o.
+	* ido.el: Fix commentary.
+	(ido-define-mode-map): Move ido-next-work-file	to C-M-o.
 	Use with-no-warnings around ffap-guesser.
+	(ido-file-internal, ido-read-file-name, ido-read-directory-name):
+	Let bind minibuffer-completing-file-name to t.
 
 2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
 
