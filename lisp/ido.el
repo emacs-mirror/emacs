@@ -1405,7 +1405,7 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-s" 'ido-next-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
-    (define-key map [(control ? )] 'ido-restrict-to-matches)
+    (define-key map [(control ?\s)] 'ido-restrict-to-matches)
     (define-key map [(control ?@)] 'ido-restrict-to-matches)
     (define-key map [right] 'ido-next-match)
     (define-key map [left] 'ido-prev-match)
@@ -1436,7 +1436,7 @@ This function also adds a hook to the minibuffer."
       (define-key map [(meta ?m)] 'ido-make-directory)
       (define-key map [(meta ?n)] 'ido-next-work-directory)
       (define-key map [(meta ?o)] 'ido-prev-work-file)
-      (define-key map [(meta ?O)] 'ido-next-work-file)
+      (define-key map [(meta control ?o)] 'ido-next-work-file)
       (define-key map [(meta ?p)] 'ido-prev-work-directory)
       (define-key map [(meta ?s)] 'ido-merge-work-directories)
       )
@@ -2056,7 +2056,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 ((and ido-use-filename-at-point
 	       (setq fn (if (eq ido-use-filename-at-point 'guess)
-			    (ffap-guesser)
+			    (with-no-warnings (ffap-guesser))
 			  (ffap-string-at-point)))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
