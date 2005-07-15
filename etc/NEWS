@@ -3044,6 +3044,7 @@ variable `calculator-radix-grouping-mode'.
 
 * Changes in Emacs 22.1 on non-free operating systems
 
++++
 ** The HOME directory defaults to Application Data under the user profile.
 
 If you used a previous version of Emacs without setting the HOME
