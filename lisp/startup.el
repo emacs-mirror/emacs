@@ -184,9 +184,9 @@ This is because we already did so.")
 
 (defvar keyboard-type nil
   "The brand of keyboard you are using.
-This variable is used to define
-the proper function and keypad keys for use under X.  It is used in a
-fashion analogous to the environment variable TERM.")
+This variable is used to define the proper function and keypad
+keys for use under X.  It is used in a fashion analogous to the
+environment variable TERM.")
 
 (defvar window-setup-hook nil
   "Normal hook run to initialize window system display.
@@ -234,7 +234,7 @@ is less convenient.
 This variable is defined for customization so as to make
 it visible in the relevant context.  However, actually customizing it
 is not allowed, since it would not work anyway.  The only way to set
-this variable usefully is to set it during while building and dumping Emacs."
+this variable usefully is to set it while building and dumping Emacs."
   :type '(choice (const :tag "none" nil) string)
   :group 'initialization
   :initialize 'custom-initialize-default
@@ -664,9 +664,9 @@ or `CVS', and any subdirectory that contains a file named `.nosearch'."
     ;; processed.  This is consistent with the way main in emacs.c
     ;; does things.
     (while (and (not done) args)
-      (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--user")
-                         ("--debug-init") ("--iconic") ("--icon-type")
-			 ("--no-blinking-cursor") ("--bare-bones")))
+      (let* ((longopts '(("--no-init-file") ("--no-site-file") ("--debug-init")
+                         ("--user") ("--iconic") ("--icon-type") ("--quick")
+			 ("--no-blinking-cursor") ("--basic-display")))
              (argi (pop args))
              (orig-argi argi)
              argval)
@@ -1057,6 +1057,7 @@ Read the Emacs Manual\tView the Emacs manual using Info
 	   :face variable-pitch
 	   "\
 Copying Conditions\tConditions for redistributing and changing Emacs
+Getting New Versions\tHow to obtain the latest version of Emacs
 More Manuals / Ordering Manuals       Buying printed manuals from the FSF\n")
   (:face variable-pitch
 	   "You can do basic editing with the menu bar and scroll bar \
@@ -1342,20 +1343,20 @@ You can do basic editing with the menu bar and scroll bar using the mouse.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		recover files you were editing before a crash
+Recover Session		Recover files you were editing before a crash
 
 Important Help menu items:
-Emacs Tutorial		Learn-by-doing tutorial for using Emacs efficiently.
+Emacs Tutorial		Learn how to use Emacs efficiently
 Emacs FAQ		Frequently asked questions and answers
 Read the Emacs Manual	View the Emacs manual using Info
 \(Non)Warranty		GNU Emacs comes with ABSOLUTELY NO WARRANTY
-Copying Conditions	Conditions for redistributing and changing Emacs.
-Getting New Versions	How to obtain the latest version of Emacs.
-More Manuals / Ordering Manuals    How to order printed manuals from the FSF.
+Copying Conditions	Conditions for redistributing and changing Emacs
+Getting New Versions	How to obtain the latest version of Emacs
+More Manuals / Ordering Manuals    How to order printed manuals from the FSF
 ")
 		  (insert "\n\n" (emacs-version)
 			  "
-Copyright (C) 2004 Free Software Foundation, Inc."))
+Copyright (C) 2005 Free Software Foundation, Inc."))
 
 	      ;; No mouse menus, so give help using kbd commands.
 
@@ -1403,7 +1404,7 @@ If you have no Meta key, you may instead type ESC followed by the character.)")
 
 	      (insert "\n\n" (emacs-version)
 		      "
-Copyright (C) 2004 Free Software Foundation, Inc.")
+Copyright (C) 2005 Free Software Foundation, Inc.")
 
 	      (if (and (eq (key-binding "\C-h\C-c") 'describe-copying)
 		       (eq (key-binding "\C-h\C-d") 'describe-distribution)
