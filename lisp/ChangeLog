@@ -1,3 +1,8 @@
+2005-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (ido-define-mode-map): Move ido-next-work-file	to C-M-o.
+	Use with-no-warnings around ffap-guesser.
+
 2005-07-15  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/derived.el (derived-mode-hook-name): Doc fix.
