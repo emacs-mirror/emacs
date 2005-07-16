@@ -8,6 +8,21 @@
 	(byte-compile-maybe-guarded): Handle (not (featurep 'emacs)).
 	Simplify conditions of the form (not (not BASE)).
 
+	* isearch.el (isearch-mode-end-hook-quit): New variable.
+	(isearch-done): Bind it.
+	(isearch-mode-end-hook): Doc fix.
+
+	* allout.el (allout-isearch-did-quit): Variable deleted.
+	(allout-real-isearch-abort): Function name no longer used.
+	(allout-mode): Do allout-enwrap-isearch whenever feature is wanted.
+	(allout-isearch-rectification): isearch-mode always exists.
+	Don't set allout-isearch-did-quit.
+	(allout-isearch-expose): Check isearch-mode-end-hook-error, not
+	allout-isearch-did-quit.
+	(allout-enwrap-isearch): Just add the hook.
+	(allout-isearch-abort): Function deleted.
+	(allout-pre-command-business): Avoid warning.
+
 	* progmodes/pascal.el (pascal-outline-map): Use fboundp, not boundp.
 	Correctly avoid warnings.
 	(pascal-outline): Likewise.
