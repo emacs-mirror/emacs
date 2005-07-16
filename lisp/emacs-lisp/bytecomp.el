@@ -358,7 +358,7 @@ Elements of the list may be be:
 
 (defvar byte-compile-interactive-only-functions
   '(beginning-of-buffer end-of-buffer replace-string replace-regexp
-			insert-file)
+    insert-file insert-buffer insert-file-literally)
   "List of commands that are not meant to be called from Lisp.")
 
 (defvar byte-compile-not-obsolete-var nil
@@ -3353,11 +3353,11 @@ That command is designed for interactive use only" fn))
   "Execute forms in BODY, potentially guarded by CONDITION.
 CONDITION is a variable whose value is a test in an `if' or `cond'.
 BODY is the code to compile  first arm of the if or the body of the
-cond clause.  If CONDITION's value is of the form (foundp 'foo)
+cond clause.  If CONDITION's value is of the form (fboundp 'foo)
 or (boundp 'foo), the relevant warnings from BODY about foo's
 being undefined will be suppressed.
 
-If CONDITION's value is (not (featurep emacs)) or (featurep 'xemacs),
+If CONDITION's value is (not (featurep 'emacs)) or (featurep 'xemacs),
 that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
   `(let* ((fbound
