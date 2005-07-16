@@ -3409,7 +3409,8 @@ warnings during execution of BODY."
 	  (byte-compile-form (nth 2 form) for-effect))
 	(byte-compile-goto 'byte-goto donetag)
 	(byte-compile-out-tag elsetag)
-	(byte-compile-body (cdr (cdr (cdr form))) for-effect)
+	(byte-compile-maybe-guarded (list 'not clause)
+	  (byte-compile-body (cdr (cdr (cdr form))) for-effect))
 	(byte-compile-out-tag donetag))))
   (setq for-effect nil))
 
