@@ -154,7 +154,12 @@ command history."
   "Function(s) to call after starting up an incremental search.")
 
 (defvar isearch-mode-end-hook nil
-  "Function(s) to call after terminating an incremental search.")
+  "Function(s) to call after terminating an incremental search.
+When these functions are called, `isearch-mode-end-hook-quit'
+is non-nil if the user quit the search.")
+
+(defvar isearch-mode-end-hook-quit nil
+  "Non-nil while running `isearch-mode-end-hook' if user quit the search.")
 
 (defvar isearch-wrap-function nil
   "Function to call to wrap the search when search is failed.
@@ -744,6 +749,12 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
   (setq disable-point-adjustment t))
 
 (defun isearch-done (&optional nopush edit)
+  "Exit Isearch mode.
+For successful search, pass no args.
+For a failing search, NOPUSH is t.
+For going to the minibuffer to edit the search string,
+NOPUSH is t and EDIT is t."
+
   (if isearch-resume-in-command-history
       (let ((command `(isearch-resume ,isearch-string ,isearch-regexp
 				      ,isearch-word ,isearch-forward
@@ -795,7 +806,8 @@ is treated as a regexp.  See \\[isearch-forward] for more info."
       ;; Update the ring data.
       (isearch-update-ring isearch-string isearch-regexp))
 
-  (run-hooks 'isearch-mode-end-hook)
+  (let ((isearch-mode-end-hook-quit (and nopush (not edit))))
+    (run-hooks 'isearch-mode-end-hook))
 
   ;; If there was movement, mark the starting position.
   ;; Maybe should test difference between and set mark iff > threshold.
