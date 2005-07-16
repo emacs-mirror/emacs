@@ -150,33 +150,26 @@ visited by the buffers.")
 don't define it."
 	`(defvar ,sym ,val ,doc))))
 
-(if (fboundp 'make-overlay)
-    (progn
-      (defalias 'whitespace-make-overlay 'make-overlay)
-      (defalias 'whitespace-overlay-put 'overlay-put)
-      (defalias 'whitespace-delete-overlay 'delete-overlay)
-      (defalias 'whitespace-overlay-start 'overlay-start)
-      (defalias 'whitespace-overlay-end 'overlay-end)
-      (defalias 'whitespace-mode-line-update 'force-mode-line-update))
-  (defalias 'whitespace-make-overlay 'make-extent)
-  (defalias 'whitespace-overlay-put 'set-extent-property)
-  (defalias 'whitespace-delete-overlay 'delete-extent)
-  (defalias 'whitespace-overlay-start 'extent-start)
-  (defalias 'whitespace-overlay-end 'extent-end)
-  (defalias 'whitespace-mode-line-update 'redraw-modeline))
+(defalias 'whitespace-make-overlay
+  (if (featurep 'xemacs) 'make-extent 'make-overlay))
+(defalias 'whitespace-overlay-put
+  (if (featurep 'xemacs) 'set-extent-property 'overlay-put))
+(defalias 'whitespace-delete-overlay
+  (if (featurep 'xemacs) 'delete-extent 'delete-overlay))
+(defalias 'whitespace-overlay-start
+  (if (featurep 'xemacs) 'extent-start 'overlay-start))
+(defalias 'whitespace-overlay-end
+  (if (featurep 'xemacs) 'extent-end 'overlay-end))
+(defalias 'whitespace-mode-line-update
+  (if (featurep 'xemacs) 'redraw-modeline 'force-mode-line-update))
 
-(if (featurep 'xemacs)
-(defgroup whitespace nil
-  "Check for and fix five different types of whitespaces in source code."
-  ;; Since XEmacs doesn't have a 'convenience group, use the next best group
-  ;; which is 'editing?
-  :link '(emacs-commentary-link "whitespace.el")
-  :group 'editing)
 (defgroup whitespace nil
   "Check for and fix five different types of whitespaces in source code."
   :version "21.1"
   :link '(emacs-commentary-link "whitespace.el")
-  :group 'convenience))
+  ;; Since XEmacs doesn't have a 'convenience group, use the next best group
+  ;; which is 'editing?
+  :group (if (featurep 'xemacs) 'editing 'convenience))
 
 (defcustom whitespace-check-leading-whitespace t
   "Flag to check leading whitespace.  This is the global for the system.
