@@ -1,3 +1,7 @@
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Add `atom' type.
+
 2005-07-15  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Avoid constructing
