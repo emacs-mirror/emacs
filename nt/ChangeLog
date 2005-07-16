@@ -1,3 +1,8 @@
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* configure.bat: Finish config.log with a line that indicates that
+	the configure step was successful.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

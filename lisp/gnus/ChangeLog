@@ -1,3 +1,9 @@
+2005-07-16  Lars Magne Ingebrigtsen  <larsi@gnus.org>
+
+	* gnus-msg.el (gnus-button-mailto): Remove
+	save-selected-window-window hackery because it relies on
+	save-selected-window internals.
+
 2005-07-13  Katsumi Yamaoka  <yamaoka@jpl.org>
 
 	* gnus-salt.el (gnus-pick-mode): Remove the 5th arg of

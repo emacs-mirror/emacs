@@ -1,3 +1,7 @@
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* cl.texi (Type Predicates): Document `atom' type.
+
 2005-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* display.texi (Standard Faces): Explain that customization of
