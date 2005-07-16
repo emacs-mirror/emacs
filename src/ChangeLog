@@ -1,3 +1,8 @@
+2005-07-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Use
+	Fstring_as_unibyte instead of string_make_unibyte.
+
 2005-07-15  Richard M. Stallman  <rms@gnu.org>
 
 	* xdisp.c (select_frame_for_redisplay): Use find_symbol_value.
