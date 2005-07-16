@@ -34,8 +34,14 @@
 
 (defvar find-gc-source-directory)
 
-(defvar find-gc-subrs-used nil
-  "List of subrs used so far in GC testing.")
+(defvar find-gc-subrs-callers nil
+  "Alist of users of subrs, from GC testing.
+Each entry has the form (FUNCTION . FUNCTIONS-THAT-CALL-IT).")
+
+(defvar find-gc-subrs-called nil
+  "Alist of subrs called, in GC testing.
+Each entry has the form (FUNCTION . FUNCTIONS-IT-CALLS).")
+
 
 ;;; Functions on this list are safe, even if they appear to be able
 ;;; to call the target.
@@ -84,9 +90,9 @@ Also store it in `find-gc-unsafe'."
 )
 
 (defun trace-unsafe (func)
-  (let ((used (assq func find-gc-subrs-used)))
+  (let ((used (assq func find-gc-subrs-callers)))
     (or used
-	(error "No find-gc-subrs-used for %s" (car find-gc-unsafe-list)))
+	(error "No find-gc-subrs-callers for %s" (car find-gc-unsafe-list)))
     (while (setq used (cdr used))
       (or (assq (car used) find-gc-unsafe-list)
 	  (memq (car used) find-gc-noreturn-list)
@@ -97,8 +103,6 @@ Also store it in `find-gc-unsafe'."
 
 
 
-;;; This produces an a-list of functions in subrs-called.  The cdr of
-;;; each entry is a list of functions which the function in car calls.
 
 (defun trace-call-tree (&optional already-setup)
   (message "Setting up directories...")
@@ -112,7 +116,7 @@ Also store it in `find-gc-unsafe'."
 			      find-gc-source-directory))))
   (save-excursion
     (set-buffer (get-buffer-create "*Trace Call Tree*"))
-    (setq subrs-called nil)
+    (setq find-gc-subrs-called nil)
     (let ((case-fold-search nil)
 	  (files find-gc-source-files)
 	  name entry)
@@ -131,7 +135,7 @@ Also store it in `find-gc-unsafe'."
 						     (match-end 0))))
 		(message "%s : %s" (car files) name)
 		(setq entry (list name)
-		      subrs-called (cons entry subrs-called)))
+		      find-gc-subrs-called (cons entry find-gc-subrs-called)))
 	    (if (looking-at ".*\n?.*\"\\([A-Za-z0-9_]+\\)\"")
 		(progn
 		  (setq name (intern (buffer-substring (match-beginning 1)
@@ -143,17 +147,14 @@ Also store it in `find-gc-unsafe'."
 )
 
 
-;;; This produces an inverted a-list in find-gc-subrs-used.  The cdr of each
-;;; entry is a list of functions that call the function in car.
-
 (defun trace-use-tree ()
-  (setq find-gc-subrs-used (mapcar 'list (mapcar 'car subrs-called)))
-  (let ((ptr subrs-called)
+  (setq find-gc-subrs-callers (mapcar 'list (mapcar 'car find-gc-subrs-called)))
+  (let ((ptr find-gc-subrs-called)
 	p2 found)
     (while ptr
       (setq p2 (car ptr))
       (while (setq p2 (cdr p2))
-	(if (setq found (assq (car p2) find-gc-subrs-used))
+	(if (setq found (assq (car p2) find-gc-subrs-callers))
 	    (setcdr found (cons (car (car ptr)) (cdr found)))))
       (setq ptr (cdr ptr))))
 )
