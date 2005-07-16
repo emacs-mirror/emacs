@@ -3377,8 +3377,10 @@ warnings during execution of BODY."
 	   (if bound
 	       (cons bound byte-compile-bound-variables)
 	     byte-compile-bound-variables))
+	  ;; Suppress all warnings, for code not used in Emacs.
 	  (byte-compile-warnings
-	   (if (equal ,condition '(featurep 'xemacs))
+	   (if (member ,condition '((featurep 'xemacs)
+				    (not (featurep 'emacs))))
 	       nil byte-compile-warnings)))
      (unwind-protect
 	 (progn ,@body)
@@ -3450,7 +3452,7 @@ warnings during execution of BODY."
 	(byte-compile-form-do-effect t)
       (byte-compile-and-recursion args failtag))))
 
-;; Handle compilation of a multi-argument `and' call.
+;; Handle compilation of a nontrivial `and' call.
 ;; We use tail recursion so we can use byte-compile-maybe-guarded.
 (defun byte-compile-and-recursion (rest failtag)
   (if (cdr rest)
@@ -3467,12 +3469,19 @@ warnings during execution of BODY."
 	(args (cdr form)))
     (if (null args)
 	(byte-compile-form-do-effect nil)
-      (while (cdr args)
-	(byte-compile-form (car args))
+      (byte-compile-or-recursion args wintag))))
+
+;; Handle compilation of a nontrivial `or' call.
+;; We use tail recursion so we can use byte-compile-maybe-guarded.
+(defun byte-compile-or-recursion (rest wintag)
+  (if (cdr rest)
+      (progn
+	(byte-compile-form (car rest))
 	(byte-compile-goto-if t for-effect wintag)
-	(setq args (cdr args)))
-      (byte-compile-form-do-effect (car args))
-      (byte-compile-out-tag wintag))))
+	(byte-compile-maybe-guarded (list 'not (car rest))
+	  (byte-compile-or-recursion (cdr rest) wintag)))
+    (byte-compile-form-do-effect (car rest))
+    (byte-compile-out-tag wintag)))
 
 (defun byte-compile-while (form)
   (let ((endtag (byte-compile-make-tag))
