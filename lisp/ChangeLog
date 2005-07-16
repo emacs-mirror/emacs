@@ -1,3 +1,81 @@
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* emacs-lisp/bytecomp.el (byte-compile-and-recursion): New function.
+	(byte-compile-and): Use byte-compile-and-recursion.
+	(byte-compile-or-recursion): New function.
+	(byte-compile-or): Use that.
+	(byte-compile-if): Guard the else-clause too.
+	(byte-compile-maybe-guarded): Handle (not (featurep 'emacs)).
+	Simplify conditions of the form (not (not BASE)).
+
+	* progmodes/pascal.el (pascal-outline-map): Use fboundp, not boundp.
+	Correctly avoid warnings.
+	(pascal-outline): Likewise.
+
+	* progmodes/f90.el (f90-abbrev-start): Avoid warning.
+
+	* progmodes/asm-mode.el (asm-comment): Use with-no-warnings.
+
+	* play/tetris.el (tetris-mode): Avoid warning.
+
+	* play/snake.el (snake-mode): Avoid warning.
+
+	* play/gamegrid.el (gamegrid-shared-game-dir): Add defvar.
+	(gamegrid-set-display-table): Avoid warning.
+	(gamegrid-set-timer): Likewise.
+	(gamegrid-make-mono-tty-face): Use set-face-inverse-video-p.
+	(gamegrid-add-score-with-update-game-score-1): Take FILE
+	as argument.
+	(gamegrid-add-score-with-update-game-score): Pass that argument.
+	Rename have-shared-game-dir to gamegrid-shared-game-dir.
+
+	* net/eudc-hotlist.el (eudc-hotlist-mode): Avoid warnings.
+
+	* net/eudc-bob.el (eudc-jump-to-event): Avoid warning.
+	(eudc-bob-display-jpeg, eudc-bob-can-display-inline-images): Likewise.
+
+	* mail/uce.el (uce-reply-to-uce): Replace beginning-of-buffer
+	and insert-file.
+	
+	* mail/supercite.el (sc-no-blank-line-or-header): Avoid warning.
+	(sc-ask): Avoid warnings.
+
+	* eshell/em-hist.el (eshell-rebind-keys-alist): Add defvar.
+	(eshell-hist-initialize): Use that var the natural way.
+
+	* emulation/viper-init.el (viper-activate-input-method): Avoid warning.
+
+	* emacs-lisp/re-builder.el (reb-cook-regexp): Avoid
+	warning calling lre-compile-string.
+	(reb-color-display-p): Avoid warning.
+
+	* calculator.el (calculator-last-input): Guard uses
+	of event-key and key-press-event-p.
+	(event-key, key-press-event-p): Delete definitions.
+
+	* emacs-lisp/find-gc.el (find-gc-unsafe-list)
+	(find-gc-source-directory, find-gc-subrs-used)
+	(find-gc-noreturn-list, find-gc-source-files):
+	Vars renamed and defvar'd.
+
+	* emacs-lisp/checkdoc.el (checkdoc-make-overlay)
+	(checkdoc-overlay-put, checkdoc-delete-overlay)
+	(checkdoc-overlay-start, checkdoc-overlay-end)
+	(checkdoc-mode-line-update, checkdoc-char=): 
+	Define such that compiler knows they are defined.
+	(checkdoc-call-eval-buffer): Deleted.  Use eval-buffer directly.
+	(checkdoc-read-event): Deleted.  Use read-event directly.
+
+	* whitespace.el (whitespace-make-overlay)
+	(whitespace-overlay-put, whitespace-delete-overlay)
+	(whitespace-overlay-start, whitespace-overlay-end):
+	Define such that compiler knows they are defined.
+	(whitespace): Move conditional inside.
+
+	* tempo.el (tempo-insert-template): Suppress warning.
+
+	* ediff-diff.el (longlines-mode): Add defvar.
+
 2005-07-16  Gary Howell  <g1howell-list@yahoo.com>  (tiny change)
 
 	* server.el: Bind "C-x #" in a way that works even if C-x is
