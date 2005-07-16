@@ -870,13 +870,6 @@ allout-pre- and -post-command-hooks.")
 (defvar allout-isearch-prior-pos nil
   "Cue for isearch-dynamic-exposure tracking, used by `allout-isearch-expose'.")
 (make-variable-buffer-local 'allout-isearch-prior-pos)
-;;;_   = allout-isearch-did-quit
-(defvar allout-isearch-did-quit nil
-  "Distinguishes isearch conclusion and cancellation.
-
-Maintained by `allout-isearch-abort' \(which is wrapped around the real
-isearch-abort), and monitored by `allout-isearch-expose' for action.")
-(make-variable-buffer-local 'allout-isearch-did-quit)
 ;;;_   = allout-override-protect nil
 (defvar allout-override-protect nil
   "Used in `allout-mode' for regulate of concealed-text protection mechanism.
@@ -1343,8 +1336,7 @@ OPEN:	A topic that is not closed, though its offspring or body may be."
       (if allout-layout
 	  (setq do-layout t))
 
-      (if (and allout-isearch-dynamic-expose
-	       (not (fboundp 'allout-real-isearch-abort)))
+      (if allout-isearch-dynamic-expose
 	  (allout-enwrap-isearch))
 
       (run-hooks 'allout-mode-hook)
@@ -2325,9 +2317,7 @@ return to regular interpretation of self-insert characters."
 	(let* ((this-key-num (cond
 			      ((numberp last-command-char)
 			       last-command-char)
-			      ;; XXX Only XEmacs has characterp.
-			      ((and (fboundp 'characterp)
-				    (characterp last-command-char))
+			      ((fboundp 'char-to-int)
 			       (char-to-int last-command-char))
 			      (t 0)))
 	       mapped-binding)
@@ -2363,7 +2353,7 @@ See `allout-init' for setup instructions."
 
 Called as part of `allout-post-command-business'."
 
-  (let ((isearching (and (boundp 'isearch-mode) isearch-mode)))
+  (let ((isearching isearch-mode))
     (cond ((and isearching (not allout-pre-was-isearching))
 	   (allout-isearch-expose 'start))
 	  ((and isearching allout-pre-was-isearching)
@@ -2371,8 +2361,7 @@ Called as part of `allout-post-command-business'."
 	  ((and (not isearching) allout-pre-was-isearching)
 	   (allout-isearch-expose 'final))
 	  ;; Not and wasn't isearching:
-	  (t (setq allout-isearch-prior-pos nil)
-	     (setq allout-isearch-did-quit nil)))))
+	  (t (setq allout-isearch-prior-pos nil)))))
 ;;;_   = allout-isearch-was-font-lock
 (defvar allout-isearch-was-font-lock
   (and (boundp 'font-lock-mode) font-lock-mode))
@@ -2414,51 +2403,16 @@ Returns the endpoint of the region."
       (setq allout-isearch-prior-pos nil)
     (if (not (eq mode 'final))
 	(setq allout-isearch-prior-pos (cons (point) (allout-show-entry)))
-      (if allout-isearch-did-quit
+      (if isearch-mode-end-hook-error
 	  nil
 	(setq allout-isearch-prior-pos nil)
-	(allout-show-children))))
-  (setq allout-isearch-did-quit nil))
+	(allout-show-children)))))
 ;;;_   > allout-enwrap-isearch ()
 (defun allout-enwrap-isearch ()
   "Impose `isearch-abort' wrapper for dynamic exposure in isearch.
 
 The function checks to ensure that the rebinding is done only once."
-
-  (add-hook 'isearch-mode-end-hook 'allout-isearch-rectification)
-  (if (fboundp 'allout-real-isearch-abort)
-      ;;
-      nil
-                                        ; Ensure load of isearch-mode:
-    (if (or (and (fboundp 'isearch-mode)
-                 (fboundp 'isearch-abort))
-            (condition-case error
-                (load-library "isearch-mode")
-              ('file-error (message
-			    "Skipping isearch-mode provisions - %s '%s'"
-			    (car (cdr error))
-			    (car (cdr (cdr error))))
-			   (sit-for 1)
-			   ;; Inhibit subsequent tries and return nil:
-			   (setq allout-isearch-dynamic-expose nil))))
-        ;; Isearch-mode loaded, encapsulate specific entry points for
-        ;; outline dynamic-exposure business:
-        (progn
-	  ;; stash crucial isearch-mode funcs under known, private
-	  ;; names, then register wrapper functions under the old
-	  ;; names, in their stead:
-          (fset 'allout-real-isearch-abort (symbol-function 'isearch-abort))
-          (fset 'isearch-abort 'allout-isearch-abort)))))
-;;;_   > allout-isearch-abort ()
-(defun allout-isearch-abort ()
-  "Wrapper for `allout-real-isearch-abort' \(which see), to register
-actual quits."
-  (interactive)
-  (setq allout-isearch-did-quit nil)
-  (condition-case what
-      (allout-real-isearch-abort)
-    ('quit (setq allout-isearch-did-quit t)
-	  (signal 'quit nil))))
+  (add-hook 'isearch-mode-end-hook 'allout-isearch-rectification))
 
 ;;; Prevent unnecessary font-lock while isearching!
 (defvar isearch-was-font-locking nil)
