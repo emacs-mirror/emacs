@@ -736,6 +736,11 @@ Thus @code{(typep @var{object} 'null)} is equivalent to
 @code{(null @var{object})}.
 
 @item
+The type symbol @code{atom} represents all objects that are not cons
+cells. Thus @code{(typep @var{object} 'atom)} is equivalent to
+@code{(atom @var{object})}.
+
+@item
 The type symbol @code{real} is a synonym for @code{number}, and
 @code{fixnum} is a synonym for @code{integer}.
 
