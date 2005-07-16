@@ -1,3 +1,8 @@
+2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
+
+	* emacs-lisp/cl-macs.el (cl-make-type-test): Defer evaluation of
+	cl-make-type-test till execution time.
+
 2005-07-16  Markus Rost  <rost@math.uni-bielefeld.de>
 
 	* dired-x.el (dired-do-relsymlink-regexp): Add missing optional

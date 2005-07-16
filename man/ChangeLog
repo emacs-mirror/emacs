@@ -1,5 +1,9 @@
 2005-07-16  Eli Zaretskii  <eliz@gnu.org>
 
+	* display.texi (Standard Faces): Explain that customization of
+	`menu' face has no effect on w32 and with GTK.  Add
+	cross-references.
+
 	* cmdargs.texi (General Variables): Clarify the default location
 	of $HOME on w32 systems.
 
