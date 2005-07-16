@@ -601,15 +601,16 @@ tetris-mode keybindings:
   (setq major-mode 'tetris-mode)
   (setq mode-name "Tetris")
 
-  (setq mode-popup-menu
-	'("Tetris Commands"
-	  ["Start new game"	tetris-start-game]
-	  ["End game"		tetris-end-game
-	   (tetris-active-p)]
-	  ["Pause"		tetris-pause-game
-	   (and (tetris-active-p) (not tetris-paused))]
-	  ["Resume"		tetris-pause-game
-	   (and (tetris-active-p) tetris-paused)]))
+  (unless (featurep 'emacs)
+    (setq mode-popup-menu
+	  '("Tetris Commands"
+	    ["Start new game"	tetris-start-game]
+	    ["End game"		tetris-end-game
+	     (tetris-active-p)]
+	    ["Pause"		tetris-pause-game
+	     (and (tetris-active-p) (not tetris-paused))]
+	    ["Resume"		tetris-pause-game
+	     (and (tetris-active-p) tetris-paused)])))
 
   (setq gamegrid-use-glyphs tetris-use-glyphs)
   (setq gamegrid-use-color tetris-use-color)
