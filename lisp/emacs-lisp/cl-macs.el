@@ -2384,6 +2384,7 @@ The type name can then be used in `typecase', `check-type', etc."
 	     (cl-make-type-test val (funcall (get type 'cl-deftype-handler))))
 	    ((memq type '(nil t)) type)
 	    ((eq type 'null) `(null ,val))
+	    ((eq type 'atom) `(atom ,val))
 	    ((eq type 'float) `(floatp-safe ,val))
 	    ((eq type 'real) `(numberp ,val))
 	    ((eq type 'fixnum) `(integerp ,val))
