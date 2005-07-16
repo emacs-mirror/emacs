@@ -2399,7 +2399,7 @@ The type name can then be used in `typecase', `check-type', etc."
 	   (cl-make-type-test val (apply (get (car type) 'cl-deftype-handler)
 					 (cdr type))))
 	  ((memq (car type) '(integer float real number))
-	   (delq t (and (cl-make-type-test val (car type))
+	   (delq t (list 'and (cl-make-type-test val (car type))
 			 (if (memq (cadr type) '(* nil)) t
 			   (if (consp (cadr type)) (list '> val (caadr type))
 			     (list '>= val (cadr type))))
