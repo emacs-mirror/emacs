@@ -3353,12 +3353,12 @@ That command is designed for interactive use only" fn))
   "Execute forms in BODY, potentially guarded by CONDITION.
 CONDITION is a variable whose value is a test in an `if' or `cond'.
 BODY is the code to compile  first arm of the if or the body of the
-cond clause.  If CONDITION's value is of the form `(foundp 'foo)'
-or `(boundp 'foo)', the relevant warnings from BODY about foo
+cond clause.  If CONDITION's value is of the form (foundp 'foo)
+or (boundp 'foo), the relevant warnings from BODY about foo's
 being undefined will be suppressed.
 
-If CONDITION's value is `(featurep 'xemacs)', that suppresses all
-warnings during execution of BODY."
+If CONDITION's value is (not (featurep emacs)) or (featurep 'xemacs),
+that suppresses all warnings during execution of BODY."
   (declare (indent 1) (debug t))
   `(let* ((fbound
 	   (if (eq 'fboundp (car-safe ,condition))
