@@ -303,7 +303,7 @@ mode, ON-REGION is ignored and assumed true if the region is active."
 	(if (or (and (boundp 'transient-mark-mode) ; For Emacs
 		     transient-mark-mode
 		     mark-active)
-		(and (boundp 'zmacs-regions) ; For XEmacs
+		(if (featurep 'xemacs)
 		     zmacs-regions (mark)))
 	    (setq on-region t))
 	(and on-region
