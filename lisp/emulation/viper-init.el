@@ -362,8 +362,8 @@ Use `M-x viper-set-expert-level' to change this.")
 (defun viper-activate-input-method ()
   (cond ((and viper-emacs-p (fboundp 'activate-input-method))
 	 (activate-input-method default-input-method))
-	((and viper-xemacs-p (fboundp 'quail-mode))
-	 (quail-mode 1))))
+	((featurep 'xemacs)
+	 (if (fboundp 'quail-mode) (quail-mode 1)))))
 
 ;; Set quail-mode to ARG
 (defun viper-set-input-method (arg)
