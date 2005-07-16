@@ -68,9 +68,9 @@
 	(event-key, key-press-event-p): Delete definitions.
 
 	* emacs-lisp/find-gc.el (find-gc-unsafe-list)
-	(find-gc-source-directory, find-gc-subrs-used)
-	(find-gc-noreturn-list, find-gc-source-files):
-	Vars renamed and defvar'd.
+	(find-gc-source-directory, find-gc-subrs-callers)
+	(find-gc-noreturn-list, find-gc-source-files)
+	(find-gc-subrs-called): Vars renamed and defvar'd.
 
 	* emacs-lisp/checkdoc.el (checkdoc-make-overlay)
 	(checkdoc-overlay-put, checkdoc-delete-overlay)
