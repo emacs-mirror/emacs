@@ -6,7 +6,6 @@
 	(byte-compile-or): Use that.
 	(byte-compile-if): Guard the else-clause too.
 	(byte-compile-maybe-guarded): Handle (not (featurep 'emacs)).
-	Simplify conditions of the form (not (not BASE)).
 
 	* isearch.el (isearch-mode-end-hook-quit): New variable.
 	(isearch-done): Bind it.
