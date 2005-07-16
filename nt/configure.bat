@@ -513,6 +513,7 @@ if not exist ..\site-lisp\subdirs.el copy subdirs.el ..\site-lisp\subdirs.el
 
 echo.
 echo Emacs successfully configured.
+echo Emacs successfully configured. >>config.log
 echo Run `%MAKECMD%' to build, then run `%MAKECMD% install' to install.
 goto end
 
