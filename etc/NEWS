@@ -3048,13 +3048,16 @@ variable `calculator-radix-grouping-mode'.
 ** The HOME directory defaults to Application Data under the user profile.
 
 If you used a previous version of Emacs without setting the HOME
-environment variable and a .emacs was saved, then Emacs will continue
-using C:/ as the default HOME. But if you are installing Emacs afresh,
+environment variable and a `.emacs' was saved, then Emacs will continue
+using C:/ as the default HOME.  But if you are installing Emacs afresh,
 the default location will be the "Application Data" (or similar
-localized name) subdirectory of your user profile. This change means
-that users will have their own .emacs files on shared computers, and
-the default HOME directory is less likely to be read-only on computers
-that are administered by someone else.
+localized name) subdirectory of your user profile.  A typical location
+of this directory is "C:\Documents and Settings\USERNAME\Application Data",
+where USERNAME is your user name.
+
+This change means that users can now have their own `.emacs' files on
+shared computers, and the default HOME directory is less likely to be
+read-only on computers that are administered by someone else.
 
 +++
 ** Passing resources on the command line now works on MS Windows.
