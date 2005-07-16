@@ -23,52 +23,78 @@
 
 ;;; Commentary:
 
-;; Produce in unsafe-list the set of all functions that may invoke GC.
-;; This expects the Emacs sources to live in emacs-source-directory.
+;; Produce in find-gc-unsafe-list the set of all functions that may invoke GC.
+;; This expects the Emacs sources to live in find-gc-source-directory.
 ;; It creates a temporary working directory /tmp/esrc.
 
 ;;; Code:
 
-(defun find-gc-unsafe ()
-  (trace-call-tree nil)
-  (trace-use-tree)
-  (find-unsafe-funcs 'Fgarbage_collect)
-  (setq unsafe-list (sort unsafe-list
-			  (function (lambda (x y)
-				      (string-lessp (car x) (car y))))))
-)
+(defvar find-gc-unsafe-list nil
+  "The list of unsafe functions is placed here by `find-gc-unsafe'.")
 
-(setq emacs-source-directory "/usr/gnu/src/dist/src")
+(defvar find-gc-source-directory)
 
-
-;;; This does a depth-first search to find all functions that can
-;;; ultimately call the function "target".  The result is an a-list
-;;; in unsafe-list; the cars are the unsafe functions, and the cdrs
-;;; are (one of) the unsafe functions that these functions directly
-;;; call.
-
-(defun find-unsafe-funcs (target)
-  (setq unsafe-list (list (list target)))
-  (trace-unsafe target)
-)
-
-(defun trace-unsafe (func)
-  (let ((used (assq func subrs-used)))
-    (or used
-	(error "No subrs-used for %s" (car unsafe-list)))
-    (while (setq used (cdr used))
-      (or (assq (car used) unsafe-list)
-	  (memq (car used) noreturn-list)
-	  (progn
-	    (setq unsafe-list (cons (cons (car used) func) unsafe-list))
-	    (trace-unsafe (car used))))))
-)
-
+(defvar find-gc-subrs-used nil
+  "List of subrs used so far in GC testing.")
 
 ;;; Functions on this list are safe, even if they appear to be able
 ;;; to call the target.
 
-(setq noreturn-list '( Fsignal Fthrow wrong_type_argument ))
+(defvar find-gc-noreturn-list '(Fsignal Fthrow wrong_type_argument))
+
+;;; This was originally generated directory-files, but there were
+;;; too many files there that were not actually compiled.  The
+;;; list below was created for a HP-UX 7.0 system.
+
+(defvar find-gc-source-files
+  '("dispnew.c" "scroll.c" "xdisp.c" "window.c"
+    "term.c" "cm.c" "emacs.c" "keyboard.c" "macros.c"
+    "keymap.c" "sysdep.c" "buffer.c" "filelock.c"
+    "insdel.c" "marker.c" "minibuf.c" "fileio.c"
+    "dired.c" "filemode.c" "cmds.c" "casefiddle.c"
+    "indent.c" "search.c" "regex.c" "undo.c"
+    "alloc.c" "data.c" "doc.c" "editfns.c"
+    "callint.c" "eval.c" "fns.c" "print.c" "lread.c"
+    "abbrev.c" "syntax.c" "unexec.c"
+    "bytecode.c" "process.c" "callproc.c" "doprnt.c"
+    "x11term.c" "x11fns.c"))
+
+
+(defun find-gc-unsafe ()
+  "Return a list of unsafe functions--that is, which can call GC.
+Also store it in `find-gc-unsafe'."
+  (trace-call-tree nil)
+  (trace-use-tree)
+  (find-unsafe-funcs 'Fgarbage_collect)
+  (setq find-gc-unsafe-list
+	(sort find-gc-unsafe-list
+	      (function (lambda (x y)
+			  (string-lessp (car x) (car y))))))
+)
+
+;;; This does a depth-first search to find all functions that can
+;;; ultimately call the function "target".  The result is an a-list
+;;; in find-gc-unsafe-list; the cars are the unsafe functions, and the cdrs
+;;; are (one of) the unsafe functions that these functions directly
+;;; call.
+
+(defun find-unsafe-funcs (target)
+  (setq find-gc-unsafe-list (list (list target)))
+  (trace-unsafe target)
+)
+
+(defun trace-unsafe (func)
+  (let ((used (assq func find-gc-subrs-used)))
+    (or used
+	(error "No find-gc-subrs-used for %s" (car find-gc-unsafe-list)))
+    (while (setq used (cdr used))
+      (or (assq (car used) find-gc-unsafe-list)
+	  (memq (car used) find-gc-noreturn-list)
+	  (progn
+	    (push (cons (car used) func) find-gc-unsafe-list)
+	    (trace-unsafe (car used))))))
+)
+
 
 
 ;;; This produces an a-list of functions in subrs-called.  The cdr of
@@ -83,12 +109,12 @@
 	(call-process "csh" nil nil nil "-c" "mkdir /tmp/esrc")
 	(call-process "csh" nil nil nil "-c"
 		      (format "ln -s %s/*.[ch] /tmp/esrc"
-			      emacs-source-directory))))
+			      find-gc-source-directory))))
   (save-excursion
     (set-buffer (get-buffer-create "*Trace Call Tree*"))
     (setq subrs-called nil)
     (let ((case-fold-search nil)
-	  (files source-files)
+	  (files find-gc-source-files)
 	  name entry)
       (while files
 	(message "Compiling %s..." (car files))
@@ -117,34 +143,17 @@
 )
 
 
-;;; This was originally generated directory-files, but there were
-;;; too many files there that were not actually compiled.  The
-;;; list below was created for a HP-UX 7.0 system.
-
-(setq source-files '("dispnew.c" "scroll.c" "xdisp.c" "window.c"
-		     "term.c" "cm.c" "emacs.c" "keyboard.c" "macros.c"
-		     "keymap.c" "sysdep.c" "buffer.c" "filelock.c"
-		     "insdel.c" "marker.c" "minibuf.c" "fileio.c"
-		     "dired.c" "filemode.c" "cmds.c" "casefiddle.c"
-		     "indent.c" "search.c" "regex.c" "undo.c"
-		     "alloc.c" "data.c" "doc.c" "editfns.c"
-		     "callint.c" "eval.c" "fns.c" "print.c" "lread.c"
-		     "abbrev.c" "syntax.c" "unexec.c"
-		     "bytecode.c" "process.c" "callproc.c" "doprnt.c"
-		     "x11term.c" "x11fns.c"))
-
-
-;;; This produces an inverted a-list in subrs-used.  The cdr of each
+;;; This produces an inverted a-list in find-gc-subrs-used.  The cdr of each
 ;;; entry is a list of functions that call the function in car.
 
 (defun trace-use-tree ()
-  (setq subrs-used (mapcar 'list (mapcar 'car subrs-called)))
+  (setq find-gc-subrs-used (mapcar 'list (mapcar 'car subrs-called)))
   (let ((ptr subrs-called)
 	p2 found)
     (while ptr
       (setq p2 (car ptr))
       (while (setq p2 (cdr p2))
-	(if (setq found (assq (car p2) subrs-used))
+	(if (setq found (assq (car p2) find-gc-subrs-used))
 	    (setcdr found (cons (car (car ptr)) (cdr found)))))
       (setq ptr (cdr ptr))))
 )
