@@ -1223,14 +1223,14 @@ not absolute ones like
   (dired-do-create-files 'relsymlink (function dired-make-relative-symlink)
                            "RelSymLink" arg dired-keep-marker-relsymlink))
 
-(defun dired-do-relsymlink-regexp (regexp newname &optional whole-name)
+(defun dired-do-relsymlink-regexp (regexp newname &optional arg whole-name)
   "RelSymlink all marked files containing REGEXP to NEWNAME.
 See functions `dired-do-rename-regexp' and `dired-do-relsymlink'
 for more info."
   (interactive (dired-mark-read-regexp "RelSymLink"))
   (dired-do-create-files-regexp
    (function dired-make-relative-symlink)
-   "RelSymLink" nil regexp newname whole-name dired-keep-marker-relsymlink))
+   "RelSymLink" arg regexp newname whole-name dired-keep-marker-relsymlink))
 
 
 ;;; VISIT ALL MARKED FILES SIMULTANEOUSLY.
