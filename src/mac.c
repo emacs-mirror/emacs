@@ -4144,7 +4144,7 @@ nil.  */)
   src_encoding = get_cfstring_encoding_from_lisp (source);
   tgt_encoding = get_cfstring_encoding_from_lisp (target);
 
-  string = string_make_unibyte (string);
+  string = Fstring_as_unibyte (string);
   if (src_encoding != kCFStringEncodingInvalidId
       && tgt_encoding != kCFStringEncodingInvalidId)
     str = CFStringCreateWithBytes (NULL, SDATA (string), SBYTES (string),
