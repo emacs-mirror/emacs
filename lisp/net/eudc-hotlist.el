@@ -51,11 +51,11 @@ These are the special commands of this mode:
   (setq major-mode 'eudc-hotlist-mode)
   (setq mode-name "EUDC-Servers")
   (use-local-map eudc-hotlist-mode-map)
-  (setq mode-popup-menu eudc-hotlist-menu)
-  (when (and eudc-xemacs-p
-	     (featurep 'menubar))
-    (set-buffer-menubar current-menubar)
-    (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu)))))
+  (when (featurep 'xemacs)
+    (setq mode-popup-menu eudc-hotlist-menu)
+    (when (featurep 'menubar)
+      (set-buffer-menubar current-menubar)
+      (add-submenu nil (cons "EUDC-Hotlist" (cdr (cdr eudc-hotlist-menu))))))
   (setq buffer-read-only t)
   (run-mode-hooks 'eudc-hotlist-mode-hook))
 
