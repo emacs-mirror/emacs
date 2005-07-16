@@ -1,3 +1,8 @@
+2005-07-15  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Avoid constructing
+	a defcustom with two :set or :type keywords.
+
 2005-07-15  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/lisp-mode.el (emacs-lisp-mode-syntax-table):
@@ -67,8 +72,8 @@
 	* startup.el (command-line): Use `custom-reevaluate-setting' again
 	for tooltip-mode.
 
-	* emacs-lisp/easy-mmode.el (define-minor-mode): Do not override
-	explicitly specified :initialize keyword.
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Avoid constructing
+	a defcustom with two :initialize keywords.
 
 2005-07-13  Juanma Barranquero  <lekktu@gmail.com>
 
