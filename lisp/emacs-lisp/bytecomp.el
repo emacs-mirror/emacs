@@ -3448,12 +3448,19 @@ warnings during execution of BODY."
 	(args (cdr form)))
     (if (null args)
 	(byte-compile-form-do-effect t)
-      (while (cdr args)
-	(byte-compile-form (car args))
+      (byte-compile-and-recursion args failtag))))
+
+;; Handle compilation of a multi-argument `and' call.
+;; We use tail recursion so we can use byte-compile-maybe-guarded.
+(defun byte-compile-and-recursion (rest failtag)
+  (if (cdr rest)
+      (progn
+	(byte-compile-form (car rest))
 	(byte-compile-goto-if nil for-effect failtag)
-	(setq args (cdr args)))
-      (byte-compile-form-do-effect (car args))
-      (byte-compile-out-tag failtag))))
+	(byte-compile-maybe-guarded (car rest)
+	  (byte-compile-and-recursion (cdr rest) failtag)))
+    (byte-compile-form-do-effect (car rest))
+    (byte-compile-out-tag failtag)))
 
 (defun byte-compile-or (form)
   (let ((wintag (byte-compile-make-tag))
