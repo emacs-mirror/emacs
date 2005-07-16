@@ -1,3 +1,15 @@
+2005-07-16  Juanma Barranquero  <lekktu@gmail.com>
+
+	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
+	Fix typo in docstring.
+	(byte-compile-interactive-only-functions): Add `insert-buffer' and
+	`insert-file-literally'.
+
+	* emacs-lisp/edebug.el (def-edebug-form-spec): Add obsolescence
+	info and delete redundant message.  Doc fix.
+	(edebug-install-custom-print-funcs, edebug-reset-print-funcs)
+	(edebug-uninstall-custom-print-funcs): Define as obsolete aliases.
+
 2005-07-16  Richard M. Stallman  <rms@gnu.org>
 
 	* emacs-lisp/bytecomp.el (byte-compile-and-recursion): New function.
@@ -50,7 +62,7 @@
 
 	* mail/uce.el (uce-reply-to-uce): Replace beginning-of-buffer
 	and insert-file.
-	
+
 	* mail/supercite.el (sc-no-blank-line-or-header): Avoid warning.
 	(sc-ask): Avoid warnings.
 
@@ -75,7 +87,7 @@
 	* emacs-lisp/checkdoc.el (checkdoc-make-overlay)
 	(checkdoc-overlay-put, checkdoc-delete-overlay)
 	(checkdoc-overlay-start, checkdoc-overlay-end)
-	(checkdoc-mode-line-update, checkdoc-char=): 
+	(checkdoc-mode-line-update, checkdoc-char=):
 	Define such that compiler knows they are defined.
 	(checkdoc-call-eval-buffer): Deleted.  Use eval-buffer directly.
 	(checkdoc-read-event): Deleted.  Use read-event directly.
