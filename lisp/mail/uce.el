@@ -283,7 +283,7 @@ address, and postmaster of the mail relay used."
 	     (re-search-forward "^Lines:")
 	     (beginning-of-line))
 	    ((eq uce-mail-reader 'rmail)
-	     (beginning-of-buffer)
+	     (goto-char (point-min))
 	     (search-forward "*** EOOH ***\n")
 	     (beginning-of-line)
 	     (forward-line -1)))
@@ -364,11 +364,7 @@ address, and postmaster of the mail relay used."
 	       (if (file-exists-p "~/.signature")
 		   (progn
 		     (insert "\n\n-- \n")
-		     (insert-file "~/.signature")
-		     ;; Function insert-file leaves point where it was,
-		     ;; while we want to place signature in the ``middle''
-		     ;; of the message.
-		     (exchange-point-and-mark))))
+		     (forward-char (cadr (insert-file-contents "~/.signature"))))))
 	      (uce-signature
 	       (insert "\n\n-- \n" uce-signature)))
 	;; And text of the original message.
