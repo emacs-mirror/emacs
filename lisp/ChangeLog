@@ -1,6 +1,6 @@
 2005-07-17  Kim F. Storm  <storm@cua.dk>
 
-	* ido.el (dired-other-window): Put ido property on dired-other-window.
+	* ido.el (dired-other-window): Add ido property.
 
 2005-07-16  Juanma Barranquero  <lekktu@gmail.com>
 
