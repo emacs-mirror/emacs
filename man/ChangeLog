@@ -1,3 +1,13 @@
+2005-07-17  Richard M. Stallman  <rms@gnu.org>
+
+	* frames.texi (Creating Frames): Fix foreground color example.
+
+	* custom.texi (Init Examples): Clean up text about conditionals.
+
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* mini.texi (Completion Commands): Fix command name for ?.
+
 2005-07-16  Johan Bockgard  <bojohan@users.sourceforge.net>  (tiny change)
 
 	* cl.texi (Type Predicates): Document `atom' type.
