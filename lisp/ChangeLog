@@ -1,3 +1,9 @@
+2005-07-16  Jose E. Marchesi  <jemarch@gnu.org>
+
+	* lisp/mail/smtpmail.el (smtpmail-auth-supported): Added the
+	'plain auth method
+	(smtpmail-try-auth-methods): added the AUTH PLAIN dialog
+
 2005-07-17  Kim F. Storm  <storm@cua.dk>
 
 	* ido.el (dired-other-window): Add ido property.
