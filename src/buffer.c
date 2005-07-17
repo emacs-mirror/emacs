@@ -3557,10 +3557,12 @@ DEFUN ("make-overlay", Fmake_overlay, Smake_overlay, 2, 5, 0,
        doc: /* Create a new overlay with range BEG to END in BUFFER.
 If omitted, BUFFER defaults to the current buffer.
 BEG and END may be integers or markers.
-The fourth arg FRONT-ADVANCE, if non-nil, makes the
-front delimiter advance when text is inserted there.
-The fifth arg REAR-ADVANCE, if non-nil, makes the
-rear delimiter advance when text is inserted there.  */)
+The fourth arg FRONT-ADVANCE, if non-nil, makes the marker
+for the front of the overlay advance when text is inserted there
+(which means the text *is not* included in the overlay).
+The fifth arg REAR-ADVANCE, if non-nil, makes the marker
+for the rear of the overlay advance when text is inserted there
+(which means the text *is* included in the overlay).  */)
      (beg, end, buffer, front_advance, rear_advance)
      Lisp_Object beg, end, buffer;
      Lisp_Object front_advance, rear_advance;
