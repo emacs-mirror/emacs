@@ -4211,6 +4211,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 
 (put 'dired-do-rename 'ido 'ignore)
 (put 'ibuffer-find-file 'ido 'find-file)
+(put 'dired-other-window 'ido 'dir)
 
 ;;;###autoload
 (defun ido-read-buffer (prompt &optional default require-match)
