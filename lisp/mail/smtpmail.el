@@ -207,7 +207,7 @@ This is relative to `smtpmail-queue-dir'.")
 (defvar smtpmail-queue-index (concat smtpmail-queue-dir
 				     smtpmail-queue-index-file))
 
-(defconst smtpmail-auth-supported '(cram-md5 login plain)
+(defconst smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.")
 
 ;;;
