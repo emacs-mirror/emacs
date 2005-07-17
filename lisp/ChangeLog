@@ -1,3 +1,7 @@
+2005-07-17  Kim F. Storm  <storm@cua.dk>
+
+	* ido.el (dired-other-window): Put ido property on dired-other-window.
+
 2005-07-16  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/bytecomp.el (byte-compile-maybe-guarded):
