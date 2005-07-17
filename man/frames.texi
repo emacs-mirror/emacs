@@ -495,9 +495,8 @@ parameter, as shown here:
 Here's a similar example for specifying a foreground color:
 
 @example
-(add-to-list 'default-frame-alist '(background-color . "blue"))
+(add-to-list 'default-frame-alist '(foreground-color . "blue"))
 @end example
-
 
 @node Frame Commands
 @section Frame Commands
