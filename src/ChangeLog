@@ -1,3 +1,7 @@
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fmake_overlay): Doc fix.
+
 2005-07-16  Eli Zaretskii  <eliz@gnu.org>
 
 	* w32proc.c (syms_of_ntproc): staticpro Qhigh, Qlow,
