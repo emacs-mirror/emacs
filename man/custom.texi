@@ -184,7 +184,7 @@ attributes (@pxref{Faces}).
 
 @findex customize
 @cindex customization buffer
-  You can browse interactively through the the user options and change
+  You can browse interactively through the user options and change
 some of them using @kbd{M-x customize}.  This command creates a
 @dfn{customization buffer}, which offers commands to navigate through
 a logically organized structure of the Emacs user options; you can
