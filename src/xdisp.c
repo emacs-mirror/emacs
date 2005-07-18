@@ -10172,6 +10172,16 @@ redisplay_internal (preserve_echo_area)
   ++redisplaying_p;
   specbind (Qinhibit_free_realized_faces, Qnil);
 
+  {
+    Lisp_Object tail, frame;
+
+    FOR_EACH_FRAME (tail, frame)
+      {
+	struct frame *f = XFRAME (frame);
+	f->already_hscrolled_p = 0;
+      }
+  }
+
  retry:
   pause = 0;
   reconsider_clip_changes (w, current_buffer);
@@ -10606,8 +10616,12 @@ redisplay_internal (preserve_echo_area)
 	      if (FRAME_VISIBLE_P (f) && !FRAME_OBSCURED_P (f))
 		{
 		  /* See if we have to hscroll.  */
-		  if (hscroll_windows (f->root_window))
-		    goto retry;
+		  if (!f->already_hscrolled_p)
+		    {
+		      f->already_hscrolled_p = 1;
+		      if (hscroll_windows (f->root_window))
+			goto retry;
+		    }
 
 		  /* Prevent various kinds of signals during display
 		     update.  stdio is not robust about handling
