@@ -3262,7 +3262,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
        ;; Directory name followed by list of files.
        (cons (desktop-file-name (car dired-directory) desktop-dirname)
              (cdr dired-directory))
-     ;; Directory name, optionally with with shell wildcard.
+     ;; Directory name, optionally with shell wildcard.
      (desktop-file-name dired-directory desktop-dirname))
    ;; Subdirectories in `dired-subdir-alist'.
    (cdr
@@ -3277,7 +3277,7 @@ Ask means pop up a menu for the user to select one of copy, move or link."
                                      desktop-buffer-misc)
   "Restore a dired buffer specified in a desktop file."
   ;; First element of `desktop-buffer-misc' is the value of `dired-directory'.
-  ;; This value is a directory name, optionally with with shell wildcard or
+  ;; This value is a directory name, optionally with shell wildcard or
   ;; a directory name followed by list of files.
   (let* ((dired-dir (car desktop-buffer-misc))
          (dir (if (consp dired-dir) (car dired-dir) dired-dir)))
