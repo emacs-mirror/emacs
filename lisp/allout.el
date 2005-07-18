@@ -2218,8 +2218,7 @@ are exempt from this restriction."
 		      (if rehide-place (goto-char rehide-place))
 		      (allout-hide-current-entry-completely))
 		  (allout-hide-current-entry))
-		(error (concat
-			"Change within concealed region prevented.")))))))
+		(error "Change within concealed region prevented."))))))
     )	; if
   )	; defun
 ;;;_   = allout-post-goto-bullet
@@ -3426,9 +3425,9 @@ by pops to non-distinctive yanks.  Bug..."
   (interactive)
   (if (not allout-file-xref-bullet)
       (error
-       "outline cross references disabled - no `allout-file-xref-bullet'")
+       "Outline cross references disabled - no `allout-file-xref-bullet'")
     (if (not (string= (allout-current-bullet) allout-file-xref-bullet))
-        (error "current heading lacks cross-reference bullet `%s'"
+        (error "Current heading lacks cross-reference bullet `%s'"
                allout-file-xref-bullet)
       (let (file-name)
         (save-excursion
