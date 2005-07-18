@@ -1758,7 +1758,7 @@ the values STRING, PREDICATE and `lambda'.  */)
       || NILP (alist))
     {
       tem = Fassoc_string (string, alist, completion_ignore_case ? Qt : Qnil);
-      if NILP (tem)
+      if (NILP (tem))
 	return Qnil;
     }
   else if (VECTORP (alist))
