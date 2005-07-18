@@ -444,7 +444,7 @@ programming.  So we do not describe it here.
 This function returns the current buffer's mark position as an integer.
 
 If Transient Mark mode is enabled, @code{mark-even-if-inactive} is
-@code{nil} and and the mark is inactive, @code{mark} normally signals
+@code{nil} and the mark is inactive, @code{mark} normally signals
 an error.  However, if @var{force} is non-@code{nil}, then @code{mark}
 returns the mark position anyway---or @code{nil}, if the mark is not
 yet set for this buffer.
