@@ -2402,7 +2402,7 @@ Returns the endpoint of the region."
       (setq allout-isearch-prior-pos nil)
     (if (not (eq mode 'final))
 	(setq allout-isearch-prior-pos (cons (point) (allout-show-entry)))
-      (if isearch-mode-end-hook-error
+      (if isearch-mode-end-hook-quit
 	  nil
 	(setq allout-isearch-prior-pos nil)
 	(allout-show-children)))))
