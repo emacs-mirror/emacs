@@ -1,3 +1,7 @@
+2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (Fgenerate_new_buffer_name): Declare (for use in coding.c).
+
 2005-07-18  Kim F. Storm  <storm@cua.dk>
 
 	* frame.h (struct frame): New member already_hscrolled_p.
@@ -18,25 +22,23 @@
 
 2005-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* macfns.c (x_set_cursor_color): Use XSetBackground and
-	XSetForeground.
+	* macfns.c (x_set_cursor_color): Use XSetBackground and XSetForeground.
 
 	* macgui.h (struct _XGC): New struct.
 	(GC): Use it.
 	(GCForeground, GCBackground, GCFont): Use X11 mask values.
 	(XCreateGC, XParseGeometry): Move externs to macterm.h.
 
-	* macterm.c (x_bitmap_icon, x_make_frame_visible): Remove
-	declarations.
+	* macterm.c (x_bitmap_icon, x_make_frame_visible): Remove declarations.
 	(XSetFont): Add declaration.
-	(mac_set_forecolor, mac_set_backcolor, mac_set_colors): Remove
-	functions.
-	(GC_FORE_COLOR, GC_BACK_COLOR, GC_FONT, MAC_WINDOW_NORMAL_GC): New
-	defines.
+	(mac_set_forecolor, mac_set_backcolor, mac_set_colors):
+	Remove functions.
+	(GC_FORE_COLOR, GC_BACK_COLOR, GC_FONT, MAC_WINDOW_NORMAL_GC):
+	New defines.
 	(XDrawLine, mac_draw_line_to_pixmap, XClearWindow)
 	(mac_draw_bitmap, XCreatePixmapFromBitmapData, XFillRectangle)
-	(mac_draw_rectangle, mac_draw_string_common, mac_scroll_area): Use
-	them.
+	(mac_draw_rectangle, mac_draw_string_common, mac_scroll_area):
+	Use them.
 	(mac_erase_rectangle): New function.
 	(XClearArea, x_draw_fringe_bitmap, x_clear_glyph_string_rect)
 	(x_draw_stretch_glyph_string): Use it.
@@ -62,8 +64,8 @@
 
 2005-07-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
-	* mac.c [TARGET_API_MAC_CARBON] (Fmac_code_convert_string): Use
-	Fstring_as_unibyte instead of string_make_unibyte.
+	* mac.c [TARGET_API_MAC_CARBON] (Fmac_code_convert_string):
+	Use Fstring_as_unibyte instead of string_make_unibyte.
 
 2005-07-15  Richard M. Stallman  <rms@gnu.org>
 
@@ -101,10 +103,10 @@
 2005-07-14  Kenichi Handa  <handa@m17n.org>
 
 	* coding.c (code_convert_region_unwind): ARG is changed to a cons.
-	(code_convert_region): Adjusted for the above change.
+	(code_convert_region): Adjust for the above change.
 	(set_conversion_work_buffer): If the work buffer is already in
 	use, generate a new buffer and return it.  Otherwise return Qnil.
-	(run_pre_post_conversion_on_str): Adjusted for the above change.
+	(run_pre_post_conversion_on_str): Adjust for the above change.
 	(run_pre_write_conversin_on_c_str): Likewise.
 
 2005-07-13  Kim F. Storm  <storm@cua.dk>
@@ -118,7 +120,7 @@
 	count rows moved over when moving to start of current row in case
 	row starts in middle of a string or image.  Also move further
 	backward if we end up in a string or image.
-	(try_cursor_movement): if overlay string spans multiple lines,
+	(try_cursor_movement): If overlay string spans multiple lines,
 	move backward to set cursor on start of an overlay string.
 	(cursor_row_p): Row is ok if cursor is at newline from string, but
 	string starts on this line (so we always position cursor at start
@@ -147,22 +149,22 @@
 	(disable_mouse_highlight): Remove unused variable.
 	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click)
 	(x_scroll_bar_handle_press, x_scroll_bar_handle_release)
-	(x_scroll_bar_handle_drag): Remove argument `timestamp'.  All
-	callers changed.
+	(x_scroll_bar_handle_drag): Remove argument `timestamp'.
+	All callers changed.
 	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click): Don't set
 	timestamp.
 	[USE_CARBON_EVENTS] (mac_handle_mouse_event): Likewise.
 	(x_scroll_bar_create, XTset_vertical_scroll_bar): Show scroll bar
 	only when its width is less than the height.
 	(XTredeem_scroll_bar): Sync with xterm.c.
-	(font_name_table, font_name_table_size, font_name_count): Make
-	static.
+	(font_name_table, font_name_table_size, font_name_count):
+	Make static.
 	(drag_and_drop_file_list): Remove variable.  Previous use is now
 	local to function.
 	(do_ae_open_documents): Move DRAG_N_DROP event construction part
 	from XTread_socket.
-	(XTread_socket): Consolidate setting of event timestamp.  Move
-	DRAG_N_DROP event construction part to do_ae_open_documents.
+	(XTread_socket): Consolidate setting of event timestamp.
+	Move DRAG_N_DROP event construction part to do_ae_open_documents.
 	Support extra_keyboard_modifiers.
 
 	* xfaces.c (try_font_list) [MAC_OS]: Try font family name
