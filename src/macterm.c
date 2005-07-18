@@ -10096,7 +10096,7 @@ useful for non-standard keyboard layouts.  */);
     doc: /* t means that when the option-key is held down while pressing the
 mouse button, the click will register as mouse-2 and while the
 command-key is held down, the click will register as mouse-3.
-'reverse means that the the option-key will register for mouse-3
+'reverse means that the option-key will register for mouse-3
 and the command-key will register for mouse-2.  nil means that
 no emulation should be done and the modifiers should be placed
 on the mouse-1 event. */);
