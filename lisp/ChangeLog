@@ -1,3 +1,22 @@
+2005-07-18  Juanma Barranquero  <lekktu@gmail.com>
+
+	* allout.el (allout-resolve-xref): Fix typos in error strings.
+	(allout-before-change-protect): Remove unneeded `concat'.
+
+	* array.el (array-mode, array-reconfigure-rows)
+	(untabify-backward): Fix typos in docstrings.
+	(array-reconfigure-rows): Use `insert-buffer-substring', not
+	`insert-buffer'.
+
+	* calendar/icalendar.el (icalendar--get-unfolded-buffer):
+	* progmodes/ada-mode.el (ada-make-body): Use
+	`insert-buffer-substring' and `goto-char', not `insert-buffer'.
+
+	* dired.el (dired-log):
+	* tar-mode.el (tar-subfile-save-buffer):
+	* play/zone.el (zone-pgm-stress-destress):
+	Use `insert-buffer-substring', not `insert-buffer'.
+
 2005-07-17  Simon Josefsson  <jas@extundo.com>
 
 	* mail/smtpmail.el (smtpmail-auth-supported): Prefer PLAIN over LOGIN.
