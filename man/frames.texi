@@ -843,7 +843,7 @@ feature, use @kbd{M-x mouse-wheel-mode}.
   The variables @code{mouse-wheel-follow-mouse} and
 @code{mouse-wheel-scroll-amount} determine where and by how much
 buffers are scrolled.  The variable
-@code{mouse-wheel-progressive-speed} determines whether the the scroll
+@code{mouse-wheel-progressive-speed} determines whether the scroll
 speed is linked to how fast you move the wheel.
 
 @node Drag and Drop
