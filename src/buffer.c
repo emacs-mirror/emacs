@@ -5729,7 +5729,7 @@ that fraction of the window's height from the bottom of the window.
 When the value is 0.0, point goes at the bottom line, which in the simple
 case that you moved off with C-f means scrolling just one line.  1.0 means
 point goes at the top, so that in that simple case, the window
-window scrolls by a full window height.  Meaningful values are
+scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
   DEFVAR_PER_BUFFER ("scroll-down-aggressively",
@@ -5742,7 +5742,7 @@ that fraction of the window's height from the top of the window.
 When the value is 0.0, point goes at the top line, which in the simple
 case that you moved off with C-b means scrolling just one line.  1.0 means
 point goes at the bottom, so that in that simple case, the window
-window scrolls by a full window height.  Meaningful values are
+scrolls by a full window height.  Meaningful values are
 between 0.0 and 1.0, inclusive.  */);
 
 /*DEFVAR_LISP ("debug-check-symbol", &Vcheck_symbol,
