@@ -2218,7 +2218,7 @@ are exempt from this restriction."
 		      (if rehide-place (goto-char rehide-place))
 		      (allout-hide-current-entry-completely))
 		  (allout-hide-current-entry))
-		(error "Change within concealed region prevented."))))))
+		(error "Change within concealed region prevented"))))))
     )	; if
   )	; defun
 ;;;_   = allout-post-goto-bullet
