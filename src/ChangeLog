@@ -1,3 +1,38 @@
+2005-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_cursor_color): Use XSetBackground and
+	XSetForeground.
+
+	* macgui.h (struct _XGC): New struct.
+	(GC): Use it.
+	(GCForeground, GCBackground, GCFont): Use X11 mask values.
+	(XCreateGC, XParseGeometry): Move externs to macterm.h.
+
+	* macterm.c (x_bitmap_icon, x_make_frame_visible): Remove
+	declarations.
+	(XSetFont): Add declaration.
+	(mac_set_forecolor, mac_set_backcolor, mac_set_colors): Remove
+	functions.
+	(GC_FORE_COLOR, GC_BACK_COLOR, GC_FONT, MAC_WINDOW_NORMAL_GC): New
+	defines.
+	(XDrawLine, mac_draw_line_to_pixmap, XClearWindow)
+	(mac_draw_bitmap, XCreatePixmapFromBitmapData, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common, mac_scroll_area): Use
+	them.
+	(mac_erase_rectangle): New function.
+	(XClearArea, x_draw_fringe_bitmap, x_clear_glyph_string_rect)
+	(x_draw_stretch_glyph_string): Use it.
+	(XChangeGC, XCreateGC, XGetGCValues, XSetForeground)
+	(XSetBackground, XSetFont): Adjust for new GC implementation.
+	(x_draw_fringe_bitmap, x_draw_box_rect): Use GC to set colors.
+	(XTset_vertical_scroll_bar): Clear area under scroll bar.
+
+	* macterm.h (struct mac_display_info): Change types of
+	scratch_cursor_gc black_relief.gc, and white_relief.gc to GC.
+	(XCreateGC, XParseGeometry): Move externs from macgui.h.
+
+	* xfaces.c [MAC_OS] (XCreateGC): Remove extern.
+
 2005-07-16  Richard M. Stallman  <rms@gnu.org>
 
 	* buffer.c (Fmake_overlay): Doc fix.
