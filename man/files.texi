@@ -1643,7 +1643,7 @@ them; they exist only in the records of the master file.
 @kindex C-x v g
   For some backends, you can display the file @dfn{annotated} with
 per-line version information and using colors to enhance the visual
-appearance, with the the command @kbd{M-x vc-annotate}.
+appearance, with the command @kbd{M-x vc-annotate}.
 It creates a new buffer
 to display file's text, colored to show how old each part is.  Text
 colored red is new, blue means old, and intermediate colors indicate
