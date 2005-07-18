@@ -1309,7 +1309,7 @@ one type to another.  Therefore, in this case the behavior of the
 command @kbd{C-c C-t} is changed slightly@footnote{This is also true
 for the @kbd{t} command in the timeline and agenda buffers.}.  When
 used several times in succession, it will still cycle through all
-names.  But when when you return to the item after some time and
+names.  But when you return to the item after some time and
 execute @kbd{C-c C-t} again, it will switch from each name directly to
 DONE.  Use prefix arguments or completion to quickly select a specific
 name.
