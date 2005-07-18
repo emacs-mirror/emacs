@@ -1,3 +1,10 @@
+2005-07-18  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member already_hscrolled_p.
+
+	* xdisp.c (redisplay_internal): Only try to hscroll each frame once
+	to avoid redisplay looping hscrolling back and forth ad infinitum.
+
 2005-07-18  Juri Linkov  <juri@jurta.org>
 
 	* buffer.c (scroll-up-aggressively, scroll-down-aggressively):
