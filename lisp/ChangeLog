@@ -1,3 +1,20 @@
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* isearch.el (isearch-mode-map): Remove key bindings for regexp
+	chars * ? } |.
+	(isearch-fallback): Don't call `isearch-process-search-char'.
+	(isearch-*-char, isearch-}-char, isearch-|-char): Remove functions.
+	(isearch-process-search-char): Call `isearch-fallback' for regexp
+	chars * ? } |.
+	(isearch-return-char): Make obsolete with `make-obsolete' instead
+	of simply documenting it as obsolete in the docstring.
+	(isearch-fallback): Refill docstring.
+
+	* international/isearch-x.el
+	(isearch-process-search-multibyte-characters): Remove unneeded `concat'.
+	Add intermediate values to `junk-hist' instead of `minibuffer-history'.
+	Test the length of `str'.
+
 2005-07-18  Juanma Barranquero  <lekktu@gmail.com>
 
 	* allout.el (allout-resolve-xref): Fix typos in error strings.
