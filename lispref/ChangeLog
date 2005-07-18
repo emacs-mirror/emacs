@@ -1,3 +1,11 @@
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* commands.texi (Accessing Events):
+	* frames.texi (Text Terminal Colors, Resources):
+	* markers.texi (The Mark):
+	* modes.texi (Defining Minor Modes):
+	Delete duplicate duplicate words.
+
 2005-07-16  Richard M. Stallman  <rms@gnu.org>
 
 	* display.texi (Managing Overlays): Clarify make-overlay

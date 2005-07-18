@@ -1,3 +1,20 @@
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* calc.texi (Time Zones, Logical Operations):
+	* cl.texi (Overview):
+	* custom.texi (Easy Customization):
+	* files.texi (Old Versions):
+	* frames.texi (Wheeled Mice):
+	* mule.texi (Specify Coding):
+	* org.texi (TODO types):
+	* sc.texi (Emacs 18 MUAs):
+	* speedbar.texi (Top):
+	* text.texi (Cell Justification):
+	* trouble.texi (After a Crash):
+	* url.texi (History):
+	* xresources.texi (GTK styles):
+	Delete duplicate duplicate words.
+
 2005-07-17  Richard M. Stallman  <rms@gnu.org>
 
 	* frames.texi (Creating Frames): Fix foreground color example.
@@ -543,7 +560,7 @@
 
 2005-04-10  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
 
-	* xresources.texi (Lucid Resources): Add fonSet resource.
+	* xresources.texi (Lucid Resources): Add fontSet resource.
 
 2005-04-06  Katsumi Yamaoka  <yamaoka@jpl.org>
 
