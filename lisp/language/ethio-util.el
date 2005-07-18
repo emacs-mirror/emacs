@@ -432,7 +432,7 @@ The variable `ethio-primary-language' specifies the primary language
 and `ethio-secondary-language' specifies the secondary.
 
 If the 3rd parameter SECONDARY is given and non-nil, assume the region
-begins begins with the secondary language; otherwise with the primary
+begins with the secondary language; otherwise with the primary
 language.
 
 If the 4th parameter FORCE is given and non-nil, perform conversion
