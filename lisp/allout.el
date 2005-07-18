@@ -1147,7 +1147,7 @@ Topic text constituents:
 
 HEADER:	The first line of a topic, include the topic PREFIX and header
 	text.
-PREFIX: The leading text of a topic which which distinguishes it from
+PREFIX: The leading text of a topic which distinguishes it from
 	normal text.  It has a strict form, which consists of a
 	prefix-lead string, padding, and a bullet.  The bullet may be
 	followed by a number, indicating the ordinal number of the
