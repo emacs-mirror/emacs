@@ -1773,7 +1773,7 @@ Return the window that @var{position} is in.
 @defun posn-area position
 Return the window area recorded in @var{position}.  It returns @code{nil}
 when the event occurred in the text area of the window; otherwise, it
-is a symbol identifying the area in which the the event occurred.
+is a symbol identifying the area in which the event occurred.
 @end defun
 
 @defun posn-point position
