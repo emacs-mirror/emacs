@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <26 May 2005, 14:32:34, Lute Kamstra, pijl>
+;; Time-stamp: <2005-07-18 17:45:34 juri>
 
 ;; This file is part of GNU Emacs.
 
@@ -1594,7 +1594,7 @@ Optional string argument KEYS will force using it as the keys entered."
         (calculator-displayers
          (if calculator-copy-displayer nil calculator-displayers)))
     (calculator-enter)
-    ;; remove trailing spaces and and an index
+    ;; remove trailing spaces and an index
     (let ((s (cdr calculator-stack-display)))
       (and s
            (if (string-match "^\\([^ ]+\\) *\\(\\[[0-9/]+\\]\\)? *$" s)
