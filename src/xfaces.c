@@ -783,8 +783,6 @@ x_free_gc (f, gc)
 #ifdef MAC_OS
 /* Mac OS emulation of GCs */
 
-extern XGCValues *XCreateGC (void *, Window, unsigned long, XGCValues *);
-
 static INLINE GC
 x_create_gc (f, mask, xgcv)
      struct frame *f;
