@@ -1818,7 +1818,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-goto-hebrew-date "cal-hebrew"
-  "Move cursor to Hebrew date date."
+  "Move cursor to Hebrew date."
   t)
 
 (autoload 'calendar-print-hebrew-date "cal-hebrew"
@@ -1830,7 +1830,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-goto-coptic-date "cal-coptic"
-   "Move cursor to Coptic date date."
+   "Move cursor to Coptic date."
    t)
 
 (autoload 'calendar-print-coptic-date "cal-coptic"
@@ -1842,7 +1842,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-goto-ethiopic-date "cal-coptic"
-   "Move cursor to Ethiopic date date."
+   "Move cursor to Ethiopic date."
    t)
 
 (autoload 'calendar-print-ethiopic-date "cal-coptic"
@@ -1854,7 +1854,7 @@ Driven by the variable `calendar-date-display-form'.")
   t)
 
 (autoload 'calendar-goto-persian-date "cal-persia"
-   "Move cursor to Persian date date."
+   "Move cursor to Persian date."
    t)
 
 (autoload 'calendar-print-persian-date "cal-persia"
