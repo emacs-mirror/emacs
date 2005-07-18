@@ -5349,7 +5349,8 @@ spec buffer in here and modify it to make it a body.
 This function typically is to be hooked into `ff-file-created-hooks'."
   (interactive)
   (delete-region (point-min) (point-max))
-  (insert-buffer (car (cdr (buffer-list))))
+  (insert-buffer-substring (car (cdr (buffer-list))))
+  (goto-char (point-min))
   (ada-mode)
 
   (let (found ada-procedure-or-package-start-regexp)
