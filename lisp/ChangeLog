@@ -1,5 +1,22 @@
 2005-07-18  Juri Linkov  <juri@jurta.org>
 
+	* allout.el (allout-mode):
+	* calculator.el (calculator-copy):
+	* custom.el (custom-known-themes):
+	* dired.el (dired-desktop-buffer-misc-data)
+	(dired-restore-desktop-buffer):
+	* dired-x.el (dired-omit-marker-char):
+	* files.el (basic-save-buffer):
+	* font-core.el (font-lock-mode):
+	* calendar/calendar.el (calendar-goto-hebrew-date)
+	(calendar-goto-coptic-date, calendar-goto-ethiopic-date)
+	(calendar-goto-persian-date):
+	* language/ethio-util.el (ethio-sera-to-fidel-region):
+	* textmodes/picture.el (picture-mode):
+	Delete duplicate duplicate words.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
 	* isearch.el (isearch-mode-map): Remove key bindings for regexp
 	chars * ? } |.
 	(isearch-fallback): Don't call `isearch-process-search-char'.
@@ -8885,7 +8902,7 @@
 	* textmodes/org.el (org-set-regexps-and-options): Rename from
 	`org-set-regexps'.  Added checking for STARTUP keyword.
 	(org-get-current-options): Add STARTUP options.
-	(org-table-insert-row): Mode mode intelligent about when
+	(org-table-insert-row): Make mode intelligent about when
 	realignment is needed.
 	(org-self-insert-command, org-delete-backward-char, org-delete-char):
 	New commands.
@@ -12079,7 +12096,7 @@
 
 	* simple.el (line-move-invisible-p): Rename from line-move-invisible.
 	(line-move): New args NOERROR and TO-END.
-	Return t if if succeed in moving specified number of lines.
+	Return t if succeed in moving specified number of lines.
 	(move-end-of-line): New function.
 
 	* simple.el (beginning-of-buffer-other-window): Use with-no-warnings.
@@ -14807,7 +14824,7 @@
 2004-08-16  Reiner Steib  <Reiner.Steib@gmx.de>
 
 	* calendar/time-date.el (time-to-number-of-days): New function.
-	Imported from from Gnus.
+	Imported from Gnus.
 
 2004-07-22  Kim F. Storm  <storm@cua.dk>
 
@@ -16368,7 +16385,7 @@
 2004-05-18  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* files.el (auto-save-file-name-transforms): Make sure ange-ftp temp
-	files files don't contain an accidental additional /.
+	files don't contain an accidental additional /.
 
 	* textmodes/tex-mode.el (tex-compilation-parse-errors): Save excursion
 	in source buffer.
@@ -22790,7 +22807,7 @@
 
 	* menu-bar.el (menu-bar-options-menu): Supply a body for the
 	[save-place] binding in the Options menu.  Have it require
-	'saveplace' and then toggle the variable manually, to avoid an an
+	'saveplace' and then toggle the variable manually, to avoid an
 	unbound variable error.  Thanks to <Sebastien.Kirche@sage.com>
 	for the bug report.
 
