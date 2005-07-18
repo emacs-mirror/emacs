@@ -484,7 +484,7 @@ need to match the entire file name.")
 
 ;; \017=^O for Omit - other packages can chose other control characters.
 (defvar dired-omit-marker-char ?\017
-  "Temporary marker used by by dired-omit.
+  "Temporary marker used by dired-omit.
 Should never be used as marker by the user or other packages.")
 
 (defun dired-omit-startup ()
