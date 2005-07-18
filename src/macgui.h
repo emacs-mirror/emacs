@@ -180,15 +180,24 @@ typedef struct _XGCValues
   XFontStruct *font;
 } XGCValues;
 
-typedef XGCValues *GC;
+typedef struct _XGC
+{
+  /* Original value.  */
+  XGCValues xgcv;
 
-extern XGCValues *
-XCreateGC (void *, Window, unsigned long, XGCValues *);
+  /* Cached data members follow.  */
 
-#define GCForeground 0x01
-#define GCBackground 0x02
-#define GCFont 0x03
-#define GCGraphicsExposures 0
+  /* QuickDraw foreground color.  */
+  RGBColor fore_color;
+
+  /* QuickDraw background color.  */
+  RGBColor back_color;
+} *GC;
+
+#define GCForeground            (1L<<2)
+#define GCBackground            (1L<<3)
+#define GCFont 			(1L<<14)
+#define GCGraphicsExposures	0
 
 /* Bit Gravity */
 
@@ -247,8 +256,6 @@ typedef struct {
 #define PAspect		(1L << 7) /* program specified min and max aspect ratios */
 #define PBaseSize	(1L << 8) /* program specified base for incrementing */
 #define PWinGravity	(1L << 9) /* program specified window gravity */
-
-extern int XParseGeometry ();
 
 typedef struct {
     int x, y;
