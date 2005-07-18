@@ -361,13 +361,6 @@ A value of nil means highlight all matches."
     (define-key map "\M-\C-y" 'isearch-yank-char)
     (define-key map    "\C-y" 'isearch-yank-line)
 
-    ;; Define keys for regexp chars * ? } |.
-    ;; Nothing special for + because it matches at least once.
-    (define-key map "*" 'isearch-*-char)
-    (define-key map "?" 'isearch-*-char)
-    (define-key map "}" 'isearch-}-char)
-    (define-key map "|" 'isearch-|-char)
-
     ;; Turned off because I find I expect to get the global definition--rms.
     ;; ;; Instead bind C-h to special help command for isearch-mode.
     ;; (define-key map "\C-h" 'isearch-mode-help)
@@ -1416,14 +1409,14 @@ might return the position of the end of the line."
 Respects \\[isearch-repeat-forward] and \\[isearch-repeat-backward] by
 stopping at `isearch-barrier' as needed.
 
-Do nothing if a backslash is escaping the liberalizing character.  If
-WANT-BACKSLASH is non-nil, invert this behavior (for \\} and \\|).
+Do nothing if a backslash is escaping the liberalizing character.
+If WANT-BACKSLASH is non-nil, invert this behavior (for \\} and \\|).
 
-Do nothing if regexp has recently been invalid unless optional ALLOW-INVALID
-non-nil.
+Do nothing if regexp has recently been invalid unless optional
+ALLOW-INVALID non-nil.
 
-If optional TO-BARRIER non-nil, ignore previous matches and go exactly to the
-barrier."
+If optional TO-BARRIER non-nil, ignore previous matches and go exactly
+to the barrier."
   ;; (eq (not a) (not b)) makes all non-nil values equivalent
   (when (and isearch-regexp (eq (not (isearch-backslash isearch-string))
 				(not want-backslash))
@@ -1469,26 +1462,7 @@ barrier."
 	    (goto-char (if isearch-forward
 			   (max last-other-end isearch-barrier)
 			 (min last-other-end isearch-barrier)))
-	    (setq isearch-adjusted t))))))
-  (isearch-process-search-char last-command-char))
-
-;; * and ? are special when not preceded by \.
-(defun isearch-*-char ()
-  "Maybe back up to handle * and ? specially in regexps."
-  (interactive)
-  (isearch-fallback nil))
-
-;; } is special when it is preceded by \.
-(defun isearch-}-char ()
-  "Handle \\} specially in regexps."
-  (interactive)
-  (isearch-fallback t t))
-
-;; | is special when it is preceded by \.
-(defun isearch-|-char ()
-  "If in regexp search, jump to the barrier unless in a group."
-  (interactive)
-  (isearch-fallback t nil t))
+	    (setq isearch-adjusted t)))))))
 
 (defun isearch-unread-key-sequence (keylist)
   "Unread the given key-sequence KEYLIST.
@@ -1786,10 +1760,10 @@ Isearch mode."
       (isearch-process-search-char char))))
 
 (defun isearch-return-char ()
-  "Convert return into newline for incremental search.
-Obsolete."
+  "Convert return into newline for incremental search."
   (interactive)
   (isearch-process-search-char ?\n))
+(make-obsolete 'isearch-return-char 'isearch-printing-char)
 
 (defun isearch-printing-char ()
   "Add this ordinary printing character to the search string and search."
@@ -1808,6 +1782,14 @@ Obsolete."
 	(isearch-process-search-char char)))))
 
 (defun isearch-process-search-char (char)
+  ;; * and ? are special in regexps when not preceded by \.
+  ;; } and | are special in regexps when preceded by \.
+  ;; Nothing special for + because it matches at least once.
+  (cond
+   ((memq char '(?* ??)) (isearch-fallback nil))
+   ((eq   char ?\})      (isearch-fallback t t))
+   ((eq   char ?|)       (isearch-fallback t nil t)))
+
   ;; Append the char to the search string, update the message and re-search.
   (isearch-process-search-string
    (char-to-string char)
