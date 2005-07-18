@@ -136,7 +136,7 @@ Lisp version of the function (e.g., @code{assoc*}).
 The package described here was written by Dave Gillespie,
 @file{daveg@@synaptics.com}.  It is a total rewrite of the original
 1986 @file{cl.el} package by Cesar Quiroz.  Most features of the
-the Quiroz package have been retained; any incompatibilities are
+Quiroz package have been retained; any incompatibilities are
 noted in the descriptions below.  Care has been taken in this
 version to ensure that each function is defined efficiently,
 concisely, and with minimal impact on the rest of the Emacs
