@@ -3004,7 +3004,7 @@ Thus, use \\[backward-page] to find the beginning of a group of errors."
 			   (apply (function format) log args)
 			 log)))
 	      ((bufferp log)
-	       (insert-buffer log))
+	       (insert-buffer-substring log))
 	      ((eq t log)
 	       (backward-page 1)
 	       (unless (bolp)
