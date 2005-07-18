@@ -68,7 +68,7 @@ authors of other packages to provide speedbar summaries customized to
 the needs of that mode.
 
 Throughout this manual, activities are defined as `clicking on', or
-`expanding' items.  Clicking means using using @kbd{Mouse-2} on a
+`expanding' items.  Clicking means using @kbd{Mouse-2} on a
 button.  Expanding refers to clicking on an expansion button to display
 an expanded summary of the entry the expansion button is
 on.  @xref{Basic Navigation}.
