@@ -17574,7 +17574,7 @@ beginning of daylight savings time; converting a date/time form that
 falls in this hour results in a time value for the following hour,
 from 3 a.m.@: to 4 a.m.  At the end of daylight savings time, the
 hour from 1 a.m.@: to 2 a.m.@: repeats itself; converting a date/time
-form that falls in in this hour results in a time value for the first
+form that falls in this hour results in a time value for the first
 manifestation of that time (@emph{not} the one that occurs one hour later).
 
 If @code{math-daylight-savings-hook} is @code{nil}, then the
@@ -25691,7 +25691,7 @@ stack.  It also works elementwise on vectors.  For example, if
 variable and the lefthand side is a number (as in @samp{2.34 = x}), then
 Calc keeps the lefthand side instead.  Finally, this command works with
 assignments @samp{x := 2.34} as well as equations, always taking the
-the righthand side, and for @samp{=>} (evaluates-to) operators, always
+righthand side, and for @samp{=>} (evaluates-to) operators, always
 taking the lefthand side.
 
 @kindex a &
