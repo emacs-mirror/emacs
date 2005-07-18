@@ -1,3 +1,9 @@
+2005-07-18  Richard M. Stallman  <rms@gnu.org>
+
+	* allout.el (allout-isearch-expose): Use isearch-mode-end-hook-quit,
+	not isearch-mode-end-hook-error.
+	(allout-before-change-protect): Fix error message.
+
 2005-07-18  Juri Linkov  <juri@jurta.org>
 
 	* allout.el (allout-mode):
