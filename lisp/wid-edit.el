@@ -441,14 +441,8 @@ new value.")
       (prog1 (progn ,@form)
 	(goto-char (point-max))))))
 
-(defface widget-inactive '((((class grayscale color)
-			     (background dark))
-			    (:foreground "light gray"))
-			   (((class grayscale color)
-			     (background light))
-			    (:foreground "dim gray"))
-			   (t
-			    (:slant italic)))
+(defface widget-inactive
+  '((t :inherit shadow))
   "Face used for inactive widgets."
   :group 'widget-faces)
 ;; backward-compatibility alias
