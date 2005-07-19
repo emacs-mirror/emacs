@@ -1,16 +1,27 @@
+2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* desktop.el (desktop-enable, desktop-basefilename):
+	Declare with `define-obsolete-variable-alias'.
+	(desktop-internal-v2s): Don't quote keywords.
+	(desktop-clear): "?\ " -> "?\s".
+
+	* textmodes/org.el (org-table-formula-substitute-names)
+	(org-table-get-vertical-vector): Doc fixes.
+	(org-table-recalculate): Remove unused argument to `message'.
+
 2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
 
-	* textmodes/org.el: (org-table-column-names,
-	org-table-column-name-regexp)
+	* textmodes/org.el (org-table-column-names)
+	(org-table-column-name-regexp)
         (org-table-named-field-locations): New variables.
         (org-archive-subtree): Protect `this-command' when calling
 	`org-copy-subtree' and `org-cut-subtree', to avoid appending to
 	the kill buffer.
-        (org-complete): Removed fixed-formula completion.
+        (org-complete): Remove fixed-formula completion.
         (org-edit-formulas-map): New variable.
         (org-table-edit-formulas): New command.
-        (org-finish-edit-formulas, org-abort-edit-formulas,
-	org-show-variable, org-table-get-vertical-vector): New functions.
+        (org-finish-edit-formulas, org-abort-edit-formulas)
+	(org-show-variable, org-table-get-vertical-vector): New functions.
         (org-table-maybe-eval-formula): Handle `:=' fields.
         (org-table-get-stored-formulas, org-table-store-formulas)
         (org-table-get-formula, org-table-modify-formulas)
