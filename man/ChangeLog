@@ -1,3 +1,13 @@
+2005-07-19  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.14
+
+<<<<<<< ChangeLog
+2005-07-04  Carsten Dominik  <dominik@science.uva.nl>
+
+	* org.texi: Version 3.13
+
+=======
 2005-07-19  Juri Linkov  <juri@jurta.org>
 
 	* files.texi (Comparing Files): Mention resync for `compare-windows'.
@@ -89,6 +99,7 @@
 	* mh-e.texi (Copying):
 	* trouble.texi (Checklist): Update FSF's address.
 
+>>>>>>> 1.631
 2005-07-03  Richard M. Stallman  <rms@gnu.org>
 
 	* flymake.texi (Example -- Configuring a tool called directly):
