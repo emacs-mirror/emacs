@@ -153,7 +153,7 @@ int display_hourglass_p;
    over text or in the modeline.  */
 
 Lisp_Object Vx_pointer_shape, Vx_nontext_pointer_shape, Vx_mode_pointer_shape;
-Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape, Vx_hand_shape;
+Lisp_Object Vx_hourglass_pointer_shape, Vx_window_horizontal_drag_shape;
 
 /* The shape when over mouse-sensitive text.  */
 
@@ -8760,6 +8760,8 @@ versions of Windows) characters.  */);
   staticpro (&Qw32_charset_ansi);
   Qw32_charset_ansi = intern ("w32-charset-ansi");
   staticpro (&Qw32_charset_symbol);
+  Qw32_charset_default = intern ("w32-charset-default");
+  staticpro (&Qw32_charset_default);
   Qw32_charset_symbol = intern ("w32-charset-symbol");
   staticpro (&Qw32_charset_shiftjis);
   Qw32_charset_shiftjis = intern ("w32-charset-shiftjis");
