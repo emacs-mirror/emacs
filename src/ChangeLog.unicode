@@ -1054,7 +1054,6 @@
 	* window.c (Fdisplay_buffer, Fframe_selected_window): Remove
 	unsued vars.
 
->>>>>>> 1.1.2.8
 2003-09-26  Dave Love  <fx@gnu.org>
 
 	* xterm.c (x_bitmap_mask): Declare.
