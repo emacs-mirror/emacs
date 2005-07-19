@@ -1,3 +1,13 @@
+2005-07-19  Kenichi Handa  <handa@m17n.org>
+
+	* international/mule-cmds.el (select-safe-coding-system): Try to
+	use an auto-coding (if any) before anything else.  If the found
+	auto-coding is invalid, show a warning message.
+
+	* international/mule.el (find-auto-coding): New function created
+	by modifying the body of set-auto-coding.
+	(set-auto-coding): Use find-auto-coding to find a coding.
+
 2005-07-18  Richard M. Stallman  <rms@gnu.org>
 
 	* allout.el (allout-isearch-expose): Use isearch-mode-end-hook-quit,
