@@ -29,15 +29,24 @@ GREP_COLORS='mt=01;31:fn=:ln=:bn=:se=:ml=:cx=:ne' grep -nH --color=always -e "IN
 grep -nH --color=always -e "INFO tree" ../info/*
 [35m[K../info/dir[m[K[36m[K:[m[K[32m[K6[m[K[36m[K:[m[KFile: dir	Node: Top	This is the top of the [01;31m[KINFO tree[m[K
 
-* GNU grep 2.5.1 on files recognized as binary
-
-Binary file emacs-7 matches
-Binary file 2005-06 matches
-
 * GNU grep 2.5.1 on lines starting with a number and colon
 
 grep -nH -e "Universal Time" ../lispref/*
 ../lispref/os.texi:1010:0:00 January 1, 1970 UTC (Coordinated [01;31mUniversal Time[00m)
+
+* GNU grep 2.5.1 with context lines
+
+grep -C 2 -nH --color=always -e "INFO tree" ../info/*
+../info/dir-4-looking at that node, which is (dir)Top.
+../info/dir-5-
+../info/dir:6:File: dir	Node: Top	This is the top of the [01;31mINFO tree[00m
+../info/dir-7-
+../info/dir-8-The Info Directory
+
+* GNU grep 2.5.1 on files recognized as binary
+
+Binary file emacs-7 matches
+Binary file 2005-06 matches
 
 * GNU grep 2.5.1: other messages
 
