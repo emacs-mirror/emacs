@@ -1,3 +1,11 @@
+2005-07-19  Michael Kifer  <kifer@cs.stonybrook.edu>
+	
+	* viper-cmd.el (viper-escape-to-state): bug fix
+	(viper-envelop-ESC-key): changed the definition of fast keysequence so
+	it'll work with keyboard macros
+	
+	* ediff.el (ediff-patch-buffer): changed the docstring.
+	
 2005-07-19  Kenichi Handa  <handa@m17n.org>
 
 	* international/mule-cmds.el (select-safe-coding-system): Try to
