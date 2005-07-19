@@ -6996,9 +6996,9 @@ If NLAST is a number, only the NLAST fields will actually be summed."
      (t n))))
 
 (defun org-table-get-vertical-vector (desc &optional tbeg col)
-  "Get a calc vector from a column, accorting to desctiptor 
-Optional arguments TBEG and COL can give the beginning of the table and
-the current column, to avoid unnecessary parsing."
+  "Get a calc vector from a column, according to descriptor DESC.
+Optional arguments TBEG and COL can give the beginning of the table
+and the current column, to avoid unnecessary parsing."
   (save-excursion
     (or tbeg (setq tbeg (org-table-begin)))
     (or col (setq col (org-table-current-column)))
@@ -7046,7 +7046,7 @@ the current column, to avoid unnecessary parsing."
 		     l ",") "]"))
        ((string-match "\\([0-9]+\\)" desc)
 	(beginning-of-line 1)
-	(when (re-search-backward org-table-dataline-regexp tbeg t 
+	(when (re-search-backward org-table-dataline-regexp tbeg t
 				  (string-to-number (match-string 0 desc)))
 	  (org-table-goto-column col)
 	  (org-trim (org-table-get-field))))))))
@@ -7142,7 +7142,7 @@ the current column, to avoid unnecessary parsing."
 ACTION can be `remove', `insert', `swap'.  For `swap', two column numbers are
 expected, for the other action only a single column number is needed."
   (let ((list (org-table-get-stored-formulas))
-	(nmax (length (org-split-string 
+	(nmax (length (org-split-string
 		       (buffer-substring (point-at-bol) (point-at-eol))
 		       "|")))
 	col col1 col2 scol si sc1 sc2)
@@ -7221,7 +7221,7 @@ expected, for the other action only a single column number is needed."
 	      fields (org-split-string (match-string 2) " *| *"))
 	(save-excursion
 	  (beginning-of-line (if (equal c "_") 2 0))
-	  (setq line (org-current-line) col 1)	  
+	  (setq line (org-current-line) col 1)
 	  (and (looking-at "^[ \t]*|[^|]*\\(|.*\\)")
 	       (setq fields1 (org-split-string (match-string 1) " *| *"))))
 	(while (and fields1 (setq field (pop fields)))
@@ -7557,10 +7557,10 @@ $1->    %s\n" orig formula form))
     (goto-line thisline)
     (org-table-goto-column thiscol)
     (or noalign (and org-table-may-need-update (org-table-align))
-	(and all (message "Re-applying formulas...done" cnt)))))
+	(and all (message "Re-applying formulas...done")))))
 
 (defun org-table-formula-substitute-names (f)
-  "Replace $const with values in stirng F."
+  "Replace $const with values in string F."
   (let ((start 0) a n1 n2 nn1 nn2 s (f1 f))
     ;; First, check for column names
     (while (setq start (string-match org-table-column-name-regexp f start))
@@ -7621,7 +7621,7 @@ Parameters get priority."
     (set (make-local-variable 'org-pos) pos)
     (set (make-local-variable 'org-window-configuration) wc)
     (use-local-map org-edit-formulas-map)
-    (setq s "# Edit formulas and finish with `C-c C-c'. 
+    (setq s "# Edit formulas and finish with `C-c C-c'.
 # Use `C-u C-c C-c' to also appy them immediately to the entire table.
 # Use `C-c ?' to get information about $name at point.
 # To cancel editing, press `C-c C-q'.\n")
@@ -7659,7 +7659,7 @@ Parameters get priority."
       (switch-to-buffer-other-window (marker-buffer pos))
       (goto-char pos)
       (goto-char (org-table-begin))
-      (if (re-search-forward (concat "^[ \t]*| *! *.*?| *\\(" var "\\) *|") 
+      (if (re-search-forward (concat "^[ \t]*| *! *.*?| *\\(" var "\\) *|")
 			     (org-table-end) t)
 	  (progn
 	    (goto-char (match-beginning 1))
@@ -7714,7 +7714,7 @@ With prefix ARG, apply the new formulas to the table."
     (org-table-store-formulas eql)
     (move-marker pos nil)
     (kill-buffer "*Edit Formulas*")
-    (if arg 
+    (if arg
 	(org-table-recalculate 'all)
       (message "New formulas installed - press C-u C-c C-c to apply."))))
 
