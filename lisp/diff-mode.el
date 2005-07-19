@@ -339,8 +339,8 @@ when editing big diffs)."
      (0 diff-header-face) (1 diff-index-face prepend))
     ("^Only in .*\n" . diff-nonexistent-face)
     ("^\\(#\\)\\(.*\\)"
-     (1 (eval font-lock-comment-delimiter-face))
-     (2 (eval font-lock-comment-face)))
+     (1 font-lock-comment-delimiter-face)
+     (2 font-lock-comment-face))
     ("^[^-=+*!<>#].*\n" (0 diff-context-face))))
 
 (defconst diff-font-lock-defaults
