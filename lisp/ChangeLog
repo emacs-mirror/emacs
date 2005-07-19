@@ -75,6 +75,9 @@
 
 2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
+	* novice.el (disabled-command-hook): Declare it with
+	`define-obsolete-variable-alias'.
+
 	* desktop.el (desktop-enable, desktop-buffer-modes-to-save)
 	(desktop-buffer-misc-functions, desktop-buffer-handlers)
 	(desktop-load-default): Add release to obsolescence info.
