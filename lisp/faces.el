@@ -1882,12 +1882,10 @@ created."
   :group 'basic-faces)
 
 (defface mode-line-highlight
-  '((((class color) (min-colors 88) (background light))
-      :background "RoyalBlue4" :foreground "white")
-     (((class color) (min-colors 88) (background dark))
-      :background "light sky blue" :foreground "black")
-     (t
-     :inverse-video t))
+  '((((class color) (min-colors 88))
+     :box (:line-width 2 :color "grey40" :style released-button))
+    (t
+     :inherit highlight))
   "Basic mode line face for highlighting."
   :version "22.1"
   :group 'modeline
@@ -2149,8 +2147,14 @@ Note: Other faces cannot inherit from the cursor face."
   :version "22.1")
 
 (defface shadow
-  '((((background dark))  :foreground "grey70")
-    (((background light)) :foreground "grey50"))
+  '((((class color grayscale) (min-colors 88) (background light))
+     :foreground "grey50")
+    (((class color grayscale) (min-colors 88) (background dark))
+     :foreground "grey70")
+    (((class color) (min-colors 8) (background light))
+     :foreground "green")
+    (((class color) (min-colors 8) (background dark))
+     :foreground "yellow"))
   "Basic face for shadowed text."
   :group 'basic-faces
   :version "22.1")
