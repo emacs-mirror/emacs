@@ -1,5 +1,26 @@
 2005-07-19  Juri Linkov  <juri@jurta.org>
 
+	* progmodes/grep.el (grep-regexp-alist)
+	(grep-mode-font-lock-keywords, grep-process-setup):
+	Use default GNU grep match color "01;31m" instead of "01;41m".
+	(grep-regexp-alist, grep-mode-font-lock-keywords):
+	Use `\\[[0-9]*m' instead of `\\[00m'.
+	(grep-regexp-alist): Move `\\(?:\033\\[K\\)?' from sgr_end to
+	sgr_start where its handling is more important.  Use the real
+	length of sgr_start instead of constant 8.
+	(grep-mode-font-lock-keywords): Don't delete `\\(?:\033\\[K\\)?'
+	specially.  Delete all remaining escape sequences.
+	(grep-process-setup): Set "GREP_COLORS" for GNU grep 2.5.1-cvs.
+	(grep-regexp-alist): Make hyperlink only for binary file name
+	instead of the whole line.
+	(grep-mode-map): Bind `backtab' to `compilation-previous-file'.
+	(grep-mode): Add autoload.
+
+	* emacs-lisp/find-func.el (find-function-regexp):
+	Add `define-compilation-mode'.
+
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
 	* compare-w.el (compare-ignore-whitespace, compare-windows-sync)
 	(compare-windows-sync-string-size, compare-windows-recenter)
 	(compare-windows-highlight, compare-windows): Add version 22.1.
