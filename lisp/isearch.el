@@ -210,7 +210,7 @@ Default value, nil, means edit the string instead."
   '((((class color) (min-colors 88) (background light))
      ;; The background must not be too dark, for that means
      ;; the character is hard to see when the cursor is there.
-     (:background "magenta2" :foreground "lightskyblue1"))
+     (:background "magenta3" :foreground "lightskyblue1"))
     (((class color) (min-colors 88) (background dark))
      (:background "palevioletred2" :foreground "brown4"))
     (((class color) (min-colors 16))
