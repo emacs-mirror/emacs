@@ -820,7 +820,7 @@ returned without any user interaction.  See also the command
 `prefer-coding-system'.
 
 However, the user is queried if the chosen coding system is
-inconsistent with what would be selected by `set-auto-coding' from
+inconsistent with what would be selected by `find-auto-coding' from
 coding cookies &c. if the contents of the region were read from a
 file.  (That could lead to data corruption in a file subsequently
 re-visited and edited.)
@@ -850,7 +850,33 @@ and TO is ignored."
 	   (not (listp default-coding-system)))
       (setq default-coding-system (list default-coding-system)))
 
-  (let ((no-other-defaults nil))
+  (let ((no-other-defaults nil)
+	auto-cs)
+    (unless (or (stringp from) find-file-literally)    
+      ;; Find an auto-coding that is specified for the the current
+      ;; buffer and file from the region FROM and TO.
+      (save-excursion
+	(save-restriction
+	  (widen)
+	  (goto-char from)
+	  (setq auto-cs (find-auto-coding (or file buffer-file-name "")
+					  (- to from)))
+	  (if auto-cs
+	      (if (coding-system-p (car auto-cs))
+		  (setq auto-cs (car auto-cs))
+		(display-warning
+		 :warning
+		 (format "\
+Invalid coding system `%s' is specified
+for the current buffer/file by the %s.
+It is highly recommended to fix it before writing to a file."
+			 (car auto-cs)
+			 (if (eq (cdr auto-cs) :coding) ":coding tag"
+			   (format "variable `%s'" (cdr auto-cs)))))
+		(or (yes-or-no-p "Really proceed with writing? ")
+		    (error "Save aborted"))
+		(setq auto-cs nil))))))
+
     (if (eq (car default-coding-system) t)
 	(setq no-other-defaults t
 	      default-coding-system (cdr default-coding-system)))
@@ -859,6 +885,15 @@ and TO is ignored."
     (setq default-coding-system
 	  (mapcar (function (lambda (x) (cons x (coding-system-base x))))
 		  default-coding-system))
+
+    (if (and auto-cs (not no-other-defaults))
+	;; If the file has a coding cookie, try to use it before anything
+	;; else (i.e. before default-coding-system which will typically come
+	;; from file-coding-system-alist).
+	(let ((base (coding-system-base auto-cs)))
+	  (or (memq base '(nil undecided))
+	      (rassq base default-coding-system)
+	      (push (cons auto-cs base) default-coding-system))))
 
     ;; From now on, the list of defaults is reversed.
     (setq default-coding-system (nreverse default-coding-system))
@@ -893,56 +928,49 @@ and TO is ignored."
 	     (coding-system-get preferred 'mime-charset)
 	     (not (rassq base default-coding-system))
 	     (push (cons preferred base)
-		   default-coding-system)))))
+		   default-coding-system))))
 
-  (if select-safe-coding-system-accept-default-p
-      (setq accept-default-p select-safe-coding-system-accept-default-p))
+    (if select-safe-coding-system-accept-default-p
+	(setq accept-default-p select-safe-coding-system-accept-default-p))
 
-  (let ((codings (find-coding-systems-region from to))
-	(coding-system nil)
-	safe rejected unsafe)
-    (if (eq (car codings) 'undecided)
-	;; Any coding system is ok.
-	(setq coding-system t)
-      ;; Classify the defaults into safe, rejected, and unsafe.
-      (dolist (elt default-coding-system)
-	(if (memq (cdr elt) codings)
-	    (if (and (functionp accept-default-p)
-		     (not (funcall accept-default-p (cdr elt))))
-		(push (car elt) rejected)
-	      (push (car elt) safe))
-	  (push (car elt) unsafe)))
-      (if safe
-	  (setq coding-system (car safe))))
+    (let ((codings (find-coding-systems-region from to))
+	  (coding-system nil)
+	  safe rejected unsafe)
+      (if (eq (car codings) 'undecided)
+	  ;; Any coding system is ok.
+	  (setq coding-system t)
+	;; Classify the defaults into safe, rejected, and unsafe.
+	(dolist (elt default-coding-system)
+	  (if (memq (cdr elt) codings)
+	      (if (and (functionp accept-default-p)
+		       (not (funcall accept-default-p (cdr elt))))
+		  (push (car elt) rejected)
+		(push (car elt) safe))
+	    (push (car elt) unsafe)))
+	(if safe
+	    (setq coding-system (car safe))))
 
-    ;; If all the defaults failed, ask a user.
-    (when (not coding-system)
-      (setq coding-system (select-safe-coding-system-interactively
-			   from to codings unsafe rejected (car codings))))
+      ;; If all the defaults failed, ask a user.
+      (when (not coding-system)
+	(setq coding-system (select-safe-coding-system-interactively
+			     from to codings unsafe rejected (car codings))))
 
-    (if (vectorp (coding-system-eol-type coding-system))
-	(let ((eol (coding-system-eol-type buffer-file-coding-system)))
-	  (if (numberp eol)
-	      (setq coding-system
-		    (coding-system-change-eol-conversion coding-system eol)))))
+      (if (vectorp (coding-system-eol-type coding-system))
+	  (let ((eol (coding-system-eol-type buffer-file-coding-system)))
+	    (if (numberp eol)
+		(setq coding-system
+		      (coding-system-change-eol-conversion coding-system eol)))))
 
-    (if (eq coding-system t)
-	(setq coding-system buffer-file-coding-system))
-    ;; Check we're not inconsistent with what `coding:' spec &c would
-    ;; give when file is re-read.
-    ;; But don't do this if we explicitly ignored the cookie
-    ;; by using `find-file-literally'.
-    (unless (or (stringp from)
-		find-file-literally
-		(and coding-system
-		     (memq (coding-system-type coding-system) '(0 5))))
-      (let ((auto-cs (save-excursion
-		       (save-restriction
-			 (widen)
-			 (narrow-to-region from to)
-			 (goto-char (point-min))
-			 (set-auto-coding (or file buffer-file-name "")
-					  (buffer-size))))))
+      (if (eq coding-system t)
+	  (setq coding-system buffer-file-coding-system))
+      ;; Check we're not inconsistent with what `coding:' spec &c would
+      ;; give when file is re-read.
+      ;; But don't do this if we explicitly ignored the cookie
+      ;; by using `find-file-literally'.
+      (when (and auto-cs
+		 (not (and
+		       coding-system
+		       (memq (coding-system-type coding-system) '(0 5)))))
 	;; Merge coding-system and auto-cs as far as possible.
 	(if (not coding-system)
 	    (setq coding-system auto-cs)
@@ -974,8 +1002,8 @@ and TO is ignored."
 		     (format "Selected encoding %s disagrees with \
 %s specified by file contents.  Really save (else edit coding cookies \
 and try again)? " coding-system auto-cs))
-	      (error "Save aborted")))))
-    coding-system))
+	      (error "Save aborted"))))
+      coding-system)))
 
 (setq select-safe-coding-system-function 'select-safe-coding-system)
 
