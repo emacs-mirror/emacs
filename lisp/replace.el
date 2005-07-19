@@ -847,7 +847,7 @@ Compatibility function for \\[next-error] invocations."
   '((((class color) (min-colors 88) (background light))
      :background "Tan")
     (((class color) (min-colors 88) (background dark))
-     :background "RoyalBlue4")
+     :background "RoyalBlue3")
     (((class color) (min-colors 8))
      :background "blue" :foreground "white")
     (((type tty) (class mono))
