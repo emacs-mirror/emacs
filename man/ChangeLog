@@ -1,3 +1,7 @@
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* files.texi (Comparing Files): Mention resync for `compare-windows'.
+
 2005-07-18  Juri Linkov  <juri@jurta.org>
 
 	* calc.texi (Time Zones, Logical Operations):

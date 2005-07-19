@@ -1,3 +1,57 @@
+2005-07-19  Juri Linkov  <juri@jurta.org>
+
+	* compare-w.el (compare-ignore-whitespace, compare-windows-sync)
+	(compare-windows-sync-string-size, compare-windows-recenter)
+	(compare-windows-highlight, compare-windows): Add version 22.1.
+	(compare-windows) <defface>: Inherit from lazy-highlight instead
+	of duplicating its default value.
+
+	* cus-edit.el (custom-mode-map): Bind `C-c C-c' to `Custom-set'.
+	(Custom-mode-menu): Use `info' instead of `Info-goto-node'.
+
+	* descr-text.el (describe-char): Create link buttons for `charset'
+	and `code point'.  Add the current input method name with a link
+	button to `to input' field.  Print face names of display table
+	characters in `The display table entry is displayed by' section
+	instead of printing face-id in the `display' field.
+	Guess hardcoded faces and create a link button for them.
+	Skip empty fields when calculating max-width.
+	Treat `widget-create' specially while inserting strings from the
+	collected field list.
+	(describe-char-after): Made obsolete in version 22.1, not 21.5.
+
+	* diff-mode.el (diff-file-header): Change foreground color from
+	yellow to green on light backgrounds.
+	(diff-context): Inherit from `shadow' only for color/grayscale
+	with more than 88 colors.
+	(diff-indicator-removed, diff-indicator-added)
+	(diff-indicator-changed): New faces.
+	(diff-font-lock-keywords): Use new faces.  Regroup rules.
+	Add "^---$" for `normal' diff format.  Fontify `#' lines with
+	font-lock-comment-delimiter-face and font-lock-comment-face.
+	Add `#' to ^[^...] in the rule for `diff-context-face'.
+
+	* faces.el (mode-line-highlight): Replace RoyalBlue4 with
+	a button-like box.  Inherit from `highlight' on low colors.
+	(shadow): Use shades of gray only for color/grayscale with
+	more than 88 colors.  Use green for light backgrounds with
+	8 colors, and yellow for dark backgrounds with 8 colors.
+
+	* font-lock.el (font-lock-regexp-grouping-backslash): Don't
+	inherit from escape-glyph (use bold for all cases).
+
+	* info.el (info-xref-visited): Use light foreground color `violet'
+	for dark backgrounds instead of dark color `magenta3'.
+	(info-title-1): Use `yellow' color for dark backgrounds.
+
+	* isearch.el (isearch): Use not-too-dark magenta3 instead of
+	too-light magenta2.
+
+	* replace.el (match): Use slightly more light RoyalBlue3 instead
+	of dark RoyalBlue4.
+
+	* wid-edit.el (widget-inactive): Inherit from `shadow'.
+
 2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-enable, desktop-buffer-modes-to-save)
