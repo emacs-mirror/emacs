@@ -471,10 +471,10 @@ usage: (prog1 FIRST BODY...)  */)
 }
 
 DEFUN ("prog2", Fprog2, Sprog2, 2, UNEVALLED, 0,
-       doc: /* Eval X, Y and BODY sequentially; value from Y.
-The value of Y is saved during the evaluation of the remaining args,
-whose values are discarded.
-usage: (prog2 X Y BODY...)  */)
+       doc: /* Eval FORM1, FORM2 and BODY sequentially; value from FORM2.
+The value of FORM2 is saved during the evaluation of the
+remaining args, whose values are discarded.
+usage: (prog2 FORM1 FORM2 BODY...)  */)
      (args)
      Lisp_Object args;
 {
@@ -564,8 +564,8 @@ usage: (function ARG)  */)
 
 DEFUN ("interactive-p", Finteractive_p, Sinteractive_p, 0, 0, 0,
        doc: /* Return t if the function was run directly by user input.
-This means that the function was called with call-interactively (which
-includes being called as the binding of a key)
+This means that the function was called with `call-interactively'
+\(which includes being called as the binding of a key)
 and input is currently coming from the keyboard (not in keyboard macro),
 and Emacs is not running in batch mode (`noninteractive' is nil).
 
@@ -586,14 +586,14 @@ unconditionally for that argument.  (`p' is a good way to do this.)  */)
 
 
 DEFUN ("called-interactively-p", Fcalled_interactively_p, Scalled_interactively_p, 0, 0, 0,
-       doc: /* Return t if the function using this was called with call-interactively.
+       doc: /* Return t if the function using this was called with `call-interactively'.
 This is used for implementing advice and other function-modifying
 features of Emacs.
 
 The cleanest way to test whether your function was called with
-`call-interactively', the way to do that is by adding an extra
-optional argument, and making the `interactive' spec specify non-nil
-unconditionally for that argument.  (`p' is a good way to do this.)  */)
+`call-interactively' is by adding an extra optional argument,
+and making the `interactive' spec specify non-nil unconditionally
+for that argument.  (`p' is a good way to do this.)  */)
      ()
 {
   return interactive_p (1) ? Qt : Qnil;
@@ -2859,8 +2859,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  val = (*XSUBR (fun)->function) (internal_args[0]);
 	  goto done;
 	case 2:
-	  val = (*XSUBR (fun)->function) (internal_args[0],
-					  internal_args[1]);
+	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1]);
 	  goto done;
 	case 3:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
@@ -2868,8 +2867,7 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
 	  goto done;
 	case 4:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
-					  internal_args[2],
-					  internal_args[3]);
+					  internal_args[2], internal_args[3]);
 	  goto done;
 	case 5:
 	  val = (*XSUBR (fun)->function) (internal_args[0], internal_args[1],
@@ -3395,7 +3393,7 @@ void
 syms_of_eval ()
 {
   DEFVAR_INT ("max-specpdl-size", &max_specpdl_size,
-	      doc: /* *Limit on number of Lisp variable bindings & unwind-protects.
+	      doc: /* *Limit on number of Lisp variable bindings and `unwind-protect's.
 If Lisp code tries to increase the total number past this amount,
 an error is signaled.
 You can safely use a value considerably larger than the default value,
@@ -3492,10 +3490,8 @@ It does not apply to errors handled by `condition-case'.  */);
   Vdebug_ignored_errors = Qnil;
 
   DEFVAR_BOOL ("debug-on-quit", &debug_on_quit,
-	       doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
-Does not apply if quit is handled by a `condition-case'.
-When you evaluate an expression interactively, this variable
-is temporarily non-nil if `eval-expression-debug-on-quit' is non-nil.  */);
+    doc: /* *Non-nil means enter debugger if quit is signaled (C-g, for example).
+Does not apply if quit is handled by a `condition-case'.  */);
   debug_on_quit = 0;
 
   DEFVAR_BOOL ("debug-on-next-call", &debug_on_next_call,
