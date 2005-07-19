@@ -106,8 +106,7 @@ desktop is saved."
   :group 'desktop)
 
 ;; Maintained for backward compatibility
-(defvaralias 'desktop-enable 'desktop-save-mode)
-(make-obsolete-variable 'desktop-enable 'desktop-save-mode "22.1")
+(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
 
 (defcustom desktop-save 'ask-if-new
   "*Specifies whether the desktop should be saved when it is killed.
@@ -137,7 +136,7 @@ determine where the desktop is saved."
   "Name of file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop)
-(defvaralias 'desktop-basefilename 'desktop-base-file-name)
+(define-obsolete-variable-alias 'desktop-basefilename 'desktop-base-file-name "22.1")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -399,7 +398,7 @@ variables listed in `desktop-globals-to-clear'."
            (string-match desktop-clear-preserve-buffers-regexp bufname)
            (member bufname desktop-clear-preserve-buffers)
            ;; Don't kill buffers made for internal purposes.
-           (and (not (equal bufname "")) (eq (aref bufname 0) ?\ ))
+           (and (not (equal bufname "")) (eq (aref bufname 0) ?\s))
            (kill-buffer (car buffers))))
       (setq buffers (cdr buffers))))
   (delete-other-windows))
@@ -454,7 +453,7 @@ TXT is a string that when read and evaluated yields value.
 QUOTE may be `may' (value may be quoted),
 `must' (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp value) (null value) (eq t value))
+   ((or (numberp value) (null value) (eq t value) (keywordp value))
     (cons 'may (prin1-to-string value)))
    ((stringp value)
     (let ((copy (copy-sequence value)))
