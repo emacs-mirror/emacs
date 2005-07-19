@@ -1,3 +1,10 @@
+2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fprog2, Fcalled_interactively_p),
+	(syms_of_eval) <debug-on-quit>: Doc fixes.
+	(syms_of_eval) <max-specpdl-size>:
+	(Finteractive_p): Fix typos in docstrings.
+
 2005-07-19  Kim F. Storm  <storm@cua.dk>
 
 	* w32fns.c (Vx_hand_shape): Variable removed.
