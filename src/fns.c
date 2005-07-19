@@ -1153,13 +1153,13 @@ Beware, this often doesn't really do what you think it does.
 It is similar to (decode-coding-string STRING 'emacs-mule-unix).
 If you're not sure, whether to use `string-as-multibyte' or
 `string-to-multibyte', use `string-to-multibyte'.  Beware:
-   (aref (string-as-multibyte "\201") 0) -> 129 (aka ?\201)
-   (aref (string-as-multibyte "\300") 0) -> 192 (aka ?\300)
-   (aref (string-as-multibyte "\300\201") 0) -> 192 (aka ?\300)
-   (aref (string-as-multibyte "\300\201") 1) -> 129 (aka ?\201)
+   (aref (string-as-multibyte "\\201") 0) -> 129 (aka ?\\201)
+   (aref (string-as-multibyte "\\300") 0) -> 192 (aka ?\\300)
+   (aref (string-as-multibyte "\\300\\201") 0) -> 192 (aka ?\\300)
+   (aref (string-as-multibyte "\\300\\201") 1) -> 129 (aka ?\\201)
 but
-   (aref (string-as-multibyte "\201\300") 0) -> 2240
-   (aref (string-as-multibyte "\201\300") 1) -> <error>  */)
+   (aref (string-as-multibyte "\\201\\300") 0) -> 2240
+   (aref (string-as-multibyte "\\201\\300") 1) -> <error>  */)
      (string)
      Lisp_Object string;
 {
