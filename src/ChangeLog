@@ -1,3 +1,7 @@
+2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvar): Doc fix.
+
 2005-07-20  Kim F. Storm  <storm@cua.dk>
 
 	* fileio.c (Fdo_auto_save, do_auto_save_unwind):

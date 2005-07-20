@@ -4,10 +4,64 @@
 
 2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
+	* abbrev.el (expand-region-abbrevs): Doc fix.
+	(inverse-add-mode-abbrev, inverse-add-global-abbrev):
+	Improve argument/docstring consistency.
+
+	* arc-mode.el (archive-get-descr, archive-alternate-display):
+	Doc fixes.
+	(archive-l-e): Improve argument/docstring consistency.
+	(archive-tmpdir, archive-unixdate, archive-unixtime)
+	(archive-chmod-entry): Fix typos in docstrings.
+	(archive-unflag, archive-unflag-backwards)
+	(archive-unmark-all-files): "?\ " -> "?\s".
+
+	* buff-menu.el (Buffer-menu-unmark): Doc fix.
+	(Buffer-menu-not-modified, Buffer-menu-execute)
+	(Buffer-menu-toggle-read-only, Buffer-menu-buffer+size)
+	(list-buffers-noselect, Buffer-menu-select): "?\ " -> "?\s".
+
+	* composite.el (compose-string, encode-composition-rule)
+	(compose-last-chars): Fix typos in docstrings.
+
 	* desktop.el (desktop-enable, desktop-basefilename):
 	Declare with `define-obsolete-variable-alias'.
 	(desktop-internal-v2s): Don't quote keywords.
 	(desktop-clear): "?\ " -> "?\s".
+
+	* dired.el (dired-align-file, dired-flag-backup-files)
+	(dired-change-marks, dired-unmark-all-files): "?\ " -> "?\s".
+	(dired-listing-switches, dired-ls-F-marks-symlinks)
+	(dired-dwim-target, dired-load-hook, dired-mode-hook)
+	(dired-directory, dired-faces, dired, dired-revert)
+	(dired-mode, dired-summary, dired-view-file)
+	(dired-copy-filename-as-kill, dired-delete-file)
+	(dired-no-confirm, dired-unmark-all-marks)
+	(dired-sort-by-date-regexp, dired-sort-by-name-regexp)
+	(dired-sort-inhibit, dired-sort-other): Fix typos in docstrings.
+	(dired-undo, dired-get-file-for-visit, dired-sort-toggle-or-edit):
+	Fix typos in message strings.
+
+	* dired-x.el (virtual-dired): Declare with `defalias'.
+	(dired-mark-unmarked-files, dired-local-variables-file)
+	(dired-omit-here-always): Doc fix.
+	(dired-omit-mode, dired-find-subdir)
+	(dired-enable-local-variables, dired-clean-up-buffers-too)
+	(dired-extra-startup, dired-mark-extension, dired-jump)
+	(dired-jump-other-window, dired-omit-localp, dired-virtual-mode)
+	(dired-smart-shell-command, dired-guess-shell-alist-user)
+	(dired-man, dired-initial-position, dired-x-hands-off-my-keys)
+	(dired-x-bind-find-file, dired-x-submit-report):
+	Fix typos in docstrings.
+	(dired-mark-unmarked-files): "?\ " -> "?\s".
+
+	* dirtrack.el (dirtrack-list): Fix typos in docstring.
+
+	* faces.el (describe-face): "?\ " -> "?\s".
+	(read-all-face-attributes, read-face-font, modify-face)
+	(face-attr-construct, italic): Fix typos in docstrings.
+	(frame-update-face-colors): Declare with
+	`define-obsolete-function-alias'.
 
 	* files.el (find-file-noselect, recode-file-name): Doc fixes.
 	(insert-directory, kill-some-buffers): "?\ " -> "?\s".
@@ -6825,7 +6879,8 @@
 	* textmodes/refbib.el, textmodes/refer.el, textmodes/reftex-cite.el
 	* textmodes/reftex-index.el, textmodes/reftex-parse.el
 	* textmodes/reftex-ref.el, textmodes/reftex-vars.el
-	* textmodes/reftex.el, textmodes/org.el: Replace `illegal' with `invalid'.
+	* textmodes/reftex.el, textmodes/org.el:
+	Replace `illegal' with `invalid'.
 
 2005-03-24  Stefan Monnier  <monnier@iro.umontreal.ca>
 
