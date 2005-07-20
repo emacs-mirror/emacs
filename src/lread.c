@@ -674,7 +674,6 @@ Return t if file exists.  */)
 {
   register FILE *stream;
   register int fd = -1;
-  register Lisp_Object lispstream;
   int count = SPECPDL_INDEX ();
   Lisp_Object temp;
   struct gcpro gcpro1;
@@ -904,10 +903,7 @@ Return t if file exists.  */)
     }
 
   GCPRO1 (file);
-  lispstream = Fcons (Qnil, Qnil);
-  XSETCARFASTINT (lispstream, (EMACS_UINT)stream >> 16);
-  XSETCDRFASTINT (lispstream, (EMACS_UINT)stream & 0xffff);
-  record_unwind_protect (load_unwind, lispstream);
+  record_unwind_protect (load_unwind, make_save_value (stream, 0));
   record_unwind_protect (load_descriptor_unwind, load_descriptor_list);
   specbind (Qload_file_name, found);
   specbind (Qinhibit_file_name_operation, Qnil);
@@ -960,8 +956,9 @@ static Lisp_Object
 load_unwind (stream)  /* used as unwind-protect function in load */
      Lisp_Object stream;
 {
-  fclose ((FILE *) (XFASTINT (XCAR (stream)) << 16
-		    | XFASTINT (XCDR (stream))));
+  struct Lisp_Save_Value *p = XSAVE_VALUE (stream);
+
+  fclose ((FILE *) p->pointer);
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
