@@ -1,3 +1,7 @@
+2005-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* emulation/cua-base.el (cua-mode): Improve doc string.
+
 2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* desktop.el (desktop-enable, desktop-basefilename):
