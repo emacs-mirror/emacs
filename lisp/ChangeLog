@@ -5,6 +5,15 @@
 	(desktop-internal-v2s): Don't quote keywords.
 	(desktop-clear): "?\ " -> "?\s".
 
+	* files.el (find-file-noselect, recode-file-name): Doc fixes.
+	(insert-directory, kill-some-buffers): "?\ " -> "?\s".
+	(magic-mode-alist, buffer-file-numbers-unique)
+	(write-file-functions, get-free-disk-space):
+	Fix typos in docstrings.
+	(find-file-not-found-hooks, find-file-hooks, write-file-hooks)
+	(write-contents-hooks, write-file-hooks):
+	Declare with `define-obsolete-variable-alias'.
+
 	* textmodes/org.el (org-table-formula-substitute-names)
 	(org-table-get-vertical-vector): Doc fixes.
 	(org-table-recalculate): Remove unused argument to `message'.
