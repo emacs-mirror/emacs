@@ -1332,10 +1332,26 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 ;;;###autoload
 (define-minor-mode cua-mode
   "Toggle CUA key-binding mode.
-When enabled, using shifted movement keys will activate the region (and
-highlight the region using `transient-mark-mode'), and typed text replaces
-the active selection.  C-z, C-x, C-c, and C-v will undo, cut, copy, and
-paste (in addition to the normal Emacs bindings)."
+When enabled, using shifted movement keys will activate the
+region (and highlight the region using `transient-mark-mode'),
+and typed text replaces the active selection.
+
+Also when enabled, you can use C-z, C-x, C-c, and C-v to undo,
+cut, copy, and paste in addition to the normal Emacs bindings.
+The C-x and C-c keys only do cut and copy when the region is
+active, so in most cases, they do not conflict with the normal
+function of these prefix keys.
+
+If you really need to perform a command which starts with one of
+the prefix keys even when the region is active, you have three
+options:
+- press the prefix key twice very quickly (within 0.2 seconds),
+- press the prefix key and the following key within 0.2 seconds), or
+- use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c.
+
+You can customize `cua-enable-cua-keys' to completely disable the
+CUA bindings, or `cua-prefix-override-inhibit-delay' to change
+the prefix fallback behaviour."
   :global t
   :group 'cua
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
