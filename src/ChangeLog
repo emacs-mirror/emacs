@@ -1,3 +1,8 @@
+2005-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* lread.c (Fload, load_unwind): Use make_save_value to unwind
+	protect stream.
+
 2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (Fprog2, Fcalled_interactively_p),
