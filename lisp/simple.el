@@ -74,7 +74,7 @@ wait this many seconds after Emacs becomes idle before doing an update."
 ;;; next-error support framework
 
 (defgroup next-error nil
-  "next-error support framework."
+  "`next-error' support framework."
   :group 'compilation
   :version "22.1")
 
@@ -86,8 +86,8 @@ wait this many seconds after Emacs becomes idle before doing an update."
 
 (defcustom next-error-highlight 0.1
   "*Highlighting of locations in selected source buffers.
-If number, highlight the locus in next-error face for given time in seconds.
-If t, use persistent overlays fontified in next-error face.
+If number, highlight the locus in `next-error' face for given time in seconds.
+If t, use persistent overlays fontified in `next-error' face.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Delay")
@@ -99,8 +99,8 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 
 (defcustom next-error-highlight-no-select 0.1
   "*Highlighting of locations in non-selected source buffers.
-If number, highlight the locus in next-error face for given time in seconds.
-If t, use persistent overlays fontified in next-error face.
+If number, highlight the locus in `next-error' face for given time in seconds.
+If t, use persistent overlays fontified in `next-error' face.
 If nil, don't highlight the locus in the source buffer.
 If `fringe-arrow', indicate the locus by the fringe arrow."
   :type '(choice (number :tag "Delay")
@@ -122,7 +122,7 @@ If `fringe-arrow', indicate the locus by the fringe arrow."
 (add-to-list 'overlay-arrow-variable-list 'next-error-overlay-arrow-position)
 
 (defvar next-error-last-buffer nil
-  "The most recent next-error buffer.
+  "The most recent `next-error' buffer.
 A buffer becomes most recent when its compilation, grep, or
 similar mode is started, or when it is used with \\[next-error]
 or \\[compile-goto-error].")
@@ -143,7 +143,7 @@ to navigate in it.")
 			       &optional avoid-current
 			       extra-test-inclusive
 			       extra-test-exclusive)
-  "Test if BUFFER is a next-error capable buffer.
+  "Test if BUFFER is a `next-error' capable buffer.
 
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
@@ -170,7 +170,7 @@ that buffer is rejected."
 (defun next-error-find-buffer (&optional avoid-current
 					 extra-test-inclusive
 					 extra-test-exclusive)
-  "Return a next-error capable buffer.
+  "Return a `next-error' capable buffer.
 If AVOID-CURRENT is non-nil, treat the current buffer
 as an absolute last resort only.
 
@@ -223,7 +223,7 @@ that buffer is rejected."
    (error "No next-error capable buffer found")))
 
 (defun next-error (&optional arg reset)
-  "Visit next next-error message and corresponding source code.
+  "Visit next `next-error' message and corresponding source code.
 
 If all the error messages parsed so far have been processed already,
 the message buffer is checked for new ones.
@@ -264,7 +264,7 @@ See variables `compilation-parse-errors-function' and
 (defalias 'next-match 'next-error)
 
 (defun previous-error (&optional n)
-  "Visit previous next-error message and corresponding source code.
+  "Visit previous `next-error' message and corresponding source code.
 
 Prefix arg N says how many error messages to move backwards (or
 forwards, if negative).
@@ -282,7 +282,7 @@ This operates on the output from the \\[compile] command, for instance."
   (next-error n t))
 
 (defun next-error-no-select (&optional n)
-  "Move point to the next error in the next-error buffer and highlight match.
+  "Move point to the next error in the `next-error' buffer and highlight match.
 Prefix arg N says how many error messages to move forwards (or
 backwards, if negative).
 Finds and highlights the source line like \\[next-error], but does not
@@ -293,7 +293,7 @@ select the source buffer."
   (pop-to-buffer next-error-last-buffer))
 
 (defun previous-error-no-select (&optional n)
-  "Move point to the previous error in the next-error buffer and highlight match.
+  "Move point to the previous error in the `next-error' buffer and highlight match.
 Prefix arg N says how many error messages to move backwards (or
 forwards, if negative).
 Finds and highlights the source line like \\[previous-error], but does not
@@ -426,8 +426,8 @@ than the value of `fill-column' and ARG is nil."
 
 (defun open-line (n)
   "Insert a newline and leave point before it.
-If there is a fill prefix and/or a left-margin, insert them on the new line
-if the line would have been blank.
+If there is a fill prefix and/or a `left-margin', insert them
+on the new line if the line would have been blank.
 With arg N, insert N newlines."
   (interactive "*p")
   (let* ((do-fill-prefix (and fill-prefix (bolp)))
@@ -449,7 +449,7 @@ With arg N, insert N newlines."
 (defun split-line (&optional arg)
   "Split current line, moving portion beyond point vertically down.
 If the current line starts with `fill-prefix', insert it on the new
-line as well.  With prefix ARG, don't insert fill-prefix on new line.
+line as well.  With prefix ARG, don't insert `fill-prefix' on new line.
 
 When called from Lisp code, ARG may be a prefix string to copy."
   (interactive "*P")
@@ -647,7 +647,7 @@ Leave one space or none, according to the context."
 	    (save-excursion (forward-char -1)
 			    (looking-at "$\\|\\s(\\|\\s'")))
 	nil
-      (insert ?\ ))))
+      (insert ?\s))))
 
 (defun delete-horizontal-space (&optional backward-only)
   "Delete all spaces and tabs around point.
@@ -671,9 +671,9 @@ If BACKWARD-ONLY is non-nil, only delete spaces before point."
     (skip-chars-backward " \t")
     (constrain-to-field nil orig-pos)
     (dotimes (i (or n 1))
-      (if (= (following-char) ?\ )
+      (if (= (following-char) ?\s)
 	  (forward-char 1)
-	(insert ?\ )))
+	(insert ?\s)))
     (delete-region
      (point)
      (progn
@@ -1274,7 +1274,7 @@ by the new completion."
 ;; For compatibility with the old subr of the same name.
 (defun minibuffer-prompt-width ()
   "Return the display width of the minibuffer prompt.
-Return 0 if current buffer is not a mini-buffer."
+Return 0 if current buffer is not a minibuffer."
   ;; Return the width of everything before the field at the end of
   ;; the buffer; this should be 0 for normal buffers.
   (1- (minibuffer-prompt-end)))
@@ -2345,7 +2345,7 @@ handler, if non-nil, is stored as a `yank-handler' text property on STRING).
 
 When the yank handler has a non-nil PARAM element, the original STRING
 argument is not used by `insert-for-yank'.  However, since Lisp code
-may access and use elements from the kill-ring directly, the STRING
+may access and use elements from the kill ring directly, the STRING
 argument should still be a \"useful\" string for such uses."
   (if (> (length string) 0)
       (if yank-handler
@@ -2684,7 +2684,7 @@ and KILLP is t if a prefix arg was specified."
 	      (let ((col (current-column)))
 		(forward-char -1)
 		(setq col (- col (current-column)))
-		(insert-char ?\  col)
+		(insert-char ?\s col)
 		(delete-char 1)))
 	  (forward-char -1)
 	  (setq count (1- count))))))
@@ -4075,7 +4075,7 @@ Just \\[universal-argument] as argument means to use the current column."
       (setq arg (current-column)))
   (if (not (integerp arg))
       ;; Disallow missing argument; it's probably a typo for C-x C-f.
-      (error "Set-fill-column requires an explicit argument")
+      (error "set-fill-column requires an explicit argument")
     (message "Fill column set to %d (was %d)" arg fill-column)
     (setq fill-column arg)))
 
@@ -4155,7 +4155,7 @@ with the character typed.
 typing characters do.
 
 Note that binary overwrite mode is not its own minor mode; it is a
-specialization of overwrite-mode, entered by setting the
+specialization of overwrite mode, entered by setting the
 `overwrite-mode' variable to `overwrite-mode-binary'."
   (interactive "P")
   (setq overwrite-mode
@@ -4999,7 +4999,7 @@ PREFIX is the string that represents this modifier in an event type symbol."
      (define-key function-key-map (vector keypad) (vector normal))))
  '((kp-0 ?0) (kp-1 ?1) (kp-2 ?2) (kp-3 ?3) (kp-4 ?4)
    (kp-5 ?5) (kp-6 ?6) (kp-7 ?7) (kp-8 ?8) (kp-9 ?9)
-   (kp-space ?\ )
+   (kp-space ?\s)
    (kp-tab ?\t)
    (kp-enter ?\r)
    (kp-multiply ?*)
@@ -5140,7 +5140,7 @@ or by incrementing the N in an existing suffix.
 DISPLAY-FLAG non-nil means show the new buffer with `pop-to-buffer'.
 This is always done when called interactively.
 
-Optional last arg NORECORD non-nil means do not put this buffer at the
+Optional third arg NORECORD non-nil means do not put this buffer at the
 front of the list of recently selected ones."
   (interactive
    (progn
