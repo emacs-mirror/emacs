@@ -72,6 +72,30 @@
 	(write-contents-hooks, write-file-hooks):
 	Declare with `define-obsolete-variable-alias'.
 
+	* forms-d2.el (arch-rj): Fix typo in docstrings.
+	(arch-tocol): Likewise.  "?\ " -> "?\s".
+
+	* frame.el (set-frame-font, cursor-in-non-selected-windows):
+	Fix typo in docstring.
+	(set-screen-width, set-screen-height): Delete redundant info in
+	doctrings.
+	(new-frame, screen-height, screen-width): Declare with
+	`define-obsolete-function-alias'.
+	(delete-frame-hook, blink-cursor): Declare with
+	`define-obsolete-variable-alias'.
+
+	* paths.el (prune-directory-list): Fix typos in docstring.
+
+	* pcvs-util.el (cvs-flags-query, cvs-strings->string)
+	(cvs-prefix-get): Fix typos in docstrings.
+
+	* ps-print.el (ps-extend-face-list, ps-extend-face)
+	(ps-print-background-image): Fix typos in docstrings.
+	(ps-default-fg, ps-default-bg): Doc fixes.
+
+	* s-region.el (s-region-bind): Doc fix.
+	(s-region-move-p1, s-region-move-p2): Fix typos in docstrings.
+
 	* textmodes/org.el (org-table-formula-substitute-names)
 	(org-table-get-vertical-vector): Doc fixes.
 	(org-table-recalculate): Remove unused argument to `message'.
