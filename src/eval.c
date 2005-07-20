@@ -779,7 +779,7 @@ The return value is BASE-VARIABLE.  */)
 
 
 DEFUN ("defvar", Fdefvar, Sdefvar, 1, UNEVALLED, 0,
-       doc: /* Define SYMBOL as a variable.
+       doc: /* Define SYMBOL as a variable, and return SYMBOL.
 You are not required to define a variable in order to use it,
 but the definition can supply documentation and an initial value
 in a way that tags can recognize.
