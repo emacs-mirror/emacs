@@ -154,7 +154,7 @@ on `skeleton-autowrap'.  An ARG of  M-0  will prevent this just for once.
 This command can also be an abbrev expansion (3rd and 4th columns in
 \\[edit-abbrevs]  buffer: \"\"  command-name).
 
-Optional first argument STR may also be a string which will be the value
+Optional second argument STR may also be a string which will be the value
 of `str' whereas the skeleton's interactor is then ignored."
   (skeleton-insert (funcall skeleton-filter skeleton)
 		   ;; Pretend  C-x a e  passed its prefix arg to us
