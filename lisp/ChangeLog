@@ -1,3 +1,26 @@
+2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* simple.el (clone-indirect-buffer): Doc fix.
+	(fixup-whitespace, just-one-space)
+	(backward-delete-char-untabify, lambda): "?\ " -> "?\s".
+	(next-error, next-error-highlight)
+	(next-error-highlight-no-select, next-error-last-buffer)
+	(next-error-buffer-p, next-error-find-buffer, next-error)
+	(previous-error, next-error-no-select, previous-error-no-select)
+	(open-line, split-line, minibuffer-prompt-width, kill-new)
+	(binary-overwrite-mode): Fix typos in docstrings.
+	(set-fill-column): Fix typo in message.
+
+	* skeleton.el (skeleton-proxy-new): Doc fix.
+
+	* strokes.el (strokes-load-hook): Doc fix.
+	(strokes-grid-resolution, strokes-get-grid-position)
+	(strokes-renormalize-to-grid, strokes-read-stroke)
+	(strokes-read-complex-stroke, strokes-file, strokes-last-stroke)
+	(strokes-global-map): Fix typos in docstrings.
+	(strokes-help): Doc fix.  Fix help message and pass it through
+	`substitute-command-keys'.
+
 2005-07-20  Kim F. Storm  <storm@cua.dk>
 
 	* emulation/cua-base.el (cua-mode): Improve doc string.
