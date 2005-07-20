@@ -281,7 +281,7 @@ Don't use this function in a Lisp program; use `define-abbrev' instead."
 			      name (abbrev-expansion name table))))
 	(define-abbrev table (downcase name) exp))))
 
-(defun inverse-add-mode-abbrev (arg)
+(defun inverse-add-mode-abbrev (n)
   "Define last word before point as a mode-specific abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
@@ -292,15 +292,15 @@ Expands the abbreviation after defining it."
        global-abbrev-table
      (or local-abbrev-table
 	 (error "No per-mode abbrev table")))
-   "Mode" arg))
+   "Mode" n))
 
-(defun inverse-add-global-abbrev (arg)
+(defun inverse-add-global-abbrev (n)
   "Define last word before point as a global (mode-independent) abbrev.
 With prefix argument N, defines the Nth word before point.
 This command uses the minibuffer to read the expansion.
 Expands the abbreviation after defining it."
   (interactive "p")
-  (inverse-add-abbrev global-abbrev-table "Global" arg))
+  (inverse-add-abbrev global-abbrev-table "Global" n))
 
 (defun inverse-add-abbrev (table type arg)
   (let (name exp start end)
@@ -338,9 +338,8 @@ ARG is non-nil.  Interactively, ARG is the prefix argument."
 
 (defun expand-region-abbrevs (start end &optional noquery)
   "For abbrev occurrence in the region, offer to expand it.
-The user is asked to type y or n for each occurrence.
-A prefix argument means don't query; expand all abbrevs.
-If called from a Lisp program, arguments are START END &optional NOQUERY."
+The user is asked to type `y' or `n' for each occurrence.
+A prefix argument means don't query; expand all abbrevs."
   (interactive "r\nP")
   (save-excursion
     (goto-char start)
