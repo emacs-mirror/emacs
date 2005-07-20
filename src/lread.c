@@ -953,12 +953,12 @@ Return t if file exists.  */)
 }
 
 static Lisp_Object
-load_unwind (stream)  /* used as unwind-protect function in load */
-     Lisp_Object stream;
+load_unwind (arg)  /* used as unwind-protect function in load */
+     Lisp_Object arg;
 {
-  struct Lisp_Save_Value *p = XSAVE_VALUE (stream);
-
-  fclose ((FILE *) p->pointer);
+  FILE *stream = (FILE *) XSAVE_VALUE (arg)->pointer;
+  if (stream != NULL)
+    fclose (stream);
   if (--load_in_progress < 0) load_in_progress = 0;
   return Qnil;
 }
