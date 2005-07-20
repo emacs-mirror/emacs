@@ -32,17 +32,17 @@
 ;; The following functions are used by this form for layout purposes.
 ;;
 (defun arch-tocol (target &optional fill)
-  "Produces a string to skip to column TARGET. Prepends newline if needed.
+  "Produces a string to skip to column TARGET.  Prepends newline if needed.
 The optional FILL should be a character, used to fill to the column."
   (if (null fill)
-      (setq fill ? ))
+      (setq fill ?\s))
   (if (< target (current-column))
       (concat "\n" (make-string target fill))
     (make-string (- target (current-column)) fill)))
 ;;
 (defun arch-rj (target field &optional fill)
   "Produces a string to skip to column TARGET minus the width of field FIELD.
-Prepends newline if needed. The optional FILL should be a character,
+Prepends newline if needed.  The optional FILL should be a character,
 used to fill to the column."
   (arch-tocol (- target (length (nth field forms-fields))) fill))
 
