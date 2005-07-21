@@ -9,6 +9,9 @@
 
 2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* desktop.el (desktop-clear-preserve-buffers-regexp):
+	Also preserve the *server* buffer.
+
 	* simple.el (clone-indirect-buffer): Doc fix.
 	(fixup-whitespace, just-one-space)
 	(backward-delete-char-untabify, lambda): "?\ " -> "?\s".
@@ -29,6 +32,55 @@
 	(strokes-global-map): Fix typos in docstrings.
 	(strokes-help): Doc fix.  Fix help message and pass it through
 	`substitute-command-keys'.
+
+	* tempo.el (tempo-insert-prompt, tempo-interactive)
+	(tempo-show-completion-buffer, tempo-tags, tempo-match-finder)
+	(tempo-insert-string-functions, tempo-local-tags)
+	(tempo-define-template, tempo-insert-template)
+	(tempo-insert-prompt-compat, tempo-is-user-element)
+	(tempo-insert-mark, tempo-find-match-string, tempo-complete-tag):
+	Fix typos in docstrings.
+
+	* vcursor.el (vcursor-other-window, vcursor-bind-keys)
+	(vcursor-key-bindings, vcursor-use-vcursor-map)
+	(vcursor-find-window, vcursor-scroll-down)
+	(vcursor-disable, vcursor-beginning-of-buffer)
+	(vcursor-end-of-buffer): Fix typos in docstrings.
+	(vcursor-relative-move, vcursor-get-char-count):
+	Improve argument/docstring consistency.
+
+	* version.el: "?\ " -> "?\s".
+
+	* wid-edit.el (widget-default-create, widget-after-change)
+	(widget-default-format-handler, widget-checklist-add-item)
+	(widget-radio-add-item, widget-choose, widget-specify-secret)
+	(widget-field-value-create, widget-field-value-get)
+	(widget-editable-list-format-handler)
+	(widget-editable-list-entry-create, widget-group-value-create)
+	(widget-documentation-link-add)
+	(widget-documentation-string-value-create): "?\ " -> "?\s".
+	(widget-convert-text): Doc fix.
+	(widget-narrow-to-field, widget-field-find)
+	(widget-url-link-action, widget-emacs-library-link-action)
+	(widget-color-notify): Fix typos in docstrings.
+
+	* w32-fns.el (w32-shell-name): Use `bound-and-true-p'.
+	(x-select-text, set-w32-system-coding-system)
+	(w32-add-charset-info): Fix typos in docstrings.
+
+	* emulation/cua-base.el (cua-mode, cua-enable-register-prefix)
+	(cua-enable-cua-keys, cua-use-hyper-key)
+	(cua-virtual-rectangle-edges): Fix typos in docstrings.
+	(cua--M/H-key, cua--init-keymaps): "?\ " -> "?\s".
+
+	* net/tramp.el (tramp-handle-load): Fix typo in error message.
+
+	* emacs-lisp/re-builder.el (regexp-builder): Declare with
+	`defalias' instead of faking it.
+
+	* eshell/em-ls.el (eshell-ls-decorated-name): Doc fix.
+	(eshell-ls-missing, eshell-ls-dired-initial-args)
+	(eshell-ls-use-in-dired): Fix typos in docstrings.
 
 2005-07-20  Kim F. Storm  <storm@cua.dk>
 
