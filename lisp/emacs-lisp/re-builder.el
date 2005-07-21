@@ -332,10 +332,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 ;;; This is to help people find this in Apropos.
 ;;;###autoload
-(defun regexp-builder ()
-  "Alias for `re-builder': Construct a regexp interactively."
-  (interactive)
-  (re-builder))
+(defalias 'regexp-builder 're-builder)
 
 ;;;###autoload
 (defun re-builder ()
