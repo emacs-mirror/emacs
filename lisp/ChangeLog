@@ -1,3 +1,12 @@
+2005-07-21  Kim F. Storm  <storm@cua.dk>
+
+	* mail/emacsbug.el (report-emacs-bug): Request that backtraces are
+	included when reporting an emacs crash, and tell about the DEBUG file.
+
+	* image-file.el (insert-image-file): Add yank-handler.
+	(image-file-yank-handler): Yank handler to make unique copies of
+	images when they are yanked into a buffer next to each other.
+
 2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* simple.el (clone-indirect-buffer): Doc fix.
