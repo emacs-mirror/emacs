@@ -206,7 +206,7 @@ to the value obtained by evaluating FORM."
   :version "22.1")
 
 (defcustom desktop-clear-preserve-buffers-regexp
-  "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*tramp/.+\\*\\)$"
+  "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*server\\*\\|\\*tramp/.+\\*\\)$"
   "Regexp identifying buffers that `desktop-clear' should not delete.
 See also `desktop-clear-preserve-buffers'."
   :type 'regexp
