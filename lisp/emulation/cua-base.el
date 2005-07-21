@@ -62,7 +62,7 @@
 ;; If you really need to perform a command which starts with one of
 ;; the prefix keys even when the region is active, you have three options:
 ;; - press the prefix key twice very quickly (within 0.2 seconds),
-;; - press the prefix key and the following key within 0.2 seconds), or
+;; - press the prefix key and the following key within 0.2 seconds, or
 ;; - use the SHIFT key with the prefix key, i.e. C-X or C-C
 ;;
 ;; This behaviour can be customized via the
@@ -274,7 +274,7 @@
 (defcustom cua-enable-cua-keys t
   "*Enable using C-z, C-x, C-c, and C-v for undo, cut, copy, and paste.
 If the value is t, these mappings are always enabled.  If the value is
-'shift, these keys are only enabled if the last region was marked with
+`shift', these keys are only enabled if the last region was marked with
 a shifted movement key.  If the value is nil, these keys are never
 enabled."
   :type '(choice (const :tag "Disabled" nil)
@@ -314,9 +314,9 @@ If the value is nil, use a shifted prefix key to inhibit the override."
   "*If non-nil, registers are supported via numeric prefix arg.
 If the value is t, any numeric prefix arg in the range 0 to 9 will be
 interpreted as a register number.
-If the value is not-ctrl-u, using C-u to enter a numeric prefix is not
+If the value is `not-ctrl-u', using C-u to enter a numeric prefix is not
 interpreted as a register number.
-If the value is ctrl-u-only, only numeric prefix entered with C-u is
+If the value is `ctrl-u-only', only numeric prefix entered with C-u is
 interpreted as a register number."
   :type '(choice (const :tag "Disabled" nil)
 		 (const :tag "Enabled, but C-u arg is not a register" not-ctrl-u)
@@ -331,7 +331,7 @@ interpreted as a register number."
 
 (defcustom cua-use-hyper-key nil
   "*If non-nil, bind rectangle commands to H-... instead of M-....
-If set to 'also, toggle region command is also on C-return.
+If set to `also', toggle region command is also on C-return.
 Must be set prior to enabling CUA."
   :type '(choice (const :tag "Meta key and C-return" nil)
 		 (const :tag "Hyper key only" only)
@@ -362,7 +362,7 @@ managers, so try setting this to nil, if prefix override doesn't work."
   "*If non-nil, rectangles have virtual straight edges.
 Note that although rectangles are always DISPLAYED with straight edges, the
 buffer is NOT modified, until you execute a command that actually modifies it.
-\[M-p] toggles this feature when a rectangle is active."
+M-p toggles this feature when a rectangle is active."
   :type 'boolean
   :group 'cua)
 
@@ -1175,7 +1175,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
 
 (defun cua--M/H-key (map key fct)
   ;; bind H-KEY or M-KEY to FCT in MAP
-  (if (eq key 'space) (setq key ? ))
+  (if (eq key 'space) (setq key ?\s))
   (unless (listp key) (setq key (list key)))
   (define-key map (vector (cons (if cua-use-hyper-key 'hyper 'meta) key)) fct))
 
@@ -1244,7 +1244,7 @@ If ARG is the atom `-', scroll upward by nearly full screen."
     (cua--M/H-key cua-global-keymap 'space	'cua-set-rectangle-mark)
     (define-key cua-global-keymap [(hyper mouse-1)] 'cua-mouse-set-rectangle-mark))
 
-  (define-key cua-global-keymap [(shift control ? )]	'cua-toggle-global-mark)
+  (define-key cua-global-keymap [(shift control ?\s)]	'cua-toggle-global-mark)
 
   ;; replace region with rectangle or element on kill ring
   (define-key cua-global-keymap [remap yank]		'cua-paste)
@@ -1346,12 +1346,12 @@ If you really need to perform a command which starts with one of
 the prefix keys even when the region is active, you have three
 options:
 - press the prefix key twice very quickly (within 0.2 seconds),
-- press the prefix key and the following key within 0.2 seconds), or
+- press the prefix key and the following key within 0.2 seconds, or
 - use the SHIFT key with the prefix key, i.e. C-S-x or C-S-c.
 
 You can customize `cua-enable-cua-keys' to completely disable the
 CUA bindings, or `cua-prefix-override-inhibit-delay' to change
-the prefix fallback behaviour."
+the prefix fallback behavior."
   :global t
   :group 'cua
   :set-after '(cua-enable-modeline-indications cua-use-hyper-key)
