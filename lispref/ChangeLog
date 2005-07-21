@@ -1,3 +1,7 @@
+2005-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* internals.texi (Garbage Collection): Add gc-cons-percentage.
+
 2005-07-18  Juri Linkov  <juri@jurta.org>
 
 	* commands.texi (Accessing Events):
@@ -13,8 +17,8 @@
 
 2005-07-13  Luc Teirlinck  <teirllm@auburn.edu>
 
-	* customize.texi (Variable Definitions): Add
-	`custom-initialize-safe-set' and `custom-initialize-safe-default'.
+	* customize.texi (Variable Definitions):
+	Add `custom-initialize-safe-set' and `custom-initialize-safe-default'.
 	`standard-value' is a list too.
 	(Defining New Types): Use @key{RET} instead of @key{ret}.
 
