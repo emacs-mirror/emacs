@@ -3907,7 +3907,7 @@ Value is a vector of face attributes.  */)
 DEFUN ("internal-lisp-face-p", Finternal_lisp_face_p,
        Sinternal_lisp_face_p, 1, 2, 0,
        doc: /* Return non-nil if FACE names a face.
-If optional second parameter FRAME is non-nil, check for the
+If optional second argument FRAME is non-nil, check for the
 existence of a frame-local face with name FACE on that frame.
 Otherwise check for the existence of a global face.  */)
      (face, frame)
