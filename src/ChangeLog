@@ -1,3 +1,25 @@
+2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
+
+	* ccl.c (Fregister_ccl_program): Fix typos in docstring.
+	(Fccl_execute_on_string): Likewise; add usage info.
+
+	* composite.c (Fcompose_region_internal)
+	(Fcompose_string_internal):
+	Improve argument/docstring consistency.
+
+	* minibuf.c (Fminibuffer_prompt_end, Feval_minibuffer):
+	Fix typos in docstrings.
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): Doc fixes.
+
+	* window.c (Fset_window_margins, Fset_window_fringes):
+	Improve argument/docstring consistency.
+
+	* xfaces.c (Finternal_lisp_face_p): Doc fix.
+
 2005-07-21  Andreas Schwab  <schwab@suse.de>
 
 	* eval.c (restore_stack_limits): Return a value.
