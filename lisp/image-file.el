@@ -118,6 +118,7 @@ the command `insert-file-contents'."
 	      (create-image data nil t))
 	     (props
 	      `(display ,image
+			yank-handler (image-file-yank-handler)
 			intangible ,image
 			rear-nonsticky (display intangible)
 			;; This a cheap attempt to make the whole buffer
@@ -134,6 +135,19 @@ the command `insert-file-contents'."
 	  ;; area look correct when the image is wider than the window.
 	  (setq truncate-lines t))))
     rval))
+
+;; We use a yank-handler to make yanked images unique, so that
+;; yanking two copies of the same image next to each other are
+;; recognized as two different images.
+(defun image-file-yank-handler (string)
+  "Yank handler for inserting an image into a buffer."
+  (let ((image (get-text-property 0 'display string)))
+    (if (consp image)
+	(put-text-property 0 (length string)
+			   'display
+			   (cons (car image) (cdr image))
+			   string))
+    (insert string)))
 
 (put 'image-file-handler 'safe-magic t)
 (defun image-file-handler (operation &rest args)
