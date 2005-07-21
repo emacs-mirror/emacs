@@ -716,8 +716,8 @@ DEFUN ("compose-region-internal", Fcompose_region_internal,
 Compose text in the region between START and END.
 Optional 3rd and 4th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-region' for more detail.  */)
-     (start, end, components, mod_func)
-     Lisp_Object start, end, components, mod_func;
+     (start, end, components, modification_func)
+     Lisp_Object start, end, components, modification_func;
 {
   validate_region (&start, &end);
   if (!NILP (components)
@@ -726,7 +726,7 @@ for the composition.  See `compose-region' for more detail.  */)
       && !STRINGP (components))
     CHECK_VECTOR (components);
 
-  compose_text (XINT (start), XINT (end), components, mod_func, Qnil);
+  compose_text (XINT (start), XINT (end), components, modification_func, Qnil);
   return Qnil;
 }
 
@@ -737,8 +737,8 @@ DEFUN ("compose-string-internal", Fcompose_string_internal,
 Compose text between indices START and END of STRING.
 Optional 4th and 5th arguments are COMPONENTS and MODIFICATION-FUNC
 for the composition.  See `compose-string' for more detail.  */)
-     (string, start, end, components, mod_func)
-     Lisp_Object string, start, end, components, mod_func;
+     (string, start, end, components, modification_func)
+     Lisp_Object string, start, end, components, modification_func;
 {
   CHECK_STRING (string);
   CHECK_NUMBER (start);
@@ -749,7 +749,7 @@ for the composition.  See `compose-string' for more detail.  */)
       || XINT (end) > SCHARS (string))
     args_out_of_range (start, end);
 
-  compose_text (XINT (start), XINT (end), components, mod_func, string);
+  compose_text (XINT (start), XINT (end), components, modification_func, string);
   return string;
 }
 
