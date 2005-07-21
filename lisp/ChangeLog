@@ -9,6 +9,19 @@
 
 2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
+	* comint.el (comint-use-prompt-regexp, comint-send-input)
+	(comint-source-default, comint-extract-string)
+	(comint-get-source, comint-word, comint-completion)
+	(comint-source, comint-prompt-read-only, comint-update-fence):
+	Fix typos in docstrings.
+	(comint-use-prompt-regexp-instead-of-fields, comint-kill-output):
+	Declare with define-obsolete-*-alias macros.
+	(comint-previous-matching-input-from-input)
+	(comint-next-matching-input-from-input)
+	(comint-previous-matching-input, comint-next-matching-input)
+	(comint-forward-matching-input):
+	Improve argument/docstring consistency.
+
 	* desktop.el (desktop-clear-preserve-buffers-regexp):
 	Also preserve the *server* buffer.
 
