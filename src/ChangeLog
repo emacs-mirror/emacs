@@ -1,3 +1,7 @@
+2005-07-21  Andreas Schwab  <schwab@suse.de>
+
+	* eval.c (restore_stack_limits): Return a value.
+
 2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
 
 	* eval.c (Fdefvar): Doc fix.
