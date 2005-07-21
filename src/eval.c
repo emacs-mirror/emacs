@@ -235,6 +235,7 @@ restore_stack_limits (data)
 {
   max_specpdl_size = XINT (XCAR (data));
   max_lisp_eval_depth = XINT (XCDR (data));
+  return Qnil;
 }
 
 /* Call the Lisp debugger, giving it argument ARG.  */
