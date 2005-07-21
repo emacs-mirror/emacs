@@ -943,13 +943,15 @@ See Info node `(emacs-mime)Composing'.
     description))
 
 (defun mml-minibuffer-read-disposition (type &optional default)
-  (let* ((default (or default
-		      (if (string-match "^text/.*" type)
-			  "inline"
-			"attachment")))
-	 (disposition (completing-read "Disposition: "
-				       '(("attachment") ("inline") (""))
-				       nil t)))
+  (unless default (setq default
+                        (if (and (string-match "\\`text/" type)
+                                 (not (string-match "\\`text/rtf\\'" type)))
+                            "inline"
+                          "attachment")))
+  (let ((disposition (completing-read
+                      (format "Disposition (default %s): " default)
+                      '(("attachment") ("inline") (""))
+                      nil t nil nil default)))
     (if (not (equal disposition ""))
 	disposition
       default)))
