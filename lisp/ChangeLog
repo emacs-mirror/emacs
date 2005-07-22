@@ -1,3 +1,8 @@
+2005-07-22  Kim F. Storm  <storm@cua.dk>
+
+	* image-file.el (insert-image-file, image-file-yank-handler): Fix
+	last change to maintain a (unique) yank-handler on yanked images.
+
 2005-07-22  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
 
 	* dired.el (dired-move-to-filename-regexp): Recognize the B suffix
