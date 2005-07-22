@@ -1,3 +1,12 @@
+2005-07-22  Juanma Barranquero  <lekktu@gmail.com>
+
+	* hilit-chg.el (highlight-changes-global-initial-state)
+	(highlight-compare-buffers, hilit-chg-turn-on-maybe)
+	(hilit-chg-fixup, highlight-changes-mode):
+	Fix typos in docstrings.
+	(highlight-changes-global-modes, highlight-changes-rotate-faces):
+	Doc fixes.
+
 2005-07-21  Luc Teirlinck  <teirllm@auburn.edu>
 
 	* emacs-lisp/easy-mmode.el (define-minor-mode): Never call the
