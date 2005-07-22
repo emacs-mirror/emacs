@@ -1,3 +1,9 @@
+2005-07-22  Eduardo Mu,Aq(Boz  <emufer@terra.es>  (tiny change)
+
+	* dired.el (dired-move-to-filename-regexp): Recognize the B suffix
+	of the file size (as in "177B" for 177 bytes).  This happens with
+	"ls -lh" on FreeBSD.
+
 2005-07-22  Juanma Barranquero  <lekktu@gmail.com>
 
 	* hilit-chg.el (highlight-changes-global-initial-state)
