@@ -1343,7 +1343,7 @@ You can do basic editing with the menu bar and scroll bar using the mouse.
 
 Useful File menu items:
 Exit Emacs		(or type Control-x followed by Control-c)
-Recover Session		Recover files you were editing before a crash
+Recover Crashed Session	Recover files you were editing before a crash
 
 Important Help menu items:
 Emacs Tutorial		Learn how to use Emacs efficiently
