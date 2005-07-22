@@ -1,3 +1,7 @@
+2005-07-22  Richard M. Stallman  <rms@gnu.org>
+
+	* internals.texi (Garbage Collection): Clarify previous change.
+
 2005-07-21  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* internals.texi (Garbage Collection): Add gc-cons-percentage.
