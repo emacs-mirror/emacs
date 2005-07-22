@@ -1,3 +1,11 @@
+2005-07-22  Juri Linkov  <juri@jurta.org>
+
+	* simple.el (line-move-1): Fix comments.
+
+	* startup.el (normal-splash-screen): Update menu name.
+
+	* tempo.el (tempo-insert-template): Fix 2005-07-16 change.
+
 2005-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
 	* term/xterm.el: Load term/rxvt if the terminal is actually an
