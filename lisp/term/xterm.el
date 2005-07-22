@@ -26,6 +26,13 @@
 
 ;;; Code:
 
+;;; rxvt terminals sometimes set the TERM variable to "xterm", but
+;;; rxvt's keybindings that are incompatible with xterm's. It is
+;;; better in that case to load rxvt's terminal initialization file.
+(if (and (getenv "COLORTERM")
+	 (string-match "\\`rxvt" (getenv "COLORTERM")))
+    (load "term/rxvt")
+
 ;;; The terminal intialization C code file might have initialized
 ;;; function keys F13->F60 from the termcap/terminfo information.  On
 ;;; a PC-style keyboard these keys correspond to
@@ -359,38 +366,11 @@ versions of xterm."
     ;; right colors, so clear them.
     (clear-face-cache)))
 
-;; rxvt puts the default colors into an environment variable
-;; COLORFGBG.  We use this to set the background mode in a more
-;; intelligent way than the default guesswork in startup.el.
-(defun xterm-rxvt-set-background-mode ()
-  "Set background mode as appropriate for the default rxvt colors."
-  (let ((fgbg (getenv "COLORFGBG"))
-	bg rgb)
-    (setq default-frame-background-mode 'light)
-    (when (and fgbg
-	       (string-match ".*;\\([0-9][0-9]?\\)\\'" fgbg))
-      (setq bg (string-to-number (substring fgbg (match-beginning 1))))
-      ;; The next line assumes that xterm-standard-colors are ordered
-      ;; by the color index in the ascending order!
-      (setq rgb (car (cddr (nth bg xterm-standard-colors))))
-      ;; See the commentary in frame-set-background-mode about the
-      ;; computation below.
-      (if (< (apply '+ rgb)
-	     ;; The following line assumes that white is the 15th
-	     ;; color in xterm-standard-colors.
-	     (* (apply '+ (car (cddr (nth 15 xterm-standard-colors)))) 0.6))
-	  (setq default-frame-background-mode 'dark)))
-    (frame-set-background-mode (selected-frame))))
-
 ;; Do it!
 (xterm-register-default-colors)
-;; If this xterm is actually a disguised rxvt, be more intelligent about
-;; determining the background mode.
-(and (getenv "COLORTERM")
-     (string-match "\\`rxvt" (getenv "COLORTERM"))
-     (xterm-rxvt-set-background-mode))
 ;; This recomputes all the default faces given the colors we've just set up.
 (tty-set-up-initial-frame-faces)
 
+)
 ;; arch-tag: 12e7ebdd-1e6c-4b25-b0f9-35ace25e855a
 ;;; xterm.el ends here

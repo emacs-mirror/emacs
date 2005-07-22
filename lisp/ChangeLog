@@ -1,5 +1,9 @@
 2005-07-22  Dan Nicolaescu  <dann@ics.uci.edu>
 
+	* term/xterm.el: Load term/rxvt if the terminal is actually an
+	rxvt terminal.
+	(xterm-rxvt-set-background-mode): Remove, not used anymore.
+
 	* term/rxvt.el (function-key-map): Use substitute-key-definition
 	to bind {C,S,C-S}-{f1-f10}. Add a few missing key bindings.
 
