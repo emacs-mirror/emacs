@@ -96,7 +96,7 @@
 ;;; PRIVATE: defsubst must be defined before they are first used
 
 (defsubst derived-mode-hook-name (mode)
-  "Construct the mode hook name based on mode name MODE."
+  "Construct a mode-hook name based on a MODE name."
   (intern (concat (symbol-name mode) "-hook")))
 
 (defsubst derived-mode-map-name (mode)
@@ -382,18 +382,11 @@ Always merge its parent into it, since the merge is non-destructive."
     (derived-mode-merge-abbrev-tables old-table new-table)
     (setq local-abbrev-table new-table)))
 
-;;;(defun derived-mode-run-setup-function (mode)
-;;;  "Run the setup function if it exists."
-
-;;;  (let ((fname (derived-mode-setup-function-name mode)))
-;;;    (if (fboundp fname)
-;;;	(funcall fname))))
-
 (defun derived-mode-run-hooks (mode)
-  "Run the mode hook for MODE."
-  (let ((hooks-name (derived-mode-hook-name mode)))
-    (if (boundp hooks-name)
-	(run-hooks hooks-name))))
+   "Run the mode hook for MODE."
+   (let ((hooks-name (derived-mode-hook-name mode)))
+     (if (boundp hooks-name)
+         (run-hooks hooks-name))))
 
 ;; Functions to merge maps and tables.
 

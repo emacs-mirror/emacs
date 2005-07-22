@@ -62,7 +62,7 @@
   ;;  (define-derived-mode foo ...), (define-minor-mode foo)
   (concat
    "^\\s-*(\\(def\\(ine-skeleton\\|ine-generic-mode\\|ine-derived-mode\\|\
-ine-minor-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
+ine-minor-mode\\|ine-compilation-mode\\|un-cvs-mode\\|foo\\|[^cfgv]\\w+\\*?\\)\
 \\|easy-mmode-define-global-mode\\|menu-bar-make-toggle\\)"
    find-function-space-re
    "\\('\\|\(quote \\)?%s\\(\\s-\\|$\\|\(\\|\)\\)")

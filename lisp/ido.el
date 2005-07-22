@@ -101,9 +101,9 @@
 ;; The list in {...} are the matching buffers, most recent first
 ;; (buffers visible in the current frame are put at the end of the
 ;; list by default).  At any time I can select the item at the head of
-;; the list by pressing RET.  I can also bring the put the first
-;; element at the end of the list by pressing C-s or [right], or put
-;; the last element at the head of the list by pressing C-r or [left].
+;; the list by pressing RET.  I can also put the first element at the
+;; end of the list by pressing C-s or [right], or bring the last
+;; element to the head of the list by pressing C-r or [left].
 ;;
 ;; The item in [...] indicates what can be added to my input by
 ;; pressing TAB.  In this case, I will get "3" added to my input.
@@ -210,8 +210,7 @@
 ;; Example:
 ;;
 ;; If you have again two Buffers "123456" and "123" then hitting "2" does
-;; not match because "2" is not a PREFIX in any of the buffer-names. This
-;; is the only difference between the substring and prefix matching.
+;; not match because "2" is not a PREFIX in any of the buffer-names.
 
 ;; Flexible matching
 ;; -----------------
@@ -236,14 +235,10 @@
 ;;
 ;; There is limited provision for regexp matching within ido,
 ;; enabled through `ido-enable-regexp' (toggle with C-t).
-;; This allows you to type `c$' for example and see all file names
-;; ending in `c'.  This facility is quite limited though in two
-;; respects.  First, you can't currently type in expressions like
-;; `[0-9]' directly -- you have to type them in when ido-enable-regexp
-;; is nil and then toggle on the regexp functionality.  Likewise,
-;; don't enter an expression containing `\' in regexp mode.  If you
-;; try, ido gets confused, so just hit C-g and try again.  Secondly,
-;; no completion mechanism is currently offered with regexp searching.
+;; This allows you to type `[ch]$' for example and see all file names
+;; ending in `c' or `h'.
+;;
+;; Note: ido-style completion is inhibited when you enable regexp matching.
 
 
 ;; Customization
@@ -1405,7 +1400,7 @@ This function also adds a hook to the minibuffer."
     (define-key map "\C-s" 'ido-next-match)
     (define-key map "\C-t" 'ido-toggle-regexp)
     (define-key map "\C-z" 'ido-undo-merge-work-directory)
-    (define-key map [(control ? )] 'ido-restrict-to-matches)
+    (define-key map [(control ?\s)] 'ido-restrict-to-matches)
     (define-key map [(control ?@)] 'ido-restrict-to-matches)
     (define-key map [right] 'ido-next-match)
     (define-key map [left] 'ido-prev-match)
@@ -1436,7 +1431,7 @@ This function also adds a hook to the minibuffer."
       (define-key map [(meta ?m)] 'ido-make-directory)
       (define-key map [(meta ?n)] 'ido-next-work-directory)
       (define-key map [(meta ?o)] 'ido-prev-work-file)
-      (define-key map [(meta ?O)] 'ido-next-work-file)
+      (define-key map [(meta control ?o)] 'ido-next-work-file)
       (define-key map [(meta ?p)] 'ido-prev-work-directory)
       (define-key map [(meta ?s)] 'ido-merge-work-directories)
       )
@@ -2028,7 +2023,8 @@ If INITIAL is non-nil, it specifies the initial input string."
     (setq item 'file))
   (let ((ido-current-directory (ido-expand-directory default))
 	(ido-context-switch-command switch-cmd)
-        ido-directory-nonreadable ido-directory-too-big
+	ido-directory-nonreadable ido-directory-too-big
+	(minibuffer-completing-file-name t)
 	filename)
 
     (if (or (not ido-mode) (ido-is-slow-ftp-host))
@@ -2056,7 +2052,7 @@ If INITIAL is non-nil, it specifies the initial input string."
 
 	 ((and ido-use-filename-at-point
 	       (setq fn (if (eq ido-use-filename-at-point 'guess)
-			    (ffap-guesser)
+			    (with-no-warnings (ffap-guesser))
 			  (ffap-string-at-point)))
 	       (not (string-match "^http:/" fn))
 	       (setq d (file-name-directory fn))
@@ -4215,6 +4211,7 @@ For details of keybindings, do `\\[describe-function] ido-find-file'."
 
 (put 'dired-do-rename 'ido 'ignore)
 (put 'ibuffer-find-file 'ido 'find-file)
+(put 'dired-other-window 'ido 'dir)
 
 ;;;###autoload
 (defun ido-read-buffer (prompt &optional default require-match)
@@ -4255,6 +4252,7 @@ See `read-file-name' for additional parameters."
 	     (ido-context-switch-command
 	      (if (eq (get this-command 'ido) 'find-file) nil 'ignore))
 	     (vc-handled-backends (and (boundp 'vc-handled-backends) vc-handled-backends))
+	     (minibuffer-completing-file-name t)
 	     (ido-current-directory (ido-expand-directory dir))
 	     (ido-directory-nonreadable (not (file-readable-p ido-current-directory)))
 	     (ido-directory-too-big (and (not ido-directory-nonreadable)
@@ -4287,6 +4285,7 @@ See `read-file-name' for additional parameters."
 Read directory name, prompting with PROMPT and completing in directory DIR.
 See `read-directory-name' for additional parameters."
   (let* (filename
+	 (minibuffer-completing-file-name t)
 	 (ido-context-switch-command 'ignore)
 	 ido-saved-vc-hb
 	 (ido-current-directory (ido-expand-directory dir))

@@ -948,7 +948,7 @@ to:
 (setq mail-citation-hook 'sc-cite-original)
 @end example
 
-Note the lack of of a single quote on the first argument to @code{setq}.
+Note the lack of a single quote on the first argument to @code{setq}.
 
 @node  MH-E with any Emacsen, VM with any Emacsen, Emacs 18 MUAs, Getting Connected
 @comment  node-name,  next,  previous,  up

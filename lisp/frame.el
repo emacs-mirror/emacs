@@ -592,8 +592,7 @@ The functions are run with one arg, the newly created frame.")
   "Functions to run after a frame's font has been changed.")
 
 ;; Alias, kept temporarily.
-(defalias 'new-frame 'make-frame)
-(make-obsolete 'new-frame 'make-frame "22.1")
+(define-obsolete-function-alias 'new-frame 'make-frame "22.1")
 
 (defun make-frame (&optional parameters)
   "Return a newly created frame displaying the current buffer.
@@ -851,7 +850,7 @@ When called interactively, prompt for the name of the font to use.
 To get the frame's current default font, use `frame-parameters'.
 
 The default behavior is to keep the numbers of lines and columns in
-the frame, thus may change its pixel size. If optional KEEP-SIZE is
+the frame, thus may change its pixel size.  If optional KEEP-SIZE is
 non-nil (interactively, prefix argument) the current frame size (in
 pixels) is kept by adjusting the numbers of the lines and columns."
   (interactive
@@ -1149,23 +1148,21 @@ The value is one of the symbols `static-gray', `gray-scale',
 
 
 ;;;; Aliases for backward compatibility with Emacs 18.
-(defalias 'screen-height 'frame-height)
-(defalias 'screen-width 'frame-width)
+(define-obsolete-function-alias 'screen-height 'frame-height) ;before 19.15
+(define-obsolete-function-alias 'screen-width 'frame-width) ;before 19.15
 
 (defun set-screen-width (cols &optional pretend)
-  "Obsolete function to change the size of the screen to COLS columns.
+  "Change the size of the screen to COLS columns.
 Optional second arg non-nil means that redisplay should use COLS columns
 but that the idea of the actual width of the frame should not be changed.
-This function is provided only for compatibility with Emacs 18; new code
-should use `set-frame-width instead'."
+This function is provided only for compatibility with Emacs 18."
   (set-frame-width (selected-frame) cols pretend))
 
 (defun set-screen-height (lines &optional pretend)
-  "Obsolete function to change the height of the screen to LINES lines.
+  "Change the height of the screen to LINES lines.
 Optional second arg non-nil means that redisplay should use LINES lines
 but that the idea of the actual height of the screen should not be changed.
-This function is provided only for compatibility with Emacs 18; new code
-should use `set-frame-height' instead."
+This function is provided only for compatibility with Emacs 18."
   (set-frame-height (selected-frame) lines pretend))
 
 (defun delete-other-frames (&optional frame)
@@ -1188,14 +1185,12 @@ left untouched.  FRAME nil or omitted means use the selected frame."
       (when (eq (frame-parameter frame 'minibuffer) 'only)
 	(delete-frame frame)))))
 
-(make-obsolete 'screen-height 'frame-height) ;before 19.15
-(make-obsolete 'screen-width  'frame-width) ;before 19.15
 (make-obsolete 'set-screen-width 'set-frame-width) ;before 19.15
 (make-obsolete 'set-screen-height 'set-frame-height) ;before 19.15
 
 ;; miscellaneous obsolescence declarations
-(defvaralias 'delete-frame-hook 'delete-frame-functions)
-(make-obsolete-variable 'delete-frame-hook 'delete-frame-functions "22.1")
+(define-obsolete-variable-alias 'delete-frame-hook
+    'delete-frame-functions "22.1")
 
 
 ;; Highlighting trailing whitespace.
@@ -1286,8 +1281,7 @@ cursor display.  On a text-only terminal, this is not implemented."
 				   'blink-cursor-start)))
     (internal-show-cursor nil t)))
 
-(defvaralias 'blink-cursor 'blink-cursor-mode)
-(make-obsolete-variable 'blink-cursor 'blink-cursor-mode "22.1")
+(define-obsolete-variable-alias 'blink-cursor 'blink-cursor-mode "22.1")
 
 (defun blink-cursor-start ()
   "Timer function called from the timer `blink-cursor-idle-timer'.
@@ -1333,7 +1327,7 @@ itself as a pre-command hook."
 
 
 (defcustom cursor-in-non-selected-windows t
-  "*Non-nil means show a hollow box cursor in non-selected-windows.
+  "*Non-nil means show a hollow box cursor in non-selected windows.
 If nil, don't show a cursor except in the selected window.
 Use Custom to set this variable to get the display updated."
   :tag "Cursor in non-selected windows"

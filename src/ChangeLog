@@ -1,3 +1,164 @@
+2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
+
+	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
+
+	* ccl.c (Fregister_ccl_program): Fix typos in docstring.
+	(Fccl_execute_on_string): Likewise; add usage info.
+
+	* composite.c (Fcompose_region_internal)
+	(Fcompose_string_internal):
+	Improve argument/docstring consistency.
+
+	* minibuf.c (Fminibuffer_prompt_end, Feval_minibuffer):
+	Fix typos in docstrings.
+
+	* textprop.c (Fnext_char_property_change)
+	(Fprevious_char_property_change): Doc fixes.
+
+	* window.c (Fset_window_margins, Fset_window_fringes):
+	Improve argument/docstring consistency.
+
+	* xfaces.c (Finternal_lisp_face_p): Doc fix.
+
+2005-07-21  Andreas Schwab  <schwab@suse.de>
+
+	* eval.c (restore_stack_limits): Return a value.
+
+2005-07-20  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fdefvar): Doc fix.
+
+2005-07-20  Kim F. Storm  <storm@cua.dk>
+
+	* fileio.c (Fdo_auto_save, do_auto_save_unwind):
+	Use make_save_value to unwind protect stream.
+
+	* lread.c (Fload, load_unwind):
+	Use make_save_value to unwind protect stream.
+
+2005-07-19  Juanma Barranquero  <lekktu@gmail.com>
+
+	* eval.c (Fprog2, Fcalled_interactively_p),
+	(syms_of_eval) <debug-on-quit>: Doc fixes.
+	(syms_of_eval) <max-specpdl-size>:
+	(Finteractive_p): Fix typos in docstrings.
+
+2005-07-19  Kim F. Storm  <storm@cua.dk>
+
+	* w32fns.c (Vx_hand_shape): Variable removed.
+	(syms_of_w32fns): Intern and staticpro Qw32_charset_default.
+
+2005-07-18  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* buffer.h (Fgenerate_new_buffer_name): Declare (for use in coding.c).
+
+2005-07-18  Kim F. Storm  <storm@cua.dk>
+
+	* frame.h (struct frame): New member already_hscrolled_p.
+
+	* xdisp.c (redisplay_internal): Only try to hscroll each frame once
+	to avoid redisplay looping hscrolling back and forth ad infinitum.
+
+2005-07-18  Juri Linkov  <juri@jurta.org>
+
+	* buffer.c (scroll-up-aggressively, scroll-down-aggressively):
+	* keymap.c (Fminor_mode_key_binding):
+	* macterm.c (mac-emulate-three-button-mouse):
+	Delete duplicate duplicate words.
+
+2005-07-18  Ken Raeburn  <raeburn@gnu.org>
+
+	* minibuf.c (Ftest_completion): Fix odd syntax in test.
+
+2005-07-18  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macfns.c (x_set_cursor_color): Use XSetBackground and XSetForeground.
+
+	* macgui.h (struct _XGC): New struct.
+	(GC): Use it.
+	(GCForeground, GCBackground, GCFont): Use X11 mask values.
+	(XCreateGC, XParseGeometry): Move externs to macterm.h.
+
+	* macterm.c (x_bitmap_icon, x_make_frame_visible): Remove declarations.
+	(XSetFont): Add declaration.
+	(mac_set_forecolor, mac_set_backcolor, mac_set_colors):
+	Remove functions.
+	(GC_FORE_COLOR, GC_BACK_COLOR, GC_FONT, MAC_WINDOW_NORMAL_GC):
+	New defines.
+	(XDrawLine, mac_draw_line_to_pixmap, XClearWindow)
+	(mac_draw_bitmap, XCreatePixmapFromBitmapData, XFillRectangle)
+	(mac_draw_rectangle, mac_draw_string_common, mac_scroll_area):
+	Use them.
+	(mac_erase_rectangle): New function.
+	(XClearArea, x_draw_fringe_bitmap, x_clear_glyph_string_rect)
+	(x_draw_stretch_glyph_string): Use it.
+	(XChangeGC, XCreateGC, XGetGCValues, XSetForeground)
+	(XSetBackground, XSetFont): Adjust for new GC implementation.
+	(x_draw_fringe_bitmap, x_draw_box_rect): Use GC to set colors.
+	(XTset_vertical_scroll_bar): Clear area under scroll bar.
+
+	* macterm.h (struct mac_display_info): Change types of
+	scratch_cursor_gc black_relief.gc, and white_relief.gc to GC.
+	(XCreateGC, XParseGeometry): Move externs from macgui.h.
+
+	* xfaces.c [MAC_OS] (XCreateGC): Remove extern.
+
+2005-07-16  Richard M. Stallman  <rms@gnu.org>
+
+	* buffer.c (Fmake_overlay): Doc fix.
+
+2005-07-16  Eli Zaretskii  <eliz@gnu.org>
+
+	* w32proc.c (syms_of_ntproc): staticpro Qhigh, Qlow,
+	Vw32_valid_locale_ids, and Vw32_valid_codepages.
+
+2005-07-16  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c [TARGET_API_MAC_CARBON] (Fmac_code_convert_string):
+	Use Fstring_as_unibyte instead of string_make_unibyte.
+
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* xdisp.c (select_frame_for_redisplay): Use find_symbol_value.
+
+2005-07-15  Kim F. Storm  <storm@cua.dk>
+
+	* xdisp.c: Fix redisplay loop in last change.
+	(IT_POS_VALID_AFTER_MOVE_P): New macro.
+	(move_it_vertically_backward, move_it_by_lines): Use it.
+
+2005-07-14  Jason Rumney  <jasonr@gnu.org>
+
+	* w32.c (init_environment): Default HOME directory to user's
+	appdata directory if possible.
+
+2005-07-14  Kim F. Storm  <storm@cua.dk>
+
+	* .gdbinit (pitx): Fix output format.  Print string charpos.
+
+	* lread.c (syms_of_lread): Initialize seen_list.
+
+	* search.c (syms_of_search): Staticpro searchbuf.whitespace_regexp.
+
+	* syntax.c (syms_of_syntax): Staticpro lisp objects in gl_state.
+	Staticpro re_match_object.
+
+2005-07-14  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* macselect.c (get_scrap_target_type_list): Avoid NULL pointer
+	dereference.
+
+	* macterm.c (mac_window_to_frame): Remove duplicate define.
+
+2005-07-14  Kenichi Handa  <handa@m17n.org>
+
+	* coding.c (code_convert_region_unwind): ARG is changed to a cons.
+	(code_convert_region): Adjust for the above change.
+	(set_conversion_work_buffer): If the work buffer is already in
+	use, generate a new buffer and return it.  Otherwise return Qnil.
+	(run_pre_post_conversion_on_str): Adjust for the above change.
+	(run_pre_write_conversin_on_c_str): Likewise.
+
 2005-07-13  Kim F. Storm  <storm@cua.dk>
 
 	* xdisp.c (start_display): Don't reseat to next visible line start
@@ -9,7 +170,7 @@
 	count rows moved over when moving to start of current row in case
 	row starts in middle of a string or image.  Also move further
 	backward if we end up in a string or image.
-	(try_cursor_movement): if overlay string spans multiple lines,
+	(try_cursor_movement): If overlay string spans multiple lines,
 	move backward to set cursor on start of an overlay string.
 	(cursor_row_p): Row is ok if cursor is at newline from string, but
 	string starts on this line (so we always position cursor at start
@@ -38,22 +199,22 @@
 	(disable_mouse_highlight): Remove unused variable.
 	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click)
 	(x_scroll_bar_handle_press, x_scroll_bar_handle_release)
-	(x_scroll_bar_handle_drag): Remove argument `timestamp'.  All
-	callers changed.
+	(x_scroll_bar_handle_drag): Remove argument `timestamp'.
+	All callers changed.
 	[USE_TOOLKIT_SCROLL_BARS] (construct_scroll_bar_click): Don't set
 	timestamp.
 	[USE_CARBON_EVENTS] (mac_handle_mouse_event): Likewise.
 	(x_scroll_bar_create, XTset_vertical_scroll_bar): Show scroll bar
 	only when its width is less than the height.
 	(XTredeem_scroll_bar): Sync with xterm.c.
-	(font_name_table, font_name_table_size, font_name_count): Make
-	static.
+	(font_name_table, font_name_table_size, font_name_count):
+	Make static.
 	(drag_and_drop_file_list): Remove variable.  Previous use is now
 	local to function.
 	(do_ae_open_documents): Move DRAG_N_DROP event construction part
 	from XTread_socket.
-	(XTread_socket): Consolidate setting of event timestamp.  Move
-	DRAG_N_DROP event construction part to do_ae_open_documents.
+	(XTread_socket): Consolidate setting of event timestamp.
+	Move DRAG_N_DROP event construction part to do_ae_open_documents.
 	Support extra_keyboard_modifiers.
 
 	* xfaces.c (try_font_list) [MAC_OS]: Try font family name

@@ -1,6 +1,6 @@
 ;;; smtpmail.el --- simple SMTP protocol (RFC 821) for sending mail
 
-;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004
+;; Copyright (C) 1995, 1996, 2001, 2002, 2003, 2004, 2005
 ;;   Free Software Foundation, Inc.
 
 ;; Author: Tomoji Kagatani <kagatani@rbc.ncl.omron.co.jp>
@@ -207,7 +207,7 @@ This is relative to `smtpmail-queue-dir'.")
 (defvar smtpmail-queue-index (concat smtpmail-queue-dir
 				     smtpmail-queue-index-file))
 
-(defconst smtpmail-auth-supported '(cram-md5 login)
+(defconst smtpmail-auth-supported '(cram-md5 plain login)
   "List of supported SMTP AUTH mechanisms.")
 
 ;;;
@@ -559,8 +559,24 @@ This is relative to `smtpmail-queue-dir'.")
 		(not (integerp (car ret)))
 		(>= (car ret) 400))
 	    (throw 'done nil)))
+       ((eq mech 'plain)
+	(smtpmail-send-command process "AUTH PLAIN")
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(not (equal (car ret) 334)))
+	    (throw 'done nil))
+	(smtpmail-send-command process (base64-encode-string
+					(concat "\0"
+						(smtpmail-cred-user cred)
+						"\0"
+						(smtpmail-cred-passwd cred))))
+	(if (or (null (car (setq ret (smtpmail-read-response process))))
+		(not (integerp (car ret)))
+		(not (equal (car ret) 235)))
+	    (throw 'done nil)))
+
        (t
-        (error "Mechanism %s not implemented" mech)))
+	(error "Mechanism %s not implemented" mech)))
       ;; Remember the password.
       (when (and (not (stringp smtpmail-auth-credentials))
 		 (null (smtpmail-cred-passwd cred)))

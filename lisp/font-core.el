@@ -125,7 +125,7 @@ major modes support different levels of fontification, you can use the variable
 When you turn Font Lock mode on/off the buffer is fontified/defontified, though
 fontification occurs only if the buffer is less than `font-lock-maximum-size'.
 
-For example, to specify that Font Lock mode use use Lazy Lock mode as a support
+For example, to specify that Font Lock mode uses Lazy Lock mode as a support
 mode and use maximum levels of fontification, put in your ~/.emacs:
 
  (setq font-lock-support-mode 'lazy-lock-mode)

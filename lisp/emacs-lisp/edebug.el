@@ -243,9 +243,9 @@ Both SYMBOL and SPEC are unevaluated. The SPEC can be 0, t, a symbol
   `(put (quote ,symbol) 'edebug-form-spec (quote ,spec)))
 
 (defmacro def-edebug-form-spec (symbol spec-form)
-  "For compatibility with old version.  Use `def-edebug-spec' instead."
-  (message "Obsolete: use def-edebug-spec instead.")
+  "For compatibility with old version."
   (def-edebug-spec symbol (eval spec-form)))
+(make-obsolete 'def-edebug-form-spec 'def-edebug-spec "22.1")
 
 (defun get-edebug-spec (symbol)
   ;; Get the spec of symbol resolving all indirection.
@@ -3651,9 +3651,12 @@ Return the result of the last expression."
 ;; Replace printing functions.
 
 ;; obsolete names
-(defalias 'edebug-install-custom-print-funcs 'edebug-install-custom-print)
-(defalias 'edebug-reset-print-funcs 'edebug-uninstall-custom-print)
-(defalias 'edebug-uninstall-custom-print-funcs 'edebug-uninstall-custom-print)
+(define-obsolete-function-alias 'edebug-install-custom-print-funcs
+    'edebug-install-custom-print "22.1")
+(define-obsolete-function-alias 'edebug-reset-print-funcs
+    'edebug-uninstall-custom-print "22.1")
+(define-obsolete-function-alias 'edebug-uninstall-custom-print-funcs
+    'edebug-uninstall-custom-print "22.1")
 
 (defun edebug-install-custom-print ()
   "Replace print functions used by Edebug with custom versions."

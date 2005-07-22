@@ -214,9 +214,16 @@ colors of this face affect the appearance of tool bar icons.  @xref{Tool Bars}.
 @item tooltip
 This face is used for tooltips.  @xref{Tooltips}.
 @item menu
-This face determines the colors and font of Emacs's menus.  Setting the
-font of LessTif/Motif menus is currently not supported; attempts to set
-the font are ignored in this case.  @xref{Menu Bars}.
+@cindex menu bar appearance
+@cindex @code{menu} face, no effect if customized
+@cindex customization of @code{menu} face
+This face determines the colors and font of Emacs's menus.  @xref{Menu
+Bars}.  Setting the font of LessTif/Motif menus is currently not
+supported; attempts to set the font are ignored in this case.
+Likewise, attempts to customize this face in Emacs built with GTK and
+in the MS-Windows port are ignored by the respective GUI toolkits;
+you need to use system-wide styles and options to change the
+appearance of the menus.
 @end table
 
 @node Font Lock

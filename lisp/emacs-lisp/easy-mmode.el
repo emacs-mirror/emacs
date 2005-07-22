@@ -142,8 +142,10 @@ For example, you could write
   (let* ((mode-name (symbol-name mode))
 	 (pretty-name (easy-mmode-pretty-mode-name mode lighter))
 	 (globalp nil)
+	 (set nil)
 	 (initialize nil)
 	 (group nil)
+	 (type nil)
 	 (extra-args nil)
 	 (extra-keywords nil)
 	 (require t)
@@ -160,8 +162,10 @@ For example, you could write
 	(:lighter (setq lighter (pop body)))
 	(:global (setq globalp (pop body)))
 	(:extra-args (setq extra-args (pop body)))
+	(:set (setq set (list :set (pop body))))
 	(:initialize (setq initialize (list :initialize (pop body))))
 	(:group (setq group (nconc group (list :group (pop body)))))
+	(:type (setq type (list :type (pop body))))
 	(:require (setq require (pop body)))
 	(:keymap (setq keymap (pop body)))
 	(t (push keyw extra-keywords) (push (pop body) extra-keywords))))
@@ -169,15 +173,18 @@ For example, you could write
     (setq keymap-sym (if (and keymap (symbolp keymap)) keymap
 		       (intern (concat mode-name "-map"))))
 
+    (unless set (setq set '(:set 'custom-set-minor-mode)))
+
     (unless initialize
-      (setq initialize
-	    '(:initialize 'custom-initialize-default)))
+      (setq initialize '(:initialize 'custom-initialize-default)))
 
     (unless group
       ;; We might as well provide a best-guess default group.
       (setq group
 	    `(:group ',(intern (replace-regexp-in-string
 				"-mode\\'" "" mode-name)))))
+
+    (unless type (setq type '(:type 'boolean)))
 
     `(progn
        ;; Define the variable to enable or disable the mode.
@@ -201,10 +208,10 @@ See the command `%s' for a description of this minor-mode."))
 
 	    `(defcustom ,mode ,init-value
 	       ,(format base-doc-string pretty-name mode mode)
-	       :set 'custom-set-minor-mode
+	       ,@set
 	       ,@initialize
 	       ,@group
-	       :type 'boolean
+	       ,@type
 	       ,@(cond
 		  ((not (and curfile require)) nil)
 		  ((not (eq require t)) `(:require ,require)))
@@ -260,12 +267,7 @@ With zero or negative ARG turn mode off.
        (add-minor-mode ',mode ',lighter
 		       ,(if keymap keymap-sym
 			  `(if (boundp ',keymap-sym)
-			       (symbol-value ',keymap-sym))))
-
-       ;; If the mode is global, call the function according to the default.
-       ,(if globalp
-	    `(if (and load-file-name (not (equal ,init-value ,mode)))
-		 (eval-after-load load-file-name '(,mode (if ,mode 1 -1))))))))
+			       (symbol-value ',keymap-sym)))))))
 
 ;;;
 ;;; make global minor mode

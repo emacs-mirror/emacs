@@ -287,7 +287,7 @@ You can use \\[hexl-find-file] to visit a file in Hexl mode.
     (set (make-local-variable 'eldoc-documentation-function)
 	 'hexl-print-current-point-info)
     (eldoc-add-command-completions "hexl-")
-    (eldoc-remove-command "hexl-save-buffer" 
+    (eldoc-remove-command "hexl-save-buffer"
 			  "hexl-current-address")
 
     (if hexl-follow-ascii (hexl-follow-ascii 1)))
@@ -918,7 +918,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
 (defun hexl-activate-ruler ()
   "Activate `ruler-mode'"
   (require 'ruler-mode)
-  (set (make-local-variable 'ruler-mode-ruler-function) 
+  (set (make-local-variable 'ruler-mode-ruler-function)
        'hexl-mode-ruler)
   (ruler-mode 1))
 
@@ -929,7 +929,7 @@ Customize the variable `hexl-follow-ascii' to disable this feature."
   (with-no-warnings
     (set (make-local-variable 'hl-line-range-function)
 	 'hexl-highlight-line-range)
-    (set (make-local-variable 'hl-line-face) 
+    (set (make-local-variable 'hl-line-face)
 	 'highlight))
   (hl-line-mode 1))
 
@@ -1009,7 +1009,8 @@ This function is assumed to be used as call back function for `hl-line-mode'."
   (define-key hexl-mode-map "\C-e" 'hexl-end-of-line)
   (define-key hexl-mode-map "\C-f" 'hexl-forward-char)
 
-  (if (not (eq (key-binding (char-to-string help-char)) 'help-command))
+  (if (not (memq (key-binding (char-to-string help-char))
+                 '(help-command ehelp-command)))
       (define-key hexl-mode-map (char-to-string help-char) 'undefined))
 
   (define-key hexl-mode-map "\C-k" 'undefined)

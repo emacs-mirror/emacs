@@ -159,8 +159,7 @@ both at the file level and at the levels of the containing directories."
   :type 'boolean
   :group 'find-file)
 
-(defcustom revert-without-query
-  nil
+(defcustom revert-without-query nil
   "*Specify which files should be reverted without query.
 The value is a list of regular expressions.
 If the file name matches one of these regular expressions,
@@ -178,7 +177,7 @@ If the buffer is visiting a new file, the value is nil.")
 (put 'buffer-file-number 'permanent-local t)
 
 (defvar buffer-file-numbers-unique (not (memq system-type '(windows-nt)))
-  "Non-nil means that buffer-file-number uniquely identifies files.")
+  "Non-nil means that `buffer-file-number' uniquely identifies files.")
 
 (defvar buffer-file-read-only nil
   "Non-nil if visited file was read-only when visited.")
@@ -381,9 +380,8 @@ and should return either a buffer or nil."
 These functions are called as soon as the error is detected.
 Variable `buffer-file-name' is already set up.
 The functions are called in the order given until one of them returns non-nil.")
-(defvaralias 'find-file-not-found-hooks 'find-file-not-found-functions)
-(make-obsolete-variable
- 'find-file-not-found-hooks 'find-file-not-found-functions "22.1")
+(define-obsolete-variable-alias 'find-file-not-found-hooks
+    'find-file-not-found-functions "22.1")
 
 ;;;It is not useful to make this a local variable.
 ;;;(put 'find-file-hooks 'permanent-local t)
@@ -395,8 +393,7 @@ functions are called."
   :type 'hook
   :options '(auto-insert)
   :version "22.1")
-(defvaralias 'find-file-hooks 'find-file-hook)
-(make-obsolete-variable 'find-file-hooks 'find-file-hook "22.1")
+(define-obsolete-variable-alias 'find-file-hooks 'find-file-hook "22.1")
 
 (defvar write-file-functions nil
   "List of functions to be called before writing out a buffer to a file.
@@ -412,10 +409,9 @@ This hook is not run if any of the functions in
 to how to save a buffer to file, for instance, choosing a suitable
 coding system and setting mode bits.  (See Info
 node `(elisp)Saving Buffers'.)  To perform various checks or
-updates before the buffer is saved, use `before-save-hook' .")
+updates before the buffer is saved, use `before-save-hook'.")
 (put 'write-file-functions 'permanent-local t)
-(defvaralias 'write-file-hooks 'write-file-functions)
-(make-obsolete-variable 'write-file-hooks 'write-file-functions "22.1")
+(define-obsolete-variable-alias 'write-file-hooks 'write-file-functions "22.1")
 
 (defvar local-write-file-hooks nil)
 (make-variable-buffer-local 'local-write-file-hooks)
@@ -439,8 +435,8 @@ For hooks that _do_ pertain to the particular visited file, use
 To perform various checks or updates before the buffer is saved,
 use `before-save-hook'.")
 (make-variable-buffer-local 'write-contents-functions)
-(defvaralias 'write-contents-hooks 'write-contents-functions)
-(make-obsolete-variable 'write-contents-hooks 'write-contents-functions "22.1")
+(define-obsolete-variable-alias 'write-contents-hooks
+    'write-contents-functions "22.1")
 
 (defcustom enable-local-variables t
   "*Control use of local variables in files you visit.
@@ -866,8 +862,8 @@ it means chase no more than that many links and then stop."
   "Change the encoding of FILE's name from CODING to NEW-CODING.
 The value is a new name of FILE.
 Signals a `file-already-exists' error if a file of the new name
-already exists unless optional third argument OK-IF-ALREADY-EXISTS
-is non-nil.  A number as third arg means request confirmation if
+already exists unless optional fourth argument OK-IF-ALREADY-EXISTS
+is non-nil.  A number as fourth arg means request confirmation if
 the new name already exists.  This is what happens in interactive
 use with M-x."
   (interactive
@@ -1326,9 +1322,9 @@ When nil, never request confirmation."
 If a buffer exists visiting FILENAME, return that one, but
 verify that the file has not changed since visited or saved.
 The buffer is not selected, just returned to the caller.
-Optional first arg NOWARN non-nil means suppress any warning messages.
-Optional second arg RAWFILE non-nil means the file is read literally.
-Optional third arg WILDCARDS non-nil means do wildcard processing
+Optional second arg NOWARN non-nil means suppress any warning messages.
+Optional third arg RAWFILE non-nil means the file is read literally.
+Optional fourth arg WILDCARDS non-nil means do wildcard processing
 and visit all the matching files.  When wildcards are actually
 used and expanded, return a list of buffers that are visiting
 the various files."
@@ -2000,7 +1996,7 @@ if REGEXP matches the text at the beginning of the buffer,
 to decide the buffer's major mode.
 
 If FUNCTION is nil, then it is not called.  (That is a way of saying
-\"allow `auto-mode-alist' to decide for these files.)")
+\"allow `auto-mode-alist' to decide for these files.\")")
 
 (defun set-auto-mode (&optional keep-mode-if-same)
   "Select major mode appropriate for current buffer.
@@ -3237,7 +3233,7 @@ in such cases.")
   "Save the current buffer in its visited file, if it has been modified.
 The hooks `write-contents-functions' and `write-file-functions' get a chance
 to do the job of saving; if they do not, then the buffer is saved in
-the visited file file in the usual way.
+the visited file in the usual way.
 Before and after saving the buffer, this function runs
 `before-save-hook' and `after-save-hook', respectively."
   (interactive)
@@ -4009,7 +4005,7 @@ specifies the list of buffers to kill, asking for approval for each one."
       (and name				; Can be nil for an indirect buffer
 					; if we killed the base buffer.
 	   (not (string-equal name ""))
-	   (/= (aref name 0) ? )
+	   (/= (aref name 0) ?\s)
 	   (yes-or-no-p
 	    (format "Buffer %s %s.  Kill? "
 		    name
@@ -4392,9 +4388,9 @@ preference to the program given by this variable."
   :group 'dired)
 
 (defun get-free-disk-space (dir)
-  "Return the mount of free space on directory DIR's file system.
+  "Return the amount of free space on directory DIR's file system.
 The result is a string that gives the number of free 1KB blocks,
-or nil if the system call or the program which retrieve the infornmation
+or nil if the system call or the program which retrieve the information
 fail.
 
 This function calls `file-system-info' if it is available, or invokes the
@@ -4642,7 +4638,7 @@ normally equivalent short `-D' option is just passed on to
 			  (end (insert-directory-adj-pos
 				(+ beg (read (current-buffer)))
 				error-lines)))
-		      (if (memq (char-after end) '(?\n ?\ ))
+		      (if (memq (char-after end) '(?\n ?\s))
 			  ;; End is followed by \n or by " -> ".
 			  (put-text-property start end 'dired-filename t)
 			;; It seems that we can't trust ls's output as to

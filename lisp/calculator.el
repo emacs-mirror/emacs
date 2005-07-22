@@ -4,7 +4,7 @@
 
 ;; Author: Eli Barzilay <eli@barzilay.org>
 ;; Keywords: tools, convenience
-;; Time-stamp: <26 May 2005, 14:32:34, Lute Kamstra, pijl>
+;; Time-stamp: <2005-07-18 17:45:34 juri>
 
 ;; This file is part of GNU Emacs.
 
@@ -1277,12 +1277,6 @@ arguments."
             (if Dbound (fset 'D Dsave) (fmakunbound 'D)))))
     (error 0)))
 
-(eval-when-compile ; silence the compiler
-  (or (fboundp 'event-key)
-      (defun event-key (&rest _) nil))
-  (or (fboundp 'key-press-event-p)
-      (defun key-press-event-p (&rest _) nil)))
-
 ;;;---------------------------------------------------------------------
 ;;; Input interaction
 
@@ -1301,8 +1295,9 @@ Optional string argument KEYS will force using it as the keys entered."
           (setq k (aref inp i))
           ;; if Emacs will someday have a event-key, then this would
           ;; probably be modified anyway
-          (and (fboundp 'event-key) (key-press-event-p k)
-               (event-key k) (setq k (event-key k)))
+          (and (if (fboundp 'key-press-event-p) (key-press-event-p k))
+	       (if (fboundp 'event-key)
+		   (and (event-key k) (setq k (event-key k)))))
           ;; assume all symbols are translatable with an ascii-character
           (and (symbolp k)
                (setq k (or (get k 'ascii-character) ? )))
@@ -1599,7 +1594,7 @@ Optional string argument KEYS will force using it as the keys entered."
         (calculator-displayers
          (if calculator-copy-displayer nil calculator-displayers)))
     (calculator-enter)
-    ;; remove trailing spaces and and an index
+    ;; remove trailing spaces and an index
     (let ((s (cdr calculator-stack-display)))
       (and s
            (if (string-match "^\\([^ ]+\\) *\\(\\[[0-9/]+\\]\\)? *$" s)

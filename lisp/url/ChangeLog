@@ -1,3 +1,11 @@
+2005-07-15  Richard M. Stallman  <rms@gnu.org>
+
+	* url-http.el (url-http-parse-headers): Add :redirect arg-pair
+	when calling url-retrieve, to indicate a redirect.
+
+	* url.el (url-retrieve): The callback function can get an additional
+	keyword arg pair.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.

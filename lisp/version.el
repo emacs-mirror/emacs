@@ -47,7 +47,7 @@ Time at which Emacs was dumped out.")
 
 (defconst emacs-build-system (system-name))
 
-(defun emacs-version  (&optional here) "\
+(defun emacs-version (&optional here) "\
 Return string describing the version of Emacs that is running.
 If optional argument HERE is non-nil, insert string at point.
 Don't use this function in programs to choose actions according
@@ -83,7 +83,7 @@ to the system configuration; look at `system-configuration' instead."
 
 ;; We put version info into the executable in the form that `ident' uses.
 (or (memq system-type '(vax-vms windows-nt))
-    (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ? (emacs-version))
+    (purecopy (concat "\n$Id: " (subst-char-in-string ?\n ?\s (emacs-version))
 		      " $\n")))
 
 ;;Local variables:

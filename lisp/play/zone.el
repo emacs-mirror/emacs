@@ -622,7 +622,7 @@ If the element is a function or a list of a function and a number,
    (sit-for 3)
    (erase-buffer)
    (sit-for 3)
-   (insert-buffer "*Messages*")
+   (insert-buffer-substring "*Messages*")
    (message "")
    (goto-char (point-max))
    (recenter -1)

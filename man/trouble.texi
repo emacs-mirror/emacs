@@ -368,7 +368,7 @@ available.  For each buffer, it lists a buffer number.  To save a
 buffer, use @code{ysave-buffer}; you specify the buffer number, and
 the file name to write that buffer into.  You should use a file name
 which does not already exist; if the file does exist, the script does
-not make make a backup of its old contents.
+not make a backup of its old contents.
 
 @node Emergency Escape
 @subsection Emergency Escape

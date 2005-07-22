@@ -106,8 +106,7 @@ desktop is saved."
   :group 'desktop)
 
 ;; Maintained for backward compatibility
-(defvaralias 'desktop-enable 'desktop-save-mode)
-(make-obsolete-variable 'desktop-enable 'desktop-save-mode)
+(define-obsolete-variable-alias 'desktop-enable 'desktop-save-mode "22.1")
 
 (defcustom desktop-save 'ask-if-new
   "*Specifies whether the desktop should be saved when it is killed.
@@ -120,7 +119,7 @@ Possible values are:
    if-exists     -- save if desktop file exists, otherwise don't save.
    nil           -- never save.
 The desktop is never saved when `desktop-save-mode' is nil.
-The variables `desktop-directory' and `desktop-base-file-name'
+The variables `desktop-dirname' and `desktop-base-file-name'
 determine where the desktop is saved."
   :type '(choice
     (const :tag "Always save" t)
@@ -137,7 +136,7 @@ determine where the desktop is saved."
   "Name of file for Emacs desktop, excluding the directory part."
   :type 'file
   :group 'desktop)
-(defvaralias 'desktop-basefilename 'desktop-base-file-name)
+(define-obsolete-variable-alias 'desktop-basefilename 'desktop-base-file-name "22.1")
 
 (defcustom desktop-path '("." "~")
   "List of directories to search for the desktop file.
@@ -200,14 +199,14 @@ Feature: Saving `kill-ring' implies saving `kill-ring-yank-pointer'."
     regexp-search-ring-yank-pointer)
   "List of global variables that `desktop-clear' will clear.
 An element may be variable name (a symbol) or a cons cell of the form
-\(VAR . FORM). Symbols are set to nil and for cons cells VAR is set
-to the value obtained by evaluateing FORM."
+\(VAR . FORM).  Symbols are set to nil and for cons cells VAR is set
+to the value obtained by evaluating FORM."
   :type '(repeat (restricted-sexp :match-alternatives (symbolp consp)))
   :group 'desktop
   :version "22.1")
 
 (defcustom desktop-clear-preserve-buffers-regexp
-  "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*tramp/.+\\*\\)$"
+  "^\\(\\*scratch\\*\\|\\*Messages\\*\\|\\*server\\*\\|\\*tramp/.+\\*\\)$"
   "Regexp identifying buffers that `desktop-clear' should not delete.
 See also `desktop-clear-preserve-buffers'."
   :type 'regexp
@@ -305,9 +304,9 @@ to restore the buffer, the auxiliary information is passed as the argument
 DESKTOP-BUFFER-MISC.")
 (make-variable-buffer-local 'desktop-save-buffer)
 (make-obsolete-variable 'desktop-buffer-modes-to-save
-                        'desktop-save-buffer)
+                        'desktop-save-buffer "22.1")
 (make-obsolete-variable 'desktop-buffer-misc-functions
-                        'desktop-save-buffer)
+                        'desktop-save-buffer "22.1")
 
 (defcustom desktop-buffer-mode-handlers
   '((dired-mode . dired-restore-desktop-buffer)
@@ -315,7 +314,7 @@ DESKTOP-BUFFER-MISC.")
     (mh-folder-mode . mh-restore-desktop-buffer)
     (Info-mode . Info-restore-desktop-buffer))
   "Alist of major mode specific functions to restore a desktop buffer.
-Functions are called by `desktop-read'. List elements must have the form
+Functions are called by `desktop-read'.  List elements must have the form
 \(MAJOR-MODE . RESTORE-BUFFER-FUNCTION).
 
 Buffers with a major mode not specified here, are restored by the default
@@ -342,7 +341,7 @@ and variable values for that buffer are copied into it."
 
 (put 'desktop-buffer-mode-handlers 'risky-local-variable t)
 (make-obsolete-variable 'desktop-buffer-handlers
-                        'desktop-buffer-mode-handlers)
+                        'desktop-buffer-mode-handlers "22.1")
 
 (defcustom desktop-minor-mode-table
   '((auto-fill-function auto-fill-mode)
@@ -399,7 +398,7 @@ variables listed in `desktop-globals-to-clear'."
            (string-match desktop-clear-preserve-buffers-regexp bufname)
            (member bufname desktop-clear-preserve-buffers)
            ;; Don't kill buffers made for internal purposes.
-           (and (not (equal bufname "")) (eq (aref bufname 0) ?\ ))
+           (and (not (equal bufname "")) (eq (aref bufname 0) ?\s))
            (kill-buffer (car buffers))))
       (setq buffers (cdr buffers))))
   (delete-other-windows))
@@ -432,7 +431,7 @@ is nil, ask the user where to save the desktop."
     (condition-case err
       (desktop-save desktop-dirname)
       (file-error
-        (unless (yes-or-no-p "Error while saving the desktop. Ignore? ")
+        (unless (yes-or-no-p "Error while saving the desktop.  Ignore? ")
           (signal (car err) (cdr err)))))))
 
 ;; ----------------------------------------------------------------------------
@@ -454,7 +453,7 @@ TXT is a string that when read and evaluated yields value.
 QUOTE may be `may' (value may be quoted),
 `must' (values must be quoted), or nil (value may not be quoted)."
   (cond
-   ((or (numberp value) (null value) (eq t value))
+   ((or (numberp value) (null value) (eq t value) (keywordp value))
     (cons 'may (prin1-to-string value)))
    ((stringp value)
     (let ((copy (copy-sequence value)))
@@ -711,7 +710,7 @@ This function also sets `desktop-dirname' to nil."
   "Read and process the desktop file in directory DIRNAME.
 Look for a desktop file in DIRNAME, or if DIRNAME is omitted, look in
 directories listed in `desktop-path'.  If a desktop file is found, it
-is processed and `desktop-after-read-hook' is run. If no desktop file
+is processed and `desktop-after-read-hook' is run.  If no desktop file
 is found, clear the desktop and run `desktop-no-desktop-file-hook'.
 This function is a no-op when Emacs is running in batch mode.
 It returns t if a desktop file was loaded, nil otherwise."
@@ -781,7 +780,7 @@ Also inhibit further loading of it."
       (progn
 	(load "default" t t)
 	(setq inhibit-default-init t))))
-(make-obsolete 'desktop-load-default 'desktop-save-mode)
+(make-obsolete 'desktop-load-default 'desktop-save-mode "22.1")
 
 ;; ----------------------------------------------------------------------------
 ;;;###autoload
@@ -958,7 +957,7 @@ directory DIRNAME."
 			       (cons 'overwrite-mode (car mim)))))
 
 (defun desktop-append-buffer-args (&rest args)
-  "Append ARGS at end of `desktop-buffer-args-list'
+  "Append ARGS at end of `desktop-buffer-args-list'.
 ARGS must be an argument list for `desktop-create-buffer'."
   (setq desktop-buffer-args-list (nconc desktop-buffer-args-list (list args)))
   (unless desktop-lazy-timer

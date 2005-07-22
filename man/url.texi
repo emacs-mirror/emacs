@@ -1065,7 +1065,7 @@ accessed at the given @var{time}.
 
 @defopt url-history-track
 If non-@code{nil}, the library will keep track of all the URLs
-accessed.  If is is @code{t}, the list is saved to disk at the end of
+accessed.  If it is @code{t}, the list is saved to disk at the end of
 each Emacs session.  The default is @code{nil}.
 @end defopt
 

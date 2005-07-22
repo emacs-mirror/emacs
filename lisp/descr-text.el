@@ -434,7 +434,14 @@ as well as widgets, buttons, overlays, and text properties."
 		 (if (consp key-list)
 		     (list "type"
 			   (mapconcat #'(lambda (x) (concat "\"" x "\""))
-				      key-list " or ")))))
+				      key-list " or ")
+			   "with"
+			   `(widget-create
+			     'link
+			     :notify (lambda (&rest ignore)
+				       (describe-input-method
+					',current-input-method))
+			     ,(format "%s" current-input-method))))))
 	    ("buffer code"
 	     ,(encoded-string-description
 	       (string-as-unibyte (char-to-string char)) nil))
@@ -458,11 +465,7 @@ as well as widgets, buttons, overlays, and text properties."
 		(format "by display table entry [%s] (see below)"
 			(mapconcat
 			 #'(lambda (x)
-			     (if (> (car x) #x7ffff)
-				 (format "?%c<face-id=%s>"
-					 (logand (car x) #x7ffff)
-					 (lsh (car x) -19))
-			       (format "?%c" (car x))))
+			     (format "?%c" (logand (car x) #x7ffff)))
 			 disp-vector " ")))
 	       (composition
 		(let ((from (car composition))
@@ -506,13 +509,16 @@ as well as widgets, buttons, overlays, and text properties."
 	    (when (cadr elt)
 	      (insert (format formatter (car elt)))
 	      (dolist (clm (cdr elt))
-		(when (>= (+ (current-column)
-			     (or (string-match "\n" clm)
-				 (string-width clm)) 1)
-			  (window-width))
-		  (insert "\n")
-		  (indent-to (1+ max-width)))
-		(insert " " clm))
+		(if (eq (car-safe clm) 'widget-create)
+		    (progn (insert " ") (eval clm))
+		  (when (>= (+ (current-column)
+			       (or (string-match "\n" clm)
+				   (string-width clm))
+			       1)
+			    (window-width))
+		    (insert "\n")
+		    (indent-to (1+ max-width)))
+		  (insert " " clm)))
 	      (insert "\n"))))
 
 	(save-excursion
@@ -540,7 +546,21 @@ as well as widgets, buttons, overlays, and text properties."
 			      (format "%s (0x%02X)" (cadr (aref disp-vector i))
 				      (cddr (aref disp-vector i)))
 			    "-- no font --")
-			  "\n ")))
+			  "\n")
+		  (when (> (car (aref disp-vector i)) #x7ffff)
+		    (let* ((face-id (lsh (car (aref disp-vector i)) -19))
+			   (face (car (delq nil (mapcar (lambda (face)
+							  (and (eq (face-id face)
+								   face-id) face))
+							(face-list))))))
+		      (when face
+			(insert (propertize " " 'display '(space :align-to 5))
+				"face: ")
+			(widget-create 'link
+				       :notify `(lambda (&rest ignore)
+						  (describe-face ',face))
+				       (format "%S" face))
+			(insert "\n"))))))
 	    (insert "these terminal codes:\n")
 	    (dotimes (i (length disp-vector))
 	      (insert (car (aref disp-vector i))
@@ -606,7 +626,7 @@ as well as widgets, buttons, overlays, and text properties."
 	(describe-text-mode)))))
 
 (defalias 'describe-char-after 'describe-char)
-(make-obsolete 'describe-char-after 'describe-char "21.5")
+(make-obsolete 'describe-char-after 'describe-char "22.1")
 
 (provide 'descr-text)
 

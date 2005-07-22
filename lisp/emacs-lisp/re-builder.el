@@ -319,7 +319,8 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
       ;; emacs/xemacs compatibility
       (if (fboundp 'frame-parameter)
 	  (frame-parameter (selected-frame) 'display-type)
-	(frame-property (selected-frame) 'display-type))))
+	(if (fboundp 'frame-property)
+	    (frame-property (selected-frame) 'display-type)))))
 
 (defsubst reb-lisp-syntax-p ()
   "Return non-nil if RE Builder uses a Lisp syntax."
@@ -331,10 +332,7 @@ Except for Lisp syntax this is the same as `reb-regexp'.")
 
 ;;; This is to help people find this in Apropos.
 ;;;###autoload
-(defun regexp-builder ()
-  "Alias for `re-builder': Construct a regexp interactively."
-  (interactive)
-  (re-builder))
+(defalias 'regexp-builder 're-builder)
 
 ;;;###autoload
 (defun re-builder ()
@@ -610,7 +608,8 @@ optional fourth argument FORCE is non-nil."
 (defun reb-cook-regexp (re)
   "Return RE after processing it according to `reb-re-syntax'."
   (cond ((eq reb-re-syntax 'lisp-re)
-	 (lre-compile-string (eval (car (read-from-string re)))))
+	 (if (fboundp 'lre-compile-string)
+	     (lre-compile-string (eval (car (read-from-string re))))))
 	((eq reb-re-syntax 'sregex)
 	 (apply 'sregex (eval (car (read-from-string re)))))
 	((eq reb-re-syntax 'rx)

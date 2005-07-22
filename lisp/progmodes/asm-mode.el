@@ -204,7 +204,8 @@ repeatedly until you are satisfied with the kind of comment."
   (let (comempty comment)
     (save-excursion
       (beginning-of-line)
-      (setq comment (comment-search-forward (line-end-position) t))
+      (with-no-warnings
+	(setq comment (comment-search-forward (line-end-position) t)))
       (setq comempty (looking-at "[ \t]*$")))
 
   (cond

@@ -2095,7 +2095,7 @@ target of the symlink differ."
 	       file)))
     (unless noerror
       (when (not (file-exists-p file))
-	(error "Cannot load nonexistant file `%s'" file)))
+	(error "Cannot load nonexistent file `%s'" file)))
     (if (not (file-exists-p file))
 	nil
       (unless nomessage

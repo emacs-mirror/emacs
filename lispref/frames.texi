@@ -1744,7 +1744,7 @@ This function associates the color name @var{name} with
 color number @var{number} on the terminal.
 
 The optional argument @var{rgb}, if specified, is an rgb value, a list
-of three numbers that specify what what the color actually looks like.
+of three numbers that specify what the color actually looks like.
 If you do not specify @var{rgb}, then this color cannot be used by
 @code{tty-color-approximate} to approximate other colors, because
 Emacs will not know what it looks like.
@@ -1822,7 +1822,7 @@ xterm.vt100.background: yellow
 @end example
 
 @noindent
-in in your X resources file (whose name is usually @file{~/.Xdefaults}
+in your X resources file (whose name is usually @file{~/.Xdefaults}
 or @file{~/.Xresources}).  Then:
 
 @example

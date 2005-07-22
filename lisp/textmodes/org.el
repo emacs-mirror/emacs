@@ -5,7 +5,7 @@
 ;; Author: Carsten Dominik <dominik at science dot uva dot nl>
 ;; Keywords: outlines, hypermedia, calendar
 ;; Homepage: http://www.astro.uva.nl/~dominik/Tools/org/
-;; Version: 3.13
+;; Version: 3.14
 ;;
 ;; This file is part of GNU Emacs.
 ;;
@@ -21,8 +21,8 @@
 
 ;; You should have received a copy of the GNU General Public License
 ;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
+;; Boston, MA 02111-1307, USA.
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;
 ;;; Commentary:
@@ -80,6 +80,12 @@
 ;;
 ;; Changes:
 ;; -------
+;; Version 3.14
+;;    - Formulas for individual fields in table.
+;;    - Automatic recalculation in calculating tables.
+;;    - Named fields and columns in tables.
+;;    - Fixed bug with calling `org-archive' several times in a row.
+;;
 ;; Version 3.13
 ;;    - Efficiency improvements:  Fewer table re-alignments needed.
 ;;    - New special lines in tables, for defining names for individual cells.
@@ -182,7 +188,7 @@
 
 ;;; Customization variables
 
-(defvar org-version "3.13"
+(defvar org-version "3.14"
   "The version number of the file org.el.")
 (defun org-version ()
   (interactive)
@@ -1215,6 +1221,20 @@ line will be formatted with <th> tags."
   :group 'org-table
   :type 'boolean)
 
+(defcustom org-table-tab-recognizes-table.el t
+  "Non-nil means, TAB will automatically notice a table.el table.
+When it sees such a table, it moves point into it and - if necessary -
+calls `table-recognize-table'."
+  :group 'org-table
+  :type 'boolean)
+
+;; FIXME: Should this one be in another group?  Which one?
+(defcustom org-enable-fixed-width-editor t
+  "Non-nil means, lines starting with \":\" are treated as fixed-width.
+This currently only means, they are never auto-wrapped.
+When nil, such lines will be treated like ordinary lines."
+  :group 'org-table
+  :type 'boolean)
 
 (defgroup org-table-calculation nil
   "Options concerning tables in Org-mode."
@@ -1284,29 +1304,10 @@ in table calculations, including symbolics etc."
   :group 'org-table-calculation
   :type 'boolean)
 
-(defcustom org-table-tab-recognizes-table.el t
-  "Non-nil means, TAB will automatically notice a table.el table.
-When it sees such a table, it moves point into it and - if necessary -
-calls `table-recognize-table'."
-  :group 'org-table
-  :type 'boolean)
-
-(defcustom org-export-prefer-native-exporter-for-tables nil
-  "Non-nil means, always export tables created with table.el natively.
-Natively means, use the HTML code generator in table.el.
-When nil, Org-mode's own HTML generator is used when possible (i.e. if
-the table does not use row- or column-spanning).  This has the
-advantage, that the automatic HTML conversions for math symbols and
-sub/superscripts can be applied.  Org-mode's HTML generator is also
-much faster."
-  :group 'org-table
-  :type 'boolean)
-
-(defcustom org-enable-fixed-width-editor t
-  "Non-nil means, lines starting with \":\" are treated as fixed-width.
-This currently only means, they are never auto-wrapped.
-When nil, such lines will be treated like ordinary lines."
-  :group 'org-table
+(defcustom org-table-allow-automatic-line-recalculation t
+  "Non-nil means, lines makred with |#| or |*| will be recomputed automatically.
+Automatically means, when TAB or RET or C-c C-c are pressed in the line."
+  :group 'org-table-calculation
   :type 'boolean)
 
 (defgroup org-export nil
@@ -1422,6 +1423,17 @@ For example:
 In ASCII export, this option has no effect.
 
 This option can also be set with the +OPTIONS line, e.g. \"|:nil\"."
+  :group 'org-export
+  :type 'boolean)
+
+(defcustom org-export-prefer-native-exporter-for-tables nil
+  "Non-nil means, always export tables created with table.el natively.
+Natively means, use the HTML code generator in table.el.
+When nil, Org-mode's own HTML generator is used when possible (i.e. if
+the table does not use row- or column-spanning).  This has the
+advantage, that the automatic HTML conversions for math symbols and
+sub/superscripts can be applied.  Org-mode's HTML generator is also
+much faster."
   :group 'org-export
   :type 'boolean)
 
@@ -1926,7 +1938,7 @@ The following commands are available:
 	  '("^[ \t]*\\(\\(|\\|\\+-[-+]\\).*\\S-\\)"
 	    (1 'org-table t))
 	  '("^[ \t]*\\(:.*\\)" (1 'org-table t))
-	  '("| *\\(=[^|\n]*\\)" (1 'org-formula t))
+	  '("| *\\(:?=[^|\n]*\\)" (1 'org-formula t))
 	  '("^[ \t]*| *\\([#!$*_^]\\) *|" (1 'org-formula t))
 	  )))
     (set (make-local-variable 'org-font-lock-keywords)
@@ -2634,7 +2646,10 @@ heading be marked DONE, and the current time will be added."
 	(setq level (match-end 0))
       (setq heading nil level 0))
     (save-excursion
-      (org-copy-subtree)  ; We first only copy, in case something goes wrong
+      ;; We first only copy, in case something goes wrong
+      ;; we need to protect this-command, to avoid kill-region sets it,
+      ;; which would lead to duplication of subtrees
+      (let (this-command) (org-copy-subtree))
       (set-buffer buffer)
       ;; Enforce org-mode for the archive buffer
       (if (not (eq major-mode 'org-mode))
@@ -2691,7 +2706,7 @@ heading be marked DONE, and the current time will be added."
 	(if (not (eq this-buffer buffer)) (save-buffer))))
     ;; Here we are back in the original buffer.  Everything seems to have
     ;; worked.  So now cut the tree and finish up.
-    (org-cut-subtree)
+    (let (this-command) (org-cut-subtree))
     (if (looking-at "[ \t]*$") (kill-line))
     (message "Subtree archived %s"
 	     (if (eq this-buffer buffer)
@@ -2717,7 +2732,6 @@ At all other locations, this simply calls `ispell-complete-word'."
 		  (skip-chars-backward "a-zA-Z0-9_:$")
 		  (point)))
 	   (texp (equal (char-before beg) ?\\))
-	   (form (equal (char-before beg) ?=))
 	   (opt (equal (buffer-substring (max (point-at-bol) (- beg 2))
 					 beg)
 		       "#+"))
@@ -2734,9 +2748,6 @@ At all other locations, this simply calls `ispell-complete-word'."
 		   (texp
 		    (setq type :tex)
 		    org-html-entities)
-		   (form
-		    (setq type :form)
-		    '(("sum") ("sumv") ("sumh")))
 		   ((string-match "\\`\\*+[ \t]*\\'"
 				  (buffer-substring (point-at-bol) beg))
 		    (setq type :todo)
@@ -5816,6 +5827,8 @@ See also the variable `org-reverse-note-order'."
   "Detects a table line marked for automatic recalculation.")
 (defconst org-table-recalculate-regexp "^[ \t]*| *[#*] *\\(|\\|$\\)"
   "Detects a table line marked for automatic recalculation.")
+(defconst org-table-calculate-mark-regexp "^[ \t]*| *[!$^_#*] *\\(|\\|$\\)"
+  "Detects a table line marked for automatic recalculation.")
 (defconst org-table-hline-regexp "^[ \t]*|-"
   "Detects an org-type table hline.")
 (defconst org-table1-hline-regexp "^[ \t]*\\+-[-+]"
@@ -6119,7 +6132,7 @@ Optional argument NEW may specify text to replace the current field content."
   (cond
    ((and (not new) org-table-may-need-update)) ; Realignment will happen anyway
    ((org-at-table-hline-p)
-    ;; FIXME:  I use to enforce realign here, but I think this is not needed.
+    ;; FIXME:  I used to enforce realign here, but I think this is not needed.
     ;; (setq org-table-may-need-update t)
     )
    ((and (not new)
@@ -6133,15 +6146,17 @@ Optional argument NEW may specify text to replace the current field content."
     (let* ((pos (point)) s
 	   (col (org-table-current-column))
 	   (num (nth (1- col) org-table-last-alignment))
-	   l f n o upd)
+	   l f n o e)
       (when (> col 0)
 	(skip-chars-backward "^|\n")
-	(if (looking-at " *\\([^|\n]*?\\) *|")
+	(if (looking-at " *\\([^|\n]*?\\) *\\(|\\|$\\)")
 	    (progn
 	      (setq s (match-string 1)
 		    o (match-string 0)
-		    l (max 1 (- (match-end 0) (match-beginning 0) 3)))
-	      (setq f (format (if num " %%%ds |" " %%-%ds |") l)
+		    l (max 1 (- (match-end 0) (match-beginning 0) 3))
+		    e (not (= (match-beginning 2) (match-end 2))))
+	      (setq f (format (if num " %%%ds %s" " %%-%ds %s")
+			      l (if e "|" (setq org-table-may-need-update t) ""))
 		    n (format f s t t))
 	      (if new
 		  (if (<= (length new) l)
@@ -6980,91 +6995,186 @@ If NLAST is a number, only the NLAST fields will actually be summed."
      ((equal n 0)                             nil)
      (t n))))
 
+(defun org-table-get-vertical-vector (desc &optional tbeg col)
+  "Get a calc vector from a column, according to descriptor DESC.
+Optional arguments TBEG and COL can give the beginning of the table
+and the current column, to avoid unnecessary parsing."
+  (save-excursion
+    (or tbeg (setq tbeg (org-table-begin)))
+    (or col (setq col (org-table-current-column)))
+    (let (beg end nn n n1 n2 l (thisline (org-current-line)) hline-list)
+      (cond
+       ((string-match "\\(I+\\)\\(-\\(I+\\)\\)?" desc)
+	(setq n1 (- (match-end 1) (match-beginning 1)))
+	(if (match-beginning 3)
+	    (setq n2 (- (match-end 2) (match-beginning 3))))
+	(setq n (if n2 (max n1 n2) n1))
+	(setq n1 (if n2 (min n1 n2)))
+	(setq nn n)
+	(while (and (> nn 0)
+		    (re-search-backward org-table-hline-regexp tbeg t))
+	  (push (org-current-line) hline-list)
+	  (setq nn (1- nn)))
+	(setq hline-list (nreverse hline-list))
+	(goto-line (nth (1- n) hline-list))
+	(when (re-search-forward org-table-dataline-regexp)
+	  (org-table-goto-column col)
+	  (setq beg (point)))
+	(goto-line (if n1 (nth (1- n1) hline-list) thisline))
+	(when (re-search-backward org-table-dataline-regexp)
+	  (org-table-goto-column col)
+	  (setq end (point)))
+	(setq l (apply 'append (org-table-copy-region beg end)))
+	(concat "[" (mapconcat (lambda (x) (setq x (org-trim x))
+				 (if (equal x "") "0" x))
+			       l ",") "]"))
+       ((string-match "\\([0-9]+\\)-\\([0-9]+\\)" desc)
+	(setq n1 (string-to-number (match-string 1 desc))
+	      n2 (string-to-number (match-string 2 desc)))
+	(beginning-of-line 1)
+	(save-excursion
+	  (when (re-search-backward org-table-dataline-regexp tbeg t n1)
+	    (org-table-goto-column col)
+	    (setq beg (point))))
+	(when (re-search-backward org-table-dataline-regexp tbeg t n2)
+	  (org-table-goto-column col)
+	  (setq end (point)))
+	(setq l (apply 'append (org-table-copy-region beg end)))
+	(concat "[" (mapconcat
+		     (lambda (x) (setq x (org-trim x))
+		       (if (equal x "") "0" x))
+		     l ",") "]"))
+       ((string-match "\\([0-9]+\\)" desc)
+	(beginning-of-line 1)
+	(when (re-search-backward org-table-dataline-regexp tbeg t
+				  (string-to-number (match-string 0 desc)))
+	  (org-table-goto-column col)
+	  (org-trim (org-table-get-field))))))))
+
 (defvar org-table-formula-history nil)
 
-(defun org-table-get-formula (&optional equation)
+(defvar org-table-column-names nil
+  "Alist with column names, derived from the `!' line.")
+(defvar org-table-column-name-regexp nil
+  "Regular expression matching the current column names.")
+(defvar org-table-local-parameters nil
+  "Alist with parameter names, derived from the `$' line.")
+(defvar org-table-named-field-locations nil
+  "Alist with locations of named fields.")
+
+(defun org-table-get-formula (&optional equation named)
   "Read a formula from the minibuffer, offer stored formula as default."
-  (let* ((col (org-table-current-column))
+  (let* ((name (car (rassoc (list (org-current-line)
+				  (org-table-current-column))
+			    org-table-named-field-locations)))
+	 (scol (if named
+		   (if name name
+		     (error "Not in a named field"))
+		 (int-to-string (org-table-current-column))))
+	 (dummy (and name (not named)
+		     (not (y-or-n-p "Replace named-field formula with column equation? " ))
+		 (error "Abort")))
 	 (org-table-may-need-update nil)
 	 (stored-list (org-table-get-stored-formulas))
-	 (stored (cdr (assoc col stored-list)))
+	 (stored (cdr (assoc scol stored-list)))
 	 (eq (cond
 	      ((and stored equation (string-match "^ *= *$" equation))
 	       stored)
 	      ((stringp equation)
 	       equation)
 	      (t (read-string
-		  "Formula: " (or stored "") 'org-table-formula-history
-		  stored)))))
-    (if (not (string-match "\\S-" eq))
-	(error "Empty formula"))
+		  (format "%s formula $%s=" (if named "Field" "Column") scol)
+		  (or stored "") 'org-table-formula-history
+		  ;stored
+		  ))))
+	 mustsave)
+    (when (not (string-match "\\S-" eq))
+      ;; remove formula
+      (setq stored-list (delq (assoc scol stored-list) stored-list))
+      (org-table-store-formulas stored-list)
+      (error "Formula removed"))
     (if (string-match "^ *=?" eq) (setq eq (replace-match "" t t eq)))
     (if (string-match " *$" eq) (setq eq (replace-match "" t t eq)))
+    (if (and name (not named))
+	;; We set the column equation, delete the named one.
+	(setq stored-list (delq (assoc name stored-list) stored-list)
+	      mustsave t))
     (if stored
-	(setcdr (assoc col stored-list) eq)
-      (setq stored-list (cons (cons col eq) stored-list)))
-    (if (not (equal stored eq))
+	(setcdr (assoc scol stored-list) eq)
+      (setq stored-list (cons (cons scol eq) stored-list)))
+    (if (or mustsave (not (equal stored eq)))
 	(org-table-store-formulas stored-list))
     eq))
 
 (defun org-table-store-formulas (alist)
   "Store the list of formulas below the current table."
-  (setq alist (sort alist (lambda (a b) (< (car a) (car b)))))
+  (setq alist (sort alist (lambda (a b) (string< (car a) (car b)))))
   (save-excursion
     (goto-char (org-table-end))
     (if (looking-at "\\([ \t]*\n\\)*#\\+TBLFM:.*\n?")
 	(delete-region (point) (match-end 0)))
     (insert "#+TBLFM: "
 	    (mapconcat (lambda (x)
-			 (concat "$" (int-to-string (car x)) "=" (cdr x)))
+			 (concat "$" (car x) "=" (cdr x)))
 		       alist "::")
 	    "\n")))
 
 (defun org-table-get-stored-formulas ()
-  "Return an alist withh the t=stored formulas directly after current table."
+  "Return an alist with the t=stored formulas directly after current table."
   (interactive)
-  (let (col eq eq-alist strings string)
+  (let (scol eq eq-alist strings string seen)
     (save-excursion
       (goto-char (org-table-end))
       (when (looking-at "\\([ \t]*\n\\)*#\\+TBLFM: *\\(.*\\)")
 	(setq strings (org-split-string (match-string 2) " *:: *"))
 	(while (setq string (pop strings))
-	  (if (string-match "\\$\\([0-9]+\\) *= *\\(.*[^ \t]\\)" string)
-	      (setq col (string-to-number (match-string 1 string))
-		    eq (match-string 2 string)
-		    eq-alist (cons (cons col eq) eq-alist))))))
-    eq-alist))
+	  (when (string-match "\\$\\([a-zA-Z0-9]+\\) *= *\\(.*[^ \t]\\)" string)
+	    (setq scol (match-string 1 string)
+		  eq (match-string 2 string)
+		  eq-alist (cons (cons scol eq) eq-alist))
+	    (if (member scol seen)
+		(error "Double definition `$%s=' in TBLFM line, please fix by hand" scol)
+	      (push scol seen))))))
+    (nreverse eq-alist)))
 
 (defun org-table-modify-formulas (action &rest columns)
   "Modify the formulas stored below the current table.
 ACTION can be `remove', `insert', `swap'.  For `swap', two column numbers are
 expected, for the other action only a single column number is needed."
   (let ((list (org-table-get-stored-formulas))
-	(nmax (length (org-split-string (buffer-substring (point-at-bol) (point-at-eol))
-					"|")))
-	col col1 col2)
+	(nmax (length (org-split-string
+		       (buffer-substring (point-at-bol) (point-at-eol))
+		       "|")))
+	col col1 col2 scol si sc1 sc2)
     (cond
      ((null list))   ; No action needed if there are no stored formulas
      ((eq action 'remove)
-      (setq col (car columns))
-      (org-table-replace-in-formulas list col "INVALID")
-      (if (assoc col list) (setq list (delq (assoc col list) list)))
+      (setq col (car columns)
+	    scol (int-to-string col))
+      (org-table-replace-in-formulas list scol "INVALID")
+      (if (assoc scol list) (setq list (delq (assoc scol list) list)))
       (loop for i from (1+ col) upto nmax by 1 do
-	    (org-table-replace-in-formulas list i (1- i))
-	    (if (assoc i list) (setcar (assoc i list) (1- i)))))
+	    (setq si (int-to-string i))
+	    (org-table-replace-in-formulas list si (int-to-string (1- i)))
+	    (if (assoc si list) (setcar (assoc si list)
+					(int-to-string (1- i))))))
      ((eq action 'insert)
       (setq col (car columns))
       (loop for i from nmax downto col by 1 do
-	    (org-table-replace-in-formulas list i (1+ i))
-	    (if (assoc i list) (setcar (assoc i list) (1+ i)))))
+	    (setq si (int-to-string i))
+	    (org-table-replace-in-formulas list si (int-to-string (1+ i)))
+	    (if (assoc si list) (setcar (assoc si list)
+					(int-to-string (1+ i))))))
      ((eq action 'swap)
-      (setq col1 (car columns) col2 (nth 1 columns))
-      (org-table-replace-in-formulas list col1 "Z")
-      (org-table-replace-in-formulas list col2 col1)
-      (org-table-replace-in-formulas list "Z" col2)
-      (if (assoc col1 list) (setcar (assoc col1 list) "Z"))
-      (if (assoc col2 list) (setcar (assoc col2 list) col1))
-      (if (assoc "Z" list)  (setcar (assoc "Z" list) col2)))
+      (setq col1 (car columns) col2 (nth 1 columns)
+	    sc1 (int-to-string col1) sc2 (int-to-string col2))
+      ;; Hopefully, ZqZ will never be a name in a table...  FIXME:
+      (org-table-replace-in-formulas list sc1 "ZqZ")
+      (org-table-replace-in-formulas list sc2 sc1)
+      (org-table-replace-in-formulas list "ZqZ" sc2)
+      (if (assoc sc1 list) (setcar (assoc sc1 list) "ZqZ"))
+      (if (assoc sc2 list) (setcar (assoc sc2 list) sc1))
+      (if (assoc "ZqZ" list)  (setcar (assoc "ZqZ" list) sc2)))
      (t (error "Invalid action in `org-table-modify-formulas'")))
     (if list (org-table-store-formulas list))))
 
@@ -7079,20 +7189,14 @@ expected, for the other action only a single column number is needed."
 	(setq s (replace-match s2 t t s)))
       (setcdr elt s))))
 
-(defvar org-table-column-names nil
-  "Alist with column names, derived from the `!' line.")
-(defvar org-table-column-name-regexp nil
-  "Regular expression matching the current column names.")
-(defvar org-table-local-parameters nil
-  "Alist with parameter names, derived from the `$' line.")
-
 (defun org-table-get-specials ()
   "Get the column nmaes and local parameters for this table."
   (save-excursion
     (let ((beg (org-table-begin)) (end (org-table-end))
-	  names name fields fields1 field cnt c v)
+	  names name fields fields1 field cnt c v line col)
       (setq org-table-column-names nil
-	    org-table-local-parameters nil)
+	    org-table-local-parameters nil
+	    org-table-named-field-locations nil)
       (goto-char beg)
       (when (re-search-forward "^[ \t]*| *! *\\(|.*\\)" end t)
 	(setq names (org-split-string (match-string 1) " *| *")
@@ -7117,13 +7221,15 @@ expected, for the other action only a single column number is needed."
 	      fields (org-split-string (match-string 2) " *| *"))
 	(save-excursion
 	  (beginning-of-line (if (equal c "_") 2 0))
+	  (setq line (org-current-line) col 1)
 	  (and (looking-at "^[ \t]*|[^|]*\\(|.*\\)")
 	       (setq fields1 (org-split-string (match-string 1) " *| *"))))
-	(while (setq field (pop fields))
-	  (setq v (pop fields1))
-	  (if (and (stringp field) (stringp v)
-		   (string-match "^[a-zA-Z][a-zA-Z0-9]*$" field))
-	      (push (cons field v) org-table-local-parameters)))))))
+	(while (and fields1 (setq field (pop fields)))
+	  (setq v (pop fields1) col (1+ col))
+	  (when (and (stringp field) (stringp v)
+		     (string-match "^[a-zA-Z][a-zA-Z0-9]*$" field))
+	      (push (cons field v) org-table-local-parameters)
+	      (push (list field line col) org-table-named-field-locations)))))))
 
 (defun org-this-word ()
   ;; Get the current word
@@ -7133,46 +7239,18 @@ expected, for the other action only a single column number is needed."
       (buffer-substring-no-properties beg end))))
 
 (defun org-table-maybe-eval-formula ()
-  "Check if the current field starts with \"=\" and evaluate the formula."
+  "Check if the current field starts with \"=\" or \":=\".
+If yes, store the formula and apply it."
   ;; We already know we are in a table.  Get field will only return a formula
   ;; when appropriate.  It might return a separator line, but no problem.
   (when org-table-formula-evaluate-inline
     (let* ((field (org-trim (or (org-table-get-field) "")))
-	   (dfield (downcase field))
-	   col bolpos nlast)
-      (when (equal (string-to-char field) ?=)
-	(if (string-match "^\\(=sum[vh]?\\)\\([0-9]+\\)$" dfield)
-	    (setq nlast (1+ (string-to-number (match-string 2 dfield)))
-		  dfield (match-string 1 dfield)))
-	(cond
-	 ((equal dfield "=sumh")
-	  (org-table-get-field
-	   nil (org-table-sum
-		(save-excursion (org-table-goto-column 1) (point))
-		(point) nlast)))
-	 ((member dfield '("=sum" "=sumv"))
-	  (setq col (org-table-current-column)
-		bolpos (point-at-bol))
-	  (org-table-get-field
-	   nil (org-table-sum
-		(save-excursion
-		  (goto-char (org-table-begin))
-		  (if (re-search-forward org-table-dataline-regexp bolpos t)
-		      (progn
-			(goto-char (match-beginning 0))
-			(org-table-goto-column col)
-			(point))
-		    (error "No datalines above current")))
-		(point) nlast)))
-	 ((and (string-match "^ *=" field)
-	       (fboundp 'calc-eval))
-	  (org-table-eval-formula nil field)))))))
-
-(defvar org-last-recalc-undo-list nil)
-(defcustom org-table-allow-line-recalculation t
-  "FIXME:"
-  :group 'org-table
-  :type 'boolean)
+	   named eq)
+      (when (string-match "^:?=\\(.+\\)" field)
+	(setq named (equal (string-to-char field) ?:)
+	      eq (match-string 1 field))
+	(if (fboundp 'calc-eval)
+	    (org-table-eval-formula (if named '(4) nil) eq))))))
 
 (defvar org-recalc-commands nil
   "List of commands triggering the reccalculation of a line.
@@ -7210,8 +7288,10 @@ of the new mark."
 	 (col (org-table-current-column))
 	 (forcenew (car (assoc newchar org-recalc-marks)))
 	 epos new)
-    (if l1 (setq newchar (char-to-string (read-char-exclusive "Change region to what mark?  Type # * ! $ or SPC: "))
-		 forcenew (car (assoc newchar org-recalc-marks))))
+    (when l1
+      (message "Change region to what mark?  Type # * ! $ or SPC: ")
+      (setq newchar (char-to-string (read-char-exclusive))
+	    forcenew (car (assoc newchar org-recalc-marks))))
     (if (and newchar (not forcenew))
 	(error "Invalid NEWCHAR `%s' in `org-table-rotate-recalc-marks'"
 	       newchar))
@@ -7248,7 +7328,7 @@ of the new mark."
 (defun org-table-maybe-recalculate-line ()
   "Recompute the current line if marked for it, and if we haven't just done it."
   (interactive)
-  (and org-table-allow-line-recalculation
+  (and org-table-allow-automatic-line-recalculation
        (not (and (memq last-command org-recalc-commands)
 		 (equal org-last-recalc-line (org-current-line))))
        (save-excursion (beginning-of-line 1)
@@ -7273,7 +7353,7 @@ When nil, simply write \"#ERROR\" in corrupted fields.")
     (cons var (cons value modes)))
   modes)
 
-(defun org-table-eval-formula (&optional ndown equation
+(defun org-table-eval-formula (&optional arg equation
 					 suppress-align suppress-const
 					 suppress-store)
   "Replace the table field value at the cursor by the result of a calculation.
@@ -7283,64 +7363,46 @@ most exciting program ever written for GNU Emacs.  So you need to have calc
 installed in order to use this function.
 
 In a table, this command replaces the value in the current field with the
-result of a formula.  While nowhere near the computation options of a
-spreadsheet program, this is still very useful.  There is no automatic
-updating of a calculated field, but the table will remember the last
-formula for each column.  The command needs to be applied again after
-changing input fields.
+result of a formula.  It also installes the formula as the \"current\" column
+formula, by storing it in a special line below the table.  When called
+with a `C-u' prefix, the current field must ba a named field, and the
+formula is installed as valid in only this specific field.
 
-When called, the command first prompts for a formula, which is read in the
-minibuffer.  Previously entered formulas are available through the history
-list, and the last used formula for each column is offered as a default.
+When called, the command first prompts for a formula, which is read in
+the minibuffer.  Previously entered formulas are available through the
+history list, and the last used formula is offered as a default.
 These stored formulas are adapted correctly when moving, inserting, or
 deleting columns with the corresponding commands.
 
 The formula can be any algebraic expression understood by the calc package.
-Before evaluation, variable substitution takes place: \"$\" is replaced by
-the field the cursor is currently in, and $1..$n reference the fields in
-the current row.  Values from a *different* row can *not* be referenced
-here, so the command supports only horizontal computing.  The formula can
-contain an optional printf format specifier after a semicolon, to reformat
-the result.
+For details, see the Org-mode manual.
 
-A few examples for formulas:
-  $1+$2               Sum of first and second field
-  $1+$2;%.2f          Same, and format result to two digits after dec.point
-  exp($2)+exp($1)     Math functions can be used
-  $;%.1f              Reformat current cell to 1 digit after dec.point
-  ($3-32)*5/9         degrees F -> C conversion
-
-When called with a raw \\[universal-argument] prefix, the formula is applied to the current
-field, and to the same same column in all following rows, until reaching a
-horizontal line or the end of the table.  When the command is called with a
-numeric prefix argument (like M-3 or C-7 or \\[universal-argument] 24), the formula is applied
-to the current row, and to the following n-1 rows (but not beyond a
-separator line).
-
-This function can also be called from Lisp programs and offers two additional
-Arguments:  EQUATION can be the formula to apply.  If this argument is given,
-the user will not be prompted.  SUPPRESS-ALIGN is used to speed-up
-recursive calls by by-passing unnecessary aligns.  SUPPRESS-CONST suppresses
-the interpretation of constants in the formula.  SUPPRESS-STORE means the
-formula should not be stored, either because it is already stored, or because
-it is a modified equation that should not overwrite the stored one."
+This function can also be called from Lisp programs and offers
+additional Arguments: EQUATION can be the formula to apply.  If this
+argument is given, the user will not be prompted.  SUPPRESS-ALIGN is
+used to speed-up recursive calls by by-passing unnecessary aligns.
+SUPPRESS-CONST suppresses the interpretation of constants in the
+formula, assuming that this has been done already outside the fuction.
+SUPPRESS-STORE means the formula should not be stored, either because
+it is already stored, or because it is a modified equation that should
+not overwrite the stored one."
   (interactive "P")
-  (setq ndown (if (equal ndown '(4)) 10000 (prefix-numeric-value ndown)))
   (require 'calc)
   (org-table-check-inside-data-field)
   (org-table-get-specials)
   (let* (fields
+	 (ndown (if (integerp arg) arg 1))
 	 (org-table-automatic-realign nil)
 	 (case-fold-search nil)
 	 (down (> ndown 1))
 	 (formula (if (and equation suppress-store)
 		      equation
-		    (org-table-get-formula equation)))
+		    (org-table-get-formula equation (equal arg '(4)))))
 	 (n0 (org-table-current-column))
 	 (modes (copy-sequence org-calc-default-modes))
 	 n form fmt x ev orig c)
     ;; Parse the format string.  Since we have a lot of modes, this is
-    ;; a lot of work.
+    ;; a lot of work.  However, I think calc still uses most of the time.
     (if (string-match ";" formula)
 	(let ((tmp (org-split-string formula ";")))
 	  (setq formula (car tmp)
@@ -7374,6 +7436,7 @@ it is a modified equation that should not overwrite the stored one."
 			fields)))
       (setq ndown (1- ndown))
       (setq form (copy-sequence formula))
+      ;; Insert the references to fields in same row
       (while (string-match "\\$\\([0-9]+\\)?" form)
 	(setq n (if (match-beginning 1)
 		    (string-to-int (match-string 1 form))
@@ -7383,6 +7446,13 @@ it is a modified equation that should not overwrite the stored one."
 			 (match-string 0 form)))
 	(if (equal x "") (setq x "0"))
 	(setq form (replace-match (concat "(" x ")") t t form)))
+      ;; Insert ranges in current column
+      (while (string-match "\\&[-I0-9]+" form)
+	(setq form (replace-match
+		     (save-match-data
+		       (org-table-get-vertical-vector (match-string 0 form)
+						      nil n0))
+		     t t form)))
       (setq ev (calc-eval (cons form modes)
 			  (if org-table-formula-numbers-only 'num)))
 
@@ -7424,24 +7494,32 @@ $1->    %s\n" orig formula form))
   (unless (org-at-table-p) (error "Not at a table"))
   (org-table-get-specials)
   (let* ((eqlist (sort (org-table-get-stored-formulas)
-		       (lambda (a b) (< (car a) (car b)))))
+		       (lambda (a b) (string< (car a) (car b)))))
 	 (inhibit-redisplay t)
 	 (line-re org-table-dataline-regexp)
 	 (thisline (+ (if (bolp) 1 0) (count-lines (point-min) (point))))
 	 (thiscol (org-table-current-column))
-	 beg end entry eql (cnt 0))
+	 beg end entry eqlnum eqlname eql (cnt 0) eq a name)
     ;; Insert constants in all formulas
     (setq eqlist
 	  (mapcar (lambda (x)
 		    (setcdr x (org-table-formula-substitute-names (cdr x)))
 		    x)
 		  eqlist))
+    ;; Split the equation list
+    (while (setq eq (pop eqlist))
+      (if (<= (string-to-char (car eq)) ?9)
+	  (push eq eqlnum)
+	(push eq eqlname)))
+    (setq eqlnum (nreverse eqlnum) eqlname (nreverse eqlname))
     (if all
 	(progn
 	  (setq end (move-marker (make-marker) (1+ (org-table-end))))
 	  (goto-char (setq beg (org-table-begin)))
-	  (if (re-search-forward org-table-recalculate-regexp end t)
+	  (if (re-search-forward org-table-calculate-mark-regexp end t)
+	      ;; This is a table with marked lines, only compute selected lines
 	      (setq line-re org-table-recalculate-regexp)
+	    ;; Move forward to the first non-header line
 	    (if (and (re-search-forward org-table-dataline-regexp end t)
 		     (re-search-forward org-table-hline-regexp end t)
 		     (re-search-forward org-table-dataline-regexp end t))
@@ -7452,23 +7530,37 @@ $1->    %s\n" orig formula form))
     (goto-char beg)
     (and all (message "Re-applying formulas to full table..."))
     (while (re-search-forward line-re end t)
-      (unless (string-match "^ *[!$] *$" (org-table-get-field 1))
+      (unless (string-match "^ *[_^!$] *$" (org-table-get-field 1))
 	;; Unprotected line, recalculate
 	(and all (message "Re-applying formulas to full table...(line %d)"
 			  (setq cnt (1+ cnt))))
 	(setq org-last-recalc-line (org-current-line))
-	(setq eql eqlist)
+	(setq eql eqlnum)
 	(while (setq entry (pop eql))
 	  (goto-line org-last-recalc-line)
-	  (org-table-goto-column (car entry) nil 'force)
+	  (org-table-goto-column (string-to-int (car entry)) nil 'force)
 	  (org-table-eval-formula nil (cdr entry) 'noalign 'nocst 'nostore))))
     (goto-line thisline)
     (org-table-goto-column thiscol)
     (or noalign (and org-table-may-need-update (org-table-align))
-	(and all (message "Re-applying formulas to %d lines...done" cnt)))))
+	(and all (message "Re-applying formulas to %d lines...done" cnt)))
+    ;; Now do the names fields
+    (while (setq eq (pop eqlname))
+      (setq name (car eq)
+	    a (assoc name org-table-named-field-locations))
+      (when a
+	(message "Re-applying formula to named field: %s" name)
+	(goto-line (nth 1 a))
+	(org-table-goto-column (nth 2 a))
+	(org-table-eval-formula nil (cdr eq) 'noalign 'nocst 'nostore)))
+    ;; back to initial position
+    (goto-line thisline)
+    (org-table-goto-column thiscol)
+    (or noalign (and org-table-may-need-update (org-table-align))
+	(and all (message "Re-applying formulas...done")))))
 
 (defun org-table-formula-substitute-names (f)
-  "Replace $const with values in stirng F."
+  "Replace $const with values in string F."
   (let ((start 0) a n1 n2 nn1 nn2 s (f1 f))
     ;; First, check for column names
     (while (setq start (string-match org-table-column-name-regexp f start))
@@ -7504,6 +7596,136 @@ Parameters get priority."
       (cdr (assoc const org-table-formula-constants))
       (and (fboundp 'constants-get) (constants-get const))
       "#UNDEFINED_NAME"))
+
+(defvar org-edit-formulas-map (make-sparse-keymap))
+(define-key org-edit-formulas-map "\C-c\C-c" 'org-finish-edit-formulas)
+(define-key org-edit-formulas-map "\C-c\C-q" 'org-abort-edit-formulas)
+(define-key org-edit-formulas-map "\C-c?" 'org-show-variable)
+
+(defvar org-pos)
+(defvar org-window-configuration)
+
+(defun org-table-edit-formulas ()
+  "Edit the formulas of the current table in a separate buffer."
+  (interactive)
+  (unless (org-at-table-p)
+    (error "Not at a table"))
+  (org-table-get-specials)
+  (let ((eql (org-table-get-stored-formulas))
+	(pos (move-marker (make-marker) (point)))
+	(wc (current-window-configuration))
+	entry loc s)
+    (switch-to-buffer-other-window "*Edit Formulas*")
+    (erase-buffer)
+    (fundamental-mode)
+    (set (make-local-variable 'org-pos) pos)
+    (set (make-local-variable 'org-window-configuration) wc)
+    (use-local-map org-edit-formulas-map)
+    (setq s "# Edit formulas and finish with `C-c C-c'.
+# Use `C-u C-c C-c' to also appy them immediately to the entire table.
+# Use `C-c ?' to get information about $name at point.
+# To cancel editing, press `C-c C-q'.\n")
+    (put-text-property 0 (length s) 'face 'font-lock-comment-face s)
+    (insert s)
+    (while (setq entry (pop eql))
+      (when (setq loc (assoc (car entry) org-table-named-field-locations))
+	(setq s (format "# Named formula, referring to column %d in line %d\n"
+			(nth 2 loc) (nth 1 loc)))
+	(put-text-property 0 (length s) 'face 'font-lock-comment-face s)
+	(insert s))
+      (setq s (concat "$" (car entry) "=" (cdr entry) "\n"))
+      (remove-text-properties 0 (length s) '(face nil) s)
+      (insert s))
+    (goto-char (point-min))
+    (message "Edit formulas and finish with `C-c C-c'.")))
+
+(defun org-show-variable ()
+  "Show the location/value of the $ expression at point."
+  (interactive)
+  (let (var (pos org-pos) (win (selected-window)) e)
+    (save-excursion
+      (or (looking-at "\\$") (skip-chars-backward "$a-zA-Z0-9"))
+      (if (looking-at "\\$\\([a-zA-Z0-9]+\\)")
+	  (setq var (match-string 1))
+	(error "No variable at point")))
+    (cond
+     ((setq e (assoc var org-table-named-field-locations))
+      (switch-to-buffer-other-window (marker-buffer pos))
+      (goto-line (nth 1 e))
+      (org-table-goto-column (nth 2 e))
+      (select-window win)
+      (message "Named field, column %d of line %d" (nth 2 e) (nth 1 e)))
+     ((setq e (assoc var org-table-column-names))
+      (switch-to-buffer-other-window (marker-buffer pos))
+      (goto-char pos)
+      (goto-char (org-table-begin))
+      (if (re-search-forward (concat "^[ \t]*| *! *.*?| *\\(" var "\\) *|")
+			     (org-table-end) t)
+	  (progn
+	    (goto-char (match-beginning 1))
+	    (message "Named column (column %s)" (cdr e)))
+	(error "Column name not found"))
+      (select-window win))
+     ((string-match "^[0-9]$" var)
+      ;; column number
+      (switch-to-buffer-other-window (marker-buffer pos))
+      (goto-char pos)
+      (goto-char (org-table-begin))
+      (recenter 1)
+      (if (re-search-forward org-table-dataline-regexp
+			     (org-table-end) t)
+	  (progn
+	    (goto-char (match-beginning 0))
+	    (org-table-goto-column (string-to-number var))
+	    (message "Column %s" var))
+	(error "Column name not found"))
+      (select-window win))
+     ((setq e (assoc var org-table-local-parameters))
+      (switch-to-buffer-other-window (marker-buffer pos))
+      (goto-char pos)
+      (goto-char (org-table-begin))
+      (if (re-search-forward (concat "^[ \t]*| *\\$ *.*?| *\\(" var "=\\)") nil t)
+	  (progn
+	    (goto-char (match-beginning 1))
+	    (message "Local parameter."))
+	(error "Parameter not found"))
+      (select-window win))
+     (t
+      (cond
+       ((setq e (assoc var org-table-formula-constants))
+	(message "Constant: $%s=%s in `org-table-formula-constants'." var (cdr e)))
+       ((setq e (and (fboundp 'constants-get) (constants-get var)))
+	(message "Constant: $%s=%s, retrieved from `constants.el'." var e))
+       (t (error "Undefined name $%s" var)))))))
+
+(defun org-finish-edit-formulas (&optional arg)
+  "Parse the buffer for formula definitions and install them.
+With prefix ARG, apply the new formulas to the table."
+  (interactive "P")
+  (let ((pos org-pos) eql)
+    (goto-char (point-min))
+    (while (re-search-forward "^\\$\\([a-zA-Z0-9]+\\) *= *\\(.*?\\) *$" nil t)
+      (push (cons (match-string 1) (match-string 2)) eql))
+    (set-window-configuration org-window-configuration)
+    (select-window (get-buffer-window (marker-buffer pos)))
+    (goto-char pos)
+    (unless (org-at-table-p)
+      (error "Lost table position - cannot install formulae"))
+    (org-table-store-formulas eql)
+    (move-marker pos nil)
+    (kill-buffer "*Edit Formulas*")
+    (if arg
+	(org-table-recalculate 'all)
+      (message "New formulas installed - press C-u C-c C-c to apply."))))
+
+(defun org-abort-edit-formulas ()
+  "Abort editing formulas, without installing the changes."
+  (interactive)
+  (let ((pos org-pos))
+    (set-window-configuration org-window-configuration)
+    (select-window (get-buffer-window (marker-buffer pos)))
+    (goto-char pos)
+    (message "Formula editing aborted without installing changes")))
 
 ;;; The orgtbl minor mode
 
@@ -7657,6 +7879,7 @@ to execute outside of tables."
 	  '("\C-c+"              org-table-sum)
 	  '("\C-c|"              org-table-toggle-vline-visibility)
 	  '("\C-c="              org-table-eval-formula)
+	  '("\C-c'"              org-table-edit-formulas)
 	  '("\C-c*"              org-table-recalculate)
 	  '([(control ?#)]       org-table-rotate-recalc-marks)))
 	elt key fun cmd)
@@ -7714,8 +7937,9 @@ to execute outside of tables."
 	 ["Paste Rectangle" org-paste-special :active (org-at-table-p) :keys "C-c C-y"]
 	 ["Fill Rectangle" org-table-wrap-region :active (org-at-table-p) :keys "C-c C-q"])
 	"--"
-	["Eval Formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
-	["Eval Formula Down " (org-table-eval-formula '(4)) :active (org-at-table-p) :keys "C-u C-c ="]
+	["Set Column Formula" org-table-eval-formula :active (org-at-table-p) :keys "C-c ="]
+	["Set Named Field Formula" (org-table-eval-formula '(4)) :active (org-at-table-p) :keys "C-u C-c ="]
+	["Edit Formulas" org-table-edit-formulas :active (org-at-table-p) :keys "C-c '"]
 	["Recalculate line" org-table-recalculate :active (org-at-table-p) :keys "C-c *"]
 	["Recalculate all" (org-table-recalculate '(4)) :active (org-at-table-p) :keys "C-u C-c *"]
 	["Toggle Recalculate Mark" org-table-rotate-recalc-marks :active (org-at-table-p) :keys "C-c #"]
@@ -8685,6 +8909,7 @@ headlines.  The default is 3.  Lower levels will become bulleted lists."
 	   (t
 	    ;; Normal lines
 	    ;; Lines starting with "-", and empty lines make new paragraph.
+	    ;; FIXME: Should we add + and *?
 	    (if (string-match "^ *-\\|^[ \t]*$" line) (insert "<p>"))
 	    (insert line (if org-export-preserve-breaks "<br>\n" "\n"))))
 	  ))
@@ -9101,6 +9326,7 @@ When LEVEL is non-nil, increase section numbers on that level."
 (define-key org-mode-map "\C-c+"          'org-table-sum)
 (define-key org-mode-map "\C-c|"          'org-table-toggle-vline-visibility)
 (define-key org-mode-map "\C-c="          'org-table-eval-formula)
+(define-key org-mode-map "\C-c'"          'org-table-edit-formulas)
 (define-key org-mode-map "\C-c*"          'org-table-recalculate)
 (define-key org-mode-map [(control ?#)]   'org-table-rotate-recalc-marks)
 (define-key org-mode-map "\C-c~"          'org-table-create-with-table.el)
@@ -9385,11 +9611,14 @@ scanning the buffer for these lines and updating the information."
      ["Fill Rectangle" org-table-wrap-region (org-at-table-p)])
     "--"
     ("Calculate"
-     ["Eval Formula" org-table-eval-formula (org-at-table-p)]
-     ["Eval Formula Down" (org-table-eval-formula '(4)) :active (org-at-table-p) :keys "C-u C-c ="]
+     ["Set Column Formula" org-table-eval-formula (org-at-table-p)]
+     ["Set Named Field Formula" (org-table-eval-formula '(4)) :active (org-at-table-p) :keys "C-u C-c ="]
+     ["Edit Formulas" org-table-edit-formulas (org-at-table-p)]
+     "--"
      ["Recalculate line" org-table-recalculate (org-at-table-p)]
      ["Recalculate all" (lambda () (interactive) (org-table-recalculate '(4))) :active (org-at-table-p) :keys "C-u C-c *"]
      ["Toggle Recalculate Mark" org-table-rotate-recalc-marks (org-at-table-p)]
+     "--"
      ["Sum Column/Rectangle" org-table-sum
       (or (org-at-table-p) (org-region-active-p))]
      ["Which Column?" org-table-current-column (org-at-table-p)])

@@ -1,3 +1,8 @@
+2005-07-19  Jan Dj,Ad(Brv  <jan.h.d@swipnet.se>
+
+	* lwlib-Xm.c (make_menu_in_widget): Disable drag and drop for 
+	labels in menu bar.
+
 2005-07-04  Lute Kamstra  <lute@gnu.org>
 
 	Update FSF's address in GPL notices.
