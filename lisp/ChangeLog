@@ -1,3 +1,8 @@
+2005-07-21  Luc Teirlinck  <teirllm@auburn.edu>
+
+	* emacs-lisp/easy-mmode.el (define-minor-mode): Never call the
+	mode function using `eval-after-load'.
+
 2005-07-21  Kim F. Storm  <storm@cua.dk>
 
 	* mail/emacsbug.el (report-emacs-bug): Request that backtraces are
