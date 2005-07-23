@@ -21,58 +21,34 @@ Boston, MA 02110-1301, USA.  */
 /* Contributed by Andrew Choi (akochoi@mac.com).  */
 
 #include <config.h>
-
 #include <stdio.h>
 #include <math.h>
-#include <limits.h>
-#include <errno.h>
 
 #include "lisp.h"
-#include "charset.h"
 #include "macterm.h"
 #include "frame.h"
 #include "window.h"
 #include "buffer.h"
-#include "dispextern.h"
-#include "fontset.h"
 #include "intervals.h"
+#include "dispextern.h"
 #include "keyboard.h"
 #include "blockinput.h"
-#include "epaths.h"
-#include "termhooks.h"
+#include <epaths.h>
+#include "charset.h"
 #include "coding.h"
+#include "fontset.h"
 #include "systime.h"
+#include "termhooks.h"
+#include "atimer.h"
 
-/* #include "bitmaps/gray.xbm" */
-#define gray_width 2
-#define gray_height 2
-static unsigned char gray_bits[] = {
-   0x01, 0x02};
-
-/*#include <commdlg.h>
-#include <shellapi.h>*/
 #include <ctype.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <limits.h>
+#include <errno.h>
 #include <sys/param.h>
 
-#include <stdlib.h>
-#include <string.h>
-
-/*extern void free_frame_menubar ();
-extern double atof ();
-extern int w32_console_toggle_lock_key (int vk_code, Lisp_Object new_state);
-extern int quit_char;*/
-
-extern char *lispy_function_keys[];
-
-/* The gray bitmap `bitmaps/gray'.  This is done because macterm.c uses
-   it, and including `bitmaps/gray' more than once is a problem when
-   config.h defines `static' as an empty replacement string.  */
-
-int gray_bitmap_width = gray_width;
-int gray_bitmap_height = gray_height;
-unsigned char *gray_bitmap_bits = gray_bits;
+extern void free_frame_menubar ();
 
 /* Non-zero means we're allowed to display an hourglass cursor.  */
 
@@ -109,45 +85,12 @@ Lisp_Object Vx_no_window_manager;
 
 Lisp_Object Vx_pixel_size_width_font_regexp;
 
-/* Evaluate this expression to rebuild the section of syms_of_macfns
-   that initializes and staticpros the symbols declared below.  Note
-   that Emacs 18 has a bug that keeps C-x C-e from being able to
-   evaluate this expression.
-
-(progn
-  ;; Accumulate a list of the symbols we want to initialize from the
-  ;; declarations at the top of the file.
-  (goto-char (point-min))
-  (search-forward "/\*&&& symbols declared here &&&*\/\n")
-  (let (symbol-list)
-    (while (looking-at "Lisp_Object \\(Q[a-z_]+\\)")
-      (setq symbol-list
-	    (cons (buffer-substring (match-beginning 1) (match-end 1))
-		  symbol-list))
-      (forward-line 1))
-    (setq symbol-list (nreverse symbol-list))
-    ;; Delete the section of syms_of_... where we initialize the symbols.
-    (search-forward "\n  /\*&&& init symbols here &&&*\/\n")
-    (let ((start (point)))
-      (while (looking-at "^  Q")
-	(forward-line 2))
-      (kill-region start (point)))
-    ;; Write a new symbol initialization section.
-    (while symbol-list
-      (insert (format "  %s = intern (\"" (car symbol-list)))
-      (let ((start (point)))
-	(insert (substring (car symbol-list) 1))
-	(subst-char-in-region start (point) ?_ ?-))
-      (insert (format "\");\n  staticpro (&%s);\n" (car symbol-list)))
-      (setq symbol-list (cdr symbol-list)))))
-
-  */
-
-/*&&& symbols declared here &&&*/
 Lisp_Object Qnone;
 Lisp_Object Qsuppress_icon;
 Lisp_Object Qundefined_color;
 Lisp_Object Qcancel_timer;
+
+/* In dispnew.c */
 
 extern Lisp_Object Vwindow_system_version;
 
@@ -243,40 +186,11 @@ check_x_display_info (frame)
 
   return dpyinfo;
 }
-
-/* Return the Emacs frame-object corresponding to a mac window.
-   It could be the frame's main window or an icon window.  */
-
-/* This function can be called during GC, so use GC_xxx type test macros.  */
-
-struct frame *
-x_window_to_frame (dpyinfo, wdesc)
-     struct mac_display_info *dpyinfo;
-     WindowPtr wdesc;
-{
-  Lisp_Object tail, frame;
-  struct frame *f;
-
-  for (tail = Vframe_list; GC_CONSP (tail); tail = XCDR (tail))
-    {
-      frame = XCAR (tail);
-      if (!GC_FRAMEP (frame))
-        continue;
-      f = XFRAME (frame);
-      if (!FRAME_W32_P (f) || FRAME_MAC_DISPLAY_INFO (f) != dpyinfo)
-	continue;
-      /*if (f->output_data.w32->hourglass_window == wdesc)
-        return f;*/
-
-      /* MAC_TODO: Check tooltips when supported.  */
-      if (FRAME_MAC_WINDOW (f) == wdesc)
-        return f;
-    }
-  return 0;
-}
 
 
+
 static Lisp_Object unwind_create_frame P_ ((Lisp_Object));
+static Lisp_Object unwind_create_tip_frame P_ ((Lisp_Object));
 
 void x_set_foreground_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
 void x_set_background_color P_ ((struct frame *, Lisp_Object, Lisp_Object));
@@ -301,6 +215,8 @@ static Lisp_Object x_default_scroll_bar_color_parameter P_ ((struct frame *,
 							     int));
 
 extern void mac_get_window_bounds P_ ((struct frame *, Rect *, Rect *));
+
+
 
 /* Store the screen positions of frame F into XPTR and YPTR.
    These are the positions of the containing window manager window,
@@ -1834,61 +1750,14 @@ x_set_tool_bar_lines (f, value, oldval)
 }
 
 
-/* Change the name of frame F to NAME.  If NAME is nil, set F's name to
-       w32_id_name.
+
+/* Set the Mac window title to NAME for frame F.  */
 
-   If EXPLICIT is non-zero, that indicates that lisp code is setting the
-       name; if NAME is a string, set F's name to NAME and set
-       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
-
-   If EXPLICIT is zero, that indicates that Emacs redisplay code is
-       suggesting a new name, which lisp code should override; if
-       F->explicit_name is set, ignore the new name; otherwise, set it.  */
-
-void
-x_set_name (f, name, explicit)
-     struct frame *f;
+static void
+x_set_name_internal (f, name)
+     FRAME_PTR f;
      Lisp_Object name;
-     int explicit;
 {
-  /* Make sure that requests from lisp code override requests from
-     Emacs redisplay code.  */
-  if (explicit)
-    {
-      /* If we're switching from explicit to implicit, we had better
-	 update the mode lines and thereby update the title.  */
-      if (f->explicit_name && NILP (name))
-	update_mode_lines = 1;
-
-      f->explicit_name = ! NILP (name);
-    }
-  else if (f->explicit_name)
-    return;
-
-  /* If NAME is nil, set the name to the w32_id_name.  */
-  if (NILP (name))
-    {
-      /* Check for no change needed in this very common case
-	 before we do any consing.  */
-      if (!strcmp (FRAME_MAC_DISPLAY_INFO (f)->mac_id_name,
-		   SDATA (f->name)))
-	return;
-      name = build_string (FRAME_MAC_DISPLAY_INFO (f)->mac_id_name);
-    }
-  else
-    CHECK_STRING (name);
-
-  /* Don't change the name if it's already NAME.  */
-  if (! NILP (Fstring_equal (name, f->name)))
-    return;
-
-  f->name = name;
-
-  /* For setting the frame title, the title parameter should override
-     the name parameter.  */
-  if (! NILP (f->title))
-    name = f->title;
-
   if (FRAME_MAC_WINDOW (f))
     {
       if (STRING_MULTIBYTE (name))
@@ -1920,6 +1789,64 @@ x_set_name (f, name, explicit)
 
       UNBLOCK_INPUT;
     }
+}
+
+/* Change the name of frame F to NAME.  If NAME is nil, set F's name to
+       mac_id_name.
+
+   If EXPLICIT is non-zero, that indicates that lisp code is setting the
+       name; if NAME is a string, set F's name to NAME and set
+       F->explicit_name; if NAME is Qnil, then clear F->explicit_name.
+
+   If EXPLICIT is zero, that indicates that Emacs redisplay code is
+       suggesting a new name, which lisp code should override; if
+       F->explicit_name is set, ignore the new name; otherwise, set it.  */
+
+void
+x_set_name (f, name, explicit)
+     struct frame *f;
+     Lisp_Object name;
+     int explicit;
+{
+  /* Make sure that requests from lisp code override requests from
+     Emacs redisplay code.  */
+  if (explicit)
+    {
+      /* If we're switching from explicit to implicit, we had better
+	 update the mode lines and thereby update the title.  */
+      if (f->explicit_name && NILP (name))
+	update_mode_lines = 1;
+
+      f->explicit_name = ! NILP (name);
+    }
+  else if (f->explicit_name)
+    return;
+
+  /* If NAME is nil, set the name to the mac_id_name.  */
+  if (NILP (name))
+    {
+      /* Check for no change needed in this very common case
+	 before we do any consing.  */
+      if (!strcmp (FRAME_MAC_DISPLAY_INFO (f)->mac_id_name,
+		   SDATA (f->name)))
+	return;
+      name = build_string (FRAME_MAC_DISPLAY_INFO (f)->mac_id_name);
+    }
+  else
+    CHECK_STRING (name);
+
+  /* Don't change the name if it's already NAME.  */
+  if (! NILP (Fstring_equal (name, f->name)))
+    return;
+
+  f->name = name;
+
+  /* For setting the frame title, the title parameter should override
+     the name parameter.  */
+  if (! NILP (f->title))
+    name = f->title;
+
+  x_set_name_internal (f, name);
 }
 
 /* This function should be called when the user's lisp code has
@@ -1970,38 +1897,10 @@ x_set_title (f, name, old_name)
 
   if (NILP (name))
     name = f->name;
+  else
+    CHECK_STRING (name);
 
-  if (FRAME_MAC_WINDOW (f))
-    {
-      if (STRING_MULTIBYTE (name))
-#if TARGET_API_MAC_CARBON
-	name = ENCODE_UTF_8 (name);
-#else
-	name = ENCODE_SYSTEM (name);
-#endif
-
-      BLOCK_INPUT;
-
-      {
-#if TARGET_API_MAC_CARBON
-	CFStringRef windowTitle =
-	  cfstring_create_with_utf8_cstring (SDATA (name));
-
-	SetWindowTitleWithCFString (FRAME_MAC_WINDOW (f), windowTitle);
-	CFRelease (windowTitle);
-#else
-	Str255 windowTitle;
-	if (strlen (SDATA (name)) < 255)
-	  {
-	    strcpy (windowTitle, SDATA (name));
-	    c2pstr (windowTitle);
-	    SetWTitle (FRAME_MAC_WINDOW (f), windowTitle);
-	  }
-#endif
-      }
-
-      UNBLOCK_INPUT;
-    }
+  x_set_name_internal (f, name);
 }
 
 void
@@ -2470,7 +2369,7 @@ unwind_create_frame (frame)
 
 DEFUN ("x-create-frame", Fx_create_frame, Sx_create_frame,
        1, 1, 0,
-       doc: /* Make a new window, which is called a \"frame\" in Emacs terms.
+       doc: /* Make a new window, which is called a "frame" in Emacs terms.
 Returns an Emacs frame object.
 ALIST is an alist of frame parameters.
 If the parameters specify that the frame should not have a minibuffer,
@@ -2479,7 +2378,7 @@ then `default-minibuffer-frame' must be a frame whose minibuffer can
 be shared by the new frame.
 
 This function is an internal primitive--use `make-frame' instead.  */)
-  (parms)
+     (parms)
      Lisp_Object parms;
 {
   struct frame *f;
@@ -2804,7 +2703,7 @@ x_get_focus_frame (frame)
 
 DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
        doc: /* Internal function called by `color-defined-p', which see.  */)
-  (color, frame)
+     (color, frame)
      Lisp_Object color, frame;
 {
   XColor foo;
@@ -2820,7 +2719,7 @@ DEFUN ("xw-color-defined-p", Fxw_color_defined_p, Sxw_color_defined_p, 1, 2, 0,
 
 DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
        doc: /* Internal function called by `color-values', which see.  */)
-  (color, frame)
+     (color, frame)
      Lisp_Object color, frame;
 {
   XColor foo;
@@ -2843,7 +2742,7 @@ DEFUN ("xw-color-values", Fxw_color_values, Sxw_color_values, 1, 2, 0,
 
 DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
        doc: /* Internal function called by `display-color-p', which see.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2856,12 +2755,12 @@ DEFUN ("xw-display-color-p", Fxw_display_color_p, Sxw_display_color_p, 0, 1, 0,
 
 DEFUN ("x-display-grayscale-p", Fx_display_grayscale_p, Sx_display_grayscale_p,
        0, 1, 0,
-       doc: /* Return t if the X display supports shades of gray.
+       doc: /* Return t if DISPLAY supports shades of gray.
 Note that color displays do support shades of gray.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2874,11 +2773,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-width", Fx_display_pixel_width, Sx_display_pixel_width,
        0, 1, 0,
-       doc: /* Returns the width in pixels of the X display DISPLAY.
+       doc: /* Returns the width in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2888,11 +2787,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-pixel-height", Fx_display_pixel_height,
        Sx_display_pixel_height, 0, 1, 0,
-       doc: /* Returns the height in pixels of the X display DISPLAY.
+       doc: /* Returns the height in pixels of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2902,11 +2801,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-planes", Fx_display_planes, Sx_display_planes,
        0, 1, 0,
-       doc: /* Returns the number of bitplanes of the display DISPLAY.
+       doc: /* Returns the number of bitplanes of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2916,11 +2815,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-color-cells", Fx_display_color_cells, Sx_display_color_cells,
        0, 1, 0,
-       doc: /* Returns the number of color cells of the display DISPLAY.
+       doc: /* Returns the number of color cells of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2932,11 +2831,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 DEFUN ("x-server-max-request-size", Fx_server_max_request_size,
        Sx_server_max_request_size,
        0, 1, 0,
-       doc: /* Returns the maximum request size of the server of display DISPLAY.
+       doc: /* Returns the maximum request size of the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -2945,18 +2844,18 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-server-vendor", Fx_server_vendor, Sx_server_vendor, 0, 1, 0,
-       doc: /* Returns the vendor ID string of the Mac OS system (Apple).
+       doc: /* Returns the "vendor ID" string of the Mac OS system (Apple).
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   return build_string ("Apple Computers");
 }
 
 DEFUN ("x-server-version", Fx_server_version, Sx_server_version, 0, 1, 0,
-       doc: /* Returns the version numbers of the server of display DISPLAY.
+       doc: /* Returns the version numbers of the Mac OS system.
 The value is a list of three integers: the major and minor
 version numbers, and the vendor-specific release
 number.  See also the function `x-server-vendor'.
@@ -2964,7 +2863,7 @@ number.  See also the function `x-server-vendor'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   int mac_major_version;
@@ -2989,22 +2888,22 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-screens", Fx_display_screens, Sx_display_screens, 0, 1, 0,
-       doc: /* Return the number of screens on the server of display DISPLAY.
+       doc: /* Return the number of screens on the server of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   return make_number (1);
 }
 
 DEFUN ("x-display-mm-height", Fx_display_mm_height, Sx_display_mm_height, 0, 1, 0,
-       doc: /* Return the height in millimeters of the X display DISPLAY.
+       doc: /* Return the height in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   /* MAC_TODO: this is an approximation, and only of the main display */
@@ -3015,11 +2914,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 }
 
 DEFUN ("x-display-mm-width", Fx_display_mm_width, Sx_display_mm_width, 0, 1, 0,
-       doc: /* Return the width in millimeters of the X display DISPLAY.
+       doc: /* Return the width in millimeters of DISPLAY.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   /* MAC_TODO: this is an approximation, and only of the main display */
@@ -3031,12 +2930,12 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-backing-store", Fx_display_backing_store,
        Sx_display_backing_store, 0, 1, 0,
-       doc: /* Returns an indication of whether display DISPLAY does backing store.
+       doc: /* Returns an indication of whether DISPLAY does backing store.
 The value may be `always', `when-mapped', or `not-useful'.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   return intern ("not-useful");
@@ -3044,14 +2943,14 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-visual-class", Fx_display_visual_class,
        Sx_display_visual_class, 0, 1, 0,
-       doc: /* Returns the visual class of the display DISPLAY.
+       doc: /* Returns the visual class of DISPLAY.
 The value is one of the symbols `static-gray', `gray-scale',
 `static-color', `pseudo-color', `true-color', or `direct-color'.
 
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-	(display)
+     (display)
      Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
@@ -3075,11 +2974,11 @@ If omitted or nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-save-under", Fx_display_save_under,
        Sx_display_save_under, 0, 1, 0,
-       doc: /* Returns t if the display DISPLAY supports the save-under feature.
+       doc: /* Returns t if DISPLAY supports the save-under feature.
 The optional argument DISPLAY specifies which display to ask about.
 DISPLAY should be either a frame or a display name (a string).
 If omitted or nil, that stands for the selected frame's display.  */)
-  (display)
+     (display)
      Lisp_Object display;
 {
   return Qnil;
@@ -3169,7 +3068,7 @@ DISPLAY is the name of the display to connect to.
 Optional second arg XRM-STRING is a string of resources in xrdb format.
 If the optional third arg MUST-SUCCEED is non-nil,
 terminate Emacs if we can't open the connection.  */)
-  (display, xrm_string, must_succeed)
+     (display, xrm_string, must_succeed)
      Lisp_Object display, xrm_string, must_succeed;
 {
   unsigned char *xrm_option;
@@ -3214,8 +3113,8 @@ DEFUN ("x-close-connection", Fx_close_connection,
        doc: /* Close the connection to DISPLAY's server.
 For DISPLAY, specify either a frame or a display name (a string).
 If DISPLAY is nil, that stands for the selected frame's display.  */)
-  (display)
-  Lisp_Object display;
+     (display)
+     Lisp_Object display;
 {
   struct mac_display_info *dpyinfo = check_x_display_info (display);
   int i;
@@ -3241,7 +3140,7 @@ If DISPLAY is nil, that stands for the selected frame's display.  */)
 
 DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
        doc: /* Return the list of display names that Emacs has connections to.  */)
-  ()
+     ()
 {
   Lisp_Object tail, result;
 
@@ -3253,13 +3152,8 @@ DEFUN ("x-display-list", Fx_display_list, Sx_display_list, 0, 0, 0,
 }
 
 DEFUN ("x-synchronize", Fx_synchronize, Sx_synchronize, 1, 2, 0,
-       doc: /* If ON is non-nil, report errors as soon as the erring request is made.
-If ON is nil, allow buffering of requests.
-This is a noop on Mac OS systems.
-The optional second argument DISPLAY specifies which display to act on.
-DISPLAY should be either a frame or a display name (a string).
-If DISPLAY is omitted or nil, that stands for the selected frame's display.  */)
-  (on, display)
+       doc: /* This is a noop on Mac OS systems.  */)
+    (on, display)
     Lisp_Object display, on;
 {
   return Qnil;
@@ -3318,7 +3212,7 @@ DEFUN ("x-delete-window-property", Fx_delete_window_property,
        Sx_delete_window_property, 1, 2, 0,
        doc: /* Remove window property PROP from X window of FRAME.
 FRAME nil or omitted means use the selected frame.  Value is PROP.  */)
-  (prop, frame)
+     (prop, frame)
      Lisp_Object prop, frame;
 {
 #if 0 /* MAC_TODO : port window properties to Mac */
@@ -3346,7 +3240,7 @@ DEFUN ("x-window-property", Fx_window_property, Sx_window_property,
 If FRAME is nil or omitted, use the selected frame.  Value is nil
 if FRAME hasn't a property with name PROP or if PROP has no string
 value.  */)
-  (prop, frame)
+     (prop, frame)
      Lisp_Object prop, frame;
 {
 #if 0 /* MAC_TODO : port window properties to Mac */
@@ -3948,7 +3842,7 @@ compute_tip_xy (f, parms, dx, dy, width, height, root_x, root_y)
 
 DEFUN ("x-show-tip", Fx_show_tip, Sx_show_tip, 1, 6, 0,
        doc: /* Show STRING in a "tooltip" window on frame FRAME.
-A tooltip window is a small X window displaying a string.
+A tooltip window is a small window displaying a string.
 
 FRAME nil or omitted means use the selected frame.
 
@@ -3958,7 +3852,7 @@ change the tooltip's appearance.
 Automatically hide the tooltip after TIMEOUT seconds.  TIMEOUT nil
 means use the default timeout of 5 seconds.
 
-If the list of frame parameters PARAMS contains a `left' parameters,
+If the list of frame parameters PARMS contains a `left' parameter,
 the tooltip is displayed at that x-position.  Otherwise it is
 displayed at the mouse position, with offset DX added (default is 5 if
 DX isn't specified).  Likewise for the y-position; if a `top' frame
@@ -4216,7 +4110,7 @@ Use a file selection dialog.
 Select DEFAULT-FILENAME in the dialog's file selection box, if
 specified.  Ensure that file exists if MUSTMATCH is non-nil.
 If ONLY-DIR-P is non-nil, the user can only select directories.  */)
-  (prompt, dir, default_filename, mustmatch, only_dir_p)
+     (prompt, dir, default_filename, mustmatch, only_dir_p)
      Lisp_Object prompt, dir, default_filename, mustmatch, only_dir_p;
 {
   struct frame *f = SELECTED_FRAME ();
