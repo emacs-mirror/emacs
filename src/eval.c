@@ -2094,7 +2094,8 @@ DEFUN ("eval", Feval, Seval, 1, 1, 0,
     return form;
 
   QUIT;
-  if (consing_since_gc > gc_cons_combined_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     {
       GCPRO1 (form);
       Fgarbage_collect ();
@@ -2794,7 +2795,8 @@ usage: (funcall FUNCTION &rest ARGUMENTS)  */)
   register int i;
 
   QUIT;
-  if (consing_since_gc > gc_cons_combined_threshold)
+  if (consing_since_gc > gc_cons_threshold
+      && consing_since_gc > gc_relative_threshold)
     Fgarbage_collect ();
 
   if (++lisp_eval_depth > max_lisp_eval_depth)
