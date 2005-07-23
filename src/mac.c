@@ -59,11 +59,9 @@ Boston, MA 02110-1301, USA.  */
 #include <dirent.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <string.h>
 #include <pwd.h>
 #include <grp.h>
 #include <sys/param.h>
-#include <stdlib.h>
 #include <fcntl.h>
 #if __MWERKS__
 #include <unistd.h>
@@ -3447,7 +3445,7 @@ mac_get_object_from_code(OSType defCode)
 
 DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 1, 0,
        doc: /* Get the creator code of FILENAME as a four character string. */)
-  (filename)
+     (filename)
      Lisp_Object filename;
 {
   OSErr	status;
@@ -3502,7 +3500,7 @@ DEFUN ("mac-get-file-creator", Fmac_get_file_creator, Smac_get_file_creator, 1, 
 
 DEFUN ("mac-get-file-type", Fmac_get_file_type, Smac_get_file_type, 1, 1, 0,
        doc: /* Get the type code of FILENAME as a four character string. */)
-  (filename)
+     (filename)
      Lisp_Object filename;
 {
   OSErr	status;
@@ -3559,7 +3557,7 @@ DEFUN ("mac-set-file-creator", Fmac_set_file_creator, Smac_set_file_creator, 1, 
        doc: /* Set creator code of file FILENAME to CODE.
 If non-nil, CODE must be a 4-character string.  Otherwise, 'EMAx' is
 assumed. Return non-nil if successful.  */)
-  (filename, code)
+     (filename, code)
      Lisp_Object filename, code;
 {
   OSErr	status;
@@ -3619,7 +3617,7 @@ assumed. Return non-nil if successful.  */)
 DEFUN ("mac-set-file-type", Fmac_set_file_type, Smac_set_file_type, 2, 2, 0,
        doc: /* Set file code of file FILENAME to CODE.
 CODE must be a 4-character string.  Return non-nil if successful.  */)
-  (filename, code)
+     (filename, code)
      Lisp_Object filename, code;
 {
   OSErr	status;
@@ -3766,12 +3764,12 @@ do_applescript (char *script, char **result)
 
 
 DEFUN ("do-applescript", Fdo_applescript, Sdo_applescript, 1, 1, 0,
-       doc: /* Compile and execute AppleScript SCRIPT and retrieve and return the result.
+       doc: /* Compile and execute AppleScript SCRIPT and return the result.
 If compilation and execution are successful, the resulting script
 value is returned as a string.  Otherwise the function aborts and
 displays the error message returned by the AppleScript scripting
 component.  */)
-  (script)
+    (script)
     Lisp_Object script;
 {
   char *result, *temp;
@@ -3811,16 +3809,15 @@ component.  */)
 
 DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
        Smac_file_name_to_posix, 1, 1, 0,
-       doc: /* Convert Macintosh filename to Posix form.  */)
-     (mac_filename)
-     Lisp_Object mac_filename;
+       doc: /* Convert Macintosh FILENAME to Posix form.  */)
+     (filename)
+     Lisp_Object filename;
 {
   char posix_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (mac_filename);
+  CHECK_STRING (filename);
 
-  if (mac_to_posix_pathname (SDATA (mac_filename), posix_filename,
-			   MAXPATHLEN))
+  if (mac_to_posix_pathname (SDATA (filename), posix_filename, MAXPATHLEN))
     return build_string (posix_filename);
   else
     return Qnil;
@@ -3829,16 +3826,15 @@ DEFUN ("mac-file-name-to-posix", Fmac_file_name_to_posix,
 
 DEFUN ("posix-file-name-to-mac", Fposix_file_name_to_mac,
        Sposix_file_name_to_mac, 1, 1, 0,
-       doc: /* Convert Posix filename to Mac form.  */)
-     (posix_filename)
-     Lisp_Object posix_filename;
+       doc: /* Convert Posix FILENAME to Mac form.  */)
+     (filename)
+     Lisp_Object filename;
 {
   char mac_filename[MAXPATHLEN+1];
 
-  CHECK_STRING (posix_filename);
+  CHECK_STRING (filename);
 
-  if (posix_to_mac_pathname (SDATA (posix_filename), mac_filename,
-			   MAXPATHLEN))
+  if (posix_to_mac_pathname (SDATA (filename), mac_filename, MAXPATHLEN))
     return build_string (mac_filename);
   else
     return Qnil;
@@ -3853,8 +3849,8 @@ DEFUN ("mac-get-preference", Fmac_get_preference, Smac_get_preference, 1, 4, 0,
        doc: /* Return the application preference value for KEY.
 KEY is either a string specifying a preference key, or a list of key
 strings.  If it is a list, the (i+1)-th element is used as a key for
-the CFDictionary value obtained by the i-th element.  If lookup is
-failed at some stage, nil is returned.
+the CFDictionary value obtained by the i-th element.  Return nil if
+lookup is failed at some stage.
 
 Optional arg APPLICATION is an application ID string.  If omitted or
 nil, that stands for the current application.
@@ -3885,7 +3881,7 @@ CFDictionary.  If HASH-BOUND is a negative integer or nil, always
 generate alists.  If HASH-BOUND >= 0, generate an alist if the number
 of keys in the dictionary is smaller than HASH-BOUND, and a hash table
 otherwise.  */)
-  (key, application, format, hash_bound)
+     (key, application, format, hash_bound)
      Lisp_Object key, application, format, hash_bound;
 {
   CFStringRef app_id, key_str;
@@ -4122,9 +4118,8 @@ charset string, or an integer as a CFStringEncoding value.
 On Mac OS X 10.2 and later, you can do Unicode Normalization by
 specifying the optional argument NORMALIZATION-FORM with a symbol NFD,
 NFKD, NFC, NFKC, HFS+D, or HFS+C.
-On successful conversion, returns the result string, else returns
-nil.  */)
-  (string, source, target, normalization_form)
+On successful conversion, return the result string, else return nil.  */)
+     (string, source, target, normalization_form)
      Lisp_Object string, source, target, normalization_form;
 {
   Lisp_Object result = Qnil;
@@ -4183,7 +4178,7 @@ nil.  */)
 
 DEFUN ("mac-clear-font-name-table", Fmac_clear_font_name_table, Smac_clear_font_name_table, 0, 0, 0,
        doc: /* Clear the font name table.  */)
-  ()
+     ()
 {
   check_mac ();
   mac_clear_font_name_table ();
@@ -4483,8 +4478,13 @@ init_mac_osx_environment ()
      app_bundle_pathname.  */
 
   bundle = CFBundleGetMainBundle ();
-  if (!bundle)
-    return;
+  if (!bundle || CFBundleGetIdentifier (bundle) == NULL)
+    {
+      /* We could not find the bundle identifier.  For now, prevent
+	 the fatal error by bringing it up in the terminal. */
+      inhibit_window_system = 1;
+      return;
+    }
 
   bundleURL = CFBundleCopyBundleURL (bundle);
   if (!bundleURL)
