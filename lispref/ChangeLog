@@ -1,3 +1,9 @@
+2005-07-23  Eli Zaretskii  <eliz@gnu.org>
+
+	* loading.texi (Autoload): Make the `doctor' example be consistent
+	with what's in current loaddefs.el.  Describe the "fn" magic in
+	the usage portion of the doc string.
+
 2005-07-22  Richard M. Stallman  <rms@gnu.org>
 
 	* internals.texi (Garbage Collection): Clarify previous change.
