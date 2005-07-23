@@ -1,3 +1,25 @@
+2005-07-23  Richard M. Stallman  <rms@gnu.org>
+
+	* insdel.c (syms_of_insdel): staticpro combine_after_change_buffer.
+
+	* bytecode.c (MAYBE_GC): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* keyboard.c (read_char): Test gc_cons_threshold.
+	(syms_of_keyboard): staticpro Qecho_area_clear_hook.
+
+	* eval.c (Feval, Ffuncall): Test gc_cons_threshold and
+	gc_relative_threshold, one by one.
+
+	* alloc.c (gc_cons_threshold): Not static.
+	(gc_cons_combined_threshold): Var deleted.
+	(gc_relative_threshold): New variable.
+	(Fgarbage_collect, init_alloc_once): Compute gc_relative_threshold
+	instead of gc_cons_combined_threshold.
+
+	* lisp.h (gc_cons_threshold, gc_relative_threshold): Declared.
+	(gc_cons_combined_threshold): Declaration deleted.
+
 2005-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
 
 	* mac.c: Don't include stdlib.h or string.h.
