@@ -1,3 +1,39 @@
+2005-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
+
+	* mac.c: Don't include stdlib.h or string.h.
+	(Fdo_applescript, Fmac_file_name_to_posix)
+	(Fmac_file_name_to_posix): Doc fixes.
+	[TARGET_API_MAC_CARBON] (Fmac_get_preference)
+	(Fmac_code_convert_string): Likewise.
+	[MAC_OSX] (init_mac_osx_environment): Fall back on terminal mode
+	if the executable is not contained in a bundle.
+
+	* macfns.c: Don't include stdlib.h or string.h.  Include atimer.h.
+	(gray_width, gray_height): Remove defines.
+	(gray_bits, gray_bitmap_width, gray_bitmap_height)
+	(gray_bitmap_bits): Remove variables.
+	(lispy_function_keys): Remove extern.
+	(free_frame_menubar): Add extern.
+	(x_window_to_frame): Remove function.
+	(unwind_create_tip_frame): Add declaration.
+	(x_set_name_internal): New function.
+	(x_set_name, x_set_title): Use it.
+	(Fx_create_frame, Fx_display_grayscale_p, Fx_display_pixel_width)
+	(Fx_display_pixel_height, Fx_display_planes)
+	(Fx_display_color_cells, Fx_server_max_request_size)
+	(Fx_server_vendor, Fx_server_version, Fx_display_screens)
+	(Fx_display_mm_height, Fx_display_mm_width)
+	(Fx_display_backing_store, Fx_display_visual_class)
+	(Fx_display_save_under, Fx_synchronize, Fx_show_tip): Doc fixes.
+
+	* macmenu.c (Fx_popup_menu, Fx_popup_dialog): Doc fixes.
+
+	* macselect.c (Fx_own_selection_internal): Follow error
+	conventions.
+	(Fx_get_selection_internal, Fx_selection_owner_p)
+	(Fx_selection_exists_p): Doc fixes.
+	(syms_of_macselect) <selection-converter-alist>: Likewise.
+
 2005-07-21  Juanma Barranquero  <lekktu@gmail.com>
 
 	* buffer.c (syms_of_buffer) <cursor-type>: Doc fix.
