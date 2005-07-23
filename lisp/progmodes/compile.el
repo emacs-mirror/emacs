@@ -377,13 +377,13 @@ you may also want to change `compilation-page-delimiter'.")
    '(;; configure output lines.
      ("^[Cc]hecking \\(?:[Ff]or \\|[Ii]f \\|[Ww]hether \\(?:to \\)?\\)?\\(.+\\)\\.\\.\\. *\\(?:(cached) *\\)?\\(\\(yes\\(?: .+\\)?\\)\\|no\\|\\(.*\\)\\)$"
       (1 font-lock-variable-name-face)
-      (2 (compilation-face '(4 . 3))))
+      (2 font-lock-keyword-face))
      ;; Command output lines.  Recognize `make[n]:' lines too.
      ("^\\([[:alnum:]_/.+-]+\\)\\(\\[\\([0-9]+\\)\\]\\)?[ \t]*:"
       (1 font-lock-function-name-face) (3 compilation-line-face nil t))
      (" --?o\\(?:utfile\\|utput\\)?[= ]?\\(\\S +\\)" . 1)
-     ("^Compilation finished" . compilation-info-face)
-     ("^Compilation exited abnormally" . compilation-error-face))
+     ("^Compilation finished" . font-lock-keyword-face)
+     ("^Compilation exited abnormally" . font-lock-keyword-face))
    "Additional things to highlight in Compilation mode.
 This gets tacked on the end of the generated expressions.")
 
