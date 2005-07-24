@@ -1,3 +1,7 @@
+2005-07-24  Juanma Barranquero  <lekktu@gmail.com>
+
+	* man.el (Man-goto-page): Make second argument NOERROR optional.
+
 2005-07-23  Richard M. Stallman  <rms@gnu.org>
 
 	* man.el (Man-bgproc-sentinel): Check here for failure to find
@@ -6,8 +10,8 @@
 	(Man-goto-page): New arg NOERROR.  Never kill the current buffer.
 	(Man-mode): Pass t for NOERROR.
 
-	* progmodes/grep.el (grep-error-face): Use font-lock-keyword-face
-	(grep-mode-font-lock-keywords): 
+	* progmodes/grep.el (grep-error-face): Use font-lock-keyword-face.
+	(grep-mode-font-lock-keywords):
 	Don't use compilation-...-face for messages that are not file names.
 
 	* progmodes/compile.el (compilation-mode-font-lock-keywords):
