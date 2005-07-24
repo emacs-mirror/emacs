@@ -1,5 +1,13 @@
 2005-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
+	* emacs-lisp/re-builder.el (reb-with-current-window): Delete.
+	(reb-next-match, reb-show-subexp): Use `with-selected-window'
+	instead of `reb-with-current-window'.
+	(reb-prev-match): Likewise.  Also, don't move left if the search
+	was unsuccessful.
+	(reb-initialize-buffer): New function.
+	(re-builder, reb-change-syntax): Use it.
+
 	* man.el (Man-goto-page): Make second argument NOERROR optional.
 
 2005-07-23  Richard M. Stallman  <rms@gnu.org>
