@@ -1350,7 +1350,7 @@ Specify which REFERENCE to use; default is based on word at point."
   (interactive)
   (quit-window))
 
-(defun Man-goto-page (page noerror)
+(defun Man-goto-page (page &optional noerror)
   "Go to the manual page on page PAGE."
   (interactive
    (if (not Man-page-list)
