@@ -1,3 +1,8 @@
+2005-07-25  Jason Rumney  <jasonr@gnu.org>
+
+	* w32menu.c (w32_menu_display_help): Suppress tooltip when
+	navigating menus with the keyboard.
+
 2005-07-23  Richard M. Stallman  <rms@gnu.org>
 
 	* insdel.c (syms_of_insdel): staticpro combine_after_change_buffer.
