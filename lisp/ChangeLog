@@ -1,3 +1,7 @@
+2005-07-25  Ari Roponen <arjuropo@cc.jyu.fi> (tiny change)
+
+	* startup.el (command-line): Fix typo.
+
 2005-07-24  Richard M. Stallman  <rms@gnu.org>
 
 	* tooltip.el (tooltip-mode): Test emacs-basic-display,
