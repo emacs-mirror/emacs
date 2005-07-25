@@ -1,3 +1,8 @@
+2005-07-24  Richard M. Stallman  <rms@gnu.org>
+
+	* tooltip.el (tooltip-mode): Test emacs-basic-display,
+	not emacs-quick-startup.
+
 2005-07-24  Juanma Barranquero  <lekktu@gmail.com>
 
 	* emacs-lisp/re-builder.el (reb-with-current-window): Delete.
