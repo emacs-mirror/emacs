@@ -310,7 +310,12 @@ one replaces the old one."
 	(setcdr old (cdr new))
       (setq robin-package-alist
 	    (cons new robin-package-alist)))
-    `(setq robin-package-alist ',robin-package-alist)))
+    `(let ((slot (assoc ,name robin-package-alist))
+	   (newdef ',new))
+       (if slot
+	   (setcdr slot (cdr newdef))
+	 (setq robin-package-alist
+	       (cons newdef robin-package-alist))))))
 
 ;;;###autoload
 (defun robin-modify-package (name input output)
