@@ -1,4 +1,22 @@
-2005-07-25  Ari Roponen <arjuropo@cc.jyu.fi> (tiny change)
+2005-07-26  Juanma Barranquero  <lekktu@gmail.com>
+
+	* bookmark.el (bookmark-automatically-show-annotations)
+	(bookmark-read-annotation-text-func): Doc fixes.
+	(bookmark-save): Improve argument/docstring consistency.
+	(bookmark-get-bookmark, bookmark-get-bookmark-record)
+	(bookmark-alist-from-buffer)
+	(bookmark-upgrade-file-format-from-0)
+	(bookmark-grok-file-format-version)
+	(bookmark-maybe-upgrade-file-format, bookmark-kill-line)
+	(bookmark-read-annotation-mode)
+	(bookmark-insert-current-bookmark, bookmark-jump)
+	(bookmark-exit-hook): Fix typos in docstrings.
+	(bookmark-exit-hooks): Define as obsolete alias.
+	(bookmark-exit-hook-internal): Run `bookmark-exit-hook',
+	not `bookmark-exit-hooks'.  Fix docstring.
+	(bookmark-bmenu-select): "?\ " -> "?\s".
+
+2005-07-25  Ari Roponen <arjuropo@cc.jyu.fi>  (tiny change)
 
 	* startup.el (command-line): Fix typo.
 
