@@ -1,3 +1,9 @@
+2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* descr-text.el (describe-char): Handle the case where the list of
+	chars is displayed in a separate frame.
+	Be a bit more discriminating when looking for the char.
+
 2005-07-26  Juanma Barranquero  <lekktu@gmail.com>
 
 	* bookmark.el (bookmark-automatically-show-annotations)
