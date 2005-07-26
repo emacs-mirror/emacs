@@ -291,7 +291,7 @@ OUTPUT is either a character or a string.  RULES are not evaluated.
 If there already exists a robin package whose name is NAME, the new
 one replaces the old one."
 
-  (let ((old (assoc name robin-package-alist))
+  (let ((iname (intern name))
 	(new (list name ""))		; "" as a fake output
 	input output)
     (dolist (r rules)
@@ -301,15 +301,11 @@ one replaces the old one."
       (cond
        ((not (stringp input))
 	(error "Bad input sequence %S" r))
-       ((characterp output)
-	(put-char-code-property output (intern name) input))
+       ((char-valid-p output)
+	(put-char-code-property output iname input))
        ((not (stringp output))
 	(error "Bad output pattern %S" r))))
     (setcar (cdr new) docstring)	; replace "" above with real docstring
-    (if old
-	(setcdr old (cdr new))
-      (setq robin-package-alist
-	    (cons new robin-package-alist)))
     `(let ((slot (assoc ,name robin-package-alist))
 	   (newdef ',new))
        (if slot
@@ -349,11 +345,9 @@ Internal use only."
 	(if branch
 
 	    ;; A definition already exists for this input.
-	    (progn
-	      (setcar (cdr branch) output)
-	      ;; Cancel char-code-property for old definition.
-	      (when (characterp output)
-		(put-char-code-property output (intern name) nil)))
+	    ;; We do not cancel old char-code-property of OUTPUT
+	    ;; so that n-to-1 reverse conversion is possible.
+	    (setcar (cdr branch) output)
 
 	  ;; New definition for this input.
 	  (setcdr (last tree) (list (list head output))))
