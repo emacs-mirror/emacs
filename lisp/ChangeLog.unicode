@@ -1,5 +1,11 @@
 2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
 
+	* international/robin.el (robin-define-package): Delete redundant
+	code.
+	(robin-add-rule): Allow N-1 reverse conversion.
+
+2005-07-26  Naoto Takahashi  <ntakahas@m17n.org>
+
 	* international/robin.el (robin-define-package): Make the
 	expaneded form shorter.
 
