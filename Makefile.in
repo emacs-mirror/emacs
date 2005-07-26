@@ -2,7 +2,7 @@
 # DIST: make most of the changes to this file you might want, so try
 # DIST: that first.
 
-# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,2004
+# Copyright (C) 1992,93,94,95,96,97,98,1999,2000,01,02,03,04,2005
 #   Free Software Foundation, Inc.
 
 # This file is part of GNU Emacs.
@@ -302,12 +302,14 @@ Makefile: $(srcdir)/Makefile.in config.status
 config.status: ${srcdir}/configure
 	./config.status --recheck
 
-${srcdir}/configure: @MAINT@ ${srcdir}/configure.in
+AUTOCONF_INPUTS = @MAINT@ $(srcdir)/configure.in $(srcdir)/m4/getopt.m4
+
+$(srcdir)/configure: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoconf
 
 $(srcdir)/src/config.in: $(srcdir)/src/stamp-h.in
 	@true
-$(srcdir)/src/stamp-h.in: @MAINT@ ${srcdir}/configure.in
+$(srcdir)/src/stamp-h.in: $(AUTOCONF_INPUTS)
 	cd ${srcdir} && autoheader
 	rm -f $(srcdir)/src/stamp-h.in
 	echo timestamp > $(srcdir)/src/stamp-h.in

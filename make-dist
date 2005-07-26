@@ -6,7 +6,7 @@
 #### be distributed.  This means that if you add a file with an odd name,
 #### you should make sure that this script will include it.
 
-# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2005 
+# Copyright (C) 1995, 1997, 1998, 2000, 2001, 2002, 2005
 #   Free Software Foundation, Inc.
 #
 # This file is part of GNU Emacs.
@@ -323,7 +323,7 @@ for subdir in lisp site-lisp lispref lispintro \
 	      nt nt/inc nt/inc/sys nt/inc/arpa nt/inc/netinet nt/icons \
 	      etc etc/e etc/images etc/images/gnus etc/images/smilies \
 	      etc/tree-widget etc/tree-widget/default etc/tree-widget/folder \
-	      info man msdos vms mac mac/inc mac/inc/sys \
+	      info man m4 msdos vms mac mac/inc mac/inc/sys \
 	      mac/src mac/Emacs.app mac/Emacs.app/Contents \
 	      mac/Emacs.app/Contents/MacOS mac/Emacs.app/Contents/Resources \
 	      mac/Emacs.app/Contents/Resources/English.lproj
@@ -487,7 +487,12 @@ echo "Making links to \`lib-src'"
  done
  cd ../${tempdir}/lib-src
  rm -f Makefile.c
+ rm -f getopt.h
  rm -f =* TAGS)
+
+echo "Making links to \`m4'"
+(cd m4
+ ln *.m4 ../${tempdir}/m4)
 
 echo "Making links to \`nt'"
 (cd nt

@@ -1,3 +1,10 @@
+2005-07-26  Paul Eggert  <eggert@cs.ucla.edu>
+
+	Merge gnulib getopt implementation into Emacs.
+
+	* s/cygwin.h (C_SWITCH_SYSTEM): Remove, since gettext.h is
+	now part of lib-src.
+
 2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
 
 	* eval.c (Fdefvar): Allow (defvar enable-multibyte-characters).

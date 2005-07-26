@@ -2353,7 +2353,7 @@ if test "${HAVE_CARBON}" = "yes"; then
   CFLAGS="$CFLAGS -framework Carbon"
   AC_CHECK_FUNC(CancelMenuTracking, have_cmt=yes, have_cmt=no)
   if test "$have_cmt" = yes; then
-    AC_DEFINE(HAVE_CANCELMENUTRACKING, 1, 
+    AC_DEFINE(HAVE_CANCELMENUTRACKING, 1,
               [Define to 1 if CancelMenuTracking is available (Mac OSX).])
   fi
   CFLAGS="$tmp_CFLAGS"
@@ -2433,6 +2433,15 @@ fi
 AC_FUNC_GETLOADAVG
 
 AC_FUNC_FSEEKO
+
+# Configure getopt.
+m4_include([m4/getopt.m4])
+gl_GETOPT_IFELSE([
+  gl_GETOPT_SUBSTITUTE_HEADER
+  gl_PREREQ_GETOPT
+  GETOPTOBJS='getopt.o getopt1.o'
+])
+AC_SUBST(GETOPTOBJS)
 
 AC_FUNC_GETPGRP
 
