@@ -1,3 +1,7 @@
+2005-07-26  Stefan Monnier  <monnier@iro.umontreal.ca>
+
+	* eval.c (Fdefvar): Allow (defvar enable-multibyte-characters).
+
 2005-07-25  Jason Rumney  <jasonr@gnu.org>
 
 	* w32menu.c (w32_menu_display_help): Suppress tooltip when
@@ -22,7 +26,7 @@
 	(Fgarbage_collect, init_alloc_once): Compute gc_relative_threshold
 	instead of gc_cons_combined_threshold.
 
-	* lisp.h (gc_cons_threshold, gc_relative_threshold): Declared.
+	* lisp.h (gc_cons_threshold, gc_relative_threshold): Declare.
 	(gc_cons_combined_threshold): Declaration deleted.
 
 2005-07-23  YAMAMOTO Mitsuharu  <mituharu@math.s.chiba-u.ac.jp>
